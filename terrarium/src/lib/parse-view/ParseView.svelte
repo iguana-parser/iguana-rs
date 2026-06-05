@@ -14,6 +14,7 @@
     highlightOutgoingEdges,
     clearEdgeHighlights,
     highlightClickedEdge,
+    PARSE_TREE_LAYOUT,
   } from "$lib/graph-styles";
   import { GraphCollapseManager, exportGraphPng, buildParseTreeElements } from "$lib/graph-utils";
   import InputEditor from "$lib/InputEditor.svelte";
@@ -251,6 +252,11 @@
   let parseTreeContainer: HTMLDivElement;
   let parseTreeCy: cytoscape.Core | null = null;
   const parseTreeCollapseManager = new GraphCollapseManager();
+  // The Cytoscape instance is built once and kept alive across tab switches.
+  // `graphDirty` marks that its elements are stale (new parse or a layout/span
+  // toggle), so the next time the graph tab is shown it reloads instead of just
+  // resizing. A plain flag, not reactive: the graph $effect reacts to activeTab.
+  let graphDirty = true;
 
   // Parse tree node selection (for highlighting span in input)
   let parseTreeSelectedSpan = $state<{ start: number; end: number } | null>(null);
@@ -283,49 +289,64 @@
 
   let parseTreeTooltipCleanup: (() => void) | null = null;
 
-  function renderParseTree() {
+  function buildGraphElements() {
+    return buildParseTreeElements(parseTree!, showSpans, hiddenLayoutNodes);
+  }
+
+  // Park the root at the top-center of the viewport, instead of fitting the whole
+  // tree (which zooms a few-thousand-node tree down to dots). The zoom is based on
+  // the vertical level spacing, not the tree width: tidy-tree centers each child
+  // over its subtree, so the root's children span nearly the whole tree width,
+  // which would make a width-based fit collapse to dots on a wide tree. Vertical
+  // spacing is uniform per level, so framing to a fixed level count is consistent
+  // whether layout is shown or hidden. The user scrolls down from there.
+  const ROOT_FRAME_TOP_PADDING = 60;
+  const ROOT_FRAME_MIN_ZOOM = 0.3;
+  const ROOT_FRAME_MAX_ZOOM = 1.5;
+  const ROOT_FRAME_LEVELS_VISIBLE = 12;
+  function frameOnRoot() {
+    if (!parseTreeCy || !parseTreeContainer) return;
+    const root = parseTreeCy.nodes().roots().first();
+    if (root.length === 0) return;
+
+    const rootPos = root.position();
+    const child = root.outgoers("node").first() as cytoscape.NodeSingular;
+    const levelStep = child.length > 0 ? Math.abs(child.position().y - rootPos.y) : 60;
+    const h = parseTreeContainer.clientHeight;
+    const pad = 60;
+    const fitZoom = (h - 2 * pad) / (levelStep * ROOT_FRAME_LEVELS_VISIBLE);
+    const zoom = Math.max(ROOT_FRAME_MIN_ZOOM, Math.min(fitZoom, ROOT_FRAME_MAX_ZOOM));
+
+    parseTreeCy.zoom(zoom);
+    parseTreeCy.pan({
+      x: parseTreeContainer.clientWidth / 2 - rootPos.x * zoom,
+      y: ROOT_FRAME_TOP_PADDING - rootPos.y * zoom,
+    });
+  }
+
+  // Create the Cytoscape instance once and wire its event handlers. The handlers
+  // are delegated on the instance (by 'node'/'edge' selector), so they keep
+  // working across the element swaps reloadGraph does — no need to re-bind.
+  function buildGraph() {
     if (!parseTree || !parseTreeContainer) return;
-
     parseTreeCollapseManager.reset();
-    // Clear selection when re-rendering
-    parseTreeSelectedSpan = null;
-    parseTreeSelectedNodeId = null;
-    selectedTreeRowKey = null;
-
-    if (parseTreeTooltipCleanup) {
-      parseTreeTooltipCleanup();
-      parseTreeTooltipCleanup = null;
-    }
-
-    const elements = buildParseTreeElements(parseTree, showSpans, hiddenLayoutNodes);
-
-    // Save viewport before destroying
-    const savedViewport = parseTreeCy ? getViewport(parseTreeCy) : undefined;
-
-    if (parseTreeCy) {
-      parseTreeCy.destroy();
-    }
 
     parseTreeCy = createGraph({
       container: parseTreeContainer,
-      elements,
+      elements: buildGraphElements(),
       styles: [...sppfNodeStyles, ...edgeStyles],  // Reuse SPPF styles (nonterminal/token)
-      layout: 'sppf',  // Top-to-bottom tree layout
-      viewport: savedViewport,
+      layout: 'tree',  // cytoscape-tidytree (see PARSE_TREE_LAYOUT)
     });
 
     parseTreeCollapseManager.setCy(parseTreeCy);
-
-    // Setup tooltip for long labels
     parseTreeTooltipCleanup = setupGraphTooltip(parseTreeCy, parseTreeContainer);
 
-    // Add double-click handler for collapse/expand
+    // Double-click: collapse/expand
     parseTreeCy.on('dbltap', 'node', (event) => {
-      const node = event.target;
-      parseTreeCollapseManager.toggleCollapse(node.id());
+      parseTreeCollapseManager.toggleCollapse(event.target.id());
     });
 
-    // Add click handler for node selection and span highlighting
+    // Click a node: select it, highlight its span and outgoing edges
     parseTreeCy.on('tap', 'node', (event) => {
       const node = event.target;
       const start = node.data('start');
@@ -333,11 +354,9 @@
       if (start !== undefined && end !== undefined) {
         parseTreeSelectedSpan = { start, end };
       }
-      // Update node selection styling
       if (parseTreeSelectedNodeId) {
         parseTreeCy?.getElementById(parseTreeSelectedNodeId).removeClass('selected');
       }
-      // Clear previous edge highlights and highlight new outgoing edges
       if (parseTreeCy) {
         clearEdgeHighlights(parseTreeCy);
         parseTreeSelectedNodeId = node.id();
@@ -346,7 +365,7 @@
       }
     });
 
-    // Click on background clears selection
+    // Click the background: clear selection
     parseTreeCy.on('tap', (event) => {
       if (event.target === parseTreeCy) {
         parseTreeSelectedSpan = null;
@@ -358,10 +377,9 @@
       }
     });
 
-    // Click on edge to highlight it
+    // Click an edge: highlight it
     parseTreeCy.on('tap', 'edge', (event) => {
       const edge = event.target;
-      // Clear node selection
       if (parseTreeSelectedNodeId && parseTreeCy) {
         parseTreeCy.getElementById(parseTreeSelectedNodeId).removeClass('selected');
         parseTreeSelectedNodeId = null;
@@ -369,14 +387,63 @@
       parseTreeSelectedSpan = null;
       if (parseTreeCy) highlightClickedEdge(parseTreeCy, edge.id());
     });
+
+    frameOnRoot();
+    graphDirty = false;
   }
 
-  // Render the graph when its tab is shown. The tree and s-expression views are
-  // plain markup and render reactively from treeRoot / sexprRoot.
+  // Swap fresh elements onto the existing instance and relayout, reusing the same
+  // Cytoscape instance — no teardown, so repeated toggles don't churn it. `fit`
+  // true re-fits the view (a new parse); false preserves the current viewport (a
+  // toggle the user is mid-inspecting) and re-applies the current node selection.
+  function reloadGraph(fit: boolean) {
+    if (!parseTreeCy || !parseTree) return;
+    parseTreeCollapseManager.reset();
+    const savedViewport = fit ? undefined : getViewport(parseTreeCy);
+
+    parseTreeCy.elements().remove();
+    parseTreeCy.add(buildGraphElements());
+    parseTreeCy.layout({ ...PARSE_TREE_LAYOUT, fit } as any).run();
+
+    if (savedViewport) {
+      parseTreeCy.zoom(savedViewport.zoom);
+      parseTreeCy.pan(savedViewport.pan);
+    } else {
+      // fit=true: frame on the root at a readable zoom rather than fitting the
+      // whole tree to the viewport.
+      frameOnRoot();
+    }
+    // Re-apply the cross-view selection to the matching node, if it survived.
+    if (parseTreeSelectedNodeId) {
+      const node = parseTreeCy.getElementById(parseTreeSelectedNodeId);
+      if (node.length > 0) {
+        node.addClass('selected');
+        highlightOutgoingEdges(parseTreeCy, parseTreeSelectedNodeId);
+      }
+    }
+    // WebGL renderer: after a relayout it doesn't repaint edge buffers until the
+    // next viewport change, so the edges vanish until you pan or select. resize()
+    // forces a full redraw and brings them back immediately.
+    parseTreeCy.resize();
+    graphDirty = false;
+  }
+
+  // Build the instance the first time, reload it afterwards.
+  function loadGraph(fit: boolean) {
+    if (parseTreeCy) reloadGraph(fit);
+    else buildGraph();
+  }
+
+  // The graph view stays mounted across tab switches, so the instance is built
+  // once per parse rather than rebuilt on every visit. When the graph tab is
+  // shown: reload if its elements are stale, otherwise just resize (the container
+  // was display:none while hidden, so Cytoscape needs to re-read its size).
   $effect(() => {
     if (activeTab === "graph" && parseTree) {
       tick().then(() => {
-        if (parseTreeContainer) renderParseTree();
+        if (!parseTreeContainer) return;
+        if (graphDirty || !parseTreeCy) loadGraph(true);
+        else parseTreeCy.resize();
       });
     }
   });
@@ -440,6 +507,10 @@
       try {
         parseTree = JSON.parse(result.data) as ParseTree;
         rebuildLayoutDerivedState();
+        // New tree: drop any stale selection and mark the graph for reload. The
+        // graph $effect rebuilds it when the graph tab is (or becomes) active.
+        clearParseModeInputSelection();
+        graphDirty = true;
         // Expand root by default
         if (treeRoot) {
           expandedNodes = new Set([treeRoot.id]);
@@ -488,8 +559,11 @@
     rebuildLayoutDerivedState();
     // Selection may have pointed at a now-hidden node; drop it.
     clearParseModeInputSelection();
+    graphDirty = true;
+    // Re-fit on a layout toggle: the node set changed substantially, so re-center
+    // on the root rather than holding the old viewport.
     if (parseTree && activeTab === "graph") {
-      tick().then(() => renderParseTree());
+      tick().then(() => loadGraph(true));
     }
     onParseTreeChange?.();
   }
@@ -507,19 +581,10 @@
 
   function toggleSpans() {
     showSpans = !showSpans;
-    // Preserve selection across the re-render
-    const savedSelection = parseTreeSelectedNodeId;
-    const savedSpan = parseTreeSelectedSpan;
+    // reloadGraph preserves the viewport and re-applies the current selection.
+    graphDirty = true;
     if (parseTree && activeTab === "graph") {
-      tick().then(() => {
-        renderParseTree();
-        if (savedSelection && parseTreeCy) {
-          parseTreeSelectedNodeId = savedSelection;
-          parseTreeSelectedSpan = savedSpan;
-          parseTreeCy.getElementById(savedSelection).addClass('selected');
-          highlightOutgoingEdges(parseTreeCy, savedSelection);
-        }
-      });
+      tick().then(() => loadGraph(false));
     }
   }
 
@@ -667,8 +732,10 @@
       }
     });
 
-    // Graph view (only when currently rendered).
-    if (parseTreeCy) {
+    // Graph view: only when it's the active tab. The instance now persists while
+    // hidden, but its container is display:none (zero size), so the fit math
+    // below would divide by zero. Centering applies when the graph is visible.
+    if (parseTreeCy && activeTab === "graph") {
       parseTreeCollapseManager.expandAncestors(cyNodeId);
       clearEdgeHighlights(parseTreeCy);
       const cyNode = parseTreeCy.getElementById(cyNodeId);
@@ -1024,39 +1091,6 @@
               </div>
             </div>
           {/if}
-        {:else if activeTab === "graph"}
-          {#if parseTree}
-            <div class="cytoscape-container" bind:this={parseTreeContainer}></div>
-            <div class="graph-controls">
-              <button onclick={zoomIn} title="Zoom in">
-                <ZoomIn size={16} />
-              </button>
-              <button onclick={zoomOut} title="Zoom out">
-                <ZoomOut size={16} />
-              </button>
-              <button onclick={resetView} title="Reset view">
-                <Maximize2 size={16} />
-              </button>
-              <button onclick={expandAll} title="Expand all (double-click node to collapse)">
-                <Expand size={16} />
-              </button>
-              <button onclick={toggleSpans} title={showSpans ? "Hide spans" : "Show spans"}>
-                {#if showSpans}
-                  <FoldHorizontal size={16} />
-                {:else}
-                  <UnfoldHorizontal size={16} />
-                {/if}
-              </button>
-              <button onclick={exportGraph} title="Export as PNG">
-                <Download size={16} />
-              </button>
-              {#if onPopOut}
-                <button onclick={onPopOut} title="Pop out">
-                  <Fullscreen size={16} />
-                </button>
-              {/if}
-            </div>
-          {/if}
         {:else if activeTab === "sexpr"}
           {#if sexprRoot}
             <div class="sexpr-view">
@@ -1115,6 +1149,45 @@
             </div>
           {/if}
         {/if}
+        <!-- The graph view stays mounted across tab switches (hidden when another
+             tab is active) so its Cytoscape instance is built once and reused,
+             not rebuilt on every visit or re-parse. The container is always
+             present so its bind:this stays stable while parseTree resets to null
+             mid-parse; only the controls are gated on having a parse tree. -->
+        <div class="graph-view" class:hidden={activeTab !== "graph"}>
+          <div class="cytoscape-container" bind:this={parseTreeContainer}></div>
+          {#if parseTree}
+            <div class="graph-controls">
+              <button onclick={zoomIn} title="Zoom in">
+                <ZoomIn size={16} />
+              </button>
+              <button onclick={zoomOut} title="Zoom out">
+                <ZoomOut size={16} />
+              </button>
+              <button onclick={resetView} title="Reset view">
+                <Maximize2 size={16} />
+              </button>
+              <button onclick={expandAll} title="Expand all (double-click node to collapse)">
+                <Expand size={16} />
+              </button>
+              <button onclick={toggleSpans} title={showSpans ? "Hide spans" : "Show spans"}>
+                {#if showSpans}
+                  <FoldHorizontal size={16} />
+                {:else}
+                  <UnfoldHorizontal size={16} />
+                {/if}
+              </button>
+              <button onclick={exportGraph} title="Export as PNG">
+                <Download size={16} />
+              </button>
+              {#if onPopOut}
+                <button onclick={onPopOut} title="Pop out">
+                  <Fullscreen size={16} />
+                </button>
+              {/if}
+            </div>
+          {/if}
+        </div>
       </div>
     </div>
   </div>
@@ -1253,6 +1326,18 @@
   .layout-toggle:hover:not(.active) {
     background: #3c3c3c;
     color: #d4d4d4;
+  }
+
+  /* Graph view: absolute-fill like the other views, stays mounted across tab
+     switches. `display: none` while hidden so it doesn't overlay the active tab
+     (Cytoscape re-reads its size via cy.resize() when it's shown again). */
+  .graph-view {
+    position: absolute;
+    inset: 0;
+  }
+
+  .graph-view.hidden {
+    display: none;
   }
 
   /* Tree View */

@@ -378,9 +378,25 @@ export interface GraphOptions {
   container: HTMLElement;
   elements: ElementDefinition[];
   styles: Stylesheet[];
-  layout?: "sppf" | "gss";
+  // "sppf"/"gss" use dagre (general DAG layout). "tree" uses the cytoscape-tidytree
+  // extension (van der Ploeg's linear-time Reingold-Tilford), far cheaper than
+  // dagre on the near-tree-shaped parse-tree graph.
+  layout?: "sppf" | "gss" | "tree";
   viewport?: Viewport;  // If provided, restore this viewport instead of auto-fitting
 }
+
+// Layout config for the parse-tree graph, shared by the initial build and the
+// in-place reload (toggles) so a relayout matches the first layout. `fit` is
+// overridden per call: the reload preserves the viewport on a toggle.
+export const PARSE_TREE_LAYOUT = {
+  name: "tidytree",
+  direction: "TB",
+  horizontalSpacing: 16,
+  verticalSpacing: 30,
+  nodeDimensionsIncludeLabels: true,  // nodes are label-sized
+  fit: true,
+  padding: 30,
+};
 
 // Cap zoom level after fit to prevent huge nodes on small graphs
 export const MAX_FIT_ZOOM = 1.0;
@@ -418,19 +434,28 @@ export function getViewport(cyInstance: Core): Viewport {
 export function createGraph(options: GraphOptions): Core {
   const { container, elements, styles, layout = "sppf", viewport } = options;
 
+  const layoutConfig = layout === "tree"
+    ? PARSE_TREE_LAYOUT
+    : {
+        name: "dagre",
+        rankDir: layout === "gss" ? "BT" : "TB",
+        nodeSep: layout === "gss" ? 50 : 30,
+        rankSep: layout === "gss" ? 60 : 50,
+      };
+
   const cyInstance = cytoscape({
     container,
     elements,
     style: styles,
-    layout: {
-      name: "dagre",
-      rankDir: layout === "gss" ? "BT" : "TB",
-      nodeSep: layout === "gss" ? 50 : 30,
-      rankSep: layout === "gss" ? 60 : 50,
-    } as any,
+    layout: layoutConfig as any,
     userZoomingEnabled: false,  // Disable built-in wheel zoom, we handle it manually
     userPanningEnabled: true,
     boxSelectionEnabled: false,
+    // GPU renderer (Cytoscape 3.31+): GPU-accelerated drawing for large graphs,
+    // a big cut to the paint floor and to pan/zoom cost. Our styles fit its
+    // constraints (bezier edges, triangle arrows, solid colors). Spread as `any`
+    // because the bundled @types/cytoscape predates the `renderer` option.
+    ...({ renderer: { name: "canvas", webgl: true } } as any),
   });
 
   // Enable two-finger trackpad scrolling to pan, pinch to zoom

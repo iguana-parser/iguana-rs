@@ -5,6 +5,7 @@
   import { getCurrentWindow } from "@tauri-apps/api/window";
   import cytoscape from "cytoscape";
   import dagre from "cytoscape-dagre";
+  import tidytree from "cytoscape-tidytree";
   import { ZoomIn, ZoomOut, Maximize2, UnfoldHorizontal, FoldHorizontal, Download } from "lucide-svelte";
   import {
     sppfNodeStyles,
@@ -30,6 +31,7 @@
   } from "../../bindings";
 
   cytoscape.use(dagre);
+  cytoscape.use(tidytree);
 
   const toggleMaximize = createMaximizeToggle();
 
@@ -166,7 +168,7 @@
       styles: isGss
         ? [...gssNodeStyles, gssEdgeStyles]
         : [...sppfNodeStyles, ...edgeStyles],
-      layout: isGss ? "gss" : "sppf",
+      layout: isGss ? "gss" : isParseTree ? "tree" : "sppf",
       viewport: savedViewport,
     });
 

@@ -9,6 +9,7 @@
   import { FolderOpen, Cog, Hammer, X, AlertTriangle, CheckCircle, Loader2, ChevronDown, ChevronRight, ZoomIn, ZoomOut, Maximize2, Fullscreen, GitFork, Bug, Braces, PanelBottom, Trash2, ChevronsDown, Copy, ClipboardCheck, UnfoldHorizontal, FoldHorizontal, Download, MoreHorizontal, Keyboard, List } from "lucide-svelte";
   import cytoscape from "cytoscape";
   import dagre from "cytoscape-dagre";
+  import tidytree from "cytoscape-tidytree";
   import {
     sppfNodeStyles,
     gssNodeStyles,
@@ -33,6 +34,7 @@
   import "$lib/parse-view/parse-view.css";
 
   cytoscape.use(dagre);
+  cytoscape.use(tidytree);
 
   // Event listeners
   onMount(() => {
