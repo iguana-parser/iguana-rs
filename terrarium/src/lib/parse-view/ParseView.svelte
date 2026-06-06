@@ -275,6 +275,9 @@
   let sexprRoot = $derived(parseTree ? buildSexprModel(parseTree, hiddenLayoutNodes) : null);
   // The node whose subtree was last copied, cleared on a timer to flash the icon.
   let copiedSexprKey = $state<number | null>(null);
+  // The s-expression node currently under the pointer. Only its row mounts the
+  // copy button, so we never instantiate one lucide icon per node.
+  let hoveredSexprId = $state<number | null>(null);
   // Collapsed s-expression nodes (empty = fully expanded). Kept separate from the
   // tree's expandedNodes so the s-expression reads fully expanded by default.
   let sexprCollapsed = $state(new Set<number>());
@@ -1102,16 +1105,26 @@
                   <Minimize2 size={16} />
                 </button>
               </div>
-              <div class="sexpr-scroll" bind:this={sexprContainerEl}>
+              <!-- svelte-ignore a11y_mouse_events_have_key_events -->
+              <!-- svelte-ignore a11y_no_static_element_interactions -->
+              <div
+                class="sexpr-scroll"
+                bind:this={sexprContainerEl}
+                onmouseover={(e) => {
+                  const line = (e.target as HTMLElement).closest(".sexpr-line");
+                  hoveredSexprId = line ? Number((line as HTMLElement).dataset.sid) : null;
+                }}
+                onmouseleave={() => hoveredSexprId = null}
+              >
               {#snippet sexprNode(node: SexprNode, indent: number)}
                 {@const internal = node.ref === undefined && node.children.length > 0}
                 {@const collapsed = sexprCollapsed.has(node.id)}
                 <!-- svelte-ignore a11y_click_events_have_key_events -->
                 <!-- svelte-ignore a11y_no_static_element_interactions -->
-                <div class="sexpr-line" style="padding-left: {indent * 9 + 8}px">
+                <div class="sexpr-line" data-sid={node.id} style="padding-left: {indent * 9 + 8}px">
                   {#if internal}
                     <span class="sexpr-toggle" onclick={() => toggleSexprNode(node.id)}>
-                      {#if collapsed}<ChevronRight size={13} />{:else}<ChevronDown size={13} />{/if}
+                      <span class="sexpr-caret" class:expanded={!collapsed}></span>
                     </span>
                   {:else}
                     <span class="sexpr-toggle-placeholder"></span>
@@ -1126,13 +1139,15 @@
                     >
                       {#if node.shareLabel !== undefined}<span class="sexpr-label">#{node.shareLabel}=</span>{/if}{#if internal}<span class="sexpr-paren">(</span>{/if}<span class="sexpr-token" class:amb={node.label === "Amb"}>{node.label}</span>{#if internal && collapsed}<span class="sexpr-ellipsis"> … </span><span class="sexpr-paren">)</span>{/if}
                     </span>
-                    <button class="sexpr-copy" title="Copy s-expression" onclick={() => copySexprNode(node)}>
-                      {#if copiedSexprKey === node.id}
-                        <ClipboardCheck size={12} />
-                      {:else}
-                        <Copy size={12} />
-                      {/if}
-                    </button>
+                    {#if hoveredSexprId === node.id}
+                      <button class="sexpr-copy" title="Copy s-expression" onclick={() => copySexprNode(node)}>
+                        {#if copiedSexprKey === node.id}
+                          <ClipboardCheck size={12} />
+                        {:else}
+                          <Copy size={12} />
+                        {/if}
+                      </button>
+                    {/if}
                   {/if}
                 </div>
                 {#if internal && !collapsed}
@@ -1512,6 +1527,8 @@
   .sexpr-toggle {
     display: inline-flex;
     align-items: center;
+    justify-content: center;
+    width: 13px;
     color: #888;
     cursor: pointer;
     flex-shrink: 0;
@@ -1519,6 +1536,20 @@
 
   .sexpr-toggle:hover {
     color: #d4d4d4;
+  }
+
+  /* CSS caret in place of a lucide chevron, so internal nodes mount no SVG. */
+  .sexpr-caret {
+    width: 5px;
+    height: 5px;
+    border-right: 1.5px solid currentColor;
+    border-bottom: 1.5px solid currentColor;
+    transform: rotate(-45deg);
+    transition: transform 0.1s ease;
+  }
+
+  .sexpr-caret.expanded {
+    transform: rotate(45deg);
   }
 
   .sexpr-toggle-placeholder {
@@ -1571,8 +1602,9 @@
     font-style: italic;
   }
 
+  /* Only the hovered row renders this button, so no per-node icon is mounted. */
   .sexpr-copy {
-    display: none;
+    display: inline-flex;
     align-items: center;
     justify-content: center;
     width: 20px;
@@ -1582,10 +1614,6 @@
     color: #888;
     cursor: pointer;
     flex-shrink: 0;
-  }
-
-  .sexpr-line:hover .sexpr-copy {
-    display: inline-flex;
   }
 
   .sexpr-copy:hover {
