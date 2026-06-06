@@ -633,6 +633,25 @@
     });
   }
 
+  // A single click selects a node, a double click toggles its collapse. The
+  // dblclick event and e.detail are both unreliable in the WKWebView Tauri runs
+  // in, so detect the double click here: a second click on the same node within
+  // the threshold toggles. Tracking resets after a toggle, so a click that
+  // follows a double click selects rather than re-toggling.
+  const DOUBLE_CLICK_MS = 300;
+  let lastTreeClick: { id: number; time: number } | null = null;
+
+  function clickTreeNode(node: TreeNode) {
+    const now = performance.now();
+    if (lastTreeClick && lastTreeClick.id === node.id && now - lastTreeClick.time < DOUBLE_CLICK_MS) {
+      lastTreeClick = null;
+      if (node.children.length > 0) toggleTreeNode(node.id);
+    } else {
+      lastTreeClick = { id: node.id, time: now };
+      selectTreeNode(node);
+    }
+  }
+
   // Smallest-span parse tree node whose half-open range [start, end) covers
   // the offset, i.e. the deepest enclosing node. When the click lands inside
   // a hidden layout subtree, fall back to the nearest visible token instead
@@ -933,6 +952,22 @@
     selectedTreeRowKey = `n${node.id}`;
   }
 
+  // Single click selects, double click toggles collapse; see clickTreeNode for
+  // why the double click is detected here instead of via dblclick / e.detail.
+  let lastSexprClick: { id: number; time: number } | null = null;
+
+  function clickSexprNode(node: SexprNode) {
+    const now = performance.now();
+    const internal = node.ref === undefined && node.children.length > 0;
+    if (lastSexprClick && lastSexprClick.id === node.id && now - lastSexprClick.time < DOUBLE_CLICK_MS) {
+      lastSexprClick = null;
+      if (internal) toggleSexprNode(node.id);
+    } else {
+      lastSexprClick = { id: node.id, time: now };
+      selectSexprNode(node);
+    }
+  }
+
   function toggleSexprNode(id: number) {
     if (sexprCollapsed.has(id)) {
       sexprCollapsed.delete(id);
@@ -1055,8 +1090,8 @@
                     class="tree-item"
                     class:selected={selectedTreeRowKey === node.key}
                     style="padding-left: {depth * 16 + 8}px"
-                    onclick={() => selectTreeNode(node)}
-                    ondblclick={() => { if (node.children.length > 0) toggleTreeNode(node.id); }}
+                    onmousedown={(e) => { if (e.detail > 1) e.preventDefault(); }}
+                    onclick={() => clickTreeNode(node)}
                   >
                     {#if node.children.length > 0}
                       <span class="expand-icon" onclick={(e) => { e.stopPropagation(); toggleTreeNode(node.id); }}>
@@ -1135,7 +1170,8 @@
                     <span
                       class="sexpr-node"
                       class:selected={parseTreeSelectedNodeId === `n${node.id}`}
-                      onclick={() => selectSexprNode(node)}
+                      onmousedown={(e) => { if (e.detail > 1) e.preventDefault(); }}
+                      onclick={() => clickSexprNode(node)}
                     >
                       {#if node.shareLabel !== undefined}<span class="sexpr-label">#{node.shareLabel}=</span>{/if}{#if internal}<span class="sexpr-paren">(</span>{/if}<span class="sexpr-token" class:amb={node.label === "Amb"}>{node.label}</span>{#if internal && collapsed}<span class="sexpr-ellipsis"> … </span><span class="sexpr-paren">)</span>{/if}
                     </span>
