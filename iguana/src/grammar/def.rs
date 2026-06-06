@@ -101,6 +101,13 @@ impl SyntaxRule {
             start: false,
         }
     }
+
+    /// Every alternative across all priority levels, in order.
+    pub fn alternatives(&self) -> impl Iterator<Item = &Alternative> {
+        self.priority_levels
+            .iter()
+            .flat_map(|level| &level.alternatives)
+    }
 }
 
 #[derive(Debug)]
@@ -245,9 +252,7 @@ impl GrammarDef {
                 if let Some(id) = inner.as_identifier() {
                     if let Some(rule) = rules_by_name.get(id.name.as_str()) {
                         let valid_labels: Vec<&str> = rule
-                            .priority_levels
-                            .iter()
-                            .flat_map(|pl| &pl.alternatives)
+                            .alternatives()
                             .filter_map(|alt| alt.label.as_deref())
                             .collect();
 

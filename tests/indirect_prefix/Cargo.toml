@@ -1,0 +1,18 @@
+[package]
+name = "indirect_prefix"
+version = "0.1.0"
+edition = "2024"
+
+[lib]
+path = "src/lib.rs"
+test = false
+doctest = false
+
+[dependencies]
+iguana-runtime.workspace = true
+rustc-hash.workspace = true
+serde_json.workspace = true
+
+[features]
+debug-trace = ["iguana-runtime/debug-trace"]
+instrument = ["iguana-runtime/instrument"]

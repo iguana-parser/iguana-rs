@@ -1,0 +1,17 @@
+grammar IndirectPostfix
+
+layout WS
+
+@Start
+S = E
+
+E = "a"
+  > E "+" E
+  > Postfix
+
+Postfix = Body "!"
+
+Body = E
+
+@regex
+WS = [\ ]*

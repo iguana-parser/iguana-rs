@@ -64,6 +64,30 @@
 //   - Use-site rewriting. Every bare reference to a desugared
 //     nonterminal becomes a call with 0 as the precedence argument.
 //
+// Indirect operator precedence. An operator's operand is not always the
+// priority nonterminal itself; it can sit behind one or more other
+// nonterminals. Consider a lambda added to `E`:
+//
+//   E = "a"
+//     > E "+" E
+//     > Lambda
+//   Lambda = "fn" Body
+//   Body = E
+//
+// The `Lambda` alternative is a prefix operator whose operand is `E`, but `E`
+// is reached only through `Lambda` and `Body`. Without further work the body
+// is parsed with no precedence restriction, so `fn a + a` has both the parse
+// `fn (a + a)` and `(fn a) + a`, reintroducing the ambiguity that precedence
+// is meant to remove.
+//
+// The desugaring threads the precedence parameter along that path. `Lambda`
+// and `Body` each gain a `p` parameter and pass it to the nonterminal at
+// their operand end: the `Lambda` alternative calls `Lambda(1)`, `Lambda`
+// calls `Body(p)`, and `Body` calls `E(p)`, so the restriction reaches `E`
+// two nonterminals away. An indirect postfix `X op` is the mirror image,
+// threading from the left end. A nonterminal that has its own priority levels
+// is left alone, since it manages its own precedence.
+//
 // Composition with exclude desugaring. When exclude desugaring has
 // already applied to a nonterminal, it carries an `e: i32` parameter and
 // references like `E(mask)` already pass an exclude mask. This pass
@@ -111,6 +135,31 @@ enum RecursiveEnds {
     None,
 }
 
+/// How an alternative recurses into the head: directly, or indirectly through
+/// another nonterminal.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum RecursionKind {
+    /// E op E
+    Binary,
+    /// op E
+    Prefix,
+    /// E op
+    Postfix,
+    /// op X, where X derives E at its right end (X =>* αE)
+    IndirectPrefix,
+    /// X op, where X derives E at its left end (X =>* Eα)
+    IndirectPostfix,
+    /// Neither end recurses: 'a', '(' E ')'
+    NonRecursive,
+}
+
+/// A left or right end of an alternative.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum Side {
+    Left,
+    Right,
+}
+
 pub fn transform(syntax_rules: Vec<SyntaxRule>) -> Vec<SyntaxRule> {
     // Rules with `>` separators (multiple priority levels). Candidates for
     // desugaring; each one we'll try to find a recursive name for.
@@ -126,9 +175,11 @@ pub fn transform(syntax_rules: Vec<SyntaxRule>) -> Vec<SyntaxRule> {
         .collect();
 
     let recursive_names = compute_recursive_names(&syntax_rules, &rules_with_priority_levels);
-    let precedences_by_rule = compute_precedences(&recursive_names, &rules_by_name);
 
-    // NTs that already carry `e` after `exclude_desugaring`. Recursive-end calls
+    let ends = compute_ends(&syntax_rules);
+    let precedences_by_rule = compute_precedences(&recursive_names, &rules_by_name, &ends);
+
+    // Nonterminals that already carry `e` after `exclude_desugaring`. Recursive-end calls
     // emitted into the desugared body must pass `e` along when the target has it;
     // calls to non-exclude targets stay one-arg.
     let names_with_e: FxHashSet<String> = syntax_rules
@@ -137,12 +188,19 @@ pub fn transform(syntax_rules: Vec<SyntaxRule>) -> Vec<SyntaxRule> {
         .map(|r| r.head.name.clone())
         .collect();
 
-    // Subset of `rules_with_priority_levels` that have recursive ends (and so
-    // actually get rewritten with a `p: i32` parameter). Used by
-    // `update_external_references` to know which references to rewrite as `R(0)`.
-    let rules_with_recursive_ends: Vec<String> = recursive_names
+    let intermediates = compute_intermediates(
+        &syntax_rules,
+        &recursive_names,
+        &ends,
+        &rules_with_priority_levels,
+    );
+
+    // Nonterminals that gain a `p` parameter; their call sites pass `0` as the
+    // precedence argument.
+    let desugared_names: Vec<String> = recursive_names
         .iter()
         .map(|(name, _)| name.clone())
+        .chain(intermediates.keys().cloned())
         .collect();
 
     // `rules_by_name` borrow ends after this line (last use was building
@@ -155,11 +213,20 @@ pub fn transform(syntax_rules: Vec<SyntaxRule>) -> Vec<SyntaxRule> {
                 .find(|(name, _)| *name == rule.head.name)
             {
                 let precedences = precedences_by_rule[&rule.head.name].clone();
-                desugar_rule(rule, rec_name, &recursive_names, precedences, &names_with_e)
+                desugar_rule(
+                    rule,
+                    rec_name,
+                    &recursive_names,
+                    precedences,
+                    &names_with_e,
+                    &ends,
+                )
+            } else if let Some((head, side)) = intermediates.get(&rule.head.name).cloned() {
+                thread_intermediate(rule, &head, side, &names_with_e, &ends)
             } else {
                 rule
             };
-            update_external_references(rule, &rules_with_recursive_ends, &names_with_e)
+            update_external_references(rule, &desugared_names, &names_with_e)
         })
         .collect()
 }
@@ -189,16 +256,104 @@ fn compute_recursive_names(
 fn compute_precedences(
     recursive_names: &[(String, String)],
     rules_by_name: &FxHashMap<&str, &SyntaxRule>,
+    ends: &Ends,
 ) -> FxHashMap<String, Vec<Option<i64>>> {
     let mut result = FxHashMap::default();
     for (rule_name, rec_name) in recursive_names {
         let rule = rules_by_name[rule_name.as_str()];
         result.insert(
             rule_name.clone(),
-            assign_precedence(&rule.priority_levels, rec_name, recursive_names),
+            assign_precedence(
+                &rule.priority_levels,
+                rule_name,
+                rec_name,
+                recursive_names,
+                ends,
+            ),
         );
     }
     result
+}
+
+/// A map from each intermediate nonterminal to a `(head, side)` pair. `head` is
+/// the precedence nonterminal whose `p` value this nonterminal must pass along.
+/// `side` says where that head sits: `Right` for a prefix operator (head at the
+/// right end), `Left` for a postfix operator (head at the left end).
+///
+/// In an indirect prefix `op X`, the nonterminal `X` derives the head at its
+/// right end, through one or more nonterminals; in an indirect postfix `X op`, `X`
+/// derives the head at its left end. Each nonterminal on that path carries the
+/// precedence parameter until it reaches the head, the operand the precedence
+/// restricts, so each one is recorded here and later threaded. Consider:
+///
+///   E = 'a'
+///     > Lambda
+///   Lambda
+///     = 'fn' Body
+///   Body
+///     = E
+///
+/// `Lambda` and `Body` lie between the `> Lambda` alternative and `E`, so both
+/// pass `E`'s precedence along from its right end: `Lambda` and `Body` map to
+/// `(E, Right)`.
+///
+/// To collect the intermediates, follow the rightmost symbols (for a prefix) or
+/// leftmost symbols (for a postfix) from `X` toward the head, one step at a time.
+/// Every nonterminal reached before the head is an intermediate. The walk stops at
+/// the head, and at any other precedence nonterminal along the way: one that has
+/// its own precedence does not pass this head's `p` along.
+fn compute_intermediates(
+    syntax_rules: &[SyntaxRule],
+    recursive_names: &[(String, String)],
+    ends: &Ends,
+    rules_with_priority_levels: &[String],
+) -> FxHashMap<String, (String, Side)> {
+    let priority: FxHashSet<&str> = rules_with_priority_levels
+        .iter()
+        .map(String::as_str)
+        .collect();
+
+    let mut intermediates = FxHashMap::default();
+    for rule in syntax_rules {
+        let Some((_, recursive_name)) = recursive_names
+            .iter()
+            .find(|(name, _)| *name == rule.head.name)
+        else {
+            continue;
+        };
+        let head = rule.head.name.as_str();
+        for alt in rule.alternatives() {
+            let side = match classify(alt, head, recursive_name, recursive_names, ends) {
+                RecursionKind::IndirectPrefix => Side::Right,
+                RecursionKind::IndirectPostfix => Side::Left,
+                _ => continue,
+            };
+            let Some(end) = end_symbol(&alt.symbols, side).and_then(Symbol::as_identifier) else {
+                continue;
+            };
+
+            // Walk the `side` ends from the indirect end toward `head`, stopping
+            // there. Every nonterminal in between is an intermediate.
+            let mut stack = vec![end.name.as_str()];
+            let mut visited = FxHashSet::default();
+            while let Some(node) = stack.pop() {
+                if !visited.insert(node) {
+                    continue;
+                }
+                if node == head || priority.contains(node) || !ends.reaches(node, head, side) {
+                    continue;
+                }
+                let entry = (head.to_string(), side);
+                if let Some(previous) = intermediates.insert(node.to_string(), entry) {
+                    debug_assert_eq!(previous, (head.to_string(), side), "{node} threaded twice");
+                }
+                if let Some(steps) = ends.direct(side).get(node) {
+                    stack.extend(steps.iter().map(String::as_str));
+                }
+            }
+        }
+    }
+    intermediates
 }
 
 /// Finds the nonterminal name that appears at recursive (left/right) ends of a
@@ -222,11 +377,8 @@ fn find_recursive_name(rule: &SyntaxRule, rules_with_priority_levels: &[String])
 /// recursive_names mapping is built. This is correct because find_recursive_name tries
 /// each desugared name individually.
 fn has_recursive_ends(rule: &SyntaxRule, name: &str) -> bool {
-    rule.priority_levels.iter().any(|pl| {
-        pl.alternatives
-            .iter()
-            .any(|alt| classify(alt, name, &[]) != RecursiveEnds::None)
-    })
+    rule.alternatives()
+        .any(|alt| classify_ends(alt, name, &[]) != RecursiveEnds::None)
 }
 
 /// A rule needs desugaring if it has more than one priority level.
@@ -239,7 +391,7 @@ fn needs_desugaring(rule: &SyntaxRule) -> bool {
 /// recognition of indirect recursion (e.g., a sibling cascade as a reference to E).
 /// Skips leading `Condition` and trailing `Return` symbols so decorations injected
 /// by `exclude_desugaring` don't shadow the actual recursive ends.
-fn classify(
+fn classify_ends(
     alternative: &Alternative,
     recursive_name: &str,
     recursive_names: &[(String, String)],
@@ -256,6 +408,59 @@ fn classify(
     }
 }
 
+/// True if the alternative's `side` end recurses into `head` indirectly: the end
+/// symbol is a nonterminal other than `head` that reaches `head` on that side,
+/// like `Lambda` reaching `Expression` at the right. An end that is `head` itself
+/// is direct recursion, which `classify_ends` reports.
+fn recurses_indirectly(alternative: &Alternative, head: &str, ends: &Ends, side: Side) -> bool {
+    non_head_nonterminal(end_symbol(&alternative.symbols, side), head)
+        .is_some_and(|name| ends.reaches(name, head, side))
+}
+
+/// The nonterminal at this symbol position, unless it is `head` itself.
+fn non_head_nonterminal<'a>(symbol: Option<&'a Symbol>, head: &str) -> Option<&'a str> {
+    symbol
+        .and_then(Symbol::as_identifier)
+        .map(|id| id.name.as_str())
+        .filter(|&name| name != head)
+}
+
+/// Combines an alternative's direct and indirect recursion. The direct
+/// classification dominates; a direct-non-recursive alternative whose right end
+/// recurses indirectly is `IndirectPrefix`, and whose left end does so is
+/// `IndirectPostfix`. Recursing indirectly at both ends (indirect binary) is not
+/// handled and leaves the alternative non-recursive.
+fn combine_recursion(
+    direct: RecursiveEnds,
+    indirect_left: bool,
+    indirect_right: bool,
+) -> RecursionKind {
+    use RecursionKind as C;
+    match direct {
+        RecursiveEnds::Binary => C::Binary,
+        RecursiveEnds::Right => C::Prefix,
+        RecursiveEnds::Left => C::Postfix,
+        RecursiveEnds::None if indirect_right && !indirect_left => C::IndirectPrefix,
+        RecursiveEnds::None if indirect_left && !indirect_right => C::IndirectPostfix,
+        RecursiveEnds::None => C::NonRecursive,
+    }
+}
+
+/// The recursion kind of an alternative, combining direct recursion (keyed on
+/// `recursive_name`) with indirect recursion at either end (keyed on `head`).
+fn classify(
+    alternative: &Alternative,
+    head: &str,
+    recursive_name: &str,
+    recursive_names: &[(String, String)],
+    ends: &Ends,
+) -> RecursionKind {
+    let direct = classify_ends(alternative, recursive_name, recursive_names);
+    let indirect_left = recurses_indirectly(alternative, head, ends, Side::Left);
+    let indirect_right = recurses_indirectly(alternative, head, ends, Side::Right);
+    combine_recursion(direct, indirect_left, indirect_right)
+}
+
 fn is_decoration(symbol: &Symbol) -> bool {
     matches!(symbol, Symbol::Condition(_) | Symbol::Return(_))
 }
@@ -266,6 +471,23 @@ fn first_grammar_symbol(symbols: &[Symbol]) -> Option<&Symbol> {
 
 fn last_grammar_symbol(symbols: &[Symbol]) -> Option<&Symbol> {
     symbols.iter().rev().find(|s| !is_decoration(s))
+}
+
+/// The alternative's grammar symbol at `side`: the first for `Left`, the last for
+/// `Right`.
+fn end_symbol(symbols: &[Symbol], side: Side) -> Option<&Symbol> {
+    match side {
+        Side::Left => first_grammar_symbol(symbols),
+        Side::Right => last_grammar_symbol(symbols),
+    }
+}
+
+/// The index of the alternative's grammar symbol at `side`.
+fn end_index(symbols: &[Symbol], side: Side) -> Option<usize> {
+    match side {
+        Side::Left => symbols.iter().position(|s| !is_decoration(s)),
+        Side::Right => symbols.iter().rposition(|s| !is_decoration(s)),
+    }
 }
 
 /// Checks if a symbol is an identifier reference to the given recursive name,
@@ -288,23 +510,115 @@ fn is_reference_to(
             .any(|(n, rec)| n == name && rec == recursive_name)
 }
 
+/// Left and right ends of the grammar's nonterminals: the first/last symbol of
+/// each alternative (`direct_left`/`direct_right`), and their transitive closures
+/// (`left`/`right`).
+///
+/// For A = B C, B = D E, C = F G: `direct_right[A]` is `{C}` and `right[A]` is
+/// `{C, G}` (C is A's rightmost symbol, G is C's); the left side mirrors this with
+/// `direct_left[A] = {B}` and `left[A] = {B, D}`.
+struct Ends {
+    direct_left: FxHashMap<String, FxHashSet<String>>,
+    direct_right: FxHashMap<String, FxHashSet<String>>,
+    left: FxHashMap<String, FxHashSet<String>>,
+    right: FxHashMap<String, FxHashSet<String>>,
+}
+
+impl Ends {
+    /// True if `head` can appear at the `side` end of a string derived from
+    /// `from`: the rightmost symbol for `Right` (`from =>* α head`), the leftmost
+    /// for `Left` (`from =>* head α`).
+    fn reaches(&self, from: &str, head: &str, side: Side) -> bool {
+        self.transitive(side)
+            .get(from)
+            .is_some_and(|set| set.contains(head))
+    }
+
+    /// The direct (single-step) `side` ends.
+    fn direct(&self, side: Side) -> &FxHashMap<String, FxHashSet<String>> {
+        match side {
+            Side::Left => &self.direct_left,
+            Side::Right => &self.direct_right,
+        }
+    }
+
+    fn transitive(&self, side: Side) -> &FxHashMap<String, FxHashSet<String>> {
+        match side {
+            Side::Left => &self.left,
+            Side::Right => &self.right,
+        }
+    }
+}
+
+/// Builds the left- and right-end relations over all nonterminals: the first and
+/// last symbol of each alternative, and their transitive closures.
+fn compute_ends(syntax_rules: &[SyntaxRule]) -> Ends {
+    let mut direct_left: FxHashMap<String, FxHashSet<String>> = FxHashMap::default();
+    let mut direct_right: FxHashMap<String, FxHashSet<String>> = FxHashMap::default();
+    for rule in syntax_rules {
+        for alt in rule.alternatives() {
+            if let Some(id) = first_grammar_symbol(&alt.symbols).and_then(Symbol::as_identifier) {
+                direct_left
+                    .entry(rule.head.name.clone())
+                    .or_default()
+                    .insert(id.name.clone());
+            }
+            if let Some(id) = last_grammar_symbol(&alt.symbols).and_then(Symbol::as_identifier) {
+                direct_right
+                    .entry(rule.head.name.clone())
+                    .or_default()
+                    .insert(id.name.clone());
+            }
+        }
+    }
+    Ends {
+        left: transitive_closure(&direct_left),
+        right: transitive_closure(&direct_right),
+        direct_left,
+        direct_right,
+    }
+}
+
+/// Transitive (one-or-more-step) closure of a single-step ends relation.
+/// A node appears in its own reachable set only when it sits on a cycle.
+fn transitive_closure(
+    ends: &FxHashMap<String, FxHashSet<String>>,
+) -> FxHashMap<String, FxHashSet<String>> {
+    let mut result = FxHashMap::default();
+    for start in ends.keys() {
+        let mut reached = FxHashSet::default();
+        let mut stack: Vec<&str> = ends[start].iter().map(String::as_str).collect();
+        while let Some(node) = stack.pop() {
+            if reached.insert(node.to_string())
+                && let Some(node_ends) = ends.get(node)
+            {
+                stack.extend(node_ends.iter().map(String::as_str));
+            }
+        }
+        result.insert(start.clone(), reached);
+    }
+    result
+}
+
 /// Assigns precedence numbers to priority levels in reverse order.
 /// Bottom level = 1, each `>` boundary increments.
-/// Levels containing only non-recursive alternatives get `None`.
+/// Levels whose alternatives all lack recursion (direct and indirect) get `None`.
 fn assign_precedence(
     priority_levels: &[PriorityLevel],
+    head: &str,
     recursive_name: &str,
     recursive_names: &[(String, String)],
+    ends: &Ends,
 ) -> Vec<Option<i64>> {
     let mut result = vec![Option::<i64>::None; priority_levels.len()];
     let mut next_precedence: i64 = 1;
 
     // Iterate in reverse (bottom to top)
     for i in (0..priority_levels.len()).rev() {
-        let has_recursive = priority_levels[i]
-            .alternatives
-            .iter()
-            .any(|alt| classify(alt, recursive_name, recursive_names) != RecursiveEnds::None);
+        let has_recursive = priority_levels[i].alternatives.iter().any(|alt| {
+            classify(alt, head, recursive_name, recursive_names, ends)
+                != RecursionKind::NonRecursive
+        });
         if has_recursive {
             result[i] = Some(next_precedence);
             next_precedence += 1;
@@ -323,17 +637,20 @@ fn desugar_rule(
     recursive_names: &[(String, String)],
     precedences: Vec<Option<i64>>,
     names_with_e: &FxHashSet<String>,
+    ends: &Ends,
 ) -> SyntaxRule {
     let head_name = rule.head.name.clone();
     let head_has_e = names_with_e.contains(&head_name);
 
-    // Find the minimum precedence among prefix (Right-only) alternatives.
-    // This determines which alternatives need the min trick.
+    // Find the minimum precedence among prefix alternatives (direct and
+    // indirect). This determines which alternatives need the min trick.
     let min_prefix_pr = min_prefix_precedence(
         &rule.priority_levels,
         &precedences,
+        &head_name,
         recursive_name,
         recursive_names,
+        ends,
     );
 
     let mut all_alternatives = Vec::new();
@@ -347,9 +664,9 @@ fn desugar_rule(
             // actual recursive ends, then prepend the guards back to the desugared
             // form and combine the label index with our own precedence return.
             let (guard_prefix, core, trailing_label) = split_alt_decorations(alt);
-            let recursion = classify(&core, recursive_name, recursive_names);
+            let recursion = classify(&core, &head_name, recursive_name, recursive_names, ends);
             let rewritten = match (recursion, precedence) {
-                (RecursiveEnds::Binary, Some(pr)) => rewrite_binary(
+                (RecursionKind::Binary, Some(pr)) => rewrite_binary(
                     core,
                     *pr,
                     assoc,
@@ -358,24 +675,28 @@ fn desugar_rule(
                     trailing_label,
                     names_with_e,
                 ),
-                (RecursiveEnds::Right, Some(pr)) => rewrite_prefix(
-                    recursive_name,
-                    core,
-                    *pr,
-                    min_prefix_pr,
-                    head_has_e,
-                    trailing_label,
-                    names_with_e,
-                ),
-                (RecursiveEnds::Left, Some(pr)) => rewrite_postfix(
-                    recursive_name,
-                    core,
-                    *pr,
-                    head_has_e,
-                    trailing_label,
-                    names_with_e,
-                ),
-                (RecursiveEnds::None, _) => {
+                (RecursionKind::Prefix | RecursionKind::IndirectPrefix, Some(pr)) => {
+                    rewrite_prefix(
+                        recursive_name,
+                        core,
+                        *pr,
+                        min_prefix_pr,
+                        head_has_e,
+                        trailing_label,
+                        names_with_e,
+                    )
+                }
+                (RecursionKind::Postfix | RecursionKind::IndirectPostfix, Some(pr)) => {
+                    rewrite_postfix(
+                        recursive_name,
+                        core,
+                        *pr,
+                        head_has_e,
+                        trailing_label,
+                        names_with_e,
+                    )
+                }
+                (RecursionKind::NonRecursive, _) => {
                     rewrite_non_recursive(recursive_name, core, head_has_e, trailing_label)
                 }
                 _ => {
@@ -482,23 +803,28 @@ fn unpack_pr_value(value: Expr, target_has_e: bool) -> Expr {
     }
 }
 
-/// Finds the minimum precedence among prefix (Right-only recursive) alternatives.
-/// Returns `None` if there are no prefix alternatives.
+/// Finds the minimum precedence among prefix alternatives, direct (`op E`) and
+/// indirect (`op X`, where X derives E at its right end). Returns `None` if there
+/// are none.
 fn min_prefix_precedence(
     priority_levels: &[PriorityLevel],
     precedences: &[Option<i64>],
+    head: &str,
     recursive_name: &str,
     recursive_names: &[(String, String)],
+    ends: &Ends,
 ) -> Option<i64> {
     priority_levels
         .iter()
         .zip(precedences.iter())
         .filter_map(|(level, prec)| {
             let pr = (*prec)?;
-            let has_prefix = level
-                .alternatives
-                .iter()
-                .any(|alt| classify(alt, recursive_name, recursive_names) == RecursiveEnds::Right);
+            let has_prefix = level.alternatives.iter().any(|alt| {
+                matches!(
+                    classify(alt, head, recursive_name, recursive_names, ends),
+                    RecursionKind::Prefix | RecursionKind::IndirectPrefix
+                )
+            });
             has_prefix.then_some(pr)
         })
         .min()
@@ -896,6 +1222,90 @@ fn rewrite_non_recursive(
     Alternative {
         symbols,
         label: alt.label,
+    }
+}
+
+/// Threads a precedence parameter through a nonterminal on the path from an
+/// indirect prefix (`side` = `Right`) or postfix (`side` = `Left`) to the head.
+/// Each alternative whose `side` end reaches `head` binds that end to `r` and
+/// returns it; an alternative that does not reach `head` returns 0.
+fn thread_intermediate(
+    rule: SyntaxRule,
+    head: &str,
+    side: Side,
+    names_with_e: &FxHashSet<String>,
+    ends: &Ends,
+) -> SyntaxRule {
+    let SyntaxRule {
+        head: rule_head,
+        priority_levels,
+        layout,
+        start,
+    } = rule;
+
+    let mut alternatives = Vec::new();
+    for alt in priority_levels
+        .into_iter()
+        .flat_map(|level| level.alternatives)
+    {
+        let mut symbols = alt.symbols;
+        // Intermediates are never exclude targets, so they carry no trailing
+        // decoration and the appended return is the alternative's last symbol.
+        debug_assert!(
+            symbols.last().is_none_or(|symbol| !is_decoration(symbol)),
+            "intermediate alternative has a trailing decoration"
+        );
+        // The `side` end when it reaches `head`, with its index: this end gets
+        // threaded with `p` and bound to `r`.
+        let head_end = end_index(&symbols, side).and_then(|i| {
+            let id = symbols[i].as_identifier()?;
+            (id.name == head || ends.reaches(&id.name, head, side)).then(|| (i, id.clone()))
+        });
+        if let Some((i, id)) = head_end {
+            let has_e = names_with_e.contains(&id.name);
+            symbols[i] = Symbol::Binding {
+                name: "r".to_string(),
+                symbol: Box::new(threaded_call(&id, has_e)),
+            };
+            symbols.push(Symbol::Return(Expr::Ref("r".to_string())));
+        } else {
+            symbols.push(Symbol::Return(Expr::Int(0)));
+        }
+        alternatives.push(Alternative {
+            symbols,
+            label: alt.label,
+        });
+    }
+
+    let mut parameters = Vec::with_capacity(1 + rule_head.parameters.len());
+    parameters.push(Parameter {
+        name: "p".to_string(),
+        ty: ParamType::I32,
+    });
+    parameters.extend(rule_head.parameters);
+
+    SyntaxRule {
+        head: Nonterminal {
+            name: rule_head.name,
+            origin: rule_head.origin,
+            parameters,
+        },
+        priority_levels: vec![PriorityLevel::new(alternatives)],
+        layout,
+        start,
+    }
+}
+
+/// A call to `id` passing the threaded precedence `p`, plus a cleared exclusion
+/// `0` when the target carries `e`, so the call is at the target's full arity.
+fn threaded_call(id: &Identifier, has_e: bool) -> Symbol {
+    let mut arguments = vec![Expr::Ref("p".to_string())];
+    if has_e {
+        arguments.push(Expr::Int(0));
+    }
+    Symbol::Call {
+        name: id.clone(),
+        arguments,
     }
 }
 
@@ -1501,8 +1911,8 @@ mod tests {
 
     /// Indirect recursion: F is a filtered copy of E (e.g., from exclude desugaring).
     /// F's alternatives reference E at their ends, making F indirectly recursive with
-    /// recursive name E. When E has an alternative with F at the left end, classify
-    /// must recognize F as an indirect reference to E.
+    /// recursive name E. When E has an alternative with F at the left end,
+    /// `classify_ends` must recognize F as an indirect reference to E.
     ///
     ///   E = 'a' > F '*' 'b' > E '+' E
     ///   F = 'a' > E '+' E
@@ -1744,6 +2154,264 @@ mod tests {
                         e_call(Expr::Int(1), 0),
                         ret!(65539);
                         #B
+                    ),
+                )),
+            ]
+        );
+
+        let actual: Grammar = input.try_into().unwrap();
+        let expected: Grammar = expected.try_into().unwrap();
+        assert_eq!(actual, expected);
+    }
+
+    /// Right ends follow rightmost symbols transitively, the shape of Java's lambda:
+    ///   Expression = 'a' > Lambda
+    ///   Lambda = LambdaParameters '->' LambdaBody
+    ///   LambdaBody = Expression | Block
+    ///   LambdaParameters = Identifier
+    /// `Lambda` reaches `Expression` through `LambdaBody`.
+    #[test]
+    fn test_right_ends() {
+        let rules = vec![
+            syntax_rule!("Expression" =>
+                priority_level!(alternative!(lit!("a"))),
+                priority_level!(alternative!(id!("Lambda")))
+            ),
+            syntax_rule!("Lambda" =>
+                priority_level!(alternative!(id!("LambdaParameters"), lit!("->"), id!("LambdaBody")))
+            ),
+            syntax_rule!("LambdaBody" =>
+                priority_level!(
+                    alternative!(id!("Expression")),
+                    alternative!(id!("Block"))
+                )
+            ),
+            syntax_rule!("LambdaParameters" =>
+                priority_level!(alternative!(id!("Identifier")))
+            ),
+        ];
+
+        let ends = super::compute_ends(&rules);
+        use super::Side::Right;
+
+        // Lambda reaches Expression through LambdaBody; LambdaBody directly.
+        assert!(ends.reaches("Lambda", "Expression", Right));
+        assert!(ends.reaches("LambdaBody", "Expression", Right));
+        // LambdaParameters is a left end of Lambda, not a right end of anything here.
+        assert!(!ends.reaches("LambdaParameters", "Expression", Right));
+        assert!(ends.reaches("Lambda", "LambdaParameters", super::Side::Left));
+    }
+
+    /// `recurses_indirectly` reports the lambda alternative at the right (its end
+    /// reaches Expression through a nonterminal) but not the direct binary or atom:
+    ///   Expression = 'a' > Expression '+' Expression > Lambda
+    ///   Lambda = LambdaParameters '->' LambdaBody
+    ///   LambdaBody = Expression | Block
+    #[test]
+    fn test_recurses_indirectly() {
+        let rules = vec![
+            syntax_rule!("Expression" =>
+                priority_level!(alternative!(lit!("a"))),
+                priority_level!(alternative!(id!("Expression"), lit!("+"), id!("Expression"))),
+                priority_level!(alternative!(id!("Lambda")))
+            ),
+            syntax_rule!("Lambda" =>
+                priority_level!(alternative!(id!("LambdaParameters"), lit!("->"), id!("LambdaBody")))
+            ),
+            syntax_rule!("LambdaBody" =>
+                priority_level!(
+                    alternative!(id!("Expression")),
+                    alternative!(id!("Block"))
+                )
+            ),
+            syntax_rule!("LambdaParameters" =>
+                priority_level!(alternative!(id!("Identifier")))
+            ),
+        ];
+
+        let ends = super::compute_ends(&rules);
+
+        let expression = rules
+            .iter()
+            .find(|rule| rule.head.name == "Expression")
+            .unwrap();
+        let alternatives: Vec<_> = expression.alternatives().collect();
+        let right = |alt| super::recurses_indirectly(alt, "Expression", &ends, super::Side::Right);
+
+        assert!(!right(alternatives[0])); // 'a': no recursion
+        assert!(!right(alternatives[1])); // Expression '+' Expression: direct, left to `classify_ends`
+        assert!(right(alternatives[2])); // Lambda: right end reaches Expression through a nonterminal
+    }
+
+    /// `classify` combines direct and indirect recursion: the atom is
+    /// non-recursive, the direct binary is `Binary`, and the lambda alternative
+    /// is `IndirectPrefix`.
+    #[test]
+    fn test_classify() {
+        use super::RecursionKind;
+
+        let rules = vec![
+            syntax_rule!("Expression" =>
+                priority_level!(alternative!(lit!("a"))),
+                priority_level!(alternative!(id!("Expression"), lit!("+"), id!("Expression"))),
+                priority_level!(alternative!(id!("Lambda")))
+            ),
+            syntax_rule!("Lambda" =>
+                priority_level!(alternative!(id!("LambdaParameters"), lit!("->"), id!("LambdaBody")))
+            ),
+            syntax_rule!("LambdaBody" =>
+                priority_level!(
+                    alternative!(id!("Expression")),
+                    alternative!(id!("Block"))
+                )
+            ),
+            syntax_rule!("LambdaParameters" =>
+                priority_level!(alternative!(id!("Identifier")))
+            ),
+        ];
+
+        let ends = super::compute_ends(&rules);
+
+        let expression = rules
+            .iter()
+            .find(|rule| rule.head.name == "Expression")
+            .unwrap();
+        let alternatives: Vec<_> = expression.alternatives().collect();
+
+        let kind = |alt| super::classify(alt, "Expression", "Expression", &[], &ends);
+
+        assert_eq!(kind(alternatives[0]), RecursionKind::NonRecursive);
+        assert_eq!(kind(alternatives[1]), RecursionKind::Binary);
+        assert_eq!(kind(alternatives[2]), RecursionKind::IndirectPrefix);
+    }
+
+    /// Desugaring an indirect prefix (the lambda shape):
+    ///   E = 'a' > E '+' E > Lambda
+    ///   Lambda = 'fn' Body
+    ///   Body = E
+    /// `Lambda` is ranked as the bottom prefix (level 1), so '+' rises to 2 and
+    /// gains the min trick. `Lambda` and `Body` are threaded with `p`.
+    #[test]
+    fn test_indirect_prefix_desugaring() {
+        use crate::grammar::symbols::Expr;
+
+        let input = grammar_def!("Test",
+            syntax: [
+                syntax_rule!("E" =>
+                    priority_level!(alternative!(lit!("a"))),
+                    priority_level!(alternative!(id!("E"), lit!("+"), id!("E"))),
+                    priority_level!(alternative!(id!("Lambda")))
+                ),
+                syntax_rule!("Lambda" =>
+                    priority_level!(alternative!(lit!("fn"), id!("Body")))
+                ),
+                syntax_rule!("Body" =>
+                    priority_level!(alternative!(id!("E")))
+                ),
+            ]
+        );
+
+        // E(p) = 'a' return 0
+        //      | [2>=p] l=E(p) [l==0||l>=2] '+' r=E(2) return r==0 ? 2 : min(r,2)
+        //      | Lambda(1) return 1
+        // Lambda(p) = 'fn' r=Body(p) return r
+        // Body(p)   = r=E(p) return r
+        let expected = grammar_def!("Test",
+            syntax: [
+                syntax_rule!("E"("p": I32) => priority_level!(
+                    alternative!(lit!("a"), ret!(0)),
+                    alternative!(
+                        cond!(2 >= "p"),
+                        bind!("l", call!("E", ref "p")),
+                        cond!(("l" == 0) || ("l" >= 2)),
+                        lit!("+"),
+                        bind!("r", call!("E", 2)),
+                        ret!(expr ternary!(cond_expr!("r" == 0), 2, min!("r", 2))),
+                    ),
+                    alternative!(call!("Lambda", 1), ret!(1)),
+                )),
+                syntax_rule!("Lambda"("p": I32) => priority_level!(
+                    alternative!(
+                        lit!("fn"),
+                        bind!("r", call!("Body", ref "p")),
+                        ret!(expr Expr::Ref("r".to_string())),
+                    ),
+                )),
+                syntax_rule!("Body"("p": I32) => priority_level!(
+                    alternative!(
+                        bind!("r", call!("E", ref "p")),
+                        ret!(expr Expr::Ref("r".to_string())),
+                    ),
+                )),
+            ]
+        );
+
+        let actual: Grammar = input.try_into().unwrap();
+        let expected: Grammar = expected.try_into().unwrap();
+        assert_eq!(actual, expected);
+    }
+
+    /// Desugaring an indirect postfix (the mirror of the lambda shape):
+    ///   E = 'a' > E '+' E > Postfix
+    ///   Postfix = Body '!'
+    ///   Body = E
+    /// `Postfix` is ranked as the bottom level (1), '+' rises to 2. `Postfix` and
+    /// `Body` are threaded with `p` from their left end.
+    #[test]
+    fn test_indirect_postfix_desugaring() {
+        use crate::grammar::symbols::Expr;
+
+        let input = grammar_def!("Test",
+            syntax: [
+                syntax_rule!("E" =>
+                    priority_level!(alternative!(lit!("a"))),
+                    priority_level!(alternative!(id!("E"), lit!("+"), id!("E"))),
+                    priority_level!(alternative!(id!("Postfix")))
+                ),
+                syntax_rule!("Postfix" =>
+                    priority_level!(alternative!(id!("Body"), lit!("!")))
+                ),
+                syntax_rule!("Body" =>
+                    priority_level!(alternative!(id!("E")))
+                ),
+            ]
+        );
+
+        // E(p) = 'a' return 0
+        //      | [2>=p] l=E(p) [l==0||l>=2] '+' E(2) return 2
+        //      | [1>=p] l=Postfix(p) [l==0||l>=1] return 0
+        // Postfix(p) = r=Body(p) '!' return r
+        // Body(p)    = r=E(p) return r
+        let expected = grammar_def!("Test",
+            syntax: [
+                syntax_rule!("E"("p": I32) => priority_level!(
+                    alternative!(lit!("a"), ret!(0)),
+                    alternative!(
+                        cond!(2 >= "p"),
+                        bind!("l", call!("E", ref "p")),
+                        cond!(("l" == 0) || ("l" >= 2)),
+                        lit!("+"),
+                        call!("E", 2),
+                        ret!(2),
+                    ),
+                    alternative!(
+                        cond!(1 >= "p"),
+                        bind!("l", call!("Postfix", ref "p")),
+                        cond!(("l" == 0) || ("l" >= 1)),
+                        ret!(0),
+                    ),
+                )),
+                syntax_rule!("Postfix"("p": I32) => priority_level!(
+                    alternative!(
+                        bind!("r", call!("Body", ref "p")),
+                        lit!("!"),
+                        ret!(expr Expr::Ref("r".to_string())),
+                    ),
+                )),
+                syntax_rule!("Body"("p": I32) => priority_level!(
+                    alternative!(
+                        bind!("r", call!("E", ref "p")),
+                        ret!(expr Expr::Ref("r".to_string())),
                     ),
                 )),
             ]

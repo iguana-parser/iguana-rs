@@ -1,0 +1,25 @@
+(S
+  WS
+  (S
+    (E
+      (Lambda
+        "fn"
+        WS
+        (Body
+          (E
+            (E
+              "a"
+            )
+            WS
+            "+"
+            WS
+            (E
+              "a"
+            )
+          )
+        )
+      )
+    )
+  )
+  WS
+)

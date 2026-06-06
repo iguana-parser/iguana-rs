@@ -698,7 +698,9 @@ dependencies = [
  "group",
  "iggy",
  "iguana-runtime",
+ "indirect_postfix",
  "indirect_precedence",
+ "indirect_prefix",
  "layout_nonterminal",
  "left_recursive_list",
  "longest_match",
@@ -732,7 +734,25 @@ dependencies = [
 ]
 
 [[package]]
+name = "indirect_postfix"
+version = "0.1.0"
+dependencies = [
+ "iguana-runtime",
+ "rustc-hash 2.1.2",
+ "serde_json",
+]
+
+[[package]]
 name = "indirect_precedence"
+version = "0.1.0"
+dependencies = [
+ "iguana-runtime",
+ "rustc-hash 2.1.2",
+ "serde_json",
+]
+
+[[package]]
+name = "indirect_prefix"
 version = "0.1.0"
 dependencies = [
  "iguana-runtime",

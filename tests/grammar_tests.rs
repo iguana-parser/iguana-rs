@@ -102,3 +102,9 @@ mod amb_list;
 
 #[path = "amb_plus/tests.rs"]
 mod amb_plus;
+
+#[path = "indirect_prefix/tests.rs"]
+mod indirect_prefix;
+
+#[path = "indirect_postfix/tests.rs"]
+mod indirect_postfix;

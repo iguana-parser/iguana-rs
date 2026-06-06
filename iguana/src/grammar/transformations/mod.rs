@@ -87,11 +87,9 @@ where
 
 /// Visits each symbol in a syntax rule, recursively descending into nested symbols.
 pub fn visit_syntax_rule(rule: &SyntaxRule, f: &mut impl FnMut(&Symbol)) {
-    for pl in &rule.priority_levels {
-        for alt in &pl.alternatives {
-            for symbol in &alt.symbols {
-                visit_symbol(symbol, f);
-            }
+    for alt in rule.alternatives() {
+        for symbol in &alt.symbols {
+            visit_symbol(symbol, f);
         }
     }
 }

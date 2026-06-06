@@ -1,0 +1,17 @@
+grammar IndirectPrefix
+
+layout WS
+
+@Start
+S = E
+
+E = "a"
+  > E "+" E
+  > Lambda
+
+Lambda = "fn" Body
+
+Body = E
+
+@regex
+WS = [\ ]*

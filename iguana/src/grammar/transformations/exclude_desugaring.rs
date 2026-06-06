@@ -114,18 +114,16 @@ pub fn transform(syntax_rules: Vec<SyntaxRule>) -> Vec<SyntaxRule> {
         let Some(labels) = targets.get_mut(&rule.head.name) else {
             continue;
         };
-        for pl in &rule.priority_levels {
-            for alt in &pl.alternatives {
-                if let Some(label) = &alt.label
-                    && !labels.contains(label)
-                {
-                    assert!(
-                        labels.len() < 31,
-                        "exclude-targeted nonterminal {} has more than 31 labels",
-                        rule.head.name
-                    );
-                    labels.push(label.clone());
-                }
+        for alt in rule.alternatives() {
+            if let Some(label) = &alt.label
+                && !labels.contains(label)
+            {
+                assert!(
+                    labels.len() < 31,
+                    "exclude-targeted nonterminal {} has more than 31 labels",
+                    rule.head.name
+                );
+                labels.push(label.clone());
             }
         }
     }
