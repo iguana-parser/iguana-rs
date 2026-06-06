@@ -1,3 +1,1 @@
-(T
-  Char
-)
+(T Char)

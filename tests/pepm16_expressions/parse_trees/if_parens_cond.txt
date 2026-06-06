@@ -6,30 +6,18 @@
       "("
       WS
       (E
-        (E
-          "a"
-        )
+        (E "a")
         WS
         "+"
         WS
-        (E
-          "a"
-        )
-      )
+        (E "a"))
       WS
-      ")"
-    )
+      ")")
     WS
     "then"
     WS
-    (E
-      "a"
-    )
+    (E "a")
     WS
     "else"
     WS
-    (E
-      "a"
-    )
-  )
-)
+    (E "a")))

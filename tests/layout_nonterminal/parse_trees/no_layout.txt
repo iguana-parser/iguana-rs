@@ -1,11 +1,4 @@
 (S
-  (Layout
-    (WhiteSpace | Comment)*
-  )
-  (S
-    "x"
-  )
-  (Layout
-    (WhiteSpace | Comment)*
-  )
-)
+  (Layout (WhiteSpace | Comment)*)
+  (S "x")
+  (Layout (WhiteSpace | Comment)*))

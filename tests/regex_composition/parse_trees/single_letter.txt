@@ -1,6 +1,2 @@
 (S
-  (Id
-    Letter
-    LetterOrDigit*
-  )
-)
+  (Id Letter LetterOrDigit*))

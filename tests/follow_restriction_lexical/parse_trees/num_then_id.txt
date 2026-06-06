@@ -1,11 +1,5 @@
 (S
   (Element+
-    (Element
-      Num
-    )
+    (Element Num)
     WS
-    (Element
-      Id
-    )
-  )
-)
+    (Element Id)))

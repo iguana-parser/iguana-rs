@@ -2045,6 +2045,7 @@ fn gen_to_sexpr_function() -> TokenStream {
             };
             let mut s = String::new();
             printer.print(node, 0, &mut s).expect("error");
+            s.push('\n');
             s
         }
 
@@ -2077,36 +2078,46 @@ fn gen_node_to_sexpr_function() -> TokenStream {
 
         impl SexprPrinter {
             fn print(&mut self, node: ParseTree<'_>, indent: usize, w: &mut impl Write) -> fmt::Result {
+                // Writes the leading indentation, then the node, with no trailing newline.
+                // The caller writes the newline that separates siblings, and the closing
+                // paren hugs the last child instead of sitting on its own line.
+                write!(w, "{:indent$}", "")?;
+                self.print_content(node, indent, w)
+            }
+
+            fn print_content(&mut self, node: ParseTree<'_>, indent: usize, w: &mut impl Write) -> fmt::Result {
+                // A node reached from several parents is written once with a `#N=` label;
+                // later occurrences become `#N#` refs.
+                let mut prefix = String::new();
                 if let Some(id) = node.node_id() {
                     if self.indegree.get(&id).copied().unwrap_or(0) > 1 {
                         if let Some(&label) = self.labels.get(&id) {
-                            return writeln!(w, "{:indent$}#{}#", "", label);
+                            return write!(w, "#{}#", label);
                         }
                         let label = self.next_label;
                         self.next_label += 1;
                         self.labels.insert(id, label);
-                        return self.print_node(node, indent, w, &format!("#{}=", label));
+                        prefix = format!("#{}=", label);
                     }
                 }
-                self.print_node(node, indent, w, "")
-            }
-
-            fn print_node(
-                &mut self,
-                node: ParseTree<'_>,
-                indent: usize,
-                w: &mut impl Write,
-                prefix: &str,
-            ) -> fmt::Result {
                 let children = node.children();
                 if children.is_empty() {
-                    writeln!(w, "{:indent$}{}{}", "", prefix, node.display_name())
-                } else {
-                    writeln!(w, "{:indent$}{}({}", "", prefix, node.display_name())?;
+                    write!(w, "{}{}", prefix, node.display_name())
+                } else if children.iter().all(|c| c.children().is_empty()) {
+                    // Every child is a leaf, so the whole node fits on one line.
+                    write!(w, "{}({}", prefix, node.display_name())?;
                     for child in children {
+                        write!(w, " ")?;
+                        self.print_content(child, indent, w)?;
+                    }
+                    write!(w, ")")
+                } else {
+                    write!(w, "{}({}", prefix, node.display_name())?;
+                    for child in children {
+                        writeln!(w)?;
                         self.print(child, indent + 2, w)?;
                     }
-                    writeln!(w, "{:indent$})", "")
+                    write!(w, ")")
                 }
             }
         }

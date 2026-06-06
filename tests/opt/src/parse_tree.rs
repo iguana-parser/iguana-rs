@@ -423,6 +423,7 @@ pub fn to_sexpr(node: ParseTree<'_>) -> String {
     };
     let mut s = String::new();
     printer.print(node, 0, &mut s).expect("error");
+    s.push('\n');
     s
 }
 fn count_sexpr_indegree(
@@ -447,35 +448,44 @@ struct SexprPrinter {
 }
 impl SexprPrinter {
     fn print(&mut self, node: ParseTree<'_>, indent: usize, w: &mut impl Write) -> fmt::Result {
-        if let Some(id) = node.node_id() {
-            if self.indegree.get(&id).copied().unwrap_or(0) > 1 {
-                if let Some(&label) = self.labels.get(&id) {
-                    return writeln!(w, "{:indent$}#{}#", "", label);
-                }
-                let label = self.next_label;
-                self.next_label += 1;
-                self.labels.insert(id, label);
-                return self.print_node(node, indent, w, &format!("#{}=", label));
-            }
-        }
-        self.print_node(node, indent, w, "")
+        write!(w, "{:indent$}", "")?;
+        self.print_content(node, indent, w)
     }
-    fn print_node(
+    fn print_content(
         &mut self,
         node: ParseTree<'_>,
         indent: usize,
         w: &mut impl Write,
-        prefix: &str,
     ) -> fmt::Result {
+        let mut prefix = String::new();
+        if let Some(id) = node.node_id() {
+            if self.indegree.get(&id).copied().unwrap_or(0) > 1 {
+                if let Some(&label) = self.labels.get(&id) {
+                    return write!(w, "#{}#", label);
+                }
+                let label = self.next_label;
+                self.next_label += 1;
+                self.labels.insert(id, label);
+                prefix = format!("#{}=", label);
+            }
+        }
         let children = node.children();
         if children.is_empty() {
-            writeln!(w, "{:indent$}{}{}", "", prefix, node.display_name())
-        } else {
-            writeln!(w, "{:indent$}{}({}", "", prefix, node.display_name())?;
+            write!(w, "{}{}", prefix, node.display_name())
+        } else if children.iter().all(|c| c.children().is_empty()) {
+            write!(w, "{}({}", prefix, node.display_name())?;
             for child in children {
+                write!(w, " ")?;
+                self.print_content(child, indent, w)?;
+            }
+            write!(w, ")")
+        } else {
+            write!(w, "{}({}", prefix, node.display_name())?;
+            for child in children {
+                writeln!(w)?;
                 self.print(child, indent + 2, w)?;
             }
-            writeln!(w, "{:indent$})", "")
+            write!(w, ")")
         }
     }
 }

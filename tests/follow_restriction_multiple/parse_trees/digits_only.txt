@@ -2,16 +2,6 @@
   (Id+
     (Id
       ((Alpha | Digit)+
-        ((Alpha | Digit)
-          Digit
-        )
-        ((Alpha | Digit)
-          Digit
-        )
-        ((Alpha | Digit)
-          Digit
-        )
-      )
-    )
-  )
-)
+        ((Alpha | Digit) Digit)
+        ((Alpha | Digit) Digit)
+        ((Alpha | Digit) Digit)))))

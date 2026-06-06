@@ -1,9 +1,4 @@
 (Expr
-  (Expr
-    Id
-  )
+  (Expr Id)
   ","
-  (Expr
-    Id
-  )
-)
+  (Expr Id))

@@ -932,17 +932,28 @@
     return build(root.id);
   }
 
-  // Serialize an s-expression node to text, matching to_sexpr's layout (two-space
-  // indent, `(name` … `)` for internal nodes, bare name for leaves).
-  function sexprToText(node: SexprNode, indent: number = 0): string {
-    const pad = " ".repeat(indent);
-    if (node.ref !== undefined) return `${pad}#${node.ref}#\n`;
+  // Serialize an s-expression node to text, matching the generated to_sexpr:
+  // the closing paren hugs the last child, an all-leaf node prints on one line,
+  // and a node shared in the ambiguity DAG carries a `#N=` / `#N#` datum label.
+  function sexprToText(node: SexprNode): string {
+    return sexprContent(node, 0) + "\n";
+  }
+
+  // The node's text with no leading indent and no trailing newline; nested lines
+  // carry their own indent. A ref points at a node that has children, so it never
+  // counts as a leaf and always forces its parent to break.
+  function sexprContent(node: SexprNode, indent: number): string {
+    if (node.ref !== undefined) return `#${node.ref}#`;
     const prefix = node.shareLabel !== undefined ? `#${node.shareLabel}=` : "";
-    if (node.children.length === 0) return `${pad}${prefix}${node.label}\n`;
-    let s = `${pad}${prefix}(${node.label}\n`;
-    for (const child of node.children) s += sexprToText(child, indent + 2);
-    s += `${pad})\n`;
-    return s;
+    if (node.children.length === 0) return `${prefix}${node.label}`;
+    if (node.children.every((c) => c.children.length === 0 && c.ref === undefined)) {
+      const parts = node.children.map((c) => sexprContent(c, indent));
+      return `${prefix}(${node.label} ${parts.join(" ")})`;
+    }
+    const pad = " ".repeat(indent + 2);
+    let s = `${prefix}(${node.label}`;
+    for (const child of node.children) s += `\n${pad}${sexprContent(child, indent + 2)}`;
+    return s + ")";
   }
 
   function selectSexprNode(node: SexprNode) {

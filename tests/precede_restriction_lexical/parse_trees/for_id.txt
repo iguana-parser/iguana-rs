@@ -1,5 +1,1 @@
-(S
-  "for"
-  WS
-  Id
-)
+(S "for" WS Id)

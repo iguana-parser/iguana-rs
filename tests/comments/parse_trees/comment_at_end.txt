@@ -1,15 +1,9 @@
 (Expr
   Layout
   (Expr
-    (Expr
-      "x"
-    )
+    (Expr "x")
     Layout
     "+"
     Layout
-    (Expr
-      "x"
-    )
-  )
-  Layout
-)
+    (Expr "x"))
+  Layout)

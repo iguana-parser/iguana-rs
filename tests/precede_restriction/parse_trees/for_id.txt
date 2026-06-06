@@ -2,8 +2,4 @@
   "for"
   WS
   (Id
-    (Char+
-      Char
-    )
-  )
-)
+    (Char+ Char)))
