@@ -24,4 +24,5 @@ rustc-hash.workspace = true
 serde.workspace = true
 serde_json.workspace = true
 specta.workspace = true
+web-time.workspace = true
 env_logger = "0.11.8"
