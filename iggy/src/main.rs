@@ -233,7 +233,7 @@ fn main() -> Result<(), io::Error> {
         let sexpr_options = SexprOptions {
             show_layout: args.show_layout,
         };
-        cli::run_repl(|text| {
+        cli::run_repl(sexpr_options, |text, sexpr_options| {
             let input = Input::from(text);
             let ctx = ParseContext::new();
             let parse_tree_builder = IggyParseTreeBuilder::new(&ctx);

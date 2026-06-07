@@ -5,6 +5,8 @@ use std::time::{Duration, Instant};
 
 use serde::{Deserialize, Serialize};
 
+use crate::parse_tree::SexprOptions;
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Symbols {
     pub nonterminals: Vec<String>,
@@ -231,16 +233,21 @@ pub enum ReplOutcome {
 }
 
 /// Reads inputs from stdin and prints the parse tree for each. One input is a
-/// block of lines terminated by a blank line; `Ctrl-D` exits. Prompts and
-/// diagnostics go to stderr and parse trees to stdout, so the output stays
-/// usable when stdout is redirected to a file.
-pub fn run_repl<F>(mut parse_fn: F)
+/// block of lines terminated by a blank line; `Ctrl-D` exits. A line starting
+/// with `:` at a fresh prompt is a meta-command (`:set`, `:help`), not parse
+/// input. Prompts and diagnostics go to stderr and parse trees to stdout, so
+/// the output stays usable when stdout is redirected to a file.
+///
+/// `options` is the initial rendering state, taken from the parser's flags;
+/// `:set` mutates it during the session and each parse renders with the
+/// current value.
+pub fn run_repl<F>(mut options: SexprOptions, mut parse_fn: F)
 where
-    F: FnMut(&str) -> ReplOutcome,
+    F: FnMut(&str, SexprOptions) -> ReplOutcome,
 {
     use io::{BufRead, Write};
 
-    eprintln!("Enter input, blank line to parse, Ctrl-D to exit.");
+    eprintln!("Enter input, blank line to parse. :help for commands, Ctrl-D to exit.");
     let stdin = io::stdin();
     let mut handle = stdin.lock();
     loop {
@@ -249,6 +256,7 @@ where
 
         // Accumulate lines until a blank line submits the block.
         let mut block = String::new();
+        let mut command = false;
         loop {
             let mut line = String::new();
             if handle.read_line(&mut line).unwrap_or(0) == 0 {
@@ -259,6 +267,12 @@ where
                 }
                 break;
             }
+            // A `:` line at a fresh prompt is a command; mid-block it is input.
+            if block.is_empty() && line.trim_start().starts_with(':') {
+                run_repl_command(line.trim(), &mut options);
+                command = true;
+                break;
+            }
             if line.trim_end_matches(['\n', '\r']).is_empty() {
                 break;
             }
@@ -266,12 +280,15 @@ where
             eprint!(". ");
             io::stderr().flush().ok();
         }
+        if command {
+            continue;
+        }
 
         let input = block.trim_end();
         if input.is_empty() {
             continue;
         }
-        match parse_fn(input) {
+        match parse_fn(input, options) {
             ReplOutcome::Parsed { tree, ambiguous } => {
                 if ambiguous {
                     eprintln!("// ambiguous");
@@ -281,5 +298,44 @@ where
             }
             ReplOutcome::Failed { message } => eprintln!("{}", message),
         }
+    }
+}
+
+/// Runs a REPL meta-command (the line still carries its leading `:`). Feedback
+/// goes to stderr, like the prompt.
+fn run_repl_command(line: &str, options: &mut SexprOptions) {
+    let mut parts = line.split_whitespace();
+    match parts.next() {
+        Some(":help") | Some(":h") | Some(":?") => {
+            eprintln!("commands:");
+            eprintln!("  :set                            list settings");
+            eprintln!("  :set show-layout [true|false]   toggle, or set, layout visibility");
+            eprintln!("  :help                           show this help");
+            eprintln!("  Ctrl-D                          exit");
+        }
+        Some(":set") => match parts.next() {
+            None => eprintln!("show-layout = {}", options.show_layout),
+            Some("show-layout") => match parse_repl_bool(parts.next(), options.show_layout) {
+                Ok(value) => {
+                    options.show_layout = value;
+                    eprintln!("show-layout = {}", value);
+                }
+                Err(()) => eprintln!("usage: :set show-layout [true|false]"),
+            },
+            Some(other) => eprintln!("unknown setting: {} (try :help)", other),
+        },
+        Some(other) => eprintln!("unknown command: {} (try :help)", other),
+        None => {}
+    }
+}
+
+/// Parses a boolean setting value. A missing value toggles the current state,
+/// so the common `:set show-layout` flips it without typing true or false.
+fn parse_repl_bool(value: Option<&str>, current: bool) -> Result<bool, ()> {
+    match value {
+        None => Ok(!current),
+        Some("true") | Some("on") => Ok(true),
+        Some("false") | Some("off") => Ok(false),
+        Some(_) => Err(()),
     }
 }
