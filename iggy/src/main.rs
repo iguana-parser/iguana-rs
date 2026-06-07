@@ -53,14 +53,14 @@ struct Cli {
     #[arg(long, value_name = "EXT", requires = "dir")]
     ext: Option<String>,
     /// The nonterminal to start parsing from (required unless --list-nonterminals is used)
-    #[arg(long = "start")]
+    #[arg(short = 'n', long = "nonterminal", value_name = "NAME")]
     start_nonterminal: Option<String>,
     /// List simple nonterminals (one per line) and exit
     #[arg(long)]
     list_nonterminals: bool,
     /// Interactive mode: read inputs from stdin and print the parse tree
 
-    /// for each. Requires --start; no input file is used.
+    /// for each. Requires --nonterminal; no input file is used.
     #[arg(long)]
     repl: bool,
     /// Write symbol table (all nonterminals) as JSON to the specified file
@@ -202,7 +202,7 @@ fn main() -> Result<(), io::Error> {
         let start_nonterminal_name = args.start_nonterminal.as_ref().ok_or_else(|| {
             io::Error::new(
                 io::ErrorKind::InvalidInput,
-                "--start is required for parsing",
+                "--nonterminal is required for parsing",
             )
         })?;
         let start_nonterminal_id = nonterminal_id(&format!("Start{}", start_nonterminal_name))
@@ -219,7 +219,7 @@ fn main() -> Result<(), io::Error> {
         let start_nonterminal_name = args.start_nonterminal.as_ref().ok_or_else(|| {
             io::Error::new(
                 io::ErrorKind::InvalidInput,
-                "--start is required for parsing",
+                "--nonterminal is required for parsing",
             )
         })?;
         let start_nonterminal_id = nonterminal_id(&format!("Start{}", start_nonterminal_name))
@@ -272,7 +272,7 @@ fn main() -> Result<(), io::Error> {
     let start_nonterminal_name = args.start_nonterminal.ok_or_else(|| {
         io::Error::new(
             io::ErrorKind::InvalidInput,
-            "--start is required for parsing",
+            "--nonterminal is required for parsing",
         )
     })?;
     #[cfg(not(feature = "debug-trace"))]

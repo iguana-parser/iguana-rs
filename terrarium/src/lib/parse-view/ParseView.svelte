@@ -462,7 +462,7 @@
     parseTreeSelectedSpan = null;
     parseErrorInfo = null;
 
-    onLogCommand?.(`${parserName} <input> --start ${startNonterminal}`);
+    onLogCommand?.(`${parserName} <input> --nonterminal ${startNonterminal}`);
 
     const result = await commands.parse(parserDirectory, inputText, startNonterminal);
     if (result.status === "error") {

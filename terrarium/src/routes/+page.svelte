@@ -1123,7 +1123,7 @@
     if (result.status === "ok") {
       const { input_path, symbols_path, trace_path, current_action, descriptor_set, input_index, total_errors, current_error_index } = result.data;
       logCommand(`${parserName} --write-symbols ${symbols_path}`);
-      logCommand(`${parserName} ${input_path} --start ${startNonterminal} --trace ${trace_path} --format json`);
+      logCommand(`${parserName} ${input_path} --nonterminal ${startNonterminal} --trace ${trace_path} --format json`);
       debugLoaded = true;
       currentStep = result.data.current_step;
       totalSteps = result.data.total_steps;
@@ -1139,7 +1139,7 @@
       await notifyDebugGraphWindows();
     } else {
       logCommand(`${parserName} --write-symbols <symbols.json>`);
-      logCommand(`${parserName} <input> --start ${startNonterminal} --trace <trace.json> --format json`);
+      logCommand(`${parserName} <input> --nonterminal ${startNonterminal} --trace <trace.json> --format json`);
       setStatus("Debug failed", "error");
       logError(result.error);
     }
