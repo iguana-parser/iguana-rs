@@ -103,7 +103,7 @@ pub fn generate(
         quote! {}
     };
 
-    let to_sexpr_function = gen_to_sexpr_function();
+    let to_sexpr_function = gen_to_sexpr_function(grammar);
     let node_to_sexpr_function = gen_node_to_sexpr_function();
     let to_json_function = gen_to_json_function(grammar);
 
@@ -144,7 +144,7 @@ fn gen_imports(grammar: &Grammar) -> TokenStream {
         use rustc_hash::{FxHashMap, FxHashSet};
         use iguana_runtime::{
             ids::{NonterminalId, SlotId, TerminalId},
-            parse_tree::{Bump, OneOrMany, ParseContext, ParseTreeBuilder, visit_sppf},
+            parse_tree::{Bump, OneOrMany, ParseContext, ParseTreeBuilder, SexprOptions, visit_sppf},
             sppf::{NonterminalNode, SPPFNodeId, Span, TerminalNode},
         };
         use crate::parser::#parser_name;
@@ -2028,17 +2028,32 @@ fn gen_create_parse_tree_nonterminal_function(
     }
 }
 
-fn gen_to_sexpr_function() -> TokenStream {
+fn gen_to_sexpr_function(grammar: &Grammar) -> TokenStream {
+    let layout_name = grammar
+        .layout
+        .as_ref()
+        .and_then(|s| s.as_identifier())
+        .map(|i| i.name.as_str())
+        .map(|s| quote! { Some(#s) })
+        .unwrap_or_else(|| quote! { None });
+
     quote! {
+        const SEXPR_LAYOUT_NAME: Option<&str> = #layout_name;
+
         pub fn to_sexpr(node: ParseTree<'_>) -> String {
+            to_sexpr_with(node, SexprOptions::default())
+        }
+
+        pub fn to_sexpr_with(node: ParseTree<'_>, options: SexprOptions) -> String {
             // Count how many parents reach each node. A node with two or more is shared
             // in the ambiguity DAG and gets a `#N=` / `#N#` label so its subtree is
             // written once instead of re-expanded, which keeps a shared forest readable
             // and bounded. Unambiguous trees have no shared nodes, so they print without
             // labels.
             let mut indegree = FxHashMap::default();
-            count_sexpr_indegree(node, &mut FxHashSet::default(), &mut indegree);
+            count_sexpr_indegree(node, options, &mut FxHashSet::default(), &mut indegree);
             let mut printer = SexprPrinter {
+                options,
                 indegree,
                 labels: FxHashMap::default(),
                 next_label: 1,
@@ -2049,8 +2064,23 @@ fn gen_to_sexpr_function() -> TokenStream {
             s
         }
 
+        // A hidden node, with its whole subtree, is left out of the output. Layout
+        // nodes (whitespace, comments) are hidden unless the caller asks for them.
+        fn sexpr_hidden(node: ParseTree<'_>, options: SexprOptions) -> bool {
+            !options.show_layout && SEXPR_LAYOUT_NAME == Some(node.display_name())
+        }
+
+        // The node's children with the hidden ones removed.
+        fn sexpr_children<'a>(node: ParseTree<'a>, options: SexprOptions) -> Vec<ParseTree<'a>> {
+            node.children()
+                .into_iter()
+                .filter(|c| !sexpr_hidden(*c, options))
+                .collect()
+        }
+
         fn count_sexpr_indegree(
             node: ParseTree<'_>,
+            options: SexprOptions,
             visited: &mut FxHashSet<usize>,
             indegree: &mut FxHashMap<usize, u32>,
         ) {
@@ -2061,8 +2091,8 @@ fn gen_to_sexpr_function() -> TokenStream {
                     return;
                 }
             }
-            for child in node.children() {
-                count_sexpr_indegree(child, visited, indegree);
+            for child in sexpr_children(node, options) {
+                count_sexpr_indegree(child, options, visited, indegree);
             }
         }
     }
@@ -2071,6 +2101,7 @@ fn gen_to_sexpr_function() -> TokenStream {
 fn gen_node_to_sexpr_function() -> TokenStream {
     quote! {
         struct SexprPrinter {
+            options: SexprOptions,
             indegree: FxHashMap<usize, u32>,
             labels: FxHashMap<usize, u32>,
             next_label: u32,
@@ -2100,10 +2131,10 @@ fn gen_node_to_sexpr_function() -> TokenStream {
                         prefix = format!("#{}=", label);
                     }
                 }
-                let children = node.children();
+                let children = sexpr_children(node, self.options);
                 if children.is_empty() {
                     write!(w, "{}{}", prefix, node.display_name())
-                } else if children.iter().all(|c| c.children().is_empty()) {
+                } else if children.iter().all(|c| sexpr_children(*c, self.options).is_empty()) {
                     // Every child is a leaf, so the whole node fits on one line.
                     write!(w, "{}({}", prefix, node.display_name())?;
                     for child in children {

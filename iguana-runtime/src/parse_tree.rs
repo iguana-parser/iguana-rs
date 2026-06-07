@@ -9,6 +9,19 @@ use crate::{
     sppf::{NonterminalNode, SPPFNode, SPPFNodeId, TerminalNode},
 };
 
+/// Options for rendering a parse tree as an s-expression.
+#[derive(Clone, Copy)]
+pub struct SexprOptions {
+    /// Include layout nodes (whitespace, comments) and their subtrees.
+    pub show_layout: bool,
+}
+
+impl Default for SexprOptions {
+    fn default() -> Self {
+        SexprOptions { show_layout: true }
+    }
+}
+
 pub struct ParseContext {
     bump: Bump,
 }

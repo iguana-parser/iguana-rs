@@ -1,7 +1,7 @@
 use clap::{Parser as ClapParser, ValueEnum as ClapValueEnum};
 use iggy::{
     grammar_data::{NONTERMINAL_DISPLAY_ORDER, NONTERMINALS, SLOTS, TERMINALS, nonterminal_id},
-    parse_tree::{IggyParseTreeBuilder, create_parse_tree, to_json, to_sexpr},
+    parse_tree::{IggyParseTreeBuilder, create_parse_tree, to_json, to_sexpr_with},
     parser::IggyParser,
 };
 #[cfg(feature = "debug-trace")]
@@ -10,7 +10,7 @@ use iguana_runtime::{
     cli,
     ids::NonterminalId,
     input::Input,
-    parse_tree::{ParseContext, is_ambiguous},
+    parse_tree::{ParseContext, SexprOptions, is_ambiguous},
     parser::{ParseResult, Parser},
     visualization::{
         dot::write_svg,
@@ -145,6 +145,11 @@ struct Cli {
     /// to silence them too.
     #[arg(short, long)]
     quiet: bool,
+    /// Include layout (whitespace, comments) nodes in the parse-tree
+
+    /// output. Hidden by default.
+    #[arg(long)]
+    show_layout: bool,
     /// Print only the parser stats histogram and exit. Suppresses
 
     /// the parse-tree dump, the "Parse success" line, and (with
@@ -225,6 +230,9 @@ fn main() -> Result<(), io::Error> {
                     format!("Unknown nonterminal: '{}'", start_nonterminal_name),
                 )
             })?;
+        let sexpr_options = SexprOptions {
+            show_layout: args.show_layout,
+        };
         cli::run_repl(|text| {
             let input = Input::from(text);
             let ctx = ParseContext::new();
@@ -241,7 +249,7 @@ fn main() -> Result<(), io::Error> {
                         &parse_tree_builder,
                     );
                     cli::ReplOutcome::Parsed {
-                        tree: to_sexpr(tree),
+                        tree: to_sexpr_with(tree, sexpr_options),
                         ambiguous,
                     }
                 }
@@ -465,7 +473,10 @@ fn main() -> Result<(), io::Error> {
                 && args.trace.is_none()
             {
                 if let Some(ref parse_tree) = parse_tree_opt {
-                    println!("{}", to_sexpr(*parse_tree));
+                    let sexpr_options = SexprOptions {
+                        show_layout: args.show_layout,
+                    };
+                    println!("{}", to_sexpr_with(*parse_tree, sexpr_options));
                 }
             }
         }

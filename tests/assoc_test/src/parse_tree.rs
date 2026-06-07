@@ -5,7 +5,7 @@ use crate::parser::AssocTestParser;
 use core::fmt;
 use iguana_runtime::{
     ids::{NonterminalId, SlotId, TerminalId},
-    parse_tree::{Bump, OneOrMany, ParseContext, ParseTreeBuilder, visit_sppf},
+    parse_tree::{Bump, OneOrMany, ParseContext, ParseTreeBuilder, SexprOptions, visit_sppf},
     sppf::{NonterminalNode, SPPFNodeId, Span, TerminalNode},
 };
 use rustc_hash::{FxHashMap, FxHashSet};
@@ -431,10 +431,15 @@ pub fn create_parse_tree_e<'a>(
 ) -> &'a E<'a> {
     visit_sppf(root_id, parser, builder).unwrap_one().unwrap_e()
 }
+const SEXPR_LAYOUT_NAME: Option<&str> = None;
 pub fn to_sexpr(node: ParseTree<'_>) -> String {
+    to_sexpr_with(node, SexprOptions::default())
+}
+pub fn to_sexpr_with(node: ParseTree<'_>, options: SexprOptions) -> String {
     let mut indegree = FxHashMap::default();
-    count_sexpr_indegree(node, &mut FxHashSet::default(), &mut indegree);
+    count_sexpr_indegree(node, options, &mut FxHashSet::default(), &mut indegree);
     let mut printer = SexprPrinter {
+        options,
         indegree,
         labels: FxHashMap::default(),
         next_label: 1,
@@ -444,8 +449,18 @@ pub fn to_sexpr(node: ParseTree<'_>) -> String {
     s.push('\n');
     s
 }
+fn sexpr_hidden(node: ParseTree<'_>, options: SexprOptions) -> bool {
+    !options.show_layout && SEXPR_LAYOUT_NAME == Some(node.display_name())
+}
+fn sexpr_children<'a>(node: ParseTree<'a>, options: SexprOptions) -> Vec<ParseTree<'a>> {
+    node.children()
+        .into_iter()
+        .filter(|c| !sexpr_hidden(*c, options))
+        .collect()
+}
 fn count_sexpr_indegree(
     node: ParseTree<'_>,
+    options: SexprOptions,
     visited: &mut FxHashSet<usize>,
     indegree: &mut FxHashMap<usize, u32>,
 ) {
@@ -455,11 +470,12 @@ fn count_sexpr_indegree(
             return;
         }
     }
-    for child in node.children() {
-        count_sexpr_indegree(child, visited, indegree);
+    for child in sexpr_children(node, options) {
+        count_sexpr_indegree(child, options, visited, indegree);
     }
 }
 struct SexprPrinter {
+    options: SexprOptions,
     indegree: FxHashMap<usize, u32>,
     labels: FxHashMap<usize, u32>,
     next_label: u32,
@@ -487,10 +503,13 @@ impl SexprPrinter {
                 prefix = format!("#{}=", label);
             }
         }
-        let children = node.children();
+        let children = sexpr_children(node, self.options);
         if children.is_empty() {
             write!(w, "{}{}", prefix, node.display_name())
-        } else if children.iter().all(|c| c.children().is_empty()) {
+        } else if children
+            .iter()
+            .all(|c| sexpr_children(*c, self.options).is_empty())
+        {
             write!(w, "{}({}", prefix, node.display_name())?;
             for child in children {
                 write!(w, " ")?;

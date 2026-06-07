@@ -23,7 +23,7 @@ pub fn generate(grammar: &Grammar) -> TokenStream {
             cli,
             ids::NonterminalId,
             input::Input,
-            parse_tree::{ParseContext, is_ambiguous},
+            parse_tree::{ParseContext, SexprOptions, is_ambiguous},
             parser::{ParseResult, Parser},
             visualization::{dot::write_svg, gss::{build_gss_dot_graph, render_gss}, sppf::{build_sppf_graph, write_sppf_dot}},
         };
@@ -31,7 +31,7 @@ pub fn generate(grammar: &Grammar) -> TokenStream {
         #[cfg(feature = "profile")]
         use pprof::ProfilerGuardBuilder;
         use #grammar_name::{
-            parse_tree::{#parse_tree_builder, create_parse_tree, to_json, to_sexpr},
+            parse_tree::{#parse_tree_builder, create_parse_tree, to_json, to_sexpr_with},
             grammar_data::{nonterminal_id, NONTERMINALS, NONTERMINAL_DISPLAY_ORDER, SLOTS, TERMINALS},
             parser::#parser,
         };
@@ -168,6 +168,11 @@ pub fn generate(grammar: &Grammar) -> TokenStream {
             #[arg(short, long)]
             quiet: bool,
 
+            /// Include layout (whitespace, comments) nodes in the parse-tree
+            /// output. Hidden by default.
+            #[arg(long)]
+            show_layout: bool,
+
             /// Print only the parser stats histogram and exit. Suppresses
             /// the parse-tree dump, the "Parse success" line, and (with
             /// `--dir`) the per-file timing lines and the aggregate
@@ -241,6 +246,7 @@ pub fn generate(grammar: &Grammar) -> TokenStream {
                         io::ErrorKind::InvalidInput,
                         format!("Unknown nonterminal: '{}'", start_nonterminal_name)
                     ))?;
+                let sexpr_options = SexprOptions { show_layout: args.show_layout };
                 cli::run_repl(|text| {
                     let input = Input::from(text);
                     let ctx = ParseContext::new();
@@ -251,7 +257,7 @@ pub fn generate(grammar: &Grammar) -> TokenStream {
                             let node_id = success.sppf_node_id;
                             let ambiguous = is_ambiguous(&parser, node_id);
                             let tree = create_parse_tree(node_id, start_nonterminal_id, &parser, &parse_tree_builder);
-                            cli::ReplOutcome::Parsed { tree: to_sexpr(tree), ambiguous }
+                            cli::ReplOutcome::Parsed { tree: to_sexpr_with(tree, sexpr_options), ambiguous }
                         }
                         ParseResult::Failure(error) => {
                             let (line, column, message) = parser.format_error(&error);
@@ -503,7 +509,8 @@ pub fn generate(grammar: &Grammar) -> TokenStream {
                         && args.trace.is_none()
                     {
                         if let Some(ref parse_tree) = parse_tree_opt {
-                            println!("{}", to_sexpr(*parse_tree));
+                            let sexpr_options = SexprOptions { show_layout: args.show_layout };
+                            println!("{}", to_sexpr_with(*parse_tree, sexpr_options));
                         }
                     }
                 }
