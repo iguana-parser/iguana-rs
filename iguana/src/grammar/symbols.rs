@@ -244,6 +244,11 @@ impl Symbol {
         !matches!(self, Symbol::Condition(_) | Symbol::Return(_))
     }
 
+    /// Returns true for a repetition symbol (`A*` or `A+`).
+    pub fn is_list(&self) -> bool {
+        matches!(self, Symbol::Star(_, _) | Symbol::Plus(_, _))
+    }
+
     pub fn label(&self) -> Option<&str> {
         match self {
             Symbol::Labeled { label, .. } => Some(label),

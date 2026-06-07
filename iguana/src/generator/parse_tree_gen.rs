@@ -1771,7 +1771,19 @@ fn get_list_element_types(grammar: &Grammar, symbol: &Symbol) -> Vec<Identifier>
                 .iter()
                 .flat_map(|elem| get_list_element_types(grammar, elem))
                 .collect();
-            if named.len() == 1 { named } else { vec![] }
+            // A group has a flat element type only when its named element is not
+            // itself a list. For `(Annotation* "[" "]")` the named element is a
+            // list, whose Group field accessor returns the inner list node rather
+            // than the element, so there is no flat type and callers fall back to
+            // iter()/children().
+            let names_a_list = elements
+                .iter()
+                .any(|elem| elem.is_list() && !get_list_element_types(grammar, elem).is_empty());
+            if named.len() == 1 && !names_a_list {
+                named
+            } else {
+                vec![]
+            }
         }
         _ => vec![],
     }
