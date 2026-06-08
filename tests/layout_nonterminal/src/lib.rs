@@ -44,7 +44,7 @@ pub fn parse_s<'a>(
     match parser.run() {
         ParseResult::Success(success) => {
             let parse_duration = success.duration;
-            let tree_start = std::time::Instant::now();
+            let tree_start = iguana_runtime::Instant::now();
             let parse_tree_builder = LayoutNonterminalParseTreeBuilder::new(ctx);
             let tree = parse_tree::create_parse_tree_start_s(
                 success.sppf_node_id,
@@ -76,7 +76,7 @@ pub fn parse_layout<'a>(
     match parser.run() {
         ParseResult::Success(success) => {
             let parse_duration = success.duration;
-            let tree_start = std::time::Instant::now();
+            let tree_start = iguana_runtime::Instant::now();
             let parse_tree_builder = LayoutNonterminalParseTreeBuilder::new(ctx);
             let tree = parse_tree::create_parse_tree_layout(
                 success.sppf_node_id,

@@ -44,7 +44,7 @@ pub fn parse_a<'a>(
     match parser.run() {
         ParseResult::Success(success) => {
             let parse_duration = success.duration;
-            let tree_start = std::time::Instant::now();
+            let tree_start = iguana_runtime::Instant::now();
             let parse_tree_builder = SimpleAltParseTreeBuilder::new(ctx);
             let tree =
                 parse_tree::create_parse_tree_a(success.sppf_node_id, &parser, &parse_tree_builder);
@@ -73,7 +73,7 @@ pub fn parse_b<'a>(
     match parser.run() {
         ParseResult::Success(success) => {
             let parse_duration = success.duration;
-            let tree_start = std::time::Instant::now();
+            let tree_start = iguana_runtime::Instant::now();
             let parse_tree_builder = SimpleAltParseTreeBuilder::new(ctx);
             let tree =
                 parse_tree::create_parse_tree_b(success.sppf_node_id, &parser, &parse_tree_builder);
@@ -102,7 +102,7 @@ pub fn parse_c<'a>(
     match parser.run() {
         ParseResult::Success(success) => {
             let parse_duration = success.duration;
-            let tree_start = std::time::Instant::now();
+            let tree_start = iguana_runtime::Instant::now();
             let parse_tree_builder = SimpleAltParseTreeBuilder::new(ctx);
             let tree =
                 parse_tree::create_parse_tree_c(success.sppf_node_id, &parser, &parse_tree_builder);
@@ -131,7 +131,7 @@ pub fn parse_d<'a>(
     match parser.run() {
         ParseResult::Success(success) => {
             let parse_duration = success.duration;
-            let tree_start = std::time::Instant::now();
+            let tree_start = iguana_runtime::Instant::now();
             let parse_tree_builder = SimpleAltParseTreeBuilder::new(ctx);
             let tree =
                 parse_tree::create_parse_tree_d(success.sppf_node_id, &parser, &parse_tree_builder);

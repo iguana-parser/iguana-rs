@@ -85,7 +85,7 @@ fn gen_parse_method(
             match parser.run() {
                 ParseResult::Success(success) => {
                     let parse_duration = success.duration;
-                    let tree_start = std::time::Instant::now();
+                    let tree_start = iguana_runtime::Instant::now();
                     let parse_tree_builder = #parse_tree_builder::new(ctx);
                     let tree = parse_tree::#create_fn(success.sppf_node_id, &parser, &parse_tree_builder);
                     let tree_construction_duration = tree_start.elapsed();

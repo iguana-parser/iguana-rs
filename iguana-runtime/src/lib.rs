@@ -17,3 +17,8 @@ pub mod visualization;
 
 // Re-export the record macro from trace module
 pub use trace::*;
+
+// web-time's Instant reads the browser Performance clock on wasm32, where
+// std::time::Instant::now() compiles but panics. On native targets it is
+// std::time::Instant.
+pub use web_time::Instant;

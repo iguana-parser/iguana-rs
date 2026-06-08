@@ -44,7 +44,7 @@ pub fn parse_expr<'a>(
     match parser.run() {
         ParseResult::Success(success) => {
             let parse_duration = success.duration;
-            let tree_start = std::time::Instant::now();
+            let tree_start = iguana_runtime::Instant::now();
             let parse_tree_builder = ExcludeByLabelParseTreeBuilder::new(ctx);
             let tree = parse_tree::create_parse_tree_expr(
                 success.sppf_node_id,

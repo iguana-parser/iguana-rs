@@ -44,7 +44,7 @@ pub fn parse_grammar<'a>(
     match parser.run() {
         ParseResult::Success(success) => {
             let parse_duration = success.duration;
-            let tree_start = std::time::Instant::now();
+            let tree_start = iguana_runtime::Instant::now();
             let parse_tree_builder = IggyParseTreeBuilder::new(ctx);
             let tree = parse_tree::create_parse_tree_start_grammar(
                 success.sppf_node_id,
@@ -76,7 +76,7 @@ pub fn parse_layout_def<'a>(
     match parser.run() {
         ParseResult::Success(success) => {
             let parse_duration = success.duration;
-            let tree_start = std::time::Instant::now();
+            let tree_start = iguana_runtime::Instant::now();
             let parse_tree_builder = IggyParseTreeBuilder::new(ctx);
             let tree = parse_tree::create_parse_tree_layout_def(
                 success.sppf_node_id,
@@ -108,7 +108,7 @@ pub fn parse_rule<'a>(
     match parser.run() {
         ParseResult::Success(success) => {
             let parse_duration = success.duration;
-            let tree_start = std::time::Instant::now();
+            let tree_start = iguana_runtime::Instant::now();
             let parse_tree_builder = IggyParseTreeBuilder::new(ctx);
             let tree = parse_tree::create_parse_tree_rule(
                 success.sppf_node_id,
@@ -140,7 +140,7 @@ pub fn parse_syntax_rule<'a>(
     match parser.run() {
         ParseResult::Success(success) => {
             let parse_duration = success.duration;
-            let tree_start = std::time::Instant::now();
+            let tree_start = iguana_runtime::Instant::now();
             let parse_tree_builder = IggyParseTreeBuilder::new(ctx);
             let tree = parse_tree::create_parse_tree_syntax_rule(
                 success.sppf_node_id,
@@ -172,7 +172,7 @@ pub fn parse_annotation<'a>(
     match parser.run() {
         ParseResult::Success(success) => {
             let parse_duration = success.duration;
-            let tree_start = std::time::Instant::now();
+            let tree_start = iguana_runtime::Instant::now();
             let parse_tree_builder = IggyParseTreeBuilder::new(ctx);
             let tree = parse_tree::create_parse_tree_annotation(
                 success.sppf_node_id,
@@ -204,7 +204,7 @@ pub fn parse_regex_rule<'a>(
     match parser.run() {
         ParseResult::Success(success) => {
             let parse_duration = success.duration;
-            let tree_start = std::time::Instant::now();
+            let tree_start = iguana_runtime::Instant::now();
             let parse_tree_builder = IggyParseTreeBuilder::new(ctx);
             let tree = parse_tree::create_parse_tree_regex_rule(
                 success.sppf_node_id,
@@ -236,7 +236,7 @@ pub fn parse_pre_condition<'a>(
     match parser.run() {
         ParseResult::Success(success) => {
             let parse_duration = success.duration;
-            let tree_start = std::time::Instant::now();
+            let tree_start = iguana_runtime::Instant::now();
             let parse_tree_builder = IggyParseTreeBuilder::new(ctx);
             let tree = parse_tree::create_parse_tree_pre_condition(
                 success.sppf_node_id,
@@ -268,7 +268,7 @@ pub fn parse_post_condition<'a>(
     match parser.run() {
         ParseResult::Success(success) => {
             let parse_duration = success.duration;
-            let tree_start = std::time::Instant::now();
+            let tree_start = iguana_runtime::Instant::now();
             let parse_tree_builder = IggyParseTreeBuilder::new(ctx);
             let tree = parse_tree::create_parse_tree_post_condition(
                 success.sppf_node_id,
@@ -300,7 +300,7 @@ pub fn parse_priority_level<'a>(
     match parser.run() {
         ParseResult::Success(success) => {
             let parse_duration = success.duration;
-            let tree_start = std::time::Instant::now();
+            let tree_start = iguana_runtime::Instant::now();
             let parse_tree_builder = IggyParseTreeBuilder::new(ctx);
             let tree = parse_tree::create_parse_tree_priority_level(
                 success.sppf_node_id,
@@ -332,7 +332,7 @@ pub fn parse_associativity<'a>(
     match parser.run() {
         ParseResult::Success(success) => {
             let parse_duration = success.duration;
-            let tree_start = std::time::Instant::now();
+            let tree_start = iguana_runtime::Instant::now();
             let parse_tree_builder = IggyParseTreeBuilder::new(ctx);
             let tree = parse_tree::create_parse_tree_associativity(
                 success.sppf_node_id,
@@ -364,7 +364,7 @@ pub fn parse_alternative<'a>(
     match parser.run() {
         ParseResult::Success(success) => {
             let parse_duration = success.duration;
-            let tree_start = std::time::Instant::now();
+            let tree_start = iguana_runtime::Instant::now();
             let parse_tree_builder = IggyParseTreeBuilder::new(ctx);
             let tree = parse_tree::create_parse_tree_alternative(
                 success.sppf_node_id,
@@ -396,7 +396,7 @@ pub fn parse_symbol<'a>(
     match parser.run() {
         ParseResult::Success(success) => {
             let parse_duration = success.duration;
-            let tree_start = std::time::Instant::now();
+            let tree_start = iguana_runtime::Instant::now();
             let parse_tree_builder = IggyParseTreeBuilder::new(ctx);
             let tree = parse_tree::create_parse_tree_symbol(
                 success.sppf_node_id,
@@ -428,7 +428,7 @@ pub fn parse_regex<'a>(
     match parser.run() {
         ParseResult::Success(success) => {
             let parse_duration = success.duration;
-            let tree_start = std::time::Instant::now();
+            let tree_start = iguana_runtime::Instant::now();
             let parse_tree_builder = IggyParseTreeBuilder::new(ctx);
             let tree = parse_tree::create_parse_tree_regex(
                 success.sppf_node_id,
@@ -460,7 +460,7 @@ pub fn parse_char_class<'a>(
     match parser.run() {
         ParseResult::Success(success) => {
             let parse_duration = success.duration;
-            let tree_start = std::time::Instant::now();
+            let tree_start = iguana_runtime::Instant::now();
             let parse_tree_builder = IggyParseTreeBuilder::new(ctx);
             let tree = parse_tree::create_parse_tree_char_class(
                 success.sppf_node_id,
@@ -492,7 +492,7 @@ pub fn parse_range_element<'a>(
     match parser.run() {
         ParseResult::Success(success) => {
             let parse_duration = success.duration;
-            let tree_start = std::time::Instant::now();
+            let tree_start = iguana_runtime::Instant::now();
             let parse_tree_builder = IggyParseTreeBuilder::new(ctx);
             let tree = parse_tree::create_parse_tree_range_element(
                 success.sppf_node_id,
@@ -524,7 +524,7 @@ pub fn parse_range<'a>(
     match parser.run() {
         ParseResult::Success(success) => {
             let parse_duration = success.duration;
-            let tree_start = std::time::Instant::now();
+            let tree_start = iguana_runtime::Instant::now();
             let parse_tree_builder = IggyParseTreeBuilder::new(ctx);
             let tree = parse_tree::create_parse_tree_range(
                 success.sppf_node_id,
@@ -556,7 +556,7 @@ pub fn parse_layout<'a>(
     match parser.run() {
         ParseResult::Success(success) => {
             let parse_duration = success.duration;
-            let tree_start = std::time::Instant::now();
+            let tree_start = iguana_runtime::Instant::now();
             let parse_tree_builder = IggyParseTreeBuilder::new(ctx);
             let tree = parse_tree::create_parse_tree_layout(
                 success.sppf_node_id,

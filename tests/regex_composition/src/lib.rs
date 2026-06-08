@@ -44,7 +44,7 @@ pub fn parse_s<'a>(
     match parser.run() {
         ParseResult::Success(success) => {
             let parse_duration = success.duration;
-            let tree_start = std::time::Instant::now();
+            let tree_start = iguana_runtime::Instant::now();
             let parse_tree_builder = RegexCompositionParseTreeBuilder::new(ctx);
             let tree =
                 parse_tree::create_parse_tree_s(success.sppf_node_id, &parser, &parse_tree_builder);
@@ -73,7 +73,7 @@ pub fn parse_id<'a>(
     match parser.run() {
         ParseResult::Success(success) => {
             let parse_duration = success.duration;
-            let tree_start = std::time::Instant::now();
+            let tree_start = iguana_runtime::Instant::now();
             let parse_tree_builder = RegexCompositionParseTreeBuilder::new(ctx);
             let tree = parse_tree::create_parse_tree_id(
                 success.sppf_node_id,
