@@ -12,6 +12,7 @@ use crate::{
     input::Input,
     record,
     sppf::{IntermediateNode, NonterminalNode, SPPFNode, SPPFNodeId, Span, TerminalNode},
+    utils::inline_vec::InlineVec,
 };
 
 #[cfg(feature = "debug-trace")]
@@ -801,6 +802,46 @@ pub trait Parser<'i> {
     ) -> &FxHashMap<SPPFNodeId, Vec<(SPPFNodeId, SPPFNodeId)>>;
 
     fn nonterminal_nodes_children_map(&self) -> &FxHashMap<SPPFNodeId, Vec<(SPPFNodeId, SlotId)>>;
+
+    /// The children of the given SPPF node, in order.
+    fn sppf_children(&self, node_id: SPPFNodeId) -> InlineVec<SPPFNodeId> {
+        match self.sppf_node(node_id) {
+            SPPFNode::Terminal(_) => InlineVec::Empty,
+            SPPFNode::Nonterminal(n) => {
+                if n.ambiguous {
+                    let extras = self.nonterminal_nodes_children_map().get(&node_id).unwrap();
+                    let mut children = Vec::with_capacity(1 + extras.len());
+                    children.push(n.child);
+                    children.extend(extras.iter().map(|(child, _)| *child));
+                    InlineVec::Multiple(children)
+                } else {
+                    InlineVec::Single(n.child)
+                }
+            }
+            SPPFNode::Intermediate(i) => {
+                if i.ambiguous {
+                    let extras = self
+                        .intermediate_nodes_children_map()
+                        .get(&node_id)
+                        .unwrap();
+                    // Intermediate node children are kept as `(left, right)` pairs.
+                    // So when a node is ambiguous, each extra is another pair, and
+                    // the flat child list holds two nodes per pair: the node's own
+                    // pair plus two per extra.
+                    let mut children = Vec::with_capacity(2 + 2 * extras.len());
+                    children.push(i.child.0);
+                    children.push(i.child.1);
+                    for (left, right) in extras {
+                        children.push(*left);
+                        children.push(*right);
+                    }
+                    InlineVec::Multiple(children)
+                } else {
+                    InlineVec::Pair(i.child.0, i.child.1)
+                }
+            }
+        }
+    }
 
     fn new_env(&mut self) -> (EnvId, &mut Env);
 

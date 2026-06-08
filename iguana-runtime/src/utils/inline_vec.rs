@@ -1,4 +1,4 @@
-use std::{array, iter, slice};
+use std::{array, iter, slice, vec};
 
 /// A vector optimized for the common case of holding 0, 1, 2, or 3 elements
 /// without any heap allocation. Once it grows beyond 3 elements it spills
@@ -146,6 +146,45 @@ impl<'a, T, const SPILL_CAP: usize> IntoIterator for &'a InlineVec<T, SPILL_CAP>
     }
 }
 
+pub enum IntoIter<T> {
+    Empty(iter::Empty<T>),
+    Single(iter::Once<T>),
+    Pair(array::IntoIter<T, 2>),
+    Triple(array::IntoIter<T, 3>),
+    Multiple(vec::IntoIter<T>),
+}
+
+impl<T> Iterator for IntoIter<T> {
+    type Item = T;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        match self {
+            IntoIter::Empty(iter) => iter.next(),
+            IntoIter::Single(iter) => iter.next(),
+            IntoIter::Pair(iter) => iter.next(),
+            IntoIter::Triple(iter) => iter.next(),
+            IntoIter::Multiple(iter) => iter.next(),
+        }
+    }
+}
+
+impl<T, const SPILL_CAP: usize> IntoIterator for InlineVec<T, SPILL_CAP> {
+    type Item = T;
+    type IntoIter = IntoIter<T>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        match self {
+            InlineVec::Empty => IntoIter::Empty(iter::empty()),
+            InlineVec::Single(x) => IntoIter::Single(iter::once(x)),
+            InlineVec::Pair(first, second) => IntoIter::Pair([first, second].into_iter()),
+            InlineVec::Triple(first, second, third) => {
+                IntoIter::Triple([first, second, third].into_iter())
+            }
+            InlineVec::Multiple(v) => IntoIter::Multiple(v.into_iter()),
+        }
+    }
+}
+
 #[macro_export]
 macro_rules! inline_vec {
     () => {
@@ -182,7 +221,7 @@ mod tests {
         let mut l: InlineVec<usize, 8> = InlineVec::default();
         l.push(1);
         assert_eq!(l.len(), 1);
-        let elements: Vec<&usize> = l.into_iter().collect();
+        let elements: Vec<&usize> = l.iter().collect();
         assert_eq!(elements, vec![&1]);
     }
 
@@ -192,7 +231,7 @@ mod tests {
         l.push(2);
         assert_eq!(l, InlineVec::Pair(1, 2));
         assert_eq!(l.len(), 2);
-        let elements: Vec<&i32> = l.into_iter().collect();
+        let elements: Vec<&i32> = l.iter().collect();
         assert_eq!(elements, vec![&1, &2]);
     }
 
@@ -202,7 +241,7 @@ mod tests {
         l.push(3);
         assert_eq!(l, InlineVec::Triple(1, 2, 3));
         assert_eq!(l.len(), 3);
-        let elements: Vec<&i32> = l.into_iter().collect();
+        let elements: Vec<&i32> = l.iter().collect();
         assert_eq!(elements, vec![&1, &2, &3]);
     }
 
@@ -212,7 +251,7 @@ mod tests {
         l.push(4);
         assert_eq!(l, InlineVec::Multiple(vec![1, 2, 3, 4]));
         assert_eq!(l.len(), 4);
-        let elements: Vec<&i32> = l.into_iter().collect();
+        let elements: Vec<&i32> = l.iter().collect();
         assert_eq!(elements, vec![&1, &2, &3, &4]);
     }
 
@@ -274,5 +313,20 @@ mod tests {
     fn multiple_with_trailing_comma() {
         let v: InlineVec<i32, 8> = inline_vec![1, 2, 3, 4,];
         assert_eq!(v, InlineVec::Multiple(vec![1, 2, 3, 4]));
+    }
+
+    #[test]
+    fn into_iter_yields_owned_values() {
+        let cases: Vec<InlineVec<i32, 8>> = vec![
+            inline_vec![],
+            inline_vec![1],
+            inline_vec![1, 2],
+            inline_vec![1, 2, 3],
+            inline_vec![1, 2, 3, 4],
+        ];
+        for (i, v) in cases.into_iter().enumerate() {
+            let collected: Vec<i32> = v.into_iter().collect();
+            assert_eq!(collected, (1..=i as i32).collect::<Vec<_>>());
+        }
     }
 }
