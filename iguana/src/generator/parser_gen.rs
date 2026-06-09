@@ -108,7 +108,7 @@ impl<'a> ParserGen<'a> {
         let lookup_method = Self::gen_lookup_method();
         let clone_env_method = Self::gen_clone_env();
         let envs_method = Self::gen_envs_method();
-        let record_stats_method = Self::gen_record_stats_method();
+        let record_stats_method = self.gen_record_stats_method();
         let post_conditions_method = self.gen_post_conditions_method();
         let follow_set_check_method = self.gen_follow_set_check_method();
         let follow_set_terminals_method = self.gen_follow_set_terminals_method();
@@ -1120,8 +1120,8 @@ impl<'a> ParserGen<'a> {
                 scanner: #scanner_name_ident<'i>,
                 descriptors: Vec<Descriptor>,
                 gss_nodes: Vec<GSSNode>,
-                #[comment = "A vector from nonterminal_ids to a tuple (input_index, gss_node_id)"]
-                gss_nodes_index: [Vec<(u32, GssNodeId)>; #nonterminal_ids_len],
+                #[comment = "Per-nonterminal GSS-node index keyed by input position."]
+                gss_nodes_index: [InlineMap<u32, GssNodeId>; #nonterminal_ids_len],
                 #(#gss_nodes_index_fields,)*
                 sppf_nodes: Vec<SPPFNode>,
                 #[cfg(feature = "instrument")]
@@ -1153,7 +1153,7 @@ impl<'a> ParserGen<'a> {
     fn gen_gss_nodes_index_field(&self) -> TokenStream {
         let nonterminal_ids_len = Literal::usize_unsuffixed(self.nonterminal_ids.len());
         quote! {
-            gss_nodes_index: [const { vec![] }; #nonterminal_ids_len]
+            gss_nodes_index: [const { InlineMap::Empty }; #nonterminal_ids_len]
         }
     }
 
@@ -1647,8 +1647,7 @@ impl<'a> ParserGen<'a> {
     fn gen_get_gss_node_method() -> TokenStream {
         quote! {
             fn get_gss_node(&self, nonterminal_id: NonterminalId, input_index: u32) -> Option<GssNodeId> {
-                let gss_nodes = &self.gss_nodes_index[nonterminal_id.index()];
-                gss_nodes.iter().find(|(k, _)| *k == input_index).map(|x| x.1)
+                self.gss_nodes_index[nonterminal_id.index()].get(&input_index).copied()
             }
         }
     }
@@ -1664,26 +1663,14 @@ impl<'a> ParserGen<'a> {
             })
             .collect();
         let field_name = format_ident!("gss_nodes_index_{}", to_snake_case(&nt.name));
-        let args: Vec<_> = (0..parameters.len())
-            .map(|i| format_ident!("a{i}"))
-            .collect();
-        let comparisons: Vec<_> = nt
+        let parameter_names: Vec<_> = nt
             .parameters
             .iter()
-            .enumerate()
-            .map(|(i, p)| {
-                let lhs = format_ident!("a{}", i);
-                let rhs = format_ident!("{}", p.name);
-                quote! { *#lhs == #rhs }
-            })
+            .map(|p| format_ident!("{}", p.name))
             .collect();
-        let index = Literal::usize_unsuffixed(1 + nt.parameters.len());
         quote! {
             fn #method_name(&self, input_index: u32, #(#parameters),*) -> Option<GssNodeId> {
-                self.#field_name
-                    .iter()
-                    .find(|(i, #(#args,)* _)| *i == input_index && #(#comparisons)&&*)
-                    .map(|x| x.#index)
+                self.#field_name.get(&(input_index, #(#parameter_names),*)).copied()
             }
         }
     }
@@ -1691,8 +1678,7 @@ impl<'a> ParserGen<'a> {
     fn gen_add_gss_node_method() -> TokenStream {
         quote! {
             fn add_gss_node(&mut self, nonterminal_id: NonterminalId, input_index: u32, gss_node_id: GssNodeId) {
-                let gss_nodes = &mut self.gss_nodes_index[nonterminal_id.index()];
-                gss_nodes.push((input_index, gss_node_id));
+                self.gss_nodes_index[nonterminal_id.index()].insert(input_index, gss_node_id);
             }
         }
     }
@@ -1715,7 +1701,7 @@ impl<'a> ParserGen<'a> {
             .collect();
         quote! {
             fn #method_name(&mut self, input_index: u32, #(#parameters,)* gss_node_id: GssNodeId) {
-                self.#field_name.push((input_index, #(#parameter_names,)* gss_node_id));
+                self.#field_name.insert((input_index, #(#parameter_names),*), gss_node_id);
             }
         }
     }
@@ -2160,14 +2146,14 @@ impl<'a> ParserGen<'a> {
         let comment = format!("GSS index for nonterminal {}", nt.name);
         quote! {
             #[comment = #comment]
-            #field_name: Vec<(u32, #(#types,)* GssNodeId)>
+            #field_name: InlineMap<(u32, #(#types),*), GssNodeId>
         }
     }
 
     fn gen_gss_nodes_index_field_init(nt: &Nonterminal) -> TokenStream {
         let field_name = format_ident!("gss_nodes_index_{}", to_snake_case(&nt.name));
         quote! {
-            #field_name: vec![]
+            #field_name: InlineMap::Empty
         }
     }
 
@@ -2321,7 +2307,16 @@ impl<'a> ParserGen<'a> {
         }
     }
 
-    fn gen_record_stats_method() -> TokenStream {
+    fn gen_record_stats_method(&self) -> TokenStream {
+        let gss_index_records: Vec<_> = self
+            .nonterminal_ids
+            .dd_nonterminals()
+            .map(|nt| {
+                let field_name = format_ident!("gss_nodes_index_{}", to_snake_case(&nt.name));
+                let label = format!("Parser::gss_nodes_index_{}", to_snake_case(&nt.name));
+                quote! { stats.record(#label, self.#field_name.len()); }
+            })
+            .collect();
         quote! {
             #[cfg(feature = "instrument")]
             fn record_stats(&self) -> iguana_runtime::instrument::Stats {
@@ -2355,6 +2350,10 @@ impl<'a> ParserGen<'a> {
                 for m in self.terminal_nodes_index.iter() {
                     stats.record("Parser::terminal_nodes_index: InlineMap", m.len());
                 }
+                for m in self.gss_nodes_index.iter() {
+                    stats.record("Parser::gss_nodes_index: InlineMap", m.len());
+                }
+                #(#gss_index_records)*
                 for (nt_id, pos) in &self.ll1_call_log {
                     let name = NONTERMINALS[nt_id.index()].display;
                     stats.record_ll1_call(name, *pos);

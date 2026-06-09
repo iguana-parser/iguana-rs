@@ -426,11 +426,9 @@ impl<'i> Parser<'i> for ExcludeByLabelParser<'i> {
         }
     }
     fn get_gss_node(&self, nonterminal_id: NonterminalId, input_index: u32) -> Option<GssNodeId> {
-        let gss_nodes = &self.gss_nodes_index[nonterminal_id.index()];
-        gss_nodes
-            .iter()
-            .find(|(k, _)| *k == input_index)
-            .map(|x| x.1)
+        self.gss_nodes_index[nonterminal_id.index()]
+            .get(&input_index)
+            .copied()
     }
     fn add_gss_node(
         &mut self,
@@ -438,8 +436,7 @@ impl<'i> Parser<'i> for ExcludeByLabelParser<'i> {
         input_index: u32,
         gss_node_id: GssNodeId,
     ) {
-        let gss_nodes = &mut self.gss_nodes_index[nonterminal_id.index()];
-        gss_nodes.push((input_index, gss_node_id));
+        self.gss_nodes_index[nonterminal_id.index()].insert(input_index, gss_node_id);
     }
     fn new_gss_node(&mut self, nonterminal_id: NonterminalId, input_index: u32) -> GssNodeId {
         let gss_node_id = GssNodeId(self.gss_nodes.len() as u32);
@@ -753,6 +750,13 @@ impl<'i> Parser<'i> for ExcludeByLabelParser<'i> {
         for m in self.terminal_nodes_index.iter() {
             stats.record("Parser::terminal_nodes_index: InlineMap", m.len());
         }
+        for m in self.gss_nodes_index.iter() {
+            stats.record("Parser::gss_nodes_index: InlineMap", m.len());
+        }
+        stats.record(
+            "Parser::gss_nodes_index_expr",
+            self.gss_nodes_index_expr.len(),
+        );
         for (nt_id, pos) in &self.ll1_call_log {
             let name = NONTERMINALS[nt_id.index()].display;
             stats.record_ll1_call(name, *pos);
@@ -830,10 +834,10 @@ pub struct ExcludeByLabelParser<'i> {
     scanner: ExcludeByLabelScanner<'i>,
     descriptors: Vec<Descriptor>,
     gss_nodes: Vec<GSSNode>,
-    // A vector from nonterminal_ids to a tuple (input_index, gss_node_id)
-    gss_nodes_index: [Vec<(u32, GssNodeId)>; 4],
+    // Per-nonterminal GSS-node index keyed by input position.
+    gss_nodes_index: [InlineMap<u32, GssNodeId>; 4],
     // GSS index for nonterminal Expr
-    gss_nodes_index_expr: Vec<(u32, i32, GssNodeId)>,
+    gss_nodes_index_expr: InlineMap<(u32, i32), GssNodeId>,
     sppf_nodes: Vec<SPPFNode>,
     #[cfg(feature = "instrument")]
     descriptors_count: usize,
@@ -863,8 +867,8 @@ impl<'i> ExcludeByLabelParser<'i> {
         Self {
             start_nonterminal,
             scanner: ExcludeByLabelScanner::new(input),
-            gss_nodes_index: [const { vec![] }; 4],
-            gss_nodes_index_expr: vec![],
+            gss_nodes_index: [const { InlineMap::Empty }; 4],
+            gss_nodes_index_expr: InlineMap::Empty,
             descriptors: Vec::with_capacity(1024),
             gss_nodes: Vec::with_capacity(input.len() as usize * GSS_CAPACITY_MULTIPLIER),
             sppf_nodes: Vec::with_capacity(input.len() as usize * SPPF_CAPACITY_MULTIPLIER),
@@ -936,14 +940,11 @@ impl<'i> ExcludeByLabelParser<'i> {
         }
     }
     fn get_gss_node_expr(&self, input_index: u32, e: i32) -> Option<GssNodeId> {
-        self.gss_nodes_index_expr
-            .iter()
-            .find(|(i, a0, _)| *i == input_index && *a0 == e)
-            .map(|x| x.2)
+        self.gss_nodes_index_expr.get(&(input_index, e)).copied()
     }
     fn add_gss_node_expr(&mut self, input_index: u32, e: i32, gss_node_id: GssNodeId) {
         self.gss_nodes_index_expr
-            .push((input_index, e, gss_node_id));
+            .insert((input_index, e), gss_node_id);
     }
     fn create_nonterminal_node_or_attach_children_expr(
         &mut self,

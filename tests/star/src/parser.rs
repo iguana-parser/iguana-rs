@@ -265,11 +265,9 @@ impl<'i> Parser<'i> for StarParser<'i> {
         }
     }
     fn get_gss_node(&self, nonterminal_id: NonterminalId, input_index: u32) -> Option<GssNodeId> {
-        let gss_nodes = &self.gss_nodes_index[nonterminal_id.index()];
-        gss_nodes
-            .iter()
-            .find(|(k, _)| *k == input_index)
-            .map(|x| x.1)
+        self.gss_nodes_index[nonterminal_id.index()]
+            .get(&input_index)
+            .copied()
     }
     fn add_gss_node(
         &mut self,
@@ -277,8 +275,7 @@ impl<'i> Parser<'i> for StarParser<'i> {
         input_index: u32,
         gss_node_id: GssNodeId,
     ) {
-        let gss_nodes = &mut self.gss_nodes_index[nonterminal_id.index()];
-        gss_nodes.push((input_index, gss_node_id));
+        self.gss_nodes_index[nonterminal_id.index()].insert(input_index, gss_node_id);
     }
     fn new_gss_node(&mut self, nonterminal_id: NonterminalId, input_index: u32) -> GssNodeId {
         let gss_node_id = GssNodeId(self.gss_nodes.len() as u32);
@@ -582,6 +579,9 @@ impl<'i> Parser<'i> for StarParser<'i> {
         for m in self.terminal_nodes_index.iter() {
             stats.record("Parser::terminal_nodes_index: InlineMap", m.len());
         }
+        for m in self.gss_nodes_index.iter() {
+            stats.record("Parser::gss_nodes_index: InlineMap", m.len());
+        }
         for (nt_id, pos) in &self.ll1_call_log {
             let name = NONTERMINALS[nt_id.index()].display;
             stats.record_ll1_call(name, *pos);
@@ -661,8 +661,8 @@ pub struct StarParser<'i> {
     scanner: StarScanner<'i>,
     descriptors: Vec<Descriptor>,
     gss_nodes: Vec<GSSNode>,
-    // A vector from nonterminal_ids to a tuple (input_index, gss_node_id)
-    gss_nodes_index: [Vec<(u32, GssNodeId)>; 5],
+    // Per-nonterminal GSS-node index keyed by input position.
+    gss_nodes_index: [InlineMap<u32, GssNodeId>; 5],
     sppf_nodes: Vec<SPPFNode>,
     #[cfg(feature = "instrument")]
     descriptors_count: usize,
@@ -692,7 +692,7 @@ impl<'i> StarParser<'i> {
         Self {
             start_nonterminal,
             scanner: StarScanner::new(input),
-            gss_nodes_index: [const { vec![] }; 5],
+            gss_nodes_index: [const { InlineMap::Empty }; 5],
             descriptors: Vec::with_capacity(1024),
             gss_nodes: Vec::with_capacity(input.len() as usize * GSS_CAPACITY_MULTIPLIER),
             sppf_nodes: Vec::with_capacity(input.len() as usize * SPPF_CAPACITY_MULTIPLIER),
