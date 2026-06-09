@@ -31,6 +31,7 @@
   import "$lib/graph.css";
   import NonterminalPicker from "$lib/NonterminalPicker.svelte";
   import ParseView from "$lib/parse-view/ParseView.svelte";
+  import { TauriBackend } from "$lib/tauri-backend";
   import "$lib/parse-view/parse-view.css";
 
   cytoscape.use(dagre);
@@ -270,6 +271,8 @@
 
   // Parser directory state
   let parserDirectory = $state<string | null>(null);
+  // The parser backend ParseView drives, rebuilt when the directory changes.
+  let parserBackend = $derived(parserDirectory ? new TauriBackend(parserDirectory) : null);
   let parserName = $state<string | null>(null);
   let isBuilding = $state(false);
   let isProfiling = $state(false);
@@ -1860,6 +1863,7 @@
   {:else if activeMode === "parse"}
   <ParseView
     bind:this={parseViewRef}
+    backend={parserBackend}
     {parserDirectory}
     {parserName}
     {buildStatus}

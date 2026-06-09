@@ -235,7 +235,6 @@ struct ParseState {
     _temp_dir: Option<TempDir>,
     sppf_path: Option<PathBuf>,
     gss_path: Option<PathBuf>,
-    parse_tree_path: Option<PathBuf>,
 }
 
 /// Parse error location and message, from the parser's --write-result JSON.
@@ -256,7 +255,9 @@ struct ParseOutput {
     tree_construction_ms: Option<u32>,
     has_sppf: bool,
     has_gss: bool,
-    has_parse_tree: bool,
+    /// The parse-tree JSON, read inline so a parse is a single command. `None`
+    /// when the parser produced no tree.
+    parse_tree: Option<String>,
 }
 
 #[derive(Default)]
@@ -510,14 +511,17 @@ fn parse(
     // Check which output files were created (regardless of parser exit status)
     let has_sppf = sppf_path.exists();
     let has_gss = gss_path.exists();
-    let has_parse_tree = parse_tree_path.exists();
+    // Read the parse tree inline so a parse is a single command.
+    let parse_tree = parse_tree_path
+        .exists()
+        .then(|| fs::read_to_string(&parse_tree_path).ok())
+        .flatten();
 
     // Store paths for files that exist
     let mut parse_state = state.lock().unwrap();
     parse_state._temp_dir = Some(temp_dir);
     parse_state.sppf_path = if has_sppf { Some(sppf_path) } else { None };
     parse_state.gss_path = if has_gss { Some(gss_path) } else { None };
-    parse_state.parse_tree_path = if has_parse_tree { Some(parse_tree_path) } else { None };
 
     // Read parse result from JSON file written by --write-result
     let result = result_path
@@ -539,7 +543,7 @@ fn parse(
             tree_construction_ms: None,
             has_sppf,
             has_gss,
-            has_parse_tree,
+            parse_tree,
         });
     }
 
@@ -552,7 +556,7 @@ fn parse(
             tree_construction_ms: s.tree_construction_ms.map(|n| n as u32),
             has_sppf,
             has_gss,
-            has_parse_tree,
+            parse_tree,
         }),
         Some(ParseResult::Failure(f)) => Ok(ParseOutput {
             success: false,
@@ -569,7 +573,7 @@ fn parse(
             tree_construction_ms: None,
             has_sppf,
             has_gss,
-            has_parse_tree,
+            parse_tree,
         }),
         // Fallback: no result file (shouldn't happen with current generator)
         None => Ok(ParseOutput {
@@ -580,7 +584,7 @@ fn parse(
             tree_construction_ms: None,
             has_sppf,
             has_gss,
-            has_parse_tree,
+            parse_tree,
         }),
     }
 }
@@ -613,21 +617,6 @@ fn get_gss(state: tauri::State<Mutex<ParseState>>) -> Result<GSS, String> {
         fs::read_to_string(gss_path).map_err(|e| format!("Failed to read GSS file: {}", e))?;
 
     serde_json::from_str(&content).map_err(|e| format!("Failed to parse GSS JSON: {}", e))
-}
-
-/// Returns the parse tree JSON as a string.
-/// The frontend will parse this JSON directly.
-#[tauri::command]
-#[specta::specta]
-fn get_parse_tree(state: tauri::State<Mutex<ParseState>>) -> Result<String, String> {
-    let parse_state = state.lock().unwrap();
-    let parse_tree_path = parse_state
-        .parse_tree_path
-        .as_ref()
-        .ok_or("No parse result available. Run parse first.")?;
-
-    fs::read_to_string(parse_tree_path)
-        .map_err(|e| format!("Failed to read parse tree file: {}", e))
 }
 
 /// Returns the cargo features the current parser binary was built with,
@@ -1608,7 +1597,6 @@ pub fn run() {
         profile,
         get_sppf,
         get_gss,
-        get_parse_tree,
         setup_vscode_debug,
         get_nonterminals,
         load_debug_trace,

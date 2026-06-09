@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { commands } from "../../bindings";
+  import type { ParserBackend } from "./backend";
   import { tick } from "svelte";
   import { ChevronDown, ChevronRight, CornerRightUp, ZoomIn, ZoomOut, Maximize2, Minimize2, Expand, Fullscreen, UnfoldHorizontal, FoldHorizontal, Download, Eye, EyeOff, Copy, ClipboardCheck } from "lucide-svelte";
   import cytoscape from "cytoscape";
@@ -72,6 +72,7 @@
   }
 
   interface Props {
+    backend: ParserBackend | null;
     parserDirectory: string | null;
     parserName: string | null;
     buildStatus: "none" | "success" | "error";
@@ -95,6 +96,7 @@
   }
 
   let {
+    backend,
     parserDirectory,
     parserName,
     buildStatus,
@@ -453,7 +455,7 @@
 
   // Exported so the page-level Cmd+P keybinding can fire the same parse via bind:this.
   export async function parse() {
-    if (!parserDirectory || buildStatus !== "success" || !startNonterminal) return;
+    if (!backend || buildStatus !== "success" || !startNonterminal) return;
     onStatus?.("Parsing...", "info");
 
     // Reset previous results
@@ -464,17 +466,17 @@
 
     onLogCommand?.(`${parserName} <input> --nonterminal ${startNonterminal}`);
 
-    const result = await commands.parse(parserDirectory, inputText, startNonterminal);
-    if (result.status === "error") {
-      // Command itself failed (couldn't run parser)
+    const result = await backend.parse(inputText, startNonterminal);
+    if ("error" in result) {
+      // The parser could not be run at all.
       onLogError?.(result.error);
       onStatus?.("Parse failed", "error");
       return;
     }
 
-    const output = result.data;
+    const { output, treeJson } = result;
     // The parse view only renders the parse tree; SPPF/GSS live in debug mode.
-    parseResultAvailable = output.has_parse_tree;
+    parseResultAvailable = treeJson != null;
 
     if (output.success) {
       parseErrorInfo = null;
@@ -498,30 +500,26 @@
       }
     }
 
-    if (output.has_parse_tree) {
-      await fetchParseTree();
+    if (treeJson != null) {
+      loadParseTree(treeJson);
     }
   }
 
-  async function fetchParseTree() {
-    if (!parseResultAvailable) return;
-    const result = await commands.getParseTree();
-    if (result.status === "ok") {
-      try {
-        parseTree = JSON.parse(result.data) as ParseTree;
-        rebuildLayoutDerivedState();
-        // New tree: drop any stale selection and mark the graph for reload. The
-        // graph $effect rebuilds it when the graph tab is (or becomes) active.
-        clearParseModeInputSelection();
-        graphDirty = true;
-        // Expand root by default
-        if (treeRoot) {
-          expandedNodes = new Set([treeRoot.id]);
-        }
-        onParseTreeChange?.();
-      } catch (e) {
-        // JSON parse error — ignore
+  function loadParseTree(json: string) {
+    try {
+      parseTree = JSON.parse(json) as ParseTree;
+      rebuildLayoutDerivedState();
+      // New tree: drop any stale selection and mark the graph for reload. The
+      // graph $effect rebuilds it when the graph tab is (or becomes) active.
+      clearParseModeInputSelection();
+      graphDirty = true;
+      // Expand root by default
+      if (treeRoot) {
+        expandedNodes = new Set([treeRoot.id]);
       }
+      onParseTreeChange?.();
+    } catch (e) {
+      // JSON parse error — ignore
     }
   }
 
