@@ -2,6 +2,7 @@
 
 use crate::types::{Nonterminal, Slot, Terminal};
 use iguana_runtime::ids::{NonterminalId, SlotId, TerminalId};
+use iguana_runtime::scanner::TerminalSet;
 pub const NONTERMINALS: [Nonterminal; 5] = [
     Nonterminal {
         name: "S",
@@ -144,36 +145,72 @@ pub const SLOTS: [Slot; 29] = [
     },
 ];
 // S { WS, EOF }
-pub static FOLLOW_SET_S: &[TerminalId] = &[TerminalId(0), TerminalId(5)];
+pub static FOLLOW_SET_S: TerminalSet = TerminalSet {
+    id: 0,
+    terminals: &[TerminalId(0), TerminalId(5)],
+};
 // S { "a", "fn" }
 pub static FIRST_SET_S: &[TerminalId] = &[TerminalId(1), TerminalId(3)];
 // S : . E(0) { "a", "fn" }
-pub static FIRST_SET_S_ALT0: &[TerminalId] = &[TerminalId(1), TerminalId(3)];
+pub static FIRST_SET_S_ALT0: TerminalSet = TerminalSet {
+    id: 1,
+    terminals: &[TerminalId(1), TerminalId(3)],
+};
 // E { "+", EOF, WS }
-pub static FOLLOW_SET_E: &[TerminalId] = &[TerminalId(2), TerminalId(5), TerminalId(0)];
+pub static FOLLOW_SET_E: TerminalSet = TerminalSet {
+    id: 2,
+    terminals: &[TerminalId(2), TerminalId(5), TerminalId(0)],
+};
 // E { "a", "fn" }
 pub static FIRST_SET_E: &[TerminalId] = &[TerminalId(1), TerminalId(3)];
 // E(p: i32) : . "a" return 0 { "a" }
-pub static FIRST_SET_E_ALT0: &[TerminalId] = &[TerminalId(1)];
+pub static FIRST_SET_E_ALT0: TerminalSet = TerminalSet {
+    id: 3,
+    terminals: &[TerminalId(1)],
+};
 // E(p: i32) : . [2 >= p] l=E(p) [(l == 0) || (l >= 2)] WS "+" WS r=E(2) return (r == 0) ? 2 : min(r, 2) { "a", "fn" }
-pub static FIRST_SET_E_ALT1: &[TerminalId] = &[TerminalId(1), TerminalId(3)];
+pub static FIRST_SET_E_ALT1: TerminalSet = TerminalSet {
+    id: 1,
+    terminals: &[TerminalId(1), TerminalId(3)],
+};
 // E(p: i32) : . Lambda(1) return 1 { "fn" }
-pub static FIRST_SET_E_ALT2: &[TerminalId] = &[TerminalId(3)];
+pub static FIRST_SET_E_ALT2: TerminalSet = TerminalSet {
+    id: 4,
+    terminals: &[TerminalId(3)],
+};
 // Lambda { "+", EOF, WS }
-pub static FOLLOW_SET_LAMBDA: &[TerminalId] = &[TerminalId(2), TerminalId(5), TerminalId(0)];
+pub static FOLLOW_SET_LAMBDA: TerminalSet = TerminalSet {
+    id: 2,
+    terminals: &[TerminalId(2), TerminalId(5), TerminalId(0)],
+};
 // Lambda { "fn" }
 pub static FIRST_SET_LAMBDA: &[TerminalId] = &[TerminalId(3)];
 // Lambda(p: i32) : . "fn" WS r=Body(p) return r { "fn" }
-pub static FIRST_SET_LAMBDA_ALT0: &[TerminalId] = &[TerminalId(3)];
+pub static FIRST_SET_LAMBDA_ALT0: TerminalSet = TerminalSet {
+    id: 4,
+    terminals: &[TerminalId(3)],
+};
 // Body { "+", EOF, WS }
-pub static FOLLOW_SET_BODY: &[TerminalId] = &[TerminalId(2), TerminalId(5), TerminalId(0)];
+pub static FOLLOW_SET_BODY: TerminalSet = TerminalSet {
+    id: 2,
+    terminals: &[TerminalId(2), TerminalId(5), TerminalId(0)],
+};
 // Body { "a", "fn" }
 pub static FIRST_SET_BODY: &[TerminalId] = &[TerminalId(1), TerminalId(3)];
 // Body(p: i32) : . r=E(p) return r { "a", "fn" }
-pub static FIRST_SET_BODY_ALT0: &[TerminalId] = &[TerminalId(1), TerminalId(3)];
+pub static FIRST_SET_BODY_ALT0: TerminalSet = TerminalSet {
+    id: 1,
+    terminals: &[TerminalId(1), TerminalId(3)],
+};
 // StartS { EOF }
-pub static FOLLOW_SET_START_S: &[TerminalId] = &[TerminalId(5)];
+pub static FOLLOW_SET_START_S: TerminalSet = TerminalSet {
+    id: 5,
+    terminals: &[TerminalId(5)],
+};
 // StartS { "a", WS, "fn" }
 pub static FIRST_SET_START_S: &[TerminalId] = &[TerminalId(1), TerminalId(0), TerminalId(3)];
 // StartS : . WS start:S WS { "a", "fn", WS }
-pub static FIRST_SET_START_S_ALT0: &[TerminalId] = &[TerminalId(1), TerminalId(3), TerminalId(0)];
+pub static FIRST_SET_START_S_ALT0: TerminalSet = TerminalSet {
+    id: 6,
+    terminals: &[TerminalId(1), TerminalId(3), TerminalId(0)],
+};

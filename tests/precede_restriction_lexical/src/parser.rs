@@ -153,12 +153,12 @@ impl<'i> Parser<'i> for PrecedeRestrictionLexicalParser<'i> {
             NonterminalId(0) => {
                 let mut matched = false;
                 // S : . "for" WS Id
-                if self.scanner.match_any(FIRST_SET_S_ALT0, input_index) {
+                if self.scanner.match_any(&FIRST_SET_S_ALT0, input_index) {
                     matched = true;
                     self.add_first_descriptor(SlotId(0), input_index, gss_node_id, env);
                 }
                 // S : . "forall"
-                if self.scanner.match_any(FIRST_SET_S_ALT1, input_index) {
+                if self.scanner.match_any(&FIRST_SET_S_ALT1, input_index) {
                     matched = true;
                     self.add_first_descriptor(SlotId(4), input_index, gss_node_id, env);
                 }
@@ -511,13 +511,13 @@ impl<'i> Parser<'i> for PrecedeRestrictionLexicalParser<'i> {
     }
     fn follow_set_check(&mut self, nonterminal_id: NonterminalId, input_index: u32) -> bool {
         match nonterminal_id {
-            NonterminalId(0) => self.scanner.match_any(FOLLOW_SET_S, input_index),
+            NonterminalId(0) => self.scanner.match_any(&FOLLOW_SET_S, input_index),
             _ => true,
         }
     }
     fn follow_set_terminals(&self, nonterminal_id: NonterminalId) -> Vec<TerminalId> {
         match nonterminal_id {
-            NonterminalId(0) => FOLLOW_SET_S.to_vec(),
+            NonterminalId(0) => FOLLOW_SET_S.terminals.to_vec(),
             _ => vec![],
         }
     }

@@ -389,18 +389,21 @@ impl<'a> ParserGen<'a> {
             .iter()
             .enumerate()
             .map(|(alt_index, alt)| {
-                let first_alt_name =
-                    format_ident!("FIRST_SET_{}_ALT{}", nt_const_suffix, alt_index);
                 let slot = Slot::new(nonterminal, alt, 0);
                 let slot_id = self.slot_ids.get_id(&slot);
                 let slot_name = slot.name();
+                let first_alt_check = self.gen_match_any(
+                    &format!("FIRST_SET_{nt_const_suffix}_ALT{alt_index}"),
+                    quote! { input_index },
+                );
                 let trigger = if self.ff.is_alt_nullable(alt) {
-                    quote! {
-                        self.scanner.match_any(#first_alt_name, input_index)
-                            || self.scanner.match_any(#follow_name, input_index)
-                    }
+                    let follow_check = self.gen_match_any(
+                        &format!("FOLLOW_SET_{nt_const_suffix}"),
+                        quote! { input_index },
+                    );
+                    quote! { #first_alt_check || #follow_check }
                 } else {
-                    quote! { self.scanner.match_any(#first_alt_name, input_index) }
+                    first_alt_check
                 };
                 quote! {
                     #[comment = #slot_name]
@@ -422,7 +425,7 @@ impl<'a> ParserGen<'a> {
             quote! {
                 {
                     let mut expected = #first_set_name.to_vec();
-                    expected.extend_from_slice(#follow_name);
+                    expected.extend_from_slice(#follow_name.terminals);
                     expected
                 }
             }
@@ -765,20 +768,23 @@ impl<'a> ParserGen<'a> {
                         let Some(_) = symbol.as_identifier() else {
                             continue;
                         };
-                        let static_name = format_ident!(
+                        let static_name_str = format!(
                             "FOLLOW_RESTRICTION_{}_ALT{}_POS{}",
                             to_snake_case(&nonterminal.name).to_uppercase(),
                             alt_index,
                             pos
                         );
+                        let static_name = format_ident!("{}", static_name_str);
+                        let restriction_check =
+                            self.gen_match_any(&static_name_str, quote! { right_extent });
                         let slot = Slot::new(nonterminal, alternative, pos);
                         let next_slot = slot.next();
                         let slot_id = self.slot_ids.get_id(&next_slot);
                         arms.push(quote! {
                             #slot_id => {
-                                if self.scanner.match_any(#static_name, right_extent) {
+                                if #restriction_check {
                                     Some(ParseErrorKind::ForbiddenFollow {
-                                        forbidden: #static_name.to_vec(),
+                                        forbidden: #static_name.terminals.to_vec(),
                                     })
                                 } else {
                                     None
@@ -833,7 +839,7 @@ impl<'a> ParserGen<'a> {
                 to_snake_case(&nonterminal.name).to_uppercase(),
             );
             arms.push(quote! {
-                #nonterminal_id => { #follow_name.to_vec() }
+                #nonterminal_id => { #follow_name.terminals.to_vec() }
             });
         }
         quote! {
@@ -1176,7 +1182,7 @@ impl<'a> ParserGen<'a> {
 
     fn gen_match_any(&self, static_name: &str, input_index: TokenStream) -> TokenStream {
         let name = format_ident!("{}", static_name);
-        quote! { self.scanner.match_any(#name, #input_index) }
+        quote! { self.scanner.match_any(&#name, #input_index) }
     }
 
     fn gen_parse_method_ll1(&self, nonterminal: &'a Nonterminal, memoize: bool) -> TokenStream {
@@ -1304,7 +1310,6 @@ impl<'a> ParserGen<'a> {
         alternatives: &[&'a Alternative],
         nonterminal_id: NonterminalId,
     ) -> Vec<TokenStream> {
-        let eof_id = Literal::u16_unsuffixed(self.terminal_ids.len() as u16 + 1);
         alternatives
             .iter()
             .filter_map(|alternative| {
@@ -1314,17 +1319,8 @@ impl<'a> ParserGen<'a> {
                     return None;
                 }
                 let body = self.gen_alt_body_ll1(nonterminal, alternative, nonterminal_id);
-                let pred_patterns: Vec<_> = first
-                    .iter()
-                    .map(|t| {
-                        if t.name == "EOF" {
-                            quote! { TerminalId(#eof_id) }
-                        } else {
-                            let id = self.terminal_ids.get_id(t);
-                            quote! { #id }
-                        }
-                    })
-                    .collect();
+                let pred_patterns: Vec<_> =
+                    first.iter().map(|t| self.terminal_ids.get_id(t)).collect();
                 Some(quote! {
                     #(#pred_patterns)|* => { #body }
                 })

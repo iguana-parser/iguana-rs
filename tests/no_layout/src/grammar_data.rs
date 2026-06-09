@@ -2,6 +2,7 @@
 
 use crate::types::{Nonterminal, Slot, Terminal};
 use iguana_runtime::ids::{NonterminalId, SlotId, TerminalId};
+use iguana_runtime::scanner::TerminalSet;
 pub const NONTERMINALS: [Nonterminal; 3] = [
     Nonterminal {
         name: "S",
@@ -68,22 +69,43 @@ pub const SLOTS: [Slot; 9] = [
     },
 ];
 // S { EOF }
-pub static FOLLOW_SET_S: &[TerminalId] = &[TerminalId(3)];
+pub static FOLLOW_SET_S: TerminalSet = TerminalSet {
+    id: 0,
+    terminals: &[TerminalId(3)],
+};
 // S { Char }
 pub static FIRST_SET_S: &[TerminalId] = &[TerminalId(0)];
 // S : . Id { Char }
-pub static FIRST_SET_S_ALT0: &[TerminalId] = &[TerminalId(0)];
+pub static FIRST_SET_S_ALT0: TerminalSet = TerminalSet {
+    id: 1,
+    terminals: &[TerminalId(0)],
+};
 // Id { EOF }
-pub static FOLLOW_SET_ID: &[TerminalId] = &[TerminalId(3)];
+pub static FOLLOW_SET_ID: TerminalSet = TerminalSet {
+    id: 0,
+    terminals: &[TerminalId(3)],
+};
 // Id { Char }
 pub static FIRST_SET_ID: &[TerminalId] = &[TerminalId(0)];
 // Id : . Plus_0 { Char }
-pub static FIRST_SET_ID_ALT0: &[TerminalId] = &[TerminalId(0)];
+pub static FIRST_SET_ID_ALT0: TerminalSet = TerminalSet {
+    id: 1,
+    terminals: &[TerminalId(0)],
+};
 // Plus_0 { Char, EOF }
-pub static FOLLOW_SET_PLUS_0: &[TerminalId] = &[TerminalId(0), TerminalId(3)];
+pub static FOLLOW_SET_PLUS_0: TerminalSet = TerminalSet {
+    id: 2,
+    terminals: &[TerminalId(0), TerminalId(3)],
+};
 // Plus_0 { Char }
 pub static FIRST_SET_PLUS_0: &[TerminalId] = &[TerminalId(0)];
 // Plus_0 : . Plus_0 Char { Char }
-pub static FIRST_SET_PLUS_0_ALT0: &[TerminalId] = &[TerminalId(0)];
+pub static FIRST_SET_PLUS_0_ALT0: TerminalSet = TerminalSet {
+    id: 1,
+    terminals: &[TerminalId(0)],
+};
 // Plus_0 : . Char { Char }
-pub static FIRST_SET_PLUS_0_ALT1: &[TerminalId] = &[TerminalId(0)];
+pub static FIRST_SET_PLUS_0_ALT1: TerminalSet = TerminalSet {
+    id: 1,
+    terminals: &[TerminalId(0)],
+};

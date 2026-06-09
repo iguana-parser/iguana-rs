@@ -2,6 +2,7 @@
 
 use crate::types::{Nonterminal, Slot, Terminal};
 use iguana_runtime::ids::{NonterminalId, SlotId, TerminalId};
+use iguana_runtime::scanner::TerminalSet;
 pub const NONTERMINALS: [Nonterminal; 2] = [
     Nonterminal {
         name: "Expr",
@@ -93,19 +94,36 @@ pub const SLOTS: [Slot; 18] = [
     },
 ];
 // Expr { "+", "*", Layout, EOF }
-pub static FOLLOW_SET_EXPR: &[TerminalId] =
-    &[TerminalId(4), TerminalId(5), TerminalId(0), TerminalId(8)];
+pub static FOLLOW_SET_EXPR: TerminalSet = TerminalSet {
+    id: 0,
+    terminals: &[TerminalId(4), TerminalId(5), TerminalId(0), TerminalId(8)],
+};
 // Expr { "x" }
 pub static FIRST_SET_EXPR: &[TerminalId] = &[TerminalId(6)];
 // Expr : . Expr Layout "+" Layout Expr { "x" }
-pub static FIRST_SET_EXPR_ALT0: &[TerminalId] = &[TerminalId(6)];
+pub static FIRST_SET_EXPR_ALT0: TerminalSet = TerminalSet {
+    id: 1,
+    terminals: &[TerminalId(6)],
+};
 // Expr : . Expr Layout "*" Layout Expr { "x" }
-pub static FIRST_SET_EXPR_ALT1: &[TerminalId] = &[TerminalId(6)];
+pub static FIRST_SET_EXPR_ALT1: TerminalSet = TerminalSet {
+    id: 1,
+    terminals: &[TerminalId(6)],
+};
 // Expr : . "x" { "x" }
-pub static FIRST_SET_EXPR_ALT2: &[TerminalId] = &[TerminalId(6)];
+pub static FIRST_SET_EXPR_ALT2: TerminalSet = TerminalSet {
+    id: 1,
+    terminals: &[TerminalId(6)],
+};
 // StartExpr { EOF }
-pub static FOLLOW_SET_START_EXPR: &[TerminalId] = &[TerminalId(8)];
+pub static FOLLOW_SET_START_EXPR: TerminalSet = TerminalSet {
+    id: 2,
+    terminals: &[TerminalId(8)],
+};
 // StartExpr { Layout, "x" }
 pub static FIRST_SET_START_EXPR: &[TerminalId] = &[TerminalId(0), TerminalId(6)];
 // StartExpr : . Layout start:Expr Layout { Layout, "x" }
-pub static FIRST_SET_START_EXPR_ALT0: &[TerminalId] = &[TerminalId(0), TerminalId(6)];
+pub static FIRST_SET_START_EXPR_ALT0: TerminalSet = TerminalSet {
+    id: 3,
+    terminals: &[TerminalId(0), TerminalId(6)],
+};

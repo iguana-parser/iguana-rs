@@ -2,6 +2,7 @@
 
 use crate::types::{Nonterminal, Slot, Terminal};
 use iguana_runtime::ids::{NonterminalId, SlotId, TerminalId};
+use iguana_runtime::scanner::TerminalSet;
 pub const NONTERMINALS: [Nonterminal; 7] = [
     Nonterminal {
         name: "S",
@@ -131,50 +132,101 @@ pub const SLOTS: [Slot; 21] = [
     },
 ];
 // S { EOF }
-pub static FOLLOW_SET_S: &[TerminalId] = &[TerminalId(2)];
+pub static FOLLOW_SET_S: TerminalSet = TerminalSet {
+    id: 0,
+    terminals: &[TerminalId(2)],
+};
 // S { "a" }
 pub static FIRST_SET_S: &[TerminalId] = &[TerminalId(0)];
 // S : . Star_0 { "a" }
-pub static FIRST_SET_S_ALT0: &[TerminalId] = &[TerminalId(0)];
+pub static FIRST_SET_S_ALT0: TerminalSet = TerminalSet {
+    id: 1,
+    terminals: &[TerminalId(0)],
+};
 // A { "a", EOF }
-pub static FOLLOW_SET_A: &[TerminalId] = &[TerminalId(0), TerminalId(2)];
+pub static FOLLOW_SET_A: TerminalSet = TerminalSet {
+    id: 2,
+    terminals: &[TerminalId(0), TerminalId(2)],
+};
 // A { "a" }
 pub static FIRST_SET_A: &[TerminalId] = &[TerminalId(0)];
 // A : . X { "a" }
-pub static FIRST_SET_A_ALT0: &[TerminalId] = &[TerminalId(0)];
+pub static FIRST_SET_A_ALT0: TerminalSet = TerminalSet {
+    id: 1,
+    terminals: &[TerminalId(0)],
+};
 // A : . Y { "a" }
-pub static FIRST_SET_A_ALT1: &[TerminalId] = &[TerminalId(0)];
+pub static FIRST_SET_A_ALT1: TerminalSet = TerminalSet {
+    id: 1,
+    terminals: &[TerminalId(0)],
+};
 // X { "a", EOF }
-pub static FOLLOW_SET_X: &[TerminalId] = &[TerminalId(0), TerminalId(2)];
+pub static FOLLOW_SET_X: TerminalSet = TerminalSet {
+    id: 2,
+    terminals: &[TerminalId(0), TerminalId(2)],
+};
 // X { "a" }
 pub static FIRST_SET_X: &[TerminalId] = &[TerminalId(0)];
 // X : . "a" { "a" }
-pub static FIRST_SET_X_ALT0: &[TerminalId] = &[TerminalId(0)];
+pub static FIRST_SET_X_ALT0: TerminalSet = TerminalSet {
+    id: 1,
+    terminals: &[TerminalId(0)],
+};
 // Y { "a", EOF }
-pub static FOLLOW_SET_Y: &[TerminalId] = &[TerminalId(0), TerminalId(2)];
+pub static FOLLOW_SET_Y: TerminalSet = TerminalSet {
+    id: 2,
+    terminals: &[TerminalId(0), TerminalId(2)],
+};
 // Y { "a" }
 pub static FIRST_SET_Y: &[TerminalId] = &[TerminalId(0)];
 // Y : . "a" "a" { "a" }
-pub static FIRST_SET_Y_ALT0: &[TerminalId] = &[TerminalId(0)];
+pub static FIRST_SET_Y_ALT0: TerminalSet = TerminalSet {
+    id: 1,
+    terminals: &[TerminalId(0)],
+};
 // Plus_0 { "a", EOF }
-pub static FOLLOW_SET_PLUS_0: &[TerminalId] = &[TerminalId(0), TerminalId(2)];
+pub static FOLLOW_SET_PLUS_0: TerminalSet = TerminalSet {
+    id: 2,
+    terminals: &[TerminalId(0), TerminalId(2)],
+};
 // Plus_0 { "a" }
 pub static FIRST_SET_PLUS_0: &[TerminalId] = &[TerminalId(0)];
 // Plus_0 : . Plus_0 A { "a" }
-pub static FIRST_SET_PLUS_0_ALT0: &[TerminalId] = &[TerminalId(0)];
+pub static FIRST_SET_PLUS_0_ALT0: TerminalSet = TerminalSet {
+    id: 1,
+    terminals: &[TerminalId(0)],
+};
 // Plus_0 : . A { "a" }
-pub static FIRST_SET_PLUS_0_ALT1: &[TerminalId] = &[TerminalId(0)];
+pub static FIRST_SET_PLUS_0_ALT1: TerminalSet = TerminalSet {
+    id: 1,
+    terminals: &[TerminalId(0)],
+};
 // Opt_0 { EOF }
-pub static FOLLOW_SET_OPT_0: &[TerminalId] = &[TerminalId(2)];
+pub static FOLLOW_SET_OPT_0: TerminalSet = TerminalSet {
+    id: 0,
+    terminals: &[TerminalId(2)],
+};
 // Opt_0 { "a" }
 pub static FIRST_SET_OPT_0: &[TerminalId] = &[TerminalId(0)];
 // Opt_0 : . Plus_0 { "a" }
-pub static FIRST_SET_OPT_0_ALT0: &[TerminalId] = &[TerminalId(0)];
+pub static FIRST_SET_OPT_0_ALT0: TerminalSet = TerminalSet {
+    id: 1,
+    terminals: &[TerminalId(0)],
+};
 // Opt_0 : . {  }
-pub static FIRST_SET_OPT_0_ALT1: &[TerminalId] = &[];
+pub static FIRST_SET_OPT_0_ALT1: TerminalSet = TerminalSet {
+    id: 3,
+    terminals: &[],
+};
 // Star_0 { EOF }
-pub static FOLLOW_SET_STAR_0: &[TerminalId] = &[TerminalId(2)];
+pub static FOLLOW_SET_STAR_0: TerminalSet = TerminalSet {
+    id: 0,
+    terminals: &[TerminalId(2)],
+};
 // Star_0 { "a" }
 pub static FIRST_SET_STAR_0: &[TerminalId] = &[TerminalId(0)];
 // Star_0 : . Opt_0 { "a" }
-pub static FIRST_SET_STAR_0_ALT0: &[TerminalId] = &[TerminalId(0)];
+pub static FIRST_SET_STAR_0_ALT0: TerminalSet = TerminalSet {
+    id: 1,
+    terminals: &[TerminalId(0)],
+};

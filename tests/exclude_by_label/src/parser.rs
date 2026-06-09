@@ -346,17 +346,17 @@ impl<'i> Parser<'i> for ExcludeByLabelParser<'i> {
             NonterminalId(3) => {
                 let mut matched = false;
                 // Expr(e: i32) : . [1 & e == 0] Id return 0
-                if self.scanner.match_any(FIRST_SET_EXPR_ALT0, input_index) {
+                if self.scanner.match_any(&FIRST_SET_EXPR_ALT0, input_index) {
                     matched = true;
                     self.add_first_descriptor(SlotId(11), input_index, gss_node_id, env);
                 }
                 // Expr(e: i32) : . [2 & e == 0] Expr(0) "(" Star_0 ")" return 1
-                if self.scanner.match_any(FIRST_SET_EXPR_ALT1, input_index) {
+                if self.scanner.match_any(&FIRST_SET_EXPR_ALT1, input_index) {
                     matched = true;
                     self.add_first_descriptor(SlotId(15), input_index, gss_node_id, env);
                 }
                 // Expr(e: i32) : . [4 & e == 0] Expr(0) "," Expr(0) return 2
-                if self.scanner.match_any(FIRST_SET_EXPR_ALT2, input_index) {
+                if self.scanner.match_any(&FIRST_SET_EXPR_ALT2, input_index) {
                     matched = true;
                     self.add_first_descriptor(SlotId(22), input_index, gss_node_id, env);
                 }
@@ -372,12 +372,12 @@ impl<'i> Parser<'i> for ExcludeByLabelParser<'i> {
             NonterminalId(0) => {
                 let mut matched = false;
                 // Plus_0 : . Plus_0 "," Expr(4)
-                if self.scanner.match_any(FIRST_SET_PLUS_0_ALT0, input_index) {
+                if self.scanner.match_any(&FIRST_SET_PLUS_0_ALT0, input_index) {
                     matched = true;
                     self.add_first_descriptor(SlotId(0), input_index, gss_node_id, env);
                 }
                 // Plus_0 : . Expr(4)
-                if self.scanner.match_any(FIRST_SET_PLUS_0_ALT1, input_index) {
+                if self.scanner.match_any(&FIRST_SET_PLUS_0_ALT1, input_index) {
                     matched = true;
                     self.add_first_descriptor(SlotId(4), input_index, gss_node_id, env);
                 }
@@ -393,13 +393,13 @@ impl<'i> Parser<'i> for ExcludeByLabelParser<'i> {
             NonterminalId(1) => {
                 let mut matched = false;
                 // Opt_0 : . Plus_0
-                if self.scanner.match_any(FIRST_SET_OPT_0_ALT0, input_index) {
+                if self.scanner.match_any(&FIRST_SET_OPT_0_ALT0, input_index) {
                     matched = true;
                     self.add_first_descriptor(SlotId(6), input_index, gss_node_id, env);
                 }
                 // Opt_0 : .
-                if self.scanner.match_any(FIRST_SET_OPT_0_ALT1, input_index)
-                    || self.scanner.match_any(FOLLOW_SET_OPT_0, input_index)
+                if self.scanner.match_any(&FIRST_SET_OPT_0_ALT1, input_index)
+                    || self.scanner.match_any(&FOLLOW_SET_OPT_0, input_index)
                 {
                     matched = true;
                     self.add_first_descriptor(SlotId(8), input_index, gss_node_id, env);
@@ -409,7 +409,7 @@ impl<'i> Parser<'i> for ExcludeByLabelParser<'i> {
                         ParseErrorKind::UnexpectedToken {
                             expected: {
                                 let mut expected = FIRST_SET_OPT_0.to_vec();
-                                expected.extend_from_slice(FOLLOW_SET_OPT_0);
+                                expected.extend_from_slice(FOLLOW_SET_OPT_0.terminals);
                                 expected
                             },
                         }
@@ -775,19 +775,19 @@ impl<'i> Parser<'i> for ExcludeByLabelParser<'i> {
     }
     fn follow_set_check(&mut self, nonterminal_id: NonterminalId, input_index: u32) -> bool {
         match nonterminal_id {
-            NonterminalId(3) => self.scanner.match_any(FOLLOW_SET_EXPR, input_index),
-            NonterminalId(0) => self.scanner.match_any(FOLLOW_SET_PLUS_0, input_index),
-            NonterminalId(1) => self.scanner.match_any(FOLLOW_SET_OPT_0, input_index),
-            NonterminalId(2) => self.scanner.match_any(FOLLOW_SET_STAR_0, input_index),
+            NonterminalId(3) => self.scanner.match_any(&FOLLOW_SET_EXPR, input_index),
+            NonterminalId(0) => self.scanner.match_any(&FOLLOW_SET_PLUS_0, input_index),
+            NonterminalId(1) => self.scanner.match_any(&FOLLOW_SET_OPT_0, input_index),
+            NonterminalId(2) => self.scanner.match_any(&FOLLOW_SET_STAR_0, input_index),
             _ => true,
         }
     }
     fn follow_set_terminals(&self, nonterminal_id: NonterminalId) -> Vec<TerminalId> {
         match nonterminal_id {
-            NonterminalId(3) => FOLLOW_SET_EXPR.to_vec(),
-            NonterminalId(0) => FOLLOW_SET_PLUS_0.to_vec(),
-            NonterminalId(1) => FOLLOW_SET_OPT_0.to_vec(),
-            NonterminalId(2) => FOLLOW_SET_STAR_0.to_vec(),
+            NonterminalId(3) => FOLLOW_SET_EXPR.terminals.to_vec(),
+            NonterminalId(0) => FOLLOW_SET_PLUS_0.terminals.to_vec(),
+            NonterminalId(1) => FOLLOW_SET_OPT_0.terminals.to_vec(),
+            NonterminalId(2) => FOLLOW_SET_STAR_0.terminals.to_vec(),
             _ => vec![],
         }
     }

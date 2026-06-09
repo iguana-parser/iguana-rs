@@ -181,12 +181,12 @@ impl<'i> Parser<'i> for PlusWithSepParser<'i> {
             NonterminalId(2) => {
                 let mut matched = false;
                 // Plus_0 : . Plus_0 "," A
-                if self.scanner.match_any(FIRST_SET_PLUS_0_ALT0, input_index) {
+                if self.scanner.match_any(&FIRST_SET_PLUS_0_ALT0, input_index) {
                     matched = true;
                     self.add_first_descriptor(SlotId(4), input_index, gss_node_id, env);
                 }
                 // Plus_0 : . A
-                if self.scanner.match_any(FIRST_SET_PLUS_0_ALT1, input_index) {
+                if self.scanner.match_any(&FIRST_SET_PLUS_0_ALT1, input_index) {
                     matched = true;
                     self.add_first_descriptor(SlotId(8), input_index, gss_node_id, env);
                 }
@@ -539,17 +539,17 @@ impl<'i> Parser<'i> for PlusWithSepParser<'i> {
     }
     fn follow_set_check(&mut self, nonterminal_id: NonterminalId, input_index: u32) -> bool {
         match nonterminal_id {
-            NonterminalId(0) => self.scanner.match_any(FOLLOW_SET_S, input_index),
-            NonterminalId(1) => self.scanner.match_any(FOLLOW_SET_A, input_index),
-            NonterminalId(2) => self.scanner.match_any(FOLLOW_SET_PLUS_0, input_index),
+            NonterminalId(0) => self.scanner.match_any(&FOLLOW_SET_S, input_index),
+            NonterminalId(1) => self.scanner.match_any(&FOLLOW_SET_A, input_index),
+            NonterminalId(2) => self.scanner.match_any(&FOLLOW_SET_PLUS_0, input_index),
             _ => true,
         }
     }
     fn follow_set_terminals(&self, nonterminal_id: NonterminalId) -> Vec<TerminalId> {
         match nonterminal_id {
-            NonterminalId(0) => FOLLOW_SET_S.to_vec(),
-            NonterminalId(1) => FOLLOW_SET_A.to_vec(),
-            NonterminalId(2) => FOLLOW_SET_PLUS_0.to_vec(),
+            NonterminalId(0) => FOLLOW_SET_S.terminals.to_vec(),
+            NonterminalId(1) => FOLLOW_SET_A.terminals.to_vec(),
+            NonterminalId(2) => FOLLOW_SET_PLUS_0.terminals.to_vec(),
             _ => vec![],
         }
     }

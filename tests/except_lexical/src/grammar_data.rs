@@ -2,6 +2,7 @@
 
 use crate::types::{Nonterminal, Slot, Terminal};
 use iguana_runtime::ids::{NonterminalId, SlotId, TerminalId};
+use iguana_runtime::scanner::TerminalSet;
 pub const NONTERMINALS: [Nonterminal; 1] = [Nonterminal {
     name: "S",
     display: "S",
@@ -31,8 +32,14 @@ pub const SLOTS: [Slot; 2] = [
     },
 ];
 // S { EOF }
-pub static FOLLOW_SET_S: &[TerminalId] = &[TerminalId(3)];
+pub static FOLLOW_SET_S: TerminalSet = TerminalSet {
+    id: 0,
+    terminals: &[TerminalId(3)],
+};
 // S { Identifier }
 pub static FIRST_SET_S: &[TerminalId] = &[TerminalId(1)];
 // S : . Identifier { Identifier }
-pub static FIRST_SET_S_ALT0: &[TerminalId] = &[TerminalId(1)];
+pub static FIRST_SET_S_ALT0: TerminalSet = TerminalSet {
+    id: 1,
+    terminals: &[TerminalId(1)],
+};

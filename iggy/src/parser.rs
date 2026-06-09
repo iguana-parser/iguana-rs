@@ -4516,12 +4516,12 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             NonterminalId(2) => {
                 let mut matched = false;
                 // Rule : . SyntaxRule
-                if self.scanner.match_any(FIRST_SET_RULE_ALT0, input_index) {
+                if self.scanner.match_any(&FIRST_SET_RULE_ALT0, input_index) {
                     matched = true;
                     self.add_first_descriptor(SlotId(12), input_index, gss_node_id, env);
                 }
                 // Rule : . RegexRule
-                if self.scanner.match_any(FIRST_SET_RULE_ALT1, input_index) {
+                if self.scanner.match_any(&FIRST_SET_RULE_ALT1, input_index) {
                     matched = true;
                     self.add_first_descriptor(SlotId(14), input_index, gss_node_id, env);
                 }
@@ -4543,7 +4543,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 // Annotation : . "@NoLayout"
                 if self
                     .scanner
-                    .match_any(FIRST_SET_ANNOTATION_ALT0, input_index)
+                    .match_any(&FIRST_SET_ANNOTATION_ALT0, input_index)
                 {
                     matched = true;
                     self.add_first_descriptor(SlotId(24), input_index, gss_node_id, env);
@@ -4551,7 +4551,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 // Annotation : . "@Layout" Layout "(" Layout Identifier Layout ")"
                 if self
                     .scanner
-                    .match_any(FIRST_SET_ANNOTATION_ALT1, input_index)
+                    .match_any(&FIRST_SET_ANNOTATION_ALT1, input_index)
                 {
                     matched = true;
                     self.add_first_descriptor(SlotId(26), input_index, gss_node_id, env);
@@ -4559,7 +4559,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 // Annotation : . "@Start"
                 if self
                     .scanner
-                    .match_any(FIRST_SET_ANNOTATION_ALT2, input_index)
+                    .match_any(&FIRST_SET_ANNOTATION_ALT2, input_index)
                 {
                     matched = true;
                     self.add_first_descriptor(SlotId(34), input_index, gss_node_id, env);
@@ -4586,7 +4586,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 // PostCondition : . "\" Layout Identifier
                 if self
                     .scanner
-                    .match_any(FIRST_SET_POST_CONDITION_ALT0, input_index)
+                    .match_any(&FIRST_SET_POST_CONDITION_ALT0, input_index)
                 {
                     matched = true;
                     self.add_first_descriptor(SlotId(52), input_index, gss_node_id, env);
@@ -4594,7 +4594,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 // PostCondition : . "!>>" Layout Identifier
                 if self
                     .scanner
-                    .match_any(FIRST_SET_POST_CONDITION_ALT1, input_index)
+                    .match_any(&FIRST_SET_POST_CONDITION_ALT1, input_index)
                 {
                     matched = true;
                     self.add_first_descriptor(SlotId(56), input_index, gss_node_id, env);
@@ -4617,7 +4617,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 // Associativity : . "left"
                 if self
                     .scanner
-                    .match_any(FIRST_SET_ASSOCIATIVITY_ALT0, input_index)
+                    .match_any(&FIRST_SET_ASSOCIATIVITY_ALT0, input_index)
                 {
                     matched = true;
                     self.add_first_descriptor(SlotId(64), input_index, gss_node_id, env);
@@ -4625,7 +4625,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 // Associativity : . "right"
                 if self
                     .scanner
-                    .match_any(FIRST_SET_ASSOCIATIVITY_ALT1, input_index)
+                    .match_any(&FIRST_SET_ASSOCIATIVITY_ALT1, input_index)
                 {
                     matched = true;
                     self.add_first_descriptor(SlotId(66), input_index, gss_node_id, env);
@@ -4633,7 +4633,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 // Associativity : . "none"
                 if self
                     .scanner
-                    .match_any(FIRST_SET_ASSOCIATIVITY_ALT2, input_index)
+                    .match_any(&FIRST_SET_ASSOCIATIVITY_ALT2, input_index)
                 {
                     matched = true;
                     self.add_first_descriptor(SlotId(68), input_index, gss_node_id, env);
@@ -4654,72 +4654,72 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             NonterminalId(57) => {
                 let mut matched = false;
                 // Symbol(p: i32, e: i32) : . [1 & e == 0] Identifier return 0
-                if self.scanner.match_any(FIRST_SET_SYMBOL_ALT0, input_index) {
+                if self.scanner.match_any(&FIRST_SET_SYMBOL_ALT0, input_index) {
                     matched = true;
                     self.add_first_descriptor(SlotId(301), input_index, gss_node_id, env);
                 }
                 // Symbol(p: i32, e: i32) : . [2 & e == 0] "(" Layout Plus_7 Layout ")" return 1
-                if self.scanner.match_any(FIRST_SET_SYMBOL_ALT1, input_index) {
+                if self.scanner.match_any(&FIRST_SET_SYMBOL_ALT1, input_index) {
                     matched = true;
                     self.add_first_descriptor(SlotId(305), input_index, gss_node_id, env);
                 }
                 // Symbol(p: i32, e: i32) : . [4 & e == 0] "(" Layout first:Symbol(0, 0) Layout rest:Plus_8 Layout ")" return 2
-                if self.scanner.match_any(FIRST_SET_SYMBOL_ALT2, input_index) {
+                if self.scanner.match_any(&FIRST_SET_SYMBOL_ALT2, input_index) {
                     matched = true;
                     self.add_first_descriptor(SlotId(313), input_index, gss_node_id, env);
                 }
                 // Symbol(p: i32, e: i32) : . [8 & e == 0] String return 3
-                if self.scanner.match_any(FIRST_SET_SYMBOL_ALT3, input_index) {
+                if self.scanner.match_any(&FIRST_SET_SYMBOL_ALT3, input_index) {
                     matched = true;
                     self.add_first_descriptor(SlotId(323), input_index, gss_node_id, env);
                 }
                 // Symbol(p: i32, e: i32) : . [16 & e == 0] "{" Layout symbol:Symbol(0, 0) Layout sep:Symbol(0, 0) Layout "}" Layout "*" return 4
-                if self.scanner.match_any(FIRST_SET_SYMBOL_ALT4, input_index) {
+                if self.scanner.match_any(&FIRST_SET_SYMBOL_ALT4, input_index) {
                     matched = true;
                     self.add_first_descriptor(SlotId(327), input_index, gss_node_id, env);
                 }
                 // Symbol(p: i32, e: i32) : . [32 & e == 0] "{" Layout symbol:Symbol(0, 0) Layout sep:Symbol(0, 0) Layout "}" Layout "+" return 5
-                if self.scanner.match_any(FIRST_SET_SYMBOL_ALT5, input_index) {
+                if self.scanner.match_any(&FIRST_SET_SYMBOL_ALT5, input_index) {
                     matched = true;
                     self.add_first_descriptor(SlotId(339), input_index, gss_node_id, env);
                 }
                 // Symbol(p: i32, e: i32) : . [64 & e == 0] [3 >= p] l=Symbol(p, 0) [(l >> 16 == 0) || (l >> 16 >= 3)] Layout "*" return 6
-                if self.scanner.match_any(FIRST_SET_SYMBOL_ALT6, input_index) {
+                if self.scanner.match_any(&FIRST_SET_SYMBOL_ALT6, input_index) {
                     matched = true;
                     self.add_first_descriptor(SlotId(351), input_index, gss_node_id, env);
                 }
                 // Symbol(p: i32, e: i32) : . [128 & e == 0] [3 >= p] l=Symbol(p, 0) [(l >> 16 == 0) || (l >> 16 >= 3)] Layout "+" return 7
-                if self.scanner.match_any(FIRST_SET_SYMBOL_ALT7, input_index) {
+                if self.scanner.match_any(&FIRST_SET_SYMBOL_ALT7, input_index) {
                     matched = true;
                     self.add_first_descriptor(SlotId(359), input_index, gss_node_id, env);
                 }
                 // Symbol(p: i32, e: i32) : . [256 & e == 0] [3 >= p] l=Symbol(p, 0) [(l >> 16 == 0) || (l >> 16 >= 3)] Layout "?" return 8
-                if self.scanner.match_any(FIRST_SET_SYMBOL_ALT8, input_index) {
+                if self.scanner.match_any(&FIRST_SET_SYMBOL_ALT8, input_index) {
                     matched = true;
                     self.add_first_descriptor(SlotId(367), input_index, gss_node_id, env);
                 }
                 // Symbol(p: i32, e: i32) : . [512 & e == 0] [3 >= p] l=Symbol(p, 0) [(l >> 16 == 0) || (l >> 16 >= 3)] [(l & 65535 == 65535) || ((512 >> (l & 65535)) & 1 == 0)] Layout excepts:Plus_9 return 9
-                if self.scanner.match_any(FIRST_SET_SYMBOL_ALT9, input_index) {
+                if self.scanner.match_any(&FIRST_SET_SYMBOL_ALT9, input_index) {
                     matched = true;
                     self.add_first_descriptor(SlotId(375), input_index, gss_node_id, env);
                 }
                 // Symbol(p: i32, e: i32) : . [1024 & e == 0] [3 >= p] l=Symbol(p, 0) [(l >> 16 == 0) || (l >> 16 >= 3)] [(l & 65535 == 65535) || ((1024 >> (l & 65535)) & 1 == 0)] Layout restrictions:Plus_10 return 10
-                if self.scanner.match_any(FIRST_SET_SYMBOL_ALT10, input_index) {
+                if self.scanner.match_any(&FIRST_SET_SYMBOL_ALT10, input_index) {
                     matched = true;
                     self.add_first_descriptor(SlotId(384), input_index, gss_node_id, env);
                 }
                 // Symbol(p: i32, e: i32) : . [2048 & e == 0] [3 >= p] l=Symbol(p, 0) [(l >> 16 == 0) || (l >> 16 >= 3)] Layout labels:Plus_11 return 11
-                if self.scanner.match_any(FIRST_SET_SYMBOL_ALT11, input_index) {
+                if self.scanner.match_any(&FIRST_SET_SYMBOL_ALT11, input_index) {
                     matched = true;
                     self.add_first_descriptor(SlotId(393), input_index, gss_node_id, env);
                 }
                 // Symbol(p: i32, e: i32) : . [4096 & e == 0] Identifier Layout "!<<" Layout r=Symbol(2, 0) return (((r >> 16 == 0) ? 2 : min(r >> 16, 2)) << 16) | 12
-                if self.scanner.match_any(FIRST_SET_SYMBOL_ALT12, input_index) {
+                if self.scanner.match_any(&FIRST_SET_SYMBOL_ALT12, input_index) {
                     matched = true;
                     self.add_first_descriptor(SlotId(401), input_index, gss_node_id, env);
                 }
                 // Symbol(p: i32, e: i32) : . [8192 & e == 0] label:Identifier Layout ":" Layout Symbol(1, 0) return 65549
-                if self.scanner.match_any(FIRST_SET_SYMBOL_ALT13, input_index) {
+                if self.scanner.match_any(&FIRST_SET_SYMBOL_ALT13, input_index) {
                     matched = true;
                     self.add_first_descriptor(SlotId(409), input_index, gss_node_id, env);
                 }
@@ -4735,47 +4735,47 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             NonterminalId(11) => {
                 let mut matched = false;
                 // Regex : . Regex Layout "+"
-                if self.scanner.match_any(FIRST_SET_REGEX_ALT0, input_index) {
+                if self.scanner.match_any(&FIRST_SET_REGEX_ALT0, input_index) {
                     matched = true;
                     self.add_first_descriptor(SlotId(74), input_index, gss_node_id, env);
                 }
                 // Regex : . Regex Layout "*"
-                if self.scanner.match_any(FIRST_SET_REGEX_ALT1, input_index) {
+                if self.scanner.match_any(&FIRST_SET_REGEX_ALT1, input_index) {
                     matched = true;
                     self.add_first_descriptor(SlotId(78), input_index, gss_node_id, env);
                 }
                 // Regex : . Regex Layout "?"
-                if self.scanner.match_any(FIRST_SET_REGEX_ALT2, input_index) {
+                if self.scanner.match_any(&FIRST_SET_REGEX_ALT2, input_index) {
                     matched = true;
                     self.add_first_descriptor(SlotId(82), input_index, gss_node_id, env);
                 }
                 // Regex : . "(" Layout first:Regex Layout rest:Plus_12 Layout ")"
-                if self.scanner.match_any(FIRST_SET_REGEX_ALT3, input_index) {
+                if self.scanner.match_any(&FIRST_SET_REGEX_ALT3, input_index) {
                     matched = true;
                     self.add_first_descriptor(SlotId(86), input_index, gss_node_id, env);
                 }
                 // Regex : . "(" Layout Plus_4 Layout ")"
-                if self.scanner.match_any(FIRST_SET_REGEX_ALT4, input_index) {
+                if self.scanner.match_any(&FIRST_SET_REGEX_ALT4, input_index) {
                     matched = true;
                     self.add_first_descriptor(SlotId(94), input_index, gss_node_id, env);
                 }
                 // Regex : . CharClass
-                if self.scanner.match_any(FIRST_SET_REGEX_ALT5, input_index) {
+                if self.scanner.match_any(&FIRST_SET_REGEX_ALT5, input_index) {
                     matched = true;
                     self.add_first_descriptor(SlotId(100), input_index, gss_node_id, env);
                 }
                 // Regex : . Char
-                if self.scanner.match_any(FIRST_SET_REGEX_ALT6, input_index) {
+                if self.scanner.match_any(&FIRST_SET_REGEX_ALT6, input_index) {
                     matched = true;
                     self.add_first_descriptor(SlotId(102), input_index, gss_node_id, env);
                 }
                 // Regex : . String
-                if self.scanner.match_any(FIRST_SET_REGEX_ALT7, input_index) {
+                if self.scanner.match_any(&FIRST_SET_REGEX_ALT7, input_index) {
                     matched = true;
                     self.add_first_descriptor(SlotId(104), input_index, gss_node_id, env);
                 }
                 // Regex : . Identifier
-                if self.scanner.match_any(FIRST_SET_REGEX_ALT8, input_index) {
+                if self.scanner.match_any(&FIRST_SET_REGEX_ALT8, input_index) {
                     matched = true;
                     self.add_first_descriptor(SlotId(106), input_index, gss_node_id, env);
                 }
@@ -4797,7 +4797,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 // RangeElement : . Range
                 if self
                     .scanner
-                    .match_any(FIRST_SET_RANGE_ELEMENT_ALT0, input_index)
+                    .match_any(&FIRST_SET_RANGE_ELEMENT_ALT0, input_index)
                 {
                     matched = true;
                     self.add_first_descriptor(SlotId(116), input_index, gss_node_id, env);
@@ -4805,7 +4805,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 // RangeElement : . RangeChar
                 if self
                     .scanner
-                    .match_any(FIRST_SET_RANGE_ELEMENT_ALT1, input_index)
+                    .match_any(&FIRST_SET_RANGE_ELEMENT_ALT1, input_index)
                 {
                     matched = true;
                     self.add_first_descriptor(SlotId(118), input_index, gss_node_id, env);
@@ -4830,13 +4830,13 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             NonterminalId(16) => {
                 let mut matched = false;
                 // Opt_0 : . LayoutDef
-                if self.scanner.match_any(FIRST_SET_OPT_0_ALT0, input_index) {
+                if self.scanner.match_any(&FIRST_SET_OPT_0_ALT0, input_index) {
                     matched = true;
                     self.add_first_descriptor(SlotId(128), input_index, gss_node_id, env);
                 }
                 // Opt_0 : .
-                if self.scanner.match_any(FIRST_SET_OPT_0_ALT1, input_index)
-                    || self.scanner.match_any(FOLLOW_SET_OPT_0, input_index)
+                if self.scanner.match_any(&FIRST_SET_OPT_0_ALT1, input_index)
+                    || self.scanner.match_any(&FOLLOW_SET_OPT_0, input_index)
                 {
                     matched = true;
                     self.add_first_descriptor(SlotId(130), input_index, gss_node_id, env);
@@ -4846,7 +4846,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         ParseErrorKind::UnexpectedToken {
                             expected: {
                                 let mut expected = FIRST_SET_OPT_0.to_vec();
-                                expected.extend_from_slice(FOLLOW_SET_OPT_0);
+                                expected.extend_from_slice(FOLLOW_SET_OPT_0.terminals);
                                 expected
                             },
                         }
@@ -4857,12 +4857,12 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             NonterminalId(17) => {
                 let mut matched = false;
                 // Plus_0 : . Plus_0 Layout Rule
-                if self.scanner.match_any(FIRST_SET_PLUS_0_ALT0, input_index) {
+                if self.scanner.match_any(&FIRST_SET_PLUS_0_ALT0, input_index) {
                     matched = true;
                     self.add_first_descriptor(SlotId(131), input_index, gss_node_id, env);
                 }
                 // Plus_0 : . Rule
-                if self.scanner.match_any(FIRST_SET_PLUS_0_ALT1, input_index) {
+                if self.scanner.match_any(&FIRST_SET_PLUS_0_ALT1, input_index) {
                     matched = true;
                     self.add_first_descriptor(SlotId(135), input_index, gss_node_id, env);
                 }
@@ -4878,13 +4878,13 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             NonterminalId(18) => {
                 let mut matched = false;
                 // Opt_1 : . Plus_0
-                if self.scanner.match_any(FIRST_SET_OPT_1_ALT0, input_index) {
+                if self.scanner.match_any(&FIRST_SET_OPT_1_ALT0, input_index) {
                     matched = true;
                     self.add_first_descriptor(SlotId(137), input_index, gss_node_id, env);
                 }
                 // Opt_1 : .
-                if self.scanner.match_any(FIRST_SET_OPT_1_ALT1, input_index)
-                    || self.scanner.match_any(FOLLOW_SET_OPT_1, input_index)
+                if self.scanner.match_any(&FIRST_SET_OPT_1_ALT1, input_index)
+                    || self.scanner.match_any(&FOLLOW_SET_OPT_1, input_index)
                 {
                     matched = true;
                     self.add_first_descriptor(SlotId(139), input_index, gss_node_id, env);
@@ -4894,7 +4894,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         ParseErrorKind::UnexpectedToken {
                             expected: {
                                 let mut expected = FIRST_SET_OPT_1.to_vec();
-                                expected.extend_from_slice(FOLLOW_SET_OPT_1);
+                                expected.extend_from_slice(FOLLOW_SET_OPT_1.terminals);
                                 expected
                             },
                         }
@@ -4909,12 +4909,12 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             NonterminalId(20) => {
                 let mut matched = false;
                 // Plus_1 : . Plus_1 Layout Annotation
-                if self.scanner.match_any(FIRST_SET_PLUS_1_ALT0, input_index) {
+                if self.scanner.match_any(&FIRST_SET_PLUS_1_ALT0, input_index) {
                     matched = true;
                     self.add_first_descriptor(SlotId(142), input_index, gss_node_id, env);
                 }
                 // Plus_1 : . Annotation
-                if self.scanner.match_any(FIRST_SET_PLUS_1_ALT1, input_index) {
+                if self.scanner.match_any(&FIRST_SET_PLUS_1_ALT1, input_index) {
                     matched = true;
                     self.add_first_descriptor(SlotId(146), input_index, gss_node_id, env);
                 }
@@ -4930,13 +4930,13 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             NonterminalId(21) => {
                 let mut matched = false;
                 // Opt_2 : . Plus_1
-                if self.scanner.match_any(FIRST_SET_OPT_2_ALT0, input_index) {
+                if self.scanner.match_any(&FIRST_SET_OPT_2_ALT0, input_index) {
                     matched = true;
                     self.add_first_descriptor(SlotId(148), input_index, gss_node_id, env);
                 }
                 // Opt_2 : .
-                if self.scanner.match_any(FIRST_SET_OPT_2_ALT1, input_index)
-                    || self.scanner.match_any(FOLLOW_SET_OPT_2, input_index)
+                if self.scanner.match_any(&FIRST_SET_OPT_2_ALT1, input_index)
+                    || self.scanner.match_any(&FOLLOW_SET_OPT_2, input_index)
                 {
                     matched = true;
                     self.add_first_descriptor(SlotId(150), input_index, gss_node_id, env);
@@ -4946,7 +4946,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         ParseErrorKind::UnexpectedToken {
                             expected: {
                                 let mut expected = FIRST_SET_OPT_2.to_vec();
-                                expected.extend_from_slice(FOLLOW_SET_OPT_2);
+                                expected.extend_from_slice(FOLLOW_SET_OPT_2.terminals);
                                 expected
                             },
                         }
@@ -4961,13 +4961,13 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             NonterminalId(23) => {
                 let mut matched = false;
                 // Plus_2 : . Plus_2 Layout ">" Layout PriorityLevel
-                if self.scanner.match_any(FIRST_SET_PLUS_2_ALT0, input_index) {
+                if self.scanner.match_any(&FIRST_SET_PLUS_2_ALT0, input_index) {
                     matched = true;
                     self.add_first_descriptor(SlotId(153), input_index, gss_node_id, env);
                 }
                 // Plus_2 : . PriorityLevel
-                if self.scanner.match_any(FIRST_SET_PLUS_2_ALT1, input_index)
-                    || self.scanner.match_any(FOLLOW_SET_PLUS_2, input_index)
+                if self.scanner.match_any(&FIRST_SET_PLUS_2_ALT1, input_index)
+                    || self.scanner.match_any(&FOLLOW_SET_PLUS_2, input_index)
                 {
                     matched = true;
                     self.add_first_descriptor(SlotId(159), input_index, gss_node_id, env);
@@ -4977,7 +4977,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         ParseErrorKind::UnexpectedToken {
                             expected: {
                                 let mut expected = FIRST_SET_PLUS_2.to_vec();
-                                expected.extend_from_slice(FOLLOW_SET_PLUS_2);
+                                expected.extend_from_slice(FOLLOW_SET_PLUS_2.terminals);
                                 expected
                             },
                         }
@@ -4988,15 +4988,15 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             NonterminalId(24) => {
                 let mut matched = false;
                 // Opt_3 : . Plus_2
-                if self.scanner.match_any(FIRST_SET_OPT_3_ALT0, input_index)
-                    || self.scanner.match_any(FOLLOW_SET_OPT_3, input_index)
+                if self.scanner.match_any(&FIRST_SET_OPT_3_ALT0, input_index)
+                    || self.scanner.match_any(&FOLLOW_SET_OPT_3, input_index)
                 {
                     matched = true;
                     self.add_first_descriptor(SlotId(161), input_index, gss_node_id, env);
                 }
                 // Opt_3 : .
-                if self.scanner.match_any(FIRST_SET_OPT_3_ALT1, input_index)
-                    || self.scanner.match_any(FOLLOW_SET_OPT_3, input_index)
+                if self.scanner.match_any(&FIRST_SET_OPT_3_ALT1, input_index)
+                    || self.scanner.match_any(&FOLLOW_SET_OPT_3, input_index)
                 {
                     matched = true;
                     self.add_first_descriptor(SlotId(163), input_index, gss_node_id, env);
@@ -5006,7 +5006,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         ParseErrorKind::UnexpectedToken {
                             expected: {
                                 let mut expected = FIRST_SET_OPT_3.to_vec();
-                                expected.extend_from_slice(FOLLOW_SET_OPT_3);
+                                expected.extend_from_slice(FOLLOW_SET_OPT_3.terminals);
                                 expected
                             },
                         }
@@ -5021,13 +5021,13 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             NonterminalId(26) => {
                 let mut matched = false;
                 // Opt_4 : . PreCondition
-                if self.scanner.match_any(FIRST_SET_OPT_4_ALT0, input_index) {
+                if self.scanner.match_any(&FIRST_SET_OPT_4_ALT0, input_index) {
                     matched = true;
                     self.add_first_descriptor(SlotId(166), input_index, gss_node_id, env);
                 }
                 // Opt_4 : .
-                if self.scanner.match_any(FIRST_SET_OPT_4_ALT1, input_index)
-                    || self.scanner.match_any(FOLLOW_SET_OPT_4, input_index)
+                if self.scanner.match_any(&FIRST_SET_OPT_4_ALT1, input_index)
+                    || self.scanner.match_any(&FOLLOW_SET_OPT_4, input_index)
                 {
                     matched = true;
                     self.add_first_descriptor(SlotId(168), input_index, gss_node_id, env);
@@ -5037,7 +5037,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         ParseErrorKind::UnexpectedToken {
                             expected: {
                                 let mut expected = FIRST_SET_OPT_4.to_vec();
-                                expected.extend_from_slice(FOLLOW_SET_OPT_4);
+                                expected.extend_from_slice(FOLLOW_SET_OPT_4.terminals);
                                 expected
                             },
                         }
@@ -5048,12 +5048,12 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             NonterminalId(27) => {
                 let mut matched = false;
                 // Plus_4 : . Plus_4 Layout Regex
-                if self.scanner.match_any(FIRST_SET_PLUS_4_ALT0, input_index) {
+                if self.scanner.match_any(&FIRST_SET_PLUS_4_ALT0, input_index) {
                     matched = true;
                     self.add_first_descriptor(SlotId(169), input_index, gss_node_id, env);
                 }
                 // Plus_4 : . Regex
-                if self.scanner.match_any(FIRST_SET_PLUS_4_ALT1, input_index) {
+                if self.scanner.match_any(&FIRST_SET_PLUS_4_ALT1, input_index) {
                     matched = true;
                     self.add_first_descriptor(SlotId(173), input_index, gss_node_id, env);
                 }
@@ -5069,12 +5069,12 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             NonterminalId(28) => {
                 let mut matched = false;
                 // Plus_3 : . Plus_3 Layout "|" Layout Plus_4
-                if self.scanner.match_any(FIRST_SET_PLUS_3_ALT0, input_index) {
+                if self.scanner.match_any(&FIRST_SET_PLUS_3_ALT0, input_index) {
                     matched = true;
                     self.add_first_descriptor(SlotId(175), input_index, gss_node_id, env);
                 }
                 // Plus_3 : . Plus_4
-                if self.scanner.match_any(FIRST_SET_PLUS_3_ALT1, input_index) {
+                if self.scanner.match_any(&FIRST_SET_PLUS_3_ALT1, input_index) {
                     matched = true;
                     self.add_first_descriptor(SlotId(181), input_index, gss_node_id, env);
                 }
@@ -5090,12 +5090,12 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             NonterminalId(29) => {
                 let mut matched = false;
                 // Plus_5 : . Plus_5 Layout PostCondition
-                if self.scanner.match_any(FIRST_SET_PLUS_5_ALT0, input_index) {
+                if self.scanner.match_any(&FIRST_SET_PLUS_5_ALT0, input_index) {
                     matched = true;
                     self.add_first_descriptor(SlotId(183), input_index, gss_node_id, env);
                 }
                 // Plus_5 : . PostCondition
-                if self.scanner.match_any(FIRST_SET_PLUS_5_ALT1, input_index) {
+                if self.scanner.match_any(&FIRST_SET_PLUS_5_ALT1, input_index) {
                     matched = true;
                     self.add_first_descriptor(SlotId(187), input_index, gss_node_id, env);
                 }
@@ -5111,13 +5111,13 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             NonterminalId(30) => {
                 let mut matched = false;
                 // Opt_5 : . Plus_5
-                if self.scanner.match_any(FIRST_SET_OPT_5_ALT0, input_index) {
+                if self.scanner.match_any(&FIRST_SET_OPT_5_ALT0, input_index) {
                     matched = true;
                     self.add_first_descriptor(SlotId(189), input_index, gss_node_id, env);
                 }
                 // Opt_5 : .
-                if self.scanner.match_any(FIRST_SET_OPT_5_ALT1, input_index)
-                    || self.scanner.match_any(FOLLOW_SET_OPT_5, input_index)
+                if self.scanner.match_any(&FIRST_SET_OPT_5_ALT1, input_index)
+                    || self.scanner.match_any(&FOLLOW_SET_OPT_5, input_index)
                 {
                     matched = true;
                     self.add_first_descriptor(SlotId(191), input_index, gss_node_id, env);
@@ -5127,7 +5127,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         ParseErrorKind::UnexpectedToken {
                             expected: {
                                 let mut expected = FIRST_SET_OPT_5.to_vec();
-                                expected.extend_from_slice(FOLLOW_SET_OPT_5);
+                                expected.extend_from_slice(FOLLOW_SET_OPT_5.terminals);
                                 expected
                             },
                         }
@@ -5142,13 +5142,13 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             NonterminalId(32) => {
                 let mut matched = false;
                 // Opt_6 : . Associativity
-                if self.scanner.match_any(FIRST_SET_OPT_6_ALT0, input_index) {
+                if self.scanner.match_any(&FIRST_SET_OPT_6_ALT0, input_index) {
                     matched = true;
                     self.add_first_descriptor(SlotId(194), input_index, gss_node_id, env);
                 }
                 // Opt_6 : .
-                if self.scanner.match_any(FIRST_SET_OPT_6_ALT1, input_index)
-                    || self.scanner.match_any(FOLLOW_SET_OPT_6, input_index)
+                if self.scanner.match_any(&FIRST_SET_OPT_6_ALT1, input_index)
+                    || self.scanner.match_any(&FOLLOW_SET_OPT_6, input_index)
                 {
                     matched = true;
                     self.add_first_descriptor(SlotId(196), input_index, gss_node_id, env);
@@ -5158,7 +5158,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         ParseErrorKind::UnexpectedToken {
                             expected: {
                                 let mut expected = FIRST_SET_OPT_6.to_vec();
-                                expected.extend_from_slice(FOLLOW_SET_OPT_6);
+                                expected.extend_from_slice(FOLLOW_SET_OPT_6.terminals);
                                 expected
                             },
                         }
@@ -5169,13 +5169,13 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             NonterminalId(33) => {
                 let mut matched = false;
                 // Plus_6 : . Plus_6 Layout "|" Layout Alternative
-                if self.scanner.match_any(FIRST_SET_PLUS_6_ALT0, input_index) {
+                if self.scanner.match_any(&FIRST_SET_PLUS_6_ALT0, input_index) {
                     matched = true;
                     self.add_first_descriptor(SlotId(197), input_index, gss_node_id, env);
                 }
                 // Plus_6 : . Alternative
-                if self.scanner.match_any(FIRST_SET_PLUS_6_ALT1, input_index)
-                    || self.scanner.match_any(FOLLOW_SET_PLUS_6, input_index)
+                if self.scanner.match_any(&FIRST_SET_PLUS_6_ALT1, input_index)
+                    || self.scanner.match_any(&FOLLOW_SET_PLUS_6, input_index)
                 {
                     matched = true;
                     self.add_first_descriptor(SlotId(203), input_index, gss_node_id, env);
@@ -5185,7 +5185,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         ParseErrorKind::UnexpectedToken {
                             expected: {
                                 let mut expected = FIRST_SET_PLUS_6.to_vec();
-                                expected.extend_from_slice(FOLLOW_SET_PLUS_6);
+                                expected.extend_from_slice(FOLLOW_SET_PLUS_6.terminals);
                                 expected
                             },
                         }
@@ -5196,15 +5196,15 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             NonterminalId(34) => {
                 let mut matched = false;
                 // Opt_7 : . Plus_6
-                if self.scanner.match_any(FIRST_SET_OPT_7_ALT0, input_index)
-                    || self.scanner.match_any(FOLLOW_SET_OPT_7, input_index)
+                if self.scanner.match_any(&FIRST_SET_OPT_7_ALT0, input_index)
+                    || self.scanner.match_any(&FOLLOW_SET_OPT_7, input_index)
                 {
                     matched = true;
                     self.add_first_descriptor(SlotId(205), input_index, gss_node_id, env);
                 }
                 // Opt_7 : .
-                if self.scanner.match_any(FIRST_SET_OPT_7_ALT1, input_index)
-                    || self.scanner.match_any(FOLLOW_SET_OPT_7, input_index)
+                if self.scanner.match_any(&FIRST_SET_OPT_7_ALT1, input_index)
+                    || self.scanner.match_any(&FOLLOW_SET_OPT_7, input_index)
                 {
                     matched = true;
                     self.add_first_descriptor(SlotId(207), input_index, gss_node_id, env);
@@ -5214,7 +5214,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         ParseErrorKind::UnexpectedToken {
                             expected: {
                                 let mut expected = FIRST_SET_OPT_7.to_vec();
-                                expected.extend_from_slice(FOLLOW_SET_OPT_7);
+                                expected.extend_from_slice(FOLLOW_SET_OPT_7.terminals);
                                 expected
                             },
                         }
@@ -5229,12 +5229,12 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             NonterminalId(36) => {
                 let mut matched = false;
                 // Plus_7 : . Plus_7 Layout Symbol(0, 0)
-                if self.scanner.match_any(FIRST_SET_PLUS_7_ALT0, input_index) {
+                if self.scanner.match_any(&FIRST_SET_PLUS_7_ALT0, input_index) {
                     matched = true;
                     self.add_first_descriptor(SlotId(210), input_index, gss_node_id, env);
                 }
                 // Plus_7 : . Symbol(0, 0)
-                if self.scanner.match_any(FIRST_SET_PLUS_7_ALT1, input_index) {
+                if self.scanner.match_any(&FIRST_SET_PLUS_7_ALT1, input_index) {
                     matched = true;
                     self.add_first_descriptor(SlotId(214), input_index, gss_node_id, env);
                 }
@@ -5250,13 +5250,13 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             NonterminalId(37) => {
                 let mut matched = false;
                 // Opt_8 : . Plus_7
-                if self.scanner.match_any(FIRST_SET_OPT_8_ALT0, input_index) {
+                if self.scanner.match_any(&FIRST_SET_OPT_8_ALT0, input_index) {
                     matched = true;
                     self.add_first_descriptor(SlotId(216), input_index, gss_node_id, env);
                 }
                 // Opt_8 : .
-                if self.scanner.match_any(FIRST_SET_OPT_8_ALT1, input_index)
-                    || self.scanner.match_any(FOLLOW_SET_OPT_8, input_index)
+                if self.scanner.match_any(&FIRST_SET_OPT_8_ALT1, input_index)
+                    || self.scanner.match_any(&FOLLOW_SET_OPT_8, input_index)
                 {
                     matched = true;
                     self.add_first_descriptor(SlotId(218), input_index, gss_node_id, env);
@@ -5266,7 +5266,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         ParseErrorKind::UnexpectedToken {
                             expected: {
                                 let mut expected = FIRST_SET_OPT_8.to_vec();
-                                expected.extend_from_slice(FOLLOW_SET_OPT_8);
+                                expected.extend_from_slice(FOLLOW_SET_OPT_8.terminals);
                                 expected
                             },
                         }
@@ -5281,13 +5281,13 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             NonterminalId(39) => {
                 let mut matched = false;
                 // Opt_9 : . Label
-                if self.scanner.match_any(FIRST_SET_OPT_9_ALT0, input_index) {
+                if self.scanner.match_any(&FIRST_SET_OPT_9_ALT0, input_index) {
                     matched = true;
                     self.add_first_descriptor(SlotId(221), input_index, gss_node_id, env);
                 }
                 // Opt_9 : .
-                if self.scanner.match_any(FIRST_SET_OPT_9_ALT1, input_index)
-                    || self.scanner.match_any(FOLLOW_SET_OPT_9, input_index)
+                if self.scanner.match_any(&FIRST_SET_OPT_9_ALT1, input_index)
+                    || self.scanner.match_any(&FOLLOW_SET_OPT_9, input_index)
                 {
                     matched = true;
                     self.add_first_descriptor(SlotId(223), input_index, gss_node_id, env);
@@ -5297,7 +5297,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         ParseErrorKind::UnexpectedToken {
                             expected: {
                                 let mut expected = FIRST_SET_OPT_9.to_vec();
-                                expected.extend_from_slice(FOLLOW_SET_OPT_9);
+                                expected.extend_from_slice(FOLLOW_SET_OPT_9.terminals);
                                 expected
                             },
                         }
@@ -5312,12 +5312,12 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             NonterminalId(41) => {
                 let mut matched = false;
                 // Plus_8 : . Plus_8 Layout Group_0
-                if self.scanner.match_any(FIRST_SET_PLUS_8_ALT0, input_index) {
+                if self.scanner.match_any(&FIRST_SET_PLUS_8_ALT0, input_index) {
                     matched = true;
                     self.add_first_descriptor(SlotId(228), input_index, gss_node_id, env);
                 }
                 // Plus_8 : . Group_0
-                if self.scanner.match_any(FIRST_SET_PLUS_8_ALT1, input_index) {
+                if self.scanner.match_any(&FIRST_SET_PLUS_8_ALT1, input_index) {
                     matched = true;
                     self.add_first_descriptor(SlotId(232), input_index, gss_node_id, env);
                 }
@@ -5337,12 +5337,12 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             NonterminalId(43) => {
                 let mut matched = false;
                 // Plus_9 : . Plus_9 Layout Group_1
-                if self.scanner.match_any(FIRST_SET_PLUS_9_ALT0, input_index) {
+                if self.scanner.match_any(&FIRST_SET_PLUS_9_ALT0, input_index) {
                     matched = true;
                     self.add_first_descriptor(SlotId(238), input_index, gss_node_id, env);
                 }
                 // Plus_9 : . Group_1
-                if self.scanner.match_any(FIRST_SET_PLUS_9_ALT1, input_index) {
+                if self.scanner.match_any(&FIRST_SET_PLUS_9_ALT1, input_index) {
                     matched = true;
                     self.add_first_descriptor(SlotId(242), input_index, gss_node_id, env);
                 }
@@ -5362,12 +5362,12 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             NonterminalId(45) => {
                 let mut matched = false;
                 // Plus_10 : . Plus_10 Layout Group_2
-                if self.scanner.match_any(FIRST_SET_PLUS_10_ALT0, input_index) {
+                if self.scanner.match_any(&FIRST_SET_PLUS_10_ALT0, input_index) {
                     matched = true;
                     self.add_first_descriptor(SlotId(248), input_index, gss_node_id, env);
                 }
                 // Plus_10 : . Group_2
-                if self.scanner.match_any(FIRST_SET_PLUS_10_ALT1, input_index) {
+                if self.scanner.match_any(&FIRST_SET_PLUS_10_ALT1, input_index) {
                     matched = true;
                     self.add_first_descriptor(SlotId(252), input_index, gss_node_id, env);
                 }
@@ -5387,12 +5387,12 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             NonterminalId(47) => {
                 let mut matched = false;
                 // Plus_11 : . Plus_11 Layout Group_3
-                if self.scanner.match_any(FIRST_SET_PLUS_11_ALT0, input_index) {
+                if self.scanner.match_any(&FIRST_SET_PLUS_11_ALT0, input_index) {
                     matched = true;
                     self.add_first_descriptor(SlotId(258), input_index, gss_node_id, env);
                 }
                 // Plus_11 : . Group_3
-                if self.scanner.match_any(FIRST_SET_PLUS_11_ALT1, input_index) {
+                if self.scanner.match_any(&FIRST_SET_PLUS_11_ALT1, input_index) {
                     matched = true;
                     self.add_first_descriptor(SlotId(262), input_index, gss_node_id, env);
                 }
@@ -5412,12 +5412,12 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             NonterminalId(49) => {
                 let mut matched = false;
                 // Plus_12 : . Plus_12 Layout Group_4
-                if self.scanner.match_any(FIRST_SET_PLUS_12_ALT0, input_index) {
+                if self.scanner.match_any(&FIRST_SET_PLUS_12_ALT0, input_index) {
                     matched = true;
                     self.add_first_descriptor(SlotId(268), input_index, gss_node_id, env);
                 }
                 // Plus_12 : . Group_4
-                if self.scanner.match_any(FIRST_SET_PLUS_12_ALT1, input_index) {
+                if self.scanner.match_any(&FIRST_SET_PLUS_12_ALT1, input_index) {
                     matched = true;
                     self.add_first_descriptor(SlotId(272), input_index, gss_node_id, env);
                 }
@@ -5433,13 +5433,13 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             NonterminalId(50) => {
                 let mut matched = false;
                 // Opt_10 : . "!"
-                if self.scanner.match_any(FIRST_SET_OPT_10_ALT0, input_index) {
+                if self.scanner.match_any(&FIRST_SET_OPT_10_ALT0, input_index) {
                     matched = true;
                     self.add_first_descriptor(SlotId(274), input_index, gss_node_id, env);
                 }
                 // Opt_10 : .
-                if self.scanner.match_any(FIRST_SET_OPT_10_ALT1, input_index)
-                    || self.scanner.match_any(FOLLOW_SET_OPT_10, input_index)
+                if self.scanner.match_any(&FIRST_SET_OPT_10_ALT1, input_index)
+                    || self.scanner.match_any(&FOLLOW_SET_OPT_10, input_index)
                 {
                     matched = true;
                     self.add_first_descriptor(SlotId(276), input_index, gss_node_id, env);
@@ -5449,7 +5449,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         ParseErrorKind::UnexpectedToken {
                             expected: {
                                 let mut expected = FIRST_SET_OPT_10.to_vec();
-                                expected.extend_from_slice(FOLLOW_SET_OPT_10);
+                                expected.extend_from_slice(FOLLOW_SET_OPT_10.terminals);
                                 expected
                             },
                         }
@@ -5460,12 +5460,12 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             NonterminalId(51) => {
                 let mut matched = false;
                 // Plus_13 : . Plus_13 Layout RangeElement
-                if self.scanner.match_any(FIRST_SET_PLUS_13_ALT0, input_index) {
+                if self.scanner.match_any(&FIRST_SET_PLUS_13_ALT0, input_index) {
                     matched = true;
                     self.add_first_descriptor(SlotId(277), input_index, gss_node_id, env);
                 }
                 // Plus_13 : . RangeElement
-                if self.scanner.match_any(FIRST_SET_PLUS_13_ALT1, input_index) {
+                if self.scanner.match_any(&FIRST_SET_PLUS_13_ALT1, input_index) {
                     matched = true;
                     self.add_first_descriptor(SlotId(281), input_index, gss_node_id, env);
                 }
@@ -5481,12 +5481,12 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             NonterminalId(52) => {
                 let mut matched = false;
                 // Alt_0 : . WS
-                if self.scanner.match_any(FIRST_SET_ALT_0_ALT0, input_index) {
+                if self.scanner.match_any(&FIRST_SET_ALT_0_ALT0, input_index) {
                     matched = true;
                     self.add_first_descriptor(SlotId(283), input_index, gss_node_id, env);
                 }
                 // Alt_0 : . LineComment
-                if self.scanner.match_any(FIRST_SET_ALT_0_ALT1, input_index) {
+                if self.scanner.match_any(&FIRST_SET_ALT_0_ALT1, input_index) {
                     matched = true;
                     self.add_first_descriptor(SlotId(285), input_index, gss_node_id, env);
                 }
@@ -5502,12 +5502,12 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             NonterminalId(53) => {
                 let mut matched = false;
                 // Plus_14 : . Plus_14 Alt_0
-                if self.scanner.match_any(FIRST_SET_PLUS_14_ALT0, input_index) {
+                if self.scanner.match_any(&FIRST_SET_PLUS_14_ALT0, input_index) {
                     matched = true;
                     self.add_first_descriptor(SlotId(287), input_index, gss_node_id, env);
                 }
                 // Plus_14 : . Alt_0
-                if self.scanner.match_any(FIRST_SET_PLUS_14_ALT1, input_index) {
+                if self.scanner.match_any(&FIRST_SET_PLUS_14_ALT1, input_index) {
                     matched = true;
                     self.add_first_descriptor(SlotId(290), input_index, gss_node_id, env);
                 }
@@ -5523,13 +5523,13 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             NonterminalId(54) => {
                 let mut matched = false;
                 // Opt_11 : . Plus_14
-                if self.scanner.match_any(FIRST_SET_OPT_11_ALT0, input_index) {
+                if self.scanner.match_any(&FIRST_SET_OPT_11_ALT0, input_index) {
                     matched = true;
                     self.add_first_descriptor(SlotId(292), input_index, gss_node_id, env);
                 }
                 // Opt_11 : .
-                if self.scanner.match_any(FIRST_SET_OPT_11_ALT1, input_index)
-                    || self.scanner.match_any(FOLLOW_SET_OPT_11, input_index)
+                if self.scanner.match_any(&FIRST_SET_OPT_11_ALT1, input_index)
+                    || self.scanner.match_any(&FOLLOW_SET_OPT_11, input_index)
                 {
                     matched = true;
                     self.add_first_descriptor(SlotId(294), input_index, gss_node_id, env);
@@ -5539,7 +5539,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                         ParseErrorKind::UnexpectedToken {
                             expected: {
                                 let mut expected = FIRST_SET_OPT_11.to_vec();
-                                expected.extend_from_slice(FOLLOW_SET_OPT_11);
+                                expected.extend_from_slice(FOLLOW_SET_OPT_11.terminals);
                                 expected
                             },
                         }
@@ -5908,10 +5908,10 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             SlotId(127) => {
                 if self
                     .scanner
-                    .match_any(FOLLOW_RESTRICTION_LAYOUT_ALT0_POS0, right_extent)
+                    .match_any(&FOLLOW_RESTRICTION_LAYOUT_ALT0_POS0, right_extent)
                 {
                     Some(ParseErrorKind::ForbiddenFollow {
-                        forbidden: FOLLOW_RESTRICTION_LAYOUT_ALT0_POS0.to_vec(),
+                        forbidden: FOLLOW_RESTRICTION_LAYOUT_ALT0_POS0.terminals.to_vec(),
                     })
                 } else {
                     None
@@ -5922,139 +5922,139 @@ impl<'i> Parser<'i> for IggyParser<'i> {
     }
     fn follow_set_check(&mut self, nonterminal_id: NonterminalId, input_index: u32) -> bool {
         match nonterminal_id {
-            NonterminalId(0) => self.scanner.match_any(FOLLOW_SET_GRAMMAR, input_index),
-            NonterminalId(1) => self.scanner.match_any(FOLLOW_SET_LAYOUT_DEF, input_index),
-            NonterminalId(2) => self.scanner.match_any(FOLLOW_SET_RULE, input_index),
-            NonterminalId(3) => self.scanner.match_any(FOLLOW_SET_SYNTAX_RULE, input_index),
-            NonterminalId(4) => self.scanner.match_any(FOLLOW_SET_ANNOTATION, input_index),
-            NonterminalId(5) => self.scanner.match_any(FOLLOW_SET_REGEX_RULE, input_index),
+            NonterminalId(0) => self.scanner.match_any(&FOLLOW_SET_GRAMMAR, input_index),
+            NonterminalId(1) => self.scanner.match_any(&FOLLOW_SET_LAYOUT_DEF, input_index),
+            NonterminalId(2) => self.scanner.match_any(&FOLLOW_SET_RULE, input_index),
+            NonterminalId(3) => self.scanner.match_any(&FOLLOW_SET_SYNTAX_RULE, input_index),
+            NonterminalId(4) => self.scanner.match_any(&FOLLOW_SET_ANNOTATION, input_index),
+            NonterminalId(5) => self.scanner.match_any(&FOLLOW_SET_REGEX_RULE, input_index),
             NonterminalId(6) => self
                 .scanner
-                .match_any(FOLLOW_SET_PRE_CONDITION, input_index),
+                .match_any(&FOLLOW_SET_PRE_CONDITION, input_index),
             NonterminalId(7) => self
                 .scanner
-                .match_any(FOLLOW_SET_POST_CONDITION, input_index),
+                .match_any(&FOLLOW_SET_POST_CONDITION, input_index),
             NonterminalId(8) => self
                 .scanner
-                .match_any(FOLLOW_SET_PRIORITY_LEVEL, input_index),
+                .match_any(&FOLLOW_SET_PRIORITY_LEVEL, input_index),
             NonterminalId(9) => self
                 .scanner
-                .match_any(FOLLOW_SET_ASSOCIATIVITY, input_index),
-            NonterminalId(10) => self.scanner.match_any(FOLLOW_SET_ALTERNATIVE, input_index),
-            NonterminalId(57) => self.scanner.match_any(FOLLOW_SET_SYMBOL, input_index),
-            NonterminalId(11) => self.scanner.match_any(FOLLOW_SET_REGEX, input_index),
-            NonterminalId(12) => self.scanner.match_any(FOLLOW_SET_CHAR_CLASS, input_index),
+                .match_any(&FOLLOW_SET_ASSOCIATIVITY, input_index),
+            NonterminalId(10) => self.scanner.match_any(&FOLLOW_SET_ALTERNATIVE, input_index),
+            NonterminalId(57) => self.scanner.match_any(&FOLLOW_SET_SYMBOL, input_index),
+            NonterminalId(11) => self.scanner.match_any(&FOLLOW_SET_REGEX, input_index),
+            NonterminalId(12) => self.scanner.match_any(&FOLLOW_SET_CHAR_CLASS, input_index),
             NonterminalId(13) => self
                 .scanner
-                .match_any(FOLLOW_SET_RANGE_ELEMENT, input_index),
-            NonterminalId(14) => self.scanner.match_any(FOLLOW_SET_RANGE, input_index),
-            NonterminalId(15) => self.scanner.match_any(FOLLOW_SET_LAYOUT, input_index),
-            NonterminalId(16) => self.scanner.match_any(FOLLOW_SET_OPT_0, input_index),
-            NonterminalId(17) => self.scanner.match_any(FOLLOW_SET_PLUS_0, input_index),
-            NonterminalId(18) => self.scanner.match_any(FOLLOW_SET_OPT_1, input_index),
-            NonterminalId(19) => self.scanner.match_any(FOLLOW_SET_STAR_0, input_index),
-            NonterminalId(20) => self.scanner.match_any(FOLLOW_SET_PLUS_1, input_index),
-            NonterminalId(21) => self.scanner.match_any(FOLLOW_SET_OPT_2, input_index),
-            NonterminalId(22) => self.scanner.match_any(FOLLOW_SET_STAR_1, input_index),
-            NonterminalId(23) => self.scanner.match_any(FOLLOW_SET_PLUS_2, input_index),
-            NonterminalId(24) => self.scanner.match_any(FOLLOW_SET_OPT_3, input_index),
-            NonterminalId(25) => self.scanner.match_any(FOLLOW_SET_STAR_2, input_index),
-            NonterminalId(26) => self.scanner.match_any(FOLLOW_SET_OPT_4, input_index),
-            NonterminalId(27) => self.scanner.match_any(FOLLOW_SET_PLUS_4, input_index),
-            NonterminalId(28) => self.scanner.match_any(FOLLOW_SET_PLUS_3, input_index),
-            NonterminalId(29) => self.scanner.match_any(FOLLOW_SET_PLUS_5, input_index),
-            NonterminalId(30) => self.scanner.match_any(FOLLOW_SET_OPT_5, input_index),
-            NonterminalId(31) => self.scanner.match_any(FOLLOW_SET_STAR_3, input_index),
-            NonterminalId(32) => self.scanner.match_any(FOLLOW_SET_OPT_6, input_index),
-            NonterminalId(33) => self.scanner.match_any(FOLLOW_SET_PLUS_6, input_index),
-            NonterminalId(34) => self.scanner.match_any(FOLLOW_SET_OPT_7, input_index),
-            NonterminalId(35) => self.scanner.match_any(FOLLOW_SET_STAR_4, input_index),
-            NonterminalId(36) => self.scanner.match_any(FOLLOW_SET_PLUS_7, input_index),
-            NonterminalId(37) => self.scanner.match_any(FOLLOW_SET_OPT_8, input_index),
-            NonterminalId(38) => self.scanner.match_any(FOLLOW_SET_STAR_5, input_index),
-            NonterminalId(39) => self.scanner.match_any(FOLLOW_SET_OPT_9, input_index),
-            NonterminalId(40) => self.scanner.match_any(FOLLOW_SET_GROUP_0, input_index),
-            NonterminalId(41) => self.scanner.match_any(FOLLOW_SET_PLUS_8, input_index),
-            NonterminalId(42) => self.scanner.match_any(FOLLOW_SET_GROUP_1, input_index),
-            NonterminalId(43) => self.scanner.match_any(FOLLOW_SET_PLUS_9, input_index),
-            NonterminalId(44) => self.scanner.match_any(FOLLOW_SET_GROUP_2, input_index),
-            NonterminalId(45) => self.scanner.match_any(FOLLOW_SET_PLUS_10, input_index),
-            NonterminalId(46) => self.scanner.match_any(FOLLOW_SET_GROUP_3, input_index),
-            NonterminalId(47) => self.scanner.match_any(FOLLOW_SET_PLUS_11, input_index),
-            NonterminalId(48) => self.scanner.match_any(FOLLOW_SET_GROUP_4, input_index),
-            NonterminalId(49) => self.scanner.match_any(FOLLOW_SET_PLUS_12, input_index),
-            NonterminalId(50) => self.scanner.match_any(FOLLOW_SET_OPT_10, input_index),
-            NonterminalId(51) => self.scanner.match_any(FOLLOW_SET_PLUS_13, input_index),
-            NonterminalId(52) => self.scanner.match_any(FOLLOW_SET_ALT_0, input_index),
-            NonterminalId(53) => self.scanner.match_any(FOLLOW_SET_PLUS_14, input_index),
-            NonterminalId(54) => self.scanner.match_any(FOLLOW_SET_OPT_11, input_index),
-            NonterminalId(55) => self.scanner.match_any(FOLLOW_SET_STAR_6, input_index),
+                .match_any(&FOLLOW_SET_RANGE_ELEMENT, input_index),
+            NonterminalId(14) => self.scanner.match_any(&FOLLOW_SET_RANGE, input_index),
+            NonterminalId(15) => self.scanner.match_any(&FOLLOW_SET_LAYOUT, input_index),
+            NonterminalId(16) => self.scanner.match_any(&FOLLOW_SET_OPT_0, input_index),
+            NonterminalId(17) => self.scanner.match_any(&FOLLOW_SET_PLUS_0, input_index),
+            NonterminalId(18) => self.scanner.match_any(&FOLLOW_SET_OPT_1, input_index),
+            NonterminalId(19) => self.scanner.match_any(&FOLLOW_SET_STAR_0, input_index),
+            NonterminalId(20) => self.scanner.match_any(&FOLLOW_SET_PLUS_1, input_index),
+            NonterminalId(21) => self.scanner.match_any(&FOLLOW_SET_OPT_2, input_index),
+            NonterminalId(22) => self.scanner.match_any(&FOLLOW_SET_STAR_1, input_index),
+            NonterminalId(23) => self.scanner.match_any(&FOLLOW_SET_PLUS_2, input_index),
+            NonterminalId(24) => self.scanner.match_any(&FOLLOW_SET_OPT_3, input_index),
+            NonterminalId(25) => self.scanner.match_any(&FOLLOW_SET_STAR_2, input_index),
+            NonterminalId(26) => self.scanner.match_any(&FOLLOW_SET_OPT_4, input_index),
+            NonterminalId(27) => self.scanner.match_any(&FOLLOW_SET_PLUS_4, input_index),
+            NonterminalId(28) => self.scanner.match_any(&FOLLOW_SET_PLUS_3, input_index),
+            NonterminalId(29) => self.scanner.match_any(&FOLLOW_SET_PLUS_5, input_index),
+            NonterminalId(30) => self.scanner.match_any(&FOLLOW_SET_OPT_5, input_index),
+            NonterminalId(31) => self.scanner.match_any(&FOLLOW_SET_STAR_3, input_index),
+            NonterminalId(32) => self.scanner.match_any(&FOLLOW_SET_OPT_6, input_index),
+            NonterminalId(33) => self.scanner.match_any(&FOLLOW_SET_PLUS_6, input_index),
+            NonterminalId(34) => self.scanner.match_any(&FOLLOW_SET_OPT_7, input_index),
+            NonterminalId(35) => self.scanner.match_any(&FOLLOW_SET_STAR_4, input_index),
+            NonterminalId(36) => self.scanner.match_any(&FOLLOW_SET_PLUS_7, input_index),
+            NonterminalId(37) => self.scanner.match_any(&FOLLOW_SET_OPT_8, input_index),
+            NonterminalId(38) => self.scanner.match_any(&FOLLOW_SET_STAR_5, input_index),
+            NonterminalId(39) => self.scanner.match_any(&FOLLOW_SET_OPT_9, input_index),
+            NonterminalId(40) => self.scanner.match_any(&FOLLOW_SET_GROUP_0, input_index),
+            NonterminalId(41) => self.scanner.match_any(&FOLLOW_SET_PLUS_8, input_index),
+            NonterminalId(42) => self.scanner.match_any(&FOLLOW_SET_GROUP_1, input_index),
+            NonterminalId(43) => self.scanner.match_any(&FOLLOW_SET_PLUS_9, input_index),
+            NonterminalId(44) => self.scanner.match_any(&FOLLOW_SET_GROUP_2, input_index),
+            NonterminalId(45) => self.scanner.match_any(&FOLLOW_SET_PLUS_10, input_index),
+            NonterminalId(46) => self.scanner.match_any(&FOLLOW_SET_GROUP_3, input_index),
+            NonterminalId(47) => self.scanner.match_any(&FOLLOW_SET_PLUS_11, input_index),
+            NonterminalId(48) => self.scanner.match_any(&FOLLOW_SET_GROUP_4, input_index),
+            NonterminalId(49) => self.scanner.match_any(&FOLLOW_SET_PLUS_12, input_index),
+            NonterminalId(50) => self.scanner.match_any(&FOLLOW_SET_OPT_10, input_index),
+            NonterminalId(51) => self.scanner.match_any(&FOLLOW_SET_PLUS_13, input_index),
+            NonterminalId(52) => self.scanner.match_any(&FOLLOW_SET_ALT_0, input_index),
+            NonterminalId(53) => self.scanner.match_any(&FOLLOW_SET_PLUS_14, input_index),
+            NonterminalId(54) => self.scanner.match_any(&FOLLOW_SET_OPT_11, input_index),
+            NonterminalId(55) => self.scanner.match_any(&FOLLOW_SET_STAR_6, input_index),
             NonterminalId(56) => self
                 .scanner
-                .match_any(FOLLOW_SET_START_GRAMMAR, input_index),
+                .match_any(&FOLLOW_SET_START_GRAMMAR, input_index),
             _ => true,
         }
     }
     fn follow_set_terminals(&self, nonterminal_id: NonterminalId) -> Vec<TerminalId> {
         match nonterminal_id {
-            NonterminalId(0) => FOLLOW_SET_GRAMMAR.to_vec(),
-            NonterminalId(1) => FOLLOW_SET_LAYOUT_DEF.to_vec(),
-            NonterminalId(2) => FOLLOW_SET_RULE.to_vec(),
-            NonterminalId(3) => FOLLOW_SET_SYNTAX_RULE.to_vec(),
-            NonterminalId(4) => FOLLOW_SET_ANNOTATION.to_vec(),
-            NonterminalId(5) => FOLLOW_SET_REGEX_RULE.to_vec(),
-            NonterminalId(6) => FOLLOW_SET_PRE_CONDITION.to_vec(),
-            NonterminalId(7) => FOLLOW_SET_POST_CONDITION.to_vec(),
-            NonterminalId(8) => FOLLOW_SET_PRIORITY_LEVEL.to_vec(),
-            NonterminalId(9) => FOLLOW_SET_ASSOCIATIVITY.to_vec(),
-            NonterminalId(10) => FOLLOW_SET_ALTERNATIVE.to_vec(),
-            NonterminalId(57) => FOLLOW_SET_SYMBOL.to_vec(),
-            NonterminalId(11) => FOLLOW_SET_REGEX.to_vec(),
-            NonterminalId(12) => FOLLOW_SET_CHAR_CLASS.to_vec(),
-            NonterminalId(13) => FOLLOW_SET_RANGE_ELEMENT.to_vec(),
-            NonterminalId(14) => FOLLOW_SET_RANGE.to_vec(),
-            NonterminalId(15) => FOLLOW_SET_LAYOUT.to_vec(),
-            NonterminalId(16) => FOLLOW_SET_OPT_0.to_vec(),
-            NonterminalId(17) => FOLLOW_SET_PLUS_0.to_vec(),
-            NonterminalId(18) => FOLLOW_SET_OPT_1.to_vec(),
-            NonterminalId(19) => FOLLOW_SET_STAR_0.to_vec(),
-            NonterminalId(20) => FOLLOW_SET_PLUS_1.to_vec(),
-            NonterminalId(21) => FOLLOW_SET_OPT_2.to_vec(),
-            NonterminalId(22) => FOLLOW_SET_STAR_1.to_vec(),
-            NonterminalId(23) => FOLLOW_SET_PLUS_2.to_vec(),
-            NonterminalId(24) => FOLLOW_SET_OPT_3.to_vec(),
-            NonterminalId(25) => FOLLOW_SET_STAR_2.to_vec(),
-            NonterminalId(26) => FOLLOW_SET_OPT_4.to_vec(),
-            NonterminalId(27) => FOLLOW_SET_PLUS_4.to_vec(),
-            NonterminalId(28) => FOLLOW_SET_PLUS_3.to_vec(),
-            NonterminalId(29) => FOLLOW_SET_PLUS_5.to_vec(),
-            NonterminalId(30) => FOLLOW_SET_OPT_5.to_vec(),
-            NonterminalId(31) => FOLLOW_SET_STAR_3.to_vec(),
-            NonterminalId(32) => FOLLOW_SET_OPT_6.to_vec(),
-            NonterminalId(33) => FOLLOW_SET_PLUS_6.to_vec(),
-            NonterminalId(34) => FOLLOW_SET_OPT_7.to_vec(),
-            NonterminalId(35) => FOLLOW_SET_STAR_4.to_vec(),
-            NonterminalId(36) => FOLLOW_SET_PLUS_7.to_vec(),
-            NonterminalId(37) => FOLLOW_SET_OPT_8.to_vec(),
-            NonterminalId(38) => FOLLOW_SET_STAR_5.to_vec(),
-            NonterminalId(39) => FOLLOW_SET_OPT_9.to_vec(),
-            NonterminalId(40) => FOLLOW_SET_GROUP_0.to_vec(),
-            NonterminalId(41) => FOLLOW_SET_PLUS_8.to_vec(),
-            NonterminalId(42) => FOLLOW_SET_GROUP_1.to_vec(),
-            NonterminalId(43) => FOLLOW_SET_PLUS_9.to_vec(),
-            NonterminalId(44) => FOLLOW_SET_GROUP_2.to_vec(),
-            NonterminalId(45) => FOLLOW_SET_PLUS_10.to_vec(),
-            NonterminalId(46) => FOLLOW_SET_GROUP_3.to_vec(),
-            NonterminalId(47) => FOLLOW_SET_PLUS_11.to_vec(),
-            NonterminalId(48) => FOLLOW_SET_GROUP_4.to_vec(),
-            NonterminalId(49) => FOLLOW_SET_PLUS_12.to_vec(),
-            NonterminalId(50) => FOLLOW_SET_OPT_10.to_vec(),
-            NonterminalId(51) => FOLLOW_SET_PLUS_13.to_vec(),
-            NonterminalId(52) => FOLLOW_SET_ALT_0.to_vec(),
-            NonterminalId(53) => FOLLOW_SET_PLUS_14.to_vec(),
-            NonterminalId(54) => FOLLOW_SET_OPT_11.to_vec(),
-            NonterminalId(55) => FOLLOW_SET_STAR_6.to_vec(),
-            NonterminalId(56) => FOLLOW_SET_START_GRAMMAR.to_vec(),
+            NonterminalId(0) => FOLLOW_SET_GRAMMAR.terminals.to_vec(),
+            NonterminalId(1) => FOLLOW_SET_LAYOUT_DEF.terminals.to_vec(),
+            NonterminalId(2) => FOLLOW_SET_RULE.terminals.to_vec(),
+            NonterminalId(3) => FOLLOW_SET_SYNTAX_RULE.terminals.to_vec(),
+            NonterminalId(4) => FOLLOW_SET_ANNOTATION.terminals.to_vec(),
+            NonterminalId(5) => FOLLOW_SET_REGEX_RULE.terminals.to_vec(),
+            NonterminalId(6) => FOLLOW_SET_PRE_CONDITION.terminals.to_vec(),
+            NonterminalId(7) => FOLLOW_SET_POST_CONDITION.terminals.to_vec(),
+            NonterminalId(8) => FOLLOW_SET_PRIORITY_LEVEL.terminals.to_vec(),
+            NonterminalId(9) => FOLLOW_SET_ASSOCIATIVITY.terminals.to_vec(),
+            NonterminalId(10) => FOLLOW_SET_ALTERNATIVE.terminals.to_vec(),
+            NonterminalId(57) => FOLLOW_SET_SYMBOL.terminals.to_vec(),
+            NonterminalId(11) => FOLLOW_SET_REGEX.terminals.to_vec(),
+            NonterminalId(12) => FOLLOW_SET_CHAR_CLASS.terminals.to_vec(),
+            NonterminalId(13) => FOLLOW_SET_RANGE_ELEMENT.terminals.to_vec(),
+            NonterminalId(14) => FOLLOW_SET_RANGE.terminals.to_vec(),
+            NonterminalId(15) => FOLLOW_SET_LAYOUT.terminals.to_vec(),
+            NonterminalId(16) => FOLLOW_SET_OPT_0.terminals.to_vec(),
+            NonterminalId(17) => FOLLOW_SET_PLUS_0.terminals.to_vec(),
+            NonterminalId(18) => FOLLOW_SET_OPT_1.terminals.to_vec(),
+            NonterminalId(19) => FOLLOW_SET_STAR_0.terminals.to_vec(),
+            NonterminalId(20) => FOLLOW_SET_PLUS_1.terminals.to_vec(),
+            NonterminalId(21) => FOLLOW_SET_OPT_2.terminals.to_vec(),
+            NonterminalId(22) => FOLLOW_SET_STAR_1.terminals.to_vec(),
+            NonterminalId(23) => FOLLOW_SET_PLUS_2.terminals.to_vec(),
+            NonterminalId(24) => FOLLOW_SET_OPT_3.terminals.to_vec(),
+            NonterminalId(25) => FOLLOW_SET_STAR_2.terminals.to_vec(),
+            NonterminalId(26) => FOLLOW_SET_OPT_4.terminals.to_vec(),
+            NonterminalId(27) => FOLLOW_SET_PLUS_4.terminals.to_vec(),
+            NonterminalId(28) => FOLLOW_SET_PLUS_3.terminals.to_vec(),
+            NonterminalId(29) => FOLLOW_SET_PLUS_5.terminals.to_vec(),
+            NonterminalId(30) => FOLLOW_SET_OPT_5.terminals.to_vec(),
+            NonterminalId(31) => FOLLOW_SET_STAR_3.terminals.to_vec(),
+            NonterminalId(32) => FOLLOW_SET_OPT_6.terminals.to_vec(),
+            NonterminalId(33) => FOLLOW_SET_PLUS_6.terminals.to_vec(),
+            NonterminalId(34) => FOLLOW_SET_OPT_7.terminals.to_vec(),
+            NonterminalId(35) => FOLLOW_SET_STAR_4.terminals.to_vec(),
+            NonterminalId(36) => FOLLOW_SET_PLUS_7.terminals.to_vec(),
+            NonterminalId(37) => FOLLOW_SET_OPT_8.terminals.to_vec(),
+            NonterminalId(38) => FOLLOW_SET_STAR_5.terminals.to_vec(),
+            NonterminalId(39) => FOLLOW_SET_OPT_9.terminals.to_vec(),
+            NonterminalId(40) => FOLLOW_SET_GROUP_0.terminals.to_vec(),
+            NonterminalId(41) => FOLLOW_SET_PLUS_8.terminals.to_vec(),
+            NonterminalId(42) => FOLLOW_SET_GROUP_1.terminals.to_vec(),
+            NonterminalId(43) => FOLLOW_SET_PLUS_9.terminals.to_vec(),
+            NonterminalId(44) => FOLLOW_SET_GROUP_2.terminals.to_vec(),
+            NonterminalId(45) => FOLLOW_SET_PLUS_10.terminals.to_vec(),
+            NonterminalId(46) => FOLLOW_SET_GROUP_3.terminals.to_vec(),
+            NonterminalId(47) => FOLLOW_SET_PLUS_11.terminals.to_vec(),
+            NonterminalId(48) => FOLLOW_SET_GROUP_4.terminals.to_vec(),
+            NonterminalId(49) => FOLLOW_SET_PLUS_12.terminals.to_vec(),
+            NonterminalId(50) => FOLLOW_SET_OPT_10.terminals.to_vec(),
+            NonterminalId(51) => FOLLOW_SET_PLUS_13.terminals.to_vec(),
+            NonterminalId(52) => FOLLOW_SET_ALT_0.terminals.to_vec(),
+            NonterminalId(53) => FOLLOW_SET_PLUS_14.terminals.to_vec(),
+            NonterminalId(54) => FOLLOW_SET_OPT_11.terminals.to_vec(),
+            NonterminalId(55) => FOLLOW_SET_STAR_6.terminals.to_vec(),
+            NonterminalId(56) => FOLLOW_SET_START_GRAMMAR.terminals.to_vec(),
             _ => vec![],
         }
     }

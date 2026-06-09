@@ -2,6 +2,7 @@
 
 use crate::types::{Nonterminal, Slot, Terminal};
 use iguana_runtime::ids::{NonterminalId, SlotId, TerminalId};
+use iguana_runtime::scanner::TerminalSet;
 pub const NONTERMINALS: [Nonterminal; 2] = [
     Nonterminal {
         name: "S",
@@ -114,21 +115,41 @@ pub const SLOTS: [Slot; 26] = [
     },
 ];
 // S { EOF }
-pub static FOLLOW_SET_S: &[TerminalId] = &[TerminalId(5)];
+pub static FOLLOW_SET_S: TerminalSet = TerminalSet {
+    id: 0,
+    terminals: &[TerminalId(5)],
+};
 // S { "a" }
 pub static FIRST_SET_S: &[TerminalId] = &[TerminalId(0)];
 // S : . E(0) { "a" }
-pub static FIRST_SET_S_ALT0: &[TerminalId] = &[TerminalId(0)];
+pub static FIRST_SET_S_ALT0: TerminalSet = TerminalSet {
+    id: 1,
+    terminals: &[TerminalId(0)],
+};
 // E { "+", "-", "*", EOF }
-pub static FOLLOW_SET_E: &[TerminalId] =
-    &[TerminalId(2), TerminalId(3), TerminalId(1), TerminalId(5)];
+pub static FOLLOW_SET_E: TerminalSet = TerminalSet {
+    id: 2,
+    terminals: &[TerminalId(2), TerminalId(3), TerminalId(1), TerminalId(5)],
+};
 // E { "a" }
 pub static FIRST_SET_E: &[TerminalId] = &[TerminalId(0)];
 // E(p: i32) : . "a" return 0 { "a" }
-pub static FIRST_SET_E_ALT0: &[TerminalId] = &[TerminalId(0)];
+pub static FIRST_SET_E_ALT0: TerminalSet = TerminalSet {
+    id: 1,
+    terminals: &[TerminalId(0)],
+};
 // E(p: i32) : . [2 >= p] l=E(p) [(l == 0) || (l >= 2)] "*" E(2) return 2 { "a" }
-pub static FIRST_SET_E_ALT1: &[TerminalId] = &[TerminalId(0)];
+pub static FIRST_SET_E_ALT1: TerminalSet = TerminalSet {
+    id: 1,
+    terminals: &[TerminalId(0)],
+};
 // E(p: i32) : . [1 >= p] l=E(p) [(l == 0) || (l >= 1)] "+" E(1) return 1 { "a" }
-pub static FIRST_SET_E_ALT2: &[TerminalId] = &[TerminalId(0)];
+pub static FIRST_SET_E_ALT2: TerminalSet = TerminalSet {
+    id: 1,
+    terminals: &[TerminalId(0)],
+};
 // E(p: i32) : . [1 >= p] l=E(p) [(l == 0) || (l >= 1)] "-" E(1) return 1 { "a" }
-pub static FIRST_SET_E_ALT3: &[TerminalId] = &[TerminalId(0)];
+pub static FIRST_SET_E_ALT3: TerminalSet = TerminalSet {
+    id: 1,
+    terminals: &[TerminalId(0)],
+};

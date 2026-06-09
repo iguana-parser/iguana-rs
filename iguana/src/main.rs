@@ -46,7 +46,7 @@ enum Commands {
         #[arg(long, default_value_t = true, action = clap::ArgAction::Set)]
         ll1: bool,
 
-        /// Memoize match_token results during parsing
+        /// Memoize scanner results (match_token and match_any) during parsing
         #[arg(long, default_value_t = true, action = clap::ArgAction::Set)]
         match_memo: bool,
 

@@ -4,9 +4,10 @@ use iguana_runtime::{
     dfa::{Dfa, State},
     ids::TerminalId,
     input::Input,
-    scanner::{Lookup, MatchMemo, Scanner},
+    scanner::{Lookup, MatchAnyMemo, MatchMemo, Scanner, TerminalSet},
 };
 const MATCH_MEMO_WORDS: usize = 1;
+const MATCH_ANY_SET_WORDS: usize = 1;
 static DFA_0: Dfa = Dfa::new(&[
     State::new(&[(' ', ' ', 1)], Some(TerminalId(0))),
     State::new(&[(' ', ' ', 1)], Some(TerminalId(0))),
@@ -69,11 +70,17 @@ static DFA_12: Dfa = Dfa::new(&[
 pub struct Pepm16ExpressionsScanner<'i> {
     pub input: &'i Input,
     memo: MatchMemo<MATCH_MEMO_WORDS>,
+    match_any_memo: MatchAnyMemo<MATCH_ANY_SET_WORDS>,
 }
 impl<'i> Pepm16ExpressionsScanner<'i> {
     pub fn new(input: &'i Input) -> Self {
         let memo = MatchMemo::new(input.len() as usize);
-        Self { input, memo }
+        let match_any_memo = MatchAnyMemo::new(input.len() as usize);
+        Self {
+            input,
+            memo,
+            match_any_memo,
+        }
     }
     // WS = ([ ]*)
     pub fn match_terminal_0(&self, input_index: u32) -> Option<u32> {
@@ -126,6 +133,18 @@ impl<'i> Pepm16ExpressionsScanner<'i> {
     // "a" = a
     pub fn match_terminal_12(&self, input_index: u32) -> Option<u32> {
         self.scan(&DFA_12, input_index)
+    }
+    // Whether any terminal in `set` matches at `input_index`, cached by the set's memo id. The first query of a set at a position scans it; later queries return the cached bit.
+    pub fn match_any(&mut self, set: &TerminalSet, input_index: u32) -> bool {
+        if let Some(matched) = self.match_any_memo.get(set.id, input_index) {
+            return matched;
+        }
+        let matched = set
+            .terminals
+            .iter()
+            .any(|id| self.match_token(*id, input_index).is_some());
+        self.match_any_memo.insert(set.id, input_index, matched);
+        matched
     }
 }
 impl Scanner for Pepm16ExpressionsScanner<'_> {

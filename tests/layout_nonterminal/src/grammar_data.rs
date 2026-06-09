@@ -2,6 +2,7 @@
 
 use crate::types::{Nonterminal, Slot, Terminal};
 use iguana_runtime::ids::{NonterminalId, SlotId, TerminalId};
+use iguana_runtime::scanner::TerminalSet;
 pub const NONTERMINALS: [Nonterminal; 7] = [
     Nonterminal {
         name: "S",
@@ -136,52 +137,101 @@ pub const SLOTS: [Slot; 22] = [
     },
 ];
 // S { Comment, WhiteSpace, EOF }
-pub static FOLLOW_SET_S: &[TerminalId] = &[TerminalId(1), TerminalId(0), TerminalId(4)];
+pub static FOLLOW_SET_S: TerminalSet = TerminalSet {
+    id: 0,
+    terminals: &[TerminalId(1), TerminalId(0), TerminalId(4)],
+};
 // S { "x" }
 pub static FIRST_SET_S: &[TerminalId] = &[TerminalId(2)];
 // S : . "x" { "x" }
-pub static FIRST_SET_S_ALT0: &[TerminalId] = &[TerminalId(2)];
+pub static FIRST_SET_S_ALT0: TerminalSet = TerminalSet {
+    id: 1,
+    terminals: &[TerminalId(2)],
+};
 // Layout { "x", EOF }
-pub static FOLLOW_SET_LAYOUT: &[TerminalId] = &[TerminalId(2), TerminalId(4)];
+pub static FOLLOW_SET_LAYOUT: TerminalSet = TerminalSet {
+    id: 2,
+    terminals: &[TerminalId(2), TerminalId(4)],
+};
 // Layout { Comment, WhiteSpace }
 pub static FIRST_SET_LAYOUT: &[TerminalId] = &[TerminalId(1), TerminalId(0)];
 // Layout : . Star_0 { Comment, WhiteSpace }
-pub static FIRST_SET_LAYOUT_ALT0: &[TerminalId] = &[TerminalId(1), TerminalId(0)];
+pub static FIRST_SET_LAYOUT_ALT0: TerminalSet = TerminalSet {
+    id: 3,
+    terminals: &[TerminalId(1), TerminalId(0)],
+};
 // Alt_0 { Comment, "x", WhiteSpace, EOF }
-pub static FOLLOW_SET_ALT_0: &[TerminalId] =
-    &[TerminalId(1), TerminalId(2), TerminalId(0), TerminalId(4)];
+pub static FOLLOW_SET_ALT_0: TerminalSet = TerminalSet {
+    id: 4,
+    terminals: &[TerminalId(1), TerminalId(2), TerminalId(0), TerminalId(4)],
+};
 // Alt_0 { Comment, WhiteSpace }
 pub static FIRST_SET_ALT_0: &[TerminalId] = &[TerminalId(1), TerminalId(0)];
 // Alt_0 : . WhiteSpace { WhiteSpace }
-pub static FIRST_SET_ALT_0_ALT0: &[TerminalId] = &[TerminalId(0)];
+pub static FIRST_SET_ALT_0_ALT0: TerminalSet = TerminalSet {
+    id: 5,
+    terminals: &[TerminalId(0)],
+};
 // Alt_0 : . Comment { Comment }
-pub static FIRST_SET_ALT_0_ALT1: &[TerminalId] = &[TerminalId(1)];
+pub static FIRST_SET_ALT_0_ALT1: TerminalSet = TerminalSet {
+    id: 6,
+    terminals: &[TerminalId(1)],
+};
 // Plus_0 { Comment, "x", WhiteSpace, EOF }
-pub static FOLLOW_SET_PLUS_0: &[TerminalId] =
-    &[TerminalId(1), TerminalId(2), TerminalId(0), TerminalId(4)];
+pub static FOLLOW_SET_PLUS_0: TerminalSet = TerminalSet {
+    id: 4,
+    terminals: &[TerminalId(1), TerminalId(2), TerminalId(0), TerminalId(4)],
+};
 // Plus_0 { Comment, WhiteSpace }
 pub static FIRST_SET_PLUS_0: &[TerminalId] = &[TerminalId(1), TerminalId(0)];
 // Plus_0 : . Plus_0 Alt_0 { Comment, WhiteSpace }
-pub static FIRST_SET_PLUS_0_ALT0: &[TerminalId] = &[TerminalId(1), TerminalId(0)];
+pub static FIRST_SET_PLUS_0_ALT0: TerminalSet = TerminalSet {
+    id: 3,
+    terminals: &[TerminalId(1), TerminalId(0)],
+};
 // Plus_0 : . Alt_0 { Comment, WhiteSpace }
-pub static FIRST_SET_PLUS_0_ALT1: &[TerminalId] = &[TerminalId(1), TerminalId(0)];
+pub static FIRST_SET_PLUS_0_ALT1: TerminalSet = TerminalSet {
+    id: 3,
+    terminals: &[TerminalId(1), TerminalId(0)],
+};
 // Opt_0 { "x", EOF }
-pub static FOLLOW_SET_OPT_0: &[TerminalId] = &[TerminalId(2), TerminalId(4)];
+pub static FOLLOW_SET_OPT_0: TerminalSet = TerminalSet {
+    id: 2,
+    terminals: &[TerminalId(2), TerminalId(4)],
+};
 // Opt_0 { Comment, WhiteSpace }
 pub static FIRST_SET_OPT_0: &[TerminalId] = &[TerminalId(1), TerminalId(0)];
 // Opt_0 : . Plus_0 { Comment, WhiteSpace }
-pub static FIRST_SET_OPT_0_ALT0: &[TerminalId] = &[TerminalId(1), TerminalId(0)];
+pub static FIRST_SET_OPT_0_ALT0: TerminalSet = TerminalSet {
+    id: 3,
+    terminals: &[TerminalId(1), TerminalId(0)],
+};
 // Opt_0 : . {  }
-pub static FIRST_SET_OPT_0_ALT1: &[TerminalId] = &[];
+pub static FIRST_SET_OPT_0_ALT1: TerminalSet = TerminalSet {
+    id: 7,
+    terminals: &[],
+};
 // Star_0 { "x", EOF }
-pub static FOLLOW_SET_STAR_0: &[TerminalId] = &[TerminalId(2), TerminalId(4)];
+pub static FOLLOW_SET_STAR_0: TerminalSet = TerminalSet {
+    id: 2,
+    terminals: &[TerminalId(2), TerminalId(4)],
+};
 // Star_0 { Comment, WhiteSpace }
 pub static FIRST_SET_STAR_0: &[TerminalId] = &[TerminalId(1), TerminalId(0)];
 // Star_0 : . Opt_0 { Comment, WhiteSpace }
-pub static FIRST_SET_STAR_0_ALT0: &[TerminalId] = &[TerminalId(1), TerminalId(0)];
+pub static FIRST_SET_STAR_0_ALT0: TerminalSet = TerminalSet {
+    id: 3,
+    terminals: &[TerminalId(1), TerminalId(0)],
+};
 // StartS { EOF }
-pub static FOLLOW_SET_START_S: &[TerminalId] = &[TerminalId(4)];
+pub static FOLLOW_SET_START_S: TerminalSet = TerminalSet {
+    id: 8,
+    terminals: &[TerminalId(4)],
+};
 // StartS { Comment, WhiteSpace, "x" }
 pub static FIRST_SET_START_S: &[TerminalId] = &[TerminalId(1), TerminalId(0), TerminalId(2)];
 // StartS : . Layout start:S Layout { Comment, WhiteSpace, "x" }
-pub static FIRST_SET_START_S_ALT0: &[TerminalId] = &[TerminalId(1), TerminalId(0), TerminalId(2)];
+pub static FIRST_SET_START_S_ALT0: TerminalSet = TerminalSet {
+    id: 9,
+    terminals: &[TerminalId(1), TerminalId(0), TerminalId(2)],
+};

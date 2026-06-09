@@ -161,17 +161,17 @@ impl<'i> Parser<'i> for ExpressionParser<'i> {
             NonterminalId(0) => {
                 let mut matched = false;
                 // E : . E "*" E
-                if self.scanner.match_any(FIRST_SET_E_ALT0, input_index) {
+                if self.scanner.match_any(&FIRST_SET_E_ALT0, input_index) {
                     matched = true;
                     self.add_first_descriptor(SlotId(0), input_index, gss_node_id, env);
                 }
                 // E : . E "+" E
-                if self.scanner.match_any(FIRST_SET_E_ALT1, input_index) {
+                if self.scanner.match_any(&FIRST_SET_E_ALT1, input_index) {
                     matched = true;
                     self.add_first_descriptor(SlotId(4), input_index, gss_node_id, env);
                 }
                 // E : . "a"
-                if self.scanner.match_any(FIRST_SET_E_ALT2, input_index) {
+                if self.scanner.match_any(&FIRST_SET_E_ALT2, input_index) {
                     matched = true;
                     self.add_first_descriptor(SlotId(8), input_index, gss_node_id, env);
                 }
@@ -524,13 +524,13 @@ impl<'i> Parser<'i> for ExpressionParser<'i> {
     }
     fn follow_set_check(&mut self, nonterminal_id: NonterminalId, input_index: u32) -> bool {
         match nonterminal_id {
-            NonterminalId(0) => self.scanner.match_any(FOLLOW_SET_E, input_index),
+            NonterminalId(0) => self.scanner.match_any(&FOLLOW_SET_E, input_index),
             _ => true,
         }
     }
     fn follow_set_terminals(&self, nonterminal_id: NonterminalId) -> Vec<TerminalId> {
         match nonterminal_id {
-            NonterminalId(0) => FOLLOW_SET_E.to_vec(),
+            NonterminalId(0) => FOLLOW_SET_E.terminals.to_vec(),
             _ => vec![],
         }
     }

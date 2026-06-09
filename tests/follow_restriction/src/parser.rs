@@ -264,12 +264,12 @@ impl<'i> Parser<'i> for FollowRestrictionParser<'i> {
             NonterminalId(3) => {
                 let mut matched = false;
                 // Plus_0 : . Plus_0 WS Id
-                if self.scanner.match_any(FIRST_SET_PLUS_0_ALT0, input_index) {
+                if self.scanner.match_any(&FIRST_SET_PLUS_0_ALT0, input_index) {
                     matched = true;
                     self.add_first_descriptor(SlotId(6), input_index, gss_node_id, env);
                 }
                 // Plus_0 : . Id
-                if self.scanner.match_any(FIRST_SET_PLUS_0_ALT1, input_index) {
+                if self.scanner.match_any(&FIRST_SET_PLUS_0_ALT1, input_index) {
                     matched = true;
                     self.add_first_descriptor(SlotId(10), input_index, gss_node_id, env);
                 }
@@ -285,12 +285,12 @@ impl<'i> Parser<'i> for FollowRestrictionParser<'i> {
             NonterminalId(4) => {
                 let mut matched = false;
                 // Plus_1 : . Plus_1 Char
-                if self.scanner.match_any(FIRST_SET_PLUS_1_ALT0, input_index) {
+                if self.scanner.match_any(&FIRST_SET_PLUS_1_ALT0, input_index) {
                     matched = true;
                     self.add_first_descriptor(SlotId(12), input_index, gss_node_id, env);
                 }
                 // Plus_1 : . Char
-                if self.scanner.match_any(FIRST_SET_PLUS_1_ALT1, input_index) {
+                if self.scanner.match_any(&FIRST_SET_PLUS_1_ALT1, input_index) {
                     matched = true;
                     self.add_first_descriptor(SlotId(15), input_index, gss_node_id, env);
                 }
@@ -641,10 +641,10 @@ impl<'i> Parser<'i> for FollowRestrictionParser<'i> {
             SlotId(3) => {
                 if self
                     .scanner
-                    .match_any(FOLLOW_RESTRICTION_T_ALT0_POS0, right_extent)
+                    .match_any(&FOLLOW_RESTRICTION_T_ALT0_POS0, right_extent)
                 {
                     Some(ParseErrorKind::ForbiddenFollow {
-                        forbidden: FOLLOW_RESTRICTION_T_ALT0_POS0.to_vec(),
+                        forbidden: FOLLOW_RESTRICTION_T_ALT0_POS0.terminals.to_vec(),
                     })
                 } else {
                     None
@@ -653,10 +653,10 @@ impl<'i> Parser<'i> for FollowRestrictionParser<'i> {
             SlotId(5) => {
                 if self
                     .scanner
-                    .match_any(FOLLOW_RESTRICTION_ID_ALT0_POS0, right_extent)
+                    .match_any(&FOLLOW_RESTRICTION_ID_ALT0_POS0, right_extent)
                 {
                     Some(ParseErrorKind::ForbiddenFollow {
-                        forbidden: FOLLOW_RESTRICTION_ID_ALT0_POS0.to_vec(),
+                        forbidden: FOLLOW_RESTRICTION_ID_ALT0_POS0.terminals.to_vec(),
                     })
                 } else {
                     None
@@ -667,21 +667,21 @@ impl<'i> Parser<'i> for FollowRestrictionParser<'i> {
     }
     fn follow_set_check(&mut self, nonterminal_id: NonterminalId, input_index: u32) -> bool {
         match nonterminal_id {
-            NonterminalId(0) => self.scanner.match_any(FOLLOW_SET_S, input_index),
-            NonterminalId(1) => self.scanner.match_any(FOLLOW_SET_T, input_index),
-            NonterminalId(2) => self.scanner.match_any(FOLLOW_SET_ID, input_index),
-            NonterminalId(3) => self.scanner.match_any(FOLLOW_SET_PLUS_0, input_index),
-            NonterminalId(4) => self.scanner.match_any(FOLLOW_SET_PLUS_1, input_index),
+            NonterminalId(0) => self.scanner.match_any(&FOLLOW_SET_S, input_index),
+            NonterminalId(1) => self.scanner.match_any(&FOLLOW_SET_T, input_index),
+            NonterminalId(2) => self.scanner.match_any(&FOLLOW_SET_ID, input_index),
+            NonterminalId(3) => self.scanner.match_any(&FOLLOW_SET_PLUS_0, input_index),
+            NonterminalId(4) => self.scanner.match_any(&FOLLOW_SET_PLUS_1, input_index),
             _ => true,
         }
     }
     fn follow_set_terminals(&self, nonterminal_id: NonterminalId) -> Vec<TerminalId> {
         match nonterminal_id {
-            NonterminalId(0) => FOLLOW_SET_S.to_vec(),
-            NonterminalId(1) => FOLLOW_SET_T.to_vec(),
-            NonterminalId(2) => FOLLOW_SET_ID.to_vec(),
-            NonterminalId(3) => FOLLOW_SET_PLUS_0.to_vec(),
-            NonterminalId(4) => FOLLOW_SET_PLUS_1.to_vec(),
+            NonterminalId(0) => FOLLOW_SET_S.terminals.to_vec(),
+            NonterminalId(1) => FOLLOW_SET_T.terminals.to_vec(),
+            NonterminalId(2) => FOLLOW_SET_ID.terminals.to_vec(),
+            NonterminalId(3) => FOLLOW_SET_PLUS_0.terminals.to_vec(),
+            NonterminalId(4) => FOLLOW_SET_PLUS_1.terminals.to_vec(),
             _ => vec![],
         }
     }

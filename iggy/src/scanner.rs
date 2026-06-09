@@ -4,9 +4,10 @@ use iguana_runtime::{
     dfa::{Dfa, State},
     ids::TerminalId,
     input::Input,
-    scanner::{Lookup, MatchMemo, Scanner},
+    scanner::{Lookup, MatchAnyMemo, MatchMemo, Scanner, TerminalSet},
 };
 const MATCH_MEMO_WORDS: usize = 1;
+const MATCH_ANY_SET_WORDS: usize = 1;
 static DFA_0: Dfa = Dfa::new(&[
     State::new(
         &[('g', 'g', 1), ('l', 'l', 2), ('n', 'n', 3), ('r', 'r', 4)],
@@ -376,11 +377,17 @@ static DFA_36: Dfa = Dfa::new(&[
 pub struct IggyScanner<'i> {
     pub input: &'i Input,
     memo: MatchMemo<MATCH_MEMO_WORDS>,
+    match_any_memo: MatchAnyMemo<MATCH_ANY_SET_WORDS>,
 }
 impl<'i> IggyScanner<'i> {
     pub fn new(input: &'i Input) -> Self {
         let memo = MatchMemo::new(input.len() as usize);
-        Self { input, memo }
+        let match_any_memo = MatchAnyMemo::new(input.len() as usize);
+        Self {
+            input,
+            memo,
+            match_any_memo,
+        }
     }
     // Keyword = (grammar|layout|left|right|none)
     pub fn match_terminal_0(&self, input_index: u32) -> Option<u32> {
@@ -535,6 +542,18 @@ impl<'i> IggyScanner<'i> {
     // "-" = -
     pub fn match_terminal_36(&self, input_index: u32) -> Option<u32> {
         self.scan(&DFA_36, input_index)
+    }
+    // Whether any terminal in `set` matches at `input_index`, cached by the set's memo id. The first query of a set at a position scans it; later queries return the cached bit.
+    pub fn match_any(&mut self, set: &TerminalSet, input_index: u32) -> bool {
+        if let Some(matched) = self.match_any_memo.get(set.id, input_index) {
+            return matched;
+        }
+        let matched = set
+            .terminals
+            .iter()
+            .any(|id| self.match_token(*id, input_index).is_some());
+        self.match_any_memo.insert(set.id, input_index, matched);
+        matched
     }
 }
 impl Scanner for IggyScanner<'_> {

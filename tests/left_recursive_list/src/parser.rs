@@ -123,12 +123,12 @@ impl<'i> Parser<'i> for LeftRecursiveListParser<'i> {
             NonterminalId(0) => {
                 let mut matched = false;
                 // A : . A "a"
-                if self.scanner.match_any(FIRST_SET_A_ALT0, input_index) {
+                if self.scanner.match_any(&FIRST_SET_A_ALT0, input_index) {
                     matched = true;
                     self.add_first_descriptor(SlotId(0), input_index, gss_node_id, env);
                 }
                 // A : . "a"
-                if self.scanner.match_any(FIRST_SET_A_ALT1, input_index) {
+                if self.scanner.match_any(&FIRST_SET_A_ALT1, input_index) {
                     matched = true;
                     self.add_first_descriptor(SlotId(3), input_index, gss_node_id, env);
                 }
@@ -481,13 +481,13 @@ impl<'i> Parser<'i> for LeftRecursiveListParser<'i> {
     }
     fn follow_set_check(&mut self, nonterminal_id: NonterminalId, input_index: u32) -> bool {
         match nonterminal_id {
-            NonterminalId(0) => self.scanner.match_any(FOLLOW_SET_A, input_index),
+            NonterminalId(0) => self.scanner.match_any(&FOLLOW_SET_A, input_index),
             _ => true,
         }
     }
     fn follow_set_terminals(&self, nonterminal_id: NonterminalId) -> Vec<TerminalId> {
         match nonterminal_id {
-            NonterminalId(0) => FOLLOW_SET_A.to_vec(),
+            NonterminalId(0) => FOLLOW_SET_A.terminals.to_vec(),
             _ => vec![],
         }
     }

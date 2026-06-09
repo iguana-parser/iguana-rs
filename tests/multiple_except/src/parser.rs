@@ -484,17 +484,17 @@ impl<'i> Parser<'i> for MultipleExceptParser<'i> {
         match nonterminal_id {
             NonterminalId(0) => self
                 .scanner
-                .match_any(FOLLOW_SET_SYNTAX_IDENTIFIER, input_index),
+                .match_any(&FOLLOW_SET_SYNTAX_IDENTIFIER, input_index),
             NonterminalId(1) => self
                 .scanner
-                .match_any(FOLLOW_SET_LEXICAL_IDENTIFIER, input_index),
+                .match_any(&FOLLOW_SET_LEXICAL_IDENTIFIER, input_index),
             _ => true,
         }
     }
     fn follow_set_terminals(&self, nonterminal_id: NonterminalId) -> Vec<TerminalId> {
         match nonterminal_id {
-            NonterminalId(0) => FOLLOW_SET_SYNTAX_IDENTIFIER.to_vec(),
-            NonterminalId(1) => FOLLOW_SET_LEXICAL_IDENTIFIER.to_vec(),
+            NonterminalId(0) => FOLLOW_SET_SYNTAX_IDENTIFIER.terminals.to_vec(),
+            NonterminalId(1) => FOLLOW_SET_LEXICAL_IDENTIFIER.terminals.to_vec(),
             _ => vec![],
         }
     }

@@ -2,6 +2,7 @@
 
 use crate::types::{Nonterminal, Slot, Terminal};
 use iguana_runtime::ids::{NonterminalId, SlotId, TerminalId};
+use iguana_runtime::scanner::TerminalSet;
 pub const NONTERMINALS: [Nonterminal; 5] = [
     Nonterminal {
         name: "S",
@@ -106,40 +107,82 @@ pub const SLOTS: [Slot; 17] = [
     },
 ];
 // S { EOF }
-pub static FOLLOW_SET_S: &[TerminalId] = &[TerminalId(3)];
+pub static FOLLOW_SET_S: TerminalSet = TerminalSet {
+    id: 0,
+    terminals: &[TerminalId(3)],
+};
 // S { Char }
 pub static FIRST_SET_S: &[TerminalId] = &[TerminalId(0)];
 // S : . Plus_0 { Char }
-pub static FIRST_SET_S_ALT0: &[TerminalId] = &[TerminalId(0)];
+pub static FIRST_SET_S_ALT0: TerminalSet = TerminalSet {
+    id: 1,
+    terminals: &[TerminalId(0)],
+};
 // T { EOF }
-pub static FOLLOW_SET_T: &[TerminalId] = &[TerminalId(3)];
+pub static FOLLOW_SET_T: TerminalSet = TerminalSet {
+    id: 0,
+    terminals: &[TerminalId(3)],
+};
 // T { Char }
 pub static FIRST_SET_T: &[TerminalId] = &[TerminalId(0)];
 // T : . Char !>> Char { Char }
-pub static FIRST_SET_T_ALT0: &[TerminalId] = &[TerminalId(0)];
+pub static FIRST_SET_T_ALT0: TerminalSet = TerminalSet {
+    id: 1,
+    terminals: &[TerminalId(0)],
+};
 // T : . Char !>> Char !>> { Char }
-pub static FOLLOW_RESTRICTION_T_ALT0_POS0: &[TerminalId] = &[TerminalId(0)];
+pub static FOLLOW_RESTRICTION_T_ALT0_POS0: TerminalSet = TerminalSet {
+    id: 1,
+    terminals: &[TerminalId(0)],
+};
 // Id { EOF, Char, WS }
-pub static FOLLOW_SET_ID: &[TerminalId] = &[TerminalId(3), TerminalId(0), TerminalId(1)];
+pub static FOLLOW_SET_ID: TerminalSet = TerminalSet {
+    id: 2,
+    terminals: &[TerminalId(3), TerminalId(0), TerminalId(1)],
+};
 // Id { Char }
 pub static FIRST_SET_ID: &[TerminalId] = &[TerminalId(0)];
 // Id : . Plus_1 !>> Char { Char }
-pub static FIRST_SET_ID_ALT0: &[TerminalId] = &[TerminalId(0)];
+pub static FIRST_SET_ID_ALT0: TerminalSet = TerminalSet {
+    id: 1,
+    terminals: &[TerminalId(0)],
+};
 // Id : . Plus_1 !>> Char !>> { Char }
-pub static FOLLOW_RESTRICTION_ID_ALT0_POS0: &[TerminalId] = &[TerminalId(0)];
+pub static FOLLOW_RESTRICTION_ID_ALT0_POS0: TerminalSet = TerminalSet {
+    id: 1,
+    terminals: &[TerminalId(0)],
+};
 // Plus_0 { EOF, Char, WS }
-pub static FOLLOW_SET_PLUS_0: &[TerminalId] = &[TerminalId(3), TerminalId(0), TerminalId(1)];
+pub static FOLLOW_SET_PLUS_0: TerminalSet = TerminalSet {
+    id: 2,
+    terminals: &[TerminalId(3), TerminalId(0), TerminalId(1)],
+};
 // Plus_0 { Char }
 pub static FIRST_SET_PLUS_0: &[TerminalId] = &[TerminalId(0)];
 // Plus_0 : . Plus_0 WS Id { Char }
-pub static FIRST_SET_PLUS_0_ALT0: &[TerminalId] = &[TerminalId(0)];
+pub static FIRST_SET_PLUS_0_ALT0: TerminalSet = TerminalSet {
+    id: 1,
+    terminals: &[TerminalId(0)],
+};
 // Plus_0 : . Id { Char }
-pub static FIRST_SET_PLUS_0_ALT1: &[TerminalId] = &[TerminalId(0)];
+pub static FIRST_SET_PLUS_0_ALT1: TerminalSet = TerminalSet {
+    id: 1,
+    terminals: &[TerminalId(0)],
+};
 // Plus_1 { WS, EOF }
-pub static FOLLOW_SET_PLUS_1: &[TerminalId] = &[TerminalId(1), TerminalId(3)];
+pub static FOLLOW_SET_PLUS_1: TerminalSet = TerminalSet {
+    id: 3,
+    terminals: &[TerminalId(1), TerminalId(3)],
+};
 // Plus_1 { Char }
 pub static FIRST_SET_PLUS_1: &[TerminalId] = &[TerminalId(0)];
 // Plus_1 : . Plus_1 Char { Char }
-pub static FIRST_SET_PLUS_1_ALT0: &[TerminalId] = &[TerminalId(0)];
+pub static FIRST_SET_PLUS_1_ALT0: TerminalSet = TerminalSet {
+    id: 1,
+    terminals: &[TerminalId(0)],
+};
 // Plus_1 : . Char { Char }
-pub static FIRST_SET_PLUS_1_ALT1: &[TerminalId] = &[TerminalId(0)];
+pub static FIRST_SET_PLUS_1_ALT1: TerminalSet = TerminalSet {
+    id: 1,
+    terminals: &[TerminalId(0)],
+};

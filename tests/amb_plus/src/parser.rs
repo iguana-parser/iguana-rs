@@ -251,12 +251,12 @@ impl<'i> Parser<'i> for AmbPlusParser<'i> {
             NonterminalId(1) => {
                 let mut matched = false;
                 // A : . X
-                if self.scanner.match_any(FIRST_SET_A_ALT0, input_index) {
+                if self.scanner.match_any(&FIRST_SET_A_ALT0, input_index) {
                     matched = true;
                     self.add_first_descriptor(SlotId(2), input_index, gss_node_id, env);
                 }
                 // A : . Y
-                if self.scanner.match_any(FIRST_SET_A_ALT1, input_index) {
+                if self.scanner.match_any(&FIRST_SET_A_ALT1, input_index) {
                     matched = true;
                     self.add_first_descriptor(SlotId(4), input_index, gss_node_id, env);
                 }
@@ -280,12 +280,12 @@ impl<'i> Parser<'i> for AmbPlusParser<'i> {
             NonterminalId(4) => {
                 let mut matched = false;
                 // Plus_0 : . Plus_0 A
-                if self.scanner.match_any(FIRST_SET_PLUS_0_ALT0, input_index) {
+                if self.scanner.match_any(&FIRST_SET_PLUS_0_ALT0, input_index) {
                     matched = true;
                     self.add_first_descriptor(SlotId(11), input_index, gss_node_id, env);
                 }
                 // Plus_0 : . A
-                if self.scanner.match_any(FIRST_SET_PLUS_0_ALT1, input_index) {
+                if self.scanner.match_any(&FIRST_SET_PLUS_0_ALT1, input_index) {
                     matched = true;
                     self.add_first_descriptor(SlotId(14), input_index, gss_node_id, env);
                 }
@@ -301,13 +301,13 @@ impl<'i> Parser<'i> for AmbPlusParser<'i> {
             NonterminalId(5) => {
                 let mut matched = false;
                 // Opt_0 : . Plus_0
-                if self.scanner.match_any(FIRST_SET_OPT_0_ALT0, input_index) {
+                if self.scanner.match_any(&FIRST_SET_OPT_0_ALT0, input_index) {
                     matched = true;
                     self.add_first_descriptor(SlotId(16), input_index, gss_node_id, env);
                 }
                 // Opt_0 : .
-                if self.scanner.match_any(FIRST_SET_OPT_0_ALT1, input_index)
-                    || self.scanner.match_any(FOLLOW_SET_OPT_0, input_index)
+                if self.scanner.match_any(&FIRST_SET_OPT_0_ALT1, input_index)
+                    || self.scanner.match_any(&FOLLOW_SET_OPT_0, input_index)
                 {
                     matched = true;
                     self.add_first_descriptor(SlotId(18), input_index, gss_node_id, env);
@@ -317,7 +317,7 @@ impl<'i> Parser<'i> for AmbPlusParser<'i> {
                         ParseErrorKind::UnexpectedToken {
                             expected: {
                                 let mut expected = FIRST_SET_OPT_0.to_vec();
-                                expected.extend_from_slice(FOLLOW_SET_OPT_0);
+                                expected.extend_from_slice(FOLLOW_SET_OPT_0.terminals);
                                 expected
                             },
                         }
@@ -669,25 +669,25 @@ impl<'i> Parser<'i> for AmbPlusParser<'i> {
     }
     fn follow_set_check(&mut self, nonterminal_id: NonterminalId, input_index: u32) -> bool {
         match nonterminal_id {
-            NonterminalId(0) => self.scanner.match_any(FOLLOW_SET_S, input_index),
-            NonterminalId(1) => self.scanner.match_any(FOLLOW_SET_A, input_index),
-            NonterminalId(2) => self.scanner.match_any(FOLLOW_SET_X, input_index),
-            NonterminalId(3) => self.scanner.match_any(FOLLOW_SET_Y, input_index),
-            NonterminalId(4) => self.scanner.match_any(FOLLOW_SET_PLUS_0, input_index),
-            NonterminalId(5) => self.scanner.match_any(FOLLOW_SET_OPT_0, input_index),
-            NonterminalId(6) => self.scanner.match_any(FOLLOW_SET_STAR_0, input_index),
+            NonterminalId(0) => self.scanner.match_any(&FOLLOW_SET_S, input_index),
+            NonterminalId(1) => self.scanner.match_any(&FOLLOW_SET_A, input_index),
+            NonterminalId(2) => self.scanner.match_any(&FOLLOW_SET_X, input_index),
+            NonterminalId(3) => self.scanner.match_any(&FOLLOW_SET_Y, input_index),
+            NonterminalId(4) => self.scanner.match_any(&FOLLOW_SET_PLUS_0, input_index),
+            NonterminalId(5) => self.scanner.match_any(&FOLLOW_SET_OPT_0, input_index),
+            NonterminalId(6) => self.scanner.match_any(&FOLLOW_SET_STAR_0, input_index),
             _ => true,
         }
     }
     fn follow_set_terminals(&self, nonterminal_id: NonterminalId) -> Vec<TerminalId> {
         match nonterminal_id {
-            NonterminalId(0) => FOLLOW_SET_S.to_vec(),
-            NonterminalId(1) => FOLLOW_SET_A.to_vec(),
-            NonterminalId(2) => FOLLOW_SET_X.to_vec(),
-            NonterminalId(3) => FOLLOW_SET_Y.to_vec(),
-            NonterminalId(4) => FOLLOW_SET_PLUS_0.to_vec(),
-            NonterminalId(5) => FOLLOW_SET_OPT_0.to_vec(),
-            NonterminalId(6) => FOLLOW_SET_STAR_0.to_vec(),
+            NonterminalId(0) => FOLLOW_SET_S.terminals.to_vec(),
+            NonterminalId(1) => FOLLOW_SET_A.terminals.to_vec(),
+            NonterminalId(2) => FOLLOW_SET_X.terminals.to_vec(),
+            NonterminalId(3) => FOLLOW_SET_Y.terminals.to_vec(),
+            NonterminalId(4) => FOLLOW_SET_PLUS_0.terminals.to_vec(),
+            NonterminalId(5) => FOLLOW_SET_OPT_0.terminals.to_vec(),
+            NonterminalId(6) => FOLLOW_SET_STAR_0.terminals.to_vec(),
             _ => vec![],
         }
     }

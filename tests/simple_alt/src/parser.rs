@@ -217,12 +217,12 @@ impl<'i> Parser<'i> for SimpleAltParser<'i> {
             NonterminalId(4) => {
                 let mut matched = false;
                 // Alt_0 : . C
-                if self.scanner.match_any(FIRST_SET_ALT_0_ALT0, input_index) {
+                if self.scanner.match_any(&FIRST_SET_ALT_0_ALT0, input_index) {
                     matched = true;
                     self.add_first_descriptor(SlotId(9), input_index, gss_node_id, env);
                 }
                 // Alt_0 : . D
-                if self.scanner.match_any(FIRST_SET_ALT_0_ALT1, input_index) {
+                if self.scanner.match_any(&FIRST_SET_ALT_0_ALT1, input_index) {
                     matched = true;
                     self.add_first_descriptor(SlotId(11), input_index, gss_node_id, env);
                 }
@@ -575,21 +575,21 @@ impl<'i> Parser<'i> for SimpleAltParser<'i> {
     }
     fn follow_set_check(&mut self, nonterminal_id: NonterminalId, input_index: u32) -> bool {
         match nonterminal_id {
-            NonterminalId(0) => self.scanner.match_any(FOLLOW_SET_A, input_index),
-            NonterminalId(1) => self.scanner.match_any(FOLLOW_SET_B, input_index),
-            NonterminalId(2) => self.scanner.match_any(FOLLOW_SET_C, input_index),
-            NonterminalId(3) => self.scanner.match_any(FOLLOW_SET_D, input_index),
-            NonterminalId(4) => self.scanner.match_any(FOLLOW_SET_ALT_0, input_index),
+            NonterminalId(0) => self.scanner.match_any(&FOLLOW_SET_A, input_index),
+            NonterminalId(1) => self.scanner.match_any(&FOLLOW_SET_B, input_index),
+            NonterminalId(2) => self.scanner.match_any(&FOLLOW_SET_C, input_index),
+            NonterminalId(3) => self.scanner.match_any(&FOLLOW_SET_D, input_index),
+            NonterminalId(4) => self.scanner.match_any(&FOLLOW_SET_ALT_0, input_index),
             _ => true,
         }
     }
     fn follow_set_terminals(&self, nonterminal_id: NonterminalId) -> Vec<TerminalId> {
         match nonterminal_id {
-            NonterminalId(0) => FOLLOW_SET_A.to_vec(),
-            NonterminalId(1) => FOLLOW_SET_B.to_vec(),
-            NonterminalId(2) => FOLLOW_SET_C.to_vec(),
-            NonterminalId(3) => FOLLOW_SET_D.to_vec(),
-            NonterminalId(4) => FOLLOW_SET_ALT_0.to_vec(),
+            NonterminalId(0) => FOLLOW_SET_A.terminals.to_vec(),
+            NonterminalId(1) => FOLLOW_SET_B.terminals.to_vec(),
+            NonterminalId(2) => FOLLOW_SET_C.terminals.to_vec(),
+            NonterminalId(3) => FOLLOW_SET_D.terminals.to_vec(),
+            NonterminalId(4) => FOLLOW_SET_ALT_0.terminals.to_vec(),
             _ => vec![],
         }
     }

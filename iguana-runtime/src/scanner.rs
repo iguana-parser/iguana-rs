@@ -85,13 +85,75 @@ impl<const W: usize> MatchMemo<W> {
     }
 }
 
+/// Memo cell for one input position. For each set id it records whether
+/// `match_any` of that set has already run here, and if so whether it matched.
+///
+/// Those are three states: not run, ran and matched, ran and did not match.
+/// Three states need two bits, so the cell holds two bitsets indexed by set id.
+/// `computed` marks the set as queried at this position; `result` holds the
+/// answer, read only once `computed` is set. A set's bit sits at word `id / 64`,
+/// bit `id % 64`.
+pub struct MatchAnyMemoEntry<const W: usize> {
+    computed: [u64; W],
+    result: [u64; W],
+}
+
+impl<const W: usize> Default for MatchAnyMemoEntry<W> {
+    fn default() -> Self {
+        Self {
+            computed: [0; W],
+            result: [0; W],
+        }
+    }
+}
+
+/// Memoization table for `match_any`, indexed by input position.
+///
+/// `match_any` over a terminal set is a pure function of `(set, position)`, so
+/// each set is computed at most once per position and reused across the parse.
+/// Set ids are assigned by content at code generation, so two sets with the
+/// same terminals share a memo bit.
+pub struct MatchAnyMemo<const W: usize> {
+    entries: Vec<MatchAnyMemoEntry<W>>,
+}
+
+impl<const W: usize> MatchAnyMemo<W> {
+    pub fn new(input_len: usize) -> Self {
+        let mut entries = Vec::with_capacity(input_len + 1);
+        entries.resize_with(input_len + 1, MatchAnyMemoEntry::default);
+        Self { entries }
+    }
+
+    pub fn get(&self, set_id: usize, position: u32) -> Option<bool> {
+        let entry = &self.entries[position as usize];
+        let word = set_id / 64;
+        let bit = 1u64 << (set_id % 64);
+        if entry.computed[word] & bit == 0 {
+            return None;
+        }
+        Some(entry.result[word] & bit != 0)
+    }
+
+    pub fn insert(&mut self, set_id: usize, position: u32, matched: bool) {
+        let entry = &mut self.entries[position as usize];
+        let word = set_id / 64;
+        let bit = 1u64 << (set_id % 64);
+        entry.computed[word] |= bit;
+        if matched {
+            entry.result[word] |= bit;
+        }
+    }
+}
+
+/// A terminal set the parser tests with `match_any`, paired with the memo id
+/// that keys its cached results.
+pub struct TerminalSet {
+    pub id: usize,
+    pub terminals: &'static [TerminalId],
+}
+
 pub trait Scanner {
     fn match_token(&mut self, terminal_id: TerminalId, input_index: u32) -> Option<u32>;
-    fn match_any(&mut self, terminal_ids: &[TerminalId], input_index: u32) -> bool {
-        terminal_ids
-            .iter()
-            .any(|id| self.match_token(*id, input_index).is_some())
-    }
     /// Returns the terminal that produces the longest match at `input_index`,
     /// or `None` if none of the given terminals match.
     fn longest_match(

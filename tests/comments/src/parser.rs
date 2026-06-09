@@ -276,17 +276,17 @@ impl<'i> Parser<'i> for CommentsParser<'i> {
             NonterminalId(0) => {
                 let mut matched = false;
                 // Expr : . Expr Layout "+" Layout Expr
-                if self.scanner.match_any(FIRST_SET_EXPR_ALT0, input_index) {
+                if self.scanner.match_any(&FIRST_SET_EXPR_ALT0, input_index) {
                     matched = true;
                     self.add_first_descriptor(SlotId(0), input_index, gss_node_id, env);
                 }
                 // Expr : . Expr Layout "*" Layout Expr
-                if self.scanner.match_any(FIRST_SET_EXPR_ALT1, input_index) {
+                if self.scanner.match_any(&FIRST_SET_EXPR_ALT1, input_index) {
                     matched = true;
                     self.add_first_descriptor(SlotId(6), input_index, gss_node_id, env);
                 }
                 // Expr : . "x"
-                if self.scanner.match_any(FIRST_SET_EXPR_ALT2, input_index) {
+                if self.scanner.match_any(&FIRST_SET_EXPR_ALT2, input_index) {
                     matched = true;
                     self.add_first_descriptor(SlotId(12), input_index, gss_node_id, env);
                 }
@@ -643,15 +643,15 @@ impl<'i> Parser<'i> for CommentsParser<'i> {
     }
     fn follow_set_check(&mut self, nonterminal_id: NonterminalId, input_index: u32) -> bool {
         match nonterminal_id {
-            NonterminalId(0) => self.scanner.match_any(FOLLOW_SET_EXPR, input_index),
-            NonterminalId(1) => self.scanner.match_any(FOLLOW_SET_START_EXPR, input_index),
+            NonterminalId(0) => self.scanner.match_any(&FOLLOW_SET_EXPR, input_index),
+            NonterminalId(1) => self.scanner.match_any(&FOLLOW_SET_START_EXPR, input_index),
             _ => true,
         }
     }
     fn follow_set_terminals(&self, nonterminal_id: NonterminalId) -> Vec<TerminalId> {
         match nonterminal_id {
-            NonterminalId(0) => FOLLOW_SET_EXPR.to_vec(),
-            NonterminalId(1) => FOLLOW_SET_START_EXPR.to_vec(),
+            NonterminalId(0) => FOLLOW_SET_EXPR.terminals.to_vec(),
+            NonterminalId(1) => FOLLOW_SET_START_EXPR.terminals.to_vec(),
             _ => vec![],
         }
     }

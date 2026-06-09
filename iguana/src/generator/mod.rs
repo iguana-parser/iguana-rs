@@ -9,8 +9,9 @@ use crate::{
     generator::{
         id::{BindingIds, EndSlot, NonterminalIds, SlotIds, TerminalIds},
         parser_gen::ParserGen,
+        terminal_sets::{MatchAnySets, terminal_sets},
     },
-    grammar::{def::Grammar, slot::Slot, symbols::Symbol},
+    grammar::{def::Grammar, first_follow::FirstFollowSets, slot::Slot, symbols::Symbol},
 };
 
 fn collect_binding_names(symbol: &Symbol, binding_ids: &mut BindingIds) {
@@ -82,6 +83,7 @@ mod manifest_gen;
 mod parse_tree_gen;
 mod parser_gen;
 mod scanner_gen;
+mod terminal_sets;
 mod types_gen;
 mod wasm_gen;
 
@@ -166,6 +168,10 @@ pub fn generate_sources(
         &lib_path,
     )?;
 
+    let ff = FirstFollowSets::new(grammar);
+    let terminal_sets = terminal_sets(grammar, &ff);
+    let match_any_sets = MatchAnySets::new(&terminal_sets, &terminal_ids);
+
     let mut parser_gen = ParserGen::new(
         grammar,
         &nonterminal_ids,
@@ -188,7 +194,9 @@ pub fn generate_sources(
     write_rust_file(parser_source, &parser_path)?;
 
     write_rust_file(
-        post_process(&scanner_gen::generate(grammar, &terminal_ids, &config).to_string()),
+        post_process(
+            &scanner_gen::generate(grammar, &terminal_ids, &match_any_sets, &config).to_string(),
+        ),
         &scanner_path,
     )?;
 
@@ -207,8 +215,15 @@ pub fn generate_sources(
 
     write_rust_file(
         post_process(
-            &grammar_data_gen::generate(grammar, &nonterminal_ids, &terminal_ids, &slot_ids)
-                .to_string(),
+            &grammar_data_gen::generate(
+                grammar,
+                &nonterminal_ids,
+                &terminal_ids,
+                &slot_ids,
+                &terminal_sets,
+                &match_any_sets,
+            )
+            .to_string(),
         ),
         &grammar_data_path,
     )?;

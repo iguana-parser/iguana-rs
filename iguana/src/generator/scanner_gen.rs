@@ -3,18 +3,24 @@ use quote::{format_ident, quote};
 
 use crate::{
     dfa::{Dfa, Nfa},
-    generator::{GenConfig, id::TerminalIds},
+    generator::{GenConfig, id::TerminalIds, terminal_sets::MatchAnySets},
     grammar::{
         def::Grammar,
         symbols::{Definition, Terminal},
     },
 };
 
-pub fn generate(grammar: &Grammar, terminal_ids: &TerminalIds, config: &GenConfig) -> TokenStream {
+pub fn generate(
+    grammar: &Grammar,
+    terminal_ids: &TerminalIds,
+    match_any_sets: &MatchAnySets,
+    config: &GenConfig,
+) -> TokenStream {
     let grammar_name = &grammar.name;
 
     let imports = gen_imports(config);
     let memo_words = gen_memo_words_const(terminal_ids, config);
+    let match_any_words = gen_match_any_words_const(match_any_sets, config);
     let dfa_statics = gen_dfa_statics(grammar, terminal_ids);
     let scanner_struct = gen_scanner_struct(grammar_name, config);
     let scanner_impl = gen_scanner_imp(grammar, terminal_ids, config);
@@ -22,6 +28,7 @@ pub fn generate(grammar: &Grammar, terminal_ids: &TerminalIds, config: &GenConfi
     quote! {
         #imports
         #memo_words
+        #match_any_words
         #dfa_statics
         #scanner_struct
         #scanner_impl
@@ -30,24 +37,19 @@ pub fn generate(grammar: &Grammar, terminal_ids: &TerminalIds, config: &GenConfi
 }
 
 fn gen_imports(config: &GenConfig) -> TokenStream {
+    let mut scanner_imports = vec![quote! { Scanner }, quote! { TerminalSet }];
     if config.match_memo {
-        quote! {
-            use iguana_runtime::{
-                dfa::{Dfa, State},
-                ids::TerminalId,
-                input::Input,
-                scanner::{Lookup, MatchMemo, Scanner},
-            };
-        }
-    } else {
-        quote! {
-            use iguana_runtime::{
-                dfa::{Dfa, State},
-                ids::TerminalId,
-                input::Input,
-                scanner::Scanner,
-            };
-        }
+        scanner_imports.push(quote! { Lookup });
+        scanner_imports.push(quote! { MatchMemo });
+        scanner_imports.push(quote! { MatchAnyMemo });
+    }
+    quote! {
+        use iguana_runtime::{
+            dfa::{Dfa, State},
+            ids::TerminalId,
+            input::Input,
+            scanner::{#(#scanner_imports),*},
+        };
     }
 }
 
@@ -62,6 +64,24 @@ fn gen_memo_words_const(terminal_ids: &TerminalIds, config: &GenConfig) -> Token
     }
 }
 
+/// Emits `MATCH_ANY_SET_WORDS`, the number of `u64` words in each of the
+/// `match_any` memo's bitsets.
+///
+/// The memo packs one bit per set id at each input position, so `count`
+/// distinct sets need `ceil(count / 64)` words, at least one so the array is
+/// never zero-length. The scanner sizes its table as
+/// `MatchAnyMemo<MATCH_ANY_SET_WORDS>`.
+fn gen_match_any_words_const(match_any_sets: &MatchAnySets, config: &GenConfig) -> TokenStream {
+    if !config.match_memo {
+        return quote! {};
+    }
+    let words = match_any_sets.count().div_ceil(64).max(1);
+    let words_lit = Literal::usize_unsuffixed(words);
+    quote! {
+        const MATCH_ANY_SET_WORDS: usize = #words_lit;
+    }
+}
+
 fn gen_scanner_struct(grammar_name: &str, config: &GenConfig) -> TokenStream {
     let name_ident = syn::Ident::new(&format!("{}{}", grammar_name, "Scanner"), Span::call_site());
     if config.match_memo {
@@ -69,6 +89,7 @@ fn gen_scanner_struct(grammar_name: &str, config: &GenConfig) -> TokenStream {
             pub struct #name_ident<'i> {
                 pub input: &'i Input,
                 memo: MatchMemo<MATCH_MEMO_WORDS>,
+                match_any_memo: MatchAnyMemo<MATCH_ANY_SET_WORDS>,
             }
         }
     } else {
@@ -149,19 +170,49 @@ fn gen_scanner_imp(
     let new_body = if config.match_memo {
         quote! {
             let memo = MatchMemo::new(input.len() as usize);
-            Self { input, memo }
+            let match_any_memo = MatchAnyMemo::new(input.len() as usize);
+            Self { input, memo, match_any_memo }
         }
     } else {
         quote! {
             Self { input }
         }
     };
+    let match_any_method = gen_match_any_method(config);
     quote! {
         impl<'i> #name_ident<'i> {
             pub fn new(input: &'i Input) -> Self {
                 #new_body
             }
             #(#match_terminals)*
+            #match_any_method
+        }
+    }
+}
+
+fn gen_match_any_method(config: &GenConfig) -> TokenStream {
+    if config.match_memo {
+        quote! {
+            #[comment = "Whether any terminal in `set` matches at `input_index`, cached by the set's memo id. The first query of a set at a position scans it; later queries return the cached bit."]
+            pub fn match_any(&mut self, set: &TerminalSet, input_index: u32) -> bool {
+                if let Some(matched) = self.match_any_memo.get(set.id, input_index) {
+                    return matched;
+                }
+                let matched = set
+                    .terminals
+                    .iter()
+                    .any(|id| self.match_token(*id, input_index).is_some());
+                self.match_any_memo.insert(set.id, input_index, matched);
+                matched
+            }
+        }
+    } else {
+        quote! {
+            pub fn match_any(&mut self, set: &TerminalSet, input_index: u32) -> bool {
+                set.terminals
+                    .iter()
+                    .any(|id| self.match_token(*id, input_index).is_some())
+            }
         }
     }
 }

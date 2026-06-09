@@ -2,6 +2,7 @@
 
 use crate::types::{Nonterminal, Slot, Terminal};
 use iguana_runtime::ids::{NonterminalId, SlotId, TerminalId};
+use iguana_runtime::scanner::TerminalSet;
 pub const NONTERMINALS: [Nonterminal; 2] = [
     Nonterminal {
         name: "S",
@@ -291,55 +292,87 @@ pub const SLOTS: [Slot; 82] = [
     },
 ];
 // S { EOF }
-pub static FOLLOW_SET_S: &[TerminalId] = &[TerminalId(14)];
+pub static FOLLOW_SET_S: TerminalSet = TerminalSet {
+    id: 0,
+    terminals: &[TerminalId(14)],
+};
 // S { "(", "if", "a", "-" }
 pub static FIRST_SET_S: &[TerminalId] =
     &[TerminalId(10), TerminalId(6), TerminalId(12), TerminalId(5)];
 // S : . E(0) { "(", "if", "a", "-" }
-pub static FIRST_SET_S_ALT0: &[TerminalId] =
-    &[TerminalId(10), TerminalId(6), TerminalId(12), TerminalId(5)];
+pub static FIRST_SET_S_ALT0: TerminalSet = TerminalSet {
+    id: 1,
+    terminals: &[TerminalId(10), TerminalId(6), TerminalId(12), TerminalId(5)],
+};
 // E { ".", "if", "a", "*", ";", EOF, "-", "+", "(", "else", ")", "then", WS }
-pub static FOLLOW_SET_E: &[TerminalId] = &[
-    TerminalId(1),
-    TerminalId(6),
-    TerminalId(12),
-    TerminalId(3),
-    TerminalId(9),
-    TerminalId(14),
-    TerminalId(5),
-    TerminalId(4),
-    TerminalId(10),
-    TerminalId(8),
-    TerminalId(11),
-    TerminalId(7),
-    TerminalId(0),
-];
+pub static FOLLOW_SET_E: TerminalSet = TerminalSet {
+    id: 2,
+    terminals: &[
+        TerminalId(1),
+        TerminalId(6),
+        TerminalId(12),
+        TerminalId(3),
+        TerminalId(9),
+        TerminalId(14),
+        TerminalId(5),
+        TerminalId(4),
+        TerminalId(10),
+        TerminalId(8),
+        TerminalId(11),
+        TerminalId(7),
+        TerminalId(0),
+    ],
+};
 // E { "(", "if", "a", "-" }
 pub static FIRST_SET_E: &[TerminalId] =
     &[TerminalId(10), TerminalId(6), TerminalId(12), TerminalId(5)];
 // E(p: i32) : . [6 >= p] l=E(p) [(l == 0) || (l >= 6)] WS "." WS "f" return 0 { "(", "if", "a", "-" }
-pub static FIRST_SET_E_ALT0: &[TerminalId] =
-    &[TerminalId(10), TerminalId(6), TerminalId(12), TerminalId(5)];
+pub static FIRST_SET_E_ALT0: TerminalSet = TerminalSet {
+    id: 1,
+    terminals: &[TerminalId(10), TerminalId(6), TerminalId(12), TerminalId(5)],
+};
 // E(p: i32) : . [6 >= p] l=E(p) [(l == 0) || (l >= 6)] WS r=E(6) return (r == 0) ? 6 : min(r, 6) { "(", "if", "a", "-" }
-pub static FIRST_SET_E_ALT1: &[TerminalId] =
-    &[TerminalId(10), TerminalId(6), TerminalId(12), TerminalId(5)];
+pub static FIRST_SET_E_ALT1: TerminalSet = TerminalSet {
+    id: 1,
+    terminals: &[TerminalId(10), TerminalId(6), TerminalId(12), TerminalId(5)],
+};
 // E(p: i32) : . [5 >= p] l=E(p) [(l == 0) || (l >= 5)] WS "*" WS r=E(6) return (r == 0) ? 5 : min(r, 5) { "(", "if", "a", "-" }
-pub static FIRST_SET_E_ALT2: &[TerminalId] =
-    &[TerminalId(10), TerminalId(6), TerminalId(12), TerminalId(5)];
+pub static FIRST_SET_E_ALT2: TerminalSet = TerminalSet {
+    id: 1,
+    terminals: &[TerminalId(10), TerminalId(6), TerminalId(12), TerminalId(5)],
+};
 // E(p: i32) : . [4 >= p] l=E(p) [(l == 0) || (l >= 4)] WS "+" WS r=E(5) return (r == 0) ? 4 : min(r, 4) { "(", "if", "a", "-" }
-pub static FIRST_SET_E_ALT3: &[TerminalId] =
-    &[TerminalId(10), TerminalId(6), TerminalId(12), TerminalId(5)];
+pub static FIRST_SET_E_ALT3: TerminalSet = TerminalSet {
+    id: 1,
+    terminals: &[TerminalId(10), TerminalId(6), TerminalId(12), TerminalId(5)],
+};
 // E(p: i32) : . [4 >= p] l=E(p) [(l == 0) || (l >= 4)] WS "-" WS r=E(5) return (r == 0) ? 4 : min(r, 4) { "(", "if", "a", "-" }
-pub static FIRST_SET_E_ALT4: &[TerminalId] =
-    &[TerminalId(10), TerminalId(6), TerminalId(12), TerminalId(5)];
+pub static FIRST_SET_E_ALT4: TerminalSet = TerminalSet {
+    id: 1,
+    terminals: &[TerminalId(10), TerminalId(6), TerminalId(12), TerminalId(5)],
+};
 // E(p: i32) : . "-" WS r=E(3) return (r == 0) ? 3 : min(r, 3) { "-" }
-pub static FIRST_SET_E_ALT5: &[TerminalId] = &[TerminalId(5)];
+pub static FIRST_SET_E_ALT5: TerminalSet = TerminalSet {
+    id: 3,
+    terminals: &[TerminalId(5)],
+};
 // E(p: i32) : . "if" WS E(0) WS "then" WS E(0) WS "else" WS E(2) return 2 { "if" }
-pub static FIRST_SET_E_ALT6: &[TerminalId] = &[TerminalId(6)];
+pub static FIRST_SET_E_ALT6: TerminalSet = TerminalSet {
+    id: 4,
+    terminals: &[TerminalId(6)],
+};
 // E(p: i32) : . [1 >= p] l=E(p) [(l == 0) || (l >= 2)] WS ";" WS E(1) return 1 { "(", "if", "a", "-" }
-pub static FIRST_SET_E_ALT7: &[TerminalId] =
-    &[TerminalId(10), TerminalId(6), TerminalId(12), TerminalId(5)];
+pub static FIRST_SET_E_ALT7: TerminalSet = TerminalSet {
+    id: 1,
+    terminals: &[TerminalId(10), TerminalId(6), TerminalId(12), TerminalId(5)],
+};
 // E(p: i32) : . "(" WS E(0) WS ")" return 0 { "(" }
-pub static FIRST_SET_E_ALT8: &[TerminalId] = &[TerminalId(10)];
+pub static FIRST_SET_E_ALT8: TerminalSet = TerminalSet {
+    id: 5,
+    terminals: &[TerminalId(10)],
+};
 // E(p: i32) : . "a" return 0 { "a" }
-pub static FIRST_SET_E_ALT9: &[TerminalId] = &[TerminalId(12)];
+pub static FIRST_SET_E_ALT9: TerminalSet = TerminalSet {
+    id: 6,
+    terminals: &[TerminalId(12)],
+};

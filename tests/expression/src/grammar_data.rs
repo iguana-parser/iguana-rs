@@ -2,6 +2,7 @@
 
 use crate::types::{Nonterminal, Slot, Terminal};
 use iguana_runtime::ids::{NonterminalId, SlotId, TerminalId};
+use iguana_runtime::scanner::TerminalSet;
 pub const NONTERMINALS: [Nonterminal; 1] = [Nonterminal {
     name: "E",
     display: "E",
@@ -56,12 +57,24 @@ pub const SLOTS: [Slot; 10] = [
     },
 ];
 // E { "+", "*", EOF }
-pub static FOLLOW_SET_E: &[TerminalId] = &[TerminalId(1), TerminalId(0), TerminalId(4)];
+pub static FOLLOW_SET_E: TerminalSet = TerminalSet {
+    id: 0,
+    terminals: &[TerminalId(1), TerminalId(0), TerminalId(4)],
+};
 // E { "a" }
 pub static FIRST_SET_E: &[TerminalId] = &[TerminalId(2)];
 // E : . E "*" E { "a" }
-pub static FIRST_SET_E_ALT0: &[TerminalId] = &[TerminalId(2)];
+pub static FIRST_SET_E_ALT0: TerminalSet = TerminalSet {
+    id: 1,
+    terminals: &[TerminalId(2)],
+};
 // E : . E "+" E { "a" }
-pub static FIRST_SET_E_ALT1: &[TerminalId] = &[TerminalId(2)];
+pub static FIRST_SET_E_ALT1: TerminalSet = TerminalSet {
+    id: 1,
+    terminals: &[TerminalId(2)],
+};
 // E : . "a" { "a" }
-pub static FIRST_SET_E_ALT2: &[TerminalId] = &[TerminalId(2)];
+pub static FIRST_SET_E_ALT2: TerminalSet = TerminalSet {
+    id: 1,
+    terminals: &[TerminalId(2)],
+};

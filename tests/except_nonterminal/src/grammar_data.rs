@@ -2,6 +2,7 @@
 
 use crate::types::{Nonterminal, Slot, Terminal};
 use iguana_runtime::ids::{NonterminalId, SlotId, TerminalId};
+use iguana_runtime::scanner::TerminalSet;
 pub const NONTERMINALS: [Nonterminal; 3] = [
     Nonterminal {
         name: "S",
@@ -59,20 +60,38 @@ pub const SLOTS: [Slot; 6] = [
     },
 ];
 // S { EOF }
-pub static FOLLOW_SET_S: &[TerminalId] = &[TerminalId(3)];
+pub static FOLLOW_SET_S: TerminalSet = TerminalSet {
+    id: 0,
+    terminals: &[TerminalId(3)],
+};
 // S { Identifier }
 pub static FIRST_SET_S: &[TerminalId] = &[TerminalId(0)];
 // S : . Id { Identifier }
-pub static FIRST_SET_S_ALT0: &[TerminalId] = &[TerminalId(0)];
+pub static FIRST_SET_S_ALT0: TerminalSet = TerminalSet {
+    id: 1,
+    terminals: &[TerminalId(0)],
+};
 // Id { EOF }
-pub static FOLLOW_SET_ID: &[TerminalId] = &[TerminalId(3)];
+pub static FOLLOW_SET_ID: TerminalSet = TerminalSet {
+    id: 0,
+    terminals: &[TerminalId(3)],
+};
 // Id { Identifier }
 pub static FIRST_SET_ID: &[TerminalId] = &[TerminalId(0)];
 // Id : . Name \ Keyword { Identifier }
-pub static FIRST_SET_ID_ALT0: &[TerminalId] = &[TerminalId(0)];
+pub static FIRST_SET_ID_ALT0: TerminalSet = TerminalSet {
+    id: 1,
+    terminals: &[TerminalId(0)],
+};
 // Name { EOF }
-pub static FOLLOW_SET_NAME: &[TerminalId] = &[TerminalId(3)];
+pub static FOLLOW_SET_NAME: TerminalSet = TerminalSet {
+    id: 0,
+    terminals: &[TerminalId(3)],
+};
 // Name { Identifier }
 pub static FIRST_SET_NAME: &[TerminalId] = &[TerminalId(0)];
 // Name : . Identifier { Identifier }
-pub static FIRST_SET_NAME_ALT0: &[TerminalId] = &[TerminalId(0)];
+pub static FIRST_SET_NAME_ALT0: TerminalSet = TerminalSet {
+    id: 1,
+    terminals: &[TerminalId(0)],
+};

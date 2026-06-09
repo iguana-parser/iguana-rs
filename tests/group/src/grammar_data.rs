@@ -2,6 +2,7 @@
 
 use crate::types::{Nonterminal, Slot, Terminal};
 use iguana_runtime::ids::{NonterminalId, SlotId, TerminalId};
+use iguana_runtime::scanner::TerminalSet;
 pub const NONTERMINALS: [Nonterminal; 5] = [
     Nonterminal {
         name: "A",
@@ -92,32 +93,62 @@ pub const SLOTS: [Slot; 12] = [
     },
 ];
 // A { EOF }
-pub static FOLLOW_SET_A: &[TerminalId] = &[TerminalId(4)];
+pub static FOLLOW_SET_A: TerminalSet = TerminalSet {
+    id: 0,
+    terminals: &[TerminalId(4)],
+};
 // A { "b" }
 pub static FIRST_SET_A: &[TerminalId] = &[TerminalId(0)];
 // A : . Group_0 { "b" }
-pub static FIRST_SET_A_ALT0: &[TerminalId] = &[TerminalId(0)];
+pub static FIRST_SET_A_ALT0: TerminalSet = TerminalSet {
+    id: 1,
+    terminals: &[TerminalId(0)],
+};
 // B { "c", EOF }
-pub static FOLLOW_SET_B: &[TerminalId] = &[TerminalId(1), TerminalId(4)];
+pub static FOLLOW_SET_B: TerminalSet = TerminalSet {
+    id: 2,
+    terminals: &[TerminalId(1), TerminalId(4)],
+};
 // B { "b" }
 pub static FIRST_SET_B: &[TerminalId] = &[TerminalId(0)];
 // B : . "b" { "b" }
-pub static FIRST_SET_B_ALT0: &[TerminalId] = &[TerminalId(0)];
+pub static FIRST_SET_B_ALT0: TerminalSet = TerminalSet {
+    id: 1,
+    terminals: &[TerminalId(0)],
+};
 // C { "d", EOF }
-pub static FOLLOW_SET_C: &[TerminalId] = &[TerminalId(2), TerminalId(4)];
+pub static FOLLOW_SET_C: TerminalSet = TerminalSet {
+    id: 3,
+    terminals: &[TerminalId(2), TerminalId(4)],
+};
 // C { "c" }
 pub static FIRST_SET_C: &[TerminalId] = &[TerminalId(1)];
 // C : . "c" { "c" }
-pub static FIRST_SET_C_ALT0: &[TerminalId] = &[TerminalId(1)];
+pub static FIRST_SET_C_ALT0: TerminalSet = TerminalSet {
+    id: 4,
+    terminals: &[TerminalId(1)],
+};
 // D { EOF }
-pub static FOLLOW_SET_D: &[TerminalId] = &[TerminalId(4)];
+pub static FOLLOW_SET_D: TerminalSet = TerminalSet {
+    id: 0,
+    terminals: &[TerminalId(4)],
+};
 // D { "d" }
 pub static FIRST_SET_D: &[TerminalId] = &[TerminalId(2)];
 // D : . "d" { "d" }
-pub static FIRST_SET_D_ALT0: &[TerminalId] = &[TerminalId(2)];
+pub static FIRST_SET_D_ALT0: TerminalSet = TerminalSet {
+    id: 5,
+    terminals: &[TerminalId(2)],
+};
 // Group_0 { EOF }
-pub static FOLLOW_SET_GROUP_0: &[TerminalId] = &[TerminalId(4)];
+pub static FOLLOW_SET_GROUP_0: TerminalSet = TerminalSet {
+    id: 0,
+    terminals: &[TerminalId(4)],
+};
 // Group_0 { "b" }
 pub static FIRST_SET_GROUP_0: &[TerminalId] = &[TerminalId(0)];
 // Group_0 : . B C D { "b" }
-pub static FIRST_SET_GROUP_0_ALT0: &[TerminalId] = &[TerminalId(0)];
+pub static FIRST_SET_GROUP_0_ALT0: TerminalSet = TerminalSet {
+    id: 1,
+    terminals: &[TerminalId(0)],
+};

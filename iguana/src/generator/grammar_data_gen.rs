@@ -1,12 +1,10 @@
 use proc_macro2::{Literal, TokenStream};
 use quote::{format_ident, quote};
-use rustc_hash::FxHashSet;
 
 use crate::generator::id::{NonterminalIds, SlotIds, TerminalIds};
+use crate::generator::terminal_sets::{MatchAnySets, SetKind, TerminalSet};
 use crate::grammar::def::Grammar;
-use crate::grammar::first_follow::FirstFollowSets;
-use crate::grammar::slot::Slot;
-use crate::grammar::symbols::{Definition, Nonterminal, Symbol, Terminal};
+use crate::grammar::symbols::Nonterminal;
 use crate::utils::to_snake_case;
 
 pub fn generate<'a>(
@@ -14,104 +12,33 @@ pub fn generate<'a>(
     nonterminal_ids: &NonterminalIds,
     terminal_ids: &TerminalIds,
     slot_ids: &SlotIds<'a>,
+    terminal_sets: &[TerminalSet],
+    match_any_sets: &MatchAnySets,
 ) -> TokenStream {
-    let ff = FirstFollowSets::new(grammar);
-    let eof_id = Literal::u16_unsuffixed(terminal_ids.len() as u16 + 1);
     let mut items = vec![];
 
-    let terminal_id_tokens = |t: &Terminal| -> TokenStream {
-        if t.name == "EOF" {
-            quote! { TerminalId(#eof_id) }
-        } else {
-            let id = terminal_ids.get_id(t);
-            quote! { #id }
-        }
-    };
-    let terminal_names = |terminals: &[Terminal]| -> String {
-        let names: Vec<_> = terminals.iter().map(|t| t.name.clone()).collect();
-        format!("{{ {} }}", names.join(", "))
-    };
-
-    for nonterminal in grammar.nonterminals() {
-        let nt_snake = to_snake_case(&nonterminal.name);
-        let nt_upper = nt_snake.to_uppercase();
-        let alternatives = grammar.alternatives(nonterminal);
-
-        // Follow set
-        let follow_name = format_ident!("FOLLOW_SET_{}", nt_upper);
-        let follow_terminals: Vec<_> = ff.follow_set(nonterminal).cloned().collect();
-        let follow_ids: Vec<_> = follow_terminals.iter().map(&terminal_id_tokens).collect();
-        let follow_comment = format!("{} {}", nonterminal.name, terminal_names(&follow_terminals),);
-        items.push(quote! {
-            #[comment = #follow_comment]
-            pub static #follow_name: &[TerminalId] = &[#(#follow_ids),*];
-        });
-
-        let first_name = format_ident!("FIRST_SET_{}", nt_upper);
-        let first_terminals: Vec<_> = alternatives
+    for set in terminal_sets {
+        let name = format_ident!("{}", set.name());
+        let comment = set.comment(grammar);
+        let ids: Vec<_> = set
+            .terminals
             .iter()
-            .flat_map(|alt| ff.first_set(alt))
-            .collect::<FxHashSet<_>>()
-            .into_iter()
+            .map(|t| terminal_ids.get_id(t))
             .collect();
-        let first_ids: Vec<_> = first_terminals.iter().map(&terminal_id_tokens).collect();
-        let first_comment = format!("{} {}", nonterminal.name, terminal_names(&first_terminals),);
-        items.push(quote! {
-            #[comment = #first_comment]
-            pub static #first_name: &[TerminalId] = &[#(#first_ids),*];
-        });
-
-        for (alt_index, alternative) in alternatives.iter().enumerate() {
-            let first_alt = ff.first_set(alternative);
-            let first_alt_name = format_ident!("FIRST_SET_{}_ALT{}", nt_upper, alt_index);
-            let first_alt_terminals: Vec<_> = first_alt.iter().cloned().collect();
-            let first_alt_ids: Vec<_> = first_alt_terminals
-                .iter()
-                .map(&terminal_id_tokens)
-                .collect();
-            let slot = Slot::new(nonterminal, alternative, 0);
-            let first_alt_comment =
-                format!("{} {}", slot.name(), terminal_names(&first_alt_terminals));
-            items.push(quote! {
-                #[comment = #first_alt_comment]
-                pub static #first_alt_name: &[TerminalId] = &[#(#first_alt_ids),*];
-            });
-        }
-
-        for (alt_index, alternative) in alternatives.iter().enumerate() {
-            for (pos, symbol) in alternative.symbols.iter().enumerate() {
-                if let Symbol::FollowRestriction { restrictions, .. } = symbol {
-                    let restriction_terminals: Vec<_> = restrictions
-                        .iter()
-                        .map(|r| {
-                            let Definition::Terminal(t) = grammar.definition(r.resolve()) else {
-                                panic!("follow restriction must resolve to a terminal");
-                            };
-                            t.clone()
-                        })
-                        .collect();
-                    let restriction_ids: Vec<_> = restriction_terminals
-                        .iter()
-                        .map(&terminal_id_tokens)
-                        .collect();
-                    let name = format_ident!(
-                        "FOLLOW_RESTRICTION_{}_ALT{}_POS{}",
-                        nt_upper,
-                        alt_index,
-                        pos
-                    );
-                    let comment = format!(
-                        "{} !>> {}",
-                        Slot::new(nonterminal, alternative, pos).name(),
-                        terminal_names(&restriction_terminals),
-                    );
-                    items.push(quote! {
-                        #[comment = #comment]
-                        pub static #name: &[TerminalId] = &[#(#restriction_ids),*];
-                    });
-                }
+        // `match_any` sets carry their memo id in a `TerminalSet`. The combined
+        // FIRST set goes to `longest_match`, which takes a plain slice.
+        let static_def = if matches!(set.kind, SetKind::First) {
+            quote! { pub static #name: &[TerminalId] = &[#(#ids),*]; }
+        } else {
+            let set_id = Literal::usize_unsuffixed(match_any_sets.id(&set.name()));
+            quote! {
+                pub static #name: TerminalSet = TerminalSet { id: #set_id, terminals: &[#(#ids),*] };
             }
-        }
+        };
+        items.push(quote! {
+            #[comment = #comment]
+            #static_def
+        });
     }
 
     // NONTERMINALS array
@@ -183,6 +110,7 @@ pub fn generate<'a>(
 
     quote! {
         use iguana_runtime::ids::{NonterminalId, SlotId, TerminalId};
+        use iguana_runtime::scanner::TerminalSet;
         use crate::types::{Nonterminal, Slot, Terminal};
 
         pub const NONTERMINALS: [Nonterminal; #nonterminals_len] = [#(#nonterminals),*];

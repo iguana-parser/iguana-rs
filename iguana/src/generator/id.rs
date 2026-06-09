@@ -163,6 +163,11 @@ impl TerminalIds {
         self.terminals.insert(terminal);
     }
     pub fn get_id(&self, terminal: &Terminal) -> TerminalId {
+        // The registered terminals fill ids 0..len, then Epsilon at len and the
+        // synthetic EOF at len + 1.
+        if terminal.name == "EOF" {
+            return TerminalId(self.len() as u16 + 1);
+        }
         let id = self.terminals.get_index_of(terminal);
         id.map(|id| TerminalId(id as u16))
             .unwrap_or_else(|| panic!("unknown terminal: {}", terminal))
