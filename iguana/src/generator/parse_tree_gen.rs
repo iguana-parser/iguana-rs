@@ -103,9 +103,9 @@ pub fn generate(
         quote! {}
     };
 
+    let parse_tree_node_impl = gen_parse_tree_node_impl();
     let to_sexpr_function = gen_to_sexpr_function(grammar);
-    let node_to_sexpr_function = gen_node_to_sexpr_function();
-    let to_json_function = gen_to_json_function(grammar);
+    let to_json_function = gen_to_json_function();
 
     quote! {
         #imports
@@ -129,8 +129,8 @@ pub fn generate(
         #parse_tree_builder_impl
         #create_parse_tree_function
         #(#create_parse_tree_functions)*
+        #parse_tree_node_impl
         #to_sexpr_function
-        #node_to_sexpr_function
         #to_json_function
     }
 }
@@ -138,13 +138,13 @@ pub fn generate(
 fn gen_imports(grammar: &Grammar) -> TokenStream {
     let parser_name = format_ident!("{}Parser", to_first_uppercase(&grammar.name));
     quote! {
-        #![allow(clippy::collapsible_if)]
-        use core::fmt;
-        use std::{fmt::Write, vec::IntoIter};
-        use rustc_hash::{FxHashMap, FxHashSet};
+        use std::vec::IntoIter;
         use iguana_runtime::{
             ids::{NonterminalId, SlotId, TerminalId},
-            parse_tree::{Bump, OneOrMany, ParseContext, ParseTreeBuilder, SexprOptions, visit_sppf},
+            parse_tree::{
+                Bump, NodeKind, OneOrMany, ParseContext, ParseTreeBuilder, ParseTreeNode,
+                SexprOptions, visit_sppf,
+            },
             sppf::{NonterminalNode, SPPFNodeId, Span, TerminalNode},
         };
         use crate::parser::#parser_name;
@@ -2050,199 +2050,55 @@ fn gen_to_sexpr_function(grammar: &Grammar) -> TokenStream {
         .unwrap_or_else(|| quote! { None });
 
     quote! {
-        const SEXPR_LAYOUT_NAME: Option<&str> = #layout_name;
+        const LAYOUT_NAME: Option<&str> = #layout_name;
 
         pub fn to_sexpr(node: ParseTree<'_>) -> String {
-            to_sexpr_with(node, SexprOptions::default())
+            iguana_runtime::parse_tree::to_sexpr(node, LAYOUT_NAME)
         }
 
         pub fn to_sexpr_with(node: ParseTree<'_>, options: SexprOptions) -> String {
-            // Count how many parents reach each node. A node with two or more is shared
-            // in the ambiguity DAG and gets a `#N=` / `#N#` label so its subtree is
-            // written once instead of re-expanded, which keeps a shared forest readable
-            // and bounded. Unambiguous trees have no shared nodes, so they print without
-            // labels.
-            let mut indegree = FxHashMap::default();
-            count_sexpr_indegree(node, options, &mut FxHashSet::default(), &mut indegree);
-            let mut printer = SexprPrinter {
-                options,
-                indegree,
-                labels: FxHashMap::default(),
-                next_label: 1,
-            };
-            let mut s = String::new();
-            printer.print(node, 0, &mut s).expect("error");
-            s.push('\n');
-            s
-        }
-
-        // A hidden node, with its whole subtree, is left out of the output. Layout
-        // nodes (whitespace, comments) are hidden unless the caller asks for them.
-        fn sexpr_hidden(node: ParseTree<'_>, options: SexprOptions) -> bool {
-            !options.show_layout && SEXPR_LAYOUT_NAME == Some(node.display_name())
-        }
-
-        // The node's children with the hidden ones removed.
-        fn sexpr_children<'a>(node: ParseTree<'a>, options: SexprOptions) -> Vec<ParseTree<'a>> {
-            node.children()
-                .into_iter()
-                .filter(|c| !sexpr_hidden(*c, options))
-                .collect()
-        }
-
-        fn count_sexpr_indegree(
-            node: ParseTree<'_>,
-            options: SexprOptions,
-            visited: &mut FxHashSet<usize>,
-            indegree: &mut FxHashMap<usize, u32>,
-        ) {
-            if let Some(id) = node.node_id() {
-                *indegree.entry(id).or_insert(0) += 1;
-                // Expand each node's children once; a later parent only bumps the count.
-                if !visited.insert(id) {
-                    return;
-                }
-            }
-            for child in sexpr_children(node, options) {
-                count_sexpr_indegree(child, options, visited, indegree);
-            }
+            iguana_runtime::parse_tree::to_sexpr_with(node, LAYOUT_NAME, options)
         }
     }
 }
 
-fn gen_node_to_sexpr_function() -> TokenStream {
+fn gen_parse_tree_node_impl() -> TokenStream {
     quote! {
-        struct SexprPrinter {
-            options: SexprOptions,
-            indegree: FxHashMap<usize, u32>,
-            labels: FxHashMap<usize, u32>,
-            next_label: u32,
-        }
-
-        impl SexprPrinter {
-            fn print(&mut self, node: ParseTree<'_>, indent: usize, w: &mut impl Write) -> fmt::Result {
-                // Writes the leading indentation, then the node, with no trailing newline.
-                // The caller writes the newline that separates siblings, and the closing
-                // paren hugs the last child instead of sitting on its own line.
-                write!(w, "{:indent$}", "")?;
-                self.print_content(node, indent, w)
+        impl<'a> ParseTreeNode for ParseTree<'a> {
+            fn children(&self) -> Vec<Self> {
+                ParseTree::children(self)
             }
 
-            fn print_content(&mut self, node: ParseTree<'_>, indent: usize, w: &mut impl Write) -> fmt::Result {
-                // A node reached from several parents is written once with a `#N=` label;
-                // later occurrences become `#N#` refs.
-                let mut prefix = String::new();
-                if let Some(id) = node.node_id() {
-                    if self.indegree.get(&id).copied().unwrap_or(0) > 1 {
-                        if let Some(&label) = self.labels.get(&id) {
-                            return write!(w, "#{}#", label);
-                        }
-                        let label = self.next_label;
-                        self.next_label += 1;
-                        self.labels.insert(id, label);
-                        prefix = format!("#{}=", label);
-                    }
-                }
-                let children = sexpr_children(node, self.options);
-                if children.is_empty() {
-                    write!(w, "{}{}", prefix, node.display_name())
-                } else if children.iter().all(|c| sexpr_children(*c, self.options).is_empty()) {
-                    // Every child is a leaf, so the whole node fits on one line.
-                    write!(w, "{}({}", prefix, node.display_name())?;
-                    for child in children {
-                        write!(w, " ")?;
-                        self.print_content(child, indent, w)?;
-                    }
-                    write!(w, ")")
+            fn display_name(&self) -> &'static str {
+                ParseTree::display_name(self)
+            }
+
+            fn span(&self) -> Span {
+                ParseTree::span(self)
+            }
+
+            fn kind(&self) -> NodeKind {
+                if self.is_amb() {
+                    NodeKind::Amb
+                } else if matches!(self, ParseTree::Token(_)) {
+                    NodeKind::Token
                 } else {
-                    write!(w, "{}({}", prefix, node.display_name())?;
-                    for child in children {
-                        writeln!(w)?;
-                        self.print(child, indent + 2, w)?;
-                    }
-                    write!(w, ")")
+                    NodeKind::Nonterminal
                 }
+            }
+
+            fn node_id(&self) -> Option<usize> {
+                ParseTree::node_id(self)
             }
         }
     }
 }
 
-fn gen_to_json_function(grammar: &Grammar) -> TokenStream {
-    let layout_name = grammar
-        .layout
-        .as_ref()
-        .and_then(|s| s.as_identifier())
-        .map(|i| i.name.as_str())
-        .map(|s| quote! { Some(#s) })
-        .unwrap_or_else(|| quote! { None::<&str> });
-
+fn gen_to_json_function() -> TokenStream {
     quote! {
         /// Converts a parse tree to a JSON string of nodes and edges, for visualization.
         pub fn to_json(node: ParseTree<'_>) -> String {
-            let mut nodes = Vec::new();
-            let mut edges = Vec::new();
-            let mut next_id = 0u32;
-            let mut seen = FxHashMap::default();
-            build_json_graph(node, &mut nodes, &mut edges, &mut next_id, &mut seen);
-
-            let result = serde_json::json!({
-                "layout_name": #layout_name,
-                "nodes": nodes,
-                "edges": edges
-            });
-
-            result.to_string()
-        }
-
-        fn build_json_graph(
-            node: ParseTree<'_>,
-            nodes: &mut Vec<serde_json::Value>,
-            edges: &mut Vec<serde_json::Value>,
-            next_id: &mut u32,
-            seen: &mut FxHashMap<usize, u32>,
-        ) -> u32 {
-            // A node reachable from several parents (shared in the ambiguity DAG) is
-            // emitted once; later parents get an edge to the existing node instead of
-            // a re-expanded subtree, so the graph stays a DAG rather than duplicating
-            // the shared subtree at every parent.
-            if let Some(id) = node.node_id() {
-                if let Some(&existing) = seen.get(&id) {
-                    return existing;
-                }
-            }
-
-            let my_id = *next_id;
-            *next_id += 1;
-            if let Some(id) = node.node_id() {
-                seen.insert(id, my_id);
-            }
-
-            let span = node.span();
-            let kind = if node.is_amb() {
-                "Amb"
-            } else if matches!(node, ParseTree::Token(_)) {
-                "Token"
-            } else {
-                "Nonterminal"
-            };
-
-            nodes.push(serde_json::json!({
-                "id": my_id,
-                "kind": kind,
-                "label": node.display_name(),
-                "start": span.left_extent,
-                "end": span.right_extent
-            }));
-
-            for child in node.children() {
-                let child_id = build_json_graph(child, nodes, edges, next_id, seen);
-                edges.push(serde_json::json!({
-                    "src": my_id,
-                    "dest": child_id
-                }));
-            }
-
-            my_id
+            iguana_runtime::parse_tree::to_json(node, LAYOUT_NAME)
         }
     }
 }
