@@ -1,20 +1,77 @@
-use crate::{grammar::def::Grammar, utils::to_snake_case};
+use crate::{generator::GenConfig, grammar::def::Grammar, utils::to_snake_case};
 
 /// Generate the contents of `Cargo.toml` for a parser crate.
 ///
-/// `cli=true` produces a full standalone-parser shape with CLI deps
+/// `wasm` produces a standalone lib shape with only the wasm-safe deps
+/// (`iguana-runtime`, `rustc-hash`, `serde_json`) and no `[[bin]]`, so the
+/// crate compiles for `wasm32` as a dependency of the wrapper crate.
+///
+/// `cli` (without `wasm`) produces a full standalone-parser shape with CLI deps
 /// (clap/dot/dhat/pprof) and a `src/main.rs` binary.
 ///
-/// `cli=false` produces a minimal lib-only shape that assumes the crate is
-/// a workspace member: deps come from `workspace = true`, the `[lib]` target
-/// disables its empty test/doctest harnesses, and there is no `[[bin]]`.
-pub fn generate(grammar: &Grammar, cli: bool) -> String {
+/// With neither flag, the output is a minimal lib-only shape that assumes the
+/// crate is a workspace member: deps come from `workspace = true`, the `[lib]`
+/// target disables its empty test/doctest harnesses, and there is no `[[bin]]`.
+pub fn generate(grammar: &Grammar, config: GenConfig) -> String {
     let name = to_snake_case(&grammar.name);
-    if cli {
+    if config.wasm {
+        generate_wasm_lib(&name)
+    } else if config.cli {
         generate_full(&name)
     } else {
         generate_minimal(&name)
     }
+}
+
+/// Generate the `Cargo.toml` for the `wasm-bindgen` wrapper crate that lives at
+/// `wasm/`. It is a `cdylib` depending on the parser crate by path, plus the
+/// runtime and the serialization deps the wrapper itself uses.
+pub fn generate_wasm_wrapper(grammar: &Grammar) -> String {
+    let name = to_snake_case(&grammar.name);
+    format!(
+        r#"
+# A self-contained workspace, so the bundle builds when dropped into a repo
+# that is itself a cargo workspace.
+[workspace]
+
+[package]
+name = "{name}-wasm"
+version = "0.1.0"
+edition = "2024"
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+wasm-bindgen = "0.2"
+serde_json = "1.0"
+iguana-runtime = {{ git = "https://github.com/iguana-parser/iguana-rs" }}
+{name} = {{ path = ".." }}
+    "#
+    )
+    .trim()
+    .to_owned()
+}
+
+fn generate_wasm_lib(name: &str) -> String {
+    format!(
+        r#"
+[package]
+name = "{name}"
+version = "0.1.0"
+edition = "2024"
+
+[lib]
+path = "src/lib.rs"
+
+[dependencies]
+iguana-runtime = {{ git = "https://github.com/iguana-parser/iguana-rs" }}
+rustc-hash = "2.1.1"
+serde_json = "1.0"
+    "#
+    )
+    .trim()
+    .to_owned()
 }
 
 fn generate_full(name: &str) -> String {

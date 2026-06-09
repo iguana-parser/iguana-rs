@@ -109,6 +109,16 @@ npm install
 npm run tauri dev
 ```
 
+## WebAssembly
+
+`iguana generate --wasm` emits a bundle that runs a generated parser in the browser: a standalone parser lib, a `wasm-bindgen` wrapper crate under `wasm/`, and a `manifest.json`. Build the wrapper with `wasm-pack` to produce the wasm module and JavaScript glue.
+
+```bash
+cargo xtask wasm
+```
+
+This generates the iggy bundle into `target/wasm/iggy` and builds it with `wasm-pack` (requires `cargo install wasm-pack` and the `wasm32-unknown-unknown` target), an end-to-end check of the wasm pipeline on a real grammar.
+
 ## Testing
 
 ```bash

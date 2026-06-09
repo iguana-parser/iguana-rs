@@ -7,7 +7,9 @@ use std::{
 
 use clap::{Parser, Subcommand};
 use iguana::{
-    generator::{GenConfig, GenerateResult, generate_scaffold, generate_sources, post_process},
+    generator::{
+        GenConfig, GenerateResult, generate_scaffold, generate_sources, generate_wasm, post_process,
+    },
     grammar::def::Grammar,
     iggy::parse_grammar,
     utils::{to_pascal_case, to_snake_case},
@@ -53,6 +55,8 @@ enum Commands {
     Install,
     /// Install iguana, then launch the terrarium dev server
     Terrarium,
+    /// Generate the iggy wasm bundle and build it with wasm-pack
+    Wasm,
 }
 
 fn main() -> io::Result<()> {
@@ -66,6 +70,7 @@ fn main() -> io::Result<()> {
         Commands::Test { args } => test(&args),
         Commands::Install => install(),
         Commands::Terrarium => terrarium(),
+        Commands::Wasm => wasm(),
     }
 }
 
@@ -415,6 +420,10 @@ fn regenerate_with(
     generate_scaffold(&grammar, output, config, force)?;
     let result = generate_sources(&grammar, output, config)?;
     format_sources(output)?;
+    if config.wasm {
+        generate_wasm(&grammar, output, force)?;
+        format_sources(&output.join("wasm"))?;
+    }
     Ok((result, starts))
 }
 
@@ -531,6 +540,94 @@ fn terrarium() -> io::Result<()> {
     if !status.success() {
         return Err(io::Error::other("npm run tauri dev failed"));
     }
+    Ok(())
+}
+
+/// Generate the iggy wasm bundle into `target/wasm/iggy` and build it with
+/// wasm-pack.
+fn wasm() -> io::Result<()> {
+    let root = workspace_root();
+    let grammar_file = root.join("iggy").join("iggy.iggy");
+    let output = root.join("target").join("wasm").join("iggy");
+
+    let config = GenConfig {
+        wasm: true,
+        cli: false,
+        ..GenConfig::default()
+    };
+    let (result, _) = regenerate_with(&grammar_file, &output, config, true)?;
+    println!(
+        "Generated iggy wasm bundle in {} ms",
+        result.total_duration_ms
+    );
+
+    let runtime = root.join("iguana-runtime");
+    patch_runtime_to_local_path(&output.join("Cargo.toml"), &runtime)?;
+    patch_runtime_to_local_path(&output.join("wasm").join("Cargo.toml"), &runtime)?;
+
+    build_wasm(&output.join("wasm"))?;
+    Ok(())
+}
+
+/// Rewrite a generated Cargo.toml's `iguana-runtime` git dependency to a local
+/// path. Asserts the substitution fired, so a template change that moves the
+/// dependency line fails loudly instead of building against the wrong runtime.
+fn patch_runtime_to_local_path(cargo_toml: &Path, runtime_dir: &Path) -> io::Result<()> {
+    let original = fs::read_to_string(cargo_toml)?;
+    let replaced = original.replace(
+        "iguana-runtime = { git = \"https://github.com/iguana-parser/iguana-rs\" }",
+        &format!(
+            "iguana-runtime = {{ path = \"{}\" }}",
+            runtime_dir.display()
+        ),
+    );
+    if replaced == original {
+        return Err(io::Error::other(format!(
+            "{}: `iguana-runtime = {{ git = ... }}` pattern not found; \
+             cargo_toml_gen template may have changed and this patch needs updating",
+            cargo_toml.display()
+        )));
+    }
+    fs::write(cargo_toml, replaced)
+}
+
+fn build_wasm(wasm_dir: &Path) -> io::Result<()> {
+    let have_wasm_pack = Command::new("wasm-pack")
+        .arg("--version")
+        .output()
+        .map(|o| o.status.success())
+        .unwrap_or(false);
+    if !have_wasm_pack {
+        return Err(io::Error::other(
+            "wasm-pack not found. Install it with `cargo install wasm-pack`.",
+        ));
+    }
+
+    // No rustup means we can't check the target; let wasm-pack report it.
+    let have_target = Command::new("rustup")
+        .args(["target", "list", "--installed"])
+        .output()
+        .map(|o| {
+            o.status.success()
+                && String::from_utf8_lossy(&o.stdout).contains("wasm32-unknown-unknown")
+        })
+        .unwrap_or(true);
+    if !have_target {
+        return Err(io::Error::other(
+            "wasm32-unknown-unknown target not installed. \
+             Add it with `rustup target add wasm32-unknown-unknown`.",
+        ));
+    }
+
+    println!("Building wasm bundle with wasm-pack (target web)...");
+    let status = Command::new("wasm-pack")
+        .current_dir(wasm_dir)
+        .args(["build", "--target", "web"])
+        .status()?;
+    if !status.success() {
+        return Err(io::Error::other("wasm-pack build failed"));
+    }
+    println!("Wasm package ready at {}", wasm_dir.join("pkg").display());
     Ok(())
 }
 

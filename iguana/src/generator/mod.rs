@@ -51,6 +51,10 @@ pub struct GenConfig {
     /// When true, scaffold a CLI: Cargo.toml + src/main.rs. When false,
     /// the caller owns Cargo.toml and no CLI binary is emitted.
     pub cli: bool,
+    /// When true, emit a wasm bundle: a standalone lib crate plus a
+    /// `wasm-bindgen` wrapper crate under `wasm/` and a `manifest.json`. A
+    /// wasm bundle has no CLI, so `wasm` and `cli` are mutually exclusive.
+    pub wasm: bool,
 }
 
 impl Default for GenConfig {
@@ -59,6 +63,7 @@ impl Default for GenConfig {
             ll1_optimization: true,
             match_memo: true,
             cli: true,
+            wasm: false,
         }
     }
 }
@@ -73,10 +78,12 @@ pub(crate) mod grammar_utils;
 mod id;
 mod lib_gen;
 mod main_gen;
+mod manifest_gen;
 mod parse_tree_gen;
 mod parser_gen;
 mod scanner_gen;
 mod types_gen;
+mod wasm_gen;
 
 mod post_process;
 pub use post_process::post_process;
@@ -211,12 +218,12 @@ pub fn generate_sources(
     })
 }
 
-/// Scaffold Cargo.toml and src/main.rs into `output_dir`.
+/// Scaffold Cargo.toml and, for a CLI parser, src/main.rs into `output_dir`.
 ///
-/// `config.cli` controls the shape: when true, the Cargo.toml describes a
-/// standalone parser crate with a CLI binary (and `src/main.rs` is written);
-/// when false, the Cargo.toml is a minimal lib-only shape that assumes a
-/// workspace context, and `src/main.rs` is not written.
+/// The Cargo.toml shape follows `config`: a wasm lib crate, a standalone CLI
+/// parser crate, or a minimal workspace-member lib. `src/main.rs` is written
+/// only for the CLI shape (`config.cli` and not `config.wasm`); a wasm bundle
+/// and a workspace-member lib have no binary.
 ///
 /// By default each file is written only if it does not already exist, so the
 /// user owns them after first creation. When `force` is true, the scaffold
@@ -238,16 +245,49 @@ pub fn generate_scaffold(
 
     let cargo_toml = output_dir.join("Cargo.toml");
     if force || !cargo_toml.exists() {
-        write_plain_file(cargo_toml_gen::generate(grammar, config.cli), &cargo_toml)?;
+        write_plain_file(cargo_toml_gen::generate(grammar, config), &cargo_toml)?;
     }
 
-    if config.cli {
+    if config.cli && !config.wasm {
         let main_rs = src_dir.join("main.rs");
         if force || !main_rs.exists() {
             let main_code = main_gen::generate(grammar);
             write_plain_file(post_process(&main_code.to_string()), &main_rs)?;
         }
     }
+
+    Ok(())
+}
+
+/// Write the wasm bundle into `output_dir`: the wrapper crate under `wasm/`
+/// and `manifest.json`. The parser lib sources and the root crate's Cargo.toml
+/// come from `generate_sources` and `generate_scaffold`; this step adds only
+/// the wasm-specific files.
+///
+/// The wrapper `lib.rs` and `manifest.json` are derived from the grammar and
+/// always overwritten. The wrapper `Cargo.toml` is scaffolding, so it is
+/// written only when absent (or when `force` is set), preserving a hand-edited
+/// dependency such as a local path to the runtime.
+pub fn generate_wasm(grammar: &Grammar, output_dir: &Path, force: bool) -> io::Result<()> {
+    let wasm_src = output_dir.join("wasm").join("src");
+    if !wasm_src.exists() {
+        fs::create_dir_all(&wasm_src)?;
+    }
+
+    write_rust_file(
+        post_process(&wasm_gen::generate(grammar).to_string()),
+        &wasm_src.join("lib.rs"),
+    )?;
+
+    let wasm_cargo = output_dir.join("wasm").join("Cargo.toml");
+    if force || !wasm_cargo.exists() {
+        write_plain_file(cargo_toml_gen::generate_wasm_wrapper(grammar), &wasm_cargo)?;
+    }
+
+    write_plain_file(
+        manifest_gen::generate(grammar),
+        &output_dir.join("manifest.json"),
+    )?;
 
     Ok(())
 }

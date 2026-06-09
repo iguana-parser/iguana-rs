@@ -6,7 +6,7 @@ use std::{
 use clap::{Parser, Subcommand};
 use iguana::{
     alternative, bind, c, call, cond, cond_expr,
-    generator::{GenConfig, generate_scaffold, generate_sources},
+    generator::{GenConfig, generate_scaffold, generate_sources, generate_wasm},
     grammar::def::{Grammar, GrammarDef},
     grammar_def, id,
     iggy::parse_grammar,
@@ -55,6 +55,12 @@ enum Commands {
         #[arg(long, default_value_t = true, action = clap::ArgAction::Set)]
         cli: bool,
 
+        /// Emit a wasm bundle: a standalone lib crate, a wasm-bindgen wrapper
+        /// crate under wasm/, and a manifest.json. A wasm bundle has no CLI, so
+        /// this conflicts with --cli.
+        #[arg(long, conflicts_with = "cli")]
+        wasm: bool,
+
         /// Overwrite scaffolded files (Cargo.toml, src/main.rs) even if they
         /// already exist. Without this, the scaffold step is skipped on
         /// regeneration so local edits are preserved.
@@ -74,6 +80,7 @@ fn main() -> std::io::Result<()> {
             ll1,
             match_memo,
             cli,
+            wasm,
             force,
         } => {
             let resolved_path;
@@ -89,13 +96,18 @@ fn main() -> std::io::Result<()> {
             let config = GenConfig {
                 ll1_optimization: ll1,
                 match_memo,
-                cli,
+                // A wasm bundle has no CLI, so --wasm forces the lib-only shape.
+                cli: cli && !wasm,
+                wasm,
             };
             let grammar: Grammar = grammar_def.try_into().map_err(|names: Vec<String>| {
                 std::io::Error::other(format!("Unresolved identifiers: {}", names.join(", ")))
             })?;
             generate_scaffold(&grammar, &output, config, force)?;
             let result = generate_sources(&grammar, &output, config)?;
+            if config.wasm {
+                generate_wasm(&grammar, &output, force)?;
+            }
             if json {
                 println!("{{\"total_duration_ms\":{}}}", result.total_duration_ms);
             } else {
