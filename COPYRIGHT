@@ -5,6 +5,9 @@ binaries you run: iguana, iguana-lsp, terrarium, and the VS Code
 extension) are licensed under the GNU General Public License v3 or
 later. The runtime libraries that get linked into generated parsers,
 iguana-runtime and iggy, are dual-licensed under MIT and Apache-2.0.
+The web packages, parse-view and web-viewer, are dual-licensed under
+MIT and Apache-2.0 as well, so they can ship alongside a generated
+parser in the wasm bundle under any license you choose.
 
 A parser you generate with iguana carries no GPL obligation. You can
 ship it under any license you choose: MIT, Apache, BSD, proprietary,
@@ -34,6 +37,16 @@ Per-crate licensing:
     option.
 
   iggy
+    Licensed under either of Apache License, Version 2.0 (see
+    LICENSE-APACHE) or the MIT license (see LICENSE-MIT), at your
+    option.
+
+  parse-view
+    Licensed under either of Apache License, Version 2.0 (see
+    LICENSE-APACHE) or the MIT license (see LICENSE-MIT), at your
+    option.
+
+  web-viewer
     Licensed under either of Apache License, Version 2.0 (see
     LICENSE-APACHE) or the MIT license (see LICENSE-MIT), at your
     option.

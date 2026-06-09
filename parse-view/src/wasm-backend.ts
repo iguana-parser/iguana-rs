@@ -1,5 +1,4 @@
-import type { ParseOutput } from "../bindings";
-import type { ParserBackend, ParseTreeResult } from "./parse-view/backend";
+import type { ParseOutput, ParserBackend, ParseTreeResult } from "./backend";
 
 // The wasm wrapper's exported parse function. It returns the result envelope as
 // a JSON string for any parse that ran, and throws when the parser could not run

@@ -19,8 +19,11 @@
     highlightOutgoingEdges,
     clearEdgeHighlights,
     highlightClickedEdge,
-  } from "$lib/graph-styles";
-  import { GraphCollapseManager, buildDebugSppfElements, buildDebugGssElements, buildSppfElements, buildGssElements, buildParseTreeElements, exportGraphPng, type ParseTreeData } from "$lib/graph-utils";
+    GraphCollapseManager,
+    buildParseTreeElements,
+    type ParseTreeData,
+  } from "@iguana-parser/parse-view";
+  import { buildDebugSppfElements, buildDebugGssElements, buildSppfElements, buildGssElements, exportGraphPng } from "$lib/graph-utils";
   import { createMaximizeToggle } from "$lib/window-utils";
   import type {
     SPPF,

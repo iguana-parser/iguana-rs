@@ -1,0 +1,5 @@
+dist/
+# The wasm bundle is produced by `iguana generate --wasm` (here, copied from
+# target/wasm/iggy) and dropped in alongside the viewer; it is not source.
+public/manifest.json
+public/wasm/

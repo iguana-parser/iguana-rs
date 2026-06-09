@@ -15,12 +15,13 @@
     clearEdgeHighlights,
     highlightClickedEdge,
     PARSE_TREE_LAYOUT,
-  } from "$lib/graph-styles";
-  import { GraphCollapseManager, exportGraphPng, buildParseTreeElements } from "$lib/graph-utils";
-  import InputEditor from "$lib/InputEditor.svelte";
-  import NonterminalPicker from "$lib/NonterminalPicker.svelte";
-  import "$lib/graph.css";
-  import "$lib/parse-view/parse-view.css";
+  } from "./graph-styles";
+  import { GraphCollapseManager, buildParseTreeElements } from "./parse-tree-graph";
+  import { downloadPng } from "./png";
+  import InputEditor from "./InputEditor.svelte";
+  import NonterminalPicker from "./NonterminalPicker.svelte";
+  import "./graph.css";
+  import "./parse-view.css";
 
   // Parse Tree types (manually defined, not via specta)
   interface ParseTreeNode {
@@ -73,7 +74,6 @@
 
   interface Props {
     backend: ParserBackend | null;
-    parserDirectory: string | null;
     parserName: string | null;
     buildStatus: "none" | "success" | "error";
     nonterminals: string[];
@@ -89,6 +89,9 @@
     onLogError?: (text: string) => void;
     onProfile?: () => void;
     onPopOut?: () => void;
+    // Exports the parse-tree graph as a PNG. Defaults to a browser download;
+    // Terrarium injects a native save dialog.
+    onExportPng?: (graph: cytoscape.Core | null, defaultName: string) => void;
     // Fired when the visible parse tree changes, so a host that popped the graph
     // out into its own window can re-send the data.
     onParseTreeChange?: () => void;
@@ -97,7 +100,6 @@
 
   let {
     backend,
-    parserDirectory,
     parserName,
     buildStatus,
     nonterminals,
@@ -111,6 +113,7 @@
     onLogError,
     onProfile,
     onPopOut,
+    onExportPng,
     onParseTreeChange,
     startVerticalDrag,
   }: Props = $props();
@@ -552,7 +555,7 @@
   }
 
   function exportGraph() {
-    exportGraphPng(parseTreeCy, "parse-tree");
+    (onExportPng ?? downloadPng)(parseTreeCy, "parse-tree");
   }
 
   function toggleHideLayout() {
@@ -1023,13 +1026,13 @@
         <NonterminalPicker
           bind:value={startNonterminal}
           options={nonterminals}
-          disabled={!parserDirectory || nonterminals.length === 0}
+          disabled={!backend || nonterminals.length === 0}
         />
       </div>
       <div class="parse-actions">
-        <button class="parse-btn" onclick={parse} disabled={!parserDirectory || buildStatus !== "success" || !startNonterminal}>Parse</button>
+        <button class="parse-btn" onclick={parse} disabled={!backend || buildStatus !== "success" || !startNonterminal}>Parse</button>
         {#if onProfile}
-          <button class="parse-btn" onclick={onProfile} disabled={!parserDirectory || buildStatus !== "success" || !startNonterminal || isProfiling}>
+          <button class="parse-btn" onclick={onProfile} disabled={!backend || buildStatus !== "success" || !startNonterminal || isProfiling}>
             {isProfiling ? "Profiling..." : "Profile"}
           </button>
         {/if}

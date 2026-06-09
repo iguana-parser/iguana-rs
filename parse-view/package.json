@@ -1,0 +1,38 @@
+{
+  "name": "@iguana-parser/parse-view",
+  "version": "0.1.0",
+  "description": "Shared parse-view renderer for iguana parsers: a Svelte component with tree, graph, and s-expression views over a parse tree, driven by a pluggable parser backend.",
+  "license": "MIT OR Apache-2.0",
+  "type": "module",
+  "svelte": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": {
+      "types": "./src/index.ts",
+      "svelte": "./src/index.ts",
+      "default": "./src/index.ts"
+    },
+    "./graph.css": "./src/graph.css",
+    "./parse-view.css": "./src/parse-view.css"
+  },
+  "files": [
+    "src",
+    "LICENSE-MIT",
+    "LICENSE-APACHE"
+  ],
+  "scripts": {
+    "check": "svelte-check --tsconfig ./tsconfig.json"
+  },
+  "peerDependencies": {
+    "cytoscape": "^3.33.2",
+    "cytoscape-tidytree": "^0.2.1",
+    "lucide-svelte": "^1.0.1",
+    "monaco-editor": "^0.55.1",
+    "svelte": "^5.0.0"
+  },
+  "devDependencies": {
+    "@types/cytoscape": "^3.21.9",
+    "svelte-check": "^4.0.0",
+    "typescript": "^6.0.2"
+  }
+}

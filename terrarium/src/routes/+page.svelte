@@ -24,15 +24,17 @@
     highlightOutgoingEdges,
     clearEdgeHighlights,
     highlightClickedEdge,
-  } from "$lib/graph-styles";
-  import { GraphCollapseManager, buildDebugSppfElements, exportGraphPng, type ParseTreeData } from "$lib/graph-utils";
+    GraphCollapseManager,
+    type ParseTreeData,
+    InputEditor,
+    NonterminalPicker,
+    ParseView,
+  } from "@iguana-parser/parse-view";
+  import "@iguana-parser/parse-view/graph.css";
+  import "@iguana-parser/parse-view/parse-view.css";
+  import { buildDebugSppfElements, exportGraphPng } from "$lib/graph-utils";
   import MonacoEditor from "$lib/MonacoEditor.svelte";
-  import InputEditor from "$lib/InputEditor.svelte";
-  import "$lib/graph.css";
-  import NonterminalPicker from "$lib/NonterminalPicker.svelte";
-  import ParseView from "$lib/parse-view/ParseView.svelte";
   import { TauriBackend } from "$lib/tauri-backend";
-  import "$lib/parse-view/parse-view.css";
 
   cytoscape.use(dagre);
   cytoscape.use(tidytree);
@@ -1864,7 +1866,6 @@
   <ParseView
     bind:this={parseViewRef}
     backend={parserBackend}
-    {parserDirectory}
     {parserName}
     {buildStatus}
     {nonterminals}
@@ -1878,6 +1879,7 @@
     onLogError={logError}
     onProfile={profileParser}
     onPopOut={() => openGraphWindow('parseTree')}
+    onExportPng={exportGraphPng}
     onParseTreeChange={() => { if (graphWindows.has('parseTree')) sendGraphData('parseTree'); }}
     {startVerticalDrag}
   />
