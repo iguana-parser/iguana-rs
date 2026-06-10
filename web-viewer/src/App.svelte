@@ -21,15 +21,27 @@
   let inputText = $state("");
   let leftPanelWidth = $state(420);
 
+  // The editor and graph libraries load from a CDN at runtime (see the
+  // importmap in index.html), so they are fetched on first load and served from
+  // the browser cache after that. Each step logs to the console so a slow first
+  // load is legible rather than a silent blank page.
+  const log = (msg: string) => console.info(`[iguana] ${msg}`);
+
   onMount(async () => {
     try {
       const base = import.meta.env.BASE_URL;
+
+      log("loading manifest...");
       const manifest: Manifest = await (await fetch(`${base}manifest.json`)).json();
+      log(`grammar: ${manifest.grammar}`);
 
       // The wasm bundle is a static sibling of the viewer, not a source
-      // dependency, so it loads at runtime. The @vite-ignore keeps Vite from
+      // dependency, so it loads at runtime. The viewer is grammar-independent,
+      // so the module name is fixed (`iguana generate --wasm` builds it with
+      // `wasm-pack --out-name parser`). The @vite-ignore keeps Vite from
       // trying to resolve it at build time.
-      const wasm = await import(/* @vite-ignore */ `${base}wasm/pkg/iggy_wasm.js`);
+      log("loading wasm parser...");
+      const wasm = await import(/* @vite-ignore */ `${base}wasm/pkg/parser.js`);
       await wasm.default();
 
       backend = new WasmBackend(wasm.parse as WasmParse);
@@ -38,8 +50,10 @@
       startNonterminal = manifest.start_nonterminals[0] ?? null;
       inputText = manifest.sample_input;
       status = "ready";
+      log("ready");
     } catch (e) {
       errorMessage = e instanceof Error ? e.message : String(e);
+      console.error("[iguana] failed to load the parser:", e);
       status = "error";
     }
   });

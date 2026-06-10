@@ -565,7 +565,9 @@ fn wasm() -> io::Result<()> {
     patch_runtime_to_local_path(&output.join("Cargo.toml"), &runtime)?;
     patch_runtime_to_local_path(&output.join("wasm").join("Cargo.toml"), &runtime)?;
 
-    build_wasm(&output.join("wasm"))?;
+    let wasm_dir = output.join("wasm");
+    iguana::wasm_build::build(&wasm_dir)?;
+    println!("Wasm package ready at {}", wasm_dir.join("pkg").display());
     Ok(())
 }
 
@@ -589,46 +591,6 @@ fn patch_runtime_to_local_path(cargo_toml: &Path, runtime_dir: &Path) -> io::Res
         )));
     }
     fs::write(cargo_toml, replaced)
-}
-
-fn build_wasm(wasm_dir: &Path) -> io::Result<()> {
-    let have_wasm_pack = Command::new("wasm-pack")
-        .arg("--version")
-        .output()
-        .map(|o| o.status.success())
-        .unwrap_or(false);
-    if !have_wasm_pack {
-        return Err(io::Error::other(
-            "wasm-pack not found. Install it with `cargo install wasm-pack`.",
-        ));
-    }
-
-    // No rustup means we can't check the target; let wasm-pack report it.
-    let have_target = Command::new("rustup")
-        .args(["target", "list", "--installed"])
-        .output()
-        .map(|o| {
-            o.status.success()
-                && String::from_utf8_lossy(&o.stdout).contains("wasm32-unknown-unknown")
-        })
-        .unwrap_or(true);
-    if !have_target {
-        return Err(io::Error::other(
-            "wasm32-unknown-unknown target not installed. \
-             Add it with `rustup target add wasm32-unknown-unknown`.",
-        ));
-    }
-
-    println!("Building wasm bundle with wasm-pack (target web)...");
-    let status = Command::new("wasm-pack")
-        .current_dir(wasm_dir)
-        .args(["build", "--target", "web"])
-        .status()?;
-    if !status.success() {
-        return Err(io::Error::other("wasm-pack build failed"));
-    }
-    println!("Wasm package ready at {}", wasm_dir.join("pkg").display());
-    Ok(())
 }
 
 fn cargo_bin_dir() -> PathBuf {

@@ -19,9 +19,9 @@ Iguana is a data-dependent GLL parser generator.
 
 - `cargo xtask bootstrap` — regenerate iggy from its own grammar
 - `cargo xtask test-gen-all` — regenerate all test parsers
-- `cargo xtask install` — build iguana from this workspace and install it into `$CARGO_HOME/bin`
+- `cargo xtask install` — build iguana (release) and install it into `$CARGO_HOME/bin`. Plain Rust, no npm: the binary embeds the committed `web-viewer/dist` (`include_dir!`) so `iguana try` is always present. Rebuild that dist with `npm run build --workspace web-viewer` (small — Monaco/Cytoscape load from a CDN at runtime) and commit it after changing the viewer.
 - `cargo xtask test [args...]` — run the workspace test suite (uses `cargo-nextest` if installed, falls back to `cargo test --workspace`); extra args are forwarded as test-name filters
-- `cargo xtask wasm` — generate the iggy `--wasm` bundle into `target/wasm/iggy` and build it with `wasm-pack` (needs `wasm-pack` + the `wasm32-unknown-unknown` target); end-to-end check of the wasm pipeline
+- `cargo xtask wasm` — generate the iggy `--wasm` bundle into `target/wasm/iggy` (gitignored, not versioned) and build it with `wasm-pack` against the local runtime (needs `wasm-pack` + the `wasm32-unknown-unknown` target); the CI build step for hosting the iggy playground. The end-user `iguana generate --wasm` runs the same build itself (via `iguana::wasm_build`). `iguana try [dir]` then writes the embedded viewer next to the built bundle and serves it over HTTP; it errors with a build hint if the bundle is not built.
 - After any generator change: bootstrap → test-gen-all → test
 
 ## LSP

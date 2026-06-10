@@ -39,7 +39,7 @@ The repository root is also an npm workspace. Two TypeScript/Svelte packages ren
 ### Dependency Graph
 
 ```
-iguana-runtime  (standalone - no internal deps)
+iguana-runtime  (standalone, no internal deps)
        ^
      iggy  (depends on runtime)
        ^
@@ -124,13 +124,29 @@ npm run tauri dev
 
 ## WebAssembly
 
-`iguana generate --wasm` emits a bundle that runs a generated parser in the browser: a standalone parser lib, a `wasm-bindgen` wrapper crate under `wasm/`, and a `manifest.json`. Build the wrapper with `wasm-pack` to produce the wasm module and JavaScript glue.
+`iguana generate --wasm` builds a generated parser to WebAssembly so it can parse in the browser. It emits a standalone parser lib, a `wasm-bindgen` wrapper crate under `wasm/`, and a `manifest.json`, then compiles the wrapper with `wasm-pack` (`--target web --out-name parser`) to produce the wasm module and JavaScript glue. It probes for `wasm-pack` and the `wasm32-unknown-unknown` target, so install them first:
+
+```bash
+cargo install wasm-pack
+rustup target add wasm32-unknown-unknown
+```
+
+`iguana try` opens the web viewer for a built bundle: it writes the viewer next to the wasm module and serves the bundle over HTTP (a wasm module loads over HTTP, not `file://`), printing a link to open. With no directory it uses the current one.
+
+```bash
+iguana generate --wasm -g mygrammar.iggy -o out
+cd out && iguana try
+```
+
+`iguana try` errors with a build hint if the bundle was not built yet. The viewer it serves is embedded in every `iguana` binary; it is small (~100 KB) because the editor and graph libraries load from a CDN at runtime rather than being bundled.
+
+To exercise the build pipeline on a real grammar during development:
 
 ```bash
 cargo xtask wasm
 ```
 
-This generates the iggy bundle into `target/wasm/iggy` and builds it with `wasm-pack` (requires `cargo install wasm-pack` and the `wasm32-unknown-unknown` target), an end-to-end check of the wasm pipeline on a real grammar.
+This generates the iggy bundle into `target/wasm/iggy` and builds it with `wasm-pack`, an end-to-end check of the wasm pipeline.
 
 ## Testing
 
@@ -237,11 +253,11 @@ cargo clippy -p iguana         # Lint
 
 ### After Modifying Generator Code
 
-1. `cargo check -p iguana && cargo clippy -p iguana` -- fix errors and warnings
-2. `cargo xtask bootstrap` -- regenerate iggy parser
-3. `cargo xtask bootstrap` -- bootstrap again to verify stability
-4. `cargo xtask test-gen-all` -- regenerate all test parsers
-5. `cargo xtask test` -- run all tests
+1. `cargo check -p iguana && cargo clippy -p iguana`: fix errors and warnings
+2. `cargo xtask bootstrap`: regenerate the iggy parser
+3. `cargo xtask bootstrap`: run again to verify stability
+4. `cargo xtask test-gen-all`: regenerate all test parsers
+5. `cargo xtask test`: run all tests
 
 ## License
 

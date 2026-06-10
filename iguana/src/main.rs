@@ -67,6 +67,17 @@ enum Commands {
         #[arg(long)]
         force: bool,
     },
+    /// Open the web viewer for a wasm bundle built with `generate --wasm`:
+    /// write the viewer next to the bundle and serve it over HTTP
+    Try {
+        /// Bundle directory (defaults to the current directory)
+        #[arg(default_value = ".")]
+        dir: PathBuf,
+
+        /// Port to listen on
+        #[arg(short, long, default_value_t = 8000)]
+        port: u16,
+    },
 }
 
 fn main() -> std::io::Result<()> {
@@ -107,6 +118,7 @@ fn main() -> std::io::Result<()> {
             let result = generate_sources(&grammar, &output, config)?;
             if config.wasm {
                 generate_wasm(&grammar, &output, force)?;
+                iguana::wasm_build::build(&output.join("wasm"))?;
             }
             if json {
                 println!("{{\"total_duration_ms\":{}}}", result.total_duration_ms);
@@ -117,6 +129,7 @@ fn main() -> std::io::Result<()> {
                 );
             }
         }
+        Commands::Try { dir, port } => iguana::viewer::try_bundle(&dir, port)?,
     }
     Ok(())
 }
