@@ -424,13 +424,13 @@ impl<'a> ParserGen<'a> {
         let expected = if self.ff.is_nonterminal_nullable(nonterminal) {
             quote! {
                 {
-                    let mut expected = #first_set_name.to_vec();
+                    let mut expected = #first_set_name.terminals.to_vec();
                     expected.extend_from_slice(#follow_name.terminals);
                     expected
                 }
             }
         } else {
-            quote! { #first_set_name.to_vec() }
+            quote! { #first_set_name.terminals.to_vec() }
         };
 
         quote! {
@@ -1253,7 +1253,7 @@ impl<'a> ParserGen<'a> {
                     nonterminal_id,
                 );
                 quote! {
-                    let matched = self.scanner.longest_match(#first_set_name, i)?;
+                    let matched = self.scanner.longest_match(&#first_set_name, i)?;
                     match matched {
                         #(#arms)*
                         _ => unreachable!("LL(1) dispatch covers every terminal in FIRST_SET"),
@@ -1268,7 +1268,7 @@ impl<'a> ParserGen<'a> {
                 );
                 let nullable_body = self.gen_alt_body_ll1(nonterminal, nullable, nonterminal_id);
                 quote! {
-                    let Some(matched) = self.scanner.longest_match(#first_set_name, i) else {
+                    let Some(matched) = self.scanner.longest_match(&#first_set_name, i) else {
                         #nullable_body
                     };
                     match matched {

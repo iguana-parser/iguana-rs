@@ -306,7 +306,7 @@ impl<'i> Parser<'i> for LayoutNonterminalParser<'i> {
                 if !matched {
                     self.add_parse_error(input_index, SlotId(4), Some(gss_node_id), || {
                         ParseErrorKind::UnexpectedToken {
-                            expected: FIRST_SET_ALT_0.to_vec(),
+                            expected: FIRST_SET_ALT_0.terminals.to_vec(),
                         }
                     });
                 }
@@ -327,7 +327,7 @@ impl<'i> Parser<'i> for LayoutNonterminalParser<'i> {
                 if !matched {
                     self.add_parse_error(input_index, SlotId(8), Some(gss_node_id), || {
                         ParseErrorKind::UnexpectedToken {
-                            expected: FIRST_SET_PLUS_0.to_vec(),
+                            expected: FIRST_SET_PLUS_0.terminals.to_vec(),
                         }
                     });
                 }
@@ -351,7 +351,7 @@ impl<'i> Parser<'i> for LayoutNonterminalParser<'i> {
                     self.add_parse_error(input_index, SlotId(13), Some(gss_node_id), || {
                         ParseErrorKind::UnexpectedToken {
                             expected: {
-                                let mut expected = FIRST_SET_OPT_0.to_vec();
+                                let mut expected = FIRST_SET_OPT_0.terminals.to_vec();
                                 expected.extend_from_slice(FOLLOW_SET_OPT_0.terminals);
                                 expected
                             },
@@ -833,7 +833,7 @@ impl<'i> LayoutNonterminalParser<'i> {
     fn parse_s_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
         #[cfg(feature = "instrument")]
         self.ll1_call_log.push((NonterminalId(0), i));
-        let matched = self.scanner.longest_match(FIRST_SET_S, i)?;
+        let matched = self.scanner.longest_match(&FIRST_SET_S, i)?;
         match matched {
             TerminalId(2) => {
                 let mut j = i;
@@ -896,7 +896,7 @@ impl<'i> LayoutNonterminalParser<'i> {
     fn parse_alt_0_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
         #[cfg(feature = "instrument")]
         self.ll1_call_log.push((NonterminalId(2), i));
-        let matched = self.scanner.longest_match(FIRST_SET_ALT_0, i)?;
+        let matched = self.scanner.longest_match(&FIRST_SET_ALT_0, i)?;
         match matched {
             TerminalId(0) => {
                 let mut j = i;
@@ -991,7 +991,7 @@ impl<'i> LayoutNonterminalParser<'i> {
     fn parse_opt_0_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
         #[cfg(feature = "instrument")]
         self.ll1_call_log.push((NonterminalId(4), i));
-        let Some(matched) = self.scanner.longest_match(FIRST_SET_OPT_0, i) else {
+        let Some(matched) = self.scanner.longest_match(&FIRST_SET_OPT_0, i) else {
             let epsilon_node_id = self.get_or_create_epsilon_node(i);
             return Some(self.add_nonterminal_node(NonterminalNode {
                 nonterminal_id: NonterminalId(4),
@@ -1057,7 +1057,7 @@ impl<'i> LayoutNonterminalParser<'i> {
     fn parse_start_s_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
         #[cfg(feature = "instrument")]
         self.ll1_call_log.push((NonterminalId(6), i));
-        let matched = self.scanner.longest_match(FIRST_SET_START_S, i)?;
+        let matched = self.scanner.longest_match(&FIRST_SET_START_S, i)?;
         match matched {
             TerminalId(1) | TerminalId(0) | TerminalId(2) => {
                 let mut j = i;

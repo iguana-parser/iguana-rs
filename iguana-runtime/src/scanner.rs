@@ -145,8 +145,11 @@ impl<const W: usize> MatchAnyMemo<W> {
     }
 }
 
-/// A terminal set the parser tests with `match_any`, paired with the memo id
-/// that keys its cached results.
+/// A terminal set the parser tests with `match_any` or `longest_match`.
+///
+/// `id` is a content-deduplicated id within the set's family. `match_any` keys
+/// its memo by it; `longest_match` is not memoized and ignores it, but the field
+/// is kept so every set has the same shape.
 pub struct TerminalSet {
     pub id: usize,
     pub terminals: &'static [TerminalId],
@@ -154,20 +157,16 @@ pub struct TerminalSet {
 
 pub trait Scanner {
     fn match_token(&mut self, terminal_id: TerminalId, input_index: u32) -> Option<u32>;
-    /// Returns the terminal that produces the longest match at `input_index`,
-    /// or `None` if none of the given terminals match.
-    fn longest_match(
-        &mut self,
-        terminal_ids: &[TerminalId],
-        input_index: u32,
-    ) -> Option<TerminalId> {
+    /// Returns the terminal in `set` that produces the longest match at
+    /// `input_index`, or `None` if none match.
+    fn longest_match(&mut self, set: &TerminalSet, input_index: u32) -> Option<TerminalId> {
         let mut terminal_id = None;
-        let mut longest_match = 0;
-        for &id in terminal_ids {
+        let mut longest = 0;
+        for &id in set.terminals {
             if let Some(end) = self.match_token(id, input_index) {
-                if terminal_id.is_none() || end > longest_match {
+                if terminal_id.is_none() || end > longest {
                     terminal_id = Some(id);
-                    longest_match = end;
+                    longest = end;
                 }
             }
         }

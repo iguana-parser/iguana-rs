@@ -455,7 +455,7 @@ impl<'i> Parser<'i> for IndirectPrefixParser<'i> {
                 if !matched {
                     self.add_parse_error(input_index, SlotId(6), Some(gss_node_id), || {
                         ParseErrorKind::UnexpectedToken {
-                            expected: FIRST_SET_E.to_vec(),
+                            expected: FIRST_SET_E.terminals.to_vec(),
                         }
                     });
                 }

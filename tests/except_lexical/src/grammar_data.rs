@@ -37,7 +37,10 @@ pub static FOLLOW_SET_S: TerminalSet = TerminalSet {
     terminals: &[TerminalId(3)],
 };
 // S { Identifier }
-pub static FIRST_SET_S: &[TerminalId] = &[TerminalId(1)];
+pub static FIRST_SET_S: TerminalSet = TerminalSet {
+    id: 0,
+    terminals: &[TerminalId(1)],
+};
 // S : . Identifier { Identifier }
 pub static FIRST_SET_S_ALT0: TerminalSet = TerminalSet {
     id: 1,

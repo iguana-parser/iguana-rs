@@ -363,7 +363,7 @@ impl<'i> Parser<'i> for ExcludeByLabelParser<'i> {
                 if !matched {
                     self.add_parse_error(input_index, SlotId(11), Some(gss_node_id), || {
                         ParseErrorKind::UnexpectedToken {
-                            expected: FIRST_SET_EXPR.to_vec(),
+                            expected: FIRST_SET_EXPR.terminals.to_vec(),
                         }
                     });
                 }
@@ -384,7 +384,7 @@ impl<'i> Parser<'i> for ExcludeByLabelParser<'i> {
                 if !matched {
                     self.add_parse_error(input_index, SlotId(0), Some(gss_node_id), || {
                         ParseErrorKind::UnexpectedToken {
-                            expected: FIRST_SET_PLUS_0.to_vec(),
+                            expected: FIRST_SET_PLUS_0.terminals.to_vec(),
                         }
                     });
                 }
@@ -408,7 +408,7 @@ impl<'i> Parser<'i> for ExcludeByLabelParser<'i> {
                     self.add_parse_error(input_index, SlotId(6), Some(gss_node_id), || {
                         ParseErrorKind::UnexpectedToken {
                             expected: {
-                                let mut expected = FIRST_SET_OPT_0.to_vec();
+                                let mut expected = FIRST_SET_OPT_0.terminals.to_vec();
                                 expected.extend_from_slice(FOLLOW_SET_OPT_0.terminals);
                                 expected
                             },

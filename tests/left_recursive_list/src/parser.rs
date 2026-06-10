@@ -135,7 +135,7 @@ impl<'i> Parser<'i> for LeftRecursiveListParser<'i> {
                 if !matched {
                     self.add_parse_error(input_index, SlotId(0), Some(gss_node_id), || {
                         ParseErrorKind::UnexpectedToken {
-                            expected: FIRST_SET_A.to_vec(),
+                            expected: FIRST_SET_A.terminals.to_vec(),
                         }
                     });
                 }

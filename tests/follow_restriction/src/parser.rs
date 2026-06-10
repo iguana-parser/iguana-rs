@@ -276,7 +276,7 @@ impl<'i> Parser<'i> for FollowRestrictionParser<'i> {
                 if !matched {
                     self.add_parse_error(input_index, SlotId(6), Some(gss_node_id), || {
                         ParseErrorKind::UnexpectedToken {
-                            expected: FIRST_SET_PLUS_0.to_vec(),
+                            expected: FIRST_SET_PLUS_0.terminals.to_vec(),
                         }
                     });
                 }
@@ -297,7 +297,7 @@ impl<'i> Parser<'i> for FollowRestrictionParser<'i> {
                 if !matched {
                     self.add_parse_error(input_index, SlotId(12), Some(gss_node_id), || {
                         ParseErrorKind::UnexpectedToken {
-                            expected: FIRST_SET_PLUS_1.to_vec(),
+                            expected: FIRST_SET_PLUS_1.terminals.to_vec(),
                         }
                     });
                 }
@@ -786,7 +786,7 @@ impl<'i> FollowRestrictionParser<'i> {
     fn parse_s_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
         #[cfg(feature = "instrument")]
         self.ll1_call_log.push((NonterminalId(0), i));
-        let matched = self.scanner.longest_match(FIRST_SET_S, i)?;
+        let matched = self.scanner.longest_match(&FIRST_SET_S, i)?;
         match matched {
             TerminalId(0) => {
                 let mut j = i;
@@ -816,7 +816,7 @@ impl<'i> FollowRestrictionParser<'i> {
     fn parse_t_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
         #[cfg(feature = "instrument")]
         self.ll1_call_log.push((NonterminalId(1), i));
-        let matched = self.scanner.longest_match(FIRST_SET_T, i)?;
+        let matched = self.scanner.longest_match(&FIRST_SET_T, i)?;
         match matched {
             TerminalId(0) => {
                 let mut j = i;
@@ -850,7 +850,7 @@ impl<'i> FollowRestrictionParser<'i> {
     fn parse_id_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
         #[cfg(feature = "instrument")]
         self.ll1_call_log.push((NonterminalId(2), i));
-        let matched = self.scanner.longest_match(FIRST_SET_ID, i)?;
+        let matched = self.scanner.longest_match(&FIRST_SET_ID, i)?;
         match matched {
             TerminalId(0) => {
                 let mut j = i;

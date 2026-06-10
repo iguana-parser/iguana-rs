@@ -584,7 +584,7 @@ impl<'i> ExceptTerminalParser<'i> {
     fn parse_s_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
         #[cfg(feature = "instrument")]
         self.ll1_call_log.push((NonterminalId(0), i));
-        let matched = self.scanner.longest_match(FIRST_SET_S, i)?;
+        let matched = self.scanner.longest_match(&FIRST_SET_S, i)?;
         match matched {
             TerminalId(0) => {
                 let mut j = i;
@@ -614,7 +614,7 @@ impl<'i> ExceptTerminalParser<'i> {
     fn parse_id_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
         #[cfg(feature = "instrument")]
         self.ll1_call_log.push((NonterminalId(1), i));
-        let matched = self.scanner.longest_match(FIRST_SET_ID, i)?;
+        let matched = self.scanner.longest_match(&FIRST_SET_ID, i)?;
         match matched {
             TerminalId(0) => {
                 let mut j = i;

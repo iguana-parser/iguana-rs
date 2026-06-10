@@ -85,7 +85,10 @@ pub static FOLLOW_SET_S: TerminalSet = TerminalSet {
     terminals: &[TerminalId(5)],
 };
 // S { Num, Id }
-pub static FIRST_SET_S: &[TerminalId] = &[TerminalId(0), TerminalId(2)];
+pub static FIRST_SET_S: TerminalSet = TerminalSet {
+    id: 0,
+    terminals: &[TerminalId(0), TerminalId(2)],
+};
 // S : . Plus_0 { Num, Id }
 pub static FIRST_SET_S_ALT0: TerminalSet = TerminalSet {
     id: 1,
@@ -97,7 +100,10 @@ pub static FOLLOW_SET_ELEMENT: TerminalSet = TerminalSet {
     terminals: &[TerminalId(3), TerminalId(0), TerminalId(2), TerminalId(5)],
 };
 // Element { Num, Id }
-pub static FIRST_SET_ELEMENT: &[TerminalId] = &[TerminalId(0), TerminalId(2)];
+pub static FIRST_SET_ELEMENT: TerminalSet = TerminalSet {
+    id: 0,
+    terminals: &[TerminalId(0), TerminalId(2)],
+};
 // Element : . Num { Num }
 pub static FIRST_SET_ELEMENT_ALT0: TerminalSet = TerminalSet {
     id: 3,
@@ -114,7 +120,10 @@ pub static FOLLOW_SET_PLUS_0: TerminalSet = TerminalSet {
     terminals: &[TerminalId(5), TerminalId(0), TerminalId(2), TerminalId(3)],
 };
 // Plus_0 { Num, Id }
-pub static FIRST_SET_PLUS_0: &[TerminalId] = &[TerminalId(0), TerminalId(2)];
+pub static FIRST_SET_PLUS_0: TerminalSet = TerminalSet {
+    id: 0,
+    terminals: &[TerminalId(0), TerminalId(2)],
+};
 // Plus_0 : . Plus_0 WS Element { Num, Id }
 pub static FIRST_SET_PLUS_0_ALT0: TerminalSet = TerminalSet {
     id: 1,

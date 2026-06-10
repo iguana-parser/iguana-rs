@@ -4528,7 +4528,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 if !matched {
                     self.add_parse_error(input_index, SlotId(12), Some(gss_node_id), || {
                         ParseErrorKind::UnexpectedToken {
-                            expected: FIRST_SET_RULE.to_vec(),
+                            expected: FIRST_SET_RULE.terminals.to_vec(),
                         }
                     });
                 }
@@ -4567,7 +4567,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 if !matched {
                     self.add_parse_error(input_index, SlotId(24), Some(gss_node_id), || {
                         ParseErrorKind::UnexpectedToken {
-                            expected: FIRST_SET_ANNOTATION.to_vec(),
+                            expected: FIRST_SET_ANNOTATION.terminals.to_vec(),
                         }
                     });
                 }
@@ -4602,7 +4602,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 if !matched {
                     self.add_parse_error(input_index, SlotId(52), Some(gss_node_id), || {
                         ParseErrorKind::UnexpectedToken {
-                            expected: FIRST_SET_POST_CONDITION.to_vec(),
+                            expected: FIRST_SET_POST_CONDITION.terminals.to_vec(),
                         }
                     });
                 }
@@ -4641,7 +4641,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 if !matched {
                     self.add_parse_error(input_index, SlotId(64), Some(gss_node_id), || {
                         ParseErrorKind::UnexpectedToken {
-                            expected: FIRST_SET_ASSOCIATIVITY.to_vec(),
+                            expected: FIRST_SET_ASSOCIATIVITY.terminals.to_vec(),
                         }
                     });
                 }
@@ -4726,7 +4726,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 if !matched {
                     self.add_parse_error(input_index, SlotId(301), Some(gss_node_id), || {
                         ParseErrorKind::UnexpectedToken {
-                            expected: FIRST_SET_SYMBOL.to_vec(),
+                            expected: FIRST_SET_SYMBOL.terminals.to_vec(),
                         }
                     });
                 }
@@ -4782,7 +4782,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 if !matched {
                     self.add_parse_error(input_index, SlotId(74), Some(gss_node_id), || {
                         ParseErrorKind::UnexpectedToken {
-                            expected: FIRST_SET_REGEX.to_vec(),
+                            expected: FIRST_SET_REGEX.terminals.to_vec(),
                         }
                     });
                 }
@@ -4813,7 +4813,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 if !matched {
                     self.add_parse_error(input_index, SlotId(116), Some(gss_node_id), || {
                         ParseErrorKind::UnexpectedToken {
-                            expected: FIRST_SET_RANGE_ELEMENT.to_vec(),
+                            expected: FIRST_SET_RANGE_ELEMENT.terminals.to_vec(),
                         }
                     });
                 }
@@ -4845,7 +4845,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     self.add_parse_error(input_index, SlotId(128), Some(gss_node_id), || {
                         ParseErrorKind::UnexpectedToken {
                             expected: {
-                                let mut expected = FIRST_SET_OPT_0.to_vec();
+                                let mut expected = FIRST_SET_OPT_0.terminals.to_vec();
                                 expected.extend_from_slice(FOLLOW_SET_OPT_0.terminals);
                                 expected
                             },
@@ -4869,7 +4869,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 if !matched {
                     self.add_parse_error(input_index, SlotId(131), Some(gss_node_id), || {
                         ParseErrorKind::UnexpectedToken {
-                            expected: FIRST_SET_PLUS_0.to_vec(),
+                            expected: FIRST_SET_PLUS_0.terminals.to_vec(),
                         }
                     });
                 }
@@ -4893,7 +4893,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     self.add_parse_error(input_index, SlotId(137), Some(gss_node_id), || {
                         ParseErrorKind::UnexpectedToken {
                             expected: {
-                                let mut expected = FIRST_SET_OPT_1.to_vec();
+                                let mut expected = FIRST_SET_OPT_1.terminals.to_vec();
                                 expected.extend_from_slice(FOLLOW_SET_OPT_1.terminals);
                                 expected
                             },
@@ -4921,7 +4921,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 if !matched {
                     self.add_parse_error(input_index, SlotId(142), Some(gss_node_id), || {
                         ParseErrorKind::UnexpectedToken {
-                            expected: FIRST_SET_PLUS_1.to_vec(),
+                            expected: FIRST_SET_PLUS_1.terminals.to_vec(),
                         }
                     });
                 }
@@ -4945,7 +4945,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     self.add_parse_error(input_index, SlotId(148), Some(gss_node_id), || {
                         ParseErrorKind::UnexpectedToken {
                             expected: {
-                                let mut expected = FIRST_SET_OPT_2.to_vec();
+                                let mut expected = FIRST_SET_OPT_2.terminals.to_vec();
                                 expected.extend_from_slice(FOLLOW_SET_OPT_2.terminals);
                                 expected
                             },
@@ -4976,7 +4976,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     self.add_parse_error(input_index, SlotId(153), Some(gss_node_id), || {
                         ParseErrorKind::UnexpectedToken {
                             expected: {
-                                let mut expected = FIRST_SET_PLUS_2.to_vec();
+                                let mut expected = FIRST_SET_PLUS_2.terminals.to_vec();
                                 expected.extend_from_slice(FOLLOW_SET_PLUS_2.terminals);
                                 expected
                             },
@@ -5005,7 +5005,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     self.add_parse_error(input_index, SlotId(161), Some(gss_node_id), || {
                         ParseErrorKind::UnexpectedToken {
                             expected: {
-                                let mut expected = FIRST_SET_OPT_3.to_vec();
+                                let mut expected = FIRST_SET_OPT_3.terminals.to_vec();
                                 expected.extend_from_slice(FOLLOW_SET_OPT_3.terminals);
                                 expected
                             },
@@ -5036,7 +5036,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     self.add_parse_error(input_index, SlotId(166), Some(gss_node_id), || {
                         ParseErrorKind::UnexpectedToken {
                             expected: {
-                                let mut expected = FIRST_SET_OPT_4.to_vec();
+                                let mut expected = FIRST_SET_OPT_4.terminals.to_vec();
                                 expected.extend_from_slice(FOLLOW_SET_OPT_4.terminals);
                                 expected
                             },
@@ -5060,7 +5060,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 if !matched {
                     self.add_parse_error(input_index, SlotId(169), Some(gss_node_id), || {
                         ParseErrorKind::UnexpectedToken {
-                            expected: FIRST_SET_PLUS_4.to_vec(),
+                            expected: FIRST_SET_PLUS_4.terminals.to_vec(),
                         }
                     });
                 }
@@ -5081,7 +5081,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 if !matched {
                     self.add_parse_error(input_index, SlotId(175), Some(gss_node_id), || {
                         ParseErrorKind::UnexpectedToken {
-                            expected: FIRST_SET_PLUS_3.to_vec(),
+                            expected: FIRST_SET_PLUS_3.terminals.to_vec(),
                         }
                     });
                 }
@@ -5102,7 +5102,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 if !matched {
                     self.add_parse_error(input_index, SlotId(183), Some(gss_node_id), || {
                         ParseErrorKind::UnexpectedToken {
-                            expected: FIRST_SET_PLUS_5.to_vec(),
+                            expected: FIRST_SET_PLUS_5.terminals.to_vec(),
                         }
                     });
                 }
@@ -5126,7 +5126,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     self.add_parse_error(input_index, SlotId(189), Some(gss_node_id), || {
                         ParseErrorKind::UnexpectedToken {
                             expected: {
-                                let mut expected = FIRST_SET_OPT_5.to_vec();
+                                let mut expected = FIRST_SET_OPT_5.terminals.to_vec();
                                 expected.extend_from_slice(FOLLOW_SET_OPT_5.terminals);
                                 expected
                             },
@@ -5157,7 +5157,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     self.add_parse_error(input_index, SlotId(194), Some(gss_node_id), || {
                         ParseErrorKind::UnexpectedToken {
                             expected: {
-                                let mut expected = FIRST_SET_OPT_6.to_vec();
+                                let mut expected = FIRST_SET_OPT_6.terminals.to_vec();
                                 expected.extend_from_slice(FOLLOW_SET_OPT_6.terminals);
                                 expected
                             },
@@ -5184,7 +5184,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     self.add_parse_error(input_index, SlotId(197), Some(gss_node_id), || {
                         ParseErrorKind::UnexpectedToken {
                             expected: {
-                                let mut expected = FIRST_SET_PLUS_6.to_vec();
+                                let mut expected = FIRST_SET_PLUS_6.terminals.to_vec();
                                 expected.extend_from_slice(FOLLOW_SET_PLUS_6.terminals);
                                 expected
                             },
@@ -5213,7 +5213,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     self.add_parse_error(input_index, SlotId(205), Some(gss_node_id), || {
                         ParseErrorKind::UnexpectedToken {
                             expected: {
-                                let mut expected = FIRST_SET_OPT_7.to_vec();
+                                let mut expected = FIRST_SET_OPT_7.terminals.to_vec();
                                 expected.extend_from_slice(FOLLOW_SET_OPT_7.terminals);
                                 expected
                             },
@@ -5241,7 +5241,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 if !matched {
                     self.add_parse_error(input_index, SlotId(210), Some(gss_node_id), || {
                         ParseErrorKind::UnexpectedToken {
-                            expected: FIRST_SET_PLUS_7.to_vec(),
+                            expected: FIRST_SET_PLUS_7.terminals.to_vec(),
                         }
                     });
                 }
@@ -5265,7 +5265,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     self.add_parse_error(input_index, SlotId(216), Some(gss_node_id), || {
                         ParseErrorKind::UnexpectedToken {
                             expected: {
-                                let mut expected = FIRST_SET_OPT_8.to_vec();
+                                let mut expected = FIRST_SET_OPT_8.terminals.to_vec();
                                 expected.extend_from_slice(FOLLOW_SET_OPT_8.terminals);
                                 expected
                             },
@@ -5296,7 +5296,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     self.add_parse_error(input_index, SlotId(221), Some(gss_node_id), || {
                         ParseErrorKind::UnexpectedToken {
                             expected: {
-                                let mut expected = FIRST_SET_OPT_9.to_vec();
+                                let mut expected = FIRST_SET_OPT_9.terminals.to_vec();
                                 expected.extend_from_slice(FOLLOW_SET_OPT_9.terminals);
                                 expected
                             },
@@ -5324,7 +5324,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 if !matched {
                     self.add_parse_error(input_index, SlotId(228), Some(gss_node_id), || {
                         ParseErrorKind::UnexpectedToken {
-                            expected: FIRST_SET_PLUS_8.to_vec(),
+                            expected: FIRST_SET_PLUS_8.terminals.to_vec(),
                         }
                     });
                 }
@@ -5349,7 +5349,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 if !matched {
                     self.add_parse_error(input_index, SlotId(238), Some(gss_node_id), || {
                         ParseErrorKind::UnexpectedToken {
-                            expected: FIRST_SET_PLUS_9.to_vec(),
+                            expected: FIRST_SET_PLUS_9.terminals.to_vec(),
                         }
                     });
                 }
@@ -5374,7 +5374,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 if !matched {
                     self.add_parse_error(input_index, SlotId(248), Some(gss_node_id), || {
                         ParseErrorKind::UnexpectedToken {
-                            expected: FIRST_SET_PLUS_10.to_vec(),
+                            expected: FIRST_SET_PLUS_10.terminals.to_vec(),
                         }
                     });
                 }
@@ -5399,7 +5399,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 if !matched {
                     self.add_parse_error(input_index, SlotId(258), Some(gss_node_id), || {
                         ParseErrorKind::UnexpectedToken {
-                            expected: FIRST_SET_PLUS_11.to_vec(),
+                            expected: FIRST_SET_PLUS_11.terminals.to_vec(),
                         }
                     });
                 }
@@ -5424,7 +5424,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 if !matched {
                     self.add_parse_error(input_index, SlotId(268), Some(gss_node_id), || {
                         ParseErrorKind::UnexpectedToken {
-                            expected: FIRST_SET_PLUS_12.to_vec(),
+                            expected: FIRST_SET_PLUS_12.terminals.to_vec(),
                         }
                     });
                 }
@@ -5448,7 +5448,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     self.add_parse_error(input_index, SlotId(274), Some(gss_node_id), || {
                         ParseErrorKind::UnexpectedToken {
                             expected: {
-                                let mut expected = FIRST_SET_OPT_10.to_vec();
+                                let mut expected = FIRST_SET_OPT_10.terminals.to_vec();
                                 expected.extend_from_slice(FOLLOW_SET_OPT_10.terminals);
                                 expected
                             },
@@ -5472,7 +5472,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 if !matched {
                     self.add_parse_error(input_index, SlotId(277), Some(gss_node_id), || {
                         ParseErrorKind::UnexpectedToken {
-                            expected: FIRST_SET_PLUS_13.to_vec(),
+                            expected: FIRST_SET_PLUS_13.terminals.to_vec(),
                         }
                     });
                 }
@@ -5493,7 +5493,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 if !matched {
                     self.add_parse_error(input_index, SlotId(283), Some(gss_node_id), || {
                         ParseErrorKind::UnexpectedToken {
-                            expected: FIRST_SET_ALT_0.to_vec(),
+                            expected: FIRST_SET_ALT_0.terminals.to_vec(),
                         }
                     });
                 }
@@ -5514,7 +5514,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 if !matched {
                     self.add_parse_error(input_index, SlotId(287), Some(gss_node_id), || {
                         ParseErrorKind::UnexpectedToken {
-                            expected: FIRST_SET_PLUS_14.to_vec(),
+                            expected: FIRST_SET_PLUS_14.terminals.to_vec(),
                         }
                     });
                 }
@@ -5538,7 +5538,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     self.add_parse_error(input_index, SlotId(292), Some(gss_node_id), || {
                         ParseErrorKind::UnexpectedToken {
                             expected: {
-                                let mut expected = FIRST_SET_OPT_11.to_vec();
+                                let mut expected = FIRST_SET_OPT_11.terminals.to_vec();
                                 expected.extend_from_slice(FOLLOW_SET_OPT_11.terminals);
                                 expected
                             },
@@ -6213,7 +6213,7 @@ impl<'i> IggyParser<'i> {
     fn parse_layout_def_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
         #[cfg(feature = "instrument")]
         self.ll1_call_log.push((NonterminalId(1), i));
-        let matched = self.scanner.longest_match(FIRST_SET_LAYOUT_DEF, i)?;
+        let matched = self.scanner.longest_match(&FIRST_SET_LAYOUT_DEF, i)?;
         match matched {
             TerminalId(11) => {
                 let mut j = i;
@@ -6271,7 +6271,7 @@ impl<'i> IggyParser<'i> {
     fn parse_annotation_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
         #[cfg(feature = "instrument")]
         self.ll1_call_log.push((NonterminalId(4), i));
-        let matched = self.scanner.longest_match(FIRST_SET_ANNOTATION, i)?;
+        let matched = self.scanner.longest_match(&FIRST_SET_ANNOTATION, i)?;
         match matched {
             TerminalId(14) => {
                 let mut j = i;
@@ -6439,7 +6439,7 @@ impl<'i> IggyParser<'i> {
     fn parse_pre_condition_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
         #[cfg(feature = "instrument")]
         self.ll1_call_log.push((NonterminalId(6), i));
-        let matched = self.scanner.longest_match(FIRST_SET_PRE_CONDITION, i)?;
+        let matched = self.scanner.longest_match(&FIRST_SET_PRE_CONDITION, i)?;
         match matched {
             TerminalId(1) => {
                 let mut j = i;
@@ -6497,7 +6497,7 @@ impl<'i> IggyParser<'i> {
     fn parse_post_condition_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
         #[cfg(feature = "instrument")]
         self.ll1_call_log.push((NonterminalId(7), i));
-        let matched = self.scanner.longest_match(FIRST_SET_POST_CONDITION, i)?;
+        let matched = self.scanner.longest_match(&FIRST_SET_POST_CONDITION, i)?;
         match matched {
             TerminalId(22) => {
                 let mut j = i;
@@ -6605,7 +6605,7 @@ impl<'i> IggyParser<'i> {
     fn parse_associativity_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
         #[cfg(feature = "instrument")]
         self.ll1_call_log.push((NonterminalId(9), i));
-        let matched = self.scanner.longest_match(FIRST_SET_ASSOCIATIVITY, i)?;
+        let matched = self.scanner.longest_match(&FIRST_SET_ASSOCIATIVITY, i)?;
         match matched {
             TerminalId(24) => {
                 let mut j = i;
@@ -6679,7 +6679,7 @@ impl<'i> IggyParser<'i> {
     fn parse_range_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
         #[cfg(feature = "instrument")]
         self.ll1_call_log.push((NonterminalId(14), i));
-        let matched = self.scanner.longest_match(FIRST_SET_RANGE, i)?;
+        let matched = self.scanner.longest_match(&FIRST_SET_RANGE, i)?;
         match matched {
             TerminalId(5) => {
                 let mut j = i;
@@ -6802,7 +6802,7 @@ impl<'i> IggyParser<'i> {
     fn parse_opt_0_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
         #[cfg(feature = "instrument")]
         self.ll1_call_log.push((NonterminalId(16), i));
-        let Some(matched) = self.scanner.longest_match(FIRST_SET_OPT_0, i) else {
+        let Some(matched) = self.scanner.longest_match(&FIRST_SET_OPT_0, i) else {
             let epsilon_node_id = self.get_or_create_epsilon_node(i);
             return Some(self.add_nonterminal_node(NonterminalNode {
                 nonterminal_id: NonterminalId(16),
@@ -6895,7 +6895,7 @@ impl<'i> IggyParser<'i> {
     fn parse_opt_2_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
         #[cfg(feature = "instrument")]
         self.ll1_call_log.push((NonterminalId(21), i));
-        let Some(matched) = self.scanner.longest_match(FIRST_SET_OPT_2, i) else {
+        let Some(matched) = self.scanner.longest_match(&FIRST_SET_OPT_2, i) else {
             let epsilon_node_id = self.get_or_create_epsilon_node(i);
             return Some(self.add_nonterminal_node(NonterminalNode {
                 nonterminal_id: NonterminalId(21),
@@ -7012,7 +7012,7 @@ impl<'i> IggyParser<'i> {
     fn parse_opt_5_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
         #[cfg(feature = "instrument")]
         self.ll1_call_log.push((NonterminalId(30), i));
-        let Some(matched) = self.scanner.longest_match(FIRST_SET_OPT_5, i) else {
+        let Some(matched) = self.scanner.longest_match(&FIRST_SET_OPT_5, i) else {
             let epsilon_node_id = self.get_or_create_epsilon_node(i);
             return Some(self.add_nonterminal_node(NonterminalNode {
                 nonterminal_id: NonterminalId(30),
@@ -7078,7 +7078,7 @@ impl<'i> IggyParser<'i> {
     fn parse_opt_6_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
         #[cfg(feature = "instrument")]
         self.ll1_call_log.push((NonterminalId(32), i));
-        let Some(matched) = self.scanner.longest_match(FIRST_SET_OPT_6, i) else {
+        let Some(matched) = self.scanner.longest_match(&FIRST_SET_OPT_6, i) else {
             let epsilon_node_id = self.get_or_create_epsilon_node(i);
             return Some(self.add_nonterminal_node(NonterminalNode {
                 nonterminal_id: NonterminalId(32),
@@ -7120,7 +7120,7 @@ impl<'i> IggyParser<'i> {
     fn parse_opt_9_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
         #[cfg(feature = "instrument")]
         self.ll1_call_log.push((NonterminalId(39), i));
-        let Some(matched) = self.scanner.longest_match(FIRST_SET_OPT_9, i) else {
+        let Some(matched) = self.scanner.longest_match(&FIRST_SET_OPT_9, i) else {
             let epsilon_node_id = self.get_or_create_epsilon_node(i);
             return Some(self.add_nonterminal_node(NonterminalNode {
                 nonterminal_id: NonterminalId(39),
@@ -7162,7 +7162,7 @@ impl<'i> IggyParser<'i> {
     fn parse_group_1_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
         #[cfg(feature = "instrument")]
         self.ll1_call_log.push((NonterminalId(42), i));
-        let matched = self.scanner.longest_match(FIRST_SET_GROUP_1, i)?;
+        let matched = self.scanner.longest_match(&FIRST_SET_GROUP_1, i)?;
         match matched {
             TerminalId(22) => {
                 let mut j = i;
@@ -7220,7 +7220,7 @@ impl<'i> IggyParser<'i> {
     fn parse_group_2_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
         #[cfg(feature = "instrument")]
         self.ll1_call_log.push((NonterminalId(44), i));
-        let matched = self.scanner.longest_match(FIRST_SET_GROUP_2, i)?;
+        let matched = self.scanner.longest_match(&FIRST_SET_GROUP_2, i)?;
         match matched {
             TerminalId(23) => {
                 let mut j = i;
@@ -7278,7 +7278,7 @@ impl<'i> IggyParser<'i> {
     fn parse_group_3_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
         #[cfg(feature = "instrument")]
         self.ll1_call_log.push((NonterminalId(46), i));
-        let matched = self.scanner.longest_match(FIRST_SET_GROUP_3, i)?;
+        let matched = self.scanner.longest_match(&FIRST_SET_GROUP_3, i)?;
         match matched {
             TerminalId(32) => {
                 let mut j = i;
@@ -7336,7 +7336,7 @@ impl<'i> IggyParser<'i> {
     fn parse_opt_10_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
         #[cfg(feature = "instrument")]
         self.ll1_call_log.push((NonterminalId(50), i));
-        let Some(matched) = self.scanner.longest_match(FIRST_SET_OPT_10, i) else {
+        let Some(matched) = self.scanner.longest_match(&FIRST_SET_OPT_10, i) else {
             let epsilon_node_id = self.get_or_create_epsilon_node(i);
             return Some(self.add_nonterminal_node(NonterminalNode {
                 nonterminal_id: NonterminalId(50),
@@ -7378,7 +7378,7 @@ impl<'i> IggyParser<'i> {
     fn parse_alt_0_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
         #[cfg(feature = "instrument")]
         self.ll1_call_log.push((NonterminalId(52), i));
-        let matched = self.scanner.longest_match(FIRST_SET_ALT_0, i)?;
+        let matched = self.scanner.longest_match(&FIRST_SET_ALT_0, i)?;
         match matched {
             TerminalId(7) => {
                 let mut j = i;
@@ -7478,7 +7478,7 @@ impl<'i> IggyParser<'i> {
     fn parse_opt_11_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
         #[cfg(feature = "instrument")]
         self.ll1_call_log.push((NonterminalId(54), i));
-        let Some(matched) = self.scanner.longest_match(FIRST_SET_OPT_11, i) else {
+        let Some(matched) = self.scanner.longest_match(&FIRST_SET_OPT_11, i) else {
             let epsilon_node_id = self.get_or_create_epsilon_node(i);
             return Some(self.add_nonterminal_node(NonterminalNode {
                 nonterminal_id: NonterminalId(54),

@@ -156,7 +156,10 @@ pub static FOLLOW_SET_S: TerminalSet = TerminalSet {
     terminals: &[TerminalId(0), TerminalId(5)],
 };
 // S { "a" }
-pub static FIRST_SET_S: &[TerminalId] = &[TerminalId(1)];
+pub static FIRST_SET_S: TerminalSet = TerminalSet {
+    id: 0,
+    terminals: &[TerminalId(1)],
+};
 // S : . E(0) { "a" }
 pub static FIRST_SET_S_ALT0: TerminalSet = TerminalSet {
     id: 1,
@@ -168,7 +171,10 @@ pub static FOLLOW_SET_E: TerminalSet = TerminalSet {
     terminals: &[TerminalId(2), TerminalId(5), TerminalId(3), TerminalId(0)],
 };
 // E { "a" }
-pub static FIRST_SET_E: &[TerminalId] = &[TerminalId(1)];
+pub static FIRST_SET_E: TerminalSet = TerminalSet {
+    id: 0,
+    terminals: &[TerminalId(1)],
+};
 // E(p: i32) : . "a" return 0 { "a" }
 pub static FIRST_SET_E_ALT0: TerminalSet = TerminalSet {
     id: 1,
@@ -190,7 +196,10 @@ pub static FOLLOW_SET_POSTFIX: TerminalSet = TerminalSet {
     terminals: &[TerminalId(2), TerminalId(5), TerminalId(3), TerminalId(0)],
 };
 // Postfix { "a" }
-pub static FIRST_SET_POSTFIX: &[TerminalId] = &[TerminalId(1)];
+pub static FIRST_SET_POSTFIX: TerminalSet = TerminalSet {
+    id: 0,
+    terminals: &[TerminalId(1)],
+};
 // Postfix(p: i32) : . r=Body(p) WS "!" return r { "a" }
 pub static FIRST_SET_POSTFIX_ALT0: TerminalSet = TerminalSet {
     id: 1,
@@ -202,7 +211,10 @@ pub static FOLLOW_SET_BODY: TerminalSet = TerminalSet {
     terminals: &[TerminalId(5), TerminalId(3), TerminalId(0)],
 };
 // Body { "a" }
-pub static FIRST_SET_BODY: &[TerminalId] = &[TerminalId(1)];
+pub static FIRST_SET_BODY: TerminalSet = TerminalSet {
+    id: 0,
+    terminals: &[TerminalId(1)],
+};
 // Body(p: i32) : . r=E(p) return r { "a" }
 pub static FIRST_SET_BODY_ALT0: TerminalSet = TerminalSet {
     id: 1,
@@ -214,7 +226,10 @@ pub static FOLLOW_SET_START_S: TerminalSet = TerminalSet {
     terminals: &[TerminalId(5)],
 };
 // StartS { "a", WS }
-pub static FIRST_SET_START_S: &[TerminalId] = &[TerminalId(1), TerminalId(0)];
+pub static FIRST_SET_START_S: TerminalSet = TerminalSet {
+    id: 1,
+    terminals: &[TerminalId(1), TerminalId(0)],
+};
 // StartS : . WS start:S WS { "a", WS }
 pub static FIRST_SET_START_S_ALT0: TerminalSet = TerminalSet {
     id: 5,

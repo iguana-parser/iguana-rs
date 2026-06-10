@@ -272,7 +272,7 @@ impl<'i> Parser<'i> for PlusGroupParser<'i> {
                 if !matched {
                     self.add_parse_error(input_index, SlotId(12), Some(gss_node_id), || {
                         ParseErrorKind::UnexpectedToken {
-                            expected: FIRST_SET_PLUS_0.to_vec(),
+                            expected: FIRST_SET_PLUS_0.terminals.to_vec(),
                         }
                     });
                 }
@@ -739,7 +739,7 @@ impl<'i> PlusGroupParser<'i> {
     fn parse_s_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
         #[cfg(feature = "instrument")]
         self.ll1_call_log.push((NonterminalId(0), i));
-        let matched = self.scanner.longest_match(FIRST_SET_S, i)?;
+        let matched = self.scanner.longest_match(&FIRST_SET_S, i)?;
         match matched {
             TerminalId(0) => {
                 let mut j = i;
@@ -769,7 +769,7 @@ impl<'i> PlusGroupParser<'i> {
     fn parse_a_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
         #[cfg(feature = "instrument")]
         self.ll1_call_log.push((NonterminalId(1), i));
-        let matched = self.scanner.longest_match(FIRST_SET_A, i)?;
+        let matched = self.scanner.longest_match(&FIRST_SET_A, i)?;
         match matched {
             TerminalId(0) => {
                 let mut j = i;
@@ -799,7 +799,7 @@ impl<'i> PlusGroupParser<'i> {
     fn parse_b_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
         #[cfg(feature = "instrument")]
         self.ll1_call_log.push((NonterminalId(2), i));
-        let matched = self.scanner.longest_match(FIRST_SET_B, i)?;
+        let matched = self.scanner.longest_match(&FIRST_SET_B, i)?;
         match matched {
             TerminalId(1) => {
                 let mut j = i;
@@ -829,7 +829,7 @@ impl<'i> PlusGroupParser<'i> {
     fn parse_c_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
         #[cfg(feature = "instrument")]
         self.ll1_call_log.push((NonterminalId(3), i));
-        let matched = self.scanner.longest_match(FIRST_SET_C, i)?;
+        let matched = self.scanner.longest_match(&FIRST_SET_C, i)?;
         match matched {
             TerminalId(2) => {
                 let mut j = i;
@@ -859,7 +859,7 @@ impl<'i> PlusGroupParser<'i> {
     fn parse_group_0_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
         #[cfg(feature = "instrument")]
         self.ll1_call_log.push((NonterminalId(4), i));
-        let matched = self.scanner.longest_match(FIRST_SET_GROUP_0, i)?;
+        let matched = self.scanner.longest_match(&FIRST_SET_GROUP_0, i)?;
         match matched {
             TerminalId(0) => {
                 let mut j = i;

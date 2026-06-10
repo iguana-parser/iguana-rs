@@ -61,7 +61,10 @@ pub static FOLLOW_SET_SYNTAX_IDENTIFIER: TerminalSet = TerminalSet {
     terminals: &[TerminalId(6)],
 };
 // SyntaxIdentifier { IdentifierChars }
-pub static FIRST_SET_SYNTAX_IDENTIFIER: &[TerminalId] = &[TerminalId(1)];
+pub static FIRST_SET_SYNTAX_IDENTIFIER: TerminalSet = TerminalSet {
+    id: 0,
+    terminals: &[TerminalId(1)],
+};
 // SyntaxIdentifier : . IdentifierChars \ Keyword \ BooleanLiteral \ NullLiteral { IdentifierChars }
 pub static FIRST_SET_SYNTAX_IDENTIFIER_ALT0: TerminalSet = TerminalSet {
     id: 1,
@@ -73,7 +76,10 @@ pub static FOLLOW_SET_LEXICAL_IDENTIFIER: TerminalSet = TerminalSet {
     terminals: &[TerminalId(6)],
 };
 // LexicalIdentifier { Identifier }
-pub static FIRST_SET_LEXICAL_IDENTIFIER: &[TerminalId] = &[TerminalId(0)];
+pub static FIRST_SET_LEXICAL_IDENTIFIER: TerminalSet = TerminalSet {
+    id: 1,
+    terminals: &[TerminalId(0)],
+};
 // LexicalIdentifier : . Identifier { Identifier }
 pub static FIRST_SET_LEXICAL_IDENTIFIER_ALT0: TerminalSet = TerminalSet {
     id: 2,

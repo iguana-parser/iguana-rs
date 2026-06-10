@@ -263,7 +263,7 @@ impl<'i> Parser<'i> for AmbPlusParser<'i> {
                 if !matched {
                     self.add_parse_error(input_index, SlotId(2), Some(gss_node_id), || {
                         ParseErrorKind::UnexpectedToken {
-                            expected: FIRST_SET_A.to_vec(),
+                            expected: FIRST_SET_A.terminals.to_vec(),
                         }
                     });
                 }
@@ -292,7 +292,7 @@ impl<'i> Parser<'i> for AmbPlusParser<'i> {
                 if !matched {
                     self.add_parse_error(input_index, SlotId(11), Some(gss_node_id), || {
                         ParseErrorKind::UnexpectedToken {
-                            expected: FIRST_SET_PLUS_0.to_vec(),
+                            expected: FIRST_SET_PLUS_0.terminals.to_vec(),
                         }
                     });
                 }
@@ -316,7 +316,7 @@ impl<'i> Parser<'i> for AmbPlusParser<'i> {
                     self.add_parse_error(input_index, SlotId(16), Some(gss_node_id), || {
                         ParseErrorKind::UnexpectedToken {
                             expected: {
-                                let mut expected = FIRST_SET_OPT_0.to_vec();
+                                let mut expected = FIRST_SET_OPT_0.terminals.to_vec();
                                 expected.extend_from_slice(FOLLOW_SET_OPT_0.terminals);
                                 expected
                             },
@@ -792,7 +792,7 @@ impl<'i> AmbPlusParser<'i> {
     fn parse_x_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
         #[cfg(feature = "instrument")]
         self.ll1_call_log.push((NonterminalId(2), i));
-        let matched = self.scanner.longest_match(FIRST_SET_X, i)?;
+        let matched = self.scanner.longest_match(&FIRST_SET_X, i)?;
         match matched {
             TerminalId(0) => {
                 let mut j = i;
@@ -822,7 +822,7 @@ impl<'i> AmbPlusParser<'i> {
     fn parse_y_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
         #[cfg(feature = "instrument")]
         self.ll1_call_log.push((NonterminalId(3), i));
-        let matched = self.scanner.longest_match(FIRST_SET_Y, i)?;
+        let matched = self.scanner.longest_match(&FIRST_SET_Y, i)?;
         match matched {
             TerminalId(0) => {
                 let mut j = i;

@@ -166,7 +166,7 @@ impl<'i> Parser<'i> for OptParser<'i> {
                     self.add_parse_error(input_index, SlotId(4), Some(gss_node_id), || {
                         ParseErrorKind::UnexpectedToken {
                             expected: {
-                                let mut expected = FIRST_SET_OPT_0.to_vec();
+                                let mut expected = FIRST_SET_OPT_0.terminals.to_vec();
                                 expected.extend_from_slice(FOLLOW_SET_OPT_0.terminals);
                                 expected
                             },
@@ -654,7 +654,7 @@ impl<'i> OptParser<'i> {
     fn parse_a_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
         #[cfg(feature = "instrument")]
         self.ll1_call_log.push((NonterminalId(1), i));
-        let matched = self.scanner.longest_match(FIRST_SET_A, i)?;
+        let matched = self.scanner.longest_match(&FIRST_SET_A, i)?;
         match matched {
             TerminalId(0) => {
                 let mut j = i;
@@ -684,7 +684,7 @@ impl<'i> OptParser<'i> {
     fn parse_opt_0_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
         #[cfg(feature = "instrument")]
         self.ll1_call_log.push((NonterminalId(2), i));
-        let Some(matched) = self.scanner.longest_match(FIRST_SET_OPT_0, i) else {
+        let Some(matched) = self.scanner.longest_match(&FIRST_SET_OPT_0, i) else {
             let epsilon_node_id = self.get_or_create_epsilon_node(i);
             return Some(self.add_nonterminal_node(NonterminalNode {
                 nonterminal_id: NonterminalId(2),

@@ -110,7 +110,10 @@ pub static FOLLOW_SET_S: TerminalSet = TerminalSet {
     terminals: &[TerminalId(5)],
 };
 // S { Letter }
-pub static FIRST_SET_S: &[TerminalId] = &[TerminalId(1)];
+pub static FIRST_SET_S: TerminalSet = TerminalSet {
+    id: 0,
+    terminals: &[TerminalId(1)],
+};
 // S : . Id { Letter }
 pub static FIRST_SET_S_ALT0: TerminalSet = TerminalSet {
     id: 1,
@@ -122,7 +125,10 @@ pub static FOLLOW_SET_ID: TerminalSet = TerminalSet {
     terminals: &[TerminalId(5)],
 };
 // Id { Letter }
-pub static FIRST_SET_ID: &[TerminalId] = &[TerminalId(1)];
+pub static FIRST_SET_ID: TerminalSet = TerminalSet {
+    id: 0,
+    terminals: &[TerminalId(1)],
+};
 // Id : . Letter Star_0 { Letter }
 pub static FIRST_SET_ID_ALT0: TerminalSet = TerminalSet {
     id: 1,
@@ -134,7 +140,10 @@ pub static FOLLOW_SET_PLUS_0: TerminalSet = TerminalSet {
     terminals: &[TerminalId(2), TerminalId(5)],
 };
 // Plus_0 { LetterOrDigit }
-pub static FIRST_SET_PLUS_0: &[TerminalId] = &[TerminalId(2)];
+pub static FIRST_SET_PLUS_0: TerminalSet = TerminalSet {
+    id: 1,
+    terminals: &[TerminalId(2)],
+};
 // Plus_0 : . Plus_0 LetterOrDigit { LetterOrDigit }
 pub static FIRST_SET_PLUS_0_ALT0: TerminalSet = TerminalSet {
     id: 3,
@@ -151,7 +160,10 @@ pub static FOLLOW_SET_OPT_0: TerminalSet = TerminalSet {
     terminals: &[TerminalId(5)],
 };
 // Opt_0 { LetterOrDigit }
-pub static FIRST_SET_OPT_0: &[TerminalId] = &[TerminalId(2)];
+pub static FIRST_SET_OPT_0: TerminalSet = TerminalSet {
+    id: 1,
+    terminals: &[TerminalId(2)],
+};
 // Opt_0 : . Plus_0 { LetterOrDigit }
 pub static FIRST_SET_OPT_0_ALT0: TerminalSet = TerminalSet {
     id: 3,
@@ -168,7 +180,10 @@ pub static FOLLOW_SET_STAR_0: TerminalSet = TerminalSet {
     terminals: &[TerminalId(5)],
 };
 // Star_0 { LetterOrDigit }
-pub static FIRST_SET_STAR_0: &[TerminalId] = &[TerminalId(2)];
+pub static FIRST_SET_STAR_0: TerminalSet = TerminalSet {
+    id: 1,
+    terminals: &[TerminalId(2)],
+};
 // Star_0 : . Opt_0 { LetterOrDigit }
 pub static FIRST_SET_STAR_0_ALT0: TerminalSet = TerminalSet {
     id: 3,

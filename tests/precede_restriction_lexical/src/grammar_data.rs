@@ -52,7 +52,10 @@ pub static FOLLOW_SET_S: TerminalSet = TerminalSet {
     terminals: &[TerminalId(6)],
 };
 // S { "forall", "for" }
-pub static FIRST_SET_S: &[TerminalId] = &[TerminalId(4), TerminalId(3)];
+pub static FIRST_SET_S: TerminalSet = TerminalSet {
+    id: 0,
+    terminals: &[TerminalId(4), TerminalId(3)],
+};
 // S : . "for" WS Id { "for" }
 pub static FIRST_SET_S_ALT0: TerminalSet = TerminalSet {
     id: 1,

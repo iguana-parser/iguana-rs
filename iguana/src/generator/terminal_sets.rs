@@ -126,25 +126,41 @@ pub fn terminal_sets<'a>(grammar: &'a Grammar, ff: &FirstFollowSets) -> Vec<Term
     sets
 }
 
-/// Content-deduplicated ids for the terminal sets passed to `match_any`.
+/// Content-deduplicated ids for one family of terminal sets.
 ///
-/// `match_any` is order-insensitive, so two sets with the same terminals share
-/// an id and therefore a memo bit. Ids are assigned by content in the order
-/// `terminal_sets` yields the sets, so the generated code is deterministic.
-pub struct MatchAnySets {
+/// `match_any` and `longest_match` are both order-insensitive, so two sets with
+/// the same terminals share an id. Ids are assigned by content in the order
+/// `terminal_sets` yields the sets, so the generated code is deterministic. The
+/// two families get separate id spaces, each numbered from zero: `match_any`
+/// keys its per-position memo by this id; `longest_match` is not memoized, but
+/// its sets are numbered the same way so every `TerminalSet` has one id.
+pub struct SetIds {
     ids: FxHashMap<String, usize>,
     count: usize,
 }
 
-impl MatchAnySets {
-    pub fn new(sets: &[TerminalSet], terminal_ids: &TerminalIds) -> Self {
+impl SetIds {
+    /// Ids for the sets the parser tests with `match_any`: every set except the
+    /// combined FIRST set.
+    pub fn match_any(sets: &[TerminalSet], terminal_ids: &TerminalIds) -> Self {
+        Self::new(sets, terminal_ids, |kind| !matches!(kind, SetKind::First))
+    }
+
+    /// Ids for the combined FIRST sets, which the LL(1) path dispatches on with
+    /// `longest_match`.
+    pub fn longest_match(sets: &[TerminalSet], terminal_ids: &TerminalIds) -> Self {
+        Self::new(sets, terminal_ids, |kind| matches!(kind, SetKind::First))
+    }
+
+    fn new(
+        sets: &[TerminalSet],
+        terminal_ids: &TerminalIds,
+        include: impl Fn(&SetKind) -> bool,
+    ) -> Self {
         let mut ids = FxHashMap::default();
         let mut content_ids: FxHashMap<Vec<TerminalId>, usize> = FxHashMap::default();
         for set in sets {
-            // The parser calls `longest_match` on the combined FIRST set and
-            // `match_any` on every other set. Only `match_any` is memoized, so
-            // the FIRST set gets no id.
-            if matches!(set.kind, SetKind::First) {
+            if !include(&set.kind) {
                 continue;
             }
             // Sort and dedup so sets that differ only in terminal order share an id.
@@ -170,7 +186,7 @@ impl MatchAnySets {
         *self
             .ids
             .get(set_name)
-            .unwrap_or_else(|| panic!("no match_any set id for `{set_name}`"))
+            .unwrap_or_else(|| panic!("no set id for `{set_name}`"))
     }
 
     pub fn count(&self) -> usize {

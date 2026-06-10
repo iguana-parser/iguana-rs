@@ -211,7 +211,7 @@ impl<'i> Parser<'i> for FollowRestrictionLexicalParser<'i> {
                 if !matched {
                     self.add_parse_error(input_index, SlotId(2), Some(gss_node_id), || {
                         ParseErrorKind::UnexpectedToken {
-                            expected: FIRST_SET_ELEMENT.to_vec(),
+                            expected: FIRST_SET_ELEMENT.terminals.to_vec(),
                         }
                     });
                 }
@@ -232,7 +232,7 @@ impl<'i> Parser<'i> for FollowRestrictionLexicalParser<'i> {
                 if !matched {
                     self.add_parse_error(input_index, SlotId(6), Some(gss_node_id), || {
                         ParseErrorKind::UnexpectedToken {
-                            expected: FIRST_SET_PLUS_0.to_vec(),
+                            expected: FIRST_SET_PLUS_0.terminals.to_vec(),
                         }
                     });
                 }
@@ -693,7 +693,7 @@ impl<'i> FollowRestrictionLexicalParser<'i> {
     fn parse_s_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
         #[cfg(feature = "instrument")]
         self.ll1_call_log.push((NonterminalId(0), i));
-        let matched = self.scanner.longest_match(FIRST_SET_S, i)?;
+        let matched = self.scanner.longest_match(&FIRST_SET_S, i)?;
         match matched {
             TerminalId(0) | TerminalId(2) => {
                 let mut j = i;
@@ -723,7 +723,7 @@ impl<'i> FollowRestrictionLexicalParser<'i> {
     fn parse_element_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
         #[cfg(feature = "instrument")]
         self.ll1_call_log.push((NonterminalId(1), i));
-        let matched = self.scanner.longest_match(FIRST_SET_ELEMENT, i)?;
+        let matched = self.scanner.longest_match(&FIRST_SET_ELEMENT, i)?;
         match matched {
             TerminalId(0) => {
                 let mut j = i;

@@ -112,7 +112,10 @@ pub static FOLLOW_SET_S: TerminalSet = TerminalSet {
     terminals: &[TerminalId(3)],
 };
 // S { Char }
-pub static FIRST_SET_S: &[TerminalId] = &[TerminalId(0)];
+pub static FIRST_SET_S: TerminalSet = TerminalSet {
+    id: 0,
+    terminals: &[TerminalId(0)],
+};
 // S : . Plus_0 { Char }
 pub static FIRST_SET_S_ALT0: TerminalSet = TerminalSet {
     id: 1,
@@ -124,7 +127,10 @@ pub static FOLLOW_SET_T: TerminalSet = TerminalSet {
     terminals: &[TerminalId(3)],
 };
 // T { Char }
-pub static FIRST_SET_T: &[TerminalId] = &[TerminalId(0)];
+pub static FIRST_SET_T: TerminalSet = TerminalSet {
+    id: 0,
+    terminals: &[TerminalId(0)],
+};
 // T : . Char !>> Char { Char }
 pub static FIRST_SET_T_ALT0: TerminalSet = TerminalSet {
     id: 1,
@@ -141,7 +147,10 @@ pub static FOLLOW_SET_ID: TerminalSet = TerminalSet {
     terminals: &[TerminalId(3), TerminalId(0), TerminalId(1)],
 };
 // Id { Char }
-pub static FIRST_SET_ID: &[TerminalId] = &[TerminalId(0)];
+pub static FIRST_SET_ID: TerminalSet = TerminalSet {
+    id: 0,
+    terminals: &[TerminalId(0)],
+};
 // Id : . Plus_1 !>> Char { Char }
 pub static FIRST_SET_ID_ALT0: TerminalSet = TerminalSet {
     id: 1,
@@ -158,7 +167,10 @@ pub static FOLLOW_SET_PLUS_0: TerminalSet = TerminalSet {
     terminals: &[TerminalId(3), TerminalId(0), TerminalId(1)],
 };
 // Plus_0 { Char }
-pub static FIRST_SET_PLUS_0: &[TerminalId] = &[TerminalId(0)];
+pub static FIRST_SET_PLUS_0: TerminalSet = TerminalSet {
+    id: 0,
+    terminals: &[TerminalId(0)],
+};
 // Plus_0 : . Plus_0 WS Id { Char }
 pub static FIRST_SET_PLUS_0_ALT0: TerminalSet = TerminalSet {
     id: 1,
@@ -175,7 +187,10 @@ pub static FOLLOW_SET_PLUS_1: TerminalSet = TerminalSet {
     terminals: &[TerminalId(1), TerminalId(3)],
 };
 // Plus_1 { Char }
-pub static FIRST_SET_PLUS_1: &[TerminalId] = &[TerminalId(0)];
+pub static FIRST_SET_PLUS_1: TerminalSet = TerminalSet {
+    id: 0,
+    terminals: &[TerminalId(0)],
+};
 // Plus_1 : . Plus_1 Char { Char }
 pub static FIRST_SET_PLUS_1_ALT0: TerminalSet = TerminalSet {
     id: 1,

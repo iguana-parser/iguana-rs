@@ -2,7 +2,7 @@ use proc_macro2::{Literal, TokenStream};
 use quote::{format_ident, quote};
 
 use crate::generator::id::{NonterminalIds, SlotIds, TerminalIds};
-use crate::generator::terminal_sets::{MatchAnySets, SetKind, TerminalSet};
+use crate::generator::terminal_sets::{SetIds, SetKind, TerminalSet};
 use crate::grammar::def::Grammar;
 use crate::grammar::symbols::Nonterminal;
 use crate::utils::to_snake_case;
@@ -13,7 +13,8 @@ pub fn generate<'a>(
     terminal_ids: &TerminalIds,
     slot_ids: &SlotIds<'a>,
     terminal_sets: &[TerminalSet],
-    match_any_sets: &MatchAnySets,
+    match_any_sets: &SetIds,
+    longest_match_sets: &SetIds,
 ) -> TokenStream {
     let mut items = vec![];
 
@@ -25,19 +26,17 @@ pub fn generate<'a>(
             .iter()
             .map(|t| terminal_ids.get_id(t))
             .collect();
-        // `match_any` sets carry their memo id in a `TerminalSet`. The combined
-        // FIRST set goes to `longest_match`, which takes a plain slice.
-        let static_def = if matches!(set.kind, SetKind::First) {
-            quote! { pub static #name: &[TerminalId] = &[#(#ids),*]; }
-        } else {
-            let set_id = Literal::usize_unsuffixed(match_any_sets.id(&set.name()));
-            quote! {
-                pub static #name: TerminalSet = TerminalSet { id: #set_id, terminals: &[#(#ids),*] };
-            }
+        // Every set is emitted as a `TerminalSet`. Its id comes from the
+        // `match_any` space (which keys that memo), except the combined FIRST
+        // set, which is numbered in the `longest_match` space.
+        let set_id = match set.kind {
+            SetKind::First => longest_match_sets.id(&set.name()),
+            _ => match_any_sets.id(&set.name()),
         };
+        let set_id = Literal::usize_unsuffixed(set_id);
         items.push(quote! {
             #[comment = #comment]
-            #static_def
+            pub static #name: TerminalSet = TerminalSet { id: #set_id, terminals: &[#(#ids),*] };
         });
     }
 

@@ -3,7 +3,7 @@ use quote::{format_ident, quote};
 
 use crate::{
     dfa::{Dfa, Nfa},
-    generator::{GenConfig, id::TerminalIds, terminal_sets::MatchAnySets},
+    generator::{GenConfig, id::TerminalIds, terminal_sets::SetIds},
     grammar::{
         def::Grammar,
         symbols::{Definition, Terminal},
@@ -13,7 +13,7 @@ use crate::{
 pub fn generate(
     grammar: &Grammar,
     terminal_ids: &TerminalIds,
-    match_any_sets: &MatchAnySets,
+    match_any_sets: &SetIds,
     config: &GenConfig,
 ) -> TokenStream {
     let grammar_name = &grammar.name;
@@ -71,7 +71,7 @@ fn gen_memo_words_const(terminal_ids: &TerminalIds, config: &GenConfig) -> Token
 /// distinct sets need `ceil(count / 64)` words, at least one so the array is
 /// never zero-length. The scanner sizes its table as
 /// `MatchAnyMemo<MATCH_ANY_SET_WORDS>`.
-fn gen_match_any_words_const(match_any_sets: &MatchAnySets, config: &GenConfig) -> TokenStream {
+fn gen_match_any_words_const(match_any_sets: &SetIds, config: &GenConfig) -> TokenStream {
     if !config.match_memo {
         return quote! {};
     }

@@ -211,7 +211,7 @@ impl<'i> Parser<'i> for AmbListParser<'i> {
                 if !matched {
                     self.add_parse_error(input_index, SlotId(5), Some(gss_node_id), || {
                         ParseErrorKind::UnexpectedToken {
-                            expected: FIRST_SET_PLUS_0.to_vec(),
+                            expected: FIRST_SET_PLUS_0.terminals.to_vec(),
                         }
                     });
                 }
@@ -235,7 +235,7 @@ impl<'i> Parser<'i> for AmbListParser<'i> {
                     self.add_parse_error(input_index, SlotId(10), Some(gss_node_id), || {
                         ParseErrorKind::UnexpectedToken {
                             expected: {
-                                let mut expected = FIRST_SET_OPT_0.to_vec();
+                                let mut expected = FIRST_SET_OPT_0.terminals.to_vec();
                                 expected.extend_from_slice(FOLLOW_SET_OPT_0.terminals);
                                 expected
                             },
@@ -707,7 +707,7 @@ impl<'i> AmbListParser<'i> {
     fn parse_a_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
         #[cfg(feature = "instrument")]
         self.ll1_call_log.push((NonterminalId(1), i));
-        let matched = self.scanner.longest_match(FIRST_SET_A, i)?;
+        let matched = self.scanner.longest_match(&FIRST_SET_A, i)?;
         match matched {
             TerminalId(0) => {
                 let mut j = i;

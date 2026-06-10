@@ -45,7 +45,10 @@ pub static FOLLOW_SET_A: TerminalSet = TerminalSet {
     terminals: &[TerminalId(0), TerminalId(2)],
 };
 // A { "a" }
-pub static FIRST_SET_A: &[TerminalId] = &[TerminalId(0)];
+pub static FIRST_SET_A: TerminalSet = TerminalSet {
+    id: 0,
+    terminals: &[TerminalId(0)],
+};
 // A : . A "a" { "a" }
 pub static FIRST_SET_A_ALT0: TerminalSet = TerminalSet {
     id: 1,

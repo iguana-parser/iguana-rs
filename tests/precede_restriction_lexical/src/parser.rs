@@ -165,7 +165,7 @@ impl<'i> Parser<'i> for PrecedeRestrictionLexicalParser<'i> {
                 if !matched {
                     self.add_parse_error(input_index, SlotId(0), Some(gss_node_id), || {
                         ParseErrorKind::UnexpectedToken {
-                            expected: FIRST_SET_S.to_vec(),
+                            expected: FIRST_SET_S.terminals.to_vec(),
                         }
                     });
                 }
@@ -622,7 +622,7 @@ impl<'i> PrecedeRestrictionLexicalParser<'i> {
     fn parse_s_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
         #[cfg(feature = "instrument")]
         self.ll1_call_log.push((NonterminalId(0), i));
-        let matched = self.scanner.longest_match(FIRST_SET_S, i)?;
+        let matched = self.scanner.longest_match(&FIRST_SET_S, i)?;
         match matched {
             TerminalId(3) => {
                 let mut j = i;

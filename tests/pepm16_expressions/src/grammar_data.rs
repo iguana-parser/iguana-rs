@@ -297,8 +297,10 @@ pub static FOLLOW_SET_S: TerminalSet = TerminalSet {
     terminals: &[TerminalId(14)],
 };
 // S { "(", "if", "a", "-" }
-pub static FIRST_SET_S: &[TerminalId] =
-    &[TerminalId(10), TerminalId(6), TerminalId(12), TerminalId(5)];
+pub static FIRST_SET_S: TerminalSet = TerminalSet {
+    id: 0,
+    terminals: &[TerminalId(10), TerminalId(6), TerminalId(12), TerminalId(5)],
+};
 // S : . E(0) { "(", "if", "a", "-" }
 pub static FIRST_SET_S_ALT0: TerminalSet = TerminalSet {
     id: 1,
@@ -324,8 +326,10 @@ pub static FOLLOW_SET_E: TerminalSet = TerminalSet {
     ],
 };
 // E { "(", "if", "a", "-" }
-pub static FIRST_SET_E: &[TerminalId] =
-    &[TerminalId(10), TerminalId(6), TerminalId(12), TerminalId(5)];
+pub static FIRST_SET_E: TerminalSet = TerminalSet {
+    id: 0,
+    terminals: &[TerminalId(10), TerminalId(6), TerminalId(12), TerminalId(5)],
+};
 // E(p: i32) : . [6 >= p] l=E(p) [(l == 0) || (l >= 6)] WS "." WS "f" return 0 { "(", "if", "a", "-" }
 pub static FIRST_SET_E_ALT0: TerminalSet = TerminalSet {
     id: 1,

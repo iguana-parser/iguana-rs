@@ -293,7 +293,7 @@ impl<'i> Parser<'i> for CommentsParser<'i> {
                 if !matched {
                     self.add_parse_error(input_index, SlotId(0), Some(gss_node_id), || {
                         ParseErrorKind::UnexpectedToken {
-                            expected: FIRST_SET_EXPR.to_vec(),
+                            expected: FIRST_SET_EXPR.terminals.to_vec(),
                         }
                     });
                 }

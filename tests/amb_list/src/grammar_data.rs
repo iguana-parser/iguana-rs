@@ -105,7 +105,10 @@ pub static FOLLOW_SET_S: TerminalSet = TerminalSet {
     terminals: &[TerminalId(2)],
 };
 // S { "a" }
-pub static FIRST_SET_S: &[TerminalId] = &[TerminalId(0)];
+pub static FIRST_SET_S: TerminalSet = TerminalSet {
+    id: 0,
+    terminals: &[TerminalId(0)],
+};
 // S : . Star_0 Star_0 { "a" }
 pub static FIRST_SET_S_ALT0: TerminalSet = TerminalSet {
     id: 1,
@@ -117,7 +120,10 @@ pub static FOLLOW_SET_A: TerminalSet = TerminalSet {
     terminals: &[TerminalId(0), TerminalId(2)],
 };
 // A { "a" }
-pub static FIRST_SET_A: &[TerminalId] = &[TerminalId(0)];
+pub static FIRST_SET_A: TerminalSet = TerminalSet {
+    id: 0,
+    terminals: &[TerminalId(0)],
+};
 // A : . "a" { "a" }
 pub static FIRST_SET_A_ALT0: TerminalSet = TerminalSet {
     id: 1,
@@ -129,7 +135,10 @@ pub static FOLLOW_SET_PLUS_0: TerminalSet = TerminalSet {
     terminals: &[TerminalId(0), TerminalId(2)],
 };
 // Plus_0 { "a" }
-pub static FIRST_SET_PLUS_0: &[TerminalId] = &[TerminalId(0)];
+pub static FIRST_SET_PLUS_0: TerminalSet = TerminalSet {
+    id: 0,
+    terminals: &[TerminalId(0)],
+};
 // Plus_0 : . Plus_0 A { "a" }
 pub static FIRST_SET_PLUS_0_ALT0: TerminalSet = TerminalSet {
     id: 1,
@@ -146,7 +155,10 @@ pub static FOLLOW_SET_OPT_0: TerminalSet = TerminalSet {
     terminals: &[TerminalId(0), TerminalId(2)],
 };
 // Opt_0 { "a" }
-pub static FIRST_SET_OPT_0: &[TerminalId] = &[TerminalId(0)];
+pub static FIRST_SET_OPT_0: TerminalSet = TerminalSet {
+    id: 0,
+    terminals: &[TerminalId(0)],
+};
 // Opt_0 : . Plus_0 { "a" }
 pub static FIRST_SET_OPT_0_ALT0: TerminalSet = TerminalSet {
     id: 1,
@@ -163,7 +175,10 @@ pub static FOLLOW_SET_STAR_0: TerminalSet = TerminalSet {
     terminals: &[TerminalId(0), TerminalId(2)],
 };
 // Star_0 { "a" }
-pub static FIRST_SET_STAR_0: &[TerminalId] = &[TerminalId(0)];
+pub static FIRST_SET_STAR_0: TerminalSet = TerminalSet {
+    id: 0,
+    terminals: &[TerminalId(0)],
+};
 // Star_0 : . Opt_0 { "a" }
 pub static FIRST_SET_STAR_0_ALT0: TerminalSet = TerminalSet {
     id: 1,
