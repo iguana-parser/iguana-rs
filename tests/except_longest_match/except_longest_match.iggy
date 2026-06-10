@@ -1,0 +1,9 @@
+grammar ExceptLongestMatch
+
+S = Id Id
+
+@regex
+Id = [a-z] [a-z]? \ Keyword
+
+@regex
+Keyword = "if" | "iffy"

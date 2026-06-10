@@ -1,0 +1,13 @@
+grammar ExceptNonterminalLongestMatch
+
+S = Id Id
+
+Id = Name \ Keyword
+
+Name = Letter Letter | Letter
+
+@regex
+Letter = [a-z]
+
+@regex
+Keyword = "if" | "iffy"

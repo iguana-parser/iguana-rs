@@ -6,7 +6,8 @@ use crate::{
     generator::{GenConfig, id::TerminalIds, terminal_sets::SetIds},
     grammar::{
         def::Grammar,
-        symbols::{Definition, Terminal},
+        regex::Regex,
+        symbols::{Definition, Symbol, Terminal},
     },
 };
 
@@ -109,9 +110,21 @@ fn gen_dfa_statics(grammar: &Grammar, terminal_ids: &TerminalIds) -> TokenStream
             let rule = grammar
                 .lexical_rule(terminal)
                 .unwrap_or_else(|| panic!("Terminal {} is not defined", terminal.name));
-            let nfa = Nfa::from_regex(&rule.regex, terminal_ids.get_id(terminal));
-            let dfa = Dfa::from_nfa(&nfa);
-            gen_dfa_static(id as u16, &dfa)
+            let terminal_id = terminal_ids.get_id(terminal);
+            let nfa = if rule.except.is_empty() {
+                Nfa::from_regex(&rule.regex, terminal_id)
+            } else {
+                let excepts: Vec<&Regex> = rule
+                    .except
+                    .iter()
+                    .map(|except| {
+                        let (_, except_rule) = grammar.except_terminal(except);
+                        &except_rule.regex
+                    })
+                    .collect();
+                Nfa::with_excepts(&rule.regex, terminal_id, &excepts)
+            };
+            gen_dfa_static(id as u16, &Dfa::from_nfa(&nfa))
         })
         .collect();
     quote! {
@@ -146,8 +159,13 @@ fn gen_dfa_static(id: u16, dfa: &Dfa) -> TokenStream {
                 }
                 None => quote! { None },
             };
+            let constructor = if state.excluded {
+                quote! { State::new_excluded }
+            } else {
+                quote! { State::new }
+            };
             quote! {
-                State::new(&[#(#transitions),*], #accept)
+                #constructor(&[#(#transitions),*], #accept)
             }
         })
         .collect();
@@ -179,6 +197,7 @@ fn gen_scanner_imp(
         }
     };
     let match_any_method = gen_match_any_method(config);
+    let match_exact_method = gen_match_exact_method(grammar, terminal_ids);
     quote! {
         impl<'i> #name_ident<'i> {
             pub fn new(input: &'i Input) -> Self {
@@ -186,6 +205,54 @@ fn gen_scanner_imp(
             }
             #(#match_terminals)*
             #match_any_method
+            #match_exact_method
+        }
+    }
+}
+
+/// Emits `match_exact`, the dispatcher behind syntax-level excepts
+/// (`Id = Name \ Keyword` in a syntax rule): whether `terminal_id` matches
+/// exactly the span a symbol matched. Only terminals used as syntax-level
+/// excepts get an arm; grammars without such excepts get no method. The walk
+/// mirrors the parser generator's: excepts sit at top-level alternative
+/// positions after desugaring.
+fn gen_match_exact_method(grammar: &Grammar, terminal_ids: &TerminalIds) -> TokenStream {
+    let mut except_ids = Vec::new();
+    for nonterminal in grammar.nonterminals() {
+        for alternative in grammar.alternatives(nonterminal) {
+            for symbol in &alternative.symbols {
+                let Symbol::Except { except, .. } = symbol else {
+                    continue;
+                };
+                for e in except {
+                    let (terminal, _) = grammar.except_terminal(e);
+                    let id = terminal_ids.get_id(terminal);
+                    if !except_ids.contains(&id) {
+                        except_ids.push(id);
+                    }
+                }
+            }
+        }
+    }
+    if except_ids.is_empty() {
+        return quote! {};
+    }
+    let arms: Vec<_> = except_ids
+        .iter()
+        .map(|id| {
+            let dfa_name = format_ident!("DFA_{}", id.index());
+            quote! {
+                #id => self.scan_exact(&#dfa_name, start, end),
+            }
+        })
+        .collect();
+    quote! {
+        #[comment = "Whether `terminal_id` matches exactly the span `[start, end)`. Dispatches only the terminals used as syntax-level excepts."]
+        pub fn match_exact(&self, terminal_id: TerminalId, start: u32, end: u32) -> bool {
+            match terminal_id {
+                #(#arms)*
+                _ => unreachable!("match_exact called for {terminal_id}, which is not an except"),
+            }
         }
     }
 }
@@ -307,27 +374,6 @@ fn gen_match_terminal_method(
         .lexical_rule(terminal)
         .unwrap_or_else(|| panic!("Terminal {} is not defined", terminal.name));
 
-    let except_checks: Vec<_> = rule
-        .except
-        .iter()
-        .map(|except| {
-            let Definition::Terminal(except_terminal) = grammar.definition(except.resolve()) else {
-                panic!("Except {} must refer to a terminal", except.name);
-            };
-            let except_id = terminal_ids.get_id(except_terminal);
-            let except_fn = format_ident!("match_terminal_{}", except_id.index());
-            quote! {
-                .and_then(|end| {
-                    if self.#except_fn(input_index) == Some(end) {
-                        None
-                    } else {
-                        Some(end)
-                    }
-                })
-            }
-        })
-        .collect();
-
     let follow_restriction_check = rule.follow_restriction.as_ref().map(|restriction| {
         let Definition::Terminal(restriction_terminal) = grammar.definition(restriction.resolve())
         else {
@@ -372,7 +418,6 @@ fn gen_match_terminal_method(
         pub fn #fn_name(&self, input_index: u32) -> Option<u32> {
             #precede_restriction_check
             self.scan(&#dfa_name, input_index)
-            #(#except_checks)*
             #follow_restriction_check
         }
     }

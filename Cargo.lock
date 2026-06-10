@@ -427,7 +427,25 @@ dependencies = [
 ]
 
 [[package]]
+name = "except_longest_match"
+version = "0.1.0"
+dependencies = [
+ "iguana-runtime",
+ "rustc-hash 2.1.2",
+ "serde_json",
+]
+
+[[package]]
 name = "except_nonterminal"
+version = "0.1.0"
+dependencies = [
+ "iguana-runtime",
+ "rustc-hash 2.1.2",
+ "serde_json",
+]
+
+[[package]]
+name = "except_nonterminal_longest_match"
 version = "0.1.0"
 dependencies = [
  "iguana-runtime",
@@ -710,7 +728,9 @@ dependencies = [
  "deep_priority",
  "deep_priority_full",
  "except_lexical",
+ "except_longest_match",
  "except_nonterminal",
+ "except_nonterminal_longest_match",
  "except_terminal",
  "exclude_by_label",
  "expression",

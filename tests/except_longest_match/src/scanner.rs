@@ -9,29 +9,28 @@ use iguana_runtime::{
 const MATCH_MEMO_WORDS: usize = 1;
 const MATCH_ANY_SET_WORDS: usize = 1;
 static DFA_0: Dfa = Dfa::new(&[
-    State::new(&[('A', 'Z', 1), ('a', 'z', 1)], None),
-    State::new(&[('A', 'Z', 1), ('a', 'z', 1)], Some(TerminalId(0))),
+    State::new(&[('a', 'h', 1), ('i', 'i', 2), ('j', 'z', 1)], None),
+    State::new(&[('a', 'z', 3)], Some(TerminalId(0))),
+    State::new(
+        &[('a', 'e', 3), ('f', 'f', 4), ('g', 'z', 3)],
+        Some(TerminalId(0)),
+    ),
+    State::new(&[], Some(TerminalId(0))),
+    State::new_excluded(&[], Some(TerminalId(0))),
 ]);
 static DFA_1: Dfa = Dfa::new(&[
-    State::new(&[('e', 'e', 1), ('i', 'i', 2), ('w', 'w', 3)], None),
-    State::new(&[('l', 'l', 4)], None),
-    State::new(&[('f', 'f', 5)], None),
-    State::new(&[('h', 'h', 6)], None),
-    State::new(&[('s', 's', 7)], None),
-    State::new(&[], Some(TerminalId(1))),
-    State::new(&[('i', 'i', 8)], None),
-    State::new(&[('e', 'e', 9)], None),
-    State::new(&[('l', 'l', 10)], None),
-    State::new(&[], Some(TerminalId(1))),
-    State::new(&[('e', 'e', 11)], None),
+    State::new(&[('i', 'i', 1)], None),
+    State::new(&[('f', 'f', 2)], None),
+    State::new(&[('f', 'f', 3)], Some(TerminalId(1))),
+    State::new(&[('y', 'y', 4)], None),
     State::new(&[], Some(TerminalId(1))),
 ]);
-pub struct ExceptTerminalScanner<'i> {
+pub struct ExceptLongestMatchScanner<'i> {
     pub input: &'i Input,
     memo: MatchMemo<MATCH_MEMO_WORDS>,
     match_any_memo: MatchAnyMemo<MATCH_ANY_SET_WORDS>,
 }
-impl<'i> ExceptTerminalScanner<'i> {
+impl<'i> ExceptLongestMatchScanner<'i> {
     pub fn new(input: &'i Input) -> Self {
         let memo = MatchMemo::new(input.len() as usize);
         let match_any_memo = MatchAnyMemo::new(input.len() as usize);
@@ -41,11 +40,11 @@ impl<'i> ExceptTerminalScanner<'i> {
             match_any_memo,
         }
     }
-    // Identifier = ([a-z A-Z]+)
+    // Id = ([a-z][a-z]?) \ Keyword
     pub fn match_terminal_0(&self, input_index: u32) -> Option<u32> {
         self.scan(&DFA_0, input_index)
     }
-    // Keyword = (if|else|while)
+    // Keyword = (if|iffy)
     pub fn match_terminal_1(&self, input_index: u32) -> Option<u32> {
         self.scan(&DFA_1, input_index)
     }
@@ -61,15 +60,8 @@ impl<'i> ExceptTerminalScanner<'i> {
         self.match_any_memo.insert(set.id, input_index, matched);
         matched
     }
-    // Whether `terminal_id` matches exactly the span `[start, end)`. Dispatches only the terminals used as syntax-level excepts.
-    pub fn match_exact(&self, terminal_id: TerminalId, start: u32, end: u32) -> bool {
-        match terminal_id {
-            TerminalId(1) => self.scan_exact(&DFA_1, start, end),
-            _ => unreachable!("match_exact called for {terminal_id}, which is not an except"),
-        }
-    }
 }
-impl Scanner for ExceptTerminalScanner<'_> {
+impl Scanner for ExceptLongestMatchScanner<'_> {
     fn match_token(&mut self, terminal_id: TerminalId, input_index: u32) -> Option<u32> {
         if let Some(lookup) = self.memo.get(terminal_id, input_index) {
             return match lookup {

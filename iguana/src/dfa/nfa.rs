@@ -34,6 +34,9 @@ pub struct Nfa {
     /// whose NFA-state set contains multiple accepts, the first match in this
     /// vector wins.
     pub accepts: Vec<(StateId, TerminalId)>,
+    /// Accept states of except regexes: a match ending exactly where one of
+    /// these accepts is rejected.
+    pub except_accepts: Vec<StateId>,
 }
 
 impl Nfa {
@@ -44,7 +47,25 @@ impl Nfa {
     pub fn from_regex(regex: &Regex, terminal_id: TerminalId) -> Nfa {
         let mut builder = NfaBuilder::new();
         let frag = builder.build(regex);
-        builder.finish(frag.start, vec![(frag.accept, terminal_id)])
+        builder.finish(frag.start, vec![(frag.accept, terminal_id)], vec![])
+    }
+
+    /// Union NFA of a terminal's regex and its except regexes, branching from
+    /// a shared start state. The except accepts go to `except_accepts`, so
+    /// subset construction can mark the states where an except matches the
+    /// same prefix as the terminal.
+    pub fn with_excepts(regex: &Regex, terminal_id: TerminalId, excepts: &[&Regex]) -> Nfa {
+        let mut builder = NfaBuilder::new();
+        let start = builder.new_state();
+        let frag = builder.build(regex);
+        builder.states[start].add_epsilon_transition(frag.start);
+        let mut except_accepts = Vec::new();
+        for except in excepts {
+            let except_frag = builder.build(except);
+            builder.states[start].add_epsilon_transition(except_frag.start);
+            except_accepts.push(except_frag.accept);
+        }
+        builder.finish(start, vec![(frag.accept, terminal_id)], except_accepts)
     }
 }
 
@@ -172,11 +193,17 @@ impl NfaBuilder {
         }
     }
 
-    fn finish(self, start: StateId, accepts: Vec<(StateId, TerminalId)>) -> Nfa {
+    fn finish(
+        self,
+        start: StateId,
+        accepts: Vec<(StateId, TerminalId)>,
+        except_accepts: Vec<StateId>,
+    ) -> Nfa {
         Nfa {
             states: self.states,
             start,
             accepts,
+            except_accepts,
         }
     }
 }
@@ -223,6 +250,7 @@ mod tests {
             states,
             start,
             accepts: accepts.to_vec(),
+            except_accepts: vec![],
         }
     }
 
@@ -344,7 +372,7 @@ mod tests {
             builder.states[start].add_epsilon_transition(frag.start);
             accepts.push((frag.accept, terminal_id));
         }
-        let actual = builder.finish(start, accepts);
+        let actual = builder.finish(start, accepts, vec![]);
         let expected = nfa_from(
             5,
             0,

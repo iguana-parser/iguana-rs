@@ -466,9 +466,15 @@ impl<'i> Parser<'i> for MultipleExceptParser<'i> {
     ) -> Option<ParseErrorKind> {
         match slot {
             SlotId(1) => {
-                if self.scanner.match_token(TerminalId(2), left_extent) == Some(right_extent)
-                    || self.scanner.match_token(TerminalId(3), left_extent) == Some(right_extent)
-                    || self.scanner.match_token(TerminalId(4), left_extent) == Some(right_extent)
+                if self
+                    .scanner
+                    .match_exact(TerminalId(2), left_extent, right_extent)
+                    || self
+                        .scanner
+                        .match_exact(TerminalId(3), left_extent, right_extent)
+                    || self
+                        .scanner
+                        .match_exact(TerminalId(4), left_extent, right_extent)
                 {
                     Some(ParseErrorKind::ExcludedMatch {
                         excluded_by: vec![TerminalId(2), TerminalId(3), TerminalId(4)],

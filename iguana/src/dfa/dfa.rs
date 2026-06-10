@@ -12,6 +12,8 @@ pub type StateId = usize;
 pub struct State {
     pub transitions: Vec<(CharRange, StateId)>,
     pub accept: Option<TerminalId>,
+    /// Whether this state contains the accept state of an except.
+    pub excluded: bool,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -143,6 +145,10 @@ fn to_char_ranges(class: &CharClass) -> Vec<CharRange> {
 
 struct DfaBuilder<'a> {
     nfa: &'a Nfa,
+    /// Whether some state in `nfa.accepts` is reachable from each NFA state.
+    /// Target subsets with no live state are not materialized; `live_states`
+    /// explains why.
+    live: Vec<bool>,
     states: Vec<State>,
     state_ids: FxHashMap<Vec<nfa::StateId>, StateId>,
     worklist: VecDeque<(StateId, Vec<nfa::StateId>)>,
@@ -152,6 +158,7 @@ impl<'a> DfaBuilder<'a> {
     fn new(nfa: &'a Nfa) -> Self {
         Self {
             nfa,
+            live: live_states(nfa),
             states: Vec::new(),
             state_ids: FxHashMap::default(),
             worklist: VecDeque::new(),
@@ -177,10 +184,12 @@ impl<'a> DfaBuilder<'a> {
             return id;
         }
         let accept = accept_of(self.nfa, &nfa_set);
+        let excluded = excluded_of(self.nfa, &nfa_set);
         let id = self.states.len();
         self.states.push(State {
             transitions: Vec::new(),
             accept,
+            excluded,
         });
         self.state_ids.insert(nfa_set.clone(), id);
         self.worklist.push_back((id, nfa_set));
@@ -213,6 +222,9 @@ impl<'a> DfaBuilder<'a> {
                 .map(|(_, t)| *t)
                 .collect();
             let next_set = epsilon_closure(self.nfa, targets);
+            if !next_set.iter().any(|&s| self.live[s]) {
+                continue;
+            }
             let next_id = self.get_or_create_state(next_set);
             self.states[dfa_id].transitions.push((atom, next_id));
         }
@@ -227,6 +239,62 @@ fn accept_of(nfa: &Nfa, nfa_set: &[nfa::StateId]) -> Option<TerminalId> {
         .iter()
         .find(|(s, _)| nfa_set.binary_search(s).is_ok())
         .map(|(_, t)| *t)
+}
+
+/// Whether `nfa_set` contains an except accept state.
+fn excluded_of(nfa: &Nfa, nfa_set: &[nfa::StateId]) -> bool {
+    nfa.except_accepts
+        .iter()
+        .any(|s| nfa_set.binary_search(s).is_ok())
+}
+
+/// Whether some state in `nfa.accepts` is reachable from each NFA state.
+/// The builder refuses to materialize subsets containing no live state,
+/// which keeps the scan bounded by the terminal instead of by its excepts.
+///
+/// Consider `[a-z][a-z]? \ ("if" | "iffy")` on input `iffy`. After `if` the
+/// terminal cannot extend, but the except fragment for `iffy` still has
+/// transitions on `f` and `y`. Walking them is wasted work: a match can only
+/// end at a terminal accept, and no terminal accept is reachable anymore.
+/// However, subset construction alone would still build those states. It
+/// guarantees that every DFA state is reachable from the start, not that an
+/// accept is reachable from every DFA state. For a single regex the two
+/// coincide, since every state of a Thompson NFA lies on a path to its
+/// accept; the except union breaks the coincidence, because except accepts
+/// are labels rather than accepts, so an except fragment can outlive the
+/// terminal fragment. Dropping the states that cannot reach an accept is
+/// the textbook trim operation, fused into the construction.
+///
+/// The computation is backward reachability: flood from the accept states
+/// over reversed edges. Except accepts are not seeds; reaching one does not
+/// make a state live.
+fn live_states(nfa: &Nfa) -> Vec<bool> {
+    let mut reverse: Vec<Vec<nfa::StateId>> = vec![Vec::new(); nfa.num_states()];
+    for (id, state) in nfa.states.iter().enumerate() {
+        for &target in &state.epsilon_transitions {
+            reverse[target].push(id);
+        }
+        for (_, target) in &state.transitions {
+            reverse[*target].push(id);
+        }
+    }
+    let mut live = vec![false; nfa.num_states()];
+    let mut stack: Vec<nfa::StateId> = Vec::new();
+    for &(s, _) in &nfa.accepts {
+        if !live[s] {
+            live[s] = true;
+            stack.push(s);
+        }
+    }
+    while let Some(s) = stack.pop() {
+        for &p in &reverse[s] {
+            if !live[p] {
+                live[p] = true;
+                stack.push(p);
+            }
+        }
+    }
+    live
 }
 
 #[cfg(test)]
@@ -247,6 +315,7 @@ mod tests {
             states,
             start: 0,
             accepts: vec![],
+            except_accepts: vec![],
         }
     }
 
@@ -255,6 +324,20 @@ mod tests {
             epsilon_transitions: targets,
             transitions: vec![],
         }
+    }
+
+    /// The DFA state reached from the start by consuming `input`, or `None`
+    /// if a character has no transition.
+    fn state_after<'a>(dfa: &'a Dfa, input: &str) -> Option<&'a State> {
+        let mut state = dfa.start;
+        for ch in input.chars() {
+            let (_, next) = dfa.states[state]
+                .transitions
+                .iter()
+                .find(|(r, _)| r.start <= ch && ch <= r.end)?;
+            state = *next;
+        }
+        Some(&dfa.states[state])
     }
 
     #[test]
@@ -430,5 +513,54 @@ mod tests {
             .find(|(r, _)| r.start <= 'a' && 'a' <= r.end)
             .unwrap();
         assert_eq!(dfa.states[*target].accept, Some(t(0)));
+    }
+
+    /// `[a-z][a-z]? \ ("if" | "iffy")`
+    fn two_letter_id_without_keywords() -> Dfa {
+        let id = Regex::seq(vec![
+            Regex::range('a', 'z'),
+            Regex::Opt(Box::new(Regex::range('a', 'z'))),
+        ]);
+        let keywords = Regex::alt(vec![Regex::literal("if"), Regex::literal("iffy")]);
+        Dfa::from_nfa(&Nfa::with_excepts(&id, t(0), &[&keywords]))
+    }
+
+    #[test]
+    fn except_accept_marks_the_accept_state_excluded() {
+        let dfa = two_letter_id_without_keywords();
+        let state = state_after(&dfa, "if").unwrap();
+        assert_eq!(state.accept, Some(t(0)));
+        assert!(state.excluded);
+    }
+
+    #[test]
+    fn accept_states_outside_the_except_language_are_not_excluded() {
+        let dfa = two_letter_id_without_keywords();
+        for input in ["i", "ix"] {
+            let state = state_after(&dfa, input).unwrap();
+            assert_eq!(state.accept, Some(t(0)));
+            assert!(!state.excluded, "{input:?} must not be excluded");
+        }
+    }
+
+    #[test]
+    fn walks_stop_once_only_except_states_remain() {
+        // After "if" the two-letter terminal is dead; the "iffy" suffix of
+        // the except must not be materialized.
+        let dfa = two_letter_id_without_keywords();
+        assert!(state_after(&dfa, "iff").is_none());
+    }
+
+    #[test]
+    fn except_inside_a_longer_match_does_not_mark_the_end() {
+        // [a-z]+ \ "if" on "iff": the accept at "if" is excluded, the accept
+        // at "iff" is not, so maximal munch keeps the longer match.
+        let id = Regex::plus(Regex::range('a', 'z'));
+        let keyword = Regex::literal("if");
+        let dfa = Dfa::from_nfa(&Nfa::with_excepts(&id, t(0), &[&keyword]));
+        assert!(state_after(&dfa, "if").unwrap().excluded);
+        let state = state_after(&dfa, "iff").unwrap();
+        assert_eq!(state.accept, Some(t(0)));
+        assert!(!state.excluded);
     }
 }

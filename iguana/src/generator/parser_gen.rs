@@ -455,11 +455,8 @@ impl<'a> ParserGen<'a> {
             Some(Symbol::Return(_)) => {
                 return self.gen_return_code(&slot);
             }
-            Some(Symbol::Except { symbol, except }) => {
-                return self.gen_except_code(symbol, except.as_slice(), &slot);
-            }
-            Some(Symbol::FollowRestriction { symbol, .. }) => {
-                return self.gen_follow_restriction_code(symbol, &slot);
+            Some(Symbol::Except { symbol, .. } | Symbol::FollowRestriction { symbol, .. }) => {
+                return self.gen_post_condition_code(symbol, &slot);
             }
             Some(Symbol::PrecedeRestriction {
                 symbol,
@@ -585,65 +582,8 @@ impl<'a> ParserGen<'a> {
         }
     }
 
-    fn gen_except_code(
-        &self,
-        symbol: &Symbol,
-        except: &[Identifier],
-        slot: &Slot<'a>,
-    ) -> TokenStream {
-        let Some(identifier) = symbol.as_identifier() else {
-            return quote! {};
-        };
-        let def_id = identifier.resolve();
-        let def = &self.grammar.definition(def_id);
-        let except_terminal_ids: Vec<_> = except
-            .iter()
-            .map(|e| {
-                let except_def_id = e.resolve();
-                let Definition::Terminal(except_terminal) = &self.grammar.definition(except_def_id)
-                else {
-                    panic!("Except identifier must resolve to a terminal");
-                };
-                self.terminal_ids.get_id(except_terminal)
-            })
-            .collect();
-        match def {
-            Definition::Terminal(terminal) => {
-                let post_conditions: Vec<_> = except_terminal_ids
-                    .iter()
-                    .map(|id| {
-                        quote! {
-                            self.scanner.match_token(#id, input_index) != Some(j)
-                        }
-                    })
-                    .collect();
-                self.gen_terminal_slot(terminal, slot.clone(), &[], &post_conditions)
-            }
-            Definition::Nonterminal(nonterminal) => {
-                let arguments = match symbol.unwrap() {
-                    Symbol::Call { arguments, .. } => arguments.clone(),
-                    _ => vec![],
-                };
-                let post_conditions: Vec<_> = except_terminal_ids
-                    .iter()
-                    .map(|id| {
-                        quote! {
-                            self.scanner.match_token(#id, input_index) != Some(j)
-                        }
-                    })
-                    .collect();
-                self.gen_nonterminal_slot(
-                    nonterminal,
-                    &arguments,
-                    slot.clone(),
-                    &[],
-                    &post_conditions,
-                )
-            }
-        }
-    }
-
-    fn gen_follow_restriction_code(&self, symbol: &Symbol, slot: &Slot<'a>) -> TokenStream {
+    /// Slot code for a symbol wrapped by an except or a follow restriction.
+    fn gen_post_condition_code(&self, symbol: &Symbol, slot: &Slot<'a>) -> TokenStream {
         let Some(identifier) = symbol.as_identifier() else {
             return quote! {};
         };
@@ -732,20 +672,15 @@ impl<'a> ParserGen<'a> {
                         let except_ids: Vec<_> = except
                             .iter()
                             .map(|e| {
-                                let except_def_id = e.resolve();
-                                let Definition::Terminal(except_terminal) =
-                                    self.grammar.definition(except_def_id)
-                                else {
-                                    panic!("Except identifier must resolve to a terminal");
-                                };
-                                self.terminal_ids.get_id(except_terminal)
+                                let (terminal, _) = self.grammar.except_terminal(e);
+                                self.terminal_ids.get_id(terminal)
                             })
                             .collect();
                         let checks: Vec<_> = except_ids
                             .iter()
                             .map(|id| {
                                 quote! {
-                                    self.scanner.match_token(#id, left_extent) == Some(right_extent)
+                                    self.scanner.match_exact(#id, left_extent, right_extent)
                                 }
                             })
                             .collect();
@@ -1487,25 +1422,12 @@ impl<'a> ParserGen<'a> {
             let mut pre_conditions: Vec<TokenStream> = vec![];
             let mut post_conditions: Vec<TokenStream> = vec![];
             match symbol {
-                Symbol::Except { except, .. } => {
-                    for e in except {
-                        let Definition::Terminal(t) = self.grammar.definition(e.resolve()) else {
-                            panic!("Except identifier must resolve to a terminal");
-                        };
-                        let id = self.terminal_ids.get_id(t);
-                        post_conditions
-                            .push(quote! { self.scanner.match_token(#id, start) != Some(end) });
-                    }
-                }
-                Symbol::FollowRestriction { restrictions, .. } => {
-                    for r in restrictions {
-                        let Definition::Terminal(t) = self.grammar.definition(r.resolve()) else {
-                            panic!("follow restriction must resolve to a terminal");
-                        };
-                        let id = self.terminal_ids.get_id(t);
-                        post_conditions
-                            .push(quote! { self.scanner.match_token(#id, end).is_none() });
-                    }
+                // The actual except and follow-restriction checks are in
+                // `post_conditions`. The empty token just signals that
+                // post-conditions exist, so the codegen below wraps the
+                // continuation with a `post_conditions` call.
+                Symbol::Except { .. } | Symbol::FollowRestriction { .. } => {
+                    post_conditions.push(quote! {});
                 }
                 Symbol::PrecedeRestriction { restriction, .. } => {
                     let Definition::Terminal(t) = self.grammar.definition(restriction.resolve())

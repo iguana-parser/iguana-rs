@@ -61,6 +61,13 @@ impl<'i> ExceptNonterminalScanner<'i> {
         self.match_any_memo.insert(set.id, input_index, matched);
         matched
     }
+    // Whether `terminal_id` matches exactly the span `[start, end)`. Dispatches only the terminals used as syntax-level excepts.
+    pub fn match_exact(&self, terminal_id: TerminalId, start: u32, end: u32) -> bool {
+        match terminal_id {
+            TerminalId(1) => self.scan_exact(&DFA_1, start, end),
+            _ => unreachable!("match_exact called for {terminal_id}, which is not an except"),
+        }
+    }
 }
 impl Scanner for ExceptNonterminalScanner<'_> {
     fn match_token(&mut self, terminal_id: TerminalId, input_index: u32) -> Option<u32> {

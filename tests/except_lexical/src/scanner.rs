@@ -23,8 +23,55 @@ static DFA_0: Dfa = Dfa::new(&[
     State::new(&[], Some(TerminalId(0))),
 ]);
 static DFA_1: Dfa = Dfa::new(&[
-    State::new(&[('A', 'Z', 1), ('a', 'z', 1)], None),
+    State::new(
+        &[
+            ('A', 'Z', 1),
+            ('a', 'd', 1),
+            ('e', 'e', 2),
+            ('f', 'h', 1),
+            ('i', 'i', 3),
+            ('j', 'v', 1),
+            ('w', 'w', 4),
+            ('x', 'z', 1),
+        ],
+        None,
+    ),
     State::new(&[('A', 'Z', 1), ('a', 'z', 1)], Some(TerminalId(1))),
+    State::new(
+        &[('A', 'Z', 1), ('a', 'k', 1), ('l', 'l', 5), ('m', 'z', 1)],
+        Some(TerminalId(1)),
+    ),
+    State::new(
+        &[('A', 'Z', 1), ('a', 'e', 1), ('f', 'f', 6), ('g', 'z', 1)],
+        Some(TerminalId(1)),
+    ),
+    State::new(
+        &[('A', 'Z', 1), ('a', 'g', 1), ('h', 'h', 7), ('i', 'z', 1)],
+        Some(TerminalId(1)),
+    ),
+    State::new(
+        &[('A', 'Z', 1), ('a', 'r', 1), ('s', 's', 8), ('t', 'z', 1)],
+        Some(TerminalId(1)),
+    ),
+    State::new_excluded(&[('A', 'Z', 1), ('a', 'z', 1)], Some(TerminalId(1))),
+    State::new(
+        &[('A', 'Z', 1), ('a', 'h', 1), ('i', 'i', 9), ('j', 'z', 1)],
+        Some(TerminalId(1)),
+    ),
+    State::new(
+        &[('A', 'Z', 1), ('a', 'd', 1), ('e', 'e', 10), ('f', 'z', 1)],
+        Some(TerminalId(1)),
+    ),
+    State::new(
+        &[('A', 'Z', 1), ('a', 'k', 1), ('l', 'l', 11), ('m', 'z', 1)],
+        Some(TerminalId(1)),
+    ),
+    State::new_excluded(&[('A', 'Z', 1), ('a', 'z', 1)], Some(TerminalId(1))),
+    State::new(
+        &[('A', 'Z', 1), ('a', 'd', 1), ('e', 'e', 12), ('f', 'z', 1)],
+        Some(TerminalId(1)),
+    ),
+    State::new_excluded(&[('A', 'Z', 1), ('a', 'z', 1)], Some(TerminalId(1))),
 ]);
 pub struct ExceptLexicalScanner<'i> {
     pub input: &'i Input,
@@ -47,13 +94,7 @@ impl<'i> ExceptLexicalScanner<'i> {
     }
     // Identifier = ([a-z A-Z]+) \ Keyword
     pub fn match_terminal_1(&self, input_index: u32) -> Option<u32> {
-        self.scan(&DFA_1, input_index).and_then(|end| {
-            if self.match_terminal_0(input_index) == Some(end) {
-                None
-            } else {
-                Some(end)
-            }
-        })
+        self.scan(&DFA_1, input_index)
     }
     // Whether any terminal in `set` matches at `input_index`, cached by the set's memo id. The first query of a set at a position scans it; later queries return the cached bit.
     pub fn match_any(&mut self, set: &TerminalSet, input_index: u32) -> bool {

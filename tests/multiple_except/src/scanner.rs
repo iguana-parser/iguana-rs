@@ -9,8 +9,114 @@ use iguana_runtime::{
 const MATCH_MEMO_WORDS: usize = 1;
 const MATCH_ANY_SET_WORDS: usize = 1;
 static DFA_0: Dfa = Dfa::new(&[
-    State::new(&[('A', 'Z', 1), ('a', 'z', 1)], None),
+    State::new(
+        &[
+            ('A', 'Z', 1),
+            ('a', 'd', 1),
+            ('e', 'e', 2),
+            ('f', 'f', 3),
+            ('g', 'h', 1),
+            ('i', 'i', 4),
+            ('j', 'm', 1),
+            ('n', 'n', 5),
+            ('o', 's', 1),
+            ('t', 't', 6),
+            ('u', 'v', 1),
+            ('w', 'w', 7),
+            ('x', 'z', 1),
+        ],
+        None,
+    ),
     State::new(&[('A', 'Z', 1), ('a', 'z', 1)], Some(TerminalId(0))),
+    State::new(
+        &[('A', 'Z', 1), ('a', 'k', 1), ('l', 'l', 8), ('m', 'z', 1)],
+        Some(TerminalId(0)),
+    ),
+    State::new(
+        &[
+            ('A', 'Z', 1),
+            ('a', 'a', 9),
+            ('b', 'n', 1),
+            ('o', 'o', 10),
+            ('p', 'z', 1),
+        ],
+        Some(TerminalId(0)),
+    ),
+    State::new(
+        &[('A', 'Z', 1), ('a', 'e', 1), ('f', 'f', 11), ('g', 'z', 1)],
+        Some(TerminalId(0)),
+    ),
+    State::new(
+        &[('A', 'Z', 1), ('a', 't', 1), ('u', 'u', 12), ('v', 'z', 1)],
+        Some(TerminalId(0)),
+    ),
+    State::new(
+        &[('A', 'Z', 1), ('a', 'q', 1), ('r', 'r', 13), ('s', 'z', 1)],
+        Some(TerminalId(0)),
+    ),
+    State::new(
+        &[('A', 'Z', 1), ('a', 'g', 1), ('h', 'h', 14), ('i', 'z', 1)],
+        Some(TerminalId(0)),
+    ),
+    State::new(
+        &[('A', 'Z', 1), ('a', 'r', 1), ('s', 's', 15), ('t', 'z', 1)],
+        Some(TerminalId(0)),
+    ),
+    State::new(
+        &[('A', 'Z', 1), ('a', 'k', 1), ('l', 'l', 16), ('m', 'z', 1)],
+        Some(TerminalId(0)),
+    ),
+    State::new(
+        &[('A', 'Z', 1), ('a', 'q', 1), ('r', 'r', 17), ('s', 'z', 1)],
+        Some(TerminalId(0)),
+    ),
+    State::new_excluded(&[('A', 'Z', 1), ('a', 'z', 1)], Some(TerminalId(0))),
+    State::new(
+        &[('A', 'Z', 1), ('a', 'k', 1), ('l', 'l', 18), ('m', 'z', 1)],
+        Some(TerminalId(0)),
+    ),
+    State::new(
+        &[('A', 'Z', 1), ('a', 't', 1), ('u', 'u', 19), ('v', 'z', 1)],
+        Some(TerminalId(0)),
+    ),
+    State::new(
+        &[('A', 'Z', 1), ('a', 'h', 1), ('i', 'i', 20), ('j', 'z', 1)],
+        Some(TerminalId(0)),
+    ),
+    State::new(
+        &[('A', 'Z', 1), ('a', 'd', 1), ('e', 'e', 21), ('f', 'z', 1)],
+        Some(TerminalId(0)),
+    ),
+    State::new(
+        &[('A', 'Z', 1), ('a', 'r', 1), ('s', 's', 22), ('t', 'z', 1)],
+        Some(TerminalId(0)),
+    ),
+    State::new_excluded(&[('A', 'Z', 1), ('a', 'z', 1)], Some(TerminalId(0))),
+    State::new(
+        &[('A', 'Z', 1), ('a', 'k', 1), ('l', 'l', 23), ('m', 'z', 1)],
+        Some(TerminalId(0)),
+    ),
+    State::new(
+        &[('A', 'Z', 1), ('a', 'd', 1), ('e', 'e', 24), ('f', 'z', 1)],
+        Some(TerminalId(0)),
+    ),
+    State::new(
+        &[('A', 'Z', 1), ('a', 'k', 1), ('l', 'l', 25), ('m', 'z', 1)],
+        Some(TerminalId(0)),
+    ),
+    State::new_excluded(&[('A', 'Z', 1), ('a', 'z', 1)], Some(TerminalId(0))),
+    State::new(
+        &[('A', 'Z', 1), ('a', 'd', 1), ('e', 'e', 26), ('f', 'z', 1)],
+        Some(TerminalId(0)),
+    ),
+    State::new_excluded(&[('A', 'Z', 1), ('a', 'z', 1)], Some(TerminalId(0))),
+    State::new_excluded(&[('A', 'Z', 1), ('a', 'z', 1)], Some(TerminalId(0))),
+    State::new(
+        &[('A', 'Z', 1), ('a', 'd', 1), ('e', 'e', 27), ('f', 'z', 1)],
+        Some(TerminalId(0)),
+    ),
+    State::new_excluded(&[('A', 'Z', 1), ('a', 'z', 1)], Some(TerminalId(0))),
+    State::new_excluded(&[('A', 'Z', 1), ('a', 'z', 1)], Some(TerminalId(0))),
 ]);
 static DFA_1: Dfa = Dfa::new(&[
     State::new(&[('A', 'Z', 1), ('a', 'z', 1)], None),
@@ -73,27 +179,6 @@ impl<'i> MultipleExceptScanner<'i> {
     // Identifier = ([a-z A-Z]+) \ Keyword \ BooleanLiteral \ NullLiteral
     pub fn match_terminal_0(&self, input_index: u32) -> Option<u32> {
         self.scan(&DFA_0, input_index)
-            .and_then(|end| {
-                if self.match_terminal_2(input_index) == Some(end) {
-                    None
-                } else {
-                    Some(end)
-                }
-            })
-            .and_then(|end| {
-                if self.match_terminal_3(input_index) == Some(end) {
-                    None
-                } else {
-                    Some(end)
-                }
-            })
-            .and_then(|end| {
-                if self.match_terminal_4(input_index) == Some(end) {
-                    None
-                } else {
-                    Some(end)
-                }
-            })
     }
     // IdentifierChars = ([a-z A-Z]+)
     pub fn match_terminal_1(&self, input_index: u32) -> Option<u32> {
@@ -122,6 +207,15 @@ impl<'i> MultipleExceptScanner<'i> {
             .any(|id| self.match_token(*id, input_index).is_some());
         self.match_any_memo.insert(set.id, input_index, matched);
         matched
+    }
+    // Whether `terminal_id` matches exactly the span `[start, end)`. Dispatches only the terminals used as syntax-level excepts.
+    pub fn match_exact(&self, terminal_id: TerminalId, start: u32, end: u32) -> bool {
+        match terminal_id {
+            TerminalId(2) => self.scan_exact(&DFA_2, start, end),
+            TerminalId(3) => self.scan_exact(&DFA_3, start, end),
+            TerminalId(4) => self.scan_exact(&DFA_4, start, end),
+            _ => unreachable!("match_exact called for {terminal_id}, which is not an except"),
+        }
     }
 }
 impl Scanner for MultipleExceptScanner<'_> {

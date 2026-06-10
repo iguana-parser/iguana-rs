@@ -978,6 +978,26 @@ impl Grammar {
     pub fn lexical_rule(&self, terminal: &Terminal) -> Option<&LexicalRule> {
         self.lexical_rules.get(terminal)
     }
+    /// The terminal an except operand refers to, with its lexical rule.
+    /// Panics when the except is not a terminal or has restrictions of its
+    /// own: an except contributes only its language, so restrictions on it
+    /// have no meaning.
+    pub fn except_terminal(&self, except: &Identifier) -> (&Terminal, &LexicalRule) {
+        let Definition::Terminal(terminal) = self.definition(except.resolve()) else {
+            panic!("Except {} must refer to a terminal", except.name);
+        };
+        let rule = self
+            .lexical_rule(terminal)
+            .unwrap_or_else(|| panic!("Terminal {} is not defined", terminal.name));
+        assert!(
+            rule.except.is_empty()
+                && rule.follow_restriction.is_none()
+                && rule.precede_restriction.is_none(),
+            "Except {} has restrictions of its own; only plain terminals can be excluded",
+            terminal.name
+        );
+        (terminal, rule)
+    }
     pub fn definition(&self, definition_id: DefinitionId) -> &Definition {
         &self.definitions[definition_id.0 as usize]
     }

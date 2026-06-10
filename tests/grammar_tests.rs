@@ -108,3 +108,9 @@ mod indirect_prefix;
 
 #[path = "indirect_postfix/tests.rs"]
 mod indirect_postfix;
+
+#[path = "except_longest_match/tests.rs"]
+mod except_longest_match;
+
+#[path = "except_nonterminal_longest_match/tests.rs"]
+mod except_nonterminal_longest_match;

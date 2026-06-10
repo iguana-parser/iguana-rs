@@ -174,19 +174,24 @@ pub trait Scanner {
     }
     fn char_at(&self, i: u32) -> Option<char>;
     /// Runs `dfa` from `start`, returning the end position of the longest
-    /// match, or `None` if no prefix at `start` is accepted.
+    /// match, or `None` if no prefix at `start` is accepted. A longest match
+    /// ending in an excluded state is rejected: an except of the DFA's
+    /// terminal matches the same prefix.
     fn scan(&self, dfa: &Dfa, start: u32) -> Option<u32> {
         let mut state = dfa.start as usize;
         let mut position = start;
         let mut last_accept = None;
+        let mut excluded = false;
         loop {
-            if dfa.states[state].accept.is_some() {
+            let current = &dfa.states[state];
+            if current.accept.is_some() {
                 last_accept = Some(position);
+                excluded = current.excluded;
             }
             let Some(ch) = self.char_at(position) else {
                 break;
             };
-            let Some(&(_, _, next)) = dfa.states[state]
+            let Some(&(_, _, next)) = current
                 .transitions
                 .iter()
                 .find(|(s, e, _)| ch >= *s && ch <= *e)
@@ -196,6 +201,28 @@ pub trait Scanner {
             state = next as usize;
             position += 1;
         }
-        last_accept
+        if excluded { None } else { last_accept }
+    }
+
+    /// Whether `dfa` accepts exactly the span `[start, end)`: the walk
+    /// consumes every character of the span and ends in an accept state.
+    /// Unlike `scan` there is no maximal munch; nothing past `end` is read.
+    fn scan_exact(&self, dfa: &Dfa, start: u32, end: u32) -> bool {
+        let mut state = dfa.start as usize;
+        for position in start..end {
+            let Some(ch) = self.char_at(position) else {
+                return false;
+            };
+            let Some(&(_, _, next)) = dfa.states[state]
+                .transitions
+                .iter()
+                .find(|(s, e, _)| ch >= *s && ch <= *e)
+            else {
+                return false;
+            };
+            state = next as usize;
+        }
+        let last = &dfa.states[state];
+        last.accept.is_some() && !last.excluded
     }
 }
