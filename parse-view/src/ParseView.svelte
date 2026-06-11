@@ -1,7 +1,7 @@
 <script lang="ts">
   import type { ParserBackend } from "./backend";
   import { tick } from "svelte";
-  import { ChevronDown, ChevronRight, CornerRightUp, ZoomIn, ZoomOut, Maximize2, Minimize2, Expand, Fullscreen, UnfoldHorizontal, FoldHorizontal, Download, Eye, EyeOff, Copy, ClipboardCheck } from "lucide-svelte";
+  import { ChevronDown, ChevronRight, CornerRightUp, ZoomIn, ZoomOut, Maximize2, Minimize2, Expand, Fullscreen, UnfoldHorizontal, FoldHorizontal, Download, SlidersHorizontal, Copy, ClipboardCheck } from "lucide-svelte";
   import cytoscape from "cytoscape";
   import {
     sppfNodeStyles,
@@ -16,30 +16,22 @@
     highlightClickedEdge,
     PARSE_TREE_LAYOUT,
   } from "./graph-styles";
-  import { GraphCollapseManager, buildParseTreeElements } from "./parse-tree-graph";
+  import {
+    GraphCollapseManager,
+    buildParseTreeElements,
+    buildDisplayGraph,
+    type DisplayOptions,
+    type ParseTreeData as ParseTree,
+    type ParseTreeNodeData as ParseTreeNode,
+  } from "./parse-tree-graph";
   import { downloadPng } from "./png";
   import InputEditor from "./InputEditor.svelte";
   import NonterminalPicker from "./NonterminalPicker.svelte";
   import "./graph.css";
   import "./parse-view.css";
 
-  // Parse Tree types (manually defined, not via specta)
-  interface ParseTreeNode {
-    id: number;
-    kind: "Nonterminal" | "Token" | "Amb";
-    label: string;
-    start: number;
-    end: number;
-  }
-  interface ParseTreeEdge {
-    src: number;
-    dest: number;
-  }
-  interface ParseTree {
-    layout_name?: string | null;
-    nodes: ParseTreeNode[];
-    edges: ParseTreeEdge[];
-  }
+  // ParseTree / ParseTreeNode (the DAG to_json emits) and the display transform
+  // are shared with the graph and web viewer, so they live in parse-tree-graph.
 
   // Hierarchical tree node for tree view
   interface TreeNode {
@@ -118,27 +110,27 @@
     startVerticalDrag,
   }: Props = $props();
 
-  // Convert flat parse tree to hierarchical structure, skipping any node id
-  // in `hidden` (and therefore any subtree rooted at one). Fills `parentMap`
-  // with each node's parent in the tree as actually rendered, so the reveal
-  // walk expands exactly the chain that leads to where a node is shown in full.
-  function buildTree(parseTree: ParseTree, hidden: Set<number>, parentMap: Map<number, number>): TreeNode | null {
-    if (parseTree.nodes.length === 0) return null;
+  // Convert the (already display-transformed) flat DAG to a hierarchical tree.
+  // Returns the root plus a parent map: each node's parent in the tree as
+  // actually rendered, so the reveal walk expands exactly the chain that leads
+  // to where a node is shown in full.
+  function buildTree(parseTree: ParseTree): { root: TreeNode | null; parentMap: Map<number, number> } {
+    const parentMap = new Map<number, number>();
+    if (parseTree.nodes.length === 0) return { root: null, parentMap };
 
     // Build adjacency list from edges
     const childrenMap = new Map<number, number[]>();
     const hasParent = new Set<number>();
 
     for (const edge of parseTree.edges) {
-      if (hidden.has(edge.src) || hidden.has(edge.dest)) continue;
       if (!childrenMap.has(edge.src)) childrenMap.set(edge.src, []);
       childrenMap.get(edge.src)!.push(edge.dest);
       hasParent.add(edge.dest);
     }
 
     // Find root (node with no parent)
-    const rootNode = parseTree.nodes.find(n => !hidden.has(n.id) && !hasParent.has(n.id));
-    if (!rootNode) return null;
+    const rootNode = parseTree.nodes.find(n => !hasParent.has(n.id));
+    if (!rootNode) return { root: null, parentMap };
 
     // Build node lookup for efficient access
     const nodeMap = new Map(parseTree.nodes.map(n => [n.id, n]));
@@ -170,7 +162,7 @@
       };
     }
 
-    return buildSubtree(rootNode.id, null);
+    return { root: buildSubtree(rootNode.id, null), parentMap };
   }
 
   // Outermost Amb spans. An Amb is outermost when no enclosing parse-tree
@@ -209,58 +201,39 @@
     return out;
   }
 
-  // Layout nonterminal (per parseTree.layout_name) and every descendant.
-  // Returns an empty set when hide is false or the grammar has no layout rule.
-  function computeHiddenLayoutNodes(parseTree: ParseTree, hide: boolean): Set<number> {
-    const hidden = new Set<number>();
-    if (!hide || !parseTree.layout_name) return hidden;
-    const layoutName = parseTree.layout_name;
-
-    const childrenMap = new Map<number, number[]>();
-    for (const edge of parseTree.edges) {
-      if (!childrenMap.has(edge.src)) childrenMap.set(edge.src, []);
-      childrenMap.get(edge.src)!.push(edge.dest);
-    }
-
-    for (const node of parseTree.nodes) {
-      if (node.kind !== "Nonterminal" || node.label !== layoutName) continue;
-      if (hidden.has(node.id)) continue;
-      const queue = [node.id];
-      while (queue.length > 0) {
-        const id = queue.shift()!;
-        if (hidden.has(id)) continue;
-        hidden.add(id);
-        const children = childrenMap.get(id);
-        if (children) queue.push(...children);
-      }
-    }
-    return hidden;
-  }
-
   // Tabs: the tree view, the graph view, and the interactive s-expression.
   let activeTab = $state<"tree" | "graph" | "sexpr">("tree");
 
   // Show spans in graph labels (hidden by default)
   let showSpans = $state(false);
 
-  // Parse Tree data
+  // Whether the View-options popover (the presentation toggles) is open.
+  let viewMenuOpen = $state(false);
+
+  // Presentation toggles, in the runtime's `show_*` polarity. All false is the
+  // simplified view (layout hidden, empties dropped, wrappers spliced), the
+  // default in Terrarium; the popover checkboxes are phrased as the
+  // simplifications, so a checked box means `show_* = false`.
+  let displayOptions = $state<DisplayOptions>({
+    showLayout: false,
+    showEmpty: false,
+    showWrappers: false,
+  });
+
+  // Parse Tree data: the raw DAG from to_json, and the display DAG the three
+  // tabs render (layout/empties/wrappers resolved). displayOptions drives the
+  // transform, so toggling is instant, no re-parse.
   let parseTree = $state<ParseTree | null>(null);
+  let displayTree = $derived(parseTree ? buildDisplayGraph(parseTree, displayOptions) : null);
   let ambiguityWarnings = $derived(parseTree ? collectOutermostAmbs(parseTree) : []);
-  // child node id → parent node id in the rendered tree, filled by buildTree
-  let parseTreeParentMap = new Map<number, number>();
-  // Layout nonterminal and its descendants, hidden when hideLayout is on.
-  // On by default: layout nodes are rarely what you want to see, so the parse
-  // structure reads better with them hidden.
-  let hiddenLayoutNodes = $state(new Set<number>());
-  let hideLayout = $state(true);
   // svelte-ignore non_reactive_update
   let parseTreeContainer: HTMLDivElement;
   let parseTreeCy: cytoscape.Core | null = null;
   const parseTreeCollapseManager = new GraphCollapseManager();
   // The Cytoscape instance is built once and kept alive across tab switches.
-  // `graphDirty` marks that its elements are stale (new parse or a layout/span
-  // toggle), so the next time the graph tab is shown it reloads instead of just
-  // resizing. A plain flag, not reactive: the graph $effect reacts to activeTab.
+  // `graphDirty` marks that its elements are stale (new parse or a view-options/
+  // span toggle), so the next time the graph tab is shown it reloads instead of
+  // just resizing. A plain flag, not reactive: the graph $effect reacts to activeTab.
   let graphDirty = true;
 
   // Parse tree node selection (for highlighting span in input)
@@ -271,13 +244,17 @@
   // highlighting (input span, graph node) still keys on parseTreeSelectedNodeId.
   let selectedTreeRowKey = $state<string | null>(null);
 
-  let treeRoot = $state<TreeNode | null>(null);
+  // The tree view plus its parent map, rebuilt whenever the display tree changes.
+  // The reveal walk reads the parent map (also from the s-expr and graph tabs),
+  // so it travels with the tree rather than living in a side-effect-filled map.
+  let treeBuild = $derived(displayTree ? buildTree(displayTree) : null);
+  let treeRoot = $derived(treeBuild?.root ?? null);
   let expandedNodes = $state(new Set<number>());
   // svelte-ignore non_reactive_update
   let treeContainerEl: HTMLDivElement;
 
-  // Interactive s-expression, derived from the parse tree and the hide-layout toggle.
-  let sexprRoot = $derived(parseTree ? buildSexprModel(parseTree, hiddenLayoutNodes) : null);
+  // Interactive s-expression, derived from the same display tree as the other tabs.
+  let sexprRoot = $derived(displayTree ? buildSexprModel(displayTree) : null);
   // The node whose subtree was last copied, cleared on a timer to flash the icon.
   let copiedSexprKey = $state<number | null>(null);
   // The s-expression node currently under the pointer. Only its row mounts the
@@ -298,7 +275,7 @@
   let parseTreeTooltipCleanup: (() => void) | null = null;
 
   function buildGraphElements() {
-    return buildParseTreeElements(parseTree!, showSpans, hiddenLayoutNodes);
+    return buildParseTreeElements(displayTree!, showSpans);
   }
 
   // Park the root at the top-center of the viewport, instead of fitting the whole
@@ -511,9 +488,9 @@
   function loadParseTree(json: string) {
     try {
       parseTree = JSON.parse(json) as ParseTree;
-      rebuildLayoutDerivedState();
-      // New tree: drop any stale selection and mark the graph for reload. The
-      // graph $effect rebuilds it when the graph tab is (or becomes) active.
+      // treeRoot / displayTree recompute reactively off parseTree. New tree:
+      // drop any stale selection and mark the graph for reload. The graph
+      // $effect rebuilds it when the graph tab is (or becomes) active.
       clearParseModeInputSelection();
       graphDirty = true;
       // Expand root by default
@@ -524,17 +501,6 @@
     } catch (e) {
       // JSON parse error — ignore
     }
-  }
-
-  // Re-derive everything that depends on (parseTree, hideLayout):
-  // hidden-node set, parent map for the reveal walk, and treeRoot. The parent
-  // map is filled by buildTree from the tree as rendered, so the reveal walk
-  // follows the chain to where each shared node is shown in full.
-  function rebuildLayoutDerivedState() {
-    if (!parseTree) return;
-    hiddenLayoutNodes = computeHiddenLayoutNodes(parseTree, hideLayout);
-    parseTreeParentMap = new Map();
-    treeRoot = buildTree(parseTree, hiddenLayoutNodes, parseTreeParentMap);
   }
 
   // Graph controls (parse-tree graph)
@@ -558,29 +524,30 @@
     (onExportPng ?? downloadPng)(parseTreeCy, "parse-tree");
   }
 
-  function toggleHideLayout() {
-    hideLayout = !hideLayout;
-    rebuildLayoutDerivedState();
-    // Selection may have pointed at a now-hidden node; drop it.
+  // Flip one presentation toggle. The tree and s-expression recompute reactively
+  // off displayTree; the imperative graph is reloaded here.
+  function setDisplayOption(key: keyof DisplayOptions, show: boolean) {
+    displayOptions = { ...displayOptions, [key]: show };
+    // A toggle can change the root (flattening unwraps the `@Start`; showing
+    // layout re-wraps it). A root not in expandedNodes renders collapsed, which
+    // reads as the whole tree collapsing, so keep the new root expanded. Every
+    // other node keeps its expansion: ids are stable across the transform, so
+    // expandedNodes still applies to the survivors.
+    if (treeRoot) expandedNodes = new Set(expandedNodes).add(treeRoot.id);
     clearParseModeInputSelection();
+    // The node set can change substantially, so reload the graph onto the root
+    // rather than holding the old viewport.
     graphDirty = true;
-    // Re-fit on a layout toggle: the node set changed substantially, so re-center
-    // on the root rather than holding the old viewport.
     if (parseTree && activeTab === "graph") {
       tick().then(() => loadGraph(true));
     }
     onParseTreeChange?.();
   }
 
-  // The visible parse tree (layout-hidden nodes removed), for the graph pop-out.
-  // Exported so a host can feed it to a separate graph window via bind:this.
+  // The display tree (transformed under the current view options), for the graph
+  // pop-out. Exported so a host can feed it to a separate graph window via bind:this.
   export function getParseTreeForPopup(): ParseTree | null {
-    if (!parseTree) return null;
-    return {
-      layout_name: parseTree.layout_name,
-      nodes: parseTree.nodes.filter((n) => !hiddenLayoutNodes.has(n.id)),
-      edges: parseTree.edges.filter((e) => !hiddenLayoutNodes.has(e.src) && !hiddenLayoutNodes.has(e.dest)),
-    };
+    return displayTree;
   }
 
   function toggleSpans() {
@@ -653,46 +620,43 @@
     }
   }
 
-  // Smallest-span parse tree node whose half-open range [start, end) covers
-  // the offset, i.e. the deepest enclosing node. When the click lands inside
-  // a hidden layout subtree, fall back to the nearest visible token instead
-  // of returning the wide enclosing parent.
+  // Smallest-span display-tree node whose half-open range [start, end) covers
+  // the offset, i.e. the deepest enclosing node. A click on a token character
+  // lands on that token (the smallest covering node); a click in the gap between
+  // tokens (whitespace, or a span hidden layout left behind) is covered only by
+  // nonterminals, so fall back to the nearest token rather than selecting a wide
+  // enclosing parent.
   function findDeepestParseTreeNodeAt(offset: number): ParseTreeNode | null {
-    if (!parseTree) return null;
+    if (!displayTree) return null;
     let best: ParseTreeNode | null = null;
-    let clickInsideHidden = false;
-    for (const node of parseTree.nodes) {
+    for (const node of displayTree.nodes) {
       const contains = node.start <= offset && offset < node.end;
-      if (hiddenLayoutNodes.has(node.id)) {
-        if (contains) clickInsideHidden = true;
-        continue;
-      }
       if (contains && (!best || node.end - node.start < best.end - best.start)) {
         best = node;
       }
     }
-    if (clickInsideHidden) {
-      let nearestToken: ParseTreeNode | null = null;
-      let nearestDistance = Infinity;
-      for (const node of parseTree.nodes) {
-        if (node.kind !== "Token" || hiddenLayoutNodes.has(node.id)) continue;
-        const distance = offset < node.start ? node.start - offset : offset - node.end;
-        if (distance < nearestDistance) {
-          nearestDistance = distance;
-          nearestToken = node;
-        }
+    if (best && best.kind === "Token") return best;
+    let nearestToken: ParseTreeNode | null = null;
+    let nearestDistance = Infinity;
+    for (const node of displayTree.nodes) {
+      if (node.kind !== "Token") continue;
+      const distance = offset < node.start ? node.start - offset : offset - node.end;
+      if (distance < nearestDistance) {
+        nearestDistance = distance;
+        nearestToken = node;
       }
-      if (nearestToken) return nearestToken;
     }
-    return best;
+    return nearestToken ?? best;
   }
 
   function parseTreeAncestorsOf(nodeId: number): number[] {
+    const parentMap = treeBuild?.parentMap;
+    if (!parentMap) return [];
     const ancestors: number[] = [];
-    let cur = parseTreeParentMap.get(nodeId);
+    let cur = parentMap.get(nodeId);
     while (cur !== undefined) {
       ancestors.push(cur);
-      cur = parseTreeParentMap.get(cur);
+      cur = parentMap.get(cur);
     }
     return ancestors;
   }
@@ -814,6 +778,10 @@
   // focus sits — the tree, the s-expression, the graph, or the editor. The editor's
   // own onescape covers the in-editor case; this covers selections made elsewhere.
   function handleParseViewKeydown(e: KeyboardEvent) {
+    if (e.key === "Escape" && viewMenuOpen) {
+      viewMenuOpen = false;
+      return;
+    }
     if (e.key === "Escape" && (parseTreeSelectedNodeId || parseTreeSelectedSpan || selectedTreeRowKey)) {
       clearParseModeInputSelection();
     }
@@ -893,20 +861,19 @@
     }
   }
 
-  // Build the interactive s-expression model, mirroring the generated to_sexpr:
-  // a node reachable from several parents (indegree > 1 in the rendered DAG) is
-  // written once with a `#N=` label, and later occurrences become `#N#` refs.
-  // Honors hideLayout so all three tabs show the same structure.
-  function buildSexprModel(parseTree: ParseTree, hidden: Set<number>): SexprNode | null {
+  // Build the interactive s-expression model from the (already transformed)
+  // display tree, mirroring the generated to_sexpr: a node reachable from several
+  // parents (indegree > 1 in the rendered DAG) is written once with a `#N=` label,
+  // and later occurrences become `#N#` refs.
+  function buildSexprModel(parseTree: ParseTree): SexprNode | null {
     const childrenMap = new Map<number, number[]>();
     const indegree = new Map<number, number>();
     for (const edge of parseTree.edges) {
-      if (hidden.has(edge.src) || hidden.has(edge.dest)) continue;
       if (!childrenMap.has(edge.src)) childrenMap.set(edge.src, []);
       childrenMap.get(edge.src)!.push(edge.dest);
       indegree.set(edge.dest, (indegree.get(edge.dest) ?? 0) + 1);
     }
-    const root = parseTree.nodes.find(n => !hidden.has(n.id) && !indegree.has(n.id));
+    const root = parseTree.nodes.find(n => !indegree.has(n.id));
     if (!root) return null;
     const nodeMap = new Map(parseTree.nodes.map(n => [n.id, n]));
 
@@ -1014,7 +981,7 @@
   }
 </script>
 
-<svelte:window onkeydown={handleParseViewKeydown} />
+<svelte:window onkeydown={handleParseViewKeydown} onclick={() => viewMenuOpen = false} />
 
 <div class="main-content">
   <!-- Left Panel -->
@@ -1065,20 +1032,42 @@
         <button class:active={activeTab === "tree"} onclick={() => activeTab = "tree"}>Tree</button>
         <button class:active={activeTab === "graph"} onclick={() => activeTab = "graph"}>Graph</button>
         <button class:active={activeTab === "sexpr"} onclick={() => activeTab = "sexpr"}>S-expr</button>
-        {#if parseTree?.layout_name}
-          <button
-            class="layout-toggle"
-            class:active={hideLayout}
-            onclick={toggleHideLayout}
-            title={hideLayout ? `Show ${parseTree.layout_name} nodes` : `Hide ${parseTree.layout_name} nodes`}
-          >
-            {#if hideLayout}
-              <EyeOff size={14} />
-            {:else}
-              <Eye size={14} />
+        {#if parseTree}
+          <div class="view-options">
+            <button
+              class="view-options-btn"
+              class:active={viewMenuOpen}
+              onclick={(e) => { e.stopPropagation(); viewMenuOpen = !viewMenuOpen; }}
+              title="View options"
+            >
+              <SlidersHorizontal size={14} />
+              <span>View</span>
+              <ChevronDown size={12} />
+            </button>
+            {#if viewMenuOpen}
+              <!-- svelte-ignore a11y_click_events_have_key_events -->
+              <!-- svelte-ignore a11y_no_static_element_interactions -->
+              <div class="view-options-menu" onclick={(e) => e.stopPropagation()}>
+                {#if parseTree.layout_name}
+                  <label>
+                    <input type="checkbox" checked={!displayOptions.showLayout}
+                      onchange={(e) => setDisplayOption("showLayout", !e.currentTarget.checked)} />
+                    Hide {parseTree.layout_name}
+                  </label>
+                {/if}
+                <label>
+                  <input type="checkbox" checked={!displayOptions.showEmpty}
+                    onchange={(e) => setDisplayOption("showEmpty", !e.currentTarget.checked)} />
+                  Hide empty nodes
+                </label>
+                <label>
+                  <input type="checkbox" checked={!displayOptions.showWrappers}
+                    onchange={(e) => setDisplayOption("showWrappers", !e.currentTarget.checked)} />
+                  Flatten wrappers
+                </label>
+              </div>
             {/if}
-            <span>{parseTree.layout_name}</span>
-          </button>
+          </div>
         {/if}
       </div>
       <div class="graph-container">
@@ -1163,9 +1152,10 @@
                 }}
                 onmouseleave={() => hoveredSexprId = null}
               >
-              {#snippet sexprNode(node: SexprNode, indent: number)}
+              {#snippet sexprNode(node: SexprNode, indent: number, trailing: string)}
                 {@const internal = node.ref === undefined && node.children.length > 0}
                 {@const collapsed = sexprCollapsed.has(node.id)}
+                {@const expanded = internal && !collapsed}
                 <!-- svelte-ignore a11y_click_events_have_key_events -->
                 <!-- svelte-ignore a11y_no_static_element_interactions -->
                 <div class="sexpr-line" data-sid={node.id} style="padding-left: {indent * 9 + 8}px">
@@ -1177,7 +1167,7 @@
                     <span class="sexpr-toggle-placeholder"></span>
                   {/if}
                   {#if node.ref !== undefined}
-                    <span class="sexpr-token reference">#{node.ref}#</span>
+                    <span class="sexpr-token reference">#{node.ref}#</span>{#if trailing}<span class="sexpr-paren">{trailing}</span>{/if}
                   {:else}
                     <span
                       class="sexpr-node"
@@ -1186,7 +1176,7 @@
                       onclick={() => clickSexprNode(node)}
                     >
                       {#if node.shareLabel !== undefined}<span class="sexpr-label">#{node.shareLabel}=</span>{/if}{#if internal}<span class="sexpr-paren">(</span>{/if}<span class="sexpr-token" class:amb={node.label === "Amb"}>{node.label}</span>{#if internal && collapsed}<span class="sexpr-ellipsis"> … </span><span class="sexpr-paren">)</span>{/if}
-                    </span>
+                    </span>{#if !expanded && trailing}<span class="sexpr-paren">{trailing}</span>{/if}
                     {#if hoveredSexprId === node.id}
                       <button class="sexpr-copy" title="Copy s-expression" onclick={() => copySexprNode(node)}>
                         {#if copiedSexprKey === node.id}
@@ -1198,16 +1188,13 @@
                     {/if}
                   {/if}
                 </div>
-                {#if internal && !collapsed}
-                  {#each node.children as child}
-                    {@render sexprNode(child, indent + 1)}
+                {#if expanded}
+                  {#each node.children as child, i}
+                    {@render sexprNode(child, indent + 1, i === node.children.length - 1 ? ")" + trailing : "")}
                   {/each}
-                  <div class="sexpr-line" style="padding-left: {indent * 9 + 8}px">
-                    <span class="sexpr-toggle-placeholder"></span><span class="sexpr-paren">)</span>
-                  </div>
                 {/if}
               {/snippet}
-              {@render sexprNode(sexprRoot, 0)}
+              {@render sexprNode(sexprRoot, 0, "")}
               </div>
             </div>
           {/if}
@@ -1363,14 +1350,18 @@
     color: #d4d4d4;
   }
 
-  /* Hide-layout toggle, right-aligned in the tab row */
-  .layout-toggle {
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
+  /* View-options popover, right-aligned in the tab row */
+  .view-options {
+    position: relative;
     margin-left: auto;
     margin-right: 8px;
     align-self: center;
+  }
+
+  .view-options-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
     padding: 3px 8px;
     background: #2d2d2d;
     color: #888;
@@ -1380,15 +1371,45 @@
     font-size: 11px;
   }
 
-  .layout-toggle.active {
+  .view-options-btn.active {
     background: #3c3c3c;
     color: #fff;
     border-color: #555;
   }
 
-  .layout-toggle:hover:not(.active) {
+  .view-options-btn:hover:not(.active) {
     background: #3c3c3c;
     color: #d4d4d4;
+  }
+
+  .view-options-menu {
+    position: absolute;
+    top: calc(100% + 4px);
+    right: 0;
+    z-index: 20;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 8px 10px;
+    background: #252526;
+    border: 1px solid #3c3c3c;
+    border-radius: 4px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+    white-space: nowrap;
+  }
+
+  .view-options-menu label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: #d4d4d4;
+    font-size: 11px;
+    cursor: pointer;
+  }
+
+  .view-options-menu input {
+    cursor: pointer;
+    margin: 0;
   }
 
   /* Graph view: absolute-fill like the other views, stays mounted across tab

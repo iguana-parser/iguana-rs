@@ -25,9 +25,6 @@ pub struct SexprOptions {
     /// Show wrapper nodes (the `@Start` wrapper, optionals, anonymous groups,
     /// and alternations) rather than splicing their children into the parent.
     pub show_wrappers: bool,
-    /// Show repetitions as their `( name … )` nonterminal node rather than as a
-    /// `[ … ]` list.
-    pub show_lists: bool,
 }
 
 impl Default for SexprOptions {
@@ -37,20 +34,18 @@ impl Default for SexprOptions {
             show_layout: true,
             show_empty: true,
             show_wrappers: true,
-            show_lists: true,
         }
     }
 }
 
 impl SexprOptions {
     /// The clean view the CLI, REPL, and viewers default to: layout, empty
-    /// repetitions, and wrapper nodes hidden, and repetitions shown as `[ … ]`.
+    /// repetitions, and wrapper nodes hidden.
     pub fn simplified() -> Self {
         SexprOptions {
             show_layout: false,
             show_empty: false,
             show_wrappers: false,
-            show_lists: false,
         }
     }
 }
@@ -364,8 +359,8 @@ pub enum NodeKind {
 }
 
 /// The grammar construct a nonterminal node was derived from. Drives the
-/// presentation transforms (hiding empty repetitions, splicing wrappers,
-/// bracketing lists). `None` for a user-declared nonterminal or a token.
+/// presentation transforms (hiding empty repetitions, splicing wrappers).
+/// `None` for a user-declared nonterminal or a token.
 #[derive(Clone, Copy, PartialEq, Eq)]
 pub enum Origin {
     /// The synthetic `@Start` wrapper, the start symbol between leading and
@@ -473,6 +468,16 @@ struct JsonBuilder {
     ancestors: Vec<u32>,
 }
 
+fn origin_name(origin: Option<Origin>) -> Option<&'static str> {
+    origin.map(|o| match o {
+        Origin::Start => "Start",
+        Origin::Opt => "Opt",
+        Origin::List => "List",
+        Origin::Group => "Group",
+        Origin::Alt => "Alt",
+    })
+}
+
 impl JsonBuilder {
     fn edge_from_parent(&mut self, child: u32) {
         if let Some(&parent) = self.ancestors.last() {
@@ -507,6 +512,7 @@ impl<N: ParseTreeNode> TreeVisitor<N> for JsonBuilder {
             "label": node.display_name(),
             "start": span.left_extent,
             "end": span.right_extent,
+            "origin": origin_name(node.origin()),
         }));
         self.edge_from_parent(id);
         self.ancestors.push(id);
@@ -676,39 +682,6 @@ impl SexprPrinter<'_> {
         }
         false
     }
-
-    /// A repetition rendered as `[ … ]` rather than `( name … )`.
-    fn is_bracketed_list<N: ParseTreeNode>(&self, node: N) -> bool {
-        !self.options.show_lists && node.origin() == Some(Origin::List)
-    }
-
-    /// Writes a node's opening delimiter: `[` for a bracketed list, `(name`
-    /// otherwise.
-    fn write_open<N: ParseTreeNode>(&mut self, node: N) {
-        if self.is_bracketed_list(node) {
-            let _ = write!(self.out, "[");
-        } else {
-            let _ = write!(self.out, "({}", node.display_name());
-        }
-    }
-
-    fn write_close<N: ParseTreeNode>(&mut self, node: N) {
-        if self.is_bracketed_list(node) {
-            let _ = write!(self.out, "]");
-        } else {
-            let _ = write!(self.out, ")");
-        }
-    }
-
-    /// Writes a childless node: `[]` for an empty bracketed list, the display
-    /// name (a token literal or terminal name) otherwise.
-    fn write_leaf<N: ParseTreeNode>(&mut self, node: N) {
-        if self.is_bracketed_list(node) {
-            let _ = write!(self.out, "[]");
-        } else {
-            let _ = write!(self.out, "{}", node.display_name());
-        }
-    }
 }
 
 impl<N: ParseTreeNode> TreeVisitor<N> for SexprPrinter<'_> {
@@ -726,37 +699,32 @@ impl<N: ParseTreeNode> TreeVisitor<N> for SexprPrinter<'_> {
         }
         let children = display_children(node, self.layout_name, self.options);
         if children.is_empty() {
-            self.write_leaf(node);
+            let _ = write!(self.out, "{}", node.display_name());
             Visit::Skip
         } else if children
             .iter()
             .all(|c| display_children(*c, self.layout_name, self.options).is_empty())
         {
             // Every child is a leaf, so the node fits on one line.
-            self.write_open(node);
-            let bracketed = self.is_bracketed_list(node);
-            for (i, child) in children.into_iter().enumerate() {
-                // A paren node has a space after its name; a bracketed list
-                // cuddles its first child to the `[`.
-                if !(bracketed && i == 0) {
-                    let _ = write!(self.out, " ");
-                }
+            let _ = write!(self.out, "({}", node.display_name());
+            for child in children {
+                let _ = write!(self.out, " ");
                 if !self.write_label(child) {
-                    self.write_leaf(child);
+                    let _ = write!(self.out, "{}", child.display_name());
                 }
             }
-            self.write_close(node);
+            let _ = write!(self.out, ")");
             Visit::Skip
         } else {
-            self.write_open(node);
+            let _ = write!(self.out, "({}", node.display_name());
             self.indent += 2;
             Visit::Children
         }
     }
 
-    fn exit(&mut self, node: N) {
+    fn exit(&mut self, _node: N) {
         self.indent -= 2;
-        self.write_close(node);
+        let _ = write!(self.out, ")");
     }
 
     fn children(&self, node: N) -> Vec<N> {
@@ -851,13 +819,19 @@ mod tests {
 
     #[test]
     fn to_json_emits_nodes_and_edges() {
-        let kids = [leaf("a", 1), leaf("b", 2)];
+        let items = [leaf("a", 1)];
+        let list = derived("A*", 2, Origin::List, &items);
+        let kids = [list, leaf("b", 3)];
         let root = nonterminal("S", 0, &kids);
         let json = to_json(root, Some("Layout"));
         assert!(json.contains("\"label\":\"S\""));
         assert!(json.contains("\"label\":\"a\""));
         assert!(json.contains("\"kind\":\"Token\""));
         assert!(json.contains("\"layout_name\":\"Layout\""));
+        // A user nonterminal and a token report no origin; a derived repetition
+        // carries its own, so the frontend can simplify per node.
+        assert!(json.contains("\"origin\":null"));
+        assert!(json.contains("\"origin\":\"List\""));
     }
 
     #[test]
@@ -959,25 +933,6 @@ mod tests {
     }
 
     #[test]
-    fn show_lists_brackets_repetitions() {
-        // S -> A* -> [x, y], plus a sibling empty list.
-        let items = [leaf("x", 1), leaf("y", 2)];
-        let list = derived("A*", 3, Origin::List, &items);
-        let empty = derived("B*", 4, Origin::List, &[]);
-        let kids = [list, empty];
-        let s = nonterminal("S", 0, &kids);
-
-        assert_eq!(to_sexpr(s, None), "(S\n  (A* x y)\n  B*)\n");
-
-        // show_lists off brackets them; an empty list reads as `[]`.
-        let opts = SexprOptions {
-            show_lists: false,
-            ..Default::default()
-        };
-        assert_eq!(to_sexpr_with(s, None, opts), "(S\n  [x y]\n  [])\n");
-    }
-
-    #[test]
     fn simplified_unwraps_start_and_combines() {
         // StartGrammar -> [Layout, Grammar -> [A? -> a, B* -> b1 b2, C? empty], Layout].
         let a = [leaf("a", 1)];
@@ -992,30 +947,30 @@ mod tests {
         let ws_after = [leaf("ws", 71)];
         let before = nonterminal("Layout", 7, &ws_before);
         let after = nonterminal("Layout", 8, &ws_after);
-        // The `@Start` wrapper displays under the inner name, like the real one.
+        // The `@Start` wrapper displays as `Start`, like the real one; the inner
+        // child names the actual nonterminal.
         let start_kids = [before, grammar, after];
-        let start = derived("Grammar", 0, Origin::Start, &start_kids);
+        let start = derived("Start", 0, Origin::Start, &start_kids);
 
         // Faithful: the start wrapper and its layout doubling are all there.
         assert_eq!(
             to_sexpr(start, Some("Layout")),
-            "(Grammar\n  (Layout ws)\n  (Grammar\n    (A? a)\n    (B* b1 b2)\n    C?)\n  (Layout ws))\n"
+            "(Start\n  (Layout ws)\n  (Grammar\n    (A? a)\n    (B* b1 b2)\n    C?)\n  (Layout ws))\n"
         );
 
-        // Simplified: start wrapper unwrapped, layout/empties/wrappers gone,
-        // repetition bracketed.
+        // Simplified: start wrapper unwrapped, layout/empties/wrappers gone.
         assert_eq!(
             to_sexpr_with(start, Some("Layout"), SexprOptions::simplified()),
-            "(Grammar\n  a\n  [b1 b2])\n"
+            "(Grammar\n  a\n  (B* b1 b2))\n"
         );
     }
 
     #[test]
     fn simplified_keeps_ambiguity_cluster_intact() {
         // An ambiguous `A+`: an Amb cluster over two list derivations. The
-        // cluster reports no origin, so simplified mode keeps it as `(Amb …)`
-        // and brackets each alternative, rather than bracketing the cluster and
-        // making the ambiguity read as a list of lists.
+        // cluster reports no origin, so simplified mode leaves it intact as
+        // `(Amb …)` rather than splicing or dropping it; each alternative shows
+        // as its own `(A+ …)` node.
         let items1 = [leaf("a", 1), leaf("a", 2)];
         let items2 = [leaf("a", 3), leaf("a", 4)];
         let alt1 = derived("A+", 5, Origin::List, &items1);
@@ -1027,7 +982,7 @@ mod tests {
 
         assert_eq!(
             to_sexpr_with(s, None, SexprOptions::simplified()),
-            "(S\n  (Amb\n    [a a]\n    [a a]))\n"
+            "(S\n  (Amb\n    (A+ a a)\n    (A+ a a)))\n"
         );
     }
 }

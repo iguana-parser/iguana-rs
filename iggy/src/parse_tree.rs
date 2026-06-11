@@ -5605,7 +5605,7 @@ impl<'a> Start<&'a Grammar<'a>, &'a Layout<'a>> {
         self.span
     }
     pub fn display_name(&self) -> &'static str {
-        "Grammar"
+        "Start"
     }
     pub fn origin(&self) -> Option<Origin> {
         Some(Origin::Start)

@@ -581,7 +581,7 @@ impl<'a> Start<&'a S<'a>, &'a Layout<'a>> {
         self.span
     }
     pub fn display_name(&self) -> &'static str {
-        "S"
+        "Start"
     }
     pub fn origin(&self) -> Option<Origin> {
         Some(Origin::Start)

@@ -310,7 +310,7 @@ fn run_repl_command(line: &str, options: &mut SexprOptions) {
             eprintln!("commands:");
             eprintln!("  :set                       list settings");
             eprintln!("  :set <name> [true|false]   toggle, or set, a setting");
-            eprintln!("  settings: show-layout, show-empty, show-wrappers, show-lists");
+            eprintln!("  settings: show-layout, show-empty, show-wrappers");
             eprintln!("  :help                      show this help");
             eprintln!("  Ctrl-D                     exit");
         }
@@ -322,7 +322,6 @@ fn run_repl_command(line: &str, options: &mut SexprOptions) {
                     eprintln!("show-layout   = {}", options.show_layout);
                     eprintln!("show-empty    = {}", options.show_empty);
                     eprintln!("show-wrappers = {}", options.show_wrappers);
-                    eprintln!("show-lists    = {}", options.show_lists);
                 }
                 Some("show-layout") => {
                     set_repl_bool("show-layout", value, &mut options.show_layout)
@@ -331,7 +330,6 @@ fn run_repl_command(line: &str, options: &mut SexprOptions) {
                 Some("show-wrappers") => {
                     set_repl_bool("show-wrappers", value, &mut options.show_wrappers)
                 }
-                Some("show-lists") => set_repl_bool("show-lists", value, &mut options.show_lists),
                 Some(other) => eprintln!("unknown setting: {} (try :help)", other),
             }
         }

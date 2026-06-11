@@ -587,7 +587,7 @@ fn gen_nonterminal_display_name_method(nonterminal: &Nonterminal) -> TokenStream
 
 /// Generates `origin` on a nonterminal type. Returns `None` for the `Amb`
 /// variant and the nonterminal's origin otherwise. Reporting `None` for `Amb`
-/// keeps the presentation transforms from splicing or bracketing an ambiguity
+/// keeps the presentation transforms from splicing or dropping an ambiguity
 /// cluster. A user-declared nonterminal has no origin, so its method is a plain
 /// `None` with no dispatch.
 fn gen_nonterminal_origin_method(nonterminal: &Nonterminal) -> TokenStream {
@@ -649,7 +649,6 @@ fn gen_start_type_impl(grammar: &Grammar, nonterminal: &Nonterminal) -> TokenStr
     };
 
     let start_variant = nt_ident(&nonterminal.name);
-    let start_display_name = nonterminal.display_name();
     quote! {
         impl<'a> #start_ty {
             pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
@@ -670,7 +669,7 @@ fn gen_start_type_impl(grammar: &Grammar, nonterminal: &Nonterminal) -> TokenStr
                 self.span
             }
             pub fn display_name(&self) -> &'static str {
-                #start_display_name
+                "Start"
             }
             pub fn origin(&self) -> Option<Origin> {
                 Some(Origin::Start)

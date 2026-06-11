@@ -184,11 +184,6 @@ pub fn generate(grammar: &Grammar) -> TokenStream {
             #[arg(long)]
             show_wrappers: bool,
 
-            /// Show repetitions (`X*`, `X+`, `{X sep}+`) as their nonterminal
-            /// node rather than a `[ … ]` list. False by default.
-            #[arg(long)]
-            show_lists: bool,
-
             /// Print only the parser stats histogram and exit. Suppresses
             /// the parse-tree dump, the "Parse success" line, and (with
             /// `--dir`) the per-file timing lines and the aggregate
@@ -266,7 +261,6 @@ pub fn generate(grammar: &Grammar) -> TokenStream {
                     show_layout: args.show_layout,
                     show_empty: args.show_empty,
                     show_wrappers: args.show_wrappers,
-                    show_lists: args.show_lists,
                 };
                 cli::run_repl(sexpr_options, |text, sexpr_options| {
                     let input = Input::from(text);
@@ -534,7 +528,6 @@ pub fn generate(grammar: &Grammar) -> TokenStream {
                                 show_layout: args.show_layout,
                                 show_empty: args.show_empty,
                                 show_wrappers: args.show_wrappers,
-                                show_lists: args.show_lists,
                             };
                             println!("{}", to_sexpr_with(*parse_tree, sexpr_options));
                         }
