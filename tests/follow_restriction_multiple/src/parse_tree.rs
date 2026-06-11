@@ -4,8 +4,8 @@ use crate::parser::FollowRestrictionMultipleParser;
 use iguana_runtime::{
     ids::{NonterminalId, SlotId, TerminalId},
     parse_tree::{
-        Bump, NodeKind, OneOrMany, ParseContext, ParseTreeBuilder, ParseTreeNode, SexprOptions,
-        visit_sppf,
+        Bump, NodeKind, OneOrMany, Origin, ParseContext, ParseTreeBuilder, ParseTreeNode,
+        SexprOptions, visit_sppf,
     },
     sppf::{NonterminalNode, SPPFNodeId, Span, TerminalNode},
 };
@@ -108,6 +108,16 @@ impl<'a> ParseTree<'a> {
             ParseTree::Plus0(plus_0) => Some(*plus_0 as *const _ as usize),
             ParseTree::Alt0(alt_0) => Some(*alt_0 as *const _ as usize),
             ParseTree::Plus1(plus_1) => Some(*plus_1 as *const _ as usize),
+            ParseTree::Token(_) => None,
+        }
+    }
+    pub fn origin(&self) -> Option<Origin> {
+        match self {
+            ParseTree::S(s) => s.origin(),
+            ParseTree::Id(id) => id.origin(),
+            ParseTree::Plus0(plus_0) => plus_0.origin(),
+            ParseTree::Alt0(alt_0) => alt_0.origin(),
+            ParseTree::Plus1(plus_1) => plus_1.origin(),
             ParseTree::Token(_) => None,
         }
     }
@@ -239,6 +249,9 @@ impl<'a> S<'a> {
             _ => "S",
         }
     }
+    pub fn origin(&self) -> Option<Origin> {
+        None
+    }
     pub fn ids(&self) -> &'a Plus0<'a> {
         match self {
             S::Alt0 { ids, .. } => ids,
@@ -276,6 +289,9 @@ impl<'a> Id<'a> {
             Id::Amb(_) => "Amb",
             _ => "Id",
         }
+    }
+    pub fn origin(&self) -> Option<Origin> {
+        None
     }
     pub fn alphas(&self) -> impl Iterator<Item = Token> {
         match self {
@@ -334,6 +350,12 @@ impl<'a> Plus0<'a> {
             _ => "Id+",
         }
     }
+    pub fn origin(&self) -> Option<Origin> {
+        match self {
+            Plus0::Amb(_) => None,
+            _ => Some(Origin::List),
+        }
+    }
     pub fn ids(&'a self) -> impl Iterator<Item = &'a Id<'a>> {
         self.iter().filter_map(|node| match node {
             ParseTree::Id(r) => Some(r),
@@ -379,6 +401,12 @@ impl<'a> Alt0<'a> {
             _ => "(Alpha | Digit)",
         }
     }
+    pub fn origin(&self) -> Option<Origin> {
+        match self {
+            Alt0::Amb(_) => None,
+            _ => Some(Origin::Alt),
+        }
+    }
 }
 impl<'a> Plus1<'a> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
@@ -416,6 +444,12 @@ impl<'a> Plus1<'a> {
         match self {
             Plus1::Amb(_) => "Amb",
             _ => "(Alpha | Digit)+",
+        }
+    }
+    pub fn origin(&self) -> Option<Origin> {
+        match self {
+            Plus1::Amb(_) => None,
+            _ => Some(Origin::List),
         }
     }
     pub fn alphas(&'a self) -> impl Iterator<Item = Token> {
@@ -760,6 +794,9 @@ impl<'a> ParseTreeNode for ParseTree<'a> {
     }
     fn node_id(&self) -> Option<usize> {
         ParseTree::node_id(self)
+    }
+    fn origin(&self) -> Option<Origin> {
+        ParseTree::origin(self)
     }
 }
 const LAYOUT_NAME: Option<&str> = None;

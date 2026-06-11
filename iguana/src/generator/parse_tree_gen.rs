@@ -142,7 +142,7 @@ fn gen_imports(grammar: &Grammar) -> TokenStream {
         use iguana_runtime::{
             ids::{NonterminalId, SlotId, TerminalId},
             parse_tree::{
-                Bump, NodeKind, OneOrMany, ParseContext, ParseTreeBuilder, ParseTreeNode,
+                Bump, NodeKind, OneOrMany, Origin, ParseContext, ParseTreeBuilder, ParseTreeNode,
                 SexprOptions, visit_sppf,
             },
             sppf::{NonterminalNode, SPPFNodeId, Span, TerminalNode},
@@ -488,6 +488,7 @@ fn gen_nonterminal_type_impl(grammar: &Grammar, nonterminal: &Nonterminal) -> To
     let child_count_method = gen_child_count_method(grammar, nonterminal);
     let span_method = gen_span_method(grammar, nonterminal);
     let display_name_method = gen_nonterminal_display_name_method(nonterminal);
+    let origin_method = gen_nonterminal_origin_method(nonterminal);
     let typed_accessor = gen_typed_accessor(grammar, nonterminal);
     let field_accessors = gen_field_accessor_methods(grammar, nonterminal);
     quote! {
@@ -497,6 +498,7 @@ fn gen_nonterminal_type_impl(grammar: &Grammar, nonterminal: &Nonterminal) -> To
             #child_count_method
             #span_method
             #display_name_method
+            #origin_method
             #typed_accessor
             #field_accessors
         }
@@ -583,6 +585,44 @@ fn gen_nonterminal_display_name_method(nonterminal: &Nonterminal) -> TokenStream
     }
 }
 
+/// Generates `origin` on a nonterminal type. Returns `None` for the `Amb`
+/// variant and the nonterminal's origin otherwise. Reporting `None` for `Amb`
+/// keeps the presentation transforms from splicing or bracketing an ambiguity
+/// cluster. A user-declared nonterminal has no origin, so its method is a plain
+/// `None` with no dispatch.
+fn gen_nonterminal_origin_method(nonterminal: &Nonterminal) -> TokenStream {
+    let ident = nt_ident(&nonterminal.name);
+    match origin_kind(nonterminal) {
+        Some(kind) => quote! {
+            pub fn origin(&self) -> Option<Origin> {
+                match self {
+                    #ident::Amb(_) => None,
+                    _ => Some(#kind),
+                }
+            }
+        },
+        None => quote! {
+            pub fn origin(&self) -> Option<Origin> {
+                None
+            }
+        },
+    }
+}
+
+/// The `Origin` variant a derived nonterminal reports, mapped from the EBNF
+/// operator it was derived from, or `None` for a nonterminal with no
+/// presentation origin (user-declared, or derived by exclude or precedence
+/// desugaring).
+fn origin_kind(nonterminal: &Nonterminal) -> Option<TokenStream> {
+    match &nonterminal.origin {
+        Some(Symbol::Opt(_)) => Some(quote! { Origin::Opt }),
+        Some(Symbol::Star(_, _) | Symbol::Plus(_, _)) => Some(quote! { Origin::List }),
+        Some(Symbol::Group(_)) => Some(quote! { Origin::Group }),
+        Some(Symbol::Alt(_)) => Some(quote! { Origin::Alt }),
+        _ => None,
+    }
+}
+
 fn gen_start_type_impl(grammar: &Grammar, nonterminal: &Nonterminal) -> TokenStream {
     let start_ty = nonterminal_type(grammar, nonterminal);
     let inner_ident = nonterminal
@@ -631,6 +671,9 @@ fn gen_start_type_impl(grammar: &Grammar, nonterminal: &Nonterminal) -> TokenStr
             }
             pub fn display_name(&self) -> &'static str {
                 #start_display_name
+            }
+            pub fn origin(&self) -> Option<Origin> {
+                Some(Origin::Start)
             }
         }
     }
@@ -1074,6 +1117,7 @@ fn gen_parse_tree_impl(grammar: &Grammar) -> TokenStream {
     let span_method = gen_parse_tree_span_method(grammar);
     let is_amb_method = gen_parse_tree_is_amb_method(grammar);
     let node_id_method = gen_parse_tree_node_id_method(grammar);
+    let origin_method = gen_parse_tree_origin_method(grammar);
     quote! {
         impl<'a> ParseTree<'a> {
             #children_method
@@ -1082,6 +1126,7 @@ fn gen_parse_tree_impl(grammar: &Grammar) -> TokenStream {
             #span_method
             #is_amb_method
             #node_id_method
+            #origin_method
             #(#unwrap_methods)*
             fn unwrap_token(self) -> Token {
                 match self {
@@ -1245,6 +1290,22 @@ fn gen_parse_tree_node_id_method(grammar: &Grammar) -> TokenStream {
         #[doc = "leaves that are never shared). Two parse trees with the same `node_id` are"]
         #[doc = "the same allocation, i.e. a node shared between parents in the ambiguity DAG."]
         pub fn node_id(&self) -> Option<usize> {
+            match self {
+                #(#arms,)*
+                ParseTree::Token(_) => None,
+            }
+        }
+    }
+}
+
+fn gen_parse_tree_origin_method(grammar: &Grammar) -> TokenStream {
+    let arms = grammar.nonterminals().map(|n| {
+        let variant = nt_ident(&n.name);
+        let var_ident = safe_ident(&to_snake_case(&n.name));
+        quote! { ParseTree::#variant(#var_ident) => #var_ident.origin() }
+    });
+    quote! {
+        pub fn origin(&self) -> Option<Origin> {
             match self {
                 #(#arms,)*
                 ParseTree::Token(_) => None,
@@ -2089,6 +2150,10 @@ fn gen_parse_tree_node_impl() -> TokenStream {
 
             fn node_id(&self) -> Option<usize> {
                 ParseTree::node_id(self)
+            }
+
+            fn origin(&self) -> Option<Origin> {
+                ParseTree::origin(self)
             }
         }
     }

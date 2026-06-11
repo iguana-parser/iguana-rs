@@ -4,8 +4,8 @@ use crate::parser::ExcludeByLabelParser;
 use iguana_runtime::{
     ids::{NonterminalId, SlotId, TerminalId},
     parse_tree::{
-        Bump, NodeKind, OneOrMany, ParseContext, ParseTreeBuilder, ParseTreeNode, SexprOptions,
-        visit_sppf,
+        Bump, NodeKind, OneOrMany, Origin, ParseContext, ParseTreeBuilder, ParseTreeNode,
+        SexprOptions, visit_sppf,
     },
     sppf::{NonterminalNode, SPPFNodeId, Span, TerminalNode},
 };
@@ -106,6 +106,15 @@ impl<'a> ParseTree<'a> {
             ParseTree::Plus0(plus_0) => Some(*plus_0 as *const _ as usize),
             ParseTree::Opt0(opt_0) => Some(*opt_0 as *const _ as usize),
             ParseTree::Star0(star_0) => Some(*star_0 as *const _ as usize),
+            ParseTree::Token(_) => None,
+        }
+    }
+    pub fn origin(&self) -> Option<Origin> {
+        match self {
+            ParseTree::Expr(expr) => expr.origin(),
+            ParseTree::Plus0(plus_0) => plus_0.origin(),
+            ParseTree::Opt0(opt_0) => opt_0.origin(),
+            ParseTree::Star0(star_0) => star_0.origin(),
             ParseTree::Token(_) => None,
         }
     }
@@ -262,6 +271,9 @@ impl<'a> Expr<'a> {
             _ => "Expr",
         }
     }
+    pub fn origin(&self) -> Option<Origin> {
+        None
+    }
 }
 impl<'a> Plus0<'a> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
@@ -307,6 +319,12 @@ impl<'a> Plus0<'a> {
             _ => "{Expr !comma \",\"}+",
         }
     }
+    pub fn origin(&self) -> Option<Origin> {
+        match self {
+            Plus0::Amb(_) => None,
+            _ => Some(Origin::List),
+        }
+    }
 }
 impl<'a> Opt0<'a> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
@@ -342,6 +360,12 @@ impl<'a> Opt0<'a> {
             _ => "{Expr !comma \",\"}+?",
         }
     }
+    pub fn origin(&self) -> Option<Origin> {
+        match self {
+            Opt0::Amb(_) => None,
+            _ => Some(Origin::Opt),
+        }
+    }
 }
 impl<'a> Star0<'a> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
@@ -372,6 +396,12 @@ impl<'a> Star0<'a> {
         match self {
             Star0::Amb(_) => "Amb",
             _ => "{Expr !comma \",\"}*",
+        }
+    }
+    pub fn origin(&self) -> Option<Origin> {
+        match self {
+            Star0::Amb(_) => None,
+            _ => Some(Origin::List),
         }
     }
     pub fn opt_0(&self) -> &'a Opt0<'a> {
@@ -682,6 +712,9 @@ impl<'a> ParseTreeNode for ParseTree<'a> {
     }
     fn node_id(&self) -> Option<usize> {
         ParseTree::node_id(self)
+    }
+    fn origin(&self) -> Option<Origin> {
+        ParseTree::origin(self)
     }
 }
 const LAYOUT_NAME: Option<&str> = None;

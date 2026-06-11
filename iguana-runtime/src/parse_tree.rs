@@ -10,16 +10,48 @@ use crate::{
     utils::inline_vec::InlineVec,
 };
 
-/// Options for rendering a parse tree as an s-expression.
+/// Options for rendering a parse tree as an s-expression. Each field is an
+/// independent presentation toggle: `true` shows the construct as it sits in
+/// the real parse tree, `false` simplifies it away. The `default` is every
+/// toggle on (the truthful, lossless tree), so `to_sexpr` and the golden files
+/// stay faithful. The CLI, REPL, and viewers start from `simplified` instead.
 #[derive(Clone, Copy)]
 pub struct SexprOptions {
-    /// Include layout nodes (whitespace, comments) and their subtrees.
+    /// Show layout nodes (whitespace, comments) and their subtrees.
     pub show_layout: bool,
+    /// Show empty optionals and repetitions (`X?`, `X*` that matched nothing)
+    /// rather than dropping them.
+    pub show_empty: bool,
+    /// Show wrapper nodes (the `@Start` wrapper, optionals, anonymous groups,
+    /// and alternations) rather than splicing their children into the parent.
+    pub show_wrappers: bool,
+    /// Show repetitions as their `( name … )` nonterminal node rather than as a
+    /// `[ … ]` list.
+    pub show_lists: bool,
 }
 
 impl Default for SexprOptions {
+    /// The truthful tree: every construct shown as it really is.
     fn default() -> Self {
-        SexprOptions { show_layout: true }
+        SexprOptions {
+            show_layout: true,
+            show_empty: true,
+            show_wrappers: true,
+            show_lists: true,
+        }
+    }
+}
+
+impl SexprOptions {
+    /// The clean view the CLI, REPL, and viewers default to: layout, empty
+    /// repetitions, and wrapper nodes hidden, and repetitions shown as `[ … ]`.
+    pub fn simplified() -> Self {
+        SexprOptions {
+            show_layout: false,
+            show_empty: false,
+            show_wrappers: false,
+            show_lists: false,
+        }
     }
 }
 
@@ -331,6 +363,24 @@ pub enum NodeKind {
     Amb,
 }
 
+/// The grammar construct a nonterminal node was derived from. Drives the
+/// presentation transforms (hiding empty repetitions, splicing wrappers,
+/// bracketing lists). `None` for a user-declared nonterminal or a token.
+#[derive(Clone, Copy, PartialEq, Eq)]
+pub enum Origin {
+    /// The synthetic `@Start` wrapper, the start symbol between leading and
+    /// trailing layout.
+    Start,
+    /// An optional, `X?`.
+    Opt,
+    /// A repetition, `X*` / `X+` / `{X sep}+`.
+    List,
+    /// An anonymous sequence group, `(A B C)`.
+    Group,
+    /// An anonymous alternation, `(A | B)`.
+    Alt,
+}
+
 /// The uniform interface for generic parse-tree traversals, such as conversion
 /// to an s-expression or JSON. Generated parsers implement it for their
 /// `ParseTree` type.
@@ -342,6 +392,13 @@ pub trait ParseTreeNode: Copy {
     /// A stable identity for the node, or `None` for nodes that are never
     /// shared. Used to detect sharing in an ambiguity DAG.
     fn node_id(&self) -> Option<usize>;
+    /// The grammar construct this node was derived from, or `None` for a
+    /// user-declared nonterminal or a token. The default keeps parsers
+    /// generated before this method was added compiling. Those parsers report
+    /// `None`, so the presentation transforms are no-ops until regeneration.
+    fn origin(&self) -> Option<Origin> {
+        None
+    }
 }
 
 /// Whether `walk` should descend into a node's children.
@@ -358,6 +415,13 @@ pub trait TreeVisitor<N: ParseTreeNode> {
     fn enter(&mut self, node: N) -> Visit;
     fn exit(&mut self, node: N) {
         let _ = node;
+    }
+    /// The children `walk` should descend into. Defaults to the node's real
+    /// children; the s-expression visitors override it to descend into the
+    /// transformed child list (layout hidden, empties dropped, wrappers
+    /// spliced).
+    fn children(&self, node: N) -> Vec<N> {
+        node.children()
     }
 }
 
@@ -376,7 +440,7 @@ pub fn walk<N: ParseTreeNode, V: TreeVisitor<N>>(root: N, visitor: &mut V) {
                     // Exit goes under the children so it runs after them; the
                     // children are reversed so they pop in source order.
                     stack.push(WalkEvent::Exit(node));
-                    for child in node.children().into_iter().rev() {
+                    for child in visitor.children(node).into_iter().rev() {
                         stack.push(WalkEvent::Enter(child));
                     }
                 }
@@ -467,6 +531,8 @@ pub fn to_sexpr_with<N: ParseTreeNode>(
     layout_name: Option<&str>,
     options: SexprOptions,
 ) -> String {
+    let root = display_root(root, layout_name, options);
+
     let mut counter = IndegreeCounter {
         layout_name,
         options,
@@ -500,15 +566,60 @@ fn sexpr_hidden<N: ParseTreeNode>(
     !options.show_layout && layout_name == Some(node.display_name())
 }
 
-fn visible_children<N: ParseTreeNode>(
+/// A wrapper node carries no information of its own: the `@Start` scaffolding,
+/// an optional, or an anonymous group or alternation. `show_wrappers = false`
+/// splices its children into the parent.
+fn is_wrapper(origin: Option<Origin>) -> bool {
+    matches!(
+        origin,
+        Some(Origin::Start | Origin::Opt | Origin::Group | Origin::Alt)
+    )
+}
+
+/// An empty optional or list: an `X?`, `X*`, or `{X sep}+` that matched
+/// nothing. The `show_empty = false` toggle drops it, and only it: an empty
+/// user nonterminal or token is left alone.
+fn is_empty_opt_or_list<N: ParseTreeNode>(node: N) -> bool {
+    matches!(node.origin(), Some(Origin::Opt | Origin::List)) && node.children().is_empty()
+}
+
+/// The children of `node` as the s-expression shows them under `options`:
+/// layout filtered out, empty repetitions dropped, and wrapper nodes spliced
+/// into place (recursively, so a chain of wrappers collapses in one pass).
+fn display_children<N: ParseTreeNode>(
     node: N,
     layout_name: Option<&str>,
     options: SexprOptions,
 ) -> Vec<N> {
-    node.children()
-        .into_iter()
-        .filter(|c| !sexpr_hidden(*c, layout_name, options))
-        .collect()
+    let mut result = Vec::new();
+    for child in node.children() {
+        if sexpr_hidden(child, layout_name, options) {
+            continue;
+        }
+        if !options.show_empty && is_empty_opt_or_list(child) {
+            continue;
+        }
+        if !options.show_wrappers && is_wrapper(child.origin()) {
+            result.extend(display_children(child, layout_name, options));
+        } else {
+            result.push(child);
+        }
+    }
+    result
+}
+
+/// The node the s-expression takes as its root. When wrappers are spliced and
+/// the real root is one (typically the `@Start` node), descend to the single
+/// node it wraps so the output is not headed by scaffolding.
+fn display_root<N: ParseTreeNode>(root: N, layout_name: Option<&str>, options: SexprOptions) -> N {
+    let mut node = root;
+    while !options.show_wrappers && is_wrapper(node.origin()) {
+        match display_children(node, layout_name, options).as_slice() {
+            [only] => node = *only,
+            _ => break,
+        }
+    }
+    node
 }
 
 struct IndegreeCounter<'n> {
@@ -520,9 +631,6 @@ struct IndegreeCounter<'n> {
 
 impl<N: ParseTreeNode> TreeVisitor<N> for IndegreeCounter<'_> {
     fn enter(&mut self, node: N) -> Visit {
-        if sexpr_hidden(node, self.layout_name, self.options) {
-            return Visit::Skip;
-        }
         if let Some(id) = node.node_id() {
             *self.indegree.entry(id).or_insert(0) += 1;
             // Count every parent's reference, but expand the subtree only once.
@@ -531,6 +639,10 @@ impl<N: ParseTreeNode> TreeVisitor<N> for IndegreeCounter<'_> {
             }
         }
         Visit::Children
+    }
+
+    fn children(&self, node: N) -> Vec<N> {
+        display_children(node, self.layout_name, self.options)
     }
 }
 
@@ -564,13 +676,43 @@ impl SexprPrinter<'_> {
         }
         false
     }
+
+    /// A repetition rendered as `[ … ]` rather than `( name … )`.
+    fn is_bracketed_list<N: ParseTreeNode>(&self, node: N) -> bool {
+        !self.options.show_lists && node.origin() == Some(Origin::List)
+    }
+
+    /// Writes a node's opening delimiter: `[` for a bracketed list, `(name`
+    /// otherwise.
+    fn write_open<N: ParseTreeNode>(&mut self, node: N) {
+        if self.is_bracketed_list(node) {
+            let _ = write!(self.out, "[");
+        } else {
+            let _ = write!(self.out, "({}", node.display_name());
+        }
+    }
+
+    fn write_close<N: ParseTreeNode>(&mut self, node: N) {
+        if self.is_bracketed_list(node) {
+            let _ = write!(self.out, "]");
+        } else {
+            let _ = write!(self.out, ")");
+        }
+    }
+
+    /// Writes a childless node: `[]` for an empty bracketed list, the display
+    /// name (a token literal or terminal name) otherwise.
+    fn write_leaf<N: ParseTreeNode>(&mut self, node: N) {
+        if self.is_bracketed_list(node) {
+            let _ = write!(self.out, "[]");
+        } else {
+            let _ = write!(self.out, "{}", node.display_name());
+        }
+    }
 }
 
 impl<N: ParseTreeNode> TreeVisitor<N> for SexprPrinter<'_> {
     fn enter(&mut self, node: N) -> Visit {
-        if sexpr_hidden(node, self.layout_name, self.options) {
-            return Visit::Skip;
-        }
         // Every node but the root sits on its own indented line. Leaf and
         // one-line nodes are written by their parent, so a node reaches here
         // only as the root or a block child.
@@ -582,34 +724,43 @@ impl<N: ParseTreeNode> TreeVisitor<N> for SexprPrinter<'_> {
         if self.write_label(node) {
             return Visit::Skip;
         }
-        let children = visible_children(node, self.layout_name, self.options);
+        let children = display_children(node, self.layout_name, self.options);
         if children.is_empty() {
-            let _ = write!(self.out, "{}", node.display_name());
+            self.write_leaf(node);
             Visit::Skip
         } else if children
             .iter()
-            .all(|c| visible_children(*c, self.layout_name, self.options).is_empty())
+            .all(|c| display_children(*c, self.layout_name, self.options).is_empty())
         {
             // Every child is a leaf, so the node fits on one line.
-            let _ = write!(self.out, "({}", node.display_name());
-            for child in children {
-                let _ = write!(self.out, " ");
+            self.write_open(node);
+            let bracketed = self.is_bracketed_list(node);
+            for (i, child) in children.into_iter().enumerate() {
+                // A paren node has a space after its name; a bracketed list
+                // cuddles its first child to the `[`.
+                if !(bracketed && i == 0) {
+                    let _ = write!(self.out, " ");
+                }
                 if !self.write_label(child) {
-                    let _ = write!(self.out, "{}", child.display_name());
+                    self.write_leaf(child);
                 }
             }
-            let _ = write!(self.out, ")");
+            self.write_close(node);
             Visit::Skip
         } else {
-            let _ = write!(self.out, "({}", node.display_name());
+            self.write_open(node);
             self.indent += 2;
             Visit::Children
         }
     }
 
-    fn exit(&mut self, _node: N) {
+    fn exit(&mut self, node: N) {
         self.indent -= 2;
-        let _ = write!(self.out, ")");
+        self.write_close(node);
+    }
+
+    fn children(&self, node: N) -> Vec<N> {
+        display_children(node, self.layout_name, self.options)
     }
 }
 
@@ -624,6 +775,7 @@ mod tests {
         name: &'static str,
         id: usize,
         kind: NodeKind,
+        origin: Option<Origin>,
         children: &'a [Node<'a>],
     }
 
@@ -643,6 +795,48 @@ mod tests {
         fn node_id(&self) -> Option<usize> {
             Some(self.id)
         }
+        fn origin(&self) -> Option<Origin> {
+            self.origin
+        }
+    }
+
+    /// A user-declared nonterminal (no origin) with the given children.
+    fn nonterminal<'a>(name: &'static str, id: usize, children: &'a [Node<'a>]) -> Node<'a> {
+        Node {
+            name,
+            id,
+            kind: NodeKind::Nonterminal,
+            origin: None,
+            children,
+        }
+    }
+
+    /// A derived nonterminal carrying a presentation `origin`.
+    fn derived<'a>(
+        name: &'static str,
+        id: usize,
+        origin: Origin,
+        children: &'a [Node<'a>],
+    ) -> Node<'a> {
+        Node {
+            name,
+            id,
+            kind: NodeKind::Nonterminal,
+            origin: Some(origin),
+            children,
+        }
+    }
+
+    /// An ambiguity cluster: kind `Amb`, no presentation origin, with the
+    /// alternative derivations as children.
+    fn amb<'a>(id: usize, children: &'a [Node<'a>]) -> Node<'a> {
+        Node {
+            name: "Amb",
+            id,
+            kind: NodeKind::Amb,
+            origin: None,
+            children,
+        }
     }
 
     fn leaf(name: &'static str, id: usize) -> Node<'static> {
@@ -650,6 +844,7 @@ mod tests {
             name,
             id,
             kind: NodeKind::Token,
+            origin: None,
             children: &[],
         }
     }
@@ -657,12 +852,7 @@ mod tests {
     #[test]
     fn to_json_emits_nodes_and_edges() {
         let kids = [leaf("a", 1), leaf("b", 2)];
-        let root = Node {
-            name: "S",
-            id: 0,
-            kind: NodeKind::Nonterminal,
-            children: &kids,
-        };
+        let root = nonterminal("S", 0, &kids);
         let json = to_json(root, Some("Layout"));
         assert!(json.contains("\"label\":\"S\""));
         assert!(json.contains("\"label\":\"a\""));
@@ -674,19 +864,9 @@ mod tests {
     fn to_sexpr_formats_nested_tree() {
         // S -> [A -> [x, y], z]: S is multi-line, A folds onto one line.
         let a_kids = [leaf("x", 1), leaf("y", 2)];
-        let a = Node {
-            name: "A",
-            id: 3,
-            kind: NodeKind::Nonterminal,
-            children: &a_kids,
-        };
+        let a = nonterminal("A", 3, &a_kids);
         let top = [a, leaf("z", 4)];
-        let s = Node {
-            name: "S",
-            id: 0,
-            kind: NodeKind::Nonterminal,
-            children: &top,
-        };
+        let s = nonterminal("S", 0, &top);
         assert_eq!(to_sexpr(s, None), "(S\n  (A x y)\n  z)\n");
     }
 
@@ -695,35 +875,22 @@ mod tests {
         // S is multi-line, with a hidden Layout child between two visible ones;
         // hiding it must not leave a blank line where the node would have been.
         let x = [leaf("x", 1)];
-        let a = Node {
-            name: "A",
-            id: 2,
-            kind: NodeKind::Nonterminal,
-            children: &x,
-        };
+        let a = nonterminal("A", 2, &x);
         let ws = [leaf("ws", 5)];
-        let layout = Node {
-            name: "Layout",
-            id: 6,
-            kind: NodeKind::Nonterminal,
-            children: &ws,
-        };
+        let layout = nonterminal("Layout", 6, &ws);
         let kids = [a, layout, leaf("b", 3)];
-        let s = Node {
-            name: "S",
-            id: 0,
-            kind: NodeKind::Nonterminal,
-            children: &kids,
-        };
+        let s = nonterminal("S", 0, &kids);
 
-        let hidden = SexprOptions { show_layout: false };
+        let hidden = SexprOptions {
+            show_layout: false,
+            ..Default::default()
+        };
         assert_eq!(
             to_sexpr_with(s, Some("Layout"), hidden),
             "(S\n  (A x)\n  b)\n"
         );
-        let shown = SexprOptions { show_layout: true };
         assert_eq!(
-            to_sexpr_with(s, Some("Layout"), shown),
+            to_sexpr_with(s, Some("Layout"), SexprOptions::default()),
             "(S\n  (A x)\n  (Layout ws)\n  b)\n"
         );
     }
@@ -743,16 +910,124 @@ mod tests {
         let mut node = leaf("leaf", 0);
         for i in 1..200_000 {
             let children: &[Node] = bump.alloc_slice_copy(&[node]);
-            node = Node {
-                name: "N",
-                id: i,
-                kind: NodeKind::Nonterminal,
-                children,
-            };
+            node = nonterminal("N", i, children);
         }
 
         let mut counter = Counter(0);
         walk(node, &mut counter);
         assert_eq!(counter.0, 200_000);
+    }
+
+    #[test]
+    fn show_empty_drops_empty_repetitions() {
+        // S -> [A? (present), B? (empty), C* (empty), d].
+        let a = [leaf("a", 1)];
+        let present = derived("A?", 2, Origin::Opt, &a);
+        let empty_opt = derived("B?", 3, Origin::Opt, &[]);
+        let empty_list = derived("C*", 4, Origin::List, &[]);
+        let kids = [present, empty_opt, empty_list, leaf("d", 5)];
+        let s = nonterminal("S", 0, &kids);
+
+        // Faithful: the empty optional and list show as leaves.
+        assert_eq!(to_sexpr(s, None), "(S\n  (A? a)\n  B?\n  C*\n  d)\n");
+
+        // show_empty off drops them; the present optional stays.
+        let opts = SexprOptions {
+            show_empty: false,
+            ..Default::default()
+        };
+        assert_eq!(to_sexpr_with(s, None, opts), "(S\n  (A? a)\n  d)\n");
+    }
+
+    #[test]
+    fn show_wrappers_splices_optionals_and_groups() {
+        // S -> [A? -> a, (B C) -> b c].
+        let a = [leaf("a", 1)];
+        let opt = derived("A?", 2, Origin::Opt, &a);
+        let group_kids = [leaf("b", 3), leaf("c", 4)];
+        let group = derived("(B C)", 5, Origin::Group, &group_kids);
+        let kids = [opt, group];
+        let s = nonterminal("S", 0, &kids);
+
+        assert_eq!(to_sexpr(s, None), "(S\n  (A? a)\n  ((B C) b c))\n");
+
+        let opts = SexprOptions {
+            show_wrappers: false,
+            ..Default::default()
+        };
+        assert_eq!(to_sexpr_with(s, None, opts), "(S a b c)\n");
+    }
+
+    #[test]
+    fn show_lists_brackets_repetitions() {
+        // S -> A* -> [x, y], plus a sibling empty list.
+        let items = [leaf("x", 1), leaf("y", 2)];
+        let list = derived("A*", 3, Origin::List, &items);
+        let empty = derived("B*", 4, Origin::List, &[]);
+        let kids = [list, empty];
+        let s = nonterminal("S", 0, &kids);
+
+        assert_eq!(to_sexpr(s, None), "(S\n  (A* x y)\n  B*)\n");
+
+        // show_lists off brackets them; an empty list reads as `[]`.
+        let opts = SexprOptions {
+            show_lists: false,
+            ..Default::default()
+        };
+        assert_eq!(to_sexpr_with(s, None, opts), "(S\n  [x y]\n  [])\n");
+    }
+
+    #[test]
+    fn simplified_unwraps_start_and_combines() {
+        // StartGrammar -> [Layout, Grammar -> [A? -> a, B* -> b1 b2, C? empty], Layout].
+        let a = [leaf("a", 1)];
+        let opt = derived("A?", 2, Origin::Opt, &a);
+        let bitems = [leaf("b1", 3), leaf("b2", 4)];
+        let list = derived("B*", 5, Origin::List, &bitems);
+        let empty_opt = derived("C?", 6, Origin::Opt, &[]);
+        let grammar_kids = [opt, list, empty_opt];
+        let grammar = nonterminal("Grammar", 10, &grammar_kids);
+
+        let ws_before = [leaf("ws", 61)];
+        let ws_after = [leaf("ws", 71)];
+        let before = nonterminal("Layout", 7, &ws_before);
+        let after = nonterminal("Layout", 8, &ws_after);
+        // The `@Start` wrapper displays under the inner name, like the real one.
+        let start_kids = [before, grammar, after];
+        let start = derived("Grammar", 0, Origin::Start, &start_kids);
+
+        // Faithful: the start wrapper and its layout doubling are all there.
+        assert_eq!(
+            to_sexpr(start, Some("Layout")),
+            "(Grammar\n  (Layout ws)\n  (Grammar\n    (A? a)\n    (B* b1 b2)\n    C?)\n  (Layout ws))\n"
+        );
+
+        // Simplified: start wrapper unwrapped, layout/empties/wrappers gone,
+        // repetition bracketed.
+        assert_eq!(
+            to_sexpr_with(start, Some("Layout"), SexprOptions::simplified()),
+            "(Grammar\n  a\n  [b1 b2])\n"
+        );
+    }
+
+    #[test]
+    fn simplified_keeps_ambiguity_cluster_intact() {
+        // An ambiguous `A+`: an Amb cluster over two list derivations. The
+        // cluster reports no origin, so simplified mode keeps it as `(Amb …)`
+        // and brackets each alternative, rather than bracketing the cluster and
+        // making the ambiguity read as a list of lists.
+        let items1 = [leaf("a", 1), leaf("a", 2)];
+        let items2 = [leaf("a", 3), leaf("a", 4)];
+        let alt1 = derived("A+", 5, Origin::List, &items1);
+        let alt2 = derived("A+", 6, Origin::List, &items2);
+        let alts = [alt1, alt2];
+        let cluster = amb(7, &alts);
+        let kids = [cluster];
+        let s = nonterminal("S", 0, &kids);
+
+        assert_eq!(
+            to_sexpr_with(s, None, SexprOptions::simplified()),
+            "(S\n  (Amb\n    [a a]\n    [a a]))\n"
+        );
     }
 }

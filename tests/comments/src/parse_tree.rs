@@ -4,8 +4,8 @@ use crate::parser::CommentsParser;
 use iguana_runtime::{
     ids::{NonterminalId, SlotId, TerminalId},
     parse_tree::{
-        Bump, NodeKind, OneOrMany, ParseContext, ParseTreeBuilder, ParseTreeNode, SexprOptions,
-        visit_sppf,
+        Bump, NodeKind, OneOrMany, Origin, ParseContext, ParseTreeBuilder, ParseTreeNode,
+        SexprOptions, visit_sppf,
     },
     sppf::{NonterminalNode, SPPFNodeId, Span, TerminalNode},
 };
@@ -103,6 +103,13 @@ impl<'a> ParseTree<'a> {
         match self {
             ParseTree::Expr(expr) => Some(*expr as *const _ as usize),
             ParseTree::StartExpr(start_expr) => Some(*start_expr as *const _ as usize),
+            ParseTree::Token(_) => None,
+        }
+    }
+    pub fn origin(&self) -> Option<Origin> {
+        match self {
+            ParseTree::Expr(expr) => expr.origin(),
+            ParseTree::StartExpr(start_expr) => start_expr.origin(),
             ParseTree::Token(_) => None,
         }
     }
@@ -224,6 +231,9 @@ impl<'a> Expr<'a> {
             _ => "Expr",
         }
     }
+    pub fn origin(&self) -> Option<Origin> {
+        None
+    }
 }
 impl<'a> Start<&'a Expr<'a>, Token> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
@@ -245,6 +255,9 @@ impl<'a> Start<&'a Expr<'a>, Token> {
     }
     pub fn display_name(&self) -> &'static str {
         "Expr"
+    }
+    pub fn origin(&self) -> Option<Origin> {
+        Some(Origin::Start)
     }
 }
 #[derive(Debug, Clone, Copy)]
@@ -426,6 +439,9 @@ impl<'a> ParseTreeNode for ParseTree<'a> {
     }
     fn node_id(&self) -> Option<usize> {
         ParseTree::node_id(self)
+    }
+    fn origin(&self) -> Option<Origin> {
+        ParseTree::origin(self)
     }
 }
 const LAYOUT_NAME: Option<&str> = Some("Layout");

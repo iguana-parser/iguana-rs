@@ -4,8 +4,8 @@ use crate::parser::ExceptNonterminalLongestMatchParser;
 use iguana_runtime::{
     ids::{NonterminalId, SlotId, TerminalId},
     parse_tree::{
-        Bump, NodeKind, OneOrMany, ParseContext, ParseTreeBuilder, ParseTreeNode, SexprOptions,
-        visit_sppf,
+        Bump, NodeKind, OneOrMany, Origin, ParseContext, ParseTreeBuilder, ParseTreeNode,
+        SexprOptions, visit_sppf,
     },
     sppf::{NonterminalNode, SPPFNodeId, Span, TerminalNode},
 };
@@ -85,6 +85,14 @@ impl<'a> ParseTree<'a> {
             ParseTree::S(s) => Some(*s as *const _ as usize),
             ParseTree::Id(id) => Some(*id as *const _ as usize),
             ParseTree::Name(name) => Some(*name as *const _ as usize),
+            ParseTree::Token(_) => None,
+        }
+    }
+    pub fn origin(&self) -> Option<Origin> {
+        match self {
+            ParseTree::S(s) => s.origin(),
+            ParseTree::Id(id) => id.origin(),
+            ParseTree::Name(name) => name.origin(),
             ParseTree::Token(_) => None,
         }
     }
@@ -183,6 +191,9 @@ impl<'a> S<'a> {
             _ => "S",
         }
     }
+    pub fn origin(&self) -> Option<Origin> {
+        None
+    }
     pub fn id_0(&self) -> &'a Id<'a> {
         match self {
             S::Alt0 { id_0, .. } => id_0,
@@ -226,6 +237,9 @@ impl<'a> Id<'a> {
             Id::Amb(_) => "Amb",
             _ => "Id",
         }
+    }
+    pub fn origin(&self) -> Option<Origin> {
+        None
     }
     pub fn name(&self) -> &'a Name<'a> {
         match self {
@@ -273,6 +287,9 @@ impl<'a> Name<'a> {
             Name::Amb(_) => "Amb",
             _ => "Name",
         }
+    }
+    pub fn origin(&self) -> Option<Origin> {
+        None
     }
 }
 #[derive(Debug, Clone, Copy)]
@@ -456,6 +473,9 @@ impl<'a> ParseTreeNode for ParseTree<'a> {
     }
     fn node_id(&self) -> Option<usize> {
         ParseTree::node_id(self)
+    }
+    fn origin(&self) -> Option<Origin> {
+        ParseTree::origin(self)
     }
 }
 const LAYOUT_NAME: Option<&str> = None;

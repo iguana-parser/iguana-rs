@@ -4,8 +4,8 @@ use crate::parser::AmbPlusParser;
 use iguana_runtime::{
     ids::{NonterminalId, SlotId, TerminalId},
     parse_tree::{
-        Bump, NodeKind, OneOrMany, ParseContext, ParseTreeBuilder, ParseTreeNode, SexprOptions,
-        visit_sppf,
+        Bump, NodeKind, OneOrMany, Origin, ParseContext, ParseTreeBuilder, ParseTreeNode,
+        SexprOptions, visit_sppf,
     },
     sppf::{NonterminalNode, SPPFNodeId, Span, TerminalNode},
 };
@@ -116,6 +116,18 @@ impl<'a> ParseTree<'a> {
             ParseTree::Plus0(plus_0) => Some(*plus_0 as *const _ as usize),
             ParseTree::Opt0(opt_0) => Some(*opt_0 as *const _ as usize),
             ParseTree::Star0(star_0) => Some(*star_0 as *const _ as usize),
+            ParseTree::Token(_) => None,
+        }
+    }
+    pub fn origin(&self) -> Option<Origin> {
+        match self {
+            ParseTree::S(s) => s.origin(),
+            ParseTree::A(a) => a.origin(),
+            ParseTree::X(x) => x.origin(),
+            ParseTree::Y(y) => y.origin(),
+            ParseTree::Plus0(plus_0) => plus_0.origin(),
+            ParseTree::Opt0(opt_0) => opt_0.origin(),
+            ParseTree::Star0(star_0) => star_0.origin(),
             ParseTree::Token(_) => None,
         }
     }
@@ -267,6 +279,9 @@ impl<'a> S<'a> {
             _ => "S",
         }
     }
+    pub fn origin(&self) -> Option<Origin> {
+        None
+    }
     pub fn r#as(&self) -> &'a Star0<'a> {
         match self {
             S::Alt0 { r#as, .. } => r#as,
@@ -311,6 +326,9 @@ impl<'a> A<'a> {
             _ => "A",
         }
     }
+    pub fn origin(&self) -> Option<Origin> {
+        None
+    }
 }
 impl<'a> X<'a> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
@@ -342,6 +360,9 @@ impl<'a> X<'a> {
             X::Amb(_) => "Amb",
             _ => "X",
         }
+    }
+    pub fn origin(&self) -> Option<Origin> {
+        None
     }
     pub fn lit_0(&self) -> Token {
         match self {
@@ -381,6 +402,9 @@ impl<'a> Y<'a> {
             Y::Amb(_) => "Amb",
             _ => "Y",
         }
+    }
+    pub fn origin(&self) -> Option<Origin> {
+        None
     }
     pub fn lit_0(&self) -> Token {
         match self {
@@ -433,6 +457,12 @@ impl<'a> Plus0<'a> {
             _ => "A+",
         }
     }
+    pub fn origin(&self) -> Option<Origin> {
+        match self {
+            Plus0::Amb(_) => None,
+            _ => Some(Origin::List),
+        }
+    }
     pub fn r#as(&'a self) -> impl Iterator<Item = &'a A<'a>> {
         self.iter().filter_map(|node| match node {
             ParseTree::A(r) => Some(r),
@@ -475,6 +505,12 @@ impl<'a> Opt0<'a> {
             _ => "A+?",
         }
     }
+    pub fn origin(&self) -> Option<Origin> {
+        match self {
+            Opt0::Amb(_) => None,
+            _ => Some(Origin::Opt),
+        }
+    }
     pub fn r#as(&'a self) -> impl Iterator<Item = &'a A<'a>> {
         self.value().into_iter().flat_map(|inner| inner.r#as())
     }
@@ -508,6 +544,12 @@ impl<'a> Star0<'a> {
         match self {
             Star0::Amb(_) => "Amb",
             _ => "A*",
+        }
+    }
+    pub fn origin(&self) -> Option<Origin> {
+        match self {
+            Star0::Amb(_) => None,
+            _ => Some(Origin::List),
         }
     }
     pub fn r#as(&self) -> impl Iterator<Item = &'a A<'a>> {
@@ -891,6 +933,9 @@ impl<'a> ParseTreeNode for ParseTree<'a> {
     }
     fn node_id(&self) -> Option<usize> {
         ParseTree::node_id(self)
+    }
+    fn origin(&self) -> Option<Origin> {
+        ParseTree::origin(self)
     }
 }
 const LAYOUT_NAME: Option<&str> = None;

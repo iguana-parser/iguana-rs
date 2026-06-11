@@ -4,8 +4,8 @@ use crate::parser::IndirectPrefixParser;
 use iguana_runtime::{
     ids::{NonterminalId, SlotId, TerminalId},
     parse_tree::{
-        Bump, NodeKind, OneOrMany, ParseContext, ParseTreeBuilder, ParseTreeNode, SexprOptions,
-        visit_sppf,
+        Bump, NodeKind, OneOrMany, Origin, ParseContext, ParseTreeBuilder, ParseTreeNode,
+        SexprOptions, visit_sppf,
     },
     sppf::{NonterminalNode, SPPFNodeId, Span, TerminalNode},
 };
@@ -117,6 +117,16 @@ impl<'a> ParseTree<'a> {
             ParseTree::Lambda(lambda) => Some(*lambda as *const _ as usize),
             ParseTree::Body(body) => Some(*body as *const _ as usize),
             ParseTree::StartS(start_s) => Some(*start_s as *const _ as usize),
+            ParseTree::Token(_) => None,
+        }
+    }
+    pub fn origin(&self) -> Option<Origin> {
+        match self {
+            ParseTree::S(s) => s.origin(),
+            ParseTree::E(e) => e.origin(),
+            ParseTree::Lambda(lambda) => lambda.origin(),
+            ParseTree::Body(body) => body.origin(),
+            ParseTree::StartS(start_s) => start_s.origin(),
             ParseTree::Token(_) => None,
         }
     }
@@ -241,6 +251,9 @@ impl<'a> S<'a> {
             _ => "S",
         }
     }
+    pub fn origin(&self) -> Option<Origin> {
+        None
+    }
     pub fn e(&self) -> &'a E<'a> {
         match self {
             S::Alt0 { e, .. } => e,
@@ -302,6 +315,9 @@ impl<'a> E<'a> {
             _ => "E",
         }
     }
+    pub fn origin(&self) -> Option<Origin> {
+        None
+    }
 }
 impl<'a> Lambda<'a> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
@@ -337,6 +353,9 @@ impl<'a> Lambda<'a> {
             Lambda::Amb(_) => "Amb",
             _ => "Lambda",
         }
+    }
+    pub fn origin(&self) -> Option<Origin> {
+        None
     }
     pub fn lit_0(&self) -> Token {
         match self {
@@ -388,6 +407,9 @@ impl<'a> Body<'a> {
             _ => "Body",
         }
     }
+    pub fn origin(&self) -> Option<Origin> {
+        None
+    }
     pub fn e(&self) -> &'a E<'a> {
         match self {
             Body::Alt0 { e, .. } => e,
@@ -415,6 +437,9 @@ impl<'a> Start<&'a S<'a>, Token> {
     }
     pub fn display_name(&self) -> &'static str {
         "S"
+    }
+    pub fn origin(&self) -> Option<Origin> {
+        Some(Origin::Start)
     }
 }
 #[derive(Debug, Clone, Copy)]
@@ -668,6 +693,9 @@ impl<'a> ParseTreeNode for ParseTree<'a> {
     }
     fn node_id(&self) -> Option<usize> {
         ParseTree::node_id(self)
+    }
+    fn origin(&self) -> Option<Origin> {
+        ParseTree::origin(self)
     }
 }
 const LAYOUT_NAME: Option<&str> = Some("WS");

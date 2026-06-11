@@ -4,8 +4,8 @@ use crate::parser::IndirectPrecedenceParser;
 use iguana_runtime::{
     ids::{NonterminalId, SlotId, TerminalId},
     parse_tree::{
-        Bump, NodeKind, OneOrMany, ParseContext, ParseTreeBuilder, ParseTreeNode, SexprOptions,
-        visit_sppf,
+        Bump, NodeKind, OneOrMany, Origin, ParseContext, ParseTreeBuilder, ParseTreeNode,
+        SexprOptions, visit_sppf,
     },
     sppf::{NonterminalNode, SPPFNodeId, Span, TerminalNode},
 };
@@ -96,6 +96,15 @@ impl<'a> ParseTree<'a> {
             ParseTree::E(e) => Some(*e as *const _ as usize),
             ParseTree::F(f) => Some(*f as *const _ as usize),
             ParseTree::K(k) => Some(*k as *const _ as usize),
+            ParseTree::Token(_) => None,
+        }
+    }
+    pub fn origin(&self) -> Option<Origin> {
+        match self {
+            ParseTree::S(s) => s.origin(),
+            ParseTree::E(e) => e.origin(),
+            ParseTree::F(f) => f.origin(),
+            ParseTree::K(k) => k.origin(),
             ParseTree::Token(_) => None,
         }
     }
@@ -213,6 +222,9 @@ impl<'a> S<'a> {
             _ => "S",
         }
     }
+    pub fn origin(&self) -> Option<Origin> {
+        None
+    }
     pub fn e(&self) -> &'a E<'a> {
         match self {
             S::Alt0 { e, .. } => e,
@@ -266,6 +278,9 @@ impl<'a> E<'a> {
             _ => "E",
         }
     }
+    pub fn origin(&self) -> Option<Origin> {
+        None
+    }
 }
 impl<'a> F<'a> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
@@ -299,6 +314,9 @@ impl<'a> F<'a> {
             F::Amb(_) => "Amb",
             _ => "F",
         }
+    }
+    pub fn origin(&self) -> Option<Origin> {
+        None
     }
     pub fn e(&self) -> &'a E<'a> {
         match self {
@@ -349,6 +367,9 @@ impl<'a> K<'a> {
             K::Amb(_) => "Amb",
             _ => "K",
         }
+    }
+    pub fn origin(&self) -> Option<Origin> {
+        None
     }
     pub fn e(&self) -> &'a E<'a> {
         match self {
@@ -573,6 +594,9 @@ impl<'a> ParseTreeNode for ParseTree<'a> {
     }
     fn node_id(&self) -> Option<usize> {
         ParseTree::node_id(self)
+    }
+    fn origin(&self) -> Option<Origin> {
+        ParseTree::origin(self)
     }
 }
 const LAYOUT_NAME: Option<&str> = None;

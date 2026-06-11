@@ -4,8 +4,8 @@ use crate::parser::LayoutNonterminalParser;
 use iguana_runtime::{
     ids::{NonterminalId, SlotId, TerminalId},
     parse_tree::{
-        Bump, NodeKind, OneOrMany, ParseContext, ParseTreeBuilder, ParseTreeNode, SexprOptions,
-        visit_sppf,
+        Bump, NodeKind, OneOrMany, Origin, ParseContext, ParseTreeBuilder, ParseTreeNode,
+        SexprOptions, visit_sppf,
     },
     sppf::{NonterminalNode, SPPFNodeId, Span, TerminalNode},
 };
@@ -137,6 +137,18 @@ impl<'a> ParseTree<'a> {
             ParseTree::Opt0(opt_0) => Some(*opt_0 as *const _ as usize),
             ParseTree::Star0(star_0) => Some(*star_0 as *const _ as usize),
             ParseTree::StartS(start_s) => Some(*start_s as *const _ as usize),
+            ParseTree::Token(_) => None,
+        }
+    }
+    pub fn origin(&self) -> Option<Origin> {
+        match self {
+            ParseTree::S(s) => s.origin(),
+            ParseTree::Layout(layout) => layout.origin(),
+            ParseTree::Alt0(alt_0) => alt_0.origin(),
+            ParseTree::Plus0(plus_0) => plus_0.origin(),
+            ParseTree::Opt0(opt_0) => opt_0.origin(),
+            ParseTree::Star0(star_0) => star_0.origin(),
+            ParseTree::StartS(start_s) => start_s.origin(),
             ParseTree::Token(_) => None,
         }
     }
@@ -279,6 +291,9 @@ impl<'a> S<'a> {
             _ => "S",
         }
     }
+    pub fn origin(&self) -> Option<Origin> {
+        None
+    }
     pub fn lit_0(&self) -> Token {
         match self {
             S::Alt0 { lit_0, .. } => *lit_0,
@@ -316,6 +331,9 @@ impl<'a> Layout<'a> {
             Layout::Amb(_) => "Amb",
             _ => "Layout",
         }
+    }
+    pub fn origin(&self) -> Option<Origin> {
+        None
     }
     pub fn white_spaces(&self) -> impl Iterator<Item = Token> {
         match self {
@@ -373,6 +391,12 @@ impl<'a> Alt0<'a> {
             _ => "(WhiteSpace | Comment)",
         }
     }
+    pub fn origin(&self) -> Option<Origin> {
+        match self {
+            Alt0::Amb(_) => None,
+            _ => Some(Origin::Alt),
+        }
+    }
 }
 impl<'a> Plus0<'a> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
@@ -410,6 +434,12 @@ impl<'a> Plus0<'a> {
         match self {
             Plus0::Amb(_) => "Amb",
             _ => "(WhiteSpace | Comment)+",
+        }
+    }
+    pub fn origin(&self) -> Option<Origin> {
+        match self {
+            Plus0::Amb(_) => None,
+            _ => Some(Origin::List),
         }
     }
     pub fn white_spaces(&'a self) -> impl Iterator<Item = Token> {
@@ -461,6 +491,12 @@ impl<'a> Opt0<'a> {
             _ => "(WhiteSpace | Comment)+?",
         }
     }
+    pub fn origin(&self) -> Option<Origin> {
+        match self {
+            Opt0::Amb(_) => None,
+            _ => Some(Origin::Opt),
+        }
+    }
     pub fn white_spaces(&'a self) -> impl Iterator<Item = Token> {
         self.value()
             .into_iter()
@@ -499,6 +535,12 @@ impl<'a> Star0<'a> {
         match self {
             Star0::Amb(_) => "Amb",
             _ => "(WhiteSpace | Comment)*",
+        }
+    }
+    pub fn origin(&self) -> Option<Origin> {
+        match self {
+            Star0::Amb(_) => None,
+            _ => Some(Origin::List),
         }
     }
     pub fn white_spaces(&self) -> impl Iterator<Item = Token> {
@@ -540,6 +582,9 @@ impl<'a> Start<&'a S<'a>, &'a Layout<'a>> {
     }
     pub fn display_name(&self) -> &'static str {
         "S"
+    }
+    pub fn origin(&self) -> Option<Origin> {
+        Some(Origin::Start)
     }
 }
 impl<'a> ListNode<'a> for Plus0<'a> {
@@ -921,6 +966,9 @@ impl<'a> ParseTreeNode for ParseTree<'a> {
     }
     fn node_id(&self) -> Option<usize> {
         ParseTree::node_id(self)
+    }
+    fn origin(&self) -> Option<Origin> {
+        ParseTree::origin(self)
     }
 }
 const LAYOUT_NAME: Option<&str> = Some("Layout");

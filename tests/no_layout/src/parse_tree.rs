@@ -4,8 +4,8 @@ use crate::parser::NoLayoutParser;
 use iguana_runtime::{
     ids::{NonterminalId, SlotId, TerminalId},
     parse_tree::{
-        Bump, NodeKind, OneOrMany, ParseContext, ParseTreeBuilder, ParseTreeNode, SexprOptions,
-        visit_sppf,
+        Bump, NodeKind, OneOrMany, Origin, ParseContext, ParseTreeBuilder, ParseTreeNode,
+        SexprOptions, visit_sppf,
     },
     sppf::{NonterminalNode, SPPFNodeId, Span, TerminalNode},
 };
@@ -87,6 +87,14 @@ impl<'a> ParseTree<'a> {
             ParseTree::S(s) => Some(*s as *const _ as usize),
             ParseTree::Id(id) => Some(*id as *const _ as usize),
             ParseTree::Plus0(plus_0) => Some(*plus_0 as *const _ as usize),
+            ParseTree::Token(_) => None,
+        }
+    }
+    pub fn origin(&self) -> Option<Origin> {
+        match self {
+            ParseTree::S(s) => s.origin(),
+            ParseTree::Id(id) => id.origin(),
+            ParseTree::Plus0(plus_0) => plus_0.origin(),
             ParseTree::Token(_) => None,
         }
     }
@@ -181,6 +189,9 @@ impl<'a> S<'a> {
             _ => "S",
         }
     }
+    pub fn origin(&self) -> Option<Origin> {
+        None
+    }
     pub fn id(&self) -> &'a Id<'a> {
         match self {
             S::Alt0 { id, .. } => id,
@@ -218,6 +229,9 @@ impl<'a> Id<'a> {
             Id::Amb(_) => "Amb",
             _ => "Id",
         }
+    }
+    pub fn origin(&self) -> Option<Origin> {
+        None
     }
     pub fn chars(&self) -> &'a Plus0<'a> {
         match self {
@@ -264,6 +278,12 @@ impl<'a> Plus0<'a> {
         match self {
             Plus0::Amb(_) => "Amb",
             _ => "Char+",
+        }
+    }
+    pub fn origin(&self) -> Option<Origin> {
+        match self {
+            Plus0::Amb(_) => None,
+            _ => Some(Origin::List),
         }
     }
     pub fn chars(&'a self) -> impl Iterator<Item = Token> {
@@ -482,6 +502,9 @@ impl<'a> ParseTreeNode for ParseTree<'a> {
     }
     fn node_id(&self) -> Option<usize> {
         ParseTree::node_id(self)
+    }
+    fn origin(&self) -> Option<Origin> {
+        ParseTree::origin(self)
     }
 }
 const LAYOUT_NAME: Option<&str> = Some("WS");

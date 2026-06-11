@@ -4,8 +4,8 @@ use crate::parser::ExceptNonterminalParser;
 use iguana_runtime::{
     ids::{NonterminalId, SlotId, TerminalId},
     parse_tree::{
-        Bump, NodeKind, OneOrMany, ParseContext, ParseTreeBuilder, ParseTreeNode, SexprOptions,
-        visit_sppf,
+        Bump, NodeKind, OneOrMany, Origin, ParseContext, ParseTreeBuilder, ParseTreeNode,
+        SexprOptions, visit_sppf,
     },
     sppf::{NonterminalNode, SPPFNodeId, Span, TerminalNode},
 };
@@ -85,6 +85,14 @@ impl<'a> ParseTree<'a> {
             ParseTree::S(s) => Some(*s as *const _ as usize),
             ParseTree::Id(id) => Some(*id as *const _ as usize),
             ParseTree::Name(name) => Some(*name as *const _ as usize),
+            ParseTree::Token(_) => None,
+        }
+    }
+    pub fn origin(&self) -> Option<Origin> {
+        match self {
+            ParseTree::S(s) => s.origin(),
+            ParseTree::Id(id) => id.origin(),
+            ParseTree::Name(name) => name.origin(),
             ParseTree::Token(_) => None,
         }
     }
@@ -169,6 +177,9 @@ impl<'a> S<'a> {
             _ => "S",
         }
     }
+    pub fn origin(&self) -> Option<Origin> {
+        None
+    }
     pub fn id(&self) -> &'a Id<'a> {
         match self {
             S::Alt0 { id, .. } => id,
@@ -207,6 +218,9 @@ impl<'a> Id<'a> {
             _ => "Id",
         }
     }
+    pub fn origin(&self) -> Option<Origin> {
+        None
+    }
     pub fn name(&self) -> &'a Name<'a> {
         match self {
             Id::Alt0 { name, .. } => name,
@@ -244,6 +258,9 @@ impl<'a> Name<'a> {
             Name::Amb(_) => "Amb",
             _ => "Name",
         }
+    }
+    pub fn origin(&self) -> Option<Origin> {
+        None
     }
     pub fn identifier(&self) -> Token {
         match self {
@@ -423,6 +440,9 @@ impl<'a> ParseTreeNode for ParseTree<'a> {
     }
     fn node_id(&self) -> Option<usize> {
         ParseTree::node_id(self)
+    }
+    fn origin(&self) -> Option<Origin> {
+        ParseTree::origin(self)
     }
 }
 const LAYOUT_NAME: Option<&str> = None;

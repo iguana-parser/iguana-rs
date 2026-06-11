@@ -169,9 +169,25 @@ pub fn generate(grammar: &Grammar) -> TokenStream {
             quiet: bool,
 
             /// Include layout (whitespace, comments) nodes in the parse-tree
-            /// output. Hidden by default.
+            /// output. False by default.
             #[arg(long)]
             show_layout: bool,
+
+            /// Show empty optionals and repetitions (`X?`, `X*` that matched
+            /// nothing) in the parse-tree output. False by default.
+            #[arg(long)]
+            show_empty: bool,
+
+            /// Show wrapper nodes (the `@Start` wrapper, optionals, anonymous
+            /// groups, and alternations) in the parse-tree output. False by
+            /// default.
+            #[arg(long)]
+            show_wrappers: bool,
+
+            /// Show repetitions (`X*`, `X+`, `{X sep}+`) as their nonterminal
+            /// node rather than a `[ … ]` list. False by default.
+            #[arg(long)]
+            show_lists: bool,
 
             /// Print only the parser stats histogram and exit. Suppresses
             /// the parse-tree dump, the "Parse success" line, and (with
@@ -246,7 +262,12 @@ pub fn generate(grammar: &Grammar) -> TokenStream {
                         io::ErrorKind::InvalidInput,
                         format!("Unknown nonterminal: '{}'", start_nonterminal_name)
                     ))?;
-                let sexpr_options = SexprOptions { show_layout: args.show_layout };
+                let sexpr_options = SexprOptions {
+                    show_layout: args.show_layout,
+                    show_empty: args.show_empty,
+                    show_wrappers: args.show_wrappers,
+                    show_lists: args.show_lists,
+                };
                 cli::run_repl(sexpr_options, |text, sexpr_options| {
                     let input = Input::from(text);
                     let ctx = ParseContext::new();
@@ -509,7 +530,12 @@ pub fn generate(grammar: &Grammar) -> TokenStream {
                         && args.trace.is_none()
                     {
                         if let Some(ref parse_tree) = parse_tree_opt {
-                            let sexpr_options = SexprOptions { show_layout: args.show_layout };
+                            let sexpr_options = SexprOptions {
+                                show_layout: args.show_layout,
+                                show_empty: args.show_empty,
+                                show_wrappers: args.show_wrappers,
+                                show_lists: args.show_lists,
+                            };
                             println!("{}", to_sexpr_with(*parse_tree, sexpr_options));
                         }
                     }

@@ -4,8 +4,8 @@ use crate::parser::IggyParser;
 use iguana_runtime::{
     ids::{NonterminalId, SlotId, TerminalId},
     parse_tree::{
-        Bump, NodeKind, OneOrMany, ParseContext, ParseTreeBuilder, ParseTreeNode, SexprOptions,
-        visit_sppf,
+        Bump, NodeKind, OneOrMany, Origin, ParseContext, ParseTreeBuilder, ParseTreeNode,
+        SexprOptions, visit_sppf,
     },
     sppf::{NonterminalNode, SPPFNodeId, Span, TerminalNode},
 };
@@ -744,6 +744,69 @@ impl<'a> ParseTree<'a> {
             ParseTree::Opt11(opt_11) => Some(*opt_11 as *const _ as usize),
             ParseTree::Star6(star_6) => Some(*star_6 as *const _ as usize),
             ParseTree::StartGrammar(start_grammar) => Some(*start_grammar as *const _ as usize),
+            ParseTree::Token(_) => None,
+        }
+    }
+    pub fn origin(&self) -> Option<Origin> {
+        match self {
+            ParseTree::Grammar(grammar) => grammar.origin(),
+            ParseTree::LayoutDef(layout_def) => layout_def.origin(),
+            ParseTree::Rule(rule) => rule.origin(),
+            ParseTree::SyntaxRule(syntax_rule) => syntax_rule.origin(),
+            ParseTree::Annotation(annotation) => annotation.origin(),
+            ParseTree::RegexRule(regex_rule) => regex_rule.origin(),
+            ParseTree::PreCondition(pre_condition) => pre_condition.origin(),
+            ParseTree::PostCondition(post_condition) => post_condition.origin(),
+            ParseTree::PriorityLevel(priority_level) => priority_level.origin(),
+            ParseTree::Associativity(associativity) => associativity.origin(),
+            ParseTree::Alternative(alternative) => alternative.origin(),
+            ParseTree::Symbol(symbol) => symbol.origin(),
+            ParseTree::Regex(regex) => regex.origin(),
+            ParseTree::CharClass(char_class) => char_class.origin(),
+            ParseTree::RangeElement(range_element) => range_element.origin(),
+            ParseTree::Range(range) => range.origin(),
+            ParseTree::Layout(layout) => layout.origin(),
+            ParseTree::Opt0(opt_0) => opt_0.origin(),
+            ParseTree::Plus0(plus_0) => plus_0.origin(),
+            ParseTree::Opt1(opt_1) => opt_1.origin(),
+            ParseTree::Star0(star_0) => star_0.origin(),
+            ParseTree::Plus1(plus_1) => plus_1.origin(),
+            ParseTree::Opt2(opt_2) => opt_2.origin(),
+            ParseTree::Star1(star_1) => star_1.origin(),
+            ParseTree::Plus2(plus_2) => plus_2.origin(),
+            ParseTree::Opt3(opt_3) => opt_3.origin(),
+            ParseTree::Star2(star_2) => star_2.origin(),
+            ParseTree::Opt4(opt_4) => opt_4.origin(),
+            ParseTree::Plus4(plus_4) => plus_4.origin(),
+            ParseTree::Plus3(plus_3) => plus_3.origin(),
+            ParseTree::Plus5(plus_5) => plus_5.origin(),
+            ParseTree::Opt5(opt_5) => opt_5.origin(),
+            ParseTree::Star3(star_3) => star_3.origin(),
+            ParseTree::Opt6(opt_6) => opt_6.origin(),
+            ParseTree::Plus6(plus_6) => plus_6.origin(),
+            ParseTree::Opt7(opt_7) => opt_7.origin(),
+            ParseTree::Star4(star_4) => star_4.origin(),
+            ParseTree::Plus7(plus_7) => plus_7.origin(),
+            ParseTree::Opt8(opt_8) => opt_8.origin(),
+            ParseTree::Star5(star_5) => star_5.origin(),
+            ParseTree::Opt9(opt_9) => opt_9.origin(),
+            ParseTree::Group0(group_0) => group_0.origin(),
+            ParseTree::Plus8(plus_8) => plus_8.origin(),
+            ParseTree::Group1(group_1) => group_1.origin(),
+            ParseTree::Plus9(plus_9) => plus_9.origin(),
+            ParseTree::Group2(group_2) => group_2.origin(),
+            ParseTree::Plus10(plus_10) => plus_10.origin(),
+            ParseTree::Group3(group_3) => group_3.origin(),
+            ParseTree::Plus11(plus_11) => plus_11.origin(),
+            ParseTree::Group4(group_4) => group_4.origin(),
+            ParseTree::Plus12(plus_12) => plus_12.origin(),
+            ParseTree::Opt10(opt_10) => opt_10.origin(),
+            ParseTree::Plus13(plus_13) => plus_13.origin(),
+            ParseTree::Alt0(alt_0) => alt_0.origin(),
+            ParseTree::Plus14(plus_14) => plus_14.origin(),
+            ParseTree::Opt11(opt_11) => opt_11.origin(),
+            ParseTree::Star6(star_6) => star_6.origin(),
+            ParseTree::StartGrammar(start_grammar) => start_grammar.origin(),
             ParseTree::Token(_) => None,
         }
     }
@@ -2051,6 +2114,9 @@ impl<'a> Grammar<'a> {
             _ => "Grammar",
         }
     }
+    pub fn origin(&self) -> Option<Origin> {
+        None
+    }
     pub fn lit_0(&self) -> Token {
         match self {
             Grammar::Alt0 { lit_0, .. } => *lit_0,
@@ -2132,6 +2198,9 @@ impl<'a> LayoutDef<'a> {
             _ => "LayoutDef",
         }
     }
+    pub fn origin(&self) -> Option<Origin> {
+        None
+    }
     pub fn lit_0(&self) -> Token {
         match self {
             LayoutDef::Alt0 { lit_0, .. } => *lit_0,
@@ -2188,6 +2257,9 @@ impl<'a> Rule<'a> {
             _ => "Rule",
         }
     }
+    pub fn origin(&self) -> Option<Origin> {
+        None
+    }
 }
 impl<'a> SyntaxRule<'a> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
@@ -2234,6 +2306,9 @@ impl<'a> SyntaxRule<'a> {
             SyntaxRule::Amb(_) => "Amb",
             _ => "SyntaxRule",
         }
+    }
+    pub fn origin(&self) -> Option<Origin> {
+        None
     }
     pub fn annotations(&self) -> &'a Star1<'a> {
         match self {
@@ -2338,6 +2413,9 @@ impl<'a> Annotation<'a> {
             _ => "Annotation",
         }
     }
+    pub fn origin(&self) -> Option<Origin> {
+        None
+    }
 }
 impl<'a> RegexRule<'a> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
@@ -2392,6 +2470,9 @@ impl<'a> RegexRule<'a> {
             RegexRule::Amb(_) => "Amb",
             _ => "RegexRule",
         }
+    }
+    pub fn origin(&self) -> Option<Origin> {
+        None
     }
     pub fn lit_0(&self) -> Token {
         match self {
@@ -2500,6 +2581,9 @@ impl<'a> PreCondition<'a> {
             _ => "PreCondition",
         }
     }
+    pub fn origin(&self) -> Option<Origin> {
+        None
+    }
     pub fn identifier(&self) -> Token {
         match self {
             PreCondition::PrecedeRestriction { identifier, .. } => *identifier,
@@ -2570,6 +2654,9 @@ impl<'a> PostCondition<'a> {
             _ => "PostCondition",
         }
     }
+    pub fn origin(&self) -> Option<Origin> {
+        None
+    }
 }
 impl<'a> PriorityLevel<'a> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
@@ -2608,6 +2695,9 @@ impl<'a> PriorityLevel<'a> {
             PriorityLevel::Amb(_) => "Amb",
             _ => "PriorityLevel",
         }
+    }
+    pub fn origin(&self) -> Option<Origin> {
+        None
     }
     pub fn associativity(&self) -> &'a Opt6<'a> {
         match self {
@@ -2671,6 +2761,9 @@ impl<'a> Associativity<'a> {
             _ => "Associativity",
         }
     }
+    pub fn origin(&self) -> Option<Origin> {
+        None
+    }
 }
 impl<'a> Alternative<'a> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
@@ -2709,6 +2802,9 @@ impl<'a> Alternative<'a> {
             Alternative::Amb(_) => "Amb",
             _ => "Alternative",
         }
+    }
+    pub fn origin(&self) -> Option<Origin> {
+        None
     }
     pub fn symbols(&self) -> &'a Star5<'a> {
         match self {
@@ -2966,6 +3062,9 @@ impl<'a> Symbol<'a> {
             _ => "Symbol",
         }
     }
+    pub fn origin(&self) -> Option<Origin> {
+        None
+    }
 }
 impl<'a> Regex<'a> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
@@ -3093,6 +3192,9 @@ impl<'a> Regex<'a> {
             _ => "Regex",
         }
     }
+    pub fn origin(&self) -> Option<Origin> {
+        None
+    }
 }
 impl<'a> CharClass<'a> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
@@ -3139,6 +3241,9 @@ impl<'a> CharClass<'a> {
             CharClass::Amb(_) => "Amb",
             _ => "CharClass",
         }
+    }
+    pub fn origin(&self) -> Option<Origin> {
+        None
     }
     pub fn neg(&self) -> &'a Opt10<'a> {
         match self {
@@ -3220,6 +3325,9 @@ impl<'a> RangeElement<'a> {
             _ => "RangeElement",
         }
     }
+    pub fn origin(&self) -> Option<Origin> {
+        None
+    }
 }
 impl<'a> Range<'a> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
@@ -3262,6 +3370,9 @@ impl<'a> Range<'a> {
             Range::Amb(_) => "Amb",
             _ => "Range",
         }
+    }
+    pub fn origin(&self) -> Option<Origin> {
+        None
     }
     pub fn start(&self) -> Token {
         match self {
@@ -3325,6 +3436,9 @@ impl<'a> Layout<'a> {
             _ => "Layout",
         }
     }
+    pub fn origin(&self) -> Option<Origin> {
+        None
+    }
     pub fn wses(&self) -> impl Iterator<Item = Token> {
         match self {
             Layout::Alt0 { star_6, .. } => star_6.wses(),
@@ -3378,6 +3492,12 @@ impl<'a> Opt0<'a> {
             _ => "LayoutDef?",
         }
     }
+    pub fn origin(&self) -> Option<Origin> {
+        match self {
+            Opt0::Amb(_) => None,
+            _ => Some(Origin::Opt),
+        }
+    }
 }
 impl<'a> Plus0<'a> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
@@ -3423,6 +3543,12 @@ impl<'a> Plus0<'a> {
             _ => "Rule+",
         }
     }
+    pub fn origin(&self) -> Option<Origin> {
+        match self {
+            Plus0::Amb(_) => None,
+            _ => Some(Origin::List),
+        }
+    }
     pub fn rules(&'a self) -> impl Iterator<Item = &'a Rule<'a>> {
         self.iter().filter_map(|node| match node {
             ParseTree::Rule(r) => Some(r),
@@ -3465,6 +3591,12 @@ impl<'a> Opt1<'a> {
             _ => "Rule+?",
         }
     }
+    pub fn origin(&self) -> Option<Origin> {
+        match self {
+            Opt1::Amb(_) => None,
+            _ => Some(Origin::Opt),
+        }
+    }
     pub fn rules(&'a self) -> impl Iterator<Item = &'a Rule<'a>> {
         self.value().into_iter().flat_map(|inner| inner.rules())
     }
@@ -3498,6 +3630,12 @@ impl<'a> Star0<'a> {
         match self {
             Star0::Amb(_) => "Amb",
             _ => "Rule*",
+        }
+    }
+    pub fn origin(&self) -> Option<Origin> {
+        match self {
+            Star0::Amb(_) => None,
+            _ => Some(Origin::List),
         }
     }
     pub fn rules(&self) -> impl Iterator<Item = &'a Rule<'a>> {
@@ -3557,6 +3695,12 @@ impl<'a> Plus1<'a> {
             _ => "Annotation+",
         }
     }
+    pub fn origin(&self) -> Option<Origin> {
+        match self {
+            Plus1::Amb(_) => None,
+            _ => Some(Origin::List),
+        }
+    }
     pub fn annotations(&'a self) -> impl Iterator<Item = &'a Annotation<'a>> {
         self.iter().filter_map(|node| match node {
             ParseTree::Annotation(r) => Some(r),
@@ -3599,6 +3743,12 @@ impl<'a> Opt2<'a> {
             _ => "Annotation+?",
         }
     }
+    pub fn origin(&self) -> Option<Origin> {
+        match self {
+            Opt2::Amb(_) => None,
+            _ => Some(Origin::Opt),
+        }
+    }
     pub fn annotations(&'a self) -> impl Iterator<Item = &'a Annotation<'a>> {
         self.value()
             .into_iter()
@@ -3634,6 +3784,12 @@ impl<'a> Star1<'a> {
         match self {
             Star1::Amb(_) => "Amb",
             _ => "Annotation*",
+        }
+    }
+    pub fn origin(&self) -> Option<Origin> {
+        match self {
+            Star1::Amb(_) => None,
+            _ => Some(Origin::List),
         }
     }
     pub fn annotations(&self) -> impl Iterator<Item = &'a Annotation<'a>> {
@@ -3697,6 +3853,12 @@ impl<'a> Plus2<'a> {
             _ => "{PriorityLevel \">\"}+",
         }
     }
+    pub fn origin(&self) -> Option<Origin> {
+        match self {
+            Plus2::Amb(_) => None,
+            _ => Some(Origin::List),
+        }
+    }
     pub fn priority_levels(&'a self) -> impl Iterator<Item = &'a PriorityLevel<'a>> {
         self.iter().filter_map(|node| match node {
             ParseTree::PriorityLevel(r) => Some(r),
@@ -3741,6 +3903,12 @@ impl<'a> Opt3<'a> {
             _ => "{PriorityLevel \">\"}+?",
         }
     }
+    pub fn origin(&self) -> Option<Origin> {
+        match self {
+            Opt3::Amb(_) => None,
+            _ => Some(Origin::Opt),
+        }
+    }
     pub fn priority_levels(&'a self) -> impl Iterator<Item = &'a PriorityLevel<'a>> {
         self.value()
             .into_iter()
@@ -3776,6 +3944,12 @@ impl<'a> Star2<'a> {
         match self {
             Star2::Amb(_) => "Amb",
             _ => "{PriorityLevel \">\"}*",
+        }
+    }
+    pub fn origin(&self) -> Option<Origin> {
+        match self {
+            Star2::Amb(_) => None,
+            _ => Some(Origin::List),
         }
     }
     pub fn priority_levels(&self) -> impl Iterator<Item = &'a PriorityLevel<'a>> {
@@ -3825,6 +3999,12 @@ impl<'a> Opt4<'a> {
             _ => "PreCondition?",
         }
     }
+    pub fn origin(&self) -> Option<Origin> {
+        match self {
+            Opt4::Amb(_) => None,
+            _ => Some(Origin::Opt),
+        }
+    }
 }
 impl<'a> Plus4<'a> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
@@ -3868,6 +4048,12 @@ impl<'a> Plus4<'a> {
         match self {
             Plus4::Amb(_) => "Amb",
             _ => "Regex+",
+        }
+    }
+    pub fn origin(&self) -> Option<Origin> {
+        match self {
+            Plus4::Amb(_) => None,
+            _ => Some(Origin::List),
         }
     }
     pub fn regexes(&'a self) -> impl Iterator<Item = &'a Regex<'a>> {
@@ -3926,6 +4112,12 @@ impl<'a> Plus3<'a> {
             _ => "{Regex+ \"|\"}+",
         }
     }
+    pub fn origin(&self) -> Option<Origin> {
+        match self {
+            Plus3::Amb(_) => None,
+            _ => Some(Origin::List),
+        }
+    }
     pub fn regexes(&'a self) -> impl Iterator<Item = impl Iterator<Item = &'a Regex<'a>> + 'a> {
         self.iter().filter_map(|node| match node {
             ParseTree::Plus4(r) => Some(r.regexes()),
@@ -3978,6 +4170,12 @@ impl<'a> Plus5<'a> {
             _ => "PostCondition+",
         }
     }
+    pub fn origin(&self) -> Option<Origin> {
+        match self {
+            Plus5::Amb(_) => None,
+            _ => Some(Origin::List),
+        }
+    }
     pub fn post_conditions(&'a self) -> impl Iterator<Item = &'a PostCondition<'a>> {
         self.iter().filter_map(|node| match node {
             ParseTree::PostCondition(r) => Some(r),
@@ -4022,6 +4220,12 @@ impl<'a> Opt5<'a> {
             _ => "PostCondition+?",
         }
     }
+    pub fn origin(&self) -> Option<Origin> {
+        match self {
+            Opt5::Amb(_) => None,
+            _ => Some(Origin::Opt),
+        }
+    }
     pub fn post_conditions(&'a self) -> impl Iterator<Item = &'a PostCondition<'a>> {
         self.value()
             .into_iter()
@@ -4057,6 +4261,12 @@ impl<'a> Star3<'a> {
         match self {
             Star3::Amb(_) => "Amb",
             _ => "PostCondition*",
+        }
+    }
+    pub fn origin(&self) -> Option<Origin> {
+        match self {
+            Star3::Amb(_) => None,
+            _ => Some(Origin::List),
         }
     }
     pub fn post_conditions(&self) -> impl Iterator<Item = &'a PostCondition<'a>> {
@@ -4104,6 +4314,12 @@ impl<'a> Opt6<'a> {
         match self {
             Opt6::Amb(_) => "Amb",
             _ => "Associativity?",
+        }
+    }
+    pub fn origin(&self) -> Option<Origin> {
+        match self {
+            Opt6::Amb(_) => None,
+            _ => Some(Origin::Opt),
         }
     }
 }
@@ -4155,6 +4371,12 @@ impl<'a> Plus6<'a> {
             _ => "{Alternative \"|\"}+",
         }
     }
+    pub fn origin(&self) -> Option<Origin> {
+        match self {
+            Plus6::Amb(_) => None,
+            _ => Some(Origin::List),
+        }
+    }
     pub fn alternatives(&'a self) -> impl Iterator<Item = &'a Alternative<'a>> {
         self.iter().filter_map(|node| match node {
             ParseTree::Alternative(r) => Some(r),
@@ -4197,6 +4419,12 @@ impl<'a> Opt7<'a> {
             _ => "{Alternative \"|\"}+?",
         }
     }
+    pub fn origin(&self) -> Option<Origin> {
+        match self {
+            Opt7::Amb(_) => None,
+            _ => Some(Origin::Opt),
+        }
+    }
     pub fn alternatives(&'a self) -> impl Iterator<Item = &'a Alternative<'a>> {
         self.value()
             .into_iter()
@@ -4232,6 +4460,12 @@ impl<'a> Star4<'a> {
         match self {
             Star4::Amb(_) => "Amb",
             _ => "{Alternative \"|\"}*",
+        }
+    }
+    pub fn origin(&self) -> Option<Origin> {
+        match self {
+            Star4::Amb(_) => None,
+            _ => Some(Origin::List),
         }
     }
     pub fn alternatives(&self) -> impl Iterator<Item = &'a Alternative<'a>> {
@@ -4291,6 +4525,12 @@ impl<'a> Plus7<'a> {
             _ => "Symbol+",
         }
     }
+    pub fn origin(&self) -> Option<Origin> {
+        match self {
+            Plus7::Amb(_) => None,
+            _ => Some(Origin::List),
+        }
+    }
     pub fn symbols(&'a self) -> impl Iterator<Item = &'a Symbol<'a>> {
         self.iter().filter_map(|node| match node {
             ParseTree::Symbol(r) => Some(r),
@@ -4333,6 +4573,12 @@ impl<'a> Opt8<'a> {
             _ => "Symbol+?",
         }
     }
+    pub fn origin(&self) -> Option<Origin> {
+        match self {
+            Opt8::Amb(_) => None,
+            _ => Some(Origin::Opt),
+        }
+    }
     pub fn symbols(&'a self) -> impl Iterator<Item = &'a Symbol<'a>> {
         self.value().into_iter().flat_map(|inner| inner.symbols())
     }
@@ -4366,6 +4612,12 @@ impl<'a> Star5<'a> {
         match self {
             Star5::Amb(_) => "Amb",
             _ => "Symbol*",
+        }
+    }
+    pub fn origin(&self) -> Option<Origin> {
+        match self {
+            Star5::Amb(_) => None,
+            _ => Some(Origin::List),
         }
     }
     pub fn symbols(&self) -> impl Iterator<Item = &'a Symbol<'a>> {
@@ -4415,6 +4667,12 @@ impl<'a> Opt9<'a> {
             _ => "Label?",
         }
     }
+    pub fn origin(&self) -> Option<Origin> {
+        match self {
+            Opt9::Amb(_) => None,
+            _ => Some(Origin::Opt),
+        }
+    }
 }
 impl<'a> Group0<'a> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
@@ -4452,6 +4710,12 @@ impl<'a> Group0<'a> {
         match self {
             Group0::Amb(_) => "Amb",
             _ => "(\"|\" Symbol)",
+        }
+    }
+    pub fn origin(&self) -> Option<Origin> {
+        match self {
+            Group0::Amb(_) => None,
+            _ => Some(Origin::Group),
         }
     }
     pub fn lit_0(&self) -> Token {
@@ -4517,6 +4781,12 @@ impl<'a> Plus8<'a> {
             _ => "(\"|\" Symbol)+",
         }
     }
+    pub fn origin(&self) -> Option<Origin> {
+        match self {
+            Plus8::Amb(_) => None,
+            _ => Some(Origin::List),
+        }
+    }
     pub fn symbols(&'a self) -> impl Iterator<Item = &'a Symbol<'a>> {
         self.iter().filter_map(|node| match node {
             ParseTree::Group0(r) => Some(r.symbol()),
@@ -4561,6 +4831,12 @@ impl<'a> Group1<'a> {
         match self {
             Group1::Amb(_) => "Amb",
             _ => "(\"\\\" Identifier)",
+        }
+    }
+    pub fn origin(&self) -> Option<Origin> {
+        match self {
+            Group1::Amb(_) => None,
+            _ => Some(Origin::Group),
         }
     }
     pub fn lit_0(&self) -> Token {
@@ -4626,6 +4902,12 @@ impl<'a> Plus9<'a> {
             _ => "(\"\\\" Identifier)+",
         }
     }
+    pub fn origin(&self) -> Option<Origin> {
+        match self {
+            Plus9::Amb(_) => None,
+            _ => Some(Origin::List),
+        }
+    }
     pub fn identifiers(&'a self) -> impl Iterator<Item = Token> {
         self.iter().filter_map(|node| match node {
             ParseTree::Group1(r) => Some(r.identifier()),
@@ -4670,6 +4952,12 @@ impl<'a> Group2<'a> {
         match self {
             Group2::Amb(_) => "Amb",
             _ => "(\"!>>\" Identifier)",
+        }
+    }
+    pub fn origin(&self) -> Option<Origin> {
+        match self {
+            Group2::Amb(_) => None,
+            _ => Some(Origin::Group),
         }
     }
     pub fn lit_0(&self) -> Token {
@@ -4735,6 +5023,12 @@ impl<'a> Plus10<'a> {
             _ => "(\"!>>\" Identifier)+",
         }
     }
+    pub fn origin(&self) -> Option<Origin> {
+        match self {
+            Plus10::Amb(_) => None,
+            _ => Some(Origin::List),
+        }
+    }
     pub fn identifiers(&'a self) -> impl Iterator<Item = Token> {
         self.iter().filter_map(|node| match node {
             ParseTree::Group2(r) => Some(r.identifier()),
@@ -4779,6 +5073,12 @@ impl<'a> Group3<'a> {
         match self {
             Group3::Amb(_) => "Amb",
             _ => "(\"!\" Identifier)",
+        }
+    }
+    pub fn origin(&self) -> Option<Origin> {
+        match self {
+            Group3::Amb(_) => None,
+            _ => Some(Origin::Group),
         }
     }
     pub fn lit_0(&self) -> Token {
@@ -4844,6 +5144,12 @@ impl<'a> Plus11<'a> {
             _ => "(\"!\" Identifier)+",
         }
     }
+    pub fn origin(&self) -> Option<Origin> {
+        match self {
+            Plus11::Amb(_) => None,
+            _ => Some(Origin::List),
+        }
+    }
     pub fn identifiers(&'a self) -> impl Iterator<Item = Token> {
         self.iter().filter_map(|node| match node {
             ParseTree::Group3(r) => Some(r.identifier()),
@@ -4888,6 +5194,12 @@ impl<'a> Group4<'a> {
         match self {
             Group4::Amb(_) => "Amb",
             _ => "(\"|\" Regex)",
+        }
+    }
+    pub fn origin(&self) -> Option<Origin> {
+        match self {
+            Group4::Amb(_) => None,
+            _ => Some(Origin::Group),
         }
     }
     pub fn lit_0(&self) -> Token {
@@ -4953,6 +5265,12 @@ impl<'a> Plus12<'a> {
             _ => "(\"|\" Regex)+",
         }
     }
+    pub fn origin(&self) -> Option<Origin> {
+        match self {
+            Plus12::Amb(_) => None,
+            _ => Some(Origin::List),
+        }
+    }
     pub fn regexes(&'a self) -> impl Iterator<Item = &'a Regex<'a>> {
         self.iter().filter_map(|node| match node {
             ParseTree::Group4(r) => Some(r.regex()),
@@ -4993,6 +5311,12 @@ impl<'a> Opt10<'a> {
         match self {
             Opt10::Amb(_) => "Amb",
             _ => "\"!\"?",
+        }
+    }
+    pub fn origin(&self) -> Option<Origin> {
+        match self {
+            Opt10::Amb(_) => None,
+            _ => Some(Origin::Opt),
         }
     }
 }
@@ -5040,6 +5364,12 @@ impl<'a> Plus13<'a> {
             _ => "RangeElement+",
         }
     }
+    pub fn origin(&self) -> Option<Origin> {
+        match self {
+            Plus13::Amb(_) => None,
+            _ => Some(Origin::List),
+        }
+    }
     pub fn range_elements(&'a self) -> impl Iterator<Item = &'a RangeElement<'a>> {
         self.iter().filter_map(|node| match node {
             ParseTree::RangeElement(r) => Some(r),
@@ -5085,6 +5415,12 @@ impl<'a> Alt0<'a> {
             _ => "(WS | LineComment)",
         }
     }
+    pub fn origin(&self) -> Option<Origin> {
+        match self {
+            Alt0::Amb(_) => None,
+            _ => Some(Origin::Alt),
+        }
+    }
 }
 impl<'a> Plus14<'a> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
@@ -5122,6 +5458,12 @@ impl<'a> Plus14<'a> {
         match self {
             Plus14::Amb(_) => "Amb",
             _ => "(WS | LineComment)+",
+        }
+    }
+    pub fn origin(&self) -> Option<Origin> {
+        match self {
+            Plus14::Amb(_) => None,
+            _ => Some(Origin::List),
         }
     }
     pub fn wses(&'a self) -> impl Iterator<Item = Token> {
@@ -5173,6 +5515,12 @@ impl<'a> Opt11<'a> {
             _ => "(WS | LineComment)+?",
         }
     }
+    pub fn origin(&self) -> Option<Origin> {
+        match self {
+            Opt11::Amb(_) => None,
+            _ => Some(Origin::Opt),
+        }
+    }
     pub fn wses(&'a self) -> impl Iterator<Item = Token> {
         self.value().into_iter().flat_map(|inner| inner.wses())
     }
@@ -5211,6 +5559,12 @@ impl<'a> Star6<'a> {
         match self {
             Star6::Amb(_) => "Amb",
             _ => "(WS | LineComment)*",
+        }
+    }
+    pub fn origin(&self) -> Option<Origin> {
+        match self {
+            Star6::Amb(_) => None,
+            _ => Some(Origin::List),
         }
     }
     pub fn wses(&self) -> impl Iterator<Item = Token> {
@@ -5252,6 +5606,9 @@ impl<'a> Start<&'a Grammar<'a>, &'a Layout<'a>> {
     }
     pub fn display_name(&self) -> &'static str {
         "Grammar"
+    }
+    pub fn origin(&self) -> Option<Origin> {
+        Some(Origin::Start)
     }
 }
 impl<'a> ListNode<'a> for Plus0<'a> {
@@ -8639,6 +8996,9 @@ impl<'a> ParseTreeNode for ParseTree<'a> {
     }
     fn node_id(&self) -> Option<usize> {
         ParseTree::node_id(self)
+    }
+    fn origin(&self) -> Option<Origin> {
+        ParseTree::origin(self)
     }
 }
 const LAYOUT_NAME: Option<&str> = Some("Layout");

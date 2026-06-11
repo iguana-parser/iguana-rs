@@ -4,8 +4,8 @@ use crate::parser::OptParser;
 use iguana_runtime::{
     ids::{NonterminalId, SlotId, TerminalId},
     parse_tree::{
-        Bump, NodeKind, OneOrMany, ParseContext, ParseTreeBuilder, ParseTreeNode, SexprOptions,
-        visit_sppf,
+        Bump, NodeKind, OneOrMany, Origin, ParseContext, ParseTreeBuilder, ParseTreeNode,
+        SexprOptions, visit_sppf,
     },
     sppf::{NonterminalNode, SPPFNodeId, Span, TerminalNode},
 };
@@ -83,6 +83,14 @@ impl<'a> ParseTree<'a> {
             ParseTree::S(s) => Some(*s as *const _ as usize),
             ParseTree::A(a) => Some(*a as *const _ as usize),
             ParseTree::Opt0(opt_0) => Some(*opt_0 as *const _ as usize),
+            ParseTree::Token(_) => None,
+        }
+    }
+    pub fn origin(&self) -> Option<Origin> {
+        match self {
+            ParseTree::S(s) => s.origin(),
+            ParseTree::A(a) => a.origin(),
+            ParseTree::Opt0(opt_0) => opt_0.origin(),
             ParseTree::Token(_) => None,
         }
     }
@@ -170,6 +178,9 @@ impl<'a> S<'a> {
             _ => "S",
         }
     }
+    pub fn origin(&self) -> Option<Origin> {
+        None
+    }
     pub fn a(&self) -> &'a Opt0<'a> {
         match self {
             S::Alt0 { a, .. } => a,
@@ -207,6 +218,9 @@ impl<'a> A<'a> {
             A::Amb(_) => "Amb",
             _ => "A",
         }
+    }
+    pub fn origin(&self) -> Option<Origin> {
+        None
     }
     pub fn lit_0(&self) -> Token {
         match self {
@@ -247,6 +261,12 @@ impl<'a> Opt0<'a> {
         match self {
             Opt0::Amb(_) => "Amb",
             _ => "A?",
+        }
+    }
+    pub fn origin(&self) -> Option<Origin> {
+        match self {
+            Opt0::Amb(_) => None,
+            _ => Some(Origin::Opt),
         }
     }
 }
@@ -434,6 +454,9 @@ impl<'a> ParseTreeNode for ParseTree<'a> {
     }
     fn node_id(&self) -> Option<usize> {
         ParseTree::node_id(self)
+    }
+    fn origin(&self) -> Option<Origin> {
+        ParseTree::origin(self)
     }
 }
 const LAYOUT_NAME: Option<&str> = None;

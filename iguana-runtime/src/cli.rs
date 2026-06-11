@@ -308,24 +308,47 @@ fn run_repl_command(line: &str, options: &mut SexprOptions) {
     match parts.next() {
         Some(":help") | Some(":h") | Some(":?") => {
             eprintln!("commands:");
-            eprintln!("  :set                            list settings");
-            eprintln!("  :set show-layout [true|false]   toggle, or set, layout visibility");
-            eprintln!("  :help                           show this help");
-            eprintln!("  Ctrl-D                          exit");
+            eprintln!("  :set                       list settings");
+            eprintln!("  :set <name> [true|false]   toggle, or set, a setting");
+            eprintln!("  settings: show-layout, show-empty, show-wrappers, show-lists");
+            eprintln!("  :help                      show this help");
+            eprintln!("  Ctrl-D                     exit");
         }
-        Some(":set") => match parts.next() {
-            None => eprintln!("show-layout = {}", options.show_layout),
-            Some("show-layout") => match parse_repl_bool(parts.next(), options.show_layout) {
-                Ok(value) => {
-                    options.show_layout = value;
-                    eprintln!("show-layout = {}", value);
+        Some(":set") => {
+            let name = parts.next();
+            let value = parts.next();
+            match name {
+                None => {
+                    eprintln!("show-layout   = {}", options.show_layout);
+                    eprintln!("show-empty    = {}", options.show_empty);
+                    eprintln!("show-wrappers = {}", options.show_wrappers);
+                    eprintln!("show-lists    = {}", options.show_lists);
                 }
-                Err(()) => eprintln!("usage: :set show-layout [true|false]"),
-            },
-            Some(other) => eprintln!("unknown setting: {} (try :help)", other),
-        },
+                Some("show-layout") => {
+                    set_repl_bool("show-layout", value, &mut options.show_layout)
+                }
+                Some("show-empty") => set_repl_bool("show-empty", value, &mut options.show_empty),
+                Some("show-wrappers") => {
+                    set_repl_bool("show-wrappers", value, &mut options.show_wrappers)
+                }
+                Some("show-lists") => set_repl_bool("show-lists", value, &mut options.show_lists),
+                Some(other) => eprintln!("unknown setting: {} (try :help)", other),
+            }
+        }
         Some(other) => eprintln!("unknown command: {} (try :help)", other),
         None => {}
+    }
+}
+
+/// Applies a `:set <name> [value]` to a boolean setting, echoing the result.
+/// A missing value toggles, so `:set show-layout` flips it.
+fn set_repl_bool(name: &str, value: Option<&str>, slot: &mut bool) {
+    match parse_repl_bool(value, *slot) {
+        Ok(value) => {
+            *slot = value;
+            eprintln!("{name} = {value}");
+        }
+        Err(()) => eprintln!("usage: :set {name} [true|false]"),
     }
 }
 

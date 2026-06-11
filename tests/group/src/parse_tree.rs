@@ -4,8 +4,8 @@ use crate::parser::GroupParser;
 use iguana_runtime::{
     ids::{NonterminalId, SlotId, TerminalId},
     parse_tree::{
-        Bump, NodeKind, OneOrMany, ParseContext, ParseTreeBuilder, ParseTreeNode, SexprOptions,
-        visit_sppf,
+        Bump, NodeKind, OneOrMany, Origin, ParseContext, ParseTreeBuilder, ParseTreeNode,
+        SexprOptions, visit_sppf,
     },
     sppf::{NonterminalNode, SPPFNodeId, Span, TerminalNode},
 };
@@ -103,6 +103,16 @@ impl<'a> ParseTree<'a> {
             ParseTree::C(c) => Some(*c as *const _ as usize),
             ParseTree::D(d) => Some(*d as *const _ as usize),
             ParseTree::Group0(group_0) => Some(*group_0 as *const _ as usize),
+            ParseTree::Token(_) => None,
+        }
+    }
+    pub fn origin(&self) -> Option<Origin> {
+        match self {
+            ParseTree::A(a) => a.origin(),
+            ParseTree::B(b) => b.origin(),
+            ParseTree::C(c) => c.origin(),
+            ParseTree::D(d) => d.origin(),
+            ParseTree::Group0(group_0) => group_0.origin(),
             ParseTree::Token(_) => None,
         }
     }
@@ -216,6 +226,9 @@ impl<'a> A<'a> {
             _ => "A",
         }
     }
+    pub fn origin(&self) -> Option<Origin> {
+        None
+    }
     pub fn group_0(&self) -> &'a Group0<'a> {
         match self {
             A::Alt0 { group_0, .. } => group_0,
@@ -253,6 +266,9 @@ impl<'a> B<'a> {
             B::Amb(_) => "Amb",
             _ => "B",
         }
+    }
+    pub fn origin(&self) -> Option<Origin> {
+        None
     }
     pub fn lit_0(&self) -> Token {
         match self {
@@ -292,6 +308,9 @@ impl<'a> C<'a> {
             _ => "C",
         }
     }
+    pub fn origin(&self) -> Option<Origin> {
+        None
+    }
     pub fn lit_0(&self) -> Token {
         match self {
             C::Alt0 { lit_0, .. } => *lit_0,
@@ -329,6 +348,9 @@ impl<'a> D<'a> {
             D::Amb(_) => "Amb",
             _ => "D",
         }
+    }
+    pub fn origin(&self) -> Option<Origin> {
+        None
     }
     pub fn lit_0(&self) -> Token {
         match self {
@@ -368,6 +390,12 @@ impl<'a> Group0<'a> {
         match self {
             Group0::Amb(_) => "Amb",
             _ => "(B C D)",
+        }
+    }
+    pub fn origin(&self) -> Option<Origin> {
+        match self {
+            Group0::Amb(_) => None,
+            _ => Some(Origin::Group),
         }
     }
     pub fn b(&self) -> &'a B<'a> {
@@ -624,6 +652,9 @@ impl<'a> ParseTreeNode for ParseTree<'a> {
     }
     fn node_id(&self) -> Option<usize> {
         ParseTree::node_id(self)
+    }
+    fn origin(&self) -> Option<Origin> {
+        ParseTree::origin(self)
     }
 }
 const LAYOUT_NAME: Option<&str> = None;
