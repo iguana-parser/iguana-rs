@@ -67,6 +67,7 @@
       lineNumbers: "on",
       renderWhitespace: "all",
       padding: { top: 8 },
+      colorDecorators: false,
       placeholder,
     });
 

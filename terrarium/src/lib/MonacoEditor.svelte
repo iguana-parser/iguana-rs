@@ -277,6 +277,7 @@
       renderLineHighlight: "line",
       padding: { top: 8 },
       "semanticHighlighting.enabled": true,
+      colorDecorators: false,
     });
 
     // -- Actions ----------------------------------------------------------
