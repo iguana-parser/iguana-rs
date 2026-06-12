@@ -2,7 +2,7 @@
   import type { ParserBackend } from "./backend";
   import type * as monaco from "monaco-editor";
   import { tick } from "svelte";
-  import { ChevronDown, ChevronRight, CornerRightUp, ZoomIn, ZoomOut, Maximize2, Minimize2, Expand, Fullscreen, UnfoldHorizontal, FoldHorizontal, Download, SlidersHorizontal, Copy, ClipboardCheck } from "lucide-svelte";
+  import { ChevronDown, ChevronRight, CornerRightUp, ZoomIn, ZoomOut, Maximize2, Minimize2, Expand, Fullscreen, Download, SlidersHorizontal, Copy, ClipboardCheck } from "lucide-svelte";
   import cytoscape from "cytoscape";
   import {
     sppfNodeStyles,
@@ -211,7 +211,9 @@
   // Tabs: the tree view, the graph view, and the interactive s-expression.
   let activeTab = $state<"tree" | "graph" | "sexpr">("tree");
 
-  // Show spans in graph labels (hidden by default)
+  // Show spans on tree rows and in graph labels. Hidden by default, driven by the
+  // "Hide spans" checkbox in the View popover. Label-only, so unlike the structural
+  // toggles below it does not pass through buildDisplayGraph.
   let showSpans = $state(false);
 
   // Whether the View-options popover (the presentation toggles) is open.
@@ -564,9 +566,11 @@
     inputEditorRef?.focus();
   }
 
-  function toggleSpans() {
-    showSpans = !showSpans;
-    // reloadGraph preserves the viewport and re-applies the current selection.
+  // Show or hide spans on tree rows and in graph labels. The tree reflects
+  // showSpans reactively; the imperative graph is reloaded here, preserving the
+  // viewport (loadGraph(false)) and re-applying the current selection.
+  function setShowSpans(show: boolean) {
+    showSpans = show;
     graphDirty = true;
     if (parseTree && activeTab === "graph") {
       tick().then(() => loadGraph(false));
@@ -1082,6 +1086,11 @@
                     onchange={(e) => setDisplayOption("showWrappers", !e.currentTarget.checked)} />
                   Flatten wrappers
                 </label>
+                <label>
+                  <input type="checkbox" checked={!showSpans}
+                    onchange={(e) => setShowSpans(!e.currentTarget.checked)} />
+                  Hide spans
+                </label>
               </div>
             {/if}
           </div>
@@ -1135,7 +1144,9 @@
                     >
                       {node.label}{#if node.ref}<span class="tree-ref-icon"><CornerRightUp size={13} /></span>{/if}
                     </span>
-                    <span class="tree-span">[{node.start}:{node.end}]</span>
+                    {#if showSpans}
+                      <span class="tree-span">[{node.start}:{node.end}]</span>
+                    {/if}
                   </div>
                   {#if expandedNodes.has(node.id)}
                     {#each node.children as child}
@@ -1236,13 +1247,6 @@
               </button>
               <button onclick={expandAll} title="Expand all (double-click node to collapse)">
                 <Expand size={16} />
-              </button>
-              <button onclick={toggleSpans} title={showSpans ? "Hide spans" : "Show spans"}>
-                {#if showSpans}
-                  <FoldHorizontal size={16} />
-                {:else}
-                  <UnfoldHorizontal size={16} />
-                {/if}
               </button>
               <button onclick={exportGraph} title="Export as PNG">
                 <Download size={16} />
