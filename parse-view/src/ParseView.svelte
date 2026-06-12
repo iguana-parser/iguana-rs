@@ -1578,9 +1578,8 @@
 
   .tree-span {
     color: #6a9955;
-    font-size: 11px;
-    margin-left: auto;
-    padding-left: 12px;
+    font-size: 12px;
+    margin-left: 8px;
   }
 
   /* S-expression View */
