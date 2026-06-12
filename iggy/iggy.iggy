@@ -1,28 +1,24 @@
 grammar Iggy
 
-layout Layout
-
 @Start
 Grammar
-  = "grammar" name:Identifier LayoutDef? Rule*
-
-LayoutDef
-  = "layout" Identifier
+  = "grammar" name:Identifier Rule*
 
 Rule
   = SyntaxRule #SyntaxRule
   | RegexRule  #RegexRule
 
 SyntaxRule
-  = Annotation* head:Identifier "=" { PriorityLevel ">" }*
+  = Annotation? head:Identifier "=" { PriorityLevel ">" }*
 
 Annotation
-  = "@NoLayout"                  #NoLayout
-  | "@Layout" "(" Identifier ")" #Layout
-  | "@Start"                     #Start
+  = "@NoLayout"                      #NoLayout
+  | "@Layout"                        #Layout
+  | "@WithLayout" "(" Identifier ")" #WithLayout
+  | "@Start"                         #Start
 
 RegexRule
-  = "@regex" Identifier "=" PreCondition? body:{ Regex+ "|" }+ PostCondition*
+  = layout:"@Layout"? "@Regex" Identifier "=" PreCondition? body:{ Regex+ "|" }+ PostCondition*
 
 PreCondition
   = Identifier "!<<" #PrecedeRestriction
@@ -79,36 +75,36 @@ RangeElement
 Range
   = start:RangeChar "-" end:RangeChar
 
-@NoLayout
+@Layout
 Layout
   = (WS | LineComment)* !>> WS !>> LineComment
 
-@regex
-Keyword = "grammar" | "layout" | "left" | "right" | "none"
+@Regex
+Keyword = "grammar" | "left" | "right" | "none"
 
-@regex
+@Regex
 Identifier = [a-zA-Z_] [a-zA-Z_0-9]* \ Keyword
 
-@regex
+@Regex
 String = "\"" (EscapeChar | !["\\])* "\""
 
-@regex
+@Regex
 Char = "'" (EscapeChar | !['\\]) "'"
 
-@regex
+@Regex
 EscapeChar = "\\" ["'\\tfrn]
 
-@regex
+@Regex
 RangeChar = ![\\\-\[\]\t\f\r\n\ ] | "\\" [\\\-\[\]tfrn\ ]
 
-@regex
+@Regex
 Label = "#" [a-zA-Z_] [a-zA-Z_0-9]*
 
-@regex
+@Regex
 WS = WSChar+
 
-@regex
+@Regex
 WSChar = [\ \n\t]
 
-@regex
+@Regex
 LineComment = "//" ![\n]*

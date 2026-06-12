@@ -321,11 +321,8 @@ fn visit_regex_identifiers(regex: &Regex, f: &mut impl FnMut(&Identifier)) {
 
 impl Display for SyntaxRule {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match &self.layout {
-            LayoutStrategy::None => writeln!(f, "@NoLayout")?,
-            LayoutStrategy::Custom(id) => writeln!(f, "@Layout({})", id.name)?,
-            LayoutStrategy::Default => {}
-        }
+        // The layout annotation (@Layout / @NoLayout / @WithLayout) is a
+        // grammar-level concern, so GrammarDef's Display emits it.
         writeln!(f, "{}", self.head)?;
         if let Some((first_level, rest_levels)) = self.priority_levels.split_first() {
             if let Some((first_alt, rest_alts)) = first_level.alternatives.split_first() {
@@ -367,14 +364,29 @@ impl Display for SyntaxRule {
 impl Display for GrammarDef {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         writeln!(f, "grammar {}\n", self.name)?;
+        let layout_name = match &self.layout {
+            Some(Symbol::Identifier(id)) => Some(id.name.as_str()),
+            _ => None,
+        };
         for rule in &self.syntax_rules {
+            if layout_name == Some(rule.head.name.as_str()) {
+                writeln!(f, "@Layout")?;
+            } else {
+                match &rule.layout {
+                    LayoutStrategy::None => writeln!(f, "@NoLayout")?,
+                    LayoutStrategy::Custom(id) => writeln!(f, "@WithLayout({})", id.name)?,
+                    LayoutStrategy::Default => {}
+                }
+            }
             writeln!(f, "{}", rule)?;
         }
         for lexical_rule in &self.lexical_rules {
+            if layout_name == Some(lexical_rule.head.name.as_str()) {
+                writeln!(f, "@Layout @Regex")?;
+            } else {
+                writeln!(f, "@Regex")?;
+            }
             writeln!(f, "{} = {}", lexical_rule.head, lexical_rule.regex)?;
-        }
-        if let Some(layout) = &self.layout {
-            writeln!(f, "\nlayout = {}", layout)?;
         }
         Ok(())
     }

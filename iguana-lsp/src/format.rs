@@ -11,8 +11,8 @@
 //   indent (2 for rule + 4 extra); the label sits at the alignment column on
 //   the last line
 // - Blank line between every rule
-// - `@regex` annotation on the line before the regex rule head
-// - `@NoLayout` / `@Layout(X)` annotation on the line before the syntax rule head
+// - `@Regex` (optionally preceded by `@Layout` for a layout rule) on the line before the regex rule head
+// - `@Start` / `@Layout` / `@NoLayout` / `@WithLayout(X)` annotation on the line before the syntax rule head
 // - Regex rules with a single alternative are single-line
 // - Regex rules with multiple alternatives use multi-line layout (one per line) (head = body postconditions)
 // - Character classes have no internal spaces
@@ -82,14 +82,6 @@ impl<'a> Formatter<'a> {
         out.push_str(&self.text(grammar.name().span()));
         self.emit_comments(&mut out, grammar.layout_3(), grammar.name().span());
 
-        // layout Def
-        if let Some(layout_def) = grammar.layout_def().value() {
-            out.push_str("\n\n");
-            out.push_str("layout ");
-            out.push_str(&self.text(layout_def.identifier().span()));
-            self.emit_comments(&mut out, grammar.layout_5(), layout_def.identifier().span());
-        }
-
         // Rules
         for rule in grammar.rules().rules() {
             out.push_str("\n\n");
@@ -121,7 +113,7 @@ impl<'a> Formatter<'a> {
     }
 
     fn format_syntax_rule(&self, out: &mut String, rule: &SyntaxRule) {
-        for annotation in rule.annotations().annotations() {
+        if let Some(annotation) = rule.annotation().value() {
             self.format_annotation(out, annotation);
             out.push('\n');
         }
@@ -208,8 +200,9 @@ impl<'a> Formatter<'a> {
     fn format_annotation(&self, out: &mut String, annotation: &Annotation) {
         match annotation {
             Annotation::NoLayout { .. } => out.push_str("@NoLayout"),
-            Annotation::Layout { identifier, .. } => {
-                out.push_str("@Layout(");
+            Annotation::Layout { .. } => out.push_str("@Layout"),
+            Annotation::WithLayout { identifier, .. } => {
+                out.push_str("@WithLayout(");
                 out.push_str(&self.text(identifier.span()));
                 out.push(')');
             }
@@ -334,7 +327,11 @@ impl<'a> Formatter<'a> {
     }
 
     fn format_regex_rule(&self, out: &mut String, rule: &RegexRule) {
-        out.push_str("@regex\n");
+        if rule.layout().value().is_some() {
+            out.push_str("@Layout @Regex\n");
+        } else {
+            out.push_str("@Regex\n");
+        }
 
         let groups: Vec<Vec<_>> = rule
             .body()
@@ -517,12 +514,9 @@ mod tests {
 
     #[test]
     fn test_simple_grammar() {
-        let input = "grammar  Test\n\nlayout   WS\n\nRule\n  = \"hello\"\n";
+        let input = "grammar  Test\n\nRule\n  = \"hello\"\n";
         let formatted = format_source(input).unwrap();
-        assert_eq!(
-            formatted,
-            "grammar Test\n\nlayout WS\n\nRule\n  = \"hello\"\n"
-        );
+        assert_eq!(formatted, "grammar Test\n\nRule\n  = \"hello\"\n");
     }
 
     #[test]
@@ -541,18 +535,18 @@ mod tests {
 
     #[test]
     fn test_regex_rule() {
-        let input = "grammar T\n\n@regex\nId = [a-zA-Z]+\n";
+        let input = "grammar T\n\n@Regex\nId = [a-zA-Z]+\n";
         let formatted = format_source(input).unwrap();
-        assert_eq!(formatted, "grammar T\n\n@regex\nId = [a-zA-Z]+\n");
+        assert_eq!(formatted, "grammar T\n\n@Regex\nId = [a-zA-Z]+\n");
     }
 
     #[test]
     fn test_regex_rule_multi_alt() {
-        let input = "grammar T\n\n@regex\nInt = Dec | Hex | Oct\n";
+        let input = "grammar T\n\n@Regex\nInt = Dec | Hex | Oct\n";
         let formatted = format_source(input).unwrap();
         assert_eq!(
             formatted,
-            "grammar T\n\n@regex\nInt\n  = Dec\n  | Hex\n  | Oct\n"
+            "grammar T\n\n@Regex\nInt\n  = Dec\n  | Hex\n  | Oct\n"
         );
     }
 
@@ -627,8 +621,8 @@ mod tests {
     #[test]
     fn test_regex_rule_long_single_alt() {
         let input = "grammar T\n\n\
-            @regex\n\
-            VeryLongRuleNameHere = [a-zA-Z] [a-zA-Z] [a-zA-Z] [a-zA-Z] [a-zA-Z] [a-zA-Z] [a-zA-Z] [a-zA-Z] [a-zA-Z]+\n";
+            @Regex\n\
+            VeryLongRuleNameHere =[a-zA-Z] [a-zA-Z] [a-zA-Z] [a-zA-Z] [a-zA-Z] [a-zA-Z] [a-zA-Z] [a-zA-Z] [a-zA-Z]+\n";
         let formatted = format_source(input).unwrap();
         // Should wrap: name on its own line, body wrapped
         assert!(formatted.contains("VeryLongRuleNameHere\n  = "));
@@ -639,7 +633,7 @@ mod tests {
 
     #[test]
     fn test_idempotent() {
-        let input = "grammar Iggy\n\nlayout Layout\n\nRule\n  = SyntaxRule #SyntaxRule\n  | RegexRule  #RegexRule\n";
+        let input = "grammar Iggy\n\n@Layout\nLayout = WS*\n\nRule\n  = SyntaxRule #SyntaxRule\n  | RegexRule  #RegexRule\n";
         let first = format_source(input).unwrap();
         let second = format_source(&first).unwrap();
         assert_eq!(first, second, "Formatting should be idempotent");

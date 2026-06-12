@@ -5,5 +5,5 @@ Expr
   | Expr "(" { Expr !comma "," }* ")"  #call
   | Expr "," Expr                     #comma
 
-@regex
+@Regex
 Id = [a-z]+

@@ -260,14 +260,14 @@ grammar T
 A
   = Number
 
-@regex
+@Regex
 Number = [0-9]+
 "#,
             3,
             4, // cursor on Number in A's body
         );
         let loc = loc.unwrap();
-        // Should jump to Number's rule head (line after @regex)
+        // Should jump to Number's rule head (line after @Regex)
         assert_eq!(loc.range.start.line, 6);
         assert_eq!(loc.range.start.character, 0);
     }
@@ -296,7 +296,7 @@ grammar T
 A
   = Number
 
-@regex
+@Regex
 Number = [0-9]+
 "#,
             3,

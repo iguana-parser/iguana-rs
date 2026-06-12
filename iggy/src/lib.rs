@@ -68,38 +68,6 @@ pub fn parse_grammar<'a>(
         }
     }
 }
-pub fn parse_layout_def<'a>(
-    input: &Input,
-    ctx: &'a ParseContext,
-) -> std::result::Result<ParseSuccess<&'a LayoutDef<'a>>, ParseError> {
-    let mut parser = IggyParser::new(input, grammar_data::LAYOUT_DEF);
-    match parser.run() {
-        ParseResult::Success(success) => {
-            let parse_duration = success.duration;
-            let tree_start = iguana_runtime::Instant::now();
-            let parse_tree_builder = IggyParseTreeBuilder::new(ctx);
-            let tree = parse_tree::create_parse_tree_layout_def(
-                success.sppf_node_id,
-                &parser,
-                &parse_tree_builder,
-            );
-            let tree_construction_duration = tree_start.elapsed();
-            Ok(ParseSuccess {
-                tree,
-                parse_duration,
-                tree_construction_duration,
-            })
-        }
-        ParseResult::Failure(error) => {
-            let (line, column, message) = parser.format_error(&error);
-            Err(ParseError {
-                line,
-                column,
-                message,
-            })
-        }
-    }
-}
 pub fn parse_rule<'a>(
     input: &Input,
     ctx: &'a ParseContext,

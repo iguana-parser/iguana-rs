@@ -1,18 +1,16 @@
 grammar FollowRestrictionLexical
 
-layout WS
-
 S = Element+
 Element = Num | Id
 
-@regex
+@Regex
 Num = [0-9]+ !>> Alpha
 
-@regex
+@Regex
 Alpha = [a-zA-Z]
 
-@regex
+@Regex
 Id = [a-zA-Z]+
 
-@regex
+@Layout @Regex
 WS = [\ ]*

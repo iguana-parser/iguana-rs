@@ -3,17 +3,17 @@ grammar MultipleExcept
 SyntaxIdentifier = IdentifierChars \ Keyword \ BooleanLiteral \ NullLiteral
 LexicalIdentifier = Identifier
 
-@regex
+@Regex
 Identifier = [a-zA-Z]+ \ Keyword \ BooleanLiteral \ NullLiteral
 
-@regex
+@Regex
 IdentifierChars = [a-zA-Z]+
 
-@regex
+@Regex
 Keyword = "if" | "else" | "while" | "for"
 
-@regex
+@Regex
 BooleanLiteral = "true" | "false"
 
-@regex
+@Regex
 NullLiteral = "null"

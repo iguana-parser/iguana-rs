@@ -174,7 +174,7 @@ grammar T
 Expr
   = "x"
 
-@regex
+@Regex
 Number = [0-9]+
 "#,
         );
@@ -196,7 +196,7 @@ Expr
   | l:Expr "*" r:Expr #Mul
   | Number #Lit
 
-@regex
+@Regex
 Number = [0-9]+
 "#,
         );
@@ -316,7 +316,7 @@ C
             r#"
 grammar T
 
-@regex
+@Regex
 Id = [a-z]+
 "#,
         );

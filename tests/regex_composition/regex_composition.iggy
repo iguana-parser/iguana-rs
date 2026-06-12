@@ -1,20 +1,18 @@
 grammar RegexComposition
 
-layout WS
-
 S = Id
 
 @NoLayout
 Id = Letter LetterOrDigit*
 
-@regex
+@Regex
 Digit = [0-9]
 
-@regex
+@Regex
 Letter = [a-zA-Z_]
 
-@regex
+@Regex
 LetterOrDigit = Letter | Digit
 
-@regex
+@Layout @Regex
 WS = [\ \n]*

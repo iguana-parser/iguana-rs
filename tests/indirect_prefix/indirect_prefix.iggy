@@ -1,7 +1,5 @@
 grammar IndirectPrefix
 
-layout WS
-
 @Start
 S = E
 
@@ -13,5 +11,5 @@ Lambda = "fn" Body
 
 Body = E
 
-@regex
+@Layout @Regex
 WS = [\ ]*

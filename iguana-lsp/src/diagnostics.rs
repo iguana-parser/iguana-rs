@@ -304,11 +304,11 @@ Primary
             r#"
 grammar T
 
-@regex
+@Regex
 DecimalLiteral
   = Digits ExponentPart
 
-@regex
+@Regex
 Digits
   = [0-9]+
 "#,
@@ -328,15 +328,15 @@ Digits
             r#"
 grammar T
 
-@regex
+@Regex
 DecimalLiteral
   = Digits ExponentPart
 
-@regex
+@Regex
 Digits
   = [0-9]+
 
-@regex
+@Regex
 ExponentPart
   = [eE] [0-9]+
 "#,
@@ -354,11 +354,11 @@ ExponentPart
             r#"
 grammar T
 
-@regex
+@Regex
 FloatLiteral
   = [0-9]+ Suffix?
 
-@regex
+@Regex
 Digits
   = [0-9]+
 "#,

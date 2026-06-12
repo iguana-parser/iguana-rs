@@ -1,7 +1,5 @@
 grammar DeepPriorityFull
 
-layout WS
-
 S = E
 
 E = left  E "*" E
@@ -11,5 +9,5 @@ E = left  E "*" E
   > right E ";" E
   >       "a"
 
-@regex
+@Layout @Regex
 WS = [\ ]*

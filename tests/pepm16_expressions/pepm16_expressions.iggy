@@ -1,7 +1,5 @@
 grammar Pepm16Expressions
 
-layout WS
-
 S = E
 
 E =       E "." "f"
@@ -15,5 +13,5 @@ E =       E "." "f"
   >       "(" E ")"
   |       "a"
 
-@regex
+@Layout @Regex
 WS = [\ ]*

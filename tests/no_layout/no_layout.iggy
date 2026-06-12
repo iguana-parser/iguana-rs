@@ -1,14 +1,12 @@
 grammar NoLayout
 
-layout WS
-
 S = Id
 
 @NoLayout
 Id = Char+
 
-@regex
+@Regex
 Char = [a-z]
 
-@regex
+@Layout @Regex
 WS = [\ \n]*

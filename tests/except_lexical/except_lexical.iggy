@@ -2,8 +2,8 @@ grammar ExceptLexical
 
 S = Identifier
 
-@regex
+@Regex
 Keyword = "if" | "else" | "while"
 
-@regex
+@Regex
 Identifier = [a-zA-Z]+ \ Keyword

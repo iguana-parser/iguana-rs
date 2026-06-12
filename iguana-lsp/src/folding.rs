@@ -2,7 +2,7 @@
 //
 // Each syntax rule and lexical rule that spans more than one line produces a
 // folding range. The range starts at the rule head line and ends at the last
-// line of the rule body (or trailing comment). Annotations (@regex, @NoLayout,
+// line of the rule body (or trailing comment). Annotations (@Regex, @NoLayout,
 // etc.) stay visible above the fold.
 
 use by_address::ByAddress;
@@ -64,7 +64,7 @@ pub fn folding_ranges(
 
         let def_id = DefinitionId(i as u16);
         let head_span = spans.definition_spans.get(&def_id);
-        // Same as syntax rules: fold from the head, not @regex etc.
+        // Same as syntax rules: fold from the head, not @Regex etc.
         let start_line = head_span
             .map(|s| input.line_column(s.left_extent).0)
             .unwrap_or_else(|| input.line_column(rule_span.left_extent).0);
@@ -129,11 +129,11 @@ Expr
             r#"
 grammar T
 
-@regex
+@Regex
 Id = [a-z]+
 "#,
         );
-        // The rule head is on a single line; @regex stays visible, no fold.
+        // The rule head is on a single line; @Regex stays visible, no fold.
         assert_eq!(r.len(), 0);
     }
 

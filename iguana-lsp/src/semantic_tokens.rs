@@ -85,11 +85,11 @@ where
 fn classify_token(token: &Token) -> Option<u32> {
     match token.kind.name() {
         // Keywords
-        "Keyword" | "\"grammar\"" | "\"layout\"" | "\"left\"" | "\"right\"" | "\"none\"" => {
-            Some(TOKEN_KEYWORD)
-        }
+        "Keyword" | "\"grammar\"" | "\"left\"" | "\"right\"" | "\"none\"" => Some(TOKEN_KEYWORD),
         // Decorators
-        "\"@NoLayout\"" | "\"@Layout\"" | "\"@Start\"" | "\"@regex\"" => Some(TOKEN_DECORATOR),
+        "\"@NoLayout\"" | "\"@Layout\"" | "\"@WithLayout\"" | "\"@Start\"" | "\"@Regex\"" => {
+            Some(TOKEN_DECORATOR)
+        }
         // Identifier
         "Identifier" => Some(TOKEN_TYPE),
         // String and Char literals (now include quotes)
@@ -160,7 +160,7 @@ mod tests {
 
     #[test]
     fn test_simple_grammar() {
-        let tokens = tokenize("grammar Test\n\nlayout WS\n\nRule\n  = \"hello\"\n");
+        let tokens = tokenize("grammar Test\n\nRule\n  = \"hello\"\n");
         assert!(!tokens.is_empty());
 
         // First token should be "grammar" keyword at line 0, col 0

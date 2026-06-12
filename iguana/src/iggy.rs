@@ -1,6 +1,6 @@
 use iggy::{
     ParseError, parse_tree,
-    parse_tree::{ListNode, OptNode, Start},
+    parse_tree::{OptNode, Start},
 };
 use iguana_runtime::{input::Input, parse_tree::ParseContext, sppf::Span};
 
@@ -33,22 +33,32 @@ pub fn build_grammar(
 
     let mut syntax_rules: Vec<SyntaxRule> = Vec::new();
     let mut lexical_rules: Vec<LexicalRule> = Vec::new();
+    let mut layout_name: Option<String> = None;
 
     for rule in grammar.rules().rules() {
         match rule {
             parse_tree::Rule::SyntaxRule { syntax_rule, .. } => {
-                syntax_rules.push(convert_syntax_rule(syntax_rule, input));
+                let converted = convert_syntax_rule(syntax_rule, input);
+                if has_layout_annotation(syntax_rule) {
+                    layout_name = Some(converted.head.name.clone());
+                }
+                syntax_rules.push(converted);
             }
             parse_tree::Rule::RegexRule { regex_rule, .. } => {
-                lexical_rules.push(convert_regex_rule(regex_rule, input));
+                let converted = convert_regex_rule(regex_rule, input);
+                if regex_rule.layout().value().is_some() {
+                    layout_name = Some(converted.head.name.clone());
+                }
+                lexical_rules.push(converted);
             }
             parse_tree::Rule::Amb(_) => panic!("unexpected ambiguity"),
         }
     }
 
-    let layout = grammar.layout_def().value().map(|layout| {
+    // The grammar's layout is the rule marked `@Layout`.
+    let layout = layout_name.map(|name| {
         Symbol::Identifier(Identifier {
-            name: text(input, layout.identifier().span()),
+            name,
             definition: None,
         })
     });
@@ -71,6 +81,15 @@ pub fn build_grammar(
     })
 }
 
+/// Whether a syntax rule carries the `@Layout` annotation, marking it as the
+/// grammar's layout rule.
+fn has_layout_annotation(rule: &parse_tree::SyntaxRule) -> bool {
+    matches!(
+        rule.annotation().value(),
+        Some(parse_tree::Annotation::Layout { .. })
+    )
+}
+
 fn convert_syntax_rule(rule: &parse_tree::SyntaxRule, input: &Input) -> SyntaxRule {
     let head_name = text(input, rule.head().span());
     let head = Nonterminal::new(head_name);
@@ -84,10 +103,13 @@ fn convert_syntax_rule(rule: &parse_tree::SyntaxRule, input: &Input) -> SyntaxRu
     let mut layout = LayoutStrategy::Default;
     let mut start = false;
 
-    for annotation in rule.annotations().annotations() {
+    if let Some(annotation) = rule.annotation().value() {
         match annotation {
             parse_tree::Annotation::NoLayout { .. } => layout = LayoutStrategy::None,
-            parse_tree::Annotation::Layout { identifier, .. } => {
+            // `@Layout` marks the grammar's layout rule. build_grammar records
+            // its name and suppresses layout inside it, so nothing to do here.
+            parse_tree::Annotation::Layout { .. } => {}
+            parse_tree::Annotation::WithLayout { identifier, .. } => {
                 let name = text(input, identifier.span());
                 layout = LayoutStrategy::Custom(Identifier {
                     name,

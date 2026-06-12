@@ -13,7 +13,7 @@ pub fn transform(syntax_rules: Vec<SyntaxRule>, layout_symbol: &Symbol) -> Vec<S
                 LayoutStrategy::None => None,
                 LayoutStrategy::Custom(_id) => {
                     // TODO: resolve custom layout identifier to a Symbol
-                    unimplemented!("Custom per-rule layout is not yet supported")
+                    unimplemented!("@WithLayout(X) (per-rule custom layout) is not yet supported")
                 }
             };
             match layout_symbol {

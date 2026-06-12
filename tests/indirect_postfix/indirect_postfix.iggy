@@ -1,7 +1,5 @@
 grammar IndirectPostfix
 
-layout WS
-
 @Start
 S = E
 
@@ -13,5 +11,5 @@ Postfix = Body "!"
 
 Body = E
 
-@regex
+@Layout @Regex
 WS = [\ ]*

@@ -1,8 +1,5 @@
 grammar Comments
 
-// Layout definition
-layout Layout
-
 // Expressions
 @Start
 Expr
@@ -10,18 +7,18 @@ Expr
   | Expr "*" Expr // multiplication
   | "x" // variable
 
-@regex
+@Layout @Regex
 Layout
   = (WS | Comment)*
 
 // Lexical rules
-@regex
+@Regex
 Identifier = [a-zA-Z]+
 
 // Line comments start with //
-@regex
+@Regex
 Comment = "//" ![\n]*
 
 // Whitespace
-@regex
+@Regex
 WS = [\ \n \t]+

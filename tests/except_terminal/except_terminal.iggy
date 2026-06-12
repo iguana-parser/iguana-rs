@@ -4,8 +4,8 @@ S = Id
 
 Id = Identifier \ Keyword
 
-@regex
+@Regex
 Identifier = [a-zA-Z]+
 
-@regex
+@Regex
 Keyword = "if" | "else" | "while"

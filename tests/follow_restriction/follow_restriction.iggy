@@ -1,15 +1,13 @@
 grammar FollowRestriction
 
-layout WS
-
 S = Id+
 T = Char !>> Char
 
 @NoLayout
 Id = Char+ !>> Char
 
-@regex
+@Regex
 Char = [a-z]
 
-@regex
+@Layout @Regex
 WS = [\ ]*

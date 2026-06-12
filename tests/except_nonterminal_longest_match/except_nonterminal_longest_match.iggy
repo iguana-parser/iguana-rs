@@ -6,8 +6,8 @@ Id = Name \ Keyword
 
 Name = Letter Letter | Letter
 
-@regex
+@Regex
 Letter = [a-z]
 
-@regex
+@Regex
 Keyword = "if" | "iffy"

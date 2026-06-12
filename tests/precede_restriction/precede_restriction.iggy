@@ -1,14 +1,12 @@
 grammar PrecedeRestriction
 
-layout WS
-
 S = "for" Id | "forall"
 
 @NoLayout
 Id = Char !<< Char+
 
-@regex
+@Regex
 Char = [a-z]
 
-@regex
+@Layout @Regex
 WS = [\ ]*

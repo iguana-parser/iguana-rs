@@ -6,8 +6,8 @@ Id = Name \ Keyword
 
 Name = Identifier
 
-@regex
+@Regex
 Identifier = [a-zA-Z]+
 
-@regex
+@Regex
 Keyword = "if" | "else" | "while"
