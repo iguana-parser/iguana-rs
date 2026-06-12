@@ -229,9 +229,11 @@
     onchange?: (value: string) => void;
     onanalyze?: (result: { success: boolean; parse_duration_ms: number; tree_construction_duration_ms: number }) => void;
     onready?: (editor: monaco.editor.IStandaloneCodeEditor) => void;
+    initialViewState?: monaco.editor.ICodeEditorViewState | null;
+    onSaveViewState?: (state: monaco.editor.ICodeEditorViewState | null) => void;
   }
 
-  let { value = $bindable(""), language = "plaintext", disabled = false, onchange, onanalyze, onready }: Props = $props();
+  let { value = $bindable(""), language = "plaintext", disabled = false, onchange, onanalyze, onready, initialViewState, onSaveViewState }: Props = $props();
 
   // Keep the module-level callback in sync with the prop
   $effect(() => {
@@ -370,10 +372,15 @@
       onchange?.(newValue);
     });
 
+    // Restore cursor, scroll, and selection from the previous mount so a mode
+    // switch returns the editor to where the user left it.
+    if (initialViewState) editor.restoreViewState(initialViewState);
+
     onready?.(editor);
   });
 
   onDestroy(() => {
+    onSaveViewState?.(editor?.saveViewState() ?? null);
     editor?.dispose();
   });
 

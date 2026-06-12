@@ -322,6 +322,11 @@
   let outlineSelectedIndex = $state(-1);
   let outlineListEl: HTMLDivElement;
   let editorInstance: import("monaco-editor").editor.IStandaloneCodeEditor | undefined;
+  // Per-editor view state (cursor, scroll, selection) kept across mode switches,
+  // which remount the editors. Each editor saves on unmount and restores on mount.
+  let grammarViewState = $state<import("monaco-editor").editor.ICodeEditorViewState | null>(null);
+  let parseInputViewState = $state<import("monaco-editor").editor.ICodeEditorViewState | null>(null);
+  let debugInputViewState = $state<import("monaco-editor").editor.ICodeEditorViewState | null>(null);
   let cursorLine = $state(1);
   let cursorColumn = $state(1);
 
@@ -522,8 +527,26 @@
 
   // Bound to the parse-mode component so Cmd+P can trigger the same parse and the
   // parse-tree pop-out can read the visible tree.
-  let parseViewRef = $state<{ parse: () => Promise<void>; getParseTreeForPopup: () => ParseTreeData | null } | undefined>(undefined);
+  let parseViewRef = $state<{ parse: () => Promise<void>; getParseTreeForPopup: () => ParseTreeData | null; focusInput: () => void } | undefined>(undefined);
+  let debugInputEditorRef = $state<{ focus: () => void } | undefined>(undefined);
   let graphWindows = $state<Map<GraphType, WebviewWindow>>(new Map());
+
+  // Focus the active mode's main editor on a mode switch. Each switch remounts
+  // the target editor, so tick() lets the new editor mount before we focus it.
+  // The design branch waits for a loaded grammar so app startup does not grab
+  // focus before there is anything to edit.
+  $effect(() => {
+    const mode = activeMode;
+    tick().then(() => {
+      if (mode === "design") {
+        if (grammarFileName) editorInstance?.focus();
+      } else if (mode === "parse") {
+        parseViewRef?.focusInput();
+      } else if (mode === "debug") {
+        debugInputEditorRef?.focus();
+      }
+    });
+  });
 
   // Event log window
   let eventLogWindow = $state<WebviewWindow | null>(null);
@@ -1813,7 +1836,7 @@
   <!-- Design Mode -->
   <div class="design-mode">
     <div class="design-editor">
-      <MonacoEditor bind:value={grammarText} language="iggy" disabled={!grammarFileName} onchange={onGrammarEdit} onanalyze={onGrammarAnalyze} onready={onEditorReady} />
+      <MonacoEditor bind:value={grammarText} language="iggy" disabled={!grammarFileName} onchange={onGrammarEdit} onanalyze={onGrammarAnalyze} onready={onEditorReady} initialViewState={grammarViewState} onSaveViewState={(s) => grammarViewState = s} />
       {#if !grammarFileName}
         <div class="editor-placeholder">Open a grammar to get started</div>
       {/if}
@@ -1882,6 +1905,8 @@
     onExportPng={exportGraphPng}
     onParseTreeChange={() => { if (graphWindows.has('parseTree')) sendGraphData('parseTree'); }}
     {startVerticalDrag}
+    initialInputViewState={parseInputViewState}
+    onInputViewState={(s) => parseInputViewState = s}
   />
   {:else if activeMode === "debug"}
   <!-- Debug Mode - Three Column Layout -->
@@ -1908,12 +1933,15 @@
       <!-- Input Area -->
       <div class="input-section">
         <InputEditor
+          bind:this={debugInputEditorRef}
           bind:value={inputText}
           readOnly={debugLoaded}
           consumedUntil={debugLoaded ? inputIndex : null}
           currentIndex={debugLoaded ? inputIndex : null}
           highlightSpan={selectedSpan !== null ? { start: selectedSpan.left, end: selectedSpan.right } : null}
           placeholder="Enter code to parse..."
+          initialViewState={debugInputViewState}
+          onSaveViewState={(s) => debugInputViewState = s}
         />
       </div>
     </div>

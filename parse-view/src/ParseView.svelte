@@ -1,5 +1,6 @@
 <script lang="ts">
   import type { ParserBackend } from "./backend";
+  import type * as monaco from "monaco-editor";
   import { tick } from "svelte";
   import { ChevronDown, ChevronRight, CornerRightUp, ZoomIn, ZoomOut, Maximize2, Minimize2, Expand, Fullscreen, UnfoldHorizontal, FoldHorizontal, Download, SlidersHorizontal, Copy, ClipboardCheck } from "lucide-svelte";
   import cytoscape from "cytoscape";
@@ -88,6 +89,10 @@
     // out into its own window can re-send the data.
     onParseTreeChange?: () => void;
     startVerticalDrag?: (e: MouseEvent) => void;
+    // Cursor, scroll, and selection of the input editor, threaded through so the
+    // host can preserve it across mode switches that remount this component.
+    initialInputViewState?: monaco.editor.ICodeEditorViewState | null;
+    onInputViewState?: (state: monaco.editor.ICodeEditorViewState | null) => void;
   }
 
   let {
@@ -108,6 +113,8 @@
     onExportPng,
     onParseTreeChange,
     startVerticalDrag,
+    initialInputViewState,
+    onInputViewState,
   }: Props = $props();
 
   // Convert the (already display-transformed) flat DAG to a hierarchical tree.
@@ -252,6 +259,8 @@
   let expandedNodes = $state(new Set<number>());
   // svelte-ignore non_reactive_update
   let treeContainerEl: HTMLDivElement;
+  // svelte-ignore non_reactive_update
+  let inputEditorRef: { focus: () => void } | undefined;
 
   // Interactive s-expression, derived from the same display tree as the other tabs.
   let sexprRoot = $derived(displayTree ? buildSexprModel(displayTree) : null);
@@ -548,6 +557,11 @@
   // pop-out. Exported so a host can feed it to a separate graph window via bind:this.
   export function getParseTreeForPopup(): ParseTree | null {
     return displayTree;
+  }
+
+  // Exported so a host can focus the input editor, e.g. on a mode switch.
+  export function focusInput() {
+    inputEditorRef?.focus();
   }
 
   function toggleSpans() {
@@ -1009,6 +1023,7 @@
     <!-- Input Area -->
     <div class="input-section">
       <InputEditor
+        bind:this={inputEditorRef}
         bind:value={inputText}
         error={parseErrorInfo}
         ambiguities={ambiguityWarnings}
@@ -1017,6 +1032,8 @@
         onchange={clearParseModeInputSelection}
         onescape={clearParseModeInputSelection}
         placeholder="Enter code to parse..."
+        initialViewState={initialInputViewState}
+        onSaveViewState={onInputViewState}
       />
     </div>
   </div>

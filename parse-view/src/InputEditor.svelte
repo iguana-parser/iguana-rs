@@ -31,6 +31,8 @@
     onchange?: (value: string) => void;
     onclick?: (offset: number) => void;
     onescape?: () => void;
+    initialViewState?: monaco.editor.ICodeEditorViewState | null;
+    onSaveViewState?: (state: monaco.editor.ICodeEditorViewState | null) => void;
   }
 
   let {
@@ -45,6 +47,8 @@
     onchange,
     onclick,
     onescape,
+    initialViewState,
+    onSaveViewState,
   }: Props = $props();
 
   let container: HTMLDivElement;
@@ -98,11 +102,21 @@
     editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyL, () => {
       editor.trigger("keyboard", "editor.action.gotoLine", null);
     });
+
+    // Restore cursor, scroll, and selection from the previous mount so a mode
+    // switch returns the editor to where the user left it.
+    if (initialViewState) editor.restoreViewState(initialViewState);
   });
 
   onDestroy(() => {
+    onSaveViewState?.(editor?.saveViewState() ?? null);
     editor?.dispose();
   });
+
+  // Exported so a host can focus the input editor, e.g. on a mode switch.
+  export function focus() {
+    editor?.focus();
+  }
 
   // Sync external value changes into the editor
   $effect(() => {
