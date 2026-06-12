@@ -57,11 +57,11 @@ impl<'i> LayoutNonterminalScanner<'i> {
             match_any_memo,
         }
     }
-    // WhiteSpace = ([  \t \n]+)
+    // WhiteSpace = [  \t \n]+
     pub fn match_terminal_0(&self, input_index: u32) -> Option<u32> {
         self.scan(&DFA_0, input_index)
     }
-    // Comment = (//![\n]*[\n])
+    // Comment = //![\n]*[\n]
     pub fn match_terminal_1(&self, input_index: u32) -> Option<u32> {
         self.scan(&DFA_1, input_index)
     }

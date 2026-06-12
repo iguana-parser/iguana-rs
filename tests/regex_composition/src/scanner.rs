@@ -43,19 +43,19 @@ impl<'i> RegexCompositionScanner<'i> {
             match_any_memo,
         }
     }
-    // Digit = ([0-9])
+    // Digit = [0-9]
     pub fn match_terminal_0(&self, input_index: u32) -> Option<u32> {
         self.scan(&DFA_0, input_index)
     }
-    // Letter = ([a-z A-Z _])
+    // Letter = [a-z A-Z _]
     pub fn match_terminal_1(&self, input_index: u32) -> Option<u32> {
         self.scan(&DFA_1, input_index)
     }
-    // LetterOrDigit = (([a-z A-Z _])|([0-9]))
+    // LetterOrDigit = ([a-z A-Z _]|[0-9])
     pub fn match_terminal_2(&self, input_index: u32) -> Option<u32> {
         self.scan(&DFA_2, input_index)
     }
-    // WS = ([  \n]*)
+    // WS = [  \n]*
     pub fn match_terminal_3(&self, input_index: u32) -> Option<u32> {
         self.scan(&DFA_3, input_index)
     }

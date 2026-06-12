@@ -41,7 +41,7 @@ impl<'i> ExceptNonterminalScanner<'i> {
             match_any_memo,
         }
     }
-    // Identifier = ([a-z A-Z]+)
+    // Identifier = [a-z A-Z]+
     pub fn match_terminal_0(&self, input_index: u32) -> Option<u32> {
         self.scan(&DFA_0, input_index)
     }

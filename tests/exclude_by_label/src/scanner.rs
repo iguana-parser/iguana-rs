@@ -39,7 +39,7 @@ impl<'i> ExcludeByLabelScanner<'i> {
             match_any_memo,
         }
     }
-    // Id = ([a-z]+)
+    // Id = [a-z]+
     pub fn match_terminal_0(&self, input_index: u32) -> Option<u32> {
         self.scan(&DFA_0, input_index)
     }

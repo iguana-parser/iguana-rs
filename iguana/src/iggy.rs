@@ -267,7 +267,6 @@ fn convert_regex_rule(rule: &parse_tree::RegexRule, input: &Input) -> LexicalRul
     let name = text(input, rule.identifier().span());
     let head = Terminal::new(name);
 
-    // TODO: add simplification rules to convert Alt(regex) to regex, and Seq(regex) to regex.
     let regex = Regex::Alt(
         rule.body()
             .regexes()

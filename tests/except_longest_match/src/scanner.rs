@@ -40,7 +40,7 @@ impl<'i> ExceptLongestMatchScanner<'i> {
             match_any_memo,
         }
     }
-    // Id = ([a-z][a-z]?) \ Keyword
+    // Id = [a-z][a-z]? \ Keyword
     pub fn match_terminal_0(&self, input_index: u32) -> Option<u32> {
         self.scan(&DFA_0, input_index)
     }

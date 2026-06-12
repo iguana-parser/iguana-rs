@@ -176,11 +176,11 @@ impl<'i> MultipleExceptScanner<'i> {
             match_any_memo,
         }
     }
-    // Identifier = ([a-z A-Z]+) \ Keyword \ BooleanLiteral \ NullLiteral
+    // Identifier = [a-z A-Z]+ \ Keyword \ BooleanLiteral \ NullLiteral
     pub fn match_terminal_0(&self, input_index: u32) -> Option<u32> {
         self.scan(&DFA_0, input_index)
     }
-    // IdentifierChars = ([a-z A-Z]+)
+    // IdentifierChars = [a-z A-Z]+
     pub fn match_terminal_1(&self, input_index: u32) -> Option<u32> {
         self.scan(&DFA_1, input_index)
     }
@@ -192,7 +192,7 @@ impl<'i> MultipleExceptScanner<'i> {
     pub fn match_terminal_3(&self, input_index: u32) -> Option<u32> {
         self.scan(&DFA_3, input_index)
     }
-    // NullLiteral = (null)
+    // NullLiteral = null
     pub fn match_terminal_4(&self, input_index: u32) -> Option<u32> {
         self.scan(&DFA_4, input_index)
     }

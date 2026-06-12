@@ -39,7 +39,7 @@ impl<'i> FollowRestrictionLexicalScanner<'i> {
             match_any_memo,
         }
     }
-    // Num = ([0-9]+) !>> Alpha
+    // Num = [0-9]+ !>> Alpha
     pub fn match_terminal_0(&self, input_index: u32) -> Option<u32> {
         self.scan(&DFA_0, input_index).and_then(|end| {
             if self.match_terminal_1(end).is_some() {
@@ -49,15 +49,15 @@ impl<'i> FollowRestrictionLexicalScanner<'i> {
             }
         })
     }
-    // Alpha = ([a-z A-Z])
+    // Alpha = [a-z A-Z]
     pub fn match_terminal_1(&self, input_index: u32) -> Option<u32> {
         self.scan(&DFA_1, input_index)
     }
-    // Id = ([a-z A-Z]+)
+    // Id = [a-z A-Z]+
     pub fn match_terminal_2(&self, input_index: u32) -> Option<u32> {
         self.scan(&DFA_2, input_index)
     }
-    // WS = ([ ]*)
+    // WS = [ ]*
     pub fn match_terminal_3(&self, input_index: u32) -> Option<u32> {
         self.scan(&DFA_3, input_index)
     }

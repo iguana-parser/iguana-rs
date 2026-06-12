@@ -299,7 +299,7 @@
   const ROOT_FRAME_TOP_PADDING = 60;
   const ROOT_FRAME_MIN_ZOOM = 0.3;
   const ROOT_FRAME_MAX_ZOOM = 1.5;
-  const ROOT_FRAME_LEVELS_VISIBLE = 12;
+  const ROOT_FRAME_LEVELS_VISIBLE = 8;
   function frameOnRoot() {
     if (!parseTreeCy || !parseTreeContainer) return;
     const root = parseTreeCy.nodes().roots().first();

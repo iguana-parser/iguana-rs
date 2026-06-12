@@ -104,6 +104,11 @@ impl std::fmt::Display for Regex {
                 }
                 Ok(())
             }
+            // A single-branch alternation only arises from a rule body that has
+            // one alternative. The grammar's nested alternation always has two or
+            // more branches, so dropping the parentheses here never under-groups
+            // a choice inside a rule.
+            Regex::Alt(choices) if choices.len() == 1 => write!(f, "{}", choices[0]),
             Regex::Alt(choices) => {
                 write!(f, "(")?;
                 for (i, choice) in choices.iter().enumerate() {
@@ -149,8 +154,17 @@ impl std::fmt::Display for Regex {
     }
 }
 
+/// Whether a `Star`/`Plus`/`Opt` operand needs parentheses to bind correctly.
+/// A multi-element sequence does; an alternation prints its own parentheses, and
+/// an atom needs none. Single-element sequences and alternations render as their
+/// one child, so the decision sees through to that child.
 fn needs_grouping(regex: &Regex) -> bool {
-    matches!(regex, Regex::Seq(_) | Regex::Alt(_))
+    match regex {
+        Regex::Seq(parts) if parts.len() == 1 => needs_grouping(&parts[0]),
+        Regex::Alt(choices) if choices.len() == 1 => needs_grouping(&choices[0]),
+        Regex::Seq(_) => true,
+        _ => false,
+    }
 }
 
 #[macro_export]

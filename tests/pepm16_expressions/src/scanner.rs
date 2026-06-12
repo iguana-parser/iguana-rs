@@ -82,7 +82,7 @@ impl<'i> Pepm16ExpressionsScanner<'i> {
             match_any_memo,
         }
     }
-    // WS = ([ ]*)
+    // WS = [ ]*
     pub fn match_terminal_0(&self, input_index: u32) -> Option<u32> {
         self.scan(&DFA_0, input_index)
     }

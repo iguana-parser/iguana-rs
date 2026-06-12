@@ -182,17 +182,7 @@ pub fn generate_sources(
         config,
     );
     let parser_code = parser_gen.generate();
-    let grammar_comment = grammar
-        .to_string()
-        .lines()
-        .map(|l| format!("// {l}"))
-        .collect::<Vec<_>>()
-        .join("\n");
-    let parser_source = format!(
-        "{grammar_comment}\n{}",
-        post_process(&parser_code.to_string())
-    );
-    write_rust_file(parser_source, &parser_path)?;
+    write_rust_file(post_process(&parser_code.to_string()), &parser_path)?;
 
     write_rust_file(
         post_process(

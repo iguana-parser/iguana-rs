@@ -598,19 +598,19 @@ impl<'i> IggyScanner<'i> {
     pub fn match_terminal_0(&self, input_index: u32) -> Option<u32> {
         self.scan(&DFA_0, input_index)
     }
-    // Identifier = ([a-z A-Z _][a-z A-Z _ 0-9]*) \ Keyword
+    // Identifier = [a-z A-Z _][a-z A-Z _ 0-9]* \ Keyword
     pub fn match_terminal_1(&self, input_index: u32) -> Option<u32> {
         self.scan(&DFA_1, input_index)
     }
-    // String = (\"(((\\[\" \' \\ t f r n])|![\" \\]))*\")
+    // String = \"(\\[\" \' \\ t f r n]|![\" \\])*\"
     pub fn match_terminal_2(&self, input_index: u32) -> Option<u32> {
         self.scan(&DFA_2, input_index)
     }
-    // Char = (\'((\\[\" \' \\ t f r n])|![\' \\])\')
+    // Char = \'(\\[\" \' \\ t f r n]|![\' \\])\'
     pub fn match_terminal_3(&self, input_index: u32) -> Option<u32> {
         self.scan(&DFA_3, input_index)
     }
-    // EscapeChar = (\\[\" \' \\ t f r n])
+    // EscapeChar = \\[\" \' \\ t f r n]
     pub fn match_terminal_4(&self, input_index: u32) -> Option<u32> {
         self.scan(&DFA_4, input_index)
     }
@@ -618,19 +618,19 @@ impl<'i> IggyScanner<'i> {
     pub fn match_terminal_5(&self, input_index: u32) -> Option<u32> {
         self.scan(&DFA_5, input_index)
     }
-    // Label = (#[a-z A-Z _][a-z A-Z _ 0-9]*)
+    // Label = #[a-z A-Z _][a-z A-Z _ 0-9]*
     pub fn match_terminal_6(&self, input_index: u32) -> Option<u32> {
         self.scan(&DFA_6, input_index)
     }
-    // WS = ((([  \n \t]))+)
+    // WS = [  \n \t]+
     pub fn match_terminal_7(&self, input_index: u32) -> Option<u32> {
         self.scan(&DFA_7, input_index)
     }
-    // WSChar = ([  \n \t])
+    // WSChar = [  \n \t]
     pub fn match_terminal_8(&self, input_index: u32) -> Option<u32> {
         self.scan(&DFA_8, input_index)
     }
-    // LineComment = (//![\n]*)
+    // LineComment = //![\n]*
     pub fn match_terminal_9(&self, input_index: u32) -> Option<u32> {
         self.scan(&DFA_9, input_index)
     }

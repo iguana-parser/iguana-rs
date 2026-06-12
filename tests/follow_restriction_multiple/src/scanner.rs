@@ -31,11 +31,11 @@ impl<'i> FollowRestrictionMultipleScanner<'i> {
             match_any_memo,
         }
     }
-    // Alpha = ([a-z A-Z])
+    // Alpha = [a-z A-Z]
     pub fn match_terminal_0(&self, input_index: u32) -> Option<u32> {
         self.scan(&DFA_0, input_index)
     }
-    // Digit = ([0-9])
+    // Digit = [0-9]
     pub fn match_terminal_1(&self, input_index: u32) -> Option<u32> {
         self.scan(&DFA_1, input_index)
     }

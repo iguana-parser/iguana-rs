@@ -50,18 +50,18 @@ impl<'i> PrecedeRestrictionLexicalScanner<'i> {
             match_any_memo,
         }
     }
-    // Id = ([a-z]+) !<< Char
+    // Id = [a-z]+ !<< Char
     pub fn match_terminal_0(&self, input_index: u32) -> Option<u32> {
         if input_index > 0 && self.match_terminal_1(input_index - 1).is_some() {
             return None;
         }
         self.scan(&DFA_0, input_index)
     }
-    // Char = ([a-z])
+    // Char = [a-z]
     pub fn match_terminal_1(&self, input_index: u32) -> Option<u32> {
         self.scan(&DFA_1, input_index)
     }
-    // WS = ([ ]*)
+    // WS = [ ]*
     pub fn match_terminal_2(&self, input_index: u32) -> Option<u32> {
         self.scan(&DFA_2, input_index)
     }

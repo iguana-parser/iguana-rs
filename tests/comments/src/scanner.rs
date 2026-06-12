@@ -157,19 +157,19 @@ impl<'i> CommentsScanner<'i> {
             match_any_memo,
         }
     }
-    // Layout = (((([  \n \t]+)|(//![\n]*)))*)
+    // Layout = ([  \n \t]+|//![\n]*)*
     pub fn match_terminal_0(&self, input_index: u32) -> Option<u32> {
         self.scan(&DFA_0, input_index)
     }
-    // Identifier = ([a-z A-Z]+)
+    // Identifier = [a-z A-Z]+
     pub fn match_terminal_1(&self, input_index: u32) -> Option<u32> {
         self.scan(&DFA_1, input_index)
     }
-    // Comment = (//![\n]*)
+    // Comment = //![\n]*
     pub fn match_terminal_2(&self, input_index: u32) -> Option<u32> {
         self.scan(&DFA_2, input_index)
     }
-    // WS = ([  \n \t]+)
+    // WS = [  \n \t]+
     pub fn match_terminal_3(&self, input_index: u32) -> Option<u32> {
         self.scan(&DFA_3, input_index)
     }
