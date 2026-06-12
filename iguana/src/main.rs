@@ -7,7 +7,7 @@ use clap::{Parser, Subcommand};
 use iguana::{
     alternative, bind, c, call, cond, cond_expr,
     generator::{GenConfig, generate_scaffold, generate_sources, generate_wasm},
-    grammar::def::{Grammar, GrammarDef},
+    grammar::def::{Grammar, GrammarDef, Phase},
     grammar_def, id,
     iggy::parse_grammar,
     lexical_rule, lit, min, opt, priority_level, r_star, ret, syntax_rule, ternary,
@@ -66,6 +66,12 @@ enum Commands {
         /// regeneration so local edits are preserved.
         #[arg(long)]
         force: bool,
+
+        /// Print the grammar after the given pipeline phases (comma-separated)
+        /// to stderr, then keep generating. Pass the flag with no value to list
+        /// the available phases.
+        #[arg(long, value_delimiter = ',', num_args = 0..)]
+        print_phase: Option<Vec<String>>,
     },
     /// Open the web viewer for a wasm bundle built with `generate --wasm`:
     /// write the viewer next to the bundle and serve it over HTTP
@@ -93,7 +99,22 @@ fn main() -> std::io::Result<()> {
             cli,
             wasm,
             force,
+            print_phase,
         } => {
+            let dump_phases = match print_phase {
+                None => Vec::new(),
+                Some(tokens) if tokens.is_empty() => {
+                    print!("{}", available_phases());
+                    return Ok(());
+                }
+                Some(tokens) => match resolve_phases(&tokens) {
+                    Ok(phases) => phases,
+                    Err(token) => {
+                        eprintln!("error: unknown phase `{token}`\n\n{}", available_phases());
+                        std::process::exit(2);
+                    }
+                },
+            };
             let resolved_path;
             let path = match grammar.as_deref() {
                 Some(path) => path,
@@ -111,9 +132,15 @@ fn main() -> std::io::Result<()> {
                 cli: cli && !wasm,
                 wasm,
             };
-            let grammar: Grammar = grammar_def.try_into().map_err(|names: Vec<String>| {
-                std::io::Error::other(format!("Unresolved identifiers: {}", names.join(", ")))
-            })?;
+            let grammar: Grammar =
+                grammar_def
+                    .to_grammar(&dump_phases)
+                    .map_err(|names: Vec<String>| {
+                        std::io::Error::other(format!(
+                            "Unresolved identifiers: {}",
+                            names.join(", ")
+                        ))
+                    })?;
             generate_scaffold(&grammar, &output, config, force)?;
             let result = generate_sources(&grammar, &output, config)?;
             if config.wasm {
@@ -192,6 +219,36 @@ fn find_iggy_file(directory: &Path) -> std::io::Result<PathBuf> {
             ),
         )),
     }
+}
+
+/// Resolves the `--print-phase` tokens into pipeline phases. `all` expands to
+/// every phase; duplicates collapse and the result is in pipeline order,
+/// independent of the order the tokens were given. Returns the first unknown
+/// token on failure.
+fn resolve_phases(tokens: &[String]) -> Result<Vec<Phase>, &str> {
+    let mut requested = Vec::new();
+    for token in tokens {
+        if token == "all" {
+            requested.extend(Phase::ALL);
+        } else {
+            requested.push(token.parse().map_err(|_| token.as_str())?);
+        }
+    }
+    Ok(Phase::ALL
+        .into_iter()
+        .filter(|phase| requested.contains(phase))
+        .collect())
+}
+
+/// A human-readable listing of the `--print-phase` tokens and what each prints.
+fn available_phases() -> String {
+    use std::fmt::Write;
+    let mut message = String::from("Available phases:\n");
+    for phase in Phase::ALL {
+        writeln!(message, "  {:<11}{}", phase.token(), phase.description()).unwrap();
+    }
+    writeln!(message, "  {:<11}{}", "all", "every phase").unwrap();
+    message
 }
 
 fn generate_parser(grammar_path: Option<&Path>, output: &Path) -> io::Result<()> {

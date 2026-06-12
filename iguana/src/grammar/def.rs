@@ -1,4 +1,5 @@
 use std::fmt::Display;
+use std::str::FromStr;
 
 use indexmap::IndexMap;
 use itertools::Itertools;
@@ -286,21 +287,28 @@ impl GrammarDef {
     }
 }
 
-impl TryFrom<GrammarDef> for Grammar {
-    type Error = Vec<String>;
-
+impl GrammarDef {
     /// Resolves identifiers, checks for unresolved references, then runs the
     /// full transformation pipeline (EBNF-to-BNF, precedence desugaring,
-    /// layout insertion, etc.).
-    fn try_from(grammar_def: GrammarDef) -> Result<Self, Self::Error> {
-        let resolved = grammar_def.resolve();
+    /// layout insertion, etc.), dumping each phase in `dump` to stderr along the
+    /// way. `TryFrom` is the shorthand that dumps nothing.
+    pub fn to_grammar(self, dump: &[Phase]) -> Result<Grammar, Vec<String>> {
+        let resolved = self.resolve();
         let mut errors = resolved.duplicate_definitions();
         errors.extend(resolved.unresolved_identifiers());
         errors.extend(resolved.unresolved_labels());
         if !errors.is_empty() {
             return Err(errors);
         }
-        Ok(build_grammar(resolved))
+        Ok(build_grammar(resolved, dump))
+    }
+}
+
+impl TryFrom<GrammarDef> for Grammar {
+    type Error = Vec<String>;
+
+    fn try_from(grammar_def: GrammarDef) -> Result<Self, Self::Error> {
+        grammar_def.to_grammar(&[])
     }
 }
 
@@ -324,37 +332,19 @@ impl Display for SyntaxRule {
         // The layout annotation (@Layout / @NoLayout / @WithLayout) is a
         // grammar-level concern, so GrammarDef's Display emits it.
         writeln!(f, "{}", self.head)?;
-        if let Some((first_level, rest_levels)) = self.priority_levels.split_first() {
-            if let Some((first_alt, rest_alts)) = first_level.alternatives.split_first() {
-                write!(f, "  = {}", first_alt.symbols.iter().join(" "))?;
-                if let Some(label) = &first_alt.label {
+        for (level_idx, level) in self.priority_levels.iter().enumerate() {
+            for (alt_idx, alternative) in level.alternatives.iter().enumerate() {
+                // `=` opens the first level, `>` each later level, `|` the rest.
+                let prefix = match (level_idx, alt_idx) {
+                    (0, 0) => "  = ",
+                    (_, 0) => "  > ",
+                    _ => "  | ",
+                };
+                write!(f, "{prefix}{}", alternative.symbols.iter().join(" "))?;
+                if let Some(label) = &alternative.label {
                     write!(f, " #{}", label)?;
                 }
                 writeln!(f)?;
-                for alternative in rest_alts {
-                    write!(f, "  | {}", alternative.symbols.iter().join(" "))?;
-                    if let Some(label) = &alternative.label {
-                        write!(f, " #{}", label)?;
-                    }
-                    writeln!(f)?;
-                }
-            }
-            for level in rest_levels.iter() {
-                writeln!(f, "  >")?;
-                if let Some((first_alt, rest_alts)) = level.alternatives.split_first() {
-                    write!(f, "    {}", first_alt.symbols.iter().join(" "))?;
-                    if let Some(label) = &first_alt.label {
-                        write!(f, " #{}", label)?;
-                    }
-                    writeln!(f)?;
-                    for alternative in rest_alts {
-                        write!(f, "  | {}", alternative.symbols.iter().join(" "))?;
-                        if let Some(label) = &alternative.label {
-                            write!(f, " #{}", label)?;
-                        }
-                        writeln!(f)?;
-                    }
-                }
             }
         }
         Ok(())
@@ -773,10 +763,82 @@ fn inline_regex(
     }
 }
 
+/// A stage of the grammar transformation pipeline whose output can be dumped via
+/// `iguana generate --print-phase`. Listed in the order the pipeline runs them.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum Phase {
+    Resolve,
+    Ebnf,
+    Exclude,
+    Precedence,
+    Layout,
+}
+
+impl Phase {
+    pub const ALL: [Phase; 5] = [
+        Phase::Resolve,
+        Phase::Ebnf,
+        Phase::Exclude,
+        Phase::Precedence,
+        Phase::Layout,
+    ];
+
+    /// The token accepted on the command line.
+    pub fn token(self) -> &'static str {
+        match self {
+            Phase::Resolve => "resolve",
+            Phase::Ebnf => "ebnf",
+            Phase::Exclude => "exclude",
+            Phase::Precedence => "precedence",
+            Phase::Layout => "layout",
+        }
+    }
+
+    /// What the phase shows, used in the dump header and the phase listing.
+    pub fn description(self) -> &'static str {
+        match self {
+            Phase::Resolve => "identifier resolution",
+            Phase::Ebnf => "EBNF-to-BNF expansion",
+            Phase::Exclude => "exclude desugaring",
+            Phase::Precedence => "precedence desugaring",
+            Phase::Layout => "layout insertion and start wrapping",
+        }
+    }
+}
+
+impl FromStr for Phase {
+    type Err = String;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        Phase::ALL
+            .into_iter()
+            .find(|phase| phase.token() == s)
+            .ok_or_else(|| format!("unknown phase `{s}`"))
+    }
+}
+
+/// Prints the grammar after a pipeline phase to stderr, when `dump` requests it.
+/// Both the syntax rules (which the transformations rewrite) and the lexical
+/// rules (which they leave alone) are shown, so each phase is the complete
+/// grammar at that point. Generation continues afterward; this is a diagnostic
+/// side effect.
+fn dump_phase(phase: Phase, rules: &[SyntaxRule], lexical: &[LexicalRule], dump: &[Phase]) {
+    if !dump.contains(&phase) {
+        return;
+    }
+    eprintln!("===== after {} =====", phase.description());
+    for rule in rules {
+        eprintln!("{rule}");
+    }
+    for rule in lexical {
+        eprintln!("{rule}");
+    }
+}
+
 /// Runs the full transformation pipeline on a resolved GrammarDef: adds
 /// literal terminals, inlines regex references, desugars EBNF/exclude/
 /// precedence, inserts layout, and assembles the final Grammar.
-fn build_grammar(grammar_def: GrammarDef) -> Grammar {
+fn build_grammar(grammar_def: GrammarDef, dump: &[Phase]) -> Grammar {
     let mut lexical_rules = grammar_def.lexical_rules;
     let syntax_rules = grammar_def.syntax_rules;
     // Built before transformations run: precedence and exclude desugaring would
@@ -791,15 +853,19 @@ fn build_grammar(grammar_def: GrammarDef) -> Grammar {
     let (syntax_rules, lexical_rules) =
         resolve_identifiers(syntax_rules, lexical_rules, &symbol_table);
     let lexical_rules = inline_regex_refs(lexical_rules);
+    dump_phase(Phase::Resolve, &syntax_rules, &lexical_rules, dump);
     let syntax_rules = ebnf_to_bnf::transform(syntax_rules);
+    dump_phase(Phase::Ebnf, &syntax_rules, &lexical_rules, dump);
     let (_, symbol_table) = create_symbol_table(&syntax_rules, &lexical_rules);
     let (syntax_rules, lexical_rules) =
         resolve_identifiers(syntax_rules, lexical_rules, &symbol_table);
     let syntax_rules = exclude_desugaring::transform(syntax_rules);
+    dump_phase(Phase::Exclude, &syntax_rules, &lexical_rules, dump);
     let (_, symbol_table) = create_symbol_table(&syntax_rules, &lexical_rules);
     let (syntax_rules, lexical_rules) =
         resolve_identifiers(syntax_rules, lexical_rules, &symbol_table);
     let syntax_rules = precedence_desugaring::transform(syntax_rules);
+    dump_phase(Phase::Precedence, &syntax_rules, &lexical_rules, dump);
     // Create the final symbol table after all transformations. This must happen
     // after precedence desugaring because desugaring may add parameters to
     // nonterminals (e.g., E becomes E(p)), and the definitions must reflect that.
@@ -849,6 +915,9 @@ fn build_grammar(grammar_def: GrammarDef) -> Grammar {
                 .collect();
             let start_wrapper_names: FxHashSet<String> = start_names.values().cloned().collect();
             syntax_rules.extend(start_rules);
+            // Dumped after the start wrappers are added so the layout phase shows
+            // the StartX rules too, not just layout woven into existing rules.
+            dump_phase(Phase::Layout, &syntax_rules, &lexical_rules, dump);
             (
                 syntax_rules,
                 Some(resolved),
