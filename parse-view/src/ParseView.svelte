@@ -16,6 +16,7 @@
     clearEdgeHighlights,
     highlightClickedEdge,
     PARSE_TREE_LAYOUT,
+    PARSE_TREE_WEBGL_NODE_THRESHOLD,
   } from "./graph-styles";
   import {
     GraphCollapseManager,
@@ -239,11 +240,15 @@
   let parseTreeContainer: HTMLDivElement;
   let parseTreeCy: cytoscape.Core | null = null;
   const parseTreeCollapseManager = new GraphCollapseManager();
-  // The Cytoscape instance is built once and kept alive across tab switches.
-  // `graphDirty` marks that its elements are stale (new parse or a view-options/
+  // The Cytoscape instance is kept alive across tab switches and reused on most
+  // parses. `graphDirty` marks its elements stale (new parse or a view-options/
   // span toggle), so the next time the graph tab is shown it reloads instead of
   // just resizing. A plain flag, not reactive: the graph $effect reacts to activeTab.
   let graphDirty = true;
+
+  // The renderer the live parse-tree graph was built with (`{ webgl }`), read off
+  // the instance for the WebGL badge. Null until the graph is first built.
+  let graphRenderer = $state<{ webgl: boolean } | null>(null);
 
   // Parse tree node selection (for highlighting span in input)
   let parseTreeSelectedSpan = $state<{ start: number; end: number } | null>(null);
@@ -333,6 +338,7 @@
       styles: [...sppfNodeStyles, ...edgeStyles],  // Reuse SPPF styles (nonterminal/token)
       layout: 'tree',  // cytoscape-tidytree (see PARSE_TREE_LAYOUT)
     });
+    graphRenderer = parseTreeCy.scratch("_renderer");
 
     parseTreeCollapseManager.setCy(parseTreeCy);
     parseTreeTooltipCleanup = setupGraphTooltip(parseTreeCy, parseTreeContainer);
@@ -417,11 +423,26 @@
         highlightOutgoingEdges(parseTreeCy, parseTreeSelectedNodeId);
       }
     }
-    // WebGL renderer: after a relayout it doesn't repaint edge buffers until the
-    // next viewport change, so the edges vanish until you pan or select. resize()
-    // forces a full redraw and brings them back immediately.
+    // On the WebGL path (a large tree, see PARSE_TREE_WEBGL_NODE_THRESHOLD) a
+    // relayout doesn't repaint edge buffers until the next viewport change, so
+    // the edges vanish until you pan or select. resize() forces a full redraw and
+    // brings them back immediately. Harmless on the Canvas2D path.
     parseTreeCy.resize();
     graphDirty = false;
+  }
+
+  // Destroy the parse-tree graph instance and its container wheel listener (which
+  // cy.destroy() does not remove). Called on a parse that crosses the renderer
+  // threshold so the next build re-picks Canvas2D vs WebGL; toggles and tab
+  // switches reuse the instance instead.
+  function teardownParseTreeGraph() {
+    if (!parseTreeCy) return;
+    parseTreeCy.scratch("_disposeWheel")?.();
+    parseTreeTooltipCleanup?.();
+    parseTreeTooltipCleanup = null;
+    parseTreeCy.destroy();
+    parseTreeCy = null;
+    graphRenderer = null;
   }
 
   // Build the instance the first time, reload it afterwards.
@@ -503,6 +524,14 @@
       // drop any stale selection and mark the graph for reload. The graph
       // $effect rebuilds it when the graph tab is (or becomes) active.
       clearParseModeInputSelection();
+      // Re-pick the graph renderer for this parse. It flips only when the node
+      // count crosses the threshold, and a live instance can't switch renderer,
+      // so tear it down only then; otherwise reloadGraph reuses it. Toggles keep
+      // the renderer because they don't run through here.
+      const wantWebgl = (displayTree?.nodes.length ?? 0) >= PARSE_TREE_WEBGL_NODE_THRESHOLD;
+      if (parseTreeCy && parseTreeCy.scratch("_renderer")?.webgl !== wantWebgl) {
+        teardownParseTreeGraph();
+      }
       graphDirty = true;
       // Expand root by default
       if (treeRoot) {
@@ -1234,6 +1263,9 @@
              mid-parse; only the controls are gated on having a parse tree. -->
         <div class="graph-view" class:hidden={activeTab !== "graph"}>
           <div class="cytoscape-container" bind:this={parseTreeContainer}></div>
+          {#if graphRenderer?.webgl}
+            <div class="renderer-badge" title="Rendered on the GPU (WebGL) because this tree exceeds the node threshold">WebGL</div>
+          {/if}
           {#if parseTree}
             <div class="graph-controls">
               <button onclick={zoomIn} title="Zoom in">
@@ -1443,6 +1475,22 @@
 
   .graph-view.hidden {
     display: none;
+  }
+
+  /* Marks the parse-tree graph as GPU-rendered; shown only on the WebGL path. */
+  .renderer-badge {
+    position: absolute;
+    bottom: 8px;
+    left: 8px;
+    padding: 2px 7px;
+    font-family: 'SF Mono', 'Fira Code', Consolas, monospace;
+    font-size: 11px;
+    color: #888;
+    background: rgba(37, 37, 38, 0.8);
+    border: 1px solid #3c3c3c;
+    border-radius: 4px;
+    pointer-events: none;
+    user-select: none;
   }
 
   /* Tree View */
