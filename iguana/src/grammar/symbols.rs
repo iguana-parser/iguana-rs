@@ -307,6 +307,53 @@ impl Symbol {
         }
     }
 
+    /// The inner `Call`'s arguments, reached by unwrapping any `Labeled`,
+    /// `Binding`, or restriction wrapper. `&[]` if the inner symbol is a bare
+    /// `Identifier`.
+    pub fn call_arguments(&self) -> &[Expr] {
+        match self {
+            Symbol::Call { arguments, .. } => arguments,
+            Symbol::Labeled { symbol, .. }
+            | Symbol::Binding { symbol, .. }
+            | Symbol::Except { symbol, .. }
+            | Symbol::FollowRestriction { symbol, .. }
+            | Symbol::PrecedeRestriction { symbol, .. }
+            | Symbol::Exclude { symbol, .. } => symbol.call_arguments(),
+            Symbol::Identifier(_)
+            | Symbol::Literal(_)
+            | Symbol::Group(_)
+            | Symbol::Opt(_)
+            | Symbol::Alt(_)
+            | Symbol::Star(_, _)
+            | Symbol::Plus(_, _)
+            | Symbol::Condition(_)
+            | Symbol::Return(_) => &[],
+        }
+    }
+
+    /// The inner `Binding`'s name, reached by unwrapping any `Labeled` or
+    /// restriction wrapper. `None` if there is no binding.
+    pub fn binding_name(&self) -> Option<&str> {
+        match self {
+            Symbol::Binding { name, .. } => Some(name),
+            Symbol::Labeled { symbol, .. }
+            | Symbol::Except { symbol, .. }
+            | Symbol::FollowRestriction { symbol, .. }
+            | Symbol::PrecedeRestriction { symbol, .. }
+            | Symbol::Exclude { symbol, .. } => symbol.binding_name(),
+            Symbol::Identifier(_)
+            | Symbol::Call { .. }
+            | Symbol::Literal(_)
+            | Symbol::Group(_)
+            | Symbol::Opt(_)
+            | Symbol::Alt(_)
+            | Symbol::Star(_, _)
+            | Symbol::Plus(_, _)
+            | Symbol::Condition(_)
+            | Symbol::Return(_) => None,
+        }
+    }
+
     pub fn display_name(&self, grammar: &Grammar) -> String {
         match self {
             Symbol::Labeled { label, symbol } => {

@@ -1,0 +1,11 @@
+grammar Amb
+
+S = E
+
+E
+  = Num
+  > left lhs:E "*" rhs:E    #Mul
+  > left lhs:E "+" rhs:E    #Add
+
+@Regex
+Num = [0-9]+

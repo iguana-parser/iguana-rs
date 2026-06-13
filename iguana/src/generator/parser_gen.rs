@@ -488,26 +488,7 @@ impl<'a> ParserGen<'a> {
             match def {
                 Definition::Terminal(terminal) => self.gen_terminal_slot(terminal, slot, &[], &[]),
                 Definition::Nonterminal(nonterminal) => {
-                    let arguments = match symbol.unwrap() {
-                        Symbol::Call { arguments, .. } => arguments.clone(),
-                        Symbol::Labeled { .. }
-                        | Symbol::Identifier(_)
-                        | Symbol::Literal(_)
-                        | Symbol::Group(_)
-                        | Symbol::Opt(_)
-                        | Symbol::Alt(_)
-                        | Symbol::Star(_, _)
-                        | Symbol::Plus(_, _)
-                        | Symbol::Except { .. }
-                        | Symbol::FollowRestriction { .. }
-                        | Symbol::PrecedeRestriction { .. }
-                        | Symbol::Condition(_)
-                        | Symbol::Return(_)
-                        | Symbol::Binding { .. } => vec![],
-                        Symbol::Exclude { .. } => {
-                            unreachable!("Exclude should be desugared before code generation")
-                        }
-                    };
+                    let arguments = symbol.call_arguments().to_vec();
                     self.gen_nonterminal_slot(nonterminal, &arguments, slot, &[], &[])
                 }
             }
@@ -598,10 +579,7 @@ impl<'a> ParserGen<'a> {
                 self.gen_terminal_slot(terminal, slot.clone(), &[], has_post_conditions)
             }
             Definition::Nonterminal(nonterminal) => {
-                let arguments = match symbol.unwrap() {
-                    Symbol::Call { arguments, .. } => arguments.clone(),
-                    _ => vec![],
-                };
+                let arguments = symbol.call_arguments().to_vec();
                 self.gen_nonterminal_slot(
                     nonterminal,
                     &arguments,
@@ -639,10 +617,7 @@ impl<'a> ParserGen<'a> {
                 self.gen_terminal_slot(terminal, slot.clone(), &pre_conditions, &[])
             }
             Definition::Nonterminal(nonterminal) => {
-                let arguments = match symbol.unwrap() {
-                    Symbol::Call { arguments, .. } => arguments.clone(),
-                    _ => vec![],
-                };
+                let arguments = symbol.call_arguments().to_vec();
                 let pre_conditions = vec![quote! {
                     input_index == 0 || self.scanner.match_token(#restriction_terminal_id, input_index - 1).is_none()
                 }];
@@ -865,7 +840,7 @@ impl<'a> ParserGen<'a> {
         } else {
             let method_name = format_ident!("create_{}", to_snake_case(&nonterminal.name));
             let arguments: Vec<_> = arguments.iter().map(Self::gen_expr).collect();
-            let bindings = if let Some(Symbol::Binding { name, .. }) = slot.symbol() {
+            let bindings = if let Some(name) = slot.symbol().and_then(Symbol::binding_name) {
                 let const_name = binding_const_ident(name);
                 quote! { Some(#const_name) }
             } else {

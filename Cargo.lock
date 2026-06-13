@@ -55,6 +55,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "amb"
+version = "0.1.0"
+dependencies = [
+ "iguana-runtime",
+ "rustc-hash 2.1.2",
+ "serde_json",
+]
+
+[[package]]
 name = "amb_list"
 version = "0.1.0"
 dependencies = [
@@ -720,6 +729,7 @@ dependencies = [
 name = "iguana-tests"
 version = "0.1.0"
 dependencies = [
+ "amb",
  "amb_list",
  "amb_plus",
  "assoc_test",

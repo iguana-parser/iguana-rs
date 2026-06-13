@@ -492,17 +492,20 @@ fn end_index(symbols: &[Symbol], side: Side) -> Option<usize> {
 
 /// Checks if a symbol is an identifier reference to the given recursive name,
 /// either directly or indirectly (via a nonterminal that shares the same recursive name).
-/// Accepts both `Symbol::Identifier` and `Symbol::Call` (the latter is what
-/// `exclude_desugaring` leaves behind for exclude-targeted nonterminals).
+/// Sees through wrappers, so a labeled or restricted operand (`lhs:E`, `E \ K`,
+/// `E !>> "="`) at a recursive end is recognized; the rewrite later restores the
+/// wrapper. Also accepts `Symbol::Call`, which `exclude_desugaring` leaves behind
+/// for exclude-targeted nonterminals.
 fn is_reference_to(
     symbol: Option<&Symbol>,
     recursive_name: &str,
     recursive_names: &[(String, String)],
 ) -> bool {
-    let name = match symbol {
-        Some(Symbol::Identifier(id)) => &id.name,
-        Some(Symbol::Call { name, .. }) => &name.name,
-        _ => return false,
+    let Some(name) = symbol
+        .and_then(Symbol::as_identifier)
+        .map(|id| id.name.as_str())
+    else {
+        return false;
     };
     name == recursive_name
         || recursive_names
@@ -852,14 +855,24 @@ fn make_min_return(pr: i64, label_idx: Option<i64>, head_has_e: bool, right_has_
 
 /// Creates a right-end binding: `r=E(arg)` (or `r=E(arg, local_n)` if
 /// `target_has_e`). The `local_n` bitmask comes from any `Symbol::Exclude` at
-/// this call site that `exclude_desugaring` rewrote into `Call(E, [n])`.
-fn make_right_binding(id: &Identifier, arg: i64, target_has_e: bool, local_n: i64) -> Symbol {
+/// this call site that `exclude_desugaring` rewrote into `Call(E, [n])`. A
+/// `label` from the original operand is preserved inside the binding.
+fn make_right_binding(
+    id: &Identifier,
+    arg: i64,
+    target_has_e: bool,
+    local_n: i64,
+    label: Option<&str>,
+) -> Symbol {
     Symbol::Binding {
         name: "r".to_string(),
-        symbol: Box::new(Symbol::Call {
-            name: id.clone(),
-            arguments: recursive_call_args(Expr::Int(arg), target_has_e, local_n),
-        }),
+        symbol: Box::new(label_symbol(
+            label,
+            Symbol::Call {
+                name: id.clone(),
+                arguments: recursive_call_args(Expr::Int(arg), target_has_e, local_n),
+            },
+        )),
     }
 }
 
@@ -879,26 +892,94 @@ fn recursive_call_args(p_arg: Expr, target_has_e: bool, local_n: i64) -> Vec<Exp
 /// Pulls the local exclusion bitmask out of a recursive-end symbol.
 /// `exclude_desugaring` rewrites `E!X` into `Call(E, [BIT_X])` and bare `E`
 /// into `Call(E, [0])` for targeted `E`, so the bitmask sits at `arguments[0]`.
-/// Returns `0` for symbols that don't carry a bitmask (e.g. non-targeted
-/// identifiers).
+/// Unwraps any label or restriction first. Returns `0` for symbols that don't
+/// carry a bitmask (e.g. non-targeted identifiers).
 fn extract_local_bitmask(symbol: &Symbol) -> i64 {
-    if let Symbol::Call { arguments, .. } = symbol
-        && let Some(Expr::Int(bitmask)) = arguments.first()
-    {
+    if let Some(Expr::Int(bitmask)) = symbol.call_arguments().first() {
         *bitmask
     } else {
         0
     }
 }
 
-/// Extracts the Identifier from a symbol at a recursive end. Accepts both
-/// `Symbol::Identifier` and `Symbol::Call` (the latter shows up after
-/// `exclude_desugaring` for exclude-targeted nonterminals).
+/// The identifier at a recursive end, seen through any label or restriction
+/// wrapper. Panics if the end carries no identifier.
 fn extract_identifier(symbol: &Symbol) -> &Identifier {
-    match symbol {
-        Symbol::Identifier(id) => id,
-        Symbol::Call { name, .. } => name,
-        _ => panic!("expected Identifier or Call at recursive end, got {symbol:?}"),
+    symbol
+        .as_identifier()
+        .unwrap_or_else(|| panic!("expected an identifier at recursive end, got {symbol:?}"))
+}
+
+/// The label and semantic restriction wrappers around a recursive-end symbol.
+/// `restrictions` holds the `\` / `!>>` / `!<<` wrappers outermost-first; `label`
+/// is the outermost `Labeled` label, if any.
+struct EndWrappers {
+    restrictions: Vec<Symbol>,
+    label: Option<String>,
+}
+
+fn end_wrappers(symbol: &Symbol) -> EndWrappers {
+    let mut restrictions = Vec::new();
+    let mut label = None;
+    let mut current = symbol;
+    loop {
+        match current {
+            Symbol::Labeled { label: l, symbol } => {
+                label.get_or_insert_with(|| l.clone());
+                current = symbol;
+            }
+            Symbol::Except { symbol, .. }
+            | Symbol::FollowRestriction { symbol, .. }
+            | Symbol::PrecedeRestriction { symbol, .. } => {
+                restrictions.push(current.clone());
+                current = symbol;
+            }
+            _ => break,
+        }
+    }
+    EndWrappers {
+        restrictions,
+        label,
+    }
+}
+
+fn label_symbol(label: Option<&str>, core: Symbol) -> Symbol {
+    match label {
+        Some(label) => Symbol::Labeled {
+            label: label.to_string(),
+            symbol: Box::new(core),
+        },
+        None => core,
+    }
+}
+
+/// Re-wraps `core` in its restriction shells. The generated `post_conditions`
+/// table matches a slot's top-level symbol, so a restriction must be the
+/// outermost wrapper (above any binding) to be enforced.
+fn restore_end_wrappers(restrictions: &[Symbol], core: Symbol) -> Symbol {
+    let mut result = core;
+    for shell in restrictions.iter().rev() {
+        result = rewrap_restriction(shell, result);
+    }
+    result
+}
+
+fn rewrap_restriction(shell: &Symbol, inner: Symbol) -> Symbol {
+    let symbol = Box::new(inner);
+    match shell {
+        Symbol::Except { except, .. } => Symbol::Except {
+            symbol,
+            except: except.clone(),
+        },
+        Symbol::FollowRestriction { restrictions, .. } => Symbol::FollowRestriction {
+            symbol,
+            restrictions: restrictions.clone(),
+        },
+        Symbol::PrecedeRestriction { restriction, .. } => Symbol::PrecedeRestriction {
+            symbol,
+            restriction: restriction.clone(),
+        },
+        _ => *symbol,
     }
 }
 
@@ -915,14 +996,17 @@ fn make_precondition(pr: i64) -> Symbol {
 /// The caller's `e` is not propagated to the left recursive call; that would
 /// split the GSS by exclusion context and defeat sharing. The local exclusion
 /// at this position is enforced via `make_local_exclusion_postcondition`
-/// instead.
-fn make_left_binding(id: &Identifier, target_has_e: bool) -> Symbol {
+/// instead. A `label` from the original operand is preserved inside the binding.
+fn make_left_binding(id: &Identifier, target_has_e: bool, label: Option<&str>) -> Symbol {
     Symbol::Binding {
         name: "l".to_string(),
-        symbol: Box::new(Symbol::Call {
-            name: id.clone(),
-            arguments: recursive_call_args(Expr::Ref("p".to_string()), target_has_e, 0),
-        }),
+        symbol: Box::new(label_symbol(
+            label,
+            Symbol::Call {
+                name: id.clone(),
+                arguments: recursive_call_args(Expr::Ref("p".to_string()), target_has_e, 0),
+            },
+        )),
     }
 }
 
@@ -1061,11 +1145,16 @@ fn rewrite_binary(
     let right_has_e = names_with_e.contains(&right_id.name);
     let left_local_n = extract_local_bitmask(alt.symbols.first().unwrap());
     let right_local_n = extract_local_bitmask(alt.symbols.last().unwrap());
+    let left = end_wrappers(alt.symbols.first().unwrap());
+    let right = end_wrappers(alt.symbols.last().unwrap());
 
     let mut symbols = Vec::new();
 
     symbols.push(make_precondition(pr));
-    symbols.push(make_left_binding(&left_id, left_has_e));
+    symbols.push(restore_end_wrappers(
+        &left.restrictions,
+        make_left_binding(&left_id, left_has_e, left.label.as_deref()),
+    ));
     symbols.push(make_postcondition(postcond_threshold, left_has_e));
     if left_has_e && left_local_n != 0 {
         symbols.push(make_local_exclusion_postcondition(left_local_n));
@@ -1082,18 +1171,32 @@ fn rewrite_binary(
     }
 
     if use_min {
-        symbols.push(make_right_binding(
-            &right_id,
-            right_arg,
-            right_has_e,
-            right_local_n,
+        symbols.push(restore_end_wrappers(
+            &right.restrictions,
+            make_right_binding(
+                &right_id,
+                right_arg,
+                right_has_e,
+                right_local_n,
+                right.label.as_deref(),
+            ),
         ));
         symbols.push(make_min_return(pr, label_idx, head_has_e, right_has_e));
     } else {
-        symbols.push(Symbol::Call {
-            name: right_id,
-            arguments: recursive_call_args(Expr::Int(right_arg), right_has_e, right_local_n),
-        });
+        symbols.push(restore_end_wrappers(
+            &right.restrictions,
+            label_symbol(
+                right.label.as_deref(),
+                Symbol::Call {
+                    name: right_id,
+                    arguments: recursive_call_args(
+                        Expr::Int(right_arg),
+                        right_has_e,
+                        right_local_n,
+                    ),
+                },
+            ),
+        ));
         symbols.push(Symbol::Return(pack_return(
             Expr::Int(pr),
             label_idx,
@@ -1128,24 +1231,35 @@ fn rewrite_prefix(
     let right_id = extract_identifier(alt.symbols.last().unwrap()).clone();
     let right_has_e = names_with_e.contains(&right_id.name);
     let right_local_n = extract_local_bitmask(alt.symbols.last().unwrap());
+    let right = end_wrappers(alt.symbols.last().unwrap());
 
     for symbol in alt.symbols.into_iter().take(num_symbols.saturating_sub(1)) {
         symbols.push(replace_head_ref(symbol, recursive_name, head_has_e));
     }
 
     if use_min {
-        symbols.push(make_right_binding(
-            &right_id,
-            pr,
-            right_has_e,
-            right_local_n,
+        symbols.push(restore_end_wrappers(
+            &right.restrictions,
+            make_right_binding(
+                &right_id,
+                pr,
+                right_has_e,
+                right_local_n,
+                right.label.as_deref(),
+            ),
         ));
         symbols.push(make_min_return(pr, label_idx, head_has_e, right_has_e));
     } else {
-        symbols.push(Symbol::Call {
-            name: right_id,
-            arguments: recursive_call_args(Expr::Int(pr), right_has_e, right_local_n),
-        });
+        symbols.push(restore_end_wrappers(
+            &right.restrictions,
+            label_symbol(
+                right.label.as_deref(),
+                Symbol::Call {
+                    name: right_id,
+                    arguments: recursive_call_args(Expr::Int(pr), right_has_e, right_local_n),
+                },
+            ),
+        ));
         symbols.push(Symbol::Return(pack_return(
             Expr::Int(pr),
             label_idx,
@@ -1172,11 +1286,15 @@ fn rewrite_postfix(
     let left_id = extract_identifier(alt.symbols.first().unwrap()).clone();
     let left_has_e = names_with_e.contains(&left_id.name);
     let left_local_n = extract_local_bitmask(alt.symbols.first().unwrap());
+    let left = end_wrappers(alt.symbols.first().unwrap());
 
     let mut symbols = Vec::new();
 
     symbols.push(make_precondition(pr));
-    symbols.push(make_left_binding(&left_id, left_has_e));
+    symbols.push(restore_end_wrappers(
+        &left.restrictions,
+        make_left_binding(&left_id, left_has_e, left.label.as_deref()),
+    ));
     symbols.push(make_postcondition(pr, left_has_e));
     if left_has_e && left_local_n != 0 {
         symbols.push(make_local_exclusion_postcondition(left_local_n));
@@ -1360,10 +1478,10 @@ fn target_arity_for(name: &str, names_with_e: &FxHashSet<String>) -> usize {
 #[cfg(test)]
 mod tests {
     use crate::{
-        alternative, bind, call, cond, cond_expr, exclude,
+        alternative, bind, call, cond, cond_expr, exclude, follow,
         grammar::def::{Grammar, GrammarDef},
-        grammar_def, id, left, lit, min, non_assoc, priority_level, ret, right, syntax_rule,
-        ternary,
+        grammar_def, id, labeled, left, lit, min, non_assoc, priority_level, ret, right,
+        syntax_rule, ternary,
     };
 
     /// Input grammar with priority levels (before desugaring):
@@ -2420,5 +2538,81 @@ mod tests {
         let actual: Grammar = input.try_into().unwrap();
         let expected: Grammar = expected.try_into().unwrap();
         assert_eq!(actual, expected);
+    }
+
+    /// Labeled operands at the recursive ends. `lhs`/`rhs` labels survive the
+    /// rewrite: the left label rides inside the `l` binding, the right label
+    /// wraps the recursive call. Without this, `find_recursive_name` would miss
+    /// the labeled ends and the rule would not desugar at all.
+    ///   E = 'a' > left lhs:E '+' rhs:E
+    #[test]
+    fn test_labeled_recursive_ends() {
+        let input = grammar_def!("Test",
+            syntax: [
+                syntax_rule!("E" =>
+                    priority_level!(alternative!(lit!("a"))),
+                    priority_level!(left!();
+                        alternative!(labeled!("lhs", id!("E")), lit!("+"), labeled!("rhs", id!("E")))
+                    )
+                ),
+            ]
+        );
+
+        // E(p) = 'a' return 0
+        //      | [1>=p] l=lhs:E(p) [l==0||l>=1] '+' rhs:E(2) return 1
+        let expected = grammar_def!("Test",
+            syntax: [
+                syntax_rule!("E"("p": I32) => priority_level!(
+                    alternative!(lit!("a"), ret!(0)),
+                    alternative!(
+                        cond!(1 >= "p"),
+                        bind!("l", labeled!("lhs", call!("E", ref "p"))),
+                        cond!(("l" == 0) || ("l" >= 1)),
+                        lit!("+"),
+                        labeled!("rhs", call!("E", 2)),
+                        ret!(1),
+                    ),
+                )),
+            ]
+        );
+
+        let actual: Grammar = input.try_into().unwrap();
+        let expected: Grammar = expected.try_into().unwrap();
+        assert_eq!(actual, expected);
+    }
+
+    /// A `!>>` restriction on the left recursive operand survives the rewrite,
+    /// wrapping the `l=E(p)` binding (restriction outermost) so the generated
+    /// `post_conditions` table, which matches a slot's top-level symbol, still
+    /// finds it.
+    ///   E = Num > (E !>> ";") '+' E
+    #[test]
+    fn test_restriction_preserved_at_left_end() {
+        use crate::grammar::symbols::Symbol;
+
+        let rules = vec![syntax_rule!("E" =>
+            priority_level!(alternative!(id!("Num"))),
+            priority_level!(alternative!(follow!(id!("E"), ";"), lit!("+"), id!("E")))
+        )];
+
+        let transformed = super::transform(rules);
+        let e = transformed.iter().find(|r| r.head.name == "E").unwrap();
+        let alternatives: Vec<_> = e.alternatives().collect();
+        // alt 0 is `Num return 0`; alt 1 is the recursive `+`. Its symbols are
+        // [precondition, restricted left binding, ...].
+        let left_end = &alternatives[1].symbols[1];
+        match left_end {
+            Symbol::FollowRestriction {
+                symbol,
+                restrictions,
+            } => {
+                assert_eq!(restrictions.len(), 1);
+                assert!(
+                    matches!(symbol.as_ref(), Symbol::Binding { name, .. } if name == "l"),
+                    "restriction should wrap the `l` binding, got {symbol:?}",
+                );
+            }
+            other => panic!("expected the left end to keep its `!>>`, got {other:?}"),
+        }
     }
 }
