@@ -261,6 +261,18 @@ async getLogPath() : Promise<string | null> {
     return await TAURI_INVOKE("get_log_path");
 },
 /**
+ * Copies the session log file to a user-chosen path. The frontend supplies the
+ * destination from a native save dialog.
+ */
+async saveLog(destination: string) : Promise<Result<null, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("save_log", { destination }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+/**
  * Probe whether the `iguana` binary is reachable on PATH. Returns `Ok(())`
  * on success and an actionable install hint when missing.
  */
@@ -438,7 +450,14 @@ export type ParseErrorInfo = { line: number; column: number; message: string }
 /**
  * Result of a parse operation, indicating which outputs are available.
  */
-export type ParseOutput = { success: boolean; error: string | null; error_info: ParseErrorInfo | null; duration_ms: number | null; tree_construction_ms: number | null; has_sppf: boolean; has_gss: boolean; 
+export type ParseOutput = { success: boolean; error: string | null; error_info: ParseErrorInfo | null; 
+/**
+ * True when the parser did not run to a result: it crashed (panic, signal,
+ * non-zero exit) or wrote no result file. Distinct from a parse failure
+ * (`error_info` set), which is the input legitimately not matching the
+ * grammar.
+ */
+unexpected_error: boolean; duration_ms: number | null; tree_construction_ms: number | null; has_sppf: boolean; has_gss: boolean; 
 /**
  * The parse-tree JSON, read inline so a parse is a single command. `None`
  * when the parser produced no tree.

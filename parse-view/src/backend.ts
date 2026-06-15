@@ -13,6 +13,10 @@ export interface ParseOutput {
   success: boolean;
   error: string | null;
   error_info: ParseErrorInfo | null;
+  // True when the parser did not run to a result: it crashed or wrote no result.
+  // Distinct from a parse failure (error_info set), which is the input not
+  // matching the grammar.
+  unexpected_error: boolean;
   duration_ms: number | null;
   tree_construction_ms: number | null;
   has_sppf: boolean;

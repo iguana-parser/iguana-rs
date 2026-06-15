@@ -1,7 +1,7 @@
 <script lang="ts">
   import { commands, type DebugInfo, type DebugSPPFNode, type DebugSPPFInfo, type DebugGSSNode, type DebugGSSEdge, type DebugGSSInfo, type ErrorInfo, type BuildFeatures, type DocumentSymbolData } from "../bindings";
   import { listen, emit } from "@tauri-apps/api/event";
-  import { open } from "@tauri-apps/plugin-dialog";
+  import { open, save } from "@tauri-apps/plugin-dialog";
   import { getCurrentWindow, type Window } from "@tauri-apps/api/window";
   import { WebviewWindow } from "@tauri-apps/api/webviewWindow";
   import { createMaximizeToggle } from "$lib/window-utils";
@@ -296,6 +296,9 @@
   let generateStatus = $state<"none" | "success" | "error">("none");
   let generateError = $state<string | null>(null);
   let iguanaMissingMessage = $state<string | null>(null);
+  // The detail of the last unexpected parser error (crash), or null. Drives the
+  // unexpected-error banner; cleared when the next parse starts.
+  let unexpectedError = $state<string | null>(null);
   let errorBubbleDismissed = $state(false);
   let errorBubbleHoverReveal = $state(false);
   let grammarText = $state("");
@@ -595,6 +598,19 @@
 
   function clearOutput() {
     outputLog = [];
+  }
+
+  // Copies the session log file to a path the user picks, for attaching to a bug
+  // report. The backend reads its own log file, so no file-system scope is needed.
+  async function saveLog() {
+    const path = await save({
+      defaultPath: "terrarium.log",
+      filters: [{ name: "Log", extensions: ["log", "txt"] }],
+    });
+    if (!path) return;
+    const result = await commands.saveLog(path);
+    if (result.status === "error") setStatus(`Failed to save log: ${result.error}`, "error");
+    else setStatus("Log saved", "success");
   }
   // ResizeObservers for debug graph containers
   let debugSppfResizeObserver: ResizeObserver | null = null;
@@ -1793,6 +1809,18 @@
     </div>
   {/if}
 
+  {#if unexpectedError && activeMode === "parse"}
+    <div class="unexpected-error-banner">
+      <AlertTriangle size={14} />
+      <span>An unexpected error occurred while parsing. The parser did not return a result.</span>
+      <button onclick={() => { outputPanelOpen = true; }}>Show Logs</button>
+      <button onclick={saveLog}>Save Log…</button>
+      <button class="unexpected-error-close" onclick={() => unexpectedError = null} aria-label="Dismiss">
+        <X size={14} />
+      </button>
+    </div>
+  {/if}
+
   <!-- Middle Area (activity bar + content) -->
   <div class="middle-area" class:output-open={outputPanelOpen}>
     <!-- Activity Bar -->
@@ -1897,9 +1925,11 @@
     {leftPanelWidth}
     {isProfiling}
     onStatus={(message, type, tooltip) => setStatus(message, type ?? "info", tooltip)}
+    onParseStart={() => { unexpectedError = null; }}
     onLogCommand={logCommand}
     onLogOutput={logOutput}
     onLogError={logError}
+    onUnexpectedError={(detail) => { unexpectedError = detail; }}
     onProfile={profileParser}
     onPopOut={() => openGraphWindow('parseTree')}
     onExportPng={exportGraphPng}
@@ -2440,6 +2470,40 @@ Compilation: {buildDurationMs ?? '?'}ms</span>
     color: #f5d68a;
     font-size: 12px;
     border-bottom: 1px solid #3c2700;
+  }
+
+  .unexpected-error-banner {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 16px;
+    background: #5a1d1d;
+    color: #f5b0b0;
+    font-size: 12px;
+    border-bottom: 1px solid #3c1212;
+  }
+
+  .unexpected-error-banner button {
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid #7a3030;
+    color: #f5d0d0;
+    border-radius: 4px;
+    padding: 2px 8px;
+    font-size: 12px;
+    cursor: pointer;
+  }
+
+  .unexpected-error-banner button:hover {
+    background: rgba(255, 255, 255, 0.16);
+  }
+
+  .unexpected-error-banner .unexpected-error-close {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    padding: 2px;
+    border-color: transparent;
+    background: transparent;
   }
 
   /* Add padding to scrollable areas when output panel is open */

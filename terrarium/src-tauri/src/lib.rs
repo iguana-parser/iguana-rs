@@ -251,6 +251,11 @@ struct ParseOutput {
     success: bool,
     error: Option<String>,
     error_info: Option<ParseErrorInfo>,
+    /// True when the parser did not run to a result: it crashed (panic, signal,
+    /// non-zero exit) or wrote no result file. Distinct from a parse failure
+    /// (`error_info` set), which is the input legitimately not matching the
+    /// grammar.
+    unexpected_error: bool,
     duration_ms: Option<u32>,
     tree_construction_ms: Option<u32>,
     has_sppf: bool,
@@ -475,6 +480,20 @@ fn parse(
     start_nonterminal: String,
     state: tauri::State<Mutex<ParseState>>,
 ) -> Result<ParseOutput, String> {
+    // An Err here means the parser could not be run at all (missing binary, spawn
+    // failure): an unexpected error like a crash. Log it to the file so a saved
+    // log carries it; the frontend surfaces it through the same banner.
+    parse_inner(directory, input, start_nonterminal, state).inspect_err(|e| {
+        log_to_file("error", &format!("Parser could not run: {e}"));
+    })
+}
+
+fn parse_inner(
+    directory: String,
+    input: String,
+    start_nonterminal: String,
+    state: tauri::State<Mutex<ParseState>>,
+) -> Result<ParseOutput, String> {
     let parser_path = get_parser_binary_path(&directory)?;
 
     let mut input_file = NamedTempFile::new()
@@ -533,12 +552,17 @@ fn parse(
         })
         .flatten();
 
-    // Parser process failed to run (crash, not a parse error)
+    // Parser did not run to a result (panic, signal, non-zero exit): an
+    // unexpected error, not a parse failure. Record the detail in the log file so
+    // a saved log carries it; the frontend also shows it in the output panel.
     if !output.status.success() && result.is_none() {
+        let detail = format!("Parser exited unexpectedly ({}).\n{}", output.status, stderr.trim());
+        log_to_file("error", &detail);
         return Ok(ParseOutput {
             success: false,
-            error: Some(format!("Parser error: {}", stderr.trim())),
+            error: Some(detail),
             error_info: None,
+            unexpected_error: true,
             duration_ms: None,
             tree_construction_ms: None,
             has_sppf,
@@ -552,6 +576,7 @@ fn parse(
             success: true,
             error: None,
             error_info: None,
+            unexpected_error: false,
             duration_ms: Some(s.parse_ms as u32),
             tree_construction_ms: s.tree_construction_ms.map(|n| n as u32),
             has_sppf,
@@ -569,23 +594,30 @@ fn parse(
                 column: f.column,
                 message: f.message,
             }),
+            unexpected_error: false,
             duration_ms: None,
             tree_construction_ms: None,
             has_sppf,
             has_gss,
             parse_tree,
         }),
-        // Fallback: no result file (shouldn't happen with current generator)
-        None => Ok(ParseOutput {
-            success: false,
-            error: Some("No parse result available".to_string()),
-            error_info: None,
-            duration_ms: None,
-            tree_construction_ms: None,
-            has_sppf,
-            has_gss,
-            parse_tree,
-        }),
+        // The parser exited cleanly but wrote no result file: an unexpected error,
+        // not a parse failure. Should not happen with the current generator.
+        None => {
+            let detail = "Parser produced no result.".to_string();
+            log_to_file("error", &detail);
+            Ok(ParseOutput {
+                success: false,
+                error: Some(detail),
+                error_info: None,
+                unexpected_error: true,
+                duration_ms: None,
+                tree_construction_ms: None,
+                has_sppf,
+                has_gss,
+                parse_tree,
+            })
+        }
     }
 }
 
@@ -1583,6 +1615,17 @@ fn get_log_path() -> Option<String> {
     log_file_path().map(|p| p.display().to_string())
 }
 
+/// Copies the session log file to a user-chosen path. The frontend supplies the
+/// destination from a native save dialog.
+#[tauri::command]
+#[specta::specta]
+fn save_log(destination: String) -> Result<(), String> {
+    let src = log_file_path().ok_or("Log file path is not available")?;
+    fs::copy(&src, &destination)
+        .map(|_| ())
+        .map_err(|e| format!("Failed to save log: {e}"))
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     let builder = Builder::<tauri::Wry>::new().commands(collect_commands![
@@ -1621,6 +1664,7 @@ pub fn run() {
         get_folding_ranges,
         get_diagnostics,
         get_log_path,
+        save_log,
         check_iguana
     ]);
 

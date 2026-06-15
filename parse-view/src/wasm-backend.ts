@@ -34,6 +34,9 @@ export class WasmBackend implements ParserBackend {
       success: envelope.success,
       error: envelope.error,
       error_info: envelope.error_info,
+      // The wasm wrapper throws on an unexpected error (caught above), so an
+      // envelope it returns is always a normal parse result.
+      unexpected_error: false,
       duration_ms: envelope.duration_ms,
       tree_construction_ms: envelope.tree_construction_ms,
       has_sppf: false,

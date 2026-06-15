@@ -78,9 +78,16 @@
     // Host-specific hooks. Terrarium passes these; the web viewer omits them, so the
     // corresponding chrome (status bar, output log, profiling, graph pop-out) is dropped.
     onStatus?: (message: string, type?: "info" | "error" | "success", tooltip?: string) => void;
+    // Fired at the start of each parse, before the result is known, so the host
+    // can clear transient per-parse UI (Terrarium clears the unexpected-error banner).
+    onParseStart?: () => void;
     onLogCommand?: (cmd: string) => void;
     onLogOutput?: (text: string) => void;
     onLogError?: (text: string) => void;
+    // Fired when the parser crashed rather than failing to parse, so the host can
+    // surface an unexpected-error notice (Terrarium shows a banner with a way to
+    // save the log). The web viewer omits it and falls back to the status hook.
+    onUnexpectedError?: (detail: string) => void;
     onProfile?: () => void;
     onPopOut?: () => void;
     // Exports the parse-tree graph as a PNG. Defaults to a browser download;
@@ -106,9 +113,11 @@
     leftPanelWidth,
     isProfiling = false,
     onStatus,
+    onParseStart,
     onLogCommand,
     onLogOutput,
     onLogError,
+    onUnexpectedError,
     onProfile,
     onPopOut,
     onExportPng,
@@ -281,9 +290,6 @@
   let sexprCollapsed = $state(new Set<number>());
   // svelte-ignore non_reactive_update
   let sexprContainerEl: HTMLDivElement;
-
-  // Track if parse result is available
-  let parseResultAvailable = $state(false);
 
   // Parse error info for input editor markers
   let parseErrorInfo = $state<{ line: number; column: number; message: string } | null>(null);
@@ -469,10 +475,10 @@
   export async function parse() {
     if (!backend || buildStatus !== "success" || !startNonterminal) return;
     onStatus?.("Parsing...", "info");
+    onParseStart?.();
 
     // Reset previous results
     parseTree = null;
-    parseResultAvailable = false;
     parseTreeSelectedSpan = null;
     parseErrorInfo = null;
 
@@ -480,16 +486,16 @@
 
     const result = await backend.parse(inputText, startNonterminal);
     if ("error" in result) {
-      // The parser could not be run at all.
+      // The parser could not be run at all (missing binary, spawn failure): an
+      // unexpected error, surfaced like a crash rather than a parse failure.
       onLogError?.(result.error);
-      onStatus?.("Parse failed", "error");
+      onStatus?.("An unexpected error occurred", "error");
+      onUnexpectedError?.(result.error);
+      teardownParseTreeGraph();
       return;
     }
 
     const { output, treeJson } = result;
-    // The parse view only renders the parse tree; SPPF/GSS live in debug mode.
-    parseResultAvailable = treeJson != null;
-
     if (output.success) {
       parseErrorInfo = null;
       const totalMs = (output.duration_ms ?? 0) + (output.tree_construction_ms ?? 0);
@@ -499,21 +505,31 @@
         ? `Parse: ${output.duration_ms}ms\nTree construction: ${output.tree_construction_ms ?? '?'}ms`
         : undefined;
       onStatus?.(`Parse successful${durationStr}`, "success", tooltip);
+    } else if (output.unexpected_error) {
+      // The parser crashed or produced no result; not a parse failure. Surface it
+      // honestly and let the host offer to save the log.
+      parseErrorInfo = null;
+      const detail = output.error ?? "An unexpected error occurred.";
+      onLogError?.(detail);
+      onStatus?.("An unexpected error occurred", "error");
+      onUnexpectedError?.(detail);
     } else {
+      // Expected parse failure: the input does not match the grammar.
       parseErrorInfo = output.error_info ?? null;
       if (output.error) {
         onLogError?.(output.error);
       }
-      if (parseResultAvailable) {
-        onLogOutput?.("Partial data available: Parse Tree");
-        onStatus?.("Parse error (partial data)", "error");
-      } else {
-        onStatus?.("Parse failed", "error");
-      }
+      onStatus?.("Parse failed", "error");
     }
 
-    if (treeJson != null) {
+    // An unexpected error means the parser crashed, so any partial tree it wrote
+    // is unreliable; do not render it.
+    if (treeJson != null && !output.unexpected_error) {
       loadParseTree(treeJson);
+    } else {
+      // No tree to show (parse failure or crash): clear any tree left from a prior
+      // parse so every tab matches the error state instead of showing stale data.
+      teardownParseTreeGraph();
     }
   }
 
