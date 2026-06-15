@@ -1,0 +1,14 @@
+grammar PlusExcept
+
+Sep = {Number Identifier \ Keyword}+
+
+Base = {Identifier \ Keyword ","}+
+
+@Regex
+Number = [0-9]+
+
+@Regex
+Identifier = [a-zA-Z]+
+
+@Regex
+Keyword = "if" | "else" | "while"

@@ -117,3 +117,6 @@ mod except_nonterminal_longest_match;
 
 #[path = "amb/tests.rs"]
 mod amb;
+
+#[path = "plus_except/tests.rs"]
+mod plus_except;

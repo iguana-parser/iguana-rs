@@ -115,9 +115,15 @@ impl<'a> FirstFollowSets<'a> {
         if self.has_disjoint_alternatives(nt) {
             return true;
         }
-        let Some(Symbol::Plus(_, _)) = &nt.origin else {
+        let Some(Symbol::Plus(element, separator)) = &nt.origin else {
             return false;
         };
+        // The LL(1) Plus loop only matches the symbol but ignores the restrictions.
+        // If a Plus inner symbol has restrictions, the Plus is not classified as LL(1),
+        // and will be parsed using GLL.
+        if element.has_restriction() || separator.as_deref().is_some_and(Symbol::has_restriction) {
+            return false;
+        }
         let continuation = &self.grammar.alternatives(nt)[0].symbols[1..];
         // FIRST set of the continuation. Walk symbols left to right:
         // - contribute each symbol's FIRST set to the running set;

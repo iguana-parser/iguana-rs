@@ -10,6 +10,7 @@ iggy.workspace = true
 iguana-runtime.workspace = true
 
 [dev-dependencies]
+plus_except = { path = "tests/plus_except" }
 amb = { path = "tests/amb" }
 except_nonterminal_longest_match = { path = "tests/except_nonterminal_longest_match" }
 except_longest_match = { path = "tests/except_longest_match" }
@@ -61,6 +62,7 @@ members = [
     "iggy",
     "iguana-lsp",
     "xtask",
+    "tests/plus_except",
     "tests/amb",
     "tests/except_nonterminal_longest_match",
     "tests/except_longest_match",

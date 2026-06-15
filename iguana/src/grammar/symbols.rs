@@ -354,6 +354,20 @@ impl Symbol {
         }
     }
 
+    /// True if a `\`, `!>>`, or `!<<` restriction applies to this symbol, looking
+    /// through any `Labeled` or `Binding` wrapper.
+    pub fn has_restriction(&self) -> bool {
+        match self {
+            Symbol::Except { .. }
+            | Symbol::FollowRestriction { .. }
+            | Symbol::PrecedeRestriction { .. } => true,
+            Symbol::Labeled { symbol, .. } | Symbol::Binding { symbol, .. } => {
+                symbol.has_restriction()
+            }
+            _ => false,
+        }
+    }
+
     pub fn display_name(&self, grammar: &Grammar) -> String {
         match self {
             Symbol::Labeled { label, symbol } => {
