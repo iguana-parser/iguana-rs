@@ -2,7 +2,7 @@ use iggy::{
     ParseError, parse_tree,
     parse_tree::{OptNode, Start},
 };
-use iguana_runtime::{input::Input, parse_tree::ParseContext, sppf::Span};
+use iguana_runtime::{input::Input, parse_tree::ParseContext};
 
 use crate::grammar::{
     def::{
@@ -20,16 +20,12 @@ pub fn parse_grammar(source: &str) -> Result<GrammarDef, ParseError> {
     build_grammar(success.tree, &input)
 }
 
-fn text(input: &Input, span: Span) -> String {
-    input.substring(span.left_extent, span.right_extent)
-}
-
 pub fn build_grammar(
     start_grammar: &Start<&parse_tree::Grammar<'_>, &parse_tree::Layout<'_>>,
     input: &Input,
 ) -> Result<GrammarDef, ParseError> {
     let grammar = &start_grammar.node;
-    let name = text(input, grammar.name().span());
+    let name = input.text(grammar.name().span());
 
     let mut syntax_rules: Vec<SyntaxRule> = Vec::new();
     let mut lexical_rules: Vec<LexicalRule> = Vec::new();
@@ -91,7 +87,7 @@ fn has_layout_annotation(rule: &parse_tree::SyntaxRule) -> bool {
 }
 
 fn convert_syntax_rule(rule: &parse_tree::SyntaxRule, input: &Input) -> SyntaxRule {
-    let head_name = text(input, rule.head().span());
+    let head_name = input.text(rule.head().span());
     let head = Nonterminal::new(head_name);
 
     let priority_levels: Vec<PriorityLevel> = rule
@@ -110,7 +106,7 @@ fn convert_syntax_rule(rule: &parse_tree::SyntaxRule, input: &Input) -> SyntaxRu
             // its name and suppresses layout inside it, so nothing to do here.
             parse_tree::Annotation::Layout { .. } => {}
             parse_tree::Annotation::WithLayout { identifier, .. } => {
-                let name = text(input, identifier.span());
+                let name = input.text(identifier.span());
                 layout = LayoutStrategy::Custom(Identifier {
                     name,
                     definition: None,
@@ -140,14 +136,14 @@ fn convert_priority_level(level: &parse_tree::PriorityLevel, input: &Input) -> P
         level
             .associativity()
             .value()
-            .map(|assoc: &parse_tree::Associativity<'_>| {
-                match text(input, assoc.span()).as_str() {
+            .map(
+                |assoc: &parse_tree::Associativity<'_>| match input.text(assoc.span()).as_str() {
                     "left" => Associativity::Left,
                     "right" => Associativity::Right,
                     "none" => Associativity::NonAssoc,
                     other => panic!("Unknown associativity: {other}"),
-                }
-            });
+                },
+            );
 
     PriorityLevel::with_associativity(alternatives, associativity)
 }
@@ -161,7 +157,7 @@ fn convert_alternative(alt: &parse_tree::Alternative, input: &Input) -> Alternat
 
     // Extract label, stripping the # prefix
     let label = alt.label().value().map(|token| {
-        let label_text = text(input, token.span());
+        let label_text = input.text(token.span());
         label_text
             .strip_prefix('#')
             .unwrap_or(&label_text)
@@ -189,7 +185,7 @@ fn convert_symbol(symbol: &parse_tree::Symbol, input: &Input) -> Symbol {
             Symbol::Alt(symbols)
         }
         parse_tree::Symbol::Lit { string, .. } => {
-            let raw = text(input, string.span());
+            let raw = input.text(string.span());
             Symbol::Literal(unescape_string(&raw[1..raw.len() - 1]))
         }
         parse_tree::Symbol::StarSep { symbol, sep, .. } => Symbol::Star(
@@ -207,11 +203,11 @@ fn convert_symbol(symbol: &parse_tree::Symbol, input: &Input) -> Symbol {
                 .collect(),
         ),
         parse_tree::Symbol::Labeled { label, symbol, .. } => Symbol::Labeled {
-            label: text(input, label.span()),
+            label: input.text(label.span()),
             symbol: Box::new(convert_symbol(symbol, input)),
         },
         parse_tree::Symbol::Identifier { identifier, .. } => Symbol::Identifier(Identifier {
-            name: text(input, identifier.span()),
+            name: input.text(identifier.span()),
             definition: None,
         }),
         parse_tree::Symbol::Except {
@@ -221,7 +217,7 @@ fn convert_symbol(symbol: &parse_tree::Symbol, input: &Input) -> Symbol {
             except: excepts
                 .identifiers()
                 .map(|token| Identifier {
-                    name: text(input, token.span()),
+                    name: input.text(token.span()),
                     definition: None,
                 })
                 .collect(),
@@ -235,7 +231,7 @@ fn convert_symbol(symbol: &parse_tree::Symbol, input: &Input) -> Symbol {
             restrictions: restrictions
                 .identifiers()
                 .map(|token| Identifier {
-                    name: text(input, token.span()),
+                    name: input.text(token.span()),
                     definition: None,
                 })
                 .collect(),
@@ -245,14 +241,14 @@ fn convert_symbol(symbol: &parse_tree::Symbol, input: &Input) -> Symbol {
         } => Symbol::PrecedeRestriction {
             symbol: Box::new(convert_symbol(symbol, input)),
             restriction: Identifier {
-                name: text(input, identifier.span()),
+                name: input.text(identifier.span()),
                 definition: None,
             },
         },
         parse_tree::Symbol::Exclude { symbol, labels, .. } => {
             let labels = labels
                 .identifiers()
-                .map(|token| text(input, token.span()))
+                .map(|token| input.text(token.span()))
                 .collect();
             Symbol::Exclude {
                 symbol: Box::new(convert_symbol(symbol, input)),
@@ -264,7 +260,7 @@ fn convert_symbol(symbol: &parse_tree::Symbol, input: &Input) -> Symbol {
 }
 
 fn convert_regex_rule(rule: &parse_tree::RegexRule, input: &Input) -> LexicalRule {
-    let name = text(input, rule.identifier().span());
+    let name = input.text(rule.identifier().span());
     let head = Terminal::new(name);
 
     let regex = Regex::Alt(
@@ -278,7 +274,7 @@ fn convert_regex_rule(rule: &parse_tree::RegexRule, input: &Input) -> LexicalRul
         match post_condition {
             parse_tree::PostCondition::Except { identifier, .. } => {
                 lexical_rule.except.push(Identifier {
-                    name: text(input, identifier.span()),
+                    name: input.text(identifier.span()),
                     definition: None,
                 });
             }
@@ -289,7 +285,7 @@ fn convert_regex_rule(rule: &parse_tree::RegexRule, input: &Input) -> LexicalRul
                     lexical_rule.head
                 );
                 lexical_rule.follow_restriction = Some(Identifier {
-                    name: text(input, identifier.span()),
+                    name: input.text(identifier.span()),
                     definition: None,
                 });
             }
@@ -298,7 +294,7 @@ fn convert_regex_rule(rule: &parse_tree::RegexRule, input: &Input) -> LexicalRul
     }
     if let Some(pc) = rule.pre_condition().value() {
         lexical_rule.precede_restriction = Some(Identifier {
-            name: text(input, pc.identifier().span()),
+            name: input.text(pc.identifier().span()),
             definition: None,
         });
     }
@@ -319,20 +315,20 @@ fn convert_regex(regex: &parse_tree::Regex, input: &Input) -> Regex {
         }
         parse_tree::Regex::CharClass { char_class, .. } => convert_char_class(char_class, input),
         parse_tree::Regex::Char { char, .. } => {
-            let raw = text(input, char.span());
+            let raw = input.text(char.span());
             Regex::Char(parse_char(&raw[1..raw.len() - 1]))
         }
         parse_tree::Regex::Group { regexes, .. } => {
             Regex::Seq(regexes.regexes().map(|r| convert_regex(r, input)).collect())
         }
         parse_tree::Regex::String { string, .. } => {
-            let raw = text(input, string.span());
+            let raw = input.text(string.span());
             let unescaped = unescape_string(&raw[1..raw.len() - 1]);
             let regexes = unescaped.chars().map(Regex::Char).collect();
             Regex::Seq(regexes)
         }
         parse_tree::Regex::Identifier { identifier, .. } => {
-            let name = text(input, identifier.span());
+            let name = input.text(identifier.span());
             Regex::Identifier(Identifier {
                 name,
                 definition: None,
@@ -349,11 +345,11 @@ fn convert_char_class(char_class: &parse_tree::CharClass, input: &Input) -> Rege
         .range_elements()
         .map(|e| {
             if let Some(range) = e.as_range() {
-                let start = parse_range_char(&text(input, range.start().span()));
-                let end = parse_range_char(&text(input, range.end().span()));
+                let start = parse_range_char(&input.text(range.start().span()));
+                let end = parse_range_char(&input.text(range.end().span()));
                 CharRange { start, end }
             } else if let Some(range_char) = e.as_range_char() {
-                let ch = parse_range_char(&text(input, range_char.span()));
+                let ch = parse_range_char(&input.text(range_char.span()));
                 CharRange { start: ch, end: ch }
             } else {
                 unreachable!()

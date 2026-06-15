@@ -5,7 +5,7 @@ use iguana::grammar::{
     regex::Regex,
     symbols::{DefinitionId, Identifier, Symbol},
 };
-use iguana_runtime::{input::Input, sppf::Span};
+use iguana_runtime::input::{Input, Span};
 use rustc_hash::FxHashMap;
 
 use crate::layout::{leading_comments, trailing_comment};

@@ -11,7 +11,7 @@
 use by_address::ByAddress;
 use iguana::grammar::def::{GrammarDef, LayoutStrategy};
 use iguana::grammar::symbols::DefinitionId;
-use iguana_runtime::{input::Input, sppf::Span};
+use iguana_runtime::input::{Input, Span};
 use lsp_types::{DocumentSymbol, Position, Range, SymbolKind};
 
 use crate::spans::GrammarSpans;

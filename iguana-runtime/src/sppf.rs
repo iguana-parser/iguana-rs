@@ -1,7 +1,7 @@
 use crate::ids::{NonterminalId, SlotId, TerminalId};
+use crate::input::Span;
 use serde::{Deserialize, Serialize};
 use specta::Type;
-use std::hash::{Hash, Hasher};
 
 #[derive(Debug)]
 pub enum SPPFNode {
@@ -33,32 +33,6 @@ impl SPPFNode {
             SPPFNode::Nonterminal(n) => n.ambiguous,
             SPPFNode::Intermediate(i) => i.ambiguous,
         }
-    }
-}
-
-#[derive(Debug, Clone, PartialEq, Eq, Copy, Serialize, Deserialize)]
-pub struct Span {
-    pub left_extent: u32,
-    pub right_extent: u32,
-}
-
-impl Span {
-    pub fn new(left_extent: u32, right_extent: u32) -> Self {
-        Self {
-            left_extent,
-            right_extent,
-        }
-    }
-
-    pub fn is_empty(&self) -> bool {
-        self.left_extent == self.right_extent
-    }
-}
-
-impl Hash for Span {
-    fn hash<H: Hasher>(&self, state: &mut H) {
-        let combined = (self.left_extent as u64) << 32 | (self.right_extent as u64);
-        state.write_u64(combined);
     }
 }
 

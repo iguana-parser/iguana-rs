@@ -6,7 +6,7 @@
 use by_address::ByAddress;
 use iguana::grammar::def::{GrammarDef, SyntaxRule};
 use iguana::grammar::symbols::{DefinitionId, Symbol};
-use iguana_runtime::{input::Input, sppf::Span};
+use iguana_runtime::input::{Input, Span};
 use lsp_types::{Diagnostic, DiagnosticSeverity, Position, Range};
 use rustc_hash::FxHashMap;
 

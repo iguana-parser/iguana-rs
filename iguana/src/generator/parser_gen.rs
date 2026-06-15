@@ -225,11 +225,11 @@ impl<'a> ParserGen<'a> {
                 env::{Env, EnvId},
                 gss::GSSNode,
                 ids::{BindingId, GssNodeId, NonterminalId, SlotId, TerminalId},
-                input::Input,
+                input::{Input, Span},
                 parser::{Parser, ParseError, ParseErrorKind, init_logger, GSS_CAPACITY_MULTIPLIER, SPPF_CAPACITY_MULTIPLIER},
                 record,
                 scanner::Scanner,
-                sppf::{IntermediateNode, NonterminalNode, SPPFNode, SPPFNodeId, Span, TerminalNode},
+                sppf::{IntermediateNode, NonterminalNode, SPPFNode, SPPFNodeId, TerminalNode},
                 utils::{inline_map::InlineMap, inline_vec::InlineVec}
             };
             #[cfg(feature = "debug-trace")]

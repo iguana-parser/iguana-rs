@@ -1,4 +1,35 @@
+use serde::{Deserialize, Serialize};
+use std::hash::{Hash, Hasher};
 use std::{fs, io, path::Path};
+
+/// A half-open range `[left_extent, right_extent)` of input indexes.
+/// `left_extent` is inclusive, `right_extent` exclusive, so `right_extent - left_extent`
+/// is the width and a span covering the whole input is `[0, Input::len())`.
+#[derive(Debug, Clone, PartialEq, Eq, Copy, Serialize, Deserialize)]
+pub struct Span {
+    pub left_extent: u32,
+    pub right_extent: u32,
+}
+
+impl Span {
+    pub fn new(left_extent: u32, right_extent: u32) -> Self {
+        Self {
+            left_extent,
+            right_extent,
+        }
+    }
+
+    pub fn is_empty(&self) -> bool {
+        self.left_extent == self.right_extent
+    }
+}
+
+impl Hash for Span {
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        let combined = (self.left_extent as u64) << 32 | (self.right_extent as u64);
+        state.write_u64(combined);
+    }
+}
 
 /// Represents the input text to be parsed.
 /// The maximum input size is bounded by u32 (~4GB).
@@ -51,12 +82,14 @@ impl Input {
             None
         }
     }
-    /// Returns a substring of the input from `start` (inclusive) to `end` (exclusive).
+    /// Returns the text covered by `span`.
     ///
     /// # Panics
-    /// Panics if `start` or `end` are out of bounds.
-    pub fn substring(&self, start: u32, end: u32) -> String {
-        self.source[start as usize..end as usize].iter().collect()
+    /// Panics if the span extends past the end of the input.
+    pub fn text(&self, span: Span) -> String {
+        self.source[span.left_extent as usize..span.right_extent as usize]
+            .iter()
+            .collect()
     }
     /// Returns the offset (index from the beginning of input) for the given
     /// line/column.
@@ -108,7 +141,7 @@ impl Input {
         } else {
             end_offset
         };
-        let line_str = self.substring(start_offset, display_end);
+        let line_str = self.text(Span::new(start_offset, display_end));
         format!(
             "Parse error: failed to match {} at line {}, column {}\n{}\n{}^\n",
             terminal_name,

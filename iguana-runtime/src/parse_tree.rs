@@ -5,8 +5,9 @@ use rustc_hash::{FxHashMap, FxHashSet};
 
 use crate::{
     ids::NonterminalId,
+    input::Span,
     parser::Parser,
-    sppf::{NonterminalNode, SPPFNode, SPPFNodeId, Span, TerminalNode},
+    sppf::{NonterminalNode, SPPFNode, SPPFNodeId, TerminalNode},
     utils::inline_vec::InlineVec,
 };
 

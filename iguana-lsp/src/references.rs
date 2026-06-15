@@ -1,4 +1,4 @@
-use iguana_runtime::{input::Input, sppf::Span};
+use iguana_runtime::input::{Input, Span};
 use lsp_types::{Location, Position, Range, Uri};
 
 use crate::spans::GrammarSpans;

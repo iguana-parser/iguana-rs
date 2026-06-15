@@ -9,9 +9,9 @@ use crate::{
     env::{Env, EnvId},
     gss::{GSSEdge, GSSNode},
     ids::{BindingId, GssNodeId, NonterminalId, SlotId, TerminalId},
-    input::Input,
+    input::{Input, Span},
     record,
-    sppf::{IntermediateNode, NonterminalNode, SPPFNode, SPPFNodeId, Span, TerminalNode},
+    sppf::{IntermediateNode, NonterminalNode, SPPFNode, SPPFNodeId, TerminalNode},
     utils::inline_vec::InlineVec,
 };
 

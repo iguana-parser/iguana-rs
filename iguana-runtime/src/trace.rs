@@ -3,8 +3,9 @@ use std::time::Duration;
 use serde::{Deserialize, Serialize};
 
 use crate::ids::{GssNodeId, NonterminalId, SlotId, TerminalId};
+use crate::input::Span;
 use crate::parser::ParseErrorKind;
-use crate::sppf::{SPPFNodeId, Span};
+use crate::sppf::SPPFNodeId;
 
 #[cfg(feature = "debug-trace")]
 use crate::parser::Parser;

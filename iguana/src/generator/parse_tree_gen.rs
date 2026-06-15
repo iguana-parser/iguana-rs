@@ -141,11 +141,12 @@ fn gen_imports(grammar: &Grammar) -> TokenStream {
         use std::vec::IntoIter;
         use iguana_runtime::{
             ids::{NonterminalId, SlotId, TerminalId},
+            input::Span,
             parse_tree::{
                 Bump, NodeKind, OneOrMany, Origin, ParseContext, ParseTreeBuilder, ParseTreeNode,
                 SexprOptions, visit_sppf,
             },
-            sppf::{NonterminalNode, SPPFNodeId, Span, TerminalNode},
+            sppf::{NonterminalNode, SPPFNodeId, TerminalNode},
         };
         use crate::parser::#parser_name;
     }

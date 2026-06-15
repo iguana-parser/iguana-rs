@@ -3,11 +3,12 @@
 use crate::parser::LayoutNonterminalParser;
 use iguana_runtime::{
     ids::{NonterminalId, SlotId, TerminalId},
+    input::Span,
     parse_tree::{
         Bump, NodeKind, OneOrMany, Origin, ParseContext, ParseTreeBuilder, ParseTreeNode,
         SexprOptions, visit_sppf,
     },
-    sppf::{NonterminalNode, SPPFNodeId, Span, TerminalNode},
+    sppf::{NonterminalNode, SPPFNodeId, TerminalNode},
 };
 use std::vec::IntoIter;
 #[derive(Debug, Clone, Copy)]

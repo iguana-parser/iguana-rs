@@ -21,8 +21,7 @@
 
 use crate::layout::is_same_line;
 use iggy::parse_tree::*;
-use iguana_runtime::input::Input;
-use iguana_runtime::sppf::Span;
+use iguana_runtime::input::{Input, Span};
 
 const MAX_LINE_WIDTH: usize = 100;
 const RULE_PREFIX: &str = "  = ";
@@ -51,10 +50,6 @@ impl<'a> Formatter<'a> {
         Self { input }
     }
 
-    fn text(&self, span: Span) -> String {
-        self.input.substring(span.left_extent, span.right_extent)
-    }
-
     /// Emit comments from a layout node. Trailing comments (same line as
     /// the previous token) get a space prefix. Standalone comments get
     /// their own line.
@@ -66,10 +61,10 @@ impl<'a> Formatter<'a> {
                 previous.right_extent,
             ) {
                 out.push(' ');
-                out.push_str(&self.text(comment.span()));
+                out.push_str(&self.input.text(comment.span()));
             } else {
                 out.push('\n');
-                out.push_str(&self.text(comment.span()));
+                out.push_str(&self.input.text(comment.span()));
             }
         }
     }
@@ -79,7 +74,7 @@ impl<'a> Formatter<'a> {
 
         // grammar Name
         out.push_str("grammar ");
-        out.push_str(&self.text(grammar.name().span()));
+        out.push_str(&self.input.text(grammar.name().span()));
         self.emit_comments(&mut out, grammar.layout_3(), grammar.name().span());
 
         // Rules
@@ -118,7 +113,7 @@ impl<'a> Formatter<'a> {
             out.push('\n');
         }
 
-        out.push_str(&self.text(rule.head().span()));
+        out.push_str(&self.input.text(rule.head().span()));
 
         // Pass 1: format alternatives, keep references to originals
         let priority_levels: Vec<_> = rule.priority_levels().priority_levels().collect();
@@ -146,7 +141,7 @@ impl<'a> Formatter<'a> {
                 for sym in alt.symbols().symbols() {
                     chunks.push(self.symbol_to_string(&sym));
                 }
-                let label = alt.label().value().map(|t| self.text(t.span()));
+                let label = alt.label().value().map(|t| self.input.text(t.span()));
                 let lines = wrap_chunks(prefix, &chunks, CONT_INDENT, MAX_LINE_WIDTH);
                 formatted_alts.push((FormattedAlt { lines, label }, alt));
             }
@@ -203,7 +198,7 @@ impl<'a> Formatter<'a> {
             Annotation::Layout { .. } => out.push_str("@Layout"),
             Annotation::WithLayout { identifier, .. } => {
                 out.push_str("@WithLayout(");
-                out.push_str(&self.text(identifier.span()));
+                out.push_str(&self.input.text(identifier.span()));
                 out.push(')');
             }
             Annotation::Start { .. } => out.push_str("@Start"),
@@ -214,10 +209,10 @@ impl<'a> Formatter<'a> {
     fn format_symbol(&self, out: &mut String, symbol: &Symbol) {
         match symbol {
             Symbol::Identifier { identifier, .. } => {
-                out.push_str(&self.text(identifier.span()));
+                out.push_str(&self.input.text(identifier.span()));
             }
             Symbol::Lit { string, .. } => {
-                out.push_str(&self.text(string.span()));
+                out.push_str(&self.input.text(string.span()));
             }
             Symbol::Group { symbols, .. } => {
                 out.push('(');
@@ -271,7 +266,7 @@ impl<'a> Formatter<'a> {
                 self.format_symbol(out, symbol);
                 for id in excepts.identifiers() {
                     out.push_str(" \\ ");
-                    out.push_str(&self.text(id.span()));
+                    out.push_str(&self.input.text(id.span()));
                 }
             }
             Symbol::FollowRestriction {
@@ -282,13 +277,13 @@ impl<'a> Formatter<'a> {
                 self.format_symbol(out, symbol);
                 for id in restrictions.identifiers() {
                     out.push_str(" !>> ");
-                    out.push_str(&self.text(id.span()));
+                    out.push_str(&self.input.text(id.span()));
                 }
             }
             Symbol::PrecedeRestriction {
                 identifier, symbol, ..
             } => {
-                out.push_str(&self.text(identifier.span()));
+                out.push_str(&self.input.text(identifier.span()));
                 out.push_str(" !<< ");
                 self.format_symbol(out, symbol);
             }
@@ -296,11 +291,11 @@ impl<'a> Formatter<'a> {
                 self.format_symbol(out, symbol);
                 for id in labels.identifiers() {
                     out.push('!');
-                    out.push_str(&self.text(id.span()));
+                    out.push_str(&self.input.text(id.span()));
                 }
             }
             Symbol::Labeled { label, symbol, .. } => {
-                out.push_str(&self.text(label.span()));
+                out.push_str(&self.input.text(label.span()));
                 out.push(':');
                 self.format_symbol(out, symbol);
             }
@@ -314,11 +309,11 @@ impl<'a> Formatter<'a> {
             match pc {
                 PostCondition::Except { identifier, .. } => {
                     s.push_str(" \\ ");
-                    s.push_str(&self.text(identifier.span()));
+                    s.push_str(&self.input.text(identifier.span()));
                 }
                 PostCondition::FollowRestriction { identifier, .. } => {
                     s.push_str(" !>> ");
-                    s.push_str(&self.text(identifier.span()));
+                    s.push_str(&self.input.text(identifier.span()));
                 }
                 PostCondition::Amb(_) => panic!("unexpected ambiguity"),
             }
@@ -342,10 +337,10 @@ impl<'a> Formatter<'a> {
         let pre_prefix = rule
             .pre_condition()
             .value()
-            .map(|pre| format!("{} !<< ", self.text(pre.identifier().span())));
+            .map(|pre| format!("{} !<< ", self.input.text(pre.identifier().span())));
         let pre_str = pre_prefix.as_deref().unwrap_or("");
         let postcond = self.postconditions_to_string(rule);
-        let name = self.text(rule.identifier().span());
+        let name = self.input.text(rule.identifier().span());
 
         if groups.len() > 1 {
             // Multi-alt: name on its own line, each alt on its own line(s)
@@ -428,13 +423,13 @@ impl<'a> Formatter<'a> {
                 self.format_char_class(out, char_class);
             }
             Regex::Char { char, .. } => {
-                out.push_str(&self.text(char.span()));
+                out.push_str(&self.input.text(char.span()));
             }
             Regex::String { string, .. } => {
-                out.push_str(&self.text(string.span()));
+                out.push_str(&self.input.text(string.span()));
             }
             Regex::Identifier { identifier, .. } => {
-                out.push_str(&self.text(identifier.span()));
+                out.push_str(&self.input.text(identifier.span()));
             }
             Regex::Amb(_) => panic!("unexpected ambiguity"),
         }
@@ -448,12 +443,12 @@ impl<'a> Formatter<'a> {
         for re in cc.range_elements().range_elements() {
             match re {
                 RangeElement::Alt0 { range, .. } => {
-                    out.push_str(&self.text(range.start().span()));
+                    out.push_str(&self.input.text(range.start().span()));
                     out.push('-');
-                    out.push_str(&self.text(range.end().span()));
+                    out.push_str(&self.input.text(range.end().span()));
                 }
                 RangeElement::Alt1 { range_char, .. } => {
-                    out.push_str(&self.text(range_char.span()));
+                    out.push_str(&self.input.text(range_char.span()));
                 }
                 RangeElement::Amb(_) => panic!("unexpected ambiguity"),
             }

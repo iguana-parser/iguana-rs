@@ -1,6 +1,5 @@
 use iggy::parse_tree::{Grammar, Layout, ParseTree, Start, Token};
-use iguana_runtime::input::Input;
-use iguana_runtime::sppf::Span;
+use iguana_runtime::input::{Input, Span};
 use lsp_types::{Position, Range, SemanticToken, SemanticTokenType, SemanticTokensLegend};
 
 pub fn legend() -> SemanticTokensLegend {

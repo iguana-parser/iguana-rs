@@ -8,14 +8,14 @@ use iguana_runtime::{
     env::{Env, EnvId},
     gss::GSSNode,
     ids::{BindingId, GssNodeId, NonterminalId, SlotId, TerminalId},
-    input::Input,
+    input::{Input, Span},
     parser::{
         GSS_CAPACITY_MULTIPLIER, ParseError, ParseErrorKind, Parser, SPPF_CAPACITY_MULTIPLIER,
         init_logger,
     },
     record,
     scanner::Scanner,
-    sppf::{IntermediateNode, NonterminalNode, SPPFNode, SPPFNodeId, Span, TerminalNode},
+    sppf::{IntermediateNode, NonterminalNode, SPPFNode, SPPFNodeId, TerminalNode},
     utils::{inline_map::InlineMap, inline_vec::InlineVec},
 };
 use rustc_hash::FxHashMap;
