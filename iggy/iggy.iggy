@@ -36,7 +36,8 @@ Associativity
   | "none"
 
 Alternative
-  = Symbol* Label?
+  = Symbol+ Label? #Symbols
+  | "(" ")" Label? #Empty
 
 Symbol
   = Identifier                                                #Identifier

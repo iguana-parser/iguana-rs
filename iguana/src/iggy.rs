@@ -149,14 +149,20 @@ fn convert_priority_level(level: &parse_tree::PriorityLevel, input: &Input) -> P
 }
 
 fn convert_alternative(alt: &parse_tree::Alternative, input: &Input) -> Alternative {
-    let symbols: Vec<Symbol> = alt
-        .symbols()
-        .symbols()
-        .map(|sym| convert_symbol(sym, input))
-        .collect();
+    let (symbols, label): (Vec<Symbol>, _) = match alt {
+        parse_tree::Alternative::Symbols { symbols, label, .. } => (
+            symbols
+                .symbols()
+                .map(|sym| convert_symbol(sym, input))
+                .collect(),
+            label,
+        ),
+        parse_tree::Alternative::Empty { label, .. } => (Vec::new(), label),
+        parse_tree::Alternative::Amb(_) => panic!("unexpected ambiguity"),
+    };
 
     // Extract label, stripping the # prefix
-    let label = alt.label().value().map(|token| {
+    let label = label.value().map(|token| {
         let label_text = input.text(token.span());
         label_text
             .strip_prefix('#')

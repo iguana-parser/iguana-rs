@@ -140,10 +140,22 @@ impl<'a> Formatter<'a> {
                         chunks.push(assoc.to_string());
                     }
                 }
-                for sym in alt.symbols().symbols() {
-                    chunks.push(self.symbol_to_string(&sym));
+                let label = match alt {
+                    Alternative::Symbols { symbols, label, .. } => {
+                        for sym in symbols.symbols() {
+                            chunks.push(self.symbol_to_string(&sym));
+                        }
+                        label.value()
+                    }
+                    Alternative::Empty { label, .. } => {
+                        chunks.push("()".to_string());
+                        label.value()
+                    }
+                    Alternative::Amb(_) => {
+                        unreachable!("ambiguous trees are rejected before this point")
+                    }
                 }
-                let label = alt.label().value().map(|t| self.input.text(t.span()));
+                .map(|t| self.input.text(t.span()));
                 let lines = wrap_chunks(prefix, &chunks, CONT_INDENT, MAX_LINE_WIDTH);
                 formatted_alts.push((FormattedAlt { lines, label }, alt));
             }
@@ -183,14 +195,35 @@ impl<'a> Formatter<'a> {
                     out.push(' ');
                 }
                 out.push_str(label);
-                prev_span = alt.label().value().unwrap().span();
+                prev_span = match alt {
+                    Alternative::Symbols { label, .. } | Alternative::Empty { label, .. } => {
+                        label.value().unwrap().span()
+                    }
+                    Alternative::Amb(_) => {
+                        unreachable!("ambiguous trees are rejected before this point")
+                    }
+                };
             } else {
-                let syms: Vec<_> = alt.symbols().symbols().collect();
-                if let Some(last_sym) = syms.last() {
-                    prev_span = last_sym.span();
+                match alt {
+                    Alternative::Symbols { symbols, .. } => {
+                        if let Some(last_sym) = symbols.symbols().last() {
+                            prev_span = last_sym.span();
+                        }
+                    }
+                    Alternative::Empty { lit_2, .. } => prev_span = lit_2.span(),
+                    Alternative::Amb(_) => {
+                        unreachable!("ambiguous trees are rejected before this point")
+                    }
                 }
             }
-            self.emit_comments(out, alt.layout(), prev_span);
+            let layout = match alt {
+                Alternative::Symbols { layout, .. } => *layout,
+                Alternative::Empty { layout_3, .. } => *layout_3,
+                Alternative::Amb(_) => {
+                    unreachable!("ambiguous trees are rejected before this point")
+                }
+            };
+            self.emit_comments(out, layout, prev_span);
         }
     }
 

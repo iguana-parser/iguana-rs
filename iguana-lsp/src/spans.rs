@@ -247,7 +247,14 @@ fn collect_syntax_rule_spans<'a>(
                     ..Default::default()
                 },
             );
-            for (gr_sym, pt_sym) in gr_alt.symbols.iter().zip(pt_alt.symbols().symbols()) {
+            let pt_syms: Vec<_> = match pt_alt {
+                parse_tree::Alternative::Symbols { symbols, .. } => symbols.symbols().collect(),
+                parse_tree::Alternative::Empty { .. } => Vec::new(),
+                parse_tree::Alternative::Amb(_) => {
+                    unreachable!("ambiguous trees are rejected before this point")
+                }
+            };
+            for (gr_sym, pt_sym) in gr_alt.symbols.iter().zip(pt_syms) {
                 collect_symbol_spans(gr_sym, pt_sym, spans);
             }
         }
