@@ -6,7 +6,9 @@
 //! and any rustc warning prints back the entire line. This module restores
 //! line breaks and rewrites a few pseudo-attributes our generators emit:
 //!
-//! - `#[comment = "..."]` (our pseudo-attribute, not real Rust) → `// ...`.
+//! - `#[comment = "..."]` (our pseudo-attribute, not real Rust) → `// ...`,
+//!   word-wrapped across several `// ` lines so a comment can be written as one
+//!   plain string in the generator.
 //! - `#[doc = r"..."]` / `#[doc = r#"..."#]` (quote!'s default rendering of
 //!   `///` doc lines) → `/// ...`.
 //! - `} impl` / `} fn` / `} pub fn` → newline before the keyword.
@@ -19,6 +21,8 @@ use std::sync::LazyLock;
 
 use regex::Regex;
 
+// `[^"\\]` matches newlines, so a comment string that spans several source
+// lines is captured whole; `wrap_comment` then re-wraps it.
 static COMMENT_ATTR_RE: LazyLock<Regex> =
     LazyLock::new(|| Regex::new(r#"^#\s*\[\s*comment\s*=\s*"((?:[^"\\]|\\.)*)"\s*\]"#).unwrap());
 
@@ -54,7 +58,7 @@ pub fn post_process(input: &str) -> String {
         }
         let rest = &input[i..];
         if let Some(caps) = COMMENT_ATTR_RE.captures(rest) {
-            out.push_str(&format!("\n// {}\n", unescape(&caps[1])));
+            wrap_comment(&mut out, &unescape(&caps[1]));
             i += caps.get(0).unwrap().end();
         } else if let Some(caps) = DOC_RAW_HASH_RE.captures(rest) {
             out.push_str(&format!("\n///{}\n", &caps[1]));
@@ -73,6 +77,33 @@ pub fn post_process(input: &str) -> String {
         }
     }
     out
+}
+
+/// Text-width budget for a wrapped `// ` comment line, not counting the
+/// indentation rustfmt adds later. Most generated comments sit at shallow
+/// indentation, so this keeps rendered lines near the 100-column target without
+/// post_process knowing the eventual indent.
+const COMMENT_WIDTH: usize = 90;
+
+/// Emit `text` as one or more `// ` lines, wrapping on word boundaries near
+/// `COMMENT_WIDTH`. A comment is written as one string in the generator, so this
+/// breaks a long one into readable lines; a short one stays on a single line.
+fn wrap_comment(out: &mut String, text: &str) {
+    let mut col = 0;
+    for word in text.split_whitespace() {
+        if col != 0 && col + 1 + word.len() > COMMENT_WIDTH {
+            col = 0;
+        }
+        if col == 0 {
+            out.push_str("\n// ");
+            col = word.len();
+        } else {
+            out.push(' ');
+            col += 1 + word.len();
+        }
+        out.push_str(word);
+    }
+    out.push('\n');
 }
 
 /// The token-stream renders a `"`-string with its source-text escapes still
@@ -101,4 +132,26 @@ fn unescape(s: &str) -> String {
         }
     }
     out
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use quote::quote;
+
+    #[test]
+    fn wraps_a_multiline_comment_string() {
+        // A comment string split across source lines (no `\` continuation) is
+        // captured whole and collapses to wrapped `// ` lines.
+        let tokens = quote! {
+            #[comment = "alpha beta gamma
+                delta epsilon zeta"]
+            struct X;
+        };
+        let out = post_process(&tokens.to_string());
+        assert!(
+            out.contains("// alpha beta gamma delta epsilon zeta"),
+            "got: {out:?}"
+        );
+    }
 }

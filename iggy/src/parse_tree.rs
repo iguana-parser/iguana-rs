@@ -1196,7 +1196,8 @@ pub enum Annotation<'a> {
     },
     Amb(&'a [&'a Annotation<'a>]),
 }
-// RegexRule = layout:"@Layout"? Layout "@Regex" Layout Identifier Layout "=" Layout PreCondition? Layout body:{Regex+ "|"}+ Layout PostCondition*
+// RegexRule = layout:"@Layout"? Layout "@Regex" Layout Identifier Layout "=" Layout
+// PreCondition? Layout body:{Regex+ "|"}+ Layout PostCondition*
 #[derive(Debug)]
 pub enum RegexRule<'a> {
     Alt0 {
@@ -1294,7 +1295,8 @@ pub enum Symbol<'a> {
         lit_4: Token,
         span: Span,
     },
-    // Symbol(p, e) = [4 & e == 0] "(" Layout first:Symbol(0, 0) Layout rest:("|" Symbol)+ Layout ")" return 2 #Alt
+    // Symbol(p, e) = [4 & e == 0] "(" Layout first:Symbol(0, 0) Layout rest:("|" Symbol)+ Layout
+    // ")" return 2 #Alt
     Alt {
         lit_0: Token,
         layout_1: &'a Layout<'a>,
@@ -1310,7 +1312,8 @@ pub enum Symbol<'a> {
         string: Token,
         span: Span,
     },
-    // Symbol(p, e) = [16 & e == 0] "{" Layout symbol:Symbol(0, 0) Layout sep:Symbol(0, 0) Layout "}" Layout "*" return 4 #StarSep
+    // Symbol(p, e) = [16 & e == 0] "{" Layout symbol:Symbol(0, 0) Layout sep:Symbol(0, 0) Layout
+    // "}" Layout "*" return 4 #StarSep
     StarSep {
         lit_0: Token,
         layout_1: &'a Layout<'a>,
@@ -1323,7 +1326,8 @@ pub enum Symbol<'a> {
         lit_8: Token,
         span: Span,
     },
-    // Symbol(p, e) = [32 & e == 0] "{" Layout symbol:Symbol(0, 0) Layout sep:Symbol(0, 0) Layout "}" Layout "+" return 5 #PlusSep
+    // Symbol(p, e) = [32 & e == 0] "{" Layout symbol:Symbol(0, 0) Layout sep:Symbol(0, 0) Layout
+    // "}" Layout "+" return 5 #PlusSep
     PlusSep {
         lit_0: Token,
         layout_1: &'a Layout<'a>,
@@ -1336,49 +1340,58 @@ pub enum Symbol<'a> {
         lit_8: Token,
         span: Span,
     },
-    // Symbol(p, e) = [64 & e == 0] [3 >= p] l=Symbol(p, 0) [(l >> 16 == 0) || (l >> 16 >= 3)] Layout "*" return 6 #Star
+    // Symbol(p, e) = [64 & e == 0] [3 >= p] l=Symbol(p, 0) [(l >> 16 == 0) || (l >> 16 >= 3)]
+    // Layout "*" return 6 #Star
     Star {
         symbol: &'a Symbol<'a>,
         layout: &'a Layout<'a>,
         lit_2: Token,
         span: Span,
     },
-    // Symbol(p, e) = [128 & e == 0] [3 >= p] l=Symbol(p, 0) [(l >> 16 == 0) || (l >> 16 >= 3)] Layout "+" return 7 #Plus
+    // Symbol(p, e) = [128 & e == 0] [3 >= p] l=Symbol(p, 0) [(l >> 16 == 0) || (l >> 16 >= 3)]
+    // Layout "+" return 7 #Plus
     Plus {
         symbol: &'a Symbol<'a>,
         layout: &'a Layout<'a>,
         lit_2: Token,
         span: Span,
     },
-    // Symbol(p, e) = [256 & e == 0] [3 >= p] l=Symbol(p, 0) [(l >> 16 == 0) || (l >> 16 >= 3)] Layout "?" return 8 #Opt
+    // Symbol(p, e) = [256 & e == 0] [3 >= p] l=Symbol(p, 0) [(l >> 16 == 0) || (l >> 16 >= 3)]
+    // Layout "?" return 8 #Opt
     Opt {
         symbol: &'a Symbol<'a>,
         layout: &'a Layout<'a>,
         lit_2: Token,
         span: Span,
     },
-    // Symbol(p, e) = [512 & e == 0] [3 >= p] l=Symbol(p, 0) [(l >> 16 == 0) || (l >> 16 >= 3)] [(l & 65535 == 65535) || ((512 >> (l & 65535)) & 1 == 0)] Layout excepts:("\" Identifier)+ return 9 #Except
+    // Symbol(p, e) = [512 & e == 0] [3 >= p] l=Symbol(p, 0) [(l >> 16 == 0) || (l >> 16 >= 3)]
+    // [(l & 65535 == 65535) || ((512 >> (l & 65535)) & 1 == 0)] Layout excepts:("\" Identifier)+
+    // return 9 #Except
     Except {
         symbol: &'a Symbol<'a>,
         layout: &'a Layout<'a>,
         excepts: &'a Plus8<'a>,
         span: Span,
     },
-    // Symbol(p, e) = [1024 & e == 0] [3 >= p] l=Symbol(p, 0) [(l >> 16 == 0) || (l >> 16 >= 3)] [(l & 65535 == 65535) || ((1024 >> (l & 65535)) & 1 == 0)] Layout restrictions:("!>>" Identifier)+ return 10 #FollowRestriction
+    // Symbol(p, e) = [1024 & e == 0] [3 >= p] l=Symbol(p, 0) [(l >> 16 == 0) || (l >> 16 >= 3)]
+    // [(l & 65535 == 65535) || ((1024 >> (l & 65535)) & 1 == 0)] Layout restrictions:("!>>"
+    // Identifier)+ return 10 #FollowRestriction
     FollowRestriction {
         symbol: &'a Symbol<'a>,
         layout: &'a Layout<'a>,
         restrictions: &'a Plus9<'a>,
         span: Span,
     },
-    // Symbol(p, e) = [2048 & e == 0] [3 >= p] l=Symbol(p, 0) [(l >> 16 == 0) || (l >> 16 >= 3)] Layout labels:("!" Identifier)+ return 11 #Exclude
+    // Symbol(p, e) = [2048 & e == 0] [3 >= p] l=Symbol(p, 0) [(l >> 16 == 0) || (l >> 16 >= 3)]
+    // Layout labels:("!" Identifier)+ return 11 #Exclude
     Exclude {
         symbol: &'a Symbol<'a>,
         layout: &'a Layout<'a>,
         labels: &'a Plus10<'a>,
         span: Span,
     },
-    // Symbol(p, e) = [4096 & e == 0] Identifier Layout "!<<" Layout r=Symbol(2, 0) return (((r >> 16 == 0) ? 2 : min(r >> 16, 2)) << 16) | 12 #PrecedeRestriction
+    // Symbol(p, e) = [4096 & e == 0] Identifier Layout "!<<" Layout r=Symbol(2, 0) return (((r
+    // >> 16 == 0) ? 2 : min(r >> 16, 2)) << 16) | 12 #PrecedeRestriction
     PrecedeRestriction {
         identifier: Token,
         layout_1: &'a Layout<'a>,
@@ -1387,7 +1400,8 @@ pub enum Symbol<'a> {
         symbol: &'a Symbol<'a>,
         span: Span,
     },
-    // Symbol(p, e) = [8192 & e == 0] label:Identifier Layout ":" Layout Symbol(1, 0) return 65549 #Labeled
+    // Symbol(p, e) = [8192 & e == 0] label:Identifier Layout ":" Layout Symbol(1, 0) return
+    // 65549 #Labeled
     Labeled {
         label: Token,
         layout_1: &'a Layout<'a>,
@@ -6363,7 +6377,8 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a> {
             },
             // RegexRule
             NonterminalId(4) => match nonterminal_node.return_slot {
-                // RegexRule : layout:"@Layout"? Layout "@Regex" Layout Identifier Layout "=" Layout PreCondition? Layout body:{Regex+ "|"}+ Layout PostCondition*.
+                // RegexRule : layout:"@Layout"? Layout "@Regex" Layout Identifier Layout "=" Layout
+                // PreCondition? Layout body:{Regex+ "|"}+ Layout PostCondition*.
                 SlotId(45) => {
                     let [
                         layout,
@@ -7411,7 +7426,8 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a> {
                         span: nonterminal_node.span,
                     }))
                 }
-                // Symbol : [4 & e == 0] "(" Layout first:Symbol(0, 0) Layout rest:("|" Symbol)+ Layout ")" return 2.
+                // Symbol : [4 & e == 0] "(" Layout first:Symbol(0, 0) Layout rest:("|" Symbol)+ Layout ")"
+                // return 2.
                 SlotId(312) => {
                     let [lit_0, layout_1, first, layout_3, rest, layout_5, lit_6] =
                         children.into_array::<7usize>();
@@ -7434,7 +7450,8 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a> {
                         span: nonterminal_node.span,
                     }))
                 }
-                // Symbol : [16 & e == 0] "{" Layout symbol:Symbol(0, 0) Layout sep:Symbol(0, 0) Layout "}" Layout "*" return 4.
+                // Symbol : [16 & e == 0] "{" Layout symbol:Symbol(0, 0) Layout sep:Symbol(0, 0) Layout "}"
+                // Layout "*" return 4.
                 SlotId(328) => {
                     let [
                         lit_0,
@@ -7460,7 +7477,8 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a> {
                         span: nonterminal_node.span,
                     }))
                 }
-                // Symbol : [32 & e == 0] "{" Layout symbol:Symbol(0, 0) Layout sep:Symbol(0, 0) Layout "}" Layout "+" return 5.
+                // Symbol : [32 & e == 0] "{" Layout symbol:Symbol(0, 0) Layout sep:Symbol(0, 0) Layout "}"
+                // Layout "+" return 5.
                 SlotId(340) => {
                     let [
                         lit_0,
@@ -7486,7 +7504,8 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a> {
                         span: nonterminal_node.span,
                     }))
                 }
-                // Symbol : [64 & e == 0] [3 >= p] l=Symbol(p, 0) [(l >> 16 == 0) || (l >> 16 >= 3)] Layout "*" return 6.
+                // Symbol : [64 & e == 0] [3 >= p] l=Symbol(p, 0) [(l >> 16 == 0) || (l >> 16 >= 3)] Layout
+                // "*" return 6.
                 SlotId(348) => {
                     let [symbol, layout, lit_2] = children.into_array::<3usize>();
                     ParseTree::Symbol(self.bump.alloc(Symbol::Star {
@@ -7496,7 +7515,8 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a> {
                         span: nonterminal_node.span,
                     }))
                 }
-                // Symbol : [128 & e == 0] [3 >= p] l=Symbol(p, 0) [(l >> 16 == 0) || (l >> 16 >= 3)] Layout "+" return 7.
+                // Symbol : [128 & e == 0] [3 >= p] l=Symbol(p, 0) [(l >> 16 == 0) || (l >> 16 >= 3)] Layout
+                // "+" return 7.
                 SlotId(356) => {
                     let [symbol, layout, lit_2] = children.into_array::<3usize>();
                     ParseTree::Symbol(self.bump.alloc(Symbol::Plus {
@@ -7506,7 +7526,8 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a> {
                         span: nonterminal_node.span,
                     }))
                 }
-                // Symbol : [256 & e == 0] [3 >= p] l=Symbol(p, 0) [(l >> 16 == 0) || (l >> 16 >= 3)] Layout "?" return 8.
+                // Symbol : [256 & e == 0] [3 >= p] l=Symbol(p, 0) [(l >> 16 == 0) || (l >> 16 >= 3)] Layout
+                // "?" return 8.
                 SlotId(364) => {
                     let [symbol, layout, lit_2] = children.into_array::<3usize>();
                     ParseTree::Symbol(self.bump.alloc(Symbol::Opt {
@@ -7516,7 +7537,9 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a> {
                         span: nonterminal_node.span,
                     }))
                 }
-                // Symbol : [512 & e == 0] [3 >= p] l=Symbol(p, 0) [(l >> 16 == 0) || (l >> 16 >= 3)] [(l & 65535 == 65535) || ((512 >> (l & 65535)) & 1 == 0)] Layout excepts:("\" Identifier)+ return 9.
+                // Symbol : [512 & e == 0] [3 >= p] l=Symbol(p, 0) [(l >> 16 == 0) || (l >> 16 >= 3)] [(l &
+                // 65535 == 65535) || ((512 >> (l & 65535)) & 1 == 0)] Layout excepts:("\" Identifier)+
+                // return 9.
                 SlotId(373) => {
                     let [symbol, layout, excepts] = children.into_array::<3usize>();
                     ParseTree::Symbol(self.bump.alloc(Symbol::Except {
@@ -7526,7 +7549,9 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a> {
                         span: nonterminal_node.span,
                     }))
                 }
-                // Symbol : [1024 & e == 0] [3 >= p] l=Symbol(p, 0) [(l >> 16 == 0) || (l >> 16 >= 3)] [(l & 65535 == 65535) || ((1024 >> (l & 65535)) & 1 == 0)] Layout restrictions:("!>>" Identifier)+ return 10.
+                // Symbol : [1024 & e == 0] [3 >= p] l=Symbol(p, 0) [(l >> 16 == 0) || (l >> 16 >= 3)] [(l &
+                // 65535 == 65535) || ((1024 >> (l & 65535)) & 1 == 0)] Layout restrictions:("!>>"
+                // Identifier)+ return 10.
                 SlotId(382) => {
                     let [symbol, layout, restrictions] = children.into_array::<3usize>();
                     ParseTree::Symbol(self.bump.alloc(Symbol::FollowRestriction {
@@ -7536,7 +7561,8 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a> {
                         span: nonterminal_node.span,
                     }))
                 }
-                // Symbol : [2048 & e == 0] [3 >= p] l=Symbol(p, 0) [(l >> 16 == 0) || (l >> 16 >= 3)] Layout labels:("!" Identifier)+ return 11.
+                // Symbol : [2048 & e == 0] [3 >= p] l=Symbol(p, 0) [(l >> 16 == 0) || (l >> 16 >= 3)] Layout
+                // labels:("!" Identifier)+ return 11.
                 SlotId(390) => {
                     let [symbol, layout, labels] = children.into_array::<3usize>();
                     ParseTree::Symbol(self.bump.alloc(Symbol::Exclude {
@@ -7546,7 +7572,8 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a> {
                         span: nonterminal_node.span,
                     }))
                 }
-                // Symbol : [4096 & e == 0] Identifier Layout "!<<" Layout r=Symbol(2, 0) return (((r >> 16 == 0) ? 2 : min(r >> 16, 2)) << 16) | 12.
+                // Symbol : [4096 & e == 0] Identifier Layout "!<<" Layout r=Symbol(2, 0) return (((r >> 16
+                // == 0) ? 2 : min(r >> 16, 2)) << 16) | 12.
                 SlotId(398) => {
                     let [identifier, layout_1, lit_2, layout_3, symbol] =
                         children.into_array::<5usize>();

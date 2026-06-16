@@ -4,11 +4,9 @@
 pub struct Nonterminal {
     pub name: &'static str,
     pub display: &'static str,
-    // Whether this nonterminal was introduced by a grammar transformation
-
-    // (e.g., EBNF desugaring, start symbol wrapping, or exclude desugaring)
-
-    // rather than being explicitly defined by the user.
+    // Whether this nonterminal was introduced by a grammar transformation (e.g., EBNF
+    // desugaring, start symbol wrapping, or exclude desugaring) rather than being explicitly
+    // defined by the user.
     pub derived: bool,
 }
 pub struct Terminal {

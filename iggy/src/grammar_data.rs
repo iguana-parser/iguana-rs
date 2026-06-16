@@ -1703,7 +1703,8 @@ pub static FIRST_SET_GRAMMAR_ALT0: TerminalSet = TerminalSet {
     id: 1,
     terminals: &[TerminalId(10)],
 };
-// Rule { "@Start", "@NoLayout", EOF, Identifier, "@Regex", "@Layout", LineComment, "@WithLayout", WS }
+// Rule { "@Start", "@NoLayout", EOF, Identifier, "@Regex", "@Layout", LineComment,
+// "@WithLayout", WS }
 pub static FOLLOW_SET_RULE: TerminalSet = TerminalSet {
     id: 2,
     terminals: &[
@@ -1718,7 +1719,8 @@ pub static FOLLOW_SET_RULE: TerminalSet = TerminalSet {
         TerminalId(7),
     ],
 };
-// Rule { "@Start", "@NoLayout", Identifier, "@Regex", "@Layout", "@WithLayout", LineComment, WS }
+// Rule { "@Start", "@NoLayout", Identifier, "@Regex", "@Layout", "@WithLayout", LineComment,
+// WS }
 pub static FIRST_SET_RULE: TerminalSet = TerminalSet {
     id: 1,
     terminals: &[
@@ -1732,7 +1734,8 @@ pub static FIRST_SET_RULE: TerminalSet = TerminalSet {
         TerminalId(7),
     ],
 };
-// Rule : . SyntaxRule { "@Start", Identifier, "@NoLayout", "@Layout", "@WithLayout", LineComment, WS }
+// Rule : . SyntaxRule { "@Start", Identifier, "@NoLayout", "@Layout", "@WithLayout",
+// LineComment, WS }
 pub static FIRST_SET_RULE_ALT0: TerminalSet = TerminalSet {
     id: 3,
     terminals: &[
@@ -1750,7 +1753,8 @@ pub static FIRST_SET_RULE_ALT1: TerminalSet = TerminalSet {
     id: 4,
     terminals: &[TerminalId(19), TerminalId(14), TerminalId(9), TerminalId(7)],
 };
-// SyntaxRule { "@Start", "@NoLayout", EOF, Identifier, "@Regex", "@Layout", LineComment, "@WithLayout", WS }
+// SyntaxRule { "@Start", "@NoLayout", EOF, Identifier, "@Regex", "@Layout", LineComment,
+// "@WithLayout", WS }
 pub static FOLLOW_SET_SYNTAX_RULE: TerminalSet = TerminalSet {
     id: 2,
     terminals: &[
@@ -1765,7 +1769,8 @@ pub static FOLLOW_SET_SYNTAX_RULE: TerminalSet = TerminalSet {
         TerminalId(7),
     ],
 };
-// SyntaxRule { "@Start", Identifier, "@NoLayout", "@Layout", "@WithLayout", LineComment, WS }
+// SyntaxRule { "@Start", Identifier, "@NoLayout", "@Layout", "@WithLayout", LineComment, WS
+// }
 pub static FIRST_SET_SYNTAX_RULE: TerminalSet = TerminalSet {
     id: 2,
     terminals: &[
@@ -1778,7 +1783,8 @@ pub static FIRST_SET_SYNTAX_RULE: TerminalSet = TerminalSet {
         TerminalId(7),
     ],
 };
-// SyntaxRule : . Opt_1 Layout head:Identifier Layout "=" Layout Star_1 { "@Start", Identifier, "@NoLayout", "@Layout", "@WithLayout", LineComment, WS }
+// SyntaxRule : . Opt_1 Layout head:Identifier Layout "=" Layout Star_1 { "@Start",
+// Identifier, "@NoLayout", "@Layout", "@WithLayout", LineComment, WS }
 pub static FIRST_SET_SYNTAX_RULE_ALT0: TerminalSet = TerminalSet {
     id: 3,
     terminals: &[
@@ -1826,7 +1832,8 @@ pub static FIRST_SET_ANNOTATION_ALT3: TerminalSet = TerminalSet {
     id: 9,
     terminals: &[TerminalId(18)],
 };
-// RegexRule { "@Start", "@NoLayout", EOF, Identifier, "@Regex", "@Layout", LineComment, "@WithLayout", WS }
+// RegexRule { "@Start", "@NoLayout", EOF, Identifier, "@Regex", "@Layout", LineComment,
+// "@WithLayout", WS }
 pub static FOLLOW_SET_REGEX_RULE: TerminalSet = TerminalSet {
     id: 2,
     terminals: &[
@@ -1846,7 +1853,8 @@ pub static FIRST_SET_REGEX_RULE: TerminalSet = TerminalSet {
     id: 4,
     terminals: &[TerminalId(19), TerminalId(14), TerminalId(9), TerminalId(7)],
 };
-// RegexRule : . layout:Opt_3 Layout "@Regex" Layout Identifier Layout "=" Layout Opt_4 Layout body:Plus_2 Layout Star_2 { "@Regex", "@Layout", LineComment, WS }
+// RegexRule : . layout:Opt_3 Layout "@Regex" Layout Identifier Layout "=" Layout Opt_4
+// Layout body:Plus_2 Layout Star_2 { "@Regex", "@Layout", LineComment, WS }
 pub static FIRST_SET_REGEX_RULE_ALT0: TerminalSet = TerminalSet {
     id: 4,
     terminals: &[TerminalId(19), TerminalId(14), TerminalId(9), TerminalId(7)],
@@ -1876,7 +1884,8 @@ pub static FIRST_SET_PRE_CONDITION_ALT0: TerminalSet = TerminalSet {
     id: 11,
     terminals: &[TerminalId(1)],
 };
-// PostCondition { "!>>", "@Start", "@NoLayout", EOF, "\", Identifier, "@Regex", "@Layout", "@WithLayout", LineComment, WS }
+// PostCondition { "!>>", "@Start", "@NoLayout", EOF, "\", Identifier, "@Regex", "@Layout",
+// "@WithLayout", LineComment, WS }
 pub static FOLLOW_SET_POST_CONDITION: TerminalSet = TerminalSet {
     id: 12,
     terminals: &[
@@ -1908,7 +1917,8 @@ pub static FIRST_SET_POST_CONDITION_ALT1: TerminalSet = TerminalSet {
     id: 14,
     terminals: &[TerminalId(23)],
 };
-// PriorityLevel { ">", "@Start", "@NoLayout", EOF, Identifier, "@Regex", "@Layout", LineComment, "@WithLayout", WS }
+// PriorityLevel { ">", "@Start", "@NoLayout", EOF, Identifier, "@Regex", "@Layout",
+// LineComment, "@WithLayout", WS }
 pub static FOLLOW_SET_PRIORITY_LEVEL: TerminalSet = TerminalSet {
     id: 15,
     terminals: &[
@@ -1924,7 +1934,8 @@ pub static FOLLOW_SET_PRIORITY_LEVEL: TerminalSet = TerminalSet {
         TerminalId(7),
     ],
 };
-// PriorityLevel { "left", "right", String, "none", "|", Label, "{", Identifier, "(", LineComment, WS }
+// PriorityLevel { "left", "right", String, "none", "|", Label, "{", Identifier, "(",
+// LineComment, WS }
 pub static FIRST_SET_PRIORITY_LEVEL: TerminalSet = TerminalSet {
     id: 7,
     terminals: &[
@@ -1941,7 +1952,8 @@ pub static FIRST_SET_PRIORITY_LEVEL: TerminalSet = TerminalSet {
         TerminalId(7),
     ],
 };
-// PriorityLevel : . Opt_6 Layout Star_3 { "left", WS, "right", String, "|", Label, "{", Identifier, "(", LineComment, "none" }
+// PriorityLevel : . Opt_6 Layout Star_3 { "left", WS, "right", String, "|", Label, "{",
+// Identifier, "(", LineComment, "none" }
 pub static FIRST_SET_PRIORITY_LEVEL_ALT0: TerminalSet = TerminalSet {
     id: 16,
     terminals: &[
@@ -1958,7 +1970,8 @@ pub static FIRST_SET_PRIORITY_LEVEL_ALT0: TerminalSet = TerminalSet {
         TerminalId(26),
     ],
 };
-// Associativity { WS, "@Start", Label, EOF, Identifier, "(", "@Regex", "@Layout", String, "@NoLayout", "|", "{", LineComment, "@WithLayout", ">" }
+// Associativity { WS, "@Start", Label, EOF, Identifier, "(", "@Regex", "@Layout", String,
+// "@NoLayout", "|", "{", LineComment, "@WithLayout", ">" }
 pub static FOLLOW_SET_ASSOCIATIVITY: TerminalSet = TerminalSet {
     id: 17,
     terminals: &[
@@ -1999,7 +2012,8 @@ pub static FIRST_SET_ASSOCIATIVITY_ALT2: TerminalSet = TerminalSet {
     id: 20,
     terminals: &[TerminalId(26)],
 };
-// Alternative { ">", "@Start", "@NoLayout", "|", EOF, Identifier, "@Regex", "@Layout", LineComment, "@WithLayout", WS }
+// Alternative { ">", "@Start", "@NoLayout", "|", EOF, Identifier, "@Regex", "@Layout",
+// LineComment, "@WithLayout", WS }
 pub static FOLLOW_SET_ALTERNATIVE: TerminalSet = TerminalSet {
     id: 21,
     terminals: &[
@@ -2029,7 +2043,8 @@ pub static FIRST_SET_ALTERNATIVE: TerminalSet = TerminalSet {
         TerminalId(7),
     ],
 };
-// Alternative : . Star_4 Layout Opt_9 { WS, Identifier, "(", String, LineComment, Label, "{" }
+// Alternative : . Star_4 Layout Opt_9 { WS, Identifier, "(", String, LineComment, Label, "{"
+// }
 pub static FIRST_SET_ALTERNATIVE_ALT0: TerminalSet = TerminalSet {
     id: 22,
     terminals: &[
@@ -2042,7 +2057,9 @@ pub static FIRST_SET_ALTERNATIVE_ALT0: TerminalSet = TerminalSet {
         TerminalId(27),
     ],
 };
-// Symbol { "?", ">", "@Start", "*", Label, EOF, "\", Identifier, "(", "!", ")", "!>>", "@Regex", "@Layout", String, "@NoLayout", "|", "{", "+", "}", LineComment, "@WithLayout", WS }
+// Symbol { "?", ">", "@Start", "*", Label, EOF, "\", Identifier, "(", "!", ")", "!>>",
+// "@Regex", "@Layout", String, "@NoLayout", "|", "{", "+", "}", LineComment, "@WithLayout",
+// WS }
 pub static FOLLOW_SET_SYMBOL: TerminalSet = TerminalSet {
     id: 23,
     terminals: &[
@@ -2086,7 +2103,8 @@ pub static FIRST_SET_SYMBOL_ALT1: TerminalSet = TerminalSet {
     id: 24,
     terminals: &[TerminalId(16)],
 };
-// Symbol(p: i32, e: i32) : . [4 & e == 0] "(" Layout first:Symbol(0, 0) Layout rest:Plus_7 Layout ")" return 2 { "(" }
+// Symbol(p: i32, e: i32) : . [4 & e == 0] "(" Layout first:Symbol(0, 0) Layout rest:Plus_7
+// Layout ")" return 2 { "(" }
 pub static FIRST_SET_SYMBOL_ALT2: TerminalSet = TerminalSet {
     id: 24,
     terminals: &[TerminalId(16)],
@@ -2096,57 +2114,70 @@ pub static FIRST_SET_SYMBOL_ALT3: TerminalSet = TerminalSet {
     id: 25,
     terminals: &[TerminalId(2)],
 };
-// Symbol(p: i32, e: i32) : . [16 & e == 0] "{" Layout symbol:Symbol(0, 0) Layout sep:Symbol(0, 0) Layout "}" Layout "*" return 4 { "{" }
+// Symbol(p: i32, e: i32) : . [16 & e == 0] "{" Layout symbol:Symbol(0, 0) Layout
+// sep:Symbol(0, 0) Layout "}" Layout "*" return 4 { "{" }
 pub static FIRST_SET_SYMBOL_ALT4: TerminalSet = TerminalSet {
     id: 26,
     terminals: &[TerminalId(27)],
 };
-// Symbol(p: i32, e: i32) : . [32 & e == 0] "{" Layout symbol:Symbol(0, 0) Layout sep:Symbol(0, 0) Layout "}" Layout "+" return 5 { "{" }
+// Symbol(p: i32, e: i32) : . [32 & e == 0] "{" Layout symbol:Symbol(0, 0) Layout
+// sep:Symbol(0, 0) Layout "}" Layout "+" return 5 { "{" }
 pub static FIRST_SET_SYMBOL_ALT5: TerminalSet = TerminalSet {
     id: 26,
     terminals: &[TerminalId(27)],
 };
-// Symbol(p: i32, e: i32) : . [64 & e == 0] [3 >= p] l=Symbol(p, 0) [(l >> 16 == 0) || (l >> 16 >= 3)] Layout "*" return 6 { Identifier, "(", String, "{" }
+// Symbol(p: i32, e: i32) : . [64 & e == 0] [3 >= p] l=Symbol(p, 0) [(l >> 16 == 0) || (l >>
+// 16 >= 3)] Layout "*" return 6 { Identifier, "(", String, "{" }
 pub static FIRST_SET_SYMBOL_ALT6: TerminalSet = TerminalSet {
     id: 27,
     terminals: &[TerminalId(1), TerminalId(16), TerminalId(2), TerminalId(27)],
 };
-// Symbol(p: i32, e: i32) : . [128 & e == 0] [3 >= p] l=Symbol(p, 0) [(l >> 16 == 0) || (l >> 16 >= 3)] Layout "+" return 7 { Identifier, "(", String, "{" }
+// Symbol(p: i32, e: i32) : . [128 & e == 0] [3 >= p] l=Symbol(p, 0) [(l >> 16 == 0) || (l >>
+// 16 >= 3)] Layout "+" return 7 { Identifier, "(", String, "{" }
 pub static FIRST_SET_SYMBOL_ALT7: TerminalSet = TerminalSet {
     id: 27,
     terminals: &[TerminalId(1), TerminalId(16), TerminalId(2), TerminalId(27)],
 };
-// Symbol(p: i32, e: i32) : . [256 & e == 0] [3 >= p] l=Symbol(p, 0) [(l >> 16 == 0) || (l >> 16 >= 3)] Layout "?" return 8 { Identifier, "(", String, "{" }
+// Symbol(p: i32, e: i32) : . [256 & e == 0] [3 >= p] l=Symbol(p, 0) [(l >> 16 == 0) || (l >>
+// 16 >= 3)] Layout "?" return 8 { Identifier, "(", String, "{" }
 pub static FIRST_SET_SYMBOL_ALT8: TerminalSet = TerminalSet {
     id: 27,
     terminals: &[TerminalId(1), TerminalId(16), TerminalId(2), TerminalId(27)],
 };
-// Symbol(p: i32, e: i32) : . [512 & e == 0] [3 >= p] l=Symbol(p, 0) [(l >> 16 == 0) || (l >> 16 >= 3)] [(l & 65535 == 65535) || ((512 >> (l & 65535)) & 1 == 0)] Layout excepts:Plus_8 return 9 { Identifier, "(", String, "{" }
+// Symbol(p: i32, e: i32) : . [512 & e == 0] [3 >= p] l=Symbol(p, 0) [(l >> 16 == 0) || (l >>
+// 16 >= 3)] [(l & 65535 == 65535) || ((512 >> (l & 65535)) & 1 == 0)] Layout excepts:Plus_8
+// return 9 { Identifier, "(", String, "{" }
 pub static FIRST_SET_SYMBOL_ALT9: TerminalSet = TerminalSet {
     id: 27,
     terminals: &[TerminalId(1), TerminalId(16), TerminalId(2), TerminalId(27)],
 };
-// Symbol(p: i32, e: i32) : . [1024 & e == 0] [3 >= p] l=Symbol(p, 0) [(l >> 16 == 0) || (l >> 16 >= 3)] [(l & 65535 == 65535) || ((1024 >> (l & 65535)) & 1 == 0)] Layout restrictions:Plus_9 return 10 { Identifier, "(", String, "{" }
+// Symbol(p: i32, e: i32) : . [1024 & e == 0] [3 >= p] l=Symbol(p, 0) [(l >> 16 == 0) || (l
+// >> 16 >= 3)] [(l & 65535 == 65535) || ((1024 >> (l & 65535)) & 1 == 0)] Layout
+// restrictions:Plus_9 return 10 { Identifier, "(", String, "{" }
 pub static FIRST_SET_SYMBOL_ALT10: TerminalSet = TerminalSet {
     id: 27,
     terminals: &[TerminalId(1), TerminalId(16), TerminalId(2), TerminalId(27)],
 };
-// Symbol(p: i32, e: i32) : . [2048 & e == 0] [3 >= p] l=Symbol(p, 0) [(l >> 16 == 0) || (l >> 16 >= 3)] Layout labels:Plus_10 return 11 { Identifier, "(", String, "{" }
+// Symbol(p: i32, e: i32) : . [2048 & e == 0] [3 >= p] l=Symbol(p, 0) [(l >> 16 == 0) || (l
+// >> 16 >= 3)] Layout labels:Plus_10 return 11 { Identifier, "(", String, "{" }
 pub static FIRST_SET_SYMBOL_ALT11: TerminalSet = TerminalSet {
     id: 27,
     terminals: &[TerminalId(1), TerminalId(16), TerminalId(2), TerminalId(27)],
 };
-// Symbol(p: i32, e: i32) : . [4096 & e == 0] Identifier Layout "!<<" Layout r=Symbol(2, 0) return (((r >> 16 == 0) ? 2 : min(r >> 16, 2)) << 16) | 12 { Identifier }
+// Symbol(p: i32, e: i32) : . [4096 & e == 0] Identifier Layout "!<<" Layout r=Symbol(2, 0)
+// return (((r >> 16 == 0) ? 2 : min(r >> 16, 2)) << 16) | 12 { Identifier }
 pub static FIRST_SET_SYMBOL_ALT12: TerminalSet = TerminalSet {
     id: 11,
     terminals: &[TerminalId(1)],
 };
-// Symbol(p: i32, e: i32) : . [8192 & e == 0] label:Identifier Layout ":" Layout Symbol(1, 0) return 65549 { Identifier }
+// Symbol(p: i32, e: i32) : . [8192 & e == 0] label:Identifier Layout ":" Layout Symbol(1, 0)
+// return 65549 { Identifier }
 pub static FIRST_SET_SYMBOL_ALT13: TerminalSet = TerminalSet {
     id: 11,
     terminals: &[TerminalId(1)],
 };
-// Regex { "?", "[", "@Start", "*", EOF, "\", Identifier, "(", "!", ")", "!>>", "@Regex", "@Layout", Char, String, "@NoLayout", "|", "+", LineComment, "@WithLayout", WS }
+// Regex { "?", "[", "@Start", "*", EOF, "\", Identifier, "(", "!", ")", "!>>", "@Regex",
+// "@Layout", Char, String, "@NoLayout", "|", "+", LineComment, "@WithLayout", WS }
 pub static FOLLOW_SET_REGEX: TerminalSet = TerminalSet {
     id: 28,
     terminals: &[
@@ -2259,7 +2290,8 @@ pub static FIRST_SET_REGEX_ALT8: TerminalSet = TerminalSet {
     id: 11,
     terminals: &[TerminalId(1)],
 };
-// CharClass { "?", "[", "@Start", "*", EOF, "\", Identifier, "(", "!", ")", "!>>", "@Regex", "@Layout", Char, String, "@NoLayout", "|", "+", LineComment, "@WithLayout", WS }
+// CharClass { "?", "[", "@Start", "*", EOF, "\", Identifier, "(", "!", ")", "!>>", "@Regex",
+// "@Layout", Char, String, "@NoLayout", "|", "+", LineComment, "@WithLayout", WS }
 pub static FOLLOW_SET_CHAR_CLASS: TerminalSet = TerminalSet {
     id: 28,
     terminals: &[
@@ -2291,7 +2323,8 @@ pub static FIRST_SET_CHAR_CLASS: TerminalSet = TerminalSet {
     id: 12,
     terminals: &[TerminalId(34), TerminalId(32), TerminalId(9), TerminalId(7)],
 };
-// CharClass : . neg:Opt_10 Layout "[" Layout Plus_12 Layout "]" { "[", "!", LineComment, WS }
+// CharClass : . neg:Opt_10 Layout "[" Layout Plus_12 Layout "]" { "[", "!", LineComment, WS
+// }
 pub static FIRST_SET_CHAR_CLASS_ALT0: TerminalSet = TerminalSet {
     id: 30,
     terminals: &[TerminalId(34), TerminalId(32), TerminalId(9), TerminalId(7)],
@@ -2343,7 +2376,10 @@ pub static FIRST_SET_RANGE_ALT0: TerminalSet = TerminalSet {
     id: 33,
     terminals: &[TerminalId(5)],
 };
-// Layout { "left", "@Start", "[", "?", ":", Label, "\", Identifier, "!", "!<<", "!>>", "right", Char, "@NoLayout", "|", "-", "}", "@WithLayout", LineComment, WS, "none", "]", "=", "*", RangeChar, EOF, "@Regex", "(", "@Layout", ")", String, "{", "+", "grammar", ">" }
+// Layout { "left", "@Start", "[", "?", ":", Label, "\", Identifier, "!", "!<<", "!>>",
+// "right", Char, "@NoLayout", "|", "-", "}", "@WithLayout", LineComment, WS, "none", "]",
+// "=", "*", RangeChar, EOF, "@Regex", "(", "@Layout", ")", String, "{", "+", "grammar", ">"
+// }
 pub static FOLLOW_SET_LAYOUT: TerminalSet = TerminalSet {
     id: 34,
     terminals: &[
@@ -2399,7 +2435,8 @@ pub static FOLLOW_RESTRICTION_LAYOUT_ALT0_POS0: TerminalSet = TerminalSet {
     id: 35,
     terminals: &[TerminalId(7), TerminalId(9)],
 };
-// Plus_0 { "@Start", "@NoLayout", EOF, Identifier, "@Regex", "@Layout", LineComment, "@WithLayout", WS }
+// Plus_0 { "@Start", "@NoLayout", EOF, Identifier, "@Regex", "@Layout", LineComment,
+// "@WithLayout", WS }
 pub static FOLLOW_SET_PLUS_0: TerminalSet = TerminalSet {
     id: 2,
     terminals: &[
@@ -2414,7 +2451,8 @@ pub static FOLLOW_SET_PLUS_0: TerminalSet = TerminalSet {
         TerminalId(7),
     ],
 };
-// Plus_0 { "@Start", "@NoLayout", Identifier, "@Regex", "@Layout", "@WithLayout", LineComment, WS }
+// Plus_0 { "@Start", "@NoLayout", Identifier, "@Regex", "@Layout", "@WithLayout",
+// LineComment, WS }
 pub static FIRST_SET_PLUS_0: TerminalSet = TerminalSet {
     id: 1,
     terminals: &[
@@ -2428,7 +2466,8 @@ pub static FIRST_SET_PLUS_0: TerminalSet = TerminalSet {
         TerminalId(7),
     ],
 };
-// Plus_0 : . Plus_0 Layout Rule { "@Start", "@NoLayout", Identifier, "@Regex", "@Layout", "@WithLayout", LineComment, WS }
+// Plus_0 : . Plus_0 Layout Rule { "@Start", "@NoLayout", Identifier, "@Regex", "@Layout",
+// "@WithLayout", LineComment, WS }
 pub static FIRST_SET_PLUS_0_ALT0: TerminalSet = TerminalSet {
     id: 36,
     terminals: &[
@@ -2442,7 +2481,8 @@ pub static FIRST_SET_PLUS_0_ALT0: TerminalSet = TerminalSet {
         TerminalId(7),
     ],
 };
-// Plus_0 : . Rule { "@Start", "@NoLayout", Identifier, "@Regex", "@Layout", "@WithLayout", LineComment, WS }
+// Plus_0 : . Rule { "@Start", "@NoLayout", Identifier, "@Regex", "@Layout", "@WithLayout",
+// LineComment, WS }
 pub static FIRST_SET_PLUS_0_ALT1: TerminalSet = TerminalSet {
     id: 36,
     terminals: &[
@@ -2461,7 +2501,8 @@ pub static FOLLOW_SET_OPT_0: TerminalSet = TerminalSet {
     id: 0,
     terminals: &[TerminalId(38), TerminalId(9), TerminalId(7)],
 };
-// Opt_0 { "@Start", "@NoLayout", Identifier, "@Regex", "@Layout", "@WithLayout", LineComment, WS }
+// Opt_0 { "@Start", "@NoLayout", Identifier, "@Regex", "@Layout", "@WithLayout",
+// LineComment, WS }
 pub static FIRST_SET_OPT_0: TerminalSet = TerminalSet {
     id: 1,
     terminals: &[
@@ -2475,7 +2516,8 @@ pub static FIRST_SET_OPT_0: TerminalSet = TerminalSet {
         TerminalId(7),
     ],
 };
-// Opt_0 : . Plus_0 { "@Start", "@NoLayout", Identifier, "@Regex", "@Layout", "@WithLayout", LineComment, WS }
+// Opt_0 : . Plus_0 { "@Start", "@NoLayout", Identifier, "@Regex", "@Layout", "@WithLayout",
+// LineComment, WS }
 pub static FIRST_SET_OPT_0_ALT0: TerminalSet = TerminalSet {
     id: 36,
     terminals: &[
@@ -2489,7 +2531,7 @@ pub static FIRST_SET_OPT_0_ALT0: TerminalSet = TerminalSet {
         TerminalId(7),
     ],
 };
-// Opt_0 : . {  }
+// Opt_0 : . { }
 pub static FIRST_SET_OPT_0_ALT1: TerminalSet = TerminalSet {
     id: 37,
     terminals: &[],
@@ -2499,7 +2541,8 @@ pub static FOLLOW_SET_STAR_0: TerminalSet = TerminalSet {
     id: 0,
     terminals: &[TerminalId(38), TerminalId(9), TerminalId(7)],
 };
-// Star_0 { "@Start", "@NoLayout", Identifier, "@Regex", "@Layout", "@WithLayout", LineComment, WS }
+// Star_0 { "@Start", "@NoLayout", Identifier, "@Regex", "@Layout", "@WithLayout",
+// LineComment, WS }
 pub static FIRST_SET_STAR_0: TerminalSet = TerminalSet {
     id: 1,
     terminals: &[
@@ -2513,7 +2556,8 @@ pub static FIRST_SET_STAR_0: TerminalSet = TerminalSet {
         TerminalId(7),
     ],
 };
-// Star_0 : . Opt_0 { "@Start", "@NoLayout", Identifier, "@Regex", "@Layout", "@WithLayout", LineComment, WS }
+// Star_0 : . Opt_0 { "@Start", "@NoLayout", Identifier, "@Regex", "@Layout", "@WithLayout",
+// LineComment, WS }
 pub static FIRST_SET_STAR_0_ALT0: TerminalSet = TerminalSet {
     id: 36,
     terminals: &[
@@ -2552,12 +2596,13 @@ pub static FIRST_SET_OPT_1_ALT0: TerminalSet = TerminalSet {
         TerminalId(15),
     ],
 };
-// Opt_1 : . {  }
+// Opt_1 : . { }
 pub static FIRST_SET_OPT_1_ALT1: TerminalSet = TerminalSet {
     id: 37,
     terminals: &[],
 };
-// Plus_1 { WS, "@Start", "@NoLayout", EOF, Identifier, "@Regex", "@Layout", LineComment, "@WithLayout", ">" }
+// Plus_1 { WS, "@Start", "@NoLayout", EOF, Identifier, "@Regex", "@Layout", LineComment,
+// "@WithLayout", ">" }
 pub static FOLLOW_SET_PLUS_1: TerminalSet = TerminalSet {
     id: 15,
     terminals: &[
@@ -2573,7 +2618,8 @@ pub static FOLLOW_SET_PLUS_1: TerminalSet = TerminalSet {
         TerminalId(12),
     ],
 };
-// Plus_1 { "left", WS, String, "right", ">", Label, "|", "{", Identifier, "(", LineComment, "none" }
+// Plus_1 { "left", WS, String, "right", ">", Label, "|", "{", Identifier, "(", LineComment,
+// "none" }
 pub static FIRST_SET_PLUS_1: TerminalSet = TerminalSet {
     id: 15,
     terminals: &[
@@ -2591,7 +2637,8 @@ pub static FIRST_SET_PLUS_1: TerminalSet = TerminalSet {
         TerminalId(26),
     ],
 };
-// Plus_1 : . Plus_1 Layout ">" Layout PriorityLevel { "left", "right", String, "none", WS, Label, "|", "{", Identifier, "(", LineComment, ">" }
+// Plus_1 : . Plus_1 Layout ">" Layout PriorityLevel { "left", "right", String, "none", WS,
+// Label, "|", "{", Identifier, "(", LineComment, ">" }
 pub static FIRST_SET_PLUS_1_ALT0: TerminalSet = TerminalSet {
     id: 39,
     terminals: &[
@@ -2609,7 +2656,8 @@ pub static FIRST_SET_PLUS_1_ALT0: TerminalSet = TerminalSet {
         TerminalId(12),
     ],
 };
-// Plus_1 : . PriorityLevel { "left", WS, String, "none", Label, "|", "{", Identifier, "(", LineComment, "right" }
+// Plus_1 : . PriorityLevel { "left", WS, String, "none", Label, "|", "{", Identifier, "(",
+// LineComment, "right" }
 pub static FIRST_SET_PLUS_1_ALT1: TerminalSet = TerminalSet {
     id: 16,
     terminals: &[
@@ -2626,7 +2674,8 @@ pub static FIRST_SET_PLUS_1_ALT1: TerminalSet = TerminalSet {
         TerminalId(25),
     ],
 };
-// Opt_2 { "@Start", "@NoLayout", EOF, Identifier, "@Regex", "@Layout", LineComment, "@WithLayout", WS }
+// Opt_2 { "@Start", "@NoLayout", EOF, Identifier, "@Regex", "@Layout", LineComment,
+// "@WithLayout", WS }
 pub static FOLLOW_SET_OPT_2: TerminalSet = TerminalSet {
     id: 2,
     terminals: &[
@@ -2641,7 +2690,8 @@ pub static FOLLOW_SET_OPT_2: TerminalSet = TerminalSet {
         TerminalId(7),
     ],
 };
-// Opt_2 { "left", WS, String, "right", ">", Label, "|", "{", Identifier, "(", LineComment, "none" }
+// Opt_2 { "left", WS, String, "right", ">", Label, "|", "{", Identifier, "(", LineComment,
+// "none" }
 pub static FIRST_SET_OPT_2: TerminalSet = TerminalSet {
     id: 15,
     terminals: &[
@@ -2659,7 +2709,8 @@ pub static FIRST_SET_OPT_2: TerminalSet = TerminalSet {
         TerminalId(26),
     ],
 };
-// Opt_2 : . Plus_1 { "left", "right", String, "none", WS, Label, "|", "{", Identifier, "(", LineComment, ">" }
+// Opt_2 : . Plus_1 { "left", "right", String, "none", WS, Label, "|", "{", Identifier, "(",
+// LineComment, ">" }
 pub static FIRST_SET_OPT_2_ALT0: TerminalSet = TerminalSet {
     id: 39,
     terminals: &[
@@ -2677,12 +2728,13 @@ pub static FIRST_SET_OPT_2_ALT0: TerminalSet = TerminalSet {
         TerminalId(12),
     ],
 };
-// Opt_2 : . {  }
+// Opt_2 : . { }
 pub static FIRST_SET_OPT_2_ALT1: TerminalSet = TerminalSet {
     id: 37,
     terminals: &[],
 };
-// Star_1 { "@Start", "@NoLayout", EOF, Identifier, "@Regex", "@Layout", LineComment, "@WithLayout", WS }
+// Star_1 { "@Start", "@NoLayout", EOF, Identifier, "@Regex", "@Layout", LineComment,
+// "@WithLayout", WS }
 pub static FOLLOW_SET_STAR_1: TerminalSet = TerminalSet {
     id: 2,
     terminals: &[
@@ -2697,7 +2749,8 @@ pub static FOLLOW_SET_STAR_1: TerminalSet = TerminalSet {
         TerminalId(7),
     ],
 };
-// Star_1 { "left", ">", String, "right", "none", Label, "|", "{", Identifier, "(", LineComment, WS }
+// Star_1 { "left", ">", String, "right", "none", Label, "|", "{", Identifier, "(",
+// LineComment, WS }
 pub static FIRST_SET_STAR_1: TerminalSet = TerminalSet {
     id: 15,
     terminals: &[
@@ -2715,7 +2768,8 @@ pub static FIRST_SET_STAR_1: TerminalSet = TerminalSet {
         TerminalId(7),
     ],
 };
-// Star_1 : . Opt_2 { "left", "right", String, WS, ">", Label, "|", "{", Identifier, "(", LineComment, "none" }
+// Star_1 : . Opt_2 { "left", "right", String, WS, ">", Label, "|", "{", Identifier, "(",
+// LineComment, "none" }
 pub static FIRST_SET_STAR_1_ALT0: TerminalSet = TerminalSet {
     id: 39,
     terminals: &[
@@ -2748,7 +2802,7 @@ pub static FIRST_SET_OPT_3_ALT0: TerminalSet = TerminalSet {
     id: 7,
     terminals: &[TerminalId(14)],
 };
-// Opt_3 : . {  }
+// Opt_3 : . { }
 pub static FIRST_SET_OPT_3_ALT1: TerminalSet = TerminalSet {
     id: 37,
     terminals: &[],
@@ -2778,12 +2832,13 @@ pub static FIRST_SET_OPT_4_ALT0: TerminalSet = TerminalSet {
     id: 11,
     terminals: &[TerminalId(1)],
 };
-// Opt_4 : . {  }
+// Opt_4 : . { }
 pub static FIRST_SET_OPT_4_ALT1: TerminalSet = TerminalSet {
     id: 37,
     terminals: &[],
 };
-// Plus_3 { "[", "@Start", EOF, "\", Identifier, "(", "!", ")", "!>>", "@Regex", "@Layout", Char, String, "@NoLayout", "|", "@WithLayout", LineComment, WS }
+// Plus_3 { "[", "@Start", EOF, "\", Identifier, "(", "!", ")", "!>>", "@Regex", "@Layout",
+// Char, String, "@NoLayout", "|", "@WithLayout", LineComment, WS }
 pub static FOLLOW_SET_PLUS_3: TerminalSet = TerminalSet {
     id: 41,
     terminals: &[
@@ -2821,7 +2876,8 @@ pub static FIRST_SET_PLUS_3: TerminalSet = TerminalSet {
         TerminalId(7),
     ],
 };
-// Plus_3 : . Plus_3 Layout Regex { "[", Char, String, Identifier, "(", "!", LineComment, WS }
+// Plus_3 : . Plus_3 Layout Regex { "[", Char, String, Identifier, "(", "!", LineComment, WS
+// }
 pub static FIRST_SET_PLUS_3_ALT0: TerminalSet = TerminalSet {
     id: 29,
     terminals: &[
@@ -2849,7 +2905,8 @@ pub static FIRST_SET_PLUS_3_ALT1: TerminalSet = TerminalSet {
         TerminalId(7),
     ],
 };
-// Plus_2 { "@WithLayout", "@Start", "@NoLayout", "|", EOF, "\", Identifier, "@Regex", "@Layout", LineComment, "!>>", WS }
+// Plus_2 { "@WithLayout", "@Start", "@NoLayout", "|", EOF, "\", Identifier, "@Regex",
+// "@Layout", LineComment, "!>>", WS }
 pub static FOLLOW_SET_PLUS_2: TerminalSet = TerminalSet {
     id: 42,
     terminals: &[
@@ -2881,7 +2938,8 @@ pub static FIRST_SET_PLUS_2: TerminalSet = TerminalSet {
         TerminalId(7),
     ],
 };
-// Plus_2 : . Plus_2 Layout "|" Layout Plus_3 { "[", Char, String, Identifier, "(", "!", LineComment, WS }
+// Plus_2 : . Plus_2 Layout "|" Layout Plus_3 { "[", Char, String, Identifier, "(", "!",
+// LineComment, WS }
 pub static FIRST_SET_PLUS_2_ALT0: TerminalSet = TerminalSet {
     id: 29,
     terminals: &[
@@ -2909,7 +2967,8 @@ pub static FIRST_SET_PLUS_2_ALT1: TerminalSet = TerminalSet {
         TerminalId(7),
     ],
 };
-// Plus_4 { "@WithLayout", "@Start", "@NoLayout", EOF, "\", Identifier, "@Regex", "@Layout", LineComment, "!>>", WS }
+// Plus_4 { "@WithLayout", "@Start", "@NoLayout", EOF, "\", Identifier, "@Regex", "@Layout",
+// LineComment, "!>>", WS }
 pub static FOLLOW_SET_PLUS_4: TerminalSet = TerminalSet {
     id: 12,
     terminals: &[
@@ -2941,7 +3000,8 @@ pub static FIRST_SET_PLUS_4_ALT1: TerminalSet = TerminalSet {
     id: 43,
     terminals: &[TerminalId(22), TerminalId(23)],
 };
-// Opt_5 { "@Start", "@NoLayout", EOF, Identifier, "@Regex", "@Layout", LineComment, "@WithLayout", WS }
+// Opt_5 { "@Start", "@NoLayout", EOF, Identifier, "@Regex", "@Layout", LineComment,
+// "@WithLayout", WS }
 pub static FOLLOW_SET_OPT_5: TerminalSet = TerminalSet {
     id: 2,
     terminals: &[
@@ -2966,12 +3026,13 @@ pub static FIRST_SET_OPT_5_ALT0: TerminalSet = TerminalSet {
     id: 43,
     terminals: &[TerminalId(22), TerminalId(23)],
 };
-// Opt_5 : . {  }
+// Opt_5 : . { }
 pub static FIRST_SET_OPT_5_ALT1: TerminalSet = TerminalSet {
     id: 37,
     terminals: &[],
 };
-// Star_2 { "@Start", "@NoLayout", EOF, Identifier, "@Regex", "@Layout", LineComment, "@WithLayout", WS }
+// Star_2 { "@Start", "@NoLayout", EOF, Identifier, "@Regex", "@Layout", LineComment,
+// "@WithLayout", WS }
 pub static FOLLOW_SET_STAR_2: TerminalSet = TerminalSet {
     id: 2,
     terminals: &[
@@ -2996,7 +3057,8 @@ pub static FIRST_SET_STAR_2_ALT0: TerminalSet = TerminalSet {
     id: 43,
     terminals: &[TerminalId(22), TerminalId(23)],
 };
-// Opt_6 { WS, "@Start", Label, EOF, Identifier, "(", "@Regex", "@Layout", String, "@NoLayout", "|", "{", LineComment, "@WithLayout", ">" }
+// Opt_6 { WS, "@Start", Label, EOF, Identifier, "(", "@Regex", "@Layout", String,
+// "@NoLayout", "|", "{", LineComment, "@WithLayout", ">" }
 pub static FOLLOW_SET_OPT_6: TerminalSet = TerminalSet {
     id: 17,
     terminals: &[
@@ -3027,12 +3089,13 @@ pub static FIRST_SET_OPT_6_ALT0: TerminalSet = TerminalSet {
     id: 44,
     terminals: &[TerminalId(24), TerminalId(25), TerminalId(26)],
 };
-// Opt_6 : . {  }
+// Opt_6 : . { }
 pub static FIRST_SET_OPT_6_ALT1: TerminalSet = TerminalSet {
     id: 37,
     terminals: &[],
 };
-// Plus_5 { WS, "@Start", "@NoLayout", "|", EOF, Identifier, "@Regex", "@Layout", LineComment, "@WithLayout", ">" }
+// Plus_5 { WS, "@Start", "@NoLayout", "|", EOF, Identifier, "@Regex", "@Layout",
+// LineComment, "@WithLayout", ">" }
 pub static FOLLOW_SET_PLUS_5: TerminalSet = TerminalSet {
     id: 21,
     terminals: &[
@@ -3063,7 +3126,8 @@ pub static FIRST_SET_PLUS_5: TerminalSet = TerminalSet {
         TerminalId(7),
     ],
 };
-// Plus_5 : . Plus_5 Layout "|" Layout Alternative { String, Label, "|", "{", Identifier, "(", LineComment, WS }
+// Plus_5 : . Plus_5 Layout "|" Layout Alternative { String, Label, "|", "{", Identifier,
+// "(", LineComment, WS }
 pub static FIRST_SET_PLUS_5_ALT0: TerminalSet = TerminalSet {
     id: 45,
     terminals: &[
@@ -3090,7 +3154,8 @@ pub static FIRST_SET_PLUS_5_ALT1: TerminalSet = TerminalSet {
         TerminalId(7),
     ],
 };
-// Opt_7 { ">", "@Start", "@NoLayout", EOF, Identifier, "@Regex", "@Layout", LineComment, "@WithLayout", WS }
+// Opt_7 { ">", "@Start", "@NoLayout", EOF, Identifier, "@Regex", "@Layout", LineComment,
+// "@WithLayout", WS }
 pub static FOLLOW_SET_OPT_7: TerminalSet = TerminalSet {
     id: 15,
     terminals: &[
@@ -3134,12 +3199,13 @@ pub static FIRST_SET_OPT_7_ALT0: TerminalSet = TerminalSet {
         TerminalId(7),
     ],
 };
-// Opt_7 : . {  }
+// Opt_7 : . { }
 pub static FIRST_SET_OPT_7_ALT1: TerminalSet = TerminalSet {
     id: 37,
     terminals: &[],
 };
-// Star_3 { WS, "@Start", "@NoLayout", EOF, Identifier, "@Regex", "@Layout", LineComment, "@WithLayout", ">" }
+// Star_3 { WS, "@Start", "@NoLayout", EOF, Identifier, "@Regex", "@Layout", LineComment,
+// "@WithLayout", ">" }
 pub static FOLLOW_SET_STAR_3: TerminalSet = TerminalSet {
     id: 15,
     terminals: &[
@@ -3183,7 +3249,8 @@ pub static FIRST_SET_STAR_3_ALT0: TerminalSet = TerminalSet {
         TerminalId(7),
     ],
 };
-// Plus_6 { WS, "@Start", Label, EOF, Identifier, "(", "@Regex", ")", "@Layout", String, "@NoLayout", "|", "{", LineComment, "@WithLayout", ">" }
+// Plus_6 { WS, "@Start", Label, EOF, Identifier, "(", "@Regex", ")", "@Layout", String,
+// "@NoLayout", "|", "{", LineComment, "@WithLayout", ">" }
 pub static FOLLOW_SET_PLUS_6: TerminalSet = TerminalSet {
     id: 46,
     terminals: &[
@@ -3220,7 +3287,8 @@ pub static FIRST_SET_PLUS_6_ALT1: TerminalSet = TerminalSet {
     id: 27,
     terminals: &[TerminalId(1), TerminalId(16), TerminalId(2), TerminalId(27)],
 };
-// Opt_8 { ">", "@Start", "@NoLayout", "|", Label, EOF, Identifier, "@Regex", "@Layout", LineComment, "@WithLayout", WS }
+// Opt_8 { ">", "@Start", "@NoLayout", "|", Label, EOF, Identifier, "@Regex", "@Layout",
+// LineComment, "@WithLayout", WS }
 pub static FOLLOW_SET_OPT_8: TerminalSet = TerminalSet {
     id: 47,
     terminals: &[
@@ -3248,12 +3316,13 @@ pub static FIRST_SET_OPT_8_ALT0: TerminalSet = TerminalSet {
     id: 27,
     terminals: &[TerminalId(1), TerminalId(16), TerminalId(2), TerminalId(27)],
 };
-// Opt_8 : . {  }
+// Opt_8 : . { }
 pub static FIRST_SET_OPT_8_ALT1: TerminalSet = TerminalSet {
     id: 37,
     terminals: &[],
 };
-// Star_4 { WS, "@Start", "@NoLayout", "|", Label, EOF, Identifier, "@Regex", "@Layout", LineComment, "@WithLayout", ">" }
+// Star_4 { WS, "@Start", "@NoLayout", "|", Label, EOF, Identifier, "@Regex", "@Layout",
+// LineComment, "@WithLayout", ">" }
 pub static FOLLOW_SET_STAR_4: TerminalSet = TerminalSet {
     id: 47,
     terminals: &[
@@ -3281,7 +3350,8 @@ pub static FIRST_SET_STAR_4_ALT0: TerminalSet = TerminalSet {
     id: 27,
     terminals: &[TerminalId(1), TerminalId(16), TerminalId(2), TerminalId(27)],
 };
-// Opt_9 { WS, "@Start", "@NoLayout", "|", EOF, Identifier, "@Regex", "@Layout", LineComment, "@WithLayout", ">" }
+// Opt_9 { WS, "@Start", "@NoLayout", "|", EOF, Identifier, "@Regex", "@Layout", LineComment,
+// "@WithLayout", ">" }
 pub static FOLLOW_SET_OPT_9: TerminalSet = TerminalSet {
     id: 21,
     terminals: &[
@@ -3308,7 +3378,7 @@ pub static FIRST_SET_OPT_9_ALT0: TerminalSet = TerminalSet {
     id: 48,
     terminals: &[TerminalId(6)],
 };
-// Opt_9 : . {  }
+// Opt_9 : . { }
 pub static FIRST_SET_OPT_9_ALT1: TerminalSet = TerminalSet {
     id: 37,
     terminals: &[],
@@ -3360,7 +3430,9 @@ pub static FIRST_SET_PLUS_7_ALT1: TerminalSet = TerminalSet {
     id: 50,
     terminals: &[TerminalId(20)],
 };
-// Group_1 { "?", ">", "@Start", "*", Label, EOF, "\", "!", Identifier, "(", ")", "!>>", "@Regex", "@Layout", String, "@NoLayout", "|", "{", "+", "}", LineComment, "@WithLayout", WS }
+// Group_1 { "?", ">", "@Start", "*", Label, EOF, "\", "!", Identifier, "(", ")", "!>>",
+// "@Regex", "@Layout", String, "@NoLayout", "|", "{", "+", "}", LineComment, "@WithLayout",
+// WS }
 pub static FOLLOW_SET_GROUP_1: TerminalSet = TerminalSet {
     id: 23,
     terminals: &[
@@ -3399,7 +3471,9 @@ pub static FIRST_SET_GROUP_1_ALT0: TerminalSet = TerminalSet {
     id: 13,
     terminals: &[TerminalId(22)],
 };
-// Plus_8 { "?", ">", "@Start", "*", Label, EOF, "\", "!", Identifier, "(", ")", "!>>", "@Regex", "@Layout", String, "@NoLayout", "|", "{", "+", "}", LineComment, "@WithLayout", WS }
+// Plus_8 { "?", ">", "@Start", "*", Label, EOF, "\", "!", Identifier, "(", ")", "!>>",
+// "@Regex", "@Layout", String, "@NoLayout", "|", "{", "+", "}", LineComment, "@WithLayout",
+// WS }
 pub static FOLLOW_SET_PLUS_8: TerminalSet = TerminalSet {
     id: 23,
     terminals: &[
@@ -3443,7 +3517,9 @@ pub static FIRST_SET_PLUS_8_ALT1: TerminalSet = TerminalSet {
     id: 13,
     terminals: &[TerminalId(22)],
 };
-// Group_2 { "?", ">", "@Start", "*", Label, EOF, "\", Identifier, "(", "!", ")", "!>>", "@Regex", "@Layout", String, "@NoLayout", "|", "{", "+", "}", LineComment, "@WithLayout", WS }
+// Group_2 { "?", ">", "@Start", "*", Label, EOF, "\", Identifier, "(", "!", ")", "!>>",
+// "@Regex", "@Layout", String, "@NoLayout", "|", "{", "+", "}", LineComment, "@WithLayout",
+// WS }
 pub static FOLLOW_SET_GROUP_2: TerminalSet = TerminalSet {
     id: 23,
     terminals: &[
@@ -3482,7 +3558,9 @@ pub static FIRST_SET_GROUP_2_ALT0: TerminalSet = TerminalSet {
     id: 14,
     terminals: &[TerminalId(23)],
 };
-// Plus_9 { "?", ">", "@Start", "*", Label, EOF, "\", Identifier, "(", "!", ")", "!>>", "@Regex", "@Layout", String, "@NoLayout", "|", "{", "+", "}", LineComment, "@WithLayout", WS }
+// Plus_9 { "?", ">", "@Start", "*", Label, EOF, "\", Identifier, "(", "!", ")", "!>>",
+// "@Regex", "@Layout", String, "@NoLayout", "|", "{", "+", "}", LineComment, "@WithLayout",
+// WS }
 pub static FOLLOW_SET_PLUS_9: TerminalSet = TerminalSet {
     id: 23,
     terminals: &[
@@ -3526,7 +3604,9 @@ pub static FIRST_SET_PLUS_9_ALT1: TerminalSet = TerminalSet {
     id: 14,
     terminals: &[TerminalId(23)],
 };
-// Group_3 { "?", ">", "@Start", "*", Label, EOF, "\", Identifier, "(", "!", ")", "!>>", "@Regex", "@Layout", String, "@NoLayout", "|", "{", "+", "}", LineComment, "@WithLayout", WS }
+// Group_3 { "?", ">", "@Start", "*", Label, EOF, "\", Identifier, "(", "!", ")", "!>>",
+// "@Regex", "@Layout", String, "@NoLayout", "|", "{", "+", "}", LineComment, "@WithLayout",
+// WS }
 pub static FOLLOW_SET_GROUP_3: TerminalSet = TerminalSet {
     id: 23,
     terminals: &[
@@ -3565,7 +3645,9 @@ pub static FIRST_SET_GROUP_3_ALT0: TerminalSet = TerminalSet {
     id: 51,
     terminals: &[TerminalId(32)],
 };
-// Plus_10 { "?", ">", "@Start", "*", Label, EOF, "\", Identifier, "(", "!", ")", "!>>", "@Regex", "@Layout", String, "@NoLayout", "|", "{", "+", "}", LineComment, "@WithLayout", WS }
+// Plus_10 { "?", ">", "@Start", "*", Label, EOF, "\", Identifier, "(", "!", ")", "!>>",
+// "@Regex", "@Layout", String, "@NoLayout", "|", "{", "+", "}", LineComment, "@WithLayout",
+// WS }
 pub static FOLLOW_SET_PLUS_10: TerminalSet = TerminalSet {
     id: 23,
     terminals: &[
@@ -3671,7 +3753,7 @@ pub static FIRST_SET_OPT_10_ALT0: TerminalSet = TerminalSet {
     id: 51,
     terminals: &[TerminalId(32)],
 };
-// Opt_10 : . {  }
+// Opt_10 : . { }
 pub static FIRST_SET_OPT_10_ALT1: TerminalSet = TerminalSet {
     id: 37,
     terminals: &[],
@@ -3702,7 +3784,10 @@ pub static FIRST_SET_PLUS_12_ALT1: TerminalSet = TerminalSet {
     id: 33,
     terminals: &[TerminalId(5)],
 };
-// Alt_0 { "left", "@Start", "[", "?", ":", Label, "\", Identifier, "!", "!<<", "!>>", "right", Char, "@NoLayout", "|", "-", "}", LineComment, "@WithLayout", "none", "]", WS, "=", "*", RangeChar, EOF, "@Regex", "(", "@Layout", ")", String, "{", "+", "grammar", ">" }
+// Alt_0 { "left", "@Start", "[", "?", ":", Label, "\", Identifier, "!", "!<<", "!>>",
+// "right", Char, "@NoLayout", "|", "-", "}", LineComment, "@WithLayout", "none", "]", WS,
+// "=", "*", RangeChar, EOF, "@Regex", "(", "@Layout", ")", String, "{", "+", "grammar", ">"
+// }
 pub static FOLLOW_SET_ALT_0: TerminalSet = TerminalSet {
     id: 34,
     terminals: &[
@@ -3758,7 +3843,10 @@ pub static FIRST_SET_ALT_0_ALT1: TerminalSet = TerminalSet {
     id: 54,
     terminals: &[TerminalId(9)],
 };
-// Plus_13 { "left", "@Start", "[", "?", ":", Label, "\", Identifier, "!", "!<<", "!>>", "right", Char, "@NoLayout", "|", "-", "}", LineComment, "@WithLayout", "none", "]", WS, "=", "*", RangeChar, EOF, "@Regex", "(", "@Layout", ")", String, "{", "+", "grammar", ">" }
+// Plus_13 { "left", "@Start", "[", "?", ":", Label, "\", Identifier, "!", "!<<", "!>>",
+// "right", Char, "@NoLayout", "|", "-", "}", LineComment, "@WithLayout", "none", "]", WS,
+// "=", "*", RangeChar, EOF, "@Regex", "(", "@Layout", ")", String, "{", "+", "grammar", ">"
+// }
 pub static FOLLOW_SET_PLUS_13: TerminalSet = TerminalSet {
     id: 34,
     terminals: &[
@@ -3814,7 +3902,9 @@ pub static FIRST_SET_PLUS_13_ALT1: TerminalSet = TerminalSet {
     id: 35,
     terminals: &[TerminalId(9), TerminalId(7)],
 };
-// Opt_11 { "left", "@Start", "[", "?", ":", Label, "\", Identifier, "!", "!<<", "!>>", "right", Char, "@NoLayout", "|", "-", "}", "@WithLayout", "none", "]", "=", "*", RangeChar, EOF, "@Regex", "(", "@Layout", ")", String, "{", "+", "grammar", ">" }
+// Opt_11 { "left", "@Start", "[", "?", ":", Label, "\", Identifier, "!", "!<<", "!>>",
+// "right", Char, "@NoLayout", "|", "-", "}", "@WithLayout", "none", "]", "=", "*",
+// RangeChar, EOF, "@Regex", "(", "@Layout", ")", String, "{", "+", "grammar", ">" }
 pub static FOLLOW_SET_OPT_11: TerminalSet = TerminalSet {
     id: 55,
     terminals: &[
@@ -3863,12 +3953,14 @@ pub static FIRST_SET_OPT_11_ALT0: TerminalSet = TerminalSet {
     id: 35,
     terminals: &[TerminalId(9), TerminalId(7)],
 };
-// Opt_11 : . {  }
+// Opt_11 : . { }
 pub static FIRST_SET_OPT_11_ALT1: TerminalSet = TerminalSet {
     id: 37,
     terminals: &[],
 };
-// Star_5 { "left", "@Start", "[", "?", ":", Label, "\", Identifier, "!", "!<<", "!>>", "right", Char, "@NoLayout", "|", "-", "}", "@WithLayout", "none", "]", "=", "*", RangeChar, EOF, "@Regex", "(", "@Layout", ")", String, "{", "+", "grammar", ">" }
+// Star_5 { "left", "@Start", "[", "?", ":", Label, "\", Identifier, "!", "!<<", "!>>",
+// "right", Char, "@NoLayout", "|", "-", "}", "@WithLayout", "none", "]", "=", "*",
+// RangeChar, EOF, "@Regex", "(", "@Layout", ")", String, "{", "+", "grammar", ">" }
 pub static FOLLOW_SET_STAR_5: TerminalSet = TerminalSet {
     id: 55,
     terminals: &[

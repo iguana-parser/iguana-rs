@@ -547,6 +547,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "follow_restriction_lexical_multiple"
+version = "0.1.0"
+dependencies = [
+ "iguana-runtime",
+ "rustc-hash 2.1.2",
+ "serde_json",
+]
+
+[[package]]
 name = "follow_restriction_multiple"
 version = "0.1.0"
 dependencies = [
@@ -746,6 +755,7 @@ dependencies = [
  "expression",
  "follow_restriction",
  "follow_restriction_lexical",
+ "follow_restriction_lexical_multiple",
  "follow_restriction_multiple",
  "group",
  "iggy",

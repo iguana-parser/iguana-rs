@@ -188,7 +188,8 @@ pub enum E<'a> {
         lit_0: Token,
         span: Span,
     },
-    // E(p) = [2 >= p] l=E(p) [(l == 0) || (l >= 2)] WS "+" WS r=E(2) return (r == 0) ? 2 : min(r, 2)
+    // E(p) = [2 >= p] l=E(p) [(l == 0) || (l >= 2)] WS "+" WS r=E(2) return (r == 0) ? 2 :
+    // min(r, 2)
     Alt1 {
         e_0: &'a E<'a>,
         ws_1: Token,
@@ -520,7 +521,8 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectPrefixParseTreeBuilder<'a> 
                         span: nonterminal_node.span,
                     }))
                 }
-                // E : [2 >= p] l=E(p) [(l == 0) || (l >= 2)] WS "+" WS r=E(2) return (r == 0) ? 2 : min(r, 2).
+                // E : [2 >= p] l=E(p) [(l == 0) || (l >= 2)] WS "+" WS r=E(2) return (r == 0) ? 2 : min(r,
+                // 2).
                 SlotId(17) => {
                     let [e_0, ws_1, lit_2, ws_3, e_4] = children.into_array::<5usize>();
                     ParseTree::E(self.bump.alloc(E::Alt1 {

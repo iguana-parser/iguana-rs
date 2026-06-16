@@ -142,7 +142,8 @@ pub enum S<'a> {
 }
 #[derive(Debug)]
 pub enum E<'a> {
-    // E(p) = [5 >= p] l=E(p) [(l == 0) || (l >= 5)] WS "*" WS r=E(6) return (r == 0) ? 5 : min(r, 5)
+    // E(p) = [5 >= p] l=E(p) [(l == 0) || (l >= 5)] WS "*" WS r=E(6) return (r == 0) ? 5 :
+    // min(r, 5)
     Alt0 {
         e_0: &'a E<'a>,
         ws_1: Token,
@@ -151,7 +152,8 @@ pub enum E<'a> {
         e_4: &'a E<'a>,
         span: Span,
     },
-    // E(p) = [4 >= p] l=E(p) [(l == 0) || (l >= 4)] WS "+" WS r=E(5) return (r == 0) ? 4 : min(r, 4)
+    // E(p) = [4 >= p] l=E(p) [(l == 0) || (l >= 4)] WS "+" WS r=E(5) return (r == 0) ? 4 :
+    // min(r, 4)
     Alt1 {
         e_0: &'a E<'a>,
         ws_1: Token,
@@ -427,7 +429,8 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for DeepPriorityFullParseTreeBuilder<'a
             },
             // E
             NonterminalId(1) => match nonterminal_node.return_slot {
-                // E : [5 >= p] l=E(p) [(l == 0) || (l >= 5)] WS "*" WS r=E(6) return (r == 0) ? 5 : min(r, 5).
+                // E : [5 >= p] l=E(p) [(l == 0) || (l >= 5)] WS "*" WS r=E(6) return (r == 0) ? 5 : min(r,
+                // 5).
                 SlotId(10) => {
                     let [e_0, ws_1, lit_2, ws_3, e_4] = children.into_array::<5usize>();
                     ParseTree::E(self.bump.alloc(E::Alt0 {
@@ -439,7 +442,8 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for DeepPriorityFullParseTreeBuilder<'a
                         span: nonterminal_node.span,
                     }))
                 }
-                // E : [4 >= p] l=E(p) [(l == 0) || (l >= 4)] WS "+" WS r=E(5) return (r == 0) ? 4 : min(r, 4).
+                // E : [4 >= p] l=E(p) [(l == 0) || (l >= 4)] WS "+" WS r=E(5) return (r == 0) ? 4 : min(r,
+                // 4).
                 SlotId(19) => {
                     let [e_0, ws_1, lit_2, ws_3, e_4] = children.into_array::<5usize>();
                     ParseTree::E(self.bump.alloc(E::Alt1 {

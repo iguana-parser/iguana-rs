@@ -614,7 +614,7 @@ impl<'i> IggyScanner<'i> {
     pub fn match_terminal_4(&self, input_index: u32) -> Option<u32> {
         self.scan(&DFA_4, input_index)
     }
-    // RangeChar = (![\\ - [ ] \t \u{c} \r \n  ]|\\[\\ - [ ] t f r n  ])
+    // RangeChar = (![\\ - [ ] \t \u{c} \r \n ]|\\[\\ - [ ] t f r n ])
     pub fn match_terminal_5(&self, input_index: u32) -> Option<u32> {
         self.scan(&DFA_5, input_index)
     }
@@ -622,11 +622,11 @@ impl<'i> IggyScanner<'i> {
     pub fn match_terminal_6(&self, input_index: u32) -> Option<u32> {
         self.scan(&DFA_6, input_index)
     }
-    // WS = [  \n \t]+
+    // WS = [ \n \t]+
     pub fn match_terminal_7(&self, input_index: u32) -> Option<u32> {
         self.scan(&DFA_7, input_index)
     }
-    // WSChar = [  \n \t]
+    // WSChar = [ \n \t]
     pub fn match_terminal_8(&self, input_index: u32) -> Option<u32> {
         self.scan(&DFA_8, input_index)
     }
@@ -742,7 +742,8 @@ impl<'i> IggyScanner<'i> {
     pub fn match_terminal_36(&self, input_index: u32) -> Option<u32> {
         self.scan(&DFA_36, input_index)
     }
-    // Whether any terminal in `set` matches at `input_index`, cached by the set's memo id. The first query of a set at a position scans it; later queries return the cached bit.
+    // Whether any terminal in `set` matches at `input_index`, cached by the set's memo id. The
+    // first query of a set at a position scans it; later queries return the cached bit.
     pub fn match_any(&mut self, set: &TerminalSet, input_index: u32) -> bool {
         if let Some(matched) = self.match_any_memo.get(set.id, input_index) {
             return matched;

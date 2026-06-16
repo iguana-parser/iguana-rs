@@ -194,7 +194,7 @@ pub static FIRST_SET_OPT_0_ALT0: TerminalSet = TerminalSet {
     id: 1,
     terminals: &[TerminalId(0)],
 };
-// Opt_0 : . {  }
+// Opt_0 : . { }
 pub static FIRST_SET_OPT_0_ALT1: TerminalSet = TerminalSet {
     id: 4,
     terminals: &[],

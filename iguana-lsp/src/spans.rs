@@ -168,7 +168,9 @@ impl<'a, 'b> SpanBuilder<'a, 'b> {
                     self.spans.definition_spans.insert(def_id, head_span);
                     self.lexical_idx += 1;
                 }
-                parse_tree::Rule::Amb(_) => panic!("unexpected ambiguity"),
+                parse_tree::Rule::Amb(_) => {
+                    unreachable!("ambiguous trees are rejected before this point")
+                }
             },
             _ => {
                 for child in node.children().iter() {
@@ -211,7 +213,9 @@ pub fn build_spans<'a>(
                 collect_regex_rule_spans(gr_rule, regex_rule, &mut builder.spans);
                 lexical_idx += 1;
             }
-            parse_tree::Rule::Amb(_) => panic!("unexpected ambiguity"),
+            parse_tree::Rule::Amb(_) => {
+                unreachable!("ambiguous trees are rejected before this point")
+            }
         }
     }
 

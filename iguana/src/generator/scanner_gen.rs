@@ -247,7 +247,8 @@ fn gen_match_exact_method(grammar: &Grammar, terminal_ids: &TerminalIds) -> Toke
         })
         .collect();
     quote! {
-        #[comment = "Whether `terminal_id` matches exactly the span `[start, end)`. Dispatches only the terminals used as syntax-level excepts."]
+        #[comment = "Whether `terminal_id` matches exactly the span `[start, end)`. Dispatches only the
+                     terminals used as syntax-level excepts."]
         pub fn match_exact(&self, terminal_id: TerminalId, start: u32, end: u32) -> bool {
             match terminal_id {
                 #(#arms)*
@@ -260,7 +261,8 @@ fn gen_match_exact_method(grammar: &Grammar, terminal_ids: &TerminalIds) -> Toke
 fn gen_match_any_method(config: &GenConfig) -> TokenStream {
     if config.match_memo {
         quote! {
-            #[comment = "Whether any terminal in `set` matches at `input_index`, cached by the set's memo id. The first query of a set at a position scans it; later queries return the cached bit."]
+            #[comment = "Whether any terminal in `set` matches at `input_index`, cached by the set's memo id. The
+                         first query of a set at a position scans it; later queries return the cached bit."]
             pub fn match_any(&mut self, set: &TerminalSet, input_index: u32) -> bool {
                 if let Some(matched) = self.match_any_memo.get(set.id, input_index) {
                     return matched;
@@ -374,26 +376,33 @@ fn gen_match_terminal_method(
         .lexical_rule(terminal)
         .unwrap_or_else(|| panic!("Terminal {} is not defined", terminal.name));
 
-    let follow_restriction_check = rule.follow_restriction.as_ref().map(|restriction| {
-        let Definition::Terminal(restriction_terminal) = grammar.definition(restriction.resolve())
-        else {
-            panic!(
-                "Follow restriction {} must refer to a terminal",
-                restriction.name
-            );
-        };
-        let restriction_id = terminal_ids.get_id(restriction_terminal);
-        let restriction_fn = format_ident!("match_terminal_{}", restriction_id.index());
-        quote! {
-            .and_then(|end| {
-                if self.#restriction_fn(end).is_some() {
-                    None
-                } else {
-                    Some(end)
-                }
-            })
-        }
-    });
+    // One check per follow restriction; chaining `.and_then` rejects the match
+    // if any restriction terminal matches at the end position.
+    let follow_restriction_checks: Vec<_> = rule
+        .follow_restriction
+        .iter()
+        .map(|restriction| {
+            let Definition::Terminal(restriction_terminal) =
+                grammar.definition(restriction.resolve())
+            else {
+                panic!(
+                    "Follow restriction {} must refer to a terminal",
+                    restriction.name
+                );
+            };
+            let restriction_id = terminal_ids.get_id(restriction_terminal);
+            let restriction_fn = format_ident!("match_terminal_{}", restriction_id.index());
+            quote! {
+                .and_then(|end| {
+                    if self.#restriction_fn(end).is_some() {
+                        None
+                    } else {
+                        Some(end)
+                    }
+                })
+            }
+        })
+        .collect();
 
     let precede_restriction_check = rule.precede_restriction.as_ref().map(|restriction| {
         let Definition::Terminal(restriction_terminal) = grammar.definition(restriction.resolve())
@@ -418,7 +427,7 @@ fn gen_match_terminal_method(
         pub fn #fn_name(&self, input_index: u32) -> Option<u32> {
             #precede_restriction_check
             self.scan(&#dfa_name, input_index)
-            #follow_restriction_check
+            #(#follow_restriction_checks)*
         }
     }
 }

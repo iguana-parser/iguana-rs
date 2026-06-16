@@ -91,7 +91,7 @@ impl<'a> Formatter<'a> {
         match rule {
             Rule::SyntaxRule { syntax_rule, .. } => self.format_syntax_rule(out, syntax_rule),
             Rule::RegexRule { regex_rule, .. } => self.format_regex_rule(out, regex_rule),
-            Rule::Amb(_) => panic!("unexpected ambiguity"),
+            Rule::Amb(_) => unreachable!("ambiguous trees are rejected before this point"),
         }
     }
 
@@ -127,7 +127,9 @@ impl<'a> Formatter<'a> {
                 Associativity::Alt0 { .. } => "left",
                 Associativity::Alt1 { .. } => "right",
                 Associativity::Alt2 { .. } => "none",
-                Associativity::Amb(_) => panic!("unexpected ambiguity"),
+                Associativity::Amb(_) => {
+                    unreachable!("ambiguous trees are rejected before this point")
+                }
             });
 
             for (ai, alt) in alternatives.iter().enumerate() {
@@ -202,7 +204,7 @@ impl<'a> Formatter<'a> {
                 out.push(')');
             }
             Annotation::Start { .. } => out.push_str("@Start"),
-            Annotation::Amb(_) => panic!("unexpected ambiguity"),
+            Annotation::Amb(_) => unreachable!("ambiguous trees are rejected before this point"),
         }
     }
 
@@ -299,7 +301,7 @@ impl<'a> Formatter<'a> {
                 out.push(':');
                 self.format_symbol(out, symbol);
             }
-            Symbol::Amb(_) => panic!("unexpected ambiguity"),
+            Symbol::Amb(_) => unreachable!("ambiguous trees are rejected before this point"),
         }
     }
 
@@ -315,7 +317,9 @@ impl<'a> Formatter<'a> {
                     s.push_str(" !>> ");
                     s.push_str(&self.input.text(identifier.span()));
                 }
-                PostCondition::Amb(_) => panic!("unexpected ambiguity"),
+                PostCondition::Amb(_) => {
+                    unreachable!("ambiguous trees are rejected before this point")
+                }
             }
         }
         s
@@ -431,7 +435,7 @@ impl<'a> Formatter<'a> {
             Regex::Identifier { identifier, .. } => {
                 out.push_str(&self.input.text(identifier.span()));
             }
-            Regex::Amb(_) => panic!("unexpected ambiguity"),
+            Regex::Amb(_) => unreachable!("ambiguous trees are rejected before this point"),
         }
     }
 
@@ -450,7 +454,9 @@ impl<'a> Formatter<'a> {
                 RangeElement::Alt1 { range_char, .. } => {
                     out.push_str(&self.input.text(range_char.span()));
                 }
-                RangeElement::Amb(_) => panic!("unexpected ambiguity"),
+                RangeElement::Amb(_) => {
+                    unreachable!("ambiguous trees are rejected before this point")
+                }
             }
         }
         out.push(']');
@@ -497,13 +503,14 @@ fn wrap_chunks(
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::{BuildResult, build};
 
     fn format_source(source: &str) -> Option<String> {
         let input = Input::from(source);
         let ctx = iguana_runtime::parse_tree::ParseContext::new();
-        match crate::build(&input, &ctx) {
-            crate::BuildResult::Success { ref tree, .. } => Some(format(tree, &input)),
-            crate::BuildResult::Error { .. } => None,
+        match build(&input, &ctx) {
+            BuildResult::Success { ref tree, .. } => Some(format(tree, &input)),
+            BuildResult::Error { .. } | BuildResult::Ambiguous => None,
         }
     }
 

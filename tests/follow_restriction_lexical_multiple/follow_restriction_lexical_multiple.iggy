@@ -1,0 +1,19 @@
+grammar FollowRestrictionLexicalMultiple
+
+S = Element+
+Element = Num | Word | Dot
+
+@Regex
+Num = [0-9]+ !>> Alpha !>> Dot
+
+@Regex
+Alpha = [a-zA-Z]
+
+@Regex
+Dot = "."
+
+@Regex
+Word = [a-zA-Z]+
+
+@Layout @Regex
+WS = [\ ]*

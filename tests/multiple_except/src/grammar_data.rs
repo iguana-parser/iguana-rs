@@ -65,7 +65,8 @@ pub static FIRST_SET_SYNTAX_IDENTIFIER: TerminalSet = TerminalSet {
     id: 0,
     terminals: &[TerminalId(1)],
 };
-// SyntaxIdentifier : . IdentifierChars \ Keyword \ BooleanLiteral \ NullLiteral { IdentifierChars }
+// SyntaxIdentifier : . IdentifierChars \ Keyword \ BooleanLiteral \ NullLiteral {
+// IdentifierChars }
 pub static FIRST_SET_SYNTAX_IDENTIFIER_ALT0: TerminalSet = TerminalSet {
     id: 1,
     terminals: &[TerminalId(1)],

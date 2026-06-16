@@ -279,12 +279,7 @@ fn convert_regex_rule(rule: &parse_tree::RegexRule, input: &Input) -> LexicalRul
                 });
             }
             parse_tree::PostCondition::FollowRestriction { identifier, .. } => {
-                assert!(
-                    lexical_rule.follow_restriction.is_none(),
-                    "Duplicate follow restriction on terminal {}",
-                    lexical_rule.head
-                );
-                lexical_rule.follow_restriction = Some(Identifier {
+                lexical_rule.follow_restriction.push(Identifier {
                     name: input.text(identifier.span()),
                     definition: None,
                 });

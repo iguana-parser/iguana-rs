@@ -47,7 +47,7 @@ pub fn main_loop(
                         let ctx = ParseContext::new();
                         let tokens = match build(&input, &ctx) {
                             BuildResult::Success { ref tree, .. } => semantic_tokens(tree, &input),
-                            BuildResult::Error { .. } => vec![],
+                            BuildResult::Error { .. } | BuildResult::Ambiguous => vec![],
                         };
                         let result = SemanticTokensResult::Tokens(SemanticTokens {
                             result_id: None,
@@ -88,7 +88,7 @@ pub fn main_loop(
                                     new_text: formatted,
                                 }])
                             }
-                            BuildResult::Error { .. } => None,
+                            BuildResult::Error { .. } | BuildResult::Ambiguous => None,
                         };
                         let result = serde_json::to_value(&edits).unwrap();
                         let resp = Response {
@@ -270,6 +270,7 @@ fn publish_diagnostics(
                 diagnostics(&grammar_def, &spans, &input)
             })
             .unwrap_or_default(),
+        BuildResult::Ambiguous => vec![],
         BuildResult::Error {
             line,
             column,

@@ -395,6 +395,18 @@ pub trait ParseTreeNode: Copy {
     fn origin(&self) -> Option<Origin> {
         None
     }
+
+    /// Whether any node in this subtree is ambiguous.
+    fn contains_ambiguity(&self) -> bool {
+        let mut stack = vec![*self];
+        while let Some(node) = stack.pop() {
+            if node.kind() == NodeKind::Amb {
+                return true;
+            }
+            stack.extend(node.children());
+        }
+        false
+    }
 }
 
 /// Whether `walk` should descend into a node's children.

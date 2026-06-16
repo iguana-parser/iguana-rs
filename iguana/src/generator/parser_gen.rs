@@ -920,6 +920,7 @@ impl<'a> ParserGen<'a> {
             .map(Self::gen_create_nonterminal_node_or_attach_children)
             .collect();
         let get_or_create_epsilon_node_method = self.gen_get_or_create_epsilon_node_method();
+        let ambiguity_node_added_method = Self::gen_ambiguity_node_added_method();
         quote! {
             impl<'i> #name_ident<'i> {
                 #new_method
@@ -929,6 +930,19 @@ impl<'a> ParserGen<'a> {
                 #(#add_gss_node_methods)*
                 #(#create_nonterminal_node_or_attach_children_methods)*
                 #get_or_create_epsilon_node_method
+                #ambiguity_node_added_method
+            }
+        }
+    }
+
+    fn gen_ambiguity_node_added_method() -> TokenStream {
+        quote! {
+            #[comment = "true if an (local) ambiguity node was added during parsing.
+                         If true, it does not guarantee that the local ambiguity is reachable from the root,
+                         so, the still a tree walk is needed for the ambiguity."]
+            pub fn ambiguity_node_added(&self) -> bool {
+                !self.intermediate_nodes_children.is_empty()
+                    || !self.nonterminal_nodes_children.is_empty()
             }
         }
     }
@@ -1048,14 +1062,24 @@ impl<'a> ParserGen<'a> {
                 ll1_call_log: Vec<(NonterminalId, u32)>,
                 #[comment = "Per-slot Span-keyed intermediate-node index, for slots in non-parameterized nonterminals."]
                 intermediate_nodes_index: [InlineMap<Span, SPPFNodeId>; #dd_slot_start_lit],
-                #[comment = "Per-slot (Span, env)-keyed intermediate-node index, for slots in parameterized nonterminals; env separates calls made with different parameter values."]
+                #[comment = "Per-slot (Span, env)-keyed intermediate-node index, for slots in parameterized
+                             nonterminals; env separates calls made with different parameter values."]
                 dd_intermediate_nodes_index: [InlineMap<(Span, Option<EnvId>), SPPFNodeId>; #param_slot_count_lit],
                 terminal_nodes_index: [InlineMap<Span, SPPFNodeId>; #terminal_ids_len],
                 #[comment = "Epsilon nodes keyed by input position; SPPFNodeId::NONE marks an empty slot."]
                 epsilon_nodes: Vec<SPPFNodeId>,
+                #[comment = "An intermediate node keeps it first child inline. Children of intermediate nodes
+                             are pairs: (left_child, right_child). Extra children, when there is ambiguity, are
+                             stored in here as tuples of (parent node, (left child, right child))."]
                 intermediate_nodes_children: Vec<(SPPFNodeId, (SPPFNodeId, SPPFNodeId))>,
+                #[comment = "intermediate_nodes_children grouped by parent node, built lazily for tree construction."]
                 intermediate_nodes_children_map: OnceCell<FxHashMap<SPPFNodeId, Vec<(SPPFNodeId, SPPFNodeId)>>>,
+                #[comment = "Extra children of ambiguous nonterminal nodes, the counterpart to
+                             intermediate_nodes_children: each entry is (parent node, (child, return slot)), a single
+                             child plus its return slot rather than a pair."]
                 nonterminal_nodes_children: Vec<(SPPFNodeId, (SPPFNodeId, SlotId))>,
+                #[comment = "nonterminal_nodes_children grouped by parent node, built lazily like
+                             intermediate_nodes_children_map."]
                 nonterminal_nodes_children_map: OnceCell<FxHashMap<SPPFNodeId, Vec<(SPPFNodeId, SlotId)>>>,
                 envs: Vec<Env>,
                 parse_errors: InlineVec<ParseError, 8>,

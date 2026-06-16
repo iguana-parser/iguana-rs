@@ -525,7 +525,8 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for PlusExceptParseTreeBuilder<'a> {
             },
             // Plus_0
             NonterminalId(2) => match nonterminal_node.return_slot {
-                // {Number Identifier \ Keyword}+ : {Number Identifier \ Keyword}+ Identifier \ Keyword Number.
+                // {Number Identifier \ Keyword}+ : {Number Identifier \ Keyword}+ Identifier \ Keyword
+                // Number.
                 SlotId(7) => {
                     let [numbers_0, identifier, number_2] = children.into_array::<3usize>();
                     ParseTree::Plus0(self.bump.alloc(Plus0::Alt0 {

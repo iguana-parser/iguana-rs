@@ -58,6 +58,13 @@ pub fn generate(grammar: &Grammar) -> TokenStream {
             pub tree: T,
             pub parse_duration: Duration,
             pub tree_construction_duration: Duration,
+            #[comment = "True if an ambiguity node was added during parsing. Since the ambiguous node may
+                         end up in a dead branch (not reachable from root), the final parse tree may not be
+                         ambiguous, but this flag is used as a hint for checking for ambiguous parse trees.
+                         If the value is false, the parse is not ambiguous. If it's true, the caller should
+                         walk the parse tree to determine if there is an ambiguity node reachable from root.
+                         See contains_ambiguity."]
+            pub ambiguity_node_added: bool,
         }
 
         #(#parse_methods)*
@@ -89,7 +96,8 @@ fn gen_parse_method(
                     let parse_tree_builder = #parse_tree_builder::new(ctx);
                     let tree = parse_tree::#create_fn(success.sppf_node_id, &parser, &parse_tree_builder);
                     let tree_construction_duration = tree_start.elapsed();
-                    Ok(ParseSuccess { tree, parse_duration, tree_construction_duration })
+                    let ambiguity_node_added = parser.ambiguity_node_added();
+                    Ok(ParseSuccess { tree, parse_duration, tree_construction_duration, ambiguity_node_added })
                 }
                 ParseResult::Failure(error) => {
                     let (line, column, message) = parser.format_error(&error);

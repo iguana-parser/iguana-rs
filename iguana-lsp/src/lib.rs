@@ -10,7 +10,10 @@ pub mod symbols;
 
 use iggy::parse_tree::{Grammar, Layout, Start};
 pub use iguana::grammar::def::GrammarDef;
-use iguana_runtime::{input::Input, parse_tree::ParseContext};
+use iguana_runtime::{
+    input::Input,
+    parse_tree::{ParseContext, ParseTreeNode},
+};
 use spans::GrammarSpans;
 use std::time::Duration;
 
@@ -20,6 +23,10 @@ pub enum BuildResult<'a> {
         parse_duration: Duration,
         tree_construction_duration: Duration,
     },
+    /// The grammar parsed but is ambiguous, so it cannot be analyzed. Callers
+    /// treat this like a parse failure and skip the rest of the pipeline, but
+    /// without a location to mark, so it surfaces no diagnostic.
+    Ambiguous,
     Error {
         line: u32,
         column: u32,
@@ -52,11 +59,22 @@ pub fn build<'a>(input: &Input, ctx: &'a ParseContext) -> BuildResult<'a> {
         iggy::parse_grammar(input, ctx)
     }));
     match result {
-        Ok(Ok(success)) => BuildResult::Success {
-            tree: success.tree,
-            parse_duration: success.parse_duration,
-            tree_construction_duration: success.tree_construction_duration,
-        },
+        Ok(Ok(success)) => {
+            // The flag is a cheap necessary condition; confirm with a tree walk,
+            // since the recorded ambiguity may sit in a dead branch the tree
+            // never reaches.
+            if success.ambiguity_node_added
+                && success.tree.node.as_parse_tree().contains_ambiguity()
+            {
+                BuildResult::Ambiguous
+            } else {
+                BuildResult::Success {
+                    tree: success.tree,
+                    parse_duration: success.parse_duration,
+                    tree_construction_duration: success.tree_construction_duration,
+                }
+            }
+        }
         Ok(Err(error)) => BuildResult::Error {
             line: error.line,
             column: error.column,

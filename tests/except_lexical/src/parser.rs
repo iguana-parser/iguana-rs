@@ -494,14 +494,27 @@ pub struct ExceptLexicalParser<'i> {
     ll1_call_log: Vec<(NonterminalId, u32)>,
     // Per-slot Span-keyed intermediate-node index, for slots in non-parameterized nonterminals.
     intermediate_nodes_index: [InlineMap<Span, SPPFNodeId>; 2],
-    // Per-slot (Span, env)-keyed intermediate-node index, for slots in parameterized nonterminals; env separates calls made with different parameter values.
+    // Per-slot (Span, env)-keyed intermediate-node index, for slots in parameterized
+    // nonterminals; env separates calls made with different parameter values.
     dd_intermediate_nodes_index: [InlineMap<(Span, Option<EnvId>), SPPFNodeId>; 0],
     terminal_nodes_index: [InlineMap<Span, SPPFNodeId>; 4],
     // Epsilon nodes keyed by input position; SPPFNodeId::NONE marks an empty slot.
     epsilon_nodes: Vec<SPPFNodeId>,
+    // Extra child pairs of ambiguous intermediate nodes, appended while building the SPPF: each
+    // entry is (parent node, (left child, right child)), a pair because an intermediate node
+    // joins two adjacent sub-derivations. The node keeps its first pair inline, so any entry
+    // here means the parent is ambiguous.
     intermediate_nodes_children: Vec<(SPPFNodeId, (SPPFNodeId, SPPFNodeId))>,
+    // intermediate_nodes_children grouped by parent node, built lazily for tree construction.
+    // OnceCell lets the &self construction walk build it once; an unambiguous parse leaves it
+    // empty.
     intermediate_nodes_children_map: OnceCell<FxHashMap<SPPFNodeId, Vec<(SPPFNodeId, SPPFNodeId)>>>,
+    // Extra children of ambiguous nonterminal nodes, the counterpart to
+    // intermediate_nodes_children: each entry is (parent node, (child, return slot)), a single
+    // child plus its return slot rather than a pair.
     nonterminal_nodes_children: Vec<(SPPFNodeId, (SPPFNodeId, SlotId))>,
+    // nonterminal_nodes_children grouped by parent node, built lazily like
+    // intermediate_nodes_children_map.
     nonterminal_nodes_children_map: OnceCell<FxHashMap<SPPFNodeId, Vec<(SPPFNodeId, SlotId)>>>,
     envs: Vec<Env>,
     parse_errors: InlineVec<ParseError, 8>,
@@ -582,5 +595,11 @@ impl<'i> ExceptLexicalParser<'i> {
             .push(SPPFNode::Terminal(TerminalNode { terminal_id, span }));
         self.epsilon_nodes[i as usize] = node_id;
         node_id
+    }
+    // Whether any node was made ambiguous during the parse (local, SPPF-level ambiguity): true
+    // when either children log is non-empty. A non-empty log can still come from a dead branch
+    // the start symbol's tree never reaches, so callers confirm with a tree walk.
+    pub fn ambiguity_node_added(&self) -> bool {
+        !self.intermediate_nodes_children.is_empty() || !self.nonterminal_nodes_children.is_empty()
     }
 }

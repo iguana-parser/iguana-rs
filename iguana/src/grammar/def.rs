@@ -150,7 +150,7 @@ pub struct LexicalRule {
     pub head: Terminal,
     pub regex: Regex,
     pub except: Vec<Identifier>,
-    pub follow_restriction: Option<Identifier>,
+    pub follow_restriction: Vec<Identifier>,
     pub precede_restriction: Option<Identifier>,
 }
 
@@ -160,7 +160,7 @@ impl LexicalRule {
             head,
             regex,
             except: vec![],
-            follow_restriction: None,
+            follow_restriction: vec![],
             precede_restriction: None,
         }
     }
@@ -172,7 +172,7 @@ impl Display for LexicalRule {
         for except in &self.except {
             write!(f, " \\ {}", except)?;
         }
-        if let Some(restriction) = &self.follow_restriction {
+        for restriction in &self.follow_restriction {
             write!(f, " !>> {}", restriction)?;
         }
         if let Some(restriction) = &self.precede_restriction {
@@ -880,7 +880,7 @@ fn build_grammar(grammar_def: GrammarDef, dump: &[Phase]) -> Grammar {
                         .unwrap_or_else(|| panic!("Except terminal {} not found", except.name)),
                 );
             }
-            if let Some(restriction) = &mut r.follow_restriction {
+            for restriction in &mut r.follow_restriction {
                 restriction.definition =
                     Some(symbol_table.get(&restriction.name).unwrap_or_else(|| {
                         panic!("Follow restriction terminal {} not found", restriction.name)
@@ -1072,7 +1072,7 @@ impl Grammar {
             .unwrap_or_else(|| panic!("Terminal {} is not defined", terminal.name));
         assert!(
             rule.except.is_empty()
-                && rule.follow_restriction.is_none()
+                && rule.follow_restriction.is_empty()
                 && rule.precede_restriction.is_none(),
             "Except {} has restrictions of its own; only plain terminals can be excluded",
             terminal.name

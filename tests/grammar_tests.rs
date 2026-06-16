@@ -120,3 +120,6 @@ mod amb;
 
 #[path = "plus_except/tests.rs"]
 mod plus_except;
+
+#[path = "follow_restriction_lexical_multiple/tests.rs"]
+mod follow_restriction_lexical_multiple;

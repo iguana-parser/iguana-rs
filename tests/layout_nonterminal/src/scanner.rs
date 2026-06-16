@@ -57,7 +57,7 @@ impl<'i> LayoutNonterminalScanner<'i> {
             match_any_memo,
         }
     }
-    // WhiteSpace = [  \t \n]+
+    // WhiteSpace = [ \t \n]+
     pub fn match_terminal_0(&self, input_index: u32) -> Option<u32> {
         self.scan(&DFA_0, input_index)
     }
@@ -69,7 +69,8 @@ impl<'i> LayoutNonterminalScanner<'i> {
     pub fn match_terminal_2(&self, input_index: u32) -> Option<u32> {
         self.scan(&DFA_2, input_index)
     }
-    // Whether any terminal in `set` matches at `input_index`, cached by the set's memo id. The first query of a set at a position scans it; later queries return the cached bit.
+    // Whether any terminal in `set` matches at `input_index`, cached by the set's memo id. The
+    // first query of a set at a position scans it; later queries return the cached bit.
     pub fn match_any(&mut self, set: &TerminalSet, input_index: u32) -> bool {
         if let Some(matched) = self.match_any_memo.get(set.id, input_index) {
             return matched;

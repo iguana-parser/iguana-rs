@@ -1,3 +1,4 @@
+use crate::{BuildResult, build};
 use iggy::parse_tree::{Grammar, Layout, ParseTree, Start, Token};
 use iguana_runtime::input::{Input, Span};
 use lsp_types::{Position, Range, SemanticToken, SemanticTokenType, SemanticTokensLegend};
@@ -55,9 +56,9 @@ pub fn semantic_tokens(
 pub fn tokenize(source: &str) -> Vec<SemanticToken> {
     let input = Input::from(source);
     let ctx = iguana_runtime::parse_tree::ParseContext::new();
-    match crate::build(&input, &ctx) {
-        crate::BuildResult::Success { ref tree, .. } => semantic_tokens(tree, &input),
-        crate::BuildResult::Error { .. } => vec![],
+    match build(&input, &ctx) {
+        BuildResult::Success { ref tree, .. } => semantic_tokens(tree, &input),
+        BuildResult::Error { .. } | BuildResult::Ambiguous => vec![],
     }
 }
 

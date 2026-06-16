@@ -35,6 +35,12 @@ pub struct ParseSuccess<T> {
     pub tree: T,
     pub parse_duration: Duration,
     pub tree_construction_duration: Duration,
+    // True if an ambiguity node was added during parsing. Since the ambiguous node may end up in
+    // a dead branch (not reachable from root), the final parse tree may not be ambiguous, but
+    // this flag is used as a hint for checking for ambiguous parse trees. If the value is false,
+    // the parse is not ambiguous. If it's true, the caller should walk the parse tree to
+    // determine if there is an ambiguity node reachable from root. See contains_ambiguity.
+    pub ambiguity_node_added: bool,
 }
 pub fn parse_grammar<'a>(
     input: &Input,
@@ -52,10 +58,12 @@ pub fn parse_grammar<'a>(
                 &parse_tree_builder,
             );
             let tree_construction_duration = tree_start.elapsed();
+            let ambiguity_node_added = parser.ambiguity_node_added();
             Ok(ParseSuccess {
                 tree,
                 parse_duration,
                 tree_construction_duration,
+                ambiguity_node_added,
             })
         }
         ParseResult::Failure(error) => {
@@ -84,10 +92,12 @@ pub fn parse_rule<'a>(
                 &parse_tree_builder,
             );
             let tree_construction_duration = tree_start.elapsed();
+            let ambiguity_node_added = parser.ambiguity_node_added();
             Ok(ParseSuccess {
                 tree,
                 parse_duration,
                 tree_construction_duration,
+                ambiguity_node_added,
             })
         }
         ParseResult::Failure(error) => {
@@ -116,10 +126,12 @@ pub fn parse_syntax_rule<'a>(
                 &parse_tree_builder,
             );
             let tree_construction_duration = tree_start.elapsed();
+            let ambiguity_node_added = parser.ambiguity_node_added();
             Ok(ParseSuccess {
                 tree,
                 parse_duration,
                 tree_construction_duration,
+                ambiguity_node_added,
             })
         }
         ParseResult::Failure(error) => {
@@ -148,10 +160,12 @@ pub fn parse_annotation<'a>(
                 &parse_tree_builder,
             );
             let tree_construction_duration = tree_start.elapsed();
+            let ambiguity_node_added = parser.ambiguity_node_added();
             Ok(ParseSuccess {
                 tree,
                 parse_duration,
                 tree_construction_duration,
+                ambiguity_node_added,
             })
         }
         ParseResult::Failure(error) => {
@@ -180,10 +194,12 @@ pub fn parse_regex_rule<'a>(
                 &parse_tree_builder,
             );
             let tree_construction_duration = tree_start.elapsed();
+            let ambiguity_node_added = parser.ambiguity_node_added();
             Ok(ParseSuccess {
                 tree,
                 parse_duration,
                 tree_construction_duration,
+                ambiguity_node_added,
             })
         }
         ParseResult::Failure(error) => {
@@ -212,10 +228,12 @@ pub fn parse_pre_condition<'a>(
                 &parse_tree_builder,
             );
             let tree_construction_duration = tree_start.elapsed();
+            let ambiguity_node_added = parser.ambiguity_node_added();
             Ok(ParseSuccess {
                 tree,
                 parse_duration,
                 tree_construction_duration,
+                ambiguity_node_added,
             })
         }
         ParseResult::Failure(error) => {
@@ -244,10 +262,12 @@ pub fn parse_post_condition<'a>(
                 &parse_tree_builder,
             );
             let tree_construction_duration = tree_start.elapsed();
+            let ambiguity_node_added = parser.ambiguity_node_added();
             Ok(ParseSuccess {
                 tree,
                 parse_duration,
                 tree_construction_duration,
+                ambiguity_node_added,
             })
         }
         ParseResult::Failure(error) => {
@@ -276,10 +296,12 @@ pub fn parse_priority_level<'a>(
                 &parse_tree_builder,
             );
             let tree_construction_duration = tree_start.elapsed();
+            let ambiguity_node_added = parser.ambiguity_node_added();
             Ok(ParseSuccess {
                 tree,
                 parse_duration,
                 tree_construction_duration,
+                ambiguity_node_added,
             })
         }
         ParseResult::Failure(error) => {
@@ -308,10 +330,12 @@ pub fn parse_associativity<'a>(
                 &parse_tree_builder,
             );
             let tree_construction_duration = tree_start.elapsed();
+            let ambiguity_node_added = parser.ambiguity_node_added();
             Ok(ParseSuccess {
                 tree,
                 parse_duration,
                 tree_construction_duration,
+                ambiguity_node_added,
             })
         }
         ParseResult::Failure(error) => {
@@ -340,10 +364,12 @@ pub fn parse_alternative<'a>(
                 &parse_tree_builder,
             );
             let tree_construction_duration = tree_start.elapsed();
+            let ambiguity_node_added = parser.ambiguity_node_added();
             Ok(ParseSuccess {
                 tree,
                 parse_duration,
                 tree_construction_duration,
+                ambiguity_node_added,
             })
         }
         ParseResult::Failure(error) => {
@@ -372,10 +398,12 @@ pub fn parse_symbol<'a>(
                 &parse_tree_builder,
             );
             let tree_construction_duration = tree_start.elapsed();
+            let ambiguity_node_added = parser.ambiguity_node_added();
             Ok(ParseSuccess {
                 tree,
                 parse_duration,
                 tree_construction_duration,
+                ambiguity_node_added,
             })
         }
         ParseResult::Failure(error) => {
@@ -404,10 +432,12 @@ pub fn parse_regex<'a>(
                 &parse_tree_builder,
             );
             let tree_construction_duration = tree_start.elapsed();
+            let ambiguity_node_added = parser.ambiguity_node_added();
             Ok(ParseSuccess {
                 tree,
                 parse_duration,
                 tree_construction_duration,
+                ambiguity_node_added,
             })
         }
         ParseResult::Failure(error) => {
@@ -436,10 +466,12 @@ pub fn parse_char_class<'a>(
                 &parse_tree_builder,
             );
             let tree_construction_duration = tree_start.elapsed();
+            let ambiguity_node_added = parser.ambiguity_node_added();
             Ok(ParseSuccess {
                 tree,
                 parse_duration,
                 tree_construction_duration,
+                ambiguity_node_added,
             })
         }
         ParseResult::Failure(error) => {
@@ -468,10 +500,12 @@ pub fn parse_range_element<'a>(
                 &parse_tree_builder,
             );
             let tree_construction_duration = tree_start.elapsed();
+            let ambiguity_node_added = parser.ambiguity_node_added();
             Ok(ParseSuccess {
                 tree,
                 parse_duration,
                 tree_construction_duration,
+                ambiguity_node_added,
             })
         }
         ParseResult::Failure(error) => {
@@ -500,10 +534,12 @@ pub fn parse_range<'a>(
                 &parse_tree_builder,
             );
             let tree_construction_duration = tree_start.elapsed();
+            let ambiguity_node_added = parser.ambiguity_node_added();
             Ok(ParseSuccess {
                 tree,
                 parse_duration,
                 tree_construction_duration,
+                ambiguity_node_added,
             })
         }
         ParseResult::Failure(error) => {
@@ -532,10 +568,12 @@ pub fn parse_layout<'a>(
                 &parse_tree_builder,
             );
             let tree_construction_duration = tree_start.elapsed();
+            let ambiguity_node_added = parser.ambiguity_node_added();
             Ok(ParseSuccess {
                 tree,
                 parse_duration,
                 tree_construction_duration,
+                ambiguity_node_added,
             })
         }
         ParseResult::Failure(error) => {

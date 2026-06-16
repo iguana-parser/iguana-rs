@@ -65,7 +65,8 @@ impl<'i> PlusExceptScanner<'i> {
     pub fn match_terminal_3(&self, input_index: u32) -> Option<u32> {
         self.scan(&DFA_3, input_index)
     }
-    // Whether any terminal in `set` matches at `input_index`, cached by the set's memo id. The first query of a set at a position scans it; later queries return the cached bit.
+    // Whether any terminal in `set` matches at `input_index`, cached by the set's memo id. The
+    // first query of a set at a position scans it; later queries return the cached bit.
     pub fn match_any(&mut self, set: &TerminalSet, input_index: u32) -> bool {
         if let Some(matched) = self.match_any_memo.get(set.id, input_index) {
             return matched;
@@ -77,7 +78,8 @@ impl<'i> PlusExceptScanner<'i> {
         self.match_any_memo.insert(set.id, input_index, matched);
         matched
     }
-    // Whether `terminal_id` matches exactly the span `[start, end)`. Dispatches only the terminals used as syntax-level excepts.
+    // Whether `terminal_id` matches exactly the span `[start, end)`. Dispatches only the
+    // terminals used as syntax-level excepts.
     pub fn match_exact(&self, terminal_id: TerminalId, start: u32, end: u32) -> bool {
         match terminal_id {
             TerminalId(2) => self.scan_exact(&DFA_2, start, end),

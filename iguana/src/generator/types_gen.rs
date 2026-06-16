@@ -19,9 +19,9 @@ fn gen_nonterminal_struct() -> TokenStream {
         pub struct Nonterminal {
             pub name: &'static str,
             pub display: &'static str,
-            #[comment = "Whether this nonterminal was introduced by a grammar transformation"]
-            #[comment = "(e.g., EBNF desugaring, start symbol wrapping, or exclude desugaring)"]
-            #[comment = "rather than being explicitly defined by the user."]
+            #[comment = "Whether this nonterminal was introduced by a grammar transformation (e.g., EBNF
+                         desugaring, start symbol wrapping, or exclude desugaring) rather than being
+                         explicitly defined by the user."]
             pub derived: bool,
         }
     }

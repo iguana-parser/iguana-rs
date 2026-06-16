@@ -7,7 +7,7 @@ use std::{
     panic,
     path::{Path, PathBuf},
     process::Command,
-    sync::{Mutex, OnceLock},
+    sync::{Mutex, MutexGuard, OnceLock},
     thread,
 };
 
@@ -156,7 +156,7 @@ struct StatsData {
 }
 
 /// Result of analyzing/parsing a grammar source.
-#[derive(Clone, Serialize, Type)]
+#[derive(Clone, Default, Serialize, Type)]
 struct AnalyzeResult {
     success: bool,
     /// Time spent in the GLL parsing algorithm (milliseconds).
@@ -200,7 +200,7 @@ impl GrammarState {
                 self.tree_ms = tree_construction_duration.as_millis() as u32;
                 self.success = true;
             }
-            iguana_lsp::BuildResult::Error { .. } => {
+            iguana_lsp::BuildResult::Error { .. } | iguana_lsp::BuildResult::Ambiguous => {
                 self.grammar_def = None;
                 self.parse_ms = 0;
                 self.tree_ms = 0;
@@ -324,8 +324,7 @@ fn find_parser_binary(directory: &str, profile: &str) -> Result<PathBuf, String>
         if parent_cargo.exists() {
             if let Ok(content) = fs::read_to_string(&parent_cargo) {
                 if content.contains("[workspace]") {
-                    let workspace_path =
-                        parent.join("target").join(profile).join(&parser_name);
+                    let workspace_path = parent.join("target").join(profile).join(&parser_name);
                     if workspace_path.exists() {
                         return Ok(workspace_path);
                     }
@@ -342,8 +341,7 @@ fn find_parser_binary(directory: &str, profile: &str) -> Result<PathBuf, String>
 }
 
 fn get_parser_binary_path(directory: &str) -> Result<PathBuf, String> {
-    find_parser_binary(directory, "release")
-        .or_else(|_| find_parser_binary(directory, "debug"))
+    find_parser_binary(directory, "release").or_else(|_| find_parser_binary(directory, "debug"))
 }
 
 #[tauri::command]
@@ -359,20 +357,15 @@ fn load_grammar(directory: String) -> Result<(String, String), String> {
     let iggy_files: Vec<_> = fs::read_dir(dir)
         .map_err(|e| format!("Cannot read directory: {e}"))?
         .filter_map(|entry| entry.ok())
-        .filter(|entry| {
-            entry
-                .path()
-                .extension()
-                .is_some_and(|ext| ext == "iggy")
-        })
+        .filter(|entry| entry.path().extension().is_some_and(|ext| ext == "iggy"))
         .collect();
 
     match iggy_files.len() {
         0 => Err("No .iggy file found in this directory.".to_string()),
         1 => {
             let path = iggy_files[0].path();
-            let content = fs::read_to_string(&path)
-                .map_err(|e| format!("Cannot read grammar file: {e}"))?;
+            let content =
+                fs::read_to_string(&path).map_err(|e| format!("Cannot read grammar file: {e}"))?;
             let filename = path
                 .file_name()
                 .unwrap_or_default()
@@ -409,7 +402,10 @@ fn build_parser(
         features.push("debug-trace".into());
     }
     let features_arg = features.join(",");
-    let built_features = BuildFeatures { instrument, debug_trace };
+    let built_features = BuildFeatures {
+        instrument,
+        debug_trace,
+    };
 
     // Mark current binary as stale until rebuild completes.
     state.lock().unwrap().features = None;
@@ -496,21 +492,20 @@ fn parse_inner(
 ) -> Result<ParseOutput, String> {
     let parser_path = get_parser_binary_path(&directory)?;
 
-    let mut input_file = NamedTempFile::new()
-        .map_err(|e| format!("Failed to create temp file: {}", e))?;
+    let mut input_file =
+        NamedTempFile::new().map_err(|e| format!("Failed to create temp file: {}", e))?;
     input_file
         .write_all(input.as_bytes())
         .map_err(|e| format!("Failed to write input: {}", e))?;
 
-    let temp_dir =
-        TempDir::new().map_err(|e| format!("Failed to create temp directory: {}", e))?;
+    let temp_dir = TempDir::new().map_err(|e| format!("Failed to create temp directory: {}", e))?;
     let sppf_path = temp_dir.path().join("sppf.json");
     let gss_path = temp_dir.path().join("gss.json");
     let parse_tree_path = temp_dir.path().join("parse_tree.json");
     let result_path = temp_dir.path().join("result.json");
 
     let output = Command::new(&parser_path)
-        .env("RUST_BACKTRACE", "1")  // Always show backtraces for debugging
+        .env("RUST_BACKTRACE", "1") // Always show backtraces for debugging
         .arg(input_file.path())
         .arg("--nonterminal")
         .arg(&start_nonterminal)
@@ -556,7 +551,11 @@ fn parse_inner(
     // unexpected error, not a parse failure. Record the detail in the log file so
     // a saved log carries it; the frontend also shows it in the output panel.
     if !output.status.success() && result.is_none() {
-        let detail = format!("Parser exited unexpectedly ({}).\n{}", output.status, stderr.trim());
+        let detail = format!(
+            "Parser exited unexpectedly ({}).\n{}",
+            output.status,
+            stderr.trim()
+        );
         log_to_file("error", &detail);
         return Ok(ParseOutput {
             success: false,
@@ -630,8 +629,8 @@ fn get_sppf(state: tauri::State<Mutex<ParseState>>) -> Result<SPPF, String> {
         .as_ref()
         .ok_or("No parse result available. Run parse first.")?;
 
-    let content = fs::read_to_string(sppf_path)
-        .map_err(|e| format!("Failed to read SPPF file: {}", e))?;
+    let content =
+        fs::read_to_string(sppf_path).map_err(|e| format!("Failed to read SPPF file: {}", e))?;
 
     serde_json::from_str(&content).map_err(|e| format!("Failed to parse SPPF JSON: {}", e))
 }
@@ -670,14 +669,13 @@ fn get_stats(
 ) -> Result<StatsData, String> {
     let parser_path = get_parser_binary_path(&directory)?;
 
-    let mut input_file = NamedTempFile::new()
-        .map_err(|e| format!("Failed to create temp file: {}", e))?;
+    let mut input_file =
+        NamedTempFile::new().map_err(|e| format!("Failed to create temp file: {}", e))?;
     input_file
         .write_all(input.as_bytes())
         .map_err(|e| format!("Failed to write input: {}", e))?;
 
-    let temp_dir =
-        TempDir::new().map_err(|e| format!("Failed to create temp directory: {}", e))?;
+    let temp_dir = TempDir::new().map_err(|e| format!("Failed to create temp directory: {}", e))?;
     let stats_path = temp_dir.path().join("stats.json");
 
     let output = Command::new(&parser_path)
@@ -697,8 +695,8 @@ fn get_stats(
         ));
     }
 
-    let content = fs::read_to_string(&stats_path)
-        .map_err(|e| format!("Failed to read stats file: {}", e))?;
+    let content =
+        fs::read_to_string(&stats_path).map_err(|e| format!("Failed to read stats file: {}", e))?;
     serde_json::from_str(&content).map_err(|e| format!("Failed to parse stats JSON: {}", e))
 }
 
@@ -861,8 +859,7 @@ fn setup_vscode_debug(
 
     // Write input to .vscode/debug-input.txt (keeps parser directory clean)
     let input_path = vscode_dir.join("debug-input.txt");
-    fs::write(&input_path, &input)
-        .map_err(|e| format!("Failed to write debug input: {}", e))?;
+    fs::write(&input_path, &input).map_err(|e| format!("Failed to write debug input: {}", e))?;
 
     // Generate launch.json content
     let launch_json = format!(
@@ -924,7 +921,11 @@ fn get_nonterminals(directory: String) -> Result<Vec<String>, String> {
 fn generate_parser(directory: String, no_ll1: bool, app: tauri::AppHandle) {
     thread::spawn(move || {
         let ll1_flag = if no_ll1 { " --no-ll1" } else { "" };
-        log_event(&app, "command", &format!("iguana generate --output .{ll1_flag}"));
+        log_event(
+            &app,
+            "command",
+            &format!("iguana generate --output .{ll1_flag}"),
+        );
 
         let mut cmd = Command::new("iguana");
         cmd.arg("generate")
@@ -1021,19 +1022,38 @@ fn parse_total_duration_ms(stdout: &[u8]) -> Option<u64> {
 
 // ============ Language Intelligence Commands ============
 
+/// Run an LSP query behind a panic boundary. Tauri command handlers run on
+/// worker threads with no unwind boundary above them, so an uncaught panic in
+/// grammar analysis would cross the FFI edge and abort the whole app. Catching
+/// it degrades the query to an empty result instead.
+fn lsp_guard<T: Default>(f: impl FnOnce() -> T) -> T {
+    panic::catch_unwind(panic::AssertUnwindSafe(f)).unwrap_or_default()
+}
+
+/// Lock the grammar state, recovering from a poisoned mutex. The state is a
+/// rebuildable cache, so a panic that poisoned it left nothing worth keeping;
+/// the next query just re-parses.
+fn lock_state(state: &Mutex<GrammarState>) -> MutexGuard<'_, GrammarState> {
+    state
+        .lock()
+        .unwrap_or_else(|poisoned| poisoned.into_inner())
+}
+
 /// Parse the grammar source and cache the result. Re-parses only if the source
 /// text has changed since the last parse.
 #[tauri::command]
 #[specta::specta]
 fn analyze_grammar(source: String, state: tauri::State<Mutex<GrammarState>>) -> AnalyzeResult {
-    let mut st = state.lock().unwrap();
-    let (parse_duration_ms, tree_construction_duration_ms) = st.ensure_built(&source);
+    lsp_guard(|| {
+        let mut st = lock_state(&state);
+        let (parse_duration_ms, tree_construction_duration_ms) = st.ensure_built(&source);
 
-    AnalyzeResult {
-        success: st.success,
-        parse_duration_ms,
-        tree_construction_duration_ms,
-    }
+        AnalyzeResult {
+            success: st.success,
+            parse_duration_ms,
+            tree_construction_duration_ms,
+        }
+    })
 }
 
 /// Format the grammar using the cached parse result.
@@ -1042,38 +1062,42 @@ fn analyze_grammar(source: String, state: tauri::State<Mutex<GrammarState>>) -> 
 #[tauri::command]
 #[specta::specta]
 fn format_grammar(source: String, state: tauri::State<Mutex<GrammarState>>) -> Option<String> {
-    let mut st = state.lock().unwrap();
-    st.ensure_built(&source);
-    let ctx = ParseContext::new();
-    let iguana_lsp::BuildResult::Success { ref tree, .. } = st.parse(&ctx)? else {
-        return None;
-    };
-    let input = st.input.as_ref()?;
-    Some(iguana_lsp::format::format(tree, input))
+    lsp_guard(|| {
+        let mut st = lock_state(&state);
+        st.ensure_built(&source);
+        let ctx = ParseContext::new();
+        let iguana_lsp::BuildResult::Success { ref tree, .. } = st.parse(&ctx)? else {
+            return None;
+        };
+        let input = st.input.as_ref()?;
+        Some(iguana_lsp::format::format(tree, input))
+    })
 }
 
 /// Return semantic tokens from the cached parse result.
 #[tauri::command]
 #[specta::specta]
 fn get_semantic_tokens(state: tauri::State<Mutex<GrammarState>>) -> Vec<SemanticTokenData> {
-    let st = state.lock().unwrap();
-    let ctx = ParseContext::new();
-    let Some(iguana_lsp::BuildResult::Success { ref tree, .. }) = st.parse(&ctx) else {
-        return vec![];
-    };
-    let Some(ref input) = st.input else {
-        return vec![];
-    };
-    iguana_lsp::semantic_tokens::semantic_tokens(tree, input)
-        .into_iter()
-        .map(|t| SemanticTokenData {
-            delta_line: t.delta_line,
-            delta_start: t.delta_start,
-            length: t.length,
-            token_type: t.token_type,
-            token_modifiers_bitset: t.token_modifiers_bitset,
-        })
-        .collect()
+    lsp_guard(|| {
+        let st = lock_state(&state);
+        let ctx = ParseContext::new();
+        let Some(iguana_lsp::BuildResult::Success { ref tree, .. }) = st.parse(&ctx) else {
+            return vec![];
+        };
+        let Some(ref input) = st.input else {
+            return vec![];
+        };
+        iguana_lsp::semantic_tokens::semantic_tokens(tree, input)
+            .into_iter()
+            .map(|t| SemanticTokenData {
+                delta_line: t.delta_line,
+                delta_start: t.delta_start,
+                length: t.length,
+                token_type: t.token_type,
+                token_modifiers_bitset: t.token_modifiers_bitset,
+            })
+            .collect()
+    })
 }
 
 /// Return document symbols (rule heads + alternative labels).
@@ -1084,23 +1108,25 @@ fn get_document_symbols(
     source: String,
     state: tauri::State<Mutex<GrammarState>>,
 ) -> Vec<DocumentSymbolData> {
-    let mut st = state.lock().unwrap();
-    st.ensure_built(&source);
-    let ctx = ParseContext::new();
-    let Some(iguana_lsp::BuildResult::Success { ref tree, .. }) = st.parse(&ctx) else {
-        return vec![];
-    };
-    let Some(ref input) = st.input else {
-        return vec![];
-    };
-    let Some(ref grammar_def) = st.grammar_def else {
-        return vec![];
-    };
-    let spans = iguana_lsp::build_spans(grammar_def, tree, input);
-    iguana_lsp::document_symbols::document_symbols(grammar_def, &spans, input)
-        .into_iter()
-        .map(convert_symbol)
-        .collect()
+    lsp_guard(|| {
+        let mut st = lock_state(&state);
+        st.ensure_built(&source);
+        let ctx = ParseContext::new();
+        let Some(iguana_lsp::BuildResult::Success { ref tree, .. }) = st.parse(&ctx) else {
+            return vec![];
+        };
+        let Some(ref input) = st.input else {
+            return vec![];
+        };
+        let Some(ref grammar_def) = st.grammar_def else {
+            return vec![];
+        };
+        let spans = iguana_lsp::build_spans(grammar_def, tree, input);
+        iguana_lsp::document_symbols::document_symbols(grammar_def, &spans, input)
+            .into_iter()
+            .map(convert_symbol)
+            .collect()
+    })
 }
 
 /// Return the definition location of the symbol at the given position.
@@ -1112,25 +1138,27 @@ fn get_definition(
     column: u32,
     state: tauri::State<Mutex<GrammarState>>,
 ) -> Option<LocationData> {
-    let mut st = state.lock().unwrap();
-    st.ensure_built(&source);
-    let ctx = ParseContext::new();
-    let iguana_lsp::BuildResult::Success { ref tree, .. } = st.parse(&ctx)? else {
-        return None;
-    };
-    let input = st.input.as_ref()?;
-    let grammar_def = st.grammar_def.as_ref()?;
-    let spans = iguana_lsp::build_spans(grammar_def, tree, input);
-    let uri: lsp_types::Uri = "file:///terrarium".parse().unwrap();
-    let offset = input.offset(line, column);
-    let loc = iguana_lsp::references::definition(&spans, input, &uri, offset)?;
-    Some(LocationData {
-        range: RangeData {
-            start_line: loc.range.start.line,
-            start_char: loc.range.start.character,
-            end_line: loc.range.end.line,
-            end_char: loc.range.end.character,
-        },
+    lsp_guard(|| {
+        let mut st = lock_state(&state);
+        st.ensure_built(&source);
+        let ctx = ParseContext::new();
+        let iguana_lsp::BuildResult::Success { ref tree, .. } = st.parse(&ctx)? else {
+            return None;
+        };
+        let input = st.input.as_ref()?;
+        let grammar_def = st.grammar_def.as_ref()?;
+        let spans = iguana_lsp::build_spans(grammar_def, tree, input);
+        let uri: lsp_types::Uri = "file:///terrarium".parse().unwrap();
+        let offset = input.offset(line, column);
+        let loc = iguana_lsp::references::definition(&spans, input, &uri, offset)?;
+        Some(LocationData {
+            range: RangeData {
+                start_line: loc.range.start.line,
+                start_char: loc.range.start.character,
+                end_line: loc.range.end.line,
+                end_char: loc.range.end.character,
+            },
+        })
     })
 }
 
@@ -1144,32 +1172,34 @@ fn get_references(
     include_declaration: bool,
     state: tauri::State<Mutex<GrammarState>>,
 ) -> Vec<LocationData> {
-    let mut st = state.lock().unwrap();
-    st.ensure_built(&source);
-    let ctx = ParseContext::new();
-    let Some(iguana_lsp::BuildResult::Success { ref tree, .. }) = st.parse(&ctx) else {
-        return vec![];
-    };
-    let Some(ref input) = st.input else {
-        return vec![];
-    };
-    let Some(ref grammar_def) = st.grammar_def else {
-        return vec![];
-    };
-    let spans = iguana_lsp::build_spans(grammar_def, tree, input);
-    let uri: lsp_types::Uri = "file:///terrarium".parse().unwrap();
-    let offset = input.offset(line, column);
-    iguana_lsp::references::references(&spans, input, &uri, offset, include_declaration)
-        .into_iter()
-        .map(|loc| LocationData {
-            range: RangeData {
-                start_line: loc.range.start.line,
-                start_char: loc.range.start.character,
-                end_line: loc.range.end.line,
-                end_char: loc.range.end.character,
-            },
-        })
-        .collect()
+    lsp_guard(|| {
+        let mut st = lock_state(&state);
+        st.ensure_built(&source);
+        let ctx = ParseContext::new();
+        let Some(iguana_lsp::BuildResult::Success { ref tree, .. }) = st.parse(&ctx) else {
+            return vec![];
+        };
+        let Some(ref input) = st.input else {
+            return vec![];
+        };
+        let Some(ref grammar_def) = st.grammar_def else {
+            return vec![];
+        };
+        let spans = iguana_lsp::build_spans(grammar_def, tree, input);
+        let uri: lsp_types::Uri = "file:///terrarium".parse().unwrap();
+        let offset = input.offset(line, column);
+        iguana_lsp::references::references(&spans, input, &uri, offset, include_declaration)
+            .into_iter()
+            .map(|loc| LocationData {
+                range: RangeData {
+                    start_line: loc.range.start.line,
+                    start_char: loc.range.start.character,
+                    end_line: loc.range.end.line,
+                    end_char: loc.range.end.character,
+                },
+            })
+            .collect()
+    })
 }
 
 /// Return folding ranges for the grammar.
@@ -1179,26 +1209,28 @@ fn get_folding_ranges(
     source: String,
     state: tauri::State<Mutex<GrammarState>>,
 ) -> Vec<FoldingRangeData> {
-    let mut st = state.lock().unwrap();
-    st.ensure_built(&source);
-    let ctx = ParseContext::new();
-    let Some(iguana_lsp::BuildResult::Success { ref tree, .. }) = st.parse(&ctx) else {
-        return vec![];
-    };
-    let Some(ref input) = st.input else {
-        return vec![];
-    };
-    let Some(ref grammar_def) = st.grammar_def else {
-        return vec![];
-    };
-    let spans = iguana_lsp::build_spans(grammar_def, tree, input);
-    iguana_lsp::folding::folding_ranges(grammar_def, &spans, input)
-        .into_iter()
-        .map(|r| FoldingRangeData {
-            start_line: r.start_line,
-            end_line: r.end_line,
-        })
-        .collect()
+    lsp_guard(|| {
+        let mut st = lock_state(&state);
+        st.ensure_built(&source);
+        let ctx = ParseContext::new();
+        let Some(iguana_lsp::BuildResult::Success { ref tree, .. }) = st.parse(&ctx) else {
+            return vec![];
+        };
+        let Some(ref input) = st.input else {
+            return vec![];
+        };
+        let Some(ref grammar_def) = st.grammar_def else {
+            return vec![];
+        };
+        let spans = iguana_lsp::build_spans(grammar_def, tree, input);
+        iguana_lsp::folding::folding_ranges(grammar_def, &spans, input)
+            .into_iter()
+            .map(|r| FoldingRangeData {
+                start_line: r.start_line,
+                end_line: r.end_line,
+            })
+            .collect()
+    })
 }
 
 /// Return diagnostics (e.g. unresolved references) for the grammar.
@@ -1208,54 +1240,61 @@ fn get_diagnostics(
     source: String,
     state: tauri::State<Mutex<GrammarState>>,
 ) -> Vec<DiagnosticData> {
-    let mut st = state.lock().unwrap();
-    st.ensure_built(&source);
-    let Some(ref input) = st.input else {
-        return vec![];
-    };
-    let ctx = ParseContext::new();
-    match iguana_lsp::build(input, &ctx) {
-        iguana_lsp::BuildResult::Success { ref tree, .. } => {
-            let Some(ref grammar_def) = st.grammar_def else {
-                return vec![];
-            };
-            let spans = iguana_lsp::build_spans(grammar_def, tree, input);
-            iguana_lsp::diagnostics::diagnostics(grammar_def, &spans, input)
-                .into_iter()
-                .map(|d| {
-                    let severity = match d.severity {
-                        Some(lsp_types::DiagnosticSeverity::ERROR) => 8,
-                        Some(lsp_types::DiagnosticSeverity::WARNING) => 4,
-                        Some(lsp_types::DiagnosticSeverity::INFORMATION) => 2,
-                        Some(lsp_types::DiagnosticSeverity::HINT) => 1,
-                        _ => 8,
-                    };
-                    DiagnosticData {
-                        range: RangeData {
-                            start_line: d.range.start.line,
-                            start_char: d.range.start.character,
-                            end_line: d.range.end.line,
-                            end_char: d.range.end.character,
-                        },
-                        severity,
-                        message: d.message,
-                    }
-                })
-                .collect()
+    lsp_guard(|| {
+        let mut st = lock_state(&state);
+        st.ensure_built(&source);
+        let Some(ref input) = st.input else {
+            return vec![];
+        };
+        let ctx = ParseContext::new();
+        match iguana_lsp::build(input, &ctx) {
+            iguana_lsp::BuildResult::Success { ref tree, .. } => {
+                let Some(ref grammar_def) = st.grammar_def else {
+                    return vec![];
+                };
+                let spans = iguana_lsp::build_spans(grammar_def, tree, input);
+                iguana_lsp::diagnostics::diagnostics(grammar_def, &spans, input)
+                    .into_iter()
+                    .map(|d| {
+                        let severity = match d.severity {
+                            Some(lsp_types::DiagnosticSeverity::ERROR) => 8,
+                            Some(lsp_types::DiagnosticSeverity::WARNING) => 4,
+                            Some(lsp_types::DiagnosticSeverity::INFORMATION) => 2,
+                            Some(lsp_types::DiagnosticSeverity::HINT) => 1,
+                            _ => 8,
+                        };
+                        DiagnosticData {
+                            range: RangeData {
+                                start_line: d.range.start.line,
+                                start_char: d.range.start.character,
+                                end_line: d.range.end.line,
+                                end_char: d.range.end.character,
+                            },
+                            severity,
+                            message: d.message,
+                        }
+                    })
+                    .collect()
+            }
+            iguana_lsp::BuildResult::Ambiguous => vec![],
+            iguana_lsp::BuildResult::Error {
+                line,
+                column,
+                message,
+            } => {
+                vec![DiagnosticData {
+                    range: RangeData {
+                        start_line: line,
+                        start_char: column,
+                        end_line: line,
+                        end_char: column,
+                    },
+                    severity: 8,
+                    message: format!("Parse error: {message}"),
+                }]
+            }
         }
-        iguana_lsp::BuildResult::Error { line, column, message } => {
-            vec![DiagnosticData {
-                range: RangeData {
-                    start_line: line,
-                    start_char: column,
-                    end_line: line,
-                    end_char: column,
-                },
-                severity: 8,
-                message: format!("Parse error: {message}"),
-            }]
-        }
-    }
+    })
 }
 
 /// Map the LSP SymbolKind constants we actually use to their numeric codes.
@@ -1301,7 +1340,11 @@ fn convert_symbol(s: lsp_types::DocumentSymbol) -> DocumentSymbolData {
 fn get_semantic_tokens_legend() -> SemanticTokensLegendData {
     let legend = iguana_lsp::semantic_tokens::legend();
     SemanticTokensLegendData {
-        token_types: legend.token_types.iter().map(|t| t.as_str().to_string()).collect(),
+        token_types: legend
+            .token_types
+            .iter()
+            .map(|t| t.as_str().to_string())
+            .collect(),
     }
 }
 
@@ -1325,8 +1368,7 @@ fn load_debug_trace(
         .map_err(|e| format!("Failed to write input: {}", e))?;
 
     // Create temp directory for trace and symbols
-    let temp_dir =
-        TempDir::new().map_err(|e| format!("Failed to create temp directory: {}", e))?;
+    let temp_dir = TempDir::new().map_err(|e| format!("Failed to create temp directory: {}", e))?;
     let trace_path = temp_dir.path().join("trace.json");
     let symbols_path = temp_dir.path().join("symbols.json");
 
@@ -1498,18 +1540,14 @@ fn get_debug_gss(state: tauri::State<Mutex<DebugState>>) -> Result<DebugGSSInfo,
 
 #[tauri::command]
 #[specta::specta]
-fn debug_go_to_furthest_error(
-    state: tauri::State<Mutex<DebugState>>,
-) -> Result<DebugInfo, String> {
+fn debug_go_to_furthest_error(state: tauri::State<Mutex<DebugState>>) -> Result<DebugInfo, String> {
     let mut debug_state = state.lock().unwrap();
     let replay = debug_state
         .replay
         .as_mut()
         .ok_or("No debug session. Load a trace first.")?;
 
-    let target = replay
-        .furthest_error_step()
-        .ok_or("No errors in trace.")?;
+    let target = replay.furthest_error_step().ok_or("No errors in trace.")?;
 
     replay.step_to(target);
 

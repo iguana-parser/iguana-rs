@@ -224,12 +224,14 @@ pub static FIRST_SET_E: TerminalSet = TerminalSet {
     id: 0,
     terminals: &[TerminalId(4), TerminalId(8), TerminalId(3)],
 };
-// E(p: i32) : . [5 >= p] l=E(p) [(l == 0) || (l >= 5)] WS "*" WS r=E(6) return (r == 0) ? 5 : min(r, 5) { "a", "if", "-" }
+// E(p: i32) : . [5 >= p] l=E(p) [(l == 0) || (l >= 5)] WS "*" WS r=E(6) return (r == 0) ? 5
+// : min(r, 5) { "a", "if", "-" }
 pub static FIRST_SET_E_ALT0: TerminalSet = TerminalSet {
     id: 1,
     terminals: &[TerminalId(8), TerminalId(4), TerminalId(3)],
 };
-// E(p: i32) : . [4 >= p] l=E(p) [(l == 0) || (l >= 4)] WS "+" WS r=E(5) return (r == 0) ? 4 : min(r, 4) { "a", "if", "-" }
+// E(p: i32) : . [4 >= p] l=E(p) [(l == 0) || (l >= 4)] WS "+" WS r=E(5) return (r == 0) ? 4
+// : min(r, 4) { "a", "if", "-" }
 pub static FIRST_SET_E_ALT1: TerminalSet = TerminalSet {
     id: 1,
     terminals: &[TerminalId(8), TerminalId(4), TerminalId(3)],
@@ -244,7 +246,8 @@ pub static FIRST_SET_E_ALT3: TerminalSet = TerminalSet {
     id: 4,
     terminals: &[TerminalId(4)],
 };
-// E(p: i32) : . [1 >= p] l=E(p) [(l == 0) || (l >= 2)] WS ";" WS E(1) return 1 { "a", "if", "-" }
+// E(p: i32) : . [1 >= p] l=E(p) [(l == 0) || (l >= 2)] WS ";" WS E(1) return 1 { "a", "if",
+// "-" }
 pub static FIRST_SET_E_ALT4: TerminalSet = TerminalSet {
     id: 1,
     terminals: &[TerminalId(8), TerminalId(4), TerminalId(3)],

@@ -174,7 +174,8 @@ pub static FIRST_SET_E_ALT0: TerminalSet = TerminalSet {
     id: 3,
     terminals: &[TerminalId(1)],
 };
-// E(p: i32) : . [2 >= p] l=E(p) [(l == 0) || (l >= 2)] WS "+" WS r=E(2) return (r == 0) ? 2 : min(r, 2) { "a", "fn" }
+// E(p: i32) : . [2 >= p] l=E(p) [(l == 0) || (l >= 2)] WS "+" WS r=E(2) return (r == 0) ? 2
+// : min(r, 2) { "a", "fn" }
 pub static FIRST_SET_E_ALT1: TerminalSet = TerminalSet {
     id: 1,
     terminals: &[TerminalId(1), TerminalId(3)],

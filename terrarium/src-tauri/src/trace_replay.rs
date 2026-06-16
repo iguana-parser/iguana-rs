@@ -36,9 +36,16 @@ pub enum DebugAction {
     /// Layout matched successfully
     MatchedLayout { next_index: Option<u32> },
     /// Attempting to match a terminal
-    MatchingTerminal { terminal_name: String, input_index: u32 },
+    MatchingTerminal {
+        terminal_name: String,
+        input_index: u32,
+    },
     /// Terminal matched successfully
-    MatchSuccess { terminal_name: String, input_index: u32, next_index: u32 },
+    MatchSuccess {
+        terminal_name: String,
+        input_index: u32,
+        next_index: u32,
+    },
 }
 
 /// SPPF node for debug visualization, reconstructed incrementally from trace events.
@@ -335,7 +342,10 @@ impl TraceReplay {
     fn format_error_kind(&self, kind: &ParseErrorKind) -> String {
         match kind {
             ParseErrorKind::UnexpectedToken { expected } => {
-                let names: Vec<String> = expected.iter().map(|id| self.symbols.terminal(id)).collect();
+                let names: Vec<String> = expected
+                    .iter()
+                    .map(|id| self.symbols.terminal(id))
+                    .collect();
                 match names.len() {
                     0 => "unexpected token".to_string(),
                     1 => format!("expected {}", names[0]),
@@ -343,11 +353,17 @@ impl TraceReplay {
                 }
             }
             ParseErrorKind::ExcludedMatch { excluded_by } => {
-                let names: Vec<String> = excluded_by.iter().map(|id| self.symbols.terminal(id)).collect();
+                let names: Vec<String> = excluded_by
+                    .iter()
+                    .map(|id| self.symbols.terminal(id))
+                    .collect();
                 format!("excluded by {}", names.join(", "))
             }
             ParseErrorKind::ForbiddenFollow { forbidden } => {
-                let names: Vec<String> = forbidden.iter().map(|id| self.symbols.terminal(id)).collect();
+                let names: Vec<String> = forbidden
+                    .iter()
+                    .map(|id| self.symbols.terminal(id))
+                    .collect();
                 format!("forbidden follow {}", names.join(", "))
             }
         }
@@ -452,18 +468,15 @@ impl TraceReplay {
                 slot_id,
                 gss_node_id,
                 kind,
-            }) => Some(self.format_parse_error(
-                *input_index,
-                *slot_id,
-                *gss_node_id,
-                kind,
+            }) => Some(self.format_parse_error(*input_index, *slot_id, *gss_node_id, kind)),
+            Some(DebugAction::MatchingLeadingLayout { input_index }) => Some(format!(
+                "Matching Leading Layout\n  input index {}",
+                input_index
             )),
-            Some(DebugAction::MatchingLeadingLayout { input_index }) => {
-                Some(format!("Matching Leading Layout\n  input index {}", input_index))
-            }
-            Some(DebugAction::MatchingTrailingLayout { input_index }) => {
-                Some(format!("Matching Trailing Layout\n  input index {}", input_index))
-            }
+            Some(DebugAction::MatchingTrailingLayout { input_index }) => Some(format!(
+                "Matching Trailing Layout\n  input index {}",
+                input_index
+            )),
             Some(DebugAction::MatchedLayout { next_index }) => {
                 if let Some(next) = next_index {
                     Some(format!("Matched Layout\n  new input index {}", next))
@@ -471,15 +484,23 @@ impl TraceReplay {
                     Some("Matched Layout\n  no layout found".to_string())
                 }
             }
-            Some(DebugAction::MatchingTerminal { terminal_name, input_index }) => {
-                Some(format!("Matching Terminal\n  '{}'\n  input index {}", terminal_name, input_index))
-            }
-            Some(DebugAction::MatchSuccess { terminal_name, input_index, next_index }) => {
-                Some(format!(
-                    "Match Success\n  '{}'\n  input index {}\n  match length {}",
-                    terminal_name, input_index, next_index - input_index
-                ))
-            }
+            Some(DebugAction::MatchingTerminal {
+                terminal_name,
+                input_index,
+            }) => Some(format!(
+                "Matching Terminal\n  '{}'\n  input index {}",
+                terminal_name, input_index
+            )),
+            Some(DebugAction::MatchSuccess {
+                terminal_name,
+                input_index,
+                next_index,
+            }) => Some(format!(
+                "Match Success\n  '{}'\n  input index {}\n  match length {}",
+                terminal_name,
+                input_index,
+                next_index - input_index
+            )),
             None => None,
         }
     }
@@ -496,7 +517,9 @@ impl TraceReplay {
             }
             Some(DebugAction::ParseError { input_index, .. }) => Some(*input_index as usize),
             Some(DebugAction::MatchingLeadingLayout { input_index }) => Some(*input_index as usize),
-            Some(DebugAction::MatchingTrailingLayout { input_index }) => Some(*input_index as usize),
+            Some(DebugAction::MatchingTrailingLayout { input_index }) => {
+                Some(*input_index as usize)
+            }
             Some(DebugAction::MatchedLayout { next_index }) => next_index.map(|i| i as usize),
             Some(DebugAction::MatchingTerminal { input_index, .. }) => Some(*input_index as usize),
             Some(DebugAction::MatchSuccess { next_index, .. }) => Some(*next_index as usize),
@@ -578,13 +601,8 @@ impl TraceReplay {
     fn apply_event(&mut self, index: usize) {
         match &self.events[index] {
             TraceEvent::ProcessingDescriptor(slot_id, input_index, gss_node_id, sppf_node_id) => {
-                let desc = Descriptor::new(
-                    *input_index,
-                    *slot_id,
-                    *sppf_node_id,
-                    *gss_node_id,
-                    None,
-                );
+                let desc =
+                    Descriptor::new(*input_index, *slot_id, *sppf_node_id, *gss_node_id, None);
                 // Remove from pending set (if present)
                 self.descriptor_set.retain(|d| {
                     !(d.slot_id == *slot_id
@@ -620,13 +638,7 @@ impl TraceReplay {
             }
             TraceEvent::GSSNodeAdded(src_id, dest_id, return_slot) => {
                 if let Some(node) = self.gss_nodes.get_mut(src_id.index()) {
-                    node.add_edge(GSSEdge::new(
-                        None,
-                        *return_slot,
-                        *dest_id,
-                        None,
-                        None,
-                    ));
+                    node.add_edge(GSSEdge::new(None, *return_slot, *dest_id, None, None));
                 }
             }
             TraceEvent::TerminalNodeCreated(terminal_id, span) => {
@@ -810,7 +822,8 @@ impl TraceReplay {
     /// Build the complete event log from all trace events.
     /// Each entry includes whether it's a steppable event and its step index if so.
     pub fn build_event_log(&self) -> Vec<EventLogEntry> {
-        let mut step_index_map: std::collections::HashMap<usize, usize> = std::collections::HashMap::new();
+        let mut step_index_map: std::collections::HashMap<usize, usize> =
+            std::collections::HashMap::new();
         for (step_idx, &event_idx) in self.step_indices.iter().enumerate() {
             step_index_map.insert(event_idx, step_idx);
         }
@@ -842,7 +855,10 @@ impl TraceReplay {
                     None => "$".to_string(),
                 };
                 (
-                    format!("Processing ({}, {}, {}, {})", slot_name, input_index, gss_node, sppf_node),
+                    format!(
+                        "Processing ({}, {}, {}, {})",
+                        slot_name, input_index, gss_node, sppf_node
+                    ),
                     "processing".to_string(),
                 )
             }
@@ -854,7 +870,10 @@ impl TraceReplay {
                     None => "$".to_string(),
                 };
                 (
-                    format!("Descriptor added ({}, {}, {}, {})", slot_name, input_index, gss_node, sppf_node),
+                    format!(
+                        "Descriptor added ({}, {}, {}, {})",
+                        slot_name, input_index, gss_node, sppf_node
+                    ),
                     "descriptor".to_string(),
                 )
             }
@@ -871,14 +890,22 @@ impl TraceReplay {
                 "matching".to_string(),
             ),
             TraceEvent::MatchSuccess(terminal_name, input_index, next_index) => (
-                format!("Matched '{}' at {} (len {})", terminal_name, input_index, next_index - input_index),
+                format!(
+                    "Matched '{}' at {} (len {})",
+                    terminal_name,
+                    input_index,
+                    next_index - input_index
+                ),
                 "match_success".to_string(),
             ),
             TraceEvent::ParseError(input_index, slot_id, _, ref kind) => {
                 let description = self.format_error_kind(kind);
                 let slot_name = self.symbols.slot(*slot_id);
                 (
-                    format!("Parse error at {}: {} [{}]", input_index, description, slot_name),
+                    format!(
+                        "Parse error at {}: {} [{}]",
+                        input_index, description, slot_name
+                    ),
                     "match_failed".to_string(),
                 )
             }
@@ -920,21 +947,30 @@ impl TraceReplay {
             TraceEvent::TerminalNodeCreated(terminal_id, span) => {
                 let terminal_name = self.symbols.terminal(terminal_id);
                 (
-                    format!("SPPF terminal ({}, {}, {})", terminal_name, span.left_extent, span.right_extent),
+                    format!(
+                        "SPPF terminal ({}, {}, {})",
+                        terminal_name, span.left_extent, span.right_extent
+                    ),
                     "sppf".to_string(),
                 )
             }
             TraceEvent::NonterminalNodeCreated(nonterminal_id, span, _child) => {
                 let nt_name = self.symbols.nonterminal(*nonterminal_id);
                 (
-                    format!("SPPF nonterminal ({}, {}, {})", nt_name, span.left_extent, span.right_extent),
+                    format!(
+                        "SPPF nonterminal ({}, {}, {})",
+                        nt_name, span.left_extent, span.right_extent
+                    ),
                     "sppf".to_string(),
                 )
             }
             TraceEvent::IntermediateNodeCreated(slot_id, span, ..) => {
                 let slot_name = self.symbols.slot(*slot_id);
                 (
-                    format!("SPPF intermediate ({}, {}, {})", slot_name, span.left_extent, span.right_extent),
+                    format!(
+                        "SPPF intermediate ({}, {}, {})",
+                        slot_name, span.left_extent, span.right_extent
+                    ),
                     "sppf".to_string(),
                 )
             }
@@ -954,12 +990,18 @@ impl TraceReplay {
                 let gss_node = self.format_gss_node(*gss_node_id);
                 let slot_name = self.symbols.slot(*slot_id);
                 (
-                    format!("Pop {} [{}] with SPPF {}", gss_node, slot_name, nonterminal_node_id.0),
+                    format!(
+                        "Pop {} [{}] with SPPF {}",
+                        gss_node, slot_name, nonterminal_node_id.0
+                    ),
                     "pop".to_string(),
                 )
             }
             TraceEvent::AddToPoppedElements(gss_node_id, nonterminal_node_id, _) => (
-                format!("Add SPPF {} to popped elements of GSS {}", nonterminal_node_id.0, gss_node_id.0),
+                format!(
+                    "Add SPPF {} to popped elements of GSS {}",
+                    nonterminal_node_id.0, gss_node_id.0
+                ),
                 "pop".to_string(),
             ),
             TraceEvent::NodeAlreadyInPoppedElements => (
@@ -969,7 +1011,9 @@ impl TraceReplay {
             TraceEvent::Call(sppf_node_id, gss_node_id, slot_id) => {
                 let gss_node = self.format_gss_node(*gss_node_id);
                 let slot_name = self.symbols.slot(*slot_id);
-                let sppf = sppf_node_id.map(|id| id.0.to_string()).unwrap_or_else(|| "$".to_string());
+                let sppf = sppf_node_id
+                    .map(|id| id.0.to_string())
+                    .unwrap_or_else(|| "$".to_string());
                 (
                     format!("Call {} {} [{}]", sppf, gss_node, slot_name),
                     "call".to_string(),
