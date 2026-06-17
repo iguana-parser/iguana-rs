@@ -22,7 +22,7 @@ use iguana_runtime::{
 use pprof::ProfilerGuardBuilder;
 use std::{
     fs::{self, File},
-    io::{self, BufWriter, IsTerminal, Write},
+    io::{self, BufWriter, Write},
     path::{Path, PathBuf},
     time::Instant,
 };
@@ -171,6 +171,28 @@ struct Cli {
     /// timing summary. Requires the `instrument` feature.
     #[arg(long)]
     hist: bool,
+    /// Golden-file testing: compare each input's output against its
+
+    /// sibling `X.sexpr`. Works with a single file or `--dir` (which
+
+    /// then requires `--ext`). Goldens hold the parse-tree s-expression
+
+    /// on success or a `Parse error at ...` line on failure.
+    #[arg(long, conflicts_with = "benchmark", conflicts_with = "profile")]
+    check_sexpr: bool,
+    /// Golden-file testing: write each input's output to its sibling
+
+    /// `X.sexpr`, overwriting. Same input rules as `--check-sexpr`.
+    #[arg(
+        long,
+        conflicts_with = "benchmark",
+        conflicts_with = "profile",
+        conflicts_with = "check_sexpr"
+    )]
+    regenerate_sexpr: bool,
+    /// Print golden diffs in full instead of truncating past 200 lines.
+    #[arg(long, requires = "check_sexpr")]
+    full_diff: bool,
 }
 #[cfg(feature = "dhat-heap")]
 #[global_allocator]
@@ -210,6 +232,89 @@ fn main() -> Result<(), io::Error> {
         )?;
         return Ok(());
     }
+    if args.check_sexpr || args.regenerate_sexpr {
+        let mode = if args.regenerate_sexpr {
+            cli::GoldenMode::Regenerate
+        } else {
+            cli::GoldenMode::Check
+        };
+        let start_nonterminal_name = args.start_nonterminal.as_ref().ok_or_else(|| {
+            io::Error::new(
+                io::ErrorKind::InvalidInput,
+                "--nonterminal is required for parsing",
+            )
+        })?;
+        let start_nonterminal_id = resolve_start_nonterminal(start_nonterminal_name)?;
+        if args.write_parse_tree.is_some()
+            || args.write_sppf.is_some()
+            || args.write_gss.is_some()
+            || args.write_gss_nodes.is_some()
+            || args.write_result.is_some()
+            || args.write_stats.is_some()
+            || args.vis.is_some()
+            || args.trace.is_some()
+        {
+            eprintln!(
+                "Warning: output flags (--write-parse-tree, --write-sppf, --write-gss, --write-gss-nodes, --write-result, --write-stats, --vis, --trace) are ignored in golden mode."
+            );
+        }
+        let mut inputs = Vec::new();
+        if let Some(dir) = args.dir.as_ref() {
+            let ext = args . ext . as_deref () . ok_or_else (|| io :: Error :: new (io :: ErrorKind :: InvalidInput , "--ext is required with --dir for golden testing (so .sexpr goldens are not parsed as inputs)" ,)) ? ;
+            collect_files(dir, Some(ext), &mut inputs)?;
+            inputs.sort();
+        } else if let Some(file) = args.file.as_ref() {
+            inputs.push(file.clone());
+        } else {
+            return Err(io::Error::new(
+                io::ErrorKind::InvalidInput,
+                "golden testing requires an input file or --dir",
+            ));
+        }
+        let sexpr_options = SexprOptions {
+            show_layout: args.show_layout,
+            show_empty: args.show_empty,
+            show_wrappers: args.show_wrappers,
+        };
+        let passed = cli::run_golden(
+            mode,
+            inputs,
+            args.dir.as_deref(),
+            args.quiet,
+            args.full_diff,
+            |path| {
+                let input = Input::try_from(path)?;
+                let ctx = ParseContext::new();
+                let parse_tree_builder = IggyParseTreeBuilder::new(&ctx);
+                let mut parser = IggyParser::new(&input, start_nonterminal_id);
+                let content = match parser.run() {
+                    ParseResult::Success(success) => {
+                        let tree = create_parse_tree(
+                            success.sppf_node_id,
+                            start_nonterminal_id,
+                            &parser,
+                            &parse_tree_builder,
+                        );
+                        to_sexpr_with(tree, sexpr_options)
+                    }
+                    ParseResult::Failure(error) => {
+                        let (line, column, message) = parser.format_error(&error);
+                        format!(
+                            "Parse error at line {}, col {}: {}\n",
+                            line + 1,
+                            column + 1,
+                            message
+                        )
+                    }
+                };
+                Ok(content)
+            },
+        )?;
+        if !passed {
+            std::process::exit(1);
+        }
+        return Ok(());
+    }
     if let Some(dir) = args.dir.as_ref() {
         let start_nonterminal_name = args.start_nonterminal.as_ref().ok_or_else(|| {
             io::Error::new(
@@ -217,14 +322,7 @@ fn main() -> Result<(), io::Error> {
                 "--nonterminal is required for parsing",
             )
         })?;
-        let start_nonterminal_id = nonterminal_id(&format!("Start{}", start_nonterminal_name))
-            .or_else(|| nonterminal_id(start_nonterminal_name))
-            .ok_or_else(|| {
-                io::Error::new(
-                    io::ErrorKind::InvalidInput,
-                    format!("Unknown nonterminal: '{}'", start_nonterminal_name),
-                )
-            })?;
+        let start_nonterminal_id = resolve_start_nonterminal(start_nonterminal_name)?;
         return run_batch(dir, args.ext.as_deref(), start_nonterminal_id, args.hist);
     }
     if args.repl {
@@ -234,14 +332,7 @@ fn main() -> Result<(), io::Error> {
                 "--nonterminal is required for parsing",
             )
         })?;
-        let start_nonterminal_id = nonterminal_id(&format!("Start{}", start_nonterminal_name))
-            .or_else(|| nonterminal_id(start_nonterminal_name))
-            .ok_or_else(|| {
-                io::Error::new(
-                    io::ErrorKind::InvalidInput,
-                    format!("Unknown nonterminal: '{}'", start_nonterminal_name),
-                )
-            })?;
+        let start_nonterminal_id = resolve_start_nonterminal(start_nonterminal_name)?;
         let sexpr_options = SexprOptions {
             show_layout: args.show_layout,
             show_empty: args.show_empty,
@@ -296,14 +387,7 @@ fn main() -> Result<(), io::Error> {
         );
     }
     let input = Input::try_from(file.as_path())?;
-    let start_nonterminal_id = nonterminal_id(&format!("Start{}", start_nonterminal_name))
-        .or_else(|| nonterminal_id(&start_nonterminal_name))
-        .ok_or_else(|| {
-            io::Error::new(
-                io::ErrorKind::InvalidInput,
-                format!("Unknown nonterminal: '{}'", start_nonterminal_name),
-            )
-        })?;
+    let start_nonterminal_id = resolve_start_nonterminal(&start_nonterminal_name)?;
     if args.benchmark {
         let config = cli::BenchConfig {
             iters: args.iters as usize,
@@ -531,16 +615,30 @@ fn main() -> Result<(), io::Error> {
     }
     Ok(())
 }
+/// Resolves a user-supplied start nonterminal name to its id. A start
+
+/// nonterminal A is generated as a StartA wrapper (handling layout and
+
+/// EOF), so we try StartA first and fall back to A when A is not a start
+
+/// nonterminal.
+fn resolve_start_nonterminal(name: &str) -> io::Result<NonterminalId> {
+    nonterminal_id(&format!("Start{}", name))
+        .or_else(|| nonterminal_id(name))
+        .ok_or_else(|| {
+            io::Error::new(
+                io::ErrorKind::InvalidInput,
+                format!("Unknown nonterminal: '{}'", name),
+            )
+        })
+}
 fn run_batch(
     dir: &Path,
     ext: Option<&str>,
     start_nonterminal_id: NonterminalId,
     hist_only: bool,
 ) -> io::Result<()> {
-    let use_color = io::stdout().is_terminal();
-    let green = if use_color { "\x1b[32m" } else { "" };
-    let red = if use_color { "\x1b[31m" } else { "" };
-    let reset = if use_color { "\x1b[0m" } else { "" };
+    let color = cli::Color::for_stdout();
     let mut files = Vec::new();
     collect_files(dir, ext, &mut files)?;
     files.sort();
@@ -574,9 +672,9 @@ fn run_batch(
                     let reason = format!("IO Error: {}", e);
                     println!(
                         "{}{:<6}{}  {:<42}  {:<36}  {}",
-                        red,
+                        color.red,
                         "ERR",
-                        reset,
+                        color.reset,
                         "-",
                         reason,
                         rel.display()
@@ -638,9 +736,9 @@ fn run_batch(
                     );
                     println!(
                         "{}{:<6}{}  {:<42}  {:<36}  {}",
-                        green,
+                        color.green,
                         "OK",
-                        reset,
+                        color.reset,
                         time,
                         "-",
                         rel.display()
@@ -654,9 +752,9 @@ fn run_batch(
                     let reason = format!("Parse Error at line {}, col {}", line, column);
                     println!(
                         "{}{:<6}{}  {:<42}  {:<36}  {}",
-                        red,
+                        color.red,
                         "FAIL",
-                        reset,
+                        color.reset,
                         "-",
                         reason,
                         rel.display()
