@@ -1,0 +1,7 @@
+(S
+  (Id+
+    (Id
+      ((Alpha | Digit)+
+        ((Alpha | Digit) Alpha)
+        ((Alpha | Digit) Alpha)
+        ((Alpha | Digit) Alpha)))))

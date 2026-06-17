@@ -1,0 +1,15 @@
+(Start
+  WS
+  (S
+    (E
+      (Postfix
+        (Body
+          (E
+            (E "a")
+            WS
+            "+"
+            WS
+            (E "a")))
+        WS
+        "!")))
+  WS)

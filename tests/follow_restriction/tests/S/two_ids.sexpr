@@ -1,0 +1,7 @@
+(S
+  (Id+
+    (Id
+      (Char+ Char Char Char))
+    WS
+    (Id
+      (Char+ Char Char Char))))

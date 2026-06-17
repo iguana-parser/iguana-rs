@@ -1,0 +1,23 @@
+(S
+  (E
+    (E
+      "("
+      WS
+      (E
+        "if"
+        WS
+        (E "a")
+        WS
+        "then"
+        WS
+        (E "a")
+        WS
+        "else"
+        WS
+        (E "a"))
+      WS
+      ")")
+    WS
+    "+"
+    WS
+    (E "a")))

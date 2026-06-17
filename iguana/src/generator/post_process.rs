@@ -61,10 +61,10 @@ pub fn post_process(input: &str) -> String {
             wrap_comment(&mut out, &unescape(&caps[1]));
             i += caps.get(0).unwrap().end();
         } else if let Some(caps) = DOC_RAW_HASH_RE.captures(rest) {
-            out.push_str(&format!("\n///{}\n", &caps[1]));
+            push_doc_line(&mut out, &caps[1]);
             i += caps.get(0).unwrap().end();
         } else if let Some(caps) = DOC_RAW_RE.captures(rest) {
-            out.push_str(&format!("\n///{}\n", &caps[1]));
+            push_doc_line(&mut out, &caps[1]);
             i += caps.get(0).unwrap().end();
         } else if let Some(m) = ITEM_BREAK_RE.find(rest) {
             let after = m.as_str().trim_start_matches('}').trim_start();
@@ -77,6 +77,23 @@ pub fn post_process(input: &str) -> String {
         }
     }
     out
+}
+
+/// Appends a `///` doc line to `out`. `quote!` separates tokens with spaces, so
+/// a doc attribute arrives preceded by a stray space; dropping it and starting a
+/// new line only when `out` is not already at a line start keeps consecutive doc
+/// lines (each `#[doc = "..."]` renders separately) flush, with no blank line
+/// between them.
+fn push_doc_line(out: &mut String, text: &str) {
+    while out.ends_with(' ') {
+        out.pop();
+    }
+    if !out.is_empty() && !out.ends_with('\n') {
+        out.push('\n');
+    }
+    out.push_str("///");
+    out.push_str(text);
+    out.push('\n');
 }
 
 /// Text-width budget for a wrapped `// ` comment line, not counting the
@@ -138,6 +155,24 @@ fn unescape(s: &str) -> String {
 mod tests {
     use super::*;
     use quote::quote;
+
+    #[test]
+    fn consecutive_doc_lines_have_no_blank_between() {
+        let tokens = quote! {
+            /// first line
+            /// second line
+            struct X;
+        };
+        let out = post_process(&tokens.to_string());
+        assert!(
+            out.contains("/// first line\n/// second line\n"),
+            "got: {out:?}"
+        );
+        assert!(
+            !out.contains("\n\n///"),
+            "blank line between doc lines: {out:?}"
+        );
+    }
 
     #[test]
     fn wraps_a_multiline_comment_string() {

@@ -10,9 +10,17 @@ doctest = false
 
 [dependencies]
 iguana-runtime.workspace = true
-rustc-hash.workspace = true
-serde_json.workspace = true
+clap = { version = "4.5.51", features = ["derive"] }
+dot = { git = "https://github.com/przygienda/dot-rust.git", rev = "fed06f613a9d72bfde711a12791f96a777b2371e" }
+log = "0.4"
+rustc-hash = "2.1.1"
+serde_json = "1.0"
+dhat = "0.3"
+pprof = { version = "0.14", features = ["flamegraph"], optional = true }
 
 [features]
+dhat-heap = []
 debug-trace = ["iguana-runtime/debug-trace"]
+profile = ["pprof"]
 instrument = ["iguana-runtime/instrument"]
+

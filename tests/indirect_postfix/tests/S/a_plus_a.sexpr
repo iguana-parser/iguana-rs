@@ -1,0 +1,10 @@
+(Start
+  WS
+  (S
+    (E
+      (E "a")
+      WS
+      "+"
+      WS
+      (E "a")))
+  WS)

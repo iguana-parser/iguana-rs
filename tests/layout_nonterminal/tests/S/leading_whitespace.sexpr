@@ -1,0 +1,6 @@
+(Start
+  (Layout
+    ((WhiteSpace | Comment)*
+      ((WhiteSpace | Comment) WhiteSpace)))
+  (S "x")
+  (Layout (WhiteSpace | Comment)*))

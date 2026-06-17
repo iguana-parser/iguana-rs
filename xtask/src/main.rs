@@ -51,6 +51,9 @@ enum Commands {
         #[arg(trailing_var_arg = true, allow_hyphen_values = true)]
         args: Vec<String>,
     },
+    /// Run every grammar's golden-file check (builds the binaries, then runs
+    /// each parser in --check-sexpr mode, concurrently)
+    Goldens,
     /// Build iguana from this workspace and install it into `$CARGO_HOME/bin`
     Install,
     /// Install iguana, then launch the terrarium dev server
@@ -68,6 +71,7 @@ fn main() -> io::Result<()> {
         Commands::TestGen { name } => test_gen(&name),
         Commands::TestGenAll => test_gen_all(),
         Commands::Test { args } => test(&args),
+        Commands::Goldens => run_grammar_goldens(),
         Commands::Install => install(),
         Commands::Terrarium => terrarium(),
         Commands::Wasm => wasm(),
@@ -87,51 +91,76 @@ fn bootstrap() -> io::Result<()> {
     Ok(())
 }
 
-/// Adapt iggy's regenerated Cargo.toml to its workspace membership.
+/// Adapt a generated `cli=true` Cargo.toml to workspace membership: the git
+/// dependency on iguana-runtime becomes a workspace dependency, and the
+/// per-crate `[profile.release]` block is removed (cargo ignores profiles on
+/// non-root members and warns). Returns the patched text.
 ///
-/// `iguana generate --cli=true` produces a standalone-parser Cargo.toml
-/// (git dep on iguana-runtime, per-crate `[profile.release]`). iggy is a
-/// member of the iguana-rs workspace, so it needs `iguana-runtime.workspace
-/// = true` and must not declare a per-crate release profile (Cargo warns).
-/// We also add iggy's MIT/Apache license metadata.
-///
-/// Each substitution asserts it actually fired; if a template change breaks
-/// a pattern, bootstrap fails loudly instead of silently leaving iggy in a
-/// broken state.
-fn patch_iggy_cargo_toml(path: &Path) -> io::Result<()> {
-    let original = fs::read_to_string(path)?;
-
+/// Each substitution asserts it actually fired; if a `cargo_toml_gen` template
+/// change breaks a pattern, the caller fails loudly instead of silently leaving
+/// a broken Cargo.toml.
+fn patch_workspace_cargo_toml(original: &str) -> io::Result<String> {
     let replaced = original.replace(
         "iguana-runtime = { git = \"https://github.com/iguana-parser/iguana-rs\" }",
         "iguana-runtime.workspace = true",
     );
     if replaced == original {
         return Err(io::Error::other(
-            "iggy Cargo.toml: `iguana-runtime = { git = ... }` pattern not found; \
+            "Cargo.toml: `iguana-runtime = { git = ... }` pattern not found; \
              cargo_toml_gen template may have changed and this patch needs updating",
         ));
     }
 
-    let with_license = replaced.replace(
+    let without_profile = replaced.replace("\n[profile.release]\ndebug = true\n", "\n");
+    if without_profile == replaced {
+        return Err(io::Error::other(
+            "Cargo.toml: `[profile.release]` block not found; \
+             cargo_toml_gen template may have changed and this patch needs updating",
+        ));
+    }
+
+    Ok(without_profile)
+}
+
+/// Adapt iggy's regenerated Cargo.toml to its workspace membership, plus its
+/// MIT/Apache license metadata.
+fn patch_iggy_cargo_toml(path: &Path) -> io::Result<()> {
+    let original = fs::read_to_string(path)?;
+    let patched = patch_workspace_cargo_toml(&original)?;
+
+    let with_license = patched.replace(
         "edition = \"2024\"\n",
         "edition = \"2024\"\nlicense = \"MIT OR Apache-2.0\"\n",
     );
-    if with_license == replaced {
+    if with_license == patched {
         return Err(io::Error::other(
             "iggy Cargo.toml: `edition = \"2024\"` line not found; \
              cargo_toml_gen template may have changed and this patch needs updating",
         ));
     }
 
-    let without_profile = with_license.replace("\n[profile.release]\ndebug = true\n", "\n");
-    if without_profile == with_license {
+    fs::write(path, with_license)
+}
+
+/// Adapt a test grammar's regenerated Cargo.toml to workspace membership, and
+/// disable the lib's empty test/doctest harnesses: a grammar is tested through
+/// its golden files (run by the subprocess runner), not through unit tests.
+fn patch_test_cargo_toml(path: &Path) -> io::Result<()> {
+    let original = fs::read_to_string(path)?;
+    let patched = patch_workspace_cargo_toml(&original)?;
+
+    let with_lib_flags = patched.replace(
+        "[lib]\npath = \"src/lib.rs\"\n",
+        "[lib]\npath = \"src/lib.rs\"\ntest = false\ndoctest = false\n",
+    );
+    if with_lib_flags == patched {
         return Err(io::Error::other(
-            "iggy Cargo.toml: `[profile.release]` block not found; \
+            "test Cargo.toml: `[lib]` block not found; \
              cargo_toml_gen template may have changed and this patch needs updating",
         ));
     }
 
-    fs::write(path, without_profile)
+    fs::write(path, with_lib_flags)
 }
 
 fn test_new(name: &str) -> io::Result<()> {
@@ -183,6 +212,7 @@ fn test_gen(name: &str) -> io::Result<()> {
     }
 
     let (result, starts) = regenerate(&grammar_file, &path)?;
+    patch_test_cargo_toml(&path.join("Cargo.toml"))?;
     println!(
         "Generated {name} grammar in {} ms",
         result.total_duration_ms
@@ -393,11 +423,15 @@ fn test_gen_all() -> io::Result<()> {
 }
 
 fn regenerate(grammar_path: &Path, output: &Path) -> io::Result<(GenerateResult, Vec<String>)> {
+    // Test crates build a CLI binary (cli=true) so the golden-file runner can
+    // shell out to them. force=true keeps src/main.rs current with the
+    // generator; patch_test_cargo_toml then adapts the standalone Cargo.toml
+    // the scaffold emits to workspace membership.
     let config = GenConfig {
-        cli: false,
+        cli: true,
         ..GenConfig::default()
     };
-    regenerate_with(grammar_path, output, config, false)
+    regenerate_with(grammar_path, output, config, true)
 }
 
 fn regenerate_with(
@@ -493,6 +527,106 @@ fn test(extra: &[String]) -> io::Result<()> {
     let status = cmd.status()?;
     if !status.success() {
         return Err(io::Error::other("test run failed"));
+    }
+    Ok(())
+}
+
+/// Runs the golden-file check for every grammar test. Builds the workspace
+/// binaries, then for each `tests/<grammar>/tests/<Start>/` directory runs that
+/// grammar's parser in `--check-sexpr` mode with the truthful render flags. The
+/// directory name is the start nonterminal, so no per-grammar configuration is
+/// needed. Checks run concurrently; the run fails if any check does.
+fn run_grammar_goldens() -> io::Result<()> {
+    use std::sync::Mutex;
+    use std::sync::atomic::{AtomicUsize, Ordering};
+
+    let root = workspace_root();
+    let status = Command::new("cargo")
+        .current_dir(root)
+        .args(["build", "--workspace", "--quiet"])
+        .status()?;
+    if !status.success() {
+        return Err(io::Error::other("cargo build failed"));
+    }
+
+    // Collect one job per start-nonterminal directory.
+    let mut jobs: Vec<(String, String, PathBuf)> = Vec::new();
+    for entry in fs::read_dir(root.join("tests"))? {
+        let grammar_dir = entry?.path();
+        let grammar = grammar_dir
+            .file_name()
+            .unwrap()
+            .to_string_lossy()
+            .to_string();
+        let cases_root = grammar_dir.join("tests");
+        if !cases_root.is_dir() {
+            continue;
+        }
+        for start_entry in fs::read_dir(&cases_root)? {
+            let start_dir = start_entry?.path();
+            if start_dir.is_dir() {
+                let start = start_dir.file_name().unwrap().to_string_lossy().to_string();
+                jobs.push((grammar.clone(), start, start_dir));
+            }
+        }
+    }
+    jobs.sort();
+
+    let bin_dir = root.join("target/debug");
+    let next = AtomicUsize::new(0);
+    let results: Mutex<Vec<(String, bool, String)>> = Mutex::new(Vec::new());
+    let threads = std::thread::available_parallelism().map_or(4, |n| n.get());
+
+    std::thread::scope(|scope| {
+        for _ in 0..threads {
+            scope.spawn(|| {
+                loop {
+                    let i = next.fetch_add(1, Ordering::Relaxed);
+                    let Some((grammar, start, start_dir)) = jobs.get(i) else {
+                        break;
+                    };
+                    let bin = bin_dir.join(grammar);
+                    let output = Command::new(&bin)
+                        .args(["--dir", start_dir.to_str().unwrap()])
+                        .args(["--ext", "txt", "-n", start, "--check-sexpr"])
+                        .args(["--show-layout", "--show-empty", "--show-wrappers"])
+                        .output();
+                    let (ok, text) = match output {
+                        Ok(o) => (
+                            o.status.success(),
+                            format!(
+                                "{}{}",
+                                String::from_utf8_lossy(&o.stdout),
+                                String::from_utf8_lossy(&o.stderr)
+                            ),
+                        ),
+                        Err(e) => (false, format!("failed to run {}: {e}", bin.display())),
+                    };
+                    results
+                        .lock()
+                        .unwrap()
+                        .push((format!("{grammar}/{start}"), ok, text));
+                }
+            });
+        }
+    });
+
+    let mut results = results.into_inner().unwrap();
+    results.sort();
+    let failures: Vec<&(String, bool, String)> = results.iter().filter(|(_, ok, _)| !ok).collect();
+    for (label, _, text) in &failures {
+        println!("FAIL {label}");
+        for line in text.lines() {
+            println!("  {line}");
+        }
+    }
+    let passed = results.len() - failures.len();
+    println!("Grammar goldens: {passed}/{} checks passed", results.len());
+    if !failures.is_empty() {
+        return Err(io::Error::other(format!(
+            "{} grammar golden check(s) failed",
+            failures.len()
+        )));
     }
     Ok(())
 }
