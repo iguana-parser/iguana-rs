@@ -33,8 +33,11 @@
   import "@iguana-parser/web-ui/graph.css";
   import "@iguana-parser/web-ui/parse-view.css";
   import { buildDebugSppfElements, exportGraphPng } from "$lib/graph-utils";
-  import MonacoEditor from "$lib/MonacoEditor.svelte";
+  import { DesignView } from "@iguana-parser/web-ui";
   import { TauriBackend } from "$lib/tauri-backend";
+  import { TauriLspBackend } from "$lib/tauri-lsp-backend";
+  import { registerDesignEditorActions } from "$lib/iggy-editor-actions";
+  import "$lib/monaco-env";
 
   cytoscape.use(dagre);
   cytoscape.use(tidytree);
@@ -419,7 +422,7 @@
     }
   }
 
-  // Called by MonacoEditor after each grammar analysis (parse)
+  // Called after each grammar parse to update the status bar and outline.
   function onGrammarAnalyze(result: { success: boolean; parse_duration_ms: number; tree_construction_duration_ms: number }) {
     if (result.success) {
       const totalMs = result.parse_duration_ms + result.tree_construction_duration_ms;
@@ -437,11 +440,16 @@
 
   function onEditorReady(editor: import("monaco-editor").editor.IStandaloneCodeEditor) {
     editorInstance = editor;
+    registerDesignEditorActions(editor);
     editor.onDidChangeCursorPosition((e) => {
       cursorLine = e.position.lineNumber;
       cursorColumn = e.position.column;
     });
   }
+
+  // The iggy grammar editor reaches iguana-lsp through Tauri commands. Its
+  // semantic-token requests carry the parse timing to onGrammarAnalyze.
+  const lspBackend = new TauriLspBackend(onGrammarAnalyze);
 
   function revealSymbol(sym: DocumentSymbolData, focusEditor = false) {
     if (!editorInstance) return;
@@ -1864,7 +1872,7 @@
   <!-- Design Mode -->
   <div class="design-mode">
     <div class="design-editor">
-      <MonacoEditor bind:value={grammarText} language="iggy" disabled={!grammarFileName} onchange={onGrammarEdit} onanalyze={onGrammarAnalyze} onready={onEditorReady} initialViewState={grammarViewState} onSaveViewState={(s) => grammarViewState = s} />
+      <DesignView bind:value={grammarText} backend={lspBackend} disabled={!grammarFileName} onchange={onGrammarEdit} onready={onEditorReady} initialViewState={grammarViewState} onSaveViewState={(s) => grammarViewState = s} />
       {#if !grammarFileName}
         <div class="editor-placeholder">Open a grammar to get started</div>
       {/if}
