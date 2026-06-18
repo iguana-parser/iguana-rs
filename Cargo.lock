@@ -786,9 +786,17 @@ name = "iguana"
 version = "0.1.0"
 dependencies = [
  "clap",
+ "iguana-compiler",
+ "include_dir",
+ "tiny_http",
+]
+
+[[package]]
+name = "iguana-compiler"
+version = "0.1.0"
+dependencies = [
  "iggy",
  "iguana-runtime",
- "include_dir",
  "indexmap",
  "itertools",
  "proc-macro2",
@@ -799,7 +807,6 @@ dependencies = [
  "serde_json",
  "specta",
  "syn",
- "tiny_http",
 ]
 
 [[package]]
@@ -808,7 +815,7 @@ version = "0.1.0"
 dependencies = [
  "by_address",
  "iggy",
- "iguana",
+ "iguana-compiler",
  "iguana-runtime",
  "lsp-server",
  "lsp-types",
@@ -2098,7 +2105,7 @@ name = "xtask"
 version = "0.0.0"
 dependencies = [
  "clap",
- "iguana",
+ "iguana-compiler",
  "proc-macro2",
  "quote",
 ]

@@ -9,7 +9,7 @@ pub mod spans;
 pub mod symbols;
 
 use iggy::parse_tree::{Grammar, Layout, Start};
-pub use iguana::grammar::def::GrammarDef;
+pub use iguana_compiler::grammar::def::GrammarDef;
 use iguana_runtime::{
     input::Input,
     parse_tree::{ParseContext, ParseTreeNode},
@@ -39,7 +39,7 @@ pub fn build_grammar_def(
     tree: &Start<&Grammar<'_>, &Layout<'_>>,
     input: &Input,
 ) -> Option<GrammarDef> {
-    iguana::iggy::build_grammar(tree, input)
+    iguana_compiler::iggy::build_grammar(tree, input)
         .ok()
         .map(|def| def.resolve())
 }

@@ -4,7 +4,6 @@ pub mod generator;
 pub mod grammar;
 pub mod iggy;
 pub mod utils;
-pub mod viewer;
 pub mod wasm_build;
 
 // Re-export runtime modules for convenience

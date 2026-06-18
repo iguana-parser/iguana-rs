@@ -1,6 +1,6 @@
 use by_address::ByAddress;
 use iggy::parse_tree::{self, Layout, ParseTree};
-use iguana::grammar::{
+use iguana_compiler::grammar::{
     def::{Alternative, GrammarDef, LexicalRule, SyntaxRule},
     regex::Regex,
     symbols::{DefinitionId, Identifier, Symbol},

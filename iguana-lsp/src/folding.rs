@@ -6,8 +6,8 @@
 // etc.) stay visible above the fold.
 
 use by_address::ByAddress;
-use iguana::grammar::def::GrammarDef;
-use iguana::grammar::symbols::DefinitionId;
+use iguana_compiler::grammar::def::GrammarDef;
+use iguana_compiler::grammar::symbols::DefinitionId;
 use iguana_runtime::input::Input;
 use lsp_types::{FoldingRange, FoldingRangeKind};
 

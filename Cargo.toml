@@ -15,6 +15,7 @@ resolver = "3"
 # uncomment terrarium/src-tauri when working on it
 members = [
     "iguana",
+    "iguana-compiler",
     "iguana-runtime",
     "iggy",
     "iguana-lsp",
@@ -82,7 +83,7 @@ lsp-types = "0.97"
 # Internal crates
 iguana-runtime = { path = "iguana-runtime" }
 iggy = { path = "iggy" }
-iguana = { path = "iguana" }
+iguana-compiler = { path = "iguana-compiler" }
 
 [profile.release]
 debug = true

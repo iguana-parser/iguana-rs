@@ -6,7 +6,7 @@ use std::{
 };
 
 use clap::{Parser, Subcommand};
-use iguana::{
+use iguana_compiler::{
     generator::{GenConfig, GenerateResult, generate_scaffold, generate_sources, generate_wasm},
     grammar::def::Grammar,
     iggy::parse_grammar,
@@ -607,7 +607,7 @@ fn wasm() -> io::Result<()> {
     );
 
     let wasm_dir = output.join("wasm");
-    iguana::wasm_build::build(&wasm_dir)?;
+    iguana_compiler::wasm_build::build(&wasm_dir)?;
     println!("Wasm package ready at {}", wasm_dir.join("pkg").display());
     Ok(())
 }

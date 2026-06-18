@@ -14,7 +14,7 @@ path = "src/main.rs"
 [dependencies]
 by_address = "1.2.1"
 iggy.workspace = true
-iguana.workspace = true
+iguana-compiler.workspace = true
 iguana-runtime.workspace = true
 rustc-hash = "2.1.1"
 lsp-server.workspace = true

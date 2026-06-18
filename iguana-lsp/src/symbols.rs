@@ -1,4 +1,4 @@
-use iguana::grammar::symbols::DefinitionId;
+use iguana_compiler::grammar::symbols::DefinitionId;
 
 use crate::spans::GrammarSpans;
 

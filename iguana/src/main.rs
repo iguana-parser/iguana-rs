@@ -4,7 +4,7 @@ use std::{
 };
 
 use clap::{Parser, Subcommand};
-use iguana::{
+use iguana_compiler::{
     alternative, bind, c, call, cond, cond_expr,
     generator::{GenConfig, generate_scaffold, generate_sources, generate_wasm},
     grammar::def::{Grammar, GrammarDef, Phase},
@@ -13,6 +13,8 @@ use iguana::{
     lexical_rule, lit, min, opt, priority_level, r_star, ret, syntax_rule, ternary,
     utils::to_pascal_case,
 };
+
+mod viewer;
 
 #[derive(Parser)]
 #[command(name = "iguana", version, about = "A GLL-based parser generator")]
@@ -131,7 +133,7 @@ fn main() -> std::io::Result<()> {
             // A wasm bundle always lands in webview/ (-o conflicts with --wasm);
             // the grammar was already resolved from the output dir above.
             let output = if wasm {
-                PathBuf::from(iguana::viewer::WEBVIEW_DIR)
+                PathBuf::from(viewer::WEBVIEW_DIR)
             } else {
                 output
             };
@@ -160,8 +162,8 @@ fn main() -> std::io::Result<()> {
             let result = generate_sources(&grammar, &output, config)?;
             if config.wasm {
                 generate_wasm(&grammar, &output, runtime_path.as_deref(), force)?;
-                iguana::wasm_build::build(&output.join("wasm"))?;
-                iguana::viewer::write_assets(&output)?;
+                iguana_compiler::wasm_build::build(&output.join("wasm"))?;
+                viewer::write_assets(&output)?;
             }
             if json {
                 println!("{{\"total_duration_ms\":{}}}", result.total_duration_ms);
@@ -172,9 +174,7 @@ fn main() -> std::io::Result<()> {
                 );
             }
         }
-        Commands::Try { port } => {
-            iguana::viewer::try_bundle(Path::new(iguana::viewer::WEBVIEW_DIR), port)?
-        }
+        Commands::Try { port } => viewer::try_bundle(Path::new(viewer::WEBVIEW_DIR), port)?,
     }
     Ok(())
 }

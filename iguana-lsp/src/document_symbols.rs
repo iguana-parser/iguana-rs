@@ -9,8 +9,8 @@
 // Skipped: layout def, field labels (left:, right:), symbol references in bodies.
 
 use by_address::ByAddress;
-use iguana::grammar::def::{GrammarDef, LayoutStrategy};
-use iguana::grammar::symbols::DefinitionId;
+use iguana_compiler::grammar::def::{GrammarDef, LayoutStrategy};
+use iguana_compiler::grammar::symbols::DefinitionId;
 use iguana_runtime::input::{Input, Span};
 use lsp_types::{DocumentSymbol, Position, Range, SymbolKind};
 

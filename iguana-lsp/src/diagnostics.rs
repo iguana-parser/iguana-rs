@@ -4,8 +4,8 @@
 // definition: None as unresolved reference errors.
 
 use by_address::ByAddress;
-use iguana::grammar::def::{GrammarDef, SyntaxRule};
-use iguana::grammar::symbols::{DefinitionId, Symbol};
+use iguana_compiler::grammar::def::{GrammarDef, SyntaxRule};
+use iguana_compiler::grammar::symbols::{DefinitionId, Symbol};
 use iguana_runtime::input::{Input, Span};
 use lsp_types::{Diagnostic, DiagnosticSeverity, Position, Range};
 use rustc_hash::FxHashMap;
