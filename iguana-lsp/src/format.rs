@@ -4,12 +4,15 @@
 // - Two-space indentation for `=`, `|`, and `>`
 // - `=` for the first priority level, `>` for subsequent ones
 // - `|` between alternatives within the same priority level
-// - Labels (`#Name`) are left-aligned to a column determined by the longest
-//   alternative in the rule (per nonterminal head, not global)
-// - Maximum line width: 100 characters
+// - Labels (`#Name`) are left-aligned to a column past the longest line of any
+//   alternative in the rule (per nonterminal head, not global), so no
+//   alternative body reaches into the label column
+// - Maximum line width: 80 characters
 // - Lines exceeding the limit wrap to the next line with 6-space continuation
 //   indent (2 for rule + 4 extra); the label sits at the alignment column on
 //   the last line
+// - Widths are measured in characters, not bytes, so a multibyte character
+//   (an accented letter in a string literal, say) counts as one column
 // - Blank line between every rule
 // - `@Regex` (optionally preceded by `@Layout` for a layout rule) on the line before the regex rule head
 // - `@Start` / `@Layout` / `@NoLayout` / `@WithLayout(X)` annotation on the line before the syntax rule head
@@ -23,7 +26,7 @@ use crate::layout::is_same_line;
 use iggy::parse_tree::*;
 use iguana_runtime::input::{Input, Span};
 
-const MAX_LINE_WIDTH: usize = 100;
+const MAX_LINE_WIDTH: usize = 80;
 const RULE_PREFIX: &str = "  = ";
 const ALT_PREFIX: &str = "  | ";
 const PRIO_PREFIX: &str = "  > ";
@@ -161,12 +164,15 @@ impl<'a> Formatter<'a> {
             }
         }
 
-        // Compute label alignment column
+        // Compute label alignment column from the longest line of any
+        // alternative, including the first lines of wrapped alternatives, so no
+        // alternative body reaches into the label column.
         let has_any_label = formatted_alts.iter().any(|(fa, _)| fa.label.is_some());
         let label_column = if has_any_label {
             formatted_alts
                 .iter()
-                .map(|(fa, _)| fa.lines.last().unwrap().len())
+                .flat_map(|(fa, _)| &fa.lines)
+                .map(|line| line.chars().count())
                 .max()
                 .unwrap_or(0)
                 + 1
@@ -185,13 +191,10 @@ impl<'a> Formatter<'a> {
                 out.push_str(line);
             }
             if let Some(ref label) = fa.label {
-                let last_len = fa.lines.last().unwrap().len();
-                let padding = if label_column > last_len {
-                    label_column - last_len
-                } else {
-                    1
-                };
-                for _ in 0..padding {
+                // The last line is one of the lines in label_column's max, so
+                // label_column always clears it with at least one space.
+                let last_len = fa.lines.last().unwrap().chars().count();
+                for _ in 0..label_column - last_len {
                     out.push(' ');
                 }
                 out.push_str(label);
@@ -404,7 +407,7 @@ impl<'a> Formatter<'a> {
             let body = chunks.join(" ");
             let single = format!("{} = {}{}{}", name, pre_str, body, postcond);
 
-            if single.len() <= MAX_LINE_WIDTH {
+            if single.chars().count() <= MAX_LINE_WIDTH {
                 out.push_str(&single);
             } else {
                 // Too long: name on its own line, wrapped body
@@ -504,7 +507,7 @@ fn wrap_chunks(
     max_width: usize,
 ) -> Vec<String> {
     let single_line = format!("{}{}", prefix, chunks.join(" "));
-    if single_line.len() <= max_width {
+    if single_line.chars().count() <= max_width {
         return vec![single_line];
     }
 
@@ -514,7 +517,7 @@ fn wrap_chunks(
     for (i, chunk) in chunks.iter().enumerate() {
         if i == 0 {
             current.push_str(chunk);
-        } else if current.len() + 1 + chunk.len() <= max_width {
+        } else if current.chars().count() + 1 + chunk.chars().count() <= max_width {
             current.push(' ');
             current.push_str(chunk);
         } else {
@@ -595,6 +598,59 @@ mod tests {
         let short_col = short_line.find('#').unwrap();
         let long_col = long_line.find('#').unwrap();
         assert_eq!(short_col, long_col);
+    }
+
+    #[test]
+    fn test_label_alignment_with_wrapped_alternative() {
+        // When an alternative is long enough to wrap, its first line must not
+        // reach into the label column: every label aligns past every body line.
+        let long_alt = "Sym ".repeat(30);
+        let input = format!("grammar T\n\nS\n  = \"a\" #Short\n  | {long_alt}#Long\n");
+        let formatted = format_source(&input).unwrap();
+        let lines: Vec<_> = formatted.lines().collect();
+
+        let label_cols: Vec<_> = lines
+            .iter()
+            .filter(|l| l.contains('#'))
+            .map(|l| l.find('#').unwrap())
+            .collect();
+        assert!(
+            label_cols.windows(2).all(|w| w[0] == w[1]),
+            "labels are not aligned to one column: {label_cols:?}"
+        );
+
+        let label_col = label_cols[0];
+        for line in &lines {
+            // The body ends where the padding before the label starts; an
+            // unlabeled line's body is the whole trimmed line.
+            let body_end = line.find('#').unwrap_or_else(|| line.trim_end().len());
+            assert!(
+                body_end <= label_col,
+                "alternative body reaches into the label column: {line:?}"
+            );
+        }
+    }
+
+    /// Assert every label in the formatted grammar starts at the same column.
+    fn assert_labels_aligned(input: &str) {
+        let formatted = format_source(input).unwrap();
+        let cols: Vec<_> = formatted
+            .lines()
+            .filter(|l| l.contains('#'))
+            .map(|l| l[..l.find('#').unwrap()].chars().count())
+            .collect();
+        assert!(cols.len() >= 2, "expected at least two labels: {cols:?}");
+        assert!(
+            cols.windows(2).all(|w| w[0] == w[1]),
+            "labels are not aligned: {cols:?}"
+        );
+    }
+
+    #[test]
+    fn test_label_alignment_not_byte_based() {
+        // A non-ASCII string literal spans more bytes than characters, so a
+        // byte-based width count would misalign these labels.
+        assert_labels_aligned("grammar T\n\nS\n  = \"café\" #A\n  | \"ab\" #B\n");
     }
 
     #[test]
