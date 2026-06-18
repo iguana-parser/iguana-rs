@@ -1,0 +1,27 @@
+# A self-contained workspace, so the crate stays off the main workspace's build
+# graph and out of rust-analyzer: it only builds for wasm, via wasm-pack.
+[workspace]
+
+[package]
+name = "iguana-lsp-wasm"
+version = "0.1.0"
+edition = "2024"
+license = "GPL-3.0-or-later"
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+wasm-bindgen = "0.2"
+serde_json = "1.0"
+lsp-types = "0.97"
+iguana-lsp = { path = ".." }
+iguana-runtime = { path = "../../iguana-runtime" }
+
+# Optimize for size and let the linker drop the codegen/syn subtree, which the
+# LSP entry points never reach.
+[profile.release]
+opt-level = "s"
+lto = true
+codegen-units = 1
+panic = "abort"

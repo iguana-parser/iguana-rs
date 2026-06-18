@@ -9,6 +9,9 @@ web-viewer/node_modules
 terrarium/node_modules
 terrarium/.svelte-kit
 terrarium/src-tauri/target
+iguana-lsp/wasm/target
+# wasm-pack output for the lsp-wasm bundle
+iguana-lsp/wasm/pkg
 editors/vscode/node_modules
 editors/vscode/out
 CLAUDE.local.md
