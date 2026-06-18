@@ -506,7 +506,35 @@ fn run_grammar_tests(regenerate: bool) -> io::Result<()> {
     Ok(())
 }
 
+/// Rebuild the web viewer bundle (web-viewer/dist) with vite. The iguana binary
+/// embeds that directory via include_dir!, so rebuilding it from source here
+/// keeps `iguana try` in sync with the viewer. This needs npm on PATH and the
+/// viewer dependencies installed (`npm install` in the repo root); if either is
+/// missing the build errors rather than falling back to a stale bundle.
+fn viewer() -> io::Result<()> {
+    println!("Building the web viewer...");
+    let status = Command::new("npm")
+        .current_dir(workspace_root())
+        .args(["run", "build", "--workspace", "web-viewer"])
+        .status()
+        .map_err(|e| match e.kind() {
+            io::ErrorKind::NotFound => io::Error::other(
+                "npm not found. Install Node.js (which provides npm), \
+                 then run `npm install` in the repo root.",
+            ),
+            _ => e,
+        })?;
+    if !status.success() {
+        return Err(io::Error::other(
+            "npm run build failed; run `npm install` in the repo root if the \
+             viewer dependencies are missing.",
+        ));
+    }
+    Ok(())
+}
+
 fn install() -> io::Result<()> {
+    viewer()?;
     let root = workspace_root();
     println!("Building iguana (release)...");
     let status = Command::new("cargo")

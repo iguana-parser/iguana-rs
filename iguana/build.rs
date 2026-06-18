@@ -9,8 +9,9 @@ fn main() {
     let dist = Path::new(&manifest_dir).join("../web-viewer/dist");
     if !dist.join("index.html").exists() {
         panic!(
-            "web-viewer/dist is missing. Rebuild it with `cargo xtask viewer` \
-             (or `npm --prefix web-viewer install && npm run build --workspace web-viewer`)."
+            "web-viewer/dist is missing. Rebuild it with \
+             `npm run build --workspace web-viewer` (run `npm install` in the \
+             repo root first if the viewer dependencies are not installed)."
         );
     }
     println!("cargo:rerun-if-changed={}", dist.display());
