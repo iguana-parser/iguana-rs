@@ -22,7 +22,7 @@
     GraphCollapseManager,
     buildParseTreeElements,
     type ParseTreeData,
-  } from "@iguana-parser/parse-view";
+  } from "@iguana-parser/web-ui";
   import { buildDebugSppfElements, buildDebugGssElements, buildSppfElements, buildGssElements, exportGraphPng } from "$lib/graph-utils";
   import { createMaximizeToggle } from "$lib/window-utils";
   import type {

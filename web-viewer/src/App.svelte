@@ -1,6 +1,6 @@
 <script lang="ts">
   import { onMount } from "svelte";
-  import { ParseView, WasmBackend, type ParserBackend, type WasmParse } from "@iguana-parser/parse-view";
+  import { ParseView, WasmBackend, type ParserBackend, type WasmParse } from "@iguana-parser/web-ui";
 
   // The grammar-derived data the bundle ships alongside the wasm module. The
   // viewer is grammar-independent and reads it all at runtime.

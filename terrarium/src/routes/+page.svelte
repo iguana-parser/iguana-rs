@@ -29,9 +29,9 @@
     InputEditor,
     NonterminalPicker,
     ParseView,
-  } from "@iguana-parser/parse-view";
-  import "@iguana-parser/parse-view/graph.css";
-  import "@iguana-parser/parse-view/parse-view.css";
+  } from "@iguana-parser/web-ui";
+  import "@iguana-parser/web-ui/graph.css";
+  import "@iguana-parser/web-ui/parse-view.css";
   import { buildDebugSppfElements, exportGraphPng } from "$lib/graph-utils";
   import MonacoEditor from "$lib/MonacoEditor.svelte";
   import { TauriBackend } from "$lib/tauri-backend";

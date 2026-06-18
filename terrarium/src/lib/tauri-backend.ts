@@ -1,5 +1,5 @@
 import { commands } from "../bindings";
-import type { ParserBackend, ParseTreeResult } from "@iguana-parser/parse-view";
+import type { ParserBackend, ParseTreeResult } from "@iguana-parser/web-ui";
 
 // Drives a generated parser that Terrarium runs as a subprocess. The parse
 // command runs the parser and returns the tree JSON inline, so ParseView sees

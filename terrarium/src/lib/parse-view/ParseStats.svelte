@@ -1,6 +1,6 @@
 <script lang="ts">
   import type { StatsData } from "../../bindings";
-  import "@iguana-parser/parse-view/parse-view.css";
+  import "@iguana-parser/web-ui/parse-view.css";
 
   let {
     statsData,

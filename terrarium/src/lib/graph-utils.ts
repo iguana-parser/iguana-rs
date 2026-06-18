@@ -1,6 +1,6 @@
 import type { Core, ElementDefinition } from "cytoscape";
 import type { DebugSPPFNode, DebugGSSNode, DebugGSSEdge, SPPF, GSS, NodeKind } from "../bindings";
-import { truncateLabel, LABEL_MAX_LENGTH, INTERMEDIATE_MAX_LENGTH } from "@iguana-parser/parse-view";
+import { truncateLabel, LABEL_MAX_LENGTH, INTERMEDIATE_MAX_LENGTH } from "@iguana-parser/web-ui";
 import { save } from "@tauri-apps/plugin-dialog";
 import { writeFile } from "@tauri-apps/plugin-fs";
 

@@ -1,7 +1,7 @@
 {
   "name": "@iguana-parser/web-viewer",
   "version": "0.1.0",
-  "description": "Static web viewer that mounts the shared parse-view against a wasm-compiled iguana parser.",
+  "description": "Static web viewer that mounts the shared parse view against a wasm-compiled iguana parser.",
   "license": "MIT OR Apache-2.0",
   "private": true,
   "type": "module",
@@ -12,7 +12,7 @@
     "check": "svelte-check --tsconfig ./tsconfig.json"
   },
   "dependencies": {
-    "@iguana-parser/parse-view": "*",
+    "@iguana-parser/web-ui": "*",
     "cytoscape": "^3.33.2",
     "cytoscape-tidytree": "^0.2.1",
     "lucide-svelte": "^1.0.1",

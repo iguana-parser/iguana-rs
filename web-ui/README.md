@@ -1,6 +1,6 @@
-# @iguana-parser/parse-view
+# @iguana-parser/web-ui
 
-The shared parse-view renderer for iguana parsers. It is a Svelte component, `ParseView`, that presents a parse tree three ways: a collapsible tree, a graph, and an interactive s-expression, with selection synced to an input editor. The same component drives Terrarium's parse mode and the web viewer, so there is one renderer to maintain.
+The shared web UI for iguana's frontends. Its `ParseView` component presents a parse tree three ways: a collapsible tree, a graph, and an interactive s-expression, with selection synced to an input editor. The same component drives Terrarium's parse mode and the web viewer, so there is one renderer to maintain.
 
 The renderer is host-agnostic. It reaches a parser through a `ParserBackend` interface rather than calling any host API directly, so it runs unchanged against either a subprocess parser or a wasm one. The package ships the wasm-backed implementation (`WasmBackend`); Terrarium supplies its own subprocess-backed one. Host-only chrome (graph pop-out, profiling, status and log hooks, PNG export) is taken as optional injected callbacks, so a host that omits them simply does not render the corresponding controls.
 

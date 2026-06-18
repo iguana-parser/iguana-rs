@@ -1,7 +1,7 @@
 {
-  "name": "@iguana-parser/parse-view",
+  "name": "@iguana-parser/web-ui",
   "version": "0.1.0",
-  "description": "Shared parse-view renderer for iguana parsers: a Svelte component with tree, graph, and s-expression views over a parse tree, driven by a pluggable parser backend.",
+  "description": "Shared web UI components for iguana parsers, consumed by Terrarium and the web viewer.",
   "license": "MIT OR Apache-2.0",
   "type": "module",
   "svelte": "./src/index.ts",

@@ -1,9 +1,9 @@
 {
   "name": "iguana-rs-workspace",
   "private": true,
-  "description": "JavaScript/TypeScript workspace for iguana-rs: the shared parse-view renderer, Terrarium, and the web viewer.",
+  "description": "JavaScript/TypeScript workspace for iguana-rs: the shared web UI, Terrarium, and the web viewer.",
   "workspaces": [
-    "parse-view",
+    "web-ui",
     "web-viewer",
     "terrarium"
   ]
