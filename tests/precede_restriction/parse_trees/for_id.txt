@@ -1,5 +1,0 @@
-(S
-  "for"
-  WS
-  (Id
-    (Char+ Char)))

@@ -1,8 +1,0 @@
-(Expr
-  (Expr Id)
-  "("
-  ({Expr !comma ","}*
-    (Expr Id)
-    ","
-    (Expr Id))
-  ")")

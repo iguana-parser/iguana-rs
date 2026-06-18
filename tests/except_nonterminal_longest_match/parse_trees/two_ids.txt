@@ -1,5 +1,0 @@
-(S
-  (Id
-    (Name Letter Letter))
-  (Id
-    (Name Letter Letter)))

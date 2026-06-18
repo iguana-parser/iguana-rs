@@ -1,1 +1,0 @@
-(LexicalIdentifier Identifier)

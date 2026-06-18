@@ -46,23 +46,23 @@ When doing bootstrapping, we need to always run it twice to ensure stability.
 
 # Tests
 
-Each grammar test lives in `tests/<name>/` with a `.iggy` grammar, generated lib-only `src/`, a hand-written `tests.rs`, and golden files in `parse_trees/`. All `tests.rs` files are pulled into a single integration-test binary at `tests/grammar_tests.rs` via `#[path] mod` declarations — there is one workspace test binary for grammar tests, not one per grammar.
+Each grammar test lives in `tests/<name>/`: a `.iggy` grammar, generated `src/` (lib + `main.rs`), a `Cargo.toml`, and test cases under `tests/<Start>/`. A case is a `<case>.txt` input paired with a `<case>.sexpr` expected-output file; the subdirectory name is the start nonterminal passed as `-n`, so a multi-start grammar has one subdirectory per start.
 
-The per-grammar crate exists only to expose the parser as a library (e.g. `expression::parse_e`) for `iguana-tests` to depend on. It has `test = false` on its `[lib]` and no `[[bin]]`, so it produces no test binary itself. The unified runner is the `iguana-tests` package's `grammar_tests` integration test.
+The crate builds a CLI parser binary (`cli=true`: lib + bin, with `test = false` on the lib). A test runs by executing that binary in `--check-sexpr` mode, not as a cargo test. The expected output holds the parse-tree s-expression on success, or a `Parse error at line N, col M: ...` line on failure, so an input that must not parse is a first-class test. The check uses the truthful render (`--show-layout --show-empty --show-wrappers`); inputs are exact bytes with no trailing newline. `iguana-tests` (the workspace root crate) keeps only the non-grammar integration tests, `scanner_tests` and `error_reporting_tests`.
 
-- `cargo xtask test-new <name>` — scaffold a new test (dir + stub `.iggy` + `parse_trees/`). Pure scaffolding; does not run the generator.
-- `cargo xtask test-gen <name>` — run the generator (writes lib sources and, on first generation, a minimal `Cargo.toml`), write `tests.rs` if missing (based on `@Start` annotations), and wire the crate into three places: workspace `members`, root `[dev-dependencies]`, and `tests/grammar_tests.rs`.
+- `cargo xtask test` — run the cargo tests (nextest if available) and then the grammar tests: build the binaries and check every grammar's output against its `.sexpr` files concurrently (the directory name supplies `-n`). `cargo xtask test --regen` rewrites the expected output instead of checking it, and skips the cargo tests.
+- `cargo xtask test-new <name>` — scaffold a new test (dir + stub `.iggy`). Pure scaffolding; does not run the generator.
+- `cargo xtask test-gen <name>` — run the generator (`cli=true`, `force=true`: lib + `main.rs`), patch the Cargo.toml to workspace membership, and add the crate to workspace `members`.
 - `cargo xtask test-gen-all` — run `test-gen` on every test that has a grammar file.
-- `cargo xtask test-rm <name>` — delete the directory and unwire from all three places.
-- `REGENERATE=1 cargo xtask test <name>::` — update golden files for one grammar.
+- `cargo xtask test-rm <name>` — delete the directory and remove it from `members`.
 
-Tests use s-expression golden file comparison via `check_golden_file`. The generated `tests.rs` defines `const GRAMMAR_DIR: &str = concat!(env!("CARGO_MANIFEST_DIR"), "/tests/<name>");` and passes that to `golden_path` — `CARGO_MANIFEST_DIR` resolves to the workspace root when compiled inside the unified runner.
+For the check to be stable, the s-expr printer and the error-message format must be deterministic across runs.
 
-The generator is parameterized by `GenConfig.cli` (default `true`). `iguana generate --cli=true|false` switches between a standalone CLI parser crate (Cargo.toml with `iguana-runtime = { git = ... }`, full deps, `src/main.rs`) and a minimal lib-only crate (`workspace = true` deps, no main.rs). xtask `test-gen` always uses `cli=false`. Terrarium relies on `cli=true` (the default) because it shells out to per-grammar parser binaries.
+`GenConfig.cli` (default `true`) switches between a standalone CLI parser crate (Cargo.toml with `iguana-runtime = { git = ... }`, full deps, `src/main.rs`) and a minimal lib-only crate (`workspace = true` deps, no main.rs). `test-gen` and `bootstrap` use `cli=true` with `force=true`, so a test grammar's (and iggy's) `main.rs` always reflects the current `main_gen.rs` template. Terrarium also relies on `cli=true` because it shells out to per-grammar parser binaries.
 
-The scaffold step (Cargo.toml + main.rs when cli=true) writes each file only if it does not already exist, so local edits survive regeneration. `iguana generate --force` overwrites both files; it's intended for the iggy bootstrap inside this repo and should not be used on external crates. External crates outside this workspace often hand-edit Cargo.toml (local path to `iguana-runtime`, custom features), and `--force` resets those edits. When a `main_gen.rs` change must land in an external crate, re-apply the relevant template diff to that crate's `main.rs` by hand, or delete `main.rs` and re-run `iguana generate` (no `--force`) so only `main.rs` is rewritten.
+The scaffold emits the standalone Cargo.toml, which is then adapted to workspace membership: `patch_workspace_cargo_toml` swaps the `iguana-runtime` git dep for `workspace = true` and strips `[profile.release]`; `patch_iggy_cargo_toml` adds iggy's license on top, and `patch_test_cargo_toml` adds `test = false`/`doctest = false` to the lib. Each substitution asserts it applied, so a `cargo_toml_gen.rs` template change fails loudly.
 
-`cargo xtask bootstrap` regenerates iggy with `cli=true` + `force=true`, so iggy's `main.rs` always reflects the current `main_gen.rs` template. iggy's Cargo.toml is adapted to its workspace membership by `xtask::patch_iggy_cargo_toml`, which applies three text substitutions (workspace dep for `iguana-runtime`, add license, strip `[profile.release]`). Each patch asserts it applied; if a `cargo_toml_gen.rs` template change breaks a pattern, bootstrap fails loudly. `cargo xtask test-gen` and `test-gen-all` do not pass `--force`; test grammars' Cargo.toml is first-write-only by design.
+External crates outside this workspace often hand-edit Cargo.toml (local path to `iguana-runtime`, custom features). `iguana generate --force` overwrites the scaffold and resets those edits, so it should not be used there. When a `main_gen.rs` change must land in an external crate, re-apply the template diff to that crate's `main.rs` by hand, or delete `main.rs` and re-run `iguana generate` (no `--force`) so only `main.rs` is rewritten.
 
 # Benchmarking
 

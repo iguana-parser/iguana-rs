@@ -1,2 +1,0 @@
-(Base
-  ({Identifier \ Keyword ","}+ Identifier))

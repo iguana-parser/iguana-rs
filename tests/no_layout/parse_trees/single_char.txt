@@ -1,3 +1,0 @@
-(S
-  (Id
-    (Char+ Char)))

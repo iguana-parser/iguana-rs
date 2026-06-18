@@ -9,50 +9,6 @@ publish = false
 iggy.workspace = true
 iguana-runtime.workspace = true
 
-[dev-dependencies]
-follow_restriction_lexical_multiple = { path = "tests/follow_restriction_lexical_multiple" }
-plus_except = { path = "tests/plus_except" }
-amb = { path = "tests/amb" }
-except_nonterminal_longest_match = { path = "tests/except_nonterminal_longest_match" }
-except_longest_match = { path = "tests/except_longest_match" }
-indirect_postfix = { path = "tests/indirect_postfix" }
-indirect_prefix = { path = "tests/indirect_prefix" }
-amb_plus = { path = "tests/amb_plus" }
-amb_list = { path = "tests/amb_list" }
-assoc_test = { path = "tests/assoc_test" }
-binary_expression_priority = { path = "tests/binary_expression_priority" }
-comments = { path = "tests/comments" }
-deep_priority = { path = "tests/deep_priority" }
-deep_priority_full = { path = "tests/deep_priority_full" }
-except_lexical = { path = "tests/except_lexical" }
-except_nonterminal = { path = "tests/except_nonterminal" }
-except_terminal = { path = "tests/except_terminal" }
-exclude_by_label = { path = "tests/exclude_by_label" }
-expression = { path = "tests/expression" }
-follow_restriction = { path = "tests/follow_restriction" }
-follow_restriction_lexical = { path = "tests/follow_restriction_lexical" }
-follow_restriction_multiple = { path = "tests/follow_restriction_multiple" }
-group = { path = "tests/group" }
-indirect_precedence = { path = "tests/indirect_precedence" }
-layout_nonterminal = { path = "tests/layout_nonterminal" }
-left_recursive_list = { path = "tests/left_recursive_list" }
-longest_match = { path = "tests/longest_match" }
-multiple_except = { path = "tests/multiple_except" }
-no_layout = { path = "tests/no_layout" }
-opt = { path = "tests/opt" }
-pepm16_expressions = { path = "tests/pepm16_expressions" }
-plus = { path = "tests/plus" }
-plus_group = { path = "tests/plus_group" }
-plus_with_sep = { path = "tests/plus_with_sep" }
-precede_restriction = { path = "tests/precede_restriction" }
-precede_restriction_lexical = { path = "tests/precede_restriction_lexical" }
-prefix_above_binary = { path = "tests/prefix_above_binary" }
-prefix_postfix_priority = { path = "tests/prefix_postfix_priority" }
-regex_composition = { path = "tests/regex_composition" }
-simple_alt = { path = "tests/simple_alt" }
-star = { path = "tests/star" }
-star_with_sep = { path = "tests/star_with_sep" }
-
 [workspace]
 resolver = "3"
 # terrarium excluded by default - it's a Tauri app with 500+ dependencies that slows rust-analyzer

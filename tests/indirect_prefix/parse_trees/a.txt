@@ -1,5 +1,0 @@
-(Start
-  WS
-  (S
-    (E "a"))
-  WS)

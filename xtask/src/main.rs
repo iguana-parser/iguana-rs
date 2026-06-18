@@ -7,15 +7,11 @@ use std::{
 
 use clap::{Parser, Subcommand};
 use iguana::{
-    generator::{
-        GenConfig, GenerateResult, generate_scaffold, generate_sources, generate_wasm, post_process,
-    },
+    generator::{GenConfig, GenerateResult, generate_scaffold, generate_sources, generate_wasm},
     grammar::def::Grammar,
     iggy::parse_grammar,
-    utils::{to_pascal_case, to_snake_case},
+    utils::to_pascal_case,
 };
-use proc_macro2::{Ident, Span, TokenStream};
-use quote::quote;
 
 #[derive(Parser)]
 #[command(name = "xtask", about = "Iguana dev commands")]
@@ -45,15 +41,18 @@ enum Commands {
     },
     /// Regenerate all test parsers
     TestGenAll,
-    /// Run the workspace test suite (uses cargo-nextest if available)
+    /// Run the workspace test suite: the cargo tests (nextest if available)
+    /// plus the grammar tests (each parser binary checked against its
+    /// expected .sexpr output)
     Test {
+        /// Rewrite the grammar tests' expected output instead of checking it;
+        /// skips the cargo tests
+        #[arg(long)]
+        regen: bool,
         /// Extra arguments forwarded to nextest / cargo test
         #[arg(trailing_var_arg = true, allow_hyphen_values = true)]
         args: Vec<String>,
     },
-    /// Run every grammar's golden-file check (builds the binaries, then runs
-    /// each parser in --check-sexpr mode, concurrently)
-    Goldens,
     /// Build iguana from this workspace and install it into `$CARGO_HOME/bin`
     Install,
     /// Install iguana, then launch the terrarium dev server
@@ -70,8 +69,7 @@ fn main() -> io::Result<()> {
         Commands::TestRm { name } => test_rm(&name),
         Commands::TestGen { name } => test_gen(&name),
         Commands::TestGenAll => test_gen_all(),
-        Commands::Test { args } => test(&args),
-        Commands::Goldens => run_grammar_goldens(),
+        Commands::Test { regen, args } => test(regen, &args),
         Commands::Install => install(),
         Commands::Terrarium => terrarium(),
         Commands::Wasm => wasm(),
@@ -167,10 +165,8 @@ fn test_new(name: &str) -> io::Result<()> {
     let test_dir = workspace_root().join("tests").join(name);
     let grammar_name = to_pascal_case(name);
     let grammar_file = test_dir.join(format!("{name}.iggy"));
-    let parse_trees = test_dir.join("parse_trees");
 
     fs::create_dir_all(&test_dir)?;
-    fs::create_dir_all(&parse_trees)?;
     if !grammar_file.exists() {
         fs::write(&grammar_file, format!("grammar {grammar_name}\n"))?;
         println!("Created grammar: {}", grammar_file.display());
@@ -196,8 +192,6 @@ fn test_rm(name: &str) -> io::Result<()> {
     }
 
     remove_workspace_member(name)?;
-    remove_dev_dependency(name)?;
-    remove_grammar_tests_mod(name)?;
     Ok(())
 }
 
@@ -211,29 +205,14 @@ fn test_gen(name: &str) -> io::Result<()> {
         )));
     }
 
-    let (result, starts) = regenerate(&grammar_file, &path)?;
+    let (result, _) = regenerate(&grammar_file, &path)?;
     patch_test_cargo_toml(&path.join("Cargo.toml"))?;
     println!(
         "Generated {name} grammar in {} ms",
         result.total_duration_ms
     );
 
-    let tests_rs = path.join("tests.rs");
-    if !tests_rs.exists() {
-        if starts.is_empty() {
-            println!(
-                "No @Start in grammar; tests.rs not created. Add @Start and re-run `cargo xtask test-gen {name}`."
-            );
-        } else {
-            fs::write(&tests_rs, generate_tests_rs(name, &starts))?;
-            rustfmt_file(&tests_rs)?;
-            println!("Wrote: {}", tests_rs.display());
-        }
-    }
-
     add_workspace_member(name)?;
-    add_dev_dependency(name)?;
-    add_grammar_tests_mod(name)?;
     Ok(())
 }
 
@@ -261,144 +240,6 @@ fn remove_workspace_member(name: &str) -> io::Result<()> {
         fs::write(&workspace_cargo, content.replace(&member_entry, ""))?;
     }
     Ok(())
-}
-
-fn add_dev_dependency(name: &str) -> io::Result<()> {
-    let workspace_cargo = workspace_root().join("Cargo.toml");
-    let content = fs::read_to_string(&workspace_cargo)?;
-    let entry = format!("{name} = {{ path = \"tests/{name}\" }}\n");
-    if content.contains(&entry) {
-        return Ok(());
-    }
-    let header = "[dev-dependencies]\n";
-    let header_pos = content
-        .find(header)
-        .ok_or_else(|| io::Error::other("[dev-dependencies] not found in workspace Cargo.toml"))?;
-    let insert_at = header_pos + header.len();
-    let mut new_content = String::with_capacity(content.len() + entry.len());
-    new_content.push_str(&content[..insert_at]);
-    new_content.push_str(&entry);
-    new_content.push_str(&content[insert_at..]);
-    fs::write(&workspace_cargo, new_content)?;
-    println!("Added {name} to [dev-dependencies]");
-    Ok(())
-}
-
-fn remove_dev_dependency(name: &str) -> io::Result<()> {
-    let workspace_cargo = workspace_root().join("Cargo.toml");
-    let content = fs::read_to_string(&workspace_cargo)?;
-    let entry = format!("{name} = {{ path = \"tests/{name}\" }}\n");
-    if content.contains(&entry) {
-        fs::write(&workspace_cargo, content.replace(&entry, ""))?;
-    }
-    Ok(())
-}
-
-fn add_grammar_tests_mod(name: &str) -> io::Result<()> {
-    let path = workspace_root().join("tests/grammar_tests.rs");
-    let mut content = if path.exists() {
-        fs::read_to_string(&path)?
-    } else {
-        String::new()
-    };
-    if content.contains(&format!("\nmod {name};\n")) || content.starts_with(&format!("mod {name};"))
-    {
-        return Ok(());
-    }
-    if !content.is_empty() && !content.ends_with("\n\n") {
-        if content.ends_with('\n') {
-            content.push('\n');
-        } else {
-            content.push_str("\n\n");
-        }
-    }
-    content.push_str(&format!("#[path = \"{name}/tests.rs\"]\nmod {name};\n"));
-    fs::write(&path, content)?;
-    println!("Added mod {name} to tests/grammar_tests.rs");
-    Ok(())
-}
-
-fn remove_grammar_tests_mod(name: &str) -> io::Result<()> {
-    let path = workspace_root().join("tests/grammar_tests.rs");
-    if !path.exists() {
-        return Ok(());
-    }
-    let content = fs::read_to_string(&path)?;
-    let with_blank = format!("#[path = \"{name}/tests.rs\"]\nmod {name};\n\n");
-    let no_blank = format!("#[path = \"{name}/tests.rs\"]\nmod {name};\n");
-    if content.contains(&with_blank) {
-        fs::write(&path, content.replace(&with_blank, ""))?;
-    } else if content.contains(&no_blank) {
-        fs::write(&path, content.replace(&no_blank, ""))?;
-    }
-    Ok(())
-}
-
-fn generate_tests_rs(crate_name: &str, starts: &[String]) -> String {
-    let crate_ident = Ident::new(crate_name, Span::call_site());
-    let snakes: Vec<String> = starts.iter().map(|s| to_snake_case(s)).collect();
-    let parse_idents: Vec<Ident> = snakes
-        .iter()
-        .map(|s| Ident::new(&format!("parse_{s}"), Span::call_site()))
-        .collect();
-
-    let header = format!(
-        "// To regenerate parser:  cargo xtask test-gen {crate_name}\n\
-         // To update golden files: REGENERATE=1 cargo test -p iguana-tests --test grammar_tests {crate_name}::\n\n"
-    );
-
-    let grammar_dir_suffix = format!("/tests/{crate_name}");
-
-    let check_fns: TokenStream = if snakes.len() == 1 {
-        let fn_name = Ident::new("check", Span::call_site());
-        let parse_fn = &parse_idents[0];
-        check_fn(&fn_name, parse_fn)
-    } else {
-        snakes
-            .iter()
-            .zip(parse_idents.iter())
-            .map(|(snake, parse_fn)| {
-                let fn_name = Ident::new(&format!("check_{snake}"), Span::call_site());
-                check_fn(&fn_name, parse_fn)
-            })
-            .collect()
-    };
-
-    let example_call = if snakes.len() == 1 {
-        "check(\"input text\", \"example\");".to_string()
-    } else {
-        format!("check_{}(\"input text\", \"example\");", snakes[0])
-    };
-
-    let tokens = quote! {
-        use #crate_ident::{#(#parse_idents),*, parse_tree::to_sexpr};
-        use iguana_runtime::input::Input;
-        use iguana_runtime::parse_tree::ParseContext;
-        use iguana_runtime::testing::{check_golden_file, golden_path};
-
-        const GRAMMAR_DIR: &str = concat!(env!("CARGO_MANIFEST_DIR"), #grammar_dir_suffix);
-
-        #check_fns
-
-        #[test]
-        fn example() {
-            #[comment = #example_call]
-        }
-    };
-
-    format!("{header}{}", post_process(&tokens.to_string()))
-}
-
-fn check_fn(fn_name: &Ident, parse_fn: &Ident) -> TokenStream {
-    quote! {
-        fn #fn_name(input: &str, test_name: &str) {
-            let input = Input::from(input);
-            let ctx = ParseContext::new();
-            let result = #parse_fn(&input, &ctx).expect("Parse failed");
-            let actual = to_sexpr(result.tree.as_parse_tree());
-            check_golden_file(&actual, &golden_path(GRAMMAR_DIR, test_name));
-        }
-    }
 }
 
 fn test_gen_all() -> io::Result<()> {
@@ -461,22 +302,6 @@ fn regenerate_with(
     Ok((result, starts))
 }
 
-fn rustfmt_file(path: &Path) -> io::Result<()> {
-    let status = Command::new("rustfmt")
-        .arg("--edition")
-        .arg("2024")
-        .arg("--quiet")
-        .arg(path)
-        .status()?;
-    if !status.success() {
-        return Err(io::Error::other(format!(
-            "rustfmt failed on {}",
-            path.display()
-        )));
-    }
-    Ok(())
-}
-
 /// Format every `.rs` file in `<crate_dir>/src/` with rustfmt. One invocation
 /// for the whole crate avoids the project-mode race between parallel rustfmt
 /// processes, and skipping cargo means no workspace traversal.
@@ -507,7 +332,13 @@ fn format_sources(crate_dir: &Path) -> io::Result<()> {
     Ok(())
 }
 
-fn test(extra: &[String]) -> io::Result<()> {
+fn test(regen: bool, extra: &[String]) -> io::Result<()> {
+    // --regen rewrites the grammar tests' expected output; the cargo tests have
+    // nothing to regenerate, so skip them.
+    if regen {
+        return run_grammar_tests(true);
+    }
+
     let root = workspace_root();
     let nextest_available = Command::new("cargo")
         .args(["nextest", "--version"])
@@ -528,18 +359,27 @@ fn test(extra: &[String]) -> io::Result<()> {
     if !status.success() {
         return Err(io::Error::other("test run failed"));
     }
-    Ok(())
+
+    // The grammar tests run through each parser binary, not the cargo test
+    // binary, so run them as a second step.
+    run_grammar_tests(false)
 }
 
-/// Runs the golden-file check for every grammar test. Builds the workspace
-/// binaries, then for each `tests/<grammar>/tests/<Start>/` directory runs that
-/// grammar's parser in `--check-sexpr` mode with the truthful render flags. The
-/// directory name is the start nonterminal, so no per-grammar configuration is
-/// needed. Checks run concurrently; the run fails if any check does.
-fn run_grammar_goldens() -> io::Result<()> {
+/// Runs every grammar's tests: its input/expected-output file pairs. Builds the
+/// workspace binaries, then for each `tests/<grammar>/tests/<Start>/` directory
+/// runs that grammar's parser with the truthful render flags: `--check-sexpr` to
+/// compare against the expected `.sexpr` output, or `--regenerate-sexpr` to
+/// rewrite it. The directory name is the start nonterminal, so no per-grammar
+/// configuration is needed. Runs concurrently; the run fails if any parser does.
+fn run_grammar_tests(regenerate: bool) -> io::Result<()> {
     use std::sync::Mutex;
     use std::sync::atomic::{AtomicUsize, Ordering};
 
+    let sexpr_flag = if regenerate {
+        "--regenerate-sexpr"
+    } else {
+        "--check-sexpr"
+    };
     let root = workspace_root();
     let status = Command::new("cargo")
         .current_dir(root)
@@ -588,7 +428,7 @@ fn run_grammar_goldens() -> io::Result<()> {
                     let bin = bin_dir.join(grammar);
                     let output = Command::new(&bin)
                         .args(["--dir", start_dir.to_str().unwrap()])
-                        .args(["--ext", "txt", "-n", start, "--check-sexpr"])
+                        .args(["--ext", "txt", "-n", start, sexpr_flag])
                         .args(["--show-layout", "--show-empty", "--show-wrappers"])
                         .output();
                     let (ok, text) = match output {
@@ -621,10 +461,11 @@ fn run_grammar_goldens() -> io::Result<()> {
         }
     }
     let passed = results.len() - failures.len();
-    println!("Grammar goldens: {passed}/{} checks passed", results.len());
+    let verb = if regenerate { "regenerated" } else { "passed" };
+    println!("Grammar tests: {passed}/{} {verb}", results.len());
     if !failures.is_empty() {
         return Err(io::Error::other(format!(
-            "{} grammar golden check(s) failed",
+            "{} grammar test(s) failed",
             failures.len()
         )));
     }

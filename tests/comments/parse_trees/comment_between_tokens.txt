@@ -1,9 +1,0 @@
-(Start
-  Layout
-  (Expr
-    (Expr "x")
-    Layout
-    "+"
-    Layout
-    (Expr "x"))
-  Layout)
