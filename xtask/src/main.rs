@@ -372,8 +372,10 @@ fn test(regen: bool, extra: &[String]) -> io::Result<()> {
 /// rewrite it. The directory name is the start nonterminal, so no per-grammar
 /// configuration is needed. Runs concurrently; the run fails if any parser does.
 fn run_grammar_tests(regenerate: bool) -> io::Result<()> {
+    use std::io::IsTerminal;
     use std::sync::Mutex;
     use std::sync::atomic::{AtomicUsize, Ordering};
+    use std::time::Instant;
 
     let sexpr_flag = if regenerate {
         "--regenerate-sexpr"
@@ -389,8 +391,8 @@ fn run_grammar_tests(regenerate: bool) -> io::Result<()> {
         return Err(io::Error::other("cargo build failed"));
     }
 
-    // Collect one job per start-nonterminal directory.
-    let mut jobs: Vec<(String, String, PathBuf)> = Vec::new();
+    // Collect one job per start-nonterminal directory, with its case count.
+    let mut jobs: Vec<(String, String, PathBuf, usize)> = Vec::new();
     for entry in fs::read_dir(root.join("tests"))? {
         let grammar_dir = entry?.path();
         let grammar = grammar_dir
@@ -404,25 +406,44 @@ fn run_grammar_tests(regenerate: bool) -> io::Result<()> {
         }
         for start_entry in fs::read_dir(&cases_root)? {
             let start_dir = start_entry?.path();
-            if start_dir.is_dir() {
-                let start = start_dir.file_name().unwrap().to_string_lossy().to_string();
-                jobs.push((grammar.clone(), start, start_dir));
+            if !start_dir.is_dir() {
+                continue;
             }
+            let start = start_dir.file_name().unwrap().to_string_lossy().to_string();
+            let cases = fs::read_dir(&start_dir)?
+                .filter_map(Result::ok)
+                .filter(|e| e.path().extension().is_some_and(|x| x == "txt"))
+                .count();
+            jobs.push((grammar.clone(), start, start_dir, cases));
         }
     }
     jobs.sort();
+
+    let total = jobs.len();
+    let idx_width = total.to_string().len();
+    let label_width = jobs
+        .iter()
+        .map(|(g, s, _, _)| g.len() + 1 + s.len())
+        .max()
+        .unwrap_or(0);
+    let (green, red, reset) = if io::stdout().is_terminal() {
+        ("\x1b[32m", "\x1b[31m", "\x1b[0m")
+    } else {
+        ("", "", "")
+    };
 
     let bin_dir = root.join("target/debug");
     let next = AtomicUsize::new(0);
     let results: Mutex<Vec<(String, bool, String)>> = Mutex::new(Vec::new());
     let threads = std::thread::available_parallelism().map_or(4, |n| n.get());
+    let start_time = Instant::now();
 
     std::thread::scope(|scope| {
         for _ in 0..threads {
             scope.spawn(|| {
                 loop {
                     let i = next.fetch_add(1, Ordering::Relaxed);
-                    let Some((grammar, start, start_dir)) = jobs.get(i) else {
+                    let Some((grammar, start, start_dir, cases)) = jobs.get(i) else {
                         break;
                     };
                     let bin = bin_dir.join(grammar);
@@ -442,27 +463,39 @@ fn run_grammar_tests(regenerate: bool) -> io::Result<()> {
                         ),
                         Err(e) => (false, format!("failed to run {}: {e}", bin.display())),
                     };
-                    results
-                        .lock()
-                        .unwrap()
-                        .push((format!("{grammar}/{start}"), ok, text));
+                    let label = format!("{grammar}/{start}");
+                    let (word, code) = if ok { ("PASS", green) } else { ("FAIL", red) };
+                    // Print and record under one lock so lines never interleave
+                    // and the counter follows completion order.
+                    let mut done = results.lock().unwrap();
+                    let n = done.len() + 1;
+                    println!(
+                        "  {code}{word}{reset}  ({n:>idx_width$}/{total})  {label:<label_width$}  {cases:>2} cases"
+                    );
+                    done.push((label, ok, text));
                 }
             });
         }
     });
 
+    let elapsed = start_time.elapsed().as_secs_f64();
     let mut results = results.into_inner().unwrap();
     results.sort();
     let failures: Vec<&(String, bool, String)> = results.iter().filter(|(_, ok, _)| !ok).collect();
-    for (label, _, text) in &failures {
-        println!("FAIL {label}");
-        for line in text.lines() {
-            println!("  {line}");
+    if !failures.is_empty() {
+        println!();
+        for (label, _, text) in &failures {
+            println!("{red}--- {label} ---{reset}");
+            for line in text.lines() {
+                println!("  {line}");
+            }
         }
     }
     let passed = results.len() - failures.len();
     let verb = if regenerate { "regenerated" } else { "passed" };
-    println!("Grammar tests: {passed}/{} {verb}", results.len());
+    let code = if failures.is_empty() { green } else { red };
+    println!();
+    println!("{code}Grammar tests: {passed}/{total} {verb} in {elapsed:.2}s{reset}");
     if !failures.is_empty() {
         return Err(io::Error::other(format!(
             "{} grammar test(s) failed",
