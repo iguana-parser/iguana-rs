@@ -1,4 +1,17 @@
+use std::path::Path;
+
 use crate::{generator::GenConfig, grammar::def::Grammar, utils::to_snake_case};
+
+/// The `iguana-runtime` dependency line for a generated Cargo.toml: a local
+/// path when `runtime_path` is set, otherwise the default git dependency.
+fn runtime_dependency(runtime_path: Option<&Path>) -> String {
+    match runtime_path {
+        Some(path) => format!("iguana-runtime = {{ path = \"{}\" }}", path.display()),
+        None => {
+            "iguana-runtime = { git = \"https://github.com/iguana-parser/iguana-rs\" }".to_owned()
+        }
+    }
+}
 
 /// Generate the contents of `Cargo.toml` for a parser crate.
 ///
@@ -12,12 +25,12 @@ use crate::{generator::GenConfig, grammar::def::Grammar, utils::to_snake_case};
 /// With neither flag, the output is a minimal lib-only shape that assumes the
 /// crate is a workspace member: deps come from `workspace = true`, the `[lib]`
 /// target disables its empty test/doctest harnesses, and there is no `[[bin]]`.
-pub fn generate(grammar: &Grammar, config: GenConfig) -> String {
+pub fn generate(grammar: &Grammar, config: GenConfig, runtime_path: Option<&Path>) -> String {
     let name = to_snake_case(&grammar.name);
     if config.wasm {
-        generate_wasm_lib(&name)
+        generate_wasm_lib(&name, runtime_path)
     } else if config.cli {
-        generate_full(&name)
+        generate_full(&name, runtime_path)
     } else {
         generate_minimal(&name)
     }
@@ -26,8 +39,9 @@ pub fn generate(grammar: &Grammar, config: GenConfig) -> String {
 /// Generate the `Cargo.toml` for the `wasm-bindgen` wrapper crate that lives at
 /// `wasm/`. It is a `cdylib` depending on the parser crate by path, plus the
 /// runtime and the serialization deps the wrapper itself uses.
-pub fn generate_wasm_wrapper(grammar: &Grammar) -> String {
+pub fn generate_wasm_wrapper(grammar: &Grammar, runtime_path: Option<&Path>) -> String {
     let name = to_snake_case(&grammar.name);
+    let runtime = runtime_dependency(runtime_path);
     format!(
         r#"
 # A self-contained workspace, so the bundle builds when dropped into a repo
@@ -45,7 +59,7 @@ crate-type = ["cdylib"]
 [dependencies]
 wasm-bindgen = "0.2"
 serde_json = "1.0"
-iguana-runtime = {{ git = "https://github.com/iguana-parser/iguana-rs" }}
+{runtime}
 {name} = {{ path = ".." }}
     "#
     )
@@ -53,7 +67,8 @@ iguana-runtime = {{ git = "https://github.com/iguana-parser/iguana-rs" }}
     .to_owned()
 }
 
-fn generate_wasm_lib(name: &str) -> String {
+fn generate_wasm_lib(name: &str, runtime_path: Option<&Path>) -> String {
+    let runtime = runtime_dependency(runtime_path);
     format!(
         r#"
 [package]
@@ -65,7 +80,7 @@ edition = "2024"
 path = "src/lib.rs"
 
 [dependencies]
-iguana-runtime = {{ git = "https://github.com/iguana-parser/iguana-rs" }}
+{runtime}
 rustc-hash = "2.1.1"
 serde_json = "1.0"
     "#
@@ -74,7 +89,8 @@ serde_json = "1.0"
     .to_owned()
 }
 
-fn generate_full(name: &str) -> String {
+fn generate_full(name: &str, runtime_path: Option<&Path>) -> String {
+    let runtime = runtime_dependency(runtime_path);
     format!(
         r#"
 [package]
@@ -86,7 +102,7 @@ edition = "2024"
 path = "src/lib.rs"
 
 [dependencies]
-iguana-runtime = {{ git = "https://github.com/iguana-parser/iguana-rs" }}
+{runtime}
 clap = {{ version = "4.5.51", features = ["derive"] }}
 dot = {{ git = "https://github.com/przygienda/dot-rust.git", rev = "fed06f613a9d72bfde711a12791f96a777b2371e" }}
 log = "0.4"

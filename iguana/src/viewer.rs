@@ -23,6 +23,10 @@ use tiny_http::{Header, Response, Server};
 /// them out and `write_assets` skips them defensively.
 static VIEWER: Dir = include_dir!("$CARGO_MANIFEST_DIR/../web-viewer/dist");
 
+/// The fixed directory a wasm bundle is generated into and served from.
+/// `iguana generate --wasm` writes the bundle here and `iguana try` serves it.
+pub const WEBVIEW_DIR: &str = "webview";
+
 /// Write the embedded viewer assets into `output_dir`, the root of a generated
 /// wasm bundle. The grammar's own `manifest.json` and `wasm/pkg/` already live
 /// there, so those paths are skipped rather than overwritten.

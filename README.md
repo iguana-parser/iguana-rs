@@ -124,18 +124,20 @@ npm run tauri dev
 
 ## WebAssembly
 
-`iguana generate --wasm` builds a generated parser to WebAssembly so it can parse in the browser. It emits a standalone parser lib, a `wasm-bindgen` wrapper crate under `wasm/`, and a `manifest.json`, then compiles the wrapper with `wasm-pack` (`--target web --out-name parser`) to produce the wasm module and JavaScript glue. It probes for `wasm-pack` and the `wasm32-unknown-unknown` target, so install them first:
+`iguana generate --wasm` builds a generated parser to WebAssembly so it can parse in the browser. It writes a self-contained bundle into `webview/`: a parser lib, a `wasm-bindgen` wrapper crate under `wasm/`, a `manifest.json`, and the web viewer, compiling the wrapper with `wasm-pack` (`--target web --out-name parser`) to produce the wasm module and JavaScript glue. The location is fixed, so `--wasm` conflicts with `-o`. It probes for `wasm-pack` and the `wasm32-unknown-unknown` target, so install them first:
 
 ```bash
 cargo install wasm-pack
 rustup target add wasm32-unknown-unknown
 ```
 
-`iguana try` opens the web viewer for a built bundle: it writes the viewer next to the wasm module and serves the bundle over HTTP (a wasm module loads over HTTP, not `file://`), printing a link to open. With no directory it uses the current one.
+The bundle's `iguana-runtime` dependency defaults to a git dependency. To build against a local checkout instead, pass `--runtime-path <dir>`; the generated crate then depends on the runtime by path. This is useful for developing the runtime alongside a grammar, or pinning the bundle to a specific local checkout.
+
+`iguana try` serves the `webview/` bundle over HTTP (a wasm module loads over HTTP, not `file://`), printing a link to open. The location is fixed, so it takes no directory.
 
 ```bash
-iguana generate --wasm -g mygrammar.iggy -o out
-cd out && iguana try
+iguana generate --wasm -g mygrammar.iggy
+iguana try
 ```
 
 `iguana try` errors with a build hint if the bundle was not built yet. The viewer it serves is embedded in every `iguana` binary; it is small (~100 KB) because the editor and graph libraries load from a CDN at runtime rather than being bundled.

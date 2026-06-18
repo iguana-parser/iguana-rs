@@ -240,6 +240,7 @@ pub fn generate_scaffold(
     grammar: &Grammar,
     output_dir: &Path,
     config: GenConfig,
+    runtime_path: Option<&Path>,
     force: bool,
 ) -> io::Result<()> {
     if !output_dir.exists() {
@@ -252,7 +253,10 @@ pub fn generate_scaffold(
 
     let cargo_toml = output_dir.join("Cargo.toml");
     if force || !cargo_toml.exists() {
-        write_plain_file(cargo_toml_gen::generate(grammar, config), &cargo_toml)?;
+        write_plain_file(
+            cargo_toml_gen::generate(grammar, config, runtime_path),
+            &cargo_toml,
+        )?;
     }
 
     if config.cli && !config.wasm {
@@ -275,7 +279,12 @@ pub fn generate_scaffold(
 /// always overwritten. The wrapper `Cargo.toml` is scaffolding, so it is
 /// written only when absent (or when `force` is set), preserving a hand-edited
 /// dependency such as a local path to the runtime.
-pub fn generate_wasm(grammar: &Grammar, output_dir: &Path, force: bool) -> io::Result<()> {
+pub fn generate_wasm(
+    grammar: &Grammar,
+    output_dir: &Path,
+    runtime_path: Option<&Path>,
+    force: bool,
+) -> io::Result<()> {
     let wasm_src = output_dir.join("wasm").join("src");
     if !wasm_src.exists() {
         fs::create_dir_all(&wasm_src)?;
@@ -288,7 +297,10 @@ pub fn generate_wasm(grammar: &Grammar, output_dir: &Path, force: bool) -> io::R
 
     let wasm_cargo = output_dir.join("wasm").join("Cargo.toml");
     if force || !wasm_cargo.exists() {
-        write_plain_file(cargo_toml_gen::generate_wasm_wrapper(grammar), &wasm_cargo)?;
+        write_plain_file(
+            cargo_toml_gen::generate_wasm_wrapper(grammar, runtime_path),
+            &wasm_cargo,
+        )?;
     }
 
     write_plain_file(

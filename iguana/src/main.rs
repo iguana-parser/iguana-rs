@@ -55,11 +55,19 @@ enum Commands {
         #[arg(long, default_value_t = true, action = clap::ArgAction::Set)]
         cli: bool,
 
-        /// Emit a wasm bundle: a standalone lib crate, a wasm-bindgen wrapper
-        /// crate under wasm/, and a manifest.json. A wasm bundle has no CLI, so
-        /// this conflicts with --cli.
-        #[arg(long, conflicts_with = "cli")]
+        /// Emit a wasm bundle into webview/: a lib crate, a wasm-bindgen wrapper
+        /// crate under wasm/, a manifest.json, and the web viewer. Serve it with
+        /// `iguana try`. The bundle has no CLI and a fixed location, so --wasm
+        /// conflicts with --cli and -o.
+        #[arg(long, conflicts_with_all = ["cli", "output"])]
         wasm: bool,
+
+        /// Point the generated crate's `iguana-runtime` dependency at this local
+        /// path instead of the default git dependency. Applies to the standalone
+        /// (--cli) and wasm shapes; use it to develop the runtime alongside a
+        /// grammar or pin the bundle to a specific local checkout.
+        #[arg(long)]
+        runtime_path: Option<PathBuf>,
 
         /// Overwrite scaffolded files (Cargo.toml, src/main.rs) even if they
         /// already exist. Without this, the scaffold step is skipped on
@@ -73,13 +81,9 @@ enum Commands {
         #[arg(long, value_delimiter = ',', num_args = 0..)]
         print_phase: Option<Vec<String>>,
     },
-    /// Open the web viewer for a wasm bundle built with `generate --wasm`:
-    /// write the viewer next to the bundle and serve it over HTTP
+    /// Serve the wasm bundle in webview/ over HTTP and open it in the web
+    /// viewer. Build the bundle first with `iguana generate --wasm`.
     Try {
-        /// Bundle directory (defaults to the current directory)
-        #[arg(default_value = ".")]
-        dir: PathBuf,
-
         /// Port to listen on
         #[arg(short, long, default_value_t = 8000)]
         port: u16,
@@ -98,6 +102,7 @@ fn main() -> std::io::Result<()> {
             match_memo,
             cli,
             wasm,
+            runtime_path,
             force,
             print_phase,
         } => {
@@ -123,6 +128,13 @@ fn main() -> std::io::Result<()> {
                     &resolved_path
                 }
             };
+            // A wasm bundle always lands in webview/ (-o conflicts with --wasm);
+            // the grammar was already resolved from the output dir above.
+            let output = if wasm {
+                PathBuf::from(iguana::viewer::WEBVIEW_DIR)
+            } else {
+                output
+            };
             let source = std::fs::read_to_string(path)?;
             let grammar_def = parse_grammar(&source).map_err(std::io::Error::other)?;
             let config = GenConfig {
@@ -141,11 +153,15 @@ fn main() -> std::io::Result<()> {
                             names.join(", ")
                         ))
                     })?;
-            generate_scaffold(&grammar, &output, config, force)?;
+            // Absolute so the dependency resolves from both webview/ and
+            // webview/wasm/; canonicalize also validates the path exists.
+            let runtime_path = runtime_path.map(std::fs::canonicalize).transpose()?;
+            generate_scaffold(&grammar, &output, config, runtime_path.as_deref(), force)?;
             let result = generate_sources(&grammar, &output, config)?;
             if config.wasm {
-                generate_wasm(&grammar, &output, force)?;
+                generate_wasm(&grammar, &output, runtime_path.as_deref(), force)?;
                 iguana::wasm_build::build(&output.join("wasm"))?;
+                iguana::viewer::write_assets(&output)?;
             }
             if json {
                 println!("{{\"total_duration_ms\":{}}}", result.total_duration_ms);
@@ -156,7 +172,9 @@ fn main() -> std::io::Result<()> {
                 );
             }
         }
-        Commands::Try { dir, port } => iguana::viewer::try_bundle(&dir, port)?,
+        Commands::Try { port } => {
+            iguana::viewer::try_bundle(Path::new(iguana::viewer::WEBVIEW_DIR), port)?
+        }
     }
     Ok(())
 }
@@ -254,7 +272,7 @@ fn available_phases() -> String {
 fn generate_parser(grammar_path: Option<&Path>, output: &Path) -> io::Result<()> {
     let grammar = load_grammar(grammar_path, output)?;
     let config = GenConfig::default();
-    generate_scaffold(&grammar, output, config, false)?;
+    generate_scaffold(&grammar, output, config, None, false)?;
     generate_sources(&grammar, output, config)?;
     Ok(())
 }

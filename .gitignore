@@ -13,3 +13,5 @@ editors/vscode/node_modules
 editors/vscode/out
 CLAUDE.local.md
 .claude/
+# wasm bundle written by `iguana generate --wasm`, served by `iguana try`
+/webview/

@@ -83,7 +83,7 @@ fn bootstrap() -> io::Result<()> {
         cli: true,
         ..GenConfig::default()
     };
-    let (result, _) = regenerate_with(&grammar_file, &iggy_dir, config, true)?;
+    let (result, _) = regenerate_with(&grammar_file, &iggy_dir, config, None, true)?;
     patch_iggy_cargo_toml(&iggy_dir.join("Cargo.toml"))?;
     println!("Generated iggy grammar in {} ms", result.total_duration_ms);
     Ok(())
@@ -272,13 +272,14 @@ fn regenerate(grammar_path: &Path, output: &Path) -> io::Result<(GenerateResult,
         cli: true,
         ..GenConfig::default()
     };
-    regenerate_with(grammar_path, output, config, true)
+    regenerate_with(grammar_path, output, config, None, true)
 }
 
 fn regenerate_with(
     grammar_path: &Path,
     output: &Path,
     config: GenConfig,
+    runtime_path: Option<&Path>,
     force: bool,
 ) -> io::Result<(GenerateResult, Vec<String>)> {
     let source = fs::read_to_string(grammar_path)?;
@@ -292,11 +293,11 @@ fn regenerate_with(
     let grammar: Grammar = grammar_def.try_into().map_err(|names: Vec<String>| {
         io::Error::other(format!("Unresolved identifiers: {}", names.join(", ")))
     })?;
-    generate_scaffold(&grammar, output, config, force)?;
+    generate_scaffold(&grammar, output, config, runtime_path, force)?;
     let result = generate_sources(&grammar, output, config)?;
     format_sources(output)?;
     if config.wasm {
-        generate_wasm(&grammar, output, force)?;
+        generate_wasm(&grammar, output, runtime_path, force)?;
         format_sources(&output.join("wasm"))?;
     }
     Ok((result, starts))
@@ -563,42 +564,24 @@ fn wasm() -> io::Result<()> {
         cli: false,
         ..GenConfig::default()
     };
-    let (result, _) = regenerate_with(&grammar_file, &output, config, true)?;
+    // Build the bundle against the local runtime checkout, not the git dep.
+    let runtime = root.join("iguana-runtime");
+    let (result, _) = regenerate_with(
+        &grammar_file,
+        &output,
+        config,
+        Some(runtime.as_path()),
+        true,
+    )?;
     println!(
         "Generated iggy wasm bundle in {} ms",
         result.total_duration_ms
     );
 
-    let runtime = root.join("iguana-runtime");
-    patch_runtime_to_local_path(&output.join("Cargo.toml"), &runtime)?;
-    patch_runtime_to_local_path(&output.join("wasm").join("Cargo.toml"), &runtime)?;
-
     let wasm_dir = output.join("wasm");
     iguana::wasm_build::build(&wasm_dir)?;
     println!("Wasm package ready at {}", wasm_dir.join("pkg").display());
     Ok(())
-}
-
-/// Rewrite a generated Cargo.toml's `iguana-runtime` git dependency to a local
-/// path. Asserts the substitution fired, so a template change that moves the
-/// dependency line fails loudly instead of building against the wrong runtime.
-fn patch_runtime_to_local_path(cargo_toml: &Path, runtime_dir: &Path) -> io::Result<()> {
-    let original = fs::read_to_string(cargo_toml)?;
-    let replaced = original.replace(
-        "iguana-runtime = { git = \"https://github.com/iguana-parser/iguana-rs\" }",
-        &format!(
-            "iguana-runtime = {{ path = \"{}\" }}",
-            runtime_dir.display()
-        ),
-    );
-    if replaced == original {
-        return Err(io::Error::other(format!(
-            "{}: `iguana-runtime = {{ git = ... }}` pattern not found; \
-             cargo_toml_gen template may have changed and this patch needs updating",
-            cargo_toml.display()
-        )));
-    }
-    fs::write(cargo_toml, replaced)
 }
 
 fn cargo_bin_dir() -> PathBuf {
