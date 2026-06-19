@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" href="data:," />
+    <title>iguana design view</title>
+    <!--
+      Monaco loads from a CDN at runtime rather than being bundled, so the
+      deployed app stays small. Keep this in sync with the `external` list in
+      vite.config.ts. The ESM Monaco build does not inject its own styles, so
+      its stylesheet is loaded here.
+    -->
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/monaco-editor@0.55.1/min/vs/editor/editor.main.css"
+    />
+    <script type="importmap">
+      {
+        "imports": {
+          "monaco-editor": "https://esm.sh/monaco-editor@0.55.1"
+        }
+      }
+    </script>
+  </head>
+  <body>
+    <div id="app"></div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

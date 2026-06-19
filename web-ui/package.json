@@ -6,6 +6,9 @@
   "type": "module",
   "svelte": "./src/index.ts",
   "types": "./src/index.ts",
+  "sideEffects": [
+    "**/*.css"
+  ],
   "exports": {
     ".": {
       "types": "./src/index.ts",

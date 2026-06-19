@@ -1,0 +1,7 @@
+# Built bundle: a deploy artifact copied into the website's static/design-view/,
+# not embedded in the iguana binary, so it is not committed here.
+dist/
+
+# Local-dev artifacts: a copy of the lsp-wasm module and a sample grammar served
+# by `npm run dev` (the deployed copies live on the website).
+public/
