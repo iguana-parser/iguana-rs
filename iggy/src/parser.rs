@@ -5925,9 +5925,9 @@ pub struct IggyParser<'i> {
     terminal_nodes_index: [InlineMap<Span, SPPFNodeId>; 39],
     // Epsilon nodes keyed by input position; SPPFNodeId::NONE marks an empty slot.
     epsilon_nodes: Vec<SPPFNodeId>,
-    // An intermediate node keeps it first child inline. Children of intermediate nodes are
-    // pairs: (left_child, right_child). Extra children, when there is ambiguity, are stored in
-    // here as tuples of (parent node, (left child, right child)).
+    // An intermediate node keeps its first child inline. Children of intermediate nodes are
+    // pairs: (left_child, right_child). Extra children, when there is ambiguity, are stored here
+    // as (parent node, (left child, right child)).
     intermediate_nodes_children: Vec<(SPPFNodeId, (SPPFNodeId, SPPFNodeId))>,
     // intermediate_nodes_children grouped by parent node, built lazily for tree construction.
     intermediate_nodes_children_map: OnceCell<FxHashMap<SPPFNodeId, Vec<(SPPFNodeId, SPPFNodeId)>>>,
@@ -7314,9 +7314,8 @@ impl<'i> IggyParser<'i> {
         self.epsilon_nodes[i as usize] = node_id;
         node_id
     }
-    // true if an (local) ambiguity node was added during parsing. If true, it does not guarantee
-    // that the local ambiguity is reachable from the root, so, the still a tree walk is needed
-    // for the ambiguity.
+    // True if a local ambiguity node was added during parsing. This does not guarantee the
+    // ambiguity is reachable from the root, so a tree walk is still needed to confirm it.
     pub fn ambiguity_node_added(&self) -> bool {
         !self.intermediate_nodes_children.is_empty() || !self.nonterminal_nodes_children.is_empty()
     }

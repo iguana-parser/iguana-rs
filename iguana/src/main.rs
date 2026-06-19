@@ -146,15 +146,9 @@ fn main() -> std::io::Result<()> {
                 cli: cli && !wasm,
                 wasm,
             };
-            let grammar: Grammar =
-                grammar_def
-                    .to_grammar(&dump_phases)
-                    .map_err(|names: Vec<String>| {
-                        std::io::Error::other(format!(
-                            "Unresolved identifiers: {}",
-                            names.join(", ")
-                        ))
-                    })?;
+            let grammar: Grammar = grammar_def
+                .to_grammar(&dump_phases)
+                .map_err(|errors: Vec<String>| std::io::Error::other(errors.join("\n")))?;
             // Absolute so the dependency resolves from both webview/ and
             // webview/wasm/; canonicalize also validates the path exists.
             let runtime_path = runtime_path.map(std::fs::canonicalize).transpose()?;
@@ -288,9 +282,9 @@ fn load_grammar(grammar_path: Option<&Path>, output: &Path) -> io::Result<Gramma
     };
     let source = std::fs::read_to_string(path)?;
     let grammar_def = parse_grammar(&source).map_err(io::Error::other)?;
-    grammar_def.try_into().map_err(|names: Vec<String>| {
-        io::Error::other(format!("Unresolved identifiers: {}", names.join(", ")))
-    })
+    grammar_def
+        .try_into()
+        .map_err(|errors: Vec<String>| io::Error::other(errors.join("\n")))
 }
 
 #[allow(dead_code)]

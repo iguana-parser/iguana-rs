@@ -20,6 +20,7 @@ members = [
     "iggy",
     "iguana-lsp",
     "xtask",
+    "tests/except_regex_reference",
     "tests/follow_restriction_lexical_multiple",
     "tests/plus_except",
     "tests/amb",

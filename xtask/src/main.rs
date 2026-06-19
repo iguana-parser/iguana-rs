@@ -290,9 +290,9 @@ fn regenerate_with(
         .filter(|r| r.start)
         .map(|r| r.head.name.clone())
         .collect();
-    let grammar: Grammar = grammar_def.try_into().map_err(|names: Vec<String>| {
-        io::Error::other(format!("Unresolved identifiers: {}", names.join(", ")))
-    })?;
+    let grammar: Grammar = grammar_def
+        .try_into()
+        .map_err(|errors: Vec<String>| io::Error::other(errors.join("\n")))?;
     generate_scaffold(&grammar, output, config, runtime_path, force)?;
     let result = generate_sources(&grammar, output, config)?;
     format_sources(output)?;

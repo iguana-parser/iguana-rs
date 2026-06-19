@@ -523,6 +523,20 @@ dependencies = [
 ]
 
 [[package]]
+name = "except_regex_reference"
+version = "0.1.0"
+dependencies = [
+ "clap",
+ "dhat",
+ "dot",
+ "iguana-runtime",
+ "log",
+ "pprof",
+ "rustc-hash 2.1.2",
+ "serde_json",
+]
+
+[[package]]
 name = "except_terminal"
 version = "0.1.0"
 dependencies = [

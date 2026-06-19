@@ -720,14 +720,11 @@ pub struct AmbParser<'i> {
     terminal_nodes_index: [InlineMap<Span, SPPFNodeId>; 5],
     // Epsilon nodes keyed by input position; SPPFNodeId::NONE marks an empty slot.
     epsilon_nodes: Vec<SPPFNodeId>,
-    // Extra child pairs of ambiguous intermediate nodes, appended while building the SPPF: each
-    // entry is (parent node, (left child, right child)), a pair because an intermediate node
-    // joins two adjacent sub-derivations. The node keeps its first pair inline, so any entry
-    // here means the parent is ambiguous.
+    // An intermediate node keeps its first child inline. Children of intermediate nodes are
+    // pairs: (left_child, right_child). Extra children, when there is ambiguity, are stored here
+    // as (parent node, (left child, right child)).
     intermediate_nodes_children: Vec<(SPPFNodeId, (SPPFNodeId, SPPFNodeId))>,
     // intermediate_nodes_children grouped by parent node, built lazily for tree construction.
-    // OnceCell lets the &self construction walk build it once; an unambiguous parse leaves it
-    // empty.
     intermediate_nodes_children_map: OnceCell<FxHashMap<SPPFNodeId, Vec<(SPPFNodeId, SPPFNodeId)>>>,
     // Extra children of ambiguous nonterminal nodes, the counterpart to
     // intermediate_nodes_children: each entry is (parent node, (child, return slot)), a single
@@ -875,9 +872,8 @@ impl<'i> AmbParser<'i> {
         self.epsilon_nodes[i as usize] = node_id;
         node_id
     }
-    // Whether any node was made ambiguous during the parse (local, SPPF-level ambiguity): true
-    // when either children log is non-empty. A non-empty log can still come from a dead branch
-    // the start symbol's tree never reaches, so callers confirm with a tree walk.
+    // True if a local ambiguity node was added during parsing. This does not guarantee the
+    // ambiguity is reachable from the root, so a tree walk is still needed to confirm it.
     pub fn ambiguity_node_added(&self) -> bool {
         !self.intermediate_nodes_children.is_empty() || !self.nonterminal_nodes_children.is_empty()
     }

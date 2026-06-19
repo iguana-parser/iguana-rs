@@ -937,9 +937,9 @@ impl<'a> ParserGen<'a> {
 
     fn gen_ambiguity_node_added_method() -> TokenStream {
         quote! {
-            #[comment = "true if an (local) ambiguity node was added during parsing.
-                         If true, it does not guarantee that the local ambiguity is reachable from the root,
-                         so, the still a tree walk is needed for the ambiguity."]
+            #[comment = "True if a local ambiguity node was added during parsing. This does not
+                         guarantee the ambiguity is reachable from the root, so a tree walk is still
+                         needed to confirm it."]
             pub fn ambiguity_node_added(&self) -> bool {
                 !self.intermediate_nodes_children.is_empty()
                     || !self.nonterminal_nodes_children.is_empty()
@@ -1068,9 +1068,9 @@ impl<'a> ParserGen<'a> {
                 terminal_nodes_index: [InlineMap<Span, SPPFNodeId>; #terminal_ids_len],
                 #[comment = "Epsilon nodes keyed by input position; SPPFNodeId::NONE marks an empty slot."]
                 epsilon_nodes: Vec<SPPFNodeId>,
-                #[comment = "An intermediate node keeps it first child inline. Children of intermediate nodes
-                             are pairs: (left_child, right_child). Extra children, when there is ambiguity, are
-                             stored in here as tuples of (parent node, (left child, right child))."]
+                #[comment = "An intermediate node keeps its first child inline. Children of intermediate
+                             nodes are pairs: (left_child, right_child). Extra children, when there is
+                             ambiguity, are stored here as (parent node, (left child, right child))."]
                 intermediate_nodes_children: Vec<(SPPFNodeId, (SPPFNodeId, SPPFNodeId))>,
                 #[comment = "intermediate_nodes_children grouped by parent node, built lazily for tree construction."]
                 intermediate_nodes_children_map: OnceCell<FxHashMap<SPPFNodeId, Vec<(SPPFNodeId, SPPFNodeId)>>>,

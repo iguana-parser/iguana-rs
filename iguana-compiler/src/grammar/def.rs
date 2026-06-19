@@ -288,19 +288,29 @@ impl GrammarDef {
 }
 
 impl GrammarDef {
-    /// Resolves identifiers, checks for unresolved references, then runs the
-    /// full transformation pipeline (EBNF-to-BNF, precedence desugaring,
-    /// layout insertion, etc.), dumping each phase in `dump` to stderr along the
-    /// way. `TryFrom` is the shorthand that dumps nothing.
     pub fn to_grammar(self, dump: &[Phase]) -> Result<Grammar, Vec<String>> {
         let resolved = self.resolve();
-        let mut errors = resolved.duplicate_definitions();
-        errors.extend(resolved.unresolved_identifiers());
-        errors.extend(resolved.unresolved_labels());
+        let mut errors: Vec<String> = resolved
+            .duplicate_definitions()
+            .into_iter()
+            .map(|name| format!("duplicate definition `{name}`"))
+            .collect();
+        errors.extend(
+            resolved
+                .unresolved_identifiers()
+                .into_iter()
+                .map(|name| format!("unresolved identifier `{name}`")),
+        );
+        errors.extend(
+            resolved
+                .unresolved_labels()
+                .into_iter()
+                .map(|label| format!("unresolved label `{label}`")),
+        );
         if !errors.is_empty() {
             return Err(errors);
         }
-        Ok(build_grammar(resolved, dump))
+        build_grammar(resolved, dump)
     }
 }
 
@@ -694,35 +704,229 @@ fn resolve_identifier(symbol: Symbol, symbol_table: &SymbolTable) -> Symbol {
     }
 }
 
-/// Inlines `Regex::Identifier` references in lexical rules by substituting them with the
-/// referenced rule's regex body. For example, given:
+/// Removes redundant structure such as single-symbol grouping (`(A)` → `A`).
+/// A regex serves recognition (match or not), not structure capture, so
+/// grouping carries no meaning.
+fn simplify_regex(regex: &mut Regex) {
+    match regex {
+        Regex::Seq(parts) | Regex::Alt(parts) => {
+            parts.iter_mut().for_each(simplify_regex);
+            if parts.len() == 1 {
+                *regex = parts.pop().unwrap();
+            }
+        }
+        Regex::Star(inner) | Regex::Plus(inner) | Regex::Opt(inner) => simplify_regex(inner),
+        _ => {}
+    }
+}
+
+/// A lexical rule's restrictions: excludes (`\`), follow restrictions (`!>>`),
+/// and a precede restriction (`!<<`). The resolved value `resolve_restrictions`
+/// returns and caches, exactly as `inline_regex` returns and caches a `Regex`.
+#[derive(Default, Clone)]
+struct Restrictions {
+    except: Vec<Identifier>,
+    follow_restriction: Vec<Identifier>,
+    precede_restriction: Option<Identifier>,
+}
+
+impl Restrictions {
+    fn of(rule: &LexicalRule) -> Self {
+        Self {
+            except: rule.except.clone(),
+            follow_restriction: rule.follow_restriction.clone(),
+            precede_restriction: rule.precede_restriction.clone(),
+        }
+    }
+
+    fn is_empty(&self) -> bool {
+        self.except.is_empty()
+            && self.follow_restriction.is_empty()
+            && self.precede_restriction.is_none()
+    }
+
+    /// Adds `other`'s restrictions, deduping excludes and follow restrictions by
+    /// name. Two different precede restrictions can't share a rule, so they are
+    /// an error.
+    fn merge(&mut self, other: Restrictions, head: &Terminal, errors: &mut Vec<String>) {
+        for restriction in other.except {
+            if !self.except.iter().any(|e| e.name == restriction.name) {
+                self.except.push(restriction);
+            }
+        }
+        for restriction in other.follow_restriction {
+            if !self
+                .follow_restriction
+                .iter()
+                .any(|r| r.name == restriction.name)
+            {
+                self.follow_restriction.push(restriction);
+            }
+        }
+        if let Some(precede) = other.precede_restriction {
+            match &self.precede_restriction {
+                Some(existing) if existing.name != precede.name => {
+                    errors.push(format!(
+                        "`{head}` stacks precede restrictions `!<< {existing}` and `!<< {precede}`; \
+                         a rule can have only one"
+                    ));
+                }
+                Some(_) => {}
+                None => self.precede_restriction = Some(precede),
+            }
+        }
+    }
+}
+
+impl Display for Restrictions {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let mut parts = Vec::new();
+        parts.extend(self.except.iter().map(|e| format!("\\ {e}")));
+        parts.extend(self.follow_restriction.iter().map(|r| format!("!>> {r}")));
+        parts.extend(self.precede_restriction.iter().map(|r| format!("!<< {r}")));
+        write!(f, "{}", parts.join(" "))
+    }
+}
+
+/// Lexical-rule names in dependency order: a single-symbol rule's referenced
+/// rule comes before it, so restrictions resolve in one forward pass. The
+/// reference edges form a DAG; a reference to a non-lexical name has no edge,
+/// and a cycle is left for `inline_regex` to report.
+fn dependency_order(lexical_rules: &[LexicalRule]) -> Vec<String> {
+    let names: FxHashSet<&str> = lexical_rules.iter().map(|r| r.head.name.as_str()).collect();
+    let reference: FxHashMap<&str, &str> = lexical_rules
+        .iter()
+        .filter_map(|rule| match &rule.regex {
+            Regex::Identifier(id) if names.contains(id.name.as_str()) => {
+                Some((rule.head.name.as_str(), id.name.as_str()))
+            }
+            _ => None,
+        })
+        .collect();
+    let mut order = Vec::new();
+    let mut placed = FxHashSet::default();
+    for rule in lexical_rules {
+        place(&rule.head.name, &reference, &mut placed, &mut order);
+    }
+    order
+}
+
+/// Post-order placement: a rule's reference is pushed before the rule itself.
+/// `placed` both dedups shared references and stops a cyclic chain.
+fn place(
+    name: &str,
+    reference: &FxHashMap<&str, &str>,
+    placed: &mut FxHashSet<String>,
+    order: &mut Vec<String>,
+) {
+    if !placed.insert(name.to_string()) {
+        return;
+    }
+    if let Some(&referenced) = reference.get(name) {
+        place(referenced, reference, placed, order);
+    }
+    order.push(name.to_string());
+}
+
+/// Inlines `Regex::Identifier` references in lexical rules by substituting them
+/// with the referenced rule's regex body. For example, given:
 ///   Digit = [0-9]
 ///   Digits = Digit+
 /// After inlining, `Digits` becomes `[0-9]+`.
 ///
-/// Uses a single map (`inlined_regexes`) with `Option<Regex>` values to track resolution state:
-/// - `None` → resolution is in progress (on the current recursion stack)
-/// - `Some(regex)` → fully resolved and cached
-///
-/// If we encounter a name mapped to `None`, it means we have a cyclic reference
-/// (e.g., `A = B`, `B = A`), which is a grammar error.
-// TODO: return a proper Result instead of panicking on errors (cyclic/undefined references).
-fn inline_regex_refs(lexical_rules: Vec<LexicalRule>) -> Vec<LexicalRule> {
-    // Maps each lexical rule name to its original (uninlined) regex body.
+/// A referenced rule may itself carry restrictions (`Identifier = … \ Keyword`)
+/// that inlining would drop. So before inlining, each rule whose whole body is a
+/// single reference inherits its referenced rule's restrictions. A reference
+/// inside a larger regex matches only a sub-span, so its restrictions can't be
+/// hoisted: that is a grammar error rather than a silent drop.
+fn inline_regex_refs(mut lexical_rules: Vec<LexicalRule>) -> Result<Vec<LexicalRule>, Vec<String>> {
+    // Simplify bodies so a whole-body reference is a bare `Regex::Identifier`.
+    for rule in &mut lexical_rules {
+        simplify_regex(&mut rule.regex);
+    }
+    let rules: FxHashMap<String, &LexicalRule> = lexical_rules
+        .iter()
+        .map(|rule| (rule.head.name.clone(), rule))
+        .collect();
+
+    // Resolve each rule's restrictions in dependency order, so a single-symbol
+    // rule's reference is already final when we reach it: the rule's
+    // restrictions are its own plus its reference's.
+    let mut errors = Vec::new();
+    let mut resolved: FxHashMap<String, Restrictions> = FxHashMap::default();
+    for name in dependency_order(&lexical_rules) {
+        let rule = rules[name.as_str()];
+        let mut restrictions = Restrictions::of(rule);
+        if let Regex::Identifier(id) = &rule.regex {
+            if let Some(referenced) = resolved.get(&id.name) {
+                restrictions.merge(referenced.clone(), &rule.head, &mut errors);
+            }
+        }
+        resolved.insert(name, restrictions);
+    }
+
+    // A reference inside a compound regex matches a sub-span, so the referenced
+    // rule's restrictions can't carry over. Reject it instead of dropping them.
+    if errors.is_empty() {
+        for rule in &lexical_rules {
+            if matches!(rule.regex, Regex::Identifier(_)) {
+                continue;
+            }
+            let mut referenced: Vec<String> = Vec::new();
+            visit_regex_identifiers(&rule.regex, &mut |id| {
+                if !referenced.contains(&id.name) {
+                    referenced.push(id.name.clone());
+                }
+            });
+            for name in referenced {
+                // A non-lexical reference has no entry; `inline_regex` reports it.
+                let Some(restrictions) = resolved.get(&name) else {
+                    continue;
+                };
+                if !restrictions.is_empty() {
+                    errors.push(format!(
+                        "`{}` references `{name}` inside a larger regex, but `{name}` carries \
+                         restrictions ({restrictions}) that apply to its whole match; reference it \
+                         as the only symbol of a rule, or inline its definition",
+                        rule.head
+                    ));
+                }
+            }
+        }
+    }
+
+    if !errors.is_empty() {
+        return Err(errors);
+    }
+
+    // Inline pass: flatten every reference's regex body, attaching each rule's
+    // resolved restrictions.
     let regex_map: FxHashMap<String, Regex> = lexical_rules
         .iter()
-        .map(|r| (r.head.name.clone(), r.regex.clone()))
+        .map(|rule| (rule.head.name.clone(), rule.regex.clone()))
         .collect();
     let mut inlined_regexes: FxHashMap<String, Option<Regex>> = FxHashMap::default();
-    lexical_rules
+    Ok(lexical_rules
         .into_iter()
-        .map(|mut rule| {
-            rule.regex = inline_regex(rule.regex, &regex_map, &mut inlined_regexes);
-            rule
+        .map(|rule| {
+            let restrictions = resolved.remove(&rule.head.name).unwrap();
+            LexicalRule {
+                head: rule.head,
+                regex: inline_regex(rule.regex, &regex_map, &mut inlined_regexes),
+                except: restrictions.except,
+                follow_restriction: restrictions.follow_restriction,
+                precede_restriction: restrictions.precede_restriction,
+            }
         })
-        .collect()
+        .collect())
 }
 
+/// Substitutes each `Regex::Identifier` with the referenced rule's regex body,
+/// using `inlined_regexes` (`Option<Regex>` values) to track resolution state:
+/// `None` means resolution is in progress on the current stack, `Some(regex)`
+/// is the cached result. A name found mapped to `None` is a cyclic reference
+/// (`A = B`, `B = A`), a grammar error.
+// TODO: return a proper Result instead of panicking on errors (cyclic/undefined references).
 fn inline_regex(
     regex: Regex,
     regex_map: &FxHashMap<String, Regex>,
@@ -838,7 +1042,7 @@ fn dump_phase(phase: Phase, rules: &[SyntaxRule], lexical: &[LexicalRule], dump:
 /// Runs the full transformation pipeline on a resolved GrammarDef: adds
 /// literal terminals, inlines regex references, desugars EBNF/exclude/
 /// precedence, inserts layout, and assembles the final Grammar.
-fn build_grammar(grammar_def: GrammarDef, dump: &[Phase]) -> Grammar {
+fn build_grammar(grammar_def: GrammarDef, dump: &[Phase]) -> Result<Grammar, Vec<String>> {
     let mut lexical_rules = grammar_def.lexical_rules;
     let syntax_rules = grammar_def.syntax_rules;
     // Built before transformations run: precedence and exclude desugaring would
@@ -852,7 +1056,7 @@ fn build_grammar(grammar_def: GrammarDef, dump: &[Phase]) -> Grammar {
     let (_, symbol_table) = create_symbol_table(&syntax_rules, &lexical_rules);
     let (syntax_rules, lexical_rules) =
         resolve_identifiers(syntax_rules, lexical_rules, &symbol_table);
-    let lexical_rules = inline_regex_refs(lexical_rules);
+    let lexical_rules = inline_regex_refs(lexical_rules)?;
     dump_phase(Phase::Resolve, &syntax_rules, &lexical_rules, dump);
     let syntax_rules = ebnf_to_bnf::transform(syntax_rules);
     dump_phase(Phase::Ebnf, &syntax_rules, &lexical_rules, dump);
@@ -949,7 +1153,7 @@ fn build_grammar(grammar_def: GrammarDef, dump: &[Phase]) -> Grammar {
                 acc.entry(r.head).or_default().extend(alternatives);
                 acc
             });
-    Grammar {
+    Ok(Grammar {
         name: grammar_def.name,
         productions,
         lexical_rules: lexical_rules_map,
@@ -959,7 +1163,7 @@ fn build_grammar(grammar_def: GrammarDef, dump: &[Phase]) -> Grammar {
         start_nonterminals,
         start_wrapper_names,
         source_order,
-    }
+    })
 }
 
 fn add_start_rule(
@@ -1228,4 +1432,93 @@ macro_rules! grammar_def {
             layout: None,
         }
     };
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::grammar::regex::Regex;
+
+    fn id(name: &str) -> Identifier {
+        Identifier {
+            name: name.into(),
+            definition: None,
+        }
+    }
+
+    fn lexical(name: &str, regex: Regex) -> LexicalRule {
+        LexicalRule::new(Terminal::new(name), regex)
+    }
+
+    fn reference(name: &str) -> Regex {
+        Regex::Identifier(id(name))
+    }
+
+    fn names(identifiers: &[Identifier]) -> Vec<&str> {
+        identifiers.iter().map(|i| i.name.as_str()).collect()
+    }
+
+    fn find<'a>(rules: &'a [LexicalRule], name: &str) -> &'a LexicalRule {
+        rules.iter().find(|r| r.head.name == name).unwrap()
+    }
+
+    /// A whole-body reference inherits the referenced rule's `\`, `!>>`, and
+    /// `!<<`, following the chain past intermediate references, while the body
+    /// itself inlines to the chain's base regex.
+    #[test]
+    fn whole_body_reference_inherits_restrictions() {
+        let letters = lexical("Letters", Regex::plus(Regex::range('a', 'z')));
+        let mut identifier = lexical("Identifier", reference("Letters"));
+        identifier.except = vec![id("Keyword")];
+        identifier.follow_restriction = vec![id("Digit")];
+        identifier.precede_restriction = Some(id("JavaLetter"));
+        let mut type_id = lexical("TypeId", reference("Identifier"));
+        type_id.except = vec![id("Var")];
+
+        let rules = inline_regex_refs(vec![letters, identifier, type_id]).unwrap();
+
+        let type_id = find(&rules, "TypeId");
+        assert_eq!(names(&type_id.except), ["Var", "Keyword"]);
+        assert_eq!(names(&type_id.follow_restriction), ["Digit"]);
+        assert_eq!(
+            type_id.precede_restriction.as_ref().unwrap().name,
+            "JavaLetter"
+        );
+        assert_eq!(type_id.regex, Regex::plus(Regex::range('a', 'z')));
+        // The referenced rule keeps exactly its own restrictions.
+        let identifier = find(&rules, "Identifier");
+        assert_eq!(names(&identifier.except), ["Keyword"]);
+    }
+
+    /// A restricted reference buried in a larger regex can't carry its
+    /// restrictions to the whole rule, so it is an error rather than a drop.
+    #[test]
+    fn restricted_reference_in_a_sequence_is_rejected() {
+        let mut identifier = lexical("Identifier", Regex::plus(Regex::range('a', 'z')));
+        identifier.except = vec![id("Keyword")];
+        let bar = lexical("Bar", Regex::plus(Regex::range('0', '9')));
+        let foo = lexical(
+            "Foo",
+            Regex::seq(vec![reference("Identifier"), reference("Bar")]),
+        );
+
+        let errors = inline_regex_refs(vec![identifier, bar, foo]).unwrap_err();
+        assert_eq!(errors.len(), 1);
+        assert!(errors[0].contains("`Foo` references `Identifier` inside a larger regex"));
+    }
+
+    /// Two different precede restrictions stacked along a whole-body chain
+    /// can't share one rule.
+    #[test]
+    fn conflicting_precede_restrictions_are_rejected() {
+        let letters = lexical("Letters", Regex::plus(Regex::range('a', 'z')));
+        let mut identifier = lexical("Identifier", reference("Letters"));
+        identifier.precede_restriction = Some(id("Bang"));
+        let mut foo = lexical("Foo", reference("Identifier"));
+        foo.precede_restriction = Some(id("Dot"));
+
+        let errors = inline_regex_refs(vec![letters, identifier, foo]).unwrap_err();
+        assert_eq!(errors.len(), 1);
+        assert!(errors[0].contains("stacks precede restrictions"));
+    }
 }

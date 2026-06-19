@@ -1,0 +1,15 @@
+grammar ExceptRegexReference
+
+S = TypeIdentifier
+
+@Regex
+TypeIdentifier = Identifier \ Var
+
+@Regex
+Identifier = [a-zA-Z] [a-zA-Z0-9]* \ Keyword
+
+@Regex
+Keyword = "int" | "class"
+
+@Regex
+Var = "var"
