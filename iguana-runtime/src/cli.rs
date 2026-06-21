@@ -1,6 +1,8 @@
+use std::collections::{BTreeMap, BTreeSet};
 use std::fs;
 use std::io::{self, IsTerminal};
 use std::path::{Path, PathBuf};
+use std::process::Command;
 use std::time::{Duration, Instant};
 
 use serde::{Deserialize, Serialize};
@@ -711,9 +713,829 @@ fn render_hunks(edits: &[Edit]) -> String {
     out
 }
 
+/// One line of `repos.txt`: a corpus to fetch and parse. The parser reads
+/// `name`, `ext`, and `start`; `repo`/`git_ref` are consumed by the fetch step
+/// and kept as provenance.
+pub struct CorpusEntry {
+    pub name: String,
+    pub ext: String,
+    pub start: String,
+    pub repo: String,
+    pub git_ref: String,
+}
+
+/// Reads `repos.txt`: one corpus per line as whitespace-separated
+/// `name ext start repo ref`. Blank lines and `#` comments are skipped.
+pub fn read_repos(path: &Path) -> io::Result<Vec<CorpusEntry>> {
+    let text = fs::read_to_string(path)?;
+    parse_repos_text(&text).map_err(|msg| {
+        io::Error::new(
+            io::ErrorKind::InvalidData,
+            format!("{}: {msg}", path.display()),
+        )
+    })
+}
+
+fn parse_repos_text(text: &str) -> Result<Vec<CorpusEntry>, String> {
+    let mut entries = Vec::new();
+    for (i, line) in text.lines().enumerate() {
+        let line = line.trim();
+        if line.is_empty() || line.starts_with('#') {
+            continue;
+        }
+        let fields: Vec<&str> = line.split_whitespace().collect();
+        if fields.len() != 5 {
+            return Err(format!(
+                "line {}: expected `name ext start repo ref`, found {} fields",
+                i + 1,
+                fields.len()
+            ));
+        }
+        entries.push(CorpusEntry {
+            name: fields[0].to_string(),
+            ext: fields[1].to_string(),
+            start: fields[2].to_string(),
+            repo: fields[3].to_string(),
+            git_ref: fields[4].to_string(),
+        });
+    }
+    Ok(entries)
+}
+
+/// Scaffolds the corpus directory on first use: creates `dir`, writes a
+/// `.gitignore` for the `.cache/` checkouts when absent, and (when `repos.txt`
+/// is missing) writes a commented template. Returns `true` when it just created
+/// `repos.txt`, so the caller can stop and let the user fill it in.
+pub fn init_corpus_dir(dir: &Path) -> io::Result<bool> {
+    fs::create_dir_all(dir)?;
+
+    let gitignore = dir.join(".gitignore");
+    if !gitignore.exists() {
+        fs::write(gitignore, ".cache/\n")?;
+    }
+
+    let repos = dir.join("repos.txt");
+    if repos.exists() {
+        return Ok(false);
+    }
+    fs::write(repos, REPOS_TEMPLATE)?;
+    Ok(true)
+}
+
+const REPOS_TEMPLATE: &str = concat!(
+    "# Repos to parse, one per line: name ext start repo ref\n",
+    "#   name  = baseline file (<name>.txt) + checkout dir (.cache/<name>)\n",
+    "#   ext   = file extension to parse        start = start nonterminal\n",
+    "#   repo  = git URL                        ref   = tag or branch (shallow-cloned)\n",
+    "#\n",
+    "# myproj java CompilationUnit https://github.com/owner/repo v1.0.0\n",
+);
+
+/// Ensures `repo` is checked out at `git_ref` in `dir`, shallow-cloning it when
+/// the directory is absent. A present checkout is left as-is: refs are pinned
+/// and immutable, so to repin you delete the directory and re-run. Errors if
+/// `git` is not on PATH or the clone fails. `git_ref` must name a branch or tag
+/// (a bare commit SHA is not valid for a shallow `--branch` clone).
+pub fn fetch_corpus(dir: &Path, repo: &str, git_ref: &str) -> io::Result<()> {
+    if dir.exists() {
+        return Ok(());
+    }
+    eprintln!("Cloning {repo} @ {git_ref} into {}", dir.display());
+    let status = Command::new("git")
+        .args([
+            "clone",
+            "-c",
+            "advice.detachedHead=false",
+            "--depth",
+            "1",
+            "--branch",
+            git_ref,
+            repo,
+        ])
+        .arg(dir)
+        .status()
+        .map_err(|e| io::Error::new(e.kind(), format!("failed to run git: {e}")))?;
+    if !status.success() {
+        return Err(io::Error::other(format!(
+            "git clone of {repo} @ {git_ref} failed"
+        )));
+    }
+    Ok(())
+}
+
+/// Whether the corpus harness checks results against the committed baseline or
+/// rewrites it.
+#[derive(Clone, Copy, PartialEq, Eq)]
+pub enum CorpusMode {
+    Check,
+    Update,
+}
+
+/// Knobs for a `run_corpus` run: check vs. rewrite, the slow-file threshold, the
+/// soft perf tolerance, and whether to suppress the per-corpus status line.
+pub struct CorpusConfig {
+    pub mode: CorpusMode,
+    pub slow_ms: f64,
+    pub perf_tolerance_pct: f64,
+    pub quiet: bool,
+}
+
+/// The outcome of parsing one corpus file. `ms` is the parse time (the parser's
+/// own `run()`), used for the slow-file tail and the aggregate `parse_ms`.
+pub enum CorpusOutcome {
+    Ok { ms: f64 },
+    Error { ms: f64, message: String },
+    IoError { message: String },
+}
+
+/// Summary of one corpus run, returned so the caller can aggregate across
+/// corpora and set the exit code. `passed` is false only when a `Check` finds a
+/// regression (a file that parsed in the baseline now fails); an `Update` always
+/// passes.
+pub struct CorpusReport {
+    pub name: String,
+    pub files: usize,
+    pub ok: usize,
+    pub error: usize,
+    pub ioerror: usize,
+    pub parse_ms: u64,
+    pub passed: bool,
+}
+
+#[derive(Clone, Copy, PartialEq, Eq, Debug)]
+enum Status {
+    Ok,
+    Error,
+    IoError,
+}
+
+impl Status {
+    fn token(self) -> &'static str {
+        match self {
+            Status::Ok => "ok",
+            Status::Error => "error",
+            Status::IoError => "ioerror",
+        }
+    }
+}
+
+/// One file's outcome as just parsed, with the precise parse time retained for
+/// the aggregate and the slow tail. `message` is already tab-sanitized.
+struct CurrentFile {
+    path: String,
+    status: Status,
+    message: Option<String>,
+    ms: f64,
+}
+
+/// One per-file line read back from a baseline. `ms` is present only for files
+/// in the slow tail; `message` only for `error`/`ioerror`.
+struct BaselineRecord {
+    status: Status,
+    ms: Option<u64>,
+    message: Option<String>,
+}
+
+/// Aggregate counts from a baseline header's `# files=… parse_ms=…` line.
+struct BaselineTotals {
+    files: usize,
+    ok: usize,
+    error: usize,
+    ioerror: usize,
+    parse_ms: u64,
+}
+
+/// Runs corpus regression testing for one corpus. `parse_one` parses a single
+/// file and reports `ok`/`error`/`ioerror` plus the parse time; `run_corpus`
+/// owns building the per-file records, then either writing the baseline
+/// (`Update`) or comparing against it (`Check`).
+///
+/// `root` is the corpus checkout; per-file paths are recorded relative to it,
+/// normalized to `/`, and sorted, so the committed baseline is stable. `slow_ms`
+/// is the threshold above which a file's parse time is recorded (the ~99% fast
+/// files carry no time, so the file does not churn). `perf_tolerance_pct` is the
+/// soft band on the aggregate `parse_ms`.
+///
+/// Returns a `CorpusReport`; `passed` is false only on a `Check` with a
+/// regression: a file that parsed in the baseline (`ok`) and now fails
+/// (`error`/`ioerror`). Recoveries (`fail -> ok`), message/status drift between
+/// failing states, and added/removed files are reported but do not fail the run,
+/// so a red check always means a genuine regression. Timing is a separate soft
+/// signal: a `parse_ms` drift past `perf_tolerance_pct` is reported but never
+/// fails the run.
+pub fn run_corpus(
+    name: &str,
+    inputs: Vec<PathBuf>,
+    root: &Path,
+    baseline_path: &Path,
+    config: CorpusConfig,
+    mut parse_one: impl FnMut(&Path) -> CorpusOutcome,
+) -> io::Result<CorpusReport> {
+    let CorpusConfig {
+        mode,
+        slow_ms,
+        perf_tolerance_pct,
+        quiet,
+    } = config;
+    let color = Color::for_stdout();
+
+    // Parse every file into a current record, accumulating the precise
+    // aggregate parse time.
+    let mut files: Vec<CurrentFile> = Vec::with_capacity(inputs.len());
+    let mut parse_ms_total = 0.0f64;
+    for input in &inputs {
+        let path = normalize_rel(input, root);
+        let (status, message, ms) = match parse_one(input) {
+            CorpusOutcome::Ok { ms } => (Status::Ok, None, ms),
+            CorpusOutcome::Error { ms, message } => (Status::Error, Some(sanitize(&message)), ms),
+            CorpusOutcome::IoError { message } => (Status::IoError, Some(sanitize(&message)), 0.0),
+        };
+        parse_ms_total += ms;
+        files.push(CurrentFile {
+            path,
+            status,
+            message,
+            ms,
+        });
+    }
+    files.sort_by(|a, b| a.path.cmp(&b.path));
+
+    let ok = files.iter().filter(|f| f.status == Status::Ok).count();
+    let error = files.iter().filter(|f| f.status == Status::Error).count();
+    let ioerror = files.iter().filter(|f| f.status == Status::IoError).count();
+    let parse_ms = parse_ms_total as u64;
+    let report = CorpusReport {
+        name: name.to_string(),
+        files: files.len(),
+        ok,
+        error,
+        ioerror,
+        parse_ms,
+        passed: true,
+    };
+
+    match mode {
+        CorpusMode::Update => {
+            fs::write(
+                baseline_path,
+                serialize_baseline(name, &files, slow_ms, parse_ms),
+            )?;
+            if !quiet {
+                print_status(&color, "WRITE", true, &corpus_counts(name, &report));
+            }
+            Ok(report)
+        }
+        CorpusMode::Check => {
+            let (totals, baseline) = match read_baseline(baseline_path) {
+                Ok(baseline) => baseline,
+                Err(e) if e.kind() == io::ErrorKind::NotFound => {
+                    print_status(
+                        &color,
+                        "FAIL",
+                        false,
+                        &format!(
+                            "{name}: no baseline at {} (run --corpus-test --update)",
+                            baseline_path.display()
+                        ),
+                    );
+                    return Ok(CorpusReport {
+                        passed: false,
+                        ..report
+                    });
+                }
+                Err(e) => return Err(e),
+            };
+
+            // Compare every file against its baseline record. Only a regression
+            // (ok -> fail) fails the check; recoveries, drift, and added/removed
+            // are soft. Timing always reports below, regardless of the verdict.
+            let diffs = diff_records(&files, &baseline);
+            let passed = diffs.regressions.is_empty();
+
+            if !diffs.regressions.is_empty() {
+                // A failure prints even under --quiet: it is the point of the run.
+                print_status(&color, "FAIL", false, &corpus_counts(name, &report));
+                print_baseline_counts(&totals);
+                print_diffs(&color, &diffs);
+            } else if !quiet {
+                if diffs.is_clean() {
+                    print_status(&color, "PASS", true, &corpus_counts(name, &report));
+                } else {
+                    // No regression, but the baseline does not match this run.
+                    print_status(&color, "DRIFT", true, &corpus_counts(name, &report));
+                    print_baseline_counts(&totals);
+                    print_diffs(&color, &diffs);
+                    println!(
+                        "  no regressions; run `--corpus-test --update` to refresh the baseline"
+                    );
+                }
+            }
+
+            if !quiet {
+                report_perf(
+                    totals.parse_ms,
+                    parse_ms,
+                    perf_tolerance_pct,
+                    slow_ms,
+                    &files,
+                    &baseline,
+                );
+            }
+            Ok(CorpusReport { passed, ..report })
+        }
+    }
+}
+
+/// `"<name>: N files (A ok, B error, C ioerror)"`, the per-corpus status tail.
+fn corpus_counts(name: &str, report: &CorpusReport) -> String {
+    format!(
+        "{name}: {} files ({} ok, {} error, {} ioerror)",
+        report.files, report.ok, report.error, report.ioerror
+    )
+}
+
+/// Strips `root` and normalizes separators to `/` so the recorded path is the
+/// same on every platform.
+fn normalize_rel(path: &Path, root: &Path) -> String {
+    let rel = path.strip_prefix(root).unwrap_or(path);
+    rel.to_string_lossy().replace('\\', "/")
+}
+
+/// Collapses tabs and newlines in a value to spaces, so it never splits a record
+/// or spills onto the next line.
+fn sanitize(s: &str) -> String {
+    s.replace(['\t', '\n', '\r'], " ")
+}
+
+/// Renders the baseline: the `# corpus`/`# files=…` header, then one sorted line
+/// per file. The parse time is written only for files past `slow_ms`, so the
+/// fast majority carry no time and the committed file stays stable.
+fn serialize_baseline(name: &str, files: &[CurrentFile], slow_ms: f64, parse_ms: u64) -> String {
+    let ok = files.iter().filter(|f| f.status == Status::Ok).count();
+    let error = files.iter().filter(|f| f.status == Status::Error).count();
+    let ioerror = files.iter().filter(|f| f.status == Status::IoError).count();
+
+    let mut out = String::new();
+    out.push_str(&format!("# corpus: {name}\n"));
+    out.push_str(&format!(
+        "# files={} ok={ok} error={error} ioerror={ioerror} parse_ms={parse_ms}\n",
+        files.len()
+    ));
+    for f in files {
+        match f.status {
+            Status::Ok if f.ms > slow_ms => {
+                out.push_str(&format!("{}\tok\t{}\n", f.path, f.ms as u64))
+            }
+            Status::Ok => out.push_str(&format!("{}\tok\n", f.path)),
+            Status::Error => {
+                let ms = if f.ms > slow_ms {
+                    (f.ms as u64).to_string()
+                } else {
+                    "-".to_string()
+                };
+                let message = f.message.as_deref().unwrap_or("");
+                out.push_str(&format!("{}\terror\t{ms}\t{message}\n", f.path));
+            }
+            Status::IoError => {
+                let message = f.message.as_deref().unwrap_or("");
+                out.push_str(&format!("{}\tioerror\t-\t{message}\n", f.path));
+            }
+        }
+    }
+    out
+}
+
+/// Reads a baseline into its header totals and a path-keyed map of per-file
+/// records.
+fn read_baseline(path: &Path) -> io::Result<(BaselineTotals, BTreeMap<String, BaselineRecord>)> {
+    let text = fs::read_to_string(path)?;
+    let mut totals = None;
+    let mut records = BTreeMap::new();
+    for line in text.lines() {
+        if let Some(rest) = line.strip_prefix("# ") {
+            if rest.starts_with("files=") {
+                totals = Some(parse_totals(rest)?);
+            }
+            continue;
+        }
+        if line.starts_with('#') || line.trim().is_empty() {
+            continue;
+        }
+        if let Some((path, record)) = parse_record_line(line) {
+            records.insert(path, record);
+        }
+    }
+    let totals = totals.ok_or_else(|| {
+        io::Error::new(
+            io::ErrorKind::InvalidData,
+            format!("{}: missing totals header", path.display()),
+        )
+    })?;
+    Ok((totals, records))
+}
+
+/// Parses `files=N ok=N error=N ioerror=N parse_ms=N` (order-independent).
+fn parse_totals(line: &str) -> io::Result<BaselineTotals> {
+    let map: BTreeMap<&str, &str> = line
+        .split_whitespace()
+        .filter_map(|t| t.split_once('='))
+        .collect();
+    let get = |key: &str| -> io::Result<u64> {
+        map.get(key).and_then(|v| v.parse().ok()).ok_or_else(|| {
+            io::Error::new(
+                io::ErrorKind::InvalidData,
+                format!("malformed totals header: missing {key}"),
+            )
+        })
+    };
+    Ok(BaselineTotals {
+        files: get("files")? as usize,
+        ok: get("ok")? as usize,
+        error: get("error")? as usize,
+        ioerror: get("ioerror")? as usize,
+        parse_ms: get("parse_ms")?,
+    })
+}
+
+/// Parses one `path \t status \t [ms] \t [message]` record.
+fn parse_record_line(line: &str) -> Option<(String, BaselineRecord)> {
+    let mut fields = line.split('\t');
+    let path = fields.next()?.to_string();
+    let status = match fields.next()? {
+        "ok" => Status::Ok,
+        "error" => Status::Error,
+        "ioerror" => Status::IoError,
+        _ => return None,
+    };
+    let record = match status {
+        Status::Ok => BaselineRecord {
+            status,
+            ms: fields.next().and_then(|s| s.parse().ok()),
+            message: None,
+        },
+        Status::Error | Status::IoError => BaselineRecord {
+            status,
+            ms: match fields.next() {
+                Some("-") | None => None,
+                Some(s) => s.parse().ok(),
+            },
+            message: fields.next().map(|s| s.to_string()),
+        },
+    };
+    Some((path, record))
+}
+
+/// The per-file divergences between a run and its baseline, split by kind so the
+/// gate keys only on regressions and the soft kinds stay out of the exit code.
+#[derive(Default)]
+struct Diffs {
+    /// `ok -> error/ioerror`: a file that parsed now fails. The hard gate.
+    regressions: Vec<(String, String)>,
+    /// `error/ioerror -> ok`: a file that failed now parses.
+    recoveries: Vec<String>,
+    /// Still failing, but the status or (brittle) message text changed.
+    drift: usize,
+    /// In the current run but not the baseline (the corpus grew).
+    added: usize,
+    /// In the baseline but not the current run (the corpus shrank).
+    removed: usize,
+}
+
+impl Diffs {
+    /// Whether the run reproduced the baseline exactly.
+    fn is_clean(&self) -> bool {
+        self.regressions.is_empty()
+            && self.recoveries.is_empty()
+            && self.drift == 0
+            && self.added == 0
+            && self.removed == 0
+    }
+}
+
+/// Classifies every file against its baseline record. Only `regressions` gates
+/// the check; the rest are soft signals.
+fn diff_records(current: &[CurrentFile], baseline: &BTreeMap<String, BaselineRecord>) -> Diffs {
+    let mut diffs = Diffs::default();
+    let mut seen = BTreeSet::new();
+    for f in current {
+        seen.insert(f.path.as_str());
+        let Some(b) = baseline.get(&f.path) else {
+            diffs.added += 1;
+            continue;
+        };
+        match (b.status == Status::Ok, f.status == Status::Ok) {
+            (true, true) => {}
+            (true, false) => diffs
+                .regressions
+                .push((f.path.clone(), f.message.clone().unwrap_or_default())),
+            (false, true) => diffs.recoveries.push(f.path.clone()),
+            (false, false) => {
+                // Both failing: a status or message change is brittle drift.
+                if b.status != f.status || f.message.as_deref() != b.message.as_deref() {
+                    diffs.drift += 1;
+                }
+            }
+        }
+    }
+    diffs.removed = baseline
+        .keys()
+        .filter(|p| !seen.contains(p.as_str()))
+        .count();
+    diffs
+}
+
+/// Prints the drill-down: regressions first (the signal), then recoveries, then
+/// the brittle kinds collapsed to counts. Each list is capped so a sweeping
+/// change can't flood the output.
+fn print_diffs(color: &Color, diffs: &Diffs) {
+    const CAP: usize = 50;
+    if !diffs.regressions.is_empty() {
+        println!(
+            "  {}regressions (ok -> fail): {}{}",
+            color.red,
+            diffs.regressions.len(),
+            color.reset
+        );
+        for (path, message) in diffs.regressions.iter().take(CAP) {
+            let detail = if message.is_empty() {
+                String::new()
+            } else {
+                format!(": {message}")
+            };
+            println!("    {path}{detail}");
+        }
+        if diffs.regressions.len() > CAP {
+            println!("    +{} more", diffs.regressions.len() - CAP);
+        }
+    }
+    if !diffs.recoveries.is_empty() {
+        println!(
+            "  {}recoveries (fail -> ok): {}{}",
+            color.green,
+            diffs.recoveries.len(),
+            color.reset
+        );
+        for path in diffs.recoveries.iter().take(CAP) {
+            println!("    {path}");
+        }
+        if diffs.recoveries.len() > CAP {
+            println!("    +{} more", diffs.recoveries.len() - CAP);
+        }
+    }
+    if diffs.drift > 0 {
+        println!(
+            "  drift (still failing, message/status changed): {}",
+            diffs.drift
+        );
+    }
+    if diffs.added > 0 || diffs.removed > 0 {
+        println!("  added: {}   removed: {}", diffs.added, diffs.removed);
+    }
+}
+
+/// Prints the baseline's recorded counts, the reference for the drill-down.
+fn print_baseline_counts(totals: &BaselineTotals) {
+    println!(
+        "  baseline: {} files, {} ok, {} error, {} ioerror",
+        totals.files, totals.ok, totals.error, totals.ioerror
+    );
+}
+
+/// Soft perf signal: prints nothing while the aggregate `parse_ms` stays within
+/// tolerance; past it, reports the delta and the top files by `|Δms|` (using the
+/// slow tail recorded in the baseline).
+fn report_perf(
+    baseline_parse_ms: u64,
+    parse_ms: u64,
+    tolerance_pct: f64,
+    slow_ms: f64,
+    current: &[CurrentFile],
+    baseline: &BTreeMap<String, BaselineRecord>,
+) {
+    if baseline_parse_ms == 0 {
+        return;
+    }
+    let pct = 100.0 * (parse_ms as f64 - baseline_parse_ms as f64) / baseline_parse_ms as f64;
+    if pct.abs() <= tolerance_pct {
+        return;
+    }
+    println!(
+        "  perf: parse_ms {baseline_parse_ms} -> {parse_ms} ({pct:+.1}%, tolerance {tolerance_pct:.0}%)"
+    );
+
+    let mut deltas: Vec<(f64, &str, u64, u64)> = current
+        .iter()
+        .filter_map(|f| {
+            let base = baseline.get(&f.path).and_then(|r| r.ms).unwrap_or(0);
+            (f.ms > slow_ms || base as f64 > slow_ms).then(|| {
+                (
+                    (f.ms - base as f64).abs(),
+                    f.path.as_str(),
+                    base,
+                    f.ms as u64,
+                )
+            })
+        })
+        .collect();
+    deltas.sort_by(|a, b| b.0.partial_cmp(&a.0).unwrap());
+    for (_, path, base, now) in deltas.iter().take(10) {
+        println!("    {base} ms -> {now} ms  {path}");
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn parse_repos_text_reads_entries_and_skips_comments() {
+        let cfg = "# name ext start repo ref\n\
+                   openjdk9 java CompilationUnit https://x/jdk9 jdk-9+181\n\
+                   \n\
+                   spring java CompilationUnit https://x/spring v4\n";
+        let entries = parse_repos_text(cfg).unwrap();
+        assert_eq!(entries.len(), 2);
+        assert_eq!(entries[0].name, "openjdk9");
+        assert_eq!(entries[0].start, "CompilationUnit");
+        assert_eq!(entries[1].git_ref, "v4");
+    }
+
+    #[test]
+    fn parse_repos_text_rejects_wrong_arity() {
+        assert!(parse_repos_text("only three fields here\n").is_err());
+    }
+
+    #[test]
+    fn parse_record_line_reads_each_status() {
+        let (path, r) = parse_record_line("a/B.java\tok").unwrap();
+        assert_eq!(path, "a/B.java");
+        assert_eq!(r.status, Status::Ok);
+        assert_eq!(r.ms, None);
+
+        let (_, r) = parse_record_line("a/B.java\tok\t12").unwrap();
+        assert_eq!(r.ms, Some(12));
+
+        let (_, r) =
+            parse_record_line("a/B.java\terror\t-\tParse error at line 1, col 1: x").unwrap();
+        assert_eq!(r.status, Status::Error);
+        assert_eq!(
+            r.message.as_deref(),
+            Some("Parse error at line 1, col 1: x")
+        );
+
+        let (_, r) = parse_record_line("a/B.java\tioerror\t-\tbad utf-8").unwrap();
+        assert_eq!(r.status, Status::IoError);
+    }
+
+    #[test]
+    fn parse_totals_reads_counts() {
+        let t = parse_totals("files=10 ok=8 error=1 ioerror=1 parse_ms=42").unwrap();
+        assert_eq!(
+            (t.files, t.ok, t.error, t.ioerror, t.parse_ms),
+            (10, 8, 1, 1, 42)
+        );
+    }
+
+    #[test]
+    fn sanitize_strips_tabs_and_newlines() {
+        assert_eq!(sanitize("a\tb\nc\rd"), "a b c d");
+    }
+
+    #[test]
+    fn serialize_baseline_records_slow_tail_only() {
+        let files = vec![
+            CurrentFile {
+                path: "a.java".into(),
+                status: Status::Ok,
+                message: None,
+                ms: 1.0,
+            },
+            CurrentFile {
+                path: "b.java".into(),
+                status: Status::Ok,
+                message: None,
+                ms: 12.0,
+            },
+            CurrentFile {
+                path: "c.java".into(),
+                status: Status::Error,
+                message: Some("Parse error".into()),
+                ms: 0.5,
+            },
+        ];
+        let out = serialize_baseline("demo", &files, 5.0, 13);
+        assert!(out.contains("# corpus: demo\n"));
+        assert!(out.contains("# files=3 ok=2 error=1 ioerror=0 parse_ms=13\n"));
+        assert!(out.contains("a.java\tok\n"));
+        assert!(out.contains("b.java\tok\t12\n"));
+        assert!(out.contains("c.java\terror\t-\tParse error\n"));
+    }
+
+    #[test]
+    fn diff_records_separates_regression_from_recovery() {
+        // One file regresses ok->error while another recovers error->ok: counts
+        // are unchanged, but the regression alone gates the check.
+        let current = vec![
+            CurrentFile {
+                path: "a".into(),
+                status: Status::Error,
+                message: Some("boom".into()),
+                ms: 0.0,
+            },
+            CurrentFile {
+                path: "b".into(),
+                status: Status::Ok,
+                message: None,
+                ms: 0.0,
+            },
+        ];
+        let mut baseline = BTreeMap::new();
+        baseline.insert(
+            "a".to_string(),
+            BaselineRecord {
+                status: Status::Ok,
+                ms: None,
+                message: None,
+            },
+        );
+        baseline.insert(
+            "b".to_string(),
+            BaselineRecord {
+                status: Status::Error,
+                ms: None,
+                message: Some("boom".into()),
+            },
+        );
+
+        let diffs = diff_records(&current, &baseline);
+        assert_eq!(
+            diffs.regressions,
+            vec![("a".to_string(), "boom".to_string())]
+        );
+        assert_eq!(diffs.recoveries, vec!["b".to_string()]);
+    }
+
+    #[test]
+    fn diff_records_message_change_is_drift_not_regression() {
+        // A file that failed before and still fails, only with different error
+        // text, is brittle drift, so it must not gate the check.
+        let current = vec![CurrentFile {
+            path: "a".into(),
+            status: Status::Error,
+            message: Some("expected TypeIdentifier".into()),
+            ms: 0.0,
+        }];
+        let mut baseline = BTreeMap::new();
+        baseline.insert(
+            "a".to_string(),
+            BaselineRecord {
+                status: Status::Error,
+                ms: None,
+                message: Some("expected Identifier".into()),
+            },
+        );
+
+        let diffs = diff_records(&current, &baseline);
+        assert!(diffs.regressions.is_empty());
+        assert_eq!(diffs.drift, 1);
+    }
+
+    #[test]
+    fn diff_records_is_clean_when_identical() {
+        let current = vec![
+            CurrentFile {
+                path: "a".into(),
+                status: Status::Ok,
+                message: None,
+                ms: 0.0,
+            },
+            CurrentFile {
+                path: "b".into(),
+                status: Status::Error,
+                message: Some("boom".into()),
+                ms: 0.0,
+            },
+        ];
+        let mut baseline = BTreeMap::new();
+        baseline.insert(
+            "a".to_string(),
+            BaselineRecord {
+                status: Status::Ok,
+                ms: None,
+                message: None,
+            },
+        );
+        baseline.insert(
+            "b".to_string(),
+            BaselineRecord {
+                status: Status::Error,
+                ms: None,
+                message: Some("boom".into()),
+            },
+        );
+
+        assert!(diff_records(&current, &baseline).is_clean());
+    }
 
     #[test]
     fn unified_diff_one_changed_line() {

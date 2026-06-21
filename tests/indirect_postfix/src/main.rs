@@ -166,6 +166,28 @@ struct Cli {
     /// Print golden diffs in full instead of truncating past 200 lines.
     #[arg(long, requires = "check_sexpr")]
     full_diff: bool,
+    /// Corpus regression testing: parse the corpora listed in
+    /// `<corpus-dir>/repos.txt` and compare each against its committed
+    /// baseline. With a NAME, restrict to that corpus; otherwise run
+    /// all. Add `--update` to rewrite the baselines instead of checking.
+    # [arg (long , value_name = "NAME" , conflicts_with_all = ["benchmark" , "profile" , "check_sexpr" , "regenerate_sexpr" , "repl" , "dir"])]
+    corpus_test: Option<Option<String>>,
+    /// Rewrite corpus baselines instead of checking them. Use with
+    /// `--corpus-test`.
+    #[arg(long, requires = "corpus_test")]
+    update: bool,
+    /// Directory holding `repos.txt`, the per-corpus baselines, and the
+    /// `.cache/` checkouts (used with `--corpus-test`).
+    #[arg(long, value_name = "DIR", default_value = "corpus")]
+    corpus_dir: PathBuf,
+    /// Slow-file threshold in milliseconds for `--corpus-test`: a file's
+    /// parse time is recorded in the baseline only when it exceeds this.
+    #[arg(long, value_name = "MS", default_value_t = 5.0)]
+    slow_ms: f64,
+    /// Soft tolerance (percent) on the aggregate parse time for
+    /// `--corpus-test`; a larger drift is reported but does not fail.
+    #[arg(long, value_name = "PCT", default_value_t = 30.0)]
+    perf_tolerance: f64,
 }
 #[cfg(feature = "dhat-heap")]
 #[global_allocator]
@@ -284,6 +306,119 @@ fn main() -> Result<(), io::Error> {
             },
         )?;
         if !passed {
+            std::process::exit(1);
+        }
+        return Ok(());
+    }
+    if let Some(filter) = &args.corpus_test {
+        let only = filter.as_deref();
+        if args.start_nonterminal.is_some() {
+            eprintln!(
+                "Note: -n/--nonterminal is ignored with --corpus-test; the start nonterminal comes from repos.txt."
+            );
+        }
+        let mode = if args.update {
+            cli::CorpusMode::Update
+        } else {
+            cli::CorpusMode::Check
+        };
+        let repos_path = args.corpus_dir.join("repos.txt");
+        if cli::init_corpus_dir(&args.corpus_dir)? {
+            println!(
+                "Created {}. List your repos there and re-run.",
+                repos_path.display()
+            );
+            return Ok(());
+        }
+        let entries = cli::read_repos(&repos_path)?;
+        if entries.is_empty() {
+            eprintln!("Warning: no repos listed in {}", repos_path.display());
+        }
+        let mut ran = 0usize;
+        let mut passed = 0usize;
+        for entry in &entries {
+            if let Some(name) = only {
+                if entry.name != name {
+                    continue;
+                }
+            }
+            ran += 1;
+            let start_nonterminal_id = resolve_start_nonterminal(&entry.start)?;
+            let checkout = args.corpus_dir.join(".cache").join(&entry.name);
+            if let Err(e) = cli::fetch_corpus(&checkout, &entry.repo, &entry.git_ref) {
+                eprintln!("Corpus '{}': {}", entry.name, e);
+                continue;
+            }
+            let mut inputs = Vec::new();
+            collect_files(&checkout, Some(&entry.ext), &mut inputs)?;
+            inputs.sort();
+            let baseline_path = args.corpus_dir.join(format!("{}.txt", entry.name));
+            let report = cli::run_corpus(
+                &entry.name,
+                inputs,
+                &checkout,
+                &baseline_path,
+                cli::CorpusConfig {
+                    mode,
+                    slow_ms: args.slow_ms,
+                    perf_tolerance_pct: args.perf_tolerance,
+                    quiet: args.quiet,
+                },
+                |path| {
+                    let input = match Input::try_from(path) {
+                        Ok(input) => input,
+                        Err(e) => {
+                            return cli::CorpusOutcome::IoError {
+                                message: e.to_string(),
+                            };
+                        }
+                    };
+                    let mut parser = IndirectPostfixParser::new(&input, start_nonterminal_id);
+                    let start = Instant::now();
+                    let result = parser.run();
+                    let ms = start.elapsed().as_secs_f64() * 1000.0;
+                    match result {
+                        ParseResult::Success(_) => cli::CorpusOutcome::Ok { ms },
+                        ParseResult::Failure(error) => {
+                            let (line, column, message) = parser.format_error(&error);
+                            cli::CorpusOutcome::Error {
+                                ms,
+                                message: format!(
+                                    "Parse error at line {}, col {}: {}",
+                                    line + 1,
+                                    column + 1,
+                                    message
+                                ),
+                            }
+                        }
+                    }
+                },
+            )?;
+            if report.passed {
+                passed += 1;
+            }
+        }
+        if let Some(name) = only {
+            if ran == 0 {
+                eprintln!("No corpus named '{}' in {}", name, repos_path.display());
+                std::process::exit(1);
+            }
+        }
+        if !args.quiet {
+            let noun = if ran == 1 { "repo" } else { "repos" };
+            println!();
+            match mode {
+                cli::CorpusMode::Check => println!(
+                    "{} {} checked: {} passed, {} failed",
+                    ran,
+                    noun,
+                    passed,
+                    ran - passed
+                ),
+                cli::CorpusMode::Update => println!("{} {} updated", ran, noun),
+            }
+        }
+        if passed != ran {
             std::process::exit(1);
         }
         return Ok(());
