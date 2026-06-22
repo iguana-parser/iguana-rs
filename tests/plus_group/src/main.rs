@@ -38,156 +38,233 @@ enum VisTarget {
     Gss,
 }
 #[derive(ClapParser)]
-#[command(name = "parser")]
-#[command(about = "Parse a file and generate visualization")]
+#[command(about = "Parser for the PlusGroup grammar")]
 #[command(arg_required_else_help = true)]
 struct Cli {
-    /// Input file to parse (required unless --list-nonterminals or --dir is used)
+    /// Input file to parse
+    ///
+    /// Required unless --list-nonterminals or --dir is used
     file: Option<PathBuf>,
-    /// Directory to recursively parse all files in. Reports per-file
-    /// success/failure with timings, plus a summary at the end.
-    #[arg(long, value_name = "DIR", conflicts_with = "file")]
-    dir: Option<PathBuf>,
-    /// File extension filter for --dir (e.g. "java"). Without it, all files are parsed.
-    #[arg(long, value_name = "EXT", requires = "dir")]
-    ext: Option<String>,
-    /// The nonterminal to start parsing from (required unless --list-nonterminals is used)
-    #[arg(short = 'n', long = "nonterminal", value_name = "NAME")]
-    start_nonterminal: Option<String>,
-    /// List simple nonterminals (one per line) and exit
-    #[arg(long)]
-    list_nonterminals: bool,
-    /// Interactive mode: read inputs from stdin and print the parse tree
-    /// for each. Requires --nonterminal; no input file is used.
-    #[arg(long)]
-    repl: bool,
-    /// Write symbol table (all nonterminals) as JSON to the specified file
-    #[arg(long, value_name = "FILE")]
-    write_symbols: Option<PathBuf>,
-    /// Enable trace output (writes to stdout or specified file)
-    #[arg(long, value_name = "FILE")]
-    trace: Option<Option<PathBuf>>,
-    /// Output format for trace (text or json)
-    #[arg(long, value_enum, default_value_t, requires = "trace")]
-    format: TraceFormat,
-    /// Generate visualization as SVG (sppf or gss)
-    #[arg(long, value_enum)]
-    vis: Option<VisTarget>,
-    /// Write SPPF as JSON to the specified file
-    #[arg(long, value_name = "FILE")]
-    write_sppf: Option<PathBuf>,
-    /// Write GSS graph as JSON for visualization (nodes with labels + edges).
-    /// Used by Terrarium for Cytoscape.js graph rendering.
-    #[arg(long, value_name = "FILE")]
-    write_gss: Option<PathBuf>,
-    /// Write GSS nodes as JSON for trace replay (normalized with IDs).
-    /// Used by Terrarium debugger to resolve GssNodeId to (nonterminal, input_index).
-    #[arg(long, value_name = "FILE")]
-    write_gss_nodes: Option<PathBuf>,
-    /// Write parse tree as JSON for visualization.
-    /// Used by Terrarium for parse tree rendering.
-    #[arg(long, value_name = "FILE")]
-    write_parse_tree: Option<PathBuf>,
-    /// Profile the parser by running it N times in a loop under a
-    /// sampling profiler, then write a flamegraph SVG.
-    /// Requires the "profile" feature: cargo build --features profile
-    #[arg(long, value_name = "N")]
-    profile: Option<u32>,
-    /// Output path for the flamegraph SVG (used with --profile).
-    #[arg(long, value_name = "FILE", default_value = "flamegraph.svg")]
-    profile_output: PathBuf,
-    /// Benchmark mode: run the parser many times and report timing
-    /// statistics (min, mean, median, p90, max, stddev). In-process,
-    /// per-iteration sampling — same shape as criterion.
-    #[arg(long)]
-    benchmark: bool,
-    /// Number of measured iterations for --benchmark (default 100).
-    #[arg(long, value_name = "N", default_value_t = 100)]
-    iters: u32,
-    /// Number of warmup iterations before measurement (default 10).
-    #[arg(long, value_name = "N", default_value_t = 10)]
-    warmup: u32,
-    /// Save benchmark samples to a JSON file. Pairs with --baseline
-    /// for A/B comparison across runs.
-    #[arg(long, value_name = "FILE")]
-    save: Option<PathBuf>,
-    /// Compare benchmark results against a saved baseline JSON.
-    /// Reports the mean delta with a 95% CI on the difference;
-    /// flags the run as improved/regressed/no-change.
-    #[arg(long, value_name = "FILE")]
-    baseline: Option<PathBuf>,
-    /// Write parser stats (counters + histograms) as JSON.
-    /// Requires the "instrument" feature.
-    #[arg(long, value_name = "FILE")]
-    write_stats: Option<PathBuf>,
-    /// Write parse result as JSON: on success includes timings,
-    /// on failure includes error location and message.
-    #[arg(long, value_name = "FILE")]
-    write_result: Option<PathBuf>,
-    /// Suppress the parse-tree dump on stdout. Status messages
-    /// (timing, errors) still go to stderr; redirect with `2>/dev/null`
-    /// to silence them too.
+    /// Don't print the parse tree to stdout
+    ///
+    /// Status messages (timing, errors) still go to stderr; redirect with 2>/dev/null to silence them too
     #[arg(short, long)]
     quiet: bool,
-    /// Include layout (whitespace, comments) nodes in the parse-tree
-    /// output. False by default.
-    #[arg(long)]
+    /// Nonterminal to start parsing from
+    ///
+    /// Required unless --list-nonterminals is used
+    #[arg(
+        short = 'n',
+        long = "nonterminal",
+        value_name = "NAME",
+        help_heading = "Parsing"
+    )]
+    start_nonterminal: Option<String>,
+    /// Directory to recursively parse all files in
+    ///
+    /// Reports per-file success or failure with timings, plus a summary at the end
+    #[arg(
+        long,
+        value_name = "DIR",
+        conflicts_with = "file",
+        help_heading = "Parsing"
+    )]
+    dir: Option<PathBuf>,
+    /// File extension filter for --dir (e.g. "java")
+    ///
+    /// Without it, all files are parsed
+    #[arg(long, value_name = "EXT", requires = "dir", help_heading = "Parsing")]
+    ext: Option<String>,
+    #[doc = "Run the PlusGroup parser in REPL mode"]
+    ///
+    /// Reads inputs from stdin and prints each parse tree. Requires --nonterminal; no input file is used
+    #[arg(long, help_heading = "Parsing")]
+    repl: bool,
+    /// List the nonterminals declared in the grammar
+    ///
+    /// The valid values for --nonterminal, one per line, then exits
+    #[arg(long, help_heading = "Grammar info")]
+    list_nonterminals: bool,
+    /// Write all nonterminals, terminals, and slots as JSON to a file
+    ///
+    /// Includes the derived nonterminals that --list-nonterminals hides
+    #[arg(long, value_name = "FILE", help_heading = "Grammar info")]
+    write_symbols: Option<PathBuf>,
+    /// Show layout (whitespace, comments) nodes in the parse tree (false by default)
+    #[arg(long, help_heading = "Parse-tree output")]
     show_layout: bool,
-    /// Show empty optionals and repetitions (`X?`, `X*` that matched
-    /// nothing) in the parse-tree output. False by default.
-    #[arg(long)]
+    /// Show empty optionals and repetitions (X?, X* that matched nothing) in the parse tree (false by default)
+    #[arg(long, help_heading = "Parse-tree output")]
     show_empty: bool,
-    /// Show wrapper nodes (the `@Start` wrapper, optionals, anonymous
-    /// groups, and alternations) in the parse-tree output. False by
-    /// default.
-    #[arg(long)]
+    /// Show wrapper nodes (start, optionals, groups, alternations) in the parse tree (false by default)
+    #[arg(long, help_heading = "Parse-tree output")]
     show_wrappers: bool,
-    /// Print only the parser stats histogram and exit. Suppresses
-    /// the parse-tree dump, the "Parse success" line, and (with
-    /// `--dir`) the per-file timing lines and the aggregate
-    /// timing summary. Requires the `instrument` feature.
-    #[arg(long)]
-    hist: bool,
-    /// Golden-file testing: compare each input's output against its
-    /// sibling `X.sexpr`. Works with a single file or `--dir` (which
-    /// then requires `--ext`). Goldens hold the parse-tree s-expression
-    /// on success or a `Parse error at ...` line on failure.
-    #[arg(long, conflicts_with = "benchmark", conflicts_with = "profile")]
-    check_sexpr: bool,
-    /// Golden-file testing: write each input's output to its sibling
-    /// `X.sexpr`, overwriting. Same input rules as `--check-sexpr`.
+    /// Write the parse tree as JSON
+    #[arg(long, value_name = "FILE", help_heading = "Output files")]
+    write_parse_tree: Option<PathBuf>,
+    /// Write the SPPF as JSON
+    #[arg(long, value_name = "FILE", help_heading = "Output files")]
+    write_sppf: Option<PathBuf>,
+    /// Write the GSS graph as JSON
+    ///
+    /// Nodes with labels, plus edges
+    #[arg(long, value_name = "FILE", help_heading = "Output files")]
+    write_gss: Option<PathBuf>,
+    /// Write GSS nodes as JSON
+    ///
+    /// Normalized with IDs so trace replay can map each GSS node to its nonterminal and input position
+    #[arg(long, value_name = "FILE", help_heading = "Output files")]
+    write_gss_nodes: Option<PathBuf>,
+    /// Write the parse result as JSON
+    ///
+    /// On success includes timings; on failure includes the error location and message
+    #[arg(long, value_name = "FILE", help_heading = "Output files")]
+    write_result: Option<PathBuf>,
+    /// Generate an SVG visualization
+    #[arg(long, value_enum, help_heading = "Output files")]
+    vis: Option<VisTarget>,
+    /// Enable trace output (writes to stdout, or a file if given)
+    #[arg(long, value_name = "FILE", help_heading = "Tracing")]
+    trace: Option<Option<PathBuf>>,
+    /// Output format for trace
+    #[arg(
+        long,
+        value_enum,
+        default_value_t,
+        requires = "trace",
+        help_heading = "Tracing"
+    )]
+    format: TraceFormat,
+    /// Run the parser many times and report timing statistics
+    ///
+    /// Min, mean, median, p90, max, stddev, sampled in-process per iteration
+    #[arg(long, help_heading = "Benchmarking and profiling")]
+    benchmark: bool,
+    /// Number of measured iterations for --benchmark
+    #[arg(
+        long,
+        value_name = "N",
+        default_value_t = 100,
+        requires = "benchmark",
+        help_heading = "Benchmarking and profiling"
+    )]
+    iters: u32,
+    /// Number of warmup iterations before measurement
+    #[arg(
+        long,
+        value_name = "N",
+        default_value_t = 10,
+        requires = "benchmark",
+        help_heading = "Benchmarking and profiling"
+    )]
+    warmup: u32,
+    /// Save benchmark samples to a JSON file
+    ///
+    /// Pairs with --baseline for A/B comparison across runs
+    #[arg(
+        long,
+        value_name = "FILE",
+        requires = "benchmark",
+        help_heading = "Benchmarking and profiling"
+    )]
+    save: Option<PathBuf>,
+    /// Compare benchmark results against a saved baseline JSON
+    ///
+    /// Reports the mean delta with a 95% CI (confidence interval) on the difference; flags the run as improved/regressed/no-change
+    #[arg(
+        long,
+        value_name = "FILE",
+        requires = "benchmark",
+        help_heading = "Benchmarking and profiling"
+    )]
+    baseline: Option<PathBuf>,
+    /// Profile the parser and write a flamegraph SVG
+    ///
+    /// Runs the parser N times in a loop under a sampling profiler. Requires the "profile" feature: cargo build --features profile
+    #[arg(long, value_name = "N", help_heading = "Benchmarking and profiling")]
+    profile: Option<u32>,
+    /// Output path for the flamegraph SVG (used with --profile)
+    #[arg(
+        long,
+        value_name = "FILE",
+        default_value = "flamegraph.svg",
+        help_heading = "Benchmarking and profiling"
+    )]
+    profile_output: PathBuf,
+    /// Compare each input's output against its sibling X.sexpr
+    ///
+    /// Works with a single file or --dir (which then requires --ext). Goldens hold the parse-tree s-expression on success or a "Parse error at ..." line on failure
     #[arg(
         long,
         conflicts_with = "benchmark",
         conflicts_with = "profile",
-        conflicts_with = "check_sexpr"
+        help_heading = "Golden-file testing"
+    )]
+    check_sexpr: bool,
+    /// Write each input's output to its sibling X.sexpr, overwriting
+    ///
+    /// Same input rules as --check-sexpr
+    #[arg(
+        long,
+        conflicts_with = "benchmark",
+        conflicts_with = "profile",
+        conflicts_with = "check_sexpr",
+        help_heading = "Golden-file testing"
     )]
     regenerate_sexpr: bool,
-    /// Print golden diffs in full instead of truncating past 200 lines.
-    #[arg(long, requires = "check_sexpr")]
+    /// Print golden diffs in full instead of truncating past 200 lines
+    #[arg(long, requires = "check_sexpr", help_heading = "Golden-file testing")]
     full_diff: bool,
-    /// Corpus regression testing: parse the corpora listed in
-    /// `<corpus-dir>/repos.txt` and compare each against its committed
-    /// baseline. With a NAME, restrict to that corpus; otherwise run
-    /// all. Add `--update` to rewrite the baselines instead of checking.
-    # [arg (long , value_name = "NAME" , conflicts_with_all = ["benchmark" , "profile" , "check_sexpr" , "regenerate_sexpr" , "repl" , "dir"])]
+    /// Compare each corpus against its committed baseline
+    ///
+    /// Parses the corpora listed in <corpus-dir>/repos.txt. With a NAME, restrict to that corpus; otherwise run all. Add --update to rewrite the baselines instead of checking
+    # [arg (long , value_name = "NAME" , conflicts_with_all = ["benchmark" , "profile" , "check_sexpr" , "regenerate_sexpr" , "repl" , "dir"] , help_heading = "Corpus testing")]
     corpus_test: Option<Option<String>>,
-    /// Rewrite corpus baselines instead of checking them. Use with
-    /// `--corpus-test`.
-    #[arg(long, requires = "corpus_test")]
+    /// Rewrite corpus baselines instead of checking them
+    ///
+    /// Use with --corpus-test
+    #[arg(long, requires = "corpus_test", help_heading = "Corpus testing")]
     update: bool,
-    /// Directory holding `repos.txt`, the per-corpus baselines, and the
-    /// `.cache/` checkouts (used with `--corpus-test`).
-    #[arg(long, value_name = "DIR", default_value = "corpus")]
+    /// Directory holding repos.txt, the per-corpus baselines, and the .cache/ checkouts
+    ///
+    /// Used with --corpus-test
+    #[arg(
+        long,
+        value_name = "DIR",
+        default_value = "corpus",
+        help_heading = "Corpus testing"
+    )]
     corpus_dir: PathBuf,
-    /// Slow-file threshold in milliseconds for `--corpus-test`: a file's
-    /// parse time is recorded in the baseline only when it exceeds this.
-    #[arg(long, value_name = "MS", default_value_t = 5.0)]
+    /// Slow-file threshold in milliseconds for --corpus-test
+    ///
+    /// A file's parse time is recorded in the baseline only when it exceeds this
+    #[arg(
+        long,
+        value_name = "MS",
+        default_value_t = 5.0,
+        help_heading = "Corpus testing"
+    )]
     slow_ms: f64,
-    /// Soft tolerance (percent) on the aggregate parse time for
-    /// `--corpus-test`; a larger drift is reported but does not fail.
-    #[arg(long, value_name = "PCT", default_value_t = 30.0)]
+    /// Soft tolerance (percent) on the aggregate parse time for --corpus-test
+    ///
+    /// A larger drift is reported but does not fail
+    #[arg(
+        long,
+        value_name = "PCT",
+        default_value_t = 30.0,
+        help_heading = "Corpus testing"
+    )]
     perf_tolerance: f64,
+    /// Write parser stats (counters and histograms) as JSON
+    ///
+    /// Requires the "instrument" feature
+    #[arg(long, value_name = "FILE", help_heading = "Stats")]
+    write_stats: Option<PathBuf>,
+    /// Print only the parser stats histogram and exit
+    ///
+    /// Suppresses the printed parse tree, the "Parse success" line, and (with --dir) the per-file timing lines and the aggregate timing summary. Requires the "instrument" feature
+    #[arg(long, help_heading = "Stats")]
+    hist: bool,
 }
 #[cfg(feature = "dhat-heap")]
 #[global_allocator]

@@ -241,6 +241,7 @@ pub fn generate_scaffold(
     output_dir: &Path,
     config: GenConfig,
     runtime_path: Option<&Path>,
+    bin_name: Option<&str>,
     force: bool,
 ) -> io::Result<()> {
     if !output_dir.exists() {
@@ -254,7 +255,7 @@ pub fn generate_scaffold(
     let cargo_toml = output_dir.join("Cargo.toml");
     if force || !cargo_toml.exists() {
         write_plain_file(
-            cargo_toml_gen::generate(grammar, config, runtime_path),
+            cargo_toml_gen::generate(grammar, config, runtime_path, bin_name),
             &cargo_toml,
         )?;
     }

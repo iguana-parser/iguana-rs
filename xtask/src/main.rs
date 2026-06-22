@@ -293,7 +293,7 @@ fn regenerate_with(
     let grammar: Grammar = grammar_def
         .try_into()
         .map_err(|errors: Vec<String>| io::Error::other(errors.join("\n")))?;
-    generate_scaffold(&grammar, output, config, runtime_path, force)?;
+    generate_scaffold(&grammar, output, config, runtime_path, None, force)?;
     let result = generate_sources(&grammar, output, config)?;
     format_sources(output)?;
     if config.wasm {

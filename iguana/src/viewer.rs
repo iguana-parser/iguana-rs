@@ -6,14 +6,7 @@
 //! built bundle's wasm module and manifest and serves the directory, since a
 //! wasm module loads over `http://` rather than `file://`.
 
-use std::{
-    fs,
-    io::{self, IsTerminal},
-    net::SocketAddr,
-    path::Path,
-    sync::Arc,
-    thread,
-};
+use std::{fs, io, net::SocketAddr, path::Path, sync::Arc, thread};
 
 use include_dir::{Dir, File, include_dir};
 use tiny_http::{Header, Response, Server};
@@ -74,8 +67,8 @@ pub fn try_bundle(dir: &Path, port: u16) -> io::Result<()> {
 }
 
 /// Serve the bundle at `dir` over HTTP on `127.0.0.1:<port>` until interrupted,
-/// printing the URL for the user to open. Most terminals make a printed
-/// `http://` link clickable, so there is no need to open the browser here.
+/// printing the URL for the user to open in a browser. The server does not open
+/// the browser itself.
 ///
 /// A few worker threads share the listener so the browser's parallel asset
 /// requests do not queue behind one another.
@@ -84,9 +77,12 @@ pub fn serve(dir: &Path, port: u16) -> io::Result<()> {
     let server = Server::http(addr).map_err(|e| io::Error::other(e.to_string()))?;
     let server = Arc::new(server);
 
-    println!("Serving {}", dir.display());
-    println!("  {}", link(&format!("http://{addr}/")));
-    println!("Press Ctrl-C to stop.");
+    let url = format!("http://{addr}/");
+    match grammar_name(dir) {
+        Some(name) => println!("Open the {name} grammar web view at {url}"),
+        None => println!("Open the grammar web view at {url}"),
+    }
+    println!("Press Ctrl-C to stop");
 
     let mut workers = Vec::new();
     for _ in 0..4 {
@@ -103,6 +99,15 @@ pub fn serve(dir: &Path, port: u16) -> io::Result<()> {
         let _ = worker.join();
     }
     Ok(())
+}
+
+/// The grammar name from the bundle's `manifest.json`, or `None` when the file
+/// is missing or cannot be parsed. The view message falls back to a generic
+/// phrase in that case.
+fn grammar_name(dir: &Path) -> Option<String> {
+    let manifest = fs::read_to_string(dir.join("manifest.json")).ok()?;
+    let value: serde_json::Value = serde_json::from_str(&manifest).ok()?;
+    value.get("grammar")?.as_str().map(str::to_owned)
 }
 
 /// Resolve a request URL to a file under `dir` and build its response. `/`
@@ -147,14 +152,4 @@ fn content_type(path: &Path) -> Header {
         _ => "application/octet-stream",
     };
     Header::from_bytes(&b"Content-Type"[..], mime.as_bytes()).expect("static header is valid")
-}
-
-/// Style `url` as a blue underlined link when writing to a terminal. Piped or
-/// redirected output gets the bare URL, with no escape codes to garble it.
-fn link(url: &str) -> String {
-    if io::stdout().is_terminal() {
-        format!("\x1b[34;4m{url}\x1b[0m")
-    } else {
-        url.to_owned()
-    }
 }

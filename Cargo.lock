@@ -802,6 +802,7 @@ dependencies = [
  "clap",
  "iguana-compiler",
  "include_dir",
+ "serde_json",
  "tiny_http",
 ]
 

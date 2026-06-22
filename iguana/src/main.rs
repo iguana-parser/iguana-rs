@@ -17,7 +17,11 @@ use iguana_compiler::{
 mod viewer;
 
 #[derive(Parser)]
-#[command(name = "iguana", version, about = "A GLL-based parser generator")]
+#[command(
+    name = "iguana",
+    version,
+    about = "A high-performance, general parser generator"
+)]
 struct Cli {
     #[command(subcommand)]
     command: Commands,
@@ -25,14 +29,20 @@ struct Cli {
 
 #[derive(Subcommand)]
 enum Commands {
-    /// Create a new iggy project in the given directory
+    /// Create a new iggy grammar project
+    ///
+    /// Creates the directory and writes a stub .iggy grammar and a .gitignore
     New {
-        /// Path of the new project directory. Must not already exist.
+        /// Path of the new project directory
+        ///
+        /// Must not already exist
         path: PathBuf,
     },
     /// Generate a parser crate from an iggy grammar
     Generate {
-        /// Path to an iggy grammar file. Defaults to the .iggy file in the output directory.
+        /// Path to an iggy grammar file
+        ///
+        /// Defaults to the .iggy file in the output directory
         #[arg(short, long)]
         grammar: Option<PathBuf>,
 
@@ -52,39 +62,54 @@ enum Commands {
         #[arg(long, default_value_t = true, action = clap::ArgAction::Set)]
         match_memo: bool,
 
-        /// Scaffold a CLI binary (Cargo.toml + src/main.rs). When false, the
-        /// caller owns Cargo.toml and no CLI binary is emitted.
+        /// Scaffold a CLI binary (Cargo.toml + src/main.rs)
+        ///
+        /// When false, the caller owns Cargo.toml and no CLI binary is emitted
         #[arg(long, default_value_t = true, action = clap::ArgAction::Set)]
         cli: bool,
 
-        /// Emit a wasm bundle into webview/: a lib crate, a wasm-bindgen wrapper
-        /// crate under wasm/, a manifest.json, and the web viewer. Serve it with
-        /// `iguana try`. The bundle has no CLI and a fixed location, so --wasm
-        /// conflicts with --cli and -o.
+        /// Emit a wasm bundle into webview/
+        ///
+        /// A lib crate, a wasm-bindgen wrapper crate under wasm/, a
+        /// manifest.json, and the web viewer. Serve it with iguana try. The
+        /// bundle has no CLI and a fixed location, so --wasm conflicts with
+        /// --cli and -o
         #[arg(long, conflicts_with_all = ["cli", "output"])]
         wasm: bool,
 
-        /// Point the generated crate's `iguana-runtime` dependency at this local
-        /// path instead of the default git dependency. Applies to the standalone
+        /// Point the generated crate's iguana-runtime dependency at a local path
+        ///
+        /// Replaces the default git dependency. Applies to the standalone
         /// (--cli) and wasm shapes; use it to develop the runtime alongside a
-        /// grammar or pin the bundle to a specific local checkout.
+        /// grammar or pin the bundle to a specific local checkout
         #[arg(long)]
         runtime_path: Option<PathBuf>,
 
-        /// Overwrite scaffolded files (Cargo.toml, src/main.rs) even if they
-        /// already exist. Without this, the scaffold step is skipped on
-        /// regeneration so local edits are preserved.
+        /// Name the parser binary
+        ///
+        /// Defaults to the crate name (the grammar name in snake_case). Use it
+        /// when that name would clash with an existing command, like a Java
+        /// grammar whose binary would otherwise be "java"
+        #[arg(long, value_name = "NAME", conflicts_with = "wasm")]
+        bin_name: Option<String>,
+
+        /// Overwrite scaffolded files (Cargo.toml, src/main.rs) even if they already exist
+        ///
+        /// Without it, the scaffold step is skipped on regeneration so local
+        /// edits are preserved
         #[arg(long)]
         force: bool,
 
-        /// Print the grammar after the given pipeline phases (comma-separated)
-        /// to stderr, then keep generating. Pass the flag with no value to list
-        /// the available phases.
+        /// Print the grammar after the given pipeline phases (comma-separated) to stderr
+        ///
+        /// Keeps generating afterward. Pass the flag with no value to list the
+        /// available phases
         #[arg(long, value_delimiter = ',', num_args = 0..)]
         print_phase: Option<Vec<String>>,
     },
-    /// Serve the wasm bundle in webview/ over HTTP and open it in the web
-    /// viewer. Build the bundle first with `iguana generate --wasm`.
+    /// Serve the wasm bundle in webview/ over HTTP
+    ///
+    /// Build the bundle first with iguana generate --wasm
     Try {
         /// Port to listen on
         #[arg(short, long, default_value_t = 8000)]
@@ -105,6 +130,7 @@ fn main() -> std::io::Result<()> {
             cli,
             wasm,
             runtime_path,
+            bin_name,
             force,
             print_phase,
         } => {
@@ -152,7 +178,22 @@ fn main() -> std::io::Result<()> {
             // Absolute so the dependency resolves from both webview/ and
             // webview/wasm/; canonicalize also validates the path exists.
             let runtime_path = runtime_path.map(std::fs::canonicalize).transpose()?;
-            generate_scaffold(&grammar, &output, config, runtime_path.as_deref(), force)?;
+            // --bin-name only takes effect when the Cargo.toml is scaffolded, so flag
+            // the no-op when an existing one is being preserved.
+            if bin_name.is_some() && !force && output.join("Cargo.toml").exists() {
+                eprintln!(
+                    "Warning: --bin-name is ignored because {} already has a Cargo.toml; pass --force or set [[bin]] there manually.",
+                    output.display()
+                );
+            }
+            generate_scaffold(
+                &grammar,
+                &output,
+                config,
+                runtime_path.as_deref(),
+                bin_name.as_deref(),
+                force,
+            )?;
             let result = generate_sources(&grammar, &output, config)?;
             if config.wasm {
                 generate_wasm(&grammar, &output, runtime_path.as_deref(), force)?;
@@ -174,8 +215,6 @@ fn main() -> std::io::Result<()> {
 }
 
 fn new_project(path: &Path) -> io::Result<()> {
-    use io::Write;
-
     if path.exists() {
         return Err(io::Error::new(
             io::ErrorKind::AlreadyExists,
@@ -202,12 +241,8 @@ fn new_project(path: &Path) -> io::Result<()> {
 
     std::fs::write(path.join(".gitignore"), "/target\n")?;
 
-    print!("Generating parser... ");
-    io::stdout().flush()?;
-    generate_parser(Some(&grammar_file), path)?;
-    println!("done");
-
-    println!("Created iggy project at {}", path.display());
+    println!("Created iggy grammar project at {}", path.display());
+    println!("Run `iguana generate` to generate the parser from {name}.iggy");
     Ok(())
 }
 
@@ -261,30 +296,6 @@ fn available_phases() -> String {
     }
     writeln!(message, "  {:<11}{}", "all", "every phase").unwrap();
     message
-}
-
-fn generate_parser(grammar_path: Option<&Path>, output: &Path) -> io::Result<()> {
-    let grammar = load_grammar(grammar_path, output)?;
-    let config = GenConfig::default();
-    generate_scaffold(&grammar, output, config, None, false)?;
-    generate_sources(&grammar, output, config)?;
-    Ok(())
-}
-
-fn load_grammar(grammar_path: Option<&Path>, output: &Path) -> io::Result<Grammar> {
-    let resolved_path;
-    let path = match grammar_path {
-        Some(path) => path,
-        None => {
-            resolved_path = find_iggy_file(output)?;
-            &resolved_path
-        }
-    };
-    let source = std::fs::read_to_string(path)?;
-    let grammar_def = parse_grammar(&source).map_err(io::Error::other)?;
-    grammar_def
-        .try_into()
-        .map_err(|errors: Vec<String>| io::Error::other(errors.join("\n")))
 }
 
 #[allow(dead_code)]

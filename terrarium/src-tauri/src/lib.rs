@@ -291,6 +291,10 @@ struct DebugInfo {
     trace_path: Option<String>,
 }
 
+/// The parser binary's target name from `Cargo.toml`: an explicit `[[bin]]` name
+/// (set via `iguana generate --bin-name`) when present, otherwise the package
+/// name. The binary on disk is named after the bin target, so this is what the
+/// build output and the debug config must point at.
 fn read_parser_name(directory: &str) -> Result<String, String> {
     let cargo_path = Path::new(directory).join("Cargo.toml");
     let content = fs::read_to_string(&cargo_path)
@@ -300,8 +304,18 @@ fn read_parser_name(directory: &str) -> Result<String, String> {
         .parse()
         .map_err(|_| "No valid Iguana parser found in this directory.".to_string())?;
 
-    toml["package"]["name"]
-        .as_str()
+    let bin_name = toml
+        .get("bin")
+        .and_then(|b| b.as_array())
+        .and_then(|bins| bins.first())
+        .and_then(|bin| bin.get("name"))
+        .and_then(|n| n.as_str());
+    let package_name = toml
+        .get("package")
+        .and_then(|p| p.get("name"))
+        .and_then(|n| n.as_str());
+    bin_name
+        .or(package_name)
         .map(|s| s.to_string())
         .ok_or_else(|| "No valid Iguana parser found in this directory.".to_string())
 }
@@ -839,18 +853,9 @@ fn setup_vscode_debug(
 ) -> Result<String, String> {
     let dir_path = Path::new(&directory);
 
-    // Get parser name from Cargo.toml
-    let cargo_toml_path = dir_path.join("Cargo.toml");
-    let cargo_content = fs::read_to_string(&cargo_toml_path)
-        .map_err(|e| format!("Failed to read Cargo.toml: {}", e))?;
-    let cargo_toml: Value = cargo_content
-        .parse()
-        .map_err(|e| format!("Failed to parse Cargo.toml: {}", e))?;
-    let parser_name = cargo_toml
-        .get("package")
-        .and_then(|p| p.get("name"))
-        .and_then(|n| n.as_str())
-        .ok_or("Could not find package name in Cargo.toml")?;
+    // The binary name (honors an explicit [[bin]]), so the debug config points
+    // at the binary the build actually produces.
+    let parser_name = read_parser_name(&directory)?;
 
     // Create .vscode directory if it doesn't exist
     let vscode_dir = dir_path.join(".vscode");

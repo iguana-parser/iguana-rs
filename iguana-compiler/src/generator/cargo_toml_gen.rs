@@ -25,12 +25,17 @@ fn runtime_dependency(runtime_path: Option<&Path>) -> String {
 /// With neither flag, the output is a minimal lib-only shape that assumes the
 /// crate is a workspace member: deps come from `workspace = true`, the `[lib]`
 /// target disables its empty test/doctest harnesses, and there is no `[[bin]]`.
-pub fn generate(grammar: &Grammar, config: GenConfig, runtime_path: Option<&Path>) -> String {
+pub fn generate(
+    grammar: &Grammar,
+    config: GenConfig,
+    runtime_path: Option<&Path>,
+    bin_name: Option<&str>,
+) -> String {
     let name = to_snake_case(&grammar.name);
     if config.wasm {
         generate_wasm_lib(&name, runtime_path)
     } else if config.cli {
-        generate_full(&name, runtime_path)
+        generate_full(&name, runtime_path, bin_name)
     } else {
         generate_minimal(&name)
     }
@@ -89,8 +94,14 @@ serde_json = "1.0"
     .to_owned()
 }
 
-fn generate_full(name: &str, runtime_path: Option<&Path>) -> String {
+fn generate_full(name: &str, runtime_path: Option<&Path>, bin_name: Option<&str>) -> String {
     let runtime = runtime_dependency(runtime_path);
+    // An explicit [[bin]] decouples the binary name from the crate name, so a
+    // grammar like Java can avoid a binary called "java" that shadows the JDK.
+    let bin_section = match bin_name {
+        Some(bin) => format!("[[bin]]\nname = \"{bin}\"\npath = \"src/main.rs\"\n\n"),
+        None => String::new(),
+    };
     format!(
         r#"
 [package]
@@ -101,7 +112,7 @@ edition = "2024"
 [lib]
 path = "src/lib.rs"
 
-[dependencies]
+{bin_section}[dependencies]
 {runtime}
 clap = {{ version = "4.5.51", features = ["derive"] }}
 dot = {{ git = "https://github.com/przygienda/dot-rust.git", rev = "fed06f613a9d72bfde711a12791f96a777b2371e" }}
