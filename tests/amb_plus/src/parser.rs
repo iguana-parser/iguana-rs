@@ -93,13 +93,9 @@ impl<'i> Parser<'i> for AmbPlusParser<'i> {
             }
             // X : . "a"
             SlotId(6) => {
-                if let Some((j, right_child)) = self.match_terminal(
-                    TerminalId(0),
-                    input_index,
-                    SlotId(6),
-                    Some(gss_node_id),
-                    "\"a\"",
-                ) {
+                if let Some((j, right_child)) =
+                    self.match_terminal(TerminalId(0), input_index, SlotId(6), Some(gss_node_id))
+                {
                     // X : "a".
                     self.execute(j, SlotId(7), Some(right_child), gss_node_id, env);
                 }
@@ -112,26 +108,18 @@ impl<'i> Parser<'i> for AmbPlusParser<'i> {
             }
             // Y : . "a" "a"
             SlotId(8) => {
-                if let Some((j, right_child)) = self.match_terminal(
-                    TerminalId(0),
-                    input_index,
-                    SlotId(8),
-                    Some(gss_node_id),
-                    "\"a\"",
-                ) {
+                if let Some((j, right_child)) =
+                    self.match_terminal(TerminalId(0), input_index, SlotId(8), Some(gss_node_id))
+                {
                     // Y : "a" . "a"
                     self.execute(j, SlotId(9), Some(right_child), gss_node_id, env);
                 }
             }
             // Y : "a" . "a"
             SlotId(9) => {
-                if let Some((_, right_child)) = self.match_terminal(
-                    TerminalId(0),
-                    input_index,
-                    SlotId(9),
-                    Some(gss_node_id),
-                    "\"a\"",
-                ) {
+                if let Some((_, right_child)) =
+                    self.match_terminal(TerminalId(0), input_index, SlotId(9), Some(gss_node_id))
+                {
                     if let Some((j, new_node)) =
                         self.create_intermediate_node(result, right_child, SlotId(10), env)
                     {
@@ -781,8 +769,7 @@ impl<'i> AmbPlusParser<'i> {
                 let mut j = i;
                 let right_child = {
                     let start = j;
-                    let (end, node) =
-                        self.match_terminal(TerminalId(0), start, SlotId(7), None, "\"a\"")?;
+                    let (end, node) = self.match_terminal(TerminalId(0), start, SlotId(7), None)?;
                     j = end;
                     node
                 };
@@ -811,8 +798,7 @@ impl<'i> AmbPlusParser<'i> {
                 let mut j = i;
                 let right_child = {
                     let start = j;
-                    let (end, node) =
-                        self.match_terminal(TerminalId(0), start, SlotId(9), None, "\"a\"")?;
+                    let (end, node) = self.match_terminal(TerminalId(0), start, SlotId(9), None)?;
                     j = end;
                     node
                 };
@@ -821,7 +807,7 @@ impl<'i> AmbPlusParser<'i> {
                 let right_child = {
                     let start = j;
                     let (end, node) =
-                        self.match_terminal(TerminalId(0), start, SlotId(10), None, "\"a\"")?;
+                        self.match_terminal(TerminalId(0), start, SlotId(10), None)?;
                     j = end;
                     node
                 };

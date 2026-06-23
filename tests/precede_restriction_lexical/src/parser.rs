@@ -55,26 +55,18 @@ impl<'i> Parser<'i> for PrecedeRestrictionLexicalParser<'i> {
         match slot_id {
             // S : . "for" WS Id
             SlotId(0) => {
-                if let Some((j, right_child)) = self.match_terminal(
-                    TerminalId(3),
-                    input_index,
-                    SlotId(0),
-                    Some(gss_node_id),
-                    "\"for\"",
-                ) {
+                if let Some((j, right_child)) =
+                    self.match_terminal(TerminalId(3), input_index, SlotId(0), Some(gss_node_id))
+                {
                     // S : "for" . WS Id
                     self.execute(j, SlotId(1), Some(right_child), gss_node_id, env);
                 }
             }
             // S : "for" . WS Id
             SlotId(1) => {
-                if let Some((_, right_child)) = self.match_terminal(
-                    TerminalId(2),
-                    input_index,
-                    SlotId(1),
-                    Some(gss_node_id),
-                    "WS",
-                ) {
+                if let Some((_, right_child)) =
+                    self.match_terminal(TerminalId(2), input_index, SlotId(1), Some(gss_node_id))
+                {
                     if let Some((j, new_node)) =
                         self.create_intermediate_node(result, right_child, SlotId(2), env)
                     {
@@ -85,13 +77,9 @@ impl<'i> Parser<'i> for PrecedeRestrictionLexicalParser<'i> {
             }
             // S : "for" WS . Id
             SlotId(2) => {
-                if let Some((_, right_child)) = self.match_terminal(
-                    TerminalId(0),
-                    input_index,
-                    SlotId(2),
-                    Some(gss_node_id),
-                    "Id",
-                ) {
+                if let Some((_, right_child)) =
+                    self.match_terminal(TerminalId(0), input_index, SlotId(2), Some(gss_node_id))
+                {
                     if let Some((j, new_node)) =
                         self.create_intermediate_node(result, right_child, SlotId(3), env)
                     {
@@ -108,13 +96,9 @@ impl<'i> Parser<'i> for PrecedeRestrictionLexicalParser<'i> {
             }
             // S : . "forall"
             SlotId(4) => {
-                if let Some((j, right_child)) = self.match_terminal(
-                    TerminalId(4),
-                    input_index,
-                    SlotId(4),
-                    Some(gss_node_id),
-                    "\"forall\"",
-                ) {
+                if let Some((j, right_child)) =
+                    self.match_terminal(TerminalId(4), input_index, SlotId(4), Some(gss_node_id))
+                {
                     // S : "forall".
                     self.execute(j, SlotId(5), Some(right_child), gss_node_id, env);
                 }
@@ -627,8 +611,7 @@ impl<'i> PrecedeRestrictionLexicalParser<'i> {
                 let mut j = i;
                 let right_child = {
                     let start = j;
-                    let (end, node) =
-                        self.match_terminal(TerminalId(3), start, SlotId(1), None, "\"for\"")?;
+                    let (end, node) = self.match_terminal(TerminalId(3), start, SlotId(1), None)?;
                     j = end;
                     node
                 };
@@ -636,8 +619,7 @@ impl<'i> PrecedeRestrictionLexicalParser<'i> {
                 let mut current = right_child;
                 let right_child = {
                     let start = j;
-                    let (end, node) =
-                        self.match_terminal(TerminalId(2), start, SlotId(2), None, "WS")?;
+                    let (end, node) = self.match_terminal(TerminalId(2), start, SlotId(2), None)?;
                     j = end;
                     node
                 };
@@ -650,8 +632,7 @@ impl<'i> PrecedeRestrictionLexicalParser<'i> {
                 );
                 let right_child = {
                     let start = j;
-                    let (end, node) =
-                        self.match_terminal(TerminalId(0), start, SlotId(3), None, "Id")?;
+                    let (end, node) = self.match_terminal(TerminalId(0), start, SlotId(3), None)?;
                     j = end;
                     node
                 };
@@ -677,8 +658,7 @@ impl<'i> PrecedeRestrictionLexicalParser<'i> {
                 let mut j = i;
                 let right_child = {
                     let start = j;
-                    let (end, node) =
-                        self.match_terminal(TerminalId(4), start, SlotId(5), None, "\"forall\"")?;
+                    let (end, node) = self.match_terminal(TerminalId(4), start, SlotId(5), None)?;
                     j = end;
                     node
                 };

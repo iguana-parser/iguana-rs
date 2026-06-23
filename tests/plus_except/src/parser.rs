@@ -79,13 +79,9 @@ impl<'i> Parser<'i> for PlusExceptParser<'i> {
             }
             // Plus_0 : Plus_0 . Identifier \ Keyword Number
             SlotId(5) => {
-                if let Some((j, right_child)) = self.match_terminal(
-                    TerminalId(1),
-                    input_index,
-                    SlotId(5),
-                    Some(gss_node_id),
-                    "Identifier",
-                ) {
+                if let Some((j, right_child)) =
+                    self.match_terminal(TerminalId(1), input_index, SlotId(5), Some(gss_node_id))
+                {
                     if let Some(error_kind) = self.post_conditions(SlotId(6), input_index, j) {
                         self.add_parse_error(j, SlotId(6), Some(gss_node_id), || error_kind);
                     } else {
@@ -100,13 +96,9 @@ impl<'i> Parser<'i> for PlusExceptParser<'i> {
             }
             // Plus_0 : Plus_0 Identifier \ Keyword . Number
             SlotId(6) => {
-                if let Some((_, right_child)) = self.match_terminal(
-                    TerminalId(0),
-                    input_index,
-                    SlotId(6),
-                    Some(gss_node_id),
-                    "Number",
-                ) {
+                if let Some((_, right_child)) =
+                    self.match_terminal(TerminalId(0), input_index, SlotId(6), Some(gss_node_id))
+                {
                     if let Some((j, new_node)) =
                         self.create_intermediate_node(result, right_child, SlotId(7), env)
                     {
@@ -123,13 +115,9 @@ impl<'i> Parser<'i> for PlusExceptParser<'i> {
             }
             // Plus_0 : . Number
             SlotId(8) => {
-                if let Some((j, right_child)) = self.match_terminal(
-                    TerminalId(0),
-                    input_index,
-                    SlotId(8),
-                    Some(gss_node_id),
-                    "Number",
-                ) {
+                if let Some((j, right_child)) =
+                    self.match_terminal(TerminalId(0), input_index, SlotId(8), Some(gss_node_id))
+                {
                     // Plus_0 : Number.
                     self.execute(j, SlotId(9), Some(right_child), gss_node_id, env);
                 }
@@ -146,13 +134,9 @@ impl<'i> Parser<'i> for PlusExceptParser<'i> {
             }
             // Plus_1 : Plus_1 . "," Identifier \ Keyword
             SlotId(11) => {
-                if let Some((_, right_child)) = self.match_terminal(
-                    TerminalId(3),
-                    input_index,
-                    SlotId(11),
-                    Some(gss_node_id),
-                    "\",\"",
-                ) {
+                if let Some((_, right_child)) =
+                    self.match_terminal(TerminalId(3), input_index, SlotId(11), Some(gss_node_id))
+                {
                     if let Some((j, new_node)) =
                         self.create_intermediate_node(result, right_child, SlotId(12), env)
                     {
@@ -163,13 +147,9 @@ impl<'i> Parser<'i> for PlusExceptParser<'i> {
             }
             // Plus_1 : Plus_1 "," . Identifier \ Keyword
             SlotId(12) => {
-                if let Some((j, right_child)) = self.match_terminal(
-                    TerminalId(1),
-                    input_index,
-                    SlotId(12),
-                    Some(gss_node_id),
-                    "Identifier",
-                ) {
+                if let Some((j, right_child)) =
+                    self.match_terminal(TerminalId(1), input_index, SlotId(12), Some(gss_node_id))
+                {
                     if let Some(error_kind) = self.post_conditions(SlotId(13), input_index, j) {
                         self.add_parse_error(j, SlotId(13), Some(gss_node_id), || error_kind);
                     } else {
@@ -190,13 +170,9 @@ impl<'i> Parser<'i> for PlusExceptParser<'i> {
             }
             // Plus_1 : . Identifier \ Keyword
             SlotId(14) => {
-                if let Some((j, right_child)) = self.match_terminal(
-                    TerminalId(1),
-                    input_index,
-                    SlotId(14),
-                    Some(gss_node_id),
-                    "Identifier",
-                ) {
+                if let Some((j, right_child)) =
+                    self.match_terminal(TerminalId(1), input_index, SlotId(14), Some(gss_node_id))
+                {
                     if let Some(error_kind) = self.post_conditions(SlotId(15), input_index, j) {
                         self.add_parse_error(j, SlotId(15), Some(gss_node_id), || error_kind);
                     } else {

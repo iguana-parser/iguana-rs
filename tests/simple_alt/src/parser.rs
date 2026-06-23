@@ -80,13 +80,9 @@ impl<'i> Parser<'i> for SimpleAltParser<'i> {
             }
             // B : . "b"
             SlotId(3) => {
-                if let Some((j, right_child)) = self.match_terminal(
-                    TerminalId(0),
-                    input_index,
-                    SlotId(3),
-                    Some(gss_node_id),
-                    "\"b\"",
-                ) {
+                if let Some((j, right_child)) =
+                    self.match_terminal(TerminalId(0), input_index, SlotId(3), Some(gss_node_id))
+                {
                     // B : "b".
                     self.execute(j, SlotId(4), Some(right_child), gss_node_id, env);
                 }
@@ -99,13 +95,9 @@ impl<'i> Parser<'i> for SimpleAltParser<'i> {
             }
             // C : . "c"
             SlotId(5) => {
-                if let Some((j, right_child)) = self.match_terminal(
-                    TerminalId(1),
-                    input_index,
-                    SlotId(5),
-                    Some(gss_node_id),
-                    "\"c\"",
-                ) {
+                if let Some((j, right_child)) =
+                    self.match_terminal(TerminalId(1), input_index, SlotId(5), Some(gss_node_id))
+                {
                     // C : "c".
                     self.execute(j, SlotId(6), Some(right_child), gss_node_id, env);
                 }
@@ -118,13 +110,9 @@ impl<'i> Parser<'i> for SimpleAltParser<'i> {
             }
             // D : . "d"
             SlotId(7) => {
-                if let Some((j, right_child)) = self.match_terminal(
-                    TerminalId(2),
-                    input_index,
-                    SlotId(7),
-                    Some(gss_node_id),
-                    "\"d\"",
-                ) {
+                if let Some((j, right_child)) =
+                    self.match_terminal(TerminalId(2), input_index, SlotId(7), Some(gss_node_id))
+                {
                     // D : "d".
                     self.execute(j, SlotId(8), Some(right_child), gss_node_id, env);
                 }
@@ -733,8 +721,7 @@ impl<'i> SimpleAltParser<'i> {
                 let mut j = i;
                 let right_child = {
                     let start = j;
-                    let (end, node) =
-                        self.match_terminal(TerminalId(0), start, SlotId(4), None, "\"b\"")?;
+                    let (end, node) = self.match_terminal(TerminalId(0), start, SlotId(4), None)?;
                     j = end;
                     node
                 };
@@ -763,8 +750,7 @@ impl<'i> SimpleAltParser<'i> {
                 let mut j = i;
                 let right_child = {
                     let start = j;
-                    let (end, node) =
-                        self.match_terminal(TerminalId(1), start, SlotId(6), None, "\"c\"")?;
+                    let (end, node) = self.match_terminal(TerminalId(1), start, SlotId(6), None)?;
                     j = end;
                     node
                 };
@@ -793,8 +779,7 @@ impl<'i> SimpleAltParser<'i> {
                 let mut j = i;
                 let right_child = {
                     let start = j;
-                    let (end, node) =
-                        self.match_terminal(TerminalId(2), start, SlotId(8), None, "\"d\"")?;
+                    let (end, node) = self.match_terminal(TerminalId(2), start, SlotId(8), None)?;
                     j = end;
                     node
                 };

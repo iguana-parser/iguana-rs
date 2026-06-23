@@ -69,13 +69,9 @@ impl<'i> Parser<'i> for GroupParser<'i> {
             }
             // B : . "b"
             SlotId(2) => {
-                if let Some((j, right_child)) = self.match_terminal(
-                    TerminalId(0),
-                    input_index,
-                    SlotId(2),
-                    Some(gss_node_id),
-                    "\"b\"",
-                ) {
+                if let Some((j, right_child)) =
+                    self.match_terminal(TerminalId(0), input_index, SlotId(2), Some(gss_node_id))
+                {
                     // B : "b".
                     self.execute(j, SlotId(3), Some(right_child), gss_node_id, env);
                 }
@@ -88,13 +84,9 @@ impl<'i> Parser<'i> for GroupParser<'i> {
             }
             // C : . "c"
             SlotId(4) => {
-                if let Some((j, right_child)) = self.match_terminal(
-                    TerminalId(1),
-                    input_index,
-                    SlotId(4),
-                    Some(gss_node_id),
-                    "\"c\"",
-                ) {
+                if let Some((j, right_child)) =
+                    self.match_terminal(TerminalId(1), input_index, SlotId(4), Some(gss_node_id))
+                {
                     // C : "c".
                     self.execute(j, SlotId(5), Some(right_child), gss_node_id, env);
                 }
@@ -107,13 +99,9 @@ impl<'i> Parser<'i> for GroupParser<'i> {
             }
             // D : . "d"
             SlotId(6) => {
-                if let Some((j, right_child)) = self.match_terminal(
-                    TerminalId(2),
-                    input_index,
-                    SlotId(6),
-                    Some(gss_node_id),
-                    "\"d\"",
-                ) {
+                if let Some((j, right_child)) =
+                    self.match_terminal(TerminalId(2), input_index, SlotId(6), Some(gss_node_id))
+                {
                     // D : "d".
                     self.execute(j, SlotId(7), Some(right_child), gss_node_id, env);
                 }
@@ -699,8 +687,7 @@ impl<'i> GroupParser<'i> {
                 let mut j = i;
                 let right_child = {
                     let start = j;
-                    let (end, node) =
-                        self.match_terminal(TerminalId(0), start, SlotId(3), None, "\"b\"")?;
+                    let (end, node) = self.match_terminal(TerminalId(0), start, SlotId(3), None)?;
                     j = end;
                     node
                 };
@@ -729,8 +716,7 @@ impl<'i> GroupParser<'i> {
                 let mut j = i;
                 let right_child = {
                     let start = j;
-                    let (end, node) =
-                        self.match_terminal(TerminalId(1), start, SlotId(5), None, "\"c\"")?;
+                    let (end, node) = self.match_terminal(TerminalId(1), start, SlotId(5), None)?;
                     j = end;
                     node
                 };
@@ -759,8 +745,7 @@ impl<'i> GroupParser<'i> {
                 let mut j = i;
                 let right_child = {
                     let start = j;
-                    let (end, node) =
-                        self.match_terminal(TerminalId(2), start, SlotId(7), None, "\"d\"")?;
+                    let (end, node) = self.match_terminal(TerminalId(2), start, SlotId(7), None)?;
                     j = end;
                     node
                 };

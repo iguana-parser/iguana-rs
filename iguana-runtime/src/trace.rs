@@ -18,8 +18,8 @@ pub enum TraceEvent {
     DescriptorAdded(SlotId, u32, GssNodeId, Option<SPPFNodeId>),
     MatchingLeadingLayout(u32),
     MatchingTrailingLayout(u32),
-    MatchingTerminal(String, u32),  // terminal_name
-    MatchSuccess(String, u32, u32), // terminal_name, next_input match
+    MatchingTerminal(TerminalId, u32),  // terminal, input_index
+    MatchSuccess(TerminalId, u32, u32), // terminal, input_index, next_input match
     ParseError(u32, SlotId, Option<GssNodeId>, ParseErrorKind), // input_index, slot, gss_node, error_kind
     MatchedLayout(Option<u32>),                                 // next_input match
     GSSNodeCreated(NonterminalId, u32),
@@ -76,12 +76,14 @@ impl TraceEvent {
             TraceEvent::MatchingTrailingLayout(input_index) => {
                 format!("Matching trailing layout at input index {}", input_index)
             }
-            TraceEvent::MatchingTerminal(ref terminal_name, input_index) => format!(
-                "Matched terminal {terminal_name} at input index {}",
+            TraceEvent::MatchingTerminal(terminal_id, input_index) => format!(
+                "Matched terminal {} at input index {}",
+                P::terminal_name(terminal_id),
                 input_index,
             ),
-            TraceEvent::MatchSuccess(ref terminal_name, input_index, matched_index) => format!(
-                "Matched terminal {terminal_name} at input index {}. Match length: {}",
+            TraceEvent::MatchSuccess(terminal_id, input_index, matched_index) => format!(
+                "Matched terminal {} at input index {}. Match length: {}",
+                P::terminal_name(terminal_id),
                 input_index,
                 matched_index - input_index
             ),
@@ -257,15 +259,15 @@ macro_rules! record {
             $input_index,
         ));
     };
-    ($parser:expr, MatchingTerminal, $terminal_name:expr, $input_index:expr) => {
+    ($parser:expr, MatchingTerminal, $terminal_id:expr, $input_index:expr) => {
         $parser.add_trace_event($crate::trace::TraceEvent::MatchingTerminal(
-            $terminal_name.into(),
+            $terminal_id,
             $input_index,
         ));
     };
-    ($parser:expr, MatchSuccess, $terminal_name:expr, $input_index:expr, $next_index:expr) => {
+    ($parser:expr, MatchSuccess, $terminal_id:expr, $input_index:expr, $next_index:expr) => {
         $parser.add_trace_event($crate::trace::TraceEvent::MatchSuccess(
-            $terminal_name.into(),
+            $terminal_id,
             $input_index,
             $next_index,
         ));

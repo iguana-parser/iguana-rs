@@ -69,13 +69,9 @@ impl<'i> Parser<'i> for PlusWithSepParser<'i> {
             }
             // A : . "a"
             SlotId(2) => {
-                if let Some((j, right_child)) = self.match_terminal(
-                    TerminalId(1),
-                    input_index,
-                    SlotId(2),
-                    Some(gss_node_id),
-                    "\"a\"",
-                ) {
+                if let Some((j, right_child)) =
+                    self.match_terminal(TerminalId(1), input_index, SlotId(2), Some(gss_node_id))
+                {
                     // A : "a".
                     self.execute(j, SlotId(3), Some(right_child), gss_node_id, env);
                 }
@@ -96,13 +92,9 @@ impl<'i> Parser<'i> for PlusWithSepParser<'i> {
             }
             // Plus_0 : Plus_0 . "," A
             SlotId(5) => {
-                if let Some((_, right_child)) = self.match_terminal(
-                    TerminalId(0),
-                    input_index,
-                    SlotId(5),
-                    Some(gss_node_id),
-                    "\",\"",
-                ) {
+                if let Some((_, right_child)) =
+                    self.match_terminal(TerminalId(0), input_index, SlotId(5), Some(gss_node_id))
+                {
                     if let Some((j, new_node)) =
                         self.create_intermediate_node(result, right_child, SlotId(6), env)
                     {
@@ -686,8 +678,7 @@ impl<'i> PlusWithSepParser<'i> {
                 let mut j = i;
                 let right_child = {
                     let start = j;
-                    let (end, node) =
-                        self.match_terminal(TerminalId(1), start, SlotId(3), None, "\"a\"")?;
+                    let (end, node) = self.match_terminal(TerminalId(1), start, SlotId(3), None)?;
                     j = end;
                     node
                 };
@@ -729,7 +720,7 @@ impl<'i> PlusWithSepParser<'i> {
         });
         loop {
             let Some((node_0, pos_0)) = self
-                .match_terminal(TerminalId(0), j, SlotId(5), None, "\",\"")
+                .match_terminal(TerminalId(0), j, SlotId(5), None)
                 .map(|(end, node)| (node, end))
             else {
                 break;

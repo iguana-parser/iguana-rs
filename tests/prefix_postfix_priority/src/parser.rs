@@ -67,13 +67,9 @@ impl<'i> Parser<'i> for PrefixPostfixPriorityParser<'i> {
             }
             // E(p: i32) : . "a" return 0
             SlotId(2) => {
-                if let Some((j, right_child)) = self.match_terminal(
-                    TerminalId(0),
-                    input_index,
-                    SlotId(2),
-                    Some(gss_node_id),
-                    "\"a\"",
-                ) {
+                if let Some((j, right_child)) =
+                    self.match_terminal(TerminalId(0), input_index, SlotId(2), Some(gss_node_id))
+                {
                     // E(p: i32) : "a" . return 0
                     self.execute(j, SlotId(3), Some(right_child), gss_node_id, env);
                 }
@@ -132,13 +128,9 @@ impl<'i> Parser<'i> for PrefixPostfixPriorityParser<'i> {
             }
             // E(p: i32) : [4 >= p] l=E(p) [(l == 0) || (l >= 4)] . "!" return 0
             SlotId(8) => {
-                if let Some((_, right_child)) = self.match_terminal(
-                    TerminalId(1),
-                    input_index,
-                    SlotId(8),
-                    Some(gss_node_id),
-                    "\"!\"",
-                ) {
+                if let Some((_, right_child)) =
+                    self.match_terminal(TerminalId(1), input_index, SlotId(8), Some(gss_node_id))
+                {
                     if let Some((j, new_node)) =
                         self.create_intermediate_node(result, right_child, SlotId(9), env)
                     {
@@ -176,13 +168,9 @@ impl<'i> Parser<'i> for PrefixPostfixPriorityParser<'i> {
             }
             // E(p: i32) : . "-" E(3) return 3
             SlotId(11) => {
-                if let Some((j, right_child)) = self.match_terminal(
-                    TerminalId(2),
-                    input_index,
-                    SlotId(11),
-                    Some(gss_node_id),
-                    "\"-\"",
-                ) {
+                if let Some((j, right_child)) =
+                    self.match_terminal(TerminalId(2), input_index, SlotId(11), Some(gss_node_id))
+                {
                     // E(p: i32) : "-" . E(3) return 3
                     self.execute(j, SlotId(12), Some(right_child), gss_node_id, env);
                 }
@@ -245,13 +233,9 @@ impl<'i> Parser<'i> for PrefixPostfixPriorityParser<'i> {
             }
             // E(p: i32) : [2 >= p] l=E(p) [(l == 0) || (l >= 2)] . "*" E(2) return 2
             SlotId(18) => {
-                if let Some((_, right_child)) = self.match_terminal(
-                    TerminalId(3),
-                    input_index,
-                    SlotId(18),
-                    Some(gss_node_id),
-                    "\"*\"",
-                ) {
+                if let Some((_, right_child)) =
+                    self.match_terminal(TerminalId(3), input_index, SlotId(18), Some(gss_node_id))
+                {
                     if let Some((j, new_node)) =
                         self.create_intermediate_node(result, right_child, SlotId(19), env)
                     {
@@ -318,13 +302,9 @@ impl<'i> Parser<'i> for PrefixPostfixPriorityParser<'i> {
             }
             // E(p: i32) : [1 >= p] l=E(p) [(l == 0) || (l >= 1)] . "+" E(1) return 1
             SlotId(25) => {
-                if let Some((_, right_child)) = self.match_terminal(
-                    TerminalId(4),
-                    input_index,
-                    SlotId(25),
-                    Some(gss_node_id),
-                    "\"+\"",
-                ) {
+                if let Some((_, right_child)) =
+                    self.match_terminal(TerminalId(4), input_index, SlotId(25), Some(gss_node_id))
+                {
                     if let Some((j, new_node)) =
                         self.create_intermediate_node(result, right_child, SlotId(26), env)
                     {

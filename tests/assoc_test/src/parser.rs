@@ -92,13 +92,9 @@ impl<'i> Parser<'i> for AssocTestParser<'i> {
             }
             // E(p: i32) : [3 >= p] l=E(p) [(l == 0) || (l >= 3)] . "+" E(4) return 3
             SlotId(5) => {
-                if let Some((_, right_child)) = self.match_terminal(
-                    TerminalId(0),
-                    input_index,
-                    SlotId(5),
-                    Some(gss_node_id),
-                    "\"+\"",
-                ) {
+                if let Some((_, right_child)) =
+                    self.match_terminal(TerminalId(0), input_index, SlotId(5), Some(gss_node_id))
+                {
                     if let Some((j, new_node)) =
                         self.create_intermediate_node(result, right_child, SlotId(6), env)
                     {
@@ -165,13 +161,9 @@ impl<'i> Parser<'i> for AssocTestParser<'i> {
             }
             // E(p: i32) : [3 >= p] l=E(p) [(l == 0) || (l >= 3)] . "-" E(4) return 3
             SlotId(12) => {
-                if let Some((_, right_child)) = self.match_terminal(
-                    TerminalId(1),
-                    input_index,
-                    SlotId(12),
-                    Some(gss_node_id),
-                    "\"-\"",
-                ) {
+                if let Some((_, right_child)) =
+                    self.match_terminal(TerminalId(1), input_index, SlotId(12), Some(gss_node_id))
+                {
                     if let Some((j, new_node)) =
                         self.create_intermediate_node(result, right_child, SlotId(13), env)
                     {
@@ -238,13 +230,9 @@ impl<'i> Parser<'i> for AssocTestParser<'i> {
             }
             // E(p: i32) : [2 >= p] l=E(p) [(l == 0) || (l >= 3)] . ";" E(2) return 2
             SlotId(19) => {
-                if let Some((_, right_child)) = self.match_terminal(
-                    TerminalId(2),
-                    input_index,
-                    SlotId(19),
-                    Some(gss_node_id),
-                    "\";\"",
-                ) {
+                if let Some((_, right_child)) =
+                    self.match_terminal(TerminalId(2), input_index, SlotId(19), Some(gss_node_id))
+                {
                     if let Some((j, new_node)) =
                         self.create_intermediate_node(result, right_child, SlotId(20), env)
                     {
@@ -311,13 +299,9 @@ impl<'i> Parser<'i> for AssocTestParser<'i> {
             }
             // E(p: i32) : [1 >= p] l=E(p) [(l == 0) || (l >= 2)] . "<" E(2) return 1
             SlotId(26) => {
-                if let Some((_, right_child)) = self.match_terminal(
-                    TerminalId(3),
-                    input_index,
-                    SlotId(26),
-                    Some(gss_node_id),
-                    "\"<\"",
-                ) {
+                if let Some((_, right_child)) =
+                    self.match_terminal(TerminalId(3), input_index, SlotId(26), Some(gss_node_id))
+                {
                     if let Some((j, new_node)) =
                         self.create_intermediate_node(result, right_child, SlotId(27), env)
                     {
@@ -359,13 +343,9 @@ impl<'i> Parser<'i> for AssocTestParser<'i> {
             }
             // E(p: i32) : . "a" return 0
             SlotId(30) => {
-                if let Some((j, right_child)) = self.match_terminal(
-                    TerminalId(4),
-                    input_index,
-                    SlotId(30),
-                    Some(gss_node_id),
-                    "\"a\"",
-                ) {
+                if let Some((j, right_child)) =
+                    self.match_terminal(TerminalId(4), input_index, SlotId(30), Some(gss_node_id))
+                {
                     // E(p: i32) : "a" . return 0
                     self.execute(j, SlotId(31), Some(right_child), gss_node_id, env);
                 }

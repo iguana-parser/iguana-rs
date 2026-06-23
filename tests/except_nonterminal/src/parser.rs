@@ -87,13 +87,9 @@ impl<'i> Parser<'i> for ExceptNonterminalParser<'i> {
             }
             // Name : . Identifier
             SlotId(4) => {
-                if let Some((j, right_child)) = self.match_terminal(
-                    TerminalId(0),
-                    input_index,
-                    SlotId(4),
-                    Some(gss_node_id),
-                    "Identifier",
-                ) {
+                if let Some((j, right_child)) =
+                    self.match_terminal(TerminalId(0), input_index, SlotId(4), Some(gss_node_id))
+                {
                     // Name : Identifier.
                     self.execute(j, SlotId(5), Some(right_child), gss_node_id, env);
                 }
@@ -677,8 +673,7 @@ impl<'i> ExceptNonterminalParser<'i> {
                 let mut j = i;
                 let right_child = {
                     let start = j;
-                    let (end, node) =
-                        self.match_terminal(TerminalId(0), start, SlotId(5), None, "Identifier")?;
+                    let (end, node) = self.match_terminal(TerminalId(0), start, SlotId(5), None)?;
                     j = end;
                     node
                 };

@@ -97,13 +97,9 @@ impl<'i> Parser<'i> for DeepPriorityFullParser<'i> {
             // E(p: i32) : [5 >= p] l=E(p) [(l == 0) || (l >= 5)] . WS "*" WS r=E(6) return (r == 0) ? 5
             // : min(r, 5)
             SlotId(5) => {
-                if let Some((_, right_child)) = self.match_terminal(
-                    TerminalId(0),
-                    input_index,
-                    SlotId(5),
-                    Some(gss_node_id),
-                    "WS",
-                ) {
+                if let Some((_, right_child)) =
+                    self.match_terminal(TerminalId(0), input_index, SlotId(5), Some(gss_node_id))
+                {
                     if let Some((j, new_node)) =
                         self.create_intermediate_node(result, right_child, SlotId(6), env)
                     {
@@ -116,13 +112,9 @@ impl<'i> Parser<'i> for DeepPriorityFullParser<'i> {
             // E(p: i32) : [5 >= p] l=E(p) [(l == 0) || (l >= 5)] WS . "*" WS r=E(6) return (r == 0) ? 5
             // : min(r, 5)
             SlotId(6) => {
-                if let Some((_, right_child)) = self.match_terminal(
-                    TerminalId(1),
-                    input_index,
-                    SlotId(6),
-                    Some(gss_node_id),
-                    "\"*\"",
-                ) {
+                if let Some((_, right_child)) =
+                    self.match_terminal(TerminalId(1), input_index, SlotId(6), Some(gss_node_id))
+                {
                     if let Some((j, new_node)) =
                         self.create_intermediate_node(result, right_child, SlotId(7), env)
                     {
@@ -135,13 +127,9 @@ impl<'i> Parser<'i> for DeepPriorityFullParser<'i> {
             // E(p: i32) : [5 >= p] l=E(p) [(l == 0) || (l >= 5)] WS "*" . WS r=E(6) return (r == 0) ? 5
             // : min(r, 5)
             SlotId(7) => {
-                if let Some((_, right_child)) = self.match_terminal(
-                    TerminalId(0),
-                    input_index,
-                    SlotId(7),
-                    Some(gss_node_id),
-                    "WS",
-                ) {
+                if let Some((_, right_child)) =
+                    self.match_terminal(TerminalId(0), input_index, SlotId(7), Some(gss_node_id))
+                {
                     if let Some((j, new_node)) =
                         self.create_intermediate_node(result, right_child, SlotId(8), env)
                     {
@@ -220,13 +208,9 @@ impl<'i> Parser<'i> for DeepPriorityFullParser<'i> {
             // E(p: i32) : [4 >= p] l=E(p) [(l == 0) || (l >= 4)] . WS "+" WS r=E(5) return (r == 0) ? 4
             // : min(r, 4)
             SlotId(14) => {
-                if let Some((_, right_child)) = self.match_terminal(
-                    TerminalId(0),
-                    input_index,
-                    SlotId(14),
-                    Some(gss_node_id),
-                    "WS",
-                ) {
+                if let Some((_, right_child)) =
+                    self.match_terminal(TerminalId(0), input_index, SlotId(14), Some(gss_node_id))
+                {
                     if let Some((j, new_node)) =
                         self.create_intermediate_node(result, right_child, SlotId(15), env)
                     {
@@ -239,13 +223,9 @@ impl<'i> Parser<'i> for DeepPriorityFullParser<'i> {
             // E(p: i32) : [4 >= p] l=E(p) [(l == 0) || (l >= 4)] WS . "+" WS r=E(5) return (r == 0) ? 4
             // : min(r, 4)
             SlotId(15) => {
-                if let Some((_, right_child)) = self.match_terminal(
-                    TerminalId(2),
-                    input_index,
-                    SlotId(15),
-                    Some(gss_node_id),
-                    "\"+\"",
-                ) {
+                if let Some((_, right_child)) =
+                    self.match_terminal(TerminalId(2), input_index, SlotId(15), Some(gss_node_id))
+                {
                     if let Some((j, new_node)) =
                         self.create_intermediate_node(result, right_child, SlotId(16), env)
                     {
@@ -258,13 +238,9 @@ impl<'i> Parser<'i> for DeepPriorityFullParser<'i> {
             // E(p: i32) : [4 >= p] l=E(p) [(l == 0) || (l >= 4)] WS "+" . WS r=E(5) return (r == 0) ? 4
             // : min(r, 4)
             SlotId(16) => {
-                if let Some((_, right_child)) = self.match_terminal(
-                    TerminalId(0),
-                    input_index,
-                    SlotId(16),
-                    Some(gss_node_id),
-                    "WS",
-                ) {
+                if let Some((_, right_child)) =
+                    self.match_terminal(TerminalId(0), input_index, SlotId(16), Some(gss_node_id))
+                {
                     if let Some((j, new_node)) =
                         self.create_intermediate_node(result, right_child, SlotId(17), env)
                     {
@@ -314,26 +290,18 @@ impl<'i> Parser<'i> for DeepPriorityFullParser<'i> {
             }
             // E(p: i32) : . "-" WS r=E(3) return (r == 0) ? 3 : min(r, 3)
             SlotId(20) => {
-                if let Some((j, right_child)) = self.match_terminal(
-                    TerminalId(3),
-                    input_index,
-                    SlotId(20),
-                    Some(gss_node_id),
-                    "\"-\"",
-                ) {
+                if let Some((j, right_child)) =
+                    self.match_terminal(TerminalId(3), input_index, SlotId(20), Some(gss_node_id))
+                {
                     // E(p: i32) : "-" . WS r=E(3) return (r == 0) ? 3 : min(r, 3)
                     self.execute(j, SlotId(21), Some(right_child), gss_node_id, env);
                 }
             }
             // E(p: i32) : "-" . WS r=E(3) return (r == 0) ? 3 : min(r, 3)
             SlotId(21) => {
-                if let Some((_, right_child)) = self.match_terminal(
-                    TerminalId(0),
-                    input_index,
-                    SlotId(21),
-                    Some(gss_node_id),
-                    "WS",
-                ) {
+                if let Some((_, right_child)) =
+                    self.match_terminal(TerminalId(0), input_index, SlotId(21), Some(gss_node_id))
+                {
                     if let Some((j, new_node)) =
                         self.create_intermediate_node(result, right_child, SlotId(22), env)
                     {
@@ -379,26 +347,18 @@ impl<'i> Parser<'i> for DeepPriorityFullParser<'i> {
             }
             // E(p: i32) : . "if" WS E(0) WS "then" WS E(0) WS "else" WS E(2) return 2
             SlotId(25) => {
-                if let Some((j, right_child)) = self.match_terminal(
-                    TerminalId(4),
-                    input_index,
-                    SlotId(25),
-                    Some(gss_node_id),
-                    "\"if\"",
-                ) {
+                if let Some((j, right_child)) =
+                    self.match_terminal(TerminalId(4), input_index, SlotId(25), Some(gss_node_id))
+                {
                     // E(p: i32) : "if" . WS E(0) WS "then" WS E(0) WS "else" WS E(2) return 2
                     self.execute(j, SlotId(26), Some(right_child), gss_node_id, env);
                 }
             }
             // E(p: i32) : "if" . WS E(0) WS "then" WS E(0) WS "else" WS E(2) return 2
             SlotId(26) => {
-                if let Some((_, right_child)) = self.match_terminal(
-                    TerminalId(0),
-                    input_index,
-                    SlotId(26),
-                    Some(gss_node_id),
-                    "WS",
-                ) {
+                if let Some((_, right_child)) =
+                    self.match_terminal(TerminalId(0), input_index, SlotId(26), Some(gss_node_id))
+                {
                     if let Some((j, new_node)) =
                         self.create_intermediate_node(result, right_child, SlotId(27), env)
                     {
@@ -413,13 +373,9 @@ impl<'i> Parser<'i> for DeepPriorityFullParser<'i> {
             }
             // E(p: i32) : "if" WS E(0) . WS "then" WS E(0) WS "else" WS E(2) return 2
             SlotId(28) => {
-                if let Some((_, right_child)) = self.match_terminal(
-                    TerminalId(0),
-                    input_index,
-                    SlotId(28),
-                    Some(gss_node_id),
-                    "WS",
-                ) {
+                if let Some((_, right_child)) =
+                    self.match_terminal(TerminalId(0), input_index, SlotId(28), Some(gss_node_id))
+                {
                     if let Some((j, new_node)) =
                         self.create_intermediate_node(result, right_child, SlotId(29), env)
                     {
@@ -430,13 +386,9 @@ impl<'i> Parser<'i> for DeepPriorityFullParser<'i> {
             }
             // E(p: i32) : "if" WS E(0) WS . "then" WS E(0) WS "else" WS E(2) return 2
             SlotId(29) => {
-                if let Some((_, right_child)) = self.match_terminal(
-                    TerminalId(5),
-                    input_index,
-                    SlotId(29),
-                    Some(gss_node_id),
-                    "\"then\"",
-                ) {
+                if let Some((_, right_child)) =
+                    self.match_terminal(TerminalId(5), input_index, SlotId(29), Some(gss_node_id))
+                {
                     if let Some((j, new_node)) =
                         self.create_intermediate_node(result, right_child, SlotId(30), env)
                     {
@@ -447,13 +399,9 @@ impl<'i> Parser<'i> for DeepPriorityFullParser<'i> {
             }
             // E(p: i32) : "if" WS E(0) WS "then" . WS E(0) WS "else" WS E(2) return 2
             SlotId(30) => {
-                if let Some((_, right_child)) = self.match_terminal(
-                    TerminalId(0),
-                    input_index,
-                    SlotId(30),
-                    Some(gss_node_id),
-                    "WS",
-                ) {
+                if let Some((_, right_child)) =
+                    self.match_terminal(TerminalId(0), input_index, SlotId(30), Some(gss_node_id))
+                {
                     if let Some((j, new_node)) =
                         self.create_intermediate_node(result, right_child, SlotId(31), env)
                     {
@@ -468,13 +416,9 @@ impl<'i> Parser<'i> for DeepPriorityFullParser<'i> {
             }
             // E(p: i32) : "if" WS E(0) WS "then" WS E(0) . WS "else" WS E(2) return 2
             SlotId(32) => {
-                if let Some((_, right_child)) = self.match_terminal(
-                    TerminalId(0),
-                    input_index,
-                    SlotId(32),
-                    Some(gss_node_id),
-                    "WS",
-                ) {
+                if let Some((_, right_child)) =
+                    self.match_terminal(TerminalId(0), input_index, SlotId(32), Some(gss_node_id))
+                {
                     if let Some((j, new_node)) =
                         self.create_intermediate_node(result, right_child, SlotId(33), env)
                     {
@@ -485,13 +429,9 @@ impl<'i> Parser<'i> for DeepPriorityFullParser<'i> {
             }
             // E(p: i32) : "if" WS E(0) WS "then" WS E(0) WS . "else" WS E(2) return 2
             SlotId(33) => {
-                if let Some((_, right_child)) = self.match_terminal(
-                    TerminalId(6),
-                    input_index,
-                    SlotId(33),
-                    Some(gss_node_id),
-                    "\"else\"",
-                ) {
+                if let Some((_, right_child)) =
+                    self.match_terminal(TerminalId(6), input_index, SlotId(33), Some(gss_node_id))
+                {
                     if let Some((j, new_node)) =
                         self.create_intermediate_node(result, right_child, SlotId(34), env)
                     {
@@ -502,13 +442,9 @@ impl<'i> Parser<'i> for DeepPriorityFullParser<'i> {
             }
             // E(p: i32) : "if" WS E(0) WS "then" WS E(0) WS "else" . WS E(2) return 2
             SlotId(34) => {
-                if let Some((_, right_child)) = self.match_terminal(
-                    TerminalId(0),
-                    input_index,
-                    SlotId(34),
-                    Some(gss_node_id),
-                    "WS",
-                ) {
+                if let Some((_, right_child)) =
+                    self.match_terminal(TerminalId(0), input_index, SlotId(34), Some(gss_node_id))
+                {
                     if let Some((j, new_node)) =
                         self.create_intermediate_node(result, right_child, SlotId(35), env)
                     {
@@ -575,13 +511,9 @@ impl<'i> Parser<'i> for DeepPriorityFullParser<'i> {
             }
             // E(p: i32) : [1 >= p] l=E(p) [(l == 0) || (l >= 2)] . WS ";" WS E(1) return 1
             SlotId(41) => {
-                if let Some((_, right_child)) = self.match_terminal(
-                    TerminalId(0),
-                    input_index,
-                    SlotId(41),
-                    Some(gss_node_id),
-                    "WS",
-                ) {
+                if let Some((_, right_child)) =
+                    self.match_terminal(TerminalId(0), input_index, SlotId(41), Some(gss_node_id))
+                {
                     if let Some((j, new_node)) =
                         self.create_intermediate_node(result, right_child, SlotId(42), env)
                     {
@@ -592,13 +524,9 @@ impl<'i> Parser<'i> for DeepPriorityFullParser<'i> {
             }
             // E(p: i32) : [1 >= p] l=E(p) [(l == 0) || (l >= 2)] WS . ";" WS E(1) return 1
             SlotId(42) => {
-                if let Some((_, right_child)) = self.match_terminal(
-                    TerminalId(7),
-                    input_index,
-                    SlotId(42),
-                    Some(gss_node_id),
-                    "\";\"",
-                ) {
+                if let Some((_, right_child)) =
+                    self.match_terminal(TerminalId(7), input_index, SlotId(42), Some(gss_node_id))
+                {
                     if let Some((j, new_node)) =
                         self.create_intermediate_node(result, right_child, SlotId(43), env)
                     {
@@ -609,13 +537,9 @@ impl<'i> Parser<'i> for DeepPriorityFullParser<'i> {
             }
             // E(p: i32) : [1 >= p] l=E(p) [(l == 0) || (l >= 2)] WS ";" . WS E(1) return 1
             SlotId(43) => {
-                if let Some((_, right_child)) = self.match_terminal(
-                    TerminalId(0),
-                    input_index,
-                    SlotId(43),
-                    Some(gss_node_id),
-                    "WS",
-                ) {
+                if let Some((_, right_child)) =
+                    self.match_terminal(TerminalId(0), input_index, SlotId(43), Some(gss_node_id))
+                {
                     if let Some((j, new_node)) =
                         self.create_intermediate_node(result, right_child, SlotId(44), env)
                     {
@@ -657,13 +581,9 @@ impl<'i> Parser<'i> for DeepPriorityFullParser<'i> {
             }
             // E(p: i32) : . "a" return 0
             SlotId(47) => {
-                if let Some((j, right_child)) = self.match_terminal(
-                    TerminalId(8),
-                    input_index,
-                    SlotId(47),
-                    Some(gss_node_id),
-                    "\"a\"",
-                ) {
+                if let Some((j, right_child)) =
+                    self.match_terminal(TerminalId(8), input_index, SlotId(47), Some(gss_node_id))
+                {
                     // E(p: i32) : "a" . return 0
                     self.execute(j, SlotId(48), Some(right_child), gss_node_id, env);
                 }

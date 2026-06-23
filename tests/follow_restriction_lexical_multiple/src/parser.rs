@@ -69,13 +69,9 @@ impl<'i> Parser<'i> for FollowRestrictionLexicalMultipleParser<'i> {
             }
             // Element : . Num
             SlotId(2) => {
-                if let Some((j, right_child)) = self.match_terminal(
-                    TerminalId(0),
-                    input_index,
-                    SlotId(2),
-                    Some(gss_node_id),
-                    "Num",
-                ) {
+                if let Some((j, right_child)) =
+                    self.match_terminal(TerminalId(0), input_index, SlotId(2), Some(gss_node_id))
+                {
                     // Element : Num.
                     self.execute(j, SlotId(3), Some(right_child), gss_node_id, env);
                 }
@@ -88,13 +84,9 @@ impl<'i> Parser<'i> for FollowRestrictionLexicalMultipleParser<'i> {
             }
             // Element : . Word
             SlotId(4) => {
-                if let Some((j, right_child)) = self.match_terminal(
-                    TerminalId(3),
-                    input_index,
-                    SlotId(4),
-                    Some(gss_node_id),
-                    "Word",
-                ) {
+                if let Some((j, right_child)) =
+                    self.match_terminal(TerminalId(3), input_index, SlotId(4), Some(gss_node_id))
+                {
                     // Element : Word.
                     self.execute(j, SlotId(5), Some(right_child), gss_node_id, env);
                 }
@@ -107,13 +99,9 @@ impl<'i> Parser<'i> for FollowRestrictionLexicalMultipleParser<'i> {
             }
             // Element : . Dot
             SlotId(6) => {
-                if let Some((j, right_child)) = self.match_terminal(
-                    TerminalId(2),
-                    input_index,
-                    SlotId(6),
-                    Some(gss_node_id),
-                    "Dot",
-                ) {
+                if let Some((j, right_child)) =
+                    self.match_terminal(TerminalId(2), input_index, SlotId(6), Some(gss_node_id))
+                {
                     // Element : Dot.
                     self.execute(j, SlotId(7), Some(right_child), gss_node_id, env);
                 }
@@ -134,13 +122,9 @@ impl<'i> Parser<'i> for FollowRestrictionLexicalMultipleParser<'i> {
             }
             // Plus_0 : Plus_0 . WS Element
             SlotId(9) => {
-                if let Some((_, right_child)) = self.match_terminal(
-                    TerminalId(4),
-                    input_index,
-                    SlotId(9),
-                    Some(gss_node_id),
-                    "WS",
-                ) {
+                if let Some((_, right_child)) =
+                    self.match_terminal(TerminalId(4), input_index, SlotId(9), Some(gss_node_id))
+                {
                     if let Some((j, new_node)) =
                         self.create_intermediate_node(result, right_child, SlotId(10), env)
                     {
@@ -746,8 +730,7 @@ impl<'i> FollowRestrictionLexicalMultipleParser<'i> {
                 let mut j = i;
                 let right_child = {
                     let start = j;
-                    let (end, node) =
-                        self.match_terminal(TerminalId(0), start, SlotId(3), None, "Num")?;
+                    let (end, node) = self.match_terminal(TerminalId(0), start, SlotId(3), None)?;
                     j = end;
                     node
                 };
@@ -768,8 +751,7 @@ impl<'i> FollowRestrictionLexicalMultipleParser<'i> {
                 let mut j = i;
                 let right_child = {
                     let start = j;
-                    let (end, node) =
-                        self.match_terminal(TerminalId(3), start, SlotId(5), None, "Word")?;
+                    let (end, node) = self.match_terminal(TerminalId(3), start, SlotId(5), None)?;
                     j = end;
                     node
                 };
@@ -790,8 +772,7 @@ impl<'i> FollowRestrictionLexicalMultipleParser<'i> {
                 let mut j = i;
                 let right_child = {
                     let start = j;
-                    let (end, node) =
-                        self.match_terminal(TerminalId(2), start, SlotId(7), None, "Dot")?;
+                    let (end, node) = self.match_terminal(TerminalId(2), start, SlotId(7), None)?;
                     j = end;
                     node
                 };
@@ -833,7 +814,7 @@ impl<'i> FollowRestrictionLexicalMultipleParser<'i> {
         });
         loop {
             let Some((node_0, pos_0)) = self
-                .match_terminal(TerminalId(4), j, SlotId(9), None, "WS")
+                .match_terminal(TerminalId(4), j, SlotId(9), None)
                 .map(|(end, node)| (node, end))
             else {
                 break;

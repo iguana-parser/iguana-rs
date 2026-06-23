@@ -69,13 +69,9 @@ impl<'i> Parser<'i> for StarParser<'i> {
             }
             // A : . "a"
             SlotId(2) => {
-                if let Some((j, right_child)) = self.match_terminal(
-                    TerminalId(0),
-                    input_index,
-                    SlotId(2),
-                    Some(gss_node_id),
-                    "\"a\"",
-                ) {
+                if let Some((j, right_child)) =
+                    self.match_terminal(TerminalId(0), input_index, SlotId(2), Some(gss_node_id))
+                {
                     // A : "a".
                     self.execute(j, SlotId(3), Some(right_child), gss_node_id, env);
                 }
@@ -739,8 +735,7 @@ impl<'i> StarParser<'i> {
                 let mut j = i;
                 let right_child = {
                     let start = j;
-                    let (end, node) =
-                        self.match_terminal(TerminalId(0), start, SlotId(3), None, "\"a\"")?;
+                    let (end, node) = self.match_terminal(TerminalId(0), start, SlotId(3), None)?;
                     j = end;
                     node
                 };

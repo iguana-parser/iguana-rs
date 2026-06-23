@@ -55,13 +55,9 @@ impl<'i> Parser<'i> for LayoutNonterminalParser<'i> {
         match slot_id {
             // S : . "x"
             SlotId(0) => {
-                if let Some((j, right_child)) = self.match_terminal(
-                    TerminalId(2),
-                    input_index,
-                    SlotId(0),
-                    Some(gss_node_id),
-                    "\"x\"",
-                ) {
+                if let Some((j, right_child)) =
+                    self.match_terminal(TerminalId(2), input_index, SlotId(0), Some(gss_node_id))
+                {
                     // S : "x".
                     self.execute(j, SlotId(1), Some(right_child), gss_node_id, env);
                 }
@@ -88,13 +84,9 @@ impl<'i> Parser<'i> for LayoutNonterminalParser<'i> {
             }
             // Alt_0 : . WhiteSpace
             SlotId(4) => {
-                if let Some((j, right_child)) = self.match_terminal(
-                    TerminalId(0),
-                    input_index,
-                    SlotId(4),
-                    Some(gss_node_id),
-                    "WhiteSpace",
-                ) {
+                if let Some((j, right_child)) =
+                    self.match_terminal(TerminalId(0), input_index, SlotId(4), Some(gss_node_id))
+                {
                     // Alt_0 : WhiteSpace.
                     self.execute(j, SlotId(5), Some(right_child), gss_node_id, env);
                 }
@@ -107,13 +99,9 @@ impl<'i> Parser<'i> for LayoutNonterminalParser<'i> {
             }
             // Alt_0 : . Comment
             SlotId(6) => {
-                if let Some((j, right_child)) = self.match_terminal(
-                    TerminalId(1),
-                    input_index,
-                    SlotId(6),
-                    Some(gss_node_id),
-                    "Comment",
-                ) {
+                if let Some((j, right_child)) =
+                    self.match_terminal(TerminalId(1), input_index, SlotId(6), Some(gss_node_id))
+                {
                     // Alt_0 : Comment.
                     self.execute(j, SlotId(7), Some(right_child), gss_node_id, env);
                 }
@@ -820,8 +808,7 @@ impl<'i> LayoutNonterminalParser<'i> {
                 let mut j = i;
                 let right_child = {
                     let start = j;
-                    let (end, node) =
-                        self.match_terminal(TerminalId(2), start, SlotId(1), None, "\"x\"")?;
+                    let (end, node) = self.match_terminal(TerminalId(2), start, SlotId(1), None)?;
                     j = end;
                     node
                 };
@@ -883,8 +870,7 @@ impl<'i> LayoutNonterminalParser<'i> {
                 let mut j = i;
                 let right_child = {
                     let start = j;
-                    let (end, node) =
-                        self.match_terminal(TerminalId(0), start, SlotId(5), None, "WhiteSpace")?;
+                    let (end, node) = self.match_terminal(TerminalId(0), start, SlotId(5), None)?;
                     j = end;
                     node
                 };
@@ -905,8 +891,7 @@ impl<'i> LayoutNonterminalParser<'i> {
                 let mut j = i;
                 let right_child = {
                     let start = j;
-                    let (end, node) =
-                        self.match_terminal(TerminalId(1), start, SlotId(7), None, "Comment")?;
+                    let (end, node) = self.match_terminal(TerminalId(1), start, SlotId(7), None)?;
                     j = end;
                     node
                 };

@@ -55,26 +55,18 @@ impl<'i> Parser<'i> for ExceptLongestMatchParser<'i> {
         match slot_id {
             // S : . Id Id
             SlotId(0) => {
-                if let Some((j, right_child)) = self.match_terminal(
-                    TerminalId(0),
-                    input_index,
-                    SlotId(0),
-                    Some(gss_node_id),
-                    "Id",
-                ) {
+                if let Some((j, right_child)) =
+                    self.match_terminal(TerminalId(0), input_index, SlotId(0), Some(gss_node_id))
+                {
                     // S : Id . Id
                     self.execute(j, SlotId(1), Some(right_child), gss_node_id, env);
                 }
             }
             // S : Id . Id
             SlotId(1) => {
-                if let Some((_, right_child)) = self.match_terminal(
-                    TerminalId(0),
-                    input_index,
-                    SlotId(1),
-                    Some(gss_node_id),
-                    "Id",
-                ) {
+                if let Some((_, right_child)) =
+                    self.match_terminal(TerminalId(0), input_index, SlotId(1), Some(gss_node_id))
+                {
                     if let Some((j, new_node)) =
                         self.create_intermediate_node(result, right_child, SlotId(2), env)
                     {
@@ -574,8 +566,7 @@ impl<'i> ExceptLongestMatchParser<'i> {
                 let mut j = i;
                 let right_child = {
                     let start = j;
-                    let (end, node) =
-                        self.match_terminal(TerminalId(0), start, SlotId(1), None, "Id")?;
+                    let (end, node) = self.match_terminal(TerminalId(0), start, SlotId(1), None)?;
                     j = end;
                     node
                 };
@@ -583,8 +574,7 @@ impl<'i> ExceptLongestMatchParser<'i> {
                 let mut current = right_child;
                 let right_child = {
                     let start = j;
-                    let (end, node) =
-                        self.match_terminal(TerminalId(0), start, SlotId(2), None, "Id")?;
+                    let (end, node) = self.match_terminal(TerminalId(0), start, SlotId(2), None)?;
                     j = end;
                     node
                 };

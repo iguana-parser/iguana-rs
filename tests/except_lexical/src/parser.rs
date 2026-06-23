@@ -55,13 +55,9 @@ impl<'i> Parser<'i> for ExceptLexicalParser<'i> {
         match slot_id {
             // S : . Identifier
             SlotId(0) => {
-                if let Some((j, right_child)) = self.match_terminal(
-                    TerminalId(1),
-                    input_index,
-                    SlotId(0),
-                    Some(gss_node_id),
-                    "Identifier",
-                ) {
+                if let Some((j, right_child)) =
+                    self.match_terminal(TerminalId(1), input_index, SlotId(0), Some(gss_node_id))
+                {
                     // S : Identifier.
                     self.execute(j, SlotId(1), Some(right_child), gss_node_id, env);
                 }
@@ -557,8 +553,7 @@ impl<'i> ExceptLexicalParser<'i> {
                 let mut j = i;
                 let right_child = {
                     let start = j;
-                    let (end, node) =
-                        self.match_terminal(TerminalId(1), start, SlotId(1), None, "Identifier")?;
+                    let (end, node) = self.match_terminal(TerminalId(1), start, SlotId(1), None)?;
                     j = end;
                     node
                 };

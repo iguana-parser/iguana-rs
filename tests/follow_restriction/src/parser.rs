@@ -69,13 +69,9 @@ impl<'i> Parser<'i> for FollowRestrictionParser<'i> {
             }
             // T : . Char !>> Char
             SlotId(2) => {
-                if let Some((j, right_child)) = self.match_terminal(
-                    TerminalId(0),
-                    input_index,
-                    SlotId(2),
-                    Some(gss_node_id),
-                    "Char",
-                ) {
+                if let Some((j, right_child)) =
+                    self.match_terminal(TerminalId(0), input_index, SlotId(2), Some(gss_node_id))
+                {
                     if let Some(error_kind) = self.post_conditions(SlotId(3), input_index, j) {
                         self.add_parse_error(j, SlotId(3), Some(gss_node_id), || error_kind);
                     } else {
@@ -118,13 +114,9 @@ impl<'i> Parser<'i> for FollowRestrictionParser<'i> {
             }
             // Plus_0 : Plus_0 . WS Id
             SlotId(7) => {
-                if let Some((_, right_child)) = self.match_terminal(
-                    TerminalId(1),
-                    input_index,
-                    SlotId(7),
-                    Some(gss_node_id),
-                    "WS",
-                ) {
+                if let Some((_, right_child)) =
+                    self.match_terminal(TerminalId(1), input_index, SlotId(7), Some(gss_node_id))
+                {
                     if let Some((j, new_node)) =
                         self.create_intermediate_node(result, right_child, SlotId(8), env)
                     {
@@ -174,13 +166,9 @@ impl<'i> Parser<'i> for FollowRestrictionParser<'i> {
             }
             // Plus_1 : Plus_1 . Char
             SlotId(13) => {
-                if let Some((_, right_child)) = self.match_terminal(
-                    TerminalId(0),
-                    input_index,
-                    SlotId(13),
-                    Some(gss_node_id),
-                    "Char",
-                ) {
+                if let Some((_, right_child)) =
+                    self.match_terminal(TerminalId(0), input_index, SlotId(13), Some(gss_node_id))
+                {
                     if let Some((j, new_node)) =
                         self.create_intermediate_node(result, right_child, SlotId(14), env)
                     {
@@ -197,13 +185,9 @@ impl<'i> Parser<'i> for FollowRestrictionParser<'i> {
             }
             // Plus_1 : . Char
             SlotId(15) => {
-                if let Some((j, right_child)) = self.match_terminal(
-                    TerminalId(0),
-                    input_index,
-                    SlotId(15),
-                    Some(gss_node_id),
-                    "Char",
-                ) {
+                if let Some((j, right_child)) =
+                    self.match_terminal(TerminalId(0), input_index, SlotId(15), Some(gss_node_id))
+                {
                     // Plus_1 : Char.
                     self.execute(j, SlotId(16), Some(right_child), gss_node_id, env);
                 }
@@ -811,8 +795,7 @@ impl<'i> FollowRestrictionParser<'i> {
                 let mut j = i;
                 let right_child = {
                     let start = j;
-                    let (end, node) =
-                        self.match_terminal(TerminalId(0), start, SlotId(3), None, "Char")?;
+                    let (end, node) = self.match_terminal(TerminalId(0), start, SlotId(3), None)?;
                     if let Some(error_kind) = self.post_conditions(SlotId(3), start, end) {
                         self.add_parse_error(end, SlotId(3), None, || error_kind);
                         return None;
@@ -892,7 +875,7 @@ impl<'i> FollowRestrictionParser<'i> {
         });
         loop {
             let Some((node_0, pos_0)) = self
-                .match_terminal(TerminalId(1), j, SlotId(7), None, "WS")
+                .match_terminal(TerminalId(1), j, SlotId(7), None)
                 .map(|(end, node)| (node, end))
             else {
                 break;
@@ -926,7 +909,7 @@ impl<'i> FollowRestrictionParser<'i> {
         self.ll1_call_log.push((NonterminalId(4), i));
         let mut j = i;
         let (body_node, body_end) = (self
-            .match_terminal(TerminalId(0), j, SlotId(15), None, "Char")
+            .match_terminal(TerminalId(0), j, SlotId(15), None)
             .map(|(end, node)| (node, end)))?;
         j = body_end;
         let left_extent = i;
@@ -942,7 +925,7 @@ impl<'i> FollowRestrictionParser<'i> {
         });
         loop {
             let Some((node_0, pos_0)) = self
-                .match_terminal(TerminalId(0), j, SlotId(13), None, "Char")
+                .match_terminal(TerminalId(0), j, SlotId(13), None)
                 .map(|(end, node)| (node, end))
             else {
                 break;

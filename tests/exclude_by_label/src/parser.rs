@@ -62,13 +62,9 @@ impl<'i> Parser<'i> for ExcludeByLabelParser<'i> {
             }
             // Expr(e: i32) : [1 & e == 0] . Id return 0
             SlotId(12) => {
-                if let Some((j, right_child)) = self.match_terminal(
-                    TerminalId(0),
-                    input_index,
-                    SlotId(12),
-                    Some(gss_node_id),
-                    "Id",
-                ) {
+                if let Some((j, right_child)) =
+                    self.match_terminal(TerminalId(0), input_index, SlotId(12), Some(gss_node_id))
+                {
                     // Expr(e: i32) : [1 & e == 0] Id . return 0
                     self.execute(j, SlotId(13), Some(right_child), gss_node_id, env);
                 }
@@ -112,13 +108,9 @@ impl<'i> Parser<'i> for ExcludeByLabelParser<'i> {
             }
             // Expr(e: i32) : [2 & e == 0] Expr(0) . "(" Star_0 ")" return 1
             SlotId(17) => {
-                if let Some((_, right_child)) = self.match_terminal(
-                    TerminalId(1),
-                    input_index,
-                    SlotId(17),
-                    Some(gss_node_id),
-                    "\"(\"",
-                ) {
+                if let Some((_, right_child)) =
+                    self.match_terminal(TerminalId(1), input_index, SlotId(17), Some(gss_node_id))
+                {
                     if let Some((j, new_node)) =
                         self.create_intermediate_node(result, right_child, SlotId(18), env)
                     {
@@ -133,13 +125,9 @@ impl<'i> Parser<'i> for ExcludeByLabelParser<'i> {
             }
             // Expr(e: i32) : [2 & e == 0] Expr(0) "(" Star_0 . ")" return 1
             SlotId(19) => {
-                if let Some((_, right_child)) = self.match_terminal(
-                    TerminalId(3),
-                    input_index,
-                    SlotId(19),
-                    Some(gss_node_id),
-                    "\")\"",
-                ) {
+                if let Some((_, right_child)) =
+                    self.match_terminal(TerminalId(3), input_index, SlotId(19), Some(gss_node_id))
+                {
                     if let Some((j, new_node)) =
                         self.create_intermediate_node(result, right_child, SlotId(20), env)
                     {
@@ -187,13 +175,9 @@ impl<'i> Parser<'i> for ExcludeByLabelParser<'i> {
             }
             // Expr(e: i32) : [4 & e == 0] Expr(0) . "," Expr(0) return 2
             SlotId(24) => {
-                if let Some((_, right_child)) = self.match_terminal(
-                    TerminalId(2),
-                    input_index,
-                    SlotId(24),
-                    Some(gss_node_id),
-                    "\",\"",
-                ) {
+                if let Some((_, right_child)) =
+                    self.match_terminal(TerminalId(2), input_index, SlotId(24), Some(gss_node_id))
+                {
                     if let Some((j, new_node)) =
                         self.create_intermediate_node(result, right_child, SlotId(25), env)
                     {
@@ -239,13 +223,9 @@ impl<'i> Parser<'i> for ExcludeByLabelParser<'i> {
             }
             // Plus_0 : Plus_0 . "," Expr(4)
             SlotId(1) => {
-                if let Some((_, right_child)) = self.match_terminal(
-                    TerminalId(2),
-                    input_index,
-                    SlotId(1),
-                    Some(gss_node_id),
-                    "\",\"",
-                ) {
+                if let Some((_, right_child)) =
+                    self.match_terminal(TerminalId(2), input_index, SlotId(1), Some(gss_node_id))
+                {
                     if let Some((j, new_node)) =
                         self.create_intermediate_node(result, right_child, SlotId(2), env)
                     {

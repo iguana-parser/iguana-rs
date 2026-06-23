@@ -59,13 +59,9 @@ impl<'i> Parser<'i> for LeftRecursiveListParser<'i> {
             }
             // A : A . "a"
             SlotId(1) => {
-                if let Some((_, right_child)) = self.match_terminal(
-                    TerminalId(0),
-                    input_index,
-                    SlotId(1),
-                    Some(gss_node_id),
-                    "\"a\"",
-                ) {
+                if let Some((_, right_child)) =
+                    self.match_terminal(TerminalId(0), input_index, SlotId(1), Some(gss_node_id))
+                {
                     if let Some((j, new_node)) =
                         self.create_intermediate_node(result, right_child, SlotId(2), env)
                     {
@@ -82,13 +78,9 @@ impl<'i> Parser<'i> for LeftRecursiveListParser<'i> {
             }
             // A : . "a"
             SlotId(3) => {
-                if let Some((j, right_child)) = self.match_terminal(
-                    TerminalId(0),
-                    input_index,
-                    SlotId(3),
-                    Some(gss_node_id),
-                    "\"a\"",
-                ) {
+                if let Some((j, right_child)) =
+                    self.match_terminal(TerminalId(0), input_index, SlotId(3), Some(gss_node_id))
+                {
                     // A : "a".
                     self.execute(j, SlotId(4), Some(right_child), gss_node_id, env);
                 }

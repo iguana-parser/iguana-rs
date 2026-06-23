@@ -55,13 +55,9 @@ impl<'i> Parser<'i> for MultipleExceptParser<'i> {
         match slot_id {
             // SyntaxIdentifier : . IdentifierChars \ Keyword \ BooleanLiteral \ NullLiteral
             SlotId(0) => {
-                if let Some((j, right_child)) = self.match_terminal(
-                    TerminalId(1),
-                    input_index,
-                    SlotId(0),
-                    Some(gss_node_id),
-                    "IdentifierChars",
-                ) {
+                if let Some((j, right_child)) =
+                    self.match_terminal(TerminalId(1), input_index, SlotId(0), Some(gss_node_id))
+                {
                     if let Some(error_kind) = self.post_conditions(SlotId(1), input_index, j) {
                         self.add_parse_error(j, SlotId(1), Some(gss_node_id), || error_kind);
                     } else {
@@ -78,13 +74,9 @@ impl<'i> Parser<'i> for MultipleExceptParser<'i> {
             }
             // LexicalIdentifier : . Identifier
             SlotId(2) => {
-                if let Some((j, right_child)) = self.match_terminal(
-                    TerminalId(0),
-                    input_index,
-                    SlotId(2),
-                    Some(gss_node_id),
-                    "Identifier",
-                ) {
+                if let Some((j, right_child)) =
+                    self.match_terminal(TerminalId(0), input_index, SlotId(2), Some(gss_node_id))
+                {
                     // LexicalIdentifier : Identifier.
                     self.execute(j, SlotId(3), Some(right_child), gss_node_id, env);
                 }
@@ -610,13 +602,7 @@ impl<'i> MultipleExceptParser<'i> {
                 let mut j = i;
                 let right_child = {
                     let start = j;
-                    let (end, node) = self.match_terminal(
-                        TerminalId(1),
-                        start,
-                        SlotId(1),
-                        None,
-                        "IdentifierChars",
-                    )?;
+                    let (end, node) = self.match_terminal(TerminalId(1), start, SlotId(1), None)?;
                     if let Some(error_kind) = self.post_conditions(SlotId(1), start, end) {
                         self.add_parse_error(end, SlotId(1), None, || error_kind);
                         return None;
@@ -651,8 +637,7 @@ impl<'i> MultipleExceptParser<'i> {
                 let mut j = i;
                 let right_child = {
                     let start = j;
-                    let (end, node) =
-                        self.match_terminal(TerminalId(0), start, SlotId(3), None, "Identifier")?;
+                    let (end, node) = self.match_terminal(TerminalId(0), start, SlotId(3), None)?;
                     j = end;
                     node
                 };

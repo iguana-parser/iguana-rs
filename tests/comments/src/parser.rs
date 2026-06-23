@@ -59,13 +59,9 @@ impl<'i> Parser<'i> for CommentsParser<'i> {
             }
             // Expr : Expr . Layout "+" Layout Expr
             SlotId(1) => {
-                if let Some((_, right_child)) = self.match_terminal(
-                    TerminalId(0),
-                    input_index,
-                    SlotId(1),
-                    Some(gss_node_id),
-                    "Layout",
-                ) {
+                if let Some((_, right_child)) =
+                    self.match_terminal(TerminalId(0), input_index, SlotId(1), Some(gss_node_id))
+                {
                     if let Some((j, new_node)) =
                         self.create_intermediate_node(result, right_child, SlotId(2), env)
                     {
@@ -76,13 +72,9 @@ impl<'i> Parser<'i> for CommentsParser<'i> {
             }
             // Expr : Expr Layout . "+" Layout Expr
             SlotId(2) => {
-                if let Some((_, right_child)) = self.match_terminal(
-                    TerminalId(4),
-                    input_index,
-                    SlotId(2),
-                    Some(gss_node_id),
-                    "\"+\"",
-                ) {
+                if let Some((_, right_child)) =
+                    self.match_terminal(TerminalId(4), input_index, SlotId(2), Some(gss_node_id))
+                {
                     if let Some((j, new_node)) =
                         self.create_intermediate_node(result, right_child, SlotId(3), env)
                     {
@@ -93,13 +85,9 @@ impl<'i> Parser<'i> for CommentsParser<'i> {
             }
             // Expr : Expr Layout "+" . Layout Expr
             SlotId(3) => {
-                if let Some((_, right_child)) = self.match_terminal(
-                    TerminalId(0),
-                    input_index,
-                    SlotId(3),
-                    Some(gss_node_id),
-                    "Layout",
-                ) {
+                if let Some((_, right_child)) =
+                    self.match_terminal(TerminalId(0), input_index, SlotId(3), Some(gss_node_id))
+                {
                     if let Some((j, new_node)) =
                         self.create_intermediate_node(result, right_child, SlotId(4), env)
                     {
@@ -124,13 +112,9 @@ impl<'i> Parser<'i> for CommentsParser<'i> {
             }
             // Expr : Expr . Layout "*" Layout Expr
             SlotId(7) => {
-                if let Some((_, right_child)) = self.match_terminal(
-                    TerminalId(0),
-                    input_index,
-                    SlotId(7),
-                    Some(gss_node_id),
-                    "Layout",
-                ) {
+                if let Some((_, right_child)) =
+                    self.match_terminal(TerminalId(0), input_index, SlotId(7), Some(gss_node_id))
+                {
                     if let Some((j, new_node)) =
                         self.create_intermediate_node(result, right_child, SlotId(8), env)
                     {
@@ -141,13 +125,9 @@ impl<'i> Parser<'i> for CommentsParser<'i> {
             }
             // Expr : Expr Layout . "*" Layout Expr
             SlotId(8) => {
-                if let Some((_, right_child)) = self.match_terminal(
-                    TerminalId(5),
-                    input_index,
-                    SlotId(8),
-                    Some(gss_node_id),
-                    "\"*\"",
-                ) {
+                if let Some((_, right_child)) =
+                    self.match_terminal(TerminalId(5), input_index, SlotId(8), Some(gss_node_id))
+                {
                     if let Some((j, new_node)) =
                         self.create_intermediate_node(result, right_child, SlotId(9), env)
                     {
@@ -158,13 +138,9 @@ impl<'i> Parser<'i> for CommentsParser<'i> {
             }
             // Expr : Expr Layout "*" . Layout Expr
             SlotId(9) => {
-                if let Some((_, right_child)) = self.match_terminal(
-                    TerminalId(0),
-                    input_index,
-                    SlotId(9),
-                    Some(gss_node_id),
-                    "Layout",
-                ) {
+                if let Some((_, right_child)) =
+                    self.match_terminal(TerminalId(0), input_index, SlotId(9), Some(gss_node_id))
+                {
                     if let Some((j, new_node)) =
                         self.create_intermediate_node(result, right_child, SlotId(10), env)
                     {
@@ -185,13 +161,9 @@ impl<'i> Parser<'i> for CommentsParser<'i> {
             }
             // Expr : . "x"
             SlotId(12) => {
-                if let Some((j, right_child)) = self.match_terminal(
-                    TerminalId(6),
-                    input_index,
-                    SlotId(12),
-                    Some(gss_node_id),
-                    "\"x\"",
-                ) {
+                if let Some((j, right_child)) =
+                    self.match_terminal(TerminalId(6), input_index, SlotId(12), Some(gss_node_id))
+                {
                     // Expr : "x".
                     self.execute(j, SlotId(13), Some(right_child), gss_node_id, env);
                 }
@@ -204,13 +176,9 @@ impl<'i> Parser<'i> for CommentsParser<'i> {
             }
             // StartExpr : . Layout start:Expr Layout
             SlotId(14) => {
-                if let Some((j, right_child)) = self.match_terminal(
-                    TerminalId(0),
-                    input_index,
-                    SlotId(14),
-                    Some(gss_node_id),
-                    "Layout",
-                ) {
+                if let Some((j, right_child)) =
+                    self.match_terminal(TerminalId(0), input_index, SlotId(14), Some(gss_node_id))
+                {
                     // StartExpr : Layout . start:Expr Layout
                     self.execute(j, SlotId(15), Some(right_child), gss_node_id, env);
                 }
@@ -221,13 +189,9 @@ impl<'i> Parser<'i> for CommentsParser<'i> {
             }
             // StartExpr : Layout start:Expr . Layout
             SlotId(16) => {
-                if let Some((_, right_child)) = self.match_terminal(
-                    TerminalId(0),
-                    input_index,
-                    SlotId(16),
-                    Some(gss_node_id),
-                    "Layout",
-                ) {
+                if let Some((_, right_child)) =
+                    self.match_terminal(TerminalId(0), input_index, SlotId(16), Some(gss_node_id))
+                {
                     if let Some((j, new_node)) =
                         self.create_intermediate_node(result, right_child, SlotId(17), env)
                     {

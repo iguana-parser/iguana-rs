@@ -55,13 +55,9 @@ impl<'i> Parser<'i> for ExceptRegexReferenceParser<'i> {
         match slot_id {
             // S : . TypeIdentifier
             SlotId(0) => {
-                if let Some((j, right_child)) = self.match_terminal(
-                    TerminalId(0),
-                    input_index,
-                    SlotId(0),
-                    Some(gss_node_id),
-                    "TypeIdentifier",
-                ) {
+                if let Some((j, right_child)) =
+                    self.match_terminal(TerminalId(0), input_index, SlotId(0), Some(gss_node_id))
+                {
                     // S : TypeIdentifier.
                     self.execute(j, SlotId(1), Some(right_child), gss_node_id, env);
                 }
@@ -557,13 +553,7 @@ impl<'i> ExceptRegexReferenceParser<'i> {
                 let mut j = i;
                 let right_child = {
                     let start = j;
-                    let (end, node) = self.match_terminal(
-                        TerminalId(0),
-                        start,
-                        SlotId(1),
-                        None,
-                        "TypeIdentifier",
-                    )?;
+                    let (end, node) = self.match_terminal(TerminalId(0), start, SlotId(1), None)?;
                     j = end;
                     node
                 };

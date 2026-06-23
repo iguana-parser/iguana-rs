@@ -59,13 +59,9 @@ impl<'i> Parser<'i> for ExpressionParser<'i> {
             }
             // E : E . "*" E
             SlotId(1) => {
-                if let Some((_, right_child)) = self.match_terminal(
-                    TerminalId(0),
-                    input_index,
-                    SlotId(1),
-                    Some(gss_node_id),
-                    "\"*\"",
-                ) {
+                if let Some((_, right_child)) =
+                    self.match_terminal(TerminalId(0), input_index, SlotId(1), Some(gss_node_id))
+                {
                     if let Some((j, new_node)) =
                         self.create_intermediate_node(result, right_child, SlotId(2), env)
                     {
@@ -90,13 +86,9 @@ impl<'i> Parser<'i> for ExpressionParser<'i> {
             }
             // E : E . "+" E
             SlotId(5) => {
-                if let Some((_, right_child)) = self.match_terminal(
-                    TerminalId(1),
-                    input_index,
-                    SlotId(5),
-                    Some(gss_node_id),
-                    "\"+\"",
-                ) {
+                if let Some((_, right_child)) =
+                    self.match_terminal(TerminalId(1), input_index, SlotId(5), Some(gss_node_id))
+                {
                     if let Some((j, new_node)) =
                         self.create_intermediate_node(result, right_child, SlotId(6), env)
                     {
@@ -117,13 +109,9 @@ impl<'i> Parser<'i> for ExpressionParser<'i> {
             }
             // E : . "a"
             SlotId(8) => {
-                if let Some((j, right_child)) = self.match_terminal(
-                    TerminalId(2),
-                    input_index,
-                    SlotId(8),
-                    Some(gss_node_id),
-                    "\"a\"",
-                ) {
+                if let Some((j, right_child)) =
+                    self.match_terminal(TerminalId(2), input_index, SlotId(8), Some(gss_node_id))
+                {
                     // E : "a".
                     self.execute(j, SlotId(9), Some(right_child), gss_node_id, env);
                 }

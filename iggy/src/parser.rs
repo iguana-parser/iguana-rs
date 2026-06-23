@@ -59,13 +59,9 @@ impl<'i> Parser<'i> for IggyParser<'i> {
         match slot_id {
             // Grammar : . "grammar" Layout name:Identifier Layout Star_0
             SlotId(0) => {
-                if let Some((j, right_child)) = self.match_terminal(
-                    TerminalId(10),
-                    input_index,
-                    SlotId(0),
-                    Some(gss_node_id),
-                    "\"grammar\"",
-                ) {
+                if let Some((j, right_child)) =
+                    self.match_terminal(TerminalId(10), input_index, SlotId(0), Some(gss_node_id))
+                {
                     // Grammar : "grammar" . Layout name:Identifier Layout Star_0
                     self.execute(j, SlotId(1), Some(right_child), gss_node_id, env);
                 }
@@ -83,13 +79,9 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             // Grammar : "grammar" Layout . name:Identifier Layout Star_0
             SlotId(2) => {
-                if let Some((_, right_child)) = self.match_terminal(
-                    TerminalId(1),
-                    input_index,
-                    SlotId(2),
-                    Some(gss_node_id),
-                    "Identifier",
-                ) {
+                if let Some((_, right_child)) =
+                    self.match_terminal(TerminalId(1), input_index, SlotId(2), Some(gss_node_id))
+                {
                     if let Some((j, new_node)) =
                         self.create_intermediate_node(result, right_child, SlotId(3), env)
                     {
@@ -160,13 +152,9 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             // SyntaxRule : Opt_1 Layout . head:Identifier Layout "=" Layout Star_1
             SlotId(12) => {
-                if let Some((_, right_child)) = self.match_terminal(
-                    TerminalId(1),
-                    input_index,
-                    SlotId(12),
-                    Some(gss_node_id),
-                    "Identifier",
-                ) {
+                if let Some((_, right_child)) =
+                    self.match_terminal(TerminalId(1), input_index, SlotId(12), Some(gss_node_id))
+                {
                     if let Some((j, new_node)) =
                         self.create_intermediate_node(result, right_child, SlotId(13), env)
                     {
@@ -188,13 +176,9 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             // SyntaxRule : Opt_1 Layout head:Identifier Layout . "=" Layout Star_1
             SlotId(14) => {
-                if let Some((_, right_child)) = self.match_terminal(
-                    TerminalId(11),
-                    input_index,
-                    SlotId(14),
-                    Some(gss_node_id),
-                    "\"=\"",
-                ) {
+                if let Some((_, right_child)) =
+                    self.match_terminal(TerminalId(11), input_index, SlotId(14), Some(gss_node_id))
+                {
                     if let Some((j, new_node)) =
                         self.create_intermediate_node(result, right_child, SlotId(15), env)
                     {
@@ -226,13 +210,9 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             // Annotation : . "@NoLayout"
             SlotId(18) => {
-                if let Some((j, right_child)) = self.match_terminal(
-                    TerminalId(13),
-                    input_index,
-                    SlotId(18),
-                    Some(gss_node_id),
-                    "\"@NoLayout\"",
-                ) {
+                if let Some((j, right_child)) =
+                    self.match_terminal(TerminalId(13), input_index, SlotId(18), Some(gss_node_id))
+                {
                     // Annotation : "@NoLayout".
                     self.execute(j, SlotId(19), Some(right_child), gss_node_id, env);
                 }
@@ -245,13 +225,9 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             // Annotation : . "@Layout"
             SlotId(20) => {
-                if let Some((j, right_child)) = self.match_terminal(
-                    TerminalId(14),
-                    input_index,
-                    SlotId(20),
-                    Some(gss_node_id),
-                    "\"@Layout\"",
-                ) {
+                if let Some((j, right_child)) =
+                    self.match_terminal(TerminalId(14), input_index, SlotId(20), Some(gss_node_id))
+                {
                     // Annotation : "@Layout".
                     self.execute(j, SlotId(21), Some(right_child), gss_node_id, env);
                 }
@@ -264,13 +240,9 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             // Annotation : . "@WithLayout" Layout "(" Layout Identifier Layout ")"
             SlotId(22) => {
-                if let Some((j, right_child)) = self.match_terminal(
-                    TerminalId(15),
-                    input_index,
-                    SlotId(22),
-                    Some(gss_node_id),
-                    "\"@WithLayout\"",
-                ) {
+                if let Some((j, right_child)) =
+                    self.match_terminal(TerminalId(15), input_index, SlotId(22), Some(gss_node_id))
+                {
                     // Annotation : "@WithLayout" . Layout "(" Layout Identifier Layout ")"
                     self.execute(j, SlotId(23), Some(right_child), gss_node_id, env);
                 }
@@ -288,13 +260,9 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             // Annotation : "@WithLayout" Layout . "(" Layout Identifier Layout ")"
             SlotId(24) => {
-                if let Some((_, right_child)) = self.match_terminal(
-                    TerminalId(16),
-                    input_index,
-                    SlotId(24),
-                    Some(gss_node_id),
-                    "\"(\"",
-                ) {
+                if let Some((_, right_child)) =
+                    self.match_terminal(TerminalId(16), input_index, SlotId(24), Some(gss_node_id))
+                {
                     if let Some((j, new_node)) =
                         self.create_intermediate_node(result, right_child, SlotId(25), env)
                     {
@@ -316,13 +284,9 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             // Annotation : "@WithLayout" Layout "(" Layout . Identifier Layout ")"
             SlotId(26) => {
-                if let Some((_, right_child)) = self.match_terminal(
-                    TerminalId(1),
-                    input_index,
-                    SlotId(26),
-                    Some(gss_node_id),
-                    "Identifier",
-                ) {
+                if let Some((_, right_child)) =
+                    self.match_terminal(TerminalId(1), input_index, SlotId(26), Some(gss_node_id))
+                {
                     if let Some((j, new_node)) =
                         self.create_intermediate_node(result, right_child, SlotId(27), env)
                     {
@@ -344,13 +308,9 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             // Annotation : "@WithLayout" Layout "(" Layout Identifier Layout . ")"
             SlotId(28) => {
-                if let Some((_, right_child)) = self.match_terminal(
-                    TerminalId(17),
-                    input_index,
-                    SlotId(28),
-                    Some(gss_node_id),
-                    "\")\"",
-                ) {
+                if let Some((_, right_child)) =
+                    self.match_terminal(TerminalId(17), input_index, SlotId(28), Some(gss_node_id))
+                {
                     if let Some((j, new_node)) =
                         self.create_intermediate_node(result, right_child, SlotId(29), env)
                     {
@@ -367,13 +327,9 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             // Annotation : . "@Start"
             SlotId(30) => {
-                if let Some((j, right_child)) = self.match_terminal(
-                    TerminalId(18),
-                    input_index,
-                    SlotId(30),
-                    Some(gss_node_id),
-                    "\"@Start\"",
-                ) {
+                if let Some((j, right_child)) =
+                    self.match_terminal(TerminalId(18), input_index, SlotId(30), Some(gss_node_id))
+                {
                     // Annotation : "@Start".
                     self.execute(j, SlotId(31), Some(right_child), gss_node_id, env);
                 }
@@ -410,13 +366,9 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             // RegexRule : layout:Opt_3 Layout . "@Regex" Layout Identifier Layout "=" Layout Opt_4
             // Layout body:Plus_2 Layout Star_2
             SlotId(34) => {
-                if let Some((_, right_child)) = self.match_terminal(
-                    TerminalId(19),
-                    input_index,
-                    SlotId(34),
-                    Some(gss_node_id),
-                    "\"@Regex\"",
-                ) {
+                if let Some((_, right_child)) =
+                    self.match_terminal(TerminalId(19), input_index, SlotId(34), Some(gss_node_id))
+                {
                     if let Some((j, new_node)) =
                         self.create_intermediate_node(result, right_child, SlotId(35), env)
                     {
@@ -442,13 +394,9 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             // RegexRule : layout:Opt_3 Layout "@Regex" Layout . Identifier Layout "=" Layout Opt_4
             // Layout body:Plus_2 Layout Star_2
             SlotId(36) => {
-                if let Some((_, right_child)) = self.match_terminal(
-                    TerminalId(1),
-                    input_index,
-                    SlotId(36),
-                    Some(gss_node_id),
-                    "Identifier",
-                ) {
+                if let Some((_, right_child)) =
+                    self.match_terminal(TerminalId(1), input_index, SlotId(36), Some(gss_node_id))
+                {
                     if let Some((j, new_node)) =
                         self.create_intermediate_node(result, right_child, SlotId(37), env)
                     {
@@ -474,13 +422,9 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             // RegexRule : layout:Opt_3 Layout "@Regex" Layout Identifier Layout . "=" Layout Opt_4
             // Layout body:Plus_2 Layout Star_2
             SlotId(38) => {
-                if let Some((_, right_child)) = self.match_terminal(
-                    TerminalId(11),
-                    input_index,
-                    SlotId(38),
-                    Some(gss_node_id),
-                    "\"=\"",
-                ) {
+                if let Some((_, right_child)) =
+                    self.match_terminal(TerminalId(11), input_index, SlotId(38), Some(gss_node_id))
+                {
                     if let Some((j, new_node)) =
                         self.create_intermediate_node(result, right_child, SlotId(39), env)
                     {
@@ -561,13 +505,9 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             // PreCondition : . Identifier Layout "!<<"
             SlotId(46) => {
-                if let Some((j, right_child)) = self.match_terminal(
-                    TerminalId(1),
-                    input_index,
-                    SlotId(46),
-                    Some(gss_node_id),
-                    "Identifier",
-                ) {
+                if let Some((j, right_child)) =
+                    self.match_terminal(TerminalId(1), input_index, SlotId(46), Some(gss_node_id))
+                {
                     // PreCondition : Identifier . Layout "!<<"
                     self.execute(j, SlotId(47), Some(right_child), gss_node_id, env);
                 }
@@ -585,13 +525,9 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             // PreCondition : Identifier Layout . "!<<"
             SlotId(48) => {
-                if let Some((_, right_child)) = self.match_terminal(
-                    TerminalId(21),
-                    input_index,
-                    SlotId(48),
-                    Some(gss_node_id),
-                    "\"!<<\"",
-                ) {
+                if let Some((_, right_child)) =
+                    self.match_terminal(TerminalId(21), input_index, SlotId(48), Some(gss_node_id))
+                {
                     if let Some((j, new_node)) =
                         self.create_intermediate_node(result, right_child, SlotId(49), env)
                     {
@@ -608,13 +544,9 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             // PostCondition : . "\" Layout Identifier
             SlotId(50) => {
-                if let Some((j, right_child)) = self.match_terminal(
-                    TerminalId(22),
-                    input_index,
-                    SlotId(50),
-                    Some(gss_node_id),
-                    "\"\\\"",
-                ) {
+                if let Some((j, right_child)) =
+                    self.match_terminal(TerminalId(22), input_index, SlotId(50), Some(gss_node_id))
+                {
                     // PostCondition : "\" . Layout Identifier
                     self.execute(j, SlotId(51), Some(right_child), gss_node_id, env);
                 }
@@ -632,13 +564,9 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             // PostCondition : "\" Layout . Identifier
             SlotId(52) => {
-                if let Some((_, right_child)) = self.match_terminal(
-                    TerminalId(1),
-                    input_index,
-                    SlotId(52),
-                    Some(gss_node_id),
-                    "Identifier",
-                ) {
+                if let Some((_, right_child)) =
+                    self.match_terminal(TerminalId(1), input_index, SlotId(52), Some(gss_node_id))
+                {
                     if let Some((j, new_node)) =
                         self.create_intermediate_node(result, right_child, SlotId(53), env)
                     {
@@ -655,13 +583,9 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             // PostCondition : . "!>>" Layout Identifier
             SlotId(54) => {
-                if let Some((j, right_child)) = self.match_terminal(
-                    TerminalId(23),
-                    input_index,
-                    SlotId(54),
-                    Some(gss_node_id),
-                    "\"!>>\"",
-                ) {
+                if let Some((j, right_child)) =
+                    self.match_terminal(TerminalId(23), input_index, SlotId(54), Some(gss_node_id))
+                {
                     // PostCondition : "!>>" . Layout Identifier
                     self.execute(j, SlotId(55), Some(right_child), gss_node_id, env);
                 }
@@ -679,13 +603,9 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             // PostCondition : "!>>" Layout . Identifier
             SlotId(56) => {
-                if let Some((_, right_child)) = self.match_terminal(
-                    TerminalId(1),
-                    input_index,
-                    SlotId(56),
-                    Some(gss_node_id),
-                    "Identifier",
-                ) {
+                if let Some((_, right_child)) =
+                    self.match_terminal(TerminalId(1), input_index, SlotId(56), Some(gss_node_id))
+                {
                     if let Some((j, new_node)) =
                         self.create_intermediate_node(result, right_child, SlotId(57), env)
                     {
@@ -731,13 +651,9 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             // Associativity : . "left"
             SlotId(62) => {
-                if let Some((j, right_child)) = self.match_terminal(
-                    TerminalId(24),
-                    input_index,
-                    SlotId(62),
-                    Some(gss_node_id),
-                    "\"left\"",
-                ) {
+                if let Some((j, right_child)) =
+                    self.match_terminal(TerminalId(24), input_index, SlotId(62), Some(gss_node_id))
+                {
                     // Associativity : "left".
                     self.execute(j, SlotId(63), Some(right_child), gss_node_id, env);
                 }
@@ -750,13 +666,9 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             // Associativity : . "right"
             SlotId(64) => {
-                if let Some((j, right_child)) = self.match_terminal(
-                    TerminalId(25),
-                    input_index,
-                    SlotId(64),
-                    Some(gss_node_id),
-                    "\"right\"",
-                ) {
+                if let Some((j, right_child)) =
+                    self.match_terminal(TerminalId(25), input_index, SlotId(64), Some(gss_node_id))
+                {
                     // Associativity : "right".
                     self.execute(j, SlotId(65), Some(right_child), gss_node_id, env);
                 }
@@ -769,13 +681,9 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             // Associativity : . "none"
             SlotId(66) => {
-                if let Some((j, right_child)) = self.match_terminal(
-                    TerminalId(26),
-                    input_index,
-                    SlotId(66),
-                    Some(gss_node_id),
-                    "\"none\"",
-                ) {
+                if let Some((j, right_child)) =
+                    self.match_terminal(TerminalId(26), input_index, SlotId(66), Some(gss_node_id))
+                {
                     // Associativity : "none".
                     self.execute(j, SlotId(67), Some(right_child), gss_node_id, env);
                 }
@@ -820,13 +728,9 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             // Alternative : . "(" Layout ")" Layout Opt_8
             SlotId(72) => {
-                if let Some((j, right_child)) = self.match_terminal(
-                    TerminalId(16),
-                    input_index,
-                    SlotId(72),
-                    Some(gss_node_id),
-                    "\"(\"",
-                ) {
+                if let Some((j, right_child)) =
+                    self.match_terminal(TerminalId(16), input_index, SlotId(72), Some(gss_node_id))
+                {
                     // Alternative : "(" . Layout ")" Layout Opt_8
                     self.execute(j, SlotId(73), Some(right_child), gss_node_id, env);
                 }
@@ -844,13 +748,9 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             // Alternative : "(" Layout . ")" Layout Opt_8
             SlotId(74) => {
-                if let Some((_, right_child)) = self.match_terminal(
-                    TerminalId(17),
-                    input_index,
-                    SlotId(74),
-                    Some(gss_node_id),
-                    "\")\"",
-                ) {
+                if let Some((_, right_child)) =
+                    self.match_terminal(TerminalId(17), input_index, SlotId(74), Some(gss_node_id))
+                {
                     if let Some((j, new_node)) =
                         self.create_intermediate_node(result, right_child, SlotId(75), env)
                     {
@@ -895,13 +795,9 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             // Symbol(p: i32, e: i32) : [1 & e == 0] . Identifier return 0
             SlotId(293) => {
-                if let Some((j, right_child)) = self.match_terminal(
-                    TerminalId(1),
-                    input_index,
-                    SlotId(293),
-                    Some(gss_node_id),
-                    "Identifier",
-                ) {
+                if let Some((j, right_child)) =
+                    self.match_terminal(TerminalId(1), input_index, SlotId(293), Some(gss_node_id))
+                {
                     // Symbol(p: i32, e: i32) : [1 & e == 0] Identifier . return 0
                     self.execute(j, SlotId(294), Some(right_child), gss_node_id, env);
                 }
@@ -941,13 +837,9 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             // Symbol(p: i32, e: i32) : [2 & e == 0] . "(" Layout Plus_6 Layout ")" return 1
             SlotId(297) => {
-                if let Some((j, right_child)) = self.match_terminal(
-                    TerminalId(16),
-                    input_index,
-                    SlotId(297),
-                    Some(gss_node_id),
-                    "\"(\"",
-                ) {
+                if let Some((j, right_child)) =
+                    self.match_terminal(TerminalId(16), input_index, SlotId(297), Some(gss_node_id))
+                {
                     // Symbol(p: i32, e: i32) : [2 & e == 0] "(" . Layout Plus_6 Layout ")" return 1
                     self.execute(j, SlotId(298), Some(right_child), gss_node_id, env);
                 }
@@ -980,13 +872,9 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             // Symbol(p: i32, e: i32) : [2 & e == 0] "(" Layout Plus_6 Layout . ")" return 1
             SlotId(301) => {
-                if let Some((_, right_child)) = self.match_terminal(
-                    TerminalId(17),
-                    input_index,
-                    SlotId(301),
-                    Some(gss_node_id),
-                    "\")\"",
-                ) {
+                if let Some((_, right_child)) =
+                    self.match_terminal(TerminalId(17), input_index, SlotId(301), Some(gss_node_id))
+                {
                     if let Some((j, new_node)) =
                         self.create_intermediate_node(result, right_child, SlotId(302), env)
                     {
@@ -1032,13 +920,9 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             // Symbol(p: i32, e: i32) : [4 & e == 0] . "(" Layout first:Symbol(0, 0) Layout rest:Plus_7
             // Layout ")" return 2
             SlotId(305) => {
-                if let Some((j, right_child)) = self.match_terminal(
-                    TerminalId(16),
-                    input_index,
-                    SlotId(305),
-                    Some(gss_node_id),
-                    "\"(\"",
-                ) {
+                if let Some((j, right_child)) =
+                    self.match_terminal(TerminalId(16), input_index, SlotId(305), Some(gss_node_id))
+                {
                     // Symbol(p: i32, e: i32) : [4 & e == 0] "(" . Layout first:Symbol(0, 0) Layout rest:Plus_7
                     // Layout ")" return 2
                     self.execute(j, SlotId(306), Some(right_child), gss_node_id, env);
@@ -1096,13 +980,9 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             // Symbol(p: i32, e: i32) : [4 & e == 0] "(" Layout first:Symbol(0, 0) Layout rest:Plus_7
             // Layout . ")" return 2
             SlotId(311) => {
-                if let Some((_, right_child)) = self.match_terminal(
-                    TerminalId(17),
-                    input_index,
-                    SlotId(311),
-                    Some(gss_node_id),
-                    "\")\"",
-                ) {
+                if let Some((_, right_child)) =
+                    self.match_terminal(TerminalId(17), input_index, SlotId(311), Some(gss_node_id))
+                {
                     if let Some((j, new_node)) =
                         self.create_intermediate_node(result, right_child, SlotId(312), env)
                     {
@@ -1149,13 +1029,9 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             // Symbol(p: i32, e: i32) : [8 & e == 0] . String return 3
             SlotId(315) => {
-                if let Some((j, right_child)) = self.match_terminal(
-                    TerminalId(2),
-                    input_index,
-                    SlotId(315),
-                    Some(gss_node_id),
-                    "String",
-                ) {
+                if let Some((j, right_child)) =
+                    self.match_terminal(TerminalId(2), input_index, SlotId(315), Some(gss_node_id))
+                {
                     // Symbol(p: i32, e: i32) : [8 & e == 0] String . return 3
                     self.execute(j, SlotId(316), Some(right_child), gss_node_id, env);
                 }
@@ -1197,13 +1073,9 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             // Symbol(p: i32, e: i32) : [16 & e == 0] . "{" Layout symbol:Symbol(0, 0) Layout
             // sep:Symbol(0, 0) Layout "}" Layout "*" return 4
             SlotId(319) => {
-                if let Some((j, right_child)) = self.match_terminal(
-                    TerminalId(27),
-                    input_index,
-                    SlotId(319),
-                    Some(gss_node_id),
-                    "\"{\"",
-                ) {
+                if let Some((j, right_child)) =
+                    self.match_terminal(TerminalId(27), input_index, SlotId(319), Some(gss_node_id))
+                {
                     // Symbol(p: i32, e: i32) : [16 & e == 0] "{" . Layout symbol:Symbol(0, 0) Layout
                     // sep:Symbol(0, 0) Layout "}" Layout "*" return 4
                     self.execute(j, SlotId(320), Some(right_child), gss_node_id, env);
@@ -1261,13 +1133,9 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             // Symbol(p: i32, e: i32) : [16 & e == 0] "{" Layout symbol:Symbol(0, 0) Layout sep:Symbol(0,
             // 0) Layout . "}" Layout "*" return 4
             SlotId(325) => {
-                if let Some((_, right_child)) = self.match_terminal(
-                    TerminalId(28),
-                    input_index,
-                    SlotId(325),
-                    Some(gss_node_id),
-                    "\"}\"",
-                ) {
+                if let Some((_, right_child)) =
+                    self.match_terminal(TerminalId(28), input_index, SlotId(325), Some(gss_node_id))
+                {
                     if let Some((j, new_node)) =
                         self.create_intermediate_node(result, right_child, SlotId(326), env)
                     {
@@ -1293,13 +1161,9 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             // Symbol(p: i32, e: i32) : [16 & e == 0] "{" Layout symbol:Symbol(0, 0) Layout sep:Symbol(0,
             // 0) Layout "}" Layout . "*" return 4
             SlotId(327) => {
-                if let Some((_, right_child)) = self.match_terminal(
-                    TerminalId(29),
-                    input_index,
-                    SlotId(327),
-                    Some(gss_node_id),
-                    "\"*\"",
-                ) {
+                if let Some((_, right_child)) =
+                    self.match_terminal(TerminalId(29), input_index, SlotId(327), Some(gss_node_id))
+                {
                     if let Some((j, new_node)) =
                         self.create_intermediate_node(result, right_child, SlotId(328), env)
                     {
@@ -1348,13 +1212,9 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             // Symbol(p: i32, e: i32) : [32 & e == 0] . "{" Layout symbol:Symbol(0, 0) Layout
             // sep:Symbol(0, 0) Layout "}" Layout "+" return 5
             SlotId(331) => {
-                if let Some((j, right_child)) = self.match_terminal(
-                    TerminalId(27),
-                    input_index,
-                    SlotId(331),
-                    Some(gss_node_id),
-                    "\"{\"",
-                ) {
+                if let Some((j, right_child)) =
+                    self.match_terminal(TerminalId(27), input_index, SlotId(331), Some(gss_node_id))
+                {
                     // Symbol(p: i32, e: i32) : [32 & e == 0] "{" . Layout symbol:Symbol(0, 0) Layout
                     // sep:Symbol(0, 0) Layout "}" Layout "+" return 5
                     self.execute(j, SlotId(332), Some(right_child), gss_node_id, env);
@@ -1412,13 +1272,9 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             // Symbol(p: i32, e: i32) : [32 & e == 0] "{" Layout symbol:Symbol(0, 0) Layout sep:Symbol(0,
             // 0) Layout . "}" Layout "+" return 5
             SlotId(337) => {
-                if let Some((_, right_child)) = self.match_terminal(
-                    TerminalId(28),
-                    input_index,
-                    SlotId(337),
-                    Some(gss_node_id),
-                    "\"}\"",
-                ) {
+                if let Some((_, right_child)) =
+                    self.match_terminal(TerminalId(28), input_index, SlotId(337), Some(gss_node_id))
+                {
                     if let Some((j, new_node)) =
                         self.create_intermediate_node(result, right_child, SlotId(338), env)
                     {
@@ -1444,13 +1300,9 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             // Symbol(p: i32, e: i32) : [32 & e == 0] "{" Layout symbol:Symbol(0, 0) Layout sep:Symbol(0,
             // 0) Layout "}" Layout . "+" return 5
             SlotId(339) => {
-                if let Some((_, right_child)) = self.match_terminal(
-                    TerminalId(30),
-                    input_index,
-                    SlotId(339),
-                    Some(gss_node_id),
-                    "\"+\"",
-                ) {
+                if let Some((_, right_child)) =
+                    self.match_terminal(TerminalId(30), input_index, SlotId(339), Some(gss_node_id))
+                {
                     if let Some((j, new_node)) =
                         self.create_intermediate_node(result, right_child, SlotId(340), env)
                     {
@@ -1541,13 +1393,9 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             // Symbol(p: i32, e: i32) : [64 & e == 0] [3 >= p] l=Symbol(p, 0) [(l >> 16 == 0) || (l >> 16
             // >= 3)] Layout . "*" return 6
             SlotId(347) => {
-                if let Some((_, right_child)) = self.match_terminal(
-                    TerminalId(29),
-                    input_index,
-                    SlotId(347),
-                    Some(gss_node_id),
-                    "\"*\"",
-                ) {
+                if let Some((_, right_child)) =
+                    self.match_terminal(TerminalId(29), input_index, SlotId(347), Some(gss_node_id))
+                {
                     if let Some((j, new_node)) =
                         self.create_intermediate_node(result, right_child, SlotId(348), env)
                     {
@@ -1638,13 +1486,9 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             // Symbol(p: i32, e: i32) : [128 & e == 0] [3 >= p] l=Symbol(p, 0) [(l >> 16 == 0) || (l >>
             // 16 >= 3)] Layout . "+" return 7
             SlotId(355) => {
-                if let Some((_, right_child)) = self.match_terminal(
-                    TerminalId(30),
-                    input_index,
-                    SlotId(355),
-                    Some(gss_node_id),
-                    "\"+\"",
-                ) {
+                if let Some((_, right_child)) =
+                    self.match_terminal(TerminalId(30), input_index, SlotId(355), Some(gss_node_id))
+                {
                     if let Some((j, new_node)) =
                         self.create_intermediate_node(result, right_child, SlotId(356), env)
                     {
@@ -1735,13 +1579,9 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             // Symbol(p: i32, e: i32) : [256 & e == 0] [3 >= p] l=Symbol(p, 0) [(l >> 16 == 0) || (l >>
             // 16 >= 3)] Layout . "?" return 8
             SlotId(363) => {
-                if let Some((_, right_child)) = self.match_terminal(
-                    TerminalId(31),
-                    input_index,
-                    SlotId(363),
-                    Some(gss_node_id),
-                    "\"?\"",
-                ) {
+                if let Some((_, right_child)) =
+                    self.match_terminal(TerminalId(31), input_index, SlotId(363), Some(gss_node_id))
+                {
                     if let Some((j, new_node)) =
                         self.create_intermediate_node(result, right_child, SlotId(364), env)
                     {
@@ -2077,13 +1917,9 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             // Symbol(p: i32, e: i32) : [4096 & e == 0] . Identifier Layout "!<<" Layout r=Symbol(2, 0)
             // return (((r >> 16 == 0) ? 2 : min(r >> 16, 2)) << 16) | 12
             SlotId(393) => {
-                if let Some((j, right_child)) = self.match_terminal(
-                    TerminalId(1),
-                    input_index,
-                    SlotId(393),
-                    Some(gss_node_id),
-                    "Identifier",
-                ) {
+                if let Some((j, right_child)) =
+                    self.match_terminal(TerminalId(1), input_index, SlotId(393), Some(gss_node_id))
+                {
                     // Symbol(p: i32, e: i32) : [4096 & e == 0] Identifier . Layout "!<<" Layout r=Symbol(2, 0)
                     // return (((r >> 16 == 0) ? 2 : min(r >> 16, 2)) << 16) | 12
                     self.execute(j, SlotId(394), Some(right_child), gss_node_id, env);
@@ -2105,13 +1941,9 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             // Symbol(p: i32, e: i32) : [4096 & e == 0] Identifier Layout . "!<<" Layout r=Symbol(2, 0)
             // return (((r >> 16 == 0) ? 2 : min(r >> 16, 2)) << 16) | 12
             SlotId(395) => {
-                if let Some((_, right_child)) = self.match_terminal(
-                    TerminalId(21),
-                    input_index,
-                    SlotId(395),
-                    Some(gss_node_id),
-                    "\"!<<\"",
-                ) {
+                if let Some((_, right_child)) =
+                    self.match_terminal(TerminalId(21), input_index, SlotId(395), Some(gss_node_id))
+                {
                     if let Some((j, new_node)) =
                         self.create_intermediate_node(result, right_child, SlotId(396), env)
                     {
@@ -2183,13 +2015,9 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             // Symbol(p: i32, e: i32) : [8192 & e == 0] . label:Identifier Layout ":" Layout Symbol(1, 0)
             // return 65549
             SlotId(401) => {
-                if let Some((j, right_child)) = self.match_terminal(
-                    TerminalId(1),
-                    input_index,
-                    SlotId(401),
-                    Some(gss_node_id),
-                    "Identifier",
-                ) {
+                if let Some((j, right_child)) =
+                    self.match_terminal(TerminalId(1), input_index, SlotId(401), Some(gss_node_id))
+                {
                     // Symbol(p: i32, e: i32) : [8192 & e == 0] label:Identifier . Layout ":" Layout Symbol(1, 0)
                     // return 65549
                     self.execute(j, SlotId(402), Some(right_child), gss_node_id, env);
@@ -2211,13 +2039,9 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             // Symbol(p: i32, e: i32) : [8192 & e == 0] label:Identifier Layout . ":" Layout Symbol(1, 0)
             // return 65549
             SlotId(403) => {
-                if let Some((_, right_child)) = self.match_terminal(
-                    TerminalId(33),
-                    input_index,
-                    SlotId(403),
-                    Some(gss_node_id),
-                    "\":\"",
-                ) {
+                if let Some((_, right_child)) =
+                    self.match_terminal(TerminalId(33), input_index, SlotId(403), Some(gss_node_id))
+                {
                     if let Some((j, new_node)) =
                         self.create_intermediate_node(result, right_child, SlotId(404), env)
                     {
@@ -2291,13 +2115,9 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             // Regex : Regex Layout . "+"
             SlotId(80) => {
-                if let Some((_, right_child)) = self.match_terminal(
-                    TerminalId(30),
-                    input_index,
-                    SlotId(80),
-                    Some(gss_node_id),
-                    "\"+\"",
-                ) {
+                if let Some((_, right_child)) =
+                    self.match_terminal(TerminalId(30), input_index, SlotId(80), Some(gss_node_id))
+                {
                     if let Some((j, new_node)) =
                         self.create_intermediate_node(result, right_child, SlotId(81), env)
                     {
@@ -2333,13 +2153,9 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             // Regex : Regex Layout . "*"
             SlotId(84) => {
-                if let Some((_, right_child)) = self.match_terminal(
-                    TerminalId(29),
-                    input_index,
-                    SlotId(84),
-                    Some(gss_node_id),
-                    "\"*\"",
-                ) {
+                if let Some((_, right_child)) =
+                    self.match_terminal(TerminalId(29), input_index, SlotId(84), Some(gss_node_id))
+                {
                     if let Some((j, new_node)) =
                         self.create_intermediate_node(result, right_child, SlotId(85), env)
                     {
@@ -2375,13 +2191,9 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             // Regex : Regex Layout . "?"
             SlotId(88) => {
-                if let Some((_, right_child)) = self.match_terminal(
-                    TerminalId(31),
-                    input_index,
-                    SlotId(88),
-                    Some(gss_node_id),
-                    "\"?\"",
-                ) {
+                if let Some((_, right_child)) =
+                    self.match_terminal(TerminalId(31), input_index, SlotId(88), Some(gss_node_id))
+                {
                     if let Some((j, new_node)) =
                         self.create_intermediate_node(result, right_child, SlotId(89), env)
                     {
@@ -2402,13 +2214,9 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             // Regex : . "(" Layout first:Regex Layout rest:Plus_11 Layout ")"
             SlotId(90) => {
-                if let Some((j, right_child)) = self.match_terminal(
-                    TerminalId(16),
-                    input_index,
-                    SlotId(90),
-                    Some(gss_node_id),
-                    "\"(\"",
-                ) {
+                if let Some((j, right_child)) =
+                    self.match_terminal(TerminalId(16), input_index, SlotId(90), Some(gss_node_id))
+                {
                     // Regex : "(" . Layout first:Regex Layout rest:Plus_11 Layout ")"
                     self.execute(j, SlotId(91), Some(right_child), gss_node_id, env);
                 }
@@ -2456,13 +2264,9 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             // Regex : "(" Layout first:Regex Layout rest:Plus_11 Layout . ")"
             SlotId(96) => {
-                if let Some((_, right_child)) = self.match_terminal(
-                    TerminalId(17),
-                    input_index,
-                    SlotId(96),
-                    Some(gss_node_id),
-                    "\")\"",
-                ) {
+                if let Some((_, right_child)) =
+                    self.match_terminal(TerminalId(17), input_index, SlotId(96), Some(gss_node_id))
+                {
                     if let Some((j, new_node)) =
                         self.create_intermediate_node(result, right_child, SlotId(97), env)
                     {
@@ -2483,13 +2287,9 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             // Regex : . "(" Layout Plus_3 Layout ")"
             SlotId(98) => {
-                if let Some((j, right_child)) = self.match_terminal(
-                    TerminalId(16),
-                    input_index,
-                    SlotId(98),
-                    Some(gss_node_id),
-                    "\"(\"",
-                ) {
+                if let Some((j, right_child)) =
+                    self.match_terminal(TerminalId(16), input_index, SlotId(98), Some(gss_node_id))
+                {
                     // Regex : "(" . Layout Plus_3 Layout ")"
                     self.execute(j, SlotId(99), Some(right_child), gss_node_id, env);
                 }
@@ -2522,13 +2322,9 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             // Regex : "(" Layout Plus_3 Layout . ")"
             SlotId(102) => {
-                if let Some((_, right_child)) = self.match_terminal(
-                    TerminalId(17),
-                    input_index,
-                    SlotId(102),
-                    Some(gss_node_id),
-                    "\")\"",
-                ) {
+                if let Some((_, right_child)) =
+                    self.match_terminal(TerminalId(17), input_index, SlotId(102), Some(gss_node_id))
+                {
                     if let Some((j, new_node)) =
                         self.create_intermediate_node(result, right_child, SlotId(103), env)
                     {
@@ -2563,13 +2359,9 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             // Regex : . Char
             SlotId(106) => {
-                if let Some((j, right_child)) = self.match_terminal(
-                    TerminalId(3),
-                    input_index,
-                    SlotId(106),
-                    Some(gss_node_id),
-                    "Char",
-                ) {
+                if let Some((j, right_child)) =
+                    self.match_terminal(TerminalId(3), input_index, SlotId(106), Some(gss_node_id))
+                {
                     // Regex : Char.
                     self.execute(j, SlotId(107), Some(right_child), gss_node_id, env);
                 }
@@ -2586,13 +2378,9 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             // Regex : . String
             SlotId(108) => {
-                if let Some((j, right_child)) = self.match_terminal(
-                    TerminalId(2),
-                    input_index,
-                    SlotId(108),
-                    Some(gss_node_id),
-                    "String",
-                ) {
+                if let Some((j, right_child)) =
+                    self.match_terminal(TerminalId(2), input_index, SlotId(108), Some(gss_node_id))
+                {
                     // Regex : String.
                     self.execute(j, SlotId(109), Some(right_child), gss_node_id, env);
                 }
@@ -2609,13 +2397,9 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             // Regex : . Identifier
             SlotId(110) => {
-                if let Some((j, right_child)) = self.match_terminal(
-                    TerminalId(1),
-                    input_index,
-                    SlotId(110),
-                    Some(gss_node_id),
-                    "Identifier",
-                ) {
+                if let Some((j, right_child)) =
+                    self.match_terminal(TerminalId(1), input_index, SlotId(110), Some(gss_node_id))
+                {
                     // Regex : Identifier.
                     self.execute(j, SlotId(111), Some(right_child), gss_node_id, env);
                 }
@@ -2651,13 +2435,9 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             // CharClass : neg:Opt_9 Layout . "[" Layout Plus_12 Layout "]"
             SlotId(114) => {
-                if let Some((_, right_child)) = self.match_terminal(
-                    TerminalId(34),
-                    input_index,
-                    SlotId(114),
-                    Some(gss_node_id),
-                    "\"[\"",
-                ) {
+                if let Some((_, right_child)) =
+                    self.match_terminal(TerminalId(34), input_index, SlotId(114), Some(gss_node_id))
+                {
                     if let Some((j, new_node)) =
                         self.create_intermediate_node(result, right_child, SlotId(115), env)
                     {
@@ -2694,13 +2474,9 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             // CharClass : neg:Opt_9 Layout "[" Layout Plus_12 Layout . "]"
             SlotId(118) => {
-                if let Some((_, right_child)) = self.match_terminal(
-                    TerminalId(35),
-                    input_index,
-                    SlotId(118),
-                    Some(gss_node_id),
-                    "\"]\"",
-                ) {
+                if let Some((_, right_child)) =
+                    self.match_terminal(TerminalId(35), input_index, SlotId(118), Some(gss_node_id))
+                {
                     if let Some((j, new_node)) =
                         self.create_intermediate_node(result, right_child, SlotId(119), env)
                     {
@@ -2739,13 +2515,9 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             // RangeElement : . RangeChar
             SlotId(122) => {
-                if let Some((j, right_child)) = self.match_terminal(
-                    TerminalId(5),
-                    input_index,
-                    SlotId(122),
-                    Some(gss_node_id),
-                    "RangeChar",
-                ) {
+                if let Some((j, right_child)) =
+                    self.match_terminal(TerminalId(5), input_index, SlotId(122), Some(gss_node_id))
+                {
                     // RangeElement : RangeChar.
                     self.execute(j, SlotId(123), Some(right_child), gss_node_id, env);
                 }
@@ -2762,13 +2534,9 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             // Range : . start:RangeChar Layout "-" Layout end:RangeChar
             SlotId(124) => {
-                if let Some((j, right_child)) = self.match_terminal(
-                    TerminalId(5),
-                    input_index,
-                    SlotId(124),
-                    Some(gss_node_id),
-                    "RangeChar",
-                ) {
+                if let Some((j, right_child)) =
+                    self.match_terminal(TerminalId(5), input_index, SlotId(124), Some(gss_node_id))
+                {
                     // Range : start:RangeChar . Layout "-" Layout end:RangeChar
                     self.execute(j, SlotId(125), Some(right_child), gss_node_id, env);
                 }
@@ -2786,13 +2554,9 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             // Range : start:RangeChar Layout . "-" Layout end:RangeChar
             SlotId(126) => {
-                if let Some((_, right_child)) = self.match_terminal(
-                    TerminalId(36),
-                    input_index,
-                    SlotId(126),
-                    Some(gss_node_id),
-                    "\"-\"",
-                ) {
+                if let Some((_, right_child)) =
+                    self.match_terminal(TerminalId(36), input_index, SlotId(126), Some(gss_node_id))
+                {
                     if let Some((j, new_node)) =
                         self.create_intermediate_node(result, right_child, SlotId(127), env)
                     {
@@ -2814,13 +2578,9 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             // Range : start:RangeChar Layout "-" Layout . end:RangeChar
             SlotId(128) => {
-                if let Some((_, right_child)) = self.match_terminal(
-                    TerminalId(5),
-                    input_index,
-                    SlotId(128),
-                    Some(gss_node_id),
-                    "RangeChar",
-                ) {
+                if let Some((_, right_child)) =
+                    self.match_terminal(TerminalId(5), input_index, SlotId(128), Some(gss_node_id))
+                {
                     if let Some((j, new_node)) =
                         self.create_intermediate_node(result, right_child, SlotId(129), env)
                     {
@@ -2993,13 +2753,9 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             // Plus_1 : Plus_1 Layout . ">" Layout PriorityLevel
             SlotId(148) => {
-                if let Some((_, right_child)) = self.match_terminal(
-                    TerminalId(12),
-                    input_index,
-                    SlotId(148),
-                    Some(gss_node_id),
-                    "\">\"",
-                ) {
+                if let Some((_, right_child)) =
+                    self.match_terminal(TerminalId(12), input_index, SlotId(148), Some(gss_node_id))
+                {
                     if let Some((j, new_node)) =
                         self.create_intermediate_node(result, right_child, SlotId(149), env)
                     {
@@ -3090,13 +2846,9 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             // Opt_3 : . "@Layout"
             SlotId(159) => {
-                if let Some((j, right_child)) = self.match_terminal(
-                    TerminalId(14),
-                    input_index,
-                    SlotId(159),
-                    Some(gss_node_id),
-                    "\"@Layout\"",
-                ) {
+                if let Some((j, right_child)) =
+                    self.match_terminal(TerminalId(14), input_index, SlotId(159), Some(gss_node_id))
+                {
                     // Opt_3 : "@Layout".
                     self.execute(j, SlotId(160), Some(right_child), gss_node_id, env);
                 }
@@ -3215,13 +2967,9 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             // Plus_2 : Plus_2 Layout . "|" Layout Plus_3
             SlotId(173) => {
-                if let Some((_, right_child)) = self.match_terminal(
-                    TerminalId(20),
-                    input_index,
-                    SlotId(173),
-                    Some(gss_node_id),
-                    "\"|\"",
-                ) {
+                if let Some((_, right_child)) =
+                    self.match_terminal(TerminalId(20), input_index, SlotId(173), Some(gss_node_id))
+                {
                     if let Some((j, new_node)) =
                         self.create_intermediate_node(result, right_child, SlotId(174), env)
                     {
@@ -3424,13 +3172,9 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             // Plus_5 : Plus_5 Layout . "|" Layout Alternative
             SlotId(195) => {
-                if let Some((_, right_child)) = self.match_terminal(
-                    TerminalId(20),
-                    input_index,
-                    SlotId(195),
-                    Some(gss_node_id),
-                    "\"|\"",
-                ) {
+                if let Some((_, right_child)) =
+                    self.match_terminal(TerminalId(20), input_index, SlotId(195), Some(gss_node_id))
+                {
                     if let Some((j, new_node)) =
                         self.create_intermediate_node(result, right_child, SlotId(196), env)
                     {
@@ -3564,13 +3308,9 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             // Opt_8 : . Label
             SlotId(212) => {
-                if let Some((j, right_child)) = self.match_terminal(
-                    TerminalId(6),
-                    input_index,
-                    SlotId(212),
-                    Some(gss_node_id),
-                    "Label",
-                ) {
+                if let Some((j, right_child)) =
+                    self.match_terminal(TerminalId(6), input_index, SlotId(212), Some(gss_node_id))
+                {
                     // Opt_8 : Label.
                     self.execute(j, SlotId(213), Some(right_child), gss_node_id, env);
                 }
@@ -3600,13 +3340,9 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             // Group_0 : . "|" Layout Symbol(0, 0)
             SlotId(215) => {
-                if let Some((j, right_child)) = self.match_terminal(
-                    TerminalId(20),
-                    input_index,
-                    SlotId(215),
-                    Some(gss_node_id),
-                    "\"|\"",
-                ) {
+                if let Some((j, right_child)) =
+                    self.match_terminal(TerminalId(20), input_index, SlotId(215), Some(gss_node_id))
+                {
                     // Group_0 : "|" . Layout Symbol(0, 0)
                     self.execute(j, SlotId(216), Some(right_child), gss_node_id, env);
                 }
@@ -3681,13 +3417,9 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             // Group_1 : . "\" Layout Identifier
             SlotId(225) => {
-                if let Some((j, right_child)) = self.match_terminal(
-                    TerminalId(22),
-                    input_index,
-                    SlotId(225),
-                    Some(gss_node_id),
-                    "\"\\\"",
-                ) {
+                if let Some((j, right_child)) =
+                    self.match_terminal(TerminalId(22), input_index, SlotId(225), Some(gss_node_id))
+                {
                     // Group_1 : "\" . Layout Identifier
                     self.execute(j, SlotId(226), Some(right_child), gss_node_id, env);
                 }
@@ -3705,13 +3437,9 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             // Group_1 : "\" Layout . Identifier
             SlotId(227) => {
-                if let Some((_, right_child)) = self.match_terminal(
-                    TerminalId(1),
-                    input_index,
-                    SlotId(227),
-                    Some(gss_node_id),
-                    "Identifier",
-                ) {
+                if let Some((_, right_child)) =
+                    self.match_terminal(TerminalId(1), input_index, SlotId(227), Some(gss_node_id))
+                {
                     if let Some((j, new_node)) =
                         self.create_intermediate_node(result, right_child, SlotId(228), env)
                     {
@@ -3786,13 +3514,9 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             // Group_2 : . "!>>" Layout Identifier
             SlotId(235) => {
-                if let Some((j, right_child)) = self.match_terminal(
-                    TerminalId(23),
-                    input_index,
-                    SlotId(235),
-                    Some(gss_node_id),
-                    "\"!>>\"",
-                ) {
+                if let Some((j, right_child)) =
+                    self.match_terminal(TerminalId(23), input_index, SlotId(235), Some(gss_node_id))
+                {
                     // Group_2 : "!>>" . Layout Identifier
                     self.execute(j, SlotId(236), Some(right_child), gss_node_id, env);
                 }
@@ -3810,13 +3534,9 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             // Group_2 : "!>>" Layout . Identifier
             SlotId(237) => {
-                if let Some((_, right_child)) = self.match_terminal(
-                    TerminalId(1),
-                    input_index,
-                    SlotId(237),
-                    Some(gss_node_id),
-                    "Identifier",
-                ) {
+                if let Some((_, right_child)) =
+                    self.match_terminal(TerminalId(1), input_index, SlotId(237), Some(gss_node_id))
+                {
                     if let Some((j, new_node)) =
                         self.create_intermediate_node(result, right_child, SlotId(238), env)
                     {
@@ -3891,13 +3611,9 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             // Group_3 : . "!" Layout Identifier
             SlotId(245) => {
-                if let Some((j, right_child)) = self.match_terminal(
-                    TerminalId(32),
-                    input_index,
-                    SlotId(245),
-                    Some(gss_node_id),
-                    "\"!\"",
-                ) {
+                if let Some((j, right_child)) =
+                    self.match_terminal(TerminalId(32), input_index, SlotId(245), Some(gss_node_id))
+                {
                     // Group_3 : "!" . Layout Identifier
                     self.execute(j, SlotId(246), Some(right_child), gss_node_id, env);
                 }
@@ -3915,13 +3631,9 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             // Group_3 : "!" Layout . Identifier
             SlotId(247) => {
-                if let Some((_, right_child)) = self.match_terminal(
-                    TerminalId(1),
-                    input_index,
-                    SlotId(247),
-                    Some(gss_node_id),
-                    "Identifier",
-                ) {
+                if let Some((_, right_child)) =
+                    self.match_terminal(TerminalId(1), input_index, SlotId(247), Some(gss_node_id))
+                {
                     if let Some((j, new_node)) =
                         self.create_intermediate_node(result, right_child, SlotId(248), env)
                     {
@@ -3996,13 +3708,9 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             // Group_4 : . "|" Layout Regex
             SlotId(255) => {
-                if let Some((j, right_child)) = self.match_terminal(
-                    TerminalId(20),
-                    input_index,
-                    SlotId(255),
-                    Some(gss_node_id),
-                    "\"|\"",
-                ) {
+                if let Some((j, right_child)) =
+                    self.match_terminal(TerminalId(20), input_index, SlotId(255), Some(gss_node_id))
+                {
                     // Group_4 : "|" . Layout Regex
                     self.execute(j, SlotId(256), Some(right_child), gss_node_id, env);
                 }
@@ -4077,13 +3785,9 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             // Opt_9 : . "!"
             SlotId(265) => {
-                if let Some((j, right_child)) = self.match_terminal(
-                    TerminalId(32),
-                    input_index,
-                    SlotId(265),
-                    Some(gss_node_id),
-                    "\"!\"",
-                ) {
+                if let Some((j, right_child)) =
+                    self.match_terminal(TerminalId(32), input_index, SlotId(265), Some(gss_node_id))
+                {
                     // Opt_9 : "!".
                     self.execute(j, SlotId(266), Some(right_child), gss_node_id, env);
                 }
@@ -4156,13 +3860,9 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             // Alt_0 : . WS
             SlotId(274) => {
-                if let Some((j, right_child)) = self.match_terminal(
-                    TerminalId(7),
-                    input_index,
-                    SlotId(274),
-                    Some(gss_node_id),
-                    "WS",
-                ) {
+                if let Some((j, right_child)) =
+                    self.match_terminal(TerminalId(7), input_index, SlotId(274), Some(gss_node_id))
+                {
                     // Alt_0 : WS.
                     self.execute(j, SlotId(275), Some(right_child), gss_node_id, env);
                 }
@@ -4179,13 +3879,9 @@ impl<'i> Parser<'i> for IggyParser<'i> {
             }
             // Alt_0 : . LineComment
             SlotId(276) => {
-                if let Some((j, right_child)) = self.match_terminal(
-                    TerminalId(9),
-                    input_index,
-                    SlotId(276),
-                    Some(gss_node_id),
-                    "LineComment",
-                ) {
+                if let Some((j, right_child)) =
+                    self.match_terminal(TerminalId(9), input_index, SlotId(276), Some(gss_node_id))
+                {
                     // Alt_0 : LineComment.
                     self.execute(j, SlotId(277), Some(right_child), gss_node_id, env);
                 }
@@ -6034,13 +5730,8 @@ impl<'i> IggyParser<'i> {
                 let mut j = i;
                 let right_child = {
                     let start = j;
-                    let (end, node) = self.match_terminal(
-                        TerminalId(13),
-                        start,
-                        SlotId(19),
-                        None,
-                        "\"@NoLayout\"",
-                    )?;
+                    let (end, node) =
+                        self.match_terminal(TerminalId(13), start, SlotId(19), None)?;
                     j = end;
                     node
                 };
@@ -6061,13 +5752,8 @@ impl<'i> IggyParser<'i> {
                 let mut j = i;
                 let right_child = {
                     let start = j;
-                    let (end, node) = self.match_terminal(
-                        TerminalId(14),
-                        start,
-                        SlotId(21),
-                        None,
-                        "\"@Layout\"",
-                    )?;
+                    let (end, node) =
+                        self.match_terminal(TerminalId(14), start, SlotId(21), None)?;
                     j = end;
                     node
                 };
@@ -6088,13 +5774,8 @@ impl<'i> IggyParser<'i> {
                 let mut j = i;
                 let right_child = {
                     let start = j;
-                    let (end, node) = self.match_terminal(
-                        TerminalId(15),
-                        start,
-                        SlotId(23),
-                        None,
-                        "\"@WithLayout\"",
-                    )?;
+                    let (end, node) =
+                        self.match_terminal(TerminalId(15), start, SlotId(23), None)?;
                     j = end;
                     node
                 };
@@ -6117,7 +5798,7 @@ impl<'i> IggyParser<'i> {
                 let right_child = {
                     let start = j;
                     let (end, node) =
-                        self.match_terminal(TerminalId(16), start, SlotId(25), None, "\"(\"")?;
+                        self.match_terminal(TerminalId(16), start, SlotId(25), None)?;
                     j = end;
                     node
                 };
@@ -6145,7 +5826,7 @@ impl<'i> IggyParser<'i> {
                 let right_child = {
                     let start = j;
                     let (end, node) =
-                        self.match_terminal(TerminalId(1), start, SlotId(27), None, "Identifier")?;
+                        self.match_terminal(TerminalId(1), start, SlotId(27), None)?;
                     j = end;
                     node
                 };
@@ -6173,7 +5854,7 @@ impl<'i> IggyParser<'i> {
                 let right_child = {
                     let start = j;
                     let (end, node) =
-                        self.match_terminal(TerminalId(17), start, SlotId(29), None, "\")\"")?;
+                        self.match_terminal(TerminalId(17), start, SlotId(29), None)?;
                     j = end;
                     node
                 };
@@ -6200,7 +5881,7 @@ impl<'i> IggyParser<'i> {
                 let right_child = {
                     let start = j;
                     let (end, node) =
-                        self.match_terminal(TerminalId(18), start, SlotId(31), None, "\"@Start\"")?;
+                        self.match_terminal(TerminalId(18), start, SlotId(31), None)?;
                     j = end;
                     node
                 };
@@ -6230,7 +5911,7 @@ impl<'i> IggyParser<'i> {
                 let right_child = {
                     let start = j;
                     let (end, node) =
-                        self.match_terminal(TerminalId(1), start, SlotId(47), None, "Identifier")?;
+                        self.match_terminal(TerminalId(1), start, SlotId(47), None)?;
                     j = end;
                     node
                 };
@@ -6253,7 +5934,7 @@ impl<'i> IggyParser<'i> {
                 let right_child = {
                     let start = j;
                     let (end, node) =
-                        self.match_terminal(TerminalId(21), start, SlotId(49), None, "\"!<<\"")?;
+                        self.match_terminal(TerminalId(21), start, SlotId(49), None)?;
                     j = end;
                     node
                 };
@@ -6288,7 +5969,7 @@ impl<'i> IggyParser<'i> {
                 let right_child = {
                     let start = j;
                     let (end, node) =
-                        self.match_terminal(TerminalId(22), start, SlotId(51), None, "\"\\\"")?;
+                        self.match_terminal(TerminalId(22), start, SlotId(51), None)?;
                     j = end;
                     node
                 };
@@ -6311,7 +5992,7 @@ impl<'i> IggyParser<'i> {
                 let right_child = {
                     let start = j;
                     let (end, node) =
-                        self.match_terminal(TerminalId(1), start, SlotId(53), None, "Identifier")?;
+                        self.match_terminal(TerminalId(1), start, SlotId(53), None)?;
                     j = end;
                     node
                 };
@@ -6338,7 +6019,7 @@ impl<'i> IggyParser<'i> {
                 let right_child = {
                     let start = j;
                     let (end, node) =
-                        self.match_terminal(TerminalId(23), start, SlotId(55), None, "\"!>>\"")?;
+                        self.match_terminal(TerminalId(23), start, SlotId(55), None)?;
                     j = end;
                     node
                 };
@@ -6361,7 +6042,7 @@ impl<'i> IggyParser<'i> {
                 let right_child = {
                     let start = j;
                     let (end, node) =
-                        self.match_terminal(TerminalId(1), start, SlotId(57), None, "Identifier")?;
+                        self.match_terminal(TerminalId(1), start, SlotId(57), None)?;
                     j = end;
                     node
                 };
@@ -6396,7 +6077,7 @@ impl<'i> IggyParser<'i> {
                 let right_child = {
                     let start = j;
                     let (end, node) =
-                        self.match_terminal(TerminalId(24), start, SlotId(63), None, "\"left\"")?;
+                        self.match_terminal(TerminalId(24), start, SlotId(63), None)?;
                     j = end;
                     node
                 };
@@ -6418,7 +6099,7 @@ impl<'i> IggyParser<'i> {
                 let right_child = {
                     let start = j;
                     let (end, node) =
-                        self.match_terminal(TerminalId(25), start, SlotId(65), None, "\"right\"")?;
+                        self.match_terminal(TerminalId(25), start, SlotId(65), None)?;
                     j = end;
                     node
                 };
@@ -6440,7 +6121,7 @@ impl<'i> IggyParser<'i> {
                 let right_child = {
                     let start = j;
                     let (end, node) =
-                        self.match_terminal(TerminalId(26), start, SlotId(67), None, "\"none\"")?;
+                        self.match_terminal(TerminalId(26), start, SlotId(67), None)?;
                     j = end;
                     node
                 };
@@ -6470,7 +6151,7 @@ impl<'i> IggyParser<'i> {
                 let right_child = {
                     let start = j;
                     let (end, node) =
-                        self.match_terminal(TerminalId(5), start, SlotId(125), None, "RangeChar")?;
+                        self.match_terminal(TerminalId(5), start, SlotId(125), None)?;
                     j = end;
                     node
                 };
@@ -6493,7 +6174,7 @@ impl<'i> IggyParser<'i> {
                 let right_child = {
                     let start = j;
                     let (end, node) =
-                        self.match_terminal(TerminalId(36), start, SlotId(127), None, "\"-\"")?;
+                        self.match_terminal(TerminalId(36), start, SlotId(127), None)?;
                     j = end;
                     node
                 };
@@ -6521,7 +6202,7 @@ impl<'i> IggyParser<'i> {
                 let right_child = {
                     let start = j;
                     let (end, node) =
-                        self.match_terminal(TerminalId(5), start, SlotId(129), None, "RangeChar")?;
+                        self.match_terminal(TerminalId(5), start, SlotId(129), None)?;
                     j = end;
                     node
                 };
@@ -6646,13 +6327,8 @@ impl<'i> IggyParser<'i> {
                 let mut j = i;
                 let right_child = {
                     let start = j;
-                    let (end, node) = self.match_terminal(
-                        TerminalId(14),
-                        start,
-                        SlotId(160),
-                        None,
-                        "\"@Layout\"",
-                    )?;
+                    let (end, node) =
+                        self.match_terminal(TerminalId(14), start, SlotId(160), None)?;
                     j = end;
                     node
                 };
@@ -6853,7 +6529,7 @@ impl<'i> IggyParser<'i> {
                 let right_child = {
                     let start = j;
                     let (end, node) =
-                        self.match_terminal(TerminalId(6), start, SlotId(213), None, "Label")?;
+                        self.match_terminal(TerminalId(6), start, SlotId(213), None)?;
                     j = end;
                     node
                 };
@@ -6883,7 +6559,7 @@ impl<'i> IggyParser<'i> {
                 let right_child = {
                     let start = j;
                     let (end, node) =
-                        self.match_terminal(TerminalId(22), start, SlotId(226), None, "\"\\\"")?;
+                        self.match_terminal(TerminalId(22), start, SlotId(226), None)?;
                     j = end;
                     node
                 };
@@ -6906,7 +6582,7 @@ impl<'i> IggyParser<'i> {
                 let right_child = {
                     let start = j;
                     let (end, node) =
-                        self.match_terminal(TerminalId(1), start, SlotId(228), None, "Identifier")?;
+                        self.match_terminal(TerminalId(1), start, SlotId(228), None)?;
                     j = end;
                     node
                 };
@@ -6941,7 +6617,7 @@ impl<'i> IggyParser<'i> {
                 let right_child = {
                     let start = j;
                     let (end, node) =
-                        self.match_terminal(TerminalId(23), start, SlotId(236), None, "\"!>>\"")?;
+                        self.match_terminal(TerminalId(23), start, SlotId(236), None)?;
                     j = end;
                     node
                 };
@@ -6964,7 +6640,7 @@ impl<'i> IggyParser<'i> {
                 let right_child = {
                     let start = j;
                     let (end, node) =
-                        self.match_terminal(TerminalId(1), start, SlotId(238), None, "Identifier")?;
+                        self.match_terminal(TerminalId(1), start, SlotId(238), None)?;
                     j = end;
                     node
                 };
@@ -6999,7 +6675,7 @@ impl<'i> IggyParser<'i> {
                 let right_child = {
                     let start = j;
                     let (end, node) =
-                        self.match_terminal(TerminalId(32), start, SlotId(246), None, "\"!\"")?;
+                        self.match_terminal(TerminalId(32), start, SlotId(246), None)?;
                     j = end;
                     node
                 };
@@ -7022,7 +6698,7 @@ impl<'i> IggyParser<'i> {
                 let right_child = {
                     let start = j;
                     let (end, node) =
-                        self.match_terminal(TerminalId(1), start, SlotId(248), None, "Identifier")?;
+                        self.match_terminal(TerminalId(1), start, SlotId(248), None)?;
                     j = end;
                     node
                 };
@@ -7069,7 +6745,7 @@ impl<'i> IggyParser<'i> {
                 let right_child = {
                     let start = j;
                     let (end, node) =
-                        self.match_terminal(TerminalId(32), start, SlotId(266), None, "\"!\"")?;
+                        self.match_terminal(TerminalId(32), start, SlotId(266), None)?;
                     j = end;
                     node
                 };
@@ -7099,7 +6775,7 @@ impl<'i> IggyParser<'i> {
                 let right_child = {
                     let start = j;
                     let (end, node) =
-                        self.match_terminal(TerminalId(7), start, SlotId(275), None, "WS")?;
+                        self.match_terminal(TerminalId(7), start, SlotId(275), None)?;
                     j = end;
                     node
                 };
@@ -7120,13 +6796,8 @@ impl<'i> IggyParser<'i> {
                 let mut j = i;
                 let right_child = {
                     let start = j;
-                    let (end, node) = self.match_terminal(
-                        TerminalId(9),
-                        start,
-                        SlotId(277),
-                        None,
-                        "LineComment",
-                    )?;
+                    let (end, node) =
+                        self.match_terminal(TerminalId(9), start, SlotId(277), None)?;
                     j = end;
                     node
                 };

@@ -69,13 +69,9 @@ impl<'i> Parser<'i> for RegexCompositionParser<'i> {
             }
             // Id : . Letter Star_0
             SlotId(2) => {
-                if let Some((j, right_child)) = self.match_terminal(
-                    TerminalId(1),
-                    input_index,
-                    SlotId(2),
-                    Some(gss_node_id),
-                    "Letter",
-                ) {
+                if let Some((j, right_child)) =
+                    self.match_terminal(TerminalId(1), input_index, SlotId(2), Some(gss_node_id))
+                {
                     // Id : Letter . Star_0
                     self.execute(j, SlotId(3), Some(right_child), gss_node_id, env);
                 }
@@ -107,13 +103,9 @@ impl<'i> Parser<'i> for RegexCompositionParser<'i> {
             }
             // Plus_0 : Plus_0 . LetterOrDigit
             SlotId(6) => {
-                if let Some((_, right_child)) = self.match_terminal(
-                    TerminalId(2),
-                    input_index,
-                    SlotId(6),
-                    Some(gss_node_id),
-                    "LetterOrDigit",
-                ) {
+                if let Some((_, right_child)) =
+                    self.match_terminal(TerminalId(2), input_index, SlotId(6), Some(gss_node_id))
+                {
                     if let Some((j, new_node)) =
                         self.create_intermediate_node(result, right_child, SlotId(7), env)
                     {
@@ -130,13 +122,9 @@ impl<'i> Parser<'i> for RegexCompositionParser<'i> {
             }
             // Plus_0 : . LetterOrDigit
             SlotId(8) => {
-                if let Some((j, right_child)) = self.match_terminal(
-                    TerminalId(2),
-                    input_index,
-                    SlotId(8),
-                    Some(gss_node_id),
-                    "LetterOrDigit",
-                ) {
+                if let Some((j, right_child)) =
+                    self.match_terminal(TerminalId(2), input_index, SlotId(8), Some(gss_node_id))
+                {
                     // Plus_0 : LetterOrDigit.
                     self.execute(j, SlotId(9), Some(right_child), gss_node_id, env);
                 }
@@ -767,8 +755,7 @@ impl<'i> RegexCompositionParser<'i> {
                 let mut j = i;
                 let right_child = {
                     let start = j;
-                    let (end, node) =
-                        self.match_terminal(TerminalId(1), start, SlotId(3), None, "Letter")?;
+                    let (end, node) = self.match_terminal(TerminalId(1), start, SlotId(3), None)?;
                     j = end;
                     node
                 };
@@ -807,7 +794,7 @@ impl<'i> RegexCompositionParser<'i> {
         self.ll1_call_log.push((NonterminalId(2), i));
         let mut j = i;
         let (body_node, body_end) = (self
-            .match_terminal(TerminalId(2), j, SlotId(8), None, "LetterOrDigit")
+            .match_terminal(TerminalId(2), j, SlotId(8), None)
             .map(|(end, node)| (node, end)))?;
         j = body_end;
         let left_extent = i;
@@ -823,7 +810,7 @@ impl<'i> RegexCompositionParser<'i> {
         });
         loop {
             let Some((node_0, pos_0)) = self
-                .match_terminal(TerminalId(2), j, SlotId(6), None, "LetterOrDigit")
+                .match_terminal(TerminalId(2), j, SlotId(6), None)
                 .map(|(end, node)| (node, end))
             else {
                 break;

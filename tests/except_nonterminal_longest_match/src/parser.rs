@@ -79,26 +79,18 @@ impl<'i> Parser<'i> for ExceptNonterminalLongestMatchParser<'i> {
             }
             // Name : . Letter Letter
             SlotId(5) => {
-                if let Some((j, right_child)) = self.match_terminal(
-                    TerminalId(0),
-                    input_index,
-                    SlotId(5),
-                    Some(gss_node_id),
-                    "Letter",
-                ) {
+                if let Some((j, right_child)) =
+                    self.match_terminal(TerminalId(0), input_index, SlotId(5), Some(gss_node_id))
+                {
                     // Name : Letter . Letter
                     self.execute(j, SlotId(6), Some(right_child), gss_node_id, env);
                 }
             }
             // Name : Letter . Letter
             SlotId(6) => {
-                if let Some((_, right_child)) = self.match_terminal(
-                    TerminalId(0),
-                    input_index,
-                    SlotId(6),
-                    Some(gss_node_id),
-                    "Letter",
-                ) {
+                if let Some((_, right_child)) =
+                    self.match_terminal(TerminalId(0), input_index, SlotId(6), Some(gss_node_id))
+                {
                     if let Some((j, new_node)) =
                         self.create_intermediate_node(result, right_child, SlotId(7), env)
                     {
@@ -115,13 +107,9 @@ impl<'i> Parser<'i> for ExceptNonterminalLongestMatchParser<'i> {
             }
             // Name : . Letter
             SlotId(8) => {
-                if let Some((j, right_child)) = self.match_terminal(
-                    TerminalId(0),
-                    input_index,
-                    SlotId(8),
-                    Some(gss_node_id),
-                    "Letter",
-                ) {
+                if let Some((j, right_child)) =
+                    self.match_terminal(TerminalId(0), input_index, SlotId(8), Some(gss_node_id))
+                {
                     // Name : Letter.
                     self.execute(j, SlotId(9), Some(right_child), gss_node_id, env);
                 }

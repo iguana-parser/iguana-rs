@@ -545,7 +545,6 @@ impl<'a> ParserGen<'a> {
                 if !(#(#pre_conditions)&&*) { return; }
             }
         };
-        let terminal_name = &terminal.name;
         let uses_j = slot.is_first() || !post_conditions.is_empty();
         let destructure = if uses_j {
             quote! { (j, right_child) }
@@ -556,7 +555,7 @@ impl<'a> ParserGen<'a> {
             #[comment = #current_slot_name]
             #slot_id => {
                 #pre_condition_check
-                if let Some(#destructure) = self.match_terminal(#terminal_id, input_index, #slot_id, Some(gss_node_id), #terminal_name) {
+                if let Some(#destructure) = self.match_terminal(#terminal_id, input_index, #slot_id, Some(gss_node_id)) {
                     #new_node
                 }
             }
@@ -1384,9 +1383,8 @@ impl<'a> ParserGen<'a> {
         match def {
             Definition::Terminal(terminal) => {
                 let terminal_id = self.terminal_ids.get_id(terminal);
-                let terminal_name = &terminal.name;
                 quote! {
-                    self.match_terminal(#terminal_id, #pos, #slot_id, None, #terminal_name).map(|(end, node)| (node, end))
+                    self.match_terminal(#terminal_id, #pos, #slot_id, None).map(|(end, node)| (node, end))
                 }
             }
             Definition::Nonterminal(nt) => {
@@ -1466,12 +1464,11 @@ impl<'a> ParserGen<'a> {
             match def {
                 Definition::Terminal(terminal) => {
                     let terminal_id = self.terminal_ids.get_id(terminal);
-                    let terminal_name = &terminal.name;
                     body.push(quote! {
                         #pre_check
                         let right_child = {
                             let start = j;
-                            let (end, node) = self.match_terminal(#terminal_id, start, #next_slot_id, None, #terminal_name)?;
+                            let (end, node) = self.match_terminal(#terminal_id, start, #next_slot_id, None)?;
                             #post_check
                             j = end;
                             node

@@ -91,13 +91,9 @@ impl<'i> Parser<'i> for NoLayoutParser<'i> {
             }
             // Plus_0 : Plus_0 . Char
             SlotId(5) => {
-                if let Some((_, right_child)) = self.match_terminal(
-                    TerminalId(0),
-                    input_index,
-                    SlotId(5),
-                    Some(gss_node_id),
-                    "Char",
-                ) {
+                if let Some((_, right_child)) =
+                    self.match_terminal(TerminalId(0), input_index, SlotId(5), Some(gss_node_id))
+                {
                     if let Some((j, new_node)) =
                         self.create_intermediate_node(result, right_child, SlotId(6), env)
                     {
@@ -114,13 +110,9 @@ impl<'i> Parser<'i> for NoLayoutParser<'i> {
             }
             // Plus_0 : . Char
             SlotId(7) => {
-                if let Some((j, right_child)) = self.match_terminal(
-                    TerminalId(0),
-                    input_index,
-                    SlotId(7),
-                    Some(gss_node_id),
-                    "Char",
-                ) {
+                if let Some((j, right_child)) =
+                    self.match_terminal(TerminalId(0), input_index, SlotId(7), Some(gss_node_id))
+                {
                     // Plus_0 : Char.
                     self.execute(j, SlotId(8), Some(right_child), gss_node_id, env);
                 }
@@ -701,7 +693,7 @@ impl<'i> NoLayoutParser<'i> {
         self.ll1_call_log.push((NonterminalId(2), i));
         let mut j = i;
         let (body_node, body_end) = (self
-            .match_terminal(TerminalId(0), j, SlotId(7), None, "Char")
+            .match_terminal(TerminalId(0), j, SlotId(7), None)
             .map(|(end, node)| (node, end)))?;
         j = body_end;
         let left_extent = i;
@@ -717,7 +709,7 @@ impl<'i> NoLayoutParser<'i> {
         });
         loop {
             let Some((node_0, pos_0)) = self
-                .match_terminal(TerminalId(0), j, SlotId(5), None, "Char")
+                .match_terminal(TerminalId(0), j, SlotId(5), None)
                 .map(|(end, node)| (node, end))
             else {
                 break;

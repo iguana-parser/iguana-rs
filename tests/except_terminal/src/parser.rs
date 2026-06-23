@@ -69,13 +69,9 @@ impl<'i> Parser<'i> for ExceptTerminalParser<'i> {
             }
             // Id : . Identifier \ Keyword
             SlotId(2) => {
-                if let Some((j, right_child)) = self.match_terminal(
-                    TerminalId(0),
-                    input_index,
-                    SlotId(2),
-                    Some(gss_node_id),
-                    "Identifier",
-                ) {
+                if let Some((j, right_child)) =
+                    self.match_terminal(TerminalId(0), input_index, SlotId(2), Some(gss_node_id))
+                {
                     if let Some(error_kind) = self.post_conditions(SlotId(3), input_index, j) {
                         self.add_parse_error(j, SlotId(3), Some(gss_node_id), || error_kind);
                     } else {
@@ -623,8 +619,7 @@ impl<'i> ExceptTerminalParser<'i> {
                 let mut j = i;
                 let right_child = {
                     let start = j;
-                    let (end, node) =
-                        self.match_terminal(TerminalId(0), start, SlotId(3), None, "Identifier")?;
+                    let (end, node) = self.match_terminal(TerminalId(0), start, SlotId(3), None)?;
                     if let Some(error_kind) = self.post_conditions(SlotId(3), start, end) {
                         self.add_parse_error(end, SlotId(3), None, || error_kind);
                         return None;

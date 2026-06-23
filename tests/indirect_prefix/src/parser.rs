@@ -68,13 +68,9 @@ impl<'i> Parser<'i> for IndirectPrefixParser<'i> {
             }
             // E(p: i32) : . "a" return 0
             SlotId(6) => {
-                if let Some((j, right_child)) = self.match_terminal(
-                    TerminalId(1),
-                    input_index,
-                    SlotId(6),
-                    Some(gss_node_id),
-                    "\"a\"",
-                ) {
+                if let Some((j, right_child)) =
+                    self.match_terminal(TerminalId(1), input_index, SlotId(6), Some(gss_node_id))
+                {
                     // E(p: i32) : "a" . return 0
                     self.execute(j, SlotId(7), Some(right_child), gss_node_id, env);
                 }
@@ -137,13 +133,9 @@ impl<'i> Parser<'i> for IndirectPrefixParser<'i> {
             // E(p: i32) : [2 >= p] l=E(p) [(l == 0) || (l >= 2)] . WS "+" WS r=E(2) return (r == 0) ? 2
             // : min(r, 2)
             SlotId(12) => {
-                if let Some((_, right_child)) = self.match_terminal(
-                    TerminalId(0),
-                    input_index,
-                    SlotId(12),
-                    Some(gss_node_id),
-                    "WS",
-                ) {
+                if let Some((_, right_child)) =
+                    self.match_terminal(TerminalId(0), input_index, SlotId(12), Some(gss_node_id))
+                {
                     if let Some((j, new_node)) =
                         self.create_intermediate_node(result, right_child, SlotId(13), env)
                     {
@@ -156,13 +148,9 @@ impl<'i> Parser<'i> for IndirectPrefixParser<'i> {
             // E(p: i32) : [2 >= p] l=E(p) [(l == 0) || (l >= 2)] WS . "+" WS r=E(2) return (r == 0) ? 2
             // : min(r, 2)
             SlotId(13) => {
-                if let Some((_, right_child)) = self.match_terminal(
-                    TerminalId(2),
-                    input_index,
-                    SlotId(13),
-                    Some(gss_node_id),
-                    "\"+\"",
-                ) {
+                if let Some((_, right_child)) =
+                    self.match_terminal(TerminalId(2), input_index, SlotId(13), Some(gss_node_id))
+                {
                     if let Some((j, new_node)) =
                         self.create_intermediate_node(result, right_child, SlotId(14), env)
                     {
@@ -175,13 +163,9 @@ impl<'i> Parser<'i> for IndirectPrefixParser<'i> {
             // E(p: i32) : [2 >= p] l=E(p) [(l == 0) || (l >= 2)] WS "+" . WS r=E(2) return (r == 0) ? 2
             // : min(r, 2)
             SlotId(14) => {
-                if let Some((_, right_child)) = self.match_terminal(
-                    TerminalId(0),
-                    input_index,
-                    SlotId(14),
-                    Some(gss_node_id),
-                    "WS",
-                ) {
+                if let Some((_, right_child)) =
+                    self.match_terminal(TerminalId(0), input_index, SlotId(14), Some(gss_node_id))
+                {
                     if let Some((j, new_node)) =
                         self.create_intermediate_node(result, right_child, SlotId(15), env)
                     {
@@ -262,26 +246,18 @@ impl<'i> Parser<'i> for IndirectPrefixParser<'i> {
             }
             // Lambda(p: i32) : . "fn" WS r=Body(p) return r
             SlotId(21) => {
-                if let Some((j, right_child)) = self.match_terminal(
-                    TerminalId(3),
-                    input_index,
-                    SlotId(21),
-                    Some(gss_node_id),
-                    "\"fn\"",
-                ) {
+                if let Some((j, right_child)) =
+                    self.match_terminal(TerminalId(3), input_index, SlotId(21), Some(gss_node_id))
+                {
                     // Lambda(p: i32) : "fn" . WS r=Body(p) return r
                     self.execute(j, SlotId(22), Some(right_child), gss_node_id, env);
                 }
             }
             // Lambda(p: i32) : "fn" . WS r=Body(p) return r
             SlotId(22) => {
-                if let Some((_, right_child)) = self.match_terminal(
-                    TerminalId(0),
-                    input_index,
-                    SlotId(22),
-                    Some(gss_node_id),
-                    "WS",
-                ) {
+                if let Some((_, right_child)) =
+                    self.match_terminal(TerminalId(0), input_index, SlotId(22), Some(gss_node_id))
+                {
                     if let Some((j, new_node)) =
                         self.create_intermediate_node(result, right_child, SlotId(23), env)
                     {
@@ -368,13 +344,9 @@ impl<'i> Parser<'i> for IndirectPrefixParser<'i> {
             }
             // StartS : . WS start:S WS
             SlotId(2) => {
-                if let Some((j, right_child)) = self.match_terminal(
-                    TerminalId(0),
-                    input_index,
-                    SlotId(2),
-                    Some(gss_node_id),
-                    "WS",
-                ) {
+                if let Some((j, right_child)) =
+                    self.match_terminal(TerminalId(0), input_index, SlotId(2), Some(gss_node_id))
+                {
                     // StartS : WS . start:S WS
                     self.execute(j, SlotId(3), Some(right_child), gss_node_id, env);
                 }
@@ -385,13 +357,9 @@ impl<'i> Parser<'i> for IndirectPrefixParser<'i> {
             }
             // StartS : WS start:S . WS
             SlotId(4) => {
-                if let Some((_, right_child)) = self.match_terminal(
-                    TerminalId(0),
-                    input_index,
-                    SlotId(4),
-                    Some(gss_node_id),
-                    "WS",
-                ) {
+                if let Some((_, right_child)) =
+                    self.match_terminal(TerminalId(0), input_index, SlotId(4), Some(gss_node_id))
+                {
                     if let Some((j, new_node)) =
                         self.create_intermediate_node(result, right_child, SlotId(5), env)
                     {

@@ -251,9 +251,8 @@ pub trait Parser<'i> {
         input_index: u32,
         slot_id: SlotId,
         gss_node_id: Option<GssNodeId>,
-        terminal_name: &str,
     ) -> Option<(u32, SPPFNodeId)> {
-        record!(self, MatchingTerminal, terminal_name, input_index);
+        record!(self, MatchingTerminal, terminal_id, input_index);
         let j = self.match_token(terminal_id, input_index).or_else(|| {
             self.add_parse_error(input_index, slot_id, gss_node_id, || {
                 ParseErrorKind::UnexpectedToken {
@@ -262,7 +261,7 @@ pub trait Parser<'i> {
             });
             None
         })?;
-        record!(self, MatchSuccess, terminal_name, input_index, j);
+        record!(self, MatchSuccess, terminal_id, input_index, j);
         let node = self.get_or_create_terminal_node(terminal_id, input_index, j);
         Some((j, node))
     }

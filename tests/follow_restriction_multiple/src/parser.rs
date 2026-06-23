@@ -126,13 +126,9 @@ impl<'i> Parser<'i> for FollowRestrictionMultipleParser<'i> {
             }
             // Alt_0 : . Alpha
             SlotId(9) => {
-                if let Some((j, right_child)) = self.match_terminal(
-                    TerminalId(0),
-                    input_index,
-                    SlotId(9),
-                    Some(gss_node_id),
-                    "Alpha",
-                ) {
+                if let Some((j, right_child)) =
+                    self.match_terminal(TerminalId(0), input_index, SlotId(9), Some(gss_node_id))
+                {
                     // Alt_0 : Alpha.
                     self.execute(j, SlotId(10), Some(right_child), gss_node_id, env);
                 }
@@ -145,13 +141,9 @@ impl<'i> Parser<'i> for FollowRestrictionMultipleParser<'i> {
             }
             // Alt_0 : . Digit
             SlotId(11) => {
-                if let Some((j, right_child)) = self.match_terminal(
-                    TerminalId(1),
-                    input_index,
-                    SlotId(11),
-                    Some(gss_node_id),
-                    "Digit",
-                ) {
+                if let Some((j, right_child)) =
+                    self.match_terminal(TerminalId(1), input_index, SlotId(11), Some(gss_node_id))
+                {
                     // Alt_0 : Digit.
                     self.execute(j, SlotId(12), Some(right_child), gss_node_id, env);
                 }
@@ -881,7 +873,7 @@ impl<'i> FollowRestrictionMultipleParser<'i> {
                 let right_child = {
                     let start = j;
                     let (end, node) =
-                        self.match_terminal(TerminalId(0), start, SlotId(10), None, "Alpha")?;
+                        self.match_terminal(TerminalId(0), start, SlotId(10), None)?;
                     j = end;
                     node
                 };
@@ -903,7 +895,7 @@ impl<'i> FollowRestrictionMultipleParser<'i> {
                 let right_child = {
                     let start = j;
                     let (end, node) =
-                        self.match_terminal(TerminalId(1), start, SlotId(12), None, "Digit")?;
+                        self.match_terminal(TerminalId(1), start, SlotId(12), None)?;
                     j = end;
                     node
                 };

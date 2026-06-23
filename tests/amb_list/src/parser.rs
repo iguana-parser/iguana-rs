@@ -69,13 +69,9 @@ impl<'i> Parser<'i> for AmbListParser<'i> {
             }
             // A : . "a"
             SlotId(3) => {
-                if let Some((j, right_child)) = self.match_terminal(
-                    TerminalId(0),
-                    input_index,
-                    SlotId(3),
-                    Some(gss_node_id),
-                    "\"a\"",
-                ) {
+                if let Some((j, right_child)) =
+                    self.match_terminal(TerminalId(0), input_index, SlotId(3), Some(gss_node_id))
+                {
                     // A : "a".
                     self.execute(j, SlotId(4), Some(right_child), gss_node_id, env);
                 }
@@ -703,8 +699,7 @@ impl<'i> AmbListParser<'i> {
                 let mut j = i;
                 let right_child = {
                     let start = j;
-                    let (end, node) =
-                        self.match_terminal(TerminalId(0), start, SlotId(4), None, "\"a\"")?;
+                    let (end, node) = self.match_terminal(TerminalId(0), start, SlotId(4), None)?;
                     j = end;
                     node
                 };
