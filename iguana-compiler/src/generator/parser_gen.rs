@@ -2,6 +2,7 @@ use proc_macro2::Literal;
 use proc_macro2::TokenStream;
 use quote::format_ident;
 use quote::quote;
+use rustc_hash::FxHashSet;
 
 use crate::generator::GenConfig;
 use crate::generator::id::BindingIds;
@@ -63,6 +64,27 @@ impl<'a> ParserGen<'a> {
             .and_then(|s| s.as_identifier())
             .map(|i| i.name == nonterminal.name)
             .unwrap_or(false)
+    }
+
+    /// Names of the nonterminals reached by some rule, i.e. referenced as a
+    /// symbol in some alternative.
+    fn reachable_nonterminals(&self) -> FxHashSet<&'a str> {
+        let mut reachable = FxHashSet::default();
+        for nonterminal in self.grammar.nonterminals() {
+            for alternative in self.grammar.alternatives(nonterminal) {
+                for symbol in &alternative.symbols {
+                    let Some(identifier) = symbol.as_identifier() else {
+                        continue;
+                    };
+                    if let Definition::Nonterminal(n) =
+                        self.grammar.definition(identifier.resolve())
+                    {
+                        reachable.insert(n.name.as_str());
+                    }
+                }
+            }
+        }
+        reachable
     }
 
     fn has_empty_alternative(&self) -> bool {
@@ -924,10 +946,15 @@ impl<'a> ParserGen<'a> {
             .filter(|(_, n)| !n.parameters.is_empty())
             .map(|(i, n)| Self::gen_create_method(n, i))
             .collect();
+        let reachable = self.reachable_nonterminals();
         let ll1_parse_methods: Vec<_> = self
             .grammar
             .nonterminals()
-            .filter(|nt| self.config.ll1_optimization && self.ff.is_ll1(nt))
+            .filter(|nt| {
+                self.config.ll1_optimization
+                    && self.ff.is_ll1(nt)
+                    && reachable.contains(nt.name.as_str())
+            })
             .map(|nt| self.gen_parse_method_ll1(nt, self.is_layout(nt)))
             .collect();
         let get_gss_node_methods: Vec<_> = self
