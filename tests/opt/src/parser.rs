@@ -36,6 +36,9 @@ impl<'i> Parser<'i> for OptParser<'i> {
     fn eof() -> TerminalId {
         TerminalId((TERMINALS.len() - 1) as u16)
     }
+    // env is threaded only through recursive execute calls in grammars without data-dependent
+    // constructs, so clippy sees it as recursion-only there.
+    #[allow(clippy::only_used_in_recursion)]
     fn execute(
         &mut self,
         input_index: u32,
@@ -488,13 +491,11 @@ impl<'i> Parser<'i> for OptParser<'i> {
     }
     fn post_conditions(
         &mut self,
-        slot: SlotId,
+        _slot: SlotId,
         _left_extent: u32,
         _right_extent: u32,
     ) -> Option<ParseErrorKind> {
-        match slot {
-            _ => None,
-        }
+        None
     }
     fn follow_set_check(&mut self, nonterminal_id: NonterminalId, input_index: u32) -> bool {
         match nonterminal_id {
@@ -601,7 +602,7 @@ impl<'i> OptParser<'i> {
             gss_nodes: Vec::with_capacity(input.len() as usize * GSS_CAPACITY_MULTIPLIER),
             sppf_nodes: Vec::with_capacity(input.len() as usize * SPPF_CAPACITY_MULTIPLIER),
             intermediate_nodes_index: [const { InlineMap::Empty }; 7],
-            dd_intermediate_nodes_index: [const { InlineMap::Empty }; 0],
+            dd_intermediate_nodes_index: [],
             terminal_nodes_index: [const { InlineMap::Empty }; 3],
             epsilon_nodes: vec![SPPFNodeId::NONE; input.len() as usize + 1],
             #[cfg(feature = "instrument")]
@@ -635,7 +636,7 @@ impl<'i> OptParser<'i> {
                 };
                 let left_extent = self.sppf_node(right_child).left_extent();
                 let current = right_child;
-                return Some(self.add_nonterminal_node(NonterminalNode {
+                Some(self.add_nonterminal_node(NonterminalNode {
                     nonterminal_id: NonterminalId(1),
                     return_slot: SlotId(3),
                     span: Span {
@@ -644,7 +645,7 @@ impl<'i> OptParser<'i> {
                     },
                     child: current,
                     ambiguous: false,
-                }));
+                }))
             }
             _ => unreachable!("LL(1) dispatch covers every terminal in FIRST_SET"),
         }
@@ -653,17 +654,19 @@ impl<'i> OptParser<'i> {
         #[cfg(feature = "instrument")]
         self.ll1_call_log.push((NonterminalId(2), i));
         let Some(matched) = self.scanner.longest_match(&FIRST_SET_OPT_0, i) else {
-            let epsilon_node_id = self.get_or_create_epsilon_node(i);
-            return Some(self.add_nonterminal_node(NonterminalNode {
-                nonterminal_id: NonterminalId(2),
-                return_slot: SlotId(6),
-                span: Span {
-                    left_extent: i,
-                    right_extent: i,
-                },
-                child: epsilon_node_id,
-                ambiguous: false,
-            }));
+            return {
+                let epsilon_node_id = self.get_or_create_epsilon_node(i);
+                Some(self.add_nonterminal_node(NonterminalNode {
+                    nonterminal_id: NonterminalId(2),
+                    return_slot: SlotId(6),
+                    span: Span {
+                        left_extent: i,
+                        right_extent: i,
+                    },
+                    child: epsilon_node_id,
+                    ambiguous: false,
+                }))
+            };
         };
         match matched {
             TerminalId(0) => {
@@ -677,7 +680,7 @@ impl<'i> OptParser<'i> {
                 };
                 let left_extent = self.sppf_node(right_child).left_extent();
                 let current = right_child;
-                return Some(self.add_nonterminal_node(NonterminalNode {
+                Some(self.add_nonterminal_node(NonterminalNode {
                     nonterminal_id: NonterminalId(2),
                     return_slot: SlotId(5),
                     span: Span {
@@ -686,7 +689,7 @@ impl<'i> OptParser<'i> {
                     },
                     child: current,
                     ambiguous: false,
-                }));
+                }))
             }
             _ => unreachable!("LL(1) dispatch covers every terminal in FIRST_SET"),
         }

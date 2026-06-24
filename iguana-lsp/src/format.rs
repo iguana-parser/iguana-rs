@@ -35,7 +35,7 @@ const CONT_INDENT: &str = "      "; // 6 spaces for continuation lines
 /// Format an iggy grammar from its parse tree.
 pub fn format(tree: &Start<&Grammar<'_>, &Layout<'_>>, input: &Input) -> String {
     let f = Formatter::new(input);
-    f.format_grammar(&tree.node)
+    f.format_grammar(tree.node)
 }
 
 struct Formatter<'a> {
@@ -83,7 +83,7 @@ impl<'a> Formatter<'a> {
         // Rules
         for rule in grammar.rules().rules() {
             out.push_str("\n\n");
-            self.format_rule(&mut out, &rule);
+            self.format_rule(&mut out, rule);
         }
 
         out.push('\n');
@@ -146,7 +146,7 @@ impl<'a> Formatter<'a> {
                 let label = match alt {
                     Alternative::Symbols { symbols, label, .. } => {
                         for sym in symbols.symbols() {
-                            chunks.push(self.symbol_to_string(&sym));
+                            chunks.push(self.symbol_to_string(sym));
                         }
                         label.value()
                     }
@@ -545,7 +545,7 @@ mod tests {
         let input = Input::from(source);
         let ctx = iguana_runtime::parse_tree::ParseContext::new();
         match build(&input, &ctx) {
-            BuildResult::Success { ref tree, .. } => Some(format(tree, &input)),
+            BuildResult::Success { tree, .. } => Some(format(tree, &input)),
             BuildResult::Error { .. } | BuildResult::Ambiguous => None,
         }
     }

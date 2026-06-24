@@ -618,9 +618,9 @@ fn main() -> Result<(), io::Error> {
                     panic!("Parse failed at line {line} column {column}: {message}");
                 }
             };
+            let _ = parse_tree_builder;
             let drop_start = Instant::now();
             drop(parser);
-            drop(parse_tree_builder);
             drop(ctx);
             drop(input);
             let drop = drop_start.elapsed();
@@ -834,8 +834,8 @@ fn run_batch(
     files.sort();
     if !hist_only {
         println!(
-            "{:<6}  {:<42}  {:<36}  {}",
-            "STATUS", "TIME (input, init, parse, tree, drop)", "REASON", "PATH"
+            "{:<6}  {:<42}  {:<36}  PATH",
+            "STATUS", "TIME (input, init, parse, tree, drop)", "REASON"
         );
     }
     let mut ok = 0usize;
@@ -896,9 +896,9 @@ fn run_batch(
                 let tree_ms = tc_start.elapsed().as_secs_f64() * 1000.0;
                 #[cfg(feature = "instrument")]
                 corpus_stats.merge(parser.record_stats());
+                let _ = parse_tree_builder;
                 let drop_start = Instant::now();
                 drop(parser);
-                drop(parse_tree_builder);
                 drop(ctx);
                 drop(input);
                 let drop_ms = drop_start.elapsed().as_secs_f64() * 1000.0;

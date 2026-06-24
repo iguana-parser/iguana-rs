@@ -345,6 +345,9 @@ impl<'a> ParserGen<'a> {
         }
 
         quote! {
+            #[comment = "env is threaded only through recursive execute calls in grammars without
+                         data-dependent constructs, so clippy sees it as recursion-only there."]
+            #[allow(clippy::only_used_in_recursion)]
             fn execute(
                 &mut self,
                 input_index: u32,
@@ -752,12 +755,25 @@ impl<'a> ParserGen<'a> {
         } else {
             quote! { _right_extent }
         };
+        // With no excepts or follow restrictions there are no arms, so the
+        // match would collapse to `match slot { _ => None }`. Emit the body
+        // directly and underscore the now-unused slot parameter.
+        let (slot, body) = if arms.is_empty() {
+            (quote! { _slot }, quote! { None })
+        } else {
+            (
+                quote! { slot },
+                quote! {
+                    match slot {
+                        #(#arms)*
+                        _ => None,
+                    }
+                },
+            )
+        };
         quote! {
-            fn post_conditions(&mut self, slot: SlotId, #left_extent: u32, #right_extent: u32) -> Option<ParseErrorKind> {
-                match slot {
-                    #(#arms)*
-                    _ => None,
-                }
+            fn post_conditions(&mut self, #slot: SlotId, #left_extent: u32, #right_extent: u32) -> Option<ParseErrorKind> {
+                #body
             }
         }
     }
@@ -1158,26 +1174,27 @@ impl<'a> ParserGen<'a> {
     }
 
     fn gen_gss_nodes_index_field(&self) -> TokenStream {
-        let nonterminal_ids_len = Literal::usize_unsuffixed(self.nonterminal_ids.len());
+        let gss_nodes_index = empty_inline_map_array(self.nonterminal_ids.len());
         quote! {
-            gss_nodes_index: [const { InlineMap::Empty }; #nonterminal_ids_len]
+            gss_nodes_index: #gss_nodes_index
         }
     }
 
     fn gen_intermediate_nodes_index_field(&self) -> TokenStream {
         let dd_slot_start = self.slot_ids.dd_slot_start();
-        let dd_slot_start_lit = Literal::usize_unsuffixed(dd_slot_start);
-        let param_slot_count_lit = Literal::usize_unsuffixed(self.slot_ids.len() - dd_slot_start);
+        let intermediate_nodes_index = empty_inline_map_array(dd_slot_start);
+        let dd_intermediate_nodes_index =
+            empty_inline_map_array(self.slot_ids.len() - dd_slot_start);
         quote! {
-            intermediate_nodes_index: [const { InlineMap::Empty }; #dd_slot_start_lit],
-            dd_intermediate_nodes_index: [const { InlineMap::Empty }; #param_slot_count_lit]
+            intermediate_nodes_index: #intermediate_nodes_index,
+            dd_intermediate_nodes_index: #dd_intermediate_nodes_index
         }
     }
 
     fn gen_terminal_nodes_index_field(&self) -> TokenStream {
-        let terminal_ids_len = Literal::usize_unsuffixed(self.terminal_ids.len() + 2);
+        let terminal_nodes_index = empty_inline_map_array(self.terminal_ids.len() + 2);
         quote! {
-            terminal_nodes_index: [const { InlineMap::Empty }; #terminal_ids_len]
+            terminal_nodes_index: #terminal_nodes_index
         }
     }
 
@@ -1270,7 +1287,7 @@ impl<'a> ParserGen<'a> {
                 let nullable_body = self.gen_alt_body_ll1(nonterminal, nullable, nonterminal_id);
                 quote! {
                     let Some(matched) = self.scanner.longest_match(&#first_set_name, i) else {
-                        #nullable_body
+                        return { #nullable_body };
                     };
                     match matched {
                         #(#arms)*
@@ -1292,13 +1309,13 @@ impl<'a> ParserGen<'a> {
         if alternative.symbols.is_empty() {
             quote! {
                 let epsilon_node_id = self.get_or_create_epsilon_node(i);
-                return Some(self.add_nonterminal_node(NonterminalNode {
+                Some(self.add_nonterminal_node(NonterminalNode {
                     nonterminal_id: #nonterminal_id,
                     return_slot: #end_slot_id,
                     span: Span { left_extent: i, right_extent: i },
                     child: epsilon_node_id,
                     ambiguous: false,
-                }));
+                }))
             }
         } else {
             self.gen_parse_alternative_ll1(nonterminal, alternative, nonterminal_id, end_slot_id)
@@ -1587,13 +1604,13 @@ impl<'a> ParserGen<'a> {
         }
 
         body.push(quote! {
-            return Some(self.add_nonterminal_node(NonterminalNode {
+            Some(self.add_nonterminal_node(NonterminalNode {
                 nonterminal_id: #nonterminal_id,
                 return_slot: #end_slot_id,
                 span: Span { left_extent, right_extent: j },
                 child: current,
                 ambiguous: false,
-            }));
+            }))
         });
 
         quote! { #(#body)* }
@@ -2054,6 +2071,7 @@ impl<'a> ParserGen<'a> {
             .map(|p| format_ident!("{}", p.name))
             .collect();
         quote! {
+            #[allow(clippy::too_many_arguments)]
             fn #create_method_name(
                 &mut self,
                 sppf_node_id: Option<SPPFNodeId>,
@@ -2097,6 +2115,7 @@ impl<'a> ParserGen<'a> {
             to_snake_case(&nt.name)
         );
         quote! {
+            #[allow(clippy::too_many_arguments)]
             fn #method_name(
                 &mut self,
                 nonterminal_id: NonterminalId,
@@ -2429,4 +2448,16 @@ fn binding_const_ident(name: &str) -> proc_macro2::Ident {
         .map(|c| if c.is_alphanumeric() { c } else { '_' })
         .collect();
     format_ident!("BINDING_{}", sanitized.to_uppercase())
+}
+
+/// An array of `count` empty `InlineMap`s. A zero-length array is emitted as
+/// `[]` rather than `[const { InlineMap::Empty }; 0]`, which clippy rejects as
+/// a zero-length repeat of a side-effecting initializer.
+fn empty_inline_map_array(count: usize) -> TokenStream {
+    if count == 0 {
+        quote! { [] }
+    } else {
+        let count = Literal::usize_unsuffixed(count);
+        quote! { [const { InlineMap::Empty }; #count] }
+    }
 }

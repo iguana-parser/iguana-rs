@@ -1739,12 +1739,14 @@ mod tests {
         assert_eq!(actual, expected);
     }
 
+    /// ```text
     /// E = 'a'
     ///   > E '*' E  left
     ///   | E '/' E  left
     ///   > E '+' E  left
     ///   | E '-' E  left
     ///   > E '<' E  non_assoc
+    /// ```
     #[test]
     fn test_mixed_assoc() {
         let input = grammar_def!("Test",

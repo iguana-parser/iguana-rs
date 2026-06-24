@@ -586,9 +586,12 @@ pub fn generate(grammar: &Grammar) -> TokenStream {
                         }
                     };
 
+                    // The builder borrows ctx and owns no heap data, so release
+                    // its borrow before timing teardown of the structures that
+                    // actually free memory.
+                    let _ = parse_tree_builder;
                     let drop_start = Instant::now();
                     drop(parser);
-                    drop(parse_tree_builder);
                     drop(ctx);
                     drop(input);
                     let drop = drop_start.elapsed();
@@ -817,8 +820,8 @@ pub fn generate(grammar: &Grammar) -> TokenStream {
             files.sort();
 
             if !hist_only {
-                println!("{:<6}  {:<42}  {:<36}  {}",
-                    "STATUS", "TIME (input, init, parse, tree, drop)", "REASON", "PATH");
+                println!("{:<6}  {:<42}  {:<36}  PATH",
+                    "STATUS", "TIME (input, init, parse, tree, drop)", "REASON");
             }
 
             let mut ok = 0usize;
@@ -876,9 +879,12 @@ pub fn generate(grammar: &Grammar) -> TokenStream {
                         let tree_ms = tc_start.elapsed().as_secs_f64() * 1000.0;
                         #[cfg(feature = "instrument")]
                         corpus_stats.merge(parser.record_stats());
+                        // The builder borrows ctx and owns no heap data, so release
+                        // its borrow before timing teardown of the structures that
+                        // actually free memory.
+                        let _ = parse_tree_builder;
                         let drop_start = Instant::now();
                         drop(parser);
-                        drop(parse_tree_builder);
                         drop(ctx);
                         drop(input);
                         let drop_ms = drop_start.elapsed().as_secs_f64() * 1000.0;

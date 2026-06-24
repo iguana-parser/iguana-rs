@@ -148,7 +148,7 @@ impl std::fmt::Display for Regex {
                     write!(f, "{}?", inner)
                 }
             }
-            Regex::Epsilon => write!(f, "{}", "ε"),
+            Regex::Epsilon => write!(f, "ε"),
             Regex::Identifier(id) => write!(f, "{}", id.name),
         }
     }

@@ -36,6 +36,9 @@ impl<'i> Parser<'i> for LeftRecursiveListParser<'i> {
     fn eof() -> TerminalId {
         TerminalId((TERMINALS.len() - 1) as u16)
     }
+    // env is threaded only through recursive execute calls in grammars without data-dependent
+    // constructs, so clippy sees it as recursion-only there.
+    #[allow(clippy::only_used_in_recursion)]
     fn execute(
         &mut self,
         input_index: u32,
@@ -456,13 +459,11 @@ impl<'i> Parser<'i> for LeftRecursiveListParser<'i> {
     }
     fn post_conditions(
         &mut self,
-        slot: SlotId,
+        _slot: SlotId,
         _left_extent: u32,
         _right_extent: u32,
     ) -> Option<ParseErrorKind> {
-        match slot {
-            _ => None,
-        }
+        None
     }
     fn follow_set_check(&mut self, nonterminal_id: NonterminalId, input_index: u32) -> bool {
         match nonterminal_id {
@@ -563,7 +564,7 @@ impl<'i> LeftRecursiveListParser<'i> {
             gss_nodes: Vec::with_capacity(input.len() as usize * GSS_CAPACITY_MULTIPLIER),
             sppf_nodes: Vec::with_capacity(input.len() as usize * SPPF_CAPACITY_MULTIPLIER),
             intermediate_nodes_index: [const { InlineMap::Empty }; 5],
-            dd_intermediate_nodes_index: [const { InlineMap::Empty }; 0],
+            dd_intermediate_nodes_index: [],
             terminal_nodes_index: [const { InlineMap::Empty }; 3],
             #[cfg(feature = "instrument")]
             descriptors_count: 0,

@@ -11,6 +11,7 @@
 //!   accept is reachable are never built, so a scan stops where the
 //!   terminal dies instead of following except fragments further.
 
+#[allow(clippy::module_inception)]
 pub mod dfa;
 pub mod nfa;
 

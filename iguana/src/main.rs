@@ -266,18 +266,15 @@ fn find_iggy_file(directory: &Path) -> std::io::Result<PathBuf> {
         .collect();
 
     match iggy_files.len() {
-        0 => Err(std::io::Error::new(
-            std::io::ErrorKind::NotFound,
+        0 => Err(io::Error::new(
+            io::ErrorKind::NotFound,
             format!("No .iggy file found in {}", directory.display()),
         )),
         1 => Ok(iggy_files[0].path()),
-        n => Err(std::io::Error::new(
-            std::io::ErrorKind::Other,
-            format!(
-                "Found {n} .iggy files in {}. Expected exactly one.",
-                directory.display()
-            ),
-        )),
+        n => Err(io::Error::other(format!(
+            "Found {n} .iggy files in {}. Expected exactly one.",
+            directory.display()
+        ))),
     }
 }
 
@@ -307,6 +304,6 @@ fn available_phases() -> String {
     for phase in Phase::ALL {
         writeln!(message, "  {:<11}{}", phase.token(), phase.description()).unwrap();
     }
-    writeln!(message, "  {:<11}{}", "all", "every phase").unwrap();
+    writeln!(message, "  {:<11}every phase", "all").unwrap();
     message
 }

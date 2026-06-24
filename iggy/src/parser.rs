@@ -40,6 +40,9 @@ impl<'i> Parser<'i> for IggyParser<'i> {
     fn eof() -> TerminalId {
         TerminalId((TERMINALS.len() - 1) as u16)
     }
+    // env is threaded only through recursive execute calls in grammars without data-dependent
+    // constructs, so clippy sees it as recursion-only there.
+    #[allow(clippy::only_used_in_recursion)]
     fn execute(
         &mut self,
         input_index: u32,
@@ -5672,6 +5675,7 @@ impl<'i> IggyParser<'i> {
             trace_events: None,
         }
     }
+    #[allow(clippy::too_many_arguments)]
     fn create_symbol(
         &mut self,
         sppf_node_id: Option<SPPFNodeId>,
@@ -5737,7 +5741,7 @@ impl<'i> IggyParser<'i> {
                 };
                 let left_extent = self.sppf_node(right_child).left_extent();
                 let current = right_child;
-                return Some(self.add_nonterminal_node(NonterminalNode {
+                Some(self.add_nonterminal_node(NonterminalNode {
                     nonterminal_id: NonterminalId(3),
                     return_slot: SlotId(19),
                     span: Span {
@@ -5746,7 +5750,7 @@ impl<'i> IggyParser<'i> {
                     },
                     child: current,
                     ambiguous: false,
-                }));
+                }))
             }
             TerminalId(14) => {
                 let mut j = i;
@@ -5759,7 +5763,7 @@ impl<'i> IggyParser<'i> {
                 };
                 let left_extent = self.sppf_node(right_child).left_extent();
                 let current = right_child;
-                return Some(self.add_nonterminal_node(NonterminalNode {
+                Some(self.add_nonterminal_node(NonterminalNode {
                     nonterminal_id: NonterminalId(3),
                     return_slot: SlotId(21),
                     span: Span {
@@ -5768,7 +5772,7 @@ impl<'i> IggyParser<'i> {
                     },
                     child: current,
                     ambiguous: false,
-                }));
+                }))
             }
             TerminalId(15) => {
                 let mut j = i;
@@ -5865,7 +5869,7 @@ impl<'i> IggyParser<'i> {
                     current,
                     right_child,
                 );
-                return Some(self.add_nonterminal_node(NonterminalNode {
+                Some(self.add_nonterminal_node(NonterminalNode {
                     nonterminal_id: NonterminalId(3),
                     return_slot: SlotId(29),
                     span: Span {
@@ -5874,7 +5878,7 @@ impl<'i> IggyParser<'i> {
                     },
                     child: current,
                     ambiguous: false,
-                }));
+                }))
             }
             TerminalId(18) => {
                 let mut j = i;
@@ -5887,7 +5891,7 @@ impl<'i> IggyParser<'i> {
                 };
                 let left_extent = self.sppf_node(right_child).left_extent();
                 let current = right_child;
-                return Some(self.add_nonterminal_node(NonterminalNode {
+                Some(self.add_nonterminal_node(NonterminalNode {
                     nonterminal_id: NonterminalId(3),
                     return_slot: SlotId(31),
                     span: Span {
@@ -5896,7 +5900,7 @@ impl<'i> IggyParser<'i> {
                     },
                     child: current,
                     ambiguous: false,
-                }));
+                }))
             }
             _ => unreachable!("LL(1) dispatch covers every terminal in FIRST_SET"),
         }
@@ -5945,7 +5949,7 @@ impl<'i> IggyParser<'i> {
                     current,
                     right_child,
                 );
-                return Some(self.add_nonterminal_node(NonterminalNode {
+                Some(self.add_nonterminal_node(NonterminalNode {
                     nonterminal_id: NonterminalId(5),
                     return_slot: SlotId(49),
                     span: Span {
@@ -5954,7 +5958,7 @@ impl<'i> IggyParser<'i> {
                     },
                     child: current,
                     ambiguous: false,
-                }));
+                }))
             }
             _ => unreachable!("LL(1) dispatch covers every terminal in FIRST_SET"),
         }
@@ -6003,7 +6007,7 @@ impl<'i> IggyParser<'i> {
                     current,
                     right_child,
                 );
-                return Some(self.add_nonterminal_node(NonterminalNode {
+                Some(self.add_nonterminal_node(NonterminalNode {
                     nonterminal_id: NonterminalId(6),
                     return_slot: SlotId(53),
                     span: Span {
@@ -6012,7 +6016,7 @@ impl<'i> IggyParser<'i> {
                     },
                     child: current,
                     ambiguous: false,
-                }));
+                }))
             }
             TerminalId(23) => {
                 let mut j = i;
@@ -6053,7 +6057,7 @@ impl<'i> IggyParser<'i> {
                     current,
                     right_child,
                 );
-                return Some(self.add_nonterminal_node(NonterminalNode {
+                Some(self.add_nonterminal_node(NonterminalNode {
                     nonterminal_id: NonterminalId(6),
                     return_slot: SlotId(57),
                     span: Span {
@@ -6062,7 +6066,7 @@ impl<'i> IggyParser<'i> {
                     },
                     child: current,
                     ambiguous: false,
-                }));
+                }))
             }
             _ => unreachable!("LL(1) dispatch covers every terminal in FIRST_SET"),
         }
@@ -6083,7 +6087,7 @@ impl<'i> IggyParser<'i> {
                 };
                 let left_extent = self.sppf_node(right_child).left_extent();
                 let current = right_child;
-                return Some(self.add_nonterminal_node(NonterminalNode {
+                Some(self.add_nonterminal_node(NonterminalNode {
                     nonterminal_id: NonterminalId(8),
                     return_slot: SlotId(63),
                     span: Span {
@@ -6092,7 +6096,7 @@ impl<'i> IggyParser<'i> {
                     },
                     child: current,
                     ambiguous: false,
-                }));
+                }))
             }
             TerminalId(25) => {
                 let mut j = i;
@@ -6105,7 +6109,7 @@ impl<'i> IggyParser<'i> {
                 };
                 let left_extent = self.sppf_node(right_child).left_extent();
                 let current = right_child;
-                return Some(self.add_nonterminal_node(NonterminalNode {
+                Some(self.add_nonterminal_node(NonterminalNode {
                     nonterminal_id: NonterminalId(8),
                     return_slot: SlotId(65),
                     span: Span {
@@ -6114,7 +6118,7 @@ impl<'i> IggyParser<'i> {
                     },
                     child: current,
                     ambiguous: false,
-                }));
+                }))
             }
             TerminalId(26) => {
                 let mut j = i;
@@ -6127,7 +6131,7 @@ impl<'i> IggyParser<'i> {
                 };
                 let left_extent = self.sppf_node(right_child).left_extent();
                 let current = right_child;
-                return Some(self.add_nonterminal_node(NonterminalNode {
+                Some(self.add_nonterminal_node(NonterminalNode {
                     nonterminal_id: NonterminalId(8),
                     return_slot: SlotId(67),
                     span: Span {
@@ -6136,7 +6140,7 @@ impl<'i> IggyParser<'i> {
                     },
                     child: current,
                     ambiguous: false,
-                }));
+                }))
             }
             _ => unreachable!("LL(1) dispatch covers every terminal in FIRST_SET"),
         }
@@ -6213,7 +6217,7 @@ impl<'i> IggyParser<'i> {
                     current,
                     right_child,
                 );
-                return Some(self.add_nonterminal_node(NonterminalNode {
+                Some(self.add_nonterminal_node(NonterminalNode {
                     nonterminal_id: NonterminalId(13),
                     return_slot: SlotId(129),
                     span: Span {
@@ -6222,7 +6226,7 @@ impl<'i> IggyParser<'i> {
                     },
                     child: current,
                     ambiguous: false,
-                }));
+                }))
             }
             _ => unreachable!("LL(1) dispatch covers every terminal in FIRST_SET"),
         }
@@ -6248,7 +6252,7 @@ impl<'i> IggyParser<'i> {
             };
             let left_extent = self.sppf_node(right_child).left_extent();
             let current = right_child;
-            return Some(self.add_nonterminal_node(NonterminalNode {
+            Some(self.add_nonterminal_node(NonterminalNode {
                 nonterminal_id: NonterminalId(14),
                 return_slot: SlotId(131),
                 span: Span {
@@ -6257,7 +6261,7 @@ impl<'i> IggyParser<'i> {
                 },
                 child: current,
                 ambiguous: false,
-            }));
+            }))
         })();
         if let Some(node) = result {
             self.layout_memo[i as usize] = Some(node);
@@ -6268,17 +6272,19 @@ impl<'i> IggyParser<'i> {
         #[cfg(feature = "instrument")]
         self.ll1_call_log.push((NonterminalId(18), i));
         let Some(matched) = self.scanner.longest_match(&FIRST_SET_OPT_1, i) else {
-            let epsilon_node_id = self.get_or_create_epsilon_node(i);
-            return Some(self.add_nonterminal_node(NonterminalNode {
-                nonterminal_id: NonterminalId(18),
-                return_slot: SlotId(145),
-                span: Span {
-                    left_extent: i,
-                    right_extent: i,
-                },
-                child: epsilon_node_id,
-                ambiguous: false,
-            }));
+            return {
+                let epsilon_node_id = self.get_or_create_epsilon_node(i);
+                Some(self.add_nonterminal_node(NonterminalNode {
+                    nonterminal_id: NonterminalId(18),
+                    return_slot: SlotId(145),
+                    span: Span {
+                        left_extent: i,
+                        right_extent: i,
+                    },
+                    child: epsilon_node_id,
+                    ambiguous: false,
+                }))
+            };
         };
         match matched {
             TerminalId(18) | TerminalId(13) | TerminalId(14) | TerminalId(15) => {
@@ -6292,7 +6298,7 @@ impl<'i> IggyParser<'i> {
                 };
                 let left_extent = self.sppf_node(right_child).left_extent();
                 let current = right_child;
-                return Some(self.add_nonterminal_node(NonterminalNode {
+                Some(self.add_nonterminal_node(NonterminalNode {
                     nonterminal_id: NonterminalId(18),
                     return_slot: SlotId(144),
                     span: Span {
@@ -6301,7 +6307,7 @@ impl<'i> IggyParser<'i> {
                     },
                     child: current,
                     ambiguous: false,
-                }));
+                }))
             }
             _ => unreachable!("LL(1) dispatch covers every terminal in FIRST_SET"),
         }
@@ -6310,17 +6316,19 @@ impl<'i> IggyParser<'i> {
         #[cfg(feature = "instrument")]
         self.ll1_call_log.push((NonterminalId(22), i));
         let Some(matched) = self.scanner.longest_match(&FIRST_SET_OPT_3, i) else {
-            let epsilon_node_id = self.get_or_create_epsilon_node(i);
-            return Some(self.add_nonterminal_node(NonterminalNode {
-                nonterminal_id: NonterminalId(22),
-                return_slot: SlotId(161),
-                span: Span {
-                    left_extent: i,
-                    right_extent: i,
-                },
-                child: epsilon_node_id,
-                ambiguous: false,
-            }));
+            return {
+                let epsilon_node_id = self.get_or_create_epsilon_node(i);
+                Some(self.add_nonterminal_node(NonterminalNode {
+                    nonterminal_id: NonterminalId(22),
+                    return_slot: SlotId(161),
+                    span: Span {
+                        left_extent: i,
+                        right_extent: i,
+                    },
+                    child: epsilon_node_id,
+                    ambiguous: false,
+                }))
+            };
         };
         match matched {
             TerminalId(14) => {
@@ -6334,7 +6342,7 @@ impl<'i> IggyParser<'i> {
                 };
                 let left_extent = self.sppf_node(right_child).left_extent();
                 let current = right_child;
-                return Some(self.add_nonterminal_node(NonterminalNode {
+                Some(self.add_nonterminal_node(NonterminalNode {
                     nonterminal_id: NonterminalId(22),
                     return_slot: SlotId(160),
                     span: Span {
@@ -6343,7 +6351,7 @@ impl<'i> IggyParser<'i> {
                     },
                     child: current,
                     ambiguous: false,
-                }));
+                }))
             }
             _ => unreachable!("LL(1) dispatch covers every terminal in FIRST_SET"),
         }
@@ -6403,17 +6411,19 @@ impl<'i> IggyParser<'i> {
         #[cfg(feature = "instrument")]
         self.ll1_call_log.push((NonterminalId(27), i));
         let Some(matched) = self.scanner.longest_match(&FIRST_SET_OPT_5, i) else {
-            let epsilon_node_id = self.get_or_create_epsilon_node(i);
-            return Some(self.add_nonterminal_node(NonterminalNode {
-                nonterminal_id: NonterminalId(27),
-                return_slot: SlotId(187),
-                span: Span {
-                    left_extent: i,
-                    right_extent: i,
-                },
-                child: epsilon_node_id,
-                ambiguous: false,
-            }));
+            return {
+                let epsilon_node_id = self.get_or_create_epsilon_node(i);
+                Some(self.add_nonterminal_node(NonterminalNode {
+                    nonterminal_id: NonterminalId(27),
+                    return_slot: SlotId(187),
+                    span: Span {
+                        left_extent: i,
+                        right_extent: i,
+                    },
+                    child: epsilon_node_id,
+                    ambiguous: false,
+                }))
+            };
         };
         match matched {
             TerminalId(22) | TerminalId(23) => {
@@ -6427,7 +6437,7 @@ impl<'i> IggyParser<'i> {
                 };
                 let left_extent = self.sppf_node(right_child).left_extent();
                 let current = right_child;
-                return Some(self.add_nonterminal_node(NonterminalNode {
+                Some(self.add_nonterminal_node(NonterminalNode {
                     nonterminal_id: NonterminalId(27),
                     return_slot: SlotId(186),
                     span: Span {
@@ -6436,7 +6446,7 @@ impl<'i> IggyParser<'i> {
                     },
                     child: current,
                     ambiguous: false,
-                }));
+                }))
             }
             _ => unreachable!("LL(1) dispatch covers every terminal in FIRST_SET"),
         }
@@ -6454,7 +6464,7 @@ impl<'i> IggyParser<'i> {
         };
         let left_extent = self.sppf_node(right_child).left_extent();
         let current = right_child;
-        return Some(self.add_nonterminal_node(NonterminalNode {
+        Some(self.add_nonterminal_node(NonterminalNode {
             nonterminal_id: NonterminalId(28),
             return_slot: SlotId(189),
             span: Span {
@@ -6463,23 +6473,25 @@ impl<'i> IggyParser<'i> {
             },
             child: current,
             ambiguous: false,
-        }));
+        }))
     }
     fn parse_opt_6_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
         #[cfg(feature = "instrument")]
         self.ll1_call_log.push((NonterminalId(29), i));
         let Some(matched) = self.scanner.longest_match(&FIRST_SET_OPT_6, i) else {
-            let epsilon_node_id = self.get_or_create_epsilon_node(i);
-            return Some(self.add_nonterminal_node(NonterminalNode {
-                nonterminal_id: NonterminalId(29),
-                return_slot: SlotId(192),
-                span: Span {
-                    left_extent: i,
-                    right_extent: i,
-                },
-                child: epsilon_node_id,
-                ambiguous: false,
-            }));
+            return {
+                let epsilon_node_id = self.get_or_create_epsilon_node(i);
+                Some(self.add_nonterminal_node(NonterminalNode {
+                    nonterminal_id: NonterminalId(29),
+                    return_slot: SlotId(192),
+                    span: Span {
+                        left_extent: i,
+                        right_extent: i,
+                    },
+                    child: epsilon_node_id,
+                    ambiguous: false,
+                }))
+            };
         };
         match matched {
             TerminalId(24) | TerminalId(25) | TerminalId(26) => {
@@ -6493,7 +6505,7 @@ impl<'i> IggyParser<'i> {
                 };
                 let left_extent = self.sppf_node(right_child).left_extent();
                 let current = right_child;
-                return Some(self.add_nonterminal_node(NonterminalNode {
+                Some(self.add_nonterminal_node(NonterminalNode {
                     nonterminal_id: NonterminalId(29),
                     return_slot: SlotId(191),
                     span: Span {
@@ -6502,7 +6514,7 @@ impl<'i> IggyParser<'i> {
                     },
                     child: current,
                     ambiguous: false,
-                }));
+                }))
             }
             _ => unreachable!("LL(1) dispatch covers every terminal in FIRST_SET"),
         }
@@ -6511,17 +6523,19 @@ impl<'i> IggyParser<'i> {
         #[cfg(feature = "instrument")]
         self.ll1_call_log.push((NonterminalId(34), i));
         let Some(matched) = self.scanner.longest_match(&FIRST_SET_OPT_8, i) else {
-            let epsilon_node_id = self.get_or_create_epsilon_node(i);
-            return Some(self.add_nonterminal_node(NonterminalNode {
-                nonterminal_id: NonterminalId(34),
-                return_slot: SlotId(214),
-                span: Span {
-                    left_extent: i,
-                    right_extent: i,
-                },
-                child: epsilon_node_id,
-                ambiguous: false,
-            }));
+            return {
+                let epsilon_node_id = self.get_or_create_epsilon_node(i);
+                Some(self.add_nonterminal_node(NonterminalNode {
+                    nonterminal_id: NonterminalId(34),
+                    return_slot: SlotId(214),
+                    span: Span {
+                        left_extent: i,
+                        right_extent: i,
+                    },
+                    child: epsilon_node_id,
+                    ambiguous: false,
+                }))
+            };
         };
         match matched {
             TerminalId(6) => {
@@ -6535,7 +6549,7 @@ impl<'i> IggyParser<'i> {
                 };
                 let left_extent = self.sppf_node(right_child).left_extent();
                 let current = right_child;
-                return Some(self.add_nonterminal_node(NonterminalNode {
+                Some(self.add_nonterminal_node(NonterminalNode {
                     nonterminal_id: NonterminalId(34),
                     return_slot: SlotId(213),
                     span: Span {
@@ -6544,7 +6558,7 @@ impl<'i> IggyParser<'i> {
                     },
                     child: current,
                     ambiguous: false,
-                }));
+                }))
             }
             _ => unreachable!("LL(1) dispatch covers every terminal in FIRST_SET"),
         }
@@ -6593,7 +6607,7 @@ impl<'i> IggyParser<'i> {
                     current,
                     right_child,
                 );
-                return Some(self.add_nonterminal_node(NonterminalNode {
+                Some(self.add_nonterminal_node(NonterminalNode {
                     nonterminal_id: NonterminalId(37),
                     return_slot: SlotId(228),
                     span: Span {
@@ -6602,7 +6616,7 @@ impl<'i> IggyParser<'i> {
                     },
                     child: current,
                     ambiguous: false,
-                }));
+                }))
             }
             _ => unreachable!("LL(1) dispatch covers every terminal in FIRST_SET"),
         }
@@ -6651,7 +6665,7 @@ impl<'i> IggyParser<'i> {
                     current,
                     right_child,
                 );
-                return Some(self.add_nonterminal_node(NonterminalNode {
+                Some(self.add_nonterminal_node(NonterminalNode {
                     nonterminal_id: NonterminalId(39),
                     return_slot: SlotId(238),
                     span: Span {
@@ -6660,7 +6674,7 @@ impl<'i> IggyParser<'i> {
                     },
                     child: current,
                     ambiguous: false,
-                }));
+                }))
             }
             _ => unreachable!("LL(1) dispatch covers every terminal in FIRST_SET"),
         }
@@ -6709,7 +6723,7 @@ impl<'i> IggyParser<'i> {
                     current,
                     right_child,
                 );
-                return Some(self.add_nonterminal_node(NonterminalNode {
+                Some(self.add_nonterminal_node(NonterminalNode {
                     nonterminal_id: NonterminalId(41),
                     return_slot: SlotId(248),
                     span: Span {
@@ -6718,7 +6732,7 @@ impl<'i> IggyParser<'i> {
                     },
                     child: current,
                     ambiguous: false,
-                }));
+                }))
             }
             _ => unreachable!("LL(1) dispatch covers every terminal in FIRST_SET"),
         }
@@ -6727,17 +6741,19 @@ impl<'i> IggyParser<'i> {
         #[cfg(feature = "instrument")]
         self.ll1_call_log.push((NonterminalId(45), i));
         let Some(matched) = self.scanner.longest_match(&FIRST_SET_OPT_9, i) else {
-            let epsilon_node_id = self.get_or_create_epsilon_node(i);
-            return Some(self.add_nonterminal_node(NonterminalNode {
-                nonterminal_id: NonterminalId(45),
-                return_slot: SlotId(267),
-                span: Span {
-                    left_extent: i,
-                    right_extent: i,
-                },
-                child: epsilon_node_id,
-                ambiguous: false,
-            }));
+            return {
+                let epsilon_node_id = self.get_or_create_epsilon_node(i);
+                Some(self.add_nonterminal_node(NonterminalNode {
+                    nonterminal_id: NonterminalId(45),
+                    return_slot: SlotId(267),
+                    span: Span {
+                        left_extent: i,
+                        right_extent: i,
+                    },
+                    child: epsilon_node_id,
+                    ambiguous: false,
+                }))
+            };
         };
         match matched {
             TerminalId(32) => {
@@ -6751,7 +6767,7 @@ impl<'i> IggyParser<'i> {
                 };
                 let left_extent = self.sppf_node(right_child).left_extent();
                 let current = right_child;
-                return Some(self.add_nonterminal_node(NonterminalNode {
+                Some(self.add_nonterminal_node(NonterminalNode {
                     nonterminal_id: NonterminalId(45),
                     return_slot: SlotId(266),
                     span: Span {
@@ -6760,7 +6776,7 @@ impl<'i> IggyParser<'i> {
                     },
                     child: current,
                     ambiguous: false,
-                }));
+                }))
             }
             _ => unreachable!("LL(1) dispatch covers every terminal in FIRST_SET"),
         }
@@ -6781,7 +6797,7 @@ impl<'i> IggyParser<'i> {
                 };
                 let left_extent = self.sppf_node(right_child).left_extent();
                 let current = right_child;
-                return Some(self.add_nonterminal_node(NonterminalNode {
+                Some(self.add_nonterminal_node(NonterminalNode {
                     nonterminal_id: NonterminalId(47),
                     return_slot: SlotId(275),
                     span: Span {
@@ -6790,7 +6806,7 @@ impl<'i> IggyParser<'i> {
                     },
                     child: current,
                     ambiguous: false,
-                }));
+                }))
             }
             TerminalId(9) => {
                 let mut j = i;
@@ -6803,7 +6819,7 @@ impl<'i> IggyParser<'i> {
                 };
                 let left_extent = self.sppf_node(right_child).left_extent();
                 let current = right_child;
-                return Some(self.add_nonterminal_node(NonterminalNode {
+                Some(self.add_nonterminal_node(NonterminalNode {
                     nonterminal_id: NonterminalId(47),
                     return_slot: SlotId(277),
                     span: Span {
@@ -6812,7 +6828,7 @@ impl<'i> IggyParser<'i> {
                     },
                     child: current,
                     ambiguous: false,
-                }));
+                }))
             }
             _ => unreachable!("LL(1) dispatch covers every terminal in FIRST_SET"),
         }
@@ -6864,17 +6880,19 @@ impl<'i> IggyParser<'i> {
         #[cfg(feature = "instrument")]
         self.ll1_call_log.push((NonterminalId(49), i));
         let Some(matched) = self.scanner.longest_match(&FIRST_SET_OPT_10, i) else {
-            let epsilon_node_id = self.get_or_create_epsilon_node(i);
-            return Some(self.add_nonterminal_node(NonterminalNode {
-                nonterminal_id: NonterminalId(49),
-                return_slot: SlotId(285),
-                span: Span {
-                    left_extent: i,
-                    right_extent: i,
-                },
-                child: epsilon_node_id,
-                ambiguous: false,
-            }));
+            return {
+                let epsilon_node_id = self.get_or_create_epsilon_node(i);
+                Some(self.add_nonterminal_node(NonterminalNode {
+                    nonterminal_id: NonterminalId(49),
+                    return_slot: SlotId(285),
+                    span: Span {
+                        left_extent: i,
+                        right_extent: i,
+                    },
+                    child: epsilon_node_id,
+                    ambiguous: false,
+                }))
+            };
         };
         match matched {
             TerminalId(9) | TerminalId(7) => {
@@ -6888,7 +6906,7 @@ impl<'i> IggyParser<'i> {
                 };
                 let left_extent = self.sppf_node(right_child).left_extent();
                 let current = right_child;
-                return Some(self.add_nonterminal_node(NonterminalNode {
+                Some(self.add_nonterminal_node(NonterminalNode {
                     nonterminal_id: NonterminalId(49),
                     return_slot: SlotId(284),
                     span: Span {
@@ -6897,7 +6915,7 @@ impl<'i> IggyParser<'i> {
                     },
                     child: current,
                     ambiguous: false,
-                }));
+                }))
             }
             _ => unreachable!("LL(1) dispatch covers every terminal in FIRST_SET"),
         }
@@ -6915,7 +6933,7 @@ impl<'i> IggyParser<'i> {
         };
         let left_extent = self.sppf_node(right_child).left_extent();
         let current = right_child;
-        return Some(self.add_nonterminal_node(NonterminalNode {
+        Some(self.add_nonterminal_node(NonterminalNode {
             nonterminal_id: NonterminalId(50),
             return_slot: SlotId(287),
             span: Span {
@@ -6924,7 +6942,7 @@ impl<'i> IggyParser<'i> {
             },
             child: current,
             ambiguous: false,
-        }));
+        }))
     }
     fn get_gss_node_symbol(&self, input_index: u32, p: i32, e: i32) -> Option<GssNodeId> {
         self.gss_nodes_index_symbol
@@ -6935,6 +6953,7 @@ impl<'i> IggyParser<'i> {
         self.gss_nodes_index_symbol
             .insert((input_index, p, e), gss_node_id);
     }
+    #[allow(clippy::too_many_arguments)]
     fn create_nonterminal_node_or_attach_children_symbol(
         &mut self,
         nonterminal_id: NonterminalId,

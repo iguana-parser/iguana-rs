@@ -46,7 +46,7 @@ pub fn main_loop(
                         let input = Input::from(source.as_str());
                         let ctx = ParseContext::new();
                         let tokens = match build(&input, &ctx) {
-                            BuildResult::Success { ref tree, .. } => semantic_tokens(tree, &input),
+                            BuildResult::Success { tree, .. } => semantic_tokens(tree, &input),
                             BuildResult::Error { .. } | BuildResult::Ambiguous => vec![],
                         };
                         let result = SemanticTokensResult::Tokens(SemanticTokens {
@@ -75,7 +75,7 @@ pub fn main_loop(
                         let input = Input::from(source.as_str());
                         let ctx = ParseContext::new();
                         let edits = match build(&input, &ctx) {
-                            BuildResult::Success { ref tree, .. } => {
+                            BuildResult::Success { tree, .. } => {
                                 let formatted = format(tree, &input);
                                 let line_count = source.lines().count() as u32;
                                 let last_line_len =
@@ -112,7 +112,7 @@ pub fn main_loop(
                         let input = Input::from(source.as_str());
                         let ctx = ParseContext::new();
                         let locations = (|| {
-                            let BuildResult::Success { ref tree, .. } = build(&input, &ctx) else {
+                            let BuildResult::Success { tree, .. } = build(&input, &ctx) else {
                                 return None;
                             };
                             let grammar_def = build_grammar_def(tree, &input)?;
@@ -145,7 +145,7 @@ pub fn main_loop(
                         let input = Input::from(source.as_str());
                         let ctx = ParseContext::new();
                         let loc = (|| {
-                            let BuildResult::Success { ref tree, .. } = build(&input, &ctx) else {
+                            let BuildResult::Success { tree, .. } = build(&input, &ctx) else {
                                 return None;
                             };
                             let grammar_def = build_grammar_def(tree, &input)?;
@@ -155,7 +155,7 @@ pub fn main_loop(
                             definition(&spans, &input, uri, offset)
                         })();
                         let result = serde_json::to_value(
-                            &loc.map(lsp_types::GotoDefinitionResponse::Scalar),
+                            loc.map(lsp_types::GotoDefinitionResponse::Scalar),
                         )
                         .unwrap();
                         let resp = Response {
@@ -179,7 +179,7 @@ pub fn main_loop(
                         let input = Input::from(source.as_str());
                         let ctx = ParseContext::new();
                         let symbols = (|| {
-                            let BuildResult::Success { ref tree, .. } = build(&input, &ctx) else {
+                            let BuildResult::Success { tree, .. } = build(&input, &ctx) else {
                                 return None;
                             };
                             let grammar_def = build_grammar_def(tree, &input)?;
@@ -188,7 +188,7 @@ pub fn main_loop(
                         })()
                         .unwrap_or_default();
                         let result =
-                            serde_json::to_value(&DocumentSymbolResponse::Nested(symbols)).unwrap();
+                            serde_json::to_value(DocumentSymbolResponse::Nested(symbols)).unwrap();
                         let resp = Response {
                             id,
                             result: Some(result),
@@ -210,7 +210,7 @@ pub fn main_loop(
                         let input = Input::from(source.as_str());
                         let ctx = ParseContext::new();
                         let ranges = (|| {
-                            let BuildResult::Success { ref tree, .. } = build(&input, &ctx) else {
+                            let BuildResult::Success { tree, .. } = build(&input, &ctx) else {
                                 return None;
                             };
                             let grammar_def = build_grammar_def(tree, &input)?;
@@ -264,7 +264,7 @@ fn publish_diagnostics(
     let input = Input::from(source);
     let ctx = ParseContext::new();
     let diagnostics = match build(&input, &ctx) {
-        BuildResult::Success { ref tree, .. } => build_grammar_def(tree, &input)
+        BuildResult::Success { tree, .. } => build_grammar_def(tree, &input)
             .map(|grammar_def| {
                 let spans = build_spans(&grammar_def, tree, &input);
                 diagnostics(&grammar_def, &spans, &input)

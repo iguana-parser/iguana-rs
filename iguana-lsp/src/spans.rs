@@ -205,7 +205,7 @@ pub fn build_spans<'a>(
         match rule {
             parse_tree::Rule::SyntaxRule { syntax_rule, .. } => {
                 let gr_rule = &grammar_def.syntax_rules[syntax_idx];
-                collect_syntax_rule_spans(gr_rule, &syntax_rule, &mut builder.spans);
+                collect_syntax_rule_spans(gr_rule, syntax_rule, &mut builder.spans);
                 syntax_idx += 1;
             }
             parse_tree::Rule::RegexRule { regex_rule, .. } => {

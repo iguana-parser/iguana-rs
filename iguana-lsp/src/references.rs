@@ -67,7 +67,7 @@ mod tests {
         let source = source.strip_prefix('\n').unwrap_or(source);
         let input = Input::from(source);
         let ctx = iguana_runtime::parse_tree::ParseContext::new();
-        let crate::BuildResult::Success { ref tree, .. } = crate::build(&input, &ctx) else {
+        let crate::BuildResult::Success { tree, .. } = crate::build(&input, &ctx) else {
             return vec![];
         };
         let Some(grammar_def) = crate::build_grammar_def(tree, &input) else {
@@ -200,7 +200,7 @@ A
         let source = source.strip_prefix('\n').unwrap_or(source);
         let input = Input::from(source);
         let ctx = iguana_runtime::parse_tree::ParseContext::new();
-        let crate::BuildResult::Success { ref tree, .. } = crate::build(&input, &ctx) else {
+        let crate::BuildResult::Success { tree, .. } = crate::build(&input, &ctx) else {
             return None;
         };
         let grammar_def = crate::build_grammar_def(tree, &input)?;

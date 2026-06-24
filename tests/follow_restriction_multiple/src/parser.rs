@@ -36,6 +36,9 @@ impl<'i> Parser<'i> for FollowRestrictionMultipleParser<'i> {
     fn eof() -> TerminalId {
         TerminalId((TERMINALS.len() - 1) as u16)
     }
+    // env is threaded only through recursive execute calls in grammars without data-dependent
+    // constructs, so clippy sees it as recursion-only there.
+    #[allow(clippy::only_used_in_recursion)]
     fn execute(
         &mut self,
         input_index: u32,
@@ -735,7 +738,7 @@ impl<'i> FollowRestrictionMultipleParser<'i> {
             gss_nodes: Vec::with_capacity(input.len() as usize * GSS_CAPACITY_MULTIPLIER),
             sppf_nodes: Vec::with_capacity(input.len() as usize * SPPF_CAPACITY_MULTIPLIER),
             intermediate_nodes_index: [const { InlineMap::Empty }; 18],
-            dd_intermediate_nodes_index: [const { InlineMap::Empty }; 0],
+            dd_intermediate_nodes_index: [],
             terminal_nodes_index: [const { InlineMap::Empty }; 4],
             #[cfg(feature = "instrument")]
             descriptors_count: 0,
@@ -773,7 +776,7 @@ impl<'i> FollowRestrictionMultipleParser<'i> {
                 };
                 let left_extent = self.sppf_node(right_child).left_extent();
                 let current = right_child;
-                return Some(self.add_nonterminal_node(NonterminalNode {
+                Some(self.add_nonterminal_node(NonterminalNode {
                     nonterminal_id: NonterminalId(1),
                     return_slot: SlotId(3),
                     span: Span {
@@ -782,7 +785,7 @@ impl<'i> FollowRestrictionMultipleParser<'i> {
                     },
                     child: current,
                     ambiguous: false,
-                }));
+                }))
             }
             _ => unreachable!("LL(1) dispatch covers every terminal in FIRST_SET"),
         }
@@ -846,7 +849,7 @@ impl<'i> FollowRestrictionMultipleParser<'i> {
                 };
                 let left_extent = self.sppf_node(right_child).left_extent();
                 let current = right_child;
-                return Some(self.add_nonterminal_node(NonterminalNode {
+                Some(self.add_nonterminal_node(NonterminalNode {
                     nonterminal_id: NonterminalId(3),
                     return_slot: SlotId(10),
                     span: Span {
@@ -855,7 +858,7 @@ impl<'i> FollowRestrictionMultipleParser<'i> {
                     },
                     child: current,
                     ambiguous: false,
-                }));
+                }))
             }
             TerminalId(1) => {
                 let mut j = i;
@@ -868,7 +871,7 @@ impl<'i> FollowRestrictionMultipleParser<'i> {
                 };
                 let left_extent = self.sppf_node(right_child).left_extent();
                 let current = right_child;
-                return Some(self.add_nonterminal_node(NonterminalNode {
+                Some(self.add_nonterminal_node(NonterminalNode {
                     nonterminal_id: NonterminalId(3),
                     return_slot: SlotId(12),
                     span: Span {
@@ -877,7 +880,7 @@ impl<'i> FollowRestrictionMultipleParser<'i> {
                     },
                     child: current,
                     ambiguous: false,
-                }));
+                }))
             }
             _ => unreachable!("LL(1) dispatch covers every terminal in FIRST_SET"),
         }

@@ -39,6 +39,9 @@ impl<'i> Parser<'i> for IndirectPrefixParser<'i> {
     fn eof() -> TerminalId {
         TerminalId((TERMINALS.len() - 1) as u16)
     }
+    // env is threaded only through recursive execute calls in grammars without data-dependent
+    // constructs, so clippy sees it as recursion-only there.
+    #[allow(clippy::only_used_in_recursion)]
     fn execute(
         &mut self,
         input_index: u32,
@@ -792,13 +795,11 @@ impl<'i> Parser<'i> for IndirectPrefixParser<'i> {
     }
     fn post_conditions(
         &mut self,
-        slot: SlotId,
+        _slot: SlotId,
         _left_extent: u32,
         _right_extent: u32,
     ) -> Option<ParseErrorKind> {
-        match slot {
-            _ => None,
-        }
+        None
     }
     fn follow_set_check(&mut self, nonterminal_id: NonterminalId, input_index: u32) -> bool {
         match nonterminal_id {
@@ -934,6 +935,7 @@ impl<'i> IndirectPrefixParser<'i> {
             trace_events: None,
         }
     }
+    #[allow(clippy::too_many_arguments)]
     fn create_e(
         &mut self,
         sppf_node_id: Option<SPPFNodeId>,
@@ -981,6 +983,7 @@ impl<'i> IndirectPrefixParser<'i> {
             self.add_gss_node_e(i, p, new_gss_node_id);
         }
     }
+    #[allow(clippy::too_many_arguments)]
     fn create_lambda(
         &mut self,
         sppf_node_id: Option<SPPFNodeId>,
@@ -1028,6 +1031,7 @@ impl<'i> IndirectPrefixParser<'i> {
             self.add_gss_node_lambda(i, p, new_gss_node_id);
         }
     }
+    #[allow(clippy::too_many_arguments)]
     fn create_body(
         &mut self,
         sppf_node_id: Option<SPPFNodeId>,
@@ -1095,6 +1099,7 @@ impl<'i> IndirectPrefixParser<'i> {
         self.gss_nodes_index_body
             .insert((input_index, p), gss_node_id);
     }
+    #[allow(clippy::too_many_arguments)]
     fn create_nonterminal_node_or_attach_children_e(
         &mut self,
         nonterminal_id: NonterminalId,
@@ -1130,6 +1135,7 @@ impl<'i> IndirectPrefixParser<'i> {
         };
         self.add_nonterminal_node(nonterminal_node)
     }
+    #[allow(clippy::too_many_arguments)]
     fn create_nonterminal_node_or_attach_children_lambda(
         &mut self,
         nonterminal_id: NonterminalId,
@@ -1165,6 +1171,7 @@ impl<'i> IndirectPrefixParser<'i> {
         };
         self.add_nonterminal_node(nonterminal_node)
     }
+    #[allow(clippy::too_many_arguments)]
     fn create_nonterminal_node_or_attach_children_body(
         &mut self,
         nonterminal_id: NonterminalId,

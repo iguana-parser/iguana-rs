@@ -75,6 +75,9 @@ impl Input {
     pub fn len(&self) -> u32 {
         self.source.len() as u32
     }
+    pub fn is_empty(&self) -> bool {
+        self.source.is_empty()
+    }
     pub fn char_at(&self, index: u32) -> Option<char> {
         if index < self.len() {
             Some(self.source[index as usize])
