@@ -82,6 +82,11 @@ impl<'a> FirstFollowSets<'a> {
     /// A nonterminal is LL(1) if its alternatives have disjoint prediction
     /// sets.
     ///
+    /// A parameterized nonterminal is never LL(1). It threads data-dependent
+    /// arguments and guards its alternatives with conditions that single-token
+    /// lookahead cannot evaluate, so it always parses through the
+    /// descriptor-based GLL path, whatever its prediction sets look like.
+    ///
     /// Plus is a special case: EBNF desugaring produces left-recursive
     /// rules (e.g., `A+ desugars into APlus = APlus A | A`) whose alternatives
     /// always overlap. The left recursion is an artifact of the desugaring;
@@ -112,6 +117,9 @@ impl<'a> FirstFollowSets<'a> {
     /// the sets overlap, Plus is not LL(1), and the parser uses GLL to
     /// explore both derivations.
     fn is_nonterminal_ll1(&self, nt: &Nonterminal) -> bool {
+        if !nt.parameters.is_empty() {
+            return false;
+        }
         if self.has_disjoint_alternatives(nt) {
             return true;
         }
@@ -674,6 +682,28 @@ mod tests {
         assert!(ff.is_ll1(grammar.nonterminal("T").unwrap()));
         assert!(ff.is_ll1(grammar.nonterminal("Tp").unwrap()));
         assert!(ff.is_ll1(grammar.nonterminal("F").unwrap()));
+    }
+
+    #[test]
+    fn test_parameterized_nonterminal_is_not_ll1() {
+        use crate::grammar::symbols::{ParamType, Parameter};
+
+        let grammar: Grammar = expression_grammar().try_into().unwrap();
+        let ff = FirstFollowSets::new(&grammar);
+
+        // F = "(" E ")" | "id" has disjoint prediction sets, so it is LL(1).
+        let f = grammar.nonterminal("F").unwrap();
+        assert!(ff.is_nonterminal_ll1(f));
+
+        // The same alternatives behind a parameter are not LL(1): a parameter
+        // carries data-dependent conditions the LL(1) path cannot evaluate, so
+        // disjoint prediction sets no longer suffice.
+        let mut parameterized = f.clone();
+        parameterized.parameters.push(Parameter {
+            name: "p".to_string(),
+            ty: ParamType::I32,
+        });
+        assert!(!ff.is_nonterminal_ll1(&parameterized));
     }
 
     // ---------------------------------------------------------------
