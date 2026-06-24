@@ -3,7 +3,7 @@ mod trace_replay;
 use std::{
     fs,
     fs::OpenOptions,
-    io::Write,
+    io::{self, Write},
     panic,
     path::{Path, PathBuf},
     process::Command,
@@ -191,7 +191,7 @@ impl GrammarState {
         let result = iguana_lsp::build(&input, &ctx);
         match &result {
             iguana_lsp::BuildResult::Success {
-                ref tree,
+                tree,
                 parse_duration,
                 tree_construction_duration,
             } => {
@@ -944,7 +944,7 @@ fn generate_parser(directory: String, no_ll1: bool, app: tauri::AppHandle) {
         let output = match cmd.output() {
             Ok(output) => output,
             Err(e) => {
-                let message = if e.kind() == std::io::ErrorKind::NotFound {
+                let message = if e.kind() == io::ErrorKind::NotFound {
                     "iguana binary not found on PATH. Install with `cargo install iguana` \
                      or `brew install iguana`."
                         .to_string()
@@ -1011,7 +1011,7 @@ fn generate_parser(directory: String, no_ll1: bool, app: tauri::AppHandle) {
 fn check_iguana() -> Result<(), String> {
     match Command::new("iguana").arg("help").output() {
         Ok(_) => Ok(()),
-        Err(e) if e.kind() == std::io::ErrorKind::NotFound => Err(
+        Err(e) if e.kind() == io::ErrorKind::NotFound => Err(
             "iguana CLI not found on PATH. Install with `cargo install iguana` or `brew install iguana`."
                 .into(),
         ),
@@ -1071,7 +1071,7 @@ fn format_grammar(source: String, state: tauri::State<Mutex<GrammarState>>) -> O
         let mut st = lock_state(&state);
         st.ensure_built(&source);
         let ctx = ParseContext::new();
-        let iguana_lsp::BuildResult::Success { ref tree, .. } = st.parse(&ctx)? else {
+        let iguana_lsp::BuildResult::Success { tree, .. } = st.parse(&ctx)? else {
             return None;
         };
         let input = st.input.as_ref()?;
@@ -1086,7 +1086,7 @@ fn get_semantic_tokens(state: tauri::State<Mutex<GrammarState>>) -> Vec<Semantic
     lsp_guard(|| {
         let st = lock_state(&state);
         let ctx = ParseContext::new();
-        let Some(iguana_lsp::BuildResult::Success { ref tree, .. }) = st.parse(&ctx) else {
+        let Some(iguana_lsp::BuildResult::Success { tree, .. }) = st.parse(&ctx) else {
             return vec![];
         };
         let Some(ref input) = st.input else {
@@ -1117,7 +1117,7 @@ fn get_document_symbols(
         let mut st = lock_state(&state);
         st.ensure_built(&source);
         let ctx = ParseContext::new();
-        let Some(iguana_lsp::BuildResult::Success { ref tree, .. }) = st.parse(&ctx) else {
+        let Some(iguana_lsp::BuildResult::Success { tree, .. }) = st.parse(&ctx) else {
             return vec![];
         };
         let Some(ref input) = st.input else {
@@ -1147,7 +1147,7 @@ fn get_definition(
         let mut st = lock_state(&state);
         st.ensure_built(&source);
         let ctx = ParseContext::new();
-        let iguana_lsp::BuildResult::Success { ref tree, .. } = st.parse(&ctx)? else {
+        let iguana_lsp::BuildResult::Success { tree, .. } = st.parse(&ctx)? else {
             return None;
         };
         let input = st.input.as_ref()?;
@@ -1181,7 +1181,7 @@ fn get_references(
         let mut st = lock_state(&state);
         st.ensure_built(&source);
         let ctx = ParseContext::new();
-        let Some(iguana_lsp::BuildResult::Success { ref tree, .. }) = st.parse(&ctx) else {
+        let Some(iguana_lsp::BuildResult::Success { tree, .. }) = st.parse(&ctx) else {
             return vec![];
         };
         let Some(ref input) = st.input else {
@@ -1218,7 +1218,7 @@ fn get_folding_ranges(
         let mut st = lock_state(&state);
         st.ensure_built(&source);
         let ctx = ParseContext::new();
-        let Some(iguana_lsp::BuildResult::Success { ref tree, .. }) = st.parse(&ctx) else {
+        let Some(iguana_lsp::BuildResult::Success { tree, .. }) = st.parse(&ctx) else {
             return vec![];
         };
         let Some(ref input) = st.input else {
@@ -1253,7 +1253,7 @@ fn get_diagnostics(
         };
         let ctx = ParseContext::new();
         match iguana_lsp::build(input, &ctx) {
-            iguana_lsp::BuildResult::Success { ref tree, .. } => {
+            iguana_lsp::BuildResult::Success { tree, .. } => {
                 let Some(ref grammar_def) = st.grammar_def else {
                     return vec![];
                 };

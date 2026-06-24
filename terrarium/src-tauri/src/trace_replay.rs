@@ -1,5 +1,5 @@
 use std::fs::File;
-use std::io::BufReader;
+use std::io::{self, BufReader};
 use std::path::Path;
 
 use iguana_runtime::descriptor::Descriptor;
@@ -134,11 +134,11 @@ pub struct SymbolTable {
 }
 
 impl SymbolTable {
-    pub fn load(path: impl AsRef<Path>) -> std::io::Result<Self> {
+    pub fn load(path: impl AsRef<Path>) -> io::Result<Self> {
         let file = File::open(path)?;
         let reader = BufReader::new(file);
         let table = serde_json::from_reader(reader)
-            .map_err(|e| std::io::Error::new(std::io::ErrorKind::InvalidData, e))?;
+            .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
         Ok(table)
     }
 
@@ -183,14 +183,11 @@ pub struct TraceReplay {
 
 impl TraceReplay {
     /// Load trace events and symbol table from JSON files.
-    pub fn load(
-        trace_path: impl AsRef<Path>,
-        symbols_path: impl AsRef<Path>,
-    ) -> std::io::Result<Self> {
+    pub fn load(trace_path: impl AsRef<Path>, symbols_path: impl AsRef<Path>) -> io::Result<Self> {
         let file = File::open(trace_path)?;
         let reader = BufReader::new(file);
         let events: Vec<TraceEvent> = serde_json::from_reader(reader)
-            .map_err(|e| std::io::Error::new(std::io::ErrorKind::InvalidData, e))?;
+            .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
 
         let symbols = SymbolTable::load(symbols_path)?;
 
@@ -267,16 +264,6 @@ impl TraceReplay {
             .iter()
             .position(|&step| step == self.current_step)
             .map(|i| i + 1) // Convert to 1-indexed
-    }
-
-    /// Get the step index of the first error, if any.
-    pub fn first_error_step(&self) -> Option<usize> {
-        self.error_step_indices.first().copied()
-    }
-
-    /// Get the step index of the last error, if any.
-    pub fn last_error_step(&self) -> Option<usize> {
-        self.error_step_indices.last().copied()
     }
 
     /// Get the step index of the next error after current step, if any.
@@ -766,13 +753,12 @@ impl TraceReplay {
     /// Returns slot names from top (current) to bottom (root).
     pub fn build_stack_trace(&self) -> Option<Vec<String>> {
         let mut frames = Vec::new();
-        let start_gss_node_id;
 
-        match &self.current_action {
+        let start_gss_node_id = match &self.current_action {
             Some(DebugAction::ProcessingDescriptor(desc)) => {
                 // First frame is the current slot
                 frames.push(self.symbols.slot(desc.slot_id).to_string());
-                start_gss_node_id = desc.gss_node_id;
+                desc.gss_node_id
             }
             Some(DebugAction::Pop {
                 slot_id,
@@ -781,7 +767,7 @@ impl TraceReplay {
             }) => {
                 // For Pop, show the slot (which has dot at end, e.g., "A ::= 'a' .")
                 frames.push(self.symbols.slot(*slot_id).to_string());
-                start_gss_node_id = *gss_node_id;
+                *gss_node_id
             }
             Some(DebugAction::ParseError {
                 slot_id,
@@ -792,7 +778,7 @@ impl TraceReplay {
                 let Some(gss_id) = gss_node_id else {
                     return Some(frames);
                 };
-                start_gss_node_id = *gss_id;
+                *gss_id
             }
             // Layout and terminal matching actions don't have a meaningful stack trace
             Some(DebugAction::MatchingLeadingLayout { .. })
@@ -801,7 +787,7 @@ impl TraceReplay {
             | Some(DebugAction::MatchingTerminal { .. })
             | Some(DebugAction::MatchSuccess { .. }) => return None,
             None => return None,
-        }
+        };
 
         // Walk back through GSS edges
         let mut current_gss = start_gss_node_id;
