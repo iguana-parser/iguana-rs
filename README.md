@@ -185,7 +185,7 @@ After cloning, run once:
 ./setup.sh
 ```
 
-This checks the rust toolchain, installs `cargo-nextest`, flags missing system dependencies (graphviz), and points git at the tracked `.githooks/` directory. The pre-commit hook runs `cargo fmt --check --all` and rejects unformatted commits.
+This checks the rust toolchain, installs `cargo-nextest`, installs the web viewer's Node dependencies when npm is present, flags missing system dependencies (graphviz), and points git at the tracked `.githooks/` directory. The pre-commit hook runs `cargo fmt --check --all` and rejects unformatted commits.
 
 ### Checking and Linting
 

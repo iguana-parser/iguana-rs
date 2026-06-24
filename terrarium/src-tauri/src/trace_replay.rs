@@ -700,15 +700,17 @@ impl TraceReplay {
                     next_index: *next_index,
                 });
             }
-            TraceEvent::MatchingTerminal(terminal_name, input_index) => {
+            TraceEvent::MatchingTerminal(terminal_id, input_index) => {
+                let terminal_name = self.symbols.terminal(terminal_id);
                 self.current_action = Some(DebugAction::MatchingTerminal {
-                    terminal_name: terminal_name.clone(),
+                    terminal_name,
                     input_index: *input_index,
                 });
             }
-            TraceEvent::MatchSuccess(terminal_name, input_index, next_index) => {
+            TraceEvent::MatchSuccess(terminal_id, input_index, next_index) => {
+                let terminal_name = self.symbols.terminal(terminal_id);
                 self.current_action = Some(DebugAction::MatchSuccess {
-                    terminal_name: terminal_name.clone(),
+                    terminal_name,
                     input_index: *input_index,
                     next_index: *next_index,
                 });
@@ -885,14 +887,18 @@ impl TraceReplay {
                 format!("Matching trailing layout at {}", input_index),
                 "layout".to_string(),
             ),
-            TraceEvent::MatchingTerminal(terminal_name, input_index) => (
-                format!("Matching '{}' at {}", terminal_name, input_index),
+            TraceEvent::MatchingTerminal(terminal_id, input_index) => (
+                format!(
+                    "Matching '{}' at {}",
+                    self.symbols.terminal(terminal_id),
+                    input_index
+                ),
                 "matching".to_string(),
             ),
-            TraceEvent::MatchSuccess(terminal_name, input_index, next_index) => (
+            TraceEvent::MatchSuccess(terminal_id, input_index, next_index) => (
                 format!(
                     "Matched '{}' at {} (len {})",
-                    terminal_name,
+                    self.symbols.terminal(terminal_id),
                     input_index,
                     next_index - input_index
                 ),
