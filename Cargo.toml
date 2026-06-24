@@ -9,6 +9,9 @@ publish = false
 iggy.workspace = true
 iguana-runtime.workspace = true
 
+[lints]
+workspace = true
+
 [workspace]
 resolver = "3"
 # terrarium excluded by default - it's a Tauri app with 500+ dependencies that slows rust-analyzer
@@ -88,6 +91,9 @@ iguana-compiler = { path = "iguana-compiler" }
 
 [profile.release]
 debug = true
+
+[workspace.lints.rust]
+warnings = "deny"
 
 [workspace.lints.clippy]
 collapsible_if = "allow"

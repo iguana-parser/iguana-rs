@@ -117,7 +117,14 @@ fn patch_workspace_cargo_toml(original: &str) -> io::Result<String> {
         ));
     }
 
-    Ok(without_profile)
+    // Opt the workspace-member parser into `[workspace.lints]`, so its generated
+    // sources are built with warnings denied and a generator regression that
+    // reintroduces one fails `cargo xtask test`. The standalone end-user crate
+    // is never patched, so its build only warns.
+    Ok(format!(
+        "{}\n[lints]\nworkspace = true\n",
+        without_profile.trim_end()
+    ))
 }
 
 /// Adapt iggy's regenerated Cargo.toml to its workspace membership, plus its

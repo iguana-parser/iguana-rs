@@ -296,9 +296,7 @@ fn rewrite_ebnf_symbol(
 mod tests {
     use super::transform;
     use crate::{
-        alt, alternative,
-        grammar::def::{SymbolTable, create_symbol_table},
-        grammar_def, group, id, opt, plus, priority_level, star, syntax_rule,
+        alt, alternative, grammar_def, group, id, opt, plus, priority_level, star, syntax_rule,
     };
 
     #[test]

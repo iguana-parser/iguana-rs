@@ -22,4 +22,5 @@ dhat-heap = []
 debug-trace = ["iguana-runtime/debug-trace"]
 profile = ["pprof"]
 instrument = ["iguana-runtime/instrument"]
-
+[lints]
+workspace = true
