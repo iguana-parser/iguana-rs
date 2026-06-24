@@ -1,6 +1,7 @@
 use std::{
     io,
     path::{Path, PathBuf},
+    process::ExitCode,
 };
 
 use clap::{Parser, Subcommand};
@@ -114,7 +115,17 @@ enum Commands {
     },
 }
 
-fn main() -> std::io::Result<()> {
+fn main() -> ExitCode {
+    match run() {
+        Ok(()) => ExitCode::SUCCESS,
+        Err(e) => {
+            eprintln!("{e}");
+            ExitCode::FAILURE
+        }
+    }
+}
+
+fn run() -> io::Result<()> {
     let cli = Cli::parse();
     match cli.command {
         Commands::New { path } => new_project(&path)?,
@@ -160,8 +171,13 @@ fn main() -> std::io::Result<()> {
             } else {
                 output
             };
-            let source = std::fs::read_to_string(path)?;
-            let grammar_def = parse_grammar(&source).map_err(std::io::Error::other)?;
+            let source = std::fs::read_to_string(path)
+                .map_err(|e| io::Error::new(e.kind(), format!("{}: {e}", path.display())))?;
+            // iggy::ParseError's Display is the runtime "Parse error at line N,
+            // column M: ..." style; prefix the grammar file so the diagnostic
+            // names it instead of surfacing the raw io::Error Debug string.
+            let grammar_def = parse_grammar(&source)
+                .map_err(|e| io::Error::other(format!("{}: {e}", path.display())))?;
             let config = GenConfig {
                 ll1_optimization: ll1,
                 match_memo,
