@@ -67,7 +67,7 @@ External crates outside this workspace often hand-edit Cargo.toml (local path to
 
 # Benchmarking
 
-- For each perf claim, re-measure the baseline from master immediately before the change. Don't compare against baseline JSONs from earlier in the session.
+- For each perf claim, re-measure the baseline from main immediately before the change. Don't compare against baseline JSONs from earlier in the session.
 - Workflow: stash the changes → build → bench → save as baseline → unstash → build → bench against that baseline.
 - Internal profile shifts (flamegraph share, sample counts) are not wall-clock improvements. State them separately. A frame share dropping from 47% to 43% can coexist with unchanged total wall time.
 - `--bench-save` / `--bench-baseline` in generated parsers compute a Welch CI on the delta. Treat the CI as the noise floor of that single comparison, not proof that wall time moved across sessions.
