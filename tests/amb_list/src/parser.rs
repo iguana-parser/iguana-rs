@@ -555,8 +555,8 @@ impl<'i> Parser<'i> for AmbListParser<'i> {
     fn post_conditions(
         &mut self,
         slot: SlotId,
-        left_extent: u32,
-        right_extent: u32,
+        _left_extent: u32,
+        _right_extent: u32,
     ) -> Option<ParseErrorKind> {
         match slot {
             _ => None,
@@ -704,7 +704,7 @@ impl<'i> AmbListParser<'i> {
                     node
                 };
                 let left_extent = self.sppf_node(right_child).left_extent();
-                let mut current = right_child;
+                let current = right_child;
                 return Some(self.add_nonterminal_node(NonterminalNode {
                     nonterminal_id: NonterminalId(1),
                     return_slot: SlotId(4),

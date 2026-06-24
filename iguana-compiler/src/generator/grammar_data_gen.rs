@@ -108,7 +108,7 @@ pub fn generate<'a>(
     });
 
     quote! {
-        use iguana_runtime::ids::{NonterminalId, SlotId, TerminalId};
+        use iguana_runtime::ids::{NonterminalId, TerminalId};
         use iguana_runtime::scanner::TerminalSet;
         use crate::types::{Nonterminal, Slot, Terminal};
 

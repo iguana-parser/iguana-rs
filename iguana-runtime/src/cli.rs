@@ -869,16 +869,6 @@ enum Status {
     IoError,
 }
 
-impl Status {
-    fn token(self) -> &'static str {
-        match self {
-            Status::Ok => "ok",
-            Status::Error => "error",
-            Status::IoError => "ioerror",
-        }
-    }
-}
-
 /// One file's outcome as just parsed, with the precise parse time retained for
 /// the aggregate and the slow tail. `message` is already tab-sanitized.
 struct CurrentFile {

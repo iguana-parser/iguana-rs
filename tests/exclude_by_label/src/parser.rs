@@ -724,8 +724,8 @@ impl<'i> Parser<'i> for ExcludeByLabelParser<'i> {
     fn post_conditions(
         &mut self,
         slot: SlotId,
-        left_extent: u32,
-        right_extent: u32,
+        _left_extent: u32,
+        _right_extent: u32,
     ) -> Option<ParseErrorKind> {
         match slot {
             _ => None,

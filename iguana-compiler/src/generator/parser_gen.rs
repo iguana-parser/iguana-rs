@@ -65,6 +65,15 @@ impl<'a> ParserGen<'a> {
             .unwrap_or(false)
     }
 
+    fn has_empty_alternative(&self) -> bool {
+        self.grammar.nonterminals().any(|nt| {
+            self.grammar
+                .alternatives(nt)
+                .iter()
+                .any(|alt| alt.symbols.is_empty())
+        })
+    }
+
     pub fn generate(&mut self) -> TokenStream {
         let grammar_name = &self.grammar.name;
         let imports = self.gen_imports();
@@ -633,6 +642,11 @@ impl<'a> ParserGen<'a> {
 
     fn gen_post_conditions_method(&mut self) -> TokenStream {
         let mut arms = vec![];
+        // A grammar without excepts uses neither extent; one with only follow
+        // restrictions uses just the right extent. Underscore the rest so the
+        // generated signature carries no unused parameter.
+        let mut uses_left_extent = false;
+        let mut uses_right_extent = false;
         for nonterminal in self.grammar.nonterminals() {
             for (alt_index, alternative) in
                 self.grammar.alternatives(nonterminal).iter().enumerate()
@@ -661,6 +675,8 @@ impl<'a> ParserGen<'a> {
                         let slot = Slot::new(nonterminal, alternative, pos);
                         let next_slot = slot.next();
                         let slot_id = self.slot_ids.get_id(&next_slot);
+                        uses_left_extent = true;
+                        uses_right_extent = true;
                         arms.push(quote! {
                             #slot_id => {
                                 if #(#checks)||* {
@@ -689,6 +705,7 @@ impl<'a> ParserGen<'a> {
                         let slot = Slot::new(nonterminal, alternative, pos);
                         let next_slot = slot.next();
                         let slot_id = self.slot_ids.get_id(&next_slot);
+                        uses_right_extent = true;
                         arms.push(quote! {
                             #slot_id => {
                                 if #restriction_check {
@@ -704,8 +721,18 @@ impl<'a> ParserGen<'a> {
                 }
             }
         }
+        let left_extent = if uses_left_extent {
+            quote! { left_extent }
+        } else {
+            quote! { _left_extent }
+        };
+        let right_extent = if uses_right_extent {
+            quote! { right_extent }
+        } else {
+            quote! { _right_extent }
+        };
         quote! {
-            fn post_conditions(&mut self, slot: SlotId, left_extent: u32, right_extent: u32) -> Option<ParseErrorKind> {
+            fn post_conditions(&mut self, slot: SlotId, #left_extent: u32, #right_extent: u32) -> Option<ParseErrorKind> {
                 match slot {
                     #(#arms)*
                     _ => None,
@@ -947,6 +974,9 @@ impl<'a> ParserGen<'a> {
     }
 
     fn gen_get_or_create_epsilon_node_method(&self) -> TokenStream {
+        if !self.has_empty_alternative() {
+            return quote! {};
+        }
         let epsilon_id = Literal::usize_unsuffixed(self.terminal_ids.len());
         quote! {
             fn get_or_create_epsilon_node(&mut self, i: u32) -> SPPFNodeId {
@@ -986,6 +1016,11 @@ impl<'a> ParserGen<'a> {
         } else {
             quote! {}
         };
+        let epsilon_nodes_init = if self.has_empty_alternative() {
+            quote! { epsilon_nodes: vec![SPPFNodeId::NONE; input.len() as usize + 1], }
+        } else {
+            quote! {}
+        };
         quote! {
             pub fn new(input: &'i Input, start_nonterminal: NonterminalId) -> Self {
                 init_logger();
@@ -999,7 +1034,7 @@ impl<'a> ParserGen<'a> {
                     sppf_nodes: Vec::with_capacity(input.len() as usize * SPPF_CAPACITY_MULTIPLIER),
                     #intermediate_nodes_index_field,
                     #terminal_nodes_index_field,
-                    epsilon_nodes: vec![SPPFNodeId::NONE; input.len() as usize + 1],
+                    #epsilon_nodes_init
                     #[cfg(feature = "instrument")]
                     descriptors_count: 0,
                     #[cfg(feature = "instrument")]
@@ -1043,6 +1078,14 @@ impl<'a> ParserGen<'a> {
         } else {
             quote! {}
         };
+        let epsilon_nodes_field = if self.has_empty_alternative() {
+            quote! {
+                #[comment = "Epsilon nodes keyed by input position; SPPFNodeId::NONE marks an empty slot."]
+                epsilon_nodes: Vec<SPPFNodeId>,
+            }
+        } else {
+            quote! {}
+        };
         quote! {
             pub struct #parser_name_ident<'i> {
                 start_nonterminal: NonterminalId,
@@ -1065,8 +1108,7 @@ impl<'a> ParserGen<'a> {
                              nonterminals; env separates calls made with different parameter values."]
                 dd_intermediate_nodes_index: [InlineMap<(Span, Option<EnvId>), SPPFNodeId>; #param_slot_count_lit],
                 terminal_nodes_index: [InlineMap<Span, SPPFNodeId>; #terminal_ids_len],
-                #[comment = "Epsilon nodes keyed by input position; SPPFNodeId::NONE marks an empty slot."]
-                epsilon_nodes: Vec<SPPFNodeId>,
+                #epsilon_nodes_field
                 #[comment = "An intermediate node keeps its first child inline. Children of intermediate
                              nodes are pairs: (left_child, right_child). Extra children, when there is
                              ambiguity, are stored here as (parent node, (left child, right child))."]
@@ -1409,6 +1451,14 @@ impl<'a> ParserGen<'a> {
         let mut body = vec![];
         body.push(quote! { let mut j = i; });
 
+        // `current` accumulates one parse-tree child per symbol and is
+        // reassigned for every child after the first, so it needs `mut` only
+        // when the alternative has more than one symbol. `symbols.len()` counts
+        // the SPPF children here, since data-dependent symbols that contribute
+        // no child (conditions, returns) appear only in parameterized
+        // nonterminals, which are never LL(1) and so cannot occur in this path.
+        let has_multiple_symbols = alternative.symbols.len() > 1;
+
         for (pos, symbol) in alternative.symbols.iter().enumerate() {
             let slot = Slot::new(nonterminal, alternative, pos);
             let is_first = slot.is_first();
@@ -1492,9 +1542,14 @@ impl<'a> ParserGen<'a> {
             }
 
             if is_first {
+                let current_decl = if has_multiple_symbols {
+                    quote! { let mut current = right_child; }
+                } else {
+                    quote! { let current = right_child; }
+                };
                 body.push(quote! {
                     let left_extent = self.sppf_node(right_child).left_extent();
-                    let mut current = right_child;
+                    #current_decl
                 });
             } else {
                 body.push(quote! {

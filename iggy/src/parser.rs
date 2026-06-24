@@ -5412,7 +5412,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
     fn post_conditions(
         &mut self,
         slot: SlotId,
-        left_extent: u32,
+        _left_extent: u32,
         right_extent: u32,
     ) -> Option<ParseErrorKind> {
         match slot {
@@ -5736,7 +5736,7 @@ impl<'i> IggyParser<'i> {
                     node
                 };
                 let left_extent = self.sppf_node(right_child).left_extent();
-                let mut current = right_child;
+                let current = right_child;
                 return Some(self.add_nonterminal_node(NonterminalNode {
                     nonterminal_id: NonterminalId(3),
                     return_slot: SlotId(19),
@@ -5758,7 +5758,7 @@ impl<'i> IggyParser<'i> {
                     node
                 };
                 let left_extent = self.sppf_node(right_child).left_extent();
-                let mut current = right_child;
+                let current = right_child;
                 return Some(self.add_nonterminal_node(NonterminalNode {
                     nonterminal_id: NonterminalId(3),
                     return_slot: SlotId(21),
@@ -5886,7 +5886,7 @@ impl<'i> IggyParser<'i> {
                     node
                 };
                 let left_extent = self.sppf_node(right_child).left_extent();
-                let mut current = right_child;
+                let current = right_child;
                 return Some(self.add_nonterminal_node(NonterminalNode {
                     nonterminal_id: NonterminalId(3),
                     return_slot: SlotId(31),
@@ -6082,7 +6082,7 @@ impl<'i> IggyParser<'i> {
                     node
                 };
                 let left_extent = self.sppf_node(right_child).left_extent();
-                let mut current = right_child;
+                let current = right_child;
                 return Some(self.add_nonterminal_node(NonterminalNode {
                     nonterminal_id: NonterminalId(8),
                     return_slot: SlotId(63),
@@ -6104,7 +6104,7 @@ impl<'i> IggyParser<'i> {
                     node
                 };
                 let left_extent = self.sppf_node(right_child).left_extent();
-                let mut current = right_child;
+                let current = right_child;
                 return Some(self.add_nonterminal_node(NonterminalNode {
                     nonterminal_id: NonterminalId(8),
                     return_slot: SlotId(65),
@@ -6126,7 +6126,7 @@ impl<'i> IggyParser<'i> {
                     node
                 };
                 let left_extent = self.sppf_node(right_child).left_extent();
-                let mut current = right_child;
+                let current = right_child;
                 return Some(self.add_nonterminal_node(NonterminalNode {
                     nonterminal_id: NonterminalId(8),
                     return_slot: SlotId(67),
@@ -6247,7 +6247,7 @@ impl<'i> IggyParser<'i> {
                 node
             };
             let left_extent = self.sppf_node(right_child).left_extent();
-            let mut current = right_child;
+            let current = right_child;
             return Some(self.add_nonterminal_node(NonterminalNode {
                 nonterminal_id: NonterminalId(14),
                 return_slot: SlotId(131),
@@ -6291,7 +6291,7 @@ impl<'i> IggyParser<'i> {
                     node
                 };
                 let left_extent = self.sppf_node(right_child).left_extent();
-                let mut current = right_child;
+                let current = right_child;
                 return Some(self.add_nonterminal_node(NonterminalNode {
                     nonterminal_id: NonterminalId(18),
                     return_slot: SlotId(144),
@@ -6333,7 +6333,7 @@ impl<'i> IggyParser<'i> {
                     node
                 };
                 let left_extent = self.sppf_node(right_child).left_extent();
-                let mut current = right_child;
+                let current = right_child;
                 return Some(self.add_nonterminal_node(NonterminalNode {
                     nonterminal_id: NonterminalId(22),
                     return_slot: SlotId(160),
@@ -6426,7 +6426,7 @@ impl<'i> IggyParser<'i> {
                     node
                 };
                 let left_extent = self.sppf_node(right_child).left_extent();
-                let mut current = right_child;
+                let current = right_child;
                 return Some(self.add_nonterminal_node(NonterminalNode {
                     nonterminal_id: NonterminalId(27),
                     return_slot: SlotId(186),
@@ -6453,7 +6453,7 @@ impl<'i> IggyParser<'i> {
             node
         };
         let left_extent = self.sppf_node(right_child).left_extent();
-        let mut current = right_child;
+        let current = right_child;
         return Some(self.add_nonterminal_node(NonterminalNode {
             nonterminal_id: NonterminalId(28),
             return_slot: SlotId(189),
@@ -6492,7 +6492,7 @@ impl<'i> IggyParser<'i> {
                     node
                 };
                 let left_extent = self.sppf_node(right_child).left_extent();
-                let mut current = right_child;
+                let current = right_child;
                 return Some(self.add_nonterminal_node(NonterminalNode {
                     nonterminal_id: NonterminalId(29),
                     return_slot: SlotId(191),
@@ -6534,7 +6534,7 @@ impl<'i> IggyParser<'i> {
                     node
                 };
                 let left_extent = self.sppf_node(right_child).left_extent();
-                let mut current = right_child;
+                let current = right_child;
                 return Some(self.add_nonterminal_node(NonterminalNode {
                     nonterminal_id: NonterminalId(34),
                     return_slot: SlotId(213),
@@ -6750,7 +6750,7 @@ impl<'i> IggyParser<'i> {
                     node
                 };
                 let left_extent = self.sppf_node(right_child).left_extent();
-                let mut current = right_child;
+                let current = right_child;
                 return Some(self.add_nonterminal_node(NonterminalNode {
                     nonterminal_id: NonterminalId(45),
                     return_slot: SlotId(266),
@@ -6780,7 +6780,7 @@ impl<'i> IggyParser<'i> {
                     node
                 };
                 let left_extent = self.sppf_node(right_child).left_extent();
-                let mut current = right_child;
+                let current = right_child;
                 return Some(self.add_nonterminal_node(NonterminalNode {
                     nonterminal_id: NonterminalId(47),
                     return_slot: SlotId(275),
@@ -6802,7 +6802,7 @@ impl<'i> IggyParser<'i> {
                     node
                 };
                 let left_extent = self.sppf_node(right_child).left_extent();
-                let mut current = right_child;
+                let current = right_child;
                 return Some(self.add_nonterminal_node(NonterminalNode {
                     nonterminal_id: NonterminalId(47),
                     return_slot: SlotId(277),
@@ -6887,7 +6887,7 @@ impl<'i> IggyParser<'i> {
                     node
                 };
                 let left_extent = self.sppf_node(right_child).left_extent();
-                let mut current = right_child;
+                let current = right_child;
                 return Some(self.add_nonterminal_node(NonterminalNode {
                     nonterminal_id: NonterminalId(49),
                     return_slot: SlotId(284),
@@ -6914,7 +6914,7 @@ impl<'i> IggyParser<'i> {
             node
         };
         let left_extent = self.sppf_node(right_child).left_extent();
-        let mut current = right_child;
+        let current = right_child;
         return Some(self.add_nonterminal_node(NonterminalNode {
             nonterminal_id: NonterminalId(50),
             return_slot: SlotId(287),

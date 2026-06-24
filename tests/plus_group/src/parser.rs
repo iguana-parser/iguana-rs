@@ -573,8 +573,8 @@ impl<'i> Parser<'i> for PlusGroupParser<'i> {
     fn post_conditions(
         &mut self,
         slot: SlotId,
-        left_extent: u32,
-        right_extent: u32,
+        _left_extent: u32,
+        _right_extent: u32,
     ) -> Option<ParseErrorKind> {
         match slot {
             _ => None,
@@ -660,8 +660,6 @@ pub struct PlusGroupParser<'i> {
     // nonterminals; env separates calls made with different parameter values.
     dd_intermediate_nodes_index: [InlineMap<(Span, Option<EnvId>), SPPFNodeId>; 0],
     terminal_nodes_index: [InlineMap<Span, SPPFNodeId>; 5],
-    // Epsilon nodes keyed by input position; SPPFNodeId::NONE marks an empty slot.
-    epsilon_nodes: Vec<SPPFNodeId>,
     // An intermediate node keeps its first child inline. Children of intermediate nodes are
     // pairs: (left_child, right_child). Extra children, when there is ambiguity, are stored here
     // as (parent node, (left child, right child)).
@@ -693,7 +691,6 @@ impl<'i> PlusGroupParser<'i> {
             intermediate_nodes_index: [const { InlineMap::Empty }; 17],
             dd_intermediate_nodes_index: [const { InlineMap::Empty }; 0],
             terminal_nodes_index: [const { InlineMap::Empty }; 5],
-            epsilon_nodes: vec![SPPFNodeId::NONE; input.len() as usize + 1],
             #[cfg(feature = "instrument")]
             descriptors_count: 0,
             #[cfg(feature = "instrument")]
@@ -725,7 +722,7 @@ impl<'i> PlusGroupParser<'i> {
                     node
                 };
                 let left_extent = self.sppf_node(right_child).left_extent();
-                let mut current = right_child;
+                let current = right_child;
                 return Some(self.add_nonterminal_node(NonterminalNode {
                     nonterminal_id: NonterminalId(0),
                     return_slot: SlotId(1),
@@ -754,7 +751,7 @@ impl<'i> PlusGroupParser<'i> {
                     node
                 };
                 let left_extent = self.sppf_node(right_child).left_extent();
-                let mut current = right_child;
+                let current = right_child;
                 return Some(self.add_nonterminal_node(NonterminalNode {
                     nonterminal_id: NonterminalId(1),
                     return_slot: SlotId(3),
@@ -783,7 +780,7 @@ impl<'i> PlusGroupParser<'i> {
                     node
                 };
                 let left_extent = self.sppf_node(right_child).left_extent();
-                let mut current = right_child;
+                let current = right_child;
                 return Some(self.add_nonterminal_node(NonterminalNode {
                     nonterminal_id: NonterminalId(2),
                     return_slot: SlotId(5),
@@ -812,7 +809,7 @@ impl<'i> PlusGroupParser<'i> {
                     node
                 };
                 let left_extent = self.sppf_node(right_child).left_extent();
-                let mut current = right_child;
+                let current = right_child;
                 return Some(self.add_nonterminal_node(NonterminalNode {
                     nonterminal_id: NonterminalId(3),
                     return_slot: SlotId(7),
@@ -927,21 +924,6 @@ impl<'i> PlusGroupParser<'i> {
             });
         }
         Some(current)
-    }
-    fn get_or_create_epsilon_node(&mut self, i: u32) -> SPPFNodeId {
-        let existing = self.epsilon_nodes[i as usize];
-        if existing != SPPFNodeId::NONE {
-            record!(self, TerminalNodeFound, existing);
-            return existing;
-        }
-        let span = Span::new(i, i);
-        let terminal_id = TerminalId(3);
-        let node_id = SPPFNodeId(self.sppf_nodes.len() as u32);
-        record!(self, TerminalNodeCreated, terminal_id, span);
-        self.sppf_nodes
-            .push(SPPFNode::Terminal(TerminalNode { terminal_id, span }));
-        self.epsilon_nodes[i as usize] = node_id;
-        node_id
     }
     // True if a local ambiguity node was added during parsing. This does not guarantee the
     // ambiguity is reachable from the root, so a tree walk is still needed to confirm it.
