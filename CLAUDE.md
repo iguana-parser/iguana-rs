@@ -125,9 +125,10 @@ Don't rush to the first solution. When a change touches shared infrastructure (g
 
 # Tool Use
 
+- Don't spawn subagents (the Agent tool, background or worktree agents, workflows) unless I explicitly ask for it. Default to doing the work yourself, inline, so I can review each change step by step. If you think a subagent is warranted, ask first and wait for permission.
 - Don't write scripts with sed/awk for code refactoring or fixing a failed bootstrap. Only use those tools when you're sure they won't mess things up. Otherwise, fix things manually.
 - `cargo xtask bootstrap` and `cargo xtask test-gen-all` regenerate many committed files. When a generator change makes them necessary, ask before running. Don't skip the step or report the task as done without it — the source diff is only half the work. The user wants to review the source diff first, then approve regeneration.
-- Start a new conversation before hitting 20% context usage.
+- Start a new conversation before hitting 75% context usage.
 
 # Git
 
