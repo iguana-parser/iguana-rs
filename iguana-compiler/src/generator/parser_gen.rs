@@ -21,7 +21,6 @@ use crate::grammar::symbols::Nonterminal;
 use crate::grammar::symbols::Parameter;
 use crate::grammar::symbols::Symbol;
 use crate::grammar::symbols::Terminal;
-use crate::ids::BindingId;
 use crate::ids::NonterminalId;
 use crate::ids::SlotId;
 use crate::utils::to_first_uppercase;
@@ -676,9 +675,9 @@ impl<'a> ParserGen<'a> {
                 for pos in 0..alternative.symbols.len() {
                     let symbol = &alternative.symbols[pos];
                     if let Symbol::Except { symbol, except } = symbol {
-                        let Some(identifier) = symbol.as_identifier() else {
+                        if symbol.as_identifier().is_none() {
                             continue;
-                        };
+                        }
                         let except_ids: Vec<_> = except
                             .iter()
                             .map(|e| {
@@ -712,9 +711,9 @@ impl<'a> ParserGen<'a> {
                         });
                     }
                     if let Symbol::FollowRestriction { symbol, .. } = symbol {
-                        let Some(_) = symbol.as_identifier() else {
+                        if symbol.as_identifier().is_none() {
                             continue;
-                        };
+                        }
                         let static_name_str = format!(
                             "FOLLOW_RESTRICTION_{}_ALT{}_POS{}",
                             to_snake_case(&nonterminal.name).to_uppercase(),

@@ -135,18 +135,6 @@ impl BindingIds {
         BindingId(id as u8)
     }
 
-    pub fn get_id(&self, name: &str) -> BindingId {
-        let id = self
-            .names
-            .get_index_of(name)
-            .unwrap_or_else(|| panic!("unknown binding name: {name}"));
-        BindingId(id as u8)
-    }
-
-    pub fn len(&self) -> usize {
-        self.names.len()
-    }
-
     pub fn names(&self) -> impl Iterator<Item = &String> {
         self.names.iter()
     }
