@@ -1437,6 +1437,7 @@ impl<'a> ParserGen<'a> {
                     child: body_node,
                     ambiguous: false,
                 });
+                #[allow(clippy::while_let_loop)]
                 loop {
                     #(#parses)*
                     #(#build_nodes)*

@@ -752,6 +752,7 @@ impl<'i> StarParser<'i> {
             child: body_node,
             ambiguous: false,
         });
+        #[allow(clippy::while_let_loop)]
         loop {
             let Some((node_0, pos_0)) = self.parse_a_ll1(j).map(|node| {
                 let end = self.sppf_node(node).right_extent();

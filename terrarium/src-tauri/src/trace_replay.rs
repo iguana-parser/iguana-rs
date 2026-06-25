@@ -1,3 +1,4 @@
+use std::cmp::Reverse;
 use std::fs::File;
 use std::io::{self, BufReader};
 use std::path::Path;
@@ -321,7 +322,7 @@ impl TraceReplay {
             .collect();
 
         // Sort by input_index descending (furthest first)
-        errors.sort_by(|a, b| b.input_index.cmp(&a.input_index));
+        errors.sort_by_key(|e| Reverse(e.input_index));
         errors
     }
 

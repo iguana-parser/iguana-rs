@@ -6376,6 +6376,7 @@ impl<'i> IggyParser<'i> {
             child: body_node,
             ambiguous: false,
         });
+        #[allow(clippy::while_let_loop)]
         loop {
             let Some((node_0, pos_0)) = self.parse_layout_ll1(j).map(|node| {
                 let end = self.sppf_node(node).right_extent();
@@ -6853,6 +6854,7 @@ impl<'i> IggyParser<'i> {
             child: body_node,
             ambiguous: false,
         });
+        #[allow(clippy::while_let_loop)]
         loop {
             let Some((node_0, pos_0)) = self.parse_alt_0_ll1(j).map(|node| {
                 let end = self.sppf_node(node).right_extent();

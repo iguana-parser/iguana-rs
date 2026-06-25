@@ -739,6 +739,7 @@ impl<'i> FollowRestrictionLexicalParser<'i> {
             child: body_node,
             ambiguous: false,
         });
+        #[allow(clippy::while_let_loop)]
         loop {
             let Some((node_0, pos_0)) = self
                 .match_terminal(TerminalId(3), j, SlotId(7), None)

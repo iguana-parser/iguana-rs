@@ -779,6 +779,7 @@ impl<'i> RegexCompositionParser<'i> {
             child: body_node,
             ambiguous: false,
         });
+        #[allow(clippy::while_let_loop)]
         loop {
             let Some((node_0, pos_0)) = self
                 .match_terminal(TerminalId(2), j, SlotId(6), None)
