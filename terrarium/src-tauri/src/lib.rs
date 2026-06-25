@@ -300,8 +300,7 @@ fn read_parser_name(directory: &str) -> Result<String, String> {
     let content = fs::read_to_string(&cargo_path)
         .map_err(|_| "No valid Iguana parser found in this directory.".to_string())?;
 
-    let toml: Value = content
-        .parse()
+    let toml: Value = toml::from_str(&content)
         .map_err(|_| "No valid Iguana parser found in this directory.".to_string())?;
 
     let bin_name = toml
