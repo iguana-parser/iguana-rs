@@ -1,7 +1,7 @@
 <script lang="ts">
   import { commands, type DebugInfo, type DebugSPPFNode, type DebugSPPFInfo, type DebugGSSNode, type DebugGSSEdge, type DebugGSSInfo, type ErrorInfo, type BuildFeatures, type DocumentSymbolData } from "../bindings";
   import { listen, emit } from "@tauri-apps/api/event";
-  import { open, save } from "@tauri-apps/plugin-dialog";
+  import { open, save, confirm } from "@tauri-apps/plugin-dialog";
   import { getCurrentWindow, type Window } from "@tauri-apps/api/window";
   import { WebviewWindow } from "@tauri-apps/api/webviewWindow";
   import { createMaximizeToggle } from "$lib/window-utils";
@@ -210,10 +210,18 @@
       }
     });
 
-    // Close all graph windows when main window closes
+    // Confirm before closing with unsaved grammar edits, then close all graph
+    // windows when the main window closes.
     const mainWindow = getCurrentWindow();
     const unlistenMainClose = mainWindow.onCloseRequested(async (event) => {
       event.preventDefault();
+      if (grammarDirty) {
+        const discard = await confirm(
+          `${grammarFileName} has unsaved changes. Close without saving?`,
+          { title: "Unsaved Changes", kind: "warning", okLabel: "Close Without Saving", cancelLabel: "Cancel" },
+        );
+        if (!discard) return;
+      }
       await closeAllGraphWindows();
       await mainWindow.destroy();
     });
@@ -231,6 +239,12 @@
       }
     }
     window.addEventListener("terrarium-generate", handleTerrariumGenerate);
+
+    // Listen for Cmd+S from Monaco editor (only fires when editor has focus)
+    function handleTerrariumSave() {
+      saveGrammar();
+    }
+    window.addEventListener("terrarium-save", handleTerrariumSave);
 
     // Listen for Cmd+P from Monaco editor (only fires when editor has focus)
     function handleTerrariumParse() {
@@ -269,6 +283,7 @@
       window.removeEventListener('resize', handleWindowResize);
       window.removeEventListener("terrarium-open-grammar", handleTerrariumOpenGrammar);
       window.removeEventListener("terrarium-generate", handleTerrariumGenerate);
+      window.removeEventListener("terrarium-save", handleTerrariumSave);
       window.removeEventListener("terrarium-parse", handleTerrariumParse);
       window.removeEventListener("terrarium-mode", handleTerrariumMode);
     };
@@ -306,17 +321,26 @@
   let errorBubbleHoverReveal = $state(false);
   let grammarText = $state("");
   let grammarFileName = $state<string | null>(null);
+  // Content currently on disk, set on load and after each save. The buffer is
+  // dirty when it diverges. There is no auto-save: the user saves explicitly
+  // (Cmd+S), and generate flushes first since it reads the .iggy from disk.
+  // Live highlighting, diagnostics, and the outline read the in-memory text, so
+  // an unsaved buffer still analyzes correctly; only generate needs the file.
+  let lastSavedText = $state("");
+  let grammarDirty = $derived(grammarFileName !== null && grammarText !== lastSavedText);
 
-  // Auto-save grammar file (debounced 500ms after edits)
-  let saveTimeout: ReturnType<typeof setTimeout> | null = null;
-  function onGrammarEdit(text: string) {
-    if (!parserDirectory || !grammarFileName) return;
-    if (saveTimeout) clearTimeout(saveTimeout);
-    const dir = parserDirectory;
-    const file = grammarFileName;
-    saveTimeout = setTimeout(() => {
-      commands.saveGrammar(dir, file, text);
-    }, 500);
+  // Write the buffer to disk. Returns true on success (or when there is nothing
+  // to save). Generate awaits this so it never reads a stale file.
+  async function saveGrammar(): Promise<boolean> {
+    if (!parserDirectory || !grammarFileName || !grammarDirty) return true;
+    const text = grammarText;
+    const result = await commands.saveGrammar(parserDirectory, grammarFileName, text);
+    if (result.status === "ok") {
+      lastSavedText = text;
+      return true;
+    }
+    setStatus(`Save failed: ${result.error}`, "error");
+    return false;
   }
 
   // Outline panel
@@ -871,6 +895,7 @@
       nonterminals = [];
       startNonterminal = null;
       grammarText = "";
+      lastSavedText = "";
       grammarFileName = null;
 
 
@@ -888,6 +913,7 @@
         const [filename, content] = grammarResult.data;
         grammarFileName = filename;
         grammarText = content;
+        lastSavedText = content;
         editorInstance?.focus();
       }
 
@@ -918,6 +944,9 @@
 
   async function generateParser() {
     if (!parserDirectory) return;
+    // Generate reads the .iggy from disk, so flush the buffer first; bail if the
+    // write failed rather than generate from a stale file.
+    if (!(await saveGrammar())) return;
     isGenerating = true;
     generateStartTime = performance.now();
     generateDurationMs = null;
@@ -1564,6 +1593,13 @@
       return;
     }
 
+    // Cmd+S to save the grammar buffer to disk (explicit save; no auto-save)
+    if ((e.metaKey || e.ctrlKey) && e.key === 's' && !e.shiftKey) {
+      e.preventDefault();
+      saveGrammar();
+      return;
+    }
+
     // Cmd+1/2/3 to switch modes (if enabled)
     if ((e.metaKey || e.ctrlKey) && (e.key === '1' || e.key === '2' || e.key === '3')) {
       e.preventDefault();
@@ -1872,10 +1908,24 @@
   <!-- Design Mode -->
   <div class="design-mode">
     <div class="design-editor">
-      <DesignView bind:value={grammarText} backend={lspBackend} disabled={!grammarFileName} onchange={onGrammarEdit} onready={onEditorReady} initialViewState={grammarViewState} onSaveViewState={(s) => grammarViewState = s} />
-      {#if !grammarFileName}
-        <div class="editor-placeholder">Open a grammar to get started</div>
+      {#if grammarFileName}
+        <!-- Single-file "tab" strip: shows the open grammar and its dirty state.
+             A seed for a real tab bar once multi-file grammars (imports) land. -->
+        <div class="editor-tabbar">
+          <div class="editor-tab">
+            <span class="editor-tab-name">{grammarFileName}</span>
+            {#if grammarDirty}
+              <span class="editor-tab-dirty" title="Unsaved changes (⌘S to save)">●</span>
+            {/if}
+          </div>
+        </div>
       {/if}
+      <div class="editor-host">
+        <DesignView bind:value={grammarText} backend={lspBackend} disabled={!grammarFileName} onready={onEditorReady} initialViewState={grammarViewState} onSaveViewState={(s) => grammarViewState = s} />
+        {#if !grammarFileName}
+          <div class="editor-placeholder">Open a grammar to get started</div>
+        {/if}
+      </div>
     </div>
     {#if outlineOpen}
     <div class="resize-handle-vertical" onmousedown={startOutlineDrag}></div>
@@ -2337,6 +2387,10 @@ Compilation: {buildDurationMs ?? '?'}ms</span>
               <span class="shortcut-desc">Generate &amp; build parser</span>
             </div>
             <div class="shortcut-row">
+              <span class="shortcut-keys"><kbd>⌘</kbd><kbd>S</kbd></span>
+              <span class="shortcut-desc">Save grammar</span>
+            </div>
+            <div class="shortcut-row">
               <span class="shortcut-keys"><kbd>⌘</kbd><kbd>P</kbd></span>
               <span class="shortcut-desc">Parse input</span>
             </div>
@@ -2585,6 +2639,43 @@ Compilation: {buildDurationMs ?? '?'}ms</span>
     flex: 1;
     min-height: 0;
     min-width: 0;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .editor-tabbar {
+    display: flex;
+    height: 35px;
+    flex-shrink: 0;
+    background: #252526;
+    border-bottom: 1px solid #3c3c3c;
+  }
+
+  .editor-tab {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    height: 100%;
+    padding: 0 17px;
+    font-size: 14px;
+    color: #cccccc;
+    background: #1e1e1e;
+    border-right: 1px solid #3c3c3c;
+  }
+
+  .editor-tab-name {
+    white-space: nowrap;
+  }
+
+  .editor-tab-dirty {
+    color: #cccccc;
+    font-size: 12px;
+    line-height: 1;
+  }
+
+  .editor-host {
+    flex: 1;
+    min-height: 0;
     position: relative;
   }
 

@@ -23,6 +23,14 @@ export function registerDesignEditorActions(editor: monaco.editor.IStandaloneCod
     },
   });
   editor.addAction({
+    id: "terrarium.saveGrammar",
+    label: "Save Grammar",
+    keybindings: [monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyS],
+    run: () => {
+      window.dispatchEvent(new CustomEvent("terrarium-save"));
+    },
+  });
+  editor.addAction({
     id: "terrarium.parse",
     label: "Parse Input",
     keybindings: [monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyP],
