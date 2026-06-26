@@ -105,8 +105,8 @@ cargo run -p iggy -- --nonterminal Grammar path/to/file.iggy
 # List available nonterminals
 cargo run -p iggy -- --list-nonterminals
 
-# Generate SPPF visualization
-cargo run -p iggy -- --nonterminal Grammar file.iggy --vis sppf
+# Generate an SPPF visualization (SVG, rendered with graphviz)
+cargo run -p iggy -- --nonterminal Grammar file.iggy --write-sppf sppf.svg --format svg
 ```
 
 ## LSP Server

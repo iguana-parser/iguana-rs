@@ -20,7 +20,7 @@ fn runtime_dependency(runtime_path: Option<&Path>) -> String {
 /// crate compiles for `wasm32` as a dependency of the wrapper crate.
 ///
 /// `cli` (without `wasm`) produces a full standalone-parser shape with CLI deps
-/// (clap/dot/dhat/pprof) and a `src/main.rs` binary.
+/// (clap/dhat/pprof) and a `src/main.rs` binary.
 ///
 /// With neither flag, the output is a minimal lib-only shape that assumes the
 /// crate is a workspace member: deps come from `workspace = true`, the `[lib]`
@@ -115,7 +115,6 @@ path = "src/lib.rs"
 {bin_section}[dependencies]
 {runtime}
 clap = {{ version = "4.5.51", features = ["derive"] }}
-dot = {{ git = "https://github.com/przygienda/dot-rust.git", rev = "fed06f613a9d72bfde711a12791f96a777b2371e" }}
 log = "0.4"
 rustc-hash = "2.1.1"
 serde_json = "1.0"

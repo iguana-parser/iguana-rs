@@ -16,7 +16,6 @@ path = "src/lib.rs"
 
 [dependencies]
 bumpalo.workspace = true
-dot.workspace = true
 log.workspace = true
 proc-macro2.workspace = true
 quote.workspace = true

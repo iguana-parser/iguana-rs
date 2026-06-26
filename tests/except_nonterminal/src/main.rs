@@ -12,11 +12,7 @@ use iguana_runtime::{
     input::Input,
     parse_tree::{ParseContext, SexprOptions, is_ambiguous},
     parser::{ParseResult, Parser},
-    visualization::{
-        dot::write_svg,
-        gss::{build_gss_dot_graph, render_gss},
-        sppf::{build_sppf_graph, write_sppf_dot},
-    },
+    visualization::{dot::write_graph, gss::build_gss_dot_graph, sppf::build_sppf_graph},
 };
 #[cfg(feature = "profile")]
 use pprof::ProfilerGuardBuilder;
@@ -26,16 +22,11 @@ use std::{
     path::{Path, PathBuf},
     time::Instant,
 };
-#[derive(Clone, Copy, Default, ClapValueEnum)]
-enum TraceFormat {
-    #[default]
+#[derive(Clone, Copy, ClapValueEnum)]
+enum Format {
     Text,
     Json,
-}
-#[derive(Clone, Copy, PartialEq, Eq, ClapValueEnum)]
-enum VisTarget {
-    Sppf,
-    Gss,
+    Svg,
 }
 #[derive(ClapParser)]
 #[command(about = "Parser for the ExceptNonterminal grammar")]
@@ -120,21 +111,14 @@ struct Cli {
     /// On success includes timings; on failure includes the error location and message
     #[arg(long, value_name = "FILE", help_heading = "Output files")]
     write_result: Option<PathBuf>,
-    /// Generate an SVG visualization
+    /// Output format for --trace, --write-sppf, and --write-gss
+    ///
+    /// text: --trace only. json: any of the three, and the default for each. svg: --write-sppf and --write-gss only, rendered from DOT by the graphviz `dot` binary. A format that does not apply to the requested output is rejected.
     #[arg(long, value_enum, help_heading = "Output files")]
-    vis: Option<VisTarget>,
+    format: Option<Format>,
     /// Enable trace output (writes to stdout, or a file if given)
     #[arg(long, value_name = "FILE", help_heading = "Tracing")]
     trace: Option<Option<PathBuf>>,
-    /// Output format for trace
-    #[arg(
-        long,
-        value_enum,
-        default_value_t,
-        requires = "trace",
-        help_heading = "Tracing"
-    )]
-    format: TraceFormat,
     /// Run the parser many times and report timing statistics
     ///
     /// Min, mean, median, p90, max, stddev, sampled in-process per iteration
@@ -280,6 +264,31 @@ fn main() -> Result<(), io::Error> {
         );
         std::process::exit(1);
     }
+    if let Some(format) = args.format {
+        let writes_graph = args.write_sppf.is_some() || args.write_gss.is_some();
+        let traces = args.trace.is_some();
+        match format {
+            Format::Text if writes_graph => {
+                eprintln!(
+                    "Error: --format text applies to --trace only; --write-sppf and --write-gss support json or svg."
+                );
+                std::process::exit(1);
+            }
+            Format::Svg if traces => {
+                eprintln!(
+                    "Error: --format svg applies to --write-sppf and --write-gss only; --trace supports text or json."
+                );
+                std::process::exit(1);
+            }
+            _ if !writes_graph && !traces => {
+                eprintln!(
+                    "Error: --format has no effect without --trace, --write-sppf, or --write-gss."
+                );
+                std::process::exit(1);
+            }
+            _ => {}
+        }
+    }
     if args.list_nonterminals {
         for name in NONTERMINAL_DISPLAY_ORDER.iter() {
             println!("{}", name);
@@ -323,11 +332,10 @@ fn main() -> Result<(), io::Error> {
             || args.write_gss_nodes.is_some()
             || args.write_result.is_some()
             || args.write_stats.is_some()
-            || args.vis.is_some()
             || args.trace.is_some()
         {
             eprintln!(
-                "Warning: output flags (--write-parse-tree, --write-sppf, --write-gss, --write-gss-nodes, --write-result, --write-stats, --vis, --trace) are ignored in golden mode."
+                "Warning: output flags (--write-parse-tree, --write-sppf, --write-gss, --write-gss-nodes, --write-result, --write-stats, --trace) are ignored in golden mode."
             );
         }
         let mut inputs = Vec::new();
@@ -669,22 +677,20 @@ fn main() -> Result<(), io::Error> {
     let result = parser.run();
     #[cfg(feature = "debug-trace")]
     if let Some(ref trace_events) = parser.trace_events {
-        write_trace_events(trace_events, &parser, &args.trace, args.format)?;
+        let as_json = matches!(args.format, Some(Format::Json));
+        write_trace_events(trace_events, &parser, &args.trace, as_json)?;
     }
     match result {
         ParseResult::Success(parse_success) => {
             let node_id = parse_success.sppf_node_id;
+            let as_svg = matches!(args.format, Some(Format::Svg));
             if let Some(ref path) = args.write_sppf {
                 let sppf = build_sppf_graph(&parser, node_id);
-                let file = File::create(path)?;
-                let mut writer = BufWriter::new(file);
-                writeln!(writer, "{}", serde_json::to_string(&sppf).unwrap())?;
+                write_graph(&sppf, path, as_svg)?;
             }
             if let Some(ref path) = args.write_gss {
                 let gss = build_gss_dot_graph(&parser);
-                let file = File::create(path)?;
-                let mut writer = BufWriter::new(file);
-                writeln!(writer, "{}", serde_json::to_string(&gss).unwrap())?;
+                write_graph(&gss, path, as_svg)?;
             }
             if let Some(ref path) = args.write_gss_nodes {
                 let gss_nodes: Vec<_> = parser.gss_nodes().collect();
@@ -695,10 +701,7 @@ fn main() -> Result<(), io::Error> {
             let tc_start = Instant::now();
             let parse_tree_opt = if args.write_parse_tree.is_some()
                 || args.write_result.is_some()
-                || (args.write_sppf.is_none()
-                    && args.write_gss.is_none()
-                    && args.vis.is_none()
-                    && args.trace.is_none())
+                || (args.write_sppf.is_none() && args.write_gss.is_none() && args.trace.is_none())
             {
                 Some(create_parse_tree(
                     node_id,
@@ -729,21 +732,6 @@ fn main() -> Result<(), io::Error> {
                 let mut writer = BufWriter::new(file);
                 writeln!(writer, "{}", serde_json::to_string(&result).unwrap())?;
             }
-            match args.vis {
-                Some(VisTarget::Gss) => {
-                    let path = Path::new("gss.dot");
-                    render_gss(&parser, path)?;
-                    write_svg(path)?;
-                    eprintln!("GSS visualization generated: gss.svg");
-                }
-                Some(VisTarget::Sppf) => {
-                    let path = Path::new("sppf.dot");
-                    write_sppf_dot(&parser, node_id, path)?;
-                    write_svg(path)?;
-                    eprintln!("SPPF visualization generated: sppf.svg");
-                }
-                None => {}
-            }
             if !args.hist {
                 eprintln!("Parse success in {}ms", parse_success.duration.as_millis());
             }
@@ -752,7 +740,6 @@ fn main() -> Result<(), io::Error> {
                 && args.write_parse_tree.is_none()
                 && args.write_sppf.is_none()
                 && args.write_gss.is_none()
-                && args.vis.is_none()
                 && args.trace.is_none()
             {
                 if let Some(ref parse_tree) = parse_tree_opt {
@@ -1043,33 +1030,29 @@ fn write_trace_events<'i>(
     trace_events: &[TraceEvent],
     parser: &impl Parser<'i>,
     trace_option: &Option<Option<PathBuf>>,
-    format: TraceFormat,
+    as_json: bool,
 ) -> io::Result<()> {
     match trace_option {
         Some(Some(path)) => {
             let file = File::create(path)?;
             let mut writer = BufWriter::new(file);
-            match format {
-                TraceFormat::Text => {
-                    for event in trace_events {
-                        writeln!(writer, "{}", event.message(parser))?;
-                    }
-                }
-                TraceFormat::Json => {
-                    writeln!(writer, "{}", serde_json::to_string(trace_events).unwrap())?;
+            if as_json {
+                writeln!(writer, "{}", serde_json::to_string(trace_events).unwrap())?;
+            } else {
+                for event in trace_events {
+                    writeln!(writer, "{}", event.message(parser))?;
                 }
             }
         }
-        Some(None) => match format {
-            TraceFormat::Text => {
+        Some(None) => {
+            if as_json {
+                println!("{}", serde_json::to_string(trace_events).unwrap());
+            } else {
                 for event in trace_events {
                     println!("{}", event.message(parser));
                 }
             }
-            TraceFormat::Json => {
-                println!("{}", serde_json::to_string(trace_events).unwrap());
-            }
-        },
+        }
         None => {}
     }
     Ok(())

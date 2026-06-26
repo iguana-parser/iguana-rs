@@ -1,10 +1,13 @@
-use std::{borrow::Cow, fs::File, io, io::BufWriter, path::Path};
+use std::io::{self, Write};
 
-use dot::Labeller;
 use serde::{Deserialize, Serialize};
 use specta::Type;
 
-use crate::{ids::GssNodeId, parser::Parser};
+use crate::{
+    ids::GssNodeId,
+    parser::Parser,
+    visualization::dot::{ToDot, escape_label},
+};
 
 #[derive(Debug, Serialize, Deserialize, Type)]
 pub struct GSS {
@@ -20,59 +23,29 @@ pub struct GSSDotNode {
 
 #[derive(Debug, Clone, Serialize, Deserialize, Type)]
 pub struct GSSDotEdge {
-    #[serde(skip)]
-    #[specta(skip)]
-    pub id: usize,
     pub src: GssNodeId,
     pub dest: GssNodeId,
     pub label: String,
 }
 
-impl<'a> Labeller<'a, GSSDotNode, GSSDotEdge> for GSS {
-    fn graph_id(&'a self) -> dot::Id<'a> {
-        dot::Id::new("GSS").unwrap()
+impl ToDot for GSS {
+    fn write_dot<W: Write>(&self, w: &mut W) -> io::Result<()> {
+        writeln!(w, "digraph gss {{")?;
+        writeln!(w, "    rankdir=BT;")?;
+        for n in &self.nodes {
+            writeln!(w, "    N{}[label=\"{}\"];", n.id, escape_label(&n.label))?;
+        }
+        for e in &self.edges {
+            writeln!(
+                w,
+                "    N{} -> N{}[label=\"{}\"];",
+                e.src,
+                e.dest,
+                escape_label(&e.label)
+            )?;
+        }
+        writeln!(w, "}}")
     }
-
-    fn node_id(&'a self, n: &GSSDotNode) -> dot::Id<'a> {
-        dot::Id::new(format!("N{}", n.id)).unwrap()
-    }
-
-    fn node_label(&'a self, n: &GSSDotNode) -> dot::LabelText<'a> {
-        dot::LabelText::LabelStr(Cow::Borrowed(&self.nodes[n.id.index()].label))
-    }
-
-    fn edge_label(&'a self, e: &GSSDotEdge) -> dot::LabelText<'a> {
-        dot::LabelText::LabelStr(Cow::Borrowed(&self.edges[e.id].label))
-    }
-
-    fn rank_dir(&'a self) -> Option<dot::RankDir> {
-        Some(dot::RankDir::BottomTop)
-    }
-}
-
-impl<'a> dot::GraphWalk<'a, GSSDotNode, GSSDotEdge> for GSS {
-    fn nodes(&'a self) -> dot::Nodes<'a, GSSDotNode> {
-        Cow::Borrowed(&self.nodes)
-    }
-
-    fn edges(&'a self) -> dot::Edges<'a, GSSDotEdge> {
-        Cow::Borrowed(&self.edges)
-    }
-
-    fn source(&'a self, edge: &GSSDotEdge) -> GSSDotNode {
-        self.nodes[edge.src.index()].clone()
-    }
-
-    fn target(&'a self, edge: &GSSDotEdge) -> GSSDotNode {
-        self.nodes[edge.dest.index()].clone()
-    }
-}
-
-pub fn render_gss<'i>(parser: &impl Parser<'i>, path: impl AsRef<Path>) -> io::Result<()> {
-    let file = File::create(path)?;
-    let mut writer = BufWriter::new(file);
-    let gss: GSS = build_gss_dot_graph(parser);
-    dot::render(&gss, &mut writer)
 }
 
 pub fn build_gss_dot_graph<'i, P: Parser<'i>>(parser: &P) -> GSS {
@@ -83,9 +56,8 @@ pub fn build_gss_dot_graph<'i, P: Parser<'i>>(parser: &P) -> GSS {
             id: gss_node.id,
             label: parser.gss_to_string(gss_node.id),
         });
-        for (id, gss_edge) in gss_node.edges().iter().enumerate() {
+        for gss_edge in gss_node.edges() {
             edges.push(GSSDotEdge {
-                id,
                 src: gss_node.id,
                 dest: gss_edge.dest_id,
                 label: P::slot_name(gss_edge.return_slot).into(),
