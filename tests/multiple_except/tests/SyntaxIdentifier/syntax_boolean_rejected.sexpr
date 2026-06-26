@@ -1,1 +1,3 @@
 Parse error at line 1, col 5: Match excluded by Keyword, BooleanLiteral, NullLiteral
+true
+    ^

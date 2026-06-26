@@ -384,10 +384,11 @@ fn main() -> Result<(), io::Error> {
                     ParseResult::Failure(error) => {
                         let (line, column, message) = parser.format_error(&error);
                         format!(
-                            "Parse error at line {}, col {}: {}\n",
+                            "Parse error at line {}, col {}: {}\n{}\n",
                             line + 1,
                             column + 1,
-                            message
+                            message,
+                            input.line_and_caret(error.input_index)
                         )
                     }
                 };
@@ -560,7 +561,10 @@ fn main() -> Result<(), io::Error> {
                 ParseResult::Failure(error) => {
                     let (line, column, message) = parser.format_error(&error);
                     cli::ReplOutcome::Failed {
-                        message: format!("Parse failed at line {line}, column {column}: {message}"),
+                        message: format!(
+                            "Parse failed at line {line}, column {column}: {message}\n{}",
+                            input.line_and_caret(error.input_index)
+                        ),
                     }
                 }
             }
@@ -762,7 +766,10 @@ fn main() -> Result<(), io::Error> {
         }
         ParseResult::Failure(error) => {
             let (line, column, message) = parser.format_error(&error);
-            eprintln!("Parse failed at line {line}, column {column}: {message}");
+            eprintln!(
+                "Parse failed at line {line}, column {column}: {message}\n{}",
+                input.line_and_caret(error.input_index)
+            );
             if let Some(ref path) = args.write_result {
                 let result = cli::ParseResult::Failure(cli::ParseFailure {
                     line,

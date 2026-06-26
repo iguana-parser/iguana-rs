@@ -1,1 +1,3 @@
-Parse error at line 1, col 2: Expected Char but found ' '
+Parse error at line 1, col 2: Expected Char
+a b
+ ^

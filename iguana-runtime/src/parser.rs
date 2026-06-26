@@ -189,23 +189,18 @@ pub trait Parser<'i> {
     /// Returns the terminal IDs in the follow set of the given nonterminal.
     fn follow_set_terminals(&self, nonterminal_id: NonterminalId) -> Vec<TerminalId>;
 
-    /// Formats a parse error into a human-readable message.
+    /// Formats a parse error into a message and its location. The message names
+    /// what was expected, not what was found, and carries no source context; a
+    /// caller renders the location as a caret in a terminal or a range in an editor.
     fn format_error(&self, error: &ParseError) -> (u32, u32, String) {
-        let input = self.input();
-        let (line, column) = input.line_column(error.input_index);
-        let found = if error.input_index >= input.len() {
-            "EOF".to_string()
-        } else {
-            let ch = input.char_at(error.input_index).unwrap();
-            format!("'{ch}'")
-        };
+        let (line, column) = self.input().line_column(error.input_index);
         let message = match &error.kind {
             ParseErrorKind::UnexpectedToken { expected } => {
                 let names: Vec<_> = expected.iter().map(|t| Self::terminal_name(*t)).collect();
                 match names.len() {
-                    0 => format!("Unexpected {found}"),
-                    1 => format!("Expected {} but found {found}", names[0]),
-                    _ => format!("Expected one of {} but found {found}", names.join(", ")),
+                    0 => "Unexpected input".to_string(),
+                    1 => format!("Expected {}", names[0]),
+                    _ => format!("Expected one of {}", names.join(", ")),
                 }
             }
             ParseErrorKind::ExcludedMatch { excluded_by } => {
