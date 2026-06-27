@@ -23,6 +23,8 @@ members = [
     "iggy",
     "iguana-lsp",
     "xtask",
+    "tests/ambiguous_expr_unsafe",
+    "tests/ambiguous_expr",
     "tests/except_regex_reference",
     "tests/follow_restriction_lexical_multiple",
     "tests/plus_except",

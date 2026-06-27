@@ -115,6 +115,8 @@ impl<'a> ParserGen<'a> {
         let sppf_node_mut_method = Self::gen_sppf_node_mut_method();
         let add_descriptor_method = Self::gen_add_descriptor_method();
         let next_descriptor_method = Self::gen_next_descriptor_method();
+        let clear_descriptors_method = Self::gen_clear_descriptors_method();
+        let unsafe_const = self.gen_unsafe_const();
         let new_terminal_node_method = Self::gen_add_terminal_node_method();
         let new_nonterminal_node_method = Self::gen_add_nonterminal_node_method();
         let new_intermediate_node_method = self.gen_add_intermediate_node_method();
@@ -149,6 +151,7 @@ impl<'a> ParserGen<'a> {
             #imports
             #binding_consts
             impl<'i> Parser<'i> for #grammar_name_ident<'i> {
+                #unsafe_const
                 #nonterminal_display_name_method
                 #terminal_name_method
                 #slot_name_method
@@ -165,6 +168,7 @@ impl<'a> ParserGen<'a> {
                 #sppf_node_mut_method
                 #add_descriptor_method
                 #next_descriptor_method
+                #clear_descriptors_method
                 #new_terminal_node_method
                 #new_nonterminal_node_method
                 #new_intermediate_node_method
@@ -1792,6 +1796,25 @@ impl<'a> ParserGen<'a> {
             fn next_descriptor(&mut self) -> Option<Descriptor> {
                 self.descriptors.pop()
             }
+        }
+    }
+
+    fn gen_clear_descriptors_method() -> TokenStream {
+        quote! {
+            fn clear_descriptors(&mut self) {
+                self.descriptors.clear();
+            }
+        }
+    }
+
+    /// Emits the `UNSAFE` associated const when generating with `--unsafe`,
+    /// overriding the trait's safe default. The runtime runs its early-termination
+    /// code only when `Self::UNSAFE` is true; a safe build compiles it away entirely.
+    fn gen_unsafe_const(&self) -> TokenStream {
+        if self.config.unsafe_mode {
+            quote! { const UNSAFE: bool = true; }
+        } else {
+            quote! {}
         }
     }
 

@@ -53,6 +53,8 @@ pub enum ParseErrorKind {
 }
 
 pub trait Parser<'i> {
+    const UNSAFE: bool = false;
+
     fn nonterminal_display_name(nonterminal_id: NonterminalId) -> &'static str;
     fn terminal_name(terminal_id: TerminalId) -> &'static str;
     fn slot_name(slot_id: SlotId) -> &'static str;
@@ -115,6 +117,10 @@ pub trait Parser<'i> {
         ));
     }
     fn next_descriptor(&mut self) -> Option<Descriptor>;
+    /// Empties the descriptor queue. With no descriptors left, `run`'s loop ends and the parse
+    /// terminates. `pop` calls it once the start nonterminal spans the full input, but only in
+    /// the unsafe mode.
+    fn clear_descriptors(&mut self) {}
     fn input(&self) -> &'i Input;
 
     fn sppf_nodes(&self) -> &[SPPFNode];
@@ -475,6 +481,10 @@ pub trait Parser<'i> {
                 ));
             }
         }
+        // Stop only when the start node (`GssNodeId(0)`) spans the whole input.
+        if Self::UNSAFE && gss_node_id == GssNodeId(0) && right_extent == self.input().len() {
+            self.clear_descriptors();
+        }
     }
 
     /// Returns the node id to drive the caller's continuation with. Returns
@@ -743,6 +753,10 @@ pub trait Parser<'i> {
         let start_input_index = 0;
         let start_nonterminal_id = self.start_nonterminal();
         let start_gss_node_id = self.new_gss_node(start_nonterminal_id, start_input_index);
+        // The start node is created before any other GSS node, so its id is
+        // `GssNodeId(0)`. `pop` relies on this id to recognize the start node when
+        // it terminates an unsafe parse early.
+        debug_assert_eq!(start_gss_node_id, GssNodeId(0));
         let start_env = self.start_env();
         self.add_first_descriptors(
             start_nonterminal_id,

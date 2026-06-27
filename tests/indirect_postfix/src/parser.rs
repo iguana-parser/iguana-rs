@@ -502,6 +502,9 @@ impl<'i> Parser<'i> for IndirectPostfixParser<'i> {
     fn next_descriptor(&mut self) -> Option<Descriptor> {
         self.descriptors.pop()
     }
+    fn clear_descriptors(&mut self) {
+        self.descriptors.clear();
+    }
     fn add_terminal_node(&mut self, terminal_node: TerminalNode) -> SPPFNodeId {
         let terminal_node_id = SPPFNodeId(self.sppf_nodes.len() as u32);
         self.terminal_nodes_index[terminal_node.terminal_id.index()]

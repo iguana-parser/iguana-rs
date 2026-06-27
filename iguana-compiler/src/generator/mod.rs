@@ -56,6 +56,9 @@ pub struct GenConfig {
     /// `wasm-bindgen` wrapper crate under `wasm/` and a `manifest.json`. A
     /// wasm bundle has no CLI, so `wasm` and `cli` are mutually exclusive.
     pub wasm: bool,
+    /// When true (`iguana generate --unsafe`), the parser assumes the grammar is
+    /// unambiguous.
+    pub unsafe_mode: bool,
 }
 
 impl Default for GenConfig {
@@ -65,6 +68,7 @@ impl Default for GenConfig {
             match_memo: true,
             cli: true,
             wasm: false,
+            unsafe_mode: false,
         }
     }
 }

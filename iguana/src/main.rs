@@ -60,6 +60,23 @@ enum Commands {
         #[arg(long, default_value_t = true, action = clap::ArgAction::Set)]
         match_memo: bool,
 
+        /// The unsafe mode runs the parser as if the grammar is unambiguous.
+        ///
+        /// Static ambiguity detection for the full class of context-free grammars is
+        /// undecidable. Iguana detects ambiguities at runtime and returns a parse forest
+        /// containing all the derivations. The unsafe mode may silently disambiguate,
+        /// returning the first parse tree while in reality there were multiple
+        /// derivations. The unsafe mode is only recommended if the user understands its
+        /// implications, has a well-tested grammar, and wants better performance.
+        ///
+        /// The unsafe mode changes the parser behavior as follows:
+        /// - The parser stops when it finds the first derivation of the start nonterminal
+        ///   that spans the whole input, without exploring the pending descriptors.
+        /// - The machinery for detecting and recording ambiguity nodes, e.g., SPPF node
+        ///   indexes, is disabled.
+        #[arg(long = "unsafe")]
+        unsafe_mode: bool,
+
         /// Scaffold a CLI binary (Cargo.toml + src/main.rs)
         ///
         /// When false, the caller owns Cargo.toml and no CLI binary is emitted
@@ -135,6 +152,7 @@ fn run() -> io::Result<()> {
             json,
             ll1,
             match_memo,
+            unsafe_mode,
             cli,
             wasm,
             runtime_path,
@@ -184,6 +202,7 @@ fn run() -> io::Result<()> {
                 // A wasm bundle has no CLI, so --wasm forces the lib-only shape.
                 cli: cli && !wasm,
                 wasm,
+                unsafe_mode,
             };
             let grammar: Grammar = grammar_def
                 .to_grammar(&dump_phases)

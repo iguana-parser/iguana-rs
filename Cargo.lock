@@ -94,6 +94,32 @@ dependencies = [
 ]
 
 [[package]]
+name = "ambiguous_expr"
+version = "0.1.0"
+dependencies = [
+ "clap",
+ "dhat",
+ "iguana-runtime",
+ "log",
+ "pprof",
+ "rustc-hash 2.1.2",
+ "serde_json",
+]
+
+[[package]]
+name = "ambiguous_expr_unsafe"
+version = "0.1.0"
+dependencies = [
+ "clap",
+ "dhat",
+ "iguana-runtime",
+ "log",
+ "pprof",
+ "rustc-hash 2.1.2",
+ "serde_json",
+]
+
+[[package]]
 name = "anstream"
 version = "1.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"

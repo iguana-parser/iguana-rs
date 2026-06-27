@@ -275,8 +275,12 @@ fn regenerate(grammar_path: &Path, output: &Path) -> io::Result<(GenerateResult,
     // shell out to them. force=true keeps src/main.rs current with the
     // generator; patch_test_cargo_toml then adapts the standalone Cargo.toml
     // the scaffold emits to workspace membership.
+    //
+    // An `unsafe` marker file in the test dir generates the parser with --unsafe,
+    // so the same grammar can be tested in both modes from two crates.
     let config = GenConfig {
         cli: true,
+        unsafe_mode: output.join("unsafe").exists(),
         ..GenConfig::default()
     };
     regenerate_with(grammar_path, output, config, None, true)

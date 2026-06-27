@@ -1,0 +1,77 @@
+(S
+  (Amb
+    (E
+      "if"
+      WS
+      #1=(E "a")
+      WS
+      "then"
+      WS
+      #2=(E "a")
+      WS
+      "else"
+      WS
+      (Amb
+        (E
+          #3=(E
+            #4=(E "a")
+            WS
+            "+"
+            WS
+            #5=(E "a"))
+          WS
+          ";"
+          WS
+          #6=(E "a"))
+        (E
+          #4#
+          WS
+          "+"
+          WS
+          #7=(E
+            #5#
+            WS
+            ";"
+            WS
+            #6#))))
+    (E
+      (Amb
+        (E
+          "if"
+          WS
+          #1#
+          WS
+          "then"
+          WS
+          #2#
+          WS
+          "else"
+          WS
+          #3#)
+        (E
+          #8=(E
+            "if"
+            WS
+            #1#
+            WS
+            "then"
+            WS
+            #2#
+            WS
+            "else"
+            WS
+            #4#)
+          WS
+          "+"
+          WS
+          #5#))
+      WS
+      ";"
+      WS
+      #6#)
+    (E
+      #8#
+      WS
+      "+"
+      WS
+      #7#)))
