@@ -7,7 +7,10 @@ use std::{
 
 use clap::{Parser, Subcommand};
 use iguana_compiler::{
-    generator::{GenConfig, GenerateResult, generate_scaffold, generate_sources, generate_wasm},
+    generator::{
+        GenConfig, GenConfigFile, GenerateResult, generate_scaffold, generate_sources,
+        generate_wasm,
+    },
     grammar::def::Grammar,
     iggy::parse_grammar,
     utils::to_pascal_case,
@@ -276,13 +279,13 @@ fn regenerate(grammar_path: &Path, output: &Path) -> io::Result<(GenerateResult,
     // generator; patch_test_cargo_toml then adapts the standalone Cargo.toml
     // the scaffold emits to workspace membership.
     //
-    // An `unsafe` marker file in the test dir generates the parser with --unsafe,
-    // so the same grammar can be tested in both modes from two crates.
-    let config = GenConfig {
+    // A gen.toml beside the grammar overrides the parser knobs, so the same
+    // grammar can be tested in both modes from two crates (one with unsafe = true).
+    let mut config = GenConfig {
         cli: true,
-        unsafe_mode: output.join("unsafe").exists(),
         ..GenConfig::default()
     };
+    config.apply_file(&GenConfigFile::load(grammar_path)?);
     regenerate_with(grammar_path, output, config, None, true)
 }
 

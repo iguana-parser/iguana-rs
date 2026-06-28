@@ -21,6 +21,7 @@ quote.workspace = true
 rustc-hash.workspace = true
 serde.workspace = true
 serde_json.workspace = true
+toml.workspace = true
 specta.workspace = true
 syn = { version = "2.0.108", features = ["full", "parsing"] }
 indexmap = "2.12.1"

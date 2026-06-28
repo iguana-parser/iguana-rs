@@ -6,7 +6,7 @@ use std::{
 
 use clap::{Parser, Subcommand};
 use iguana_compiler::{
-    generator::{GenConfig, generate_scaffold, generate_sources, generate_wasm},
+    generator::{GenConfig, GenConfigFile, generate_scaffold, generate_sources, generate_wasm},
     grammar::def::{Grammar, Phase},
     iggy::parse_grammar,
     utils::to_pascal_case,
@@ -37,6 +37,10 @@ enum Commands {
         path: PathBuf,
     },
     /// Generate a parser crate from an iggy grammar
+    ///
+    /// Generation knobs (ll1, match_memo, unsafe, bin_name, runtime_path) can be
+    /// persisted in a gen.toml beside the grammar. Precedence is the built-in
+    /// default, then gen.toml, then an explicit flag.
     Generate {
         /// Path to an iggy grammar file
         ///
@@ -53,12 +57,16 @@ enum Commands {
         json: bool,
 
         /// Enable LL(1) optimization in code generation
-        #[arg(long, default_value_t = true, action = clap::ArgAction::Set)]
-        ll1: bool,
+        ///
+        /// True by default.
+        #[arg(long, num_args = 0..=1, default_missing_value = "true")]
+        ll1: Option<bool>,
 
         /// Memoize scanner results (match_token and match_any) during parsing
-        #[arg(long, default_value_t = true, action = clap::ArgAction::Set)]
-        match_memo: bool,
+        ///
+        /// True by default.
+        #[arg(long, num_args = 0..=1, default_missing_value = "true")]
+        match_memo: Option<bool>,
 
         /// The unsafe mode runs the parser as if the grammar is unambiguous.
         ///
@@ -74,8 +82,10 @@ enum Commands {
         ///   that spans the whole input, without exploring the pending descriptors.
         /// - The machinery for detecting and recording ambiguity nodes, e.g., SPPF node
         ///   indexes, is disabled.
-        #[arg(long = "unsafe")]
-        unsafe_mode: bool,
+        ///
+        /// False by default.
+        #[arg(long = "unsafe", value_name = "UNSAFE", num_args = 0..=1, default_missing_value = "true")]
+        unsafe_mode: Option<bool>,
 
         /// Scaffold a CLI binary (Cargo.toml + src/main.rs)
         ///
@@ -196,25 +206,41 @@ fn run() -> io::Result<()> {
             // names it instead of surfacing the raw io::Error Debug string.
             let grammar_def = parse_grammar(&source)
                 .map_err(|e| io::Error::other(format!("{}: {e}", path.display())))?;
-            let config = GenConfig {
-                ll1_optimization: ll1,
-                match_memo,
+            // Layer the config: built-in defaults, then a gen.toml beside the
+            // grammar, then the explicit CLI flags. A flag left unset (None)
+            // falls through to the file, and a key absent from the file falls
+            // through to the default.
+            let file = GenConfigFile::load(path)?;
+            let mut config = GenConfig {
                 // A wasm bundle has no CLI, so --wasm forces the lib-only shape.
                 cli: cli && !wasm,
                 wasm,
-                unsafe_mode,
+                ..GenConfig::default()
             };
+            config.apply_file(&file);
+            if let Some(ll1) = ll1 {
+                config.ll1_optimization = ll1;
+            }
+            if let Some(match_memo) = match_memo {
+                config.match_memo = match_memo;
+            }
+            if let Some(unsafe_mode) = unsafe_mode {
+                config.unsafe_mode = unsafe_mode;
+            }
+            let bin_name = bin_name.or(file.bin_name);
+            let runtime_path = runtime_path.or(file.runtime_path);
             let grammar: Grammar = grammar_def
                 .to_grammar(&dump_phases)
                 .map_err(|errors: Vec<String>| std::io::Error::other(errors.join("\n")))?;
             // Absolute so the dependency resolves from both webview/ and
             // webview/wasm/; canonicalize also validates the path exists.
             let runtime_path = runtime_path.map(std::fs::canonicalize).transpose()?;
-            // --bin-name only takes effect when the Cargo.toml is scaffolded, so flag
-            // the no-op when an existing one is being preserved.
+            // A binary name (from --bin-name or gen.toml) only takes effect when
+            // the Cargo.toml is scaffolded, so flag the no-op when an existing one
+            // is being preserved.
             if bin_name.is_some() && !force && output.join("Cargo.toml").exists() {
                 eprintln!(
-                    "Warning: --bin-name is ignored because {} already has a Cargo.toml; pass --force or set [[bin]] there manually.",
+                    "Warning: the binary name is ignored because {} already has a Cargo.toml; pass --force or set [[bin]] there manually.",
                     output.display()
                 );
             }

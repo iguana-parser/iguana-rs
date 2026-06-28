@@ -78,6 +78,8 @@ pub struct GenerateResult {
 }
 
 mod cargo_toml_gen;
+mod gen_config_file;
+pub use gen_config_file::GenConfigFile;
 mod grammar_data_gen;
 pub(crate) mod grammar_utils;
 mod id;
