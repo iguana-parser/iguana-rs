@@ -53,6 +53,20 @@ pub enum ParseErrorKind {
 }
 
 pub trait Parser<'i> {
+    /// The unsafe mode runs the parser as if the grammar is unambiguous.
+    ///
+    /// Static ambiguity detection for the full class of context-free grammars is
+    /// undecidable. Iguana detects ambiguities at runtime and returns a parse forest
+    /// containing all the derivations. The unsafe mode may silently disambiguate,
+    /// returning the first parse tree while in reality there were multiple
+    /// derivations. The unsafe mode is only recommended if the user understands its
+    /// implications, has a well-tested grammar, and wants better performance.
+    ///
+    /// The unsafe mode changes the parser behavior as follows:
+    /// - The parser stops when it finds the first derivation of the start nonterminal
+    ///   that spans the whole input, without exploring the pending descriptors.
+    /// - The machinery for detecting and recording ambiguity nodes, e.g., SPPF node
+    ///   indexes, is disabled.
     const UNSAFE: bool = false;
 
     fn nonterminal_display_name(nonterminal_id: NonterminalId) -> &'static str;
@@ -551,7 +565,8 @@ pub trait Parser<'i> {
     /// Looks up the nonterminal node identified by `nonterminal_id` and the
     /// span `(left_extent, right_extent)` in the current GSS node's
     /// popped-elements map. On hit, marks the existing node ambiguous and
-    /// attaches `child`. On miss, creates a fresh node.
+    /// attaches `child`. On miss, creates a fresh node. The unsafe mode skips
+    /// the lookup and always creates a fresh node.
     ///
     /// Only called in the GLL path. LL(1) parses do not call this function
     /// because an LL(1) nonterminal is unambiguous by definition, so the
@@ -565,18 +580,20 @@ pub trait Parser<'i> {
         child: SPPFNodeId,
         gss_node_id: GssNodeId,
     ) -> SPPFNodeId {
-        if let Some(existing_node_id) = self
-            .gss_node(gss_node_id)
-            .find_popped_element(right_extent, None)
-        {
-            record!(self, NonterminalNodeFound, existing_node_id);
-            let node = self.sppf_node_mut(existing_node_id);
-            let SPPFNode::Nonterminal(node) = node else {
-                unreachable!("Expects a nonterminal node");
-            };
-            node.ambiguous = true;
-            self.add_nonterminal_node_child(existing_node_id, child, return_slot);
-            return existing_node_id;
+        if !Self::UNSAFE {
+            if let Some(existing_node_id) = self
+                .gss_node(gss_node_id)
+                .find_popped_element(right_extent, None)
+            {
+                record!(self, NonterminalNodeFound, existing_node_id);
+                let node = self.sppf_node_mut(existing_node_id);
+                let SPPFNode::Nonterminal(node) = node else {
+                    unreachable!("Expects a nonterminal node");
+                };
+                node.ambiguous = true;
+                self.add_nonterminal_node_child(existing_node_id, child, return_slot);
+                return existing_node_id;
+            }
         }
         let nonterminal_node = NonterminalNode {
             nonterminal_id,
@@ -601,7 +618,8 @@ pub trait Parser<'i> {
     /// descriptor with the same key already drove the continuation forward.
     /// When the new `(left_child, right_child)` pair differs from the
     /// existing one, the new pair is appended and the node is marked
-    /// ambiguous, recording genuine intermediate-level ambiguity.
+    /// ambiguous, recording genuine intermediate-level ambiguity. The unsafe
+    /// mode skips the lookup and always returns `Some`.
     fn get_or_create_intermediate_node(
         &mut self,
         slot_id: SlotId,
@@ -611,21 +629,24 @@ pub trait Parser<'i> {
         right_child: SPPFNodeId,
         env: Option<EnvId>,
     ) -> Option<SPPFNodeId> {
-        if let Some(existing_node_id) =
-            self.lookup_intermediate_node(slot_id, left_extent, right_extent, env)
-        {
-            record!(self, IntermediateNodeFound, existing_node_id);
-            let SPPFNode::Intermediate(existing) = self.sppf_node(existing_node_id) else {
-                unreachable!("expected intermediate node");
-            };
-            if existing.child != (left_child, right_child) {
-                self.add_intermediate_node_child(existing_node_id, left_child, right_child);
-                let SPPFNode::Intermediate(existing) = self.sppf_node_mut(existing_node_id) else {
+        if !Self::UNSAFE {
+            if let Some(existing_node_id) =
+                self.lookup_intermediate_node(slot_id, left_extent, right_extent, env)
+            {
+                record!(self, IntermediateNodeFound, existing_node_id);
+                let SPPFNode::Intermediate(existing) = self.sppf_node(existing_node_id) else {
                     unreachable!("expected intermediate node");
                 };
-                existing.ambiguous = true;
+                if existing.child != (left_child, right_child) {
+                    self.add_intermediate_node_child(existing_node_id, left_child, right_child);
+                    let SPPFNode::Intermediate(existing) = self.sppf_node_mut(existing_node_id)
+                    else {
+                        unreachable!("expected intermediate node");
+                    };
+                    existing.ambiguous = true;
+                }
+                return None;
             }
-            return None;
         }
         let intermediate_node = IntermediateNode {
             slot_id,
@@ -636,7 +657,7 @@ pub trait Parser<'i> {
             child: (left_child, right_child),
             ambiguous: false,
         };
-        Some(self.add_intermediate_node(intermediate_node, env, true))
+        Some(self.add_intermediate_node(intermediate_node, env, !Self::UNSAFE))
     }
 
     /// LL(1)-path intermediate-node creation. Skips the lookup and the index
@@ -721,11 +742,13 @@ pub trait Parser<'i> {
         left_extent: u32,
         right_extent: u32,
     ) -> SPPFNodeId {
-        if let Some(existing_node_id) =
-            self.lookup_terminal_node(terminal_id, left_extent, right_extent)
-        {
-            record!(self, TerminalNodeFound, existing_node_id);
-            return existing_node_id;
+        if !Self::UNSAFE {
+            if let Some(existing_node_id) =
+                self.lookup_terminal_node(terminal_id, left_extent, right_extent)
+            {
+                record!(self, TerminalNodeFound, existing_node_id);
+                return existing_node_id;
+            }
         }
         let terminal_node = TerminalNode {
             terminal_id,

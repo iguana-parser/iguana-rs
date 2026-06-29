@@ -351,8 +351,10 @@ impl<'i> Parser<'i> for AmbParser<'i> {
     }
     fn add_terminal_node(&mut self, terminal_node: TerminalNode) -> SPPFNodeId {
         let terminal_node_id = SPPFNodeId(self.sppf_nodes.len() as u32);
-        self.terminal_nodes_index[terminal_node.terminal_id.index()]
-            .insert(terminal_node.span, terminal_node_id);
+        if !Self::UNSAFE {
+            self.terminal_nodes_index[terminal_node.terminal_id.index()]
+                .insert(terminal_node.span, terminal_node_id);
+        }
         record!(
             self,
             TerminalNodeCreated,
@@ -823,18 +825,20 @@ impl<'i> AmbParser<'i> {
         return_value: i32,
         gss_node_id: GssNodeId,
     ) -> SPPFNodeId {
-        if let Some(existing_node_id) = self
-            .gss_node(gss_node_id)
-            .find_popped_element(right_extent, Some(return_value))
-        {
-            record!(self, NonterminalNodeFound, existing_node_id);
-            let node = self.sppf_node_mut(existing_node_id);
-            let SPPFNode::Nonterminal(node) = node else {
-                unreachable!("Expects a nonterminal node");
-            };
-            node.ambiguous = true;
-            self.add_nonterminal_node_child(existing_node_id, child, return_slot);
-            return existing_node_id;
+        if !Self::UNSAFE {
+            if let Some(existing_node_id) = self
+                .gss_node(gss_node_id)
+                .find_popped_element(right_extent, Some(return_value))
+            {
+                record!(self, NonterminalNodeFound, existing_node_id);
+                let node = self.sppf_node_mut(existing_node_id);
+                let SPPFNode::Nonterminal(node) = node else {
+                    unreachable!("Expects a nonterminal node");
+                };
+                node.ambiguous = true;
+                self.add_nonterminal_node_child(existing_node_id, child, return_slot);
+                return existing_node_id;
+            }
         }
         let nonterminal_node = NonterminalNode {
             nonterminal_id,

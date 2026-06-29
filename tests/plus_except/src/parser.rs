@@ -319,8 +319,10 @@ impl<'i> Parser<'i> for PlusExceptParser<'i> {
     }
     fn add_terminal_node(&mut self, terminal_node: TerminalNode) -> SPPFNodeId {
         let terminal_node_id = SPPFNodeId(self.sppf_nodes.len() as u32);
-        self.terminal_nodes_index[terminal_node.terminal_id.index()]
-            .insert(terminal_node.span, terminal_node_id);
+        if !Self::UNSAFE {
+            self.terminal_nodes_index[terminal_node.terminal_id.index()]
+                .insert(terminal_node.span, terminal_node_id);
+        }
         record!(
             self,
             TerminalNodeCreated,

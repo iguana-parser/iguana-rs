@@ -68,22 +68,8 @@ enum Commands {
         #[arg(long, num_args = 0..=1, default_missing_value = "true")]
         match_memo: Option<bool>,
 
-        /// The unsafe mode runs the parser as if the grammar is unambiguous.
-        ///
-        /// Static ambiguity detection for the full class of context-free grammars is
-        /// undecidable. Iguana detects ambiguities at runtime and returns a parse forest
-        /// containing all the derivations. The unsafe mode may silently disambiguate,
-        /// returning the first parse tree while in reality there were multiple
-        /// derivations. The unsafe mode is only recommended if the user understands its
-        /// implications, has a well-tested grammar, and wants better performance.
-        ///
-        /// The unsafe mode changes the parser behavior as follows:
-        /// - The parser stops when it finds the first derivation of the start nonterminal
-        ///   that spans the whole input, without exploring the pending descriptors.
-        /// - The machinery for detecting and recording ambiguity nodes, e.g., SPPF node
-        ///   indexes, is disabled.
-        ///
-        /// False by default.
+        /// When true, the generated parser runs in the unsafe mode (see Parser::UNSAFE
+        /// in iguana-runtime).
         #[arg(long = "unsafe", value_name = "UNSAFE", num_args = 0..=1, default_missing_value = "true")]
         unsafe_mode: Option<bool>,
 
