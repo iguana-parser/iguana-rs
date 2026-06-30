@@ -563,14 +563,17 @@ pub trait Parser<'i> {
     }
 
     /// Looks up the nonterminal node identified by `nonterminal_id` and the
-    /// span `(left_extent, right_extent)` in the current GSS node's
-    /// popped-elements map. On hit, marks the existing node ambiguous and
-    /// attaches `child`. On miss, creates a fresh node. The unsafe mode skips
-    /// the lookup and always creates a fresh node.
+    /// key `(right_extent, return_value)` in the current GSS node's
+    /// popped-elements map. `return_value` is `None` for a plain nonterminal
+    /// and `Some(v)` for a data-dependent one that returns `v`, so calls that
+    /// return different values get separate nodes. On hit, marks the existing
+    /// node ambiguous and attaches `child`. On miss, creates a fresh node. The
+    /// unsafe mode skips the lookup and always creates a fresh node.
     ///
     /// Only called in the GLL path. LL(1) parses do not call this function
     /// because an LL(1) nonterminal is unambiguous by definition, so the
     /// ambiguity-attach branch is unreachable.
+    #[allow(clippy::too_many_arguments)]
     fn get_or_create_nonterminal_node(
         &mut self,
         nonterminal_id: NonterminalId,
@@ -579,11 +582,12 @@ pub trait Parser<'i> {
         right_extent: u32,
         child: SPPFNodeId,
         gss_node_id: GssNodeId,
+        return_value: Option<i32>,
     ) -> SPPFNodeId {
         if !Self::UNSAFE {
             if let Some(existing_node_id) = self
                 .gss_node(gss_node_id)
-                .find_popped_element(right_extent, None)
+                .find_popped_element(right_extent, return_value)
             {
                 record!(self, NonterminalNodeFound, existing_node_id);
                 let node = self.sppf_node_mut(existing_node_id);
@@ -733,6 +737,7 @@ pub trait Parser<'i> {
             right_extent,
             result,
             gss_node_id,
+            None,
         )
     }
 

@@ -83,14 +83,14 @@ impl<'i> Parser<'i> for ExcludeByLabelParser<'i> {
                 };
                 let node = self.sppf_node(result);
                 let return_value = 0;
-                let nonterminal_node_id = self.create_nonterminal_node_or_attach_children_expr(
+                let nonterminal_node_id = self.get_or_create_nonterminal_node(
                     NonterminalId(3),
                     SlotId(14),
                     node.left_extent(),
                     node.right_extent(),
                     result,
-                    return_value,
                     gss_node_id,
+                    Some(return_value),
                 );
                 self.pop(
                     gss_node_id,
@@ -150,14 +150,14 @@ impl<'i> Parser<'i> for ExcludeByLabelParser<'i> {
                 };
                 let node = self.sppf_node(result);
                 let return_value = 1;
-                let nonterminal_node_id = self.create_nonterminal_node_or_attach_children_expr(
+                let nonterminal_node_id = self.get_or_create_nonterminal_node(
                     NonterminalId(3),
                     SlotId(21),
                     node.left_extent(),
                     node.right_extent(),
                     result,
-                    return_value,
                     gss_node_id,
+                    Some(return_value),
                 );
                 self.pop(
                     gss_node_id,
@@ -204,14 +204,14 @@ impl<'i> Parser<'i> for ExcludeByLabelParser<'i> {
                 };
                 let node = self.sppf_node(result);
                 let return_value = 2;
-                let nonterminal_node_id = self.create_nonterminal_node_or_attach_children_expr(
+                let nonterminal_node_id = self.get_or_create_nonterminal_node(
                     NonterminalId(3),
                     SlotId(27),
                     node.left_extent(),
                     node.right_extent(),
                     result,
-                    return_value,
                     gss_node_id,
+                    Some(return_value),
                 );
                 self.pop(
                     gss_node_id,
@@ -277,6 +277,7 @@ impl<'i> Parser<'i> for ExcludeByLabelParser<'i> {
                     input_index,
                     epsilon_node_id,
                     gss_node_id,
+                    None,
                 );
                 self.pop(gss_node_id, SlotId(8), nonterminal_node_id, None);
             }
@@ -920,44 +921,6 @@ impl<'i> ExcludeByLabelParser<'i> {
     fn add_gss_node_expr(&mut self, input_index: u32, e: i32, gss_node_id: GssNodeId) {
         self.gss_nodes_index_expr
             .insert((input_index, e), gss_node_id);
-    }
-    #[allow(clippy::too_many_arguments)]
-    fn create_nonterminal_node_or_attach_children_expr(
-        &mut self,
-        nonterminal_id: NonterminalId,
-        return_slot: SlotId,
-        left_extent: u32,
-        right_extent: u32,
-        child: SPPFNodeId,
-        return_value: i32,
-        gss_node_id: GssNodeId,
-    ) -> SPPFNodeId {
-        if !Self::UNSAFE {
-            if let Some(existing_node_id) = self
-                .gss_node(gss_node_id)
-                .find_popped_element(right_extent, Some(return_value))
-            {
-                record!(self, NonterminalNodeFound, existing_node_id);
-                let node = self.sppf_node_mut(existing_node_id);
-                let SPPFNode::Nonterminal(node) = node else {
-                    unreachable!("Expects a nonterminal node");
-                };
-                node.ambiguous = true;
-                self.add_nonterminal_node_child(existing_node_id, child, return_slot);
-                return existing_node_id;
-            }
-        }
-        let nonterminal_node = NonterminalNode {
-            nonterminal_id,
-            return_slot,
-            span: Span {
-                left_extent,
-                right_extent,
-            },
-            child,
-            ambiguous: false,
-        };
-        self.add_nonterminal_node(nonterminal_node)
     }
     fn get_or_create_epsilon_node(&mut self, i: u32) -> SPPFNodeId {
         let existing = self.epsilon_nodes[i as usize];

@@ -178,6 +178,7 @@ impl<'i> Parser<'i> for LayoutNonterminalParser<'i> {
                     input_index,
                     epsilon_node_id,
                     gss_node_id,
+                    None,
                 );
                 self.pop(gss_node_id, SlotId(15), nonterminal_node_id, None);
             }

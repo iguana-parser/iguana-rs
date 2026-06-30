@@ -89,14 +89,14 @@ impl<'i> Parser<'i> for IndirectPostfixParser<'i> {
                 };
                 let node = self.sppf_node(result);
                 let return_value = 0;
-                let nonterminal_node_id = self.create_nonterminal_node_or_attach_children_e(
+                let nonterminal_node_id = self.get_or_create_nonterminal_node(
                     NonterminalId(2),
                     SlotId(8),
                     node.left_extent(),
                     node.right_extent(),
                     result,
-                    return_value,
                     gss_node_id,
+                    Some(return_value),
                 );
                 self.pop(
                     gss_node_id,
@@ -184,14 +184,14 @@ impl<'i> Parser<'i> for IndirectPostfixParser<'i> {
                 };
                 let node = self.sppf_node(result);
                 let return_value = 2;
-                let nonterminal_node_id = self.create_nonterminal_node_or_attach_children_e(
+                let nonterminal_node_id = self.get_or_create_nonterminal_node(
                     NonterminalId(2),
                     SlotId(17),
                     node.left_extent(),
                     node.right_extent(),
                     result,
-                    return_value,
                     gss_node_id,
+                    Some(return_value),
                 );
                 self.pop(
                     gss_node_id,
@@ -236,14 +236,14 @@ impl<'i> Parser<'i> for IndirectPostfixParser<'i> {
                 };
                 let node = self.sppf_node(result);
                 let return_value = 0;
-                let nonterminal_node_id = self.create_nonterminal_node_or_attach_children_e(
+                let nonterminal_node_id = self.get_or_create_nonterminal_node(
                     NonterminalId(2),
                     SlotId(22),
                     node.left_extent(),
                     node.right_extent(),
                     result,
-                    return_value,
                     gss_node_id,
+                    Some(return_value),
                 );
                 self.pop(
                     gss_node_id,
@@ -300,14 +300,14 @@ impl<'i> Parser<'i> for IndirectPostfixParser<'i> {
                 };
                 let node = self.sppf_node(result);
                 let return_value = self.lookup(BINDING_R, env.unwrap());
-                let nonterminal_node_id = self.create_nonterminal_node_or_attach_children_postfix(
+                let nonterminal_node_id = self.get_or_create_nonterminal_node(
                     NonterminalId(3),
                     SlotId(27),
                     node.left_extent(),
                     node.right_extent(),
                     result,
-                    return_value,
                     gss_node_id,
+                    Some(return_value),
                 );
                 self.pop(
                     gss_node_id,
@@ -338,14 +338,14 @@ impl<'i> Parser<'i> for IndirectPostfixParser<'i> {
                 };
                 let node = self.sppf_node(result);
                 let return_value = self.lookup(BINDING_R, env.unwrap());
-                let nonterminal_node_id = self.create_nonterminal_node_or_attach_children_body(
+                let nonterminal_node_id = self.get_or_create_nonterminal_node(
                     NonterminalId(4),
                     SlotId(30),
                     node.left_extent(),
                     node.right_extent(),
                     result,
-                    return_value,
                     gss_node_id,
+                    Some(return_value),
                 );
                 self.pop(
                     gss_node_id,
@@ -1111,120 +1111,6 @@ impl<'i> IndirectPostfixParser<'i> {
     fn add_gss_node_body(&mut self, input_index: u32, p: i32, gss_node_id: GssNodeId) {
         self.gss_nodes_index_body
             .insert((input_index, p), gss_node_id);
-    }
-    #[allow(clippy::too_many_arguments)]
-    fn create_nonterminal_node_or_attach_children_e(
-        &mut self,
-        nonterminal_id: NonterminalId,
-        return_slot: SlotId,
-        left_extent: u32,
-        right_extent: u32,
-        child: SPPFNodeId,
-        return_value: i32,
-        gss_node_id: GssNodeId,
-    ) -> SPPFNodeId {
-        if !Self::UNSAFE {
-            if let Some(existing_node_id) = self
-                .gss_node(gss_node_id)
-                .find_popped_element(right_extent, Some(return_value))
-            {
-                record!(self, NonterminalNodeFound, existing_node_id);
-                let node = self.sppf_node_mut(existing_node_id);
-                let SPPFNode::Nonterminal(node) = node else {
-                    unreachable!("Expects a nonterminal node");
-                };
-                node.ambiguous = true;
-                self.add_nonterminal_node_child(existing_node_id, child, return_slot);
-                return existing_node_id;
-            }
-        }
-        let nonterminal_node = NonterminalNode {
-            nonterminal_id,
-            return_slot,
-            span: Span {
-                left_extent,
-                right_extent,
-            },
-            child,
-            ambiguous: false,
-        };
-        self.add_nonterminal_node(nonterminal_node)
-    }
-    #[allow(clippy::too_many_arguments)]
-    fn create_nonterminal_node_or_attach_children_postfix(
-        &mut self,
-        nonterminal_id: NonterminalId,
-        return_slot: SlotId,
-        left_extent: u32,
-        right_extent: u32,
-        child: SPPFNodeId,
-        return_value: i32,
-        gss_node_id: GssNodeId,
-    ) -> SPPFNodeId {
-        if !Self::UNSAFE {
-            if let Some(existing_node_id) = self
-                .gss_node(gss_node_id)
-                .find_popped_element(right_extent, Some(return_value))
-            {
-                record!(self, NonterminalNodeFound, existing_node_id);
-                let node = self.sppf_node_mut(existing_node_id);
-                let SPPFNode::Nonterminal(node) = node else {
-                    unreachable!("Expects a nonterminal node");
-                };
-                node.ambiguous = true;
-                self.add_nonterminal_node_child(existing_node_id, child, return_slot);
-                return existing_node_id;
-            }
-        }
-        let nonterminal_node = NonterminalNode {
-            nonterminal_id,
-            return_slot,
-            span: Span {
-                left_extent,
-                right_extent,
-            },
-            child,
-            ambiguous: false,
-        };
-        self.add_nonterminal_node(nonterminal_node)
-    }
-    #[allow(clippy::too_many_arguments)]
-    fn create_nonterminal_node_or_attach_children_body(
-        &mut self,
-        nonterminal_id: NonterminalId,
-        return_slot: SlotId,
-        left_extent: u32,
-        right_extent: u32,
-        child: SPPFNodeId,
-        return_value: i32,
-        gss_node_id: GssNodeId,
-    ) -> SPPFNodeId {
-        if !Self::UNSAFE {
-            if let Some(existing_node_id) = self
-                .gss_node(gss_node_id)
-                .find_popped_element(right_extent, Some(return_value))
-            {
-                record!(self, NonterminalNodeFound, existing_node_id);
-                let node = self.sppf_node_mut(existing_node_id);
-                let SPPFNode::Nonterminal(node) = node else {
-                    unreachable!("Expects a nonterminal node");
-                };
-                node.ambiguous = true;
-                self.add_nonterminal_node_child(existing_node_id, child, return_slot);
-                return existing_node_id;
-            }
-        }
-        let nonterminal_node = NonterminalNode {
-            nonterminal_id,
-            return_slot,
-            span: Span {
-                left_extent,
-                right_extent,
-            },
-            child,
-            ambiguous: false,
-        };
-        self.add_nonterminal_node(nonterminal_node)
     }
     // True if a local ambiguity node was added during parsing. This does not guarantee the
     // ambiguity is reachable from the root, so a tree walk is still needed to confirm it.

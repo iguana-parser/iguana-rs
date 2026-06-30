@@ -109,6 +109,7 @@ impl<'i> Parser<'i> for OptParser<'i> {
                     input_index,
                     epsilon_node_id,
                     gss_node_id,
+                    None,
                 );
                 self.pop(gss_node_id, SlotId(6), nonterminal_node_id, None);
             }

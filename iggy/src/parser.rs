@@ -816,14 +816,14 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 };
                 let node = self.sppf_node(result);
                 let return_value = 0;
-                let nonterminal_node_id = self.create_nonterminal_node_or_attach_children_symbol(
+                let nonterminal_node_id = self.get_or_create_nonterminal_node(
                     NonterminalId(52),
                     SlotId(295),
                     node.left_extent(),
                     node.right_extent(),
                     result,
-                    return_value,
                     gss_node_id,
+                    Some(return_value),
                 );
                 self.pop(
                     gss_node_id,
@@ -897,14 +897,14 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 };
                 let node = self.sppf_node(result);
                 let return_value = 1;
-                let nonterminal_node_id = self.create_nonterminal_node_or_attach_children_symbol(
+                let nonterminal_node_id = self.get_or_create_nonterminal_node(
                     NonterminalId(52),
                     SlotId(303),
                     node.left_extent(),
                     node.right_extent(),
                     result,
-                    return_value,
                     gss_node_id,
+                    Some(return_value),
                 );
                 self.pop(
                     gss_node_id,
@@ -1008,14 +1008,14 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 };
                 let node = self.sppf_node(result);
                 let return_value = 2;
-                let nonterminal_node_id = self.create_nonterminal_node_or_attach_children_symbol(
+                let nonterminal_node_id = self.get_or_create_nonterminal_node(
                     NonterminalId(52),
                     SlotId(313),
                     node.left_extent(),
                     node.right_extent(),
                     result,
-                    return_value,
                     gss_node_id,
+                    Some(return_value),
                 );
                 self.pop(
                     gss_node_id,
@@ -1050,14 +1050,14 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 };
                 let node = self.sppf_node(result);
                 let return_value = 3;
-                let nonterminal_node_id = self.create_nonterminal_node_or_attach_children_symbol(
+                let nonterminal_node_id = self.get_or_create_nonterminal_node(
                     NonterminalId(52),
                     SlotId(317),
                     node.left_extent(),
                     node.right_extent(),
                     result,
-                    return_value,
                     gss_node_id,
+                    Some(return_value),
                 );
                 self.pop(
                     gss_node_id,
@@ -1189,14 +1189,14 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 };
                 let node = self.sppf_node(result);
                 let return_value = 4;
-                let nonterminal_node_id = self.create_nonterminal_node_or_attach_children_symbol(
+                let nonterminal_node_id = self.get_or_create_nonterminal_node(
                     NonterminalId(52),
                     SlotId(329),
                     node.left_extent(),
                     node.right_extent(),
                     result,
-                    return_value,
                     gss_node_id,
+                    Some(return_value),
                 );
                 self.pop(
                     gss_node_id,
@@ -1328,14 +1328,14 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 };
                 let node = self.sppf_node(result);
                 let return_value = 5;
-                let nonterminal_node_id = self.create_nonterminal_node_or_attach_children_symbol(
+                let nonterminal_node_id = self.get_or_create_nonterminal_node(
                     NonterminalId(52),
                     SlotId(341),
                     node.left_extent(),
                     node.right_extent(),
                     result,
-                    return_value,
                     gss_node_id,
+                    Some(return_value),
                 );
                 self.pop(
                     gss_node_id,
@@ -1421,14 +1421,14 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 };
                 let node = self.sppf_node(result);
                 let return_value = 6;
-                let nonterminal_node_id = self.create_nonterminal_node_or_attach_children_symbol(
+                let nonterminal_node_id = self.get_or_create_nonterminal_node(
                     NonterminalId(52),
                     SlotId(349),
                     node.left_extent(),
                     node.right_extent(),
                     result,
-                    return_value,
                     gss_node_id,
+                    Some(return_value),
                 );
                 self.pop(
                     gss_node_id,
@@ -1514,14 +1514,14 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 };
                 let node = self.sppf_node(result);
                 let return_value = 7;
-                let nonterminal_node_id = self.create_nonterminal_node_or_attach_children_symbol(
+                let nonterminal_node_id = self.get_or_create_nonterminal_node(
                     NonterminalId(52),
                     SlotId(357),
                     node.left_extent(),
                     node.right_extent(),
                     result,
-                    return_value,
                     gss_node_id,
+                    Some(return_value),
                 );
                 self.pop(
                     gss_node_id,
@@ -1607,14 +1607,14 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 };
                 let node = self.sppf_node(result);
                 let return_value = 8;
-                let nonterminal_node_id = self.create_nonterminal_node_or_attach_children_symbol(
+                let nonterminal_node_id = self.get_or_create_nonterminal_node(
                     NonterminalId(52),
                     SlotId(365),
                     node.left_extent(),
                     node.right_extent(),
                     result,
-                    return_value,
                     gss_node_id,
+                    Some(return_value),
                 );
                 self.pop(
                     gss_node_id,
@@ -1709,14 +1709,14 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 };
                 let node = self.sppf_node(result);
                 let return_value = 9;
-                let nonterminal_node_id = self.create_nonterminal_node_or_attach_children_symbol(
+                let nonterminal_node_id = self.get_or_create_nonterminal_node(
                     NonterminalId(52),
                     SlotId(374),
                     node.left_extent(),
                     node.right_extent(),
                     result,
-                    return_value,
                     gss_node_id,
+                    Some(return_value),
                 );
                 self.pop(
                     gss_node_id,
@@ -1811,14 +1811,14 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 };
                 let node = self.sppf_node(result);
                 let return_value = 10;
-                let nonterminal_node_id = self.create_nonterminal_node_or_attach_children_symbol(
+                let nonterminal_node_id = self.get_or_create_nonterminal_node(
                     NonterminalId(52),
                     SlotId(383),
                     node.left_extent(),
                     node.right_extent(),
                     result,
-                    return_value,
                     gss_node_id,
+                    Some(return_value),
                 );
                 self.pop(
                     gss_node_id,
@@ -1894,14 +1894,14 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 };
                 let node = self.sppf_node(result);
                 let return_value = 11;
-                let nonterminal_node_id = self.create_nonterminal_node_or_attach_children_symbol(
+                let nonterminal_node_id = self.get_or_create_nonterminal_node(
                     NonterminalId(52),
                     SlotId(391),
                     node.left_extent(),
                     node.right_extent(),
                     result,
-                    return_value,
                     gss_node_id,
+                    Some(return_value),
                 );
                 self.pop(
                     gss_node_id,
@@ -1992,14 +1992,14 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     std::cmp::min((self.lookup(BINDING_R, env.unwrap())) >> (16), 2)
                 }) << (16))
                     | (12);
-                let nonterminal_node_id = self.create_nonterminal_node_or_attach_children_symbol(
+                let nonterminal_node_id = self.get_or_create_nonterminal_node(
                     NonterminalId(52),
                     SlotId(399),
                     node.left_extent(),
                     node.right_extent(),
                     result,
-                    return_value,
                     gss_node_id,
+                    Some(return_value),
                 );
                 self.pop(
                     gss_node_id,
@@ -2085,14 +2085,14 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                 };
                 let node = self.sppf_node(result);
                 let return_value = 65549;
-                let nonterminal_node_id = self.create_nonterminal_node_or_attach_children_symbol(
+                let nonterminal_node_id = self.get_or_create_nonterminal_node(
                     NonterminalId(52),
                     SlotId(407),
                     node.left_extent(),
                     node.right_extent(),
                     result,
-                    return_value,
                     gss_node_id,
+                    Some(return_value),
                 );
                 self.pop(
                     gss_node_id,
@@ -2691,6 +2691,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     input_index,
                     epsilon_node_id,
                     gss_node_id,
+                    None,
                 );
                 self.pop(gss_node_id, SlotId(140), nonterminal_node_id, None);
             }
@@ -2736,6 +2737,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     input_index,
                     epsilon_node_id,
                     gss_node_id,
+                    None,
                 );
                 self.pop(gss_node_id, SlotId(145), nonterminal_node_id, None);
             }
@@ -2830,6 +2832,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     input_index,
                     epsilon_node_id,
                     gss_node_id,
+                    None,
                 );
                 self.pop(gss_node_id, SlotId(156), nonterminal_node_id, None);
             }
@@ -2876,6 +2879,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     input_index,
                     epsilon_node_id,
                     gss_node_id,
+                    None,
                 );
                 self.pop(gss_node_id, SlotId(161), nonterminal_node_id, None);
             }
@@ -2907,6 +2911,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     input_index,
                     epsilon_node_id,
                     gss_node_id,
+                    None,
                 );
                 self.pop(gss_node_id, SlotId(164), nonterminal_node_id, None);
             }
@@ -3106,6 +3111,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     input_index,
                     epsilon_node_id,
                     gss_node_id,
+                    None,
                 );
                 self.pop(gss_node_id, SlotId(187), nonterminal_node_id, None);
             }
@@ -3155,6 +3161,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     input_index,
                     epsilon_node_id,
                     gss_node_id,
+                    None,
                 );
                 self.pop(gss_node_id, SlotId(192), nonterminal_node_id, None);
             }
@@ -3249,6 +3256,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     input_index,
                     epsilon_node_id,
                     gss_node_id,
+                    None,
                 );
                 self.pop(gss_node_id, SlotId(203), nonterminal_node_id, None);
             }
@@ -3338,6 +3346,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     input_index,
                     epsilon_node_id,
                     gss_node_id,
+                    None,
                 );
                 self.pop(gss_node_id, SlotId(214), nonterminal_node_id, None);
             }
@@ -3815,6 +3824,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     input_index,
                     epsilon_node_id,
                     gss_node_id,
+                    None,
                 );
                 self.pop(gss_node_id, SlotId(267), nonterminal_node_id, None);
             }
@@ -3974,6 +3984,7 @@ impl<'i> Parser<'i> for IggyParser<'i> {
                     input_index,
                     epsilon_node_id,
                     gss_node_id,
+                    None,
                 );
                 self.pop(gss_node_id, SlotId(285), nonterminal_node_id, None);
             }
@@ -6959,44 +6970,6 @@ impl<'i> IggyParser<'i> {
     fn add_gss_node_symbol(&mut self, input_index: u32, p: i32, e: i32, gss_node_id: GssNodeId) {
         self.gss_nodes_index_symbol
             .insert((input_index, p, e), gss_node_id);
-    }
-    #[allow(clippy::too_many_arguments)]
-    fn create_nonterminal_node_or_attach_children_symbol(
-        &mut self,
-        nonterminal_id: NonterminalId,
-        return_slot: SlotId,
-        left_extent: u32,
-        right_extent: u32,
-        child: SPPFNodeId,
-        return_value: i32,
-        gss_node_id: GssNodeId,
-    ) -> SPPFNodeId {
-        if !Self::UNSAFE {
-            if let Some(existing_node_id) = self
-                .gss_node(gss_node_id)
-                .find_popped_element(right_extent, Some(return_value))
-            {
-                record!(self, NonterminalNodeFound, existing_node_id);
-                let node = self.sppf_node_mut(existing_node_id);
-                let SPPFNode::Nonterminal(node) = node else {
-                    unreachable!("Expects a nonterminal node");
-                };
-                node.ambiguous = true;
-                self.add_nonterminal_node_child(existing_node_id, child, return_slot);
-                return existing_node_id;
-            }
-        }
-        let nonterminal_node = NonterminalNode {
-            nonterminal_id,
-            return_slot,
-            span: Span {
-                left_extent,
-                right_extent,
-            },
-            child,
-            ambiguous: false,
-        };
-        self.add_nonterminal_node(nonterminal_node)
     }
     fn get_or_create_epsilon_node(&mut self, i: u32) -> SPPFNodeId {
         let existing = self.epsilon_nodes[i as usize];

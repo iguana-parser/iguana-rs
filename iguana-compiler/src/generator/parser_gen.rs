@@ -300,6 +300,7 @@ impl<'a> ParserGen<'a> {
                                 input_index,
                                 epsilon_node_id,
                                 gss_node_id,
+                                None,
                             );
                             self.pop(gss_node_id, #end_slot_id, nonterminal_node_id, None);
                         }
@@ -308,24 +309,20 @@ impl<'a> ParserGen<'a> {
                     let last_symbol = alternative.symbols.last().unwrap();
                     let slot_body = if let Symbol::Return(expr) = last_symbol {
                         let expr = Self::gen_expr(expr);
-                        let create_method = format_ident!(
-                            "create_nonterminal_node_or_attach_children_{}",
-                            to_snake_case(&nonterminal.name)
-                        );
                         quote! {
                             let Some(result) = result else {
                                 unreachable!("result cannot be None here.")
                             };
                             let node = self.sppf_node(result);
                             let return_value = #expr;
-                            let nonterminal_node_id = self.#create_method(
+                            let nonterminal_node_id = self.get_or_create_nonterminal_node(
                                 #nonterminal_id,
                                 #end_slot_id,
                                 node.left_extent(),
                                 node.right_extent(),
                                 result,
-                                return_value,
                                 gss_node_id,
+                                Some(return_value),
                             );
                             self.pop(gss_node_id, #end_slot_id, nonterminal_node_id, Some(return_value));
                         }
@@ -986,11 +983,6 @@ impl<'a> ParserGen<'a> {
             .dd_nonterminals()
             .map(Self::gen_add_gss_node_method_with_parameters)
             .collect();
-        let create_nonterminal_node_or_attach_children_methods: Vec<_> = self
-            .nonterminal_ids
-            .dd_nonterminals()
-            .map(Self::gen_create_nonterminal_node_or_attach_children)
-            .collect();
         let get_or_create_epsilon_node_method = self.gen_get_or_create_epsilon_node_method();
         let ambiguity_node_added_method = Self::gen_ambiguity_node_added_method();
         quote! {
@@ -1000,7 +992,6 @@ impl<'a> ParserGen<'a> {
                 #(#ll1_parse_methods)*
                 #(#get_gss_node_methods)*
                 #(#add_gss_node_methods)*
-                #(#create_nonterminal_node_or_attach_children_methods)*
                 #get_or_create_epsilon_node_method
                 #ambiguity_node_added_method
             }
@@ -2131,53 +2122,6 @@ impl<'a> ParserGen<'a> {
                     self.add_first_descriptors(NonterminalId(#id), i, new_gss_node_id, Some(env_id));
                     self.#add_gss_node_method_name(i, #(#param_names,)* new_gss_node_id);
                 }
-            }
-        }
-    }
-
-    fn gen_create_nonterminal_node_or_attach_children(nt: &Nonterminal) -> TokenStream {
-        let method_name = format_ident!(
-            "create_nonterminal_node_or_attach_children_{}",
-            to_snake_case(&nt.name)
-        );
-        quote! {
-            #[allow(clippy::too_many_arguments)]
-            fn #method_name(
-                &mut self,
-                nonterminal_id: NonterminalId,
-                return_slot: SlotId,
-                left_extent: u32,
-                right_extent: u32,
-                child: SPPFNodeId,
-                return_value: i32,
-                gss_node_id: GssNodeId,
-            ) -> SPPFNodeId {
-                if !Self::UNSAFE {
-                    if let Some(existing_node_id) = self
-                        .gss_node(gss_node_id)
-                        .find_popped_element(right_extent, Some(return_value))
-                    {
-                        record!(self, NonterminalNodeFound, existing_node_id);
-                        let node = self.sppf_node_mut(existing_node_id);
-                        let SPPFNode::Nonterminal(node) = node else {
-                            unreachable!("Expects a nonterminal node");
-                        };
-                        node.ambiguous = true;
-                        self.add_nonterminal_node_child(existing_node_id, child, return_slot);
-                        return existing_node_id;
-                    }
-                }
-                let nonterminal_node = NonterminalNode {
-                    nonterminal_id,
-                    return_slot,
-                    span: Span {
-                        left_extent,
-                        right_extent,
-                    },
-                    child,
-                    ambiguous: false,
-                };
-                self.add_nonterminal_node(nonterminal_node)
             }
         }
     }
