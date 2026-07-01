@@ -117,7 +117,7 @@ impl<'a> ParserGen<'a> {
         let next_descriptor_method = Self::gen_next_descriptor_method();
         let clear_descriptors_method = Self::gen_clear_descriptors_method();
         let unsafe_const = self.gen_unsafe_const();
-        let new_terminal_node_method = Self::gen_add_terminal_node_method();
+        let new_terminal_node_method = self.gen_add_terminal_node_method();
         let new_nonterminal_node_method = Self::gen_add_nonterminal_node_method();
         let new_intermediate_node_method = self.gen_add_intermediate_node_method();
         let input_len_method = Self::gen_input_method();
@@ -125,7 +125,7 @@ impl<'a> ParserGen<'a> {
         let increment_descriptor_count_method = Self::gen_increment_descriptor_count_method();
         let count_methods = Self::gen_count_methods();
         let lookup_intermediate_node_method = self.gen_lookup_intermediate_node_method();
-        let lookup_terminal_node_method = Self::gen_lookup_terminal_node_method();
+        let lookup_terminal_node_method = self.gen_lookup_terminal_node_method();
         let gss_nodes_method = Self::gen_gss_nodes_method();
         let add_nonterminal_node_child_method = Self::gen_add_nonterminal_node_child_method();
         let add_intermediate_node_child_method = Self::gen_add_intermediate_node_child_method();
@@ -259,13 +259,17 @@ impl<'a> ParserGen<'a> {
                 env::{Env, EnvId},
                 gss::GSSNode,
                 ids::{BindingId, GssNodeId, NonterminalId, SlotId, TerminalId},
-                input::{Input, Span},
+                input::Input,
                 parser::{Parser, ParseError, ParseErrorKind, init_logger, GSS_CAPACITY_MULTIPLIER, SPPF_CAPACITY_MULTIPLIER},
                 record,
                 scanner::Scanner,
                 sppf::{IntermediateNode, NonterminalNode, SPPFNode, SPPFNodeId, TerminalNode},
                 utils::{inline_map::InlineMap, inline_vec::InlineVec}
             };
+            // In the unsafe mode Span is used only by LL(1) node construction; checking whether the
+            // grammar has any here is expensive, so allow the unused import instead.
+            #[allow(unused_imports)]
+            use iguana_runtime::input::Span;
             #[cfg(feature = "debug-trace")]
             use iguana_runtime::trace::TraceEvent;
             use rustc_hash::FxHashMap;
@@ -1069,8 +1073,8 @@ impl<'a> ParserGen<'a> {
                     descriptors: Vec::with_capacity(1024),
                     gss_nodes: Vec::with_capacity(input.len() as usize * GSS_CAPACITY_MULTIPLIER),
                     sppf_nodes: Vec::with_capacity(input.len() as usize * SPPF_CAPACITY_MULTIPLIER),
-                    #intermediate_nodes_index_field,
-                    #terminal_nodes_index_field,
+                    #intermediate_nodes_index_field
+                    #terminal_nodes_index_field
                     #epsilon_nodes_init
                     #[cfg(feature = "instrument")]
                     descriptors_count: 0,
@@ -1123,6 +1127,19 @@ impl<'a> ParserGen<'a> {
         } else {
             quote! {}
         };
+        // The unsafe mode never shares SPPF nodes, so it carries none of the lookup indexes.
+        let sppf_nodes_index_fields = if self.config.unsafe_mode {
+            quote! {}
+        } else {
+            quote! {
+                #[comment = "Per-slot Span-keyed intermediate-node index, for slots in non-parameterized nonterminals."]
+                intermediate_nodes_index: [InlineMap<Span, SPPFNodeId>; #dd_slot_start_lit],
+                #[comment = "Per-slot (Span, env)-keyed intermediate-node index, for slots in parameterized
+                             nonterminals; env separates calls made with different parameter values."]
+                dd_intermediate_nodes_index: [InlineMap<(Span, Option<EnvId>), SPPFNodeId>; #param_slot_count_lit],
+                terminal_nodes_index: [InlineMap<Span, SPPFNodeId>; #terminal_ids_len],
+            }
+        };
         quote! {
             pub struct #parser_name_ident<'i> {
                 start_nonterminal: NonterminalId,
@@ -1139,12 +1156,7 @@ impl<'a> ParserGen<'a> {
                 descriptors_peak: usize,
                 #[cfg(feature = "instrument")]
                 ll1_call_log: Vec<(NonterminalId, u32)>,
-                #[comment = "Per-slot Span-keyed intermediate-node index, for slots in non-parameterized nonterminals."]
-                intermediate_nodes_index: [InlineMap<Span, SPPFNodeId>; #dd_slot_start_lit],
-                #[comment = "Per-slot (Span, env)-keyed intermediate-node index, for slots in parameterized
-                             nonterminals; env separates calls made with different parameter values."]
-                dd_intermediate_nodes_index: [InlineMap<(Span, Option<EnvId>), SPPFNodeId>; #param_slot_count_lit],
-                terminal_nodes_index: [InlineMap<Span, SPPFNodeId>; #terminal_ids_len],
+                #sppf_nodes_index_fields
                 #epsilon_nodes_field
                 #[comment = "An intermediate node keeps its first child inline. Children of intermediate
                              nodes are pairs: (left_child, right_child). Extra children, when there is
@@ -1176,20 +1188,26 @@ impl<'a> ParserGen<'a> {
     }
 
     fn gen_intermediate_nodes_index_field(&self) -> TokenStream {
+        if self.config.unsafe_mode {
+            return quote! {};
+        }
         let dd_slot_start = self.slot_ids.dd_slot_start();
         let intermediate_nodes_index = empty_inline_map_array(dd_slot_start);
         let dd_intermediate_nodes_index =
             empty_inline_map_array(self.slot_ids.len() - dd_slot_start);
         quote! {
             intermediate_nodes_index: #intermediate_nodes_index,
-            dd_intermediate_nodes_index: #dd_intermediate_nodes_index
+            dd_intermediate_nodes_index: #dd_intermediate_nodes_index,
         }
     }
 
     fn gen_terminal_nodes_index_field(&self) -> TokenStream {
+        if self.config.unsafe_mode {
+            return quote! {};
+        }
         let terminal_nodes_index = empty_inline_map_array(self.terminal_ids.len() + 2);
         quote! {
-            terminal_nodes_index: #terminal_nodes_index
+            terminal_nodes_index: #terminal_nodes_index,
         }
     }
 
@@ -1809,14 +1827,19 @@ impl<'a> ParserGen<'a> {
         }
     }
 
-    fn gen_add_terminal_node_method() -> TokenStream {
+    fn gen_add_terminal_node_method(&self) -> TokenStream {
+        let index_insert = if self.config.unsafe_mode {
+            quote! {}
+        } else {
+            quote! {
+                self.terminal_nodes_index[terminal_node.terminal_id.index()]
+                    .insert(terminal_node.span, terminal_node_id);
+            }
+        };
         quote! {
             fn add_terminal_node(&mut self, terminal_node: TerminalNode) -> SPPFNodeId {
                 let terminal_node_id = SPPFNodeId(self.sppf_nodes.len() as u32);
-                if !Self::UNSAFE {
-                    self.terminal_nodes_index[terminal_node.terminal_id.index()]
-                        .insert(terminal_node.span, terminal_node_id);
-                }
+                #index_insert
                 record!(self, TerminalNodeCreated, terminal_node.terminal_id, terminal_node.span);
                 self.sppf_nodes.push(SPPFNode::Terminal(terminal_node));
                 terminal_node_id
@@ -1843,25 +1866,36 @@ impl<'a> ParserGen<'a> {
 
     fn gen_add_intermediate_node_method(&self) -> TokenStream {
         let dd_slot_start_lit = Literal::usize_unsuffixed(self.slot_ids.dd_slot_start());
+        let (env_param, add_to_index_param, index_insert) = if self.config.unsafe_mode {
+            (quote! { _env }, quote! { _add_to_index }, quote! {})
+        } else {
+            (
+                quote! { env },
+                quote! { add_to_index },
+                quote! {
+                    if add_to_index {
+                        let slot_idx = intermediate_node.slot_id.index();
+                        if slot_idx < #dd_slot_start_lit {
+                            self.intermediate_nodes_index[slot_idx]
+                                .insert(intermediate_node.span, intermediate_node_id);
+                        } else {
+                            let idx = slot_idx - #dd_slot_start_lit;
+                            self.dd_intermediate_nodes_index[idx]
+                                .insert((intermediate_node.span, env), intermediate_node_id);
+                        }
+                    }
+                },
+            )
+        };
         quote! {
             fn add_intermediate_node(
                 &mut self,
                 intermediate_node: IntermediateNode,
-                env: Option<EnvId>,
-                add_to_index: bool,
+                #env_param: Option<EnvId>,
+                #add_to_index_param: bool,
             ) -> SPPFNodeId {
                 let intermediate_node_id = SPPFNodeId(self.sppf_nodes.len() as u32);
-                if add_to_index {
-                    let slot_idx = intermediate_node.slot_id.index();
-                    if slot_idx < #dd_slot_start_lit {
-                        self.intermediate_nodes_index[slot_idx]
-                            .insert(intermediate_node.span, intermediate_node_id);
-                    } else {
-                        let idx = slot_idx - #dd_slot_start_lit;
-                        self.dd_intermediate_nodes_index[idx]
-                            .insert((intermediate_node.span, env), intermediate_node_id);
-                    }
-                }
+                #index_insert
                 record!(
                     self,
                     IntermediateNodeCreated,
@@ -1945,6 +1979,11 @@ impl<'a> ParserGen<'a> {
     }
 
     fn gen_lookup_intermediate_node_method(&self) -> TokenStream {
+        // The unsafe mode never shares SPPF nodes, so the lookup is never called.
+        // Inherit the trait's `None` default instead of emitting an override.
+        if self.config.unsafe_mode {
+            return quote! {};
+        }
         let dd_slot_start_lit = Literal::usize_unsuffixed(self.slot_ids.dd_slot_start());
         quote! {
             fn lookup_intermediate_node(
@@ -1966,7 +2005,12 @@ impl<'a> ParserGen<'a> {
         }
     }
 
-    fn gen_lookup_terminal_node_method() -> TokenStream {
+    fn gen_lookup_terminal_node_method(&self) -> TokenStream {
+        // The unsafe mode never shares SPPF nodes, so the lookup is never called.
+        // Inherit the trait's `None` default instead of emitting an override.
+        if self.config.unsafe_mode {
+            return quote! {};
+        }
         quote! {
             fn lookup_terminal_node(
                 &self,
@@ -2303,6 +2347,22 @@ impl<'a> ParserGen<'a> {
                 quote! { stats.record(#label, self.#field_name.len()); }
             })
             .collect();
+        // The unsafe mode carries no SPPF lookup indexes, so there is nothing to record.
+        let sppf_index_records = if self.config.unsafe_mode {
+            quote! {}
+        } else {
+            quote! {
+                for m in self.intermediate_nodes_index.iter() {
+                    stats.record("Parser::intermediate_nodes_index: InlineMap", m.len());
+                }
+                for m in self.dd_intermediate_nodes_index.iter() {
+                    stats.record("Parser::dd_intermediate_nodes_index: InlineMap", m.len());
+                }
+                for m in self.terminal_nodes_index.iter() {
+                    stats.record("Parser::terminal_nodes_index: InlineMap", m.len());
+                }
+            }
+        };
         quote! {
             #[cfg(feature = "instrument")]
             fn record_stats(&self) -> iguana_runtime::instrument::Stats {
@@ -2327,15 +2387,7 @@ impl<'a> ParserGen<'a> {
                 for env in self.envs() {
                     stats.record("Env::bindings: InlineVec", env.bindings.len());
                 }
-                for m in self.intermediate_nodes_index.iter() {
-                    stats.record("Parser::intermediate_nodes_index: InlineMap", m.len());
-                }
-                for m in self.dd_intermediate_nodes_index.iter() {
-                    stats.record("Parser::dd_intermediate_nodes_index: InlineMap", m.len());
-                }
-                for m in self.terminal_nodes_index.iter() {
-                    stats.record("Parser::terminal_nodes_index: InlineMap", m.len());
-                }
+                #sppf_index_records
                 for m in self.gss_nodes_index.iter() {
                     stats.record("Parser::gss_nodes_index: InlineMap", m.len());
                 }

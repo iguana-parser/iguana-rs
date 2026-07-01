@@ -178,22 +178,30 @@ pub trait Parser<'i> {
 
     /// Looks up the intermediate node for `slot_id`, span (`left_extent`,
     /// `right_extent`), and `env`. Returns `None` if no such node exists.
+    ///
+    /// The default `None` is for the --unsafe mode which does not share nodes.
     fn lookup_intermediate_node(
         &self,
-        slot_id: SlotId,
-        left_extent: u32,
-        right_extent: u32,
-        env: Option<EnvId>,
-    ) -> Option<SPPFNodeId>;
+        _slot_id: SlotId,
+        _left_extent: u32,
+        _right_extent: u32,
+        _env: Option<EnvId>,
+    ) -> Option<SPPFNodeId> {
+        None
+    }
 
-    /// Looks up an existing terminal node for the specified `slot_id` and span (`left_extent`, `right_extent`).
-    /// Returns None if no such node exists.
+    /// Looks up an existing terminal node for `terminal_id` and span
+    /// (`left_extent`, `right_extent`). Returns `None` if no such node exists.
+    ///
+    /// The default `None` is for the --unsafe mode which does not share nodes.
     fn lookup_terminal_node(
         &self,
-        terminal_id: TerminalId,
-        left_extent: u32,
-        right_extent: u32,
-    ) -> Option<SPPFNodeId>;
+        _terminal_id: TerminalId,
+        _left_extent: u32,
+        _right_extent: u32,
+    ) -> Option<SPPFNodeId> {
+        None
+    }
 
     /// Checks whether the post-conditions for a given slot are satisfied.
     /// Called during pop and edge processing to filter results (e.g., nonterminal except).
