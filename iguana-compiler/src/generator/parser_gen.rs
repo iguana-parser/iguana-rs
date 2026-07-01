@@ -127,10 +127,10 @@ impl<'a> ParserGen<'a> {
         let lookup_intermediate_node_method = self.gen_lookup_intermediate_node_method();
         let lookup_terminal_node_method = self.gen_lookup_terminal_node_method();
         let gss_nodes_method = Self::gen_gss_nodes_method();
-        let add_nonterminal_node_child_method = Self::gen_add_nonterminal_node_child_method();
-        let add_intermediate_node_child_method = Self::gen_add_intermediate_node_child_method();
-        let intermediate_nodes_children_method = Self::gen_intermediate_nodes_children_map_method();
-        let nonterminal_nodes_children_method = Self::gen_nonterminal_nodes_children_map_method();
+        let add_nonterminal_node_child_method = self.gen_add_nonterminal_node_child_method();
+        let add_intermediate_node_child_method = self.gen_add_intermediate_node_child_method();
+        let intermediate_nodes_children_method = self.gen_intermediate_nodes_children_map_method();
+        let nonterminal_nodes_children_method = self.gen_nonterminal_nodes_children_map_method();
         let add_trace_event_method = Self::gen_add_trace_event_method();
         let start_nonterminal_method = Self::gen_start_nonterminal_method();
         let start_env_method = self.gen_start_env_method();
@@ -251,8 +251,17 @@ impl<'a> ParserGen<'a> {
 
     fn gen_imports(&self) -> TokenStream {
         let scanner_name = format_ident!("{}Scanner", to_first_uppercase(&self.grammar.name));
+        // The unsafe mode omits the side maps, the only users of OnceCell and FxHashMap.
+        let (once_cell_import, fx_hashmap_import) = if self.config.unsafe_mode {
+            (quote! {}, quote! {})
+        } else {
+            (
+                quote! { use std::cell::OnceCell; },
+                quote! { use rustc_hash::FxHashMap; },
+            )
+        };
         quote! {
-            use std::cell::OnceCell;
+            #once_cell_import
             use crate::{grammar_data::*, scanner::#scanner_name};
             use iguana_runtime::{
                 descriptor::Descriptor,
@@ -272,7 +281,7 @@ impl<'a> ParserGen<'a> {
             use iguana_runtime::input::Span;
             #[cfg(feature = "debug-trace")]
             use iguana_runtime::trace::TraceEvent;
-            use rustc_hash::FxHashMap;
+            #fx_hashmap_import
         }
     }
 
@@ -988,7 +997,7 @@ impl<'a> ParserGen<'a> {
             .map(Self::gen_add_gss_node_method_with_parameters)
             .collect();
         let get_or_create_epsilon_node_method = self.gen_get_or_create_epsilon_node_method();
-        let ambiguity_node_added_method = Self::gen_ambiguity_node_added_method();
+        let ambiguity_node_added_method = self.gen_ambiguity_node_added_method();
         quote! {
             impl<'i> #name_ident<'i> {
                 #new_method
@@ -1002,14 +1011,22 @@ impl<'a> ParserGen<'a> {
         }
     }
 
-    fn gen_ambiguity_node_added_method() -> TokenStream {
+    fn gen_ambiguity_node_added_method(&self) -> TokenStream {
+        // The unsafe mode produces no ambiguity and drops the side tables this reads.
+        let body = if self.config.unsafe_mode {
+            quote! { false }
+        } else {
+            quote! {
+                !self.intermediate_nodes_children.is_empty()
+                    || !self.nonterminal_nodes_children.is_empty()
+            }
+        };
         quote! {
             #[comment = "True if a local ambiguity node was added during parsing. This does not
                          guarantee the ambiguity is reachable from the root, so a tree walk is still
                          needed to confirm it."]
             pub fn ambiguity_node_added(&self) -> bool {
-                !self.intermediate_nodes_children.is_empty()
-                    || !self.nonterminal_nodes_children.is_empty()
+                #body
             }
         }
     }
@@ -1062,6 +1079,16 @@ impl<'a> ParserGen<'a> {
         } else {
             quote! {}
         };
+        let children_init = if self.config.unsafe_mode {
+            quote! {}
+        } else {
+            quote! {
+                intermediate_nodes_children: vec![],
+                intermediate_nodes_children_map: OnceCell::new(),
+                nonterminal_nodes_children: vec![],
+                nonterminal_nodes_children_map: OnceCell::new(),
+            }
+        };
         quote! {
             pub fn new(input: &'i Input, start_nonterminal: NonterminalId) -> Self {
                 init_logger();
@@ -1082,10 +1109,7 @@ impl<'a> ParserGen<'a> {
                     descriptors_peak: 0,
                     #[cfg(feature = "instrument")]
                     ll1_call_log: vec![],
-                    intermediate_nodes_children: vec![],
-                    intermediate_nodes_children_map: OnceCell::new(),
-                    nonterminal_nodes_children: vec![],
-                    nonterminal_nodes_children_map: OnceCell::new(),
+                    #children_init
                     envs: vec![],
                     parse_errors: InlineVec::Empty,
                     #layout_memo_init
@@ -1140,6 +1164,26 @@ impl<'a> ParserGen<'a> {
                 terminal_nodes_index: [InlineMap<Span, SPPFNodeId>; #terminal_ids_len],
             }
         };
+        // The unsafe mode produces no ambiguity, so it carries none of the extra-children side tables.
+        let children_fields = if self.config.unsafe_mode {
+            quote! {}
+        } else {
+            quote! {
+                #[comment = "An intermediate node keeps its first child inline. Children of intermediate
+                             nodes are pairs: (left_child, right_child). Extra children, when there is
+                             ambiguity, are stored here as (parent node, (left child, right child))."]
+                intermediate_nodes_children: Vec<(SPPFNodeId, (SPPFNodeId, SPPFNodeId))>,
+                #[comment = "intermediate_nodes_children grouped by parent node, built lazily for tree construction."]
+                intermediate_nodes_children_map: OnceCell<FxHashMap<SPPFNodeId, Vec<(SPPFNodeId, SPPFNodeId)>>>,
+                #[comment = "Extra children of ambiguous nonterminal nodes, the counterpart to
+                             intermediate_nodes_children: each entry is (parent node, (child, return slot)), a single
+                             child plus its return slot rather than a pair."]
+                nonterminal_nodes_children: Vec<(SPPFNodeId, (SPPFNodeId, SlotId))>,
+                #[comment = "nonterminal_nodes_children grouped by parent node, built lazily like
+                             intermediate_nodes_children_map."]
+                nonterminal_nodes_children_map: OnceCell<FxHashMap<SPPFNodeId, Vec<(SPPFNodeId, SlotId)>>>,
+            }
+        };
         quote! {
             pub struct #parser_name_ident<'i> {
                 start_nonterminal: NonterminalId,
@@ -1158,19 +1202,7 @@ impl<'a> ParserGen<'a> {
                 ll1_call_log: Vec<(NonterminalId, u32)>,
                 #sppf_nodes_index_fields
                 #epsilon_nodes_field
-                #[comment = "An intermediate node keeps its first child inline. Children of intermediate
-                             nodes are pairs: (left_child, right_child). Extra children, when there is
-                             ambiguity, are stored here as (parent node, (left child, right child))."]
-                intermediate_nodes_children: Vec<(SPPFNodeId, (SPPFNodeId, SPPFNodeId))>,
-                #[comment = "intermediate_nodes_children grouped by parent node, built lazily for tree construction."]
-                intermediate_nodes_children_map: OnceCell<FxHashMap<SPPFNodeId, Vec<(SPPFNodeId, SPPFNodeId)>>>,
-                #[comment = "Extra children of ambiguous nonterminal nodes, the counterpart to
-                             intermediate_nodes_children: each entry is (parent node, (child, return slot)), a single
-                             child plus its return slot rather than a pair."]
-                nonterminal_nodes_children: Vec<(SPPFNodeId, (SPPFNodeId, SlotId))>,
-                #[comment = "nonterminal_nodes_children grouped by parent node, built lazily like
-                             intermediate_nodes_children_map."]
-                nonterminal_nodes_children_map: OnceCell<FxHashMap<SPPFNodeId, Vec<(SPPFNodeId, SlotId)>>>,
+                #children_fields
                 envs: Vec<Env>,
                 parse_errors: InlineVec<ParseError, 8>,
                 #layout_memo_field
@@ -2032,7 +2064,11 @@ impl<'a> ParserGen<'a> {
         }
     }
 
-    fn gen_add_intermediate_node_child_method() -> TokenStream {
+    fn gen_add_intermediate_node_child_method(&self) -> TokenStream {
+        // The unsafe mode records no extra children; inherit the trait's empty default.
+        if self.config.unsafe_mode {
+            return quote! {};
+        }
         quote! {
             fn add_intermediate_node_child(
                 &mut self,
@@ -2046,7 +2082,11 @@ impl<'a> ParserGen<'a> {
         }
     }
 
-    fn gen_intermediate_nodes_children_map_method() -> TokenStream {
+    fn gen_intermediate_nodes_children_map_method(&self) -> TokenStream {
+        // The unsafe mode holds no extra children; inherit the trait's empty-map default.
+        if self.config.unsafe_mode {
+            return quote! {};
+        }
         quote! {
             fn intermediate_nodes_children_map(&self) -> &FxHashMap<SPPFNodeId, Vec<(SPPFNodeId, SPPFNodeId)>> {
                 self.intermediate_nodes_children_map.get_or_init(|| {
@@ -2061,7 +2101,11 @@ impl<'a> ParserGen<'a> {
         }
     }
 
-    fn gen_add_nonterminal_node_child_method() -> TokenStream {
+    fn gen_add_nonterminal_node_child_method(&self) -> TokenStream {
+        // The unsafe mode records no extra children; inherit the trait's empty default.
+        if self.config.unsafe_mode {
+            return quote! {};
+        }
         quote! {
             fn add_nonterminal_node_child(
                 &mut self,
@@ -2074,7 +2118,11 @@ impl<'a> ParserGen<'a> {
         }
     }
 
-    fn gen_nonterminal_nodes_children_map_method() -> TokenStream {
+    fn gen_nonterminal_nodes_children_map_method(&self) -> TokenStream {
+        // The unsafe mode holds no extra children; inherit the trait's empty-map default.
+        if self.config.unsafe_mode {
+            return quote! {};
+        }
         quote! {
             fn nonterminal_nodes_children_map(
                 &self,

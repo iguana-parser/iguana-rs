@@ -20,8 +20,6 @@ use iguana_runtime::{
     sppf::{IntermediateNode, NonterminalNode, SPPFNode, SPPFNodeId, TerminalNode},
     utils::{inline_map::InlineMap, inline_vec::InlineVec},
 };
-use rustc_hash::FxHashMap;
-use std::cell::OnceCell;
 impl<'i> Parser<'i> for AmbiguousExprUnsafeParser<'i> {
     const UNSAFE: bool = true;
     fn nonterminal_display_name(nonterminal_id: NonterminalId) -> &'static str {
@@ -835,45 +833,6 @@ impl<'i> Parser<'i> for AmbiguousExprUnsafeParser<'i> {
     fn gss_nodes(&self) -> impl Iterator<Item = &GSSNode> {
         self.gss_nodes.iter()
     }
-    fn add_intermediate_node_child(
-        &mut self,
-        node: SPPFNodeId,
-        child1: SPPFNodeId,
-        child2: SPPFNodeId,
-    ) {
-        self.intermediate_nodes_children
-            .push((node, (child1, child2)));
-    }
-    fn add_nonterminal_node_child(
-        &mut self,
-        node: SPPFNodeId,
-        child: SPPFNodeId,
-        return_slot: SlotId,
-    ) {
-        self.nonterminal_nodes_children
-            .push((node, (child, return_slot)));
-    }
-    fn intermediate_nodes_children_map(
-        &self,
-    ) -> &FxHashMap<SPPFNodeId, Vec<(SPPFNodeId, SPPFNodeId)>> {
-        self.intermediate_nodes_children_map.get_or_init(|| {
-            let mut map: FxHashMap<SPPFNodeId, Vec<(SPPFNodeId, SPPFNodeId)>> =
-                FxHashMap::default();
-            for (k, v) in &self.intermediate_nodes_children {
-                map.entry(*k).or_default().push(*v);
-            }
-            map
-        })
-    }
-    fn nonterminal_nodes_children_map(&self) -> &FxHashMap<SPPFNodeId, Vec<(SPPFNodeId, SlotId)>> {
-        self.nonterminal_nodes_children_map.get_or_init(|| {
-            let mut map: FxHashMap<SPPFNodeId, Vec<(SPPFNodeId, SlotId)>> = FxHashMap::default();
-            for (k, v) in &self.nonterminal_nodes_children {
-                map.entry(*k).or_default().push(*v);
-            }
-            map
-        })
-    }
     #[cfg(feature = "debug-trace")]
     fn add_trace_event(&mut self, event: TraceEvent) {
         if let Some(trace_events) = &mut self.trace_events {
@@ -1028,19 +987,6 @@ pub struct AmbiguousExprUnsafeParser<'i> {
     descriptors_peak: usize,
     #[cfg(feature = "instrument")]
     ll1_call_log: Vec<(NonterminalId, u32)>,
-    // An intermediate node keeps its first child inline. Children of intermediate nodes are
-    // pairs: (left_child, right_child). Extra children, when there is ambiguity, are stored here
-    // as (parent node, (left child, right child)).
-    intermediate_nodes_children: Vec<(SPPFNodeId, (SPPFNodeId, SPPFNodeId))>,
-    // intermediate_nodes_children grouped by parent node, built lazily for tree construction.
-    intermediate_nodes_children_map: OnceCell<FxHashMap<SPPFNodeId, Vec<(SPPFNodeId, SPPFNodeId)>>>,
-    // Extra children of ambiguous nonterminal nodes, the counterpart to
-    // intermediate_nodes_children: each entry is (parent node, (child, return slot)), a single
-    // child plus its return slot rather than a pair.
-    nonterminal_nodes_children: Vec<(SPPFNodeId, (SPPFNodeId, SlotId))>,
-    // nonterminal_nodes_children grouped by parent node, built lazily like
-    // intermediate_nodes_children_map.
-    nonterminal_nodes_children_map: OnceCell<FxHashMap<SPPFNodeId, Vec<(SPPFNodeId, SlotId)>>>,
     envs: Vec<Env>,
     parse_errors: InlineVec<ParseError, 8>,
     #[cfg(feature = "debug-trace")]
@@ -1062,10 +1008,6 @@ impl<'i> AmbiguousExprUnsafeParser<'i> {
             descriptors_peak: 0,
             #[cfg(feature = "instrument")]
             ll1_call_log: vec![],
-            intermediate_nodes_children: vec![],
-            intermediate_nodes_children_map: OnceCell::new(),
-            nonterminal_nodes_children: vec![],
-            nonterminal_nodes_children_map: OnceCell::new(),
             envs: vec![],
             parse_errors: InlineVec::Empty,
             #[cfg(feature = "debug-trace")]
@@ -1075,6 +1017,6 @@ impl<'i> AmbiguousExprUnsafeParser<'i> {
     // True if a local ambiguity node was added during parsing. This does not guarantee the
     // ambiguity is reachable from the root, so a tree walk is still needed to confirm it.
     pub fn ambiguity_node_added(&self) -> bool {
-        !self.intermediate_nodes_children.is_empty() || !self.nonterminal_nodes_children.is_empty()
+        false
     }
 }

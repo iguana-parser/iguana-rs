@@ -1,3 +1,4 @@
+use std::sync::LazyLock;
 use std::time::Duration;
 use web_time::Instant;
 
@@ -163,18 +164,22 @@ pub trait Parser<'i> {
     /// child inline on `NonterminalNode.child`, with that child's slot on
     /// `NonterminalNode.return_slot`. Additional children live in a side map,
     /// and a side map entry on a node marks it ambiguous.
+    ///
+    /// The default is empty for the --unsafe mode, which produces no ambiguity.
     fn add_nonterminal_node_child(
         &mut self,
-        node: SPPFNodeId,
-        child: SPPFNodeId,
-        return_slot: SlotId,
-    );
+        _node: SPPFNodeId,
+        _child: SPPFNodeId,
+        _return_slot: SlotId,
+    ) {
+    }
     fn add_intermediate_node_child(
         &mut self,
-        node: SPPFNodeId,
-        child1: SPPFNodeId,
-        child2: SPPFNodeId,
-    );
+        _node: SPPFNodeId,
+        _child1: SPPFNodeId,
+        _child2: SPPFNodeId,
+    ) {
+    }
 
     /// Looks up the intermediate node for `slot_id`, span (`left_extent`,
     /// `right_extent`), and `env`. Returns `None` if no such node exists.
@@ -841,11 +846,25 @@ pub trait Parser<'i> {
     }
     fn gss_nodes(&self) -> impl Iterator<Item = &GSSNode>;
 
+    /// Extra children of ambiguous intermediate nodes, grouped by parent node.
+    ///
+    /// The default is an empty map for the --unsafe mode, which produces no ambiguity.
     fn intermediate_nodes_children_map(
         &self,
-    ) -> &FxHashMap<SPPFNodeId, Vec<(SPPFNodeId, SPPFNodeId)>>;
+    ) -> &FxHashMap<SPPFNodeId, Vec<(SPPFNodeId, SPPFNodeId)>> {
+        static EMPTY: LazyLock<FxHashMap<SPPFNodeId, Vec<(SPPFNodeId, SPPFNodeId)>>> =
+            LazyLock::new(FxHashMap::default);
+        &EMPTY
+    }
 
-    fn nonterminal_nodes_children_map(&self) -> &FxHashMap<SPPFNodeId, Vec<(SPPFNodeId, SlotId)>>;
+    /// Extra children of ambiguous nonterminal nodes, grouped by parent node.
+    ///
+    /// The default is an empty map for the --unsafe mode, which produces no ambiguity.
+    fn nonterminal_nodes_children_map(&self) -> &FxHashMap<SPPFNodeId, Vec<(SPPFNodeId, SlotId)>> {
+        static EMPTY: LazyLock<FxHashMap<SPPFNodeId, Vec<(SPPFNodeId, SlotId)>>> =
+            LazyLock::new(FxHashMap::default);
+        &EMPTY
+    }
 
     /// The children of the given SPPF node, in order.
     fn sppf_children(&self, node_id: SPPFNodeId) -> InlineVec<SPPFNodeId> {
