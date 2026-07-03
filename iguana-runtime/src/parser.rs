@@ -74,7 +74,8 @@ pub trait Parser<'i> {
     fn terminal_name(terminal_id: TerminalId) -> &'static str;
     fn slot_name(slot_id: SlotId) -> &'static str;
     fn epsilon() -> TerminalId;
-    fn eof() -> TerminalId;
+    /// The number of terminals, excluding the synthetic Epsilon and EOF.
+    fn terminal_count() -> u16;
     fn execute(
         &mut self,
         input_index: u32,
@@ -249,6 +250,22 @@ pub trait Parser<'i> {
             }
         };
         (line, column, message)
+    }
+
+    /// Length in characters of the span to highlight for a parse error, marked
+    /// by a caret in a terminal or a range in an editor. Iguana is a single-phase
+    /// parser, i.e., the scanner is not run before parsing but is driven by the
+    /// parser. Therefore, there is no canonical offending token at an error
+    /// position. To overcome this, we take the longest match over all terminals
+    /// at the error position. The length is at least one character, so a
+    /// zero-length or unmatched position still highlights one character.
+    fn error_span_len(&mut self, input_index: u32) -> u32 {
+        let longest = (0..Self::terminal_count())
+            .filter_map(|id| self.match_token(TerminalId(id), input_index))
+            .max()
+            .unwrap_or(input_index);
+        let end = longest.min(self.input().line_end(input_index));
+        end.saturating_sub(input_index).max(1)
     }
 
     /// Returns the first parse error at the farthest input position, if any.

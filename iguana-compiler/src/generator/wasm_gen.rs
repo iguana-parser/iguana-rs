@@ -67,12 +67,14 @@ pub fn generate(grammar: &Grammar) -> TokenStream {
                 }
                 ParseResult::Failure(error) => {
                     let (line, column, message) = parser.format_error(&error);
+                    let len = parser.error_span_len(error.input_index);
                     let envelope = serde_json::json!({
                         "success": false,
                         "error": format!("Parse error at line {line}, column {column}: {message}"),
                         "error_info": {
                             "line": line,
                             "column": column,
+                            "len": len,
                             "message": message,
                         },
                         "duration_ms": serde_json::Value::Null,

@@ -35,8 +35,8 @@ impl<'i> Parser<'i> for CommentsParser<'i> {
     fn epsilon() -> TerminalId {
         TerminalId((TERMINALS.len() - 2) as u16)
     }
-    fn eof() -> TerminalId {
-        TerminalId((TERMINALS.len() - 1) as u16)
+    fn terminal_count() -> u16 {
+        (TERMINALS.len() - 2) as u16
     }
     // env is threaded only through recursive execute calls in grammars without data-dependent
     // constructs, so clippy sees it as recursion-only there.

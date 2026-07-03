@@ -133,25 +133,38 @@ impl Input {
         }
         unreachable!()
     }
+    /// End offset (exclusive) of the line containing `input_index`, excluding a
+    /// trailing newline. Clamps an error highlight to a single line.
+    pub fn line_end(&self, input_index: u32) -> u32 {
+        if self.line_start_end_offsets.is_empty() {
+            return input_index;
+        }
+        let (line, _) = self.line_column(input_index);
+        let (_, end_offset) = self.line_start_end_offsets[line as usize];
+        // Lines ending with \n have end_offset pointing past the newline.
+        if self.char_at(end_offset - 1) == Some('\n') {
+            end_offset - 1
+        } else {
+            end_offset
+        }
+    }
     /// Returns the source line containing `input_index` followed by a caret line
-    /// pointing at the column, joined by a newline with no trailing newline, to
-    /// let a caller embed it in a larger message. Empty input has no line to show
-    /// and returns an empty string.
-    pub fn line_and_caret(&self, input_index: u32) -> String {
+    /// spanning `len` characters from the column, joined by a newline with no
+    /// trailing newline, to let a caller embed it in a larger message. Empty
+    /// input has no line to show and returns an empty string.
+    pub fn line_and_caret(&self, input_index: u32, len: u32) -> String {
         if self.line_start_end_offsets.is_empty() {
             return String::new();
         }
         let (line, column) = self.line_column(input_index);
-        let (start_offset, end_offset) = self.line_start_end_offsets[line as usize];
-        // Exclude the newline character from the displayed line.
-        // Lines ending with \n have end_offset pointing to the newline itself.
-        let display_end = if self.char_at(end_offset - 1) == Some('\n') {
-            end_offset - 1
-        } else {
-            end_offset
-        };
-        let line_str = self.text(Span::new(start_offset, display_end));
-        format!("{}\n{}^", line_str, " ".repeat(column as usize))
+        let (start_offset, _) = self.line_start_end_offsets[line as usize];
+        let line_str = self.text(Span::new(start_offset, self.line_end(input_index)));
+        format!(
+            "{}\n{}{}",
+            line_str,
+            " ".repeat(column as usize),
+            "^".repeat(len as usize)
+        )
     }
 
     /// Formats a parse error message with line/column info and a caret pointing to the error position.
@@ -162,7 +175,7 @@ impl Input {
             terminal_name,
             line + 1,
             column + 1,
-            self.line_and_caret(input_index),
+            self.line_and_caret(input_index, 1),
         )
     }
     /// Returns a vector v, where (s, e) = v[i] represents the start offset (inclusive)

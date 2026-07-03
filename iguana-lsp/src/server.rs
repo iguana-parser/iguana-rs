@@ -274,12 +274,13 @@ fn publish_diagnostics(
         BuildResult::Error {
             line,
             column,
+            len,
             message,
         } => {
             vec![Diagnostic {
                 range: Range {
                     start: Position::new(line, column),
-                    end: Position::new(line, column),
+                    end: Position::new(line, column + len),
                 },
                 severity: Some(lsp_types::DiagnosticSeverity::ERROR),
                 message,

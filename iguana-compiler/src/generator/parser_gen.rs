@@ -105,7 +105,7 @@ impl<'a> ParserGen<'a> {
         let terminal_name_method = Self::gen_terminal_name_method();
         let slot_name_method = Self::gen_slot_name_method();
         let epsilon_method = Self::gen_epsilon_method();
-        let eof_method = Self::gen_eof_method();
+        let terminal_count_method = Self::gen_terminal_count_method();
         let get_gss_node_method = Self::gen_get_gss_node_method();
         let gen_add_gss_node_method = Self::gen_add_gss_node_method();
         let gen_new_gss_node_method = Self::gen_new_gss_node_method();
@@ -156,7 +156,7 @@ impl<'a> ParserGen<'a> {
                 #terminal_name_method
                 #slot_name_method
                 #epsilon_method
-                #eof_method
+                #terminal_count_method
                 #execute_method
                 #first_descriptors
                 #get_gss_node_method
@@ -1694,10 +1694,10 @@ impl<'a> ParserGen<'a> {
         }
     }
 
-    fn gen_eof_method() -> TokenStream {
+    fn gen_terminal_count_method() -> TokenStream {
         quote! {
-            fn eof() -> TerminalId {
-                TerminalId((TERMINALS.len() - 1) as u16)
+            fn terminal_count() -> u16 {
+                (TERMINALS.len() - 2) as u16
             }
         }
     }

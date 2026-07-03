@@ -30,6 +30,7 @@ pub enum BuildResult<'a> {
     Error {
         line: u32,
         column: u32,
+        len: u32,
         message: String,
     },
 }
@@ -78,11 +79,13 @@ pub fn build<'a>(input: &Input, ctx: &'a ParseContext) -> BuildResult<'a> {
         Ok(Err(error)) => BuildResult::Error {
             line: error.line,
             column: error.column,
+            len: error.len,
             message: error.message,
         },
         Err(_) => BuildResult::Error {
             line: 0,
             column: 0,
+            len: 0,
             message: "Internal error during parsing".to_string(),
         },
     }

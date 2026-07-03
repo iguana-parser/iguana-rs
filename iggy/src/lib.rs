@@ -19,6 +19,7 @@ use std::time::Duration;
 pub struct ParseError {
     pub line: u32,
     pub column: u32,
+    pub len: u32,
     pub message: String,
 }
 impl Display for ParseError {
@@ -68,9 +69,11 @@ pub fn parse_grammar<'a>(
         }
         ParseResult::Failure(error) => {
             let (line, column, message) = parser.format_error(&error);
+            let len = parser.error_span_len(error.input_index);
             Err(ParseError {
                 line,
                 column,
+                len,
                 message,
             })
         }
@@ -102,9 +105,11 @@ pub fn parse_rule<'a>(
         }
         ParseResult::Failure(error) => {
             let (line, column, message) = parser.format_error(&error);
+            let len = parser.error_span_len(error.input_index);
             Err(ParseError {
                 line,
                 column,
+                len,
                 message,
             })
         }
@@ -136,9 +141,11 @@ pub fn parse_syntax_rule<'a>(
         }
         ParseResult::Failure(error) => {
             let (line, column, message) = parser.format_error(&error);
+            let len = parser.error_span_len(error.input_index);
             Err(ParseError {
                 line,
                 column,
+                len,
                 message,
             })
         }
@@ -170,9 +177,11 @@ pub fn parse_annotation<'a>(
         }
         ParseResult::Failure(error) => {
             let (line, column, message) = parser.format_error(&error);
+            let len = parser.error_span_len(error.input_index);
             Err(ParseError {
                 line,
                 column,
+                len,
                 message,
             })
         }
@@ -204,9 +213,11 @@ pub fn parse_regex_rule<'a>(
         }
         ParseResult::Failure(error) => {
             let (line, column, message) = parser.format_error(&error);
+            let len = parser.error_span_len(error.input_index);
             Err(ParseError {
                 line,
                 column,
+                len,
                 message,
             })
         }
@@ -238,9 +249,11 @@ pub fn parse_pre_condition<'a>(
         }
         ParseResult::Failure(error) => {
             let (line, column, message) = parser.format_error(&error);
+            let len = parser.error_span_len(error.input_index);
             Err(ParseError {
                 line,
                 column,
+                len,
                 message,
             })
         }
@@ -272,9 +285,11 @@ pub fn parse_post_condition<'a>(
         }
         ParseResult::Failure(error) => {
             let (line, column, message) = parser.format_error(&error);
+            let len = parser.error_span_len(error.input_index);
             Err(ParseError {
                 line,
                 column,
+                len,
                 message,
             })
         }
@@ -306,9 +321,11 @@ pub fn parse_priority_level<'a>(
         }
         ParseResult::Failure(error) => {
             let (line, column, message) = parser.format_error(&error);
+            let len = parser.error_span_len(error.input_index);
             Err(ParseError {
                 line,
                 column,
+                len,
                 message,
             })
         }
@@ -340,9 +357,11 @@ pub fn parse_associativity<'a>(
         }
         ParseResult::Failure(error) => {
             let (line, column, message) = parser.format_error(&error);
+            let len = parser.error_span_len(error.input_index);
             Err(ParseError {
                 line,
                 column,
+                len,
                 message,
             })
         }
@@ -374,9 +393,11 @@ pub fn parse_alternative<'a>(
         }
         ParseResult::Failure(error) => {
             let (line, column, message) = parser.format_error(&error);
+            let len = parser.error_span_len(error.input_index);
             Err(ParseError {
                 line,
                 column,
+                len,
                 message,
             })
         }
@@ -408,9 +429,11 @@ pub fn parse_symbol<'a>(
         }
         ParseResult::Failure(error) => {
             let (line, column, message) = parser.format_error(&error);
+            let len = parser.error_span_len(error.input_index);
             Err(ParseError {
                 line,
                 column,
+                len,
                 message,
             })
         }
@@ -442,9 +465,11 @@ pub fn parse_regex<'a>(
         }
         ParseResult::Failure(error) => {
             let (line, column, message) = parser.format_error(&error);
+            let len = parser.error_span_len(error.input_index);
             Err(ParseError {
                 line,
                 column,
+                len,
                 message,
             })
         }
@@ -476,9 +501,11 @@ pub fn parse_char_class<'a>(
         }
         ParseResult::Failure(error) => {
             let (line, column, message) = parser.format_error(&error);
+            let len = parser.error_span_len(error.input_index);
             Err(ParseError {
                 line,
                 column,
+                len,
                 message,
             })
         }
@@ -510,9 +537,11 @@ pub fn parse_range_element<'a>(
         }
         ParseResult::Failure(error) => {
             let (line, column, message) = parser.format_error(&error);
+            let len = parser.error_span_len(error.input_index);
             Err(ParseError {
                 line,
                 column,
+                len,
                 message,
             })
         }
@@ -544,9 +573,11 @@ pub fn parse_range<'a>(
         }
         ParseResult::Failure(error) => {
             let (line, column, message) = parser.format_error(&error);
+            let len = parser.error_span_len(error.input_index);
             Err(ParseError {
                 line,
                 column,
+                len,
                 message,
             })
         }
@@ -578,9 +609,11 @@ pub fn parse_layout<'a>(
         }
         ParseResult::Failure(error) => {
             let (line, column, message) = parser.format_error(&error);
+            let len = parser.error_span_len(error.input_index);
             Err(ParseError {
                 line,
                 column,
+                len,
                 message,
             })
         }

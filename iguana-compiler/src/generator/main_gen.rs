@@ -369,7 +369,8 @@ pub fn generate(grammar: &Grammar) -> TokenStream {
                         }
                         ParseResult::Failure(error) => {
                             let (line, column, message) = parser.format_error(&error);
-                            format!("Parse error at line {}, col {}: {}\n{}\n", line + 1, column + 1, message, input.line_and_caret(error.input_index))
+                            let len = parser.error_span_len(error.input_index);
+                            format!("Parse error at line {}, col {}: {}\n{}\n", line + 1, column + 1, message, input.line_and_caret(error.input_index, len))
                         }
                     };
                     Ok(content)
@@ -525,8 +526,9 @@ pub fn generate(grammar: &Grammar) -> TokenStream {
                         }
                         ParseResult::Failure(error) => {
                             let (line, column, message) = parser.format_error(&error);
+                            let len = parser.error_span_len(error.input_index);
                             cli::ReplOutcome::Failed {
-                                message: format!("Parse failed at line {line}, column {column}: {message}\n{}", input.line_and_caret(error.input_index)),
+                                message: format!("Parse failed at line {line}, column {column}: {message}\n{}", input.line_and_caret(error.input_index, len)),
                             }
                         }
                     }
@@ -759,7 +761,8 @@ pub fn generate(grammar: &Grammar) -> TokenStream {
                 }
                 ParseResult::Failure(error) => {
                     let (line, column, message) = parser.format_error(&error);
-                    eprintln!("Parse failed at line {line}, column {column}: {message}\n{}", input.line_and_caret(error.input_index));
+                    let len = parser.error_span_len(error.input_index);
+                    eprintln!("Parse failed at line {line}, column {column}: {message}\n{}", input.line_and_caret(error.input_index, len));
 
                     if let Some(ref path) = args.write_result {
                         let result = cli::ParseResult::Failure(cli::ParseFailure {

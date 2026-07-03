@@ -19,6 +19,7 @@ use std::time::Duration;
 pub struct ParseError {
     pub line: u32,
     pub column: u32,
+    pub len: u32,
     pub message: String,
 }
 impl Display for ParseError {
@@ -68,9 +69,11 @@ pub fn parse_s<'a>(
         }
         ParseResult::Failure(error) => {
             let (line, column, message) = parser.format_error(&error);
+            let len = parser.error_span_len(error.input_index);
             Err(ParseError {
                 line,
                 column,
+                len,
                 message,
             })
         }
@@ -99,9 +102,11 @@ pub fn parse_e<'a>(
         }
         ParseResult::Failure(error) => {
             let (line, column, message) = parser.format_error(&error);
+            let len = parser.error_span_len(error.input_index);
             Err(ParseError {
                 line,
                 column,
+                len,
                 message,
             })
         }
@@ -133,9 +138,11 @@ pub fn parse_lambda<'a>(
         }
         ParseResult::Failure(error) => {
             let (line, column, message) = parser.format_error(&error);
+            let len = parser.error_span_len(error.input_index);
             Err(ParseError {
                 line,
                 column,
+                len,
                 message,
             })
         }
@@ -167,9 +174,11 @@ pub fn parse_body<'a>(
         }
         ParseResult::Failure(error) => {
             let (line, column, message) = parser.format_error(&error);
+            let len = parser.error_span_len(error.input_index);
             Err(ParseError {
                 line,
                 column,
+                len,
                 message,
             })
         }

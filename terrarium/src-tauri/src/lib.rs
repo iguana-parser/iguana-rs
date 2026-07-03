@@ -1284,6 +1284,7 @@ fn get_diagnostics(
             iguana_lsp::BuildResult::Error {
                 line,
                 column,
+                len,
                 message,
             } => {
                 vec![DiagnosticData {
@@ -1291,7 +1292,7 @@ fn get_diagnostics(
                         start_line: line,
                         start_char: column,
                         end_line: line,
-                        end_char: column,
+                        end_char: column + len,
                     },
                     severity: 8,
                     message: format!("Parse error: {message}"),
