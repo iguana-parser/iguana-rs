@@ -17,7 +17,7 @@ pub fn generate(grammar: &Grammar) -> TokenStream {
             fs::{self, File},
             io::{self, BufWriter, Write},
             path::{Path, PathBuf},
-            time::Instant,
+            time::{Duration, Instant},
         };
 
         use clap::{Parser as ClapParser, ValueEnum as ClapValueEnum};
@@ -54,7 +54,7 @@ pub fn generate(grammar: &Grammar) -> TokenStream {
         struct Cli {
             /// Input file to parse
             ///
-            /// Required unless --list-nonterminals or --dir is used
+            /// Required unless --list-nonterminals, --dir, or --benchmark is used
             file: Option<PathBuf>,
 
             /// Don't print the parse tree to stdout
@@ -149,17 +149,21 @@ pub fn generate(grammar: &Grammar) -> TokenStream {
 
             /// Run the parser many times and report timing statistics
             ///
-            /// Min, mean, median, p90, max, stddev, sampled in-process per iteration
+            /// Benchmarks a single file (the positional argument) or a --dir; otherwise the corpus listed in repos.txt. Reports min, mean, median, p90, max, stddev (in ms) for each phase: input (file read), init (allocation), parse (input characters to the SPPF), tree (SPPF to parse tree), drop (teardown); total is their sum
             #[arg(long, help_heading = "Benchmarking and profiling")]
             benchmark: bool,
 
             /// Number of measured iterations for --benchmark
-            #[arg(long, value_name = "N", default_value_t = 100, requires = "benchmark", help_heading = "Benchmarking and profiling")]
-            iters: u32,
+            ///
+            /// Defaults to 100 for a single file, 3 for a directory or corpus (one iteration is a full pass over every file)
+            #[arg(long, value_name = "N", requires = "benchmark", help_heading = "Benchmarking and profiling")]
+            iters: Option<u32>,
 
             /// Number of warmup iterations before measurement
-            #[arg(long, value_name = "N", default_value_t = 10, requires = "benchmark", help_heading = "Benchmarking and profiling")]
-            warmup: u32,
+            ///
+            /// Defaults to 10 for a single file, 0 for a directory or corpus (a whole-corpus pass self-warms, so a cold first pass is just the median's slow outlier)
+            #[arg(long, value_name = "N", requires = "benchmark", help_heading = "Benchmarking and profiling")]
+            warmup: Option<u32>,
 
             /// Save benchmark samples to a JSON file
             ///
@@ -207,7 +211,7 @@ pub fn generate(grammar: &Grammar) -> TokenStream {
 
             /// Rewrite corpus baselines instead of checking them
             ///
-            /// Use with --corpus-test
+            /// Use with --corpus-test. Refuses to rewrite (and fails) when a file regressed (ok -> error) or parsed ambiguously
             #[arg(long, requires = "corpus_test", help_heading = "Corpus testing")]
             update: bool,
 
@@ -447,7 +451,10 @@ pub fn generate(grammar: &Grammar) -> TokenStream {
                             let result = parser.run();
                             let ms = start.elapsed().as_secs_f64() * 1000.0;
                             match result {
-                                ParseResult::Success(_) => cli::CorpusOutcome::Ok { ms },
+                                ParseResult::Success(success) => cli::CorpusOutcome::Ok {
+                                    ms,
+                                    ambiguous: is_ambiguous(&parser, success.sppf_node_id),
+                                },
                                 ParseResult::Failure(error) => {
                                     let (line, column, message) = parser.format_error(&error);
                                     cli::CorpusOutcome::Error {
@@ -480,7 +487,9 @@ pub fn generate(grammar: &Grammar) -> TokenStream {
                         cli::CorpusMode::Check => println!(
                             "{} {} checked: {} passed, {} failed", ran, noun, passed, ran - passed
                         ),
-                        cli::CorpusMode::Update => println!("{} {} updated", ran, noun),
+                        cli::CorpusMode::Update => println!(
+                            "{} {} updated: {} written, {} refused", ran, noun, passed, ran - passed
+                        ),
                     }
                 }
 
@@ -490,14 +499,168 @@ pub fn generate(grammar: &Grammar) -> TokenStream {
                 return Ok(());
             }
 
+            // Benchmarking: run repeated parses and report timing statistics. The
+            // source is implicit: a positional file benchmarks that file (default
+            // 100 iterations), a --dir benchmarks every file under it, otherwise the
+            // corpus in repos.txt. For a directory or corpus one iteration is a full
+            // pass over every file (default 3 iterations), so each sample is one
+            // whole-corpus run.
+            if args.benchmark {
+                if let Some(file) = args.file.as_ref() {
+                    let start_nonterminal_name = args.start_nonterminal.as_ref().ok_or_else(|| {
+                        io::Error::new(io::ErrorKind::InvalidInput, "--nonterminal is required for parsing")
+                    })?;
+                    let start_nonterminal_id = resolve_start_nonterminal(start_nonterminal_name)?;
+                    let config = cli::BenchConfig {
+                        iters: args.iters.unwrap_or(100) as usize,
+                        warmup: args.warmup.unwrap_or(10) as usize,
+                        save: args.save.clone(),
+                        baseline: args.baseline.clone(),
+                    };
+                    eprintln!(
+                        "Benchmarking {} over {} {}...",
+                        file.display(),
+                        config.iters,
+                        if config.iters == 1 { "iteration" } else { "iterations" },
+                    );
+                    let file_path = file.clone();
+                    return cli::run_benchmark(config, move || {
+                        bench_parse_file(&file_path, start_nonterminal_id)
+                            .expect("benchmark input could not be read, failed to parse, or is ambiguous")
+                    });
+                }
+
+                // Directory or corpus: collect each source's files with its start
+                // nonterminal, kept in per-source groups so every run can report
+                // which source it is on. The progress prints sit between
+                // bench_parse_file calls, so their time lands in no phase and the
+                // reported timings stay exact; the closure sums each run into one
+                // sample.
+                let config = cli::BenchConfig {
+                    iters: args.iters.unwrap_or(3) as usize,
+                    warmup: args.warmup.unwrap_or(0) as usize,
+                    save: args.save.clone(),
+                    baseline: args.baseline.clone(),
+                };
+                let mut groups: Vec<(String, Vec<(PathBuf, NonterminalId)>)> = Vec::new();
+                if let Some(dir) = args.dir.as_ref() {
+                    let start_nonterminal_name = args.start_nonterminal.as_ref().ok_or_else(|| {
+                        io::Error::new(io::ErrorKind::InvalidInput, "--nonterminal is required for parsing")
+                    })?;
+                    let start_nonterminal_id = resolve_start_nonterminal(start_nonterminal_name)?;
+                    let mut files = Vec::new();
+                    collect_files(dir, args.ext.as_deref(), &mut files)?;
+                    files.sort();
+                    let paired = files.into_iter().map(|p| (p, start_nonterminal_id)).collect();
+                    groups.push((dir.display().to_string(), paired));
+                } else {
+                    let repos_path = args.corpus_dir.join("repos.txt");
+                    // Scaffold the corpus dir on first use, same as --corpus-test.
+                    if cli::init_corpus_dir(&args.corpus_dir)? {
+                        println!("Created {}. List your repos there and re-run.", repos_path.display());
+                        return Ok(());
+                    }
+                    for entry in cli::read_repos(&repos_path)? {
+                        let start_nonterminal_id = resolve_start_nonterminal(&entry.start)?;
+                        let checkout = args.corpus_dir.join(".cache").join(&entry.name);
+                        cli::fetch_corpus(&checkout, &entry.repo, &entry.git_ref)?;
+                        let mut files = Vec::new();
+                        collect_files(&checkout, Some(&entry.ext), &mut files)?;
+                        files.sort();
+                        let paired = files.into_iter().map(|p| (p, start_nonterminal_id)).collect();
+                        groups.push((entry.name.clone(), paired));
+                    }
+                }
+
+                let total_files: usize = groups.iter().map(|(_, files)| files.len()).sum();
+                if total_files == 0 {
+                    return Err(io::Error::new(io::ErrorKind::InvalidInput, "no files to benchmark"));
+                }
+
+                // Header, then a per-source file breakdown for a bare corpus (with the
+                // counts aligned in a column). A single --dir names the directory instead.
+                let total = cli::group_digits(&total_files.to_string());
+                let iterations_word = if config.iters == 1 { "iteration" } else { "iterations" };
+                if args.dir.is_none() {
+                    eprintln!("Running the corpus ({} files), {} {}:", total, config.iters, iterations_word);
+                    let width = groups.iter().map(|(label, _)| label.len() + 1).max().unwrap_or(0);
+                    for (label, files) in &groups {
+                        eprintln!(
+                            "  {:<width$} {} files",
+                            format!("{}:", label),
+                            cli::group_digits(&files.len().to_string()),
+                            width = width,
+                        );
+                    }
+                } else {
+                    eprintln!("Running {} ({} files), {} {}...", groups[0].0, total, config.iters, iterations_word);
+                }
+                eprintln!();
+
+                let iters = config.iters;
+                let warmup = config.warmup;
+                // Longest source label, used to align the per-source time column.
+                let max_label = groups.iter().map(|(label, _)| label.len()).max().unwrap_or(0);
+                let mut pass = 0usize;
+                return cli::run_benchmark(config, move || {
+                    // A blank line separates consecutive runs. Then announce the run (or
+                    // warmup pass), each source with its time, and the whole run's time.
+                    // Every printed duration is a sum of bench_parse_file timings, so the
+                    // prints add nothing to any phase.
+                    if pass > 0 {
+                        eprintln!();
+                    }
+                    let is_warmup = pass < warmup;
+                    let run_num = if is_warmup { pass + 1 } else { pass - warmup + 1 };
+                    let kind = if is_warmup { "warmup" } else { "run" };
+                    eprintln!("{} {}/{}", kind, run_num, if is_warmup { warmup } else { iters });
+                    pass += 1;
+
+                    let mut input = Duration::ZERO;
+                    let mut init = Duration::ZERO;
+                    let mut parse = Duration::ZERO;
+                    let mut tree = Duration::ZERO;
+                    let mut drop = Duration::ZERO;
+                    let mut bytes = 0u64;
+                    // Files that fail to parse or parse ambiguously are skipped, so
+                    // each sample times only the clean parses.
+                    for (label, files) in &groups {
+                        // Print the label first so the cursor waits right after it; the
+                        // time is padded to a shared column once the source is done.
+                        eprint!("  {}...", label);
+                        let _ = io::stderr().flush();
+                        let mut source_time = Duration::ZERO;
+                        for (path, start_nonterminal_id) in files {
+                            if let Some(t) = bench_parse_file(path, *start_nonterminal_id) {
+                                input += t.input;
+                                init += t.init;
+                                parse += t.parse;
+                                tree += t.tree;
+                                drop += t.drop;
+                                bytes += t.bytes;
+                                source_time += t.input + t.init + t.parse + t.tree + t.drop;
+                            }
+                        }
+                        let pad = " ".repeat(max_label - label.len() + 1);
+                        eprintln!("{}{} ms", pad, cli::group_digits(&format!("{:.0}", source_time.as_secs_f64() * 1000.0)));
+                    }
+                    let run_ms = (input + init + parse + tree + drop).as_secs_f64() * 1000.0;
+                    eprintln!("{} {} completed in {} ms", kind, run_num, cli::group_digits(&format!("{:.0}", run_ms)));
+                    cli::PhaseTimings { input, init, parse, tree, drop, bytes }
+                });
+            }
+
             // Batch mode: parse every file under --dir, report per-file results and a summary.
-            // Ambiguity is not yet reported here; that lands when non-panicking detection is in place.
             if let Some(dir) = args.dir.as_ref() {
                 let start_nonterminal_name = args.start_nonterminal.as_ref().ok_or_else(|| {
                     io::Error::new(io::ErrorKind::InvalidInput, "--nonterminal is required for parsing")
                 })?;
                 let start_nonterminal_id = resolve_start_nonterminal(start_nonterminal_name)?;
-                return run_batch(dir, args.ext.as_deref(), start_nonterminal_id, args.hist);
+                let passed = run_batch(dir, args.ext.as_deref(), start_nonterminal_id, args.hist)?;
+                if !passed {
+                    std::process::exit(1);
+                }
+                return Ok(());
             }
 
             // Interactive REPL: parse inputs read from stdin. Needs --nonterminal but no
@@ -552,75 +715,6 @@ pub fn generate(grammar: &Grammar) -> TokenStream {
             let input = Input::try_from(file.as_path())?;
 
             let start_nonterminal_id = resolve_start_nonterminal(&start_nonterminal_name)?;
-
-            // A fresh ParseContext per iter keeps the bump arena from growing
-            // unboundedly across samples, so each measurement is comparable.
-            if args.benchmark {
-                let config = cli::BenchConfig {
-                    iters: args.iters as usize,
-                    warmup: args.warmup as usize,
-                    save: args.save.clone(),
-                    baseline: args.baseline.clone(),
-                };
-                // Re-load Input each iteration so `input` phase is measured.
-                // The `file` path is captured by the closure.
-                let file_path = file.clone();
-                return cli::run_benchmark(config, move || {
-                    let input_start = Instant::now();
-                    let input = Input::try_from(file_path.as_path())
-                        .expect("failed to load input");
-                    let input_time = input_start.elapsed();
-                    let bytes = input.len() as u64;
-
-                    let init_start = Instant::now();
-                    let ctx = ParseContext::new();
-                    let parse_tree_builder = #parse_tree_builder::new(&ctx);
-                    let mut parser = #parser::new(&input, start_nonterminal_id);
-                    let init = init_start.elapsed();
-
-                    let (parse, tree) = match parser.run() {
-                        ParseResult::Success(success) => {
-                            let parse = success.duration;
-                            let tree_start = Instant::now();
-                            {
-                                let tree = create_parse_tree(
-                                    success.sppf_node_id,
-                                    start_nonterminal_id,
-                                    &parser,
-                                    &parse_tree_builder,
-                                );
-                                std::hint::black_box(tree);
-                            }
-                            (parse, tree_start.elapsed())
-                        }
-                        ParseResult::Failure(error) => {
-                            let (line, column, message) = parser.format_error(&error);
-                            panic!(
-                                "Parse failed at line {line} column {column}: {message}"
-                            );
-                        }
-                    };
-
-                    // The builder borrows ctx and owns no heap data, so release
-                    // its borrow before timing teardown of the structures that
-                    // actually free memory.
-                    let _ = parse_tree_builder;
-                    let drop_start = Instant::now();
-                    drop(parser);
-                    drop(ctx);
-                    drop(input);
-                    let drop = drop_start.elapsed();
-
-                    cli::PhaseTimings {
-                        input: input_time,
-                        init,
-                        parse,
-                        tree,
-                        drop,
-                        bytes,
-                    }
-                });
-            }
 
             // Profiling mode: run the parser N times under a sampling profiler
             // and write a flamegraph SVG. Short-circuits all other output.
@@ -809,7 +903,7 @@ pub fn generate(grammar: &Grammar) -> TokenStream {
                 ))
         }
 
-        fn run_batch(dir: &Path, ext: Option<&str>, start_nonterminal_id: NonterminalId, hist_only: bool) -> io::Result<()> {
+        fn run_batch(dir: &Path, ext: Option<&str>, start_nonterminal_id: NonterminalId, hist_only: bool) -> io::Result<bool> {
             let color = cli::Color::for_stdout();
 
             let mut files = Vec::new();
@@ -822,6 +916,7 @@ pub fn generate(grammar: &Grammar) -> TokenStream {
             }
 
             let mut ok = 0usize;
+            let mut ambiguous = 0usize;
             let mut failed = 0usize;
             let mut errs = 0usize;
             let mut total_input_ms: f64 = 0.0;
@@ -863,6 +958,7 @@ pub fn generate(grammar: &Grammar) -> TokenStream {
                 match parser.run() {
                     ParseResult::Success(success) => {
                         let parse_ms = success.duration.as_secs_f64() * 1000.0;
+                        let ambig = is_ambiguous(&parser, success.sppf_node_id);
                         let tc_start = Instant::now();
                         {
                             let tree = create_parse_tree(
@@ -886,7 +982,10 @@ pub fn generate(grammar: &Grammar) -> TokenStream {
                         drop(input);
                         let drop_ms = drop_start.elapsed().as_secs_f64() * 1000.0;
                         let total_ms = input_ms + init_ms + parse_ms + tree_ms + drop_ms;
-                        ok += 1;
+                        // An ambiguous parse still parsed, so its time and bytes feed
+                        // the throughput totals; only the status bucket and the exit
+                        // gate treat it apart from a clean OK.
+                        if ambig { ambiguous += 1; } else { ok += 1; }
                         total_input_ms += input_ms;
                         total_init_ms += init_ms;
                         total_parse_ms += parse_ms;
@@ -899,8 +998,13 @@ pub fn generate(grammar: &Grammar) -> TokenStream {
                             let time = format!("{} ms ({} ms, {} ms, {} ms, {} ms, {} ms)",
                                 total_ms as u128, input_ms as u128, init_ms as u128,
                                 parse_ms as u128, tree_ms as u128, drop_ms as u128);
+                            let (label, code) = if ambig {
+                                ("AMB", color.red)
+                            } else {
+                                ("OK", color.green)
+                            };
                             println!("{}{:<6}{}  {:<42}  {:<36}  {}",
-                                color.green, "OK", color.reset, time, "-", rel.display());
+                                code, label, color.reset, time, "-", rel.display());
                         }
                     }
                     ParseResult::Failure(error) => {
@@ -917,18 +1021,19 @@ pub fn generate(grammar: &Grammar) -> TokenStream {
 
             let total_ms = total_input_ms + total_init_ms + total_parse_ms
                 + total_tree_ms + total_drop_ms;
-            let avg_ms = if ok > 0 { total_ms / ok as f64 } else { 0.0 };
+            let parsed = ok + ambiguous;
+            let avg_ms = if parsed > 0 { total_ms / parsed as f64 } else { 0.0 };
             let throughput = cli::mb_per_s(total_bytes, total_parse_ms);
             let throughput_total = cli::mb_per_s(total_bytes, total_ms);
             if !hist_only {
                 println!();
-                println!("Parsed {} files: {} OK, {} failed, {} errors",
-                    files.len(), ok, failed, errs);
+                println!("Parsed {} files: {} OK, {} ambiguous, {} failed, {} errors",
+                    files.len(), ok, ambiguous, failed, errs);
                 println!("Total {:.0} ms (input {:.0}, init {:.0}, parse {:.0}, tree {:.0}, drop {:.0}); avg {:.1} ms, max {:.0} ms",
                     total_ms, total_input_ms, total_init_ms, total_parse_ms, total_tree_ms,
                     total_drop_ms, avg_ms, max_total_ms);
                 println!("Throughput on {} successful parses ({} bytes): {:.2} MB/s parse only, {:.2} MB/s total",
-                    ok, total_bytes, throughput, throughput_total);
+                    parsed, total_bytes, throughput, throughput_total);
 
                 if !per_file.is_empty() {
                     let buckets: &[(&str, u64, u64)] = &[
@@ -966,10 +1071,61 @@ pub fn generate(grammar: &Grammar) -> TokenStream {
                 if !hist_only {
                     println!();
                 }
-                println!("[stats] aggregated across {} successful parses", ok);
+                println!("[stats] aggregated across {} successful parses", parsed);
                 println!("{}", corpus_stats);
             }
-            Ok(())
+            Ok(failed == 0 && errs == 0 && ambiguous == 0)
+        }
+
+        /// Parses one file under a benchmark, returning its per-phase timings, or
+        /// `None` when the file should not count toward the measurement: it cannot
+        /// be read, it fails to parse, or it parses ambiguously. A benchmark times
+        /// clean single-tree parses, so a whole-corpus run skips the rest rather
+        /// than mixing their work in. The input is reloaded so the `input` phase is
+        /// measured, and a fresh ParseContext per call keeps the bump arena from
+        /// growing across samples, so each measurement is comparable.
+        fn bench_parse_file(path: &Path, start_nonterminal_id: NonterminalId) -> Option<cli::PhaseTimings> {
+            let input_start = Instant::now();
+            let input = Input::try_from(path).ok()?;
+            let input_time = input_start.elapsed();
+            let bytes = input.len() as u64;
+
+            let init_start = Instant::now();
+            let ctx = ParseContext::new();
+            let parse_tree_builder = #parse_tree_builder::new(&ctx);
+            let mut parser = #parser::new(&input, start_nonterminal_id);
+            let init = init_start.elapsed();
+
+            let ParseResult::Success(success) = parser.run() else {
+                return None;
+            };
+            let parse = success.duration;
+            if is_ambiguous(&parser, success.sppf_node_id) {
+                return None;
+            }
+
+            let tree_start = Instant::now();
+            {
+                let tree = create_parse_tree(
+                    success.sppf_node_id,
+                    start_nonterminal_id,
+                    &parser,
+                    &parse_tree_builder,
+                );
+                std::hint::black_box(tree);
+            }
+            let tree = tree_start.elapsed();
+
+            // The builder borrows ctx and owns no heap data, so release its borrow
+            // before timing teardown of the structures that actually free memory.
+            let _ = parse_tree_builder;
+            let drop_start = Instant::now();
+            drop(parser);
+            drop(ctx);
+            drop(input);
+            let drop = drop_start.elapsed();
+
+            Some(cli::PhaseTimings { input: input_time, init, parse, tree, drop, bytes })
         }
 
         fn collect_files(dir: &Path, ext: Option<&str>, out: &mut Vec<PathBuf>) -> io::Result<()> {

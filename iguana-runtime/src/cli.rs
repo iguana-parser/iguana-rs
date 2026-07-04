@@ -93,22 +93,38 @@ pub fn run_benchmark(
     let tree = summarize(&tree_samples);
     let drop = summarize(&drop_samples);
 
+    let color = Color::for_stdout();
+    let warmup_note = if config.warmup > 0 {
+        format!(" (+{} warmup)", config.warmup)
+    } else {
+        String::new()
+    };
+    println!();
     println!(
-        "Benchmark: {} samples ({} warmup), {} bytes",
-        config.iters, config.warmup, bytes_per_iter
+        "Benchmark: {} iteration{}{}, {} bytes per iteration (times in ms)",
+        config.iters,
+        if config.iters == 1 { "" } else { "s" },
+        warmup_note,
+        group_digits(&bytes_per_iter.to_string()),
     );
+    println!();
+    // Header (bold on a terminal), then a phase per row, a rule, and the total
+    // last since it is the sum of the phases above it.
     println!(
-        "  {:<6} {:>8} {:>8} {:>8} {:>8} {:>8} {:>8}",
-        "phase", "min", "mean", "stddev", "median", "p90", "max"
+        "  {}{:<8}{:>14}{:>14}{:>14}{:>14}{:>14}{:>14}{}",
+        color.bold, "phase", "min", "mean", "stddev", "median", "p90", "max", color.reset
     );
-    print_phase_row("total", &total);
-    print_phase_row("input", &input);
-    print_phase_row("init", &init);
-    print_phase_row("parse", &parse);
-    print_phase_row("tree", &tree);
-    print_phase_row("drop", &drop);
+    let decimals = ms_decimals(total.max);
+    print_phase_row("input", &input, decimals);
+    print_phase_row("init", &init, decimals);
+    print_phase_row("parse", &parse, decimals);
+    print_phase_row("tree", &tree, decimals);
+    print_phase_row("drop", &drop, decimals);
+    println!("  {}", "-".repeat(8 + 6 * 14));
+    print_phase_row("total", &total, decimals);
+    println!();
     println!(
-        "  throughput: {:.2} MB/s (median total), {:.2} MB/s (median parse only)",
+        "Throughput (median): {:.2} MB/s total, {:.2} MB/s parse-only",
         mb_per_s(bytes_per_iter, total.median),
         mb_per_s(bytes_per_iter, parse.median),
     );
@@ -167,11 +183,54 @@ pub fn run_benchmark(
     Ok(())
 }
 
-fn print_phase_row(name: &str, s: &BenchSummary) {
+fn print_phase_row(name: &str, s: &BenchSummary, decimals: usize) {
     println!(
-        "  {:<6} {:>8.3} {:>8.3} {:>8.3} {:>8.3} {:>8.3} {:>8.3}",
-        name, s.min, s.mean, s.stddev, s.median, s.p90, s.max
+        "  {:<8}{:>14}{:>14}{:>14}{:>14}{:>14}{:>14}",
+        name,
+        fmt_ms(s.min, decimals),
+        fmt_ms(s.mean, decimals),
+        fmt_ms(s.stddev, decimals),
+        fmt_ms(s.median, decimals),
+        fmt_ms(s.p90, decimals),
+        fmt_ms(s.max, decimals),
     );
+}
+
+/// Decimal places for a table whose largest value is `max`. Large values (a
+/// whole-corpus pass) report whole or tenths of a millisecond, where finer
+/// digits are noise; small values (a single file) keep three so sub-millisecond
+/// timings stay legible.
+fn ms_decimals(max: f64) -> usize {
+    if max >= 10_000.0 {
+        0
+    } else if max >= 1_000.0 {
+        1
+    } else {
+        3
+    }
+}
+
+/// Inserts thousands separators into a run of digits: `"101454"` -> `"101,454"`.
+/// Public so generated benchmark progress lines can comma-format their counts.
+pub fn group_digits(digits: &str) -> String {
+    let mut out = String::with_capacity(digits.len() + digits.len() / 3);
+    for (i, c) in digits.chars().enumerate() {
+        if i > 0 && (digits.len() - i) % 3 == 0 {
+            out.push(',');
+        }
+        out.push(c);
+    }
+    out
+}
+
+/// Formats a millisecond value with thousands separators and `decimals` decimal
+/// places, e.g. `fmt_ms(101454.864, 0)` -> `"101,455"`.
+fn fmt_ms(v: f64, decimals: usize) -> String {
+    let s = format!("{:.*}", decimals, v);
+    match s.split_once('.') {
+        Some((int, frac)) => format!("{}.{}", group_digits(int), frac),
+        None => group_digits(&s),
+    }
 }
 
 /// Throughput in megabytes per second from `bytes` and `ms`.
@@ -527,6 +586,7 @@ fn read_golden(path: &Path) -> io::Result<Option<String>> {
 pub struct Color {
     pub green: &'static str,
     pub red: &'static str,
+    pub bold: &'static str,
     pub reset: &'static str,
 }
 
@@ -536,12 +596,14 @@ impl Color {
             Color {
                 green: "\x1b[32m",
                 red: "\x1b[31m",
+                bold: "\x1b[1m",
                 reset: "\x1b[0m",
             }
         } else {
             Color {
                 green: "",
                 red: "",
+                bold: "",
                 reset: "",
             }
         }
@@ -824,7 +886,8 @@ pub fn fetch_corpus(dir: &Path, repo: &str, git_ref: &str) -> io::Result<()> {
 }
 
 /// Whether the corpus harness checks results against the committed baseline or
-/// rewrites it.
+/// rewrites it. A rewrite is refused when the new state would regress
+/// (ok -> error/ioerror) or is ambiguous, so an update cannot record either.
 #[derive(Clone, Copy, PartialEq, Eq)]
 pub enum CorpusMode {
     Check,
@@ -842,20 +905,24 @@ pub struct CorpusConfig {
 
 /// The outcome of parsing one corpus file. `ms` is the parse time (the parser's
 /// own `run()`), used for the slow-file tail and the aggregate `parse_ms`.
+/// `ambiguous` marks a success with more than one derivation; it keeps the `ok`
+/// baseline status but fails the run through a separate absolute gate.
 pub enum CorpusOutcome {
-    Ok { ms: f64 },
+    Ok { ms: f64, ambiguous: bool },
     Error { ms: f64, message: String },
     IoError { message: String },
 }
 
 /// Summary of one corpus run, returned so the caller can aggregate across
-/// corpora and set the exit code. `passed` is false only when a `Check` finds a
-/// regression (a file that parsed in the baseline now fails); an `Update` always
-/// passes.
+/// corpora and set the exit code. `passed` is false when a file regresses (it
+/// parsed in the baseline and now fails) or parses ambiguously; on an `Update`
+/// this also means the baseline was left untouched, since a rewrite is refused
+/// rather than record a regression or an ambiguity.
 pub struct CorpusReport {
     pub name: String,
     pub files: usize,
     pub ok: usize,
+    pub ambiguous: usize,
     pub error: usize,
     pub ioerror: usize,
     pub parse_ms: u64,
@@ -906,13 +973,18 @@ struct BaselineTotals {
 /// files carry no time, so the file does not churn). `perf_tolerance_pct` is the
 /// soft band on the aggregate `parse_ms`.
 ///
-/// Returns a `CorpusReport`; `passed` is false only on a `Check` with a
-/// regression: a file that parsed in the baseline (`ok`) and now fails
-/// (`error`/`ioerror`). Recoveries (`fail -> ok`), message/status drift between
-/// failing states, and added/removed files are reported but do not fail the run,
-/// so a red check always means a genuine regression. Timing is a separate soft
-/// signal: a `parse_ms` drift past `perf_tolerance_pct` is reported but never
-/// fails the run.
+/// Returns a `CorpusReport`; on a `Check`, `passed` is false when a file
+/// regresses (parsed in the baseline as `ok` and now fails with
+/// `error`/`ioerror`) or when any file parses ambiguously. Recoveries
+/// (`fail -> ok`), message/status drift between failing states, and
+/// added/removed files are reported but do not fail the run, so a red check
+/// always means a genuine regression or an ambiguity. Ambiguity is an absolute
+/// gate, not diffed against the baseline: an ambiguous parse still records as
+/// `ok`, so the baseline format is unchanged. An `Update` applies the same
+/// gate: it rewrites the baseline only when the new state is safe, and otherwise
+/// fails without writing (a first run with no baseline can be blocked only by
+/// ambiguity). Timing is a separate soft signal: a `parse_ms` drift past
+/// `perf_tolerance_pct` is reported but never fails the run.
 pub fn run_corpus(
     name: &str,
     inputs: Vec<PathBuf>,
@@ -933,10 +1005,19 @@ pub fn run_corpus(
     // aggregate parse time.
     let mut files: Vec<CurrentFile> = Vec::with_capacity(inputs.len());
     let mut parse_ms_total = 0.0f64;
+    let mut ambiguous = 0usize;
     for input in &inputs {
         let path = normalize_rel(input, root);
         let (status, message, ms) = match parse_one(input) {
-            CorpusOutcome::Ok { ms } => (Status::Ok, None, ms),
+            CorpusOutcome::Ok {
+                ms,
+                ambiguous: is_ambig,
+            } => {
+                if is_ambig {
+                    ambiguous += 1;
+                }
+                (Status::Ok, None, ms)
+            }
             CorpusOutcome::Error { ms, message } => (Status::Error, Some(sanitize(&message)), ms),
             CorpusOutcome::IoError { message } => (Status::IoError, Some(sanitize(&message)), 0.0),
         };
@@ -958,6 +1039,7 @@ pub fn run_corpus(
         name: name.to_string(),
         files: files.len(),
         ok,
+        ambiguous,
         error,
         ioerror,
         parse_ms,
@@ -966,6 +1048,34 @@ pub fn run_corpus(
 
     match mode {
         CorpusMode::Update => {
+            // An update must not bake a regression or an ambiguity into the
+            // committed baseline, so gate the rewrite on the same conditions as a
+            // Check. A missing baseline is fine on a first run: there is nothing
+            // to regress from, so only ambiguity can block it.
+            let baseline = match read_baseline(baseline_path) {
+                Ok((_, baseline)) => baseline,
+                Err(e) if e.kind() == io::ErrorKind::NotFound => BTreeMap::new(),
+                Err(e) => return Err(e),
+            };
+            let diffs = diff_records(&files, &baseline);
+            let passed = diffs.regressions.is_empty() && ambiguous == 0;
+            if !passed {
+                // A refusal prints even under --quiet: it is the point of the run.
+                print_status(&color, "FAIL", false, &corpus_counts(name, &report));
+                if ambiguous > 0 {
+                    println!("  {} file(s) parsed ambiguously", ambiguous);
+                }
+                if !diffs.regressions.is_empty() {
+                    print_diffs(&color, &diffs);
+                }
+                println!(
+                    "  baseline left unchanged (an update records neither a regression nor an ambiguity)"
+                );
+                return Ok(CorpusReport {
+                    passed: false,
+                    ..report
+                });
+            }
             fs::write(
                 baseline_path,
                 serialize_baseline(name, &files, slow_ms, parse_ms),
@@ -996,17 +1106,23 @@ pub fn run_corpus(
                 Err(e) => return Err(e),
             };
 
-            // Compare every file against its baseline record. Only a regression
-            // (ok -> fail) fails the check; recoveries, drift, and added/removed
-            // are soft. Timing always reports below, regardless of the verdict.
+            // Compare every file against its baseline record. A regression
+            // (ok -> fail) or any ambiguous parse fails the check; recoveries,
+            // drift, and added/removed are soft. Timing always reports below,
+            // regardless of the verdict.
             let diffs = diff_records(&files, &baseline);
-            let passed = diffs.regressions.is_empty();
+            let passed = diffs.regressions.is_empty() && ambiguous == 0;
 
-            if !diffs.regressions.is_empty() {
+            if !passed {
                 // A failure prints even under --quiet: it is the point of the run.
                 print_status(&color, "FAIL", false, &corpus_counts(name, &report));
-                print_baseline_counts(&totals);
-                print_diffs(&color, &diffs);
+                if ambiguous > 0 {
+                    println!("  {} file(s) parsed ambiguously", ambiguous);
+                }
+                if !diffs.is_clean() {
+                    print_baseline_counts(&totals);
+                    print_diffs(&color, &diffs);
+                }
             } else if !quiet {
                 if diffs.is_clean() {
                     print_status(&color, "PASS", true, &corpus_counts(name, &report));
@@ -1036,11 +1152,12 @@ pub fn run_corpus(
     }
 }
 
-/// `"<name>: N files (A ok, B error, C ioerror)"`, the per-corpus status tail.
+/// `"<name>: N files (A ok, B ambiguous, C error, D ioerror)"`, the per-corpus
+/// status tail.
 fn corpus_counts(name: &str, report: &CorpusReport) -> String {
     format!(
-        "{name}: {} files ({} ok, {} error, {} ioerror)",
-        report.files, report.ok, report.error, report.ioerror
+        "{name}: {} files ({} ok, {} ambiguous, {} error, {} ioerror)",
+        report.files, report.ok, report.ambiguous, report.error, report.ioerror
     )
 }
 
