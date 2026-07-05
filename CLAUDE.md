@@ -69,8 +69,10 @@ External crates outside this workspace often hand-edit Cargo.toml (local path to
 
 - For each perf claim, re-measure the baseline from main immediately before the change. Don't compare against baseline JSONs from earlier in the session.
 - Workflow: stash the changes → build → bench → save as baseline → unstash → build → bench against that baseline.
+- `--benchmark` targets a single file, a `--dir`, or the whole corpus (no file argument, reading repos.txt). Benchmark the corpus for a representative number; a single file iterates faster but one atypical file can overstate a change that is noise corpus-wide.
+- The `iguana-java-grammar` repo is the standing corpus. It links `iguana-runtime` by path, so `cargo build --release && ./target/release/java --benchmark` picks up a runtime change and times the whole corpus; regenerate its parser first for a generator change. A/B with `--benchmark --save base.json` on main, then `--baseline base.json` after the change.
 - Internal profile shifts (flamegraph share, sample counts) are not wall-clock improvements. State them separately. A frame share dropping from 47% to 43% can coexist with unchanged total wall time.
-- `--bench-save` / `--bench-baseline` in generated parsers compute a Welch CI on the delta. Treat the CI as the noise floor of that single comparison, not proof that wall time moved across sessions.
+- `--save` / `--baseline` in generated parsers compute a Welch CI on the delta. Treat the CI as the noise floor of that single comparison, not proof that wall time moved across sessions.
 
 # Terrarium
 
