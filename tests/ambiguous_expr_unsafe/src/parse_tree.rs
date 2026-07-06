@@ -94,24 +94,16 @@ impl<'a> ParseTree<'a> {
             ParseTree::Token(token) => token.span(),
         }
     }
-    #[doc = "True when this node is an ambiguity cluster (any `*::Amb` variant). The"]
-    #[doc = "uniform way to detect ambiguity without matching each nonterminal's enum."]
+    #[doc = "Always false: the unsafe mode produces no ambiguity nodes, and its"]
+    #[doc = "nonterminal types have no `Amb` variant."]
     pub fn is_amb(&self) -> bool {
-        match self {
-            ParseTree::S(s) => matches!(s, S::Amb(_)),
-            ParseTree::E(e) => matches!(e, E::Amb(_)),
-            ParseTree::Token(_) => false,
-        }
+        false
     }
-    #[doc = "Pointer identity of the underlying node, or `None` for tokens (by-value"]
-    #[doc = "leaves that are never shared). Two parse trees with the same `node_id` are"]
-    #[doc = "the same allocation, i.e. a node shared between parents in the ambiguity DAG."]
+    #[doc = "Always `None`: node identity exists to detect sharing in an ambiguity"]
+    #[doc = "DAG, and the unsafe mode builds a tree with no shared nodes. `None`"]
+    #[doc = "also lets the s-expression and JSON renderers skip their sharing maps."]
     pub fn node_id(&self) -> Option<usize> {
-        match self {
-            ParseTree::S(s) => Some(*s as *const _ as usize),
-            ParseTree::E(e) => Some(*e as *const _ as usize),
-            ParseTree::Token(_) => None,
-        }
+        None
     }
     pub fn origin(&self) -> Option<Origin> {
         match self {
@@ -150,7 +142,6 @@ pub trait OptNode {
 #[derive(Debug)]
 pub enum S<'a> {
     Alt0 { e: &'a E<'a>, span: Span },
-    Amb(&'a [&'a S<'a>]),
 }
 #[derive(Debug)]
 pub enum E<'a> {
@@ -242,7 +233,6 @@ pub enum E<'a> {
         lit_0: Token,
         span: Span,
     },
-    Amb(&'a [&'a E<'a>]),
 }
 impl<'a> S<'a> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
@@ -254,26 +244,20 @@ impl<'a> S<'a> {
                 0 => Some(ParseTree::E(e)),
                 _ => None,
             },
-            S::Amb(alts) => alts.get(index).copied().map(ParseTree::S),
         }
     }
     pub fn child_count(&self) -> usize {
         match self {
             S::Alt0 { .. } => 1usize,
-            S::Amb(alts) => alts.len(),
         }
     }
     pub fn span(&self) -> Span {
         match self {
             S::Alt0 { span, .. } => *span,
-            S::Amb(alts) => alts[0].span(),
         }
     }
     pub fn display_name(&self) -> &'static str {
-        match self {
-            S::Amb(_) => "Amb",
-            _ => "S",
-        }
+        "S"
     }
     pub fn origin(&self) -> Option<Origin> {
         None
@@ -281,7 +265,6 @@ impl<'a> S<'a> {
     pub fn e(&self) -> &'a E<'a> {
         match self {
             S::Alt0 { e, .. } => e,
-            S::Amb(_) => panic!("S is ambiguous"),
         }
     }
 }
@@ -424,7 +407,6 @@ impl<'a> E<'a> {
                 0 => Some(ParseTree::Token(*lit_0)),
                 _ => None,
             },
-            E::Amb(alts) => alts.get(index).copied().map(ParseTree::E),
         }
     }
     pub fn child_count(&self) -> usize {
@@ -439,7 +421,6 @@ impl<'a> E<'a> {
             E::Alt7 { .. } => 5usize,
             E::Alt8 { .. } => 5usize,
             E::Alt9 { .. } => 1usize,
-            E::Amb(alts) => alts.len(),
         }
     }
     pub fn span(&self) -> Span {
@@ -454,14 +435,10 @@ impl<'a> E<'a> {
             E::Alt7 { span, .. } => *span,
             E::Alt8 { span, .. } => *span,
             E::Alt9 { span, .. } => *span,
-            E::Amb(alts) => alts[0].span(),
         }
     }
     pub fn display_name(&self) -> &'static str {
-        match self {
-            E::Amb(_) => "Amb",
-            _ => "E",
-        }
+        "E"
     }
     pub fn origin(&self) -> Option<Origin> {
         None
@@ -681,27 +658,6 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for AmbiguousExprUnsafeParseTreeBuilder
             span: terminal_node.span,
         })
     }
-    fn new_ambiguity_node(
-        &self,
-        parent: NonterminalId,
-        alternatives: Vec<ParseTree<'a>>,
-    ) -> ParseTree<'a> {
-        match parent {
-            crate::grammar_data::S => {
-                let slice = self
-                    .bump
-                    .alloc_slice_fill_iter(alternatives.into_iter().map(|a| a.unwrap_s()));
-                ParseTree::S(self.bump.alloc(S::Amb(slice)))
-            }
-            crate::grammar_data::E => {
-                let slice = self
-                    .bump
-                    .alloc_slice_fill_iter(alternatives.into_iter().map(|a| a.unwrap_e()));
-                ParseTree::E(self.bump.alloc(E::Amb(slice)))
-            }
-            _ => unreachable!("nonterminal cannot be ambiguous"),
-        }
-    }
 }
 pub fn create_parse_tree<'a>(
     root_id: SPPFNodeId,
@@ -740,9 +696,7 @@ impl<'a> ParseTreeNode for ParseTree<'a> {
         ParseTree::span(self)
     }
     fn kind(&self) -> NodeKind {
-        if self.is_amb() {
-            NodeKind::Amb
-        } else if matches!(self, ParseTree::Token(_)) {
+        if matches!(self, ParseTree::Token(_)) {
             NodeKind::Token
         } else {
             NodeKind::Nonterminal

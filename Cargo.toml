@@ -23,6 +23,7 @@ members = [
     "iggy",
     "iguana-lsp",
     "xtask",
+    "tests/token_only_unsafe",
     "tests/ambiguous_expr_unsafe",
     "tests/ambiguous_expr",
     "tests/except_regex_reference",

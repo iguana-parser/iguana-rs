@@ -7,7 +7,7 @@ use crate::{
     utils::{to_first_uppercase, to_snake_case},
 };
 
-pub fn generate(grammar: &Grammar) -> TokenStream {
+pub fn generate(grammar: &Grammar, unsafe_mode: bool) -> TokenStream {
     let grammar_name = &grammar.name;
     let parse_tree_builder = format_ident!("{}ParseTreeBuilder", to_first_uppercase(grammar_name));
     let parser = format_ident!("{}Parser", to_first_uppercase(grammar_name));
@@ -17,7 +17,14 @@ pub fn generate(grammar: &Grammar) -> TokenStream {
         .filter(|nt| !nt.is_derived())
         .map(|nt| {
             let start_nt = grammar.start_nonterminal(nt);
-            gen_parse_method(grammar, nt, start_nt, &parser, &parse_tree_builder)
+            gen_parse_method(
+                grammar,
+                nt,
+                start_nt,
+                &parser,
+                &parse_tree_builder,
+                unsafe_mode,
+            )
         })
         .collect();
 
@@ -78,6 +85,7 @@ fn gen_parse_method(
     start_nt: Option<&Nonterminal>,
     parser: &proc_macro2::Ident,
     parse_tree_builder: &proc_macro2::Ident,
+    unsafe_mode: bool,
 ) -> TokenStream {
     let fn_name = format_ident!("parse_{}", to_snake_case(&nt.name));
 
@@ -85,7 +93,7 @@ fn gen_parse_method(
     let nt_const = format_ident!("{}", to_snake_case(&target_nt.name).to_uppercase());
     let create_fn = format_ident!("create_parse_tree_{}", to_snake_case(&target_nt.name));
 
-    let return_type = nonterminal_type(grammar, target_nt);
+    let return_type = nonterminal_type(grammar, target_nt, unsafe_mode);
 
     quote! {
         pub fn #fn_name<'a>(input: &Input, ctx: &'a ParseContext) -> std::result::Result<ParseSuccess<&'a #return_type>, ParseError> {

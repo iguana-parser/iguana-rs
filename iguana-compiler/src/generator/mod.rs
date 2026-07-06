@@ -8,6 +8,7 @@ use std::{
 use crate::{
     generator::{
         id::{BindingIds, EndSlot, NonterminalIds, SlotIds, TerminalIds},
+        parse_tree_gen::ParseTreeGen,
         parser_gen::ParserGen,
         terminal_sets::{SetIds, terminal_sets},
     },
@@ -170,7 +171,7 @@ pub fn generate_sources(
     let grammar_data_path = src_dir.join("grammar_data.rs");
 
     write_rust_file(
-        post_process(&lib_gen::generate(grammar).to_string()),
+        post_process(&lib_gen::generate(grammar, config.unsafe_mode).to_string()),
         &lib_path,
     )?;
 
@@ -197,11 +198,10 @@ pub fn generate_sources(
         &scanner_path,
     )?;
 
+    let parse_tree_gen =
+        ParseTreeGen::new(grammar, &nonterminal_ids, &terminal_ids, &slot_ids, config);
     write_rust_file(
-        post_process(
-            &parse_tree_gen::generate(grammar, &nonterminal_ids, &terminal_ids, &slot_ids)
-                .to_string(),
-        ),
+        post_process(&parse_tree_gen.generate().to_string()),
         &parse_tree_path,
     )?;
 

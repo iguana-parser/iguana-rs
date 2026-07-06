@@ -1,0 +1,15 @@
+grammar TokenOnlyUnsafe
+
+S = Mod Empty Tag
+
+Mod = "public" | "static"
+
+Empty = ()
+
+Tag = Id
+
+@Regex
+Id = [a-z]+
+
+@Layout @Regex
+WS = [\ ]*
