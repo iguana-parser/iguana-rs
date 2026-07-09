@@ -73,8 +73,10 @@ members = [
 
 [workspace.dependencies]
 # Shared dependencies
+allocator-api2 = "0.2"
 bumpalo = "3.17"
 clap = { version = "4.5.51", features = ["derive"] }
+hashbrown = "0.17"
 log = "0.4"
 proc-macro2 = { version = "1.0.103", features = ["span-locations"] }
 quote = "1.0.41"

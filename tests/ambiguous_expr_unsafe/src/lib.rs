@@ -7,7 +7,7 @@ pub mod scanner;
 pub mod types;
 use iguana_runtime::{
     input::Input,
-    parse_tree::ParseContext,
+    parse_tree::Bump,
     parser::{ParseResult, Parser},
 };
 use parse_tree::*;
@@ -43,16 +43,24 @@ pub struct ParseSuccess<T> {
     // determine if there is an ambiguity node reachable from root. See contains_ambiguity.
     pub ambiguity_node_added: bool,
 }
+/// Parses `input` starting from `S`.
+///
+/// `tree_arena` holds the constructed parse tree: the returned tree borrows it
+/// and lives until the arena is reset or dropped. Once the tree goes out of
+/// scope, the arena can be reset with `tree_arena.reset()` and reused for the
+/// next parse; that is the pattern for repeated parsing, as in an editor or a
+/// benchmark loop.
 pub fn parse_s<'a>(
     input: &Input,
-    ctx: &'a ParseContext,
+    tree_arena: &'a Bump,
 ) -> std::result::Result<ParseSuccess<&'a S<'a>>, ParseError> {
-    let mut parser = AmbiguousExprUnsafeParser::new(input, grammar_data::S);
+    let vec_arena = Bump::new();
+    let mut parser = AmbiguousExprUnsafeParser::new(input, grammar_data::S, &vec_arena);
     match parser.run() {
         ParseResult::Success(success) => {
             let parse_duration = success.duration;
             let tree_start = iguana_runtime::Instant::now();
-            let parse_tree_builder = AmbiguousExprUnsafeParseTreeBuilder::new(ctx);
+            let parse_tree_builder = AmbiguousExprUnsafeParseTreeBuilder::new(tree_arena);
             let tree =
                 parse_tree::create_parse_tree_s(success.sppf_node_id, &parser, &parse_tree_builder);
             let tree_construction_duration = tree_start.elapsed();
@@ -76,16 +84,24 @@ pub fn parse_s<'a>(
         }
     }
 }
+/// Parses `input` starting from `E`.
+///
+/// `tree_arena` holds the constructed parse tree: the returned tree borrows it
+/// and lives until the arena is reset or dropped. Once the tree goes out of
+/// scope, the arena can be reset with `tree_arena.reset()` and reused for the
+/// next parse; that is the pattern for repeated parsing, as in an editor or a
+/// benchmark loop.
 pub fn parse_e<'a>(
     input: &Input,
-    ctx: &'a ParseContext,
+    tree_arena: &'a Bump,
 ) -> std::result::Result<ParseSuccess<&'a E<'a>>, ParseError> {
-    let mut parser = AmbiguousExprUnsafeParser::new(input, grammar_data::E);
+    let vec_arena = Bump::new();
+    let mut parser = AmbiguousExprUnsafeParser::new(input, grammar_data::E, &vec_arena);
     match parser.run() {
         ParseResult::Success(success) => {
             let parse_duration = success.duration;
             let tree_start = iguana_runtime::Instant::now();
-            let parse_tree_builder = AmbiguousExprUnsafeParseTreeBuilder::new(ctx);
+            let parse_tree_builder = AmbiguousExprUnsafeParseTreeBuilder::new(tree_arena);
             let tree =
                 parse_tree::create_parse_tree_e(success.sppf_node_id, &parser, &parse_tree_builder);
             let tree_construction_duration = tree_start.elapsed();

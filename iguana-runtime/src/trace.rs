@@ -42,7 +42,7 @@ pub enum TraceEvent {
 
 #[cfg(feature = "debug-trace")]
 impl TraceEvent {
-    pub fn message<'i, P: Parser<'i>>(&self, parser: &P) -> String {
+    pub fn message<'i, 'arena, P: Parser<'i, 'arena>>(&self, parser: &P) -> String {
         match *self {
             TraceEvent::ProcessingDescriptor(slot_id, input_index, gss_node_id, sppf_node_id) => {
                 format!(

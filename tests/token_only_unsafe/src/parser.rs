@@ -11,16 +11,17 @@ use iguana_runtime::{
     gss::GSSNode,
     ids::{BindingId, GssNodeId, NonterminalId, SlotId, TerminalId},
     input::Input,
+    parse_tree::Bump,
     parser::{
-        GSS_CAPACITY_MULTIPLIER, ParseError, ParseErrorKind, Parser, SPPF_CAPACITY_MULTIPLIER,
-        init_logger,
+        DESCRIPTORS_CAPACITY_DIVISOR, DESCRIPTORS_CAPACITY_FLOOR, GSS_CAPACITY_MULTIPLIER,
+        ParseError, ParseErrorKind, Parser, SPPF_CAPACITY_MULTIPLIER, init_logger,
     },
     record,
     scanner::Scanner,
     sppf::{IntermediateNode, NonterminalNode, SPPFNode, SPPFNodeId, TerminalNode},
-    utils::{inline_map::InlineMap, inline_vec::InlineVec},
+    utils::{AVec, inline_map::InlineMap, inline_vec::InlineVec},
 };
-impl<'i> Parser<'i> for TokenOnlyUnsafeParser<'i> {
+impl<'i, 'arena> Parser<'i, 'arena> for TokenOnlyUnsafeParser<'i, 'arena> {
     const UNSAFE: bool = true;
     fn nonterminal_display_name(nonterminal_id: NonterminalId) -> &'static str {
         NONTERMINALS[nonterminal_id.index()].display
@@ -240,7 +241,8 @@ impl<'i> Parser<'i> for TokenOnlyUnsafeParser<'i> {
         input_index: u32,
         gss_node_id: GssNodeId,
     ) {
-        self.gss_nodes_index[nonterminal_id.index()].insert(input_index, gss_node_id);
+        let arena = self.vec_arena;
+        self.gss_nodes_index[nonterminal_id.index()].insert(input_index, gss_node_id, arena);
     }
     fn new_gss_node(&mut self, nonterminal_id: NonterminalId, input_index: u32) -> GssNodeId {
         let gss_node_id = GssNodeId(self.gss_nodes.len() as u32);
@@ -249,10 +251,10 @@ impl<'i> Parser<'i> for TokenOnlyUnsafeParser<'i> {
         self.gss_nodes.push(gss_node);
         gss_node_id
     }
-    fn gss_node(&self, id: GssNodeId) -> &GSSNode {
+    fn gss_node(&self, id: GssNodeId) -> &GSSNode<'arena> {
         &self.gss_nodes[id.index()]
     }
-    fn gss_node_mut(&mut self, id: GssNodeId) -> &mut GSSNode {
+    fn gss_node_mut(&mut self, id: GssNodeId) -> &mut GSSNode<'arena> {
         self.gss_nodes
             .get_mut(id.index())
             .expect("GSS node id should be valid")
@@ -385,7 +387,10 @@ impl<'i> Parser<'i> for TokenOnlyUnsafeParser<'i> {
             })
             .count()
     }
-    fn gss_nodes(&self) -> impl Iterator<Item = &GSSNode> {
+    fn gss_nodes<'p>(&'p self) -> impl Iterator<Item = &'p GSSNode<'arena>>
+    where
+        'arena: 'p,
+    {
         self.gss_nodes.iter()
     }
     #[cfg(feature = "debug-trace")]
@@ -419,7 +424,7 @@ impl<'i> Parser<'i> for TokenOnlyUnsafeParser<'i> {
     ) {
         self.add_gss_node(nonterminal_id, input_index, gss_node_id);
     }
-    fn new_env(&mut self) -> (EnvId, &mut Env) {
+    fn new_env(&mut self) -> (EnvId, &mut Env<'arena>) {
         let id = EnvId(self.envs.len() as u32);
         self.envs.push(Env::default());
         (id, &mut self.envs[id.index()])
@@ -428,13 +433,13 @@ impl<'i> Parser<'i> for TokenOnlyUnsafeParser<'i> {
         let env = &self.envs[env_id.index()];
         env.get(name)
     }
-    fn clone_env(&mut self, source: EnvId) -> (EnvId, &mut Env) {
+    fn clone_env(&mut self, source: EnvId) -> (EnvId, &mut Env<'arena>) {
         let bindings = self.envs[source.0 as usize].bindings.clone();
         let (new_id, new_env) = self.new_env();
         new_env.bindings = bindings;
         (new_id, new_env)
     }
-    fn envs(&self) -> &[Env] {
+    fn envs(&self) -> &[Env<'arena>] {
         &self.envs
     }
     #[cfg(feature = "instrument")]
@@ -521,25 +526,33 @@ impl<'i> Parser<'i> for TokenOnlyUnsafeParser<'i> {
         if input_index > level {
             self.parse_errors.clear();
         }
-        self.parse_errors.push(ParseError {
-            input_index,
-            slot_id,
-            gss_node_id,
-            kind,
-        });
+        self.parse_errors.push(
+            ParseError {
+                input_index,
+                slot_id,
+                gss_node_id,
+                kind,
+            },
+            self.vec_arena,
+        );
     }
     fn match_token(&mut self, terminal_id: TerminalId, input_index: u32) -> Option<u32> {
         self.scanner.match_token(terminal_id, input_index)
     }
+    fn vec_arena(&self) -> &'arena Bump {
+        self.vec_arena
+    }
 }
-pub struct TokenOnlyUnsafeParser<'i> {
+pub struct TokenOnlyUnsafeParser<'i, 'arena> {
     start_nonterminal: NonterminalId,
-    scanner: TokenOnlyUnsafeScanner<'i>,
-    descriptors: Vec<Descriptor>,
-    gss_nodes: Vec<GSSNode>,
+    // Arena backing the parser's internal collections; reset in bulk after the parse.
+    vec_arena: &'arena Bump,
+    scanner: TokenOnlyUnsafeScanner<'i, 'arena>,
+    descriptors: AVec<Descriptor, &'arena Bump>,
+    gss_nodes: AVec<GSSNode<'arena>, &'arena Bump>,
     // Per-nonterminal GSS-node index keyed by input position.
-    gss_nodes_index: [InlineMap<u32, GssNodeId>; 4],
-    sppf_nodes: Vec<SPPFNode>,
+    gss_nodes_index: [InlineMap<'arena, u32, GssNodeId>; 4],
+    sppf_nodes: AVec<SPPFNode, &'arena Bump>,
     #[cfg(feature = "instrument")]
     descriptors_count: usize,
     #[cfg(feature = "instrument")]
@@ -547,30 +560,48 @@ pub struct TokenOnlyUnsafeParser<'i> {
     #[cfg(feature = "instrument")]
     ll1_call_log: Vec<(NonterminalId, u32)>,
     // Epsilon nodes keyed by input position; SPPFNodeId::NONE marks an empty slot.
-    epsilon_nodes: Vec<SPPFNodeId>,
-    envs: Vec<Env>,
-    parse_errors: InlineVec<ParseError, 8>,
+    epsilon_nodes: AVec<SPPFNodeId, &'arena Bump>,
+    envs: AVec<Env<'arena>, &'arena Bump>,
+    parse_errors: InlineVec<'arena, ParseError, 8>,
     #[cfg(feature = "debug-trace")]
     pub trace_events: Option<Vec<TraceEvent>>,
 }
-impl<'i> TokenOnlyUnsafeParser<'i> {
-    pub fn new(input: &'i Input, start_nonterminal: NonterminalId) -> Self {
+impl<'i, 'arena> TokenOnlyUnsafeParser<'i, 'arena> {
+    pub fn new(
+        input: &'i Input,
+        start_nonterminal: NonterminalId,
+        vec_arena: &'arena Bump,
+    ) -> Self {
         init_logger();
         Self {
             start_nonterminal,
-            scanner: TokenOnlyUnsafeScanner::new(input),
+            vec_arena,
+            scanner: TokenOnlyUnsafeScanner::new(input, vec_arena),
             gss_nodes_index: [const { InlineMap::Empty }; 4],
-            descriptors: Vec::with_capacity(1024),
-            gss_nodes: Vec::with_capacity(input.len() as usize * GSS_CAPACITY_MULTIPLIER),
-            sppf_nodes: Vec::with_capacity(input.len() as usize * SPPF_CAPACITY_MULTIPLIER),
-            epsilon_nodes: vec![SPPFNodeId::NONE; input.len() as usize + 1],
+            descriptors: AVec::with_capacity_in(
+                input.len() as usize / DESCRIPTORS_CAPACITY_DIVISOR + DESCRIPTORS_CAPACITY_FLOOR,
+                vec_arena,
+            ),
+            gss_nodes: AVec::with_capacity_in(
+                input.len() as usize * GSS_CAPACITY_MULTIPLIER,
+                vec_arena,
+            ),
+            sppf_nodes: AVec::with_capacity_in(
+                input.len() as usize * SPPF_CAPACITY_MULTIPLIER,
+                vec_arena,
+            ),
+            epsilon_nodes: {
+                let mut v = AVec::with_capacity_in(input.len() as usize + 1, vec_arena);
+                v.resize(input.len() as usize + 1, SPPFNodeId::NONE);
+                v
+            },
             #[cfg(feature = "instrument")]
             descriptors_count: 0,
             #[cfg(feature = "instrument")]
             descriptors_peak: 0,
             #[cfg(feature = "instrument")]
             ll1_call_log: vec![],
-            envs: vec![],
+            envs: AVec::new_in(vec_arena),
             parse_errors: InlineVec::Empty,
             #[cfg(feature = "debug-trace")]
             trace_events: None,

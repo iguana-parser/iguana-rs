@@ -4,7 +4,7 @@ use std::io::{self, BufReader};
 use std::path::Path;
 
 use iguana_runtime::descriptor::Descriptor;
-use iguana_runtime::gss::{GSSEdge, GSSNode};
+use iguana_runtime::gss::GSSEdge;
 use iguana_runtime::ids::{GssNodeId, NonterminalId, SlotId, TerminalId};
 use iguana_runtime::parser::ParseErrorKind;
 use iguana_runtime::sppf::SPPFNodeId;
@@ -159,6 +159,16 @@ impl SymbolTable {
     }
 }
 
+/// A GSS node reconstructed from trace events, with edges in a plain `Vec`.
+/// The runtime's `GSSNode` stores its edges in a parse arena, which the
+/// replay does not have.
+struct ReplayGSSNode {
+    id: GssNodeId,
+    nonterminal_id: NonterminalId,
+    index: u32,
+    edges: Vec<GSSEdge>,
+}
+
 /// Trace replay for debugging.
 /// Steps are ProcessingDescriptor and Pop events.
 pub struct TraceReplay {
@@ -170,7 +180,7 @@ pub struct TraceReplay {
     /// Current step (0-indexed into step_indices)
     current_step: usize,
     /// GSS nodes reconstructed from trace
-    gss_nodes: Vec<GSSNode>,
+    gss_nodes: Vec<ReplayGSSNode>,
     /// Pending descriptor set (uses iguana's Descriptor with IDs)
     descriptor_set: Vec<Descriptor>,
     /// Current action being displayed (ProcessingDescriptor or Pop)
@@ -621,12 +631,17 @@ impl TraceReplay {
             }
             TraceEvent::GSSNodeCreated(nonterminal_id, input_index) => {
                 let id = GssNodeId(self.gss_nodes.len() as u32);
-                self.gss_nodes
-                    .push(GSSNode::new(id, *nonterminal_id, *input_index));
+                self.gss_nodes.push(ReplayGSSNode {
+                    id,
+                    nonterminal_id: *nonterminal_id,
+                    index: *input_index,
+                    edges: Vec::new(),
+                });
             }
             TraceEvent::GSSNodeAdded(src_id, dest_id, return_slot) => {
                 if let Some(node) = self.gss_nodes.get_mut(src_id.index()) {
-                    node.add_edge(GSSEdge::new(None, *return_slot, *dest_id, None, None));
+                    node.edges
+                        .push(GSSEdge::new(None, *return_slot, *dest_id, None, None));
                 }
             }
             TraceEvent::TerminalNodeCreated(terminal_id, span) => {
@@ -720,7 +735,7 @@ impl TraceReplay {
 
         let mut edges = Vec::new();
         for gss_node in &self.gss_nodes {
-            for edge in gss_node.edges() {
+            for edge in &gss_node.edges {
                 edges.push(DebugGSSEdge {
                     src: gss_node.id.0,
                     dest: edge.dest_id.0,
@@ -794,7 +809,7 @@ impl TraceReplay {
         let mut current_gss = start_gss_node_id;
         while let Some(node) = self.gss_nodes.get(current_gss.index()) {
             // Follow first edge (single execution thread model)
-            let Some(edge) = node.edges().first() else {
+            let Some(edge) = node.edges.first() else {
                 // Reached root (no outgoing edges) - add the start nonterminal
                 let nt_name = self.symbols.nonterminal(node.nonterminal_id);
                 frames.push(format!("{}.", nt_name));

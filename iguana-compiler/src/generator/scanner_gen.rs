@@ -39,11 +39,14 @@ pub fn generate(
 
 fn gen_imports(config: &GenConfig) -> TokenStream {
     let mut scanner_imports = vec![quote! { Scanner }, quote! { TerminalSet }];
-    if config.match_memo {
+    let bump_import = if config.match_memo {
         scanner_imports.push(quote! { Lookup });
         scanner_imports.push(quote! { MatchMemo });
         scanner_imports.push(quote! { MatchAnyMemo });
-    }
+        quote! { use iguana_runtime::parse_tree::Bump; }
+    } else {
+        quote! {}
+    };
     quote! {
         use iguana_runtime::{
             dfa::{Dfa, State},
@@ -51,6 +54,7 @@ fn gen_imports(config: &GenConfig) -> TokenStream {
             input::Input,
             scanner::{#(#scanner_imports),*},
         };
+        #bump_import
     }
 }
 
@@ -87,10 +91,11 @@ fn gen_scanner_struct(grammar_name: &str, config: &GenConfig) -> TokenStream {
     let name_ident = syn::Ident::new(&format!("{}{}", grammar_name, "Scanner"), Span::call_site());
     if config.match_memo {
         quote! {
-            pub struct #name_ident<'i> {
+            pub struct #name_ident<'i, 'arena> {
                 pub input: &'i Input,
-                memo: MatchMemo<MATCH_MEMO_WORDS>,
-                match_any_memo: MatchAnyMemo<MATCH_ANY_SET_WORDS>,
+                vec_arena: &'arena Bump,
+                memo: MatchMemo<'arena, MATCH_MEMO_WORDS>,
+                match_any_memo: MatchAnyMemo<'arena, MATCH_ANY_SET_WORDS>,
             }
         }
     } else {
@@ -185,22 +190,30 @@ fn gen_scanner_imp(
         .enumerate()
         .map(|(id, terminal)| gen_match_terminal_method(id as u16, terminal, grammar, terminal_ids))
         .collect();
-    let new_body = if config.match_memo {
-        quote! {
-            let memo = MatchMemo::new(input.len() as usize);
-            let match_any_memo = MatchAnyMemo::new(input.len() as usize);
-            Self { input, memo, match_any_memo }
-        }
+    let (impl_generics, ty_generics, new_params, new_body) = if config.match_memo {
+        (
+            quote! { <'i, 'arena> },
+            quote! { <'i, 'arena> },
+            quote! { input: &'i Input, vec_arena: &'arena Bump },
+            quote! {
+                let memo = MatchMemo::new(input.len() as usize, vec_arena);
+                let match_any_memo = MatchAnyMemo::new(input.len() as usize, vec_arena);
+                Self { input, vec_arena, memo, match_any_memo }
+            },
+        )
     } else {
-        quote! {
-            Self { input }
-        }
+        (
+            quote! { <'i> },
+            quote! { <'i> },
+            quote! { input: &'i Input },
+            quote! { Self { input } },
+        )
     };
     let match_any_method = gen_match_any_method(config);
     let match_exact_method = gen_match_exact_method(grammar, terminal_ids);
     quote! {
-        impl<'i> #name_ident<'i> {
-            pub fn new(input: &'i Input) -> Self {
+        impl #impl_generics #name_ident #ty_generics {
+            pub fn new(#new_params) -> Self {
                 #new_body
             }
             #(#match_terminals)*
@@ -294,8 +307,13 @@ fn gen_scanner_trait_impl(
     let match_token_method = gen_match_token(terminal_ids, config);
     let char_at_method = gen_char_at_method();
     let scanner_name = format_ident!("{}Scanner", grammar.name);
+    let scanner_ty = if config.match_memo {
+        quote! { #scanner_name<'_, '_> }
+    } else {
+        quote! { #scanner_name<'_> }
+    };
     quote! {
-        impl Scanner for #scanner_name<'_> {
+        impl Scanner for #scanner_ty {
             #match_token_method
             #char_at_method
         }
@@ -348,8 +366,9 @@ fn gen_match_token(terminal_ids: &TerminalIds, config: &GenConfig) -> TokenStrea
                 };
             }
             let result = #dispatch;
+            let arena = self.vec_arena;
             match result {
-                Some(end) => self.memo.insert_match(terminal_id, input_index, end),
+                Some(end) => self.memo.insert_match(terminal_id, input_index, end, arena),
                 None => self.memo.insert_fail(terminal_id, input_index),
             }
             result

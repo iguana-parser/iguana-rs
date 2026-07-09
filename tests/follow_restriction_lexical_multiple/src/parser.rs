@@ -11,18 +11,19 @@ use iguana_runtime::{
     gss::GSSNode,
     ids::{BindingId, GssNodeId, NonterminalId, SlotId, TerminalId},
     input::Input,
+    parse_tree::Bump,
     parser::{
-        GSS_CAPACITY_MULTIPLIER, ParseError, ParseErrorKind, Parser, SPPF_CAPACITY_MULTIPLIER,
-        init_logger,
+        DESCRIPTORS_CAPACITY_DIVISOR, DESCRIPTORS_CAPACITY_FLOOR, GSS_CAPACITY_MULTIPLIER,
+        ParseError, ParseErrorKind, Parser, SPPF_CAPACITY_MULTIPLIER, init_logger,
     },
     record,
     scanner::Scanner,
     sppf::{IntermediateNode, NonterminalNode, SPPFNode, SPPFNodeId, TerminalNode},
-    utils::{inline_map::InlineMap, inline_vec::InlineVec},
+    utils::{AVec, inline_map::InlineMap, inline_vec::InlineVec},
 };
 use rustc_hash::FxHashMap;
 use std::cell::OnceCell;
-impl<'i> Parser<'i> for FollowRestrictionLexicalMultipleParser<'i> {
+impl<'i, 'arena> Parser<'i, 'arena> for FollowRestrictionLexicalMultipleParser<'i, 'arena> {
     fn nonterminal_display_name(nonterminal_id: NonterminalId) -> &'static str {
         NONTERMINALS[nonterminal_id.index()].display
     }
@@ -249,7 +250,8 @@ impl<'i> Parser<'i> for FollowRestrictionLexicalMultipleParser<'i> {
         input_index: u32,
         gss_node_id: GssNodeId,
     ) {
-        self.gss_nodes_index[nonterminal_id.index()].insert(input_index, gss_node_id);
+        let arena = self.vec_arena;
+        self.gss_nodes_index[nonterminal_id.index()].insert(input_index, gss_node_id, arena);
     }
     fn new_gss_node(&mut self, nonterminal_id: NonterminalId, input_index: u32) -> GssNodeId {
         let gss_node_id = GssNodeId(self.gss_nodes.len() as u32);
@@ -258,10 +260,10 @@ impl<'i> Parser<'i> for FollowRestrictionLexicalMultipleParser<'i> {
         self.gss_nodes.push(gss_node);
         gss_node_id
     }
-    fn gss_node(&self, id: GssNodeId) -> &GSSNode {
+    fn gss_node(&self, id: GssNodeId) -> &GSSNode<'arena> {
         &self.gss_nodes[id.index()]
     }
-    fn gss_node_mut(&mut self, id: GssNodeId) -> &mut GSSNode {
+    fn gss_node_mut(&mut self, id: GssNodeId) -> &mut GSSNode<'arena> {
         self.gss_nodes
             .get_mut(id.index())
             .expect("GSS node id should be valid")
@@ -299,8 +301,12 @@ impl<'i> Parser<'i> for FollowRestrictionLexicalMultipleParser<'i> {
     }
     fn add_terminal_node(&mut self, terminal_node: TerminalNode) -> SPPFNodeId {
         let terminal_node_id = SPPFNodeId(self.sppf_nodes.len() as u32);
-        self.terminal_nodes_index[terminal_node.terminal_id.index()]
-            .insert(terminal_node.span, terminal_node_id);
+        let arena = self.vec_arena;
+        self.terminal_nodes_index[terminal_node.terminal_id.index()].insert(
+            terminal_node.span,
+            terminal_node_id,
+            arena,
+        );
         record!(
             self,
             TerminalNodeCreated,
@@ -331,14 +337,21 @@ impl<'i> Parser<'i> for FollowRestrictionLexicalMultipleParser<'i> {
     ) -> SPPFNodeId {
         let intermediate_node_id = SPPFNodeId(self.sppf_nodes.len() as u32);
         if add_to_index {
+            let arena = self.vec_arena;
             let slot_idx = intermediate_node.slot_id.index();
             if slot_idx < 14 {
-                self.intermediate_nodes_index[slot_idx]
-                    .insert(intermediate_node.span, intermediate_node_id);
+                self.intermediate_nodes_index[slot_idx].insert(
+                    intermediate_node.span,
+                    intermediate_node_id,
+                    arena,
+                );
             } else {
                 let idx = slot_idx - 14;
-                self.dd_intermediate_nodes_index[idx]
-                    .insert((intermediate_node.span, env), intermediate_node_id);
+                self.dd_intermediate_nodes_index[idx].insert(
+                    (intermediate_node.span, env),
+                    intermediate_node_id,
+                    arena,
+                );
             }
         }
         record!(
@@ -434,7 +447,10 @@ impl<'i> Parser<'i> for FollowRestrictionLexicalMultipleParser<'i> {
         let map = &self.terminal_nodes_index[terminal_id.index()];
         map.get(&Span::new(left_extent, right_extent)).copied()
     }
-    fn gss_nodes(&self) -> impl Iterator<Item = &GSSNode> {
+    fn gss_nodes<'p>(&'p self) -> impl Iterator<Item = &'p GSSNode<'arena>>
+    where
+        'arena: 'p,
+    {
         self.gss_nodes.iter()
     }
     fn add_intermediate_node_child(
@@ -507,7 +523,7 @@ impl<'i> Parser<'i> for FollowRestrictionLexicalMultipleParser<'i> {
     ) {
         self.add_gss_node(nonterminal_id, input_index, gss_node_id);
     }
-    fn new_env(&mut self) -> (EnvId, &mut Env) {
+    fn new_env(&mut self) -> (EnvId, &mut Env<'arena>) {
         let id = EnvId(self.envs.len() as u32);
         self.envs.push(Env::default());
         (id, &mut self.envs[id.index()])
@@ -516,13 +532,13 @@ impl<'i> Parser<'i> for FollowRestrictionLexicalMultipleParser<'i> {
         let env = &self.envs[env_id.index()];
         env.get(name)
     }
-    fn clone_env(&mut self, source: EnvId) -> (EnvId, &mut Env) {
+    fn clone_env(&mut self, source: EnvId) -> (EnvId, &mut Env<'arena>) {
         let bindings = self.envs[source.0 as usize].bindings.clone();
         let (new_id, new_env) = self.new_env();
         new_env.bindings = bindings;
         (new_id, new_env)
     }
-    fn envs(&self) -> &[Env] {
+    fn envs(&self) -> &[Env<'arena>] {
         &self.envs
     }
     #[cfg(feature = "instrument")]
@@ -616,25 +632,33 @@ impl<'i> Parser<'i> for FollowRestrictionLexicalMultipleParser<'i> {
         if input_index > level {
             self.parse_errors.clear();
         }
-        self.parse_errors.push(ParseError {
-            input_index,
-            slot_id,
-            gss_node_id,
-            kind,
-        });
+        self.parse_errors.push(
+            ParseError {
+                input_index,
+                slot_id,
+                gss_node_id,
+                kind,
+            },
+            self.vec_arena,
+        );
     }
     fn match_token(&mut self, terminal_id: TerminalId, input_index: u32) -> Option<u32> {
         self.scanner.match_token(terminal_id, input_index)
     }
+    fn vec_arena(&self) -> &'arena Bump {
+        self.vec_arena
+    }
 }
-pub struct FollowRestrictionLexicalMultipleParser<'i> {
+pub struct FollowRestrictionLexicalMultipleParser<'i, 'arena> {
     start_nonterminal: NonterminalId,
-    scanner: FollowRestrictionLexicalMultipleScanner<'i>,
-    descriptors: Vec<Descriptor>,
-    gss_nodes: Vec<GSSNode>,
+    // Arena backing the parser's internal collections; reset in bulk after the parse.
+    vec_arena: &'arena Bump,
+    scanner: FollowRestrictionLexicalMultipleScanner<'i, 'arena>,
+    descriptors: AVec<Descriptor, &'arena Bump>,
+    gss_nodes: AVec<GSSNode<'arena>, &'arena Bump>,
     // Per-nonterminal GSS-node index keyed by input position.
-    gss_nodes_index: [InlineMap<u32, GssNodeId>; 3],
-    sppf_nodes: Vec<SPPFNode>,
+    gss_nodes_index: [InlineMap<'arena, u32, GssNodeId>; 3],
+    sppf_nodes: AVec<SPPFNode, &'arena Bump>,
     #[cfg(feature = "instrument")]
     descriptors_count: usize,
     #[cfg(feature = "instrument")]
@@ -642,39 +666,53 @@ pub struct FollowRestrictionLexicalMultipleParser<'i> {
     #[cfg(feature = "instrument")]
     ll1_call_log: Vec<(NonterminalId, u32)>,
     // Per-slot Span-keyed intermediate-node index, for slots in non-parameterized nonterminals.
-    intermediate_nodes_index: [InlineMap<Span, SPPFNodeId>; 14],
+    intermediate_nodes_index: [InlineMap<'arena, Span, SPPFNodeId>; 14],
     // Per-slot (Span, env)-keyed intermediate-node index, for slots in parameterized
     // nonterminals; env separates calls made with different parameter values.
-    dd_intermediate_nodes_index: [InlineMap<(Span, Option<EnvId>), SPPFNodeId>; 0],
-    terminal_nodes_index: [InlineMap<Span, SPPFNodeId>; 7],
+    dd_intermediate_nodes_index: [InlineMap<'arena, (Span, Option<EnvId>), SPPFNodeId>; 0],
+    terminal_nodes_index: [InlineMap<'arena, Span, SPPFNodeId>; 7],
     // An intermediate node keeps its first child inline. Children of intermediate nodes are
     // pairs: (left_child, right_child). Extra children, when there is ambiguity, are stored here
     // as (parent node, (left child, right child)).
-    intermediate_nodes_children: Vec<(SPPFNodeId, (SPPFNodeId, SPPFNodeId))>,
+    intermediate_nodes_children: AVec<(SPPFNodeId, (SPPFNodeId, SPPFNodeId)), &'arena Bump>,
     // intermediate_nodes_children grouped by parent node, built lazily for tree construction.
     intermediate_nodes_children_map: OnceCell<FxHashMap<SPPFNodeId, Vec<(SPPFNodeId, SPPFNodeId)>>>,
     // Extra children of ambiguous nonterminal nodes, the counterpart to
     // intermediate_nodes_children: each entry is (parent node, (child, return slot)), a single
     // child plus its return slot rather than a pair.
-    nonterminal_nodes_children: Vec<(SPPFNodeId, (SPPFNodeId, SlotId))>,
+    nonterminal_nodes_children: AVec<(SPPFNodeId, (SPPFNodeId, SlotId)), &'arena Bump>,
     // nonterminal_nodes_children grouped by parent node, built lazily like
     // intermediate_nodes_children_map.
     nonterminal_nodes_children_map: OnceCell<FxHashMap<SPPFNodeId, Vec<(SPPFNodeId, SlotId)>>>,
-    envs: Vec<Env>,
-    parse_errors: InlineVec<ParseError, 8>,
+    envs: AVec<Env<'arena>, &'arena Bump>,
+    parse_errors: InlineVec<'arena, ParseError, 8>,
     #[cfg(feature = "debug-trace")]
     pub trace_events: Option<Vec<TraceEvent>>,
 }
-impl<'i> FollowRestrictionLexicalMultipleParser<'i> {
-    pub fn new(input: &'i Input, start_nonterminal: NonterminalId) -> Self {
+impl<'i, 'arena> FollowRestrictionLexicalMultipleParser<'i, 'arena> {
+    pub fn new(
+        input: &'i Input,
+        start_nonterminal: NonterminalId,
+        vec_arena: &'arena Bump,
+    ) -> Self {
         init_logger();
         Self {
             start_nonterminal,
-            scanner: FollowRestrictionLexicalMultipleScanner::new(input),
+            vec_arena,
+            scanner: FollowRestrictionLexicalMultipleScanner::new(input, vec_arena),
             gss_nodes_index: [const { InlineMap::Empty }; 3],
-            descriptors: Vec::with_capacity(1024),
-            gss_nodes: Vec::with_capacity(input.len() as usize * GSS_CAPACITY_MULTIPLIER),
-            sppf_nodes: Vec::with_capacity(input.len() as usize * SPPF_CAPACITY_MULTIPLIER),
+            descriptors: AVec::with_capacity_in(
+                input.len() as usize / DESCRIPTORS_CAPACITY_DIVISOR + DESCRIPTORS_CAPACITY_FLOOR,
+                vec_arena,
+            ),
+            gss_nodes: AVec::with_capacity_in(
+                input.len() as usize * GSS_CAPACITY_MULTIPLIER,
+                vec_arena,
+            ),
+            sppf_nodes: AVec::with_capacity_in(
+                input.len() as usize * SPPF_CAPACITY_MULTIPLIER,
+                vec_arena,
+            ),
             intermediate_nodes_index: [const { InlineMap::Empty }; 14],
             dd_intermediate_nodes_index: [],
             terminal_nodes_index: [const { InlineMap::Empty }; 7],
@@ -684,11 +722,11 @@ impl<'i> FollowRestrictionLexicalMultipleParser<'i> {
             descriptors_peak: 0,
             #[cfg(feature = "instrument")]
             ll1_call_log: vec![],
-            intermediate_nodes_children: vec![],
+            intermediate_nodes_children: AVec::new_in(vec_arena),
             intermediate_nodes_children_map: OnceCell::new(),
-            nonterminal_nodes_children: vec![],
+            nonterminal_nodes_children: AVec::new_in(vec_arena),
             nonterminal_nodes_children_map: OnceCell::new(),
-            envs: vec![],
+            envs: AVec::new_in(vec_arena),
             parse_errors: InlineVec::Empty,
             #[cfg(feature = "debug-trace")]
             trace_events: None,

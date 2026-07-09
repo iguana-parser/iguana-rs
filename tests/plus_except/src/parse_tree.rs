@@ -5,8 +5,8 @@ use iguana_runtime::{
     ids::{NonterminalId, SlotId, TerminalId},
     input::Span,
     parse_tree::{
-        Bump, NodeKind, OneOrMany, Origin, ParseContext, ParseTreeBuilder, ParseTreeNode,
-        SexprOptions, visit_sppf,
+        Bump, NodeKind, OneOrMany, Origin, ParseTreeBuilder, ParseTreeNode, SexprOptions,
+        visit_sppf,
     },
     sppf::{NonterminalNode, SPPFNodeId, TerminalNode},
 };
@@ -89,8 +89,8 @@ impl<'a> ParseTree<'a> {
             ParseTree::Token(token) => token.span(),
         }
     }
-    #[doc = "True when this node is an ambiguity cluster (any `*::Amb` variant). The"]
-    #[doc = "uniform way to detect ambiguity without matching each nonterminal's enum."]
+    ///True when this node is an ambiguity cluster (any `*::Amb` variant). The
+    ///uniform way to detect ambiguity without matching each nonterminal's enum.
     pub fn is_amb(&self) -> bool {
         match self {
             ParseTree::Sep(sep) => matches!(sep, Sep::Amb(_)),
@@ -100,9 +100,9 @@ impl<'a> ParseTree<'a> {
             ParseTree::Token(_) => false,
         }
     }
-    #[doc = "Pointer identity of the underlying node, or `None` for tokens (by-value"]
-    #[doc = "leaves that are never shared). Two parse trees with the same `node_id` are"]
-    #[doc = "the same allocation, i.e. a node shared between parents in the ambiguity DAG."]
+    ///Pointer identity of the underlying node, or `None` for tokens (by-value
+    ///leaves that are never shared). Two parse trees with the same `node_id` are
+    ///the same allocation, i.e. a node shared between parents in the ambiguity DAG.
     pub fn node_id(&self) -> Option<usize> {
         match self {
             ParseTree::Sep(sep) => Some(*sep as *const _ as usize),
@@ -485,11 +485,11 @@ fn token_kind(terminal_id: TerminalId) -> TokenKind {
     }
 }
 pub struct PlusExceptParseTreeBuilder<'a> {
-    pub bump: &'a Bump,
+    pub arena: &'a Bump,
 }
 impl<'a> PlusExceptParseTreeBuilder<'a> {
-    pub fn new(ctx: &'a ParseContext) -> Self {
-        Self { bump: ctx.bump() }
+    pub fn new(tree_arena: &'a Bump) -> Self {
+        Self { arena: tree_arena }
     }
 }
 impl<'a> ParseTreeBuilder<ParseTree<'a>> for PlusExceptParseTreeBuilder<'a> {
@@ -504,7 +504,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for PlusExceptParseTreeBuilder<'a> {
                 // Sep : {Number Identifier \ Keyword}+.
                 SlotId(1) => {
                     let [numbers] = children.into_array::<1usize>();
-                    ParseTree::Sep(self.bump.alloc(Sep::Alt0 {
+                    ParseTree::Sep(self.arena.alloc(Sep::Alt0 {
                         numbers: numbers.unwrap_plus_0(),
                         span: nonterminal_node.span,
                     }))
@@ -516,7 +516,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for PlusExceptParseTreeBuilder<'a> {
                 // Base : {Identifier \ Keyword ","}+.
                 SlotId(3) => {
                     let [plus_1] = children.into_array::<1usize>();
-                    ParseTree::Base(self.bump.alloc(Base::Alt0 {
+                    ParseTree::Base(self.arena.alloc(Base::Alt0 {
                         plus_1: plus_1.unwrap_plus_1(),
                         span: nonterminal_node.span,
                     }))
@@ -529,7 +529,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for PlusExceptParseTreeBuilder<'a> {
                 // Number.
                 SlotId(7) => {
                     let [numbers_0, identifier, number_2] = children.into_array::<3usize>();
-                    ParseTree::Plus0(self.bump.alloc(Plus0::Alt0 {
+                    ParseTree::Plus0(self.arena.alloc(Plus0::Alt0 {
                         numbers_0: numbers_0.unwrap_plus_0(),
                         identifier: identifier.unwrap_token(),
                         number_2: number_2.unwrap_token(),
@@ -539,7 +539,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for PlusExceptParseTreeBuilder<'a> {
                 // {Number Identifier \ Keyword}+ : Number.
                 SlotId(9) => {
                     let [number] = children.into_array::<1usize>();
-                    ParseTree::Plus0(self.bump.alloc(Plus0::Alt1 {
+                    ParseTree::Plus0(self.arena.alloc(Plus0::Alt1 {
                         number: number.unwrap_token(),
                         span: nonterminal_node.span,
                     }))
@@ -551,7 +551,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for PlusExceptParseTreeBuilder<'a> {
                 // {Identifier \ Keyword ","}+ : {Identifier \ Keyword ","}+ "," Identifier \ Keyword.
                 SlotId(13) => {
                     let [plus_1, lit_1, identifier] = children.into_array::<3usize>();
-                    ParseTree::Plus1(self.bump.alloc(Plus1::Alt0 {
+                    ParseTree::Plus1(self.arena.alloc(Plus1::Alt0 {
                         plus_1: plus_1.unwrap_plus_1(),
                         lit_1: lit_1.unwrap_token(),
                         identifier: identifier.unwrap_token(),
@@ -561,7 +561,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for PlusExceptParseTreeBuilder<'a> {
                 // {Identifier \ Keyword ","}+ : Identifier \ Keyword.
                 SlotId(15) => {
                     let [identifier] = children.into_array::<1usize>();
-                    ParseTree::Plus1(self.bump.alloc(Plus1::Alt1 {
+                    ParseTree::Plus1(self.arena.alloc(Plus1::Alt1 {
                         identifier: identifier.unwrap_token(),
                         span: nonterminal_node.span,
                     }))
@@ -585,27 +585,27 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for PlusExceptParseTreeBuilder<'a> {
         match parent {
             crate::grammar_data::SEP => {
                 let slice = self
-                    .bump
+                    .arena
                     .alloc_slice_fill_iter(alternatives.into_iter().map(|a| a.unwrap_sep()));
-                ParseTree::Sep(self.bump.alloc(Sep::Amb(slice)))
+                ParseTree::Sep(self.arena.alloc(Sep::Amb(slice)))
             }
             crate::grammar_data::BASE => {
                 let slice = self
-                    .bump
+                    .arena
                     .alloc_slice_fill_iter(alternatives.into_iter().map(|a| a.unwrap_base()));
-                ParseTree::Base(self.bump.alloc(Base::Amb(slice)))
+                ParseTree::Base(self.arena.alloc(Base::Amb(slice)))
             }
             crate::grammar_data::PLUS_0 => {
                 let slice = self
-                    .bump
+                    .arena
                     .alloc_slice_fill_iter(alternatives.into_iter().map(|a| a.unwrap_plus_0()));
-                ParseTree::Plus0(self.bump.alloc(Plus0::Amb(slice)))
+                ParseTree::Plus0(self.arena.alloc(Plus0::Amb(slice)))
             }
             crate::grammar_data::PLUS_1 => {
                 let slice = self
-                    .bump
+                    .arena
                     .alloc_slice_fill_iter(alternatives.into_iter().map(|a| a.unwrap_plus_1()));
-                ParseTree::Plus1(self.bump.alloc(Plus1::Amb(slice)))
+                ParseTree::Plus1(self.arena.alloc(Plus1::Amb(slice)))
             }
             _ => unreachable!("nonterminal cannot be ambiguous"),
         }

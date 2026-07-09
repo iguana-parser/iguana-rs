@@ -51,26 +51,6 @@ impl SexprOptions {
     }
 }
 
-pub struct ParseContext {
-    bump: Bump,
-}
-
-impl ParseContext {
-    pub fn new() -> Self {
-        ParseContext { bump: Bump::new() }
-    }
-
-    pub fn bump(&self) -> &Bump {
-        &self.bump
-    }
-}
-
-impl Default for ParseContext {
-    fn default() -> Self {
-        Self::new()
-    }
-}
-
 #[derive(Debug, Clone)]
 pub enum OneOrMany<T: Debug> {
     Zero,
@@ -154,7 +134,7 @@ impl<T: Debug + Clone> OneOrMany<T> {
 /// reaches, so an `is_empty` check on the maps is too coarse: it must be
 /// followed by an actual DFS from the root. The empty-maps case is a fast
 /// out covering most parses.
-pub fn is_ambiguous<'i, P: Parser<'i>>(parser: &P, root_id: SPPFNodeId) -> bool {
+pub fn is_ambiguous<'i, 'arena, P: Parser<'i, 'arena>>(parser: &P, root_id: SPPFNodeId) -> bool {
     if parser.nonterminal_nodes_children_map().is_empty()
         && parser.intermediate_nodes_children_map().is_empty()
     {
@@ -182,7 +162,7 @@ pub fn is_ambiguous<'i, P: Parser<'i>>(parser: &P, root_id: SPPFNodeId) -> bool 
     false
 }
 
-pub fn visit_sppf<'i, T: Debug + Clone, P: Parser<'i>>(
+pub fn visit_sppf<'i, 'arena, T: Debug + Clone, P: Parser<'i, 'arena>>(
     node_id: SPPFNodeId,
     parser: &P,
     builder: &impl ParseTreeBuilder<T>,
@@ -199,15 +179,15 @@ pub fn visit_sppf<'i, T: Debug + Clone, P: Parser<'i>>(
 }
 
 /// A frame in the explicit stack that replaces recursion in `visit_sppf_impl`.
-struct Frame<T: Debug> {
+struct Frame<'arena, T: Debug> {
     node_id: SPPFNodeId,
-    children: InlineVec<SPPFNodeId>,
+    children: InlineVec<'arena, SPPFNodeId>,
     next: usize, // index of the next child to visit
-    results: InlineVec<OneOrMany<T>>,
+    results: InlineVec<'arena, OneOrMany<T>>,
 }
 
-impl<T: Debug> Frame<T> {
-    fn new<'i>(node_id: SPPFNodeId, parser: &impl Parser<'i>) -> Self {
+impl<'arena, T: Debug> Frame<'arena, T> {
+    fn new<'i>(node_id: SPPFNodeId, parser: &impl Parser<'i, 'arena>) -> Self {
         Frame {
             node_id,
             children: parser.sppf_children(node_id),
@@ -217,7 +197,7 @@ impl<T: Debug> Frame<T> {
     }
 }
 
-fn visit_sppf_impl<'i, T: Debug + Clone, P: Parser<'i>>(
+fn visit_sppf_impl<'i, 'arena, T: Debug + Clone, P: Parser<'i, 'arena>>(
     root_id: SPPFNodeId,
     parser: &P,
     builder: &impl ParseTreeBuilder<T>,
@@ -226,6 +206,7 @@ fn visit_sppf_impl<'i, T: Debug + Clone, P: Parser<'i>>(
     // A frame is fully built (and memoized) before its parent advances to the
     // next child, so a shared node's first visit completes before any later one
     // and children land on a frame's `results` in source order.
+    let arena = parser.vec_arena();
     let mut stack = vec![Frame::new(root_id, parser)];
     loop {
         let top = stack.len() - 1;
@@ -235,7 +216,7 @@ fn visit_sppf_impl<'i, T: Debug + Clone, P: Parser<'i>>(
                 // Reuse a child already built elsewhere (only possible once the
                 // memo is active, i.e. when the parse is ambiguous).
                 match memo.as_ref().and_then(|m| m.get(&child).cloned()) {
-                    Some(cached) => stack[top].results.push(cached),
+                    Some(cached) => stack[top].results.push(cached, arena),
                     None => stack.push(Frame::new(child, parser)),
                 }
             }
@@ -246,7 +227,7 @@ fn visit_sppf_impl<'i, T: Debug + Clone, P: Parser<'i>>(
                     m.insert(frame.node_id, result.clone());
                 }
                 match stack.last_mut() {
-                    Some(parent) => parent.results.push(result),
+                    Some(parent) => parent.results.push(result, arena),
                     None => return result,
                 }
             }
@@ -255,11 +236,11 @@ fn visit_sppf_impl<'i, T: Debug + Clone, P: Parser<'i>>(
 }
 
 /// Builds a node's result from its children's results.
-fn build_node<'i, T: Debug + Clone, P: Parser<'i>>(
+fn build_node<'i, 'arena, T: Debug + Clone, P: Parser<'i, 'arena>>(
     parser: &P,
     builder: &impl ParseTreeBuilder<T>,
     node_id: SPPFNodeId,
-    results: InlineVec<OneOrMany<T>>,
+    results: InlineVec<'arena, OneOrMany<T>>,
 ) -> OneOrMany<T> {
     match parser.sppf_node(node_id) {
         SPPFNode::Terminal(t) => {
@@ -893,10 +874,10 @@ mod tests {
             }
         }
 
-        let bump = Bump::new();
+        let arena = Bump::new();
         let mut node = leaf("leaf", 0);
         for i in 1..200_000 {
-            let children: &[Node] = bump.alloc_slice_copy(&[node]);
+            let children: &[Node] = arena.alloc_slice_copy(&[node]);
             node = nonterminal("N", i, children);
         }
 

@@ -7,7 +7,7 @@ pub mod scanner;
 pub mod types;
 use iguana_runtime::{
     input::Input,
-    parse_tree::ParseContext,
+    parse_tree::Bump,
     parser::{ParseResult, Parser},
 };
 use parse_tree::*;
@@ -43,16 +43,24 @@ pub struct ParseSuccess<T> {
     // determine if there is an ambiguity node reachable from root. See contains_ambiguity.
     pub ambiguity_node_added: bool,
 }
+/// Parses `input` starting from `A`.
+///
+/// `tree_arena` holds the constructed parse tree: the returned tree borrows it
+/// and lives until the arena is reset or dropped. Once the tree goes out of
+/// scope, the arena can be reset with `tree_arena.reset()` and reused for the
+/// next parse; that is the pattern for repeated parsing, as in an editor or a
+/// benchmark loop.
 pub fn parse_a<'a>(
     input: &Input,
-    ctx: &'a ParseContext,
+    tree_arena: &'a Bump,
 ) -> std::result::Result<ParseSuccess<&'a A<'a>>, ParseError> {
-    let mut parser = SimpleAltParser::new(input, grammar_data::A);
+    let vec_arena = Bump::new();
+    let mut parser = SimpleAltParser::new(input, grammar_data::A, &vec_arena);
     match parser.run() {
         ParseResult::Success(success) => {
             let parse_duration = success.duration;
             let tree_start = iguana_runtime::Instant::now();
-            let parse_tree_builder = SimpleAltParseTreeBuilder::new(ctx);
+            let parse_tree_builder = SimpleAltParseTreeBuilder::new(tree_arena);
             let tree =
                 parse_tree::create_parse_tree_a(success.sppf_node_id, &parser, &parse_tree_builder);
             let tree_construction_duration = tree_start.elapsed();
@@ -76,16 +84,24 @@ pub fn parse_a<'a>(
         }
     }
 }
+/// Parses `input` starting from `B`.
+///
+/// `tree_arena` holds the constructed parse tree: the returned tree borrows it
+/// and lives until the arena is reset or dropped. Once the tree goes out of
+/// scope, the arena can be reset with `tree_arena.reset()` and reused for the
+/// next parse; that is the pattern for repeated parsing, as in an editor or a
+/// benchmark loop.
 pub fn parse_b<'a>(
     input: &Input,
-    ctx: &'a ParseContext,
+    tree_arena: &'a Bump,
 ) -> std::result::Result<ParseSuccess<&'a B<'a>>, ParseError> {
-    let mut parser = SimpleAltParser::new(input, grammar_data::B);
+    let vec_arena = Bump::new();
+    let mut parser = SimpleAltParser::new(input, grammar_data::B, &vec_arena);
     match parser.run() {
         ParseResult::Success(success) => {
             let parse_duration = success.duration;
             let tree_start = iguana_runtime::Instant::now();
-            let parse_tree_builder = SimpleAltParseTreeBuilder::new(ctx);
+            let parse_tree_builder = SimpleAltParseTreeBuilder::new(tree_arena);
             let tree =
                 parse_tree::create_parse_tree_b(success.sppf_node_id, &parser, &parse_tree_builder);
             let tree_construction_duration = tree_start.elapsed();
@@ -109,16 +125,24 @@ pub fn parse_b<'a>(
         }
     }
 }
+/// Parses `input` starting from `C`.
+///
+/// `tree_arena` holds the constructed parse tree: the returned tree borrows it
+/// and lives until the arena is reset or dropped. Once the tree goes out of
+/// scope, the arena can be reset with `tree_arena.reset()` and reused for the
+/// next parse; that is the pattern for repeated parsing, as in an editor or a
+/// benchmark loop.
 pub fn parse_c<'a>(
     input: &Input,
-    ctx: &'a ParseContext,
+    tree_arena: &'a Bump,
 ) -> std::result::Result<ParseSuccess<&'a C<'a>>, ParseError> {
-    let mut parser = SimpleAltParser::new(input, grammar_data::C);
+    let vec_arena = Bump::new();
+    let mut parser = SimpleAltParser::new(input, grammar_data::C, &vec_arena);
     match parser.run() {
         ParseResult::Success(success) => {
             let parse_duration = success.duration;
             let tree_start = iguana_runtime::Instant::now();
-            let parse_tree_builder = SimpleAltParseTreeBuilder::new(ctx);
+            let parse_tree_builder = SimpleAltParseTreeBuilder::new(tree_arena);
             let tree =
                 parse_tree::create_parse_tree_c(success.sppf_node_id, &parser, &parse_tree_builder);
             let tree_construction_duration = tree_start.elapsed();
@@ -142,16 +166,24 @@ pub fn parse_c<'a>(
         }
     }
 }
+/// Parses `input` starting from `D`.
+///
+/// `tree_arena` holds the constructed parse tree: the returned tree borrows it
+/// and lives until the arena is reset or dropped. Once the tree goes out of
+/// scope, the arena can be reset with `tree_arena.reset()` and reused for the
+/// next parse; that is the pattern for repeated parsing, as in an editor or a
+/// benchmark loop.
 pub fn parse_d<'a>(
     input: &Input,
-    ctx: &'a ParseContext,
+    tree_arena: &'a Bump,
 ) -> std::result::Result<ParseSuccess<&'a D<'a>>, ParseError> {
-    let mut parser = SimpleAltParser::new(input, grammar_data::D);
+    let vec_arena = Bump::new();
+    let mut parser = SimpleAltParser::new(input, grammar_data::D, &vec_arena);
     match parser.run() {
         ParseResult::Success(success) => {
             let parse_duration = success.duration;
             let tree_start = iguana_runtime::Instant::now();
-            let parse_tree_builder = SimpleAltParseTreeBuilder::new(ctx);
+            let parse_tree_builder = SimpleAltParseTreeBuilder::new(tree_arena);
             let tree =
                 parse_tree::create_parse_tree_d(success.sppf_node_id, &parser, &parse_tree_builder);
             let tree_construction_duration = tree_start.elapsed();

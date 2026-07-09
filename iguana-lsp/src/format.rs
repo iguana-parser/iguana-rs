@@ -543,8 +543,8 @@ mod tests {
 
     fn format_source(source: &str) -> Option<String> {
         let input = Input::from(source);
-        let ctx = iguana_runtime::parse_tree::ParseContext::new();
-        match build(&input, &ctx) {
+        let tree_arena = iguana_runtime::parse_tree::Bump::new();
+        match build(&input, &tree_arena) {
             BuildResult::Success { tree, .. } => Some(format(tree, &input)),
             BuildResult::Error { .. } | BuildResult::Ambiguous => None,
         }

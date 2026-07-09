@@ -7,7 +7,7 @@ use iguana_lsp::format::format;
 use iguana_lsp::references::{definition, references};
 use iguana_lsp::semantic_tokens::semantic_tokens;
 use iguana_lsp::{BuildResult, build, build_grammar_def, build_spans};
-use iguana_runtime::{input::Input, parse_tree::ParseContext};
+use iguana_runtime::{input::Input, parse_tree::Bump};
 use lsp_server::{Connection, Message, Notification, Request, RequestId, Response};
 use lsp_types::notification::Notification as LspNotification;
 use lsp_types::request::{
@@ -44,8 +44,8 @@ pub fn main_loop(
                             }
                         };
                         let input = Input::from(source.as_str());
-                        let ctx = ParseContext::new();
-                        let tokens = match build(&input, &ctx) {
+                        let tree_arena = Bump::new();
+                        let tokens = match build(&input, &tree_arena) {
                             BuildResult::Success { tree, .. } => semantic_tokens(tree, &input),
                             BuildResult::Error { .. } | BuildResult::Ambiguous => vec![],
                         };
@@ -73,8 +73,8 @@ pub fn main_loop(
                             }
                         };
                         let input = Input::from(source.as_str());
-                        let ctx = ParseContext::new();
-                        let edits = match build(&input, &ctx) {
+                        let tree_arena = Bump::new();
+                        let edits = match build(&input, &tree_arena) {
                             BuildResult::Success { tree, .. } => {
                                 let formatted = format(tree, &input);
                                 let line_count = source.lines().count() as u32;
@@ -110,9 +110,10 @@ pub fn main_loop(
                             }
                         };
                         let input = Input::from(source.as_str());
-                        let ctx = ParseContext::new();
+                        let tree_arena = Bump::new();
                         let locations = (|| {
-                            let BuildResult::Success { tree, .. } = build(&input, &ctx) else {
+                            let BuildResult::Success { tree, .. } = build(&input, &tree_arena)
+                            else {
                                 return None;
                             };
                             let grammar_def = build_grammar_def(tree, &input)?;
@@ -143,9 +144,10 @@ pub fn main_loop(
                             }
                         };
                         let input = Input::from(source.as_str());
-                        let ctx = ParseContext::new();
+                        let tree_arena = Bump::new();
                         let loc = (|| {
-                            let BuildResult::Success { tree, .. } = build(&input, &ctx) else {
+                            let BuildResult::Success { tree, .. } = build(&input, &tree_arena)
+                            else {
                                 return None;
                             };
                             let grammar_def = build_grammar_def(tree, &input)?;
@@ -177,9 +179,10 @@ pub fn main_loop(
                             }
                         };
                         let input = Input::from(source.as_str());
-                        let ctx = ParseContext::new();
+                        let tree_arena = Bump::new();
                         let symbols = (|| {
-                            let BuildResult::Success { tree, .. } = build(&input, &ctx) else {
+                            let BuildResult::Success { tree, .. } = build(&input, &tree_arena)
+                            else {
                                 return None;
                             };
                             let grammar_def = build_grammar_def(tree, &input)?;
@@ -208,9 +211,10 @@ pub fn main_loop(
                             }
                         };
                         let input = Input::from(source.as_str());
-                        let ctx = ParseContext::new();
+                        let tree_arena = Bump::new();
                         let ranges = (|| {
-                            let BuildResult::Success { tree, .. } = build(&input, &ctx) else {
+                            let BuildResult::Success { tree, .. } = build(&input, &tree_arena)
+                            else {
                                 return None;
                             };
                             let grammar_def = build_grammar_def(tree, &input)?;
@@ -262,8 +266,8 @@ fn publish_diagnostics(
     source: &str,
 ) -> Result<(), Box<dyn std::error::Error + Sync + Send>> {
     let input = Input::from(source);
-    let ctx = ParseContext::new();
-    let diagnostics = match build(&input, &ctx) {
+    let tree_arena = Bump::new();
+    let diagnostics = match build(&input, &tree_arena) {
         BuildResult::Success { tree, .. } => build_grammar_def(tree, &input)
             .map(|grammar_def| {
                 let spans = build_spans(&grammar_def, tree, &input);

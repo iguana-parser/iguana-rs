@@ -25,7 +25,7 @@ pub fn generate(grammar: &Grammar) -> TokenStream {
             cli,
             ids::NonterminalId,
             input::Input,
-            parse_tree::{ParseContext, SexprOptions, is_ambiguous},
+            parse_tree::{Bump, SexprOptions, is_ambiguous},
             parser::{ParseResult, Parser},
             visualization::{dot::write_graph, gss::build_gss_dot_graph, sppf::build_sppf_graph},
         };
@@ -358,9 +358,10 @@ pub fn generate(grammar: &Grammar) -> TokenStream {
 
                 let passed = cli::run_golden(mode, inputs, args.dir.as_deref(), args.quiet, args.full_diff, |path| {
                     let input = Input::try_from(path)?;
-                    let ctx = ParseContext::new();
-                    let parse_tree_builder = #parse_tree_builder::new(&ctx);
-                    let mut parser = #parser::new(&input, start_nonterminal_id);
+                    let tree_arena = Bump::new();
+                    let parse_tree_builder = #parse_tree_builder::new(&tree_arena);
+                    let vec_arena = Bump::new();
+                    let mut parser = #parser::new(&input, start_nonterminal_id, &vec_arena);
                     let content = match parser.run() {
                         ParseResult::Success(success) => {
                             let tree = create_parse_tree(
@@ -410,6 +411,9 @@ pub fn generate(grammar: &Grammar) -> TokenStream {
 
                 let mut ran = 0usize;
                 let mut passed = 0usize;
+                // Reused across all files; the reset after each parse frees the
+                // arena in bulk (same pattern as bench_parse_file).
+                let mut vec_arena = Bump::new();
                 for entry in &entries {
                     if let Some(name) = only {
                         if entry.name != name {
@@ -446,11 +450,11 @@ pub fn generate(grammar: &Grammar) -> TokenStream {
                                 Ok(input) => input,
                                 Err(e) => return cli::CorpusOutcome::IoError { message: e.to_string() },
                             };
-                            let mut parser = #parser::new(&input, start_nonterminal_id);
+                            let mut parser = #parser::new(&input, start_nonterminal_id, &vec_arena);
                             let start = Instant::now();
                             let result = parser.run();
                             let ms = start.elapsed().as_secs_f64() * 1000.0;
-                            match result {
+                            let outcome = match result {
                                 ParseResult::Success(success) => cli::CorpusOutcome::Ok {
                                     ms,
                                     ambiguous: is_ambiguous(&parser, success.sppf_node_id),
@@ -465,7 +469,10 @@ pub fn generate(grammar: &Grammar) -> TokenStream {
                                         ),
                                     }
                                 }
-                            }
+                            };
+                            drop(parser);
+                            vec_arena.reset();
+                            outcome
                         },
                     )?;
                     if report.passed {
@@ -524,8 +531,10 @@ pub fn generate(grammar: &Grammar) -> TokenStream {
                         if config.iters == 1 { "iteration" } else { "iterations" },
                     );
                     let file_path = file.clone();
+                    let mut tree_arena = Bump::new();
+                    let mut vec_arena = Bump::new();
                     return cli::run_benchmark(config, move || {
-                        bench_parse_file(&file_path, start_nonterminal_id)
+                        bench_parse_file(&file_path, start_nonterminal_id, &mut tree_arena, &mut vec_arena)
                             .expect("benchmark input could not be read, failed to parse, or is ambiguous")
                     });
                 }
@@ -602,6 +611,8 @@ pub fn generate(grammar: &Grammar) -> TokenStream {
                 // Longest source label, used to align the per-source time column.
                 let max_label = groups.iter().map(|(label, _)| label.len()).max().unwrap_or(0);
                 let mut pass = 0usize;
+                let mut tree_arena = Bump::new();
+                let mut vec_arena = Bump::new();
                 return cli::run_benchmark(config, move || {
                     // A blank line separates consecutive runs. Then announce the run (or
                     // warmup pass), each source with its time, and the whole run's time.
@@ -631,7 +642,7 @@ pub fn generate(grammar: &Grammar) -> TokenStream {
                         let _ = io::stderr().flush();
                         let mut source_time = Duration::ZERO;
                         for (path, start_nonterminal_id) in files {
-                            if let Some(t) = bench_parse_file(path, *start_nonterminal_id) {
+                            if let Some(t) = bench_parse_file(path, *start_nonterminal_id, &mut tree_arena, &mut vec_arena) {
                                 input += t.input;
                                 init += t.init;
                                 parse += t.parse;
@@ -677,9 +688,10 @@ pub fn generate(grammar: &Grammar) -> TokenStream {
                 };
                 cli::run_repl(sexpr_options, |text, sexpr_options| {
                     let input = Input::from(text);
-                    let ctx = ParseContext::new();
-                    let parse_tree_builder = #parse_tree_builder::new(&ctx);
-                    let mut parser = #parser::new(&input, start_nonterminal_id);
+                    let tree_arena = Bump::new();
+                    let parse_tree_builder = #parse_tree_builder::new(&tree_arena);
+                    let vec_arena = Bump::new();
+                    let mut parser = #parser::new(&input, start_nonterminal_id, &vec_arena);
                     match parser.run() {
                         ParseResult::Success(success) => {
                             let node_id = success.sppf_node_id;
@@ -726,9 +738,10 @@ pub fn generate(grammar: &Grammar) -> TokenStream {
                     .unwrap();
 
                 for _ in 0..iterations {
-                    let ctx = ParseContext::new();
-                    let parse_tree_builder = #parse_tree_builder::new(&ctx);
-                    let mut parser = #parser::new(&input, start_nonterminal_id);
+                    let tree_arena = Bump::new();
+                    let parse_tree_builder = #parse_tree_builder::new(&tree_arena);
+                    let vec_arena = Bump::new();
+                    let mut parser = #parser::new(&input, start_nonterminal_id, &vec_arena);
                     let result = parser.run();
                     if let ParseResult::Success(success) = result {
                         let _ = create_parse_tree(
@@ -752,15 +765,16 @@ pub fn generate(grammar: &Grammar) -> TokenStream {
                 eprintln!("Warning: --profile flag ignored. Recompile with `--features profile` to enable profiling.");
             }
 
-            let ctx = ParseContext::new();
-            let mut parser = #parser::new(&input, start_nonterminal_id);
+            let tree_arena = Bump::new();
+            let vec_arena = Bump::new();
+            let mut parser = #parser::new(&input, start_nonterminal_id, &vec_arena);
 
             #[cfg(feature = "debug-trace")]
             if args.trace.is_some() {
                 parser.trace_events = Some(vec![]);
             }
 
-            let parse_tree_builder = #parse_tree_builder::new(&ctx);
+            let parse_tree_builder = #parse_tree_builder::new(&tree_arena);
             let result = parser.run();
 
             // Write trace events immediately after parsing (before any visualization that might panic)
@@ -950,9 +964,10 @@ pub fn generate(grammar: &Grammar) -> TokenStream {
                 let bytes = input.len() as u64;
 
                 let init_start = Instant::now();
-                let ctx = ParseContext::new();
-                let parse_tree_builder = #parse_tree_builder::new(&ctx);
-                let mut parser = #parser::new(&input, start_nonterminal_id);
+                let tree_arena = Bump::new();
+                let parse_tree_builder = #parse_tree_builder::new(&tree_arena);
+                let vec_arena = Bump::new();
+                let mut parser = #parser::new(&input, start_nonterminal_id, &vec_arena);
                 let init_ms = init_start.elapsed().as_secs_f64() * 1000.0;
 
                 match parser.run() {
@@ -972,13 +987,14 @@ pub fn generate(grammar: &Grammar) -> TokenStream {
                         let tree_ms = tc_start.elapsed().as_secs_f64() * 1000.0;
                         #[cfg(feature = "instrument")]
                         corpus_stats.merge(parser.record_stats());
-                        // The builder borrows ctx and owns no heap data, so release
-                        // its borrow before timing teardown of the structures that
-                        // actually free memory.
+                        // The builder borrows the tree arena and owns no heap data,
+                        // so release its borrow before timing teardown of the
+                        // structures that actually free memory.
                         let _ = parse_tree_builder;
                         let drop_start = Instant::now();
                         drop(parser);
-                        drop(ctx);
+                        drop(vec_arena);
+                        drop(tree_arena);
                         drop(input);
                         let drop_ms = drop_start.elapsed().as_secs_f64() * 1000.0;
                         let total_ms = input_ms + init_ms + parse_ms + tree_ms + drop_ms;
@@ -1082,30 +1098,36 @@ pub fn generate(grammar: &Grammar) -> TokenStream {
         /// be read, it fails to parse, or it parses ambiguously. A benchmark times
         /// clean single-tree parses, so a whole-corpus run skips the rest rather
         /// than mixing their work in. The input is reloaded so the `input` phase is
-        /// measured, and a fresh ParseContext per call keeps the bump arena from
-        /// growing across samples, so each measurement is comparable.
-        fn bench_parse_file(path: &Path, start_nonterminal_id: NonterminalId) -> Option<cli::PhaseTimings> {
+        /// measured. The caller's arenas are reused across files and reset
+        /// between them, so they keep their chunks and teardown is a bulk
+        /// reset rather than a per-file free, the pattern the arena is built for.
+        fn bench_parse_file(path: &Path, start_nonterminal_id: NonterminalId, tree_arena: &mut Bump, vec_arena: &mut Bump) -> Option<cli::PhaseTimings> {
             let input_start = Instant::now();
             let input = Input::try_from(path).ok()?;
             let input_time = input_start.elapsed();
             let bytes = input.len() as u64;
 
             let init_start = Instant::now();
-            let ctx = ParseContext::new();
-            let parse_tree_builder = #parse_tree_builder::new(&ctx);
-            let mut parser = #parser::new(&input, start_nonterminal_id);
+            let mut parser = #parser::new(&input, start_nonterminal_id, vec_arena);
             let init = init_start.elapsed();
 
+            // A skipped file still resets the parser's arena, so its allocations
+            // do not carry into the next file's measurement.
             let ParseResult::Success(success) = parser.run() else {
+                drop(parser);
+                vec_arena.reset();
                 return None;
             };
             let parse = success.duration;
             if is_ambiguous(&parser, success.sppf_node_id) {
+                drop(parser);
+                vec_arena.reset();
                 return None;
             }
 
             let tree_start = Instant::now();
             {
+                let parse_tree_builder = #parse_tree_builder::new(tree_arena);
                 let tree = create_parse_tree(
                     success.sppf_node_id,
                     start_nonterminal_id,
@@ -1116,12 +1138,13 @@ pub fn generate(grammar: &Grammar) -> TokenStream {
             }
             let tree = tree_start.elapsed();
 
-            // The builder borrows ctx and owns no heap data, so release its borrow
-            // before timing teardown of the structures that actually free memory.
-            let _ = parse_tree_builder;
+            // Dropping the parser runs each collection's Drop, but every spilled
+            // buffer lives in an arena, so those are no-op deallocs; the resets
+            // then free both arenas in bulk and keep their chunks for the next file.
             let drop_start = Instant::now();
             drop(parser);
-            drop(ctx);
+            vec_arena.reset();
+            tree_arena.reset();
             drop(input);
             let drop = drop_start.elapsed();
 
@@ -1147,9 +1170,9 @@ pub fn generate(grammar: &Grammar) -> TokenStream {
         }
 
         #[cfg(feature = "debug-trace")]
-        fn write_trace_events<'i>(
+        fn write_trace_events<'i, 'arena>(
             trace_events: &[TraceEvent],
-            parser: &impl Parser<'i>,
+            parser: &impl Parser<'i, 'arena>,
             trace_option: &Option<Option<PathBuf>>,
             as_json: bool,
         ) -> io::Result<()> {

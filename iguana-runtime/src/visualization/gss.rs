@@ -48,7 +48,7 @@ impl ToDot for GSS {
     }
 }
 
-pub fn build_gss_dot_graph<'i, P: Parser<'i>>(parser: &P) -> GSS {
+pub fn build_gss_dot_graph<'i, 'arena, P: Parser<'i, 'arena>>(parser: &P) -> GSS {
     let mut nodes = Vec::new();
     let mut edges = Vec::new();
     for gss_node in parser.gss_nodes() {

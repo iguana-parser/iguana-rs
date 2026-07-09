@@ -2,6 +2,8 @@ use std::sync::LazyLock;
 use std::time::Duration;
 use web_time::Instant;
 
+use allocator_api2::vec::Vec as AVec;
+use bumpalo::Bump;
 use rustc_hash::FxHashMap;
 use serde::{Deserialize, Serialize};
 
@@ -19,11 +21,20 @@ use crate::{
 #[cfg(feature = "debug-trace")]
 use crate::trace::TraceEvent;
 
-/// Initial-capacity multipliers for the SPPF/GSS accumulators in generated
-/// parsers, applied to `input.len()` in `Parser::new` to avoid `Vec` growth
-/// on the hot path.
+/// Initial-capacity parameters for the parser's arena-backed accumulators,
+/// applied to `input.len()` in `Parser::new`. Growing a vector inside the
+/// arena always copies the whole buffer and abandons the old one, because a
+/// bump allocation cannot be extended in place. Reserved-but-untouched pages
+/// are never faulted, so over-sizing is nearly free while under-sizing pays
+/// that copy on the hot path. Measured on the Java corpus: SPPF nodes reach
+/// 2.5-3 per input char (10 on pathological files), GSS nodes stay below 1,
+/// envs reach 0.4-0.6 (about 4 on pathological files), and the descriptor
+/// queue peaks at 4-23% of the input length.
 pub const SPPF_CAPACITY_MULTIPLIER: usize = 8;
 pub const GSS_CAPACITY_MULTIPLIER: usize = 2;
+pub const ENVS_CAPACITY_MULTIPLIER: usize = 1;
+pub const DESCRIPTORS_CAPACITY_DIVISOR: usize = 4;
+pub const DESCRIPTORS_CAPACITY_FLOOR: usize = 1024;
 
 pub enum ParseResult {
     Success(ParseSuccess),
@@ -53,7 +64,7 @@ pub enum ParseErrorKind {
     ForbiddenFollow { forbidden: Vec<TerminalId> },
 }
 
-pub trait Parser<'i> {
+pub trait Parser<'i, 'arena> {
     /// The unsafe mode runs the parser as if the grammar is unambiguous.
     ///
     /// Static ambiguity detection for the full class of context-free grammars is
@@ -112,10 +123,10 @@ pub trait Parser<'i> {
         gss_node_id: GssNodeId,
     );
     fn new_gss_node(&mut self, nonterminal_id: NonterminalId, input_index: u32) -> GssNodeId;
-    fn gss_node(&self, id: GssNodeId) -> &GSSNode;
+    fn gss_node(&self, id: GssNodeId) -> &GSSNode<'arena>;
     fn sppf_node(&self, id: SPPFNodeId) -> &SPPFNode;
     fn sppf_node_mut(&mut self, id: SPPFNodeId) -> &mut SPPFNode;
-    fn gss_node_mut(&mut self, id: GssNodeId) -> &mut GSSNode;
+    fn gss_node_mut(&mut self, id: GssNodeId) -> &mut GSSNode<'arena>;
     fn add_descriptor(&mut self, descriptor: Descriptor);
     fn add_first_descriptor(
         &mut self,
@@ -133,6 +144,10 @@ pub trait Parser<'i> {
         ));
     }
     fn next_descriptor(&mut self) -> Option<Descriptor>;
+    /// The arena backing the parser's internal collections: GSS edges, popped
+    /// elements, env bindings, and spilled index maps. Handed to `push`/`insert`
+    /// at the spill boundary; reset in bulk after the parse.
+    fn vec_arena(&self) -> &'arena Bump;
     /// Empties the descriptor queue. With no descriptors left, `run`'s loop ends and the parse
     /// terminates. `pop` calls it once the start nonterminal spans the full input, but only in
     /// the unsafe mode.
@@ -378,6 +393,7 @@ pub trait Parser<'i> {
         env: Option<EnvId>,
         binding: Option<BindingId>,
     ) {
+        let arena = self.vec_arena();
         let existing_gss_node = self.gss_node(existing_gss_node_id);
         let left_extent = existing_gss_node.index;
         let popped_elements = std::mem::take(
@@ -401,7 +417,7 @@ pub trait Parser<'i> {
             let env = match (env, binding, return_value) {
                 (Some(env_id), Some(name), Some(return_value)) => {
                     let (new_env_id, new_env) = self.clone_env(env_id);
-                    new_env.bind(name, return_value);
+                    new_env.bind(name, return_value, arena);
                     Some(new_env_id)
                 }
                 (Some(env_id), _, _) => Some(env_id),
@@ -440,9 +456,10 @@ pub trait Parser<'i> {
         env: Option<EnvId>,
         binding: Option<BindingId>,
     ) {
+        let arena = self.vec_arena();
         let origin = self.gss_node_mut(origin_gss_node_id);
         let gss_edge = GSSEdge::new(result, return_slot, dest_gss_node_id, env, binding);
-        origin.add_edge(gss_edge);
+        origin.add_edge(gss_edge, arena);
         record!(
             self,
             GSSNodeAdded,
@@ -459,6 +476,7 @@ pub trait Parser<'i> {
         nonterminal_node_id: SPPFNodeId,
         return_value: Option<i32>,
     ) {
+        let arena = self.vec_arena();
         let right_extent = self.sppf_node(nonterminal_node_id).right_extent();
         record!(
             self,
@@ -491,10 +509,10 @@ pub trait Parser<'i> {
             return_value
         );
         let gss = self.gss_node_mut(gss_node_id);
-        gss.insert_popped_element(right_extent, return_value, nonterminal_node_id);
+        gss.insert_popped_element(right_extent, return_value, nonterminal_node_id, arena);
         let edge_count = gss.edges().len();
         for i in 0..edge_count {
-            let edge = self.gss_node(gss_node_id).edges().get(i).unwrap().clone();
+            let edge = *self.gss_node(gss_node_id).edges().get(i).unwrap();
             if let Some(error_kind) =
                 self.post_conditions(edge.return_slot, left_extent, right_extent)
             {
@@ -509,7 +527,7 @@ pub trait Parser<'i> {
             let env = match (edge.env_id(), edge.binding_id(), return_value) {
                 (Some(env_id), Some(name), Some(rv)) => {
                     let (new_env_id, env) = self.clone_env(env_id);
-                    env.bind(name, rv);
+                    env.bind(name, rv, arena);
                     Some(new_env_id)
                 }
                 (Some(env_id), _, _) => Some(env_id),
@@ -861,7 +879,9 @@ pub trait Parser<'i> {
             })
         }
     }
-    fn gss_nodes(&self) -> impl Iterator<Item = &GSSNode>;
+    fn gss_nodes<'p>(&'p self) -> impl Iterator<Item = &'p GSSNode<'arena>>
+    where
+        'arena: 'p;
 
     /// Extra children of ambiguous intermediate nodes, grouped by parent node.
     ///
@@ -884,13 +904,14 @@ pub trait Parser<'i> {
     }
 
     /// The children of the given SPPF node, in order.
-    fn sppf_children(&self, node_id: SPPFNodeId) -> InlineVec<SPPFNodeId> {
+    fn sppf_children(&self, node_id: SPPFNodeId) -> InlineVec<'arena, SPPFNodeId> {
+        let arena = self.vec_arena();
         match self.sppf_node(node_id) {
             SPPFNode::Terminal(_) => InlineVec::Empty,
             SPPFNode::Nonterminal(n) => {
                 if n.ambiguous {
                     let extras = self.nonterminal_nodes_children_map().get(&node_id).unwrap();
-                    let mut children = Vec::with_capacity(1 + extras.len());
+                    let mut children = AVec::with_capacity_in(1 + extras.len(), arena);
                     children.push(n.child);
                     children.extend(extras.iter().map(|(child, _)| *child));
                     InlineVec::Multiple(children)
@@ -908,7 +929,7 @@ pub trait Parser<'i> {
                     // So when a node is ambiguous, each extra is another pair, and
                     // the flat child list holds two nodes per pair: the node's own
                     // pair plus two per extra.
-                    let mut children = Vec::with_capacity(2 + 2 * extras.len());
+                    let mut children = AVec::with_capacity_in(2 + 2 * extras.len(), arena);
                     children.push(i.child.0);
                     children.push(i.child.1);
                     for (left, right) in extras {
@@ -923,13 +944,13 @@ pub trait Parser<'i> {
         }
     }
 
-    fn new_env(&mut self) -> (EnvId, &mut Env);
+    fn new_env(&mut self) -> (EnvId, &mut Env<'arena>);
 
-    fn clone_env(&mut self, source: EnvId) -> (EnvId, &mut Env);
+    fn clone_env(&mut self, source: EnvId) -> (EnvId, &mut Env<'arena>);
 
     fn lookup(&self, name: BindingId, env_id: EnvId) -> i32;
 
-    fn envs(&self) -> &[Env];
+    fn envs(&self) -> &[Env<'arena>];
 
     #[cfg(feature = "debug-trace")]
     fn add_trace_event(&mut self, event: TraceEvent);

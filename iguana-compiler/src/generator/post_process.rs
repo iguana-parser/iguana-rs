@@ -10,7 +10,8 @@
 //!   word-wrapped across several `// ` lines so a comment can be written as one
 //!   plain string in the generator.
 //! - `#[doc = r"..."]` / `#[doc = r#"..."#]` (quote!'s default rendering of
-//!   `///` doc lines) → `/// ...`.
+//!   `///` doc lines) and `#[doc = "..."]` (the rendering of an interpolated
+//!   doc string) → `/// ...`.
 //! - `} impl` / `} fn` / `} pub fn` → newline before the keyword.
 //!
 //! `#[comment]` is not a real attribute, so any unrewritten occurrence is a
@@ -31,6 +32,11 @@ static DOC_RAW_HASH_RE: LazyLock<Regex> =
 
 static DOC_RAW_RE: LazyLock<Regex> =
     LazyLock::new(|| Regex::new(r#"^#\s*\[\s*doc\s*=\s*r"([^"]*)"\s*\]"#).unwrap());
+
+// A doc string interpolated into `quote!` (e.g. `#[doc = #text]`) renders as a
+// regular escaped literal, not the raw literal `quote!` uses for `///` lines.
+static DOC_STR_RE: LazyLock<Regex> =
+    LazyLock::new(|| Regex::new(r#"^#\s*\[\s*doc\s*=\s*"((?:[^"\\]|\\.)*)"\s*\]"#).unwrap());
 
 // Anchored on `}` to distinguish item-level `impl` / `fn` from the same
 // keywords appearing inline: `-> impl Trait` in return position, or `fn(...)`
@@ -65,6 +71,9 @@ pub fn post_process(input: &str) -> String {
             i += caps.get(0).unwrap().end();
         } else if let Some(caps) = DOC_RAW_RE.captures(rest) {
             push_doc_line(&mut out, &caps[1]);
+            i += caps.get(0).unwrap().end();
+        } else if let Some(caps) = DOC_STR_RE.captures(rest) {
+            push_doc_line(&mut out, &unescape(&caps[1]));
             i += caps.get(0).unwrap().end();
         } else if let Some(m) = ITEM_BREAK_RE.find(rest) {
             let after = m.as_str().trim_start_matches('}').trim_start();
@@ -172,6 +181,21 @@ mod tests {
             !out.contains("\n\n///"),
             "blank line between doc lines: {out:?}"
         );
+    }
+
+    #[test]
+    fn interpolated_doc_string_becomes_doc_line() {
+        let text = " Parses `input` as `Grammar`, allocating the parse tree in `tree_arena`.";
+        let tokens = quote! {
+            #[doc = #text]
+            pub fn parse() {}
+        };
+        let out = post_process(&tokens.to_string());
+        assert!(
+            out.contains("/// Parses `input` as `Grammar`"),
+            "got: {out:?}"
+        );
+        assert!(!out.contains("#[doc"), "unrewritten doc attr: {out:?}");
     }
 
     #[test]

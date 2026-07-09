@@ -5,8 +5,8 @@ use iguana_runtime::{
     ids::{NonterminalId, SlotId, TerminalId},
     input::Span,
     parse_tree::{
-        Bump, NodeKind, OneOrMany, Origin, ParseContext, ParseTreeBuilder, ParseTreeNode,
-        SexprOptions, visit_sppf,
+        Bump, NodeKind, OneOrMany, Origin, ParseTreeBuilder, ParseTreeNode, SexprOptions,
+        visit_sppf,
     },
     sppf::{NonterminalNode, SPPFNodeId, TerminalNode},
 };
@@ -94,14 +94,14 @@ impl<'a> ParseTree<'a> {
             ParseTree::Token(token) => token.span(),
         }
     }
-    #[doc = "Always false: the unsafe mode produces no ambiguity nodes, and its"]
-    #[doc = "nonterminal types have no `Amb` variant."]
+    ///Always false: the unsafe mode produces no ambiguity nodes, and its
+    ///nonterminal types have no `Amb` variant.
     pub fn is_amb(&self) -> bool {
         false
     }
-    #[doc = "Always `None`: node identity exists to detect sharing in an ambiguity"]
-    #[doc = "DAG, and the unsafe mode builds a tree with no shared nodes. `None`"]
-    #[doc = "also lets the s-expression and JSON renderers skip their sharing maps."]
+    ///Always `None`: node identity exists to detect sharing in an ambiguity
+    ///DAG, and the unsafe mode builds a tree with no shared nodes. `None`
+    ///also lets the s-expression and JSON renderers skip their sharing maps.
     pub fn node_id(&self) -> Option<usize> {
         None
     }
@@ -489,11 +489,11 @@ fn token_kind(terminal_id: TerminalId) -> TokenKind {
     }
 }
 pub struct AmbiguousExprUnsafeParseTreeBuilder<'a> {
-    pub bump: &'a Bump,
+    pub arena: &'a Bump,
 }
 impl<'a> AmbiguousExprUnsafeParseTreeBuilder<'a> {
-    pub fn new(ctx: &'a ParseContext) -> Self {
-        Self { bump: ctx.bump() }
+    pub fn new(tree_arena: &'a Bump) -> Self {
+        Self { arena: tree_arena }
     }
 }
 impl<'a> ParseTreeBuilder<ParseTree<'a>> for AmbiguousExprUnsafeParseTreeBuilder<'a> {
@@ -508,7 +508,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for AmbiguousExprUnsafeParseTreeBuilder
                 // S : E.
                 SlotId(1) => {
                     let [e] = children.into_array::<1usize>();
-                    ParseTree::S(self.bump.alloc(S::Alt0 {
+                    ParseTree::S(self.arena.alloc(S::Alt0 {
                         e: e.unwrap_e(),
                         span: nonterminal_node.span,
                     }))
@@ -520,7 +520,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for AmbiguousExprUnsafeParseTreeBuilder
                 // E : E WS "." WS "f".
                 SlotId(7) => {
                     let [e, ws_1, lit_2, ws_3, lit_4] = children.into_array::<5usize>();
-                    ParseTree::E(self.bump.alloc(E::Alt0 {
+                    ParseTree::E(self.arena.alloc(E::Alt0 {
                         e: e.unwrap_e(),
                         ws_1: ws_1.unwrap_token(),
                         lit_2: lit_2.unwrap_token(),
@@ -532,7 +532,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for AmbiguousExprUnsafeParseTreeBuilder
                 // E : E WS E.
                 SlotId(11) => {
                     let [e_0, ws, e_2] = children.into_array::<3usize>();
-                    ParseTree::E(self.bump.alloc(E::Alt1 {
+                    ParseTree::E(self.arena.alloc(E::Alt1 {
                         e_0: e_0.unwrap_e(),
                         ws: ws.unwrap_token(),
                         e_2: e_2.unwrap_e(),
@@ -542,7 +542,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for AmbiguousExprUnsafeParseTreeBuilder
                 // E : E WS "*" WS E.
                 SlotId(17) => {
                     let [e_0, ws_1, lit_2, ws_3, e_4] = children.into_array::<5usize>();
-                    ParseTree::E(self.bump.alloc(E::Alt2 {
+                    ParseTree::E(self.arena.alloc(E::Alt2 {
                         e_0: e_0.unwrap_e(),
                         ws_1: ws_1.unwrap_token(),
                         lit_2: lit_2.unwrap_token(),
@@ -554,7 +554,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for AmbiguousExprUnsafeParseTreeBuilder
                 // E : E WS "+" WS E.
                 SlotId(23) => {
                     let [e_0, ws_1, lit_2, ws_3, e_4] = children.into_array::<5usize>();
-                    ParseTree::E(self.bump.alloc(E::Alt3 {
+                    ParseTree::E(self.arena.alloc(E::Alt3 {
                         e_0: e_0.unwrap_e(),
                         ws_1: ws_1.unwrap_token(),
                         lit_2: lit_2.unwrap_token(),
@@ -566,7 +566,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for AmbiguousExprUnsafeParseTreeBuilder
                 // E : E WS "-" WS E.
                 SlotId(29) => {
                     let [e_0, ws_1, lit_2, ws_3, e_4] = children.into_array::<5usize>();
-                    ParseTree::E(self.bump.alloc(E::Alt4 {
+                    ParseTree::E(self.arena.alloc(E::Alt4 {
                         e_0: e_0.unwrap_e(),
                         ws_1: ws_1.unwrap_token(),
                         lit_2: lit_2.unwrap_token(),
@@ -578,7 +578,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for AmbiguousExprUnsafeParseTreeBuilder
                 // E : "-" WS E.
                 SlotId(33) => {
                     let [lit_0, ws, e] = children.into_array::<3usize>();
-                    ParseTree::E(self.bump.alloc(E::Alt5 {
+                    ParseTree::E(self.arena.alloc(E::Alt5 {
                         lit_0: lit_0.unwrap_token(),
                         ws: ws.unwrap_token(),
                         e: e.unwrap_e(),
@@ -600,7 +600,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for AmbiguousExprUnsafeParseTreeBuilder
                         ws_9,
                         e_10,
                     ] = children.into_array::<11usize>();
-                    ParseTree::E(self.bump.alloc(E::Alt6 {
+                    ParseTree::E(self.arena.alloc(E::Alt6 {
                         lit_0: lit_0.unwrap_token(),
                         ws_1: ws_1.unwrap_token(),
                         e_2: e_2.unwrap_e(),
@@ -618,7 +618,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for AmbiguousExprUnsafeParseTreeBuilder
                 // E : E WS ";" WS E.
                 SlotId(51) => {
                     let [e_0, ws_1, lit_2, ws_3, e_4] = children.into_array::<5usize>();
-                    ParseTree::E(self.bump.alloc(E::Alt7 {
+                    ParseTree::E(self.arena.alloc(E::Alt7 {
                         e_0: e_0.unwrap_e(),
                         ws_1: ws_1.unwrap_token(),
                         lit_2: lit_2.unwrap_token(),
@@ -630,7 +630,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for AmbiguousExprUnsafeParseTreeBuilder
                 // E : "(" WS E WS ")".
                 SlotId(57) => {
                     let [lit_0, ws_1, e, ws_3, lit_4] = children.into_array::<5usize>();
-                    ParseTree::E(self.bump.alloc(E::Alt8 {
+                    ParseTree::E(self.arena.alloc(E::Alt8 {
                         lit_0: lit_0.unwrap_token(),
                         ws_1: ws_1.unwrap_token(),
                         e: e.unwrap_e(),
@@ -642,7 +642,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for AmbiguousExprUnsafeParseTreeBuilder
                 // E : "a".
                 SlotId(59) => {
                     let [lit_0] = children.into_array::<1usize>();
-                    ParseTree::E(self.bump.alloc(E::Alt9 {
+                    ParseTree::E(self.arena.alloc(E::Alt9 {
                         lit_0: lit_0.unwrap_token(),
                         span: nonterminal_node.span,
                     }))

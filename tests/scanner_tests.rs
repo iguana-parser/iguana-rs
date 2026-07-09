@@ -1,9 +1,11 @@
 use iggy::scanner::IggyScanner;
 use iguana_runtime::input::Input;
+use iguana_runtime::parse_tree::Bump;
 
 fn match_identifier(input: &str) -> Option<u32> {
     let input = Input::from(input);
-    let scanner = IggyScanner::new(&input);
+    let arena = Bump::new();
+    let scanner = IggyScanner::new(&input, &arena);
     scanner.match_terminal_1(0)
 }
 

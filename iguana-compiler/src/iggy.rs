@@ -2,7 +2,7 @@ use iggy::{
     ParseError, parse_tree,
     parse_tree::{OptNode, Start},
 };
-use iguana_runtime::{input::Input, parse_tree::ParseContext};
+use iguana_runtime::{input::Input, parse_tree::Bump};
 
 use crate::grammar::{
     def::{
@@ -15,8 +15,8 @@ use crate::grammar::{
 
 pub fn parse_grammar(source: &str) -> Result<GrammarDef, ParseError> {
     let input = Input::from(source);
-    let ctx = ParseContext::new();
-    let success = iggy::parse_grammar(&input, &ctx)?;
+    let tree_arena = Bump::new();
+    let success = iggy::parse_grammar(&input, &tree_arena)?;
     build_grammar(success.tree, &input)
 }
 

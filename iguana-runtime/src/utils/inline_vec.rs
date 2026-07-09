@@ -1,27 +1,34 @@
-use std::{array, iter, slice, vec};
+use std::{array, iter, slice};
+
+use allocator_api2::vec::{IntoIter as AVecIntoIter, Vec as AVec};
+use bumpalo::Bump;
 
 /// A vector optimized for the common case of holding 0, 1, 2, or 3 elements
 /// without any heap allocation. Once it grows beyond 3 elements it spills
-/// into a heap-allocated `Vec`.
+/// into a `Vec` allocated from an arena.
 ///
-/// `SPILL_CAP` is the initial `Vec::with_capacity` used when transitioning
-/// from `Triple` to `Multiple`. Tune this per use site (via a type alias) to
-/// match the observed size distribution: pick a value just above the largest
-/// common cluster so the first heap allocation already fits and avoids any
-/// realloc. Default is 8, which is a good fit when the long tail dies off
-/// before 8 elements.
-#[derive(Debug, Default, Clone, PartialEq)]
-pub enum InlineVec<T, const SPILL_CAP: usize = 8> {
+/// `MULTIPLE_CAPACITY` is the initial capacity of the `Vec` inside `Multiple`,
+/// allocated on the `Triple`-to-`Multiple` transition. A sensible value covers
+/// the most common use cases, so the vector rarely has to grow. The default
+/// is 8.
+///
+/// The arena is passed rather than stored, so the inline variants stay
+/// allocator-free and minimal-width. Spilled buffers live in the arena and
+/// free all at once, not one drop each.
+#[derive(Debug, Default, Clone)]
+pub enum InlineVec<'arena, T, const MULTIPLE_CAPACITY: usize = 8> {
     #[default]
     Empty,
     Single(T),
     Pair(T, T),
     Triple(T, T, T),
-    Multiple(Vec<T>),
+    Multiple(AVec<T, &'arena Bump>),
 }
 
-impl<T, const SPILL_CAP: usize> InlineVec<T, SPILL_CAP> {
-    pub fn push(&mut self, value: T) {
+impl<'arena, T, const MULTIPLE_CAPACITY: usize> InlineVec<'arena, T, MULTIPLE_CAPACITY> {
+    /// Pushes `value`. Allocates the spilled buffer from `arena` on the
+    /// `Triple`-to-`Multiple` transition; smaller variants ignore it.
+    pub fn push(&mut self, value: T, arena: &'arena Bump) {
         match self {
             InlineVec::Empty => *self = InlineVec::Single(value),
             InlineVec::Single(_) => match std::mem::take(self) {
@@ -34,7 +41,7 @@ impl<T, const SPILL_CAP: usize> InlineVec<T, SPILL_CAP> {
             },
             InlineVec::Triple(_, _, _) => match std::mem::take(self) {
                 InlineVec::Triple(first, second, third) => {
-                    let mut v = Vec::with_capacity(SPILL_CAP);
+                    let mut v = AVec::with_capacity_in(MULTIPLE_CAPACITY, arena);
                     v.push(first);
                     v.push(second);
                     v.push(third);
@@ -94,7 +101,7 @@ impl<T, const SPILL_CAP: usize> InlineVec<T, SPILL_CAP> {
         }
     }
 
-    /// Drops all elements. If currently spilled, keeps the heap `Vec`'s
+    /// Drops all elements. If currently spilled, keeps the arena `Vec`'s
     /// capacity so subsequent pushes within the same level reuse it.
     pub fn clear(&mut self) {
         match self {
@@ -104,6 +111,14 @@ impl<T, const SPILL_CAP: usize> InlineVec<T, SPILL_CAP> {
             }
             InlineVec::Multiple(v) => v.clear(),
         }
+    }
+}
+
+impl<'arena, T: PartialEq, const MULTIPLE_CAPACITY: usize> PartialEq
+    for InlineVec<'arena, T, MULTIPLE_CAPACITY>
+{
+    fn eq(&self, other: &Self) -> bool {
+        self.iter().eq(other.iter())
     }
 }
 
@@ -129,7 +144,9 @@ impl<'a, T> Iterator for Iter<'a, T> {
     }
 }
 
-impl<'a, T, const SPILL_CAP: usize> IntoIterator for &'a InlineVec<T, SPILL_CAP> {
+impl<'a, 'arena, T, const MULTIPLE_CAPACITY: usize> IntoIterator
+    for &'a InlineVec<'arena, T, MULTIPLE_CAPACITY>
+{
     type Item = &'a T;
     type IntoIter = Iter<'a, T>;
 
@@ -146,15 +163,15 @@ impl<'a, T, const SPILL_CAP: usize> IntoIterator for &'a InlineVec<T, SPILL_CAP>
     }
 }
 
-pub enum IntoIter<T> {
+pub enum IntoIter<'arena, T> {
     Empty(iter::Empty<T>),
     Single(iter::Once<T>),
     Pair(array::IntoIter<T, 2>),
     Triple(array::IntoIter<T, 3>),
-    Multiple(vec::IntoIter<T>),
+    Multiple(AVecIntoIter<T, &'arena Bump>),
 }
 
-impl<T> Iterator for IntoIter<T> {
+impl<'arena, T> Iterator for IntoIter<'arena, T> {
     type Item = T;
 
     fn next(&mut self) -> Option<Self::Item> {
@@ -168,9 +185,11 @@ impl<T> Iterator for IntoIter<T> {
     }
 }
 
-impl<T, const SPILL_CAP: usize> IntoIterator for InlineVec<T, SPILL_CAP> {
+impl<'arena, T, const MULTIPLE_CAPACITY: usize> IntoIterator
+    for InlineVec<'arena, T, MULTIPLE_CAPACITY>
+{
     type Item = T;
-    type IntoIter = IntoIter<T>;
+    type IntoIter = IntoIter<'arena, T>;
 
     fn into_iter(self) -> Self::IntoIter {
         match self {
@@ -185,29 +204,10 @@ impl<T, const SPILL_CAP: usize> IntoIterator for InlineVec<T, SPILL_CAP> {
     }
 }
 
-#[macro_export]
-macro_rules! inline_vec {
-    () => {
-        $crate::utils::inline_vec::InlineVec::Empty
-    };
-    ($first:expr, $second:expr $(,)?) => {
-        $crate::utils::inline_vec::InlineVec::Pair($first, $second)
-    };
-    ($first:expr, $second:expr, $third:expr $(,)?) => {
-        $crate::utils::inline_vec::InlineVec::Triple($first, $second, $third)
-    };
-    ($first:expr, $($rest:expr),+ $(,)?) => {
-        $crate::utils::inline_vec::InlineVec::Multiple(vec![$first $(, $rest)+])
-    };
-    ($elem:expr $(,)?) => {
-        $crate::utils::inline_vec::InlineVec::Single($elem)
-    };
-}
-
-pub use inline_vec;
-
 #[cfg(test)]
 mod tests {
+    use bumpalo::Bump;
+
     use crate::utils::inline_vec::InlineVec;
 
     #[test]
@@ -218,8 +218,9 @@ mod tests {
 
     #[test]
     fn test_add_to_empty() {
+        let arena = Bump::new();
         let mut l: InlineVec<usize, 8> = InlineVec::default();
-        l.push(1);
+        l.push(1, &arena);
         assert_eq!(l.len(), 1);
         let elements: Vec<&usize> = l.iter().collect();
         assert_eq!(elements, vec![&1]);
@@ -227,8 +228,9 @@ mod tests {
 
     #[test]
     fn test_add_to_single() {
+        let arena = Bump::new();
         let mut l: InlineVec<i32, 8> = InlineVec::Single(1);
-        l.push(2);
+        l.push(2, &arena);
         assert_eq!(l, InlineVec::Pair(1, 2));
         assert_eq!(l.len(), 2);
         let elements: Vec<&i32> = l.iter().collect();
@@ -237,8 +239,9 @@ mod tests {
 
     #[test]
     fn test_add_to_pair() {
+        let arena = Bump::new();
         let mut l: InlineVec<i32, 8> = InlineVec::Pair(1, 2);
-        l.push(3);
+        l.push(3, &arena);
         assert_eq!(l, InlineVec::Triple(1, 2, 3));
         assert_eq!(l.len(), 3);
         let elements: Vec<&i32> = l.iter().collect();
@@ -247,9 +250,10 @@ mod tests {
 
     #[test]
     fn test_add_to_triple() {
+        let arena = Bump::new();
         let mut l: InlineVec<i32, 8> = InlineVec::Triple(1, 2, 3);
-        l.push(4);
-        assert_eq!(l, InlineVec::Multiple(vec![1, 2, 3, 4]));
+        l.push(4, &arena);
+        assert!(matches!(l, InlineVec::Multiple(_)));
         assert_eq!(l.len(), 4);
         let elements: Vec<&i32> = l.iter().collect();
         assert_eq!(elements, vec![&1, &2, &3, &4]);
@@ -262,71 +266,27 @@ mod tests {
     }
 
     #[test]
-    fn empty_form() {
-        let v: InlineVec<usize, 8> = inline_vec![];
-        assert_eq!(v, InlineVec::Empty);
-    }
-
-    #[test]
-    fn single_without_trailing_comma() {
-        let v: InlineVec<i32, 8> = inline_vec![1];
-        assert_eq!(v, InlineVec::Single(1));
-    }
-
-    #[test]
-    fn single_with_trailing_comma() {
-        let v: InlineVec<i32, 8> = inline_vec![1,];
-        assert_eq!(v, InlineVec::Single(1));
-    }
-
-    #[test]
-    fn pair_without_trailing_comma() {
-        let v: InlineVec<i32, 8> = inline_vec![1, 2];
-        assert_eq!(v, InlineVec::Pair(1, 2));
-    }
-
-    #[test]
-    fn pair_with_trailing_comma() {
-        let v: InlineVec<i32, 8> = inline_vec![1, 2,];
-        assert_eq!(v, InlineVec::Pair(1, 2));
-    }
-
-    #[test]
-    fn triple_without_trailing_comma() {
-        let v: InlineVec<i32, 8> = inline_vec![1, 2, 3];
-        assert_eq!(v, InlineVec::Triple(1, 2, 3));
-    }
-
-    #[test]
-    fn triple_with_trailing_comma() {
-        let v: InlineVec<i32, 8> = inline_vec![1, 2, 3,];
-        assert_eq!(v, InlineVec::Triple(1, 2, 3));
-    }
-
-    #[test]
-    fn multiple_without_trailing_comma() {
-        let v: InlineVec<i32, 8> = inline_vec![1, 2, 3, 4];
-        assert_eq!(v, InlineVec::Multiple(vec![1, 2, 3, 4]));
-    }
-
-    #[test]
-    fn multiple_with_trailing_comma() {
-        let v: InlineVec<i32, 8> = inline_vec![1, 2, 3, 4,];
-        assert_eq!(v, InlineVec::Multiple(vec![1, 2, 3, 4]));
+    fn spills_past_triple() {
+        let arena = Bump::new();
+        let mut l: InlineVec<i32, 8> = InlineVec::default();
+        for i in 1..=5 {
+            l.push(i, &arena);
+        }
+        assert!(matches!(l, InlineVec::Multiple(_)));
+        let collected: Vec<i32> = l.into_iter().collect();
+        assert_eq!(collected, vec![1, 2, 3, 4, 5]);
     }
 
     #[test]
     fn into_iter_yields_owned_values() {
-        let cases: Vec<InlineVec<i32, 8>> = vec![
-            inline_vec![],
-            inline_vec![1],
-            inline_vec![1, 2],
-            inline_vec![1, 2, 3],
-            inline_vec![1, 2, 3, 4],
-        ];
-        for (i, v) in cases.into_iter().enumerate() {
+        let arena = Bump::new();
+        for n in 0..=5 {
+            let mut v: InlineVec<i32, 8> = InlineVec::default();
+            for i in 1..=n {
+                v.push(i, &arena);
+            }
             let collected: Vec<i32> = v.into_iter().collect();
-            assert_eq!(collected, (1..=i as i32).collect::<Vec<_>>());
+            assert_eq!(collected, (1..=n).collect::<Vec<_>>());
         }
     }
 }

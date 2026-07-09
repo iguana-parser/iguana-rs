@@ -15,7 +15,9 @@ workspace = true
 path = "src/lib.rs"
 
 [dependencies]
-bumpalo.workspace = true
+allocator-api2.workspace = true
+bumpalo = { workspace = true, features = ["allocator-api2"] }
+hashbrown.workspace = true
 log.workspace = true
 proc-macro2.workspace = true
 quote.workspace = true

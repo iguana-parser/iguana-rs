@@ -150,7 +150,7 @@ impl<'a> ParserGen<'a> {
         quote! {
             #imports
             #binding_consts
-            impl<'i> Parser<'i> for #grammar_name_ident<'i> {
+            impl<'i, 'arena> Parser<'i, 'arena> for #grammar_name_ident<'i, 'arena> {
                 #unsafe_const
                 #nonterminal_display_name_method
                 #terminal_name_method
@@ -218,16 +218,23 @@ impl<'a> ParserGen<'a> {
                     if input_index > level {
                         self.parse_errors.clear();
                     }
-                    self.parse_errors.push(ParseError {
-                        input_index,
-                        slot_id,
-                        gss_node_id,
-                        kind,
-                    });
+                    self.parse_errors.push(
+                        ParseError {
+                            input_index,
+                            slot_id,
+                            gss_node_id,
+                            kind,
+                        },
+                        self.vec_arena,
+                    );
                 }
 
                 fn match_token(&mut self, terminal_id: TerminalId, input_index: u32) -> Option<u32> {
                     self.scanner.match_token(terminal_id, input_index)
+                }
+
+                fn vec_arena(&self) -> &'arena Bump {
+                    self.vec_arena
                 }
             }
             #parser_struct
@@ -260,6 +267,11 @@ impl<'a> ParserGen<'a> {
                 quote! { use rustc_hash::FxHashMap; },
             )
         };
+        let envs_capacity_import = if self.nonterminal_ids.dd_nonterminals().next().is_some() {
+            quote! { ENVS_CAPACITY_MULTIPLIER, }
+        } else {
+            quote! {}
+        };
         quote! {
             #once_cell_import
             use crate::{grammar_data::*, scanner::#scanner_name};
@@ -269,11 +281,12 @@ impl<'a> ParserGen<'a> {
                 gss::GSSNode,
                 ids::{BindingId, GssNodeId, NonterminalId, SlotId, TerminalId},
                 input::Input,
-                parser::{Parser, ParseError, ParseErrorKind, init_logger, GSS_CAPACITY_MULTIPLIER, SPPF_CAPACITY_MULTIPLIER},
+                parse_tree::Bump,
+                parser::{Parser, ParseError, ParseErrorKind, init_logger, DESCRIPTORS_CAPACITY_DIVISOR, DESCRIPTORS_CAPACITY_FLOOR, #envs_capacity_import GSS_CAPACITY_MULTIPLIER, SPPF_CAPACITY_MULTIPLIER},
                 record,
                 scanner::Scanner,
                 sppf::{IntermediateNode, NonterminalNode, SPPFNode, SPPFNodeId, TerminalNode},
-                utils::{inline_map::InlineMap, inline_vec::InlineVec}
+                utils::{AVec, inline_map::InlineMap, inline_vec::InlineVec}
             };
             // In the unsafe mode Span is used only by LL(1) node construction; checking whether the
             // grammar has any here is expensive, so allow the unused import instead.
@@ -999,7 +1012,7 @@ impl<'a> ParserGen<'a> {
         let get_or_create_epsilon_node_method = self.gen_get_or_create_epsilon_node_method();
         let ambiguity_node_added_method = self.gen_ambiguity_node_added_method();
         quote! {
-            impl<'i> #name_ident<'i> {
+            impl<'i, 'arena> #name_ident<'i, 'arena> {
                 #new_method
                 #(#create_methods)*
                 #(#ll1_parse_methods)*
@@ -1057,6 +1070,11 @@ impl<'a> ParserGen<'a> {
     fn gen_new_method(&self) -> TokenStream {
         let grammar_name = &self.grammar.name;
         let name_ident = format_ident!("{}{}", grammar_name, "Scanner");
+        let scanner_init = if self.config.match_memo {
+            quote! { #name_ident::new(input, vec_arena) }
+        } else {
+            quote! { #name_ident::new(input) }
+        };
         let gss_nodes_index_field = self.gen_gss_nodes_index_field();
         let gss_nodes_index_fields: Vec<_> = self
             .nonterminal_ids
@@ -1070,12 +1088,20 @@ impl<'a> ParserGen<'a> {
             .nonterminals()
             .any(|nt| self.is_layout(nt) && self.ff.is_ll1(nt))
         {
-            quote! { layout_memo: vec![None; input.len() as usize + 1], }
+            quote! { layout_memo: {
+                let mut v = AVec::with_capacity_in(input.len() as usize + 1, vec_arena);
+                v.resize(input.len() as usize + 1, None);
+                v
+            }, }
         } else {
             quote! {}
         };
         let epsilon_nodes_init = if self.has_empty_alternative() {
-            quote! { epsilon_nodes: vec![SPPFNodeId::NONE; input.len() as usize + 1], }
+            quote! { epsilon_nodes: {
+                let mut v = AVec::with_capacity_in(input.len() as usize + 1, vec_arena);
+                v.resize(input.len() as usize + 1, SPPFNodeId::NONE);
+                v
+            }, }
         } else {
             quote! {}
         };
@@ -1083,23 +1109,31 @@ impl<'a> ParserGen<'a> {
             quote! {}
         } else {
             quote! {
-                intermediate_nodes_children: vec![],
+                intermediate_nodes_children: AVec::new_in(vec_arena),
                 intermediate_nodes_children_map: OnceCell::new(),
-                nonterminal_nodes_children: vec![],
+                nonterminal_nodes_children: AVec::new_in(vec_arena),
                 nonterminal_nodes_children_map: OnceCell::new(),
             }
         };
+        // Envs are created only by calls to data-dependent nonterminals, so
+        // other grammars skip the input-proportional reservation.
+        let envs_init = if self.nonterminal_ids.dd_nonterminals().next().is_some() {
+            quote! { envs: AVec::with_capacity_in(input.len() as usize * ENVS_CAPACITY_MULTIPLIER, vec_arena), }
+        } else {
+            quote! { envs: AVec::new_in(vec_arena), }
+        };
         quote! {
-            pub fn new(input: &'i Input, start_nonterminal: NonterminalId) -> Self {
+            pub fn new(input: &'i Input, start_nonterminal: NonterminalId, vec_arena: &'arena Bump) -> Self {
                 init_logger();
                 Self {
                     start_nonterminal,
-                    scanner: #name_ident::new(input),
+                    vec_arena,
+                    scanner: #scanner_init,
                     #gss_nodes_index_field,
                     #(#gss_nodes_index_fields,)*
-                    descriptors: Vec::with_capacity(1024),
-                    gss_nodes: Vec::with_capacity(input.len() as usize * GSS_CAPACITY_MULTIPLIER),
-                    sppf_nodes: Vec::with_capacity(input.len() as usize * SPPF_CAPACITY_MULTIPLIER),
+                    descriptors: AVec::with_capacity_in(input.len() as usize / DESCRIPTORS_CAPACITY_DIVISOR + DESCRIPTORS_CAPACITY_FLOOR, vec_arena),
+                    gss_nodes: AVec::with_capacity_in(input.len() as usize * GSS_CAPACITY_MULTIPLIER, vec_arena),
+                    sppf_nodes: AVec::with_capacity_in(input.len() as usize * SPPF_CAPACITY_MULTIPLIER, vec_arena),
                     #intermediate_nodes_index_field
                     #terminal_nodes_index_field
                     #epsilon_nodes_init
@@ -1110,7 +1144,7 @@ impl<'a> ParserGen<'a> {
                     #[cfg(feature = "instrument")]
                     ll1_call_log: vec![],
                     #children_init
-                    envs: vec![],
+                    #envs_init
                     parse_errors: InlineVec::Empty,
                     #layout_memo_init
                     #[cfg(feature = "debug-trace")]
@@ -1134,19 +1168,24 @@ impl<'a> ParserGen<'a> {
         let param_slot_count_lit = Literal::usize_unsuffixed(self.slot_ids.len() - dd_slot_start);
         let parser_name_ident = format_ident!("{}{}", grammar_name, "Parser");
         let scanner_name_ident = format_ident!("{}{}", grammar_name, "Scanner");
+        let scanner_ty = if self.config.match_memo {
+            quote! { #scanner_name_ident<'i, 'arena> }
+        } else {
+            quote! { #scanner_name_ident<'i> }
+        };
         let layout_memo_field = if self
             .grammar
             .nonterminals()
             .any(|nt| self.is_layout(nt) && self.ff.is_ll1(nt))
         {
-            quote! { layout_memo: Vec<Option<SPPFNodeId>>, }
+            quote! { layout_memo: AVec<Option<SPPFNodeId>, &'arena Bump>, }
         } else {
             quote! {}
         };
         let epsilon_nodes_field = if self.has_empty_alternative() {
             quote! {
                 #[comment = "Epsilon nodes keyed by input position; SPPFNodeId::NONE marks an empty slot."]
-                epsilon_nodes: Vec<SPPFNodeId>,
+                epsilon_nodes: AVec<SPPFNodeId, &'arena Bump>,
             }
         } else {
             quote! {}
@@ -1157,11 +1196,11 @@ impl<'a> ParserGen<'a> {
         } else {
             quote! {
                 #[comment = "Per-slot Span-keyed intermediate-node index, for slots in non-parameterized nonterminals."]
-                intermediate_nodes_index: [InlineMap<Span, SPPFNodeId>; #dd_slot_start_lit],
+                intermediate_nodes_index: [InlineMap<'arena, Span, SPPFNodeId>; #dd_slot_start_lit],
                 #[comment = "Per-slot (Span, env)-keyed intermediate-node index, for slots in parameterized
                              nonterminals; env separates calls made with different parameter values."]
-                dd_intermediate_nodes_index: [InlineMap<(Span, Option<EnvId>), SPPFNodeId>; #param_slot_count_lit],
-                terminal_nodes_index: [InlineMap<Span, SPPFNodeId>; #terminal_ids_len],
+                dd_intermediate_nodes_index: [InlineMap<'arena, (Span, Option<EnvId>), SPPFNodeId>; #param_slot_count_lit],
+                terminal_nodes_index: [InlineMap<'arena, Span, SPPFNodeId>; #terminal_ids_len],
             }
         };
         // The unsafe mode produces no ambiguity, so it carries none of the extra-children side tables.
@@ -1172,28 +1211,30 @@ impl<'a> ParserGen<'a> {
                 #[comment = "An intermediate node keeps its first child inline. Children of intermediate
                              nodes are pairs: (left_child, right_child). Extra children, when there is
                              ambiguity, are stored here as (parent node, (left child, right child))."]
-                intermediate_nodes_children: Vec<(SPPFNodeId, (SPPFNodeId, SPPFNodeId))>,
+                intermediate_nodes_children: AVec<(SPPFNodeId, (SPPFNodeId, SPPFNodeId)), &'arena Bump>,
                 #[comment = "intermediate_nodes_children grouped by parent node, built lazily for tree construction."]
                 intermediate_nodes_children_map: OnceCell<FxHashMap<SPPFNodeId, Vec<(SPPFNodeId, SPPFNodeId)>>>,
                 #[comment = "Extra children of ambiguous nonterminal nodes, the counterpart to
                              intermediate_nodes_children: each entry is (parent node, (child, return slot)), a single
                              child plus its return slot rather than a pair."]
-                nonterminal_nodes_children: Vec<(SPPFNodeId, (SPPFNodeId, SlotId))>,
+                nonterminal_nodes_children: AVec<(SPPFNodeId, (SPPFNodeId, SlotId)), &'arena Bump>,
                 #[comment = "nonterminal_nodes_children grouped by parent node, built lazily like
                              intermediate_nodes_children_map."]
                 nonterminal_nodes_children_map: OnceCell<FxHashMap<SPPFNodeId, Vec<(SPPFNodeId, SlotId)>>>,
             }
         };
         quote! {
-            pub struct #parser_name_ident<'i> {
+            pub struct #parser_name_ident<'i, 'arena> {
                 start_nonterminal: NonterminalId,
-                scanner: #scanner_name_ident<'i>,
-                descriptors: Vec<Descriptor>,
-                gss_nodes: Vec<GSSNode>,
+                #[comment = "Arena backing the parser's internal collections; reset in bulk after the parse."]
+                vec_arena: &'arena Bump,
+                scanner: #scanner_ty,
+                descriptors: AVec<Descriptor, &'arena Bump>,
+                gss_nodes: AVec<GSSNode<'arena>, &'arena Bump>,
                 #[comment = "Per-nonterminal GSS-node index keyed by input position."]
-                gss_nodes_index: [InlineMap<u32, GssNodeId>; #nonterminal_ids_len],
+                gss_nodes_index: [InlineMap<'arena, u32, GssNodeId>; #nonterminal_ids_len],
                 #(#gss_nodes_index_fields,)*
-                sppf_nodes: Vec<SPPFNode>,
+                sppf_nodes: AVec<SPPFNode, &'arena Bump>,
                 #[cfg(feature = "instrument")]
                 descriptors_count: usize,
                 #[cfg(feature = "instrument")]
@@ -1203,8 +1244,8 @@ impl<'a> ParserGen<'a> {
                 #sppf_nodes_index_fields
                 #epsilon_nodes_field
                 #children_fields
-                envs: Vec<Env>,
-                parse_errors: InlineVec<ParseError, 8>,
+                envs: AVec<Env<'arena>, &'arena Bump>,
+                parse_errors: InlineVec<'arena, ParseError, 8>,
                 #layout_memo_field
                 #[cfg(feature = "debug-trace")]
                 pub trace_events: Option<Vec<TraceEvent>>,
@@ -1736,7 +1777,8 @@ impl<'a> ParserGen<'a> {
     fn gen_add_gss_node_method() -> TokenStream {
         quote! {
             fn add_gss_node(&mut self, nonterminal_id: NonterminalId, input_index: u32, gss_node_id: GssNodeId) {
-                self.gss_nodes_index[nonterminal_id.index()].insert(input_index, gss_node_id);
+                let arena = self.vec_arena;
+                self.gss_nodes_index[nonterminal_id.index()].insert(input_index, gss_node_id, arena);
             }
         }
     }
@@ -1759,7 +1801,8 @@ impl<'a> ParserGen<'a> {
             .collect();
         quote! {
             fn #method_name(&mut self, input_index: u32, #(#parameters,)* gss_node_id: GssNodeId) {
-                self.#field_name.insert((input_index, #(#parameter_names),*), gss_node_id);
+                let arena = self.vec_arena;
+                self.#field_name.insert((input_index, #(#parameter_names),*), gss_node_id, arena);
             }
         }
     }
@@ -1778,7 +1821,7 @@ impl<'a> ParserGen<'a> {
 
     fn gen_gss_node_method() -> TokenStream {
         quote! {
-            fn gss_node(&self, id: GssNodeId) -> &GSSNode {
+            fn gss_node(&self, id: GssNodeId) -> &GSSNode<'arena> {
                 &self.gss_nodes[id.index()]
             }
         }
@@ -1786,7 +1829,7 @@ impl<'a> ParserGen<'a> {
 
     fn gen_gss_node_mut_method() -> TokenStream {
         quote! {
-            fn gss_node_mut(&mut self, id: GssNodeId) -> &mut GSSNode {
+            fn gss_node_mut(&mut self, id: GssNodeId) -> &mut GSSNode<'arena> {
                 self.gss_nodes.get_mut(id.index()).expect("GSS node id should be valid")
             }
         }
@@ -1864,8 +1907,9 @@ impl<'a> ParserGen<'a> {
             quote! {}
         } else {
             quote! {
+                let arena = self.vec_arena;
                 self.terminal_nodes_index[terminal_node.terminal_id.index()]
-                    .insert(terminal_node.span, terminal_node_id);
+                    .insert(terminal_node.span, terminal_node_id, arena);
             }
         };
         quote! {
@@ -1906,14 +1950,15 @@ impl<'a> ParserGen<'a> {
                 quote! { add_to_index },
                 quote! {
                     if add_to_index {
+                        let arena = self.vec_arena;
                         let slot_idx = intermediate_node.slot_id.index();
                         if slot_idx < #dd_slot_start_lit {
                             self.intermediate_nodes_index[slot_idx]
-                                .insert(intermediate_node.span, intermediate_node_id);
+                                .insert(intermediate_node.span, intermediate_node_id, arena);
                         } else {
                             let idx = slot_idx - #dd_slot_start_lit;
                             self.dd_intermediate_nodes_index[idx]
-                                .insert((intermediate_node.span, env), intermediate_node_id);
+                                .insert((intermediate_node.span, env), intermediate_node_id, arena);
                         }
                     }
                 },
@@ -2058,7 +2103,10 @@ impl<'a> ParserGen<'a> {
 
     fn gen_gss_nodes_method() -> TokenStream {
         quote! {
-            fn gss_nodes(&self) -> impl Iterator<Item = &GSSNode> {
+            fn gss_nodes<'p>(&'p self) -> impl Iterator<Item = &'p GSSNode<'arena>>
+            where
+                'arena: 'p,
+            {
                 self.gss_nodes.iter()
             }
         }
@@ -2170,7 +2218,7 @@ impl<'a> ParserGen<'a> {
                 let const_name = binding_const_ident(&p.name);
                 let value = format_ident!("{}", p.name);
                 quote! {
-                    env.bind(#const_name, #value);
+                    env.bind(#const_name, #value, arena);
                 }
             })
             .collect();
@@ -2209,6 +2257,7 @@ impl<'a> ParserGen<'a> {
                     let new_gss_node_id = self.new_gss_node(NonterminalId(#id), i);
                     self.add_gss_edge(new_gss_node_id, gss_node_id, sppf_node_id, return_slot, env, binding);
                     // Create a new environment to bind the parameter.
+                    let arena = self.vec_arena;
                     let (env_id, env) = self.new_env();
                     #(#bindings)*
                     self.add_first_descriptors(NonterminalId(#id), i, new_gss_node_id, Some(env_id));
@@ -2224,7 +2273,7 @@ impl<'a> ParserGen<'a> {
         let comment = format!("GSS index for nonterminal {}", nt.name);
         quote! {
             #[comment = #comment]
-            #field_name: InlineMap<(u32, #(#types),*), GssNodeId>
+            #field_name: InlineMap<'arena, (u32, #(#types),*), GssNodeId>
         }
     }
 
@@ -2258,11 +2307,12 @@ impl<'a> ParserGen<'a> {
                     .iter()
                     .map(|p| {
                         let const_name = binding_const_ident(&p.name);
-                        quote! { env.bind(#const_name, 0); }
+                        quote! { env.bind(#const_name, 0, arena); }
                     })
                     .collect();
                 quote! {
                     #id => {
+                        let arena = self.vec_arena;
                         let (env_id, env) = self.new_env();
                         #(#bindings)*
                         Some(env_id)
@@ -2349,7 +2399,7 @@ impl<'a> ParserGen<'a> {
 
     fn gen_new_env_method() -> TokenStream {
         quote! {
-            fn new_env(&mut self) -> (EnvId, &mut Env) {
+            fn new_env(&mut self) -> (EnvId, &mut Env<'arena>) {
                 let id = EnvId(self.envs.len() as u32);
                 self.envs.push(Env::default());
                 (id, &mut self.envs[id.index()])
@@ -2368,7 +2418,7 @@ impl<'a> ParserGen<'a> {
 
     fn gen_clone_env() -> TokenStream {
         quote! {
-            fn clone_env(&mut self, source: EnvId) -> (EnvId, &mut Env) {
+            fn clone_env(&mut self, source: EnvId) -> (EnvId, &mut Env<'arena>) {
                 let bindings = self.envs[source.0 as usize].bindings.clone();
                 let (new_id, new_env) = self.new_env();
                 new_env.bindings = bindings;
@@ -2379,7 +2429,7 @@ impl<'a> ParserGen<'a> {
 
     fn gen_envs_method() -> TokenStream {
         quote! {
-            fn envs(&self) -> &[Env] {
+            fn envs(&self) -> &[Env<'arena>] {
                 &self.envs
             }
         }

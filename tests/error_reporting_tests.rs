@@ -1,10 +1,10 @@
 use iguana_runtime::input::Input;
-use iguana_runtime::parse_tree::ParseContext;
+use iguana_runtime::parse_tree::Bump;
 
 fn parse_error(source: &str) -> String {
     let input = Input::from(source);
-    let ctx = ParseContext::new();
-    match iggy::parse_grammar(&input, &ctx) {
+    let tree_arena = Bump::new();
+    match iggy::parse_grammar(&input, &tree_arena) {
         Err(e) => e.message,
         Ok(_) => panic!("expected parse error"),
     }

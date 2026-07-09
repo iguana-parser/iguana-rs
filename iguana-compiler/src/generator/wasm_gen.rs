@@ -20,7 +20,7 @@ pub fn generate(grammar: &Grammar) -> TokenStream {
         use iguana_runtime::{
             Instant,
             input::Input,
-            parse_tree::ParseContext,
+            parse_tree::Bump,
             parser::{ParseResult, Parser},
         };
         use #grammar_name::{
@@ -42,9 +42,10 @@ pub fn generate(grammar: &Grammar) -> TokenStream {
                 .ok_or_else(|| JsError::new(&format!("unknown start nonterminal: {start}")))?;
 
             let input = Input::from(input);
-            let ctx = ParseContext::new();
-            let parse_tree_builder = #parse_tree_builder::new(&ctx);
-            let mut parser = #parser::new(&input, start_nonterminal_id);
+            let tree_arena = Bump::new();
+            let parse_tree_builder = #parse_tree_builder::new(&tree_arena);
+            let vec_arena = Bump::new();
+            let mut parser = #parser::new(&input, start_nonterminal_id, &vec_arena);
             match parser.run() {
                 ParseResult::Success(success) => {
                     let tree_start = Instant::now();

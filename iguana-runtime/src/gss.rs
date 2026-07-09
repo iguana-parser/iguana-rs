@@ -1,5 +1,5 @@
-use serde::{Deserialize, Serialize};
-use specta::Type;
+use bumpalo::Bump;
+use serde::Serialize;
 
 use crate::{
     env::EnvId,
@@ -14,20 +14,18 @@ use crate::{
 /// in different maps.
 pub type PoppedElementKey = (u32, Option<i32>);
 
-#[derive(Debug, Serialize, Deserialize, Type)]
-pub struct GSSNode {
+#[derive(Debug, Serialize)]
+pub struct GSSNode<'arena> {
     pub id: GssNodeId,
     pub nonterminal_id: NonterminalId,
     pub index: u32,
     #[serde(skip)]
-    #[specta(skip)]
-    edges: InlineVec<GSSEdge, 16>,
+    edges: InlineVec<'arena, GSSEdge, 16>,
     #[serde(skip)]
-    #[specta(skip)]
-    popped_elements: InlineMap<PoppedElementKey, SPPFNodeId>,
+    popped_elements: InlineMap<'arena, PoppedElementKey, SPPFNodeId>,
 }
 
-impl GSSNode {
+impl<'arena> GSSNode<'arena> {
     pub fn new(id: GssNodeId, nonterminal_id: NonterminalId, index: u32) -> Self {
         Self {
             id,
@@ -38,8 +36,8 @@ impl GSSNode {
         }
     }
 
-    pub fn add_edge(&mut self, gss_edge: GSSEdge) {
-        self.edges.push(gss_edge);
+    pub fn add_edge(&mut self, gss_edge: GSSEdge, arena: &'arena Bump) {
+        self.edges.push(gss_edge, arena);
     }
 
     pub fn insert_popped_element(
@@ -47,9 +45,10 @@ impl GSSNode {
         right_extent: u32,
         return_value: Option<i32>,
         nonterminal_node_id: SPPFNodeId,
+        arena: &'arena Bump,
     ) {
         self.popped_elements
-            .insert((right_extent, return_value), nonterminal_node_id);
+            .insert((right_extent, return_value), nonterminal_node_id, arena);
     }
 
     pub fn find_popped_element(
@@ -67,20 +66,20 @@ impl GSSNode {
             .is_some()
     }
 
-    pub fn popped_elements(&self) -> &InlineMap<PoppedElementKey, SPPFNodeId> {
+    pub fn popped_elements(&self) -> &InlineMap<'arena, PoppedElementKey, SPPFNodeId> {
         &self.popped_elements
     }
 
-    pub fn popped_elements_mut(&mut self) -> &mut InlineMap<PoppedElementKey, SPPFNodeId> {
+    pub fn popped_elements_mut(&mut self) -> &mut InlineMap<'arena, PoppedElementKey, SPPFNodeId> {
         &mut self.popped_elements
     }
 
-    pub fn edges(&self) -> &InlineVec<GSSEdge, 16> {
+    pub fn edges(&self) -> &InlineVec<'arena, GSSEdge, 16> {
         &self.edges
     }
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Copy, Debug)]
 pub struct GSSEdge {
     sppf_node_id: SPPFNodeId,
     pub return_slot: SlotId,

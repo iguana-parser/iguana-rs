@@ -36,7 +36,7 @@ pub struct BenchSummary {
 
 /// Per-iteration phase breakdown. Total wall time is the sum of all phases.
 ///   - `input`: file read + line/column offset table construction
-///   - `init`: ParseContext + parse tree builder + Parser allocation
+///   - `init`: arenas + parse tree builder + Parser allocation
 ///   - `parse`: the GLL parse itself
 ///   - `tree`: SPPF → parse tree extraction
 ///   - `drop`: teardown of all the above
@@ -215,7 +215,7 @@ fn ms_decimals(max: f64) -> usize {
 pub fn group_digits(digits: &str) -> String {
     let mut out = String::with_capacity(digits.len() + digits.len() / 3);
     for (i, c) in digits.chars().enumerate() {
-        if i > 0 && (digits.len() - i) % 3 == 0 {
+        if i > 0 && (digits.len() - i).is_multiple_of(3) {
             out.push(',');
         }
         out.push(c);

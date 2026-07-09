@@ -68,20 +68,23 @@ impl ToDot for SPPF {
     }
 }
 
-pub fn build_sppf_graph<'i>(parser: &impl Parser<'i>, start_node: SPPFNodeId) -> SPPF {
+pub fn build_sppf_graph<'i, 'arena>(
+    parser: &impl Parser<'i, 'arena>,
+    start_node: SPPFNodeId,
+) -> SPPF {
     SPPFGraphBuilder::new(parser).build(start_node)
 }
 
-struct SPPFGraphBuilder<'a, P> {
-    parser: &'a P,
+struct SPPFGraphBuilder<'p, P> {
+    parser: &'p P,
     nodes: Vec<SPPFDotNode>,
     edges: Vec<SPPFDotEdge>,
     visited_nodes: FxHashSet<SPPFNodeId>,
     current_packed_node_id: usize,
 }
 
-impl<'a, 'i, P: Parser<'i>> SPPFGraphBuilder<'a, P> {
-    fn new(parser: &'a P) -> Self {
+impl<'p, 'i, 'arena, P: Parser<'i, 'arena>> SPPFGraphBuilder<'p, P> {
+    fn new(parser: &'p P) -> Self {
         Self {
             parser,
             nodes: vec![],

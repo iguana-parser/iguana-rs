@@ -40,7 +40,7 @@ pub fn generate(grammar: &Grammar, unsafe_mode: bool) -> TokenStream {
         use std::time::Duration;
         use iguana_runtime::{
             input::Input,
-            parse_tree::ParseContext,
+            parse_tree::Bump,
             parser::{ParseResult, Parser},
         };
         use parse_tree::*;
@@ -95,14 +95,24 @@ fn gen_parse_method(
 
     let return_type = nonterminal_type(grammar, target_nt, unsafe_mode);
 
+    let parse_doc = format!(" Parses `input` starting from `{}`.", nt.name);
+
     quote! {
-        pub fn #fn_name<'a>(input: &Input, ctx: &'a ParseContext) -> std::result::Result<ParseSuccess<&'a #return_type>, ParseError> {
-            let mut parser = #parser::new(input, grammar_data::#nt_const);
+        #[doc = #parse_doc]
+        #[doc = ""]
+        #[doc = " `tree_arena` holds the constructed parse tree: the returned tree borrows it"]
+        #[doc = " and lives until the arena is reset or dropped. Once the tree goes out of"]
+        #[doc = " scope, the arena can be reset with `tree_arena.reset()` and reused for the"]
+        #[doc = " next parse; that is the pattern for repeated parsing, as in an editor or a"]
+        #[doc = " benchmark loop."]
+        pub fn #fn_name<'a>(input: &Input, tree_arena: &'a Bump) -> std::result::Result<ParseSuccess<&'a #return_type>, ParseError> {
+            let vec_arena = Bump::new();
+            let mut parser = #parser::new(input, grammar_data::#nt_const, &vec_arena);
             match parser.run() {
                 ParseResult::Success(success) => {
                     let parse_duration = success.duration;
                     let tree_start = iguana_runtime::Instant::now();
-                    let parse_tree_builder = #parse_tree_builder::new(ctx);
+                    let parse_tree_builder = #parse_tree_builder::new(tree_arena);
                     let tree = parse_tree::#create_fn(success.sppf_node_id, &parser, &parse_tree_builder);
                     let tree_construction_duration = tree_start.elapsed();
                     let ambiguity_node_added = parser.ambiguity_node_added();

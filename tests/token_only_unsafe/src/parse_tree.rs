@@ -5,8 +5,8 @@ use iguana_runtime::{
     ids::{NonterminalId, SlotId, TerminalId},
     input::Span,
     parse_tree::{
-        Bump, NodeKind, OneOrMany, Origin, ParseContext, ParseTreeBuilder, ParseTreeNode,
-        SexprOptions, visit_sppf,
+        Bump, NodeKind, OneOrMany, Origin, ParseTreeBuilder, ParseTreeNode, SexprOptions,
+        visit_sppf,
     },
     sppf::{NonterminalNode, SPPFNodeId, TerminalNode},
 };
@@ -83,14 +83,14 @@ impl<'a> ParseTree<'a> {
             ParseTree::Token(token) => token.span(),
         }
     }
-    #[doc = "Always false: the unsafe mode produces no ambiguity nodes, and its"]
-    #[doc = "nonterminal types have no `Amb` variant."]
+    ///Always false: the unsafe mode produces no ambiguity nodes, and its
+    ///nonterminal types have no `Amb` variant.
     pub fn is_amb(&self) -> bool {
         false
     }
-    #[doc = "Always `None`: node identity exists to detect sharing in an ambiguity"]
-    #[doc = "DAG, and the unsafe mode builds a tree with no shared nodes. `None`"]
-    #[doc = "also lets the s-expression and JSON renderers skip their sharing maps."]
+    ///Always `None`: node identity exists to detect sharing in an ambiguity
+    ///DAG, and the unsafe mode builds a tree with no shared nodes. `None`
+    ///also lets the s-expression and JSON renderers skip their sharing maps.
     pub fn node_id(&self) -> Option<usize> {
         None
     }
@@ -357,11 +357,11 @@ fn token_kind(terminal_id: TerminalId) -> TokenKind {
     }
 }
 pub struct TokenOnlyUnsafeParseTreeBuilder<'a> {
-    pub bump: &'a Bump,
+    pub arena: &'a Bump,
 }
 impl<'a> TokenOnlyUnsafeParseTreeBuilder<'a> {
-    pub fn new(ctx: &'a ParseContext) -> Self {
-        Self { bump: ctx.bump() }
+    pub fn new(tree_arena: &'a Bump) -> Self {
+        Self { arena: tree_arena }
     }
 }
 impl<'a> ParseTreeBuilder<ParseTree<'a>> for TokenOnlyUnsafeParseTreeBuilder<'a> {
@@ -376,7 +376,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for TokenOnlyUnsafeParseTreeBuilder<'a>
                 // S : Mod WS Empty WS Tag.
                 SlotId(5) => {
                     let [r#mod, ws_1, empty, ws_3, tag] = children.into_array::<5usize>();
-                    ParseTree::S(self.bump.alloc(S::Alt0 {
+                    ParseTree::S(self.arena.alloc(S::Alt0 {
                         r#mod: r#mod.unwrap_mod(),
                         ws_1: ws_1.unwrap_token(),
                         empty: empty.unwrap_empty(),
@@ -392,7 +392,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for TokenOnlyUnsafeParseTreeBuilder<'a>
                 // Mod : "public".
                 SlotId(7) => {
                     let [lit_0] = children.into_array::<1usize>();
-                    ParseTree::Mod(self.bump.alloc(Mod::Alt0 {
+                    ParseTree::Mod(self.arena.alloc(Mod::Alt0 {
                         lit_0: lit_0.unwrap_token(),
                         span: nonterminal_node.span,
                     }))
@@ -400,7 +400,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for TokenOnlyUnsafeParseTreeBuilder<'a>
                 // Mod : "static".
                 SlotId(9) => {
                     let [lit_0] = children.into_array::<1usize>();
-                    ParseTree::Mod(self.bump.alloc(Mod::Alt1 {
+                    ParseTree::Mod(self.arena.alloc(Mod::Alt1 {
                         lit_0: lit_0.unwrap_token(),
                         span: nonterminal_node.span,
                     }))
@@ -412,7 +412,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for TokenOnlyUnsafeParseTreeBuilder<'a>
                 // Empty : .
                 SlotId(10) => {
                     let [] = children.into_array::<0usize>();
-                    ParseTree::Empty(self.bump.alloc(Empty::Alt0 {
+                    ParseTree::Empty(self.arena.alloc(Empty::Alt0 {
                         span: nonterminal_node.span,
                     }))
                 }
@@ -423,7 +423,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for TokenOnlyUnsafeParseTreeBuilder<'a>
                 // Tag : Id.
                 SlotId(12) => {
                     let [id] = children.into_array::<1usize>();
-                    ParseTree::Tag(self.bump.alloc(Tag::Alt0 {
+                    ParseTree::Tag(self.arena.alloc(Tag::Alt0 {
                         id: id.unwrap_token(),
                         span: nonterminal_node.span,
                     }))

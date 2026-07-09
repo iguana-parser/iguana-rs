@@ -1,4 +1,6 @@
-use crate::{dfa::Dfa, ids::TerminalId, utils::inline_map::InlineMap};
+use bumpalo::Bump;
+
+use crate::{dfa::Dfa, ids::TerminalId, utils::AVec, utils::inline_map::InlineMap};
 
 pub struct Token {
     pub token_type: TerminalId,
@@ -19,12 +21,12 @@ pub enum Lookup {
 }
 
 /// Per-position memo cell.
-pub struct MatchMemoEntry<const W: usize> {
+pub struct MatchMemoEntry<'arena, const W: usize> {
     tried: [u64; W],
-    matched: InlineMap<TerminalId, u32>,
+    matched: InlineMap<'arena, TerminalId, u32>,
 }
 
-impl<const W: usize> Default for MatchMemoEntry<W> {
+impl<'arena, const W: usize> Default for MatchMemoEntry<'arena, W> {
     fn default() -> Self {
         Self {
             tried: [0; W],
@@ -33,7 +35,7 @@ impl<const W: usize> Default for MatchMemoEntry<W> {
     }
 }
 
-impl<const W: usize> MatchMemoEntry<W> {
+impl<'arena, const W: usize> MatchMemoEntry<'arena, W> {
     fn is_tried(&self, terminal: TerminalId) -> bool {
         let i = terminal.index();
         self.tried[i / 64] & (1u64 << (i % 64)) != 0
@@ -59,13 +61,13 @@ impl<const W: usize> MatchMemoEntry<W> {
 ///
 /// Terminal matches are pure functions of `(terminal, position)`, so each
 /// pair is computed at most once and reused across the parse.
-pub struct MatchMemo<const W: usize> {
-    entries: Vec<MatchMemoEntry<W>>,
+pub struct MatchMemo<'arena, const W: usize> {
+    entries: AVec<MatchMemoEntry<'arena, W>, &'arena Bump>,
 }
 
-impl<const W: usize> MatchMemo<W> {
-    pub fn new(input_len: usize) -> Self {
-        let mut entries = Vec::with_capacity(input_len + 1);
+impl<'arena, const W: usize> MatchMemo<'arena, W> {
+    pub fn new(input_len: usize, arena: &'arena Bump) -> Self {
+        let mut entries = AVec::with_capacity_in(input_len + 1, arena);
         entries.resize_with(input_len + 1, MatchMemoEntry::default);
         Self { entries }
     }
@@ -74,10 +76,16 @@ impl<const W: usize> MatchMemo<W> {
         self.entries[position as usize].lookup(terminal)
     }
 
-    pub fn insert_match(&mut self, terminal: TerminalId, position: u32, end: u32) {
+    pub fn insert_match(
+        &mut self,
+        terminal: TerminalId,
+        position: u32,
+        end: u32,
+        arena: &'arena Bump,
+    ) {
         let entry = &mut self.entries[position as usize];
         entry.set_tried(terminal);
-        entry.matched.insert(terminal, end);
+        entry.matched.insert(terminal, end, arena);
     }
 
     pub fn insert_fail(&mut self, terminal: TerminalId, position: u32) {
@@ -113,13 +121,13 @@ impl<const W: usize> Default for MatchAnyMemoEntry<W> {
 /// each set is computed at most once per position and reused across the parse.
 /// Set ids are assigned by content at code generation, so two sets with the
 /// same terminals share a memo bit.
-pub struct MatchAnyMemo<const W: usize> {
-    entries: Vec<MatchAnyMemoEntry<W>>,
+pub struct MatchAnyMemo<'arena, const W: usize> {
+    entries: AVec<MatchAnyMemoEntry<W>, &'arena Bump>,
 }
 
-impl<const W: usize> MatchAnyMemo<W> {
-    pub fn new(input_len: usize) -> Self {
-        let mut entries = Vec::with_capacity(input_len + 1);
+impl<'arena, const W: usize> MatchAnyMemo<'arena, W> {
+    pub fn new(input_len: usize, arena: &'arena Bump) -> Self {
+        let mut entries = AVec::with_capacity_in(input_len + 1, arena);
         entries.resize_with(input_len + 1, MatchAnyMemoEntry::default);
         Self { entries }
     }

@@ -194,7 +194,7 @@ impl<'a> ParseTreeGen<'a> {
                 ids::{NonterminalId, SlotId, TerminalId},
                 input::Span,
                 parse_tree::{
-                    Bump, NodeKind, OneOrMany, Origin, ParseContext, ParseTreeBuilder, ParseTreeNode,
+                    Bump, NodeKind, OneOrMany, Origin, ParseTreeBuilder, ParseTreeNode,
                     SexprOptions, visit_sppf,
                 },
                 sppf::{NonterminalNode, SPPFNodeId, TerminalNode},
@@ -720,11 +720,11 @@ impl<'a> ParseTreeGen<'a> {
         let new_ambiguity_node_method = self.gen_new_ambiguity_node_method();
         quote! {
             pub struct #builder_name_ident<'a> {
-                pub bump: &'a Bump,
+                pub arena: &'a Bump,
             }
             impl<'a> #builder_name_ident<'a> {
-                pub fn new(ctx: &'a ParseContext) -> Self {
-                    Self { bump: ctx.bump() }
+                pub fn new(tree_arena: &'a Bump) -> Self {
+                    Self { arena: tree_arena }
                 }
             }
             impl<'a> ParseTreeBuilder<ParseTree<'a>> for #builder_name_ident<'a> {
@@ -759,10 +759,10 @@ impl<'a> ParseTreeGen<'a> {
                 let unwrap_method = format_ident!("unwrap_{}", to_snake_case(&n.name));
                 quote! {
                     crate::grammar_data::#const_name => {
-                        let slice = self.bump.alloc_slice_fill_iter(
+                        let slice = self.arena.alloc_slice_fill_iter(
                             alternatives.into_iter().map(|a| a.#unwrap_method())
                         );
-                        ParseTree::#variant(self.bump.alloc(#variant::Amb(slice)))
+                        ParseTree::#variant(self.arena.alloc(#variant::Amb(slice)))
                     }
                 }
             })
@@ -826,7 +826,7 @@ impl<'a> ParseTreeGen<'a> {
                             let node = &method_calls[1];
                             let after = &method_calls[2];
                             quote! {
-                                ParseTree::#parse_tree_variant(self.bump.alloc(Start {
+                                ParseTree::#parse_tree_variant(self.arena.alloc(Start {
                                     before: #before,
                                     node: #node,
                                     after: #after,
@@ -839,7 +839,7 @@ impl<'a> ParseTreeGen<'a> {
                                 Span::call_site()
                             );
                             quote! {
-                                ParseTree::#parse_tree_variant(self.bump.alloc(#nonterminal_type::#variant {
+                                ParseTree::#parse_tree_variant(self.arena.alloc(#nonterminal_type::#variant {
                                     #(#field_names: #method_calls,)*
                                     span: nonterminal_node.span,
                                 }))

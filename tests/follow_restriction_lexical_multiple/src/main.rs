@@ -12,7 +12,7 @@ use iguana_runtime::{
     cli,
     ids::NonterminalId,
     input::Input,
-    parse_tree::{ParseContext, SexprOptions, is_ambiguous},
+    parse_tree::{Bump, SexprOptions, is_ambiguous},
     parser::{ParseResult, Parser},
     visualization::{dot::write_graph, gss::build_gss_dot_graph, sppf::build_sppf_graph},
 };
@@ -68,7 +68,7 @@ struct Cli {
     /// Without it, all files are parsed
     #[arg(long, value_name = "EXT", requires = "dir", help_heading = "Parsing")]
     ext: Option<String>,
-    #[doc = "Run the FollowRestrictionLexicalMultiple parser in REPL mode"]
+    ///Run the FollowRestrictionLexicalMultiple parser in REPL mode
     ///
     /// Reads inputs from stdin and prints each parse tree. Requires --nonterminal; no input file is used
     #[arg(long, help_heading = "Parsing")]
@@ -368,11 +368,15 @@ fn main() -> Result<(), io::Error> {
             args.full_diff,
             |path| {
                 let input = Input::try_from(path)?;
-                let ctx = ParseContext::new();
+                let tree_arena = Bump::new();
                 let parse_tree_builder =
-                    FollowRestrictionLexicalMultipleParseTreeBuilder::new(&ctx);
-                let mut parser =
-                    FollowRestrictionLexicalMultipleParser::new(&input, start_nonterminal_id);
+                    FollowRestrictionLexicalMultipleParseTreeBuilder::new(&tree_arena);
+                let vec_arena = Bump::new();
+                let mut parser = FollowRestrictionLexicalMultipleParser::new(
+                    &input,
+                    start_nonterminal_id,
+                    &vec_arena,
+                );
                 let content = match parser.run() {
                     ParseResult::Success(success) => {
                         let tree = create_parse_tree(
@@ -429,6 +433,7 @@ fn main() -> Result<(), io::Error> {
         }
         let mut ran = 0usize;
         let mut passed = 0usize;
+        let mut vec_arena = Bump::new();
         for entry in &entries {
             if let Some(name) = only {
                 if entry.name != name {
@@ -466,12 +471,15 @@ fn main() -> Result<(), io::Error> {
                             };
                         }
                     };
-                    let mut parser =
-                        FollowRestrictionLexicalMultipleParser::new(&input, start_nonterminal_id);
+                    let mut parser = FollowRestrictionLexicalMultipleParser::new(
+                        &input,
+                        start_nonterminal_id,
+                        &vec_arena,
+                    );
                     let start = Instant::now();
                     let result = parser.run();
                     let ms = start.elapsed().as_secs_f64() * 1000.0;
-                    match result {
+                    let outcome = match result {
                         ParseResult::Success(success) => cli::CorpusOutcome::Ok {
                             ms,
                             ambiguous: is_ambiguous(&parser, success.sppf_node_id),
@@ -488,7 +496,10 @@ fn main() -> Result<(), io::Error> {
                                 ),
                             }
                         }
-                    }
+                    };
+                    drop(parser);
+                    vec_arena.reset();
+                    outcome
                 },
             )?;
             if report.passed {
@@ -552,9 +563,16 @@ fn main() -> Result<(), io::Error> {
                 },
             );
             let file_path = file.clone();
+            let mut tree_arena = Bump::new();
+            let mut vec_arena = Bump::new();
             return cli::run_benchmark(config, move || {
-                bench_parse_file(&file_path, start_nonterminal_id)
-                    .expect("benchmark input could not be read, failed to parse, or is ambiguous")
+                bench_parse_file(
+                    &file_path,
+                    start_nonterminal_id,
+                    &mut tree_arena,
+                    &mut vec_arena,
+                )
+                .expect("benchmark input could not be read, failed to parse, or is ambiguous")
             });
         }
         let config = cli::BenchConfig {
@@ -649,6 +667,8 @@ fn main() -> Result<(), io::Error> {
             .max()
             .unwrap_or(0);
         let mut pass = 0usize;
+        let mut tree_arena = Bump::new();
+        let mut vec_arena = Bump::new();
         return cli::run_benchmark(config, move || {
             if pass > 0 {
                 eprintln!();
@@ -678,7 +698,12 @@ fn main() -> Result<(), io::Error> {
                 let _ = io::stderr().flush();
                 let mut source_time = Duration::ZERO;
                 for (path, start_nonterminal_id) in files {
-                    if let Some(t) = bench_parse_file(path, *start_nonterminal_id) {
+                    if let Some(t) = bench_parse_file(
+                        path,
+                        *start_nonterminal_id,
+                        &mut tree_arena,
+                        &mut vec_arena,
+                    ) {
                         input += t.input;
                         init += t.init;
                         parse += t.parse;
@@ -741,10 +766,15 @@ fn main() -> Result<(), io::Error> {
         };
         cli::run_repl(sexpr_options, |text, sexpr_options| {
             let input = Input::from(text);
-            let ctx = ParseContext::new();
-            let parse_tree_builder = FollowRestrictionLexicalMultipleParseTreeBuilder::new(&ctx);
-            let mut parser =
-                FollowRestrictionLexicalMultipleParser::new(&input, start_nonterminal_id);
+            let tree_arena = Bump::new();
+            let parse_tree_builder =
+                FollowRestrictionLexicalMultipleParseTreeBuilder::new(&tree_arena);
+            let vec_arena = Bump::new();
+            let mut parser = FollowRestrictionLexicalMultipleParser::new(
+                &input,
+                start_nonterminal_id,
+                &vec_arena,
+            );
             match parser.run() {
                 ParseResult::Success(success) => {
                     let node_id = success.sppf_node_id;
@@ -801,10 +831,15 @@ fn main() -> Result<(), io::Error> {
             .build()
             .unwrap();
         for _ in 0..iterations {
-            let ctx = ParseContext::new();
-            let parse_tree_builder = FollowRestrictionLexicalMultipleParseTreeBuilder::new(&ctx);
-            let mut parser =
-                FollowRestrictionLexicalMultipleParser::new(&input, start_nonterminal_id);
+            let tree_arena = Bump::new();
+            let parse_tree_builder =
+                FollowRestrictionLexicalMultipleParseTreeBuilder::new(&tree_arena);
+            let vec_arena = Bump::new();
+            let mut parser = FollowRestrictionLexicalMultipleParser::new(
+                &input,
+                start_nonterminal_id,
+                &vec_arena,
+            );
             let result = parser.run();
             if let ParseResult::Success(success) = result {
                 let _ = create_parse_tree(
@@ -827,13 +862,15 @@ fn main() -> Result<(), io::Error> {
             "Warning: --profile flag ignored. Recompile with `--features profile` to enable profiling."
         );
     }
-    let ctx = ParseContext::new();
-    let mut parser = FollowRestrictionLexicalMultipleParser::new(&input, start_nonterminal_id);
+    let tree_arena = Bump::new();
+    let vec_arena = Bump::new();
+    let mut parser =
+        FollowRestrictionLexicalMultipleParser::new(&input, start_nonterminal_id, &vec_arena);
     #[cfg(feature = "debug-trace")]
     if args.trace.is_some() {
         parser.trace_events = Some(vec![]);
     }
-    let parse_tree_builder = FollowRestrictionLexicalMultipleParseTreeBuilder::new(&ctx);
+    let parse_tree_builder = FollowRestrictionLexicalMultipleParseTreeBuilder::new(&tree_arena);
     let result = parser.run();
     #[cfg(feature = "debug-trace")]
     if let Some(ref trace_events) = parser.trace_events {
@@ -1020,9 +1057,11 @@ fn run_batch(
         let input_ms = input_start.elapsed().as_secs_f64() * 1000.0;
         let bytes = input.len() as u64;
         let init_start = Instant::now();
-        let ctx = ParseContext::new();
-        let parse_tree_builder = FollowRestrictionLexicalMultipleParseTreeBuilder::new(&ctx);
-        let mut parser = FollowRestrictionLexicalMultipleParser::new(&input, start_nonterminal_id);
+        let tree_arena = Bump::new();
+        let parse_tree_builder = FollowRestrictionLexicalMultipleParseTreeBuilder::new(&tree_arena);
+        let vec_arena = Bump::new();
+        let mut parser =
+            FollowRestrictionLexicalMultipleParser::new(&input, start_nonterminal_id, &vec_arena);
         let init_ms = init_start.elapsed().as_secs_f64() * 1000.0;
         match parser.run() {
             ParseResult::Success(success) => {
@@ -1044,7 +1083,8 @@ fn run_batch(
                 let _ = parse_tree_builder;
                 let drop_start = Instant::now();
                 drop(parser);
-                drop(ctx);
+                drop(vec_arena);
+                drop(tree_arena);
                 drop(input);
                 let drop_ms = drop_start.elapsed().as_secs_f64() * 1000.0;
                 let total_ms = input_ms + init_ms + parse_ms + tree_ms + drop_ms;
@@ -1194,27 +1234,37 @@ fn run_batch(
 /// be read, it fails to parse, or it parses ambiguously. A benchmark times
 /// clean single-tree parses, so a whole-corpus run skips the rest rather
 /// than mixing their work in. The input is reloaded so the `input` phase is
-/// measured, and a fresh ParseContext per call keeps the bump arena from
-/// growing across samples, so each measurement is comparable.
-fn bench_parse_file(path: &Path, start_nonterminal_id: NonterminalId) -> Option<cli::PhaseTimings> {
+/// measured. The caller's arenas are reused across files and reset
+/// between them, so they keep their chunks and teardown is a bulk
+/// reset rather than a per-file free, the pattern the arena is built for.
+fn bench_parse_file(
+    path: &Path,
+    start_nonterminal_id: NonterminalId,
+    tree_arena: &mut Bump,
+    vec_arena: &mut Bump,
+) -> Option<cli::PhaseTimings> {
     let input_start = Instant::now();
     let input = Input::try_from(path).ok()?;
     let input_time = input_start.elapsed();
     let bytes = input.len() as u64;
     let init_start = Instant::now();
-    let ctx = ParseContext::new();
-    let parse_tree_builder = FollowRestrictionLexicalMultipleParseTreeBuilder::new(&ctx);
-    let mut parser = FollowRestrictionLexicalMultipleParser::new(&input, start_nonterminal_id);
+    let mut parser =
+        FollowRestrictionLexicalMultipleParser::new(&input, start_nonterminal_id, vec_arena);
     let init = init_start.elapsed();
     let ParseResult::Success(success) = parser.run() else {
+        drop(parser);
+        vec_arena.reset();
         return None;
     };
     let parse = success.duration;
     if is_ambiguous(&parser, success.sppf_node_id) {
+        drop(parser);
+        vec_arena.reset();
         return None;
     }
     let tree_start = Instant::now();
     {
+        let parse_tree_builder = FollowRestrictionLexicalMultipleParseTreeBuilder::new(tree_arena);
         let tree = create_parse_tree(
             success.sppf_node_id,
             start_nonterminal_id,
@@ -1224,10 +1274,10 @@ fn bench_parse_file(path: &Path, start_nonterminal_id: NonterminalId) -> Option<
         std::hint::black_box(tree);
     }
     let tree = tree_start.elapsed();
-    let _ = parse_tree_builder;
     let drop_start = Instant::now();
     drop(parser);
-    drop(ctx);
+    vec_arena.reset();
+    tree_arena.reset();
     drop(input);
     let drop = drop_start.elapsed();
     Some(cli::PhaseTimings {
@@ -1257,9 +1307,9 @@ fn collect_files(dir: &Path, ext: Option<&str>, out: &mut Vec<PathBuf>) -> io::R
     Ok(())
 }
 #[cfg(feature = "debug-trace")]
-fn write_trace_events<'i>(
+fn write_trace_events<'i, 'arena>(
     trace_events: &[TraceEvent],
-    parser: &impl Parser<'i>,
+    parser: &impl Parser<'i, 'arena>,
     trace_option: &Option<Option<PathBuf>>,
     as_json: bool,
 ) -> io::Result<()> {
