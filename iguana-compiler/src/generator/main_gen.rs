@@ -737,13 +737,16 @@ pub fn generate(grammar: &Grammar) -> TokenStream {
                     .build()
                     .unwrap();
 
+                // The arenas are reset per iteration instead of dropped, the
+                // same lifecycle as --benchmark, so the profile measures the
+                // warm-arena work the benchmark times.
+                let mut tree_arena = Bump::new();
+                let mut vec_arena = Bump::new();
                 for _ in 0..iterations {
-                    let tree_arena = Bump::new();
-                    let parse_tree_builder = #parse_tree_builder::new(&tree_arena);
-                    let vec_arena = Bump::new();
                     let mut parser = #parser::new(&input, start_nonterminal_id, &vec_arena);
                     let result = parser.run();
                     if let ParseResult::Success(success) = result {
+                        let parse_tree_builder = #parse_tree_builder::new(&tree_arena);
                         let _ = create_parse_tree(
                             success.sppf_node_id,
                             start_nonterminal_id,
@@ -751,6 +754,9 @@ pub fn generate(grammar: &Grammar) -> TokenStream {
                             &parse_tree_builder,
                         );
                     }
+                    drop(parser);
+                    vec_arena.reset();
+                    tree_arena.reset();
                 }
 
                 let report = guard.report().build().unwrap();

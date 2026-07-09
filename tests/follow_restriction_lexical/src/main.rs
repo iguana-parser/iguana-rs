@@ -822,14 +822,14 @@ fn main() -> Result<(), io::Error> {
             .frequency(999)
             .build()
             .unwrap();
+        let mut tree_arena = Bump::new();
+        let mut vec_arena = Bump::new();
         for _ in 0..iterations {
-            let tree_arena = Bump::new();
-            let parse_tree_builder = FollowRestrictionLexicalParseTreeBuilder::new(&tree_arena);
-            let vec_arena = Bump::new();
             let mut parser =
                 FollowRestrictionLexicalParser::new(&input, start_nonterminal_id, &vec_arena);
             let result = parser.run();
             if let ParseResult::Success(success) = result {
+                let parse_tree_builder = FollowRestrictionLexicalParseTreeBuilder::new(&tree_arena);
                 let _ = create_parse_tree(
                     success.sppf_node_id,
                     start_nonterminal_id,
@@ -837,6 +837,9 @@ fn main() -> Result<(), io::Error> {
                     &parse_tree_builder,
                 );
             }
+            drop(parser);
+            vec_arena.reset();
+            tree_arena.reset();
         }
         let report = guard.report().build().unwrap();
         let file = File::create(&args.profile_output)?;
