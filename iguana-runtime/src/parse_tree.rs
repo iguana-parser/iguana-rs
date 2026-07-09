@@ -135,6 +135,11 @@ impl<T: Debug + Clone> OneOrMany<T> {
 /// followed by an actual DFS from the root. The empty-maps case is a fast
 /// out covering most parses.
 pub fn is_ambiguous<'i, 'arena, P: Parser<'i, 'arena>>(parser: &P, root_id: SPPFNodeId) -> bool {
+    // The unsafe mode records no ambiguity, so the answer is known at
+    // compile time and the walk below is dead code.
+    if P::UNSAFE {
+        return false;
+    }
     if parser.nonterminal_nodes_children_map().is_empty()
         && parser.intermediate_nodes_children_map().is_empty()
     {
@@ -170,7 +175,7 @@ pub fn visit_sppf<'i, 'arena, T: Debug + Clone, P: Parser<'i, 'arena>>(
     // Memoize across the SPPF only when ambiguity is reachable; otherwise
     // each node is visited at most once anyway, and the empty map plus its
     // per-node check would be pure overhead.
-    let mut memo = if is_ambiguous(parser, node_id) {
+    let mut memo = if !P::UNSAFE && is_ambiguous(parser, node_id) {
         Some(FxHashMap::default())
     } else {
         None
@@ -253,7 +258,9 @@ fn build_node<'i, 'arena, T: Debug + Clone, P: Parser<'i, 'arena>>(
         SPPFNode::Nonterminal(n) => {
             let mut results = results.into_iter();
             let children = results.next().unwrap();
-            if n.ambiguous {
+            // The unsafe mode never marks a node ambiguous and never produces
+            // a `Multi`, so the const guards compile both Amb arms out.
+            if !P::UNSAFE && n.ambiguous {
                 // Each remaining result is a separate derivation of this
                 // nonterminal; collect one alternative per derivation.
                 let mut alternatives = create_nonterminal_nodes(children, n, builder);
@@ -272,7 +279,7 @@ fn build_node<'i, 'arena, T: Debug + Clone, P: Parser<'i, 'arena>>(
                     alternatives.extend(create_nonterminal_nodes(derivation, &synthetic, builder));
                 }
                 OneOrMany::One(builder.new_ambiguity_node(n.nonterminal_id, alternatives))
-            } else if matches!(children, OneOrMany::Multi(_)) {
+            } else if !P::UNSAFE && matches!(children, OneOrMany::Multi(_)) {
                 // `Multi` means derivations from an ambiguous intermediate node
                 // below bubbled up and need the same `Amb` wrapping.
                 let alternatives = create_nonterminal_nodes(children, n, builder);
@@ -282,7 +289,7 @@ fn build_node<'i, 'arena, T: Debug + Clone, P: Parser<'i, 'arena>>(
             }
         }
         SPPFNode::Intermediate(i) => {
-            if !i.ambiguous {
+            if P::UNSAFE || !i.ambiguous {
                 let mut results = results.into_iter();
                 let left = results.next().unwrap();
                 let right = results.next().unwrap();

@@ -909,7 +909,9 @@ pub trait Parser<'i, 'arena> {
         match self.sppf_node(node_id) {
             SPPFNode::Terminal(_) => InlineVec::Empty,
             SPPFNode::Nonterminal(n) => {
-                if n.ambiguous {
+                // The unsafe mode never marks a node ambiguous, so the const
+                // guard compiles the ambiguous arm out.
+                if !Self::UNSAFE && n.ambiguous {
                     let extras = self.nonterminal_nodes_children_map().get(&node_id).unwrap();
                     let mut children = AVec::with_capacity_in(1 + extras.len(), arena);
                     children.push(n.child);
@@ -920,7 +922,7 @@ pub trait Parser<'i, 'arena> {
                 }
             }
             SPPFNode::Intermediate(i) => {
-                if i.ambiguous {
+                if !Self::UNSAFE && i.ambiguous {
                     let extras = self
                         .intermediate_nodes_children_map()
                         .get(&node_id)
