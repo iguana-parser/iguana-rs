@@ -188,13 +188,20 @@ impl<'a> ParseTreeGen<'a> {
 
     fn gen_imports(&self) -> TokenStream {
         let parser_name = format_ident!("{}Parser", to_first_uppercase(&self.grammar.name));
+        // The unsafe mode's builder takes children as a slice, so OneOrMany
+        // never appears in its generated code.
+        let one_or_many = if self.config.unsafe_mode {
+            quote! {}
+        } else {
+            quote! { OneOrMany, }
+        };
         quote! {
             use std::vec::IntoIter;
             use iguana_runtime::{
                 ids::{NonterminalId, SlotId, TerminalId},
                 input::Span,
                 parse_tree::{
-                    Bump, NodeKind, OneOrMany, Origin, ParseTreeBuilder, ParseTreeNode,
+                    Bump, NodeKind, #one_or_many Origin, ParseTreeBuilder, ParseTreeNode,
                     SexprOptions, visit_sppf,
                 },
                 sppf::{NonterminalNode, SPPFNodeId, TerminalNode},
@@ -845,10 +852,18 @@ impl<'a> ParseTreeGen<'a> {
                                 }))
                             }
                         };
+                        // In the unsafe mode the children arrive as a slice of
+                        // statically known length; the default mode unpacks the
+                        // OneOrMany the general walker accumulates.
+                        let bind_children = if self.config.unsafe_mode {
+                            quote! { let &[#(#field_names),*] = children else { unreachable!() }; }
+                        } else {
+                            quote! { let [#(#field_names),*] = children.into_array::<#num_symbols>(); }
+                        };
                         quote! {
                             #[comment = #slot_name]
                             #end_slot_id => {
-                                let [#(#field_names),*] = children.into_array::<#num_symbols>();
+                                #bind_children
                                 #construction
                             }
                         }
@@ -864,11 +879,22 @@ impl<'a> ParseTreeGen<'a> {
                 }
             })
             .collect();
+        let (method_name, children_type) = if self.config.unsafe_mode {
+            (
+                format_ident!("new_unambiguous_nonterminal_node"),
+                quote! { &[ParseTree<'a>] },
+            )
+        } else {
+            (
+                format_ident!("new_nonterminal_node"),
+                quote! { OneOrMany<ParseTree<'a>> },
+            )
+        };
         quote! {
-            fn new_nonterminal_node(
+            fn #method_name(
                 &self,
                 nonterminal_node: &NonterminalNode,
-                children: OneOrMany<ParseTree<'a>>
+                children: #children_type
             ) -> ParseTree<'a> {
                 match nonterminal_node.nonterminal_id {
                     #(#nonterminal_cases),*

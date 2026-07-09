@@ -5,8 +5,7 @@ use iguana_runtime::{
     ids::{NonterminalId, SlotId, TerminalId},
     input::Span,
     parse_tree::{
-        Bump, NodeKind, OneOrMany, Origin, ParseTreeBuilder, ParseTreeNode, SexprOptions,
-        visit_sppf,
+        Bump, NodeKind, Origin, ParseTreeBuilder, ParseTreeNode, SexprOptions, visit_sppf,
     },
     sppf::{NonterminalNode, SPPFNodeId, TerminalNode},
 };
@@ -497,17 +496,17 @@ impl<'a> AmbiguousExprUnsafeParseTreeBuilder<'a> {
     }
 }
 impl<'a> ParseTreeBuilder<ParseTree<'a>> for AmbiguousExprUnsafeParseTreeBuilder<'a> {
-    fn new_nonterminal_node(
+    fn new_unambiguous_nonterminal_node(
         &self,
         nonterminal_node: &NonterminalNode,
-        children: OneOrMany<ParseTree<'a>>,
+        children: &[ParseTree<'a>],
     ) -> ParseTree<'a> {
         match nonterminal_node.nonterminal_id {
             // S
             NonterminalId(0) => match nonterminal_node.return_slot {
                 // S : E.
                 SlotId(1) => {
-                    let [e] = children.into_array::<1usize>();
+                    let &[e] = children else { unreachable!() };
                     ParseTree::S(self.arena.alloc(S::Alt0 {
                         e: e.unwrap_e(),
                         span: nonterminal_node.span,
@@ -519,7 +518,9 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for AmbiguousExprUnsafeParseTreeBuilder
             NonterminalId(1) => match nonterminal_node.return_slot {
                 // E : E WS "." WS "f".
                 SlotId(7) => {
-                    let [e, ws_1, lit_2, ws_3, lit_4] = children.into_array::<5usize>();
+                    let &[e, ws_1, lit_2, ws_3, lit_4] = children else {
+                        unreachable!()
+                    };
                     ParseTree::E(self.arena.alloc(E::Alt0 {
                         e: e.unwrap_e(),
                         ws_1: ws_1.unwrap_token(),
@@ -531,7 +532,9 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for AmbiguousExprUnsafeParseTreeBuilder
                 }
                 // E : E WS E.
                 SlotId(11) => {
-                    let [e_0, ws, e_2] = children.into_array::<3usize>();
+                    let &[e_0, ws, e_2] = children else {
+                        unreachable!()
+                    };
                     ParseTree::E(self.arena.alloc(E::Alt1 {
                         e_0: e_0.unwrap_e(),
                         ws: ws.unwrap_token(),
@@ -541,7 +544,9 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for AmbiguousExprUnsafeParseTreeBuilder
                 }
                 // E : E WS "*" WS E.
                 SlotId(17) => {
-                    let [e_0, ws_1, lit_2, ws_3, e_4] = children.into_array::<5usize>();
+                    let &[e_0, ws_1, lit_2, ws_3, e_4] = children else {
+                        unreachable!()
+                    };
                     ParseTree::E(self.arena.alloc(E::Alt2 {
                         e_0: e_0.unwrap_e(),
                         ws_1: ws_1.unwrap_token(),
@@ -553,7 +558,9 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for AmbiguousExprUnsafeParseTreeBuilder
                 }
                 // E : E WS "+" WS E.
                 SlotId(23) => {
-                    let [e_0, ws_1, lit_2, ws_3, e_4] = children.into_array::<5usize>();
+                    let &[e_0, ws_1, lit_2, ws_3, e_4] = children else {
+                        unreachable!()
+                    };
                     ParseTree::E(self.arena.alloc(E::Alt3 {
                         e_0: e_0.unwrap_e(),
                         ws_1: ws_1.unwrap_token(),
@@ -565,7 +572,9 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for AmbiguousExprUnsafeParseTreeBuilder
                 }
                 // E : E WS "-" WS E.
                 SlotId(29) => {
-                    let [e_0, ws_1, lit_2, ws_3, e_4] = children.into_array::<5usize>();
+                    let &[e_0, ws_1, lit_2, ws_3, e_4] = children else {
+                        unreachable!()
+                    };
                     ParseTree::E(self.arena.alloc(E::Alt4 {
                         e_0: e_0.unwrap_e(),
                         ws_1: ws_1.unwrap_token(),
@@ -577,7 +586,9 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for AmbiguousExprUnsafeParseTreeBuilder
                 }
                 // E : "-" WS E.
                 SlotId(33) => {
-                    let [lit_0, ws, e] = children.into_array::<3usize>();
+                    let &[lit_0, ws, e] = children else {
+                        unreachable!()
+                    };
                     ParseTree::E(self.arena.alloc(E::Alt5 {
                         lit_0: lit_0.unwrap_token(),
                         ws: ws.unwrap_token(),
@@ -587,7 +598,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for AmbiguousExprUnsafeParseTreeBuilder
                 }
                 // E : "if" WS E WS "then" WS E WS "else" WS E.
                 SlotId(45) => {
-                    let [
+                    let &[
                         lit_0,
                         ws_1,
                         e_2,
@@ -599,7 +610,10 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for AmbiguousExprUnsafeParseTreeBuilder
                         lit_8,
                         ws_9,
                         e_10,
-                    ] = children.into_array::<11usize>();
+                    ] = children
+                    else {
+                        unreachable!()
+                    };
                     ParseTree::E(self.arena.alloc(E::Alt6 {
                         lit_0: lit_0.unwrap_token(),
                         ws_1: ws_1.unwrap_token(),
@@ -617,7 +631,9 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for AmbiguousExprUnsafeParseTreeBuilder
                 }
                 // E : E WS ";" WS E.
                 SlotId(51) => {
-                    let [e_0, ws_1, lit_2, ws_3, e_4] = children.into_array::<5usize>();
+                    let &[e_0, ws_1, lit_2, ws_3, e_4] = children else {
+                        unreachable!()
+                    };
                     ParseTree::E(self.arena.alloc(E::Alt7 {
                         e_0: e_0.unwrap_e(),
                         ws_1: ws_1.unwrap_token(),
@@ -629,7 +645,9 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for AmbiguousExprUnsafeParseTreeBuilder
                 }
                 // E : "(" WS E WS ")".
                 SlotId(57) => {
-                    let [lit_0, ws_1, e, ws_3, lit_4] = children.into_array::<5usize>();
+                    let &[lit_0, ws_1, e, ws_3, lit_4] = children else {
+                        unreachable!()
+                    };
                     ParseTree::E(self.arena.alloc(E::Alt8 {
                         lit_0: lit_0.unwrap_token(),
                         ws_1: ws_1.unwrap_token(),
@@ -641,7 +659,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for AmbiguousExprUnsafeParseTreeBuilder
                 }
                 // E : "a".
                 SlotId(59) => {
-                    let [lit_0] = children.into_array::<1usize>();
+                    let &[lit_0] = children else { unreachable!() };
                     ParseTree::E(self.arena.alloc(E::Alt9 {
                         lit_0: lit_0.unwrap_token(),
                         span: nonterminal_node.span,

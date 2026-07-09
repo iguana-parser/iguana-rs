@@ -172,15 +172,83 @@ pub fn visit_sppf<'i, 'arena, T: Debug + Clone, P: Parser<'i, 'arena>>(
     parser: &P,
     builder: &impl ParseTreeBuilder<T>,
 ) -> OneOrMany<T> {
+    // The unsafe mode guarantees one derivation per node, so the specialized
+    // walker skips the memo and the OneOrMany machinery entirely.
+    if P::UNSAFE {
+        return OneOrMany::One(visit_sppf_unambiguous(node_id, parser, builder));
+    }
     // Memoize across the SPPF only when ambiguity is reachable; otherwise
     // each node is visited at most once anyway, and the empty map plus its
     // per-node check would be pure overhead.
-    let mut memo = if !P::UNSAFE && is_ambiguous(parser, node_id) {
+    let mut memo = if is_ambiguous(parser, node_id) {
         Some(FxHashMap::default())
     } else {
         None
     };
     visit_sppf_impl(node_id, parser, builder, &mut memo)
+}
+
+/// A frame in the unambiguous walker: `Pre` visits a node, `Post` builds a
+/// nonterminal node from its children. A nonterminal node's `Pre` pushes the
+/// node's `Post` first and the child's `Pre` on top of it, so the `Post` runs
+/// once the whole subtree is done. Tokens are built at their `Pre` visit and
+/// need no `Post`.
+enum UnambiguousFrame<'p> {
+    Pre(SPPFNodeId),
+    /// `mark` is `values.len()` at the moment a `Post` frame is pushed. Everything
+    /// the subtree pushes is placed above it, so at build time `values[mark..]` is
+    /// exactly the node's children, in order.
+    Post {
+        node: &'p NonterminalNode,
+        mark: usize,
+    },
+}
+
+/// Builds the parse tree for an unambiguous SPPF, where every node has
+/// exactly one derivation. The walk keeps two explicit stacks, work frames
+/// and finished values. A token pushes one value, an intermediate node
+/// contributes no value of its own (it only pushes `Pre` frames for its two
+/// children), and a nonterminal node records the value-stack depth on entry
+/// (the `Post` frame's `mark`), so on completion the values above the mark
+/// are exactly its children, handed to the builder as a slice.
+fn visit_sppf_unambiguous<'i, 'arena, T: Debug + Clone, P: Parser<'i, 'arena>>(
+    root_id: SPPFNodeId,
+    parser: &P,
+    builder: &impl ParseTreeBuilder<T>,
+) -> T {
+    let mut work = vec![UnambiguousFrame::Pre(root_id)];
+    let mut values: Vec<T> = Vec::new();
+    while let Some(frame) = work.pop() {
+        match frame {
+            UnambiguousFrame::Pre(node_id) => match parser.sppf_node(node_id) {
+                SPPFNode::Terminal(t) => {
+                    if t.terminal_id != P::epsilon() {
+                        values.push(builder.new_token(t));
+                    }
+                }
+                SPPFNode::Nonterminal(n) => {
+                    work.push(UnambiguousFrame::Post {
+                        node: n,
+                        mark: values.len(),
+                    });
+                    work.push(UnambiguousFrame::Pre(n.child));
+                }
+                SPPFNode::Intermediate(i) => {
+                    // The right child is pushed first so the left child pops
+                    // first and the values land in source order.
+                    work.push(UnambiguousFrame::Pre(i.child.1));
+                    work.push(UnambiguousFrame::Pre(i.child.0));
+                }
+            },
+            UnambiguousFrame::Post { node, mark } => {
+                let result = builder.new_unambiguous_nonterminal_node(node, &values[mark..]);
+                values.truncate(mark);
+                values.push(result);
+            }
+        }
+    }
+    assert_eq!(values.len(), 1);
+    values.pop().unwrap()
 }
 
 /// A frame in the explicit stack that replaces recursion in `visit_sppf_impl`.
@@ -332,8 +400,34 @@ fn create_nonterminal_nodes<T: Debug>(
 
 pub trait ParseTreeBuilder<T: Debug> {
     fn new_token(&self, terminal_node: &TerminalNode) -> T;
-    fn new_nonterminal_node(&self, nonterminal_node: &NonterminalNode, children: OneOrMany<T>)
-    -> T;
+    /// Builds a nonterminal node from its children, wrapped in `OneOrMany`
+    /// because an ambiguous parse can deliver several derivations at once.
+    /// Only default-mode builders implement it; the unsafe mode's walker
+    /// never calls it, so there the default covers the signature.
+    fn new_nonterminal_node(
+        &self,
+        nonterminal_node: &NonterminalNode,
+        children: OneOrMany<T>,
+    ) -> T {
+        let _ = (nonterminal_node, children);
+        unimplemented!("only default-mode builders implement this")
+    }
+    /// Builds a nonterminal node from its children, which arrive as a plain
+    /// slice: with one derivation per node there are no `OneOrMany` variants
+    /// to distinguish. Only unsafe-mode builders implement it; the default
+    /// mode's walker never calls it, so there the default covers the
+    /// signature.
+    fn new_unambiguous_nonterminal_node(
+        &self,
+        nonterminal_node: &NonterminalNode,
+        children: &[T],
+    ) -> T {
+        let _ = (nonterminal_node, children);
+        unimplemented!(
+            "only unsafe-mode builders implement this; a panic here means the parser \
+             was generated before the unsafe-mode walker and must be regenerated"
+        )
+    }
     fn new_ambiguity_node(&self, parent: NonterminalId, alternatives: Vec<T>) -> T {
         let _ = (parent, alternatives);
         unimplemented!("ambiguity handling not yet implemented for this builder")

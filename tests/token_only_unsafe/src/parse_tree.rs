@@ -5,8 +5,7 @@ use iguana_runtime::{
     ids::{NonterminalId, SlotId, TerminalId},
     input::Span,
     parse_tree::{
-        Bump, NodeKind, OneOrMany, Origin, ParseTreeBuilder, ParseTreeNode, SexprOptions,
-        visit_sppf,
+        Bump, NodeKind, Origin, ParseTreeBuilder, ParseTreeNode, SexprOptions, visit_sppf,
     },
     sppf::{NonterminalNode, SPPFNodeId, TerminalNode},
 };
@@ -365,17 +364,19 @@ impl<'a> TokenOnlyUnsafeParseTreeBuilder<'a> {
     }
 }
 impl<'a> ParseTreeBuilder<ParseTree<'a>> for TokenOnlyUnsafeParseTreeBuilder<'a> {
-    fn new_nonterminal_node(
+    fn new_unambiguous_nonterminal_node(
         &self,
         nonterminal_node: &NonterminalNode,
-        children: OneOrMany<ParseTree<'a>>,
+        children: &[ParseTree<'a>],
     ) -> ParseTree<'a> {
         match nonterminal_node.nonterminal_id {
             // S
             NonterminalId(0) => match nonterminal_node.return_slot {
                 // S : Mod WS Empty WS Tag.
                 SlotId(5) => {
-                    let [r#mod, ws_1, empty, ws_3, tag] = children.into_array::<5usize>();
+                    let &[r#mod, ws_1, empty, ws_3, tag] = children else {
+                        unreachable!()
+                    };
                     ParseTree::S(self.arena.alloc(S::Alt0 {
                         r#mod: r#mod.unwrap_mod(),
                         ws_1: ws_1.unwrap_token(),
@@ -391,7 +392,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for TokenOnlyUnsafeParseTreeBuilder<'a>
             NonterminalId(1) => match nonterminal_node.return_slot {
                 // Mod : "public".
                 SlotId(7) => {
-                    let [lit_0] = children.into_array::<1usize>();
+                    let &[lit_0] = children else { unreachable!() };
                     ParseTree::Mod(self.arena.alloc(Mod::Alt0 {
                         lit_0: lit_0.unwrap_token(),
                         span: nonterminal_node.span,
@@ -399,7 +400,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for TokenOnlyUnsafeParseTreeBuilder<'a>
                 }
                 // Mod : "static".
                 SlotId(9) => {
-                    let [lit_0] = children.into_array::<1usize>();
+                    let &[lit_0] = children else { unreachable!() };
                     ParseTree::Mod(self.arena.alloc(Mod::Alt1 {
                         lit_0: lit_0.unwrap_token(),
                         span: nonterminal_node.span,
@@ -411,7 +412,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for TokenOnlyUnsafeParseTreeBuilder<'a>
             NonterminalId(2) => match nonterminal_node.return_slot {
                 // Empty : .
                 SlotId(10) => {
-                    let [] = children.into_array::<0usize>();
+                    let &[] = children else { unreachable!() };
                     ParseTree::Empty(self.arena.alloc(Empty::Alt0 {
                         span: nonterminal_node.span,
                     }))
@@ -422,7 +423,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for TokenOnlyUnsafeParseTreeBuilder<'a>
             NonterminalId(3) => match nonterminal_node.return_slot {
                 // Tag : Id.
                 SlotId(12) => {
-                    let [id] = children.into_array::<1usize>();
+                    let &[id] = children else { unreachable!() };
                     ParseTree::Tag(self.arena.alloc(Tag::Alt0 {
                         id: id.unwrap_token(),
                         span: nonterminal_node.span,
