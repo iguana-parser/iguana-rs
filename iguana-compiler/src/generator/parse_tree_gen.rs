@@ -46,7 +46,7 @@ impl<'a> ParseTreeGen<'a> {
 
     /// True when the generated enum for a nonterminal takes a `'a` parameter;
     /// see [`grammar_utils::nonterminal_has_lifetime`].
-    fn has_lifetime(&self, nonterminal: &Nonterminal) -> bool {
+    fn nonterminal_has_lifetime(&self, nonterminal: &Nonterminal) -> bool {
         grammar_utils::nonterminal_has_lifetime(self.grammar, nonterminal, self.config.unsafe_mode)
     }
 
@@ -210,13 +210,40 @@ impl<'a> ParseTreeGen<'a> {
         }
     }
 
-    /// The generics on a nonterminal's enum declaration and inherent impl:
-    /// `<'a>`, or nothing for a token-only nonterminal in the unsafe mode.
+    /// The generic parameter list for a nonterminal's enum: `<'a>` when the
+    /// enum has a lifetime, empty for a token-only nonterminal in the unsafe
+    /// mode. Placed on the enum's own declaration and on its impls.
     fn gen_enum_generics(&self, nonterminal: &Nonterminal) -> TokenStream {
-        if self.has_lifetime(nonterminal) {
+        if self.nonterminal_has_lifetime(nonterminal) {
             quote! { <'a> }
         } else {
             quote! {}
+        }
+    }
+
+    /// The generic parameter list for an inherent method on a lifetime-free
+    /// enum: `<'a>` when the enum has no lifetime of its own, empty otherwise.
+    /// The inverse of [`Self::gen_enum_generics`]: exactly one of the two emits
+    /// `<'a>`. A lifetime-free enum has no `'a` in scope from its impl header,
+    /// so a method returning `ParseTree<'a>` (or taking `&'a self`) declares
+    /// `'a` itself. Its children are all `Token` (Copy values), so any
+    /// caller-chosen `'a` fits.
+    fn gen_method_generics(&self, nonterminal: &Nonterminal) -> TokenStream {
+        if self.nonterminal_has_lifetime(nonterminal) {
+            quote! {}
+        } else {
+            quote! { <'a> }
+        }
+    }
+
+    /// Returns `arm` in the default mode, nothing in the unsafe mode. The
+    /// unsafe mode has no `Amb` variant, so the surrounding match stays
+    /// exhaustive without an arm for it.
+    fn amb_arm(&self, arm: TokenStream) -> TokenStream {
+        if self.config.unsafe_mode {
+            quote! {}
+        } else {
+            arm
         }
     }
 
@@ -229,16 +256,12 @@ impl<'a> ParseTreeGen<'a> {
         }
     }
 
-    /// Returns the Rust type for a parse tree field: `Token` for terminals,
-    /// `&'a Type<'a>` (or `&'a Type`) for nonterminals.
-    fn gen_field_type(&self, symbol: &Symbol) -> TokenStream {
-        self.symbol_type(symbol.resolved_def())
-    }
-
-    /// Returns (name, type) pairs for each parse-tree-relevant symbol in an alternative.
-    /// Literals are filtered out. For example, given `Expr = Expr "+" Expr`, this returns:
-    ///   `[(expr_0, &'a Expr<'a>), (expr_1, &'a Expr<'a>)]`
-    /// The `"+"` is skipped.
+    /// Returns (name, type) pairs for each parse-tree symbol in an alternative:
+    /// every symbol except `Condition` and `Return` (see
+    /// [`Symbol::is_parse_tree_symbol`]). Terminals stay in as `Token` fields; a
+    /// literal with no readable name becomes `lit_N`. For example, given
+    /// `Expr = Expr "+" Expr`, this returns:
+    ///   `[(expr_0, &'a Expr<'a>), (lit_1, Token), (expr_2, &'a Expr<'a>)]`
     fn gen_fields_for_alternative_symbols(
         &self,
         alternative: &Alternative,
@@ -255,7 +278,7 @@ impl<'a> ParseTreeGen<'a> {
                     base_name.is_some_and(|name| counts.get(&name).copied().unwrap_or(0) > 1);
                 let field_name = gen_field_name(self.grammar, s, i, needs_index);
                 let field_ident = safe_ident(&field_name);
-                let field_type = self.gen_field_type(s);
+                let field_type = self.symbol_type(s.resolved_def());
                 (field_ident, field_type)
             })
             .collect()
@@ -421,6 +444,8 @@ impl<'a> ParseTreeGen<'a> {
         let alt0_label = alternative_label(alternative, 0);
         let alt0_variant = nt_ident(&alt0_label);
         let counts = count_symbol_occurrences(self.grammar, &alternative.symbols);
+        let panic_msg = format!("{} is ambiguous", nt_name);
+        let amb_arm = self.amb_arm(quote! { #ident::Amb(_) => panic!(#panic_msg), });
         let methods: Vec<_> = alternative
             .symbols
             .iter()
@@ -431,7 +456,7 @@ impl<'a> ParseTreeGen<'a> {
                 let needs_index =
                     base_name.is_some_and(|name| counts.get(&name).copied().unwrap_or(0) > 1);
                 let field_ident = safe_ident(&gen_field_name(self.grammar, s, i, needs_index));
-                let field_ty = self.gen_field_type(s);
+                let field_ty = self.symbol_type(s.resolved_def());
                 let is_terminal = matches!(
                     self.grammar.definition(s.resolved_def()),
                     Definition::Terminal(_)
@@ -446,12 +471,6 @@ impl<'a> ParseTreeGen<'a> {
                     quote! { *#field_ident }
                 } else {
                     quote! { #field_ident }
-                };
-                let amb_arm = if self.config.unsafe_mode {
-                    quote! {}
-                } else {
-                    let panic_msg = format!("{} is ambiguous", nt_name);
-                    quote! { #ident::Amb(_) => panic!(#panic_msg), }
                 };
                 quote! {
                     pub fn #field_ident(&self) -> #field_ty {
@@ -596,11 +615,7 @@ impl<'a> ParseTreeGen<'a> {
                 }
             })
             .collect();
-        let amb_arm = if self.config.unsafe_mode {
-            quote! {}
-        } else {
-            quote! { #ident::Amb(alts) => alts[0].span(), }
-        };
+        let amb_arm = self.amb_arm(quote! { #ident::Amb(alts) => alts[0].span(), });
         quote! {
             pub fn span(&self) -> Span {
                 match self {
@@ -613,14 +628,7 @@ impl<'a> ParseTreeGen<'a> {
 
     fn gen_child_method(&self, nonterminal: &Nonterminal) -> TokenStream {
         let children_by_index = self.gen_children_by_index(nonterminal);
-        // A lifetime-free enum has no `'a` in scope from the impl header, so
-        // the method declares `'a` itself. Its children are all `Token` (Copy
-        // values), so any caller-chosen `'a` fits the returned `ParseTree<'a>`.
-        let method_generics = if self.has_lifetime(nonterminal) {
-            quote! {}
-        } else {
-            quote! { <'a> }
-        };
+        let method_generics = self.gen_method_generics(nonterminal);
         // When every alternative is field-free, every arm is `Alt { .. } => None`
         // and nothing reads `index` except the `Amb` arm. The unsafe mode has
         // no `Amb` arm, so it underscores the parameter to keep the generated
@@ -658,11 +666,9 @@ impl<'a> ParseTreeGen<'a> {
                 }
             })
             .collect();
-        let amb_arm = if self.config.unsafe_mode {
-            quote! {}
-        } else {
-            quote! { #ident::Amb(alts) => alts.get(index).copied().map(ParseTree::#ident), }
-        };
+        let amb_arm = self.amb_arm(
+            quote! { #ident::Amb(alts) => alts.get(index).copied().map(ParseTree::#ident), },
+        );
         quote! {
             match self {
                 #(#arms,)*
@@ -690,11 +696,7 @@ impl<'a> ParseTreeGen<'a> {
                 }
             })
             .collect();
-        let amb_arm = if self.config.unsafe_mode {
-            quote! {}
-        } else {
-            quote! { #ident::Amb(alts) => alts.len(), }
-        };
+        let amb_arm = self.amb_arm(quote! { #ident::Amb(alts) => alts.len(), });
         quote! {
             pub fn child_count(&self) -> usize {
                 match self {
@@ -707,12 +709,7 @@ impl<'a> ParseTreeGen<'a> {
 
     fn gen_as_parse_tree_method(&self, nonterminal: &Nonterminal) -> TokenStream {
         let name_ident = nt_ident(&nonterminal.name);
-        // A lifetime-free enum declares `'a` on the method instead of the impl.
-        let method_generics = if self.has_lifetime(nonterminal) {
-            quote! {}
-        } else {
-            quote! { <'a> }
-        };
+        let method_generics = self.gen_method_generics(nonterminal);
         quote! {
             pub fn as_parse_tree #method_generics (&'a self) -> ParseTree<'a> {
                 ParseTree::#name_ident(self)
@@ -1172,11 +1169,9 @@ impl<'a> ParseTreeGen<'a> {
             Definition::Nonterminal(nt) => self.nonterminal_type(nt),
         };
         let field_name = safe_ident(&gen_field_name(self.grammar, inner_symbol, 0, false));
-        let amb_arm = if self.config.unsafe_mode {
-            quote! {}
-        } else {
-            quote! { #opt_type::Amb(_) => panic!("unexpected ambiguity in optional node"), }
-        };
+        let amb_arm = self.amb_arm(
+            quote! { #opt_type::Amb(_) => panic!("unexpected ambiguity in optional node"), },
+        );
 
         quote! {
             impl #generics OptNode for #ty {
@@ -1233,7 +1228,11 @@ impl<'a> ParseTreeGen<'a> {
                     Definition::Nonterminal(nt) => {
                         let method = format_ident!("as_{}", to_snake_case(&nt.name));
                         let ret = nt_ident(&nt.name);
-                        let ret_ty = if self.has_lifetime(nt) {
+                        // Same lifetime rule as `grammar_utils::nonterminal_type`, but the
+                        // return sits behind a `&` (`Option<&#ret_ty>`), so the lifetime is
+                        // elided (`<'_>`) rather than the named `<'a>` that function emits;
+                        // that difference is why we can't just call it here.
+                        let ret_ty = if self.nonterminal_has_lifetime(nt) {
                             quote! { #ret<'_> }
                         } else {
                             quote! { #ret }
@@ -1331,12 +1330,9 @@ impl<'a> ParseTreeGen<'a> {
                 // an element. A typed accessor can't represent it, so fail loud rather than
                 // silently drop it and return a short list. Ambiguity-aware callers use the
                 // general `iter()` / `children()` path with `is_amb()` instead.
-                let amb_arm = if self.config.unsafe_mode {
-                    quote! {}
-                } else {
-                    let panic_msg = format!("{} is ambiguous", nonterminal.name);
-                    quote! { other if other.is_amb() => panic!(#panic_msg), }
-                };
+                let panic_msg = format!("{} is ambiguous", nonterminal.name);
+                let amb_arm =
+                    self.amb_arm(quote! { other if other.is_amb() => panic!(#panic_msg), });
 
                 let return_type = self.gen_accessor_return_type(nonterminal, innermost);
                 if child_name == innermost.name {
@@ -1386,12 +1382,8 @@ impl<'a> ParseTreeGen<'a> {
                     safe_ident(&gen_field_name(self.grammar, opt_symbol, 0, false));
                 let ident = nt_ident(&nonterminal.name);
                 let alt0_variant = nt_ident(&alternative_label(&alternatives[0], 0));
-                let amb_arm = if self.config.unsafe_mode {
-                    quote! {}
-                } else {
-                    let panic_msg = format!("{} is ambiguous", nonterminal.name);
-                    quote! { #ident::Amb(_) => panic!(#panic_msg), }
-                };
+                let panic_msg = format!("{} is ambiguous", nonterminal.name);
+                let amb_arm = self.amb_arm(quote! { #ident::Amb(_) => panic!(#panic_msg), });
 
                 let methods: Vec<_> = element_types
                     .iter()
@@ -1477,12 +1469,8 @@ impl<'a> ParseTreeGen<'a> {
         let field_name = safe_ident(&gen_field_name(self.grammar, symbol, 0, false));
         let ident = nt_ident(&nonterminal.name);
         let alt0_variant = nt_ident(&alternative_label(&alternatives[0], 0));
-        let amb_arm = if self.config.unsafe_mode {
-            quote! {}
-        } else {
-            let panic_msg = format!("{} is ambiguous", nonterminal.name);
-            quote! { #ident::Amb(_) => panic!(#panic_msg), }
-        };
+        let panic_msg = format!("{} is ambiguous", nonterminal.name);
+        let amb_arm = self.amb_arm(quote! { #ident::Amb(_) => panic!(#panic_msg), });
         let element_types = get_list_element_types(self.grammar, inner);
         let methods: Vec<_> = element_types
             .iter()
@@ -1573,12 +1561,8 @@ impl<'a> ParseTreeGen<'a> {
 
         // Each accessor keeps only its own element variant; `_ => None` skips the sibling
         // variants. An ambiguous segment, however, must fail loud rather than be dropped.
-        let amb_arm = if self.config.unsafe_mode {
-            quote! {}
-        } else {
-            let panic_msg = format!("{} is ambiguous", nonterminal.name);
-            quote! { other if other.is_amb() => panic!(#panic_msg), }
-        };
+        let panic_msg = format!("{} is ambiguous", nonterminal.name);
+        let amb_arm = self.amb_arm(quote! { other if other.is_amb() => panic!(#panic_msg), });
 
         let methods: Vec<_> = element_types
             .iter()
@@ -1696,16 +1680,12 @@ impl<'a> ParseTreeGen<'a> {
             }
         };
         let ty = self.nonterminal_type(nonterminal);
-        let amb_arm = if self.config.unsafe_mode {
-            quote! {}
-        } else {
-            quote! {
-                #ident::Amb(_) => {
-                    items.push(ParseTree::#ident(current));
-                    break;
-                }
+        let amb_arm = self.amb_arm(quote! {
+            #ident::Amb(_) => {
+                items.push(ParseTree::#ident(current));
+                break;
             }
-        };
+        });
         quote! {
             impl<'a> ListNode<'a> for #ty {
                 fn iter(&'a self) -> IntoIter<ParseTree<'a>> {
@@ -1745,14 +1725,12 @@ impl<'a> ParseTreeGen<'a> {
         let f0 = &opt_first_alt_fields[0];
         let label = alternative_label(&opt_alternatives[1], 1);
         let opt_alt1 = nt_ident(&label);
-        let (opt_amb_arm, star_amb_arm) = if self.config.unsafe_mode {
-            (quote! {}, quote! {})
-        } else {
-            (
-                quote! { #opt_ident::Amb(_) => vec![ParseTree::#opt_ident(#field_name)].into_iter(), },
-                quote! { #star_ident::Amb(_) => vec![ParseTree::#star_ident(self)].into_iter(), },
-            )
-        };
+        let opt_amb_arm = self.amb_arm(
+            quote! { #opt_ident::Amb(_) => vec![ParseTree::#opt_ident(#field_name)].into_iter(), },
+        );
+        let star_amb_arm = self.amb_arm(
+            quote! { #star_ident::Amb(_) => vec![ParseTree::#star_ident(self)].into_iter(), },
+        );
         quote! {
             impl<'a> ListNode<'a> for #star_ty {
                 fn iter(&'a self) -> IntoIter<ParseTree<'a>> {
@@ -1784,11 +1762,8 @@ impl<'a> ParseTreeGen<'a> {
             .map(|field| quote! { #field.as_parse_tree() })
             .collect();
 
-        let amb_arm = if self.config.unsafe_mode {
-            quote! {}
-        } else {
-            quote! { #ident::Amb(_) => vec![ParseTree::#ident(self)].into_iter(), }
-        };
+        let amb_arm =
+            self.amb_arm(quote! { #ident::Amb(_) => vec![ParseTree::#ident(self)].into_iter(), });
         quote! {
             impl<'a> ListNode<'a> for #ty {
                 fn iter(&'a self) -> IntoIter<ParseTree<'a>> {

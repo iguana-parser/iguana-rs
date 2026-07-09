@@ -2,12 +2,12 @@ use proc_macro2::TokenStream;
 use quote::{format_ident, quote};
 
 use crate::{
-    generator::grammar_utils::nonterminal_type,
+    generator::{GenConfig, grammar_utils::nonterminal_type},
     grammar::{def::Grammar, symbols::Nonterminal},
     utils::{to_first_uppercase, to_snake_case},
 };
 
-pub fn generate(grammar: &Grammar, unsafe_mode: bool) -> TokenStream {
+pub fn generate(grammar: &Grammar, config: GenConfig) -> TokenStream {
     let grammar_name = &grammar.name;
     let parse_tree_builder = format_ident!("{}ParseTreeBuilder", to_first_uppercase(grammar_name));
     let parser = format_ident!("{}Parser", to_first_uppercase(grammar_name));
@@ -23,7 +23,7 @@ pub fn generate(grammar: &Grammar, unsafe_mode: bool) -> TokenStream {
                 start_nt,
                 &parser,
                 &parse_tree_builder,
-                unsafe_mode,
+                config.unsafe_mode,
             )
         })
         .collect();

@@ -171,7 +171,7 @@ pub fn generate_sources(
     let grammar_data_path = src_dir.join("grammar_data.rs");
 
     write_rust_file(
-        post_process(&lib_gen::generate(grammar, config.unsafe_mode).to_string()),
+        post_process(&lib_gen::generate(grammar, config).to_string()),
         &lib_path,
     )?;
 
