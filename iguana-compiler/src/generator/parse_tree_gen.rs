@@ -1844,28 +1844,12 @@ impl<'a> ParseTreeGen<'a> {
     }
 
     fn gen_parse_tree_node_impl(&self) -> TokenStream {
-        let kind_method = if self.config.unsafe_mode {
-            quote! {
-                fn kind(&self) -> NodeKind {
-                    if matches!(self, ParseTree::Token(_)) {
-                        NodeKind::Token
-                    } else {
-                        NodeKind::Nonterminal
-                    }
-                }
-            }
+        // The default mode checks for Amb first; the unsafe mode has no Amb
+        // variant, so kind() is only the Token/Nonterminal split.
+        let amb_check = if self.config.unsafe_mode {
+            quote! {}
         } else {
-            quote! {
-                fn kind(&self) -> NodeKind {
-                    if self.is_amb() {
-                        NodeKind::Amb
-                    } else if matches!(self, ParseTree::Token(_)) {
-                        NodeKind::Token
-                    } else {
-                        NodeKind::Nonterminal
-                    }
-                }
-            }
+            quote! { if self.is_amb() { NodeKind::Amb } else }
         };
         quote! {
             impl<'a> ParseTreeNode for ParseTree<'a> {
@@ -1881,7 +1865,13 @@ impl<'a> ParseTreeGen<'a> {
                     ParseTree::span(self)
                 }
 
-                #kind_method
+                fn kind(&self) -> NodeKind {
+                    #amb_check if matches!(self, ParseTree::Token(_)) {
+                        NodeKind::Token
+                    } else {
+                        NodeKind::Nonterminal
+                    }
+                }
 
                 fn node_id(&self) -> Option<usize> {
                     ParseTree::node_id(self)
