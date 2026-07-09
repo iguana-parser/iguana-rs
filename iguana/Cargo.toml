@@ -4,6 +4,11 @@ version = "0.1.0"
 edition = "2024"
 license = "GPL-3.0-or-later"
 
+[[bin]]
+name = "iguana"
+path = "src/main.rs"
+test = false
+
 [features]
 debug-trace = ["iguana-compiler/debug-trace"]
 

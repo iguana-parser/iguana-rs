@@ -10,6 +10,7 @@ workspace = true
 [[bin]]
 name = "iguana-lsp"
 path = "src/main.rs"
+test = false
 
 [dependencies]
 by_address = "1.2.1"

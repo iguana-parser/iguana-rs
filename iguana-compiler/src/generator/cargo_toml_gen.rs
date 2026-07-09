@@ -96,12 +96,13 @@ serde_json = "1.0"
 
 fn generate_full(name: &str, runtime_path: Option<&Path>, bin_name: Option<&str>) -> String {
     let runtime = runtime_dependency(runtime_path);
-    // An explicit [[bin]] decouples the binary name from the crate name, so a
-    // grammar like Java can avoid a binary called "java" that shadows the JDK.
-    let bin_section = match bin_name {
-        Some(bin) => format!("[[bin]]\nname = \"{bin}\"\npath = \"src/main.rs\"\n\n"),
-        None => String::new(),
-    };
+    // The [[bin]] is always explicit. It lets bin_name decouple the binary
+    // name from the crate name (a grammar like Java avoids a binary called
+    // "java" that shadows the JDK), and test = false keeps cargo test and
+    // nextest from building and listing an empty test harness for the binary.
+    let bin = bin_name.unwrap_or(name);
+    let bin_section =
+        format!("[[bin]]\nname = \"{bin}\"\npath = \"src/main.rs\"\ntest = false\n\n");
     format!(
         r#"
 [package]

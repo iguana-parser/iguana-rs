@@ -7,6 +7,11 @@ license = "MIT OR Apache-2.0"
 [lib]
 path = "src/lib.rs"
 
+[[bin]]
+name = "iggy"
+path = "src/main.rs"
+test = false
+
 [dependencies]
 iguana-runtime.workspace = true
 clap = { version = "4.5.51", features = ["derive"] }
