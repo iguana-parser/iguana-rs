@@ -1,0 +1,5 @@
+grammar GroupSingleElement
+
+D = ("!" Num)
+
+Num = "1"

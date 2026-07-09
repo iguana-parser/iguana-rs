@@ -1463,7 +1463,6 @@ impl<'a> ParseTreeGen<'a> {
                 Symbol::Plus(s, _) | Symbol::Star(s, _) => s.as_ref(),
                 _ => return None,
             },
-            Some(origin @ Symbol::Group(_)) => origin,
             _ => return None,
         };
         let field_name = safe_ident(&gen_field_name(self.grammar, symbol, 0, false));
@@ -1574,15 +1573,10 @@ impl<'a> ParseTreeGen<'a> {
                 let return_type = self.gen_accessor_return_type(nonterminal, elem);
                 let field_name =
                     safe_ident(&gen_field_name(self.grammar, &alt.symbols[0], 0, false));
-                let extract = if self.grammar.is_terminal(elem) {
-                    quote! { Some(*#field_name) }
-                } else {
-                    quote! { Some(#field_name) }
-                };
                 quote! {
                     pub fn #method_name(&'a self) -> #return_type {
                         self.iter().filter_map(|node| match node {
-                            ParseTree::#child_type(#child_type::#variant_name { #field_name, .. }) => #extract,
+                            ParseTree::#child_type(#child_type::#variant_name { #field_name, .. }) => Some(*#field_name),
                             #amb_arm
                             _ => None,
                         })

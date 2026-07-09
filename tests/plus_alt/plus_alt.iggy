@@ -1,0 +1,7 @@
+grammar PlusAlt
+
+S = (A | Num)+
+
+A = "a"
+
+Num = "1"

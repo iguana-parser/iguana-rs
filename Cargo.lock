@@ -776,6 +776,19 @@ dependencies = [
 ]
 
 [[package]]
+name = "group_single_element"
+version = "0.1.0"
+dependencies = [
+ "clap",
+ "dhat",
+ "iguana-runtime",
+ "log",
+ "pprof",
+ "rustc-hash 2.1.2",
+ "serde_json",
+]
+
+[[package]]
 name = "hashbrown"
 version = "0.17.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1295,6 +1308,19 @@ checksum = "a89322df9ebe1c1578d689c92318e070967d1042b512afbe49518723f4e6d5cd"
 
 [[package]]
 name = "plus"
+version = "0.1.0"
+dependencies = [
+ "clap",
+ "dhat",
+ "iguana-runtime",
+ "log",
+ "pprof",
+ "rustc-hash 2.1.2",
+ "serde_json",
+]
+
+[[package]]
+name = "plus_alt"
 version = "0.1.0"
 dependencies = [
  "clap",
