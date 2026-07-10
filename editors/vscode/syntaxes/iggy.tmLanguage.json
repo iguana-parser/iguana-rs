@@ -1,0 +1,78 @@
+{
+  "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+  "comment": "Canonical home: iguana-rs/editors/vscode/syntaxes/iggy.tmLanguage.json. The website repo vendors a byte-identical copy at syntaxes/iggy.tmLanguage.json; keep the two in sync. Token roles mirror iggy/iggy.iggy and iguana-lsp/src/semantic_tokens.rs: in editors, LSP semantic tokens override these scopes once the server is up; this grammar covers the pre-LSP window, markdown fences, and static rendering.",
+  "name": "iggy",
+  "scopeName": "source.iggy",
+  "patterns": [
+    { "include": "#comment" },
+    { "include": "#annotation" },
+    { "include": "#label" },
+    { "include": "#string" },
+    { "include": "#char-class" },
+    { "include": "#field" },
+    { "include": "#keyword" },
+    { "include": "#operator" },
+    { "include": "#nonterminal" }
+  ],
+  "repository": {
+    "comment": {
+      "match": "//.*$",
+      "name": "comment.line.double-slash.iggy"
+    },
+    "annotation": {
+      "comment": "Rule annotations: @Regex, @Start, @Layout, @NoLayout, @WithLayout. Scoped as a decorator (the Python/Java convention) so VS Code-family themes give them the decorator color Terrarium uses.",
+      "match": "@[A-Za-z_][A-Za-z0-9_]*",
+      "name": "entity.name.function.decorator.iggy"
+    },
+    "label": {
+      "comment": "Alternative labels like #Add. Scoped under comment. so themes render them muted, matching iguana-lsp, which deliberately emits labels as COMMENT tokens.",
+      "match": "#[A-Za-z_][A-Za-z0-9_]*",
+      "name": "comment.label.iggy"
+    },
+    "string": {
+      "patterns": [
+        { "begin": "\"", "end": "\"", "name": "string.quoted.double.iggy",
+          "patterns": [{ "match": "\\\\.", "name": "constant.character.escape.iggy" }] },
+        { "begin": "'", "end": "'", "name": "string.quoted.single.iggy",
+          "patterns": [{ "match": "\\\\.", "name": "constant.character.escape.iggy" }] }
+      ]
+    },
+    "char-class": {
+      "comment": "Regex character classes like [0-9] or [a-zA-Z_]. Scoped under string.regexp so themes give them their regex color; iguana-lsp likewise emits these as REGEXP tokens.",
+      "begin": "\\[",
+      "end": "\\]",
+      "name": "string.regexp.character-class.iggy",
+      "patterns": [
+        { "match": "\\\\.", "name": "constant.character.escape.iggy" },
+        { "match": "-", "name": "keyword.operator.range.iggy" }
+      ]
+    },
+    "field": {
+      "comment": "Field names bound to a symbol, e.g. lhs:Expr",
+      "match": "\\b([a-z][A-Za-z0-9_]*)\\s*(:)(?!:)",
+      "captures": {
+        "1": { "name": "variable.parameter.field.iggy" },
+        "2": { "name": "keyword.operator.field.iggy" }
+      }
+    },
+    "keyword": {
+      "comment": "The full keyword set, per Keyword in iggy.iggy",
+      "patterns": [
+        { "match": "\\b(grammar)\\b", "name": "keyword.other.declaration.iggy" },
+        { "match": "\\b(left|right|none)\\b", "name": "keyword.other.associativity.iggy" }
+      ]
+    },
+    "operator": {
+      "patterns": [
+        { "match": "!>>|!<<|>>|<<", "name": "keyword.operator.restriction.iggy" },
+        { "match": "\\\\", "name": "keyword.operator.except.iggy" },
+        { "match": "=|\\||>|\\*|\\+|\\?|!", "name": "keyword.operator.iggy" }
+      ]
+    },
+    "nonterminal": {
+      "comment": "Every remaining identifier is a grammar symbol; iguana-lsp colors all of them as TYPE",
+      "match": "\\b([A-Za-z_][A-Za-z0-9_]*)\\b",
+      "name": "entity.name.type.iggy"
+    }
+  }
+}

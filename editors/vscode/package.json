@@ -29,6 +29,13 @@
         "configuration": "./language-configuration.json"
       }
     ],
+    "grammars": [
+      {
+        "language": "iggy",
+        "scopeName": "source.iggy",
+        "path": "./syntaxes/iggy.tmLanguage.json"
+      }
+    ],
     "configuration": {
       "type": "object",
       "title": "Iguana",
