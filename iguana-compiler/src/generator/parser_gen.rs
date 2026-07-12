@@ -128,13 +128,14 @@ impl<'a> ParserGen<'a> {
         let lookup_terminal_node_method = self.gen_lookup_terminal_node_method();
         let gss_nodes_method = Self::gen_gss_nodes_method();
         let add_nonterminal_node_child_method = self.gen_add_nonterminal_node_child_method();
+        let nonterminal_node_extra_children_method =
+            self.gen_nonterminal_node_extra_children_method();
         let add_intermediate_node_child_method = self.gen_add_intermediate_node_child_method();
         let intermediate_nodes_children_method = self.gen_intermediate_nodes_children_map_method();
         let nonterminal_nodes_children_method = self.gen_nonterminal_nodes_children_map_method();
         let add_trace_event_method = Self::gen_add_trace_event_method();
         let start_nonterminal_method = Self::gen_start_nonterminal_method();
         let start_env_method = self.gen_start_env_method();
-        let lookup_start_nonterminal_node_method = self.gen_lookup_start_nonterminal_node_method();
         let add_start_gss_node_method = self.gen_add_start_gss_node_method();
         let new_env_method = Self::gen_new_env_method();
         let lookup_method = Self::gen_lookup_method();
@@ -181,12 +182,12 @@ impl<'a> ParserGen<'a> {
                 #gss_nodes_method
                 #add_intermediate_node_child_method
                 #add_nonterminal_node_child_method
+                #nonterminal_node_extra_children_method
                 #intermediate_nodes_children_method
                 #nonterminal_nodes_children_method
                 #add_trace_event_method
                 #start_nonterminal_method
                 #start_env_method
-                #lookup_start_nonterminal_node_method
                 #add_start_gss_node_method
                 #new_env_method
                 #lookup_method
@@ -2113,7 +2114,7 @@ impl<'a> ParserGen<'a> {
     }
 
     fn gen_add_intermediate_node_child_method(&self) -> TokenStream {
-        // The unsafe mode records no extra children; inherit the trait's empty default.
+        // The unsafe mode records no extra children and uses the trait's empty default.
         if self.config.unsafe_mode {
             return quote! {};
         }
@@ -2131,7 +2132,7 @@ impl<'a> ParserGen<'a> {
     }
 
     fn gen_intermediate_nodes_children_map_method(&self) -> TokenStream {
-        // The unsafe mode holds no extra children; inherit the trait's empty-map default.
+        // The unsafe mode holds no extra children and uses the trait's empty-map default.
         if self.config.unsafe_mode {
             return quote! {};
         }
@@ -2150,7 +2151,7 @@ impl<'a> ParserGen<'a> {
     }
 
     fn gen_add_nonterminal_node_child_method(&self) -> TokenStream {
-        // The unsafe mode records no extra children; inherit the trait's empty default.
+        // The unsafe mode records no extra children and uses the trait's empty default.
         if self.config.unsafe_mode {
             return quote! {};
         }
@@ -2166,8 +2167,24 @@ impl<'a> ParserGen<'a> {
         }
     }
 
+    fn gen_nonterminal_node_extra_children_method(&self) -> TokenStream {
+        // The unsafe mode records no extra children and uses the trait's empty default.
+        if self.config.unsafe_mode {
+            return quote! {};
+        }
+        quote! {
+            fn nonterminal_node_extra_children(&self, node: SPPFNodeId) -> Vec<(SPPFNodeId, SlotId)> {
+                self.nonterminal_nodes_children
+                    .iter()
+                    .filter(|(parent, _)| *parent == node)
+                    .map(|(_, child)| *child)
+                    .collect()
+            }
+        }
+    }
+
     fn gen_nonterminal_nodes_children_map_method(&self) -> TokenStream {
-        // The unsafe mode holds no extra children; inherit the trait's empty-map default.
+        // The unsafe mode holds no extra children and uses the trait's empty-map default.
         if self.config.unsafe_mode {
             return quote! {};
         }
@@ -2333,26 +2350,6 @@ impl<'a> ParserGen<'a> {
         quote! {
             fn start_env(&mut self) -> Option<EnvId> {
                 #body
-            }
-        }
-    }
-
-    // Resolves the SPPF root for the start nonterminal by reading the start GSS
-    // node's popped-elements map. Each successful pop of the start nonterminal
-    // inserts an entry keyed by `(right_extent, return_value)`; we return the
-    // first entry whose right extent reaches the full input.
-    fn gen_lookup_start_nonterminal_node_method(&self) -> TokenStream {
-        quote! {
-            fn lookup_start_nonterminal_node(
-                &self,
-                right_extent: u32,
-                start_gss_node_id: GssNodeId,
-            ) -> Option<SPPFNodeId> {
-                self.gss_node(start_gss_node_id)
-                    .popped_elements()
-                    .iter()
-                    .find(|((right, _), _)| *right == right_extent)
-                    .map(|(_, id)| *id)
             }
         }
     }

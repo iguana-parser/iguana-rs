@@ -623,6 +623,13 @@ impl<'i, 'arena> Parser<'i, 'arena> for ExcludeByLabelParser<'i, 'arena> {
         self.nonterminal_nodes_children
             .push((node, (child, return_slot)));
     }
+    fn nonterminal_node_extra_children(&self, node: SPPFNodeId) -> Vec<(SPPFNodeId, SlotId)> {
+        self.nonterminal_nodes_children
+            .iter()
+            .filter(|(parent, _)| *parent == node)
+            .map(|(_, child)| *child)
+            .collect()
+    }
     fn intermediate_nodes_children_map(
         &self,
     ) -> &FxHashMap<SPPFNodeId, Vec<(SPPFNodeId, SPPFNodeId)>> {
@@ -663,17 +670,6 @@ impl<'i, 'arena> Parser<'i, 'arena> for ExcludeByLabelParser<'i, 'arena> {
             }
             _ => None,
         }
-    }
-    fn lookup_start_nonterminal_node(
-        &self,
-        right_extent: u32,
-        start_gss_node_id: GssNodeId,
-    ) -> Option<SPPFNodeId> {
-        self.gss_node(start_gss_node_id)
-            .popped_elements()
-            .iter()
-            .find(|((right, _), _)| *right == right_extent)
-            .map(|(_, id)| *id)
     }
     fn add_start_gss_node(
         &mut self,

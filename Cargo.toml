@@ -23,6 +23,8 @@ members = [
     "iggy",
     "iguana-lsp",
     "xtask",
+    "tests/amb_root_nested",
+    "tests/amb_root",
     "tests/group_single_element",
     "tests/plus_alt",
     "tests/token_only_unsafe",

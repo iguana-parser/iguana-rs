@@ -104,11 +104,6 @@ pub trait Parser<'i, 'arena> {
     );
     fn start_nonterminal(&self) -> NonterminalId;
     fn start_env(&mut self) -> Option<EnvId>;
-    fn lookup_start_nonterminal_node(
-        &self,
-        right_extent: u32,
-        start_gss_node_id: GssNodeId,
-    ) -> Option<SPPFNodeId>;
     fn get_gss_node(&self, nonterminal_id: NonterminalId, input_index: u32) -> Option<GssNodeId>;
     fn add_gss_node(
         &mut self,
@@ -181,47 +176,81 @@ pub trait Parser<'i, 'arena> {
     /// `NonterminalNode.return_slot`. Additional children live in a side map,
     /// and a side map entry on a node marks it ambiguous.
     ///
-    /// The default is empty for the --unsafe mode, which produces no ambiguity.
+    /// The unsafe mode produces no ambiguity and records nothing here.
     fn add_nonterminal_node_child(
         &mut self,
-        _node: SPPFNodeId,
-        _child: SPPFNodeId,
-        _return_slot: SlotId,
+        node: SPPFNodeId,
+        child: SPPFNodeId,
+        return_slot: SlotId,
     ) {
+        let _ = (node, child, return_slot);
+        if !Self::UNSAFE {
+            unimplemented!("overridden by the generated parser outside the unsafe mode");
+        }
     }
+
+    /// The extra `(child, return slot)` pairs recorded for `node`, in
+    /// insertion order, read without materializing the lazily-built
+    /// `nonterminal_nodes_children_map`.
+    ///
+    /// The unsafe mode records no extra children and returns an empty list.
+    fn nonterminal_node_extra_children(&self, node: SPPFNodeId) -> Vec<(SPPFNodeId, SlotId)> {
+        let _ = node;
+        if Self::UNSAFE {
+            Vec::new()
+        } else {
+            unimplemented!("overridden by the generated parser outside the unsafe mode");
+        }
+    }
+
+    /// The unsafe mode produces no ambiguity and records nothing here.
     fn add_intermediate_node_child(
         &mut self,
-        _node: SPPFNodeId,
-        _child1: SPPFNodeId,
-        _child2: SPPFNodeId,
+        node: SPPFNodeId,
+        child1: SPPFNodeId,
+        child2: SPPFNodeId,
     ) {
+        let _ = (node, child1, child2);
+        if !Self::UNSAFE {
+            unimplemented!("overridden by the generated parser outside the unsafe mode");
+        }
     }
 
     /// Looks up the intermediate node for `slot_id`, span (`left_extent`,
     /// `right_extent`), and `env`. Returns `None` if no such node exists.
     ///
-    /// The default `None` is for the --unsafe mode which does not share nodes.
+    /// The unsafe mode does not share nodes and finds nothing.
     fn lookup_intermediate_node(
         &self,
-        _slot_id: SlotId,
-        _left_extent: u32,
-        _right_extent: u32,
-        _env: Option<EnvId>,
+        slot_id: SlotId,
+        left_extent: u32,
+        right_extent: u32,
+        env: Option<EnvId>,
     ) -> Option<SPPFNodeId> {
-        None
+        let _ = (slot_id, left_extent, right_extent, env);
+        if Self::UNSAFE {
+            None
+        } else {
+            unimplemented!("overridden by the generated parser outside the unsafe mode");
+        }
     }
 
     /// Looks up an existing terminal node for `terminal_id` and span
     /// (`left_extent`, `right_extent`). Returns `None` if no such node exists.
     ///
-    /// The default `None` is for the --unsafe mode which does not share nodes.
+    /// The unsafe mode does not share nodes and finds nothing.
     fn lookup_terminal_node(
         &self,
-        _terminal_id: TerminalId,
-        _left_extent: u32,
-        _right_extent: u32,
+        terminal_id: TerminalId,
+        left_extent: u32,
+        right_extent: u32,
     ) -> Option<SPPFNodeId> {
-        None
+        let _ = (terminal_id, left_extent, right_extent);
+        if Self::UNSAFE {
+            None
+        } else {
+            unimplemented!("overridden by the generated parser outside the unsafe mode");
+        }
     }
 
     /// Checks whether the post-conditions for a given slot are satisfied.
@@ -824,6 +853,75 @@ pub trait Parser<'i, 'arena> {
 
     fn add_terminal_node(&mut self, node: TerminalNode) -> SPPFNodeId;
 
+    /// The parse's result: the SPPF node spanning the whole input, or
+    /// `None` if no such node exists.
+    ///
+    /// Popped elements in GSS nodes are keyed by `(right extent, return
+    /// value)`, so the start GSS node can hold one full-span node per
+    /// return value. For data-dependent nonterminals, where there are
+    /// multiple return values, multiple full-span nodes may exist. When
+    /// multiple full-span nodes exist, i.e., the parse is ambiguous at
+    /// the root, `merge_start_results` merges them into one ambiguous
+    /// node.
+    fn start_results(
+        &mut self,
+        right_extent: u32,
+        start_gss_node_id: GssNodeId,
+    ) -> Option<SPPFNodeId> {
+        let arena = self.vec_arena();
+        let mut results: InlineVec<'arena, SPPFNodeId> = InlineVec::Empty;
+        for (&(right, _), &node_id) in self.gss_node(start_gss_node_id).popped_elements().iter() {
+            if right == right_extent {
+                results.push(node_id, arena);
+            }
+        }
+        let &first = results.first()?;
+        if !Self::UNSAFE && results.len() > 1 {
+            Some(self.merge_start_results(&results))
+        } else {
+            Some(first)
+        }
+    }
+
+    /// Merges multiple full-span results of the start nonterminal into one
+    /// ambiguous node. The merged node collects every derivation of every
+    /// result: the first inline, the rest through
+    /// `add_nonterminal_node_child`. This is the same shape an ambiguous
+    /// nonterminal node takes during the parse, so tree construction needs
+    /// no special case.
+    fn merge_start_results(&mut self, results: &InlineVec<'arena, SPPFNodeId>) -> SPPFNodeId {
+        // A derivation is a (child, return slot) pair: the alternative's
+        // body and the end slot naming the alternative.
+        let mut derivations: Vec<(SPPFNodeId, SlotId)> = Vec::new();
+        for &result in results.iter() {
+            let SPPFNode::Nonterminal(node) = self.sppf_node(result) else {
+                unreachable!("expected nonterminal node");
+            };
+            derivations.push((node.child, node.return_slot));
+            // The grouped nonterminal_nodes_children_map is built once, on
+            // first access. Reading it here would cache it before the
+            // additions below, and tree construction would miss them.
+            derivations.extend(self.nonterminal_node_extra_children(result));
+        }
+        let SPPFNode::Nonterminal(first) = self.sppf_node(*results.first().unwrap()) else {
+            unreachable!("expected nonterminal node");
+        };
+        let nonterminal_id = first.nonterminal_id;
+        let span = first.span;
+        let (child, return_slot) = derivations[0];
+        let merged = self.add_nonterminal_node(NonterminalNode {
+            nonterminal_id,
+            return_slot,
+            span,
+            child,
+            ambiguous: true,
+        });
+        for &(child, return_slot) in &derivations[1..] {
+            self.add_nonterminal_node_child(merged, child, return_slot);
+        }
+        merged
+    }
+
     fn run(&mut self) -> ParseResult {
         let start = Instant::now();
         let start_input_index = 0;
@@ -852,9 +950,7 @@ pub trait Parser<'i, 'arena> {
         }
         let duration = start.elapsed();
         let right_extent = self.input().len();
-        if let Some(sppf_node_id) =
-            self.lookup_start_nonterminal_node(right_extent, start_gss_node_id)
-        {
+        if let Some(sppf_node_id) = self.start_results(right_extent, start_gss_node_id) {
             ParseResult::Success(ParseSuccess {
                 sppf_node_id,
                 duration,
@@ -885,22 +981,30 @@ pub trait Parser<'i, 'arena> {
 
     /// Extra children of ambiguous intermediate nodes, grouped by parent node.
     ///
-    /// The default is an empty map for the --unsafe mode, which produces no ambiguity.
+    /// The unsafe mode produces no ambiguity and returns an empty map.
     fn intermediate_nodes_children_map(
         &self,
     ) -> &FxHashMap<SPPFNodeId, Vec<(SPPFNodeId, SPPFNodeId)>> {
-        static EMPTY: LazyLock<FxHashMap<SPPFNodeId, Vec<(SPPFNodeId, SPPFNodeId)>>> =
-            LazyLock::new(FxHashMap::default);
-        &EMPTY
+        if Self::UNSAFE {
+            static EMPTY: LazyLock<FxHashMap<SPPFNodeId, Vec<(SPPFNodeId, SPPFNodeId)>>> =
+                LazyLock::new(FxHashMap::default);
+            &EMPTY
+        } else {
+            unimplemented!("overridden by the generated parser outside the unsafe mode");
+        }
     }
 
     /// Extra children of ambiguous nonterminal nodes, grouped by parent node.
     ///
-    /// The default is an empty map for the --unsafe mode, which produces no ambiguity.
+    /// The unsafe mode produces no ambiguity and returns an empty map.
     fn nonterminal_nodes_children_map(&self) -> &FxHashMap<SPPFNodeId, Vec<(SPPFNodeId, SlotId)>> {
-        static EMPTY: LazyLock<FxHashMap<SPPFNodeId, Vec<(SPPFNodeId, SlotId)>>> =
-            LazyLock::new(FxHashMap::default);
-        &EMPTY
+        if Self::UNSAFE {
+            static EMPTY: LazyLock<FxHashMap<SPPFNodeId, Vec<(SPPFNodeId, SlotId)>>> =
+                LazyLock::new(FxHashMap::default);
+            &EMPTY
+        } else {
+            unimplemented!("overridden by the generated parser outside the unsafe mode");
+        }
     }
 
     /// The children of the given SPPF node, in order.

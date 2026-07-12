@@ -1,0 +1,29 @@
+(Amb
+  (E
+    #1=(E
+      "("
+      WS
+      (E Id)
+      WS
+      ")")
+    WS
+    "-"
+    WS
+    #2=(E Id))
+  (E
+    #1#
+    WS
+    "-"
+    WS
+    #2#)
+  (E
+    "("
+    WS
+    (Type Id)
+    WS
+    ")"
+    WS
+    (E
+      "-"
+      WS
+      (E Id))))

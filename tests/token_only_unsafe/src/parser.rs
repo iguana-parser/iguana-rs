@@ -405,17 +405,6 @@ impl<'i, 'arena> Parser<'i, 'arena> for TokenOnlyUnsafeParser<'i, 'arena> {
     fn start_env(&mut self) -> Option<EnvId> {
         None
     }
-    fn lookup_start_nonterminal_node(
-        &self,
-        right_extent: u32,
-        start_gss_node_id: GssNodeId,
-    ) -> Option<SPPFNodeId> {
-        self.gss_node(start_gss_node_id)
-            .popped_elements()
-            .iter()
-            .find(|((right, _), _)| *right == right_extent)
-            .map(|(_, id)| *id)
-    }
     fn add_start_gss_node(
         &mut self,
         nonterminal_id: NonterminalId,

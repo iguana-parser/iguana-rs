@@ -1,0 +1,8 @@
+(E
+  "("
+  WS
+  (Type Id)
+  WS
+  ")"
+  WS
+  (E Id))
