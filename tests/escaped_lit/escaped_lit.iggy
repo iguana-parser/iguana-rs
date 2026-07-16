@@ -1,0 +1,10 @@
+grammar EscapedLit
+
+@Start
+S = "\"" Id "\"" "\\" Id "\f'"
+
+@Regex
+Id = [a-z]+
+
+@Layout @Regex
+WS = [\ ]*

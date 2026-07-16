@@ -449,11 +449,36 @@ impl Symbol {
     }
 }
 
+/// Escapes text for Iggy string literals, using exactly the escape set the
+/// Iggy grammar accepts: `\"`, `\\`, `\n`, `\t`, `\r`, and `\f`.
+///
+/// Every place a literal's text is presented goes through this escaping:
+/// terminal names (parse-tree labels, parse errors) and the Display of
+/// literal symbols (printed grammars). The presentation text is
+/// syntactically valid Iggy notation, so a literal read from a parse tree,
+/// an error message, or a printed grammar can be pasted back into a
+/// grammar.
+pub fn escape_literal(text: &str) -> String {
+    let mut escaped = String::with_capacity(text.len());
+    for c in text.chars() {
+        match c {
+            '"' => escaped.push_str("\\\""),
+            '\\' => escaped.push_str("\\\\"),
+            '\n' => escaped.push_str("\\n"),
+            '\t' => escaped.push_str("\\t"),
+            '\r' => escaped.push_str("\\r"),
+            '\u{C}' => escaped.push_str("\\f"),
+            _ => escaped.push(c),
+        }
+    }
+    escaped
+}
+
 impl Display for Symbol {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             Symbol::Labeled { label, symbol } => write!(f, "{label}:{symbol}"),
-            Symbol::Literal(literal) => write!(f, "\"{}\"", literal.escape_debug()),
+            Symbol::Literal(literal) => write!(f, "\"{}\"", escape_literal(literal)),
             Symbol::Identifier(identifier) => write!(f, "{}", identifier.name),
             Symbol::Group(symbols) => write!(f, "({})", symbols.iter().join(" ")),
             Symbol::Opt(opt) => write!(f, "{opt}?"),

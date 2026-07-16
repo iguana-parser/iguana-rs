@@ -9,7 +9,10 @@ use crate::{
     alternative,
     grammar::{
         regex::Regex,
-        symbols::{Definition, DefinitionId, Expr, Identifier, Nonterminal, Symbol, Terminal},
+        symbols::{
+            Definition, DefinitionId, Expr, Identifier, Nonterminal, Symbol, Terminal,
+            escape_literal,
+        },
         transformations::{
             ebnf_to_bnf, exclude_desugaring, layout_insertion, precedence_desugaring,
             transform_regex, transform_syntax_rule, visit_syntax_rule,
@@ -464,7 +467,7 @@ fn add_lexical_rules(
             }
         }
         Symbol::Literal(name) => {
-            let terminal_name = format!("\"{}\"", name);
+            let terminal_name = format!("\"{}\"", escape_literal(&name));
             let terminal = Terminal::new(terminal_name.clone());
             if !added_terminals.contains(&terminal) {
                 added_terminals.insert(terminal.clone());

@@ -685,7 +685,7 @@ impl<'i, 'arena> IggyScanner<'i, 'arena> {
     pub fn match_terminal_21(&self, input_index: u32) -> Option<u32> {
         self.scan(&DFA_21, input_index)
     }
-    // "\" = \\
+    // "\\" = \\
     pub fn match_terminal_22(&self, input_index: u32) -> Option<u32> {
         self.scan(&DFA_22, input_index)
     }

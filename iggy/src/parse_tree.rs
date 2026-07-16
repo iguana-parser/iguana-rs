@@ -57,7 +57,7 @@ pub enum TokenKind {
     T20,
     // "!<<"
     T21,
-    // "\"
+    // "\\"
     T22,
     // "!>>"
     T23,
@@ -113,7 +113,7 @@ impl TokenKind {
             TokenKind::T19 => "\"@Regex\"",
             TokenKind::T20 => "\"|\"",
             TokenKind::T21 => "\"!<<\"",
-            TokenKind::T22 => "\"\\\"",
+            TokenKind::T22 => "\"\\\\\"",
             TokenKind::T23 => "\"!>>\"",
             TokenKind::T24 => "\"left\"",
             TokenKind::T25 => "\"right\"",
@@ -198,9 +198,9 @@ pub enum ParseTree<'a> {
     Opt8(&'a Opt8<'a>),
     // {Symbol+ "|"}+
     Plus7(&'a Plus7<'a>),
-    // ("\" Identifier)
+    // ("\\" Identifier)
     Group0(&'a Group0<'a>),
-    // ("\" Identifier)+
+    // ("\\" Identifier)+
     Plus8(&'a Plus8<'a>),
     // ("!>>" Identifier)
     Group1(&'a Group1<'a>),
@@ -1147,7 +1147,7 @@ pub enum PreCondition<'a> {
 }
 #[derive(Debug)]
 pub enum PostCondition<'a> {
-    // PostCondition = "\" Layout Identifier #Except
+    // PostCondition = "\\" Layout Identifier #Except
     Except {
         lit_0: Token,
         layout: &'a Layout<'a>,
@@ -1278,8 +1278,8 @@ pub enum Symbol<'a> {
         span: Span,
     },
     // Symbol(p, e) = [256 & e == 0] [3 >= p] l=Symbol(p, 0) [(l >> 16 == 0) || (l >> 16 >= 3)]
-    // [(l & 65535 == 65535) || ((256 >> (l & 65535)) & 1 == 0)] Layout excepts:("\" Identifier)+
-    // return 8 #Except
+    // [(l & 65535 == 65535) || ((256 >> (l & 65535)) & 1 == 0)] Layout excepts:("\\"
+    // Identifier)+ return 8 #Except
     Except {
         symbol: &'a Symbol<'a>,
         layout: &'a Layout<'a>,
@@ -1700,7 +1700,7 @@ pub enum Plus7<'a> {
     },
     Amb(&'a [&'a Plus7<'a>]),
 }
-// ("\" Identifier)
+// ("\\" Identifier)
 #[derive(Debug)]
 pub enum Group0<'a> {
     Alt0 {
@@ -1711,17 +1711,17 @@ pub enum Group0<'a> {
     },
     Amb(&'a [&'a Group0<'a>]),
 }
-// ("\" Identifier)+
+// ("\\" Identifier)+
 #[derive(Debug)]
 pub enum Plus8<'a> {
-    // Plus_8 = ("\" Identifier)+ Layout ("\" Identifier)
+    // Plus_8 = ("\\" Identifier)+ Layout ("\\" Identifier)
     Alt0 {
         plus_8: &'a Plus8<'a>,
         layout: &'a Layout<'a>,
         group_0: &'a Group0<'a>,
         span: Span,
     },
-    // Plus_8 = ("\" Identifier)
+    // Plus_8 = ("\\" Identifier)
     Alt1 {
         group_0: &'a Group0<'a>,
         span: Span,
@@ -4249,7 +4249,7 @@ impl<'a> Group0<'a> {
     pub fn display_name(&self) -> &'static str {
         match self {
             Group0::Amb(_) => "Amb",
-            _ => "(\"\\\" Identifier)",
+            _ => "(\"\\\\\" Identifier)",
         }
     }
     pub fn origin(&self) -> Option<Origin> {
@@ -4318,7 +4318,7 @@ impl<'a> Plus8<'a> {
     pub fn display_name(&self) -> &'static str {
         match self {
             Plus8::Amb(_) => "Amb",
-            _ => "(\"\\\" Identifier)+",
+            _ => "(\"\\\\\" Identifier)+",
         }
     }
     pub fn origin(&self) -> Option<Origin> {
@@ -5664,7 +5664,7 @@ fn token_kind(terminal_id: TerminalId) -> TokenKind {
         TerminalId(20) => TokenKind::T20,
         // "!<<"
         TerminalId(21) => TokenKind::T21,
-        // "\"
+        // "\\"
         TerminalId(22) => TokenKind::T22,
         // "!>>"
         TerminalId(23) => TokenKind::T23,
@@ -5879,7 +5879,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a> {
             },
             // PostCondition
             NonterminalId(6) => match nonterminal_node.return_slot {
-                // PostCondition : "\" Layout Identifier.
+                // PostCondition : "\\" Layout Identifier.
                 SlotId(53) => {
                     let [lit_0, layout, identifier] = children.into_array::<3usize>();
                     ParseTree::PostCondition(self.arena.alloc(PostCondition::Except {
@@ -6536,7 +6536,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a> {
             },
             // Group_0
             NonterminalId(36) => match nonterminal_node.return_slot {
-                // ("\" Identifier) : "\" Layout Identifier.
+                // ("\\" Identifier) : "\\" Layout Identifier.
                 SlotId(218) => {
                     let [lit_0, layout, identifier] = children.into_array::<3usize>();
                     ParseTree::Group0(self.arena.alloc(Group0::Alt0 {
@@ -6550,7 +6550,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a> {
             },
             // Plus_8
             NonterminalId(37) => match nonterminal_node.return_slot {
-                // ("\" Identifier)+ : ("\" Identifier)+ Layout ("\" Identifier).
+                // ("\\" Identifier)+ : ("\\" Identifier)+ Layout ("\\" Identifier).
                 SlotId(222) => {
                     let [plus_8, layout, group_0] = children.into_array::<3usize>();
                     ParseTree::Plus8(self.arena.alloc(Plus8::Alt0 {
@@ -6560,7 +6560,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a> {
                         span: nonterminal_node.span,
                     }))
                 }
-                // ("\" Identifier)+ : ("\" Identifier).
+                // ("\\" Identifier)+ : ("\\" Identifier).
                 SlotId(224) => {
                     let [group_0] = children.into_array::<1usize>();
                     ParseTree::Plus8(self.arena.alloc(Plus8::Alt1 {
@@ -6888,7 +6888,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a> {
                     }))
                 }
                 // Symbol : [256 & e == 0] [3 >= p] l=Symbol(p, 0) [(l >> 16 == 0) || (l >> 16 >= 3)] [(l &
-                // 65535 == 65535) || ((256 >> (l & 65535)) & 1 == 0)] Layout excepts:("\" Identifier)+
+                // 65535 == 65535) || ((256 >> (l & 65535)) & 1 == 0)] Layout excepts:("\\" Identifier)+
                 // return 8.
                 SlotId(344) => {
                     let [symbol, layout, excepts] = children.into_array::<3usize>();
