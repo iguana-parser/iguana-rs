@@ -44,13 +44,8 @@ impl<'i, 'arena> FollowRestrictionLexicalScanner<'i, 'arena> {
     }
     // Num = [0-9]+ !>> Alpha
     pub fn match_terminal_0(&self, input_index: u32) -> Option<u32> {
-        self.scan(&DFA_0, input_index).and_then(|end| {
-            if self.match_terminal_1(end).is_some() {
-                None
-            } else {
-                Some(end)
-            }
-        })
+        self.scan(&DFA_0, input_index)
+            .filter(|&end| self.match_terminal_1(end).is_none())
     }
     // Alpha = [a-z A-Z]
     pub fn match_terminal_1(&self, input_index: u32) -> Option<u32> {

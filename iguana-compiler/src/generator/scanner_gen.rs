@@ -395,7 +395,7 @@ fn gen_match_terminal_method(
         .lexical_rule(terminal)
         .unwrap_or_else(|| panic!("Terminal {} is not defined", terminal.name));
 
-    // One check per follow restriction; chaining `.and_then` rejects the match
+    // One check per follow restriction; chaining `.filter` rejects the match
     // if any restriction terminal matches at the end position.
     let follow_restriction_checks: Vec<_> = rule
         .follow_restriction
@@ -412,13 +412,7 @@ fn gen_match_terminal_method(
             let restriction_id = terminal_ids.get_id(restriction_terminal);
             let restriction_fn = format_ident!("match_terminal_{}", restriction_id.index());
             quote! {
-                .and_then(|end| {
-                    if self.#restriction_fn(end).is_some() {
-                        None
-                    } else {
-                        Some(end)
-                    }
-                })
+                .filter(|&end| self.#restriction_fn(end).is_none())
             }
         })
         .collect();

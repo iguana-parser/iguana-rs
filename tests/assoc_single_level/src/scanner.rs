@@ -10,32 +10,20 @@ use iguana_runtime::{
 const MATCH_MEMO_WORDS: usize = 1;
 const MATCH_ANY_SET_WORDS: usize = 1;
 static DFA_0: Dfa = Dfa::new(&[
-    State::new(&[('0', '9', 1)], None),
-    State::new(&[('0', '9', 1)], Some(TerminalId(0))),
+    State::new(&[('<', '<', 1)], None),
+    State::new(&[], Some(TerminalId(0))),
 ]);
 static DFA_1: Dfa = Dfa::new(&[
-    State::new(&[('A', 'Z', 1), ('a', 'z', 1)], None),
+    State::new(&[('a', 'a', 1)], None),
     State::new(&[], Some(TerminalId(1))),
 ]);
-static DFA_2: Dfa = Dfa::new(&[
-    State::new(&[('.', '.', 1)], None),
-    State::new(&[], Some(TerminalId(2))),
-]);
-static DFA_3: Dfa = Dfa::new(&[
-    State::new(&[('A', 'Z', 1), ('a', 'z', 1)], None),
-    State::new(&[('A', 'Z', 1), ('a', 'z', 1)], Some(TerminalId(3))),
-]);
-static DFA_4: Dfa = Dfa::new(&[
-    State::new(&[(' ', ' ', 1)], Some(TerminalId(4))),
-    State::new(&[(' ', ' ', 1)], Some(TerminalId(4))),
-]);
-pub struct FollowRestrictionLexicalMultipleScanner<'i, 'arena> {
+pub struct AssocSingleLevelScanner<'i, 'arena> {
     pub input: &'i Input,
     vec_arena: &'arena Bump,
     memo: MatchMemo<'arena, MATCH_MEMO_WORDS>,
     match_any_memo: MatchAnyMemo<'arena, MATCH_ANY_SET_WORDS>,
 }
-impl<'i, 'arena> FollowRestrictionLexicalMultipleScanner<'i, 'arena> {
+impl<'i, 'arena> AssocSingleLevelScanner<'i, 'arena> {
     pub fn new(input: &'i Input, vec_arena: &'arena Bump) -> Self {
         let memo = MatchMemo::new(input.len() as usize, vec_arena);
         let match_any_memo = MatchAnyMemo::new(input.len() as usize, vec_arena);
@@ -46,27 +34,13 @@ impl<'i, 'arena> FollowRestrictionLexicalMultipleScanner<'i, 'arena> {
             match_any_memo,
         }
     }
-    // Num = [0-9]+ !>> Alpha !>> Dot
+    // "<" = <
     pub fn match_terminal_0(&self, input_index: u32) -> Option<u32> {
         self.scan(&DFA_0, input_index)
-            .filter(|&end| self.match_terminal_1(end).is_none())
-            .filter(|&end| self.match_terminal_2(end).is_none())
     }
-    // Alpha = [a-z A-Z]
+    // "a" = a
     pub fn match_terminal_1(&self, input_index: u32) -> Option<u32> {
         self.scan(&DFA_1, input_index)
-    }
-    // Dot = .
-    pub fn match_terminal_2(&self, input_index: u32) -> Option<u32> {
-        self.scan(&DFA_2, input_index)
-    }
-    // Word = [a-z A-Z]+
-    pub fn match_terminal_3(&self, input_index: u32) -> Option<u32> {
-        self.scan(&DFA_3, input_index)
-    }
-    // WS = [ ]*
-    pub fn match_terminal_4(&self, input_index: u32) -> Option<u32> {
-        self.scan(&DFA_4, input_index)
     }
     // Whether any terminal in `set` matches at `input_index`, cached by the set's memo id. The
     // first query of a set at a position scans it; later queries return the cached bit.
@@ -82,7 +56,7 @@ impl<'i, 'arena> FollowRestrictionLexicalMultipleScanner<'i, 'arena> {
         matched
     }
 }
-impl Scanner for FollowRestrictionLexicalMultipleScanner<'_, '_> {
+impl Scanner for AssocSingleLevelScanner<'_, '_> {
     fn match_token(&mut self, terminal_id: TerminalId, input_index: u32) -> Option<u32> {
         if let Some(lookup) = self.memo.get(terminal_id, input_index) {
             return match lookup {
@@ -93,10 +67,7 @@ impl Scanner for FollowRestrictionLexicalMultipleScanner<'_, '_> {
         let result = match terminal_id {
             TerminalId(0) => self.match_terminal_0(input_index),
             TerminalId(1) => self.match_terminal_1(input_index),
-            TerminalId(2) => self.match_terminal_2(input_index),
-            TerminalId(3) => self.match_terminal_3(input_index),
-            TerminalId(4) => self.match_terminal_4(input_index),
-            TerminalId(6) => {
+            TerminalId(3) => {
                 if input_index == self.input.len() {
                     Some(input_index)
                 } else {

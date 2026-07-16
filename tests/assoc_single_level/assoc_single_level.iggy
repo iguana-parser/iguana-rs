@@ -1,0 +1,10 @@
+grammar AssocSingleLevel
+
+E = left E "<" E
+  | "a"
+
+F = right F "<" F
+  | "a"
+
+G = none G "<" G
+  | "a"

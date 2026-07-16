@@ -161,9 +161,8 @@ enum Side {
 }
 
 pub fn transform(syntax_rules: Vec<SyntaxRule>) -> Vec<SyntaxRule> {
-    // Rules with `>` separators (multiple priority levels). Candidates for
-    // desugaring; each one we'll try to find a recursive name for.
-    let rules_with_priority_levels: Vec<String> = syntax_rules
+    // Candidates for desugaring; each one we'll try to find a recursive name for.
+    let rules_with_precedence_or_associativity: Vec<String> = syntax_rules
         .iter()
         .filter(|rule| needs_desugaring(rule))
         .map(|rule| rule.head.name.clone())
@@ -174,7 +173,8 @@ pub fn transform(syntax_rules: Vec<SyntaxRule>) -> Vec<SyntaxRule> {
         .map(|r| (r.head.name.as_str(), r))
         .collect();
 
-    let recursive_names = compute_recursive_names(&syntax_rules, &rules_with_priority_levels);
+    let recursive_names =
+        compute_recursive_names(&syntax_rules, &rules_with_precedence_or_associativity);
 
     let ends = compute_ends(&syntax_rules);
     let precedences_by_rule = compute_precedences(&recursive_names, &rules_by_name, &ends);
@@ -192,7 +192,7 @@ pub fn transform(syntax_rules: Vec<SyntaxRule>) -> Vec<SyntaxRule> {
         &syntax_rules,
         &recursive_names,
         &ends,
-        &rules_with_priority_levels,
+        &rules_with_precedence_or_associativity,
     );
 
     // Nonterminals that gain a `p` parameter; their call sites pass `0` as the
@@ -231,18 +231,19 @@ pub fn transform(syntax_rules: Vec<SyntaxRule>) -> Vec<SyntaxRule> {
         .collect()
 }
 
-/// For each rule with priority levels, find the nonterminal that appears at
-/// recursive (left/right) ends of its alternatives. See `find_recursive_name`.
+/// For each rule with precedence or associativity, find the nonterminal that
+/// appears at recursive (left/right) ends of its alternatives. See
+/// `find_recursive_name`.
 fn compute_recursive_names(
     syntax_rules: &[SyntaxRule],
-    rules_with_priority_levels: &[String],
+    rules_with_precedence_or_associativity: &[String],
 ) -> Vec<(String, String)> {
     let mut result = Vec::new();
     for rule in syntax_rules {
         if !needs_desugaring(rule) {
             continue;
         }
-        if let Some(rec_name) = find_recursive_name(rule, rules_with_priority_levels) {
+        if let Some(rec_name) = find_recursive_name(rule, rules_with_precedence_or_associativity) {
             result.push((rule.head.name.clone(), rec_name));
         }
     }
@@ -306,9 +307,9 @@ fn compute_intermediates(
     syntax_rules: &[SyntaxRule],
     recursive_names: &[(String, String)],
     ends: &Ends,
-    rules_with_priority_levels: &[String],
+    rules_with_precedence_or_associativity: &[String],
 ) -> FxHashMap<String, (String, Side)> {
-    let priority: FxHashSet<&str> = rules_with_priority_levels
+    let priority: FxHashSet<&str> = rules_with_precedence_or_associativity
         .iter()
         .map(String::as_str)
         .collect();
@@ -358,13 +359,16 @@ fn compute_intermediates(
 
 /// Finds the nonterminal name that appears at recursive (left/right) ends of a
 /// rule's alternatives. Direct recursion (head name appears at ends) takes
-/// precedence, then indirect recursion (some other rule with priority levels
-/// appears at ends). Returns `None` if no recursive ends are found.
-fn find_recursive_name(rule: &SyntaxRule, rules_with_priority_levels: &[String]) -> Option<String> {
+/// precedence, then indirect recursion (some other rule with precedence or
+/// associativity appears at ends). Returns `None` if no recursive ends are found.
+fn find_recursive_name(
+    rule: &SyntaxRule,
+    rules_with_precedence_or_associativity: &[String],
+) -> Option<String> {
     if has_recursive_ends(rule, &rule.head.name) {
         return Some(rule.head.name.clone());
     }
-    for name in rules_with_priority_levels {
+    for name in rules_with_precedence_or_associativity {
         if has_recursive_ends(rule, name) {
             return Some(name.clone());
         }
@@ -381,9 +385,14 @@ fn has_recursive_ends(rule: &SyntaxRule, name: &str) -> bool {
         .any(|alt| classify_ends(alt, name, &[]) != RecursiveEnds::None)
 }
 
-/// A rule needs desugaring if it has more than one priority level.
+/// A rule needs desugaring if it declares precedence (more than one priority
+/// level) or associativity.
 fn needs_desugaring(rule: &SyntaxRule) -> bool {
     rule.priority_levels.len() > 1
+        || rule
+            .priority_levels
+            .iter()
+            .any(|level| level.associativity.is_some())
 }
 
 /// Classifies an alternative's recursion type relative to the recursive nonterminal.
@@ -1730,6 +1739,43 @@ mod tests {
                         call!("E", 2),
                         ret!(1),
                     ),
+                )),
+            ]
+        );
+
+        let actual: Grammar = input.try_into().unwrap();
+        let expected: Grammar = expected.try_into().unwrap();
+        assert_eq!(actual, expected);
+    }
+
+    /// E = left E '+' E | 'a': associativity on a single priority level
+    /// still triggers desugaring.
+    #[test]
+    fn test_single_level_assoc() {
+        let input = grammar_def!("Test",
+            syntax: [
+                syntax_rule!("E" =>
+                    priority_level!(left!();
+                        alternative!(id!("E"), lit!("+"), id!("E")),
+                        alternative!(lit!("a"))
+                    )
+                ),
+            ]
+        );
+
+        // E(p) = [1>=p] l=E(p) [l==0||l>=1] '+' E(2) return 1 | 'a' return 0
+        let expected = grammar_def!("Test",
+            syntax: [
+                syntax_rule!("E"("p": I32) => priority_level!(
+                    alternative!(
+                        cond!(1 >= "p"),
+                        bind!("l", call!("E", ref "p")),
+                        cond!(("l" == 0) || ("l" >= 1)),
+                        lit!("+"),
+                        call!("E", 2),
+                        ret!(1),
+                    ),
+                    alternative!(lit!("a"), ret!(0)),
                 )),
             ]
         );

@@ -1191,13 +1191,25 @@ impl<'a> ParserGen<'a> {
         } else {
             quote! {}
         };
-        // The unsafe mode never shares SPPF nodes, so it carries none of the lookup indexes.
-        let sppf_nodes_index_fields = if self.config.unsafe_mode {
+        // intermediate_nodes_index serves the slots of nonterminals that are
+        // not data-dependent. When every nonterminal is data-dependent, the
+        // insert and lookup methods use dd_intermediate_nodes_index
+        // unconditionally (see gen_add_intermediate_node_method) and this
+        // field would be dead code. Skip it.
+        let intermediate_nodes_index_field = if dd_slot_start == 0 {
             quote! {}
         } else {
             quote! {
                 #[comment = "Per-slot Span-keyed intermediate-node index, for slots in non-parameterized nonterminals."]
                 intermediate_nodes_index: [InlineMap<'arena, Span, SPPFNodeId>; #dd_slot_start_lit],
+            }
+        };
+        // The unsafe mode never shares SPPF nodes, so it carries none of the lookup indexes.
+        let sppf_nodes_index_fields = if self.config.unsafe_mode {
+            quote! {}
+        } else {
+            quote! {
+                #intermediate_nodes_index_field
                 #[comment = "Per-slot (Span, env)-keyed intermediate-node index, for slots in parameterized
                              nonterminals; env separates calls made with different parameter values."]
                 dd_intermediate_nodes_index: [InlineMap<'arena, (Span, Option<EnvId>), SPPFNodeId>; #param_slot_count_lit],
@@ -1266,9 +1278,15 @@ impl<'a> ParserGen<'a> {
             return quote! {};
         }
         let dd_slot_start = self.slot_ids.dd_slot_start();
-        let intermediate_nodes_index = empty_inline_map_array(dd_slot_start);
         let dd_intermediate_nodes_index =
             empty_inline_map_array(self.slot_ids.len() - dd_slot_start);
+        // When every nonterminal is data-dependent, the intermediate_nodes_index field does not exist.
+        if dd_slot_start == 0 {
+            return quote! {
+                dd_intermediate_nodes_index: #dd_intermediate_nodes_index,
+            };
+        }
+        let intermediate_nodes_index = empty_inline_map_array(dd_slot_start);
         quote! {
             intermediate_nodes_index: #intermediate_nodes_index,
             dd_intermediate_nodes_index: #dd_intermediate_nodes_index,
@@ -1942,7 +1960,28 @@ impl<'a> ParserGen<'a> {
     }
 
     fn gen_add_intermediate_node_method(&self) -> TokenStream {
-        let dd_slot_start_lit = Literal::usize_unsuffixed(self.slot_ids.dd_slot_start());
+        let dd_slot_start = self.slot_ids.dd_slot_start();
+        let dd_slot_start_lit = Literal::usize_unsuffixed(dd_slot_start);
+        // When every nonterminal is data-dependent, the split below would
+        // compile to `slot_idx < 0`, an unused comparison on usize that
+        // deny-warnings builds reject. Emit the data-dependent arm alone.
+        let index_dispatch = if dd_slot_start == 0 {
+            quote! {
+                self.dd_intermediate_nodes_index[slot_idx]
+                    .insert((intermediate_node.span, env), intermediate_node_id, arena);
+            }
+        } else {
+            quote! {
+                if slot_idx < #dd_slot_start_lit {
+                    self.intermediate_nodes_index[slot_idx]
+                        .insert(intermediate_node.span, intermediate_node_id, arena);
+                } else {
+                    let idx = slot_idx - #dd_slot_start_lit;
+                    self.dd_intermediate_nodes_index[idx]
+                        .insert((intermediate_node.span, env), intermediate_node_id, arena);
+                }
+            }
+        };
         let (env_param, add_to_index_param, index_insert) = if self.config.unsafe_mode {
             (quote! { _env }, quote! { _add_to_index }, quote! {})
         } else {
@@ -1953,14 +1992,7 @@ impl<'a> ParserGen<'a> {
                     if add_to_index {
                         let arena = self.vec_arena;
                         let slot_idx = intermediate_node.slot_id.index();
-                        if slot_idx < #dd_slot_start_lit {
-                            self.intermediate_nodes_index[slot_idx]
-                                .insert(intermediate_node.span, intermediate_node_id, arena);
-                        } else {
-                            let idx = slot_idx - #dd_slot_start_lit;
-                            self.dd_intermediate_nodes_index[idx]
-                                .insert((intermediate_node.span, env), intermediate_node_id, arena);
-                        }
+                        #index_dispatch
                     }
                 },
             )
@@ -2062,7 +2094,23 @@ impl<'a> ParserGen<'a> {
         if self.config.unsafe_mode {
             return quote! {};
         }
-        let dd_slot_start_lit = Literal::usize_unsuffixed(self.slot_ids.dd_slot_start());
+        let dd_slot_start = self.slot_ids.dd_slot_start();
+        let dd_slot_start_lit = Literal::usize_unsuffixed(dd_slot_start);
+        // Same special case as in add_intermediate_node.
+        let index_dispatch = if dd_slot_start == 0 {
+            quote! {
+                self.dd_intermediate_nodes_index[slot_idx].get(&(span, env)).copied()
+            }
+        } else {
+            quote! {
+                if slot_idx < #dd_slot_start_lit {
+                    self.intermediate_nodes_index[slot_idx].get(&span).copied()
+                } else {
+                    let idx = slot_idx - #dd_slot_start_lit;
+                    self.dd_intermediate_nodes_index[idx].get(&(span, env)).copied()
+                }
+            }
+        };
         quote! {
             fn lookup_intermediate_node(
                 &self,
@@ -2073,12 +2121,7 @@ impl<'a> ParserGen<'a> {
             ) -> Option<SPPFNodeId> {
                 let slot_idx = slot_id.index();
                 let span = Span::new(left_extent, right_extent);
-                if slot_idx < #dd_slot_start_lit {
-                    self.intermediate_nodes_index[slot_idx].get(&span).copied()
-                } else {
-                    let idx = slot_idx - #dd_slot_start_lit;
-                    self.dd_intermediate_nodes_index[idx].get(&(span, env)).copied()
-                }
+                #index_dispatch
             }
         }
     }
@@ -2442,14 +2485,22 @@ impl<'a> ParserGen<'a> {
                 quote! { stats.record(#label, self.#field_name.len()); }
             })
             .collect();
-        // The unsafe mode carries no SPPF lookup indexes, so there is nothing to record.
-        let sppf_index_records = if self.config.unsafe_mode {
+        // When every nonterminal is data-dependent, the intermediate_nodes_index field does not exist.
+        let intermediate_index_record = if self.slot_ids.dd_slot_start() == 0 {
             quote! {}
         } else {
             quote! {
                 for m in self.intermediate_nodes_index.iter() {
                     stats.record("Parser::intermediate_nodes_index: InlineMap", m.len());
                 }
+            }
+        };
+        // The unsafe mode carries no SPPF lookup indexes, so there is nothing to record.
+        let sppf_index_records = if self.config.unsafe_mode {
+            quote! {}
+        } else {
+            quote! {
+                #intermediate_index_record
                 for m in self.dd_intermediate_nodes_index.iter() {
                     stats.record("Parser::dd_intermediate_nodes_index: InlineMap", m.len());
                 }
