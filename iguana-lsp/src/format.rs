@@ -244,6 +244,15 @@ impl<'a> Formatter<'a> {
         }
     }
 
+    fn format_symbols<'i>(&self, out: &mut String, symbols: impl Iterator<Item = &'i Symbol<'i>>) {
+        for (i, s) in symbols.enumerate() {
+            if i > 0 {
+                out.push(' ');
+            }
+            self.format_symbol(out, s);
+        }
+    }
+
     fn format_symbol(&self, out: &mut String, symbol: &Symbol) {
         match symbol {
             Symbol::Identifier { identifier, .. } => {
@@ -252,23 +261,13 @@ impl<'a> Formatter<'a> {
             Symbol::Lit { string, .. } => {
                 out.push_str(&self.input.text(string.span()));
             }
-            Symbol::Group { symbols, .. } => {
+            Symbol::Paren { seqs, .. } => {
                 out.push('(');
-                let syms: Vec<_> = symbols.symbols().collect();
-                for (i, s) in syms.iter().enumerate() {
+                for (i, seq) in seqs.symbols().enumerate() {
                     if i > 0 {
-                        out.push(' ');
+                        out.push_str(" | ");
                     }
-                    self.format_symbol(out, s);
-                }
-                out.push(')');
-            }
-            Symbol::Alt { first, rest, .. } => {
-                out.push('(');
-                self.format_symbol(out, first);
-                for s in rest.symbols() {
-                    out.push_str(" | ");
-                    self.format_symbol(out, s);
+                    self.format_symbols(out, seq);
                 }
                 out.push(')');
             }
@@ -425,6 +424,15 @@ impl<'a> Formatter<'a> {
         }
     }
 
+    fn format_regexes<'i>(&self, out: &mut String, regexes: impl Iterator<Item = &'i Regex<'i>>) {
+        for (i, r) in regexes.enumerate() {
+            if i > 0 {
+                out.push(' ');
+            }
+            self.format_regex(out, r);
+        }
+    }
+
     fn format_regex(&self, out: &mut String, regex: &Regex) {
         match regex {
             Regex::Plus { regex, .. } => {
@@ -439,23 +447,13 @@ impl<'a> Formatter<'a> {
                 self.format_regex(out, regex);
                 out.push('?');
             }
-            Regex::Alt { first, rest, .. } => {
+            Regex::Paren { seqs, .. } => {
                 out.push('(');
-                self.format_regex(out, first);
-                for r in rest.regexes() {
-                    out.push_str(" | ");
-                    self.format_regex(out, r);
-                }
-                out.push(')');
-            }
-            Regex::Group { regexes, .. } => {
-                out.push('(');
-                let regs: Vec<_> = regexes.regexes().collect();
-                for (i, r) in regs.iter().enumerate() {
+                for (i, seq) in seqs.regexes().enumerate() {
                     if i > 0 {
-                        out.push(' ');
+                        out.push_str(" | ");
                     }
-                    self.format_regex(out, r);
+                    self.format_regexes(out, seq);
                 }
                 out.push(')');
             }

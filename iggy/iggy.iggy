@@ -41,8 +41,7 @@ Alternative
 
 Symbol
   = Identifier                                                #Identifier
-  | "(" Symbol+ ")"                                           #Group
-  | "(" first:Symbol rest:("|" Symbol)+ ")"                   #Alt
+  | "(" seqs:{ Symbol+ "|" }+ ")"                             #Paren
   | String                                                    #Lit
   | "{" symbol:Symbol sep:Symbol "}" "*"                      #StarSep
   | "{" symbol:Symbol sep:Symbol "}" "+"                      #PlusSep
@@ -56,15 +55,14 @@ Symbol
   > label:Identifier ":" Symbol                               #Labeled
 
 Regex
-  = Regex "+"                             #Plus
-  | Regex "*"                             #Star
-  | Regex "?"                             #Opt
-  | "(" first:Regex rest:("|" Regex)+ ")" #Alt
-  | "(" Regex+ ")"                        #Group
-  | CharClass                             #CharClass
-  | Char                                  #Char
-  | String                                #String
-  | Identifier                            #Identifier
+  = Regex "+"                         #Plus
+  | Regex "*"                         #Star
+  | Regex "?"                         #Opt
+  | "(" seqs:{ Regex+ "|" }+ ")"      #Paren
+  | CharClass                         #CharClass
+  | Char                              #Char
+  | String                            #String
+  | Identifier                        #Identifier
 
 CharClass
   = neg:"!"? "[" RangeElement+ "]"

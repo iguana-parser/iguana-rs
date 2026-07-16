@@ -297,16 +297,68 @@ fn collect_regex_spans<'a>(
         | (Regex::Opt(inner), parse_tree::Regex::Opt { regex, .. }) => {
             collect_regex_spans(inner, regex, spans);
         }
-        (Regex::Alt(choices), parse_tree::Regex::Alt { first, rest, .. }) => {
-            let pt_regexes: Vec<&parse_tree::Regex> =
-                std::iter::once(*first).chain(rest.regexes()).collect();
-            for (gr, pt) in choices.iter().zip(pt_regexes) {
+        // A Paren node pairs with what its sequences converted to: a Seq
+        // when there is one sequence, an Alt with one element per sequence
+        // when there are several.
+        (Regex::Seq(parts), parse_tree::Regex::Paren { seqs, .. }) => {
+            if let Some(seq) = seqs.regexes().next() {
+                for (gr, pt) in parts.iter().zip(seq) {
+                    collect_regex_spans(gr, pt, spans);
+                }
+            }
+        }
+        (Regex::Alt(choices), parse_tree::Regex::Paren { seqs, .. }) => {
+            let pt_seqs: Vec<Vec<&parse_tree::Regex>> =
+                seqs.regexes().map(|seq| seq.collect()).collect();
+            for (gr, pt_seq) in choices.iter().zip(pt_seqs) {
+                collect_regex_seq_spans(gr, &pt_seq, spans);
+            }
+        }
+        _ => {}
+    }
+}
+
+// Pairs one sequence of an Alt with the element it converted to. A
+// one-regex sequence converted to the regex itself and pairs with it
+// directly. A longer sequence converted to a Seq, and its regexes pair
+// with the Seq's parts positionally.
+fn collect_regex_seq_spans<'a>(
+    gr_regex: &'a Regex,
+    pt_seq: &[&parse_tree::Regex],
+    spans: &mut GrammarSpans<'a>,
+) {
+    match (gr_regex, pt_seq) {
+        (_, [pt_regex]) => collect_regex_spans(gr_regex, pt_regex, spans),
+        (Regex::Seq(gr_parts), _) => {
+            for (gr, pt) in gr_parts.iter().zip(pt_seq) {
                 collect_regex_spans(gr, pt, spans);
             }
         }
-        (Regex::Seq(parts), parse_tree::Regex::Group { regexes, .. }) => {
-            for (gr, pt) in parts.iter().zip(regexes.regexes()) {
-                collect_regex_spans(gr, pt, spans);
+        _ => {}
+    }
+}
+
+// The symbol counterpart of collect_regex_seq_spans. The Group a
+// multi-symbol sequence converted to has no parse-tree node of its own, so
+// its span runs from the sequence's first symbol to its last.
+fn collect_symbol_seq_spans<'a>(
+    gr_sym: &'a Symbol,
+    pt_seq: &[&parse_tree::Symbol],
+    spans: &mut GrammarSpans<'a>,
+) {
+    match (gr_sym, pt_seq) {
+        (_, [pt_sym]) => collect_symbol_spans(gr_sym, pt_sym, spans),
+        (Symbol::Group(gr_parts), [pt_first, .., pt_last]) => {
+            let span = Span::new(pt_first.span().left_extent, pt_last.span().right_extent);
+            spans.symbols.insert(
+                ByAddress(gr_sym),
+                Metadata {
+                    span: Some(span),
+                    ..Default::default()
+                },
+            );
+            for (gr, pt) in gr_parts.iter().zip(pt_seq) {
+                collect_symbol_spans(gr, pt, spans);
             }
         }
         _ => {}
@@ -361,16 +413,21 @@ fn collect_symbol_spans<'a>(
             collect_symbol_spans(gr_inner, symbol, spans);
             collect_symbol_spans(gr_sep, sep, spans);
         }
-        (Symbol::Alt(gr_syms), parse_tree::Symbol::Alt { first, rest, .. }) => {
-            let pt_syms: Vec<&parse_tree::Symbol> =
-                std::iter::once(*first).chain(rest.symbols()).collect();
-            for (ir, pt) in gr_syms.iter().zip(pt_syms) {
-                collect_symbol_spans(ir, pt, spans);
+        // A Paren node pairs with what its sequences converted to: a Group
+        // when there is one sequence, an Alt with one element per sequence
+        // when there are several.
+        (Symbol::Group(gr_syms), parse_tree::Symbol::Paren { seqs, .. }) => {
+            if let Some(seq) = seqs.symbols().next() {
+                for (gr, pt) in gr_syms.iter().zip(seq) {
+                    collect_symbol_spans(gr, pt, spans);
+                }
             }
         }
-        (Symbol::Group(gr_syms), parse_tree::Symbol::Group { symbols, .. }) => {
-            for (ir, pt) in gr_syms.iter().zip(symbols.symbols()) {
-                collect_symbol_spans(ir, pt, spans);
+        (Symbol::Alt(gr_syms), parse_tree::Symbol::Paren { seqs, .. }) => {
+            let pt_seqs: Vec<Vec<&parse_tree::Symbol>> =
+                seqs.symbols().map(|seq| seq.collect()).collect();
+            for (gr, pt_seq) in gr_syms.iter().zip(pt_seqs) {
+                collect_symbol_seq_spans(gr, &pt_seq, spans);
             }
         }
         (

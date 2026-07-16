@@ -384,7 +384,17 @@ impl Symbol {
                 symbols.iter().map(|s| s.display_name(grammar)).join(" "),
             ),
             Symbol::Opt(symbol) => format!("{}?", symbol.display_name(grammar)),
-            Symbol::Alt(symbols) => symbols.iter().map(|s| s.display_name(grammar)).join(" | "),
+            // A Group symbol inside an Alt is a sequence and renders without
+            // its own parentheses: (A B | C) rather than ((A B) | C). The
+            // two variations are equivalent from the parsing perspective,
+            // and the rendering uses the shorter one.
+            Symbol::Alt(symbols) => symbols
+                .iter()
+                .map(|symbol| match symbol {
+                    Symbol::Group(seq) => seq.iter().map(|s| s.display_name(grammar)).join(" "),
+                    single => single.display_name(grammar),
+                })
+                .join(" | "),
             Symbol::Star(symbol, sep) => match sep {
                 Some(sep) => format!(
                     "{{{} {}}}*",
@@ -447,7 +457,18 @@ impl Display for Symbol {
             Symbol::Identifier(identifier) => write!(f, "{}", identifier.name),
             Symbol::Group(symbols) => write!(f, "({})", symbols.iter().join(" ")),
             Symbol::Opt(opt) => write!(f, "{opt}?"),
-            Symbol::Alt(symbols) => write!(f, "({})", symbols.iter().join(" | ")),
+            // A Group symbol inside an Alt renders without its own
+            // parentheses, as in display_name above.
+            Symbol::Alt(symbols) => {
+                let rendered = symbols
+                    .iter()
+                    .map(|symbol| match symbol {
+                        Symbol::Group(seq) => seq.iter().join(" "),
+                        single => single.to_string(),
+                    })
+                    .join(" | ");
+                write!(f, "({rendered})")
+            }
             Symbol::Star(symbol, sep) => match sep {
                 Some(sep) => write!(f, "{{{symbol} {sep}}}*"),
                 None => write!(f, "{symbol}*"),

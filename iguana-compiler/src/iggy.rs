@@ -184,11 +184,32 @@ fn convert_symbol(symbol: &parse_tree::Symbol, input: &Input) -> Symbol {
         parse_tree::Symbol::Opt { symbol, .. } => {
             Symbol::Opt(Box::new(convert_symbol(symbol, input)))
         }
-        parse_tree::Symbol::Alt { first, rest, .. } => {
-            let mut symbols = vec![convert_symbol(first, input)];
-            let rest: Vec<Symbol> = rest.symbols().map(|s| convert_symbol(s, input)).collect();
-            symbols.extend(rest);
-            Symbol::Alt(symbols)
+        // #Paren is the parenthesized form: at the syntax level one shape,
+        // a list of symbol sequences separated by "|", covers both groups
+        // and alternations. One sequence constructs a Group. Several
+        // construct an Alt: a one-symbol sequence stays as is, and a longer
+        // one is wrapped in a Group, because Alt holds a list of symbols,
+        // not a list of sequences.
+        parse_tree::Symbol::Paren { seqs, .. } => {
+            let mut seqs: Vec<Vec<Symbol>> = seqs
+                .symbols()
+                .map(|seq| seq.map(|s| convert_symbol(s, input)).collect())
+                .collect();
+            if seqs.len() == 1 {
+                Symbol::Group(seqs.pop().unwrap())
+            } else {
+                Symbol::Alt(
+                    seqs.into_iter()
+                        .map(|mut seq| {
+                            if seq.len() == 1 {
+                                seq.pop().unwrap()
+                            } else {
+                                Symbol::Group(seq)
+                            }
+                        })
+                        .collect(),
+                )
+            }
         }
         parse_tree::Symbol::Lit { string, .. } => {
             let raw = input.text(string.span());
@@ -201,12 +222,6 @@ fn convert_symbol(symbol: &parse_tree::Symbol, input: &Input) -> Symbol {
         parse_tree::Symbol::PlusSep { symbol, sep, .. } => Symbol::Plus(
             Box::new(convert_symbol(symbol, input)),
             Some(Box::new(convert_symbol(sep, input))),
-        ),
-        parse_tree::Symbol::Group { symbols, .. } => Symbol::Group(
-            symbols
-                .symbols()
-                .map(|s| convert_symbol(s, input))
-                .collect(),
         ),
         parse_tree::Symbol::Labeled { label, symbol, .. } => Symbol::Labeled {
             label: input.text(label.span()),
@@ -307,20 +322,37 @@ fn convert_regex(regex: &parse_tree::Regex, input: &Input) -> Regex {
         parse_tree::Regex::Plus { regex, .. } => Regex::Plus(Box::new(convert_regex(regex, input))),
         parse_tree::Regex::Star { regex, .. } => Regex::Star(Box::new(convert_regex(regex, input))),
         parse_tree::Regex::Opt { regex, .. } => Regex::Opt(Box::new(convert_regex(regex, input))),
-        parse_tree::Regex::Alt { first, rest, .. } => {
-            let mut regexes = vec![convert_regex(first, input)];
-            let rest_regexes: Vec<Regex> =
-                rest.regexes().map(|r| convert_regex(r, input)).collect();
-            regexes.extend(rest_regexes);
-            Regex::Alt(regexes)
+        // #Paren is the parenthesized form: at the syntax level one shape,
+        // a list of regex sequences separated by "|", covers both groups
+        // and alternations. One sequence constructs a Seq. Several
+        // construct an Alt: a one-regex sequence stays as is, and a longer
+        // one is wrapped in a Seq, because Alt holds a list of regexes,
+        // not a list of sequences.
+        parse_tree::Regex::Paren { seqs, .. } => {
+            let mut seqs: Vec<Vec<Regex>> = seqs
+                .regexes()
+                .map(|seq| seq.map(|r| convert_regex(r, input)).collect())
+                .collect();
+            if seqs.len() == 1 {
+                Regex::Seq(seqs.pop().unwrap())
+            } else {
+                Regex::Alt(
+                    seqs.into_iter()
+                        .map(|mut seq| {
+                            if seq.len() == 1 {
+                                seq.pop().unwrap()
+                            } else {
+                                Regex::Seq(seq)
+                            }
+                        })
+                        .collect(),
+                )
+            }
         }
         parse_tree::Regex::CharClass { char_class, .. } => convert_char_class(char_class, input),
         parse_tree::Regex::Char { char, .. } => {
             let raw = input.text(char.span());
             Regex::Char(parse_char(&raw[1..raw.len() - 1]))
-        }
-        parse_tree::Regex::Group { regexes, .. } => {
-            Regex::Seq(regexes.regexes().map(|r| convert_regex(r, input)).collect())
         }
         parse_tree::Regex::String { string, .. } => {
             let raw = input.text(string.span());

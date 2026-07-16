@@ -146,16 +146,33 @@ fn rewrite_ebnf_symbol(
                 definition: None,
             })
         }
-        // Transform (A | B | C) into: Alt_n ::= A | B | C
+        // Transform (A | B C) into: Alt_n ::= A | B C
+        // A Group symbol inside the Alt is a sequence, and its symbols
+        // become the alternative body directly. Not unwrapping the group
+        // would instead emit
+        //
+        //   Alt_n   ::= A | Group_m
+        //   Group_m ::= B C
+        //
+        // with an extra nonterminal call.
         Symbol::Alt(symbols) => {
             let name = counters.next_alt();
-            let transformed_symbols: Vec<_> = symbols
+            let alternatives: Vec<_> = symbols
                 .into_iter()
-                .map(|s| rewrite_ebnf_symbol(s, layout, counters, new_rules, ebnf_symbols))
-                .collect();
-            let alternatives: Vec<_> = transformed_symbols
-                .into_iter()
-                .map(|s| alternative!(s))
+                .map(|symbol| {
+                    let body = match symbol {
+                        Symbol::Group(seq) => seq,
+                        single => vec![single],
+                    };
+                    let transformed: Vec<_> = body
+                        .into_iter()
+                        .map(|s| rewrite_ebnf_symbol(s, layout, counters, new_rules, ebnf_symbols))
+                        .collect();
+                    Alternative {
+                        symbols: transformed,
+                        label: None,
+                    }
+                })
                 .collect();
             let new_rule = SyntaxRule {
                 head: Nonterminal::with_origin(&name, origin.clone()),
