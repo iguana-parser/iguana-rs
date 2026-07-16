@@ -302,6 +302,16 @@ export const edgeStyles: Stylesheet[] = [
     selector: "edge",
     style: { ...baseEdgeStyle },
   },
+  // Edges into a shared node (a node with several parents in the DAG), in
+  // the pink of the s-expression's #N=/#N# sharing marks, so sharing reads
+  // the same in both views. The selection styles below override it.
+  {
+    selector: "edge.shared",
+    style: {
+      "line-color": "#c586c0",
+      "target-arrow-color": "#c586c0",
+    },
+  },
   {
     selector: "edge.edge-selected-nonterminal",
     style: {

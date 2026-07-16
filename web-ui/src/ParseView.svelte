@@ -2,7 +2,7 @@
   import type { ParserBackend } from "./backend";
   import type * as monaco from "monaco-editor";
   import { tick } from "svelte";
-  import { ChevronDown, ChevronRight, CornerRightUp, ZoomIn, ZoomOut, Maximize2, Minimize2, Expand, Fullscreen, Download, SlidersHorizontal, Copy, ClipboardCheck } from "lucide-svelte";
+  import { ChevronDown, ChevronRight, CornerRightUp, Minimize2, Expand, SlidersHorizontal, Copy, ClipboardCheck } from "lucide-svelte";
   import cytoscape from "cytoscape";
   import {
     sppfNodeStyles,
@@ -18,6 +18,7 @@
     PARSE_TREE_LAYOUT,
     PARSE_TREE_WEBGL_NODE_THRESHOLD,
   } from "./graph-styles";
+  import { createGraphControls } from "./graph-controls";
   import {
     GraphCollapseManager,
     buildParseTreeElements,
@@ -469,6 +470,21 @@
         else parseTreeCy.resize();
       });
     }
+  });
+
+  // The shared control strip (createGraphControls) renders into the graph
+  // container while a tree is shown, so the buttons match the tree widget
+  // and any other host. Pop out appears only when the host provides the hook.
+  $effect(() => {
+    if (!parseTree || !parseTreeContainer) return;
+    return createGraphControls(parseTreeContainer, {
+      zoomIn,
+      zoomOut,
+      fit: resetView,
+      expandAll,
+      exportPng: exportGraph,
+      popOut: onPopOut,
+    });
   });
 
   // Exported so the page-level Cmd+P keybinding can fire the same parse via bind:this.
@@ -1281,30 +1297,6 @@
           <div class="cytoscape-container" bind:this={parseTreeContainer}></div>
           {#if graphRenderer?.webgl}
             <div class="renderer-badge" title="Rendered on the GPU (WebGL) because this tree exceeds the node threshold">WebGL</div>
-          {/if}
-          {#if parseTree}
-            <div class="graph-controls">
-              <button onclick={zoomIn} title="Zoom in">
-                <ZoomIn size={16} />
-              </button>
-              <button onclick={zoomOut} title="Zoom out">
-                <ZoomOut size={16} />
-              </button>
-              <button onclick={resetView} title="Reset view">
-                <Maximize2 size={16} />
-              </button>
-              <button onclick={expandAll} title="Expand all (double-click node to collapse)">
-                <Expand size={16} />
-              </button>
-              <button onclick={exportGraph} title="Export as PNG">
-                <Download size={16} />
-              </button>
-              {#if onPopOut}
-                <button onclick={onPopOut} title="Pop out">
-                  <Fullscreen size={16} />
-                </button>
-              {/if}
-            </div>
           {/if}
         </div>
       </div>

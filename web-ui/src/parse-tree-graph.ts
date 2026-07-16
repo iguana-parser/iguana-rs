@@ -329,8 +329,16 @@ export function buildParseTreeElements(
     };
   });
 
+  const indegree = new Map<number, number>();
+  for (const edge of parseTree.edges) {
+    indegree.set(edge.dest, (indegree.get(edge.dest) ?? 0) + 1);
+  }
+
   const edges = parseTree.edges.map((edge, i) => ({
     data: { id: `e${i}`, source: `n${edge.src}`, target: `n${edge.dest}` },
+    // An edge into a shared node, which the edge styles paint in the
+    // sharing pink.
+    ...(indegree.get(edge.dest)! > 1 ? { classes: "shared" } : {}),
   }));
 
   return [...nodes, ...edges];

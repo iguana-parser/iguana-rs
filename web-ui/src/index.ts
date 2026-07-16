@@ -7,6 +7,8 @@ export * from "./backend";
 export * from "./wasm-backend";
 export * from "./lsp-backend";
 export * from "./wasm-lsp-backend";
+export * from "./graph-controls";
 export * from "./graph-styles";
 export * from "./parse-tree-graph";
+export * from "./sexpr-parse";
 export { downloadPng } from "./png";

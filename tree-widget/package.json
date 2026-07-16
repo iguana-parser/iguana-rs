@@ -1,0 +1,22 @@
+{
+  "name": "@iguana-parser/tree-widget",
+  "version": "0.1.0",
+  "description": "Embeddable parse-tree graph widget: renders a printed s-expression as an interactive Cytoscape tree.",
+  "license": "MIT OR Apache-2.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "vite build",
+    "check": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@iguana-parser/web-ui": "*",
+    "cytoscape": "^3.33.2",
+    "cytoscape-tidytree": "^0.2.1"
+  },
+  "devDependencies": {
+    "@types/cytoscape": "^3.21.9",
+    "typescript": "^6.0.2",
+    "vite": "^8.0.8"
+  }
+}

@@ -15,6 +15,10 @@
       "svelte": "./src/index.ts",
       "default": "./src/index.ts"
     },
+    "./graph": {
+      "types": "./src/graph.ts",
+      "default": "./src/graph.ts"
+    },
     "./graph.css": "./src/graph.css",
     "./parse-view.css": "./src/parse-view.css"
   },
