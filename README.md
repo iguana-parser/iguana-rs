@@ -218,11 +218,12 @@ This repository contains code under multiple licenses:
 | `web-viewer` | MIT or Apache 2.0 (your choice) |
 | `design-viewer` | MIT or Apache 2.0 (your choice) |
 | `tree-widget` | MIT or Apache 2.0 (your choice) |
-| `iguana` | GPL v3 |
-| `iguana-compiler` | GPL v3 |
-| `iguana-lsp` | GPL v3 |
-| `terrarium` | GPL v3 |
-| `editors/vscode` | GPL v3 |
+| `iguana` | GPL v3 or later |
+| `iguana-compiler` | GPL v3 or later |
+| `iguana-lsp` | GPL v3 or later |
+| `terrarium` | GPL v3 or later |
+| `editors/vscode` | GPL v3 or later |
+| `xtask` | GPL v3 or later |
 
 The runtime is permissively licensed so generated parsers and any code linking them can be released under any license. The web packages (`web-ui`, `web-viewer`, `design-viewer`, `tree-widget`) are permissive for the same reason: they ship as static content alongside a generated parser (the web view that `iguana generate --wasm` bundles and `iguana try` serves locally), so they must carry no copyleft obligation. Terrarium stays GPL and imports the permissive `web-ui` package. The generator (`iguana-compiler`), the CLI (`iguana`), and the developer tools (`iguana-lsp`, `terrarium`, VS Code extension) are GPL'd to keep modifications and forks open.
 
