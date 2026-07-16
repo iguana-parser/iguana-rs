@@ -1,0 +1,26 @@
+name: Commit messages
+
+on:
+  pull_request:
+
+jobs:
+  check:
+    name: commit messages
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check for trailers and AI attribution
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh api "repos/${{ github.repository }}/pulls/${{ github.event.pull_request.number }}/commits" \
+            --paginate --jq '.[].commit.message' > messages.txt
+          status=0
+          if grep -inE '^(co-authored-by|signed-off-by|generated-by):' messages.txt; then
+            echo "::error::A commit message ends with a trailer (matches above). Commit messages in this repo end with the body; amend the commits to remove it."
+            status=1
+          fi
+          if grep -inE 'claude\.com/claude-code|🤖 generated' messages.txt; then
+            echo "::error::A commit message contains an AI-attribution line (matches above); amend the commits to remove it."
+            status=1
+          fi
+          exit $status

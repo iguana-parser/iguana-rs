@@ -1,0 +1,11 @@
+#!/bin/sh
+msg=$(sed -n '/^# -\{1,\} >8 -\{1,\}$/q;p' "$1" | grep -v '^#')
+if printf '%s\n' "$msg" | grep -iqE '^(co-authored-by|signed-off-by|generated-by):'; then
+    echo "Commit message contains a trailer (Co-Authored-By, Signed-off-by, or Generated-by)."
+    echo "Commit messages in this repo end with the body; remove the trailer."
+    exit 1
+fi
+if printf '%s\n' "$msg" | grep -iqE 'claude\.com/claude-code|🤖 generated'; then
+    echo "Commit message contains an AI-attribution line; remove it."
+    exit 1
+fi
