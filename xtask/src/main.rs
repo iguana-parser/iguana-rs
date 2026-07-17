@@ -458,7 +458,7 @@ fn run_grammar_tests(regenerate: bool) -> io::Result<()> {
                     let bin = bin_dir.join(grammar);
                     let output = Command::new(&bin)
                         .args(["--dir", start_dir.to_str().unwrap()])
-                        .args(["--ext", "txt", "-n", start, sexpr_flag])
+                        .args(["--ext", "txt", "--start", start, sexpr_flag])
                         .args(["--show-layout", "--show-empty", "--show-wrappers"])
                         .output();
                     let (ok, text) = match output {

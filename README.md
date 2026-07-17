@@ -104,13 +104,13 @@ Always bootstrap twice to verify stability: the second run should produce identi
 
 ```bash
 # Parse a file
-cargo run -p iggy -- --nonterminal Grammar path/to/file.iggy
+cargo run -p iggy -- --start Grammar path/to/file.iggy
 
 # List available nonterminals
 cargo run -p iggy -- --list-nonterminals
 
 # Generate an SPPF visualization (SVG, rendered with graphviz)
-cargo run -p iggy -- --nonterminal Grammar file.iggy --write-sppf sppf.svg --format svg
+cargo run -p iggy -- --start Grammar file.iggy --write-sppf sppf.svg --format svg
 ```
 
 ## LSP Server

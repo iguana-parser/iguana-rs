@@ -46,12 +46,7 @@ struct Cli {
     /// Nonterminal to start parsing from
     ///
     /// Required unless --list-nonterminals is used
-    #[arg(
-        short = 'n',
-        long = "nonterminal",
-        value_name = "NAME",
-        help_heading = "Parsing"
-    )]
+    #[arg(long = "start", value_name = "NAME", help_heading = "Parsing")]
     start_nonterminal: Option<String>,
     /// Directory to recursively parse all files in
     ///
@@ -70,12 +65,12 @@ struct Cli {
     ext: Option<String>,
     ///Run the PrefixPostfixPriority parser in REPL mode
     ///
-    /// Reads inputs from stdin and prints each parse tree. Requires --nonterminal; no input file is used
+    /// Reads inputs from stdin and prints each parse tree. Requires --start; no input file is used
     #[arg(long, help_heading = "Parsing")]
     repl: bool,
     /// List the nonterminals declared in the grammar
     ///
-    /// The valid values for --nonterminal, one per line, then exits
+    /// The valid values for --start, one per line, then exits
     #[arg(long, help_heading = "Grammar info")]
     list_nonterminals: bool,
     /// Write all nonterminals, terminals, and slots as JSON to a file
@@ -326,7 +321,7 @@ fn main() -> Result<(), io::Error> {
         let start_nonterminal_name = args.start_nonterminal.as_ref().ok_or_else(|| {
             io::Error::new(
                 io::ErrorKind::InvalidInput,
-                "--nonterminal is required for parsing",
+                "--start is required for parsing",
             )
         })?;
         let start_nonterminal_id = resolve_start_nonterminal(start_nonterminal_name)?;
@@ -407,7 +402,7 @@ fn main() -> Result<(), io::Error> {
         let only = filter.as_deref();
         if args.start_nonterminal.is_some() {
             eprintln!(
-                "Note: -n/--nonterminal is ignored with --corpus-test; the start nonterminal comes from repos.txt."
+                "Note: --start is ignored with --corpus-test; the start nonterminal comes from repos.txt."
             );
         }
         let mode = if args.update {
@@ -535,7 +530,7 @@ fn main() -> Result<(), io::Error> {
             let start_nonterminal_name = args.start_nonterminal.as_ref().ok_or_else(|| {
                 io::Error::new(
                     io::ErrorKind::InvalidInput,
-                    "--nonterminal is required for parsing",
+                    "--start is required for parsing",
                 )
             })?;
             let start_nonterminal_id = resolve_start_nonterminal(start_nonterminal_name)?;
@@ -579,7 +574,7 @@ fn main() -> Result<(), io::Error> {
             let start_nonterminal_name = args.start_nonterminal.as_ref().ok_or_else(|| {
                 io::Error::new(
                     io::ErrorKind::InvalidInput,
-                    "--nonterminal is required for parsing",
+                    "--start is required for parsing",
                 )
             })?;
             let start_nonterminal_id = resolve_start_nonterminal(start_nonterminal_name)?;
@@ -734,7 +729,7 @@ fn main() -> Result<(), io::Error> {
         let start_nonterminal_name = args.start_nonterminal.as_ref().ok_or_else(|| {
             io::Error::new(
                 io::ErrorKind::InvalidInput,
-                "--nonterminal is required for parsing",
+                "--start is required for parsing",
             )
         })?;
         let start_nonterminal_id = resolve_start_nonterminal(start_nonterminal_name)?;
@@ -748,7 +743,7 @@ fn main() -> Result<(), io::Error> {
         let start_nonterminal_name = args.start_nonterminal.as_ref().ok_or_else(|| {
             io::Error::new(
                 io::ErrorKind::InvalidInput,
-                "--nonterminal is required for parsing",
+                "--start is required for parsing",
             )
         })?;
         let start_nonterminal_id = resolve_start_nonterminal(start_nonterminal_name)?;
@@ -802,7 +797,7 @@ fn main() -> Result<(), io::Error> {
     let start_nonterminal_name = args.start_nonterminal.ok_or_else(|| {
         io::Error::new(
             io::ErrorKind::InvalidInput,
-            "--nonterminal is required for parsing",
+            "--start is required for parsing",
         )
     })?;
     #[cfg(not(feature = "debug-trace"))]

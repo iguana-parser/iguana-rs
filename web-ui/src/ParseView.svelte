@@ -498,7 +498,7 @@
     parseTreeSelectedSpan = null;
     parseErrorInfo = null;
 
-    onLogCommand?.(`${parserName} <input> --nonterminal ${startNonterminal}`);
+    onLogCommand?.(`${parserName} <input> --start ${startNonterminal}`);
 
     const result = await backend.parse(inputText, startNonterminal);
     if ("error" in result) {
@@ -600,11 +600,11 @@
   // off displayTree; the imperative graph is reloaded here.
   function setDisplayOption(key: keyof DisplayOptions, show: boolean) {
     displayOptions = { ...displayOptions, [key]: show };
-    // A toggle can change the root (flattening unwraps the `@Start`; showing
-    // layout re-wraps it). A root not in expandedNodes renders collapsed, which
-    // reads as the whole tree collapsing, so keep the new root expanded. Every
-    // other node keeps its expansion: ids are stable across the transform, so
-    // expandedNodes still applies to the survivors.
+    // A toggle can change the root (flattening unwraps the Start wrapper;
+    // showing layout re-wraps it). A root not in expandedNodes renders collapsed,
+    // which reads as the whole tree collapsing, so keep the new root expanded.
+    // Every other node keeps its expansion: ids are stable across the transform,
+    // so expandedNodes still applies to the survivors.
     if (treeRoot) expandedNodes = new Set(expandedNodes).add(treeRoot.id);
     clearParseModeInputSelection();
     // The node set can change substantially, so reload the graph onto the root

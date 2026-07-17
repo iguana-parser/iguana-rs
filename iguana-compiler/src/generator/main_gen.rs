@@ -66,7 +66,7 @@ pub fn generate(grammar: &Grammar) -> TokenStream {
             /// Nonterminal to start parsing from
             ///
             /// Required unless --list-nonterminals is used
-            #[arg(short = 'n', long = "nonterminal", value_name = "NAME", help_heading = "Parsing")]
+            #[arg(long = "start", value_name = "NAME", help_heading = "Parsing")]
             start_nonterminal: Option<String>,
 
             /// Directory to recursively parse all files in
@@ -83,13 +83,13 @@ pub fn generate(grammar: &Grammar) -> TokenStream {
 
             #[doc = #repl_help]
             ///
-            /// Reads inputs from stdin and prints each parse tree. Requires --nonterminal; no input file is used
+            /// Reads inputs from stdin and prints each parse tree. Requires --start; no input file is used
             #[arg(long, help_heading = "Parsing")]
             repl: bool,
 
             /// List the nonterminals declared in the grammar
             ///
-            /// The valid values for --nonterminal, one per line, then exits
+            /// The valid values for --start, one per line, then exits
             #[arg(long, help_heading = "Grammar info")]
             list_nonterminals: bool,
 
@@ -318,7 +318,7 @@ pub fn generate(grammar: &Grammar) -> TokenStream {
                 };
 
                 let start_nonterminal_name = args.start_nonterminal.as_ref().ok_or_else(|| {
-                    io::Error::new(io::ErrorKind::InvalidInput, "--nonterminal is required for parsing")
+                    io::Error::new(io::ErrorKind::InvalidInput, "--start is required for parsing")
                 })?;
                 let start_nonterminal_id = resolve_start_nonterminal(start_nonterminal_name)?;
 
@@ -394,7 +394,7 @@ pub fn generate(grammar: &Grammar) -> TokenStream {
             if let Some(filter) = &args.corpus_test {
                 let only = filter.as_deref();
                 if args.start_nonterminal.is_some() {
-                    eprintln!("Note: -n/--nonterminal is ignored with --corpus-test; the start nonterminal comes from repos.txt.");
+                    eprintln!("Note: --start is ignored with --corpus-test; the start nonterminal comes from repos.txt.");
                 }
                 let mode = if args.update { cli::CorpusMode::Update } else { cli::CorpusMode::Check };
                 let repos_path = args.corpus_dir.join("repos.txt");
@@ -515,7 +515,7 @@ pub fn generate(grammar: &Grammar) -> TokenStream {
             if args.benchmark {
                 if let Some(file) = args.file.as_ref() {
                     let start_nonterminal_name = args.start_nonterminal.as_ref().ok_or_else(|| {
-                        io::Error::new(io::ErrorKind::InvalidInput, "--nonterminal is required for parsing")
+                        io::Error::new(io::ErrorKind::InvalidInput, "--start is required for parsing")
                     })?;
                     let start_nonterminal_id = resolve_start_nonterminal(start_nonterminal_name)?;
                     let config = cli::BenchConfig {
@@ -554,7 +554,7 @@ pub fn generate(grammar: &Grammar) -> TokenStream {
                 let mut groups: Vec<(String, Vec<(PathBuf, NonterminalId)>)> = Vec::new();
                 if let Some(dir) = args.dir.as_ref() {
                     let start_nonterminal_name = args.start_nonterminal.as_ref().ok_or_else(|| {
-                        io::Error::new(io::ErrorKind::InvalidInput, "--nonterminal is required for parsing")
+                        io::Error::new(io::ErrorKind::InvalidInput, "--start is required for parsing")
                     })?;
                     let start_nonterminal_id = resolve_start_nonterminal(start_nonterminal_name)?;
                     let mut files = Vec::new();
@@ -664,7 +664,7 @@ pub fn generate(grammar: &Grammar) -> TokenStream {
             // Batch mode: parse every file under --dir, report per-file results and a summary.
             if let Some(dir) = args.dir.as_ref() {
                 let start_nonterminal_name = args.start_nonterminal.as_ref().ok_or_else(|| {
-                    io::Error::new(io::ErrorKind::InvalidInput, "--nonterminal is required for parsing")
+                    io::Error::new(io::ErrorKind::InvalidInput, "--start is required for parsing")
                 })?;
                 let start_nonterminal_id = resolve_start_nonterminal(start_nonterminal_name)?;
                 let passed = run_batch(dir, args.ext.as_deref(), start_nonterminal_id, args.hist)?;
@@ -674,11 +674,11 @@ pub fn generate(grammar: &Grammar) -> TokenStream {
                 return Ok(());
             }
 
-            // Interactive REPL: parse inputs read from stdin. Needs --nonterminal but no
+            // Interactive REPL: parse inputs read from stdin. Needs --start but no
             // input file, so resolve the start nonterminal and loop here.
             if args.repl {
                 let start_nonterminal_name = args.start_nonterminal.as_ref().ok_or_else(|| {
-                    io::Error::new(io::ErrorKind::InvalidInput, "--nonterminal is required for parsing")
+                    io::Error::new(io::ErrorKind::InvalidInput, "--start is required for parsing")
                 })?;
                 let start_nonterminal_id = resolve_start_nonterminal(start_nonterminal_name)?;
                 let sexpr_options = SexprOptions {
@@ -716,7 +716,7 @@ pub fn generate(grammar: &Grammar) -> TokenStream {
                 io::Error::new(io::ErrorKind::InvalidInput, "Input file is required for parsing")
             })?;
             let start_nonterminal_name = args.start_nonterminal.ok_or_else(|| {
-                io::Error::new(io::ErrorKind::InvalidInput, "--nonterminal is required for parsing")
+                io::Error::new(io::ErrorKind::InvalidInput, "--start is required for parsing")
             })?;
 
             #[cfg(not(feature = "debug-trace"))]

@@ -520,7 +520,7 @@ fn parse_inner(
     let output = Command::new(&parser_path)
         .env("RUST_BACKTRACE", "1") // Always show backtraces for debugging
         .arg(input_file.path())
-        .arg("--nonterminal")
+        .arg("--start")
         .arg(&start_nonterminal)
         .arg("--write-sppf")
         .arg(&sppf_path)
@@ -693,7 +693,7 @@ fn get_stats(
 
     let output = Command::new(&parser_path)
         .arg(input_file.path())
-        .arg("--nonterminal")
+        .arg("--start")
         .arg(&start_nonterminal)
         .arg("--write-stats")
         .arg(&stats_path)
@@ -729,7 +729,7 @@ fn profile(
         log_event(
             &app,
             "command",
-            &format!("<parser> <input> --nonterminal {start_nonterminal} --profile {iterations}"),
+            &format!("<parser> <input> --start {start_nonterminal} --profile {iterations}"),
         );
 
         let parser_path = match find_parser_binary(&directory, "release") {
@@ -786,7 +786,7 @@ fn profile(
 
         let output = Command::new(&parser_path)
             .arg(input_file.path())
-            .arg("--nonterminal")
+            .arg("--start")
             .arg(&start_nonterminal)
             .arg("--profile")
             .arg(iterations.to_string())
@@ -878,7 +878,7 @@ fn setup_vscode_debug(
         "args": ["build", "--manifest-path", "${{workspaceFolder}}/Cargo.toml"]
       }},
       "program": "${{workspaceFolder}}/target/debug/{parser_name}",
-      "args": ["${{workspaceFolder}}/.vscode/debug-input.txt", "--nonterminal", "{start_nonterminal}"],
+      "args": ["${{workspaceFolder}}/.vscode/debug-input.txt", "--start", "{start_nonterminal}"],
       "cwd": "${{workspaceFolder}}"
     }}
   ]
@@ -1392,7 +1392,7 @@ fn load_debug_trace(
     // Then run parser with trace enabled
     let output = Command::new(&parser_path)
         .arg(input_file.path())
-        .arg("--nonterminal")
+        .arg("--start")
         .arg(&start_nonterminal)
         .arg("--trace")
         .arg(&trace_path)
