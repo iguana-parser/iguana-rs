@@ -1,6 +1,5 @@
 grammar IndirectPrefix
 
-@Start
 S = E
 
 E = "a"

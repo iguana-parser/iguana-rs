@@ -1,7 +1,6 @@
 grammar Comments
 
 // Expressions
-@Start
 Expr
   = Expr "+" Expr // addition
   | Expr "*" Expr // multiplication

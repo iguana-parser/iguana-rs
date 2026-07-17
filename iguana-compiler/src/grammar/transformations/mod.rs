@@ -46,7 +46,6 @@ where
         head,
         priority_levels: new_priority_levels,
         layout: rule.layout,
-        start: rule.start,
     }
 }
 
@@ -58,7 +57,6 @@ where
     F: FnMut(Vec<Symbol>) -> Vec<Symbol>,
 {
     let layout = rule.layout;
-    let start = rule.start;
     let new_priority_levels: Vec<_> = rule
         .priority_levels
         .into_iter()
@@ -81,7 +79,6 @@ where
         head: rule.head,
         priority_levels: new_priority_levels,
         layout,
-        start,
     }
 }
 

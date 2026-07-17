@@ -236,9 +236,9 @@ const WRAPPER_ORIGINS = new Set<Origin>(["Start", "Opt", "Group", "Alt"]);
  * frontend counterpart of the runtime's s-expression display transform (the two
  * stay in sync). Layout nonterminals are filtered out, empty repetitions dropped,
  * wrapper nodes (Start/Opt/Group/Alt) spliced into their parent, and a wrapper
- * root (typically `@Start`) unwrapped to the symbol it wraps. Node ids are
- * preserved so cross-view selection and ambiguity sharing still key on them; a
- * node shared in the ambiguity DAG is emitted once with an extra edge per
+ * root (typically the Start wrapper) unwrapped to the symbol it wraps. Node ids
+ * are preserved so cross-view selection and ambiguity sharing still key on them;
+ * a node shared in the ambiguity DAG is emitted once with an extra edge per
  * additional parent.
  */
 export function buildDisplayGraph(raw: ParseTreeData, options: DisplayOptions): ParseTreeData {

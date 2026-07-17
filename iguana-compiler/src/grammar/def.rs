@@ -92,7 +92,6 @@ pub struct SyntaxRule {
     pub head: Nonterminal,
     pub priority_levels: Vec<PriorityLevel>,
     pub layout: LayoutStrategy,
-    pub start: bool,
 }
 
 impl SyntaxRule {
@@ -101,7 +100,6 @@ impl SyntaxRule {
             head,
             priority_levels,
             layout: LayoutStrategy::Default,
-            start: false,
         }
     }
 
@@ -1152,11 +1150,11 @@ fn build_grammar(grammar_def: GrammarDef, dump: &[Phase]) -> Result<Grammar, Vec
         return Err(collisions);
     }
     syntax_rules.extend(start_rules);
-    if layout.is_some() {
-        // Dumped after the start wrappers are added so the layout phase shows
-        // the StartX rules too, not just layout woven into existing rules.
-        dump_phase(Phase::Layout, &syntax_rules, &lexical_rules, dump);
-    }
+    // Dumped after the start wrappers are added so the layout phase shows the
+    // StartX rules too, not only layout woven into existing rules. A grammar
+    // without layout weaves nothing in but still gets its wrappers here, so the
+    // dump runs unconditionally.
+    dump_phase(Phase::Layout, &syntax_rules, &lexical_rules, dump);
 
     let lexical_rules_map: IndexMap<Terminal, LexicalRule> = lexical_rules
         .into_iter()
@@ -1230,7 +1228,6 @@ fn add_start_rule(
             label: None
         })],
         layout: LayoutStrategy::Default,
-        start: false,
     }
 }
 
@@ -1405,7 +1402,6 @@ macro_rules! syntax_rule {
             ),
             priority_levels: vec![$($level.into()),*],
             layout: $crate::grammar::def::LayoutStrategy::Default,
-            start: false,
         }
     };
     ($head:literal => $($level:expr),* $(,)?) => {
@@ -1413,7 +1409,6 @@ macro_rules! syntax_rule {
             head: $crate::grammar::symbols::Nonterminal::new($head),
             priority_levels: vec![$($level.into()),*],
             layout: $crate::grammar::def::LayoutStrategy::Default,
-            start: false,
         }
     };
 }

@@ -1,6 +1,5 @@
 grammar LayoutNonterminal
 
-@Start
 S = "x"
 
 @Layout

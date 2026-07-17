@@ -97,7 +97,6 @@ fn convert_syntax_rule(rule: &parse_tree::SyntaxRule, input: &Input) -> SyntaxRu
         .collect();
 
     let mut layout = LayoutStrategy::Default;
-    let mut start = false;
 
     if let Some(annotation) = rule.annotation().value() {
         match annotation {
@@ -112,7 +111,6 @@ fn convert_syntax_rule(rule: &parse_tree::SyntaxRule, input: &Input) -> SyntaxRu
                     definition: None,
                 });
             }
-            parse_tree::Annotation::Start { .. } => start = true,
             parse_tree::Annotation::Amb(_) => panic!("unexpected ambiguity"),
         }
     }
@@ -121,7 +119,6 @@ fn convert_syntax_rule(rule: &parse_tree::SyntaxRule, input: &Input) -> SyntaxRu
         head,
         priority_levels,
         layout,
-        start,
     }
 }
 

@@ -1,6 +1,5 @@
 grammar AmbRootStart
 
-@Start
 E = "(" Type ")" E    #Cast
   | "-" E             #Neg
   > E "-" E           #Sub

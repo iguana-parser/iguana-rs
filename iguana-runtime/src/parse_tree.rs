@@ -23,7 +23,7 @@ pub struct SexprOptions {
     /// Show empty optionals and repetitions (`X?`, `X*` that matched nothing)
     /// rather than dropping them.
     pub show_empty: bool,
-    /// Show wrapper nodes (the `@Start` wrapper, optionals, anonymous groups,
+    /// Show wrapper nodes (the start wrapper, optionals, anonymous groups,
     /// and alternations) rather than splicing their children into the parent.
     pub show_wrappers: bool,
 }
@@ -446,7 +446,7 @@ pub enum NodeKind {
 /// `None` for a user-declared nonterminal or a token.
 #[derive(Clone, Copy, PartialEq, Eq)]
 pub enum Origin {
-    /// The synthetic `@Start` wrapper, the start symbol between leading and
+    /// The synthetic start wrapper, the start symbol between leading and
     /// trailing layout.
     Start,
     /// An optional, `X?`.
@@ -667,9 +667,9 @@ fn sexpr_hidden<N: ParseTreeNode>(
     !options.show_layout && layout_name == Some(node.display_name())
 }
 
-/// A wrapper node carries no information of its own: the `@Start` scaffolding,
-/// an optional, or an anonymous group or alternation. `show_wrappers = false`
-/// splices its children into the parent.
+/// A wrapper node carries no information of its own: the start-wrapper
+/// scaffolding, an optional, or an anonymous group or alternation.
+/// `show_wrappers = false` splices its children into the parent.
 fn is_wrapper(origin: Option<Origin>) -> bool {
     matches!(
         origin,
@@ -710,8 +710,8 @@ fn display_children<N: ParseTreeNode>(
 }
 
 /// The node the s-expression takes as its root. When wrappers are spliced and
-/// the real root is one (typically the `@Start` node), descend to the single
-/// node it wraps so the output is not headed by scaffolding.
+/// the real root is one (typically the start-wrapper node), descend to the
+/// single node it wraps so the output is not headed by scaffolding.
 fn display_root<N: ParseTreeNode>(root: N, layout_name: Option<&str>, options: SexprOptions) -> N {
     let mut node = root;
     while !options.show_wrappers && is_wrapper(node.origin()) {
@@ -1042,7 +1042,7 @@ mod tests {
         let ws_after = [leaf("ws", 71)];
         let before = nonterminal("Layout", 7, &ws_before);
         let after = nonterminal("Layout", 8, &ws_after);
-        // The `@Start` wrapper displays as `Start`, like the real one; the inner
+        // The start wrapper displays as `Start`, like the real one; the inner
         // child names the actual nonterminal.
         let start_kids = [before, grammar, after];
         let start = derived("Start", 0, Origin::Start, &start_kids);

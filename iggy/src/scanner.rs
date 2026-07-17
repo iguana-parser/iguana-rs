@@ -482,103 +482,94 @@ static DFA_17: Dfa = Dfa::new(&[
 ]);
 static DFA_18: Dfa = Dfa::new(&[
     State::new(&[('@', '@', 1)], None),
-    State::new(&[('S', 'S', 2)], None),
-    State::new(&[('t', 't', 3)], None),
-    State::new(&[('a', 'a', 4)], None),
-    State::new(&[('r', 'r', 5)], None),
-    State::new(&[('t', 't', 6)], None),
-    State::new(&[], Some(TerminalId(18))),
-]);
-static DFA_19: Dfa = Dfa::new(&[
-    State::new(&[('@', '@', 1)], None),
     State::new(&[('R', 'R', 2)], None),
     State::new(&[('e', 'e', 3)], None),
     State::new(&[('g', 'g', 4)], None),
     State::new(&[('e', 'e', 5)], None),
     State::new(&[('x', 'x', 6)], None),
+    State::new(&[], Some(TerminalId(18))),
+]);
+static DFA_19: Dfa = Dfa::new(&[
+    State::new(&[('|', '|', 1)], None),
     State::new(&[], Some(TerminalId(19))),
 ]);
 static DFA_20: Dfa = Dfa::new(&[
-    State::new(&[('|', '|', 1)], None),
-    State::new(&[], Some(TerminalId(20))),
-]);
-static DFA_21: Dfa = Dfa::new(&[
     State::new(&[('!', '!', 1)], None),
     State::new(&[('<', '<', 2)], None),
     State::new(&[('<', '<', 3)], None),
+    State::new(&[], Some(TerminalId(20))),
+]);
+static DFA_21: Dfa = Dfa::new(&[
+    State::new(&[('\\', '\\', 1)], None),
     State::new(&[], Some(TerminalId(21))),
 ]);
 static DFA_22: Dfa = Dfa::new(&[
-    State::new(&[('\\', '\\', 1)], None),
-    State::new(&[], Some(TerminalId(22))),
-]);
-static DFA_23: Dfa = Dfa::new(&[
     State::new(&[('!', '!', 1)], None),
     State::new(&[('>', '>', 2)], None),
     State::new(&[('>', '>', 3)], None),
-    State::new(&[], Some(TerminalId(23))),
+    State::new(&[], Some(TerminalId(22))),
 ]);
-static DFA_24: Dfa = Dfa::new(&[
+static DFA_23: Dfa = Dfa::new(&[
     State::new(&[('l', 'l', 1)], None),
     State::new(&[('e', 'e', 2)], None),
     State::new(&[('f', 'f', 3)], None),
     State::new(&[('t', 't', 4)], None),
-    State::new(&[], Some(TerminalId(24))),
+    State::new(&[], Some(TerminalId(23))),
 ]);
-static DFA_25: Dfa = Dfa::new(&[
+static DFA_24: Dfa = Dfa::new(&[
     State::new(&[('r', 'r', 1)], None),
     State::new(&[('i', 'i', 2)], None),
     State::new(&[('g', 'g', 3)], None),
     State::new(&[('h', 'h', 4)], None),
     State::new(&[('t', 't', 5)], None),
-    State::new(&[], Some(TerminalId(25))),
+    State::new(&[], Some(TerminalId(24))),
 ]);
-static DFA_26: Dfa = Dfa::new(&[
+static DFA_25: Dfa = Dfa::new(&[
     State::new(&[('n', 'n', 1)], None),
     State::new(&[('o', 'o', 2)], None),
     State::new(&[('n', 'n', 3)], None),
     State::new(&[('e', 'e', 4)], None),
+    State::new(&[], Some(TerminalId(25))),
+]);
+static DFA_26: Dfa = Dfa::new(&[
+    State::new(&[('{', '{', 1)], None),
     State::new(&[], Some(TerminalId(26))),
 ]);
 static DFA_27: Dfa = Dfa::new(&[
-    State::new(&[('{', '{', 1)], None),
+    State::new(&[('}', '}', 1)], None),
     State::new(&[], Some(TerminalId(27))),
 ]);
 static DFA_28: Dfa = Dfa::new(&[
-    State::new(&[('}', '}', 1)], None),
+    State::new(&[('*', '*', 1)], None),
     State::new(&[], Some(TerminalId(28))),
 ]);
 static DFA_29: Dfa = Dfa::new(&[
-    State::new(&[('*', '*', 1)], None),
+    State::new(&[('+', '+', 1)], None),
     State::new(&[], Some(TerminalId(29))),
 ]);
 static DFA_30: Dfa = Dfa::new(&[
-    State::new(&[('+', '+', 1)], None),
+    State::new(&[('?', '?', 1)], None),
     State::new(&[], Some(TerminalId(30))),
 ]);
 static DFA_31: Dfa = Dfa::new(&[
-    State::new(&[('?', '?', 1)], None),
+    State::new(&[('!', '!', 1)], None),
     State::new(&[], Some(TerminalId(31))),
 ]);
 static DFA_32: Dfa = Dfa::new(&[
-    State::new(&[('!', '!', 1)], None),
+    State::new(&[(':', ':', 1)], None),
     State::new(&[], Some(TerminalId(32))),
 ]);
 static DFA_33: Dfa = Dfa::new(&[
-    State::new(&[(':', ':', 1)], None),
+    State::new(&[('[', '[', 1)], None),
     State::new(&[], Some(TerminalId(33))),
 ]);
 static DFA_34: Dfa = Dfa::new(&[
-    State::new(&[('[', '[', 1)], None),
+    State::new(&[(']', ']', 1)], None),
     State::new(&[], Some(TerminalId(34))),
 ]);
 static DFA_35: Dfa = Dfa::new(&[
-    State::new(&[(']', ']', 1)], None),
-    State::new(&[], Some(TerminalId(35))),
-]);
-static DFA_36: Dfa = Dfa::new(&[
     State::new(&[('-', '-', 1)], None),
-    State::new(&[], Some(TerminalId(36))),
+    State::new(&[], Some(TerminalId(35))),
 ]);
 pub struct IggyScanner<'i, 'arena> {
     pub input: &'i Input,
@@ -669,81 +660,77 @@ impl<'i, 'arena> IggyScanner<'i, 'arena> {
     pub fn match_terminal_17(&self, input_index: u32) -> Option<u32> {
         self.scan(&DFA_17, input_index)
     }
-    // "@Start" = @Start
+    // "@Regex" = @Regex
     pub fn match_terminal_18(&self, input_index: u32) -> Option<u32> {
         self.scan(&DFA_18, input_index)
     }
-    // "@Regex" = @Regex
+    // "|" = |
     pub fn match_terminal_19(&self, input_index: u32) -> Option<u32> {
         self.scan(&DFA_19, input_index)
     }
-    // "|" = |
+    // "!<<" = !<<
     pub fn match_terminal_20(&self, input_index: u32) -> Option<u32> {
         self.scan(&DFA_20, input_index)
     }
-    // "!<<" = !<<
+    // "\\" = \\
     pub fn match_terminal_21(&self, input_index: u32) -> Option<u32> {
         self.scan(&DFA_21, input_index)
     }
-    // "\\" = \\
+    // "!>>" = !>>
     pub fn match_terminal_22(&self, input_index: u32) -> Option<u32> {
         self.scan(&DFA_22, input_index)
     }
-    // "!>>" = !>>
+    // "left" = left
     pub fn match_terminal_23(&self, input_index: u32) -> Option<u32> {
         self.scan(&DFA_23, input_index)
     }
-    // "left" = left
+    // "right" = right
     pub fn match_terminal_24(&self, input_index: u32) -> Option<u32> {
         self.scan(&DFA_24, input_index)
     }
-    // "right" = right
+    // "none" = none
     pub fn match_terminal_25(&self, input_index: u32) -> Option<u32> {
         self.scan(&DFA_25, input_index)
     }
-    // "none" = none
+    // "{" = {
     pub fn match_terminal_26(&self, input_index: u32) -> Option<u32> {
         self.scan(&DFA_26, input_index)
     }
-    // "{" = {
+    // "}" = }
     pub fn match_terminal_27(&self, input_index: u32) -> Option<u32> {
         self.scan(&DFA_27, input_index)
     }
-    // "}" = }
+    // "*" = *
     pub fn match_terminal_28(&self, input_index: u32) -> Option<u32> {
         self.scan(&DFA_28, input_index)
     }
-    // "*" = *
+    // "+" = +
     pub fn match_terminal_29(&self, input_index: u32) -> Option<u32> {
         self.scan(&DFA_29, input_index)
     }
-    // "+" = +
+    // "?" = ?
     pub fn match_terminal_30(&self, input_index: u32) -> Option<u32> {
         self.scan(&DFA_30, input_index)
     }
-    // "?" = ?
+    // "!" = !
     pub fn match_terminal_31(&self, input_index: u32) -> Option<u32> {
         self.scan(&DFA_31, input_index)
     }
-    // "!" = !
+    // ":" = :
     pub fn match_terminal_32(&self, input_index: u32) -> Option<u32> {
         self.scan(&DFA_32, input_index)
     }
-    // ":" = :
+    // "[" = [
     pub fn match_terminal_33(&self, input_index: u32) -> Option<u32> {
         self.scan(&DFA_33, input_index)
     }
-    // "[" = [
+    // "]" = ]
     pub fn match_terminal_34(&self, input_index: u32) -> Option<u32> {
         self.scan(&DFA_34, input_index)
     }
-    // "]" = ]
+    // "-" = -
     pub fn match_terminal_35(&self, input_index: u32) -> Option<u32> {
         self.scan(&DFA_35, input_index)
-    }
-    // "-" = -
-    pub fn match_terminal_36(&self, input_index: u32) -> Option<u32> {
-        self.scan(&DFA_36, input_index)
     }
     // Whether any terminal in `set` matches at `input_index`, cached by the set's memo id. The
     // first query of a set at a position scans it; later queries return the cached bit.
@@ -804,8 +791,7 @@ impl Scanner for IggyScanner<'_, '_> {
             TerminalId(33) => self.match_terminal_33(input_index),
             TerminalId(34) => self.match_terminal_34(input_index),
             TerminalId(35) => self.match_terminal_35(input_index),
-            TerminalId(36) => self.match_terminal_36(input_index),
-            TerminalId(38) => {
+            TerminalId(37) => {
                 if input_index == self.input.len() {
                     Some(input_index)
                 } else {

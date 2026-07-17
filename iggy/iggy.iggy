@@ -1,6 +1,5 @@
 grammar Iggy
 
-@Start
 Grammar
   = "grammar" name:Identifier Rule*
 
@@ -15,7 +14,6 @@ Annotation
   = "@NoLayout"                      #NoLayout
   | "@Layout"                        #Layout
   | "@WithLayout" "(" Identifier ")" #WithLayout
-  | "@Start"                         #Start
 
 RegexRule
   = layout:"@Layout"? "@Regex" Identifier "=" PreCondition? body:{ Regex+ "|" }+ PostCondition*

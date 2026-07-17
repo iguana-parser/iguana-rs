@@ -752,7 +752,6 @@ fn desugar_rule(
         head,
         priority_levels: vec![PriorityLevel::new(all_alternatives)],
         layout: rule.layout,
-        start: rule.start,
     }
 }
 
@@ -1367,7 +1366,6 @@ fn thread_intermediate(
         head: rule_head,
         priority_levels,
         layout,
-        start,
     } = rule;
 
     let mut alternatives = Vec::new();
@@ -1419,7 +1417,6 @@ fn thread_intermediate(
         },
         priority_levels: vec![PriorityLevel::new(alternatives)],
         layout,
-        start,
     }
 }
 

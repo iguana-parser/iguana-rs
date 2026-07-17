@@ -86,7 +86,7 @@ fn bootstrap() -> io::Result<()> {
         cli: true,
         ..GenConfig::default()
     };
-    let (result, _) = regenerate_with(&grammar_file, &iggy_dir, config, None, true)?;
+    let result = regenerate_with(&grammar_file, &iggy_dir, config, None, true)?;
     patch_iggy_cargo_toml(&iggy_dir.join("Cargo.toml"))?;
     println!("Generated iggy grammar in {} ms", result.total_duration_ms);
     Ok(())
@@ -215,7 +215,7 @@ fn test_gen(name: &str) -> io::Result<()> {
         )));
     }
 
-    let (result, _) = regenerate(&grammar_file, &path)?;
+    let result = regenerate(&grammar_file, &path)?;
     patch_test_cargo_toml(&path.join("Cargo.toml"))?;
     println!(
         "Generated {name} grammar in {} ms",
@@ -273,7 +273,7 @@ fn test_gen_all() -> io::Result<()> {
     Ok(())
 }
 
-fn regenerate(grammar_path: &Path, output: &Path) -> io::Result<(GenerateResult, Vec<String>)> {
+fn regenerate(grammar_path: &Path, output: &Path) -> io::Result<GenerateResult> {
     // Test crates build a CLI binary (cli=true) so the golden-file runner can
     // shell out to them. force=true keeps src/main.rs current with the
     // generator; patch_test_cargo_toml then adapts the standalone Cargo.toml
@@ -295,15 +295,9 @@ fn regenerate_with(
     config: GenConfig,
     runtime_path: Option<&Path>,
     force: bool,
-) -> io::Result<(GenerateResult, Vec<String>)> {
+) -> io::Result<GenerateResult> {
     let source = fs::read_to_string(grammar_path)?;
     let grammar_def = parse_grammar(&source).map_err(io::Error::other)?;
-    let starts: Vec<String> = grammar_def
-        .syntax_rules
-        .iter()
-        .filter(|r| r.start)
-        .map(|r| r.head.name.clone())
-        .collect();
     let grammar: Grammar = grammar_def
         .try_into()
         .map_err(|errors: Vec<String>| io::Error::other(errors.join("\n")))?;
@@ -314,7 +308,7 @@ fn regenerate_with(
         generate_wasm(&grammar, output, runtime_path, force)?;
         format_sources(&output.join("wasm"))?;
     }
-    Ok((result, starts))
+    Ok(result)
 }
 
 /// Format every `.rs` file in `<crate_dir>/src/` with rustfmt. One invocation
@@ -608,7 +602,7 @@ fn wasm() -> io::Result<()> {
     };
     // Build the bundle against the local runtime checkout, not the git dep.
     let runtime = root.join("iguana-runtime");
-    let (result, _) = regenerate_with(
+    let result = regenerate_with(
         &grammar_file,
         &output,
         config,

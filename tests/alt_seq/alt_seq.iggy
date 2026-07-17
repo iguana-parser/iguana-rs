@@ -1,6 +1,5 @@
 grammar AltSeq
 
-@Start
 S = (A B | C) (D | E F) Hex
 
 A = "a"

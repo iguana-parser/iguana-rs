@@ -1,6 +1,5 @@
 grammar IndirectPostfix
 
-@Start
 S = E
 
 E = "a"

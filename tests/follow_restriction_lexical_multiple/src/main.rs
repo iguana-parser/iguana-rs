@@ -991,19 +991,18 @@ fn main() -> Result<(), io::Error> {
     }
     Ok(())
 }
-/// Resolves a user-supplied start nonterminal name to its id. A start
-/// nonterminal A is generated as a StartA wrapper (handling layout and
-/// EOF), so we try StartA first and fall back to A when A is not a start
-/// nonterminal.
+/// Resolves a user-supplied start nonterminal name to the id of its
+/// generated StartA wrapper. Every source nonterminal gets a wrapper as
+/// its entry point, so `-n A` resolves to StartA. A name with no wrapper
+/// (a typo, or a nonterminal introduced by desugaring) is not an entry
+/// point and is an error.
 fn resolve_start_nonterminal(name: &str) -> io::Result<NonterminalId> {
-    nonterminal_id(&format!("Start{}", name))
-        .or_else(|| nonterminal_id(name))
-        .ok_or_else(|| {
-            io::Error::new(
-                io::ErrorKind::InvalidInput,
-                format!("Unknown nonterminal: '{}'", name),
-            )
-        })
+    nonterminal_id(&format!("Start{}", name)).ok_or_else(|| {
+        io::Error::new(
+            io::ErrorKind::InvalidInput,
+            format!("Unknown nonterminal: '{}'", name),
+        )
+    })
 }
 fn run_batch(
     dir: &Path,

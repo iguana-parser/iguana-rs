@@ -20,7 +20,7 @@
       "name": "comment.line.double-slash.iggy"
     },
     "annotation": {
-      "comment": "Rule annotations: @Regex, @Start, @Layout, @NoLayout, @WithLayout. Scoped as a decorator (the Python/Java convention) so VS Code-family themes give them the decorator color Terrarium uses.",
+      "comment": "Rule annotations: @Regex, @Layout, @NoLayout, @WithLayout. Scoped as a decorator (the Python/Java convention) so VS Code-family themes give them the decorator color Terrarium uses.",
       "match": "@[A-Za-z_][A-Za-z0-9_]*",
       "name": "entity.name.function.decorator.iggy"
     },

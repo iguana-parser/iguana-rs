@@ -15,7 +15,7 @@
 //   (an accented letter in a string literal, say) counts as one column
 // - Blank line between every rule
 // - `@Regex` (optionally preceded by `@Layout` for a layout rule) on the line before the regex rule head
-// - `@Start` / `@Layout` / `@NoLayout` / `@WithLayout(X)` annotation on the line before the syntax rule head
+// - `@Layout` / `@NoLayout` / `@WithLayout(X)` annotation on the line before the syntax rule head
 // - Regex rules with a single alternative are single-line
 // - Regex rules with multiple alternatives use multi-line layout (one per line) (head = body postconditions)
 // - Character classes have no internal spaces
@@ -239,7 +239,6 @@ impl<'a> Formatter<'a> {
                 out.push_str(&self.input.text(identifier.span()));
                 out.push(')');
             }
-            Annotation::Start { .. } => out.push_str("@Start"),
             Annotation::Amb(_) => unreachable!("ambiguous trees are rejected before this point"),
         }
     }
