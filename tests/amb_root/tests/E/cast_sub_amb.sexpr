@@ -1,23 +1,26 @@
-(Amb
-  (E
+(Start
+  WS
+  (Amb
+    (E
+      (E
+        "("
+        WS
+        (E Id)
+        WS
+        ")")
+      WS
+      "-"
+      WS
+      #1=(E Id))
     (E
       "("
       WS
-      (E Id)
+      (Type Id)
       WS
-      ")")
-    WS
-    "-"
-    WS
-    #1=(E Id))
-  (E
-    "("
-    WS
-    (Type Id)
-    WS
-    ")"
-    WS
-    (E
-      "-"
+      ")"
       WS
-      #1#)))
+      (E
+        "-"
+        WS
+        #1#)))
+  WS)

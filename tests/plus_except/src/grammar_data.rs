@@ -3,7 +3,7 @@
 use crate::types::{Nonterminal, Slot, Terminal};
 use iguana_runtime::ids::{NonterminalId, TerminalId};
 use iguana_runtime::scanner::TerminalSet;
-pub const NONTERMINALS: [Nonterminal; 4] = [
+pub const NONTERMINALS: [Nonterminal; 6] = [
     Nonterminal {
         name: "Sep",
         display: "Sep",
@@ -24,6 +24,16 @@ pub const NONTERMINALS: [Nonterminal; 4] = [
         display: "{Identifier \\ Keyword \",\"}+",
         derived: true,
     },
+    Nonterminal {
+        name: "StartSep",
+        display: "Sep",
+        derived: true,
+    },
+    Nonterminal {
+        name: "StartBase",
+        display: "Base",
+        derived: true,
+    },
 ];
 // User-declared nonterminals in `.iggy` source order. Used by `--list-nonterminals`.
 pub const NONTERMINAL_DISPLAY_ORDER: [&str; 2] = ["Sep", "Base"];
@@ -31,12 +41,16 @@ pub const SEP: NonterminalId = NonterminalId(0);
 pub const BASE: NonterminalId = NonterminalId(1);
 pub const PLUS_0: NonterminalId = NonterminalId(2);
 pub const PLUS_1: NonterminalId = NonterminalId(3);
+pub const START_SEP: NonterminalId = NonterminalId(4);
+pub const START_BASE: NonterminalId = NonterminalId(5);
 pub fn nonterminal_id(name: &str) -> Option<NonterminalId> {
     match name {
         "Sep" => Some(SEP),
         "Base" => Some(BASE),
         "Plus_0" => Some(PLUS_0),
         "Plus_1" => Some(PLUS_1),
+        "StartSep" => Some(START_SEP),
+        "StartBase" => Some(START_BASE),
         _ => None,
     }
 }
@@ -48,7 +62,7 @@ pub const TERMINALS: [Terminal; 6] = [
     Terminal { name: "Epsilon" },
     Terminal { name: "EOF" },
 ];
-pub const SLOTS: [Slot; 16] = [
+pub const SLOTS: [Slot; 20] = [
     Slot {
         display_name: "Sep : . {Number Identifier \\ Keyword}+",
     },
@@ -96,6 +110,18 @@ pub const SLOTS: [Slot; 16] = [
     },
     Slot {
         display_name: "{Identifier \\ Keyword \",\"}+ : Identifier \\ Keyword.",
+    },
+    Slot {
+        display_name: "Sep : . start:Sep",
+    },
+    Slot {
+        display_name: "Sep : start:Sep.",
+    },
+    Slot {
+        display_name: "Base : . start:Base",
+    },
+    Slot {
+        display_name: "Base : start:Base.",
     },
 ];
 // Sep { EOF }
@@ -165,6 +191,36 @@ pub static FIRST_SET_PLUS_1_ALT0: TerminalSet = TerminalSet {
 };
 // Plus_1 : . Identifier \ Keyword { Identifier }
 pub static FIRST_SET_PLUS_1_ALT1: TerminalSet = TerminalSet {
+    id: 2,
+    terminals: &[TerminalId(1)],
+};
+// StartSep { EOF }
+pub static FOLLOW_SET_START_SEP: TerminalSet = TerminalSet {
+    id: 0,
+    terminals: &[TerminalId(5)],
+};
+// StartSep { Number }
+pub static FIRST_SET_START_SEP: TerminalSet = TerminalSet {
+    id: 0,
+    terminals: &[TerminalId(0)],
+};
+// StartSep : . start:Sep { Number }
+pub static FIRST_SET_START_SEP_ALT0: TerminalSet = TerminalSet {
+    id: 1,
+    terminals: &[TerminalId(0)],
+};
+// StartBase { EOF }
+pub static FOLLOW_SET_START_BASE: TerminalSet = TerminalSet {
+    id: 0,
+    terminals: &[TerminalId(5)],
+};
+// StartBase { Identifier }
+pub static FIRST_SET_START_BASE: TerminalSet = TerminalSet {
+    id: 1,
+    terminals: &[TerminalId(1)],
+};
+// StartBase : . start:Base { Identifier }
+pub static FIRST_SET_START_BASE_ALT0: TerminalSet = TerminalSet {
     id: 2,
     terminals: &[TerminalId(1)],
 };

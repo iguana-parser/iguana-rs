@@ -1,1 +1,4 @@
-(S "for" WS Id)
+(Start
+  WS
+  (S "for" WS Id)
+  WS)

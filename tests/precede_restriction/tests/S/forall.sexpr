@@ -1,1 +1,4 @@
-(S "forall")
+(Start
+  WS
+  (S "forall")
+  WS)

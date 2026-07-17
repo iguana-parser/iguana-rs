@@ -1,5 +1,8 @@
-(S
-  "for"
+(Start
   WS
-  (Id
-    (Char+ Char)))
+  (S
+    "for"
+    WS
+    (Id
+      (Char+ Char)))
+  WS)

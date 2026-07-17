@@ -1,2 +1,3 @@
-(Sep
-  ({Number Identifier \ Keyword}+ Number Identifier Number))
+(Start
+  (Sep
+    ({Number Identifier \ Keyword}+ Number Identifier Number)))

@@ -3,7 +3,7 @@
 use crate::types::{Nonterminal, Slot, Terminal};
 use iguana_runtime::ids::{NonterminalId, TerminalId};
 use iguana_runtime::scanner::TerminalSet;
-pub const NONTERMINALS: [Nonterminal; 50] = [
+pub const NONTERMINALS: [Nonterminal; 64] = [
     Nonterminal {
         name: "Grammar",
         display: "Grammar",
@@ -250,6 +250,76 @@ pub const NONTERMINALS: [Nonterminal; 50] = [
         derived: true,
     },
     Nonterminal {
+        name: "StartRule",
+        display: "Rule",
+        derived: true,
+    },
+    Nonterminal {
+        name: "StartSyntaxRule",
+        display: "SyntaxRule",
+        derived: true,
+    },
+    Nonterminal {
+        name: "StartAnnotation",
+        display: "Annotation",
+        derived: true,
+    },
+    Nonterminal {
+        name: "StartRegexRule",
+        display: "RegexRule",
+        derived: true,
+    },
+    Nonterminal {
+        name: "StartPreCondition",
+        display: "PreCondition",
+        derived: true,
+    },
+    Nonterminal {
+        name: "StartPostCondition",
+        display: "PostCondition",
+        derived: true,
+    },
+    Nonterminal {
+        name: "StartPriorityLevel",
+        display: "PriorityLevel",
+        derived: true,
+    },
+    Nonterminal {
+        name: "StartAssociativity",
+        display: "Associativity",
+        derived: true,
+    },
+    Nonterminal {
+        name: "StartAlternative",
+        display: "Alternative",
+        derived: true,
+    },
+    Nonterminal {
+        name: "StartSymbol",
+        display: "Symbol(0, 0)",
+        derived: true,
+    },
+    Nonterminal {
+        name: "StartRegex",
+        display: "Regex",
+        derived: true,
+    },
+    Nonterminal {
+        name: "StartCharClass",
+        display: "CharClass",
+        derived: true,
+    },
+    Nonterminal {
+        name: "StartRangeElement",
+        display: "RangeElement",
+        derived: true,
+    },
+    Nonterminal {
+        name: "StartRange",
+        display: "Range",
+        derived: true,
+    },
+    Nonterminal {
         name: "Symbol",
         display: "Symbol",
         derived: false,
@@ -323,7 +393,21 @@ pub const PLUS_12: NonterminalId = NonterminalId(45);
 pub const OPT_10: NonterminalId = NonterminalId(46);
 pub const STAR_4: NonterminalId = NonterminalId(47);
 pub const START_GRAMMAR: NonterminalId = NonterminalId(48);
-pub const SYMBOL: NonterminalId = NonterminalId(49);
+pub const START_RULE: NonterminalId = NonterminalId(49);
+pub const START_SYNTAX_RULE: NonterminalId = NonterminalId(50);
+pub const START_ANNOTATION: NonterminalId = NonterminalId(51);
+pub const START_REGEX_RULE: NonterminalId = NonterminalId(52);
+pub const START_PRE_CONDITION: NonterminalId = NonterminalId(53);
+pub const START_POST_CONDITION: NonterminalId = NonterminalId(54);
+pub const START_PRIORITY_LEVEL: NonterminalId = NonterminalId(55);
+pub const START_ASSOCIATIVITY: NonterminalId = NonterminalId(56);
+pub const START_ALTERNATIVE: NonterminalId = NonterminalId(57);
+pub const START_SYMBOL: NonterminalId = NonterminalId(58);
+pub const START_REGEX: NonterminalId = NonterminalId(59);
+pub const START_CHAR_CLASS: NonterminalId = NonterminalId(60);
+pub const START_RANGE_ELEMENT: NonterminalId = NonterminalId(61);
+pub const START_RANGE: NonterminalId = NonterminalId(62);
+pub const SYMBOL: NonterminalId = NonterminalId(63);
 pub fn nonterminal_id(name: &str) -> Option<NonterminalId> {
     match name {
         "Grammar" => Some(GRAMMAR),
@@ -375,6 +459,20 @@ pub fn nonterminal_id(name: &str) -> Option<NonterminalId> {
         "Opt_10" => Some(OPT_10),
         "Star_4" => Some(STAR_4),
         "StartGrammar" => Some(START_GRAMMAR),
+        "StartRule" => Some(START_RULE),
+        "StartSyntaxRule" => Some(START_SYNTAX_RULE),
+        "StartAnnotation" => Some(START_ANNOTATION),
+        "StartRegexRule" => Some(START_REGEX_RULE),
+        "StartPreCondition" => Some(START_PRE_CONDITION),
+        "StartPostCondition" => Some(START_POST_CONDITION),
+        "StartPriorityLevel" => Some(START_PRIORITY_LEVEL),
+        "StartAssociativity" => Some(START_ASSOCIATIVITY),
+        "StartAlternative" => Some(START_ALTERNATIVE),
+        "StartSymbol" => Some(START_SYMBOL),
+        "StartRegex" => Some(START_REGEX),
+        "StartCharClass" => Some(START_CHAR_CLASS),
+        "StartRangeElement" => Some(START_RANGE_ELEMENT),
+        "StartRange" => Some(START_RANGE),
         "Symbol" => Some(SYMBOL),
         _ => None,
     }
@@ -430,7 +528,7 @@ pub const TERMINALS: [Terminal; 39] = [
     Terminal { name: "Epsilon" },
     Terminal { name: "EOF" },
 ];
-pub const SLOTS: [Slot; 378] = [
+pub const SLOTS: [Slot; 434] = [
     Slot {
         display_name: "Grammar : . \"grammar\" Layout name:Identifier Layout Rule*",
     },
@@ -1246,6 +1344,174 @@ pub const SLOTS: [Slot; 378] = [
     },
     Slot {
         display_name: "Grammar : Layout start:Grammar Layout.",
+    },
+    Slot {
+        display_name: "Rule : . Layout start:Rule Layout",
+    },
+    Slot {
+        display_name: "Rule : Layout . start:Rule Layout",
+    },
+    Slot {
+        display_name: "Rule : Layout start:Rule . Layout",
+    },
+    Slot {
+        display_name: "Rule : Layout start:Rule Layout.",
+    },
+    Slot {
+        display_name: "SyntaxRule : . Layout start:SyntaxRule Layout",
+    },
+    Slot {
+        display_name: "SyntaxRule : Layout . start:SyntaxRule Layout",
+    },
+    Slot {
+        display_name: "SyntaxRule : Layout start:SyntaxRule . Layout",
+    },
+    Slot {
+        display_name: "SyntaxRule : Layout start:SyntaxRule Layout.",
+    },
+    Slot {
+        display_name: "Annotation : . Layout start:Annotation Layout",
+    },
+    Slot {
+        display_name: "Annotation : Layout . start:Annotation Layout",
+    },
+    Slot {
+        display_name: "Annotation : Layout start:Annotation . Layout",
+    },
+    Slot {
+        display_name: "Annotation : Layout start:Annotation Layout.",
+    },
+    Slot {
+        display_name: "RegexRule : . Layout start:RegexRule Layout",
+    },
+    Slot {
+        display_name: "RegexRule : Layout . start:RegexRule Layout",
+    },
+    Slot {
+        display_name: "RegexRule : Layout start:RegexRule . Layout",
+    },
+    Slot {
+        display_name: "RegexRule : Layout start:RegexRule Layout.",
+    },
+    Slot {
+        display_name: "PreCondition : . Layout start:PreCondition Layout",
+    },
+    Slot {
+        display_name: "PreCondition : Layout . start:PreCondition Layout",
+    },
+    Slot {
+        display_name: "PreCondition : Layout start:PreCondition . Layout",
+    },
+    Slot {
+        display_name: "PreCondition : Layout start:PreCondition Layout.",
+    },
+    Slot {
+        display_name: "PostCondition : . Layout start:PostCondition Layout",
+    },
+    Slot {
+        display_name: "PostCondition : Layout . start:PostCondition Layout",
+    },
+    Slot {
+        display_name: "PostCondition : Layout start:PostCondition . Layout",
+    },
+    Slot {
+        display_name: "PostCondition : Layout start:PostCondition Layout.",
+    },
+    Slot {
+        display_name: "PriorityLevel : . Layout start:PriorityLevel Layout",
+    },
+    Slot {
+        display_name: "PriorityLevel : Layout . start:PriorityLevel Layout",
+    },
+    Slot {
+        display_name: "PriorityLevel : Layout start:PriorityLevel . Layout",
+    },
+    Slot {
+        display_name: "PriorityLevel : Layout start:PriorityLevel Layout.",
+    },
+    Slot {
+        display_name: "Associativity : . Layout start:Associativity Layout",
+    },
+    Slot {
+        display_name: "Associativity : Layout . start:Associativity Layout",
+    },
+    Slot {
+        display_name: "Associativity : Layout start:Associativity . Layout",
+    },
+    Slot {
+        display_name: "Associativity : Layout start:Associativity Layout.",
+    },
+    Slot {
+        display_name: "Alternative : . Layout start:Alternative Layout",
+    },
+    Slot {
+        display_name: "Alternative : Layout . start:Alternative Layout",
+    },
+    Slot {
+        display_name: "Alternative : Layout start:Alternative . Layout",
+    },
+    Slot {
+        display_name: "Alternative : Layout start:Alternative Layout.",
+    },
+    Slot {
+        display_name: "Symbol(0, 0) : . Layout start:Symbol(0, 0) Layout",
+    },
+    Slot {
+        display_name: "Symbol(0, 0) : Layout . start:Symbol(0, 0) Layout",
+    },
+    Slot {
+        display_name: "Symbol(0, 0) : Layout start:Symbol(0, 0) . Layout",
+    },
+    Slot {
+        display_name: "Symbol(0, 0) : Layout start:Symbol(0, 0) Layout.",
+    },
+    Slot {
+        display_name: "Regex : . Layout start:Regex Layout",
+    },
+    Slot {
+        display_name: "Regex : Layout . start:Regex Layout",
+    },
+    Slot {
+        display_name: "Regex : Layout start:Regex . Layout",
+    },
+    Slot {
+        display_name: "Regex : Layout start:Regex Layout.",
+    },
+    Slot {
+        display_name: "CharClass : . Layout start:CharClass Layout",
+    },
+    Slot {
+        display_name: "CharClass : Layout . start:CharClass Layout",
+    },
+    Slot {
+        display_name: "CharClass : Layout start:CharClass . Layout",
+    },
+    Slot {
+        display_name: "CharClass : Layout start:CharClass Layout.",
+    },
+    Slot {
+        display_name: "RangeElement : . Layout start:RangeElement Layout",
+    },
+    Slot {
+        display_name: "RangeElement : Layout . start:RangeElement Layout",
+    },
+    Slot {
+        display_name: "RangeElement : Layout start:RangeElement . Layout",
+    },
+    Slot {
+        display_name: "RangeElement : Layout start:RangeElement Layout.",
+    },
+    Slot {
+        display_name: "Range : . Layout start:Range Layout",
+    },
+    Slot {
+        display_name: "Range : Layout . start:Range Layout",
+    },
+    Slot {
+        display_name: "Range : Layout start:Range . Layout",
+    },
+    Slot {
+        display_name: "Range : Layout start:Range Layout.",
     },
     Slot {
         display_name: "Symbol : . [1 & e == 0] Identifier return 0",
@@ -2202,12 +2468,12 @@ pub static FIRST_SET_RANGE_ELEMENT_ALT1: TerminalSet = TerminalSet {
     id: 32,
     terminals: &[TerminalId(5)],
 };
-// Range { "]", EOF, RangeChar, LineComment, WS }
+// Range { EOF, "]", RangeChar, LineComment, WS }
 pub static FOLLOW_SET_RANGE: TerminalSet = TerminalSet {
     id: 31,
     terminals: &[
-        TerminalId(35),
         TerminalId(38),
+        TerminalId(35),
         TerminalId(5),
         TerminalId(9),
         TerminalId(7),
@@ -3655,4 +3921,351 @@ pub static FIRST_SET_START_GRAMMAR: TerminalSet = TerminalSet {
 pub static FIRST_SET_START_GRAMMAR_ALT0: TerminalSet = TerminalSet {
     id: 53,
     terminals: &[TerminalId(10), TerminalId(9), TerminalId(7)],
+};
+// StartRule { EOF }
+pub static FOLLOW_SET_START_RULE: TerminalSet = TerminalSet {
+    id: 52,
+    terminals: &[TerminalId(38)],
+};
+// StartRule { "@Start", "@NoLayout", Identifier, "@Regex", "@Layout", LineComment,
+// "@WithLayout", WS }
+pub static FIRST_SET_START_RULE: TerminalSet = TerminalSet {
+    id: 1,
+    terminals: &[
+        TerminalId(18),
+        TerminalId(13),
+        TerminalId(1),
+        TerminalId(19),
+        TerminalId(14),
+        TerminalId(9),
+        TerminalId(15),
+        TerminalId(7),
+    ],
+};
+// StartRule : . Layout start:Rule Layout { "@Start", "@NoLayout", Identifier, "@Regex",
+// "@Layout", LineComment, "@WithLayout", WS }
+pub static FIRST_SET_START_RULE_ALT0: TerminalSet = TerminalSet {
+    id: 35,
+    terminals: &[
+        TerminalId(18),
+        TerminalId(13),
+        TerminalId(1),
+        TerminalId(19),
+        TerminalId(14),
+        TerminalId(9),
+        TerminalId(15),
+        TerminalId(7),
+    ],
+};
+// StartSyntaxRule { EOF }
+pub static FOLLOW_SET_START_SYNTAX_RULE: TerminalSet = TerminalSet {
+    id: 52,
+    terminals: &[TerminalId(38)],
+};
+// StartSyntaxRule { "@Start", Identifier, "@NoLayout", "@Layout", LineComment,
+// "@WithLayout", WS }
+pub static FIRST_SET_START_SYNTAX_RULE: TerminalSet = TerminalSet {
+    id: 2,
+    terminals: &[
+        TerminalId(18),
+        TerminalId(1),
+        TerminalId(13),
+        TerminalId(14),
+        TerminalId(9),
+        TerminalId(15),
+        TerminalId(7),
+    ],
+};
+// StartSyntaxRule : . Layout start:SyntaxRule Layout { "@Start", "@NoLayout", Identifier,
+// "@Layout", LineComment, "@WithLayout", WS }
+pub static FIRST_SET_START_SYNTAX_RULE_ALT0: TerminalSet = TerminalSet {
+    id: 3,
+    terminals: &[
+        TerminalId(18),
+        TerminalId(13),
+        TerminalId(1),
+        TerminalId(14),
+        TerminalId(9),
+        TerminalId(15),
+        TerminalId(7),
+    ],
+};
+// StartAnnotation { EOF }
+pub static FOLLOW_SET_START_ANNOTATION: TerminalSet = TerminalSet {
+    id: 52,
+    terminals: &[TerminalId(38)],
+};
+// StartAnnotation { "@Start", "@NoLayout", "@Layout", LineComment, "@WithLayout", WS }
+pub static FIRST_SET_START_ANNOTATION: TerminalSet = TerminalSet {
+    id: 21,
+    terminals: &[
+        TerminalId(18),
+        TerminalId(13),
+        TerminalId(14),
+        TerminalId(9),
+        TerminalId(15),
+        TerminalId(7),
+    ],
+};
+// StartAnnotation : . Layout start:Annotation Layout { "@Start", "@NoLayout", "@Layout",
+// LineComment, "@WithLayout", WS }
+pub static FIRST_SET_START_ANNOTATION_ALT0: TerminalSet = TerminalSet {
+    id: 54,
+    terminals: &[
+        TerminalId(18),
+        TerminalId(13),
+        TerminalId(14),
+        TerminalId(9),
+        TerminalId(15),
+        TerminalId(7),
+    ],
+};
+// StartRegexRule { EOF }
+pub static FOLLOW_SET_START_REGEX_RULE: TerminalSet = TerminalSet {
+    id: 52,
+    terminals: &[TerminalId(38)],
+};
+// StartRegexRule { "@Regex", "@Layout", LineComment, WS }
+pub static FIRST_SET_START_REGEX_RULE: TerminalSet = TerminalSet {
+    id: 4,
+    terminals: &[TerminalId(19), TerminalId(14), TerminalId(9), TerminalId(7)],
+};
+// StartRegexRule : . Layout start:RegexRule Layout { "@Regex", "@Layout", LineComment, WS }
+pub static FIRST_SET_START_REGEX_RULE_ALT0: TerminalSet = TerminalSet {
+    id: 4,
+    terminals: &[TerminalId(19), TerminalId(14), TerminalId(9), TerminalId(7)],
+};
+// StartPreCondition { EOF }
+pub static FOLLOW_SET_START_PRE_CONDITION: TerminalSet = TerminalSet {
+    id: 52,
+    terminals: &[TerminalId(38)],
+};
+// StartPreCondition { LineComment, Identifier, WS }
+pub static FIRST_SET_START_PRE_CONDITION: TerminalSet = TerminalSet {
+    id: 22,
+    terminals: &[TerminalId(9), TerminalId(1), TerminalId(7)],
+};
+// StartPreCondition : . Layout start:PreCondition Layout { LineComment, Identifier, WS }
+pub static FIRST_SET_START_PRE_CONDITION_ALT0: TerminalSet = TerminalSet {
+    id: 55,
+    terminals: &[TerminalId(9), TerminalId(1), TerminalId(7)],
+};
+// StartPostCondition { EOF }
+pub static FOLLOW_SET_START_POST_CONDITION: TerminalSet = TerminalSet {
+    id: 52,
+    terminals: &[TerminalId(38)],
+};
+// StartPostCondition { WS, LineComment, "\\", "!>>" }
+pub static FIRST_SET_START_POST_CONDITION: TerminalSet = TerminalSet {
+    id: 23,
+    terminals: &[TerminalId(7), TerminalId(9), TerminalId(22), TerminalId(23)],
+};
+// StartPostCondition : . Layout start:PostCondition Layout { "\\", LineComment, "!>>", WS }
+pub static FIRST_SET_START_POST_CONDITION_ALT0: TerminalSet = TerminalSet {
+    id: 56,
+    terminals: &[TerminalId(22), TerminalId(9), TerminalId(23), TerminalId(7)],
+};
+// StartPriorityLevel { EOF }
+pub static FOLLOW_SET_START_PRIORITY_LEVEL: TerminalSet = TerminalSet {
+    id: 52,
+    terminals: &[TerminalId(38)],
+};
+// StartPriorityLevel { "left", "right", String, "none", "{", Identifier, "(", LineComment,
+// WS }
+pub static FIRST_SET_START_PRIORITY_LEVEL: TerminalSet = TerminalSet {
+    id: 7,
+    terminals: &[
+        TerminalId(24),
+        TerminalId(25),
+        TerminalId(2),
+        TerminalId(26),
+        TerminalId(27),
+        TerminalId(1),
+        TerminalId(16),
+        TerminalId(9),
+        TerminalId(7),
+    ],
+};
+// StartPriorityLevel : . Layout start:PriorityLevel Layout { "left", "right", String, WS,
+// "{", Identifier, "(", LineComment, "none" }
+pub static FIRST_SET_START_PRIORITY_LEVEL_ALT0: TerminalSet = TerminalSet {
+    id: 16,
+    terminals: &[
+        TerminalId(24),
+        TerminalId(25),
+        TerminalId(2),
+        TerminalId(7),
+        TerminalId(27),
+        TerminalId(1),
+        TerminalId(16),
+        TerminalId(9),
+        TerminalId(26),
+    ],
+};
+// StartAssociativity { EOF }
+pub static FOLLOW_SET_START_ASSOCIATIVITY: TerminalSet = TerminalSet {
+    id: 52,
+    terminals: &[TerminalId(38)],
+};
+// StartAssociativity { "left", "none", WS, LineComment, "right" }
+pub static FIRST_SET_START_ASSOCIATIVITY: TerminalSet = TerminalSet {
+    id: 24,
+    terminals: &[
+        TerminalId(24),
+        TerminalId(26),
+        TerminalId(7),
+        TerminalId(9),
+        TerminalId(25),
+    ],
+};
+// StartAssociativity : . Layout start:Associativity Layout { "left", "none", "right",
+// LineComment, WS }
+pub static FIRST_SET_START_ASSOCIATIVITY_ALT0: TerminalSet = TerminalSet {
+    id: 57,
+    terminals: &[
+        TerminalId(24),
+        TerminalId(26),
+        TerminalId(25),
+        TerminalId(9),
+        TerminalId(7),
+    ],
+};
+// StartAlternative { EOF }
+pub static FOLLOW_SET_START_ALTERNATIVE: TerminalSet = TerminalSet {
+    id: 52,
+    terminals: &[TerminalId(38)],
+};
+// StartAlternative { WS, Identifier, "(", String, LineComment, "{" }
+pub static FIRST_SET_START_ALTERNATIVE: TerminalSet = TerminalSet {
+    id: 25,
+    terminals: &[
+        TerminalId(7),
+        TerminalId(1),
+        TerminalId(16),
+        TerminalId(2),
+        TerminalId(9),
+        TerminalId(27),
+    ],
+};
+// StartAlternative : . Layout start:Alternative Layout { "{", Identifier, "(", String,
+// LineComment, WS }
+pub static FIRST_SET_START_ALTERNATIVE_ALT0: TerminalSet = TerminalSet {
+    id: 58,
+    terminals: &[
+        TerminalId(27),
+        TerminalId(1),
+        TerminalId(16),
+        TerminalId(2),
+        TerminalId(9),
+        TerminalId(7),
+    ],
+};
+// StartSymbol { EOF }
+pub static FOLLOW_SET_START_SYMBOL: TerminalSet = TerminalSet {
+    id: 52,
+    terminals: &[TerminalId(38)],
+};
+// StartSymbol { WS, Identifier, "(", String, LineComment, "{" }
+pub static FIRST_SET_START_SYMBOL: TerminalSet = TerminalSet {
+    id: 25,
+    terminals: &[
+        TerminalId(7),
+        TerminalId(1),
+        TerminalId(16),
+        TerminalId(2),
+        TerminalId(9),
+        TerminalId(27),
+    ],
+};
+// StartSymbol : . Layout start:Symbol(0, 0) Layout { "{", Identifier, "(", String,
+// LineComment, WS }
+pub static FIRST_SET_START_SYMBOL_ALT0: TerminalSet = TerminalSet {
+    id: 58,
+    terminals: &[
+        TerminalId(27),
+        TerminalId(1),
+        TerminalId(16),
+        TerminalId(2),
+        TerminalId(9),
+        TerminalId(7),
+    ],
+};
+// StartRegex { EOF }
+pub static FOLLOW_SET_START_REGEX: TerminalSet = TerminalSet {
+    id: 52,
+    terminals: &[TerminalId(38)],
+};
+// StartRegex { "[", Char, String, Identifier, "(", "!", LineComment, WS }
+pub static FIRST_SET_START_REGEX: TerminalSet = TerminalSet {
+    id: 10,
+    terminals: &[
+        TerminalId(34),
+        TerminalId(3),
+        TerminalId(2),
+        TerminalId(1),
+        TerminalId(16),
+        TerminalId(32),
+        TerminalId(9),
+        TerminalId(7),
+    ],
+};
+// StartRegex : . Layout start:Regex Layout { "[", Char, String, Identifier, "(", "!",
+// LineComment, WS }
+pub static FIRST_SET_START_REGEX_ALT0: TerminalSet = TerminalSet {
+    id: 28,
+    terminals: &[
+        TerminalId(34),
+        TerminalId(3),
+        TerminalId(2),
+        TerminalId(1),
+        TerminalId(16),
+        TerminalId(32),
+        TerminalId(9),
+        TerminalId(7),
+    ],
+};
+// StartCharClass { EOF }
+pub static FOLLOW_SET_START_CHAR_CLASS: TerminalSet = TerminalSet {
+    id: 52,
+    terminals: &[TerminalId(38)],
+};
+// StartCharClass { "[", "!", LineComment, WS }
+pub static FIRST_SET_START_CHAR_CLASS: TerminalSet = TerminalSet {
+    id: 11,
+    terminals: &[TerminalId(34), TerminalId(32), TerminalId(9), TerminalId(7)],
+};
+// StartCharClass : . Layout start:CharClass Layout { "[", "!", LineComment, WS }
+pub static FIRST_SET_START_CHAR_CLASS_ALT0: TerminalSet = TerminalSet {
+    id: 29,
+    terminals: &[TerminalId(34), TerminalId(32), TerminalId(9), TerminalId(7)],
+};
+// StartRangeElement { EOF }
+pub static FOLLOW_SET_START_RANGE_ELEMENT: TerminalSet = TerminalSet {
+    id: 52,
+    terminals: &[TerminalId(38)],
+};
+// StartRangeElement { RangeChar, LineComment, WS }
+pub static FIRST_SET_START_RANGE_ELEMENT: TerminalSet = TerminalSet {
+    id: 26,
+    terminals: &[TerminalId(5), TerminalId(9), TerminalId(7)],
+};
+// StartRangeElement : . Layout start:RangeElement Layout { RangeChar, LineComment, WS }
+pub static FIRST_SET_START_RANGE_ELEMENT_ALT0: TerminalSet = TerminalSet {
+    id: 59,
+    terminals: &[TerminalId(5), TerminalId(9), TerminalId(7)],
+};
+// StartRange { EOF }
+pub static FOLLOW_SET_START_RANGE: TerminalSet = TerminalSet {
+    id: 52,
+    terminals: &[TerminalId(38)],
+};
+// StartRange { RangeChar, LineComment, WS }
+pub static FIRST_SET_START_RANGE: TerminalSet = TerminalSet {
+    id: 26,
+    terminals: &[TerminalId(5), TerminalId(9), TerminalId(7)],
+};
+// StartRange : . Layout start:Range Layout { RangeChar, LineComment, WS }
+pub static FIRST_SET_START_RANGE_ALT0: TerminalSet = TerminalSet {
+    id: 59,
+    terminals: &[TerminalId(5), TerminalId(9), TerminalId(7)],
 };

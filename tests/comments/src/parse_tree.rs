@@ -381,6 +381,19 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for CommentsParseTreeBuilder<'a> {
                     .alloc_slice_fill_iter(alternatives.into_iter().map(|a| a.unwrap_expr()));
                 ParseTree::Expr(self.arena.alloc(Expr::Amb(slice)))
             }
+            crate::grammar_data::START_EXPR => {
+                let first = alternatives[0].unwrap_start_expr();
+                let inner = self.arena.alloc_slice_fill_iter(
+                    alternatives.into_iter().map(|a| a.unwrap_start_expr().node),
+                );
+                let node = &*self.arena.alloc(Expr::Amb(inner));
+                ParseTree::StartExpr(self.arena.alloc(Start {
+                    before: first.before,
+                    node,
+                    after: first.after,
+                    span: first.span,
+                }))
+            }
             _ => unreachable!("nonterminal cannot be ambiguous"),
         }
     }

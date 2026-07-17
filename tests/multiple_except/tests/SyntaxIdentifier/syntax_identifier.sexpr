@@ -1,1 +1,2 @@
-(SyntaxIdentifier IdentifierChars)
+(Start
+  (SyntaxIdentifier IdentifierChars))

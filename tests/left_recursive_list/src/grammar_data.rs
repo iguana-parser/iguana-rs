@@ -3,17 +3,26 @@
 use crate::types::{Nonterminal, Slot, Terminal};
 use iguana_runtime::ids::{NonterminalId, TerminalId};
 use iguana_runtime::scanner::TerminalSet;
-pub const NONTERMINALS: [Nonterminal; 1] = [Nonterminal {
-    name: "A",
-    display: "A",
-    derived: false,
-}];
+pub const NONTERMINALS: [Nonterminal; 2] = [
+    Nonterminal {
+        name: "A",
+        display: "A",
+        derived: false,
+    },
+    Nonterminal {
+        name: "StartA",
+        display: "A",
+        derived: true,
+    },
+];
 // User-declared nonterminals in `.iggy` source order. Used by `--list-nonterminals`.
 pub const NONTERMINAL_DISPLAY_ORDER: [&str; 1] = ["A"];
 pub const A: NonterminalId = NonterminalId(0);
+pub const START_A: NonterminalId = NonterminalId(1);
 pub fn nonterminal_id(name: &str) -> Option<NonterminalId> {
     match name {
         "A" => Some(A),
+        "StartA" => Some(START_A),
         _ => None,
     }
 }
@@ -22,7 +31,7 @@ pub const TERMINALS: [Terminal; 3] = [
     Terminal { name: "Epsilon" },
     Terminal { name: "EOF" },
 ];
-pub const SLOTS: [Slot; 5] = [
+pub const SLOTS: [Slot; 7] = [
     Slot {
         display_name: "A : . A \"a\"",
     },
@@ -37,6 +46,12 @@ pub const SLOTS: [Slot; 5] = [
     },
     Slot {
         display_name: "A : \"a\".",
+    },
+    Slot {
+        display_name: "A : . start:A",
+    },
+    Slot {
+        display_name: "A : start:A.",
     },
 ];
 // A { "a", EOF }
@@ -56,6 +71,21 @@ pub static FIRST_SET_A_ALT0: TerminalSet = TerminalSet {
 };
 // A : . "a" { "a" }
 pub static FIRST_SET_A_ALT1: TerminalSet = TerminalSet {
+    id: 1,
+    terminals: &[TerminalId(0)],
+};
+// StartA { EOF }
+pub static FOLLOW_SET_START_A: TerminalSet = TerminalSet {
+    id: 2,
+    terminals: &[TerminalId(2)],
+};
+// StartA { "a" }
+pub static FIRST_SET_START_A: TerminalSet = TerminalSet {
+    id: 0,
+    terminals: &[TerminalId(0)],
+};
+// StartA : . start:A { "a" }
+pub static FIRST_SET_START_A_ALT0: TerminalSet = TerminalSet {
     id: 1,
     terminals: &[TerminalId(0)],
 };

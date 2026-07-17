@@ -1,8 +1,9 @@
-(S
-  (E
-    (E Num)
-    "+"
+(Start
+  (S
     (E
       (E Num)
-      "*"
-      (E Num))))
+      "+"
+      (E
+        (E Num)
+        "*"
+        (E Num)))))

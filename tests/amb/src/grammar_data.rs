@@ -3,11 +3,21 @@
 use crate::types::{Nonterminal, Slot, Terminal};
 use iguana_runtime::ids::{NonterminalId, TerminalId};
 use iguana_runtime::scanner::TerminalSet;
-pub const NONTERMINALS: [Nonterminal; 2] = [
+pub const NONTERMINALS: [Nonterminal; 4] = [
     Nonterminal {
         name: "S",
         display: "S",
         derived: false,
+    },
+    Nonterminal {
+        name: "StartS",
+        display: "S",
+        derived: true,
+    },
+    Nonterminal {
+        name: "StartE",
+        display: "E(0)",
+        derived: true,
     },
     Nonterminal {
         name: "E",
@@ -18,10 +28,14 @@ pub const NONTERMINALS: [Nonterminal; 2] = [
 // User-declared nonterminals in `.iggy` source order. Used by `--list-nonterminals`.
 pub const NONTERMINAL_DISPLAY_ORDER: [&str; 2] = ["S", "E"];
 pub const S: NonterminalId = NonterminalId(0);
-pub const E: NonterminalId = NonterminalId(1);
+pub const START_S: NonterminalId = NonterminalId(1);
+pub const START_E: NonterminalId = NonterminalId(2);
+pub const E: NonterminalId = NonterminalId(3);
 pub fn nonterminal_id(name: &str) -> Option<NonterminalId> {
     match name {
         "S" => Some(S),
+        "StartS" => Some(START_S),
+        "StartE" => Some(START_E),
         "E" => Some(E),
         _ => None,
     }
@@ -33,12 +47,24 @@ pub const TERMINALS: [Terminal; 5] = [
     Terminal { name: "Epsilon" },
     Terminal { name: "EOF" },
 ];
-pub const SLOTS: [Slot; 19] = [
+pub const SLOTS: [Slot; 23] = [
     Slot {
         display_name: "S : . E(0)",
     },
     Slot {
         display_name: "S : E(0).",
+    },
+    Slot {
+        display_name: "S : . start:S",
+    },
+    Slot {
+        display_name: "S : start:S.",
+    },
+    Slot {
+        display_name: "E(0) : . start:E(0)",
+    },
+    Slot {
+        display_name: "E(0) : start:E(0).",
     },
     Slot {
         display_name: "E : . Num return 0",
@@ -129,6 +155,36 @@ pub static FIRST_SET_E_ALT1: TerminalSet = TerminalSet {
 };
 // E(p: i32) : . [1 >= p] l=lhs:E(p) [(l == 0) || (l >= 1)] "+" rhs:E(2) return 1 { Num }
 pub static FIRST_SET_E_ALT2: TerminalSet = TerminalSet {
+    id: 1,
+    terminals: &[TerminalId(0)],
+};
+// StartS { EOF }
+pub static FOLLOW_SET_START_S: TerminalSet = TerminalSet {
+    id: 0,
+    terminals: &[TerminalId(4)],
+};
+// StartS { Num }
+pub static FIRST_SET_START_S: TerminalSet = TerminalSet {
+    id: 0,
+    terminals: &[TerminalId(0)],
+};
+// StartS : . start:S { Num }
+pub static FIRST_SET_START_S_ALT0: TerminalSet = TerminalSet {
+    id: 1,
+    terminals: &[TerminalId(0)],
+};
+// StartE { EOF }
+pub static FOLLOW_SET_START_E: TerminalSet = TerminalSet {
+    id: 0,
+    terminals: &[TerminalId(4)],
+};
+// StartE { Num }
+pub static FIRST_SET_START_E: TerminalSet = TerminalSet {
+    id: 0,
+    terminals: &[TerminalId(0)],
+};
+// StartE : . start:E(0) { Num }
+pub static FIRST_SET_START_E_ALT0: TerminalSet = TerminalSet {
     id: 1,
     terminals: &[TerminalId(0)],
 };

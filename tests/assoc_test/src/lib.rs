@@ -53,16 +53,19 @@ pub struct ParseSuccess<T> {
 pub fn parse_s<'a>(
     input: &Input,
     tree_arena: &'a Bump,
-) -> std::result::Result<ParseSuccess<&'a S<'a>>, ParseError> {
+) -> std::result::Result<ParseSuccess<&'a Start<&'a S<'a>, ()>>, ParseError> {
     let vec_arena = Bump::new();
-    let mut parser = AssocTestParser::new(input, grammar_data::S, &vec_arena);
+    let mut parser = AssocTestParser::new(input, grammar_data::START_S, &vec_arena);
     match parser.run() {
         ParseResult::Success(success) => {
             let parse_duration = success.duration;
             let tree_start = iguana_runtime::Instant::now();
             let parse_tree_builder = AssocTestParseTreeBuilder::new(tree_arena);
-            let tree =
-                parse_tree::create_parse_tree_s(success.sppf_node_id, &parser, &parse_tree_builder);
+            let tree = parse_tree::create_parse_tree_start_s(
+                success.sppf_node_id,
+                &parser,
+                &parse_tree_builder,
+            );
             let tree_construction_duration = tree_start.elapsed();
             let ambiguity_node_added = parser.ambiguity_node_added();
             Ok(ParseSuccess {
@@ -94,16 +97,19 @@ pub fn parse_s<'a>(
 pub fn parse_e<'a>(
     input: &Input,
     tree_arena: &'a Bump,
-) -> std::result::Result<ParseSuccess<&'a E<'a>>, ParseError> {
+) -> std::result::Result<ParseSuccess<&'a Start<&'a E<'a>, ()>>, ParseError> {
     let vec_arena = Bump::new();
-    let mut parser = AssocTestParser::new(input, grammar_data::E, &vec_arena);
+    let mut parser = AssocTestParser::new(input, grammar_data::START_E, &vec_arena);
     match parser.run() {
         ParseResult::Success(success) => {
             let parse_duration = success.duration;
             let tree_start = iguana_runtime::Instant::now();
             let parse_tree_builder = AssocTestParseTreeBuilder::new(tree_arena);
-            let tree =
-                parse_tree::create_parse_tree_e(success.sppf_node_id, &parser, &parse_tree_builder);
+            let tree = parse_tree::create_parse_tree_start_e(
+                success.sppf_node_id,
+                &parser,
+                &parse_tree_builder,
+            );
             let tree_construction_duration = tree_start.elapsed();
             let ambiguity_node_added = parser.ambiguity_node_added();
             Ok(ParseSuccess {

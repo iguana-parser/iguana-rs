@@ -126,6 +126,36 @@ impl<'i, 'arena> Parser<'i, 'arena> for ExceptNonterminalLongestMatchParser<'i, 
                     self.create_nonterminal_node(result, NonterminalId(2), SlotId(9), gss_node_id);
                 self.pop(gss_node_id, SlotId(9), nonterminal_node_id, None);
             }
+            // StartS : . start:S
+            SlotId(10) => {
+                self.create(NonterminalId(0), result, gss_node_id, SlotId(11), env);
+            }
+            // StartS : start:S.
+            SlotId(11) => {
+                let nonterminal_node_id =
+                    self.create_nonterminal_node(result, NonterminalId(3), SlotId(11), gss_node_id);
+                self.pop(gss_node_id, SlotId(11), nonterminal_node_id, None);
+            }
+            // StartId : . start:Id
+            SlotId(12) => {
+                self.create(NonterminalId(1), result, gss_node_id, SlotId(13), env);
+            }
+            // StartId : start:Id.
+            SlotId(13) => {
+                let nonterminal_node_id =
+                    self.create_nonterminal_node(result, NonterminalId(4), SlotId(13), gss_node_id);
+                self.pop(gss_node_id, SlotId(13), nonterminal_node_id, None);
+            }
+            // StartName : . start:Name
+            SlotId(14) => {
+                self.create(NonterminalId(2), result, gss_node_id, SlotId(15), env);
+            }
+            // StartName : start:Name.
+            SlotId(15) => {
+                let nonterminal_node_id =
+                    self.create_nonterminal_node(result, NonterminalId(5), SlotId(15), gss_node_id);
+                self.pop(gss_node_id, SlotId(15), nonterminal_node_id, None);
+            }
             _ => {
                 panic!("Unknown grammar slot id: {slot_id}");
             }
@@ -167,6 +197,18 @@ impl<'i, 'arena> Parser<'i, 'arena> for ExceptNonterminalLongestMatchParser<'i, 
                         }
                     });
                 }
+            }
+            // StartS : . start:S
+            NonterminalId(3) => {
+                self.add_first_descriptor(SlotId(10), input_index, gss_node_id, env);
+            }
+            // StartId : . start:Id
+            NonterminalId(4) => {
+                self.add_first_descriptor(SlotId(12), input_index, gss_node_id, env);
+            }
+            // StartName : . start:Name
+            NonterminalId(5) => {
+                self.add_first_descriptor(SlotId(14), input_index, gss_node_id, env);
             }
             _ => {
                 panic!("Unknown nonterminal id: {nonterminal_id}");
@@ -273,14 +315,14 @@ impl<'i, 'arena> Parser<'i, 'arena> for ExceptNonterminalLongestMatchParser<'i, 
         if add_to_index {
             let arena = self.vec_arena;
             let slot_idx = intermediate_node.slot_id.index();
-            if slot_idx < 10 {
+            if slot_idx < 16 {
                 self.intermediate_nodes_index[slot_idx].insert(
                     intermediate_node.span,
                     intermediate_node_id,
                     arena,
                 );
             } else {
-                let idx = slot_idx - 10;
+                let idx = slot_idx - 16;
                 self.dd_intermediate_nodes_index[idx].insert(
                     (intermediate_node.span, env),
                     intermediate_node_id,
@@ -363,10 +405,10 @@ impl<'i, 'arena> Parser<'i, 'arena> for ExceptNonterminalLongestMatchParser<'i, 
     ) -> Option<SPPFNodeId> {
         let slot_idx = slot_id.index();
         let span = Span::new(left_extent, right_extent);
-        if slot_idx < 10 {
+        if slot_idx < 16 {
             self.intermediate_nodes_index[slot_idx].get(&span).copied()
         } else {
-            let idx = slot_idx - 10;
+            let idx = slot_idx - 16;
             self.dd_intermediate_nodes_index[idx]
                 .get(&(span, env))
                 .copied()
@@ -404,13 +446,6 @@ impl<'i, 'arena> Parser<'i, 'arena> for ExceptNonterminalLongestMatchParser<'i, 
     ) {
         self.nonterminal_nodes_children
             .push((node, (child, return_slot)));
-    }
-    fn nonterminal_node_extra_children(&self, node: SPPFNodeId) -> Vec<(SPPFNodeId, SlotId)> {
-        self.nonterminal_nodes_children
-            .iter()
-            .filter(|(parent, _)| *parent == node)
-            .map(|(_, child)| *child)
-            .collect()
     }
     fn intermediate_nodes_children_map(
         &self,
@@ -538,6 +573,9 @@ impl<'i, 'arena> Parser<'i, 'arena> for ExceptNonterminalLongestMatchParser<'i, 
             NonterminalId(0) => self.scanner.match_any(&FOLLOW_SET_S, input_index),
             NonterminalId(1) => self.scanner.match_any(&FOLLOW_SET_ID, input_index),
             NonterminalId(2) => self.scanner.match_any(&FOLLOW_SET_NAME, input_index),
+            NonterminalId(3) => self.scanner.match_any(&FOLLOW_SET_START_S, input_index),
+            NonterminalId(4) => self.scanner.match_any(&FOLLOW_SET_START_ID, input_index),
+            NonterminalId(5) => self.scanner.match_any(&FOLLOW_SET_START_NAME, input_index),
             _ => true,
         }
     }
@@ -546,6 +584,9 @@ impl<'i, 'arena> Parser<'i, 'arena> for ExceptNonterminalLongestMatchParser<'i, 
             NonterminalId(0) => FOLLOW_SET_S.terminals.to_vec(),
             NonterminalId(1) => FOLLOW_SET_ID.terminals.to_vec(),
             NonterminalId(2) => FOLLOW_SET_NAME.terminals.to_vec(),
+            NonterminalId(3) => FOLLOW_SET_START_S.terminals.to_vec(),
+            NonterminalId(4) => FOLLOW_SET_START_ID.terminals.to_vec(),
+            NonterminalId(5) => FOLLOW_SET_START_NAME.terminals.to_vec(),
             _ => vec![],
         }
     }
@@ -601,7 +642,7 @@ pub struct ExceptNonterminalLongestMatchParser<'i, 'arena> {
     descriptors: AVec<Descriptor, &'arena Bump>,
     gss_nodes: AVec<GSSNode<'arena>, &'arena Bump>,
     // Per-nonterminal GSS-node index keyed by input position.
-    gss_nodes_index: [InlineMap<'arena, u32, GssNodeId>; 3],
+    gss_nodes_index: [InlineMap<'arena, u32, GssNodeId>; 6],
     sppf_nodes: AVec<SPPFNode, &'arena Bump>,
     #[cfg(feature = "instrument")]
     descriptors_count: usize,
@@ -610,7 +651,7 @@ pub struct ExceptNonterminalLongestMatchParser<'i, 'arena> {
     #[cfg(feature = "instrument")]
     ll1_call_log: Vec<(NonterminalId, u32)>,
     // Per-slot Span-keyed intermediate-node index, for slots in non-parameterized nonterminals.
-    intermediate_nodes_index: [InlineMap<'arena, Span, SPPFNodeId>; 10],
+    intermediate_nodes_index: [InlineMap<'arena, Span, SPPFNodeId>; 16],
     // Per-slot (Span, env)-keyed intermediate-node index, for slots in parameterized
     // nonterminals; env separates calls made with different parameter values.
     dd_intermediate_nodes_index: [InlineMap<'arena, (Span, Option<EnvId>), SPPFNodeId>; 0],
@@ -644,7 +685,7 @@ impl<'i, 'arena> ExceptNonterminalLongestMatchParser<'i, 'arena> {
             start_nonterminal,
             vec_arena,
             scanner: ExceptNonterminalLongestMatchScanner::new(input, vec_arena),
-            gss_nodes_index: [const { InlineMap::Empty }; 3],
+            gss_nodes_index: [const { InlineMap::Empty }; 6],
             descriptors: AVec::with_capacity_in(
                 input.len() as usize / DESCRIPTORS_CAPACITY_DIVISOR + DESCRIPTORS_CAPACITY_FLOOR,
                 vec_arena,
@@ -657,7 +698,7 @@ impl<'i, 'arena> ExceptNonterminalLongestMatchParser<'i, 'arena> {
                 input.len() as usize * SPPF_CAPACITY_MULTIPLIER,
                 vec_arena,
             ),
-            intermediate_nodes_index: [const { InlineMap::Empty }; 10],
+            intermediate_nodes_index: [const { InlineMap::Empty }; 16],
             dd_intermediate_nodes_index: [],
             terminal_nodes_index: [const { InlineMap::Empty }; 4],
             #[cfg(feature = "instrument")]

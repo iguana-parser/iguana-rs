@@ -97,15 +97,15 @@ pub fn parse_grammar<'a>(
 pub fn parse_rule<'a>(
     input: &Input,
     tree_arena: &'a Bump,
-) -> std::result::Result<ParseSuccess<&'a Rule<'a>>, ParseError> {
+) -> std::result::Result<ParseSuccess<&'a Start<&'a Rule<'a>, &'a Layout<'a>>>, ParseError> {
     let vec_arena = Bump::new();
-    let mut parser = IggyParser::new(input, grammar_data::RULE, &vec_arena);
+    let mut parser = IggyParser::new(input, grammar_data::START_RULE, &vec_arena);
     match parser.run() {
         ParseResult::Success(success) => {
             let parse_duration = success.duration;
             let tree_start = iguana_runtime::Instant::now();
             let parse_tree_builder = IggyParseTreeBuilder::new(tree_arena);
-            let tree = parse_tree::create_parse_tree_rule(
+            let tree = parse_tree::create_parse_tree_start_rule(
                 success.sppf_node_id,
                 &parser,
                 &parse_tree_builder,
@@ -141,15 +141,15 @@ pub fn parse_rule<'a>(
 pub fn parse_syntax_rule<'a>(
     input: &Input,
     tree_arena: &'a Bump,
-) -> std::result::Result<ParseSuccess<&'a SyntaxRule<'a>>, ParseError> {
+) -> std::result::Result<ParseSuccess<&'a Start<&'a SyntaxRule<'a>, &'a Layout<'a>>>, ParseError> {
     let vec_arena = Bump::new();
-    let mut parser = IggyParser::new(input, grammar_data::SYNTAX_RULE, &vec_arena);
+    let mut parser = IggyParser::new(input, grammar_data::START_SYNTAX_RULE, &vec_arena);
     match parser.run() {
         ParseResult::Success(success) => {
             let parse_duration = success.duration;
             let tree_start = iguana_runtime::Instant::now();
             let parse_tree_builder = IggyParseTreeBuilder::new(tree_arena);
-            let tree = parse_tree::create_parse_tree_syntax_rule(
+            let tree = parse_tree::create_parse_tree_start_syntax_rule(
                 success.sppf_node_id,
                 &parser,
                 &parse_tree_builder,
@@ -185,15 +185,15 @@ pub fn parse_syntax_rule<'a>(
 pub fn parse_annotation<'a>(
     input: &Input,
     tree_arena: &'a Bump,
-) -> std::result::Result<ParseSuccess<&'a Annotation<'a>>, ParseError> {
+) -> std::result::Result<ParseSuccess<&'a Start<&'a Annotation<'a>, &'a Layout<'a>>>, ParseError> {
     let vec_arena = Bump::new();
-    let mut parser = IggyParser::new(input, grammar_data::ANNOTATION, &vec_arena);
+    let mut parser = IggyParser::new(input, grammar_data::START_ANNOTATION, &vec_arena);
     match parser.run() {
         ParseResult::Success(success) => {
             let parse_duration = success.duration;
             let tree_start = iguana_runtime::Instant::now();
             let parse_tree_builder = IggyParseTreeBuilder::new(tree_arena);
-            let tree = parse_tree::create_parse_tree_annotation(
+            let tree = parse_tree::create_parse_tree_start_annotation(
                 success.sppf_node_id,
                 &parser,
                 &parse_tree_builder,
@@ -229,15 +229,15 @@ pub fn parse_annotation<'a>(
 pub fn parse_regex_rule<'a>(
     input: &Input,
     tree_arena: &'a Bump,
-) -> std::result::Result<ParseSuccess<&'a RegexRule<'a>>, ParseError> {
+) -> std::result::Result<ParseSuccess<&'a Start<&'a RegexRule<'a>, &'a Layout<'a>>>, ParseError> {
     let vec_arena = Bump::new();
-    let mut parser = IggyParser::new(input, grammar_data::REGEX_RULE, &vec_arena);
+    let mut parser = IggyParser::new(input, grammar_data::START_REGEX_RULE, &vec_arena);
     match parser.run() {
         ParseResult::Success(success) => {
             let parse_duration = success.duration;
             let tree_start = iguana_runtime::Instant::now();
             let parse_tree_builder = IggyParseTreeBuilder::new(tree_arena);
-            let tree = parse_tree::create_parse_tree_regex_rule(
+            let tree = parse_tree::create_parse_tree_start_regex_rule(
                 success.sppf_node_id,
                 &parser,
                 &parse_tree_builder,
@@ -273,15 +273,16 @@ pub fn parse_regex_rule<'a>(
 pub fn parse_pre_condition<'a>(
     input: &Input,
     tree_arena: &'a Bump,
-) -> std::result::Result<ParseSuccess<&'a PreCondition<'a>>, ParseError> {
+) -> std::result::Result<ParseSuccess<&'a Start<&'a PreCondition<'a>, &'a Layout<'a>>>, ParseError>
+{
     let vec_arena = Bump::new();
-    let mut parser = IggyParser::new(input, grammar_data::PRE_CONDITION, &vec_arena);
+    let mut parser = IggyParser::new(input, grammar_data::START_PRE_CONDITION, &vec_arena);
     match parser.run() {
         ParseResult::Success(success) => {
             let parse_duration = success.duration;
             let tree_start = iguana_runtime::Instant::now();
             let parse_tree_builder = IggyParseTreeBuilder::new(tree_arena);
-            let tree = parse_tree::create_parse_tree_pre_condition(
+            let tree = parse_tree::create_parse_tree_start_pre_condition(
                 success.sppf_node_id,
                 &parser,
                 &parse_tree_builder,
@@ -317,15 +318,16 @@ pub fn parse_pre_condition<'a>(
 pub fn parse_post_condition<'a>(
     input: &Input,
     tree_arena: &'a Bump,
-) -> std::result::Result<ParseSuccess<&'a PostCondition<'a>>, ParseError> {
+) -> std::result::Result<ParseSuccess<&'a Start<&'a PostCondition<'a>, &'a Layout<'a>>>, ParseError>
+{
     let vec_arena = Bump::new();
-    let mut parser = IggyParser::new(input, grammar_data::POST_CONDITION, &vec_arena);
+    let mut parser = IggyParser::new(input, grammar_data::START_POST_CONDITION, &vec_arena);
     match parser.run() {
         ParseResult::Success(success) => {
             let parse_duration = success.duration;
             let tree_start = iguana_runtime::Instant::now();
             let parse_tree_builder = IggyParseTreeBuilder::new(tree_arena);
-            let tree = parse_tree::create_parse_tree_post_condition(
+            let tree = parse_tree::create_parse_tree_start_post_condition(
                 success.sppf_node_id,
                 &parser,
                 &parse_tree_builder,
@@ -361,15 +363,16 @@ pub fn parse_post_condition<'a>(
 pub fn parse_priority_level<'a>(
     input: &Input,
     tree_arena: &'a Bump,
-) -> std::result::Result<ParseSuccess<&'a PriorityLevel<'a>>, ParseError> {
+) -> std::result::Result<ParseSuccess<&'a Start<&'a PriorityLevel<'a>, &'a Layout<'a>>>, ParseError>
+{
     let vec_arena = Bump::new();
-    let mut parser = IggyParser::new(input, grammar_data::PRIORITY_LEVEL, &vec_arena);
+    let mut parser = IggyParser::new(input, grammar_data::START_PRIORITY_LEVEL, &vec_arena);
     match parser.run() {
         ParseResult::Success(success) => {
             let parse_duration = success.duration;
             let tree_start = iguana_runtime::Instant::now();
             let parse_tree_builder = IggyParseTreeBuilder::new(tree_arena);
-            let tree = parse_tree::create_parse_tree_priority_level(
+            let tree = parse_tree::create_parse_tree_start_priority_level(
                 success.sppf_node_id,
                 &parser,
                 &parse_tree_builder,
@@ -405,15 +408,16 @@ pub fn parse_priority_level<'a>(
 pub fn parse_associativity<'a>(
     input: &Input,
     tree_arena: &'a Bump,
-) -> std::result::Result<ParseSuccess<&'a Associativity<'a>>, ParseError> {
+) -> std::result::Result<ParseSuccess<&'a Start<&'a Associativity<'a>, &'a Layout<'a>>>, ParseError>
+{
     let vec_arena = Bump::new();
-    let mut parser = IggyParser::new(input, grammar_data::ASSOCIATIVITY, &vec_arena);
+    let mut parser = IggyParser::new(input, grammar_data::START_ASSOCIATIVITY, &vec_arena);
     match parser.run() {
         ParseResult::Success(success) => {
             let parse_duration = success.duration;
             let tree_start = iguana_runtime::Instant::now();
             let parse_tree_builder = IggyParseTreeBuilder::new(tree_arena);
-            let tree = parse_tree::create_parse_tree_associativity(
+            let tree = parse_tree::create_parse_tree_start_associativity(
                 success.sppf_node_id,
                 &parser,
                 &parse_tree_builder,
@@ -449,15 +453,15 @@ pub fn parse_associativity<'a>(
 pub fn parse_alternative<'a>(
     input: &Input,
     tree_arena: &'a Bump,
-) -> std::result::Result<ParseSuccess<&'a Alternative<'a>>, ParseError> {
+) -> std::result::Result<ParseSuccess<&'a Start<&'a Alternative<'a>, &'a Layout<'a>>>, ParseError> {
     let vec_arena = Bump::new();
-    let mut parser = IggyParser::new(input, grammar_data::ALTERNATIVE, &vec_arena);
+    let mut parser = IggyParser::new(input, grammar_data::START_ALTERNATIVE, &vec_arena);
     match parser.run() {
         ParseResult::Success(success) => {
             let parse_duration = success.duration;
             let tree_start = iguana_runtime::Instant::now();
             let parse_tree_builder = IggyParseTreeBuilder::new(tree_arena);
-            let tree = parse_tree::create_parse_tree_alternative(
+            let tree = parse_tree::create_parse_tree_start_alternative(
                 success.sppf_node_id,
                 &parser,
                 &parse_tree_builder,
@@ -493,15 +497,15 @@ pub fn parse_alternative<'a>(
 pub fn parse_symbol<'a>(
     input: &Input,
     tree_arena: &'a Bump,
-) -> std::result::Result<ParseSuccess<&'a Symbol<'a>>, ParseError> {
+) -> std::result::Result<ParseSuccess<&'a Start<&'a Symbol<'a>, &'a Layout<'a>>>, ParseError> {
     let vec_arena = Bump::new();
-    let mut parser = IggyParser::new(input, grammar_data::SYMBOL, &vec_arena);
+    let mut parser = IggyParser::new(input, grammar_data::START_SYMBOL, &vec_arena);
     match parser.run() {
         ParseResult::Success(success) => {
             let parse_duration = success.duration;
             let tree_start = iguana_runtime::Instant::now();
             let parse_tree_builder = IggyParseTreeBuilder::new(tree_arena);
-            let tree = parse_tree::create_parse_tree_symbol(
+            let tree = parse_tree::create_parse_tree_start_symbol(
                 success.sppf_node_id,
                 &parser,
                 &parse_tree_builder,
@@ -537,15 +541,15 @@ pub fn parse_symbol<'a>(
 pub fn parse_regex<'a>(
     input: &Input,
     tree_arena: &'a Bump,
-) -> std::result::Result<ParseSuccess<&'a Regex<'a>>, ParseError> {
+) -> std::result::Result<ParseSuccess<&'a Start<&'a Regex<'a>, &'a Layout<'a>>>, ParseError> {
     let vec_arena = Bump::new();
-    let mut parser = IggyParser::new(input, grammar_data::REGEX, &vec_arena);
+    let mut parser = IggyParser::new(input, grammar_data::START_REGEX, &vec_arena);
     match parser.run() {
         ParseResult::Success(success) => {
             let parse_duration = success.duration;
             let tree_start = iguana_runtime::Instant::now();
             let parse_tree_builder = IggyParseTreeBuilder::new(tree_arena);
-            let tree = parse_tree::create_parse_tree_regex(
+            let tree = parse_tree::create_parse_tree_start_regex(
                 success.sppf_node_id,
                 &parser,
                 &parse_tree_builder,
@@ -581,15 +585,15 @@ pub fn parse_regex<'a>(
 pub fn parse_char_class<'a>(
     input: &Input,
     tree_arena: &'a Bump,
-) -> std::result::Result<ParseSuccess<&'a CharClass<'a>>, ParseError> {
+) -> std::result::Result<ParseSuccess<&'a Start<&'a CharClass<'a>, &'a Layout<'a>>>, ParseError> {
     let vec_arena = Bump::new();
-    let mut parser = IggyParser::new(input, grammar_data::CHAR_CLASS, &vec_arena);
+    let mut parser = IggyParser::new(input, grammar_data::START_CHAR_CLASS, &vec_arena);
     match parser.run() {
         ParseResult::Success(success) => {
             let parse_duration = success.duration;
             let tree_start = iguana_runtime::Instant::now();
             let parse_tree_builder = IggyParseTreeBuilder::new(tree_arena);
-            let tree = parse_tree::create_parse_tree_char_class(
+            let tree = parse_tree::create_parse_tree_start_char_class(
                 success.sppf_node_id,
                 &parser,
                 &parse_tree_builder,
@@ -625,15 +629,16 @@ pub fn parse_char_class<'a>(
 pub fn parse_range_element<'a>(
     input: &Input,
     tree_arena: &'a Bump,
-) -> std::result::Result<ParseSuccess<&'a RangeElement<'a>>, ParseError> {
+) -> std::result::Result<ParseSuccess<&'a Start<&'a RangeElement<'a>, &'a Layout<'a>>>, ParseError>
+{
     let vec_arena = Bump::new();
-    let mut parser = IggyParser::new(input, grammar_data::RANGE_ELEMENT, &vec_arena);
+    let mut parser = IggyParser::new(input, grammar_data::START_RANGE_ELEMENT, &vec_arena);
     match parser.run() {
         ParseResult::Success(success) => {
             let parse_duration = success.duration;
             let tree_start = iguana_runtime::Instant::now();
             let parse_tree_builder = IggyParseTreeBuilder::new(tree_arena);
-            let tree = parse_tree::create_parse_tree_range_element(
+            let tree = parse_tree::create_parse_tree_start_range_element(
                 success.sppf_node_id,
                 &parser,
                 &parse_tree_builder,
@@ -669,15 +674,15 @@ pub fn parse_range_element<'a>(
 pub fn parse_range<'a>(
     input: &Input,
     tree_arena: &'a Bump,
-) -> std::result::Result<ParseSuccess<&'a Range<'a>>, ParseError> {
+) -> std::result::Result<ParseSuccess<&'a Start<&'a Range<'a>, &'a Layout<'a>>>, ParseError> {
     let vec_arena = Bump::new();
-    let mut parser = IggyParser::new(input, grammar_data::RANGE, &vec_arena);
+    let mut parser = IggyParser::new(input, grammar_data::START_RANGE, &vec_arena);
     match parser.run() {
         ParseResult::Success(success) => {
             let parse_duration = success.duration;
             let tree_start = iguana_runtime::Instant::now();
             let parse_tree_builder = IggyParseTreeBuilder::new(tree_arena);
-            let tree = parse_tree::create_parse_tree_range(
+            let tree = parse_tree::create_parse_tree_start_range(
                 success.sppf_node_id,
                 &parser,
                 &parse_tree_builder,

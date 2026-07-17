@@ -412,6 +412,19 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for EscapedLitParseTreeBuilder<'a> {
                     .alloc_slice_fill_iter(alternatives.into_iter().map(|a| a.unwrap_s()));
                 ParseTree::S(self.arena.alloc(S::Amb(slice)))
             }
+            crate::grammar_data::START_S => {
+                let first = alternatives[0].unwrap_start_s();
+                let inner = self.arena.alloc_slice_fill_iter(
+                    alternatives.into_iter().map(|a| a.unwrap_start_s().node),
+                );
+                let node = &*self.arena.alloc(S::Amb(inner));
+                ParseTree::StartS(self.arena.alloc(Start {
+                    before: first.before,
+                    node,
+                    after: first.after,
+                    span: first.span,
+                }))
+            }
             _ => unreachable!("nonterminal cannot be ambiguous"),
         }
     }

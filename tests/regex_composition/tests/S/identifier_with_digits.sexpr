@@ -1,4 +1,7 @@
-(S
-  (Id
-    Letter
-    (LetterOrDigit* LetterOrDigit LetterOrDigit LetterOrDigit LetterOrDigit)))
+(Start
+  WS
+  (S
+    (Id
+      Letter
+      (LetterOrDigit* LetterOrDigit LetterOrDigit LetterOrDigit LetterOrDigit)))
+  WS)

@@ -1,7 +1,8 @@
-(S
-  (Id+
-    (Id
-      ((Alpha | Digit)+
-        ((Alpha | Digit) Digit)
-        ((Alpha | Digit) Digit)
-        ((Alpha | Digit) Digit)))))
+(Start
+  (S
+    (Id+
+      (Id
+        ((Alpha | Digit)+
+          ((Alpha | Digit) Digit)
+          ((Alpha | Digit) Digit)
+          ((Alpha | Digit) Digit))))))

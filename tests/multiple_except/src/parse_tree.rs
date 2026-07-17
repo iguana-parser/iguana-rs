@@ -35,10 +35,21 @@ impl TokenKind {
         }
     }
 }
+#[derive(Debug)]
+pub struct Start<T, L> {
+    pub before: L,
+    pub node: T,
+    pub after: L,
+    pub span: Span,
+}
 #[derive(Debug, Clone, Copy)]
 pub enum ParseTree<'a> {
     SyntaxIdentifier(&'a SyntaxIdentifier<'a>),
     LexicalIdentifier(&'a LexicalIdentifier<'a>),
+    // SyntaxIdentifier
+    StartSyntaxIdentifier(&'a Start<&'a SyntaxIdentifier<'a>, ()>),
+    // LexicalIdentifier
+    StartLexicalIdentifier(&'a Start<&'a LexicalIdentifier<'a>, ()>),
     Token(Token),
 }
 impl<'a> ParseTree<'a> {
@@ -51,6 +62,14 @@ impl<'a> ParseTree<'a> {
                 .child_count())
                 .filter_map(|i| lexical_identifier.child(i))
                 .collect(),
+            ParseTree::StartSyntaxIdentifier(start_syntax_identifier) => (0
+                ..start_syntax_identifier.child_count())
+                .filter_map(|i| start_syntax_identifier.child(i))
+                .collect(),
+            ParseTree::StartLexicalIdentifier(start_lexical_identifier) => (0
+                ..start_lexical_identifier.child_count())
+                .filter_map(|i| start_lexical_identifier.child(i))
+                .collect(),
             ParseTree::Token(_) => vec![],
         }
     }
@@ -58,6 +77,12 @@ impl<'a> ParseTree<'a> {
         match self {
             ParseTree::SyntaxIdentifier(syntax_identifier) => syntax_identifier.display_name(),
             ParseTree::LexicalIdentifier(lexical_identifier) => lexical_identifier.display_name(),
+            ParseTree::StartSyntaxIdentifier(start_syntax_identifier) => {
+                start_syntax_identifier.display_name()
+            }
+            ParseTree::StartLexicalIdentifier(start_lexical_identifier) => {
+                start_lexical_identifier.display_name()
+            }
             ParseTree::Token(token) => token.kind.name(),
         }
     }
@@ -65,6 +90,12 @@ impl<'a> ParseTree<'a> {
         match self {
             ParseTree::SyntaxIdentifier(syntax_identifier) => syntax_identifier.child_count(),
             ParseTree::LexicalIdentifier(lexical_identifier) => lexical_identifier.child_count(),
+            ParseTree::StartSyntaxIdentifier(start_syntax_identifier) => {
+                start_syntax_identifier.child_count()
+            }
+            ParseTree::StartLexicalIdentifier(start_lexical_identifier) => {
+                start_lexical_identifier.child_count()
+            }
             ParseTree::Token(_) => 0,
         }
     }
@@ -72,6 +103,12 @@ impl<'a> ParseTree<'a> {
         match self {
             ParseTree::SyntaxIdentifier(syntax_identifier) => syntax_identifier.span(),
             ParseTree::LexicalIdentifier(lexical_identifier) => lexical_identifier.span(),
+            ParseTree::StartSyntaxIdentifier(start_syntax_identifier) => {
+                start_syntax_identifier.span()
+            }
+            ParseTree::StartLexicalIdentifier(start_lexical_identifier) => {
+                start_lexical_identifier.span()
+            }
             ParseTree::Token(token) => token.span(),
         }
     }
@@ -85,6 +122,8 @@ impl<'a> ParseTree<'a> {
             ParseTree::LexicalIdentifier(lexical_identifier) => {
                 matches!(lexical_identifier, LexicalIdentifier::Amb(_))
             }
+            ParseTree::StartSyntaxIdentifier(_) => false,
+            ParseTree::StartLexicalIdentifier(_) => false,
             ParseTree::Token(_) => false,
         }
     }
@@ -99,6 +138,12 @@ impl<'a> ParseTree<'a> {
             ParseTree::LexicalIdentifier(lexical_identifier) => {
                 Some(*lexical_identifier as *const _ as usize)
             }
+            ParseTree::StartSyntaxIdentifier(start_syntax_identifier) => {
+                Some(*start_syntax_identifier as *const _ as usize)
+            }
+            ParseTree::StartLexicalIdentifier(start_lexical_identifier) => {
+                Some(*start_lexical_identifier as *const _ as usize)
+            }
             ParseTree::Token(_) => None,
         }
     }
@@ -106,6 +151,12 @@ impl<'a> ParseTree<'a> {
         match self {
             ParseTree::SyntaxIdentifier(syntax_identifier) => syntax_identifier.origin(),
             ParseTree::LexicalIdentifier(lexical_identifier) => lexical_identifier.origin(),
+            ParseTree::StartSyntaxIdentifier(start_syntax_identifier) => {
+                start_syntax_identifier.origin()
+            }
+            ParseTree::StartLexicalIdentifier(start_lexical_identifier) => {
+                start_lexical_identifier.origin()
+            }
             ParseTree::Token(_) => None,
         }
     }
@@ -118,6 +169,18 @@ impl<'a> ParseTree<'a> {
     fn unwrap_lexical_identifier(self) -> &'a LexicalIdentifier<'a> {
         match self {
             ParseTree::LexicalIdentifier(lexical_identifier) => lexical_identifier,
+            _ => panic!(),
+        }
+    }
+    fn unwrap_start_syntax_identifier(self) -> &'a Start<&'a SyntaxIdentifier<'a>, ()> {
+        match self {
+            ParseTree::StartSyntaxIdentifier(start_syntax_identifier) => start_syntax_identifier,
+            _ => panic!(),
+        }
+    }
+    fn unwrap_start_lexical_identifier(self) -> &'a Start<&'a LexicalIdentifier<'a>, ()> {
+        match self {
+            ParseTree::StartLexicalIdentifier(start_lexical_identifier) => start_lexical_identifier,
             _ => panic!(),
         }
     }
@@ -237,6 +300,52 @@ impl<'a> LexicalIdentifier<'a> {
         }
     }
 }
+impl<'a> Start<&'a SyntaxIdentifier<'a>, ()> {
+    pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
+        ParseTree::StartSyntaxIdentifier(self)
+    }
+    pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
+        match index {
+            0 => Some(ParseTree::SyntaxIdentifier(self.node)),
+            _ => None,
+        }
+    }
+    pub fn child_count(&self) -> usize {
+        1usize
+    }
+    pub fn span(&self) -> Span {
+        self.span
+    }
+    pub fn display_name(&self) -> &'static str {
+        "Start"
+    }
+    pub fn origin(&self) -> Option<Origin> {
+        Some(Origin::Start)
+    }
+}
+impl<'a> Start<&'a LexicalIdentifier<'a>, ()> {
+    pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
+        ParseTree::StartLexicalIdentifier(self)
+    }
+    pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
+        match index {
+            0 => Some(ParseTree::LexicalIdentifier(self.node)),
+            _ => None,
+        }
+    }
+    pub fn child_count(&self) -> usize {
+        1usize
+    }
+    pub fn span(&self) -> Span {
+        self.span
+    }
+    pub fn display_name(&self) -> &'static str {
+        "Start"
+    }
+    pub fn origin(&self) -> Option<Origin> {
+        Some(Origin::Start)
+    }
+}
 #[derive(Debug, Clone, Copy)]
 pub struct Token {
     pub kind: TokenKind,
@@ -304,6 +413,34 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for MultipleExceptParseTreeBuilder<'a> 
                 }
                 _ => unreachable!(),
             },
+            // StartSyntaxIdentifier
+            NonterminalId(2) => match nonterminal_node.return_slot {
+                // SyntaxIdentifier : start:SyntaxIdentifier.
+                SlotId(5) => {
+                    let [start] = children.into_array::<1usize>();
+                    ParseTree::StartSyntaxIdentifier(self.arena.alloc(Start {
+                        before: (),
+                        node: start.unwrap_syntax_identifier(),
+                        after: (),
+                        span: nonterminal_node.span,
+                    }))
+                }
+                _ => unreachable!(),
+            },
+            // StartLexicalIdentifier
+            NonterminalId(3) => match nonterminal_node.return_slot {
+                // LexicalIdentifier : start:LexicalIdentifier.
+                SlotId(7) => {
+                    let [start] = children.into_array::<1usize>();
+                    ParseTree::StartLexicalIdentifier(self.arena.alloc(Start {
+                        before: (),
+                        node: start.unwrap_lexical_identifier(),
+                        after: (),
+                        span: nonterminal_node.span,
+                    }))
+                }
+                _ => unreachable!(),
+            },
             _ => unreachable!(),
         }
     }
@@ -335,6 +472,36 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for MultipleExceptParseTreeBuilder<'a> 
                 );
                 ParseTree::LexicalIdentifier(self.arena.alloc(LexicalIdentifier::Amb(slice)))
             }
+            crate::grammar_data::START_SYNTAX_IDENTIFIER => {
+                let first = alternatives[0].unwrap_start_syntax_identifier();
+                let inner = self.arena.alloc_slice_fill_iter(
+                    alternatives
+                        .into_iter()
+                        .map(|a| a.unwrap_start_syntax_identifier().node),
+                );
+                let node = &*self.arena.alloc(SyntaxIdentifier::Amb(inner));
+                ParseTree::StartSyntaxIdentifier(self.arena.alloc(Start {
+                    before: first.before,
+                    node,
+                    after: first.after,
+                    span: first.span,
+                }))
+            }
+            crate::grammar_data::START_LEXICAL_IDENTIFIER => {
+                let first = alternatives[0].unwrap_start_lexical_identifier();
+                let inner = self.arena.alloc_slice_fill_iter(
+                    alternatives
+                        .into_iter()
+                        .map(|a| a.unwrap_start_lexical_identifier().node),
+                );
+                let node = &*self.arena.alloc(LexicalIdentifier::Amb(inner));
+                ParseTree::StartLexicalIdentifier(self.arena.alloc(Start {
+                    before: first.before,
+                    node,
+                    after: first.after,
+                    span: first.span,
+                }))
+            }
             _ => unreachable!("nonterminal cannot be ambiguous"),
         }
     }
@@ -351,6 +518,12 @@ pub fn create_parse_tree<'a>(
         ),
         crate::grammar_data::LEXICAL_IDENTIFIER => ParseTree::LexicalIdentifier(
             create_parse_tree_lexical_identifier(root_id, parser, builder),
+        ),
+        crate::grammar_data::START_SYNTAX_IDENTIFIER => ParseTree::StartSyntaxIdentifier(
+            create_parse_tree_start_syntax_identifier(root_id, parser, builder),
+        ),
+        crate::grammar_data::START_LEXICAL_IDENTIFIER => ParseTree::StartLexicalIdentifier(
+            create_parse_tree_start_lexical_identifier(root_id, parser, builder),
         ),
         _ => panic!(),
     }
@@ -372,6 +545,24 @@ pub fn create_parse_tree_lexical_identifier<'a>(
     visit_sppf(root_id, parser, builder)
         .unwrap_one()
         .unwrap_lexical_identifier()
+}
+pub fn create_parse_tree_start_syntax_identifier<'a>(
+    root_id: SPPFNodeId,
+    parser: &MultipleExceptParser,
+    builder: &MultipleExceptParseTreeBuilder<'a>,
+) -> &'a Start<&'a SyntaxIdentifier<'a>, ()> {
+    visit_sppf(root_id, parser, builder)
+        .unwrap_one()
+        .unwrap_start_syntax_identifier()
+}
+pub fn create_parse_tree_start_lexical_identifier<'a>(
+    root_id: SPPFNodeId,
+    parser: &MultipleExceptParser,
+    builder: &MultipleExceptParseTreeBuilder<'a>,
+) -> &'a Start<&'a LexicalIdentifier<'a>, ()> {
+    visit_sppf(root_id, parser, builder)
+        .unwrap_one()
+        .unwrap_start_lexical_identifier()
 }
 impl<'a> ParseTreeNode for ParseTree<'a> {
     fn children(&self) -> Vec<Self> {

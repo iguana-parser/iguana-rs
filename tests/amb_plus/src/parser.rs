@@ -198,6 +198,58 @@ impl<'i, 'arena> Parser<'i, 'arena> for AmbPlusParser<'i, 'arena> {
                     self.create_nonterminal_node(result, NonterminalId(6), SlotId(20), gss_node_id);
                 self.pop(gss_node_id, SlotId(20), nonterminal_node_id, None);
             }
+            // StartS : . start:S
+            SlotId(21) => {
+                self.create(NonterminalId(0), result, gss_node_id, SlotId(22), env);
+            }
+            // StartS : start:S.
+            SlotId(22) => {
+                let nonterminal_node_id =
+                    self.create_nonterminal_node(result, NonterminalId(7), SlotId(22), gss_node_id);
+                self.pop(gss_node_id, SlotId(22), nonterminal_node_id, None);
+            }
+            // StartA : . start:A
+            SlotId(23) => {
+                self.create(NonterminalId(1), result, gss_node_id, SlotId(24), env);
+            }
+            // StartA : start:A.
+            SlotId(24) => {
+                let nonterminal_node_id =
+                    self.create_nonterminal_node(result, NonterminalId(8), SlotId(24), gss_node_id);
+                self.pop(gss_node_id, SlotId(24), nonterminal_node_id, None);
+            }
+            // StartX : . start:X
+            SlotId(25) => {
+                if let Some(right_child) = self.parse_x_ll1(input_index) {
+                    let j = self.sppf_node(right_child).right_extent();
+                    // StartX : start:X.
+                    self.execute(j, SlotId(26), Some(right_child), gss_node_id, env);
+                }
+            }
+            // StartX : start:X.
+            SlotId(26) => {
+                let nonterminal_node_id =
+                    self.create_nonterminal_node(result, NonterminalId(9), SlotId(26), gss_node_id);
+                self.pop(gss_node_id, SlotId(26), nonterminal_node_id, None);
+            }
+            // StartY : . start:Y
+            SlotId(27) => {
+                if let Some(right_child) = self.parse_y_ll1(input_index) {
+                    let j = self.sppf_node(right_child).right_extent();
+                    // StartY : start:Y.
+                    self.execute(j, SlotId(28), Some(right_child), gss_node_id, env);
+                }
+            }
+            // StartY : start:Y.
+            SlotId(28) => {
+                let nonterminal_node_id = self.create_nonterminal_node(
+                    result,
+                    NonterminalId(10),
+                    SlotId(28),
+                    gss_node_id,
+                );
+                self.pop(gss_node_id, SlotId(28), nonterminal_node_id, None);
+            }
             _ => {
                 panic!("Unknown grammar slot id: {slot_id}");
             }
@@ -295,6 +347,22 @@ impl<'i, 'arena> Parser<'i, 'arena> for AmbPlusParser<'i, 'arena> {
             // Star_0 : . Opt_0
             NonterminalId(6) => {
                 self.add_first_descriptor(SlotId(19), input_index, gss_node_id, env);
+            }
+            // StartS : . start:S
+            NonterminalId(7) => {
+                self.add_first_descriptor(SlotId(21), input_index, gss_node_id, env);
+            }
+            // StartA : . start:A
+            NonterminalId(8) => {
+                self.add_first_descriptor(SlotId(23), input_index, gss_node_id, env);
+            }
+            // StartX : . start:X
+            NonterminalId(9) => {
+                self.add_first_descriptor(SlotId(25), input_index, gss_node_id, env);
+            }
+            // StartY : . start:Y
+            NonterminalId(10) => {
+                self.add_first_descriptor(SlotId(27), input_index, gss_node_id, env);
             }
             _ => {
                 panic!("Unknown nonterminal id: {nonterminal_id}");
@@ -401,14 +469,14 @@ impl<'i, 'arena> Parser<'i, 'arena> for AmbPlusParser<'i, 'arena> {
         if add_to_index {
             let arena = self.vec_arena;
             let slot_idx = intermediate_node.slot_id.index();
-            if slot_idx < 21 {
+            if slot_idx < 29 {
                 self.intermediate_nodes_index[slot_idx].insert(
                     intermediate_node.span,
                     intermediate_node_id,
                     arena,
                 );
             } else {
-                let idx = slot_idx - 21;
+                let idx = slot_idx - 29;
                 self.dd_intermediate_nodes_index[idx].insert(
                     (intermediate_node.span, env),
                     intermediate_node_id,
@@ -491,10 +559,10 @@ impl<'i, 'arena> Parser<'i, 'arena> for AmbPlusParser<'i, 'arena> {
     ) -> Option<SPPFNodeId> {
         let slot_idx = slot_id.index();
         let span = Span::new(left_extent, right_extent);
-        if slot_idx < 21 {
+        if slot_idx < 29 {
             self.intermediate_nodes_index[slot_idx].get(&span).copied()
         } else {
-            let idx = slot_idx - 21;
+            let idx = slot_idx - 29;
             self.dd_intermediate_nodes_index[idx]
                 .get(&(span, env))
                 .copied()
@@ -532,13 +600,6 @@ impl<'i, 'arena> Parser<'i, 'arena> for AmbPlusParser<'i, 'arena> {
     ) {
         self.nonterminal_nodes_children
             .push((node, (child, return_slot)));
-    }
-    fn nonterminal_node_extra_children(&self, node: SPPFNodeId) -> Vec<(SPPFNodeId, SlotId)> {
-        self.nonterminal_nodes_children
-            .iter()
-            .filter(|(parent, _)| *parent == node)
-            .map(|(_, child)| *child)
-            .collect()
     }
     fn intermediate_nodes_children_map(
         &self,
@@ -656,6 +717,10 @@ impl<'i, 'arena> Parser<'i, 'arena> for AmbPlusParser<'i, 'arena> {
             NonterminalId(4) => self.scanner.match_any(&FOLLOW_SET_PLUS_0, input_index),
             NonterminalId(5) => self.scanner.match_any(&FOLLOW_SET_OPT_0, input_index),
             NonterminalId(6) => self.scanner.match_any(&FOLLOW_SET_STAR_0, input_index),
+            NonterminalId(7) => self.scanner.match_any(&FOLLOW_SET_START_S, input_index),
+            NonterminalId(8) => self.scanner.match_any(&FOLLOW_SET_START_A, input_index),
+            NonterminalId(9) => self.scanner.match_any(&FOLLOW_SET_START_X, input_index),
+            NonterminalId(10) => self.scanner.match_any(&FOLLOW_SET_START_Y, input_index),
             _ => true,
         }
     }
@@ -668,6 +733,10 @@ impl<'i, 'arena> Parser<'i, 'arena> for AmbPlusParser<'i, 'arena> {
             NonterminalId(4) => FOLLOW_SET_PLUS_0.terminals.to_vec(),
             NonterminalId(5) => FOLLOW_SET_OPT_0.terminals.to_vec(),
             NonterminalId(6) => FOLLOW_SET_STAR_0.terminals.to_vec(),
+            NonterminalId(7) => FOLLOW_SET_START_S.terminals.to_vec(),
+            NonterminalId(8) => FOLLOW_SET_START_A.terminals.to_vec(),
+            NonterminalId(9) => FOLLOW_SET_START_X.terminals.to_vec(),
+            NonterminalId(10) => FOLLOW_SET_START_Y.terminals.to_vec(),
             _ => vec![],
         }
     }
@@ -723,7 +792,7 @@ pub struct AmbPlusParser<'i, 'arena> {
     descriptors: AVec<Descriptor, &'arena Bump>,
     gss_nodes: AVec<GSSNode<'arena>, &'arena Bump>,
     // Per-nonterminal GSS-node index keyed by input position.
-    gss_nodes_index: [InlineMap<'arena, u32, GssNodeId>; 7],
+    gss_nodes_index: [InlineMap<'arena, u32, GssNodeId>; 11],
     sppf_nodes: AVec<SPPFNode, &'arena Bump>,
     #[cfg(feature = "instrument")]
     descriptors_count: usize,
@@ -732,7 +801,7 @@ pub struct AmbPlusParser<'i, 'arena> {
     #[cfg(feature = "instrument")]
     ll1_call_log: Vec<(NonterminalId, u32)>,
     // Per-slot Span-keyed intermediate-node index, for slots in non-parameterized nonterminals.
-    intermediate_nodes_index: [InlineMap<'arena, Span, SPPFNodeId>; 21],
+    intermediate_nodes_index: [InlineMap<'arena, Span, SPPFNodeId>; 29],
     // Per-slot (Span, env)-keyed intermediate-node index, for slots in parameterized
     // nonterminals; env separates calls made with different parameter values.
     dd_intermediate_nodes_index: [InlineMap<'arena, (Span, Option<EnvId>), SPPFNodeId>; 0],
@@ -768,7 +837,7 @@ impl<'i, 'arena> AmbPlusParser<'i, 'arena> {
             start_nonterminal,
             vec_arena,
             scanner: AmbPlusScanner::new(input, vec_arena),
-            gss_nodes_index: [const { InlineMap::Empty }; 7],
+            gss_nodes_index: [const { InlineMap::Empty }; 11],
             descriptors: AVec::with_capacity_in(
                 input.len() as usize / DESCRIPTORS_CAPACITY_DIVISOR + DESCRIPTORS_CAPACITY_FLOOR,
                 vec_arena,
@@ -781,7 +850,7 @@ impl<'i, 'arena> AmbPlusParser<'i, 'arena> {
                 input.len() as usize * SPPF_CAPACITY_MULTIPLIER,
                 vec_arena,
             ),
-            intermediate_nodes_index: [const { InlineMap::Empty }; 21],
+            intermediate_nodes_index: [const { InlineMap::Empty }; 29],
             dd_intermediate_nodes_index: [],
             terminal_nodes_index: [const { InlineMap::Empty }; 3],
             epsilon_nodes: {

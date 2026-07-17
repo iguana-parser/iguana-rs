@@ -3,7 +3,7 @@
 use crate::types::{Nonterminal, Slot, Terminal};
 use iguana_runtime::ids::{NonterminalId, TerminalId};
 use iguana_runtime::scanner::TerminalSet;
-pub const NONTERMINALS: [Nonterminal; 5] = [
+pub const NONTERMINALS: [Nonterminal; 8] = [
     Nonterminal {
         name: "S",
         display: "S",
@@ -12,6 +12,21 @@ pub const NONTERMINALS: [Nonterminal; 5] = [
     Nonterminal {
         name: "StartS",
         display: "S",
+        derived: true,
+    },
+    Nonterminal {
+        name: "StartE",
+        display: "E(0)",
+        derived: true,
+    },
+    Nonterminal {
+        name: "StartLambda",
+        display: "Lambda(0)",
+        derived: true,
+    },
+    Nonterminal {
+        name: "StartBody",
+        display: "Body(0)",
         derived: true,
     },
     Nonterminal {
@@ -34,13 +49,19 @@ pub const NONTERMINALS: [Nonterminal; 5] = [
 pub const NONTERMINAL_DISPLAY_ORDER: [&str; 4] = ["S", "E", "Lambda", "Body"];
 pub const S: NonterminalId = NonterminalId(0);
 pub const START_S: NonterminalId = NonterminalId(1);
-pub const E: NonterminalId = NonterminalId(2);
-pub const LAMBDA: NonterminalId = NonterminalId(3);
-pub const BODY: NonterminalId = NonterminalId(4);
+pub const START_E: NonterminalId = NonterminalId(2);
+pub const START_LAMBDA: NonterminalId = NonterminalId(3);
+pub const START_BODY: NonterminalId = NonterminalId(4);
+pub const E: NonterminalId = NonterminalId(5);
+pub const LAMBDA: NonterminalId = NonterminalId(6);
+pub const BODY: NonterminalId = NonterminalId(7);
 pub fn nonterminal_id(name: &str) -> Option<NonterminalId> {
     match name {
         "S" => Some(S),
         "StartS" => Some(START_S),
+        "StartE" => Some(START_E),
+        "StartLambda" => Some(START_LAMBDA),
+        "StartBody" => Some(START_BODY),
         "E" => Some(E),
         "Lambda" => Some(LAMBDA),
         "Body" => Some(BODY),
@@ -55,7 +76,7 @@ pub const TERMINALS: [Terminal; 6] = [
     Terminal { name: "Epsilon" },
     Terminal { name: "EOF" },
 ];
-pub const SLOTS: [Slot; 29] = [
+pub const SLOTS: [Slot; 41] = [
     Slot {
         display_name: "S : . E(0)",
     },
@@ -73,6 +94,42 @@ pub const SLOTS: [Slot; 29] = [
     },
     Slot {
         display_name: "S : WS start:S WS.",
+    },
+    Slot {
+        display_name: "E(0) : . WS start:E(0) WS",
+    },
+    Slot {
+        display_name: "E(0) : WS . start:E(0) WS",
+    },
+    Slot {
+        display_name: "E(0) : WS start:E(0) . WS",
+    },
+    Slot {
+        display_name: "E(0) : WS start:E(0) WS.",
+    },
+    Slot {
+        display_name: "Lambda(0) : . WS start:Lambda(0) WS",
+    },
+    Slot {
+        display_name: "Lambda(0) : WS . start:Lambda(0) WS",
+    },
+    Slot {
+        display_name: "Lambda(0) : WS start:Lambda(0) . WS",
+    },
+    Slot {
+        display_name: "Lambda(0) : WS start:Lambda(0) WS.",
+    },
+    Slot {
+        display_name: "Body(0) : . WS start:Body(0) WS",
+    },
+    Slot {
+        display_name: "Body(0) : WS . start:Body(0) WS",
+    },
+    Slot {
+        display_name: "Body(0) : WS start:Body(0) . WS",
+    },
+    Slot {
+        display_name: "Body(0) : WS start:Body(0) WS.",
     },
     Slot {
         display_name: "E : . \"a\" return 0",
@@ -227,6 +284,51 @@ pub static FIRST_SET_START_S: TerminalSet = TerminalSet {
 };
 // StartS : . WS start:S WS { "a", "fn", WS }
 pub static FIRST_SET_START_S_ALT0: TerminalSet = TerminalSet {
+    id: 6,
+    terminals: &[TerminalId(1), TerminalId(3), TerminalId(0)],
+};
+// StartE { EOF }
+pub static FOLLOW_SET_START_E: TerminalSet = TerminalSet {
+    id: 5,
+    terminals: &[TerminalId(5)],
+};
+// StartE { "a", WS, "fn" }
+pub static FIRST_SET_START_E: TerminalSet = TerminalSet {
+    id: 2,
+    terminals: &[TerminalId(1), TerminalId(0), TerminalId(3)],
+};
+// StartE : . WS start:E(0) WS { "a", "fn", WS }
+pub static FIRST_SET_START_E_ALT0: TerminalSet = TerminalSet {
+    id: 6,
+    terminals: &[TerminalId(1), TerminalId(3), TerminalId(0)],
+};
+// StartLambda { EOF }
+pub static FOLLOW_SET_START_LAMBDA: TerminalSet = TerminalSet {
+    id: 5,
+    terminals: &[TerminalId(5)],
+};
+// StartLambda { WS, "fn" }
+pub static FIRST_SET_START_LAMBDA: TerminalSet = TerminalSet {
+    id: 3,
+    terminals: &[TerminalId(0), TerminalId(3)],
+};
+// StartLambda : . WS start:Lambda(0) WS { "fn", WS }
+pub static FIRST_SET_START_LAMBDA_ALT0: TerminalSet = TerminalSet {
+    id: 7,
+    terminals: &[TerminalId(3), TerminalId(0)],
+};
+// StartBody { EOF }
+pub static FOLLOW_SET_START_BODY: TerminalSet = TerminalSet {
+    id: 5,
+    terminals: &[TerminalId(5)],
+};
+// StartBody { "a", WS, "fn" }
+pub static FIRST_SET_START_BODY: TerminalSet = TerminalSet {
+    id: 2,
+    terminals: &[TerminalId(1), TerminalId(0), TerminalId(3)],
+};
+// StartBody : . WS start:Body(0) WS { "a", "fn", WS }
+pub static FIRST_SET_START_BODY_ALT0: TerminalSet = TerminalSet {
     id: 6,
     terminals: &[TerminalId(1), TerminalId(3), TerminalId(0)],
 };

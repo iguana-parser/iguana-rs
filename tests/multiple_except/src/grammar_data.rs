@@ -3,7 +3,7 @@
 use crate::types::{Nonterminal, Slot, Terminal};
 use iguana_runtime::ids::{NonterminalId, TerminalId};
 use iguana_runtime::scanner::TerminalSet;
-pub const NONTERMINALS: [Nonterminal; 2] = [
+pub const NONTERMINALS: [Nonterminal; 4] = [
     Nonterminal {
         name: "SyntaxIdentifier",
         display: "SyntaxIdentifier",
@@ -14,15 +14,29 @@ pub const NONTERMINALS: [Nonterminal; 2] = [
         display: "LexicalIdentifier",
         derived: false,
     },
+    Nonterminal {
+        name: "StartSyntaxIdentifier",
+        display: "SyntaxIdentifier",
+        derived: true,
+    },
+    Nonterminal {
+        name: "StartLexicalIdentifier",
+        display: "LexicalIdentifier",
+        derived: true,
+    },
 ];
 // User-declared nonterminals in `.iggy` source order. Used by `--list-nonterminals`.
 pub const NONTERMINAL_DISPLAY_ORDER: [&str; 2] = ["SyntaxIdentifier", "LexicalIdentifier"];
 pub const SYNTAX_IDENTIFIER: NonterminalId = NonterminalId(0);
 pub const LEXICAL_IDENTIFIER: NonterminalId = NonterminalId(1);
+pub const START_SYNTAX_IDENTIFIER: NonterminalId = NonterminalId(2);
+pub const START_LEXICAL_IDENTIFIER: NonterminalId = NonterminalId(3);
 pub fn nonterminal_id(name: &str) -> Option<NonterminalId> {
     match name {
         "SyntaxIdentifier" => Some(SYNTAX_IDENTIFIER),
         "LexicalIdentifier" => Some(LEXICAL_IDENTIFIER),
+        "StartSyntaxIdentifier" => Some(START_SYNTAX_IDENTIFIER),
+        "StartLexicalIdentifier" => Some(START_LEXICAL_IDENTIFIER),
         _ => None,
     }
 }
@@ -41,7 +55,7 @@ pub const TERMINALS: [Terminal; 7] = [
     Terminal { name: "Epsilon" },
     Terminal { name: "EOF" },
 ];
-pub const SLOTS: [Slot; 4] = [
+pub const SLOTS: [Slot; 8] = [
     Slot {
         display_name: "SyntaxIdentifier : . IdentifierChars \\ Keyword \\ BooleanLiteral \\ NullLiteral",
     },
@@ -53,6 +67,18 @@ pub const SLOTS: [Slot; 4] = [
     },
     Slot {
         display_name: "LexicalIdentifier : Identifier.",
+    },
+    Slot {
+        display_name: "SyntaxIdentifier : . start:SyntaxIdentifier",
+    },
+    Slot {
+        display_name: "SyntaxIdentifier : start:SyntaxIdentifier.",
+    },
+    Slot {
+        display_name: "LexicalIdentifier : . start:LexicalIdentifier",
+    },
+    Slot {
+        display_name: "LexicalIdentifier : start:LexicalIdentifier.",
     },
 ];
 // SyntaxIdentifier { EOF }
@@ -83,6 +109,36 @@ pub static FIRST_SET_LEXICAL_IDENTIFIER: TerminalSet = TerminalSet {
 };
 // LexicalIdentifier : . Identifier { Identifier }
 pub static FIRST_SET_LEXICAL_IDENTIFIER_ALT0: TerminalSet = TerminalSet {
+    id: 2,
+    terminals: &[TerminalId(0)],
+};
+// StartSyntaxIdentifier { EOF }
+pub static FOLLOW_SET_START_SYNTAX_IDENTIFIER: TerminalSet = TerminalSet {
+    id: 0,
+    terminals: &[TerminalId(6)],
+};
+// StartSyntaxIdentifier { IdentifierChars }
+pub static FIRST_SET_START_SYNTAX_IDENTIFIER: TerminalSet = TerminalSet {
+    id: 0,
+    terminals: &[TerminalId(1)],
+};
+// StartSyntaxIdentifier : . start:SyntaxIdentifier { IdentifierChars }
+pub static FIRST_SET_START_SYNTAX_IDENTIFIER_ALT0: TerminalSet = TerminalSet {
+    id: 1,
+    terminals: &[TerminalId(1)],
+};
+// StartLexicalIdentifier { EOF }
+pub static FOLLOW_SET_START_LEXICAL_IDENTIFIER: TerminalSet = TerminalSet {
+    id: 0,
+    terminals: &[TerminalId(6)],
+};
+// StartLexicalIdentifier { Identifier }
+pub static FIRST_SET_START_LEXICAL_IDENTIFIER: TerminalSet = TerminalSet {
+    id: 1,
+    terminals: &[TerminalId(0)],
+};
+// StartLexicalIdentifier : . start:LexicalIdentifier { Identifier }
+pub static FIRST_SET_START_LEXICAL_IDENTIFIER_ALT0: TerminalSet = TerminalSet {
     id: 2,
     terminals: &[TerminalId(0)],
 };

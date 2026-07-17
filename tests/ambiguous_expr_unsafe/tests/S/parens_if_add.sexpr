@@ -1,23 +1,26 @@
-(S
-  (E
+(Start
+  WS
+  (S
     (E
-      "("
-      WS
       (E
-        "if"
+        "("
         WS
-        (E "a")
+        (E
+          "if"
+          WS
+          (E "a")
+          WS
+          "then"
+          WS
+          (E "a")
+          WS
+          "else"
+          WS
+          (E "a"))
         WS
-        "then"
-        WS
-        (E "a")
-        WS
-        "else"
-        WS
-        (E "a"))
+        ")")
       WS
-      ")")
-    WS
-    "+"
-    WS
-    (E "a")))
+      "+"
+      WS
+      (E "a")))
+  WS)

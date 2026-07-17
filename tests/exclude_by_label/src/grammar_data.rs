@@ -3,7 +3,7 @@
 use crate::types::{Nonterminal, Slot, Terminal};
 use iguana_runtime::ids::{NonterminalId, TerminalId};
 use iguana_runtime::scanner::TerminalSet;
-pub const NONTERMINALS: [Nonterminal; 4] = [
+pub const NONTERMINALS: [Nonterminal; 5] = [
     Nonterminal {
         name: "Plus_0",
         display: "{Expr !comma \",\"}+",
@@ -20,6 +20,11 @@ pub const NONTERMINALS: [Nonterminal; 4] = [
         derived: true,
     },
     Nonterminal {
+        name: "StartExpr",
+        display: "Expr(0)",
+        derived: true,
+    },
+    Nonterminal {
         name: "Expr",
         display: "Expr",
         derived: false,
@@ -30,12 +35,14 @@ pub const NONTERMINAL_DISPLAY_ORDER: [&str; 1] = ["Expr"];
 pub const PLUS_0: NonterminalId = NonterminalId(0);
 pub const OPT_0: NonterminalId = NonterminalId(1);
 pub const STAR_0: NonterminalId = NonterminalId(2);
-pub const EXPR: NonterminalId = NonterminalId(3);
+pub const START_EXPR: NonterminalId = NonterminalId(3);
+pub const EXPR: NonterminalId = NonterminalId(4);
 pub fn nonterminal_id(name: &str) -> Option<NonterminalId> {
     match name {
         "Plus_0" => Some(PLUS_0),
         "Opt_0" => Some(OPT_0),
         "Star_0" => Some(STAR_0),
+        "StartExpr" => Some(START_EXPR),
         "Expr" => Some(EXPR),
         _ => None,
     }
@@ -48,7 +55,7 @@ pub const TERMINALS: [Terminal; 6] = [
     Terminal { name: "Epsilon" },
     Terminal { name: "EOF" },
 ];
-pub const SLOTS: [Slot; 28] = [
+pub const SLOTS: [Slot; 30] = [
     Slot {
         display_name: "{Expr !comma \",\"}+ : . {Expr !comma \",\"}+ \",\" Expr(4)",
     },
@@ -81,6 +88,12 @@ pub const SLOTS: [Slot; 28] = [
     },
     Slot {
         display_name: "{Expr !comma \",\"}* : {Expr !comma \",\"}+?.",
+    },
+    Slot {
+        display_name: "Expr(0) : . start:Expr(0)",
+    },
+    Slot {
+        display_name: "Expr(0) : start:Expr(0).",
     },
     Slot {
         display_name: "Expr : . [1 & e == 0] Id return 0",
@@ -211,6 +224,21 @@ pub static FIRST_SET_STAR_0: TerminalSet = TerminalSet {
 };
 // Star_0 : . Opt_0 { Id }
 pub static FIRST_SET_STAR_0_ALT0: TerminalSet = TerminalSet {
+    id: 1,
+    terminals: &[TerminalId(0)],
+};
+// StartExpr { EOF }
+pub static FOLLOW_SET_START_EXPR: TerminalSet = TerminalSet {
+    id: 5,
+    terminals: &[TerminalId(5)],
+};
+// StartExpr { Id }
+pub static FIRST_SET_START_EXPR: TerminalSet = TerminalSet {
+    id: 0,
+    terminals: &[TerminalId(0)],
+};
+// StartExpr : . start:Expr(0) { Id }
+pub static FIRST_SET_START_EXPR_ALT0: TerminalSet = TerminalSet {
     id: 1,
     terminals: &[TerminalId(0)],
 };

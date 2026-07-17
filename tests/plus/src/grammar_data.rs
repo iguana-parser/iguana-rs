@@ -3,7 +3,7 @@
 use crate::types::{Nonterminal, Slot, Terminal};
 use iguana_runtime::ids::{NonterminalId, TerminalId};
 use iguana_runtime::scanner::TerminalSet;
-pub const NONTERMINALS: [Nonterminal; 3] = [
+pub const NONTERMINALS: [Nonterminal; 5] = [
     Nonterminal {
         name: "S",
         display: "S",
@@ -19,17 +19,31 @@ pub const NONTERMINALS: [Nonterminal; 3] = [
         display: "A+",
         derived: true,
     },
+    Nonterminal {
+        name: "StartS",
+        display: "S",
+        derived: true,
+    },
+    Nonterminal {
+        name: "StartA",
+        display: "A",
+        derived: true,
+    },
 ];
 // User-declared nonterminals in `.iggy` source order. Used by `--list-nonterminals`.
 pub const NONTERMINAL_DISPLAY_ORDER: [&str; 2] = ["S", "A"];
 pub const S: NonterminalId = NonterminalId(0);
 pub const A: NonterminalId = NonterminalId(1);
 pub const PLUS_0: NonterminalId = NonterminalId(2);
+pub const START_S: NonterminalId = NonterminalId(3);
+pub const START_A: NonterminalId = NonterminalId(4);
 pub fn nonterminal_id(name: &str) -> Option<NonterminalId> {
     match name {
         "S" => Some(S),
         "A" => Some(A),
         "Plus_0" => Some(PLUS_0),
+        "StartS" => Some(START_S),
+        "StartA" => Some(START_A),
         _ => None,
     }
 }
@@ -38,7 +52,7 @@ pub const TERMINALS: [Terminal; 3] = [
     Terminal { name: "Epsilon" },
     Terminal { name: "EOF" },
 ];
-pub const SLOTS: [Slot; 9] = [
+pub const SLOTS: [Slot; 13] = [
     Slot {
         display_name: "S : . A+",
     },
@@ -65,6 +79,18 @@ pub const SLOTS: [Slot; 9] = [
     },
     Slot {
         display_name: "A+ : A.",
+    },
+    Slot {
+        display_name: "S : . start:S",
+    },
+    Slot {
+        display_name: "S : start:S.",
+    },
+    Slot {
+        display_name: "A : . start:A",
+    },
+    Slot {
+        display_name: "A : start:A.",
     },
 ];
 // S { EOF }
@@ -114,6 +140,36 @@ pub static FIRST_SET_PLUS_0_ALT0: TerminalSet = TerminalSet {
 };
 // Plus_0 : . A { "a" }
 pub static FIRST_SET_PLUS_0_ALT1: TerminalSet = TerminalSet {
+    id: 1,
+    terminals: &[TerminalId(0)],
+};
+// StartS { EOF }
+pub static FOLLOW_SET_START_S: TerminalSet = TerminalSet {
+    id: 0,
+    terminals: &[TerminalId(2)],
+};
+// StartS { "a" }
+pub static FIRST_SET_START_S: TerminalSet = TerminalSet {
+    id: 0,
+    terminals: &[TerminalId(0)],
+};
+// StartS : . start:S { "a" }
+pub static FIRST_SET_START_S_ALT0: TerminalSet = TerminalSet {
+    id: 1,
+    terminals: &[TerminalId(0)],
+};
+// StartA { EOF }
+pub static FOLLOW_SET_START_A: TerminalSet = TerminalSet {
+    id: 0,
+    terminals: &[TerminalId(2)],
+};
+// StartA { "a" }
+pub static FIRST_SET_START_A: TerminalSet = TerminalSet {
+    id: 0,
+    terminals: &[TerminalId(0)],
+};
+// StartA : . start:A { "a" }
+pub static FIRST_SET_START_A_ALT0: TerminalSet = TerminalSet {
     id: 1,
     terminals: &[TerminalId(0)],
 };

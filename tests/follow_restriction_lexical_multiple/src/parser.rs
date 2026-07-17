@@ -61,11 +61,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for FollowRestrictionLexicalMultipleParser<'
         match slot_id {
             // S : . Plus_0
             SlotId(0) => {
-                if let Some(right_child) = self.parse_plus_0_ll1(input_index) {
-                    let j = self.sppf_node(right_child).right_extent();
-                    // S : Plus_0.
-                    self.execute(j, SlotId(1), Some(right_child), gss_node_id, env);
-                }
+                self.create(NonterminalId(2), result, gss_node_id, SlotId(1), env);
             }
             // S : Plus_0.
             SlotId(1) => {
@@ -120,11 +116,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for FollowRestrictionLexicalMultipleParser<'
             }
             // Plus_0 : . Plus_0 WS Element
             SlotId(8) => {
-                if let Some(right_child) = self.parse_plus_0_ll1(input_index) {
-                    let j = self.sppf_node(right_child).right_extent();
-                    // Plus_0 : Plus_0 . WS Element
-                    self.execute(j, SlotId(9), Some(right_child), gss_node_id, env);
-                }
+                self.create(NonterminalId(2), result, gss_node_id, SlotId(9), env);
             }
             // Plus_0 : Plus_0 . WS Element
             SlotId(9) => {
@@ -169,6 +161,77 @@ impl<'i, 'arena> Parser<'i, 'arena> for FollowRestrictionLexicalMultipleParser<'
                 let nonterminal_node_id =
                     self.create_nonterminal_node(result, NonterminalId(2), SlotId(13), gss_node_id);
                 self.pop(gss_node_id, SlotId(13), nonterminal_node_id, None);
+            }
+            // StartS : . WS start:S WS
+            SlotId(14) => {
+                if let Some((j, right_child)) =
+                    self.match_terminal(TerminalId(4), input_index, SlotId(14), Some(gss_node_id))
+                {
+                    // StartS : WS . start:S WS
+                    self.execute(j, SlotId(15), Some(right_child), gss_node_id, env);
+                }
+            }
+            // StartS : WS . start:S WS
+            SlotId(15) => {
+                self.create(NonterminalId(0), result, gss_node_id, SlotId(16), env);
+            }
+            // StartS : WS start:S . WS
+            SlotId(16) => {
+                if let Some((_, right_child)) =
+                    self.match_terminal(TerminalId(4), input_index, SlotId(16), Some(gss_node_id))
+                {
+                    if let Some((j, new_node)) =
+                        self.create_intermediate_node(result, right_child, SlotId(17), env)
+                    {
+                        // StartS : WS start:S WS.
+                        self.execute(j, SlotId(17), Some(new_node), gss_node_id, env);
+                    }
+                }
+            }
+            // StartS : WS start:S WS.
+            SlotId(17) => {
+                let nonterminal_node_id =
+                    self.create_nonterminal_node(result, NonterminalId(3), SlotId(17), gss_node_id);
+                self.pop(gss_node_id, SlotId(17), nonterminal_node_id, None);
+            }
+            // StartElement : . WS start:Element WS
+            SlotId(18) => {
+                if let Some((j, right_child)) =
+                    self.match_terminal(TerminalId(4), input_index, SlotId(18), Some(gss_node_id))
+                {
+                    // StartElement : WS . start:Element WS
+                    self.execute(j, SlotId(19), Some(right_child), gss_node_id, env);
+                }
+            }
+            // StartElement : WS . start:Element WS
+            SlotId(19) => {
+                if let Some(right_child) = self.parse_element_ll1(input_index) {
+                    if let Some((j, new_node)) =
+                        self.create_intermediate_node(result, right_child, SlotId(20), env)
+                    {
+                        // StartElement : WS start:Element . WS
+                        self.execute(j, SlotId(20), Some(new_node), gss_node_id, env);
+                    }
+                }
+            }
+            // StartElement : WS start:Element . WS
+            SlotId(20) => {
+                if let Some((_, right_child)) =
+                    self.match_terminal(TerminalId(4), input_index, SlotId(20), Some(gss_node_id))
+                {
+                    if let Some((j, new_node)) =
+                        self.create_intermediate_node(result, right_child, SlotId(21), env)
+                    {
+                        // StartElement : WS start:Element WS.
+                        self.execute(j, SlotId(21), Some(new_node), gss_node_id, env);
+                    }
+                }
+            }
+            // StartElement : WS start:Element WS.
+            SlotId(21) => {
+                let nonterminal_node_id =
+                    self.create_nonterminal_node(result, NonterminalId(4), SlotId(21), gss_node_id);
+                self.pop(gss_node_id, SlotId(21), nonterminal_node_id, None);
             }
             _ => {
                 panic!("Unknown grammar slot id: {slot_id}");
@@ -233,6 +296,14 @@ impl<'i, 'arena> Parser<'i, 'arena> for FollowRestrictionLexicalMultipleParser<'
                         }
                     });
                 }
+            }
+            // StartS : . WS start:S WS
+            NonterminalId(3) => {
+                self.add_first_descriptor(SlotId(14), input_index, gss_node_id, env);
+            }
+            // StartElement : . WS start:Element WS
+            NonterminalId(4) => {
+                self.add_first_descriptor(SlotId(18), input_index, gss_node_id, env);
             }
             _ => {
                 panic!("Unknown nonterminal id: {nonterminal_id}");
@@ -339,14 +410,14 @@ impl<'i, 'arena> Parser<'i, 'arena> for FollowRestrictionLexicalMultipleParser<'
         if add_to_index {
             let arena = self.vec_arena;
             let slot_idx = intermediate_node.slot_id.index();
-            if slot_idx < 14 {
+            if slot_idx < 22 {
                 self.intermediate_nodes_index[slot_idx].insert(
                     intermediate_node.span,
                     intermediate_node_id,
                     arena,
                 );
             } else {
-                let idx = slot_idx - 14;
+                let idx = slot_idx - 22;
                 self.dd_intermediate_nodes_index[idx].insert(
                     (intermediate_node.span, env),
                     intermediate_node_id,
@@ -429,10 +500,10 @@ impl<'i, 'arena> Parser<'i, 'arena> for FollowRestrictionLexicalMultipleParser<'
     ) -> Option<SPPFNodeId> {
         let slot_idx = slot_id.index();
         let span = Span::new(left_extent, right_extent);
-        if slot_idx < 14 {
+        if slot_idx < 22 {
             self.intermediate_nodes_index[slot_idx].get(&span).copied()
         } else {
-            let idx = slot_idx - 14;
+            let idx = slot_idx - 22;
             self.dd_intermediate_nodes_index[idx]
                 .get(&(span, env))
                 .copied()
@@ -470,13 +541,6 @@ impl<'i, 'arena> Parser<'i, 'arena> for FollowRestrictionLexicalMultipleParser<'
     ) {
         self.nonterminal_nodes_children
             .push((node, (child, return_slot)));
-    }
-    fn nonterminal_node_extra_children(&self, node: SPPFNodeId) -> Vec<(SPPFNodeId, SlotId)> {
-        self.nonterminal_nodes_children
-            .iter()
-            .filter(|(parent, _)| *parent == node)
-            .map(|(_, child)| *child)
-            .collect()
     }
     fn intermediate_nodes_children_map(
         &self,
@@ -590,6 +654,10 @@ impl<'i, 'arena> Parser<'i, 'arena> for FollowRestrictionLexicalMultipleParser<'
             NonterminalId(0) => self.scanner.match_any(&FOLLOW_SET_S, input_index),
             NonterminalId(1) => self.scanner.match_any(&FOLLOW_SET_ELEMENT, input_index),
             NonterminalId(2) => self.scanner.match_any(&FOLLOW_SET_PLUS_0, input_index),
+            NonterminalId(3) => self.scanner.match_any(&FOLLOW_SET_START_S, input_index),
+            NonterminalId(4) => self
+                .scanner
+                .match_any(&FOLLOW_SET_START_ELEMENT, input_index),
             _ => true,
         }
     }
@@ -598,6 +666,8 @@ impl<'i, 'arena> Parser<'i, 'arena> for FollowRestrictionLexicalMultipleParser<'
             NonterminalId(0) => FOLLOW_SET_S.terminals.to_vec(),
             NonterminalId(1) => FOLLOW_SET_ELEMENT.terminals.to_vec(),
             NonterminalId(2) => FOLLOW_SET_PLUS_0.terminals.to_vec(),
+            NonterminalId(3) => FOLLOW_SET_START_S.terminals.to_vec(),
+            NonterminalId(4) => FOLLOW_SET_START_ELEMENT.terminals.to_vec(),
             _ => vec![],
         }
     }
@@ -653,7 +723,7 @@ pub struct FollowRestrictionLexicalMultipleParser<'i, 'arena> {
     descriptors: AVec<Descriptor, &'arena Bump>,
     gss_nodes: AVec<GSSNode<'arena>, &'arena Bump>,
     // Per-nonterminal GSS-node index keyed by input position.
-    gss_nodes_index: [InlineMap<'arena, u32, GssNodeId>; 3],
+    gss_nodes_index: [InlineMap<'arena, u32, GssNodeId>; 5],
     sppf_nodes: AVec<SPPFNode, &'arena Bump>,
     #[cfg(feature = "instrument")]
     descriptors_count: usize,
@@ -662,7 +732,7 @@ pub struct FollowRestrictionLexicalMultipleParser<'i, 'arena> {
     #[cfg(feature = "instrument")]
     ll1_call_log: Vec<(NonterminalId, u32)>,
     // Per-slot Span-keyed intermediate-node index, for slots in non-parameterized nonterminals.
-    intermediate_nodes_index: [InlineMap<'arena, Span, SPPFNodeId>; 14],
+    intermediate_nodes_index: [InlineMap<'arena, Span, SPPFNodeId>; 22],
     // Per-slot (Span, env)-keyed intermediate-node index, for slots in parameterized
     // nonterminals; env separates calls made with different parameter values.
     dd_intermediate_nodes_index: [InlineMap<'arena, (Span, Option<EnvId>), SPPFNodeId>; 0],
@@ -696,7 +766,7 @@ impl<'i, 'arena> FollowRestrictionLexicalMultipleParser<'i, 'arena> {
             start_nonterminal,
             vec_arena,
             scanner: FollowRestrictionLexicalMultipleScanner::new(input, vec_arena),
-            gss_nodes_index: [const { InlineMap::Empty }; 3],
+            gss_nodes_index: [const { InlineMap::Empty }; 5],
             descriptors: AVec::with_capacity_in(
                 input.len() as usize / DESCRIPTORS_CAPACITY_DIVISOR + DESCRIPTORS_CAPACITY_FLOOR,
                 vec_arena,
@@ -709,7 +779,7 @@ impl<'i, 'arena> FollowRestrictionLexicalMultipleParser<'i, 'arena> {
                 input.len() as usize * SPPF_CAPACITY_MULTIPLIER,
                 vec_arena,
             ),
-            intermediate_nodes_index: [const { InlineMap::Empty }; 14],
+            intermediate_nodes_index: [const { InlineMap::Empty }; 22],
             dd_intermediate_nodes_index: [],
             terminal_nodes_index: [const { InlineMap::Empty }; 7],
             #[cfg(feature = "instrument")]
@@ -798,58 +868,6 @@ impl<'i, 'arena> FollowRestrictionLexicalMultipleParser<'i, 'arena> {
             }
             _ => unreachable!("LL(1) dispatch covers every terminal in FIRST_SET"),
         }
-    }
-    fn parse_plus_0_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
-        #[cfg(feature = "instrument")]
-        self.ll1_call_log.push((NonterminalId(2), i));
-        let mut j = i;
-        let (body_node, body_end) = (self.parse_element_ll1(j).map(|node| {
-            let end = self.sppf_node(node).right_extent();
-            (node, end)
-        }))?;
-        j = body_end;
-        let left_extent = i;
-        let mut current = self.add_nonterminal_node(NonterminalNode {
-            nonterminal_id: NonterminalId(2),
-            return_slot: SlotId(13),
-            span: Span {
-                left_extent,
-                right_extent: j,
-            },
-            child: body_node,
-            ambiguous: false,
-        });
-        #[allow(clippy::while_let_loop)]
-        loop {
-            let Some((node_0, pos_0)) = self
-                .match_terminal(TerminalId(4), j, SlotId(9), None)
-                .map(|(end, node)| (node, end))
-            else {
-                break;
-            };
-            let Some((node_1, pos_1)) = self.parse_element_ll1(pos_0).map(|node| {
-                let end = self.sppf_node(node).right_extent();
-                (node, end)
-            }) else {
-                break;
-            };
-            j = pos_1;
-            current =
-                self.create_intermediate_node_ll1(SlotId(10), left_extent, pos_0, current, node_0);
-            current =
-                self.create_intermediate_node_ll1(SlotId(11), left_extent, pos_1, current, node_1);
-            current = self.add_nonterminal_node(NonterminalNode {
-                nonterminal_id: NonterminalId(2),
-                return_slot: SlotId(11),
-                span: Span {
-                    left_extent,
-                    right_extent: j,
-                },
-                child: current,
-                ambiguous: false,
-            });
-        }
-        Some(current)
     }
     // True if a local ambiguity node was added during parsing. This does not guarantee the
     // ambiguity is reachable from the root, so a tree walk is still needed to confirm it.

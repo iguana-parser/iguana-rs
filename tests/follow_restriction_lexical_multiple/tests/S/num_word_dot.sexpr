@@ -1,7 +1,10 @@
-(S
-  (Element+
-    (Element Num)
-    WS
-    (Element Word)
-    WS
-    (Element Dot)))
+(Start
+  WS
+  (S
+    (Element+
+      (Element Num)
+      WS
+      (Element Word)
+      WS
+      (Element Dot)))
+  WS)

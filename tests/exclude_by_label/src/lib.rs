@@ -53,15 +53,15 @@ pub struct ParseSuccess<T> {
 pub fn parse_expr<'a>(
     input: &Input,
     tree_arena: &'a Bump,
-) -> std::result::Result<ParseSuccess<&'a Expr<'a>>, ParseError> {
+) -> std::result::Result<ParseSuccess<&'a Start<&'a Expr<'a>, ()>>, ParseError> {
     let vec_arena = Bump::new();
-    let mut parser = ExcludeByLabelParser::new(input, grammar_data::EXPR, &vec_arena);
+    let mut parser = ExcludeByLabelParser::new(input, grammar_data::START_EXPR, &vec_arena);
     match parser.run() {
         ParseResult::Success(success) => {
             let parse_duration = success.duration;
             let tree_start = iguana_runtime::Instant::now();
             let parse_tree_builder = ExcludeByLabelParseTreeBuilder::new(tree_arena);
-            let tree = parse_tree::create_parse_tree_expr(
+            let tree = parse_tree::create_parse_tree_start_expr(
                 success.sppf_node_id,
                 &parser,
                 &parse_tree_builder,

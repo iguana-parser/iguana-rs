@@ -139,6 +139,19 @@ dependencies = [
 ]
 
 [[package]]
+name = "amb_root_start"
+version = "0.1.0"
+dependencies = [
+ "clap",
+ "dhat",
+ "iguana-runtime",
+ "log",
+ "pprof",
+ "rustc-hash 2.1.2",
+ "serde_json",
+]
+
+[[package]]
 name = "ambiguous_expr"
 version = "0.1.0"
 dependencies = [

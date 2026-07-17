@@ -1,3 +1,4 @@
-(S
-  (Id
-    (Name Identifier)))
+(Start
+  (S
+    (Id
+      (Name Identifier))))

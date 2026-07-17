@@ -1,1 +1,2 @@
-(LexicalIdentifier Identifier)
+(Start
+  (LexicalIdentifier Identifier))

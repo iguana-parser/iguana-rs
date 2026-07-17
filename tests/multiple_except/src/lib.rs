@@ -53,15 +53,16 @@ pub struct ParseSuccess<T> {
 pub fn parse_syntax_identifier<'a>(
     input: &Input,
     tree_arena: &'a Bump,
-) -> std::result::Result<ParseSuccess<&'a SyntaxIdentifier<'a>>, ParseError> {
+) -> std::result::Result<ParseSuccess<&'a Start<&'a SyntaxIdentifier<'a>, ()>>, ParseError> {
     let vec_arena = Bump::new();
-    let mut parser = MultipleExceptParser::new(input, grammar_data::SYNTAX_IDENTIFIER, &vec_arena);
+    let mut parser =
+        MultipleExceptParser::new(input, grammar_data::START_SYNTAX_IDENTIFIER, &vec_arena);
     match parser.run() {
         ParseResult::Success(success) => {
             let parse_duration = success.duration;
             let tree_start = iguana_runtime::Instant::now();
             let parse_tree_builder = MultipleExceptParseTreeBuilder::new(tree_arena);
-            let tree = parse_tree::create_parse_tree_syntax_identifier(
+            let tree = parse_tree::create_parse_tree_start_syntax_identifier(
                 success.sppf_node_id,
                 &parser,
                 &parse_tree_builder,
@@ -97,15 +98,16 @@ pub fn parse_syntax_identifier<'a>(
 pub fn parse_lexical_identifier<'a>(
     input: &Input,
     tree_arena: &'a Bump,
-) -> std::result::Result<ParseSuccess<&'a LexicalIdentifier<'a>>, ParseError> {
+) -> std::result::Result<ParseSuccess<&'a Start<&'a LexicalIdentifier<'a>, ()>>, ParseError> {
     let vec_arena = Bump::new();
-    let mut parser = MultipleExceptParser::new(input, grammar_data::LEXICAL_IDENTIFIER, &vec_arena);
+    let mut parser =
+        MultipleExceptParser::new(input, grammar_data::START_LEXICAL_IDENTIFIER, &vec_arena);
     match parser.run() {
         ParseResult::Success(success) => {
             let parse_duration = success.duration;
             let tree_start = iguana_runtime::Instant::now();
             let parse_tree_builder = MultipleExceptParseTreeBuilder::new(tree_arena);
-            let tree = parse_tree::create_parse_tree_lexical_identifier(
+            let tree = parse_tree::create_parse_tree_start_lexical_identifier(
                 success.sppf_node_id,
                 &parser,
                 &parse_tree_builder,

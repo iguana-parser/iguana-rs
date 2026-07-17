@@ -1,16 +1,19 @@
-(Amb
-  (S
-    (E
-      #1=(E "a")
-      WS
-      "-"
-      WS
-      (E "a")))
-  (S
-    (E
-      #1#
-      WS
+(Start
+  WS
+  (Amb
+    (S
       (E
+        #1=(E "a")
+        WS
         "-"
         WS
-        (E "a")))))
+        (E "a")))
+    (S
+      (E
+        #1#
+        WS
+        (E
+          "-"
+          WS
+          (E "a")))))
+  WS)

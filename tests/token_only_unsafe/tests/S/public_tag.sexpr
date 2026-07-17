@@ -1,6 +1,9 @@
-(S
-  (Mod "public")
+(Start
   WS
-  Empty
-  WS
-  (Tag Id))
+  (S
+    (Mod "public")
+    WS
+    Empty
+    WS
+    (Tag Id))
+  WS)

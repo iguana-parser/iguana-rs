@@ -35,7 +35,8 @@ pub fn nonterminal_has_lifetime(
 }
 
 /// Returns the parse tree type for a nonterminal.
-/// Start nonterminals: `Start<Token, &'a Layout<'a>>` or `Start<&'a Inner<'a>, &'a Layout<'a>>`.
+/// Start nonterminals: `Start<Token, &'a Layout<'a>>` or `Start<&'a Inner<'a>, &'a Layout<'a>>`;
+/// the layout type is `()` when the grammar declares no layout.
 /// Regular nonterminals: the nonterminal's own type, with `<'a>` when the
 /// enum has a lifetime (see [`nonterminal_has_lifetime`]).
 pub fn nonterminal_type(
@@ -51,8 +52,13 @@ pub fn nonterminal_type(
             .as_identifier()
             .unwrap();
         let inner = symbol_type(grammar, inner_ident.resolve(), unsafe_mode);
-        let layout_ident = grammar.layout.as_ref().unwrap().as_identifier().unwrap();
-        let layout = symbol_type(grammar, layout_ident.resolve(), unsafe_mode);
+        let layout = match grammar.layout.as_ref() {
+            Some(l) => {
+                let layout_ident = l.as_identifier().unwrap();
+                symbol_type(grammar, layout_ident.resolve(), unsafe_mode)
+            }
+            None => quote! { () },
+        };
         quote! { Start<#inner, #layout> }
     } else {
         let ident = nt_ident(&nonterminal.name);

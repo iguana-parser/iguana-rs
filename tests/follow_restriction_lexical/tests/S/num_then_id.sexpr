@@ -1,5 +1,8 @@
-(S
-  (Element+
-    (Element Num)
-    WS
-    (Element Id)))
+(Start
+  WS
+  (S
+    (Element+
+      (Element Num)
+      WS
+      (Element Id)))
+  WS)

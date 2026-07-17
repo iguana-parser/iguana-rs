@@ -63,61 +63,61 @@ impl<'i, 'arena> Parser<'i, 'arena> for AssocSingleLevelParser<'i, 'arena> {
         );
         match slot_id {
             // E(p: i32) : . [1 >= p] l=E(p) [(l == 0) || (l >= 1)] "<" E(2) return 1
-            SlotId(0) => {
+            SlotId(6) => {
                 if 1 >= self.lookup(BINDING_P, env.unwrap()) {
-                    self.execute(input_index, SlotId(1), result, gss_node_id, env);
+                    self.execute(input_index, SlotId(7), result, gss_node_id, env);
                 }
             }
             // E(p: i32) : [1 >= p] . l=E(p) [(l == 0) || (l >= 1)] "<" E(2) return 1
-            SlotId(1) => {
+            SlotId(7) => {
                 self.create_e(
                     result,
                     gss_node_id,
-                    SlotId(2),
+                    SlotId(8),
                     env,
                     Some(BINDING_L),
                     self.lookup(BINDING_P, env.unwrap()),
                 );
             }
             // E(p: i32) : [1 >= p] l=E(p) . [(l == 0) || (l >= 1)] "<" E(2) return 1
-            SlotId(2) => {
+            SlotId(8) => {
                 if (self.lookup(BINDING_L, env.unwrap()) == 0)
                     || (self.lookup(BINDING_L, env.unwrap()) >= 1)
                 {
-                    self.execute(input_index, SlotId(3), result, gss_node_id, env);
+                    self.execute(input_index, SlotId(9), result, gss_node_id, env);
                 }
             }
             // E(p: i32) : [1 >= p] l=E(p) [(l == 0) || (l >= 1)] . "<" E(2) return 1
-            SlotId(3) => {
+            SlotId(9) => {
                 if let Some((_, right_child)) =
-                    self.match_terminal(TerminalId(0), input_index, SlotId(3), Some(gss_node_id))
+                    self.match_terminal(TerminalId(0), input_index, SlotId(9), Some(gss_node_id))
                 {
                     if let Some((j, new_node)) =
-                        self.create_intermediate_node(result, right_child, SlotId(4), env)
+                        self.create_intermediate_node(result, right_child, SlotId(10), env)
                     {
                         // E(p: i32) : [1 >= p] l=E(p) [(l == 0) || (l >= 1)] "<" . E(2) return 1
-                        self.execute(j, SlotId(4), Some(new_node), gss_node_id, env);
+                        self.execute(j, SlotId(10), Some(new_node), gss_node_id, env);
                     }
                 }
             }
             // E(p: i32) : [1 >= p] l=E(p) [(l == 0) || (l >= 1)] "<" . E(2) return 1
-            SlotId(4) => {
-                self.create_e(result, gss_node_id, SlotId(5), env, None, 2);
+            SlotId(10) => {
+                self.create_e(result, gss_node_id, SlotId(11), env, None, 2);
             }
             // E(p: i32) : [1 >= p] l=E(p) [(l == 0) || (l >= 1)] "<" E(2) . return 1
-            SlotId(5) => {
-                self.execute(input_index, SlotId(6), result, gss_node_id, env);
+            SlotId(11) => {
+                self.execute(input_index, SlotId(12), result, gss_node_id, env);
             }
             // E(p: i32) : [1 >= p] l=E(p) [(l == 0) || (l >= 1)] "<" E(2) return 1.
-            SlotId(6) => {
+            SlotId(12) => {
                 let Some(result) = result else {
                     unreachable!("result cannot be None here.")
                 };
                 let node = self.sppf_node(result);
                 let return_value = 1;
                 let nonterminal_node_id = self.get_or_create_nonterminal_node(
-                    NonterminalId(0),
-                    SlotId(6),
+                    NonterminalId(3),
+                    SlotId(12),
                     node.left_extent(),
                     node.right_extent(),
                     result,
@@ -126,34 +126,34 @@ impl<'i, 'arena> Parser<'i, 'arena> for AssocSingleLevelParser<'i, 'arena> {
                 );
                 self.pop(
                     gss_node_id,
-                    SlotId(6),
+                    SlotId(12),
                     nonterminal_node_id,
                     Some(return_value),
                 );
             }
             // E(p: i32) : . "a" return 0
-            SlotId(7) => {
+            SlotId(13) => {
                 if let Some((j, right_child)) =
-                    self.match_terminal(TerminalId(1), input_index, SlotId(7), Some(gss_node_id))
+                    self.match_terminal(TerminalId(1), input_index, SlotId(13), Some(gss_node_id))
                 {
                     // E(p: i32) : "a" . return 0
-                    self.execute(j, SlotId(8), Some(right_child), gss_node_id, env);
+                    self.execute(j, SlotId(14), Some(right_child), gss_node_id, env);
                 }
             }
             // E(p: i32) : "a" . return 0
-            SlotId(8) => {
-                self.execute(input_index, SlotId(9), result, gss_node_id, env);
+            SlotId(14) => {
+                self.execute(input_index, SlotId(15), result, gss_node_id, env);
             }
             // E(p: i32) : "a" return 0.
-            SlotId(9) => {
+            SlotId(15) => {
                 let Some(result) = result else {
                     unreachable!("result cannot be None here.")
                 };
                 let node = self.sppf_node(result);
                 let return_value = 0;
                 let nonterminal_node_id = self.get_or_create_nonterminal_node(
-                    NonterminalId(0),
-                    SlotId(9),
+                    NonterminalId(3),
+                    SlotId(15),
                     node.left_extent(),
                     node.right_extent(),
                     result,
@@ -162,67 +162,67 @@ impl<'i, 'arena> Parser<'i, 'arena> for AssocSingleLevelParser<'i, 'arena> {
                 );
                 self.pop(
                     gss_node_id,
-                    SlotId(9),
+                    SlotId(15),
                     nonterminal_node_id,
                     Some(return_value),
                 );
             }
             // F(p: i32) : . [1 >= p] l=F(p) [(l == 0) || (l >= 2)] "<" F(1) return 1
-            SlotId(10) => {
+            SlotId(16) => {
                 if 1 >= self.lookup(BINDING_P, env.unwrap()) {
-                    self.execute(input_index, SlotId(11), result, gss_node_id, env);
+                    self.execute(input_index, SlotId(17), result, gss_node_id, env);
                 }
             }
             // F(p: i32) : [1 >= p] . l=F(p) [(l == 0) || (l >= 2)] "<" F(1) return 1
-            SlotId(11) => {
+            SlotId(17) => {
                 self.create_f(
                     result,
                     gss_node_id,
-                    SlotId(12),
+                    SlotId(18),
                     env,
                     Some(BINDING_L),
                     self.lookup(BINDING_P, env.unwrap()),
                 );
             }
             // F(p: i32) : [1 >= p] l=F(p) . [(l == 0) || (l >= 2)] "<" F(1) return 1
-            SlotId(12) => {
+            SlotId(18) => {
                 if (self.lookup(BINDING_L, env.unwrap()) == 0)
                     || (self.lookup(BINDING_L, env.unwrap()) >= 2)
                 {
-                    self.execute(input_index, SlotId(13), result, gss_node_id, env);
+                    self.execute(input_index, SlotId(19), result, gss_node_id, env);
                 }
             }
             // F(p: i32) : [1 >= p] l=F(p) [(l == 0) || (l >= 2)] . "<" F(1) return 1
-            SlotId(13) => {
+            SlotId(19) => {
                 if let Some((_, right_child)) =
-                    self.match_terminal(TerminalId(0), input_index, SlotId(13), Some(gss_node_id))
+                    self.match_terminal(TerminalId(0), input_index, SlotId(19), Some(gss_node_id))
                 {
                     if let Some((j, new_node)) =
-                        self.create_intermediate_node(result, right_child, SlotId(14), env)
+                        self.create_intermediate_node(result, right_child, SlotId(20), env)
                     {
                         // F(p: i32) : [1 >= p] l=F(p) [(l == 0) || (l >= 2)] "<" . F(1) return 1
-                        self.execute(j, SlotId(14), Some(new_node), gss_node_id, env);
+                        self.execute(j, SlotId(20), Some(new_node), gss_node_id, env);
                     }
                 }
             }
             // F(p: i32) : [1 >= p] l=F(p) [(l == 0) || (l >= 2)] "<" . F(1) return 1
-            SlotId(14) => {
-                self.create_f(result, gss_node_id, SlotId(15), env, None, 1);
+            SlotId(20) => {
+                self.create_f(result, gss_node_id, SlotId(21), env, None, 1);
             }
             // F(p: i32) : [1 >= p] l=F(p) [(l == 0) || (l >= 2)] "<" F(1) . return 1
-            SlotId(15) => {
-                self.execute(input_index, SlotId(16), result, gss_node_id, env);
+            SlotId(21) => {
+                self.execute(input_index, SlotId(22), result, gss_node_id, env);
             }
             // F(p: i32) : [1 >= p] l=F(p) [(l == 0) || (l >= 2)] "<" F(1) return 1.
-            SlotId(16) => {
+            SlotId(22) => {
                 let Some(result) = result else {
                     unreachable!("result cannot be None here.")
                 };
                 let node = self.sppf_node(result);
                 let return_value = 1;
                 let nonterminal_node_id = self.get_or_create_nonterminal_node(
-                    NonterminalId(1),
-                    SlotId(16),
+                    NonterminalId(4),
+                    SlotId(22),
                     node.left_extent(),
                     node.right_extent(),
                     result,
@@ -231,34 +231,34 @@ impl<'i, 'arena> Parser<'i, 'arena> for AssocSingleLevelParser<'i, 'arena> {
                 );
                 self.pop(
                     gss_node_id,
-                    SlotId(16),
+                    SlotId(22),
                     nonterminal_node_id,
                     Some(return_value),
                 );
             }
             // F(p: i32) : . "a" return 0
-            SlotId(17) => {
+            SlotId(23) => {
                 if let Some((j, right_child)) =
-                    self.match_terminal(TerminalId(1), input_index, SlotId(17), Some(gss_node_id))
+                    self.match_terminal(TerminalId(1), input_index, SlotId(23), Some(gss_node_id))
                 {
                     // F(p: i32) : "a" . return 0
-                    self.execute(j, SlotId(18), Some(right_child), gss_node_id, env);
+                    self.execute(j, SlotId(24), Some(right_child), gss_node_id, env);
                 }
             }
             // F(p: i32) : "a" . return 0
-            SlotId(18) => {
-                self.execute(input_index, SlotId(19), result, gss_node_id, env);
+            SlotId(24) => {
+                self.execute(input_index, SlotId(25), result, gss_node_id, env);
             }
             // F(p: i32) : "a" return 0.
-            SlotId(19) => {
+            SlotId(25) => {
                 let Some(result) = result else {
                     unreachable!("result cannot be None here.")
                 };
                 let node = self.sppf_node(result);
                 let return_value = 0;
                 let nonterminal_node_id = self.get_or_create_nonterminal_node(
-                    NonterminalId(1),
-                    SlotId(19),
+                    NonterminalId(4),
+                    SlotId(25),
                     node.left_extent(),
                     node.right_extent(),
                     result,
@@ -267,67 +267,67 @@ impl<'i, 'arena> Parser<'i, 'arena> for AssocSingleLevelParser<'i, 'arena> {
                 );
                 self.pop(
                     gss_node_id,
-                    SlotId(19),
+                    SlotId(25),
                     nonterminal_node_id,
                     Some(return_value),
                 );
             }
             // G(p: i32) : . [1 >= p] l=G(p) [(l == 0) || (l >= 2)] "<" G(2) return 1
-            SlotId(20) => {
+            SlotId(26) => {
                 if 1 >= self.lookup(BINDING_P, env.unwrap()) {
-                    self.execute(input_index, SlotId(21), result, gss_node_id, env);
+                    self.execute(input_index, SlotId(27), result, gss_node_id, env);
                 }
             }
             // G(p: i32) : [1 >= p] . l=G(p) [(l == 0) || (l >= 2)] "<" G(2) return 1
-            SlotId(21) => {
+            SlotId(27) => {
                 self.create_g(
                     result,
                     gss_node_id,
-                    SlotId(22),
+                    SlotId(28),
                     env,
                     Some(BINDING_L),
                     self.lookup(BINDING_P, env.unwrap()),
                 );
             }
             // G(p: i32) : [1 >= p] l=G(p) . [(l == 0) || (l >= 2)] "<" G(2) return 1
-            SlotId(22) => {
+            SlotId(28) => {
                 if (self.lookup(BINDING_L, env.unwrap()) == 0)
                     || (self.lookup(BINDING_L, env.unwrap()) >= 2)
                 {
-                    self.execute(input_index, SlotId(23), result, gss_node_id, env);
+                    self.execute(input_index, SlotId(29), result, gss_node_id, env);
                 }
             }
             // G(p: i32) : [1 >= p] l=G(p) [(l == 0) || (l >= 2)] . "<" G(2) return 1
-            SlotId(23) => {
+            SlotId(29) => {
                 if let Some((_, right_child)) =
-                    self.match_terminal(TerminalId(0), input_index, SlotId(23), Some(gss_node_id))
+                    self.match_terminal(TerminalId(0), input_index, SlotId(29), Some(gss_node_id))
                 {
                     if let Some((j, new_node)) =
-                        self.create_intermediate_node(result, right_child, SlotId(24), env)
+                        self.create_intermediate_node(result, right_child, SlotId(30), env)
                     {
                         // G(p: i32) : [1 >= p] l=G(p) [(l == 0) || (l >= 2)] "<" . G(2) return 1
-                        self.execute(j, SlotId(24), Some(new_node), gss_node_id, env);
+                        self.execute(j, SlotId(30), Some(new_node), gss_node_id, env);
                     }
                 }
             }
             // G(p: i32) : [1 >= p] l=G(p) [(l == 0) || (l >= 2)] "<" . G(2) return 1
-            SlotId(24) => {
-                self.create_g(result, gss_node_id, SlotId(25), env, None, 2);
+            SlotId(30) => {
+                self.create_g(result, gss_node_id, SlotId(31), env, None, 2);
             }
             // G(p: i32) : [1 >= p] l=G(p) [(l == 0) || (l >= 2)] "<" G(2) . return 1
-            SlotId(25) => {
-                self.execute(input_index, SlotId(26), result, gss_node_id, env);
+            SlotId(31) => {
+                self.execute(input_index, SlotId(32), result, gss_node_id, env);
             }
             // G(p: i32) : [1 >= p] l=G(p) [(l == 0) || (l >= 2)] "<" G(2) return 1.
-            SlotId(26) => {
+            SlotId(32) => {
                 let Some(result) = result else {
                     unreachable!("result cannot be None here.")
                 };
                 let node = self.sppf_node(result);
                 let return_value = 1;
                 let nonterminal_node_id = self.get_or_create_nonterminal_node(
-                    NonterminalId(2),
-                    SlotId(26),
+                    NonterminalId(5),
+                    SlotId(32),
                     node.left_extent(),
                     node.right_extent(),
                     result,
@@ -336,34 +336,34 @@ impl<'i, 'arena> Parser<'i, 'arena> for AssocSingleLevelParser<'i, 'arena> {
                 );
                 self.pop(
                     gss_node_id,
-                    SlotId(26),
+                    SlotId(32),
                     nonterminal_node_id,
                     Some(return_value),
                 );
             }
             // G(p: i32) : . "a" return 0
-            SlotId(27) => {
+            SlotId(33) => {
                 if let Some((j, right_child)) =
-                    self.match_terminal(TerminalId(1), input_index, SlotId(27), Some(gss_node_id))
+                    self.match_terminal(TerminalId(1), input_index, SlotId(33), Some(gss_node_id))
                 {
                     // G(p: i32) : "a" . return 0
-                    self.execute(j, SlotId(28), Some(right_child), gss_node_id, env);
+                    self.execute(j, SlotId(34), Some(right_child), gss_node_id, env);
                 }
             }
             // G(p: i32) : "a" . return 0
-            SlotId(28) => {
-                self.execute(input_index, SlotId(29), result, gss_node_id, env);
+            SlotId(34) => {
+                self.execute(input_index, SlotId(35), result, gss_node_id, env);
             }
             // G(p: i32) : "a" return 0.
-            SlotId(29) => {
+            SlotId(35) => {
                 let Some(result) = result else {
                     unreachable!("result cannot be None here.")
                 };
                 let node = self.sppf_node(result);
                 let return_value = 0;
                 let nonterminal_node_id = self.get_or_create_nonterminal_node(
-                    NonterminalId(2),
-                    SlotId(29),
+                    NonterminalId(5),
+                    SlotId(35),
                     node.left_extent(),
                     node.right_extent(),
                     result,
@@ -372,10 +372,40 @@ impl<'i, 'arena> Parser<'i, 'arena> for AssocSingleLevelParser<'i, 'arena> {
                 );
                 self.pop(
                     gss_node_id,
-                    SlotId(29),
+                    SlotId(35),
                     nonterminal_node_id,
                     Some(return_value),
                 );
+            }
+            // StartE : . start:E(0)
+            SlotId(0) => {
+                self.create_e(result, gss_node_id, SlotId(1), env, None, 0);
+            }
+            // StartE : start:E(0).
+            SlotId(1) => {
+                let nonterminal_node_id =
+                    self.create_nonterminal_node(result, NonterminalId(0), SlotId(1), gss_node_id);
+                self.pop(gss_node_id, SlotId(1), nonterminal_node_id, None);
+            }
+            // StartF : . start:F(0)
+            SlotId(2) => {
+                self.create_f(result, gss_node_id, SlotId(3), env, None, 0);
+            }
+            // StartF : start:F(0).
+            SlotId(3) => {
+                let nonterminal_node_id =
+                    self.create_nonterminal_node(result, NonterminalId(1), SlotId(3), gss_node_id);
+                self.pop(gss_node_id, SlotId(3), nonterminal_node_id, None);
+            }
+            // StartG : . start:G(0)
+            SlotId(4) => {
+                self.create_g(result, gss_node_id, SlotId(5), env, None, 0);
+            }
+            // StartG : start:G(0).
+            SlotId(5) => {
+                let nonterminal_node_id =
+                    self.create_nonterminal_node(result, NonterminalId(2), SlotId(5), gss_node_id);
+                self.pop(gss_node_id, SlotId(5), nonterminal_node_id, None);
             }
             _ => {
                 panic!("Unknown grammar slot id: {slot_id}");
@@ -391,20 +421,20 @@ impl<'i, 'arena> Parser<'i, 'arena> for AssocSingleLevelParser<'i, 'arena> {
     ) {
         match nonterminal_id {
             // E
-            NonterminalId(0) => {
+            NonterminalId(3) => {
                 let mut matched = false;
                 // E(p: i32) : . [1 >= p] l=E(p) [(l == 0) || (l >= 1)] "<" E(2) return 1
                 if self.scanner.match_any(&FIRST_SET_E_ALT0, input_index) {
                     matched = true;
-                    self.add_first_descriptor(SlotId(0), input_index, gss_node_id, env);
+                    self.add_first_descriptor(SlotId(6), input_index, gss_node_id, env);
                 }
                 // E(p: i32) : . "a" return 0
                 if self.scanner.match_any(&FIRST_SET_E_ALT1, input_index) {
                     matched = true;
-                    self.add_first_descriptor(SlotId(7), input_index, gss_node_id, env);
+                    self.add_first_descriptor(SlotId(13), input_index, gss_node_id, env);
                 }
                 if !matched {
-                    self.add_parse_error(input_index, SlotId(0), Some(gss_node_id), || {
+                    self.add_parse_error(input_index, SlotId(6), Some(gss_node_id), || {
                         ParseErrorKind::UnexpectedToken {
                             expected: FIRST_SET_E.terminals.to_vec(),
                         }
@@ -412,20 +442,20 @@ impl<'i, 'arena> Parser<'i, 'arena> for AssocSingleLevelParser<'i, 'arena> {
                 }
             }
             // F
-            NonterminalId(1) => {
+            NonterminalId(4) => {
                 let mut matched = false;
                 // F(p: i32) : . [1 >= p] l=F(p) [(l == 0) || (l >= 2)] "<" F(1) return 1
                 if self.scanner.match_any(&FIRST_SET_F_ALT0, input_index) {
                     matched = true;
-                    self.add_first_descriptor(SlotId(10), input_index, gss_node_id, env);
+                    self.add_first_descriptor(SlotId(16), input_index, gss_node_id, env);
                 }
                 // F(p: i32) : . "a" return 0
                 if self.scanner.match_any(&FIRST_SET_F_ALT1, input_index) {
                     matched = true;
-                    self.add_first_descriptor(SlotId(17), input_index, gss_node_id, env);
+                    self.add_first_descriptor(SlotId(23), input_index, gss_node_id, env);
                 }
                 if !matched {
-                    self.add_parse_error(input_index, SlotId(10), Some(gss_node_id), || {
+                    self.add_parse_error(input_index, SlotId(16), Some(gss_node_id), || {
                         ParseErrorKind::UnexpectedToken {
                             expected: FIRST_SET_F.terminals.to_vec(),
                         }
@@ -433,25 +463,37 @@ impl<'i, 'arena> Parser<'i, 'arena> for AssocSingleLevelParser<'i, 'arena> {
                 }
             }
             // G
-            NonterminalId(2) => {
+            NonterminalId(5) => {
                 let mut matched = false;
                 // G(p: i32) : . [1 >= p] l=G(p) [(l == 0) || (l >= 2)] "<" G(2) return 1
                 if self.scanner.match_any(&FIRST_SET_G_ALT0, input_index) {
                     matched = true;
-                    self.add_first_descriptor(SlotId(20), input_index, gss_node_id, env);
+                    self.add_first_descriptor(SlotId(26), input_index, gss_node_id, env);
                 }
                 // G(p: i32) : . "a" return 0
                 if self.scanner.match_any(&FIRST_SET_G_ALT1, input_index) {
                     matched = true;
-                    self.add_first_descriptor(SlotId(27), input_index, gss_node_id, env);
+                    self.add_first_descriptor(SlotId(33), input_index, gss_node_id, env);
                 }
                 if !matched {
-                    self.add_parse_error(input_index, SlotId(20), Some(gss_node_id), || {
+                    self.add_parse_error(input_index, SlotId(26), Some(gss_node_id), || {
                         ParseErrorKind::UnexpectedToken {
                             expected: FIRST_SET_G.terminals.to_vec(),
                         }
                     });
                 }
+            }
+            // StartE : . start:E(0)
+            NonterminalId(0) => {
+                self.add_first_descriptor(SlotId(0), input_index, gss_node_id, env);
+            }
+            // StartF : . start:F(0)
+            NonterminalId(1) => {
+                self.add_first_descriptor(SlotId(2), input_index, gss_node_id, env);
+            }
+            // StartG : . start:G(0)
+            NonterminalId(2) => {
+                self.add_first_descriptor(SlotId(4), input_index, gss_node_id, env);
             }
             _ => {
                 panic!("Unknown nonterminal id: {nonterminal_id}");
@@ -558,11 +600,20 @@ impl<'i, 'arena> Parser<'i, 'arena> for AssocSingleLevelParser<'i, 'arena> {
         if add_to_index {
             let arena = self.vec_arena;
             let slot_idx = intermediate_node.slot_id.index();
-            self.dd_intermediate_nodes_index[slot_idx].insert(
-                (intermediate_node.span, env),
-                intermediate_node_id,
-                arena,
-            );
+            if slot_idx < 6 {
+                self.intermediate_nodes_index[slot_idx].insert(
+                    intermediate_node.span,
+                    intermediate_node_id,
+                    arena,
+                );
+            } else {
+                let idx = slot_idx - 6;
+                self.dd_intermediate_nodes_index[idx].insert(
+                    (intermediate_node.span, env),
+                    intermediate_node_id,
+                    arena,
+                );
+            }
         }
         record!(
             self,
@@ -639,9 +690,14 @@ impl<'i, 'arena> Parser<'i, 'arena> for AssocSingleLevelParser<'i, 'arena> {
     ) -> Option<SPPFNodeId> {
         let slot_idx = slot_id.index();
         let span = Span::new(left_extent, right_extent);
-        self.dd_intermediate_nodes_index[slot_idx]
-            .get(&(span, env))
-            .copied()
+        if slot_idx < 6 {
+            self.intermediate_nodes_index[slot_idx].get(&span).copied()
+        } else {
+            let idx = slot_idx - 6;
+            self.dd_intermediate_nodes_index[idx]
+                .get(&(span, env))
+                .copied()
+        }
     }
     fn lookup_terminal_node(
         &self,
@@ -676,13 +732,6 @@ impl<'i, 'arena> Parser<'i, 'arena> for AssocSingleLevelParser<'i, 'arena> {
         self.nonterminal_nodes_children
             .push((node, (child, return_slot)));
     }
-    fn nonterminal_node_extra_children(&self, node: SPPFNodeId) -> Vec<(SPPFNodeId, SlotId)> {
-        self.nonterminal_nodes_children
-            .iter()
-            .filter(|(parent, _)| *parent == node)
-            .map(|(_, child)| *child)
-            .collect()
-    }
     fn intermediate_nodes_children_map(
         &self,
     ) -> &FxHashMap<SPPFNodeId, Vec<(SPPFNodeId, SPPFNodeId)>> {
@@ -715,19 +764,19 @@ impl<'i, 'arena> Parser<'i, 'arena> for AssocSingleLevelParser<'i, 'arena> {
     }
     fn start_env(&mut self) -> Option<EnvId> {
         match self.start_nonterminal {
-            NonterminalId(0) => {
+            NonterminalId(3) => {
                 let arena = self.vec_arena;
                 let (env_id, env) = self.new_env();
                 env.bind(BINDING_P, 0, arena);
                 Some(env_id)
             }
-            NonterminalId(1) => {
+            NonterminalId(4) => {
                 let arena = self.vec_arena;
                 let (env_id, env) = self.new_env();
                 env.bind(BINDING_P, 0, arena);
                 Some(env_id)
             }
-            NonterminalId(2) => {
+            NonterminalId(5) => {
                 let arena = self.vec_arena;
                 let (env_id, env) = self.new_env();
                 env.bind(BINDING_P, 0, arena);
@@ -743,9 +792,9 @@ impl<'i, 'arena> Parser<'i, 'arena> for AssocSingleLevelParser<'i, 'arena> {
         gss_node_id: GssNodeId,
     ) {
         match nonterminal_id {
-            NonterminalId(0) => self.add_gss_node_e(input_index, 0, gss_node_id),
-            NonterminalId(1) => self.add_gss_node_f(input_index, 0, gss_node_id),
-            NonterminalId(2) => self.add_gss_node_g(input_index, 0, gss_node_id),
+            NonterminalId(3) => self.add_gss_node_e(input_index, 0, gss_node_id),
+            NonterminalId(4) => self.add_gss_node_f(input_index, 0, gss_node_id),
+            NonterminalId(5) => self.add_gss_node_g(input_index, 0, gss_node_id),
             _ => self.add_gss_node(nonterminal_id, input_index, gss_node_id),
         }
     }
@@ -789,6 +838,9 @@ impl<'i, 'arena> Parser<'i, 'arena> for AssocSingleLevelParser<'i, 'arena> {
         for env in self.envs() {
             stats.record("Env::bindings: InlineVec", env.bindings.len());
         }
+        for m in self.intermediate_nodes_index.iter() {
+            stats.record("Parser::intermediate_nodes_index: InlineMap", m.len());
+        }
         for m in self.dd_intermediate_nodes_index.iter() {
             stats.record("Parser::dd_intermediate_nodes_index: InlineMap", m.len());
         }
@@ -817,17 +869,23 @@ impl<'i, 'arena> Parser<'i, 'arena> for AssocSingleLevelParser<'i, 'arena> {
     }
     fn follow_set_check(&mut self, nonterminal_id: NonterminalId, input_index: u32) -> bool {
         match nonterminal_id {
-            NonterminalId(0) => self.scanner.match_any(&FOLLOW_SET_E, input_index),
-            NonterminalId(1) => self.scanner.match_any(&FOLLOW_SET_F, input_index),
-            NonterminalId(2) => self.scanner.match_any(&FOLLOW_SET_G, input_index),
+            NonterminalId(3) => self.scanner.match_any(&FOLLOW_SET_E, input_index),
+            NonterminalId(4) => self.scanner.match_any(&FOLLOW_SET_F, input_index),
+            NonterminalId(5) => self.scanner.match_any(&FOLLOW_SET_G, input_index),
+            NonterminalId(0) => self.scanner.match_any(&FOLLOW_SET_START_E, input_index),
+            NonterminalId(1) => self.scanner.match_any(&FOLLOW_SET_START_F, input_index),
+            NonterminalId(2) => self.scanner.match_any(&FOLLOW_SET_START_G, input_index),
             _ => true,
         }
     }
     fn follow_set_terminals(&self, nonterminal_id: NonterminalId) -> Vec<TerminalId> {
         match nonterminal_id {
-            NonterminalId(0) => FOLLOW_SET_E.terminals.to_vec(),
-            NonterminalId(1) => FOLLOW_SET_F.terminals.to_vec(),
-            NonterminalId(2) => FOLLOW_SET_G.terminals.to_vec(),
+            NonterminalId(3) => FOLLOW_SET_E.terminals.to_vec(),
+            NonterminalId(4) => FOLLOW_SET_F.terminals.to_vec(),
+            NonterminalId(5) => FOLLOW_SET_G.terminals.to_vec(),
+            NonterminalId(0) => FOLLOW_SET_START_E.terminals.to_vec(),
+            NonterminalId(1) => FOLLOW_SET_START_F.terminals.to_vec(),
+            NonterminalId(2) => FOLLOW_SET_START_G.terminals.to_vec(),
             _ => vec![],
         }
     }
@@ -883,7 +941,7 @@ pub struct AssocSingleLevelParser<'i, 'arena> {
     descriptors: AVec<Descriptor, &'arena Bump>,
     gss_nodes: AVec<GSSNode<'arena>, &'arena Bump>,
     // Per-nonterminal GSS-node index keyed by input position.
-    gss_nodes_index: [InlineMap<'arena, u32, GssNodeId>; 3],
+    gss_nodes_index: [InlineMap<'arena, u32, GssNodeId>; 6],
     // GSS index for nonterminal E
     gss_nodes_index_e: InlineMap<'arena, (u32, i32), GssNodeId>,
     // GSS index for nonterminal F
@@ -897,6 +955,8 @@ pub struct AssocSingleLevelParser<'i, 'arena> {
     descriptors_peak: usize,
     #[cfg(feature = "instrument")]
     ll1_call_log: Vec<(NonterminalId, u32)>,
+    // Per-slot Span-keyed intermediate-node index, for slots in non-parameterized nonterminals.
+    intermediate_nodes_index: [InlineMap<'arena, Span, SPPFNodeId>; 6],
     // Per-slot (Span, env)-keyed intermediate-node index, for slots in parameterized
     // nonterminals; env separates calls made with different parameter values.
     dd_intermediate_nodes_index: [InlineMap<'arena, (Span, Option<EnvId>), SPPFNodeId>; 30],
@@ -930,7 +990,7 @@ impl<'i, 'arena> AssocSingleLevelParser<'i, 'arena> {
             start_nonterminal,
             vec_arena,
             scanner: AssocSingleLevelScanner::new(input, vec_arena),
-            gss_nodes_index: [const { InlineMap::Empty }; 3],
+            gss_nodes_index: [const { InlineMap::Empty }; 6],
             gss_nodes_index_e: InlineMap::Empty,
             gss_nodes_index_f: InlineMap::Empty,
             gss_nodes_index_g: InlineMap::Empty,
@@ -946,6 +1006,7 @@ impl<'i, 'arena> AssocSingleLevelParser<'i, 'arena> {
                 input.len() as usize * SPPF_CAPACITY_MULTIPLIER,
                 vec_arena,
             ),
+            intermediate_nodes_index: [const { InlineMap::Empty }; 6],
             dd_intermediate_nodes_index: [const { InlineMap::Empty }; 30],
             terminal_nodes_index: [const { InlineMap::Empty }; 4],
             #[cfg(feature = "instrument")]
@@ -989,7 +1050,7 @@ impl<'i, 'arena> AssocSingleLevelParser<'i, 'arena> {
         };
         // If there is already a GSS node for this call, add an edge.
         if let Some(existing_gss_node_id) = self.get_gss_node_e(i, p) {
-            record!(self, GSSNodeFound, NonterminalId(0), i);
+            record!(self, GSSNodeFound, NonterminalId(3), i);
             self.add_edge_to_existing_gss_node(
                 existing_gss_node_id,
                 gss_node_id,
@@ -999,8 +1060,8 @@ impl<'i, 'arena> AssocSingleLevelParser<'i, 'arena> {
                 binding,
             );
         } else {
-            record!(self, GSSNodeNotFound, NonterminalId(0), i);
-            let new_gss_node_id = self.new_gss_node(NonterminalId(0), i);
+            record!(self, GSSNodeNotFound, NonterminalId(3), i);
+            let new_gss_node_id = self.new_gss_node(NonterminalId(3), i);
             self.add_gss_edge(
                 new_gss_node_id,
                 gss_node_id,
@@ -1012,7 +1073,7 @@ impl<'i, 'arena> AssocSingleLevelParser<'i, 'arena> {
             let arena = self.vec_arena;
             let (env_id, env) = self.new_env();
             env.bind(BINDING_P, p, arena);
-            self.add_first_descriptors(NonterminalId(0), i, new_gss_node_id, Some(env_id));
+            self.add_first_descriptors(NonterminalId(3), i, new_gss_node_id, Some(env_id));
             self.add_gss_node_e(i, p, new_gss_node_id);
         }
     }
@@ -1038,7 +1099,7 @@ impl<'i, 'arena> AssocSingleLevelParser<'i, 'arena> {
         };
         // If there is already a GSS node for this call, add an edge.
         if let Some(existing_gss_node_id) = self.get_gss_node_f(i, p) {
-            record!(self, GSSNodeFound, NonterminalId(1), i);
+            record!(self, GSSNodeFound, NonterminalId(4), i);
             self.add_edge_to_existing_gss_node(
                 existing_gss_node_id,
                 gss_node_id,
@@ -1048,8 +1109,8 @@ impl<'i, 'arena> AssocSingleLevelParser<'i, 'arena> {
                 binding,
             );
         } else {
-            record!(self, GSSNodeNotFound, NonterminalId(1), i);
-            let new_gss_node_id = self.new_gss_node(NonterminalId(1), i);
+            record!(self, GSSNodeNotFound, NonterminalId(4), i);
+            let new_gss_node_id = self.new_gss_node(NonterminalId(4), i);
             self.add_gss_edge(
                 new_gss_node_id,
                 gss_node_id,
@@ -1061,7 +1122,7 @@ impl<'i, 'arena> AssocSingleLevelParser<'i, 'arena> {
             let arena = self.vec_arena;
             let (env_id, env) = self.new_env();
             env.bind(BINDING_P, p, arena);
-            self.add_first_descriptors(NonterminalId(1), i, new_gss_node_id, Some(env_id));
+            self.add_first_descriptors(NonterminalId(4), i, new_gss_node_id, Some(env_id));
             self.add_gss_node_f(i, p, new_gss_node_id);
         }
     }
@@ -1087,7 +1148,7 @@ impl<'i, 'arena> AssocSingleLevelParser<'i, 'arena> {
         };
         // If there is already a GSS node for this call, add an edge.
         if let Some(existing_gss_node_id) = self.get_gss_node_g(i, p) {
-            record!(self, GSSNodeFound, NonterminalId(2), i);
+            record!(self, GSSNodeFound, NonterminalId(5), i);
             self.add_edge_to_existing_gss_node(
                 existing_gss_node_id,
                 gss_node_id,
@@ -1097,8 +1158,8 @@ impl<'i, 'arena> AssocSingleLevelParser<'i, 'arena> {
                 binding,
             );
         } else {
-            record!(self, GSSNodeNotFound, NonterminalId(2), i);
-            let new_gss_node_id = self.new_gss_node(NonterminalId(2), i);
+            record!(self, GSSNodeNotFound, NonterminalId(5), i);
+            let new_gss_node_id = self.new_gss_node(NonterminalId(5), i);
             self.add_gss_edge(
                 new_gss_node_id,
                 gss_node_id,
@@ -1110,7 +1171,7 @@ impl<'i, 'arena> AssocSingleLevelParser<'i, 'arena> {
             let arena = self.vec_arena;
             let (env_id, env) = self.new_env();
             env.bind(BINDING_P, p, arena);
-            self.add_first_descriptors(NonterminalId(2), i, new_gss_node_id, Some(env_id));
+            self.add_first_descriptors(NonterminalId(5), i, new_gss_node_id, Some(env_id));
             self.add_gss_node_g(i, p, new_gss_node_id);
         }
     }

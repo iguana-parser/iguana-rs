@@ -3,17 +3,26 @@
 use crate::types::{Nonterminal, Slot, Terminal};
 use iguana_runtime::ids::{NonterminalId, TerminalId};
 use iguana_runtime::scanner::TerminalSet;
-pub const NONTERMINALS: [Nonterminal; 1] = [Nonterminal {
-    name: "S",
-    display: "S",
-    derived: false,
-}];
+pub const NONTERMINALS: [Nonterminal; 2] = [
+    Nonterminal {
+        name: "S",
+        display: "S",
+        derived: false,
+    },
+    Nonterminal {
+        name: "StartS",
+        display: "S",
+        derived: true,
+    },
+];
 // User-declared nonterminals in `.iggy` source order. Used by `--list-nonterminals`.
 pub const NONTERMINAL_DISPLAY_ORDER: [&str; 1] = ["S"];
 pub const S: NonterminalId = NonterminalId(0);
+pub const START_S: NonterminalId = NonterminalId(1);
 pub fn nonterminal_id(name: &str) -> Option<NonterminalId> {
     match name {
         "S" => Some(S),
+        "StartS" => Some(START_S),
         _ => None,
     }
 }
@@ -23,7 +32,7 @@ pub const TERMINALS: [Terminal; 4] = [
     Terminal { name: "Epsilon" },
     Terminal { name: "EOF" },
 ];
-pub const SLOTS: [Slot; 3] = [
+pub const SLOTS: [Slot; 5] = [
     Slot {
         display_name: "S : . Id Id",
     },
@@ -32,6 +41,12 @@ pub const SLOTS: [Slot; 3] = [
     },
     Slot {
         display_name: "S : Id Id.",
+    },
+    Slot {
+        display_name: "S : . start:S",
+    },
+    Slot {
+        display_name: "S : start:S.",
     },
 ];
 // S { EOF }
@@ -46,6 +61,21 @@ pub static FIRST_SET_S: TerminalSet = TerminalSet {
 };
 // S : . Id Id { Id }
 pub static FIRST_SET_S_ALT0: TerminalSet = TerminalSet {
+    id: 1,
+    terminals: &[TerminalId(0)],
+};
+// StartS { EOF }
+pub static FOLLOW_SET_START_S: TerminalSet = TerminalSet {
+    id: 0,
+    terminals: &[TerminalId(3)],
+};
+// StartS { Id }
+pub static FIRST_SET_START_S: TerminalSet = TerminalSet {
+    id: 0,
+    terminals: &[TerminalId(0)],
+};
+// StartS : . start:S { Id }
+pub static FIRST_SET_START_S_ALT0: TerminalSet = TerminalSet {
     id: 1,
     terminals: &[TerminalId(0)],
 };

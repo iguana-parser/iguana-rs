@@ -1,8 +1,9 @@
-(S
-  ((A | Num)+
-    ((A | Num)
-      (A "a"))
-    ((A | Num)
-      (Num "1"))
-    ((A | Num)
-      (A "a"))))
+(Start
+  (S
+    ((A | Num)+
+      ((A | Num)
+        (A "a"))
+      ((A | Num)
+        (Num "1"))
+      ((A | Num)
+        (A "a")))))

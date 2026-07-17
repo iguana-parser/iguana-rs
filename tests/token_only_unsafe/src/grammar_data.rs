@@ -3,7 +3,7 @@
 use crate::types::{Nonterminal, Slot, Terminal};
 use iguana_runtime::ids::{NonterminalId, TerminalId};
 use iguana_runtime::scanner::TerminalSet;
-pub const NONTERMINALS: [Nonterminal; 4] = [
+pub const NONTERMINALS: [Nonterminal; 8] = [
     Nonterminal {
         name: "S",
         display: "S",
@@ -24,6 +24,26 @@ pub const NONTERMINALS: [Nonterminal; 4] = [
         display: "Tag",
         derived: false,
     },
+    Nonterminal {
+        name: "StartS",
+        display: "S",
+        derived: true,
+    },
+    Nonterminal {
+        name: "StartMod",
+        display: "Mod",
+        derived: true,
+    },
+    Nonterminal {
+        name: "StartEmpty",
+        display: "Empty",
+        derived: true,
+    },
+    Nonterminal {
+        name: "StartTag",
+        display: "Tag",
+        derived: true,
+    },
 ];
 // User-declared nonterminals in `.iggy` source order. Used by `--list-nonterminals`.
 pub const NONTERMINAL_DISPLAY_ORDER: [&str; 4] = ["S", "Mod", "Empty", "Tag"];
@@ -31,12 +51,20 @@ pub const S: NonterminalId = NonterminalId(0);
 pub const MOD: NonterminalId = NonterminalId(1);
 pub const EMPTY: NonterminalId = NonterminalId(2);
 pub const TAG: NonterminalId = NonterminalId(3);
+pub const START_S: NonterminalId = NonterminalId(4);
+pub const START_MOD: NonterminalId = NonterminalId(5);
+pub const START_EMPTY: NonterminalId = NonterminalId(6);
+pub const START_TAG: NonterminalId = NonterminalId(7);
 pub fn nonterminal_id(name: &str) -> Option<NonterminalId> {
     match name {
         "S" => Some(S),
         "Mod" => Some(MOD),
         "Empty" => Some(EMPTY),
         "Tag" => Some(TAG),
+        "StartS" => Some(START_S),
+        "StartMod" => Some(START_MOD),
+        "StartEmpty" => Some(START_EMPTY),
+        "StartTag" => Some(START_TAG),
         _ => None,
     }
 }
@@ -48,7 +76,7 @@ pub const TERMINALS: [Terminal; 6] = [
     Terminal { name: "Epsilon" },
     Terminal { name: "EOF" },
 ];
-pub const SLOTS: [Slot; 13] = [
+pub const SLOTS: [Slot; 29] = [
     Slot {
         display_name: "S : . Mod WS Empty WS Tag",
     },
@@ -88,11 +116,59 @@ pub const SLOTS: [Slot; 13] = [
     Slot {
         display_name: "Tag : Id.",
     },
+    Slot {
+        display_name: "S : . WS start:S WS",
+    },
+    Slot {
+        display_name: "S : WS . start:S WS",
+    },
+    Slot {
+        display_name: "S : WS start:S . WS",
+    },
+    Slot {
+        display_name: "S : WS start:S WS.",
+    },
+    Slot {
+        display_name: "Mod : . WS start:Mod WS",
+    },
+    Slot {
+        display_name: "Mod : WS . start:Mod WS",
+    },
+    Slot {
+        display_name: "Mod : WS start:Mod . WS",
+    },
+    Slot {
+        display_name: "Mod : WS start:Mod WS.",
+    },
+    Slot {
+        display_name: "Empty : . WS start:Empty WS",
+    },
+    Slot {
+        display_name: "Empty : WS . start:Empty WS",
+    },
+    Slot {
+        display_name: "Empty : WS start:Empty . WS",
+    },
+    Slot {
+        display_name: "Empty : WS start:Empty WS.",
+    },
+    Slot {
+        display_name: "Tag : . WS start:Tag WS",
+    },
+    Slot {
+        display_name: "Tag : WS . start:Tag WS",
+    },
+    Slot {
+        display_name: "Tag : WS start:Tag . WS",
+    },
+    Slot {
+        display_name: "Tag : WS start:Tag WS.",
+    },
 ];
-// S { EOF }
+// S { WS, EOF }
 pub static FOLLOW_SET_S: TerminalSet = TerminalSet {
     id: 0,
-    terminals: &[TerminalId(5)],
+    terminals: &[TerminalId(1), TerminalId(5)],
 };
 // S { "static", "public" }
 pub static FIRST_SET_S: TerminalSet = TerminalSet {
@@ -139,10 +215,10 @@ pub static FIRST_SET_EMPTY_ALT0: TerminalSet = TerminalSet {
     id: 5,
     terminals: &[],
 };
-// Tag { EOF }
+// Tag { WS, EOF }
 pub static FOLLOW_SET_TAG: TerminalSet = TerminalSet {
     id: 0,
-    terminals: &[TerminalId(5)],
+    terminals: &[TerminalId(1), TerminalId(5)],
 };
 // Tag { Id }
 pub static FIRST_SET_TAG: TerminalSet = TerminalSet {
@@ -153,4 +229,64 @@ pub static FIRST_SET_TAG: TerminalSet = TerminalSet {
 pub static FIRST_SET_TAG_ALT0: TerminalSet = TerminalSet {
     id: 6,
     terminals: &[TerminalId(0)],
+};
+// StartS { EOF }
+pub static FOLLOW_SET_START_S: TerminalSet = TerminalSet {
+    id: 7,
+    terminals: &[TerminalId(5)],
+};
+// StartS { "static", "public", WS }
+pub static FIRST_SET_START_S: TerminalSet = TerminalSet {
+    id: 3,
+    terminals: &[TerminalId(3), TerminalId(2), TerminalId(1)],
+};
+// StartS : . WS start:S WS { "static", "public", WS }
+pub static FIRST_SET_START_S_ALT0: TerminalSet = TerminalSet {
+    id: 8,
+    terminals: &[TerminalId(3), TerminalId(2), TerminalId(1)],
+};
+// StartMod { EOF }
+pub static FOLLOW_SET_START_MOD: TerminalSet = TerminalSet {
+    id: 7,
+    terminals: &[TerminalId(5)],
+};
+// StartMod { "static", "public", WS }
+pub static FIRST_SET_START_MOD: TerminalSet = TerminalSet {
+    id: 3,
+    terminals: &[TerminalId(3), TerminalId(2), TerminalId(1)],
+};
+// StartMod : . WS start:Mod WS { "static", "public", WS }
+pub static FIRST_SET_START_MOD_ALT0: TerminalSet = TerminalSet {
+    id: 8,
+    terminals: &[TerminalId(3), TerminalId(2), TerminalId(1)],
+};
+// StartEmpty { EOF }
+pub static FOLLOW_SET_START_EMPTY: TerminalSet = TerminalSet {
+    id: 7,
+    terminals: &[TerminalId(5)],
+};
+// StartEmpty { WS }
+pub static FIRST_SET_START_EMPTY: TerminalSet = TerminalSet {
+    id: 4,
+    terminals: &[TerminalId(1)],
+};
+// StartEmpty : . WS start:Empty WS { WS }
+pub static FIRST_SET_START_EMPTY_ALT0: TerminalSet = TerminalSet {
+    id: 9,
+    terminals: &[TerminalId(1)],
+};
+// StartTag { EOF }
+pub static FOLLOW_SET_START_TAG: TerminalSet = TerminalSet {
+    id: 7,
+    terminals: &[TerminalId(5)],
+};
+// StartTag { WS, Id }
+pub static FIRST_SET_START_TAG: TerminalSet = TerminalSet {
+    id: 5,
+    terminals: &[TerminalId(1), TerminalId(0)],
+};
+// StartTag : . WS start:Tag WS { Id, WS }
+pub static FIRST_SET_START_TAG_ALT0: TerminalSet = TerminalSet {
+    id: 10,
+    terminals: &[TerminalId(0), TerminalId(1)],
 };

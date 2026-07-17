@@ -1,2 +1,5 @@
-(S
-  (E "a"))
+(Start
+  WS
+  (S
+    (E "a"))
+  WS)

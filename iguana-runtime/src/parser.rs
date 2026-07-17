@@ -189,20 +189,6 @@ pub trait Parser<'i, 'arena> {
         }
     }
 
-    /// The extra `(child, return slot)` pairs recorded for `node`, in
-    /// insertion order, read without materializing the lazily-built
-    /// `nonterminal_nodes_children_map`.
-    ///
-    /// The unsafe mode records no extra children and returns an empty list.
-    fn nonterminal_node_extra_children(&self, node: SPPFNodeId) -> Vec<(SPPFNodeId, SlotId)> {
-        let _ = node;
-        if Self::UNSAFE {
-            Vec::new()
-        } else {
-            unimplemented!("overridden by the generated parser outside the unsafe mode");
-        }
-    }
-
     /// The unsafe mode produces no ambiguity and records nothing here.
     fn add_intermediate_node_child(
         &mut self,
@@ -857,69 +843,22 @@ pub trait Parser<'i, 'arena> {
     /// `None` if no such node exists.
     ///
     /// Popped elements in GSS nodes are keyed by `(right extent, return
-    /// value)`, so the start GSS node can hold one full-span node per
-    /// return value. For data-dependent nonterminals, where there are
-    /// multiple return values, multiple full-span nodes may exist. When
-    /// multiple full-span nodes exist, i.e., the parse is ambiguous at
-    /// the root, `merge_start_results` merges them into one ambiguous
-    /// node.
-    fn start_results(
-        &mut self,
-        right_extent: u32,
-        start_gss_node_id: GssNodeId,
-    ) -> Option<SPPFNodeId> {
-        let arena = self.vec_arena();
-        let mut results: InlineVec<'arena, SPPFNodeId> = InlineVec::Empty;
+    /// value)`. The start wrapper has no parameters, so its popped
+    /// elements have one key per extent and at most one full-span node
+    /// exists; ambiguous derivations of the inner nonterminal merge below
+    /// the wrapper.
+    fn start_result(&self, right_extent: u32, start_gss_node_id: GssNodeId) -> Option<SPPFNodeId> {
+        let mut result = None;
         for (&(right, _), &node_id) in self.gss_node(start_gss_node_id).popped_elements().iter() {
             if right == right_extent {
-                results.push(node_id, arena);
+                debug_assert!(
+                    result.is_none(),
+                    "start nonterminal popped more than one full-span result"
+                );
+                result = Some(node_id);
             }
         }
-        let &first = results.first()?;
-        if !Self::UNSAFE && results.len() > 1 {
-            Some(self.merge_start_results(&results))
-        } else {
-            Some(first)
-        }
-    }
-
-    /// Merges multiple full-span results of the start nonterminal into one
-    /// ambiguous node. The merged node collects every derivation of every
-    /// result: the first inline, the rest through
-    /// `add_nonterminal_node_child`. This is the same shape an ambiguous
-    /// nonterminal node takes during the parse, so tree construction needs
-    /// no special case.
-    fn merge_start_results(&mut self, results: &InlineVec<'arena, SPPFNodeId>) -> SPPFNodeId {
-        // A derivation is a (child, return slot) pair: the alternative's
-        // body and the end slot naming the alternative.
-        let mut derivations: Vec<(SPPFNodeId, SlotId)> = Vec::new();
-        for &result in results.iter() {
-            let SPPFNode::Nonterminal(node) = self.sppf_node(result) else {
-                unreachable!("expected nonterminal node");
-            };
-            derivations.push((node.child, node.return_slot));
-            // The grouped nonterminal_nodes_children_map is built once, on
-            // first access. Reading it here would cache it before the
-            // additions below, and tree construction would miss them.
-            derivations.extend(self.nonterminal_node_extra_children(result));
-        }
-        let SPPFNode::Nonterminal(first) = self.sppf_node(*results.first().unwrap()) else {
-            unreachable!("expected nonterminal node");
-        };
-        let nonterminal_id = first.nonterminal_id;
-        let span = first.span;
-        let (child, return_slot) = derivations[0];
-        let merged = self.add_nonterminal_node(NonterminalNode {
-            nonterminal_id,
-            return_slot,
-            span,
-            child,
-            ambiguous: true,
-        });
-        for &(child, return_slot) in &derivations[1..] {
-            self.add_nonterminal_node_child(merged, child, return_slot);
-        }
-        merged
+        result
     }
 
     fn run(&mut self) -> ParseResult {
@@ -950,7 +889,7 @@ pub trait Parser<'i, 'arena> {
         }
         let duration = start.elapsed();
         let right_extent = self.input().len();
-        if let Some(sppf_node_id) = self.start_results(right_extent, start_gss_node_id) {
+        if let Some(sppf_node_id) = self.start_result(right_extent, start_gss_node_id) {
             ParseResult::Success(ParseSuccess {
                 sppf_node_id,
                 duration,

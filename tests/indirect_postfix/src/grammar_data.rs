@@ -3,7 +3,7 @@
 use crate::types::{Nonterminal, Slot, Terminal};
 use iguana_runtime::ids::{NonterminalId, TerminalId};
 use iguana_runtime::scanner::TerminalSet;
-pub const NONTERMINALS: [Nonterminal; 5] = [
+pub const NONTERMINALS: [Nonterminal; 8] = [
     Nonterminal {
         name: "S",
         display: "S",
@@ -12,6 +12,21 @@ pub const NONTERMINALS: [Nonterminal; 5] = [
     Nonterminal {
         name: "StartS",
         display: "S",
+        derived: true,
+    },
+    Nonterminal {
+        name: "StartE",
+        display: "E(0)",
+        derived: true,
+    },
+    Nonterminal {
+        name: "StartPostfix",
+        display: "Postfix(0)",
+        derived: true,
+    },
+    Nonterminal {
+        name: "StartBody",
+        display: "Body(0)",
         derived: true,
     },
     Nonterminal {
@@ -34,13 +49,19 @@ pub const NONTERMINALS: [Nonterminal; 5] = [
 pub const NONTERMINAL_DISPLAY_ORDER: [&str; 4] = ["S", "E", "Postfix", "Body"];
 pub const S: NonterminalId = NonterminalId(0);
 pub const START_S: NonterminalId = NonterminalId(1);
-pub const E: NonterminalId = NonterminalId(2);
-pub const POSTFIX: NonterminalId = NonterminalId(3);
-pub const BODY: NonterminalId = NonterminalId(4);
+pub const START_E: NonterminalId = NonterminalId(2);
+pub const START_POSTFIX: NonterminalId = NonterminalId(3);
+pub const START_BODY: NonterminalId = NonterminalId(4);
+pub const E: NonterminalId = NonterminalId(5);
+pub const POSTFIX: NonterminalId = NonterminalId(6);
+pub const BODY: NonterminalId = NonterminalId(7);
 pub fn nonterminal_id(name: &str) -> Option<NonterminalId> {
     match name {
         "S" => Some(S),
         "StartS" => Some(START_S),
+        "StartE" => Some(START_E),
+        "StartPostfix" => Some(START_POSTFIX),
+        "StartBody" => Some(START_BODY),
         "E" => Some(E),
         "Postfix" => Some(POSTFIX),
         "Body" => Some(BODY),
@@ -55,7 +76,7 @@ pub const TERMINALS: [Terminal; 6] = [
     Terminal { name: "Epsilon" },
     Terminal { name: "EOF" },
 ];
-pub const SLOTS: [Slot; 31] = [
+pub const SLOTS: [Slot; 43] = [
     Slot {
         display_name: "S : . E(0)",
     },
@@ -73,6 +94,42 @@ pub const SLOTS: [Slot; 31] = [
     },
     Slot {
         display_name: "S : WS start:S WS.",
+    },
+    Slot {
+        display_name: "E(0) : . WS start:E(0) WS",
+    },
+    Slot {
+        display_name: "E(0) : WS . start:E(0) WS",
+    },
+    Slot {
+        display_name: "E(0) : WS start:E(0) . WS",
+    },
+    Slot {
+        display_name: "E(0) : WS start:E(0) WS.",
+    },
+    Slot {
+        display_name: "Postfix(0) : . WS start:Postfix(0) WS",
+    },
+    Slot {
+        display_name: "Postfix(0) : WS . start:Postfix(0) WS",
+    },
+    Slot {
+        display_name: "Postfix(0) : WS start:Postfix(0) . WS",
+    },
+    Slot {
+        display_name: "Postfix(0) : WS start:Postfix(0) WS.",
+    },
+    Slot {
+        display_name: "Body(0) : . WS start:Body(0) WS",
+    },
+    Slot {
+        display_name: "Body(0) : WS . start:Body(0) WS",
+    },
+    Slot {
+        display_name: "Body(0) : WS start:Body(0) . WS",
+    },
+    Slot {
+        display_name: "Body(0) : WS start:Body(0) WS.",
     },
     Slot {
         display_name: "E : . \"a\" return 0",
@@ -232,6 +289,51 @@ pub static FIRST_SET_START_S: TerminalSet = TerminalSet {
 };
 // StartS : . WS start:S WS { "a", WS }
 pub static FIRST_SET_START_S_ALT0: TerminalSet = TerminalSet {
+    id: 5,
+    terminals: &[TerminalId(1), TerminalId(0)],
+};
+// StartE { EOF }
+pub static FOLLOW_SET_START_E: TerminalSet = TerminalSet {
+    id: 4,
+    terminals: &[TerminalId(5)],
+};
+// StartE { "a", WS }
+pub static FIRST_SET_START_E: TerminalSet = TerminalSet {
+    id: 1,
+    terminals: &[TerminalId(1), TerminalId(0)],
+};
+// StartE : . WS start:E(0) WS { "a", WS }
+pub static FIRST_SET_START_E_ALT0: TerminalSet = TerminalSet {
+    id: 5,
+    terminals: &[TerminalId(1), TerminalId(0)],
+};
+// StartPostfix { EOF }
+pub static FOLLOW_SET_START_POSTFIX: TerminalSet = TerminalSet {
+    id: 4,
+    terminals: &[TerminalId(5)],
+};
+// StartPostfix { "a", WS }
+pub static FIRST_SET_START_POSTFIX: TerminalSet = TerminalSet {
+    id: 1,
+    terminals: &[TerminalId(1), TerminalId(0)],
+};
+// StartPostfix : . WS start:Postfix(0) WS { "a", WS }
+pub static FIRST_SET_START_POSTFIX_ALT0: TerminalSet = TerminalSet {
+    id: 5,
+    terminals: &[TerminalId(1), TerminalId(0)],
+};
+// StartBody { EOF }
+pub static FOLLOW_SET_START_BODY: TerminalSet = TerminalSet {
+    id: 4,
+    terminals: &[TerminalId(5)],
+};
+// StartBody { "a", WS }
+pub static FIRST_SET_START_BODY: TerminalSet = TerminalSet {
+    id: 1,
+    terminals: &[TerminalId(1), TerminalId(0)],
+};
+// StartBody : . WS start:Body(0) WS { "a", WS }
+pub static FIRST_SET_START_BODY_ALT0: TerminalSet = TerminalSet {
     id: 5,
     terminals: &[TerminalId(1), TerminalId(0)],
 };

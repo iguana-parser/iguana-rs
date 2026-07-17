@@ -128,8 +128,6 @@ impl<'a> ParserGen<'a> {
         let lookup_terminal_node_method = self.gen_lookup_terminal_node_method();
         let gss_nodes_method = Self::gen_gss_nodes_method();
         let add_nonterminal_node_child_method = self.gen_add_nonterminal_node_child_method();
-        let nonterminal_node_extra_children_method =
-            self.gen_nonterminal_node_extra_children_method();
         let add_intermediate_node_child_method = self.gen_add_intermediate_node_child_method();
         let intermediate_nodes_children_method = self.gen_intermediate_nodes_children_map_method();
         let nonterminal_nodes_children_method = self.gen_nonterminal_nodes_children_map_method();
@@ -182,7 +180,6 @@ impl<'a> ParserGen<'a> {
                 #gss_nodes_method
                 #add_intermediate_node_child_method
                 #add_nonterminal_node_child_method
-                #nonterminal_node_extra_children_method
                 #intermediate_nodes_children_method
                 #nonterminal_nodes_children_method
                 #add_trace_event_method
@@ -2206,22 +2203,6 @@ impl<'a> ParserGen<'a> {
                 return_slot: SlotId,
             ) {
                 self.nonterminal_nodes_children.push((node, (child, return_slot)));
-            }
-        }
-    }
-
-    fn gen_nonterminal_node_extra_children_method(&self) -> TokenStream {
-        // The unsafe mode records no extra children and uses the trait's empty default.
-        if self.config.unsafe_mode {
-            return quote! {};
-        }
-        quote! {
-            fn nonterminal_node_extra_children(&self, node: SPPFNodeId) -> Vec<(SPPFNodeId, SlotId)> {
-                self.nonterminal_nodes_children
-                    .iter()
-                    .filter(|(parent, _)| *parent == node)
-                    .map(|(_, child)| *child)
-                    .collect()
             }
         }
     }

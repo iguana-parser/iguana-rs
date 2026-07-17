@@ -74,6 +74,20 @@ impl<'i, 'arena> Parser<'i, 'arena> for ExceptLexicalParser<'i, 'arena> {
                     self.create_nonterminal_node(result, NonterminalId(0), SlotId(1), gss_node_id);
                 self.pop(gss_node_id, SlotId(1), nonterminal_node_id, None);
             }
+            // StartS : . start:S
+            SlotId(2) => {
+                if let Some(right_child) = self.parse_s_ll1(input_index) {
+                    let j = self.sppf_node(right_child).right_extent();
+                    // StartS : start:S.
+                    self.execute(j, SlotId(3), Some(right_child), gss_node_id, env);
+                }
+            }
+            // StartS : start:S.
+            SlotId(3) => {
+                let nonterminal_node_id =
+                    self.create_nonterminal_node(result, NonterminalId(1), SlotId(3), gss_node_id);
+                self.pop(gss_node_id, SlotId(3), nonterminal_node_id, None);
+            }
             _ => {
                 panic!("Unknown grammar slot id: {slot_id}");
             }
@@ -90,6 +104,10 @@ impl<'i, 'arena> Parser<'i, 'arena> for ExceptLexicalParser<'i, 'arena> {
             // S : . Identifier
             NonterminalId(0) => {
                 self.add_first_descriptor(SlotId(0), input_index, gss_node_id, env);
+            }
+            // StartS : . start:S
+            NonterminalId(1) => {
+                self.add_first_descriptor(SlotId(2), input_index, gss_node_id, env);
             }
             _ => {
                 panic!("Unknown nonterminal id: {nonterminal_id}");
@@ -196,14 +214,14 @@ impl<'i, 'arena> Parser<'i, 'arena> for ExceptLexicalParser<'i, 'arena> {
         if add_to_index {
             let arena = self.vec_arena;
             let slot_idx = intermediate_node.slot_id.index();
-            if slot_idx < 2 {
+            if slot_idx < 4 {
                 self.intermediate_nodes_index[slot_idx].insert(
                     intermediate_node.span,
                     intermediate_node_id,
                     arena,
                 );
             } else {
-                let idx = slot_idx - 2;
+                let idx = slot_idx - 4;
                 self.dd_intermediate_nodes_index[idx].insert(
                     (intermediate_node.span, env),
                     intermediate_node_id,
@@ -286,10 +304,10 @@ impl<'i, 'arena> Parser<'i, 'arena> for ExceptLexicalParser<'i, 'arena> {
     ) -> Option<SPPFNodeId> {
         let slot_idx = slot_id.index();
         let span = Span::new(left_extent, right_extent);
-        if slot_idx < 2 {
+        if slot_idx < 4 {
             self.intermediate_nodes_index[slot_idx].get(&span).copied()
         } else {
-            let idx = slot_idx - 2;
+            let idx = slot_idx - 4;
             self.dd_intermediate_nodes_index[idx]
                 .get(&(span, env))
                 .copied()
@@ -327,13 +345,6 @@ impl<'i, 'arena> Parser<'i, 'arena> for ExceptLexicalParser<'i, 'arena> {
     ) {
         self.nonterminal_nodes_children
             .push((node, (child, return_slot)));
-    }
-    fn nonterminal_node_extra_children(&self, node: SPPFNodeId) -> Vec<(SPPFNodeId, SlotId)> {
-        self.nonterminal_nodes_children
-            .iter()
-            .filter(|(parent, _)| *parent == node)
-            .map(|(_, child)| *child)
-            .collect()
     }
     fn intermediate_nodes_children_map(
         &self,
@@ -445,12 +456,14 @@ impl<'i, 'arena> Parser<'i, 'arena> for ExceptLexicalParser<'i, 'arena> {
     fn follow_set_check(&mut self, nonterminal_id: NonterminalId, input_index: u32) -> bool {
         match nonterminal_id {
             NonterminalId(0) => self.scanner.match_any(&FOLLOW_SET_S, input_index),
+            NonterminalId(1) => self.scanner.match_any(&FOLLOW_SET_START_S, input_index),
             _ => true,
         }
     }
     fn follow_set_terminals(&self, nonterminal_id: NonterminalId) -> Vec<TerminalId> {
         match nonterminal_id {
             NonterminalId(0) => FOLLOW_SET_S.terminals.to_vec(),
+            NonterminalId(1) => FOLLOW_SET_START_S.terminals.to_vec(),
             _ => vec![],
         }
     }
@@ -506,7 +519,7 @@ pub struct ExceptLexicalParser<'i, 'arena> {
     descriptors: AVec<Descriptor, &'arena Bump>,
     gss_nodes: AVec<GSSNode<'arena>, &'arena Bump>,
     // Per-nonterminal GSS-node index keyed by input position.
-    gss_nodes_index: [InlineMap<'arena, u32, GssNodeId>; 1],
+    gss_nodes_index: [InlineMap<'arena, u32, GssNodeId>; 2],
     sppf_nodes: AVec<SPPFNode, &'arena Bump>,
     #[cfg(feature = "instrument")]
     descriptors_count: usize,
@@ -515,7 +528,7 @@ pub struct ExceptLexicalParser<'i, 'arena> {
     #[cfg(feature = "instrument")]
     ll1_call_log: Vec<(NonterminalId, u32)>,
     // Per-slot Span-keyed intermediate-node index, for slots in non-parameterized nonterminals.
-    intermediate_nodes_index: [InlineMap<'arena, Span, SPPFNodeId>; 2],
+    intermediate_nodes_index: [InlineMap<'arena, Span, SPPFNodeId>; 4],
     // Per-slot (Span, env)-keyed intermediate-node index, for slots in parameterized
     // nonterminals; env separates calls made with different parameter values.
     dd_intermediate_nodes_index: [InlineMap<'arena, (Span, Option<EnvId>), SPPFNodeId>; 0],
@@ -549,7 +562,7 @@ impl<'i, 'arena> ExceptLexicalParser<'i, 'arena> {
             start_nonterminal,
             vec_arena,
             scanner: ExceptLexicalScanner::new(input, vec_arena),
-            gss_nodes_index: [const { InlineMap::Empty }; 1],
+            gss_nodes_index: [const { InlineMap::Empty }; 2],
             descriptors: AVec::with_capacity_in(
                 input.len() as usize / DESCRIPTORS_CAPACITY_DIVISOR + DESCRIPTORS_CAPACITY_FLOOR,
                 vec_arena,
@@ -562,7 +575,7 @@ impl<'i, 'arena> ExceptLexicalParser<'i, 'arena> {
                 input.len() as usize * SPPF_CAPACITY_MULTIPLIER,
                 vec_arena,
             ),
-            intermediate_nodes_index: [const { InlineMap::Empty }; 2],
+            intermediate_nodes_index: [const { InlineMap::Empty }; 4],
             dd_intermediate_nodes_index: [],
             terminal_nodes_index: [const { InlineMap::Empty }; 4],
             #[cfg(feature = "instrument")]
@@ -579,6 +592,35 @@ impl<'i, 'arena> ExceptLexicalParser<'i, 'arena> {
             parse_errors: InlineVec::Empty,
             #[cfg(feature = "debug-trace")]
             trace_events: None,
+        }
+    }
+    fn parse_s_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
+        #[cfg(feature = "instrument")]
+        self.ll1_call_log.push((NonterminalId(0), i));
+        let matched = self.scanner.longest_match(&FIRST_SET_S, i)?;
+        match matched {
+            TerminalId(1) => {
+                let mut j = i;
+                let right_child = {
+                    let start = j;
+                    let (end, node) = self.match_terminal(TerminalId(1), start, SlotId(1), None)?;
+                    j = end;
+                    node
+                };
+                let left_extent = self.sppf_node(right_child).left_extent();
+                let current = right_child;
+                Some(self.add_nonterminal_node(NonterminalNode {
+                    nonterminal_id: NonterminalId(0),
+                    return_slot: SlotId(1),
+                    span: Span {
+                        left_extent,
+                        right_extent: j,
+                    },
+                    child: current,
+                    ambiguous: false,
+                }))
+            }
+            _ => unreachable!("LL(1) dispatch covers every terminal in FIRST_SET"),
         }
     }
     // True if a local ambiguity node was added during parsing. This does not guarantee the

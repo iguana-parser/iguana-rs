@@ -1,6 +1,9 @@
-(E
-  (E Id)
+(Start
   WS
-  "-"
-  WS
-  (E Id))
+  (E
+    (E Id)
+    WS
+    "-"
+    WS
+    (E Id))
+  WS)

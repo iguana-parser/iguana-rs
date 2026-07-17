@@ -3,11 +3,21 @@
 use crate::types::{Nonterminal, Slot, Terminal};
 use iguana_runtime::ids::{NonterminalId, TerminalId};
 use iguana_runtime::scanner::TerminalSet;
-pub const NONTERMINALS: [Nonterminal; 2] = [
+pub const NONTERMINALS: [Nonterminal; 4] = [
     Nonterminal {
         name: "Type",
         display: "Type",
         derived: false,
+    },
+    Nonterminal {
+        name: "StartE",
+        display: "E(0)",
+        derived: true,
+    },
+    Nonterminal {
+        name: "StartType",
+        display: "Type",
+        derived: true,
     },
     Nonterminal {
         name: "E",
@@ -18,10 +28,14 @@ pub const NONTERMINALS: [Nonterminal; 2] = [
 // User-declared nonterminals in `.iggy` source order. Used by `--list-nonterminals`.
 pub const NONTERMINAL_DISPLAY_ORDER: [&str; 2] = ["E", "Type"];
 pub const TYPE: NonterminalId = NonterminalId(0);
-pub const E: NonterminalId = NonterminalId(1);
+pub const START_E: NonterminalId = NonterminalId(1);
+pub const START_TYPE: NonterminalId = NonterminalId(2);
+pub const E: NonterminalId = NonterminalId(3);
 pub fn nonterminal_id(name: &str) -> Option<NonterminalId> {
     match name {
         "Type" => Some(TYPE),
+        "StartE" => Some(START_E),
+        "StartType" => Some(START_TYPE),
         "E" => Some(E),
         _ => None,
     }
@@ -35,12 +49,36 @@ pub const TERMINALS: [Terminal; 7] = [
     Terminal { name: "Epsilon" },
     Terminal { name: "EOF" },
 ];
-pub const SLOTS: [Slot; 35] = [
+pub const SLOTS: [Slot; 43] = [
     Slot {
         display_name: "Type : . Id",
     },
     Slot {
         display_name: "Type : Id.",
+    },
+    Slot {
+        display_name: "E(0) : . WS start:E(0) WS",
+    },
+    Slot {
+        display_name: "E(0) : WS . start:E(0) WS",
+    },
+    Slot {
+        display_name: "E(0) : WS start:E(0) . WS",
+    },
+    Slot {
+        display_name: "E(0) : WS start:E(0) WS.",
+    },
+    Slot {
+        display_name: "Type : . WS start:Type WS",
+    },
+    Slot {
+        display_name: "Type : WS . start:Type WS",
+    },
+    Slot {
+        display_name: "Type : WS start:Type . WS",
+    },
+    Slot {
+        display_name: "Type : WS start:Type WS.",
     },
     Slot {
         display_name: "E : . \"(\" WS Type WS \")\" WS E(2) return 2",
@@ -192,4 +230,34 @@ pub static FIRST_SET_TYPE: TerminalSet = TerminalSet {
 pub static FIRST_SET_TYPE_ALT0: TerminalSet = TerminalSet {
     id: 4,
     terminals: &[TerminalId(0)],
+};
+// StartE { EOF }
+pub static FOLLOW_SET_START_E: TerminalSet = TerminalSet {
+    id: 6,
+    terminals: &[TerminalId(6)],
+};
+// StartE { "-", "(", Id, WS }
+pub static FIRST_SET_START_E: TerminalSet = TerminalSet {
+    id: 2,
+    terminals: &[TerminalId(4), TerminalId(2), TerminalId(0), TerminalId(1)],
+};
+// StartE : . WS start:E(0) WS { WS, "(", Id, "-" }
+pub static FIRST_SET_START_E_ALT0: TerminalSet = TerminalSet {
+    id: 7,
+    terminals: &[TerminalId(1), TerminalId(2), TerminalId(0), TerminalId(4)],
+};
+// StartType { EOF }
+pub static FOLLOW_SET_START_TYPE: TerminalSet = TerminalSet {
+    id: 6,
+    terminals: &[TerminalId(6)],
+};
+// StartType { WS, Id }
+pub static FIRST_SET_START_TYPE: TerminalSet = TerminalSet {
+    id: 3,
+    terminals: &[TerminalId(1), TerminalId(0)],
+};
+// StartType : . WS start:Type WS { Id, WS }
+pub static FIRST_SET_START_TYPE_ALT0: TerminalSet = TerminalSet {
+    id: 8,
+    terminals: &[TerminalId(0), TerminalId(1)],
 };

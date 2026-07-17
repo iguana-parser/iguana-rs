@@ -1,0 +1,17 @@
+grammar AmbRootStart
+
+@Start
+E = "(" Type ")" E    #Cast
+  | "-" E             #Neg
+  > E "-" E           #Sub
+  | E "-" E           #Sub2
+  | "(" E ")"         #Paren
+  | Id                #Atom
+
+Type = Id
+
+@Regex
+Id = [a-z]+
+
+@Layout @Regex
+WS = [\ ]*

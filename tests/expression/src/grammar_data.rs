@@ -3,17 +3,26 @@
 use crate::types::{Nonterminal, Slot, Terminal};
 use iguana_runtime::ids::{NonterminalId, TerminalId};
 use iguana_runtime::scanner::TerminalSet;
-pub const NONTERMINALS: [Nonterminal; 1] = [Nonterminal {
-    name: "E",
-    display: "E",
-    derived: false,
-}];
+pub const NONTERMINALS: [Nonterminal; 2] = [
+    Nonterminal {
+        name: "E",
+        display: "E",
+        derived: false,
+    },
+    Nonterminal {
+        name: "StartE",
+        display: "E",
+        derived: true,
+    },
+];
 // User-declared nonterminals in `.iggy` source order. Used by `--list-nonterminals`.
 pub const NONTERMINAL_DISPLAY_ORDER: [&str; 1] = ["E"];
 pub const E: NonterminalId = NonterminalId(0);
+pub const START_E: NonterminalId = NonterminalId(1);
 pub fn nonterminal_id(name: &str) -> Option<NonterminalId> {
     match name {
         "E" => Some(E),
+        "StartE" => Some(START_E),
         _ => None,
     }
 }
@@ -24,7 +33,7 @@ pub const TERMINALS: [Terminal; 5] = [
     Terminal { name: "Epsilon" },
     Terminal { name: "EOF" },
 ];
-pub const SLOTS: [Slot; 10] = [
+pub const SLOTS: [Slot; 12] = [
     Slot {
         display_name: "E : . E \"*\" E",
     },
@@ -55,6 +64,12 @@ pub const SLOTS: [Slot; 10] = [
     Slot {
         display_name: "E : \"a\".",
     },
+    Slot {
+        display_name: "E : . start:E",
+    },
+    Slot {
+        display_name: "E : start:E.",
+    },
 ];
 // E { "+", "*", EOF }
 pub static FOLLOW_SET_E: TerminalSet = TerminalSet {
@@ -78,6 +93,21 @@ pub static FIRST_SET_E_ALT1: TerminalSet = TerminalSet {
 };
 // E : . "a" { "a" }
 pub static FIRST_SET_E_ALT2: TerminalSet = TerminalSet {
+    id: 1,
+    terminals: &[TerminalId(2)],
+};
+// StartE { EOF }
+pub static FOLLOW_SET_START_E: TerminalSet = TerminalSet {
+    id: 2,
+    terminals: &[TerminalId(4)],
+};
+// StartE { "a" }
+pub static FIRST_SET_START_E: TerminalSet = TerminalSet {
+    id: 0,
+    terminals: &[TerminalId(2)],
+};
+// StartE : . start:E { "a" }
+pub static FIRST_SET_START_E_ALT0: TerminalSet = TerminalSet {
     id: 1,
     terminals: &[TerminalId(2)],
 };

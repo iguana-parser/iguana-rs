@@ -1,6 +1,9 @@
-(S
-  (Mod "static")
+(Start
   WS
-  Empty
-  WS
-  (Tag Id))
+  (S
+    (Mod "static")
+    WS
+    Empty
+    WS
+    (Tag Id))
+  WS)

@@ -3,7 +3,7 @@
 use crate::types::{Nonterminal, Slot, Terminal};
 use iguana_runtime::ids::{NonterminalId, TerminalId};
 use iguana_runtime::scanner::TerminalSet;
-pub const NONTERMINALS: [Nonterminal; 3] = [
+pub const NONTERMINALS: [Nonterminal; 5] = [
     Nonterminal {
         name: "S",
         display: "S",
@@ -19,17 +19,31 @@ pub const NONTERMINALS: [Nonterminal; 3] = [
         display: "Element+",
         derived: true,
     },
+    Nonterminal {
+        name: "StartS",
+        display: "S",
+        derived: true,
+    },
+    Nonterminal {
+        name: "StartElement",
+        display: "Element",
+        derived: true,
+    },
 ];
 // User-declared nonterminals in `.iggy` source order. Used by `--list-nonterminals`.
 pub const NONTERMINAL_DISPLAY_ORDER: [&str; 2] = ["S", "Element"];
 pub const S: NonterminalId = NonterminalId(0);
 pub const ELEMENT: NonterminalId = NonterminalId(1);
 pub const PLUS_0: NonterminalId = NonterminalId(2);
+pub const START_S: NonterminalId = NonterminalId(3);
+pub const START_ELEMENT: NonterminalId = NonterminalId(4);
 pub fn nonterminal_id(name: &str) -> Option<NonterminalId> {
     match name {
         "S" => Some(S),
         "Element" => Some(ELEMENT),
         "Plus_0" => Some(PLUS_0),
+        "StartS" => Some(START_S),
+        "StartElement" => Some(START_ELEMENT),
         _ => None,
     }
 }
@@ -41,7 +55,7 @@ pub const TERMINALS: [Terminal; 6] = [
     Terminal { name: "Epsilon" },
     Terminal { name: "EOF" },
 ];
-pub const SLOTS: [Slot; 12] = [
+pub const SLOTS: [Slot; 20] = [
     Slot {
         display_name: "S : . Element+",
     },
@@ -78,11 +92,35 @@ pub const SLOTS: [Slot; 12] = [
     Slot {
         display_name: "Element+ : Element.",
     },
+    Slot {
+        display_name: "S : . WS start:S WS",
+    },
+    Slot {
+        display_name: "S : WS . start:S WS",
+    },
+    Slot {
+        display_name: "S : WS start:S . WS",
+    },
+    Slot {
+        display_name: "S : WS start:S WS.",
+    },
+    Slot {
+        display_name: "Element : . WS start:Element WS",
+    },
+    Slot {
+        display_name: "Element : WS . start:Element WS",
+    },
+    Slot {
+        display_name: "Element : WS start:Element . WS",
+    },
+    Slot {
+        display_name: "Element : WS start:Element WS.",
+    },
 ];
-// S { EOF }
+// S { WS, EOF }
 pub static FOLLOW_SET_S: TerminalSet = TerminalSet {
     id: 0,
-    terminals: &[TerminalId(5)],
+    terminals: &[TerminalId(3), TerminalId(5)],
 };
 // S { Num, Id }
 pub static FIRST_SET_S: TerminalSet = TerminalSet {
@@ -133,4 +171,34 @@ pub static FIRST_SET_PLUS_0_ALT0: TerminalSet = TerminalSet {
 pub static FIRST_SET_PLUS_0_ALT1: TerminalSet = TerminalSet {
     id: 1,
     terminals: &[TerminalId(0), TerminalId(2)],
+};
+// StartS { EOF }
+pub static FOLLOW_SET_START_S: TerminalSet = TerminalSet {
+    id: 5,
+    terminals: &[TerminalId(5)],
+};
+// StartS { WS, Num, Id }
+pub static FIRST_SET_START_S: TerminalSet = TerminalSet {
+    id: 1,
+    terminals: &[TerminalId(3), TerminalId(0), TerminalId(2)],
+};
+// StartS : . WS start:S WS { Id, Num, WS }
+pub static FIRST_SET_START_S_ALT0: TerminalSet = TerminalSet {
+    id: 6,
+    terminals: &[TerminalId(2), TerminalId(0), TerminalId(3)],
+};
+// StartElement { EOF }
+pub static FOLLOW_SET_START_ELEMENT: TerminalSet = TerminalSet {
+    id: 5,
+    terminals: &[TerminalId(5)],
+};
+// StartElement { WS, Num, Id }
+pub static FIRST_SET_START_ELEMENT: TerminalSet = TerminalSet {
+    id: 1,
+    terminals: &[TerminalId(3), TerminalId(0), TerminalId(2)],
+};
+// StartElement : . WS start:Element WS { Id, Num, WS }
+pub static FIRST_SET_START_ELEMENT_ALT0: TerminalSet = TerminalSet {
+    id: 6,
+    terminals: &[TerminalId(2), TerminalId(0), TerminalId(3)],
 };

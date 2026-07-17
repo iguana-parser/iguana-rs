@@ -1,5 +1,6 @@
-(S
-  (Id
-    (Name Letter Letter))
-  (Id
-    (Name Letter Letter)))
+(Start
+  (S
+    (Id
+      (Name Letter Letter))
+    (Id
+      (Name Letter Letter))))

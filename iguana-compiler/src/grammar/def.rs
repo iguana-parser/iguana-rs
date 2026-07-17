@@ -6,7 +6,6 @@ use itertools::Itertools;
 use rustc_hash::{FxHashMap, FxHashSet};
 
 use crate::{
-    alternative,
     grammar::{
         regex::Regex,
         symbols::{
@@ -1106,39 +1105,58 @@ fn build_grammar(grammar_def: GrammarDef, dump: &[Phase]) -> Result<Grammar, Vec
         })
         .collect();
 
-    let (syntax_rules, layout, start_nonterminals, start_wrapper_names) =
-        if let Some(layout) = &grammar_def.layout {
-            let resolved = resolve_identifier(layout.clone(), &symbol_table);
-            let mut syntax_rules = layout_insertion::transform(syntax_rules, &resolved);
-            let start_rules: Vec<_> = syntax_rules
-                .iter()
-                .filter(|r| r.start)
-                .map(|r| add_start_rule(&r.head, &resolved, &symbol_table))
-                .collect();
-            let start_names: FxHashMap<String, String> = syntax_rules
-                .iter()
-                .filter(|r| r.start)
-                .map(|r| (r.head.name.clone(), format!("Start{}", r.head.name)))
-                .collect();
-            let start_wrapper_names: FxHashSet<String> = start_names.values().cloned().collect();
-            syntax_rules.extend(start_rules);
-            // Dumped after the start wrappers are added so the layout phase shows
-            // the StartX rules too, not just layout woven into existing rules.
-            dump_phase(Phase::Layout, &syntax_rules, &lexical_rules, dump);
-            (
-                syntax_rules,
-                Some(resolved),
-                start_names,
-                start_wrapper_names,
+    let (mut syntax_rules, layout) = if let Some(layout) = &grammar_def.layout {
+        let resolved = resolve_identifier(layout.clone(), &symbol_table);
+        (
+            layout_insertion::transform(syntax_rules, &resolved),
+            Some(resolved),
+        )
+    } else {
+        (syntax_rules, None)
+    };
+
+    // Every source nonterminal is an entry point and gets a start wrapper rule
+    // (`StartX = Layout start:X Layout`, or `StartX = start:X` without layout),
+    // so parsing always enters through a wrapper. Derived nonterminals (EBNF
+    // expansion, desugaring helpers) and the layout rule are not entry points.
+    let layout_name = layout
+        .as_ref()
+        .and_then(|l| l.as_identifier())
+        .map(|id| id.name.clone());
+    let is_entry = |r: &SyntaxRule| {
+        source_order.contains_key(&r.head.name) && Some(&r.head.name) != layout_name.as_ref()
+    };
+    let start_rules: Vec<_> = syntax_rules
+        .iter()
+        .filter(|r| is_entry(r))
+        .map(|r| add_start_rule(&r.head, layout.as_ref(), &symbol_table))
+        .collect();
+    let start_nonterminals: FxHashMap<String, String> = syntax_rules
+        .iter()
+        .filter(|r| is_entry(r))
+        .map(|r| (r.head.name.clone(), format!("Start{}", r.head.name)))
+        .collect();
+    let start_wrapper_names: FxHashSet<String> = start_nonterminals.values().cloned().collect();
+    let collisions: Vec<String> = syntax_rules
+        .iter()
+        .filter(|r| start_wrapper_names.contains(&r.head.name))
+        .map(|r| {
+            format!(
+                "Rule name {} collides with the generated start wrapper for {}",
+                r.head.name,
+                &r.head.name["Start".len()..]
             )
-        } else {
-            (
-                syntax_rules,
-                None,
-                FxHashMap::default(),
-                FxHashSet::default(),
-            )
-        };
+        })
+        .collect();
+    if !collisions.is_empty() {
+        return Err(collisions);
+    }
+    syntax_rules.extend(start_rules);
+    if layout.is_some() {
+        // Dumped after the start wrappers are added so the layout phase shows
+        // the StartX rules too, not just layout woven into existing rules.
+        dump_phase(Phase::Layout, &syntax_rules, &lexical_rules, dump);
+    }
 
     let lexical_rules_map: IndexMap<Terminal, LexicalRule> = lexical_rules
         .into_iter()
@@ -1171,7 +1189,7 @@ fn build_grammar(grammar_def: GrammarDef, dump: &[Phase]) -> Result<Grammar, Vec
 
 fn add_start_rule(
     nt: &Nonterminal,
-    layout_identifier: &Symbol,
+    layout_identifier: Option<&Symbol>,
     symbol_table: &SymbolTable,
 ) -> SyntaxRule {
     let nt_name = &nt.name;
@@ -1193,20 +1211,24 @@ fn add_start_rule(
         Symbol::Identifier(identifier)
     };
 
+    let start_symbol = Symbol::Labeled {
+        label: "start".into(),
+        symbol: Box::new(symbol.clone()),
+    };
+    let symbols = match layout_identifier {
+        Some(layout) => vec![layout.clone(), start_symbol, layout.clone()],
+        None => vec![start_symbol],
+    };
     SyntaxRule {
         head: Nonterminal {
             name,
-            origin: Some(symbol.clone()),
+            origin: Some(symbol),
             parameters: vec![],
         },
-        priority_levels: vec![priority_level!(alternative!(
-            layout_identifier.clone(),
-            Symbol::Labeled {
-                label: "start".into(),
-                symbol: Box::new(symbol)
-            },
-            layout_identifier.clone()
-        ))],
+        priority_levels: vec![priority_level!(Alternative {
+            symbols,
+            label: None
+        })],
         layout: LayoutStrategy::Default,
         start: false,
     }

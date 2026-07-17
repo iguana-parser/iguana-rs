@@ -47,6 +47,12 @@ pub enum ParseTree<'a> {
     Body(&'a Body<'a>),
     // S
     StartS(&'a Start<&'a S<'a>, Token>),
+    // E(0)
+    StartE(&'a Start<&'a E<'a>, Token>),
+    // Lambda(0)
+    StartLambda(&'a Start<&'a Lambda<'a>, Token>),
+    // Body(0)
+    StartBody(&'a Start<&'a Body<'a>, Token>),
     Token(Token),
 }
 impl<'a> ParseTree<'a> {
@@ -63,6 +69,15 @@ impl<'a> ParseTree<'a> {
             ParseTree::StartS(start_s) => (0..start_s.child_count())
                 .filter_map(|i| start_s.child(i))
                 .collect(),
+            ParseTree::StartE(start_e) => (0..start_e.child_count())
+                .filter_map(|i| start_e.child(i))
+                .collect(),
+            ParseTree::StartLambda(start_lambda) => (0..start_lambda.child_count())
+                .filter_map(|i| start_lambda.child(i))
+                .collect(),
+            ParseTree::StartBody(start_body) => (0..start_body.child_count())
+                .filter_map(|i| start_body.child(i))
+                .collect(),
             ParseTree::Token(_) => vec![],
         }
     }
@@ -73,6 +88,9 @@ impl<'a> ParseTree<'a> {
             ParseTree::Lambda(lambda) => lambda.display_name(),
             ParseTree::Body(body) => body.display_name(),
             ParseTree::StartS(start_s) => start_s.display_name(),
+            ParseTree::StartE(start_e) => start_e.display_name(),
+            ParseTree::StartLambda(start_lambda) => start_lambda.display_name(),
+            ParseTree::StartBody(start_body) => start_body.display_name(),
             ParseTree::Token(token) => token.kind.name(),
         }
     }
@@ -83,6 +101,9 @@ impl<'a> ParseTree<'a> {
             ParseTree::Lambda(lambda) => lambda.child_count(),
             ParseTree::Body(body) => body.child_count(),
             ParseTree::StartS(start_s) => start_s.child_count(),
+            ParseTree::StartE(start_e) => start_e.child_count(),
+            ParseTree::StartLambda(start_lambda) => start_lambda.child_count(),
+            ParseTree::StartBody(start_body) => start_body.child_count(),
             ParseTree::Token(_) => 0,
         }
     }
@@ -93,6 +114,9 @@ impl<'a> ParseTree<'a> {
             ParseTree::Lambda(lambda) => lambda.span(),
             ParseTree::Body(body) => body.span(),
             ParseTree::StartS(start_s) => start_s.span(),
+            ParseTree::StartE(start_e) => start_e.span(),
+            ParseTree::StartLambda(start_lambda) => start_lambda.span(),
+            ParseTree::StartBody(start_body) => start_body.span(),
             ParseTree::Token(token) => token.span(),
         }
     }
@@ -105,6 +129,9 @@ impl<'a> ParseTree<'a> {
             ParseTree::Lambda(lambda) => matches!(lambda, Lambda::Amb(_)),
             ParseTree::Body(body) => matches!(body, Body::Amb(_)),
             ParseTree::StartS(_) => false,
+            ParseTree::StartE(_) => false,
+            ParseTree::StartLambda(_) => false,
+            ParseTree::StartBody(_) => false,
             ParseTree::Token(_) => false,
         }
     }
@@ -118,6 +145,9 @@ impl<'a> ParseTree<'a> {
             ParseTree::Lambda(lambda) => Some(*lambda as *const _ as usize),
             ParseTree::Body(body) => Some(*body as *const _ as usize),
             ParseTree::StartS(start_s) => Some(*start_s as *const _ as usize),
+            ParseTree::StartE(start_e) => Some(*start_e as *const _ as usize),
+            ParseTree::StartLambda(start_lambda) => Some(*start_lambda as *const _ as usize),
+            ParseTree::StartBody(start_body) => Some(*start_body as *const _ as usize),
             ParseTree::Token(_) => None,
         }
     }
@@ -128,6 +158,9 @@ impl<'a> ParseTree<'a> {
             ParseTree::Lambda(lambda) => lambda.origin(),
             ParseTree::Body(body) => body.origin(),
             ParseTree::StartS(start_s) => start_s.origin(),
+            ParseTree::StartE(start_e) => start_e.origin(),
+            ParseTree::StartLambda(start_lambda) => start_lambda.origin(),
+            ParseTree::StartBody(start_body) => start_body.origin(),
             ParseTree::Token(_) => None,
         }
     }
@@ -158,6 +191,24 @@ impl<'a> ParseTree<'a> {
     fn unwrap_start_s(self) -> &'a Start<&'a S<'a>, Token> {
         match self {
             ParseTree::StartS(start_s) => start_s,
+            _ => panic!(),
+        }
+    }
+    fn unwrap_start_e(self) -> &'a Start<&'a E<'a>, Token> {
+        match self {
+            ParseTree::StartE(start_e) => start_e,
+            _ => panic!(),
+        }
+    }
+    fn unwrap_start_lambda(self) -> &'a Start<&'a Lambda<'a>, Token> {
+        match self {
+            ParseTree::StartLambda(start_lambda) => start_lambda,
+            _ => panic!(),
+        }
+    }
+    fn unwrap_start_body(self) -> &'a Start<&'a Body<'a>, Token> {
+        match self {
+            ParseTree::StartBody(start_body) => start_body,
             _ => panic!(),
         }
     }
@@ -444,6 +495,81 @@ impl<'a> Start<&'a S<'a>, Token> {
         Some(Origin::Start)
     }
 }
+impl<'a> Start<&'a E<'a>, Token> {
+    pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
+        ParseTree::StartE(self)
+    }
+    pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
+        match index {
+            0 => Some(ParseTree::Token(self.before)),
+            1 => Some(ParseTree::E(self.node)),
+            2 => Some(ParseTree::Token(self.after)),
+            _ => None,
+        }
+    }
+    pub fn child_count(&self) -> usize {
+        3usize
+    }
+    pub fn span(&self) -> Span {
+        self.span
+    }
+    pub fn display_name(&self) -> &'static str {
+        "Start"
+    }
+    pub fn origin(&self) -> Option<Origin> {
+        Some(Origin::Start)
+    }
+}
+impl<'a> Start<&'a Lambda<'a>, Token> {
+    pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
+        ParseTree::StartLambda(self)
+    }
+    pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
+        match index {
+            0 => Some(ParseTree::Token(self.before)),
+            1 => Some(ParseTree::Lambda(self.node)),
+            2 => Some(ParseTree::Token(self.after)),
+            _ => None,
+        }
+    }
+    pub fn child_count(&self) -> usize {
+        3usize
+    }
+    pub fn span(&self) -> Span {
+        self.span
+    }
+    pub fn display_name(&self) -> &'static str {
+        "Start"
+    }
+    pub fn origin(&self) -> Option<Origin> {
+        Some(Origin::Start)
+    }
+}
+impl<'a> Start<&'a Body<'a>, Token> {
+    pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
+        ParseTree::StartBody(self)
+    }
+    pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
+        match index {
+            0 => Some(ParseTree::Token(self.before)),
+            1 => Some(ParseTree::Body(self.node)),
+            2 => Some(ParseTree::Token(self.after)),
+            _ => None,
+        }
+    }
+    pub fn child_count(&self) -> usize {
+        3usize
+    }
+    pub fn span(&self) -> Span {
+        self.span
+    }
+    pub fn display_name(&self) -> &'static str {
+        "Start"
+    }
+    pub fn origin(&self) -> Option<Origin> {
+        Some(Origin::Start)
+    }
+}
 #[derive(Debug, Clone, Copy)]
 pub struct Token {
     pub kind: TokenKind,
@@ -511,10 +637,52 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectPrefixParseTreeBuilder<'a> 
                 }
                 _ => unreachable!(),
             },
-            // E
+            // StartE
             NonterminalId(2) => match nonterminal_node.return_slot {
+                // E(0) : WS start:E(0) WS.
+                SlotId(9) => {
+                    let [ws_0, start, ws_2] = children.into_array::<3usize>();
+                    ParseTree::StartE(self.arena.alloc(Start {
+                        before: ws_0.unwrap_token(),
+                        node: start.unwrap_e(),
+                        after: ws_2.unwrap_token(),
+                        span: nonterminal_node.span,
+                    }))
+                }
+                _ => unreachable!(),
+            },
+            // StartLambda
+            NonterminalId(3) => match nonterminal_node.return_slot {
+                // Lambda(0) : WS start:Lambda(0) WS.
+                SlotId(13) => {
+                    let [ws_0, start, ws_2] = children.into_array::<3usize>();
+                    ParseTree::StartLambda(self.arena.alloc(Start {
+                        before: ws_0.unwrap_token(),
+                        node: start.unwrap_lambda(),
+                        after: ws_2.unwrap_token(),
+                        span: nonterminal_node.span,
+                    }))
+                }
+                _ => unreachable!(),
+            },
+            // StartBody
+            NonterminalId(4) => match nonterminal_node.return_slot {
+                // Body(0) : WS start:Body(0) WS.
+                SlotId(17) => {
+                    let [ws_0, start, ws_2] = children.into_array::<3usize>();
+                    ParseTree::StartBody(self.arena.alloc(Start {
+                        before: ws_0.unwrap_token(),
+                        node: start.unwrap_body(),
+                        after: ws_2.unwrap_token(),
+                        span: nonterminal_node.span,
+                    }))
+                }
+                _ => unreachable!(),
+            },
+            // E
+            NonterminalId(5) => match nonterminal_node.return_slot {
                 // E : "a" return 0.
-                SlotId(8) => {
+                SlotId(20) => {
                     let [lit_0] = children.into_array::<1usize>();
                     ParseTree::E(self.arena.alloc(E::Alt0 {
                         lit_0: lit_0.unwrap_token(),
@@ -523,7 +691,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectPrefixParseTreeBuilder<'a> 
                 }
                 // E : [2 >= p] l=E(p) [(l == 0) || (l >= 2)] WS "+" WS r=E(2) return (r == 0) ? 2 : min(r,
                 // 2).
-                SlotId(17) => {
+                SlotId(29) => {
                     let [e_0, ws_1, lit_2, ws_3, e_4] = children.into_array::<5usize>();
                     ParseTree::E(self.arena.alloc(E::Alt1 {
                         e_0: e_0.unwrap_e(),
@@ -535,7 +703,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectPrefixParseTreeBuilder<'a> 
                     }))
                 }
                 // E : Lambda(1) return 1.
-                SlotId(20) => {
+                SlotId(32) => {
                     let [lambda] = children.into_array::<1usize>();
                     ParseTree::E(self.arena.alloc(E::Alt2 {
                         lambda: lambda.unwrap_lambda(),
@@ -545,9 +713,9 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectPrefixParseTreeBuilder<'a> 
                 _ => unreachable!(),
             },
             // Lambda
-            NonterminalId(3) => match nonterminal_node.return_slot {
+            NonterminalId(6) => match nonterminal_node.return_slot {
                 // Lambda : "fn" WS r=Body(p) return r.
-                SlotId(25) => {
+                SlotId(37) => {
                     let [lit_0, ws, body] = children.into_array::<3usize>();
                     ParseTree::Lambda(self.arena.alloc(Lambda::Alt0 {
                         lit_0: lit_0.unwrap_token(),
@@ -559,9 +727,9 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectPrefixParseTreeBuilder<'a> 
                 _ => unreachable!(),
             },
             // Body
-            NonterminalId(4) => match nonterminal_node.return_slot {
+            NonterminalId(7) => match nonterminal_node.return_slot {
                 // Body : r=E(p) return r.
-                SlotId(28) => {
+                SlotId(40) => {
                     let [e] = children.into_array::<1usize>();
                     ParseTree::Body(self.arena.alloc(Body::Alt0 {
                         e: e.unwrap_e(),
@@ -609,6 +777,60 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectPrefixParseTreeBuilder<'a> 
                     .alloc_slice_fill_iter(alternatives.into_iter().map(|a| a.unwrap_body()));
                 ParseTree::Body(self.arena.alloc(Body::Amb(slice)))
             }
+            crate::grammar_data::START_S => {
+                let first = alternatives[0].unwrap_start_s();
+                let inner = self.arena.alloc_slice_fill_iter(
+                    alternatives.into_iter().map(|a| a.unwrap_start_s().node),
+                );
+                let node = &*self.arena.alloc(S::Amb(inner));
+                ParseTree::StartS(self.arena.alloc(Start {
+                    before: first.before,
+                    node,
+                    after: first.after,
+                    span: first.span,
+                }))
+            }
+            crate::grammar_data::START_E => {
+                let first = alternatives[0].unwrap_start_e();
+                let inner = self.arena.alloc_slice_fill_iter(
+                    alternatives.into_iter().map(|a| a.unwrap_start_e().node),
+                );
+                let node = &*self.arena.alloc(E::Amb(inner));
+                ParseTree::StartE(self.arena.alloc(Start {
+                    before: first.before,
+                    node,
+                    after: first.after,
+                    span: first.span,
+                }))
+            }
+            crate::grammar_data::START_LAMBDA => {
+                let first = alternatives[0].unwrap_start_lambda();
+                let inner = self.arena.alloc_slice_fill_iter(
+                    alternatives
+                        .into_iter()
+                        .map(|a| a.unwrap_start_lambda().node),
+                );
+                let node = &*self.arena.alloc(Lambda::Amb(inner));
+                ParseTree::StartLambda(self.arena.alloc(Start {
+                    before: first.before,
+                    node,
+                    after: first.after,
+                    span: first.span,
+                }))
+            }
+            crate::grammar_data::START_BODY => {
+                let first = alternatives[0].unwrap_start_body();
+                let inner = self.arena.alloc_slice_fill_iter(
+                    alternatives.into_iter().map(|a| a.unwrap_start_body().node),
+                );
+                let node = &*self.arena.alloc(Body::Amb(inner));
+                ParseTree::StartBody(self.arena.alloc(Start {
+                    before: first.before,
+                    node,
+                    after: first.after,
+                    span: first.span,
+                }))
+            }
             _ => unreachable!("nonterminal cannot be ambiguous"),
         }
     }
@@ -630,6 +852,15 @@ pub fn create_parse_tree<'a>(
         }
         crate::grammar_data::START_S => {
             ParseTree::StartS(create_parse_tree_start_s(root_id, parser, builder))
+        }
+        crate::grammar_data::START_E => {
+            ParseTree::StartE(create_parse_tree_start_e(root_id, parser, builder))
+        }
+        crate::grammar_data::START_LAMBDA => {
+            ParseTree::StartLambda(create_parse_tree_start_lambda(root_id, parser, builder))
+        }
+        crate::grammar_data::START_BODY => {
+            ParseTree::StartBody(create_parse_tree_start_body(root_id, parser, builder))
         }
         _ => panic!(),
     }
@@ -674,6 +905,33 @@ pub fn create_parse_tree_start_s<'a>(
     visit_sppf(root_id, parser, builder)
         .unwrap_one()
         .unwrap_start_s()
+}
+pub fn create_parse_tree_start_e<'a>(
+    root_id: SPPFNodeId,
+    parser: &IndirectPrefixParser,
+    builder: &IndirectPrefixParseTreeBuilder<'a>,
+) -> &'a Start<&'a E<'a>, Token> {
+    visit_sppf(root_id, parser, builder)
+        .unwrap_one()
+        .unwrap_start_e()
+}
+pub fn create_parse_tree_start_lambda<'a>(
+    root_id: SPPFNodeId,
+    parser: &IndirectPrefixParser,
+    builder: &IndirectPrefixParseTreeBuilder<'a>,
+) -> &'a Start<&'a Lambda<'a>, Token> {
+    visit_sppf(root_id, parser, builder)
+        .unwrap_one()
+        .unwrap_start_lambda()
+}
+pub fn create_parse_tree_start_body<'a>(
+    root_id: SPPFNodeId,
+    parser: &IndirectPrefixParser,
+    builder: &IndirectPrefixParseTreeBuilder<'a>,
+) -> &'a Start<&'a Body<'a>, Token> {
+    visit_sppf(root_id, parser, builder)
+        .unwrap_one()
+        .unwrap_start_body()
 }
 impl<'a> ParseTreeNode for ParseTree<'a> {
     fn children(&self) -> Vec<Self> {

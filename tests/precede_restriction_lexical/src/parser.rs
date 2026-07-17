@@ -115,6 +115,45 @@ impl<'i, 'arena> Parser<'i, 'arena> for PrecedeRestrictionLexicalParser<'i, 'are
                     self.create_nonterminal_node(result, NonterminalId(0), SlotId(5), gss_node_id);
                 self.pop(gss_node_id, SlotId(5), nonterminal_node_id, None);
             }
+            // StartS : . WS start:S WS
+            SlotId(6) => {
+                if let Some((j, right_child)) =
+                    self.match_terminal(TerminalId(2), input_index, SlotId(6), Some(gss_node_id))
+                {
+                    // StartS : WS . start:S WS
+                    self.execute(j, SlotId(7), Some(right_child), gss_node_id, env);
+                }
+            }
+            // StartS : WS . start:S WS
+            SlotId(7) => {
+                if let Some(right_child) = self.parse_s_ll1(input_index) {
+                    if let Some((j, new_node)) =
+                        self.create_intermediate_node(result, right_child, SlotId(8), env)
+                    {
+                        // StartS : WS start:S . WS
+                        self.execute(j, SlotId(8), Some(new_node), gss_node_id, env);
+                    }
+                }
+            }
+            // StartS : WS start:S . WS
+            SlotId(8) => {
+                if let Some((_, right_child)) =
+                    self.match_terminal(TerminalId(2), input_index, SlotId(8), Some(gss_node_id))
+                {
+                    if let Some((j, new_node)) =
+                        self.create_intermediate_node(result, right_child, SlotId(9), env)
+                    {
+                        // StartS : WS start:S WS.
+                        self.execute(j, SlotId(9), Some(new_node), gss_node_id, env);
+                    }
+                }
+            }
+            // StartS : WS start:S WS.
+            SlotId(9) => {
+                let nonterminal_node_id =
+                    self.create_nonterminal_node(result, NonterminalId(1), SlotId(9), gss_node_id);
+                self.pop(gss_node_id, SlotId(9), nonterminal_node_id, None);
+            }
             _ => {
                 panic!("Unknown grammar slot id: {slot_id}");
             }
@@ -148,6 +187,10 @@ impl<'i, 'arena> Parser<'i, 'arena> for PrecedeRestrictionLexicalParser<'i, 'are
                         }
                     });
                 }
+            }
+            // StartS : . WS start:S WS
+            NonterminalId(1) => {
+                self.add_first_descriptor(SlotId(6), input_index, gss_node_id, env);
             }
             _ => {
                 panic!("Unknown nonterminal id: {nonterminal_id}");
@@ -254,14 +297,14 @@ impl<'i, 'arena> Parser<'i, 'arena> for PrecedeRestrictionLexicalParser<'i, 'are
         if add_to_index {
             let arena = self.vec_arena;
             let slot_idx = intermediate_node.slot_id.index();
-            if slot_idx < 6 {
+            if slot_idx < 10 {
                 self.intermediate_nodes_index[slot_idx].insert(
                     intermediate_node.span,
                     intermediate_node_id,
                     arena,
                 );
             } else {
-                let idx = slot_idx - 6;
+                let idx = slot_idx - 10;
                 self.dd_intermediate_nodes_index[idx].insert(
                     (intermediate_node.span, env),
                     intermediate_node_id,
@@ -344,10 +387,10 @@ impl<'i, 'arena> Parser<'i, 'arena> for PrecedeRestrictionLexicalParser<'i, 'are
     ) -> Option<SPPFNodeId> {
         let slot_idx = slot_id.index();
         let span = Span::new(left_extent, right_extent);
-        if slot_idx < 6 {
+        if slot_idx < 10 {
             self.intermediate_nodes_index[slot_idx].get(&span).copied()
         } else {
-            let idx = slot_idx - 6;
+            let idx = slot_idx - 10;
             self.dd_intermediate_nodes_index[idx]
                 .get(&(span, env))
                 .copied()
@@ -385,13 +428,6 @@ impl<'i, 'arena> Parser<'i, 'arena> for PrecedeRestrictionLexicalParser<'i, 'are
     ) {
         self.nonterminal_nodes_children
             .push((node, (child, return_slot)));
-    }
-    fn nonterminal_node_extra_children(&self, node: SPPFNodeId) -> Vec<(SPPFNodeId, SlotId)> {
-        self.nonterminal_nodes_children
-            .iter()
-            .filter(|(parent, _)| *parent == node)
-            .map(|(_, child)| *child)
-            .collect()
     }
     fn intermediate_nodes_children_map(
         &self,
@@ -503,12 +539,14 @@ impl<'i, 'arena> Parser<'i, 'arena> for PrecedeRestrictionLexicalParser<'i, 'are
     fn follow_set_check(&mut self, nonterminal_id: NonterminalId, input_index: u32) -> bool {
         match nonterminal_id {
             NonterminalId(0) => self.scanner.match_any(&FOLLOW_SET_S, input_index),
+            NonterminalId(1) => self.scanner.match_any(&FOLLOW_SET_START_S, input_index),
             _ => true,
         }
     }
     fn follow_set_terminals(&self, nonterminal_id: NonterminalId) -> Vec<TerminalId> {
         match nonterminal_id {
             NonterminalId(0) => FOLLOW_SET_S.terminals.to_vec(),
+            NonterminalId(1) => FOLLOW_SET_START_S.terminals.to_vec(),
             _ => vec![],
         }
     }
@@ -564,7 +602,7 @@ pub struct PrecedeRestrictionLexicalParser<'i, 'arena> {
     descriptors: AVec<Descriptor, &'arena Bump>,
     gss_nodes: AVec<GSSNode<'arena>, &'arena Bump>,
     // Per-nonterminal GSS-node index keyed by input position.
-    gss_nodes_index: [InlineMap<'arena, u32, GssNodeId>; 1],
+    gss_nodes_index: [InlineMap<'arena, u32, GssNodeId>; 2],
     sppf_nodes: AVec<SPPFNode, &'arena Bump>,
     #[cfg(feature = "instrument")]
     descriptors_count: usize,
@@ -573,7 +611,7 @@ pub struct PrecedeRestrictionLexicalParser<'i, 'arena> {
     #[cfg(feature = "instrument")]
     ll1_call_log: Vec<(NonterminalId, u32)>,
     // Per-slot Span-keyed intermediate-node index, for slots in non-parameterized nonterminals.
-    intermediate_nodes_index: [InlineMap<'arena, Span, SPPFNodeId>; 6],
+    intermediate_nodes_index: [InlineMap<'arena, Span, SPPFNodeId>; 10],
     // Per-slot (Span, env)-keyed intermediate-node index, for slots in parameterized
     // nonterminals; env separates calls made with different parameter values.
     dd_intermediate_nodes_index: [InlineMap<'arena, (Span, Option<EnvId>), SPPFNodeId>; 0],
@@ -607,7 +645,7 @@ impl<'i, 'arena> PrecedeRestrictionLexicalParser<'i, 'arena> {
             start_nonterminal,
             vec_arena,
             scanner: PrecedeRestrictionLexicalScanner::new(input, vec_arena),
-            gss_nodes_index: [const { InlineMap::Empty }; 1],
+            gss_nodes_index: [const { InlineMap::Empty }; 2],
             descriptors: AVec::with_capacity_in(
                 input.len() as usize / DESCRIPTORS_CAPACITY_DIVISOR + DESCRIPTORS_CAPACITY_FLOOR,
                 vec_arena,
@@ -620,7 +658,7 @@ impl<'i, 'arena> PrecedeRestrictionLexicalParser<'i, 'arena> {
                 input.len() as usize * SPPF_CAPACITY_MULTIPLIER,
                 vec_arena,
             ),
-            intermediate_nodes_index: [const { InlineMap::Empty }; 6],
+            intermediate_nodes_index: [const { InlineMap::Empty }; 10],
             dd_intermediate_nodes_index: [],
             terminal_nodes_index: [const { InlineMap::Empty }; 7],
             #[cfg(feature = "instrument")]
@@ -637,6 +675,82 @@ impl<'i, 'arena> PrecedeRestrictionLexicalParser<'i, 'arena> {
             parse_errors: InlineVec::Empty,
             #[cfg(feature = "debug-trace")]
             trace_events: None,
+        }
+    }
+    fn parse_s_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
+        #[cfg(feature = "instrument")]
+        self.ll1_call_log.push((NonterminalId(0), i));
+        let matched = self.scanner.longest_match(&FIRST_SET_S, i)?;
+        match matched {
+            TerminalId(3) => {
+                let mut j = i;
+                let right_child = {
+                    let start = j;
+                    let (end, node) = self.match_terminal(TerminalId(3), start, SlotId(1), None)?;
+                    j = end;
+                    node
+                };
+                let left_extent = self.sppf_node(right_child).left_extent();
+                let mut current = right_child;
+                let right_child = {
+                    let start = j;
+                    let (end, node) = self.match_terminal(TerminalId(2), start, SlotId(2), None)?;
+                    j = end;
+                    node
+                };
+                current = self.create_intermediate_node_ll1(
+                    SlotId(2),
+                    left_extent,
+                    j,
+                    current,
+                    right_child,
+                );
+                let right_child = {
+                    let start = j;
+                    let (end, node) = self.match_terminal(TerminalId(0), start, SlotId(3), None)?;
+                    j = end;
+                    node
+                };
+                current = self.create_intermediate_node_ll1(
+                    SlotId(3),
+                    left_extent,
+                    j,
+                    current,
+                    right_child,
+                );
+                Some(self.add_nonterminal_node(NonterminalNode {
+                    nonterminal_id: NonterminalId(0),
+                    return_slot: SlotId(3),
+                    span: Span {
+                        left_extent,
+                        right_extent: j,
+                    },
+                    child: current,
+                    ambiguous: false,
+                }))
+            }
+            TerminalId(4) => {
+                let mut j = i;
+                let right_child = {
+                    let start = j;
+                    let (end, node) = self.match_terminal(TerminalId(4), start, SlotId(5), None)?;
+                    j = end;
+                    node
+                };
+                let left_extent = self.sppf_node(right_child).left_extent();
+                let current = right_child;
+                Some(self.add_nonterminal_node(NonterminalNode {
+                    nonterminal_id: NonterminalId(0),
+                    return_slot: SlotId(5),
+                    span: Span {
+                        left_extent,
+                        right_extent: j,
+                    },
+                    child: current,
+                    ambiguous: false,
+                }))
+            }
+            _ => unreachable!("LL(1) dispatch covers every terminal in FIRST_SET"),
         }
     }
     // True if a local ambiguity node was added during parsing. This does not guarantee the

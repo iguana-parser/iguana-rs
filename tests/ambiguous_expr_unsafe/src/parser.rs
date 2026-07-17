@@ -592,6 +592,70 @@ impl<'i, 'arena> Parser<'i, 'arena> for AmbiguousExprUnsafeParser<'i, 'arena> {
                     self.create_nonterminal_node(result, NonterminalId(1), SlotId(59), gss_node_id);
                 self.pop(gss_node_id, SlotId(59), nonterminal_node_id, None);
             }
+            // StartS : . WS start:S WS
+            SlotId(60) => {
+                if let Some((j, right_child)) =
+                    self.match_terminal(TerminalId(0), input_index, SlotId(60), Some(gss_node_id))
+                {
+                    // StartS : WS . start:S WS
+                    self.execute(j, SlotId(61), Some(right_child), gss_node_id, env);
+                }
+            }
+            // StartS : WS . start:S WS
+            SlotId(61) => {
+                self.create(NonterminalId(0), result, gss_node_id, SlotId(62), env);
+            }
+            // StartS : WS start:S . WS
+            SlotId(62) => {
+                if let Some((_, right_child)) =
+                    self.match_terminal(TerminalId(0), input_index, SlotId(62), Some(gss_node_id))
+                {
+                    if let Some((j, new_node)) =
+                        self.create_intermediate_node(result, right_child, SlotId(63), env)
+                    {
+                        // StartS : WS start:S WS.
+                        self.execute(j, SlotId(63), Some(new_node), gss_node_id, env);
+                    }
+                }
+            }
+            // StartS : WS start:S WS.
+            SlotId(63) => {
+                let nonterminal_node_id =
+                    self.create_nonterminal_node(result, NonterminalId(2), SlotId(63), gss_node_id);
+                self.pop(gss_node_id, SlotId(63), nonterminal_node_id, None);
+            }
+            // StartE : . WS start:E WS
+            SlotId(64) => {
+                if let Some((j, right_child)) =
+                    self.match_terminal(TerminalId(0), input_index, SlotId(64), Some(gss_node_id))
+                {
+                    // StartE : WS . start:E WS
+                    self.execute(j, SlotId(65), Some(right_child), gss_node_id, env);
+                }
+            }
+            // StartE : WS . start:E WS
+            SlotId(65) => {
+                self.create(NonterminalId(1), result, gss_node_id, SlotId(66), env);
+            }
+            // StartE : WS start:E . WS
+            SlotId(66) => {
+                if let Some((_, right_child)) =
+                    self.match_terminal(TerminalId(0), input_index, SlotId(66), Some(gss_node_id))
+                {
+                    if let Some((j, new_node)) =
+                        self.create_intermediate_node(result, right_child, SlotId(67), env)
+                    {
+                        // StartE : WS start:E WS.
+                        self.execute(j, SlotId(67), Some(new_node), gss_node_id, env);
+                    }
+                }
+            }
+            // StartE : WS start:E WS.
+            SlotId(67) => {
+                let nonterminal_node_id =
+                    self.create_nonterminal_node(result, NonterminalId(3), SlotId(67), gss_node_id);
+                self.pop(gss_node_id, SlotId(67), nonterminal_node_id, None);
+            }
             _ => {
                 panic!("Unknown grammar slot id: {slot_id}");
             }
@@ -669,6 +733,14 @@ impl<'i, 'arena> Parser<'i, 'arena> for AmbiguousExprUnsafeParser<'i, 'arena> {
                         }
                     });
                 }
+            }
+            // StartS : . WS start:S WS
+            NonterminalId(2) => {
+                self.add_first_descriptor(SlotId(60), input_index, gss_node_id, env);
+            }
+            // StartE : . WS start:E WS
+            NonterminalId(3) => {
+                self.add_first_descriptor(SlotId(64), input_index, gss_node_id, env);
             }
             _ => {
                 panic!("Unknown nonterminal id: {nonterminal_id}");
@@ -919,6 +991,8 @@ impl<'i, 'arena> Parser<'i, 'arena> for AmbiguousExprUnsafeParser<'i, 'arena> {
         match nonterminal_id {
             NonterminalId(0) => self.scanner.match_any(&FOLLOW_SET_S, input_index),
             NonterminalId(1) => self.scanner.match_any(&FOLLOW_SET_E, input_index),
+            NonterminalId(2) => self.scanner.match_any(&FOLLOW_SET_START_S, input_index),
+            NonterminalId(3) => self.scanner.match_any(&FOLLOW_SET_START_E, input_index),
             _ => true,
         }
     }
@@ -926,6 +1000,8 @@ impl<'i, 'arena> Parser<'i, 'arena> for AmbiguousExprUnsafeParser<'i, 'arena> {
         match nonterminal_id {
             NonterminalId(0) => FOLLOW_SET_S.terminals.to_vec(),
             NonterminalId(1) => FOLLOW_SET_E.terminals.to_vec(),
+            NonterminalId(2) => FOLLOW_SET_START_S.terminals.to_vec(),
+            NonterminalId(3) => FOLLOW_SET_START_E.terminals.to_vec(),
             _ => vec![],
         }
     }
@@ -981,7 +1057,7 @@ pub struct AmbiguousExprUnsafeParser<'i, 'arena> {
     descriptors: AVec<Descriptor, &'arena Bump>,
     gss_nodes: AVec<GSSNode<'arena>, &'arena Bump>,
     // Per-nonterminal GSS-node index keyed by input position.
-    gss_nodes_index: [InlineMap<'arena, u32, GssNodeId>; 2],
+    gss_nodes_index: [InlineMap<'arena, u32, GssNodeId>; 4],
     sppf_nodes: AVec<SPPFNode, &'arena Bump>,
     #[cfg(feature = "instrument")]
     descriptors_count: usize,
@@ -1005,7 +1081,7 @@ impl<'i, 'arena> AmbiguousExprUnsafeParser<'i, 'arena> {
             start_nonterminal,
             vec_arena,
             scanner: AmbiguousExprUnsafeScanner::new(input, vec_arena),
-            gss_nodes_index: [const { InlineMap::Empty }; 2],
+            gss_nodes_index: [const { InlineMap::Empty }; 4],
             descriptors: AVec::with_capacity_in(
                 input.len() as usize / DESCRIPTORS_CAPACITY_DIVISOR + DESCRIPTORS_CAPACITY_FLOOR,
                 vec_arena,

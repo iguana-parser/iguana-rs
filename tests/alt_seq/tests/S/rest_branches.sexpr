@@ -1,7 +1,8 @@
-(S
-  ((A B | C)
-    (C "c"))
-  ((D | E F)
-    (E "e")
-    (F "f"))
-  Hex)
+(Start
+  (S
+    ((A B | C)
+      (C "c"))
+    ((D | E F)
+      (E "e")
+      (F "f"))
+    Hex))

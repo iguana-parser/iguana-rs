@@ -1,7 +1,10 @@
-(S
-  (E
-    (E "a")
-    WS
-    "."
-    WS
-    "f"))
+(Start
+  WS
+  (S
+    (E
+      (E "a")
+      WS
+      "."
+      WS
+      "f"))
+  WS)

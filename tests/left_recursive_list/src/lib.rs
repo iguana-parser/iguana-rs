@@ -53,16 +53,19 @@ pub struct ParseSuccess<T> {
 pub fn parse_a<'a>(
     input: &Input,
     tree_arena: &'a Bump,
-) -> std::result::Result<ParseSuccess<&'a A<'a>>, ParseError> {
+) -> std::result::Result<ParseSuccess<&'a Start<&'a A<'a>, ()>>, ParseError> {
     let vec_arena = Bump::new();
-    let mut parser = LeftRecursiveListParser::new(input, grammar_data::A, &vec_arena);
+    let mut parser = LeftRecursiveListParser::new(input, grammar_data::START_A, &vec_arena);
     match parser.run() {
         ParseResult::Success(success) => {
             let parse_duration = success.duration;
             let tree_start = iguana_runtime::Instant::now();
             let parse_tree_builder = LeftRecursiveListParseTreeBuilder::new(tree_arena);
-            let tree =
-                parse_tree::create_parse_tree_a(success.sppf_node_id, &parser, &parse_tree_builder);
+            let tree = parse_tree::create_parse_tree_start_a(
+                success.sppf_node_id,
+                &parser,
+                &parse_tree_builder,
+            );
             let tree_construction_duration = tree_start.elapsed();
             let ambiguity_node_added = parser.ambiguity_node_added();
             Ok(ParseSuccess {

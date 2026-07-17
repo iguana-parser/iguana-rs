@@ -3,7 +3,7 @@
 use crate::types::{Nonterminal, Slot, Terminal};
 use iguana_runtime::ids::{NonterminalId, TerminalId};
 use iguana_runtime::scanner::TerminalSet;
-pub const NONTERMINALS: [Nonterminal; 5] = [
+pub const NONTERMINALS: [Nonterminal; 7] = [
     Nonterminal {
         name: "S",
         display: "S",
@@ -29,6 +29,16 @@ pub const NONTERMINALS: [Nonterminal; 5] = [
         display: "LetterOrDigit*",
         derived: true,
     },
+    Nonterminal {
+        name: "StartS",
+        display: "S",
+        derived: true,
+    },
+    Nonterminal {
+        name: "StartId",
+        display: "Id",
+        derived: true,
+    },
 ];
 // User-declared nonterminals in `.iggy` source order. Used by `--list-nonterminals`.
 pub const NONTERMINAL_DISPLAY_ORDER: [&str; 2] = ["S", "Id"];
@@ -37,6 +47,8 @@ pub const ID: NonterminalId = NonterminalId(1);
 pub const PLUS_0: NonterminalId = NonterminalId(2);
 pub const OPT_0: NonterminalId = NonterminalId(3);
 pub const STAR_0: NonterminalId = NonterminalId(4);
+pub const START_S: NonterminalId = NonterminalId(5);
+pub const START_ID: NonterminalId = NonterminalId(6);
 pub fn nonterminal_id(name: &str) -> Option<NonterminalId> {
     match name {
         "S" => Some(S),
@@ -44,6 +56,8 @@ pub fn nonterminal_id(name: &str) -> Option<NonterminalId> {
         "Plus_0" => Some(PLUS_0),
         "Opt_0" => Some(OPT_0),
         "Star_0" => Some(STAR_0),
+        "StartS" => Some(START_S),
+        "StartId" => Some(START_ID),
         _ => None,
     }
 }
@@ -57,7 +71,7 @@ pub const TERMINALS: [Terminal; 6] = [
     Terminal { name: "Epsilon" },
     Terminal { name: "EOF" },
 ];
-pub const SLOTS: [Slot; 15] = [
+pub const SLOTS: [Slot; 23] = [
     Slot {
         display_name: "S : . Id",
     },
@@ -103,11 +117,35 @@ pub const SLOTS: [Slot; 15] = [
     Slot {
         display_name: "LetterOrDigit* : LetterOrDigit+?.",
     },
+    Slot {
+        display_name: "S : . WS start:S WS",
+    },
+    Slot {
+        display_name: "S : WS . start:S WS",
+    },
+    Slot {
+        display_name: "S : WS start:S . WS",
+    },
+    Slot {
+        display_name: "S : WS start:S WS.",
+    },
+    Slot {
+        display_name: "Id : . WS start:Id WS",
+    },
+    Slot {
+        display_name: "Id : WS . start:Id WS",
+    },
+    Slot {
+        display_name: "Id : WS start:Id . WS",
+    },
+    Slot {
+        display_name: "Id : WS start:Id WS.",
+    },
 ];
-// S { EOF }
+// S { WS, EOF }
 pub static FOLLOW_SET_S: TerminalSet = TerminalSet {
     id: 0,
-    terminals: &[TerminalId(5)],
+    terminals: &[TerminalId(3), TerminalId(5)],
 };
 // S { Letter }
 pub static FIRST_SET_S: TerminalSet = TerminalSet {
@@ -119,10 +157,10 @@ pub static FIRST_SET_S_ALT0: TerminalSet = TerminalSet {
     id: 1,
     terminals: &[TerminalId(1)],
 };
-// Id { EOF }
+// Id { WS, EOF }
 pub static FOLLOW_SET_ID: TerminalSet = TerminalSet {
     id: 0,
-    terminals: &[TerminalId(5)],
+    terminals: &[TerminalId(3), TerminalId(5)],
 };
 // Id { Letter }
 pub static FIRST_SET_ID: TerminalSet = TerminalSet {
@@ -134,10 +172,10 @@ pub static FIRST_SET_ID_ALT0: TerminalSet = TerminalSet {
     id: 1,
     terminals: &[TerminalId(1)],
 };
-// Plus_0 { LetterOrDigit, EOF }
+// Plus_0 { EOF, LetterOrDigit, WS }
 pub static FOLLOW_SET_PLUS_0: TerminalSet = TerminalSet {
     id: 2,
-    terminals: &[TerminalId(2), TerminalId(5)],
+    terminals: &[TerminalId(5), TerminalId(2), TerminalId(3)],
 };
 // Plus_0 { LetterOrDigit }
 pub static FIRST_SET_PLUS_0: TerminalSet = TerminalSet {
@@ -154,10 +192,10 @@ pub static FIRST_SET_PLUS_0_ALT1: TerminalSet = TerminalSet {
     id: 3,
     terminals: &[TerminalId(2)],
 };
-// Opt_0 { EOF }
+// Opt_0 { WS, EOF }
 pub static FOLLOW_SET_OPT_0: TerminalSet = TerminalSet {
     id: 0,
-    terminals: &[TerminalId(5)],
+    terminals: &[TerminalId(3), TerminalId(5)],
 };
 // Opt_0 { LetterOrDigit }
 pub static FIRST_SET_OPT_0: TerminalSet = TerminalSet {
@@ -174,10 +212,10 @@ pub static FIRST_SET_OPT_0_ALT1: TerminalSet = TerminalSet {
     id: 4,
     terminals: &[],
 };
-// Star_0 { EOF }
+// Star_0 { WS, EOF }
 pub static FOLLOW_SET_STAR_0: TerminalSet = TerminalSet {
     id: 0,
-    terminals: &[TerminalId(5)],
+    terminals: &[TerminalId(3), TerminalId(5)],
 };
 // Star_0 { LetterOrDigit }
 pub static FIRST_SET_STAR_0: TerminalSet = TerminalSet {
@@ -188,4 +226,34 @@ pub static FIRST_SET_STAR_0: TerminalSet = TerminalSet {
 pub static FIRST_SET_STAR_0_ALT0: TerminalSet = TerminalSet {
     id: 3,
     terminals: &[TerminalId(2)],
+};
+// StartS { EOF }
+pub static FOLLOW_SET_START_S: TerminalSet = TerminalSet {
+    id: 5,
+    terminals: &[TerminalId(5)],
+};
+// StartS { Letter, WS }
+pub static FIRST_SET_START_S: TerminalSet = TerminalSet {
+    id: 2,
+    terminals: &[TerminalId(1), TerminalId(3)],
+};
+// StartS : . WS start:S WS { Letter, WS }
+pub static FIRST_SET_START_S_ALT0: TerminalSet = TerminalSet {
+    id: 6,
+    terminals: &[TerminalId(1), TerminalId(3)],
+};
+// StartId { EOF }
+pub static FOLLOW_SET_START_ID: TerminalSet = TerminalSet {
+    id: 5,
+    terminals: &[TerminalId(5)],
+};
+// StartId { Letter, WS }
+pub static FIRST_SET_START_ID: TerminalSet = TerminalSet {
+    id: 2,
+    terminals: &[TerminalId(1), TerminalId(3)],
+};
+// StartId : . WS start:Id WS { Letter, WS }
+pub static FIRST_SET_START_ID_ALT0: TerminalSet = TerminalSet {
+    id: 6,
+    terminals: &[TerminalId(1), TerminalId(3)],
 };

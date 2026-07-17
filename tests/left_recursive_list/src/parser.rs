@@ -97,6 +97,16 @@ impl<'i, 'arena> Parser<'i, 'arena> for LeftRecursiveListParser<'i, 'arena> {
                     self.create_nonterminal_node(result, NonterminalId(0), SlotId(4), gss_node_id);
                 self.pop(gss_node_id, SlotId(4), nonterminal_node_id, None);
             }
+            // StartA : . start:A
+            SlotId(5) => {
+                self.create(NonterminalId(0), result, gss_node_id, SlotId(6), env);
+            }
+            // StartA : start:A.
+            SlotId(6) => {
+                let nonterminal_node_id =
+                    self.create_nonterminal_node(result, NonterminalId(1), SlotId(6), gss_node_id);
+                self.pop(gss_node_id, SlotId(6), nonterminal_node_id, None);
+            }
             _ => {
                 panic!("Unknown grammar slot id: {slot_id}");
             }
@@ -130,6 +140,10 @@ impl<'i, 'arena> Parser<'i, 'arena> for LeftRecursiveListParser<'i, 'arena> {
                         }
                     });
                 }
+            }
+            // StartA : . start:A
+            NonterminalId(1) => {
+                self.add_first_descriptor(SlotId(5), input_index, gss_node_id, env);
             }
             _ => {
                 panic!("Unknown nonterminal id: {nonterminal_id}");
@@ -236,14 +250,14 @@ impl<'i, 'arena> Parser<'i, 'arena> for LeftRecursiveListParser<'i, 'arena> {
         if add_to_index {
             let arena = self.vec_arena;
             let slot_idx = intermediate_node.slot_id.index();
-            if slot_idx < 5 {
+            if slot_idx < 7 {
                 self.intermediate_nodes_index[slot_idx].insert(
                     intermediate_node.span,
                     intermediate_node_id,
                     arena,
                 );
             } else {
-                let idx = slot_idx - 5;
+                let idx = slot_idx - 7;
                 self.dd_intermediate_nodes_index[idx].insert(
                     (intermediate_node.span, env),
                     intermediate_node_id,
@@ -326,10 +340,10 @@ impl<'i, 'arena> Parser<'i, 'arena> for LeftRecursiveListParser<'i, 'arena> {
     ) -> Option<SPPFNodeId> {
         let slot_idx = slot_id.index();
         let span = Span::new(left_extent, right_extent);
-        if slot_idx < 5 {
+        if slot_idx < 7 {
             self.intermediate_nodes_index[slot_idx].get(&span).copied()
         } else {
-            let idx = slot_idx - 5;
+            let idx = slot_idx - 7;
             self.dd_intermediate_nodes_index[idx]
                 .get(&(span, env))
                 .copied()
@@ -367,13 +381,6 @@ impl<'i, 'arena> Parser<'i, 'arena> for LeftRecursiveListParser<'i, 'arena> {
     ) {
         self.nonterminal_nodes_children
             .push((node, (child, return_slot)));
-    }
-    fn nonterminal_node_extra_children(&self, node: SPPFNodeId) -> Vec<(SPPFNodeId, SlotId)> {
-        self.nonterminal_nodes_children
-            .iter()
-            .filter(|(parent, _)| *parent == node)
-            .map(|(_, child)| *child)
-            .collect()
     }
     fn intermediate_nodes_children_map(
         &self,
@@ -485,12 +492,14 @@ impl<'i, 'arena> Parser<'i, 'arena> for LeftRecursiveListParser<'i, 'arena> {
     fn follow_set_check(&mut self, nonterminal_id: NonterminalId, input_index: u32) -> bool {
         match nonterminal_id {
             NonterminalId(0) => self.scanner.match_any(&FOLLOW_SET_A, input_index),
+            NonterminalId(1) => self.scanner.match_any(&FOLLOW_SET_START_A, input_index),
             _ => true,
         }
     }
     fn follow_set_terminals(&self, nonterminal_id: NonterminalId) -> Vec<TerminalId> {
         match nonterminal_id {
             NonterminalId(0) => FOLLOW_SET_A.terminals.to_vec(),
+            NonterminalId(1) => FOLLOW_SET_START_A.terminals.to_vec(),
             _ => vec![],
         }
     }
@@ -546,7 +555,7 @@ pub struct LeftRecursiveListParser<'i, 'arena> {
     descriptors: AVec<Descriptor, &'arena Bump>,
     gss_nodes: AVec<GSSNode<'arena>, &'arena Bump>,
     // Per-nonterminal GSS-node index keyed by input position.
-    gss_nodes_index: [InlineMap<'arena, u32, GssNodeId>; 1],
+    gss_nodes_index: [InlineMap<'arena, u32, GssNodeId>; 2],
     sppf_nodes: AVec<SPPFNode, &'arena Bump>,
     #[cfg(feature = "instrument")]
     descriptors_count: usize,
@@ -555,7 +564,7 @@ pub struct LeftRecursiveListParser<'i, 'arena> {
     #[cfg(feature = "instrument")]
     ll1_call_log: Vec<(NonterminalId, u32)>,
     // Per-slot Span-keyed intermediate-node index, for slots in non-parameterized nonterminals.
-    intermediate_nodes_index: [InlineMap<'arena, Span, SPPFNodeId>; 5],
+    intermediate_nodes_index: [InlineMap<'arena, Span, SPPFNodeId>; 7],
     // Per-slot (Span, env)-keyed intermediate-node index, for slots in parameterized
     // nonterminals; env separates calls made with different parameter values.
     dd_intermediate_nodes_index: [InlineMap<'arena, (Span, Option<EnvId>), SPPFNodeId>; 0],
@@ -589,7 +598,7 @@ impl<'i, 'arena> LeftRecursiveListParser<'i, 'arena> {
             start_nonterminal,
             vec_arena,
             scanner: LeftRecursiveListScanner::new(input, vec_arena),
-            gss_nodes_index: [const { InlineMap::Empty }; 1],
+            gss_nodes_index: [const { InlineMap::Empty }; 2],
             descriptors: AVec::with_capacity_in(
                 input.len() as usize / DESCRIPTORS_CAPACITY_DIVISOR + DESCRIPTORS_CAPACITY_FLOOR,
                 vec_arena,
@@ -602,7 +611,7 @@ impl<'i, 'arena> LeftRecursiveListParser<'i, 'arena> {
                 input.len() as usize * SPPF_CAPACITY_MULTIPLIER,
                 vec_arena,
             ),
-            intermediate_nodes_index: [const { InlineMap::Empty }; 5],
+            intermediate_nodes_index: [const { InlineMap::Empty }; 7],
             dd_intermediate_nodes_index: [],
             terminal_nodes_index: [const { InlineMap::Empty }; 3],
             #[cfg(feature = "instrument")]

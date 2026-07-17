@@ -1,36 +1,39 @@
-(S
-  (Amb
-    (E
-      "if"
-      WS
-      #1=(E "a")
-      WS
-      "then"
-      WS
-      #2=(E "a")
-      WS
-      "else"
-      WS
-      (E
-        #3=(E "a")
-        WS
-        "+"
-        WS
-        #4=(E "a")))
-    (E
+(Start
+  WS
+  (S
+    (Amb
       (E
         "if"
         WS
-        #1#
+        #1=(E "a")
         WS
         "then"
         WS
-        #2#
+        #2=(E "a")
         WS
         "else"
         WS
-        #3#)
-      WS
-      "+"
-      WS
-      #4#)))
+        (E
+          #3=(E "a")
+          WS
+          "+"
+          WS
+          #4=(E "a")))
+      (E
+        (E
+          "if"
+          WS
+          #1#
+          WS
+          "then"
+          WS
+          #2#
+          WS
+          "else"
+          WS
+          #3#)
+        WS
+        "+"
+        WS
+        #4#)))
+  WS)

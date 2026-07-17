@@ -1,3 +1,6 @@
-(S
-  (Id
-    (Char+ Char Char Char)))
+(Start
+  WS
+  (S
+    (Id
+      (Char+ Char Char Char)))
+  WS)

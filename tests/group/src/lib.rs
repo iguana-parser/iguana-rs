@@ -53,16 +53,19 @@ pub struct ParseSuccess<T> {
 pub fn parse_a<'a>(
     input: &Input,
     tree_arena: &'a Bump,
-) -> std::result::Result<ParseSuccess<&'a A<'a>>, ParseError> {
+) -> std::result::Result<ParseSuccess<&'a Start<&'a A<'a>, ()>>, ParseError> {
     let vec_arena = Bump::new();
-    let mut parser = GroupParser::new(input, grammar_data::A, &vec_arena);
+    let mut parser = GroupParser::new(input, grammar_data::START_A, &vec_arena);
     match parser.run() {
         ParseResult::Success(success) => {
             let parse_duration = success.duration;
             let tree_start = iguana_runtime::Instant::now();
             let parse_tree_builder = GroupParseTreeBuilder::new(tree_arena);
-            let tree =
-                parse_tree::create_parse_tree_a(success.sppf_node_id, &parser, &parse_tree_builder);
+            let tree = parse_tree::create_parse_tree_start_a(
+                success.sppf_node_id,
+                &parser,
+                &parse_tree_builder,
+            );
             let tree_construction_duration = tree_start.elapsed();
             let ambiguity_node_added = parser.ambiguity_node_added();
             Ok(ParseSuccess {
@@ -94,16 +97,19 @@ pub fn parse_a<'a>(
 pub fn parse_b<'a>(
     input: &Input,
     tree_arena: &'a Bump,
-) -> std::result::Result<ParseSuccess<&'a B<'a>>, ParseError> {
+) -> std::result::Result<ParseSuccess<&'a Start<&'a B<'a>, ()>>, ParseError> {
     let vec_arena = Bump::new();
-    let mut parser = GroupParser::new(input, grammar_data::B, &vec_arena);
+    let mut parser = GroupParser::new(input, grammar_data::START_B, &vec_arena);
     match parser.run() {
         ParseResult::Success(success) => {
             let parse_duration = success.duration;
             let tree_start = iguana_runtime::Instant::now();
             let parse_tree_builder = GroupParseTreeBuilder::new(tree_arena);
-            let tree =
-                parse_tree::create_parse_tree_b(success.sppf_node_id, &parser, &parse_tree_builder);
+            let tree = parse_tree::create_parse_tree_start_b(
+                success.sppf_node_id,
+                &parser,
+                &parse_tree_builder,
+            );
             let tree_construction_duration = tree_start.elapsed();
             let ambiguity_node_added = parser.ambiguity_node_added();
             Ok(ParseSuccess {
@@ -135,16 +141,19 @@ pub fn parse_b<'a>(
 pub fn parse_c<'a>(
     input: &Input,
     tree_arena: &'a Bump,
-) -> std::result::Result<ParseSuccess<&'a C<'a>>, ParseError> {
+) -> std::result::Result<ParseSuccess<&'a Start<&'a C<'a>, ()>>, ParseError> {
     let vec_arena = Bump::new();
-    let mut parser = GroupParser::new(input, grammar_data::C, &vec_arena);
+    let mut parser = GroupParser::new(input, grammar_data::START_C, &vec_arena);
     match parser.run() {
         ParseResult::Success(success) => {
             let parse_duration = success.duration;
             let tree_start = iguana_runtime::Instant::now();
             let parse_tree_builder = GroupParseTreeBuilder::new(tree_arena);
-            let tree =
-                parse_tree::create_parse_tree_c(success.sppf_node_id, &parser, &parse_tree_builder);
+            let tree = parse_tree::create_parse_tree_start_c(
+                success.sppf_node_id,
+                &parser,
+                &parse_tree_builder,
+            );
             let tree_construction_duration = tree_start.elapsed();
             let ambiguity_node_added = parser.ambiguity_node_added();
             Ok(ParseSuccess {
@@ -176,16 +185,19 @@ pub fn parse_c<'a>(
 pub fn parse_d<'a>(
     input: &Input,
     tree_arena: &'a Bump,
-) -> std::result::Result<ParseSuccess<&'a D<'a>>, ParseError> {
+) -> std::result::Result<ParseSuccess<&'a Start<&'a D<'a>, ()>>, ParseError> {
     let vec_arena = Bump::new();
-    let mut parser = GroupParser::new(input, grammar_data::D, &vec_arena);
+    let mut parser = GroupParser::new(input, grammar_data::START_D, &vec_arena);
     match parser.run() {
         ParseResult::Success(success) => {
             let parse_duration = success.duration;
             let tree_start = iguana_runtime::Instant::now();
             let parse_tree_builder = GroupParseTreeBuilder::new(tree_arena);
-            let tree =
-                parse_tree::create_parse_tree_d(success.sppf_node_id, &parser, &parse_tree_builder);
+            let tree = parse_tree::create_parse_tree_start_d(
+                success.sppf_node_id,
+                &parser,
+                &parse_tree_builder,
+            );
             let tree_construction_duration = tree_start.elapsed();
             let ambiguity_node_added = parser.ambiguity_node_added();
             Ok(ParseSuccess {

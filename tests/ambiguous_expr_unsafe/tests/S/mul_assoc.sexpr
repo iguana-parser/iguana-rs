@@ -1,12 +1,15 @@
-(S
-  (E
+(Start
+  WS
+  (S
     (E
-      (E "a")
+      (E
+        (E "a")
+        WS
+        "*"
+        WS
+        (E "a"))
       WS
       "*"
       WS
-      (E "a"))
-    WS
-    "*"
-    WS
-    (E "a")))
+      (E "a")))
+  WS)
