@@ -19,6 +19,7 @@
   let nonterminals = $state<string[]>([]);
   let startNonterminal = $state<string | null>(null);
   let inputText = $state("");
+  let orientation = $state<"horizontal" | "vertical">("horizontal");
   let leftPanelWidth = $state(420);
 
   // The editor and graph libraries load from a CDN at runtime (see the
@@ -29,6 +30,15 @@
 
   onMount(async () => {
     try {
+      // Layout is a deploy-time choice passed in the URL: the hero embeds the
+      // viewer with ?layout=vertical (input over result); the grammar pages use
+      // the default horizontal split.
+      const params = new URLSearchParams(location.search);
+      if (params.get("layout") === "vertical") {
+        orientation = "vertical";
+        leftPanelWidth = 180; // a shorter input pane reads better when stacked
+      }
+
       const base = import.meta.env.BASE_URL;
 
       log("loading manifest...");
@@ -58,12 +68,18 @@
     }
   });
 
+  // Drag the divider. Horizontal resizes the input panel by width (clientX),
+  // vertical by height (clientY); leftPanelWidth holds the size along either axis.
   function startVerticalDrag(e: MouseEvent) {
     e.preventDefault();
-    const startX = e.clientX;
-    const startWidth = leftPanelWidth;
+    const vertical = orientation === "vertical";
+    const start = vertical ? e.clientY : e.clientX;
+    const startSize = leftPanelWidth;
+    const min = vertical ? 100 : 240;
+    const max = vertical ? 520 : 900;
     function onMove(ev: MouseEvent) {
-      leftPanelWidth = Math.max(240, Math.min(900, startWidth + ev.clientX - startX));
+      const pos = vertical ? ev.clientY : ev.clientX;
+      leftPanelWidth = Math.max(min, Math.min(max, startSize + pos - start));
     }
     function onUp() {
       window.removeEventListener("mousemove", onMove);
@@ -84,6 +100,7 @@
       bind:startNonterminal
       bind:inputText
       {leftPanelWidth}
+      {orientation}
       {startVerticalDrag}
     />
   </div>

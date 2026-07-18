@@ -60,8 +60,13 @@ enum Commands {
     Install,
     /// Install iguana, then launch the terrarium dev server
     Terrarium,
-    /// Generate the iggy wasm bundle and build it with wasm-pack
-    Wasm,
+    /// Generate a grammar's wasm bundle and build it with wasm-pack. With no
+    /// argument the iggy grammar is built; otherwise tests/<test>/<test>.iggy is
+    /// built into target/wasm/<test>.
+    Wasm {
+        /// Name of a grammar test under tests/ (defaults to the iggy grammar)
+        test: Option<String>,
+    },
 }
 
 fn main() -> io::Result<()> {
@@ -75,7 +80,7 @@ fn main() -> io::Result<()> {
         Commands::Test { regen, args } => test(regen, &args),
         Commands::Install => install(),
         Commands::Terrarium => terrarium(),
-        Commands::Wasm => wasm(),
+        Commands::Wasm { test } => wasm(test.as_deref()),
     }
 }
 
@@ -590,10 +595,20 @@ fn terrarium() -> io::Result<()> {
 
 /// Generate the iggy wasm bundle into `target/wasm/iggy` and build it with
 /// wasm-pack.
-fn wasm() -> io::Result<()> {
+fn wasm(test: Option<&str>) -> io::Result<()> {
     let root = workspace_root();
-    let grammar_file = root.join("iggy").join("iggy.iggy");
-    let output = root.join("target").join("wasm").join("iggy");
+    let (grammar_file, output, label) = match test {
+        None => (
+            root.join("iggy").join("iggy.iggy"),
+            root.join("target").join("wasm").join("iggy"),
+            "iggy".to_string(),
+        ),
+        Some(name) => (
+            root.join("tests").join(name).join(format!("{name}.iggy")),
+            root.join("target").join("wasm").join(name),
+            name.to_string(),
+        ),
+    };
 
     let config = GenConfig {
         wasm: true,
@@ -610,7 +625,7 @@ fn wasm() -> io::Result<()> {
         true,
     )?;
     println!(
-        "Generated iggy wasm bundle in {} ms",
+        "Generated {label} wasm bundle in {} ms",
         result.total_duration_ms
     );
 

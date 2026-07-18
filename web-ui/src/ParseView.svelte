@@ -75,6 +75,11 @@
     startNonterminal: string | null;
     inputText: string;
     leftPanelWidth: number;
+    // Split orientation. "horizontal" (default) places the input panel left of the
+    // result and sizes it by width; "vertical" stacks input over result and sizes
+    // it by height. leftPanelWidth is the input panel's size along the split axis
+    // in both cases.
+    orientation?: "horizontal" | "vertical";
     isProfiling?: boolean;
     // Host-specific hooks. Terrarium passes these; the web viewer omits them, so the
     // corresponding chrome (status bar, output log, profiling, graph pop-out) is dropped.
@@ -112,6 +117,7 @@
     startNonterminal = $bindable(null),
     inputText = $bindable(""),
     leftPanelWidth,
+    orientation = "horizontal",
     isProfiling = false,
     onStatus,
     onParseStart,
@@ -1062,9 +1068,9 @@
 
 <svelte:window onkeydown={handleParseViewKeydown} onclick={() => viewMenuOpen = false} />
 
-<div class="main-content">
+<div class="main-content" class:vertical={orientation === "vertical"}>
   <!-- Left Panel -->
-  <div class="left-panel" style="width: {leftPanelWidth}px">
+  <div class="left-panel" style={orientation === "vertical" ? `height: ${leftPanelWidth}px` : `width: ${leftPanelWidth}px`}>
     <!-- Header -->
     <div class="header">
       <div class="dropdown-wrapper">
@@ -1367,6 +1373,24 @@
 
   .resize-handle-vertical:hover {
     background: #0e639c;
+  }
+
+  /* Vertical orientation: stack input over result and turn the divider into a
+     horizontal row-resize bar. The input panel's height is set inline. */
+  .main-content.vertical {
+    flex-direction: column;
+  }
+
+  .main-content.vertical .left-panel {
+    min-width: 0;
+    max-width: none;
+    min-height: 100px;
+  }
+
+  .main-content.vertical .resize-handle-vertical {
+    width: auto;
+    height: 4px;
+    cursor: row-resize;
   }
 
   /* Right Panel */

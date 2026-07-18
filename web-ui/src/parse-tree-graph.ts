@@ -255,8 +255,10 @@ export function buildDisplayGraph(raw: ParseTreeData, options: DisplayOptions): 
   const isWrapper = (n: ParseTreeNodeData) => n.origin != null && WRAPPER_ORIGINS.has(n.origin);
   const isEmptyOptOrList = (n: ParseTreeNodeData) =>
     (n.origin === "Opt" || n.origin === "List") && (childrenMap.get(n.id)?.length ?? 0) === 0;
+  // Layout can be a lexical (@Regex) rule, so its nodes are Tokens, not only
+  // Nonterminals; a layout node is identified by its label matching the layout name.
   const isHiddenLayout = (n: ParseTreeNodeData) =>
-    !options.showLayout && layoutName !== null && n.kind === "Nonterminal" && n.label === layoutName;
+    !options.showLayout && layoutName !== null && n.label === layoutName;
 
   // The display children of a node: layout filtered out, empty repetitions
   // dropped, and wrappers spliced into place (recursively, so a chain of
