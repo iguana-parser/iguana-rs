@@ -905,8 +905,8 @@ pub struct CorpusConfig {
 
 /// The outcome of parsing one corpus file. `ms` is the parse time (the parser's
 /// own `run()`), used for the slow-file tail and the aggregate `parse_ms`.
-/// `ambiguous` marks a success with more than one derivation; it keeps the `ok`
-/// baseline status but fails the run through a separate absolute gate.
+/// `ambiguous` marks a success with more than one derivation; it records under
+/// the `amb` baseline status, which the check treats exactly like an error.
 pub enum CorpusOutcome {
     Ok { ms: f64, ambiguous: bool },
     Error { ms: f64, message: String },
@@ -914,10 +914,10 @@ pub enum CorpusOutcome {
 }
 
 /// Summary of one corpus run, returned so the caller can aggregate across
-/// corpora and set the exit code. `passed` is false when a file regresses (it
-/// parsed in the baseline and now fails) or parses ambiguously; on an `Update`
-/// this also means the baseline was left untouched, since a rewrite is refused
-/// rather than record a regression or an ambiguity.
+/// corpora and set the exit code. `passed` is false when a file regresses: it
+/// parsed cleanly in the baseline and now fails, a newly ambiguous parse
+/// included. On an `Update` this also means the baseline was left untouched,
+/// since a rewrite is refused rather than record a regression.
 pub struct CorpusReport {
     pub name: String,
     pub files: usize,
@@ -932,6 +932,7 @@ pub struct CorpusReport {
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
 enum Status {
     Ok,
+    Ambiguous,
     Error,
     IoError,
 }
@@ -945,11 +946,10 @@ struct CurrentFile {
     ms: f64,
 }
 
-/// One per-file line read back from a baseline. `ms` is present only for files
-/// in the slow tail; `message` only for `error`/`ioerror`.
+/// One per-file line read back from a baseline. `message` is present only for
+/// `error`/`ioerror`.
 struct BaselineRecord {
     status: Status,
-    ms: Option<u64>,
     message: Option<String>,
 }
 
@@ -957,6 +957,7 @@ struct BaselineRecord {
 struct BaselineTotals {
     files: usize,
     ok: usize,
+    ambiguous: usize,
     error: usize,
     ioerror: usize,
     parse_ms: u64,
@@ -974,17 +975,17 @@ struct BaselineTotals {
 /// soft band on the aggregate `parse_ms`.
 ///
 /// Returns a `CorpusReport`; on a `Check`, `passed` is false when a file
-/// regresses (parsed in the baseline as `ok` and now fails with
-/// `error`/`ioerror`) or when any file parses ambiguously. Recoveries
-/// (`fail -> ok`), message/status drift between failing states, and
-/// added/removed files are reported but do not fail the run, so a red check
-/// always means a genuine regression or an ambiguity. Ambiguity is an absolute
-/// gate, not diffed against the baseline: an ambiguous parse still records as
-/// `ok`, so the baseline format is unchanged. An `Update` applies the same
-/// gate: it rewrites the baseline only when the new state is safe, and otherwise
-/// fails without writing (a first run with no baseline can be blocked only by
-/// ambiguity). Timing is a separate soft signal: a `parse_ms` drift past
-/// `perf_tolerance_pct` is reported but never fails the run.
+/// regresses: it parsed cleanly in the baseline (`ok`) and now fails with
+/// `amb`, `error`, or `ioerror`. Recoveries (`fail -> ok`), message/status
+/// drift between failing states, and added/removed files are reported but do
+/// not fail the run, so a red check always means a genuine regression.
+/// Ambiguity is diffed against the baseline like an error: a parse with more
+/// than one derivation records under the `amb` status, so a file that is
+/// ambiguous in both the baseline and the run is a known state, not a failure,
+/// while a fresh `ok -> amb` fails. An `Update` applies the same rule: it
+/// rewrites the baseline only when the run holds no regression, and otherwise
+/// fails without writing. Timing is a separate soft signal: a `parse_ms` drift
+/// past `perf_tolerance_pct` is reported but never fails the run.
 pub fn run_corpus(
     name: &str,
     inputs: Vec<PathBuf>,
@@ -1005,7 +1006,6 @@ pub fn run_corpus(
     // aggregate parse time.
     let mut files: Vec<CurrentFile> = Vec::with_capacity(inputs.len());
     let mut parse_ms_total = 0.0f64;
-    let mut ambiguous = 0usize;
     for input in &inputs {
         let path = normalize_rel(input, root);
         let (status, message, ms) = match parse_one(input) {
@@ -1013,10 +1013,12 @@ pub fn run_corpus(
                 ms,
                 ambiguous: is_ambig,
             } => {
-                if is_ambig {
-                    ambiguous += 1;
-                }
-                (Status::Ok, None, ms)
+                let status = if is_ambig {
+                    Status::Ambiguous
+                } else {
+                    Status::Ok
+                };
+                (status, None, ms)
             }
             CorpusOutcome::Error { ms, message } => (Status::Error, Some(sanitize(&message)), ms),
             CorpusOutcome::IoError { message } => (Status::IoError, Some(sanitize(&message)), 0.0),
@@ -1032,6 +1034,10 @@ pub fn run_corpus(
     files.sort_by(|a, b| a.path.cmp(&b.path));
 
     let ok = files.iter().filter(|f| f.status == Status::Ok).count();
+    let ambiguous = files
+        .iter()
+        .filter(|f| f.status == Status::Ambiguous)
+        .count();
     let error = files.iter().filter(|f| f.status == Status::Error).count();
     let ioerror = files.iter().filter(|f| f.status == Status::IoError).count();
     let parse_ms = parse_ms_total as u64;
@@ -1048,38 +1054,29 @@ pub fn run_corpus(
 
     match mode {
         CorpusMode::Update => {
-            // An update must not bake a regression or an ambiguity into the
-            // committed baseline, so gate the rewrite on the same conditions as a
-            // Check. A missing baseline is fine on a first run: there is nothing
-            // to regress from, so only ambiguity can block it.
+            // An update must not bake a regression into the committed baseline, so
+            // hold the rewrite to the same condition as a Check: no file that
+            // parsed cleanly in the baseline may now fail, a new ambiguity
+            // included. A missing baseline is fine on a first run, since there is
+            // nothing to regress from.
             let baseline = match read_baseline(baseline_path) {
                 Ok((_, baseline)) => baseline,
                 Err(e) if e.kind() == io::ErrorKind::NotFound => BTreeMap::new(),
                 Err(e) => return Err(e),
             };
             let diffs = diff_records(&files, &baseline);
-            let passed = diffs.regressions.is_empty() && ambiguous == 0;
+            let passed = diffs.regressions.is_empty();
             if !passed {
                 // A refusal prints even under --quiet: it is the point of the run.
                 print_status(&color, "FAIL", false, &corpus_counts(name, &report));
-                if ambiguous > 0 {
-                    println!("  {} file(s) parsed ambiguously", ambiguous);
-                }
-                if !diffs.regressions.is_empty() {
-                    print_diffs(&color, &diffs);
-                }
-                println!(
-                    "  baseline left unchanged (an update records neither a regression nor an ambiguity)"
-                );
+                print_diffs(&color, &diffs);
+                println!("  baseline left unchanged (an update records no regression)");
                 return Ok(CorpusReport {
                     passed: false,
                     ..report
                 });
             }
-            fs::write(
-                baseline_path,
-                serialize_baseline(name, &files, slow_ms, parse_ms),
-            )?;
+            fs::write(baseline_path, serialize_baseline(name, &files, parse_ms))?;
             if !quiet {
                 print_status(&color, "WRITE", true, &corpus_counts(name, &report));
             }
@@ -1107,22 +1104,18 @@ pub fn run_corpus(
             };
 
             // Compare every file against its baseline record. A regression
-            // (ok -> fail) or any ambiguous parse fails the check; recoveries,
-            // drift, and added/removed are soft. Timing always reports below,
-            // regardless of the verdict.
+            // (a file that parsed cleanly in the baseline now fails, a new
+            // ambiguity included) fails the check; recoveries, drift, and
+            // added/removed are soft. Timing always reports below, regardless of
+            // the verdict.
             let diffs = diff_records(&files, &baseline);
-            let passed = diffs.regressions.is_empty() && ambiguous == 0;
+            let passed = diffs.regressions.is_empty();
 
             if !passed {
                 // A failure prints even under --quiet: it is the point of the run.
                 print_status(&color, "FAIL", false, &corpus_counts(name, &report));
-                if ambiguous > 0 {
-                    println!("  {} file(s) parsed ambiguously", ambiguous);
-                }
-                if !diffs.is_clean() {
-                    print_baseline_counts(&totals);
-                    print_diffs(&color, &diffs);
-                }
+                print_baseline_counts(&totals);
+                print_diffs(&color, &diffs);
             } else if !quiet {
                 if diffs.is_clean() {
                     print_status(&color, "PASS", true, &corpus_counts(name, &report));
@@ -1144,7 +1137,6 @@ pub fn run_corpus(
                     perf_tolerance_pct,
                     slow_ms,
                     &files,
-                    &baseline,
                 );
             }
             Ok(CorpusReport { passed, ..report })
@@ -1177,35 +1169,36 @@ fn sanitize(s: &str) -> String {
 /// Renders the baseline: the `# corpus`/`# files=…` header, then one sorted line
 /// per file. The parse time is written only for files past `slow_ms`, so the
 /// fast majority carry no time and the committed file stays stable.
-fn serialize_baseline(name: &str, files: &[CurrentFile], slow_ms: f64, parse_ms: u64) -> String {
+fn serialize_baseline(name: &str, files: &[CurrentFile], parse_ms: u64) -> String {
     let ok = files.iter().filter(|f| f.status == Status::Ok).count();
+    let ambiguous = files
+        .iter()
+        .filter(|f| f.status == Status::Ambiguous)
+        .count();
     let error = files.iter().filter(|f| f.status == Status::Error).count();
     let ioerror = files.iter().filter(|f| f.status == Status::IoError).count();
 
     let mut out = String::new();
     out.push_str(&format!("# corpus: {name}\n"));
     out.push_str(&format!(
-        "# files={} ok={ok} error={error} ioerror={ioerror} parse_ms={parse_ms}\n",
+        "# files={} ok={ok} amb={ambiguous} error={error} ioerror={ioerror} parse_ms={parse_ms}\n",
         files.len()
     ));
+    // Per-file lines carry status only, and a message for the two failing states.
+    // No per-file time is recorded: a file's parse time drifts run to run and
+    // would churn the committed baseline on every update. Perf is tracked by the
+    // aggregate `parse_ms` in the header, and `--dir` reports per-file times live.
     for f in files {
         match f.status {
-            Status::Ok if f.ms > slow_ms => {
-                out.push_str(&format!("{}\tok\t{}\n", f.path, f.ms as u64))
-            }
             Status::Ok => out.push_str(&format!("{}\tok\n", f.path)),
+            Status::Ambiguous => out.push_str(&format!("{}\tamb\n", f.path)),
             Status::Error => {
-                let ms = if f.ms > slow_ms {
-                    (f.ms as u64).to_string()
-                } else {
-                    "-".to_string()
-                };
                 let message = f.message.as_deref().unwrap_or("");
-                out.push_str(&format!("{}\terror\t{ms}\t{message}\n", f.path));
+                out.push_str(&format!("{}\terror\t{message}\n", f.path));
             }
             Status::IoError => {
                 let message = f.message.as_deref().unwrap_or("");
-                out.push_str(&format!("{}\tioerror\t-\t{message}\n", f.path));
+                out.push_str(&format!("{}\tioerror\t{message}\n", f.path));
             }
         }
     }
@@ -1241,7 +1234,8 @@ fn read_baseline(path: &Path) -> io::Result<(BaselineTotals, BTreeMap<String, Ba
     Ok((totals, records))
 }
 
-/// Parses `files=N ok=N error=N ioerror=N parse_ms=N` (order-independent).
+/// Parses `files=N ok=N amb=N error=N ioerror=N parse_ms=N` (order-independent).
+/// A baseline written before ambiguity tracking omits `amb=`, so it defaults to 0.
 fn parse_totals(line: &str) -> io::Result<BaselineTotals> {
     let map: BTreeMap<&str, &str> = line
         .split_whitespace()
@@ -1255,48 +1249,42 @@ fn parse_totals(line: &str) -> io::Result<BaselineTotals> {
             )
         })
     };
+    let get_opt = |key: &str| -> usize { map.get(key).and_then(|v| v.parse().ok()).unwrap_or(0) };
     Ok(BaselineTotals {
         files: get("files")? as usize,
         ok: get("ok")? as usize,
+        ambiguous: get_opt("amb"),
         error: get("error")? as usize,
         ioerror: get("ioerror")? as usize,
         parse_ms: get("parse_ms")?,
     })
 }
 
-/// Parses one `path \t status \t [ms] \t [message]` record.
+/// Parses one `path \t status \t [message]` record. A baseline written before
+/// per-file times were dropped carried a time field before the message; it is
+/// ignored, so the message is read as the last field and either layout parses.
 fn parse_record_line(line: &str) -> Option<(String, BaselineRecord)> {
     let mut fields = line.split('\t');
     let path = fields.next()?.to_string();
     let status = match fields.next()? {
         "ok" => Status::Ok,
+        "amb" => Status::Ambiguous,
         "error" => Status::Error,
         "ioerror" => Status::IoError,
         _ => return None,
     };
-    let record = match status {
-        Status::Ok => BaselineRecord {
-            status,
-            ms: fields.next().and_then(|s| s.parse().ok()),
-            message: None,
-        },
-        Status::Error | Status::IoError => BaselineRecord {
-            status,
-            ms: match fields.next() {
-                Some("-") | None => None,
-                Some(s) => s.parse().ok(),
-            },
-            message: fields.next().map(|s| s.to_string()),
-        },
+    let message = match status {
+        Status::Ok | Status::Ambiguous => None,
+        Status::Error | Status::IoError => fields.last().map(|s| s.to_string()),
     };
-    Some((path, record))
+    Some((path, BaselineRecord { status, message }))
 }
 
-/// The per-file divergences between a run and its baseline, split by kind so the
-/// gate keys only on regressions and the soft kinds stay out of the exit code.
+/// The per-file divergences between a run and its baseline, split by kind so
+/// only regressions decide pass or fail and the soft kinds stay out of the exit code.
 #[derive(Default)]
 struct Diffs {
-    /// `ok -> error/ioerror`: a file that parsed now fails. The hard gate.
+    /// `ok -> error/ioerror`: a file that parsed now fails. The only failing case.
     regressions: Vec<(String, String)>,
     /// `error/ioerror -> ok`: a file that failed now parses.
     recoveries: Vec<String>,
@@ -1319,8 +1307,8 @@ impl Diffs {
     }
 }
 
-/// Classifies every file against its baseline record. Only `regressions` gates
-/// the check; the rest are soft signals.
+/// Classifies every file against its baseline record. Only `regressions`
+/// fails the check; the rest are soft signals.
 fn diff_records(current: &[CurrentFile], baseline: &BTreeMap<String, BaselineRecord>) -> Diffs {
     let mut diffs = Diffs::default();
     let mut seen = BTreeSet::new();
@@ -1332,9 +1320,16 @@ fn diff_records(current: &[CurrentFile], baseline: &BTreeMap<String, BaselineRec
         };
         match (b.status == Status::Ok, f.status == Status::Ok) {
             (true, true) => {}
-            (true, false) => diffs
-                .regressions
-                .push((f.path.clone(), f.message.clone().unwrap_or_default())),
+            (true, false) => {
+                // An ambiguous parse carries no message, so label it explicitly;
+                // errors and io-errors bring their own.
+                let detail = if f.status == Status::Ambiguous {
+                    "ambiguous".to_string()
+                } else {
+                    f.message.clone().unwrap_or_default()
+                };
+                diffs.regressions.push((f.path.clone(), detail));
+            }
             (false, true) => diffs.recoveries.push(f.path.clone()),
             (false, false) => {
                 // Both failing: a status or message change is brittle drift.
@@ -1403,8 +1398,8 @@ fn print_diffs(color: &Color, diffs: &Diffs) {
 /// Prints the baseline's recorded counts, the reference for the drill-down.
 fn print_baseline_counts(totals: &BaselineTotals) {
     println!(
-        "  baseline: {} files, {} ok, {} error, {} ioerror",
-        totals.files, totals.ok, totals.error, totals.ioerror
+        "  baseline: {} files, {} ok, {} ambiguous, {} error, {} ioerror",
+        totals.files, totals.ok, totals.ambiguous, totals.error, totals.ioerror
     );
 }
 
@@ -1417,7 +1412,6 @@ fn report_perf(
     tolerance_pct: f64,
     slow_ms: f64,
     current: &[CurrentFile],
-    baseline: &BTreeMap<String, BaselineRecord>,
 ) {
     if baseline_parse_ms == 0 {
         return;
@@ -1430,23 +1424,12 @@ fn report_perf(
         "  perf: parse_ms {baseline_parse_ms} -> {parse_ms} ({pct:+.1}%, tolerance {tolerance_pct:.0}%)"
     );
 
-    let mut deltas: Vec<(f64, &str, u64, u64)> = current
-        .iter()
-        .filter_map(|f| {
-            let base = baseline.get(&f.path).and_then(|r| r.ms).unwrap_or(0);
-            (f.ms > slow_ms || base as f64 > slow_ms).then(|| {
-                (
-                    (f.ms - base as f64).abs(),
-                    f.path.as_str(),
-                    base,
-                    f.ms as u64,
-                )
-            })
-        })
-        .collect();
-    deltas.sort_by(|a, b| b.0.partial_cmp(&a.0).unwrap());
-    for (_, path, base, now) in deltas.iter().take(10) {
-        println!("    {base} ms -> {now} ms  {path}");
+    // The baseline keeps no per-file times, so point at the current slowest files
+    // as the place to look; `--dir` and `--benchmark` give the per-file detail.
+    let mut slow: Vec<&CurrentFile> = current.iter().filter(|f| f.ms > slow_ms).collect();
+    slow.sort_by(|a, b| b.ms.partial_cmp(&a.ms).unwrap());
+    for f in slow.iter().take(10) {
+        println!("    {:.0} ms  {}", f.ms, f.path);
     }
 }
 
@@ -1477,30 +1460,40 @@ mod tests {
         let (path, r) = parse_record_line("a/B.java\tok").unwrap();
         assert_eq!(path, "a/B.java");
         assert_eq!(r.status, Status::Ok);
-        assert_eq!(r.ms, None);
 
-        let (_, r) = parse_record_line("a/B.java\tok\t12").unwrap();
-        assert_eq!(r.ms, Some(12));
+        let (_, r) = parse_record_line("a/B.java\tamb").unwrap();
+        assert_eq!(r.status, Status::Ambiguous);
 
-        let (_, r) =
-            parse_record_line("a/B.java\terror\t-\tParse error at line 1, col 1: x").unwrap();
+        // Errors and io-errors carry their message as the last field.
+        let (_, r) = parse_record_line("a/B.java\terror\tParse error at line 1, col 1: x").unwrap();
         assert_eq!(r.status, Status::Error);
         assert_eq!(
             r.message.as_deref(),
             Some("Parse error at line 1, col 1: x")
         );
 
-        let (_, r) = parse_record_line("a/B.java\tioerror\t-\tbad utf-8").unwrap();
+        let (_, r) = parse_record_line("a/B.java\tioerror\tbad utf-8").unwrap();
         assert_eq!(r.status, Status::IoError);
+        assert_eq!(r.message.as_deref(), Some("bad utf-8"));
+
+        // A baseline written before per-file times were dropped still parses: the
+        // leading time field is ignored, so the message stays the last field.
+        let (_, r) = parse_record_line("a/B.java\tok\t12").unwrap();
+        assert_eq!(r.status, Status::Ok);
+        let (_, r) = parse_record_line("a/B.java\terror\t-\told format").unwrap();
+        assert_eq!(r.message.as_deref(), Some("old format"));
     }
 
     #[test]
     fn parse_totals_reads_counts() {
-        let t = parse_totals("files=10 ok=8 error=1 ioerror=1 parse_ms=42").unwrap();
+        let t = parse_totals("files=10 ok=7 amb=1 error=1 ioerror=1 parse_ms=42").unwrap();
         assert_eq!(
-            (t.files, t.ok, t.error, t.ioerror, t.parse_ms),
-            (10, 8, 1, 1, 42)
+            (t.files, t.ok, t.ambiguous, t.error, t.ioerror, t.parse_ms),
+            (10, 7, 1, 1, 1, 42)
         );
+        // A baseline written before ambiguity tracking omits amb=; it defaults to 0.
+        let old = parse_totals("files=10 ok=8 error=1 ioerror=1 parse_ms=42").unwrap();
+        assert_eq!(old.ambiguous, 0);
     }
 
     #[test]
@@ -1509,16 +1502,10 @@ mod tests {
     }
 
     #[test]
-    fn serialize_baseline_records_slow_tail_only() {
+    fn serialize_baseline_records_status_without_times() {
         let files = vec![
             CurrentFile {
                 path: "a.java".into(),
-                status: Status::Ok,
-                message: None,
-                ms: 1.0,
-            },
-            CurrentFile {
-                path: "b.java".into(),
                 status: Status::Ok,
                 message: None,
                 ms: 12.0,
@@ -1529,19 +1516,26 @@ mod tests {
                 message: Some("Parse error".into()),
                 ms: 0.5,
             },
+            CurrentFile {
+                path: "e.java".into(),
+                status: Status::Ambiguous,
+                message: None,
+                ms: 9.0,
+            },
         ];
-        let out = serialize_baseline("demo", &files, 5.0, 13);
+        let out = serialize_baseline("demo", &files, 13);
         assert!(out.contains("# corpus: demo\n"));
-        assert!(out.contains("# files=3 ok=2 error=1 ioerror=0 parse_ms=13\n"));
+        assert!(out.contains("# files=3 ok=1 amb=1 error=1 ioerror=0 parse_ms=13\n"));
+        // Status only, no per-file time even for a slow file; errors keep their message.
         assert!(out.contains("a.java\tok\n"));
-        assert!(out.contains("b.java\tok\t12\n"));
-        assert!(out.contains("c.java\terror\t-\tParse error\n"));
+        assert!(out.contains("e.java\tamb\n"));
+        assert!(out.contains("c.java\terror\tParse error\n"));
     }
 
     #[test]
     fn diff_records_separates_regression_from_recovery() {
         // One file regresses ok->error while another recovers error->ok: counts
-        // are unchanged, but the regression alone gates the check.
+        // are unchanged, but the regression alone fails the check.
         let current = vec![
             CurrentFile {
                 path: "a".into(),
@@ -1561,7 +1555,6 @@ mod tests {
             "a".to_string(),
             BaselineRecord {
                 status: Status::Ok,
-                ms: None,
                 message: None,
             },
         );
@@ -1569,7 +1562,6 @@ mod tests {
             "b".to_string(),
             BaselineRecord {
                 status: Status::Error,
-                ms: None,
                 message: Some("boom".into()),
             },
         );
@@ -1583,9 +1575,65 @@ mod tests {
     }
 
     #[test]
+    fn diff_records_treats_ambiguity_like_an_error() {
+        // ok -> amb regresses (labeled "ambiguous"), amb -> amb is a known state
+        // and stays clean, and amb -> ok recovers, exactly as error does.
+        let current = vec![
+            CurrentFile {
+                path: "new".into(),
+                status: Status::Ambiguous,
+                message: None,
+                ms: 0.0,
+            },
+            CurrentFile {
+                path: "known".into(),
+                status: Status::Ambiguous,
+                message: None,
+                ms: 0.0,
+            },
+            CurrentFile {
+                path: "fixed".into(),
+                status: Status::Ok,
+                message: None,
+                ms: 0.0,
+            },
+        ];
+        let mut baseline = BTreeMap::new();
+        baseline.insert(
+            "new".to_string(),
+            BaselineRecord {
+                status: Status::Ok,
+                message: None,
+            },
+        );
+        baseline.insert(
+            "known".to_string(),
+            BaselineRecord {
+                status: Status::Ambiguous,
+                message: None,
+            },
+        );
+        baseline.insert(
+            "fixed".to_string(),
+            BaselineRecord {
+                status: Status::Ambiguous,
+                message: None,
+            },
+        );
+
+        let diffs = diff_records(&current, &baseline);
+        assert_eq!(
+            diffs.regressions,
+            vec![("new".to_string(), "ambiguous".to_string())]
+        );
+        assert_eq!(diffs.recoveries, vec!["fixed".to_string()]);
+        assert_eq!(diffs.drift, 0);
+    }
+
+    #[test]
     fn diff_records_message_change_is_drift_not_regression() {
         // A file that failed before and still fails, only with different error
-        // text, is brittle drift, so it must not gate the check.
+        // text, is brittle drift, so it must not fail the check.
         let current = vec![CurrentFile {
             path: "a".into(),
             status: Status::Error,
@@ -1597,7 +1645,6 @@ mod tests {
             "a".to_string(),
             BaselineRecord {
                 status: Status::Error,
-                ms: None,
                 message: Some("expected Identifier".into()),
             },
         );
@@ -1628,7 +1675,6 @@ mod tests {
             "a".to_string(),
             BaselineRecord {
                 status: Status::Ok,
-                ms: None,
                 message: None,
             },
         );
@@ -1636,7 +1682,6 @@ mod tests {
             "b".to_string(),
             BaselineRecord {
                 status: Status::Error,
-                ms: None,
                 message: Some("boom".into()),
             },
         );
