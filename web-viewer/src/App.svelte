@@ -21,6 +21,15 @@
   let inputText = $state("");
   let orientation = $state<"horizontal" | "vertical">("horizontal");
   let leftPanelWidth = $state(420);
+  let views = $state<Array<"tree" | "graph" | "sexpr">>(["tree", "graph", "sexpr"]);
+  let editorMode = $state<"monaco" | "plain">("monaco");
+
+  // Min/max extent of the input pane along the split axis, shared by the divider
+  // drag and the ?input= URL override.
+  const PANE_BOUNDS = {
+    vertical: { min: 100, max: 520 },
+    horizontal: { min: 240, max: 900 },
+  } as const;
 
   // The editor and graph libraries load from a CDN at runtime (see the
   // importmap in index.html), so they are fetched on first load and served from
@@ -38,6 +47,30 @@
         orientation = "vertical";
         leftPanelWidth = 180; // a shorter input pane reads better when stacked
       }
+      // The embedder can size the input pane from the URL — its width in the
+      // horizontal split, its height in the vertical one — with ?input=<px>. The
+      // hero passes a short value so the stacked parse tree gets more room. It is
+      // clamped to the same range the divider drag allows.
+      const inputParam = Number(params.get("input"));
+      if (Number.isFinite(inputParam) && inputParam > 0) {
+        const { min, max } = PANE_BOUNDS[orientation];
+        leftPanelWidth = Math.max(min, Math.min(max, inputParam));
+      }
+
+      // Result views to expose (comma-separated subset of tree,graph,sexpr) and
+      // whether to use the lightweight editor — both trim the embed's footprint.
+      const viewsParam = params.get("views");
+      if (viewsParam) {
+        const allowed = ["tree", "graph", "sexpr"] as const;
+        const chosen = viewsParam
+          .split(",")
+          .map((s) => s.trim())
+          .filter((v): v is (typeof allowed)[number] =>
+            (allowed as readonly string[]).includes(v),
+          );
+        if (chosen.length) views = chosen;
+      }
+      if (params.get("editor") === "plain") editorMode = "plain";
 
       const base = import.meta.env.BASE_URL;
 
@@ -75,8 +108,7 @@
     const vertical = orientation === "vertical";
     const start = vertical ? e.clientY : e.clientX;
     const startSize = leftPanelWidth;
-    const min = vertical ? 100 : 240;
-    const max = vertical ? 520 : 900;
+    const { min, max } = PANE_BOUNDS[orientation];
     function onMove(ev: MouseEvent) {
       const pos = vertical ? ev.clientY : ev.clientX;
       leftPanelWidth = Math.max(min, Math.min(max, startSize + pos - start));
@@ -101,6 +133,8 @@
       bind:inputText
       {leftPanelWidth}
       {orientation}
+      {views}
+      editor={editorMode}
       {startVerticalDrag}
     />
   </div>

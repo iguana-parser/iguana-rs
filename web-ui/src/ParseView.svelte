@@ -1,7 +1,7 @@
 <script lang="ts">
   import type { ParserBackend } from "./backend";
   import type * as monaco from "monaco-editor";
-  import { tick } from "svelte";
+  import { tick, untrack } from "svelte";
   import { ChevronDown, ChevronRight, CornerRightUp, Minimize2, Expand, SlidersHorizontal, Copy, ClipboardCheck } from "lucide-svelte";
   import cytoscape from "cytoscape";
   import {
@@ -28,7 +28,7 @@
     type ParseTreeNodeData as ParseTreeNode,
   } from "./parse-tree-graph";
   import { downloadPng } from "./png";
-  import InputEditor from "./InputEditor.svelte";
+  import PlainEditor from "./PlainEditor.svelte";
   import NonterminalPicker from "./NonterminalPicker.svelte";
   import "./graph.css";
   import "./parse-view.css";
@@ -80,6 +80,12 @@
     // it by height. leftPanelWidth is the input panel's size along the split axis
     // in both cases.
     orientation?: "horizontal" | "vertical";
+    // Which result views to expose as tabs, in order; a single view hides the tab
+    // bar. Defaults to all three.
+    views?: Array<"tree" | "graph" | "sexpr">;
+    // "monaco" (default) uses the full editor; "plain" swaps in a lightweight
+    // syntax-highlighted textarea for a smaller footprint (embedded widgets).
+    editor?: "monaco" | "plain";
     isProfiling?: boolean;
     // Host-specific hooks. Terrarium passes these; the web viewer omits them, so the
     // corresponding chrome (status bar, output log, profiling, graph pop-out) is dropped.
@@ -118,6 +124,8 @@
     inputText = $bindable(""),
     leftPanelWidth,
     orientation = "horizontal",
+    views = ["tree", "graph", "sexpr"],
+    editor = "monaco",
     isProfiling = false,
     onStatus,
     onParseStart,
@@ -226,7 +234,9 @@
   }
 
   // Tabs: the tree view, the graph view, and the interactive s-expression.
-  let activeTab = $state<"tree" | "graph" | "sexpr">("tree");
+  // Initial view only; `views` is fixed for the component's life (set from the
+  // host once), so capture it without making activeTab track it.
+  let activeTab = $state<"tree" | "graph" | "sexpr">(untrack(() => views[0] ?? "tree"));
 
   // Show spans on tree rows and in graph labels. Hidden by default, driven by the
   // "Hide spans" checkbox in the View popover. Label-only, so unlike the structural
@@ -284,6 +294,16 @@
   let treeContainerEl: HTMLDivElement;
   // svelte-ignore non_reactive_update
   let inputEditorRef: { focus: () => void } | undefined;
+
+  // Load the Monaco-based editor on demand: hosts that use editor="plain" (the
+  // embedded widgets) then never fetch Monaco at all. PlainEditor stays bundled
+  // statically since it is tiny.
+  let InputEditorComp = $state<typeof import("./InputEditor.svelte").default | null>(null);
+  $effect(() => {
+    if (editor === "monaco" && !InputEditorComp) {
+      import("./InputEditor.svelte").then((m) => (InputEditorComp = m.default));
+    }
+  });
 
   // Interactive s-expression, derived from the same display tree as the other tabs.
   let sexprRoot = $derived(displayTree ? buildSexprModel(displayTree) : null);
@@ -1093,19 +1113,28 @@
 
     <!-- Input Area -->
     <div class="input-section">
-      <InputEditor
-        bind:this={inputEditorRef}
-        bind:value={inputText}
-        error={parseErrorInfo}
-        ambiguities={ambiguityWarnings}
-        highlightSpan={parseTreeSelectedSpan}
-        onclick={onParseInputClick}
-        onchange={clearParseModeInputSelection}
-        onescape={clearParseModeInputSelection}
-        placeholder="Enter code to parse..."
-        initialViewState={initialInputViewState}
-        onSaveViewState={onInputViewState}
-      />
+      {#if editor === "plain"}
+        <PlainEditor
+          bind:this={inputEditorRef}
+          bind:value={inputText}
+          onchange={clearParseModeInputSelection}
+          placeholder="Enter code to parse..."
+        />
+      {:else if InputEditorComp}
+        <InputEditorComp
+          bind:this={inputEditorRef}
+          bind:value={inputText}
+          error={parseErrorInfo}
+          ambiguities={ambiguityWarnings}
+          highlightSpan={parseTreeSelectedSpan}
+          onclick={onParseInputClick}
+          onchange={clearParseModeInputSelection}
+          onescape={clearParseModeInputSelection}
+          placeholder="Enter code to parse..."
+          initialViewState={initialInputViewState}
+          onSaveViewState={onInputViewState}
+        />
+      {/if}
     </div>
   </div>
 
@@ -1116,10 +1145,11 @@
   <!-- Right Panel -->
   <div class="right-panel">
     <div class="graph-section">
+      {#if views.length > 1}
       <div class="tabs">
-        <button class:active={activeTab === "tree"} onclick={() => activeTab = "tree"}>Tree</button>
-        <button class:active={activeTab === "graph"} onclick={() => activeTab = "graph"}>Graph</button>
-        <button class:active={activeTab === "sexpr"} onclick={() => activeTab = "sexpr"}>S-expr</button>
+        {#if views.includes("tree")}<button class:active={activeTab === "tree"} onclick={() => (activeTab = "tree")}>Tree</button>{/if}
+        {#if views.includes("graph")}<button class:active={activeTab === "graph"} onclick={() => (activeTab = "graph")}>Graph</button>{/if}
+        {#if views.includes("sexpr")}<button class:active={activeTab === "sexpr"} onclick={() => (activeTab = "sexpr")}>S-expr</button>{/if}
         {#if parseTree}
           <div class="view-options">
             <button
@@ -1163,6 +1193,7 @@
           </div>
         {/if}
       </div>
+      {/if}
       <div class="graph-container">
         {#if activeTab === "tree"}
           {#if treeRoot}
@@ -1324,6 +1355,10 @@
     display: flex;
     flex-direction: column;
     background: #252526;
+    /* Clip the editor to the pane. Monaco's automatic layout can momentarily lag
+       a shrink, and a short stacked pane must never let the editor spill over the
+       result tabs below it. */
+    overflow: hidden;
   }
 
   .header {
@@ -1356,7 +1391,7 @@
   /* Input Section */
   .input-section {
     flex: 1;
-    min-height: 100px;
+    min-height: 0;  /* shrink to the pane; a taller floor overflows short stacked panes over the result tabs */
     user-select: none;  /* Contain selection - allow only in the input editor */
   }
 

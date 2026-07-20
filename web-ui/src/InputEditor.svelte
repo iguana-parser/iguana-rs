@@ -57,6 +57,17 @@
   let decorationIds: string[] = [];
 
   onMount(() => {
+    // The ESM Monaco build ships no styles; load its stylesheet on first use so
+    // hosts that use the plain editor never fetch it (see web-viewer/index.html).
+    if (!document.querySelector("link[data-monaco-css]")) {
+      const link = document.createElement("link");
+      link.rel = "stylesheet";
+      link.href =
+        "https://cdn.jsdelivr.net/npm/monaco-editor@0.55.1/min/vs/editor/editor.main.css";
+      link.setAttribute("data-monaco-css", "");
+      document.head.appendChild(link);
+    }
+
     editor = monaco.editor.create(container, {
       value,
       language: "plaintext",
