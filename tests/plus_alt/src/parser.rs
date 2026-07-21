@@ -65,6 +65,12 @@ impl<'i, 'arena> Parser<'i, 'arena> for PlusAltParser<'i, 'arena> {
                     let j = self.sppf_node(right_child).right_extent();
                     // S : Plus_0.
                     self.execute(j, SlotId(1), Some(right_child), gss_node_id, env);
+                } else {
+                    self.add_parse_error(input_index, SlotId(0), Some(gss_node_id), || {
+                        ParseErrorKind::UnexpectedToken {
+                            expected: FIRST_SET_PLUS_0.terminals.to_vec(),
+                        }
+                    });
                 }
             }
             // S : Plus_0.
@@ -109,6 +115,12 @@ impl<'i, 'arena> Parser<'i, 'arena> for PlusAltParser<'i, 'arena> {
                     let j = self.sppf_node(right_child).right_extent();
                     // Alt_0 : A.
                     self.execute(j, SlotId(7), Some(right_child), gss_node_id, env);
+                } else {
+                    self.add_parse_error(input_index, SlotId(6), Some(gss_node_id), || {
+                        ParseErrorKind::UnexpectedToken {
+                            expected: FIRST_SET_A.terminals.to_vec(),
+                        }
+                    });
                 }
             }
             // Alt_0 : A.
@@ -123,6 +135,12 @@ impl<'i, 'arena> Parser<'i, 'arena> for PlusAltParser<'i, 'arena> {
                     let j = self.sppf_node(right_child).right_extent();
                     // Alt_0 : Num.
                     self.execute(j, SlotId(9), Some(right_child), gss_node_id, env);
+                } else {
+                    self.add_parse_error(input_index, SlotId(8), Some(gss_node_id), || {
+                        ParseErrorKind::UnexpectedToken {
+                            expected: FIRST_SET_NUM.terminals.to_vec(),
+                        }
+                    });
                 }
             }
             // Alt_0 : Num.
@@ -137,6 +155,12 @@ impl<'i, 'arena> Parser<'i, 'arena> for PlusAltParser<'i, 'arena> {
                     let j = self.sppf_node(right_child).right_extent();
                     // Plus_0 : Plus_0 . Alt_0
                     self.execute(j, SlotId(11), Some(right_child), gss_node_id, env);
+                } else {
+                    self.add_parse_error(input_index, SlotId(10), Some(gss_node_id), || {
+                        ParseErrorKind::UnexpectedToken {
+                            expected: FIRST_SET_PLUS_0.terminals.to_vec(),
+                        }
+                    });
                 }
             }
             // Plus_0 : Plus_0 . Alt_0
@@ -148,6 +172,12 @@ impl<'i, 'arena> Parser<'i, 'arena> for PlusAltParser<'i, 'arena> {
                         // Plus_0 : Plus_0 Alt_0.
                         self.execute(j, SlotId(12), Some(new_node), gss_node_id, env);
                     }
+                } else {
+                    self.add_parse_error(input_index, SlotId(11), Some(gss_node_id), || {
+                        ParseErrorKind::UnexpectedToken {
+                            expected: FIRST_SET_ALT_0.terminals.to_vec(),
+                        }
+                    });
                 }
             }
             // Plus_0 : Plus_0 Alt_0.
@@ -162,6 +192,12 @@ impl<'i, 'arena> Parser<'i, 'arena> for PlusAltParser<'i, 'arena> {
                     let j = self.sppf_node(right_child).right_extent();
                     // Plus_0 : Alt_0.
                     self.execute(j, SlotId(14), Some(right_child), gss_node_id, env);
+                } else {
+                    self.add_parse_error(input_index, SlotId(13), Some(gss_node_id), || {
+                        ParseErrorKind::UnexpectedToken {
+                            expected: FIRST_SET_ALT_0.terminals.to_vec(),
+                        }
+                    });
                 }
             }
             // Plus_0 : Alt_0.
@@ -176,6 +212,12 @@ impl<'i, 'arena> Parser<'i, 'arena> for PlusAltParser<'i, 'arena> {
                     let j = self.sppf_node(right_child).right_extent();
                     // StartS : start:S.
                     self.execute(j, SlotId(16), Some(right_child), gss_node_id, env);
+                } else {
+                    self.add_parse_error(input_index, SlotId(15), Some(gss_node_id), || {
+                        ParseErrorKind::UnexpectedToken {
+                            expected: FIRST_SET_S.terminals.to_vec(),
+                        }
+                    });
                 }
             }
             // StartS : start:S.
@@ -190,6 +232,12 @@ impl<'i, 'arena> Parser<'i, 'arena> for PlusAltParser<'i, 'arena> {
                     let j = self.sppf_node(right_child).right_extent();
                     // StartA : start:A.
                     self.execute(j, SlotId(18), Some(right_child), gss_node_id, env);
+                } else {
+                    self.add_parse_error(input_index, SlotId(17), Some(gss_node_id), || {
+                        ParseErrorKind::UnexpectedToken {
+                            expected: FIRST_SET_A.terminals.to_vec(),
+                        }
+                    });
                 }
             }
             // StartA : start:A.
@@ -204,6 +252,12 @@ impl<'i, 'arena> Parser<'i, 'arena> for PlusAltParser<'i, 'arena> {
                     let j = self.sppf_node(right_child).right_extent();
                     // StartNum : start:Num.
                     self.execute(j, SlotId(20), Some(right_child), gss_node_id, env);
+                } else {
+                    self.add_parse_error(input_index, SlotId(19), Some(gss_node_id), || {
+                        ParseErrorKind::UnexpectedToken {
+                            expected: FIRST_SET_NUM.terminals.to_vec(),
+                        }
+                    });
                 }
             }
             // StartNum : start:Num.
@@ -797,7 +851,14 @@ impl<'i, 'arena> PlusAltParser<'i, 'arena> {
                 let mut j = i;
                 let right_child = {
                     let start = j;
-                    let node = self.parse_plus_0_ll1(start)?;
+                    let Some(node) = self.parse_plus_0_ll1(start) else {
+                        self.add_parse_error(start, SlotId(1), None, || {
+                            ParseErrorKind::UnexpectedToken {
+                                expected: FIRST_SET_PLUS_0.terminals.to_vec(),
+                            }
+                        });
+                        return None;
+                    };
                     let end = self.sppf_node(node).right_extent();
                     j = end;
                     node
@@ -885,7 +946,14 @@ impl<'i, 'arena> PlusAltParser<'i, 'arena> {
                 let mut j = i;
                 let right_child = {
                     let start = j;
-                    let node = self.parse_a_ll1(start)?;
+                    let Some(node) = self.parse_a_ll1(start) else {
+                        self.add_parse_error(start, SlotId(7), None, || {
+                            ParseErrorKind::UnexpectedToken {
+                                expected: FIRST_SET_A.terminals.to_vec(),
+                            }
+                        });
+                        return None;
+                    };
                     let end = self.sppf_node(node).right_extent();
                     j = end;
                     node
@@ -907,7 +975,14 @@ impl<'i, 'arena> PlusAltParser<'i, 'arena> {
                 let mut j = i;
                 let right_child = {
                     let start = j;
-                    let node = self.parse_num_ll1(start)?;
+                    let Some(node) = self.parse_num_ll1(start) else {
+                        self.add_parse_error(start, SlotId(9), None, || {
+                            ParseErrorKind::UnexpectedToken {
+                                expected: FIRST_SET_NUM.terminals.to_vec(),
+                            }
+                        });
+                        return None;
+                    };
                     let end = self.sppf_node(node).right_extent();
                     j = end;
                     node

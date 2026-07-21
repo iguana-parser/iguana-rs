@@ -1,0 +1,19 @@
+grammar Ll1CallError
+
+// S is a single LL(1) alternative, so run() enters it through the start
+// wrapper's `parse_s_ll1` call. A prediction miss there records the error, and
+// the layout between the two words is a group Plus loop whose end-of-input
+// repetition probe must stay silent so the genuine "Expected Word" wins.
+S = Word Word
+
+@Layout
+Layout = (WS | LineComment)* !>> WS !>> LineComment
+
+@Regex
+Word = [a-z]+
+
+@Regex
+WS = [\ \n\t]+
+
+@Regex
+LineComment = "//" ![\n]*

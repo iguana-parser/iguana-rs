@@ -75,6 +75,12 @@ impl<'i, 'arena> Parser<'i, 'arena> for AmbPlusParser<'i, 'arena> {
                     let j = self.sppf_node(right_child).right_extent();
                     // A : X.
                     self.execute(j, SlotId(3), Some(right_child), gss_node_id, env);
+                } else {
+                    self.add_parse_error(input_index, SlotId(2), Some(gss_node_id), || {
+                        ParseErrorKind::UnexpectedToken {
+                            expected: FIRST_SET_X.terminals.to_vec(),
+                        }
+                    });
                 }
             }
             // A : X.
@@ -89,6 +95,12 @@ impl<'i, 'arena> Parser<'i, 'arena> for AmbPlusParser<'i, 'arena> {
                     let j = self.sppf_node(right_child).right_extent();
                     // A : Y.
                     self.execute(j, SlotId(5), Some(right_child), gss_node_id, env);
+                } else {
+                    self.add_parse_error(input_index, SlotId(4), Some(gss_node_id), || {
+                        ParseErrorKind::UnexpectedToken {
+                            expected: FIRST_SET_Y.terminals.to_vec(),
+                        }
+                    });
                 }
             }
             // A : Y.
@@ -224,6 +236,12 @@ impl<'i, 'arena> Parser<'i, 'arena> for AmbPlusParser<'i, 'arena> {
                     let j = self.sppf_node(right_child).right_extent();
                     // StartX : start:X.
                     self.execute(j, SlotId(26), Some(right_child), gss_node_id, env);
+                } else {
+                    self.add_parse_error(input_index, SlotId(25), Some(gss_node_id), || {
+                        ParseErrorKind::UnexpectedToken {
+                            expected: FIRST_SET_X.terminals.to_vec(),
+                        }
+                    });
                 }
             }
             // StartX : start:X.
@@ -238,6 +256,12 @@ impl<'i, 'arena> Parser<'i, 'arena> for AmbPlusParser<'i, 'arena> {
                     let j = self.sppf_node(right_child).right_extent();
                     // StartY : start:Y.
                     self.execute(j, SlotId(28), Some(right_child), gss_node_id, env);
+                } else {
+                    self.add_parse_error(input_index, SlotId(27), Some(gss_node_id), || {
+                        ParseErrorKind::UnexpectedToken {
+                            expected: FIRST_SET_Y.terminals.to_vec(),
+                        }
+                    });
                 }
             }
             // StartY : start:Y.

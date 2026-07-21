@@ -90,6 +90,12 @@ impl<'i, 'arena> Parser<'i, 'arena> for PrecedeRestrictionParser<'i, 'arena> {
                         // S : "for" WS Id.
                         self.execute(j, SlotId(3), Some(new_node), gss_node_id, env);
                     }
+                } else {
+                    self.add_parse_error(input_index, SlotId(2), Some(gss_node_id), || {
+                        ParseErrorKind::UnexpectedToken {
+                            expected: FIRST_SET_ID.terminals.to_vec(),
+                        }
+                    });
                 }
             }
             // S : "for" WS Id.
@@ -127,6 +133,12 @@ impl<'i, 'arena> Parser<'i, 'arena> for PrecedeRestrictionParser<'i, 'arena> {
                     let j = self.sppf_node(right_child).right_extent();
                     // Id : Char !<< Plus_0.
                     self.execute(j, SlotId(7), Some(right_child), gss_node_id, env);
+                } else {
+                    self.add_parse_error(input_index, SlotId(6), Some(gss_node_id), || {
+                        ParseErrorKind::UnexpectedToken {
+                            expected: FIRST_SET_PLUS_0.terminals.to_vec(),
+                        }
+                    });
                 }
             }
             // Id : Char !<< Plus_0.
@@ -141,6 +153,12 @@ impl<'i, 'arena> Parser<'i, 'arena> for PrecedeRestrictionParser<'i, 'arena> {
                     let j = self.sppf_node(right_child).right_extent();
                     // Plus_0 : Plus_0 . Char
                     self.execute(j, SlotId(9), Some(right_child), gss_node_id, env);
+                } else {
+                    self.add_parse_error(input_index, SlotId(8), Some(gss_node_id), || {
+                        ParseErrorKind::UnexpectedToken {
+                            expected: FIRST_SET_PLUS_0.terminals.to_vec(),
+                        }
+                    });
                 }
             }
             // Plus_0 : Plus_0 . Char
@@ -195,6 +213,12 @@ impl<'i, 'arena> Parser<'i, 'arena> for PrecedeRestrictionParser<'i, 'arena> {
                         // StartS : WS start:S . WS
                         self.execute(j, SlotId(15), Some(new_node), gss_node_id, env);
                     }
+                } else {
+                    self.add_parse_error(input_index, SlotId(14), Some(gss_node_id), || {
+                        ParseErrorKind::UnexpectedToken {
+                            expected: FIRST_SET_S.terminals.to_vec(),
+                        }
+                    });
                 }
             }
             // StartS : WS start:S . WS
@@ -234,6 +258,12 @@ impl<'i, 'arena> Parser<'i, 'arena> for PrecedeRestrictionParser<'i, 'arena> {
                         // StartId : WS start:Id . WS
                         self.execute(j, SlotId(19), Some(new_node), gss_node_id, env);
                     }
+                } else {
+                    self.add_parse_error(input_index, SlotId(18), Some(gss_node_id), || {
+                        ParseErrorKind::UnexpectedToken {
+                            expected: FIRST_SET_ID.terminals.to_vec(),
+                        }
+                    });
                 }
             }
             // StartId : WS start:Id . WS
@@ -843,7 +873,14 @@ impl<'i, 'arena> PrecedeRestrictionParser<'i, 'arena> {
                 );
                 let right_child = {
                     let start = j;
-                    let node = self.parse_id_ll1(start)?;
+                    let Some(node) = self.parse_id_ll1(start) else {
+                        self.add_parse_error(start, SlotId(3), None, || {
+                            ParseErrorKind::UnexpectedToken {
+                                expected: FIRST_SET_ID.terminals.to_vec(),
+                            }
+                        });
+                        return None;
+                    };
                     let end = self.sppf_node(node).right_extent();
                     j = end;
                     node
@@ -902,7 +939,14 @@ impl<'i, 'arena> PrecedeRestrictionParser<'i, 'arena> {
                 }
                 let right_child = {
                     let start = j;
-                    let node = self.parse_plus_0_ll1(start)?;
+                    let Some(node) = self.parse_plus_0_ll1(start) else {
+                        self.add_parse_error(start, SlotId(7), None, || {
+                            ParseErrorKind::UnexpectedToken {
+                                expected: FIRST_SET_PLUS_0.terminals.to_vec(),
+                            }
+                        });
+                        return None;
+                    };
                     let end = self.sppf_node(node).right_extent();
                     j = end;
                     node

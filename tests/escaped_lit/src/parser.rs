@@ -222,6 +222,12 @@ impl<'i, 'arena> Parser<'i, 'arena> for EscapedLitParser<'i, 'arena> {
                         // StartS : WS start:S . WS
                         self.execute(j, SlotId(14), Some(new_node), gss_node_id, env);
                     }
+                } else {
+                    self.add_parse_error(input_index, SlotId(13), Some(gss_node_id), || {
+                        ParseErrorKind::UnexpectedToken {
+                            expected: FIRST_SET_S.terminals.to_vec(),
+                        }
+                    });
                 }
             }
             // StartS : WS start:S . WS

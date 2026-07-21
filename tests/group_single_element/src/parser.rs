@@ -65,6 +65,12 @@ impl<'i, 'arena> Parser<'i, 'arena> for GroupSingleElementParser<'i, 'arena> {
                     let j = self.sppf_node(right_child).right_extent();
                     // D : Group_0.
                     self.execute(j, SlotId(1), Some(right_child), gss_node_id, env);
+                } else {
+                    self.add_parse_error(input_index, SlotId(0), Some(gss_node_id), || {
+                        ParseErrorKind::UnexpectedToken {
+                            expected: FIRST_SET_GROUP_0.terminals.to_vec(),
+                        }
+                    });
                 }
             }
             // D : Group_0.
@@ -106,6 +112,12 @@ impl<'i, 'arena> Parser<'i, 'arena> for GroupSingleElementParser<'i, 'arena> {
                         // Group_0 : "!" Num.
                         self.execute(j, SlotId(6), Some(new_node), gss_node_id, env);
                     }
+                } else {
+                    self.add_parse_error(input_index, SlotId(5), Some(gss_node_id), || {
+                        ParseErrorKind::UnexpectedToken {
+                            expected: FIRST_SET_NUM.terminals.to_vec(),
+                        }
+                    });
                 }
             }
             // Group_0 : "!" Num.
@@ -120,6 +132,12 @@ impl<'i, 'arena> Parser<'i, 'arena> for GroupSingleElementParser<'i, 'arena> {
                     let j = self.sppf_node(right_child).right_extent();
                     // StartD : start:D.
                     self.execute(j, SlotId(8), Some(right_child), gss_node_id, env);
+                } else {
+                    self.add_parse_error(input_index, SlotId(7), Some(gss_node_id), || {
+                        ParseErrorKind::UnexpectedToken {
+                            expected: FIRST_SET_D.terminals.to_vec(),
+                        }
+                    });
                 }
             }
             // StartD : start:D.
@@ -134,6 +152,12 @@ impl<'i, 'arena> Parser<'i, 'arena> for GroupSingleElementParser<'i, 'arena> {
                     let j = self.sppf_node(right_child).right_extent();
                     // StartNum : start:Num.
                     self.execute(j, SlotId(10), Some(right_child), gss_node_id, env);
+                } else {
+                    self.add_parse_error(input_index, SlotId(9), Some(gss_node_id), || {
+                        ParseErrorKind::UnexpectedToken {
+                            expected: FIRST_SET_NUM.terminals.to_vec(),
+                        }
+                    });
                 }
             }
             // StartNum : start:Num.
@@ -675,7 +699,14 @@ impl<'i, 'arena> GroupSingleElementParser<'i, 'arena> {
                 let mut j = i;
                 let right_child = {
                     let start = j;
-                    let node = self.parse_group_0_ll1(start)?;
+                    let Some(node) = self.parse_group_0_ll1(start) else {
+                        self.add_parse_error(start, SlotId(1), None, || {
+                            ParseErrorKind::UnexpectedToken {
+                                expected: FIRST_SET_GROUP_0.terminals.to_vec(),
+                            }
+                        });
+                        return None;
+                    };
                     let end = self.sppf_node(node).right_extent();
                     j = end;
                     node
@@ -742,7 +773,14 @@ impl<'i, 'arena> GroupSingleElementParser<'i, 'arena> {
                 let mut current = right_child;
                 let right_child = {
                     let start = j;
-                    let node = self.parse_num_ll1(start)?;
+                    let Some(node) = self.parse_num_ll1(start) else {
+                        self.add_parse_error(start, SlotId(6), None, || {
+                            ParseErrorKind::UnexpectedToken {
+                                expected: FIRST_SET_NUM.terminals.to_vec(),
+                            }
+                        });
+                        return None;
+                    };
                     let end = self.sppf_node(node).right_extent();
                     j = end;
                     node

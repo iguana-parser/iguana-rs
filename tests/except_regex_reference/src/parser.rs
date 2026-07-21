@@ -80,6 +80,12 @@ impl<'i, 'arena> Parser<'i, 'arena> for ExceptRegexReferenceParser<'i, 'arena> {
                     let j = self.sppf_node(right_child).right_extent();
                     // StartS : start:S.
                     self.execute(j, SlotId(3), Some(right_child), gss_node_id, env);
+                } else {
+                    self.add_parse_error(input_index, SlotId(2), Some(gss_node_id), || {
+                        ParseErrorKind::UnexpectedToken {
+                            expected: FIRST_SET_S.terminals.to_vec(),
+                        }
+                    });
                 }
             }
             // StartS : start:S.

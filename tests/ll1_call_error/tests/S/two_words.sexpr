@@ -1,0 +1,9 @@
+(Start
+  (Layout (WS | LineComment)*)
+  (S
+    Word
+    (Layout
+      ((WS | LineComment)*
+        ((WS | LineComment) WS)))
+    Word)
+  (Layout (WS | LineComment)*))

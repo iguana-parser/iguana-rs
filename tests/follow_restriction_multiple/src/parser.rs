@@ -65,6 +65,12 @@ impl<'i, 'arena> Parser<'i, 'arena> for FollowRestrictionMultipleParser<'i, 'are
                     let j = self.sppf_node(right_child).right_extent();
                     // S : Plus_0.
                     self.execute(j, SlotId(1), Some(right_child), gss_node_id, env);
+                } else {
+                    self.add_parse_error(input_index, SlotId(0), Some(gss_node_id), || {
+                        ParseErrorKind::UnexpectedToken {
+                            expected: FIRST_SET_PLUS_0.terminals.to_vec(),
+                        }
+                    });
                 }
             }
             // S : Plus_0.
@@ -83,6 +89,12 @@ impl<'i, 'arena> Parser<'i, 'arena> for FollowRestrictionMultipleParser<'i, 'are
                     }
                     // Id : Plus_1 !>> Alpha !>> Digit.
                     self.execute(j, SlotId(3), Some(right_child), gss_node_id, env);
+                } else {
+                    self.add_parse_error(input_index, SlotId(2), Some(gss_node_id), || {
+                        ParseErrorKind::UnexpectedToken {
+                            expected: FIRST_SET_PLUS_1.terminals.to_vec(),
+                        }
+                    });
                 }
             }
             // Id : Plus_1 !>> Alpha !>> Digit.
@@ -97,6 +109,12 @@ impl<'i, 'arena> Parser<'i, 'arena> for FollowRestrictionMultipleParser<'i, 'are
                     let j = self.sppf_node(right_child).right_extent();
                     // Plus_0 : Plus_0 . Id
                     self.execute(j, SlotId(5), Some(right_child), gss_node_id, env);
+                } else {
+                    self.add_parse_error(input_index, SlotId(4), Some(gss_node_id), || {
+                        ParseErrorKind::UnexpectedToken {
+                            expected: FIRST_SET_PLUS_0.terminals.to_vec(),
+                        }
+                    });
                 }
             }
             // Plus_0 : Plus_0 . Id
@@ -108,6 +126,12 @@ impl<'i, 'arena> Parser<'i, 'arena> for FollowRestrictionMultipleParser<'i, 'are
                         // Plus_0 : Plus_0 Id.
                         self.execute(j, SlotId(6), Some(new_node), gss_node_id, env);
                     }
+                } else {
+                    self.add_parse_error(input_index, SlotId(5), Some(gss_node_id), || {
+                        ParseErrorKind::UnexpectedToken {
+                            expected: FIRST_SET_ID.terminals.to_vec(),
+                        }
+                    });
                 }
             }
             // Plus_0 : Plus_0 Id.
@@ -122,6 +146,12 @@ impl<'i, 'arena> Parser<'i, 'arena> for FollowRestrictionMultipleParser<'i, 'are
                     let j = self.sppf_node(right_child).right_extent();
                     // Plus_0 : Id.
                     self.execute(j, SlotId(8), Some(right_child), gss_node_id, env);
+                } else {
+                    self.add_parse_error(input_index, SlotId(7), Some(gss_node_id), || {
+                        ParseErrorKind::UnexpectedToken {
+                            expected: FIRST_SET_ID.terminals.to_vec(),
+                        }
+                    });
                 }
             }
             // Plus_0 : Id.
@@ -166,6 +196,12 @@ impl<'i, 'arena> Parser<'i, 'arena> for FollowRestrictionMultipleParser<'i, 'are
                     let j = self.sppf_node(right_child).right_extent();
                     // Plus_1 : Plus_1 . Alt_0
                     self.execute(j, SlotId(14), Some(right_child), gss_node_id, env);
+                } else {
+                    self.add_parse_error(input_index, SlotId(13), Some(gss_node_id), || {
+                        ParseErrorKind::UnexpectedToken {
+                            expected: FIRST_SET_PLUS_1.terminals.to_vec(),
+                        }
+                    });
                 }
             }
             // Plus_1 : Plus_1 . Alt_0
@@ -177,6 +213,12 @@ impl<'i, 'arena> Parser<'i, 'arena> for FollowRestrictionMultipleParser<'i, 'are
                         // Plus_1 : Plus_1 Alt_0.
                         self.execute(j, SlotId(15), Some(new_node), gss_node_id, env);
                     }
+                } else {
+                    self.add_parse_error(input_index, SlotId(14), Some(gss_node_id), || {
+                        ParseErrorKind::UnexpectedToken {
+                            expected: FIRST_SET_ALT_0.terminals.to_vec(),
+                        }
+                    });
                 }
             }
             // Plus_1 : Plus_1 Alt_0.
@@ -191,6 +233,12 @@ impl<'i, 'arena> Parser<'i, 'arena> for FollowRestrictionMultipleParser<'i, 'are
                     let j = self.sppf_node(right_child).right_extent();
                     // Plus_1 : Alt_0.
                     self.execute(j, SlotId(17), Some(right_child), gss_node_id, env);
+                } else {
+                    self.add_parse_error(input_index, SlotId(16), Some(gss_node_id), || {
+                        ParseErrorKind::UnexpectedToken {
+                            expected: FIRST_SET_ALT_0.terminals.to_vec(),
+                        }
+                    });
                 }
             }
             // Plus_1 : Alt_0.
@@ -205,6 +253,12 @@ impl<'i, 'arena> Parser<'i, 'arena> for FollowRestrictionMultipleParser<'i, 'are
                     let j = self.sppf_node(right_child).right_extent();
                     // StartS : start:S.
                     self.execute(j, SlotId(19), Some(right_child), gss_node_id, env);
+                } else {
+                    self.add_parse_error(input_index, SlotId(18), Some(gss_node_id), || {
+                        ParseErrorKind::UnexpectedToken {
+                            expected: FIRST_SET_S.terminals.to_vec(),
+                        }
+                    });
                 }
             }
             // StartS : start:S.
@@ -219,6 +273,12 @@ impl<'i, 'arena> Parser<'i, 'arena> for FollowRestrictionMultipleParser<'i, 'are
                     let j = self.sppf_node(right_child).right_extent();
                     // StartId : start:Id.
                     self.execute(j, SlotId(21), Some(right_child), gss_node_id, env);
+                } else {
+                    self.add_parse_error(input_index, SlotId(20), Some(gss_node_id), || {
+                        ParseErrorKind::UnexpectedToken {
+                            expected: FIRST_SET_ID.terminals.to_vec(),
+                        }
+                    });
                 }
             }
             // StartId : start:Id.
@@ -837,7 +897,14 @@ impl<'i, 'arena> FollowRestrictionMultipleParser<'i, 'arena> {
                 let mut j = i;
                 let right_child = {
                     let start = j;
-                    let node = self.parse_plus_0_ll1(start)?;
+                    let Some(node) = self.parse_plus_0_ll1(start) else {
+                        self.add_parse_error(start, SlotId(1), None, || {
+                            ParseErrorKind::UnexpectedToken {
+                                expected: FIRST_SET_PLUS_0.terminals.to_vec(),
+                            }
+                        });
+                        return None;
+                    };
                     let end = self.sppf_node(node).right_extent();
                     j = end;
                     node
@@ -867,7 +934,14 @@ impl<'i, 'arena> FollowRestrictionMultipleParser<'i, 'arena> {
                 let mut j = i;
                 let right_child = {
                     let start = j;
-                    let node = self.parse_plus_1_ll1(start)?;
+                    let Some(node) = self.parse_plus_1_ll1(start) else {
+                        self.add_parse_error(start, SlotId(3), None, || {
+                            ParseErrorKind::UnexpectedToken {
+                                expected: FIRST_SET_PLUS_1.terminals.to_vec(),
+                            }
+                        });
+                        return None;
+                    };
                     let end = self.sppf_node(node).right_extent();
                     j = end;
                     if let Some(error_kind) = self.post_conditions(SlotId(3), start, end) {

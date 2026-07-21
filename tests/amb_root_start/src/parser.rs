@@ -93,6 +93,12 @@ impl<'i, 'arena> Parser<'i, 'arena> for AmbRootStartParser<'i, 'arena> {
                         // E(p: i32) : "(" WS Type . WS ")" WS E(2) return 2
                         self.execute(j, SlotId(13), Some(new_node), gss_node_id, env);
                     }
+                } else {
+                    self.add_parse_error(input_index, SlotId(12), Some(gss_node_id), || {
+                        ParseErrorKind::UnexpectedToken {
+                            expected: FIRST_SET_TYPE.terminals.to_vec(),
+                        }
+                    });
                 }
             }
             // E(p: i32) : "(" WS Type . WS ")" WS E(2) return 2
@@ -588,6 +594,12 @@ impl<'i, 'arena> Parser<'i, 'arena> for AmbRootStartParser<'i, 'arena> {
                         // StartType : WS start:Type . WS
                         self.execute(j, SlotId(8), Some(new_node), gss_node_id, env);
                     }
+                } else {
+                    self.add_parse_error(input_index, SlotId(7), Some(gss_node_id), || {
+                        ParseErrorKind::UnexpectedToken {
+                            expected: FIRST_SET_TYPE.terminals.to_vec(),
+                        }
+                    });
                 }
             }
             // StartType : WS start:Type . WS

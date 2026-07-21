@@ -99,6 +99,12 @@ impl<'i, 'arena> Parser<'i, 'arena> for MultipleExceptParser<'i, 'arena> {
                     let j = self.sppf_node(right_child).right_extent();
                     // StartSyntaxIdentifier : start:SyntaxIdentifier.
                     self.execute(j, SlotId(5), Some(right_child), gss_node_id, env);
+                } else {
+                    self.add_parse_error(input_index, SlotId(4), Some(gss_node_id), || {
+                        ParseErrorKind::UnexpectedToken {
+                            expected: FIRST_SET_SYNTAX_IDENTIFIER.terminals.to_vec(),
+                        }
+                    });
                 }
             }
             // StartSyntaxIdentifier : start:SyntaxIdentifier.
@@ -113,6 +119,12 @@ impl<'i, 'arena> Parser<'i, 'arena> for MultipleExceptParser<'i, 'arena> {
                     let j = self.sppf_node(right_child).right_extent();
                     // StartLexicalIdentifier : start:LexicalIdentifier.
                     self.execute(j, SlotId(7), Some(right_child), gss_node_id, env);
+                } else {
+                    self.add_parse_error(input_index, SlotId(6), Some(gss_node_id), || {
+                        ParseErrorKind::UnexpectedToken {
+                            expected: FIRST_SET_LEXICAL_IDENTIFIER.terminals.to_vec(),
+                        }
+                    });
                 }
             }
             // StartLexicalIdentifier : start:LexicalIdentifier.

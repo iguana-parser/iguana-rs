@@ -2309,6 +2309,12 @@ impl<'i, 'arena> Parser<'i, 'arena> for IggyParser<'i, 'arena> {
                     let j = self.sppf_node(right_child).right_extent();
                     // RangeElement : Range.
                     self.execute(j, SlotId(111), Some(right_child), gss_node_id, env);
+                } else {
+                    self.add_parse_error(input_index, SlotId(110), Some(gss_node_id), || {
+                        ParseErrorKind::UnexpectedToken {
+                            expected: FIRST_SET_RANGE.terminals.to_vec(),
+                        }
+                    });
                 }
             }
             // RangeElement : Range.
@@ -2520,6 +2526,12 @@ impl<'i, 'arena> Parser<'i, 'arena> for IggyParser<'i, 'arena> {
                     let j = self.sppf_node(right_child).right_extent();
                     // Opt_1 : Annotation.
                     self.execute(j, SlotId(134), Some(right_child), gss_node_id, env);
+                } else {
+                    self.add_parse_error(input_index, SlotId(133), Some(gss_node_id), || {
+                        ParseErrorKind::UnexpectedToken {
+                            expected: FIRST_SET_ANNOTATION.terminals.to_vec(),
+                        }
+                    });
                 }
             }
             // Opt_1 : Annotation.
@@ -2694,6 +2706,12 @@ impl<'i, 'arena> Parser<'i, 'arena> for IggyParser<'i, 'arena> {
                     let j = self.sppf_node(right_child).right_extent();
                     // Opt_4 : PreCondition.
                     self.execute(j, SlotId(153), Some(right_child), gss_node_id, env);
+                } else {
+                    self.add_parse_error(input_index, SlotId(152), Some(gss_node_id), || {
+                        ParseErrorKind::UnexpectedToken {
+                            expected: FIRST_SET_PRE_CONDITION.terminals.to_vec(),
+                        }
+                    });
                 }
             }
             // Opt_4 : PreCondition.
@@ -2836,6 +2854,12 @@ impl<'i, 'arena> Parser<'i, 'arena> for IggyParser<'i, 'arena> {
                     let j = self.sppf_node(right_child).right_extent();
                     // Plus_4 : Plus_4 . Layout PostCondition
                     self.execute(j, SlotId(170), Some(right_child), gss_node_id, env);
+                } else {
+                    self.add_parse_error(input_index, SlotId(169), Some(gss_node_id), || {
+                        ParseErrorKind::UnexpectedToken {
+                            expected: FIRST_SET_PLUS_4.terminals.to_vec(),
+                        }
+                    });
                 }
             }
             // Plus_4 : Plus_4 . Layout PostCondition
@@ -2858,6 +2882,12 @@ impl<'i, 'arena> Parser<'i, 'arena> for IggyParser<'i, 'arena> {
                         // Plus_4 : Plus_4 Layout PostCondition.
                         self.execute(j, SlotId(172), Some(new_node), gss_node_id, env);
                     }
+                } else {
+                    self.add_parse_error(input_index, SlotId(171), Some(gss_node_id), || {
+                        ParseErrorKind::UnexpectedToken {
+                            expected: FIRST_SET_POST_CONDITION.terminals.to_vec(),
+                        }
+                    });
                 }
             }
             // Plus_4 : Plus_4 Layout PostCondition.
@@ -2876,6 +2906,12 @@ impl<'i, 'arena> Parser<'i, 'arena> for IggyParser<'i, 'arena> {
                     let j = self.sppf_node(right_child).right_extent();
                     // Plus_4 : PostCondition.
                     self.execute(j, SlotId(174), Some(right_child), gss_node_id, env);
+                } else {
+                    self.add_parse_error(input_index, SlotId(173), Some(gss_node_id), || {
+                        ParseErrorKind::UnexpectedToken {
+                            expected: FIRST_SET_POST_CONDITION.terminals.to_vec(),
+                        }
+                    });
                 }
             }
             // Plus_4 : PostCondition.
@@ -2894,6 +2930,12 @@ impl<'i, 'arena> Parser<'i, 'arena> for IggyParser<'i, 'arena> {
                     let j = self.sppf_node(right_child).right_extent();
                     // Opt_5 : Plus_4.
                     self.execute(j, SlotId(176), Some(right_child), gss_node_id, env);
+                } else {
+                    self.add_parse_error(input_index, SlotId(175), Some(gss_node_id), || {
+                        ParseErrorKind::UnexpectedToken {
+                            expected: FIRST_SET_PLUS_4.terminals.to_vec(),
+                        }
+                    });
                 }
             }
             // Opt_5 : Plus_4.
@@ -2944,6 +2986,12 @@ impl<'i, 'arena> Parser<'i, 'arena> for IggyParser<'i, 'arena> {
                     let j = self.sppf_node(right_child).right_extent();
                     // Opt_6 : Associativity.
                     self.execute(j, SlotId(181), Some(right_child), gss_node_id, env);
+                } else {
+                    self.add_parse_error(input_index, SlotId(180), Some(gss_node_id), || {
+                        ParseErrorKind::UnexpectedToken {
+                            expected: FIRST_SET_ASSOCIATIVITY.terminals.to_vec(),
+                        }
+                    });
                 }
             }
             // Opt_6 : Associativity.
@@ -3289,6 +3337,12 @@ impl<'i, 'arena> Parser<'i, 'arena> for IggyParser<'i, 'arena> {
                         // Plus_8 : Plus_8 Layout Group_0.
                         self.execute(j, SlotId(220), Some(new_node), gss_node_id, env);
                     }
+                } else {
+                    self.add_parse_error(input_index, SlotId(219), Some(gss_node_id), || {
+                        ParseErrorKind::UnexpectedToken {
+                            expected: FIRST_SET_GROUP_0.terminals.to_vec(),
+                        }
+                    });
                 }
             }
             // Plus_8 : Plus_8 Layout Group_0.
@@ -3307,6 +3361,12 @@ impl<'i, 'arena> Parser<'i, 'arena> for IggyParser<'i, 'arena> {
                     let j = self.sppf_node(right_child).right_extent();
                     // Plus_8 : Group_0.
                     self.execute(j, SlotId(222), Some(right_child), gss_node_id, env);
+                } else {
+                    self.add_parse_error(input_index, SlotId(221), Some(gss_node_id), || {
+                        ParseErrorKind::UnexpectedToken {
+                            expected: FIRST_SET_GROUP_0.terminals.to_vec(),
+                        }
+                    });
                 }
             }
             // Plus_8 : Group_0.
@@ -3386,6 +3446,12 @@ impl<'i, 'arena> Parser<'i, 'arena> for IggyParser<'i, 'arena> {
                         // Plus_9 : Plus_9 Layout Group_1.
                         self.execute(j, SlotId(230), Some(new_node), gss_node_id, env);
                     }
+                } else {
+                    self.add_parse_error(input_index, SlotId(229), Some(gss_node_id), || {
+                        ParseErrorKind::UnexpectedToken {
+                            expected: FIRST_SET_GROUP_1.terminals.to_vec(),
+                        }
+                    });
                 }
             }
             // Plus_9 : Plus_9 Layout Group_1.
@@ -3404,6 +3470,12 @@ impl<'i, 'arena> Parser<'i, 'arena> for IggyParser<'i, 'arena> {
                     let j = self.sppf_node(right_child).right_extent();
                     // Plus_9 : Group_1.
                     self.execute(j, SlotId(232), Some(right_child), gss_node_id, env);
+                } else {
+                    self.add_parse_error(input_index, SlotId(231), Some(gss_node_id), || {
+                        ParseErrorKind::UnexpectedToken {
+                            expected: FIRST_SET_GROUP_1.terminals.to_vec(),
+                        }
+                    });
                 }
             }
             // Plus_9 : Group_1.
@@ -3483,6 +3555,12 @@ impl<'i, 'arena> Parser<'i, 'arena> for IggyParser<'i, 'arena> {
                         // Plus_10 : Plus_10 Layout Group_2.
                         self.execute(j, SlotId(240), Some(new_node), gss_node_id, env);
                     }
+                } else {
+                    self.add_parse_error(input_index, SlotId(239), Some(gss_node_id), || {
+                        ParseErrorKind::UnexpectedToken {
+                            expected: FIRST_SET_GROUP_2.terminals.to_vec(),
+                        }
+                    });
                 }
             }
             // Plus_10 : Plus_10 Layout Group_2.
@@ -3501,6 +3579,12 @@ impl<'i, 'arena> Parser<'i, 'arena> for IggyParser<'i, 'arena> {
                     let j = self.sppf_node(right_child).right_extent();
                     // Plus_10 : Group_2.
                     self.execute(j, SlotId(242), Some(right_child), gss_node_id, env);
+                } else {
+                    self.add_parse_error(input_index, SlotId(241), Some(gss_node_id), || {
+                        ParseErrorKind::UnexpectedToken {
+                            expected: FIRST_SET_GROUP_2.terminals.to_vec(),
+                        }
+                    });
                 }
             }
             // Plus_10 : Group_2.
@@ -3633,6 +3717,12 @@ impl<'i, 'arena> Parser<'i, 'arena> for IggyParser<'i, 'arena> {
                     let j = self.sppf_node(right_child).right_extent();
                     // Plus_12 : Plus_12 . Alt_0
                     self.execute(j, SlotId(257), Some(right_child), gss_node_id, env);
+                } else {
+                    self.add_parse_error(input_index, SlotId(256), Some(gss_node_id), || {
+                        ParseErrorKind::UnexpectedToken {
+                            expected: FIRST_SET_PLUS_12.terminals.to_vec(),
+                        }
+                    });
                 }
             }
             // Plus_12 : Plus_12 . Alt_0
@@ -3644,6 +3734,12 @@ impl<'i, 'arena> Parser<'i, 'arena> for IggyParser<'i, 'arena> {
                         // Plus_12 : Plus_12 Alt_0.
                         self.execute(j, SlotId(258), Some(new_node), gss_node_id, env);
                     }
+                } else {
+                    self.add_parse_error(input_index, SlotId(257), Some(gss_node_id), || {
+                        ParseErrorKind::UnexpectedToken {
+                            expected: FIRST_SET_ALT_0.terminals.to_vec(),
+                        }
+                    });
                 }
             }
             // Plus_12 : Plus_12 Alt_0.
@@ -3662,6 +3758,12 @@ impl<'i, 'arena> Parser<'i, 'arena> for IggyParser<'i, 'arena> {
                     let j = self.sppf_node(right_child).right_extent();
                     // Plus_12 : Alt_0.
                     self.execute(j, SlotId(260), Some(right_child), gss_node_id, env);
+                } else {
+                    self.add_parse_error(input_index, SlotId(259), Some(gss_node_id), || {
+                        ParseErrorKind::UnexpectedToken {
+                            expected: FIRST_SET_ALT_0.terminals.to_vec(),
+                        }
+                    });
                 }
             }
             // Plus_12 : Alt_0.
@@ -3680,6 +3782,12 @@ impl<'i, 'arena> Parser<'i, 'arena> for IggyParser<'i, 'arena> {
                     let j = self.sppf_node(right_child).right_extent();
                     // Opt_10 : Plus_12.
                     self.execute(j, SlotId(262), Some(right_child), gss_node_id, env);
+                } else {
+                    self.add_parse_error(input_index, SlotId(261), Some(gss_node_id), || {
+                        ParseErrorKind::UnexpectedToken {
+                            expected: FIRST_SET_PLUS_12.terminals.to_vec(),
+                        }
+                    });
                 }
             }
             // Opt_10 : Plus_12.
@@ -3840,6 +3948,12 @@ impl<'i, 'arena> Parser<'i, 'arena> for IggyParser<'i, 'arena> {
                         // StartAnnotation : Layout start:Annotation . Layout
                         self.execute(j, SlotId(280), Some(new_node), gss_node_id, env);
                     }
+                } else {
+                    self.add_parse_error(input_index, SlotId(279), Some(gss_node_id), || {
+                        ParseErrorKind::UnexpectedToken {
+                            expected: FIRST_SET_ANNOTATION.terminals.to_vec(),
+                        }
+                    });
                 }
             }
             // StartAnnotation : Layout start:Annotation . Layout
@@ -3913,6 +4027,12 @@ impl<'i, 'arena> Parser<'i, 'arena> for IggyParser<'i, 'arena> {
                         // StartPreCondition : Layout start:PreCondition . Layout
                         self.execute(j, SlotId(288), Some(new_node), gss_node_id, env);
                     }
+                } else {
+                    self.add_parse_error(input_index, SlotId(287), Some(gss_node_id), || {
+                        ParseErrorKind::UnexpectedToken {
+                            expected: FIRST_SET_PRE_CONDITION.terminals.to_vec(),
+                        }
+                    });
                 }
             }
             // StartPreCondition : Layout start:PreCondition . Layout
@@ -3953,6 +4073,12 @@ impl<'i, 'arena> Parser<'i, 'arena> for IggyParser<'i, 'arena> {
                         // StartPostCondition : Layout start:PostCondition . Layout
                         self.execute(j, SlotId(292), Some(new_node), gss_node_id, env);
                     }
+                } else {
+                    self.add_parse_error(input_index, SlotId(291), Some(gss_node_id), || {
+                        ParseErrorKind::UnexpectedToken {
+                            expected: FIRST_SET_POST_CONDITION.terminals.to_vec(),
+                        }
+                    });
                 }
             }
             // StartPostCondition : Layout start:PostCondition . Layout
@@ -4026,6 +4152,12 @@ impl<'i, 'arena> Parser<'i, 'arena> for IggyParser<'i, 'arena> {
                         // StartAssociativity : Layout start:Associativity . Layout
                         self.execute(j, SlotId(300), Some(new_node), gss_node_id, env);
                     }
+                } else {
+                    self.add_parse_error(input_index, SlotId(299), Some(gss_node_id), || {
+                        ParseErrorKind::UnexpectedToken {
+                            expected: FIRST_SET_ASSOCIATIVITY.terminals.to_vec(),
+                        }
+                    });
                 }
             }
             // StartAssociativity : Layout start:Associativity . Layout
@@ -4231,6 +4363,12 @@ impl<'i, 'arena> Parser<'i, 'arena> for IggyParser<'i, 'arena> {
                         // StartRange : Layout start:Range . Layout
                         self.execute(j, SlotId(324), Some(new_node), gss_node_id, env);
                     }
+                } else {
+                    self.add_parse_error(input_index, SlotId(323), Some(gss_node_id), || {
+                        ParseErrorKind::UnexpectedToken {
+                            expected: FIRST_SET_RANGE.terminals.to_vec(),
+                        }
+                    });
                 }
             }
             // StartRange : Layout start:Range . Layout
@@ -6589,7 +6727,14 @@ impl<'i, 'arena> IggyParser<'i, 'arena> {
                 let mut j = i;
                 let right_child = {
                     let start = j;
-                    let node = self.parse_annotation_ll1(start)?;
+                    let Some(node) = self.parse_annotation_ll1(start) else {
+                        self.add_parse_error(start, SlotId(134), None, || {
+                            ParseErrorKind::UnexpectedToken {
+                                expected: FIRST_SET_ANNOTATION.terminals.to_vec(),
+                            }
+                        });
+                        return None;
+                    };
                     let end = self.sppf_node(node).right_extent();
                     j = end;
                     node
@@ -6729,7 +6874,14 @@ impl<'i, 'arena> IggyParser<'i, 'arena> {
                 let mut j = i;
                 let right_child = {
                     let start = j;
-                    let node = self.parse_plus_4_ll1(start)?;
+                    let Some(node) = self.parse_plus_4_ll1(start) else {
+                        self.add_parse_error(start, SlotId(176), None, || {
+                            ParseErrorKind::UnexpectedToken {
+                                expected: FIRST_SET_PLUS_4.terminals.to_vec(),
+                            }
+                        });
+                        return None;
+                    };
                     let end = self.sppf_node(node).right_extent();
                     j = end;
                     node
@@ -6797,7 +6949,14 @@ impl<'i, 'arena> IggyParser<'i, 'arena> {
                 let mut j = i;
                 let right_child = {
                     let start = j;
-                    let node = self.parse_associativity_ll1(start)?;
+                    let Some(node) = self.parse_associativity_ll1(start) else {
+                        self.add_parse_error(start, SlotId(181), None, || {
+                            ParseErrorKind::UnexpectedToken {
+                                expected: FIRST_SET_ASSOCIATIVITY.terminals.to_vec(),
+                            }
+                        });
+                        return None;
+                    };
                     let end = self.sppf_node(node).right_extent();
                     j = end;
                     node
@@ -7199,7 +7358,14 @@ impl<'i, 'arena> IggyParser<'i, 'arena> {
                 let mut j = i;
                 let right_child = {
                     let start = j;
-                    let node = self.parse_plus_12_ll1(start)?;
+                    let Some(node) = self.parse_plus_12_ll1(start) else {
+                        self.add_parse_error(start, SlotId(262), None, || {
+                            ParseErrorKind::UnexpectedToken {
+                                expected: FIRST_SET_PLUS_12.terminals.to_vec(),
+                            }
+                        });
+                        return None;
+                    };
                     let end = self.sppf_node(node).right_extent();
                     j = end;
                     node

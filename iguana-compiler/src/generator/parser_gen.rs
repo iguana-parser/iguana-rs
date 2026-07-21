@@ -1,3 +1,4 @@
+use proc_macro2::Ident;
 use proc_macro2::Literal;
 use proc_macro2::TokenStream;
 use quote::format_ident;
@@ -880,6 +881,7 @@ impl<'a> ParserGen<'a> {
                 }
             };
             let method_name = format_ident!("parse_{}_ll1", to_snake_case(&nonterminal.name));
+            let ll1_error = self.gen_ll1_call_error(nonterminal, quote! { #slot_id });
             if slot.is_first() {
                 quote! {
                     #[comment = #slot_name]
@@ -890,7 +892,7 @@ impl<'a> ParserGen<'a> {
                             #post_condition_check
                             #[comment = #next_slot_name]
                             self.execute(j, #next_slot_id, Some(right_child), gss_node_id, env);
-                        }
+                        } #ll1_error
                     }
                 }
             } else {
@@ -912,7 +914,7 @@ impl<'a> ParserGen<'a> {
                                 #[comment = #next_slot_name]
                                 self.execute(j, #next_slot_id, Some(new_node), gss_node_id, env);
                             }
-                        }
+                        } #ll1_error
                     }
                 }
             }
@@ -942,6 +944,36 @@ impl<'a> ParserGen<'a> {
                     #pre_condition_check
                     self.#method_name(#arguments);
                 }
+            }
+        }
+    }
+
+    /// The FIRST-set const for `nonterminal`, or None when the nonterminal is
+    /// nullable. A nullable nonterminal's `parse_X_ll1` always returns a node
+    /// (the ε alternative). Only a non-nullable nonterminal can fail to predict
+    /// an alternative, and its expected set is its FIRST set.
+    fn ll1_first_set_if_non_nullable(&self, nonterminal: &Nonterminal) -> Option<Ident> {
+        if self.ff.is_nonterminal_nullable(nonterminal) {
+            return None;
+        }
+        Some(format_ident!(
+            "FIRST_SET_{}",
+            to_snake_case(&nonterminal.name).to_uppercase(),
+        ))
+    }
+
+    /// The `else` that records `expected FIRST(X)` when the GLL main loop's call
+    /// to `parse_X_ll1` returns None. Empty for a nullable X. See
+    /// `gen_parse_method_ll1` for why the record lives at the caller.
+    fn gen_ll1_call_error(&self, nonterminal: &Nonterminal, slot_id: TokenStream) -> TokenStream {
+        let Some(first_set_name) = self.ll1_first_set_if_non_nullable(nonterminal) else {
+            return quote! {};
+        };
+        quote! {
+            else {
+                self.add_parse_error(input_index, #slot_id, Some(gss_node_id), || {
+                    ParseErrorKind::UnexpectedToken { expected: #first_set_name.terminals.to_vec() }
+                });
             }
         }
     }
@@ -1305,6 +1337,45 @@ impl<'a> ParserGen<'a> {
         quote! { self.scanner.match_any(&#name, #input_index) }
     }
 
+    /// Generates `parse_X_ll1`, the recursive-descent function for an LL(1)
+    /// nonterminal X, and defines where the parse errors are recorded.
+    ///
+    /// `parse_X_ll1` predicts its alternative with one lookahead token:
+    /// `longest_match(&FIRST_SET_X, i)`. When no alternative can be predicted,
+    /// `parse_X_ll1` returns None without recording a parse error.
+    ///
+    /// This is in contrast to GLL, where we record a parse error when no
+    /// alternative can be predicted. The LL(1) path stays silent because whether
+    /// the failure is an error depends on the grammar context where `parse_X_ll1`
+    /// is called:
+    ///
+    /// - If X is a plain symbol reference in a rule, a None means none of X's
+    ///   alternatives could be predicted. This is a real error, and the caller
+    ///   records "expected FIRST(X)". Two callers are of this kind: the GLL main
+    ///   loop and a call to X inside another nonterminal's LL(1) function.
+    /// - If X is the repeated element of a * or +, a None means the repetition
+    ///   could not go further, and this is actually a loop continuation
+    ///   condition, not a real error, so no error is recorded.
+    ///
+    /// Because only the caller knows which case it is in, the record must live at
+    /// the call site, not in `parse_X_ll1`. This is also what lets the repetition
+    /// probe stay silent: if `parse_X_ll1` recorded its own prediction failures,
+    /// the probe would record `expected FIRST(<loop element>)` every time a
+    /// repetition ends. Such a record is usually harmless: the parser keeps only
+    /// the error at the farthest input position, so it is discarded as soon as
+    /// the parse advances past it. It matters only when the repetition ends
+    /// exactly where the parse then fails, which is the common case for layout.
+    /// Layout is inserted immediately before the next symbol, so a layout
+    /// repetition ends right where a missing symbol is reported, and its spurious
+    /// error, recorded first, is reported instead of the real one.
+    /// `tests/ll1_call_error` guards against this. Keeping the record in the
+    /// caller also makes the LL(1) path report the same error as GLL for the same
+    /// input.
+    ///
+    /// A nullable nonterminal can always succeed without matching, so not
+    /// predicting an alternative is not an error for it. Its `parse_X_ll1`
+    /// matches its nullable alternative rather than returning None, so its
+    /// callers never receive None and never record an error.
     fn gen_parse_method_ll1(&self, nonterminal: &'a Nonterminal, memoize: bool) -> TokenStream {
         // For Plus, generate a loop rather than matching the left-recursive
         // desugared alternatives, which would cause infinite recursion.
@@ -1372,6 +1443,8 @@ impl<'a> ParserGen<'a> {
                     &alternatives.iter().collect::<Vec<_>>(),
                     nonterminal_id,
                 );
+                // The `?` returns None on a prediction failure without recording;
+                // the caller records `expected FIRST(X)`. See gen_parse_method_ll1.
                 quote! {
                     let matched = self.scanner.longest_match(&#first_set_name, i)?;
                     match matched {
@@ -1503,6 +1576,8 @@ impl<'a> ParserGen<'a> {
             let slot = Slot::new(nonterminal, recursive_alt, idx + 1);
             let slot_id = self.slot_ids.get_id(&slot);
             let parse = self.gen_match_symbol_ll1(symbol, current_pos.clone(), slot_id);
+            // The repetition probe: on a prediction failure the repetition is
+            // done, so break without recording. See gen_parse_method_ll1.
             parses.push(quote! {
                 let Some((#node_var, #pos_var)) = #parse else { break; };
             });
@@ -1673,11 +1748,26 @@ impl<'a> ParserGen<'a> {
                 }
                 Definition::Nonterminal(nt) => {
                     let nt_method = format_ident!("parse_{}_ll1", to_snake_case(&nt.name));
+                    // Symbol-reference call inside an alternative body: on a
+                    // prediction failure, record `expected FIRST(nt)` at `start`
+                    // and return None. Empty (plain `?`) for a nullable nt. See
+                    // gen_parse_method_ll1.
+                    let call = match self.ll1_first_set_if_non_nullable(nt) {
+                        Some(first_set_name) => quote! {
+                            let Some(node) = self.#nt_method(start) else {
+                                self.add_parse_error(start, #next_slot_id, None, || {
+                                    ParseErrorKind::UnexpectedToken { expected: #first_set_name.terminals.to_vec() }
+                                });
+                                return None;
+                            };
+                        },
+                        None => quote! { let node = self.#nt_method(start)?; },
+                    };
                     body.push(quote! {
                         #pre_check
                         let right_child = {
                             let start = j;
-                            let node = self.#nt_method(start)?;
+                            #call
                             let end = self.sppf_node(node).right_extent();
                             j = end;
                             #post_check

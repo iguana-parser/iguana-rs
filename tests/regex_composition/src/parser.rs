@@ -65,6 +65,12 @@ impl<'i, 'arena> Parser<'i, 'arena> for RegexCompositionParser<'i, 'arena> {
                     let j = self.sppf_node(right_child).right_extent();
                     // S : Id.
                     self.execute(j, SlotId(1), Some(right_child), gss_node_id, env);
+                } else {
+                    self.add_parse_error(input_index, SlotId(0), Some(gss_node_id), || {
+                        ParseErrorKind::UnexpectedToken {
+                            expected: FIRST_SET_ID.terminals.to_vec(),
+                        }
+                    });
                 }
             }
             // S : Id.
@@ -105,6 +111,12 @@ impl<'i, 'arena> Parser<'i, 'arena> for RegexCompositionParser<'i, 'arena> {
                     let j = self.sppf_node(right_child).right_extent();
                     // Plus_0 : Plus_0 . LetterOrDigit
                     self.execute(j, SlotId(6), Some(right_child), gss_node_id, env);
+                } else {
+                    self.add_parse_error(input_index, SlotId(5), Some(gss_node_id), || {
+                        ParseErrorKind::UnexpectedToken {
+                            expected: FIRST_SET_PLUS_0.terminals.to_vec(),
+                        }
+                    });
                 }
             }
             // Plus_0 : Plus_0 . LetterOrDigit
@@ -147,6 +159,12 @@ impl<'i, 'arena> Parser<'i, 'arena> for RegexCompositionParser<'i, 'arena> {
                     let j = self.sppf_node(right_child).right_extent();
                     // Opt_0 : Plus_0.
                     self.execute(j, SlotId(11), Some(right_child), gss_node_id, env);
+                } else {
+                    self.add_parse_error(input_index, SlotId(10), Some(gss_node_id), || {
+                        ParseErrorKind::UnexpectedToken {
+                            expected: FIRST_SET_PLUS_0.terminals.to_vec(),
+                        }
+                    });
                 }
             }
             // Opt_0 : Plus_0.
@@ -201,6 +219,12 @@ impl<'i, 'arena> Parser<'i, 'arena> for RegexCompositionParser<'i, 'arena> {
                         // StartS : WS start:S . WS
                         self.execute(j, SlotId(17), Some(new_node), gss_node_id, env);
                     }
+                } else {
+                    self.add_parse_error(input_index, SlotId(16), Some(gss_node_id), || {
+                        ParseErrorKind::UnexpectedToken {
+                            expected: FIRST_SET_S.terminals.to_vec(),
+                        }
+                    });
                 }
             }
             // StartS : WS start:S . WS
@@ -240,6 +264,12 @@ impl<'i, 'arena> Parser<'i, 'arena> for RegexCompositionParser<'i, 'arena> {
                         // StartId : WS start:Id . WS
                         self.execute(j, SlotId(21), Some(new_node), gss_node_id, env);
                     }
+                } else {
+                    self.add_parse_error(input_index, SlotId(20), Some(gss_node_id), || {
+                        ParseErrorKind::UnexpectedToken {
+                            expected: FIRST_SET_ID.terminals.to_vec(),
+                        }
+                    });
                 }
             }
             // StartId : WS start:Id . WS
@@ -853,7 +883,14 @@ impl<'i, 'arena> RegexCompositionParser<'i, 'arena> {
                 let mut j = i;
                 let right_child = {
                     let start = j;
-                    let node = self.parse_id_ll1(start)?;
+                    let Some(node) = self.parse_id_ll1(start) else {
+                        self.add_parse_error(start, SlotId(1), None, || {
+                            ParseErrorKind::UnexpectedToken {
+                                expected: FIRST_SET_ID.terminals.to_vec(),
+                            }
+                        });
+                        return None;
+                    };
                     let end = self.sppf_node(node).right_extent();
                     j = end;
                     node
@@ -983,7 +1020,14 @@ impl<'i, 'arena> RegexCompositionParser<'i, 'arena> {
                 let mut j = i;
                 let right_child = {
                     let start = j;
-                    let node = self.parse_plus_0_ll1(start)?;
+                    let Some(node) = self.parse_plus_0_ll1(start) else {
+                        self.add_parse_error(start, SlotId(11), None, || {
+                            ParseErrorKind::UnexpectedToken {
+                                expected: FIRST_SET_PLUS_0.terminals.to_vec(),
+                            }
+                        });
+                        return None;
+                    };
                     let end = self.sppf_node(node).right_extent();
                     j = end;
                     node
