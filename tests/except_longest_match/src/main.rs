@@ -216,26 +216,6 @@ struct Cli {
         help_heading = "Corpus testing"
     )]
     corpus_dir: PathBuf,
-    /// Slow-file threshold in milliseconds for --corpus-test
-    ///
-    /// A file's parse time is recorded in the baseline only when it exceeds this
-    #[arg(
-        long,
-        value_name = "MS",
-        default_value_t = 5.0,
-        help_heading = "Corpus testing"
-    )]
-    slow_ms: f64,
-    /// Soft tolerance (percent) on the aggregate parse time for --corpus-test
-    ///
-    /// A larger drift is reported but does not fail
-    #[arg(
-        long,
-        value_name = "PCT",
-        default_value_t = 30.0,
-        help_heading = "Corpus testing"
-    )]
-    perf_tolerance: f64,
     /// Write parser stats (counters and histograms) as JSON
     ///
     /// Requires the "instrument" feature
@@ -447,8 +427,6 @@ fn main() -> Result<(), io::Error> {
                 &baseline_path,
                 cli::CorpusConfig {
                     mode,
-                    slow_ms: args.slow_ms,
-                    perf_tolerance_pct: args.perf_tolerance,
                     quiet: args.quiet,
                 },
                 |path| {
@@ -462,18 +440,13 @@ fn main() -> Result<(), io::Error> {
                     };
                     let mut parser =
                         ExceptLongestMatchParser::new(&input, start_nonterminal_id, &vec_arena);
-                    let start = Instant::now();
-                    let result = parser.run();
-                    let ms = start.elapsed().as_secs_f64() * 1000.0;
-                    let outcome = match result {
+                    let outcome = match parser.run() {
                         ParseResult::Success(success) => cli::CorpusOutcome::Ok {
-                            ms,
                             ambiguous: is_ambiguous(&parser, success.sppf_node_id),
                         },
                         ParseResult::Failure(error) => {
                             let (line, column, message) = parser.format_error(&error);
                             cli::CorpusOutcome::Error {
-                                ms,
                                 message: format!(
                                     "Parse error at line {}, col {}: {}",
                                     line + 1,
@@ -777,7 +750,10 @@ fn main() -> Result<(), io::Error> {
                     let len = parser.error_span_len(error.input_index);
                     cli::ReplOutcome::Failed {
                         message: format!(
-                            "Parse failed at line {line}, column {column}: {message}\n{}",
+                            "Parse error at line {}, col {}: {}\n{}",
+                            line + 1,
+                            column + 1,
+                            message,
                             input.line_and_caret(error.input_index, len)
                         ),
                     }
@@ -933,7 +909,10 @@ fn main() -> Result<(), io::Error> {
             let (line, column, message) = parser.format_error(&error);
             let len = parser.error_span_len(error.input_index);
             eprintln!(
-                "Parse failed at line {line}, column {column}: {message}\n{}",
+                "Parse error at line {}, col {}: {}\n{}",
+                line + 1,
+                column + 1,
+                message,
                 input.line_and_caret(error.input_index, len)
             );
             if let Some(ref path) = args.write_result {
@@ -1111,7 +1090,7 @@ fn run_batch(
                 let (line, column, _) = parser.format_error(&error);
                 failed += 1;
                 if !hist_only {
-                    let reason = format!("Parse Error at line {}, col {}", line, column);
+                    let reason = format!("Parse error at line {}, col {}", line + 1, column + 1);
                     println!(
                         "{}{:<6}{}  {:<42}  {:<36}  {}",
                         color.red,
