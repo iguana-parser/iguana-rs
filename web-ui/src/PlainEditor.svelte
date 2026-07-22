@@ -111,7 +111,7 @@
   .ple-pre,
   .ple-ta {
     margin: 0;
-    padding: 8px 10px;
+    padding: 12px 10px 8px;
     border: 0;
     font: inherit;
     line-height: inherit;

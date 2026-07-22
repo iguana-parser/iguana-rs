@@ -2,7 +2,7 @@
   import type { ParserBackend } from "./backend";
   import type * as monaco from "monaco-editor";
   import { tick, untrack } from "svelte";
-  import { ChevronDown, ChevronRight, CornerRightUp, Minimize2, Expand, SlidersHorizontal, Copy, ClipboardCheck } from "lucide-svelte";
+  import { ChevronDown, ChevronRight, CornerRightUp, Minimize2, Expand, SlidersHorizontal, Copy, ClipboardCheck, Play } from "lucide-svelte";
   import cytoscape from "cytoscape";
   import {
     sppfNodeStyles,
@@ -86,6 +86,9 @@
     // "monaco" (default) uses the full editor; "plain" swaps in a lightweight
     // syntax-highlighted textarea for a smaller footprint (embedded widgets).
     editor?: "monaco" | "plain";
+    // Show the "Export as PNG" control in the graph toolbar. True by default;
+    // the web viewer sets it false.
+    exportable?: boolean;
     isProfiling?: boolean;
     // Host-specific hooks. Terrarium passes these; the web viewer omits them, so the
     // corresponding chrome (status bar, output log, profiling, graph pop-out) is dropped.
@@ -126,6 +129,7 @@
     orientation = "horizontal",
     views = ["tree", "graph", "sexpr"],
     editor = "monaco",
+    exportable = true,
     isProfiling = false,
     onStatus,
     onParseStart,
@@ -492,8 +496,21 @@
     if (activeTab === "graph" && parseTree) {
       tick().then(() => {
         if (!parseTreeContainer) return;
-        if (graphDirty || !parseTreeCy) loadGraph(true);
+        const needsFit = graphDirty || !parseTreeCy;
+        if (needsFit) loadGraph(true);
         else parseTreeCy.resize();
+        // A single tick isn't enough for the just-unhidden flex pane to reach its
+        // final size, so loadGraph's fit lands on a too-small box (the graph reads
+        // tiny). Re-fit on the next frame, once layout has settled, but only when
+        // the graph was (re)built, so revisiting the tab keeps the user's zoom/pan.
+        if (needsFit) {
+          requestAnimationFrame(() => {
+            if (parseTreeCy && activeTab === "graph") {
+              parseTreeCy.resize();
+              resetView();
+            }
+          });
+        }
       });
     }
   });
@@ -508,7 +525,7 @@
       zoomOut,
       fit: resetView,
       expandAll,
-      exportPng: exportGraph,
+      exportPng: exportable ? exportGraph : undefined,
       popOut: onPopOut,
     });
   });
@@ -1091,25 +1108,30 @@
 <div class="main-content" class:vertical={orientation === "vertical"}>
   <!-- Left Panel -->
   <div class="left-panel" style={orientation === "vertical" ? `height: ${leftPanelWidth}px` : `width: ${leftPanelWidth}px`}>
-    <!-- Header -->
+    <!-- Header: shown only when it has content — a start chooser (more than one
+         start nonterminal) or a Profile action. A single-start grammar needs no
+         chooser, and Parse now lives in the input pane, so the header collapses. -->
+    {#if nonterminals.length > 1 || onProfile}
     <div class="header">
-      <div class="dropdown-wrapper">
-        <span class="dropdown-label">Start:</span>
-        <NonterminalPicker
-          bind:value={startNonterminal}
-          options={nonterminals}
-          disabled={!backend || nonterminals.length === 0}
-        />
-      </div>
-      <div class="parse-actions">
-        <button class="parse-btn" onclick={parse} disabled={!backend || buildStatus !== "success" || !startNonterminal}>Parse</button>
-        {#if onProfile}
+      {#if nonterminals.length > 1}
+        <div class="dropdown-wrapper">
+          <span class="dropdown-label">Start:</span>
+          <NonterminalPicker
+            bind:value={startNonterminal}
+            options={nonterminals}
+            disabled={!backend || nonterminals.length === 0}
+          />
+        </div>
+      {/if}
+      {#if onProfile}
+        <div class="parse-actions">
           <button class="parse-btn" onclick={onProfile} disabled={!backend || buildStatus !== "success" || !startNonterminal || isProfiling}>
             {isProfiling ? "Profiling..." : "Profile"}
           </button>
-        {/if}
-      </div>
+        </div>
+      {/if}
     </div>
+    {/if}
 
     <!-- Input Area -->
     <div class="input-section">
@@ -1135,6 +1157,16 @@
           onSaveViewState={onInputViewState}
         />
       {/if}
+      <!-- Parse trigger: a play button floating in the input pane's corner. -->
+      <button
+        class="parse-play"
+        onclick={parse}
+        disabled={!backend || buildStatus !== "success" || !startNonterminal}
+        title="Parse"
+        aria-label="Parse"
+      >
+        <Play size={16} fill="currentColor" strokeWidth={0} />
+      </button>
     </div>
   </div>
 
@@ -1393,6 +1425,32 @@
     flex: 1;
     min-height: 0;  /* shrink to the pane; a taller floor overflows short stacked panes over the result tabs */
     user-select: none;  /* Contain selection - allow only in the input editor */
+    position: relative;  /* anchor the floating Parse button */
+  }
+
+  /* Parse trigger: a minimal play triangle in the input pane's top-right corner,
+     replacing the old header Parse button. */
+  .parse-play {
+    position: absolute;
+    top: 8px;
+    right: 12px;
+    z-index: 4;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 4px;
+    border: none;
+    background: transparent;
+    color: #8a8a8a;
+    cursor: pointer;
+    transition: color 0.15s;
+  }
+  .parse-play:hover:not(:disabled) {
+    color: #d4d4d4;
+  }
+  .parse-play:disabled {
+    opacity: 0.4;
+    cursor: default;
   }
 
   /* Resize Handle */
@@ -1474,7 +1532,7 @@
   .view-options {
     position: relative;
     margin-left: auto;
-    margin-right: 8px;
+    margin-right: 2px;
     align-self: center;
   }
 
@@ -1573,12 +1631,16 @@
     bottom: 0;
   }
 
+  /* Float the expand/collapse controls in the view's top-right corner (like the
+     graph controls) instead of a full toolbar row, so the tree/sexpr content gets
+     the whole panel. */
   .tree-controls {
-    padding: 8px;
-    border-bottom: 1px solid #3c3c3c;
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    z-index: 2;
     display: flex;
     gap: 4px;
-    background: #252526;
   }
 
   .tree-controls button {

@@ -413,13 +413,30 @@ export const PARSE_TREE_LAYOUT = {
 // so a large tree pans more smoothly on the GPU even with softer atlas text.
 export const PARSE_TREE_WEBGL_NODE_THRESHOLD = 1000;
 
-// Cap zoom level after fit to prevent huge nodes on small graphs
-export const MAX_FIT_ZOOM = 1.0;
+// Clamp the post-fit zoom to a readable band. Above the max, a tiny graph would
+// blow up into huge nodes; below the min, a large graph would shrink into an
+// unreadable speck. So a small graph fills the pane (up to the max), and a large
+// one holds at the readable min and pans/scrolls instead.
+export const MAX_FIT_ZOOM = 2.5;
+export const MIN_FIT_ZOOM = 0.5;
+// Gap kept between the graph and the pane edges on fit, so nodes never touch the
+// border. Small, since a short pane amplifies padding into a much smaller graph.
+const FIT_PADDING = 12;
 
 export function capZoom(cyInstance: Core) {
-  if (cyInstance.zoom() > MAX_FIT_ZOOM) {
+  const zoom = cyInstance.zoom();
+  if (zoom > MAX_FIT_ZOOM) {
     cyInstance.zoom(MAX_FIT_ZOOM);
     cyInstance.center();
+  } else if (zoom < MIN_FIT_ZOOM) {
+    // The graph is bigger than the pane at a readable zoom: hold the floor and
+    // show its top (the root), letting the rest pan into view.
+    cyInstance.zoom(MIN_FIT_ZOOM);
+    const bb = cyInstance.elements().boundingBox();
+    cyInstance.pan({
+      x: (cyInstance.width() - bb.w * MIN_FIT_ZOOM) / 2 - bb.x1 * MIN_FIT_ZOOM,
+      y: FIT_PADDING - bb.y1 * MIN_FIT_ZOOM,
+    });
   }
 }
 
@@ -433,7 +450,7 @@ export function adjustZoomGraph(graph: Core | null, factor: number) {
 // Fit a graph to its contents, then cap the zoom so small graphs don't over-zoom
 export function resetViewGraph(graph: Core | null) {
   if (graph) {
-    graph.fit();
+    graph.fit(graph.elements(), FIT_PADDING);
     capZoom(graph);
   }
 }
