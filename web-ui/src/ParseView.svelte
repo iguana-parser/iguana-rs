@@ -1139,7 +1139,10 @@
         <PlainEditor
           bind:this={inputEditorRef}
           bind:value={inputText}
+          highlightSpan={parseTreeSelectedSpan}
+          onclick={onParseInputClick}
           onchange={clearParseModeInputSelection}
+          onescape={clearParseModeInputSelection}
           placeholder="Enter code to parse..."
         />
       {:else if InputEditorComp}

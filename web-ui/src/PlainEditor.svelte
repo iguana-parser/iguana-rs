@@ -7,25 +7,40 @@
   // Highlighting is intentionally generic: the viewer parses any grammar's wasm,
   // so it cannot know the input language's real keywords. It colours by lexical
   // shape (strings, numbers, punctuation) plus a small set of keywords common
-  // across languages — enough to look like code, not a bare textarea. It is not a
-  // full editor: the parse-error / ambiguity / span decorations Monaco draws are
-  // dropped in this mode.
+  // across languages — enough to look like code, not a bare textarea.
+  //
+  // It honours the same selection-sync contract as InputEditor (highlightSpan,
+  // onclick, onescape), so ParseView drives text<->node selection identically in
+  // both editors. The Monaco-only extras (parse-error / ambiguity markers and
+  // scroll-the-span-into-view) are still dropped in this mode.
+  interface HighlightSpan {
+    start: number;
+    end: number;
+  }
+
   interface Props {
     value: string;
     placeholder?: string;
     readOnly?: boolean;
+    highlightSpan?: HighlightSpan | null;
     onchange?: (value: string) => void;
+    onclick?: (offset: number) => void;
+    onescape?: () => void;
   }
 
   let {
     value = $bindable(""),
     placeholder = "",
     readOnly = false,
+    highlightSpan = null,
     onchange,
+    onclick,
+    onescape,
   }: Props = $props();
 
   let ta: HTMLTextAreaElement | undefined;
   let pre: HTMLPreElement | undefined;
+  let sel: HTMLPreElement | undefined;
 
   const COMMON_KEYWORDS = new Set([
     "if", "then", "else", "let", "in", "fun", "case", "of", "match", "with",
@@ -59,6 +74,24 @@
 
   let highlighted = $derived(highlight(value));
 
+  // The selection layer sits behind the coloured text and paints the highlighted
+  // character range (or a caret bar for an empty span). It renders the full text
+  // transparently so its metrics match the highlight layer exactly and the two
+  // stay pixel-aligned as they scroll. Mirrors InputEditor's highlightSpan.
+  let selectionMarkup = $derived.by(() => {
+    if (!highlightSpan) return escapeHtml(value) + "\n";
+    const len = value.length;
+    const s = Math.max(0, Math.min(highlightSpan.start, len));
+    const e = Math.max(s, Math.min(highlightSpan.end, len));
+    const before = escapeHtml(value.slice(0, s));
+    const after = escapeHtml(value.slice(e));
+    const mid =
+      e > s
+        ? `<span class="ple-sel-range">${escapeHtml(value.slice(s, e))}</span>`
+        : `<span class="ple-caret"></span>`;
+    return before + mid + after + "\n";
+  });
+
   // Exported so ParseView can focus the input the way it does the Monaco editor.
   export function focus() {
     ta?.focus();
@@ -68,16 +101,34 @@
     onchange?.((e.target as HTMLTextAreaElement).value);
   }
 
-  // Keep the highlighted layer aligned with the textarea as it scrolls.
+  // A click places the caret; report its offset so ParseView can select the
+  // deepest node at that position (the text->node half of the sync). This mirrors
+  // InputEditor's onMouseDown handler.
+  function onclickInput() {
+    if (ta) onclick?.(ta.selectionStart);
+  }
+
+  function onkeydown(e: KeyboardEvent) {
+    if (e.key === "Escape") onescape?.();
+  }
+
+  // Keep the highlighted and selection layers aligned with the textarea as it
+  // scrolls.
   function onscroll() {
-    if (pre && ta) {
+    if (!ta) return;
+    if (pre) {
       pre.scrollTop = ta.scrollTop;
       pre.scrollLeft = ta.scrollLeft;
+    }
+    if (sel) {
+      sel.scrollTop = ta.scrollTop;
+      sel.scrollLeft = ta.scrollLeft;
     }
   }
 </script>
 
 <div class="ple">
+  <pre class="ple-sel" aria-hidden="true" bind:this={sel}>{@html selectionMarkup}</pre>
   <pre class="ple-pre" aria-hidden="true" bind:this={pre}><code>{@html highlighted}</code></pre>
   <textarea
     class="ple-ta"
@@ -91,6 +142,8 @@
     autocomplete="off"
     autocorrect="off"
     oninput={oninput}
+    onclick={onclickInput}
+    onkeydown={onkeydown}
     onscroll={onscroll}
   ></textarea>
 </div>
@@ -106,9 +159,11 @@
     line-height: 1.5;
   }
 
-  /* The highlighted layer and the textarea must share identical text metrics and
-     padding, or the caret will drift from the rendered glyphs. */
+  /* The highlighted, selection, and textarea layers must share identical text
+     metrics and padding, or the caret and the highlight will drift from the
+     rendered glyphs. */
   .ple-pre,
+  .ple-sel,
   .ple-ta {
     margin: 0;
     padding: 12px 10px 8px;
@@ -121,6 +176,21 @@
     width: 100%;
     height: 100%;
     overflow: auto;
+  }
+
+  /* Selection layer: behind the coloured text, transparent glyphs so only its
+     background (the highlighted span) and caret bar show through. */
+  .ple-sel {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    color: transparent;
+  }
+  .ple-sel :global(.ple-sel-range) {
+    background: #264f78;
+  }
+  .ple-sel :global(.ple-caret) {
+    border-left: 2px solid #569cd6;
   }
 
   .ple-pre {
