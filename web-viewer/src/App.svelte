@@ -135,6 +135,7 @@
       {orientation}
       {views}
       editor={editorMode}
+      exportable={false}
       {startVerticalDrag}
     />
   </div>

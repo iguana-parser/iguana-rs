@@ -1202,7 +1202,7 @@
                   <label>
                     <input type="checkbox" checked={!displayOptions.showLayout}
                       onchange={(e) => setDisplayOption("showLayout", !e.currentTarget.checked)} />
-                    Hide {parseTree.layout_name}
+                    Hide layout
                   </label>
                 {/if}
                 <label>
@@ -1510,7 +1510,9 @@
     border-bottom: 1px solid #3c3c3c;
   }
 
-  .tabs button {
+  /* Direct-child combinator so the tab padding stays on the Tree/Graph tabs and
+     does not leak onto the nested .view-options-btn (which is a button too). */
+  .tabs > button {
     padding: 8px 20px;
     background: transparent;
     color: #888;
@@ -1519,12 +1521,12 @@
     border-bottom: 2px solid transparent;
   }
 
-  .tabs button.active {
+  .tabs > button.active {
     color: #d4d4d4;
     border-bottom-color: #0e639c;
   }
 
-  .tabs button:hover:not(.active) {
+  .tabs > button:hover:not(.active) {
     color: #d4d4d4;
   }
 
@@ -1540,10 +1542,10 @@
     display: inline-flex;
     align-items: center;
     gap: 4px;
-    padding: 3px 8px;
+    padding: 3px 6px;
     background: #2d2d2d;
     color: #888;
-    border: 1px solid #3c3c3c;
+    border: none;
     border-radius: 3px;
     cursor: pointer;
     font-size: 11px;
@@ -1552,7 +1554,6 @@
   .view-options-btn.active {
     background: #3c3c3c;
     color: #fff;
-    border-color: #555;
   }
 
   .view-options-btn:hover:not(.active) {
