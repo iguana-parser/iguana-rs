@@ -154,7 +154,9 @@
     height: 100%;
     overflow: hidden;
     background: #1e1e1e;
-    font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+    /* Match Terrarium's Monaco editor: Fira Code where installed, ligatures off. */
+    font-family: "Fira Code", Consolas, "Liberation Mono", Menlo, monospace;
+    font-variant-ligatures: none;
     font-size: 13px;
     line-height: 1.5;
   }
