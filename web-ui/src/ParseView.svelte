@@ -1117,6 +1117,17 @@
           </button>
         </div>
       {/if}
+      <!-- Parse trigger lives on the header bar when there is one, using its empty
+           right side, rather than floating over the editor. -->
+      <button
+        class="parse-play parse-play--bar"
+        onclick={parse}
+        disabled={!backend || buildStatus !== "success" || !startNonterminal}
+        title="Parse"
+        aria-label="Parse"
+      >
+        <Play size={16} fill="currentColor" strokeWidth={0} />
+      </button>
     </div>
     {/if}
 
@@ -1147,7 +1158,9 @@
           onSaveViewState={onInputViewState}
         />
       {/if}
-      <!-- Parse trigger: a play button floating in the input pane's corner. -->
+      <!-- Parse trigger: floats in the input pane's corner only when there is no
+           header bar to host it (a single-start grammar with no Profile action). -->
+      {#if !(nonterminals.length > 1 || onProfile)}
       <button
         class="parse-play"
         onclick={parse}
@@ -1157,6 +1170,7 @@
       >
         <Play size={16} fill="currentColor" strokeWidth={0} />
       </button>
+      {/if}
     </div>
   </div>
 
@@ -1441,6 +1455,13 @@
   .parse-play:disabled {
     opacity: 0.4;
     cursor: default;
+  }
+  /* On the header bar the button is a normal flex item at the right end, not the
+     absolutely-positioned overlay it is in the bare input pane. */
+  .parse-play--bar {
+    position: static;
+    margin-left: auto;
+    padding: 4px 6px;
   }
 
   /* Resize Handle */

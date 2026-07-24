@@ -182,6 +182,9 @@
     onready?: (editor: monaco.editor.IStandaloneCodeEditor) => void;
     initialViewState?: monaco.editor.ICodeEditorViewState | null;
     onSaveViewState?: (state: monaco.editor.ICodeEditorViewState | null) => void;
+    // Adds a toolbar strip beside the editor (find, outline toggle). Off by
+    // default, so a host that wants only the editor renders it full-bleed as before.
+    toolbar?: boolean;
   }
 
   let {
@@ -193,6 +196,7 @@
     onready,
     initialViewState,
     onSaveViewState,
+    toolbar = false,
   }: Props = $props();
 
   // Keep the module-level backend the global providers read in sync with this
@@ -214,6 +218,94 @@
   let container: HTMLDivElement;
   let editor: monaco.editor.IStandaloneCodeEditor;
   let ignoreChange = false;
+
+  // ── Outline pane ───────────────────────────────────────────────────────────
+  // A toggleable tree of the grammar's rules (and their labelled alternatives),
+  // read from the same document symbols the Cmd+O quick outline uses. Clicking a
+  // row reveals it in the editor. Rendered only when the `outline` prop is set.
+  interface OutlineItem {
+    sym: LspDocumentSymbol;
+    isChild: boolean;
+  }
+
+  let outlineOpen = $state(false);
+  let outlineSymbols = $state<LspDocumentSymbol[]>([]);
+  let outlineExpanded = $state<Set<string>>(new Set());
+  let outlineSelected = $state(-1);
+  let outlineRefreshTimer: ReturnType<typeof setTimeout> | undefined;
+
+  // The rows currently visible: every top-level symbol, plus the children of the
+  // expanded ones.
+  function visibleOutlineItems(): OutlineItem[] {
+    const items: OutlineItem[] = [];
+    for (const sym of outlineSymbols) {
+      items.push({ sym, isChild: false });
+      if (sym.children?.length && outlineExpanded.has(sym.name)) {
+        for (const child of sym.children) items.push({ sym: child, isChild: true });
+      }
+    }
+    return items;
+  }
+
+  function toggleOutlineNode(name: string) {
+    const next = new Set(outlineExpanded);
+    if (next.has(name)) next.delete(name);
+    else next.add(name);
+    outlineExpanded = next;
+  }
+
+  async function refreshOutline() {
+    if (!activeBackend) return;
+    const source = editor?.getValue() ?? value;
+    try {
+      outlineSymbols = await activeBackend.documentSymbols(source);
+    } catch {
+      outlineSymbols = [];
+    }
+  }
+
+  // Re-parse for the outline only while it is open, debounced so an editable host
+  // does not parse on every keystroke.
+  function scheduleOutlineRefresh() {
+    if (!outlineOpen) return;
+    clearTimeout(outlineRefreshTimer);
+    outlineRefreshTimer = setTimeout(refreshOutline, 250);
+  }
+
+  function toggleOutline() {
+    outlineOpen = !outlineOpen;
+    if (outlineOpen) refreshOutline();
+  }
+
+  function revealSymbol(sym: LspDocumentSymbol) {
+    if (!editor) return;
+    const range = toMonacoRange(sym.selectionRange);
+    editor.revealRangeInCenter(range);
+    editor.setSelection(range);
+  }
+
+  // Single-letter kind glyph: rules by LSP SymbolKind (5 = Class, 11 = Interface),
+  // labelled alternatives as a child mark.
+  function outlineGlyph(item: OutlineItem): string {
+    if (item.isChild) return "#";
+    return item.sym.kind === 5 ? "S" : item.sym.kind === 11 ? "N" : "R";
+  }
+
+  // Open Monaco's own find widget (Ctrl/Cmd+F) from the toolbar, so search is
+  // reachable without first clicking into the editor to give it focus.
+  function openFind() {
+    if (!editor) return;
+    editor.focus();
+    editor.getAction("actions.find")?.run();
+  }
+
+  // Open Monaco's command palette (its F1 quick-command list: find, fold, go to
+  // line and symbol, and the rest of the editor's actions).
+  function openCommandPalette() {
+    if (!editor) return;
+    editor.focus();
+    editor.getAction("editor.action.quickCommand")?.run();
+  }
 
   onMount(() => {
     activeBackend = backend;
@@ -246,6 +338,7 @@
       const newValue = editor.getValue();
       value = newValue;
       onchange?.(newValue);
+      scheduleOutlineRefresh();
     });
 
     // Restore cursor, scroll, and selection from the previous mount so a mode
@@ -256,6 +349,7 @@
   });
 
   onDestroy(() => {
+    clearTimeout(outlineRefreshTimer);
     onSaveViewState?.(editor?.saveViewState() ?? null);
     editor?.dispose();
   });
@@ -275,11 +369,302 @@
   });
 </script>
 
-<div class="design-view-container" bind:this={container}></div>
+{#if toolbar}
+  <div class="dv-root">
+    <div class="dv-toolbar">
+      <button
+        type="button"
+        class="dv-cmd"
+        onclick={openCommandPalette}
+        title="Command palette"
+        aria-label="Open the command palette"
+      >
+        <span class="dv-cmd-caret">&gt;_</span>
+      </button>
+      <div class="dv-toolbar-right">
+        <button
+          type="button"
+          class="dv-tool-btn"
+          onclick={openFind}
+          title="Find (⌘F / Ctrl+F)"
+          aria-label="Find"
+        >
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.35-4.35"/></svg>
+        </button>
+        <button
+          type="button"
+          class="dv-tool-btn"
+          class:active={outlineOpen}
+          onclick={toggleOutline}
+          title="Toggle outline"
+          aria-label="Toggle outline"
+          aria-pressed={outlineOpen}
+        >
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg>
+        </button>
+      </div>
+    </div>
+    <div class="dv-body">
+      <div class="dv-editor" bind:this={container}></div>
+      {#if outlineOpen}
+        <aside class="dv-outline" aria-label="Outline">
+          <div class="dv-outline-head"><span class="dv-outline-title">Outline</span></div>
+        <div class="dv-outline-list">
+          {#each visibleOutlineItems() as item, i}
+            <button
+              type="button"
+              class="dv-outline-item"
+              class:child={item.isChild}
+              class:selected={i === outlineSelected}
+              onmousedown={(e) => {
+                e.preventDefault();
+                outlineSelected = i;
+                revealSymbol(item.sym);
+              }}
+            >
+              {#if !item.isChild && item.sym.children?.length}
+                <!-- svelte-ignore a11y_no_static_element_interactions -->
+                <span
+                  class="dv-outline-chevron"
+                  role="button"
+                  tabindex="-1"
+                  aria-label="Toggle {item.sym.name}"
+                  onmousedown={(e) => {
+                    e.stopPropagation();
+                    e.preventDefault();
+                    toggleOutlineNode(item.sym.name);
+                  }}
+                >
+                  {#if outlineExpanded.has(item.sym.name)}
+                    <svg width="12" height="12" viewBox="0 0 12 12" aria-hidden="true"><path d="M2.5 4.5 6 8l3.5-3.5" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                  {:else}
+                    <svg width="12" height="12" viewBox="0 0 12 12" aria-hidden="true"><path d="M4.5 2.5 8 6l-3.5 3.5" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                  {/if}
+                </span>
+              {:else if !item.isChild}
+                <span class="dv-outline-chevron-blank"></span>
+              {/if}
+              <span class="dv-outline-glyph" class:label={item.isChild}>{outlineGlyph(item)}</span>
+              <span class="dv-outline-name">{item.sym.name}</span>
+            </button>
+          {/each}
+          {#if outlineSymbols.length === 0}
+            <div class="dv-outline-empty">No symbols</div>
+          {/if}
+          </div>
+        </aside>
+      {/if}
+    </div>
+  </div>
+{:else}
+  <div class="design-view-container" bind:this={container}></div>
+{/if}
 
 <style>
   .design-view-container {
     width: 100%;
     height: 100%;
   }
+
+  /* A top toolbar (command palette, find, outline toggle) over the editor; the
+     outline pane opens on the right of the editor below it. Colours match the
+     iggy-dark (vs-dark) editor theme. */
+  .dv-root {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+  }
+
+  .dv-toolbar {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center; /* the command pill sits centered; the buttons float right */
+    height: 40px;
+    flex-shrink: 0;
+    padding: 0 8px;
+    background: #252526;
+    border-bottom: 1px solid #3c3c3c;
+  }
+
+  .dv-toolbar-right {
+    position: absolute;
+    right: 8px;
+    top: 0;
+    bottom: 0;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  /* The command-palette entry, styled like a search input with a "> " prompt and
+     the F1 hint, so it reads as "type a command here". */
+  .dv-cmd {
+    display: flex;
+    align-items: center;
+    height: 30px;
+    width: 380px;
+    max-width: calc(100% - 160px); /* stay clear of the right-hand buttons */
+    padding: 0 10px;
+    border: 1px solid #3c3c3c;
+    border-radius: 5px;
+    background: #1e1e1e;
+    cursor: pointer;
+  }
+
+  .dv-cmd:hover {
+    background: #2a2d2e;
+    border-color: #4d4d4d;
+  }
+
+  .dv-cmd-caret {
+    font-family: monospace;
+    font-size: 13px;
+    font-weight: 700;
+    color: #4ec9b0;
+  }
+
+  .dv-tool-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    border: none;
+    border-radius: 5px;
+    background: none;
+    color: #888;
+    cursor: pointer;
+  }
+
+  .dv-tool-btn:hover {
+    background: #2a2d2e;
+    color: #d4d4d4;
+  }
+
+  .dv-tool-btn.active {
+    background: #37373d;
+    color: #d4d4d4;
+  }
+
+  .dv-body {
+    display: flex;
+    flex: 1;
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  .dv-editor {
+    flex: 1 1 auto;
+    min-width: 0;
+    height: 100%;
+  }
+
+  .dv-outline {
+    display: flex;
+    flex-direction: column;
+    width: 220px;
+    flex-shrink: 0;
+    background: #1e1e1e;
+    border-left: 1px solid #3c3c3c;
+    overflow: hidden;
+  }
+
+  .dv-outline-head {
+    display: flex;
+    align-items: center;
+    height: 32px;
+    padding: 0 12px;
+    border-bottom: 1px solid #3c3c3c;
+    flex-shrink: 0;
+  }
+
+  .dv-outline-title {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #bbbbbb;
+  }
+
+  .dv-outline-list {
+    flex: 1;
+    overflow-y: auto;
+    padding: 4px 0;
+  }
+
+  .dv-outline-item {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    width: 100%;
+    padding: 2px 4px;
+    border: none;
+    background: none;
+    color: #d4d4d4;
+    font-size: 13px;
+    font-family: inherit;
+    text-align: left;
+    cursor: pointer;
+  }
+
+  .dv-outline-item:hover {
+    background: #2a2d2e;
+  }
+
+  .dv-outline-item.selected,
+  .dv-outline-item.selected:hover {
+    background: #04395e;
+  }
+
+  .dv-outline-item.child {
+    padding-left: 32px;
+  }
+
+  .dv-outline-chevron {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
+    color: #888;
+  }
+
+  .dv-outline-chevron:hover {
+    color: #d4d4d4;
+  }
+
+  .dv-outline-chevron-blank {
+    width: 16px;
+    flex-shrink: 0;
+  }
+
+  .dv-outline-glyph {
+    width: 14px;
+    flex-shrink: 0;
+    text-align: center;
+    font-size: 11px;
+    font-weight: 700;
+    color: #4ec9b0;
+  }
+
+  .dv-outline-glyph.label {
+    color: #dcdcaa;
+  }
+
+  .dv-outline-name {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .dv-outline-empty {
+    padding: 8px 12px;
+    font-size: 12px;
+    color: #888;
+  }
+
 </style>

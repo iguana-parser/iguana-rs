@@ -46,7 +46,7 @@
 
 {#if status === "ready" && backend}
   <div class="design-root">
-    <DesignView value={source} readOnly={true} {backend} />
+    <DesignView value={source} readOnly={true} {backend} toolbar />
   </div>
 {:else if status === "loading"}
   <div class="viewer-message">Loading grammar…</div>
