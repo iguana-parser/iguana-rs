@@ -10,7 +10,6 @@
     adjustZoomGraph,
     resetViewGraph,
     createGraph,
-    getViewport,
     setupGraphTooltip,
     highlightOutgoingEdges,
     clearEdgeHighlights,
@@ -276,6 +275,11 @@
   // just resizing. A plain flag, not reactive: the graph $effect reacts to activeTab.
   let graphDirty = true;
 
+  // Signature of what the graph last rendered (node/edge set + labels + showSpans).
+  // A View toggle only rebuilds when this changes, so a no-op toggle — e.g. hiding
+  // empty nodes when there are none — doesn't redraw and flicker. Set on every build.
+  let lastGraphSig: string | null = null;
+
   // The renderer the live parse-tree graph was built with (`{ webgl }`), read off
   // the instance for the WebGL badge. Null until the graph is first built.
   let graphRenderer = $state<{ webgl: boolean } | null>(null);
@@ -331,36 +335,27 @@
     return buildParseTreeElements(displayTree!, showSpans);
   }
 
-  // Park the root at the top-center of the viewport, instead of fitting the whole
-  // tree (which zooms a few-thousand-node tree down to dots). The zoom is based on
-  // the vertical level spacing, not the tree width: tidy-tree centers each child
-  // over its subtree, so the root's children span nearly the whole tree width,
-  // which would make a width-based fit collapse to dots on a wide tree. Vertical
-  // spacing is uniform per level, so framing to a fixed level count is consistent
-  // whether layout is shown or hidden. The user scrolls down from there.
-  const ROOT_FRAME_TOP_PADDING = 60;
-  const ROOT_FRAME_MIN_ZOOM = 0.3;
-  const ROOT_FRAME_MAX_ZOOM = 1.5;
-  const ROOT_FRAME_LEVELS_VISIBLE = 8;
-  function frameOnRoot() {
-    if (!parseTreeCy || !parseTreeContainer) return;
-    const root = parseTreeCy.nodes().roots().first();
-    if (root.length === 0) return;
-
-    const rootPos = root.position();
-    const child = root.outgoers("node").first() as cytoscape.NodeSingular;
-    const levelStep = child.length > 0 ? Math.abs(child.position().y - rootPos.y) : 60;
-    const h = parseTreeContainer.clientHeight;
-    const pad = 60;
-    const fitZoom = (h - 2 * pad) / (levelStep * ROOT_FRAME_LEVELS_VISIBLE);
-    const zoom = Math.max(ROOT_FRAME_MIN_ZOOM, Math.min(fitZoom, ROOT_FRAME_MAX_ZOOM));
-
-    parseTreeCy.zoom(zoom);
-    parseTreeCy.pan({
-      x: parseTreeContainer.clientWidth / 2 - rootPos.x * zoom,
-      y: ROOT_FRAME_TOP_PADDING - rootPos.y * zoom,
-    });
+  // A cheap fingerprint of what the graph renders: the node set (id/kind/label),
+  // the edge set, and showSpans (which changes labels). Two toggles that leave all
+  // of these equal produce the same drawing, so we can skip the rebuild.
+  function graphSignature(): string {
+    if (!displayTree) return "";
+    const nodes = displayTree.nodes
+      .map((n) => `${n.id}:${n.kind}:${n.label}`)
+      .join(",");
+    const edges = displayTree.edges.map((e) => `${e.src}>${e.dest}`).join(",");
+    return `${showSpans ? 1 : 0}|${nodes}|${edges}`;
   }
+
+  // Shared by every View toggle: rebuild and re-fit the graph only when the toggle
+  // actually changes what it draws. A no-op toggle (e.g. hiding empty nodes when
+  // there are none) leaves the signature unchanged, so nothing redraws or flickers.
+  function refreshGraphAfterToggle() {
+    if (!parseTree || graphSignature() === lastGraphSig) return;
+    if (activeTab === "graph") rebuildAndFitGraph();
+    else graphDirty = true; // rebuild lazily when the graph tab is next shown
+  }
+
 
   // Create the Cytoscape instance once and wire its event handlers. The handlers
   // are delegated on the instance (by 'node'/'edge' selector), so they keep
@@ -427,31 +422,21 @@
       if (parseTreeCy) highlightClickedEdge(parseTreeCy, edge.id());
     });
 
-    frameOnRoot();
     graphDirty = false;
   }
 
   // Swap fresh elements onto the existing instance and relayout, reusing the same
-  // Cytoscape instance — no teardown, so repeated toggles don't churn it. `fit`
-  // true re-fits the view (a new parse); false preserves the current viewport (a
-  // toggle the user is mid-inspecting) and re-applies the current node selection.
-  function reloadGraph(fit: boolean) {
+  // Cytoscape instance — no teardown, so repeated toggles don't churn it. The
+  // caller frames the view (rebuildAndFitGraph fits to the panel); here we only
+  // rebuild, re-apply the current selection, and force a redraw.
+  function reloadGraph() {
     if (!parseTreeCy || !parseTree) return;
     parseTreeCollapseManager.reset();
-    const savedViewport = fit ? undefined : getViewport(parseTreeCy);
 
     parseTreeCy.elements().remove();
     parseTreeCy.add(buildGraphElements());
-    parseTreeCy.layout({ ...PARSE_TREE_LAYOUT, fit } as any).run();
+    parseTreeCy.layout({ ...PARSE_TREE_LAYOUT, fit: true } as any).run();
 
-    if (savedViewport) {
-      parseTreeCy.zoom(savedViewport.zoom);
-      parseTreeCy.pan(savedViewport.pan);
-    } else {
-      // fit=true: frame on the root at a readable zoom rather than fitting the
-      // whole tree to the viewport.
-      frameOnRoot();
-    }
     // Re-apply the cross-view selection to the matching node, if it survived.
     if (parseTreeSelectedNodeId) {
       const node = parseTreeCy.getElementById(parseTreeSelectedNodeId);
@@ -483,9 +468,25 @@
   }
 
   // Build the instance the first time, reload it afterwards.
-  function loadGraph(fit: boolean) {
-    if (parseTreeCy) reloadGraph(fit);
+  function loadGraph() {
+    if (parseTreeCy) reloadGraph();
     else buildGraph();
+  }
+
+  // Rebuild the graph's elements for the current view and fit the whole tree to
+  // the panel. This is the fresh-parse framing, shared by the graph $effect and
+  // every View toggle so a toggle reframes exactly like a new parse. The rAF
+  // re-fit is needed because a just-unhidden flex pane hasn't reached its final
+  // size on the first tick, so the initial fit would land on a too-small box.
+  function rebuildAndFitGraph() {
+    loadGraph();
+    lastGraphSig = graphSignature();
+    requestAnimationFrame(() => {
+      if (parseTreeCy && activeTab === "graph") {
+        parseTreeCy.resize();
+        resetView();
+      }
+    });
   }
 
   // The graph view stays mounted across tab switches, so the instance is built
@@ -496,21 +497,11 @@
     if (activeTab === "graph" && parseTree) {
       tick().then(() => {
         if (!parseTreeContainer) return;
-        const needsFit = graphDirty || !parseTreeCy;
-        if (needsFit) loadGraph(true);
+        // Stale elements (new parse or a view toggle) rebuild and re-fit to the
+        // panel; revisiting the tab with fresh elements only resizes, keeping the
+        // user's zoom/pan.
+        if (graphDirty || !parseTreeCy) rebuildAndFitGraph();
         else parseTreeCy.resize();
-        // A single tick isn't enough for the just-unhidden flex pane to reach its
-        // final size, so loadGraph's fit lands on a too-small box (the graph reads
-        // tiny). Re-fit on the next frame, once layout has settled, but only when
-        // the graph was (re)built, so revisiting the tab keeps the user's zoom/pan.
-        if (needsFit) {
-          requestAnimationFrame(() => {
-            if (parseTreeCy && activeTab === "graph") {
-              parseTreeCy.resize();
-              resetView();
-            }
-          });
-        }
       });
     }
   });
@@ -650,12 +641,10 @@
     // so expandedNodes still applies to the survivors.
     if (treeRoot) expandedNodes = new Set(expandedNodes).add(treeRoot.id);
     clearParseModeInputSelection();
-    // The node set can change substantially, so reload the graph onto the root
-    // rather than holding the old viewport.
-    graphDirty = true;
-    if (parseTree && activeTab === "graph") {
-      tick().then(() => loadGraph(true));
-    }
+    // A toggle that changes the node set reframes the graph the same way a fresh
+    // parse does (rebuild + fit to the panel); a toggle that changes nothing is a
+    // no-op. refreshGraphAfterToggle decides which by comparing the drawing.
+    if (parseTree) tick().then(refreshGraphAfterToggle);
     onParseTreeChange?.();
   }
 
@@ -671,14 +660,12 @@
   }
 
   // Show or hide spans on tree rows and in graph labels. The tree reflects
-  // showSpans reactively; the imperative graph is reloaded here, preserving the
-  // viewport (loadGraph(false)) and re-applying the current selection.
+  // showSpans reactively; the imperative graph rebuilds and re-fits to the panel
+  // through refreshGraphAfterToggle, the same fresh-parse framing every other View
+  // toggle uses (and it skips the rebuild when the drawing is unchanged).
   function setShowSpans(show: boolean) {
     showSpans = show;
-    graphDirty = true;
-    if (parseTree && activeTab === "graph") {
-      tick().then(() => loadGraph(false));
-    }
+    if (parseTree) tick().then(refreshGraphAfterToggle);
   }
 
   // Tree view functions
