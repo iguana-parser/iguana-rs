@@ -78,6 +78,13 @@ members = [
     "tests/simple_alt",
     "tests/star",
     "tests/star_with_sep",
+    "tests/ll1_prefix_conflict",
+    "tests/ll1_prefix_ambiguity",
+    "tests/ll1_plus_prefix_conflict",
+    "tests/ll1_alt_prefix_conflict",
+    "tests/ll1_follow_restriction",
+    "tests/ll1_opt_prefix_conflict",
+    "tests/ll1_plus_follow_prefix",
 ]
 
 [workspace.dependencies]

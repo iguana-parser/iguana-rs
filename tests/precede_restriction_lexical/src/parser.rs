@@ -126,20 +126,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for PrecedeRestrictionLexicalParser<'i, 'are
             }
             // StartS : WS . start:S WS
             SlotId(7) => {
-                if let Some(right_child) = self.parse_s_ll1(input_index) {
-                    if let Some((j, new_node)) =
-                        self.create_intermediate_node(result, right_child, SlotId(8), env)
-                    {
-                        // StartS : WS start:S . WS
-                        self.execute(j, SlotId(8), Some(new_node), gss_node_id, env);
-                    }
-                } else {
-                    self.add_parse_error(input_index, SlotId(7), Some(gss_node_id), || {
-                        ParseErrorKind::UnexpectedToken {
-                            expected: FIRST_SET_S.terminals.to_vec(),
-                        }
-                    });
-                }
+                self.create(NonterminalId(0), result, gss_node_id, SlotId(8), env);
             }
             // StartS : WS start:S . WS
             SlotId(8) => {
@@ -681,82 +668,6 @@ impl<'i, 'arena> PrecedeRestrictionLexicalParser<'i, 'arena> {
             parse_errors: InlineVec::Empty,
             #[cfg(feature = "debug-trace")]
             trace_events: None,
-        }
-    }
-    fn parse_s_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
-        #[cfg(feature = "instrument")]
-        self.ll1_call_log.push((NonterminalId(0), i));
-        let matched = self.scanner.longest_match(&FIRST_SET_S, i)?;
-        match matched {
-            TerminalId(3) => {
-                let mut j = i;
-                let right_child = {
-                    let start = j;
-                    let (end, node) = self.match_terminal(TerminalId(3), start, SlotId(1), None)?;
-                    j = end;
-                    node
-                };
-                let left_extent = self.sppf_node(right_child).left_extent();
-                let mut current = right_child;
-                let right_child = {
-                    let start = j;
-                    let (end, node) = self.match_terminal(TerminalId(2), start, SlotId(2), None)?;
-                    j = end;
-                    node
-                };
-                current = self.create_intermediate_node_ll1(
-                    SlotId(2),
-                    left_extent,
-                    j,
-                    current,
-                    right_child,
-                );
-                let right_child = {
-                    let start = j;
-                    let (end, node) = self.match_terminal(TerminalId(0), start, SlotId(3), None)?;
-                    j = end;
-                    node
-                };
-                current = self.create_intermediate_node_ll1(
-                    SlotId(3),
-                    left_extent,
-                    j,
-                    current,
-                    right_child,
-                );
-                Some(self.add_nonterminal_node(NonterminalNode {
-                    nonterminal_id: NonterminalId(0),
-                    return_slot: SlotId(3),
-                    span: Span {
-                        left_extent,
-                        right_extent: j,
-                    },
-                    child: current,
-                    ambiguous: false,
-                }))
-            }
-            TerminalId(4) => {
-                let mut j = i;
-                let right_child = {
-                    let start = j;
-                    let (end, node) = self.match_terminal(TerminalId(4), start, SlotId(5), None)?;
-                    j = end;
-                    node
-                };
-                let left_extent = self.sppf_node(right_child).left_extent();
-                let current = right_child;
-                Some(self.add_nonterminal_node(NonterminalNode {
-                    nonterminal_id: NonterminalId(0),
-                    return_slot: SlotId(5),
-                    span: Span {
-                        left_extent,
-                        right_extent: j,
-                    },
-                    child: current,
-                    ambiguous: false,
-                }))
-            }
-            _ => unreachable!("LL(1) dispatch covers every terminal in FIRST_SET"),
         }
     }
     // True if a local ambiguity node was added during parsing. This does not guarantee the

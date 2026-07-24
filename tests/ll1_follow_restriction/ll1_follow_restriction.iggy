@@ -1,0 +1,17 @@
+grammar Ll1FollowRestriction
+
+// A's alternatives lead with A_ ("a") and AA ("aa"), and "a" is a prefix of "aa".
+// The `!>> A_` on the first alternative resolves the conflict: on input `aa` the
+// first alternative cannot match, because "a" is immediately followed by "a", so
+// only the second alternative (AA) applies. The parse is unambiguous. The current
+// prefix check ignores `!>>`, so A parses through GLL; a restriction-aware check
+// could keep it LL(1) with the same result, since the restriction forbids exactly
+// the character that extends "a" into "aa".
+S = A
+A = A_ !>> A_ | AA
+
+@Regex
+A_ = "a"
+
+@Regex
+AA = "aa"

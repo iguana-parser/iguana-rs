@@ -262,10 +262,10 @@ pub static FIRST_SET_POSTFIX_ALT0: TerminalSet = TerminalSet {
     id: 1,
     terminals: &[TerminalId(1)],
 };
-// Body { EOF, "!", WS }
+// Body { WS, "!", EOF }
 pub static FOLLOW_SET_BODY: TerminalSet = TerminalSet {
     id: 3,
-    terminals: &[TerminalId(5), TerminalId(3), TerminalId(0)],
+    terminals: &[TerminalId(0), TerminalId(3), TerminalId(5)],
 };
 // Body { "a" }
 pub static FIRST_SET_BODY: TerminalSet = TerminalSet {

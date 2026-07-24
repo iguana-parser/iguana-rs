@@ -1,0 +1,9 @@
+grammar Ll1AltPrefixConflict
+
+// X's two alternatives are the literals "a" and "aa", disjoint as identities but
+// "a" is a prefix of "aa". S calls X twice, so on input `aa` the longest-match
+// dispatch takes X = "aa" for the first call and the second X then fails at
+// end of input. The only valid parse is X = "a" twice. A sound classifier routes
+// X through GLL.
+S = X X
+X = "a" | "aa"

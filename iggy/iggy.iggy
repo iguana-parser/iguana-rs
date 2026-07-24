@@ -80,7 +80,10 @@ Layout
 Keyword = "grammar" | "left" | "right" | "none"
 
 @Regex
-Identifier = [a-zA-Z_] [a-zA-Z_0-9]* \ Keyword
+NameChar = [a-zA-Z_0-9]
+
+@Regex
+Identifier = NameChar !<< [a-zA-Z_] [a-zA-Z_0-9]* \ Keyword
 
 @Regex
 String = "\"" (EscapeChar | !["\\])* "\""

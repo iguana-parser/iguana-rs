@@ -1,0 +1,22 @@
+grammar Ll1PrefixAmbiguity
+
+// The selector example of the Java grammar, reduced. Expr is reached through
+// E, so it is parsed by the LL(1) call path (a bare start always runs through
+// GLL). Expr's two alternatives have disjoint terminal identities {Int} and
+// {Float}, so Expr is classified LL(1), but Int = [0-9]+ prefixes
+// Float = [0-9]+ "." [fd]?: the input `1.f` parses both ways, as a selector
+// on an integer literal (Int "." Id) and as a single floating-point literal
+// (Float). LL(1) longest match commits to the longer Float and reports one
+// parse, hiding the ambiguity; a sound classifier routes Expr through GLL,
+// which reports the Amb.
+E = Expr
+Expr = Int "." Id | Float
+
+@Regex
+Int = [0-9]+
+
+@Regex
+Float = [0-9]+ "." [fd]?
+
+@Regex
+Id = [a-z]+

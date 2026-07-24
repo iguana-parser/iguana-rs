@@ -180,10 +180,10 @@ pub static FIRST_SET_S_ALT0: TerminalSet = TerminalSet {
     id: 1,
     terminals: &[TerminalId(3), TerminalId(2)],
 };
-// Mod { EOF, Id, WS }
+// Mod { WS, Id, EOF }
 pub static FOLLOW_SET_MOD: TerminalSet = TerminalSet {
     id: 2,
-    terminals: &[TerminalId(5), TerminalId(0), TerminalId(1)],
+    terminals: &[TerminalId(1), TerminalId(0), TerminalId(5)],
 };
 // Mod { "static", "public" }
 pub static FIRST_SET_MOD: TerminalSet = TerminalSet {
@@ -200,10 +200,10 @@ pub static FIRST_SET_MOD_ALT1: TerminalSet = TerminalSet {
     id: 4,
     terminals: &[TerminalId(3)],
 };
-// Empty { EOF, Id, WS }
+// Empty { WS, Id, EOF }
 pub static FOLLOW_SET_EMPTY: TerminalSet = TerminalSet {
     id: 2,
-    terminals: &[TerminalId(5), TerminalId(0), TerminalId(1)],
+    terminals: &[TerminalId(1), TerminalId(0), TerminalId(5)],
 };
 // Empty { }
 pub static FIRST_SET_EMPTY: TerminalSet = TerminalSet {

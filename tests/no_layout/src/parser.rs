@@ -61,17 +61,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for NoLayoutParser<'i, 'arena> {
         match slot_id {
             // S : . Id
             SlotId(0) => {
-                if let Some(right_child) = self.parse_id_ll1(input_index) {
-                    let j = self.sppf_node(right_child).right_extent();
-                    // S : Id.
-                    self.execute(j, SlotId(1), Some(right_child), gss_node_id, env);
-                } else {
-                    self.add_parse_error(input_index, SlotId(0), Some(gss_node_id), || {
-                        ParseErrorKind::UnexpectedToken {
-                            expected: FIRST_SET_ID.terminals.to_vec(),
-                        }
-                    });
-                }
+                self.create(NonterminalId(1), result, gss_node_id, SlotId(1), env);
             }
             // S : Id.
             SlotId(1) => {
@@ -81,17 +71,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for NoLayoutParser<'i, 'arena> {
             }
             // Id : . Plus_0
             SlotId(2) => {
-                if let Some(right_child) = self.parse_plus_0_ll1(input_index) {
-                    let j = self.sppf_node(right_child).right_extent();
-                    // Id : Plus_0.
-                    self.execute(j, SlotId(3), Some(right_child), gss_node_id, env);
-                } else {
-                    self.add_parse_error(input_index, SlotId(2), Some(gss_node_id), || {
-                        ParseErrorKind::UnexpectedToken {
-                            expected: FIRST_SET_PLUS_0.terminals.to_vec(),
-                        }
-                    });
-                }
+                self.create(NonterminalId(2), result, gss_node_id, SlotId(3), env);
             }
             // Id : Plus_0.
             SlotId(3) => {
@@ -101,17 +81,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for NoLayoutParser<'i, 'arena> {
             }
             // Plus_0 : . Plus_0 Char
             SlotId(4) => {
-                if let Some(right_child) = self.parse_plus_0_ll1(input_index) {
-                    let j = self.sppf_node(right_child).right_extent();
-                    // Plus_0 : Plus_0 . Char
-                    self.execute(j, SlotId(5), Some(right_child), gss_node_id, env);
-                } else {
-                    self.add_parse_error(input_index, SlotId(4), Some(gss_node_id), || {
-                        ParseErrorKind::UnexpectedToken {
-                            expected: FIRST_SET_PLUS_0.terminals.to_vec(),
-                        }
-                    });
-                }
+                self.create(NonterminalId(2), result, gss_node_id, SlotId(5), env);
             }
             // Plus_0 : Plus_0 . Char
             SlotId(5) => {
@@ -158,20 +128,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for NoLayoutParser<'i, 'arena> {
             }
             // StartS : WS . start:S WS
             SlotId(10) => {
-                if let Some(right_child) = self.parse_s_ll1(input_index) {
-                    if let Some((j, new_node)) =
-                        self.create_intermediate_node(result, right_child, SlotId(11), env)
-                    {
-                        // StartS : WS start:S . WS
-                        self.execute(j, SlotId(11), Some(new_node), gss_node_id, env);
-                    }
-                } else {
-                    self.add_parse_error(input_index, SlotId(10), Some(gss_node_id), || {
-                        ParseErrorKind::UnexpectedToken {
-                            expected: FIRST_SET_S.terminals.to_vec(),
-                        }
-                    });
-                }
+                self.create(NonterminalId(0), result, gss_node_id, SlotId(11), env);
             }
             // StartS : WS start:S . WS
             SlotId(11) => {
@@ -203,20 +160,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for NoLayoutParser<'i, 'arena> {
             }
             // StartId : WS . start:Id WS
             SlotId(14) => {
-                if let Some(right_child) = self.parse_id_ll1(input_index) {
-                    if let Some((j, new_node)) =
-                        self.create_intermediate_node(result, right_child, SlotId(15), env)
-                    {
-                        // StartId : WS start:Id . WS
-                        self.execute(j, SlotId(15), Some(new_node), gss_node_id, env);
-                    }
-                } else {
-                    self.add_parse_error(input_index, SlotId(14), Some(gss_node_id), || {
-                        ParseErrorKind::UnexpectedToken {
-                            expected: FIRST_SET_ID.terminals.to_vec(),
-                        }
-                    });
-                }
+                self.create(NonterminalId(1), result, gss_node_id, SlotId(15), env);
             }
             // StartId : WS start:Id . WS
             SlotId(15) => {
@@ -777,123 +721,6 @@ impl<'i, 'arena> NoLayoutParser<'i, 'arena> {
             #[cfg(feature = "debug-trace")]
             trace_events: None,
         }
-    }
-    fn parse_s_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
-        #[cfg(feature = "instrument")]
-        self.ll1_call_log.push((NonterminalId(0), i));
-        let matched = self.scanner.longest_match(&FIRST_SET_S, i)?;
-        match matched {
-            TerminalId(0) => {
-                let mut j = i;
-                let right_child = {
-                    let start = j;
-                    let Some(node) = self.parse_id_ll1(start) else {
-                        self.add_parse_error(start, SlotId(1), None, || {
-                            ParseErrorKind::UnexpectedToken {
-                                expected: FIRST_SET_ID.terminals.to_vec(),
-                            }
-                        });
-                        return None;
-                    };
-                    let end = self.sppf_node(node).right_extent();
-                    j = end;
-                    node
-                };
-                let left_extent = self.sppf_node(right_child).left_extent();
-                let current = right_child;
-                Some(self.add_nonterminal_node(NonterminalNode {
-                    nonterminal_id: NonterminalId(0),
-                    return_slot: SlotId(1),
-                    span: Span {
-                        left_extent,
-                        right_extent: j,
-                    },
-                    child: current,
-                    ambiguous: false,
-                }))
-            }
-            _ => unreachable!("LL(1) dispatch covers every terminal in FIRST_SET"),
-        }
-    }
-    fn parse_id_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
-        #[cfg(feature = "instrument")]
-        self.ll1_call_log.push((NonterminalId(1), i));
-        let matched = self.scanner.longest_match(&FIRST_SET_ID, i)?;
-        match matched {
-            TerminalId(0) => {
-                let mut j = i;
-                let right_child = {
-                    let start = j;
-                    let Some(node) = self.parse_plus_0_ll1(start) else {
-                        self.add_parse_error(start, SlotId(3), None, || {
-                            ParseErrorKind::UnexpectedToken {
-                                expected: FIRST_SET_PLUS_0.terminals.to_vec(),
-                            }
-                        });
-                        return None;
-                    };
-                    let end = self.sppf_node(node).right_extent();
-                    j = end;
-                    node
-                };
-                let left_extent = self.sppf_node(right_child).left_extent();
-                let current = right_child;
-                Some(self.add_nonterminal_node(NonterminalNode {
-                    nonterminal_id: NonterminalId(1),
-                    return_slot: SlotId(3),
-                    span: Span {
-                        left_extent,
-                        right_extent: j,
-                    },
-                    child: current,
-                    ambiguous: false,
-                }))
-            }
-            _ => unreachable!("LL(1) dispatch covers every terminal in FIRST_SET"),
-        }
-    }
-    fn parse_plus_0_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
-        #[cfg(feature = "instrument")]
-        self.ll1_call_log.push((NonterminalId(2), i));
-        let mut j = i;
-        let (body_node, body_end) = (self
-            .match_terminal(TerminalId(0), j, SlotId(7), None)
-            .map(|(end, node)| (node, end)))?;
-        j = body_end;
-        let left_extent = i;
-        let mut current = self.add_nonterminal_node(NonterminalNode {
-            nonterminal_id: NonterminalId(2),
-            return_slot: SlotId(8),
-            span: Span {
-                left_extent,
-                right_extent: j,
-            },
-            child: body_node,
-            ambiguous: false,
-        });
-        #[allow(clippy::while_let_loop)]
-        loop {
-            let Some((node_0, pos_0)) = self
-                .match_terminal(TerminalId(0), j, SlotId(5), None)
-                .map(|(end, node)| (node, end))
-            else {
-                break;
-            };
-            j = pos_0;
-            current =
-                self.create_intermediate_node_ll1(SlotId(6), left_extent, pos_0, current, node_0);
-            current = self.add_nonterminal_node(NonterminalNode {
-                nonterminal_id: NonterminalId(2),
-                return_slot: SlotId(6),
-                span: Span {
-                    left_extent,
-                    right_extent: j,
-                },
-                child: current,
-                ambiguous: false,
-            });
-        }
-        Some(current)
     }
     // True if a local ambiguity node was added during parsing. This does not guarantee the
     // ambiguity is reachable from the root, so a tree walk is still needed to confirm it.

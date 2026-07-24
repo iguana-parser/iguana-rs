@@ -1,0 +1,10 @@
+grammar Ll1PrefixConflict
+
+// S is reached through T, so it is parsed by the LL(1) call path (a bare start
+// always runs through GLL). The prediction sets {"ab"} and {"a"} are disjoint
+// terminal identities, so S is classified LL(1), but "a" is a prefix of "ab":
+// on input `aby` the LL(1) longest-match dispatch commits to the longer "ab"
+// and dies at "x", while the correct parse is "a" "by". A sound classifier
+// routes S through GLL.
+T = S
+S = "ab" "x" | "a" "by"

@@ -71,10 +71,10 @@ pub const SLOTS: [Slot; 12] = [
         display_name: "E : start:E.",
     },
 ];
-// E { "+", "*", EOF }
+// E { "*", "+", EOF }
 pub static FOLLOW_SET_E: TerminalSet = TerminalSet {
     id: 0,
-    terminals: &[TerminalId(1), TerminalId(0), TerminalId(4)],
+    terminals: &[TerminalId(0), TerminalId(1), TerminalId(4)],
 };
 // E { "a" }
 pub static FIRST_SET_E: TerminalSet = TerminalSet {

@@ -61,17 +61,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for LongestMatchParser<'i, 'arena> {
         match slot_id {
             // S : . X "x"
             SlotId(0) => {
-                if let Some(right_child) = self.parse_x_ll1(input_index) {
-                    let j = self.sppf_node(right_child).right_extent();
-                    // S : X . "x"
-                    self.execute(j, SlotId(1), Some(right_child), gss_node_id, env);
-                } else {
-                    self.add_parse_error(input_index, SlotId(0), Some(gss_node_id), || {
-                        ParseErrorKind::UnexpectedToken {
-                            expected: FIRST_SET_X.terminals.to_vec(),
-                        }
-                    });
-                }
+                self.create(NonterminalId(1), result, gss_node_id, SlotId(1), env);
             }
             // S : X . "x"
             SlotId(1) => {
@@ -124,17 +114,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for LongestMatchParser<'i, 'arena> {
             }
             // StartS : . start:S
             SlotId(7) => {
-                if let Some(right_child) = self.parse_s_ll1(input_index) {
-                    let j = self.sppf_node(right_child).right_extent();
-                    // StartS : start:S.
-                    self.execute(j, SlotId(8), Some(right_child), gss_node_id, env);
-                } else {
-                    self.add_parse_error(input_index, SlotId(7), Some(gss_node_id), || {
-                        ParseErrorKind::UnexpectedToken {
-                            expected: FIRST_SET_S.terminals.to_vec(),
-                        }
-                    });
-                }
+                self.create(NonterminalId(0), result, gss_node_id, SlotId(8), env);
             }
             // StartS : start:S.
             SlotId(8) => {
@@ -144,17 +124,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for LongestMatchParser<'i, 'arena> {
             }
             // StartX : . start:X
             SlotId(9) => {
-                if let Some(right_child) = self.parse_x_ll1(input_index) {
-                    let j = self.sppf_node(right_child).right_extent();
-                    // StartX : start:X.
-                    self.execute(j, SlotId(10), Some(right_child), gss_node_id, env);
-                } else {
-                    self.add_parse_error(input_index, SlotId(9), Some(gss_node_id), || {
-                        ParseErrorKind::UnexpectedToken {
-                            expected: FIRST_SET_X.terminals.to_vec(),
-                        }
-                    });
-                }
+                self.create(NonterminalId(1), result, gss_node_id, SlotId(10), env);
             }
             // StartX : start:X.
             SlotId(10) => {
@@ -695,106 +665,6 @@ impl<'i, 'arena> LongestMatchParser<'i, 'arena> {
             parse_errors: InlineVec::Empty,
             #[cfg(feature = "debug-trace")]
             trace_events: None,
-        }
-    }
-    fn parse_s_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
-        #[cfg(feature = "instrument")]
-        self.ll1_call_log.push((NonterminalId(0), i));
-        let matched = self.scanner.longest_match(&FIRST_SET_S, i)?;
-        match matched {
-            TerminalId(1) | TerminalId(2) => {
-                let mut j = i;
-                let right_child = {
-                    let start = j;
-                    let Some(node) = self.parse_x_ll1(start) else {
-                        self.add_parse_error(start, SlotId(1), None, || {
-                            ParseErrorKind::UnexpectedToken {
-                                expected: FIRST_SET_X.terminals.to_vec(),
-                            }
-                        });
-                        return None;
-                    };
-                    let end = self.sppf_node(node).right_extent();
-                    j = end;
-                    node
-                };
-                let left_extent = self.sppf_node(right_child).left_extent();
-                let mut current = right_child;
-                let right_child = {
-                    let start = j;
-                    let (end, node) = self.match_terminal(TerminalId(0), start, SlotId(2), None)?;
-                    j = end;
-                    node
-                };
-                current = self.create_intermediate_node_ll1(
-                    SlotId(2),
-                    left_extent,
-                    j,
-                    current,
-                    right_child,
-                );
-                Some(self.add_nonterminal_node(NonterminalNode {
-                    nonterminal_id: NonterminalId(0),
-                    return_slot: SlotId(2),
-                    span: Span {
-                        left_extent,
-                        right_extent: j,
-                    },
-                    child: current,
-                    ambiguous: false,
-                }))
-            }
-            _ => unreachable!("LL(1) dispatch covers every terminal in FIRST_SET"),
-        }
-    }
-    fn parse_x_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
-        #[cfg(feature = "instrument")]
-        self.ll1_call_log.push((NonterminalId(1), i));
-        let matched = self.scanner.longest_match(&FIRST_SET_X, i)?;
-        match matched {
-            TerminalId(1) => {
-                let mut j = i;
-                let right_child = {
-                    let start = j;
-                    let (end, node) = self.match_terminal(TerminalId(1), start, SlotId(4), None)?;
-                    j = end;
-                    node
-                };
-                let left_extent = self.sppf_node(right_child).left_extent();
-                let current = right_child;
-                Some(self.add_nonterminal_node(NonterminalNode {
-                    nonterminal_id: NonterminalId(1),
-                    return_slot: SlotId(4),
-                    span: Span {
-                        left_extent,
-                        right_extent: j,
-                    },
-                    child: current,
-                    ambiguous: false,
-                }))
-            }
-            TerminalId(2) => {
-                let mut j = i;
-                let right_child = {
-                    let start = j;
-                    let (end, node) = self.match_terminal(TerminalId(2), start, SlotId(6), None)?;
-                    j = end;
-                    node
-                };
-                let left_extent = self.sppf_node(right_child).left_extent();
-                let current = right_child;
-                Some(self.add_nonterminal_node(NonterminalNode {
-                    nonterminal_id: NonterminalId(1),
-                    return_slot: SlotId(6),
-                    span: Span {
-                        left_extent,
-                        right_extent: j,
-                    },
-                    child: current,
-                    ambiguous: false,
-                }))
-            }
-            _ => unreachable!("LL(1) dispatch covers every terminal in FIRST_SET"),
         }
     }
     // True if a local ambiguity node was added during parsing. This does not guarantee the

@@ -144,10 +144,10 @@ pub const SLOTS: [Slot; 24] = [
         display_name: "S : Layout start:S Layout.",
     },
 ];
-// S { EOF, LineComment, WS }
+// S { WS, LineComment, EOF }
 pub static FOLLOW_SET_S: TerminalSet = TerminalSet {
     id: 0,
-    terminals: &[TerminalId(4), TerminalId(2), TerminalId(1)],
+    terminals: &[TerminalId(1), TerminalId(2), TerminalId(4)],
 };
 // S { Word }
 pub static FIRST_SET_S: TerminalSet = TerminalSet {

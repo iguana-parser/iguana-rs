@@ -1,0 +1,11 @@
+grammar Ll1PlusPrefixConflict
+
+// The Plus loop matches its continuation greedily. The continuation FIRST set
+// {"a"} and the follow of the loop {"ab"} are disjoint as identities, so the
+// Plus was classified LL(1). But "a" is a prefix of "ab", so on input `aab`
+// the loop consumes "a" twice, eating the "a" that should start "ab", then
+// "ab" fails on the trailing "b". The only valid parse takes one "a", then
+// "ab". A sound classifier routes the Plus through GLL. This is the case the
+// directional guard already caught: the continuation terminal prefixes the
+// follow terminal.
+S = "a"+ "ab"

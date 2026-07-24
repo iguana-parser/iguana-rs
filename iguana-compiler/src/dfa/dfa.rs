@@ -1,7 +1,7 @@
 use std::collections::VecDeque;
 
 use iguana_runtime::ids::TerminalId;
-use rustc_hash::FxHashMap;
+use rustc_hash::{FxHashMap, FxHashSet};
 
 use super::nfa::{self, Nfa};
 use crate::grammar::regex::{CharClass, CharRange};
@@ -297,6 +297,87 @@ fn live_states(nfa: &Nfa) -> Vec<bool> {
     live
 }
 
+impl Dfa {
+    /// True if some string of `self`'s language is a prefix of some string of
+    /// `other`'s language. A string is a prefix of itself. The language of
+    /// "a" is a prefix of the language of "ab", and also of the language of
+    /// [a-z]+; the languages of "if" and "int" share their first character,
+    /// but neither is a prefix of the other.
+    ///
+    /// The implementation walks the product of the two DFAs. From the pair of
+    /// start states, it follows character ranges the two DFAs share, so every
+    /// reachable pair of states stands for a common string both have read.
+    /// The relation holds when a reachable pair combines a language accept in
+    /// `self` (the common string is a full string of `self`) with a live
+    /// state in `other` (the common string extends to a full string of
+    /// `other`).
+    pub fn is_prefix_of(&self, other: &Dfa) -> bool {
+        let live_other = other.live_states();
+        let mut seen = FxHashSet::default();
+        let mut stack = vec![(self.start, other.start)];
+        while let Some((sa, sb)) = stack.pop() {
+            if !seen.insert((sa, sb)) {
+                continue;
+            }
+            if self.is_language_accept(sa) && live_other[sb] {
+                return true;
+            }
+            for (ra, ta) in &self.states[sa].transitions {
+                for (rb, tb) in &other.states[sb].transitions {
+                    if ra.start <= rb.end && rb.start <= ra.end {
+                        stack.push((*ta, *tb));
+                    }
+                }
+            }
+        }
+        false
+    }
+
+    /// True if the state accepts a string of the terminal's language. The
+    /// `accept` field alone does not decide this: a state can be an accept
+    /// marked `excluded`, and its string is exactly what the `\` operator
+    /// removed from the language.
+    fn is_language_accept(&self, state: StateId) -> bool {
+        let s = &self.states[state];
+        s.accept.is_some() && !s.excluded
+    }
+
+    /// A vector, indexed by state, of whether the state can reach a language
+    /// accept. A live state can extend to a full string of the language; a
+    /// dead state cannot, whatever follows. For the DFA of `"if" \ "if"`
+    /// every state is dead: the only accept is excluded, so the language is
+    /// empty.
+    ///
+    /// The implementation walks backward from the language accept states
+    /// over reversed transitions.
+    fn live_states(&self) -> Vec<bool> {
+        let n = self.states.len();
+        let mut reverse: Vec<Vec<StateId>> = vec![Vec::new(); n];
+        for (i, state) in self.states.iter().enumerate() {
+            for (_, target) in &state.transitions {
+                reverse[*target].push(i);
+            }
+        }
+        let mut live = vec![false; n];
+        let mut stack = Vec::new();
+        for i in 0..n {
+            if self.is_language_accept(i) {
+                live[i] = true;
+                stack.push(i);
+            }
+        }
+        while let Some(s) = stack.pop() {
+            for &p in &reverse[s] {
+                if !live[p] {
+                    live[p] = true;
+                    stack.push(p);
+                }
+            }
+        }
+        live
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -562,5 +643,42 @@ mod tests {
         let state = state_after(&dfa, "iff").unwrap();
         assert_eq!(state.accept, Some(t(0)));
         assert!(!state.excluded);
+    }
+
+    fn dfa(regex: Regex) -> Dfa {
+        Dfa::from_nfa(&Nfa::from_regex(&regex, t(0)))
+    }
+
+    #[test]
+    fn shorter_literal_prefixes_longer_only_one_way() {
+        // "a" is a prefix of "ab", but "ab" is not a prefix of "a".
+        assert!(dfa(Regex::literal("a")).is_prefix_of(&dfa(Regex::literal("ab"))));
+        assert!(!dfa(Regex::literal("ab")).is_prefix_of(&dfa(Regex::literal("a"))));
+    }
+
+    #[test]
+    fn equal_languages_prefix_each_other() {
+        assert!(dfa(Regex::literal("ab")).is_prefix_of(&dfa(Regex::literal("ab"))));
+    }
+
+    #[test]
+    fn disjoint_literals_do_not_prefix() {
+        assert!(!dfa(Regex::literal("ab")).is_prefix_of(&dfa(Regex::literal("cd"))));
+    }
+
+    #[test]
+    fn shared_first_char_without_prefix_does_not_count() {
+        // "if" and "int" share their first character, but neither is a prefix
+        // of the other, so a keyword-versus-keyword pair stays distinguishable.
+        assert!(!dfa(Regex::literal("if")).is_prefix_of(&dfa(Regex::literal("int"))));
+        assert!(!dfa(Regex::literal("int")).is_prefix_of(&dfa(Regex::literal("if"))));
+    }
+
+    #[test]
+    fn integer_prefixes_float() {
+        // [0-9]+ is a prefix of [0-9]+ ".", the Int/Float selector case.
+        let int = Regex::plus(Regex::range('0', '9'));
+        let float = Regex::seq(vec![Regex::plus(Regex::range('0', '9')), Regex::char('.')]);
+        assert!(dfa(int).is_prefix_of(&dfa(float)));
     }
 }

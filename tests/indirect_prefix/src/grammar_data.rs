@@ -216,10 +216,10 @@ pub static FIRST_SET_S_ALT0: TerminalSet = TerminalSet {
     id: 1,
     terminals: &[TerminalId(1), TerminalId(3)],
 };
-// E { "+", EOF, WS }
+// E { WS, "+", EOF }
 pub static FOLLOW_SET_E: TerminalSet = TerminalSet {
     id: 2,
-    terminals: &[TerminalId(2), TerminalId(5), TerminalId(0)],
+    terminals: &[TerminalId(0), TerminalId(2), TerminalId(5)],
 };
 // E { "a", "fn" }
 pub static FIRST_SET_E: TerminalSet = TerminalSet {
@@ -242,10 +242,10 @@ pub static FIRST_SET_E_ALT2: TerminalSet = TerminalSet {
     id: 4,
     terminals: &[TerminalId(3)],
 };
-// Lambda { "+", EOF, WS }
+// Lambda { WS, "+", EOF }
 pub static FOLLOW_SET_LAMBDA: TerminalSet = TerminalSet {
     id: 2,
-    terminals: &[TerminalId(2), TerminalId(5), TerminalId(0)],
+    terminals: &[TerminalId(0), TerminalId(2), TerminalId(5)],
 };
 // Lambda { "fn" }
 pub static FIRST_SET_LAMBDA: TerminalSet = TerminalSet {
@@ -257,10 +257,10 @@ pub static FIRST_SET_LAMBDA_ALT0: TerminalSet = TerminalSet {
     id: 4,
     terminals: &[TerminalId(3)],
 };
-// Body { "+", EOF, WS }
+// Body { WS, "+", EOF }
 pub static FOLLOW_SET_BODY: TerminalSet = TerminalSet {
     id: 2,
-    terminals: &[TerminalId(2), TerminalId(5), TerminalId(0)],
+    terminals: &[TerminalId(0), TerminalId(2), TerminalId(5)],
 };
 // Body { "a", "fn" }
 pub static FIRST_SET_BODY: TerminalSet = TerminalSet {

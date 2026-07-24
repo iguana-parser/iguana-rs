@@ -244,14 +244,14 @@ pub static FIRST_SET_S_ALT0: TerminalSet = TerminalSet {
     id: 1,
     terminals: &[TerminalId(8), TerminalId(4), TerminalId(3)],
 };
-// E { "*", ";", EOF, "+", "else", "then", WS }
+// E { EOF, "+", ";", "*", "else", "then", WS }
 pub static FOLLOW_SET_E: TerminalSet = TerminalSet {
     id: 2,
     terminals: &[
-        TerminalId(1),
-        TerminalId(7),
         TerminalId(10),
         TerminalId(2),
+        TerminalId(7),
+        TerminalId(1),
         TerminalId(6),
         TerminalId(5),
         TerminalId(0),

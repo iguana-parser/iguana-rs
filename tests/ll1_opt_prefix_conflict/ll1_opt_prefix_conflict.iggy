@@ -1,0 +1,10 @@
+grammar Ll1OptPrefixConflict
+
+// The Opt mirror of ll1_prefix_conflict, in the direction the FIRST-only check
+// misses. "ab"? desugars to an Opt nonterminal whose prediction sets {"ab"}
+// and FOLLOW = {"a"} are disjoint as identities, so it is classified LL(1).
+// But "a" is a prefix of "ab": on input `ab` the dispatch matches "ab" and
+// commits, foreclosing the ε fall-through, and S then fails at position 2. The
+// only valid parse is the empty Opt followed by "a" "b". A sound classifier
+// routes the Opt nonterminal through GLL.
+S = "ab"? "a" "b"

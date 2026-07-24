@@ -154,10 +154,10 @@ pub static FIRST_SET_S_ALT0: TerminalSet = TerminalSet {
     id: 1,
     terminals: &[TerminalId(0), TerminalId(1)],
 };
-// A { EOF, "a", "1" }
+// A { "a", "1", EOF }
 pub static FOLLOW_SET_A: TerminalSet = TerminalSet {
     id: 2,
-    terminals: &[TerminalId(3), TerminalId(0), TerminalId(1)],
+    terminals: &[TerminalId(0), TerminalId(1), TerminalId(3)],
 };
 // A { "a" }
 pub static FIRST_SET_A: TerminalSet = TerminalSet {
@@ -169,10 +169,10 @@ pub static FIRST_SET_A_ALT0: TerminalSet = TerminalSet {
     id: 3,
     terminals: &[TerminalId(0)],
 };
-// Num { EOF, "a", "1" }
+// Num { "a", "1", EOF }
 pub static FOLLOW_SET_NUM: TerminalSet = TerminalSet {
     id: 2,
-    terminals: &[TerminalId(3), TerminalId(0), TerminalId(1)],
+    terminals: &[TerminalId(0), TerminalId(1), TerminalId(3)],
 };
 // Num { "1" }
 pub static FIRST_SET_NUM: TerminalSet = TerminalSet {
@@ -184,10 +184,10 @@ pub static FIRST_SET_NUM_ALT0: TerminalSet = TerminalSet {
     id: 4,
     terminals: &[TerminalId(1)],
 };
-// Alt_0 { EOF, "a", "1" }
+// Alt_0 { "a", "1", EOF }
 pub static FOLLOW_SET_ALT_0: TerminalSet = TerminalSet {
     id: 2,
-    terminals: &[TerminalId(3), TerminalId(0), TerminalId(1)],
+    terminals: &[TerminalId(0), TerminalId(1), TerminalId(3)],
 };
 // Alt_0 { "a", "1" }
 pub static FIRST_SET_ALT_0: TerminalSet = TerminalSet {
@@ -204,10 +204,10 @@ pub static FIRST_SET_ALT_0_ALT1: TerminalSet = TerminalSet {
     id: 4,
     terminals: &[TerminalId(1)],
 };
-// Plus_0 { EOF, "a", "1" }
+// Plus_0 { "a", "1", EOF }
 pub static FOLLOW_SET_PLUS_0: TerminalSet = TerminalSet {
     id: 2,
-    terminals: &[TerminalId(3), TerminalId(0), TerminalId(1)],
+    terminals: &[TerminalId(0), TerminalId(1), TerminalId(3)],
 };
 // Plus_0 { "a", "1" }
 pub static FIRST_SET_PLUS_0: TerminalSet = TerminalSet {

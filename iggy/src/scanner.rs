@@ -37,6 +37,13 @@ static DFA_0: Dfa = Dfa::new(&[
 ]);
 static DFA_1: Dfa = Dfa::new(&[
     State::new(
+        &[('0', '9', 1), ('A', 'Z', 1), ('_', '_', 1), ('a', 'z', 1)],
+        None,
+    ),
+    State::new(&[], Some(TerminalId(1))),
+]);
+static DFA_2: Dfa = Dfa::new(&[
+    State::new(
         &[
             ('A', 'Z', 1),
             ('_', '_', 1),
@@ -54,7 +61,7 @@ static DFA_1: Dfa = Dfa::new(&[
     ),
     State::new(
         &[('0', '9', 6), ('A', 'Z', 6), ('_', '_', 6), ('a', 'z', 6)],
-        Some(TerminalId(1)),
+        Some(TerminalId(2)),
     ),
     State::new(
         &[
@@ -65,7 +72,7 @@ static DFA_1: Dfa = Dfa::new(&[
             ('r', 'r', 7),
             ('s', 'z', 6),
         ],
-        Some(TerminalId(1)),
+        Some(TerminalId(2)),
     ),
     State::new(
         &[
@@ -76,7 +83,7 @@ static DFA_1: Dfa = Dfa::new(&[
             ('e', 'e', 8),
             ('f', 'z', 6),
         ],
-        Some(TerminalId(1)),
+        Some(TerminalId(2)),
     ),
     State::new(
         &[
@@ -87,7 +94,7 @@ static DFA_1: Dfa = Dfa::new(&[
             ('o', 'o', 9),
             ('p', 'z', 6),
         ],
-        Some(TerminalId(1)),
+        Some(TerminalId(2)),
     ),
     State::new(
         &[
@@ -98,11 +105,11 @@ static DFA_1: Dfa = Dfa::new(&[
             ('i', 'i', 10),
             ('j', 'z', 6),
         ],
-        Some(TerminalId(1)),
+        Some(TerminalId(2)),
     ),
     State::new(
         &[('0', '9', 6), ('A', 'Z', 6), ('_', '_', 6), ('a', 'z', 6)],
-        Some(TerminalId(1)),
+        Some(TerminalId(2)),
     ),
     State::new(
         &[
@@ -112,7 +119,7 @@ static DFA_1: Dfa = Dfa::new(&[
             ('a', 'a', 11),
             ('b', 'z', 6),
         ],
-        Some(TerminalId(1)),
+        Some(TerminalId(2)),
     ),
     State::new(
         &[
@@ -123,7 +130,7 @@ static DFA_1: Dfa = Dfa::new(&[
             ('f', 'f', 12),
             ('g', 'z', 6),
         ],
-        Some(TerminalId(1)),
+        Some(TerminalId(2)),
     ),
     State::new(
         &[
@@ -134,7 +141,7 @@ static DFA_1: Dfa = Dfa::new(&[
             ('n', 'n', 13),
             ('o', 'z', 6),
         ],
-        Some(TerminalId(1)),
+        Some(TerminalId(2)),
     ),
     State::new(
         &[
@@ -145,7 +152,7 @@ static DFA_1: Dfa = Dfa::new(&[
             ('g', 'g', 14),
             ('h', 'z', 6),
         ],
-        Some(TerminalId(1)),
+        Some(TerminalId(2)),
     ),
     State::new(
         &[
@@ -156,7 +163,7 @@ static DFA_1: Dfa = Dfa::new(&[
             ('m', 'm', 15),
             ('n', 'z', 6),
         ],
-        Some(TerminalId(1)),
+        Some(TerminalId(2)),
     ),
     State::new(
         &[
@@ -167,7 +174,7 @@ static DFA_1: Dfa = Dfa::new(&[
             ('t', 't', 16),
             ('u', 'z', 6),
         ],
-        Some(TerminalId(1)),
+        Some(TerminalId(2)),
     ),
     State::new(
         &[
@@ -178,7 +185,7 @@ static DFA_1: Dfa = Dfa::new(&[
             ('e', 'e', 17),
             ('f', 'z', 6),
         ],
-        Some(TerminalId(1)),
+        Some(TerminalId(2)),
     ),
     State::new(
         &[
@@ -189,7 +196,7 @@ static DFA_1: Dfa = Dfa::new(&[
             ('h', 'h', 18),
             ('i', 'z', 6),
         ],
-        Some(TerminalId(1)),
+        Some(TerminalId(2)),
     ),
     State::new(
         &[
@@ -200,15 +207,15 @@ static DFA_1: Dfa = Dfa::new(&[
             ('m', 'm', 19),
             ('n', 'z', 6),
         ],
-        Some(TerminalId(1)),
+        Some(TerminalId(2)),
     ),
     State::new_excluded(
         &[('0', '9', 6), ('A', 'Z', 6), ('_', '_', 6), ('a', 'z', 6)],
-        Some(TerminalId(1)),
+        Some(TerminalId(2)),
     ),
     State::new_excluded(
         &[('0', '9', 6), ('A', 'Z', 6), ('_', '_', 6), ('a', 'z', 6)],
-        Some(TerminalId(1)),
+        Some(TerminalId(2)),
     ),
     State::new(
         &[
@@ -219,7 +226,7 @@ static DFA_1: Dfa = Dfa::new(&[
             ('t', 't', 20),
             ('u', 'z', 6),
         ],
-        Some(TerminalId(1)),
+        Some(TerminalId(2)),
     ),
     State::new(
         &[
@@ -229,11 +236,11 @@ static DFA_1: Dfa = Dfa::new(&[
             ('a', 'a', 21),
             ('b', 'z', 6),
         ],
-        Some(TerminalId(1)),
+        Some(TerminalId(2)),
     ),
     State::new_excluded(
         &[('0', '9', 6), ('A', 'Z', 6), ('_', '_', 6), ('a', 'z', 6)],
-        Some(TerminalId(1)),
+        Some(TerminalId(2)),
     ),
     State::new(
         &[
@@ -244,14 +251,14 @@ static DFA_1: Dfa = Dfa::new(&[
             ('r', 'r', 22),
             ('s', 'z', 6),
         ],
-        Some(TerminalId(1)),
+        Some(TerminalId(2)),
     ),
     State::new_excluded(
         &[('0', '9', 6), ('A', 'Z', 6), ('_', '_', 6), ('a', 'z', 6)],
-        Some(TerminalId(1)),
+        Some(TerminalId(2)),
     ),
 ]);
-static DFA_2: Dfa = Dfa::new(&[
+static DFA_3: Dfa = Dfa::new(&[
     State::new(&[('"', '"', 1)], None),
     State::new(
         &[
@@ -275,7 +282,7 @@ static DFA_2: Dfa = Dfa::new(&[
         ],
         None,
     ),
-    State::new(&[], Some(TerminalId(2))),
+    State::new(&[], Some(TerminalId(3))),
     State::new(
         &[
             ('"', '"', 5),
@@ -300,7 +307,7 @@ static DFA_2: Dfa = Dfa::new(&[
         None,
     ),
 ]);
-static DFA_3: Dfa = Dfa::new(&[
+static DFA_4: Dfa = Dfa::new(&[
     State::new(&[('\'', '\'', 1)], None),
     State::new(
         &[
@@ -325,10 +332,10 @@ static DFA_3: Dfa = Dfa::new(&[
         ],
         None,
     ),
-    State::new(&[], Some(TerminalId(3))),
+    State::new(&[], Some(TerminalId(4))),
     State::new(&[('\'', '\'', 4)], None),
 ]);
-static DFA_4: Dfa = Dfa::new(&[
+static DFA_5: Dfa = Dfa::new(&[
     State::new(&[('\\', '\\', 1)], None),
     State::new(
         &[
@@ -342,9 +349,9 @@ static DFA_4: Dfa = Dfa::new(&[
         ],
         None,
     ),
-    State::new(&[], Some(TerminalId(4))),
+    State::new(&[], Some(TerminalId(5))),
 ]);
-static DFA_5: Dfa = Dfa::new(&[
+static DFA_6: Dfa = Dfa::new(&[
     State::new(
         &[
             ('\0', '\u{8}', 1),
@@ -358,7 +365,7 @@ static DFA_5: Dfa = Dfa::new(&[
         ],
         None,
     ),
-    State::new(&[], Some(TerminalId(5))),
+    State::new(&[], Some(TerminalId(6))),
     State::new(
         &[
             (' ', ' ', 3),
@@ -373,32 +380,32 @@ static DFA_5: Dfa = Dfa::new(&[
         ],
         None,
     ),
-    State::new(&[], Some(TerminalId(5))),
+    State::new(&[], Some(TerminalId(6))),
 ]);
-static DFA_6: Dfa = Dfa::new(&[
+static DFA_7: Dfa = Dfa::new(&[
     State::new(&[('#', '#', 1)], None),
     State::new(&[('A', 'Z', 2), ('_', '_', 2), ('a', 'z', 2)], None),
     State::new(
         &[('0', '9', 3), ('A', 'Z', 3), ('_', '_', 3), ('a', 'z', 3)],
-        Some(TerminalId(6)),
+        Some(TerminalId(7)),
     ),
     State::new(
         &[('0', '9', 3), ('A', 'Z', 3), ('_', '_', 3), ('a', 'z', 3)],
-        Some(TerminalId(6)),
-    ),
-]);
-static DFA_7: Dfa = Dfa::new(&[
-    State::new(&[('\t', '\t', 1), ('\n', '\n', 1), (' ', ' ', 1)], None),
-    State::new(
-        &[('\t', '\t', 1), ('\n', '\n', 1), (' ', ' ', 1)],
         Some(TerminalId(7)),
     ),
 ]);
 static DFA_8: Dfa = Dfa::new(&[
     State::new(&[('\t', '\t', 1), ('\n', '\n', 1), (' ', ' ', 1)], None),
-    State::new(&[], Some(TerminalId(8))),
+    State::new(
+        &[('\t', '\t', 1), ('\n', '\n', 1), (' ', ' ', 1)],
+        Some(TerminalId(8)),
+    ),
 ]);
 static DFA_9: Dfa = Dfa::new(&[
+    State::new(&[('\t', '\t', 1), ('\n', '\n', 1), (' ', ' ', 1)], None),
+    State::new(&[], Some(TerminalId(9))),
+]);
+static DFA_10: Dfa = Dfa::new(&[
     State::new(&[('/', '/', 1)], None),
     State::new(&[('/', '/', 2)], None),
     State::new(
@@ -407,7 +414,7 @@ static DFA_9: Dfa = Dfa::new(&[
             ('\u{b}', '\u{d7ff}', 3),
             ('\u{e000}', '\u{10ffff}', 3),
         ],
-        Some(TerminalId(9)),
+        Some(TerminalId(10)),
     ),
     State::new(
         &[
@@ -415,10 +422,10 @@ static DFA_9: Dfa = Dfa::new(&[
             ('\u{b}', '\u{d7ff}', 3),
             ('\u{e000}', '\u{10ffff}', 3),
         ],
-        Some(TerminalId(9)),
+        Some(TerminalId(10)),
     ),
 ]);
-static DFA_10: Dfa = Dfa::new(&[
+static DFA_11: Dfa = Dfa::new(&[
     State::new(&[('g', 'g', 1)], None),
     State::new(&[('r', 'r', 2)], None),
     State::new(&[('a', 'a', 3)], None),
@@ -426,17 +433,17 @@ static DFA_10: Dfa = Dfa::new(&[
     State::new(&[('m', 'm', 5)], None),
     State::new(&[('a', 'a', 6)], None),
     State::new(&[('r', 'r', 7)], None),
-    State::new(&[], Some(TerminalId(10))),
-]);
-static DFA_11: Dfa = Dfa::new(&[
-    State::new(&[('=', '=', 1)], None),
     State::new(&[], Some(TerminalId(11))),
 ]);
 static DFA_12: Dfa = Dfa::new(&[
-    State::new(&[('>', '>', 1)], None),
+    State::new(&[('=', '=', 1)], None),
     State::new(&[], Some(TerminalId(12))),
 ]);
 static DFA_13: Dfa = Dfa::new(&[
+    State::new(&[('>', '>', 1)], None),
+    State::new(&[], Some(TerminalId(13))),
+]);
+static DFA_14: Dfa = Dfa::new(&[
     State::new(&[('@', '@', 1)], None),
     State::new(&[('N', 'N', 2)], None),
     State::new(&[('o', 'o', 3)], None),
@@ -446,9 +453,9 @@ static DFA_13: Dfa = Dfa::new(&[
     State::new(&[('o', 'o', 7)], None),
     State::new(&[('u', 'u', 8)], None),
     State::new(&[('t', 't', 9)], None),
-    State::new(&[], Some(TerminalId(13))),
+    State::new(&[], Some(TerminalId(14))),
 ]);
-static DFA_14: Dfa = Dfa::new(&[
+static DFA_15: Dfa = Dfa::new(&[
     State::new(&[('@', '@', 1)], None),
     State::new(&[('L', 'L', 2)], None),
     State::new(&[('a', 'a', 3)], None),
@@ -456,9 +463,9 @@ static DFA_14: Dfa = Dfa::new(&[
     State::new(&[('o', 'o', 5)], None),
     State::new(&[('u', 'u', 6)], None),
     State::new(&[('t', 't', 7)], None),
-    State::new(&[], Some(TerminalId(14))),
+    State::new(&[], Some(TerminalId(15))),
 ]);
-static DFA_15: Dfa = Dfa::new(&[
+static DFA_16: Dfa = Dfa::new(&[
     State::new(&[('@', '@', 1)], None),
     State::new(&[('W', 'W', 2)], None),
     State::new(&[('i', 'i', 3)], None),
@@ -470,106 +477,106 @@ static DFA_15: Dfa = Dfa::new(&[
     State::new(&[('o', 'o', 9)], None),
     State::new(&[('u', 'u', 10)], None),
     State::new(&[('t', 't', 11)], None),
-    State::new(&[], Some(TerminalId(15))),
-]);
-static DFA_16: Dfa = Dfa::new(&[
-    State::new(&[('(', '(', 1)], None),
     State::new(&[], Some(TerminalId(16))),
 ]);
 static DFA_17: Dfa = Dfa::new(&[
-    State::new(&[(')', ')', 1)], None),
+    State::new(&[('(', '(', 1)], None),
     State::new(&[], Some(TerminalId(17))),
 ]);
 static DFA_18: Dfa = Dfa::new(&[
+    State::new(&[(')', ')', 1)], None),
+    State::new(&[], Some(TerminalId(18))),
+]);
+static DFA_19: Dfa = Dfa::new(&[
     State::new(&[('@', '@', 1)], None),
     State::new(&[('R', 'R', 2)], None),
     State::new(&[('e', 'e', 3)], None),
     State::new(&[('g', 'g', 4)], None),
     State::new(&[('e', 'e', 5)], None),
     State::new(&[('x', 'x', 6)], None),
-    State::new(&[], Some(TerminalId(18))),
-]);
-static DFA_19: Dfa = Dfa::new(&[
-    State::new(&[('|', '|', 1)], None),
     State::new(&[], Some(TerminalId(19))),
 ]);
 static DFA_20: Dfa = Dfa::new(&[
-    State::new(&[('!', '!', 1)], None),
-    State::new(&[('<', '<', 2)], None),
-    State::new(&[('<', '<', 3)], None),
+    State::new(&[('|', '|', 1)], None),
     State::new(&[], Some(TerminalId(20))),
 ]);
 static DFA_21: Dfa = Dfa::new(&[
-    State::new(&[('\\', '\\', 1)], None),
+    State::new(&[('!', '!', 1)], None),
+    State::new(&[('<', '<', 2)], None),
+    State::new(&[('<', '<', 3)], None),
     State::new(&[], Some(TerminalId(21))),
 ]);
 static DFA_22: Dfa = Dfa::new(&[
-    State::new(&[('!', '!', 1)], None),
-    State::new(&[('>', '>', 2)], None),
-    State::new(&[('>', '>', 3)], None),
+    State::new(&[('\\', '\\', 1)], None),
     State::new(&[], Some(TerminalId(22))),
 ]);
 static DFA_23: Dfa = Dfa::new(&[
+    State::new(&[('!', '!', 1)], None),
+    State::new(&[('>', '>', 2)], None),
+    State::new(&[('>', '>', 3)], None),
+    State::new(&[], Some(TerminalId(23))),
+]);
+static DFA_24: Dfa = Dfa::new(&[
     State::new(&[('l', 'l', 1)], None),
     State::new(&[('e', 'e', 2)], None),
     State::new(&[('f', 'f', 3)], None),
     State::new(&[('t', 't', 4)], None),
-    State::new(&[], Some(TerminalId(23))),
+    State::new(&[], Some(TerminalId(24))),
 ]);
-static DFA_24: Dfa = Dfa::new(&[
+static DFA_25: Dfa = Dfa::new(&[
     State::new(&[('r', 'r', 1)], None),
     State::new(&[('i', 'i', 2)], None),
     State::new(&[('g', 'g', 3)], None),
     State::new(&[('h', 'h', 4)], None),
     State::new(&[('t', 't', 5)], None),
-    State::new(&[], Some(TerminalId(24))),
+    State::new(&[], Some(TerminalId(25))),
 ]);
-static DFA_25: Dfa = Dfa::new(&[
+static DFA_26: Dfa = Dfa::new(&[
     State::new(&[('n', 'n', 1)], None),
     State::new(&[('o', 'o', 2)], None),
     State::new(&[('n', 'n', 3)], None),
     State::new(&[('e', 'e', 4)], None),
-    State::new(&[], Some(TerminalId(25))),
-]);
-static DFA_26: Dfa = Dfa::new(&[
-    State::new(&[('{', '{', 1)], None),
     State::new(&[], Some(TerminalId(26))),
 ]);
 static DFA_27: Dfa = Dfa::new(&[
-    State::new(&[('}', '}', 1)], None),
+    State::new(&[('{', '{', 1)], None),
     State::new(&[], Some(TerminalId(27))),
 ]);
 static DFA_28: Dfa = Dfa::new(&[
-    State::new(&[('*', '*', 1)], None),
+    State::new(&[('}', '}', 1)], None),
     State::new(&[], Some(TerminalId(28))),
 ]);
 static DFA_29: Dfa = Dfa::new(&[
-    State::new(&[('+', '+', 1)], None),
+    State::new(&[('*', '*', 1)], None),
     State::new(&[], Some(TerminalId(29))),
 ]);
 static DFA_30: Dfa = Dfa::new(&[
-    State::new(&[('?', '?', 1)], None),
+    State::new(&[('+', '+', 1)], None),
     State::new(&[], Some(TerminalId(30))),
 ]);
 static DFA_31: Dfa = Dfa::new(&[
-    State::new(&[('!', '!', 1)], None),
+    State::new(&[('?', '?', 1)], None),
     State::new(&[], Some(TerminalId(31))),
 ]);
 static DFA_32: Dfa = Dfa::new(&[
-    State::new(&[(':', ':', 1)], None),
+    State::new(&[('!', '!', 1)], None),
     State::new(&[], Some(TerminalId(32))),
 ]);
 static DFA_33: Dfa = Dfa::new(&[
-    State::new(&[('[', '[', 1)], None),
+    State::new(&[(':', ':', 1)], None),
     State::new(&[], Some(TerminalId(33))),
 ]);
 static DFA_34: Dfa = Dfa::new(&[
-    State::new(&[(']', ']', 1)], None),
+    State::new(&[('[', '[', 1)], None),
     State::new(&[], Some(TerminalId(34))),
 ]);
 static DFA_35: Dfa = Dfa::new(&[
-    State::new(&[('-', '-', 1)], None),
+    State::new(&[(']', ']', 1)], None),
     State::new(&[], Some(TerminalId(35))),
+]);
+static DFA_36: Dfa = Dfa::new(&[
+    State::new(&[('-', '-', 1)], None),
+    State::new(&[], Some(TerminalId(36))),
 ]);
 pub struct IggyScanner<'i, 'arena> {
     pub input: &'i Input,
@@ -592,145 +599,152 @@ impl<'i, 'arena> IggyScanner<'i, 'arena> {
     pub fn match_terminal_0(&self, input_index: u32) -> Option<u32> {
         self.scan(&DFA_0, input_index)
     }
-    // Identifier = [a-z A-Z _][a-z A-Z _ 0-9]* \ Keyword
+    // NameChar = [a-z A-Z _ 0-9]
     pub fn match_terminal_1(&self, input_index: u32) -> Option<u32> {
         self.scan(&DFA_1, input_index)
     }
-    // String = \"(\\[\" \' \\ t f r n]|![\" \\])*\"
+    // Identifier = [a-z A-Z _][a-z A-Z _ 0-9]* \ Keyword !<< NameChar
     pub fn match_terminal_2(&self, input_index: u32) -> Option<u32> {
+        if input_index > 0 && self.match_terminal_1(input_index - 1).is_some() {
+            return None;
+        }
         self.scan(&DFA_2, input_index)
     }
-    // Char = \'(\\[\" \' \\ t f r n]|![\' \\])\'
+    // String = \"(\\[\" \' \\ t f r n]|![\" \\])*\"
     pub fn match_terminal_3(&self, input_index: u32) -> Option<u32> {
         self.scan(&DFA_3, input_index)
     }
-    // EscapeChar = \\[\" \' \\ t f r n]
+    // Char = \'(\\[\" \' \\ t f r n]|![\' \\])\'
     pub fn match_terminal_4(&self, input_index: u32) -> Option<u32> {
         self.scan(&DFA_4, input_index)
     }
-    // RangeChar = (![\\ - [ ] \t \u{c} \r \n ]|\\[\\ - [ ] t f r n ])
+    // EscapeChar = \\[\" \' \\ t f r n]
     pub fn match_terminal_5(&self, input_index: u32) -> Option<u32> {
         self.scan(&DFA_5, input_index)
     }
-    // Label = #[a-z A-Z _][a-z A-Z _ 0-9]*
+    // RangeChar = (![\\ - [ ] \t \u{c} \r \n ]|\\[\\ - [ ] t f r n ])
     pub fn match_terminal_6(&self, input_index: u32) -> Option<u32> {
         self.scan(&DFA_6, input_index)
     }
-    // WS = [ \n \t]+
+    // Label = #[a-z A-Z _][a-z A-Z _ 0-9]*
     pub fn match_terminal_7(&self, input_index: u32) -> Option<u32> {
         self.scan(&DFA_7, input_index)
     }
-    // WSChar = [ \n \t]
+    // WS = [ \n \t]+
     pub fn match_terminal_8(&self, input_index: u32) -> Option<u32> {
         self.scan(&DFA_8, input_index)
     }
-    // LineComment = //![\n]*
+    // WSChar = [ \n \t]
     pub fn match_terminal_9(&self, input_index: u32) -> Option<u32> {
         self.scan(&DFA_9, input_index)
     }
-    // "grammar" = grammar
+    // LineComment = //![\n]*
     pub fn match_terminal_10(&self, input_index: u32) -> Option<u32> {
         self.scan(&DFA_10, input_index)
     }
-    // "=" = =
+    // "grammar" = grammar
     pub fn match_terminal_11(&self, input_index: u32) -> Option<u32> {
         self.scan(&DFA_11, input_index)
     }
-    // ">" = >
+    // "=" = =
     pub fn match_terminal_12(&self, input_index: u32) -> Option<u32> {
         self.scan(&DFA_12, input_index)
     }
-    // "@NoLayout" = @NoLayout
+    // ">" = >
     pub fn match_terminal_13(&self, input_index: u32) -> Option<u32> {
         self.scan(&DFA_13, input_index)
     }
-    // "@Layout" = @Layout
+    // "@NoLayout" = @NoLayout
     pub fn match_terminal_14(&self, input_index: u32) -> Option<u32> {
         self.scan(&DFA_14, input_index)
     }
-    // "@WithLayout" = @WithLayout
+    // "@Layout" = @Layout
     pub fn match_terminal_15(&self, input_index: u32) -> Option<u32> {
         self.scan(&DFA_15, input_index)
     }
-    // "(" = (
+    // "@WithLayout" = @WithLayout
     pub fn match_terminal_16(&self, input_index: u32) -> Option<u32> {
         self.scan(&DFA_16, input_index)
     }
-    // ")" = )
+    // "(" = (
     pub fn match_terminal_17(&self, input_index: u32) -> Option<u32> {
         self.scan(&DFA_17, input_index)
     }
-    // "@Regex" = @Regex
+    // ")" = )
     pub fn match_terminal_18(&self, input_index: u32) -> Option<u32> {
         self.scan(&DFA_18, input_index)
     }
-    // "|" = |
+    // "@Regex" = @Regex
     pub fn match_terminal_19(&self, input_index: u32) -> Option<u32> {
         self.scan(&DFA_19, input_index)
     }
-    // "!<<" = !<<
+    // "|" = |
     pub fn match_terminal_20(&self, input_index: u32) -> Option<u32> {
         self.scan(&DFA_20, input_index)
     }
-    // "\\" = \\
+    // "!<<" = !<<
     pub fn match_terminal_21(&self, input_index: u32) -> Option<u32> {
         self.scan(&DFA_21, input_index)
     }
-    // "!>>" = !>>
+    // "\\" = \\
     pub fn match_terminal_22(&self, input_index: u32) -> Option<u32> {
         self.scan(&DFA_22, input_index)
     }
-    // "left" = left
+    // "!>>" = !>>
     pub fn match_terminal_23(&self, input_index: u32) -> Option<u32> {
         self.scan(&DFA_23, input_index)
     }
-    // "right" = right
+    // "left" = left
     pub fn match_terminal_24(&self, input_index: u32) -> Option<u32> {
         self.scan(&DFA_24, input_index)
     }
-    // "none" = none
+    // "right" = right
     pub fn match_terminal_25(&self, input_index: u32) -> Option<u32> {
         self.scan(&DFA_25, input_index)
     }
-    // "{" = {
+    // "none" = none
     pub fn match_terminal_26(&self, input_index: u32) -> Option<u32> {
         self.scan(&DFA_26, input_index)
     }
-    // "}" = }
+    // "{" = {
     pub fn match_terminal_27(&self, input_index: u32) -> Option<u32> {
         self.scan(&DFA_27, input_index)
     }
-    // "*" = *
+    // "}" = }
     pub fn match_terminal_28(&self, input_index: u32) -> Option<u32> {
         self.scan(&DFA_28, input_index)
     }
-    // "+" = +
+    // "*" = *
     pub fn match_terminal_29(&self, input_index: u32) -> Option<u32> {
         self.scan(&DFA_29, input_index)
     }
-    // "?" = ?
+    // "+" = +
     pub fn match_terminal_30(&self, input_index: u32) -> Option<u32> {
         self.scan(&DFA_30, input_index)
     }
-    // "!" = !
+    // "?" = ?
     pub fn match_terminal_31(&self, input_index: u32) -> Option<u32> {
         self.scan(&DFA_31, input_index)
     }
-    // ":" = :
+    // "!" = !
     pub fn match_terminal_32(&self, input_index: u32) -> Option<u32> {
         self.scan(&DFA_32, input_index)
     }
-    // "[" = [
+    // ":" = :
     pub fn match_terminal_33(&self, input_index: u32) -> Option<u32> {
         self.scan(&DFA_33, input_index)
     }
-    // "]" = ]
+    // "[" = [
     pub fn match_terminal_34(&self, input_index: u32) -> Option<u32> {
         self.scan(&DFA_34, input_index)
     }
-    // "-" = -
+    // "]" = ]
     pub fn match_terminal_35(&self, input_index: u32) -> Option<u32> {
         self.scan(&DFA_35, input_index)
+    }
+    // "-" = -
+    pub fn match_terminal_36(&self, input_index: u32) -> Option<u32> {
+        self.scan(&DFA_36, input_index)
     }
     // Whether any terminal in `set` matches at `input_index`, cached by the set's memo id. The
     // first query of a set at a position scans it; later queries return the cached bit.
@@ -791,7 +805,8 @@ impl Scanner for IggyScanner<'_, '_> {
             TerminalId(33) => self.match_terminal_33(input_index),
             TerminalId(34) => self.match_terminal_34(input_index),
             TerminalId(35) => self.match_terminal_35(input_index),
-            TerminalId(37) => {
+            TerminalId(36) => self.match_terminal_36(input_index),
+            TerminalId(38) => {
                 if input_index == self.input.len() {
                     Some(input_index)
                 } else {

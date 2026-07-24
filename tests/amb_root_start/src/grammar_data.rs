@@ -249,10 +249,10 @@ pub static FIRST_SET_E_ALT5: TerminalSet = TerminalSet {
     id: 4,
     terminals: &[TerminalId(0)],
 };
-// Type { EOF, ")", WS }
+// Type { WS, ")", EOF }
 pub static FOLLOW_SET_TYPE: TerminalSet = TerminalSet {
     id: 5,
-    terminals: &[TerminalId(6), TerminalId(3), TerminalId(1)],
+    terminals: &[TerminalId(1), TerminalId(3), TerminalId(6)],
 };
 // Type { Id }
 pub static FIRST_SET_TYPE: TerminalSet = TerminalSet {

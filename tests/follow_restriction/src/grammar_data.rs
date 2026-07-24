@@ -198,10 +198,10 @@ pub static FOLLOW_RESTRICTION_T_ALT0_POS0: TerminalSet = TerminalSet {
     id: 1,
     terminals: &[TerminalId(0)],
 };
-// Id { EOF, Char, WS }
+// Id { WS, Char, EOF }
 pub static FOLLOW_SET_ID: TerminalSet = TerminalSet {
     id: 2,
-    terminals: &[TerminalId(3), TerminalId(0), TerminalId(1)],
+    terminals: &[TerminalId(1), TerminalId(0), TerminalId(3)],
 };
 // Id { Char }
 pub static FIRST_SET_ID: TerminalSet = TerminalSet {
@@ -218,10 +218,10 @@ pub static FOLLOW_RESTRICTION_ID_ALT0_POS0: TerminalSet = TerminalSet {
     id: 1,
     terminals: &[TerminalId(0)],
 };
-// Plus_0 { EOF, Char, WS }
+// Plus_0 { WS, Char, EOF }
 pub static FOLLOW_SET_PLUS_0: TerminalSet = TerminalSet {
     id: 2,
-    terminals: &[TerminalId(3), TerminalId(0), TerminalId(1)],
+    terminals: &[TerminalId(1), TerminalId(0), TerminalId(3)],
 };
 // Plus_0 { Char }
 pub static FIRST_SET_PLUS_0: TerminalSet = TerminalSet {
@@ -238,10 +238,10 @@ pub static FIRST_SET_PLUS_0_ALT1: TerminalSet = TerminalSet {
     id: 1,
     terminals: &[TerminalId(0)],
 };
-// Plus_1 { WS, EOF }
+// Plus_1 { WS, Char, EOF }
 pub static FOLLOW_SET_PLUS_1: TerminalSet = TerminalSet {
-    id: 0,
-    terminals: &[TerminalId(1), TerminalId(3)],
+    id: 2,
+    terminals: &[TerminalId(1), TerminalId(0), TerminalId(3)],
 };
 // Plus_1 { Char }
 pub static FIRST_SET_PLUS_1: TerminalSet = TerminalSet {
