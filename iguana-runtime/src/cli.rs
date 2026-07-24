@@ -1244,7 +1244,7 @@ fn parse_record_line(line: &str) -> Option<(String, BaselineRecord)> {
     };
     let message = match status {
         Status::Ok | Status::Ambiguous => None,
-        Status::Error | Status::IoError => fields.last().map(|s| s.to_string()),
+        Status::Error | Status::IoError => fields.next_back().map(|s| s.to_string()),
     };
     Some((path, BaselineRecord { status, message }))
 }

@@ -360,9 +360,9 @@ impl Dfa {
         }
         let mut live = vec![false; n];
         let mut stack = Vec::new();
-        for i in 0..n {
+        for (i, state_live) in live.iter_mut().enumerate() {
             if self.is_language_accept(i) {
-                live[i] = true;
+                *state_live = true;
                 stack.push(i);
             }
         }
