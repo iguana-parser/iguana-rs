@@ -196,7 +196,10 @@ This checks the rust toolchain, installs `cargo-nextest`, installs the web viewe
 ```bash
 cargo check -p iguana-compiler   # Type check
 cargo clippy -p iguana-compiler  # Lint
+npm run check                    # Type check every npm workspace
 ```
+
+`npm run check` runs `svelte-check` (and `tsc` for the tree widget) across `web-ui`, `web-viewer`, `design-viewer`, `terrarium`, and `tree-widget`. It fails on type errors and reports warnings without failing. CI runs the same command.
 
 ### After Modifying Generator Code
 

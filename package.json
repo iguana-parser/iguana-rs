@@ -2,6 +2,9 @@
   "name": "iguana-rs-workspace",
   "private": true,
   "description": "JavaScript/TypeScript workspace for iguana-rs: the shared web UI, Terrarium, the parse viewer, the design viewer, and the embeddable tree widget.",
+  "scripts": {
+    "check": "npm run check --workspaces --if-present"
+  },
   "workspaces": [
     "web-ui",
     "web-viewer",
