@@ -215,7 +215,10 @@
     editor?.updateOptions({ lineNumbers: disabled ? "off" : "on" });
   });
 
-  let container: HTMLDivElement;
+  // Reactive because the toolbar and plain layouts bind their own element, so a
+  // host that flips `toolbar` swaps the node. The disabled-styling effect below
+  // reads it, and has to re-run against whichever node is current.
+  let container: HTMLDivElement | undefined = $state();
   let editor: monaco.editor.IStandaloneCodeEditor;
   let ignoreChange = false;
 
@@ -308,6 +311,7 @@
   }
 
   onMount(() => {
+    if (!container) return;
     activeBackend = backend;
     registerIggyLanguage();
 

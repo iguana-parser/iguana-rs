@@ -199,7 +199,7 @@ cargo clippy -p iguana-compiler  # Lint
 npm run check                    # Type check every npm workspace
 ```
 
-`npm run check` runs `svelte-check` (and `tsc` for the tree widget) across `web-ui`, `web-viewer`, `design-viewer`, `terrarium`, and `tree-widget`. It fails on type errors and reports warnings without failing. CI runs the same command.
+`npm run check` runs `svelte-check` (and `tsc` for the tree widget) across `web-ui`, `web-viewer`, `design-viewer`, `terrarium`, and `tree-widget`. Warnings fail it as well as errors (`--fail-on-warnings`), so unused CSS and accessibility problems do not accumulate. CI runs the same command. Where a warning is the honest answer, a `<!-- svelte-ignore rule_name -->` above the element records the exception.
 
 ### After Modifying Generator Code
 

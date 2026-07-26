@@ -1251,7 +1251,11 @@
                   <Minimize2 size={16} />
                 </button>
               </div>
+              <!-- Arrow-key navigation over the rows, but the rows are not ARIA
+                   treeitems, so claiming role="tree" here would announce a tree
+                   with no items. -->
               <!-- svelte-ignore a11y_no_noninteractive_tabindex -->
+              <!-- svelte-ignore a11y_no_static_element_interactions -->
               <div class="tree-container" tabindex="0" onkeydown={handleTreeKeydown} bind:this={treeContainerEl}>
                 {#snippet treeNode(node: TreeNode, depth: number)}
                   <!-- svelte-ignore a11y_click_events_have_key_events -->

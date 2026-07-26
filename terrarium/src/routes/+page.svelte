@@ -350,7 +350,7 @@
   let outlineSymbols = $state<DocumentSymbolData[]>([]);
   let outlineExpanded = $state(new Set<string>());
   let outlineSelectedIndex = $state(-1);
-  let outlineListEl: HTMLDivElement;
+  let outlineListEl: HTMLDivElement | undefined = $state();
   let editorInstance: import("monaco-editor").editor.IStandaloneCodeEditor | undefined;
   // Per-editor view state (cursor, scroll, selection) kept across mode switches,
   // which remount the editors. Each editor saves on unmount and restores on mount.
@@ -1928,6 +1928,7 @@
       </div>
     </div>
     {#if outlineOpen}
+    <!-- svelte-ignore a11y_no_static_element_interactions -->
     <div class="resize-handle-vertical" onmousedown={startOutlineDrag}></div>
     <div class="outline-panel" style="width: {outlinePanelWidth}px">
       <div class="outline-header">
@@ -2091,11 +2092,15 @@
         {/if}
       </div>
 
-      <!-- Current Action -->
+      <!-- Current Action. A labelled region a reader can reach, focusable so
+           Cmd+A selects its text; the handler is what the two rules object to. -->
       <!-- svelte-ignore a11y_no_noninteractive_tabindex -->
+      <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
       <div
         class="current-action-box"
         bind:this={actionBoxEl}
+        role="region"
+        aria-label="Current action"
         tabindex="0"
         onkeydown={(e) => handleSelectAllInContainer(e, actionBoxEl)}
       >
@@ -2272,10 +2277,13 @@
           </div>
         </div>
         <!-- svelte-ignore a11y_no_noninteractive_tabindex -->
+        <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
         <div
           class="output-content"
           style="height: {outputPanelHeight}px"
           bind:this={outputContentEl}
+          role="region"
+          aria-label="Output"
           tabindex="0"
           onkeydown={(e) => handleSelectAllInContainer(e, outputContentEl)}
         >
@@ -2569,8 +2577,6 @@ Compilation: {buildDurationMs ?? '?'}ms</span>
   }
 
   /* Add padding to scrollable areas when output panel is open */
-  .middle-area.output-open .input-section textarea,
-  .middle-area.output-open .input-viewer,
   .middle-area.output-open .stack-list,
   .middle-area.output-open .section-content {
     padding-bottom: 200px;  /* Space for output panel */
@@ -3232,75 +3238,12 @@ Compilation: {buildDurationMs ?? '?'}ms</span>
 
 
 
-  /* Input Section */
+  /* Input Section. The input editor is a component, so its own styles and its
+     text selection are its business; this only sizes the box around it. */
   .input-section {
     flex: 1;
     min-height: 100px;
-    user-select: none;  /* Contain selection - allow only in textarea/input-viewer */
-  }
-
-  .input-section textarea {
-    width: 100%;
-    height: 100%;
-    resize: none;
-    background: #1e1e1e;
-    color: #d4d4d4;
-    border: none;
-    padding: 8px;
-    font-family: "Fira Code", "Consolas", monospace;
-    font-size: 13px;
-    user-select: text !important;  /* Allow text selection in textarea */
-  }
-
-  .input-section textarea:focus {
-    outline: none;
-  }
-
-  /* Input Viewer for Debug Mode */
-  .input-viewer {
-    width: 100%;
-    height: 100%;
-    padding: 8px;
-    background: #1e1e1e;
-    font-family: "Fira Code", "Consolas", monospace;
-    font-size: 13px;
-    overflow: auto;
-    white-space: pre-wrap;
-    word-break: break-all;
-    user-select: text !important;  /* Allow text selection in input viewer */
-  }
-
-  /* Ensure text selection works in input viewer */
-  .input-section .input-viewer {
-    user-select: text !important;
-  }
-
-  /* Debug mode specific - ensure text selection works */
-  .debug-col-input .input-section textarea,
-  .debug-col-input .input-section .input-viewer {
-    user-select: text !important;
-  }
-
-  .input-char {
-    color: #d4d4d4;
-  }
-
-  .input-char .ws-marker {
-    font-size: 0.9em;
-  }
-
-  .input-char.consumed {
-    color: #6a9955;
-  }
-
-  .input-char.current {
-    background: #264f78;
-    color: #fff;
-  }
-
-  .input-char.selected {
-    background: #264f78;
-    color: #fff;
+    user-select: none;
   }
 
   /* Debug Controls Container */
@@ -4105,17 +4048,6 @@ Compilation: {buildDurationMs ?? '?'}ms</span>
     margin: 0;
     cursor: pointer;
   }
-
-  .stats-toggle {
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-    color: #cccccc;
-    font-size: 12px;
-    cursor: pointer;
-    padding: 0 6px;
-  }
-  .stats-toggle input { margin: 0; cursor: pointer; }
 
   .activity-btn:disabled {
     opacity: 0.35;
