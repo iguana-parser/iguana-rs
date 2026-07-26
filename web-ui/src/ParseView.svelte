@@ -521,9 +521,15 @@
     });
   });
 
+  // Sequence number of the newest parse. Parses run concurrently, so without it
+  // a slower earlier parse can land after a faster later one and leave the views
+  // showing a tree for input the user has already edited.
+  let parseSeq = 0;
+
   // Exported so the page-level Cmd+P keybinding can fire the same parse via bind:this.
   export async function parse() {
     if (!backend || buildStatus !== "success" || !startNonterminal) return;
+    const seq = ++parseSeq;
     onStatus?.("Parsing...", "info");
     onParseStart?.();
 
@@ -535,6 +541,9 @@
     onLogCommand?.(`${parserName} <input> --start ${startNonterminal}`);
 
     const result = await backend.parse(inputText, startNonterminal);
+    // A newer parse started while this one ran, and it owns the views now.
+    if (seq !== parseSeq) return;
+
     if ("error" in result) {
       // The parser could not be run at all (missing binary, spawn failure): an
       // unexpected error, surfaced like a crash rather than a parse failure.

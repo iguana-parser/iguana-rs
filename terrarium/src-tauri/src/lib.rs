@@ -421,7 +421,7 @@ fn build_parser(
     };
 
     // Mark current binary as stale until rebuild completes.
-    state.lock().unwrap().features = None;
+    lock_state(&state).features = None;
 
     thread::spawn(move || {
         log_event(
@@ -438,7 +438,7 @@ fn build_parser(
         match build_output {
             Ok(output) if output.status.success() => {
                 if let Some(state) = app.try_state::<Mutex<BuildState>>() {
-                    state.lock().unwrap().features = Some(built_features);
+                    lock_state(&state).features = Some(built_features);
                 }
                 log_event(&app, "output", "Build successful");
                 let _ = app.emit(
@@ -545,7 +545,7 @@ fn parse_inner(
         .flatten();
 
     // Store paths for files that exist
-    let mut parse_state = state.lock().unwrap();
+    let mut parse_state = lock_state(&state);
     parse_state._temp_dir = Some(temp_dir);
     parse_state.sppf_path = if has_sppf { Some(sppf_path) } else { None };
     parse_state.gss_path = if has_gss { Some(gss_path) } else { None };
@@ -636,7 +636,7 @@ fn parse_inner(
 #[tauri::command]
 #[specta::specta]
 fn get_sppf(state: tauri::State<Mutex<ParseState>>) -> Result<SPPF, String> {
-    let parse_state = state.lock().unwrap();
+    let parse_state = lock_state(&state);
     let sppf_path = parse_state
         .sppf_path
         .as_ref()
@@ -651,7 +651,7 @@ fn get_sppf(state: tauri::State<Mutex<ParseState>>) -> Result<SPPF, String> {
 #[tauri::command]
 #[specta::specta]
 fn get_gss(state: tauri::State<Mutex<ParseState>>) -> Result<GSS, String> {
-    let parse_state = state.lock().unwrap();
+    let parse_state = lock_state(&state);
     let gss_path = parse_state
         .gss_path
         .as_ref()
@@ -668,7 +668,7 @@ fn get_gss(state: tauri::State<Mutex<ParseState>>) -> Result<GSS, String> {
 #[tauri::command]
 #[specta::specta]
 fn get_build_features(state: tauri::State<Mutex<BuildState>>) -> Option<BuildFeatures> {
-    state.lock().unwrap().features
+    lock_state(&state).features
 }
 
 /// Run the parser with --write-stats and return the parsed Stats JSON.
@@ -1036,10 +1036,12 @@ fn lsp_guard<T: Default>(f: impl FnOnce() -> T) -> T {
     panic::catch_unwind(panic::AssertUnwindSafe(f)).unwrap_or_default()
 }
 
-/// Lock the grammar state, recovering from a poisoned mutex. The state is a
-/// rebuildable cache, so a panic that poisoned it left nothing worth keeping;
-/// the next query just re-parses.
-fn lock_state(state: &Mutex<GrammarState>) -> MutexGuard<'_, GrammarState> {
+/// Lock one of the managed states, recovering from a poisoned mutex. Every one
+/// of them holds a cache the next user action refills (a parse result, a set of
+/// output paths, the build features, a trace replay), so a panic that poisoned
+/// one left nothing worth keeping. Propagating the poison instead would turn a
+/// single panic into an abort on every later command.
+fn lock_state<T>(state: &Mutex<T>) -> MutexGuard<'_, T> {
     state
         .lock()
         .unwrap_or_else(|poisoned| poisoned.into_inner())
@@ -1403,9 +1405,13 @@ fn load_debug_trace(
         .output()
         .map_err(|e| format!("Failed to run parser: {}", e))?;
 
-    if !output.status.success() {
+    // A failing parse is the one most worth stepping through, and the parser
+    // writes its trace before exiting non-zero, so the exit status is not a
+    // reason to give up. Only a missing trace file is: the binary was built
+    // without `debug-trace`, or it died before writing.
+    if !trace_path.exists() {
         let stderr = String::from_utf8_lossy(&output.stderr);
-        return Err(format!("Parser failed: {}", stderr));
+        return Err(format!("Parser wrote no trace: {}", stderr.trim()));
     }
 
     // Load trace replay
@@ -1425,7 +1431,7 @@ fn load_debug_trace(
         trace_path: Some(trace_path.to_string_lossy().to_string()),
     };
 
-    let mut debug_state = state.lock().unwrap();
+    let mut debug_state = lock_state(&state);
     debug_state.replay = Some(replay);
 
     Ok(info)
@@ -1434,7 +1440,7 @@ fn load_debug_trace(
 #[tauri::command]
 #[specta::specta]
 fn debug_step_forward(state: tauri::State<Mutex<DebugState>>) -> Result<DebugInfo, String> {
-    let mut debug_state = state.lock().unwrap();
+    let mut debug_state = lock_state(&state);
     let replay = debug_state
         .replay
         .as_mut()
@@ -1459,7 +1465,7 @@ fn debug_step_forward(state: tauri::State<Mutex<DebugState>>) -> Result<DebugInf
 #[tauri::command]
 #[specta::specta]
 fn debug_step_to(target: u32, state: tauri::State<Mutex<DebugState>>) -> Result<DebugInfo, String> {
-    let mut debug_state = state.lock().unwrap();
+    let mut debug_state = lock_state(&state);
     let replay = debug_state
         .replay
         .as_mut()
@@ -1484,7 +1490,7 @@ fn debug_step_to(target: u32, state: tauri::State<Mutex<DebugState>>) -> Result<
 #[tauri::command]
 #[specta::specta]
 fn get_debug_info(state: tauri::State<Mutex<DebugState>>) -> Result<DebugInfo, String> {
-    let debug_state = state.lock().unwrap();
+    let debug_state = lock_state(&state);
     let replay = debug_state
         .replay
         .as_ref()
@@ -1507,7 +1513,7 @@ fn get_debug_info(state: tauri::State<Mutex<DebugState>>) -> Result<DebugInfo, S
 #[tauri::command]
 #[specta::specta]
 fn get_stack_trace(state: tauri::State<Mutex<DebugState>>) -> Result<Vec<String>, String> {
-    let debug_state = state.lock().unwrap();
+    let debug_state = lock_state(&state);
     let replay = debug_state
         .replay
         .as_ref()
@@ -1521,7 +1527,7 @@ fn get_stack_trace(state: tauri::State<Mutex<DebugState>>) -> Result<Vec<String>
 #[tauri::command]
 #[specta::specta]
 fn get_debug_sppf(state: tauri::State<Mutex<DebugState>>) -> Result<DebugSPPFInfo, String> {
-    let debug_state = state.lock().unwrap();
+    let debug_state = lock_state(&state);
     let replay = debug_state
         .replay
         .as_ref()
@@ -1536,7 +1542,7 @@ fn get_debug_sppf(state: tauri::State<Mutex<DebugState>>) -> Result<DebugSPPFInf
 #[tauri::command]
 #[specta::specta]
 fn get_debug_gss(state: tauri::State<Mutex<DebugState>>) -> Result<DebugGSSInfo, String> {
-    let debug_state = state.lock().unwrap();
+    let debug_state = lock_state(&state);
     let replay = debug_state
         .replay
         .as_ref()
@@ -1548,7 +1554,7 @@ fn get_debug_gss(state: tauri::State<Mutex<DebugState>>) -> Result<DebugGSSInfo,
 #[tauri::command]
 #[specta::specta]
 fn debug_go_to_furthest_error(state: tauri::State<Mutex<DebugState>>) -> Result<DebugInfo, String> {
-    let mut debug_state = state.lock().unwrap();
+    let mut debug_state = lock_state(&state);
     let replay = debug_state
         .replay
         .as_mut()
@@ -1575,7 +1581,7 @@ fn debug_go_to_furthest_error(state: tauri::State<Mutex<DebugState>>) -> Result<
 #[tauri::command]
 #[specta::specta]
 fn get_debug_errors(state: tauri::State<Mutex<DebugState>>) -> Result<Vec<ErrorInfo>, String> {
-    let debug_state = state.lock().unwrap();
+    let debug_state = lock_state(&state);
     let replay = debug_state
         .replay
         .as_ref()
@@ -1587,7 +1593,7 @@ fn get_debug_errors(state: tauri::State<Mutex<DebugState>>) -> Result<Vec<ErrorI
 #[tauri::command]
 #[specta::specta]
 fn debug_next_error(state: tauri::State<Mutex<DebugState>>) -> Result<DebugInfo, String> {
-    let mut debug_state = state.lock().unwrap();
+    let mut debug_state = lock_state(&state);
     let replay = debug_state
         .replay
         .as_mut()
@@ -1616,7 +1622,7 @@ fn debug_next_error(state: tauri::State<Mutex<DebugState>>) -> Result<DebugInfo,
 #[tauri::command]
 #[specta::specta]
 fn get_event_log(state: tauri::State<Mutex<DebugState>>) -> Result<Vec<EventLogEntry>, String> {
-    let debug_state = state.lock().unwrap();
+    let debug_state = lock_state(&state);
     let replay = debug_state
         .replay
         .as_ref()
@@ -1628,7 +1634,7 @@ fn get_event_log(state: tauri::State<Mutex<DebugState>>) -> Result<Vec<EventLogE
 #[tauri::command]
 #[specta::specta]
 fn debug_prev_error(state: tauri::State<Mutex<DebugState>>) -> Result<DebugInfo, String> {
-    let mut debug_state = state.lock().unwrap();
+    let mut debug_state = lock_state(&state);
     let replay = debug_state
         .replay
         .as_mut()
