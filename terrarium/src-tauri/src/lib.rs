@@ -924,7 +924,7 @@ fn get_nonterminals(directory: String) -> Result<Vec<String>, String> {
 #[specta::specta]
 fn generate_parser(directory: String, no_ll1: bool, app: tauri::AppHandle) {
     thread::spawn(move || {
-        let ll1_flag = if no_ll1 { " --no-ll1" } else { "" };
+        let ll1_flag = if no_ll1 { " --ll1 false" } else { "" };
         log_event(
             &app,
             "command",
@@ -936,8 +936,10 @@ fn generate_parser(directory: String, no_ll1: bool, app: tauri::AppHandle) {
             .arg("--output")
             .arg(&directory)
             .arg("--json");
+        // The flag is only passed when the option is off, so a gen.toml beside
+        // the grammar still decides when the checkbox is on.
         if no_ll1 {
-            cmd.arg("--no-ll1");
+            cmd.args(["--ll1", "false"]);
         }
 
         let output = match cmd.output() {

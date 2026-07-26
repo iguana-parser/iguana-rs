@@ -91,13 +91,13 @@ Terrarium runs generated parsers as subprocesses, not as library calls. The pars
 
 ## LSP Integration
 
-Terrarium calls `iguana-lsp` functions directly via Tauri commands. Adding a new LSP feature requires three things: a function in `iguana-lsp/src/`, a Tauri command wrapper in `terrarium/src-tauri/src/lib.rs`, and a Monaco provider in `MonacoEditor.svelte`.
+Terrarium calls `iguana-lsp` functions directly via Tauri commands. Adding a new LSP feature requires four things: a function in `iguana-lsp/src/`, a Tauri command wrapper in `terrarium/src-tauri/src/lib.rs`, a method on the `LspBackend` interface with a `TauriLspBackend` implementation in `terrarium/src/lib/tauri-lsp-backend.ts`, and a Monaco provider in `web-ui/src/DesignView.svelte`.
 
 ## UI Changes
 
 UI changes frequently break other parts of the app. When modifying UI code, identify all existing behaviors (class bindings, event handlers, conditional logic) before changing anything. Extend rather than replace.
 
-Shared utilities live in `terrarium/src/lib/` (`graph-styles.ts`, `graph-utils.ts`, `window-utils.ts`, `MonacoEditor.svelte`). Don't duplicate code — extract to `$lib/`.
+The parse view, the iggy grammar editor, and the graph helpers live in the `@iguana-parser/web-ui` package (`web-ui/src/`), shared with the web viewer. Terrarium keeps only its Tauri-specific pieces in `terrarium/src/lib/` (`graph-utils.ts`, `window-utils.ts`, `tauri-backend.ts`, `tauri-lsp-backend.ts`, `iggy-editor-actions.ts`, `monaco-env.ts`). Don't duplicate code: extract to `$lib/` when it is Tauri-specific, and to the package when the web viewer needs it too.
 
 # LSP Server
 
