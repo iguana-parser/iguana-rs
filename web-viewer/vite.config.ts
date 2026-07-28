@@ -10,11 +10,16 @@ export default defineConfig({
   plugins: [svelte()],
   optimizeDeps: { exclude: external },
   build: {
+    // The output lives inside the iguana crate so cargo packages it and a
+    // registry build of iguana works without npm. It is committed there.
+    outDir: "../iguana/viewer-dist",
+    emptyOutDir: true,
     rollupOptions: {
       external,
-      // Stable output names (no content hash). dist/ is committed and embedded
-      // in the iguana binary, so a rebuild should rewrite the same files rather
-      // than churn the git history with new hashed filenames each time.
+      // Stable output names (no content hash). The output is committed and
+      // embedded in the iguana binary, so a rebuild should rewrite the same
+      // files rather than churn the git history with new hashed filenames
+      // each time.
       output: {
         entryFileNames: "assets/[name].js",
         chunkFileNames: "assets/[name].js",

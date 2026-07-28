@@ -565,7 +565,7 @@ fn run_grammar_tests(regenerate: bool) -> io::Result<()> {
     Ok(())
 }
 
-/// Rebuild the web viewer bundle (web-viewer/dist) with vite. The iguana binary
+/// Rebuild the web viewer bundle (iguana/viewer-dist) with vite. The iguana binary
 /// embeds that directory via include_dir!, so rebuilding it from source here
 /// keeps `iguana try` in sync with the viewer. This needs npm on PATH and the
 /// viewer dependencies installed (`npm install` in the repo root); if either is

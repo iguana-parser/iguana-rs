@@ -22,7 +22,7 @@ Then run the dev server or build the static site:
 
 ```
 npm run dev      # from web-viewer/, serves on http://localhost:5174
-npm run build    # emits dist/
+npm run build    # emits ../iguana/viewer-dist/ (committed, embedded in the iguana binary)
 ```
 
 The `public/` bundle is git-ignored, since it is generated output rather than source.

@@ -1,5 +1,5 @@
-# dist/ is committed: it is the small viewer the iguana binary embeds (heavy
-# libraries load from a CDN at runtime, so it stays small). Rebuild it with
+# The viewer build lands in ../iguana/viewer-dist, committed there so the
+# iguana binary (and its published crate) embeds it. Rebuild it with
 # `cargo xtask viewer` after changing web-viewer/.
 #
 # The wasm bundle is produced by `iguana generate --wasm` (here, copied from

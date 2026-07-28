@@ -14,7 +14,7 @@ use tiny_http::{Header, Response, Server};
 /// The viewer assets, built by Vite from `web-viewer/`. The grammar-specific
 /// `manifest.json` and `wasm/` are not part of the viewer, so the build keeps
 /// them out and `write_assets` skips them defensively.
-static VIEWER: Dir = include_dir!("$CARGO_MANIFEST_DIR/../web-viewer/dist");
+static VIEWER: Dir = include_dir!("$CARGO_MANIFEST_DIR/viewer-dist");
 
 /// The fixed directory a wasm bundle is generated into and served from.
 /// `iguana generate --wasm` writes the bundle here and `iguana try` serves it.
