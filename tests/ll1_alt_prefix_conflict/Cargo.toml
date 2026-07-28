@@ -1,6 +1,7 @@
 [package]
 name = "ll1_alt_prefix_conflict"
 version = "0.1.0"
+publish = false
 edition = "2024"
 
 [lib]

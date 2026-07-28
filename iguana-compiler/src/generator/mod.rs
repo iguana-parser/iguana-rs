@@ -79,6 +79,7 @@ pub struct GenerateResult {
 }
 
 mod cargo_toml_gen;
+pub use cargo_toml_gen::git_runtime_dependency;
 mod gen_config_file;
 pub use gen_config_file::GenConfigFile;
 mod grammar_data_gen;

@@ -1,6 +1,7 @@
 [package]
 name = "ll1_call_error"
 version = "0.1.0"
+publish = false
 edition = "2024"
 
 [lib]

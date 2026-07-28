@@ -9,7 +9,7 @@ use clap::{Parser, Subcommand};
 use iguana_compiler::{
     generator::{
         GenConfig, GenConfigFile, GenerateResult, generate_scaffold, generate_sources,
-        generate_wasm,
+        generate_wasm, git_runtime_dependency,
     },
     grammar::def::Grammar,
     iggy::parse_grammar,
@@ -106,10 +106,7 @@ fn bootstrap() -> io::Result<()> {
 /// change breaks a pattern, the caller fails loudly instead of silently leaving
 /// a broken Cargo.toml.
 fn patch_workspace_cargo_toml(original: &str) -> io::Result<String> {
-    let replaced = original.replace(
-        "iguana-runtime = { git = \"https://github.com/iguana-parser/iguana-rs\" }",
-        "iguana-runtime.workspace = true",
-    );
+    let replaced = original.replace(&git_runtime_dependency(), "iguana-runtime.workspace = true");
     if replaced == original {
         return Err(io::Error::other(
             "Cargo.toml: `iguana-runtime = { git = ... }` pattern not found; \
@@ -135,17 +132,53 @@ fn patch_workspace_cargo_toml(original: &str) -> io::Result<String> {
     ))
 }
 
-/// Adapt iggy's regenerated Cargo.toml to its workspace membership, plus its
-/// MIT/Apache license metadata.
+/// Adapt iggy's regenerated Cargo.toml to its workspace membership, its
+/// MIT/Apache license metadata, and the workspace-inherited version (iggy is a
+/// publishable crate, so it releases at the workspace version, not the
+/// scaffold's fixed one). The package also gets its registry rename: the
+/// crates.io name `iggy` belongs to an unrelated project, so the package
+/// publishes as `iguana-iggy` while the lib target keeps the name `iggy` that
+/// the generated main.rs and the dependent crates import.
 fn patch_iggy_cargo_toml(path: &Path) -> io::Result<()> {
     let original = fs::read_to_string(path)?;
-    let patched = patch_workspace_cargo_toml(&original)?;
 
-    let with_license = patched.replace(
+    let renamed = original.replace(
+        "[package]\nname = \"iggy\"\n",
+        "[package]\nname = \"iguana-iggy\"\n",
+    );
+    if renamed == original {
+        return Err(io::Error::other(
+            "iggy Cargo.toml: `[package]` name line not found; \
+             cargo_toml_gen template may have changed and this patch needs updating",
+        ));
+    }
+
+    let patched = patch_workspace_cargo_toml(&renamed)?;
+
+    let with_lib_name = patched.replace(
+        "[lib]\npath = \"src/lib.rs\"\n",
+        "[lib]\nname = \"iggy\"\npath = \"src/lib.rs\"\n",
+    );
+    if with_lib_name == patched {
+        return Err(io::Error::other(
+            "iggy Cargo.toml: `[lib]` block not found; \
+             cargo_toml_gen template may have changed and this patch needs updating",
+        ));
+    }
+
+    let with_version = with_lib_name.replace("version = \"0.1.0\"\n", "version.workspace = true\n");
+    if with_version == with_lib_name {
+        return Err(io::Error::other(
+            "iggy Cargo.toml: `version = \"0.1.0\"` line not found; \
+             cargo_toml_gen template may have changed and this patch needs updating",
+        ));
+    }
+
+    let with_license = with_version.replace(
         "edition = \"2024\"\n",
         "edition = \"2024\"\nlicense = \"MIT OR Apache-2.0\"\n",
     );
-    if with_license == patched {
+    if with_license == with_version {
         return Err(io::Error::other(
             "iggy Cargo.toml: `edition = \"2024\"` line not found; \
              cargo_toml_gen template may have changed and this patch needs updating",
@@ -155,18 +188,31 @@ fn patch_iggy_cargo_toml(path: &Path) -> io::Result<()> {
     fs::write(path, with_license)
 }
 
-/// Adapt a test grammar's regenerated Cargo.toml to workspace membership, and
-/// disable the lib's empty test/doctest harnesses: a grammar is tested through
-/// its golden files (run by the subprocess runner), not through unit tests.
+/// Adapt a test grammar's regenerated Cargo.toml to workspace membership,
+/// disable the lib's empty test/doctest harnesses (a grammar is tested through
+/// its golden files, run by the subprocess runner, not through unit tests),
+/// and mark the crate `publish = false` so `cargo publish --workspace` skips
+/// it.
 fn patch_test_cargo_toml(path: &Path) -> io::Result<()> {
     let original = fs::read_to_string(path)?;
     let patched = patch_workspace_cargo_toml(&original)?;
 
-    let with_lib_flags = patched.replace(
+    let with_publish = patched.replace(
+        "version = \"0.1.0\"\n",
+        "version = \"0.1.0\"\npublish = false\n",
+    );
+    if with_publish == patched {
+        return Err(io::Error::other(
+            "test Cargo.toml: `version = \"0.1.0\"` line not found; \
+             cargo_toml_gen template may have changed and this patch needs updating",
+        ));
+    }
+
+    let with_lib_flags = with_publish.replace(
         "[lib]\npath = \"src/lib.rs\"\n",
         "[lib]\npath = \"src/lib.rs\"\ntest = false\ndoctest = false\n",
     );
-    if with_lib_flags == patched {
+    if with_lib_flags == with_publish {
         return Err(io::Error::other(
             "test Cargo.toml: `[lib]` block not found; \
              cargo_toml_gen template may have changed and this patch needs updating",

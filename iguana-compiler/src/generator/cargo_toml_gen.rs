@@ -2,14 +2,24 @@ use std::path::Path;
 
 use crate::{generator::GenConfig, grammar::def::Grammar, utils::to_snake_case};
 
+/// The default `iguana-runtime` dependency line for a generated Cargo.toml:
+/// a git dependency pinned to the generator's own version, so a parser and
+/// its runtime move in lockstep and a generated parser never builds against
+/// a runtime it was not generated for. Public because xtask's workspace
+/// patching replaces this exact line.
+pub fn git_runtime_dependency() -> String {
+    format!(
+        "iguana-runtime = {{ git = \"https://github.com/iguana-parser/iguana-rs\", version = \"={}\" }}",
+        env!("CARGO_PKG_VERSION")
+    )
+}
+
 /// The `iguana-runtime` dependency line for a generated Cargo.toml: a local
-/// path when `runtime_path` is set, otherwise the default git dependency.
+/// path when `runtime_path` is set, otherwise the pinned git dependency.
 fn runtime_dependency(runtime_path: Option<&Path>) -> String {
     match runtime_path {
         Some(path) => format!("iguana-runtime = {{ path = \"{}\" }}", path.display()),
-        None => {
-            "iguana-runtime = { git = \"https://github.com/iguana-parser/iguana-rs\" }".to_owned()
-        }
+        None => git_runtime_dependency(),
     }
 }
 

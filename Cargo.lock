@@ -896,21 +896,8 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "df3b46402a9d5adb4c86a0cf463f42e19994e3ee891101b1841f30a545cb49a9"
 
 [[package]]
-name = "iggy"
-version = "0.1.0"
-dependencies = [
- "clap",
- "dhat",
- "iguana-runtime",
- "log",
- "pprof",
- "rustc-hash 2.1.2",
- "serde_json",
-]
-
-[[package]]
 name = "iguana"
-version = "0.1.0"
+version = "0.1.0-alpha"
 dependencies = [
  "clap",
  "iguana-compiler",
@@ -921,9 +908,9 @@ dependencies = [
 
 [[package]]
 name = "iguana-compiler"
-version = "0.1.0"
+version = "0.1.0-alpha"
 dependencies = [
- "iggy",
+ "iguana-iggy",
  "iguana-runtime",
  "indexmap",
  "itertools",
@@ -939,12 +926,25 @@ dependencies = [
 ]
 
 [[package]]
+name = "iguana-iggy"
+version = "0.1.0-alpha"
+dependencies = [
+ "clap",
+ "dhat",
+ "iguana-runtime",
+ "log",
+ "pprof",
+ "rustc-hash 2.1.2",
+ "serde_json",
+]
+
+[[package]]
 name = "iguana-lsp"
-version = "0.1.0"
+version = "0.1.0-alpha"
 dependencies = [
  "by_address",
- "iggy",
  "iguana-compiler",
+ "iguana-iggy",
  "iguana-runtime",
  "lsp-server",
  "lsp-types",
@@ -955,7 +955,7 @@ dependencies = [
 
 [[package]]
 name = "iguana-runtime"
-version = "0.1.0"
+version = "0.1.0-alpha"
 dependencies = [
  "allocator-api2",
  "bumpalo",
@@ -975,7 +975,7 @@ dependencies = [
 name = "iguana-tests"
 version = "0.1.0"
 dependencies = [
- "iggy",
+ "iguana-iggy",
  "iguana-runtime",
 ]
 
