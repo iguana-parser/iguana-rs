@@ -36,9 +36,9 @@ your project. Three reasons that holds:
 3. Small fragments of the iguana generator's GPL-licensed source (such as
    ParseError, ParseSuccess, and the boilerplate of the Parser trait
    implementation) get embedded in every generated parser, verbatim or with
-   minor formatting changes. iguana grants an additional permission under
-   GPL v3 section 7 that explicitly waives the GPL for those fragments when
-   they appear in generated output. See
+   minor formatting or naming changes. iguana grants an additional
+   permission under GPL v3 section 7 that explicitly waives the GPL for
+   those fragments when they appear in generated output. See
    [iguana/LICENSE-GPL](iguana/LICENSE-GPL) or
    [iguana-compiler/LICENSE-GPL](iguana-compiler/LICENSE-GPL) for the full
    text.
