@@ -104,10 +104,10 @@ enum Commands {
         #[arg(long, value_name = "NAME", conflicts_with = "wasm")]
         bin_name: Option<String>,
 
-        /// Overwrite scaffolded files (Cargo.toml, src/main.rs) even if they already exist
+        /// Overwrite an existing Cargo.toml with the scaffold template
         ///
-        /// Without it, the scaffold step is skipped on regeneration so local
-        /// edits are preserved
+        /// Without it, an existing Cargo.toml is preserved so local edits
+        /// (dependencies, license, versions) survive regeneration
         #[arg(long)]
         force: bool,
 

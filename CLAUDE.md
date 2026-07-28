@@ -60,11 +60,11 @@ The crate builds a CLI parser binary (`cli=true`: lib + bin, with `test = false`
 
 For the check to be stable, the s-expr printer and the error-message format must be deterministic across runs.
 
-`GenConfig.cli` (default `true`) switches between a standalone CLI parser crate (Cargo.toml with `iguana-runtime = { git = ... }`, full deps, `src/main.rs`) and a minimal lib-only crate (`workspace = true` deps, no main.rs). `test-gen` and `bootstrap` use `cli=true` with `force=true`, so a test grammar's (and iggy's) `main.rs` always reflects the current `main_gen.rs` template. Terrarium also relies on `cli=true` because it shells out to per-grammar parser binaries.
+`GenConfig.cli` (default `true`) switches between a standalone CLI parser crate (Cargo.toml with `iguana-runtime = { git = ... }`, full deps, `src/main.rs`) and a minimal lib-only crate (`workspace = true` deps, no main.rs). `main.rs` is generated output, rewritten on every generate like the lib sources; only Cargo.toml is scaffolding, preserved unless `force` is set. `test-gen` and `bootstrap` use `cli=true` with `force=true`, so the test grammars' (and iggy's) Cargo.toml also always reflects the current template. Terrarium also relies on `cli=true` because it shells out to per-grammar parser binaries.
 
 The scaffold emits the standalone Cargo.toml, which is then adapted to workspace membership: `patch_workspace_cargo_toml` swaps the pinned `iguana-runtime` git dep for `workspace = true` and strips `[profile.release]`; `patch_iggy_cargo_toml` adds iggy's license, the workspace-inherited version, and the registry rename (the package publishes as `iguana-iggy`, the lib target stays `iggy`); `patch_test_cargo_toml` adds `test = false`/`doctest = false` to the lib and `publish = false` to the crate. Each substitution asserts it applied, so a `cargo_toml_gen.rs` template change fails loudly.
 
-External crates outside this workspace often hand-edit Cargo.toml (local path to `iguana-runtime`, custom features). `iguana generate --force` overwrites the scaffold and resets those edits, so it should not be used there. When a `main_gen.rs` change must land in an external crate, re-apply the template diff to that crate's `main.rs` by hand, or delete `main.rs` and re-run `iguana generate` (no `--force`) so only `main.rs` is rewritten.
+External crates outside this workspace often hand-edit Cargo.toml (local path to `iguana-runtime`, custom features). `iguana generate --force` overwrites that Cargo.toml and resets those edits, so it should not be used there. `main.rs` needs no special handling: every `iguana generate` rewrites it from the current template.
 
 # Benchmarking
 
