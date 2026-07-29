@@ -14,7 +14,7 @@ Iguana is a data-dependent GLL parser generator.
 # Setup
 
 - `./setup.sh` — one-time environment bootstrap after clone (toolchain check, dev tools, Node deps, git hooks). Pre-commit hook rejects unformatted commits via `cargo fmt --check --all`.
-- See README.md `## Development` for contributor-facing details; keep that and this section aligned.
+- See docs/development.md for contributor-facing details; keep that and this section aligned.
 
 # Build & Test
 

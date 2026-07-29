@@ -5,19 +5,32 @@ Workflows specific to iguana-rs. For project layout, see [architecture.md](archi
 ## Prerequisites
 
 - Rust toolchain (workspace uses edition 2024)
-- Node.js + npm, only if working on terrarium or the VS Code extension
+- Node.js + npm, only if working on the web packages, terrarium, or the VS Code extension
+
+## Setup
+
+After cloning, run once:
+
+```sh
+./setup.sh
+```
+
+The script checks the Rust toolchain, installs `cargo-nextest`, installs the npm workspace dependencies when npm is present, flags missing system dependencies (graphviz), and points git at the tracked `.githooks/` directory. The pre-commit hook runs `cargo fmt --check --all` and rejects unformatted commits. The commit-msg hook rejects commit-message trailers (Co-Authored-By, Signed-off-by) and AI-attribution lines; the same check runs on pull requests in CI.
 
 ## Build and check
 
 ```sh
-cargo build              # build all workspace crates
-cargo build -p iguana    # build just the generator
-cargo check -p iguana    # type check
-cargo clippy -p iguana   # lint
-cargo xtask test         # run all tests (uses cargo-nextest when available)
+cargo build                      # build all workspace crates
+cargo build -p iguana-compiler   # build just the generator
+cargo check -p iguana-compiler   # type check
+cargo clippy -p iguana-compiler  # lint
+cargo xtask test                 # run all tests (uses cargo-nextest when available)
+npm run check                    # type-check every npm workspace
 ```
 
 The workspace excludes `terrarium/src-tauri` by default to keep rust-analyzer responsive on the rest of the workspace. Uncomment its line in the root `Cargo.toml` when working on the terrarium backend.
+
+`npm run check` runs `svelte-check` across `web-ui`, `web-viewer`, `design-viewer`, `terrarium`, and `tree-widget` (`tsc` for the tree widget). Warnings fail it as well as errors, so unused CSS and accessibility problems do not accumulate. Run it after any frontend change; CI runs the same command. Suppress a warning with `<!-- svelte-ignore rule_name -->` above the element only when the warning is wrong or the fix is a feature, with a comment saying which, once per kind of suppression rather than once per element.
 
 ## xtask commands
 
@@ -25,13 +38,14 @@ The workspace excludes `terrarium/src-tauri` by default to keep rust-analyzer re
 
 | Command | Purpose |
 |---------|---------|
-| `cargo xtask install` | Build `iguana` in release mode and install it into `$CARGO_HOME/bin`. |
+| `cargo xtask install` | Rebuild the web viewer (`npm run build`), then build `iguana` in release mode and install it into `$CARGO_HOME/bin`. Needs npm on PATH; a plain `cargo install` stays npm-free and embeds the committed `iguana/viewer-dist`. |
 | `cargo xtask bootstrap` | Regenerate `iggy` from `iggy/iggy.iggy`. |
-| `cargo xtask test [args...]` | Run the workspace test suite. Uses `cargo-nextest` if installed, otherwise `cargo test --workspace`. Extra args are forwarded as test-name filters. |
-| `cargo xtask test-new <name>` | Scaffold a new grammar test (directory + stub `.iggy` + `parse_trees/`). Pure scaffolding; no generator. |
-| `cargo xtask test-gen <name>` | Run the generator on the grammar, write the lib sources under `src/` (and a minimal `Cargo.toml` on first generation), write `tests.rs` if missing, and wire the crate into workspace members, root `[dev-dependencies]`, and `tests/grammar_tests.rs`. |
+| `cargo xtask test [args...]` | Run the cargo tests (`cargo-nextest` if installed, otherwise `cargo test --workspace`), then build the grammar test binaries and check every grammar's output against its golden files. Extra args are forwarded as test-name filters. `--regen` rewrites the golden files instead of checking them and skips the cargo tests. |
+| `cargo xtask test-new <name>` | Scaffold a new grammar test (directory + stub `.iggy`). Pure scaffolding; no generator. |
+| `cargo xtask test-gen <name>` | Run the generator on the grammar (lib + `main.rs`), patch the Cargo.toml to workspace membership, and add the crate to workspace `members`. |
 | `cargo xtask test-gen-all` | Run `test-gen` for every directory under `tests/` that has a grammar file. |
-| `cargo xtask test-rm <name>` | Remove a grammar test: delete the directory and unwire from the three places `test-gen` wired. |
+| `cargo xtask test-rm <name>` | Remove a grammar test: delete the directory and remove the crate from workspace `members`. |
+| `cargo xtask wasm` | Generate the iggy `--wasm` bundle into `target/wasm/iggy` (gitignored) and build it with `wasm-pack` against the local runtime; an end-to-end check of the wasm pipeline. Requires `wasm-pack` and the `wasm32-unknown-unknown` target. |
 | `cargo xtask terrarium` | Install iguana, then launch the terrarium dev server. |
 
 ## Bootstrapping
@@ -52,9 +66,9 @@ When a generator change breaks compilation of the existing iggy parser, the boot
 
 ## After modifying generator code
 
-Full sequence after touching anything under `iguana/src/generator/`:
+Full sequence after touching anything under `iguana-compiler/src/generator/`:
 
-1. `cargo check -p iguana && cargo clippy -p iguana` — fix errors and warnings
+1. `cargo check -p iguana-compiler && cargo clippy -p iguana-compiler` — fix errors and warnings
 2. `cargo xtask bootstrap` — regenerate iggy
 3. `cargo xtask bootstrap` — bootstrap again to verify stability
 4. `cargo xtask test-gen-all` — regenerate every test parser
@@ -62,9 +76,17 @@ Full sequence after touching anything under `iguana/src/generator/`:
 
 Steps 2–4 rewrite committed files. Review the diffs before committing; an unintended change to a generated file is a sign the generator did something you did not expect.
 
+## Testing
+
+Iguana has two kinds of tests: unit and integration tests inside the crates, and grammar tests under `tests/<name>/` that check a generated parser's output against golden s-expression files. `cargo xtask test` runs both. See [testing.md](testing.md) for the grammar test layout and the add, regenerate, and remove workflow.
+
+## LSP server
+
+`cargo install --path iguana-lsp` installs the `iguana-lsp` binary into `$CARGO_HOME/bin`. The VS Code extension under `editors/vscode/` launches it automatically.
+
 ## Generated code
 
-Files marked `// @generated by iguana. Do not edit manually.` are produced by the generator. To change them, edit the corresponding generator module under `iguana/src/generator/` and re-run the relevant xtask command.
+Files marked `// @generated by iguana. Do not edit manually.` are produced by the generator. To change them, edit the corresponding generator module under `iguana-compiler/src/generator/` and re-run the relevant xtask command.
 
 Comments in generated code use attribute placeholders that `post_process.rs` rewrites: `#[comment = "..."]` becomes `//`, `#[doc = "..."]` becomes `///`. The post-processor also inserts blank lines before item-level `impl`, `fn`, and `pub fn` definitions.
 
