@@ -35,7 +35,7 @@
           [/#[A-Za-z_]\w*/, "comment"], // labels
           [/"[^"]*"/, "string"],
           [/'[^']*'/, "string"],
-          [/!>>|!<</, "operator"],
+          [/!>>>|!>>|!<</, "operator"],
           [/[=|>*+?!:\\(){}\[\]\-]/, "operator"],
           [/[A-Za-z_]\w*/, { cases: { "@keywords": "keyword", "@default": "type" } }],
         ],
@@ -215,9 +215,9 @@
     editor?.updateOptions({ lineNumbers: disabled ? "off" : "on" });
   });
 
-  // Reactive because the toolbar and plain layouts bind their own element, so a
-  // host that flips `toolbar` swaps the node. The disabled-styling effect below
-  // reads it, and has to re-run against whichever node is current.
+  // The toolbar and plain layouts each bind their own element, so a host that
+  // flips `toolbar` swaps the node. $state keeps the disabled-styling effect
+  // above re-running against whichever node is current.
   let container: HTMLDivElement | undefined = $state();
   let editor: monaco.editor.IStandaloneCodeEditor;
   let ignoreChange = false;

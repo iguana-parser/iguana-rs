@@ -691,12 +691,15 @@ fn get_stats(
     let temp_dir = TempDir::new().map_err(|e| format!("Failed to create temp directory: {}", e))?;
     let stats_path = temp_dir.path().join("stats.json");
 
+    // --quiet because none of the write flags here suppress the printed tree,
+    // and rendering a whole parse tree to a stdout we discard is not free.
     let output = Command::new(&parser_path)
         .arg(input_file.path())
         .arg("--start")
         .arg(&start_nonterminal)
         .arg("--write-stats")
         .arg(&stats_path)
+        .arg("--quiet")
         .output()
         .map_err(|e| format!("Failed to run parser: {}", e))?;
 
@@ -928,7 +931,7 @@ fn generate_parser(directory: String, no_ll1: bool, app: tauri::AppHandle) {
         log_event(
             &app,
             "command",
-            &format!("iguana generate --output .{ll1_flag}"),
+            &format!("iguana generate --output {directory} --json{ll1_flag}"),
         );
 
         let mut cmd = Command::new("iguana");

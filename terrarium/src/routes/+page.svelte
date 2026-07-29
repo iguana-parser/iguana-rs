@@ -273,6 +273,7 @@
       unlistenLog.then(fn => fn());
       unlistenResult.then(fn => fn());
       unlistenGenerateResult.then(fn => fn());
+      unlistenProfileResult.then(fn => fn());
       unlistenGraphWindowReady.then(fn => fn());
       unlistenStepBack.then(fn => fn());
       unlistenStepForward.then(fn => fn());
@@ -944,10 +945,16 @@
 
   async function generateParser() {
     if (!parserDirectory) return;
+    // Claim the run before the save, since the Cmd+G handler guards on this flag
+    // and a second press during the await would otherwise start a concurrent
+    // generate and build over the same directory.
+    isGenerating = true;
     // Generate reads the .iggy from disk, so flush the buffer first; bail if the
     // write failed rather than generate from a stale file.
-    if (!(await saveGrammar())) return;
-    isGenerating = true;
+    if (!(await saveGrammar())) {
+      isGenerating = false;
+      return;
+    }
     generateStartTime = performance.now();
     generateDurationMs = null;
     buildDurationMs = null;
@@ -1928,6 +1935,8 @@
       </div>
     </div>
     {#if outlineOpen}
+    <!-- Every resize handle in this file drags with the mouse and has no keyboard
+         equivalent, which is what the rule objects to on each of them. -->
     <!-- svelte-ignore a11y_no_static_element_interactions -->
     <div class="resize-handle-vertical" onmousedown={startOutlineDrag}></div>
     <div class="outline-panel" style="width: {outlinePanelWidth}px">
@@ -2092,8 +2101,10 @@
         {/if}
       </div>
 
-      <!-- Current Action. A labelled region a reader can reach, focusable so
-           Cmd+A selects its text; the handler is what the two rules object to. -->
+      <!-- Current Action -->
+      <!-- The role and label let a screen reader reach the box, and tabindex lets
+           Cmd+A select its text. Both rules below object to the keydown handler
+           that pairs with them. -->
       <!-- svelte-ignore a11y_no_noninteractive_tabindex -->
       <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
       <div
@@ -2276,6 +2287,8 @@
             </button>
           </div>
         </div>
+        <!-- Labelled and focusable for the same reason as the action box above,
+             and the two rules object to the keydown handler for the same reason. -->
         <!-- svelte-ignore a11y_no_noninteractive_tabindex -->
         <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
         <div
@@ -3238,8 +3251,8 @@ Compilation: {buildDurationMs ?? '?'}ms</span>
 
 
 
-  /* Input Section. The input editor is a component, so its own styles and its
-     text selection are its business; this only sizes the box around it. */
+  /* Input Section. Scoped CSS cannot reach inside the editor component, so this
+     rule sizes the box and the component styles its own contents. */
   .input-section {
     flex: 1;
     min-height: 100px;

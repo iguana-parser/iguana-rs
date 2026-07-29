@@ -43,8 +43,8 @@
   let sel: HTMLPreElement | undefined;
 
   // Safari autocorrects a textarea unless the attribute says otherwise, and a
-  // code input is the worst place for it. Svelte's typings list autocorrect on
-  // input alone, so it reaches the element through a spread.
+  // code input should not have it. Svelte's typings list autocorrect on input
+  // alone, so it reaches the element through a spread.
   const AUTOCORRECT_OFF = { autocorrect: "off" };
 
   const COMMON_KEYWORDS = new Set([

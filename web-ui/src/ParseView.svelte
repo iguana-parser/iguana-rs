@@ -541,15 +541,13 @@
     onLogCommand?.(`${parserName} <input> --start ${startNonterminal}`);
 
     const result = await backend.parse(inputText, startNonterminal);
-    // A newer parse started while this one ran, and it owns the views now.
+    // A newer parse started while this one ran, and the newer one owns the views.
     if (seq !== parseSeq) return;
 
     if ("error" in result) {
       // The parser could not be run at all (missing binary, spawn failure): an
       // unexpected error, surfaced like a crash rather than a parse failure.
-      onLogError?.(result.error);
-      onStatus?.("An unexpected error occurred", "error");
-      onUnexpectedError?.(result.error);
+      reportUnexpectedError(result.error);
       teardownParseTreeGraph();
       return;
     }
@@ -568,10 +566,7 @@
       // The parser crashed or produced no result; not a parse failure. Surface it
       // honestly and let the host offer to save the log.
       parseErrorInfo = null;
-      const detail = output.error ?? "An unexpected error occurred.";
-      onLogError?.(detail);
-      onStatus?.("An unexpected error occurred", "error");
-      onUnexpectedError?.(detail);
+      reportUnexpectedError(output.error ?? "An unexpected error occurred.");
     } else {
       // Expected parse failure: the input does not match the grammar.
       parseErrorInfo = output.error_info ?? null;
@@ -590,6 +585,16 @@
       // parse so every tab matches the error state instead of showing stale data.
       teardownParseTreeGraph();
     }
+  }
+
+  // An error that is not the input failing to match the grammar: the parser
+  // crashed, could not be run, or produced output the view cannot read. The host
+  // shows a banner offering the log, and no editor markers are set, since there
+  // is no position in the input to point at.
+  function reportUnexpectedError(detail: string) {
+    onLogError?.(detail);
+    onStatus?.("An unexpected error occurred", "error");
+    onUnexpectedError?.(detail);
   }
 
   function loadParseTree(json: string) {
@@ -614,7 +619,11 @@
       }
       onParseTreeChange?.();
     } catch (e) {
-      // JSON parse error — ignore
+      // The parser reported success, so a tree it wrote that will not parse is an
+      // internal error, not a bad input.
+      reportUnexpectedError(`Could not read the parse tree the parser wrote: ${e}`);
+      parseTree = null;
+      teardownParseTreeGraph();
     }
   }
 
@@ -1251,9 +1260,9 @@
                   <Minimize2 size={16} />
                 </button>
               </div>
-              <!-- Arrow-key navigation over the rows, but the rows are not ARIA
-                   treeitems, so claiming role="tree" here would announce a tree
-                   with no items. -->
+              <!-- The container takes arrow-key navigation over its rows, but the
+                   rows are not ARIA treeitems, so role="tree" here would announce
+                   a tree with no items. -->
               <!-- svelte-ignore a11y_no_noninteractive_tabindex -->
               <!-- svelte-ignore a11y_no_static_element_interactions -->
               <div class="tree-container" tabindex="0" onkeydown={handleTreeKeydown} bind:this={treeContainerEl}>
