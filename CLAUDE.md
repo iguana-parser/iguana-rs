@@ -6,7 +6,7 @@ Iguana is a data-dependent GLL parser generator.
 - `iguana`: command-line interface; builds the `iguana` binary on top of `iguana-compiler`
 - `iguana-compiler`: parser generator (grammar IR, analysis, transforms, codegen)
 - `iguana-runtime`: parser runtime
-- `iggy`: bootstrapped parser for the iggy grammar language
+- `iggy`: bootstrapped parser for the iggy grammar definition language
 - `iguana-lsp`: language server for iggy grammars
 - `terrarium`: Tauri-based grammar debugging tool (separate workspace at `terrarium/src-tauri`, not in the main workspace)
 - `editors/vscode`: VS Code extension (TypeScript, not a Cargo crate)

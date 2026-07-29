@@ -3,6 +3,11 @@ name = "iguana-compiler"
 version.workspace = true
 edition = "2024"
 license-file = "LICENSE-GPL"
+description = "The iguana compiler (grammar IR, analysis, transforms, and code generation): translates iggy grammar definitions into Rust code"
+repository.workspace = true
+readme = "README.md"
+keywords = ["parser", "generator", "gll", "grammar", "codegen"]
+categories = ["parsing", "development-tools"]
 
 [features]
 debug-trace = ["iguana-runtime/debug-trace", "iggy/debug-trace"]

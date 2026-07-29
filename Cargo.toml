@@ -92,6 +92,7 @@ members = [
 # dependency versions below together; cargo rejects any mismatch.
 [workspace.package]
 version = "0.1.0-alpha"
+repository = "https://github.com/iguana-parser/iguana-rs"
 
 [workspace.dependencies]
 # Shared dependencies

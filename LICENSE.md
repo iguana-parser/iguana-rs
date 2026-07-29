@@ -5,7 +5,7 @@ Copyright (c) 2026 Ali Afroozeh.
 iguana-rs is multi-licensed.
 
 [iguana-runtime](iguana-runtime/), the library linked into every generated
-parser, and [iggy](iggy/), the parser for the grammar language, are
+parser, and [iggy](iggy/), the parser for the grammar definition language, are
 dual-licensed under MIT and Apache 2.0. The web packages ([web-ui](web-ui/),
 [web-viewer](web-viewer/), [design-viewer](design-viewer/), and
 [tree-widget](tree-widget/)) are dual-licensed under MIT and Apache 2.0 as
@@ -53,7 +53,7 @@ License, Version 2.0, or the MIT license, at your option. Each carries both
 texts as LICENSE-APACHE and LICENSE-MIT:
 
 - [iguana-runtime](iguana-runtime/)
-- [iggy](iggy/)
+- [iggy](iggy/) (published on crates.io as `iguana-iggy`)
 - [web-ui](web-ui/)
 - [web-viewer](web-viewer/)
 - [design-viewer](design-viewer/)
