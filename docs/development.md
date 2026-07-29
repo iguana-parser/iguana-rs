@@ -46,7 +46,7 @@ The workspace excludes `terrarium/src-tauri` by default to keep rust-analyzer re
 | `cargo xtask test-gen-all` | Run `test-gen` for every directory under `tests/` that has a grammar file. |
 | `cargo xtask test-rm <name>` | Remove a grammar test: delete the directory and remove the crate from workspace `members`. |
 | `cargo xtask wasm` | Generate the iggy `--wasm` bundle into `target/wasm/iggy` (gitignored) and build it with `wasm-pack` against the local runtime; an end-to-end check of the wasm pipeline. Requires `wasm-pack` and the `wasm32-unknown-unknown` target. |
-| `cargo xtask terrarium` | Install iguana, then launch the terrarium dev server. |
+| `cargo xtask terrarium` | Install `iguana`, then launch the Terrarium dev server. |
 
 ## Bootstrapping
 
@@ -59,7 +59,7 @@ cargo xtask bootstrap   # second run to verify stability
 
 The second run must produce no diff against the first. If it does, the generator is non-deterministic or the change is not a fixed point.
 
-When a generator change breaks compilation of the existing iggy parser, the bootstrap cannot continue: iguana needs `iggy` to parse the grammar, but `iggy` no longer compiles. Two ways out:
+When a generator change breaks compilation of the existing iggy parser, the bootstrap cannot continue: `iguana` needs `iggy` to parse the grammar, but `iggy` no longer compiles. Two ways out:
 
 - Make the generator change backward compatible. Usually hard.
 - After the first bootstrap that breaks compilation, manually patch the regenerated parser code so it compiles, then run a second bootstrap to fix it properly.
@@ -68,11 +68,11 @@ When a generator change breaks compilation of the existing iggy parser, the boot
 
 Full sequence after touching anything under `iguana-compiler/src/generator/`:
 
-1. `cargo check -p iguana-compiler && cargo clippy -p iguana-compiler` — fix errors and warnings
-2. `cargo xtask bootstrap` — regenerate iggy
-3. `cargo xtask bootstrap` — bootstrap again to verify stability
-4. `cargo xtask test-gen-all` — regenerate every test parser
-5. `cargo xtask test` — run the full suite
+1. `cargo check -p iguana-compiler && cargo clippy -p iguana-compiler`: fix errors and warnings
+2. `cargo xtask bootstrap`: regenerate iggy
+3. `cargo xtask bootstrap`: bootstrap again to verify stability
+4. `cargo xtask test-gen-all`: regenerate every test parser
+5. `cargo xtask test`: run the full suite
 
 Steps 2–4 rewrite committed files. Review the diffs before committing; an unintended change to a generated file is a sign the generator did something you did not expect.
 

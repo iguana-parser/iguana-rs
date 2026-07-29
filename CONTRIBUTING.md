@@ -1,6 +1,8 @@
 # Contributing
 
-Thanks for your interest in contributing to iguana-rs.
+Thanks for your interest in contributing to iguana-rs. Setup, build, and
+test workflows are covered in [docs/development.md](docs/development.md), and
+the project layout in [docs/architecture.md](docs/architecture.md).
 
 ## Licensing of contributions
 

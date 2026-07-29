@@ -2,7 +2,7 @@
 
 The language server for iggy grammars: diagnostics, semantic highlighting,
 formatting, and symbols for `.iggy` files. The VS Code extension in the
-[iguana repository](https://github.com/iguana-parser/iguana-rs) launches this
+[Iguana repository](https://github.com/iguana-parser/iguana-rs) launches this
 binary.
 
 ```bash

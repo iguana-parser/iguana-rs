@@ -6,7 +6,7 @@ sharing labels included) and renders it as the interactive Cytoscape tree the
 parse view shows, reusing the shared graph core in `web-ui`.
 
 Built for static hosts that show verified parse trees as text and want a
-graph view next to them, like the iguana website's docs pages. The host owns the
+graph view next to them, like the Iguana website's docs pages. The host owns the
 surrounding chrome (tabs, panel sizing) and the styling; the widget owns the
 Cytoscape instance and renders the shared control strip (zoom and fit by
 default, expand-all and PNG export optional), unstyled, for the host's CSS
@@ -16,3 +16,7 @@ Cytoscape and cytoscape-tidytree are not bundled: they resolve at runtime
 through an importmap on the host page, pinned to the same versions as the
 other embedded apps. Build with `npm run build`; the output is a single
 `dist/tree-widget.js` ES module.
+
+## License
+
+Licensed under either of MIT (`LICENSE-MIT`) or Apache 2.0 (`LICENSE-APACHE`), at your option.

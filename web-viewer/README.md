@@ -1,6 +1,6 @@
 # @iguana-parser/web-viewer
 
-A static web app that runs a wasm-compiled iguana parser in the browser and renders the result. It is a thin host around the [`parse-view`](../parse-view) renderer: on load it reads `manifest.json`, loads the wasm module, constructs a `WasmBackend`, and mounts `ParseView`. There is no server and no Tauri; parsing happens in the page. Grammar editing is out of scope (that is Terrarium's job).
+A static web app that runs a wasm-compiled Iguana parser in the browser and renders the result. It is a thin host around the `ParseView` renderer from [`web-ui`](../web-ui): on load it reads `manifest.json`, loads the wasm module, constructs a `WasmBackend`, and mounts `ParseView`. There is no server and no Tauri; parsing happens in the page. Grammar editing is out of scope (that is Terrarium's job).
 
 The app targets a single, fixed grammar per deployment. The wasm module and the manifest are grammar-specific and ship alongside the viewer; the viewer code itself is grammar-independent.
 
