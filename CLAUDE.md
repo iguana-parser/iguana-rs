@@ -120,20 +120,3 @@ The parse view, the iggy grammar editor, and the graph helpers live in the `@igu
 # Approach
 
 Don't rush to the first solution. When a change touches shared infrastructure (generator, runtime, parse tree types), explore alternatives before committing to one. However, don't over-engineer: for localized fixes, the straightforward approach is usually right. For a small fixed set of cases (say, 3–5 variants), prefer a flat conditional chain over building an abstraction — type aliases, function-pointer tables, and trait dispatch are usually overkill at that size.
-
-# Process
-
-- Keep it conversational. Always discuss what you plan to do if it's complex and don't jump to implementation.
-- Follow the instructions very carefully
-- Each step should be reviewed before proceeding to the next one
-
-# Tool Use
-
-- Don't spawn subagents (the Agent tool, background or worktree agents, workflows) unless I explicitly ask for it. Default to doing the work yourself, inline, so I can review each change step by step. If you think a subagent is warranted, ask first and wait for permission.
-- Don't write scripts with sed/awk for code refactoring or fixing a failed bootstrap. Only use those tools when you're sure they won't mess things up. Otherwise, fix things manually.
-- `cargo xtask bootstrap` and `cargo xtask test-gen-all` regenerate many committed files. When a generator change makes them necessary, ask before running. Don't skip the step or report the task as done without it — the source diff is only half the work. The user wants to review the source diff first, then approve regeneration.
-- Start a new conversation before hitting 75% context usage.
-
-# Git
-
-- Never run `git commit`, `git push`, `git tag`, or other write operations unless explicitly asked. The user makes those calls. Exception: when an operation the user authorized inherently creates a commit (e.g., `git merge`, `git rebase`, `git subtree add`), the resulting commit is part of the authorized operation and is fine.

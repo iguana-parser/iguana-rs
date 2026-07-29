@@ -27,7 +27,7 @@ struct Cli {
 enum Commands {
     /// Regenerate the iggy bootstrap parser from iggy/iggy.iggy
     Bootstrap,
-    /// Scaffold a new grammar test under tests/<name>/
+    /// Scaffold a new grammar test under `tests/<name>/`
     TestNew {
         /// Name of the test
         name: String,
@@ -61,8 +61,8 @@ enum Commands {
     /// Install iguana, then launch the terrarium dev server
     Terrarium,
     /// Generate a grammar's wasm bundle and build it with wasm-pack. With no
-    /// argument the iggy grammar is built; otherwise tests/<test>/<test>.iggy is
-    /// built into target/wasm/<test>.
+    /// argument the iggy grammar is built; otherwise `tests/<test>/<test>.iggy`
+    /// is built into `target/wasm/<test>`.
     Wasm {
         /// Name of a grammar test under tests/ (defaults to the iggy grammar)
         test: Option<String>,
