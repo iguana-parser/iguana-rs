@@ -441,7 +441,11 @@ impl<'a> FirstFollowSets<'a> {
     /// unwrapped first, the same set `follow_restrictions` unwraps.
     fn excludes_following(&self, symbol: &Symbol, target: &FxHashSet<Terminal>) -> bool {
         match symbol {
-            Symbol::FollowRestriction { restrictions, .. } => {
+            Symbol::FollowRestriction {
+                restrictions,
+                layout_aware: false,
+                ..
+            } => {
                 let mut excluded = FxHashSet::default();
                 for r in restrictions {
                     if let Definition::Terminal(t) = self.grammar.definition(r.resolve()) {
@@ -450,6 +454,15 @@ impl<'a> FirstFollowSets<'a> {
                 }
                 target.iter().all(|t| excluded.contains(t))
             }
+            // A `!>>>` restriction excludes its terminals after the layout,
+            // not at the position immediately after the symbol, so its
+            // terminals are not counted. The walk still recurses into the
+            // wrapped symbol, which may carry a plain `!>>` of its own.
+            Symbol::FollowRestriction {
+                symbol,
+                layout_aware: true,
+                ..
+            } => self.excludes_following(symbol, target),
             Symbol::Labeled { symbol, .. }
             | Symbol::Binding { symbol, .. }
             | Symbol::Except { symbol, .. }
@@ -461,7 +474,9 @@ impl<'a> FirstFollowSets<'a> {
 
     /// The `!>>` terminals attached to a symbol reference, collected through
     /// the transparent wrappers (`Labeled`, `Binding`, `Except`,
-    /// `PrecedeRestriction`, `Exclude`).
+    /// `PrecedeRestriction`, `Exclude`). A `!>>>` restriction contributes
+    /// nothing: it forbids its terminals after the layout, not at the
+    /// position immediately after the symbol.
     fn follow_restrictions(&self, symbol: &Symbol) -> FxHashSet<Terminal> {
         let mut restrictions = FxHashSet::default();
         let mut current = symbol;
@@ -470,10 +485,13 @@ impl<'a> FirstFollowSets<'a> {
                 Symbol::FollowRestriction {
                     symbol,
                     restrictions: restricted,
+                    layout_aware,
                 } => {
-                    for r in restricted {
-                        if let Definition::Terminal(t) = self.grammar.definition(r.resolve()) {
-                            restrictions.insert(t.clone());
+                    if !layout_aware {
+                        for r in restricted {
+                            if let Definition::Terminal(t) = self.grammar.definition(r.resolve()) {
+                                restrictions.insert(t.clone());
+                            }
                         }
                     }
                     current = symbol;
@@ -1230,6 +1248,7 @@ mod tests {
                 name: "AB".into(),
                 definition: None,
             }],
+            layout_aware: false,
         };
         grammar_def!("opt_prefix_restricted",
             syntax: [

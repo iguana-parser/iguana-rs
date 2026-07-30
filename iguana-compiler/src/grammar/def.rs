@@ -536,11 +536,13 @@ fn add_lexical_rules(
         Symbol::FollowRestriction {
             symbol,
             restrictions,
+            layout_aware,
         } => {
             let transformed = add_lexical_rules(*symbol, lexical_rules, added_terminals);
             Symbol::FollowRestriction {
                 symbol: Box::new(transformed),
                 restrictions,
+                layout_aware,
             }
         }
         Symbol::PrecedeRestriction {
@@ -668,6 +670,7 @@ fn resolve_identifier(symbol: Symbol, symbol_table: &SymbolTable) -> Symbol {
         Symbol::FollowRestriction {
             symbol,
             restrictions,
+            layout_aware,
         } => {
             let resolved_symbol = resolve_identifier(*symbol, symbol_table);
             let resolved_restrictions = restrictions
@@ -680,6 +683,7 @@ fn resolve_identifier(symbol: Symbol, symbol_table: &SymbolTable) -> Symbol {
             Symbol::FollowRestriction {
                 symbol: Box::new(resolved_symbol),
                 restrictions: resolved_restrictions,
+                layout_aware,
             }
         }
         Symbol::PrecedeRestriction {

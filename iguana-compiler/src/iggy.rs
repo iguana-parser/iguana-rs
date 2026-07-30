@@ -253,6 +253,22 @@ fn convert_symbol(symbol: &parse_tree::Symbol, input: &Input) -> Symbol {
                     definition: None,
                 })
                 .collect(),
+            layout_aware: false,
+        },
+        parse_tree::Symbol::LayoutAwareFollowRestriction {
+            symbol,
+            restrictions,
+            ..
+        } => Symbol::FollowRestriction {
+            symbol: Box::new(convert_symbol(symbol, input)),
+            restrictions: restrictions
+                .identifiers()
+                .map(|token| Identifier {
+                    name: input.text(token.span()),
+                    definition: None,
+                })
+                .collect(),
+            layout_aware: true,
         },
         parse_tree::Symbol::PrecedeRestriction {
             symbol, identifier, ..

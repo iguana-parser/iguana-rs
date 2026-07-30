@@ -38,19 +38,20 @@ Alternative
   | "(" ")" Label? #Empty
 
 Symbol
-  = Identifier                                                #Identifier
-  | "(" seqs:{ Symbol+ "|" }+ ")"                             #Paren
-  | String                                                    #Lit
-  | "{" symbol:Symbol sep:Symbol "}" "*"                      #StarSep
-  | "{" symbol:Symbol sep:Symbol "}" "+"                      #PlusSep
-  > Symbol "*"                                                #Star
-  | Symbol "+"                                                #Plus
-  | Symbol "?"                                                #Opt
-  | Symbol!Except excepts:("\\" Identifier)+                  #Except
-  | Symbol!FollowRestriction restrictions:("!>>" Identifier)+ #FollowRestriction
-  | Symbol labels:("!" Identifier)+                           #Exclude
-  > Identifier "!<<" Symbol                                   #PrecedeRestriction
-  > label:Identifier ":" Symbol                               #Labeled
+  = Identifier                                                            #Identifier
+  | "(" seqs:{ Symbol+ "|" }+ ")"                                         #Paren
+  | String                                                                #Lit
+  | "{" symbol:Symbol sep:Symbol "}" "*"                                  #StarSep
+  | "{" symbol:Symbol sep:Symbol "}" "+"                                  #PlusSep
+  > Symbol "*"                                                            #Star
+  | Symbol "+"                                                            #Plus
+  | Symbol "?"                                                            #Opt
+  | Symbol!Except excepts:("\\" Identifier)+                              #Except
+  | Symbol!FollowRestriction restrictions:("!>>" Identifier)+             #FollowRestriction
+  | Symbol!LayoutAwareFollowRestriction restrictions:("!>>>" Identifier)+ #LayoutAwareFollowRestriction
+  | Symbol labels:("!" Identifier)+                                       #Exclude
+  > Identifier "!<<" Symbol                                               #PrecedeRestriction
+  > label:Identifier ":" Symbol                                           #Labeled
 
 Regex
   = Regex "+"                         #Plus

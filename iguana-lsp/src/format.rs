@@ -316,6 +316,17 @@ impl<'a> Formatter<'a> {
                     out.push_str(&self.input.text(id.span()));
                 }
             }
+            Symbol::LayoutAwareFollowRestriction {
+                symbol,
+                restrictions,
+                ..
+            } => {
+                self.format_symbol(out, symbol);
+                for id in restrictions.identifiers() {
+                    out.push_str(" !>>> ");
+                    out.push_str(&self.input.text(id.span()));
+                }
+            }
             Symbol::PrecedeRestriction {
                 identifier, symbol, ..
             } => {
@@ -582,6 +593,16 @@ mod tests {
         assert_eq!(
             formatted,
             "grammar T\n\n@Regex\nInt\n  = Dec\n  | Hex\n  | Oct\n"
+        );
+    }
+
+    #[test]
+    fn test_layout_aware_follow_restriction() {
+        let input = "grammar T\n\nS\n  = A  !>>>  B\n\n@Regex\nA = \"a\"\n\n@Regex\nB = \"b\"\n";
+        let formatted = format_source(input).unwrap();
+        assert_eq!(
+            formatted,
+            "grammar T\n\nS\n  = A !>>> B\n\n@Regex\nA = \"a\"\n\n@Regex\nB = \"b\"\n"
         );
     }
 

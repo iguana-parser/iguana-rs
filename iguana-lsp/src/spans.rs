@@ -481,6 +481,23 @@ fn collect_symbol_spans<'a>(
             }
         }
         (
+            Symbol::FollowRestriction {
+                symbol: gr_inner,
+                restrictions: gr_restrictions,
+                ..
+            },
+            parse_tree::Symbol::LayoutAwareFollowRestriction {
+                symbol,
+                restrictions,
+                ..
+            },
+        ) => {
+            collect_symbol_spans(gr_inner, symbol, spans);
+            for (id, token) in gr_restrictions.iter().zip(restrictions.identifiers()) {
+                spans.identifiers.insert(ByAddress(id), token.span());
+            }
+        }
+        (
             Symbol::PrecedeRestriction {
                 symbol: gr_inner,
                 restriction,

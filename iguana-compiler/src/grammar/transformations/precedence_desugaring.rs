@@ -979,9 +979,14 @@ fn rewrap_restriction(shell: &Symbol, inner: Symbol) -> Symbol {
             symbol,
             except: except.clone(),
         },
-        Symbol::FollowRestriction { restrictions, .. } => Symbol::FollowRestriction {
+        Symbol::FollowRestriction {
+            restrictions,
+            layout_aware,
+            ..
+        } => Symbol::FollowRestriction {
             symbol,
             restrictions: restrictions.clone(),
+            layout_aware: *layout_aware,
         },
         Symbol::PrecedeRestriction { restriction, .. } => Symbol::PrecedeRestriction {
             symbol,
@@ -2650,6 +2655,7 @@ mod tests {
             Symbol::FollowRestriction {
                 symbol,
                 restrictions,
+                ..
             } => {
                 assert_eq!(restrictions.len(), 1);
                 assert!(

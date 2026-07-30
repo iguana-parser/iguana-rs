@@ -266,12 +266,14 @@ fn rewrite_ebnf_symbol(
         Symbol::FollowRestriction {
             symbol,
             restrictions,
+            layout_aware,
         } => {
             let transformed =
                 rewrite_ebnf_symbol(*symbol, layout, counters, new_rules, ebnf_symbols);
             Symbol::FollowRestriction {
                 symbol: Box::new(transformed),
                 restrictions,
+                layout_aware,
             }
         }
         Symbol::PrecedeRestriction {

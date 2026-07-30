@@ -79,10 +79,13 @@ pub enum Symbol {
     },
     // Corresponds to the `!>>` operator in the concrete syntax.
     // `X !>> A !>> B` rejects X if any of A, B can be matched immediately
-    // after X in the input.
+    // after X in the input. With `layout_aware` set (the `!>>>` operator),
+    // the restrictions are checked at the position after the layout that
+    // follows X instead of at X's right extent.
     FollowRestriction {
         symbol: Box<Symbol>,
         restrictions: Vec<Identifier>,
+        layout_aware: bool,
     },
     // Corresponds to the `<<!` operator in the concrete syntax.
     // `Id <<! X` means reject the match of X if the character immediately before
@@ -427,8 +430,10 @@ impl Symbol {
             Symbol::FollowRestriction {
                 symbol,
                 restrictions,
+                layout_aware,
             } => {
-                let rs = restrictions.iter().map(|r| format!("!>> {}", r)).join(" ");
+                let op = if *layout_aware { "!>>>" } else { "!>>" };
+                let rs = restrictions.iter().map(|r| format!("{op} {r}")).join(" ");
                 format!("{} {}", symbol.display_name(grammar), rs)
             }
             Symbol::PrecedeRestriction {
@@ -515,10 +520,12 @@ impl Display for Symbol {
             Symbol::FollowRestriction {
                 symbol,
                 restrictions,
+                layout_aware,
             } => {
                 write!(f, "{}", symbol)?;
+                let op = if *layout_aware { "!>>>" } else { "!>>" };
                 for r in restrictions {
-                    write!(f, " !>> {}", r)?;
+                    write!(f, " {op} {r}")?;
                 }
                 Ok(())
             }
@@ -844,6 +851,7 @@ macro_rules! follow {
                     },
                 )+
             ],
+            layout_aware: false,
         }
     };
 }

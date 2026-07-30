@@ -564,23 +564,30 @@ static DFA_31: Dfa = Dfa::new(&[
 ]);
 static DFA_32: Dfa = Dfa::new(&[
     State::new(&[('!', '!', 1)], None),
+    State::new(&[('>', '>', 2)], None),
+    State::new(&[('>', '>', 3)], None),
+    State::new(&[('>', '>', 4)], None),
     State::new(&[], Some(TerminalId(32))),
 ]);
 static DFA_33: Dfa = Dfa::new(&[
-    State::new(&[(':', ':', 1)], None),
+    State::new(&[('!', '!', 1)], None),
     State::new(&[], Some(TerminalId(33))),
 ]);
 static DFA_34: Dfa = Dfa::new(&[
-    State::new(&[('[', '[', 1)], None),
+    State::new(&[(':', ':', 1)], None),
     State::new(&[], Some(TerminalId(34))),
 ]);
 static DFA_35: Dfa = Dfa::new(&[
-    State::new(&[(']', ']', 1)], None),
+    State::new(&[('[', '[', 1)], None),
     State::new(&[], Some(TerminalId(35))),
 ]);
 static DFA_36: Dfa = Dfa::new(&[
-    State::new(&[('-', '-', 1)], None),
+    State::new(&[(']', ']', 1)], None),
     State::new(&[], Some(TerminalId(36))),
+]);
+static DFA_37: Dfa = Dfa::new(&[
+    State::new(&[('-', '-', 1)], None),
+    State::new(&[], Some(TerminalId(37))),
 ]);
 pub struct IggyScanner<'i, 'arena> {
     pub input: &'i Input,
@@ -730,25 +737,29 @@ impl<'i, 'arena> IggyScanner<'i, 'arena> {
     pub fn match_terminal_31(&self, input_index: u32) -> Option<u32> {
         self.scan(&DFA_31, input_index)
     }
-    // "!" = !
+    // "!>>>" = !>>>
     pub fn match_terminal_32(&self, input_index: u32) -> Option<u32> {
         self.scan(&DFA_32, input_index)
     }
-    // ":" = :
+    // "!" = !
     pub fn match_terminal_33(&self, input_index: u32) -> Option<u32> {
         self.scan(&DFA_33, input_index)
     }
-    // "[" = [
+    // ":" = :
     pub fn match_terminal_34(&self, input_index: u32) -> Option<u32> {
         self.scan(&DFA_34, input_index)
     }
-    // "]" = ]
+    // "[" = [
     pub fn match_terminal_35(&self, input_index: u32) -> Option<u32> {
         self.scan(&DFA_35, input_index)
     }
-    // "-" = -
+    // "]" = ]
     pub fn match_terminal_36(&self, input_index: u32) -> Option<u32> {
         self.scan(&DFA_36, input_index)
+    }
+    // "-" = -
+    pub fn match_terminal_37(&self, input_index: u32) -> Option<u32> {
+        self.scan(&DFA_37, input_index)
     }
     // Whether any terminal in `set` matches at `input_index`, cached by the set's memo id. The
     // first query of a set at a position scans it; later queries return the cached bit.
@@ -810,7 +821,8 @@ impl Scanner for IggyScanner<'_, '_> {
             TerminalId(34) => self.match_terminal_34(input_index),
             TerminalId(35) => self.match_terminal_35(input_index),
             TerminalId(36) => self.match_terminal_36(input_index),
-            TerminalId(38) => {
+            TerminalId(37) => self.match_terminal_37(input_index),
+            TerminalId(39) => {
                 if input_index == self.input.len() {
                     Some(input_index)
                 } else {
