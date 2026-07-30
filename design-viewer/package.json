@@ -13,13 +13,13 @@
   },
   "dependencies": {
     "@iguana-parser/web-ui": "*",
-    "monaco-editor": "^0.55.1"
+    "monaco-editor": "^0.56.0"
   },
   "devDependencies": {
     "@sveltejs/vite-plugin-svelte": "^7.0.0",
     "svelte": "^5.0.0",
     "svelte-check": "^4.0.0",
-    "typescript": "^6.0.2",
+    "typescript": "^7.0.2",
     "vite": "^8.0.8"
   }
 }

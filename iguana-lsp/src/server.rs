@@ -54,11 +54,7 @@ pub fn main_loop(
                             data: tokens,
                         });
                         let result = serde_json::to_value(&result).unwrap();
-                        let resp = Response {
-                            id,
-                            result: Some(result),
-                            error: None,
-                        };
+                        let resp = Response::new_ok(id, result);
                         connection.sender.send(Message::Response(resp))?;
                     }
                     Formatting::METHOD => {
@@ -91,11 +87,7 @@ pub fn main_loop(
                             BuildResult::Error { .. } | BuildResult::Ambiguous => None,
                         };
                         let result = serde_json::to_value(&edits).unwrap();
-                        let resp = Response {
-                            id,
-                            result: Some(result),
-                            error: None,
-                        };
+                        let resp = Response::new_ok(id, result);
                         connection.sender.send(Message::Response(resp))?;
                     }
                     References::METHOD => {
@@ -125,11 +117,7 @@ pub fn main_loop(
                         })()
                         .unwrap_or_default();
                         let result = serde_json::to_value(&locations).unwrap();
-                        let resp = Response {
-                            id,
-                            result: Some(result),
-                            error: None,
-                        };
+                        let resp = Response::new_ok(id, result);
                         connection.sender.send(Message::Response(resp))?;
                     }
                     GotoDefinition::METHOD => {
@@ -160,11 +148,7 @@ pub fn main_loop(
                             loc.map(lsp_types::GotoDefinitionResponse::Scalar),
                         )
                         .unwrap();
-                        let resp = Response {
-                            id,
-                            result: Some(result),
-                            error: None,
-                        };
+                        let resp = Response::new_ok(id, result);
                         connection.sender.send(Message::Response(resp))?;
                     }
                     DocumentSymbolRequest::METHOD => {
@@ -192,11 +176,7 @@ pub fn main_loop(
                         .unwrap_or_default();
                         let result =
                             serde_json::to_value(DocumentSymbolResponse::Nested(symbols)).unwrap();
-                        let resp = Response {
-                            id,
-                            result: Some(result),
-                            error: None,
-                        };
+                        let resp = Response::new_ok(id, result);
                         connection.sender.send(Message::Response(resp))?;
                     }
                     FoldingRangeRequest::METHOD => {
@@ -223,11 +203,7 @@ pub fn main_loop(
                         })()
                         .unwrap_or_default();
                         let result = serde_json::to_value(&ranges).unwrap();
-                        let resp = Response {
-                            id,
-                            result: Some(result),
-                            error: None,
-                        };
+                        let resp = Response::new_ok(id, result);
                         connection.sender.send(Message::Response(resp))?;
                     }
                     _ => {}

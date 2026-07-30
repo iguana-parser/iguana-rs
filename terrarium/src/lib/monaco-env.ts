@@ -1,4 +1,4 @@
-import editorWorker from "monaco-editor/esm/vs/editor/editor.worker?worker";
+import editorWorker from "monaco-editor/editor/editor.worker.js?worker";
 
 // Monaco needs its editor web worker configured before any editor mounts. The
 // iggy editor now lives in the shared web-ui package, which leaves worker setup

@@ -17,12 +17,11 @@
     "@tauri-apps/plugin-dialog": "^2",
     "@tauri-apps/plugin-fs": "^2",
     "@tauri-apps/plugin-opener": "^2",
-    "@types/cytoscape-dagre": "^2.3.4",
     "cytoscape": "^3.33.2",
-    "cytoscape-dagre": "^2.5.0",
+    "cytoscape-dagre": "^4.0.0",
     "cytoscape-tidytree": "^0.2.1",
     "lucide-svelte": "^1.0.1",
-    "monaco-editor": "^0.55.1",
+    "monaco-editor": "^0.56.0",
     "vite-plugin-monaco-editor-nls": "^3.0.1"
   },
   "devDependencies": {
@@ -33,7 +32,7 @@
     "@types/cytoscape": "^3.21.9",
     "svelte": "^5.0.0",
     "svelte-check": "^4.0.0",
-    "typescript": "^6.0.2",
+    "typescript": "^7.0.2",
     "vite": "^8.0.8"
   }
 }

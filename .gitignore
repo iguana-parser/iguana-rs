@@ -3,16 +3,12 @@
 .vscode/launch.json
 **/.DS_Store
 iggy/flamegraph.svg
-/node_modules
-parse-view/node_modules
-web-viewer/node_modules
-terrarium/node_modules
+node_modules/
 terrarium/.svelte-kit
 terrarium/src-tauri/target
 iguana-lsp/wasm/target
 # wasm-pack output for the lsp-wasm bundle
 iguana-lsp/wasm/pkg
-editors/vscode/node_modules
 editors/vscode/out
 CLAUDE.local.md
 .claude/

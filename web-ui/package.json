@@ -34,12 +34,12 @@
     "cytoscape": "^3.33.2",
     "cytoscape-tidytree": "^0.2.1",
     "lucide-svelte": "^1.0.1",
-    "monaco-editor": "^0.55.1",
+    "monaco-editor": "^0.56.0",
     "svelte": "^5.0.0"
   },
   "devDependencies": {
     "@types/cytoscape": "^3.21.9",
     "svelte-check": "^4.0.0",
-    "typescript": "^6.0.2"
+    "typescript": "^7.0.2"
   }
 }

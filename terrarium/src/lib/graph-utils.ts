@@ -11,9 +11,9 @@ export function parseNodeKind(kind: NodeKind): { name: string; ambiguous: boolea
   if (typeof kind === "string") {
     // Terminal or Packed
     return { name: kind, ambiguous: false };
-  } else if ("Nonterminal" in kind) {
+  } else if (kind.Nonterminal) {
     return { name: "Nonterminal", ambiguous: kind.Nonterminal.ambiguous };
-  } else if ("Intermediate" in kind) {
+  } else if (kind.Intermediate) {
     return { name: "Intermediate", ambiguous: kind.Intermediate.ambiguous };
   }
   return { name: "Unknown", ambiguous: false };

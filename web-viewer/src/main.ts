@@ -17,7 +17,7 @@ cytoscape.use(tidytree);
 // is plaintext, so only the base editor worker is ever requested.
 self.MonacoEnvironment = {
   getWorker() {
-    const workerUrl = "https://esm.sh/monaco-editor@0.55.1/esm/vs/editor/editor.worker.js";
+    const workerUrl = "https://esm.sh/monaco-editor@0.56.0/esm/vs/editor/editor.worker.js";
     const blob = new Blob([`import ${JSON.stringify(workerUrl)};`], { type: "text/javascript" });
     return new Worker(URL.createObjectURL(blob), { type: "module" });
   },
