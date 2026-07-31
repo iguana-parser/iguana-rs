@@ -220,8 +220,8 @@ export interface ParseTreeData {
   edges: { src: number; dest: number }[];
 }
 
-/** The presentation toggles the parse view offers, matching the s-expression
- * printer's options. All true is the faithful tree; all false is the simplified
+/** The presentation toggles the parse view offers, matching the runtime's
+ * `DisplayOptions`. All true is the faithful tree; all false is the simplified
  * view. Each is independent. */
 export interface DisplayOptions {
   showLayout: boolean;
@@ -233,13 +233,13 @@ const WRAPPER_ORIGINS = new Set<Origin>(["Start", "Opt", "Group", "Alt"]);
 
 /**
  * Produces the parse-tree DAG as the parse view shows it under `options`, the
- * frontend counterpart of the runtime's s-expression display transform (the two
- * stay in sync). Layout nonterminals are filtered out, empty repetitions dropped,
- * wrapper nodes (Start/Opt/Group/Alt) spliced into their parent, and a wrapper
- * root (typically the Start wrapper) unwrapped to the symbol it wraps. Node ids
- * are preserved so cross-view selection and ambiguity sharing still key on them;
- * a node shared in the ambiguity DAG is emitted once with an extra edge per
- * additional parent.
+ * frontend counterpart of the runtime's display transform (the two stay in
+ * sync). Layout nonterminals are filtered out, empty optionals and repetitions
+ * dropped, wrapper nodes (Start/Opt/Group/Alt) spliced into their parent, and a
+ * wrapper root (typically the Start wrapper) unwrapped to the symbol it wraps.
+ * Node ids are preserved so cross-view selection and ambiguity sharing still key
+ * on them; a node shared in the ambiguity DAG is emitted once with an extra edge
+ * per additional parent.
  */
 export function buildDisplayGraph(raw: ParseTreeData, options: DisplayOptions): ParseTreeData {
   const layoutName = raw.layout_name ?? null;
@@ -260,15 +260,24 @@ export function buildDisplayGraph(raw: ParseTreeData, options: DisplayOptions): 
   const isHiddenLayout = (n: ParseTreeNodeData) =>
     !options.showLayout && layoutName !== null && n.label === layoutName;
 
-  // The display children of a node: layout filtered out, empty repetitions
-  // dropped, and wrappers spliced into place (recursively, so a chain of
-  // wrappers collapses in one pass).
+  // The children of a node that remain after filtering:
+  // - showLayout: false drops layout nodes, with their subtrees.
+  // - showEmpty: false drops empty optionals and repetitions.
+  // - showWrappers: false replaces a wrapper node with its own display
+  //   children. A chain of wrappers collapses in one pass.
   function displayChildren(id: number): number[] {
     const result: number[] = [];
     for (const childId of childrenMap.get(id) ?? []) {
       const child = nodeMap.get(childId)!;
       if (isHiddenLayout(child)) continue;
-      if (!options.showEmpty && isEmptyOptOrList(child)) continue;
+      // An empty X? is both empty and a wrapper, so showEmpty decides it here,
+      // before the wrapper splice below can reach it. Splicing replaces a node
+      // with its children, and an empty node has none, so the splice would
+      // delete an empty X? that showEmpty: true keeps.
+      if (isEmptyOptOrList(child)) {
+        if (options.showEmpty) result.push(childId);
+        continue;
+      }
       if (!options.showWrappers && isWrapper(child)) {
         result.push(...displayChildren(childId));
       } else {

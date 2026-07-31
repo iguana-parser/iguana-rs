@@ -11,13 +11,13 @@ use crate::{
     utils::inline_vec::InlineVec,
 };
 
-/// Options for rendering a parse tree as an s-expression. Each field is an
-/// independent presentation toggle: `true` shows the construct as it sits in
-/// the real parse tree, `false` simplifies it away. The `default` is every
-/// toggle on (the truthful, lossless tree), so `to_sexpr` and the golden files
-/// stay faithful. The CLI, REPL, and viewers start from `simplified` instead.
+/// Which constructs a rendered parse tree keeps. Each field is an independent
+/// presentation toggle: `true` shows the construct as it sits in the real parse
+/// tree, `false` simplifies it away. The `default` is every toggle on (the
+/// truthful, lossless tree), so `to_sexpr` and the golden files stay faithful.
+/// The CLI, REPL, and viewers start from `simplified` instead.
 #[derive(Clone, Copy)]
-pub struct SexprOptions {
+pub struct DisplayOptions {
     /// Show layout nodes (whitespace, comments) and their subtrees.
     pub show_layout: bool,
     /// Show empty optionals and repetitions (`X?`, `X*` that matched nothing)
@@ -28,10 +28,10 @@ pub struct SexprOptions {
     pub show_wrappers: bool,
 }
 
-impl Default for SexprOptions {
+impl Default for DisplayOptions {
     /// The truthful tree: every construct shown as it really is.
     fn default() -> Self {
-        SexprOptions {
+        DisplayOptions {
             show_layout: true,
             show_empty: true,
             show_wrappers: true,
@@ -39,11 +39,11 @@ impl Default for SexprOptions {
     }
 }
 
-impl SexprOptions {
+impl DisplayOptions {
     /// The clean view the CLI, REPL, and viewers default to: layout, empty
-    /// repetitions, and wrapper nodes hidden.
+    /// optionals and repetitions, and wrapper nodes hidden.
     pub fn simplified() -> Self {
-        SexprOptions {
+        DisplayOptions {
             show_layout: false,
             show_empty: false,
             show_wrappers: false,
@@ -621,7 +621,7 @@ impl<N: ParseTreeNode> TreeVisitor<N> for JsonBuilder {
 
 /// Renders a parse tree as an s-expression with default options.
 pub fn to_sexpr<N: ParseTreeNode>(root: N, layout_name: Option<&str>) -> String {
-    to_sexpr_with(root, layout_name, SexprOptions::default())
+    to_sexpr_with(root, layout_name, DisplayOptions::default())
 }
 
 /// Renders a parse tree as an s-expression. A first pass counts how many parents
@@ -630,7 +630,7 @@ pub fn to_sexpr<N: ParseTreeNode>(root: N, layout_name: Option<&str>) -> String 
 pub fn to_sexpr_with<N: ParseTreeNode>(
     root: N,
     layout_name: Option<&str>,
-    options: SexprOptions,
+    options: DisplayOptions,
 ) -> String {
     let root = display_root(root, layout_name, options);
 
@@ -657,12 +657,12 @@ pub fn to_sexpr_with<N: ParseTreeNode>(
     printer.out
 }
 
-/// A layout node (whitespace, comments) is hidden, with its subtree, unless the
-/// caller asks for it.
-fn sexpr_hidden<N: ParseTreeNode>(
+/// A layout node (whitespace, comments) that `show_layout = false` hides, with
+/// its subtree.
+fn is_hidden_layout<N: ParseTreeNode>(
     node: N,
     layout_name: Option<&str>,
-    options: SexprOptions,
+    options: DisplayOptions,
 ) -> bool {
     !options.show_layout && layout_name == Some(node.display_name())
 }
@@ -678,26 +678,35 @@ fn is_wrapper(origin: Option<Origin>) -> bool {
 }
 
 /// An empty optional or list: an `X?`, `X*`, or `{X sep}+` that matched
-/// nothing. The `show_empty = false` toggle drops it, and only it: an empty
-/// user nonterminal or token is left alone.
+/// nothing. The `show_empty` toggle decides whether these nodes appear.
 fn is_empty_opt_or_list<N: ParseTreeNode>(node: N) -> bool {
     matches!(node.origin(), Some(Origin::Opt | Origin::List)) && node.children().is_empty()
 }
 
-/// The children of `node` as the s-expression shows them under `options`:
-/// layout filtered out, empty repetitions dropped, and wrapper nodes spliced
-/// into place (recursively, so a chain of wrappers collapses in one pass).
+/// The children of `node` that remain after filtering:
+///
+/// - `show_layout = false` drops layout nodes, with their subtrees.
+/// - `show_empty = false` drops empty optionals and repetitions.
+/// - `show_wrappers = false` replaces a wrapper node with its own display
+///   children. A chain of wrappers collapses in one pass.
 fn display_children<N: ParseTreeNode>(
     node: N,
     layout_name: Option<&str>,
-    options: SexprOptions,
+    options: DisplayOptions,
 ) -> Vec<N> {
     let mut result = Vec::new();
     for child in node.children() {
-        if sexpr_hidden(child, layout_name, options) {
+        if is_hidden_layout(child, layout_name, options) {
             continue;
         }
-        if !options.show_empty && is_empty_opt_or_list(child) {
+        // An empty `X?` is both empty and a wrapper, so `show_empty` decides it
+        // here, before the wrapper splice below can reach it. Splicing replaces
+        // a node with its children, and an empty node has none, so the splice
+        // would delete an empty `X?` that `show_empty = true` keeps.
+        if is_empty_opt_or_list(child) {
+            if options.show_empty {
+                result.push(child);
+            }
             continue;
         }
         if !options.show_wrappers && is_wrapper(child.origin()) {
@@ -709,10 +718,14 @@ fn display_children<N: ParseTreeNode>(
     result
 }
 
-/// The node the s-expression takes as its root. When wrappers are spliced and
-/// the real root is one (typically the start-wrapper node), descend to the
-/// single node it wraps so the output is not headed by scaffolding.
-fn display_root<N: ParseTreeNode>(root: N, layout_name: Option<&str>, options: SexprOptions) -> N {
+/// The root of the filtered tree. When wrappers are spliced and the real root
+/// is one (typically the start-wrapper node), descend to the single node it
+/// wraps so the output is not headed by scaffolding.
+fn display_root<N: ParseTreeNode>(
+    root: N,
+    layout_name: Option<&str>,
+    options: DisplayOptions,
+) -> N {
     let mut node = root;
     while !options.show_wrappers && is_wrapper(node.origin()) {
         match display_children(node, layout_name, options).as_slice() {
@@ -725,7 +738,7 @@ fn display_root<N: ParseTreeNode>(root: N, layout_name: Option<&str>, options: S
 
 struct IndegreeCounter<'n> {
     layout_name: Option<&'n str>,
-    options: SexprOptions,
+    options: DisplayOptions,
     indegree: FxHashMap<usize, u32>,
     visited: FxHashSet<usize>,
 }
@@ -749,7 +762,7 @@ impl<N: ParseTreeNode> TreeVisitor<N> for IndegreeCounter<'_> {
 
 struct SexprPrinter<'n> {
     layout_name: Option<&'n str>,
-    options: SexprOptions,
+    options: DisplayOptions,
     indegree: FxHashMap<usize, u32>,
     labels: FxHashMap<usize, u32>,
     next_label: u32,
@@ -950,7 +963,7 @@ mod tests {
         let kids = [a, layout, leaf("b", 3)];
         let s = nonterminal("S", 0, &kids);
 
-        let hidden = SexprOptions {
+        let hidden = DisplayOptions {
             show_layout: false,
             ..Default::default()
         };
@@ -959,7 +972,7 @@ mod tests {
             "(S\n  (A x)\n  b)\n"
         );
         assert_eq!(
-            to_sexpr_with(s, Some("Layout"), SexprOptions::default()),
+            to_sexpr_with(s, Some("Layout"), DisplayOptions::default()),
             "(S\n  (A x)\n  (Layout ws)\n  b)\n"
         );
     }
@@ -1001,11 +1014,38 @@ mod tests {
         assert_eq!(to_sexpr(s, None), "(S\n  (A? a)\n  B?\n  C*\n  d)\n");
 
         // show_empty off drops them; the present optional stays.
-        let opts = SexprOptions {
+        let opts = DisplayOptions {
             show_empty: false,
             ..Default::default()
         };
         assert_eq!(to_sexpr_with(s, None, opts), "(S\n  (A? a)\n  d)\n");
+    }
+
+    #[test]
+    fn show_empty_keeps_empty_optionals_under_spliced_wrappers() {
+        // S -> [A? (present), B? (empty), C* (empty), d].
+        let a = [leaf("a", 1)];
+        let present = derived("A?", 2, Origin::Opt, &a);
+        let empty_opt = derived("B?", 3, Origin::Opt, &[]);
+        let empty_list = derived("C*", 4, Origin::List, &[]);
+        let kids = [present, empty_opt, empty_list, leaf("d", 5)];
+        let s = nonterminal("S", 0, &kids);
+
+        // An empty optional is a wrapper too, so splicing wrappers would drop it.
+        // show_empty keeps it, alongside the empty list.
+        let opts = DisplayOptions {
+            show_wrappers: false,
+            ..Default::default()
+        };
+        assert_eq!(to_sexpr_with(s, None, opts), "(S a B? C* d)\n");
+
+        // With both off, the present optional still splices and the empty ones go.
+        let opts = DisplayOptions {
+            show_empty: false,
+            show_wrappers: false,
+            ..Default::default()
+        };
+        assert_eq!(to_sexpr_with(s, None, opts), "(S a d)\n");
     }
 
     #[test]
@@ -1020,7 +1060,7 @@ mod tests {
 
         assert_eq!(to_sexpr(s, None), "(S\n  (A? a)\n  ((B C) b c))\n");
 
-        let opts = SexprOptions {
+        let opts = DisplayOptions {
             show_wrappers: false,
             ..Default::default()
         };
@@ -1055,7 +1095,7 @@ mod tests {
 
         // Simplified: start wrapper unwrapped, layout/empties/wrappers gone.
         assert_eq!(
-            to_sexpr_with(start, Some("Layout"), SexprOptions::simplified()),
+            to_sexpr_with(start, Some("Layout"), DisplayOptions::simplified()),
             "(Grammar\n  a\n  (B* b1 b2))\n"
         );
     }
@@ -1076,7 +1116,7 @@ mod tests {
         let s = nonterminal("S", 0, &kids);
 
         assert_eq!(
-            to_sexpr_with(s, None, SexprOptions::simplified()),
+            to_sexpr_with(s, None, DisplayOptions::simplified()),
             "(S\n  (Amb\n    (A+ a a)\n    (A+ a a)))\n"
         );
     }

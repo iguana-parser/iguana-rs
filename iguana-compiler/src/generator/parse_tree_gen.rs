@@ -201,8 +201,8 @@ impl<'a> ParseTreeGen<'a> {
                 ids::{NonterminalId, SlotId, TerminalId},
                 input::Span,
                 parse_tree::{
-                    Bump, NodeKind, #one_or_many Origin, ParseTreeBuilder, ParseTreeNode,
-                    SexprOptions, visit_sppf,
+                    Bump, DisplayOptions, NodeKind, #one_or_many Origin, ParseTreeBuilder,
+                    ParseTreeNode, visit_sppf,
                 },
                 sppf::{NonterminalNode, SPPFNodeId, TerminalNode},
             };
@@ -1881,7 +1881,7 @@ impl<'a> ParseTreeGen<'a> {
                 iguana_runtime::parse_tree::to_sexpr(node, LAYOUT_NAME)
             }
 
-            pub fn to_sexpr_with(node: ParseTree<'_>, options: SexprOptions) -> String {
+            pub fn to_sexpr_with(node: ParseTree<'_>, options: DisplayOptions) -> String {
                 iguana_runtime::parse_tree::to_sexpr_with(node, LAYOUT_NAME, options)
             }
         }

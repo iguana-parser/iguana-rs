@@ -11,7 +11,7 @@ use iguana_runtime::{
     cli,
     ids::NonterminalId,
     input::Input,
-    parse_tree::{Bump, SexprOptions, is_ambiguous},
+    parse_tree::{Bump, DisplayOptions, is_ambiguous},
     parser::{ParseResult, Parser},
     visualization::{dot::write_graph, gss::build_gss_dot_graph, sppf::build_sppf_graph},
 };
@@ -334,7 +334,7 @@ fn main() -> Result<(), io::Error> {
                 "golden testing requires an input file or --dir",
             ));
         }
-        let sexpr_options = SexprOptions {
+        let display_options = DisplayOptions {
             show_layout: args.show_layout,
             show_empty: args.show_empty,
             show_wrappers: args.show_wrappers,
@@ -359,7 +359,7 @@ fn main() -> Result<(), io::Error> {
                             &parser,
                             &parse_tree_builder,
                         );
-                        to_sexpr_with(tree, sexpr_options)
+                        to_sexpr_with(tree, display_options)
                     }
                     ParseResult::Failure(error) => {
                         let (line, column, message) = parser.format_error(&error);
@@ -722,12 +722,12 @@ fn main() -> Result<(), io::Error> {
             )
         })?;
         let start_nonterminal_id = resolve_start_nonterminal(start_nonterminal_name)?;
-        let sexpr_options = SexprOptions {
+        let display_options = DisplayOptions {
             show_layout: args.show_layout,
             show_empty: args.show_empty,
             show_wrappers: args.show_wrappers,
         };
-        cli::run_repl(sexpr_options, |text, sexpr_options| {
+        cli::run_repl(display_options, |text, display_options| {
             let input = Input::from(text);
             let tree_arena = Bump::new();
             let parse_tree_builder = PlusGroupParseTreeBuilder::new(&tree_arena);
@@ -744,7 +744,7 @@ fn main() -> Result<(), io::Error> {
                         &parse_tree_builder,
                     );
                     cli::ReplOutcome::Parsed {
-                        tree: to_sexpr_with(tree, sexpr_options),
+                        tree: to_sexpr_with(tree, display_options),
                         ambiguous,
                     }
                 }
@@ -898,12 +898,12 @@ fn main() -> Result<(), io::Error> {
                 && args.trace.is_none()
             {
                 if let Some(ref parse_tree) = parse_tree_opt {
-                    let sexpr_options = SexprOptions {
+                    let display_options = DisplayOptions {
                         show_layout: args.show_layout,
                         show_empty: args.show_empty,
                         show_wrappers: args.show_wrappers,
                     };
-                    println!("{}", to_sexpr_with(*parse_tree, sexpr_options));
+                    println!("{}", to_sexpr_with(*parse_tree, display_options));
                 }
             }
         }

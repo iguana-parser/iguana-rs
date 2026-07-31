@@ -7,7 +7,7 @@ use std::time::{Duration, Instant};
 
 use serde::{Deserialize, Serialize};
 
-use crate::parse_tree::SexprOptions;
+use crate::parse_tree::DisplayOptions;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Symbols {
@@ -302,9 +302,9 @@ pub enum ReplOutcome {
 /// `options` is the initial rendering state, taken from the parser's flags;
 /// `:set` mutates it during the session and each parse renders with the
 /// current value.
-pub fn run_repl<F>(mut options: SexprOptions, mut parse_fn: F)
+pub fn run_repl<F>(mut options: DisplayOptions, mut parse_fn: F)
 where
-    F: FnMut(&str, SexprOptions) -> ReplOutcome,
+    F: FnMut(&str, DisplayOptions) -> ReplOutcome,
 {
     use io::{BufRead, Write};
 
@@ -364,7 +364,7 @@ where
 
 /// Runs a REPL meta-command (the line still carries its leading `:`). Feedback
 /// goes to stderr, like the prompt.
-fn run_repl_command(line: &str, options: &mut SexprOptions) {
+fn run_repl_command(line: &str, options: &mut DisplayOptions) {
     let mut parts = line.split_whitespace();
     match parts.next() {
         Some(":help") | Some(":h") | Some(":?") => {

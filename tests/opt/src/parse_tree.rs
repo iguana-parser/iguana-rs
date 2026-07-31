@@ -9,7 +9,7 @@ use iguana_runtime::{
     ids::{NonterminalId, SlotId, TerminalId},
     input::Span,
     parse_tree::{
-        Bump, NodeKind, OneOrMany, Origin, ParseTreeBuilder, ParseTreeNode, SexprOptions,
+        Bump, DisplayOptions, NodeKind, OneOrMany, Origin, ParseTreeBuilder, ParseTreeNode,
         visit_sppf,
     },
     sppf::{NonterminalNode, SPPFNodeId, TerminalNode},
@@ -633,7 +633,7 @@ const LAYOUT_NAME: Option<&str> = None;
 pub fn to_sexpr(node: ParseTree<'_>) -> String {
     iguana_runtime::parse_tree::to_sexpr(node, LAYOUT_NAME)
 }
-pub fn to_sexpr_with(node: ParseTree<'_>, options: SexprOptions) -> String {
+pub fn to_sexpr_with(node: ParseTree<'_>, options: DisplayOptions) -> String {
     iguana_runtime::parse_tree::to_sexpr_with(node, LAYOUT_NAME, options)
 }
 /// Converts a parse tree to a JSON string of nodes and edges, for visualization.
