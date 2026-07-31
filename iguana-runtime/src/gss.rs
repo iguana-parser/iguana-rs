@@ -1,7 +1,7 @@
-use bumpalo::Bump;
 use serde::Serialize;
 
 use crate::{
+    arena::Arena,
     env::EnvId,
     ids::{BindingId, GssNodeId, NonterminalId, SlotId},
     sppf::SPPFNodeId,
@@ -36,7 +36,7 @@ impl<'arena> GSSNode<'arena> {
         }
     }
 
-    pub fn add_edge(&mut self, gss_edge: GSSEdge, arena: &'arena Bump) {
+    pub fn add_edge(&mut self, gss_edge: GSSEdge, arena: &'arena Arena) {
         self.edges.push(gss_edge, arena);
     }
 
@@ -45,7 +45,7 @@ impl<'arena> GSSNode<'arena> {
         right_extent: u32,
         return_value: Option<i32>,
         nonterminal_node_id: SPPFNodeId,
-        arena: &'arena Bump,
+        arena: &'arena Arena,
     ) {
         self.popped_elements
             .insert((right_extent, return_value), nonterminal_node_id, arena);

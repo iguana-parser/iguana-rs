@@ -39,8 +39,8 @@ pub fn generate(grammar: &Grammar, config: GenConfig) -> TokenStream {
         use std::fmt::{self, Display, Formatter};
         use std::time::Duration;
         use iguana_runtime::{
+            arena::Arena,
             input::Input,
-            parse_tree::Bump,
             parser::{ParseResult, Parser},
         };
         use parse_tree::*;
@@ -105,8 +105,8 @@ fn gen_parse_method(
         #[doc = " scope, the arena can be reset with `tree_arena.reset()` and reused for the"]
         #[doc = " next parse; that is the pattern for repeated parsing, as in an editor or a"]
         #[doc = " benchmark loop."]
-        pub fn #fn_name<'a>(input: &Input, tree_arena: &'a Bump) -> std::result::Result<ParseSuccess<&'a #return_type>, ParseError> {
-            let vec_arena = Bump::new();
+        pub fn #fn_name<'a>(input: &Input, tree_arena: &'a Arena) -> std::result::Result<ParseSuccess<&'a #return_type>, ParseError> {
+            let vec_arena = Arena::new();
             let mut parser = #parser::new(input, grammar_data::#nt_const, &vec_arena);
             match parser.run() {
                 ParseResult::Success(success) => {

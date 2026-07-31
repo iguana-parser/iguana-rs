@@ -1,6 +1,5 @@
 use std::fmt::{Debug, Write};
 
-pub use bumpalo::Bump;
 use rustc_hash::{FxHashMap, FxHashSet};
 
 use crate::{
@@ -843,6 +842,7 @@ impl<N: ParseTreeNode> TreeVisitor<N> for SexprPrinter<'_> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::arena::Arena;
 
     /// A minimal parse tree for exercising the generic traversals. A node
     /// borrows its children so a tree can be built without the real builder.
@@ -988,10 +988,10 @@ mod tests {
             }
         }
 
-        let arena = Bump::new();
+        let arena = Arena::new();
         let mut node = leaf("leaf", 0);
         for i in 1..200_000 {
-            let children: &[Node] = arena.alloc_slice_copy(&[node]);
+            let children: &[Node] = arena.alloc_slice([node]);
             node = nonterminal("N", i, children);
         }
 

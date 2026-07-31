@@ -4,8 +4,8 @@
 // permission (GPL v3 section 7) that waives the GPL for generated parsers.
 // Full text: https://github.com/iguana-parser/iguana-rs/blob/main/iguana-compiler/LICENSE-GPL
 
-use iguana_runtime::parse_tree::Bump;
 use iguana_runtime::{
+    arena::Arena,
     dfa::{Dfa, State},
     ids::TerminalId,
     input::Input,
@@ -31,12 +31,12 @@ static DFA_3: Dfa = Dfa::new(&[
 ]);
 pub struct ExcludeByLabelScanner<'i, 'arena> {
     pub input: &'i Input,
-    vec_arena: &'arena Bump,
+    vec_arena: &'arena Arena,
     memo: MatchMemo<'arena, MATCH_MEMO_WORDS>,
     match_any_memo: MatchAnyMemo<'arena, MATCH_ANY_SET_WORDS>,
 }
 impl<'i, 'arena> ExcludeByLabelScanner<'i, 'arena> {
-    pub fn new(input: &'i Input, vec_arena: &'arena Bump) -> Self {
+    pub fn new(input: &'i Input, vec_arena: &'arena Arena) -> Self {
         let memo = MatchMemo::new(input.len() as usize, vec_arena);
         let match_any_memo = MatchAnyMemo::new(input.len() as usize, vec_arena);
         Self {

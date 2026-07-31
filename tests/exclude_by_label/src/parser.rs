@@ -10,12 +10,12 @@ use iguana_runtime::input::Span;
 #[cfg(feature = "debug-trace")]
 use iguana_runtime::trace::TraceEvent;
 use iguana_runtime::{
+    arena::{Arena, ArenaVec},
     descriptor::Descriptor,
     env::{Env, EnvId},
     gss::GSSNode,
     ids::{BindingId, GssNodeId, NonterminalId, SlotId, TerminalId},
     input::Input,
-    parse_tree::Bump,
     parser::{
         DESCRIPTORS_CAPACITY_DIVISOR, DESCRIPTORS_CAPACITY_FLOOR, ENVS_CAPACITY_MULTIPLIER,
         GSS_CAPACITY_MULTIPLIER, ParseError, ParseErrorKind, Parser, SPPF_CAPACITY_MULTIPLIER,
@@ -24,7 +24,7 @@ use iguana_runtime::{
     record,
     scanner::Scanner,
     sppf::{IntermediateNode, NonterminalNode, SPPFNode, SPPFNodeId, TerminalNode},
-    utils::{AVec, inline_map::InlineMap, inline_vec::InlineVec},
+    utils::{inline_map::InlineMap, inline_vec::InlineVec},
 };
 use rustc_hash::FxHashMap;
 use std::cell::OnceCell;
@@ -823,22 +823,22 @@ impl<'i, 'arena> Parser<'i, 'arena> for ExcludeByLabelParser<'i, 'arena> {
     fn match_token(&mut self, terminal_id: TerminalId, input_index: u32) -> Option<u32> {
         self.scanner.match_token(terminal_id, input_index)
     }
-    fn vec_arena(&self) -> &'arena Bump {
+    fn vec_arena(&self) -> &'arena Arena {
         self.vec_arena
     }
 }
 pub struct ExcludeByLabelParser<'i, 'arena> {
     start_nonterminal: NonterminalId,
     // Arena backing the parser's internal collections; reset in bulk after the parse.
-    vec_arena: &'arena Bump,
+    vec_arena: &'arena Arena,
     scanner: ExcludeByLabelScanner<'i, 'arena>,
-    descriptors: AVec<Descriptor, &'arena Bump>,
-    gss_nodes: AVec<GSSNode<'arena>, &'arena Bump>,
+    descriptors: ArenaVec<'arena, Descriptor>,
+    gss_nodes: ArenaVec<'arena, GSSNode<'arena>>,
     // Per-nonterminal GSS-node index keyed by input position.
     gss_nodes_index: [InlineMap<'arena, u32, GssNodeId>; 5],
     // GSS index for nonterminal Expr
     gss_nodes_index_expr: InlineMap<'arena, (u32, i32), GssNodeId>,
-    sppf_nodes: AVec<SPPFNode, &'arena Bump>,
+    sppf_nodes: ArenaVec<'arena, SPPFNode>,
     #[cfg(feature = "instrument")]
     descriptors_count: usize,
     #[cfg(feature = "instrument")]
@@ -852,21 +852,21 @@ pub struct ExcludeByLabelParser<'i, 'arena> {
     dd_intermediate_nodes_index: [InlineMap<'arena, (Span, Option<EnvId>), SPPFNodeId>; 17],
     terminal_nodes_index: [InlineMap<'arena, Span, SPPFNodeId>; 6],
     // Epsilon nodes keyed by input position; SPPFNodeId::NONE marks an empty slot.
-    epsilon_nodes: AVec<SPPFNodeId, &'arena Bump>,
+    epsilon_nodes: ArenaVec<'arena, SPPFNodeId>,
     // An intermediate node keeps its first child inline. Children of intermediate nodes are
     // pairs: (left_child, right_child). Extra children, when there is ambiguity, are stored here
     // as (parent node, (left child, right child)).
-    intermediate_nodes_children: AVec<(SPPFNodeId, (SPPFNodeId, SPPFNodeId)), &'arena Bump>,
+    intermediate_nodes_children: ArenaVec<'arena, (SPPFNodeId, (SPPFNodeId, SPPFNodeId))>,
     // intermediate_nodes_children grouped by parent node, built lazily for tree construction.
     intermediate_nodes_children_map: OnceCell<FxHashMap<SPPFNodeId, Vec<(SPPFNodeId, SPPFNodeId)>>>,
     // Extra children of ambiguous nonterminal nodes, the counterpart to
     // intermediate_nodes_children: each entry is (parent node, (child, return slot)), a single
     // child plus its return slot rather than a pair.
-    nonterminal_nodes_children: AVec<(SPPFNodeId, (SPPFNodeId, SlotId)), &'arena Bump>,
+    nonterminal_nodes_children: ArenaVec<'arena, (SPPFNodeId, (SPPFNodeId, SlotId))>,
     // nonterminal_nodes_children grouped by parent node, built lazily like
     // intermediate_nodes_children_map.
     nonterminal_nodes_children_map: OnceCell<FxHashMap<SPPFNodeId, Vec<(SPPFNodeId, SlotId)>>>,
-    envs: AVec<Env<'arena>, &'arena Bump>,
+    envs: ArenaVec<'arena, Env<'arena>>,
     parse_errors: InlineVec<'arena, ParseError, 8>,
     #[cfg(feature = "debug-trace")]
     pub trace_events: Option<Vec<TraceEvent>>,
@@ -875,7 +875,7 @@ impl<'i, 'arena> ExcludeByLabelParser<'i, 'arena> {
     pub fn new(
         input: &'i Input,
         start_nonterminal: NonterminalId,
-        vec_arena: &'arena Bump,
+        vec_arena: &'arena Arena,
     ) -> Self {
         init_logger();
         Self {
@@ -884,23 +884,17 @@ impl<'i, 'arena> ExcludeByLabelParser<'i, 'arena> {
             scanner: ExcludeByLabelScanner::new(input, vec_arena),
             gss_nodes_index: [const { InlineMap::Empty }; 5],
             gss_nodes_index_expr: InlineMap::Empty,
-            descriptors: AVec::with_capacity_in(
+            descriptors: vec_arena.vec_with_capacity(
                 input.len() as usize / DESCRIPTORS_CAPACITY_DIVISOR + DESCRIPTORS_CAPACITY_FLOOR,
-                vec_arena,
             ),
-            gss_nodes: AVec::with_capacity_in(
-                input.len() as usize * GSS_CAPACITY_MULTIPLIER,
-                vec_arena,
-            ),
-            sppf_nodes: AVec::with_capacity_in(
-                input.len() as usize * SPPF_CAPACITY_MULTIPLIER,
-                vec_arena,
-            ),
+            gss_nodes: vec_arena.vec_with_capacity(input.len() as usize * GSS_CAPACITY_MULTIPLIER),
+            sppf_nodes: vec_arena
+                .vec_with_capacity(input.len() as usize * SPPF_CAPACITY_MULTIPLIER),
             intermediate_nodes_index: [const { InlineMap::Empty }; 13],
             dd_intermediate_nodes_index: [const { InlineMap::Empty }; 17],
             terminal_nodes_index: [const { InlineMap::Empty }; 6],
             epsilon_nodes: {
-                let mut v = AVec::with_capacity_in(input.len() as usize + 1, vec_arena);
+                let mut v = vec_arena.vec_with_capacity(input.len() as usize + 1);
                 v.resize(input.len() as usize + 1, SPPFNodeId::NONE);
                 v
             },
@@ -910,14 +904,11 @@ impl<'i, 'arena> ExcludeByLabelParser<'i, 'arena> {
             descriptors_peak: 0,
             #[cfg(feature = "instrument")]
             ll1_call_log: vec![],
-            intermediate_nodes_children: AVec::new_in(vec_arena),
+            intermediate_nodes_children: vec_arena.vec(),
             intermediate_nodes_children_map: OnceCell::new(),
-            nonterminal_nodes_children: AVec::new_in(vec_arena),
+            nonterminal_nodes_children: vec_arena.vec(),
             nonterminal_nodes_children_map: OnceCell::new(),
-            envs: AVec::with_capacity_in(
-                input.len() as usize * ENVS_CAPACITY_MULTIPLIER,
-                vec_arena,
-            ),
+            envs: vec_arena.vec_with_capacity(input.len() as usize * ENVS_CAPACITY_MULTIPLIER),
             parse_errors: InlineVec::Empty,
             #[cfg(feature = "debug-trace")]
             trace_events: None,

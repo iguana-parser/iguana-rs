@@ -10,8 +10,8 @@ pub mod parser;
 pub mod scanner;
 pub mod types;
 use iguana_runtime::{
+    arena::Arena,
     input::Input,
-    parse_tree::Bump,
     parser::{ParseResult, Parser},
 };
 use parse_tree::*;
@@ -56,9 +56,9 @@ pub struct ParseSuccess<T> {
 /// benchmark loop.
 pub fn parse_syntax_identifier<'a>(
     input: &Input,
-    tree_arena: &'a Bump,
+    tree_arena: &'a Arena,
 ) -> std::result::Result<ParseSuccess<&'a Start<&'a SyntaxIdentifier<'a>, ()>>, ParseError> {
-    let vec_arena = Bump::new();
+    let vec_arena = Arena::new();
     let mut parser =
         MultipleExceptParser::new(input, grammar_data::START_SYNTAX_IDENTIFIER, &vec_arena);
     match parser.run() {
@@ -101,9 +101,9 @@ pub fn parse_syntax_identifier<'a>(
 /// benchmark loop.
 pub fn parse_lexical_identifier<'a>(
     input: &Input,
-    tree_arena: &'a Bump,
+    tree_arena: &'a Arena,
 ) -> std::result::Result<ParseSuccess<&'a Start<&'a LexicalIdentifier<'a>, ()>>, ParseError> {
-    let vec_arena = Bump::new();
+    let vec_arena = Arena::new();
     let mut parser =
         MultipleExceptParser::new(input, grammar_data::START_LEXICAL_IDENTIFIER, &vec_arena);
     match parser.run() {

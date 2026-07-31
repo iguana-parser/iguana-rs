@@ -10,12 +10,12 @@ use iguana_runtime::input::Span;
 #[cfg(feature = "debug-trace")]
 use iguana_runtime::trace::TraceEvent;
 use iguana_runtime::{
+    arena::{Arena, ArenaVec},
     descriptor::Descriptor,
     env::{Env, EnvId},
     gss::GSSNode,
     ids::{BindingId, GssNodeId, NonterminalId, SlotId, TerminalId},
     input::Input,
-    parse_tree::Bump,
     parser::{
         DESCRIPTORS_CAPACITY_DIVISOR, DESCRIPTORS_CAPACITY_FLOOR, GSS_CAPACITY_MULTIPLIER,
         ParseError, ParseErrorKind, Parser, SPPF_CAPACITY_MULTIPLIER, init_logger,
@@ -23,7 +23,7 @@ use iguana_runtime::{
     record,
     scanner::Scanner,
     sppf::{IntermediateNode, NonterminalNode, SPPFNode, SPPFNodeId, TerminalNode},
-    utils::{AVec, inline_map::InlineMap, inline_vec::InlineVec},
+    utils::{inline_map::InlineMap, inline_vec::InlineVec},
 };
 impl<'i, 'arena> Parser<'i, 'arena> for TokenOnlyUnsafeParser<'i, 'arena> {
     const UNSAFE: bool = true;
@@ -742,20 +742,20 @@ impl<'i, 'arena> Parser<'i, 'arena> for TokenOnlyUnsafeParser<'i, 'arena> {
     fn match_token(&mut self, terminal_id: TerminalId, input_index: u32) -> Option<u32> {
         self.scanner.match_token(terminal_id, input_index)
     }
-    fn vec_arena(&self) -> &'arena Bump {
+    fn vec_arena(&self) -> &'arena Arena {
         self.vec_arena
     }
 }
 pub struct TokenOnlyUnsafeParser<'i, 'arena> {
     start_nonterminal: NonterminalId,
     // Arena backing the parser's internal collections; reset in bulk after the parse.
-    vec_arena: &'arena Bump,
+    vec_arena: &'arena Arena,
     scanner: TokenOnlyUnsafeScanner<'i, 'arena>,
-    descriptors: AVec<Descriptor, &'arena Bump>,
-    gss_nodes: AVec<GSSNode<'arena>, &'arena Bump>,
+    descriptors: ArenaVec<'arena, Descriptor>,
+    gss_nodes: ArenaVec<'arena, GSSNode<'arena>>,
     // Per-nonterminal GSS-node index keyed by input position.
     gss_nodes_index: [InlineMap<'arena, u32, GssNodeId>; 8],
-    sppf_nodes: AVec<SPPFNode, &'arena Bump>,
+    sppf_nodes: ArenaVec<'arena, SPPFNode>,
     #[cfg(feature = "instrument")]
     descriptors_count: usize,
     #[cfg(feature = "instrument")]
@@ -763,8 +763,8 @@ pub struct TokenOnlyUnsafeParser<'i, 'arena> {
     #[cfg(feature = "instrument")]
     ll1_call_log: Vec<(NonterminalId, u32)>,
     // Epsilon nodes keyed by input position; SPPFNodeId::NONE marks an empty slot.
-    epsilon_nodes: AVec<SPPFNodeId, &'arena Bump>,
-    envs: AVec<Env<'arena>, &'arena Bump>,
+    epsilon_nodes: ArenaVec<'arena, SPPFNodeId>,
+    envs: ArenaVec<'arena, Env<'arena>>,
     parse_errors: InlineVec<'arena, ParseError, 8>,
     #[cfg(feature = "debug-trace")]
     pub trace_events: Option<Vec<TraceEvent>>,
@@ -773,7 +773,7 @@ impl<'i, 'arena> TokenOnlyUnsafeParser<'i, 'arena> {
     pub fn new(
         input: &'i Input,
         start_nonterminal: NonterminalId,
-        vec_arena: &'arena Bump,
+        vec_arena: &'arena Arena,
     ) -> Self {
         init_logger();
         Self {
@@ -781,20 +781,14 @@ impl<'i, 'arena> TokenOnlyUnsafeParser<'i, 'arena> {
             vec_arena,
             scanner: TokenOnlyUnsafeScanner::new(input, vec_arena),
             gss_nodes_index: [const { InlineMap::Empty }; 8],
-            descriptors: AVec::with_capacity_in(
+            descriptors: vec_arena.vec_with_capacity(
                 input.len() as usize / DESCRIPTORS_CAPACITY_DIVISOR + DESCRIPTORS_CAPACITY_FLOOR,
-                vec_arena,
             ),
-            gss_nodes: AVec::with_capacity_in(
-                input.len() as usize * GSS_CAPACITY_MULTIPLIER,
-                vec_arena,
-            ),
-            sppf_nodes: AVec::with_capacity_in(
-                input.len() as usize * SPPF_CAPACITY_MULTIPLIER,
-                vec_arena,
-            ),
+            gss_nodes: vec_arena.vec_with_capacity(input.len() as usize * GSS_CAPACITY_MULTIPLIER),
+            sppf_nodes: vec_arena
+                .vec_with_capacity(input.len() as usize * SPPF_CAPACITY_MULTIPLIER),
             epsilon_nodes: {
-                let mut v = AVec::with_capacity_in(input.len() as usize + 1, vec_arena);
+                let mut v = vec_arena.vec_with_capacity(input.len() as usize + 1);
                 v.resize(input.len() as usize + 1, SPPFNodeId::NONE);
                 v
             },
@@ -804,7 +798,7 @@ impl<'i, 'arena> TokenOnlyUnsafeParser<'i, 'arena> {
             descriptors_peak: 0,
             #[cfg(feature = "instrument")]
             ll1_call_log: vec![],
-            envs: AVec::new_in(vec_arena),
+            envs: vec_arena.vec(),
             parse_errors: InlineVec::Empty,
             #[cfg(feature = "debug-trace")]
             trace_events: None,

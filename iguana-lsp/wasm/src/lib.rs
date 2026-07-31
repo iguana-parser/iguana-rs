@@ -11,7 +11,7 @@
 
 use iguana_lsp::spans::GrammarSpans;
 use iguana_lsp::{BuildResult, GrammarDef, build, build_grammar_def, build_spans};
-use iguana_runtime::{input::Input, parse_tree::Bump};
+use iguana_runtime::{arena::Arena, input::Input};
 use lsp_types::SemanticTokens;
 use wasm_bindgen::prelude::*;
 
@@ -98,7 +98,7 @@ fn with_spans<T>(
     f: impl FnOnce(&GrammarDef, &GrammarSpans, &Input) -> T,
 ) -> T {
     let input = Input::from(source);
-    let tree_arena = Bump::new();
+    let tree_arena = Arena::new();
     let BuildResult::Success { ref tree, .. } = build(&input, &tree_arena) else {
         return default;
     };

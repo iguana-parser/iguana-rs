@@ -10,8 +10,8 @@ pub mod parser;
 pub mod scanner;
 pub mod types;
 use iguana_runtime::{
+    arena::Arena,
     input::Input,
-    parse_tree::Bump,
     parser::{ParseResult, Parser},
 };
 use parse_tree::*;
@@ -56,9 +56,9 @@ pub struct ParseSuccess<T> {
 /// benchmark loop.
 pub fn parse_grammar<'a>(
     input: &Input,
-    tree_arena: &'a Bump,
+    tree_arena: &'a Arena,
 ) -> std::result::Result<ParseSuccess<&'a Start<&'a Grammar<'a>, &'a Layout<'a>>>, ParseError> {
-    let vec_arena = Bump::new();
+    let vec_arena = Arena::new();
     let mut parser = IggyParser::new(input, grammar_data::START_GRAMMAR, &vec_arena);
     match parser.run() {
         ParseResult::Success(success) => {
@@ -100,9 +100,9 @@ pub fn parse_grammar<'a>(
 /// benchmark loop.
 pub fn parse_rule<'a>(
     input: &Input,
-    tree_arena: &'a Bump,
+    tree_arena: &'a Arena,
 ) -> std::result::Result<ParseSuccess<&'a Start<&'a Rule<'a>, &'a Layout<'a>>>, ParseError> {
-    let vec_arena = Bump::new();
+    let vec_arena = Arena::new();
     let mut parser = IggyParser::new(input, grammar_data::START_RULE, &vec_arena);
     match parser.run() {
         ParseResult::Success(success) => {
@@ -144,9 +144,9 @@ pub fn parse_rule<'a>(
 /// benchmark loop.
 pub fn parse_syntax_rule<'a>(
     input: &Input,
-    tree_arena: &'a Bump,
+    tree_arena: &'a Arena,
 ) -> std::result::Result<ParseSuccess<&'a Start<&'a SyntaxRule<'a>, &'a Layout<'a>>>, ParseError> {
-    let vec_arena = Bump::new();
+    let vec_arena = Arena::new();
     let mut parser = IggyParser::new(input, grammar_data::START_SYNTAX_RULE, &vec_arena);
     match parser.run() {
         ParseResult::Success(success) => {
@@ -188,9 +188,9 @@ pub fn parse_syntax_rule<'a>(
 /// benchmark loop.
 pub fn parse_annotation<'a>(
     input: &Input,
-    tree_arena: &'a Bump,
+    tree_arena: &'a Arena,
 ) -> std::result::Result<ParseSuccess<&'a Start<&'a Annotation<'a>, &'a Layout<'a>>>, ParseError> {
-    let vec_arena = Bump::new();
+    let vec_arena = Arena::new();
     let mut parser = IggyParser::new(input, grammar_data::START_ANNOTATION, &vec_arena);
     match parser.run() {
         ParseResult::Success(success) => {
@@ -232,9 +232,9 @@ pub fn parse_annotation<'a>(
 /// benchmark loop.
 pub fn parse_regex_rule<'a>(
     input: &Input,
-    tree_arena: &'a Bump,
+    tree_arena: &'a Arena,
 ) -> std::result::Result<ParseSuccess<&'a Start<&'a RegexRule<'a>, &'a Layout<'a>>>, ParseError> {
-    let vec_arena = Bump::new();
+    let vec_arena = Arena::new();
     let mut parser = IggyParser::new(input, grammar_data::START_REGEX_RULE, &vec_arena);
     match parser.run() {
         ParseResult::Success(success) => {
@@ -276,10 +276,10 @@ pub fn parse_regex_rule<'a>(
 /// benchmark loop.
 pub fn parse_pre_condition<'a>(
     input: &Input,
-    tree_arena: &'a Bump,
+    tree_arena: &'a Arena,
 ) -> std::result::Result<ParseSuccess<&'a Start<&'a PreCondition<'a>, &'a Layout<'a>>>, ParseError>
 {
-    let vec_arena = Bump::new();
+    let vec_arena = Arena::new();
     let mut parser = IggyParser::new(input, grammar_data::START_PRE_CONDITION, &vec_arena);
     match parser.run() {
         ParseResult::Success(success) => {
@@ -321,10 +321,10 @@ pub fn parse_pre_condition<'a>(
 /// benchmark loop.
 pub fn parse_post_condition<'a>(
     input: &Input,
-    tree_arena: &'a Bump,
+    tree_arena: &'a Arena,
 ) -> std::result::Result<ParseSuccess<&'a Start<&'a PostCondition<'a>, &'a Layout<'a>>>, ParseError>
 {
-    let vec_arena = Bump::new();
+    let vec_arena = Arena::new();
     let mut parser = IggyParser::new(input, grammar_data::START_POST_CONDITION, &vec_arena);
     match parser.run() {
         ParseResult::Success(success) => {
@@ -366,10 +366,10 @@ pub fn parse_post_condition<'a>(
 /// benchmark loop.
 pub fn parse_priority_level<'a>(
     input: &Input,
-    tree_arena: &'a Bump,
+    tree_arena: &'a Arena,
 ) -> std::result::Result<ParseSuccess<&'a Start<&'a PriorityLevel<'a>, &'a Layout<'a>>>, ParseError>
 {
-    let vec_arena = Bump::new();
+    let vec_arena = Arena::new();
     let mut parser = IggyParser::new(input, grammar_data::START_PRIORITY_LEVEL, &vec_arena);
     match parser.run() {
         ParseResult::Success(success) => {
@@ -411,10 +411,10 @@ pub fn parse_priority_level<'a>(
 /// benchmark loop.
 pub fn parse_associativity<'a>(
     input: &Input,
-    tree_arena: &'a Bump,
+    tree_arena: &'a Arena,
 ) -> std::result::Result<ParseSuccess<&'a Start<&'a Associativity<'a>, &'a Layout<'a>>>, ParseError>
 {
-    let vec_arena = Bump::new();
+    let vec_arena = Arena::new();
     let mut parser = IggyParser::new(input, grammar_data::START_ASSOCIATIVITY, &vec_arena);
     match parser.run() {
         ParseResult::Success(success) => {
@@ -456,9 +456,9 @@ pub fn parse_associativity<'a>(
 /// benchmark loop.
 pub fn parse_alternative<'a>(
     input: &Input,
-    tree_arena: &'a Bump,
+    tree_arena: &'a Arena,
 ) -> std::result::Result<ParseSuccess<&'a Start<&'a Alternative<'a>, &'a Layout<'a>>>, ParseError> {
-    let vec_arena = Bump::new();
+    let vec_arena = Arena::new();
     let mut parser = IggyParser::new(input, grammar_data::START_ALTERNATIVE, &vec_arena);
     match parser.run() {
         ParseResult::Success(success) => {
@@ -500,9 +500,9 @@ pub fn parse_alternative<'a>(
 /// benchmark loop.
 pub fn parse_symbol<'a>(
     input: &Input,
-    tree_arena: &'a Bump,
+    tree_arena: &'a Arena,
 ) -> std::result::Result<ParseSuccess<&'a Start<&'a Symbol<'a>, &'a Layout<'a>>>, ParseError> {
-    let vec_arena = Bump::new();
+    let vec_arena = Arena::new();
     let mut parser = IggyParser::new(input, grammar_data::START_SYMBOL, &vec_arena);
     match parser.run() {
         ParseResult::Success(success) => {
@@ -544,9 +544,9 @@ pub fn parse_symbol<'a>(
 /// benchmark loop.
 pub fn parse_regex<'a>(
     input: &Input,
-    tree_arena: &'a Bump,
+    tree_arena: &'a Arena,
 ) -> std::result::Result<ParseSuccess<&'a Start<&'a Regex<'a>, &'a Layout<'a>>>, ParseError> {
-    let vec_arena = Bump::new();
+    let vec_arena = Arena::new();
     let mut parser = IggyParser::new(input, grammar_data::START_REGEX, &vec_arena);
     match parser.run() {
         ParseResult::Success(success) => {
@@ -588,9 +588,9 @@ pub fn parse_regex<'a>(
 /// benchmark loop.
 pub fn parse_char_class<'a>(
     input: &Input,
-    tree_arena: &'a Bump,
+    tree_arena: &'a Arena,
 ) -> std::result::Result<ParseSuccess<&'a Start<&'a CharClass<'a>, &'a Layout<'a>>>, ParseError> {
-    let vec_arena = Bump::new();
+    let vec_arena = Arena::new();
     let mut parser = IggyParser::new(input, grammar_data::START_CHAR_CLASS, &vec_arena);
     match parser.run() {
         ParseResult::Success(success) => {
@@ -632,10 +632,10 @@ pub fn parse_char_class<'a>(
 /// benchmark loop.
 pub fn parse_range_element<'a>(
     input: &Input,
-    tree_arena: &'a Bump,
+    tree_arena: &'a Arena,
 ) -> std::result::Result<ParseSuccess<&'a Start<&'a RangeElement<'a>, &'a Layout<'a>>>, ParseError>
 {
-    let vec_arena = Bump::new();
+    let vec_arena = Arena::new();
     let mut parser = IggyParser::new(input, grammar_data::START_RANGE_ELEMENT, &vec_arena);
     match parser.run() {
         ParseResult::Success(success) => {
@@ -677,9 +677,9 @@ pub fn parse_range_element<'a>(
 /// benchmark loop.
 pub fn parse_range<'a>(
     input: &Input,
-    tree_arena: &'a Bump,
+    tree_arena: &'a Arena,
 ) -> std::result::Result<ParseSuccess<&'a Start<&'a Range<'a>, &'a Layout<'a>>>, ParseError> {
-    let vec_arena = Bump::new();
+    let vec_arena = Arena::new();
     let mut parser = IggyParser::new(input, grammar_data::START_RANGE, &vec_arena);
     match parser.run() {
         ParseResult::Success(success) => {
@@ -721,9 +721,9 @@ pub fn parse_range<'a>(
 /// benchmark loop.
 pub fn parse_layout<'a>(
     input: &Input,
-    tree_arena: &'a Bump,
+    tree_arena: &'a Arena,
 ) -> std::result::Result<ParseSuccess<&'a Layout<'a>>, ParseError> {
-    let vec_arena = Bump::new();
+    let vec_arena = Arena::new();
     let mut parser = IggyParser::new(input, grammar_data::LAYOUT, &vec_arena);
     match parser.run() {
         ParseResult::Success(success) => {

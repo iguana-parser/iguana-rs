@@ -232,7 +232,7 @@ impl<'a> ParserGen<'a> {
                     self.scanner.match_token(terminal_id, input_index)
                 }
 
-                fn vec_arena(&self) -> &'arena Bump {
+                fn vec_arena(&self) -> &'arena Arena {
                     self.vec_arena
                 }
             }
@@ -279,13 +279,13 @@ impl<'a> ParserGen<'a> {
                 env::{Env, EnvId},
                 gss::GSSNode,
                 ids::{BindingId, GssNodeId, NonterminalId, SlotId, TerminalId},
+                arena::{Arena, ArenaVec},
                 input::Input,
-                parse_tree::Bump,
                 parser::{Parser, ParseError, ParseErrorKind, init_logger, DESCRIPTORS_CAPACITY_DIVISOR, DESCRIPTORS_CAPACITY_FLOOR, #envs_capacity_import GSS_CAPACITY_MULTIPLIER, SPPF_CAPACITY_MULTIPLIER},
                 record,
                 scanner::Scanner,
                 sppf::{IntermediateNode, NonterminalNode, SPPFNode, SPPFNodeId, TerminalNode},
-                utils::{AVec, inline_map::InlineMap, inline_vec::InlineVec}
+                utils::{inline_map::InlineMap, inline_vec::InlineVec}
             };
             // In the unsafe mode Span is used only by LL(1) node construction; checking whether the
             // grammar has any here is expensive, so allow the unused import instead.
@@ -1119,7 +1119,7 @@ impl<'a> ParserGen<'a> {
             .any(|nt| self.is_layout(nt) && self.ff.is_ll1(nt))
         {
             quote! { layout_memo: {
-                let mut v = AVec::with_capacity_in(input.len() as usize + 1, vec_arena);
+                let mut v = vec_arena.vec_with_capacity(input.len() as usize + 1);
                 v.resize(input.len() as usize + 1, None);
                 v
             }, }
@@ -1128,7 +1128,7 @@ impl<'a> ParserGen<'a> {
         };
         let epsilon_nodes_init = if self.has_empty_alternative() {
             quote! { epsilon_nodes: {
-                let mut v = AVec::with_capacity_in(input.len() as usize + 1, vec_arena);
+                let mut v = vec_arena.vec_with_capacity(input.len() as usize + 1);
                 v.resize(input.len() as usize + 1, SPPFNodeId::NONE);
                 v
             }, }
@@ -1139,21 +1139,21 @@ impl<'a> ParserGen<'a> {
             quote! {}
         } else {
             quote! {
-                intermediate_nodes_children: AVec::new_in(vec_arena),
+                intermediate_nodes_children: vec_arena.vec(),
                 intermediate_nodes_children_map: OnceCell::new(),
-                nonterminal_nodes_children: AVec::new_in(vec_arena),
+                nonterminal_nodes_children: vec_arena.vec(),
                 nonterminal_nodes_children_map: OnceCell::new(),
             }
         };
         // Envs are created only by calls to data-dependent nonterminals, so
         // other grammars skip the input-proportional reservation.
         let envs_init = if self.nonterminal_ids.dd_nonterminals().next().is_some() {
-            quote! { envs: AVec::with_capacity_in(input.len() as usize * ENVS_CAPACITY_MULTIPLIER, vec_arena), }
+            quote! { envs: vec_arena.vec_with_capacity(input.len() as usize * ENVS_CAPACITY_MULTIPLIER), }
         } else {
-            quote! { envs: AVec::new_in(vec_arena), }
+            quote! { envs: vec_arena.vec(), }
         };
         quote! {
-            pub fn new(input: &'i Input, start_nonterminal: NonterminalId, vec_arena: &'arena Bump) -> Self {
+            pub fn new(input: &'i Input, start_nonterminal: NonterminalId, vec_arena: &'arena Arena) -> Self {
                 init_logger();
                 Self {
                     start_nonterminal,
@@ -1161,9 +1161,9 @@ impl<'a> ParserGen<'a> {
                     scanner: #scanner_init,
                     #gss_nodes_index_field,
                     #(#gss_nodes_index_fields,)*
-                    descriptors: AVec::with_capacity_in(input.len() as usize / DESCRIPTORS_CAPACITY_DIVISOR + DESCRIPTORS_CAPACITY_FLOOR, vec_arena),
-                    gss_nodes: AVec::with_capacity_in(input.len() as usize * GSS_CAPACITY_MULTIPLIER, vec_arena),
-                    sppf_nodes: AVec::with_capacity_in(input.len() as usize * SPPF_CAPACITY_MULTIPLIER, vec_arena),
+                    descriptors: vec_arena.vec_with_capacity(input.len() as usize / DESCRIPTORS_CAPACITY_DIVISOR + DESCRIPTORS_CAPACITY_FLOOR),
+                    gss_nodes: vec_arena.vec_with_capacity(input.len() as usize * GSS_CAPACITY_MULTIPLIER),
+                    sppf_nodes: vec_arena.vec_with_capacity(input.len() as usize * SPPF_CAPACITY_MULTIPLIER),
                     #intermediate_nodes_index_field
                     #terminal_nodes_index_field
                     #epsilon_nodes_init
@@ -1208,14 +1208,14 @@ impl<'a> ParserGen<'a> {
             .nonterminals()
             .any(|nt| self.is_layout(nt) && self.ff.is_ll1(nt))
         {
-            quote! { layout_memo: AVec<Option<SPPFNodeId>, &'arena Bump>, }
+            quote! { layout_memo: ArenaVec<'arena, Option<SPPFNodeId>>, }
         } else {
             quote! {}
         };
         let epsilon_nodes_field = if self.has_empty_alternative() {
             quote! {
                 #[comment = "Epsilon nodes keyed by input position; SPPFNodeId::NONE marks an empty slot."]
-                epsilon_nodes: AVec<SPPFNodeId, &'arena Bump>,
+                epsilon_nodes: ArenaVec<'arena, SPPFNodeId>,
             }
         } else {
             quote! {}
@@ -1253,13 +1253,13 @@ impl<'a> ParserGen<'a> {
                 #[comment = "An intermediate node keeps its first child inline. Children of intermediate
                              nodes are pairs: (left_child, right_child). Extra children, when there is
                              ambiguity, are stored here as (parent node, (left child, right child))."]
-                intermediate_nodes_children: AVec<(SPPFNodeId, (SPPFNodeId, SPPFNodeId)), &'arena Bump>,
+                intermediate_nodes_children: ArenaVec<'arena, (SPPFNodeId, (SPPFNodeId, SPPFNodeId))>,
                 #[comment = "intermediate_nodes_children grouped by parent node, built lazily for tree construction."]
                 intermediate_nodes_children_map: OnceCell<FxHashMap<SPPFNodeId, Vec<(SPPFNodeId, SPPFNodeId)>>>,
                 #[comment = "Extra children of ambiguous nonterminal nodes, the counterpart to
                              intermediate_nodes_children: each entry is (parent node, (child, return slot)), a single
                              child plus its return slot rather than a pair."]
-                nonterminal_nodes_children: AVec<(SPPFNodeId, (SPPFNodeId, SlotId)), &'arena Bump>,
+                nonterminal_nodes_children: ArenaVec<'arena, (SPPFNodeId, (SPPFNodeId, SlotId))>,
                 #[comment = "nonterminal_nodes_children grouped by parent node, built lazily like
                              intermediate_nodes_children_map."]
                 nonterminal_nodes_children_map: OnceCell<FxHashMap<SPPFNodeId, Vec<(SPPFNodeId, SlotId)>>>,
@@ -1269,14 +1269,14 @@ impl<'a> ParserGen<'a> {
             pub struct #parser_name_ident<'i, 'arena> {
                 start_nonterminal: NonterminalId,
                 #[comment = "Arena backing the parser's internal collections; reset in bulk after the parse."]
-                vec_arena: &'arena Bump,
+                vec_arena: &'arena Arena,
                 scanner: #scanner_ty,
-                descriptors: AVec<Descriptor, &'arena Bump>,
-                gss_nodes: AVec<GSSNode<'arena>, &'arena Bump>,
+                descriptors: ArenaVec<'arena, Descriptor>,
+                gss_nodes: ArenaVec<'arena, GSSNode<'arena>>,
                 #[comment = "Per-nonterminal GSS-node index keyed by input position."]
                 gss_nodes_index: [InlineMap<'arena, u32, GssNodeId>; #nonterminal_ids_len],
                 #(#gss_nodes_index_fields,)*
-                sppf_nodes: AVec<SPPFNode, &'arena Bump>,
+                sppf_nodes: ArenaVec<'arena, SPPFNode>,
                 #[cfg(feature = "instrument")]
                 descriptors_count: usize,
                 #[cfg(feature = "instrument")]
@@ -1286,7 +1286,7 @@ impl<'a> ParserGen<'a> {
                 #sppf_nodes_index_fields
                 #epsilon_nodes_field
                 #children_fields
-                envs: AVec<Env<'arena>, &'arena Bump>,
+                envs: ArenaVec<'arena, Env<'arena>>,
                 parse_errors: InlineVec<'arena, ParseError, 8>,
                 #layout_memo_field
                 #[cfg(feature = "debug-trace")]

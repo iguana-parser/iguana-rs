@@ -1,9 +1,9 @@
+use iguana_runtime::arena::Arena;
 use iguana_runtime::input::Input;
-use iguana_runtime::parse_tree::Bump;
 
 fn parse_error(source: &str) -> String {
     let input = Input::from(source);
-    let tree_arena = Bump::new();
+    let tree_arena = Arena::new();
     match iggy::parse_grammar(&input, &tree_arena) {
         Err(e) => e.message,
         Ok(_) => panic!("expected parse error"),

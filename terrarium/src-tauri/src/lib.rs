@@ -13,7 +13,7 @@ use std::{
 
 use iguana_runtime::cli::ParseResult;
 use iguana_runtime::input::Input;
-use iguana_runtime::parse_tree::Bump;
+use iguana_runtime::arena::Arena;
 use iguana_runtime::visualization::{gss::GSS, sppf::SPPF};
 use serde::{Deserialize, Serialize};
 use specta::Type;
@@ -187,7 +187,7 @@ impl GrammarState {
             return (self.parse_ms, self.tree_ms);
         }
         let input = Input::from(source);
-        let tree_arena = Bump::new();
+        let tree_arena = Arena::new();
         let result = iguana_lsp::build(&input, &tree_arena);
         match &result {
             iguana_lsp::BuildResult::Success {
@@ -214,7 +214,7 @@ impl GrammarState {
 
     /// Parse the current source and return the tree. Returns None if no source
     /// is set or parsing fails.
-    fn parse<'a>(&self, tree_arena: &'a Bump) -> Option<iguana_lsp::BuildResult<'a>> {
+    fn parse<'a>(&self, tree_arena: &'a Arena) -> Option<iguana_lsp::BuildResult<'a>> {
         let input = self.input.as_ref()?;
         match iguana_lsp::build(input, tree_arena) {
             result @ iguana_lsp::BuildResult::Success { .. } => Some(result),
@@ -1076,7 +1076,7 @@ fn format_grammar(source: String, state: tauri::State<Mutex<GrammarState>>) -> O
     lsp_guard(|| {
         let mut st = lock_state(&state);
         st.ensure_built(&source);
-        let tree_arena = Bump::new();
+        let tree_arena = Arena::new();
         let iguana_lsp::BuildResult::Success { tree, .. } = st.parse(&tree_arena)? else {
             return None;
         };
@@ -1091,7 +1091,7 @@ fn format_grammar(source: String, state: tauri::State<Mutex<GrammarState>>) -> O
 fn get_semantic_tokens(state: tauri::State<Mutex<GrammarState>>) -> Vec<SemanticTokenData> {
     lsp_guard(|| {
         let st = lock_state(&state);
-        let tree_arena = Bump::new();
+        let tree_arena = Arena::new();
         let Some(iguana_lsp::BuildResult::Success { tree, .. }) = st.parse(&tree_arena) else {
             return vec![];
         };
@@ -1122,7 +1122,7 @@ fn get_document_symbols(
     lsp_guard(|| {
         let mut st = lock_state(&state);
         st.ensure_built(&source);
-        let tree_arena = Bump::new();
+        let tree_arena = Arena::new();
         let Some(iguana_lsp::BuildResult::Success { tree, .. }) = st.parse(&tree_arena) else {
             return vec![];
         };
@@ -1152,7 +1152,7 @@ fn get_definition(
     lsp_guard(|| {
         let mut st = lock_state(&state);
         st.ensure_built(&source);
-        let tree_arena = Bump::new();
+        let tree_arena = Arena::new();
         let iguana_lsp::BuildResult::Success { tree, .. } = st.parse(&tree_arena)? else {
             return None;
         };
@@ -1186,7 +1186,7 @@ fn get_references(
     lsp_guard(|| {
         let mut st = lock_state(&state);
         st.ensure_built(&source);
-        let tree_arena = Bump::new();
+        let tree_arena = Arena::new();
         let Some(iguana_lsp::BuildResult::Success { tree, .. }) = st.parse(&tree_arena) else {
             return vec![];
         };
@@ -1223,7 +1223,7 @@ fn get_folding_ranges(
     lsp_guard(|| {
         let mut st = lock_state(&state);
         st.ensure_built(&source);
-        let tree_arena = Bump::new();
+        let tree_arena = Arena::new();
         let Some(iguana_lsp::BuildResult::Success { tree, .. }) = st.parse(&tree_arena) else {
             return vec![];
         };
@@ -1257,7 +1257,7 @@ fn get_diagnostics(
         let Some(ref input) = st.input else {
             return vec![];
         };
-        let tree_arena = Bump::new();
+        let tree_arena = Arena::new();
         match iguana_lsp::build(input, &tree_arena) {
             iguana_lsp::BuildResult::Success { tree, .. } => {
                 let Some(ref grammar_def) = st.grammar_def else {

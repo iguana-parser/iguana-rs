@@ -6,11 +6,11 @@
 
 use crate::parser::LongestMatchParser;
 use iguana_runtime::{
+    arena::Arena,
     ids::{NonterminalId, SlotId, TerminalId},
     input::Span,
     parse_tree::{
-        Bump, DisplayOptions, NodeKind, OneOrMany, Origin, ParseTreeBuilder, ParseTreeNode,
-        visit_sppf,
+        DisplayOptions, NodeKind, OneOrMany, Origin, ParseTreeBuilder, ParseTreeNode, visit_sppf,
     },
     sppf::{NonterminalNode, SPPFNodeId, TerminalNode},
 };
@@ -339,10 +339,10 @@ fn token_kind(terminal_id: TerminalId) -> TokenKind {
     }
 }
 pub struct LongestMatchParseTreeBuilder<'a> {
-    pub arena: &'a Bump,
+    pub arena: &'a Arena,
 }
 impl<'a> LongestMatchParseTreeBuilder<'a> {
-    pub fn new(tree_arena: &'a Bump) -> Self {
+    pub fn new(tree_arena: &'a Arena) -> Self {
         Self { arena: tree_arena }
     }
 }
@@ -432,20 +432,20 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for LongestMatchParseTreeBuilder<'a> {
             crate::grammar_data::S => {
                 let slice = self
                     .arena
-                    .alloc_slice_fill_iter(alternatives.into_iter().map(|a| a.unwrap_s()));
+                    .alloc_slice(alternatives.into_iter().map(|a| a.unwrap_s()));
                 ParseTree::S(self.arena.alloc(S::Amb(slice)))
             }
             crate::grammar_data::X => {
                 let slice = self
                     .arena
-                    .alloc_slice_fill_iter(alternatives.into_iter().map(|a| a.unwrap_x()));
+                    .alloc_slice(alternatives.into_iter().map(|a| a.unwrap_x()));
                 ParseTree::X(self.arena.alloc(X::Amb(slice)))
             }
             crate::grammar_data::START_S => {
                 let first = alternatives[0].unwrap_start_s();
-                let inner = self.arena.alloc_slice_fill_iter(
-                    alternatives.into_iter().map(|a| a.unwrap_start_s().node),
-                );
+                let inner = self
+                    .arena
+                    .alloc_slice(alternatives.into_iter().map(|a| a.unwrap_start_s().node));
                 let node = &*self.arena.alloc(S::Amb(inner));
                 ParseTree::StartS(self.arena.alloc(Start {
                     before: first.before,
@@ -456,9 +456,9 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for LongestMatchParseTreeBuilder<'a> {
             }
             crate::grammar_data::START_X => {
                 let first = alternatives[0].unwrap_start_x();
-                let inner = self.arena.alloc_slice_fill_iter(
-                    alternatives.into_iter().map(|a| a.unwrap_start_x().node),
-                );
+                let inner = self
+                    .arena
+                    .alloc_slice(alternatives.into_iter().map(|a| a.unwrap_start_x().node));
                 let node = &*self.arena.alloc(X::Amb(inner));
                 ParseTree::StartX(self.arena.alloc(Start {
                     before: first.before,

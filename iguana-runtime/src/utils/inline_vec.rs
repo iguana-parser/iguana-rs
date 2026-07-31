@@ -1,7 +1,6 @@
 use std::{array, iter, slice};
 
-use allocator_api2::vec::{IntoIter as AVecIntoIter, Vec as AVec};
-use bumpalo::Bump;
+use crate::arena::{Arena, ArenaVec, ArenaVecIntoIter};
 
 /// A vector optimized for the common case of holding 0, 1, 2, or 3 elements
 /// without any heap allocation. Once it grows beyond 3 elements it spills
@@ -22,13 +21,13 @@ pub enum InlineVec<'arena, T, const MULTIPLE_CAPACITY: usize = 8> {
     Single(T),
     Pair(T, T),
     Triple(T, T, T),
-    Multiple(AVec<T, &'arena Bump>),
+    Multiple(ArenaVec<'arena, T>),
 }
 
 impl<'arena, T, const MULTIPLE_CAPACITY: usize> InlineVec<'arena, T, MULTIPLE_CAPACITY> {
     /// Pushes `value`. Allocates the spilled buffer from `arena` on the
     /// `Triple`-to-`Multiple` transition; smaller variants ignore it.
-    pub fn push(&mut self, value: T, arena: &'arena Bump) {
+    pub fn push(&mut self, value: T, arena: &'arena Arena) {
         match self {
             InlineVec::Empty => *self = InlineVec::Single(value),
             InlineVec::Single(_) => match std::mem::take(self) {
@@ -41,7 +40,7 @@ impl<'arena, T, const MULTIPLE_CAPACITY: usize> InlineVec<'arena, T, MULTIPLE_CA
             },
             InlineVec::Triple(_, _, _) => match std::mem::take(self) {
                 InlineVec::Triple(first, second, third) => {
-                    let mut v = AVec::with_capacity_in(MULTIPLE_CAPACITY, arena);
+                    let mut v = arena.vec_with_capacity(MULTIPLE_CAPACITY);
                     v.push(first);
                     v.push(second);
                     v.push(third);
@@ -168,7 +167,7 @@ pub enum IntoIter<'arena, T> {
     Single(iter::Once<T>),
     Pair(array::IntoIter<T, 2>),
     Triple(array::IntoIter<T, 3>),
-    Multiple(AVecIntoIter<T, &'arena Bump>),
+    Multiple(ArenaVecIntoIter<'arena, T>),
 }
 
 impl<'arena, T> Iterator for IntoIter<'arena, T> {
@@ -206,7 +205,7 @@ impl<'arena, T, const MULTIPLE_CAPACITY: usize> IntoIterator
 
 #[cfg(test)]
 mod tests {
-    use bumpalo::Bump;
+    use crate::arena::Arena;
 
     use crate::utils::inline_vec::InlineVec;
 
@@ -218,7 +217,7 @@ mod tests {
 
     #[test]
     fn test_add_to_empty() {
-        let arena = Bump::new();
+        let arena = Arena::new();
         let mut l: InlineVec<usize, 8> = InlineVec::default();
         l.push(1, &arena);
         assert_eq!(l.len(), 1);
@@ -228,7 +227,7 @@ mod tests {
 
     #[test]
     fn test_add_to_single() {
-        let arena = Bump::new();
+        let arena = Arena::new();
         let mut l: InlineVec<i32, 8> = InlineVec::Single(1);
         l.push(2, &arena);
         assert_eq!(l, InlineVec::Pair(1, 2));
@@ -239,7 +238,7 @@ mod tests {
 
     #[test]
     fn test_add_to_pair() {
-        let arena = Bump::new();
+        let arena = Arena::new();
         let mut l: InlineVec<i32, 8> = InlineVec::Pair(1, 2);
         l.push(3, &arena);
         assert_eq!(l, InlineVec::Triple(1, 2, 3));
@@ -250,7 +249,7 @@ mod tests {
 
     #[test]
     fn test_add_to_triple() {
-        let arena = Bump::new();
+        let arena = Arena::new();
         let mut l: InlineVec<i32, 8> = InlineVec::Triple(1, 2, 3);
         l.push(4, &arena);
         assert!(matches!(l, InlineVec::Multiple(_)));
@@ -267,7 +266,7 @@ mod tests {
 
     #[test]
     fn spills_past_triple() {
-        let arena = Bump::new();
+        let arena = Arena::new();
         let mut l: InlineVec<i32, 8> = InlineVec::default();
         for i in 1..=5 {
             l.push(i, &arena);
@@ -279,7 +278,7 @@ mod tests {
 
     #[test]
     fn into_iter_yields_owned_values() {
-        let arena = Bump::new();
+        let arena = Arena::new();
         for n in 0..=5 {
             let mut v: InlineVec<i32, 8> = InlineVec::default();
             for i in 1..=n {

@@ -10,10 +10,7 @@ pub mod symbols;
 
 use iggy::parse_tree::{Grammar, Layout, Start};
 pub use iguana_compiler::grammar::def::GrammarDef;
-use iguana_runtime::{
-    input::Input,
-    parse_tree::{Bump, ParseTreeNode},
-};
+use iguana_runtime::{arena::Arena, input::Input, parse_tree::ParseTreeNode};
 use spans::GrammarSpans;
 use std::time::Duration;
 
@@ -55,7 +52,7 @@ pub fn build_spans<'a>(
 }
 
 /// Parse the grammar source and build the result.
-pub fn build<'a>(input: &Input, tree_arena: &'a Bump) -> BuildResult<'a> {
+pub fn build<'a>(input: &Input, tree_arena: &'a Arena) -> BuildResult<'a> {
     let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
         iggy::parse_grammar(input, tree_arena)
     }));

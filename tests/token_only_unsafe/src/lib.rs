@@ -10,8 +10,8 @@ pub mod parser;
 pub mod scanner;
 pub mod types;
 use iguana_runtime::{
+    arena::Arena,
     input::Input,
-    parse_tree::Bump,
     parser::{ParseResult, Parser},
 };
 use parse_tree::*;
@@ -56,9 +56,9 @@ pub struct ParseSuccess<T> {
 /// benchmark loop.
 pub fn parse_s<'a>(
     input: &Input,
-    tree_arena: &'a Bump,
+    tree_arena: &'a Arena,
 ) -> std::result::Result<ParseSuccess<&'a Start<&'a S<'a>, Token>>, ParseError> {
-    let vec_arena = Bump::new();
+    let vec_arena = Arena::new();
     let mut parser = TokenOnlyUnsafeParser::new(input, grammar_data::START_S, &vec_arena);
     match parser.run() {
         ParseResult::Success(success) => {
@@ -100,9 +100,9 @@ pub fn parse_s<'a>(
 /// benchmark loop.
 pub fn parse_mod<'a>(
     input: &Input,
-    tree_arena: &'a Bump,
+    tree_arena: &'a Arena,
 ) -> std::result::Result<ParseSuccess<&'a Start<&'a Mod, Token>>, ParseError> {
-    let vec_arena = Bump::new();
+    let vec_arena = Arena::new();
     let mut parser = TokenOnlyUnsafeParser::new(input, grammar_data::START_MOD, &vec_arena);
     match parser.run() {
         ParseResult::Success(success) => {
@@ -144,9 +144,9 @@ pub fn parse_mod<'a>(
 /// benchmark loop.
 pub fn parse_empty<'a>(
     input: &Input,
-    tree_arena: &'a Bump,
+    tree_arena: &'a Arena,
 ) -> std::result::Result<ParseSuccess<&'a Start<&'a Empty, Token>>, ParseError> {
-    let vec_arena = Bump::new();
+    let vec_arena = Arena::new();
     let mut parser = TokenOnlyUnsafeParser::new(input, grammar_data::START_EMPTY, &vec_arena);
     match parser.run() {
         ParseResult::Success(success) => {
@@ -188,9 +188,9 @@ pub fn parse_empty<'a>(
 /// benchmark loop.
 pub fn parse_tag<'a>(
     input: &Input,
-    tree_arena: &'a Bump,
+    tree_arena: &'a Arena,
 ) -> std::result::Result<ParseSuccess<&'a Start<&'a Tag, Token>>, ParseError> {
-    let vec_arena = Bump::new();
+    let vec_arena = Arena::new();
     let mut parser = TokenOnlyUnsafeParser::new(input, grammar_data::START_TAG, &vec_arena);
     match parser.run() {
         ParseResult::Success(success) => {

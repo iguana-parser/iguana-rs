@@ -6,11 +6,11 @@
 
 use crate::parser::MultipleExceptParser;
 use iguana_runtime::{
+    arena::Arena,
     ids::{NonterminalId, SlotId, TerminalId},
     input::Span,
     parse_tree::{
-        Bump, DisplayOptions, NodeKind, OneOrMany, Origin, ParseTreeBuilder, ParseTreeNode,
-        visit_sppf,
+        DisplayOptions, NodeKind, OneOrMany, Origin, ParseTreeBuilder, ParseTreeNode, visit_sppf,
     },
     sppf::{NonterminalNode, SPPFNodeId, TerminalNode},
 };
@@ -379,10 +379,10 @@ fn token_kind(terminal_id: TerminalId) -> TokenKind {
     }
 }
 pub struct MultipleExceptParseTreeBuilder<'a> {
-    pub arena: &'a Bump,
+    pub arena: &'a Arena,
 }
 impl<'a> MultipleExceptParseTreeBuilder<'a> {
-    pub fn new(tree_arena: &'a Bump) -> Self {
+    pub fn new(tree_arena: &'a Arena) -> Self {
         Self { arena: tree_arena }
     }
 }
@@ -461,7 +461,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for MultipleExceptParseTreeBuilder<'a> 
     ) -> ParseTree<'a> {
         match parent {
             crate::grammar_data::SYNTAX_IDENTIFIER => {
-                let slice = self.arena.alloc_slice_fill_iter(
+                let slice = self.arena.alloc_slice(
                     alternatives
                         .into_iter()
                         .map(|a| a.unwrap_syntax_identifier()),
@@ -469,7 +469,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for MultipleExceptParseTreeBuilder<'a> 
                 ParseTree::SyntaxIdentifier(self.arena.alloc(SyntaxIdentifier::Amb(slice)))
             }
             crate::grammar_data::LEXICAL_IDENTIFIER => {
-                let slice = self.arena.alloc_slice_fill_iter(
+                let slice = self.arena.alloc_slice(
                     alternatives
                         .into_iter()
                         .map(|a| a.unwrap_lexical_identifier()),
@@ -478,7 +478,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for MultipleExceptParseTreeBuilder<'a> 
             }
             crate::grammar_data::START_SYNTAX_IDENTIFIER => {
                 let first = alternatives[0].unwrap_start_syntax_identifier();
-                let inner = self.arena.alloc_slice_fill_iter(
+                let inner = self.arena.alloc_slice(
                     alternatives
                         .into_iter()
                         .map(|a| a.unwrap_start_syntax_identifier().node),
@@ -493,7 +493,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for MultipleExceptParseTreeBuilder<'a> 
             }
             crate::grammar_data::START_LEXICAL_IDENTIFIER => {
                 let first = alternatives[0].unwrap_start_lexical_identifier();
-                let inner = self.arena.alloc_slice_fill_iter(
+                let inner = self.arena.alloc_slice(
                     alternatives
                         .into_iter()
                         .map(|a| a.unwrap_start_lexical_identifier().node),

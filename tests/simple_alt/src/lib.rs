@@ -10,8 +10,8 @@ pub mod parser;
 pub mod scanner;
 pub mod types;
 use iguana_runtime::{
+    arena::Arena,
     input::Input,
-    parse_tree::Bump,
     parser::{ParseResult, Parser},
 };
 use parse_tree::*;
@@ -56,9 +56,9 @@ pub struct ParseSuccess<T> {
 /// benchmark loop.
 pub fn parse_a<'a>(
     input: &Input,
-    tree_arena: &'a Bump,
+    tree_arena: &'a Arena,
 ) -> std::result::Result<ParseSuccess<&'a Start<&'a A<'a>, ()>>, ParseError> {
-    let vec_arena = Bump::new();
+    let vec_arena = Arena::new();
     let mut parser = SimpleAltParser::new(input, grammar_data::START_A, &vec_arena);
     match parser.run() {
         ParseResult::Success(success) => {
@@ -100,9 +100,9 @@ pub fn parse_a<'a>(
 /// benchmark loop.
 pub fn parse_b<'a>(
     input: &Input,
-    tree_arena: &'a Bump,
+    tree_arena: &'a Arena,
 ) -> std::result::Result<ParseSuccess<&'a Start<&'a B<'a>, ()>>, ParseError> {
-    let vec_arena = Bump::new();
+    let vec_arena = Arena::new();
     let mut parser = SimpleAltParser::new(input, grammar_data::START_B, &vec_arena);
     match parser.run() {
         ParseResult::Success(success) => {
@@ -144,9 +144,9 @@ pub fn parse_b<'a>(
 /// benchmark loop.
 pub fn parse_c<'a>(
     input: &Input,
-    tree_arena: &'a Bump,
+    tree_arena: &'a Arena,
 ) -> std::result::Result<ParseSuccess<&'a Start<&'a C<'a>, ()>>, ParseError> {
-    let vec_arena = Bump::new();
+    let vec_arena = Arena::new();
     let mut parser = SimpleAltParser::new(input, grammar_data::START_C, &vec_arena);
     match parser.run() {
         ParseResult::Success(success) => {
@@ -188,9 +188,9 @@ pub fn parse_c<'a>(
 /// benchmark loop.
 pub fn parse_d<'a>(
     input: &Input,
-    tree_arena: &'a Bump,
+    tree_arena: &'a Arena,
 ) -> std::result::Result<ParseSuccess<&'a Start<&'a D<'a>, ()>>, ParseError> {
-    let vec_arena = Bump::new();
+    let vec_arena = Arena::new();
     let mut parser = SimpleAltParser::new(input, grammar_data::START_D, &vec_arena);
     match parser.run() {
         ParseResult::Success(success) => {

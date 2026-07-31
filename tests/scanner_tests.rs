@@ -1,6 +1,6 @@
 use iggy::scanner::IggyScanner;
+use iguana_runtime::arena::Arena;
 use iguana_runtime::input::Input;
-use iguana_runtime::parse_tree::Bump;
 
 fn match_identifier(input: &str) -> Option<u32> {
     match_identifier_at(input, 0)
@@ -8,7 +8,7 @@ fn match_identifier(input: &str) -> Option<u32> {
 
 fn match_identifier_at(input: &str, index: u32) -> Option<u32> {
     let input = Input::from(input);
-    let arena = Bump::new();
+    let arena = Arena::new();
     let scanner = IggyScanner::new(&input, &arena);
     scanner.match_terminal_2(index)
 }

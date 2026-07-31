@@ -10,8 +10,8 @@ pub mod parser;
 pub mod scanner;
 pub mod types;
 use iguana_runtime::{
+    arena::Arena,
     input::Input,
-    parse_tree::Bump,
     parser::{ParseResult, Parser},
 };
 use parse_tree::*;
@@ -56,9 +56,9 @@ pub struct ParseSuccess<T> {
 /// benchmark loop.
 pub fn parse_s<'a>(
     input: &Input,
-    tree_arena: &'a Bump,
+    tree_arena: &'a Arena,
 ) -> std::result::Result<ParseSuccess<&'a Start<&'a S<'a>, Token>>, ParseError> {
-    let vec_arena = Bump::new();
+    let vec_arena = Arena::new();
     let mut parser = NoLayoutParser::new(input, grammar_data::START_S, &vec_arena);
     match parser.run() {
         ParseResult::Success(success) => {
@@ -100,9 +100,9 @@ pub fn parse_s<'a>(
 /// benchmark loop.
 pub fn parse_id<'a>(
     input: &Input,
-    tree_arena: &'a Bump,
+    tree_arena: &'a Arena,
 ) -> std::result::Result<ParseSuccess<&'a Start<&'a Id<'a>, Token>>, ParseError> {
-    let vec_arena = Bump::new();
+    let vec_arena = Arena::new();
     let mut parser = NoLayoutParser::new(input, grammar_data::START_ID, &vec_arena);
     match parser.run() {
         ParseResult::Success(success) => {

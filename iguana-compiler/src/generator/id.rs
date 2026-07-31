@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use rustc_hash::FxHashMap;
 
 use indexmap::{IndexMap, IndexSet};
 use itertools::Itertools;
@@ -81,7 +81,7 @@ impl NonterminalIds {
 pub struct SlotIds<'a> {
     grammar: &'a Grammar,
     value: usize,
-    slot_to_id: HashMap<Slot<'a>, usize>,
+    slot_to_id: FxHashMap<Slot<'a>, usize>,
     slots: Vec<Slot<'a>>,
 }
 
@@ -90,7 +90,7 @@ impl<'a> SlotIds<'a> {
         Self {
             grammar,
             value: 0,
-            slot_to_id: HashMap::new(),
+            slot_to_id: FxHashMap::default(),
             slots: vec![],
         }
     }

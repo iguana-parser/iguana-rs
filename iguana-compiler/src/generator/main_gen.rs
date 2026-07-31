@@ -22,10 +22,11 @@ pub fn generate(grammar: &Grammar) -> TokenStream {
 
         use clap::{Parser as ClapParser, ValueEnum as ClapValueEnum};
         use iguana_runtime::{
+            arena::Arena,
             cli,
             ids::NonterminalId,
             input::Input,
-            parse_tree::{Bump, DisplayOptions, is_ambiguous},
+            parse_tree::{DisplayOptions, is_ambiguous},
             parser::{ParseResult, Parser},
             visualization::{dot::write_graph, gss::build_gss_dot_graph, sppf::build_sppf_graph},
         };
@@ -346,9 +347,9 @@ pub fn generate(grammar: &Grammar) -> TokenStream {
 
                 let passed = cli::run_golden(mode, inputs, args.dir.as_deref(), args.quiet, args.full_diff, |path| {
                     let input = Input::try_from(path)?;
-                    let tree_arena = Bump::new();
+                    let tree_arena = Arena::new();
                     let parse_tree_builder = #parse_tree_builder::new(&tree_arena);
-                    let vec_arena = Bump::new();
+                    let vec_arena = Arena::new();
                     let mut parser = #parser::new(&input, start_nonterminal_id, &vec_arena);
                     let content = match parser.run() {
                         ParseResult::Success(success) => {
@@ -401,7 +402,7 @@ pub fn generate(grammar: &Grammar) -> TokenStream {
                 let mut passed = 0usize;
                 // Reused across all files; the reset after each parse frees the
                 // arena in bulk (same pattern as bench_parse_file).
-                let mut vec_arena = Bump::new();
+                let mut vec_arena = Arena::new();
                 for entry in &entries {
                     if let Some(name) = only {
                         if entry.name != name {
@@ -512,8 +513,8 @@ pub fn generate(grammar: &Grammar) -> TokenStream {
                         if config.iters == 1 { "iteration" } else { "iterations" },
                     );
                     let file_path = file.clone();
-                    let mut tree_arena = Bump::new();
-                    let mut vec_arena = Bump::new();
+                    let mut tree_arena = Arena::new();
+                    let mut vec_arena = Arena::new();
                     return cli::run_benchmark(config, move || {
                         bench_parse_file(&file_path, start_nonterminal_id, &mut tree_arena, &mut vec_arena)
                             .expect("benchmark input could not be read, failed to parse, or is ambiguous")
@@ -592,8 +593,8 @@ pub fn generate(grammar: &Grammar) -> TokenStream {
                 // Longest source label, used to align the per-source time column.
                 let max_label = groups.iter().map(|(label, _)| label.len()).max().unwrap_or(0);
                 let mut pass = 0usize;
-                let mut tree_arena = Bump::new();
-                let mut vec_arena = Bump::new();
+                let mut tree_arena = Arena::new();
+                let mut vec_arena = Arena::new();
                 return cli::run_benchmark(config, move || {
                     // A blank line separates consecutive runs. Then announce the run (or
                     // warmup pass), each source with its time, and the whole run's time.
@@ -669,9 +670,9 @@ pub fn generate(grammar: &Grammar) -> TokenStream {
                 };
                 cli::run_repl(display_options, |text, display_options| {
                     let input = Input::from(text);
-                    let tree_arena = Bump::new();
+                    let tree_arena = Arena::new();
                     let parse_tree_builder = #parse_tree_builder::new(&tree_arena);
-                    let vec_arena = Bump::new();
+                    let vec_arena = Arena::new();
                     let mut parser = #parser::new(&input, start_nonterminal_id, &vec_arena);
                     match parser.run() {
                         ParseResult::Success(success) => {
@@ -721,8 +722,8 @@ pub fn generate(grammar: &Grammar) -> TokenStream {
                 // The arenas are reset per iteration instead of dropped, the
                 // same lifecycle as --benchmark, so the profile measures the
                 // warm-arena work the benchmark times.
-                let mut tree_arena = Bump::new();
-                let mut vec_arena = Bump::new();
+                let mut tree_arena = Arena::new();
+                let mut vec_arena = Arena::new();
                 for _ in 0..iterations {
                     let mut parser = #parser::new(&input, start_nonterminal_id, &vec_arena);
                     let result = parser.run();
@@ -752,8 +753,8 @@ pub fn generate(grammar: &Grammar) -> TokenStream {
                 eprintln!("Warning: --profile flag ignored. Recompile with `--features profile` to enable profiling.");
             }
 
-            let tree_arena = Bump::new();
-            let vec_arena = Bump::new();
+            let tree_arena = Arena::new();
+            let vec_arena = Arena::new();
             let mut parser = #parser::new(&input, start_nonterminal_id, &vec_arena);
 
             #[cfg(feature = "debug-trace")]
@@ -951,9 +952,9 @@ pub fn generate(grammar: &Grammar) -> TokenStream {
                 let bytes = input.len() as u64;
 
                 let init_start = Instant::now();
-                let tree_arena = Bump::new();
+                let tree_arena = Arena::new();
                 let parse_tree_builder = #parse_tree_builder::new(&tree_arena);
-                let vec_arena = Bump::new();
+                let vec_arena = Arena::new();
                 let mut parser = #parser::new(&input, start_nonterminal_id, &vec_arena);
                 let init_ms = init_start.elapsed().as_secs_f64() * 1000.0;
 
@@ -1088,7 +1089,7 @@ pub fn generate(grammar: &Grammar) -> TokenStream {
         /// measured. The caller's arenas are reused across files and reset
         /// between them, so they keep their chunks and teardown is a bulk
         /// reset rather than a per-file free, the pattern the arena is built for.
-        fn bench_parse_file(path: &Path, start_nonterminal_id: NonterminalId, tree_arena: &mut Bump, vec_arena: &mut Bump) -> Option<cli::PhaseTimings> {
+        fn bench_parse_file(path: &Path, start_nonterminal_id: NonterminalId, tree_arena: &mut Arena, vec_arena: &mut Arena) -> Option<cli::PhaseTimings> {
             let input_start = Instant::now();
             let input = Input::try_from(path).ok()?;
             let input_time = input_start.elapsed();

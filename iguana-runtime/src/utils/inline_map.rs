@@ -1,8 +1,6 @@
 use std::{array, hash::Hash, iter};
 
-use bumpalo::Bump;
-use hashbrown::{HashMap as AMap, hash_map};
-use rustc_hash::FxBuildHasher;
+use crate::arena::{Arena, ArenaMap, ArenaMapIter};
 
 /// Initial capacity of the map inside `Multiple`. Hashbrown sizes the table by
 /// rounding up to a power of two at the 7/8 load factor, so 7 lands at the
@@ -23,7 +21,7 @@ pub enum InlineMap<'arena, K: Clone + Eq + Hash, V: Clone> {
     Empty,
     Single((K, V)),
     Pair((K, V), (K, V)),
-    Multiple(AMap<K, V, FxBuildHasher, &'arena Bump>),
+    Multiple(ArenaMap<'arena, K, V>),
 }
 
 impl<'arena, K: Clone + Eq + Hash, V: Clone> InlineMap<'arena, K, V> {
@@ -31,7 +29,7 @@ impl<'arena, K: Clone + Eq + Hash, V: Clone> InlineMap<'arena, K, V> {
     /// `Pair`-to-`Multiple` transition; smaller variants ignore it. The caller
     /// must ensure `key` is absent; inserting a duplicate promotes the map early
     /// and leaves that key's lookup unspecified.
-    pub fn insert(&mut self, key: K, value: V, arena: &'arena Bump) {
+    pub fn insert(&mut self, key: K, value: V, arena: &'arena Arena) {
         match self {
             InlineMap::Empty => *self = InlineMap::Single((key, value)),
             InlineMap::Single(_) => match std::mem::take(self) {
@@ -40,8 +38,7 @@ impl<'arena, K: Clone + Eq + Hash, V: Clone> InlineMap<'arena, K, V> {
             },
             InlineMap::Pair(_, _) => match std::mem::take(self) {
                 InlineMap::Pair(p0, p1) => {
-                    let mut map =
-                        AMap::with_capacity_and_hasher_in(MULTIPLE_CAPACITY, FxBuildHasher, arena);
+                    let mut map = arena.map_with_capacity(MULTIPLE_CAPACITY);
                     map.insert(p0.0, p0.1);
                     map.insert(p1.0, p1.1);
                     map.insert(key, value);
@@ -94,7 +91,7 @@ pub enum Iter<'a, K, V> {
     Empty(iter::Empty<(&'a K, &'a V)>),
     Single(iter::Once<(&'a K, &'a V)>),
     Pair(array::IntoIter<(&'a K, &'a V), 2>),
-    Multiple(hash_map::Iter<'a, K, V>),
+    Multiple(ArenaMapIter<'a, K, V>),
 }
 
 impl<'a, K, V> Iterator for Iter<'a, K, V> {
@@ -128,7 +125,7 @@ impl<'a, 'arena, K: Clone + Eq + Hash, V: Clone> IntoIterator for &'a InlineMap<
 mod tests {
     use std::collections::HashMap;
 
-    use bumpalo::Bump;
+    use crate::arena::Arena;
 
     use crate::utils::inline_map::InlineMap;
 
@@ -140,7 +137,7 @@ mod tests {
 
     #[test]
     fn test_add_to_empty() {
-        let arena = Bump::new();
+        let arena = Arena::new();
         let mut map = InlineMap::default();
         map.insert(1, 2, &arena);
         assert_eq!(map.len(), 1);
@@ -150,7 +147,7 @@ mod tests {
 
     #[test]
     fn test_grows_through_pair() {
-        let arena = Bump::new();
+        let arena = Arena::new();
         let mut map: InlineMap<usize, usize> = InlineMap::default();
         map.insert(1, 10, &arena);
         assert!(matches!(map, InlineMap::Single(_)));
@@ -164,7 +161,7 @@ mod tests {
 
     #[test]
     fn test_add_to_single() {
-        let arena = Bump::new();
+        let arena = Arena::new();
         let mut l = InlineMap::Single((1, 2));
         l.insert(2, 3, &arena);
         l.insert(3, 4, &arena);

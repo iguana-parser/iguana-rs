@@ -124,6 +124,8 @@ debug = true
 
 [workspace.lints.rust]
 warnings = "deny"
+# No unsafe anywhere in the codebase; `forbid` so it cannot be re-enabled locally.
+unsafe_code = "forbid"
 
 [workspace.lints.clippy]
 collapsible_if = "allow"

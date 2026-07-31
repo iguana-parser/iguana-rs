@@ -1,3 +1,4 @@
+pub mod arena;
 pub mod cli;
 pub mod descriptor;
 pub mod dfa;

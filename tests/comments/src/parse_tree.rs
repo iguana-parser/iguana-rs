@@ -6,11 +6,11 @@
 
 use crate::parser::CommentsParser;
 use iguana_runtime::{
+    arena::Arena,
     ids::{NonterminalId, SlotId, TerminalId},
     input::Span,
     parse_tree::{
-        Bump, DisplayOptions, NodeKind, OneOrMany, Origin, ParseTreeBuilder, ParseTreeNode,
-        visit_sppf,
+        DisplayOptions, NodeKind, OneOrMany, Origin, ParseTreeBuilder, ParseTreeNode, visit_sppf,
     },
     sppf::{NonterminalNode, SPPFNodeId, TerminalNode},
 };
@@ -298,10 +298,10 @@ fn token_kind(terminal_id: TerminalId) -> TokenKind {
     }
 }
 pub struct CommentsParseTreeBuilder<'a> {
-    pub arena: &'a Bump,
+    pub arena: &'a Arena,
 }
 impl<'a> CommentsParseTreeBuilder<'a> {
-    pub fn new(tree_arena: &'a Bump) -> Self {
+    pub fn new(tree_arena: &'a Arena) -> Self {
         Self { arena: tree_arena }
     }
 }
@@ -382,14 +382,14 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for CommentsParseTreeBuilder<'a> {
             crate::grammar_data::EXPR => {
                 let slice = self
                     .arena
-                    .alloc_slice_fill_iter(alternatives.into_iter().map(|a| a.unwrap_expr()));
+                    .alloc_slice(alternatives.into_iter().map(|a| a.unwrap_expr()));
                 ParseTree::Expr(self.arena.alloc(Expr::Amb(slice)))
             }
             crate::grammar_data::START_EXPR => {
                 let first = alternatives[0].unwrap_start_expr();
-                let inner = self.arena.alloc_slice_fill_iter(
-                    alternatives.into_iter().map(|a| a.unwrap_start_expr().node),
-                );
+                let inner = self
+                    .arena
+                    .alloc_slice(alternatives.into_iter().map(|a| a.unwrap_start_expr().node));
                 let node = &*self.arena.alloc(Expr::Amb(inner));
                 ParseTree::StartExpr(self.arena.alloc(Start {
                     before: first.before,

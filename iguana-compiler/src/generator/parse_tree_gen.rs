@@ -198,10 +198,11 @@ impl<'a> ParseTreeGen<'a> {
         quote! {
             use std::vec::IntoIter;
             use iguana_runtime::{
+                arena::Arena,
                 ids::{NonterminalId, SlotId, TerminalId},
                 input::Span,
                 parse_tree::{
-                    Bump, DisplayOptions, NodeKind, #one_or_many Origin, ParseTreeBuilder,
+                    DisplayOptions, NodeKind, #one_or_many Origin, ParseTreeBuilder,
                     ParseTreeNode, visit_sppf,
                 },
                 sppf::{NonterminalNode, SPPFNodeId, TerminalNode},
@@ -731,10 +732,10 @@ impl<'a> ParseTreeGen<'a> {
         let new_ambiguity_node_method = self.gen_new_ambiguity_node_method();
         quote! {
             pub struct #builder_name_ident<'a> {
-                pub arena: &'a Bump,
+                pub arena: &'a Arena,
             }
             impl<'a> #builder_name_ident<'a> {
-                pub fn new(tree_arena: &'a Bump) -> Self {
+                pub fn new(tree_arena: &'a Arena) -> Self {
                     Self { arena: tree_arena }
                 }
             }
@@ -785,7 +786,7 @@ impl<'a> ParseTreeGen<'a> {
                     quote! {
                         crate::grammar_data::#const_name => {
                             let first = alternatives[0].#unwrap_method();
-                            let inner = self.arena.alloc_slice_fill_iter(
+                            let inner = self.arena.alloc_slice(
                                 alternatives.into_iter().map(|a| a.#unwrap_method().node)
                             );
                             let node = &*self.arena.alloc(#inner_ty::Amb(inner));
@@ -800,7 +801,7 @@ impl<'a> ParseTreeGen<'a> {
                 } else {
                     quote! {
                         crate::grammar_data::#const_name => {
-                            let slice = self.arena.alloc_slice_fill_iter(
+                            let slice = self.arena.alloc_slice(
                                 alternatives.into_iter().map(|a| a.#unwrap_method())
                             );
                             ParseTree::#variant(self.arena.alloc(#variant::Amb(slice)))

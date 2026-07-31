@@ -1,6 +1,9 @@
-use bumpalo::Bump;
-
-use crate::{dfa::Dfa, ids::TerminalId, utils::AVec, utils::inline_map::InlineMap};
+use crate::{
+    arena::{Arena, ArenaVec},
+    dfa::Dfa,
+    ids::TerminalId,
+    utils::inline_map::InlineMap,
+};
 
 pub struct Token {
     pub token_type: TerminalId,
@@ -62,12 +65,12 @@ impl<'arena, const W: usize> MatchMemoEntry<'arena, W> {
 /// Terminal matches are pure functions of `(terminal, position)`, so each
 /// pair is computed at most once and reused across the parse.
 pub struct MatchMemo<'arena, const W: usize> {
-    entries: AVec<MatchMemoEntry<'arena, W>, &'arena Bump>,
+    entries: ArenaVec<'arena, MatchMemoEntry<'arena, W>>,
 }
 
 impl<'arena, const W: usize> MatchMemo<'arena, W> {
-    pub fn new(input_len: usize, arena: &'arena Bump) -> Self {
-        let mut entries = AVec::with_capacity_in(input_len + 1, arena);
+    pub fn new(input_len: usize, arena: &'arena Arena) -> Self {
+        let mut entries = arena.vec_with_capacity(input_len + 1);
         entries.resize_with(input_len + 1, MatchMemoEntry::default);
         Self { entries }
     }
@@ -81,7 +84,7 @@ impl<'arena, const W: usize> MatchMemo<'arena, W> {
         terminal: TerminalId,
         position: u32,
         end: u32,
-        arena: &'arena Bump,
+        arena: &'arena Arena,
     ) {
         let entry = &mut self.entries[position as usize];
         entry.set_tried(terminal);
@@ -122,12 +125,12 @@ impl<const W: usize> Default for MatchAnyMemoEntry<W> {
 /// Set ids are assigned by content at code generation, so two sets with the
 /// same terminals share a memo bit.
 pub struct MatchAnyMemo<'arena, const W: usize> {
-    entries: AVec<MatchAnyMemoEntry<W>, &'arena Bump>,
+    entries: ArenaVec<'arena, MatchAnyMemoEntry<W>>,
 }
 
 impl<'arena, const W: usize> MatchAnyMemo<'arena, W> {
-    pub fn new(input_len: usize, arena: &'arena Bump) -> Self {
-        let mut entries = AVec::with_capacity_in(input_len + 1, arena);
+    pub fn new(input_len: usize, arena: &'arena Arena) -> Self {
+        let mut entries = arena.vec_with_capacity(input_len + 1);
         entries.resize_with(input_len + 1, MatchAnyMemoEntry::default);
         Self { entries }
     }

@@ -6,11 +6,11 @@
 
 use crate::parser::GroupSingleElementParser;
 use iguana_runtime::{
+    arena::Arena,
     ids::{NonterminalId, SlotId, TerminalId},
     input::Span,
     parse_tree::{
-        Bump, DisplayOptions, NodeKind, OneOrMany, Origin, ParseTreeBuilder, ParseTreeNode,
-        visit_sppf,
+        DisplayOptions, NodeKind, OneOrMany, Origin, ParseTreeBuilder, ParseTreeNode, visit_sppf,
     },
     sppf::{NonterminalNode, SPPFNodeId, TerminalNode},
 };
@@ -411,10 +411,10 @@ fn token_kind(terminal_id: TerminalId) -> TokenKind {
     }
 }
 pub struct GroupSingleElementParseTreeBuilder<'a> {
-    pub arena: &'a Bump,
+    pub arena: &'a Arena,
 }
 impl<'a> GroupSingleElementParseTreeBuilder<'a> {
-    pub fn new(tree_arena: &'a Bump) -> Self {
+    pub fn new(tree_arena: &'a Arena) -> Self {
         Self { arena: tree_arena }
     }
 }
@@ -508,26 +508,26 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for GroupSingleElementParseTreeBuilder<
             crate::grammar_data::D => {
                 let slice = self
                     .arena
-                    .alloc_slice_fill_iter(alternatives.into_iter().map(|a| a.unwrap_d()));
+                    .alloc_slice(alternatives.into_iter().map(|a| a.unwrap_d()));
                 ParseTree::D(self.arena.alloc(D::Amb(slice)))
             }
             crate::grammar_data::NUM => {
                 let slice = self
                     .arena
-                    .alloc_slice_fill_iter(alternatives.into_iter().map(|a| a.unwrap_num()));
+                    .alloc_slice(alternatives.into_iter().map(|a| a.unwrap_num()));
                 ParseTree::Num(self.arena.alloc(Num::Amb(slice)))
             }
             crate::grammar_data::GROUP_0 => {
                 let slice = self
                     .arena
-                    .alloc_slice_fill_iter(alternatives.into_iter().map(|a| a.unwrap_group_0()));
+                    .alloc_slice(alternatives.into_iter().map(|a| a.unwrap_group_0()));
                 ParseTree::Group0(self.arena.alloc(Group0::Amb(slice)))
             }
             crate::grammar_data::START_D => {
                 let first = alternatives[0].unwrap_start_d();
-                let inner = self.arena.alloc_slice_fill_iter(
-                    alternatives.into_iter().map(|a| a.unwrap_start_d().node),
-                );
+                let inner = self
+                    .arena
+                    .alloc_slice(alternatives.into_iter().map(|a| a.unwrap_start_d().node));
                 let node = &*self.arena.alloc(D::Amb(inner));
                 ParseTree::StartD(self.arena.alloc(Start {
                     before: first.before,
@@ -538,9 +538,9 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for GroupSingleElementParseTreeBuilder<
             }
             crate::grammar_data::START_NUM => {
                 let first = alternatives[0].unwrap_start_num();
-                let inner = self.arena.alloc_slice_fill_iter(
-                    alternatives.into_iter().map(|a| a.unwrap_start_num().node),
-                );
+                let inner = self
+                    .arena
+                    .alloc_slice(alternatives.into_iter().map(|a| a.unwrap_start_num().node));
                 let node = &*self.arena.alloc(Num::Amb(inner));
                 ParseTree::StartNum(self.arena.alloc(Start {
                     before: first.before,

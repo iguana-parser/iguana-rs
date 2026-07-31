@@ -551,7 +551,7 @@ mod tests {
 
     fn format_source(source: &str) -> Option<String> {
         let input = Input::from(source);
-        let tree_arena = iguana_runtime::parse_tree::Bump::new();
+        let tree_arena = iguana_runtime::arena::Arena::new();
         match build(&input, &tree_arena) {
             BuildResult::Success { tree, .. } => Some(format(tree, &input)),
             BuildResult::Error { .. } | BuildResult::Ambiguous => None,

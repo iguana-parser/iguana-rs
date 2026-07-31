@@ -2,12 +2,11 @@ use std::sync::LazyLock;
 use std::time::Duration;
 use web_time::Instant;
 
-use allocator_api2::vec::Vec as AVec;
-use bumpalo::Bump;
 use rustc_hash::FxHashMap;
 use serde::{Deserialize, Serialize};
 
 use crate::{
+    arena::Arena,
     descriptor::Descriptor,
     env::{Env, EnvId},
     gss::{GSSEdge, GSSNode},
@@ -142,7 +141,7 @@ pub trait Parser<'i, 'arena> {
     /// The arena backing the parser's internal collections: GSS edges, popped
     /// elements, env bindings, and spilled index maps. Handed to `push`/`insert`
     /// at the spill boundary; reset in bulk after the parse.
-    fn vec_arena(&self) -> &'arena Bump;
+    fn vec_arena(&self) -> &'arena Arena;
     /// Empties the descriptor queue. With no descriptors left, `run`'s loop ends and the parse
     /// terminates. `pop` calls it once the start nonterminal spans the full input, but only in
     /// the unsafe mode.
@@ -956,7 +955,7 @@ pub trait Parser<'i, 'arena> {
                 // guard compiles the ambiguous arm out.
                 if !Self::UNSAFE && n.ambiguous {
                     let extras = self.nonterminal_nodes_children_map().get(&node_id).unwrap();
-                    let mut children = AVec::with_capacity_in(1 + extras.len(), arena);
+                    let mut children = arena.vec_with_capacity(1 + extras.len());
                     children.push(n.child);
                     children.extend(extras.iter().map(|(child, _)| *child));
                     InlineVec::Multiple(children)
@@ -974,7 +973,7 @@ pub trait Parser<'i, 'arena> {
                     // So when a node is ambiguous, each extra is another pair, and
                     // the flat child list holds two nodes per pair: the node's own
                     // pair plus two per extra.
-                    let mut children = AVec::with_capacity_in(2 + 2 * extras.len(), arena);
+                    let mut children = arena.vec_with_capacity(2 + 2 * extras.len());
                     children.push(i.child.0);
                     children.push(i.child.1);
                     for (left, right) in extras {

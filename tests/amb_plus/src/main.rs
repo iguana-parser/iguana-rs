@@ -13,10 +13,11 @@ use clap::{Parser as ClapParser, ValueEnum as ClapValueEnum};
 #[cfg(feature = "debug-trace")]
 use iguana_runtime::trace::TraceEvent;
 use iguana_runtime::{
+    arena::Arena,
     cli,
     ids::NonterminalId,
     input::Input,
-    parse_tree::{Bump, DisplayOptions, is_ambiguous},
+    parse_tree::{DisplayOptions, is_ambiguous},
     parser::{ParseResult, Parser},
     visualization::{dot::write_graph, gss::build_gss_dot_graph, sppf::build_sppf_graph},
 };
@@ -347,9 +348,9 @@ fn main() -> Result<(), io::Error> {
             args.full_diff,
             |path| {
                 let input = Input::try_from(path)?;
-                let tree_arena = Bump::new();
+                let tree_arena = Arena::new();
                 let parse_tree_builder = AmbPlusParseTreeBuilder::new(&tree_arena);
-                let vec_arena = Bump::new();
+                let vec_arena = Arena::new();
                 let mut parser = AmbPlusParser::new(&input, start_nonterminal_id, &vec_arena);
                 let content = match parser.run() {
                     ParseResult::Success(success) => {
@@ -407,7 +408,7 @@ fn main() -> Result<(), io::Error> {
         }
         let mut ran = 0usize;
         let mut passed = 0usize;
-        let mut vec_arena = Bump::new();
+        let mut vec_arena = Arena::new();
         for entry in &entries {
             if let Some(name) = only {
                 if entry.name != name {
@@ -526,8 +527,8 @@ fn main() -> Result<(), io::Error> {
                 },
             );
             let file_path = file.clone();
-            let mut tree_arena = Bump::new();
-            let mut vec_arena = Bump::new();
+            let mut tree_arena = Arena::new();
+            let mut vec_arena = Arena::new();
             return cli::run_benchmark(config, move || {
                 bench_parse_file(
                     &file_path,
@@ -630,8 +631,8 @@ fn main() -> Result<(), io::Error> {
             .max()
             .unwrap_or(0);
         let mut pass = 0usize;
-        let mut tree_arena = Bump::new();
-        let mut vec_arena = Bump::new();
+        let mut tree_arena = Arena::new();
+        let mut vec_arena = Arena::new();
         return cli::run_benchmark(config, move || {
             if pass > 0 {
                 eprintln!();
@@ -729,9 +730,9 @@ fn main() -> Result<(), io::Error> {
         };
         cli::run_repl(display_options, |text, display_options| {
             let input = Input::from(text);
-            let tree_arena = Bump::new();
+            let tree_arena = Arena::new();
             let parse_tree_builder = AmbPlusParseTreeBuilder::new(&tree_arena);
-            let vec_arena = Bump::new();
+            let vec_arena = Arena::new();
             let mut parser = AmbPlusParser::new(&input, start_nonterminal_id, &vec_arena);
             match parser.run() {
                 ParseResult::Success(success) => {
@@ -791,8 +792,8 @@ fn main() -> Result<(), io::Error> {
             .frequency(999)
             .build()
             .unwrap();
-        let mut tree_arena = Bump::new();
-        let mut vec_arena = Bump::new();
+        let mut tree_arena = Arena::new();
+        let mut vec_arena = Arena::new();
         for _ in 0..iterations {
             let mut parser = AmbPlusParser::new(&input, start_nonterminal_id, &vec_arena);
             let result = parser.run();
@@ -821,8 +822,8 @@ fn main() -> Result<(), io::Error> {
             "Warning: --profile flag ignored. Recompile with `--features profile` to enable profiling."
         );
     }
-    let tree_arena = Bump::new();
-    let vec_arena = Bump::new();
+    let tree_arena = Arena::new();
+    let vec_arena = Arena::new();
     let mut parser = AmbPlusParser::new(&input, start_nonterminal_id, &vec_arena);
     #[cfg(feature = "debug-trace")]
     if args.trace.is_some() {
@@ -1017,9 +1018,9 @@ fn run_batch(
         let input_ms = input_start.elapsed().as_secs_f64() * 1000.0;
         let bytes = input.len() as u64;
         let init_start = Instant::now();
-        let tree_arena = Bump::new();
+        let tree_arena = Arena::new();
         let parse_tree_builder = AmbPlusParseTreeBuilder::new(&tree_arena);
-        let vec_arena = Bump::new();
+        let vec_arena = Arena::new();
         let mut parser = AmbPlusParser::new(&input, start_nonterminal_id, &vec_arena);
         let init_ms = init_start.elapsed().as_secs_f64() * 1000.0;
         match parser.run() {
@@ -1199,8 +1200,8 @@ fn run_batch(
 fn bench_parse_file(
     path: &Path,
     start_nonterminal_id: NonterminalId,
-    tree_arena: &mut Bump,
-    vec_arena: &mut Bump,
+    tree_arena: &mut Arena,
+    vec_arena: &mut Arena,
 ) -> Option<cli::PhaseTimings> {
     let input_start = Instant::now();
     let input = Input::try_from(path).ok()?;

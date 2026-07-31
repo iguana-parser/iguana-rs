@@ -6,11 +6,10 @@
 
 use crate::parser::TokenOnlyUnsafeParser;
 use iguana_runtime::{
+    arena::Arena,
     ids::{NonterminalId, SlotId, TerminalId},
     input::Span,
-    parse_tree::{
-        Bump, DisplayOptions, NodeKind, Origin, ParseTreeBuilder, ParseTreeNode, visit_sppf,
-    },
+    parse_tree::{DisplayOptions, NodeKind, Origin, ParseTreeBuilder, ParseTreeNode, visit_sppf},
     sppf::{NonterminalNode, SPPFNodeId, TerminalNode},
 };
 use std::vec::IntoIter;
@@ -527,10 +526,10 @@ fn token_kind(terminal_id: TerminalId) -> TokenKind {
     }
 }
 pub struct TokenOnlyUnsafeParseTreeBuilder<'a> {
-    pub arena: &'a Bump,
+    pub arena: &'a Arena,
 }
 impl<'a> TokenOnlyUnsafeParseTreeBuilder<'a> {
-    pub fn new(tree_arena: &'a Bump) -> Self {
+    pub fn new(tree_arena: &'a Arena) -> Self {
         Self { arena: tree_arena }
     }
 }

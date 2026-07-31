@@ -55,7 +55,7 @@ pub fn semantic_tokens(
 /// Convenience: parse and tokenize in one call (for tests and simple consumers).
 pub fn tokenize(source: &str) -> Vec<SemanticToken> {
     let input = Input::from(source);
-    let tree_arena = iguana_runtime::parse_tree::Bump::new();
+    let tree_arena = iguana_runtime::arena::Arena::new();
     match build(&input, &tree_arena) {
         BuildResult::Success { tree, .. } => semantic_tokens(tree, &input),
         BuildResult::Error { .. } | BuildResult::Ambiguous => vec![],

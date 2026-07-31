@@ -39,22 +39,22 @@ pub fn generate(
 
 fn gen_imports(config: &GenConfig) -> TokenStream {
     let mut scanner_imports = vec![quote! { Scanner }, quote! { TerminalSet }];
-    let bump_import = if config.match_memo {
+    let arena_import = if config.match_memo {
         scanner_imports.push(quote! { Lookup });
         scanner_imports.push(quote! { MatchMemo });
         scanner_imports.push(quote! { MatchAnyMemo });
-        quote! { use iguana_runtime::parse_tree::Bump; }
+        quote! { arena::Arena, }
     } else {
         quote! {}
     };
     quote! {
         use iguana_runtime::{
+            #arena_import
             dfa::{Dfa, State},
             ids::TerminalId,
             input::Input,
             scanner::{#(#scanner_imports),*},
         };
-        #bump_import
     }
 }
 
@@ -93,7 +93,7 @@ fn gen_scanner_struct(grammar_name: &str, config: &GenConfig) -> TokenStream {
         quote! {
             pub struct #name_ident<'i, 'arena> {
                 pub input: &'i Input,
-                vec_arena: &'arena Bump,
+                vec_arena: &'arena Arena,
                 memo: MatchMemo<'arena, MATCH_MEMO_WORDS>,
                 match_any_memo: MatchAnyMemo<'arena, MATCH_ANY_SET_WORDS>,
             }
@@ -194,7 +194,7 @@ fn gen_scanner_imp(
         (
             quote! { <'i, 'arena> },
             quote! { <'i, 'arena> },
-            quote! { input: &'i Input, vec_arena: &'arena Bump },
+            quote! { input: &'i Input, vec_arena: &'arena Arena },
             quote! {
                 let memo = MatchMemo::new(input.len() as usize, vec_arena);
                 let match_any_memo = MatchAnyMemo::new(input.len() as usize, vec_arena);

@@ -6,11 +6,11 @@
 
 use crate::parser::IndirectPostfixParser;
 use iguana_runtime::{
+    arena::Arena,
     ids::{NonterminalId, SlotId, TerminalId},
     input::Span,
     parse_tree::{
-        Bump, DisplayOptions, NodeKind, OneOrMany, Origin, ParseTreeBuilder, ParseTreeNode,
-        visit_sppf,
+        DisplayOptions, NodeKind, OneOrMany, Origin, ParseTreeBuilder, ParseTreeNode, visit_sppf,
     },
     sppf::{NonterminalNode, SPPFNodeId, TerminalNode},
 };
@@ -600,10 +600,10 @@ fn token_kind(terminal_id: TerminalId) -> TokenKind {
     }
 }
 pub struct IndirectPostfixParseTreeBuilder<'a> {
-    pub arena: &'a Bump,
+    pub arena: &'a Arena,
 }
 impl<'a> IndirectPostfixParseTreeBuilder<'a> {
-    pub fn new(tree_arena: &'a Bump) -> Self {
+    pub fn new(tree_arena: &'a Arena) -> Self {
         Self { arena: tree_arena }
     }
 }
@@ -758,32 +758,32 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectPostfixParseTreeBuilder<'a>
             crate::grammar_data::S => {
                 let slice = self
                     .arena
-                    .alloc_slice_fill_iter(alternatives.into_iter().map(|a| a.unwrap_s()));
+                    .alloc_slice(alternatives.into_iter().map(|a| a.unwrap_s()));
                 ParseTree::S(self.arena.alloc(S::Amb(slice)))
             }
             crate::grammar_data::E => {
                 let slice = self
                     .arena
-                    .alloc_slice_fill_iter(alternatives.into_iter().map(|a| a.unwrap_e()));
+                    .alloc_slice(alternatives.into_iter().map(|a| a.unwrap_e()));
                 ParseTree::E(self.arena.alloc(E::Amb(slice)))
             }
             crate::grammar_data::POSTFIX => {
                 let slice = self
                     .arena
-                    .alloc_slice_fill_iter(alternatives.into_iter().map(|a| a.unwrap_postfix()));
+                    .alloc_slice(alternatives.into_iter().map(|a| a.unwrap_postfix()));
                 ParseTree::Postfix(self.arena.alloc(Postfix::Amb(slice)))
             }
             crate::grammar_data::BODY => {
                 let slice = self
                     .arena
-                    .alloc_slice_fill_iter(alternatives.into_iter().map(|a| a.unwrap_body()));
+                    .alloc_slice(alternatives.into_iter().map(|a| a.unwrap_body()));
                 ParseTree::Body(self.arena.alloc(Body::Amb(slice)))
             }
             crate::grammar_data::START_S => {
                 let first = alternatives[0].unwrap_start_s();
-                let inner = self.arena.alloc_slice_fill_iter(
-                    alternatives.into_iter().map(|a| a.unwrap_start_s().node),
-                );
+                let inner = self
+                    .arena
+                    .alloc_slice(alternatives.into_iter().map(|a| a.unwrap_start_s().node));
                 let node = &*self.arena.alloc(S::Amb(inner));
                 ParseTree::StartS(self.arena.alloc(Start {
                     before: first.before,
@@ -794,9 +794,9 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectPostfixParseTreeBuilder<'a>
             }
             crate::grammar_data::START_E => {
                 let first = alternatives[0].unwrap_start_e();
-                let inner = self.arena.alloc_slice_fill_iter(
-                    alternatives.into_iter().map(|a| a.unwrap_start_e().node),
-                );
+                let inner = self
+                    .arena
+                    .alloc_slice(alternatives.into_iter().map(|a| a.unwrap_start_e().node));
                 let node = &*self.arena.alloc(E::Amb(inner));
                 ParseTree::StartE(self.arena.alloc(Start {
                     before: first.before,
@@ -807,7 +807,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectPostfixParseTreeBuilder<'a>
             }
             crate::grammar_data::START_POSTFIX => {
                 let first = alternatives[0].unwrap_start_postfix();
-                let inner = self.arena.alloc_slice_fill_iter(
+                let inner = self.arena.alloc_slice(
                     alternatives
                         .into_iter()
                         .map(|a| a.unwrap_start_postfix().node),
@@ -822,9 +822,9 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectPostfixParseTreeBuilder<'a>
             }
             crate::grammar_data::START_BODY => {
                 let first = alternatives[0].unwrap_start_body();
-                let inner = self.arena.alloc_slice_fill_iter(
-                    alternatives.into_iter().map(|a| a.unwrap_start_body().node),
-                );
+                let inner = self
+                    .arena
+                    .alloc_slice(alternatives.into_iter().map(|a| a.unwrap_start_body().node));
                 let node = &*self.arena.alloc(Body::Amb(inner));
                 ParseTree::StartBody(self.arena.alloc(Start {
                     before: first.before,

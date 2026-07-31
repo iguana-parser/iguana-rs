@@ -1,8 +1,7 @@
-use bumpalo::Bump;
 use serde::{Deserialize, Serialize};
 use specta::Type;
 
-use crate::{ids::BindingId, utils::inline_vec::InlineVec};
+use crate::{arena::Arena, ids::BindingId, utils::inline_vec::InlineVec};
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize, Type)]
 pub struct EnvId(pub u32);
@@ -22,7 +21,7 @@ pub struct Env<'arena> {
 }
 
 impl<'arena> Env<'arena> {
-    pub fn bind(&mut self, name: BindingId, value: i32, arena: &'arena Bump) {
+    pub fn bind(&mut self, name: BindingId, value: i32, arena: &'arena Arena) {
         self.bindings.push((name, value), arena);
     }
 

@@ -6,11 +6,11 @@
 
 use crate::parser::LayoutNonterminalParser;
 use iguana_runtime::{
+    arena::Arena,
     ids::{NonterminalId, SlotId, TerminalId},
     input::Span,
     parse_tree::{
-        Bump, DisplayOptions, NodeKind, OneOrMany, Origin, ParseTreeBuilder, ParseTreeNode,
-        visit_sppf,
+        DisplayOptions, NodeKind, OneOrMany, Origin, ParseTreeBuilder, ParseTreeNode, visit_sppf,
     },
     sppf::{NonterminalNode, SPPFNodeId, TerminalNode},
 };
@@ -681,10 +681,10 @@ fn token_kind(terminal_id: TerminalId) -> TokenKind {
     }
 }
 pub struct LayoutNonterminalParseTreeBuilder<'a> {
-    pub arena: &'a Bump,
+    pub arena: &'a Arena,
 }
 impl<'a> LayoutNonterminalParseTreeBuilder<'a> {
-    pub fn new(tree_arena: &'a Bump) -> Self {
+    pub fn new(tree_arena: &'a Arena) -> Self {
         Self { arena: tree_arena }
     }
 }
@@ -823,44 +823,44 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for LayoutNonterminalParseTreeBuilder<'
             crate::grammar_data::S => {
                 let slice = self
                     .arena
-                    .alloc_slice_fill_iter(alternatives.into_iter().map(|a| a.unwrap_s()));
+                    .alloc_slice(alternatives.into_iter().map(|a| a.unwrap_s()));
                 ParseTree::S(self.arena.alloc(S::Amb(slice)))
             }
             crate::grammar_data::LAYOUT => {
                 let slice = self
                     .arena
-                    .alloc_slice_fill_iter(alternatives.into_iter().map(|a| a.unwrap_layout()));
+                    .alloc_slice(alternatives.into_iter().map(|a| a.unwrap_layout()));
                 ParseTree::Layout(self.arena.alloc(Layout::Amb(slice)))
             }
             crate::grammar_data::ALT_0 => {
                 let slice = self
                     .arena
-                    .alloc_slice_fill_iter(alternatives.into_iter().map(|a| a.unwrap_alt_0()));
+                    .alloc_slice(alternatives.into_iter().map(|a| a.unwrap_alt_0()));
                 ParseTree::Alt0(self.arena.alloc(Alt0::Amb(slice)))
             }
             crate::grammar_data::PLUS_0 => {
                 let slice = self
                     .arena
-                    .alloc_slice_fill_iter(alternatives.into_iter().map(|a| a.unwrap_plus_0()));
+                    .alloc_slice(alternatives.into_iter().map(|a| a.unwrap_plus_0()));
                 ParseTree::Plus0(self.arena.alloc(Plus0::Amb(slice)))
             }
             crate::grammar_data::OPT_0 => {
                 let slice = self
                     .arena
-                    .alloc_slice_fill_iter(alternatives.into_iter().map(|a| a.unwrap_opt_0()));
+                    .alloc_slice(alternatives.into_iter().map(|a| a.unwrap_opt_0()));
                 ParseTree::Opt0(self.arena.alloc(Opt0::Amb(slice)))
             }
             crate::grammar_data::STAR_0 => {
                 let slice = self
                     .arena
-                    .alloc_slice_fill_iter(alternatives.into_iter().map(|a| a.unwrap_star_0()));
+                    .alloc_slice(alternatives.into_iter().map(|a| a.unwrap_star_0()));
                 ParseTree::Star0(self.arena.alloc(Star0::Amb(slice)))
             }
             crate::grammar_data::START_S => {
                 let first = alternatives[0].unwrap_start_s();
-                let inner = self.arena.alloc_slice_fill_iter(
-                    alternatives.into_iter().map(|a| a.unwrap_start_s().node),
-                );
+                let inner = self
+                    .arena
+                    .alloc_slice(alternatives.into_iter().map(|a| a.unwrap_start_s().node));
                 let node = &*self.arena.alloc(S::Amb(inner));
                 ParseTree::StartS(self.arena.alloc(Start {
                     before: first.before,

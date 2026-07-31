@@ -7,7 +7,7 @@ use iguana_lsp::format::format;
 use iguana_lsp::references::{definition, references};
 use iguana_lsp::semantic_tokens::semantic_tokens;
 use iguana_lsp::{BuildResult, build, build_grammar_def, build_spans};
-use iguana_runtime::{input::Input, parse_tree::Bump};
+use iguana_runtime::{arena::Arena, input::Input};
 use lsp_server::{Connection, Message, Notification, Request, RequestId, Response};
 use lsp_types::notification::Notification as LspNotification;
 use lsp_types::request::{
@@ -44,7 +44,7 @@ pub fn main_loop(
                             }
                         };
                         let input = Input::from(source.as_str());
-                        let tree_arena = Bump::new();
+                        let tree_arena = Arena::new();
                         let tokens = match build(&input, &tree_arena) {
                             BuildResult::Success { tree, .. } => semantic_tokens(tree, &input),
                             BuildResult::Error { .. } | BuildResult::Ambiguous => vec![],
@@ -69,7 +69,7 @@ pub fn main_loop(
                             }
                         };
                         let input = Input::from(source.as_str());
-                        let tree_arena = Bump::new();
+                        let tree_arena = Arena::new();
                         let edits = match build(&input, &tree_arena) {
                             BuildResult::Success { tree, .. } => {
                                 let formatted = format(tree, &input);
@@ -102,7 +102,7 @@ pub fn main_loop(
                             }
                         };
                         let input = Input::from(source.as_str());
-                        let tree_arena = Bump::new();
+                        let tree_arena = Arena::new();
                         let locations = (|| {
                             let BuildResult::Success { tree, .. } = build(&input, &tree_arena)
                             else {
@@ -132,7 +132,7 @@ pub fn main_loop(
                             }
                         };
                         let input = Input::from(source.as_str());
-                        let tree_arena = Bump::new();
+                        let tree_arena = Arena::new();
                         let loc = (|| {
                             let BuildResult::Success { tree, .. } = build(&input, &tree_arena)
                             else {
@@ -163,7 +163,7 @@ pub fn main_loop(
                             }
                         };
                         let input = Input::from(source.as_str());
-                        let tree_arena = Bump::new();
+                        let tree_arena = Arena::new();
                         let symbols = (|| {
                             let BuildResult::Success { tree, .. } = build(&input, &tree_arena)
                             else {
@@ -191,7 +191,7 @@ pub fn main_loop(
                             }
                         };
                         let input = Input::from(source.as_str());
-                        let tree_arena = Bump::new();
+                        let tree_arena = Arena::new();
                         let ranges = (|| {
                             let BuildResult::Success { tree, .. } = build(&input, &tree_arena)
                             else {
@@ -242,7 +242,7 @@ fn publish_diagnostics(
     source: &str,
 ) -> Result<(), Box<dyn std::error::Error + Sync + Send>> {
     let input = Input::from(source);
-    let tree_arena = Bump::new();
+    let tree_arena = Arena::new();
     let diagnostics = match build(&input, &tree_arena) {
         BuildResult::Success { tree, .. } => build_grammar_def(tree, &input)
             .map(|grammar_def| {
