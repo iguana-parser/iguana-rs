@@ -1107,15 +1107,11 @@ fn build_grammar(grammar_def: GrammarDef, dump: &[Phase]) -> Result<Grammar, Vec
         })
         .collect();
 
-    let (mut syntax_rules, layout) = if let Some(layout) = &grammar_def.layout {
-        let resolved = resolve_identifier(layout.clone(), &symbol_table);
-        (
-            layout_insertion::transform(syntax_rules, &resolved),
-            Some(resolved),
-        )
-    } else {
-        (syntax_rules, None)
-    };
+    let layout = grammar_def
+        .layout
+        .as_ref()
+        .map(|layout| resolve_identifier(layout.clone(), &symbol_table));
+    let mut syntax_rules = layout_insertion::transform(syntax_rules, layout.as_ref());
 
     // Every source nonterminal is an entry point and gets a start wrapper rule
     // (`StartX = Layout start:X Layout`, or `StartX = start:X` without layout),
