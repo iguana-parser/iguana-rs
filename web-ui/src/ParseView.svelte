@@ -241,18 +241,17 @@
   // host once), so capture it without making activeTab track it.
   let activeTab = $state<"tree" | "graph" | "sexpr">(untrack(() => views[0] ?? "tree"));
 
-  // Show spans on tree rows and in graph labels. Hidden by default, driven by the
-  // "Hide spans" checkbox in the View popover. Label-only, so unlike the structural
+  // Show spans on tree rows and in graph labels. False by default, driven by the
+  // "Show spans" checkbox in the View popover. Label-only, so unlike the structural
   // toggles below it does not pass through buildDisplayGraph.
   let showSpans = $state(false);
 
   // Whether the View-options popover (the presentation toggles) is open.
   let viewMenuOpen = $state(false);
 
-  // Presentation toggles, in the runtime's `show_*` polarity. All false is the
-  // simplified view (layout hidden, empties dropped, wrappers spliced), the
-  // default in Terrarium; the popover checkboxes are phrased as the
-  // simplifications, so a checked box means `show_* = false`.
+  // Presentation toggles, named and defaulted like the runtime's `DisplayOptions`
+  // and the parser's `--show-*` flags. All false is the simplified view: layout
+  // hidden, empties dropped, wrappers spliced.
   let displayOptions = $state<DisplayOptions>({
     showLayout: false,
     showEmpty: false,
@@ -652,7 +651,7 @@
   // off displayTree; the imperative graph is reloaded here.
   function setDisplayOption(key: keyof DisplayOptions, show: boolean) {
     displayOptions = { ...displayOptions, [key]: show };
-    // A toggle can change the root (flattening unwraps the Start wrapper;
+    // A toggle can change the root (splicing wrappers unwraps the Start wrapper;
     // showing layout re-wraps it). A root not in expandedNodes renders collapsed,
     // which reads as the whole tree collapsing, so keep the new root expanded.
     // Every other node keeps its expansion: ids are stable across the transform,
@@ -1222,25 +1221,25 @@
               <div class="view-options-menu" onclick={(e) => e.stopPropagation()}>
                 {#if parseTree.layout_name}
                   <label>
-                    <input type="checkbox" checked={!displayOptions.showLayout}
-                      onchange={(e) => setDisplayOption("showLayout", !e.currentTarget.checked)} />
-                    Hide layout
+                    <input type="checkbox" checked={displayOptions.showLayout}
+                      onchange={(e) => setDisplayOption("showLayout", e.currentTarget.checked)} />
+                    Show layout
                   </label>
                 {/if}
                 <label>
-                  <input type="checkbox" checked={!displayOptions.showEmpty}
-                    onchange={(e) => setDisplayOption("showEmpty", !e.currentTarget.checked)} />
-                  Hide empty nodes
+                  <input type="checkbox" checked={displayOptions.showEmpty}
+                    onchange={(e) => setDisplayOption("showEmpty", e.currentTarget.checked)} />
+                  Show empty nodes
                 </label>
                 <label>
-                  <input type="checkbox" checked={!displayOptions.showWrappers}
-                    onchange={(e) => setDisplayOption("showWrappers", !e.currentTarget.checked)} />
-                  Flatten wrappers
+                  <input type="checkbox" checked={displayOptions.showWrappers}
+                    onchange={(e) => setDisplayOption("showWrappers", e.currentTarget.checked)} />
+                  Show wrappers
                 </label>
                 <label>
-                  <input type="checkbox" checked={!showSpans}
-                    onchange={(e) => setShowSpans(!e.currentTarget.checked)} />
-                  Hide spans
+                  <input type="checkbox" checked={showSpans}
+                    onchange={(e) => setShowSpans(e.currentTarget.checked)} />
+                  Show spans
                 </label>
               </div>
             {/if}
