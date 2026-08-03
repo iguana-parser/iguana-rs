@@ -1,0 +1,20 @@
+grammar PrecedeFollowRestriction
+
+S = Num Id Tail | Id Tail
+
+Id = Digit !<< Name !>> Eq
+
+@Regex
+Name = [a-z]+
+
+@Regex
+Digit = [0-9]
+
+@Regex
+Num = [0-9]+
+
+@Regex
+Eq = "="
+
+@Regex
+Tail = [=;]+

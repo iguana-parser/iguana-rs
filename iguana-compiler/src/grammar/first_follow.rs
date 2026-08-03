@@ -434,76 +434,27 @@ impl<'a> FirstFollowSets<'a> {
         })
     }
 
-    /// True if `symbol` has a follow restriction whose excluded terminals
-    /// cover every terminal in `target`, i.e., none of those terminals can
-    /// immediately follow `symbol` at this position. Transparent wrappers
-    /// (`Labeled`, `Binding`, `Except`, `PrecedeRestriction`, `Exclude`) are
-    /// unwrapped first, the same set `follow_restrictions` unwraps.
+    /// True if the `!>>` restrictions on `symbol` include every terminal in
+    /// `target`, i.e., none of those terminals can immediately follow
+    /// `symbol` at this position.
     fn excludes_following(&self, symbol: &Symbol, target: &FxHashSet<Terminal>) -> bool {
-        match symbol {
-            Symbol::FollowRestriction {
-                restrictions,
-                layout_aware: false,
-                ..
-            } => {
-                let mut excluded = FxHashSet::default();
-                for r in restrictions {
-                    if let Definition::Terminal(t) = self.grammar.definition(r.resolve()) {
-                        excluded.insert(t.clone());
-                    }
-                }
-                target.iter().all(|t| excluded.contains(t))
-            }
-            // A `!>>>` restriction excludes its terminals after the layout,
-            // not at the position immediately after the symbol, so its
-            // terminals are not counted. The walk still recurses into the
-            // wrapped symbol, which may carry a plain `!>>` of its own.
-            Symbol::FollowRestriction {
-                symbol,
-                layout_aware: true,
-                ..
-            } => self.excludes_following(symbol, target),
-            Symbol::Labeled { symbol, .. }
-            | Symbol::Binding { symbol, .. }
-            | Symbol::Except { symbol, .. }
-            | Symbol::PrecedeRestriction { symbol, .. }
-            | Symbol::Exclude { symbol, .. } => self.excludes_following(symbol, target),
-            _ => false,
-        }
+        let excluded = self.follow_restrictions(symbol);
+        target.iter().all(|t| excluded.contains(t))
     }
 
-    /// The `!>>` terminals attached to a symbol reference, collected through
-    /// the transparent wrappers (`Labeled`, `Binding`, `Except`,
-    /// `PrecedeRestriction`, `Exclude`). A `!>>>` restriction contributes
-    /// nothing: it forbids its terminals after the layout, not at the
-    /// position immediately after the symbol.
+    /// The `!>>` terminals attached to a symbol reference. A `!>>>`
+    /// restriction contributes nothing: it forbids its terminals after the
+    /// layout, not at the position immediately after the symbol.
     fn follow_restrictions(&self, symbol: &Symbol) -> FxHashSet<Terminal> {
-        let mut restrictions = FxHashSet::default();
-        let mut current = symbol;
-        loop {
-            match current {
-                Symbol::FollowRestriction {
-                    symbol,
-                    restrictions: restricted,
-                    layout_aware,
-                } => {
-                    if !layout_aware {
-                        for r in restricted {
-                            if let Definition::Terminal(t) = self.grammar.definition(r.resolve()) {
-                                restrictions.insert(t.clone());
-                            }
-                        }
-                    }
-                    current = symbol;
-                }
-                Symbol::Labeled { symbol, .. }
-                | Symbol::Binding { symbol, .. }
-                | Symbol::Except { symbol, .. }
-                | Symbol::PrecedeRestriction { symbol, .. }
-                | Symbol::Exclude { symbol, .. } => current = symbol,
-                _ => return restrictions,
-            }
-        }
+        symbol
+            .restrictions()
+            .follow
+            .iter()
+            .filter_map(|r| match self.grammar.definition(r.resolve()) {
+                Definition::Terminal(t) => Some(t.clone()),
+                Definition::Nonterminal(_) => None,
+            })
+            .collect()
     }
 
     /// Records in `follow_set` that `terminal` can appear as a follow of a

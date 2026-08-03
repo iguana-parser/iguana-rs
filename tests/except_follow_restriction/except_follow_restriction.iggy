@@ -1,0 +1,15 @@
+grammar ExceptFollowRestriction
+
+S = Id \ Kw !>> Eq Tail
+
+@Regex
+Id = [a-z]+
+
+@Regex
+Kw = "if"
+
+@Regex
+Eq = "="
+
+@Regex
+Tail = [=;]+

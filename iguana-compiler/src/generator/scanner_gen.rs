@@ -7,7 +7,7 @@ use crate::{
     grammar::{
         def::Grammar,
         regex::Regex,
-        symbols::{Definition, Symbol, Terminal},
+        symbols::{Definition, Terminal},
     },
 };
 
@@ -234,10 +234,7 @@ fn gen_match_exact_method(grammar: &Grammar, terminal_ids: &TerminalIds) -> Toke
     for nonterminal in grammar.nonterminals() {
         for alternative in grammar.alternatives(nonterminal) {
             for symbol in &alternative.symbols {
-                let Symbol::Except { except, .. } = symbol else {
-                    continue;
-                };
-                for e in except {
+                for e in &symbol.restrictions().excepts {
                     let (terminal, _) = grammar.except_terminal(e);
                     let id = terminal_ids.get_id(terminal);
                     if !except_ids.contains(&id) {

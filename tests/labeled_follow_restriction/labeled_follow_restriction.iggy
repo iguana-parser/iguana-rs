@@ -1,0 +1,12 @@
+grammar LabeledFollowRestriction
+
+S = x:Name !>> Eq Tail
+
+@Regex
+Name = [a-z]+
+
+@Regex
+Eq = "="
+
+@Regex
+Tail = [=;]+

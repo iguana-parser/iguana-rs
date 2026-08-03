@@ -4,7 +4,7 @@ use crate::generator::id::TerminalIds;
 use crate::grammar::def::Grammar;
 use crate::grammar::first_follow::FirstFollowSets;
 use crate::grammar::slot::Slot;
-use crate::grammar::symbols::{Definition, Nonterminal, Symbol, Terminal};
+use crate::grammar::symbols::{Definition, Nonterminal, Terminal};
 use crate::ids::TerminalId;
 use crate::utils::to_snake_case;
 
@@ -22,7 +22,9 @@ pub enum SetKind {
     /// alternatives to start.
     FirstAlt(usize),
     /// Terminals forbidden right after the symbol at position `pos` in
-    /// alternative `alt` (a `!>>` restriction).
+    /// alternative `alt` (a `!>>` restriction). A residual `!>>>`
+    /// restriction joins this set and is checked at the same position as a
+    /// plain `!>>`.
     FollowRestriction { alt: usize, pos: usize },
 }
 
@@ -103,11 +105,18 @@ pub fn terminal_sets<'a>(grammar: &'a Grammar, ff: &FirstFollowSets) -> Vec<Term
 
         for (alt, alternative) in alternatives.iter().enumerate() {
             for (pos, symbol) in alternative.symbols.iter().enumerate() {
-                let Symbol::FollowRestriction { restrictions, .. } = symbol else {
-                    continue;
-                };
-                let terminals = restrictions
+                let restrictions = symbol.restrictions();
+                // The same identifier can appear in both lists (`X !>> T
+                // !>>> T`); it enters the set once.
+                let terminals: Vec<_> = restrictions
+                    .follow
                     .iter()
+                    .chain(
+                        restrictions
+                            .layout_aware_follow
+                            .iter()
+                            .filter(|r| !restrictions.follow.contains(r)),
+                    )
                     .map(|r| {
                         let Definition::Terminal(t) = grammar.definition(r.resolve()) else {
                             panic!("follow restriction must resolve to a terminal");
@@ -115,6 +124,9 @@ pub fn terminal_sets<'a>(grammar: &'a Grammar, ff: &FirstFollowSets) -> Vec<Term
                         t.clone()
                     })
                     .collect();
+                if terminals.is_empty() {
+                    continue;
+                }
                 sets.push(TerminalSet {
                     nonterminal,
                     kind: SetKind::FollowRestriction { alt, pos },
