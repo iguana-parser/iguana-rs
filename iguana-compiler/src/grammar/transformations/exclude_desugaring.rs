@@ -229,25 +229,12 @@ fn rewrite_target_refs(symbol: Symbol, targets: &FxHashMap<String, Vec<String>>)
             name,
             symbol: Box::new(rewrite_target_refs(*symbol, targets)),
         },
-        Symbol::Except { symbol, except } => Symbol::Except {
-            symbol: Box::new(rewrite_target_refs(*symbol, targets)),
-            except,
-        },
-        Symbol::FollowRestriction {
+        Symbol::Restricted {
             symbol,
             restrictions,
-            layout_aware,
-        } => Symbol::FollowRestriction {
+        } => Symbol::Restricted {
             symbol: Box::new(rewrite_target_refs(*symbol, targets)),
             restrictions,
-            layout_aware,
-        },
-        Symbol::PrecedeRestriction {
-            symbol,
-            restriction,
-        } => Symbol::PrecedeRestriction {
-            symbol: Box::new(rewrite_target_refs(*symbol, targets)),
-            restriction,
         },
         other => other,
     }

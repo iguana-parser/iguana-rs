@@ -116,6 +116,7 @@ The parse view, the iggy grammar editor, and the graph helpers live in the `@igu
 - When adding to a family of related methods (e.g. `add_gss_node` / `get_gss_node` / `new_gss_node`), reuse the existing verb if one fits — don't introduce a new verb (`register`, `install`) when `add` is the obvious sibling.
 - Function names match the function's own semantics, not the caller's context. A function called `tail_restriction_covers` from a caller that walks alternative tails embeds `tail` in the name even though the function itself just asks "does this symbol exclude these terminals from following?". Rename to what the function can guarantee on its own (`excludes_following`).
 - Don't combine a getter and a predicate. If a function both materializes a set and answers a yes/no about it, split: return the set from the getter, let the caller use `is_disjoint`/`contains`/etc. The two responsibilities don't share a clean name and force the caller to read the function body to understand what it returns.
+- Fix the signature, not the doc comment. When a comment has to explain why a parameter is shaped the way it is, the name is wrong. A helper taking `symbol: &str` needed a paragraph explaining that the caller renders the symbol and passes the text; renaming the parameter to `symbol_text` deleted the paragraph.
 
 # Approach
 

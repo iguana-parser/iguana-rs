@@ -46,10 +46,7 @@ impl<'a> ReachabilityGraph<'a> {
             Symbol::Labeled { symbol, .. } | Symbol::Binding { symbol, .. } => {
                 Self::visit_symbol(grammar, symbol, visited);
             }
-            Symbol::Except { symbol, .. }
-            | Symbol::FollowRestriction { symbol, .. }
-            | Symbol::PrecedeRestriction { symbol, .. }
-            | Symbol::Exclude { symbol, .. } => {
+            Symbol::Restricted { symbol, .. } | Symbol::Exclude { symbol, .. } => {
                 Self::visit_symbol(grammar, symbol, visited);
             }
             Symbol::Group(symbols) | Symbol::Alt(symbols) => {

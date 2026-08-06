@@ -96,9 +96,7 @@ fn visit_symbol(symbol: &Symbol, f: &mut impl FnMut(&Symbol)) {
     match symbol {
         Symbol::Labeled { symbol, .. }
         | Symbol::Binding { symbol, .. }
-        | Symbol::Except { symbol, .. }
-        | Symbol::FollowRestriction { symbol, .. }
-        | Symbol::PrecedeRestriction { symbol, .. }
+        | Symbol::Restricted { symbol, .. }
         | Symbol::Exclude { symbol, .. }
         | Symbol::Opt(symbol) => visit_symbol(symbol, f),
         Symbol::Group(symbols) | Symbol::Alt(symbols) => {

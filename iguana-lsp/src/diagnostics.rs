@@ -298,6 +298,63 @@ Primary
         assert!(d[0].message.contains("Foo"));
     }
 
+    /// One `Restricted` node holds all of a symbol's restrictions, and the
+    /// spans come from a chain of parse-tree nodes. A kind split over two
+    /// nodes has to pair each of its identifiers with the token it was built
+    /// from, or an unresolved name in the second node goes unreported.
+    #[test]
+    fn unresolved_identifiers_in_a_split_restriction_chain() {
+        let d = diags(
+            r#"
+grammar T
+
+S
+  = A !>> Undef1 \ Undef2 !>> Undef3 A
+
+A
+  = "a"
+"#,
+        );
+        let names: Vec<_> = d.iter().map(|d| &d.message).collect();
+        assert_eq!(
+            d.len(),
+            3,
+            "expected one per undefined name, got: {names:?}"
+        );
+        for name in ["Undef1", "Undef2", "Undef3"] {
+            assert!(
+                d.iter().any(|d| d.message.contains(name)),
+                "{name} went unreported, got: {names:?}",
+            );
+        }
+    }
+
+    /// An exclusion written outside the restrictions puts an `Exclude` node
+    /// above the restriction nodes in the parse-tree chain. The grammar
+    /// symbol keeps it below the `Restricted` node.
+    #[test]
+    fn unresolved_restriction_under_an_exclusion() {
+        let d = diags(
+            r#"
+grammar T
+
+S
+  = A !>> Undef !Alt A
+
+A
+  = "a"    #Alt
+  | "b"
+"#,
+        );
+        let names: Vec<_> = d.iter().map(|d| &d.message).collect();
+        assert_eq!(
+            d.len(),
+            1,
+            "expected 1 diagnostic for Undef, got: {names:?}"
+        );
+        assert!(d[0].message.contains("Undef"));
+    }
+
     #[test]
     fn unresolved_regex_identifier() {
         let d = diags(

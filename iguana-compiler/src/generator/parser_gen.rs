@@ -528,9 +528,7 @@ impl<'a> ParserGen<'a> {
                 | Symbol::Plus(_, _)
                 | Symbol::Call { .. }
                 | Symbol::Binding { .. }
-                | Symbol::Except { .. }
-                | Symbol::FollowRestriction { .. }
-                | Symbol::PrecedeRestriction { .. },
+                | Symbol::Restricted { .. },
             )
             | None => {}
         }

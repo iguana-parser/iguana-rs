@@ -365,6 +365,21 @@ fn collect_symbol_seq_spans<'a>(
     }
 }
 
+/// Gives each identifier the span of the token it was built from. `ids` runs
+/// over one kind of restriction across the whole chain, while the tokens
+/// belong to one node of that chain, so the tokens drive the pairing. Zipping
+/// the other way around would consume an identifier the current node has no
+/// token for, leaving that identifier without a span.
+fn pair_identifiers<'a>(
+    ids: &mut impl Iterator<Item = &'a Identifier>,
+    tokens: impl IntoIterator<Item = parse_tree::Token>,
+    spans: &mut GrammarSpans<'a>,
+) {
+    for (token, id) in tokens.into_iter().zip(ids) {
+        spans.identifiers.insert(ByAddress(id), token.span());
+    }
+}
+
 fn collect_symbol_spans<'a>(
     gr_sym: &'a Symbol,
     pt_sym: &parse_tree::Symbol,
@@ -448,69 +463,89 @@ fn collect_symbol_spans<'a>(
             let label_spans: Vec<Span> = labels.identifiers().map(|t| t.span()).collect();
             spans.label_spans.insert(ByAddress(gr_sym), label_spans);
         }
+        // The parse tree has one node per restriction operator, and the
+        // grammar symbol has one `Restricted` node for all of them. This arm
+        // peels the parse-tree chain down to the symbol the restrictions
+        // apply to, matching each kind's identifiers with the tokens they
+        // were built from. An `!label` exclusion can appear anywhere in the
+        // chain and sits below the `Restricted` node. The peel passes over
+        // the exclusion and hands it to the `Exclude` arm.
         (
-            Symbol::Except {
+            Symbol::Restricted {
                 symbol: gr_inner,
-                except,
-                ..
-            },
-            parse_tree::Symbol::Except {
-                symbol, excepts, ..
-            },
-        ) => {
-            collect_symbol_spans(gr_inner, symbol, spans);
-            for (id, token) in except.iter().zip(excepts.identifiers()) {
-                spans.identifiers.insert(ByAddress(id), token.span());
-            }
-        }
-        (
-            Symbol::FollowRestriction {
-                symbol: gr_inner,
-                restrictions: gr_restrictions,
-                ..
-            },
-            parse_tree::Symbol::FollowRestriction {
-                symbol,
                 restrictions,
-                ..
             },
+            parse_tree::Symbol::Except { .. }
+            | parse_tree::Symbol::FollowRestriction { .. }
+            | parse_tree::Symbol::LayoutAwareFollowRestriction { .. }
+            | parse_tree::Symbol::PrecedeRestriction { .. }
+            | parse_tree::Symbol::Exclude { .. },
         ) => {
-            collect_symbol_spans(gr_inner, symbol, spans);
-            for (id, token) in gr_restrictions.iter().zip(restrictions.identifiers()) {
-                spans.identifiers.insert(ByAddress(id), token.span());
+            let mut chain = Vec::new();
+            let mut pt_exclude = None;
+            let mut pt_core = pt_sym;
+            loop {
+                match pt_core {
+                    parse_tree::Symbol::Except { symbol, .. }
+                    | parse_tree::Symbol::FollowRestriction { symbol, .. }
+                    | parse_tree::Symbol::LayoutAwareFollowRestriction { symbol, .. }
+                    | parse_tree::Symbol::PrecedeRestriction { symbol, .. } => {
+                        chain.push(pt_core);
+                        pt_core = symbol;
+                    }
+                    parse_tree::Symbol::Exclude { symbol, .. } => {
+                        pt_exclude = Some(pt_core);
+                        pt_core = symbol;
+                    }
+                    _ => break,
+                }
             }
-        }
-        (
-            Symbol::FollowRestriction {
-                symbol: gr_inner,
-                restrictions: gr_restrictions,
-                ..
-            },
-            parse_tree::Symbol::LayoutAwareFollowRestriction {
-                symbol,
-                restrictions,
-                ..
-            },
-        ) => {
-            collect_symbol_spans(gr_inner, symbol, spans);
-            for (id, token) in gr_restrictions.iter().zip(restrictions.identifiers()) {
-                spans.identifiers.insert(ByAddress(id), token.span());
+
+            // The postfix operators (`\`, `!>>`, `!>>>`) nest with the
+            // rightmost operator outermost, and the prefix `!<<` nests with
+            // the leftmost operator outermost. Walking the chain from the
+            // innermost node out visits the postfix operators in source
+            // order, and walking it from the outermost node in visits the
+            // `!<<` operators in source order.
+            let mut excepts = restrictions.excepts.iter();
+            let mut follow = restrictions.follow.iter();
+            let mut layout_aware_follow = restrictions.layout_aware_follow.iter();
+            for node in chain.iter().rev() {
+                match node {
+                    parse_tree::Symbol::Except {
+                        excepts: tokens, ..
+                    } => {
+                        pair_identifiers(&mut excepts, tokens.identifiers(), spans);
+                    }
+                    parse_tree::Symbol::FollowRestriction {
+                        restrictions: tokens,
+                        ..
+                    } => pair_identifiers(&mut follow, tokens.identifiers(), spans),
+                    parse_tree::Symbol::LayoutAwareFollowRestriction {
+                        restrictions: tokens,
+                        ..
+                    } => {
+                        pair_identifiers(&mut layout_aware_follow, tokens.identifiers(), spans);
+                    }
+                    _ => {}
+                }
             }
-        }
-        (
-            Symbol::PrecedeRestriction {
-                symbol: gr_inner,
-                restriction,
-                ..
-            },
-            parse_tree::Symbol::PrecedeRestriction {
-                symbol, identifier, ..
-            },
-        ) => {
-            collect_symbol_spans(gr_inner, symbol, spans);
-            spans
-                .identifiers
-                .insert(ByAddress(restriction), identifier.span());
+            let mut precede = restrictions.precede.iter();
+            for node in &chain {
+                if let parse_tree::Symbol::PrecedeRestriction { identifier, .. } = node {
+                    pair_identifiers(&mut precede, [*identifier], spans);
+                }
+            }
+
+            // An exclusion pairs with its own parse-tree node, which holds
+            // the label spans. Every other symbol pairs with the node at the
+            // bottom of the chain.
+            match (gr_inner.as_ref(), pt_exclude) {
+                (Symbol::Exclude { .. }, Some(pt_exclude)) => {
+                    collect_symbol_spans(gr_inner, pt_exclude, spans)
+                }
+                _ => collect_symbol_spans(gr_inner, pt_core, spans),
+            }
         }
         _ => {}
     }

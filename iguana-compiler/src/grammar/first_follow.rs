@@ -225,11 +225,12 @@ impl<'a> FirstFollowSets<'a> {
         }
     }
 
-    /// The DFA of a terminal's language, with its excludes and excepts baked in,
-    /// or `None` for a sentinel with no lexical rule. Built the same way the
-    /// scanner builds terminal DFAs, so `\` and except restrictions carry into
-    /// the compared languages. Built on demand: only the FIRST terminals of a
-    /// candidate LL(1) nonterminal's alternatives are ever compared.
+    /// The DFA of a terminal's language, with its excepts (`\`) baked in, or
+    /// `None` for a sentinel with no lexical rule. Built the same way the
+    /// scanner builds terminal DFAs, so the compared languages already have
+    /// the excepted strings taken out. Built on demand: only the FIRST
+    /// terminals of a candidate LL(1) nonterminal's alternatives are ever
+    /// compared.
     fn terminal_dfa(&self, terminal: &Terminal) -> Option<Dfa> {
         let rule = self.grammar.lexical_rule(terminal)?;
         // The terminal id only labels accept states, which the prefix check does
@@ -554,10 +555,9 @@ impl<'a> FirstFollowSets<'a> {
             Symbol::Opt(_) | Symbol::Star(_, _) => true,
             Symbol::Alt(symbols) => symbols.iter().any(|s| self.is_nullable(s)),
             Symbol::Plus(symbol, _) => self.is_nullable(symbol),
-            Symbol::Except { symbol, .. }
-            | Symbol::FollowRestriction { symbol, .. }
-            | Symbol::PrecedeRestriction { symbol, .. }
-            | Symbol::Exclude { symbol, .. } => self.is_nullable(symbol),
+            Symbol::Restricted { symbol, .. } | Symbol::Exclude { symbol, .. } => {
+                self.is_nullable(symbol)
+            }
             // Conditions and returns don't consume input, so they are nullable.
             Symbol::Condition(_) | Symbol::Return(_) => true,
             Symbol::Call { name, .. } => {
@@ -626,10 +626,7 @@ impl<'a> FirstFollowSets<'a> {
             Symbol::Labeled { symbol, .. } | Symbol::Binding { symbol, .. } => {
                 self.collect_first_of_symbol(symbol, result);
             }
-            Symbol::Except { symbol, .. }
-            | Symbol::FollowRestriction { symbol, .. }
-            | Symbol::PrecedeRestriction { symbol, .. }
-            | Symbol::Exclude { symbol, .. } => {
+            Symbol::Restricted { symbol, .. } | Symbol::Exclude { symbol, .. } => {
                 self.collect_first_of_symbol(symbol, result);
             }
             Symbol::Group(symbols) => {
@@ -670,10 +667,9 @@ impl<'a> FirstFollowSets<'a> {
             Symbol::Labeled { symbol, .. } | Symbol::Binding { symbol, .. } => {
                 self.symbol_nonterminal(symbol)
             }
-            Symbol::Except { symbol, .. }
-            | Symbol::FollowRestriction { symbol, .. }
-            | Symbol::PrecedeRestriction { symbol, .. }
-            | Symbol::Exclude { symbol, .. } => self.symbol_nonterminal(symbol),
+            Symbol::Restricted { symbol, .. } | Symbol::Exclude { symbol, .. } => {
+                self.symbol_nonterminal(symbol)
+            }
             Symbol::Call { name, .. } => self.symbol_nonterminal(&Symbol::Identifier(name.clone())),
             _ => None,
         }
@@ -751,7 +747,7 @@ impl<'a> FirstFollowSets<'a> {
 mod tests {
     use super::*;
     use crate::grammar::def::GrammarDef;
-    use crate::{alternative, grammar_def, id, lit, priority_level, syntax_rule};
+    use crate::{alternative, follow, grammar_def, id, lit, priority_level, syntax_rule};
 
     // ---------------------------------------------------------------
     // Grammar 1: Classic expression grammar (Dragon Book, Example 4.17)
@@ -1191,16 +1187,8 @@ mod tests {
     // ---------------------------------------------------------------
     fn restricted_opt_grammar_def() -> GrammarDef {
         use crate::grammar::regex::Regex;
-        use crate::grammar::symbols::Identifier;
         use crate::lexical_rule;
-        let restricted_o = Symbol::FollowRestriction {
-            symbol: Box::new(id!("O")),
-            restrictions: vec![Identifier {
-                name: "AB".into(),
-                definition: None,
-            }],
-            layout_aware: false,
-        };
+        let restricted_o = follow!(id!("O"), "AB");
         grammar_def!("opt_prefix_restricted",
             syntax: [
                 syntax_rule!("S" => alternative!(restricted_o, id!("A"), id!("B"))),

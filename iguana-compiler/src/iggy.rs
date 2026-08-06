@@ -10,7 +10,7 @@ use crate::grammar::{
         SyntaxRule,
     },
     regex::{CharClass, CharRange, Regex},
-    symbols::{Identifier, Nonterminal, Symbol, Terminal},
+    symbols::{Identifier, Nonterminal, Restrictions, Symbol, Terminal},
 };
 
 pub fn parse_grammar(source: &str) -> Result<GrammarDef, ParseError> {
@@ -228,68 +228,102 @@ fn convert_symbol(symbol: &parse_tree::Symbol, input: &Input) -> Symbol {
             name: input.text(identifier.span()),
             definition: None,
         }),
-        parse_tree::Symbol::Except {
-            symbol, excepts, ..
-        } => Symbol::Except {
-            symbol: Box::new(convert_symbol(symbol, input)),
-            except: excepts
-                .identifiers()
-                .map(|token| Identifier {
-                    name: input.text(token.span()),
-                    definition: None,
-                })
-                .collect(),
-        },
-        parse_tree::Symbol::FollowRestriction {
-            symbol,
-            restrictions,
-            ..
-        } => Symbol::FollowRestriction {
-            symbol: Box::new(convert_symbol(symbol, input)),
-            restrictions: restrictions
-                .identifiers()
-                .map(|token| Identifier {
-                    name: input.text(token.span()),
-                    definition: None,
-                })
-                .collect(),
-            layout_aware: false,
-        },
-        parse_tree::Symbol::LayoutAwareFollowRestriction {
-            symbol,
-            restrictions,
-            ..
-        } => Symbol::FollowRestriction {
-            symbol: Box::new(convert_symbol(symbol, input)),
-            restrictions: restrictions
-                .identifiers()
-                .map(|token| Identifier {
-                    name: input.text(token.span()),
-                    definition: None,
-                })
-                .collect(),
-            layout_aware: true,
-        },
-        parse_tree::Symbol::PrecedeRestriction {
-            symbol, identifier, ..
-        } => Symbol::PrecedeRestriction {
-            symbol: Box::new(convert_symbol(symbol, input)),
-            restriction: Identifier {
-                name: input.text(identifier.span()),
-                definition: None,
-            },
-        },
-        parse_tree::Symbol::Exclude { symbol, labels, .. } => {
-            let labels = labels
-                .identifiers()
-                .map(|token| input.text(token.span()))
-                .collect();
-            Symbol::Exclude {
-                symbol: Box::new(convert_symbol(symbol, input)),
-                labels,
-            }
+        // A symbol reference can be written with several restrictions in any
+        // order, and an exclusion can sit among them. One `Restricted` node
+        // holds every restriction, and one walk converts the whole chain.
+        parse_tree::Symbol::Except { .. }
+        | parse_tree::Symbol::FollowRestriction { .. }
+        | parse_tree::Symbol::LayoutAwareFollowRestriction { .. }
+        | parse_tree::Symbol::PrecedeRestriction { .. }
+        | parse_tree::Symbol::Exclude { .. } => {
+            let mut restrictions = Restrictions::default();
+            let symbol = convert_restricted(symbol, input, &mut restrictions);
+            Symbol::restricted(symbol, restrictions)
         }
         parse_tree::Symbol::Amb(_) => panic!("unexpected ambiguity"),
+    }
+}
+
+/// Converts a symbol reference written with restrictions, collecting them
+/// into `restrictions` and returning the symbol they apply to. The walk
+/// descends to that symbol and records each restriction on the way, in
+/// source order:
+///
+/// - The postfix operators (`\`, `!>>`, `!>>>`) nest with the rightmost
+///   operator outermost. The walk records them on the way back up.
+/// - The prefix operator (`!<<`) nests with the leftmost operator outermost.
+///   The walk records it on the way down.
+/// - An exclusion (`!label`) sits at the same level as the restrictions and
+///   can be written anywhere among them. The walk rebuilds the exclusion
+///   around the converted symbol. The exclusion therefore ends up below the
+///   `Restricted` node in both spellings.
+fn convert_restricted(
+    symbol: &parse_tree::Symbol,
+    input: &Input,
+    restrictions: &mut Restrictions,
+) -> Symbol {
+    match symbol {
+        parse_tree::Symbol::Except {
+            symbol, excepts, ..
+        } => {
+            let converted = convert_restricted(symbol, input, restrictions);
+            add_restrictions(&mut restrictions.excepts, excepts.identifiers(), input);
+            converted
+        }
+        parse_tree::Symbol::FollowRestriction {
+            symbol,
+            restrictions: follow,
+            ..
+        } => {
+            let converted = convert_restricted(symbol, input, restrictions);
+            add_restrictions(&mut restrictions.follow, follow.identifiers(), input);
+            converted
+        }
+        parse_tree::Symbol::LayoutAwareFollowRestriction {
+            symbol,
+            restrictions: follow,
+            ..
+        } => {
+            let converted = convert_restricted(symbol, input, restrictions);
+            add_restrictions(
+                &mut restrictions.layout_aware_follow,
+                follow.identifiers(),
+                input,
+            );
+            converted
+        }
+        parse_tree::Symbol::PrecedeRestriction {
+            symbol, identifier, ..
+        } => {
+            add_restrictions(&mut restrictions.precede, [*identifier], input);
+            convert_restricted(symbol, input, restrictions)
+        }
+        parse_tree::Symbol::Exclude { symbol, labels, .. } => Symbol::Exclude {
+            symbol: Box::new(convert_restricted(symbol, input, restrictions)),
+            labels: labels
+                .identifiers()
+                .map(|token| input.text(token.span()))
+                .collect(),
+        },
+        symbol => convert_symbol(symbol, input),
+    }
+}
+
+/// Appends the restrictions that `list` does not already hold. A restriction
+/// written twice on one symbol is recorded once.
+fn add_restrictions(
+    list: &mut Vec<Identifier>,
+    tokens: impl IntoIterator<Item = parse_tree::Token>,
+    input: &Input,
+) {
+    for token in tokens {
+        let id = Identifier {
+            name: input.text(token.span()),
+            definition: None,
+        };
+        if !list.contains(&id) {
+            list.push(id);
+        }
     }
 }
 
@@ -450,4 +484,99 @@ fn parse_char(s: &str) -> char {
 
 fn parse_range_char(s: &str) -> char {
     parse_char(s)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    /// The first symbol of the first alternative, for a grammar with one
+    /// rule.
+    fn first_symbol(source: &str) -> Symbol {
+        let grammar = parse_grammar(source).expect("the grammar should parse");
+        grammar.syntax_rules[0].priority_levels[0].alternatives[0].symbols[0].clone()
+    }
+
+    fn names(ids: &[Identifier]) -> Vec<&str> {
+        ids.iter().map(|id| id.name.as_str()).collect()
+    }
+
+    fn restrictions(symbol: &Symbol) -> &Restrictions {
+        match symbol {
+            Symbol::Restricted { restrictions, .. } => restrictions,
+            other => panic!("expected a restricted symbol, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn test_restriction_kinds_of_one_symbol_land_in_one_node() {
+        let symbol = first_symbol("grammar g S = Id \\ Kw !>> B C");
+        let restrictions = restrictions(&symbol);
+        assert_eq!(names(&restrictions.excepts), ["Kw"]);
+        assert_eq!(names(&restrictions.follow), ["B"]);
+        assert!(matches!(symbol.unwrap(), Symbol::Identifier(id) if id.name == "Id"));
+    }
+
+    #[test]
+    fn test_precede_and_follow_restrictions_land_in_one_node() {
+        let symbol = first_symbol("grammar g S = X !<< A !>> B C");
+        let restrictions = restrictions(&symbol);
+        assert_eq!(names(&restrictions.precede), ["X"]);
+        assert_eq!(names(&restrictions.follow), ["B"]);
+    }
+
+    #[test]
+    fn test_restrictions_keep_their_source_order() {
+        let symbol = first_symbol("grammar g S = X !<< Y !<< A !>> B !>> C \\ K1 \\ K2");
+        let restrictions = restrictions(&symbol);
+        assert_eq!(names(&restrictions.precede), ["X", "Y"]);
+        assert_eq!(names(&restrictions.follow), ["B", "C"]);
+        assert_eq!(names(&restrictions.excepts), ["K1", "K2"]);
+    }
+
+    #[test]
+    fn test_restriction_written_twice_is_recorded_once() {
+        let symbol = first_symbol("grammar g S = A !>> B \\ K !>> B C");
+        assert_eq!(names(&restrictions(&symbol).follow), ["B"]);
+    }
+
+    #[test]
+    fn test_layout_aware_and_plain_follow_restrictions_stay_apart() {
+        let symbol = first_symbol("grammar g S = A !>> B !>>> C D");
+        let restrictions = restrictions(&symbol);
+        assert_eq!(names(&restrictions.follow), ["B"]);
+        assert_eq!(names(&restrictions.layout_aware_follow), ["C"]);
+    }
+
+    #[test]
+    fn test_label_stays_above_the_restrictions() {
+        let symbol = first_symbol("grammar g S = x:A !>> B C");
+        let Symbol::Labeled { label, symbol } = &symbol else {
+            panic!("expected a labeled symbol, got {symbol:?}");
+        };
+        assert_eq!(label, "x");
+        assert_eq!(names(&restrictions(symbol).follow), ["B"]);
+    }
+
+    #[test]
+    fn test_restrictions_of_a_parenthesized_symbol_apply_to_the_group() {
+        let symbol = first_symbol("grammar g S = (A B) !>> C D");
+        assert_eq!(names(&restrictions(&symbol).follow), ["C"]);
+        assert!(matches!(symbol.unwrap(), Symbol::Group(symbols) if symbols.len() == 2));
+    }
+
+    #[test]
+    fn test_exclusion_stays_below_the_restrictions() {
+        for source in [
+            "grammar g S = A!label !>> B C",
+            "grammar g S = A !>> B !label C",
+        ] {
+            let symbol = first_symbol(source);
+            assert_eq!(names(&restrictions(&symbol).follow), ["B"], "{source}");
+            assert!(
+                matches!(symbol.unwrap(), Symbol::Exclude { labels, .. } if labels == &["label"]),
+                "{source}",
+            );
+        }
+    }
 }

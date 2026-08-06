@@ -9,8 +9,8 @@ use crate::{
     grammar::{
         regex::Regex,
         symbols::{
-            Definition, DefinitionId, Expr, Identifier, Nonterminal, Symbol, Terminal,
-            escape_literal,
+            Definition, DefinitionId, Expr, Identifier, Nonterminal, Restrictions, Symbol,
+            Terminal, escape_literal,
         },
         transformations::{
             ebnf_to_bnf, exclude_desugaring, layout_insertion, precedence_desugaring,
@@ -214,9 +214,7 @@ impl GrammarDef {
     pub fn for_each_identifier(&self, f: &mut impl FnMut(&Identifier)) {
         self.for_each_symbol(&mut |symbol| match symbol {
             Symbol::Identifier(id) | Symbol::Call { name: id, .. } => f(id),
-            Symbol::Except { except, .. } => except.iter().for_each(&mut *f),
-            Symbol::FollowRestriction { restrictions, .. } => restrictions.iter().for_each(&mut *f),
-            Symbol::PrecedeRestriction { restriction, .. } => f(restriction),
+            Symbol::Restricted { restrictions, .. } => restrictions.ids().for_each(&mut *f),
             _ => {}
         });
         for rule in &self.lexical_rules {
@@ -526,33 +524,14 @@ fn add_lexical_rules(
                 symbol: Box::new(transformed),
             }
         }
-        Symbol::Except { symbol, except } => {
-            let transformed = add_lexical_rules(*symbol, lexical_rules, added_terminals);
-            Symbol::Except {
-                symbol: Box::new(transformed),
-                except,
-            }
-        }
-        Symbol::FollowRestriction {
+        Symbol::Restricted {
             symbol,
             restrictions,
-            layout_aware,
         } => {
             let transformed = add_lexical_rules(*symbol, lexical_rules, added_terminals);
-            Symbol::FollowRestriction {
+            Symbol::Restricted {
                 symbol: Box::new(transformed),
                 restrictions,
-                layout_aware,
-            }
-        }
-        Symbol::PrecedeRestriction {
-            symbol,
-            restriction,
-        } => {
-            let transformed = add_lexical_rules(*symbol, lexical_rules, added_terminals);
-            Symbol::PrecedeRestriction {
-                symbol: Box::new(transformed),
-                restriction,
             }
         }
         _ => symbol,
@@ -653,51 +632,26 @@ fn resolve_identifier(symbol: Symbol, symbol_table: &SymbolTable) -> Symbol {
             name,
             symbol: Box::new(resolve_identifier(*symbol, symbol_table)),
         },
-        Symbol::Except { symbol, except } => {
-            let resolved_symbol = resolve_identifier(*symbol, symbol_table);
-            let resolved_except = except
-                .into_iter()
-                .map(|e| Identifier {
-                    definition: symbol_table.get(&e.name),
-                    name: e.name,
-                })
-                .collect();
-            Symbol::Except {
-                symbol: Box::new(resolved_symbol),
-                except: resolved_except,
-            }
-        }
-        Symbol::FollowRestriction {
+        Symbol::Restricted {
             symbol,
             restrictions,
-            layout_aware,
         } => {
-            let resolved_symbol = resolve_identifier(*symbol, symbol_table);
-            let resolved_restrictions = restrictions
-                .into_iter()
-                .map(|r| Identifier {
-                    definition: symbol_table.get(&r.name),
-                    name: r.name,
-                })
-                .collect();
-            Symbol::FollowRestriction {
-                symbol: Box::new(resolved_symbol),
-                restrictions: resolved_restrictions,
-                layout_aware,
-            }
-        }
-        Symbol::PrecedeRestriction {
-            symbol,
-            restriction,
-        } => {
-            let resolved_symbol = resolve_identifier(*symbol, symbol_table);
-            let resolved_restriction = Identifier {
-                definition: symbol_table.get(&restriction.name),
-                name: restriction.name,
+            let resolve = |ids: Vec<Identifier>| -> Vec<Identifier> {
+                ids.into_iter()
+                    .map(|id| Identifier {
+                        definition: symbol_table.get(&id.name),
+                        name: id.name,
+                    })
+                    .collect()
             };
-            Symbol::PrecedeRestriction {
-                symbol: Box::new(resolved_symbol),
-                restriction: resolved_restriction,
+            Symbol::Restricted {
+                symbol: Box::new(resolve_identifier(*symbol, symbol_table)),
+                restrictions: Restrictions {
+                    precede: resolve(restrictions.precede),
+                    excepts: resolve(restrictions.excepts),
+                    follow: resolve(restrictions.follow),
+                    layout_aware_follow: resolve(restrictions.layout_aware_follow),
+                },
             }
         }
         Symbol::Exclude { symbol, labels } => Symbol::Exclude {
@@ -724,17 +678,16 @@ fn simplify_regex(regex: &mut Regex) {
     }
 }
 
-/// A lexical rule's restrictions: excludes (`\`), follow restrictions (`!>>`),
-/// and a precede restriction (`!<<`). The resolved value `resolve_restrictions`
-/// returns and caches, exactly as `inline_regex` returns and caches a `Regex`.
+/// A lexical rule's restrictions: excepts (`\`), follow restrictions (`!>>`),
+/// and a precede restriction (`!<<`).
 #[derive(Default, Clone)]
-struct Restrictions {
+struct LexicalRestrictions {
     except: Vec<Identifier>,
     follow_restriction: Vec<Identifier>,
     precede_restriction: Option<Identifier>,
 }
 
-impl Restrictions {
+impl LexicalRestrictions {
     fn of(rule: &LexicalRule) -> Self {
         Self {
             except: rule.except.clone(),
@@ -752,7 +705,7 @@ impl Restrictions {
     /// Adds `other`'s restrictions, deduping excludes and follow restrictions by
     /// name. Two different precede restrictions can't share a rule, so they are
     /// an error.
-    fn merge(&mut self, other: Restrictions, head: &Terminal, errors: &mut Vec<String>) {
+    fn merge(&mut self, other: LexicalRestrictions, head: &Terminal, errors: &mut Vec<String>) {
         for restriction in other.except {
             if !self.except.iter().any(|e| e.name == restriction.name) {
                 self.except.push(restriction);
@@ -782,7 +735,7 @@ impl Restrictions {
     }
 }
 
-impl Display for Restrictions {
+impl Display for LexicalRestrictions {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let mut parts = Vec::new();
         parts.extend(self.except.iter().map(|e| format!("\\ {e}")));
@@ -857,10 +810,10 @@ fn inline_regex_refs(mut lexical_rules: Vec<LexicalRule>) -> Result<Vec<LexicalR
     // rule's reference is already final when we reach it: the rule's
     // restrictions are its own plus its reference's.
     let mut errors = Vec::new();
-    let mut resolved: FxHashMap<String, Restrictions> = FxHashMap::default();
+    let mut resolved: FxHashMap<String, LexicalRestrictions> = FxHashMap::default();
     for name in dependency_order(&lexical_rules) {
         let rule = rules[name.as_str()];
-        let mut restrictions = Restrictions::of(rule);
+        let mut restrictions = LexicalRestrictions::of(rule);
         if let Regex::Identifier(id) = &rule.regex {
             if let Some(referenced) = resolved.get(&id.name) {
                 restrictions.merge(referenced.clone(), &rule.head, &mut errors);

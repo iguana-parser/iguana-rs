@@ -70,29 +70,20 @@ pub enum Symbol {
     Alt(Vec<Symbol>),
     Star(Box<Symbol>, Option<Box<Symbol>>), // symbol, separator
     Plus(Box<Symbol>, Option<Box<Symbol>>), // symbol, separator
-    // Corresponds to the `\` operator in the concrete syntax.
-    // A `\` Id means that only match A if the span of A is not matched by Id.
-    // For now, we only accept regular expression ids.
-    Except {
+    // A symbol reference with its restrictions, which correspond to the `\`,
+    // `!>>`, `!>>>`, and `!<<` operators in the concrete syntax.
+    //
+    // In the following, Id is the restricted symbol and X the restriction, always a regular
+    // expression:
+    //
+    // - Except restriction: `Id \ X` disallows a string of Id that is also in the language
+    //   of X.
+    // - Follow restriction: `Id !>> X` disallows X directly after Id. `Id !>>> X` disallows
+    //   X after the layout that follows Id.
+    // - Precede restriction: `X !<< Id` disallows X directly before Id.
+    Restricted {
         symbol: Box<Symbol>,
-        except: Vec<Identifier>,
-    },
-    // Corresponds to the `!>>` operator in the concrete syntax.
-    // `X !>> A !>> B` rejects X if any of A, B can be matched immediately
-    // after X in the input. With `layout_aware` set (the `!>>>` operator),
-    // the restrictions are checked at the position after the layout that
-    // follows X instead of at X's right extent.
-    FollowRestriction {
-        symbol: Box<Symbol>,
-        restrictions: Vec<Identifier>,
-        layout_aware: bool,
-    },
-    // Corresponds to the `!<<` operator in the concrete syntax.
-    // `Id !<< X` means reject the match of X if the character immediately before
-    // left_extent matches Id. Id must be a single-char regex (Char, CharRange, or CharClass).
-    PrecedeRestriction {
-        symbol: Box<Symbol>,
-        restriction: Identifier,
+        restrictions: Restrictions,
     },
     // Corresponds to the `!` operator in the concrete syntax.
     // `A !label` means use nonterminal A but exclude the alternative labeled `label`.
@@ -235,25 +226,24 @@ impl IntoExpr for Expr {
     }
 }
 
-#[derive(Debug, Default, PartialEq, Eq)]
+#[derive(Debug, Default, Clone, PartialEq, Eq, Hash)]
 pub struct Restrictions {
-    /// The `\` restrictions, tested over the span `[left, right)`.
-    pub excepts: Vec<Identifier>,
-    /// The `!>>` restrictions, tested at the right extent.
-    pub follow: Vec<Identifier>,
-    /// The `!>>>` restrictions, which forbid a match past the layout at the
-    /// right extent.
-    pub layout_aware_follow: Vec<Identifier>,
-    /// The `!<<` restrictions, tested before the left extent.
+    /// The `!<<` restrictions.
     pub precede: Vec<Identifier>,
+    /// The `\` restrictions.
+    pub excepts: Vec<Identifier>,
+    /// The `!>>` restrictions.
+    pub follow: Vec<Identifier>,
+    /// The `!>>>` restrictions.
+    pub layout_aware_follow: Vec<Identifier>,
 }
 
 impl Restrictions {
     pub fn is_empty(&self) -> bool {
-        self.excepts.is_empty()
+        self.precede.is_empty()
+            && self.excepts.is_empty()
             && self.follow.is_empty()
             && self.layout_aware_follow.is_empty()
-            && self.precede.is_empty()
     }
 
     /// True if any restriction is tested at or after the matched span (`\`,
@@ -261,11 +251,38 @@ impl Restrictions {
     pub fn has_post_conditions(&self) -> bool {
         !self.excepts.is_empty() || !self.follow.is_empty() || !self.layout_aware_follow.is_empty()
     }
+
+    /// The identifiers of all restrictions.
+    pub fn ids(&self) -> impl Iterator<Item = &Identifier> {
+        self.precede
+            .iter()
+            .chain(&self.excepts)
+            .chain(&self.follow)
+            .chain(&self.layout_aware_follow)
+    }
 }
 
 impl Symbol {
     pub fn literal(name: impl Into<String>) -> Self {
         Symbol::Literal(name.into())
+    }
+
+    /// The symbol with `restrictions` attached, or the symbol itself when
+    /// `restrictions` is empty. `Restricted` nodes do not nest: a symbol
+    /// reference holds all its restrictions in one node.
+    pub fn restricted(symbol: Symbol, restrictions: Restrictions) -> Symbol {
+        debug_assert!(
+            !matches!(symbol, Symbol::Restricted { .. }),
+            "Restricted nodes do not nest"
+        );
+        if restrictions.is_empty() {
+            symbol
+        } else {
+            Symbol::Restricted {
+                symbol: Box::new(symbol),
+                restrictions,
+            }
+        }
     }
 
     /// Returns `true` if this symbol produces a node in the parse tree.
@@ -293,9 +310,7 @@ impl Symbol {
         match self {
             Symbol::Labeled { symbol, .. }
             | Symbol::Binding { symbol, .. }
-            | Symbol::Except { symbol, .. }
-            | Symbol::FollowRestriction { symbol, .. }
-            | Symbol::PrecedeRestriction { symbol, .. }
+            | Symbol::Restricted { symbol, .. }
             | Symbol::Exclude { symbol, .. } => symbol,
             Symbol::Identifier(_)
             | Symbol::Literal(_)
@@ -323,9 +338,7 @@ impl Symbol {
             Symbol::Call { name, .. } => Some(name),
             Symbol::Labeled { symbol, .. }
             | Symbol::Binding { symbol, .. }
-            | Symbol::Except { symbol, .. }
-            | Symbol::FollowRestriction { symbol, .. }
-            | Symbol::PrecedeRestriction { symbol, .. }
+            | Symbol::Restricted { symbol, .. }
             | Symbol::Exclude { symbol, .. } => symbol.as_identifier(),
             Symbol::Literal(_)
             | Symbol::Group(_)
@@ -346,9 +359,7 @@ impl Symbol {
             Symbol::Call { arguments, .. } => arguments,
             Symbol::Labeled { symbol, .. }
             | Symbol::Binding { symbol, .. }
-            | Symbol::Except { symbol, .. }
-            | Symbol::FollowRestriction { symbol, .. }
-            | Symbol::PrecedeRestriction { symbol, .. }
+            | Symbol::Restricted { symbol, .. }
             | Symbol::Exclude { symbol, .. } => symbol.call_arguments(),
             Symbol::Identifier(_)
             | Symbol::Literal(_)
@@ -368,9 +379,7 @@ impl Symbol {
         match self {
             Symbol::Binding { name, .. } => Some(name),
             Symbol::Labeled { symbol, .. }
-            | Symbol::Except { symbol, .. }
-            | Symbol::FollowRestriction { symbol, .. }
-            | Symbol::PrecedeRestriction { symbol, .. }
+            | Symbol::Restricted { symbol, .. }
             | Symbol::Exclude { symbol, .. } => symbol.binding_name(),
             Symbol::Identifier(_)
             | Symbol::Call { .. }
@@ -385,69 +394,31 @@ impl Symbol {
         }
     }
 
-    /// The restrictions attached to this symbol, gathered from the whole
-    /// wrapper chain regardless of how the wrappers nest: `Labeled`,
-    /// `Binding`, and `Exclude` are unwrapped, and each restriction wrapper
-    /// adds its identifiers to the corresponding field of the resulting
-    /// `Restrictions`. A repeated restriction is listed once, in the order
-    /// it first appears in the chain, so the generated code is
-    /// deterministic.
-    pub fn restrictions(&self) -> Restrictions {
-        // Adds restriction identifiers to one of the lists, skipping any
-        // the list already contains, so a repeated restriction is listed
-        // once.
-        fn add_restrictions<'a>(
-            list: &mut Vec<Identifier>,
-            ids: impl IntoIterator<Item = &'a Identifier>,
-        ) {
-            for id in ids {
-                if !list.contains(id) {
-                    list.push(id.clone());
-                }
-            }
-        }
-        let mut result = Restrictions::default();
-        let mut current = self;
-        loop {
-            match current {
-                Symbol::Except { symbol, except } => {
-                    add_restrictions(&mut result.excepts, except);
-                    current = symbol;
-                }
-                Symbol::FollowRestriction {
-                    symbol,
-                    restrictions,
-                    layout_aware,
-                } => {
-                    let list = if *layout_aware {
-                        &mut result.layout_aware_follow
-                    } else {
-                        &mut result.follow
-                    };
-                    add_restrictions(list, restrictions);
-                    current = symbol;
-                }
-                Symbol::PrecedeRestriction {
-                    symbol,
-                    restriction,
-                } => {
-                    add_restrictions(&mut result.precede, [restriction]);
-                    current = symbol;
-                }
-                Symbol::Labeled { symbol, .. }
-                | Symbol::Binding { symbol, .. }
-                | Symbol::Exclude { symbol, .. } => current = symbol,
-                Symbol::Identifier(_)
-                | Symbol::Literal(_)
-                | Symbol::Group(_)
-                | Symbol::Opt(_)
-                | Symbol::Alt(_)
-                | Symbol::Star(_, _)
-                | Symbol::Plus(_, _)
-                | Symbol::Call { .. }
-                | Symbol::Condition(_)
-                | Symbol::Return(_) => return result,
-            }
+    /// The restrictions attached to this symbol reference. A `Restricted`
+    /// node can sit inside a `Labeled`, `Binding`, or `Exclude` wrapper, so
+    /// the lookup unwraps those wrappers.
+    pub fn restrictions(&self) -> &Restrictions {
+        static NONE: Restrictions = Restrictions {
+            precede: Vec::new(),
+            excepts: Vec::new(),
+            follow: Vec::new(),
+            layout_aware_follow: Vec::new(),
+        };
+        match self {
+            Symbol::Restricted { restrictions, .. } => restrictions,
+            Symbol::Labeled { symbol, .. }
+            | Symbol::Binding { symbol, .. }
+            | Symbol::Exclude { symbol, .. } => symbol.restrictions(),
+            Symbol::Identifier(_)
+            | Symbol::Literal(_)
+            | Symbol::Group(_)
+            | Symbol::Opt(_)
+            | Symbol::Alt(_)
+            | Symbol::Star(_, _)
+            | Symbol::Plus(_, _)
+            | Symbol::Call { .. }
+            | Symbol::Condition(_)
+            | Symbol::Return(_) => &NONE,
         }
     }
 
@@ -509,24 +480,12 @@ impl Symbol {
                     arguments.iter().join(", ")
                 )
             }
-            Symbol::Except { symbol, except } => {
-                let excepts = except.iter().map(|e| format!("\\ {}", e)).join(" ");
-                format!("{} {}", symbol.display_name(grammar), excepts)
-            }
-            Symbol::FollowRestriction {
+            Symbol::Restricted {
                 symbol,
                 restrictions,
-                layout_aware,
             } => {
-                let op = if *layout_aware { "!>>>" } else { "!>>" };
-                let rs = restrictions.iter().map(|r| format!("{op} {r}")).join(" ");
-                format!("{} {}", symbol.display_name(grammar), rs)
-            }
-            Symbol::PrecedeRestriction {
-                symbol,
-                restriction,
-            } => {
-                format!("{} !<< {}", restriction, symbol.display_name(grammar))
+                let (before, after) = display_restrictions(restrictions);
+                format!("{before}{}{after}", symbol.display_name(grammar))
             }
             Symbol::Exclude { symbol, labels } => {
                 let exclusions = labels.iter().map(|l| format!("!{l}")).join(" ");
@@ -538,6 +497,32 @@ impl Symbol {
             Symbol::Condition(_) | Symbol::Return(_) => self.to_string(),
         }
     }
+}
+
+/// The textual representation of a symbol's restrictions, as a (before, after)
+/// pair. Precede restrictions (`!<<`) go before the symbol. Except (`\`)
+/// and follow (`!>>` and `!>>>`) restrictions go after the symbol, and the
+/// follow restrictions always come after the except ones. Within each
+/// restriction kind, the source order is preserved.
+fn display_restrictions(restrictions: &Restrictions) -> (String, String) {
+    let before = restrictions
+        .precede
+        .iter()
+        .map(|p| format!("{p} !<< "))
+        .join("");
+    let after = restrictions
+        .excepts
+        .iter()
+        .map(|e| format!(" \\ {e}"))
+        .chain(restrictions.follow.iter().map(|r| format!(" !>> {r}")))
+        .chain(
+            restrictions
+                .layout_aware_follow
+                .iter()
+                .map(|r| format!(" !>>> {r}")),
+        )
+        .join("");
+    (before, after)
 }
 
 /// Escapes text for Iggy string literals, using exactly the escape set the
@@ -596,29 +581,13 @@ impl Display for Symbol {
             Symbol::Call { name, arguments } => {
                 write!(f, "{}({})", name, arguments.iter().join(", "))
             }
-            Symbol::Except { symbol, except } => {
-                write!(f, "{}", symbol)?;
-                for e in except {
-                    write!(f, " \\ {}", e)?;
-                }
-                Ok(())
-            }
-            Symbol::FollowRestriction {
+            Symbol::Restricted {
                 symbol,
                 restrictions,
-                layout_aware,
             } => {
-                write!(f, "{}", symbol)?;
-                let op = if *layout_aware { "!>>>" } else { "!>>" };
-                for r in restrictions {
-                    write!(f, " {op} {r}")?;
-                }
-                Ok(())
+                let (before, after) = display_restrictions(restrictions);
+                write!(f, "{before}{symbol}{after}")
             }
-            Symbol::PrecedeRestriction {
-                symbol,
-                restriction,
-            } => write!(f, "{} !<< {}", restriction, symbol),
             Symbol::Exclude { symbol, labels } => {
                 write!(f, "{}", symbol)?;
                 for label in labels {
@@ -910,48 +879,54 @@ macro_rules! opt {
 #[macro_export]
 macro_rules! except {
     ($symbol:expr, $($except:expr),+ $(,)?) => {
-        $crate::grammar::symbols::Symbol::Except {
-            symbol: Box::new($symbol),
-            except: vec![
-                $(
-                    $crate::grammar::symbols::Identifier {
-                        name: $except.into(),
-                        definition: None,
-                    },
-                )+
-            ],
-        }
+        $crate::grammar::symbols::Symbol::restricted(
+            $symbol,
+            $crate::grammar::symbols::Restrictions {
+                excepts: $crate::restriction_ids!($($except),+),
+                ..Default::default()
+            },
+        )
     };
 }
 
 #[macro_export]
 macro_rules! follow {
     ($symbol:expr, $($restriction:expr),+ $(,)?) => {
-        $crate::grammar::symbols::Symbol::FollowRestriction {
-            symbol: Box::new($symbol),
-            restrictions: vec![
-                $(
-                    $crate::grammar::symbols::Identifier {
-                        name: $restriction.into(),
-                        definition: None,
-                    },
-                )+
-            ],
-            layout_aware: false,
-        }
+        $crate::grammar::symbols::Symbol::restricted(
+            $symbol,
+            $crate::grammar::symbols::Restrictions {
+                follow: $crate::restriction_ids!($($restriction),+),
+                ..Default::default()
+            },
+        )
     };
 }
 
 #[macro_export]
 macro_rules! precede {
-    ($symbol:expr, $restriction:expr) => {
-        $crate::grammar::symbols::Symbol::PrecedeRestriction {
-            symbol: Box::new($symbol),
-            restriction: $crate::grammar::symbols::Identifier {
-                name: $restriction.into(),
-                definition: None,
+    ($symbol:expr, $($restriction:expr),+ $(,)?) => {
+        $crate::grammar::symbols::Symbol::restricted(
+            $symbol,
+            $crate::grammar::symbols::Restrictions {
+                precede: $crate::restriction_ids!($($restriction),+),
+                ..Default::default()
             },
-        }
+        )
+    };
+}
+
+/// The identifier list of one restriction kind.
+#[macro_export]
+macro_rules! restriction_ids {
+    ($($name:expr),+ $(,)?) => {
+        vec![
+            $(
+                $crate::grammar::symbols::Identifier {
+                    name: $name.into(),
+                    definition: None,
+                },
+            )+
+        ]
     };
 }
 
@@ -1076,17 +1051,6 @@ macro_rules! bind {
 mod tests {
     use super::*;
 
-    fn layout_aware_follow(symbol: Symbol, restriction: &str) -> Symbol {
-        Symbol::FollowRestriction {
-            symbol: Box::new(symbol),
-            restrictions: vec![Identifier {
-                name: restriction.into(),
-                definition: None,
-            }],
-            layout_aware: true,
-        }
-    }
-
     fn names(ids: &[Identifier]) -> Vec<&str> {
         ids.iter().map(|id| id.name.as_str()).collect()
     }
@@ -1096,6 +1060,14 @@ mod tests {
         let symbol = id!("A");
         assert!(symbol.restrictions().is_empty());
         assert!(!symbol.has_restriction());
+    }
+
+    #[test]
+    fn test_empty_restrictions_add_no_node() {
+        assert_eq!(
+            Symbol::restricted(id!("A"), Restrictions::default()),
+            id!("A")
+        );
     }
 
     #[test]
@@ -1109,41 +1081,26 @@ mod tests {
     }
 
     #[test]
-    fn test_except_below_follow_restriction() {
-        let symbol = follow!(except!(id!("Id"), "Kw"), "B");
-        let restrictions = symbol.restrictions();
-        assert_eq!(names(&restrictions.excepts), ["Kw"]);
-        assert_eq!(names(&restrictions.follow), ["B"]);
-    }
-
-    #[test]
-    fn test_precede_below_follow_restriction() {
-        let symbol = follow!(precede!(id!("A"), "X"), "B");
-        let restrictions = symbol.restrictions();
-        assert_eq!(names(&restrictions.precede), ["X"]);
-        assert_eq!(names(&restrictions.follow), ["B"]);
-        assert!(restrictions.has_post_conditions());
-    }
-
-    #[test]
     fn test_precede_alone_is_no_post_condition() {
-        let restrictions = precede!(id!("A"), "X").restrictions();
+        let symbol = precede!(id!("A"), "X");
+        let restrictions = symbol.restrictions();
         assert!(!restrictions.has_post_conditions());
         assert!(!restrictions.is_empty());
     }
 
     #[test]
     fn test_layout_aware_and_plain_follow_are_kept_separate() {
-        let symbol = follow!(layout_aware_follow(id!("X"), "A"), "B");
+        let symbol = Symbol::restricted(
+            id!("X"),
+            Restrictions {
+                follow: restriction_ids!("B"),
+                layout_aware_follow: restriction_ids!("A"),
+                ..Default::default()
+            },
+        );
         let restrictions = symbol.restrictions();
         assert_eq!(names(&restrictions.layout_aware_follow), ["A"]);
         assert_eq!(names(&restrictions.follow), ["B"]);
-    }
-
-    #[test]
-    fn test_duplicate_identifier_is_recorded_once() {
-        let symbol = follow!(follow!(id!("A"), "B"), "B");
-        assert_eq!(names(&symbol.restrictions().follow), ["B"]);
     }
 
     #[test]
@@ -1152,5 +1109,19 @@ mod tests {
         let restrictions = symbol.restrictions();
         assert_eq!(names(&restrictions.excepts), ["Kw"]);
         assert!(symbol.has_restriction());
+    }
+
+    #[test]
+    fn test_display_orders_the_restriction_kinds() {
+        let symbol = Symbol::restricted(
+            id!("Id"),
+            Restrictions {
+                precede: restriction_ids!("Digit"),
+                excepts: restriction_ids!("Kw"),
+                follow: restriction_ids!("Eq"),
+                layout_aware_follow: restriction_ids!("Else"),
+            },
+        );
+        assert_eq!(symbol.to_string(), "Digit !<< Id \\ Kw !>> Eq !>>> Else");
     }
 }

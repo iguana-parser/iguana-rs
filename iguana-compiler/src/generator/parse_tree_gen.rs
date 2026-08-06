@@ -1993,9 +1993,7 @@ fn get_symbol_base_name(grammar: &Grammar, symbol: &Symbol) -> Option<String> {
         Symbol::Literal(_) => None,
         Symbol::Group(_) => None,
         Symbol::Alt(_) => None,
-        Symbol::Except { symbol, .. }
-        | Symbol::FollowRestriction { symbol, .. }
-        | Symbol::PrecedeRestriction { symbol, .. } => get_symbol_base_name(grammar, symbol),
+        Symbol::Restricted { symbol, .. } => get_symbol_base_name(grammar, symbol),
         Symbol::Exclude { .. } => {
             unreachable!("Exclude should be desugared before code generation")
         }
@@ -2112,11 +2110,7 @@ fn gen_field_name(
         Symbol::Literal(_) => format!("field_{}", position),
         Symbol::Group(_) => format!("field_{}", position),
         Symbol::Alt(_) => format!("field_{}", position),
-        Symbol::Except { symbol, .. }
-        | Symbol::FollowRestriction { symbol, .. }
-        | Symbol::PrecedeRestriction { symbol, .. } => {
-            gen_field_name(grammar, symbol, position, needs_index)
-        }
+        Symbol::Restricted { symbol, .. } => gen_field_name(grammar, symbol, position, needs_index),
         Symbol::Exclude { .. } => {
             unreachable!("Exclude should be desugared before code generation")
         }

@@ -255,36 +255,15 @@ fn rewrite_ebnf_symbol(
                 symbol: Box::new(transformed),
             }
         }
-        Symbol::Except { symbol, except } => {
-            let transformed =
-                rewrite_ebnf_symbol(*symbol, layout, counters, new_rules, ebnf_symbols);
-            Symbol::Except {
-                symbol: Box::new(transformed),
-                except,
-            }
-        }
-        Symbol::FollowRestriction {
+        Symbol::Restricted {
             symbol,
             restrictions,
-            layout_aware,
         } => {
             let transformed =
                 rewrite_ebnf_symbol(*symbol, layout, counters, new_rules, ebnf_symbols);
-            Symbol::FollowRestriction {
+            Symbol::Restricted {
                 symbol: Box::new(transformed),
                 restrictions,
-                layout_aware,
-            }
-        }
-        Symbol::PrecedeRestriction {
-            symbol,
-            restriction,
-        } => {
-            let transformed =
-                rewrite_ebnf_symbol(*symbol, layout, counters, new_rules, ebnf_symbols);
-            Symbol::PrecedeRestriction {
-                symbol: Box::new(transformed),
-                restriction,
             }
         }
         Symbol::Exclude { symbol, labels } => {

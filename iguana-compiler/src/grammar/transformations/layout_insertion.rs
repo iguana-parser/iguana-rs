@@ -2,7 +2,7 @@ use std::mem;
 
 use crate::grammar::{
     def::{LayoutStrategy, SyntaxRule},
-    symbols::{Identifier, Symbol},
+    symbols::{Identifier, Restrictions, Symbol},
     transformations::{transform_rule_by_symbols, transform_syntax_rule},
 };
 
@@ -82,30 +82,12 @@ fn insert_layout(symbols: &[Symbol], layout: &Symbol) -> Vec<Symbol> {
     result
 }
 
+/// Strips the layout-aware follow restrictions (`!>>>`) off a symbol,
+/// returning the symbol and the restriction identifiers. As a `Restricted`
+/// node can sit inside a `Labeled` or `Binding` wrapper, the walk descends
+/// through those wrappers.
 fn strip_layout_aware_restrictions(symbol: Symbol) -> (Symbol, Vec<Identifier>) {
     match symbol {
-        Symbol::FollowRestriction {
-            symbol,
-            restrictions,
-            layout_aware: true,
-        } => {
-            let (symbol, mut stripped) = strip_layout_aware_restrictions(*symbol);
-            stripped.extend(restrictions);
-            (symbol, stripped)
-        }
-        Symbol::FollowRestriction {
-            symbol,
-            restrictions,
-            layout_aware: false,
-        } => {
-            let (symbol, stripped) = strip_layout_aware_restrictions(*symbol);
-            let symbol = Symbol::FollowRestriction {
-                symbol: Box::new(symbol),
-                restrictions,
-                layout_aware: false,
-            };
-            (symbol, stripped)
-        }
         Symbol::Labeled { label, symbol } => {
             let (symbol, stripped) = strip_layout_aware_restrictions(*symbol);
             let symbol = Symbol::Labeled {
@@ -122,58 +104,80 @@ fn strip_layout_aware_restrictions(symbol: Symbol) -> (Symbol, Vec<Identifier>) 
             };
             (symbol, stripped)
         }
-        Symbol::Except { symbol, except } => {
-            let (symbol, stripped) = strip_layout_aware_restrictions(*symbol);
-            let symbol = Symbol::Except {
-                symbol: Box::new(symbol),
-                except,
-            };
-            (symbol, stripped)
-        }
-        Symbol::PrecedeRestriction {
+        Symbol::Restricted {
             symbol,
-            restriction,
+            mut restrictions,
         } => {
-            let (symbol, stripped) = strip_layout_aware_restrictions(*symbol);
-            let symbol = Symbol::PrecedeRestriction {
-                symbol: Box::new(symbol),
-                restriction,
-            };
-            (symbol, stripped)
+            let stripped = mem::take(&mut restrictions.layout_aware_follow);
+            (Symbol::restricted(*symbol, restrictions), stripped)
         }
         symbol => (symbol, Vec::new()),
     }
 }
 
-fn add_follow_restriction(symbol: Symbol, restrictions: Vec<Identifier>) -> Symbol {
-    if restrictions.is_empty() {
+fn add_follow_restriction(symbol: Symbol, follow: Vec<Identifier>) -> Symbol {
+    if follow.is_empty() {
         return symbol;
     }
     match symbol {
         Symbol::Labeled { label, symbol } => Symbol::Labeled {
             label,
-            symbol: Box::new(add_follow_restriction(*symbol, restrictions)),
+            symbol: Box::new(add_follow_restriction(*symbol, follow)),
         },
         Symbol::Binding { name, symbol } => Symbol::Binding {
             name,
-            symbol: Box::new(add_follow_restriction(*symbol, restrictions)),
+            symbol: Box::new(add_follow_restriction(*symbol, follow)),
         },
-        Symbol::FollowRestriction {
+        Symbol::Restricted {
             symbol,
-            restrictions: mut existing,
-            layout_aware: false,
+            mut restrictions,
         } => {
-            existing.extend(restrictions);
-            Symbol::FollowRestriction {
+            for id in follow {
+                if !restrictions.follow.contains(&id) {
+                    restrictions.follow.push(id);
+                }
+            }
+            Symbol::Restricted {
                 symbol,
-                restrictions: existing,
-                layout_aware: false,
+                restrictions,
             }
         }
-        symbol => Symbol::FollowRestriction {
-            symbol: Box::new(symbol),
-            restrictions,
-            layout_aware: false,
-        },
+        symbol => Symbol::restricted(
+            symbol,
+            Restrictions {
+                follow,
+                ..Default::default()
+            },
+        ),
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::{grammar::symbols::Restrictions, id, restriction_ids};
+
+    /// A rule that gets no layout has its `!>>>` restrictions rewritten to
+    /// `!>>`. When the symbol already has the same restriction as a `!>>`,
+    /// the rewrite must not list it twice.
+    #[test]
+    fn test_rewritten_layout_aware_restriction_is_not_listed_twice() {
+        let symbol = Symbol::restricted(
+            id!("A"),
+            Restrictions {
+                follow: restriction_ids!("B"),
+                layout_aware_follow: restriction_ids!("B"),
+                ..Default::default()
+            },
+        );
+        let (symbol, stripped) = strip_layout_aware_restrictions(symbol);
+        let symbol = add_follow_restriction(symbol, stripped);
+        let follow: Vec<&str> = symbol
+            .restrictions()
+            .follow
+            .iter()
+            .map(|id| id.name.as_str())
+            .collect();
+        assert_eq!(follow, ["B"]);
     }
 }

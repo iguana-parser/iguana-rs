@@ -22,9 +22,7 @@ fn collect_binding_names(symbol: &Symbol, binding_ids: &mut BindingIds) {
     match symbol {
         Symbol::Labeled { symbol, .. }
         | Symbol::Binding { symbol, .. }
-        | Symbol::Except { symbol, .. }
-        | Symbol::FollowRestriction { symbol, .. }
-        | Symbol::PrecedeRestriction { symbol, .. }
+        | Symbol::Restricted { symbol, .. }
         | Symbol::Exclude { symbol, .. }
         | Symbol::Opt(symbol) => collect_binding_names(symbol, binding_ids),
         Symbol::Group(symbols) | Symbol::Alt(symbols) => {

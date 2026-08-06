@@ -118,7 +118,9 @@ use rustc_hash::{FxHashMap, FxHashSet};
 
 use crate::grammar::{
     def::{Alternative, Associativity, PriorityLevel, SyntaxRule},
-    symbols::{Cond, CondOp, Expr, Identifier, Nonterminal, ParamType, Parameter, Symbol},
+    symbols::{
+        Cond, CondOp, Expr, Identifier, Nonterminal, ParamType, Parameter, Restrictions, Symbol,
+    },
     transformations::transform_syntax_rule,
 };
 
@@ -918,16 +920,15 @@ fn extract_identifier(symbol: &Symbol) -> &Identifier {
         .unwrap_or_else(|| panic!("expected an identifier at recursive end, got {symbol:?}"))
 }
 
-/// The label and semantic restriction wrappers around a recursive-end symbol.
-/// `restrictions` holds the `\` / `!>>` / `!<<` wrappers outermost-first; `label`
-/// is the outermost `Labeled` label, if any.
+/// The label and the restrictions of a recursive-end symbol. `label` is the
+/// outermost `Labeled` label, if any.
 struct EndWrappers {
-    restrictions: Vec<Symbol>,
+    restrictions: Restrictions,
     label: Option<String>,
 }
 
 fn end_wrappers(symbol: &Symbol) -> EndWrappers {
-    let mut restrictions = Vec::new();
+    let mut restrictions = Restrictions::default();
     let mut label = None;
     let mut current = symbol;
     loop {
@@ -936,10 +937,11 @@ fn end_wrappers(symbol: &Symbol) -> EndWrappers {
                 label.get_or_insert_with(|| l.clone());
                 current = symbol;
             }
-            Symbol::Except { symbol, .. }
-            | Symbol::FollowRestriction { symbol, .. }
-            | Symbol::PrecedeRestriction { symbol, .. } => {
-                restrictions.push(current.clone());
+            Symbol::Restricted {
+                symbol,
+                restrictions: r,
+            } => {
+                restrictions = r.clone();
                 current = symbol;
             }
             _ => break,
@@ -958,41 +960,6 @@ fn label_symbol(label: Option<&str>, core: Symbol) -> Symbol {
             symbol: Box::new(core),
         },
         None => core,
-    }
-}
-
-/// Re-wraps `core` in its restriction shells. The generated `post_conditions`
-/// table matches a slot's top-level symbol, so a restriction must be the
-/// outermost wrapper (above any binding) to be enforced.
-fn restore_end_wrappers(restrictions: &[Symbol], core: Symbol) -> Symbol {
-    let mut result = core;
-    for shell in restrictions.iter().rev() {
-        result = rewrap_restriction(shell, result);
-    }
-    result
-}
-
-fn rewrap_restriction(shell: &Symbol, inner: Symbol) -> Symbol {
-    let symbol = Box::new(inner);
-    match shell {
-        Symbol::Except { except, .. } => Symbol::Except {
-            symbol,
-            except: except.clone(),
-        },
-        Symbol::FollowRestriction {
-            restrictions,
-            layout_aware,
-            ..
-        } => Symbol::FollowRestriction {
-            symbol,
-            restrictions: restrictions.clone(),
-            layout_aware: *layout_aware,
-        },
-        Symbol::PrecedeRestriction { restriction, .. } => Symbol::PrecedeRestriction {
-            symbol,
-            restriction: restriction.clone(),
-        },
-        _ => *symbol,
     }
 }
 
@@ -1164,9 +1131,9 @@ fn rewrite_binary(
     let mut symbols = Vec::new();
 
     symbols.push(make_precondition(pr));
-    symbols.push(restore_end_wrappers(
-        &left.restrictions,
+    symbols.push(Symbol::restricted(
         make_left_binding(&left_id, left_has_e, left.label.as_deref()),
+        left.restrictions.clone(),
     ));
     symbols.push(make_postcondition(postcond_threshold, left_has_e));
     if left_has_e && left_local_n != 0 {
@@ -1184,8 +1151,7 @@ fn rewrite_binary(
     }
 
     if use_min {
-        symbols.push(restore_end_wrappers(
-            &right.restrictions,
+        symbols.push(Symbol::restricted(
             make_right_binding(
                 &right_id,
                 right_arg,
@@ -1193,11 +1159,11 @@ fn rewrite_binary(
                 right_local_n,
                 right.label.as_deref(),
             ),
+            right.restrictions.clone(),
         ));
         symbols.push(make_min_return(pr, label_idx, head_has_e, right_has_e));
     } else {
-        symbols.push(restore_end_wrappers(
-            &right.restrictions,
+        symbols.push(Symbol::restricted(
             label_symbol(
                 right.label.as_deref(),
                 Symbol::Call {
@@ -1209,6 +1175,7 @@ fn rewrite_binary(
                     ),
                 },
             ),
+            right.restrictions.clone(),
         ));
         symbols.push(Symbol::Return(pack_return(
             Expr::Int(pr),
@@ -1251,8 +1218,7 @@ fn rewrite_prefix(
     }
 
     if use_min {
-        symbols.push(restore_end_wrappers(
-            &right.restrictions,
+        symbols.push(Symbol::restricted(
             make_right_binding(
                 &right_id,
                 pr,
@@ -1260,11 +1226,11 @@ fn rewrite_prefix(
                 right_local_n,
                 right.label.as_deref(),
             ),
+            right.restrictions.clone(),
         ));
         symbols.push(make_min_return(pr, label_idx, head_has_e, right_has_e));
     } else {
-        symbols.push(restore_end_wrappers(
-            &right.restrictions,
+        symbols.push(Symbol::restricted(
             label_symbol(
                 right.label.as_deref(),
                 Symbol::Call {
@@ -1272,6 +1238,7 @@ fn rewrite_prefix(
                     arguments: recursive_call_args(Expr::Int(pr), right_has_e, right_local_n),
                 },
             ),
+            right.restrictions.clone(),
         ));
         symbols.push(Symbol::Return(pack_return(
             Expr::Int(pr),
@@ -1304,9 +1271,9 @@ fn rewrite_postfix(
     let mut symbols = Vec::new();
 
     symbols.push(make_precondition(pr));
-    symbols.push(restore_end_wrappers(
-        &left.restrictions,
+    symbols.push(Symbol::restricted(
         make_left_binding(&left_id, left_has_e, left.label.as_deref()),
+        left.restrictions.clone(),
     ));
     symbols.push(make_postcondition(pr, left_has_e));
     if left_has_e && left_local_n != 0 {
@@ -2652,12 +2619,11 @@ mod tests {
         // [precondition, restricted left binding, ...].
         let left_end = &alternatives[1].symbols[1];
         match left_end {
-            Symbol::FollowRestriction {
+            Symbol::Restricted {
                 symbol,
                 restrictions,
-                ..
             } => {
-                assert_eq!(restrictions.len(), 1);
+                assert_eq!(restrictions.follow.len(), 1);
                 assert!(
                     matches!(symbol.as_ref(), Symbol::Binding { name, .. } if name == "l"),
                     "restriction should wrap the `l` binding, got {symbol:?}",
