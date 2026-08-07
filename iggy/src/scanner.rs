@@ -563,18 +563,18 @@ static DFA_31: Dfa = Dfa::new(&[
     State::new(&[], Some(TerminalId(31))),
 ]);
 static DFA_32: Dfa = Dfa::new(&[
-    State::new(&[('!', '!', 1)], None),
-    State::new(&[('>', '>', 2)], None),
-    State::new(&[('>', '>', 3)], None),
-    State::new(&[('>', '>', 4)], None),
+    State::new(&[(':', ':', 1)], None),
     State::new(&[], Some(TerminalId(32))),
 ]);
 static DFA_33: Dfa = Dfa::new(&[
     State::new(&[('!', '!', 1)], None),
+    State::new(&[('>', '>', 2)], None),
+    State::new(&[('>', '>', 3)], None),
+    State::new(&[('>', '>', 4)], None),
     State::new(&[], Some(TerminalId(33))),
 ]);
 static DFA_34: Dfa = Dfa::new(&[
-    State::new(&[(':', ':', 1)], None),
+    State::new(&[('!', '!', 1)], None),
     State::new(&[], Some(TerminalId(34))),
 ]);
 static DFA_35: Dfa = Dfa::new(&[
@@ -737,15 +737,15 @@ impl<'i, 'arena> IggyScanner<'i, 'arena> {
     pub fn match_terminal_31(&self, input_index: u32) -> Option<u32> {
         self.scan(&DFA_31, input_index)
     }
-    // "!>>>" = !>>>
+    // ":" = :
     pub fn match_terminal_32(&self, input_index: u32) -> Option<u32> {
         self.scan(&DFA_32, input_index)
     }
-    // "!" = !
+    // "!>>>" = !>>>
     pub fn match_terminal_33(&self, input_index: u32) -> Option<u32> {
         self.scan(&DFA_33, input_index)
     }
-    // ":" = :
+    // "!" = !
     pub fn match_terminal_34(&self, input_index: u32) -> Option<u32> {
         self.scan(&DFA_34, input_index)
     }

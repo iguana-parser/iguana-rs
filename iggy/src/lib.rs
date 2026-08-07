@@ -267,26 +267,28 @@ pub fn parse_regex_rule<'a>(
         }
     }
 }
-/// Parses `input` starting from `PreCondition`.
+/// Parses `input` starting from `RegexPreCondition`.
 ///
 /// `tree_arena` holds the constructed parse tree: the returned tree borrows it
 /// and lives until the arena is reset or dropped. Once the tree goes out of
 /// scope, the arena can be reset with `tree_arena.reset()` and reused for the
 /// next parse; that is the pattern for repeated parsing, as in an editor or a
 /// benchmark loop.
-pub fn parse_pre_condition<'a>(
+pub fn parse_regex_pre_condition<'a>(
     input: &Input,
     tree_arena: &'a Arena,
-) -> std::result::Result<ParseSuccess<&'a Start<&'a PreCondition<'a>, &'a Layout<'a>>>, ParseError>
-{
+) -> std::result::Result<
+    ParseSuccess<&'a Start<&'a RegexPreCondition<'a>, &'a Layout<'a>>>,
+    ParseError,
+> {
     let vec_arena = Arena::new();
-    let mut parser = IggyParser::new(input, grammar_data::START_PRE_CONDITION, &vec_arena);
+    let mut parser = IggyParser::new(input, grammar_data::START_REGEX_PRE_CONDITION, &vec_arena);
     match parser.run() {
         ParseResult::Success(success) => {
             let parse_duration = success.duration;
             let tree_start = iguana_runtime::Instant::now();
             let parse_tree_builder = IggyParseTreeBuilder::new(tree_arena);
-            let tree = parse_tree::create_parse_tree_start_pre_condition(
+            let tree = parse_tree::create_parse_tree_start_regex_pre_condition(
                 success.sppf_node_id,
                 &parser,
                 &parse_tree_builder,
@@ -312,26 +314,28 @@ pub fn parse_pre_condition<'a>(
         }
     }
 }
-/// Parses `input` starting from `PostCondition`.
+/// Parses `input` starting from `RegexPostCondition`.
 ///
 /// `tree_arena` holds the constructed parse tree: the returned tree borrows it
 /// and lives until the arena is reset or dropped. Once the tree goes out of
 /// scope, the arena can be reset with `tree_arena.reset()` and reused for the
 /// next parse; that is the pattern for repeated parsing, as in an editor or a
 /// benchmark loop.
-pub fn parse_post_condition<'a>(
+pub fn parse_regex_post_condition<'a>(
     input: &Input,
     tree_arena: &'a Arena,
-) -> std::result::Result<ParseSuccess<&'a Start<&'a PostCondition<'a>, &'a Layout<'a>>>, ParseError>
-{
+) -> std::result::Result<
+    ParseSuccess<&'a Start<&'a RegexPostCondition<'a>, &'a Layout<'a>>>,
+    ParseError,
+> {
     let vec_arena = Arena::new();
-    let mut parser = IggyParser::new(input, grammar_data::START_POST_CONDITION, &vec_arena);
+    let mut parser = IggyParser::new(input, grammar_data::START_REGEX_POST_CONDITION, &vec_arena);
     match parser.run() {
         ParseResult::Success(success) => {
             let parse_duration = success.duration;
             let tree_start = iguana_runtime::Instant::now();
             let parse_tree_builder = IggyParseTreeBuilder::new(tree_arena);
-            let tree = parse_tree::create_parse_tree_start_post_condition(
+            let tree = parse_tree::create_parse_tree_start_regex_post_condition(
                 success.sppf_node_id,
                 &parser,
                 &parse_tree_builder,
@@ -510,6 +514,96 @@ pub fn parse_symbol<'a>(
             let tree_start = iguana_runtime::Instant::now();
             let parse_tree_builder = IggyParseTreeBuilder::new(tree_arena);
             let tree = parse_tree::create_parse_tree_start_symbol(
+                success.sppf_node_id,
+                &parser,
+                &parse_tree_builder,
+            );
+            let tree_construction_duration = tree_start.elapsed();
+            let ambiguity_node_added = parser.ambiguity_node_added();
+            Ok(ParseSuccess {
+                tree,
+                parse_duration,
+                tree_construction_duration,
+                ambiguity_node_added,
+            })
+        }
+        ParseResult::Failure(error) => {
+            let (line, column, message) = parser.format_error(&error);
+            let len = parser.error_span_len(error.input_index);
+            Err(ParseError {
+                line,
+                column,
+                len,
+                message,
+            })
+        }
+    }
+}
+/// Parses `input` starting from `PreCondition`.
+///
+/// `tree_arena` holds the constructed parse tree: the returned tree borrows it
+/// and lives until the arena is reset or dropped. Once the tree goes out of
+/// scope, the arena can be reset with `tree_arena.reset()` and reused for the
+/// next parse; that is the pattern for repeated parsing, as in an editor or a
+/// benchmark loop.
+pub fn parse_pre_condition<'a>(
+    input: &Input,
+    tree_arena: &'a Arena,
+) -> std::result::Result<ParseSuccess<&'a Start<&'a PreCondition<'a>, &'a Layout<'a>>>, ParseError>
+{
+    let vec_arena = Arena::new();
+    let mut parser = IggyParser::new(input, grammar_data::START_PRE_CONDITION, &vec_arena);
+    match parser.run() {
+        ParseResult::Success(success) => {
+            let parse_duration = success.duration;
+            let tree_start = iguana_runtime::Instant::now();
+            let parse_tree_builder = IggyParseTreeBuilder::new(tree_arena);
+            let tree = parse_tree::create_parse_tree_start_pre_condition(
+                success.sppf_node_id,
+                &parser,
+                &parse_tree_builder,
+            );
+            let tree_construction_duration = tree_start.elapsed();
+            let ambiguity_node_added = parser.ambiguity_node_added();
+            Ok(ParseSuccess {
+                tree,
+                parse_duration,
+                tree_construction_duration,
+                ambiguity_node_added,
+            })
+        }
+        ParseResult::Failure(error) => {
+            let (line, column, message) = parser.format_error(&error);
+            let len = parser.error_span_len(error.input_index);
+            Err(ParseError {
+                line,
+                column,
+                len,
+                message,
+            })
+        }
+    }
+}
+/// Parses `input` starting from `PostCondition`.
+///
+/// `tree_arena` holds the constructed parse tree: the returned tree borrows it
+/// and lives until the arena is reset or dropped. Once the tree goes out of
+/// scope, the arena can be reset with `tree_arena.reset()` and reused for the
+/// next parse; that is the pattern for repeated parsing, as in an editor or a
+/// benchmark loop.
+pub fn parse_post_condition<'a>(
+    input: &Input,
+    tree_arena: &'a Arena,
+) -> std::result::Result<ParseSuccess<&'a Start<&'a PostCondition<'a>, &'a Layout<'a>>>, ParseError>
+{
+    let vec_arena = Arena::new();
+    let mut parser = IggyParser::new(input, grammar_data::START_POST_CONDITION, &vec_arena);
+    match parser.run() {
+        ParseResult::Success(success) => {
+            let parse_duration = success.duration;
+            let tree_start = iguana_runtime::Instant::now();
+            let parse_tree_builder = IggyParseTreeBuilder::new(tree_arena);
+            let tree = parse_tree::create_parse_tree_start_post_condition(
                 success.sppf_node_id,
                 &parser,
                 &parse_tree_builder,

@@ -228,102 +228,74 @@ fn convert_symbol(symbol: &parse_tree::Symbol, input: &Input) -> Symbol {
             name: input.text(identifier.span()),
             definition: None,
         }),
-        // A symbol reference can be written with several restrictions in any
-        // order, and an exclusion can sit among them. One `Restricted` node
-        // holds every restriction, and one walk converts the whole chain.
-        parse_tree::Symbol::Except { .. }
-        | parse_tree::Symbol::FollowRestriction { .. }
-        | parse_tree::Symbol::LayoutAwareFollowRestriction { .. }
-        | parse_tree::Symbol::PrecedeRestriction { .. }
-        | parse_tree::Symbol::Exclude { .. } => {
+        // `PostCondition` has higher precedence than `PreCondition`, so a
+        // post-condition node can nest inside a pre-condition node. The two
+        // cases are therefore converted together, building one
+        // `Restrictions` record for both.
+        parse_tree::Symbol::PostCondition { .. } | parse_tree::Symbol::PreCondition { .. } => {
             let mut restrictions = Restrictions::default();
-            let symbol = convert_restricted(symbol, input, &mut restrictions);
-            Symbol::restricted(symbol, restrictions)
+            let mut node = symbol;
+            if let parse_tree::Symbol::PreCondition {
+                conditions, symbol, ..
+            } = node
+            {
+                for condition in conditions.pre_conditions() {
+                    add_restriction(&mut restrictions.precede, condition.identifier(), input);
+                }
+                node = symbol;
+            }
+            let mut labels = Vec::new();
+            if let parse_tree::Symbol::PostCondition {
+                conditions, symbol, ..
+            } = node
+            {
+                for condition in conditions.post_conditions() {
+                    match condition {
+                        parse_tree::PostCondition::Except { identifier, .. } => {
+                            add_restriction(&mut restrictions.excepts, *identifier, input);
+                        }
+                        parse_tree::PostCondition::FollowRestriction { identifier, .. } => {
+                            add_restriction(&mut restrictions.follow, *identifier, input);
+                        }
+                        parse_tree::PostCondition::LayoutAwareFollowRestriction {
+                            identifier,
+                            ..
+                        } => {
+                            add_restriction(
+                                &mut restrictions.layout_aware_follow,
+                                *identifier,
+                                input,
+                            );
+                        }
+                        parse_tree::PostCondition::Exclude { identifier, .. } => {
+                            labels.push(input.text(identifier.span()));
+                        }
+                        parse_tree::PostCondition::Amb(_) => panic!("unexpected ambiguity"),
+                    }
+                }
+                node = symbol;
+            }
+            let mut converted = convert_symbol(node, input);
+            if !labels.is_empty() {
+                converted = Symbol::Exclude {
+                    symbol: Box::new(converted),
+                    labels,
+                };
+            }
+            Symbol::restricted(converted, restrictions)
         }
         parse_tree::Symbol::Amb(_) => panic!("unexpected ambiguity"),
     }
 }
 
-/// Converts a symbol reference written with restrictions, collecting them
-/// into `restrictions` and returning the symbol they apply to. The walk
-/// descends to that symbol and records each restriction on the way, in
-/// source order:
-///
-/// - The postfix operators (`\`, `!>>`, `!>>>`) nest with the rightmost
-///   operator outermost. The walk records them on the way back up.
-/// - The prefix operator (`!<<`) nests with the leftmost operator outermost.
-///   The walk records it on the way down.
-/// - An exclusion (`!label`) sits at the same level as the restrictions and
-///   can be written anywhere among them. The walk rebuilds the exclusion
-///   around the converted symbol. The exclusion therefore ends up below the
-///   `Restricted` node in both spellings.
-fn convert_restricted(
-    symbol: &parse_tree::Symbol,
-    input: &Input,
-    restrictions: &mut Restrictions,
-) -> Symbol {
-    match symbol {
-        parse_tree::Symbol::Except {
-            symbol, excepts, ..
-        } => {
-            let converted = convert_restricted(symbol, input, restrictions);
-            add_restrictions(&mut restrictions.excepts, excepts.identifiers(), input);
-            converted
-        }
-        parse_tree::Symbol::FollowRestriction {
-            symbol,
-            restrictions: follow,
-            ..
-        } => {
-            let converted = convert_restricted(symbol, input, restrictions);
-            add_restrictions(&mut restrictions.follow, follow.identifiers(), input);
-            converted
-        }
-        parse_tree::Symbol::LayoutAwareFollowRestriction {
-            symbol,
-            restrictions: follow,
-            ..
-        } => {
-            let converted = convert_restricted(symbol, input, restrictions);
-            add_restrictions(
-                &mut restrictions.layout_aware_follow,
-                follow.identifiers(),
-                input,
-            );
-            converted
-        }
-        parse_tree::Symbol::PrecedeRestriction {
-            symbol, identifier, ..
-        } => {
-            add_restrictions(&mut restrictions.precede, [*identifier], input);
-            convert_restricted(symbol, input, restrictions)
-        }
-        parse_tree::Symbol::Exclude { symbol, labels, .. } => Symbol::Exclude {
-            symbol: Box::new(convert_restricted(symbol, input, restrictions)),
-            labels: labels
-                .identifiers()
-                .map(|token| input.text(token.span()))
-                .collect(),
-        },
-        symbol => convert_symbol(symbol, input),
-    }
-}
-
-/// Appends the restrictions that `list` does not already hold. A restriction
-/// written twice on one symbol is recorded once.
-fn add_restrictions(
-    list: &mut Vec<Identifier>,
-    tokens: impl IntoIterator<Item = parse_tree::Token>,
-    input: &Input,
-) {
-    for token in tokens {
-        let id = Identifier {
-            name: input.text(token.span()),
-            definition: None,
-        };
-        if !list.contains(&id) {
-            list.push(id);
-        }
+/// Appends the restriction unless `list` already holds it.
+fn add_restriction(list: &mut Vec<Identifier>, token: parse_tree::Token, input: &Input) {
+    let id = Identifier {
+        name: input.text(token.span()),
+        definition: None,
+    };
+    if !list.contains(&id) {
+        list.push(id);
     }
 }
 
@@ -338,26 +310,26 @@ fn convert_regex_rule(rule: &parse_tree::RegexRule, input: &Input) -> LexicalRul
             .collect(),
     );
     let mut lexical_rule = LexicalRule::new(head, regex);
-    for post_condition in rule.post_conditions().post_conditions() {
+    for post_condition in rule.regex_post_conditions().regex_post_conditions() {
         match post_condition {
-            parse_tree::PostCondition::Except { identifier, .. } => {
+            parse_tree::RegexPostCondition::Except { identifier, .. } => {
                 lexical_rule.except.push(Identifier {
                     name: input.text(identifier.span()),
                     definition: None,
                 });
             }
-            parse_tree::PostCondition::FollowRestriction { identifier, .. } => {
+            parse_tree::RegexPostCondition::FollowRestriction { identifier, .. } => {
                 lexical_rule.follow_restriction.push(Identifier {
                     name: input.text(identifier.span()),
                     definition: None,
                 });
             }
-            parse_tree::PostCondition::Amb(_) => panic!("unexpected ambiguity"),
+            parse_tree::RegexPostCondition::Amb(_) => panic!("unexpected ambiguity"),
         }
     }
-    if let Some(pc) = rule.pre_condition().value() {
+    if let Some(condition) = rule.regex_pre_condition().value() {
         lexical_rule.precede_restriction = Some(Identifier {
-            name: input.text(pc.identifier().span()),
+            name: input.text(condition.identifier().span()),
             definition: None,
         });
     }

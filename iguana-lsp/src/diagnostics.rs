@@ -355,6 +355,65 @@ A
         assert!(d[0].message.contains("Undef"));
     }
 
+    /// Two exclusions written separately land in one label list, and both
+    /// labels are checked.
+    #[test]
+    fn two_separate_exclusions() {
+        let d = diags(
+            r#"
+grammar T
+
+S
+  = A !NoSuch1 !NoSuch2 A
+
+A
+  = "a"    #Alt
+  | "b"
+"#,
+        );
+        let names: Vec<_> = d.iter().map(|d| &d.message).collect();
+        assert_eq!(d.len(), 2, "expected one per unknown label, got: {names:?}");
+        for name in ["NoSuch1", "NoSuch2"] {
+            assert!(
+                d.iter().any(|d| d.message.contains(name)),
+                "{name} went unreported, got: {names:?}",
+            );
+        }
+    }
+
+    /// Exclusions written on both sides of a follow restriction land in one
+    /// label list, and each label diagnostic points at its own token.
+    #[test]
+    fn exclusions_split_around_a_follow_restriction() {
+        let d = diags(
+            r#"
+grammar T
+
+S
+  = A!NoSuch1 !>> B !NoSuch2 A
+
+A
+  = "a"    #Alt
+  | "b"
+
+B
+  = "b"
+"#,
+        );
+        let names: Vec<_> = d.iter().map(|d| &d.message).collect();
+        assert_eq!(d.len(), 2, "expected one per unknown label, got: {names:?}");
+        let line = "  = A!NoSuch1 !>> B !NoSuch2 A";
+        for name in ["NoSuch1", "NoSuch2"] {
+            let character = line.find(name).unwrap() as u32;
+            assert!(
+                d.iter().any(|d| d.message.contains(name)
+                    && d.range.start.line == 3
+                    && d.range.start.character == character),
+                "{name} not reported at its own token, got: {d:?}",
+            );
+        }
+    }
+
     #[test]
     fn unresolved_regex_identifier() {
         let d = diags(

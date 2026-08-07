@@ -16,12 +16,12 @@ Annotation
   | "@WithLayout" "(" Identifier ")" #WithLayout
 
 RegexRule
-  = layout:"@Layout"? "@Regex" Identifier "=" PreCondition? body:{ Regex+ "|" }+ PostCondition*
+  = layout:"@Layout"? "@Regex" Identifier "=" RegexPreCondition? body:{ Regex+ "|" }+ RegexPostCondition*
 
-PreCondition
-  = Identifier "!<<" #PrecedeRestriction
+RegexPreCondition
+  = Identifier "!<<"
 
-PostCondition
+RegexPostCondition
   = "\\" Identifier  #Except
   | "!>>" Identifier #FollowRestriction
 
@@ -46,12 +46,18 @@ Symbol
   > Symbol "*"                                                            #Star
   | Symbol "+"                                                            #Plus
   | Symbol "?"                                                            #Opt
-  | Symbol!Except excepts:("\\" Identifier)+                              #Except
-  | Symbol!FollowRestriction restrictions:("!>>" Identifier)+             #FollowRestriction
-  | Symbol!LayoutAwareFollowRestriction restrictions:("!>>>" Identifier)+ #LayoutAwareFollowRestriction
-  | Symbol labels:("!" Identifier)+                                       #Exclude
-  > Identifier "!<<" Symbol                                               #PrecedeRestriction
+  | Symbol!PostCondition conditions:PostCondition+                        #PostCondition
+  > conditions:PreCondition+ Symbol!PreCondition                          #PreCondition
   > label:Identifier ":" Symbol                                           #Labeled
+
+PreCondition
+  = Identifier "!<<"
+
+PostCondition
+  = "\\" Identifier   #Except
+  | "!>>" Identifier  #FollowRestriction
+  | "!>>>" Identifier #LayoutAwareFollowRestriction
+  | "!" Identifier    #Exclude
 
 Regex
   = Regex "+"                         #Plus

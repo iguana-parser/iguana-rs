@@ -296,50 +296,56 @@ impl<'a> Formatter<'a> {
                 self.format_symbol(out, sep);
                 out.push_str(" }+");
             }
-            Symbol::Except {
-                symbol, excepts, ..
+            Symbol::PostCondition {
+                symbol, conditions, ..
             } => {
                 self.format_symbol(out, symbol);
-                for id in excepts.identifiers() {
+                // The grammar accepts the conditions in any order. The
+                // formatter emits them in canonical order.
+                let mut excludes = Vec::new();
+                let mut excepts = Vec::new();
+                let mut follow = Vec::new();
+                let mut layout_aware_follow = Vec::new();
+                for condition in conditions.post_conditions() {
+                    match condition {
+                        PostCondition::Exclude { identifier, .. } => excludes.push(identifier),
+                        PostCondition::Except { identifier, .. } => excepts.push(identifier),
+                        PostCondition::FollowRestriction { identifier, .. } => {
+                            follow.push(identifier)
+                        }
+                        PostCondition::LayoutAwareFollowRestriction { identifier, .. } => {
+                            layout_aware_follow.push(identifier)
+                        }
+                        PostCondition::Amb(_) => {
+                            unreachable!("ambiguous trees are rejected before this point")
+                        }
+                    }
+                }
+                for id in excludes {
+                    out.push('!');
+                    out.push_str(&self.input.text(id.span()));
+                }
+                for id in excepts {
                     out.push_str(" \\ ");
                     out.push_str(&self.input.text(id.span()));
                 }
-            }
-            Symbol::FollowRestriction {
-                symbol,
-                restrictions,
-                ..
-            } => {
-                self.format_symbol(out, symbol);
-                for id in restrictions.identifiers() {
+                for id in follow {
                     out.push_str(" !>> ");
                     out.push_str(&self.input.text(id.span()));
                 }
-            }
-            Symbol::LayoutAwareFollowRestriction {
-                symbol,
-                restrictions,
-                ..
-            } => {
-                self.format_symbol(out, symbol);
-                for id in restrictions.identifiers() {
+                for id in layout_aware_follow {
                     out.push_str(" !>>> ");
                     out.push_str(&self.input.text(id.span()));
                 }
             }
-            Symbol::PrecedeRestriction {
-                identifier, symbol, ..
+            Symbol::PreCondition {
+                conditions, symbol, ..
             } => {
-                out.push_str(&self.input.text(identifier.span()));
-                out.push_str(" !<< ");
-                self.format_symbol(out, symbol);
-            }
-            Symbol::Exclude { symbol, labels, .. } => {
-                self.format_symbol(out, symbol);
-                for id in labels.identifiers() {
-                    out.push('!');
-                    out.push_str(&self.input.text(id.span()));
+                for condition in conditions.pre_conditions() {
+                    out.push_str(&self.input.text(condition.identifier().span()));
+                    out.push_str(" !<< ");
                 }
+                self.format_symbol(out, symbol);
             }
             Symbol::Labeled { label, symbol, .. } => {
                 out.push_str(&self.input.text(label.span()));
@@ -352,17 +358,17 @@ impl<'a> Formatter<'a> {
 
     fn postconditions_to_string(&self, rule: &RegexRule) -> String {
         let mut s = String::new();
-        for pc in rule.post_conditions().post_conditions() {
-            match pc {
-                PostCondition::Except { identifier, .. } => {
+        for condition in rule.regex_post_conditions().regex_post_conditions() {
+            match condition {
+                RegexPostCondition::Except { identifier, .. } => {
                     s.push_str(" \\ ");
                     s.push_str(&self.input.text(identifier.span()));
                 }
-                PostCondition::FollowRestriction { identifier, .. } => {
+                RegexPostCondition::FollowRestriction { identifier, .. } => {
                     s.push_str(" !>> ");
                     s.push_str(&self.input.text(identifier.span()));
                 }
-                PostCondition::Amb(_) => {
+                RegexPostCondition::Amb(_) => {
                     unreachable!("ambiguous trees are rejected before this point")
                 }
             }
@@ -384,7 +390,7 @@ impl<'a> Formatter<'a> {
             .collect();
 
         let pre_prefix = rule
-            .pre_condition()
+            .regex_pre_condition()
             .value()
             .map(|pre| format!("{} !<< ", self.input.text(pre.identifier().span())));
         let pre_str = pre_prefix.as_deref().unwrap_or("");
@@ -604,6 +610,72 @@ mod tests {
             formatted,
             "grammar T\n\nS\n  = A !>>> B\n\n@Regex\nA = \"a\"\n\n@Regex\nB = \"b\"\n"
         );
+    }
+
+    #[test]
+    fn test_postfix_conditions_normalized() {
+        let input = r#"grammar T
+
+S
+  = A !>> B \ K !X A
+
+A
+  = "a" #X
+
+B
+  = "b"
+
+@Regex
+K = "k"
+"#;
+        let expected = r#"grammar T
+
+S
+  = A!X \ K !>> B A
+
+A
+  = "a" #X
+
+B
+  = "b"
+
+@Regex
+K = "k"
+"#;
+        assert_eq!(format_source(input).unwrap(), expected);
+    }
+
+    #[test]
+    fn test_precede_restriction_list() {
+        let input = r#"grammar T
+
+S
+  = X  !<<  Y  !<<  A
+
+A
+  = "a"
+
+@Regex
+X = "x"
+
+@Regex
+Y = "y"
+"#;
+        let expected = r#"grammar T
+
+S
+  = X !<< Y !<< A
+
+A
+  = "a"
+
+@Regex
+X = "x"
+
+@Regex
+Y = "y"
+"#;
+        assert_eq!(format_source(input).unwrap(), expected);
     }
 
     #[test]
