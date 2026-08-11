@@ -1,0 +1,3 @@
+Parse error at line 1, col 13: Expected one of Id, "if"
+if(a)x; else;
+            ^

@@ -4,7 +4,7 @@ use crate::generator::id::TerminalIds;
 use crate::grammar::def::Grammar;
 use crate::grammar::first_follow::FirstFollowSets;
 use crate::grammar::slot::Slot;
-use crate::grammar::symbols::{Definition, Nonterminal, Terminal};
+use crate::grammar::symbols::{Definition, Identifier, Nonterminal, Terminal};
 use crate::ids::TerminalId;
 use crate::utils::to_snake_case;
 
@@ -22,10 +22,14 @@ pub enum SetKind {
     /// alternatives to start.
     FirstAlt(usize),
     /// Terminals forbidden right after the symbol at position `pos` in
-    /// alternative `alt` (a `!>>` restriction). A residual `!>>>`
-    /// restriction joins this set and is checked at the same position as a
-    /// plain `!>>`.
+    /// alternative `alt` (a `!>>` restriction).
     FollowRestriction { alt: usize, pos: usize },
+    /// Terminals forbidden after the layout that follows the symbol at
+    /// position `pos` in alternative `alt` (a `!>>>` restriction). A
+    /// separate set from `FollowRestriction` is needed because the two sets
+    /// are checked at different positions: `!>>` at the symbol's right
+    /// extent, and `!>>>` at the right extent of the layout after the symbol.
+    LayoutAwareFollowRestriction { alt: usize, pos: usize },
 }
 
 /// A terminal set emitted as a `static &[TerminalId]`. The name and comment are
@@ -47,6 +51,9 @@ impl TerminalSet<'_> {
             SetKind::FollowRestriction { alt, pos } => {
                 format!("FOLLOW_RESTRICTION_{nt}_ALT{alt}_POS{pos}")
             }
+            SetKind::LayoutAwareFollowRestriction { alt, pos } => {
+                format!("LAYOUT_AWARE_FOLLOW_RESTRICTION_{nt}_ALT{alt}_POS{pos}")
+            }
         }
     }
 
@@ -66,6 +73,13 @@ impl TerminalSet<'_> {
                 let alternative = &grammar.alternatives(self.nonterminal)[alt];
                 format!(
                     "{} !>> {names}",
+                    Slot::new(self.nonterminal, alternative, pos).name()
+                )
+            }
+            SetKind::LayoutAwareFollowRestriction { alt, pos } => {
+                let alternative = &grammar.alternatives(self.nonterminal)[alt];
+                format!(
+                    "{} !>>> {names}",
                     Slot::new(self.nonterminal, alternative, pos).name()
                 )
             }
@@ -106,32 +120,23 @@ pub fn terminal_sets<'a>(grammar: &'a Grammar, ff: &FirstFollowSets) -> Vec<Term
         for (alt, alternative) in alternatives.iter().enumerate() {
             for (pos, symbol) in alternative.symbols.iter().enumerate() {
                 let restrictions = symbol.restrictions();
-                // The same identifier can appear in both lists (`X !>> T
-                // !>>> T`); it enters the set once.
-                let terminals: Vec<_> = restrictions
-                    .follow
-                    .iter()
-                    .chain(
-                        restrictions
-                            .layout_aware_follow
-                            .iter()
-                            .filter(|r| !restrictions.follow.contains(r)),
-                    )
-                    .map(|r| {
-                        let Definition::Terminal(t) = grammar.definition(r.resolve()) else {
-                            panic!("follow restriction must resolve to a terminal");
-                        };
-                        t.clone()
-                    })
-                    .collect();
-                if terminals.is_empty() {
-                    continue;
+                if !restrictions.follow.is_empty() {
+                    sets.push(TerminalSet {
+                        nonterminal,
+                        kind: SetKind::FollowRestriction { alt, pos },
+                        terminals: restriction_terminals(grammar, &restrictions.follow),
+                    });
                 }
-                sets.push(TerminalSet {
-                    nonterminal,
-                    kind: SetKind::FollowRestriction { alt, pos },
-                    terminals,
-                });
+                if !restrictions.layout_aware_follow.is_empty() {
+                    sets.push(TerminalSet {
+                        nonterminal,
+                        kind: SetKind::LayoutAwareFollowRestriction { alt, pos },
+                        terminals: restriction_terminals(
+                            grammar,
+                            &restrictions.layout_aware_follow,
+                        ),
+                    });
+                }
             }
         }
     }
@@ -204,6 +209,18 @@ impl SetIds {
     pub fn count(&self) -> usize {
         self.count
     }
+}
+
+fn restriction_terminals(grammar: &Grammar, restrictions: &[Identifier]) -> Vec<Terminal> {
+    restrictions
+        .iter()
+        .map(|r| {
+            let Definition::Terminal(t) = grammar.definition(r.resolve()) else {
+                panic!("follow restriction must resolve to a terminal");
+            };
+            t.clone()
+        })
+        .collect()
 }
 
 fn terminal_names(terminals: &[Terminal]) -> String {

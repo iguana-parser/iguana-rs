@@ -1,0 +1,20 @@
+(Start
+  (Layout (WhiteSpace | Comment)*)
+  (S
+    (Statement+
+      (Statement
+        "if"
+        (Layout (WhiteSpace | Comment)*)
+        "("
+        (Layout (WhiteSpace | Comment)*)
+        Cond
+        (Layout (WhiteSpace | Comment)*)
+        ")"
+        (Layout (WhiteSpace | Comment)*)
+        (Statement
+          Id
+          (Layout (WhiteSpace | Comment)*)
+          ";"))))
+  (Layout
+    ((WhiteSpace | Comment)*
+      ((WhiteSpace | Comment) WhiteSpace))))

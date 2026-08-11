@@ -1,0 +1,12 @@
+grammar LayoutAwareFollowRequiredLayout
+
+S = Id !>>> Semi
+
+@Regex
+Id = [a-z]+
+
+@Regex
+Semi = ";"
+
+@Layout @Regex
+WS = [\ ]+

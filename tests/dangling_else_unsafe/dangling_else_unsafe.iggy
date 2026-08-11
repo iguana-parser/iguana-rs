@@ -1,0 +1,29 @@
+grammar DanglingElseUnsafe
+
+S = Statement+
+
+Statement
+  = "if" "(" Cond ")" Statement !>>> Else            #If
+  | "if" "(" Cond ")" Statement Else Statement       #IfElse
+  | Id ";"                                           #Simple
+
+@Regex
+Cond = [a-z]+
+
+@Regex
+Id = [a-z]+
+
+@Regex
+Else = "else" !>> Letter
+
+@Regex
+Letter = [a-z]
+
+@Layout
+Layout = (WhiteSpace | Comment)*
+
+@Regex
+WhiteSpace = [\ \t \n]+
+
+@Regex
+Comment = "/*" ![*]* "*/"

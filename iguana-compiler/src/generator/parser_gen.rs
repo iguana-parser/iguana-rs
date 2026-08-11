@@ -207,6 +207,9 @@ impl<'a> ParserGen<'a> {
                     gss_node_id: Option<GssNodeId>,
                     kind: impl FnOnce() -> ParseErrorKind,
                 ) {
+                    if self.suppress_parse_errors {
+                        return;
+                    }
                     let level = self.parse_errors.first().map_or(0, |e| e.input_index);
                     if input_index < level {
                         record!(self, ParseError, input_index, slot_id, gss_node_id, kind());
@@ -680,7 +683,8 @@ impl<'a> ParserGen<'a> {
                     }
                     // One branch per restriction kind, chained into a single
                     // arm: the excepts over the matched span first, then the
-                    // follow restrictions at its right extent.
+                    // follow restrictions at its right extent, then the
+                    // layout-aware follow restrictions at the layout's end.
                     let mut branches = vec![];
                     if !restrictions.excepts.is_empty() {
                         let except_ids: Vec<_> = restrictions
@@ -709,9 +713,7 @@ impl<'a> ParserGen<'a> {
                             } else
                         });
                     }
-                    if !restrictions.follow.is_empty()
-                        || !restrictions.layout_aware_follow.is_empty()
-                    {
+                    if !restrictions.follow.is_empty() {
                         let static_name_str = format!(
                             "FOLLOW_RESTRICTION_{}_ALT{}_POS{}",
                             to_snake_case(&nonterminal.name).to_uppercase(),
@@ -724,6 +726,34 @@ impl<'a> ParserGen<'a> {
                         uses_right_extent = true;
                         branches.push(quote! {
                             if #restriction_check {
+                                Some(ParseErrorKind::ForbiddenFollow {
+                                    forbidden: #static_name.terminals.to_vec(),
+                                })
+                            } else
+                        });
+                    }
+                    // `!>>>` restricts which terminals can appear after the layout
+                    // that follows the symbol.
+                    //
+                    // A non-nullable layout can fail to match after the symbol, and
+                    // the layout match then returns `None`. The check passes in that case:
+                    // the parser must parse the woven layout at this same position
+                    // to continue, so the derivation fails regardless. The layout
+                    // failure is the error worth reporting.
+                    if !restrictions.layout_aware_follow.is_empty() {
+                        let static_name_str = format!(
+                            "LAYOUT_AWARE_FOLLOW_RESTRICTION_{}_ALT{}_POS{}",
+                            to_snake_case(&nonterminal.name).to_uppercase(),
+                            alt_index,
+                            pos
+                        );
+                        let static_name = format_ident!("{}", static_name_str);
+                        let restriction_check =
+                            self.gen_match_any(&static_name_str, quote! { end });
+                        let layout_match = self.gen_layout_match(quote! { right_extent });
+                        uses_right_extent = true;
+                        branches.push(quote! {
+                            if (#layout_match).is_some_and(|end| #restriction_check) {
                                 Some(ParseErrorKind::ForbiddenFollow {
                                     forbidden: #static_name.terminals.to_vec(),
                                 })
@@ -772,6 +802,51 @@ impl<'a> ParserGen<'a> {
         quote! {
             fn post_conditions(&mut self, #slot: SlotId, #left_extent: u32, #right_extent: u32) -> Option<ParseErrorKind> {
                 #body
+            }
+        }
+    }
+
+    /// An expression that matches the layout at `pos`, evaluating to the
+    /// layout's right extent, or to `None` when no layout can be matched.
+    ///
+    /// The scanner matches a regex layout (`@Regex`): longest match makes
+    /// the result unique. An LL(1) layout is matched by its ordinary
+    /// `parse_*_ll1` method, memoized in `layout_memo`, with error
+    /// recording suppressed so the speculative parse cannot plant an error
+    /// the real parse never reached; LL(1) determinism makes this result
+    /// unique too. Any other layout can match with multiple right extents,
+    /// which takes a GLL recognizer and descriptor dispatch. That arm is
+    /// not implemented.
+    fn gen_layout_match(&self, pos: TokenStream) -> TokenStream {
+        let identifier = self
+            .grammar
+            .layout
+            .as_ref()
+            .and_then(Symbol::as_identifier)
+            .expect("a `!>>>` restriction survives only in a rule with layout");
+        match self.grammar.definition(identifier.resolve()) {
+            Definition::Terminal(terminal) => {
+                let terminal_id = self.terminal_ids.get_id(terminal);
+                quote! { self.scanner.match_token(#terminal_id, #pos) }
+            }
+            Definition::Nonterminal(nonterminal)
+                if self.config.ll1_optimization && self.ff.is_ll1(nonterminal) =>
+            {
+                let method_name = format_ident!("parse_{}_ll1", to_snake_case(&nonterminal.name));
+                quote! {
+                    {
+                        self.suppress_parse_errors = true;
+                        let node = self.#method_name(#pos);
+                        self.suppress_parse_errors = false;
+                        node.map(|node| self.sppf_node(node).right_extent())
+                    }
+                }
+            }
+            Definition::Nonterminal(nonterminal) => {
+                unimplemented!(
+                    "`!>>>` needs to know where layout `{}` ends, which takes a scanner match (terminal layout) or an LL(1) parse (LL(1) layout, `ll1` knob on)",
+                    nonterminal.name
+                )
             }
         }
     }
@@ -1148,6 +1223,7 @@ impl<'a> ParserGen<'a> {
                     #children_init
                     #envs_init
                     parse_errors: InlineVec::Empty,
+                    suppress_parse_errors: false,
                     #layout_memo_init
                     #[cfg(feature = "debug-trace")]
                     trace_events: None,
@@ -1260,6 +1336,10 @@ impl<'a> ParserGen<'a> {
                 #children_fields
                 envs: ArenaVec<'arena, Env<'arena>>,
                 parse_errors: InlineVec<'arena, ParseError, 8>,
+                #[comment = "When true, `add_parse_error` is a no-op. The one user is the layout match
+                             of a `!>>>` restriction: that parse is speculative, so its failure must
+                             not become the reported error."]
+                suppress_parse_errors: bool,
                 #layout_memo_field
                 #[cfg(feature = "debug-trace")]
                 pub trace_events: Option<Vec<TraceEvent>>,

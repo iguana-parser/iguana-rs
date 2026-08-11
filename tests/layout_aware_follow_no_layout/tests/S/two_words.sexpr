@@ -1,0 +1,10 @@
+(Start
+  WS
+  (S
+    (Word+
+      (Word
+        (Char+ Char Char))
+      WS
+      (Word
+        (Char+ Char Char))))
+  WS)

@@ -1,0 +1,12 @@
+grammar LayoutAwareFollowMidrule
+
+S = Id !>>> Semi Id
+
+@Regex
+Id = [a-z]+
+
+@Regex
+Semi = ";"
+
+@Layout @Regex
+WS = [\ ]*

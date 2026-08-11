@@ -1,0 +1,15 @@
+grammar LayoutAwareFollowSamePosition
+
+S = Id !>> Excl !>>> Semi
+
+@Regex
+Id = [a-z]+
+
+@Regex
+Excl = "!"
+
+@Regex
+Semi = ";"
+
+@Layout @Regex
+WS = [\ ]*

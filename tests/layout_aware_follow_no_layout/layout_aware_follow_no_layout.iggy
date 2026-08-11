@@ -1,0 +1,12 @@
+grammar LayoutAwareFollowNoLayout
+
+S = Word+
+
+@NoLayout
+Word = Char+ !>>> Char
+
+@Regex
+Char = [a-z]
+
+@Layout @Regex
+WS = [\ ]*

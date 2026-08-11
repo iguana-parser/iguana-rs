@@ -525,6 +525,9 @@ impl<'i, 'arena> Parser<'i, 'arena> for ExceptFollowRestrictionParser<'i, 'arena
         gss_node_id: Option<GssNodeId>,
         kind: impl FnOnce() -> ParseErrorKind,
     ) {
+        if self.suppress_parse_errors {
+            return;
+        }
         let level = self.parse_errors.first().map_or(0, |e| e.input_index);
         if input_index < level {
             record!(self, ParseError, input_index, slot_id, gss_node_id, kind());
@@ -596,6 +599,9 @@ pub struct ExceptFollowRestrictionParser<'i, 'arena> {
     nonterminal_nodes_children_map: OnceCell<FxHashMap<SPPFNodeId, Vec<(SPPFNodeId, SlotId)>>>,
     envs: ArenaVec<'arena, Env<'arena>>,
     parse_errors: InlineVec<'arena, ParseError, 8>,
+    // When true, `add_parse_error` is a no-op. The one user is the layout match of a `!>>>`
+    // restriction: that parse is speculative, so its failure must not become the reported error.
+    suppress_parse_errors: bool,
     #[cfg(feature = "debug-trace")]
     pub trace_events: Option<Vec<TraceEvent>>,
 }
@@ -632,6 +638,7 @@ impl<'i, 'arena> ExceptFollowRestrictionParser<'i, 'arena> {
             nonterminal_nodes_children_map: OnceCell::new(),
             envs: vec_arena.vec(),
             parse_errors: InlineVec::Empty,
+            suppress_parse_errors: false,
             #[cfg(feature = "debug-trace")]
             trace_events: None,
         }
