@@ -625,53 +625,26 @@ impl Display for Identifier {
 }
 
 /// A terminal represents a lexical definition.
-#[derive(Debug, Clone, Serialize, Deserialize, Type)]
+#[derive(Debug, Clone, Hash, PartialEq, Eq, Serialize, Deserialize, Type)]
 pub struct Terminal {
     pub name: String,
-    /// The text of the literal occurrence this terminal was synthesized
-    /// from; `None` for a terminal the grammar defines as a rule.
-    #[serde(skip)]
-    pub literal: Option<String>,
 }
 
 impl Terminal {
     pub fn new(name: impl Into<String>) -> Self {
-        Self {
-            name: name.into(),
-            literal: None,
-        }
+        Self { name: name.into() }
     }
 
     /// The terminal of a literal occurrence, named by its quoted, escaped
     /// text: the terminal for `else` is named `"else"`.
     pub fn literal(text: &str) -> Self {
-        Self {
-            name: format!("\"{}\"", escape_literal(text)),
-            literal: Some(text.to_string()),
-        }
+        Self::new(format!("\"{}\"", escape_literal(text)))
     }
 
     pub fn is_literal(&self) -> bool {
-        self.literal.is_some()
+        self.name.starts_with('"')
     }
 }
-
-/// A terminal's identity is its name. `literal` is metadata of the
-/// literal-to-terminal conversion, so a hand-built `Terminal::new("\"a\"")`
-/// still finds the grammar's terminal in maps and sets.
-impl hash::Hash for Terminal {
-    fn hash<H: Hasher>(&self, state: &mut H) {
-        self.name.hash(state);
-    }
-}
-
-impl PartialEq for Terminal {
-    fn eq(&self, other: &Self) -> bool {
-        self.name == other.name
-    }
-}
-
-impl Eq for Terminal {}
 
 impl Display for Terminal {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {

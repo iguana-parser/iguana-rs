@@ -23,6 +23,7 @@ members = [
     "iggy",
     "iguana-lsp",
     "xtask",
+    "tests/exact_keyword_lexical_set",
     "tests/exact_keyword_no_layout",
     "tests/exact_keyword_multiple_ids",
     "tests/exact_keyword_generics",

@@ -1032,17 +1032,13 @@ fn build_grammar(grammar_def: GrammarDef, dump: &[Phase]) -> Result<Grammar, Vec
         .map(|(i, r)| (r.head.name.clone(), i as u16))
         .collect();
     let syntax_rules = add_lexical_rules_for_literals(syntax_rules, &mut lexical_rules);
-    let (definitions, symbol_table) = create_symbol_table(&syntax_rules, &lexical_rules);
+    let (_, symbol_table) = create_symbol_table(&syntax_rules, &lexical_rules);
     let (syntax_rules, lexical_rules) =
         resolve_identifiers(syntax_rules, lexical_rules, &symbol_table);
     let lexical_rules = inline_regex_refs(lexical_rules)?;
     dump_phase(Phase::Resolve, &syntax_rules, &lexical_rules, dump);
-    let (syntax_rules, lexical_rules) = exact_keyword_match::transform(
-        syntax_rules,
-        lexical_rules,
-        &definitions,
-        &grammar_def.identifier_rules,
-    );
+    let (syntax_rules, lexical_rules) =
+        exact_keyword_match::transform(syntax_rules, lexical_rules, &grammar_def.identifier_rules);
     dump_phase(Phase::Keywords, &syntax_rules, &lexical_rules, dump);
     let syntax_rules = ebnf_to_bnf::transform(syntax_rules);
     dump_phase(Phase::Ebnf, &syntax_rules, &lexical_rules, dump);

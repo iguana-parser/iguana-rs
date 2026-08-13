@@ -13,7 +13,7 @@
 //! the longest match. The parser drives the scanner, each position
 //! matches the one terminal the grammar expects there, and no comparison
 //! across terminals takes place. A keyword can therefore match at a
-//! position a scanner would never report, at either end of a word:
+//! position a scanner would never report, at either end of an identifier:
 //!
 //! - The keyword's end. The literal `"else"` matches the first four
 //!   characters of `elsea`, and when the grammar allows an identifier
@@ -25,7 +25,7 @@
 //!   just `a`. Another keyword can end there, though. With `"if"` also in
 //!   the grammar, a scanner reports `ifelse` as one identifier, while
 //!   Iguana matches `"if"` where the grammar expects it, and with
-//!   nullable layout `"else"` then matches directly after, mid-word.
+//!   nullable layout `"else"` then matches directly after, mid-identifier.
 //!
 //! Not having exact keyword matches makes ordinary input ambiguous.
 //! Consider `Stmt = Expr ";" | "if" "(" Expr ")" Stmt ("else" Stmt)?`
@@ -37,7 +37,7 @@
 //! ```
 //!
 //! Matching `"else"` inside `elsewhere` produces a second parse, one if
-//! statement whose else branch is carved out of the word:
+//! statement whose else branch is carved out of the identifier:
 //!
 //! ```text
 //! (if (c) x; else (where;))
@@ -103,31 +103,47 @@
 //! With several identifier-annotated rules, a literal is identifier-shaped
 //! when at least one rule's DFA accepts it, and each class is the union
 //! of the classes over all of them. A rule contributes even when it does
-//! not accept the literal, as long as the literal is a prefix of its
-//! words. With a second annotated rule `[a-z]+[0-9]`, the walk over
-//! `else` ends in a non-accepting state (a digit is still missing), but
-//! `else` is a prefix of the word `else1`, so an identifier can extend
-//! across the keyword: the ending state's outgoing labels, digits
-//! included, belong in the follow class.
+//! not accept the literal, as long as the literal is a prefix of a
+//! string the rule accepts. With a second annotated rule `[a-z]+[0-9]`,
+//! the walk over `else` ends in a non-accepting state (a digit is still
+//! missing), but `else` is a prefix of the accepted `else1`, so an
+//! identifier can extend across the keyword: the ending state's outgoing
+//! labels, digits included, belong in the follow class.
+//!
+//! The restrictions above attach to literal occurrences in syntax
+//! rules, including a syntax rule that is nothing but an alternation of
+//! keywords. A literal can also appear inside a lexical rule, as in
+//! `@Regex Bool = "true" | "false"`. A lexical rule is a single token,
+//! and the literals in its body are parts of the token's regex, not
+//! occurrences, so no restriction attaches to them individually. A rule
+//! of this shape is still a set of keywords, though, and the pair
+//! belongs on the token as a whole: when the body is an alternation of
+//! literals and every literal is identifier-shaped, every reference to
+//! the rule gets the restriction pair, each literal deriving its
+//! classes as described above and the per-literal classes unioned. One
+//! literal that is not identifier-shaped disqualifies the whole rule,
+//! because the pair applies to every match of the rule, and a literal
+//! like `++` must keep matching next to identifier characters.
 //!
 //! Literals in `@NoLayout` rules are left alone: a `@NoLayout` rule is a
 //! character-level composition, and its literals are fragments of a
-//! larger token rather than words.
+//! larger token rather than keywords.
+
+use rustc_hash::FxHashMap;
 
 use crate::dfa::Dfa;
 use crate::grammar::def::{LayoutStrategy, LexicalRule, SyntaxRule};
 use crate::grammar::regex::{CharClass, CharRange, Regex};
-use crate::grammar::symbols::{Definition, Identifier, Restrictions, Symbol, Terminal};
+use crate::grammar::symbols::{Identifier, Restrictions, Symbol, Terminal};
 use crate::grammar::transformations::{transform_symbol, transform_syntax_rule};
 
-/// Inserts the derived restriction pair on every identifier-shaped literal
-/// reference in `syntax_rules`, appending each operand's rule to
-/// `lexical_rules` on first use. Without identifier-annotated rules the
-/// grammar is returned unchanged.
+/// Inserts the derived restriction pair on every keyword reference in
+/// `syntax_rules`, appending each operand's rule to `lexical_rules` on
+/// first use. Without identifier-annotated rules the grammar is returned
+/// unchanged.
 pub fn transform(
     syntax_rules: Vec<SyntaxRule>,
     mut lexical_rules: Vec<LexicalRule>,
-    definitions: &[Definition],
     identifier_rules: &[Identifier],
 ) -> (Vec<SyntaxRule>, Vec<LexicalRule>) {
     if identifier_rules.is_empty() {
@@ -144,26 +160,30 @@ pub fn transform(
         })
         .collect();
 
+    // The derived restrictions of every keyword rule, keyed by rule name.
+    // Rule names are unique across the grammar, so a reference with a
+    // matching name can only refer to the keyword rule.
+    let keywords: FxHashMap<String, KeywordRestrictions> = lexical_rules
+        .iter()
+        .filter_map(|rule| {
+            let literals = literal_texts(&rule.regex)?;
+            let derived = derive_for_literals(&dfas, &literals)?;
+            Some((rule.head.name.clone(), derived))
+        })
+        .collect();
+
     let mut rewrite = |symbol: Symbol| match symbol {
-        Symbol::Identifier(id) => {
-            let Definition::Terminal(terminal) = &definitions[id.resolve().0 as usize] else {
-                return Symbol::Identifier(id);
-            };
-            let Some(text) = &terminal.literal else {
-                return Symbol::Identifier(id);
-            };
-            match derive_restrictions(&dfas, text) {
-                Some(derived) => {
-                    let restrictions = Restrictions {
-                        precede: restriction_operand(derived.precede, &mut lexical_rules),
-                        follow: restriction_operand(derived.follow, &mut lexical_rules),
-                        ..Default::default()
-                    };
-                    Symbol::restricted(Symbol::Identifier(id), restrictions)
-                }
-                None => Symbol::Identifier(id),
+        Symbol::Identifier(id) => match keywords.get(&id.name) {
+            Some(derived) => {
+                let restrictions = Restrictions {
+                    precede: restriction_operand(derived.precede.clone(), &mut lexical_rules),
+                    follow: restriction_operand(derived.follow.clone(), &mut lexical_rules),
+                    ..Default::default()
+                };
+                Symbol::restricted(Symbol::Identifier(id), restrictions)
             }
-        }
+            None => Symbol::Identifier(id),
+        },
         // The walk is bottom-up: a literal inside a handwritten
         // `Restricted` node arrives freshly wrapped. The merge folds the
         // derived pair into the handwritten node, because `Restricted`
@@ -286,6 +306,47 @@ pub fn derive_restrictions(dfas: &[Dfa], literal: &str) -> Option<KeywordRestric
     })
 }
 
+/// Derives the union of the literals' restrictions, or `None` when some
+/// literal is not identifier-shaped: the pair applies to every match of
+/// the rule, so every literal must be a keyword.
+fn derive_for_literals(dfas: &[Dfa], literals: &[String]) -> Option<KeywordRestrictions> {
+    let mut precede = Vec::new();
+    let mut follow = Vec::new();
+    for literal in literals {
+        let derived = derive_restrictions(dfas, literal)?;
+        precede.extend(derived.precede);
+        follow.extend(derived.follow);
+    }
+    Some(KeywordRestrictions {
+        precede: merge_ranges(precede),
+        follow: merge_ranges(follow),
+    })
+}
+
+/// The texts of the literals of a regex that is an alternation of
+/// literals (a single literal counts), or `None` for any other shape.
+fn literal_texts(regex: &Regex) -> Option<Vec<String>> {
+    match regex {
+        Regex::Alt(arms) => arms.iter().map(literal_text).collect(),
+        other => Some(vec![literal_text(other)?]),
+    }
+}
+
+/// The text of a literal regex: a character sequence or one character.
+fn literal_text(regex: &Regex) -> Option<String> {
+    match regex {
+        Regex::Char(c) => Some(c.to_string()),
+        Regex::Seq(parts) => parts
+            .iter()
+            .map(|part| match part {
+                Regex::Char(c) => Some(*c),
+                _ => None,
+            })
+            .collect(),
+        _ => None,
+    }
+}
+
 /// Sorts `ranges` and merges overlapping and adjacent ones. The result is
 /// canonical: it names the synthesized class rule, so equal classes
 /// resolve to one rule.
@@ -375,8 +436,9 @@ mod tests {
         assert_eq!(classes.follow, class(&[('0', '9'), ('a', 'z')]));
     }
 
-    /// `[a-z][0-9]*`: a letter occurs only at a word start, so nothing can
-    /// precede the literal `a` mid-word, while digits extend it.
+    /// `[a-z][0-9]*`: a letter occurs only at an identifier start, so
+    /// nothing can precede the literal `a` mid-identifier, while digits
+    /// extend it.
     #[test]
     fn precede_and_follow_classes_differ_in_an_asymmetric_automaton() {
         let id = dfa(Regex::seq(vec![
@@ -440,9 +502,9 @@ mod tests {
         identifier_rules: &[Identifier],
     ) -> (Vec<SyntaxRule>, Vec<LexicalRule>) {
         let mut rules = vec![syntax_rule!("S" => priority_level!(alternative!()))];
-        let (definitions, table) = create_symbol_table(&rules, &lexical);
+        let (_, table) = create_symbol_table(&rules, &lexical);
         rules[0].priority_levels[0].alternatives[0].symbols = symbols(&table);
-        transform(rules, lexical, &definitions, identifier_rules)
+        transform(rules, lexical, identifier_rules)
     }
 
     fn first_symbol(rules: &[SyntaxRule]) -> &Symbol {
@@ -540,15 +602,16 @@ mod tests {
     fn literals_in_no_layout_rules_stay_untouched() {
         let lexical = vec![identifier_rule(), literal_rule("go")];
         let mut rules = vec![syntax_rule!("S" => priority_level!(alternative!()))];
-        let (definitions, table) = create_symbol_table(&rules, &lexical);
+        let (_, table) = create_symbol_table(&rules, &lexical);
         rules[0].priority_levels[0].alternatives[0].symbols = vec![refer("\"go\"", &table)];
         rules[0].layout = LayoutStrategy::None;
-        let (out, lexical) = transform(rules, lexical, &definitions, &id_rules());
+        let (out, lexical) = transform(rules, lexical, &id_rules());
         assert!(matches!(first_symbol(&out), Symbol::Identifier(_)));
         assert_eq!(lexical.len(), 2, "no operand rule should be synthesized");
     }
 
-    /// `[a-z][0-9]*` and the literal `a`: nothing can precede a word start,
+    /// `[a-z][0-9]*` and the literal `a`: nothing can precede an
+    /// identifier start,
     /// so only the follow restriction is inserted.
     #[test]
     fn empty_precede_class_inserts_only_the_follow_restriction() {
@@ -570,5 +633,55 @@ mod tests {
         assert!(restrictions.precede.is_empty());
         assert_eq!(names(&restrictions.follow), ["[0-9]"]);
         assert_eq!(lexical[2].head.name, "[0-9]");
+    }
+
+    /// `Bool = "true" | "false"`: a rule that is a set of literals is a
+    /// keyword set, and references to it get the pair.
+    #[test]
+    fn references_to_a_rule_of_literals_get_the_pair() {
+        let bool_rule = LexicalRule::new(
+            Terminal::new("Bool"),
+            Regex::alt(vec![Regex::literal("true"), Regex::literal("false")]),
+        );
+        let (out, lexical) = run_transform(
+            |table| vec![refer("Bool", table)],
+            vec![identifier_rule(), bool_rule],
+            &id_rules(),
+        );
+        let restrictions = restrictions(first_symbol(&out));
+        assert_eq!(names(&restrictions.precede), ["[0-9 a-z]"]);
+        assert_eq!(names(&restrictions.follow), ["[0-9 a-z]"]);
+        assert_eq!(lexical[2].head.name, "[0-9 a-z]");
+    }
+
+    /// `Op = "true" | "++"`: the pair would apply to `++` matches too, so
+    /// a rule with a literal that is not identifier-shaped gets nothing.
+    #[test]
+    fn a_rule_with_a_non_shaped_literal_stays_untouched() {
+        let op_rule = LexicalRule::new(
+            Terminal::new("Op"),
+            Regex::alt(vec![Regex::literal("true"), Regex::literal("++")]),
+        );
+        let (out, lexical) = run_transform(
+            |table| vec![refer("Op", table)],
+            vec![identifier_rule(), op_rule],
+            &id_rules(),
+        );
+        assert!(matches!(first_symbol(&out), Symbol::Identifier(_)));
+        assert_eq!(lexical.len(), 2, "no operand rule should be synthesized");
+    }
+
+    /// `Else = "else"`: a named single-literal rule is a keyword set of one.
+    #[test]
+    fn a_named_single_literal_rule_gets_the_pair() {
+        let else_rule = LexicalRule::new(Terminal::new("Else"), Regex::literal("else"));
+        let (out, _) = run_transform(
+            |table| vec![refer("Else", table)],
+            vec![identifier_rule(), else_rule],
+            &id_rules(),
+        );
+        let restrictions = restrictions(first_symbol(&out));
+        assert_eq!(names(&restrictions.precede), ["[0-9 a-z]"]);
+        assert_eq!(names(&restrictions.follow), ["[0-9 a-z]"]);
     }
 }
