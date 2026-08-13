@@ -2,13 +2,13 @@
 
 Grammar authoring, debugging, and parse-tree visualization tool for Iguana: a Tauri app with a Monaco grammar editor and Cytoscape graph views. Terrarium opens a grammar directory, generates and builds its parser, and shows how it parses an input.
 
+Terrarium is experimental: it is not ready for release, and it is only used internally to develop the Java grammar. Bugs and breaking changes are likely. It will be released in the future.
+
 Terrarium has three modes:
 
 - **Design**: grammar editing in Monaco, with highlighting, formatting, symbols, and diagnostics from `iguana-lsp`.
 - **Parse**: parse-tree, SPPF, GSS, and timing views over a run of the generated parser on input text.
 - **Debug**: step-by-step trace replay of the parser's execution (requires a build with `--features debug-trace`).
-
-The website's [Terrarium page](https://iguana-parser.org/terrarium/) covers the app in detail.
 
 ## Running it
 
