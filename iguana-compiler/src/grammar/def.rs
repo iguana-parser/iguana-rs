@@ -9,12 +9,11 @@ use crate::{
     grammar::{
         regex::Regex,
         symbols::{
-            Definition, DefinitionId, Expr, Identifier, Nonterminal, Restrictions, Symbol,
-            Terminal, escape_literal,
+            Definition, DefinitionId, Expr, Identifier, Nonterminal, Restrictions, Symbol, Terminal,
         },
         transformations::{
-            ebnf_to_bnf, exclude_desugaring, layout_insertion, precedence_desugaring,
-            transform_regex, transform_syntax_rule, visit_syntax_rule,
+            ebnf_to_bnf, exact_keyword_match, exclude_desugaring, layout_insertion,
+            precedence_desugaring, transform_regex, transform_syntax_rule, visit_syntax_rule,
         },
     },
     priority_level,
@@ -190,6 +189,8 @@ pub struct GrammarDef {
     // The layout nonterminal is used to define whitespace/comments that can
     // appear anywhere in the program.
     pub layout: Option<Symbol>,
+    // The lexical rules marked with `@Identifier`.
+    pub identifier_rules: Vec<Identifier>,
 }
 
 impl GrammarDef {
@@ -202,6 +203,7 @@ impl GrammarDef {
             syntax_rules,
             lexical_rules,
             layout: self.layout,
+            identifier_rules: self.identifier_rules,
         }
     }
 
@@ -305,6 +307,16 @@ impl GrammarDef {
                 .into_iter()
                 .map(|label| format!("unresolved label `{label}`")),
         );
+        if let Some(Symbol::Identifier(layout_id)) = &resolved.layout {
+            for id in &resolved.identifier_rules {
+                if id.name == layout_id.name {
+                    errors.push(format!(
+                        "`{}` cannot be both the layout rule and an identifier rule",
+                        id.name
+                    ));
+                }
+            }
+        }
         if !errors.is_empty() {
             return Err(errors);
         }
@@ -379,8 +391,14 @@ impl Display for GrammarDef {
             writeln!(f, "{}", rule)?;
         }
         for lexical_rule in &self.lexical_rules {
+            let is_identifier_rule = self
+                .identifier_rules
+                .iter()
+                .any(|id| id.name == lexical_rule.head.name);
             if layout_name == Some(lexical_rule.head.name.as_str()) {
                 writeln!(f, "@Layout @Regex")?;
+            } else if is_identifier_rule {
+                writeln!(f, "@Identifier @Regex")?;
             } else {
                 writeln!(f, "@Regex")?;
             }
@@ -462,8 +480,8 @@ fn add_lexical_rules(
             }
         }
         Symbol::Literal(name) => {
-            let terminal_name = format!("\"{}\"", escape_literal(&name));
-            let terminal = Terminal::new(terminal_name.clone());
+            let terminal = Terminal::literal(&name);
+            let terminal_name = terminal.name.clone();
             if !added_terminals.contains(&terminal) {
                 added_terminals.insert(terminal.clone());
                 lexical_rules.push(LexicalRule::new(terminal, Regex::literal(&name)));
@@ -929,6 +947,7 @@ fn inline_regex(
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Phase {
     Resolve,
+    Keywords,
     Ebnf,
     Exclude,
     Precedence,
@@ -936,8 +955,9 @@ pub enum Phase {
 }
 
 impl Phase {
-    pub const ALL: [Phase; 5] = [
+    pub const ALL: [Phase; 6] = [
         Phase::Resolve,
+        Phase::Keywords,
         Phase::Ebnf,
         Phase::Exclude,
         Phase::Precedence,
@@ -948,6 +968,7 @@ impl Phase {
     pub fn token(self) -> &'static str {
         match self {
             Phase::Resolve => "resolve",
+            Phase::Keywords => "keywords",
             Phase::Ebnf => "ebnf",
             Phase::Exclude => "exclude",
             Phase::Precedence => "precedence",
@@ -959,6 +980,7 @@ impl Phase {
     pub fn description(self) -> &'static str {
         match self {
             Phase::Resolve => "identifier resolution",
+            Phase::Keywords => "exact keyword matching",
             Phase::Ebnf => "EBNF-to-BNF expansion",
             Phase::Exclude => "exclude desugaring",
             Phase::Precedence => "precedence desugaring",
@@ -1010,11 +1032,18 @@ fn build_grammar(grammar_def: GrammarDef, dump: &[Phase]) -> Result<Grammar, Vec
         .map(|(i, r)| (r.head.name.clone(), i as u16))
         .collect();
     let syntax_rules = add_lexical_rules_for_literals(syntax_rules, &mut lexical_rules);
-    let (_, symbol_table) = create_symbol_table(&syntax_rules, &lexical_rules);
+    let (definitions, symbol_table) = create_symbol_table(&syntax_rules, &lexical_rules);
     let (syntax_rules, lexical_rules) =
         resolve_identifiers(syntax_rules, lexical_rules, &symbol_table);
     let lexical_rules = inline_regex_refs(lexical_rules)?;
     dump_phase(Phase::Resolve, &syntax_rules, &lexical_rules, dump);
+    let (syntax_rules, lexical_rules) = exact_keyword_match::transform(
+        syntax_rules,
+        lexical_rules,
+        &definitions,
+        &grammar_def.identifier_rules,
+    );
+    dump_phase(Phase::Keywords, &syntax_rules, &lexical_rules, dump);
     let syntax_rules = ebnf_to_bnf::transform(syntax_rules);
     dump_phase(Phase::Ebnf, &syntax_rules, &lexical_rules, dump);
     let (_, symbol_table) = create_symbol_table(&syntax_rules, &lexical_rules);
@@ -1390,6 +1419,7 @@ macro_rules! grammar_def {
             syntax_rules: vec![$($syntax),*],
             lexical_rules: vec![$($($lexical),*)?],
             layout: Some($layout),
+            identifier_rules: vec![],
         }
     };
     (
@@ -1403,6 +1433,7 @@ macro_rules! grammar_def {
             syntax_rules: vec![$($syntax),*],
             lexical_rules: vec![$($($lexical),*)?],
             layout: None,
+            identifier_rules: vec![],
         }
     };
 }

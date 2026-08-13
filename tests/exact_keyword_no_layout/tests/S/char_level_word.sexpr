@@ -1,0 +1,10 @@
+(Start
+  WS
+  (S
+    (Word
+      "@"
+      "go"
+      (Letter+ Letter Letter Letter Letter))
+    WS
+    ";")
+  WS)

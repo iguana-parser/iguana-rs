@@ -16,7 +16,7 @@ Annotation
   | "@WithLayout" "(" Identifier ")" #WithLayout
 
 RegexRule
-  = layout:"@Layout"? "@Regex" Identifier "=" RegexPreCondition? body:{ Regex+ "|" }+ RegexPostCondition*
+  = layout:"@Layout"? id_annot:"@Identifier"? "@Regex" Identifier "=" RegexPreCondition? body:{ Regex+ "|" }+ RegexPostCondition*
 
 RegexPreCondition
   = Identifier "!<<"

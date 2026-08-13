@@ -1,0 +1,4 @@
+(Start
+  WS
+  (S VarId WS ";")
+  WS)

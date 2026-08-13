@@ -30,6 +30,7 @@ pub fn build_grammar(
     let mut syntax_rules: Vec<SyntaxRule> = Vec::new();
     let mut lexical_rules: Vec<LexicalRule> = Vec::new();
     let mut layout_name: Option<String> = None;
+    let mut identifier_rules: Vec<Identifier> = Vec::new();
 
     for rule in grammar.rules().rules() {
         match rule {
@@ -44,6 +45,12 @@ pub fn build_grammar(
                 let converted = convert_regex_rule(regex_rule, input);
                 if regex_rule.layout().value().is_some() {
                     layout_name = Some(converted.head.name.clone());
+                }
+                if regex_rule.id_annot().value().is_some() {
+                    identifier_rules.push(Identifier {
+                        name: converted.head.name.clone(),
+                        definition: None,
+                    });
                 }
                 lexical_rules.push(converted);
             }
@@ -74,6 +81,7 @@ pub fn build_grammar(
         syntax_rules,
         lexical_rules,
         layout,
+        identifier_rules,
     })
 }
 
@@ -478,6 +486,36 @@ mod tests {
             Symbol::Restricted { restrictions, .. } => restrictions,
             other => panic!("expected a restricted symbol, got {other:?}"),
         }
+    }
+
+    #[test]
+    fn test_identifier_annotation_marks_the_rule() {
+        let grammar = parse_grammar("grammar g S = Id @Identifier @Regex Id = [a-z]+")
+            .expect("the grammar should parse");
+        assert_eq!(names(&grammar.identifier_rules), ["Id"]);
+    }
+
+    #[test]
+    fn test_multiple_identifier_rules_are_recorded() {
+        let grammar = parse_grammar(
+            "grammar g S = VarId TypeId \
+             @Identifier @Regex VarId = [a-z]+ \
+             @Identifier @Regex TypeId = [A-Z][a-z]*",
+        )
+        .expect("the grammar should parse");
+        assert_eq!(names(&grammar.identifier_rules), ["VarId", "TypeId"]);
+    }
+
+    #[test]
+    fn test_layout_rule_cannot_be_an_identifier_rule() {
+        let grammar_def =
+            parse_grammar("grammar g S = \"a\" @Layout @Identifier @Regex WS = [\\ ]+")
+                .expect("the grammar should parse");
+        let errors = grammar_def.to_grammar(&[]).unwrap_err();
+        assert_eq!(
+            errors,
+            ["`WS` cannot be both the layout rule and an identifier rule"]
+        );
     }
 
     #[test]

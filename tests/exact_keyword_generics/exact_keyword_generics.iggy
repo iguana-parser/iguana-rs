@@ -1,0 +1,15 @@
+grammar ExactKeywordGenerics
+
+S
+  = Type ";"       #Type
+  | "new" Type ";" #New
+
+Type
+  = Id              #Simple
+  | Id "<" Type ">" #Generic
+
+@Identifier @Regex
+Id = [a-zA-Z][a-zA-Z_0-9]*
+
+@Layout @Regex
+WS = [\ \n\t]*

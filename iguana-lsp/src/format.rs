@@ -14,7 +14,8 @@
 // - Widths are measured in characters, not bytes, so a multibyte character
 //   (an accented letter in a string literal, say) counts as one column
 // - Blank line between every rule
-// - `@Regex` (optionally preceded by `@Layout` for a layout rule) on the line before the regex rule head
+// - `@Regex` (optionally preceded by `@Layout` for a layout rule, or by
+//   `@Identifier` for an identifier rule) on the line before the regex rule head
 // - `@Layout` / `@NoLayout` / `@WithLayout(X)` annotation on the line before the syntax rule head
 // - Regex rules with a single alternative are single-line
 // - Regex rules with multiple alternatives use multi-line layout (one per line) (head = body postconditions)
@@ -378,10 +379,12 @@ impl<'a> Formatter<'a> {
 
     fn format_regex_rule(&self, out: &mut String, rule: &RegexRule) {
         if rule.layout().value().is_some() {
-            out.push_str("@Layout @Regex\n");
-        } else {
-            out.push_str("@Regex\n");
+            out.push_str("@Layout ");
         }
+        if rule.id_annot().value().is_some() {
+            out.push_str("@Identifier ");
+        }
+        out.push_str("@Regex\n");
 
         let groups: Vec<Vec<_>> = rule
             .body()
@@ -590,6 +593,13 @@ mod tests {
         let input = "grammar T\n\n@Regex\nId = [a-zA-Z]+\n";
         let formatted = format_source(input).unwrap();
         assert_eq!(formatted, "grammar T\n\n@Regex\nId = [a-zA-Z]+\n");
+    }
+
+    #[test]
+    fn test_identifier_regex_rule() {
+        let input = "grammar T\n\n@Identifier   @Regex\nId = [a-z]+\n";
+        let formatted = format_source(input).unwrap();
+        assert_eq!(formatted, "grammar T\n\n@Identifier @Regex\nId = [a-z]+\n");
     }
 
     #[test]

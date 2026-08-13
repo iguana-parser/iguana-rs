@@ -1,0 +1,4 @@
+(Start
+  WS
+  (Decl Id WS "=" WS Id WS ";")
+  WS)

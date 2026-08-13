@@ -1,0 +1,25 @@
+(Start
+  WS
+  (Program
+    (Stmt+
+      (Stmt
+        "if"
+        WS
+        "("
+        WS
+        (Expr Id)
+        WS
+        ")"
+        WS
+        (Stmt
+          (Expr Id)
+          WS
+          ";")
+        WS
+        ([0-9 A-Z _ a-z] !<< "else" !>> [0-9 A-Z _ a-z] Stmt)?)
+      WS
+      (Stmt
+        (Expr Id)
+        WS
+        ";")))
+  WS)

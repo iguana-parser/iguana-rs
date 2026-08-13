@@ -1,0 +1,16 @@
+(Start
+  WS
+  (S
+    "new"
+    WS
+    (Type
+      Id
+      WS
+      "<"
+      WS
+      (Type Id)
+      WS
+      ">")
+    WS
+    ";")
+  WS)

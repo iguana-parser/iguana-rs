@@ -1,0 +1,11 @@
+grammar ExactKeywordContextual
+
+Decl
+  = "var" Id ";"  #Var
+  | Id "=" Id ";" #Assign
+
+@Identifier @Regex
+Id = [a-zA-Z][a-zA-Z_0-9]*
+
+@Layout @Regex
+WS = [\ \n\t]*

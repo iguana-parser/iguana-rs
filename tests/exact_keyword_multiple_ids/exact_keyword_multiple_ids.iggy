@@ -1,0 +1,15 @@
+grammar ExactKeywordMultipleIds
+
+S
+  = "else" VarId ";" #Else
+  | NumId ";"        #NumId
+  | VarId ";"        #VarId
+
+@Identifier @Regex
+VarId = [a-z]+
+
+@Identifier @Regex
+NumId = [a-z]+ [0-9]
+
+@Layout @Regex
+WS = [\ \n\t]*

@@ -87,7 +87,9 @@ fn classify_token(token: &Token) -> Option<u32> {
         // Keywords
         "Keyword" | "\"grammar\"" | "\"left\"" | "\"right\"" | "\"none\"" => Some(TOKEN_KEYWORD),
         // Decorators
-        "\"@NoLayout\"" | "\"@Layout\"" | "\"@WithLayout\"" | "\"@Regex\"" => Some(TOKEN_DECORATOR),
+        "\"@NoLayout\"" | "\"@Layout\"" | "\"@WithLayout\"" | "\"@Identifier\"" | "\"@Regex\"" => {
+            Some(TOKEN_DECORATOR)
+        }
         // Identifier
         "Identifier" => Some(TOKEN_TYPE),
         // String and Char literals (now include quotes)

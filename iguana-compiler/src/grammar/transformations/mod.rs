@@ -5,6 +5,7 @@ use crate::grammar::{
 };
 
 pub mod ebnf_to_bnf;
+pub mod exact_keyword_match;
 pub mod exclude_desugaring;
 pub mod layout_insertion;
 pub mod precedence_desugaring;
@@ -80,6 +81,62 @@ where
         priority_levels: new_priority_levels,
         layout,
     }
+}
+
+/// Applies a transformation to each node in a symbol tree (bottom-up):
+/// children are transformed first, then `f` runs on the rebuilt node.
+pub fn transform_symbol<F>(symbol: Symbol, f: &mut F) -> Symbol
+where
+    F: FnMut(Symbol) -> Symbol,
+{
+    let symbol = match symbol {
+        Symbol::Labeled { label, symbol } => Symbol::Labeled {
+            label,
+            symbol: Box::new(transform_symbol(*symbol, f)),
+        },
+        Symbol::Binding { name, symbol } => Symbol::Binding {
+            name,
+            symbol: Box::new(transform_symbol(*symbol, f)),
+        },
+        Symbol::Restricted {
+            symbol,
+            restrictions,
+        } => Symbol::Restricted {
+            symbol: Box::new(transform_symbol(*symbol, f)),
+            restrictions,
+        },
+        Symbol::Exclude { symbol, labels } => Symbol::Exclude {
+            symbol: Box::new(transform_symbol(*symbol, f)),
+            labels,
+        },
+        Symbol::Opt(symbol) => Symbol::Opt(Box::new(transform_symbol(*symbol, f))),
+        Symbol::Group(symbols) => Symbol::Group(
+            symbols
+                .into_iter()
+                .map(|symbol| transform_symbol(symbol, f))
+                .collect(),
+        ),
+        Symbol::Alt(symbols) => Symbol::Alt(
+            symbols
+                .into_iter()
+                .map(|symbol| transform_symbol(symbol, f))
+                .collect(),
+        ),
+        Symbol::Star(symbol, sep) => Symbol::Star(
+            Box::new(transform_symbol(*symbol, f)),
+            sep.map(|sep| Box::new(transform_symbol(*sep, f))),
+        ),
+        Symbol::Plus(symbol, sep) => Symbol::Plus(
+            Box::new(transform_symbol(*symbol, f)),
+            sep.map(|sep| Box::new(transform_symbol(*sep, f))),
+        ),
+        leaf @ (Symbol::Identifier(_)
+        | Symbol::Literal(_)
+        | Symbol::Call { .. }
+        | Symbol::Condition(_)
+        | Symbol::Return(_)) => leaf,
+    };
+    f(symbol)
 }
 
 /// Visits each symbol in a syntax rule, recursively descending into nested symbols.

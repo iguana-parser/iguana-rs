@@ -1,0 +1,21 @@
+grammar ExactKeyword
+
+Program = Stmt+
+
+Stmt
+  = Expr ";"                              #Expr
+  | "if" "(" Expr ")" Stmt ("else" Stmt)? #If
+  | "assert" Expr ";"                     #Assert
+
+Expr
+  = Id  #Id
+  | Num #Num
+
+@Identifier @Regex
+Id = [a-zA-Z][a-zA-Z_0-9]*
+
+@Regex
+Num = [0-9]+
+
+@Layout @Regex
+WS = [\ \n\t]*

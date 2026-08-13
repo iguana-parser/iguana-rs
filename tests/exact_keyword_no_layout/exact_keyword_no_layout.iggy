@@ -1,0 +1,17 @@
+grammar ExactKeywordNoLayout
+
+S
+  = Word ";" #Word
+  | Id ";"   #Id
+
+@NoLayout
+Word = "@" "go" Letter+
+
+@Identifier @Regex
+Id = [a-z]+
+
+@Regex
+Letter = [a-z]
+
+@Layout @Regex
+WS = [\ \n\t]*

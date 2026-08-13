@@ -1,0 +1,11 @@
+(Start
+  WS
+  (Program
+    (Stmt+
+      (Stmt
+        "assert"
+        WS
+        (Expr Num)
+        WS
+        ";")))
+  WS)

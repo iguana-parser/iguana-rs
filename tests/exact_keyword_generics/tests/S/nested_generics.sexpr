@@ -1,0 +1,21 @@
+(Start
+  WS
+  (S
+    (Type
+      Id
+      WS
+      "<"
+      WS
+      (Type
+        Id
+        WS
+        "<"
+        WS
+        (Type Id)
+        WS
+        ">")
+      WS
+      ">")
+    WS
+    ";")
+  WS)

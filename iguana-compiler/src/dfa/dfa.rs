@@ -4,7 +4,7 @@ use iguana_runtime::ids::TerminalId;
 use rustc_hash::{FxHashMap, FxHashSet};
 
 use super::nfa::{self, Nfa};
-use crate::grammar::regex::{CharClass, CharRange};
+use crate::grammar::regex::{CharClass, CharRange, Regex};
 
 pub type StateId = usize;
 
@@ -29,6 +29,14 @@ impl Dfa {
 
     pub fn from_nfa(nfa: &Nfa) -> Dfa {
         DfaBuilder::new(nfa).build()
+    }
+
+    /// The DFA of a single regex, for generator-side language questions
+    /// such as membership and prefix matches. `TerminalId(0)` labels the
+    /// accept states: the scanner does not use this DFA at runtime, and
+    /// no caller reads the id.
+    pub fn from_regex(regex: &Regex) -> Dfa {
+        Dfa::from_nfa(&Nfa::from_regex(regex, TerminalId(0)))
     }
 }
 
@@ -298,6 +306,20 @@ fn live_states(nfa: &Nfa) -> Vec<bool> {
 }
 
 impl Dfa {
+    /// The state reached from the start state by consuming `text`, or `None`
+    /// when some character of `text` has no transition.
+    pub fn state_after(&self, text: &str) -> Option<StateId> {
+        let mut state = self.start;
+        for ch in text.chars() {
+            let (_, next) = self.states[state]
+                .transitions
+                .iter()
+                .find(|(r, _)| r.start <= ch && ch <= r.end)?;
+            state = *next;
+        }
+        Some(state)
+    }
+
     /// True if some string of `self`'s language is a prefix of some string of
     /// `other`'s language. A string is a prefix of itself. The language of
     /// "a" is a prefix of the language of "ab", and also of the language of
@@ -410,15 +432,7 @@ mod tests {
     /// The DFA state reached from the start by consuming `input`, or `None`
     /// if a character has no transition.
     fn state_after<'a>(dfa: &'a Dfa, input: &str) -> Option<&'a State> {
-        let mut state = dfa.start;
-        for ch in input.chars() {
-            let (_, next) = dfa.states[state]
-                .transitions
-                .iter()
-                .find(|(r, _)| r.start <= ch && ch <= r.end)?;
-            state = *next;
-        }
-        Some(&dfa.states[state])
+        dfa.state_after(input).map(|id| &dfa.states[id])
     }
 
     #[test]
@@ -646,7 +660,7 @@ mod tests {
     }
 
     fn dfa(regex: Regex) -> Dfa {
-        Dfa::from_nfa(&Nfa::from_regex(&regex, t(0)))
+        Dfa::from_regex(&regex)
     }
 
     #[test]

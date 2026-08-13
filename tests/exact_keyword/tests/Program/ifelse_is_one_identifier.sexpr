@@ -1,0 +1,9 @@
+(Start
+  WS
+  (Program
+    (Stmt+
+      (Stmt
+        (Expr Id)
+        WS
+        ";")))
+  WS)
