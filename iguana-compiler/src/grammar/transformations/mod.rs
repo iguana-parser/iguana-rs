@@ -140,7 +140,7 @@ where
 }
 
 /// Visits each symbol in a syntax rule, recursively descending into nested symbols.
-pub fn visit_syntax_rule(rule: &SyntaxRule, f: &mut impl FnMut(&Symbol)) {
+pub fn visit_syntax_rule<'a>(rule: &'a SyntaxRule, f: &mut impl FnMut(&'a Symbol)) {
     for alt in rule.alternatives() {
         for symbol in &alt.symbols {
             visit_symbol(symbol, f);
@@ -148,7 +148,7 @@ pub fn visit_syntax_rule(rule: &SyntaxRule, f: &mut impl FnMut(&Symbol)) {
     }
 }
 
-fn visit_symbol(symbol: &Symbol, f: &mut impl FnMut(&Symbol)) {
+fn visit_symbol<'a>(symbol: &'a Symbol, f: &mut impl FnMut(&'a Symbol)) {
     f(symbol);
     match symbol {
         Symbol::Labeled { symbol, .. }

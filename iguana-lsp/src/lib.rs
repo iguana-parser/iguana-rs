@@ -2,14 +2,14 @@ pub mod diagnostics;
 pub mod document_symbols;
 pub mod folding;
 pub mod format;
-pub mod layout;
+pub mod name_resolution;
 pub mod references;
 pub mod semantic_tokens;
-pub mod spans;
 pub mod symbols;
 
 use iggy::parse_tree::{Grammar, Layout, Start};
 pub use iguana_compiler::grammar::def::GrammarDef;
+pub use iguana_compiler::{comments, spans};
 use iguana_runtime::{arena::Arena, input::Input, parse_tree::ParseTreeNode};
 use spans::GrammarSpans;
 use std::time::Duration;

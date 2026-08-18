@@ -10,6 +10,7 @@ use iguana_compiler::{
     grammar::def::{Grammar, Phase},
     iggy::parse_grammar,
     utils::to_pascal_case,
+    validation::render_errors,
 };
 
 mod viewer;
@@ -187,11 +188,8 @@ fn run() -> io::Result<()> {
             };
             let source = std::fs::read_to_string(path)
                 .map_err(|e| io::Error::new(e.kind(), format!("{}: {e}", path.display())))?;
-            // iggy::ParseError's Display is the runtime "Parse error at line N,
-            // column M: ..." style; prefix the grammar file so the diagnostic
-            // names it instead of surfacing the raw io::Error Debug string.
             let grammar_def = parse_grammar(&source)
-                .map_err(|e| io::Error::other(format!("{}: {e}", path.display())))?;
+                .map_err(|errors| io::Error::other(render_errors(&errors, path, &source)))?;
             // Layer the config: built-in defaults, then a gen.toml beside the
             // grammar, then the explicit CLI flags. A flag left unset (None)
             // falls through to the file, and a key absent from the file falls

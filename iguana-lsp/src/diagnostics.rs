@@ -1,143 +1,39 @@
-// Diagnostics for iggy grammars.
-//
-// Walks resolved GrammarDef symbols and reports identifiers with
-// definition: None as unresolved reference errors.
+// LSP diagnostics for iggy grammars. The checks are the compiler's grammar
+// validation, so the editor and `iguana generate` report the same errors.
+// Each error becomes a `Diagnostic`.
 
-use by_address::ByAddress;
-use iguana_compiler::grammar::def::{GrammarDef, SyntaxRule};
-use iguana_compiler::grammar::symbols::{DefinitionId, Symbol};
-use iguana_runtime::input::{Input, Span};
+use iguana_compiler::grammar::def::GrammarDef;
+use iguana_compiler::validation::{GrammarError, validate};
+use iguana_runtime::input::Input;
 use lsp_types::{Diagnostic, DiagnosticSeverity, Position, Range};
-use rustc_hash::FxHashMap;
 
 use crate::spans::GrammarSpans;
 
-pub fn diagnostics(
-    grammar_def: &GrammarDef,
-    spans: &GrammarSpans<'_>,
+pub fn diagnostics<'a>(
+    grammar_def: &'a GrammarDef,
+    spans: &GrammarSpans<'a>,
     input: &Input,
 ) -> Vec<Diagnostic> {
-    let mut out = Vec::new();
-
-    check_duplicate_definitions(grammar_def, spans, input, &mut out);
-
-    grammar_def.for_each_identifier(&mut |id| {
-        if id.definition.is_none() {
-            if let Some(span) = spans.identifier_span(id) {
-                out.push(make_diagnostic(
-                    "Unresolved reference",
-                    &id.name,
-                    span,
-                    input,
-                ));
-            }
-        }
-    });
-
-    check_exclude_labels(grammar_def, spans, input, &mut out);
-
-    out
+    validate(grammar_def, spans)
+        .into_iter()
+        .filter_map(|error| to_diagnostic(error, input))
+        .collect()
 }
 
-fn check_duplicate_definitions(
-    grammar_def: &GrammarDef,
-    spans: &GrammarSpans<'_>,
-    input: &Input,
-    out: &mut Vec<Diagnostic>,
-) {
-    let lex_count = grammar_def.lexical_rules.len();
-    let mut seen = FxHashMap::default();
-
-    for (i, rule) in grammar_def.lexical_rules.iter().enumerate() {
-        let def_id = DefinitionId(i as u16);
-        if let Some(&head_span) = spans.definition_spans.get(&def_id) {
-            if seen.contains_key(rule.head.name.as_str()) {
-                out.push(make_diagnostic(
-                    "Duplicate definition",
-                    &rule.head.name,
-                    head_span,
-                    input,
-                ));
-            } else {
-                seen.insert(rule.head.name.as_str(), head_span);
-            }
-        }
-    }
-    for (i, rule) in grammar_def.syntax_rules.iter().enumerate() {
-        let def_id = DefinitionId((lex_count + i) as u16);
-        if let Some(&head_span) = spans.definition_spans.get(&def_id) {
-            if seen.contains_key(rule.head.name.as_str()) {
-                out.push(make_diagnostic(
-                    "Duplicate definition",
-                    &rule.head.name,
-                    head_span,
-                    input,
-                ));
-            } else {
-                seen.insert(rule.head.name.as_str(), head_span);
-            }
-        }
-    }
-}
-
-/// Reports labels in `Exclude` symbols (`A!label`) that don't match any
-/// alternative label on the referenced nonterminal.
-fn check_exclude_labels(
-    grammar_def: &GrammarDef,
-    spans: &GrammarSpans<'_>,
-    input: &Input,
-    out: &mut Vec<Diagnostic>,
-) {
-    let rules_by_name: FxHashMap<&str, &SyntaxRule> = grammar_def
-        .syntax_rules
-        .iter()
-        .map(|r| (r.head.name.as_str(), r))
-        .collect();
-
-    grammar_def.for_each_symbol(&mut |symbol| {
-        if let Symbol::Exclude {
-            symbol: inner,
-            labels,
-        } = symbol
-        {
-            if let Some(id) = inner.as_identifier() {
-                if let Some(rule) = rules_by_name.get(id.name.as_str()) {
-                    let label_spans = spans
-                        .label_spans
-                        .get(&ByAddress(symbol))
-                        .map(|v| v.as_slice())
-                        .unwrap_or_default();
-
-                    let valid_labels: Vec<&str> = rule
-                        .priority_levels
-                        .iter()
-                        .flat_map(|pl| &pl.alternatives)
-                        .filter_map(|alt| alt.label.as_deref())
-                        .collect();
-
-                    for (label, span) in labels.iter().zip(label_spans) {
-                        if !valid_labels.contains(&label.as_str()) {
-                            out.push(make_diagnostic("Unresolved label", label, *span, input));
-                        }
-                    }
-                }
-            }
-        }
-    });
-}
-
-fn make_diagnostic(kind: &str, name: &str, span: Span, input: &Input) -> Diagnostic {
-    let (sl, sc) = input.line_column(span.left_extent);
-    let (el, ec) = input.line_column(span.right_extent);
-    Diagnostic {
+/// An error with no span gives the editor no range to mark, so it is dropped.
+fn to_diagnostic(error: GrammarError, input: &Input) -> Option<Diagnostic> {
+    let span = error.span?;
+    let (start_line, start_column) = input.line_column(span.left_extent);
+    let (end_line, end_column) = input.line_column(span.right_extent);
+    Some(Diagnostic {
         range: Range {
-            start: Position::new(sl, sc),
-            end: Position::new(el, ec),
+            start: Position::new(start_line, start_column),
+            end: Position::new(end_line, end_column),
         },
         severity: Some(DiagnosticSeverity::ERROR),
-        message: format!("{kind} '{name}'"),
+        message: error.message,
         ..Default::default()
-    }
+    })
 }
 
 #[cfg(test)]
@@ -396,6 +292,7 @@ A
   = "a"    #Alt
   | "b"
 
+@Regex
 B
   = "b"
 "#,
@@ -486,5 +383,51 @@ Digits
             "expected 1 diagnostic for Suffix, got: {names:?}"
         );
         assert!(d[0].message.contains("Suffix"));
+    }
+
+    /// A lexical rule's restrictions are not part of its regex body. Their
+    /// operands need separate span mappings so diagnostics mark the right
+    /// names.
+    #[test]
+    fn restriction_on_a_lexical_rule() {
+        let d = diags(
+            r#"
+grammar T
+
+S
+  = Kw
+
+@Regex
+Kw
+  = "if" !>> Undefined
+"#,
+        );
+        let names: Vec<_> = d.iter().map(|d| &d.message).collect();
+        assert_eq!(d.len(), 1, "expected 1 diagnostic, got: {names:?}");
+        assert!(d[0].message.contains("Undefined"));
+        assert_eq!(d[0].range.start.line, 7);
+        assert_eq!(d[0].range.start.character, 13);
+    }
+
+    /// Identifier-rule references are not resolved, so this diagnostic finds
+    /// the corresponding lexical rule head by name.
+    #[test]
+    fn layout_rule_annotated_as_an_identifier_rule() {
+        let d = diags(
+            r#"
+grammar T
+
+S
+  = "x"
+
+@Layout @Identifier @Regex
+WS
+  = [\ ]*
+"#,
+        );
+        let names: Vec<_> = d.iter().map(|d| &d.message).collect();
+        assert_eq!(d.len(), 1, "expected 1 diagnostic for WS, got: {names:?}");
+        assert!(d[0].message.contains("WS"));
+        assert_eq!(d[0].range.start.line, 6);
     }
 }

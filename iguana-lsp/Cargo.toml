@@ -18,7 +18,6 @@ path = "src/main.rs"
 test = false
 
 [dependencies]
-by_address = "1.2.1"
 iggy.workspace = true
 iguana-compiler.workspace = true
 iguana-runtime.workspace = true

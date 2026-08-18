@@ -815,8 +815,8 @@ impl<'a> ParserGen<'a> {
     /// recording suppressed so the speculative parse cannot plant an error
     /// the real parse never reached; LL(1) determinism makes this result
     /// unique too. Any other layout can match with multiple right extents,
-    /// which takes a GLL recognizer and descriptor dispatch. That arm is
-    /// not implemented.
+    /// which would require a GLL recognizer and descriptor dispatch.
+    /// Generation rejects such a layout before reaching this method.
     fn gen_layout_match(&self, pos: TokenStream) -> TokenStream {
         let identifier = self
             .grammar
@@ -843,8 +843,8 @@ impl<'a> ParserGen<'a> {
                 }
             }
             Definition::Nonterminal(nonterminal) => {
-                unimplemented!(
-                    "`!>>>` needs to know where layout `{}` ends, which takes a scanner match (terminal layout) or an LL(1) parse (LL(1) layout, `ll1` knob on)",
+                unreachable!(
+                    "layout `{}` cannot be measured even though generation already checked it",
                     nonterminal.name
                 )
             }

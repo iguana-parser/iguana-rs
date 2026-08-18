@@ -5,9 +5,7 @@
 // line of the rule body (or trailing comment). Annotations (@Regex, @NoLayout,
 // etc.) stay visible above the fold.
 
-use by_address::ByAddress;
 use iguana_compiler::grammar::def::GrammarDef;
-use iguana_compiler::grammar::symbols::DefinitionId;
 use iguana_runtime::input::Input;
 use lsp_types::{FoldingRange, FoldingRangeKind};
 
@@ -19,18 +17,13 @@ pub fn folding_ranges(
     input: &Input,
 ) -> Vec<FoldingRange> {
     let mut out = Vec::new();
-    let num_lexical = grammar_def.lexical_rules.len();
-
-    for (i, rule) in grammar_def.syntax_rules.iter().enumerate() {
-        let Some(meta) = spans.syntax_rules.get(&ByAddress(rule)) else {
+    for rule in &grammar_def.syntax_rules {
+        let Some(region) = spans.syntax_rule(rule) else {
             continue;
         };
-        let Some(rule_span) = meta.span else {
-            continue;
-        };
+        let rule_span = region.span;
 
-        let def_id = DefinitionId((num_lexical + i) as u16);
-        let head_span = spans.definition_spans.get(&def_id);
+        let head_span = spans.nonterminal(&rule.head).map(|region| region.span);
         // Fold from the rule head, not the annotation. Rule spans include
         // leading annotations (@NoLayout, etc.), but those should stay
         // visible above the fold.
@@ -38,7 +31,7 @@ pub fn folding_ranges(
             .map(|s| input.line_column(s.left_extent).0)
             .unwrap_or_else(|| input.line_column(rule_span.left_extent).0);
         let mut end_line = input.line_column(rule_span.right_extent).0;
-        if let Some(trailing) = meta.trailing_comment {
+        if let Some(trailing) = region.trailing_comment {
             end_line = input.line_column(trailing.right_extent).0;
         }
 
@@ -54,22 +47,19 @@ pub fn folding_ranges(
         }
     }
 
-    for (i, rule) in grammar_def.lexical_rules.iter().enumerate() {
-        let Some(meta) = spans.lexical_rules.get(&ByAddress(rule)) else {
+    for rule in &grammar_def.lexical_rules {
+        let Some(region) = spans.lexical_rule(rule) else {
             continue;
         };
-        let Some(rule_span) = meta.span else {
-            continue;
-        };
+        let rule_span = region.span;
 
-        let def_id = DefinitionId(i as u16);
-        let head_span = spans.definition_spans.get(&def_id);
+        let head_span = spans.terminal(&rule.head).map(|region| region.span);
         // Same as syntax rules: fold from the head, not @Regex etc.
         let start_line = head_span
             .map(|s| input.line_column(s.left_extent).0)
             .unwrap_or_else(|| input.line_column(rule_span.left_extent).0);
         let mut end_line = input.line_column(rule_span.right_extent).0;
-        if let Some(trailing) = meta.trailing_comment {
+        if let Some(trailing) = region.trailing_comment {
             end_line = input.line_column(trailing.right_extent).0;
         }
 

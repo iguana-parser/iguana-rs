@@ -48,7 +48,11 @@ pub fn generate(grammar: &Grammar, config: GenConfig) -> TokenStream {
 
         #[derive(Debug)]
         pub struct ParseError {
+            #[doc = " The line the error was found at, counting from 0. `Display` adds one,"]
+            #[doc = " since a message for a person counts from 1."]
             pub line: u32,
+            #[doc = " The column the error was found at, counting from 0, under the same"]
+            #[doc = " convention as `line`."]
             pub column: u32,
             pub len: u32,
             pub message: String,
@@ -56,7 +60,7 @@ pub fn generate(grammar: &Grammar, config: GenConfig) -> TokenStream {
 
         impl Display for ParseError {
             fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
-                write!(f, "Parse error at line {}, column {}: {}", self.line, self.column, self.message)
+                write!(f, "Parse error at line {}, column {}: {}", self.line + 1, self.column + 1, self.message)
             }
         }
 

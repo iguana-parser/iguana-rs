@@ -1039,6 +1039,7 @@ dependencies = [
 name = "iguana-compiler"
 version = "0.1.0-alpha"
 dependencies = [
+ "by_address",
  "iguana-iggy",
  "iguana-runtime",
  "indexmap",
@@ -1071,7 +1072,6 @@ dependencies = [
 name = "iguana-lsp"
 version = "0.1.0-alpha"
 dependencies = [
- "by_address",
  "iguana-compiler",
  "iguana-iggy",
  "iguana-runtime",

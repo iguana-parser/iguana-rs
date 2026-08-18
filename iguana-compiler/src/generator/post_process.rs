@@ -93,6 +93,10 @@ pub fn post_process(input: &str) -> String {
 /// new line only when `out` is not already at a line start keeps consecutive doc
 /// lines (each `#[doc = "..."]` renders separately) flush, with no blank line
 /// between them.
+///
+/// The text goes out as it is, so a `#[doc]` written by hand in a generator
+/// needs to include its own leading space. `quote!` already includes one when
+/// it renders a real `///` line.
 fn push_doc_line(out: &mut String, text: &str) {
     while out.ends_with(' ') {
         out.pop();

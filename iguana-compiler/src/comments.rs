@@ -1,5 +1,5 @@
-// Helpers for working with iggy's `Layout` parse-tree nodes (whitespace +
-// comments). Used by both the formatter and document-symbols.
+// Helpers for locating comments in iggy's `Layout` parse-tree nodes, which
+// hold the whitespace and comments between tokens.
 
 use iggy::parse_tree::{Layout, Token};
 use iguana_runtime::input::Input;

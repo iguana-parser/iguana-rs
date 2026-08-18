@@ -1,43 +1,49 @@
+use iguana_compiler::grammar::def::GrammarDef;
 use iguana_runtime::input::{Input, Span};
 use lsp_types::{Location, Position, Range, Uri};
 
+use crate::name_resolution::NameResolutionIndex;
 use crate::spans::GrammarSpans;
 use crate::symbols::find_definition_at_offset;
 
 /// Find the definition (rule head) of the symbol at `offset`.
 pub fn definition(
+    grammar_def: &GrammarDef,
     spans: &GrammarSpans<'_>,
     input: &Input,
     uri: &Uri,
     offset: u32,
 ) -> Option<Location> {
-    let def_id = find_definition_at_offset(spans, offset)?;
-    let &head_span = spans.definition_spans.get(&def_id)?;
+    let names = NameResolutionIndex::new(grammar_def, spans);
+    let def_id = find_definition_at_offset(spans, &names, offset)?;
+    let &head_span = names.definitions.get(&def_id)?;
     Some(location(uri, head_span, input))
 }
 
 /// Find all references to the symbol at `offset` in the grammar source.
 /// If `include_declaration` is true, the defining rule head is included.
 pub fn references(
+    grammar_def: &GrammarDef,
     spans: &GrammarSpans<'_>,
     input: &Input,
     uri: &Uri,
     offset: u32,
     include_declaration: bool,
 ) -> Vec<Location> {
-    let Some(def_id) = find_definition_at_offset(spans, offset) else {
+    let names = NameResolutionIndex::new(grammar_def, spans);
+    let Some(def_id) = find_definition_at_offset(spans, &names, offset) else {
         return vec![];
     };
 
     let mut locs = Vec::new();
 
     if include_declaration {
-        if let Some(&head_span) = spans.definition_spans.get(&def_id) {
+        if let Some(&head_span) = names.definitions.get(&def_id) {
             locs.push(location(uri, head_span, input));
         }
     }
 
-    if let Some(ref_spans) = spans.reference_spans.get(&def_id) {
+    if let Some(ref_spans) = names.references.get(&def_id) {
         for &span in ref_spans {
             locs.push(location(uri, span, input));
         }
@@ -76,7 +82,14 @@ mod tests {
         let spans = crate::build_spans(&grammar_def, tree, &input);
         let uri: Uri = "file:///test.iggy".parse().unwrap();
         let offset = input.offset(line, column);
-        references(&spans, &input, &uri, offset, include_declaration)
+        references(
+            &grammar_def,
+            &spans,
+            &input,
+            &uri,
+            offset,
+            include_declaration,
+        )
     }
 
     #[test]
@@ -207,7 +220,7 @@ A
         let spans = crate::build_spans(&grammar_def, tree, &input);
         let uri: Uri = "file:///test.iggy".parse().unwrap();
         let offset = input.offset(line, column);
-        definition(&spans, &input, &uri, offset)
+        definition(&grammar_def, &spans, &input, &uri, offset)
     }
 
     #[test]
@@ -305,5 +318,51 @@ Number = [0-9]+
         );
         // 1 declaration (Number head) + 1 reference (Number in A's body)
         assert_eq!(refs.len(), 2);
+    }
+
+    #[test]
+    fn reference_from_regex_body() {
+        let refs = find_refs(
+            r#"
+grammar T
+
+A
+  = Number
+
+@Regex
+Digit = [0-9]
+
+@Regex
+Number = Digit+
+"#,
+            6,
+            0, // cursor on the Digit rule head
+            false,
+        );
+        assert_eq!(refs.len(), 1);
+        assert_eq!(refs[0].range.start, Position::new(9, 9));
+    }
+
+    #[test]
+    fn reference_from_restriction_operand() {
+        let refs = find_refs(
+            r#"
+grammar T
+
+S
+  = Id !>> Keyword
+
+@Regex
+Id = [a-z]+
+
+@Regex
+Keyword = "if"
+"#,
+            9,
+            0, // cursor on the Keyword rule head
+            false,
+        );
+        assert_eq!(refs.len(), 1);
+        assert_eq!(refs[0].range.start, Position::new(3, 11));
     }
 }

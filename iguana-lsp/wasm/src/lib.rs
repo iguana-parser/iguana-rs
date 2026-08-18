@@ -69,10 +69,10 @@ pub fn folding(source: &str) -> String {
 /// location, or `null` when there is no symbol at that position.
 #[wasm_bindgen]
 pub fn definition(source: &str, line: u32, character: u32) -> String {
-    let loc = with_spans(source, None, |_def, spans, input| {
+    let loc = with_spans(source, None, |def, spans, input| {
         let uri = URI.parse().unwrap();
         let offset = input.offset(line, character);
-        iguana_lsp::references::definition(spans, input, &uri, offset)
+        iguana_lsp::references::definition(def, spans, input, &uri, offset)
     });
     serde_json::to_string(&loc).unwrap()
 }
@@ -81,10 +81,10 @@ pub fn definition(source: &str, line: u32, character: u32) -> String {
 /// locations. The defining rule head is included when `include_declaration`.
 #[wasm_bindgen]
 pub fn references(source: &str, line: u32, character: u32, include_declaration: bool) -> String {
-    let locs = with_spans(source, vec![], |_def, spans, input| {
+    let locs = with_spans(source, vec![], |def, spans, input| {
         let uri = URI.parse().unwrap();
         let offset = input.offset(line, character);
-        iguana_lsp::references::references(spans, input, &uri, offset, include_declaration)
+        iguana_lsp::references::references(def, spans, input, &uri, offset, include_declaration)
     });
     serde_json::to_string(&locs).unwrap()
 }

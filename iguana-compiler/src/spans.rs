@@ -1,14 +1,14 @@
 use by_address::ByAddress;
-use iggy::parse_tree::{self, Layout, ParseTree};
-use iguana_compiler::grammar::{
-    def::{Alternative, GrammarDef, LexicalRule, SyntaxRule},
-    regex::Regex,
-    symbols::{DefinitionId, Identifier, Symbol},
-};
+use iggy::parse_tree::{self, Layout, OptNode, ParseTree};
 use iguana_runtime::input::{Input, Span};
 use rustc_hash::FxHashMap;
 
-use crate::layout::{leading_comments, trailing_comment};
+use crate::comments::{leading_comments, trailing_comment};
+use crate::grammar::{
+    def::{Alternative, GrammarDef, LexicalRule, SyntaxRule},
+    regex::Regex,
+    symbols::{Identifier, Nonterminal, Symbol, Terminal},
+};
 
 /// Walk the right spine of `node`, skipping `Layout` children, and return the
 /// `right_extent` of the rightmost non-layout `Token` leaf. Parse tree nodes
@@ -29,37 +29,85 @@ fn rightmost_token_end(node: ParseTree<'_>) -> Option<u32> {
     None
 }
 
-#[derive(Debug, Clone, Default)]
-pub struct Metadata {
-    pub span: Option<Span>,
+/// A source region contains a node's span and its associated leading and
+/// trailing comments.
+///
+/// A leading comment sits on the lines directly above the node, and a trailing
+/// comment on the same line as its last token. The leading and trailing comments
+/// are stored as spans, not their text.
+#[derive(Debug, Clone)]
+pub struct SourceRegion {
+    pub span: Span,
     pub leading_comments: Vec<Span>,
     pub trailing_comment: Option<Span>,
 }
 
+impl SourceRegion {
+    /// A region with no comments attached to it.
+    fn new(span: Span) -> Self {
+        SourceRegion {
+            span,
+            leading_comments: Vec::new(),
+            trailing_comment: None,
+        }
+    }
+}
+
+/// A source region per grammar node, one map per node kind.
+///
+/// The grammar IR does not have a span field of its own, so the positions are
+/// recovered from the parse tree and stored here.
+///
+/// A node is keyed by its address, which is the only identity it has.
 #[derive(Default)]
 pub struct GrammarSpans<'a> {
-    pub syntax_rules: FxHashMap<ByAddress<&'a SyntaxRule>, Metadata>,
-    pub lexical_rules: FxHashMap<ByAddress<&'a LexicalRule>, Metadata>,
-    pub alternatives: FxHashMap<ByAddress<&'a Alternative>, Metadata>,
-    pub symbols: FxHashMap<ByAddress<&'a Symbol>, Metadata>,
-    pub identifiers: FxHashMap<ByAddress<&'a Identifier>, Span>,
-    /// Maps a DefinitionId to its rule head span.
-    pub definition_spans: FxHashMap<DefinitionId, Span>,
-    /// Maps a DefinitionId to all the spans where it is referenced in rule bodies.
-    pub reference_spans: FxHashMap<DefinitionId, Vec<Span>>,
-    /// Maps each label name (from Exclude `!label` or alternative `#Label`) to its source span.
+    pub syntax_rules: FxHashMap<ByAddress<&'a SyntaxRule>, SourceRegion>,
+    pub lexical_rules: FxHashMap<ByAddress<&'a LexicalRule>, SourceRegion>,
+    pub alternatives: FxHashMap<ByAddress<&'a Alternative>, SourceRegion>,
+    pub symbols: FxHashMap<ByAddress<&'a Symbol>, SourceRegion>,
+    pub identifiers: FxHashMap<ByAddress<&'a Identifier>, SourceRegion>,
+    pub nonterminals: FxHashMap<ByAddress<&'a Nonterminal>, SourceRegion>,
+    pub terminals: FxHashMap<ByAddress<&'a Terminal>, SourceRegion>,
+    /// A map from an `Exclude` symbol to one span per `!label` on it, in
+    /// source order.
     pub label_spans: FxHashMap<ByAddress<&'a Symbol>, Vec<Span>>,
 }
 
 impl<'a> GrammarSpans<'a> {
-    pub fn symbol_span(&self, symbol: &'a Symbol) -> Option<Span> {
-        self.symbols
-            .get(&ByAddress(symbol))
-            .and_then(|meta| meta.span)
+    pub fn syntax_rule(&self, rule: &'a SyntaxRule) -> Option<&SourceRegion> {
+        self.syntax_rules.get(&ByAddress(rule))
     }
 
-    pub fn identifier_span(&self, id: &'a Identifier) -> Option<Span> {
-        self.identifiers.get(&ByAddress(id)).copied()
+    pub fn lexical_rule(&self, rule: &'a LexicalRule) -> Option<&SourceRegion> {
+        self.lexical_rules.get(&ByAddress(rule))
+    }
+
+    pub fn alternative(&self, alternative: &'a Alternative) -> Option<&SourceRegion> {
+        self.alternatives.get(&ByAddress(alternative))
+    }
+
+    pub fn symbol(&self, symbol: &'a Symbol) -> Option<&SourceRegion> {
+        self.symbols.get(&ByAddress(symbol))
+    }
+
+    pub fn identifier(&self, identifier: &'a Identifier) -> Option<&SourceRegion> {
+        self.identifiers.get(&ByAddress(identifier))
+    }
+
+    pub fn nonterminal(&self, nonterminal: &'a Nonterminal) -> Option<&SourceRegion> {
+        self.nonterminals.get(&ByAddress(nonterminal))
+    }
+
+    pub fn terminal(&self, terminal: &'a Terminal) -> Option<&SourceRegion> {
+        self.terminals.get(&ByAddress(terminal))
+    }
+
+    /// The spans of the `!label` conditions on an `Exclude` symbol, in source
+    /// order. Empty for any other symbol.
+    pub fn label_spans(&self, symbol: &'a Symbol) -> &[Span] {
+        self.label_spans
+            .get(&ByAddress(symbol))
+            .map_or(&[], Vec::as_slice)
     }
 }
 
@@ -118,17 +166,16 @@ impl<'a, 'b> SpanBuilder<'a, 'b> {
 
                     self.spans.syntax_rules.insert(
                         ByAddress(gr_rule),
-                        Metadata {
-                            span: Some(rule_span),
+                        SourceRegion {
+                            span: rule_span,
                             leading_comments: leading,
                             trailing_comment: trailing,
                         },
                     );
                     let head_span = syntax_rule.head().span();
-                    let def_id = DefinitionId(
-                        (self.grammar_def.lexical_rules.len() + self.syntax_idx) as u16,
-                    );
-                    self.spans.definition_spans.insert(def_id, head_span);
+                    self.spans
+                        .nonterminals
+                        .insert(ByAddress(&gr_rule.head), SourceRegion::new(head_span));
                     self.syntax_idx += 1;
                 }
                 parse_tree::Rule::RegexRule { regex_rule, .. } => {
@@ -157,15 +204,16 @@ impl<'a, 'b> SpanBuilder<'a, 'b> {
 
                     self.spans.lexical_rules.insert(
                         ByAddress(gr_rule),
-                        Metadata {
-                            span: Some(rule_span),
+                        SourceRegion {
+                            span: rule_span,
                             leading_comments: leading,
                             trailing_comment: trailing,
                         },
                     );
                     let head_span = regex_rule.identifier().span();
-                    let def_id = DefinitionId(self.lexical_idx as u16);
-                    self.spans.definition_spans.insert(def_id, head_span);
+                    self.spans
+                        .terminals
+                        .insert(ByAddress(&gr_rule.head), SourceRegion::new(head_span));
                     self.lexical_idx += 1;
                 }
                 parse_tree::Rule::Amb(_) => {
@@ -240,13 +288,9 @@ fn collect_syntax_rule_spans<'a>(
             let alt_end =
                 rightmost_token_end(pt_alt.as_parse_tree()).unwrap_or(pt_alt.span().right_extent);
             let alt_span = Span::new(pt_alt.span().left_extent, alt_end);
-            spans.alternatives.insert(
-                ByAddress(gr_alt),
-                Metadata {
-                    span: Some(alt_span),
-                    ..Default::default()
-                },
-            );
+            spans
+                .alternatives
+                .insert(ByAddress(gr_alt), SourceRegion::new(alt_span));
             let pt_syms: Vec<_> = match pt_alt {
                 parse_tree::Alternative::Symbols { symbols, .. } => symbols.symbols().collect(),
                 parse_tree::Alternative::Empty { .. } => Vec::new(),
@@ -266,6 +310,36 @@ fn collect_regex_rule_spans<'a>(
     pt_rule: &parse_tree::RegexRule,
     spans: &mut GrammarSpans<'a>,
 ) {
+    // The rule's own restrictions come off one list in source order, while the
+    // rule bins them by kind, so each is paired with the token it was built
+    // from rather than with the identifier at the same position.
+    let mut excepts = gr_rule.except.iter();
+    let mut follow = gr_rule.follow_restriction.iter();
+    for condition in pt_rule.regex_post_conditions().regex_post_conditions() {
+        let (bucket, identifier) = match condition {
+            parse_tree::RegexPostCondition::Except { identifier, .. } => (&mut excepts, identifier),
+            parse_tree::RegexPostCondition::FollowRestriction { identifier, .. } => {
+                (&mut follow, identifier)
+            }
+            parse_tree::RegexPostCondition::Amb(_) => {
+                unreachable!("ambiguous trees are rejected before this point")
+            }
+        };
+        if let Some(id) = bucket.next() {
+            spans
+                .identifiers
+                .insert(ByAddress(id), SourceRegion::new(identifier.span()));
+        }
+    }
+    if let Some(id) = &gr_rule.precede_restriction
+        && let Some(condition) = pt_rule.regex_pre_condition().value()
+    {
+        spans.identifiers.insert(
+            ByAddress(id),
+            SourceRegion::new(condition.identifier().span()),
+        );
+    }
+
     let Regex::Alt(alts) = &gr_rule.regex else {
         return;
     };
@@ -287,10 +361,9 @@ fn collect_regex_spans<'a>(
     match (gr_regex, pt_regex) {
         (Regex::Identifier(id), parse_tree::Regex::Identifier { identifier, .. }) => {
             let span = identifier.span();
-            spans.identifiers.insert(ByAddress(id), span);
-            if let Some(def_id) = id.definition {
-                spans.reference_spans.entry(def_id).or_default().push(span);
-            }
+            spans
+                .identifiers
+                .insert(ByAddress(id), SourceRegion::new(span));
         }
         (Regex::Plus(inner), parse_tree::Regex::Plus { regex, .. })
         | (Regex::Star(inner), parse_tree::Regex::Star { regex, .. })
@@ -350,13 +423,9 @@ fn collect_symbol_seq_spans<'a>(
         (_, [pt_sym]) => collect_symbol_spans(gr_sym, pt_sym, spans),
         (Symbol::Group(gr_parts), [pt_first, .., pt_last]) => {
             let span = Span::new(pt_first.span().left_extent, pt_last.span().right_extent);
-            spans.symbols.insert(
-                ByAddress(gr_sym),
-                Metadata {
-                    span: Some(span),
-                    ..Default::default()
-                },
-            );
+            spans
+                .symbols
+                .insert(ByAddress(gr_sym), SourceRegion::new(span));
             for (gr, pt) in gr_parts.iter().zip(pt_seq) {
                 collect_symbol_spans(gr, pt, spans);
             }
@@ -371,33 +440,19 @@ fn collect_symbol_spans<'a>(
     spans: &mut GrammarSpans<'a>,
 ) {
     let sym_span = pt_sym.span();
-    spans.symbols.insert(
-        ByAddress(gr_sym),
-        Metadata {
-            span: Some(sym_span),
-            ..Default::default()
-        },
-    );
+    spans
+        .symbols
+        .insert(ByAddress(gr_sym), SourceRegion::new(sym_span));
     match gr_sym {
         Symbol::Identifier(id) => {
-            spans.identifiers.insert(ByAddress(id), sym_span);
-            if let Some(def_id) = id.definition {
-                spans
-                    .reference_spans
-                    .entry(def_id)
-                    .or_default()
-                    .push(sym_span);
-            }
+            spans
+                .identifiers
+                .insert(ByAddress(id), SourceRegion::new(sym_span));
         }
         Symbol::Call { name, .. } => {
-            spans.identifiers.insert(ByAddress(name), sym_span);
-            if let Some(def_id) = name.definition {
-                spans
-                    .reference_spans
-                    .entry(def_id)
-                    .or_default()
-                    .push(sym_span);
-            }
+            spans
+                .identifiers
+                .insert(ByAddress(name), SourceRegion::new(sym_span));
         }
         _ => {}
     }
@@ -461,9 +516,10 @@ fn collect_symbol_spans<'a>(
             {
                 let precede = restrictions.map(|r| r.precede.iter()).unwrap_or_default();
                 for (id, condition) in precede.zip(conditions.pre_conditions()) {
-                    spans
-                        .identifiers
-                        .insert(ByAddress(id), condition.identifier().span());
+                    spans.identifiers.insert(
+                        ByAddress(id),
+                        SourceRegion::new(condition.identifier().span()),
+                    );
                 }
                 pt_node = symbol;
             }
@@ -499,7 +555,9 @@ fn collect_symbol_spans<'a>(
                         }
                     };
                     if let Some(id) = bucket.next() {
-                        spans.identifiers.insert(ByAddress(id), identifier.span());
+                        spans
+                            .identifiers
+                            .insert(ByAddress(id), SourceRegion::new(identifier.span()));
                     }
                 }
                 pt_node = symbol;
@@ -508,13 +566,9 @@ fn collect_symbol_spans<'a>(
             // An `Exclude` node below `Restricted` has no parse-tree node
             // of its own and gets the span of the whole spelling.
             let gr_core = if let Symbol::Exclude { symbol, .. } = gr_inner {
-                spans.symbols.insert(
-                    ByAddress(gr_inner),
-                    Metadata {
-                        span: Some(sym_span),
-                        ..Default::default()
-                    },
-                );
+                spans
+                    .symbols
+                    .insert(ByAddress(gr_inner), SourceRegion::new(sym_span));
                 spans.label_spans.insert(ByAddress(gr_inner), label_spans);
                 symbol.as_ref()
             } else {

@@ -8,9 +8,7 @@
 //
 // Skipped: layout def, field labels (left:, right:), symbol references in bodies.
 
-use by_address::ByAddress;
 use iguana_compiler::grammar::def::{GrammarDef, LayoutStrategy};
-use iguana_compiler::grammar::symbols::DefinitionId;
 use iguana_runtime::input::{Input, Span};
 use lsp_types::{DocumentSymbol, Position, Range, SymbolKind};
 
@@ -23,52 +21,44 @@ pub fn document_symbols(
 ) -> Vec<DocumentSymbol> {
     let mut out = Vec::new();
 
-    let num_lexical = grammar_def.lexical_rules.len();
-
-    for (i, rule) in grammar_def.syntax_rules.iter().enumerate() {
-        let Some(meta) = spans.syntax_rules.get(&ByAddress(rule)) else {
+    for rule in &grammar_def.syntax_rules {
+        let Some(region) = spans.syntax_rule(rule) else {
             continue;
         };
-        let Some(rule_span) = meta.span else {
-            continue;
-        };
+        let rule_span = region.span;
 
         let mut range = to_range(rule_span, input);
-        if let Some(first) = meta.leading_comments.first() {
+        if let Some(first) = region.leading_comments.first() {
             let (l, c) = input.line_column(first.left_extent);
             range.start = Position::new(l, c);
         }
-        if let Some(trailing) = meta.trailing_comment {
+        if let Some(trailing) = region.trailing_comment {
             let (l, c) = input.line_column(trailing.right_extent);
             range.end = Position::new(l, c);
         }
 
-        let def_id = DefinitionId((num_lexical + i) as u16);
         let head_span = spans
-            .definition_spans
-            .get(&def_id)
-            .copied()
+            .nonterminal(&rule.head)
+            .map(|region| region.span)
             .unwrap_or(rule_span);
 
         let mut children: Vec<DocumentSymbol> = Vec::new();
         for level in &rule.priority_levels {
             for alt in &level.alternatives {
-                if let Some(ref label) = alt.label {
-                    if let Some(alt_meta) = spans.alternatives.get(&ByAddress(alt)) {
-                        if let Some(alt_span) = alt_meta.span {
-                            #[allow(deprecated)]
-                            children.push(DocumentSymbol {
-                                name: label.clone(),
-                                detail: None,
-                                kind: SymbolKind::CONSTRUCTOR,
-                                tags: None,
-                                deprecated: None,
-                                range: to_range(alt_span, input),
-                                selection_range: to_range(alt_span, input),
-                                children: None,
-                            });
-                        }
-                    }
+                if let Some(label) = &alt.label
+                    && let Some(alt_region) = spans.alternative(alt)
+                {
+                    #[allow(deprecated)]
+                    children.push(DocumentSymbol {
+                        name: label.clone(),
+                        detail: None,
+                        kind: SymbolKind::CONSTRUCTOR,
+                        tags: None,
+                        deprecated: None,
+                        range: to_range(alt_region.span, input),
+                        selection_range: to_range(alt_region.span, input),
+                        children: None,
+                    });
                 }
             }
         }
@@ -96,29 +86,25 @@ pub fn document_symbols(
         });
     }
 
-    for (i, rule) in grammar_def.lexical_rules.iter().enumerate() {
-        let Some(meta) = spans.lexical_rules.get(&ByAddress(rule)) else {
+    for rule in &grammar_def.lexical_rules {
+        let Some(region) = spans.lexical_rule(rule) else {
             continue;
         };
-        let Some(rule_span) = meta.span else {
-            continue;
-        };
+        let rule_span = region.span;
 
         let mut range = to_range(rule_span, input);
-        if let Some(first) = meta.leading_comments.first() {
+        if let Some(first) = region.leading_comments.first() {
             let (l, c) = input.line_column(first.left_extent);
             range.start = Position::new(l, c);
         }
-        if let Some(trailing) = meta.trailing_comment {
+        if let Some(trailing) = region.trailing_comment {
             let (l, c) = input.line_column(trailing.right_extent);
             range.end = Position::new(l, c);
         }
 
-        let def_id = DefinitionId(i as u16);
         let head_span = spans
-            .definition_spans
-            .get(&def_id)
-            .copied()
+            .terminal(&rule.head)
+            .map(|region| region.span)
             .unwrap_or(rule_span);
 
         #[allow(deprecated)]

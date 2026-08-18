@@ -11,9 +11,9 @@ use std::{
     thread,
 };
 
+use iguana_runtime::arena::Arena;
 use iguana_runtime::cli::ParseResult;
 use iguana_runtime::input::Input;
-use iguana_runtime::arena::Arena;
 use iguana_runtime::visualization::{gss::GSS, sppf::SPPF};
 use serde::{Deserialize, Serialize};
 use specta::Type;
@@ -1161,7 +1161,7 @@ fn get_definition(
         let spans = iguana_lsp::build_spans(grammar_def, tree, input);
         let uri: lsp_types::Uri = "file:///terrarium".parse().unwrap();
         let offset = input.offset(line, column);
-        let loc = iguana_lsp::references::definition(&spans, input, &uri, offset)?;
+        let loc = iguana_lsp::references::definition(grammar_def, &spans, input, &uri, offset)?;
         Some(LocationData {
             range: RangeData {
                 start_line: loc.range.start.line,
@@ -1199,17 +1199,24 @@ fn get_references(
         let spans = iguana_lsp::build_spans(grammar_def, tree, input);
         let uri: lsp_types::Uri = "file:///terrarium".parse().unwrap();
         let offset = input.offset(line, column);
-        iguana_lsp::references::references(&spans, input, &uri, offset, include_declaration)
-            .into_iter()
-            .map(|loc| LocationData {
-                range: RangeData {
-                    start_line: loc.range.start.line,
-                    start_char: loc.range.start.character,
-                    end_line: loc.range.end.line,
-                    end_char: loc.range.end.character,
-                },
-            })
-            .collect()
+        iguana_lsp::references::references(
+            grammar_def,
+            &spans,
+            input,
+            &uri,
+            offset,
+            include_declaration,
+        )
+        .into_iter()
+        .map(|loc| LocationData {
+            range: RangeData {
+                start_line: loc.range.start.line,
+                start_char: loc.range.start.character,
+                end_line: loc.range.end.line,
+                end_char: loc.range.end.character,
+            },
+        })
+        .collect()
     })
 }
 

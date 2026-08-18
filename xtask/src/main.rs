@@ -14,6 +14,7 @@ use iguana_compiler::{
     grammar::def::Grammar,
     iggy::parse_grammar,
     utils::to_pascal_case,
+    validation::render_errors,
 };
 
 #[derive(Parser)]
@@ -355,7 +356,8 @@ fn regenerate_with(
     force: bool,
 ) -> io::Result<GenerateResult> {
     let source = fs::read_to_string(grammar_path)?;
-    let grammar_def = parse_grammar(&source).map_err(io::Error::other)?;
+    let grammar_def = parse_grammar(&source)
+        .map_err(|errors| io::Error::other(render_errors(&errors, grammar_path, &source)))?;
     let grammar: Grammar = grammar_def
         .try_into()
         .map_err(|errors: Vec<String>| io::Error::other(errors.join("\n")))?;

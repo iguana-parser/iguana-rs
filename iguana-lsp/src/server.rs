@@ -113,7 +113,14 @@ pub fn main_loop(
                             let pos = params.text_document_position.position;
                             let offset = input.offset(pos.line, pos.character);
                             let include_declaration = params.context.include_declaration;
-                            Some(references(&spans, &input, uri, offset, include_declaration))
+                            Some(references(
+                                &grammar_def,
+                                &spans,
+                                &input,
+                                uri,
+                                offset,
+                                include_declaration,
+                            ))
                         })()
                         .unwrap_or_default();
                         let result = serde_json::to_value(&locations).unwrap();
@@ -142,7 +149,7 @@ pub fn main_loop(
                             let spans = build_spans(&grammar_def, tree, &input);
                             let pos = params.text_document_position_params.position;
                             let offset = input.offset(pos.line, pos.character);
-                            definition(&spans, &input, uri, offset)
+                            definition(&grammar_def, &spans, &input, uri, offset)
                         })();
                         let result = serde_json::to_value(
                             loc.map(lsp_types::GotoDefinitionResponse::Scalar),

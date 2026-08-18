@@ -23,8 +23,8 @@
 // - Comments are emitted from Layout nodes during the tree walk
 // - Final newline at end of file
 
-use crate::layout::is_same_line;
 use iggy::parse_tree::*;
+use iguana_compiler::comments::is_same_line;
 use iguana_runtime::input::{Input, Span};
 
 const MAX_LINE_WIDTH: usize = 80;

@@ -12,8 +12,66 @@ use crate::{
         parser_gen::ParserGen,
         terminal_sets::{SetIds, terminal_sets},
     },
-    grammar::{def::Grammar, first_follow::FirstFollowSets, slot::Slot, symbols::Symbol},
+    grammar::{
+        def::Grammar,
+        first_follow::FirstFollowSets,
+        slot::Slot,
+        symbols::{Definition, Symbol},
+    },
 };
+
+/// Rejects a `!>>>` restriction whose layout the generated parser cannot
+/// measure.
+///
+/// The restriction is checked at the end of the layout that follows a symbol,
+/// so generating it means finding that end. The parser finds it with a scanner
+/// match when the layout is a terminal, and with one deterministic parse when
+/// the layout is LL(1). Any other layout can end at several positions, which
+/// takes a GLL recognizer the generator does not have.
+///
+/// The generated parser checks postconditions only on rule references.
+/// Restrictions on other symbols do not require a layout probe.
+fn check_layout_aware_follow(
+    grammar: &Grammar,
+    ff: &FirstFollowSets,
+    config: GenConfig,
+) -> io::Result<()> {
+    let uses_probe = grammar.nonterminals().any(|nonterminal| {
+        grammar.alternatives(nonterminal).iter().any(|alternative| {
+            alternative.symbols.iter().any(|symbol| {
+                symbol.as_identifier().is_some()
+                    && !symbol.restrictions().layout_aware_follow.is_empty()
+            })
+        })
+    });
+    if !uses_probe {
+        return Ok(());
+    }
+
+    // Layout insertion turns a `!>>>` into a plain `!>>` in a rule without
+    // layout, so every restriction reaching this point has a layout to
+    // measure.
+    let layout = grammar
+        .layout
+        .as_ref()
+        .and_then(Symbol::as_identifier)
+        .expect("a `!>>>` restriction survives only in a rule with layout");
+    // A terminal layout is a scanner match, which always has one end.
+    let Definition::Nonterminal(nonterminal) = grammar.definition(layout.resolve()) else {
+        return Ok(());
+    };
+    let is_ll1 = ff.is_ll1(nonterminal);
+    if config.ll1_optimization && is_ll1 {
+        return Ok(());
+    }
+    let name = &nonterminal.name;
+    let message = if is_ll1 {
+        format!("`!>>>` requires the `ll1` option when layout `{name}` is an LL(1) syntax rule")
+    } else {
+        format!("`!>>>` requires layout `{name}` to be a lexical rule or an LL(1) syntax rule")
+    };
+    Err(io::Error::other(message))
+}
 
 fn collect_binding_names(symbol: &Symbol, binding_ids: &mut BindingIds) {
     if let Symbol::Binding { name, .. } = symbol {
@@ -165,6 +223,11 @@ pub fn generate_sources(
         }
     }
 
+    let ff = FirstFollowSets::new(grammar);
+    // Checked before the first write, so a rejected grammar leaves no
+    // half-written sources behind.
+    check_layout_aware_follow(grammar, &ff, config)?;
+
     if !output_dir.exists() {
         fs::create_dir_all(output_dir)?;
     }
@@ -185,7 +248,6 @@ pub fn generate_sources(
         &lib_path,
     )?;
 
-    let ff = FirstFollowSets::new(grammar);
     let terminal_sets = terminal_sets(grammar, &ff);
     let match_any_sets = SetIds::match_any(&terminal_sets, &terminal_ids);
     let longest_match_sets = SetIds::longest_match(&terminal_sets, &terminal_ids);
@@ -344,4 +406,65 @@ fn write_plain_file(content: impl AsRef<str>, path: &Path) -> io::Result<()> {
     file.write_all(content.as_ref().as_bytes())?;
     file.write_all(b"\n")?;
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::iggy::parse_grammar;
+
+    fn grammar_with_layout(layout_body: &str) -> Grammar {
+        let source = format!(
+            r#"grammar G
+
+S = Id !>>> Semi
+
+@Regex
+Id = [a-z]+
+
+@Regex
+Semi = ";"
+
+@Layout
+Layout = {layout_body}
+
+@Regex
+WS = [\ ]+
+"#
+        );
+        parse_grammar(&source)
+            .expect("the grammar should be valid")
+            .try_into()
+            .expect("the grammar should build")
+    }
+
+    #[test]
+    fn rejects_layout_aware_follow_with_a_non_ll1_layout() {
+        let grammar = grammar_with_layout("WS | WS WS");
+        let ff = FirstFollowSets::new(&grammar);
+        let error = check_layout_aware_follow(&grammar, &ff, GenConfig::default())
+            .expect_err("the layout is not LL(1)");
+
+        assert_eq!(
+            error.to_string(),
+            "`!>>>` requires layout `Layout` to be a lexical rule or an LL(1) syntax rule"
+        );
+    }
+
+    #[test]
+    fn rejects_layout_aware_follow_when_ll1_generation_is_disabled() {
+        let grammar = grammar_with_layout("WS*");
+        let ff = FirstFollowSets::new(&grammar);
+        let config = GenConfig {
+            ll1_optimization: false,
+            ..GenConfig::default()
+        };
+        let error = check_layout_aware_follow(&grammar, &ff, config)
+            .expect_err("LL(1) generation is disabled");
+
+        assert_eq!(
+            error.to_string(),
+            "`!>>>` requires the `ll1` option when layout `Layout` is an LL(1) syntax rule"
+        );
+    }
 }

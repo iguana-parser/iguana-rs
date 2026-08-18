@@ -21,7 +21,11 @@ use std::fmt::{self, Display, Formatter};
 use std::time::Duration;
 #[derive(Debug)]
 pub struct ParseError {
+    /// The line the error was found at, counting from 0. `Display` adds one,
+    /// since a message for a person counts from 1.
     pub line: u32,
+    /// The column the error was found at, counting from 0, under the same
+    /// convention as `line`.
     pub column: u32,
     pub len: u32,
     pub message: String,
@@ -31,7 +35,9 @@ impl Display for ParseError {
         write!(
             f,
             "Parse error at line {}, column {}: {}",
-            self.line, self.column, self.message
+            self.line + 1,
+            self.column + 1,
+            self.message
         )
     }
 }

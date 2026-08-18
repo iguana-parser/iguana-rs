@@ -17,6 +17,8 @@ use crate::{
         },
     },
     priority_level,
+    spans::GrammarSpans,
+    validation::validate,
 };
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -108,6 +110,12 @@ impl SyntaxRule {
             .iter()
             .flat_map(|level| &level.alternatives)
     }
+
+    /// Whether this rule has an alternative labeled `label`.
+    pub fn has_label(&self, label: &str) -> bool {
+        self.alternatives()
+            .any(|alternative| alternative.label.as_deref() == Some(label))
+    }
 }
 
 #[derive(Debug)]
@@ -194,8 +202,13 @@ pub struct GrammarDef {
 }
 
 impl GrammarDef {
+    /// A map from each rule name to its definition ID.
+    pub fn symbol_table(&self) -> SymbolTable {
+        create_symbol_table(&self.syntax_rules, &self.lexical_rules).1
+    }
+
     pub fn resolve(self) -> GrammarDef {
-        let (_, symbol_table) = create_symbol_table(&self.syntax_rules, &self.lexical_rules);
+        let symbol_table = self.symbol_table();
         let (syntax_rules, lexical_rules) =
             resolve_identifiers(self.syntax_rules, self.lexical_rules, &symbol_table);
         GrammarDef {
@@ -207,13 +220,13 @@ impl GrammarDef {
         }
     }
 
-    pub fn for_each_symbol(&self, f: &mut impl FnMut(&Symbol)) {
+    pub fn for_each_symbol<'a>(&'a self, f: &mut impl FnMut(&'a Symbol)) {
         for rule in &self.syntax_rules {
             visit_syntax_rule(rule, f);
         }
     }
 
-    pub fn for_each_identifier(&self, f: &mut impl FnMut(&Identifier)) {
+    pub fn for_each_identifier<'a>(&'a self, f: &mut impl FnMut(&'a Identifier)) {
         self.for_each_symbol(&mut |symbol| match symbol {
             Symbol::Identifier(id) | Symbol::Call { name: id, .. } => f(id),
             Symbol::Restricted { restrictions, .. } => restrictions.ids().for_each(&mut *f),
@@ -224,101 +237,12 @@ impl GrammarDef {
         }
     }
 
-    pub fn unresolved_identifiers(&self) -> Vec<String> {
-        let mut unresolved = Vec::new();
-        self.for_each_identifier(&mut |id| {
-            if id.definition.is_none() {
-                unresolved.push(id.name.clone());
-            }
-        });
-        unresolved
-    }
-
-    /// Returns labels in `Exclude` symbols (`A!label`) that don't match any
-    /// alternative label on the referenced nonterminal.
-    pub fn unresolved_labels(&self) -> Vec<String> {
-        let rules_by_name: FxHashMap<&str, &SyntaxRule> = self
-            .syntax_rules
-            .iter()
-            .map(|r| (r.head.name.as_str(), r))
-            .collect();
-
-        let mut unresolved = Vec::new();
-        self.for_each_symbol(&mut |symbol| {
-            if let Symbol::Exclude {
-                symbol: inner,
-                labels,
-            } = symbol
-            {
-                if let Some(id) = inner.as_identifier() {
-                    if let Some(rule) = rules_by_name.get(id.name.as_str()) {
-                        let valid_labels: Vec<&str> = rule
-                            .alternatives()
-                            .filter_map(|alt| alt.label.as_deref())
-                            .collect();
-
-                        for label in labels {
-                            if !valid_labels.contains(&label.as_str()) {
-                                unresolved.push(label.clone());
-                            }
-                        }
-                    }
-                }
-            }
-        });
-        unresolved
-    }
-
-    /// Returns names that are defined more than once across syntax and lexical rules.
-    pub fn duplicate_definitions(&self) -> Vec<String> {
-        let mut seen = FxHashSet::default();
-        let mut duplicates = Vec::new();
-        for rule in &self.lexical_rules {
-            if !seen.insert(&rule.head.name) {
-                duplicates.push(rule.head.name.clone());
-            }
-        }
-        for rule in &self.syntax_rules {
-            if !seen.insert(&rule.head.name) {
-                duplicates.push(rule.head.name.clone());
-            }
-        }
-        duplicates
-    }
-}
-
-impl GrammarDef {
     pub fn to_grammar(self, dump: &[Phase]) -> Result<Grammar, Vec<String>> {
         let resolved = self.resolve();
-        let mut errors: Vec<String> = resolved
-            .duplicate_definitions()
-            .into_iter()
-            .map(|name| format!("duplicate definition `{name}`"))
-            .collect();
-        errors.extend(
-            resolved
-                .unresolved_identifiers()
-                .into_iter()
-                .map(|name| format!("unresolved identifier `{name}`")),
-        );
-        errors.extend(
-            resolved
-                .unresolved_labels()
-                .into_iter()
-                .map(|label| format!("unresolved label `{label}`")),
-        );
-        if let Some(Symbol::Identifier(layout_id)) = &resolved.layout {
-            for id in &resolved.identifier_rules {
-                if id.name == layout_id.name {
-                    errors.push(format!(
-                        "`{}` cannot be both the layout rule and an identifier rule",
-                        id.name
-                    ));
-                }
-            }
-        }
+        // A `GrammarDef` has no parse tree, so no error gets a span.
+        let errors = validate(&resolved, &GrammarSpans::default());
         if !errors.is_empty() {
-            return Err(errors);
+            return Err(errors.into_iter().map(|error| error.message).collect());
         }
         build_grammar(resolved, dump)
     }
@@ -332,7 +256,7 @@ impl TryFrom<GrammarDef> for Grammar {
     }
 }
 
-fn visit_regex_identifiers(regex: &Regex, f: &mut impl FnMut(&Identifier)) {
+fn visit_regex_identifiers<'a>(regex: &'a Regex, f: &mut impl FnMut(&'a Identifier)) {
     match regex {
         Regex::Identifier(id) => f(id),
         Regex::Seq(rs) | Regex::Alt(rs) => {
@@ -1113,20 +1037,6 @@ fn build_grammar(grammar_def: GrammarDef, dump: &[Phase]) -> Result<Grammar, Vec
         .map(|r| (r.head.name.clone(), format!("Start{}", r.head.name)))
         .collect();
     let start_wrapper_names: FxHashSet<String> = start_nonterminals.values().cloned().collect();
-    let collisions: Vec<String> = syntax_rules
-        .iter()
-        .filter(|r| start_wrapper_names.contains(&r.head.name))
-        .map(|r| {
-            format!(
-                "Rule name {} collides with the generated start wrapper for {}",
-                r.head.name,
-                &r.head.name["Start".len()..]
-            )
-        })
-        .collect();
-    if !collisions.is_empty() {
-        return Err(collisions);
-    }
     syntax_rules.extend(start_rules);
     // Dumped after the start wrappers are added so the layout phase shows the
     // StartX rules too, not only layout woven into existing rules. A grammar

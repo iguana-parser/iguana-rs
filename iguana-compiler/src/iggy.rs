@@ -12,12 +12,35 @@ use crate::grammar::{
     regex::{CharClass, CharRange, Regex},
     symbols::{Identifier, Nonterminal, Restrictions, Symbol, Terminal},
 };
+use crate::spans;
+use crate::validation::{GrammarError, validate};
 
-pub fn parse_grammar(source: &str) -> Result<GrammarDef, ParseError> {
+/// Parses a grammar and returns a validated `GrammarDef` with its rule
+/// references resolved.
+pub fn parse_grammar(source: &str) -> Result<GrammarDef, Vec<GrammarError>> {
     let input = Input::from(source);
     let tree_arena = Arena::new();
-    let success = iggy::parse_grammar(&input, &tree_arena)?;
-    build_grammar(success.tree, &input)
+    let success = iggy::parse_grammar(&input, &tree_arena).map_err(parse_error)?;
+    let grammar_def = build_grammar(success.tree, &input)
+        .map_err(parse_error)?
+        .resolve();
+
+    // Validate here because source spans require the parse tree.
+    let spans = spans::build_spans(&grammar_def, success.tree, &input);
+    let errors = validate(&grammar_def, &spans);
+    if !errors.is_empty() {
+        return Err(errors);
+    }
+    Ok(grammar_def)
+}
+
+/// A parse failure as a grammar error. It has no span, because its `Display`
+/// already states the line and column it was found at.
+fn parse_error(error: ParseError) -> Vec<GrammarError> {
+    vec![GrammarError {
+        message: error.to_string(),
+        span: None,
+    }]
 }
 
 pub fn build_grammar(
@@ -470,15 +493,28 @@ fn parse_range_char(s: &str) -> char {
 mod tests {
     use super::*;
 
+    /// Parses without validating. The fragments below exercise one construct
+    /// each and leave the names they mention undefined.
+    fn parse_unvalidated(source: &str) -> GrammarDef {
+        let input = Input::from(source);
+        let tree_arena = Arena::new();
+        let success = iggy::parse_grammar(&input, &tree_arena).expect("the grammar should parse");
+        build_grammar(success.tree, &input).expect("the grammar should build")
+    }
+
     /// The first symbol of the first alternative, for a grammar with one
     /// rule.
     fn first_symbol(source: &str) -> Symbol {
-        let grammar = parse_grammar(source).expect("the grammar should parse");
+        let grammar = parse_unvalidated(source);
         grammar.syntax_rules[0].priority_levels[0].alternatives[0].symbols[0].clone()
     }
 
     fn names(ids: &[Identifier]) -> Vec<&str> {
         ids.iter().map(|id| id.name.as_str()).collect()
+    }
+
+    fn messages(errors: &[GrammarError]) -> Vec<&str> {
+        errors.iter().map(|error| error.message.as_str()).collect()
     }
 
     fn restrictions(symbol: &Symbol) -> &Restrictions {
@@ -498,9 +534,16 @@ mod tests {
     #[test]
     fn test_multiple_identifier_rules_are_recorded() {
         let grammar = parse_grammar(
-            "grammar g S = VarId TypeId \
-             @Identifier @Regex VarId = [a-z]+ \
-             @Identifier @Regex TypeId = [A-Z][a-z]*",
+            r#"grammar g
+
+S = VarId TypeId
+
+@Identifier @Regex
+VarId = [a-z]+
+
+@Identifier @Regex
+TypeId = [A-Z][a-z]*
+"#,
         )
         .expect("the grammar should parse");
         assert_eq!(names(&grammar.identifier_rules), ["VarId", "TypeId"]);
@@ -508,12 +551,10 @@ mod tests {
 
     #[test]
     fn test_layout_rule_cannot_be_an_identifier_rule() {
-        let grammar_def =
-            parse_grammar("grammar g S = \"a\" @Layout @Identifier @Regex WS = [\\ ]+")
-                .expect("the grammar should parse");
-        let errors = grammar_def.to_grammar(&[]).unwrap_err();
+        let errors = parse_grammar("grammar g S = \"a\" @Layout @Identifier @Regex WS = [\\ ]+")
+            .expect_err("the layout rule is also an identifier rule");
         assert_eq!(
-            errors,
+            messages(&errors),
             ["`WS` cannot be both the layout rule and an identifier rule"]
         );
     }
@@ -588,5 +629,130 @@ mod tests {
                 "{source}",
             );
         }
+    }
+
+    /// A name reaches the generated code through a case conversion, so a
+    /// reserved name has to be recognized in the form the generator writes it
+    /// rather than in the spelling the grammar uses. Each case below compiled
+    /// to a rustc error in generated code before the conversion was applied.
+    #[test]
+    fn test_reserved_names_are_matched_after_case_conversion() {
+        for (source, expected) in [
+            (
+                "grammar g S = parse_tree parse_tree = \"a\"",
+                "`parse_tree` is a reserved name in the generated parse tree",
+            ),
+            (
+                "grammar g S = GParser GParser = \"a\"",
+                "`GParser` is a reserved name in the generated parse tree",
+            ),
+            (
+                "grammar g S = Span:\"a\"",
+                "`Span` becomes the field `span`, which the generator uses for an alternative's span",
+            ),
+            (
+                "grammar g S = start_s start_s = \"a\"",
+                "`start_s` collides with the generated start wrapper for `S`",
+            ),
+            (
+                "grammar g S = \"a\" #amb",
+                "`#amb` becomes `Amb`, which is reserved for ambiguous alternatives",
+            ),
+            (
+                "grammar g S = \"a\" #alt_0",
+                "`#alt_0` becomes `Alt0`, which is reserved for unlabeled alternatives",
+            ),
+        ] {
+            let errors = parse_grammar(source).expect_err(source);
+            assert!(
+                messages(&errors).contains(&expected),
+                "{source}\n  expected: {expected}\n  got: {:?}",
+                messages(&errors),
+            );
+        }
+    }
+
+    #[test]
+    fn test_generated_names_must_be_distinct_after_case_conversion() {
+        let errors = parse_grammar("grammar g S = \"a\" s = \"b\"")
+            .expect_err("the rule names generate duplicate Rust identifiers");
+        assert_eq!(
+            messages(&errors),
+            ["`S` and `s` have the same generated name `S`"]
+        );
+
+        let errors = parse_grammar("grammar g S = \"a\" #foo_bar | \"b\" #FooBar")
+            .expect_err("the labels generate duplicate Rust variants");
+        assert_eq!(
+            messages(&errors),
+            ["`#foo_bar` and `#FooBar` both become the generated variant `FooBar`"]
+        );
+    }
+
+    #[test]
+    fn test_restriction_must_name_a_lexical_rule() {
+        let errors = parse_grammar("grammar g S = A !>> B A = \"a\" B = \"b\"")
+            .expect_err("a restriction cannot name a syntax rule");
+        assert_eq!(
+            messages(&errors),
+            ["follow restriction `B` must name a lexical rule, not a syntax rule"]
+        );
+
+        let errors = parse_grammar("grammar g S = Token @Regex Token = [a-z]+ !>> S")
+            .expect_err("a lexical rule restriction cannot name a syntax rule");
+        assert_eq!(
+            messages(&errors),
+            ["follow restriction `S` must name a lexical rule, not a syntax rule"]
+        );
+    }
+
+    #[test]
+    fn test_except_operand_cannot_have_restrictions() {
+        let errors = parse_grammar(
+            r#"grammar g
+
+S = Identifier
+
+@Regex
+Identifier = [a-z]+ \ Keyword
+
+@Regex
+Keyword = "if" !>> Tail
+
+@Regex
+Tail = [a-z]
+"#,
+        )
+        .expect_err("an except operand cannot have restrictions");
+        assert_eq!(
+            messages(&errors),
+            ["except `Keyword` must name a lexical rule with no restrictions of its own"]
+        );
+    }
+
+    #[test]
+    fn test_exclusion_only_applies_to_a_rule_reference() {
+        for source in [
+            "grammar g S = (A)!label A = \"a\" #label",
+            "grammar g S = A+!label A = \"a\" #label",
+        ] {
+            let errors = parse_grammar(source)
+                .expect_err("an exclusion cannot be applied to a group or repetition");
+            assert_eq!(
+                messages(&errors),
+                ["exclusion `!label` only applies to a syntax rule reference"],
+                "{source}",
+            );
+        }
+    }
+
+    #[test]
+    fn test_labels_cannot_be_nested_directly() {
+        let errors = parse_grammar("grammar g S = outer:inner:\"a\"")
+            .expect_err("labels cannot be nested directly");
+        assert_eq!(
+            messages(&errors),
+            ["labels cannot be nested directly: `outer:inner:` applies two labels to one symbol"]
+        );
     }
 }
