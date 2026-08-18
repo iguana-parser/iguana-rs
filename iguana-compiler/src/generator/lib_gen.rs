@@ -2,15 +2,18 @@ use proc_macro2::TokenStream;
 use quote::{format_ident, quote};
 
 use crate::{
-    generator::{GenConfig, grammar_utils::nonterminal_type},
+    generator::{
+        GenConfig,
+        grammar_utils::{nonterminal_type, parse_tree_builder_ident, parser_ident},
+    },
     grammar::{def::Grammar, symbols::Nonterminal},
-    utils::{to_first_uppercase, to_snake_case},
+    utils::to_snake_case,
 };
 
 pub fn generate(grammar: &Grammar, config: GenConfig) -> TokenStream {
     let grammar_name = &grammar.name;
-    let parse_tree_builder = format_ident!("{}ParseTreeBuilder", to_first_uppercase(grammar_name));
-    let parser = format_ident!("{}Parser", to_first_uppercase(grammar_name));
+    let parse_tree_builder = parse_tree_builder_ident(grammar_name);
+    let parser = parser_ident(grammar_name);
 
     let parse_methods: Vec<TokenStream> = grammar
         .nonterminals()

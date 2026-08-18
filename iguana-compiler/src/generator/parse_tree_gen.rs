@@ -7,7 +7,7 @@ use rustc_hash::FxHashMap;
 use crate::{
     generator::{
         GenConfig, grammar_utils,
-        grammar_utils::{nonterminal_type_name, nt_ident},
+        grammar_utils::{nonterminal_type_name, nt_ident, parse_tree_builder_ident, parser_ident},
         id::{NonterminalIds, SlotIds, TerminalIds},
         utils::{alternative_label, is_valid_rust_ident, safe_ident},
     },
@@ -16,7 +16,7 @@ use crate::{
         symbols::{Definition, DefinitionId, Identifier, Nonterminal, Symbol},
     },
     ids::TerminalId,
-    utils::{to_first_uppercase, to_pascal_case, to_snake_case},
+    utils::{to_pascal_case, to_snake_case},
 };
 
 pub struct ParseTreeGen<'a> {
@@ -187,7 +187,7 @@ impl<'a> ParseTreeGen<'a> {
     }
 
     fn gen_imports(&self) -> TokenStream {
-        let parser_name = format_ident!("{}Parser", to_first_uppercase(&self.grammar.name));
+        let parser_name = parser_ident(&self.grammar.name);
         // The unsafe mode's builder takes children as a slice, so OneOrMany
         // never appears in its generated code.
         let one_or_many = if self.config.unsafe_mode {
@@ -726,7 +726,7 @@ impl<'a> ParseTreeGen<'a> {
     }
 
     fn gen_parse_tree_builder_impl(&self) -> TokenStream {
-        let builder_name_ident = format_ident!("{}ParseTreeBuilder", self.grammar.name);
+        let builder_name_ident = parse_tree_builder_ident(&self.grammar.name);
         let nonterminal_node_method = self.gen_nonterminal_node_method();
         let new_token_method = gen_new_token_method();
         let new_ambiguity_node_method = self.gen_new_ambiguity_node_method();
@@ -1818,8 +1818,8 @@ impl<'a> ParseTreeGen<'a> {
     }
 
     fn gen_create_parse_tree_function(&self) -> TokenStream {
-        let parser_name_ident = format_ident!("{}Parser", self.grammar.name);
-        let builder_name_ident = format_ident!("{}ParseTreeBuilder", self.grammar.name);
+        let parser_name_ident = parser_ident(&self.grammar.name);
+        let builder_name_ident = parse_tree_builder_ident(&self.grammar.name);
         let arms: Vec<_> = self
             .grammar
             .nonterminals()
@@ -1849,8 +1849,8 @@ impl<'a> ParseTreeGen<'a> {
     /// Generates functions with the name create_parse_tree_#name, where name is the name of a nonterminal.
     fn gen_create_parse_tree_nonterminal_function(&self, nonterminal: &Nonterminal) -> TokenStream {
         let nonterminal_name = &nonterminal.name;
-        let parser_name_ident = format_ident!("{}Parser", self.grammar.name);
-        let builder_name_ident = format_ident!("{}ParseTreeBuilder", self.grammar.name);
+        let parser_name_ident = parser_ident(&self.grammar.name);
+        let builder_name_ident = parse_tree_builder_ident(&self.grammar.name);
         let return_type = self.nonterminal_type(nonterminal);
         let function_name = format_ident!("create_parse_tree_{}", to_snake_case(nonterminal_name));
         let unwrap_method = format_ident!("unwrap_{}", to_snake_case(nonterminal_name));

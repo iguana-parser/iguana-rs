@@ -1,0 +1,5 @@
+grammar lowercase_name
+
+S = "a" B
+
+B = "b"

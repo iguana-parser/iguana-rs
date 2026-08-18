@@ -6,6 +6,8 @@ use quote::quote;
 use rustc_hash::FxHashSet;
 
 use crate::generator::GenConfig;
+use crate::generator::grammar_utils::parser_ident;
+use crate::generator::grammar_utils::scanner_ident;
 use crate::generator::id::BindingIds;
 use crate::generator::id::NonterminalIds;
 use crate::generator::id::SlotIds;
@@ -24,7 +26,6 @@ use crate::grammar::symbols::Symbol;
 use crate::grammar::symbols::Terminal;
 use crate::ids::NonterminalId;
 use crate::ids::SlotId;
-use crate::utils::to_first_uppercase;
 use crate::utils::to_snake_case;
 
 pub struct ParserGen<'a> {
@@ -146,7 +147,7 @@ impl<'a> ParserGen<'a> {
         let follow_set_terminals_method = self.gen_follow_set_terminals_method();
         let parser_struct = self.gen_parser_struct();
         let parser_impl = self.gen_parser_impl();
-        let grammar_name_ident = format_ident!("{}Parser", to_first_uppercase(grammar_name));
+        let grammar_name_ident = parser_ident(grammar_name);
         quote! {
             #imports
             #binding_consts
@@ -259,7 +260,7 @@ impl<'a> ParserGen<'a> {
     }
 
     fn gen_imports(&self) -> TokenStream {
-        let scanner_name = format_ident!("{}Scanner", to_first_uppercase(&self.grammar.name));
+        let scanner_name = scanner_ident(&self.grammar.name);
         // The unsafe mode omits the side maps, the only users of OnceCell and FxHashMap.
         let (once_cell_import, fx_hashmap_import) = if self.config.unsafe_mode {
             (quote! {}, quote! {})
@@ -1057,7 +1058,7 @@ impl<'a> ParserGen<'a> {
     fn gen_parser_impl(&mut self) -> TokenStream {
         let grammar_name = &self.grammar.name;
         let new_method = self.gen_new_method();
-        let name_ident = format_ident!("{}{}", grammar_name, "Parser");
+        let name_ident = parser_ident(grammar_name);
         let create_methods: Vec<_> = self
             .nonterminal_ids
             .nonterminals()
@@ -1146,7 +1147,7 @@ impl<'a> ParserGen<'a> {
 
     fn gen_new_method(&self) -> TokenStream {
         let grammar_name = &self.grammar.name;
-        let name_ident = format_ident!("{}{}", grammar_name, "Scanner");
+        let name_ident = scanner_ident(grammar_name);
         let scanner_init = if self.config.match_memo {
             quote! { #name_ident::new(input, vec_arena) }
         } else {
@@ -1244,8 +1245,8 @@ impl<'a> ParserGen<'a> {
         let dd_slot_start = self.slot_ids.dd_slot_start();
         let dd_slot_start_lit = Literal::usize_unsuffixed(dd_slot_start);
         let param_slot_count_lit = Literal::usize_unsuffixed(self.slot_ids.len() - dd_slot_start);
-        let parser_name_ident = format_ident!("{}{}", grammar_name, "Parser");
-        let scanner_name_ident = format_ident!("{}{}", grammar_name, "Scanner");
+        let parser_name_ident = parser_ident(grammar_name);
+        let scanner_name_ident = scanner_ident(grammar_name);
         let scanner_ty = if self.config.match_memo {
             quote! { #scanner_name_ident<'i, 'arena> }
         } else {

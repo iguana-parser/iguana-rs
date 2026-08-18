@@ -1,11 +1,3 @@
-pub fn to_first_uppercase(s: &str) -> String {
-    let mut chars = s.chars();
-    match chars.next() {
-        Some(c) => format!("{}{}", c.to_uppercase(), chars.as_str()),
-        None => String::new(),
-    }
-}
-
 pub fn to_first_lowercase(s: &str) -> String {
     let mut chars = s.chars();
     match chars.next() {

@@ -92,3 +92,22 @@ pub fn nt_ident(name: &str) -> Ident {
 pub fn nonterminal_type_name(name: &str) -> String {
     to_pascal_case(name)
 }
+
+/// Returns the identifier of the generated parser type, with the grammar name
+/// in PascalCase. Every generator that names the type calls this function, so
+/// the definition and the references to it agree.
+pub fn parser_ident(grammar_name: &str) -> Ident {
+    format_ident!("{}Parser", to_pascal_case(grammar_name))
+}
+
+/// Returns the identifier of the generated scanner type, with the grammar name
+/// in PascalCase.
+pub fn scanner_ident(grammar_name: &str) -> Ident {
+    format_ident!("{}Scanner", to_pascal_case(grammar_name))
+}
+
+/// Returns the identifier of the generated parse tree builder type, with the
+/// grammar name in PascalCase.
+pub fn parse_tree_builder_ident(grammar_name: &str) -> Ident {
+    format_ident!("{}ParseTreeBuilder", to_pascal_case(grammar_name))
+}

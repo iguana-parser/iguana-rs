@@ -1,9 +1,9 @@
-use proc_macro2::{Literal, Span, TokenStream};
+use proc_macro2::{Literal, TokenStream};
 use quote::{format_ident, quote};
 
 use crate::{
     dfa::{Dfa, Nfa},
-    generator::{GenConfig, id::TerminalIds, terminal_sets::SetIds},
+    generator::{GenConfig, grammar_utils::scanner_ident, id::TerminalIds, terminal_sets::SetIds},
     grammar::{
         def::Grammar,
         regex::Regex,
@@ -88,7 +88,7 @@ fn gen_match_any_words_const(match_any_sets: &SetIds, config: &GenConfig) -> Tok
 }
 
 fn gen_scanner_struct(grammar_name: &str, config: &GenConfig) -> TokenStream {
-    let name_ident = syn::Ident::new(&format!("{}{}", grammar_name, "Scanner"), Span::call_site());
+    let name_ident = scanner_ident(grammar_name);
     if config.match_memo {
         quote! {
             pub struct #name_ident<'i, 'arena> {
@@ -184,7 +184,7 @@ fn gen_scanner_imp(
     terminal_ids: &TerminalIds,
     config: &GenConfig,
 ) -> TokenStream {
-    let name_ident = syn::Ident::new(&format!("{}{}", grammar.name, "Scanner"), Span::call_site());
+    let name_ident = scanner_ident(&grammar.name);
     let match_terminals: Vec<_> = terminal_ids
         .terminals()
         .enumerate()
@@ -303,7 +303,7 @@ fn gen_scanner_trait_impl(
 ) -> TokenStream {
     let match_token_method = gen_match_token(terminal_ids, config);
     let char_at_method = gen_char_at_method();
-    let scanner_name = format_ident!("{}Scanner", grammar.name);
+    let scanner_name = scanner_ident(&grammar.name);
     let scanner_ty = if config.match_memo {
         quote! { #scanner_name<'_, '_> }
     } else {

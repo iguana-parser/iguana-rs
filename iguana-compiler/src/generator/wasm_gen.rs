@@ -2,8 +2,9 @@ use proc_macro2::TokenStream;
 use quote::{format_ident, quote};
 
 use crate::{
+    generator::grammar_utils::{parse_tree_builder_ident, parser_ident},
     grammar::def::Grammar,
-    utils::{to_first_uppercase, to_snake_case},
+    utils::to_snake_case,
 };
 
 /// Generate the `lib.rs` of the wasm wrapper crate: a `wasm-bindgen` entry
@@ -12,8 +13,8 @@ use crate::{
 /// name and its parser and parse-tree-builder types vary.
 pub fn generate(grammar: &Grammar) -> TokenStream {
     let grammar_name = format_ident!("{}", to_snake_case(&grammar.name));
-    let parser = format_ident!("{}Parser", to_first_uppercase(&grammar.name));
-    let parse_tree_builder = format_ident!("{}ParseTreeBuilder", to_first_uppercase(&grammar.name));
+    let parser = parser_ident(&grammar.name);
+    let parse_tree_builder = parse_tree_builder_ident(&grammar.name);
     quote! {
         use wasm_bindgen::prelude::*;
 

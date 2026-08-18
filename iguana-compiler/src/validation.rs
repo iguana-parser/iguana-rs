@@ -3,12 +3,13 @@ use std::path::Path;
 use iguana_runtime::input::{Input, Span};
 use rustc_hash::{FxHashMap, FxHashSet};
 
+use crate::generator::grammar_utils::{parse_tree_builder_ident, parser_ident};
 use crate::grammar::{
     def::{GrammarDef, LexicalRule, SyntaxRule},
     symbols::{Identifier, Symbol, Terminal},
 };
 use crate::spans::GrammarSpans;
-use crate::utils::{to_first_uppercase, to_pascal_case, to_snake_case};
+use crate::utils::{to_pascal_case, to_snake_case};
 
 /// A grammar error.
 ///
@@ -485,9 +486,8 @@ fn check_reserved_names<'a>(
         .filter(|name| Some(*name) != layout_name)
         .map(|name| (constant_name(&format!("Start{name}")), name))
         .collect();
-    // References to grammar-specific generated types uppercase the first letter of
-    // the grammar name.
-    let grammar_name = to_first_uppercase(&grammar_def.name);
+    let parser_type = parser_ident(&grammar_def.name);
+    let parse_tree_builder_type = parse_tree_builder_ident(&grammar_def.name);
 
     for rule in &grammar_def.syntax_rules {
         let name = rule.head.name.as_str();
@@ -503,8 +503,8 @@ fn check_reserved_names<'a>(
         }
         let type_name = to_pascal_case(name);
         if RESERVED_TYPE_NAMES.contains(&type_name.as_str())
-            || type_name == format!("{}Parser", grammar_name)
-            || type_name == format!("{}ParseTreeBuilder", grammar_name)
+            || parser_type == type_name
+            || parse_tree_builder_type == type_name
         {
             errors.push(GrammarError {
                 message: format!("`{name}` is a reserved name in the generated parse tree"),
