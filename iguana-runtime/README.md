@@ -7,6 +7,6 @@ a newer one by regeneration, so there is no reason to depend on it directly.
 
 ## License
 
-Licensed under either of the Apache License, Version 2.0 or the MIT license,
-at your option. Generated parsers can therefore ship under any license,
-including in proprietary products.
+Licensed under either the [MIT License](LICENSE-MIT) or the
+[Apache License, Version 2.0](LICENSE-APACHE), at your option. Parsers
+generated with Iguana may be used in open-source or proprietary projects.

@@ -16,4 +16,5 @@ points it at a binary elsewhere.
 
 ## License
 
-Licensed under the GNU General Public License v3 or later (`LICENSE-GPL`).
+Licensed under either the [MIT License](LICENSE-MIT) or the
+[Apache License, Version 2.0](LICENSE-APACHE), at your option.

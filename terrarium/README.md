@@ -29,4 +29,5 @@ The Rust backend is a separate workspace at `src-tauri/`, excluded from the root
 
 ## License
 
-Licensed under the GNU General Public License v3 or later (`LICENSE-GPL`).
+Licensed under either the [MIT License](LICENSE-MIT) or the
+[Apache License, Version 2.0](LICENSE-APACHE), at your option.

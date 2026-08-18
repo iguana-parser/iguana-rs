@@ -16,7 +16,7 @@ version = "0.1.0"
 description = "Iguana grammar debugger"
 authors = ["you"]
 edition = "2021"
-license = "GPL-3.0-or-later"
+license = "MIT OR Apache-2.0"
 
 [lints]
 workspace = true

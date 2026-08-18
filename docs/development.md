@@ -15,7 +15,7 @@ After cloning, run once:
 ./setup.sh
 ```
 
-The script checks the Rust toolchain, installs `cargo-nextest`, installs the npm workspace dependencies when npm is present, flags missing system dependencies (graphviz), and points git at the tracked `.githooks/` directory. The pre-commit hook runs `cargo fmt --check --all` and rejects unformatted commits. The commit-msg hook rejects commit-message trailers (Co-Authored-By, Signed-off-by) and AI-attribution lines; the same check runs on pull requests in CI.
+The script checks the Rust toolchain, installs `cargo-nextest`, installs the npm workspace dependencies when npm is present, flags missing system dependencies (graphviz), and points git at the tracked `.githooks/` directory. The pre-commit hook runs `cargo fmt --check --all` and rejects unformatted commits. The commit-msg hook rejects `Co-Authored-By`, `Signed-off-by`, and `Generated-by` trailers and AI-attribution lines; the same checks run on pull requests in CI.
 
 ## Build and check
 

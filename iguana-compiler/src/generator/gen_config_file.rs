@@ -19,6 +19,7 @@ pub struct GenConfigFile {
     pub match_memo: Option<bool>,
     #[serde(rename = "unsafe")]
     pub unsafe_mode: Option<bool>,
+    pub license_files: Option<bool>,
     pub bin_name: Option<String>,
     pub runtime_path: Option<PathBuf>,
 }
@@ -50,9 +51,9 @@ impl GenConfigFile {
 impl GenConfig {
     /// Layer the file's parser knobs onto this config: each field the file
     /// specifies overwrites the matching field; an absent field leaves it
-    /// unchanged. Only the parser-generation knobs map onto `GenConfig`; the
-    /// scaffold knobs `bin_name` and `runtime_path` are not stored here and are
-    /// applied by the caller.
+    /// unchanged. Only parser-generation knobs are applied here. The caller
+    /// applies the scaffold knobs `license_files`, `bin_name`, and
+    /// `runtime_path` because they affect orchestration as well as generation.
     pub fn apply_file(&mut self, file: &GenConfigFile) {
         if let Some(ll1) = file.ll1 {
             self.ll1_optimization = ll1;
@@ -76,6 +77,7 @@ mod tests {
         assert_eq!(file.ll1, None);
         assert_eq!(file.match_memo, None);
         assert_eq!(file.unsafe_mode, None);
+        assert_eq!(file.license_files, None);
         assert_eq!(file.bin_name, None);
         assert_eq!(file.runtime_path, None);
     }
@@ -84,6 +86,12 @@ mod tests {
     fn unsafe_key_maps_to_unsafe_mode() {
         let file: GenConfigFile = toml::from_str("unsafe = true\n").unwrap();
         assert_eq!(file.unsafe_mode, Some(true));
+    }
+
+    #[test]
+    fn license_files_key_is_deserialized() {
+        let file: GenConfigFile = toml::from_str("license_files = false\n").unwrap();
+        assert_eq!(file.license_files, Some(false));
     }
 
     #[test]

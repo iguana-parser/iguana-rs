@@ -2,7 +2,7 @@
 name = "iguana-lsp"
 version.workspace = true
 edition = "2024"
-license = "GPL-3.0-or-later"
+license.workspace = true
 description = "The language server for iggy grammars"
 repository.workspace = true
 readme = "README.md"

@@ -2,7 +2,7 @@
 name = "iguana"
 version.workspace = true
 edition = "2024"
-license-file = "LICENSE-GPL"
+license.workspace = true
 description = "A high-performance GLL parser generator supporting the full class of context-free grammars, with declarative disambiguation and typed parse trees"
 repository.workspace = true
 readme = "README.md"
