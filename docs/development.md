@@ -20,7 +20,7 @@ The script checks the Rust toolchain, installs `cargo-nextest`, installs the npm
 ## Build and check
 
 ```sh
-cargo build                      # build all workspace crates
+cargo build --workspace          # build all workspace crates
 cargo build -p iguana-compiler   # build just the generator
 cargo check -p iguana-compiler   # type check
 cargo clippy -p iguana-compiler  # lint
