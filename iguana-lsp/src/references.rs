@@ -76,9 +76,7 @@ mod tests {
         let crate::BuildResult::Success { tree, .. } = crate::build(&input, &tree_arena) else {
             return vec![];
         };
-        let Some(grammar_def) = crate::build_grammar_def(tree, &input) else {
-            return vec![];
-        };
+        let grammar_def = crate::build_grammar_def(tree, &input);
         let spans = crate::build_spans(&grammar_def, tree, &input);
         let uri: Uri = "file:///test.iggy".parse().unwrap();
         let offset = input.offset(line, column);
@@ -216,7 +214,7 @@ A
         let crate::BuildResult::Success { tree, .. } = crate::build(&input, &tree_arena) else {
             return None;
         };
-        let grammar_def = crate::build_grammar_def(tree, &input)?;
+        let grammar_def = crate::build_grammar_def(tree, &input);
         let spans = crate::build_spans(&grammar_def, tree, &input);
         let uri: Uri = "file:///test.iggy".parse().unwrap();
         let offset = input.offset(line, column);

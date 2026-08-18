@@ -17,8 +17,6 @@ use crate::{
         },
     },
     priority_level,
-    spans::GrammarSpans,
-    validation::validate,
 };
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -237,14 +235,13 @@ impl GrammarDef {
         }
     }
 
+    /// Resolves the definition and lowers it to a `Grammar`.
+    ///
+    /// Grammar validation is the caller's job, because reporting an error needs
+    /// the source spans that only a parsed grammar carries. The errors returned
+    /// here come from lowering itself.
     pub fn to_grammar(self, dump: &[Phase]) -> Result<Grammar, Vec<String>> {
-        let resolved = self.resolve();
-        // A `GrammarDef` has no parse tree, so no error gets a span.
-        let errors = validate(&resolved, &GrammarSpans::default());
-        if !errors.is_empty() {
-            return Err(errors.into_iter().map(|error| error.message).collect());
-        }
-        build_grammar(resolved, dump)
+        build_grammar(self.resolve(), dump)
     }
 }
 

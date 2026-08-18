@@ -195,7 +195,7 @@ impl GrammarState {
                 parse_duration,
                 tree_construction_duration,
             } => {
-                self.grammar_def = iguana_lsp::build_grammar_def(tree, &input);
+                self.grammar_def = Some(iguana_lsp::build_grammar_def(tree, &input));
                 self.parse_ms = parse_duration.as_millis() as u32;
                 self.tree_ms = tree_construction_duration.as_millis() as u32;
                 self.success = true;

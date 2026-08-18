@@ -48,9 +48,7 @@ mod tests {
         let crate::BuildResult::Success { tree, .. } = crate::build(&input, &tree_arena) else {
             return vec![];
         };
-        let Some(grammar_def) = crate::build_grammar_def(tree, &input) else {
-            return vec![];
-        };
+        let grammar_def = crate::build_grammar_def(tree, &input);
         let spans = crate::build_spans(&grammar_def, tree, &input);
         diagnostics(&grammar_def, &spans, &input)
     }

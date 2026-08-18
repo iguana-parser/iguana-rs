@@ -108,7 +108,7 @@ pub fn main_loop(
                             else {
                                 return None;
                             };
-                            let grammar_def = build_grammar_def(tree, &input)?;
+                            let grammar_def = build_grammar_def(tree, &input);
                             let spans = build_spans(&grammar_def, tree, &input);
                             let pos = params.text_document_position.position;
                             let offset = input.offset(pos.line, pos.character);
@@ -145,7 +145,7 @@ pub fn main_loop(
                             else {
                                 return None;
                             };
-                            let grammar_def = build_grammar_def(tree, &input)?;
+                            let grammar_def = build_grammar_def(tree, &input);
                             let spans = build_spans(&grammar_def, tree, &input);
                             let pos = params.text_document_position_params.position;
                             let offset = input.offset(pos.line, pos.character);
@@ -176,7 +176,7 @@ pub fn main_loop(
                             else {
                                 return None;
                             };
-                            let grammar_def = build_grammar_def(tree, &input)?;
+                            let grammar_def = build_grammar_def(tree, &input);
                             let spans = build_spans(&grammar_def, tree, &input);
                             Some(document_symbols(&grammar_def, &spans, &input))
                         })()
@@ -204,7 +204,7 @@ pub fn main_loop(
                             else {
                                 return None;
                             };
-                            let grammar_def = build_grammar_def(tree, &input)?;
+                            let grammar_def = build_grammar_def(tree, &input);
                             let spans = build_spans(&grammar_def, tree, &input);
                             Some(folding_ranges(&grammar_def, &spans, &input))
                         })()
@@ -251,12 +251,11 @@ fn publish_diagnostics(
     let input = Input::from(source);
     let tree_arena = Arena::new();
     let diagnostics = match build(&input, &tree_arena) {
-        BuildResult::Success { tree, .. } => build_grammar_def(tree, &input)
-            .map(|grammar_def| {
-                let spans = build_spans(&grammar_def, tree, &input);
-                diagnostics(&grammar_def, &spans, &input)
-            })
-            .unwrap_or_default(),
+        BuildResult::Success { tree, .. } => {
+            let grammar_def = build_grammar_def(tree, &input);
+            let spans = build_spans(&grammar_def, tree, &input);
+            diagnostics(&grammar_def, &spans, &input)
+        }
         BuildResult::Ambiguous => vec![],
         BuildResult::Error {
             line,

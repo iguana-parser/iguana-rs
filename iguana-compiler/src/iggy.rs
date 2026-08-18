@@ -21,9 +21,7 @@ pub fn parse_grammar(source: &str) -> Result<GrammarDef, Vec<GrammarError>> {
     let input = Input::from(source);
     let tree_arena = Arena::new();
     let success = iggy::parse_grammar(&input, &tree_arena).map_err(parse_error)?;
-    let grammar_def = build_grammar(success.tree, &input)
-        .map_err(parse_error)?
-        .resolve();
+    let grammar_def = build_grammar(success.tree, &input).resolve();
 
     // Validate here because source spans require the parse tree.
     let spans = spans::build_spans(&grammar_def, success.tree, &input);
@@ -46,7 +44,7 @@ fn parse_error(error: ParseError) -> Vec<GrammarError> {
 pub fn build_grammar(
     start_grammar: &Start<&parse_tree::Grammar<'_>, &parse_tree::Layout<'_>>,
     input: &Input,
-) -> Result<GrammarDef, ParseError> {
+) -> GrammarDef {
     let grammar = &start_grammar.node;
     let name = input.text(grammar.name().span());
 
@@ -99,13 +97,13 @@ pub fn build_grammar(
         }
     }
 
-    Ok(GrammarDef {
+    GrammarDef {
         name,
         syntax_rules,
         lexical_rules,
         layout,
         identifier_rules,
-    })
+    }
 }
 
 /// Whether a syntax rule carries the `@Layout` annotation, marking it as the
@@ -499,7 +497,7 @@ mod tests {
         let input = Input::from(source);
         let tree_arena = Arena::new();
         let success = iggy::parse_grammar(&input, &tree_arena).expect("the grammar should parse");
-        build_grammar(success.tree, &input).expect("the grammar should build")
+        build_grammar(success.tree, &input)
     }
 
     /// The first symbol of the first alternative, for a grammar with one

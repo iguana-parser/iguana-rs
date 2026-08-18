@@ -33,13 +33,8 @@ pub enum BuildResult<'a> {
 }
 
 /// Build a GrammarDef from a successful parse tree.
-pub fn build_grammar_def(
-    tree: &Start<&Grammar<'_>, &Layout<'_>>,
-    input: &Input,
-) -> Option<GrammarDef> {
-    iguana_compiler::iggy::build_grammar(tree, input)
-        .ok()
-        .map(|def| def.resolve())
+pub fn build_grammar_def(tree: &Start<&Grammar<'_>, &Layout<'_>>, input: &Input) -> GrammarDef {
+    iguana_compiler::iggy::build_grammar(tree, input).resolve()
 }
 
 /// Build the side table from a GrammarDef and its parse tree.

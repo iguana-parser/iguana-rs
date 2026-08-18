@@ -90,8 +90,7 @@ pub fn references(source: &str, line: u32, character: u32, include_declaration: 
 }
 
 /// Parse `source`, build the grammar definition and span table, and hand them to
-/// `f`. Returns `default` when the grammar does not parse, is ambiguous, or
-/// fails to resolve.
+/// `f`. Returns `default` when the grammar does not parse or is ambiguous.
 fn with_spans<T>(
     source: &str,
     default: T,
@@ -102,9 +101,7 @@ fn with_spans<T>(
     let BuildResult::Success { ref tree, .. } = build(&input, &tree_arena) else {
         return default;
     };
-    let Some(grammar_def) = build_grammar_def(tree, &input) else {
-        return default;
-    };
+    let grammar_def = build_grammar_def(tree, &input);
     let spans = build_spans(&grammar_def, tree, &input);
     f(&grammar_def, &spans, &input)
 }
