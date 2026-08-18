@@ -59,6 +59,8 @@ enum Commands {
     },
     /// Build iguana from this workspace and install it into `$CARGO_HOME/bin`
     Install,
+    /// Install the current language server and VS Code extension locally
+    InstallVscodeExtension,
     /// Install iguana, then launch the terrarium dev server
     Terrarium,
     /// Generate a grammar's wasm bundle and build it with wasm-pack. With no
@@ -80,6 +82,7 @@ fn main() -> io::Result<()> {
         Commands::TestGenAll => test_gen_all(),
         Commands::Test { regen, args } => test(regen, &args),
         Commands::Install => install(),
+        Commands::InstallVscodeExtension => install_vscode_extension(),
         Commands::Terrarium => terrarium(),
         Commands::Wasm { test } => wasm(test.as_deref()),
     }
@@ -605,22 +608,84 @@ fn viewer() -> io::Result<()> {
 
 fn install() -> io::Result<()> {
     viewer()?;
+    install_workspace_binary("iguana", "iguana")?;
+    Ok(())
+}
+
+fn install_workspace_binary(package: &str, binary: &str) -> io::Result<PathBuf> {
     let root = workspace_root();
-    println!("Building iguana (release)...");
+    println!("Building {binary} (release)...");
     let status = Command::new("cargo")
         .current_dir(root)
-        .args(["build", "--release", "-p", "iguana"])
+        .args(["build", "--release", "-p", package])
         .status()?;
     if !status.success() {
-        return Err(io::Error::other("cargo build failed"));
+        return Err(io::Error::other(format!(
+            "cargo build failed for {package}"
+        )));
     }
 
-    let built = root.join("target/release/iguana");
+    let filename = format!("{binary}{}", std::env::consts::EXE_SUFFIX);
+    let built = root.join("target").join("release").join(&filename);
     let dest_dir = cargo_bin_dir();
     fs::create_dir_all(&dest_dir)?;
-    let dest = dest_dir.join("iguana");
+    let dest = dest_dir.join(filename);
     fs::copy(&built, &dest)?;
     println!("Installed: {}", dest.display());
+    Ok(dest)
+}
+
+fn install_vscode_extension() -> io::Result<()> {
+    install_workspace_binary("iguana-lsp", "iguana-lsp")?;
+
+    let root = workspace_root();
+    let extension_dir = root.join("editors").join("vscode");
+    println!("Installing VS Code extension dependencies...");
+    let status = Command::new("npm")
+        .current_dir(&extension_dir)
+        .arg("install")
+        .status()
+        .map_err(|e| match e.kind() {
+            io::ErrorKind::NotFound => {
+                io::Error::other("npm not found. Install Node.js, then run this command again.")
+            }
+            _ => e,
+        })?;
+    if !status.success() {
+        return Err(io::Error::other("npm install failed in editors/vscode"));
+    }
+
+    let output_dir = root.join("target").join("vscode-extension");
+    fs::create_dir_all(&output_dir)?;
+    let vsix = output_dir.join("iguana-vscode.vsix");
+    println!("Packaging the VS Code extension...");
+    let status = Command::new("npm")
+        .current_dir(&extension_dir)
+        .args(["run", "package:vsix", "--", "--out"])
+        .arg(&vsix)
+        .status()?;
+    if !status.success() {
+        return Err(io::Error::other("VS Code extension packaging failed"));
+    }
+
+    println!("Installing the VS Code extension...");
+    let status = Command::new("code")
+        .args(["--install-extension"])
+        .arg(&vsix)
+        .arg("--force")
+        .status()
+        .map_err(|e| match e.kind() {
+            io::ErrorKind::NotFound => io::Error::other(
+                "the `code` command was not found. In VS Code, run 'Shell Command: Install \
+                 code command in PATH', then run this command again.",
+            ),
+            _ => e,
+        })?;
+    if !status.success() {
+        return Err(io::Error::other("VS Code extension installation failed"));
+    }
+
+    println!("Installed the Iguana VS Code extension. Reload VS Code to activate it.");
     Ok(())
 }
 

@@ -1,10 +1,20 @@
 {
   "name": "iguana-vscode",
   "displayName": "Iguana",
-  "description": "Language support for iggy grammars",
+  "description": "Language support for Iggy grammars",
   "version": "0.1.0",
   "publisher": "iguana-parser",
   "license": "MIT OR Apache-2.0",
+  "icon": "iguana-256.png",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/iguana-parser/iguana-rs.git",
+    "directory": "editors/vscode"
+  },
+  "homepage": "https://iguana-parser.org",
+  "bugs": {
+    "url": "https://github.com/iguana-parser/iguana-rs/issues"
+  },
   "engines": {
     "vscode": "^1.91.0"
   },
@@ -14,7 +24,7 @@
   "activationEvents": [
     "onLanguage:iggy"
   ],
-  "main": "./out/extension.js",
+  "main": "./dist/extension.js",
   "contributes": {
     "languages": [
       {
@@ -43,14 +53,18 @@
         "iguana.lsp.path": {
           "type": "string",
           "default": "",
-          "description": "Path to the iguana-lsp binary. If empty, looks for 'iguana-lsp' on PATH."
+          "description": "Path to the iguana-lsp binary. If empty, checks the Cargo bin directory, then PATH."
         }
       }
     }
   },
   "scripts": {
-    "compile": "tsc -p ./",
-    "watch": "tsc -watch -p ./"
+    "check": "tsc -p ./",
+    "bundle": "esbuild src/extension.ts --bundle --platform=node --target=node20 --format=cjs --external:vscode --outfile=dist/extension.js",
+    "compile": "npm run check && npm run bundle",
+    "watch": "npm run bundle -- --watch",
+    "vscode:prepublish": "npm run check && npm run bundle -- --minify",
+    "package:vsix": "vsce package"
   },
   "dependencies": {
     "vscode-languageclient": "^10.1.0"
@@ -58,6 +72,8 @@
   "devDependencies": {
     "@types/node": "^25.5.0",
     "@types/vscode": "^1.91.0",
+    "@vscode/vsce": "^3.9.2",
+    "esbuild": "^0.28.2",
     "typescript": "^7.0.2"
   }
 }

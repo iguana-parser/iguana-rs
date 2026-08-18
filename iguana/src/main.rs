@@ -16,11 +16,7 @@ use iguana_compiler::{
 mod viewer;
 
 #[derive(Parser)]
-#[command(
-    name = "iguana",
-    version,
-    about = "A high-performance, general parser generator"
-)]
+#[command(name = "iguana", version, about = "A practical GLL parser generator")]
 struct Cli {
     #[command(subcommand)]
     command: Commands,

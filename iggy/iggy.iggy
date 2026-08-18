@@ -16,7 +16,8 @@ Annotation
   | "@WithLayout" "(" Identifier ")" #WithLayout
 
 RegexRule
-  = layout:"@Layout"? id_annot:"@Identifier"? "@Regex" Identifier "=" RegexPreCondition? body:{ Regex+ "|" }+ RegexPostCondition*
+  = layout:"@Layout"? id_annot:"@Identifier"? "@Regex" Identifier "="
+      RegexPreCondition? body:{ Regex+ "|" }+ RegexPostCondition*
 
 RegexPreCondition
   = Identifier "!<<"
@@ -38,17 +39,17 @@ Alternative
   | "(" ")" Label? #Empty
 
 Symbol
-  = Identifier                                                            #Identifier
-  | "(" seqs:{ Symbol+ "|" }+ ")"                                         #Paren
-  | String                                                                #Lit
-  | "{" symbol:Symbol sep:Symbol "}" "*"                                  #StarSep
-  | "{" symbol:Symbol sep:Symbol "}" "+"                                  #PlusSep
-  > Symbol "*"                                                            #Star
-  | Symbol "+"                                                            #Plus
-  | Symbol "?"                                                            #Opt
-  | Symbol!PostCondition conditions:PostCondition+                        #PostCondition
-  > conditions:PreCondition+ Symbol!PreCondition                          #PreCondition
-  > label:Identifier ":" Symbol                                           #Labeled
+  = Identifier                                     #Identifier
+  | "(" seqs:{ Symbol+ "|" }+ ")"                  #Paren
+  | String                                         #Lit
+  | "{" symbol:Symbol sep:Symbol "}" "*"           #StarSep
+  | "{" symbol:Symbol sep:Symbol "}" "+"           #PlusSep
+  > Symbol "*"                                     #Star
+  | Symbol "+"                                     #Plus
+  | Symbol "?"                                     #Opt
+  | Symbol!PostCondition conditions:PostCondition+ #PostCondition
+  > conditions:PreCondition+ Symbol!PreCondition   #PreCondition
+  > label:Identifier ":" Symbol                    #Labeled
 
 PreCondition
   = Identifier "!<<"
@@ -60,14 +61,14 @@ PostCondition
   | "!" Identifier    #Exclude
 
 Regex
-  = Regex "+"                         #Plus
-  | Regex "*"                         #Star
-  | Regex "?"                         #Opt
-  | "(" seqs:{ Regex+ "|" }+ ")"      #Paren
-  | CharClass                         #CharClass
-  | Char                              #Char
-  | String                            #String
-  | Identifier                        #Identifier
+  = Regex "+"                    #Plus
+  | Regex "*"                    #Star
+  | Regex "?"                    #Opt
+  | "(" seqs:{ Regex+ "|" }+ ")" #Paren
+  | CharClass                    #CharClass
+  | Char                         #Char
+  | String                       #String
+  | Identifier                   #Identifier
 
 CharClass
   = neg:"!"? "[" RangeElement+ "]"
@@ -84,7 +85,11 @@ Layout
   = (WS | LineComment)* !>> WS !>> LineComment
 
 @Regex
-Keyword = "grammar" | "left" | "right" | "none"
+Keyword
+  = "grammar"
+  | "left"
+  | "right"
+  | "none"
 
 @Regex
 NameChar = [a-zA-Z_0-9]
@@ -102,7 +107,9 @@ Char = "'" (EscapeChar | !['\\]) "'"
 EscapeChar = "\\" ["'\\tfrn]
 
 @Regex
-RangeChar = ![\\\-\[\]\t\f\r\n\ ] | "\\" [\\\-\[\]tfrn\ ]
+RangeChar
+  = ![\\\-\[\]\t\f\r\n\ ]
+  | "\\" [\\\-\[\]tfrn\ ]
 
 @Regex
 Label = "#" [a-zA-Z_] [a-zA-Z_0-9]*
