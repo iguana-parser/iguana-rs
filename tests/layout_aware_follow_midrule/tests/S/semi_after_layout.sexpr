@@ -1,3 +1,3 @@
-Parse error at line 1, col 3: Forbidden follow: Semi
+Parse error at line 1, column 3: Forbidden follow: Semi
 a ;b
   ^

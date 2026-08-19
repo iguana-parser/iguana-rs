@@ -1,3 +1,3 @@
-Parse error at line 1, col 3: Match excluded by Keyword, BooleanLiteral, NullLiteral
+Parse error at line 1, column 3: Match excluded by Keyword, BooleanLiteral, NullLiteral
 if
   ^

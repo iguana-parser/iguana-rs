@@ -422,8 +422,8 @@ fn parse_repl_bool(value: Option<&str>, current: bool) -> Result<bool, ()> {
     }
 }
 
-/// Whether the golden harness checks parser output against existing goldens or
-/// rewrites them.
+/// Whether the golden harness checks parser output against existing golden
+/// files or rewrites them.
 #[derive(Clone, Copy, PartialEq, Eq)]
 pub enum GoldenMode {
     Check,
@@ -433,7 +433,8 @@ pub enum GoldenMode {
 /// Runs golden-file testing over `inputs`. For each input file `X.<ext>`, the
 /// golden is `X.sexpr` in the same directory. `golden_content` produces the text
 /// to compare or write for one input: the parse-tree s-expression on success,
-/// or a one-line `Parse error at line N, col M: <message>` on failure. It only
+/// or the caret-annotated `Parse error at line N, column M: <message>` render
+/// on failure. It only
 /// fails (`Err`) when the input itself is unreadable.
 ///
 /// In `Check` mode each file is `OK`, `DIFF`, `MISS`, or `ERR`, and the run
@@ -570,7 +571,7 @@ fn rel<'a>(path: &'a Path, root: Option<&Path>) -> &'a Path {
     root.and_then(|r| path.strip_prefix(r).ok()).unwrap_or(path)
 }
 
-/// Reads a golden file, normalizing CRLF to LF so goldens written on Windows
+/// Reads a golden file, normalizing CRLF to LF so golden files written on Windows
 /// still compare equal. Returns `Ok(None)` when the golden does not exist (a
 /// `MISS`), and `Err` only on a real I/O failure.
 fn read_golden(path: &Path) -> io::Result<Option<String>> {
@@ -662,7 +663,7 @@ fn unified_diff(golden: &str, actual: &str, name: &str, full_diff: bool) -> Stri
     out
 }
 
-/// Longest-common-subsequence line diff. Test goldens are small, so the
+/// Longest-common-subsequence line diff. Golden files are small, so the
 /// quadratic table is fine; an oversized input falls back to deleting the whole
 /// golden and inserting the whole actual rather than allocating a huge table.
 fn diff_lines<'a>(a: &[&'a str], b: &[&'a str]) -> Vec<Edit<'a>> {
@@ -1404,11 +1405,12 @@ mod tests {
         assert_eq!(r.status, Status::Ambiguous);
 
         // Errors and io-errors carry their message as the last field.
-        let (_, r) = parse_record_line("a/B.java\terror\tParse error at line 1, col 1: x").unwrap();
+        let (_, r) =
+            parse_record_line("a/B.java\terror\tParse error at line 1, column 1: x").unwrap();
         assert_eq!(r.status, Status::Error);
         assert_eq!(
             r.message.as_deref(),
-            Some("Parse error at line 1, col 1: x")
+            Some("Parse error at line 1, column 1: x")
         );
 
         let (_, r) = parse_record_line("a/B.java\tioerror\tbad utf-8").unwrap();

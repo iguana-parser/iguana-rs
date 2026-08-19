@@ -1,3 +1,3 @@
-Parse error at line 1, col 13: Expected one of Id, "if"
+Parse error at line 1, column 13: Expected one of Id, "if"
 if(a)x; else;
             ^

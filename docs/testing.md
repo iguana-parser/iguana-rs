@@ -38,8 +38,9 @@ has one directory per start. The input file contains the exact bytes to parse,
 with no trailing newline.
 
 The expected output contains the parse tree as an s-expression when parsing
-succeeds. For an input that must fail, it contains a
-`Parse error at line N, col M: ...` line instead. The runner enables layout,
+succeeds. For an input that must fail, it contains the rendered parse error
+instead: a `Parse error at line N, column M: ...` line followed by the
+offending line with a caret. The runner enables layout,
 empty nodes, and EBNF wrappers, so every golden file records the complete tree
 rather than the simplified display used by the CLI.
 

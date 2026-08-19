@@ -179,7 +179,7 @@ struct Cli {
     profile_output: PathBuf,
     /// Compare each input's output against its sibling X.sexpr
     ///
-    /// Works with a single file or --dir (which then requires --ext). Goldens hold the parse-tree s-expression on success or a "Parse error at ..." line on failure
+    /// Works with a single file or --dir (which then requires --ext). Golden files hold the parse-tree s-expression on success or the rendered parse error on failure
     #[arg(
         long,
         conflicts_with = "benchmark",
@@ -322,7 +322,7 @@ fn main() -> Result<(), io::Error> {
         }
         let mut inputs = Vec::new();
         if let Some(dir) = args.dir.as_ref() {
-            let ext = args . ext . as_deref () . ok_or_else (|| io :: Error :: new (io :: ErrorKind :: InvalidInput , "--ext is required with --dir for golden testing (so .sexpr goldens are not parsed as inputs)" ,)) ? ;
+            let ext = args . ext . as_deref () . ok_or_else (|| io :: Error :: new (io :: ErrorKind :: InvalidInput , "--ext is required with --dir for golden testing (so .sexpr golden files are not parsed as inputs)" ,)) ? ;
             collect_files(dir, Some(ext), &mut inputs)?;
             inputs.sort();
         } else if let Some(file) = args.file.as_ref() {
@@ -363,15 +363,7 @@ fn main() -> Result<(), io::Error> {
                         to_sexpr_with(tree, display_options)
                     }
                     GLLResult::Failure(error) => {
-                        let (line, column, message) = parser.format_error(&error);
-                        let len = parser.error_span_len(error.input_index);
-                        format!(
-                            "Parse error at line {}, col {}: {}\n{}\n",
-                            line + 1,
-                            column + 1,
-                            message,
-                            input.line_and_caret(error.input_index, len)
-                        )
+                        format!("{}\n", parser.to_parse_error(&error).render(&input))
                     }
                 };
                 Ok(content)
@@ -454,13 +446,14 @@ fn main() -> Result<(), io::Error> {
                             ambiguous: is_ambiguous(&parser, success.sppf_node_id),
                         },
                         GLLResult::Failure(error) => {
-                            let (line, column, message) = parser.format_error(&error);
+                            let error = parser.to_parse_error(&error);
+                            let (line, column) = input.line_column(error.span.left_extent);
                             cli::CorpusOutcome::Error {
                                 message: format!(
-                                    "Parse error at line {}, col {}: {}",
+                                    "Parse error at line {}, column {}: {}",
                                     line + 1,
                                     column + 1,
-                                    message
+                                    error.message
                                 ),
                             }
                         }
@@ -754,19 +747,9 @@ fn main() -> Result<(), io::Error> {
                         ambiguous,
                     }
                 }
-                GLLResult::Failure(error) => {
-                    let (line, column, message) = parser.format_error(&error);
-                    let len = parser.error_span_len(error.input_index);
-                    cli::ReplOutcome::Failed {
-                        message: format!(
-                            "Parse error at line {}, col {}: {}\n{}",
-                            line + 1,
-                            column + 1,
-                            message,
-                            input.line_and_caret(error.input_index, len)
-                        ),
-                    }
-                }
+                GLLResult::Failure(error) => cli::ReplOutcome::Failed {
+                    message: parser.to_parse_error(&error).render(&input),
+                },
             }
         });
         return Ok(());
@@ -916,20 +899,14 @@ fn main() -> Result<(), io::Error> {
             }
         }
         GLLResult::Failure(error) => {
-            let (line, column, message) = parser.format_error(&error);
-            let len = parser.error_span_len(error.input_index);
-            eprintln!(
-                "Parse error at line {}, col {}: {}\n{}",
-                line + 1,
-                column + 1,
-                message,
-                input.line_and_caret(error.input_index, len)
-            );
+            let error = parser.to_parse_error(&error);
+            eprintln!("{}", error.render(&input));
             if let Some(ref path) = args.write_result {
+                let (line, column) = input.line_column(error.span.left_extent);
                 let result = cli::ParseResult::Failure(cli::ParseFailure {
                     line,
                     column,
-                    message,
+                    message: error.message,
                 });
                 let file = File::create(path)?;
                 let mut writer = BufWriter::new(file);
@@ -1098,10 +1075,10 @@ fn run_batch(
                 }
             }
             GLLResult::Failure(error) => {
-                let (line, column, _) = parser.format_error(&error);
+                let (line, column) = input.line_column(error.input_index);
                 failed += 1;
                 if !hist_only {
-                    let reason = format!("Parse error at line {}, col {}", line + 1, column + 1);
+                    let reason = format!("Parse error at line {}, column {}", line + 1, column + 1);
                     println!(
                         "{}{:<6}{}  {:<42}  {:<36}  {}",
                         color.red,
