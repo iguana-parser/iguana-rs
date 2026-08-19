@@ -72,7 +72,11 @@
       }
       if (params.get("editor") === "plain") editorMode = "plain";
 
-      const base = import.meta.env.BASE_URL;
+      // With the relative build base, BASE_URL is "./". A dynamic import
+      // resolves a relative specifier against the importing module (under
+      // assets/), not the page, so the base is made absolute against the
+      // document URL before use.
+      const base = new URL(import.meta.env.BASE_URL, document.baseURI).href;
 
       log("loading manifest...");
       const manifest: Manifest = await (await fetch(`${base}manifest.json`)).json();

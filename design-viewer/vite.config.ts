@@ -7,9 +7,10 @@ import { svelte } from "@sveltejs/vite-plugin-svelte";
 const external = ["monaco-editor"];
 
 export default defineConfig({
-  // The app deploys to a fixed mount on the website, so its assets and the
-  // sibling lsp-wasm module resolve under this base.
-  base: "/design-view/",
+  // A relative base, so the built app works at any mount with no path
+  // rewriting. The sibling lsp-wasm module resolves relative to the page;
+  // App.svelte resolves BASE_URL against the document before use.
+  base: "./",
   plugins: [svelte()],
   optimizeDeps: { exclude: external },
   build: {

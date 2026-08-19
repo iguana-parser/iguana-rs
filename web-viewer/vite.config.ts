@@ -7,6 +7,10 @@ import { svelte } from "@sveltejs/vite-plugin-svelte";
 const external = ["monaco-editor", "cytoscape", "cytoscape-tidytree"];
 
 export default defineConfig({
+  // A relative base, so the built viewer works at any mount: served at the
+  // root by `iguana try` or under a subpath on the website, with no path
+  // rewriting. App.svelte resolves BASE_URL against the document before use.
+  base: "./",
   plugins: [svelte()],
   optimizeDeps: { exclude: external },
   build: {

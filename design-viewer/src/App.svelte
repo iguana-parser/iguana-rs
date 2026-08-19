@@ -11,7 +11,11 @@
 
   onMount(async () => {
     try {
-      const base = import.meta.env.BASE_URL;
+      // With the relative build base, BASE_URL is "./". A dynamic import
+      // resolves a relative specifier against the importing module (under
+      // assets/), not the page, so the base is made absolute against the
+      // document URL before use.
+      const base = new URL(import.meta.env.BASE_URL, document.baseURI).href;
 
       // The grammar to show is named by the `?src` query as a URL to its .iggy
       // source, so this one deployed app serves every grammar page; only the
