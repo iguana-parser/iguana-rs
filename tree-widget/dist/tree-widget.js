@@ -304,17 +304,26 @@ var p = {
 	nodeDimensionsIncludeLabels: !0,
 	fit: !0,
 	padding: 30
-};
-function m(e) {
-	e.zoom() > 1 && (e.zoom(1), e.center());
+}, m = 2.5, h = .5, g = 12;
+function _(e) {
+	let t = e.zoom();
+	if (t > 2.5) e.zoom(m), e.center();
+	else if (t < .5) {
+		e.zoom(h);
+		let t = e.elements().boundingBox();
+		e.pan({
+			x: (e.width() - t.w * h) / 2 - t.x1 * h,
+			y: g - t.y1 * h
+		});
+	}
 }
-function h(e, t) {
+function v(e, t) {
 	e && e.zoom(e.zoom() * t);
 }
-function g(e) {
-	e && (e.fit(), m(e));
+function y(e) {
+	e && (e.fit(e.elements(), g), _(e));
 }
-function _(t) {
+function b(t) {
 	let { container: n, elements: r, styles: i, layout: a = "sppf", viewport: o } = t, s = r.filter((e) => e.data.source === void 0).length, c = a === "tree" ? p : {
 		name: "dagre",
 		rankDir: a === "gss" ? "BT" : "TB",
@@ -354,9 +363,9 @@ function _(t) {
 		};
 		n.addEventListener("wheel", e, { passive: !1 }), u.scratch("_disposeWheel", () => n.removeEventListener("wheel", e));
 	}
-	return o ? (u.zoom(o.zoom), u.pan(o.pan)) : m(u), u;
+	return o ? (u.zoom(o.zoom), u.pan(o.pan)) : _(u), u;
 }
-var v = [
+var x = [
 	"edge-selected-nonterminal",
 	"edge-selected-intermediate",
 	"edge-selected-terminal",
@@ -364,26 +373,26 @@ var v = [
 	"edge-selected-ambiguous",
 	"edge-clicked"
 ];
-function y(e) {
+function S(e) {
 	if (e.data("ambiguous") || e.hasClass("ambiguous")) return "edge-selected-ambiguous";
 	let t = e.data("kind");
 	return t === "Packed" || e.hasClass("packed") ? "edge-selected-packed" : t === "Nonterminal" || e.hasClass("nonterminal") ? "edge-selected-nonterminal" : t === "Intermediate" || e.hasClass("intermediate") ? "edge-selected-intermediate" : t === "Terminal" || t === "Token" || e.hasClass("terminal") || e.hasClass("token") ? "edge-selected-terminal" : "edge-selected-nonterminal";
 }
-function b(e, t) {
+function C(e, t) {
 	let n = e.getElementById(t);
 	if (n.empty()) return;
-	let r = y(n);
+	let r = S(n);
 	n.outgoers("edge").addClass(r);
 }
-function x(e) {
-	e.edges().removeClass(v);
+function w(e) {
+	e.edges().removeClass(x);
 }
-function S(e, t) {
-	x(e), e.getElementById(t).addClass("edge-clicked");
+function T(e, t) {
+	w(e), e.getElementById(t).addClass("edge-clicked");
 }
 //#endregion
 //#region ../web-ui/src/parse-tree-graph.ts
-var C = class {
+var E = class {
 	cy = null;
 	collapsedNodes = /* @__PURE__ */ new Set();
 	focusedNodeId = null;
@@ -470,7 +479,7 @@ var C = class {
 		e.length > 0 && this.cy.fit(e, 50);
 	}
 };
-function w(e, t) {
+function D(e, t) {
 	let n = e.nodes.map((e) => {
 		let n = `(${e.start}, ${e.end})`, r = t ? `${a(e.label, 20)}\n${n}` : a(e.label, 20), i = t ? `${e.label}\n${n}` : e.label;
 		return {
@@ -497,7 +506,7 @@ function w(e, t) {
 }
 //#endregion
 //#region ../web-ui/src/sexpr-parse.ts
-function T(e) {
+function O(e) {
 	let t = [], n = [], r = /* @__PURE__ */ new Map(), i = 0, a = 0;
 	function o(e) {
 		throw Error(`s-expression parse error at offset ${i}: ${e}`);
@@ -599,7 +608,7 @@ function T(e) {
 }
 //#endregion
 //#region ../web-ui/src/png.ts
-async function E(e, t) {
+async function k(e, t) {
 	if (!e) return;
 	let n = await e.png({
 		output: "blob",
@@ -611,40 +620,40 @@ async function E(e, t) {
 //#endregion
 //#region src/main.ts
 e.use(t);
-function D(e, t, n = {}) {
-	let r = _({
+function A(e, t, n = {}) {
+	let r = b({
 		container: e,
-		elements: w(T(t), !1),
+		elements: D(O(t), !1),
 		styles: [...d, ...f],
 		layout: "tree"
-	}), a = new C();
+	}), a = new E();
 	a.setCy(r);
 	let s = o(r, e), c = null;
 	function l() {
-		c &&= (r.getElementById(c).removeClass("selected"), null), x(r);
+		c &&= (r.getElementById(c).removeClass("selected"), null), w(r);
 	}
 	r.on("dbltap", "node", (e) => {
 		a.toggleCollapse(e.target.id());
 	}), r.on("tap", "node", (e) => {
-		l(), c = e.target.id(), e.target.addClass("selected"), b(r, c);
+		l(), c = e.target.id(), e.target.addClass("selected"), C(r, c);
 	}), r.on("tap", "edge", (e) => {
-		l(), S(r, e.target.id());
+		l(), T(r, e.target.id());
 	}), r.on("tap", (e) => {
 		e.target === r && l();
 	});
 	let u = i(e, {
-		zoomIn: () => h(r, 1.2),
-		zoomOut: () => h(r, 1 / 1.2),
-		fit: () => g(r),
+		zoomIn: () => v(r, 1.2),
+		zoomOut: () => v(r, 1 / 1.2),
+		fit: () => y(r),
 		expandAll: n.controls?.expandAll ? () => a.expandAll() : void 0,
-		exportPng: n.controls?.exportPng ? () => E(r, "parse-tree") : void 0
+		exportPng: n.controls?.exportPng ? () => k(r, "parse-tree") : void 0
 	});
 	return {
-		zoomIn: () => h(r, 1.2),
-		zoomOut: () => h(r, 1 / 1.2),
-		resetView: () => g(r),
+		zoomIn: () => v(r, 1.2),
+		zoomOut: () => v(r, 1 / 1.2),
+		resetView: () => y(r),
 		expandAll: () => a.expandAll(),
-		exportPng: (e = "parse-tree") => E(r, e),
+		exportPng: (e = "parse-tree") => k(r, e),
 		resize: () => r.resize(),
 		destroy: () => {
 			r.scratch("_disposeWheel")?.(), u(), s(), r.destroy();
@@ -652,4 +661,4 @@ function D(e, t, n = {}) {
 	};
 }
 //#endregion
-export { D as mountParseTreeGraph };
+export { A as mountParseTreeGraph };

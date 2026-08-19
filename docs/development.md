@@ -225,5 +225,6 @@ build of the Terrarium backend starts.
 ## Release checklist
 
 Before publishing 0.1.0, remove `--version 0.1.0-alpha` from the installation
-commands in the `iguana` and `iguana-lsp` READMEs. The explicit version is
-required while crates.io contains only prerelease versions.
+commands in the `iguana` and `iguana-lsp` READMEs and on the website's
+installation page. The explicit version is required while crates.io contains
+only prerelease versions.
