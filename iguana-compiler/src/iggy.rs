@@ -36,7 +36,7 @@ pub fn parse_grammar(source: &str) -> Result<GrammarDef, Vec<GrammarError>> {
 fn parse_error(error: ParseError) -> Vec<GrammarError> {
     vec![GrammarError {
         message: error.message,
-        span: Some(error.span),
+        span: error.span,
     }]
 }
 
@@ -528,7 +528,7 @@ mod tests {
     fn test_parse_error_at_end_of_input_has_an_empty_span() {
         let errors = parse_grammar("grammar").expect_err("the grammar is incomplete");
         assert_eq!(errors.len(), 1);
-        assert_eq!(errors[0].span, Some(Span::new(7, 7)));
+        assert_eq!(errors[0].span, Span::new(7, 7));
     }
 
     #[test]

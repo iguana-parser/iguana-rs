@@ -12,36 +12,29 @@ use crate::spans::GrammarSpans;
 use crate::utils::{to_pascal_case, to_snake_case};
 
 /// A grammar error.
-///
-/// The span is `None` when there is nothing in the source to point at, as for
-/// an error in a `GrammarDef` built by hand rather than parsed.
 #[derive(Debug, Clone)]
 pub struct GrammarError {
     pub message: String,
-    pub span: Option<Span>,
+    pub span: Span,
 }
 
 /// Renders errors for the command line, one per line, each located in the
 /// grammar file as `path:line:column: message`.
 ///
-/// Lines and columns are 1-based. An error with no span is rendered as
-/// `path: message`.
+/// Lines and columns are 1-based.
 pub fn render_errors(errors: &[GrammarError], path: &Path, source: &str) -> String {
     let input = Input::from(source);
     errors
         .iter()
-        .map(|error| match error.span {
-            Some(span) => {
-                let (line, column) = input.line_column(span.left_extent);
-                format!(
-                    "{}:{}:{}: {}",
-                    path.display(),
-                    line + 1,
-                    column + 1,
-                    error.message
-                )
-            }
-            None => format!("{}: {}", path.display(), error.message),
+        .map(|error| {
+            let (line, column) = input.line_column(error.span.left_extent);
+            format!(
+                "{}:{}:{}: {}",
+                path.display(),
+                line + 1,
+                column + 1,
+                error.message
+            )
         })
         .collect::<Vec<_>>()
         .join("\n")
@@ -77,7 +70,7 @@ fn check_duplicate_definitions<'a>(
         if !seen.insert(&rule.head.name) {
             errors.push(GrammarError {
                 message: format!("duplicate definition `{}`", rule.head.name),
-                span: spans.terminal(&rule.head).map(|region| region.span),
+                span: spans.terminal(&rule.head).span,
             });
         }
     }
@@ -85,7 +78,7 @@ fn check_duplicate_definitions<'a>(
         if !seen.insert(&rule.head.name) {
             errors.push(GrammarError {
                 message: format!("duplicate definition `{}`", rule.head.name),
-                span: spans.nonterminal(&rule.head).map(|region| region.span),
+                span: spans.nonterminal(&rule.head).span,
             });
         }
     }
@@ -115,7 +108,7 @@ fn check_generated_rule_name_collisions<'a>(
 
     for rule in &grammar_def.syntax_rules {
         let name = rule.head.name.as_str();
-        let span = spans.nonterminal(&rule.head).map(|region| region.span);
+        let span = spans.nonterminal(&rule.head).span;
         let type_name = to_pascal_case(name);
         if let Some(previous) = type_names.insert(type_name.clone(), name)
             && previous != name
@@ -159,7 +152,7 @@ fn check_unresolved_identifiers<'a>(
         if identifier.definition.is_none() {
             errors.push(GrammarError {
                 message: format!("unresolved identifier `{}`", identifier.name),
-                span: spans.identifier(identifier).map(|region| region.span),
+                span: spans.identifier(identifier).span,
             });
         }
     });
@@ -170,7 +163,7 @@ fn check_unresolved_identifiers<'a>(
             if !defined.contains(identifier.name.as_str()) {
                 errors.push(GrammarError {
                     message: format!("unresolved identifier `{}`", identifier.name),
-                    span: spans.identifier(identifier).map(|region| region.span),
+                    span: spans.identifier(identifier).span,
                 });
             }
         }
@@ -229,8 +222,10 @@ fn check_exclusions<'a>(
         else {
             return;
         };
+        // The spans sit in source order, parallel to `labels`, and an
+        // exclusion has at least one label, so indexing cannot miss.
         let label_spans = spans.label_spans(symbol);
-        let first_label_span = label_spans.first().copied();
+        let first_label_span = label_spans[0];
 
         let Some(identifier) = inner.as_identifier() else {
             errors.push(GrammarError {
@@ -261,7 +256,7 @@ fn check_exclusions<'a>(
             if !rule.has_label(label) {
                 errors.push(GrammarError {
                     message: format!("unresolved label `{label}`"),
-                    span: label_spans.get(index).copied(),
+                    span: label_spans[index],
                 });
             }
         }
@@ -357,7 +352,7 @@ fn check_restriction_target<'a>(
     spans: &GrammarSpans<'a>,
     errors: &mut Vec<GrammarError>,
 ) {
-    let span = spans.identifier(identifier).map(|region| region.span);
+    let span = spans.identifier(identifier).span;
     let Some(rule) = lexical_rules.get(identifier.name.as_str()) else {
         errors.push(GrammarError {
             message: format!(
@@ -411,7 +406,7 @@ fn check_one_label_per_symbol<'a>(
             message: format!(
                 "labels cannot be nested directly: `{label}:{inner_label}:` applies two labels to one symbol"
             ),
-            span: spans.symbol(symbol).map(|region| region.span),
+            span: spans.symbol(symbol).span,
         });
     });
 }
@@ -490,7 +485,7 @@ fn check_reserved_names<'a>(
 
     for rule in &grammar_def.syntax_rules {
         let name = rule.head.name.as_str();
-        let span = spans.nonterminal(&rule.head).map(|region| region.span);
+        let span = spans.nonterminal(&rule.head).span;
 
         if let Some(wrapped) = start_wrappers.get(&constant_name(name)) {
             errors.push(GrammarError {
@@ -523,7 +518,7 @@ fn check_reserved_names<'a>(
                 continue;
             };
             let variant_name = to_pascal_case(label);
-            let alternative_span = spans.alternative(alternative).map(|region| region.span);
+            let alternative_span = spans.alternative(alternative).span;
             if variant_name == AMBIGUITY_VARIANT_NAME {
                 errors.push(GrammarError {
                     message: format!(
@@ -568,7 +563,7 @@ fn check_reserved_names<'a>(
                 message: format!(
                     "`{label}` becomes the field `{ALTERNATIVE_SPAN_FIELD_NAME}`, which the generator uses for an alternative's span"
                 ),
-                span: spans.symbol(symbol).map(|region| region.span),
+                span: spans.symbol(symbol).span,
             });
         }
     });
@@ -592,16 +587,17 @@ fn check_layout_is_not_an_identifier_rule(
     };
     for identifier in &grammar_def.identifier_rules {
         if identifier.name == layout.name {
+            // `resolve` leaves the identifier rules unresolved, so the rule
+            // is found by name. Every identifier rule is recorded from a
+            // lexical rule, so the lookup cannot miss.
+            let head = lexical_head(grammar_def, &identifier.name)
+                .expect("an identifier rule names a lexical rule");
             errors.push(GrammarError {
                 message: format!(
                     "`{}` cannot be both the layout rule and an identifier rule",
                     identifier.name
                 ),
-                // `resolve` leaves the identifier rules unresolved, so the
-                // rule is found by name.
-                span: lexical_head(grammar_def, &identifier.name)
-                    .and_then(|head| spans.terminal(head))
-                    .map(|region| region.span),
+                span: spans.terminal(head).span,
             });
         }
     }
@@ -629,7 +625,7 @@ S = Missing
         let start = source.find("Missing").unwrap() as u32;
         let errors = [GrammarError {
             message: "unresolved identifier `Missing`".to_string(),
-            span: Some(Span::new(start, start + "Missing".len() as u32)),
+            span: Span::new(start, start + "Missing".len() as u32),
         }];
 
         assert_eq!(
@@ -642,24 +638,25 @@ S = Missing
     fn renders_multiple_errors_one_per_line() {
         let source = r#"grammar G
 
-S = Missing
+S = Foo Bar
 "#;
-        let start = source.find("Missing").unwrap() as u32;
+        let foo = source.find("Foo").unwrap() as u32;
+        let bar = source.find("Bar").unwrap() as u32;
         let errors = [
             GrammarError {
-                message: "unresolved identifier `Missing`".to_string(),
-                span: Some(Span::new(start, start + "Missing".len() as u32)),
+                message: "unresolved identifier `Foo`".to_string(),
+                span: Span::new(foo, foo + 3),
             },
             GrammarError {
-                message: "Parse error at line 4, column 1: expected a rule".to_string(),
-                span: None,
+                message: "unresolved identifier `Bar`".to_string(),
+                span: Span::new(bar, bar + 3),
             },
         ];
 
         assert_eq!(
             render_errors(&errors, Path::new("grammar.iggy"), source),
-            r#"grammar.iggy:3:5: unresolved identifier `Missing`
-grammar.iggy: Parse error at line 4, column 1: expected a rule"#
+            r#"grammar.iggy:3:5: unresolved identifier `Foo`
+grammar.iggy:3:9: unresolved identifier `Bar`"#
         );
     }
 }

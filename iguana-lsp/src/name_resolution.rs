@@ -27,17 +27,17 @@ impl NameResolutionIndex {
         // one place that assigns them.
         let symbol_table = grammar_def.symbol_table();
         for rule in &grammar_def.lexical_rules {
-            if let Some(id) = symbol_table.get(&rule.head.name)
-                && let Some(region) = spans.terminal(&rule.head)
-            {
-                index.definitions.insert(id, region.span);
+            if let Some(id) = symbol_table.get(&rule.head.name) {
+                index
+                    .definitions
+                    .insert(id, spans.terminal(&rule.head).span);
             }
         }
         for rule in &grammar_def.syntax_rules {
-            if let Some(id) = symbol_table.get(&rule.head.name)
-                && let Some(region) = spans.nonterminal(&rule.head)
-            {
-                index.definitions.insert(id, region.span);
+            if let Some(id) = symbol_table.get(&rule.head.name) {
+                index
+                    .definitions
+                    .insert(id, spans.nonterminal(&rule.head).span);
             }
         }
 
@@ -53,12 +53,9 @@ impl NameResolutionIndex {
         let Some(definition) = identifier.definition else {
             return;
         };
-        let Some(region) = spans.identifier(identifier) else {
-            return;
-        };
         self.references
             .entry(definition)
             .or_default()
-            .push(region.span);
+            .push(spans.identifier(identifier).span);
     }
 }

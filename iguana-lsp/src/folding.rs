@@ -18,18 +18,14 @@ pub fn folding_ranges(
 ) -> Vec<FoldingRange> {
     let mut out = Vec::new();
     for rule in &grammar_def.syntax_rules {
-        let Some(region) = spans.syntax_rule(rule) else {
-            continue;
-        };
+        let region = spans.syntax_rule(rule);
         let rule_span = region.span;
 
-        let head_span = spans.nonterminal(&rule.head).map(|region| region.span);
         // Fold from the rule head, not the annotation. Rule spans include
         // leading annotations (@NoLayout, etc.), but those should stay
         // visible above the fold.
-        let start_line = head_span
-            .map(|s| input.line_column(s.left_extent).0)
-            .unwrap_or_else(|| input.line_column(rule_span.left_extent).0);
+        let head_span = spans.nonterminal(&rule.head).span;
+        let start_line = input.line_column(head_span.left_extent).0;
         let mut end_line = input.line_column(rule_span.right_extent).0;
         if let Some(trailing) = region.trailing_comment {
             end_line = input.line_column(trailing.right_extent).0;
@@ -48,16 +44,12 @@ pub fn folding_ranges(
     }
 
     for rule in &grammar_def.lexical_rules {
-        let Some(region) = spans.lexical_rule(rule) else {
-            continue;
-        };
+        let region = spans.lexical_rule(rule);
         let rule_span = region.span;
 
-        let head_span = spans.terminal(&rule.head).map(|region| region.span);
         // Same as syntax rules: fold from the head, not @Regex etc.
-        let start_line = head_span
-            .map(|s| input.line_column(s.left_extent).0)
-            .unwrap_or_else(|| input.line_column(rule_span.left_extent).0);
+        let head_span = spans.terminal(&rule.head).span;
+        let start_line = input.line_column(head_span.left_extent).0;
         let mut end_line = input.line_column(rule_span.right_extent).0;
         if let Some(trailing) = region.trailing_comment {
             end_line = input.line_column(trailing.right_extent).0;

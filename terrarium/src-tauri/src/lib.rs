@@ -1275,9 +1275,7 @@ fn get_diagnostics(
             }
             iguana_lsp::BuildResult::Ambiguous => vec![],
             iguana_lsp::BuildResult::Error(error) => {
-                iguana_lsp::diagnostics::to_diagnostic(error, input)
-                    .into_iter()
-                    .collect()
+                vec![iguana_lsp::diagnostics::to_diagnostic(error, input)]
             }
         };
         diagnostics

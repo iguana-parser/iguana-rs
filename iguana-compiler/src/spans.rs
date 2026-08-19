@@ -58,7 +58,9 @@ impl SourceRegion {
 /// The grammar IR does not have a span field of its own, so the positions are
 /// recovered from the parse tree and stored here.
 ///
-/// A node is keyed by its address, which is the only identity it has.
+/// A node is keyed by its address, which is the only identity it has. Every
+/// node of a parsed grammar has a region, so the accessors return it
+/// directly; a missing entry is a bug in the span-building walk and panics.
 #[derive(Default)]
 pub struct GrammarSpans<'a> {
     pub syntax_rules: FxHashMap<ByAddress<&'a SyntaxRule>, SourceRegion>,
@@ -74,32 +76,46 @@ pub struct GrammarSpans<'a> {
 }
 
 impl<'a> GrammarSpans<'a> {
-    pub fn syntax_rule(&self, rule: &'a SyntaxRule) -> Option<&SourceRegion> {
-        self.syntax_rules.get(&ByAddress(rule))
+    pub fn syntax_rule(&self, rule: &'a SyntaxRule) -> &SourceRegion {
+        self.syntax_rules
+            .get(&ByAddress(rule))
+            .unwrap_or_else(|| panic!("rule `{}` has no source region", rule.head.name))
     }
 
-    pub fn lexical_rule(&self, rule: &'a LexicalRule) -> Option<&SourceRegion> {
-        self.lexical_rules.get(&ByAddress(rule))
+    pub fn lexical_rule(&self, rule: &'a LexicalRule) -> &SourceRegion {
+        self.lexical_rules
+            .get(&ByAddress(rule))
+            .unwrap_or_else(|| panic!("rule `{}` has no source region", rule.head.name))
     }
 
-    pub fn alternative(&self, alternative: &'a Alternative) -> Option<&SourceRegion> {
-        self.alternatives.get(&ByAddress(alternative))
+    pub fn alternative(&self, alternative: &'a Alternative) -> &SourceRegion {
+        self.alternatives
+            .get(&ByAddress(alternative))
+            .unwrap_or_else(|| panic!("alternative {alternative:?} has no source region"))
     }
 
-    pub fn symbol(&self, symbol: &'a Symbol) -> Option<&SourceRegion> {
-        self.symbols.get(&ByAddress(symbol))
+    pub fn symbol(&self, symbol: &'a Symbol) -> &SourceRegion {
+        self.symbols
+            .get(&ByAddress(symbol))
+            .unwrap_or_else(|| panic!("symbol {symbol:?} has no source region"))
     }
 
-    pub fn identifier(&self, identifier: &'a Identifier) -> Option<&SourceRegion> {
-        self.identifiers.get(&ByAddress(identifier))
+    pub fn identifier(&self, identifier: &'a Identifier) -> &SourceRegion {
+        self.identifiers
+            .get(&ByAddress(identifier))
+            .unwrap_or_else(|| panic!("identifier `{}` has no source region", identifier.name))
     }
 
-    pub fn nonterminal(&self, nonterminal: &'a Nonterminal) -> Option<&SourceRegion> {
-        self.nonterminals.get(&ByAddress(nonterminal))
+    pub fn nonterminal(&self, nonterminal: &'a Nonterminal) -> &SourceRegion {
+        self.nonterminals
+            .get(&ByAddress(nonterminal))
+            .unwrap_or_else(|| panic!("nonterminal `{}` has no source region", nonterminal.name))
     }
 
-    pub fn terminal(&self, terminal: &'a Terminal) -> Option<&SourceRegion> {
-        self.terminals.get(&ByAddress(terminal))
+    pub fn terminal(&self, terminal: &'a Terminal) -> &SourceRegion {
+        self.terminals
+            .get(&ByAddress(terminal))
+            .unwrap_or_else(|| panic!("terminal `{}` has no source region", terminal.name))
     }
 
     /// The spans of the `!label` conditions on an `Exclude` symbol, in source
@@ -253,7 +269,7 @@ pub fn build_spans<'a>(
         match rule {
             parse_tree::Rule::SyntaxRule { syntax_rule, .. } => {
                 let gr_rule = &grammar_def.syntax_rules[syntax_idx];
-                collect_syntax_rule_spans(gr_rule, syntax_rule, &mut builder.spans);
+                collect_syntax_rule_spans(gr_rule, syntax_rule, input, &mut builder.spans);
                 syntax_idx += 1;
             }
             parse_tree::Rule::RegexRule { regex_rule, .. } => {
@@ -273,6 +289,7 @@ pub fn build_spans<'a>(
 fn collect_syntax_rule_spans<'a>(
     gr_rule: &'a SyntaxRule,
     pt_rule: &parse_tree::SyntaxRule,
+    input: &Input,
     spans: &mut GrammarSpans<'a>,
 ) {
     for (gr_level, pt_level) in gr_rule
@@ -299,7 +316,7 @@ fn collect_syntax_rule_spans<'a>(
                 }
             };
             for (gr_sym, pt_sym) in gr_alt.symbols.iter().zip(pt_syms) {
-                collect_symbol_spans(gr_sym, pt_sym, spans);
+                collect_symbol_spans(gr_sym, pt_sym, input, spans);
             }
         }
     }
@@ -417,26 +434,47 @@ fn collect_regex_seq_spans<'a>(
 fn collect_symbol_seq_spans<'a>(
     gr_sym: &'a Symbol,
     pt_seq: &[&parse_tree::Symbol],
+    input: &Input,
     spans: &mut GrammarSpans<'a>,
 ) {
     match (gr_sym, pt_seq) {
-        (_, [pt_sym]) => collect_symbol_spans(gr_sym, pt_sym, spans),
+        (_, [pt_sym]) => collect_symbol_spans(gr_sym, pt_sym, input, spans),
         (Symbol::Group(gr_parts), [pt_first, .., pt_last]) => {
             let span = Span::new(pt_first.span().left_extent, pt_last.span().right_extent);
             spans
                 .symbols
                 .insert(ByAddress(gr_sym), SourceRegion::new(span));
             for (gr, pt) in gr_parts.iter().zip(pt_seq) {
-                collect_symbol_spans(gr, pt, spans);
+                collect_symbol_spans(gr, pt, input, spans);
             }
         }
         _ => {}
     }
 }
 
+/// Records `token`'s span for the restriction it converted to. The conversion
+/// stores each restriction name once, keeping the first spelling, so the
+/// token pairs with the stored identifier of its own name, and a repeated
+/// token pairs with nothing.
+fn assign_restriction_span<'a>(
+    pending: &mut Vec<&'a Identifier>,
+    token: parse_tree::Token,
+    input: &Input,
+    spans: &mut GrammarSpans<'a>,
+) {
+    let name = input.text(token.span());
+    if let Some(index) = pending.iter().position(|id| id.name == name) {
+        let id = pending.remove(index);
+        spans
+            .identifiers
+            .insert(ByAddress(id), SourceRegion::new(token.span()));
+    }
+}
+
 fn collect_symbol_spans<'a>(
     gr_sym: &'a Symbol,
     pt_sym: &parse_tree::Symbol,
+    input: &Input,
     spans: &mut GrammarSpans<'a>,
 ) {
     let sym_span = pt_sym.span();
@@ -460,13 +498,13 @@ fn collect_symbol_spans<'a>(
         (Symbol::Star(gr_inner, None), parse_tree::Symbol::Star { symbol, .. })
         | (Symbol::Plus(gr_inner, None), parse_tree::Symbol::Plus { symbol, .. })
         | (Symbol::Opt(gr_inner), parse_tree::Symbol::Opt { symbol, .. }) => {
-            collect_symbol_spans(gr_inner, symbol, spans);
+            collect_symbol_spans(gr_inner, symbol, input, spans);
         }
         (Symbol::Star(gr_inner, Some(gr_sep)), parse_tree::Symbol::StarSep { symbol, sep, .. })
         | (Symbol::Plus(gr_inner, Some(gr_sep)), parse_tree::Symbol::PlusSep { symbol, sep, .. }) =>
         {
-            collect_symbol_spans(gr_inner, symbol, spans);
-            collect_symbol_spans(gr_sep, sep, spans);
+            collect_symbol_spans(gr_inner, symbol, input, spans);
+            collect_symbol_spans(gr_sep, sep, input, spans);
         }
         // A Paren node pairs with what its sequences converted to: a Group
         // when there is one sequence, an Alt with one element per sequence
@@ -474,7 +512,7 @@ fn collect_symbol_spans<'a>(
         (Symbol::Group(gr_syms), parse_tree::Symbol::Paren { seqs, .. }) => {
             if let Some(seq) = seqs.symbols().next() {
                 for (gr, pt) in gr_syms.iter().zip(seq) {
-                    collect_symbol_spans(gr, pt, spans);
+                    collect_symbol_spans(gr, pt, input, spans);
                 }
             }
         }
@@ -482,7 +520,7 @@ fn collect_symbol_spans<'a>(
             let pt_seqs: Vec<Vec<&parse_tree::Symbol>> =
                 seqs.symbols().map(|seq| seq.collect()).collect();
             for (gr, pt_seq) in gr_syms.iter().zip(pt_seqs) {
-                collect_symbol_seq_spans(gr, &pt_seq, spans);
+                collect_symbol_seq_spans(gr, &pt_seq, input, spans);
             }
         }
         (
@@ -491,12 +529,14 @@ fn collect_symbol_spans<'a>(
             },
             parse_tree::Symbol::Labeled { symbol, .. },
         ) => {
-            collect_symbol_spans(gr_inner, symbol, spans);
+            collect_symbol_spans(gr_inner, symbol, input, spans);
         }
         // The conditions of one symbol reference become one `Restricted`
         // node, with the `!label` conditions as an `Exclude` node below it.
-        // The conversion fills the restriction buckets in source order, so
-        // each identifier pairs with the next condition token of its kind.
+        // The conversion stores each restriction name once, keeping the
+        // first occurrence, so a condition token pairs with the stored
+        // identifier of its own name rather than with the next identifier
+        // of its kind (`assign_restriction_span`).
         (
             Symbol::Restricted { .. } | Symbol::Exclude { .. },
             parse_tree::Symbol::PreCondition { .. } | parse_tree::Symbol::PostCondition { .. },
@@ -514,20 +554,23 @@ fn collect_symbol_spans<'a>(
                 conditions, symbol, ..
             } = pt_node
             {
-                let precede = restrictions.map(|r| r.precede.iter()).unwrap_or_default();
-                for (id, condition) in precede.zip(conditions.pre_conditions()) {
-                    spans.identifiers.insert(
-                        ByAddress(id),
-                        SourceRegion::new(condition.identifier().span()),
-                    );
+                let mut precede: Vec<&Identifier> = restrictions
+                    .map(|r| r.precede.iter().collect())
+                    .unwrap_or_default();
+                for condition in conditions.pre_conditions() {
+                    assign_restriction_span(&mut precede, condition.identifier(), input, spans);
                 }
                 pt_node = symbol;
             }
 
-            let mut excepts = restrictions.map(|r| r.excepts.iter()).unwrap_or_default();
-            let mut follow = restrictions.map(|r| r.follow.iter()).unwrap_or_default();
-            let mut layout_aware_follow = restrictions
-                .map(|r| r.layout_aware_follow.iter())
+            let mut excepts: Vec<&Identifier> = restrictions
+                .map(|r| r.excepts.iter().collect())
+                .unwrap_or_default();
+            let mut follow: Vec<&Identifier> = restrictions
+                .map(|r| r.follow.iter().collect())
+                .unwrap_or_default();
+            let mut layout_aware_follow: Vec<&Identifier> = restrictions
+                .map(|r| r.layout_aware_follow.iter().collect())
                 .unwrap_or_default();
             let mut label_spans = Vec::new();
             if let parse_tree::Symbol::PostCondition {
@@ -554,11 +597,7 @@ fn collect_symbol_spans<'a>(
                             unreachable!("ambiguous trees are rejected before this point")
                         }
                     };
-                    if let Some(id) = bucket.next() {
-                        spans
-                            .identifiers
-                            .insert(ByAddress(id), SourceRegion::new(identifier.span()));
-                    }
+                    assign_restriction_span(bucket, *identifier, input, spans);
                 }
                 pt_node = symbol;
             }
@@ -574,8 +613,95 @@ fn collect_symbol_spans<'a>(
             } else {
                 gr_inner
             };
-            collect_symbol_spans(gr_core, pt_node, spans);
+            collect_symbol_spans(gr_core, pt_node, input, spans);
         }
         _ => {}
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::grammar::symbols::Nonterminal;
+    use iguana_runtime::arena::Arena;
+
+    /// The accessors treat a missing entry as a bug in the span-building
+    /// walk rather than a normal state.
+    #[test]
+    #[should_panic(expected = "nonterminal `S` has no source region")]
+    fn a_missing_entry_panics() {
+        let spans = GrammarSpans::default();
+        let head = Nonterminal::new("S");
+        spans.nonterminal(&head);
+    }
+
+    /// The accessors panic on a missing entry, so calling each one for every
+    /// node the compiler and the language server look up is the assertion.
+    /// The grammar mixes the constructs whose pairing is non-trivial: nested
+    /// groups, parenthesized alternations, separated repetitions, labels,
+    /// repeated and mixed restrictions, exclusions, and lexical rules with
+    /// restrictions and composed regexes.
+    #[test]
+    fn every_node_of_a_parsed_grammar_has_a_region() {
+        let source = r#"grammar t
+
+S
+  = x:(A | A B) (A B) A* {A ","}+ A? #One
+  | X !<< A \ Kw !>> Y !>> Y !>>> Y !One B
+  | ()
+
+A
+  = "a" #One
+  | "b"
+
+B
+  = A A
+
+@Regex
+X = [x]+
+
+@Regex
+Y = [y]+ (X | Y [0-9])?
+
+@Regex
+Kw = "if" !>> Y
+
+@Regex
+Id = X !<< [a-z]+ \ Kw
+
+@Layout @Regex
+WS = [\ ]*
+"#;
+        let input = Input::from(source);
+        let tree_arena = Arena::new();
+        let success = iggy::parse_grammar(&input, &tree_arena).expect("the grammar should parse");
+        let grammar_def = crate::iggy::build_grammar(success.tree, &input).resolve();
+        let spans = build_spans(&grammar_def, success.tree, &input);
+
+        for rule in &grammar_def.syntax_rules {
+            spans.syntax_rule(rule);
+            spans.nonterminal(&rule.head);
+            for alternative in rule.alternatives() {
+                spans.alternative(alternative);
+            }
+        }
+        for rule in &grammar_def.lexical_rules {
+            spans.lexical_rule(rule);
+            spans.terminal(&rule.head);
+            for identifier in rule
+                .except
+                .iter()
+                .chain(rule.follow_restriction.iter())
+                .chain(rule.precede_restriction.iter())
+            {
+                spans.identifier(identifier);
+            }
+        }
+        grammar_def.for_each_symbol(&mut |symbol| {
+            spans.symbol(symbol);
+        });
+        grammar_def.for_each_identifier(&mut |identifier| {
+            spans.identifier(identifier);
+        });
     }
 }

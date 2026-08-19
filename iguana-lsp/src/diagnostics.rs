@@ -16,16 +16,16 @@ pub fn diagnostics<'a>(
 ) -> Vec<Diagnostic> {
     validate(grammar_def, spans)
         .into_iter()
-        .filter_map(|error| to_diagnostic(error, input))
+        .map(|error| to_diagnostic(error, input))
         .collect()
 }
 
-/// An error with no span gives the editor no range to mark, so it is dropped.
-pub fn to_diagnostic(error: GrammarError, input: &Input) -> Option<Diagnostic> {
-    let span = error.span?;
-    let (start_line, start_column) = input.line_column(span.left_extent);
-    let (end_line, end_column) = input.line_column(span.right_extent);
-    Some(Diagnostic {
+/// A grammar error as an editor diagnostic, with the span converted to a
+/// range of line and column positions.
+pub fn to_diagnostic(error: GrammarError, input: &Input) -> Diagnostic {
+    let (start_line, start_column) = input.line_column(error.span.left_extent);
+    let (end_line, end_column) = input.line_column(error.span.right_extent);
+    Diagnostic {
         range: Range {
             start: Position::new(start_line, start_column),
             end: Position::new(end_line, end_column),
@@ -33,7 +33,7 @@ pub fn to_diagnostic(error: GrammarError, input: &Input) -> Option<Diagnostic> {
         severity: Some(DiagnosticSeverity::ERROR),
         message: error.message,
         ..Default::default()
-    })
+    }
 }
 
 #[cfg(test)]
@@ -63,7 +63,7 @@ mod tests {
         let crate::BuildResult::Error(error) = crate::build(&input, &tree_arena) else {
             panic!("expected a parse error");
         };
-        let d = to_diagnostic(error, &input).expect("the error has a span");
+        let d = to_diagnostic(error, &input);
         assert_eq!(d.range.start, Position::new(0, 7));
         assert_eq!(d.range.end, Position::new(0, 7));
     }
@@ -314,6 +314,37 @@ B
         assert_eq!(d.len(), 2, "expected one per unknown label, got: {names:?}");
         let line = "  = A!NoSuch1 !>> B !NoSuch2 A";
         for name in ["NoSuch1", "NoSuch2"] {
+            let character = line.find(name).unwrap() as u32;
+            assert!(
+                d.iter().any(|d| d.message.contains(name)
+                    && d.range.start.line == 3
+                    && d.range.start.character == character),
+                "{name} not reported at its own token, got: {d:?}",
+            );
+        }
+    }
+
+    /// A restriction name written twice is stored once, keeping its first
+    /// spelling. A later restriction with a different name pairs with its
+    /// own token, so its diagnostic points at that token rather than at the
+    /// repeated one.
+    #[test]
+    fn duplicate_restriction_leaves_later_spans_aligned() {
+        let d = diags(
+            r#"
+grammar T
+
+S
+  = A !>> X !>> X !>> Y A
+
+A
+  = "a"
+"#,
+        );
+        let names: Vec<_> = d.iter().map(|d| &d.message).collect();
+        assert_eq!(d.len(), 2, "one per stored name, got: {names:?}");
+        let line = "  = A !>> X !>> X !>> Y A";
+        for name in ["X", "Y"] {
             let character = line.find(name).unwrap() as u32;
             assert!(
                 d.iter().any(|d| d.message.contains(name)

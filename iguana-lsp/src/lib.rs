@@ -70,11 +70,11 @@ pub fn build<'a>(input: &Input, tree_arena: &'a Arena) -> BuildResult<'a> {
         }
         Ok(Err(error)) => BuildResult::Error(GrammarError {
             message: error.message,
-            span: Some(error.span),
+            span: error.span,
         }),
         Err(_) => BuildResult::Error(GrammarError {
             message: "Internal error during parsing".to_string(),
-            span: Some(Span::new(0, 0)),
+            span: Span::new(0, 0),
         }),
     }
 }

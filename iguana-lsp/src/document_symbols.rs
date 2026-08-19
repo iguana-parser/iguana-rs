@@ -22,9 +22,7 @@ pub fn document_symbols(
     let mut out = Vec::new();
 
     for rule in &grammar_def.syntax_rules {
-        let Some(region) = spans.syntax_rule(rule) else {
-            continue;
-        };
+        let region = spans.syntax_rule(rule);
         let rule_span = region.span;
 
         let mut range = to_range(rule_span, input);
@@ -37,17 +35,13 @@ pub fn document_symbols(
             range.end = Position::new(l, c);
         }
 
-        let head_span = spans
-            .nonterminal(&rule.head)
-            .map(|region| region.span)
-            .unwrap_or(rule_span);
+        let head_span = spans.nonterminal(&rule.head).span;
 
         let mut children: Vec<DocumentSymbol> = Vec::new();
         for level in &rule.priority_levels {
             for alt in &level.alternatives {
-                if let Some(label) = &alt.label
-                    && let Some(alt_region) = spans.alternative(alt)
-                {
+                if let Some(label) = &alt.label {
+                    let alt_span = spans.alternative(alt).span;
                     #[allow(deprecated)]
                     children.push(DocumentSymbol {
                         name: label.clone(),
@@ -55,8 +49,8 @@ pub fn document_symbols(
                         kind: SymbolKind::CONSTRUCTOR,
                         tags: None,
                         deprecated: None,
-                        range: to_range(alt_region.span, input),
-                        selection_range: to_range(alt_region.span, input),
+                        range: to_range(alt_span, input),
+                        selection_range: to_range(alt_span, input),
                         children: None,
                     });
                 }
@@ -87,9 +81,7 @@ pub fn document_symbols(
     }
 
     for rule in &grammar_def.lexical_rules {
-        let Some(region) = spans.lexical_rule(rule) else {
-            continue;
-        };
+        let region = spans.lexical_rule(rule);
         let rule_span = region.span;
 
         let mut range = to_range(rule_span, input);
@@ -102,10 +94,7 @@ pub fn document_symbols(
             range.end = Position::new(l, c);
         }
 
-        let head_span = spans
-            .terminal(&rule.head)
-            .map(|region| region.span)
-            .unwrap_or(rule_span);
+        let head_span = spans.terminal(&rule.head).span;
 
         #[allow(deprecated)]
         out.push(DocumentSymbol {

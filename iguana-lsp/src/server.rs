@@ -257,7 +257,7 @@ fn publish_diagnostics(
             diagnostics(&grammar_def, &spans, &input)
         }
         BuildResult::Ambiguous => vec![],
-        BuildResult::Error(error) => to_diagnostic(error, &input).into_iter().collect(),
+        BuildResult::Error(error) => vec![to_diagnostic(error, &input)],
     };
     let params = PublishDiagnosticsParams {
         uri,
