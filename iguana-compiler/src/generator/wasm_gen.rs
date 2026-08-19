@@ -21,6 +21,7 @@ pub fn generate(grammar: &Grammar) -> TokenStream {
         use iguana_runtime::{
             Instant,
             arena::Arena,
+            cli::ParseOutput,
             input::Input,
             parser::{GLLResult, Parser},
         };
@@ -30,9 +31,9 @@ pub fn generate(grammar: &Grammar) -> TokenStream {
             parser::#parser,
         };
 
-        #[doc = r" Parses `input` from the nonterminal named `start`, returning a JSON result"]
-        #[doc = r" envelope. A parse that ran returns `success`, the timings, and the parse-tree"]
-        #[doc = r" JSON; a parse that failed returns `success: false` with the error location."]
+        #[doc = r" Parses `input` from the nonterminal named `start`, returning the runtime's"]
+        #[doc = r" `ParseOutput` as JSON. A parse that succeeded returns the timings and the"]
+        #[doc = r" parse-tree JSON; a parse that failed returns the error span and message."]
         #[doc = r" An unrecognized start nonterminal cannot run at all, so it returns an error."]
         #[wasm_bindgen]
         pub fn parse(input: &str, start: &str) -> Result<String, JsError> {
@@ -57,33 +58,22 @@ pub fn generate(grammar: &Grammar) -> TokenStream {
                         &parse_tree_builder,
                     );
                     let tree_construction_ms = tree_start.elapsed().as_millis() as u32;
-                    let envelope = serde_json::json!({
-                        "success": true,
-                        "error": serde_json::Value::Null,
-                        "error_info": serde_json::Value::Null,
-                        "duration_ms": success.duration.as_millis() as u32,
-                        "tree_construction_ms": tree_construction_ms,
-                        "parse_tree": to_json(tree),
-                    });
-                    Ok(envelope.to_string())
+                    let envelope = ParseOutput {
+                        error: None,
+                        parse_ms: Some(success.duration.as_millis() as u32),
+                        tree_construction_ms: Some(tree_construction_ms),
+                        parse_tree: Some(to_json(tree)),
+                    };
+                    Ok(serde_json::to_string(&envelope).unwrap())
                 }
                 GLLResult::Failure(error) => {
-                    let (line, column, message) = parser.format_error(&error);
-                    let len = parser.error_span_len(error.input_index);
-                    let envelope = serde_json::json!({
-                        "success": false,
-                        "error": format!("Parse error at line {line}, column {column}: {message}"),
-                        "error_info": {
-                            "line": line,
-                            "column": column,
-                            "len": len,
-                            "message": message,
-                        },
-                        "duration_ms": serde_json::Value::Null,
-                        "tree_construction_ms": serde_json::Value::Null,
-                        "parse_tree": serde_json::Value::Null,
-                    });
-                    Ok(envelope.to_string())
+                    let envelope = ParseOutput {
+                        error: Some(parser.to_parse_error(&error)),
+                        parse_ms: None,
+                        tree_construction_ms: None,
+                        parse_tree: None,
+                    };
+                    Ok(serde_json::to_string(&envelope).unwrap())
                 }
             }
         }

@@ -279,13 +279,6 @@ pub trait Parser<'i, 'arena> {
         }
     }
 
-    /// Turns a failure into the message and location a person reads. A caller
-    /// renders the location as a caret in a terminal or a range in an editor.
-    fn format_error(&self, error: &GLLFailure) -> (u32, u32, String) {
-        let (line, column) = self.input().line_column(error.input_index);
-        (line, column, self.failure_message(error))
-    }
-
     /// Length in characters of the span an error highlights, marked by a caret
     /// in a terminal or a range in an editor. Iguana is a single-phase
     /// parser, i.e., the scanner is not run before parsing but is driven by the

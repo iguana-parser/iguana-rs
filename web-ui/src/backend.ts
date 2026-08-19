@@ -1,34 +1,35 @@
-// Parse error location and message, mirroring the parser's --write-result JSON.
-export interface ParseErrorInfo {
-  line: number;
-  column: number;
+// A character range in the input: left extent inclusive, right exclusive.
+export interface Span {
+  left_extent: number;
+  right_extent: number;
+}
+
+// The parse failure the runtime reports: the input span the failure covers and
+// a message naming what was expected. Consumers convert the span to whatever
+// position form they render (Monaco markers use getPositionAt).
+export interface ParseError {
+  span: Span;
   message: string;
 }
 
-// The result of a parse that ran, independent of the host. It mirrors the shape
-// Terrarium's parse command returns and the wasm wrapper's envelope, so both
-// backends produce it without a translation layer. has_sppf/has_gss are debug
-// artifacts the parse view does not show; the web backend leaves them false.
+// The runtime's report of one parse, the shape --write-result writes and the
+// wasm wrapper returns. A failure sets error; a success sets the timings.
+// parse_tree is inline only in the wasm envelope; the subprocess writes the
+// tree to its own file and Terrarium's backend fills the field from it.
 export interface ParseOutput {
-  success: boolean;
-  error: string | null;
-  error_info: ParseErrorInfo | null;
-  // True when the parser did not run to a result: it crashed or wrote no result.
-  // Distinct from a parse failure (error_info set), which is the input not
-  // matching the grammar.
-  unexpected_error: boolean;
-  duration_ms: number | null;
+  error: ParseError | null;
+  parse_ms: number | null;
   tree_construction_ms: number | null;
-  has_sppf: boolean;
-  has_gss: boolean;
   parse_tree: string | null;
 }
 
-// A single parse: the result metadata plus the parse-tree JSON, fetched in the
-// same step. treeJson is null when the parse produced no tree (a parse failure
-// with no partial tree). The JSON matches the parser's --write-parse-tree output.
+// A single parse attempt. output is the runtime's report, null when the parser
+// did not run to a result (it crashed or wrote no report); unexpected_error
+// then holds the detail. treeJson is the parse-tree JSON, null when the parse
+// produced no tree; it matches the parser's --write-parse-tree output.
 export interface ParseTreeResult {
-  output: ParseOutput;
+  output: ParseOutput | null;
+  unexpected_error: string | null;
   treeJson: string | null;
 }
 
@@ -36,7 +37,7 @@ export interface ParseTreeResult {
 // TauriBackend runs a generated parser as a subprocess; the web viewer's
 // WasmBackend calls a wasm-compiled parser. parse resolves to the tree result,
 // or to an error when the parser could not be run at all (distinct from a parse
-// that ran and failed, which is a successful call with output.success == false).
+// that ran and failed, which is a result whose output.error is set).
 export interface ParserBackend {
   parse(input: string, startNonterminal: string): Promise<ParseTreeResult | { error: string }>;
 }

@@ -9,7 +9,7 @@ export const commands = {
 	saveGrammar: (directory: string, filename: string, content: string) => typedError<null, string>(__TAURI_INVOKE("save_grammar", { directory, filename, content })),
 	buildParser: (directory: string, instrument: boolean, debugTrace: boolean) => __TAURI_INVOKE<void>("build_parser", { directory, instrument, debugTrace }),
 	generateParser: (directory: string, noLl1: boolean) => __TAURI_INVOKE<void>("generate_parser", { directory, noLl1 }),
-	parse: (directory: string, input: string, startNonterminal: string) => typedError<ParseOutput, string>(__TAURI_INVOKE("parse", { directory, input, startNonterminal })),
+	parse: (directory: string, input: string, startNonterminal: string) => typedError<ParseRun, string>(__TAURI_INVOKE("parse", { directory, input, startNonterminal })),
 	/**
 	 *  Run the parser with --write-stats and return the parsed Stats JSON.
 	 *  Requires the binary to have been built with the `instrument` feature.
@@ -259,34 +259,47 @@ export type NodeKind = ({ Nonterminal: {
 	ambiguous: boolean,
 } }) & { Nonterminal?: never } | "Terminal" | "Packed";
 
-/**  Parse error location and message, from the parser's --write-result JSON. */
-export type ParseErrorInfo = {
-	line: number,
-	column: number,
+/**
+ *  A parse failure, as a span and a message naming what was expected.
+ *  `Display` prints the message with the span offsets, so `{e}` works
+ *  without the source. `render` takes the input and produces the located,
+ *  caret-annotated form.
+ */
+export type ParseError = {
+	/**
+	 *  The input range the failure covers. A failure at the end of the input
+	 *  has an empty span there, so the range always stays within the input.
+	 */
+	span: Span,
 	message: string,
 };
 
-/**  Result of a parse operation, indicating which outputs are available. */
+/**
+ *  The report of one parse, written as JSON by `--write-result` and returned
+ *  by the WebAssembly wrapper. A failure sets `error`; a success sets the
+ *  timings. `parse_tree` is inline only in the WebAssembly envelope, where the
+ *  host has no file to read the tree from; `--write-result` leaves it `None`,
+ *  since the tree has its own flag.
+ */
 export type ParseOutput = {
-	success: boolean,
-	error: string | null,
-	error_info: ParseErrorInfo | null,
-	/**
-	 *  True when the parser did not run to a result: it crashed (panic, signal,
-	 *  non-zero exit) or wrote no result file. Distinct from a parse failure
-	 *  (`error_info` set), which is the input legitimately not matching the
-	 *  grammar.
-	 */
-	unexpected_error: boolean,
-	duration_ms: number | null,
+	error: ParseError | null,
+	parse_ms: number | null,
 	tree_construction_ms: number | null,
-	has_sppf: boolean,
-	has_gss: boolean,
-	/**
-	 *  The parse-tree JSON, read inline so a parse is a single command. `None`
-	 *  when the parser produced no tree.
-	 */
 	parse_tree: string | null,
+};
+
+/**
+ *  Returned by `parse()`: the runtime's parse report plus what only the host
+ *  knows. `result` is the parser's --write-result report with `parse_tree`
+ *  filled in from the tree file, read inline so a parse is a single command.
+ *  It is `None` when no valid report was available (a panic, a signal, or an
+ *  exit, clean or not, without a readable report), and `unexpected_error`
+ *  then holds the detail. A parse failure is not that case: the parser also
+ *  exits non-zero, but it writes a report whose `error` is set.
+ */
+export type ParseRun = {
+	result: ParseOutput | null,
+	unexpected_error: string | null,
 };
 
 export type RangeData = {
@@ -334,6 +347,16 @@ export type SemanticTokenData = {
 /**  Semantic token legend (token type names). */
 export type SemanticTokensLegendData = {
 	token_types: string[],
+};
+
+/**
+ *  A half-open range `[left_extent, right_extent)` of input indexes.
+ *  `left_extent` is inclusive, `right_extent` exclusive, so `right_extent - left_extent`
+ *  is the width and a span covering the whole input is `[0, Input::len())`.
+ */
+export type Span = {
+	left_extent: number,
+	right_extent: number,
 };
 
 /**  Parser stats from --write-stats output (instrument feature). */

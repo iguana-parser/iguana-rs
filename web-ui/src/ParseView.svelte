@@ -1,5 +1,5 @@
 <script lang="ts">
-  import type { ParserBackend } from "./backend";
+  import type { ParseError, ParserBackend } from "./backend";
   import type * as monaco from "monaco-editor";
   import { tick, untrack } from "svelte";
   import { ChevronDown, ChevronRight, CornerRightUp, Minimize2, Expand, SlidersHorizontal, Copy, ClipboardCheck, Play } from "lucide-svelte";
@@ -325,8 +325,8 @@
   // svelte-ignore non_reactive_update
   let sexprContainerEl: HTMLDivElement;
 
-  // Parse error info for input editor markers
-  let parseErrorInfo = $state<{ line: number; column: number; message: string } | null>(null);
+  // Parse error for input editor markers
+  let parseError = $state<ParseError | null>(null);
 
   let parseTreeTooltipCleanup: (() => void) | null = null;
 
@@ -535,7 +535,7 @@
     // Reset previous results
     parseTree = null;
     parseTreeSelectedSpan = null;
-    parseErrorInfo = null;
+    parseError = null;
 
     onLogCommand?.(`${parserName} <input> --start ${startNonterminal}`);
 
@@ -551,33 +551,31 @@
       return;
     }
 
-    const { output, treeJson } = result;
-    if (output.success) {
-      parseErrorInfo = null;
-      const totalMs = (output.duration_ms ?? 0) + (output.tree_construction_ms ?? 0);
-      const durationStr = output.duration_ms != null ? ` (${totalMs}ms)` : "";
-      onLogOutput?.(`Parse successful${durationStr}`);
-      const tooltip = output.duration_ms != null
-        ? `Parse: ${output.duration_ms}ms\nTree construction: ${output.tree_construction_ms ?? '?'}ms`
-        : undefined;
-      onStatus?.(`Parse successful${durationStr}`, "success", tooltip);
-    } else if (output.unexpected_error) {
+    const { output, unexpected_error, treeJson } = result;
+    if (output == null) {
       // The parser crashed or produced no result; not a parse failure. Surface it
       // honestly and let the host offer to save the log.
-      parseErrorInfo = null;
-      reportUnexpectedError(output.error ?? "An unexpected error occurred.");
+      reportUnexpectedError(unexpected_error ?? "An unexpected error occurred.");
+    } else if (output.error == null) {
+      const totalMs = (output.parse_ms ?? 0) + (output.tree_construction_ms ?? 0);
+      const durationStr = output.parse_ms != null ? ` (${totalMs}ms)` : "";
+      onLogOutput?.(`Parse successful${durationStr}`);
+      const tooltip = output.parse_ms != null
+        ? `Parse: ${output.parse_ms}ms\nTree construction: ${output.tree_construction_ms ?? '?'}ms`
+        : undefined;
+      onStatus?.(`Parse successful${durationStr}`, "success", tooltip);
     } else {
-      // Expected parse failure: the input does not match the grammar.
-      parseErrorInfo = output.error_info ?? null;
-      if (output.error) {
-        onLogError?.(output.error);
-      }
+      // Expected parse failure: the input does not match the grammar. The input
+      // editor places the marker; the log line states the span offsets.
+      parseError = output.error;
+      const { span, message } = output.error;
+      onLogError?.(`Parse error at ${span.left_extent}..${span.right_extent}: ${message}`);
       onStatus?.("Parse failed", "error");
     }
 
     // An unexpected error means the parser crashed, so any partial tree it wrote
     // is unreliable; do not render it.
-    if (treeJson != null && !output.unexpected_error) {
+    if (treeJson != null && output != null) {
       loadParseTree(treeJson);
     } else {
       // No tree to show (parse failure or crash): clear any tree left from a prior
@@ -1164,7 +1162,7 @@
         <InputEditorComp
           bind:this={inputEditorRef}
           bind:value={inputText}
-          error={parseErrorInfo}
+          error={parseError}
           ambiguities={ambiguityWarnings}
           highlightSpan={parseTreeSelectedSpan}
           onclick={onParseInputClick}

@@ -4,6 +4,7 @@ export { default as InputEditor } from "./InputEditor.svelte";
 export { default as NonterminalPicker } from "./NonterminalPicker.svelte";
 
 export * from "./backend";
+export * from "./char-offsets";
 export * from "./wasm-backend";
 export * from "./lsp-backend";
 export * from "./wasm-lsp-backend";

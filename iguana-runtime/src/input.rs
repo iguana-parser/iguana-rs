@@ -5,7 +5,7 @@ use std::{fs, io, path::Path};
 /// A half-open range `[left_extent, right_extent)` of input indexes.
 /// `left_extent` is inclusive, `right_extent` exclusive, so `right_extent - left_extent`
 /// is the width and a span covering the whole input is `[0, Input::len())`.
-#[derive(Debug, Clone, PartialEq, Eq, Copy, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Copy, Serialize, Deserialize, specta::Type)]
 pub struct Span {
     pub left_extent: u32,
     pub right_extent: u32,

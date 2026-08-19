@@ -6,15 +6,15 @@ use std::fmt::{self, Display, Formatter};
 use std::time::Duration;
 
 use serde::{Deserialize, Serialize};
+use specta::Type;
 
 use crate::input::{Input, Span};
 
 /// A parse failure, as a span and a message naming what was expected.
-///
-/// `Display` prints the message with the span offsets, so `{e}` works without
-/// the source. `render` takes the input and produces the located,
+/// `Display` prints the message with the span offsets, so `{e}` works
+/// without the source. `render` takes the input and produces the located,
 /// caret-annotated form.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, Type)]
 pub struct ParseError {
     /// The input range the failure covers. A failure at the end of the input
     /// has an empty span there, so the range always stays within the input.

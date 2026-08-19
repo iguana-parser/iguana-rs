@@ -28,7 +28,8 @@
     "LICENSE-APACHE"
   ],
   "scripts": {
-    "check": "svelte-check --tsconfig ./tsconfig.json --fail-on-warnings"
+    "check": "svelte-check --tsconfig ./tsconfig.json --fail-on-warnings",
+    "test": "vitest run"
   },
   "peerDependencies": {
     "cytoscape": "^3.33.2",
@@ -40,6 +41,7 @@
   "devDependencies": {
     "@types/cytoscape": "^3.21.9",
     "svelte-check": "^4.0.0",
-    "typescript": "^6.0.3"
+    "typescript": "^6.0.3",
+    "vitest": "^3.2.4"
   }
 }

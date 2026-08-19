@@ -12,7 +12,7 @@ use std::{
 };
 
 use iguana_runtime::arena::Arena;
-use iguana_runtime::cli::ParseResult;
+use iguana_runtime::cli;
 use iguana_runtime::input::Input;
 use iguana_runtime::visualization::{gss::GSS, sppf::SPPF};
 use serde::{Deserialize, Serialize};
@@ -237,33 +237,17 @@ struct ParseState {
     gss_path: Option<PathBuf>,
 }
 
-/// Parse error location and message for the editor markers, with the line and
-/// column derived from the span in the parser's --write-result JSON.
+/// Returned by `parse()`: the runtime's parse report plus what only the host
+/// knows. `result` is the parser's --write-result report with `parse_tree`
+/// filled in from the tree file, read inline so a parse is a single command.
+/// It is `None` when no valid report was available (a panic, a signal, or an
+/// exit, clean or not, without a readable report), and `unexpected_error`
+/// then holds the detail. A parse failure is not that case: the parser also
+/// exits non-zero, but it writes a report whose `error` is set.
 #[derive(Clone, Serialize, Type)]
-struct ParseErrorInfo {
-    line: u32,
-    column: u32,
-    message: String,
-}
-
-/// Result of a parse operation, indicating which outputs are available.
-#[derive(Clone, Serialize, Type)]
-struct ParseOutput {
-    success: bool,
-    error: Option<String>,
-    error_info: Option<ParseErrorInfo>,
-    /// True when the parser did not run to a result: it crashed (panic, signal,
-    /// non-zero exit) or wrote no result file. Distinct from a parse failure
-    /// (`error_info` set), which is the input legitimately not matching the
-    /// grammar.
-    unexpected_error: bool,
-    duration_ms: Option<u32>,
-    tree_construction_ms: Option<u32>,
-    has_sppf: bool,
-    has_gss: bool,
-    /// The parse-tree JSON, read inline so a parse is a single command. `None`
-    /// when the parser produced no tree.
-    parse_tree: Option<String>,
+struct ParseRun {
+    result: Option<cli::ParseOutput>,
+    unexpected_error: Option<String>,
 }
 
 #[derive(Default)]
@@ -489,7 +473,7 @@ fn parse(
     input: String,
     start_nonterminal: String,
     state: tauri::State<Mutex<ParseState>>,
-) -> Result<ParseOutput, String> {
+) -> Result<ParseRun, String> {
     // An Err here means the parser could not be run at all (missing binary, spawn
     // failure): an unexpected error like a crash. Log it to the file so a saved
     // log carries it; the frontend surfaces it through the same banner.
@@ -503,7 +487,7 @@ fn parse_inner(
     input: String,
     start_nonterminal: String,
     state: tauri::State<Mutex<ParseState>>,
-) -> Result<ParseOutput, String> {
+) -> Result<ParseRun, String> {
     let parser_path = get_parser_binary_path(&directory)?;
 
     let mut input_file =
@@ -557,7 +541,7 @@ fn parse_inner(
         .then(|| {
             fs::read_to_string(&result_path)
                 .ok()
-                .and_then(|s| serde_json::from_str::<ParseResult>(&s).ok())
+                .and_then(|s| serde_json::from_str::<cli::ParseOutput>(&s).ok())
         })
         .flatten();
 
@@ -571,54 +555,18 @@ fn parse_inner(
             stderr.trim()
         );
         log_to_file("error", &detail);
-        return Ok(ParseOutput {
-            success: false,
-            error: Some(detail),
-            error_info: None,
-            unexpected_error: true,
-            duration_ms: None,
-            tree_construction_ms: None,
-            has_sppf,
-            has_gss,
-            parse_tree,
+        return Ok(ParseRun {
+            result: None,
+            unexpected_error: Some(detail),
         });
     }
 
     match result {
-        Some(ParseResult::Success(s)) => Ok(ParseOutput {
-            success: true,
-            error: None,
-            error_info: None,
-            unexpected_error: false,
-            duration_ms: Some(s.parse_ms as u32),
-            tree_construction_ms: s.tree_construction_ms.map(|n| n as u32),
-            has_sppf,
-            has_gss,
-            parse_tree,
-        }),
-        Some(ParseResult::Failure(f)) => {
-            // The result holds a span; the editor markers want a zero-based
-            // line and column, so the input converts the span's start.
-            let (line, column) = Input::from(input.as_str()).line_column(f.span.left_extent);
-            Ok(ParseOutput {
-                success: false,
-                error: Some(format!(
-                    "Parse failed at line {}, column {}: {}",
-                    line + 1,
-                    column + 1,
-                    f.message
-                )),
-                error_info: Some(ParseErrorInfo {
-                    line,
-                    column,
-                    message: f.message,
-                }),
-                unexpected_error: false,
-                duration_ms: None,
-                tree_construction_ms: None,
-                has_sppf,
-                has_gss,
-                parse_tree,
+        Some(mut result) => {
+            result.parse_tree = parse_tree;
+            Ok(ParseRun {
+                result: Some(result),
+                unexpected_error: None,
             })
         }
         // The parser exited cleanly but wrote no result file: an unexpected error,
@@ -626,16 +574,9 @@ fn parse_inner(
         None => {
             let detail = "Parser produced no result.".to_string();
             log_to_file("error", &detail);
-            Ok(ParseOutput {
-                success: false,
-                error: Some(detail),
-                error_info: None,
-                unexpected_error: true,
-                duration_ms: None,
-                tree_construction_ms: None,
-                has_sppf,
-                has_gss,
-                parse_tree,
+            Ok(ParseRun {
+                result: None,
+                unexpected_error: Some(detail),
             })
         }
     }

@@ -2,11 +2,8 @@
   import { onMount, onDestroy } from "svelte";
   import * as monaco from "monaco-editor";
 
-  interface ErrorInfo {
-    line: number;
-    column: number;
-    message: string;
-  }
+  import type { ParseError } from "./backend";
+  import { charIndex, utf16OffsetTable } from "./char-offsets";
 
   interface HighlightSpan {
     start: number;
@@ -22,7 +19,7 @@
   interface Props {
     value?: string;
     readOnly?: boolean;
-    error?: ErrorInfo | null;
+    error?: ParseError | null;
     ambiguities?: AmbiguityWarning[];
     highlightSpan?: HighlightSpan | null;
     consumedUntil?: number | null;
@@ -86,6 +83,11 @@
       placeholder,
     });
 
+    // Monaco normalizes mixed line endings to one EOL per model, so the bound
+    // value follows the model text. The parser then parses the exact string
+    // the editor shows, and the runtime's character indexes line up with it.
+    value = editor.getValue();
+
     editor.onDidChangeModelContent(() => {
       if (ignoreChange) return;
       const newValue = editor.getValue();
@@ -98,7 +100,7 @@
       const pos = e.target.position;
       const model = editor.getModel();
       if (!pos || !model) return;
-      onclick(model.getOffsetAt(pos));
+      onclick(charIndex(model.getValue(), model.getOffsetAt(pos)));
     });
 
     editor.onKeyDown((e) => {
@@ -129,12 +131,15 @@
     editor?.focus();
   }
 
-  // Sync external value changes into the editor
+  // Sync external value changes into the editor. Reading the value back picks
+  // up Monaco's line-ending normalization (see the mount-time sync); the
+  // re-run this triggers finds the two equal and stops.
   $effect(() => {
     if (editor && value !== editor.getValue()) {
       ignoreChange = true;
       editor.setValue(value);
       ignoreChange = false;
+      value = editor.getValue();
     }
   });
 
@@ -143,22 +148,40 @@
     editor?.updateOptions({ readOnly });
   });
 
+  // The runtime reports positions as character indexes, so every marker and
+  // decoration converts through the offset table before asking Monaco for a
+  // position; the click handler converts the other way. The table is rebuilt
+  // only when the model text changes, so resolving many markers stays linear
+  // in the marker count instead of rescanning the input per marker.
+  let offsetTable: { versionId: number; offsets: Uint32Array | null } | null = null;
+
+  function positionAt(model: monaco.editor.ITextModel, index: number): monaco.Position {
+    const versionId = model.getVersionId();
+    if (offsetTable === null || offsetTable.versionId !== versionId) {
+      offsetTable = { versionId, offsets: utf16OffsetTable(model.getValue()) };
+    }
+    const { offsets } = offsetTable;
+    const offset = offsets === null ? index : offsets[Math.min(index, offsets.length - 1)];
+    return model.getPositionAt(offset);
+  }
+
   // Update error markers
   $effect(() => {
     const model = editor?.getModel();
     if (!model) return;
 
     if (error) {
-      // line_column from iguana runtime is 0-based; Monaco is 1-based
-      const lineNumber = error.line + 1;
-      const column = error.column + 1;
-      const lineLength = model.getLineLength(lineNumber) || 1;
+      const startPos = positionAt(model, error.span.left_extent);
+      const endPos = positionAt(model, error.span.right_extent);
+      // An empty span (a failure at the end of the input) still marks one
+      // column; Monaco tolerates a column past the end of the line.
+      const emptySpan = endPos.lineNumber === startPos.lineNumber && endPos.column === startPos.column;
       monaco.editor.setModelMarkers(model, "parse-error", [
         {
-          startLineNumber: lineNumber,
-          startColumn: column,
-          endLineNumber: lineNumber,
-          endColumn: lineLength + 1,
+          startLineNumber: startPos.lineNumber,
+          startColumn: startPos.column,
+          endLineNumber: endPos.lineNumber,
+          endColumn: emptySpan ? startPos.column + 1 : endPos.column,
           severity: monaco.MarkerSeverity.Error,
           message: `Parse error: ${error.message}`,
         },
@@ -174,8 +197,8 @@
     if (!model) return;
 
     const markers = ambiguities.map((a) => {
-      const startPos = model.getPositionAt(a.start);
-      const endPos = model.getPositionAt(a.end);
+      const startPos = positionAt(model, a.start);
+      const endPos = positionAt(model, a.end);
       return {
         startLineNumber: startPos.lineNumber,
         startColumn: startPos.column,
@@ -198,8 +221,8 @@
 
     // Consumed characters (green background)
     if (consumedUntil !== null && consumedUntil > 0) {
-      const startPos = model.getPositionAt(0);
-      const endPos = model.getPositionAt(consumedUntil);
+      const startPos = positionAt(model, 0);
+      const endPos = positionAt(model, consumedUntil);
       decorations.push({
         range: new monaco.Range(startPos.lineNumber, startPos.column, endPos.lineNumber, endPos.column),
         options: { className: "input-consumed" },
@@ -208,8 +231,8 @@
 
     // Current character (blue background)
     if (currentIndex !== null) {
-      const startPos = model.getPositionAt(currentIndex);
-      const endPos = model.getPositionAt(currentIndex + 1);
+      const startPos = positionAt(model, currentIndex);
+      const endPos = positionAt(model, currentIndex + 1);
       decorations.push({
         range: new monaco.Range(startPos.lineNumber, startPos.column, endPos.lineNumber, endPos.column),
         options: { className: "input-current" },
@@ -218,10 +241,10 @@
 
     // Selected span highlight
     if (highlightSpan) {
-      const startPos = model.getPositionAt(highlightSpan.start);
+      const startPos = positionAt(model, highlightSpan.start);
       if (highlightSpan.start < highlightSpan.end) {
         // Non-empty span: blue background
-        const endPos = model.getPositionAt(highlightSpan.end);
+        const endPos = positionAt(model, highlightSpan.end);
         decorations.push({
           range: new monaco.Range(startPos.lineNumber, startPos.column, endPos.lineNumber, endPos.column),
           options: { className: "input-highlight-span" },
@@ -245,8 +268,8 @@
     if (!editor || !highlightSpan) return;
     const model = editor.getModel();
     if (!model) return;
-    const startPos = model.getPositionAt(highlightSpan.start);
-    const endPos = model.getPositionAt(highlightSpan.end);
+    const startPos = positionAt(model, highlightSpan.start);
+    const endPos = positionAt(model, highlightSpan.end);
     const range = new monaco.Range(startPos.lineNumber, startPos.column, endPos.lineNumber, endPos.column);
     editor.revealRangeInCenterIfOutsideViewport(range, monaco.editor.ScrollType.Smooth);
   });

@@ -8,8 +8,12 @@ export class TauriBackend implements ParserBackend {
   constructor(private directory: string) {}
 
   async parse(input: string, startNonterminal: string): Promise<ParseTreeResult | { error: string }> {
-    const result = await commands.parse(this.directory, input, startNonterminal);
-    if (result.status === "error") return { error: result.error };
-    return { output: result.data, treeJson: result.data.parse_tree };
+    const run = await commands.parse(this.directory, input, startNonterminal);
+    if (run.status === "error") return { error: run.error };
+    return {
+      output: run.data.result,
+      unexpected_error: run.data.unexpected_error,
+      treeJson: run.data.result?.parse_tree ?? null,
+    };
   }
 }

@@ -135,7 +135,7 @@ pub fn generate(grammar: &Grammar) -> TokenStream {
 
             /// Write the parse result as JSON
             ///
-            /// On success includes timings; on failure includes the error location and message
+            /// On success includes timings; on failure includes the error span and message
             #[arg(long, value_name = "FILE", help_heading = "Output files")]
             write_result: Option<PathBuf>,
 
@@ -821,10 +821,12 @@ pub fn generate(grammar: &Grammar) -> TokenStream {
 
                     // Handle --write-result (write parse result as JSON)
                     if let Some(ref path) = args.write_result {
-                        let result = cli::ParseResult::Success(cli::ParseTimings {
-                            parse_ms: parse_success.duration.as_millis() as u64,
-                            tree_construction_ms: tree_construction_ms.map(|ms| ms as u64),
-                        });
+                        let result = cli::ParseOutput {
+                            error: None,
+                            parse_ms: Some(parse_success.duration.as_millis() as u32),
+                            tree_construction_ms: tree_construction_ms.map(|ms| ms as u32),
+                            parse_tree: None,
+                        };
                         let file = File::create(path)?;
                         let mut writer = BufWriter::new(file);
                         writeln!(writer, "{}", serde_json::to_string(&result).unwrap())?;
@@ -860,7 +862,12 @@ pub fn generate(grammar: &Grammar) -> TokenStream {
                     eprintln!("{}", error.render(&input));
 
                     if let Some(ref path) = args.write_result {
-                        let result = cli::ParseResult::Failure(error);
+                        let result = cli::ParseOutput {
+                            error: Some(error),
+                            parse_ms: None,
+                            tree_construction_ms: None,
+                            parse_tree: None,
+                        };
                         let file = File::create(path)?;
                         let mut writer = BufWriter::new(file);
                         writeln!(writer, "{}", serde_json::to_string(&result).unwrap())?;
