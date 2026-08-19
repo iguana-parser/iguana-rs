@@ -93,7 +93,6 @@ fn bootstrap() -> io::Result<()> {
     let grammar_file = iggy_dir.join("iggy.iggy");
     let config = GenConfig {
         cli: true,
-        license_files: false,
         ..GenConfig::default()
     };
     let result = regenerate_with(&grammar_file, &iggy_dir, config, None, true)?;
@@ -346,7 +345,6 @@ fn regenerate(grammar_path: &Path, output: &Path) -> io::Result<GenerateResult> 
     // grammar can be tested in both modes from two crates (one with unsafe = true).
     let mut config = GenConfig {
         cli: true,
-        license_files: false,
         ..GenConfig::default()
     };
     config.apply_file(&GenConfigFile::load(grammar_path)?);
@@ -370,7 +368,7 @@ fn regenerate_with(
     let result = generate_sources(&grammar, output, config)?;
     format_sources(output)?;
     if config.wasm {
-        generate_wasm(&grammar, output, config, runtime_path, force)?;
+        generate_wasm(&grammar, output, runtime_path, force)?;
         format_sources(&output.join("wasm"))?;
     }
     Ok(result)

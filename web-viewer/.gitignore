@@ -1,6 +1,6 @@
 # The viewer build lands in ../iguana/viewer-dist, committed there so the
 # iguana binary (and its published crate) embeds it. Rebuild it with
-# `cargo xtask viewer` after changing web-viewer/.
+# `npm run build --workspace web-viewer` after changing web-viewer/.
 #
 # The wasm bundle is produced by `iguana generate --wasm` (here, copied from
 # target/wasm/iggy) and dropped in alongside the viewer; it is not source.

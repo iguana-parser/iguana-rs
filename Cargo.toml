@@ -14,8 +14,9 @@ workspace = true
 
 [workspace]
 resolver = "3"
-# terrarium excluded by default - it's a Tauri app with 500+ dependencies that slows rust-analyzer
-# uncomment terrarium/src-tauri when working on it
+# Terrarium is a separate workspace because its Tauri dependencies slow
+# rust-analyzer for the root workspace. Its checks run through its own manifest
+# (docs/development.md).
 members = [
     "iguana",
     "iguana-compiler",

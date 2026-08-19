@@ -35,8 +35,8 @@ enum Commands {
     },
     /// Generate a parser crate from an iggy grammar
     ///
-    /// Generation knobs (ll1, match_memo, unsafe, license_files, bin_name,
-    /// runtime_path) can be persisted in a gen.toml beside the grammar.
+    /// Generation knobs (ll1, match_memo, unsafe, bin_name, runtime_path) can
+    /// be persisted in a gen.toml beside the grammar.
     /// Precedence is the built-in default, then gen.toml, then an explicit
     /// flag.
     Generate {
@@ -65,13 +65,6 @@ enum Commands {
         /// True by default.
         #[arg(long, num_args = 0..=1, default_missing_value = "true")]
         match_memo: Option<bool>,
-
-        /// Write the full MIT and Apache terms beside generated Rust code
-        ///
-        /// True by default. Set false when a containing project already
-        /// supplies the license texts
-        #[arg(long, value_name = "LICENSE_FILES", num_args = 0..=1, default_missing_value = "true")]
-        license_files: Option<bool>,
 
         /// When true, the generated parser runs in the unsafe mode (see Parser::UNSAFE
         /// in iguana-runtime).
@@ -153,7 +146,6 @@ fn run() -> io::Result<()> {
             json,
             ll1,
             match_memo,
-            license_files,
             unsafe_mode,
             cli,
             wasm,
@@ -216,9 +208,6 @@ fn run() -> io::Result<()> {
             if let Some(unsafe_mode) = unsafe_mode {
                 config.unsafe_mode = unsafe_mode;
             }
-            config.license_files = license_files
-                .or(file.license_files)
-                .unwrap_or(config.license_files);
             let bin_name = bin_name.or(file.bin_name);
             let runtime_path = runtime_path.or(file.runtime_path);
             let grammar: Grammar = grammar_def
@@ -246,7 +235,7 @@ fn run() -> io::Result<()> {
             )?;
             let result = generate_sources(&grammar, &output, config)?;
             if config.wasm {
-                generate_wasm(&grammar, &output, config, runtime_path.as_deref(), force)?;
+                generate_wasm(&grammar, &output, runtime_path.as_deref(), force)?;
                 iguana_compiler::wasm_build::build(&output.join("wasm"))?;
                 viewer::write_assets(&output)?;
             }

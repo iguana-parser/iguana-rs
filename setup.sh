@@ -7,7 +7,8 @@ command -v cargo >/dev/null || { echo "Install rust: https://rustup.rs"; exit 1;
 # Dev tools
 cargo install cargo-nextest --locked
 
-# Node deps (web viewer; also used by terrarium and the VS Code extension)
+# Root npm workspace dependencies (web packages and Terrarium). The VS Code
+# extension has a separate installation under editors/vscode.
 if command -v npm >/dev/null; then
   npm install
 else

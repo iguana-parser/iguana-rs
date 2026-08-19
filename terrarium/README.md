@@ -1,33 +1,82 @@
 # Terrarium
 
-Grammar authoring, debugging, and parse-tree visualization tool for Iguana: a Tauri app with a Monaco grammar editor and Cytoscape graph views. Terrarium opens a grammar directory, generates and builds its parser, and shows how it parses an input.
+Terrarium is an IDE for Iggy grammars. It combines grammar authoring, parser
+generation, parse-tree visualization, and step-by-step parser debugging.
 
-Terrarium is experimental: it is not ready for release, and it is only used internally to develop the Java grammar. Bugs and breaking changes are likely. It will be released in the future.
+The implementation is a Tauri app with a Monaco editor and Cytoscape graph
+views. Terrarium is experimental and is not released for general use. Its
+interfaces and behavior may change at any time.
 
 Terrarium has three modes:
 
-- **Design**: grammar editing in Monaco, with highlighting, formatting, symbols, and diagnostics from `iguana-lsp`.
-- **Parse**: parse-tree, SPPF, GSS, and timing views over a run of the generated parser on input text.
-- **Debug**: step-by-step trace replay of the parser's execution (requires a build with `--features debug-trace`).
+- **Design mode.** Terrarium provides a Monaco grammar editor with
+  highlighting, formatting, document symbols, diagnostics, folding,
+  go-to-definition, and find-references navigation.
+- **Parse mode.** Terrarium runs the generated parser and shows its parse tree
+  as a collapsible tree, graph, or s-expression.
+- **Debug mode.** Terrarium replays parser execution step by step and shows the
+  SPPF and GSS as they are built. This mode requires a parser built with the
+  `debug-trace` feature.
 
-## Running it
+## Development
 
-From the repository root:
+Terrarium requires Rust, Node.js and npm, and the platform dependencies listed
+in the [Tauri prerequisites](https://v2.tauri.app/start/prerequisites/). Install
+the repository dependencies from the root, then start the app:
 
-```
-cargo xtask terrarium   # installs iguana, then launches the dev server
-```
-
-Or directly from this directory:
-
-```
+```sh
 npm install
+cargo xtask terrarium
+```
+
+The `xtask` command rebuilds the web viewer, installs the current `iguana`
+binary into the Cargo bin directory, and launches `tauri dev`. Terrarium calls
+that installed binary when it generates a parser.
+
+To run the same steps separately:
+
+```sh
+cargo xtask install
+cd terrarium
 npm run tauri dev
 ```
 
-The Rust backend is a separate workspace at `src-tauri/`, excluded from the root workspace by default.
+Check the frontend from the repository root:
+
+```sh
+npm run check --workspace terrarium
+```
+
+The Rust backend is a separate workspace at `src-tauri/`. Check it through its
+own manifest:
+
+```sh
+cargo fmt --manifest-path terrarium/src-tauri/Cargo.toml --check
+cargo check --manifest-path terrarium/src-tauri/Cargo.toml
+cargo clippy --manifest-path terrarium/src-tauri/Cargo.toml --all-targets
+cargo test --manifest-path terrarium/src-tauri/Cargo.toml
+```
+
+Run `npm run check` at the repository root after changing `web-ui` or another
+shared frontend package. Specta rewrites `src/bindings.ts` when a debug build
+starts; review that file after changing the Tauri command interface.
+
+An Iggy language feature must work in both the desktop and browser hosts. Add
+the analysis function under `iguana-lsp/src/` and export it from
+`iguana-lsp/wasm/src/lib.rs`. Add the method to `LspBackend` in
+`web-ui/src/lsp-backend.ts`, implement it in
+`web-ui/src/wasm-lsp-backend.ts`, and register the corresponding Monaco
+provider in `web-ui/src/DesignView.svelte`. For Terrarium, expose the function
+through a Tauri command in `src-tauri/src/lib.rs` and implement the method in
+`src/lib/tauri-lsp-backend.ts`.
+
+To create a platform application bundle, run `npm run tauri build` from
+`terrarium/`.
 
 ## License
 
-Licensed under either the [MIT License](LICENSE-MIT) or the
-[Apache License, Version 2.0](LICENSE-APACHE), at your option.
+Licensed under either the
+[MIT License](https://github.com/iguana-parser/iguana-rs/blob/main/LICENSE-MIT)
+or the
+[Apache License, Version 2.0](https://github.com/iguana-parser/iguana-rs/blob/main/LICENSE-APACHE),
+at your option.

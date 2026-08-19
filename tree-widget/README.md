@@ -1,22 +1,31 @@
 # tree-widget
 
-The embeddable parse-tree graph: `mountParseTreeGraph(container, sexprText)`
-parses a printed parse-tree s-expression (the generated `to_sexpr` output,
-sharing labels included) and renders it as the interactive Cytoscape tree the
-parse view shows, reusing the shared graph core in `web-ui`.
+`tree-widget` embeds Iguana's interactive parse-tree graph in a static page.
+`mountParseTreeGraph(container, sexprText)` reads the s-expression produced by
+generated `to_sexpr` functions, including subtree-sharing markers, and renders
+the same Cytoscape graph used by `ParseView`.
 
-Built for static hosts that show verified parse trees as text and want a
-graph view next to them, like the Iguana website's docs pages. The host owns the
-surrounding chrome (tabs, panel sizing) and the styling; the widget owns the
-Cytoscape instance and renders the shared control strip (zoom and fit by
-default, expand-all and PNG export optional), unstyled, for the host's CSS
-to skin.
+The host owns the surrounding controls, sizing, and styles. The widget owns the
+Cytoscape instance and its interactions. Zoom and fit controls are always
+shown; expand-all and PNG export controls are optional. The mount function
+returns a handle for controlling, resizing, and destroying the graph.
 
-Cytoscape and cytoscape-tidytree are not bundled: they resolve at runtime
-through an importmap on the host page, pinned to the same versions as the
-other embedded apps. Build with `npm run build`; the output is a single
-`dist/tree-widget.js` ES module.
+Cytoscape and `cytoscape-tidytree` are external dependencies resolved by the
+host's import map. Install dependencies at the repository root, then check and
+build the widget:
+
+```sh
+cd tree-widget
+npm run check
+npm run build
+```
+
+The build output is the single ES module `dist/tree-widget.js`.
 
 ## License
 
-Licensed under either of MIT (`LICENSE-MIT`) or Apache 2.0 (`LICENSE-APACHE`), at your option.
+Licensed under either the
+[MIT License](https://github.com/iguana-parser/iguana-rs/blob/main/LICENSE-MIT)
+or the
+[Apache License, Version 2.0](https://github.com/iguana-parser/iguana-rs/blob/main/LICENSE-APACHE),
+at your option.

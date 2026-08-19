@@ -1,33 +1,30 @@
 # Licensing
 
-Except for the branding assets and third-party material identified below,
 Iguana is licensed under either of the following licenses, at your option:
 
 - [Apache License, Version 2.0](LICENSE-APACHE)
 - [MIT License](LICENSE-MIT)
 
-The SPDX license expression is `MIT OR Apache-2.0`. This license covers the
-source code, documentation, tools, applications, and Rust parser code generated
-by Iguana in this repository. Parsers generated with Iguana may be used in
-open-source or proprietary projects, subject to the chosen license's notice
-requirements.
+The SPDX license expression is `MIT OR Apache-2.0`. These licenses cover all
+original material in this repository: source code, documentation, tools,
+applications, and artwork. The licenses do not grant trademark rights to the
+Iguana name or logo.
 
-## Branding
+## Generated code
 
-The licenses above do not grant permission to use the Iguana name as a
-trademark. The following logo files are not covered by the software licenses
-and are copyright Ali Afroozeh, all rights reserved:
+Iguana places no license or notice requirements on generated code or other
+generated files. To the extent that Iguana's copyright holders hold rights in
+those files, they grant you permission to use, modify, distribute, and license
+them under terms of your choice, including in proprietary software, without
+any attribution or notice requirement. Rights in the grammar used to generate
+the files remain separate. Generated files are provided without warranty.
 
-- `docs/logo.svg`
-- `docs/logo-dark.svg`
-- `terrarium/src-tauri/icons/32x32.png`
-- `terrarium/src-tauri/icons/128x128.png`
-- `terrarium/src-tauri/icons/128x128@2x.png`
-- `terrarium/src-tauri/icons/icon.icns`
-- `terrarium/static/favicon.png`
+This permission does not apply to `iguana-runtime` or the other dependencies
+of a generated parser, which retain their respective licenses.
 
 ## Third-party material
 
-Bundled third-party code retains its original license. The third-party
-components included in the embedded web viewer are listed with their license
-notices in `iguana/viewer-dist/THIRD_PARTY_LICENSES.txt`.
+Iguana does not relicense third-party code and assets. They retain their
+original licenses. The third-party components included in the embedded web
+viewer are listed with their license notices in
+`iguana/viewer-dist/THIRD_PARTY_LICENSES.txt`.

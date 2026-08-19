@@ -1,9 +1,19 @@
 import { rmSync } from "node:fs";
+import { join } from "node:path";
+import { fileURLToPath } from "node:url";
 
-// Vite copies public/ verbatim into dist. When a developer runs the viewer
-// locally, public/ holds a grammar's wasm module and manifest (see .gitignore),
-// which are grammar-specific. The committed dist is the grammar-independent
-// viewer the iguana binary embeds, so drop them: a generated bundle supplies its
-// own manifest and wasm.
-rmSync("dist/manifest.json", { force: true });
-rmSync("dist/wasm", { recursive: true, force: true });
+// Vite copies public/ verbatim into the configured output directory. The
+// stage:iggy script puts one grammar's manifest and WebAssembly module in
+// public/ for local development, but the committed viewer must remain
+// grammar-independent because generated bundles supply those files themselves.
+const viewerDist = fileURLToPath(
+  new URL("../../iguana/viewer-dist/", import.meta.url),
+);
+const grammarAssets = [
+  join(viewerDist, "manifest.json"),
+  join(viewerDist, "wasm"),
+];
+
+for (const asset of grammarAssets) {
+  rmSync(asset, { recursive: true, force: true });
+}

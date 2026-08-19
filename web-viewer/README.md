@@ -1,32 +1,47 @@
 # @iguana-parser/web-viewer
 
-A static web app that runs a wasm-compiled Iguana parser in the browser and renders the result. It is a thin host around the `ParseView` renderer from [`web-ui`](../web-ui): on load it reads `manifest.json`, loads the wasm module, constructs a `WasmBackend`, and mounts `ParseView`. There is no server and no Tauri; parsing happens in the page. Grammar editing is out of scope (that is Terrarium's job).
+`@iguana-parser/web-viewer` runs a WebAssembly parser in the browser and shows
+its parse tree. The app reads `manifest.json`, loads the parser module, and
+mounts `ParseView` from [`web-ui`](../web-ui) through a `WasmBackend`. Parsing
+runs in the page and does not require a server-side parser.
 
-The app targets a single, fixed grammar per deployment. The wasm module and the manifest are grammar-specific and ship alongside the viewer; the viewer code itself is grammar-independent.
+Each deployment serves one grammar-specific WebAssembly module and manifest.
+The viewer code is independent of that grammar.
 
-## Running it
+## Development
 
-The viewer needs a bundle (the wasm module plus its manifest) served as static files next to it. Produce one and place it in `public/`:
+The viewer needs a bundle, consisting of the WebAssembly module and its
+manifest, served as static files beside it. Produce one and place it in
+`public/`. Install the root npm workspace dependencies once with `npm install`,
+then run:
 
-```
-# Build the iggy wasm bundle into target/wasm/iggy
+```sh
+# Build the Iggy WebAssembly bundle into target/wasm/iggy
 cargo xtask wasm
 
-# Copy the bundle into the viewer's static dir
-mkdir -p web-viewer/public/wasm
-cp target/wasm/iggy/manifest.json web-viewer/public/manifest.json
-cp -r target/wasm/iggy/wasm/pkg web-viewer/public/wasm/pkg
+# Refresh the viewer's ignored local bundle
+npm run stage:iggy --workspace web-viewer
 ```
 
-Then run the dev server or build the static site:
+Change to `web-viewer`, then run the development server or build the static
+site:
 
-```
-npm run dev      # from web-viewer/, serves on http://localhost:5174
-npm run build    # emits ../iguana/viewer-dist/ (committed, embedded in the iguana binary)
+```sh
+cd web-viewer
+npm run check
+npm run dev      # Serve the app on http://localhost:5174
+npm run build    # Write the app embedded by the `iguana` binary
 ```
 
-The `public/` bundle is git-ignored, since it is generated output rather than source.
+The `public/` bundle is ignored by Git because it is generated output. The
+viewer build under `iguana/viewer-dist/` is committed because the `iguana`
+binary embeds it. The build removes the local manifest and WebAssembly module
+from that committed output, leaving the embedded viewer grammar-independent.
 
 ## License
 
-Licensed under either of MIT (`LICENSE-MIT`) or Apache 2.0 (`LICENSE-APACHE`), at your option.
+Licensed under either the
+[MIT License](https://github.com/iguana-parser/iguana-rs/blob/main/LICENSE-MIT)
+or the
+[Apache License, Version 2.0](https://github.com/iguana-parser/iguana-rs/blob/main/LICENSE-APACHE),
+at your option.

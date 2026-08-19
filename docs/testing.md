@@ -2,10 +2,14 @@
 
 Iguana has two kinds of tests:
 
-- Unit and integration tests inside the crates, run with `cargo test -p <crate>` (or `cargo nextest`).
-- Grammar tests under `tests/<name>/`, which check a generated parser's output against golden s-expression files.
+- **Rust tests.** Unit and integration tests live inside the crates and run
+  through Cargo or `cargo-nextest`.
+- **Grammar tests.** Each directory under `tests/<name>/` generates a parser and
+  compares its output with golden s-expression files.
 
-This document covers the grammar test workflow. The workspace-root `iguana-tests` crate holds only the non-grammar integration tests (`scanner_tests` and `error_reporting_tests`); each grammar test runs through its own parser binary.
+This guide covers grammar tests. The workspace-root `iguana-tests` crate holds
+only the non-grammar integration tests, `scanner_tests` and
+`error_reporting_tests`. Each grammar test runs through its own parser binary.
 
 ## Layout
 
@@ -22,32 +26,55 @@ tests/mygrammar/
         └── one.sexpr     # Expected output
 ```
 
-`src/` and `Cargo.toml` are generated and committed, so a fresh checkout builds without running the generator. The crate builds both a library, so other code can call `mygrammar::parse_s`, and a binary named after the grammar. The binary is what the test runner executes.
+`src/` and `Cargo.toml` are generated and committed, so a fresh checkout builds
+without running the generator. Each test crate has a library, which exposes
+functions such as `mygrammar::parse_s`, and a binary named after the grammar.
+The grammar-test runner executes the binary.
 
-A test case is a `<name>.txt` input file paired with a `<name>.sexpr` expected-output file, and the enclosing directory names the start nonterminal. The `S` directory above parses its inputs from the `S` start; a grammar with several start nonterminals has one directory per start. The input is the exact bytes to parse, with no trailing newline.
+A test case pairs a `<name>.txt` input with a `<name>.sexpr` expected-output
+file. The enclosing directory names the start nonterminal. The `S` directory
+above parses every input from `S`; a grammar with several start nonterminals
+has one directory per start. The input file contains the exact bytes to parse,
+with no trailing newline.
 
-The expected output holds the parse tree as an s-expression when the input parses, or a `Parse error at line N, col M: ...` line when it must not. A must-fail input is therefore a first-class test: the failure message is the golden. The render is truthful (layout, empty nodes, and EBNF wrappers all shown), so the golden reflects exactly what the parser produced rather than a simplified view.
+The expected output contains the parse tree as an s-expression when parsing
+succeeds. For an input that must fail, it contains a
+`Parse error at line N, col M: ...` line instead. The runner enables layout,
+empty nodes, and EBNF wrappers, so every golden file records the complete tree
+rather than the simplified display used by the CLI.
 
 ## Running tests
 
 ```sh
-cargo xtask test          # Run the cargo tests, then every grammar's golden tests
-cargo xtask test --regen  # Rewrite the grammar goldens instead of checking them
+cargo xtask test          # Run the Rust tests, then every grammar test
+cargo xtask test --regen  # Rewrite the grammar golden files instead of checking them
 ```
 
-`cargo xtask test` first runs the cargo tests through `cargo nextest run --workspace` (or `cargo test --workspace` when nextest is absent), then builds the workspace and runs each grammar's binary against its cases. Each binary runs in `--check-sexpr` mode: it parses every input in a start directory, renders the result, and compares it to the matching `.sexpr` file. Extra positional args are forwarded to the cargo run; the grammar tests always run in full, and the whole suite finishes in a few seconds.
+`cargo xtask test` first runs the Rust tests through
+`cargo nextest run --workspace`, or `cargo test --workspace` when nextest is
+not installed. It then builds the workspace and runs the grammar-test binaries
+concurrently. Each binary parses every input in one start directory with
+`--check-sexpr` and compares the rendered result with the matching `.sexpr`
+file. Extra arguments to `cargo xtask test` are forwarded only to the Rust test
+command; the grammar tests always run in full.
 
-`cargo xtask test --regen` runs the grammar tests in `--regenerate-sexpr` mode, which rewrites each `.sexpr` from the current parser output and skips the cargo tests. Review the diff before committing: every changed line should match the grammar change you made.
+`cargo xtask test --regen` skips the Rust tests and runs each parser with
+`--regenerate-sexpr`. This rewrites every `.sexpr` file from the current parser
+output. Review the diff before committing; every change should follow from the
+grammar or generator change.
 
 ## Adding a test
 
-Two commands scaffold a new grammar test. `test-new` creates the directory and a stub grammar; `test-gen` runs the generator and wires the crate into the workspace.
+Two commands create a grammar test. `test-new` creates the directory and a stub
+grammar. `test-gen` generates the parser and adds the crate to the workspace.
 
 ```sh
 cargo xtask test-new mygrammar
 ```
 
-`test-new` creates `tests/mygrammar/` and writes a stub `mygrammar.iggy` (`grammar Mygrammar`). It does not run the generator, so the crate has no `src/` or `Cargo.toml` yet.
+`test-new` creates `tests/mygrammar/` and writes a stub `mygrammar.iggy` that
+declares `grammar Mygrammar`. It does not run the generator, so the directory
+does not yet have `src/` or `Cargo.toml`.
 
 Edit the grammar to define its rules, then generate the parser:
 
@@ -55,15 +82,21 @@ Edit the grammar to define its rules, then generate the parser:
 cargo xtask test-gen mygrammar
 ```
 
-`test-gen` runs the generator, writing the parser sources under `src/` and a workspace-ready `Cargo.toml`, then adds the crate to the workspace `members` list in the root `Cargo.toml`. `test-gen-all` does the same for every directory under `tests/` that has a grammar file.
+`test-gen` writes the parser sources under `src/`, creates a workspace-ready
+`Cargo.toml`, and adds the crate to the root workspace. `test-gen-all` repeats
+that operation for every directory under `tests/` that contains a grammar
+file.
 
-Write the test cases by hand under `tests/<Start>/`. Create the start directory, drop in `<name>.txt` input files, and let the runner produce the expected output:
+Write test inputs under `tests/mygrammar/tests/<Start>/`. Create the start
+directory, add the `<name>.txt` files, and let the runner produce the expected
+output:
 
 ```sh
 cargo xtask test --regen
 ```
 
-This writes a `<name>.sexpr` next to each `<name>.txt`. Read each one to confirm the parser produced what you expected, then commit both files.
+This writes a `<name>.sexpr` beside each `<name>.txt`. Read every generated file
+and confirm that the parser produced the intended result before committing it.
 
 ## Removing a test
 
