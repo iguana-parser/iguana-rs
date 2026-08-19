@@ -13,9 +13,8 @@ use crate::utils::{to_pascal_case, to_snake_case};
 
 /// A grammar error.
 ///
-/// The span is `None` when there is nothing in the source to point at: a
-/// parse failure, whose message states the position itself, or an error in a
-/// `GrammarDef` built by hand rather than parsed.
+/// The span is `None` when there is nothing in the source to point at, as for
+/// an error in a `GrammarDef` built by hand rather than parsed.
 #[derive(Debug, Clone)]
 pub struct GrammarError {
     pub message: String,
@@ -26,7 +25,7 @@ pub struct GrammarError {
 /// grammar file as `path:line:column: message`.
 ///
 /// Lines and columns are 1-based. An error with no span is rendered as
-/// `path: message`. A parse failure includes its position in its own message.
+/// `path: message`.
 pub fn render_errors(errors: &[GrammarError], path: &Path, source: &str) -> String {
     let input = Input::from(source);
     errors

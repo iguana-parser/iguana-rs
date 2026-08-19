@@ -32,12 +32,11 @@ pub fn parse_grammar(source: &str) -> Result<GrammarDef, Vec<GrammarError>> {
     Ok(grammar_def)
 }
 
-/// A parse failure as a grammar error. It has no span, because its `Display`
-/// already states the line and column it was found at.
+/// A parse failure as a grammar error.
 fn parse_error(error: ParseError) -> Vec<GrammarError> {
     vec![GrammarError {
-        message: error.to_string(),
-        span: None,
+        message: error.message,
+        span: Some(error.span),
     }]
 }
 
@@ -490,6 +489,7 @@ fn parse_range_char(s: &str) -> char {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use iguana_runtime::input::Span;
 
     /// Parses without validating. The fragments below exercise one construct
     /// each and leave the names they mention undefined.
@@ -520,6 +520,15 @@ mod tests {
             Symbol::Restricted { restrictions, .. } => restrictions,
             other => panic!("expected a restricted symbol, got {other:?}"),
         }
+    }
+
+    /// A failure at the end of the input gets the empty span at the input
+    /// length, so the span stays a valid source range.
+    #[test]
+    fn test_parse_error_at_end_of_input_has_an_empty_span() {
+        let errors = parse_grammar("grammar").expect_err("the grammar is incomplete");
+        assert_eq!(errors.len(), 1);
+        assert_eq!(errors[0].span, Some(Span::new(7, 7)));
     }
 
     #[test]

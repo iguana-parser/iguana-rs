@@ -58,7 +58,7 @@ pub fn tokenize(source: &str) -> Vec<SemanticToken> {
     let tree_arena = iguana_runtime::arena::Arena::new();
     match build(&input, &tree_arena) {
         BuildResult::Success { tree, .. } => semantic_tokens(tree, &input),
-        BuildResult::Error { .. } | BuildResult::Ambiguous => vec![],
+        BuildResult::Error(_) | BuildResult::Ambiguous => vec![],
     }
 }
 

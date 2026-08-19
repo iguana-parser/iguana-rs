@@ -13,6 +13,7 @@ use crate::{
     ids::{BindingId, GssNodeId, NonterminalId, SlotId, TerminalId},
     input::{Input, Span},
     record,
+    result::ParseError,
     sppf::{IntermediateNode, NonterminalNode, SPPFNode, SPPFNodeId, TerminalNode},
     utils::inline_vec::InlineVec,
 };
@@ -252,12 +253,10 @@ pub trait Parser<'i, 'arena> {
     /// Returns the terminal IDs in the follow set of the given nonterminal.
     fn follow_set_terminals(&self, nonterminal_id: NonterminalId) -> Vec<TerminalId>;
 
-    /// Turns a failure into the message and location a person reads. The message
-    /// names what was expected, not what was found, and carries no source context; a
-    /// caller renders the location as a caret in a terminal or a range in an editor.
-    fn format_error(&self, error: &GLLFailure) -> (u32, u32, String) {
-        let (line, column) = self.input().line_column(error.input_index);
-        let message = match &error.kind {
+    /// The message a person reads for a failure. It names what was expected,
+    /// not what was found, and holds no source context or position.
+    fn failure_message(&self, failure: &GLLFailure) -> String {
+        match &failure.kind {
             GLLFailureKind::UnexpectedToken { expected } => {
                 let names: Vec<_> = expected.iter().map(|t| Self::terminal_name(*t)).collect();
                 match names.len() {
@@ -277,8 +276,14 @@ pub trait Parser<'i, 'arena> {
                 let names: Vec<_> = forbidden.iter().map(|t| Self::terminal_name(*t)).collect();
                 format!("Forbidden follow: {}", names.join(", "))
             }
-        };
-        (line, column, message)
+        }
+    }
+
+    /// Turns a failure into the message and location a person reads. A caller
+    /// renders the location as a caret in a terminal or a range in an editor.
+    fn format_error(&self, error: &GLLFailure) -> (u32, u32, String) {
+        let (line, column) = self.input().line_column(error.input_index);
+        (line, column, self.failure_message(error))
     }
 
     /// Length in characters of the span an error highlights, marked by a caret
@@ -295,6 +300,23 @@ pub trait Parser<'i, 'arena> {
             .unwrap_or(input_index);
         let end = longest.min(self.input().line_end(input_index));
         end.saturating_sub(input_index).max(1)
+    }
+
+    /// The failure as the `ParseError` a generated parse method returns. The
+    /// span starts at the failure position and covers the token-shaped extent
+    /// there (`error_span_len`), clamped to the input length: a failure at
+    /// the end of the input gets the empty span there, so the span is always
+    /// a valid source range.
+    fn to_parse_error(&mut self, failure: &GLLFailure) -> ParseError {
+        let len = self.error_span_len(failure.input_index);
+        let end = failure
+            .input_index
+            .saturating_add(len)
+            .min(self.input().len());
+        ParseError {
+            span: Span::new(failure.input_index, end),
+            message: self.failure_message(failure),
+        }
     }
 
     /// Returns the first failure at the farthest input position, if any.

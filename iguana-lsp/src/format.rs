@@ -563,7 +563,7 @@ mod tests {
         let tree_arena = iguana_runtime::arena::Arena::new();
         match build(&input, &tree_arena) {
             BuildResult::Success { tree, .. } => Some(format(tree, &input)),
-            BuildResult::Error { .. } | BuildResult::Ambiguous => None,
+            BuildResult::Error(_) | BuildResult::Ambiguous => None,
         }
     }
 

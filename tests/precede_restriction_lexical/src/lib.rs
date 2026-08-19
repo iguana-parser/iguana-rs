@@ -5,6 +5,7 @@ pub mod parse_tree;
 pub mod parser;
 pub mod scanner;
 pub mod types;
+pub use iguana_runtime::result::{ParseError, ParseSuccess};
 use iguana_runtime::{
     arena::Arena,
     input::Input,
@@ -12,43 +13,6 @@ use iguana_runtime::{
 };
 use parse_tree::*;
 use parser::PrecedeRestrictionLexicalParser;
-use std::error::Error;
-use std::fmt::{self, Display, Formatter};
-use std::time::Duration;
-#[derive(Debug)]
-pub struct ParseError {
-    /// The line the error was found at, counting from 0. `Display` adds one,
-    /// since a message for a person counts from 1.
-    pub line: u32,
-    /// The column the error was found at, counting from 0, under the same
-    /// convention as `line`.
-    pub column: u32,
-    pub len: u32,
-    pub message: String,
-}
-impl Display for ParseError {
-    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
-        write!(
-            f,
-            "Parse error at line {}, column {}: {}",
-            self.line + 1,
-            self.column + 1,
-            self.message
-        )
-    }
-}
-impl Error for ParseError {}
-pub struct ParseSuccess<T> {
-    pub tree: T,
-    pub parse_duration: Duration,
-    pub tree_construction_duration: Duration,
-    // True if an ambiguity node was added during parsing. Since the ambiguous node may end up in
-    // a dead branch (not reachable from root), the final parse tree may not be ambiguous, but
-    // this flag is used as a hint for checking for ambiguous parse trees. If the value is false,
-    // the parse is not ambiguous. If it's true, the caller should walk the parse tree to
-    // determine if there is an ambiguity node reachable from root. See contains_ambiguity.
-    pub ambiguity_node_added: bool,
-}
 /// Parses `input` starting from `S`.
 ///
 /// `tree_arena` holds the constructed parse tree: the returned tree borrows it
@@ -81,15 +45,6 @@ pub fn parse_s<'a>(
                 ambiguity_node_added,
             })
         }
-        GLLResult::Failure(error) => {
-            let (line, column, message) = parser.format_error(&error);
-            let len = parser.error_span_len(error.input_index);
-            Err(ParseError {
-                line,
-                column,
-                len,
-                message,
-            })
-        }
+        GLLResult::Failure(error) => Err(parser.to_parse_error(&error)),
     }
 }

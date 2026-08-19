@@ -9,8 +9,13 @@ pub mod symbols;
 
 use iggy::parse_tree::{Grammar, Layout, Start};
 pub use iguana_compiler::grammar::def::GrammarDef;
+pub use iguana_compiler::validation::GrammarError;
 pub use iguana_compiler::{comments, spans};
-use iguana_runtime::{arena::Arena, input::Input, parse_tree::ParseTreeNode};
+use iguana_runtime::{
+    arena::Arena,
+    input::{Input, Span},
+    parse_tree::ParseTreeNode,
+};
 use spans::GrammarSpans;
 use std::time::Duration;
 
@@ -24,12 +29,7 @@ pub enum BuildResult<'a> {
     /// treat this like a parse failure and skip the rest of the pipeline, but
     /// without a location to mark, so it surfaces no diagnostic.
     Ambiguous,
-    Error {
-        line: u32,
-        column: u32,
-        len: u32,
-        message: String,
-    },
+    Error(GrammarError),
 }
 
 /// Build a GrammarDef from a successful parse tree.
@@ -68,17 +68,13 @@ pub fn build<'a>(input: &Input, tree_arena: &'a Arena) -> BuildResult<'a> {
                 }
             }
         }
-        Ok(Err(error)) => BuildResult::Error {
-            line: error.line,
-            column: error.column,
-            len: error.len,
+        Ok(Err(error)) => BuildResult::Error(GrammarError {
             message: error.message,
-        },
-        Err(_) => BuildResult::Error {
-            line: 0,
-            column: 0,
-            len: 0,
+            span: Some(error.span),
+        }),
+        Err(_) => BuildResult::Error(GrammarError {
             message: "Internal error during parsing".to_string(),
-        },
+            span: Some(Span::new(0, 0)),
+        }),
     }
 }

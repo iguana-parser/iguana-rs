@@ -21,7 +21,7 @@ pub fn diagnostics<'a>(
 }
 
 /// An error with no span gives the editor no range to mark, so it is dropped.
-fn to_diagnostic(error: GrammarError, input: &Input) -> Option<Diagnostic> {
+pub fn to_diagnostic(error: GrammarError, input: &Input) -> Option<Diagnostic> {
     let span = error.span?;
     let (start_line, start_column) = input.line_column(span.left_extent);
     let (end_line, end_column) = input.line_column(span.right_extent);
@@ -51,6 +51,21 @@ mod tests {
         let grammar_def = crate::build_grammar_def(tree, &input);
         let spans = crate::build_spans(&grammar_def, tree, &input);
         diagnostics(&grammar_def, &spans, &input)
+    }
+
+    /// A parse failure at the end of the input has the empty span at the
+    /// input length. The conversion accepts that boundary offset and
+    /// produces a zero-width range there.
+    #[test]
+    fn parse_error_at_end_of_input() {
+        let input = Input::from("grammar");
+        let tree_arena = iguana_runtime::arena::Arena::new();
+        let crate::BuildResult::Error(error) = crate::build(&input, &tree_arena) else {
+            panic!("expected a parse error");
+        };
+        let d = to_diagnostic(error, &input).expect("the error has a span");
+        assert_eq!(d.range.start, Position::new(0, 7));
+        assert_eq!(d.range.end, Position::new(0, 7));
     }
 
     #[test]

@@ -1,6 +1,6 @@
 use std::error::Error;
 
-use iguana_lsp::diagnostics::diagnostics;
+use iguana_lsp::diagnostics::{diagnostics, to_diagnostic};
 use iguana_lsp::document_symbols::document_symbols;
 use iguana_lsp::folding::folding_ranges;
 use iguana_lsp::format::format;
@@ -15,7 +15,7 @@ use lsp_types::request::{
     Request as LspRequest, SemanticTokensFullRequest,
 };
 use lsp_types::{
-    Diagnostic, DocumentSymbolResponse, Position, PublishDiagnosticsParams, Range, SemanticTokens,
+    DocumentSymbolResponse, Position, PublishDiagnosticsParams, Range, SemanticTokens,
     SemanticTokensResult, TextEdit, Uri,
 };
 
@@ -47,7 +47,7 @@ pub fn main_loop(
                         let tree_arena = Arena::new();
                         let tokens = match build(&input, &tree_arena) {
                             BuildResult::Success { tree, .. } => semantic_tokens(tree, &input),
-                            BuildResult::Error { .. } | BuildResult::Ambiguous => vec![],
+                            BuildResult::Error(_) | BuildResult::Ambiguous => vec![],
                         };
                         let result = SemanticTokensResult::Tokens(SemanticTokens {
                             result_id: None,
@@ -84,7 +84,7 @@ pub fn main_loop(
                                     new_text: formatted,
                                 }])
                             }
-                            BuildResult::Error { .. } | BuildResult::Ambiguous => None,
+                            BuildResult::Error(_) | BuildResult::Ambiguous => None,
                         };
                         let result = serde_json::to_value(&edits).unwrap();
                         let resp = Response::new_ok(id, result);
@@ -257,22 +257,7 @@ fn publish_diagnostics(
             diagnostics(&grammar_def, &spans, &input)
         }
         BuildResult::Ambiguous => vec![],
-        BuildResult::Error {
-            line,
-            column,
-            len,
-            message,
-        } => {
-            vec![Diagnostic {
-                range: Range {
-                    start: Position::new(line, column),
-                    end: Position::new(line, column + len),
-                },
-                severity: Some(lsp_types::DiagnosticSeverity::ERROR),
-                message,
-                ..Default::default()
-            }]
-        }
+        BuildResult::Error(error) => to_diagnostic(error, &input).into_iter().collect(),
     };
     let params = PublishDiagnosticsParams {
         uri,

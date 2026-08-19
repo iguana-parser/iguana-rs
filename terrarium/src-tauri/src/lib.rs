@@ -200,7 +200,7 @@ impl GrammarState {
                 self.tree_ms = tree_construction_duration.as_millis() as u32;
                 self.success = true;
             }
-            iguana_lsp::BuildResult::Error { .. } | iguana_lsp::BuildResult::Ambiguous => {
+            iguana_lsp::BuildResult::Error(_) | iguana_lsp::BuildResult::Ambiguous => {
                 self.grammar_def = None;
                 self.parse_ms = 0;
                 self.tree_ms = 0;
@@ -1265,54 +1265,43 @@ fn get_diagnostics(
             return vec![];
         };
         let tree_arena = Arena::new();
-        match iguana_lsp::build(input, &tree_arena) {
+        let diagnostics = match iguana_lsp::build(input, &tree_arena) {
             iguana_lsp::BuildResult::Success { tree, .. } => {
                 let Some(ref grammar_def) = st.grammar_def else {
                     return vec![];
                 };
                 let spans = iguana_lsp::build_spans(grammar_def, tree, input);
                 iguana_lsp::diagnostics::diagnostics(grammar_def, &spans, input)
-                    .into_iter()
-                    .map(|d| {
-                        let severity = match d.severity {
-                            Some(lsp_types::DiagnosticSeverity::ERROR) => 8,
-                            Some(lsp_types::DiagnosticSeverity::WARNING) => 4,
-                            Some(lsp_types::DiagnosticSeverity::INFORMATION) => 2,
-                            Some(lsp_types::DiagnosticSeverity::HINT) => 1,
-                            _ => 8,
-                        };
-                        DiagnosticData {
-                            range: RangeData {
-                                start_line: d.range.start.line,
-                                start_char: d.range.start.character,
-                                end_line: d.range.end.line,
-                                end_char: d.range.end.character,
-                            },
-                            severity,
-                            message: d.message,
-                        }
-                    })
-                    .collect()
             }
             iguana_lsp::BuildResult::Ambiguous => vec![],
-            iguana_lsp::BuildResult::Error {
-                line,
-                column,
-                len,
-                message,
-            } => {
-                vec![DiagnosticData {
-                    range: RangeData {
-                        start_line: line,
-                        start_char: column,
-                        end_line: line,
-                        end_char: column + len,
-                    },
-                    severity: 8,
-                    message: format!("Parse error: {message}"),
-                }]
+            iguana_lsp::BuildResult::Error(error) => {
+                iguana_lsp::diagnostics::to_diagnostic(error, input)
+                    .into_iter()
+                    .collect()
             }
-        }
+        };
+        diagnostics
+            .into_iter()
+            .map(|d| {
+                let severity = match d.severity {
+                    Some(lsp_types::DiagnosticSeverity::ERROR) => 8,
+                    Some(lsp_types::DiagnosticSeverity::WARNING) => 4,
+                    Some(lsp_types::DiagnosticSeverity::INFORMATION) => 2,
+                    Some(lsp_types::DiagnosticSeverity::HINT) => 1,
+                    _ => 8,
+                };
+                DiagnosticData {
+                    range: RangeData {
+                        start_line: d.range.start.line,
+                        start_char: d.range.start.character,
+                        end_line: d.range.end.line,
+                        end_char: d.range.end.character,
+                    },
+                    severity,
+                    message: d.message,
+                }
+            })
+            .collect()
     })
 }
 
