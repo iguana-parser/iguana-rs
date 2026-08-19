@@ -8,6 +8,7 @@ use std::time::{Duration, Instant};
 use serde::{Deserialize, Serialize};
 
 use crate::parse_tree::DisplayOptions;
+use crate::result::ParseError;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Symbols {
@@ -267,24 +268,22 @@ fn summarize(samples_ms: &[f64]) -> BenchSummary {
     }
 }
 
+/// The report `--write-result` writes as JSON: the phase timings on success,
+/// the parse error on failure. Untagged, so a reader tells the two shapes
+/// apart by their fields.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(untagged)]
 pub enum ParseResult {
-    Success(ParseSuccess),
-    Failure(ParseFailure),
+    Success(ParseTimings),
+    Failure(ParseError),
 }
 
+/// The phase durations of a successful parse. `tree_construction_ms` is `None`
+/// when the run built no parse tree.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ParseSuccess {
+pub struct ParseTimings {
     pub parse_ms: u64,
     pub tree_construction_ms: Option<u64>,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ParseFailure {
-    pub line: u32,
-    pub column: u32,
-    pub message: String,
 }
 
 /// Outcome of parsing one REPL input.
@@ -1377,6 +1376,8 @@ fn print_baseline_counts(totals: &BaselineTotals) {
 mod tests {
     use super::*;
 
+    use crate::input::Span;
+
     #[test]
     fn parse_repos_text_reads_entries_and_skips_comments() {
         let cfg = "# name ext start repo ref\n\
@@ -1441,6 +1442,52 @@ mod tests {
     #[test]
     fn sanitize_strips_tabs_and_newlines() {
         assert_eq!(sanitize("a\tb\nc\rd"), "a b c d");
+    }
+
+    #[test]
+    fn parse_result_success_round_trips_as_timings_json() {
+        let result = ParseResult::Success(ParseTimings {
+            parse_ms: 12,
+            tree_construction_ms: Some(3),
+        });
+        let json = serde_json::to_string(&result).unwrap();
+        assert_eq!(json, r#"{"parse_ms":12,"tree_construction_ms":3}"#);
+        match serde_json::from_str::<ParseResult>(&json).unwrap() {
+            ParseResult::Success(t) => {
+                assert_eq!(t.parse_ms, 12);
+                assert_eq!(t.tree_construction_ms, Some(3));
+            }
+            ParseResult::Failure(_) => panic!("expected a success"),
+        }
+
+        let no_tree = ParseResult::Success(ParseTimings {
+            parse_ms: 12,
+            tree_construction_ms: None,
+        });
+        assert_eq!(
+            serde_json::to_string(&no_tree).unwrap(),
+            r#"{"parse_ms":12,"tree_construction_ms":null}"#
+        );
+    }
+
+    #[test]
+    fn parse_result_failure_round_trips_as_span_and_message_json() {
+        let result = ParseResult::Failure(ParseError {
+            span: Span::new(4, 7),
+            message: "Expected Id".to_string(),
+        });
+        let json = serde_json::to_string(&result).unwrap();
+        assert_eq!(
+            json,
+            r#"{"span":{"left_extent":4,"right_extent":7},"message":"Expected Id"}"#
+        );
+        match serde_json::from_str::<ParseResult>(&json).unwrap() {
+            ParseResult::Failure(e) => {
+                assert_eq!(e.span, Span::new(4, 7));
+                assert_eq!(e.message, "Expected Id");
+            }
+            ParseResult::Success(_) => panic!("expected a failure"),
+        }
     }
 
     #[test]

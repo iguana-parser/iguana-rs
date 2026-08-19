@@ -821,7 +821,7 @@ pub fn generate(grammar: &Grammar) -> TokenStream {
 
                     // Handle --write-result (write parse result as JSON)
                     if let Some(ref path) = args.write_result {
-                        let result = cli::ParseResult::Success(cli::ParseSuccess {
+                        let result = cli::ParseResult::Success(cli::ParseTimings {
                             parse_ms: parse_success.duration.as_millis() as u64,
                             tree_construction_ms: tree_construction_ms.map(|ms| ms as u64),
                         });
@@ -860,12 +860,7 @@ pub fn generate(grammar: &Grammar) -> TokenStream {
                     eprintln!("{}", error.render(&input));
 
                     if let Some(ref path) = args.write_result {
-                        let (line, column) = input.line_column(error.span.left_extent);
-                        let result = cli::ParseResult::Failure(cli::ParseFailure {
-                            line,
-                            column,
-                            message: error.message,
-                        });
+                        let result = cli::ParseResult::Failure(error);
                         let file = File::create(path)?;
                         let mut writer = BufWriter::new(file);
                         writeln!(writer, "{}", serde_json::to_string(&result).unwrap())?;

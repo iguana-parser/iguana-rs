@@ -237,7 +237,8 @@ struct ParseState {
     gss_path: Option<PathBuf>,
 }
 
-/// Parse error location and message, from the parser's --write-result JSON.
+/// Parse error location and message for the editor markers, with the line and
+/// column derived from the span in the parser's --write-result JSON.
 #[derive(Clone, Serialize, Type)]
 struct ParseErrorInfo {
     line: u32,
@@ -595,24 +596,31 @@ fn parse_inner(
             has_gss,
             parse_tree,
         }),
-        Some(ParseResult::Failure(f)) => Ok(ParseOutput {
-            success: false,
-            error: Some(format!(
-                "Parse failed at line {}, column {}: {}",
-                f.line, f.column, f.message
-            )),
-            error_info: Some(ParseErrorInfo {
-                line: f.line,
-                column: f.column,
-                message: f.message,
-            }),
-            unexpected_error: false,
-            duration_ms: None,
-            tree_construction_ms: None,
-            has_sppf,
-            has_gss,
-            parse_tree,
-        }),
+        Some(ParseResult::Failure(f)) => {
+            // The result holds a span; the editor markers want a zero-based
+            // line and column, so the input converts the span's start.
+            let (line, column) = Input::from(input.as_str()).line_column(f.span.left_extent);
+            Ok(ParseOutput {
+                success: false,
+                error: Some(format!(
+                    "Parse failed at line {}, column {}: {}",
+                    line + 1,
+                    column + 1,
+                    f.message
+                )),
+                error_info: Some(ParseErrorInfo {
+                    line,
+                    column,
+                    message: f.message,
+                }),
+                unexpected_error: false,
+                duration_ms: None,
+                tree_construction_ms: None,
+                has_sppf,
+                has_gss,
+                parse_tree,
+            })
+        }
         // The parser exited cleanly but wrote no result file: an unexpected error,
         // not a parse failure. Should not happen with the current generator.
         None => {
