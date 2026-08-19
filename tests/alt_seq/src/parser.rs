@@ -13,8 +13,8 @@ use iguana_runtime::{
     ids::{BindingId, GssNodeId, NonterminalId, SlotId, TerminalId},
     input::Input,
     parser::{
-        DESCRIPTORS_CAPACITY_DIVISOR, DESCRIPTORS_CAPACITY_FLOOR, GSS_CAPACITY_MULTIPLIER,
-        ParseError, ParseErrorKind, Parser, SPPF_CAPACITY_MULTIPLIER, init_logger,
+        DESCRIPTORS_CAPACITY_DIVISOR, DESCRIPTORS_CAPACITY_FLOOR, GLLFailure, GLLFailureKind,
+        GSS_CAPACITY_MULTIPLIER, Parser, SPPF_CAPACITY_MULTIPLIER, init_logger,
     },
     record,
     scanner::Scanner,
@@ -66,8 +66,8 @@ impl<'i, 'arena> Parser<'i, 'arena> for AltSeqParser<'i, 'arena> {
                     // S : Alt_0 . Alt_1 Hex
                     self.execute(j, SlotId(1), Some(right_child), gss_node_id, env);
                 } else {
-                    self.add_parse_error(input_index, SlotId(0), Some(gss_node_id), || {
-                        ParseErrorKind::UnexpectedToken {
+                    self.add_failure(input_index, SlotId(0), Some(gss_node_id), || {
+                        GLLFailureKind::UnexpectedToken {
                             expected: FIRST_SET_ALT_0.terminals.to_vec(),
                         }
                     });
@@ -83,8 +83,8 @@ impl<'i, 'arena> Parser<'i, 'arena> for AltSeqParser<'i, 'arena> {
                         self.execute(j, SlotId(2), Some(new_node), gss_node_id, env);
                     }
                 } else {
-                    self.add_parse_error(input_index, SlotId(1), Some(gss_node_id), || {
-                        ParseErrorKind::UnexpectedToken {
+                    self.add_failure(input_index, SlotId(1), Some(gss_node_id), || {
+                        GLLFailureKind::UnexpectedToken {
                             expected: FIRST_SET_ALT_1.terminals.to_vec(),
                         }
                     });
@@ -206,8 +206,8 @@ impl<'i, 'arena> Parser<'i, 'arena> for AltSeqParser<'i, 'arena> {
                     // Alt_0 : A . B
                     self.execute(j, SlotId(17), Some(right_child), gss_node_id, env);
                 } else {
-                    self.add_parse_error(input_index, SlotId(16), Some(gss_node_id), || {
-                        ParseErrorKind::UnexpectedToken {
+                    self.add_failure(input_index, SlotId(16), Some(gss_node_id), || {
+                        GLLFailureKind::UnexpectedToken {
                             expected: FIRST_SET_A.terminals.to_vec(),
                         }
                     });
@@ -223,8 +223,8 @@ impl<'i, 'arena> Parser<'i, 'arena> for AltSeqParser<'i, 'arena> {
                         self.execute(j, SlotId(18), Some(new_node), gss_node_id, env);
                     }
                 } else {
-                    self.add_parse_error(input_index, SlotId(17), Some(gss_node_id), || {
-                        ParseErrorKind::UnexpectedToken {
+                    self.add_failure(input_index, SlotId(17), Some(gss_node_id), || {
+                        GLLFailureKind::UnexpectedToken {
                             expected: FIRST_SET_B.terminals.to_vec(),
                         }
                     });
@@ -243,8 +243,8 @@ impl<'i, 'arena> Parser<'i, 'arena> for AltSeqParser<'i, 'arena> {
                     // Alt_0 : C.
                     self.execute(j, SlotId(20), Some(right_child), gss_node_id, env);
                 } else {
-                    self.add_parse_error(input_index, SlotId(19), Some(gss_node_id), || {
-                        ParseErrorKind::UnexpectedToken {
+                    self.add_failure(input_index, SlotId(19), Some(gss_node_id), || {
+                        GLLFailureKind::UnexpectedToken {
                             expected: FIRST_SET_C.terminals.to_vec(),
                         }
                     });
@@ -263,8 +263,8 @@ impl<'i, 'arena> Parser<'i, 'arena> for AltSeqParser<'i, 'arena> {
                     // Alt_1 : D.
                     self.execute(j, SlotId(22), Some(right_child), gss_node_id, env);
                 } else {
-                    self.add_parse_error(input_index, SlotId(21), Some(gss_node_id), || {
-                        ParseErrorKind::UnexpectedToken {
+                    self.add_failure(input_index, SlotId(21), Some(gss_node_id), || {
+                        GLLFailureKind::UnexpectedToken {
                             expected: FIRST_SET_D.terminals.to_vec(),
                         }
                     });
@@ -283,8 +283,8 @@ impl<'i, 'arena> Parser<'i, 'arena> for AltSeqParser<'i, 'arena> {
                     // Alt_1 : E . F
                     self.execute(j, SlotId(24), Some(right_child), gss_node_id, env);
                 } else {
-                    self.add_parse_error(input_index, SlotId(23), Some(gss_node_id), || {
-                        ParseErrorKind::UnexpectedToken {
+                    self.add_failure(input_index, SlotId(23), Some(gss_node_id), || {
+                        GLLFailureKind::UnexpectedToken {
                             expected: FIRST_SET_E.terminals.to_vec(),
                         }
                     });
@@ -300,8 +300,8 @@ impl<'i, 'arena> Parser<'i, 'arena> for AltSeqParser<'i, 'arena> {
                         self.execute(j, SlotId(25), Some(new_node), gss_node_id, env);
                     }
                 } else {
-                    self.add_parse_error(input_index, SlotId(24), Some(gss_node_id), || {
-                        ParseErrorKind::UnexpectedToken {
+                    self.add_failure(input_index, SlotId(24), Some(gss_node_id), || {
+                        GLLFailureKind::UnexpectedToken {
                             expected: FIRST_SET_F.terminals.to_vec(),
                         }
                     });
@@ -320,8 +320,8 @@ impl<'i, 'arena> Parser<'i, 'arena> for AltSeqParser<'i, 'arena> {
                     // StartS : start:S.
                     self.execute(j, SlotId(27), Some(right_child), gss_node_id, env);
                 } else {
-                    self.add_parse_error(input_index, SlotId(26), Some(gss_node_id), || {
-                        ParseErrorKind::UnexpectedToken {
+                    self.add_failure(input_index, SlotId(26), Some(gss_node_id), || {
+                        GLLFailureKind::UnexpectedToken {
                             expected: FIRST_SET_S.terminals.to_vec(),
                         }
                     });
@@ -340,8 +340,8 @@ impl<'i, 'arena> Parser<'i, 'arena> for AltSeqParser<'i, 'arena> {
                     // StartA : start:A.
                     self.execute(j, SlotId(29), Some(right_child), gss_node_id, env);
                 } else {
-                    self.add_parse_error(input_index, SlotId(28), Some(gss_node_id), || {
-                        ParseErrorKind::UnexpectedToken {
+                    self.add_failure(input_index, SlotId(28), Some(gss_node_id), || {
+                        GLLFailureKind::UnexpectedToken {
                             expected: FIRST_SET_A.terminals.to_vec(),
                         }
                     });
@@ -364,8 +364,8 @@ impl<'i, 'arena> Parser<'i, 'arena> for AltSeqParser<'i, 'arena> {
                     // StartB : start:B.
                     self.execute(j, SlotId(31), Some(right_child), gss_node_id, env);
                 } else {
-                    self.add_parse_error(input_index, SlotId(30), Some(gss_node_id), || {
-                        ParseErrorKind::UnexpectedToken {
+                    self.add_failure(input_index, SlotId(30), Some(gss_node_id), || {
+                        GLLFailureKind::UnexpectedToken {
                             expected: FIRST_SET_B.terminals.to_vec(),
                         }
                     });
@@ -388,8 +388,8 @@ impl<'i, 'arena> Parser<'i, 'arena> for AltSeqParser<'i, 'arena> {
                     // StartC : start:C.
                     self.execute(j, SlotId(33), Some(right_child), gss_node_id, env);
                 } else {
-                    self.add_parse_error(input_index, SlotId(32), Some(gss_node_id), || {
-                        ParseErrorKind::UnexpectedToken {
+                    self.add_failure(input_index, SlotId(32), Some(gss_node_id), || {
+                        GLLFailureKind::UnexpectedToken {
                             expected: FIRST_SET_C.terminals.to_vec(),
                         }
                     });
@@ -412,8 +412,8 @@ impl<'i, 'arena> Parser<'i, 'arena> for AltSeqParser<'i, 'arena> {
                     // StartD : start:D.
                     self.execute(j, SlotId(35), Some(right_child), gss_node_id, env);
                 } else {
-                    self.add_parse_error(input_index, SlotId(34), Some(gss_node_id), || {
-                        ParseErrorKind::UnexpectedToken {
+                    self.add_failure(input_index, SlotId(34), Some(gss_node_id), || {
+                        GLLFailureKind::UnexpectedToken {
                             expected: FIRST_SET_D.terminals.to_vec(),
                         }
                     });
@@ -436,8 +436,8 @@ impl<'i, 'arena> Parser<'i, 'arena> for AltSeqParser<'i, 'arena> {
                     // StartE : start:E.
                     self.execute(j, SlotId(37), Some(right_child), gss_node_id, env);
                 } else {
-                    self.add_parse_error(input_index, SlotId(36), Some(gss_node_id), || {
-                        ParseErrorKind::UnexpectedToken {
+                    self.add_failure(input_index, SlotId(36), Some(gss_node_id), || {
+                        GLLFailureKind::UnexpectedToken {
                             expected: FIRST_SET_E.terminals.to_vec(),
                         }
                     });
@@ -460,8 +460,8 @@ impl<'i, 'arena> Parser<'i, 'arena> for AltSeqParser<'i, 'arena> {
                     // StartF : start:F.
                     self.execute(j, SlotId(39), Some(right_child), gss_node_id, env);
                 } else {
-                    self.add_parse_error(input_index, SlotId(38), Some(gss_node_id), || {
-                        ParseErrorKind::UnexpectedToken {
+                    self.add_failure(input_index, SlotId(38), Some(gss_node_id), || {
+                        GLLFailureKind::UnexpectedToken {
                             expected: FIRST_SET_F.terminals.to_vec(),
                         }
                     });
@@ -532,8 +532,8 @@ impl<'i, 'arena> Parser<'i, 'arena> for AltSeqParser<'i, 'arena> {
                     self.add_first_descriptor(SlotId(19), input_index, gss_node_id, env);
                 }
                 if !matched {
-                    self.add_parse_error(input_index, SlotId(16), Some(gss_node_id), || {
-                        ParseErrorKind::UnexpectedToken {
+                    self.add_failure(input_index, SlotId(16), Some(gss_node_id), || {
+                        GLLFailureKind::UnexpectedToken {
                             expected: FIRST_SET_ALT_0.terminals.to_vec(),
                         }
                     });
@@ -553,8 +553,8 @@ impl<'i, 'arena> Parser<'i, 'arena> for AltSeqParser<'i, 'arena> {
                     self.add_first_descriptor(SlotId(23), input_index, gss_node_id, env);
                 }
                 if !matched {
-                    self.add_parse_error(input_index, SlotId(21), Some(gss_node_id), || {
-                        ParseErrorKind::UnexpectedToken {
+                    self.add_failure(input_index, SlotId(21), Some(gss_node_id), || {
+                        GLLFailureKind::UnexpectedToken {
                             expected: FIRST_SET_ALT_1.terminals.to_vec(),
                         }
                     });
@@ -929,7 +929,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for AltSeqParser<'i, 'arena> {
         _slot: SlotId,
         _left_extent: u32,
         _right_extent: u32,
-    ) -> Option<ParseErrorKind> {
+    ) -> Option<GLLFailureKind> {
         None
     }
     fn follow_set_check(&mut self, nonterminal_id: NonterminalId, input_index: u32) -> bool {
@@ -974,38 +974,38 @@ impl<'i, 'arena> Parser<'i, 'arena> for AltSeqParser<'i, 'arena> {
             _ => vec![],
         }
     }
-    fn parse_error(&self) -> Option<&ParseError> {
-        self.parse_errors.first()
+    fn failure(&self) -> Option<&GLLFailure> {
+        self.failures.first()
     }
-    fn add_parse_error(
+    fn add_failure(
         &mut self,
         input_index: u32,
         slot_id: SlotId,
         gss_node_id: Option<GssNodeId>,
-        kind: impl FnOnce() -> ParseErrorKind,
+        kind: impl FnOnce() -> GLLFailureKind,
     ) {
-        if self.suppress_parse_errors {
+        if self.suppress_failures {
             return;
         }
-        let level = self.parse_errors.first().map_or(0, |e| e.input_index);
+        let level = self.failures.first().map_or(0, |e| e.input_index);
         if input_index < level {
-            record!(self, ParseError, input_index, slot_id, gss_node_id, kind());
+            record!(self, GLLFailure, input_index, slot_id, gss_node_id, kind());
             return;
         }
         let kind = kind();
         record!(
             self,
-            ParseError,
+            GLLFailure,
             input_index,
             slot_id,
             gss_node_id,
             kind.clone()
         );
         if input_index > level {
-            self.parse_errors.clear();
+            self.failures.clear();
         }
-        self.parse_errors.push(
-            ParseError {
+        self.failures.push(
+            GLLFailure {
                 input_index,
                 slot_id,
                 gss_node_id,
@@ -1057,10 +1057,10 @@ pub struct AltSeqParser<'i, 'arena> {
     // intermediate_nodes_children_map.
     nonterminal_nodes_children_map: OnceCell<FxHashMap<SPPFNodeId, Vec<(SPPFNodeId, SlotId)>>>,
     envs: ArenaVec<'arena, Env<'arena>>,
-    parse_errors: InlineVec<'arena, ParseError, 8>,
-    // When true, `add_parse_error` is a no-op. The one user is the layout match of a `!>>>`
+    failures: InlineVec<'arena, GLLFailure, 8>,
+    // When true, `add_failure` is a no-op. The one user is the layout match of a `!>>>`
     // restriction: that parse is speculative, so its failure must not become the reported error.
-    suppress_parse_errors: bool,
+    suppress_failures: bool,
     #[cfg(feature = "debug-trace")]
     pub trace_events: Option<Vec<TraceEvent>>,
 }
@@ -1096,8 +1096,8 @@ impl<'i, 'arena> AltSeqParser<'i, 'arena> {
             nonterminal_nodes_children: vec_arena.vec(),
             nonterminal_nodes_children_map: OnceCell::new(),
             envs: vec_arena.vec(),
-            parse_errors: InlineVec::Empty,
-            suppress_parse_errors: false,
+            failures: InlineVec::Empty,
+            suppress_failures: false,
             #[cfg(feature = "debug-trace")]
             trace_events: None,
         }
@@ -1112,8 +1112,8 @@ impl<'i, 'arena> AltSeqParser<'i, 'arena> {
                 let right_child = {
                     let start = j;
                     let Some(node) = self.parse_alt_0_ll1(start) else {
-                        self.add_parse_error(start, SlotId(1), None, || {
-                            ParseErrorKind::UnexpectedToken {
+                        self.add_failure(start, SlotId(1), None, || {
+                            GLLFailureKind::UnexpectedToken {
                                 expected: FIRST_SET_ALT_0.terminals.to_vec(),
                             }
                         });
@@ -1128,8 +1128,8 @@ impl<'i, 'arena> AltSeqParser<'i, 'arena> {
                 let right_child = {
                     let start = j;
                     let Some(node) = self.parse_alt_1_ll1(start) else {
-                        self.add_parse_error(start, SlotId(2), None, || {
-                            ParseErrorKind::UnexpectedToken {
+                        self.add_failure(start, SlotId(2), None, || {
+                            GLLFailureKind::UnexpectedToken {
                                 expected: FIRST_SET_ALT_1.terminals.to_vec(),
                             }
                         });
@@ -1360,8 +1360,8 @@ impl<'i, 'arena> AltSeqParser<'i, 'arena> {
                 let right_child = {
                     let start = j;
                     let Some(node) = self.parse_a_ll1(start) else {
-                        self.add_parse_error(start, SlotId(17), None, || {
-                            ParseErrorKind::UnexpectedToken {
+                        self.add_failure(start, SlotId(17), None, || {
+                            GLLFailureKind::UnexpectedToken {
                                 expected: FIRST_SET_A.terminals.to_vec(),
                             }
                         });
@@ -1376,8 +1376,8 @@ impl<'i, 'arena> AltSeqParser<'i, 'arena> {
                 let right_child = {
                     let start = j;
                     let Some(node) = self.parse_b_ll1(start) else {
-                        self.add_parse_error(start, SlotId(18), None, || {
-                            ParseErrorKind::UnexpectedToken {
+                        self.add_failure(start, SlotId(18), None, || {
+                            GLLFailureKind::UnexpectedToken {
                                 expected: FIRST_SET_B.terminals.to_vec(),
                             }
                         });
@@ -1410,8 +1410,8 @@ impl<'i, 'arena> AltSeqParser<'i, 'arena> {
                 let right_child = {
                     let start = j;
                     let Some(node) = self.parse_c_ll1(start) else {
-                        self.add_parse_error(start, SlotId(20), None, || {
-                            ParseErrorKind::UnexpectedToken {
+                        self.add_failure(start, SlotId(20), None, || {
+                            GLLFailureKind::UnexpectedToken {
                                 expected: FIRST_SET_C.terminals.to_vec(),
                             }
                         });
@@ -1447,8 +1447,8 @@ impl<'i, 'arena> AltSeqParser<'i, 'arena> {
                 let right_child = {
                     let start = j;
                     let Some(node) = self.parse_d_ll1(start) else {
-                        self.add_parse_error(start, SlotId(22), None, || {
-                            ParseErrorKind::UnexpectedToken {
+                        self.add_failure(start, SlotId(22), None, || {
+                            GLLFailureKind::UnexpectedToken {
                                 expected: FIRST_SET_D.terminals.to_vec(),
                             }
                         });
@@ -1476,8 +1476,8 @@ impl<'i, 'arena> AltSeqParser<'i, 'arena> {
                 let right_child = {
                     let start = j;
                     let Some(node) = self.parse_e_ll1(start) else {
-                        self.add_parse_error(start, SlotId(24), None, || {
-                            ParseErrorKind::UnexpectedToken {
+                        self.add_failure(start, SlotId(24), None, || {
+                            GLLFailureKind::UnexpectedToken {
                                 expected: FIRST_SET_E.terminals.to_vec(),
                             }
                         });
@@ -1492,8 +1492,8 @@ impl<'i, 'arena> AltSeqParser<'i, 'arena> {
                 let right_child = {
                     let start = j;
                     let Some(node) = self.parse_f_ll1(start) else {
-                        self.add_parse_error(start, SlotId(25), None, || {
-                            ParseErrorKind::UnexpectedToken {
+                        self.add_failure(start, SlotId(25), None, || {
+                            GLLFailureKind::UnexpectedToken {
                                 expected: FIRST_SET_F.terminals.to_vec(),
                             }
                         });

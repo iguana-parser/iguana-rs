@@ -1,10 +1,8 @@
-use std::time::Duration;
-
 use serde::{Deserialize, Serialize};
 
 use crate::ids::{GssNodeId, NonterminalId, SlotId, TerminalId};
 use crate::input::Span;
-use crate::parser::ParseErrorKind;
+use crate::parser::GLLFailureKind;
 use crate::sppf::SPPFNodeId;
 
 #[cfg(feature = "debug-trace")]
@@ -20,8 +18,8 @@ pub enum TraceEvent {
     MatchingTrailingLayout(u32),
     MatchingTerminal(TerminalId, u32),  // terminal, input_index
     MatchSuccess(TerminalId, u32, u32), // terminal, input_index, next_input match
-    ParseError(u32, SlotId, Option<GssNodeId>, ParseErrorKind), // input_index, slot, gss_node, error_kind
-    MatchedLayout(Option<u32>),                                 // next_input match
+    GLLFailure(u32, SlotId, Option<GssNodeId>, GLLFailureKind), // input_index, slot, gss_node, kind
+    MatchedLayout(Option<u32>),         // next_input match
     GSSNodeCreated(NonterminalId, u32),
     GSSNodeFound(NonterminalId, u32),
     GSSNodeNotFound(NonterminalId, u32),
@@ -36,8 +34,6 @@ pub enum TraceEvent {
     AddToPoppedElements(GssNodeId, SPPFNodeId, Option<i32>),
     NodeAlreadyInPoppedElements,
     Call(Option<SPPFNodeId>, GssNodeId, SlotId),
-    ParseSuccess(Duration),
-    ParseFailed(Duration),
 }
 
 #[cfg(feature = "debug-trace")]
@@ -87,22 +83,22 @@ impl TraceEvent {
                 input_index,
                 matched_index - input_index
             ),
-            TraceEvent::ParseError(input_index, slot_id, gss_node_id, ref kind) => {
+            TraceEvent::GLLFailure(input_index, slot_id, gss_node_id, ref kind) => {
                 let gss = gss_node_id
                     .map(|id| parser.gss_to_string(id))
                     .unwrap_or_else(|| "?".to_string());
                 let kind_str = match kind {
-                    ParseErrorKind::UnexpectedToken { expected } => {
+                    GLLFailureKind::UnexpectedToken { expected } => {
                         let names: Vec<&str> =
                             expected.iter().map(|id| P::terminal_name(*id)).collect();
                         format!("expected {}", names.join(", "))
                     }
-                    ParseErrorKind::ExcludedMatch { excluded_by } => {
+                    GLLFailureKind::ExcludedMatch { excluded_by } => {
                         let names: Vec<&str> =
                             excluded_by.iter().map(|id| P::terminal_name(*id)).collect();
                         format!("excluded by {}", names.join(", "))
                     }
-                    ParseErrorKind::ForbiddenFollow { forbidden } => {
+                    GLLFailureKind::ForbiddenFollow { forbidden } => {
                         let names: Vec<&str> =
                             forbidden.iter().map(|id| P::terminal_name(*id)).collect();
                         format!("forbidden follow {}", names.join(", "))
@@ -220,12 +216,6 @@ impl TraceEvent {
                 parser.gss_to_string(gss_node_id),
                 P::slot_name(slot_id)
             ),
-            TraceEvent::ParseSuccess(duration) => {
-                format!("Parse succeeded in {:?} ms", duration.as_millis())
-            }
-            TraceEvent::ParseFailed(duration) => {
-                format!("Parse failed in {:?}", duration.as_millis())
-            }
         }
     }
 }
@@ -272,8 +262,8 @@ macro_rules! record {
             $next_index,
         ));
     };
-    ($parser:expr, ParseError, $input_index:expr, $slot_id:expr, $gss_node_id:expr, $kind:expr) => {
-        $parser.add_trace_event($crate::trace::TraceEvent::ParseError(
+    ($parser:expr, GLLFailure, $input_index:expr, $slot_id:expr, $gss_node_id:expr, $kind:expr) => {
+        $parser.add_trace_event($crate::trace::TraceEvent::GLLFailure(
             $input_index,
             $slot_id,
             $gss_node_id,
@@ -366,12 +356,6 @@ macro_rules! record {
             $gss_node_id,
             $slot_id,
         ));
-    };
-    ($parser:expr, ParseSuccess, $duration:expr) => {
-        $parser.add_trace_event($crate::trace::TraceEvent::ParseSuccess($duration));
-    };
-    ($parser:expr, ParseFailed, $duration:expr) => {
-        $parser.add_trace_event($crate::trace::TraceEvent::ParseFailed($duration));
     };
 }
 

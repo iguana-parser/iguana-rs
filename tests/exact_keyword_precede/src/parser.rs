@@ -13,8 +13,8 @@ use iguana_runtime::{
     ids::{BindingId, GssNodeId, NonterminalId, SlotId, TerminalId},
     input::Input,
     parser::{
-        DESCRIPTORS_CAPACITY_DIVISOR, DESCRIPTORS_CAPACITY_FLOOR, GSS_CAPACITY_MULTIPLIER,
-        ParseError, ParseErrorKind, Parser, SPPF_CAPACITY_MULTIPLIER, init_logger,
+        DESCRIPTORS_CAPACITY_DIVISOR, DESCRIPTORS_CAPACITY_FLOOR, GLLFailure, GLLFailureKind,
+        GSS_CAPACITY_MULTIPLIER, Parser, SPPF_CAPACITY_MULTIPLIER, init_logger,
     },
     record,
     scanner::Scanner,
@@ -95,7 +95,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for ExactKeywordPrecedeParser<'i, 'arena> {
                     self.match_terminal(TerminalId(3), input_index, SlotId(2), Some(gss_node_id))
                 {
                     if let Some(error_kind) = self.post_conditions(SlotId(3), input_index, j) {
-                        self.add_parse_error(j, SlotId(3), Some(gss_node_id), || error_kind);
+                        self.add_failure(j, SlotId(3), Some(gss_node_id), || error_kind);
                     } else {
                         if let Some((j, new_node)) =
                             self.create_intermediate_node(result, right_child, SlotId(3), env)
@@ -224,8 +224,8 @@ impl<'i, 'arena> Parser<'i, 'arena> for ExactKeywordPrecedeParser<'i, 'arena> {
                         self.execute(j, SlotId(14), Some(new_node), gss_node_id, env);
                     }
                 } else {
-                    self.add_parse_error(input_index, SlotId(13), Some(gss_node_id), || {
-                        ParseErrorKind::UnexpectedToken {
+                    self.add_failure(input_index, SlotId(13), Some(gss_node_id), || {
+                        GLLFailureKind::UnexpectedToken {
                             expected: FIRST_SET_S.terminals.to_vec(),
                         }
                     });
@@ -277,8 +277,8 @@ impl<'i, 'arena> Parser<'i, 'arena> for ExactKeywordPrecedeParser<'i, 'arena> {
                     self.add_first_descriptor(SlotId(8), input_index, gss_node_id, env);
                 }
                 if !matched {
-                    self.add_parse_error(input_index, SlotId(0), Some(gss_node_id), || {
-                        ParseErrorKind::UnexpectedToken {
+                    self.add_failure(input_index, SlotId(0), Some(gss_node_id), || {
+                        GLLFailureKind::UnexpectedToken {
                             expected: FIRST_SET_S.terminals.to_vec(),
                         }
                     });
@@ -629,14 +629,14 @@ impl<'i, 'arena> Parser<'i, 'arena> for ExactKeywordPrecedeParser<'i, 'arena> {
         slot: SlotId,
         _left_extent: u32,
         right_extent: u32,
-    ) -> Option<ParseErrorKind> {
+    ) -> Option<GLLFailureKind> {
         match slot {
             SlotId(3) => {
                 if self
                     .scanner
                     .match_any(&FOLLOW_RESTRICTION_S_ALT0_POS2, right_extent)
                 {
-                    Some(ParseErrorKind::ForbiddenFollow {
+                    Some(GLLFailureKind::ForbiddenFollow {
                         forbidden: FOLLOW_RESTRICTION_S_ALT0_POS2.terminals.to_vec(),
                     })
                 } else {
@@ -660,38 +660,38 @@ impl<'i, 'arena> Parser<'i, 'arena> for ExactKeywordPrecedeParser<'i, 'arena> {
             _ => vec![],
         }
     }
-    fn parse_error(&self) -> Option<&ParseError> {
-        self.parse_errors.first()
+    fn failure(&self) -> Option<&GLLFailure> {
+        self.failures.first()
     }
-    fn add_parse_error(
+    fn add_failure(
         &mut self,
         input_index: u32,
         slot_id: SlotId,
         gss_node_id: Option<GssNodeId>,
-        kind: impl FnOnce() -> ParseErrorKind,
+        kind: impl FnOnce() -> GLLFailureKind,
     ) {
-        if self.suppress_parse_errors {
+        if self.suppress_failures {
             return;
         }
-        let level = self.parse_errors.first().map_or(0, |e| e.input_index);
+        let level = self.failures.first().map_or(0, |e| e.input_index);
         if input_index < level {
-            record!(self, ParseError, input_index, slot_id, gss_node_id, kind());
+            record!(self, GLLFailure, input_index, slot_id, gss_node_id, kind());
             return;
         }
         let kind = kind();
         record!(
             self,
-            ParseError,
+            GLLFailure,
             input_index,
             slot_id,
             gss_node_id,
             kind.clone()
         );
         if input_index > level {
-            self.parse_errors.clear();
+            self.failures.clear();
         }
-        self.parse_errors.push(
-            ParseError {
+        self.failures.push(
+            GLLFailure {
                 input_index,
                 slot_id,
                 gss_node_id,
@@ -743,10 +743,10 @@ pub struct ExactKeywordPrecedeParser<'i, 'arena> {
     // intermediate_nodes_children_map.
     nonterminal_nodes_children_map: OnceCell<FxHashMap<SPPFNodeId, Vec<(SPPFNodeId, SlotId)>>>,
     envs: ArenaVec<'arena, Env<'arena>>,
-    parse_errors: InlineVec<'arena, ParseError, 8>,
-    // When true, `add_parse_error` is a no-op. The one user is the layout match of a `!>>>`
+    failures: InlineVec<'arena, GLLFailure, 8>,
+    // When true, `add_failure` is a no-op. The one user is the layout match of a `!>>>`
     // restriction: that parse is speculative, so its failure must not become the reported error.
-    suppress_parse_errors: bool,
+    suppress_failures: bool,
     #[cfg(feature = "debug-trace")]
     pub trace_events: Option<Vec<TraceEvent>>,
 }
@@ -782,8 +782,8 @@ impl<'i, 'arena> ExactKeywordPrecedeParser<'i, 'arena> {
             nonterminal_nodes_children: vec_arena.vec(),
             nonterminal_nodes_children_map: OnceCell::new(),
             envs: vec_arena.vec(),
-            parse_errors: InlineVec::Empty,
-            suppress_parse_errors: false,
+            failures: InlineVec::Empty,
+            suppress_failures: false,
             #[cfg(feature = "debug-trace")]
             trace_events: None,
         }
@@ -823,7 +823,7 @@ impl<'i, 'arena> ExactKeywordPrecedeParser<'i, 'arena> {
                     let start = j;
                     let (end, node) = self.match_terminal(TerminalId(3), start, SlotId(3), None)?;
                     if let Some(error_kind) = self.post_conditions(SlotId(3), start, end) {
-                        self.add_parse_error(end, SlotId(3), None, || error_kind);
+                        self.add_failure(end, SlotId(3), None, || error_kind);
                         return None;
                     }
                     j = end;

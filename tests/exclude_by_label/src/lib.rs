@@ -8,7 +8,7 @@ pub mod types;
 use iguana_runtime::{
     arena::Arena,
     input::Input,
-    parser::{ParseResult, Parser},
+    parser::{GLLResult, Parser},
 };
 use parse_tree::*;
 use parser::ExcludeByLabelParser;
@@ -63,7 +63,7 @@ pub fn parse_expr<'a>(
     let vec_arena = Arena::new();
     let mut parser = ExcludeByLabelParser::new(input, grammar_data::START_EXPR, &vec_arena);
     match parser.run() {
-        ParseResult::Success(success) => {
+        GLLResult::Success(success) => {
             let parse_duration = success.duration;
             let tree_start = iguana_runtime::Instant::now();
             let parse_tree_builder = ExcludeByLabelParseTreeBuilder::new(tree_arena);
@@ -81,7 +81,7 @@ pub fn parse_expr<'a>(
                 ambiguity_node_added,
             })
         }
-        ParseResult::Failure(error) => {
+        GLLResult::Failure(error) => {
             let (line, column, message) = parser.format_error(&error);
             let len = parser.error_span_len(error.input_index);
             Err(ParseError {

@@ -140,7 +140,7 @@ export type DebugInfo = {
 	descriptor_set: string[],
 	/**  Current position in the input (character index) */
 	input_index: number | null,
-	/**  Total number of error steps (ParseError events) */
+	/**  Total number of error steps */
 	total_errors: number,
 	/**  Current error index (1-indexed) if at an error step, None otherwise */
 	current_error_index: number | null,

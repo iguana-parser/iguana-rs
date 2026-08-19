@@ -22,7 +22,7 @@ pub fn generate(grammar: &Grammar) -> TokenStream {
             Instant,
             arena::Arena,
             input::Input,
-            parser::{ParseResult, Parser},
+            parser::{GLLResult, Parser},
         };
         use #grammar_name::{
             grammar_data::nonterminal_id,
@@ -48,7 +48,7 @@ pub fn generate(grammar: &Grammar) -> TokenStream {
             let vec_arena = Arena::new();
             let mut parser = #parser::new(&input, start_nonterminal_id, &vec_arena);
             match parser.run() {
-                ParseResult::Success(success) => {
+                GLLResult::Success(success) => {
                     let tree_start = Instant::now();
                     let tree = create_parse_tree(
                         success.sppf_node_id,
@@ -67,7 +67,7 @@ pub fn generate(grammar: &Grammar) -> TokenStream {
                     });
                     Ok(envelope.to_string())
                 }
-                ParseResult::Failure(error) => {
+                GLLResult::Failure(error) => {
                     let (line, column, message) = parser.format_error(&error);
                     let len = parser.error_span_len(error.input_index);
                     let envelope = serde_json::json!({

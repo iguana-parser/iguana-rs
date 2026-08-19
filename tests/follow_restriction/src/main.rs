@@ -14,7 +14,7 @@ use iguana_runtime::{
     ids::NonterminalId,
     input::Input,
     parse_tree::{DisplayOptions, is_ambiguous},
-    parser::{ParseResult, Parser},
+    parser::{GLLResult, Parser},
     visualization::{dot::write_graph, gss::build_gss_dot_graph, sppf::build_sppf_graph},
 };
 #[cfg(feature = "profile")]
@@ -350,7 +350,7 @@ fn main() -> Result<(), io::Error> {
                 let mut parser =
                     FollowRestrictionParser::new(&input, start_nonterminal_id, &vec_arena);
                 let content = match parser.run() {
-                    ParseResult::Success(success) => {
+                    GLLResult::Success(success) => {
                         let tree = create_parse_tree(
                             success.sppf_node_id,
                             start_nonterminal_id,
@@ -359,7 +359,7 @@ fn main() -> Result<(), io::Error> {
                         );
                         to_sexpr_with(tree, display_options)
                     }
-                    ParseResult::Failure(error) => {
+                    GLLResult::Failure(error) => {
                         let (line, column, message) = parser.format_error(&error);
                         let len = parser.error_span_len(error.input_index);
                         format!(
@@ -444,10 +444,10 @@ fn main() -> Result<(), io::Error> {
                     let mut parser =
                         FollowRestrictionParser::new(&input, start_nonterminal_id, &vec_arena);
                     let outcome = match parser.run() {
-                        ParseResult::Success(success) => cli::CorpusOutcome::Ok {
+                        GLLResult::Success(success) => cli::CorpusOutcome::Ok {
                             ambiguous: is_ambiguous(&parser, success.sppf_node_id),
                         },
-                        ParseResult::Failure(error) => {
+                        GLLResult::Failure(error) => {
                             let (line, column, message) = parser.format_error(&error);
                             cli::CorpusOutcome::Error {
                                 message: format!(
@@ -733,7 +733,7 @@ fn main() -> Result<(), io::Error> {
             let vec_arena = Arena::new();
             let mut parser = FollowRestrictionParser::new(&input, start_nonterminal_id, &vec_arena);
             match parser.run() {
-                ParseResult::Success(success) => {
+                GLLResult::Success(success) => {
                     let node_id = success.sppf_node_id;
                     let ambiguous = is_ambiguous(&parser, node_id);
                     let tree = create_parse_tree(
@@ -747,7 +747,7 @@ fn main() -> Result<(), io::Error> {
                         ambiguous,
                     }
                 }
-                ParseResult::Failure(error) => {
+                GLLResult::Failure(error) => {
                     let (line, column, message) = parser.format_error(&error);
                     let len = parser.error_span_len(error.input_index);
                     cli::ReplOutcome::Failed {
@@ -795,7 +795,7 @@ fn main() -> Result<(), io::Error> {
         for _ in 0..iterations {
             let mut parser = FollowRestrictionParser::new(&input, start_nonterminal_id, &vec_arena);
             let result = parser.run();
-            if let ParseResult::Success(success) = result {
+            if let GLLResult::Success(success) = result {
                 let parse_tree_builder = FollowRestrictionParseTreeBuilder::new(&tree_arena);
                 let _ = create_parse_tree(
                     success.sppf_node_id,
@@ -835,7 +835,7 @@ fn main() -> Result<(), io::Error> {
         write_trace_events(trace_events, &parser, &args.trace, as_json)?;
     }
     match result {
-        ParseResult::Success(parse_success) => {
+        GLLResult::Success(parse_success) => {
             let node_id = parse_success.sppf_node_id;
             let as_svg = matches!(args.format, Some(Format::Svg));
             if let Some(ref path) = args.write_sppf {
@@ -906,7 +906,7 @@ fn main() -> Result<(), io::Error> {
                 }
             }
         }
-        ParseResult::Failure(error) => {
+        GLLResult::Failure(error) => {
             let (line, column, message) = parser.format_error(&error);
             let len = parser.error_span_len(error.input_index);
             eprintln!(
@@ -1022,7 +1022,7 @@ fn run_batch(
         let mut parser = FollowRestrictionParser::new(&input, start_nonterminal_id, &vec_arena);
         let init_ms = init_start.elapsed().as_secs_f64() * 1000.0;
         match parser.run() {
-            ParseResult::Success(success) => {
+            GLLResult::Success(success) => {
                 let parse_ms = success.duration.as_secs_f64() * 1000.0;
                 let ambig = is_ambiguous(&parser, success.sppf_node_id);
                 let tc_start = Instant::now();
@@ -1087,7 +1087,7 @@ fn run_batch(
                     );
                 }
             }
-            ParseResult::Failure(error) => {
+            GLLResult::Failure(error) => {
                 let (line, column, _) = parser.format_error(&error);
                 failed += 1;
                 if !hist_only {
@@ -1208,7 +1208,7 @@ fn bench_parse_file(
     let init_start = Instant::now();
     let mut parser = FollowRestrictionParser::new(&input, start_nonterminal_id, vec_arena);
     let init = init_start.elapsed();
-    let ParseResult::Success(success) = parser.run() else {
+    let GLLResult::Success(success) = parser.run() else {
         drop(parser);
         vec_arena.reset();
         return None;

@@ -28,7 +28,7 @@ pub fn generate(grammar: &Grammar) -> TokenStream {
             ids::NonterminalId,
             input::Input,
             parse_tree::{DisplayOptions, is_ambiguous},
-            parser::{ParseResult, Parser},
+            parser::{GLLResult, Parser},
             visualization::{dot::write_graph, gss::build_gss_dot_graph, sppf::build_sppf_graph},
         };
 
@@ -353,7 +353,7 @@ pub fn generate(grammar: &Grammar) -> TokenStream {
                     let vec_arena = Arena::new();
                     let mut parser = #parser::new(&input, start_nonterminal_id, &vec_arena);
                     let content = match parser.run() {
-                        ParseResult::Success(success) => {
+                        GLLResult::Success(success) => {
                             let tree = create_parse_tree(
                                 success.sppf_node_id,
                                 start_nonterminal_id,
@@ -362,7 +362,7 @@ pub fn generate(grammar: &Grammar) -> TokenStream {
                             );
                             to_sexpr_with(tree, display_options)
                         }
-                        ParseResult::Failure(error) => {
+                        GLLResult::Failure(error) => {
                             let (line, column, message) = parser.format_error(&error);
                             let len = parser.error_span_len(error.input_index);
                             format!("Parse error at line {}, col {}: {}\n{}\n", line + 1, column + 1, message, input.line_and_caret(error.input_index, len))
@@ -440,10 +440,10 @@ pub fn generate(grammar: &Grammar) -> TokenStream {
                             };
                             let mut parser = #parser::new(&input, start_nonterminal_id, &vec_arena);
                             let outcome = match parser.run() {
-                                ParseResult::Success(success) => cli::CorpusOutcome::Ok {
+                                GLLResult::Success(success) => cli::CorpusOutcome::Ok {
                                     ambiguous: is_ambiguous(&parser, success.sppf_node_id),
                                 },
-                                ParseResult::Failure(error) => {
+                                GLLResult::Failure(error) => {
                                     let (line, column, message) = parser.format_error(&error);
                                     cli::CorpusOutcome::Error {
                                         message: format!(
@@ -676,13 +676,13 @@ pub fn generate(grammar: &Grammar) -> TokenStream {
                     let vec_arena = Arena::new();
                     let mut parser = #parser::new(&input, start_nonterminal_id, &vec_arena);
                     match parser.run() {
-                        ParseResult::Success(success) => {
+                        GLLResult::Success(success) => {
                             let node_id = success.sppf_node_id;
                             let ambiguous = is_ambiguous(&parser, node_id);
                             let tree = create_parse_tree(node_id, start_nonterminal_id, &parser, &parse_tree_builder);
                             cli::ReplOutcome::Parsed { tree: to_sexpr_with(tree, display_options), ambiguous }
                         }
-                        ParseResult::Failure(error) => {
+                        GLLResult::Failure(error) => {
                             let (line, column, message) = parser.format_error(&error);
                             let len = parser.error_span_len(error.input_index);
                             cli::ReplOutcome::Failed {
@@ -728,7 +728,7 @@ pub fn generate(grammar: &Grammar) -> TokenStream {
                 for _ in 0..iterations {
                     let mut parser = #parser::new(&input, start_nonterminal_id, &vec_arena);
                     let result = parser.run();
-                    if let ParseResult::Success(success) = result {
+                    if let GLLResult::Success(success) = result {
                         let parse_tree_builder = #parse_tree_builder::new(&tree_arena);
                         let _ = create_parse_tree(
                             success.sppf_node_id,
@@ -774,7 +774,7 @@ pub fn generate(grammar: &Grammar) -> TokenStream {
             }
 
             match result {
-                ParseResult::Success(parse_success) => {
+                GLLResult::Success(parse_success) => {
                     let node_id = parse_success.sppf_node_id;
                     // SPPF/GSS write as JSON by default, or SVG with --format svg.
                     let as_svg = matches!(args.format, Some(Format::Svg));
@@ -856,7 +856,7 @@ pub fn generate(grammar: &Grammar) -> TokenStream {
                         }
                     }
                 }
-                ParseResult::Failure(error) => {
+                GLLResult::Failure(error) => {
                     let (line, column, message) = parser.format_error(&error);
                     let len = parser.error_span_len(error.input_index);
                     eprintln!("Parse error at line {}, col {}: {}\n{}", line + 1, column + 1, message, input.line_and_caret(error.input_index, len));
@@ -960,7 +960,7 @@ pub fn generate(grammar: &Grammar) -> TokenStream {
                 let init_ms = init_start.elapsed().as_secs_f64() * 1000.0;
 
                 match parser.run() {
-                    ParseResult::Success(success) => {
+                    GLLResult::Success(success) => {
                         let parse_ms = success.duration.as_secs_f64() * 1000.0;
                         let ambig = is_ambiguous(&parser, success.sppf_node_id);
                         let tc_start = Instant::now();
@@ -1012,7 +1012,7 @@ pub fn generate(grammar: &Grammar) -> TokenStream {
                                 code, label, color.reset, time, "-", rel.display());
                         }
                     }
-                    ParseResult::Failure(error) => {
+                    GLLResult::Failure(error) => {
                         let (line, column, _) = parser.format_error(&error);
                         failed += 1;
                         if !hist_only {
@@ -1102,7 +1102,7 @@ pub fn generate(grammar: &Grammar) -> TokenStream {
 
             // A skipped file still resets the parser's arena, so its allocations
             // do not carry into the next file's measurement.
-            let ParseResult::Success(success) = parser.run() else {
+            let GLLResult::Success(success) = parser.run() else {
                 drop(parser);
                 vec_arena.reset();
                 return None;

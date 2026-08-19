@@ -8,7 +8,7 @@ pub mod types;
 use iguana_runtime::{
     arena::Arena,
     input::Input,
-    parser::{ParseResult, Parser},
+    parser::{GLLResult, Parser},
 };
 use parse_tree::*;
 use parser::IggyParser;
@@ -63,7 +63,7 @@ pub fn parse_grammar<'a>(
     let vec_arena = Arena::new();
     let mut parser = IggyParser::new(input, grammar_data::START_GRAMMAR, &vec_arena);
     match parser.run() {
-        ParseResult::Success(success) => {
+        GLLResult::Success(success) => {
             let parse_duration = success.duration;
             let tree_start = iguana_runtime::Instant::now();
             let parse_tree_builder = IggyParseTreeBuilder::new(tree_arena);
@@ -81,7 +81,7 @@ pub fn parse_grammar<'a>(
                 ambiguity_node_added,
             })
         }
-        ParseResult::Failure(error) => {
+        GLLResult::Failure(error) => {
             let (line, column, message) = parser.format_error(&error);
             let len = parser.error_span_len(error.input_index);
             Err(ParseError {
@@ -107,7 +107,7 @@ pub fn parse_rule<'a>(
     let vec_arena = Arena::new();
     let mut parser = IggyParser::new(input, grammar_data::START_RULE, &vec_arena);
     match parser.run() {
-        ParseResult::Success(success) => {
+        GLLResult::Success(success) => {
             let parse_duration = success.duration;
             let tree_start = iguana_runtime::Instant::now();
             let parse_tree_builder = IggyParseTreeBuilder::new(tree_arena);
@@ -125,7 +125,7 @@ pub fn parse_rule<'a>(
                 ambiguity_node_added,
             })
         }
-        ParseResult::Failure(error) => {
+        GLLResult::Failure(error) => {
             let (line, column, message) = parser.format_error(&error);
             let len = parser.error_span_len(error.input_index);
             Err(ParseError {
@@ -151,7 +151,7 @@ pub fn parse_syntax_rule<'a>(
     let vec_arena = Arena::new();
     let mut parser = IggyParser::new(input, grammar_data::START_SYNTAX_RULE, &vec_arena);
     match parser.run() {
-        ParseResult::Success(success) => {
+        GLLResult::Success(success) => {
             let parse_duration = success.duration;
             let tree_start = iguana_runtime::Instant::now();
             let parse_tree_builder = IggyParseTreeBuilder::new(tree_arena);
@@ -169,7 +169,7 @@ pub fn parse_syntax_rule<'a>(
                 ambiguity_node_added,
             })
         }
-        ParseResult::Failure(error) => {
+        GLLResult::Failure(error) => {
             let (line, column, message) = parser.format_error(&error);
             let len = parser.error_span_len(error.input_index);
             Err(ParseError {
@@ -195,7 +195,7 @@ pub fn parse_annotation<'a>(
     let vec_arena = Arena::new();
     let mut parser = IggyParser::new(input, grammar_data::START_ANNOTATION, &vec_arena);
     match parser.run() {
-        ParseResult::Success(success) => {
+        GLLResult::Success(success) => {
             let parse_duration = success.duration;
             let tree_start = iguana_runtime::Instant::now();
             let parse_tree_builder = IggyParseTreeBuilder::new(tree_arena);
@@ -213,7 +213,7 @@ pub fn parse_annotation<'a>(
                 ambiguity_node_added,
             })
         }
-        ParseResult::Failure(error) => {
+        GLLResult::Failure(error) => {
             let (line, column, message) = parser.format_error(&error);
             let len = parser.error_span_len(error.input_index);
             Err(ParseError {
@@ -239,7 +239,7 @@ pub fn parse_regex_rule<'a>(
     let vec_arena = Arena::new();
     let mut parser = IggyParser::new(input, grammar_data::START_REGEX_RULE, &vec_arena);
     match parser.run() {
-        ParseResult::Success(success) => {
+        GLLResult::Success(success) => {
             let parse_duration = success.duration;
             let tree_start = iguana_runtime::Instant::now();
             let parse_tree_builder = IggyParseTreeBuilder::new(tree_arena);
@@ -257,7 +257,7 @@ pub fn parse_regex_rule<'a>(
                 ambiguity_node_added,
             })
         }
-        ParseResult::Failure(error) => {
+        GLLResult::Failure(error) => {
             let (line, column, message) = parser.format_error(&error);
             let len = parser.error_span_len(error.input_index);
             Err(ParseError {
@@ -286,7 +286,7 @@ pub fn parse_regex_pre_condition<'a>(
     let vec_arena = Arena::new();
     let mut parser = IggyParser::new(input, grammar_data::START_REGEX_PRE_CONDITION, &vec_arena);
     match parser.run() {
-        ParseResult::Success(success) => {
+        GLLResult::Success(success) => {
             let parse_duration = success.duration;
             let tree_start = iguana_runtime::Instant::now();
             let parse_tree_builder = IggyParseTreeBuilder::new(tree_arena);
@@ -304,7 +304,7 @@ pub fn parse_regex_pre_condition<'a>(
                 ambiguity_node_added,
             })
         }
-        ParseResult::Failure(error) => {
+        GLLResult::Failure(error) => {
             let (line, column, message) = parser.format_error(&error);
             let len = parser.error_span_len(error.input_index);
             Err(ParseError {
@@ -333,7 +333,7 @@ pub fn parse_regex_post_condition<'a>(
     let vec_arena = Arena::new();
     let mut parser = IggyParser::new(input, grammar_data::START_REGEX_POST_CONDITION, &vec_arena);
     match parser.run() {
-        ParseResult::Success(success) => {
+        GLLResult::Success(success) => {
             let parse_duration = success.duration;
             let tree_start = iguana_runtime::Instant::now();
             let parse_tree_builder = IggyParseTreeBuilder::new(tree_arena);
@@ -351,7 +351,7 @@ pub fn parse_regex_post_condition<'a>(
                 ambiguity_node_added,
             })
         }
-        ParseResult::Failure(error) => {
+        GLLResult::Failure(error) => {
             let (line, column, message) = parser.format_error(&error);
             let len = parser.error_span_len(error.input_index);
             Err(ParseError {
@@ -378,7 +378,7 @@ pub fn parse_priority_level<'a>(
     let vec_arena = Arena::new();
     let mut parser = IggyParser::new(input, grammar_data::START_PRIORITY_LEVEL, &vec_arena);
     match parser.run() {
-        ParseResult::Success(success) => {
+        GLLResult::Success(success) => {
             let parse_duration = success.duration;
             let tree_start = iguana_runtime::Instant::now();
             let parse_tree_builder = IggyParseTreeBuilder::new(tree_arena);
@@ -396,7 +396,7 @@ pub fn parse_priority_level<'a>(
                 ambiguity_node_added,
             })
         }
-        ParseResult::Failure(error) => {
+        GLLResult::Failure(error) => {
             let (line, column, message) = parser.format_error(&error);
             let len = parser.error_span_len(error.input_index);
             Err(ParseError {
@@ -423,7 +423,7 @@ pub fn parse_associativity<'a>(
     let vec_arena = Arena::new();
     let mut parser = IggyParser::new(input, grammar_data::START_ASSOCIATIVITY, &vec_arena);
     match parser.run() {
-        ParseResult::Success(success) => {
+        GLLResult::Success(success) => {
             let parse_duration = success.duration;
             let tree_start = iguana_runtime::Instant::now();
             let parse_tree_builder = IggyParseTreeBuilder::new(tree_arena);
@@ -441,7 +441,7 @@ pub fn parse_associativity<'a>(
                 ambiguity_node_added,
             })
         }
-        ParseResult::Failure(error) => {
+        GLLResult::Failure(error) => {
             let (line, column, message) = parser.format_error(&error);
             let len = parser.error_span_len(error.input_index);
             Err(ParseError {
@@ -467,7 +467,7 @@ pub fn parse_alternative<'a>(
     let vec_arena = Arena::new();
     let mut parser = IggyParser::new(input, grammar_data::START_ALTERNATIVE, &vec_arena);
     match parser.run() {
-        ParseResult::Success(success) => {
+        GLLResult::Success(success) => {
             let parse_duration = success.duration;
             let tree_start = iguana_runtime::Instant::now();
             let parse_tree_builder = IggyParseTreeBuilder::new(tree_arena);
@@ -485,7 +485,7 @@ pub fn parse_alternative<'a>(
                 ambiguity_node_added,
             })
         }
-        ParseResult::Failure(error) => {
+        GLLResult::Failure(error) => {
             let (line, column, message) = parser.format_error(&error);
             let len = parser.error_span_len(error.input_index);
             Err(ParseError {
@@ -511,7 +511,7 @@ pub fn parse_symbol<'a>(
     let vec_arena = Arena::new();
     let mut parser = IggyParser::new(input, grammar_data::START_SYMBOL, &vec_arena);
     match parser.run() {
-        ParseResult::Success(success) => {
+        GLLResult::Success(success) => {
             let parse_duration = success.duration;
             let tree_start = iguana_runtime::Instant::now();
             let parse_tree_builder = IggyParseTreeBuilder::new(tree_arena);
@@ -529,7 +529,7 @@ pub fn parse_symbol<'a>(
                 ambiguity_node_added,
             })
         }
-        ParseResult::Failure(error) => {
+        GLLResult::Failure(error) => {
             let (line, column, message) = parser.format_error(&error);
             let len = parser.error_span_len(error.input_index);
             Err(ParseError {
@@ -556,7 +556,7 @@ pub fn parse_pre_condition<'a>(
     let vec_arena = Arena::new();
     let mut parser = IggyParser::new(input, grammar_data::START_PRE_CONDITION, &vec_arena);
     match parser.run() {
-        ParseResult::Success(success) => {
+        GLLResult::Success(success) => {
             let parse_duration = success.duration;
             let tree_start = iguana_runtime::Instant::now();
             let parse_tree_builder = IggyParseTreeBuilder::new(tree_arena);
@@ -574,7 +574,7 @@ pub fn parse_pre_condition<'a>(
                 ambiguity_node_added,
             })
         }
-        ParseResult::Failure(error) => {
+        GLLResult::Failure(error) => {
             let (line, column, message) = parser.format_error(&error);
             let len = parser.error_span_len(error.input_index);
             Err(ParseError {
@@ -601,7 +601,7 @@ pub fn parse_post_condition<'a>(
     let vec_arena = Arena::new();
     let mut parser = IggyParser::new(input, grammar_data::START_POST_CONDITION, &vec_arena);
     match parser.run() {
-        ParseResult::Success(success) => {
+        GLLResult::Success(success) => {
             let parse_duration = success.duration;
             let tree_start = iguana_runtime::Instant::now();
             let parse_tree_builder = IggyParseTreeBuilder::new(tree_arena);
@@ -619,7 +619,7 @@ pub fn parse_post_condition<'a>(
                 ambiguity_node_added,
             })
         }
-        ParseResult::Failure(error) => {
+        GLLResult::Failure(error) => {
             let (line, column, message) = parser.format_error(&error);
             let len = parser.error_span_len(error.input_index);
             Err(ParseError {
@@ -645,7 +645,7 @@ pub fn parse_regex<'a>(
     let vec_arena = Arena::new();
     let mut parser = IggyParser::new(input, grammar_data::START_REGEX, &vec_arena);
     match parser.run() {
-        ParseResult::Success(success) => {
+        GLLResult::Success(success) => {
             let parse_duration = success.duration;
             let tree_start = iguana_runtime::Instant::now();
             let parse_tree_builder = IggyParseTreeBuilder::new(tree_arena);
@@ -663,7 +663,7 @@ pub fn parse_regex<'a>(
                 ambiguity_node_added,
             })
         }
-        ParseResult::Failure(error) => {
+        GLLResult::Failure(error) => {
             let (line, column, message) = parser.format_error(&error);
             let len = parser.error_span_len(error.input_index);
             Err(ParseError {
@@ -689,7 +689,7 @@ pub fn parse_char_class<'a>(
     let vec_arena = Arena::new();
     let mut parser = IggyParser::new(input, grammar_data::START_CHAR_CLASS, &vec_arena);
     match parser.run() {
-        ParseResult::Success(success) => {
+        GLLResult::Success(success) => {
             let parse_duration = success.duration;
             let tree_start = iguana_runtime::Instant::now();
             let parse_tree_builder = IggyParseTreeBuilder::new(tree_arena);
@@ -707,7 +707,7 @@ pub fn parse_char_class<'a>(
                 ambiguity_node_added,
             })
         }
-        ParseResult::Failure(error) => {
+        GLLResult::Failure(error) => {
             let (line, column, message) = parser.format_error(&error);
             let len = parser.error_span_len(error.input_index);
             Err(ParseError {
@@ -734,7 +734,7 @@ pub fn parse_range_element<'a>(
     let vec_arena = Arena::new();
     let mut parser = IggyParser::new(input, grammar_data::START_RANGE_ELEMENT, &vec_arena);
     match parser.run() {
-        ParseResult::Success(success) => {
+        GLLResult::Success(success) => {
             let parse_duration = success.duration;
             let tree_start = iguana_runtime::Instant::now();
             let parse_tree_builder = IggyParseTreeBuilder::new(tree_arena);
@@ -752,7 +752,7 @@ pub fn parse_range_element<'a>(
                 ambiguity_node_added,
             })
         }
-        ParseResult::Failure(error) => {
+        GLLResult::Failure(error) => {
             let (line, column, message) = parser.format_error(&error);
             let len = parser.error_span_len(error.input_index);
             Err(ParseError {
@@ -778,7 +778,7 @@ pub fn parse_range<'a>(
     let vec_arena = Arena::new();
     let mut parser = IggyParser::new(input, grammar_data::START_RANGE, &vec_arena);
     match parser.run() {
-        ParseResult::Success(success) => {
+        GLLResult::Success(success) => {
             let parse_duration = success.duration;
             let tree_start = iguana_runtime::Instant::now();
             let parse_tree_builder = IggyParseTreeBuilder::new(tree_arena);
@@ -796,7 +796,7 @@ pub fn parse_range<'a>(
                 ambiguity_node_added,
             })
         }
-        ParseResult::Failure(error) => {
+        GLLResult::Failure(error) => {
             let (line, column, message) = parser.format_error(&error);
             let len = parser.error_span_len(error.input_index);
             Err(ParseError {
@@ -822,7 +822,7 @@ pub fn parse_layout<'a>(
     let vec_arena = Arena::new();
     let mut parser = IggyParser::new(input, grammar_data::LAYOUT, &vec_arena);
     match parser.run() {
-        ParseResult::Success(success) => {
+        GLLResult::Success(success) => {
             let parse_duration = success.duration;
             let tree_start = iguana_runtime::Instant::now();
             let parse_tree_builder = IggyParseTreeBuilder::new(tree_arena);
@@ -840,7 +840,7 @@ pub fn parse_layout<'a>(
                 ambiguity_node_added,
             })
         }
-        ParseResult::Failure(error) => {
+        GLLResult::Failure(error) => {
             let (line, column, message) = parser.format_error(&error);
             let len = parser.error_span_len(error.input_index);
             Err(ParseError {

@@ -281,7 +281,7 @@ struct DebugInfo {
     descriptor_set: Vec<String>,
     /// Current position in the input (character index)
     input_index: Option<u32>,
-    /// Total number of error steps (ParseError events)
+    /// Total number of error steps
     total_errors: u32,
     /// Current error index (1-indexed) if at an error step, None otherwise
     current_error_index: Option<u32>,

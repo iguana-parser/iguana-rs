@@ -35,26 +35,26 @@ pub const ENVS_CAPACITY_MULTIPLIER: usize = 1;
 pub const DESCRIPTORS_CAPACITY_DIVISOR: usize = 4;
 pub const DESCRIPTORS_CAPACITY_FLOOR: usize = 1024;
 
-pub enum ParseResult {
-    Success(ParseSuccess),
-    Failure(ParseError),
+pub enum GLLResult {
+    Success(GLLSuccess),
+    Failure(GLLFailure),
 }
 
-pub struct ParseSuccess {
+pub struct GLLSuccess {
     pub sppf_node_id: SPPFNodeId,
     pub duration: Duration,
 }
 
 #[derive(Debug, Clone)]
-pub struct ParseError {
+pub struct GLLFailure {
     pub input_index: u32,
     pub slot_id: SlotId,
     pub gss_node_id: Option<GssNodeId>,
-    pub kind: ParseErrorKind,
+    pub kind: GLLFailureKind,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub enum ParseErrorKind {
+pub enum GLLFailureKind {
     /// Terminal match failed: expected one of these terminals at this position.
     UnexpectedToken { expected: Vec<TerminalId> },
     /// Nonterminal except (`\`): matched a nonterminal but it was excluded.
@@ -246,19 +246,19 @@ pub trait Parser<'i, 'arena> {
         slot: SlotId,
         left_extent: u32,
         right_extent: u32,
-    ) -> Option<ParseErrorKind>;
+    ) -> Option<GLLFailureKind>;
     /// Checks whether the input at the given position is in the follow set of the nonterminal.
     fn follow_set_check(&mut self, nonterminal_id: NonterminalId, input_index: u32) -> bool;
     /// Returns the terminal IDs in the follow set of the given nonterminal.
     fn follow_set_terminals(&self, nonterminal_id: NonterminalId) -> Vec<TerminalId>;
 
-    /// Formats a parse error into a message and its location. The message names
-    /// what was expected, not what was found, and carries no source context; a
+    /// Turns a failure into the message and location a person reads. The message
+    /// names what was expected, not what was found, and carries no source context; a
     /// caller renders the location as a caret in a terminal or a range in an editor.
-    fn format_error(&self, error: &ParseError) -> (u32, u32, String) {
+    fn format_error(&self, error: &GLLFailure) -> (u32, u32, String) {
         let (line, column) = self.input().line_column(error.input_index);
         let message = match &error.kind {
-            ParseErrorKind::UnexpectedToken { expected } => {
+            GLLFailureKind::UnexpectedToken { expected } => {
                 let names: Vec<_> = expected.iter().map(|t| Self::terminal_name(*t)).collect();
                 match names.len() {
                     0 => "Unexpected input".to_string(),
@@ -266,14 +266,14 @@ pub trait Parser<'i, 'arena> {
                     _ => format!("Expected one of {}", names.join(", ")),
                 }
             }
-            ParseErrorKind::ExcludedMatch { excluded_by } => {
+            GLLFailureKind::ExcludedMatch { excluded_by } => {
                 let names: Vec<_> = excluded_by
                     .iter()
                     .map(|t| Self::terminal_name(*t))
                     .collect();
                 format!("Match excluded by {}", names.join(", "))
             }
-            ParseErrorKind::ForbiddenFollow { forbidden } => {
+            GLLFailureKind::ForbiddenFollow { forbidden } => {
                 let names: Vec<_> = forbidden.iter().map(|t| Self::terminal_name(*t)).collect();
                 format!("Forbidden follow: {}", names.join(", "))
             }
@@ -281,8 +281,8 @@ pub trait Parser<'i, 'arena> {
         (line, column, message)
     }
 
-    /// Length in characters of the span to highlight for a parse error, marked
-    /// by a caret in a terminal or a range in an editor. Iguana is a single-phase
+    /// Length in characters of the span an error highlights, marked by a caret
+    /// in a terminal or a range in an editor. Iguana is a single-phase
     /// parser, i.e., the scanner is not run before parsing but is driven by the
     /// parser. Therefore, there is no canonical offending token at an error
     /// position. To overcome this, we take the longest match over all terminals
@@ -297,28 +297,28 @@ pub trait Parser<'i, 'arena> {
         end.saturating_sub(input_index).max(1)
     }
 
-    /// Returns the first parse error at the farthest input position, if any.
-    fn parse_error(&self) -> Option<&ParseError>;
-    /// Records a parse error at the given input position.
+    /// Returns the first failure at the farthest input position, if any.
+    fn failure(&self) -> Option<&GLLFailure>;
+    /// Records a failure at the given input position.
     ///
-    /// Only errors at the farthest input position seen so far are kept; calls at
+    /// Only failures at the farthest input position seen so far are kept; calls at
     /// strictly lower positions are discarded without invoking `kind`. A higher
     /// position clears the prior level. Taking `kind` as a closure lets call sites
-    /// avoid building the `ParseErrorKind` (and its `Vec<TerminalId>`) on the drop
+    /// avoid building the `GLLFailureKind` (and its `Vec<TerminalId>`) on the drop
     /// path, which is the common case during GLL parsing.
-    fn add_parse_error(
+    fn add_failure(
         &mut self,
         input_index: u32,
         slot_id: SlotId,
         gss_node_id: Option<GssNodeId>,
-        kind: impl FnOnce() -> ParseErrorKind,
+        kind: impl FnOnce() -> GLLFailureKind,
     );
     /// Delegates to the scanner's match_token.
     fn match_token(&mut self, terminal_id: TerminalId, input_index: u32) -> Option<u32>;
 
     /// Matches a terminal at the given input position.
     /// On success, creates a terminal node and returns the end position and node id.
-    /// On failure, records a parse error and returns None.
+    /// On failure, records it and returns None.
     fn match_terminal(
         &mut self,
         terminal_id: TerminalId,
@@ -328,8 +328,8 @@ pub trait Parser<'i, 'arena> {
     ) -> Option<(u32, SPPFNodeId)> {
         record!(self, MatchingTerminal, terminal_id, input_index);
         let j = self.match_token(terminal_id, input_index).or_else(|| {
-            self.add_parse_error(input_index, slot_id, gss_node_id, || {
-                ParseErrorKind::UnexpectedToken {
+            self.add_failure(input_index, slot_id, gss_node_id, || {
+                GLLFailureKind::UnexpectedToken {
                     expected: vec![terminal_id],
                 }
             });
@@ -417,7 +417,7 @@ pub trait Parser<'i, 'arena> {
 
         for (&(right_extent, return_value), &nonterminal_node_id) in popped_elements.iter() {
             if let Some(error_kind) = self.post_conditions(return_slot, left_extent, right_extent) {
-                self.add_parse_error(
+                self.add_failure(
                     right_extent,
                     return_slot,
                     Some(existing_gss_node_id),
@@ -509,8 +509,8 @@ pub trait Parser<'i, 'arena> {
         let left_extent = gss.index;
         if !self.follow_set_check(nonterminal_id, right_extent) {
             let expected = self.follow_set_terminals(nonterminal_id);
-            self.add_parse_error(right_extent, slot_id, Some(gss_node_id), || {
-                ParseErrorKind::UnexpectedToken { expected }
+            self.add_failure(right_extent, slot_id, Some(gss_node_id), || {
+                GLLFailureKind::UnexpectedToken { expected }
             });
             return;
         }
@@ -530,7 +530,7 @@ pub trait Parser<'i, 'arena> {
             if let Some(error_kind) =
                 self.post_conditions(edge.return_slot, left_extent, right_extent)
             {
-                self.add_parse_error(right_extent, edge.return_slot, Some(gss_node_id), || {
+                self.add_failure(right_extent, edge.return_slot, Some(gss_node_id), || {
                     error_kind
                 });
                 continue;
@@ -860,7 +860,7 @@ pub trait Parser<'i, 'arena> {
         result
     }
 
-    fn run(&mut self) -> ParseResult {
+    fn run(&mut self) -> GLLResult {
         let start = Instant::now();
         let start_input_index = 0;
         let start_nonterminal_id = self.start_nonterminal();
@@ -889,12 +889,12 @@ pub trait Parser<'i, 'arena> {
         let duration = start.elapsed();
         let right_extent = self.input().len();
         if let Some(sppf_node_id) = self.start_result(right_extent, start_gss_node_id) {
-            ParseResult::Success(ParseSuccess {
+            GLLResult::Success(GLLSuccess {
                 sppf_node_id,
                 duration,
             })
-        } else if let Some(error) = self.parse_error() {
-            ParseResult::Failure(error.clone())
+        } else if let Some(error) = self.failure() {
+            GLLResult::Failure(error.clone())
         } else {
             // No error was recorded, but the start nonterminal doesn't span the full input.
             // Find the farthest position reached by the start nonterminal.
@@ -905,11 +905,11 @@ pub trait Parser<'i, 'arena> {
                 .map(|((right_extent, _), _)| *right_extent)
                 .max()
                 .unwrap_or(0);
-            ParseResult::Failure(ParseError {
+            GLLResult::Failure(GLLFailure {
                 input_index: farthest,
                 slot_id: SlotId(0),
                 gss_node_id: Some(start_gss_node_id),
-                kind: ParseErrorKind::UnexpectedToken { expected: vec![] },
+                kind: GLLFailureKind::UnexpectedToken { expected: vec![] },
             })
         }
     }

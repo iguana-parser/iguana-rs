@@ -44,7 +44,7 @@ pub fn generate(grammar: &Grammar, config: GenConfig) -> TokenStream {
         use iguana_runtime::{
             arena::Arena,
             input::Input,
-            parser::{ParseResult, Parser},
+            parser::{GLLResult, Parser},
         };
         use parse_tree::*;
         use parser::#parser;
@@ -116,7 +116,7 @@ fn gen_parse_method(
             let vec_arena = Arena::new();
             let mut parser = #parser::new(input, grammar_data::#nt_const, &vec_arena);
             match parser.run() {
-                ParseResult::Success(success) => {
+                GLLResult::Success(success) => {
                     let parse_duration = success.duration;
                     let tree_start = iguana_runtime::Instant::now();
                     let parse_tree_builder = #parse_tree_builder::new(tree_arena);
@@ -125,7 +125,7 @@ fn gen_parse_method(
                     let ambiguity_node_added = parser.ambiguity_node_added();
                     Ok(ParseSuccess { tree, parse_duration, tree_construction_duration, ambiguity_node_added })
                 }
-                ParseResult::Failure(error) => {
+                GLLResult::Failure(error) => {
                     let (line, column, message) = parser.format_error(&error);
                     let len = parser.error_span_len(error.input_index);
                     Err(ParseError { line, column, len, message })

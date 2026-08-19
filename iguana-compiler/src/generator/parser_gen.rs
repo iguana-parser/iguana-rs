@@ -197,32 +197,32 @@ impl<'a> ParserGen<'a> {
                 #follow_set_check_method
                 #follow_set_terminals_method
 
-                fn parse_error(&self) -> Option<&ParseError> {
-                    self.parse_errors.first()
+                fn failure(&self) -> Option<&GLLFailure> {
+                    self.failures.first()
                 }
 
-                fn add_parse_error(
+                fn add_failure(
                     &mut self,
                     input_index: u32,
                     slot_id: SlotId,
                     gss_node_id: Option<GssNodeId>,
-                    kind: impl FnOnce() -> ParseErrorKind,
+                    kind: impl FnOnce() -> GLLFailureKind,
                 ) {
-                    if self.suppress_parse_errors {
+                    if self.suppress_failures {
                         return;
                     }
-                    let level = self.parse_errors.first().map_or(0, |e| e.input_index);
+                    let level = self.failures.first().map_or(0, |e| e.input_index);
                     if input_index < level {
-                        record!(self, ParseError, input_index, slot_id, gss_node_id, kind());
+                        record!(self, GLLFailure, input_index, slot_id, gss_node_id, kind());
                         return;
                     }
                     let kind = kind();
-                    record!(self, ParseError, input_index, slot_id, gss_node_id, kind.clone());
+                    record!(self, GLLFailure, input_index, slot_id, gss_node_id, kind.clone());
                     if input_index > level {
-                        self.parse_errors.clear();
+                        self.failures.clear();
                     }
-                    self.parse_errors.push(
-                        ParseError {
+                    self.failures.push(
+                        GLLFailure {
                             input_index,
                             slot_id,
                             gss_node_id,
@@ -285,7 +285,7 @@ impl<'a> ParserGen<'a> {
                 ids::{BindingId, GssNodeId, NonterminalId, SlotId, TerminalId},
                 arena::{Arena, ArenaVec},
                 input::Input,
-                parser::{Parser, ParseError, ParseErrorKind, init_logger, DESCRIPTORS_CAPACITY_DIVISOR, DESCRIPTORS_CAPACITY_FLOOR, #envs_capacity_import GSS_CAPACITY_MULTIPLIER, SPPF_CAPACITY_MULTIPLIER},
+                parser::{Parser, GLLFailure, GLLFailureKind, init_logger, DESCRIPTORS_CAPACITY_DIVISOR, DESCRIPTORS_CAPACITY_FLOOR, #envs_capacity_import GSS_CAPACITY_MULTIPLIER, SPPF_CAPACITY_MULTIPLIER},
                 record,
                 scanner::Scanner,
                 sppf::{IntermediateNode, NonterminalNode, SPPFNode, SPPFNodeId, TerminalNode},
@@ -440,7 +440,7 @@ impl<'a> ParserGen<'a> {
     /// through to `FOLLOW(A)`. The disjunction short-circuits, so FOLLOW is
     /// scanned only when FIRST misses. Repeat FOLLOW scans across multiple
     /// nullable alts hit the scanner's `(position, terminal)` memo and are
-    /// near-free. If no alternative spawned, record a parse error.
+    /// near-free. If no alternative spawned, record a failure.
     fn gen_multi_alt_first_dispatch(&self, nonterminal: &'a Nonterminal) -> TokenStream {
         let nt_name = &nonterminal.name;
         let nonterminal_id = self.nonterminal_ids.get_id(nonterminal);
@@ -502,8 +502,8 @@ impl<'a> ParserGen<'a> {
                 let mut matched = false;
                 #(#alt_arms)*
                 if !matched {
-                    self.add_parse_error(input_index, #first_slot_id, Some(gss_node_id), || {
-                        ParseErrorKind::UnexpectedToken { expected: #expected }
+                    self.add_failure(input_index, #first_slot_id, Some(gss_node_id), || {
+                        GLLFailureKind::UnexpectedToken { expected: #expected }
                     });
                 }
             }
@@ -636,7 +636,7 @@ impl<'a> ParserGen<'a> {
         } else {
             quote! {
                 if let Some(error_kind) = self.post_conditions(#next_slot_id, input_index, j) {
-                    self.add_parse_error(j, #next_slot_id, Some(gss_node_id), || error_kind);
+                    self.add_failure(j, #next_slot_id, Some(gss_node_id), || error_kind);
                 } else {
                     #new_node
                 }
@@ -708,7 +708,7 @@ impl<'a> ParserGen<'a> {
                         uses_right_extent = true;
                         branches.push(quote! {
                             if #(#checks)||* {
-                                Some(ParseErrorKind::ExcludedMatch {
+                                Some(GLLFailureKind::ExcludedMatch {
                                     excluded_by: vec![#(#except_ids),*],
                                 })
                             } else
@@ -727,7 +727,7 @@ impl<'a> ParserGen<'a> {
                         uses_right_extent = true;
                         branches.push(quote! {
                             if #restriction_check {
-                                Some(ParseErrorKind::ForbiddenFollow {
+                                Some(GLLFailureKind::ForbiddenFollow {
                                     forbidden: #static_name.terminals.to_vec(),
                                 })
                             } else
@@ -755,7 +755,7 @@ impl<'a> ParserGen<'a> {
                         uses_right_extent = true;
                         branches.push(quote! {
                             if (#layout_match).is_some_and(|end| #restriction_check) {
-                                Some(ParseErrorKind::ForbiddenFollow {
+                                Some(GLLFailureKind::ForbiddenFollow {
                                     forbidden: #static_name.terminals.to_vec(),
                                 })
                             } else
@@ -801,7 +801,7 @@ impl<'a> ParserGen<'a> {
             )
         };
         quote! {
-            fn post_conditions(&mut self, #slot: SlotId, #left_extent: u32, #right_extent: u32) -> Option<ParseErrorKind> {
+            fn post_conditions(&mut self, #slot: SlotId, #left_extent: u32, #right_extent: u32) -> Option<GLLFailureKind> {
                 #body
             }
         }
@@ -836,9 +836,9 @@ impl<'a> ParserGen<'a> {
                 let method_name = format_ident!("parse_{}_ll1", to_snake_case(&nonterminal.name));
                 quote! {
                     {
-                        self.suppress_parse_errors = true;
+                        self.suppress_failures = true;
                         let node = self.#method_name(#pos);
-                        self.suppress_parse_errors = false;
+                        self.suppress_failures = false;
                         node.map(|node| self.sppf_node(node).right_extent())
                     }
                 }
@@ -923,7 +923,7 @@ impl<'a> ParserGen<'a> {
             } else {
                 quote! {
                     if let Some(error_kind) = self.post_conditions(#next_slot_id, input_index, j) {
-                        self.add_parse_error(j, #next_slot_id, Some(gss_node_id), || error_kind);
+                        self.add_failure(j, #next_slot_id, Some(gss_node_id), || error_kind);
                         return;
                     }
                 }
@@ -1019,8 +1019,8 @@ impl<'a> ParserGen<'a> {
         };
         quote! {
             else {
-                self.add_parse_error(input_index, #slot_id, Some(gss_node_id), || {
-                    ParseErrorKind::UnexpectedToken { expected: #first_set_name.terminals.to_vec() }
+                self.add_failure(input_index, #slot_id, Some(gss_node_id), || {
+                    GLLFailureKind::UnexpectedToken { expected: #first_set_name.terminals.to_vec() }
                 });
             }
         }
@@ -1223,8 +1223,8 @@ impl<'a> ParserGen<'a> {
                     ll1_call_log: vec![],
                     #children_init
                     #envs_init
-                    parse_errors: InlineVec::Empty,
-                    suppress_parse_errors: false,
+                    failures: InlineVec::Empty,
+                    suppress_failures: false,
                     #layout_memo_init
                     #[cfg(feature = "debug-trace")]
                     trace_events: None,
@@ -1336,11 +1336,11 @@ impl<'a> ParserGen<'a> {
                 #epsilon_nodes_field
                 #children_fields
                 envs: ArenaVec<'arena, Env<'arena>>,
-                parse_errors: InlineVec<'arena, ParseError, 8>,
-                #[comment = "When true, `add_parse_error` is a no-op. The one user is the layout match
+                failures: InlineVec<'arena, GLLFailure, 8>,
+                #[comment = "When true, `add_failure` is a no-op. The one user is the layout match
                              of a `!>>>` restriction: that parse is speculative, so its failure must
                              not become the reported error."]
-                suppress_parse_errors: bool,
+                suppress_failures: bool,
                 #layout_memo_field
                 #[cfg(feature = "debug-trace")]
                 pub trace_events: Option<Vec<TraceEvent>>,
@@ -1391,13 +1391,13 @@ impl<'a> ParserGen<'a> {
     }
 
     /// Generates `parse_X_ll1`, the recursive-descent function for an LL(1)
-    /// nonterminal X, and defines where the parse errors are recorded.
+    /// nonterminal X, and defines where the failures are recorded.
     ///
     /// `parse_X_ll1` predicts its alternative with one lookahead token:
     /// `longest_match(&FIRST_SET_X, i)`. When no alternative can be predicted,
-    /// `parse_X_ll1` returns None without recording a parse error.
+    /// `parse_X_ll1` returns None without recording a failure.
     ///
-    /// This is in contrast to GLL, where we record a parse error when no
+    /// This is in contrast to GLL, where we record a failure when no
     /// alternative can be predicted. The LL(1) path stays silent because whether
     /// the failure is an error depends on the grammar context where `parse_X_ll1`
     /// is called:
@@ -1686,7 +1686,7 @@ impl<'a> ParserGen<'a> {
 
     /// Generates parse code for a symbol at position `pos`. Returns a
     /// `TokenStream` that evaluates to `Option<(SPPFNodeId, u32)>` — the
-    /// node and end position. Records a parse error on terminal match
+    /// node and end position. Records a failure on terminal match
     /// failure, consistent with GLL.
     fn gen_match_symbol_ll1(
         &self,
@@ -1763,7 +1763,7 @@ impl<'a> ParserGen<'a> {
             } else {
                 quote! {
                     if let Some(error_kind) = self.post_conditions(#next_slot_id, start, end) {
-                        self.add_parse_error(end, #next_slot_id, None, || error_kind);
+                        self.add_failure(end, #next_slot_id, None, || error_kind);
                         return None;
                     }
                 }
@@ -1792,8 +1792,8 @@ impl<'a> ParserGen<'a> {
                     let call = match self.ll1_first_set_if_non_nullable(nt) {
                         Some(first_set_name) => quote! {
                             let Some(node) = self.#nt_method(start) else {
-                                self.add_parse_error(start, #next_slot_id, None, || {
-                                    ParseErrorKind::UnexpectedToken { expected: #first_set_name.terminals.to_vec() }
+                                self.add_failure(start, #next_slot_id, None, || {
+                                    GLLFailureKind::UnexpectedToken { expected: #first_set_name.terminals.to_vec() }
                                 });
                                 return None;
                             };

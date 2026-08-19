@@ -228,12 +228,6 @@
   .event-call { color: #9cdcfe; }
   .event-call.is-current { color: #c5e4ff; }
 
-  .event-success { color: #6a9955; font-weight: 600; }
-  .event-success.is-current { color: #98c379; }
-
-  .event-failed { color: #f14c4c; font-weight: 600; }
-  .event-failed.is-current { color: #ff7a7a; }
-
   .placeholder {
     color: #666;
     font-style: italic;

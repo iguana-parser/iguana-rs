@@ -6,7 +6,7 @@ use std::path::Path;
 use iguana_runtime::descriptor::Descriptor;
 use iguana_runtime::gss::GSSEdge;
 use iguana_runtime::ids::{GssNodeId, NonterminalId, SlotId, TerminalId};
-use iguana_runtime::parser::ParseErrorKind;
+use iguana_runtime::parser::GLLFailureKind;
 use iguana_runtime::sppf::SPPFNodeId;
 use iguana_runtime::trace::TraceEvent;
 use serde::{Deserialize, Serialize};
@@ -23,12 +23,12 @@ pub enum DebugAction {
         gss_node_id: GssNodeId,
         sppf_node_id: SPPFNodeId,
     },
-    /// Parse error: terminal match failed, excluded match, or forbidden follow
-    ParseError {
+    /// A recorded failure: terminal match failed, excluded match, or forbidden follow
+    GLLFailure {
         input_index: u32,
         slot_id: SlotId,
         gss_node_id: Option<GssNodeId>,
-        kind: ParseErrorKind,
+        kind: GLLFailureKind,
     },
     /// Matching leading layout (whitespace before token)
     MatchingLeadingLayout { input_index: u32 },
@@ -175,7 +175,7 @@ pub struct TraceReplay {
     events: Vec<TraceEvent>,
     /// Indices into `events` that are steps (ProcessingDescriptor or Pop)
     step_indices: Vec<usize>,
-    /// Indices into `step_indices` that are error steps (ParseError)
+    /// Indices into `step_indices` that are error steps
     error_step_indices: Vec<usize>,
     /// Current step (0-indexed into step_indices)
     current_step: usize,
@@ -202,14 +202,14 @@ impl TraceReplay {
 
         let symbols = SymbolTable::load(symbols_path)?;
 
-        // Build index of step events (ProcessingDescriptor, Pop, ParseError, layout events, and terminal matching)
+        // Build index of step events (ProcessingDescriptor, Pop, GLLFailure, layout events, and terminal matching)
         let step_indices: Vec<usize> = events
             .iter()
             .enumerate()
             .filter_map(|(i, event)| match event {
                 TraceEvent::ProcessingDescriptor(..)
                 | TraceEvent::Pop(..)
-                | TraceEvent::ParseError(..)
+                | TraceEvent::GLLFailure(..)
                 | TraceEvent::MatchingLeadingLayout(..)
                 | TraceEvent::MatchingTrailingLayout(..)
                 | TraceEvent::MatchedLayout(..)
@@ -219,12 +219,12 @@ impl TraceReplay {
             })
             .collect();
 
-        // Build index of error steps (indices into step_indices where event is ParseError)
+        // Build index of error steps (indices into step_indices where event is GLLFailure)
         let error_step_indices: Vec<usize> = step_indices
             .iter()
             .enumerate()
             .filter_map(|(step_idx, &event_idx)| {
-                if matches!(events[event_idx], TraceEvent::ParseError(..)) {
+                if matches!(events[event_idx], TraceEvent::GLLFailure(..)) {
                     Some(step_idx)
                 } else {
                     None
@@ -300,7 +300,7 @@ impl TraceReplay {
             .iter()
             .max_by_key(|&&step_idx| {
                 let event_idx = self.step_indices[step_idx];
-                if let TraceEvent::ParseError(input_index, ..) = &self.events[event_idx] {
+                if let TraceEvent::GLLFailure(input_index, ..) = &self.events[event_idx] {
                     *input_index
                 } else {
                     0
@@ -316,13 +316,13 @@ impl TraceReplay {
             .iter()
             .filter_map(|&step_idx| {
                 let event_idx = self.step_indices[step_idx];
-                if let TraceEvent::ParseError(input_index, slot_id, _, ref kind) =
+                if let TraceEvent::GLLFailure(input_index, slot_id, _, ref kind) =
                     self.events[event_idx]
                 {
                     Some(ErrorInfo {
                         step_index: step_idx as u32,
                         input_index,
-                        description: self.format_error_kind(kind),
+                        description: self.format_failure_kind(kind),
                         slot: self.symbols.slot(slot_id).to_string(),
                     })
                 } else {
@@ -336,10 +336,10 @@ impl TraceReplay {
         errors
     }
 
-    /// Format a ParseErrorKind as a human-readable description.
-    fn format_error_kind(&self, kind: &ParseErrorKind) -> String {
+    /// Format a GLLFailureKind as a human-readable description.
+    fn format_failure_kind(&self, kind: &GLLFailureKind) -> String {
         match kind {
-            ParseErrorKind::UnexpectedToken { expected } => {
+            GLLFailureKind::UnexpectedToken { expected } => {
                 let names: Vec<String> = expected
                     .iter()
                     .map(|id| self.symbols.terminal(id))
@@ -350,14 +350,14 @@ impl TraceReplay {
                     _ => format!("expected {}", names.join(", ")),
                 }
             }
-            ParseErrorKind::ExcludedMatch { excluded_by } => {
+            GLLFailureKind::ExcludedMatch { excluded_by } => {
                 let names: Vec<String> = excluded_by
                     .iter()
                     .map(|id| self.symbols.terminal(id))
                     .collect();
                 format!("excluded by {}", names.join(", "))
             }
-            ParseErrorKind::ForbiddenFollow { forbidden } => {
+            GLLFailureKind::ForbiddenFollow { forbidden } => {
                 let names: Vec<String> = forbidden
                     .iter()
                     .map(|id| self.symbols.terminal(id))
@@ -433,19 +433,19 @@ impl TraceReplay {
         )
     }
 
-    /// Format a ParseError action for multi-line display.
-    fn format_parse_error(
+    /// Format a GLLFailure action for multi-line display.
+    fn format_failure(
         &self,
         input_index: u32,
         slot_id: SlotId,
         gss_node_id: Option<GssNodeId>,
-        kind: &ParseErrorKind,
+        kind: &GLLFailureKind,
     ) -> String {
         let slot_name = self.symbols.slot(slot_id);
         let gss = gss_node_id
             .map(|id| self.format_gss_node(id))
             .unwrap_or_else(|| "?".to_string());
-        let description = self.format_error_kind(kind);
+        let description = self.format_failure_kind(kind);
         format!(
             "Parse Error\n  {}\n  {}\n  input index {}\n  GSS node {}",
             description, slot_name, input_index, gss
@@ -461,12 +461,12 @@ impl TraceReplay {
                 gss_node_id,
                 sppf_node_id,
             }) => Some(self.format_pop(*slot_id, *gss_node_id, *sppf_node_id)),
-            Some(DebugAction::ParseError {
+            Some(DebugAction::GLLFailure {
                 input_index,
                 slot_id,
                 gss_node_id,
                 kind,
-            }) => Some(self.format_parse_error(*input_index, *slot_id, *gss_node_id, kind)),
+            }) => Some(self.format_failure(*input_index, *slot_id, *gss_node_id, kind)),
             Some(DebugAction::MatchingLeadingLayout { input_index }) => Some(format!(
                 "Matching Leading Layout\n  input index {}",
                 input_index
@@ -513,7 +513,7 @@ impl TraceReplay {
                     .get(gss_node_id.index())
                     .map(|node| node.index as usize)
             }
-            Some(DebugAction::ParseError { input_index, .. }) => Some(*input_index as usize),
+            Some(DebugAction::GLLFailure { input_index, .. }) => Some(*input_index as usize),
             Some(DebugAction::MatchingLeadingLayout { input_index }) => Some(*input_index as usize),
             Some(DebugAction::MatchingTrailingLayout { input_index }) => {
                 Some(*input_index as usize)
@@ -680,8 +680,8 @@ impl TraceReplay {
                     children: vec![child.0],
                 });
             }
-            TraceEvent::ParseError(input_index, slot_id, gss_node_id, ref kind) => {
-                self.current_action = Some(DebugAction::ParseError {
+            TraceEvent::GLLFailure(input_index, slot_id, gss_node_id, ref kind) => {
+                self.current_action = Some(DebugAction::GLLFailure {
                     input_index: *input_index,
                     slot_id: *slot_id,
                     gss_node_id: *gss_node_id,
@@ -748,7 +748,7 @@ impl TraceReplay {
         let current_gss_node_id = match &self.current_action {
             Some(DebugAction::ProcessingDescriptor(desc)) => Some(desc.gss_node_id.0),
             Some(DebugAction::Pop { gss_node_id, .. }) => Some(gss_node_id.0),
-            Some(DebugAction::ParseError { gss_node_id, .. }) => gss_node_id.map(|id| id.0),
+            Some(DebugAction::GLLFailure { gss_node_id, .. }) => gss_node_id.map(|id| id.0),
             // Layout and terminal matching actions don't have an associated GSS node
             Some(DebugAction::MatchingLeadingLayout { .. })
             | Some(DebugAction::MatchingTrailingLayout { .. })
@@ -785,7 +785,7 @@ impl TraceReplay {
                 frames.push(self.symbols.slot(*slot_id).to_string());
                 *gss_node_id
             }
-            Some(DebugAction::ParseError {
+            Some(DebugAction::GLLFailure {
                 slot_id,
                 gss_node_id,
                 ..
@@ -906,8 +906,8 @@ impl TraceReplay {
                 ),
                 "match_success".to_string(),
             ),
-            TraceEvent::ParseError(input_index, slot_id, _, ref kind) => {
-                let description = self.format_error_kind(kind);
+            TraceEvent::GLLFailure(input_index, slot_id, _, ref kind) => {
+                let description = self.format_failure_kind(kind);
                 let slot_name = self.symbols.slot(*slot_id);
                 (
                     format!(
@@ -1027,14 +1027,6 @@ impl TraceReplay {
                     "call".to_string(),
                 )
             }
-            TraceEvent::ParseSuccess(duration) => (
-                format!("Parse succeeded in {}ms", duration.as_millis()),
-                "success".to_string(),
-            ),
-            TraceEvent::ParseFailed(duration) => (
-                format!("Parse failed in {}ms", duration.as_millis()),
-                "failed".to_string(),
-            ),
         }
     }
 }

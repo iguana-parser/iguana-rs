@@ -8,7 +8,7 @@ pub mod types;
 use iguana_runtime::{
     arena::Arena,
     input::Input,
-    parser::{ParseResult, Parser},
+    parser::{GLLResult, Parser},
 };
 use parse_tree::*;
 use parser::DanglingElseUnsafeParser;
@@ -63,7 +63,7 @@ pub fn parse_s<'a>(
     let vec_arena = Arena::new();
     let mut parser = DanglingElseUnsafeParser::new(input, grammar_data::START_S, &vec_arena);
     match parser.run() {
-        ParseResult::Success(success) => {
+        GLLResult::Success(success) => {
             let parse_duration = success.duration;
             let tree_start = iguana_runtime::Instant::now();
             let parse_tree_builder = DanglingElseUnsafeParseTreeBuilder::new(tree_arena);
@@ -81,7 +81,7 @@ pub fn parse_s<'a>(
                 ambiguity_node_added,
             })
         }
-        ParseResult::Failure(error) => {
+        GLLResult::Failure(error) => {
             let (line, column, message) = parser.format_error(&error);
             let len = parser.error_span_len(error.input_index);
             Err(ParseError {
@@ -108,7 +108,7 @@ pub fn parse_statement<'a>(
     let mut parser =
         DanglingElseUnsafeParser::new(input, grammar_data::START_STATEMENT, &vec_arena);
     match parser.run() {
-        ParseResult::Success(success) => {
+        GLLResult::Success(success) => {
             let parse_duration = success.duration;
             let tree_start = iguana_runtime::Instant::now();
             let parse_tree_builder = DanglingElseUnsafeParseTreeBuilder::new(tree_arena);
@@ -126,7 +126,7 @@ pub fn parse_statement<'a>(
                 ambiguity_node_added,
             })
         }
-        ParseResult::Failure(error) => {
+        GLLResult::Failure(error) => {
             let (line, column, message) = parser.format_error(&error);
             let len = parser.error_span_len(error.input_index);
             Err(ParseError {
@@ -152,7 +152,7 @@ pub fn parse_layout<'a>(
     let vec_arena = Arena::new();
     let mut parser = DanglingElseUnsafeParser::new(input, grammar_data::LAYOUT, &vec_arena);
     match parser.run() {
-        ParseResult::Success(success) => {
+        GLLResult::Success(success) => {
             let parse_duration = success.duration;
             let tree_start = iguana_runtime::Instant::now();
             let parse_tree_builder = DanglingElseUnsafeParseTreeBuilder::new(tree_arena);
@@ -170,7 +170,7 @@ pub fn parse_layout<'a>(
                 ambiguity_node_added,
             })
         }
-        ParseResult::Failure(error) => {
+        GLLResult::Failure(error) => {
             let (line, column, message) = parser.format_error(&error);
             let len = parser.error_span_len(error.input_index);
             Err(ParseError {
