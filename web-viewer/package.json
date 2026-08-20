@@ -10,7 +10,7 @@
     "build": "vite build && node scripts/clean-dist.mjs",
     "stage:iggy": "node scripts/stage-iggy-bundle.mjs",
     "preview": "vite preview",
-    "check": "svelte-check --tsconfig ./tsconfig.json --fail-on-warnings"
+    "check": "svelte-check --tsconfig ./tsconfig.json --fail-on-warnings && node scripts/check-clean-dist.mjs"
   },
   "dependencies": {
     "@iguana-parser/web-ui": "*",
