@@ -88,22 +88,25 @@ pub fn post_process(input: &str) -> String {
     out
 }
 
-/// Appends a `///` doc line to `out`. `quote!` separates tokens with spaces, so
-/// a doc attribute arrives preceded by a stray space; dropping it and starting a
-/// new line only when `out` is not already at a line start keeps consecutive doc
-/// lines (each `#[doc = "..."]` renders separately) flush, with no blank line
-/// between them.
-///
-/// The text goes out as it is, so a `#[doc]` written by hand in a generator
-/// needs to include its own leading space. `quote!` already includes one when
-/// it renders a real `///` line.
-fn push_doc_line(out: &mut String, text: &str) {
+/// Puts `out` at the start of a fresh line. `quote!` separates tokens with
+/// spaces, so a rewritten attribute arrives preceded by a stray space; dropping
+/// it and breaking the line only when `out` is not already at a line start
+/// leaves no trailing space on the previous line and no blank line between
+/// consecutive rewritten attributes.
+fn start_line(out: &mut String) {
     while out.ends_with(' ') {
         out.pop();
     }
     if !out.is_empty() && !out.ends_with('\n') {
         out.push('\n');
     }
+}
+
+/// Appends a `///` doc line to `out`. The text goes out as it is, so a
+/// `#[doc]` written by hand in a generator needs to include its own leading
+/// space. `quote!` already includes one when it renders a real `///` line.
+fn push_doc_line(out: &mut String, text: &str) {
+    start_line(out);
     out.push_str("///");
     out.push_str(text);
     out.push('\n');
@@ -119,13 +122,19 @@ const COMMENT_WIDTH: usize = 90;
 /// `COMMENT_WIDTH`. A comment is written as one string in the generator, so this
 /// breaks a long one into readable lines; a short one stays on a single line.
 fn wrap_comment(out: &mut String, text: &str) {
+    start_line(out);
     let mut col = 0;
+    let mut first = true;
     for word in text.split_whitespace() {
         if col != 0 && col + 1 + word.len() > COMMENT_WIDTH {
             col = 0;
         }
         if col == 0 {
-            out.push_str("\n// ");
+            if !first {
+                out.push('\n');
+            }
+            out.push_str("// ");
+            first = false;
             col = word.len();
         } else {
             out.push(' ');
@@ -133,7 +142,9 @@ fn wrap_comment(out: &mut String, text: &str) {
         }
         out.push_str(word);
     }
-    out.push('\n');
+    if !first {
+        out.push('\n');
+    }
 }
 
 /// The token-stream renders a `"`-string with its source-text escapes still
@@ -216,5 +227,55 @@ mod tests {
             out.contains("// alpha beta gamma delta epsilon zeta"),
             "got: {out:?}"
         );
+        assert!(
+            out.lines().all(|line| line.trim_end() == line),
+            "trailing whitespace: {out:?}"
+        );
+    }
+
+    #[test]
+    fn wraps_a_comment_wider_than_the_width_budget() {
+        // Two words that cannot share a `COMMENT_WIDTH` line, so the second
+        // takes the continuation path and starts its own `// ` line.
+        let padding = "a".repeat(60);
+        let text = format!("first{padding} second{padding}");
+        let tokens = quote! {
+            #[comment = #text]
+            struct X;
+        };
+        let out = post_process(&tokens.to_string());
+        let expected = format!("// first{padding}\n// second{padding}\n");
+        assert!(out.contains(&expected), "got: {out:?}");
+    }
+
+    #[test]
+    fn comment_after_code_leaves_no_trailing_whitespace() {
+        // The token-stream string separates `first () ;` from `# [comment ...]`
+        // with a space; the comment rewrite must drop it rather than leave it
+        // at the end of the code line.
+        let tokens = quote! {
+            fn f() {
+                first();
+                #[comment = "second"]
+                second();
+            }
+        };
+        let out = post_process(&tokens.to_string());
+        assert!(out.contains("// second"), "got: {out:?}");
+        assert!(
+            out.lines().all(|line| line.trim_end() == line),
+            "trailing whitespace: {out:?}"
+        );
+    }
+
+    #[test]
+    fn consecutive_comments_have_no_blank_between() {
+        let tokens = quote! {
+            #[comment = "first"]
+            #[comment = "second"]
+            struct X;
+        };
+        let out = post_process(&tokens.to_string());
+        assert!(out.contains("// first\n// second\n"), "got: {out:?}");
     }
 }
