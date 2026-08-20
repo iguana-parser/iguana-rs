@@ -64,7 +64,7 @@
     "bundle": "esbuild src/extension.ts --bundle --platform=node --target=node20 --format=cjs --external:vscode --outfile=dist/extension.js",
     "compile": "npm run check && npm run bundle",
     "watch": "npm run bundle -- --watch",
-    "vscode:prepublish": "npm run check && npm run bundle -- --minify",
+    "vscode:prepublish": "npm run check && npm run bundle -- --minify && node scripts/generate-third-party-notices.mjs",
     "package:vsix": "vsce package"
   },
   "dependencies": {
