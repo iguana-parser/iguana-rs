@@ -26,7 +26,7 @@ struct Cli {
 enum Commands {
     /// Create a new iggy grammar project
     ///
-    /// Creates the directory and writes a stub .iggy grammar and a .gitignore
+    /// Creates the directory and writes a starter .iggy grammar and a .gitignore
     New {
         /// Path of the new project directory
         ///
@@ -276,13 +276,22 @@ fn new_project(path: &Path) -> io::Result<()> {
     std::fs::create_dir_all(path)?;
 
     let grammar_file = path.join(format!("{name}.iggy"));
-    std::fs::write(&grammar_file, format!("grammar {grammar_name}\n"))?;
+    std::fs::write(&grammar_file, starter_grammar(&grammar_name))?;
 
     std::fs::write(path.join(".gitignore"), "/target\n")?;
 
     println!("Created iggy grammar project at {}", path.display());
     println!("Run `iguana generate` to generate the parser from {name}.iggy");
     Ok(())
+}
+
+/// The grammar a new project starts from. It parses `hello world`, and its
+/// three rules show a literal, a lexical rule, and the layout definition that
+/// lets whitespace separate the two symbols.
+fn starter_grammar(grammar_name: &str) -> String {
+    format!(
+        "grammar {grammar_name}\n\nS = \"hello\" Name\n\n@Regex\nName = [a-zA-Z]+\n\n@Layout @Regex\nLayout = [\\ \\t\\n]*\n"
+    )
 }
 
 fn find_iggy_file(directory: &Path) -> std::io::Result<PathBuf> {

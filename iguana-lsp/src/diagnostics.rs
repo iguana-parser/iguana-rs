@@ -361,6 +361,8 @@ A
             r#"
 grammar T
 
+S = DecimalLiteral
+
 @Regex
 DecimalLiteral
   = Digits ExponentPart
@@ -384,6 +386,8 @@ Digits
         let d = diags(
             r#"
 grammar T
+
+S = DecimalLiteral
 
 @Regex
 DecimalLiteral
@@ -410,6 +414,8 @@ ExponentPart
         let d = diags(
             r#"
 grammar T
+
+S = FloatLiteral
 
 @Regex
 FloatLiteral

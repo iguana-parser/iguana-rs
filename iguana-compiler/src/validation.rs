@@ -51,7 +51,21 @@ pub fn validate<'a>(grammar_def: &'a GrammarDef, spans: &GrammarSpans<'a>) -> Ve
     check_one_label_per_symbol(grammar_def, spans, &mut errors);
     check_reserved_names(grammar_def, spans, &mut errors);
     check_layout_is_not_an_identifier_rule(grammar_def, spans, &mut errors);
+    check_grammar_has_a_syntax_rule(grammar_def, &mut errors);
     errors
+}
+
+/// A grammar needs at least one syntax rule. Generating from a grammar without
+/// one produces a crate with an empty token kind and no start symbol, which
+/// does not compile. The error carries the start of the file, since a grammar
+/// that defines nothing has no rule to point at.
+fn check_grammar_has_a_syntax_rule(grammar_def: &GrammarDef, errors: &mut Vec<GrammarError>) {
+    if grammar_def.syntax_rules.is_empty() {
+        errors.push(GrammarError {
+            message: format!("grammar `{}` has no syntax rules", grammar_def.name),
+            span: Span::new(0, 0),
+        });
+    }
 }
 
 /// Rule names must be unique. When two rules have the same name, the error is

@@ -568,6 +568,13 @@ TypeId = [A-Z][a-z]*
     }
 
     #[test]
+    fn test_grammar_without_a_syntax_rule_is_rejected() {
+        let errors =
+            parse_grammar("grammar g").expect_err("the grammar declares a name and nothing else");
+        assert_eq!(messages(&errors), ["grammar `g` has no syntax rules"]);
+    }
+
+    #[test]
     fn test_layout_rule_cannot_be_an_identifier_rule() {
         let errors = parse_grammar("grammar g S = \"a\" @Layout @Identifier @Regex WS = [\\ ]+")
             .expect_err("the layout rule is also an identifier rule");
