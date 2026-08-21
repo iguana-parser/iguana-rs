@@ -17,6 +17,7 @@ use crate::generator::GenConfig;
 pub struct GenConfigFile {
     pub ll1: Option<bool>,
     pub match_memo: Option<bool>,
+    pub format: Option<bool>,
     #[serde(rename = "unsafe")]
     pub unsafe_mode: Option<bool>,
     pub bin_name: Option<String>,
@@ -63,6 +64,9 @@ impl GenConfig {
         if let Some(unsafe_mode) = file.unsafe_mode {
             self.unsafe_mode = unsafe_mode;
         }
+        if let Some(format) = file.format {
+            self.format = format;
+        }
     }
 }
 
@@ -75,6 +79,7 @@ mod tests {
         let file: GenConfigFile = toml::from_str("").unwrap();
         assert_eq!(file.ll1, None);
         assert_eq!(file.match_memo, None);
+        assert_eq!(file.format, None);
         assert_eq!(file.unsafe_mode, None);
         assert_eq!(file.bin_name, None);
         assert_eq!(file.runtime_path, None);
@@ -84,6 +89,16 @@ mod tests {
     fn unsafe_key_maps_to_unsafe_mode() {
         let file: GenConfigFile = toml::from_str("unsafe = true\n").unwrap();
         assert_eq!(file.unsafe_mode, Some(true));
+    }
+
+    #[test]
+    fn format_key_parses_and_applies() {
+        let file: GenConfigFile = toml::from_str("format = false\n").unwrap();
+        assert_eq!(file.format, Some(false));
+
+        let mut config = GenConfig::default();
+        config.apply_file(&file);
+        assert!(!config.format);
     }
 
     #[test]
@@ -102,7 +117,9 @@ mod tests {
         config.apply_file(&file);
         assert!(!config.ll1_optimization);
         assert!(config.unsafe_mode);
-        // match_memo is unspecified, so it keeps the built-in default.
+        // match_memo and format are unspecified, so they keep the built-in
+        // defaults.
         assert!(config.match_memo);
+        assert!(config.format);
     }
 }

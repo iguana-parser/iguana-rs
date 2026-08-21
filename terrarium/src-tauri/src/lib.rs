@@ -880,14 +880,17 @@ fn generate_parser(directory: String, no_ll1: bool, app: tauri::AppHandle) {
         log_event(
             &app,
             "command",
-            &format!("iguana generate --output {directory} --json{ll1_flag}"),
+            &format!("iguana generate --output {directory} --json --format false{ll1_flag}"),
         );
 
         let mut cmd = Command::new("iguana");
         cmd.arg("generate")
             .arg("--output")
             .arg(&directory)
-            .arg("--json");
+            .arg("--json")
+            // Terrarium regenerates before every build. Cargo does not
+            // require formatted sources.
+            .args(["--format", "false"]);
         // The flag is only passed when the option is off, so a gen.toml beside
         // the grammar still decides when the checkbox is on.
         if no_ll1 {

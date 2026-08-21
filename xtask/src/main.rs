@@ -369,42 +369,10 @@ fn regenerate_with(
         .map_err(|errors: Vec<String>| io::Error::other(errors.join("\n")))?;
     generate_scaffold(&grammar, output, config, runtime_path, None, force)?;
     let result = generate_sources(&grammar, output, config)?;
-    format_sources(output)?;
     if config.wasm {
-        generate_wasm(&grammar, output, runtime_path, force)?;
-        format_sources(&output.join("wasm"))?;
+        generate_wasm(&grammar, output, config, runtime_path, force)?;
     }
     Ok(result)
-}
-
-/// Format every `.rs` file in `<crate_dir>/src/` with rustfmt. One invocation
-/// for the whole crate avoids the project-mode race between parallel rustfmt
-/// processes, and skipping cargo means no workspace traversal.
-fn format_sources(crate_dir: &Path) -> io::Result<()> {
-    let src_dir = crate_dir.join("src");
-    let mut files: Vec<PathBuf> = Vec::new();
-    for entry in fs::read_dir(&src_dir)? {
-        let path = entry?.path();
-        if path.extension().is_some_and(|x| x == "rs") {
-            files.push(path);
-        }
-    }
-    if files.is_empty() {
-        return Ok(());
-    }
-    let status = Command::new("rustfmt")
-        .arg("--edition")
-        .arg("2024")
-        .arg("--quiet")
-        .args(&files)
-        .status()?;
-    if !status.success() {
-        return Err(io::Error::other(format!(
-            "rustfmt failed in {}",
-            src_dir.display()
-        )));
-    }
-    Ok(())
 }
 
 fn test(regen: bool, extra: &[String]) -> io::Result<()> {

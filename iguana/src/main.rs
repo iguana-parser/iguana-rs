@@ -35,8 +35,8 @@ enum Commands {
     },
     /// Generate a parser crate from an iggy grammar
     ///
-    /// Generation knobs (ll1, match_memo, unsafe, bin_name, runtime_path) can
-    /// be persisted in a gen.toml beside the grammar.
+    /// Generation knobs (ll1, match_memo, format, unsafe, bin_name,
+    /// runtime_path) can be persisted in a gen.toml beside the grammar.
     /// Precedence is the built-in default, then gen.toml, then an explicit
     /// flag.
     Generate {
@@ -66,6 +66,14 @@ enum Commands {
         #[arg(long, num_args = 0..=1, default_missing_value = "true")]
         match_memo: Option<bool>,
 
+        /// Format the generated sources with rustfmt
+        ///
+        /// True by default. If rustfmt is unavailable, Iguana warns and leaves
+        /// the sources unformatted. Tools that regenerate on every edit can
+        /// pass false.
+        #[arg(long, num_args = 0..=1, default_missing_value = "true")]
+        format: Option<bool>,
+
         /// When true, the generated parser runs in the unsafe mode (see Parser::UNSAFE
         /// in iguana-runtime).
         #[arg(long = "unsafe", value_name = "UNSAFE", num_args = 0..=1, default_missing_value = "true")]
@@ -88,7 +96,7 @@ enum Commands {
 
         /// Point the generated crate's iguana-runtime dependency at a local path
         ///
-        /// Replaces the default git dependency. Applies to the standalone
+        /// Replaces the default crates.io dependency. Applies to the standalone
         /// (--cli) and wasm shapes; use it to develop the runtime alongside a
         /// grammar or pin the bundle to a specific local checkout
         #[arg(long)]
@@ -146,6 +154,7 @@ fn run() -> io::Result<()> {
             json,
             ll1,
             match_memo,
+            format,
             unsafe_mode,
             cli,
             wasm,
@@ -205,6 +214,9 @@ fn run() -> io::Result<()> {
             if let Some(match_memo) = match_memo {
                 config.match_memo = match_memo;
             }
+            if let Some(format) = format {
+                config.format = format;
+            }
             if let Some(unsafe_mode) = unsafe_mode {
                 config.unsafe_mode = unsafe_mode;
             }
@@ -235,12 +247,20 @@ fn run() -> io::Result<()> {
             )?;
             let result = generate_sources(&grammar, &output, config)?;
             if config.wasm {
-                generate_wasm(&grammar, &output, runtime_path.as_deref(), force)?;
+                generate_wasm(&grammar, &output, config, runtime_path.as_deref(), force)?;
                 iguana_compiler::wasm_build::build(&output.join("wasm"))?;
                 viewer::write_assets(&output)?;
             }
             if json {
-                println!("{{\"total_duration_ms\":{}}}", result.total_duration_ms);
+                println!(
+                    "{{\"total_duration_ms\":{},\"format_duration_ms\":{}}}",
+                    result.total_duration_ms, result.format_duration_ms
+                );
+            } else if result.format_duration_ms > 0 {
+                println!(
+                    "Generated {} grammar in {} ms ({} ms rustfmt)",
+                    grammar.name, result.total_duration_ms, result.format_duration_ms
+                );
             } else {
                 println!(
                     "Generated {} grammar in {} ms",

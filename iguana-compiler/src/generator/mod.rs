@@ -2,7 +2,7 @@ use std::{
     fs,
     io::{self, Write},
     path::Path,
-    time::Instant,
+    time::{Duration, Instant},
 };
 
 use crate::{
@@ -116,6 +116,10 @@ pub struct GenConfig {
     /// When true, the generated parser runs in the unsafe mode; see
     /// [`iguana_runtime::parser::Parser::UNSAFE`].
     pub unsafe_mode: bool,
+    /// Whether rustfmt formats the generated Rust files.
+    ///
+    /// True by default.
+    pub format: bool,
 }
 
 impl Default for GenConfig {
@@ -126,16 +130,26 @@ impl Default for GenConfig {
             cli: true,
             wasm: false,
             unsafe_mode: false,
+            format: true,
         }
     }
 }
 
 pub struct GenerateResult {
+    /// Wall-clock time for the whole of `generate_sources`, formatting
+    /// included.
     pub total_duration_ms: u64,
+    /// Time spent formatting the parser sources in `generate_sources`.
+    ///
+    /// Zero when formatting is disabled or rustfmt is unavailable. Formatting
+    /// performed by `generate_scaffold` is not included.
+    pub format_duration_ms: u64,
 }
 
 mod cargo_toml_gen;
+mod format;
 pub use cargo_toml_gen::pinned_runtime_dependency;
+pub use format::format_files;
 mod gen_config_file;
 pub use gen_config_file::GenConfigFile;
 mod grammar_data_gen;
@@ -287,8 +301,23 @@ pub fn generate_sources(
         &grammar_data_path,
     )?;
 
+    let generated = [
+        lib_path.as_path(),
+        parser_path.as_path(),
+        scanner_path.as_path(),
+        parse_tree_path.as_path(),
+        types_path.as_path(),
+        grammar_data_path.as_path(),
+    ];
+    let format_duration = if config.format {
+        format_files(&generated)?
+    } else {
+        Duration::ZERO
+    };
+
     Ok(GenerateResult {
         total_duration_ms: start.elapsed().as_millis() as u64,
+        format_duration_ms: format_duration.as_millis() as u64,
     })
 }
 
@@ -331,10 +360,12 @@ pub fn generate_scaffold(
 
     if config.cli && !config.wasm {
         let main_code = main_gen::generate(grammar);
-        write_rust_file(
-            post_process(&main_code.to_string()),
-            &src_dir.join("main.rs"),
-        )?;
+        let main_path = src_dir.join("main.rs");
+        write_rust_file(post_process(&main_code.to_string()), &main_path)?;
+        // Only the main.rs this branch writes is formatted.
+        if config.format {
+            format_files(&[&main_path])?;
+        }
     }
 
     Ok(())
@@ -351,6 +382,7 @@ pub fn generate_scaffold(
 pub fn generate_wasm(
     grammar: &Grammar,
     output_dir: &Path,
+    config: GenConfig,
     runtime_path: Option<&Path>,
     force: bool,
 ) -> io::Result<()> {
@@ -377,6 +409,10 @@ pub fn generate_wasm(
         manifest_gen::generate(grammar),
         &output_dir.join("manifest.json"),
     )?;
+
+    if config.format {
+        format_files(&[&wasm_src.join("lib.rs")])?;
+    }
 
     Ok(())
 }
