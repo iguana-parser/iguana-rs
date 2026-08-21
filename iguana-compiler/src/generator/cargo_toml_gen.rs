@@ -3,23 +3,21 @@ use std::path::Path;
 use crate::{generator::GenConfig, grammar::def::Grammar, utils::to_snake_case};
 
 /// The default `iguana-runtime` dependency line for a generated Cargo.toml:
-/// a git dependency pinned to the generator's own version, so a parser and
-/// its runtime move in lockstep and a generated parser never builds against
-/// a runtime it was not generated for. Public because xtask's workspace
-/// patching replaces this exact line.
-pub fn git_runtime_dependency() -> String {
-    format!(
-        "iguana-runtime = {{ git = \"https://github.com/iguana-parser/iguana-rs\", version = \"={}\" }}",
-        env!("CARGO_PKG_VERSION")
-    )
+/// the crates.io release matching the generator's own version. A published
+/// version is immutable, so a parser keeps compiling against the runtime it
+/// was generated for, offline and vendored builds work, and a change to an
+/// unreleased runtime cannot reach a generated parser. Public because
+/// xtask's workspace patching replaces this exact line.
+pub fn pinned_runtime_dependency() -> String {
+    format!("iguana-runtime = \"={}\"", env!("CARGO_PKG_VERSION"))
 }
 
 /// The `iguana-runtime` dependency line for a generated Cargo.toml: a local
-/// path when `runtime_path` is set, otherwise the pinned git dependency.
+/// path when `runtime_path` is set, otherwise the pinned crates.io release.
 fn runtime_dependency(runtime_path: Option<&Path>) -> String {
     match runtime_path {
         Some(path) => format!("iguana-runtime = {{ path = \"{}\" }}", path.display()),
-        None => git_runtime_dependency(),
+        None => pinned_runtime_dependency(),
     }
 }
 
@@ -171,4 +169,27 @@ instrument = ["iguana-runtime/instrument"]
     )
     .trim()
     .to_owned()
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::iggy::parse_grammar;
+
+    /// A generated standalone crate depends on the published runtime at the
+    /// generator's own version. Nothing else in the workspace resolves that
+    /// manifest, so this test is what catches a template regression.
+    #[test]
+    fn standalone_crate_pins_the_matching_runtime_release() {
+        let expected = format!("iguana-runtime = \"={}\"", env!("CARGO_PKG_VERSION"));
+        assert_eq!(pinned_runtime_dependency(), expected);
+        assert!(generate_full("demo", None, None).contains(&expected));
+        assert!(generate_wasm_lib("demo", None).contains(&expected));
+
+        let grammar: Grammar = parse_grammar("grammar Demo\n\nS = \"x\"\n")
+            .expect("grammar should parse")
+            .try_into()
+            .expect("grammar should build");
+        assert!(generate_wasm_wrapper(&grammar, None).contains(&expected));
+    }
 }
