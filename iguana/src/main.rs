@@ -285,13 +285,11 @@ fn new_project(path: &Path) -> io::Result<()> {
     Ok(())
 }
 
-/// The grammar a new project starts from. It parses `hello world`, and its
-/// three rules show a literal, a lexical rule, and the layout definition that
-/// lets whitespace separate the two symbols.
+/// The grammar a new project starts from. One rule is enough for the crate to
+/// generate, compile, and parse, and a placeholder keeps lexical rules and
+/// layout out of a user's first minute.
 fn starter_grammar(grammar_name: &str) -> String {
-    format!(
-        "grammar {grammar_name}\n\nS = \"hello\" Name\n\n@Regex\nName = [a-zA-Z]+\n\n@Layout @Regex\nLayout = [\\ \\t\\n]*\n"
-    )
+    format!("grammar {grammar_name}\n\nS = \"hello\"\n")
 }
 
 fn find_iggy_file(directory: &Path) -> std::io::Result<PathBuf> {
