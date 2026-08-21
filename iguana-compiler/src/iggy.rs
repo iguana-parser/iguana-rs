@@ -532,6 +532,17 @@ mod tests {
     }
 
     #[test]
+    fn test_parse_error_suppresses_layout_expectations() {
+        let errors = parse_grammar("grammar g\n\nS = \"a\" @")
+            .expect_err("the grammar has an incomplete annotation");
+        assert_eq!(errors.len(), 1);
+        let message = &errors[0].message;
+        assert!(message.contains("Identifier"), "{message}");
+        assert!(!message.contains("WS"), "{message}");
+        assert!(!message.contains("LineComment"), "{message}");
+    }
+
+    #[test]
     fn test_identifier_annotation_marks_the_rule() {
         let grammar = parse_grammar("grammar g S = Id @Identifier @Regex Id = [a-z]+")
             .expect("the grammar should parse");

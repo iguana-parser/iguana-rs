@@ -1,0 +1,48 @@
+grammar ErrorUnion
+
+@NoLayout
+T = "[" BeforeP Layout P Layout "]"
+  | "[" BeforeQ Layout Q Layout "]"
+
+// This reversal must report the same union in the same order. Both starts also
+// exercise literal-before-name ordering and suppression of WS and Newline.
+// The trailing EOF is a start-wrapper artifact that the broader 0.2
+// error-reporting work is expected to address.
+@NoLayout
+U = "[" BeforeQ Layout Q Layout "]"
+  | "[" BeforeP Layout P Layout "]"
+
+P = "p" | Word
+Q = "q"
+
+BeforeP = "x" | "x" "y"
+BeforeQ = "x" | "x" "z"
+
+// Failures of different kinds at the same input index remain first-wins. Which
+// kind is first reflects descriptor scheduling, not a semantic precedence rule;
+// these cases pin the current behavior rather than promising that order.
+@NoLayout
+UnexpectedFirst = Identifier \ Keyword
+                | Identifier "!"
+
+@NoLayout
+ExcludedFirst = Identifier "!"
+              | Identifier \ Keyword
+
+@Regex
+Word = [a-z]+
+
+@Regex
+Identifier = [a-zA-Z]+
+
+@Regex
+Keyword = "if" | "else" | "while"
+
+@Layout
+Layout = (WS | Newline)*
+
+@Regex
+WS = [\ ]+
+
+@Regex
+Newline = [\n]+

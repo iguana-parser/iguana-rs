@@ -764,8 +764,11 @@ impl<'i, 'arena> Parser<'i, 'arena> for AmbPlusParser<'i, 'arena> {
             _ => vec![],
         }
     }
-    fn failure(&self) -> Option<&GLLFailure> {
-        self.failures.first()
+    fn layout_terminals() -> &'static [TerminalId] {
+        &[]
+    }
+    fn failures(&self) -> impl Iterator<Item = &GLLFailure> {
+        self.failures.iter()
     }
     fn add_failure(
         &mut self,

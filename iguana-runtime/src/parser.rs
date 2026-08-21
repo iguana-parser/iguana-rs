@@ -83,6 +83,12 @@ pub trait Parser<'i, 'arena> {
 
     fn nonterminal_display_name(nonterminal_id: NonterminalId) -> &'static str;
     fn terminal_name(terminal_id: TerminalId) -> &'static str;
+    /// Whether the terminal is a literal written in the grammar, such as
+    /// `"else"`, rather than a named lexical definition.
+    /// Literal terminal names retain their leading quote, so this test is exact.
+    fn is_literal(terminal_id: TerminalId) -> bool {
+        Self::terminal_name(terminal_id).starts_with('"')
+    }
     fn slot_name(slot_id: SlotId) -> &'static str;
     fn epsilon() -> TerminalId;
     /// The number of terminals, excluding the synthetic Epsilon and EOF.
@@ -312,8 +318,65 @@ pub trait Parser<'i, 'arena> {
         }
     }
 
-    /// Returns the first failure at the farthest input position, if any.
-    fn failure(&self) -> Option<&GLLFailure>;
+    /// The terminals reachable from the grammar's layout definition, or an
+    /// empty slice when the grammar has no layout.
+    fn layout_terminals() -> &'static [TerminalId];
+
+    /// The failures recorded at the farthest input index reached, in recording
+    /// order.
+    fn failures(&self) -> impl Iterator<Item = &GLLFailure>;
+
+    /// Calculates the failure to report from the failures recorded at the
+    /// farthest input index reached during parsing.
+    ///
+    /// Error reporting uses the following strategy:
+    ///
+    /// - Failures at earlier input indices are discarded as parsing proceeds.
+    /// - The first retained failure supplies the diagnostic kind, slot, and GSS
+    ///   context.
+    /// - If the first failure is an `UnexpectedToken`, its expected set is the
+    ///   union of the expected sets from all retained `UnexpectedToken`
+    ///   failures. Other failure kinds do not contribute to this union. A first
+    ///   failure of another kind is returned unchanged.
+    /// - Layout terminals are removed when at least one other expected terminal
+    ///   remains.
+    /// - The expected set is sorted deterministically, with literals before
+    ///   named lexical definitions and grammar order within each class.
+    ///
+    /// Different failure kinds are not ranked or reconciled. When multiple
+    /// kinds occur at the same input index, the result is therefore first-wins
+    /// and depends on the parser's execution order.
+    ///
+    /// The expected set does not distinguish terminals introduced by implicit
+    /// layout handling from terminals referenced explicitly in the grammar.
+    /// The global layout filter can therefore hide an explicitly expected
+    /// layout terminal when the set also contains other terminals. Preserving
+    /// that distinction requires richer error-reporting context.
+    fn failure(&self) -> Option<GLLFailure> {
+        let mut failures = self.failures();
+        let mut failure = failures.next()?.clone();
+        let GLLFailureKind::UnexpectedToken { expected } = &mut failure.kind else {
+            return Some(failure);
+        };
+
+        for other in failures {
+            if let GLLFailureKind::UnexpectedToken {
+                expected: additional,
+            } = &other.kind
+            {
+                expected.extend_from_slice(additional);
+            }
+        }
+
+        let layout = Self::layout_terminals();
+        if expected.iter().any(|terminal| !layout.contains(terminal)) {
+            expected.retain(|terminal| !layout.contains(terminal));
+        }
+        expected.sort_unstable_by_key(|terminal| (!Self::is_literal(*terminal), terminal.0));
+        expected.dedup();
+        Some(failure)
+    }
+
     /// Records a failure at the given input position.
     ///
     /// Only failures at the farthest input position seen so far are kept; calls at
@@ -909,7 +972,7 @@ pub trait Parser<'i, 'arena> {
                 duration,
             })
         } else if let Some(error) = self.failure() {
-            GLLResult::Failure(error.clone())
+            GLLResult::Failure(error)
         } else {
             // No error was recorded, but the start nonterminal doesn't span the full input.
             // Find the farthest position reached by the start nonterminal.

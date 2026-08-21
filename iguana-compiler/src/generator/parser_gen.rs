@@ -26,6 +26,7 @@ use crate::grammar::symbols::Symbol;
 use crate::grammar::symbols::Terminal;
 use crate::ids::NonterminalId;
 use crate::ids::SlotId;
+use crate::ids::TerminalId;
 use crate::utils::to_snake_case;
 
 pub struct ParserGen<'a> {
@@ -145,6 +146,8 @@ impl<'a> ParserGen<'a> {
         let post_conditions_method = self.gen_post_conditions_method();
         let follow_set_check_method = self.gen_follow_set_check_method();
         let follow_set_terminals_method = self.gen_follow_set_terminals_method();
+        let layout_terminals_method = self.gen_layout_terminals_method();
+        let failures_method = Self::gen_failures_method();
         let parser_struct = self.gen_parser_struct();
         let parser_impl = self.gen_parser_impl();
         let grammar_name_ident = parser_ident(grammar_name);
@@ -196,10 +199,8 @@ impl<'a> ParserGen<'a> {
                 #post_conditions_method
                 #follow_set_check_method
                 #follow_set_terminals_method
-
-                fn failure(&self) -> Option<&GLLFailure> {
-                    self.failures.first()
-                }
+                #layout_terminals_method
+                #failures_method
 
                 fn add_failure(
                     &mut self,
@@ -895,6 +896,46 @@ impl<'a> ParserGen<'a> {
                     #(#arms)*
                     _ => vec![],
                 }
+            }
+        }
+    }
+
+    fn layout_terminal_ids(&self) -> Vec<TerminalId> {
+        let Some(layout) = self.grammar.layout.as_ref().and_then(Symbol::as_identifier) else {
+            return vec![];
+        };
+
+        let mut pending = vec![layout.resolve()];
+        let mut visited = FxHashSet::default();
+        let mut terminals = vec![];
+        while let Some(definition_id) = pending.pop() {
+            if !visited.insert(definition_id) {
+                continue;
+            }
+            match self.grammar.definition(definition_id) {
+                Definition::Terminal(terminal) => {
+                    terminals.push(self.terminal_ids.get_id(terminal));
+                }
+                Definition::Nonterminal(nonterminal) => {
+                    for alternative in self.grammar.alternatives(nonterminal) {
+                        for symbol in &alternative.symbols {
+                            if let Some(identifier) = symbol.as_identifier() {
+                                pending.push(identifier.resolve());
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        terminals.sort_unstable_by_key(|terminal| terminal.0);
+        terminals
+    }
+
+    fn gen_layout_terminals_method(&self) -> TokenStream {
+        let terminals = self.layout_terminal_ids();
+        quote! {
+            fn layout_terminals() -> &'static [TerminalId] {
+                &[#(#terminals),*]
             }
         }
     }
@@ -2276,6 +2317,14 @@ impl<'a> ParserGen<'a> {
                 'arena: 'p,
             {
                 self.gss_nodes.iter()
+            }
+        }
+    }
+
+    fn gen_failures_method() -> TokenStream {
+        quote! {
+            fn failures(&self) -> impl Iterator<Item = &GLLFailure> {
+                self.failures.iter()
             }
         }
     }
