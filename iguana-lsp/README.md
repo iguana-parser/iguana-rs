@@ -11,7 +11,7 @@ launches `iguana-lsp` as a separate process.
 ## Installation
 
 ```bash
-cargo install iguana-lsp --version 0.1.0-alpha
+cargo install iguana-lsp --version 0.1.0-alpha.1
 ```
 
 The VS Code extension first checks its `iguana.lsp.path` setting, then the

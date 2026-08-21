@@ -110,7 +110,7 @@ members = [
 # this version. A release updates this number and the three internal
 # dependency versions below together; cargo rejects any mismatch.
 [workspace.package]
-version = "0.1.0-alpha"
+version = "0.1.0-alpha.1"
 repository = "https://github.com/iguana-parser/iguana-rs"
 license = "MIT OR Apache-2.0"
 
@@ -133,11 +133,11 @@ lsp-server = "0.10"
 lsp-types = "0.97"
 
 # Internal crates
-iguana-runtime = { path = "iguana-runtime", version = "=0.1.0-alpha" }
+iguana-runtime = { path = "iguana-runtime", version = "=0.1.0-alpha.1" }
 # The crates.io name `iggy` is taken by an unrelated project; the package
 # publishes as iguana-iggy and keeps `iggy` as its dependency and import name.
-iggy = { path = "iggy", version = "=0.1.0-alpha", package = "iguana-iggy" }
-iguana-compiler = { path = "iguana-compiler", version = "=0.1.0-alpha" }
+iggy = { path = "iggy", version = "=0.1.0-alpha.1", package = "iguana-iggy" }
+iguana-compiler = { path = "iguana-compiler", version = "=0.1.0-alpha.1" }
 
 [profile.release]
 debug = true
