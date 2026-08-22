@@ -5,6 +5,7 @@ edition = "2024"
 license.workspace = true
 description = "The language server for iggy grammars"
 repository.workspace = true
+homepage.workspace = true
 readme = "README.md"
 keywords = ["lsp", "language-server", "grammar", "iggy", "parser"]
 categories = ["development-tools"]

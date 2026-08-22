@@ -21,6 +21,23 @@ fn runtime_dependency(runtime_path: Option<&Path>) -> String {
     }
 }
 
+/// The `[features]` section for a shape that holds generated parser sources.
+///
+/// Generated code gates tracing and instrumentation on two features, so every
+/// such shape declares them. `extra` holds the features a shape adds.
+fn generated_source_features(extra: &[&str]) -> String {
+    let mut section = String::from(
+        "[features]\n\
+         debug-trace = [\"iguana-runtime/debug-trace\"]\n\
+         instrument = [\"iguana-runtime/instrument\"]",
+    );
+    for line in extra {
+        section.push('\n');
+        section.push_str(line);
+    }
+    section
+}
+
 /// Generate the contents of `Cargo.toml` for a parser crate.
 ///
 /// `wasm` produces a standalone lib shape with only the wasm-safe deps
@@ -28,11 +45,14 @@ fn runtime_dependency(runtime_path: Option<&Path>) -> String {
 /// crate compiles for `wasm32` as a dependency of the wrapper crate.
 ///
 /// `cli` (without `wasm`) produces a full standalone-parser shape with CLI deps
-/// (clap/dhat/pprof) and a `src/main.rs` binary.
+/// and a `src/main.rs` binary.
 ///
 /// With neither flag, the output is a minimal lib-only shape that assumes the
 /// crate is a workspace member: deps come from `workspace = true`, the `[lib]`
 /// target disables its empty test/doctest harnesses, and there is no `[[bin]]`.
+///
+/// A shape returns its manifest up to the feature section and the features it
+/// adds. `generate` appends the section, so no shape can omit it.
 pub fn generate(
     grammar: &Grammar,
     config: GenConfig,
@@ -40,13 +60,14 @@ pub fn generate(
     bin_name: Option<&str>,
 ) -> String {
     let name = to_snake_case(&grammar.name);
-    if config.wasm {
+    let (body, extra_features) = if config.wasm {
         generate_wasm_lib(&name, runtime_path)
     } else if config.cli {
         generate_full(&name, runtime_path, bin_name)
     } else {
         generate_minimal(&name)
-    }
+    };
+    format!("{body}\n\n{}", generated_source_features(extra_features))
 }
 
 /// Generate the `Cargo.toml` for the `wasm-bindgen` wrapper crate that lives at
@@ -80,9 +101,10 @@ serde_json = "1.0"
     .to_owned()
 }
 
-fn generate_wasm_lib(name: &str, runtime_path: Option<&Path>) -> String {
+/// The wasm lib shape, which adds no features.
+fn generate_wasm_lib(name: &str, runtime_path: Option<&Path>) -> (String, &'static [&'static str]) {
     let runtime = runtime_dependency(runtime_path);
-    format!(
+    let body = format!(
         r#"
 [package]
 name = "{name}"
@@ -97,12 +119,18 @@ path = "src/lib.rs"
 rustc-hash = "2.1.1"
 serde_json = "1.0"
     "#
-    )
-    .trim()
-    .to_owned()
+    );
+    (body.trim().to_owned(), &[])
 }
 
-fn generate_full(name: &str, runtime_path: Option<&Path>, bin_name: Option<&str>) -> String {
+/// The standalone CLI shape. Its dhat and pprof dependencies are optional and
+/// named with `dep:`, so a build compiles them only under `dhat-heap` or
+/// `profile`.
+fn generate_full(
+    name: &str,
+    runtime_path: Option<&Path>,
+    bin_name: Option<&str>,
+) -> (String, &'static [&'static str]) {
     let runtime = runtime_dependency(runtime_path);
     // The [[bin]] is always explicit. It lets bin_name decouple the binary
     // name from the crate name (a grammar like Java avoids a binary called
@@ -111,7 +139,7 @@ fn generate_full(name: &str, runtime_path: Option<&Path>, bin_name: Option<&str>
     let bin = bin_name.unwrap_or(name);
     let bin_section =
         format!("[[bin]]\nname = \"{bin}\"\npath = \"src/main.rs\"\ntest = false\n\n");
-    format!(
+    let body = format!(
         r#"
 [package]
 name = "{name}"
@@ -127,25 +155,19 @@ clap = {{ version = "4.5.51", features = ["derive"] }}
 log = "0.4"
 rustc-hash = "2.1.1"
 serde_json = "1.0"
-dhat = "0.3"
+dhat = {{ version = "0.3", optional = true }}
 pprof = {{ version = "0.15", features = ["flamegraph"], optional = true }}
-
-[features]
-dhat-heap = []
-debug-trace = ["iguana-runtime/debug-trace"]
-profile = ["pprof"]
-instrument = ["iguana-runtime/instrument"]
-
-[profile.release]
-debug = true
     "#
+    );
+    (
+        body.trim().to_owned(),
+        &["dhat-heap = [\"dep:dhat\"]", "profile = [\"dep:pprof\"]"],
     )
-    .trim()
-    .to_owned()
 }
 
-fn generate_minimal(name: &str) -> String {
-    format!(
+/// The workspace-member shape, which adds no features.
+fn generate_minimal(name: &str) -> (String, &'static [&'static str]) {
+    let body = format!(
         r#"
 [package]
 name = "{name}"
@@ -161,14 +183,9 @@ doctest = false
 iguana-runtime.workspace = true
 rustc-hash.workspace = true
 serde_json.workspace = true
-
-[features]
-debug-trace = ["iguana-runtime/debug-trace"]
-instrument = ["iguana-runtime/instrument"]
     "#
-    )
-    .trim()
-    .to_owned()
+    );
+    (body.trim().to_owned(), &[])
 }
 
 #[cfg(test)]
@@ -183,13 +200,61 @@ mod tests {
     fn standalone_crate_pins_the_matching_runtime_release() {
         let expected = format!("iguana-runtime = \"={}\"", env!("CARGO_PKG_VERSION"));
         assert_eq!(pinned_runtime_dependency(), expected);
-        assert!(generate_full("demo", None, None).contains(&expected));
-        assert!(generate_wasm_lib("demo", None).contains(&expected));
+        assert!(manifest(GenConfig::default()).contains(&expected));
+        assert!(
+            manifest(GenConfig {
+                wasm: true,
+                cli: false,
+                ..GenConfig::default()
+            })
+            .contains(&expected)
+        );
+        assert!(generate_wasm_wrapper(&demo_grammar(), None).contains(&expected));
+    }
 
-        let grammar: Grammar = parse_grammar("grammar Demo\n\nS = \"x\"\n")
+    fn demo_grammar() -> Grammar {
+        parse_grammar("grammar Demo\n\nS = \"x\"\n")
             .expect("grammar should parse")
             .try_into()
-            .expect("grammar should build");
-        assert!(generate_wasm_wrapper(&grammar, None).contains(&expected));
+            .expect("grammar should build")
+    }
+
+    fn manifest(config: GenConfig) -> String {
+        generate(&demo_grammar(), config, None, None)
+    }
+
+    /// A shape added later takes its feature section from `generate`, so the
+    /// two features generated code gates on cannot go missing.
+    #[test]
+    fn every_shape_that_holds_generated_sources_declares_their_features() {
+        let common = generated_source_features(&[]);
+        for config in [
+            GenConfig {
+                wasm: true,
+                cli: false,
+                ..GenConfig::default()
+            },
+            GenConfig::default(),
+            GenConfig {
+                cli: false,
+                ..GenConfig::default()
+            },
+        ] {
+            let manifest = manifest(config);
+            assert!(manifest.contains(&common), "{manifest}");
+        }
+    }
+
+    /// The CLI shape is the only one with profiling dependencies. `dep:` keeps
+    /// them from becoming features that compile a dependency without switching
+    /// anything on.
+    #[test]
+    fn the_cli_shape_adds_only_its_profiling_features() {
+        let full = manifest(GenConfig::default());
+        let expected =
+            generated_source_features(&["dhat-heap = [\"dep:dhat\"]", "profile = [\"dep:pprof\"]"]);
+        assert!(full.contains(&expected), "{full}");
+        assert!(!full.contains("= [\"dhat\"]"), "{full}");
+        assert!(!full.contains("= [\"pprof\"]"), "{full}");
     }
 }
