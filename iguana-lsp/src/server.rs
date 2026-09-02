@@ -1,5 +1,6 @@
 use std::error::Error;
 
+use crate::documents::{DocumentStore, end_position};
 use iguana_lsp::diagnostics::{diagnostics, to_diagnostic};
 use iguana_lsp::document_symbols::document_symbols;
 use iguana_lsp::folding::folding_ranges;
@@ -25,6 +26,7 @@ pub fn main_loop(
 ) -> Result<(), Box<dyn Error + Sync + Send>> {
     let _params: lsp_types::InitializeParams = serde_json::from_value(params).unwrap();
     eprintln!("starting main loop");
+    let mut documents = DocumentStore::default();
     for msg in &connection.receiver {
         match msg {
             Message::Request(req) => {
@@ -35,15 +37,14 @@ pub fn main_loop(
                     SemanticTokensFullRequest::METHOD => {
                         let (id, params) = cast::<SemanticTokensFullRequest>(req);
                         let uri = &params.text_document.uri;
-                        let path = uri.path().as_str();
-                        let source = match std::fs::read_to_string(path) {
+                        let source = match documents.source(uri) {
                             Ok(s) => s,
                             Err(e) => {
-                                eprintln!("failed to read {}: {}", path, e);
+                                eprintln!("failed to read {}: {}", uri.path().as_str(), e);
                                 continue;
                             }
                         };
-                        let input = Input::from(source.as_str());
+                        let input = Input::from(source.as_ref());
                         let tree_arena = Arena::new();
                         let tokens = match build(&input, &tree_arena) {
                             BuildResult::Success { tree, .. } => semantic_tokens(tree, &input),
@@ -60,29 +61,29 @@ pub fn main_loop(
                     Formatting::METHOD => {
                         let (id, params) = cast::<Formatting>(req);
                         let uri = &params.text_document.uri;
-                        let path = uri.path().as_str();
-                        let source = match std::fs::read_to_string(path) {
+                        let source = match documents.source(uri) {
                             Ok(s) => s,
                             Err(e) => {
-                                eprintln!("failed to read {}: {}", path, e);
+                                eprintln!("failed to read {}: {}", uri.path().as_str(), e);
                                 continue;
                             }
                         };
-                        let input = Input::from(source.as_str());
+                        let input = Input::from(source.as_ref());
                         let tree_arena = Arena::new();
                         let edits = match build(&input, &tree_arena) {
                             BuildResult::Success { tree, .. } => {
                                 let formatted = format(tree, &input);
-                                let line_count = source.lines().count() as u32;
-                                let last_line_len =
-                                    source.lines().last().map_or(0, |l| l.len()) as u32;
-                                Some(vec![TextEdit {
-                                    range: Range {
-                                        start: Position::new(0, 0),
-                                        end: Position::new(line_count, last_line_len),
-                                    },
-                                    new_text: formatted,
-                                }])
+                                if formatted == source.as_ref() {
+                                    Some(Vec::new())
+                                } else {
+                                    Some(vec![TextEdit {
+                                        range: Range {
+                                            start: Position::new(0, 0),
+                                            end: end_position(source.as_ref()),
+                                        },
+                                        new_text: formatted,
+                                    }])
+                                }
                             }
                             BuildResult::Error(_) | BuildResult::Ambiguous => None,
                         };
@@ -93,15 +94,14 @@ pub fn main_loop(
                     References::METHOD => {
                         let (id, params) = cast::<References>(req);
                         let uri = &params.text_document_position.text_document.uri;
-                        let path = uri.path().as_str();
-                        let source = match std::fs::read_to_string(path) {
+                        let source = match documents.source(uri) {
                             Ok(s) => s,
                             Err(e) => {
-                                eprintln!("failed to read {}: {}", path, e);
+                                eprintln!("failed to read {}: {}", uri.path().as_str(), e);
                                 continue;
                             }
                         };
-                        let input = Input::from(source.as_str());
+                        let input = Input::from(source.as_ref());
                         let tree_arena = Arena::new();
                         let locations = (|| {
                             let BuildResult::Success { tree, .. } = build(&input, &tree_arena)
@@ -130,15 +130,14 @@ pub fn main_loop(
                     GotoDefinition::METHOD => {
                         let (id, params) = cast::<GotoDefinition>(req);
                         let uri = &params.text_document_position_params.text_document.uri;
-                        let path = uri.path().as_str();
-                        let source = match std::fs::read_to_string(path) {
+                        let source = match documents.source(uri) {
                             Ok(s) => s,
                             Err(e) => {
-                                eprintln!("failed to read {}: {}", path, e);
+                                eprintln!("failed to read {}: {}", uri.path().as_str(), e);
                                 continue;
                             }
                         };
-                        let input = Input::from(source.as_str());
+                        let input = Input::from(source.as_ref());
                         let tree_arena = Arena::new();
                         let loc = (|| {
                             let BuildResult::Success { tree, .. } = build(&input, &tree_arena)
@@ -161,15 +160,14 @@ pub fn main_loop(
                     DocumentSymbolRequest::METHOD => {
                         let (id, params) = cast::<DocumentSymbolRequest>(req);
                         let uri = &params.text_document.uri;
-                        let path = uri.path().as_str();
-                        let source = match std::fs::read_to_string(path) {
+                        let source = match documents.source(uri) {
                             Ok(s) => s,
                             Err(e) => {
-                                eprintln!("failed to read {}: {}", path, e);
+                                eprintln!("failed to read {}: {}", uri.path().as_str(), e);
                                 continue;
                             }
                         };
-                        let input = Input::from(source.as_str());
+                        let input = Input::from(source.as_ref());
                         let tree_arena = Arena::new();
                         let symbols = (|| {
                             let BuildResult::Success { tree, .. } = build(&input, &tree_arena)
@@ -189,15 +187,14 @@ pub fn main_loop(
                     FoldingRangeRequest::METHOD => {
                         let (id, params) = cast::<FoldingRangeRequest>(req);
                         let uri = &params.text_document.uri;
-                        let path = uri.path().as_str();
-                        let source = match std::fs::read_to_string(path) {
+                        let source = match documents.source(uri) {
                             Ok(s) => s,
                             Err(e) => {
-                                eprintln!("failed to read {}: {}", path, e);
+                                eprintln!("failed to read {}: {}", uri.path().as_str(), e);
                                 continue;
                             }
                         };
-                        let input = Input::from(source.as_str());
+                        let input = Input::from(source.as_ref());
                         let tree_arena = Arena::new();
                         let ranges = (|| {
                             let BuildResult::Success { tree, .. } = build(&input, &tree_arena)
@@ -223,18 +220,24 @@ pub fn main_loop(
                 lsp_types::notification::DidOpenTextDocument::METHOD => {
                     let params: lsp_types::DidOpenTextDocumentParams =
                         serde_json::from_value(notif.params).unwrap();
-                    publish_diagnostics(
-                        &connection,
-                        params.text_document.uri,
-                        &params.text_document.text,
-                    )?;
+                    let uri = params.text_document.uri;
+                    let source = params.text_document.text;
+                    publish_diagnostics(&connection, uri.clone(), &source)?;
+                    documents.set(uri, source);
                 }
                 lsp_types::notification::DidChangeTextDocument::METHOD => {
                     let params: lsp_types::DidChangeTextDocumentParams =
                         serde_json::from_value(notif.params).unwrap();
                     if let Some(change) = params.content_changes.into_iter().last() {
-                        publish_diagnostics(&connection, params.text_document.uri, &change.text)?;
+                        let uri = params.text_document.uri;
+                        publish_diagnostics(&connection, uri.clone(), &change.text)?;
+                        documents.set(uri, change.text);
                     }
+                }
+                lsp_types::notification::DidCloseTextDocument::METHOD => {
+                    let params: lsp_types::DidCloseTextDocumentParams =
+                        serde_json::from_value(notif.params).unwrap();
+                    documents.close(&params.text_document.uri);
                 }
                 _ => {}
             },

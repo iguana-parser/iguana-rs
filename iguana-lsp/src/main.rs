@@ -1,3 +1,4 @@
+mod documents;
 mod server;
 
 use std::error::Error;
