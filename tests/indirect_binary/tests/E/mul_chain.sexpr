@@ -1,0 +1,18 @@
+(Start
+  WS
+  (E
+    (L
+      (E
+        (L
+          (E "a"))
+        WS
+        "*"
+        WS
+        (L
+          (E "a"))))
+    WS
+    "*"
+    WS
+    (L
+      (E "a")))
+  WS)

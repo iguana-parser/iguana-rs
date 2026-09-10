@@ -140,7 +140,7 @@ pub trait OptNode {
 }
 #[derive(Debug)]
 pub enum S<'a> {
-    // S = [a-z] !<< "else" !>> [0-9 a-z] WS VarId WS ";" #Else
+    // S = "else" WS VarId WS ";" #Else
     Else {
         lit_0: Token,
         ws_1: Token,
@@ -305,7 +305,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for ExactKeywordMultipleIdsParseTreeBui
         match nonterminal_node.nonterminal_id {
             // S
             NonterminalId(0) => match nonterminal_node.return_slot {
-                // S : [a-z] !<< "else" !>> [0-9 a-z] WS VarId WS ";".
+                // S = "else" WS VarId WS ";" #Else
                 SlotId(5) => {
                     let [lit_0, ws_1, var_id, ws_3, lit_4] = children.into_array::<5usize>();
                     ParseTree::S(self.arena.alloc(S::Else {
@@ -317,7 +317,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for ExactKeywordMultipleIdsParseTreeBui
                         span: nonterminal_node.span,
                     }))
                 }
-                // S : NumId WS ";".
+                // S = NumId WS ";" #NumId
                 SlotId(9) => {
                     let [num_id, ws, lit_2] = children.into_array::<3usize>();
                     ParseTree::S(self.arena.alloc(S::NumId {
@@ -327,7 +327,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for ExactKeywordMultipleIdsParseTreeBui
                         span: nonterminal_node.span,
                     }))
                 }
-                // S : VarId WS ";".
+                // S = VarId WS ";" #VarId
                 SlotId(13) => {
                     let [var_id, ws, lit_2] = children.into_array::<3usize>();
                     ParseTree::S(self.arena.alloc(S::VarId {
@@ -341,7 +341,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for ExactKeywordMultipleIdsParseTreeBui
             },
             // StartS
             NonterminalId(1) => match nonterminal_node.return_slot {
-                // S : WS start:S WS.
+                // StartS = WS start:S WS
                 SlotId(17) => {
                     let [ws_0, start, ws_2] = children.into_array::<3usize>();
                     ParseTree::StartS(self.arena.alloc(Start {

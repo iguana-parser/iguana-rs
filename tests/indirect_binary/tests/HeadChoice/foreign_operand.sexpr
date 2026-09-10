@@ -1,0 +1,12 @@
+(Start
+  WS
+  (HeadChoice
+    (HeadOperand
+      (HeadChoice
+        (Inner "b")))
+    WS
+    "+"
+    WS
+    (HeadOperand
+      (HeadChoice "a")))
+  WS)

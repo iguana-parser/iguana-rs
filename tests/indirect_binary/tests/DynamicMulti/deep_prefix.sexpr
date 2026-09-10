@@ -1,0 +1,64 @@
+(Start
+  WS
+  (Amb
+    (Amb
+      (DynamicMulti
+        (DynamicMultiOperand
+          (DynamicMulti
+            #1=(DynamicMultiOperand
+              (DynamicMulti "a"))
+            WS
+            "+"
+            WS
+            (DynamicMultiOperand "b")))
+        WS
+        ";"
+        WS
+        #2=(DynamicMultiOperand
+          (DynamicMulti
+            (DynamicMultiOperand
+              #3=(DynamicMulti
+                (DynamicMultiOperand
+                  (DynamicMulti "a"))
+                WS
+                "+"
+                WS
+                (DynamicMultiOperand
+                  (DynamicMulti "a"))))
+            WS
+            ";"
+            WS
+            #4=(DynamicMultiOperand
+              (DynamicMulti "a")))))
+      (DynamicMulti
+        (DynamicMultiOperand
+          (DynamicMulti
+            #1#
+            WS
+            "+"
+            WS
+            (DynamicMultiOperand
+              (DynamicMulti
+                #5=(DynamicMultiOperand "b")
+                WS
+                ";"
+                WS
+                (DynamicMultiOperand
+                  #3#)))))
+        WS
+        ";"
+        WS
+        #4#))
+    (DynamicMulti
+      #1#
+      WS
+      "+"
+      WS
+      (DynamicMultiOperand
+        (DynamicMulti
+          #5#
+          WS
+          ";"
+          WS
+          #2#))))
+  WS)

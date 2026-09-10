@@ -338,7 +338,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for Ll1OptPrefixConflictParseTreeBuilde
         match nonterminal_node.nonterminal_id {
             // S
             NonterminalId(0) => match nonterminal_node.return_slot {
-                // S : "ab"? "a" "b".
+                // S = "ab"? "a" "b"
                 SlotId(3) => {
                     let [opt_0, lit_1, lit_2] = children.into_array::<3usize>();
                     ParseTree::S(self.arena.alloc(S::Alt0 {
@@ -352,7 +352,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for Ll1OptPrefixConflictParseTreeBuilde
             },
             // Opt_0
             NonterminalId(1) => match nonterminal_node.return_slot {
-                // "ab"? : "ab".
+                // Opt_0 = "ab"
                 SlotId(5) => {
                     let [lit_0] = children.into_array::<1usize>();
                     ParseTree::Opt0(self.arena.alloc(Opt0::Alt0 {
@@ -360,7 +360,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for Ll1OptPrefixConflictParseTreeBuilde
                         span: nonterminal_node.span,
                     }))
                 }
-                // "ab"? : .
+                // Opt_0 =
                 SlotId(6) => {
                     let [] = children.into_array::<0usize>();
                     ParseTree::Opt0(self.arena.alloc(Opt0::Alt1 {
@@ -371,7 +371,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for Ll1OptPrefixConflictParseTreeBuilde
             },
             // StartS
             NonterminalId(2) => match nonterminal_node.return_slot {
-                // S : start:S.
+                // StartS = start:S
                 SlotId(8) => {
                     let [start] = children.into_array::<1usize>();
                     ParseTree::StartS(self.arena.alloc(Start {

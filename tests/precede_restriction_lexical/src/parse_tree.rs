@@ -261,7 +261,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for PrecedeRestrictionLexicalParseTreeB
         match nonterminal_node.nonterminal_id {
             // S
             NonterminalId(0) => match nonterminal_node.return_slot {
-                // S : "for" WS Id.
+                // S = "for" WS Id
                 SlotId(3) => {
                     let [lit_0, ws, id] = children.into_array::<3usize>();
                     ParseTree::S(self.arena.alloc(S::Alt0 {
@@ -271,7 +271,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for PrecedeRestrictionLexicalParseTreeB
                         span: nonterminal_node.span,
                     }))
                 }
-                // S : "forall".
+                // S = "forall"
                 SlotId(5) => {
                     let [lit_0] = children.into_array::<1usize>();
                     ParseTree::S(self.arena.alloc(S::Alt1 {
@@ -283,7 +283,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for PrecedeRestrictionLexicalParseTreeB
             },
             // StartS
             NonterminalId(1) => match nonterminal_node.return_slot {
-                // S : WS start:S WS.
+                // StartS = WS start:S WS
                 SlotId(9) => {
                     let [ws_0, start, ws_2] = children.into_array::<3usize>();
                     ParseTree::StartS(self.arena.alloc(Start {

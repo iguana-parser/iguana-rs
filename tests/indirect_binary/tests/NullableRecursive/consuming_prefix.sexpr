@@ -1,0 +1,14 @@
+(Start
+  WS
+  (NullableRecursive
+    (NullableOperand
+      (NullableMaybe
+        (NullableRecursive?
+          (NullableRecursive "u")))
+      WS
+      (NullableRecursive "u"))
+    WS
+    "+"
+    WS
+    (NullableRecursive "u"))
+  WS)

@@ -456,10 +456,10 @@ fn add_lexical_rules(
                 None => Symbol::Plus(Box::new(transformed_symbol), None),
             }
         }
-        Symbol::Binding { name, symbol } => {
+        Symbol::Binding { pattern, symbol } => {
             let transformed = add_lexical_rules(*symbol, lexical_rules, added_terminals);
             Symbol::Binding {
-                name,
+                pattern,
                 symbol: Box::new(transformed),
             }
         }
@@ -567,8 +567,8 @@ fn resolve_identifier(symbol: Symbol, symbol_table: &SymbolTable) -> Symbol {
                 None => Symbol::Plus(Box::new(resolved_symbol), None),
             }
         }
-        Symbol::Binding { name, symbol } => Symbol::Binding {
-            name,
+        Symbol::Binding { pattern, symbol } => Symbol::Binding {
+            pattern,
             symbol: Box::new(resolve_identifier(*symbol, symbol_table)),
         },
         Symbol::Restricted {
@@ -971,7 +971,7 @@ fn build_grammar(grammar_def: GrammarDef, dump: &[Phase]) -> Result<Grammar, Vec
     let (_, symbol_table) = create_symbol_table(&syntax_rules, &lexical_rules);
     let (syntax_rules, lexical_rules) =
         resolve_identifiers(syntax_rules, lexical_rules, &symbol_table);
-    let syntax_rules = precedence_desugaring::transform(syntax_rules);
+    let syntax_rules = precedence_desugaring::transform(syntax_rules)?;
     dump_phase(Phase::Precedence, &syntax_rules, &lexical_rules, dump);
     // Create the final symbol table after all transformations. This must happen
     // after precedence desugaring because desugaring may add parameters to
@@ -1222,6 +1222,317 @@ impl Display for Grammar {
 }
 
 #[macro_export]
+macro_rules! labeled {
+    ($label:literal, $symbol:expr) => {
+        $crate::grammar::symbols::Symbol::Labeled {
+            label: $label.into(),
+            symbol: Box::new($symbol),
+        }
+    };
+}
+
+#[macro_export]
+macro_rules! id {
+    ($name:expr) => {
+        $crate::grammar::symbols::Symbol::Identifier($crate::grammar::symbols::Identifier {
+            name: $name.into(),
+            definition: None,
+        })
+    };
+}
+
+#[macro_export]
+macro_rules! lit {
+    ($name:literal) => {
+        $crate::grammar::symbols::Symbol::literal($name)
+    };
+}
+
+#[macro_export]
+macro_rules! alt {
+    ($($symbol:expr),* $(,)?) => {
+        $crate::grammar::symbols::Symbol::Alt(vec![$($symbol),*])
+    };
+}
+
+#[macro_export]
+macro_rules! group {
+    ($($symbol:expr),* $(,)?) => {
+        $crate::grammar::symbols::Symbol::Group(vec![$($symbol),*])
+    };
+}
+
+#[macro_export]
+macro_rules! plus {
+    ($symbol:expr) => {
+        $crate::grammar::symbols::Symbol::Plus(Box::new($symbol), None)
+    };
+    ($symbol:expr, $sep:expr) => {
+        $crate::grammar::symbols::Symbol::Plus(Box::new($symbol), Some(Box::new($sep)))
+    };
+}
+
+#[macro_export]
+macro_rules! star {
+    ($symbol:expr) => {
+        $crate::grammar::symbols::Symbol::Star(Box::new($symbol), None)
+    };
+    ($symbol:expr, $sep:expr) => {
+        $crate::grammar::symbols::Symbol::Star(Box::new($symbol), Some(Box::new($sep)))
+    };
+}
+
+#[macro_export]
+macro_rules! opt {
+    ($symbol:expr) => {
+        $crate::grammar::symbols::Symbol::Opt(Box::new($symbol))
+    };
+}
+
+#[macro_export]
+macro_rules! except {
+    ($symbol:expr, $($except:expr),+ $(,)?) => {
+        $crate::grammar::symbols::Symbol::restricted(
+            $symbol,
+            $crate::grammar::symbols::Restrictions {
+                excepts: $crate::restriction_ids!($($except),+),
+                ..Default::default()
+            },
+        )
+    };
+}
+
+#[macro_export]
+macro_rules! follow {
+    ($symbol:expr, $($restriction:expr),+ $(,)?) => {
+        $crate::grammar::symbols::Symbol::restricted(
+            $symbol,
+            $crate::grammar::symbols::Restrictions {
+                follow: $crate::restriction_ids!($($restriction),+),
+                ..Default::default()
+            },
+        )
+    };
+}
+
+#[macro_export]
+macro_rules! precede {
+    ($symbol:expr, $($restriction:expr),+ $(,)?) => {
+        $crate::grammar::symbols::Symbol::restricted(
+            $symbol,
+            $crate::grammar::symbols::Restrictions {
+                precede: $crate::restriction_ids!($($restriction),+),
+                ..Default::default()
+            },
+        )
+    };
+}
+
+/// The identifier list of one restriction kind.
+#[macro_export]
+macro_rules! restriction_ids {
+    ($($name:expr),+ $(,)?) => {
+        vec![
+            $(
+                $crate::grammar::symbols::Identifier {
+                    name: $name.into(),
+                    definition: None,
+                },
+            )+
+        ]
+    };
+}
+
+#[macro_export]
+macro_rules! exclude {
+    ($symbol:expr, $($label:expr),+ $(,)?) => {
+        $crate::grammar::symbols::Symbol::Exclude {
+            symbol: Box::new($symbol),
+            labels: vec![$($label.into()),+],
+        }
+    };
+}
+
+#[macro_export]
+macro_rules! call {
+    ($name:expr, $($arg:expr),* $(,)?) => {
+        $crate::grammar::symbols::Symbol::Call {
+            name: $crate::grammar::symbols::Identifier {
+                name: $name.into(),
+                definition: None,
+            },
+            arguments: vec![$($crate::grammar::symbols::IntoExpr::into_expr($arg)),*],
+        }
+    };
+}
+
+/// Creates an equality expression.
+#[macro_export]
+macro_rules! eq {
+    ($left:expr, $right:expr $(,)?) => {
+        $crate::grammar::symbols::Expr::Cond($crate::grammar::symbols::Cond {
+            left: Box::new($crate::grammar::symbols::IntoExpr::into_expr($left)),
+            right: Box::new($crate::grammar::symbols::IntoExpr::into_expr($right)),
+            op: $crate::grammar::symbols::CondOp::Eq,
+        })
+    };
+}
+
+/// Creates an inequality expression.
+#[macro_export]
+macro_rules! ne {
+    ($left:expr, $right:expr $(,)?) => {
+        $crate::grammar::symbols::Expr::Cond($crate::grammar::symbols::Cond {
+            left: Box::new($crate::grammar::symbols::IntoExpr::into_expr($left)),
+            right: Box::new($crate::grammar::symbols::IntoExpr::into_expr($right)),
+            op: $crate::grammar::symbols::CondOp::Neq,
+        })
+    };
+}
+
+/// Creates a less-than-or-equal expression.
+#[macro_export]
+macro_rules! le {
+    ($left:expr, $right:expr $(,)?) => {
+        $crate::grammar::symbols::Expr::Cond($crate::grammar::symbols::Cond {
+            left: Box::new($crate::grammar::symbols::IntoExpr::into_expr($left)),
+            right: Box::new($crate::grammar::symbols::IntoExpr::into_expr($right)),
+            op: $crate::grammar::symbols::CondOp::Leq,
+        })
+    };
+}
+
+/// Creates a greater-than-or-equal expression.
+#[macro_export]
+macro_rules! ge {
+    ($left:expr, $right:expr $(,)?) => {
+        $crate::grammar::symbols::Expr::Cond($crate::grammar::symbols::Cond {
+            left: Box::new($crate::grammar::symbols::IntoExpr::into_expr($left)),
+            right: Box::new($crate::grammar::symbols::IntoExpr::into_expr($right)),
+            op: $crate::grammar::symbols::CondOp::Geq,
+        })
+    };
+}
+
+/// Creates a logical disjunction.
+#[macro_export]
+macro_rules! or {
+    ($left:expr, $right:expr $(,)?) => {
+        $crate::grammar::symbols::Expr::Or(
+            Box::new($crate::grammar::symbols::IntoExpr::into_expr($left)),
+            Box::new($crate::grammar::symbols::IntoExpr::into_expr($right)),
+        )
+    };
+}
+
+/// Creates a logical conjunction.
+#[macro_export]
+macro_rules! and {
+    ($left:expr, $right:expr $(,)?) => {
+        $crate::grammar::symbols::Expr::And(
+            Box::new($crate::grammar::symbols::IntoExpr::into_expr($left)),
+            Box::new($crate::grammar::symbols::IntoExpr::into_expr($right)),
+        )
+    };
+}
+
+#[macro_export]
+macro_rules! cond_expr {
+    ($left:literal == $right:literal) => {
+        $crate::eq!($left, $right)
+    };
+    ($left:literal != $right:literal) => {
+        $crate::ne!($left, $right)
+    };
+    ($left:literal <= $right:literal) => {
+        $crate::le!($left, $right)
+    };
+    ($left:literal >= $right:literal) => {
+        $crate::ge!($left, $right)
+    };
+}
+
+/// Creates a condition symbol from a comparison or a composed expression.
+#[macro_export]
+macro_rules! cond {
+    (($($c1:tt)*) || ($($c2:tt)*)) => {
+        $crate::cond!($crate::or!(
+            $crate::cond_expr!($($c1)*),
+            $crate::cond_expr!($($c2)*),
+        ))
+    };
+    ($left:literal == $right:literal) => {
+        $crate::cond!($crate::eq!($left, $right))
+    };
+    ($left:literal != $right:literal) => {
+        $crate::cond!($crate::ne!($left, $right))
+    };
+    ($left:literal <= $right:literal) => {
+        $crate::cond!($crate::le!($left, $right))
+    };
+    ($left:literal >= $right:literal) => {
+        $crate::cond!($crate::ge!($left, $right))
+    };
+    ($expression:expr $(,)?) => {
+        $crate::grammar::symbols::Symbol::Condition($expression)
+    };
+}
+
+#[macro_export]
+macro_rules! ternary {
+    ($cond:expr, $then:expr, $else:expr) => {
+        $crate::grammar::symbols::Expr::Ternary {
+            cond: Box::new($cond),
+            then: Box::new($crate::grammar::symbols::IntoExpr::into_expr($then)),
+            r#else: Box::new($crate::grammar::symbols::IntoExpr::into_expr($else)),
+        }
+    };
+}
+
+#[macro_export]
+macro_rules! min {
+    ($a:expr, $b:expr) => {
+        $crate::grammar::symbols::Expr::Min(
+            Box::new($crate::grammar::symbols::IntoExpr::into_expr($a)),
+            Box::new($crate::grammar::symbols::IntoExpr::into_expr($b)),
+        )
+    };
+}
+
+#[macro_export]
+macro_rules! tuple {
+    ($($value:expr),+ $(,)?) => {
+        $crate::grammar::symbols::Expr::Tuple(vec![$($crate::grammar::symbols::IntoExpr::into_expr($value)),+])
+    };
+}
+
+#[macro_export]
+macro_rules! ret {
+    (expr $e:expr) => {
+        $crate::grammar::symbols::Symbol::Return($e)
+    };
+    ($value:expr) => {
+        $crate::grammar::symbols::Symbol::Return($crate::grammar::symbols::Expr::Int($value))
+    };
+}
+
+#[macro_export]
+macro_rules! bind {
+    (($($name:literal),+ $(,)?), $symbol:expr) => {
+        $crate::grammar::symbols::Symbol::Binding {
+            pattern: $crate::grammar::symbols::BindingPattern::Tuple(vec![$($name.into()),+]),
+            symbol: Box::new($symbol),
+        }
+    };
+    ($name:literal, $symbol:expr) => {
+        $crate::grammar::symbols::Symbol::Binding {
+            pattern: $name.into(),
+            symbol: Box::new($symbol),
+        }
+    };
+}
+
+#[macro_export]
 macro_rules! alternative {
     ($($symbol:expr),* $(,)?) => {
         $crate::grammar::def::Alternative {
@@ -1345,6 +1656,37 @@ macro_rules! grammar_def {
 mod tests {
     use super::*;
     use crate::grammar::regex::Regex;
+
+    #[test]
+    fn condition_macros_compose_expressions_and_evaluate_arguments_once() {
+        let mut evaluations = 0;
+        let condition = cond!(and!(
+            ge!(
+                {
+                    evaluations += 1;
+                    Expr::Ref("p".to_string())
+                },
+                1,
+            ),
+            or!(eq!(min!("p", 3), 3), le!("p", 2)),
+        ));
+
+        assert_eq!(cond!("a" != 3), cond!(ne!("a", 3)));
+        assert_eq!(cond!(ne!("a", 3)).to_string(), "[a != 3]");
+        assert_eq!(
+            cond!(("a" != 3) || ("p" == 0)),
+            cond!(or!(ne!("a", 3), eq!("p", 0))),
+        );
+        assert_eq!(evaluations, 1);
+        assert_eq!(
+            condition.to_string(),
+            "[(p >= 1) && ((min(p, 3) == 3) || (p <= 2))]"
+        );
+        assert_eq!(
+            cond!(("p" == 0) || ("p" >= 2)),
+            cond!(or!(eq!("p", 0), ge!("p", 2))),
+        );
+    }
 
     fn id(name: &str) -> Identifier {
         Identifier {

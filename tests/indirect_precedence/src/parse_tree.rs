@@ -47,7 +47,7 @@ pub enum ParseTree<'a> {
     K(&'a K<'a>),
     // S
     StartS(&'a Start<&'a S<'a>, ()>),
-    // E(0)
+    // E
     StartE(&'a Start<&'a E<'a>, ()>),
     // F
     StartF(&'a Start<&'a F<'a>, ()>),
@@ -222,7 +222,7 @@ pub trait OptNode {
     type Inner;
     fn value(&self) -> Option<&Self::Inner>;
 }
-// S = E(0)
+// S = E
 #[derive(Debug)]
 pub enum S<'a> {
     Alt0 { e: &'a E<'a>, span: Span },
@@ -230,27 +230,27 @@ pub enum S<'a> {
 }
 #[derive(Debug)]
 pub enum E<'a> {
-    // E(p) = "-" E(2) return 2
+    // E = "-" E
     Alt0 {
         lit_0: Token,
         e: &'a E<'a>,
         span: Span,
     },
-    // E(p) = [1 >= p] l=E(p) [(l == 0) || (l >= 1)] "*" F return 0
+    // E = E "*" F
     Alt1 {
         e: &'a E<'a>,
         lit_1: Token,
         f: &'a F<'a>,
         span: Span,
     },
-    // E(p) = "a" return 0
+    // E = "a"
     Alt2 {
         lit_0: Token,
         span: Span,
     },
     Amb(&'a [&'a E<'a>]),
 }
-// F = E(0) "/" K
+// F = E "/" K
 #[derive(Debug)]
 pub enum F<'a> {
     Alt0 {
@@ -261,7 +261,7 @@ pub enum F<'a> {
     },
     Amb(&'a [&'a F<'a>]),
 }
-// K = E(0)
+// K = E
 #[derive(Debug)]
 pub enum K<'a> {
     Alt0 { e: &'a E<'a>, span: Span },
@@ -589,7 +589,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectPrecedenceParseTreeBuilder<
         match nonterminal_node.nonterminal_id {
             // S
             NonterminalId(0) => match nonterminal_node.return_slot {
-                // S : E(0).
+                // S = E
                 SlotId(1) => {
                     let [e] = children.into_array::<1usize>();
                     ParseTree::S(self.arena.alloc(S::Alt0 {
@@ -599,36 +599,10 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectPrecedenceParseTreeBuilder<
                 }
                 _ => unreachable!(),
             },
-            // F
-            NonterminalId(1) => match nonterminal_node.return_slot {
-                // F : E(0) "/" K.
-                SlotId(5) => {
-                    let [e, lit_1, k] = children.into_array::<3usize>();
-                    ParseTree::F(self.arena.alloc(F::Alt0 {
-                        e: e.unwrap_e(),
-                        lit_1: lit_1.unwrap_token(),
-                        k: k.unwrap_k(),
-                        span: nonterminal_node.span,
-                    }))
-                }
-                _ => unreachable!(),
-            },
-            // K
-            NonterminalId(2) => match nonterminal_node.return_slot {
-                // K : E(0).
-                SlotId(7) => {
-                    let [e] = children.into_array::<1usize>();
-                    ParseTree::K(self.arena.alloc(K::Alt0 {
-                        e: e.unwrap_e(),
-                        span: nonterminal_node.span,
-                    }))
-                }
-                _ => unreachable!(),
-            },
             // StartS
-            NonterminalId(3) => match nonterminal_node.return_slot {
-                // S : start:S.
-                SlotId(9) => {
+            NonterminalId(1) => match nonterminal_node.return_slot {
+                // StartS = start:S
+                SlotId(3) => {
                     let [start] = children.into_array::<1usize>();
                     ParseTree::StartS(self.arena.alloc(Start {
                         before: (),
@@ -640,9 +614,9 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectPrecedenceParseTreeBuilder<
                 _ => unreachable!(),
             },
             // StartE
-            NonterminalId(4) => match nonterminal_node.return_slot {
-                // E(0) : start:E(0).
-                SlotId(11) => {
+            NonterminalId(2) => match nonterminal_node.return_slot {
+                // StartE = start:E
+                SlotId(5) => {
                     let [start] = children.into_array::<1usize>();
                     ParseTree::StartE(self.arena.alloc(Start {
                         before: (),
@@ -654,9 +628,9 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectPrecedenceParseTreeBuilder<
                 _ => unreachable!(),
             },
             // StartF
-            NonterminalId(5) => match nonterminal_node.return_slot {
-                // F : start:F.
-                SlotId(13) => {
+            NonterminalId(3) => match nonterminal_node.return_slot {
+                // StartF = start:F
+                SlotId(7) => {
                     let [start] = children.into_array::<1usize>();
                     ParseTree::StartF(self.arena.alloc(Start {
                         before: (),
@@ -668,9 +642,9 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectPrecedenceParseTreeBuilder<
                 _ => unreachable!(),
             },
             // StartK
-            NonterminalId(6) => match nonterminal_node.return_slot {
-                // K : start:K.
-                SlotId(15) => {
+            NonterminalId(4) => match nonterminal_node.return_slot {
+                // StartK = start:K
+                SlotId(9) => {
                     let [start] = children.into_array::<1usize>();
                     ParseTree::StartK(self.arena.alloc(Start {
                         before: (),
@@ -682,9 +656,9 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectPrecedenceParseTreeBuilder<
                 _ => unreachable!(),
             },
             // E
-            NonterminalId(7) => match nonterminal_node.return_slot {
-                // E : "-" E(2) return 2.
-                SlotId(19) => {
+            NonterminalId(5) => match nonterminal_node.return_slot {
+                // E = "-" E
+                SlotId(13) => {
                     let [lit_0, e] = children.into_array::<2usize>();
                     ParseTree::E(self.arena.alloc(E::Alt0 {
                         lit_0: lit_0.unwrap_token(),
@@ -692,8 +666,8 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectPrecedenceParseTreeBuilder<
                         span: nonterminal_node.span,
                     }))
                 }
-                // E : [1 >= p] l=E(p) [(l == 0) || (l >= 1)] "*" F return 0.
-                SlotId(26) => {
+                // E = E "*" F
+                SlotId(20) => {
                     let [e, lit_1, f] = children.into_array::<3usize>();
                     ParseTree::E(self.arena.alloc(E::Alt1 {
                         e: e.unwrap_e(),
@@ -702,11 +676,37 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectPrecedenceParseTreeBuilder<
                         span: nonterminal_node.span,
                     }))
                 }
-                // E : "a" return 0.
-                SlotId(29) => {
+                // E = "a"
+                SlotId(23) => {
                     let [lit_0] = children.into_array::<1usize>();
                     ParseTree::E(self.arena.alloc(E::Alt2 {
                         lit_0: lit_0.unwrap_token(),
+                        span: nonterminal_node.span,
+                    }))
+                }
+                _ => unreachable!(),
+            },
+            // F
+            NonterminalId(6) => match nonterminal_node.return_slot {
+                // F = E "/" K
+                SlotId(28) => {
+                    let [e, lit_1, k] = children.into_array::<3usize>();
+                    ParseTree::F(self.arena.alloc(F::Alt0 {
+                        e: e.unwrap_e(),
+                        lit_1: lit_1.unwrap_token(),
+                        k: k.unwrap_k(),
+                        span: nonterminal_node.span,
+                    }))
+                }
+                _ => unreachable!(),
+            },
+            // K
+            NonterminalId(7) => match nonterminal_node.return_slot {
+                // K = E
+                SlotId(31) => {
+                    let [e] = children.into_array::<1usize>();
+                    ParseTree::K(self.arena.alloc(K::Alt0 {
+                        e: e.unwrap_e(),
                         span: nonterminal_node.span,
                     }))
                 }

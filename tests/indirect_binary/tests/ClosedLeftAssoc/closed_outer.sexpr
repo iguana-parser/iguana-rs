@@ -1,0 +1,28 @@
+(Start
+  WS
+  (Amb
+    (ClosedLeftAssoc
+      #1=(ClosedLeftOperand "!")
+      WS
+      "+"
+      WS
+      (ClosedLeftAssoc
+        (ClosedLeftOperand
+          #2=(ClosedLeftAssoc "a"))
+        WS
+        "+"
+        WS
+        #3=(ClosedLeftAssoc "a")))
+    (ClosedLeftAssoc
+      (ClosedLeftOperand
+        (ClosedLeftAssoc
+          #1#
+          WS
+          "+"
+          WS
+          #2#))
+      WS
+      "+"
+      WS
+      #3#))
+  WS)

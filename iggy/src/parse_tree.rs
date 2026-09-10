@@ -244,7 +244,7 @@ pub enum ParseTree<'a> {
     StartAssociativity(&'a Start<&'a Associativity<'a>, &'a Layout<'a>>),
     // Alternative
     StartAlternative(&'a Start<&'a Alternative<'a>, &'a Layout<'a>>),
-    // Symbol(0, 0)
+    // Symbol
     StartSymbol(&'a Start<&'a Symbol<'a>, &'a Layout<'a>>),
     // PreCondition
     StartPreCondition(&'a Start<&'a PreCondition<'a>, &'a Layout<'a>>),
@@ -1541,12 +1541,12 @@ pub enum Alternative<'a> {
 }
 #[derive(Debug)]
 pub enum Symbol<'a> {
-    // Symbol(p, e) = [1 & e == 0] Identifier return 0 #Identifier
+    // Symbol = Identifier #Identifier
     Identifier {
         identifier: Token,
         span: Span,
     },
-    // Symbol(p, e) = [2 & e == 0] "(" Layout seqs:{Symbol+ "|"}+ Layout ")" return 1 #Paren
+    // Symbol = "(" Layout seqs:{Symbol+ "|"}+ Layout ")" #Paren
     Paren {
         lit_0: Token,
         layout_1: &'a Layout<'a>,
@@ -1555,13 +1555,12 @@ pub enum Symbol<'a> {
         lit_4: Token,
         span: Span,
     },
-    // Symbol(p, e) = [4 & e == 0] String return 2 #Lit
+    // Symbol = String #Lit
     Lit {
         string: Token,
         span: Span,
     },
-    // Symbol(p, e) = [8 & e == 0] "{" Layout symbol:Symbol(0, 0) Layout sep:Symbol(0, 0) Layout
-    // "}" Layout "*" return 3 #StarSep
+    // Symbol = "{" Layout symbol:Symbol Layout sep:Symbol Layout "}" Layout "*" #StarSep
     StarSep {
         lit_0: Token,
         layout_1: &'a Layout<'a>,
@@ -1574,8 +1573,7 @@ pub enum Symbol<'a> {
         lit_8: Token,
         span: Span,
     },
-    // Symbol(p, e) = [16 & e == 0] "{" Layout symbol:Symbol(0, 0) Layout sep:Symbol(0, 0) Layout
-    // "}" Layout "+" return 4 #PlusSep
+    // Symbol = "{" Layout symbol:Symbol Layout sep:Symbol Layout "}" Layout "+" #PlusSep
     PlusSep {
         lit_0: Token,
         layout_1: &'a Layout<'a>,
@@ -1588,49 +1586,42 @@ pub enum Symbol<'a> {
         lit_8: Token,
         span: Span,
     },
-    // Symbol(p, e) = [32 & e == 0] [3 >= p] l=Symbol(p, 0) [(l >> 16 == 0) || (l >> 16 >= 3)]
-    // Layout "*" return 5 #Star
+    // Symbol = Symbol Layout "*" #Star
     Star {
         symbol: &'a Symbol<'a>,
         layout: &'a Layout<'a>,
         lit_2: Token,
         span: Span,
     },
-    // Symbol(p, e) = [64 & e == 0] [3 >= p] l=Symbol(p, 0) [(l >> 16 == 0) || (l >> 16 >= 3)]
-    // Layout "+" return 6 #Plus
+    // Symbol = Symbol Layout "+" #Plus
     Plus {
         symbol: &'a Symbol<'a>,
         layout: &'a Layout<'a>,
         lit_2: Token,
         span: Span,
     },
-    // Symbol(p, e) = [128 & e == 0] [3 >= p] l=Symbol(p, 0) [(l >> 16 == 0) || (l >> 16 >= 3)]
-    // Layout "?" return 7 #Opt
+    // Symbol = Symbol Layout "?" #Opt
     Opt {
         symbol: &'a Symbol<'a>,
         layout: &'a Layout<'a>,
         lit_2: Token,
         span: Span,
     },
-    // Symbol(p, e) = [256 & e == 0] [3 >= p] l=Symbol(p, 0) [(l >> 16 == 0) || (l >> 16 >= 3)]
-    // [(l & 65535 == 65535) || ((256 >> (l & 65535)) & 1 == 0)] Layout conditions:PostCondition+
-    // return 8 #PostCondition
+    // Symbol = Symbol Layout conditions:PostCondition+ #PostCondition
     PostCondition {
         symbol: &'a Symbol<'a>,
         layout: &'a Layout<'a>,
         conditions: &'a Plus8<'a>,
         span: Span,
     },
-    // Symbol(p, e) = [512 & e == 0] conditions:PreCondition+ Layout r=Symbol(2, 512) return (((r
-    // >> 16 == 0) ? 2 : min(r >> 16, 2)) << 16) | 9 #PreCondition
+    // Symbol = conditions:PreCondition+ Layout Symbol #PreCondition
     PreCondition {
         conditions: &'a Plus9<'a>,
         layout: &'a Layout<'a>,
         symbol: &'a Symbol<'a>,
         span: Span,
     },
-    // Symbol(p, e) = [1024 & e == 0] label:Identifier Layout ":" Layout Symbol(1, 0) return
-    // 65546 #Labeled
+    // Symbol = label:Identifier Layout ":" Layout Symbol #Labeled
     Labeled {
         label: Token,
         layout_1: &'a Layout<'a>,
@@ -1774,7 +1765,7 @@ pub enum Range<'a> {
     },
     Amb(&'a [&'a Range<'a>]),
 }
-// Layout = (WS | LineComment)* !>> WS !>> LineComment
+// Layout = (WS | LineComment)*
 #[derive(Debug)]
 pub enum Layout<'a> {
     Alt0 { star_4: &'a Star4<'a>, span: Span },
@@ -2026,14 +2017,14 @@ pub enum Star3<'a> {
 // Symbol+
 #[derive(Debug)]
 pub enum Plus6<'a> {
-    // Plus_6 = Symbol+ Layout Symbol(0, 0)
+    // Plus_6 = Symbol+ Layout Symbol
     Alt0 {
         symbols_0: &'a Plus6<'a>,
         layout: &'a Layout<'a>,
         symbol_2: &'a Symbol<'a>,
         span: Span,
     },
-    // Plus_6 = Symbol(0, 0)
+    // Plus_6 = Symbol
     Alt1 {
         symbol: &'a Symbol<'a>,
         span: Span,
@@ -6302,7 +6293,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a> {
         match nonterminal_node.nonterminal_id {
             // Grammar
             NonterminalId(0) => match nonterminal_node.return_slot {
-                // Grammar : "grammar" Layout name:Identifier Layout Rule*.
+                // Grammar = "grammar" Layout name:Identifier Layout Rule*
                 SlotId(5) => {
                     let [lit_0, layout_1, name, layout_3, rules] = children.into_array::<5usize>();
                     ParseTree::Grammar(self.arena.alloc(Grammar::Alt0 {
@@ -6318,7 +6309,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a> {
             },
             // Rule
             NonterminalId(1) => match nonterminal_node.return_slot {
-                // Rule : SyntaxRule.
+                // Rule = SyntaxRule #SyntaxRule
                 SlotId(7) => {
                     let [syntax_rule] = children.into_array::<1usize>();
                     ParseTree::Rule(self.arena.alloc(Rule::SyntaxRule {
@@ -6326,7 +6317,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a> {
                         span: nonterminal_node.span,
                     }))
                 }
-                // Rule : RegexRule.
+                // Rule = RegexRule #RegexRule
                 SlotId(9) => {
                     let [regex_rule] = children.into_array::<1usize>();
                     ParseTree::Rule(self.arena.alloc(Rule::RegexRule {
@@ -6338,7 +6329,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a> {
             },
             // SyntaxRule
             NonterminalId(2) => match nonterminal_node.return_slot {
-                // SyntaxRule : Annotation? Layout head:Identifier Layout "=" Layout {PriorityLevel ">"}*.
+                // SyntaxRule = Annotation? Layout head:Identifier Layout "=" Layout {PriorityLevel ">"}*
                 SlotId(17) => {
                     let [
                         annotation,
@@ -6364,7 +6355,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a> {
             },
             // Annotation
             NonterminalId(3) => match nonterminal_node.return_slot {
-                // Annotation : "@NoLayout".
+                // Annotation = "@NoLayout" #NoLayout
                 SlotId(19) => {
                     let [lit_0] = children.into_array::<1usize>();
                     ParseTree::Annotation(self.arena.alloc(Annotation::NoLayout {
@@ -6372,7 +6363,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a> {
                         span: nonterminal_node.span,
                     }))
                 }
-                // Annotation : "@Layout".
+                // Annotation = "@Layout" #Layout
                 SlotId(21) => {
                     let [lit_0] = children.into_array::<1usize>();
                     ParseTree::Annotation(self.arena.alloc(Annotation::Layout {
@@ -6380,7 +6371,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a> {
                         span: nonterminal_node.span,
                     }))
                 }
-                // Annotation : "@WithLayout" Layout "(" Layout Identifier Layout ")".
+                // Annotation = "@WithLayout" Layout "(" Layout Identifier Layout ")" #WithLayout
                 SlotId(29) => {
                     let [
                         lit_0,
@@ -6406,9 +6397,9 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a> {
             },
             // RegexRule
             NonterminalId(4) => match nonterminal_node.return_slot {
-                // RegexRule : layout:"@Layout"? Layout id_annot:"@Identifier"? Layout "@Regex" Layout
+                // RegexRule = layout:"@Layout"? Layout id_annot:"@Identifier"? Layout "@Regex" Layout
                 // Identifier Layout "=" Layout RegexPreCondition? Layout body:{Regex+ "|"}+ Layout
-                // RegexPostCondition*.
+                // RegexPostCondition*
                 SlotId(45) => {
                     let [
                         layout,
@@ -6450,7 +6441,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a> {
             },
             // RegexPreCondition
             NonterminalId(5) => match nonterminal_node.return_slot {
-                // RegexPreCondition : Identifier Layout "!<<".
+                // RegexPreCondition = Identifier Layout "!<<"
                 SlotId(49) => {
                     let [identifier, layout, lit_2] = children.into_array::<3usize>();
                     ParseTree::RegexPreCondition(self.arena.alloc(RegexPreCondition::Alt0 {
@@ -6464,7 +6455,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a> {
             },
             // RegexPostCondition
             NonterminalId(6) => match nonterminal_node.return_slot {
-                // RegexPostCondition : "\\" Layout Identifier.
+                // RegexPostCondition = "\\" Layout Identifier #Except
                 SlotId(53) => {
                     let [lit_0, layout, identifier] = children.into_array::<3usize>();
                     ParseTree::RegexPostCondition(self.arena.alloc(RegexPostCondition::Except {
@@ -6474,7 +6465,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a> {
                         span: nonterminal_node.span,
                     }))
                 }
-                // RegexPostCondition : "!>>" Layout Identifier.
+                // RegexPostCondition = "!>>" Layout Identifier #FollowRestriction
                 SlotId(57) => {
                     let [lit_0, layout, identifier] = children.into_array::<3usize>();
                     ParseTree::RegexPostCondition(self.arena.alloc(
@@ -6490,7 +6481,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a> {
             },
             // PriorityLevel
             NonterminalId(7) => match nonterminal_node.return_slot {
-                // PriorityLevel : Associativity? Layout {Alternative "|"}*.
+                // PriorityLevel = Associativity? Layout {Alternative "|"}*
                 SlotId(61) => {
                     let [associativity, layout, alternatives] = children.into_array::<3usize>();
                     ParseTree::PriorityLevel(self.arena.alloc(PriorityLevel::Alt0 {
@@ -6504,7 +6495,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a> {
             },
             // Associativity
             NonterminalId(8) => match nonterminal_node.return_slot {
-                // Associativity : "left".
+                // Associativity = "left"
                 SlotId(63) => {
                     let [lit_0] = children.into_array::<1usize>();
                     ParseTree::Associativity(self.arena.alloc(Associativity::Alt0 {
@@ -6512,7 +6503,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a> {
                         span: nonterminal_node.span,
                     }))
                 }
-                // Associativity : "right".
+                // Associativity = "right"
                 SlotId(65) => {
                     let [lit_0] = children.into_array::<1usize>();
                     ParseTree::Associativity(self.arena.alloc(Associativity::Alt1 {
@@ -6520,7 +6511,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a> {
                         span: nonterminal_node.span,
                     }))
                 }
-                // Associativity : "none".
+                // Associativity = "none"
                 SlotId(67) => {
                     let [lit_0] = children.into_array::<1usize>();
                     ParseTree::Associativity(self.arena.alloc(Associativity::Alt2 {
@@ -6532,7 +6523,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a> {
             },
             // Alternative
             NonterminalId(9) => match nonterminal_node.return_slot {
-                // Alternative : Symbol+ Layout Label?.
+                // Alternative = Symbol+ Layout Label? #Symbols
                 SlotId(71) => {
                     let [symbols, layout, label] = children.into_array::<3usize>();
                     ParseTree::Alternative(self.arena.alloc(Alternative::Symbols {
@@ -6542,7 +6533,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a> {
                         span: nonterminal_node.span,
                     }))
                 }
-                // Alternative : "(" Layout ")" Layout Label?.
+                // Alternative = "(" Layout ")" Layout Label? #Empty
                 SlotId(77) => {
                     let [lit_0, layout_1, lit_2, layout_3, label] = children.into_array::<5usize>();
                     ParseTree::Alternative(self.arena.alloc(Alternative::Empty {
@@ -6558,7 +6549,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a> {
             },
             // PreCondition
             NonterminalId(10) => match nonterminal_node.return_slot {
-                // PreCondition : Identifier Layout "!<<".
+                // PreCondition = Identifier Layout "!<<"
                 SlotId(81) => {
                     let [identifier, layout, lit_2] = children.into_array::<3usize>();
                     ParseTree::PreCondition(self.arena.alloc(PreCondition::Alt0 {
@@ -6572,7 +6563,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a> {
             },
             // PostCondition
             NonterminalId(11) => match nonterminal_node.return_slot {
-                // PostCondition : "\\" Layout Identifier.
+                // PostCondition = "\\" Layout Identifier #Except
                 SlotId(85) => {
                     let [lit_0, layout, identifier] = children.into_array::<3usize>();
                     ParseTree::PostCondition(self.arena.alloc(PostCondition::Except {
@@ -6582,7 +6573,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a> {
                         span: nonterminal_node.span,
                     }))
                 }
-                // PostCondition : "!>>" Layout Identifier.
+                // PostCondition = "!>>" Layout Identifier #FollowRestriction
                 SlotId(89) => {
                     let [lit_0, layout, identifier] = children.into_array::<3usize>();
                     ParseTree::PostCondition(self.arena.alloc(PostCondition::FollowRestriction {
@@ -6592,7 +6583,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a> {
                         span: nonterminal_node.span,
                     }))
                 }
-                // PostCondition : "!>>>" Layout Identifier.
+                // PostCondition = "!>>>" Layout Identifier #LayoutAwareFollowRestriction
                 SlotId(93) => {
                     let [lit_0, layout, identifier] = children.into_array::<3usize>();
                     ParseTree::PostCondition(self.arena.alloc(
@@ -6604,7 +6595,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a> {
                         },
                     ))
                 }
-                // PostCondition : "!" Layout Identifier.
+                // PostCondition = "!" Layout Identifier #Exclude
                 SlotId(97) => {
                     let [lit_0, layout, identifier] = children.into_array::<3usize>();
                     ParseTree::PostCondition(self.arena.alloc(PostCondition::Exclude {
@@ -6618,7 +6609,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a> {
             },
             // Regex
             NonterminalId(12) => match nonterminal_node.return_slot {
-                // Regex : Regex Layout "+".
+                // Regex = Regex Layout "+" #Plus
                 SlotId(101) => {
                     let [regex, layout, lit_2] = children.into_array::<3usize>();
                     ParseTree::Regex(self.arena.alloc(Regex::Plus {
@@ -6628,7 +6619,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a> {
                         span: nonterminal_node.span,
                     }))
                 }
-                // Regex : Regex Layout "*".
+                // Regex = Regex Layout "*" #Star
                 SlotId(105) => {
                     let [regex, layout, lit_2] = children.into_array::<3usize>();
                     ParseTree::Regex(self.arena.alloc(Regex::Star {
@@ -6638,7 +6629,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a> {
                         span: nonterminal_node.span,
                     }))
                 }
-                // Regex : Regex Layout "?".
+                // Regex = Regex Layout "?" #Opt
                 SlotId(109) => {
                     let [regex, layout, lit_2] = children.into_array::<3usize>();
                     ParseTree::Regex(self.arena.alloc(Regex::Opt {
@@ -6648,7 +6639,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a> {
                         span: nonterminal_node.span,
                     }))
                 }
-                // Regex : "(" Layout seqs:{Regex+ "|"}+ Layout ")".
+                // Regex = "(" Layout seqs:{Regex+ "|"}+ Layout ")" #Paren
                 SlotId(115) => {
                     let [lit_0, layout_1, seqs, layout_3, lit_4] = children.into_array::<5usize>();
                     ParseTree::Regex(self.arena.alloc(Regex::Paren {
@@ -6660,7 +6651,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a> {
                         span: nonterminal_node.span,
                     }))
                 }
-                // Regex : CharClass.
+                // Regex = CharClass #CharClass
                 SlotId(117) => {
                     let [char_class] = children.into_array::<1usize>();
                     ParseTree::Regex(self.arena.alloc(Regex::CharClass {
@@ -6668,7 +6659,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a> {
                         span: nonterminal_node.span,
                     }))
                 }
-                // Regex : Char.
+                // Regex = Char #Char
                 SlotId(119) => {
                     let [char] = children.into_array::<1usize>();
                     ParseTree::Regex(self.arena.alloc(Regex::Char {
@@ -6676,7 +6667,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a> {
                         span: nonterminal_node.span,
                     }))
                 }
-                // Regex : String.
+                // Regex = String #String
                 SlotId(121) => {
                     let [string] = children.into_array::<1usize>();
                     ParseTree::Regex(self.arena.alloc(Regex::String {
@@ -6684,7 +6675,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a> {
                         span: nonterminal_node.span,
                     }))
                 }
-                // Regex : Identifier.
+                // Regex = Identifier #Identifier
                 SlotId(123) => {
                     let [identifier] = children.into_array::<1usize>();
                     ParseTree::Regex(self.arena.alloc(Regex::Identifier {
@@ -6696,7 +6687,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a> {
             },
             // CharClass
             NonterminalId(13) => match nonterminal_node.return_slot {
-                // CharClass : neg:"!"? Layout "[" Layout RangeElement+ Layout "]".
+                // CharClass = neg:"!"? Layout "[" Layout RangeElement+ Layout "]"
                 SlotId(131) => {
                     let [
                         neg,
@@ -6722,7 +6713,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a> {
             },
             // RangeElement
             NonterminalId(14) => match nonterminal_node.return_slot {
-                // RangeElement : Range.
+                // RangeElement = Range
                 SlotId(133) => {
                     let [range] = children.into_array::<1usize>();
                     ParseTree::RangeElement(self.arena.alloc(RangeElement::Alt0 {
@@ -6730,7 +6721,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a> {
                         span: nonterminal_node.span,
                     }))
                 }
-                // RangeElement : RangeChar.
+                // RangeElement = RangeChar
                 SlotId(135) => {
                     let [range_char] = children.into_array::<1usize>();
                     ParseTree::RangeElement(self.arena.alloc(RangeElement::Alt1 {
@@ -6742,7 +6733,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a> {
             },
             // Range
             NonterminalId(15) => match nonterminal_node.return_slot {
-                // Range : start:RangeChar Layout "-" Layout end:RangeChar.
+                // Range = start:RangeChar Layout "-" Layout end:RangeChar
                 SlotId(141) => {
                     let [start, layout_1, lit_2, layout_3, end] = children.into_array::<5usize>();
                     ParseTree::Range(self.arena.alloc(Range::Alt0 {
@@ -6758,7 +6749,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a> {
             },
             // Layout
             NonterminalId(16) => match nonterminal_node.return_slot {
-                // Layout : (WS | LineComment)* !>> WS !>> LineComment.
+                // Layout = (WS | LineComment)*
                 SlotId(143) => {
                     let [star_4] = children.into_array::<1usize>();
                     ParseTree::Layout(self.arena.alloc(Layout::Alt0 {
@@ -6770,7 +6761,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a> {
             },
             // Plus_0
             NonterminalId(17) => match nonterminal_node.return_slot {
-                // Rule+ : Rule+ Layout Rule.
+                // Plus_0 = Rule+ Layout Rule
                 SlotId(147) => {
                     let [rules_0, layout, rule_2] = children.into_array::<3usize>();
                     ParseTree::Plus0(self.arena.alloc(Plus0::Alt0 {
@@ -6780,7 +6771,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a> {
                         span: nonterminal_node.span,
                     }))
                 }
-                // Rule+ : Rule.
+                // Plus_0 = Rule
                 SlotId(149) => {
                     let [rule] = children.into_array::<1usize>();
                     ParseTree::Plus0(self.arena.alloc(Plus0::Alt1 {
@@ -6792,7 +6783,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a> {
             },
             // Opt_0
             NonterminalId(18) => match nonterminal_node.return_slot {
-                // Rule+? : Rule+.
+                // Opt_0 = Rule+
                 SlotId(151) => {
                     let [rules] = children.into_array::<1usize>();
                     ParseTree::Opt0(self.arena.alloc(Opt0::Alt0 {
@@ -6800,7 +6791,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a> {
                         span: nonterminal_node.span,
                     }))
                 }
-                // Rule+? : .
+                // Opt_0 =
                 SlotId(152) => {
                     let [] = children.into_array::<0usize>();
                     ParseTree::Opt0(self.arena.alloc(Opt0::Alt1 {
@@ -6811,7 +6802,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a> {
             },
             // Star_0
             NonterminalId(19) => match nonterminal_node.return_slot {
-                // Rule* : Rule+?.
+                // Star_0 = Rule+?
                 SlotId(154) => {
                     let [opt_0] = children.into_array::<1usize>();
                     ParseTree::Star0(self.arena.alloc(Star0::Alt0 {
@@ -6823,7 +6814,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a> {
             },
             // Opt_1
             NonterminalId(20) => match nonterminal_node.return_slot {
-                // Annotation? : Annotation.
+                // Opt_1 = Annotation
                 SlotId(156) => {
                     let [annotation] = children.into_array::<1usize>();
                     ParseTree::Opt1(self.arena.alloc(Opt1::Alt0 {
@@ -6831,7 +6822,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a> {
                         span: nonterminal_node.span,
                     }))
                 }
-                // Annotation? : .
+                // Opt_1 =
                 SlotId(157) => {
                     let [] = children.into_array::<0usize>();
                     ParseTree::Opt1(self.arena.alloc(Opt1::Alt1 {
@@ -6842,7 +6833,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a> {
             },
             // Plus_1
             NonterminalId(21) => match nonterminal_node.return_slot {
-                // {PriorityLevel ">"}+ : {PriorityLevel ">"}+ Layout ">" Layout PriorityLevel.
+                // Plus_1 = {PriorityLevel ">"}+ Layout ">" Layout PriorityLevel
                 SlotId(163) => {
                     let [
                         priority_levels_0,
@@ -6860,7 +6851,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a> {
                         span: nonterminal_node.span,
                     }))
                 }
-                // {PriorityLevel ">"}+ : PriorityLevel.
+                // Plus_1 = PriorityLevel
                 SlotId(165) => {
                     let [priority_level] = children.into_array::<1usize>();
                     ParseTree::Plus1(self.arena.alloc(Plus1::Alt1 {
@@ -6872,7 +6863,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a> {
             },
             // Opt_2
             NonterminalId(22) => match nonterminal_node.return_slot {
-                // {PriorityLevel ">"}+? : {PriorityLevel ">"}+.
+                // Opt_2 = {PriorityLevel ">"}+
                 SlotId(167) => {
                     let [priority_levels] = children.into_array::<1usize>();
                     ParseTree::Opt2(self.arena.alloc(Opt2::Alt0 {
@@ -6880,7 +6871,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a> {
                         span: nonterminal_node.span,
                     }))
                 }
-                // {PriorityLevel ">"}+? : .
+                // Opt_2 =
                 SlotId(168) => {
                     let [] = children.into_array::<0usize>();
                     ParseTree::Opt2(self.arena.alloc(Opt2::Alt1 {
@@ -6891,7 +6882,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a> {
             },
             // Star_1
             NonterminalId(23) => match nonterminal_node.return_slot {
-                // {PriorityLevel ">"}* : {PriorityLevel ">"}+?.
+                // Star_1 = {PriorityLevel ">"}+?
                 SlotId(170) => {
                     let [opt_2] = children.into_array::<1usize>();
                     ParseTree::Star1(self.arena.alloc(Star1::Alt0 {
@@ -6903,7 +6894,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a> {
             },
             // Opt_3
             NonterminalId(24) => match nonterminal_node.return_slot {
-                // "@Layout"? : "@Layout".
+                // Opt_3 = "@Layout"
                 SlotId(172) => {
                     let [lit_0] = children.into_array::<1usize>();
                     ParseTree::Opt3(self.arena.alloc(Opt3::Alt0 {
@@ -6911,7 +6902,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a> {
                         span: nonterminal_node.span,
                     }))
                 }
-                // "@Layout"? : .
+                // Opt_3 =
                 SlotId(173) => {
                     let [] = children.into_array::<0usize>();
                     ParseTree::Opt3(self.arena.alloc(Opt3::Alt1 {
@@ -6922,7 +6913,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a> {
             },
             // Opt_4
             NonterminalId(25) => match nonterminal_node.return_slot {
-                // "@Identifier"? : "@Identifier".
+                // Opt_4 = "@Identifier"
                 SlotId(175) => {
                     let [lit_0] = children.into_array::<1usize>();
                     ParseTree::Opt4(self.arena.alloc(Opt4::Alt0 {
@@ -6930,7 +6921,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a> {
                         span: nonterminal_node.span,
                     }))
                 }
-                // "@Identifier"? : .
+                // Opt_4 =
                 SlotId(176) => {
                     let [] = children.into_array::<0usize>();
                     ParseTree::Opt4(self.arena.alloc(Opt4::Alt1 {
@@ -6941,7 +6932,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a> {
             },
             // Opt_5
             NonterminalId(26) => match nonterminal_node.return_slot {
-                // RegexPreCondition? : RegexPreCondition.
+                // Opt_5 = RegexPreCondition
                 SlotId(178) => {
                     let [regex_pre_condition] = children.into_array::<1usize>();
                     ParseTree::Opt5(self.arena.alloc(Opt5::Alt0 {
@@ -6949,7 +6940,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a> {
                         span: nonterminal_node.span,
                     }))
                 }
-                // RegexPreCondition? : .
+                // Opt_5 =
                 SlotId(179) => {
                     let [] = children.into_array::<0usize>();
                     ParseTree::Opt5(self.arena.alloc(Opt5::Alt1 {
@@ -6960,7 +6951,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a> {
             },
             // Plus_3
             NonterminalId(27) => match nonterminal_node.return_slot {
-                // Regex+ : Regex+ Layout Regex.
+                // Plus_3 = Regex+ Layout Regex
                 SlotId(183) => {
                     let [regexes_0, layout, regex_2] = children.into_array::<3usize>();
                     ParseTree::Plus3(self.arena.alloc(Plus3::Alt0 {
@@ -6970,7 +6961,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a> {
                         span: nonterminal_node.span,
                     }))
                 }
-                // Regex+ : Regex.
+                // Plus_3 = Regex
                 SlotId(185) => {
                     let [regex] = children.into_array::<1usize>();
                     ParseTree::Plus3(self.arena.alloc(Plus3::Alt1 {
@@ -6982,7 +6973,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a> {
             },
             // Plus_2
             NonterminalId(28) => match nonterminal_node.return_slot {
-                // {Regex+ "|"}+ : {Regex+ "|"}+ Layout "|" Layout Regex+.
+                // Plus_2 = {Regex+ "|"}+ Layout "|" Layout Regex+
                 SlotId(191) => {
                     let [plus_2, layout_1, lit_2, layout_3, regexes] =
                         children.into_array::<5usize>();
@@ -6995,7 +6986,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a> {
                         span: nonterminal_node.span,
                     }))
                 }
-                // {Regex+ "|"}+ : Regex+.
+                // Plus_2 = Regex+
                 SlotId(193) => {
                     let [regexes] = children.into_array::<1usize>();
                     ParseTree::Plus2(self.arena.alloc(Plus2::Alt1 {
@@ -7007,7 +6998,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a> {
             },
             // Plus_4
             NonterminalId(29) => match nonterminal_node.return_slot {
-                // RegexPostCondition+ : RegexPostCondition+ Layout RegexPostCondition.
+                // Plus_4 = RegexPostCondition+ Layout RegexPostCondition
                 SlotId(197) => {
                     let [regex_post_conditions_0, layout, regex_post_condition_2] =
                         children.into_array::<3usize>();
@@ -7019,7 +7010,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a> {
                         span: nonterminal_node.span,
                     }))
                 }
-                // RegexPostCondition+ : RegexPostCondition.
+                // Plus_4 = RegexPostCondition
                 SlotId(199) => {
                     let [regex_post_condition] = children.into_array::<1usize>();
                     ParseTree::Plus4(self.arena.alloc(Plus4::Alt1 {
@@ -7031,7 +7022,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a> {
             },
             // Opt_6
             NonterminalId(30) => match nonterminal_node.return_slot {
-                // RegexPostCondition+? : RegexPostCondition+.
+                // Opt_6 = RegexPostCondition+
                 SlotId(201) => {
                     let [regex_post_conditions] = children.into_array::<1usize>();
                     ParseTree::Opt6(self.arena.alloc(Opt6::Alt0 {
@@ -7039,7 +7030,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a> {
                         span: nonterminal_node.span,
                     }))
                 }
-                // RegexPostCondition+? : .
+                // Opt_6 =
                 SlotId(202) => {
                     let [] = children.into_array::<0usize>();
                     ParseTree::Opt6(self.arena.alloc(Opt6::Alt1 {
@@ -7050,7 +7041,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a> {
             },
             // Star_2
             NonterminalId(31) => match nonterminal_node.return_slot {
-                // RegexPostCondition* : RegexPostCondition+?.
+                // Star_2 = RegexPostCondition+?
                 SlotId(204) => {
                     let [opt_6] = children.into_array::<1usize>();
                     ParseTree::Star2(self.arena.alloc(Star2::Alt0 {
@@ -7062,7 +7053,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a> {
             },
             // Opt_7
             NonterminalId(32) => match nonterminal_node.return_slot {
-                // Associativity? : Associativity.
+                // Opt_7 = Associativity
                 SlotId(206) => {
                     let [associativity] = children.into_array::<1usize>();
                     ParseTree::Opt7(self.arena.alloc(Opt7::Alt0 {
@@ -7070,7 +7061,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a> {
                         span: nonterminal_node.span,
                     }))
                 }
-                // Associativity? : .
+                // Opt_7 =
                 SlotId(207) => {
                     let [] = children.into_array::<0usize>();
                     ParseTree::Opt7(self.arena.alloc(Opt7::Alt1 {
@@ -7081,7 +7072,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a> {
             },
             // Plus_5
             NonterminalId(33) => match nonterminal_node.return_slot {
-                // {Alternative "|"}+ : {Alternative "|"}+ Layout "|" Layout Alternative.
+                // Plus_5 = {Alternative "|"}+ Layout "|" Layout Alternative
                 SlotId(213) => {
                     let [alternatives_0, layout_1, lit_2, layout_3, alternative_4] =
                         children.into_array::<5usize>();
@@ -7094,7 +7085,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a> {
                         span: nonterminal_node.span,
                     }))
                 }
-                // {Alternative "|"}+ : Alternative.
+                // Plus_5 = Alternative
                 SlotId(215) => {
                     let [alternative] = children.into_array::<1usize>();
                     ParseTree::Plus5(self.arena.alloc(Plus5::Alt1 {
@@ -7106,7 +7097,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a> {
             },
             // Opt_8
             NonterminalId(34) => match nonterminal_node.return_slot {
-                // {Alternative "|"}+? : {Alternative "|"}+.
+                // Opt_8 = {Alternative "|"}+
                 SlotId(217) => {
                     let [alternatives] = children.into_array::<1usize>();
                     ParseTree::Opt8(self.arena.alloc(Opt8::Alt0 {
@@ -7114,7 +7105,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a> {
                         span: nonterminal_node.span,
                     }))
                 }
-                // {Alternative "|"}+? : .
+                // Opt_8 =
                 SlotId(218) => {
                     let [] = children.into_array::<0usize>();
                     ParseTree::Opt8(self.arena.alloc(Opt8::Alt1 {
@@ -7125,7 +7116,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a> {
             },
             // Star_3
             NonterminalId(35) => match nonterminal_node.return_slot {
-                // {Alternative "|"}* : {Alternative "|"}+?.
+                // Star_3 = {Alternative "|"}+?
                 SlotId(220) => {
                     let [opt_8] = children.into_array::<1usize>();
                     ParseTree::Star3(self.arena.alloc(Star3::Alt0 {
@@ -7137,7 +7128,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a> {
             },
             // Plus_6
             NonterminalId(36) => match nonterminal_node.return_slot {
-                // Symbol+ : Symbol+ Layout Symbol(0, 0).
+                // Plus_6 = Symbol+ Layout Symbol
                 SlotId(224) => {
                     let [symbols_0, layout, symbol_2] = children.into_array::<3usize>();
                     ParseTree::Plus6(self.arena.alloc(Plus6::Alt0 {
@@ -7147,7 +7138,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a> {
                         span: nonterminal_node.span,
                     }))
                 }
-                // Symbol+ : Symbol(0, 0).
+                // Plus_6 = Symbol
                 SlotId(226) => {
                     let [symbol] = children.into_array::<1usize>();
                     ParseTree::Plus6(self.arena.alloc(Plus6::Alt1 {
@@ -7159,7 +7150,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a> {
             },
             // Opt_9
             NonterminalId(37) => match nonterminal_node.return_slot {
-                // Label? : Label.
+                // Opt_9 = Label
                 SlotId(228) => {
                     let [label] = children.into_array::<1usize>();
                     ParseTree::Opt9(self.arena.alloc(Opt9::Alt0 {
@@ -7167,7 +7158,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a> {
                         span: nonterminal_node.span,
                     }))
                 }
-                // Label? : .
+                // Opt_9 =
                 SlotId(229) => {
                     let [] = children.into_array::<0usize>();
                     ParseTree::Opt9(self.arena.alloc(Opt9::Alt1 {
@@ -7178,7 +7169,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a> {
             },
             // Plus_7
             NonterminalId(38) => match nonterminal_node.return_slot {
-                // {Symbol+ "|"}+ : {Symbol+ "|"}+ Layout "|" Layout Symbol+.
+                // Plus_7 = {Symbol+ "|"}+ Layout "|" Layout Symbol+
                 SlotId(235) => {
                     let [plus_7, layout_1, lit_2, layout_3, symbols] =
                         children.into_array::<5usize>();
@@ -7191,7 +7182,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a> {
                         span: nonterminal_node.span,
                     }))
                 }
-                // {Symbol+ "|"}+ : Symbol+.
+                // Plus_7 = Symbol+
                 SlotId(237) => {
                     let [symbols] = children.into_array::<1usize>();
                     ParseTree::Plus7(self.arena.alloc(Plus7::Alt1 {
@@ -7203,7 +7194,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a> {
             },
             // Plus_8
             NonterminalId(39) => match nonterminal_node.return_slot {
-                // PostCondition+ : PostCondition+ Layout PostCondition.
+                // Plus_8 = PostCondition+ Layout PostCondition
                 SlotId(241) => {
                     let [post_conditions_0, layout, post_condition_2] =
                         children.into_array::<3usize>();
@@ -7214,7 +7205,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a> {
                         span: nonterminal_node.span,
                     }))
                 }
-                // PostCondition+ : PostCondition.
+                // Plus_8 = PostCondition
                 SlotId(243) => {
                     let [post_condition] = children.into_array::<1usize>();
                     ParseTree::Plus8(self.arena.alloc(Plus8::Alt1 {
@@ -7226,7 +7217,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a> {
             },
             // Plus_9
             NonterminalId(40) => match nonterminal_node.return_slot {
-                // PreCondition+ : PreCondition+ Layout PreCondition.
+                // Plus_9 = PreCondition+ Layout PreCondition
                 SlotId(247) => {
                     let [pre_conditions_0, layout, pre_condition_2] =
                         children.into_array::<3usize>();
@@ -7237,7 +7228,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a> {
                         span: nonterminal_node.span,
                     }))
                 }
-                // PreCondition+ : PreCondition.
+                // Plus_9 = PreCondition
                 SlotId(249) => {
                     let [pre_condition] = children.into_array::<1usize>();
                     ParseTree::Plus9(self.arena.alloc(Plus9::Alt1 {
@@ -7249,7 +7240,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a> {
             },
             // Opt_10
             NonterminalId(41) => match nonterminal_node.return_slot {
-                // "!"? : "!".
+                // Opt_10 = "!"
                 SlotId(251) => {
                     let [lit_0] = children.into_array::<1usize>();
                     ParseTree::Opt10(self.arena.alloc(Opt10::Alt0 {
@@ -7257,7 +7248,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a> {
                         span: nonterminal_node.span,
                     }))
                 }
-                // "!"? : .
+                // Opt_10 =
                 SlotId(252) => {
                     let [] = children.into_array::<0usize>();
                     ParseTree::Opt10(self.arena.alloc(Opt10::Alt1 {
@@ -7268,7 +7259,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a> {
             },
             // Plus_10
             NonterminalId(42) => match nonterminal_node.return_slot {
-                // RangeElement+ : RangeElement+ Layout RangeElement.
+                // Plus_10 = RangeElement+ Layout RangeElement
                 SlotId(256) => {
                     let [range_elements_0, layout, range_element_2] =
                         children.into_array::<3usize>();
@@ -7279,7 +7270,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a> {
                         span: nonterminal_node.span,
                     }))
                 }
-                // RangeElement+ : RangeElement.
+                // Plus_10 = RangeElement
                 SlotId(258) => {
                     let [range_element] = children.into_array::<1usize>();
                     ParseTree::Plus10(self.arena.alloc(Plus10::Alt1 {
@@ -7291,7 +7282,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a> {
             },
             // Alt_0
             NonterminalId(43) => match nonterminal_node.return_slot {
-                // (WS | LineComment) : WS.
+                // Alt_0 = WS
                 SlotId(260) => {
                     let [ws] = children.into_array::<1usize>();
                     ParseTree::Alt0(self.arena.alloc(Alt0::Alt0 {
@@ -7299,7 +7290,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a> {
                         span: nonterminal_node.span,
                     }))
                 }
-                // (WS | LineComment) : LineComment.
+                // Alt_0 = LineComment
                 SlotId(262) => {
                     let [line_comment] = children.into_array::<1usize>();
                     ParseTree::Alt0(self.arena.alloc(Alt0::Alt1 {
@@ -7311,7 +7302,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a> {
             },
             // Plus_11
             NonterminalId(44) => match nonterminal_node.return_slot {
-                // (WS | LineComment)+ : (WS | LineComment)+ (WS | LineComment).
+                // Plus_11 = (WS | LineComment)+ (WS | LineComment)
                 SlotId(265) => {
                     let [plus_11, alt_0] = children.into_array::<2usize>();
                     ParseTree::Plus11(self.arena.alloc(Plus11::Alt0 {
@@ -7320,7 +7311,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a> {
                         span: nonterminal_node.span,
                     }))
                 }
-                // (WS | LineComment)+ : (WS | LineComment).
+                // Plus_11 = (WS | LineComment)
                 SlotId(267) => {
                     let [alt_0] = children.into_array::<1usize>();
                     ParseTree::Plus11(self.arena.alloc(Plus11::Alt1 {
@@ -7332,7 +7323,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a> {
             },
             // Opt_11
             NonterminalId(45) => match nonterminal_node.return_slot {
-                // (WS | LineComment)+? : (WS | LineComment)+.
+                // Opt_11 = (WS | LineComment)+
                 SlotId(269) => {
                     let [plus_11] = children.into_array::<1usize>();
                     ParseTree::Opt11(self.arena.alloc(Opt11::Alt0 {
@@ -7340,7 +7331,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a> {
                         span: nonterminal_node.span,
                     }))
                 }
-                // (WS | LineComment)+? : .
+                // Opt_11 =
                 SlotId(270) => {
                     let [] = children.into_array::<0usize>();
                     ParseTree::Opt11(self.arena.alloc(Opt11::Alt1 {
@@ -7351,7 +7342,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a> {
             },
             // Star_4
             NonterminalId(46) => match nonterminal_node.return_slot {
-                // (WS | LineComment)* : (WS | LineComment)+?.
+                // Star_4 = (WS | LineComment)+?
                 SlotId(272) => {
                     let [opt_11] = children.into_array::<1usize>();
                     ParseTree::Star4(self.arena.alloc(Star4::Alt0 {
@@ -7363,7 +7354,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a> {
             },
             // StartGrammar
             NonterminalId(47) => match nonterminal_node.return_slot {
-                // Grammar : Layout start:Grammar Layout.
+                // StartGrammar = Layout start:Grammar Layout
                 SlotId(276) => {
                     let [layout_0, start, layout_2] = children.into_array::<3usize>();
                     ParseTree::StartGrammar(self.arena.alloc(Start {
@@ -7377,7 +7368,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a> {
             },
             // StartRule
             NonterminalId(48) => match nonterminal_node.return_slot {
-                // Rule : Layout start:Rule Layout.
+                // StartRule = Layout start:Rule Layout
                 SlotId(280) => {
                     let [layout_0, start, layout_2] = children.into_array::<3usize>();
                     ParseTree::StartRule(self.arena.alloc(Start {
@@ -7391,7 +7382,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a> {
             },
             // StartSyntaxRule
             NonterminalId(49) => match nonterminal_node.return_slot {
-                // SyntaxRule : Layout start:SyntaxRule Layout.
+                // StartSyntaxRule = Layout start:SyntaxRule Layout
                 SlotId(284) => {
                     let [layout_0, start, layout_2] = children.into_array::<3usize>();
                     ParseTree::StartSyntaxRule(self.arena.alloc(Start {
@@ -7405,7 +7396,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a> {
             },
             // StartAnnotation
             NonterminalId(50) => match nonterminal_node.return_slot {
-                // Annotation : Layout start:Annotation Layout.
+                // StartAnnotation = Layout start:Annotation Layout
                 SlotId(288) => {
                     let [layout_0, start, layout_2] = children.into_array::<3usize>();
                     ParseTree::StartAnnotation(self.arena.alloc(Start {
@@ -7419,7 +7410,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a> {
             },
             // StartRegexRule
             NonterminalId(51) => match nonterminal_node.return_slot {
-                // RegexRule : Layout start:RegexRule Layout.
+                // StartRegexRule = Layout start:RegexRule Layout
                 SlotId(292) => {
                     let [layout_0, start, layout_2] = children.into_array::<3usize>();
                     ParseTree::StartRegexRule(self.arena.alloc(Start {
@@ -7433,7 +7424,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a> {
             },
             // StartRegexPreCondition
             NonterminalId(52) => match nonterminal_node.return_slot {
-                // RegexPreCondition : Layout start:RegexPreCondition Layout.
+                // StartRegexPreCondition = Layout start:RegexPreCondition Layout
                 SlotId(296) => {
                     let [layout_0, start, layout_2] = children.into_array::<3usize>();
                     ParseTree::StartRegexPreCondition(self.arena.alloc(Start {
@@ -7447,7 +7438,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a> {
             },
             // StartRegexPostCondition
             NonterminalId(53) => match nonterminal_node.return_slot {
-                // RegexPostCondition : Layout start:RegexPostCondition Layout.
+                // StartRegexPostCondition = Layout start:RegexPostCondition Layout
                 SlotId(300) => {
                     let [layout_0, start, layout_2] = children.into_array::<3usize>();
                     ParseTree::StartRegexPostCondition(self.arena.alloc(Start {
@@ -7461,7 +7452,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a> {
             },
             // StartPriorityLevel
             NonterminalId(54) => match nonterminal_node.return_slot {
-                // PriorityLevel : Layout start:PriorityLevel Layout.
+                // StartPriorityLevel = Layout start:PriorityLevel Layout
                 SlotId(304) => {
                     let [layout_0, start, layout_2] = children.into_array::<3usize>();
                     ParseTree::StartPriorityLevel(self.arena.alloc(Start {
@@ -7475,7 +7466,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a> {
             },
             // StartAssociativity
             NonterminalId(55) => match nonterminal_node.return_slot {
-                // Associativity : Layout start:Associativity Layout.
+                // StartAssociativity = Layout start:Associativity Layout
                 SlotId(308) => {
                     let [layout_0, start, layout_2] = children.into_array::<3usize>();
                     ParseTree::StartAssociativity(self.arena.alloc(Start {
@@ -7489,7 +7480,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a> {
             },
             // StartAlternative
             NonterminalId(56) => match nonterminal_node.return_slot {
-                // Alternative : Layout start:Alternative Layout.
+                // StartAlternative = Layout start:Alternative Layout
                 SlotId(312) => {
                     let [layout_0, start, layout_2] = children.into_array::<3usize>();
                     ParseTree::StartAlternative(self.arena.alloc(Start {
@@ -7503,7 +7494,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a> {
             },
             // StartSymbol
             NonterminalId(57) => match nonterminal_node.return_slot {
-                // Symbol(0, 0) : Layout start:Symbol(0, 0) Layout.
+                // StartSymbol = Layout start:Symbol Layout
                 SlotId(316) => {
                     let [layout_0, start, layout_2] = children.into_array::<3usize>();
                     ParseTree::StartSymbol(self.arena.alloc(Start {
@@ -7517,7 +7508,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a> {
             },
             // StartPreCondition
             NonterminalId(58) => match nonterminal_node.return_slot {
-                // PreCondition : Layout start:PreCondition Layout.
+                // StartPreCondition = Layout start:PreCondition Layout
                 SlotId(320) => {
                     let [layout_0, start, layout_2] = children.into_array::<3usize>();
                     ParseTree::StartPreCondition(self.arena.alloc(Start {
@@ -7531,7 +7522,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a> {
             },
             // StartPostCondition
             NonterminalId(59) => match nonterminal_node.return_slot {
-                // PostCondition : Layout start:PostCondition Layout.
+                // StartPostCondition = Layout start:PostCondition Layout
                 SlotId(324) => {
                     let [layout_0, start, layout_2] = children.into_array::<3usize>();
                     ParseTree::StartPostCondition(self.arena.alloc(Start {
@@ -7545,7 +7536,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a> {
             },
             // StartRegex
             NonterminalId(60) => match nonterminal_node.return_slot {
-                // Regex : Layout start:Regex Layout.
+                // StartRegex = Layout start:Regex Layout
                 SlotId(328) => {
                     let [layout_0, start, layout_2] = children.into_array::<3usize>();
                     ParseTree::StartRegex(self.arena.alloc(Start {
@@ -7559,7 +7550,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a> {
             },
             // StartCharClass
             NonterminalId(61) => match nonterminal_node.return_slot {
-                // CharClass : Layout start:CharClass Layout.
+                // StartCharClass = Layout start:CharClass Layout
                 SlotId(332) => {
                     let [layout_0, start, layout_2] = children.into_array::<3usize>();
                     ParseTree::StartCharClass(self.arena.alloc(Start {
@@ -7573,7 +7564,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a> {
             },
             // StartRangeElement
             NonterminalId(62) => match nonterminal_node.return_slot {
-                // RangeElement : Layout start:RangeElement Layout.
+                // StartRangeElement = Layout start:RangeElement Layout
                 SlotId(336) => {
                     let [layout_0, start, layout_2] = children.into_array::<3usize>();
                     ParseTree::StartRangeElement(self.arena.alloc(Start {
@@ -7587,7 +7578,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a> {
             },
             // StartRange
             NonterminalId(63) => match nonterminal_node.return_slot {
-                // Range : Layout start:Range Layout.
+                // StartRange = Layout start:Range Layout
                 SlotId(340) => {
                     let [layout_0, start, layout_2] = children.into_array::<3usize>();
                     ParseTree::StartRange(self.arena.alloc(Start {
@@ -7601,7 +7592,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a> {
             },
             // Symbol
             NonterminalId(64) => match nonterminal_node.return_slot {
-                // Symbol : [1 & e == 0] Identifier return 0.
+                // Symbol = Identifier #Identifier
                 SlotId(344) => {
                     let [identifier] = children.into_array::<1usize>();
                     ParseTree::Symbol(self.arena.alloc(Symbol::Identifier {
@@ -7609,7 +7600,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a> {
                         span: nonterminal_node.span,
                     }))
                 }
-                // Symbol : [2 & e == 0] "(" Layout seqs:{Symbol+ "|"}+ Layout ")" return 1.
+                // Symbol = "(" Layout seqs:{Symbol+ "|"}+ Layout ")" #Paren
                 SlotId(352) => {
                     let [lit_0, layout_1, seqs, layout_3, lit_4] = children.into_array::<5usize>();
                     ParseTree::Symbol(self.arena.alloc(Symbol::Paren {
@@ -7621,7 +7612,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a> {
                         span: nonterminal_node.span,
                     }))
                 }
-                // Symbol : [4 & e == 0] String return 2.
+                // Symbol = String #Lit
                 SlotId(356) => {
                     let [string] = children.into_array::<1usize>();
                     ParseTree::Symbol(self.arena.alloc(Symbol::Lit {
@@ -7629,8 +7620,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a> {
                         span: nonterminal_node.span,
                     }))
                 }
-                // Symbol : [8 & e == 0] "{" Layout symbol:Symbol(0, 0) Layout sep:Symbol(0, 0) Layout "}"
-                // Layout "*" return 3.
+                // Symbol = "{" Layout symbol:Symbol Layout sep:Symbol Layout "}" Layout "*" #StarSep
                 SlotId(368) => {
                     let [
                         lit_0,
@@ -7656,8 +7646,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a> {
                         span: nonterminal_node.span,
                     }))
                 }
-                // Symbol : [16 & e == 0] "{" Layout symbol:Symbol(0, 0) Layout sep:Symbol(0, 0) Layout "}"
-                // Layout "+" return 4.
+                // Symbol = "{" Layout symbol:Symbol Layout sep:Symbol Layout "}" Layout "+" #PlusSep
                 SlotId(380) => {
                     let [
                         lit_0,
@@ -7683,8 +7672,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a> {
                         span: nonterminal_node.span,
                     }))
                 }
-                // Symbol : [32 & e == 0] [3 >= p] l=Symbol(p, 0) [(l >> 16 == 0) || (l >> 16 >= 3)] Layout
-                // "*" return 5.
+                // Symbol = Symbol Layout "*" #Star
                 SlotId(388) => {
                     let [symbol, layout, lit_2] = children.into_array::<3usize>();
                     ParseTree::Symbol(self.arena.alloc(Symbol::Star {
@@ -7694,8 +7682,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a> {
                         span: nonterminal_node.span,
                     }))
                 }
-                // Symbol : [64 & e == 0] [3 >= p] l=Symbol(p, 0) [(l >> 16 == 0) || (l >> 16 >= 3)] Layout
-                // "+" return 6.
+                // Symbol = Symbol Layout "+" #Plus
                 SlotId(396) => {
                     let [symbol, layout, lit_2] = children.into_array::<3usize>();
                     ParseTree::Symbol(self.arena.alloc(Symbol::Plus {
@@ -7705,8 +7692,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a> {
                         span: nonterminal_node.span,
                     }))
                 }
-                // Symbol : [128 & e == 0] [3 >= p] l=Symbol(p, 0) [(l >> 16 == 0) || (l >> 16 >= 3)] Layout
-                // "?" return 7.
+                // Symbol = Symbol Layout "?" #Opt
                 SlotId(404) => {
                     let [symbol, layout, lit_2] = children.into_array::<3usize>();
                     ParseTree::Symbol(self.arena.alloc(Symbol::Opt {
@@ -7716,9 +7702,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a> {
                         span: nonterminal_node.span,
                     }))
                 }
-                // Symbol : [256 & e == 0] [3 >= p] l=Symbol(p, 0) [(l >> 16 == 0) || (l >> 16 >= 3)] [(l &
-                // 65535 == 65535) || ((256 >> (l & 65535)) & 1 == 0)] Layout conditions:PostCondition+
-                // return 8.
+                // Symbol = Symbol Layout conditions:PostCondition+ #PostCondition
                 SlotId(413) => {
                     let [symbol, layout, conditions] = children.into_array::<3usize>();
                     ParseTree::Symbol(self.arena.alloc(Symbol::PostCondition {
@@ -7728,8 +7712,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a> {
                         span: nonterminal_node.span,
                     }))
                 }
-                // Symbol : [512 & e == 0] conditions:PreCondition+ Layout r=Symbol(2, 512) return (((r >> 16
-                // == 0) ? 2 : min(r >> 16, 2)) << 16) | 9.
+                // Symbol = conditions:PreCondition+ Layout Symbol #PreCondition
                 SlotId(419) => {
                     let [conditions, layout, symbol] = children.into_array::<3usize>();
                     ParseTree::Symbol(self.arena.alloc(Symbol::PreCondition {
@@ -7739,7 +7722,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a> {
                         span: nonterminal_node.span,
                     }))
                 }
-                // Symbol : [1024 & e == 0] label:Identifier Layout ":" Layout Symbol(1, 0) return 65546.
+                // Symbol = label:Identifier Layout ":" Layout Symbol #Labeled
                 SlotId(427) => {
                     let [label, layout_1, lit_2, layout_3, symbol] =
                         children.into_array::<5usize>();

@@ -345,7 +345,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for EscapedLitParseTreeBuilder<'a> {
         match nonterminal_node.nonterminal_id {
             // S
             NonterminalId(0) => match nonterminal_node.return_slot {
-                // S : "\"" WS Id WS "\"" WS "\\" WS Id WS "\f'".
+                // S = "\"" WS Id WS "\"" WS "\\" WS Id WS "\f'"
                 SlotId(11) => {
                     let [
                         lit_0,
@@ -379,7 +379,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for EscapedLitParseTreeBuilder<'a> {
             },
             // StartS
             NonterminalId(1) => match nonterminal_node.return_slot {
-                // S : WS start:S WS.
+                // StartS = WS start:S WS
                 SlotId(15) => {
                     let [ws_0, start, ws_2] = children.into_array::<3usize>();
                     ParseTree::StartS(self.arena.alloc(Start {

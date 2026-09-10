@@ -8,12 +8,13 @@ use crate::{
     generator::{
         GenConfig, grammar_utils,
         grammar_utils::{nonterminal_type_name, nt_ident, parse_tree_builder_ident, parser_ident},
-        id::{NonterminalIds, SlotIds, TerminalIds},
+        id::{NonterminalIds, TerminalIds},
         utils::{alternative_label, is_valid_rust_ident, safe_ident},
     },
     grammar::{
         def::{Alternative, Grammar},
         symbols::{Definition, DefinitionId, Identifier, Nonterminal, Symbol},
+        transformations::transform_symbol,
     },
     ids::TerminalId,
     utils::{to_pascal_case, to_snake_case},
@@ -23,8 +24,57 @@ pub struct ParseTreeGen<'a> {
     grammar: &'a Grammar,
     nonterminal_ids: &'a NonterminalIds,
     terminal_ids: &'a TerminalIds,
-    slot_ids: &'a SlotIds<'a>,
     config: GenConfig,
+}
+
+/// Formats a rule for both its type declaration and its tree-builder cases.
+fn structural_rule(grammar: &Grammar, head: &Nonterminal, alternative: &Alternative) -> String {
+    let mut result = alternative
+        .symbols
+        .iter()
+        .filter(|symbol| symbol.is_parse_tree_symbol())
+        .map(|symbol| structural_symbol(grammar, symbol.clone()).to_string())
+        .collect::<Vec<_>>()
+        .join(" ");
+    if let Some(label) = &alternative.label {
+        result.push_str(&format!(" #{label}"));
+    }
+    format!("{} = {result}", head.name)
+}
+
+/// The grammar symbol behind a parse-tree field or a derived type's name.
+/// Calls and derived-rule origins use the same treatment. Conditions, returns,
+/// call arguments, bindings, and restrictions add no fields.
+fn structural_symbol(grammar: &Grammar, symbol: Symbol) -> Symbol {
+    transform_symbol(symbol, &mut |symbol| match symbol {
+        Symbol::Binding { symbol, .. }
+        | Symbol::Restricted { symbol, .. }
+        | Symbol::Exclude { symbol, .. } => *symbol,
+        Symbol::Identifier(name) | Symbol::Call { name, .. } => {
+            if let Some(id) = name.definition
+                && let Definition::Nonterminal(nonterminal) = grammar.definition(id)
+                && let Some(origin) = &nonterminal.origin
+            {
+                structural_symbol(grammar, origin.clone())
+            } else {
+                Symbol::Identifier(name)
+            }
+        }
+        Symbol::Group(symbols) => Symbol::Group(
+            symbols
+                .into_iter()
+                .filter(Symbol::is_parse_tree_symbol)
+                .collect(),
+        ),
+        other => other,
+    })
+}
+
+fn structural_name(grammar: &Grammar, nonterminal: &Nonterminal) -> String {
+    nonterminal.origin.as_ref().map_or_else(
+        || nonterminal.name.clone(),
+        |origin| structural_symbol(grammar, origin.clone()).to_string(),
+    )
 }
 
 impl<'a> ParseTreeGen<'a> {
@@ -32,14 +82,12 @@ impl<'a> ParseTreeGen<'a> {
         grammar: &'a Grammar,
         nonterminal_ids: &'a NonterminalIds,
         terminal_ids: &'a TerminalIds,
-        slot_ids: &'a SlotIds<'a>,
         config: GenConfig,
     ) -> Self {
         Self {
             grammar,
             nonterminal_ids,
             terminal_ids,
-            slot_ids,
             config,
         }
     }
@@ -297,14 +345,10 @@ impl<'a> ParseTreeGen<'a> {
             .collect();
         let nonterminal_name = &nonterminal.name;
         let comment = if nonterminal.is_derived() {
-            let display_name = nonterminal.display_name();
+            let display_name = structural_name(self.grammar, nonterminal);
             quote! { #[comment = #display_name] }
         } else {
-            let rule = format!(
-                "{} = {}",
-                nonterminal_name,
-                alternative.display_name(self.grammar)
-            );
+            let rule = structural_rule(self.grammar, nonterminal, alternative);
             quote! { #[comment = #rule] }
         };
         let nonterminal_name_id = nt_ident(nonterminal_name);
@@ -350,22 +394,7 @@ impl<'a> ParseTreeGen<'a> {
                     .collect();
                 let label = to_pascal_case(&alternative_label(alternative, index));
                 let variant_name = Ident::new(&label, Span::call_site());
-                let params = if nonterminal.parameters.is_empty() {
-                    String::new()
-                } else {
-                    let names: Vec<_> = nonterminal
-                        .parameters
-                        .iter()
-                        .map(|p| p.name.clone())
-                        .collect();
-                    format!("({})", names.join(", "))
-                };
-                let variant_comment = format!(
-                    "{}{} = {}",
-                    nonterminal.name,
-                    params,
-                    alternative.display_name(self.grammar)
-                );
+                let variant_comment = structural_rule(self.grammar, nonterminal, alternative);
                 quote! {
                     #[comment = #variant_comment]
                     #variant_name { #(#fields,)* span: Span }
@@ -374,7 +403,7 @@ impl<'a> ParseTreeGen<'a> {
             .collect();
         let nonterminal_name = &nonterminal.name;
         let comment = if nonterminal.is_derived() {
-            let display_name = nonterminal.display_name();
+            let display_name = structural_name(self.grammar, nonterminal);
             quote! { #[comment = #display_name] }
         } else {
             quote! {}
@@ -841,7 +870,7 @@ impl<'a> ParseTreeGen<'a> {
                         let alternatives = self.grammar.alternatives(nonterminal);
                         let alternative = &alternatives[index];
                         let end_slot_id = end_slot.slot_id;
-                        let slot_name = self.slot_ids.display_name(&end_slot.slot_id);
+                        let rule_comment = structural_rule(self.grammar, nonterminal, alternative);
                         let num_symbols = alternative.symbols.iter().filter(|s| s.is_parse_tree_symbol()).count();
                         let field_names = field_names(self.grammar, alternative);
                         let method_calls: Vec<_> = alternative
@@ -903,7 +932,7 @@ impl<'a> ParseTreeGen<'a> {
                             quote! { let [#(#field_names),*] = children.into_array::<#num_symbols>(); }
                         };
                         quote! {
-                            #[comment = #slot_name]
+                            #[comment = #rule_comment]
                             #end_slot_id => {
                                 #bind_children
                                 #construction
@@ -954,7 +983,7 @@ impl<'a> ParseTreeGen<'a> {
                 let variant = nt_ident(&n.name);
                 let ty = self.nonterminal_type(n);
                 if n.is_derived() {
-                    let display_name = n.display_name();
+                    let display_name = structural_name(self.grammar, n);
                     quote! {
                         #[comment = #display_name]
                         #variant(&'a #ty)
@@ -1498,7 +1527,8 @@ impl<'a> ParseTreeGen<'a> {
             return None;
         }
         let symbol = &alternatives[0].symbols[0];
-        let child_nt = match self.grammar.definition(symbol.resolved_def()) {
+        let identifier = symbol.as_identifier()?;
+        let child_nt = match self.grammar.definition(identifier.resolve()) {
             Definition::Nonterminal(nt) => nt,
             _ => return None,
         };

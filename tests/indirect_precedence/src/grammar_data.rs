@@ -10,16 +10,6 @@ pub const NONTERMINALS: [Nonterminal; 8] = [
         derived: false,
     },
     Nonterminal {
-        name: "F",
-        display: "F",
-        derived: false,
-    },
-    Nonterminal {
-        name: "K",
-        display: "K",
-        derived: false,
-    },
-    Nonterminal {
         name: "StartS",
         display: "S",
         derived: true,
@@ -31,12 +21,12 @@ pub const NONTERMINALS: [Nonterminal; 8] = [
     },
     Nonterminal {
         name: "StartF",
-        display: "F",
+        display: "F(0)",
         derived: true,
     },
     Nonterminal {
         name: "StartK",
-        display: "K",
+        display: "K(0)",
         derived: true,
     },
     Nonterminal {
@@ -44,27 +34,37 @@ pub const NONTERMINALS: [Nonterminal; 8] = [
         display: "E",
         derived: false,
     },
+    Nonterminal {
+        name: "F",
+        display: "F",
+        derived: false,
+    },
+    Nonterminal {
+        name: "K",
+        display: "K",
+        derived: false,
+    },
 ];
 // User-declared nonterminals in `.iggy` source order. Used by `--list-nonterminals`.
 pub const NONTERMINAL_DISPLAY_ORDER: [&str; 4] = ["S", "E", "F", "K"];
 pub const S: NonterminalId = NonterminalId(0);
-pub const F: NonterminalId = NonterminalId(1);
-pub const K: NonterminalId = NonterminalId(2);
-pub const START_S: NonterminalId = NonterminalId(3);
-pub const START_E: NonterminalId = NonterminalId(4);
-pub const START_F: NonterminalId = NonterminalId(5);
-pub const START_K: NonterminalId = NonterminalId(6);
-pub const E: NonterminalId = NonterminalId(7);
+pub const START_S: NonterminalId = NonterminalId(1);
+pub const START_E: NonterminalId = NonterminalId(2);
+pub const START_F: NonterminalId = NonterminalId(3);
+pub const START_K: NonterminalId = NonterminalId(4);
+pub const E: NonterminalId = NonterminalId(5);
+pub const F: NonterminalId = NonterminalId(6);
+pub const K: NonterminalId = NonterminalId(7);
 pub fn nonterminal_id(name: &str) -> Option<NonterminalId> {
     match name {
         "S" => Some(S),
-        "F" => Some(F),
-        "K" => Some(K),
         "StartS" => Some(START_S),
         "StartE" => Some(START_E),
         "StartF" => Some(START_F),
         "StartK" => Some(START_K),
         "E" => Some(E),
+        "F" => Some(F),
+        "K" => Some(K),
         _ => None,
     }
 }
@@ -76,30 +76,12 @@ pub const TERMINALS: [Terminal; 6] = [
     Terminal { name: "Epsilon" },
     Terminal { name: "EOF" },
 ];
-pub const SLOTS: [Slot; 30] = [
+pub const SLOTS: [Slot; 32] = [
     Slot {
         display_name: "S : . E(0)",
     },
     Slot {
         display_name: "S : E(0).",
-    },
-    Slot {
-        display_name: "F : . E(0) \"/\" K",
-    },
-    Slot {
-        display_name: "F : E(0) . \"/\" K",
-    },
-    Slot {
-        display_name: "F : E(0) \"/\" . K",
-    },
-    Slot {
-        display_name: "F : E(0) \"/\" K.",
-    },
-    Slot {
-        display_name: "K : . E(0)",
-    },
-    Slot {
-        display_name: "K : E(0).",
     },
     Slot {
         display_name: "S : . start:S",
@@ -114,16 +96,16 @@ pub const SLOTS: [Slot; 30] = [
         display_name: "E(0) : start:E(0).",
     },
     Slot {
-        display_name: "F : . start:F",
+        display_name: "F(0) : . start:F(0)",
     },
     Slot {
-        display_name: "F : start:F.",
+        display_name: "F(0) : start:F(0).",
     },
     Slot {
-        display_name: "K : . start:K",
+        display_name: "K(0) : . start:K(0)",
     },
     Slot {
-        display_name: "K : start:K.",
+        display_name: "K(0) : start:K(0).",
     },
     Slot {
         display_name: "E : . \"-\" E(2) return 2",
@@ -138,25 +120,25 @@ pub const SLOTS: [Slot; 30] = [
         display_name: "E : \"-\" E(2) return 2.",
     },
     Slot {
-        display_name: "E : . [1 >= p] l=E(p) [(l == 0) || (l >= 1)] \"*\" F return 0",
+        display_name: "E : . [1 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 1)] \"*\" F(1) return 1",
     },
     Slot {
-        display_name: "E : [1 >= p] . l=E(p) [(l == 0) || (l >= 1)] \"*\" F return 0",
+        display_name: "E : [1 >= p] . l_pr=E(p) [(l_pr == 0) || (l_pr >= 1)] \"*\" F(1) return 1",
     },
     Slot {
-        display_name: "E : [1 >= p] l=E(p) . [(l == 0) || (l >= 1)] \"*\" F return 0",
+        display_name: "E : [1 >= p] l_pr=E(p) . [(l_pr == 0) || (l_pr >= 1)] \"*\" F(1) return 1",
     },
     Slot {
-        display_name: "E : [1 >= p] l=E(p) [(l == 0) || (l >= 1)] . \"*\" F return 0",
+        display_name: "E : [1 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 1)] . \"*\" F(1) return 1",
     },
     Slot {
-        display_name: "E : [1 >= p] l=E(p) [(l == 0) || (l >= 1)] \"*\" . F return 0",
+        display_name: "E : [1 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 1)] \"*\" . F(1) return 1",
     },
     Slot {
-        display_name: "E : [1 >= p] l=E(p) [(l == 0) || (l >= 1)] \"*\" F . return 0",
+        display_name: "E : [1 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 1)] \"*\" F(1) . return 1",
     },
     Slot {
-        display_name: "E : [1 >= p] l=E(p) [(l == 0) || (l >= 1)] \"*\" F return 0.",
+        display_name: "E : [1 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 1)] \"*\" F(1) return 1.",
     },
     Slot {
         display_name: "E : . \"a\" return 0",
@@ -166,6 +148,30 @@ pub const SLOTS: [Slot; 30] = [
     },
     Slot {
         display_name: "E : \"a\" return 0.",
+    },
+    Slot {
+        display_name: "F : . E(0) \"/\" r_pr=K(p) return r_pr",
+    },
+    Slot {
+        display_name: "F : E(0) . \"/\" r_pr=K(p) return r_pr",
+    },
+    Slot {
+        display_name: "F : E(0) \"/\" . r_pr=K(p) return r_pr",
+    },
+    Slot {
+        display_name: "F : E(0) \"/\" r_pr=K(p) . return r_pr",
+    },
+    Slot {
+        display_name: "F : E(0) \"/\" r_pr=K(p) return r_pr.",
+    },
+    Slot {
+        display_name: "K : . r_pr=E(p) return r_pr",
+    },
+    Slot {
+        display_name: "K : r_pr=E(p) . return r_pr",
+    },
+    Slot {
+        display_name: "K : r_pr=E(p) return r_pr.",
     },
 ];
 // S { EOF }
@@ -198,7 +204,8 @@ pub static FIRST_SET_E_ALT0: TerminalSet = TerminalSet {
     id: 3,
     terminals: &[TerminalId(0)],
 };
-// E(p: i32) : . [1 >= p] l=E(p) [(l == 0) || (l >= 1)] "*" F return 0 { "a", "-" }
+// E(p: i32) : . [1 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 1)] "*" F(1) return 1 { "a", "-"
+// }
 pub static FIRST_SET_E_ALT1: TerminalSet = TerminalSet {
     id: 1,
     terminals: &[TerminalId(2), TerminalId(0)],
@@ -218,7 +225,7 @@ pub static FIRST_SET_F: TerminalSet = TerminalSet {
     id: 0,
     terminals: &[TerminalId(2), TerminalId(0)],
 };
-// F : . E(0) "/" K { "a", "-" }
+// F(p: i32) : . E(0) "/" r_pr=K(p) return r_pr { "a", "-" }
 pub static FIRST_SET_F_ALT0: TerminalSet = TerminalSet {
     id: 1,
     terminals: &[TerminalId(2), TerminalId(0)],
@@ -233,7 +240,7 @@ pub static FIRST_SET_K: TerminalSet = TerminalSet {
     id: 0,
     terminals: &[TerminalId(2), TerminalId(0)],
 };
-// K : . E(0) { "a", "-" }
+// K(p: i32) : . r_pr=E(p) return r_pr { "a", "-" }
 pub static FIRST_SET_K_ALT0: TerminalSet = TerminalSet {
     id: 1,
     terminals: &[TerminalId(2), TerminalId(0)],
@@ -278,7 +285,7 @@ pub static FIRST_SET_START_F: TerminalSet = TerminalSet {
     id: 0,
     terminals: &[TerminalId(2), TerminalId(0)],
 };
-// StartF : . start:F { "a", "-" }
+// StartF : . start:F(0) { "a", "-" }
 pub static FIRST_SET_START_F_ALT0: TerminalSet = TerminalSet {
     id: 1,
     terminals: &[TerminalId(2), TerminalId(0)],
@@ -293,7 +300,7 @@ pub static FIRST_SET_START_K: TerminalSet = TerminalSet {
     id: 0,
     terminals: &[TerminalId(2), TerminalId(0)],
 };
-// StartK : . start:K { "a", "-" }
+// StartK : . start:K(0) { "a", "-" }
 pub static FIRST_SET_START_K_ALT0: TerminalSet = TerminalSet {
     id: 1,
     terminals: &[TerminalId(2), TerminalId(0)],

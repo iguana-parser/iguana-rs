@@ -45,7 +45,7 @@ pub enum ParseTree<'a> {
     E(&'a E<'a>),
     // S
     StartS(&'a Start<&'a S<'a>, ()>),
-    // E(0)
+    // E
     StartE(&'a Start<&'a E<'a>, ()>),
     Token(Token),
 }
@@ -160,7 +160,7 @@ pub trait OptNode {
     type Inner;
     fn value(&self) -> Option<&Self::Inner>;
 }
-// S = E(0)
+// S = E
 #[derive(Debug)]
 pub enum S<'a> {
     Alt0 { e: &'a E<'a>, span: Span },
@@ -168,26 +168,26 @@ pub enum S<'a> {
 }
 #[derive(Debug)]
 pub enum E<'a> {
-    // E(p) = "a" return 0
+    // E = "a"
     Alt0 {
         lit_0: Token,
         span: Span,
     },
-    // E(p) = [2 >= p] l=E(p) [(l == 0) || (l >= 2)] "*" E(2) return 2
+    // E = E "*" E
     Alt1 {
         e_0: &'a E<'a>,
         lit_1: Token,
         e_2: &'a E<'a>,
         span: Span,
     },
-    // E(p) = [1 >= p] l=E(p) [(l == 0) || (l >= 1)] "+" E(1) return 1
+    // E = E "+" E
     Alt2 {
         e_0: &'a E<'a>,
         lit_1: Token,
         e_2: &'a E<'a>,
         span: Span,
     },
-    // E(p) = [1 >= p] l=E(p) [(l == 0) || (l >= 1)] "-" E(1) return 1
+    // E = E "-" E
     Alt3 {
         e_0: &'a E<'a>,
         lit_1: Token,
@@ -391,7 +391,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for BinaryExpressionPriorityParseTreeBu
         match nonterminal_node.nonterminal_id {
             // S
             NonterminalId(0) => match nonterminal_node.return_slot {
-                // S : E(0).
+                // S = E
                 SlotId(1) => {
                     let [e] = children.into_array::<1usize>();
                     ParseTree::S(self.arena.alloc(S::Alt0 {
@@ -403,7 +403,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for BinaryExpressionPriorityParseTreeBu
             },
             // StartS
             NonterminalId(1) => match nonterminal_node.return_slot {
-                // S : start:S.
+                // StartS = start:S
                 SlotId(3) => {
                     let [start] = children.into_array::<1usize>();
                     ParseTree::StartS(self.arena.alloc(Start {
@@ -417,7 +417,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for BinaryExpressionPriorityParseTreeBu
             },
             // StartE
             NonterminalId(2) => match nonterminal_node.return_slot {
-                // E(0) : start:E(0).
+                // StartE = start:E
                 SlotId(5) => {
                     let [start] = children.into_array::<1usize>();
                     ParseTree::StartE(self.arena.alloc(Start {
@@ -431,7 +431,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for BinaryExpressionPriorityParseTreeBu
             },
             // E
             NonterminalId(3) => match nonterminal_node.return_slot {
-                // E : "a" return 0.
+                // E = "a"
                 SlotId(8) => {
                     let [lit_0] = children.into_array::<1usize>();
                     ParseTree::E(self.arena.alloc(E::Alt0 {
@@ -439,7 +439,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for BinaryExpressionPriorityParseTreeBu
                         span: nonterminal_node.span,
                     }))
                 }
-                // E : [2 >= p] l=E(p) [(l == 0) || (l >= 2)] "*" E(2) return 2.
+                // E = E "*" E
                 SlotId(15) => {
                     let [e_0, lit_1, e_2] = children.into_array::<3usize>();
                     ParseTree::E(self.arena.alloc(E::Alt1 {
@@ -449,7 +449,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for BinaryExpressionPriorityParseTreeBu
                         span: nonterminal_node.span,
                     }))
                 }
-                // E : [1 >= p] l=E(p) [(l == 0) || (l >= 1)] "+" E(1) return 1.
+                // E = E "+" E
                 SlotId(22) => {
                     let [e_0, lit_1, e_2] = children.into_array::<3usize>();
                     ParseTree::E(self.arena.alloc(E::Alt2 {
@@ -459,7 +459,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for BinaryExpressionPriorityParseTreeBu
                         span: nonterminal_node.span,
                     }))
                 }
-                // E : [1 >= p] l=E(p) [(l == 0) || (l >= 1)] "-" E(1) return 1.
+                // E = E "-" E
                 SlotId(29) => {
                     let [e_0, lit_1, e_2] = children.into_array::<3usize>();
                     ParseTree::E(self.arena.alloc(E::Alt3 {

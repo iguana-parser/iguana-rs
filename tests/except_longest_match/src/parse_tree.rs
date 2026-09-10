@@ -243,7 +243,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for ExceptLongestMatchParseTreeBuilder<
         match nonterminal_node.nonterminal_id {
             // S
             NonterminalId(0) => match nonterminal_node.return_slot {
-                // S : Id Id.
+                // S = Id Id
                 SlotId(2) => {
                     let [id_0, id_1] = children.into_array::<2usize>();
                     ParseTree::S(self.arena.alloc(S::Alt0 {
@@ -256,7 +256,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for ExceptLongestMatchParseTreeBuilder<
             },
             // StartS
             NonterminalId(1) => match nonterminal_node.return_slot {
-                // S : start:S.
+                // StartS = start:S
                 SlotId(4) => {
                     let [start] = children.into_array::<1usize>();
                     ParseTree::StartS(self.arena.alloc(Start {

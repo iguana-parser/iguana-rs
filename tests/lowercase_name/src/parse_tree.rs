@@ -344,7 +344,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for LowercaseNameParseTreeBuilder<'a> {
         match nonterminal_node.nonterminal_id {
             // S
             NonterminalId(0) => match nonterminal_node.return_slot {
-                // S : "a" B.
+                // S = "a" B
                 SlotId(2) => {
                     let [lit_0, b] = children.into_array::<2usize>();
                     ParseTree::S(self.arena.alloc(S::Alt0 {
@@ -357,7 +357,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for LowercaseNameParseTreeBuilder<'a> {
             },
             // B
             NonterminalId(1) => match nonterminal_node.return_slot {
-                // B : "b".
+                // B = "b"
                 SlotId(4) => {
                     let [lit_0] = children.into_array::<1usize>();
                     ParseTree::B(self.arena.alloc(B::Alt0 {
@@ -369,7 +369,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for LowercaseNameParseTreeBuilder<'a> {
             },
             // StartS
             NonterminalId(2) => match nonterminal_node.return_slot {
-                // S : start:S.
+                // StartS = start:S
                 SlotId(6) => {
                     let [start] = children.into_array::<1usize>();
                     ParseTree::StartS(self.arena.alloc(Start {
@@ -383,7 +383,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for LowercaseNameParseTreeBuilder<'a> {
             },
             // StartB
             NonterminalId(3) => match nonterminal_node.return_slot {
-                // B : start:B.
+                // StartB = start:B
                 SlotId(8) => {
                     let [start] = children.into_array::<1usize>();
                     ParseTree::StartB(self.arena.alloc(Start {

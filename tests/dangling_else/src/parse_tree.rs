@@ -294,7 +294,7 @@ pub enum S<'a> {
 }
 #[derive(Debug)]
 pub enum Statement<'a> {
-    // Statement = "if" Layout "(" Layout Cond Layout ")" Layout Statement !>>> Else #If
+    // Statement = "if" Layout "(" Layout Cond Layout ")" Layout Statement #If
     If {
         lit_0: Token,
         layout_1: &'a Layout<'a>,
@@ -1055,7 +1055,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for DanglingElseParseTreeBuilder<'a> {
         match nonterminal_node.nonterminal_id {
             // S
             NonterminalId(0) => match nonterminal_node.return_slot {
-                // S : Statement+.
+                // S = Statement+
                 SlotId(1) => {
                     let [statements] = children.into_array::<1usize>();
                     ParseTree::S(self.arena.alloc(S::Alt0 {
@@ -1067,7 +1067,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for DanglingElseParseTreeBuilder<'a> {
             },
             // Statement
             NonterminalId(1) => match nonterminal_node.return_slot {
-                // Statement : "if" Layout "(" Layout Cond Layout ")" Layout Statement !>>> Else.
+                // Statement = "if" Layout "(" Layout Cond Layout ")" Layout Statement #If
                 SlotId(11) => {
                     let [
                         lit_0,
@@ -1093,8 +1093,8 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for DanglingElseParseTreeBuilder<'a> {
                         span: nonterminal_node.span,
                     }))
                 }
-                // Statement : "if" Layout "(" Layout Cond Layout ")" Layout Statement Layout Else Layout
-                // Statement.
+                // Statement = "if" Layout "(" Layout Cond Layout ")" Layout Statement Layout Else Layout
+                // Statement #IfElse
                 SlotId(25) => {
                     let [
                         lit_0,
@@ -1128,7 +1128,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for DanglingElseParseTreeBuilder<'a> {
                         span: nonterminal_node.span,
                     }))
                 }
-                // Statement : Id Layout ";".
+                // Statement = Id Layout ";" #Simple
                 SlotId(29) => {
                     let [id, layout, lit_2] = children.into_array::<3usize>();
                     ParseTree::Statement(self.arena.alloc(Statement::Simple {
@@ -1142,7 +1142,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for DanglingElseParseTreeBuilder<'a> {
             },
             // Layout
             NonterminalId(2) => match nonterminal_node.return_slot {
-                // Layout : (WhiteSpace | Comment)*.
+                // Layout = (WhiteSpace | Comment)*
                 SlotId(31) => {
                     let [star_0] = children.into_array::<1usize>();
                     ParseTree::Layout(self.arena.alloc(Layout::Alt0 {
@@ -1154,7 +1154,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for DanglingElseParseTreeBuilder<'a> {
             },
             // Plus_0
             NonterminalId(3) => match nonterminal_node.return_slot {
-                // Statement+ : Statement+ Layout Statement.
+                // Plus_0 = Statement+ Layout Statement
                 SlotId(35) => {
                     let [statements_0, layout, statement_2] = children.into_array::<3usize>();
                     ParseTree::Plus0(self.arena.alloc(Plus0::Alt0 {
@@ -1164,7 +1164,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for DanglingElseParseTreeBuilder<'a> {
                         span: nonterminal_node.span,
                     }))
                 }
-                // Statement+ : Statement.
+                // Plus_0 = Statement
                 SlotId(37) => {
                     let [statement] = children.into_array::<1usize>();
                     ParseTree::Plus0(self.arena.alloc(Plus0::Alt1 {
@@ -1176,7 +1176,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for DanglingElseParseTreeBuilder<'a> {
             },
             // Alt_0
             NonterminalId(4) => match nonterminal_node.return_slot {
-                // (WhiteSpace | Comment) : WhiteSpace.
+                // Alt_0 = WhiteSpace
                 SlotId(39) => {
                     let [white_space] = children.into_array::<1usize>();
                     ParseTree::Alt0(self.arena.alloc(Alt0::Alt0 {
@@ -1184,7 +1184,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for DanglingElseParseTreeBuilder<'a> {
                         span: nonterminal_node.span,
                     }))
                 }
-                // (WhiteSpace | Comment) : Comment.
+                // Alt_0 = Comment
                 SlotId(41) => {
                     let [comment] = children.into_array::<1usize>();
                     ParseTree::Alt0(self.arena.alloc(Alt0::Alt1 {
@@ -1196,7 +1196,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for DanglingElseParseTreeBuilder<'a> {
             },
             // Plus_1
             NonterminalId(5) => match nonterminal_node.return_slot {
-                // (WhiteSpace | Comment)+ : (WhiteSpace | Comment)+ (WhiteSpace | Comment).
+                // Plus_1 = (WhiteSpace | Comment)+ (WhiteSpace | Comment)
                 SlotId(44) => {
                     let [plus_1, alt_0] = children.into_array::<2usize>();
                     ParseTree::Plus1(self.arena.alloc(Plus1::Alt0 {
@@ -1205,7 +1205,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for DanglingElseParseTreeBuilder<'a> {
                         span: nonterminal_node.span,
                     }))
                 }
-                // (WhiteSpace | Comment)+ : (WhiteSpace | Comment).
+                // Plus_1 = (WhiteSpace | Comment)
                 SlotId(46) => {
                     let [alt_0] = children.into_array::<1usize>();
                     ParseTree::Plus1(self.arena.alloc(Plus1::Alt1 {
@@ -1217,7 +1217,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for DanglingElseParseTreeBuilder<'a> {
             },
             // Opt_0
             NonterminalId(6) => match nonterminal_node.return_slot {
-                // (WhiteSpace | Comment)+? : (WhiteSpace | Comment)+.
+                // Opt_0 = (WhiteSpace | Comment)+
                 SlotId(48) => {
                     let [plus_1] = children.into_array::<1usize>();
                     ParseTree::Opt0(self.arena.alloc(Opt0::Alt0 {
@@ -1225,7 +1225,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for DanglingElseParseTreeBuilder<'a> {
                         span: nonterminal_node.span,
                     }))
                 }
-                // (WhiteSpace | Comment)+? : .
+                // Opt_0 =
                 SlotId(49) => {
                     let [] = children.into_array::<0usize>();
                     ParseTree::Opt0(self.arena.alloc(Opt0::Alt1 {
@@ -1236,7 +1236,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for DanglingElseParseTreeBuilder<'a> {
             },
             // Star_0
             NonterminalId(7) => match nonterminal_node.return_slot {
-                // (WhiteSpace | Comment)* : (WhiteSpace | Comment)+?.
+                // Star_0 = (WhiteSpace | Comment)+?
                 SlotId(51) => {
                     let [opt_0] = children.into_array::<1usize>();
                     ParseTree::Star0(self.arena.alloc(Star0::Alt0 {
@@ -1248,7 +1248,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for DanglingElseParseTreeBuilder<'a> {
             },
             // StartS
             NonterminalId(8) => match nonterminal_node.return_slot {
-                // S : Layout start:S Layout.
+                // StartS = Layout start:S Layout
                 SlotId(55) => {
                     let [layout_0, start, layout_2] = children.into_array::<3usize>();
                     ParseTree::StartS(self.arena.alloc(Start {
@@ -1262,7 +1262,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for DanglingElseParseTreeBuilder<'a> {
             },
             // StartStatement
             NonterminalId(9) => match nonterminal_node.return_slot {
-                // Statement : Layout start:Statement Layout.
+                // StartStatement = Layout start:Statement Layout
                 SlotId(59) => {
                     let [layout_0, start, layout_2] = children.into_array::<3usize>();
                     ParseTree::StartStatement(self.arena.alloc(Start {

@@ -1,0 +1,15 @@
+(Start
+  WS
+  (ClosedLeftAssoc
+    (ClosedLeftOperand
+      (ClosedLeftAssoc "a"))
+    WS
+    "+"
+    WS
+    (ClosedLeftAssoc
+      (ClosedLeftOperand "!")
+      WS
+      "+"
+      WS
+      (ClosedLeftAssoc "a")))
+  WS)

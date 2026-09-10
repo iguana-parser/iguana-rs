@@ -1,0 +1,5 @@
+(Start
+  WS
+  (HeadChoice
+    (Inner "b"))
+  WS)

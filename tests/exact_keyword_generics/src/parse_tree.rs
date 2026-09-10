@@ -180,7 +180,7 @@ pub enum S<'a> {
         lit_2: Token,
         span: Span,
     },
-    // S = [0-9 A-Z _ a-z] !<< "new" !>> [0-9 A-Z _ a-z] WS Type WS ";" #New
+    // S = "new" WS Type WS ";" #New
     New {
         lit_0: Token,
         ws_1: Token,
@@ -422,7 +422,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for ExactKeywordGenericsParseTreeBuilde
         match nonterminal_node.nonterminal_id {
             // S
             NonterminalId(0) => match nonterminal_node.return_slot {
-                // S : Type WS ";".
+                // S = Type WS ";" #Type
                 SlotId(3) => {
                     let [r#type, ws, lit_2] = children.into_array::<3usize>();
                     ParseTree::S(self.arena.alloc(S::Type {
@@ -432,7 +432,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for ExactKeywordGenericsParseTreeBuilde
                         span: nonterminal_node.span,
                     }))
                 }
-                // S : [0-9 A-Z _ a-z] !<< "new" !>> [0-9 A-Z _ a-z] WS Type WS ";".
+                // S = "new" WS Type WS ";" #New
                 SlotId(9) => {
                     let [lit_0, ws_1, r#type, ws_3, lit_4] = children.into_array::<5usize>();
                     ParseTree::S(self.arena.alloc(S::New {
@@ -448,7 +448,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for ExactKeywordGenericsParseTreeBuilde
             },
             // Type
             NonterminalId(1) => match nonterminal_node.return_slot {
-                // Type : Id.
+                // Type = Id #Simple
                 SlotId(11) => {
                     let [id] = children.into_array::<1usize>();
                     ParseTree::Type(self.arena.alloc(Type::Simple {
@@ -456,7 +456,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for ExactKeywordGenericsParseTreeBuilde
                         span: nonterminal_node.span,
                     }))
                 }
-                // Type : Id WS "<" WS Type WS ">".
+                // Type = Id WS "<" WS Type WS ">" #Generic
                 SlotId(19) => {
                     let [id, ws_1, lit_2, ws_3, r#type, ws_5, lit_6] =
                         children.into_array::<7usize>();
@@ -475,7 +475,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for ExactKeywordGenericsParseTreeBuilde
             },
             // StartS
             NonterminalId(2) => match nonterminal_node.return_slot {
-                // S : WS start:S WS.
+                // StartS = WS start:S WS
                 SlotId(23) => {
                     let [ws_0, start, ws_2] = children.into_array::<3usize>();
                     ParseTree::StartS(self.arena.alloc(Start {
@@ -489,7 +489,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for ExactKeywordGenericsParseTreeBuilde
             },
             // StartType
             NonterminalId(3) => match nonterminal_node.return_slot {
-                // Type : WS start:Type WS.
+                // StartType = WS start:Type WS
                 SlotId(27) => {
                     let [ws_0, start, ws_2] = children.into_array::<3usize>();
                     ParseTree::StartType(self.arena.alloc(Start {

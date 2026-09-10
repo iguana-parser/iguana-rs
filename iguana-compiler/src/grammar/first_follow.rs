@@ -263,10 +263,9 @@ impl<'a> FirstFollowSets<'a> {
     /// A nonterminal is LL(1) if no pair of its alternatives' prediction sets
     /// conflicts (`has_disjoint_alternatives`).
     ///
-    /// A parameterized nonterminal is never LL(1). It threads data-dependent
-    /// arguments and guards its alternatives with conditions that single-token
-    /// lookahead cannot evaluate, so it always parses through the
-    /// descriptor-based GLL path, whatever its prediction sets look like.
+    /// Nonterminals with parameters, bindings, conditions, or returns use the
+    /// GLL path. The LL(1) methods recognize input and build nodes; they do not
+    /// evaluate data-dependent expressions or maintain an environment.
     ///
     /// Plus is a special case: EBNF desugaring produces left-recursive
     /// rules (e.g., `A+ desugars into APlus = APlus A | A`) whose alternatives
@@ -299,7 +298,14 @@ impl<'a> FirstFollowSets<'a> {
     /// `FOLLOW(Plus)`. When the sets conflict, Plus is not LL(1), and the
     /// parser uses GLL to explore both derivations.
     fn is_nonterminal_ll1(&self, nt: &Nonterminal) -> bool {
-        if !nt.parameters.is_empty() {
+        if !nt.parameters.is_empty()
+            || self.grammar.alternatives(nt).iter().any(|alternative| {
+                alternative.symbols.iter().any(|symbol| {
+                    matches!(symbol, Symbol::Condition(_) | Symbol::Return(_))
+                        || symbol.binding_pattern().is_some()
+                })
+            })
+        {
             return false;
         }
         if self.has_disjoint_alternatives(nt) {

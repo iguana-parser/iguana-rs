@@ -538,7 +538,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for TokenOnlyUnsafeParseTreeBuilder<'a>
         match nonterminal_node.nonterminal_id {
             // S
             NonterminalId(0) => match nonterminal_node.return_slot {
-                // S : Mod WS Empty WS Tag.
+                // S = Mod WS Empty WS Tag
                 SlotId(5) => {
                     let &[r#mod, ws_1, empty, ws_3, tag] = children else {
                         unreachable!()
@@ -556,7 +556,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for TokenOnlyUnsafeParseTreeBuilder<'a>
             },
             // Mod
             NonterminalId(1) => match nonterminal_node.return_slot {
-                // Mod : "public".
+                // Mod = "public"
                 SlotId(7) => {
                     let &[lit_0] = children else { unreachable!() };
                     ParseTree::Mod(self.arena.alloc(Mod::Alt0 {
@@ -564,7 +564,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for TokenOnlyUnsafeParseTreeBuilder<'a>
                         span: nonterminal_node.span,
                     }))
                 }
-                // Mod : "static".
+                // Mod = "static"
                 SlotId(9) => {
                     let &[lit_0] = children else { unreachable!() };
                     ParseTree::Mod(self.arena.alloc(Mod::Alt1 {
@@ -576,7 +576,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for TokenOnlyUnsafeParseTreeBuilder<'a>
             },
             // Empty
             NonterminalId(2) => match nonterminal_node.return_slot {
-                // Empty : .
+                // Empty =
                 SlotId(10) => {
                     let &[] = children else { unreachable!() };
                     ParseTree::Empty(self.arena.alloc(Empty::Alt0 {
@@ -587,7 +587,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for TokenOnlyUnsafeParseTreeBuilder<'a>
             },
             // Tag
             NonterminalId(3) => match nonterminal_node.return_slot {
-                // Tag : Id.
+                // Tag = Id
                 SlotId(12) => {
                     let &[id] = children else { unreachable!() };
                     ParseTree::Tag(self.arena.alloc(Tag::Alt0 {
@@ -599,7 +599,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for TokenOnlyUnsafeParseTreeBuilder<'a>
             },
             // StartS
             NonterminalId(4) => match nonterminal_node.return_slot {
-                // S : WS start:S WS.
+                // StartS = WS start:S WS
                 SlotId(16) => {
                     let &[ws_0, start, ws_2] = children else {
                         unreachable!()
@@ -615,7 +615,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for TokenOnlyUnsafeParseTreeBuilder<'a>
             },
             // StartMod
             NonterminalId(5) => match nonterminal_node.return_slot {
-                // Mod : WS start:Mod WS.
+                // StartMod = WS start:Mod WS
                 SlotId(20) => {
                     let &[ws_0, start, ws_2] = children else {
                         unreachable!()
@@ -631,7 +631,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for TokenOnlyUnsafeParseTreeBuilder<'a>
             },
             // StartEmpty
             NonterminalId(6) => match nonterminal_node.return_slot {
-                // Empty : WS start:Empty WS.
+                // StartEmpty = WS start:Empty WS
                 SlotId(24) => {
                     let &[ws_0, start, ws_2] = children else {
                         unreachable!()
@@ -647,7 +647,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for TokenOnlyUnsafeParseTreeBuilder<'a>
             },
             // StartTag
             NonterminalId(7) => match nonterminal_node.return_slot {
-                // Tag : WS start:Tag WS.
+                // StartTag = WS start:Tag WS
                 SlotId(28) => {
                     let &[ws_0, start, ws_2] = children else {
                         unreachable!()

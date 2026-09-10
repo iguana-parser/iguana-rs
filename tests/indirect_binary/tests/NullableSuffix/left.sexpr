@@ -1,0 +1,35 @@
+(Start
+  WS
+  (Amb
+    (NullableSuffix
+      #1=(NullableSuffix "w")
+      WS
+      "+"
+      WS
+      (NullableSuffixOperand
+        (NullableSuffix
+          #2=(NullableSuffix "w")
+          WS
+          "+"
+          WS
+          #3=(NullableSuffixOperand
+            (NullableSuffix "w")
+            WS
+            #4=(NullableSuffixMaybe NullableSuffix?)))
+        WS
+        #4#))
+    (NullableSuffix
+      (NullableSuffix
+        #1#
+        WS
+        "+"
+        WS
+        (NullableSuffixOperand
+          #2#
+          WS
+          (NullableSuffixMaybe NullableSuffix?)))
+      WS
+      "+"
+      WS
+      #3#))
+  WS)

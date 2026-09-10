@@ -74,8 +74,10 @@ fn check_layout_aware_follow(
 }
 
 fn collect_binding_names(symbol: &Symbol, binding_ids: &mut BindingIds) {
-    if let Symbol::Binding { name, .. } = symbol {
-        binding_ids.insert(name.clone());
+    if let Symbol::Binding { pattern, .. } = symbol {
+        for name in pattern.names() {
+            binding_ids.insert(name.clone());
+        }
     }
     match symbol {
         Symbol::Labeled { symbol, .. }
@@ -160,6 +162,7 @@ mod main_gen;
 mod manifest_gen;
 mod parse_tree_gen;
 mod parser_gen;
+mod return_value;
 mod scanner_gen;
 mod terminal_sets;
 mod types_gen;
@@ -182,6 +185,7 @@ pub fn generate_sources(
     config: GenConfig,
 ) -> io::Result<GenerateResult> {
     let start = Instant::now();
+    return_value::validate(grammar)?;
     let mut nonterminal_ids = NonterminalIds::new(grammar.nonterminals().cloned());
     let mut terminal_ids = TerminalIds::default();
     for terminal in grammar.terminals() {
@@ -273,8 +277,7 @@ pub fn generate_sources(
         &scanner_path,
     )?;
 
-    let parse_tree_gen =
-        ParseTreeGen::new(grammar, &nonterminal_ids, &terminal_ids, &slot_ids, config);
+    let parse_tree_gen = ParseTreeGen::new(grammar, &nonterminal_ids, &terminal_ids, config);
     write_rust_file(
         post_process(&parse_tree_gen.generate().to_string()),
         &parse_tree_path,
@@ -441,6 +444,74 @@ mod tests {
         env, process,
         time::{SystemTime, UNIX_EPOCH},
     };
+
+    // The same structural rule describes an enum variant and its construction:
+    //
+    //   E = "a" #Lit
+    //     > left E "+" E #Add
+    //   S = items:E+ E !Add #Root
+    //
+    // Calls inside the repetition and start-rule origins also lose their
+    // precedence arguments. Labels and layout remain part of the structure.
+    #[test]
+    fn parse_tree_comments_are_structural_in_types_and_builders() {
+        let grammar: Grammar = parse_grammar(
+            r#"grammar Comments
+E = "a" #Lit
+  > left E "+" E #Add
+S = items:E+ E !Add #Root
+@Layout @Regex
+WS = [\ ]*
+"#,
+        )
+        .unwrap()
+        .try_into()
+        .unwrap();
+        let nonce = SystemTime::now()
+            .duration_since(UNIX_EPOCH)
+            .unwrap()
+            .as_nanos();
+        let dir = env::temp_dir().join(format!(
+            "iguana-structural-comments-{}-{nonce}",
+            process::id()
+        ));
+        for unsafe_mode in [false, true] {
+            generate_sources(
+                &grammar,
+                &dir,
+                GenConfig {
+                    unsafe_mode,
+                    ..GenConfig::default()
+                },
+            )
+            .unwrap();
+            let source = fs::read_to_string(dir.join("src/parse_tree.rs")).unwrap();
+            let comments: Vec<_> = source
+                .lines()
+                .filter_map(|line| line.trim().strip_prefix("// "))
+                .collect();
+            for rule in ["E = E WS \"+\" WS E #Add", "S = items:E+ WS E #Root"] {
+                assert_eq!(
+                    comments.iter().filter(|&&comment| comment == rule).count(),
+                    2,
+                    "{rule}"
+                );
+            }
+            assert!(comments.contains(&"E+"));
+            assert!(comments.contains(&"StartE = WS start:E WS"));
+            for comment in &comments {
+                for detail in [
+                    "E(", " return ", "l_pr", "l_label", "!Add", " & ", ">=", "SlotId",
+                ] {
+                    assert!(
+                        !comment.contains(detail),
+                        "desugaring detail in comment: {comment}"
+                    );
+                }
+            }
+        }
+        fs::remove_dir_all(dir).unwrap();
+    }
 
     #[test]
     fn force_preserves_project_license_and_notice_files() {

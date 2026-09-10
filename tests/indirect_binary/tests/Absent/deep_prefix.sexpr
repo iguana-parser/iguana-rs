@@ -1,0 +1,20 @@
+(Start
+  WS
+  (Absent
+    (Absent "a")
+    WS
+    "*"
+    WS
+    (Absent
+      (AbsentOperand "b")
+      WS
+      "+"
+      WS
+      (AbsentOperand
+        (Absent
+          (Absent "a")
+          WS
+          "*"
+          WS
+          (Absent "a")))))
+  WS)

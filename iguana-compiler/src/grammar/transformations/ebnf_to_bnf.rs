@@ -247,11 +247,11 @@ fn rewrite_ebnf_symbol(
             new_rules.push(new_rule);
             new_symbol
         }
-        Symbol::Binding { name, symbol } => {
+        Symbol::Binding { pattern, symbol } => {
             let transformed =
                 rewrite_ebnf_symbol(*symbol, layout, counters, new_rules, ebnf_symbols);
             Symbol::Binding {
-                name,
+                pattern,
                 symbol: Box::new(transformed),
             }
         }

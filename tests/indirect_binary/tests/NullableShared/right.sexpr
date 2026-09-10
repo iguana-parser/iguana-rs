@@ -1,0 +1,56 @@
+(Start
+  WS
+  (Amb
+    (NullableShared
+      #1=(NullableSharedOperand
+        #2=(NullableSharedMaybe NullableShared?)
+        WS
+        (NullableShared "j")
+        WS
+        (NullableSharedMaybe NullableShared?))
+      WS
+      "+"
+      WS
+      (NullableSharedOperand
+        #3=(NullableSharedMaybe NullableShared?)
+        WS
+        (NullableShared
+          (NullableSharedOperand
+            #3#
+            WS
+            #4=(NullableShared "j")
+            WS
+            #5=(NullableSharedMaybe NullableShared?))
+          WS
+          "+"
+          WS
+          #6=(NullableSharedOperand
+            (NullableSharedMaybe NullableShared?)
+            WS
+            (NullableShared "j")
+            WS
+            #7=(NullableSharedMaybe NullableShared?)))
+        WS
+        #7#))
+    (NullableShared
+      (NullableSharedOperand
+        #2#
+        WS
+        (NullableShared
+          #1#
+          WS
+          "+"
+          WS
+          (NullableSharedOperand
+            #3#
+            WS
+            #4#
+            WS
+            (NullableSharedMaybe NullableShared?)))
+        WS
+        #5#)
+      WS
+      "+"
+      WS
+      #6#))
+  WS)

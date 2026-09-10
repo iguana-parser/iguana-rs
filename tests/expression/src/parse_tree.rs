@@ -268,7 +268,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for ExpressionParseTreeBuilder<'a> {
         match nonterminal_node.nonterminal_id {
             // E
             NonterminalId(0) => match nonterminal_node.return_slot {
-                // E : E "*" E.
+                // E = E "*" E #Mul
                 SlotId(3) => {
                     let [e_0, lit_1, e_2] = children.into_array::<3usize>();
                     ParseTree::E(self.arena.alloc(E::Mul {
@@ -278,7 +278,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for ExpressionParseTreeBuilder<'a> {
                         span: nonterminal_node.span,
                     }))
                 }
-                // E : E "+" E.
+                // E = E "+" E #Add
                 SlotId(7) => {
                     let [e_0, lit_1, e_2] = children.into_array::<3usize>();
                     ParseTree::E(self.arena.alloc(E::Add {
@@ -288,7 +288,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for ExpressionParseTreeBuilder<'a> {
                         span: nonterminal_node.span,
                     }))
                 }
-                // E : "a".
+                // E = "a" #Lit
                 SlotId(9) => {
                     let [lit_0] = children.into_array::<1usize>();
                     ParseTree::E(self.arena.alloc(E::Lit {
@@ -300,7 +300,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for ExpressionParseTreeBuilder<'a> {
             },
             // StartE
             NonterminalId(1) => match nonterminal_node.return_slot {
-                // E : start:E.
+                // StartE = start:E
                 SlotId(11) => {
                     let [start] = children.into_array::<1usize>();
                     ParseTree::StartE(self.arena.alloc(Start {

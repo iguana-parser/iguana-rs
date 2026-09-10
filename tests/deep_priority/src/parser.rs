@@ -25,8 +25,8 @@ use iguana_runtime::{
 use rustc_hash::FxHashMap;
 use std::cell::OnceCell;
 const BINDING_P: BindingId = BindingId(0);
-const BINDING_L: BindingId = BindingId(1);
-const BINDING_R: BindingId = BindingId(2);
+const BINDING_L_PR: BindingId = BindingId(1);
+const BINDING_R_PR: BindingId = BindingId(2);
 impl<'i, 'arena> Parser<'i, 'arena> for DeepPriorityParser<'i, 'arena> {
     fn nonterminal_display_name(nonterminal_id: NonterminalId) -> &'static str {
         NONTERMINALS[nonterminal_id.index()].display
@@ -65,7 +65,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for DeepPriorityParser<'i, 'arena> {
         match slot_id {
             // S : . E(0)
             SlotId(0) => {
-                self.create_e(result, gss_node_id, SlotId(1), env, None, 0);
+                self.create_e(result, gss_node_id, SlotId(1), env, 0);
             }
             // S : E(0).
             SlotId(1) => {
@@ -109,36 +109,35 @@ impl<'i, 'arena> Parser<'i, 'arena> for DeepPriorityParser<'i, 'arena> {
                     Some(return_value),
                 );
             }
-            // E(p: i32) : . [2 >= p] l=E(p) [(l == 0) || (l >= 2)] WS "+" WS r=E(2) return (r == 0) ? 2
-            // : min(r, 2)
+            // E(p: i32) : . [2 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 2)] WS "+" WS r_pr=E(2) return
+            // (r_pr == 0) ? 2 : min(r_pr, 2)
             SlotId(13) => {
                 if 2 >= self.lookup(BINDING_P, env.unwrap()) {
                     self.execute(input_index, SlotId(14), result, gss_node_id, env);
                 }
             }
-            // E(p: i32) : [2 >= p] . l=E(p) [(l == 0) || (l >= 2)] WS "+" WS r=E(2) return (r == 0) ? 2
-            // : min(r, 2)
+            // E(p: i32) : [2 >= p] . l_pr=E(p) [(l_pr == 0) || (l_pr >= 2)] WS "+" WS r_pr=E(2) return
+            // (r_pr == 0) ? 2 : min(r_pr, 2)
             SlotId(14) => {
                 self.create_e(
                     result,
                     gss_node_id,
                     SlotId(15),
                     env,
-                    Some(BINDING_L),
                     self.lookup(BINDING_P, env.unwrap()),
                 );
             }
-            // E(p: i32) : [2 >= p] l=E(p) . [(l == 0) || (l >= 2)] WS "+" WS r=E(2) return (r == 0) ? 2
-            // : min(r, 2)
+            // E(p: i32) : [2 >= p] l_pr=E(p) . [(l_pr == 0) || (l_pr >= 2)] WS "+" WS r_pr=E(2) return
+            // (r_pr == 0) ? 2 : min(r_pr, 2)
             SlotId(15) => {
-                if (self.lookup(BINDING_L, env.unwrap()) == 0)
-                    || (self.lookup(BINDING_L, env.unwrap()) >= 2)
+                if (self.lookup(BINDING_L_PR, env.unwrap()) == 0)
+                    || (self.lookup(BINDING_L_PR, env.unwrap()) >= 2)
                 {
                     self.execute(input_index, SlotId(16), result, gss_node_id, env);
                 }
             }
-            // E(p: i32) : [2 >= p] l=E(p) [(l == 0) || (l >= 2)] . WS "+" WS r=E(2) return (r == 0) ? 2
-            // : min(r, 2)
+            // E(p: i32) : [2 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 2)] . WS "+" WS r_pr=E(2) return
+            // (r_pr == 0) ? 2 : min(r_pr, 2)
             SlotId(16) => {
                 if let Some((_, right_child)) =
                     self.match_terminal(TerminalId(0), input_index, SlotId(16), Some(gss_node_id))
@@ -146,14 +145,14 @@ impl<'i, 'arena> Parser<'i, 'arena> for DeepPriorityParser<'i, 'arena> {
                     if let Some((j, new_node)) =
                         self.create_intermediate_node(result, right_child, SlotId(17), env)
                     {
-                        // E(p: i32) : [2 >= p] l=E(p) [(l == 0) || (l >= 2)] WS . "+" WS r=E(2) return (r == 0) ? 2
-                        // : min(r, 2)
+                        // E(p: i32) : [2 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 2)] WS . "+" WS r_pr=E(2) return
+                        // (r_pr == 0) ? 2 : min(r_pr, 2)
                         self.execute(j, SlotId(17), Some(new_node), gss_node_id, env);
                     }
                 }
             }
-            // E(p: i32) : [2 >= p] l=E(p) [(l == 0) || (l >= 2)] WS . "+" WS r=E(2) return (r == 0) ? 2
-            // : min(r, 2)
+            // E(p: i32) : [2 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 2)] WS . "+" WS r_pr=E(2) return
+            // (r_pr == 0) ? 2 : min(r_pr, 2)
             SlotId(17) => {
                 if let Some((_, right_child)) =
                     self.match_terminal(TerminalId(2), input_index, SlotId(17), Some(gss_node_id))
@@ -161,14 +160,14 @@ impl<'i, 'arena> Parser<'i, 'arena> for DeepPriorityParser<'i, 'arena> {
                     if let Some((j, new_node)) =
                         self.create_intermediate_node(result, right_child, SlotId(18), env)
                     {
-                        // E(p: i32) : [2 >= p] l=E(p) [(l == 0) || (l >= 2)] WS "+" . WS r=E(2) return (r == 0) ? 2
-                        // : min(r, 2)
+                        // E(p: i32) : [2 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 2)] WS "+" . WS r_pr=E(2) return
+                        // (r_pr == 0) ? 2 : min(r_pr, 2)
                         self.execute(j, SlotId(18), Some(new_node), gss_node_id, env);
                     }
                 }
             }
-            // E(p: i32) : [2 >= p] l=E(p) [(l == 0) || (l >= 2)] WS "+" . WS r=E(2) return (r == 0) ? 2
-            // : min(r, 2)
+            // E(p: i32) : [2 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 2)] WS "+" . WS r_pr=E(2) return
+            // (r_pr == 0) ? 2 : min(r_pr, 2)
             SlotId(18) => {
                 if let Some((_, right_child)) =
                     self.match_terminal(TerminalId(0), input_index, SlotId(18), Some(gss_node_id))
@@ -176,33 +175,33 @@ impl<'i, 'arena> Parser<'i, 'arena> for DeepPriorityParser<'i, 'arena> {
                     if let Some((j, new_node)) =
                         self.create_intermediate_node(result, right_child, SlotId(19), env)
                     {
-                        // E(p: i32) : [2 >= p] l=E(p) [(l == 0) || (l >= 2)] WS "+" WS . r=E(2) return (r == 0) ? 2
-                        // : min(r, 2)
+                        // E(p: i32) : [2 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 2)] WS "+" WS . r_pr=E(2) return
+                        // (r_pr == 0) ? 2 : min(r_pr, 2)
                         self.execute(j, SlotId(19), Some(new_node), gss_node_id, env);
                     }
                 }
             }
-            // E(p: i32) : [2 >= p] l=E(p) [(l == 0) || (l >= 2)] WS "+" WS . r=E(2) return (r == 0) ? 2
-            // : min(r, 2)
+            // E(p: i32) : [2 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 2)] WS "+" WS . r_pr=E(2) return
+            // (r_pr == 0) ? 2 : min(r_pr, 2)
             SlotId(19) => {
-                self.create_e(result, gss_node_id, SlotId(20), env, Some(BINDING_R), 2);
+                self.create_e(result, gss_node_id, SlotId(20), env, 2);
             }
-            // E(p: i32) : [2 >= p] l=E(p) [(l == 0) || (l >= 2)] WS "+" WS r=E(2) . return (r == 0) ? 2
-            // : min(r, 2)
+            // E(p: i32) : [2 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 2)] WS "+" WS r_pr=E(2) . return
+            // (r_pr == 0) ? 2 : min(r_pr, 2)
             SlotId(20) => {
                 self.execute(input_index, SlotId(21), result, gss_node_id, env);
             }
-            // E(p: i32) : [2 >= p] l=E(p) [(l == 0) || (l >= 2)] WS "+" WS r=E(2) return (r == 0) ? 2 :
-            // min(r, 2).
+            // E(p: i32) : [2 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 2)] WS "+" WS r_pr=E(2) return
+            // (r_pr == 0) ? 2 : min(r_pr, 2).
             SlotId(21) => {
                 let Some(result) = result else {
                     unreachable!("result cannot be None here.")
                 };
                 let node = self.sppf_node(result);
-                let return_value = if self.lookup(BINDING_R, env.unwrap()) == 0 {
+                let return_value = if self.lookup(BINDING_R_PR, env.unwrap()) == 0 {
                     2
                 } else {
-                    std::cmp::min(self.lookup(BINDING_R, env.unwrap()), 2)
+                    std::cmp::min(self.lookup(BINDING_R_PR, env.unwrap()), 2)
                 };
                 let nonterminal_node_id = self.get_or_create_nonterminal_node(
                     NonterminalId(3),
@@ -244,7 +243,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for DeepPriorityParser<'i, 'arena> {
             }
             // E(p: i32) : "if" WS . E(0) WS "then" WS E(0) WS "else" WS E(1) return 1
             SlotId(24) => {
-                self.create_e(result, gss_node_id, SlotId(25), env, None, 0);
+                self.create_e(result, gss_node_id, SlotId(25), env, 0);
             }
             // E(p: i32) : "if" WS E(0) . WS "then" WS E(0) WS "else" WS E(1) return 1
             SlotId(25) => {
@@ -287,7 +286,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for DeepPriorityParser<'i, 'arena> {
             }
             // E(p: i32) : "if" WS E(0) WS "then" WS . E(0) WS "else" WS E(1) return 1
             SlotId(28) => {
-                self.create_e(result, gss_node_id, SlotId(29), env, None, 0);
+                self.create_e(result, gss_node_id, SlotId(29), env, 0);
             }
             // E(p: i32) : "if" WS E(0) WS "then" WS E(0) . WS "else" WS E(1) return 1
             SlotId(29) => {
@@ -330,7 +329,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for DeepPriorityParser<'i, 'arena> {
             }
             // E(p: i32) : "if" WS E(0) WS "then" WS E(0) WS "else" WS . E(1) return 1
             SlotId(32) => {
-                self.create_e(result, gss_node_id, SlotId(33), env, None, 1);
+                self.create_e(result, gss_node_id, SlotId(33), env, 1);
             }
             // E(p: i32) : "if" WS E(0) WS "then" WS E(0) WS "else" WS E(1) . return 1
             SlotId(33) => {
@@ -402,7 +401,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for DeepPriorityParser<'i, 'arena> {
             }
             // StartE : WS . start:E(0) WS
             SlotId(7) => {
-                self.create_e(result, gss_node_id, SlotId(8), env, None, 0);
+                self.create_e(result, gss_node_id, SlotId(8), env, 0);
             }
             // StartE : WS start:E(0) . WS
             SlotId(8) => {
@@ -448,8 +447,8 @@ impl<'i, 'arena> Parser<'i, 'arena> for DeepPriorityParser<'i, 'arena> {
                     matched = true;
                     self.add_first_descriptor(SlotId(10), input_index, gss_node_id, env);
                 }
-                // E(p: i32) : . [2 >= p] l=E(p) [(l == 0) || (l >= 2)] WS "+" WS r=E(2) return (r == 0) ? 2
-                // : min(r, 2)
+                // E(p: i32) : . [2 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 2)] WS "+" WS r_pr=E(2) return
+                // (r_pr == 0) ? 2 : min(r_pr, 2)
                 if self.scanner.match_any(&FIRST_SET_E_ALT1, input_index) {
                     matched = true;
                     self.add_first_descriptor(SlotId(13), input_index, gss_node_id, env);
@@ -779,6 +778,27 @@ impl<'i, 'arena> Parser<'i, 'arena> for DeepPriorityParser<'i, 'arena> {
         new_env.bindings = bindings;
         (new_id, new_env)
     }
+    fn bind_return_value(
+        &mut self,
+        return_slot: SlotId,
+        env: Option<EnvId>,
+        value: i32,
+    ) -> Option<EnvId> {
+        let bindings: &[(BindingId, i32)] = match return_slot {
+            SlotId(15) => &[(BINDING_L_PR, value)],
+            SlotId(20) => &[(BINDING_R_PR, value)],
+            _ => return env,
+        };
+        let arena = self.vec_arena;
+        let (id, target) = match env {
+            Some(id) => self.clone_env(id),
+            None => self.new_env(),
+        };
+        for &(name, value) in bindings {
+            target.bind(name, value, arena);
+        }
+        Some(id)
+    }
     fn envs(&self) -> &[Env<'arena>] {
         &self.envs
     }
@@ -802,7 +822,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for DeepPriorityParser<'i, 'arena> {
             );
         }
         for env in self.envs() {
-            stats.record("Env::bindings: InlineVec", env.bindings.len());
+            stats.record("Env::bindings: Bindings", env.bindings.len());
         }
         for m in self.intermediate_nodes_index.iter() {
             stats.record("Parser::intermediate_nodes_index: InlineMap", m.len());
@@ -990,7 +1010,6 @@ impl<'i, 'arena> DeepPriorityParser<'i, 'arena> {
         gss_node_id: GssNodeId,
         return_slot: SlotId,
         env: Option<EnvId>,
-        binding: Option<BindingId>,
         p: i32,
     ) {
         record!(self, Call, sppf_node_id, gss_node_id, return_slot);
@@ -1012,19 +1031,11 @@ impl<'i, 'arena> DeepPriorityParser<'i, 'arena> {
                 left_child,
                 return_slot,
                 env,
-                binding,
             );
         } else {
             record!(self, GSSNodeNotFound, NonterminalId(3), i);
             let new_gss_node_id = self.new_gss_node(NonterminalId(3), i);
-            self.add_gss_edge(
-                new_gss_node_id,
-                gss_node_id,
-                sppf_node_id,
-                return_slot,
-                env,
-                binding,
-            );
+            self.add_gss_edge(new_gss_node_id, gss_node_id, sppf_node_id, return_slot, env);
             let arena = self.vec_arena;
             let (env_id, env) = self.new_env();
             env.bind(BINDING_P, p, arena);

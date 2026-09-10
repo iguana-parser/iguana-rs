@@ -1,0 +1,11 @@
+(Start
+  WS
+  (Excluded
+    (ExcludedOperand
+      (Excluded "e"))
+    WS
+    "&"
+    WS
+    (ExcludedOperand
+      (Excluded "e")))
+  WS)

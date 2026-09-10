@@ -100,7 +100,7 @@ pub enum Symbol {
     Condition(Expr),
     Return(Expr),
     Binding {
-        name: String,
+        pattern: BindingPattern,
         symbol: Box<Symbol>,
     },
 }
@@ -108,9 +108,18 @@ pub enum Symbol {
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum Expr {
     Int(i64),
+    /// Components of a tuple, in order.
+    Tuple(Vec<Expr>),
+    /// An integer with a display name preserved by transformations.
+    /// Evaluates to `value`; grammar printing uses `name`.
+    DisplayInt {
+        value: i64,
+        name: String,
+    },
     Cond(Cond),
     Ref(String),
     Or(Box<Expr>, Box<Expr>),
+    And(Box<Expr>, Box<Expr>),
     BitAnd(Box<Expr>, Box<Expr>),
     BitOr(Box<Expr>, Box<Expr>),
     Shl(Box<Expr>, Box<Expr>),
@@ -121,6 +130,77 @@ pub enum Expr {
         then: Box<Expr>,
         r#else: Box<Expr>,
     },
+}
+
+impl Expr {
+    /// Rewrites expressions from their innermost children outward.
+    pub fn transform(self, f: &mut impl FnMut(Expr) -> Expr) -> Expr {
+        let child = |expr: Box<Expr>, f: &mut _| Box::new(expr.transform(f));
+        let expr = match self {
+            Self::Tuple(values) => {
+                Self::Tuple(values.into_iter().map(|value| value.transform(f)).collect())
+            }
+            Self::Cond(cond) => Self::Cond(Cond {
+                left: child(cond.left, f),
+                right: child(cond.right, f),
+                op: cond.op,
+            }),
+            Self::Or(l, r) => Self::Or(child(l, f), child(r, f)),
+            Self::And(l, r) => Self::And(child(l, f), child(r, f)),
+            Self::BitAnd(l, r) => Self::BitAnd(child(l, f), child(r, f)),
+            Self::BitOr(l, r) => Self::BitOr(child(l, f), child(r, f)),
+            Self::Shl(l, r) => Self::Shl(child(l, f), child(r, f)),
+            Self::Shr(l, r) => Self::Shr(child(l, f), child(r, f)),
+            Self::Min(l, r) => Self::Min(child(l, f), child(r, f)),
+            Self::Ternary { cond, then, r#else } => Self::Ternary {
+                cond: child(cond, f),
+                then: child(then, f),
+                r#else: child(r#else, f),
+            },
+            leaf => leaf,
+        };
+        f(expr)
+    }
+}
+
+/// Names bound by a nonterminal call.
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub enum BindingPattern {
+    /// Binds the whole returned value to one name.
+    Name(String),
+    /// Binds the components of a tuple to names in order.
+    Tuple(Vec<String>),
+}
+
+impl BindingPattern {
+    /// The names bound by this pattern, in assignment order.
+    pub fn names(&self) -> &[String] {
+        match self {
+            Self::Name(name) => std::slice::from_ref(name),
+            Self::Tuple(names) => names,
+        }
+    }
+}
+
+impl From<String> for BindingPattern {
+    fn from(name: String) -> Self {
+        Self::Name(name)
+    }
+}
+
+impl From<&str> for BindingPattern {
+    fn from(name: &str) -> Self {
+        Self::Name(name.to_string())
+    }
+}
+
+impl Display for BindingPattern {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::Name(name) => write!(f, "{name}"),
+            Self::Tuple(names) => write!(f, "({})", names.iter().join(", ")),
+        }
+    }
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
@@ -139,6 +219,7 @@ impl Display for Cond {
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum CondOp {
     Eq,
+    Neq,
     Leq,
     Geq,
 }
@@ -147,6 +228,7 @@ impl Display for CondOp {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             CondOp::Eq => write!(f, "=="),
+            CondOp::Neq => write!(f, "!="),
             CondOp::Leq => write!(f, "<="),
             CondOp::Geq => write!(f, ">="),
         }
@@ -157,9 +239,12 @@ impl Display for Expr {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             Expr::Int(i) => write!(f, "{i}"),
+            Expr::Tuple(values) => write!(f, "({})", values.iter().join(", ")),
+            Expr::DisplayInt { name, .. } => write!(f, "{name}"),
             Expr::Cond(cond) => write!(f, "{}", cond),
             Expr::Ref(name) => write!(f, "{}", name),
             Expr::Or(left, right) => write!(f, "{} || {}", Operand(left), Operand(right)),
+            Expr::And(left, right) => write!(f, "{} && {}", Operand(left), Operand(right)),
             Expr::BitAnd(left, right) => write!(f, "{} & {}", Operand(left), Operand(right)),
             Expr::BitOr(left, right) => write!(f, "{} | {}", Operand(left), Operand(right)),
             Expr::Shl(left, right) => write!(f, "{} << {}", Operand(left), Operand(right)),
@@ -180,9 +265,8 @@ impl Display for Expr {
 
 /// Display wrapper that parenthesizes compound expressions when they
 /// appear as operands of another expression. Without this, the bare
-/// `Display` for `Expr` produces ambiguous formatted output like
-/// `r >> 16 == 0 ? 2 : min(r, 2) << 16 | 12`, which the reader cannot
-/// regroup correctly without knowing operator precedence. The generator
+/// `Display` for `Expr` would print `(p == 0 || p >= 2) && a != 1` as
+/// `p == 0 || p >= 2 && a != 1`, which reads as a different grouping. The generator
 /// emits correct parenthesized code regardless; this only affects how
 /// expressions appear in grammar-rule comments and debug output.
 struct Operand<'a>(&'a Expr);
@@ -190,14 +274,18 @@ struct Operand<'a>(&'a Expr);
 impl<'a> Display for Operand<'a> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self.0 {
-            Expr::Int(_) | Expr::Ref(_) | Expr::Min(..) => write!(f, "{}", self.0),
+            Expr::Int(_)
+            | Expr::Ref(_)
+            | Expr::Min(..)
+            | Expr::Tuple(_)
+            | Expr::DisplayInt { .. } => write!(f, "{}", self.0),
             _ => write!(f, "({})", self.0),
         }
     }
 }
 
 /// Converts literals to `Expr` values: string literals become `Expr::Ref`,
-/// integer literals become `Expr::Int`. Used by the `cond_expr!` macro.
+/// integer literals become `Expr::Int`. Used by the expression constructor macros.
 pub trait IntoExpr {
     fn into_expr(self) -> Expr;
 }
@@ -373,14 +461,13 @@ impl Symbol {
         }
     }
 
-    /// The inner `Binding`'s name, reached by unwrapping any `Labeled` or
-    /// restriction wrapper. `None` if there is no binding.
-    pub fn binding_name(&self) -> Option<&str> {
+    /// The call's binding pattern, after unwrapping labels and restrictions.
+    pub fn binding_pattern(&self) -> Option<&BindingPattern> {
         match self {
-            Symbol::Binding { name, .. } => Some(name),
+            Symbol::Binding { pattern, .. } => Some(pattern),
             Symbol::Labeled { symbol, .. }
             | Symbol::Restricted { symbol, .. }
-            | Symbol::Exclude { symbol, .. } => symbol.binding_name(),
+            | Symbol::Exclude { symbol, .. } => symbol.binding_pattern(),
             Symbol::Identifier(_)
             | Symbol::Call { .. }
             | Symbol::Literal(_)
@@ -491,8 +578,8 @@ impl Symbol {
                 let exclusions = labels.iter().map(|l| format!("!{l}")).join(" ");
                 format!("{} {}", symbol.display_name(grammar), exclusions)
             }
-            Symbol::Binding { name, symbol } => {
-                format!("{}={}", name, symbol.display_name(grammar))
+            Symbol::Binding { pattern, symbol } => {
+                format!("{}={}", pattern, symbol.display_name(grammar))
             }
             Symbol::Condition(_) | Symbol::Return(_) => self.to_string(),
         }
@@ -597,7 +684,7 @@ impl Display for Symbol {
             }
             Symbol::Condition(expr) => write!(f, "[{}]", expr),
             Symbol::Return(expr) => write!(f, "return {}", expr),
-            Symbol::Binding { name, symbol } => write!(f, "{}={}", name, symbol),
+            Symbol::Binding { pattern, symbol } => write!(f, "{}={}", pattern, symbol),
         }
     }
 }
@@ -814,248 +901,10 @@ impl Display for Opt {
     }
 }
 
-#[macro_export]
-macro_rules! labeled {
-    ($label:literal, $symbol:expr) => {
-        $crate::grammar::symbols::Symbol::Labeled {
-            label: $label.into(),
-            symbol: Box::new($symbol),
-        }
-    };
-}
-
-#[macro_export]
-macro_rules! id {
-    ($name:expr) => {
-        $crate::grammar::symbols::Symbol::Identifier($crate::grammar::symbols::Identifier {
-            name: $name.into(),
-            definition: None,
-        })
-    };
-}
-
-#[macro_export]
-macro_rules! lit {
-    ($name:literal) => {
-        $crate::grammar::symbols::Symbol::literal($name)
-    };
-}
-
-#[macro_export]
-macro_rules! alt {
-    ($($symbol:expr),* $(,)?) => {
-        $crate::grammar::symbols::Symbol::Alt(vec![$($symbol),*])
-    };
-}
-
-#[macro_export]
-macro_rules! group {
-    ($($symbol:expr),* $(,)?) => {
-        $crate::grammar::symbols::Symbol::Group(vec![$($symbol),*])
-    };
-}
-
-#[macro_export]
-macro_rules! plus {
-    ($symbol:expr) => {
-        $crate::grammar::symbols::Symbol::Plus(Box::new($symbol), None)
-    };
-    ($symbol:expr, $sep:expr) => {
-        $crate::grammar::symbols::Symbol::Plus(Box::new($symbol), Some(Box::new($sep)))
-    };
-}
-
-#[macro_export]
-macro_rules! star {
-    ($symbol:expr) => {
-        $crate::grammar::symbols::Symbol::Star(Box::new($symbol), None)
-    };
-    ($symbol:expr, $sep:expr) => {
-        $crate::grammar::symbols::Symbol::Star(Box::new($symbol), Some(Box::new($sep)))
-    };
-}
-
-#[macro_export]
-macro_rules! opt {
-    ($symbol:expr) => {
-        $crate::grammar::symbols::Symbol::Opt(Box::new($symbol))
-    };
-}
-
-#[macro_export]
-macro_rules! except {
-    ($symbol:expr, $($except:expr),+ $(,)?) => {
-        $crate::grammar::symbols::Symbol::restricted(
-            $symbol,
-            $crate::grammar::symbols::Restrictions {
-                excepts: $crate::restriction_ids!($($except),+),
-                ..Default::default()
-            },
-        )
-    };
-}
-
-#[macro_export]
-macro_rules! follow {
-    ($symbol:expr, $($restriction:expr),+ $(,)?) => {
-        $crate::grammar::symbols::Symbol::restricted(
-            $symbol,
-            $crate::grammar::symbols::Restrictions {
-                follow: $crate::restriction_ids!($($restriction),+),
-                ..Default::default()
-            },
-        )
-    };
-}
-
-#[macro_export]
-macro_rules! precede {
-    ($symbol:expr, $($restriction:expr),+ $(,)?) => {
-        $crate::grammar::symbols::Symbol::restricted(
-            $symbol,
-            $crate::grammar::symbols::Restrictions {
-                precede: $crate::restriction_ids!($($restriction),+),
-                ..Default::default()
-            },
-        )
-    };
-}
-
-/// The identifier list of one restriction kind.
-#[macro_export]
-macro_rules! restriction_ids {
-    ($($name:expr),+ $(,)?) => {
-        vec![
-            $(
-                $crate::grammar::symbols::Identifier {
-                    name: $name.into(),
-                    definition: None,
-                },
-            )+
-        ]
-    };
-}
-
-#[macro_export]
-macro_rules! exclude {
-    ($symbol:expr, $($label:expr),+ $(,)?) => {
-        $crate::grammar::symbols::Symbol::Exclude {
-            symbol: Box::new($symbol),
-            labels: vec![$($label.into()),+],
-        }
-    };
-}
-
-#[macro_export]
-macro_rules! call {
-    ($name:expr, ref $arg:literal) => {
-        $crate::grammar::symbols::Symbol::Call {
-            name: $crate::grammar::symbols::Identifier {
-                name: $name.into(),
-                definition: None,
-            },
-            arguments: vec![$crate::grammar::symbols::Expr::Ref($arg.into())],
-        }
-    };
-    ($name:expr, $($arg:expr),* $(,)?) => {
-        $crate::grammar::symbols::Symbol::Call {
-            name: $crate::grammar::symbols::Identifier {
-                name: $name.into(),
-                definition: None,
-            },
-            arguments: vec![$($crate::grammar::symbols::Expr::Int($arg)),*],
-        }
-    };
-}
-
-#[macro_export]
-macro_rules! cond_expr {
-    ($left:literal == $right:literal) => {
-        $crate::grammar::symbols::Expr::Cond($crate::grammar::symbols::Cond {
-            left: Box::new($crate::grammar::symbols::IntoExpr::into_expr($left)),
-            right: Box::new($crate::grammar::symbols::IntoExpr::into_expr($right)),
-            op: $crate::grammar::symbols::CondOp::Eq,
-        })
-    };
-    ($left:literal <= $right:literal) => {
-        $crate::grammar::symbols::Expr::Cond($crate::grammar::symbols::Cond {
-            left: Box::new($crate::grammar::symbols::IntoExpr::into_expr($left)),
-            right: Box::new($crate::grammar::symbols::IntoExpr::into_expr($right)),
-            op: $crate::grammar::symbols::CondOp::Leq,
-        })
-    };
-    ($left:literal >= $right:literal) => {
-        $crate::grammar::symbols::Expr::Cond($crate::grammar::symbols::Cond {
-            left: Box::new($crate::grammar::symbols::IntoExpr::into_expr($left)),
-            right: Box::new($crate::grammar::symbols::IntoExpr::into_expr($right)),
-            op: $crate::grammar::symbols::CondOp::Geq,
-        })
-    };
-}
-
-#[macro_export]
-macro_rules! cond {
-    (($($c1:tt)*) || ($($c2:tt)*)) => {
-        $crate::grammar::symbols::Symbol::Condition($crate::grammar::symbols::Expr::Or(
-            Box::new($crate::cond_expr!($($c1)*)),
-            Box::new($crate::cond_expr!($($c2)*)),
-        ))
-    };
-    ($left:literal == $right:literal) => {
-        $crate::grammar::symbols::Symbol::Condition($crate::cond_expr!($left == $right))
-    };
-    ($left:literal <= $right:literal) => {
-        $crate::grammar::symbols::Symbol::Condition($crate::cond_expr!($left <= $right))
-    };
-    ($left:literal >= $right:literal) => {
-        $crate::grammar::symbols::Symbol::Condition($crate::cond_expr!($left >= $right))
-    };
-}
-
-#[macro_export]
-macro_rules! ternary {
-    ($cond:expr, $then:expr, $else:expr) => {
-        $crate::grammar::symbols::Expr::Ternary {
-            cond: Box::new($cond),
-            then: Box::new($crate::grammar::symbols::IntoExpr::into_expr($then)),
-            r#else: Box::new($crate::grammar::symbols::IntoExpr::into_expr($else)),
-        }
-    };
-}
-
-#[macro_export]
-macro_rules! min {
-    ($a:expr, $b:expr) => {
-        $crate::grammar::symbols::Expr::Min(
-            Box::new($crate::grammar::symbols::IntoExpr::into_expr($a)),
-            Box::new($crate::grammar::symbols::IntoExpr::into_expr($b)),
-        )
-    };
-}
-
-#[macro_export]
-macro_rules! ret {
-    (expr $e:expr) => {
-        $crate::grammar::symbols::Symbol::Return($e)
-    };
-    ($value:expr) => {
-        $crate::grammar::symbols::Symbol::Return($crate::grammar::symbols::Expr::Int($value))
-    };
-}
-
-#[macro_export]
-macro_rules! bind {
-    ($name:literal, $symbol:expr) => {
-        $crate::grammar::symbols::Symbol::Binding {
-            name: $name.into(),
-            symbol: Box::new($symbol),
-        }
-    };
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::{bind, except, exclude, follow, id, labeled, precede, restriction_ids};
 
     fn names(ids: &[Identifier]) -> Vec<&str> {
         ids.iter().map(|id| id.name.as_str()).collect()

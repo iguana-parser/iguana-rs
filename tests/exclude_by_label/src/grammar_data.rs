@@ -96,55 +96,55 @@ pub const SLOTS: [Slot; 30] = [
         display_name: "Expr(0) : start:Expr(0).",
     },
     Slot {
-        display_name: "Expr : . [1 & e == 0] Id return 0",
+        display_name: "Expr : . [1 & e == 0] Id return (0, 0)",
     },
     Slot {
-        display_name: "Expr : [1 & e == 0] . Id return 0",
+        display_name: "Expr : [1 & e == 0] . Id return (0, 0)",
     },
     Slot {
-        display_name: "Expr : [1 & e == 0] Id . return 0",
+        display_name: "Expr : [1 & e == 0] Id . return (0, 0)",
     },
     Slot {
-        display_name: "Expr : [1 & e == 0] Id return 0.",
+        display_name: "Expr : [1 & e == 0] Id return (0, 0).",
     },
     Slot {
-        display_name: "Expr : . [2 & e == 0] Expr(0) \"(\" {Expr !comma \",\"}* \")\" return 1",
+        display_name: "Expr : . [2 & e == 0] Expr(0) \"(\" {Expr !comma \",\"}* \")\" return (0, 1)",
     },
     Slot {
-        display_name: "Expr : [2 & e == 0] . Expr(0) \"(\" {Expr !comma \",\"}* \")\" return 1",
+        display_name: "Expr : [2 & e == 0] . Expr(0) \"(\" {Expr !comma \",\"}* \")\" return (0, 1)",
     },
     Slot {
-        display_name: "Expr : [2 & e == 0] Expr(0) . \"(\" {Expr !comma \",\"}* \")\" return 1",
+        display_name: "Expr : [2 & e == 0] Expr(0) . \"(\" {Expr !comma \",\"}* \")\" return (0, 1)",
     },
     Slot {
-        display_name: "Expr : [2 & e == 0] Expr(0) \"(\" . {Expr !comma \",\"}* \")\" return 1",
+        display_name: "Expr : [2 & e == 0] Expr(0) \"(\" . {Expr !comma \",\"}* \")\" return (0, 1)",
     },
     Slot {
-        display_name: "Expr : [2 & e == 0] Expr(0) \"(\" {Expr !comma \",\"}* . \")\" return 1",
+        display_name: "Expr : [2 & e == 0] Expr(0) \"(\" {Expr !comma \",\"}* . \")\" return (0, 1)",
     },
     Slot {
-        display_name: "Expr : [2 & e == 0] Expr(0) \"(\" {Expr !comma \",\"}* \")\" . return 1",
+        display_name: "Expr : [2 & e == 0] Expr(0) \"(\" {Expr !comma \",\"}* \")\" . return (0, 1)",
     },
     Slot {
-        display_name: "Expr : [2 & e == 0] Expr(0) \"(\" {Expr !comma \",\"}* \")\" return 1.",
+        display_name: "Expr : [2 & e == 0] Expr(0) \"(\" {Expr !comma \",\"}* \")\" return (0, 1).",
     },
     Slot {
-        display_name: "Expr : . [4 & e == 0] Expr(0) \",\" Expr(0) return 2",
+        display_name: "Expr : . [4 & e == 0] Expr(0) \",\" Expr(0) return (0, 2)",
     },
     Slot {
-        display_name: "Expr : [4 & e == 0] . Expr(0) \",\" Expr(0) return 2",
+        display_name: "Expr : [4 & e == 0] . Expr(0) \",\" Expr(0) return (0, 2)",
     },
     Slot {
-        display_name: "Expr : [4 & e == 0] Expr(0) . \",\" Expr(0) return 2",
+        display_name: "Expr : [4 & e == 0] Expr(0) . \",\" Expr(0) return (0, 2)",
     },
     Slot {
-        display_name: "Expr : [4 & e == 0] Expr(0) \",\" . Expr(0) return 2",
+        display_name: "Expr : [4 & e == 0] Expr(0) \",\" . Expr(0) return (0, 2)",
     },
     Slot {
-        display_name: "Expr : [4 & e == 0] Expr(0) \",\" Expr(0) . return 2",
+        display_name: "Expr : [4 & e == 0] Expr(0) \",\" Expr(0) . return (0, 2)",
     },
     Slot {
-        display_name: "Expr : [4 & e == 0] Expr(0) \",\" Expr(0) return 2.",
+        display_name: "Expr : [4 & e == 0] Expr(0) \",\" Expr(0) return (0, 2).",
     },
 ];
 // Expr { ",", "(", ")", EOF }
@@ -157,17 +157,17 @@ pub static FIRST_SET_EXPR: TerminalSet = TerminalSet {
     id: 0,
     terminals: &[TerminalId(0)],
 };
-// Expr(e: i32) : . [1 & e == 0] Id return 0 { Id }
+// Expr(e: i32) : . [1 & e == 0] Id return (0, 0) { Id }
 pub static FIRST_SET_EXPR_ALT0: TerminalSet = TerminalSet {
     id: 1,
     terminals: &[TerminalId(0)],
 };
-// Expr(e: i32) : . [2 & e == 0] Expr(0) "(" Star_0 ")" return 1 { Id }
+// Expr(e: i32) : . [2 & e == 0] Expr(0) "(" Star_0 ")" return (0, 1) { Id }
 pub static FIRST_SET_EXPR_ALT1: TerminalSet = TerminalSet {
     id: 1,
     terminals: &[TerminalId(0)],
 };
-// Expr(e: i32) : . [4 & e == 0] Expr(0) "," Expr(0) return 2 { Id }
+// Expr(e: i32) : . [4 & e == 0] Expr(0) "," Expr(0) return (0, 2) { Id }
 pub static FIRST_SET_EXPR_ALT2: TerminalSet = TerminalSet {
     id: 1,
     terminals: &[TerminalId(0)],

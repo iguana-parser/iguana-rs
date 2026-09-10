@@ -519,7 +519,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for ExactKeywordNoLayoutParseTreeBuilde
         match nonterminal_node.nonterminal_id {
             // S
             NonterminalId(0) => match nonterminal_node.return_slot {
-                // S : Word WS ";".
+                // S = Word WS ";" #Word
                 SlotId(3) => {
                     let [word, ws, lit_2] = children.into_array::<3usize>();
                     ParseTree::S(self.arena.alloc(S::Word {
@@ -529,7 +529,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for ExactKeywordNoLayoutParseTreeBuilde
                         span: nonterminal_node.span,
                     }))
                 }
-                // S : Id WS ";".
+                // S = Id WS ";" #Id
                 SlotId(7) => {
                     let [id, ws, lit_2] = children.into_array::<3usize>();
                     ParseTree::S(self.arena.alloc(S::Id {
@@ -543,7 +543,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for ExactKeywordNoLayoutParseTreeBuilde
             },
             // Word
             NonterminalId(1) => match nonterminal_node.return_slot {
-                // Word : "@" "go" Letter+.
+                // Word = "@" "go" Letter+
                 SlotId(11) => {
                     let [lit_0, lit_1, letters] = children.into_array::<3usize>();
                     ParseTree::Word(self.arena.alloc(Word::Alt0 {
@@ -557,7 +557,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for ExactKeywordNoLayoutParseTreeBuilde
             },
             // Plus_0
             NonterminalId(2) => match nonterminal_node.return_slot {
-                // Letter+ : Letter+ Letter.
+                // Plus_0 = Letter+ Letter
                 SlotId(14) => {
                     let [letters_0, letter_1] = children.into_array::<2usize>();
                     ParseTree::Plus0(self.arena.alloc(Plus0::Alt0 {
@@ -566,7 +566,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for ExactKeywordNoLayoutParseTreeBuilde
                         span: nonterminal_node.span,
                     }))
                 }
-                // Letter+ : Letter.
+                // Plus_0 = Letter
                 SlotId(16) => {
                     let [letter] = children.into_array::<1usize>();
                     ParseTree::Plus0(self.arena.alloc(Plus0::Alt1 {
@@ -578,7 +578,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for ExactKeywordNoLayoutParseTreeBuilde
             },
             // StartS
             NonterminalId(3) => match nonterminal_node.return_slot {
-                // S : WS start:S WS.
+                // StartS = WS start:S WS
                 SlotId(20) => {
                     let [ws_0, start, ws_2] = children.into_array::<3usize>();
                     ParseTree::StartS(self.arena.alloc(Start {
@@ -592,7 +592,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for ExactKeywordNoLayoutParseTreeBuilde
             },
             // StartWord
             NonterminalId(4) => match nonterminal_node.return_slot {
-                // Word : WS start:Word WS.
+                // StartWord = WS start:Word WS
                 SlotId(24) => {
                     let [ws_0, start, ws_2] = children.into_array::<3usize>();
                     ParseTree::StartWord(self.arena.alloc(Start {

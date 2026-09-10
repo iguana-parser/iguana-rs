@@ -351,7 +351,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for LongestMatchParseTreeBuilder<'a> {
         match nonterminal_node.nonterminal_id {
             // S
             NonterminalId(0) => match nonterminal_node.return_slot {
-                // S : X "x".
+                // S = X "x"
                 SlotId(2) => {
                     let [x, lit_1] = children.into_array::<2usize>();
                     ParseTree::S(self.arena.alloc(S::Alt0 {
@@ -364,7 +364,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for LongestMatchParseTreeBuilder<'a> {
             },
             // X
             NonterminalId(1) => match nonterminal_node.return_slot {
-                // X : "<".
+                // X = "<"
                 SlotId(4) => {
                     let [lit_0] = children.into_array::<1usize>();
                     ParseTree::X(self.arena.alloc(X::Alt0 {
@@ -372,7 +372,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for LongestMatchParseTreeBuilder<'a> {
                         span: nonterminal_node.span,
                     }))
                 }
-                // X : "<=".
+                // X = "<="
                 SlotId(6) => {
                     let [lit_0] = children.into_array::<1usize>();
                     ParseTree::X(self.arena.alloc(X::Alt1 {
@@ -384,7 +384,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for LongestMatchParseTreeBuilder<'a> {
             },
             // StartS
             NonterminalId(2) => match nonterminal_node.return_slot {
-                // S : start:S.
+                // StartS = start:S
                 SlotId(8) => {
                     let [start] = children.into_array::<1usize>();
                     ParseTree::StartS(self.arena.alloc(Start {
@@ -398,7 +398,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for LongestMatchParseTreeBuilder<'a> {
             },
             // StartX
             NonterminalId(3) => match nonterminal_node.return_slot {
-                // X : start:X.
+                // StartX = start:X
                 SlotId(10) => {
                     let [start] = children.into_array::<1usize>();
                     ParseTree::StartX(self.arena.alloc(Start {

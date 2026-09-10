@@ -1,0 +1,22 @@
+(Start
+  WS
+  (Amb
+    (UnaryMixedNone
+      (UnaryMixedNone
+        #1=(UnaryMixedNone "a")
+        WS
+        "+"
+        WS
+        (UnaryMixedNone "a"))
+      WS
+      "!")
+    (UnaryMixedNone
+      #1#
+      WS
+      "+"
+      WS
+      (UnaryMixedNone
+        (UnaryMixedNone "a")
+        WS
+        "!")))
+  WS)

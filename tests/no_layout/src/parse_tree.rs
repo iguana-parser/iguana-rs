@@ -453,7 +453,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for NoLayoutParseTreeBuilder<'a> {
         match nonterminal_node.nonterminal_id {
             // S
             NonterminalId(0) => match nonterminal_node.return_slot {
-                // S : Id.
+                // S = Id
                 SlotId(1) => {
                     let [id] = children.into_array::<1usize>();
                     ParseTree::S(self.arena.alloc(S::Alt0 {
@@ -465,7 +465,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for NoLayoutParseTreeBuilder<'a> {
             },
             // Id
             NonterminalId(1) => match nonterminal_node.return_slot {
-                // Id : Char+.
+                // Id = Char+
                 SlotId(3) => {
                     let [chars] = children.into_array::<1usize>();
                     ParseTree::Id(self.arena.alloc(Id::Alt0 {
@@ -477,7 +477,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for NoLayoutParseTreeBuilder<'a> {
             },
             // Plus_0
             NonterminalId(2) => match nonterminal_node.return_slot {
-                // Char+ : Char+ Char.
+                // Plus_0 = Char+ Char
                 SlotId(6) => {
                     let [chars_0, char_1] = children.into_array::<2usize>();
                     ParseTree::Plus0(self.arena.alloc(Plus0::Alt0 {
@@ -486,7 +486,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for NoLayoutParseTreeBuilder<'a> {
                         span: nonterminal_node.span,
                     }))
                 }
-                // Char+ : Char.
+                // Plus_0 = Char
                 SlotId(8) => {
                     let [char] = children.into_array::<1usize>();
                     ParseTree::Plus0(self.arena.alloc(Plus0::Alt1 {
@@ -498,7 +498,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for NoLayoutParseTreeBuilder<'a> {
             },
             // StartS
             NonterminalId(3) => match nonterminal_node.return_slot {
-                // S : WS start:S WS.
+                // StartS = WS start:S WS
                 SlotId(12) => {
                     let [ws_0, start, ws_2] = children.into_array::<3usize>();
                     ParseTree::StartS(self.arena.alloc(Start {
@@ -512,7 +512,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for NoLayoutParseTreeBuilder<'a> {
             },
             // StartId
             NonterminalId(4) => match nonterminal_node.return_slot {
-                // Id : WS start:Id WS.
+                // StartId = WS start:Id WS
                 SlotId(16) => {
                     let [ws_0, start, ws_2] = children.into_array::<3usize>();
                     ParseTree::StartId(self.arena.alloc(Start {

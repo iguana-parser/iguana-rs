@@ -1,0 +1,18 @@
+(Start
+  WS
+  (RightExpr
+    (RightOperand
+      (RightExpr "r"))
+    WS
+    ">"
+    WS
+    (RightOperand
+      (RightExpr
+        (RightOperand
+          (RightExpr "r"))
+        WS
+        ">"
+        WS
+        (RightOperand
+          (RightExpr "r")))))
+  WS)

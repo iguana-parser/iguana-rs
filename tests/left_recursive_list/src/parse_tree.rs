@@ -237,7 +237,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for LeftRecursiveListParseTreeBuilder<'
         match nonterminal_node.nonterminal_id {
             // A
             NonterminalId(0) => match nonterminal_node.return_slot {
-                // A : A "a".
+                // A = A "a"
                 SlotId(2) => {
                     let [a, lit_1] = children.into_array::<2usize>();
                     ParseTree::A(self.arena.alloc(A::Alt0 {
@@ -246,7 +246,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for LeftRecursiveListParseTreeBuilder<'
                         span: nonterminal_node.span,
                     }))
                 }
-                // A : "a".
+                // A = "a"
                 SlotId(4) => {
                     let [lit_0] = children.into_array::<1usize>();
                     ParseTree::A(self.arena.alloc(A::Alt1 {
@@ -258,7 +258,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for LeftRecursiveListParseTreeBuilder<'
             },
             // StartA
             NonterminalId(1) => match nonterminal_node.return_slot {
-                // A : start:A.
+                // StartA = start:A
                 SlotId(6) => {
                     let [start] = children.into_array::<1usize>();
                     ParseTree::StartA(self.arena.alloc(Start {

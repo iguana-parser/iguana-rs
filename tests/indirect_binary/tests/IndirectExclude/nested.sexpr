@@ -1,0 +1,28 @@
+(Start
+  WS
+  (Amb
+    (IndirectExclude
+      #1=(IndirectExcludeOperand "b")
+      WS
+      "+"
+      WS
+      (IndirectExcludeOperand
+        (IndirectExclude
+          (IndirectExcludeOperand "b")
+          WS
+          "+"
+          WS
+          (IndirectExcludeOperand "b"))))
+    (IndirectExclude
+      (IndirectExcludeOperand
+        (IndirectExclude
+          #1#
+          WS
+          "+"
+          WS
+          (IndirectExcludeOperand "b")))
+      WS
+      "+"
+      WS
+      (IndirectExcludeOperand "b")))
+  WS)

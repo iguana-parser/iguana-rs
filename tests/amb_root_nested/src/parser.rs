@@ -25,7 +25,7 @@ use iguana_runtime::{
 use rustc_hash::FxHashMap;
 use std::cell::OnceCell;
 const BINDING_P: BindingId = BindingId(0);
-const BINDING_L: BindingId = BindingId(1);
+const BINDING_L_PR: BindingId = BindingId(1);
 impl<'i, 'arena> Parser<'i, 'arena> for AmbRootNestedParser<'i, 'arena> {
     fn nonterminal_display_name(nonterminal_id: NonterminalId) -> &'static str {
         NONTERMINALS[nonterminal_id.index()].display
@@ -142,7 +142,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for AmbRootNestedParser<'i, 'arena> {
             }
             // E(p: i32) : "(" WS Type WS ")" WS . E(2) return 2
             SlotId(16) => {
-                self.create_e(result, gss_node_id, SlotId(17), env, None, 2);
+                self.create_e(result, gss_node_id, SlotId(17), env, 2);
             }
             // E(p: i32) : "(" WS Type WS ")" WS E(2) . return 2
             SlotId(17) => {
@@ -195,7 +195,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for AmbRootNestedParser<'i, 'arena> {
             }
             // E(p: i32) : "-" WS . E(2) return 2
             SlotId(21) => {
-                self.create_e(result, gss_node_id, SlotId(22), env, None, 2);
+                self.create_e(result, gss_node_id, SlotId(22), env, 2);
             }
             // E(p: i32) : "-" WS E(2) . return 2
             SlotId(22) => {
@@ -224,32 +224,31 @@ impl<'i, 'arena> Parser<'i, 'arena> for AmbRootNestedParser<'i, 'arena> {
                     Some(return_value),
                 );
             }
-            // E(p: i32) : . [1 >= p] l=E(p) [(l == 0) || (l >= 1)] WS "-" WS E(1) return 1
+            // E(p: i32) : . [1 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 1)] WS "-" WS E(1) return 1
             SlotId(24) => {
                 if 1 >= self.lookup(BINDING_P, env.unwrap()) {
                     self.execute(input_index, SlotId(25), result, gss_node_id, env);
                 }
             }
-            // E(p: i32) : [1 >= p] . l=E(p) [(l == 0) || (l >= 1)] WS "-" WS E(1) return 1
+            // E(p: i32) : [1 >= p] . l_pr=E(p) [(l_pr == 0) || (l_pr >= 1)] WS "-" WS E(1) return 1
             SlotId(25) => {
                 self.create_e(
                     result,
                     gss_node_id,
                     SlotId(26),
                     env,
-                    Some(BINDING_L),
                     self.lookup(BINDING_P, env.unwrap()),
                 );
             }
-            // E(p: i32) : [1 >= p] l=E(p) . [(l == 0) || (l >= 1)] WS "-" WS E(1) return 1
+            // E(p: i32) : [1 >= p] l_pr=E(p) . [(l_pr == 0) || (l_pr >= 1)] WS "-" WS E(1) return 1
             SlotId(26) => {
-                if (self.lookup(BINDING_L, env.unwrap()) == 0)
-                    || (self.lookup(BINDING_L, env.unwrap()) >= 1)
+                if (self.lookup(BINDING_L_PR, env.unwrap()) == 0)
+                    || (self.lookup(BINDING_L_PR, env.unwrap()) >= 1)
                 {
                     self.execute(input_index, SlotId(27), result, gss_node_id, env);
                 }
             }
-            // E(p: i32) : [1 >= p] l=E(p) [(l == 0) || (l >= 1)] . WS "-" WS E(1) return 1
+            // E(p: i32) : [1 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 1)] . WS "-" WS E(1) return 1
             SlotId(27) => {
                 if let Some((_, right_child)) =
                     self.match_terminal(TerminalId(1), input_index, SlotId(27), Some(gss_node_id))
@@ -257,12 +256,12 @@ impl<'i, 'arena> Parser<'i, 'arena> for AmbRootNestedParser<'i, 'arena> {
                     if let Some((j, new_node)) =
                         self.create_intermediate_node(result, right_child, SlotId(28), env)
                     {
-                        // E(p: i32) : [1 >= p] l=E(p) [(l == 0) || (l >= 1)] WS . "-" WS E(1) return 1
+                        // E(p: i32) : [1 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 1)] WS . "-" WS E(1) return 1
                         self.execute(j, SlotId(28), Some(new_node), gss_node_id, env);
                     }
                 }
             }
-            // E(p: i32) : [1 >= p] l=E(p) [(l == 0) || (l >= 1)] WS . "-" WS E(1) return 1
+            // E(p: i32) : [1 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 1)] WS . "-" WS E(1) return 1
             SlotId(28) => {
                 if let Some((_, right_child)) =
                     self.match_terminal(TerminalId(4), input_index, SlotId(28), Some(gss_node_id))
@@ -270,12 +269,12 @@ impl<'i, 'arena> Parser<'i, 'arena> for AmbRootNestedParser<'i, 'arena> {
                     if let Some((j, new_node)) =
                         self.create_intermediate_node(result, right_child, SlotId(29), env)
                     {
-                        // E(p: i32) : [1 >= p] l=E(p) [(l == 0) || (l >= 1)] WS "-" . WS E(1) return 1
+                        // E(p: i32) : [1 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 1)] WS "-" . WS E(1) return 1
                         self.execute(j, SlotId(29), Some(new_node), gss_node_id, env);
                     }
                 }
             }
-            // E(p: i32) : [1 >= p] l=E(p) [(l == 0) || (l >= 1)] WS "-" . WS E(1) return 1
+            // E(p: i32) : [1 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 1)] WS "-" . WS E(1) return 1
             SlotId(29) => {
                 if let Some((_, right_child)) =
                     self.match_terminal(TerminalId(1), input_index, SlotId(29), Some(gss_node_id))
@@ -283,20 +282,20 @@ impl<'i, 'arena> Parser<'i, 'arena> for AmbRootNestedParser<'i, 'arena> {
                     if let Some((j, new_node)) =
                         self.create_intermediate_node(result, right_child, SlotId(30), env)
                     {
-                        // E(p: i32) : [1 >= p] l=E(p) [(l == 0) || (l >= 1)] WS "-" WS . E(1) return 1
+                        // E(p: i32) : [1 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 1)] WS "-" WS . E(1) return 1
                         self.execute(j, SlotId(30), Some(new_node), gss_node_id, env);
                     }
                 }
             }
-            // E(p: i32) : [1 >= p] l=E(p) [(l == 0) || (l >= 1)] WS "-" WS . E(1) return 1
+            // E(p: i32) : [1 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 1)] WS "-" WS . E(1) return 1
             SlotId(30) => {
-                self.create_e(result, gss_node_id, SlotId(31), env, None, 1);
+                self.create_e(result, gss_node_id, SlotId(31), env, 1);
             }
-            // E(p: i32) : [1 >= p] l=E(p) [(l == 0) || (l >= 1)] WS "-" WS E(1) . return 1
+            // E(p: i32) : [1 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 1)] WS "-" WS E(1) . return 1
             SlotId(31) => {
                 self.execute(input_index, SlotId(32), result, gss_node_id, env);
             }
-            // E(p: i32) : [1 >= p] l=E(p) [(l == 0) || (l >= 1)] WS "-" WS E(1) return 1.
+            // E(p: i32) : [1 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 1)] WS "-" WS E(1) return 1.
             SlotId(32) => {
                 let Some(result) = result else {
                     unreachable!("result cannot be None here.")
@@ -319,32 +318,31 @@ impl<'i, 'arena> Parser<'i, 'arena> for AmbRootNestedParser<'i, 'arena> {
                     Some(return_value),
                 );
             }
-            // E(p: i32) : . [1 >= p] l=E(p) [(l == 0) || (l >= 1)] WS "-" WS E(1) return 1
+            // E(p: i32) : . [1 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 1)] WS "-" WS E(1) return 1
             SlotId(33) => {
                 if 1 >= self.lookup(BINDING_P, env.unwrap()) {
                     self.execute(input_index, SlotId(34), result, gss_node_id, env);
                 }
             }
-            // E(p: i32) : [1 >= p] . l=E(p) [(l == 0) || (l >= 1)] WS "-" WS E(1) return 1
+            // E(p: i32) : [1 >= p] . l_pr=E(p) [(l_pr == 0) || (l_pr >= 1)] WS "-" WS E(1) return 1
             SlotId(34) => {
                 self.create_e(
                     result,
                     gss_node_id,
                     SlotId(35),
                     env,
-                    Some(BINDING_L),
                     self.lookup(BINDING_P, env.unwrap()),
                 );
             }
-            // E(p: i32) : [1 >= p] l=E(p) . [(l == 0) || (l >= 1)] WS "-" WS E(1) return 1
+            // E(p: i32) : [1 >= p] l_pr=E(p) . [(l_pr == 0) || (l_pr >= 1)] WS "-" WS E(1) return 1
             SlotId(35) => {
-                if (self.lookup(BINDING_L, env.unwrap()) == 0)
-                    || (self.lookup(BINDING_L, env.unwrap()) >= 1)
+                if (self.lookup(BINDING_L_PR, env.unwrap()) == 0)
+                    || (self.lookup(BINDING_L_PR, env.unwrap()) >= 1)
                 {
                     self.execute(input_index, SlotId(36), result, gss_node_id, env);
                 }
             }
-            // E(p: i32) : [1 >= p] l=E(p) [(l == 0) || (l >= 1)] . WS "-" WS E(1) return 1
+            // E(p: i32) : [1 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 1)] . WS "-" WS E(1) return 1
             SlotId(36) => {
                 if let Some((_, right_child)) =
                     self.match_terminal(TerminalId(1), input_index, SlotId(36), Some(gss_node_id))
@@ -352,12 +350,12 @@ impl<'i, 'arena> Parser<'i, 'arena> for AmbRootNestedParser<'i, 'arena> {
                     if let Some((j, new_node)) =
                         self.create_intermediate_node(result, right_child, SlotId(37), env)
                     {
-                        // E(p: i32) : [1 >= p] l=E(p) [(l == 0) || (l >= 1)] WS . "-" WS E(1) return 1
+                        // E(p: i32) : [1 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 1)] WS . "-" WS E(1) return 1
                         self.execute(j, SlotId(37), Some(new_node), gss_node_id, env);
                     }
                 }
             }
-            // E(p: i32) : [1 >= p] l=E(p) [(l == 0) || (l >= 1)] WS . "-" WS E(1) return 1
+            // E(p: i32) : [1 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 1)] WS . "-" WS E(1) return 1
             SlotId(37) => {
                 if let Some((_, right_child)) =
                     self.match_terminal(TerminalId(4), input_index, SlotId(37), Some(gss_node_id))
@@ -365,12 +363,12 @@ impl<'i, 'arena> Parser<'i, 'arena> for AmbRootNestedParser<'i, 'arena> {
                     if let Some((j, new_node)) =
                         self.create_intermediate_node(result, right_child, SlotId(38), env)
                     {
-                        // E(p: i32) : [1 >= p] l=E(p) [(l == 0) || (l >= 1)] WS "-" . WS E(1) return 1
+                        // E(p: i32) : [1 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 1)] WS "-" . WS E(1) return 1
                         self.execute(j, SlotId(38), Some(new_node), gss_node_id, env);
                     }
                 }
             }
-            // E(p: i32) : [1 >= p] l=E(p) [(l == 0) || (l >= 1)] WS "-" . WS E(1) return 1
+            // E(p: i32) : [1 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 1)] WS "-" . WS E(1) return 1
             SlotId(38) => {
                 if let Some((_, right_child)) =
                     self.match_terminal(TerminalId(1), input_index, SlotId(38), Some(gss_node_id))
@@ -378,20 +376,20 @@ impl<'i, 'arena> Parser<'i, 'arena> for AmbRootNestedParser<'i, 'arena> {
                     if let Some((j, new_node)) =
                         self.create_intermediate_node(result, right_child, SlotId(39), env)
                     {
-                        // E(p: i32) : [1 >= p] l=E(p) [(l == 0) || (l >= 1)] WS "-" WS . E(1) return 1
+                        // E(p: i32) : [1 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 1)] WS "-" WS . E(1) return 1
                         self.execute(j, SlotId(39), Some(new_node), gss_node_id, env);
                     }
                 }
             }
-            // E(p: i32) : [1 >= p] l=E(p) [(l == 0) || (l >= 1)] WS "-" WS . E(1) return 1
+            // E(p: i32) : [1 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 1)] WS "-" WS . E(1) return 1
             SlotId(39) => {
-                self.create_e(result, gss_node_id, SlotId(40), env, None, 1);
+                self.create_e(result, gss_node_id, SlotId(40), env, 1);
             }
-            // E(p: i32) : [1 >= p] l=E(p) [(l == 0) || (l >= 1)] WS "-" WS E(1) . return 1
+            // E(p: i32) : [1 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 1)] WS "-" WS E(1) . return 1
             SlotId(40) => {
                 self.execute(input_index, SlotId(41), result, gss_node_id, env);
             }
-            // E(p: i32) : [1 >= p] l=E(p) [(l == 0) || (l >= 1)] WS "-" WS E(1) return 1.
+            // E(p: i32) : [1 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 1)] WS "-" WS E(1) return 1.
             SlotId(41) => {
                 let Some(result) = result else {
                     unreachable!("result cannot be None here.")
@@ -438,7 +436,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for AmbRootNestedParser<'i, 'arena> {
             }
             // E(p: i32) : "(" WS . E(0) WS ")" return 0
             SlotId(44) => {
-                self.create_e(result, gss_node_id, SlotId(45), env, None, 0);
+                self.create_e(result, gss_node_id, SlotId(45), env, 0);
             }
             // E(p: i32) : "(" WS E(0) . WS ")" return 0
             SlotId(45) => {
@@ -555,7 +553,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for AmbRootNestedParser<'i, 'arena> {
             }
             // StartE : WS . start:E(0) WS
             SlotId(3) => {
-                self.create_e(result, gss_node_id, SlotId(4), env, None, 0);
+                self.create_e(result, gss_node_id, SlotId(4), env, 0);
             }
             // StartE : WS start:E(0) . WS
             SlotId(4) => {
@@ -647,12 +645,12 @@ impl<'i, 'arena> Parser<'i, 'arena> for AmbRootNestedParser<'i, 'arena> {
                     matched = true;
                     self.add_first_descriptor(SlotId(19), input_index, gss_node_id, env);
                 }
-                // E(p: i32) : . [1 >= p] l=E(p) [(l == 0) || (l >= 1)] WS "-" WS E(1) return 1
+                // E(p: i32) : . [1 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 1)] WS "-" WS E(1) return 1
                 if self.scanner.match_any(&FIRST_SET_E_ALT2, input_index) {
                     matched = true;
                     self.add_first_descriptor(SlotId(24), input_index, gss_node_id, env);
                 }
-                // E(p: i32) : . [1 >= p] l=E(p) [(l == 0) || (l >= 1)] WS "-" WS E(1) return 1
+                // E(p: i32) : . [1 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 1)] WS "-" WS E(1) return 1
                 if self.scanner.match_any(&FIRST_SET_E_ALT3, input_index) {
                     matched = true;
                     self.add_first_descriptor(SlotId(33), input_index, gss_node_id, env);
@@ -991,6 +989,27 @@ impl<'i, 'arena> Parser<'i, 'arena> for AmbRootNestedParser<'i, 'arena> {
         new_env.bindings = bindings;
         (new_id, new_env)
     }
+    fn bind_return_value(
+        &mut self,
+        return_slot: SlotId,
+        env: Option<EnvId>,
+        value: i32,
+    ) -> Option<EnvId> {
+        let bindings: &[(BindingId, i32)] = match return_slot {
+            SlotId(26) => &[(BINDING_L_PR, value)],
+            SlotId(35) => &[(BINDING_L_PR, value)],
+            _ => return env,
+        };
+        let arena = self.vec_arena;
+        let (id, target) = match env {
+            Some(id) => self.clone_env(id),
+            None => self.new_env(),
+        };
+        for &(name, value) in bindings {
+            target.bind(name, value, arena);
+        }
+        Some(id)
+    }
     fn envs(&self) -> &[Env<'arena>] {
         &self.envs
     }
@@ -1014,7 +1033,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for AmbRootNestedParser<'i, 'arena> {
             );
         }
         for env in self.envs() {
-            stats.record("Env::bindings: InlineVec", env.bindings.len());
+            stats.record("Env::bindings: Bindings", env.bindings.len());
         }
         for m in self.intermediate_nodes_index.iter() {
             stats.record("Parser::intermediate_nodes_index: InlineMap", m.len());
@@ -1202,7 +1221,6 @@ impl<'i, 'arena> AmbRootNestedParser<'i, 'arena> {
         gss_node_id: GssNodeId,
         return_slot: SlotId,
         env: Option<EnvId>,
-        binding: Option<BindingId>,
         p: i32,
     ) {
         record!(self, Call, sppf_node_id, gss_node_id, return_slot);
@@ -1224,19 +1242,11 @@ impl<'i, 'arena> AmbRootNestedParser<'i, 'arena> {
                 left_child,
                 return_slot,
                 env,
-                binding,
             );
         } else {
             record!(self, GSSNodeNotFound, NonterminalId(3), i);
             let new_gss_node_id = self.new_gss_node(NonterminalId(3), i);
-            self.add_gss_edge(
-                new_gss_node_id,
-                gss_node_id,
-                sppf_node_id,
-                return_slot,
-                env,
-                binding,
-            );
+            self.add_gss_edge(new_gss_node_id, gss_node_id, sppf_node_id, return_slot, env);
             let arena = self.vec_arena;
             let (env_id, env) = self.new_env();
             env.bind(BINDING_P, p, arena);

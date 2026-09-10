@@ -458,19 +458,11 @@ pub trait Parser<'i, 'arena> {
                 left_child,
                 return_slot,
                 env,
-                None,
             );
         } else {
             record!(self, GSSNodeNotFound, nonterminal_id, i);
             let new_gss_node_id = self.new_gss_node(nonterminal_id, i);
-            self.add_gss_edge(
-                new_gss_node_id,
-                gss_node_id,
-                sppf_node_id,
-                return_slot,
-                env,
-                None,
-            );
+            self.add_gss_edge(new_gss_node_id, gss_node_id, sppf_node_id, return_slot, env);
             self.add_first_descriptors(nonterminal_id, i, new_gss_node_id, None);
             self.add_gss_node(nonterminal_id, i, new_gss_node_id);
         }
@@ -483,9 +475,7 @@ pub trait Parser<'i, 'arena> {
         left_child: Option<(SPPFNodeId, u32)>,
         return_slot: SlotId,
         env: Option<EnvId>,
-        binding: Option<BindingId>,
     ) {
-        let arena = self.vec_arena();
         let existing_gss_node = self.gss_node(existing_gss_node_id);
         let left_extent = existing_gss_node.index;
         let popped_elements = std::mem::take(
@@ -504,16 +494,10 @@ pub trait Parser<'i, 'arena> {
                 continue;
             }
             let right_child = (nonterminal_node_id, right_extent);
-            // Restore the caller's env from the edge and extend it with the
-            // callee's return value bound to the variable name, if present.
-            let env = match (env, binding, return_value) {
-                (Some(env_id), Some(name), Some(return_value)) => {
-                    let (new_env_id, new_env) = self.clone_env(env_id);
-                    new_env.bind(name, return_value, arena);
-                    Some(new_env_id)
-                }
-                (Some(env_id), _, _) => Some(env_id),
-                _ => None,
+            // The caller's continuation binds the value in its saved environment.
+            let env = match return_value {
+                Some(value) => self.bind_return_value(return_slot, env, value),
+                None => env,
             };
             if let Some(new_node) = self.merge(left_child, right_child, return_slot, env) {
                 self.add_descriptor(Descriptor::new(
@@ -535,7 +519,6 @@ pub trait Parser<'i, 'arena> {
             left_child.map(|(id, _)| id),
             return_slot,
             env,
-            binding,
         );
     }
 
@@ -546,11 +529,10 @@ pub trait Parser<'i, 'arena> {
         result: Option<SPPFNodeId>,
         return_slot: SlotId,
         env: Option<EnvId>,
-        binding: Option<BindingId>,
     ) {
         let arena = self.vec_arena();
         let origin = self.gss_node_mut(origin_gss_node_id);
-        let gss_edge = GSSEdge::new(result, return_slot, dest_gss_node_id, env, binding);
+        let gss_edge = GSSEdge::new(result, return_slot, dest_gss_node_id, env);
         origin.add_edge(gss_edge, arena);
         record!(
             self,
@@ -616,14 +598,9 @@ pub trait Parser<'i, 'arena> {
             let left_child = edge
                 .sppf_node_id()
                 .map(|id| (id, self.sppf_node(id).left_extent()));
-            let env = match (edge.env_id(), edge.binding_id(), return_value) {
-                (Some(env_id), Some(name), Some(rv)) => {
-                    let (new_env_id, env) = self.clone_env(env_id);
-                    env.bind(name, rv, arena);
-                    Some(new_env_id)
-                }
-                (Some(env_id), _, _) => Some(env_id),
-                _ => None,
+            let env = match return_value {
+                Some(value) => self.bind_return_value(edge.return_slot, edge.env_id(), value),
+                None => edge.env_id(),
             };
             if let Some(new_node_id) = self.merge(left_child, right_child, edge.return_slot, env) {
                 self.add_descriptor(Descriptor::new(
@@ -1064,6 +1041,18 @@ pub trait Parser<'i, 'arena> {
                 }
             }
         }
+    }
+
+    /// Applies the bindings at a call's return slot to the saved caller environment.
+    /// Generated parsers override this for calls with bindings. An unbound call
+    /// leaves the environment unchanged.
+    fn bind_return_value(
+        &mut self,
+        _return_slot: SlotId,
+        env: Option<EnvId>,
+        _value: i32,
+    ) -> Option<EnvId> {
+        env
     }
 
     fn new_env(&mut self) -> (EnvId, &mut Env<'arena>);

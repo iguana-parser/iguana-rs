@@ -507,7 +507,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for FollowRestrictionLexicalMultiplePar
         match nonterminal_node.nonterminal_id {
             // S
             NonterminalId(0) => match nonterminal_node.return_slot {
-                // S : Element+.
+                // S = Element+
                 SlotId(1) => {
                     let [elements] = children.into_array::<1usize>();
                     ParseTree::S(self.arena.alloc(S::Alt0 {
@@ -519,7 +519,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for FollowRestrictionLexicalMultiplePar
             },
             // Element
             NonterminalId(1) => match nonterminal_node.return_slot {
-                // Element : Num.
+                // Element = Num
                 SlotId(3) => {
                     let [num] = children.into_array::<1usize>();
                     ParseTree::Element(self.arena.alloc(Element::Alt0 {
@@ -527,7 +527,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for FollowRestrictionLexicalMultiplePar
                         span: nonterminal_node.span,
                     }))
                 }
-                // Element : Word.
+                // Element = Word
                 SlotId(5) => {
                     let [word] = children.into_array::<1usize>();
                     ParseTree::Element(self.arena.alloc(Element::Alt1 {
@@ -535,7 +535,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for FollowRestrictionLexicalMultiplePar
                         span: nonterminal_node.span,
                     }))
                 }
-                // Element : Dot.
+                // Element = Dot
                 SlotId(7) => {
                     let [dot] = children.into_array::<1usize>();
                     ParseTree::Element(self.arena.alloc(Element::Alt2 {
@@ -547,7 +547,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for FollowRestrictionLexicalMultiplePar
             },
             // Plus_0
             NonterminalId(2) => match nonterminal_node.return_slot {
-                // Element+ : Element+ WS Element.
+                // Plus_0 = Element+ WS Element
                 SlotId(11) => {
                     let [elements_0, ws, element_2] = children.into_array::<3usize>();
                     ParseTree::Plus0(self.arena.alloc(Plus0::Alt0 {
@@ -557,7 +557,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for FollowRestrictionLexicalMultiplePar
                         span: nonterminal_node.span,
                     }))
                 }
-                // Element+ : Element.
+                // Plus_0 = Element
                 SlotId(13) => {
                     let [element] = children.into_array::<1usize>();
                     ParseTree::Plus0(self.arena.alloc(Plus0::Alt1 {
@@ -569,7 +569,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for FollowRestrictionLexicalMultiplePar
             },
             // StartS
             NonterminalId(3) => match nonterminal_node.return_slot {
-                // S : WS start:S WS.
+                // StartS = WS start:S WS
                 SlotId(17) => {
                     let [ws_0, start, ws_2] = children.into_array::<3usize>();
                     ParseTree::StartS(self.arena.alloc(Start {
@@ -583,7 +583,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for FollowRestrictionLexicalMultiplePar
             },
             // StartElement
             NonterminalId(4) => match nonterminal_node.return_slot {
-                // Element : WS start:Element WS.
+                // StartElement = WS start:Element WS
                 SlotId(21) => {
                     let [ws_0, start, ws_2] = children.into_array::<3usize>();
                     ParseTree::StartElement(self.arena.alloc(Start {

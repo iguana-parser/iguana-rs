@@ -1,0 +1,11 @@
+(Start
+  WS
+  (DynamicHeadFiltered
+    (Dynamic
+      (DynamicOperand
+        (Dynamic "a"))
+      WS
+      "+"
+      WS
+      (DynamicOperand "b")))
+  WS)

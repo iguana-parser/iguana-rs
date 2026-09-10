@@ -423,7 +423,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for GroupSingleElementParseTreeBuilder<
         match nonterminal_node.nonterminal_id {
             // D
             NonterminalId(0) => match nonterminal_node.return_slot {
-                // D : ("!" Num).
+                // D = ("!" Num)
                 SlotId(1) => {
                     let [group_0] = children.into_array::<1usize>();
                     ParseTree::D(self.arena.alloc(D::Alt0 {
@@ -435,7 +435,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for GroupSingleElementParseTreeBuilder<
             },
             // Num
             NonterminalId(1) => match nonterminal_node.return_slot {
-                // Num : "1".
+                // Num = "1"
                 SlotId(3) => {
                     let [lit_0] = children.into_array::<1usize>();
                     ParseTree::Num(self.arena.alloc(Num::Alt0 {
@@ -447,7 +447,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for GroupSingleElementParseTreeBuilder<
             },
             // Group_0
             NonterminalId(2) => match nonterminal_node.return_slot {
-                // ("!" Num) : "!" Num.
+                // Group_0 = "!" Num
                 SlotId(6) => {
                     let [lit_0, num] = children.into_array::<2usize>();
                     ParseTree::Group0(self.arena.alloc(Group0::Alt0 {
@@ -460,7 +460,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for GroupSingleElementParseTreeBuilder<
             },
             // StartD
             NonterminalId(3) => match nonterminal_node.return_slot {
-                // D : start:D.
+                // StartD = start:D
                 SlotId(8) => {
                     let [start] = children.into_array::<1usize>();
                     ParseTree::StartD(self.arena.alloc(Start {
@@ -474,7 +474,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for GroupSingleElementParseTreeBuilder<
             },
             // StartNum
             NonterminalId(4) => match nonterminal_node.return_slot {
-                // Num : start:Num.
+                // StartNum = start:Num
                 SlotId(10) => {
                     let [start] = children.into_array::<1usize>();
                     ParseTree::StartNum(self.arena.alloc(Start {

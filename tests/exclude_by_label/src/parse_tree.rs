@@ -42,13 +42,13 @@ pub struct Start<T, L> {
 #[derive(Debug, Clone, Copy)]
 pub enum ParseTree<'a> {
     Expr(&'a Expr<'a>),
-    // {Expr !comma ","}+
+    // {Expr ","}+
     Plus0(&'a Plus0<'a>),
-    // {Expr !comma ","}+?
+    // {Expr ","}+?
     Opt0(&'a Opt0<'a>),
-    // {Expr !comma ","}*
+    // {Expr ","}*
     Star0(&'a Star0<'a>),
-    // Expr(0)
+    // Expr
     StartExpr(&'a Start<&'a Expr<'a>, ()>),
     Token(Token),
 }
@@ -183,12 +183,12 @@ pub trait OptNode {
 }
 #[derive(Debug)]
 pub enum Expr<'a> {
-    // Expr(e) = [1 & e == 0] Id return 0 #id
+    // Expr = Id #id
     Id {
         id: Token,
         span: Span,
     },
-    // Expr(e) = [2 & e == 0] Expr(0) "(" {Expr !comma ","}* ")" return 1 #call
+    // Expr = Expr "(" {Expr ","}* ")" #call
     Call {
         expr: &'a Expr<'a>,
         lit_1: Token,
@@ -196,7 +196,7 @@ pub enum Expr<'a> {
         lit_3: Token,
         span: Span,
     },
-    // Expr(e) = [4 & e == 0] Expr(0) "," Expr(0) return 2 #comma
+    // Expr = Expr "," Expr #comma
     Comma {
         expr_0: &'a Expr<'a>,
         lit_1: Token,
@@ -205,33 +205,33 @@ pub enum Expr<'a> {
     },
     Amb(&'a [&'a Expr<'a>]),
 }
-// {Expr !comma ","}+
+// {Expr ","}+
 #[derive(Debug)]
 pub enum Plus0<'a> {
-    // Plus_0 = {Expr !comma ","}+ "," Expr(4)
+    // Plus_0 = {Expr ","}+ "," Expr
     Alt0 {
         plus_0: &'a Plus0<'a>,
         lit_1: Token,
         expr: &'a Expr<'a>,
         span: Span,
     },
-    // Plus_0 = Expr(4)
+    // Plus_0 = Expr
     Alt1 {
         expr: &'a Expr<'a>,
         span: Span,
     },
     Amb(&'a [&'a Plus0<'a>]),
 }
-// {Expr !comma ","}+?
+// {Expr ","}+?
 #[derive(Debug)]
 pub enum Opt0<'a> {
-    // Opt_0 = {Expr !comma ","}+
+    // Opt_0 = {Expr ","}+
     Alt0 { plus_0: &'a Plus0<'a>, span: Span },
     // Opt_0 =
     Alt1 { span: Span },
     Amb(&'a [&'a Opt0<'a>]),
 }
-// {Expr !comma ","}*
+// {Expr ","}*
 #[derive(Debug)]
 pub enum Star0<'a> {
     Alt0 { opt_0: &'a Opt0<'a>, span: Span },
@@ -554,7 +554,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for ExcludeByLabelParseTreeBuilder<'a> 
         match nonterminal_node.nonterminal_id {
             // Plus_0
             NonterminalId(0) => match nonterminal_node.return_slot {
-                // {Expr !comma ","}+ : {Expr !comma ","}+ "," Expr(4).
+                // Plus_0 = {Expr ","}+ "," Expr
                 SlotId(3) => {
                     let [plus_0, lit_1, expr] = children.into_array::<3usize>();
                     ParseTree::Plus0(self.arena.alloc(Plus0::Alt0 {
@@ -564,7 +564,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for ExcludeByLabelParseTreeBuilder<'a> 
                         span: nonterminal_node.span,
                     }))
                 }
-                // {Expr !comma ","}+ : Expr(4).
+                // Plus_0 = Expr
                 SlotId(5) => {
                     let [expr] = children.into_array::<1usize>();
                     ParseTree::Plus0(self.arena.alloc(Plus0::Alt1 {
@@ -576,7 +576,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for ExcludeByLabelParseTreeBuilder<'a> 
             },
             // Opt_0
             NonterminalId(1) => match nonterminal_node.return_slot {
-                // {Expr !comma ","}+? : {Expr !comma ","}+.
+                // Opt_0 = {Expr ","}+
                 SlotId(7) => {
                     let [plus_0] = children.into_array::<1usize>();
                     ParseTree::Opt0(self.arena.alloc(Opt0::Alt0 {
@@ -584,7 +584,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for ExcludeByLabelParseTreeBuilder<'a> 
                         span: nonterminal_node.span,
                     }))
                 }
-                // {Expr !comma ","}+? : .
+                // Opt_0 =
                 SlotId(8) => {
                     let [] = children.into_array::<0usize>();
                     ParseTree::Opt0(self.arena.alloc(Opt0::Alt1 {
@@ -595,7 +595,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for ExcludeByLabelParseTreeBuilder<'a> 
             },
             // Star_0
             NonterminalId(2) => match nonterminal_node.return_slot {
-                // {Expr !comma ","}* : {Expr !comma ","}+?.
+                // Star_0 = {Expr ","}+?
                 SlotId(10) => {
                     let [opt_0] = children.into_array::<1usize>();
                     ParseTree::Star0(self.arena.alloc(Star0::Alt0 {
@@ -607,7 +607,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for ExcludeByLabelParseTreeBuilder<'a> 
             },
             // StartExpr
             NonterminalId(3) => match nonterminal_node.return_slot {
-                // Expr(0) : start:Expr(0).
+                // StartExpr = start:Expr
                 SlotId(12) => {
                     let [start] = children.into_array::<1usize>();
                     ParseTree::StartExpr(self.arena.alloc(Start {
@@ -621,7 +621,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for ExcludeByLabelParseTreeBuilder<'a> 
             },
             // Expr
             NonterminalId(4) => match nonterminal_node.return_slot {
-                // Expr : [1 & e == 0] Id return 0.
+                // Expr = Id #id
                 SlotId(16) => {
                     let [id] = children.into_array::<1usize>();
                     ParseTree::Expr(self.arena.alloc(Expr::Id {
@@ -629,7 +629,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for ExcludeByLabelParseTreeBuilder<'a> 
                         span: nonterminal_node.span,
                     }))
                 }
-                // Expr : [2 & e == 0] Expr(0) "(" {Expr !comma ","}* ")" return 1.
+                // Expr = Expr "(" {Expr ","}* ")" #call
                 SlotId(23) => {
                     let [expr, lit_1, star_0, lit_3] = children.into_array::<4usize>();
                     ParseTree::Expr(self.arena.alloc(Expr::Call {
@@ -640,7 +640,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for ExcludeByLabelParseTreeBuilder<'a> 
                         span: nonterminal_node.span,
                     }))
                 }
-                // Expr : [4 & e == 0] Expr(0) "," Expr(0) return 2.
+                // Expr = Expr "," Expr #comma
                 SlotId(29) => {
                     let [expr_0, lit_1, expr_2] = children.into_array::<3usize>();
                     ParseTree::Expr(self.arena.alloc(Expr::Comma {

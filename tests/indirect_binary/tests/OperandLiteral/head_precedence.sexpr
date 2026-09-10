@@ -1,0 +1,18 @@
+(Start
+  WS
+  (OperandLiteral
+    (OperandLiteralEnd
+      (OperandLiteral "x"))
+    WS
+    "+"
+    WS
+    (OperandLiteralEnd
+      (OperandLiteral
+        (OperandLiteralEnd
+          (OperandLiteral "x"))
+        WS
+        "*"
+        WS
+        (OperandLiteralEnd
+          (OperandLiteral "x")))))
+  WS)

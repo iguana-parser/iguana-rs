@@ -43,9 +43,9 @@ pub struct Start<T, L> {
 pub enum ParseTree<'a> {
     Sep(&'a Sep<'a>),
     Base(&'a Base<'a>),
-    // {Number Identifier \ Keyword}+
+    // {Number Identifier}+
     Plus0(&'a Plus0<'a>),
-    // {Identifier \ Keyword ","}+
+    // {Identifier ","}+
     Plus1(&'a Plus1<'a>),
     // Sep
     StartSep(&'a Start<&'a Sep<'a>, ()>),
@@ -200,22 +200,22 @@ pub trait OptNode {
     type Inner;
     fn value(&self) -> Option<&Self::Inner>;
 }
-// Sep = {Number Identifier \ Keyword}+
+// Sep = {Number Identifier}+
 #[derive(Debug)]
 pub enum Sep<'a> {
     Alt0 { numbers: &'a Plus0<'a>, span: Span },
     Amb(&'a [&'a Sep<'a>]),
 }
-// Base = {Identifier \ Keyword ","}+
+// Base = {Identifier ","}+
 #[derive(Debug)]
 pub enum Base<'a> {
     Alt0 { plus_1: &'a Plus1<'a>, span: Span },
     Amb(&'a [&'a Base<'a>]),
 }
-// {Number Identifier \ Keyword}+
+// {Number Identifier}+
 #[derive(Debug)]
 pub enum Plus0<'a> {
-    // Plus_0 = {Number Identifier \ Keyword}+ Identifier \ Keyword Number
+    // Plus_0 = {Number Identifier}+ Identifier Number
     Alt0 {
         numbers_0: &'a Plus0<'a>,
         identifier: Token,
@@ -229,17 +229,17 @@ pub enum Plus0<'a> {
     },
     Amb(&'a [&'a Plus0<'a>]),
 }
-// {Identifier \ Keyword ","}+
+// {Identifier ","}+
 #[derive(Debug)]
 pub enum Plus1<'a> {
-    // Plus_1 = {Identifier \ Keyword ","}+ "," Identifier \ Keyword
+    // Plus_1 = {Identifier ","}+ "," Identifier
     Alt0 {
         plus_1: &'a Plus1<'a>,
         lit_1: Token,
         identifier: Token,
         span: Span,
     },
-    // Plus_1 = Identifier \ Keyword
+    // Plus_1 = Identifier
     Alt1 {
         identifier: Token,
         span: Span,
@@ -588,7 +588,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for PlusExceptParseTreeBuilder<'a> {
         match nonterminal_node.nonterminal_id {
             // Sep
             NonterminalId(0) => match nonterminal_node.return_slot {
-                // Sep : {Number Identifier \ Keyword}+.
+                // Sep = {Number Identifier}+
                 SlotId(1) => {
                     let [numbers] = children.into_array::<1usize>();
                     ParseTree::Sep(self.arena.alloc(Sep::Alt0 {
@@ -600,7 +600,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for PlusExceptParseTreeBuilder<'a> {
             },
             // Base
             NonterminalId(1) => match nonterminal_node.return_slot {
-                // Base : {Identifier \ Keyword ","}+.
+                // Base = {Identifier ","}+
                 SlotId(3) => {
                     let [plus_1] = children.into_array::<1usize>();
                     ParseTree::Base(self.arena.alloc(Base::Alt0 {
@@ -612,8 +612,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for PlusExceptParseTreeBuilder<'a> {
             },
             // Plus_0
             NonterminalId(2) => match nonterminal_node.return_slot {
-                // {Number Identifier \ Keyword}+ : {Number Identifier \ Keyword}+ Identifier \ Keyword
-                // Number.
+                // Plus_0 = {Number Identifier}+ Identifier Number
                 SlotId(7) => {
                     let [numbers_0, identifier, number_2] = children.into_array::<3usize>();
                     ParseTree::Plus0(self.arena.alloc(Plus0::Alt0 {
@@ -623,7 +622,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for PlusExceptParseTreeBuilder<'a> {
                         span: nonterminal_node.span,
                     }))
                 }
-                // {Number Identifier \ Keyword}+ : Number.
+                // Plus_0 = Number
                 SlotId(9) => {
                     let [number] = children.into_array::<1usize>();
                     ParseTree::Plus0(self.arena.alloc(Plus0::Alt1 {
@@ -635,7 +634,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for PlusExceptParseTreeBuilder<'a> {
             },
             // Plus_1
             NonterminalId(3) => match nonterminal_node.return_slot {
-                // {Identifier \ Keyword ","}+ : {Identifier \ Keyword ","}+ "," Identifier \ Keyword.
+                // Plus_1 = {Identifier ","}+ "," Identifier
                 SlotId(13) => {
                     let [plus_1, lit_1, identifier] = children.into_array::<3usize>();
                     ParseTree::Plus1(self.arena.alloc(Plus1::Alt0 {
@@ -645,7 +644,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for PlusExceptParseTreeBuilder<'a> {
                         span: nonterminal_node.span,
                     }))
                 }
-                // {Identifier \ Keyword ","}+ : Identifier \ Keyword.
+                // Plus_1 = Identifier
                 SlotId(15) => {
                     let [identifier] = children.into_array::<1usize>();
                     ParseTree::Plus1(self.arena.alloc(Plus1::Alt1 {
@@ -657,7 +656,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for PlusExceptParseTreeBuilder<'a> {
             },
             // StartSep
             NonterminalId(4) => match nonterminal_node.return_slot {
-                // Sep : start:Sep.
+                // StartSep = start:Sep
                 SlotId(17) => {
                     let [start] = children.into_array::<1usize>();
                     ParseTree::StartSep(self.arena.alloc(Start {
@@ -671,7 +670,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for PlusExceptParseTreeBuilder<'a> {
             },
             // StartBase
             NonterminalId(5) => match nonterminal_node.return_slot {
-                // Base : start:Base.
+                // StartBase = start:Base
                 SlotId(19) => {
                     let [start] = children.into_array::<1usize>();
                     ParseTree::StartBase(self.arena.alloc(Start {

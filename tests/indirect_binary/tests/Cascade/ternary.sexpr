@@ -1,0 +1,14 @@
+(Start
+  WS
+  (Cascade
+    (Ternary
+      (Cascade "t")
+      WS
+      "?"
+      WS
+      (Cascade "t")
+      WS
+      ":"
+      WS
+      (Cascade "t")))
+  WS)

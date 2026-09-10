@@ -220,7 +220,7 @@ pub enum S<'a> {
     },
     Amb(&'a [&'a S<'a>]),
 }
-// Layout = (WS | LineComment)* !>> WS !>> LineComment
+// Layout = (WS | LineComment)*
 #[derive(Debug)]
 pub enum Layout<'a> {
     Alt0 { star_0: &'a Star0<'a>, span: Span },
@@ -717,7 +717,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for Ll1CallErrorParseTreeBuilder<'a> {
         match nonterminal_node.nonterminal_id {
             // S
             NonterminalId(0) => match nonterminal_node.return_slot {
-                // S : Word Layout Word.
+                // S = Word Layout Word
                 SlotId(3) => {
                     let [word_0, layout, word_2] = children.into_array::<3usize>();
                     ParseTree::S(self.arena.alloc(S::Alt0 {
@@ -731,7 +731,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for Ll1CallErrorParseTreeBuilder<'a> {
             },
             // Layout
             NonterminalId(1) => match nonterminal_node.return_slot {
-                // Layout : (WS | LineComment)* !>> WS !>> LineComment.
+                // Layout = (WS | LineComment)*
                 SlotId(5) => {
                     let [star_0] = children.into_array::<1usize>();
                     ParseTree::Layout(self.arena.alloc(Layout::Alt0 {
@@ -743,7 +743,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for Ll1CallErrorParseTreeBuilder<'a> {
             },
             // Alt_0
             NonterminalId(2) => match nonterminal_node.return_slot {
-                // (WS | LineComment) : WS.
+                // Alt_0 = WS
                 SlotId(7) => {
                     let [ws] = children.into_array::<1usize>();
                     ParseTree::Alt0(self.arena.alloc(Alt0::Alt0 {
@@ -751,7 +751,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for Ll1CallErrorParseTreeBuilder<'a> {
                         span: nonterminal_node.span,
                     }))
                 }
-                // (WS | LineComment) : LineComment.
+                // Alt_0 = LineComment
                 SlotId(9) => {
                     let [line_comment] = children.into_array::<1usize>();
                     ParseTree::Alt0(self.arena.alloc(Alt0::Alt1 {
@@ -763,7 +763,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for Ll1CallErrorParseTreeBuilder<'a> {
             },
             // Plus_0
             NonterminalId(3) => match nonterminal_node.return_slot {
-                // (WS | LineComment)+ : (WS | LineComment)+ (WS | LineComment).
+                // Plus_0 = (WS | LineComment)+ (WS | LineComment)
                 SlotId(12) => {
                     let [plus_0, alt_0] = children.into_array::<2usize>();
                     ParseTree::Plus0(self.arena.alloc(Plus0::Alt0 {
@@ -772,7 +772,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for Ll1CallErrorParseTreeBuilder<'a> {
                         span: nonterminal_node.span,
                     }))
                 }
-                // (WS | LineComment)+ : (WS | LineComment).
+                // Plus_0 = (WS | LineComment)
                 SlotId(14) => {
                     let [alt_0] = children.into_array::<1usize>();
                     ParseTree::Plus0(self.arena.alloc(Plus0::Alt1 {
@@ -784,7 +784,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for Ll1CallErrorParseTreeBuilder<'a> {
             },
             // Opt_0
             NonterminalId(4) => match nonterminal_node.return_slot {
-                // (WS | LineComment)+? : (WS | LineComment)+.
+                // Opt_0 = (WS | LineComment)+
                 SlotId(16) => {
                     let [plus_0] = children.into_array::<1usize>();
                     ParseTree::Opt0(self.arena.alloc(Opt0::Alt0 {
@@ -792,7 +792,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for Ll1CallErrorParseTreeBuilder<'a> {
                         span: nonterminal_node.span,
                     }))
                 }
-                // (WS | LineComment)+? : .
+                // Opt_0 =
                 SlotId(17) => {
                     let [] = children.into_array::<0usize>();
                     ParseTree::Opt0(self.arena.alloc(Opt0::Alt1 {
@@ -803,7 +803,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for Ll1CallErrorParseTreeBuilder<'a> {
             },
             // Star_0
             NonterminalId(5) => match nonterminal_node.return_slot {
-                // (WS | LineComment)* : (WS | LineComment)+?.
+                // Star_0 = (WS | LineComment)+?
                 SlotId(19) => {
                     let [opt_0] = children.into_array::<1usize>();
                     ParseTree::Star0(self.arena.alloc(Star0::Alt0 {
@@ -815,7 +815,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for Ll1CallErrorParseTreeBuilder<'a> {
             },
             // StartS
             NonterminalId(6) => match nonterminal_node.return_slot {
-                // S : Layout start:S Layout.
+                // StartS = Layout start:S Layout
                 SlotId(23) => {
                     let [layout_0, start, layout_2] = children.into_array::<3usize>();
                     ParseTree::StartS(self.arena.alloc(Start {

@@ -1,0 +1,9 @@
+(Start
+  WS
+  (IndirectExclude
+    (IndirectExcludeOperand "b")
+    WS
+    "+"
+    WS
+    (IndirectExcludeOperand "b"))
+  WS)

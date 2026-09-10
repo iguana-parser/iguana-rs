@@ -134,7 +134,7 @@ pub trait OptNode {
 }
 #[derive(Debug)]
 pub enum S<'a> {
-    // S = [a-z] !<< Bool !>> [a-z] WS ";" #Bool
+    // S = Bool WS ";" #Bool
     Bool {
         bool: Token,
         ws: Token,
@@ -267,7 +267,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for ExactKeywordLexicalSetParseTreeBuil
         match nonterminal_node.nonterminal_id {
             // S
             NonterminalId(0) => match nonterminal_node.return_slot {
-                // S : [a-z] !<< Bool !>> [a-z] WS ";".
+                // S = Bool WS ";" #Bool
                 SlotId(3) => {
                     let [bool, ws, lit_2] = children.into_array::<3usize>();
                     ParseTree::S(self.arena.alloc(S::Bool {
@@ -277,7 +277,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for ExactKeywordLexicalSetParseTreeBuil
                         span: nonterminal_node.span,
                     }))
                 }
-                // S : Id WS ";".
+                // S = Id WS ";" #Id
                 SlotId(7) => {
                     let [id, ws, lit_2] = children.into_array::<3usize>();
                     ParseTree::S(self.arena.alloc(S::Id {
@@ -291,7 +291,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for ExactKeywordLexicalSetParseTreeBuil
             },
             // StartS
             NonterminalId(1) => match nonterminal_node.return_slot {
-                // S : WS start:S WS.
+                // StartS = WS start:S WS
                 SlotId(11) => {
                     let [ws_0, start, ws_2] = children.into_array::<3usize>();
                     ParseTree::StartS(self.arena.alloc(Start {

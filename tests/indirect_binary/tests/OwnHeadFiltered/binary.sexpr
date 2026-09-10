@@ -1,0 +1,12 @@
+(Start
+  WS
+  (OwnHeadFiltered
+    (OwnLabel
+      (OwnOperand
+        (OwnLabel "k"))
+      WS
+      "+"
+      WS
+      (OwnOperand
+        (OwnLabel "k"))))
+  WS)

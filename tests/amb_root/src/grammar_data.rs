@@ -123,31 +123,31 @@ pub const SLOTS: [Slot; 43] = [
         display_name: "E : \"-\" WS E(2) return 2.",
     },
     Slot {
-        display_name: "E : . [1 >= p] l=E(p) [(l == 0) || (l >= 1)] WS \"-\" WS E(2) return 1",
+        display_name: "E : . [1 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 1)] WS \"-\" WS E(2) return 1",
     },
     Slot {
-        display_name: "E : [1 >= p] . l=E(p) [(l == 0) || (l >= 1)] WS \"-\" WS E(2) return 1",
+        display_name: "E : [1 >= p] . l_pr=E(p) [(l_pr == 0) || (l_pr >= 1)] WS \"-\" WS E(2) return 1",
     },
     Slot {
-        display_name: "E : [1 >= p] l=E(p) . [(l == 0) || (l >= 1)] WS \"-\" WS E(2) return 1",
+        display_name: "E : [1 >= p] l_pr=E(p) . [(l_pr == 0) || (l_pr >= 1)] WS \"-\" WS E(2) return 1",
     },
     Slot {
-        display_name: "E : [1 >= p] l=E(p) [(l == 0) || (l >= 1)] . WS \"-\" WS E(2) return 1",
+        display_name: "E : [1 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 1)] . WS \"-\" WS E(2) return 1",
     },
     Slot {
-        display_name: "E : [1 >= p] l=E(p) [(l == 0) || (l >= 1)] WS . \"-\" WS E(2) return 1",
+        display_name: "E : [1 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 1)] WS . \"-\" WS E(2) return 1",
     },
     Slot {
-        display_name: "E : [1 >= p] l=E(p) [(l == 0) || (l >= 1)] WS \"-\" . WS E(2) return 1",
+        display_name: "E : [1 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 1)] WS \"-\" . WS E(2) return 1",
     },
     Slot {
-        display_name: "E : [1 >= p] l=E(p) [(l == 0) || (l >= 1)] WS \"-\" WS . E(2) return 1",
+        display_name: "E : [1 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 1)] WS \"-\" WS . E(2) return 1",
     },
     Slot {
-        display_name: "E : [1 >= p] l=E(p) [(l == 0) || (l >= 1)] WS \"-\" WS E(2) . return 1",
+        display_name: "E : [1 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 1)] WS \"-\" WS E(2) . return 1",
     },
     Slot {
-        display_name: "E : [1 >= p] l=E(p) [(l == 0) || (l >= 1)] WS \"-\" WS E(2) return 1.",
+        display_name: "E : [1 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 1)] WS \"-\" WS E(2) return 1.",
     },
     Slot {
         display_name: "E : . \"(\" WS E(0) WS \")\" return 0",
@@ -200,8 +200,8 @@ pub static FIRST_SET_E_ALT1: TerminalSet = TerminalSet {
     id: 2,
     terminals: &[TerminalId(4)],
 };
-// E(p: i32) : . [1 >= p] l=E(p) [(l == 0) || (l >= 1)] WS "-" WS E(2) return 1 { Id, "(",
-// "-" }
+// E(p: i32) : . [1 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 1)] WS "-" WS E(2) return 1 {
+// Id, "(", "-" }
 pub static FIRST_SET_E_ALT2: TerminalSet = TerminalSet {
     id: 3,
     terminals: &[TerminalId(0), TerminalId(2), TerminalId(4)],

@@ -12,10 +12,12 @@ use crate::generator::id::BindingIds;
 use crate::generator::id::NonterminalIds;
 use crate::generator::id::SlotIds;
 use crate::generator::id::TerminalIds;
+use crate::generator::return_value::pack;
 use crate::grammar::def::Alternative;
 use crate::grammar::def::Grammar;
 use crate::grammar::first_follow::FirstFollowSets;
 use crate::grammar::slot::Slot;
+use crate::grammar::symbols::BindingPattern;
 use crate::grammar::symbols::CondOp;
 use crate::grammar::symbols::Definition;
 use crate::grammar::symbols::Expr;
@@ -94,7 +96,7 @@ impl<'a> ParserGen<'a> {
             self.grammar
                 .alternatives(nt)
                 .iter()
-                .any(|alt| alt.symbols.is_empty())
+                .any(|alt| !alt.symbols.iter().any(Symbol::is_parse_tree_symbol))
         })
     }
 
@@ -141,6 +143,7 @@ impl<'a> ParserGen<'a> {
         let new_env_method = Self::gen_new_env_method();
         let lookup_method = Self::gen_lookup_method();
         let clone_env_method = Self::gen_clone_env();
+        let bind_return_value_method = self.gen_bind_return_value_method();
         let envs_method = Self::gen_envs_method();
         let record_stats_method = self.gen_record_stats_method();
         let post_conditions_method = self.gen_post_conditions_method();
@@ -194,6 +197,7 @@ impl<'a> ParserGen<'a> {
                 #new_env_method
                 #lookup_method
                 #clone_env_method
+                #bind_return_value_method
                 #envs_method
                 #record_stats_method
                 #post_conditions_method
@@ -339,10 +343,23 @@ impl<'a> ParserGen<'a> {
                     let last_symbol = alternative.symbols.last().unwrap();
                     let slot_body = if let Symbol::Return(expr) = last_symbol {
                         let expr = Self::gen_expr(expr);
+                        // Conditions and returns do not create an SPPF node. An
+                        // otherwise empty alternative still needs an epsilon
+                        // child, like an undecorated empty alternative.
+                        let result = if alternative.symbols.iter().any(Symbol::is_parse_tree_symbol)
+                        {
+                            quote! {
+                                let Some(result) = result else {
+                                    unreachable!("result cannot be None here.")
+                                };
+                            }
+                        } else {
+                            quote! {
+                                let result = self.get_or_create_epsilon_node(input_index);
+                            }
+                        };
                         quote! {
-                            let Some(result) = result else {
-                                unreachable!("result cannot be None here.")
-                            };
+                            #result
                             let node = self.sppf_node(result);
                             let return_value = #expr;
                             let nonterminal_node_id = self.get_or_create_nonterminal_node(
@@ -1019,14 +1036,7 @@ impl<'a> ParserGen<'a> {
         } else {
             let method_name = format_ident!("create_{}", to_snake_case(&nonterminal.name));
             let arguments: Vec<_> = arguments.iter().map(Self::gen_expr).collect();
-            let bindings = if let Some(name) = slot.symbol().and_then(Symbol::binding_name) {
-                let const_name = binding_const_ident(name);
-                quote! { Some(#const_name) }
-            } else {
-                quote! { None }
-            };
-            let arguments =
-                quote! { result, gss_node_id, #next_slot_id, env, #bindings, #(#arguments),* };
+            let arguments = quote! { result, gss_node_id, #next_slot_id, env, #(#arguments),* };
             quote! {
                 #[comment = #slot_name]
                 #slot_id => {
@@ -1234,8 +1244,8 @@ impl<'a> ParserGen<'a> {
                 nonterminal_nodes_children_map: OnceCell::new(),
             }
         };
-        // Envs are created only by calls to data-dependent nonterminals, so
-        // other grammars skip the input-proportional reservation.
+        // Parameterized calls reserve environments in proportion to the input.
+        // Other rules allocate environments as bindings are evaluated.
         let envs_init = if self.nonterminal_ids.dd_nonterminals().next().is_some() {
             quote! { envs: vec_arena.vec_with_capacity(input.len() as usize * ENVS_CAPACITY_MULTIPLIER), }
         } else {
@@ -2452,7 +2462,6 @@ impl<'a> ParserGen<'a> {
                 gss_node_id: GssNodeId,
                 return_slot: SlotId,
                 env: Option<EnvId>,
-                binding: Option<BindingId>,
                 #(#parameters,)*
             ) {
                 record!(self, Call, sppf_node_id, gss_node_id, return_slot);
@@ -2468,11 +2477,11 @@ impl<'a> ParserGen<'a> {
                 #[comment = "If there is already a GSS node for this call, add an edge."]
                 if let Some(existing_gss_node_id) = self.#get_gss_node_method_name(i, #(#param_names),*) {
                     record!(self, GSSNodeFound, NonterminalId(#id), i);
-                    self.add_edge_to_existing_gss_node(existing_gss_node_id, gss_node_id, left_child, return_slot, env, binding);
+                    self.add_edge_to_existing_gss_node(existing_gss_node_id, gss_node_id, left_child, return_slot, env);
                 } else {
                     record!(self, GSSNodeNotFound, NonterminalId(#id), i);
                     let new_gss_node_id = self.new_gss_node(NonterminalId(#id), i);
-                    self.add_gss_edge(new_gss_node_id, gss_node_id, sppf_node_id, return_slot, env, binding);
+                    self.add_gss_edge(new_gss_node_id, gss_node_id, sppf_node_id, return_slot, env);
                     // Create a new environment to bind the parameter.
                     let arena = self.vec_arena;
                     let (env_id, env) = self.new_env();
@@ -2594,6 +2603,57 @@ impl<'a> ParserGen<'a> {
         }
     }
 
+    /// Binds a returned value at the caller's continuation. Destructuring emits
+    /// one ordinary binding per component, all read from the same returned value.
+    fn gen_bind_return_value_method(&self) -> TokenStream {
+        let arms: Vec<_> = self
+            .slot_ids
+            .slots()
+            .filter_map(|slot| {
+                let pattern = slot.symbol()?.binding_pattern()?;
+                let return_slot = self.slot_ids.get_id(&slot.next());
+                let assignments: Vec<_> = pattern
+                    .names()
+                    .iter()
+                    .enumerate()
+                    .map(|(index, name)| {
+                        let name = binding_const_ident(name);
+                        let value = match pattern {
+                            BindingPattern::Name(_) => quote! { value },
+                            BindingPattern::Tuple(names) => super::return_value::gen_component(
+                                quote! { value },
+                                index,
+                                names.len(),
+                            ),
+                        };
+                        quote! { (#name, #value) }
+                    })
+                    .collect();
+                Some(quote! { #return_slot => &[#(#assignments),*], })
+            })
+            .collect();
+        if arms.is_empty() {
+            return quote! {};
+        }
+        quote! {
+            fn bind_return_value(&mut self, return_slot: SlotId, env: Option<EnvId>, value: i32) -> Option<EnvId> {
+                let bindings: &[(BindingId, i32)] = match return_slot {
+                    #(#arms)*
+                    _ => return env,
+                };
+                let arena = self.vec_arena;
+                let (id, target) = match env {
+                    Some(id) => self.clone_env(id),
+                    None => self.new_env(),
+                };
+                for &(name, value) in bindings {
+                    target.bind(name, value, arena);
+                }
+                Some(id)
+            }
+        }
+    }
+
     fn gen_new_env_method() -> TokenStream {
         quote! {
             fn new_env(&mut self) -> (EnvId, &mut Env<'arena>) {
@@ -2688,7 +2748,7 @@ impl<'a> ParserGen<'a> {
                     stats.record("GssNode::popped_elements: InlineMap", node.popped_elements().len());
                 }
                 for env in self.envs() {
-                    stats.record("Env::bindings: InlineVec", env.bindings.len());
+                    stats.record("Env::bindings: Bindings", env.bindings.len());
                 }
                 #sppf_index_records
                 for m in self.gss_nodes_index.iter() {
@@ -2704,8 +2764,11 @@ impl<'a> ParserGen<'a> {
         }
     }
 
+    /// Generates a Rust expression using ordinary environment lookups for names.
     fn gen_expr(expr: &Expr) -> TokenStream {
         match expr {
+            Expr::Tuple(values) => Self::gen_expr(&pack(values)),
+            Expr::DisplayInt { value, .. } => Self::gen_expr(&Expr::Int(*value)),
             Expr::Int(i) => {
                 let val = Literal::i32_unsuffixed(*i as i32);
                 quote! { #val }
@@ -2719,6 +2782,7 @@ impl<'a> ParserGen<'a> {
                 let right = Self::gen_expr(&cond.right);
                 match cond.op {
                     CondOp::Eq => quote! { #left == #right },
+                    CondOp::Neq => quote! { #left != #right },
                     CondOp::Leq => quote! { #left <= #right },
                     CondOp::Geq => quote! { #left >= #right },
                 }
@@ -2727,6 +2791,11 @@ impl<'a> ParserGen<'a> {
                 let left = Self::gen_expr(left);
                 let right = Self::gen_expr(right);
                 quote! { (#left) || (#right) }
+            }
+            Expr::And(left, right) => {
+                let left = Self::gen_expr(left);
+                let right = Self::gen_expr(right);
+                quote! { (#left) && (#right) }
             }
             Expr::BitAnd(left, right) => {
                 let left = Self::gen_expr(left);
@@ -2786,5 +2855,62 @@ fn empty_inline_map_array(count: usize) -> TokenStream {
     } else {
         let count = Literal::usize_unsuffixed(count);
         quote! { [const { InlineMap::Empty }; #count] }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::grammar::symbols::BindingPattern;
+    use crate::{alternative, bind, grammar_def, id, left, lit, priority_level, ret, syntax_rule};
+
+    // A = "a" return (7, 11)
+    // S = (x, y)=A return y
+    //
+    // Both components are assigned on return. Reading either name is an
+    // ordinary environment lookup, independent of later bindings of the other.
+    #[test]
+    fn tuple_components_use_ordinary_variable_lookups() {
+        for name in ["x", "y"] {
+            let binding = binding_const_ident(name);
+            assert_eq!(
+                ParserGen::gen_expr(&Expr::Ref(name.into())).to_string(),
+                quote! { self.lookup(#binding, env.unwrap()) }.to_string()
+            );
+        }
+    }
+
+    //   E = "a"
+    //     > left E "+" E
+    //   S = x=E return x
+    //
+    // Precedence desugaring changes the call in S to x=E(0). The binding and
+    // reference remain x, even though E's recursive calls bind l_pr internally.
+    #[test]
+    fn ordinary_binding_keeps_its_name_and_whole_value_lookup() {
+        let grammar: Grammar = grammar_def!("Test", syntax: [
+            syntax_rule!("E" =>
+                priority_level!(alternative!(lit!("a"))),
+                priority_level!(left!(); alternative!(id!("E"), lit!("+"), id!("E")))),
+            syntax_rule!("S" => priority_level!(alternative!(
+                bind!("x", id!("E")), ret!(expr Expr::Ref("x".into()))
+            )))
+        ])
+        .try_into()
+        .unwrap();
+        let s = grammar.nonterminal("S").unwrap();
+        let alternative = &grammar.alternatives(s)[0];
+        assert_eq!(alternative.symbols[0].to_string(), "x=E(0)");
+        assert!(matches!(
+            &alternative.symbols[0],
+            Symbol::Binding { pattern: BindingPattern::Name(name), .. } if name == "x"
+        ));
+        let Symbol::Return(value) = alternative.symbols.last().unwrap() else {
+            panic!("S returns x");
+        };
+        assert_eq!(
+            ParserGen::gen_expr(value).to_string(),
+            quote! { self.lookup(BINDING_X, env.unwrap()) }.to_string()
+        );
     }
 }

@@ -141,70 +141,70 @@ pub const SLOTS: [Slot; 43] = [
         display_name: "E : \"a\" return 0.",
     },
     Slot {
-        display_name: "E : . [2 >= p] l=E(p) [(l == 0) || (l >= 2)] WS \"+\" WS E(2) return 2",
+        display_name: "E : . [2 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 2)] WS \"+\" WS E(2) return 2",
     },
     Slot {
-        display_name: "E : [2 >= p] . l=E(p) [(l == 0) || (l >= 2)] WS \"+\" WS E(2) return 2",
+        display_name: "E : [2 >= p] . l_pr=E(p) [(l_pr == 0) || (l_pr >= 2)] WS \"+\" WS E(2) return 2",
     },
     Slot {
-        display_name: "E : [2 >= p] l=E(p) . [(l == 0) || (l >= 2)] WS \"+\" WS E(2) return 2",
+        display_name: "E : [2 >= p] l_pr=E(p) . [(l_pr == 0) || (l_pr >= 2)] WS \"+\" WS E(2) return 2",
     },
     Slot {
-        display_name: "E : [2 >= p] l=E(p) [(l == 0) || (l >= 2)] . WS \"+\" WS E(2) return 2",
+        display_name: "E : [2 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 2)] . WS \"+\" WS E(2) return 2",
     },
     Slot {
-        display_name: "E : [2 >= p] l=E(p) [(l == 0) || (l >= 2)] WS . \"+\" WS E(2) return 2",
+        display_name: "E : [2 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 2)] WS . \"+\" WS E(2) return 2",
     },
     Slot {
-        display_name: "E : [2 >= p] l=E(p) [(l == 0) || (l >= 2)] WS \"+\" . WS E(2) return 2",
+        display_name: "E : [2 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 2)] WS \"+\" . WS E(2) return 2",
     },
     Slot {
-        display_name: "E : [2 >= p] l=E(p) [(l == 0) || (l >= 2)] WS \"+\" WS . E(2) return 2",
+        display_name: "E : [2 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 2)] WS \"+\" WS . E(2) return 2",
     },
     Slot {
-        display_name: "E : [2 >= p] l=E(p) [(l == 0) || (l >= 2)] WS \"+\" WS E(2) . return 2",
+        display_name: "E : [2 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 2)] WS \"+\" WS E(2) . return 2",
     },
     Slot {
-        display_name: "E : [2 >= p] l=E(p) [(l == 0) || (l >= 2)] WS \"+\" WS E(2) return 2.",
+        display_name: "E : [2 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 2)] WS \"+\" WS E(2) return 2.",
     },
     Slot {
-        display_name: "E : . [1 >= p] l=Postfix(p) [(l == 0) || (l >= 1)] return 0",
+        display_name: "E : . [1 >= p] l_pr=Postfix(p) [(l_pr == 0) || (l_pr >= 1)] return 0",
     },
     Slot {
-        display_name: "E : [1 >= p] . l=Postfix(p) [(l == 0) || (l >= 1)] return 0",
+        display_name: "E : [1 >= p] . l_pr=Postfix(p) [(l_pr == 0) || (l_pr >= 1)] return 0",
     },
     Slot {
-        display_name: "E : [1 >= p] l=Postfix(p) . [(l == 0) || (l >= 1)] return 0",
+        display_name: "E : [1 >= p] l_pr=Postfix(p) . [(l_pr == 0) || (l_pr >= 1)] return 0",
     },
     Slot {
-        display_name: "E : [1 >= p] l=Postfix(p) [(l == 0) || (l >= 1)] . return 0",
+        display_name: "E : [1 >= p] l_pr=Postfix(p) [(l_pr == 0) || (l_pr >= 1)] . return 0",
     },
     Slot {
-        display_name: "E : [1 >= p] l=Postfix(p) [(l == 0) || (l >= 1)] return 0.",
+        display_name: "E : [1 >= p] l_pr=Postfix(p) [(l_pr == 0) || (l_pr >= 1)] return 0.",
     },
     Slot {
-        display_name: "Postfix : . r=Body(p) WS \"!\" return r",
+        display_name: "Postfix : . l_pr=Body(p) WS \"!\" return l_pr",
     },
     Slot {
-        display_name: "Postfix : r=Body(p) . WS \"!\" return r",
+        display_name: "Postfix : l_pr=Body(p) . WS \"!\" return l_pr",
     },
     Slot {
-        display_name: "Postfix : r=Body(p) WS . \"!\" return r",
+        display_name: "Postfix : l_pr=Body(p) WS . \"!\" return l_pr",
     },
     Slot {
-        display_name: "Postfix : r=Body(p) WS \"!\" . return r",
+        display_name: "Postfix : l_pr=Body(p) WS \"!\" . return l_pr",
     },
     Slot {
-        display_name: "Postfix : r=Body(p) WS \"!\" return r.",
+        display_name: "Postfix : l_pr=Body(p) WS \"!\" return l_pr.",
     },
     Slot {
-        display_name: "Body : . r=E(p) return r",
+        display_name: "Body : . l_pr=E(p) return l_pr",
     },
     Slot {
-        display_name: "Body : r=E(p) . return r",
+        display_name: "Body : l_pr=E(p) . return l_pr",
     },
     Slot {
-        display_name: "Body : r=E(p) return r.",
+        display_name: "Body : l_pr=E(p) return l_pr.",
     },
 ];
 // S { WS, EOF }
@@ -237,12 +237,13 @@ pub static FIRST_SET_E_ALT0: TerminalSet = TerminalSet {
     id: 1,
     terminals: &[TerminalId(1)],
 };
-// E(p: i32) : . [2 >= p] l=E(p) [(l == 0) || (l >= 2)] WS "+" WS E(2) return 2 { "a" }
+// E(p: i32) : . [2 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 2)] WS "+" WS E(2) return 2 {
+// "a" }
 pub static FIRST_SET_E_ALT1: TerminalSet = TerminalSet {
     id: 1,
     terminals: &[TerminalId(1)],
 };
-// E(p: i32) : . [1 >= p] l=Postfix(p) [(l == 0) || (l >= 1)] return 0 { "a" }
+// E(p: i32) : . [1 >= p] l_pr=Postfix(p) [(l_pr == 0) || (l_pr >= 1)] return 0 { "a" }
 pub static FIRST_SET_E_ALT2: TerminalSet = TerminalSet {
     id: 1,
     terminals: &[TerminalId(1)],
@@ -257,7 +258,7 @@ pub static FIRST_SET_POSTFIX: TerminalSet = TerminalSet {
     id: 0,
     terminals: &[TerminalId(1)],
 };
-// Postfix(p: i32) : . r=Body(p) WS "!" return r { "a" }
+// Postfix(p: i32) : . l_pr=Body(p) WS "!" return l_pr { "a" }
 pub static FIRST_SET_POSTFIX_ALT0: TerminalSet = TerminalSet {
     id: 1,
     terminals: &[TerminalId(1)],
@@ -272,7 +273,7 @@ pub static FIRST_SET_BODY: TerminalSet = TerminalSet {
     id: 0,
     terminals: &[TerminalId(1)],
 };
-// Body(p: i32) : . r=E(p) return r { "a" }
+// Body(p: i32) : . l_pr=E(p) return l_pr { "a" }
 pub static FIRST_SET_BODY_ALT0: TerminalSet = TerminalSet {
     id: 1,
     terminals: &[TerminalId(1)],

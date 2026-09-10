@@ -1,0 +1,15 @@
+(Start
+  WS
+  (NullableBoundaryPostfix
+    (NullableBoundaryLeft
+      (NullableBoundaryOpt "!")
+      WS
+      (NullableBoundaryPostfix
+        (NullableBoundaryPostfix "a")
+        WS
+        "+"
+        WS
+        (NullableBoundaryPostfix "a")))
+    WS
+    "-")
+  WS)

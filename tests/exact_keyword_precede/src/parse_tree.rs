@@ -137,7 +137,7 @@ pub trait OptNode {
 }
 #[derive(Debug)]
 pub enum S<'a> {
-    // S = Num WS [0-9 A-Z _ a-z] !<< "else" !>> [0-9 A-Z _ a-z] WS Id WS ";" #NumElse
+    // S = Num WS "else" WS Id WS ";" #NumElse
     NumElse {
         num: Token,
         ws_1: Token,
@@ -287,7 +287,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for ExactKeywordPrecedeParseTreeBuilder
         match nonterminal_node.nonterminal_id {
             // S
             NonterminalId(0) => match nonterminal_node.return_slot {
-                // S : Num WS [0-9 A-Z _ a-z] !<< "else" !>> [0-9 A-Z _ a-z] WS Id WS ";".
+                // S = Num WS "else" WS Id WS ";" #NumElse
                 SlotId(7) => {
                     let [num, ws_1, lit_2, ws_3, id, ws_5, lit_6] = children.into_array::<7usize>();
                     ParseTree::S(self.arena.alloc(S::NumElse {
@@ -301,7 +301,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for ExactKeywordPrecedeParseTreeBuilder
                         span: nonterminal_node.span,
                     }))
                 }
-                // S : Id WS ";".
+                // S = Id WS ";" #Id
                 SlotId(11) => {
                     let [id, ws, lit_2] = children.into_array::<3usize>();
                     ParseTree::S(self.arena.alloc(S::Id {
@@ -315,7 +315,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for ExactKeywordPrecedeParseTreeBuilder
             },
             // StartS
             NonterminalId(1) => match nonterminal_node.return_slot {
-                // S : WS start:S WS.
+                // StartS = WS start:S WS
                 SlotId(15) => {
                     let [ws_0, start, ws_2] = children.into_array::<3usize>();
                     ParseTree::StartS(self.arena.alloc(Start {

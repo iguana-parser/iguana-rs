@@ -9,8 +9,7 @@
 //
 // The implementation mechanism is a bitmask. Each call site names the
 // excluded labels as a single i32 (with the sign bit unused, giving 31
-// labels per nonterminal as the practical cap; the fallback if that is
-// ever exceeded is i64). The target nonterminal grows an extra parameter
+// labels per nonterminal). The target nonterminal grows an extra parameter
 // to receive that mask, and each labeled alternative gains a guard that
 // checks its own bit. The alternative is admitted only when its bit is
 // clear in the mask.
@@ -25,15 +24,15 @@
 // The parenthesized form forbids a comma at the top. After this pass:
 //
 //   Expr(e: i32)
-//     = [1 & e == 0] Id return 0                   #Id
-//     | [2 & e == 0] Expr(0) "," Expr(0) return 1  #Comma
-//     | [4 & e == 0] "(" Expr(2) ")" return 2      #Group
+//     = [1 & e == 0] Id return (0, 0)                   #Id
+//     | [2 & e == 0] Expr(0) "," Expr(0) return (0, 1)  #Comma
+//     | [4 & e == 0] "(" Expr(2) ")" return (0, 2)       #Group
 //
 // What the desugaring does:
 //
 //   - Bit assignment. The desugaring numbers the labeled alternatives in
 //     source order: #Id is 0, #Comma is 1, #Group is 2. Each number plays
-//     two roles. It becomes the alternative's `return N`, and it is the
+//     two roles. It becomes the return's label field, and it is the
 //     position of the bit the guard tests. The bit values that appear in
 //     the guards are therefore `1`, `2`, `4`, computed as `1 << N`.
 //
@@ -47,11 +46,12 @@
 //     The alternative is admitted only when its label is not in the
 //     exclude set.
 //
-//   - Return value. Every alternative ends with `return N`, where N is
-//     the alternative's number from the bit assignment above, or `-1`
-//     for unlabeled alternatives. The parser uses the return value as
-//     part of its parse-tree sharing key, so distinct alternatives at
-//     the same input span produce distinct subtrees.
+//   - Return value. Every alternative of an exclusion-targeted nonterminal
+//     returns its own label, or NO_LABEL if unlabeled, alongside the other return
+//     components. The precedence desugaring transformation preserves this label
+//     for the left-operand exclusion check after the shared recursive call.
+//     Ordinary calls enforce exclusions with the early guards above. Distinct
+//     returned labels keep alternatives distinguishable in the parser's sharing key.
 //
 //   - Use-site rewriting. Every exclude reference becomes a call that
 //     passes the mask, and every bare reference to a target nonterminal
@@ -73,11 +73,10 @@
 // Pipeline position. The exclude desugaring transformation runs after
 // EBNF expansion and before precedence desugaring. EBNF wrappers are not
 // recursed through, so an exclude reference nested inside one would
-// be silently skipped if the order were reversed. When precedence
-// desugaring also applies to a target nonterminal, the two passes
-// share the same i32 return slot: precedence in the high 16 bits, the
-// exclude label in the low 16 bits.
+// be silently skipped if the order were reversed. Both passes always use the
+// same return components, including rules that only use exclusions.
 
+use super::return_value;
 use rustc_hash::FxHashMap;
 
 use crate::grammar::{
@@ -162,21 +161,24 @@ fn add_e_param_and_guards(mut rule: SyntaxRule, labels: &[String]) -> SyntaxRule
 }
 
 /// Prepends `[(BIT_L & e) == 0]` to a labeled alternative and appends
-/// `Return(label_index)` to every alternative of a targeted nonterminal.
-/// Unlabeled alts get no guard and return `-1`.
+/// a return with precedence zero and the alternative's label to every
+/// alternative of a targeted nonterminal.
+/// Unlabeled alternatives get no guard and return `(0, NO_LABEL)`.
 fn decorate_alt(alt: Alternative, labels: &[String]) -> Alternative {
     let label_index = alt
         .label
         .as_ref()
-        .and_then(|label| labels.iter().position(|l| l == label).map(|p| p as u32));
+        .and_then(|label| labels.iter().position(|l| l == label));
 
     let mut symbols = Vec::with_capacity(alt.symbols.len() + 2);
     if let Some(bit) = label_index {
-        symbols.push(exclude_guard(bit));
+        symbols.push(exclude_guard(bit as u32));
     }
     symbols.extend(alt.symbols);
-    let return_value: i64 = label_index.map_or(-1, |bit| bit as i64);
-    symbols.push(Symbol::Return(Expr::Int(return_value)));
+    symbols.push(Symbol::Return(return_value::with_label(
+        Expr::Int(0),
+        label_index,
+    )));
     Alternative {
         symbols,
         label: alt.label,
@@ -225,8 +227,8 @@ fn rewrite_target_refs(symbol: Symbol, targets: &FxHashMap<String, Vec<String>>)
             label,
             symbol: Box::new(rewrite_target_refs(*symbol, targets)),
         },
-        Symbol::Binding { name, symbol } => Symbol::Binding {
-            name,
+        Symbol::Binding { pattern, symbol } => Symbol::Binding {
+            pattern,
             symbol: Box::new(rewrite_target_refs(*symbol, targets)),
         },
         Symbol::Restricted {
@@ -237,5 +239,43 @@ fn rewrite_target_refs(symbol: Symbol, targets: &FxHashMap<String, Vec<String>>)
             restrictions,
         },
         other => other,
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::{alternative, exclude, id, lit, priority_level, syntax_rule};
+
+    //   E = "a" #blocked
+    //     | "b"
+    //   S = E !blocked
+    //
+    // After exclusion desugaring:
+    //
+    //   E(e: i32)
+    //     = [1 & e == 0] "a" return (0, 0)        #blocked
+    //     | "b"              return (0, NO_LABEL)
+    //   S = E(1)
+    #[test]
+    fn unlabeled_alternative_returns_no_label_before_precedence_desugaring() {
+        let rules = transform(vec![
+            syntax_rule!("E" => priority_level!(
+                alternative!(lit!("a"); #blocked),
+                alternative!(lit!("b"))
+            )),
+            syntax_rule!("S" => priority_level!(
+                alternative!(exclude!(id!("E"), "blocked"))
+            )),
+        ]);
+        let alternatives = &rules[0].priority_levels[0].alternatives;
+        assert_eq!(
+            alternatives[0].symbols.last().unwrap().to_string(),
+            "return (0, 0)"
+        );
+        assert_eq!(
+            alternatives[1].symbols.last().unwrap().to_string(),
+            "return (0, NO_LABEL)"
+        );
     }
 }

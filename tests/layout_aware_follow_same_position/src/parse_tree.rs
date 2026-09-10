@@ -129,7 +129,7 @@ pub trait OptNode {
     type Inner;
     fn value(&self) -> Option<&Self::Inner>;
 }
-// S = Id !>> Excl !>>> Semi
+// S = Id
 #[derive(Debug)]
 pub enum S<'a> {
     Alt0 { id: Token, span: Span },
@@ -244,7 +244,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for LayoutAwareFollowSamePositionParseT
         match nonterminal_node.nonterminal_id {
             // S
             NonterminalId(0) => match nonterminal_node.return_slot {
-                // S : Id !>> Excl !>>> Semi.
+                // S = Id
                 SlotId(1) => {
                     let [id] = children.into_array::<1usize>();
                     ParseTree::S(self.arena.alloc(S::Alt0 {
@@ -256,7 +256,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for LayoutAwareFollowSamePositionParseT
             },
             // StartS
             NonterminalId(1) => match nonterminal_node.return_slot {
-                // S : WS start:S WS.
+                // StartS = WS start:S WS
                 SlotId(5) => {
                     let [ws_0, start, ws_2] = children.into_array::<3usize>();
                     ParseTree::StartS(self.arena.alloc(Start {

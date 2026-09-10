@@ -232,7 +232,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for ExceptLexicalParseTreeBuilder<'a> {
         match nonterminal_node.nonterminal_id {
             // S
             NonterminalId(0) => match nonterminal_node.return_slot {
-                // S : Identifier.
+                // S = Identifier
                 SlotId(1) => {
                     let [identifier] = children.into_array::<1usize>();
                     ParseTree::S(self.arena.alloc(S::Alt0 {
@@ -244,7 +244,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for ExceptLexicalParseTreeBuilder<'a> {
             },
             // StartS
             NonterminalId(1) => match nonterminal_node.return_slot {
-                // S : start:S.
+                // StartS = start:S
                 SlotId(3) => {
                     let [start] = children.into_array::<1usize>();
                     ParseTree::StartS(self.arena.alloc(Start {

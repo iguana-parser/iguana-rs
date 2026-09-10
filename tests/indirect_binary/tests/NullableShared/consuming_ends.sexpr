@@ -1,0 +1,35 @@
+(Start
+  WS
+  (Amb
+    (NullableShared
+      (NullableSharedOperand
+        (NullableSharedMaybe
+          (NullableShared?
+            #1=(NullableShared "j")))
+        WS
+        #2=(NullableShared "j")
+        WS
+        (NullableSharedMaybe NullableShared?))
+      WS
+      "+"
+      WS
+      #3=(NullableSharedOperand
+        (NullableSharedMaybe NullableShared?)
+        WS
+        (NullableShared "j")
+        WS
+        (NullableSharedMaybe NullableShared?)))
+    (NullableShared
+      (NullableSharedOperand
+        (NullableSharedMaybe NullableShared?)
+        WS
+        #1#
+        WS
+        (NullableSharedMaybe
+          (NullableShared?
+            #2#)))
+      WS
+      "+"
+      WS
+      #3#))
+  WS)

@@ -968,7 +968,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for AmbiguousExprUnsafeParser<'i, 'arena> {
             );
         }
         for env in self.envs() {
-            stats.record("Env::bindings: InlineVec", env.bindings.len());
+            stats.record("Env::bindings: Bindings", env.bindings.len());
         }
         for m in self.gss_nodes_index.iter() {
             stats.record("Parser::gss_nodes_index: InlineMap", m.len());

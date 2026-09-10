@@ -126,7 +126,7 @@ pub trait OptNode {
     type Inner;
     fn value(&self) -> Option<&Self::Inner>;
 }
-// S = x:Name !>> Eq Tail
+// S = x:Name Tail
 #[derive(Debug)]
 pub enum S<'a> {
     Alt0 { x: Token, tail: Token, span: Span },
@@ -244,7 +244,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for LabeledFollowRestrictionParseTreeBu
         match nonterminal_node.nonterminal_id {
             // S
             NonterminalId(0) => match nonterminal_node.return_slot {
-                // S : x:Name !>> Eq Tail.
+                // S = x:Name Tail
                 SlotId(2) => {
                     let [x, tail] = children.into_array::<2usize>();
                     ParseTree::S(self.arena.alloc(S::Alt0 {
@@ -257,7 +257,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for LabeledFollowRestrictionParseTreeBu
             },
             // StartS
             NonterminalId(1) => match nonterminal_node.return_slot {
-                // S : start:S.
+                // StartS = start:S
                 SlotId(4) => {
                     let [start] = children.into_array::<1usize>();
                     ParseTree::StartS(self.arena.alloc(Start {

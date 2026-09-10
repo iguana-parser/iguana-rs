@@ -584,7 +584,7 @@ pub enum BeforeQ<'a> {
 }
 #[derive(Debug)]
 pub enum UnexpectedFirst<'a> {
-    // UnexpectedFirst = Identifier \ Keyword
+    // UnexpectedFirst = Identifier
     Alt0 {
         identifier: Token,
         span: Span,
@@ -605,7 +605,7 @@ pub enum ExcludedFirst<'a> {
         lit_1: Token,
         span: Span,
     },
-    // ExcludedFirst = Identifier \ Keyword
+    // ExcludedFirst = Identifier
     Alt1 {
         identifier: Token,
         span: Span,
@@ -1642,7 +1642,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for ErrorUnionParseTreeBuilder<'a> {
         match nonterminal_node.nonterminal_id {
             // T
             NonterminalId(0) => match nonterminal_node.return_slot {
-                // T : "[" BeforeP Layout P Layout "]".
+                // T = "[" BeforeP Layout P Layout "]"
                 SlotId(6) => {
                     let [lit_0, before_p, layout_2, p, layout_4, lit_5] =
                         children.into_array::<6usize>();
@@ -1656,7 +1656,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for ErrorUnionParseTreeBuilder<'a> {
                         span: nonterminal_node.span,
                     }))
                 }
-                // T : "[" BeforeQ Layout Q Layout "]".
+                // T = "[" BeforeQ Layout Q Layout "]"
                 SlotId(13) => {
                     let [lit_0, before_q, layout_2, q, layout_4, lit_5] =
                         children.into_array::<6usize>();
@@ -1674,7 +1674,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for ErrorUnionParseTreeBuilder<'a> {
             },
             // U
             NonterminalId(1) => match nonterminal_node.return_slot {
-                // U : "[" BeforeQ Layout Q Layout "]".
+                // U = "[" BeforeQ Layout Q Layout "]"
                 SlotId(20) => {
                     let [lit_0, before_q, layout_2, q, layout_4, lit_5] =
                         children.into_array::<6usize>();
@@ -1688,7 +1688,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for ErrorUnionParseTreeBuilder<'a> {
                         span: nonterminal_node.span,
                     }))
                 }
-                // U : "[" BeforeP Layout P Layout "]".
+                // U = "[" BeforeP Layout P Layout "]"
                 SlotId(27) => {
                     let [lit_0, before_p, layout_2, p, layout_4, lit_5] =
                         children.into_array::<6usize>();
@@ -1706,7 +1706,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for ErrorUnionParseTreeBuilder<'a> {
             },
             // P
             NonterminalId(2) => match nonterminal_node.return_slot {
-                // P : "p".
+                // P = "p"
                 SlotId(29) => {
                     let [lit_0] = children.into_array::<1usize>();
                     ParseTree::P(self.arena.alloc(P::Alt0 {
@@ -1714,7 +1714,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for ErrorUnionParseTreeBuilder<'a> {
                         span: nonterminal_node.span,
                     }))
                 }
-                // P : Word.
+                // P = Word
                 SlotId(31) => {
                     let [word] = children.into_array::<1usize>();
                     ParseTree::P(self.arena.alloc(P::Alt1 {
@@ -1726,7 +1726,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for ErrorUnionParseTreeBuilder<'a> {
             },
             // Q
             NonterminalId(3) => match nonterminal_node.return_slot {
-                // Q : "q".
+                // Q = "q"
                 SlotId(33) => {
                     let [lit_0] = children.into_array::<1usize>();
                     ParseTree::Q(self.arena.alloc(Q::Alt0 {
@@ -1738,7 +1738,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for ErrorUnionParseTreeBuilder<'a> {
             },
             // BeforeP
             NonterminalId(4) => match nonterminal_node.return_slot {
-                // BeforeP : "x".
+                // BeforeP = "x"
                 SlotId(35) => {
                     let [lit_0] = children.into_array::<1usize>();
                     ParseTree::BeforeP(self.arena.alloc(BeforeP::Alt0 {
@@ -1746,7 +1746,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for ErrorUnionParseTreeBuilder<'a> {
                         span: nonterminal_node.span,
                     }))
                 }
-                // BeforeP : "x" Layout "y".
+                // BeforeP = "x" Layout "y"
                 SlotId(39) => {
                     let [lit_0, layout, lit_2] = children.into_array::<3usize>();
                     ParseTree::BeforeP(self.arena.alloc(BeforeP::Alt1 {
@@ -1760,7 +1760,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for ErrorUnionParseTreeBuilder<'a> {
             },
             // BeforeQ
             NonterminalId(5) => match nonterminal_node.return_slot {
-                // BeforeQ : "x".
+                // BeforeQ = "x"
                 SlotId(41) => {
                     let [lit_0] = children.into_array::<1usize>();
                     ParseTree::BeforeQ(self.arena.alloc(BeforeQ::Alt0 {
@@ -1768,7 +1768,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for ErrorUnionParseTreeBuilder<'a> {
                         span: nonterminal_node.span,
                     }))
                 }
-                // BeforeQ : "x" Layout "z".
+                // BeforeQ = "x" Layout "z"
                 SlotId(45) => {
                     let [lit_0, layout, lit_2] = children.into_array::<3usize>();
                     ParseTree::BeforeQ(self.arena.alloc(BeforeQ::Alt1 {
@@ -1782,7 +1782,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for ErrorUnionParseTreeBuilder<'a> {
             },
             // UnexpectedFirst
             NonterminalId(6) => match nonterminal_node.return_slot {
-                // UnexpectedFirst : Identifier \ Keyword.
+                // UnexpectedFirst = Identifier
                 SlotId(47) => {
                     let [identifier] = children.into_array::<1usize>();
                     ParseTree::UnexpectedFirst(self.arena.alloc(UnexpectedFirst::Alt0 {
@@ -1790,7 +1790,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for ErrorUnionParseTreeBuilder<'a> {
                         span: nonterminal_node.span,
                     }))
                 }
-                // UnexpectedFirst : Identifier "!".
+                // UnexpectedFirst = Identifier "!"
                 SlotId(50) => {
                     let [identifier, lit_1] = children.into_array::<2usize>();
                     ParseTree::UnexpectedFirst(self.arena.alloc(UnexpectedFirst::Alt1 {
@@ -1803,7 +1803,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for ErrorUnionParseTreeBuilder<'a> {
             },
             // ExcludedFirst
             NonterminalId(7) => match nonterminal_node.return_slot {
-                // ExcludedFirst : Identifier "!".
+                // ExcludedFirst = Identifier "!"
                 SlotId(53) => {
                     let [identifier, lit_1] = children.into_array::<2usize>();
                     ParseTree::ExcludedFirst(self.arena.alloc(ExcludedFirst::Alt0 {
@@ -1812,7 +1812,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for ErrorUnionParseTreeBuilder<'a> {
                         span: nonterminal_node.span,
                     }))
                 }
-                // ExcludedFirst : Identifier \ Keyword.
+                // ExcludedFirst = Identifier
                 SlotId(55) => {
                     let [identifier] = children.into_array::<1usize>();
                     ParseTree::ExcludedFirst(self.arena.alloc(ExcludedFirst::Alt1 {
@@ -1824,7 +1824,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for ErrorUnionParseTreeBuilder<'a> {
             },
             // Layout
             NonterminalId(8) => match nonterminal_node.return_slot {
-                // Layout : (WS | Newline)*.
+                // Layout = (WS | Newline)*
                 SlotId(57) => {
                     let [star_0] = children.into_array::<1usize>();
                     ParseTree::Layout(self.arena.alloc(Layout::Alt0 {
@@ -1836,7 +1836,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for ErrorUnionParseTreeBuilder<'a> {
             },
             // Alt_0
             NonterminalId(9) => match nonterminal_node.return_slot {
-                // (WS | Newline) : WS.
+                // Alt_0 = WS
                 SlotId(59) => {
                     let [ws] = children.into_array::<1usize>();
                     ParseTree::Alt0(self.arena.alloc(Alt0::Alt0 {
@@ -1844,7 +1844,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for ErrorUnionParseTreeBuilder<'a> {
                         span: nonterminal_node.span,
                     }))
                 }
-                // (WS | Newline) : Newline.
+                // Alt_0 = Newline
                 SlotId(61) => {
                     let [newline] = children.into_array::<1usize>();
                     ParseTree::Alt0(self.arena.alloc(Alt0::Alt1 {
@@ -1856,7 +1856,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for ErrorUnionParseTreeBuilder<'a> {
             },
             // Plus_0
             NonterminalId(10) => match nonterminal_node.return_slot {
-                // (WS | Newline)+ : (WS | Newline)+ (WS | Newline).
+                // Plus_0 = (WS | Newline)+ (WS | Newline)
                 SlotId(64) => {
                     let [plus_0, alt_0] = children.into_array::<2usize>();
                     ParseTree::Plus0(self.arena.alloc(Plus0::Alt0 {
@@ -1865,7 +1865,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for ErrorUnionParseTreeBuilder<'a> {
                         span: nonterminal_node.span,
                     }))
                 }
-                // (WS | Newline)+ : (WS | Newline).
+                // Plus_0 = (WS | Newline)
                 SlotId(66) => {
                     let [alt_0] = children.into_array::<1usize>();
                     ParseTree::Plus0(self.arena.alloc(Plus0::Alt1 {
@@ -1877,7 +1877,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for ErrorUnionParseTreeBuilder<'a> {
             },
             // Opt_0
             NonterminalId(11) => match nonterminal_node.return_slot {
-                // (WS | Newline)+? : (WS | Newline)+.
+                // Opt_0 = (WS | Newline)+
                 SlotId(68) => {
                     let [plus_0] = children.into_array::<1usize>();
                     ParseTree::Opt0(self.arena.alloc(Opt0::Alt0 {
@@ -1885,7 +1885,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for ErrorUnionParseTreeBuilder<'a> {
                         span: nonterminal_node.span,
                     }))
                 }
-                // (WS | Newline)+? : .
+                // Opt_0 =
                 SlotId(69) => {
                     let [] = children.into_array::<0usize>();
                     ParseTree::Opt0(self.arena.alloc(Opt0::Alt1 {
@@ -1896,7 +1896,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for ErrorUnionParseTreeBuilder<'a> {
             },
             // Star_0
             NonterminalId(12) => match nonterminal_node.return_slot {
-                // (WS | Newline)* : (WS | Newline)+?.
+                // Star_0 = (WS | Newline)+?
                 SlotId(71) => {
                     let [opt_0] = children.into_array::<1usize>();
                     ParseTree::Star0(self.arena.alloc(Star0::Alt0 {
@@ -1908,7 +1908,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for ErrorUnionParseTreeBuilder<'a> {
             },
             // StartT
             NonterminalId(13) => match nonterminal_node.return_slot {
-                // T : Layout start:T Layout.
+                // StartT = Layout start:T Layout
                 SlotId(75) => {
                     let [layout_0, start, layout_2] = children.into_array::<3usize>();
                     ParseTree::StartT(self.arena.alloc(Start {
@@ -1922,7 +1922,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for ErrorUnionParseTreeBuilder<'a> {
             },
             // StartU
             NonterminalId(14) => match nonterminal_node.return_slot {
-                // U : Layout start:U Layout.
+                // StartU = Layout start:U Layout
                 SlotId(79) => {
                     let [layout_0, start, layout_2] = children.into_array::<3usize>();
                     ParseTree::StartU(self.arena.alloc(Start {
@@ -1936,7 +1936,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for ErrorUnionParseTreeBuilder<'a> {
             },
             // StartP
             NonterminalId(15) => match nonterminal_node.return_slot {
-                // P : Layout start:P Layout.
+                // StartP = Layout start:P Layout
                 SlotId(83) => {
                     let [layout_0, start, layout_2] = children.into_array::<3usize>();
                     ParseTree::StartP(self.arena.alloc(Start {
@@ -1950,7 +1950,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for ErrorUnionParseTreeBuilder<'a> {
             },
             // StartQ
             NonterminalId(16) => match nonterminal_node.return_slot {
-                // Q : Layout start:Q Layout.
+                // StartQ = Layout start:Q Layout
                 SlotId(87) => {
                     let [layout_0, start, layout_2] = children.into_array::<3usize>();
                     ParseTree::StartQ(self.arena.alloc(Start {
@@ -1964,7 +1964,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for ErrorUnionParseTreeBuilder<'a> {
             },
             // StartBeforeP
             NonterminalId(17) => match nonterminal_node.return_slot {
-                // BeforeP : Layout start:BeforeP Layout.
+                // StartBeforeP = Layout start:BeforeP Layout
                 SlotId(91) => {
                     let [layout_0, start, layout_2] = children.into_array::<3usize>();
                     ParseTree::StartBeforeP(self.arena.alloc(Start {
@@ -1978,7 +1978,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for ErrorUnionParseTreeBuilder<'a> {
             },
             // StartBeforeQ
             NonterminalId(18) => match nonterminal_node.return_slot {
-                // BeforeQ : Layout start:BeforeQ Layout.
+                // StartBeforeQ = Layout start:BeforeQ Layout
                 SlotId(95) => {
                     let [layout_0, start, layout_2] = children.into_array::<3usize>();
                     ParseTree::StartBeforeQ(self.arena.alloc(Start {
@@ -1992,7 +1992,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for ErrorUnionParseTreeBuilder<'a> {
             },
             // StartUnexpectedFirst
             NonterminalId(19) => match nonterminal_node.return_slot {
-                // UnexpectedFirst : Layout start:UnexpectedFirst Layout.
+                // StartUnexpectedFirst = Layout start:UnexpectedFirst Layout
                 SlotId(99) => {
                     let [layout_0, start, layout_2] = children.into_array::<3usize>();
                     ParseTree::StartUnexpectedFirst(self.arena.alloc(Start {
@@ -2006,7 +2006,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for ErrorUnionParseTreeBuilder<'a> {
             },
             // StartExcludedFirst
             NonterminalId(20) => match nonterminal_node.return_slot {
-                // ExcludedFirst : Layout start:ExcludedFirst Layout.
+                // StartExcludedFirst = Layout start:ExcludedFirst Layout
                 SlotId(103) => {
                     let [layout_0, start, layout_2] = children.into_array::<3usize>();
                     ParseTree::StartExcludedFirst(self.arena.alloc(Start {

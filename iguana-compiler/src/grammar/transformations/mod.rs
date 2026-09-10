@@ -9,6 +9,7 @@ pub mod exact_keyword_match;
 pub mod exclude_desugaring;
 pub mod layout_insertion;
 pub mod precedence_desugaring;
+pub(crate) mod return_value;
 
 /// Transforms a syntax rule by applying `f` to each individual symbol in every alternative.
 pub fn transform_syntax_rule<F>(rule: SyntaxRule, mut transform_symbol: F) -> SyntaxRule
@@ -94,8 +95,8 @@ where
             label,
             symbol: Box::new(transform_symbol(*symbol, f)),
         },
-        Symbol::Binding { name, symbol } => Symbol::Binding {
-            name,
+        Symbol::Binding { pattern, symbol } => Symbol::Binding {
+            pattern,
             symbol: Box::new(transform_symbol(*symbol, f)),
         },
         Symbol::Restricted {
@@ -148,7 +149,7 @@ pub fn visit_syntax_rule<'a>(rule: &'a SyntaxRule, f: &mut impl FnMut(&'a Symbol
     }
 }
 
-fn visit_symbol<'a>(symbol: &'a Symbol, f: &mut impl FnMut(&'a Symbol)) {
+pub(crate) fn visit_symbol<'a>(symbol: &'a Symbol, f: &mut impl FnMut(&'a Symbol)) {
     f(symbol);
     match symbol {
         Symbol::Labeled { symbol, .. }

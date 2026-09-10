@@ -1,0 +1,18 @@
+(Start
+  WS
+  (HeadLiteral
+    (HeadLiteralEnd
+      (HeadLiteral
+        (HeadLiteralEnd
+          (HeadLiteral "1"))
+        WS
+        "*"
+        WS
+        (HeadLiteralEnd
+          (HeadLiteral "1"))))
+    WS
+    "+"
+    WS
+    (HeadLiteralEnd
+      (HeadLiteral "1")))
+  WS)

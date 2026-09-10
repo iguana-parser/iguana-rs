@@ -619,7 +619,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for AmbiguousExprParseTreeBuilder<'a> {
         match nonterminal_node.nonterminal_id {
             // S
             NonterminalId(0) => match nonterminal_node.return_slot {
-                // S : E.
+                // S = E
                 SlotId(1) => {
                     let [e] = children.into_array::<1usize>();
                     ParseTree::S(self.arena.alloc(S::Alt0 {
@@ -631,7 +631,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for AmbiguousExprParseTreeBuilder<'a> {
             },
             // E
             NonterminalId(1) => match nonterminal_node.return_slot {
-                // E : E WS "." WS "f".
+                // E = E WS "." WS "f"
                 SlotId(7) => {
                     let [e, ws_1, lit_2, ws_3, lit_4] = children.into_array::<5usize>();
                     ParseTree::E(self.arena.alloc(E::Alt0 {
@@ -643,7 +643,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for AmbiguousExprParseTreeBuilder<'a> {
                         span: nonterminal_node.span,
                     }))
                 }
-                // E : E WS E.
+                // E = E WS E
                 SlotId(11) => {
                     let [e_0, ws, e_2] = children.into_array::<3usize>();
                     ParseTree::E(self.arena.alloc(E::Alt1 {
@@ -653,7 +653,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for AmbiguousExprParseTreeBuilder<'a> {
                         span: nonterminal_node.span,
                     }))
                 }
-                // E : E WS "*" WS E.
+                // E = E WS "*" WS E
                 SlotId(17) => {
                     let [e_0, ws_1, lit_2, ws_3, e_4] = children.into_array::<5usize>();
                     ParseTree::E(self.arena.alloc(E::Alt2 {
@@ -665,7 +665,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for AmbiguousExprParseTreeBuilder<'a> {
                         span: nonterminal_node.span,
                     }))
                 }
-                // E : E WS "+" WS E.
+                // E = E WS "+" WS E
                 SlotId(23) => {
                     let [e_0, ws_1, lit_2, ws_3, e_4] = children.into_array::<5usize>();
                     ParseTree::E(self.arena.alloc(E::Alt3 {
@@ -677,7 +677,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for AmbiguousExprParseTreeBuilder<'a> {
                         span: nonterminal_node.span,
                     }))
                 }
-                // E : E WS "-" WS E.
+                // E = E WS "-" WS E
                 SlotId(29) => {
                     let [e_0, ws_1, lit_2, ws_3, e_4] = children.into_array::<5usize>();
                     ParseTree::E(self.arena.alloc(E::Alt4 {
@@ -689,7 +689,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for AmbiguousExprParseTreeBuilder<'a> {
                         span: nonterminal_node.span,
                     }))
                 }
-                // E : "-" WS E.
+                // E = "-" WS E
                 SlotId(33) => {
                     let [lit_0, ws, e] = children.into_array::<3usize>();
                     ParseTree::E(self.arena.alloc(E::Alt5 {
@@ -699,7 +699,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for AmbiguousExprParseTreeBuilder<'a> {
                         span: nonterminal_node.span,
                     }))
                 }
-                // E : "if" WS E WS "then" WS E WS "else" WS E.
+                // E = "if" WS E WS "then" WS E WS "else" WS E
                 SlotId(45) => {
                     let [
                         lit_0,
@@ -729,7 +729,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for AmbiguousExprParseTreeBuilder<'a> {
                         span: nonterminal_node.span,
                     }))
                 }
-                // E : E WS ";" WS E.
+                // E = E WS ";" WS E
                 SlotId(51) => {
                     let [e_0, ws_1, lit_2, ws_3, e_4] = children.into_array::<5usize>();
                     ParseTree::E(self.arena.alloc(E::Alt7 {
@@ -741,7 +741,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for AmbiguousExprParseTreeBuilder<'a> {
                         span: nonterminal_node.span,
                     }))
                 }
-                // E : "(" WS E WS ")".
+                // E = "(" WS E WS ")"
                 SlotId(57) => {
                     let [lit_0, ws_1, e, ws_3, lit_4] = children.into_array::<5usize>();
                     ParseTree::E(self.arena.alloc(E::Alt8 {
@@ -753,7 +753,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for AmbiguousExprParseTreeBuilder<'a> {
                         span: nonterminal_node.span,
                     }))
                 }
-                // E : "a".
+                // E = "a"
                 SlotId(59) => {
                     let [lit_0] = children.into_array::<1usize>();
                     ParseTree::E(self.arena.alloc(E::Alt9 {
@@ -765,7 +765,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for AmbiguousExprParseTreeBuilder<'a> {
             },
             // StartS
             NonterminalId(2) => match nonterminal_node.return_slot {
-                // S : WS start:S WS.
+                // StartS = WS start:S WS
                 SlotId(63) => {
                     let [ws_0, start, ws_2] = children.into_array::<3usize>();
                     ParseTree::StartS(self.arena.alloc(Start {
@@ -779,7 +779,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for AmbiguousExprParseTreeBuilder<'a> {
             },
             // StartE
             NonterminalId(3) => match nonterminal_node.return_slot {
-                // E : WS start:E WS.
+                // StartE = WS start:E WS
                 SlotId(67) => {
                     let [ws_0, start, ws_2] = children.into_array::<3usize>();
                     ParseTree::StartE(self.arena.alloc(Start {

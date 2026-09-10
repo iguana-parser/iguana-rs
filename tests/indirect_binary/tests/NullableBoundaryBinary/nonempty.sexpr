@@ -1,0 +1,17 @@
+(Start
+  WS
+  (NullableBoundaryBinary
+    (NullableBoundaryBinary "a")
+    WS
+    "*"
+    WS
+    (NullableBoundaryOperand
+      (NullableBoundaryBinary
+        (NullableBoundaryBinary "a")
+        WS
+        "+"
+        WS
+        (NullableBoundaryBinary "a"))
+      WS
+      (NullableBoundaryOpt "!")))
+  WS)

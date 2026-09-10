@@ -198,7 +198,7 @@ pub trait OptNode {
     type Inner;
     fn value(&self) -> Option<&Self::Inner>;
 }
-// SyntaxIdentifier = IdentifierChars \ Keyword \ BooleanLiteral \ NullLiteral
+// SyntaxIdentifier = IdentifierChars
 #[derive(Debug)]
 pub enum SyntaxIdentifier<'a> {
     Alt0 { identifier_chars: Token, span: Span },
@@ -391,7 +391,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for MultipleExceptParseTreeBuilder<'a> 
         match nonterminal_node.nonterminal_id {
             // SyntaxIdentifier
             NonterminalId(0) => match nonterminal_node.return_slot {
-                // SyntaxIdentifier : IdentifierChars \ Keyword \ BooleanLiteral \ NullLiteral.
+                // SyntaxIdentifier = IdentifierChars
                 SlotId(1) => {
                     let [identifier_chars] = children.into_array::<1usize>();
                     ParseTree::SyntaxIdentifier(self.arena.alloc(SyntaxIdentifier::Alt0 {
@@ -403,7 +403,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for MultipleExceptParseTreeBuilder<'a> 
             },
             // LexicalIdentifier
             NonterminalId(1) => match nonterminal_node.return_slot {
-                // LexicalIdentifier : Identifier.
+                // LexicalIdentifier = Identifier
                 SlotId(3) => {
                     let [identifier] = children.into_array::<1usize>();
                     ParseTree::LexicalIdentifier(self.arena.alloc(LexicalIdentifier::Alt0 {
@@ -415,7 +415,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for MultipleExceptParseTreeBuilder<'a> 
             },
             // StartSyntaxIdentifier
             NonterminalId(2) => match nonterminal_node.return_slot {
-                // SyntaxIdentifier : start:SyntaxIdentifier.
+                // StartSyntaxIdentifier = start:SyntaxIdentifier
                 SlotId(5) => {
                     let [start] = children.into_array::<1usize>();
                     ParseTree::StartSyntaxIdentifier(self.arena.alloc(Start {
@@ -429,7 +429,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for MultipleExceptParseTreeBuilder<'a> 
             },
             // StartLexicalIdentifier
             NonterminalId(3) => match nonterminal_node.return_slot {
-                // LexicalIdentifier : start:LexicalIdentifier.
+                // StartLexicalIdentifier = start:LexicalIdentifier
                 SlotId(7) => {
                     let [start] = children.into_array::<1usize>();
                     ParseTree::StartLexicalIdentifier(self.arena.alloc(Start {

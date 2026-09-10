@@ -1,0 +1,14 @@
+(Start
+  WS
+  (UnaryMixedLeft
+    (UnaryMixedLeft
+      (UnaryMixedLeft "a")
+      WS
+      "+"
+      WS
+      (UnaryMixedLeft "a"))
+    WS
+    "+"
+    WS
+    (UnaryMixedLeft "a"))
+  WS)

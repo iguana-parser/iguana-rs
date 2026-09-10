@@ -1,0 +1,209 @@
+grammar IndirectBinary
+
+S = E
+
+E = "a"
+  > left L "*" L
+  > left E "+" L
+  |      L "-" E
+
+L = E
+
+Only = "b"
+  > left OnlyOperand "^" OnlyOperand
+
+OnlyOperand = Only
+
+Cross = "c"
+  > left Cross "-" Foreign
+  > left Cross "+" Foreign
+
+Foreign = "d"
+  > left Foreign "*" Foreign
+  |      Cross
+
+Cascade = "t"
+  > left Cascade "+" Cascade
+  >      Ternary
+
+Ternary = Cascade "?" Cascade ":" Cascade
+
+Nullable = "n"
+  > left NullableLeft "%" NullableRight
+
+NullableLeft = "x"? Nullable
+
+NullableRight = Nullable
+
+RightExpr = "r"
+  > right RightOperand ">" RightOperand
+
+RightOperand = RightExpr
+
+NoneExpr = "z"
+  > none NoneOperand "=" NoneOperand
+
+NoneOperand = NoneExpr
+
+Excluded = "e"
+  > left ExcludedOperand "&" ExcludedOperand
+
+ExcludedOperand
+  = Excluded                 #plain
+  | "(" ExcludedOperand ")" #paren
+
+Filtered = ExcludedOperand !paren
+
+LexNullable = "q"
+  > left LexNullableLeft "/" LexNullableRight
+
+LexNullableLeft = Digits LexNullable
+
+LexNullableRight = LexNullable
+
+MixedScale = "m"
+  > left MixedOperand "~" MixedRight
+
+MixedOperand = MixedScale | MixedForeign
+
+MixedRight = MixedScale
+
+MixedForeign = "f"
+  > left MixedForeign "!" MixedForeign
+
+@Regex
+Digits = [0-9]*
+
+@Layout @Regex
+WS = [\ ]*
+
+Packed = "p"
+  > right PackedOperand "+" PackedOperand
+
+PackedOperand = PackedMiddle
+
+PackedMiddle = Packed #plain | "(" Packed ")" #paren
+
+PackedFiltered = PackedMiddle !paren
+
+NullableRecursive = "u"
+  > right NullableOperand "+" NullableRecursive
+
+NullableOperand = NullableMaybe NullableRecursive
+
+NullableMaybe = NullableRecursive?
+
+NullableLexRecursive = "v"
+  > right NullableLexOperand "+" NullableLexRecursive
+
+NullableLexOperand = NullableLexMaybe NullableLexRecursive
+
+NullableLexMaybe = NullableLexRecursive | Digits
+
+NullableSuffix = "w"
+  > left NullableSuffix "+" NullableSuffixOperand
+
+NullableSuffixOperand = NullableSuffix NullableSuffixMaybe
+
+NullableSuffixMaybe = NullableSuffix?
+
+NullableShared = "j"
+  > right NullableSharedOperand "+" NullableSharedOperand
+
+NullableSharedOperand = NullableSharedMaybe NullableShared NullableSharedMaybe
+
+NullableSharedMaybe = NullableShared?
+
+OwnLabel = "k" #atom
+  > left OwnOperand !blocked "+" OwnOperand #binary
+
+OwnOperand = OwnLabel #allowed | "(" OwnLabel ")" #blocked
+
+OwnHeadFiltered = OwnLabel !atom
+
+ExcludeOnly = "s" #blocked | "t"
+
+ExcludeOnlyFiltered = ExcludeOnly !blocked
+
+Absent = "a"
+  > Absent "*" Absent
+  > AbsentOperand "+" AbsentOperand
+AbsentOperand = Absent | "b"
+
+ClosedPrefix = "a"
+  > ClosedPrefix "+" ClosedPrefix
+  > "pre" ClosedPrefixBody
+ClosedPrefixBody = ClosedPrefix | "b"
+
+ClosedPostfix = "a"
+  > "pre" ClosedPostfix
+  > ClosedPostfixBody "!"
+ClosedPostfixBody = ClosedPostfix | "b"
+
+HeadChoice = "a"
+  > left HeadOperand "+" HeadOperand | Inner
+HeadOperand = HeadChoice
+Inner = "b"
+  > left Inner "*" Inner
+
+UnaryMixedLeft = left UnaryMixedLeft "+" UnaryMixedLeft
+  | "-" UnaryMixedLeft | UnaryMixedLeft "!" | "a"
+
+UnaryMixedRight = right UnaryMixedRight "+" UnaryMixedRight
+  | "-" UnaryMixedRight | UnaryMixedRight "!" | "a"
+
+UnaryMixedNone = none UnaryMixedNone "+" UnaryMixedNone
+  | "-" UnaryMixedNone | UnaryMixedNone "!" | "a"
+
+Dynamic = right DynamicOperand !closed "+" DynamicOperand #binary
+  | "-" DynamicOperand #prefix | DynamicOperand "!" #postfix | "a" #atom
+DynamicOperand = Dynamic #pass | "b" #closed
+DynamicFiltered = DynamicOperand !closed
+DynamicHeadFiltered = Dynamic !atom
+
+DynamicMulti = left DynamicMultiOperand "+" DynamicMultiOperand
+  | "-" DynamicMultiOperand | DynamicMultiOperand "!"
+  > right DynamicMultiOperand ";" DynamicMultiOperand
+  > "a"
+DynamicMultiOperand = DynamicMulti | "b"
+
+// A nullable suffix or prefix can consume input and hide the recursive end.
+NullableBoundaryPrefix = "a"
+  > "-" NullableBoundaryRight
+  > left NullableBoundaryPrefix "+" NullableBoundaryPrefix
+NullableBoundaryRight = NullableBoundaryPrefix NullableBoundaryOpt
+NullableBoundaryOpt = "!" | ()
+
+NullableBoundaryPostfix = "a"
+  > NullableBoundaryLeft "-"
+  > right NullableBoundaryPostfix "+" NullableBoundaryPostfix
+NullableBoundaryLeft = NullableBoundaryOpt NullableBoundaryPostfix
+
+NullableBoundaryBinary = "a"
+  > left NullableBoundaryBinary "*" NullableBoundaryOperand
+  > left NullableBoundaryBinary "+" NullableBoundaryBinary
+NullableBoundaryOperand = NullableBoundaryBinary NullableBoundaryOpt
+
+ClosedLeftAssoc = "a" > left ClosedLeftOperand "+" ClosedLeftAssoc
+ClosedLeftOperand = ClosedLeftAssoc | "!"
+ClosedRightAssoc = "a" > right ClosedRightAssoc "+" ClosedRightOperand
+ClosedRightOperand = ClosedRightAssoc | "!"
+
+// An exclusion inside an intermediate nonterminal checks the label returned by its own call.
+IndirectExclude = "a" #atom
+  > left IndirectExcludeOperand "+" IndirectExcludeOperand #binary
+IndirectExcludeOperand = IndirectExclude !atom #pass | "b" #closed
+IndirectExcludeFiltered = IndirectExcludeOperand !closed
+
+// A literal declared only in the operand does not reach the expression head.
+// These declarations intentionally leave literal-operand groupings ambiguous.
+OperandLiteral = "x"
+  > left OperandLiteralEnd "*" OperandLiteralEnd
+  > left OperandLiteralEnd "+" OperandLiteralEnd
+OperandLiteralEnd = OperandLiteral | "1"
+
+// Declaring the literal in the head makes every operand reach a recursive end.
+HeadLiteral = "x" | "1"
+  > left HeadLiteralEnd "*" HeadLiteralEnd
+  > left HeadLiteralEnd "+" HeadLiteralEnd
+HeadLiteralEnd = HeadLiteral

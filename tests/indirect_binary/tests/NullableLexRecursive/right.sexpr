@@ -1,0 +1,35 @@
+(Start
+  WS
+  (Amb
+    (NullableLexRecursive
+      #1=(NullableLexOperand
+        #2=(NullableLexMaybe Digits)
+        WS
+        (NullableLexRecursive "v"))
+      WS
+      "+"
+      WS
+      (NullableLexRecursive
+        (NullableLexOperand
+          (NullableLexMaybe Digits)
+          WS
+          (NullableLexRecursive "v"))
+        WS
+        "+"
+        WS
+        #3=(NullableLexRecursive "v")))
+    (NullableLexRecursive
+      (NullableLexOperand
+        #2#
+        WS
+        (NullableLexRecursive
+          #1#
+          WS
+          "+"
+          WS
+          (NullableLexRecursive "v")))
+      WS
+      "+"
+      WS
+      #3#))
+  WS)

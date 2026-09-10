@@ -1,0 +1,32 @@
+(Start
+  WS
+  (Amb
+    (NullableBoundaryBinary
+      #1=(NullableBoundaryBinary "a")
+      WS
+      "*"
+      WS
+      (NullableBoundaryOperand
+        (NullableBoundaryBinary
+          #2=(NullableBoundaryBinary "a")
+          WS
+          "+"
+          WS
+          #3=(NullableBoundaryBinary "a"))
+        WS
+        NullableBoundaryOpt))
+    (NullableBoundaryBinary
+      (NullableBoundaryBinary
+        #1#
+        WS
+        "*"
+        WS
+        (NullableBoundaryOperand
+          #2#
+          WS
+          NullableBoundaryOpt))
+      WS
+      "+"
+      WS
+      #3#))
+  WS)

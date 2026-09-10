@@ -96,10 +96,10 @@ fn strip_layout_aware_restrictions(symbol: Symbol) -> (Symbol, Vec<Identifier>) 
             };
             (symbol, stripped)
         }
-        Symbol::Binding { name, symbol } => {
+        Symbol::Binding { pattern, symbol } => {
             let (symbol, stripped) = strip_layout_aware_restrictions(*symbol);
             let symbol = Symbol::Binding {
-                name,
+                pattern,
                 symbol: Box::new(symbol),
             };
             (symbol, stripped)
@@ -124,8 +124,8 @@ fn add_follow_restriction(symbol: Symbol, follow: Vec<Identifier>) -> Symbol {
             label,
             symbol: Box::new(add_follow_restriction(*symbol, follow)),
         },
-        Symbol::Binding { name, symbol } => Symbol::Binding {
-            name,
+        Symbol::Binding { pattern, symbol } => Symbol::Binding {
+            pattern,
             symbol: Box::new(add_follow_restriction(*symbol, follow)),
         },
         Symbol::Restricted {

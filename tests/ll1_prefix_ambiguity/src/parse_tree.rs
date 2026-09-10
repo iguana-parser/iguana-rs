@@ -357,7 +357,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for Ll1PrefixAmbiguityParseTreeBuilder<
         match nonterminal_node.nonterminal_id {
             // E
             NonterminalId(0) => match nonterminal_node.return_slot {
-                // E : Expr.
+                // E = Expr
                 SlotId(1) => {
                     let [expr] = children.into_array::<1usize>();
                     ParseTree::E(self.arena.alloc(E::Alt0 {
@@ -369,7 +369,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for Ll1PrefixAmbiguityParseTreeBuilder<
             },
             // Expr
             NonterminalId(1) => match nonterminal_node.return_slot {
-                // Expr : Int "." Id.
+                // Expr = Int "." Id
                 SlotId(5) => {
                     let [int, lit_1, id] = children.into_array::<3usize>();
                     ParseTree::Expr(self.arena.alloc(Expr::Alt0 {
@@ -379,7 +379,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for Ll1PrefixAmbiguityParseTreeBuilder<
                         span: nonterminal_node.span,
                     }))
                 }
-                // Expr : Float.
+                // Expr = Float
                 SlotId(7) => {
                     let [float] = children.into_array::<1usize>();
                     ParseTree::Expr(self.arena.alloc(Expr::Alt1 {
@@ -391,7 +391,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for Ll1PrefixAmbiguityParseTreeBuilder<
             },
             // StartE
             NonterminalId(2) => match nonterminal_node.return_slot {
-                // E : start:E.
+                // StartE = start:E
                 SlotId(9) => {
                     let [start] = children.into_array::<1usize>();
                     ParseTree::StartE(self.arena.alloc(Start {
@@ -405,7 +405,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for Ll1PrefixAmbiguityParseTreeBuilder<
             },
             // StartExpr
             NonterminalId(3) => match nonterminal_node.return_slot {
-                // Expr : start:Expr.
+                // StartExpr = start:Expr
                 SlotId(11) => {
                     let [start] = children.into_array::<1usize>();
                     ParseTree::StartExpr(self.arena.alloc(Start {

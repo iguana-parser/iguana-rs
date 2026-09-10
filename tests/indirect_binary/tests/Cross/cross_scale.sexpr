@@ -1,0 +1,14 @@
+(Start
+  WS
+  (Cross
+    (Cross "c")
+    WS
+    "-"
+    WS
+    (Foreign
+      (Foreign "d")
+      WS
+      "*"
+      WS
+      (Foreign "d")))
+  WS)

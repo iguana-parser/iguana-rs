@@ -1,0 +1,12 @@
+(Start
+  WS
+  (NullableLexRecursive
+    (NullableLexOperand
+      (NullableLexMaybe Digits)
+      WS
+      (NullableLexRecursive "v"))
+    WS
+    "+"
+    WS
+    (NullableLexRecursive "v"))
+  WS)

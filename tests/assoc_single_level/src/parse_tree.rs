@@ -38,11 +38,11 @@ pub enum ParseTree<'a> {
     E(&'a E<'a>),
     F(&'a F<'a>),
     G(&'a G<'a>),
-    // E(0)
+    // E
     StartE(&'a Start<&'a E<'a>, ()>),
-    // F(0)
+    // F
     StartF(&'a Start<&'a F<'a>, ()>),
-    // G(0)
+    // G
     StartG(&'a Start<&'a G<'a>, ()>),
     Token(Token),
 }
@@ -187,14 +187,14 @@ pub trait OptNode {
 }
 #[derive(Debug)]
 pub enum E<'a> {
-    // E(p) = [1 >= p] l=E(p) [(l == 0) || (l >= 1)] "<" E(2) return 1
+    // E = E "<" E
     Alt0 {
         e_0: &'a E<'a>,
         lit_1: Token,
         e_2: &'a E<'a>,
         span: Span,
     },
-    // E(p) = "a" return 0
+    // E = "a"
     Alt1 {
         lit_0: Token,
         span: Span,
@@ -203,14 +203,14 @@ pub enum E<'a> {
 }
 #[derive(Debug)]
 pub enum F<'a> {
-    // F(p) = [1 >= p] l=F(p) [(l == 0) || (l >= 2)] "<" F(1) return 1
+    // F = F "<" F
     Alt0 {
         f_0: &'a F<'a>,
         lit_1: Token,
         f_2: &'a F<'a>,
         span: Span,
     },
-    // F(p) = "a" return 0
+    // F = "a"
     Alt1 {
         lit_0: Token,
         span: Span,
@@ -219,14 +219,14 @@ pub enum F<'a> {
 }
 #[derive(Debug)]
 pub enum G<'a> {
-    // G(p) = [1 >= p] l=G(p) [(l == 0) || (l >= 2)] "<" G(2) return 1
+    // G = G "<" G
     Alt0 {
         g_0: &'a G<'a>,
         lit_1: Token,
         g_2: &'a G<'a>,
         span: Span,
     },
-    // G(p) = "a" return 0
+    // G = "a"
     Alt1 {
         lit_0: Token,
         span: Span,
@@ -476,7 +476,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for AssocSingleLevelParseTreeBuilder<'a
         match nonterminal_node.nonterminal_id {
             // StartE
             NonterminalId(0) => match nonterminal_node.return_slot {
-                // E(0) : start:E(0).
+                // StartE = start:E
                 SlotId(1) => {
                     let [start] = children.into_array::<1usize>();
                     ParseTree::StartE(self.arena.alloc(Start {
@@ -490,7 +490,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for AssocSingleLevelParseTreeBuilder<'a
             },
             // StartF
             NonterminalId(1) => match nonterminal_node.return_slot {
-                // F(0) : start:F(0).
+                // StartF = start:F
                 SlotId(3) => {
                     let [start] = children.into_array::<1usize>();
                     ParseTree::StartF(self.arena.alloc(Start {
@@ -504,7 +504,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for AssocSingleLevelParseTreeBuilder<'a
             },
             // StartG
             NonterminalId(2) => match nonterminal_node.return_slot {
-                // G(0) : start:G(0).
+                // StartG = start:G
                 SlotId(5) => {
                     let [start] = children.into_array::<1usize>();
                     ParseTree::StartG(self.arena.alloc(Start {
@@ -518,7 +518,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for AssocSingleLevelParseTreeBuilder<'a
             },
             // E
             NonterminalId(3) => match nonterminal_node.return_slot {
-                // E : [1 >= p] l=E(p) [(l == 0) || (l >= 1)] "<" E(2) return 1.
+                // E = E "<" E
                 SlotId(12) => {
                     let [e_0, lit_1, e_2] = children.into_array::<3usize>();
                     ParseTree::E(self.arena.alloc(E::Alt0 {
@@ -528,7 +528,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for AssocSingleLevelParseTreeBuilder<'a
                         span: nonterminal_node.span,
                     }))
                 }
-                // E : "a" return 0.
+                // E = "a"
                 SlotId(15) => {
                     let [lit_0] = children.into_array::<1usize>();
                     ParseTree::E(self.arena.alloc(E::Alt1 {
@@ -540,7 +540,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for AssocSingleLevelParseTreeBuilder<'a
             },
             // F
             NonterminalId(4) => match nonterminal_node.return_slot {
-                // F : [1 >= p] l=F(p) [(l == 0) || (l >= 2)] "<" F(1) return 1.
+                // F = F "<" F
                 SlotId(22) => {
                     let [f_0, lit_1, f_2] = children.into_array::<3usize>();
                     ParseTree::F(self.arena.alloc(F::Alt0 {
@@ -550,7 +550,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for AssocSingleLevelParseTreeBuilder<'a
                         span: nonterminal_node.span,
                     }))
                 }
-                // F : "a" return 0.
+                // F = "a"
                 SlotId(25) => {
                     let [lit_0] = children.into_array::<1usize>();
                     ParseTree::F(self.arena.alloc(F::Alt1 {
@@ -562,7 +562,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for AssocSingleLevelParseTreeBuilder<'a
             },
             // G
             NonterminalId(5) => match nonterminal_node.return_slot {
-                // G : [1 >= p] l=G(p) [(l == 0) || (l >= 2)] "<" G(2) return 1.
+                // G = G "<" G
                 SlotId(32) => {
                     let [g_0, lit_1, g_2] = children.into_array::<3usize>();
                     ParseTree::G(self.arena.alloc(G::Alt0 {
@@ -572,7 +572,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for AssocSingleLevelParseTreeBuilder<'a
                         span: nonterminal_node.span,
                     }))
                 }
-                // G : "a" return 0.
+                // G = "a"
                 SlotId(35) => {
                     let [lit_0] = children.into_array::<1usize>();
                     ParseTree::G(self.arena.alloc(G::Alt1 {

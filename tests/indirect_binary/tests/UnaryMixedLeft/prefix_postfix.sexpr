@@ -1,0 +1,52 @@
+(Start
+  WS
+  (Amb
+    (Amb
+      (UnaryMixedLeft
+        "-"
+        WS
+        (UnaryMixedLeft
+          #1=(UnaryMixedLeft
+            #2=(UnaryMixedLeft "a")
+            WS
+            "+"
+            WS
+            #3=(UnaryMixedLeft "a"))
+          WS
+          "!"))
+      (UnaryMixedLeft
+        "-"
+        WS
+        (UnaryMixedLeft
+          #2#
+          WS
+          "+"
+          WS
+          #4=(UnaryMixedLeft
+            (UnaryMixedLeft "a")
+            WS
+            "!")))
+      (UnaryMixedLeft
+        #5=(UnaryMixedLeft
+          "-"
+          WS
+          #2#)
+        WS
+        "+"
+        WS
+        #4#))
+    (UnaryMixedLeft
+      (Amb
+        (UnaryMixedLeft
+          "-"
+          WS
+          #1#)
+        (UnaryMixedLeft
+          #5#
+          WS
+          "+"
+          WS
+          #3#))
+      WS
+      "!"))
+  WS)

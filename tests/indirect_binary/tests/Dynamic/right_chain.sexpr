@@ -1,0 +1,18 @@
+(Start
+  WS
+  (Dynamic
+    (DynamicOperand
+      (Dynamic "a"))
+    WS
+    "+"
+    WS
+    (DynamicOperand
+      (Dynamic
+        (DynamicOperand
+          (Dynamic "a"))
+        WS
+        "+"
+        WS
+        (DynamicOperand
+          (Dynamic "a")))))
+  WS)

@@ -1,0 +1,18 @@
+(Start
+  WS
+  (Only
+    (OnlyOperand
+      (Only
+        (OnlyOperand
+          (Only "b"))
+        WS
+        "^"
+        WS
+        (OnlyOperand
+          (Only "b"))))
+    WS
+    "^"
+    WS
+    (OnlyOperand
+      (Only "b")))
+  WS)

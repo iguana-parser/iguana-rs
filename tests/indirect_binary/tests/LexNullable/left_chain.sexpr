@@ -1,0 +1,38 @@
+(Start
+  WS
+  (Amb
+    (LexNullable
+      #1=(LexNullableLeft
+        Digits
+        WS
+        (LexNullable "q"))
+      WS
+      "/"
+      WS
+      (LexNullableRight
+        (LexNullable
+          (LexNullableLeft
+            Digits
+            WS
+            (LexNullable "q"))
+          WS
+          "/"
+          WS
+          #2=(LexNullableRight
+            (LexNullable "q")))))
+    (LexNullable
+      (LexNullableLeft
+        Digits
+        WS
+        (LexNullable
+          #1#
+          WS
+          "/"
+          WS
+          (LexNullableRight
+            (LexNullable "q"))))
+      WS
+      "/"
+      WS
+      #2#))
+  WS)

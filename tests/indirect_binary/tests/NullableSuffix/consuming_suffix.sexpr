@@ -1,0 +1,14 @@
+(Start
+  WS
+  (NullableSuffix
+    (NullableSuffix "w")
+    WS
+    "+"
+    WS
+    (NullableSuffixOperand
+      (NullableSuffix "w")
+      WS
+      (NullableSuffixMaybe
+        (NullableSuffix?
+          (NullableSuffix "w")))))
+  WS)

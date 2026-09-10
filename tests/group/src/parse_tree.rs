@@ -636,7 +636,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for GroupParseTreeBuilder<'a> {
         match nonterminal_node.nonterminal_id {
             // A
             NonterminalId(0) => match nonterminal_node.return_slot {
-                // A : (B C D).
+                // A = (B C D)
                 SlotId(1) => {
                     let [group_0] = children.into_array::<1usize>();
                     ParseTree::A(self.arena.alloc(A::Alt0 {
@@ -648,7 +648,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for GroupParseTreeBuilder<'a> {
             },
             // B
             NonterminalId(1) => match nonterminal_node.return_slot {
-                // B : "b".
+                // B = "b"
                 SlotId(3) => {
                     let [lit_0] = children.into_array::<1usize>();
                     ParseTree::B(self.arena.alloc(B::Alt0 {
@@ -660,7 +660,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for GroupParseTreeBuilder<'a> {
             },
             // C
             NonterminalId(2) => match nonterminal_node.return_slot {
-                // C : "c".
+                // C = "c"
                 SlotId(5) => {
                     let [lit_0] = children.into_array::<1usize>();
                     ParseTree::C(self.arena.alloc(C::Alt0 {
@@ -672,7 +672,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for GroupParseTreeBuilder<'a> {
             },
             // D
             NonterminalId(3) => match nonterminal_node.return_slot {
-                // D : "d".
+                // D = "d"
                 SlotId(7) => {
                     let [lit_0] = children.into_array::<1usize>();
                     ParseTree::D(self.arena.alloc(D::Alt0 {
@@ -684,7 +684,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for GroupParseTreeBuilder<'a> {
             },
             // Group_0
             NonterminalId(4) => match nonterminal_node.return_slot {
-                // (B C D) : B C D.
+                // Group_0 = B C D
                 SlotId(11) => {
                     let [b, c, d] = children.into_array::<3usize>();
                     ParseTree::Group0(self.arena.alloc(Group0::Alt0 {
@@ -698,7 +698,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for GroupParseTreeBuilder<'a> {
             },
             // StartA
             NonterminalId(5) => match nonterminal_node.return_slot {
-                // A : start:A.
+                // StartA = start:A
                 SlotId(13) => {
                     let [start] = children.into_array::<1usize>();
                     ParseTree::StartA(self.arena.alloc(Start {
@@ -712,7 +712,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for GroupParseTreeBuilder<'a> {
             },
             // StartB
             NonterminalId(6) => match nonterminal_node.return_slot {
-                // B : start:B.
+                // StartB = start:B
                 SlotId(15) => {
                     let [start] = children.into_array::<1usize>();
                     ParseTree::StartB(self.arena.alloc(Start {
@@ -726,7 +726,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for GroupParseTreeBuilder<'a> {
             },
             // StartC
             NonterminalId(7) => match nonterminal_node.return_slot {
-                // C : start:C.
+                // StartC = start:C
                 SlotId(17) => {
                     let [start] = children.into_array::<1usize>();
                     ParseTree::StartC(self.arena.alloc(Start {
@@ -740,7 +740,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for GroupParseTreeBuilder<'a> {
             },
             // StartD
             NonterminalId(8) => match nonterminal_node.return_slot {
-                // D : start:D.
+                // StartD = start:D
                 SlotId(19) => {
                     let [start] = children.into_array::<1usize>();
                     ParseTree::StartD(self.arena.alloc(Start {

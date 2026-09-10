@@ -47,11 +47,11 @@ pub enum ParseTree<'a> {
     Body(&'a Body<'a>),
     // S
     StartS(&'a Start<&'a S<'a>, Token>),
-    // E(0)
+    // E
     StartE(&'a Start<&'a E<'a>, Token>),
-    // Postfix(0)
+    // Postfix
     StartPostfix(&'a Start<&'a Postfix<'a>, Token>),
-    // Body(0)
+    // Body
     StartBody(&'a Start<&'a Body<'a>, Token>),
     Token(Token),
 }
@@ -226,7 +226,7 @@ pub trait OptNode {
     type Inner;
     fn value(&self) -> Option<&Self::Inner>;
 }
-// S = E(0)
+// S = E
 #[derive(Debug)]
 pub enum S<'a> {
     Alt0 { e: &'a E<'a>, span: Span },
@@ -234,12 +234,12 @@ pub enum S<'a> {
 }
 #[derive(Debug)]
 pub enum E<'a> {
-    // E(p) = "a" return 0
+    // E = "a"
     Alt0 {
         lit_0: Token,
         span: Span,
     },
-    // E(p) = [2 >= p] l=E(p) [(l == 0) || (l >= 2)] WS "+" WS E(2) return 2
+    // E = E WS "+" WS E
     Alt1 {
         e_0: &'a E<'a>,
         ws_1: Token,
@@ -248,14 +248,14 @@ pub enum E<'a> {
         e_4: &'a E<'a>,
         span: Span,
     },
-    // E(p) = [1 >= p] l=Postfix(p) [(l == 0) || (l >= 1)] return 0
+    // E = Postfix
     Alt2 {
         postfix: &'a Postfix<'a>,
         span: Span,
     },
     Amb(&'a [&'a E<'a>]),
 }
-// Postfix = r=Body(p) WS "!" return r
+// Postfix = Body WS "!"
 #[derive(Debug)]
 pub enum Postfix<'a> {
     Alt0 {
@@ -266,7 +266,7 @@ pub enum Postfix<'a> {
     },
     Amb(&'a [&'a Postfix<'a>]),
 }
-// Body = r=E(p) return r
+// Body = E
 #[derive(Debug)]
 pub enum Body<'a> {
     Alt0 { e: &'a E<'a>, span: Span },
@@ -612,7 +612,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectPostfixParseTreeBuilder<'a>
         match nonterminal_node.nonterminal_id {
             // S
             NonterminalId(0) => match nonterminal_node.return_slot {
-                // S : E(0).
+                // S = E
                 SlotId(1) => {
                     let [e] = children.into_array::<1usize>();
                     ParseTree::S(self.arena.alloc(S::Alt0 {
@@ -624,7 +624,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectPostfixParseTreeBuilder<'a>
             },
             // StartS
             NonterminalId(1) => match nonterminal_node.return_slot {
-                // S : WS start:S WS.
+                // StartS = WS start:S WS
                 SlotId(5) => {
                     let [ws_0, start, ws_2] = children.into_array::<3usize>();
                     ParseTree::StartS(self.arena.alloc(Start {
@@ -638,7 +638,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectPostfixParseTreeBuilder<'a>
             },
             // StartE
             NonterminalId(2) => match nonterminal_node.return_slot {
-                // E(0) : WS start:E(0) WS.
+                // StartE = WS start:E WS
                 SlotId(9) => {
                     let [ws_0, start, ws_2] = children.into_array::<3usize>();
                     ParseTree::StartE(self.arena.alloc(Start {
@@ -652,7 +652,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectPostfixParseTreeBuilder<'a>
             },
             // StartPostfix
             NonterminalId(3) => match nonterminal_node.return_slot {
-                // Postfix(0) : WS start:Postfix(0) WS.
+                // StartPostfix = WS start:Postfix WS
                 SlotId(13) => {
                     let [ws_0, start, ws_2] = children.into_array::<3usize>();
                     ParseTree::StartPostfix(self.arena.alloc(Start {
@@ -666,7 +666,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectPostfixParseTreeBuilder<'a>
             },
             // StartBody
             NonterminalId(4) => match nonterminal_node.return_slot {
-                // Body(0) : WS start:Body(0) WS.
+                // StartBody = WS start:Body WS
                 SlotId(17) => {
                     let [ws_0, start, ws_2] = children.into_array::<3usize>();
                     ParseTree::StartBody(self.arena.alloc(Start {
@@ -680,7 +680,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectPostfixParseTreeBuilder<'a>
             },
             // E
             NonterminalId(5) => match nonterminal_node.return_slot {
-                // E : "a" return 0.
+                // E = "a"
                 SlotId(20) => {
                     let [lit_0] = children.into_array::<1usize>();
                     ParseTree::E(self.arena.alloc(E::Alt0 {
@@ -688,7 +688,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectPostfixParseTreeBuilder<'a>
                         span: nonterminal_node.span,
                     }))
                 }
-                // E : [2 >= p] l=E(p) [(l == 0) || (l >= 2)] WS "+" WS E(2) return 2.
+                // E = E WS "+" WS E
                 SlotId(29) => {
                     let [e_0, ws_1, lit_2, ws_3, e_4] = children.into_array::<5usize>();
                     ParseTree::E(self.arena.alloc(E::Alt1 {
@@ -700,7 +700,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectPostfixParseTreeBuilder<'a>
                         span: nonterminal_node.span,
                     }))
                 }
-                // E : [1 >= p] l=Postfix(p) [(l == 0) || (l >= 1)] return 0.
+                // E = Postfix
                 SlotId(34) => {
                     let [postfix] = children.into_array::<1usize>();
                     ParseTree::E(self.arena.alloc(E::Alt2 {
@@ -712,7 +712,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectPostfixParseTreeBuilder<'a>
             },
             // Postfix
             NonterminalId(6) => match nonterminal_node.return_slot {
-                // Postfix : r=Body(p) WS "!" return r.
+                // Postfix = Body WS "!"
                 SlotId(39) => {
                     let [body, ws, lit_2] = children.into_array::<3usize>();
                     ParseTree::Postfix(self.arena.alloc(Postfix::Alt0 {
@@ -726,7 +726,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectPostfixParseTreeBuilder<'a>
             },
             // Body
             NonterminalId(7) => match nonterminal_node.return_slot {
-                // Body : r=E(p) return r.
+                // Body = E
                 SlotId(42) => {
                     let [e] = children.into_array::<1usize>();
                     ParseTree::Body(self.arena.alloc(Body::Alt0 {

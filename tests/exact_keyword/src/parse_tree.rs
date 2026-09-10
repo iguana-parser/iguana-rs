@@ -64,9 +64,9 @@ pub enum ParseTree<'a> {
     Expr(&'a Expr<'a>),
     // Stmt+
     Plus0(&'a Plus0<'a>),
-    // ([0-9 A-Z _ a-z] !<< "else" !>> [0-9 A-Z _ a-z] Stmt)
+    // ("else" Stmt)
     Group0(&'a Group0<'a>),
-    // ([0-9 A-Z _ a-z] !<< "else" !>> [0-9 A-Z _ a-z] Stmt)?
+    // ("else" Stmt)?
     Opt0(&'a Opt0<'a>),
     // Program
     StartProgram(&'a Start<&'a Program<'a>, Token>),
@@ -282,8 +282,7 @@ pub enum Stmt<'a> {
         lit_2: Token,
         span: Span,
     },
-    // Stmt = [0-9 A-Z _ a-z] !<< "if" !>> [0-9 A-Z _ a-z] WS "(" WS Expr WS ")" WS Stmt WS ([0-9
-    // A-Z _ a-z] !<< "else" !>> [0-9 A-Z _ a-z] Stmt)? #If
+    // Stmt = "if" WS "(" WS Expr WS ")" WS Stmt WS ("else" Stmt)? #If
     If {
         lit_0: Token,
         ws_1: Token,
@@ -298,7 +297,7 @@ pub enum Stmt<'a> {
         opt_0: &'a Opt0<'a>,
         span: Span,
     },
-    // Stmt = [0-9 A-Z _ a-z] !<< "assert" !>> [0-9 A-Z _ a-z] WS Expr WS ";" #Assert
+    // Stmt = "assert" WS Expr WS ";" #Assert
     Assert {
         lit_0: Token,
         ws_1: Token,
@@ -334,7 +333,7 @@ pub enum Plus0<'a> {
     },
     Amb(&'a [&'a Plus0<'a>]),
 }
-// ([0-9 A-Z _ a-z] !<< "else" !>> [0-9 A-Z _ a-z] Stmt)
+// ("else" Stmt)
 #[derive(Debug)]
 pub enum Group0<'a> {
     Alt0 {
@@ -345,10 +344,10 @@ pub enum Group0<'a> {
     },
     Amb(&'a [&'a Group0<'a>]),
 }
-// ([0-9 A-Z _ a-z] !<< "else" !>> [0-9 A-Z _ a-z] Stmt)?
+// ("else" Stmt)?
 #[derive(Debug)]
 pub enum Opt0<'a> {
-    // Opt_0 = ([0-9 A-Z _ a-z] !<< "else" !>> [0-9 A-Z _ a-z] Stmt)
+    // Opt_0 = ("else" Stmt)
     Alt0 { group_0: &'a Group0<'a>, span: Span },
     // Opt_0 =
     Alt1 { span: Span },
@@ -879,7 +878,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for ExactKeywordParseTreeBuilder<'a> {
         match nonterminal_node.nonterminal_id {
             // Program
             NonterminalId(0) => match nonterminal_node.return_slot {
-                // Program : Stmt+.
+                // Program = Stmt+
                 SlotId(1) => {
                     let [stmts] = children.into_array::<1usize>();
                     ParseTree::Program(self.arena.alloc(Program::Alt0 {
@@ -891,7 +890,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for ExactKeywordParseTreeBuilder<'a> {
             },
             // Stmt
             NonterminalId(1) => match nonterminal_node.return_slot {
-                // Stmt : Expr WS ";".
+                // Stmt = Expr WS ";" #Expr
                 SlotId(5) => {
                     let [expr, ws, lit_2] = children.into_array::<3usize>();
                     ParseTree::Stmt(self.arena.alloc(Stmt::Expr {
@@ -901,8 +900,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for ExactKeywordParseTreeBuilder<'a> {
                         span: nonterminal_node.span,
                     }))
                 }
-                // Stmt : [0-9 A-Z _ a-z] !<< "if" !>> [0-9 A-Z _ a-z] WS "(" WS Expr WS ")" WS Stmt WS ([0-9
-                // A-Z _ a-z] !<< "else" !>> [0-9 A-Z _ a-z] Stmt)?.
+                // Stmt = "if" WS "(" WS Expr WS ")" WS Stmt WS ("else" Stmt)? #If
                 SlotId(17) => {
                     let [
                         lit_0,
@@ -932,7 +930,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for ExactKeywordParseTreeBuilder<'a> {
                         span: nonterminal_node.span,
                     }))
                 }
-                // Stmt : [0-9 A-Z _ a-z] !<< "assert" !>> [0-9 A-Z _ a-z] WS Expr WS ";".
+                // Stmt = "assert" WS Expr WS ";" #Assert
                 SlotId(23) => {
                     let [lit_0, ws_1, expr, ws_3, lit_4] = children.into_array::<5usize>();
                     ParseTree::Stmt(self.arena.alloc(Stmt::Assert {
@@ -948,7 +946,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for ExactKeywordParseTreeBuilder<'a> {
             },
             // Expr
             NonterminalId(2) => match nonterminal_node.return_slot {
-                // Expr : Id.
+                // Expr = Id #Id
                 SlotId(25) => {
                     let [id] = children.into_array::<1usize>();
                     ParseTree::Expr(self.arena.alloc(Expr::Id {
@@ -956,7 +954,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for ExactKeywordParseTreeBuilder<'a> {
                         span: nonterminal_node.span,
                     }))
                 }
-                // Expr : Num.
+                // Expr = Num #Num
                 SlotId(27) => {
                     let [num] = children.into_array::<1usize>();
                     ParseTree::Expr(self.arena.alloc(Expr::Num {
@@ -968,7 +966,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for ExactKeywordParseTreeBuilder<'a> {
             },
             // Plus_0
             NonterminalId(3) => match nonterminal_node.return_slot {
-                // Stmt+ : Stmt+ WS Stmt.
+                // Plus_0 = Stmt+ WS Stmt
                 SlotId(31) => {
                     let [stmts_0, ws, stmt_2] = children.into_array::<3usize>();
                     ParseTree::Plus0(self.arena.alloc(Plus0::Alt0 {
@@ -978,7 +976,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for ExactKeywordParseTreeBuilder<'a> {
                         span: nonterminal_node.span,
                     }))
                 }
-                // Stmt+ : Stmt.
+                // Plus_0 = Stmt
                 SlotId(33) => {
                     let [stmt] = children.into_array::<1usize>();
                     ParseTree::Plus0(self.arena.alloc(Plus0::Alt1 {
@@ -990,8 +988,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for ExactKeywordParseTreeBuilder<'a> {
             },
             // Group_0
             NonterminalId(4) => match nonterminal_node.return_slot {
-                // ([0-9 A-Z _ a-z] !<< "else" !>> [0-9 A-Z _ a-z] Stmt) : [0-9 A-Z _ a-z] !<< "else" !>>
-                // [0-9 A-Z _ a-z] WS Stmt.
+                // Group_0 = "else" WS Stmt
                 SlotId(37) => {
                     let [lit_0, ws, stmt] = children.into_array::<3usize>();
                     ParseTree::Group0(self.arena.alloc(Group0::Alt0 {
@@ -1005,8 +1002,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for ExactKeywordParseTreeBuilder<'a> {
             },
             // Opt_0
             NonterminalId(5) => match nonterminal_node.return_slot {
-                // ([0-9 A-Z _ a-z] !<< "else" !>> [0-9 A-Z _ a-z] Stmt)? : ([0-9 A-Z _ a-z] !<< "else" !>>
-                // [0-9 A-Z _ a-z] Stmt).
+                // Opt_0 = ("else" Stmt)
                 SlotId(39) => {
                     let [group_0] = children.into_array::<1usize>();
                     ParseTree::Opt0(self.arena.alloc(Opt0::Alt0 {
@@ -1014,7 +1010,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for ExactKeywordParseTreeBuilder<'a> {
                         span: nonterminal_node.span,
                     }))
                 }
-                // ([0-9 A-Z _ a-z] !<< "else" !>> [0-9 A-Z _ a-z] Stmt)? : .
+                // Opt_0 =
                 SlotId(40) => {
                     let [] = children.into_array::<0usize>();
                     ParseTree::Opt0(self.arena.alloc(Opt0::Alt1 {
@@ -1025,7 +1021,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for ExactKeywordParseTreeBuilder<'a> {
             },
             // StartProgram
             NonterminalId(6) => match nonterminal_node.return_slot {
-                // Program : WS start:Program WS.
+                // StartProgram = WS start:Program WS
                 SlotId(44) => {
                     let [ws_0, start, ws_2] = children.into_array::<3usize>();
                     ParseTree::StartProgram(self.arena.alloc(Start {
@@ -1039,7 +1035,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for ExactKeywordParseTreeBuilder<'a> {
             },
             // StartStmt
             NonterminalId(7) => match nonterminal_node.return_slot {
-                // Stmt : WS start:Stmt WS.
+                // StartStmt = WS start:Stmt WS
                 SlotId(48) => {
                     let [ws_0, start, ws_2] = children.into_array::<3usize>();
                     ParseTree::StartStmt(self.arena.alloc(Start {
@@ -1053,7 +1049,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for ExactKeywordParseTreeBuilder<'a> {
             },
             // StartExpr
             NonterminalId(8) => match nonterminal_node.return_slot {
-                // Expr : WS start:Expr WS.
+                // StartExpr = WS start:Expr WS
                 SlotId(52) => {
                     let [ws_0, start, ws_2] = children.into_array::<3usize>();
                     ParseTree::StartExpr(self.arena.alloc(Start {

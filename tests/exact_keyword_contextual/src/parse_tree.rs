@@ -139,7 +139,7 @@ pub trait OptNode {
 }
 #[derive(Debug)]
 pub enum Decl<'a> {
-    // Decl = [0-9 A-Z _ a-z] !<< "var" !>> [0-9 A-Z _ a-z] WS Id WS ";" #Var
+    // Decl = "var" WS Id WS ";" #Var
     Var {
         lit_0: Token,
         ws_1: Token,
@@ -300,7 +300,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for ExactKeywordContextualParseTreeBuil
         match nonterminal_node.nonterminal_id {
             // Decl
             NonterminalId(0) => match nonterminal_node.return_slot {
-                // Decl : [0-9 A-Z _ a-z] !<< "var" !>> [0-9 A-Z _ a-z] WS Id WS ";".
+                // Decl = "var" WS Id WS ";" #Var
                 SlotId(5) => {
                     let [lit_0, ws_1, id, ws_3, lit_4] = children.into_array::<5usize>();
                     ParseTree::Decl(self.arena.alloc(Decl::Var {
@@ -312,7 +312,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for ExactKeywordContextualParseTreeBuil
                         span: nonterminal_node.span,
                     }))
                 }
-                // Decl : Id WS "=" WS Id WS ";".
+                // Decl = Id WS "=" WS Id WS ";" #Assign
                 SlotId(13) => {
                     let [id_0, ws_1, lit_2, ws_3, id_4, ws_5, lit_6] =
                         children.into_array::<7usize>();
@@ -331,7 +331,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for ExactKeywordContextualParseTreeBuil
             },
             // StartDecl
             NonterminalId(1) => match nonterminal_node.return_slot {
-                // Decl : WS start:Decl WS.
+                // StartDecl = WS start:Decl WS
                 SlotId(17) => {
                     let [ws_0, start, ws_2] = children.into_array::<3usize>();
                     ParseTree::StartDecl(self.arena.alloc(Start {

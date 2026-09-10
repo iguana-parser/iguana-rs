@@ -1,0 +1,22 @@
+(Start
+  WS
+  (Packed
+    (PackedOperand
+      (PackedMiddle
+        (Packed "p")))
+    WS
+    "+"
+    WS
+    (PackedOperand
+      (PackedMiddle
+        (Packed
+          (PackedOperand
+            (PackedMiddle
+              (Packed "p")))
+          WS
+          "+"
+          WS
+          (PackedOperand
+            (PackedMiddle
+              (Packed "p")))))))
+  WS)

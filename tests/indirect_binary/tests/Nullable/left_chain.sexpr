@@ -1,0 +1,38 @@
+(Start
+  WS
+  (Amb
+    (Nullable
+      #1=(NullableLeft
+        #2="x"?
+        WS
+        (Nullable "n"))
+      WS
+      "%"
+      WS
+      (NullableRight
+        (Nullable
+          (NullableLeft
+            "x"?
+            WS
+            (Nullable "n"))
+          WS
+          "%"
+          WS
+          #3=(NullableRight
+            (Nullable "n")))))
+    (Nullable
+      (NullableLeft
+        #2#
+        WS
+        (Nullable
+          #1#
+          WS
+          "%"
+          WS
+          (NullableRight
+            (Nullable "n"))))
+      WS
+      "%"
+      WS
+      #3#))
+  WS)

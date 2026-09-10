@@ -1,0 +1,35 @@
+(Start
+  WS
+  (Amb
+    (NullableRecursive
+      #1=(NullableOperand
+        #2=(NullableMaybe NullableRecursive?)
+        WS
+        (NullableRecursive "u"))
+      WS
+      "+"
+      WS
+      (NullableRecursive
+        (NullableOperand
+          (NullableMaybe NullableRecursive?)
+          WS
+          (NullableRecursive "u"))
+        WS
+        "+"
+        WS
+        #3=(NullableRecursive "u")))
+    (NullableRecursive
+      (NullableOperand
+        #2#
+        WS
+        (NullableRecursive
+          #1#
+          WS
+          "+"
+          WS
+          (NullableRecursive "u")))
+      WS
+      "+"
+      WS
+      #3#))
+  WS)

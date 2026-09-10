@@ -69,88 +69,88 @@ pub const SLOTS: [Slot; 37] = [
         display_name: "E(0) : start:E(0).",
     },
     Slot {
-        display_name: "E : . [3 >= p] l=E(p) [(l == 0) || (l >= 3)] \"+\" E(4) return 3",
+        display_name: "E : . [3 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 3)] \"+\" E(4) return 3",
     },
     Slot {
-        display_name: "E : [3 >= p] . l=E(p) [(l == 0) || (l >= 3)] \"+\" E(4) return 3",
+        display_name: "E : [3 >= p] . l_pr=E(p) [(l_pr == 0) || (l_pr >= 3)] \"+\" E(4) return 3",
     },
     Slot {
-        display_name: "E : [3 >= p] l=E(p) . [(l == 0) || (l >= 3)] \"+\" E(4) return 3",
+        display_name: "E : [3 >= p] l_pr=E(p) . [(l_pr == 0) || (l_pr >= 3)] \"+\" E(4) return 3",
     },
     Slot {
-        display_name: "E : [3 >= p] l=E(p) [(l == 0) || (l >= 3)] . \"+\" E(4) return 3",
+        display_name: "E : [3 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 3)] . \"+\" E(4) return 3",
     },
     Slot {
-        display_name: "E : [3 >= p] l=E(p) [(l == 0) || (l >= 3)] \"+\" . E(4) return 3",
+        display_name: "E : [3 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 3)] \"+\" . E(4) return 3",
     },
     Slot {
-        display_name: "E : [3 >= p] l=E(p) [(l == 0) || (l >= 3)] \"+\" E(4) . return 3",
+        display_name: "E : [3 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 3)] \"+\" E(4) . return 3",
     },
     Slot {
-        display_name: "E : [3 >= p] l=E(p) [(l == 0) || (l >= 3)] \"+\" E(4) return 3.",
+        display_name: "E : [3 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 3)] \"+\" E(4) return 3.",
     },
     Slot {
-        display_name: "E : . [3 >= p] l=E(p) [(l == 0) || (l >= 3)] \"-\" E(4) return 3",
+        display_name: "E : . [3 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 3)] \"-\" E(4) return 3",
     },
     Slot {
-        display_name: "E : [3 >= p] . l=E(p) [(l == 0) || (l >= 3)] \"-\" E(4) return 3",
+        display_name: "E : [3 >= p] . l_pr=E(p) [(l_pr == 0) || (l_pr >= 3)] \"-\" E(4) return 3",
     },
     Slot {
-        display_name: "E : [3 >= p] l=E(p) . [(l == 0) || (l >= 3)] \"-\" E(4) return 3",
+        display_name: "E : [3 >= p] l_pr=E(p) . [(l_pr == 0) || (l_pr >= 3)] \"-\" E(4) return 3",
     },
     Slot {
-        display_name: "E : [3 >= p] l=E(p) [(l == 0) || (l >= 3)] . \"-\" E(4) return 3",
+        display_name: "E : [3 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 3)] . \"-\" E(4) return 3",
     },
     Slot {
-        display_name: "E : [3 >= p] l=E(p) [(l == 0) || (l >= 3)] \"-\" . E(4) return 3",
+        display_name: "E : [3 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 3)] \"-\" . E(4) return 3",
     },
     Slot {
-        display_name: "E : [3 >= p] l=E(p) [(l == 0) || (l >= 3)] \"-\" E(4) . return 3",
+        display_name: "E : [3 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 3)] \"-\" E(4) . return 3",
     },
     Slot {
-        display_name: "E : [3 >= p] l=E(p) [(l == 0) || (l >= 3)] \"-\" E(4) return 3.",
+        display_name: "E : [3 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 3)] \"-\" E(4) return 3.",
     },
     Slot {
-        display_name: "E : . [2 >= p] l=E(p) [(l == 0) || (l >= 3)] \";\" E(2) return 2",
+        display_name: "E : . [2 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 3)] \";\" E(2) return 2",
     },
     Slot {
-        display_name: "E : [2 >= p] . l=E(p) [(l == 0) || (l >= 3)] \";\" E(2) return 2",
+        display_name: "E : [2 >= p] . l_pr=E(p) [(l_pr == 0) || (l_pr >= 3)] \";\" E(2) return 2",
     },
     Slot {
-        display_name: "E : [2 >= p] l=E(p) . [(l == 0) || (l >= 3)] \";\" E(2) return 2",
+        display_name: "E : [2 >= p] l_pr=E(p) . [(l_pr == 0) || (l_pr >= 3)] \";\" E(2) return 2",
     },
     Slot {
-        display_name: "E : [2 >= p] l=E(p) [(l == 0) || (l >= 3)] . \";\" E(2) return 2",
+        display_name: "E : [2 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 3)] . \";\" E(2) return 2",
     },
     Slot {
-        display_name: "E : [2 >= p] l=E(p) [(l == 0) || (l >= 3)] \";\" . E(2) return 2",
+        display_name: "E : [2 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 3)] \";\" . E(2) return 2",
     },
     Slot {
-        display_name: "E : [2 >= p] l=E(p) [(l == 0) || (l >= 3)] \";\" E(2) . return 2",
+        display_name: "E : [2 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 3)] \";\" E(2) . return 2",
     },
     Slot {
-        display_name: "E : [2 >= p] l=E(p) [(l == 0) || (l >= 3)] \";\" E(2) return 2.",
+        display_name: "E : [2 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 3)] \";\" E(2) return 2.",
     },
     Slot {
-        display_name: "E : . [1 >= p] l=E(p) [(l == 0) || (l >= 2)] \"<\" E(2) return 1",
+        display_name: "E : . [1 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 2)] \"<\" E(2) return 1",
     },
     Slot {
-        display_name: "E : [1 >= p] . l=E(p) [(l == 0) || (l >= 2)] \"<\" E(2) return 1",
+        display_name: "E : [1 >= p] . l_pr=E(p) [(l_pr == 0) || (l_pr >= 2)] \"<\" E(2) return 1",
     },
     Slot {
-        display_name: "E : [1 >= p] l=E(p) . [(l == 0) || (l >= 2)] \"<\" E(2) return 1",
+        display_name: "E : [1 >= p] l_pr=E(p) . [(l_pr == 0) || (l_pr >= 2)] \"<\" E(2) return 1",
     },
     Slot {
-        display_name: "E : [1 >= p] l=E(p) [(l == 0) || (l >= 2)] . \"<\" E(2) return 1",
+        display_name: "E : [1 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 2)] . \"<\" E(2) return 1",
     },
     Slot {
-        display_name: "E : [1 >= p] l=E(p) [(l == 0) || (l >= 2)] \"<\" . E(2) return 1",
+        display_name: "E : [1 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 2)] \"<\" . E(2) return 1",
     },
     Slot {
-        display_name: "E : [1 >= p] l=E(p) [(l == 0) || (l >= 2)] \"<\" E(2) . return 1",
+        display_name: "E : [1 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 2)] \"<\" E(2) . return 1",
     },
     Slot {
-        display_name: "E : [1 >= p] l=E(p) [(l == 0) || (l >= 2)] \"<\" E(2) return 1.",
+        display_name: "E : [1 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 2)] \"<\" E(2) return 1.",
     },
     Slot {
         display_name: "E : . \"a\" return 0",
@@ -193,22 +193,22 @@ pub static FIRST_SET_E: TerminalSet = TerminalSet {
     id: 0,
     terminals: &[TerminalId(4)],
 };
-// E(p: i32) : . [3 >= p] l=E(p) [(l == 0) || (l >= 3)] "+" E(4) return 3 { "a" }
+// E(p: i32) : . [3 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 3)] "+" E(4) return 3 { "a" }
 pub static FIRST_SET_E_ALT0: TerminalSet = TerminalSet {
     id: 1,
     terminals: &[TerminalId(4)],
 };
-// E(p: i32) : . [3 >= p] l=E(p) [(l == 0) || (l >= 3)] "-" E(4) return 3 { "a" }
+// E(p: i32) : . [3 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 3)] "-" E(4) return 3 { "a" }
 pub static FIRST_SET_E_ALT1: TerminalSet = TerminalSet {
     id: 1,
     terminals: &[TerminalId(4)],
 };
-// E(p: i32) : . [2 >= p] l=E(p) [(l == 0) || (l >= 3)] ";" E(2) return 2 { "a" }
+// E(p: i32) : . [2 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 3)] ";" E(2) return 2 { "a" }
 pub static FIRST_SET_E_ALT2: TerminalSet = TerminalSet {
     id: 1,
     terminals: &[TerminalId(4)],
 };
-// E(p: i32) : . [1 >= p] l=E(p) [(l == 0) || (l >= 2)] "<" E(2) return 1 { "a" }
+// E(p: i32) : . [1 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 2)] "<" E(2) return 1 { "a" }
 pub static FIRST_SET_E_ALT3: TerminalSet = TerminalSet {
     id: 1,
     terminals: &[TerminalId(4)],

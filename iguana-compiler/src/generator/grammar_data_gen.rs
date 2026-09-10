@@ -101,7 +101,7 @@ pub fn generate<'a>(
     // SLOTS array
     let slots_len = Literal::usize_unsuffixed(slot_ids.len());
     let slot_names = slot_ids.slots().map(|s| {
-        let display_name = s.display_name(grammar);
+        let display_name = slot_ids.display_name(&slot_ids.get_id(s));
         quote! {
             Slot { display_name: #display_name }
         }

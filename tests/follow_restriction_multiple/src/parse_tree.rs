@@ -213,7 +213,7 @@ pub enum S<'a> {
     Alt0 { ids: &'a Plus0<'a>, span: Span },
     Amb(&'a [&'a S<'a>]),
 }
-// Id = (Alpha | Digit)+ !>> Alpha !>> Digit
+// Id = (Alpha | Digit)+
 #[derive(Debug)]
 pub enum Id<'a> {
     Alt0 { plus_1: &'a Plus1<'a>, span: Span },
@@ -664,7 +664,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for FollowRestrictionMultipleParseTreeB
         match nonterminal_node.nonterminal_id {
             // S
             NonterminalId(0) => match nonterminal_node.return_slot {
-                // S : Id+.
+                // S = Id+
                 SlotId(1) => {
                     let [ids] = children.into_array::<1usize>();
                     ParseTree::S(self.arena.alloc(S::Alt0 {
@@ -676,7 +676,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for FollowRestrictionMultipleParseTreeB
             },
             // Id
             NonterminalId(1) => match nonterminal_node.return_slot {
-                // Id : (Alpha | Digit)+ !>> Alpha !>> Digit.
+                // Id = (Alpha | Digit)+
                 SlotId(3) => {
                     let [plus_1] = children.into_array::<1usize>();
                     ParseTree::Id(self.arena.alloc(Id::Alt0 {
@@ -688,7 +688,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for FollowRestrictionMultipleParseTreeB
             },
             // Plus_0
             NonterminalId(2) => match nonterminal_node.return_slot {
-                // Id+ : Id+ Id.
+                // Plus_0 = Id+ Id
                 SlotId(6) => {
                     let [ids_0, id_1] = children.into_array::<2usize>();
                     ParseTree::Plus0(self.arena.alloc(Plus0::Alt0 {
@@ -697,7 +697,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for FollowRestrictionMultipleParseTreeB
                         span: nonterminal_node.span,
                     }))
                 }
-                // Id+ : Id.
+                // Plus_0 = Id
                 SlotId(8) => {
                     let [id] = children.into_array::<1usize>();
                     ParseTree::Plus0(self.arena.alloc(Plus0::Alt1 {
@@ -709,7 +709,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for FollowRestrictionMultipleParseTreeB
             },
             // Alt_0
             NonterminalId(3) => match nonterminal_node.return_slot {
-                // (Alpha | Digit) : Alpha.
+                // Alt_0 = Alpha
                 SlotId(10) => {
                     let [alpha] = children.into_array::<1usize>();
                     ParseTree::Alt0(self.arena.alloc(Alt0::Alt0 {
@@ -717,7 +717,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for FollowRestrictionMultipleParseTreeB
                         span: nonterminal_node.span,
                     }))
                 }
-                // (Alpha | Digit) : Digit.
+                // Alt_0 = Digit
                 SlotId(12) => {
                     let [digit] = children.into_array::<1usize>();
                     ParseTree::Alt0(self.arena.alloc(Alt0::Alt1 {
@@ -729,7 +729,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for FollowRestrictionMultipleParseTreeB
             },
             // Plus_1
             NonterminalId(4) => match nonterminal_node.return_slot {
-                // (Alpha | Digit)+ : (Alpha | Digit)+ (Alpha | Digit).
+                // Plus_1 = (Alpha | Digit)+ (Alpha | Digit)
                 SlotId(15) => {
                     let [plus_1, alt_0] = children.into_array::<2usize>();
                     ParseTree::Plus1(self.arena.alloc(Plus1::Alt0 {
@@ -738,7 +738,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for FollowRestrictionMultipleParseTreeB
                         span: nonterminal_node.span,
                     }))
                 }
-                // (Alpha | Digit)+ : (Alpha | Digit).
+                // Plus_1 = (Alpha | Digit)
                 SlotId(17) => {
                     let [alt_0] = children.into_array::<1usize>();
                     ParseTree::Plus1(self.arena.alloc(Plus1::Alt1 {
@@ -750,7 +750,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for FollowRestrictionMultipleParseTreeB
             },
             // StartS
             NonterminalId(5) => match nonterminal_node.return_slot {
-                // S : start:S.
+                // StartS = start:S
                 SlotId(19) => {
                     let [start] = children.into_array::<1usize>();
                     ParseTree::StartS(self.arena.alloc(Start {
@@ -764,7 +764,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for FollowRestrictionMultipleParseTreeB
             },
             // StartId
             NonterminalId(6) => match nonterminal_node.return_slot {
-                // Id : start:Id.
+                // StartId = start:Id
                 SlotId(21) => {
                     let [start] = children.into_array::<1usize>();
                     ParseTree::StartId(self.arena.alloc(Start {

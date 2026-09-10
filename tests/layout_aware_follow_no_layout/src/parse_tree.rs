@@ -198,7 +198,7 @@ pub enum S<'a> {
     Alt0 { words: &'a Plus0<'a>, span: Span },
     Amb(&'a [&'a S<'a>]),
 }
-// Word = Char+ !>> Char
+// Word = Char+
 #[derive(Debug)]
 pub enum Word<'a> {
     Alt0 { chars: &'a Plus1<'a>, span: Span },
@@ -578,7 +578,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for LayoutAwareFollowNoLayoutParseTreeB
         match nonterminal_node.nonterminal_id {
             // S
             NonterminalId(0) => match nonterminal_node.return_slot {
-                // S : Word+.
+                // S = Word+
                 SlotId(1) => {
                     let [words] = children.into_array::<1usize>();
                     ParseTree::S(self.arena.alloc(S::Alt0 {
@@ -590,7 +590,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for LayoutAwareFollowNoLayoutParseTreeB
             },
             // Word
             NonterminalId(1) => match nonterminal_node.return_slot {
-                // Word : Char+ !>> Char.
+                // Word = Char+
                 SlotId(3) => {
                     let [chars] = children.into_array::<1usize>();
                     ParseTree::Word(self.arena.alloc(Word::Alt0 {
@@ -602,7 +602,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for LayoutAwareFollowNoLayoutParseTreeB
             },
             // Plus_0
             NonterminalId(2) => match nonterminal_node.return_slot {
-                // Word+ : Word+ WS Word.
+                // Plus_0 = Word+ WS Word
                 SlotId(7) => {
                     let [words_0, ws, word_2] = children.into_array::<3usize>();
                     ParseTree::Plus0(self.arena.alloc(Plus0::Alt0 {
@@ -612,7 +612,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for LayoutAwareFollowNoLayoutParseTreeB
                         span: nonterminal_node.span,
                     }))
                 }
-                // Word+ : Word.
+                // Plus_0 = Word
                 SlotId(9) => {
                     let [word] = children.into_array::<1usize>();
                     ParseTree::Plus0(self.arena.alloc(Plus0::Alt1 {
@@ -624,7 +624,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for LayoutAwareFollowNoLayoutParseTreeB
             },
             // Plus_1
             NonterminalId(3) => match nonterminal_node.return_slot {
-                // Char+ : Char+ Char.
+                // Plus_1 = Char+ Char
                 SlotId(12) => {
                     let [chars_0, char_1] = children.into_array::<2usize>();
                     ParseTree::Plus1(self.arena.alloc(Plus1::Alt0 {
@@ -633,7 +633,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for LayoutAwareFollowNoLayoutParseTreeB
                         span: nonterminal_node.span,
                     }))
                 }
-                // Char+ : Char.
+                // Plus_1 = Char
                 SlotId(14) => {
                     let [char] = children.into_array::<1usize>();
                     ParseTree::Plus1(self.arena.alloc(Plus1::Alt1 {
@@ -645,7 +645,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for LayoutAwareFollowNoLayoutParseTreeB
             },
             // StartS
             NonterminalId(4) => match nonterminal_node.return_slot {
-                // S : WS start:S WS.
+                // StartS = WS start:S WS
                 SlotId(18) => {
                     let [ws_0, start, ws_2] = children.into_array::<3usize>();
                     ParseTree::StartS(self.arena.alloc(Start {
@@ -659,7 +659,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for LayoutAwareFollowNoLayoutParseTreeB
             },
             // StartWord
             NonterminalId(5) => match nonterminal_node.return_slot {
-                // Word : WS start:Word WS.
+                // StartWord = WS start:Word WS
                 SlotId(22) => {
                     let [ws_0, start, ws_2] = children.into_array::<3usize>();
                     ParseTree::StartWord(self.arena.alloc(Start {

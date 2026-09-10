@@ -91,31 +91,31 @@ pub const SLOTS: [Slot; 35] = [
         display_name: "E : \"a\" return 0.",
     },
     Slot {
-        display_name: "E : . [2 >= p] l=E(p) [(l == 0) || (l >= 2)] WS \"+\" WS r=E(2) return (r == 0) ? 2 : min(r, 2)",
+        display_name: "E : . [2 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 2)] WS \"+\" WS r_pr=E(2) return (r_pr == 0) ? 2 : min(r_pr, 2)",
     },
     Slot {
-        display_name: "E : [2 >= p] . l=E(p) [(l == 0) || (l >= 2)] WS \"+\" WS r=E(2) return (r == 0) ? 2 : min(r, 2)",
+        display_name: "E : [2 >= p] . l_pr=E(p) [(l_pr == 0) || (l_pr >= 2)] WS \"+\" WS r_pr=E(2) return (r_pr == 0) ? 2 : min(r_pr, 2)",
     },
     Slot {
-        display_name: "E : [2 >= p] l=E(p) . [(l == 0) || (l >= 2)] WS \"+\" WS r=E(2) return (r == 0) ? 2 : min(r, 2)",
+        display_name: "E : [2 >= p] l_pr=E(p) . [(l_pr == 0) || (l_pr >= 2)] WS \"+\" WS r_pr=E(2) return (r_pr == 0) ? 2 : min(r_pr, 2)",
     },
     Slot {
-        display_name: "E : [2 >= p] l=E(p) [(l == 0) || (l >= 2)] . WS \"+\" WS r=E(2) return (r == 0) ? 2 : min(r, 2)",
+        display_name: "E : [2 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 2)] . WS \"+\" WS r_pr=E(2) return (r_pr == 0) ? 2 : min(r_pr, 2)",
     },
     Slot {
-        display_name: "E : [2 >= p] l=E(p) [(l == 0) || (l >= 2)] WS . \"+\" WS r=E(2) return (r == 0) ? 2 : min(r, 2)",
+        display_name: "E : [2 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 2)] WS . \"+\" WS r_pr=E(2) return (r_pr == 0) ? 2 : min(r_pr, 2)",
     },
     Slot {
-        display_name: "E : [2 >= p] l=E(p) [(l == 0) || (l >= 2)] WS \"+\" . WS r=E(2) return (r == 0) ? 2 : min(r, 2)",
+        display_name: "E : [2 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 2)] WS \"+\" . WS r_pr=E(2) return (r_pr == 0) ? 2 : min(r_pr, 2)",
     },
     Slot {
-        display_name: "E : [2 >= p] l=E(p) [(l == 0) || (l >= 2)] WS \"+\" WS . r=E(2) return (r == 0) ? 2 : min(r, 2)",
+        display_name: "E : [2 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 2)] WS \"+\" WS . r_pr=E(2) return (r_pr == 0) ? 2 : min(r_pr, 2)",
     },
     Slot {
-        display_name: "E : [2 >= p] l=E(p) [(l == 0) || (l >= 2)] WS \"+\" WS r=E(2) . return (r == 0) ? 2 : min(r, 2)",
+        display_name: "E : [2 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 2)] WS \"+\" WS r_pr=E(2) . return (r_pr == 0) ? 2 : min(r_pr, 2)",
     },
     Slot {
-        display_name: "E : [2 >= p] l=E(p) [(l == 0) || (l >= 2)] WS \"+\" WS r=E(2) return (r == 0) ? 2 : min(r, 2).",
+        display_name: "E : [2 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 2)] WS \"+\" WS r_pr=E(2) return (r_pr == 0) ? 2 : min(r_pr, 2).",
     },
     Slot {
         display_name: "E : . \"if\" WS E(0) WS \"then\" WS E(0) WS \"else\" WS E(1) return 1",
@@ -193,8 +193,8 @@ pub static FIRST_SET_E_ALT0: TerminalSet = TerminalSet {
     id: 3,
     terminals: &[TerminalId(1)],
 };
-// E(p: i32) : . [2 >= p] l=E(p) [(l == 0) || (l >= 2)] WS "+" WS r=E(2) return (r == 0) ? 2
-// : min(r, 2) { "a", "if" }
+// E(p: i32) : . [2 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 2)] WS "+" WS r_pr=E(2) return
+// (r_pr == 0) ? 2 : min(r_pr, 2) { "a", "if" }
 pub static FIRST_SET_E_ALT1: TerminalSet = TerminalSet {
     id: 1,
     terminals: &[TerminalId(1), TerminalId(3)],

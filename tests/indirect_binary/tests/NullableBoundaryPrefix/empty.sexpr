@@ -1,0 +1,28 @@
+(Start
+  WS
+  (Amb
+    (NullableBoundaryPrefix
+      "-"
+      WS
+      (NullableBoundaryRight
+        (NullableBoundaryPrefix
+          #1=(NullableBoundaryPrefix "a")
+          WS
+          "+"
+          WS
+          #2=(NullableBoundaryPrefix "a"))
+        WS
+        NullableBoundaryOpt))
+    (NullableBoundaryPrefix
+      (NullableBoundaryPrefix
+        "-"
+        WS
+        (NullableBoundaryRight
+          #1#
+          WS
+          NullableBoundaryOpt))
+      WS
+      "+"
+      WS
+      #2#))
+  WS)

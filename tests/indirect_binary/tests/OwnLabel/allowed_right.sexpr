@@ -1,0 +1,15 @@
+(Start
+  WS
+  (OwnLabel
+    (OwnOperand
+      (OwnLabel "k"))
+    WS
+    "+"
+    WS
+    (OwnOperand
+      "("
+      WS
+      (OwnLabel "k")
+      WS
+      ")"))
+  WS)

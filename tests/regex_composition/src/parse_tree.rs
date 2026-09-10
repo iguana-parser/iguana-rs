@@ -664,7 +664,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for RegexCompositionParseTreeBuilder<'a
         match nonterminal_node.nonterminal_id {
             // S
             NonterminalId(0) => match nonterminal_node.return_slot {
-                // S : Id.
+                // S = Id
                 SlotId(1) => {
                     let [id] = children.into_array::<1usize>();
                     ParseTree::S(self.arena.alloc(S::Alt0 {
@@ -676,7 +676,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for RegexCompositionParseTreeBuilder<'a
             },
             // Id
             NonterminalId(1) => match nonterminal_node.return_slot {
-                // Id : Letter LetterOrDigit*.
+                // Id = Letter LetterOrDigit*
                 SlotId(4) => {
                     let [letter, letter_or_digits] = children.into_array::<2usize>();
                     ParseTree::Id(self.arena.alloc(Id::Alt0 {
@@ -689,7 +689,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for RegexCompositionParseTreeBuilder<'a
             },
             // Plus_0
             NonterminalId(2) => match nonterminal_node.return_slot {
-                // LetterOrDigit+ : LetterOrDigit+ LetterOrDigit.
+                // Plus_0 = LetterOrDigit+ LetterOrDigit
                 SlotId(7) => {
                     let [letter_or_digits_0, letter_or_digit_1] = children.into_array::<2usize>();
                     ParseTree::Plus0(self.arena.alloc(Plus0::Alt0 {
@@ -698,7 +698,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for RegexCompositionParseTreeBuilder<'a
                         span: nonterminal_node.span,
                     }))
                 }
-                // LetterOrDigit+ : LetterOrDigit.
+                // Plus_0 = LetterOrDigit
                 SlotId(9) => {
                     let [letter_or_digit] = children.into_array::<1usize>();
                     ParseTree::Plus0(self.arena.alloc(Plus0::Alt1 {
@@ -710,7 +710,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for RegexCompositionParseTreeBuilder<'a
             },
             // Opt_0
             NonterminalId(3) => match nonterminal_node.return_slot {
-                // LetterOrDigit+? : LetterOrDigit+.
+                // Opt_0 = LetterOrDigit+
                 SlotId(11) => {
                     let [letter_or_digits] = children.into_array::<1usize>();
                     ParseTree::Opt0(self.arena.alloc(Opt0::Alt0 {
@@ -718,7 +718,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for RegexCompositionParseTreeBuilder<'a
                         span: nonterminal_node.span,
                     }))
                 }
-                // LetterOrDigit+? : .
+                // Opt_0 =
                 SlotId(12) => {
                     let [] = children.into_array::<0usize>();
                     ParseTree::Opt0(self.arena.alloc(Opt0::Alt1 {
@@ -729,7 +729,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for RegexCompositionParseTreeBuilder<'a
             },
             // Star_0
             NonterminalId(4) => match nonterminal_node.return_slot {
-                // LetterOrDigit* : LetterOrDigit+?.
+                // Star_0 = LetterOrDigit+?
                 SlotId(14) => {
                     let [opt_0] = children.into_array::<1usize>();
                     ParseTree::Star0(self.arena.alloc(Star0::Alt0 {
@@ -741,7 +741,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for RegexCompositionParseTreeBuilder<'a
             },
             // StartS
             NonterminalId(5) => match nonterminal_node.return_slot {
-                // S : WS start:S WS.
+                // StartS = WS start:S WS
                 SlotId(18) => {
                     let [ws_0, start, ws_2] = children.into_array::<3usize>();
                     ParseTree::StartS(self.arena.alloc(Start {
@@ -755,7 +755,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for RegexCompositionParseTreeBuilder<'a
             },
             // StartId
             NonterminalId(6) => match nonterminal_node.return_slot {
-                // Id : WS start:Id WS.
+                // StartId = WS start:Id WS
                 SlotId(22) => {
                     let [ws_0, start, ws_2] = children.into_array::<3usize>();
                     ParseTree::StartId(self.arena.alloc(Start {

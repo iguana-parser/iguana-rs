@@ -1,0 +1,10 @@
+(Start
+  WS
+  (DynamicFiltered
+    (DynamicOperand
+      (Dynamic
+        "-"
+        WS
+        (DynamicOperand
+          (Dynamic "a")))))
+  WS)

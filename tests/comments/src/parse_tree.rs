@@ -310,7 +310,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for CommentsParseTreeBuilder<'a> {
         match nonterminal_node.nonterminal_id {
             // Expr
             NonterminalId(0) => match nonterminal_node.return_slot {
-                // Expr : Expr Layout "+" Layout Expr.
+                // Expr = Expr Layout "+" Layout Expr
                 SlotId(5) => {
                     let [expr_0, layout_1, lit_2, layout_3, expr_4] =
                         children.into_array::<5usize>();
@@ -323,7 +323,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for CommentsParseTreeBuilder<'a> {
                         span: nonterminal_node.span,
                     }))
                 }
-                // Expr : Expr Layout "*" Layout Expr.
+                // Expr = Expr Layout "*" Layout Expr
                 SlotId(11) => {
                     let [expr_0, layout_1, lit_2, layout_3, expr_4] =
                         children.into_array::<5usize>();
@@ -336,7 +336,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for CommentsParseTreeBuilder<'a> {
                         span: nonterminal_node.span,
                     }))
                 }
-                // Expr : "x".
+                // Expr = "x"
                 SlotId(13) => {
                     let [lit_0] = children.into_array::<1usize>();
                     ParseTree::Expr(self.arena.alloc(Expr::Alt2 {
@@ -348,7 +348,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for CommentsParseTreeBuilder<'a> {
             },
             // StartExpr
             NonterminalId(1) => match nonterminal_node.return_slot {
-                // Expr : Layout start:Expr Layout.
+                // StartExpr = Layout start:Expr Layout
                 SlotId(17) => {
                     let [layout_0, start, layout_2] = children.into_array::<3usize>();
                     ParseTree::StartExpr(self.arena.alloc(Start {

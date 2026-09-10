@@ -1,0 +1,13 @@
+(Start
+  WS
+  (ClosedPrefix
+    "pre"
+    WS
+    (ClosedPrefixBody
+      (ClosedPrefix
+        (ClosedPrefix "a")
+        WS
+        "+"
+        WS
+        (ClosedPrefix "a"))))
+  WS)

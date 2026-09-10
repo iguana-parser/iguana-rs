@@ -1,0 +1,11 @@
+(Start
+  WS
+  (ClosedPostfix
+    (ClosedPostfixBody
+      (ClosedPostfix
+        "pre"
+        WS
+        (ClosedPostfix "a")))
+    WS
+    "!")
+  WS)

@@ -160,7 +160,7 @@ pub enum S<'a> {
     Alt0 { id: &'a Id<'a>, span: Span },
     Amb(&'a [&'a S<'a>]),
 }
-// Id = Identifier \ Keyword
+// Id = Identifier
 #[derive(Debug)]
 pub enum Id<'a> {
     Alt0 { identifier: Token, span: Span },
@@ -333,7 +333,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for ExceptTerminalParseTreeBuilder<'a> 
         match nonterminal_node.nonterminal_id {
             // S
             NonterminalId(0) => match nonterminal_node.return_slot {
-                // S : Id.
+                // S = Id
                 SlotId(1) => {
                     let [id] = children.into_array::<1usize>();
                     ParseTree::S(self.arena.alloc(S::Alt0 {
@@ -345,7 +345,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for ExceptTerminalParseTreeBuilder<'a> 
             },
             // Id
             NonterminalId(1) => match nonterminal_node.return_slot {
-                // Id : Identifier \ Keyword.
+                // Id = Identifier
                 SlotId(3) => {
                     let [identifier] = children.into_array::<1usize>();
                     ParseTree::Id(self.arena.alloc(Id::Alt0 {
@@ -357,7 +357,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for ExceptTerminalParseTreeBuilder<'a> 
             },
             // StartS
             NonterminalId(2) => match nonterminal_node.return_slot {
-                // S : start:S.
+                // StartS = start:S
                 SlotId(5) => {
                     let [start] = children.into_array::<1usize>();
                     ParseTree::StartS(self.arena.alloc(Start {
@@ -371,7 +371,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for ExceptTerminalParseTreeBuilder<'a> 
             },
             // StartId
             NonterminalId(3) => match nonterminal_node.return_slot {
-                // Id : start:Id.
+                // StartId = start:Id
                 SlotId(7) => {
                     let [start] = children.into_array::<1usize>();
                     ParseTree::StartId(self.arena.alloc(Start {

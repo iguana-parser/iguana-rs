@@ -1,0 +1,16 @@
+(Start
+  WS
+  (ClosedRightAssoc
+    (ClosedRightAssoc "a")
+    WS
+    "+"
+    WS
+    (ClosedRightOperand
+      (ClosedRightAssoc
+        (ClosedRightAssoc "a")
+        WS
+        "+"
+        WS
+        (ClosedRightOperand
+          (ClosedRightAssoc "a")))))
+  WS)

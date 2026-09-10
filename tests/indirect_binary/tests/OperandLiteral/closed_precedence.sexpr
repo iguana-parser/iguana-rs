@@ -1,0 +1,28 @@
+(Start
+  WS
+  (Amb
+    (OperandLiteral
+      #1=(OperandLiteralEnd "1")
+      WS
+      "+"
+      WS
+      (OperandLiteralEnd
+        (OperandLiteral
+          (OperandLiteralEnd "1")
+          WS
+          "*"
+          WS
+          (OperandLiteralEnd "1"))))
+    (OperandLiteral
+      (OperandLiteralEnd
+        (OperandLiteral
+          #1#
+          WS
+          "+"
+          WS
+          (OperandLiteralEnd "1")))
+      WS
+      "*"
+      WS
+      (OperandLiteralEnd "1")))
+  WS)

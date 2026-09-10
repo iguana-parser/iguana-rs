@@ -1,0 +1,11 @@
+(Start
+  WS
+  (NoneExpr
+    (NoneOperand
+      (NoneExpr "z"))
+    WS
+    "="
+    WS
+    (NoneOperand
+      (NoneExpr "z")))
+  WS)

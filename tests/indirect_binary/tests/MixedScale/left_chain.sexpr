@@ -1,0 +1,18 @@
+(Start
+  WS
+  (MixedScale
+    (MixedOperand
+      (MixedScale
+        (MixedOperand
+          (MixedScale "m"))
+        WS
+        "~"
+        WS
+        (MixedRight
+          (MixedScale "m"))))
+    WS
+    "~"
+    WS
+    (MixedRight
+      (MixedScale "m")))
+  WS)
