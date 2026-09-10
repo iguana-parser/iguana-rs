@@ -28,10 +28,6 @@ pub fn transform(syntax_rules: Vec<SyntaxRule>, layout_symbol: Option<&Symbol>) 
     syntax_rules
         .into_iter()
         .map(|rule| match (&rule.layout, layout_symbol) {
-            (LayoutStrategy::Custom(_id), _) => {
-                // TODO: resolve custom layout identifier to a Symbol
-                unimplemented!("@WithLayout(X) (per-rule custom layout) is not yet supported")
-            }
             (LayoutStrategy::Default, Some(layout)) => {
                 let layout = layout.clone();
                 transform_rule_by_symbols(rule, |symbols| insert_layout(&symbols, &layout))

@@ -31,14 +31,12 @@ pub enum Associativity {
 /// By default, the grammar's layout definition is inserted between consecutive symbols in a rule.
 /// For character-level rules (e.g., `Id = Char+ !>> Char`), layout must be suppressed to avoid
 /// inserting whitespace between individual characters. These character-level definitions correspond
-/// to lexical definitions in scannerless parsers like Rascal or SDF. A custom layout can also be
-/// specified per rule to use a different layout than the grammar default.
+/// to lexical definitions in scannerless parsers like Rascal or SDF.
 #[derive(Debug, Clone, Default, PartialEq, Eq, Hash)]
 pub enum LayoutStrategy {
     #[default]
     Default,
     None,
-    Custom(Identifier),
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
@@ -270,7 +268,7 @@ fn visit_regex_identifiers<'a>(regex: &'a Regex, f: &mut impl FnMut(&'a Identifi
 
 impl Display for SyntaxRule {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        // The layout annotation (@Layout / @NoLayout / @WithLayout) is a
+        // The layout annotation (@Layout / @NoLayout) is a
         // grammar-level concern, so GrammarDef's Display emits it.
         writeln!(f, "{}", self.head)?;
         for (level_idx, level) in self.priority_levels.iter().enumerate() {
@@ -305,7 +303,6 @@ impl Display for GrammarDef {
             } else {
                 match &rule.layout {
                     LayoutStrategy::None => writeln!(f, "@NoLayout")?,
-                    LayoutStrategy::Custom(id) => writeln!(f, "@WithLayout({})", id.name)?,
                     LayoutStrategy::Default => {}
                 }
             }

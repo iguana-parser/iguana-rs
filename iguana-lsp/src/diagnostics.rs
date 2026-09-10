@@ -69,6 +69,20 @@ mod tests {
     }
 
     #[test]
+    fn with_layout_is_a_parse_diagnostic() {
+        let input = Input::from("grammar T\n\n@WithLayout(WS)\nS = \"x\"\n\n@Regex\nWS = [\\ ]*");
+        let tree_arena = iguana_runtime::arena::Arena::new();
+        let crate::BuildResult::Error(error) = crate::build(&input, &tree_arena) else {
+            panic!("expected a parse error for the removed annotation");
+        };
+        let d = to_diagnostic(error, &input);
+        assert_eq!(d.severity, Some(DiagnosticSeverity::ERROR));
+        assert_eq!(d.range.start, Position::new(2, 0));
+        assert_eq!(d.range.end, Position::new(2, 1));
+        assert!(d.message.starts_with("Expected "), "{d:?}");
+    }
+
+    #[test]
     fn no_errors_on_valid_grammar() {
         let d = diags(
             r#"

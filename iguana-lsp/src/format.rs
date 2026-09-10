@@ -16,7 +16,7 @@
 // - Blank line between every rule
 // - `@Regex` (optionally preceded by `@Layout` for a layout rule, or by
 //   `@Identifier` for an identifier rule) on the line before the regex rule head
-// - `@Layout` / `@NoLayout` / `@WithLayout(X)` annotation on the line before the syntax rule head
+// - `@Layout` / `@NoLayout` annotation on the line before the syntax rule head
 // - Regex rules with a single alternative are single-line
 // - Regex rules with multiple alternatives use multi-line layout (one per line) (head = body postconditions)
 // - Character classes have no internal spaces
@@ -518,11 +518,6 @@ impl<'a> Formatter<'a> {
         match annotation {
             Annotation::NoLayout { .. } => out.push_str("@NoLayout"),
             Annotation::Layout { .. } => out.push_str("@Layout"),
-            Annotation::WithLayout { identifier, .. } => {
-                out.push_str("@WithLayout(");
-                out.push_str(&self.input.text(identifier.span()));
-                out.push(')');
-            }
             Annotation::Amb(_) => unreachable!("ambiguous trees are rejected before this point"),
         }
     }

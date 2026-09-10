@@ -132,13 +132,6 @@ fn convert_syntax_rule(rule: &parse_tree::SyntaxRule, input: &Input) -> SyntaxRu
             // `@Layout` marks the grammar's layout rule. build_grammar records
             // its name and suppresses layout inside it, so nothing to do here.
             parse_tree::Annotation::Layout { .. } => {}
-            parse_tree::Annotation::WithLayout { identifier, .. } => {
-                let name = input.text(identifier.span());
-                layout = LayoutStrategy::Custom(Identifier {
-                    name,
-                    definition: None,
-                });
-            }
             parse_tree::Annotation::Amb(_) => panic!("unexpected ambiguity"),
         }
     }
@@ -540,6 +533,17 @@ mod tests {
         assert!(message.contains("Identifier"), "{message}");
         assert!(!message.contains("WS"), "{message}");
         assert!(!message.contains("LineComment"), "{message}");
+    }
+
+    #[test]
+    fn test_with_layout_is_rejected_at_the_annotation() {
+        let source = "grammar g\n\n@WithLayout(WS)\nS = \"a\" \"b\"\n\n@Regex\nWS = [\\ ]*";
+        let errors = parse_grammar(source).expect_err("custom layout is not part of Iggy");
+        assert_eq!(errors.len(), 1);
+        let start = source.find('@').unwrap() as u32;
+        assert_eq!(errors[0].span, Span::new(start, start + 1));
+        assert!(errors[0].message.starts_with("Expected "), "{errors:?}");
+        assert!(!errors[0].message.contains("WithLayout"), "{errors:?}");
     }
 
     #[test]

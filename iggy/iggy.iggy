@@ -11,9 +11,8 @@ SyntaxRule
   = Annotation? head:Identifier "=" { PriorityLevel ">" }*
 
 Annotation
-  = "@NoLayout"                      #NoLayout
-  | "@Layout"                        #Layout
-  | "@WithLayout" "(" Identifier ")" #WithLayout
+  = "@NoLayout" #NoLayout
+  | "@Layout"   #Layout
 
 RegexRule
   = layout:"@Layout"? id_annot:"@Identifier"? "@Regex" Identifier "="
