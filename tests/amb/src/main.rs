@@ -23,6 +23,7 @@ use std::{
     fs::{self, File},
     io::{self, BufWriter, Write},
     path::{Path, PathBuf},
+    process::ExitCode,
     time::{Duration, Instant},
 };
 #[derive(Clone, Copy, ClapValueEnum)]
@@ -233,9 +234,18 @@ struct Cli {
 #[cfg(feature = "dhat-heap")]
 #[global_allocator]
 static ALLOC: dhat::Alloc = dhat::Alloc;
-fn main() -> Result<(), io::Error> {
+fn main() -> ExitCode {
     #[cfg(feature = "dhat-heap")]
     let _profiler = dhat::Profiler::new_heap();
+    match run() {
+        Ok(()) => ExitCode::SUCCESS,
+        Err(error) => {
+            eprintln!("Error: {error}");
+            ExitCode::FAILURE
+        }
+    }
+}
+fn run() -> io::Result<()> {
     let args = Cli::parse();
     #[cfg(not(feature = "instrument"))]
     if args.hist {
@@ -927,14 +937,17 @@ fn main() -> Result<(), io::Error> {
 }
 /// Resolves a user-supplied start nonterminal name to the id of its
 /// generated StartA wrapper. Every source nonterminal gets a wrapper as
-/// its entry point, so `-n A` resolves to StartA. A name with no wrapper
+/// its entry point, so `--start A` resolves to StartA. A name with no wrapper
 /// (a typo, or a nonterminal introduced by desugaring) is not an entry
 /// point and is an error.
 fn resolve_start_nonterminal(name: &str) -> io::Result<NonterminalId> {
     nonterminal_id(&format!("Start{}", name)).ok_or_else(|| {
         io::Error::new(
             io::ErrorKind::InvalidInput,
-            format!("Unknown nonterminal: '{}'", name),
+            format!(
+                "Unknown start nonterminal: '{}'. Use --list-nonterminals to see the valid names.",
+                name,
+            ),
         )
     })
 }

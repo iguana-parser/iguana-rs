@@ -541,7 +541,7 @@ pub const TERMINALS: [Terminal; 41] = [
     Terminal { name: "Epsilon" },
     Terminal { name: "EOF" },
 ];
-pub const SLOTS: [Slot; 428] = [
+pub static SLOTS: [Slot; 428] = [
     Slot {
         display_name: "Grammar : . \"grammar\" Layout name:Identifier Layout Rule*",
     },

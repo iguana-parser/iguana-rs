@@ -641,7 +641,7 @@ impl TraceReplay {
             TraceEvent::GSSNodeAdded(src_id, dest_id, return_slot) => {
                 if let Some(node) = self.gss_nodes.get_mut(src_id.index()) {
                     node.edges
-                        .push(GSSEdge::new(None, *return_slot, *dest_id, None, None));
+                        .push(GSSEdge::new(None, *return_slot, *dest_id, None));
                 }
             }
             TraceEvent::TerminalNodeCreated(terminal_id, span) => {

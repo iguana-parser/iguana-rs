@@ -55,7 +55,7 @@ pub const TERMINALS: [Terminal; 7] = [
     Terminal { name: "Epsilon" },
     Terminal { name: "EOF" },
 ];
-pub const SLOTS: [Slot; 8] = [
+pub static SLOTS: [Slot; 8] = [
     Slot {
         display_name: "SyntaxIdentifier : . IdentifierChars \\ Keyword \\ BooleanLiteral \\ NullLiteral",
     },

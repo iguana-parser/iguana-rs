@@ -53,7 +53,7 @@ pub const TERMINALS: [Terminal; 11] = [
     Terminal { name: "Epsilon" },
     Terminal { name: "EOF" },
 ];
-pub const SLOTS: [Slot; 58] = [
+pub static SLOTS: [Slot; 58] = [
     Slot {
         display_name: "S : . E(0)",
     },

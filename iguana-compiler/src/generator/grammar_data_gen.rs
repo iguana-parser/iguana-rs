@@ -98,7 +98,8 @@ pub fn generate<'a>(
         })
         .collect();
 
-    // SLOTS array
+    // SLOTS is a static rather than a const: a const array this large is
+    // copied into every use, and Clippy's large_const_arrays lint rejects it.
     let slots_len = Literal::usize_unsuffixed(slot_ids.len());
     let slot_names = slot_ids.slots().map(|s| {
         let display_name = slot_ids.display_name(&slot_ids.get_id(s));
@@ -132,7 +133,7 @@ pub fn generate<'a>(
             Terminal { name: "EOF" },
         ];
 
-        pub const SLOTS: [Slot; #slots_len] = [#(#slot_names),*];
+        pub static SLOTS: [Slot; #slots_len] = [#(#slot_names),*];
 
         #(#items)*
     }

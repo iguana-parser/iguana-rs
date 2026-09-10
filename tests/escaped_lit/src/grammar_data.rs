@@ -35,7 +35,7 @@ pub const TERMINALS: [Terminal; 7] = [
     Terminal { name: "Epsilon" },
     Terminal { name: "EOF" },
 ];
-pub const SLOTS: [Slot; 16] = [
+pub static SLOTS: [Slot; 16] = [
     Slot {
         display_name: "S : . \"\\\"\" WS Id WS \"\\\"\" WS \"\\\\\" WS Id WS \"\\f'\"",
     },
