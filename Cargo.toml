@@ -24,6 +24,7 @@ members = [
     "iggy",
     "iguana-lsp",
     "xtask",
+    "tests/keyword_labels",
     "tests/indirect_binary",
     "tests/error_union",
     "tests/lowercase_name",

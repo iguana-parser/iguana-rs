@@ -94,7 +94,7 @@ Keyword
 NameChar = [a-zA-Z_0-9]
 
 @Regex
-Identifier = NameChar !<< [a-zA-Z_] [a-zA-Z_0-9]* \ Keyword
+Identifier = NameChar !<< [a-zA-Z] [a-zA-Z_0-9]* \ Keyword
 
 @Regex
 String = "\"" (EscapeChar | !["\\])* "\""
@@ -111,7 +111,7 @@ RangeChar
   | "\\" [\\\-\[\]tfrn\ ]
 
 @Regex
-Label = "#" [a-zA-Z_] [a-zA-Z_0-9]*
+Label = "#" [a-zA-Z] [a-zA-Z_0-9]*
 
 @Regex
 WS = WSChar+

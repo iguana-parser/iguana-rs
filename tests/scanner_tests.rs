@@ -16,14 +16,15 @@ fn match_identifier_at(input: &str, index: u32) -> Option<u32> {
 #[test]
 fn test_valid_identifiers() {
     assert_eq!(match_identifier("a"), Some(1));
-    assert_eq!(match_identifier("_start"), Some(6));
+    assert_eq!(match_identifier("my_var"), Some(6));
     assert_eq!(match_identifier("myVar123"), Some(8));
-    assert_eq!(match_identifier("__init__"), Some(8));
+    assert_eq!(match_identifier("init__"), Some(6));
 }
 
 #[test]
 fn test_invalid_identifiers() {
     assert_eq!(match_identifier("0abc"), None);
+    assert_eq!(match_identifier("_start"), None);
     assert_eq!(match_identifier(" "), None);
     assert_eq!(match_identifier("@var"), None);
 }

@@ -46,7 +46,6 @@ static DFA_2: Dfa = Dfa::new(&[
     State::new(
         &[
             ('A', 'Z', 1),
-            ('_', '_', 1),
             ('a', 'f', 1),
             ('g', 'g', 2),
             ('h', 'k', 1),
@@ -384,7 +383,7 @@ static DFA_6: Dfa = Dfa::new(&[
 ]);
 static DFA_7: Dfa = Dfa::new(&[
     State::new(&[('#', '#', 1)], None),
-    State::new(&[('A', 'Z', 2), ('_', '_', 2), ('a', 'z', 2)], None),
+    State::new(&[('A', 'Z', 2), ('a', 'z', 2)], None),
     State::new(
         &[('0', '9', 3), ('A', 'Z', 3), ('_', '_', 3), ('a', 'z', 3)],
         Some(TerminalId(7)),
@@ -610,7 +609,7 @@ impl<'i, 'arena> IggyScanner<'i, 'arena> {
     pub fn match_terminal_1(&self, input_index: u32) -> Option<u32> {
         self.scan(&DFA_1, input_index)
     }
-    // Identifier = [a-z A-Z _][a-z A-Z _ 0-9]* \ Keyword !<< NameChar
+    // Identifier = [a-z A-Z][a-z A-Z _ 0-9]* \ Keyword !<< NameChar
     pub fn match_terminal_2(&self, input_index: u32) -> Option<u32> {
         if input_index > 0 && self.match_terminal_1(input_index - 1).is_some() {
             return None;
@@ -633,7 +632,7 @@ impl<'i, 'arena> IggyScanner<'i, 'arena> {
     pub fn match_terminal_6(&self, input_index: u32) -> Option<u32> {
         self.scan(&DFA_6, input_index)
     }
-    // Label = #[a-z A-Z _][a-z A-Z _ 0-9]*
+    // Label = #[a-z A-Z][a-z A-Z _ 0-9]*
     pub fn match_terminal_7(&self, input_index: u32) -> Option<u32> {
         self.scan(&DFA_7, input_index)
     }

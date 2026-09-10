@@ -691,6 +691,18 @@ TypeId = [A-Z][a-z]*
                 "grammar g S = \"a\" #alt_0",
                 "`#alt_0` becomes `Alt0`, which is reserved for unlabeled alternatives",
             ),
+            (
+                "grammar g S = \"a\" #self",
+                "`#self` becomes the variant `Self`, which is a Rust keyword",
+            ),
+            (
+                "grammar g S = Self:\"a\"",
+                "`Self` becomes the field `self`, which cannot be a Rust field name",
+            ),
+            (
+                "grammar g S = crate:\"a\"",
+                "`crate` becomes the field `crate`, which cannot be a Rust field name",
+            ),
         ] {
             let errors = parse_grammar(source).expect_err(source);
             assert!(
@@ -698,6 +710,76 @@ TypeId = [A-Z][a-z]*
                 "{source}\n  expected: {expected}\n  got: {:?}",
                 messages(&errors),
             );
+        }
+    }
+
+    /// A name starts with a letter, so `_` is a parse error rather than a
+    /// label that the validator has to reject as a field name.
+    #[test]
+    fn test_names_cannot_start_with_an_underscore() {
+        for source in [
+            "grammar g S = _:\"a\"",
+            "grammar g S = \"a\" #_x",
+            "grammar g _s = \"a\"",
+        ] {
+            let errors = parse_grammar(source).expect_err(source);
+            assert!(
+                messages(&errors)[0].starts_with("Expected"),
+                "{source}: {:?}",
+                messages(&errors)
+            );
+        }
+    }
+
+    /// A keyword label becomes a raw identifier in the generated code, so it
+    /// is accepted. The rejected labels are the ones raw identifier syntax
+    /// cannot escape.
+    #[test]
+    fn test_keyword_labels_that_raw_identifiers_can_escape_are_accepted() {
+        for source in [
+            "grammar g S = type:\"a\"",
+            "grammar g S = do:\"a\"",
+            "grammar g S = \"a\" #type",
+        ] {
+            parse_grammar(source).unwrap_or_else(|errors| panic!("{source}: {errors:?}"));
+        }
+    }
+
+    /// Two labels in one sequence that become the same field name generate a
+    /// struct with two fields of that name. Labels in different sequences,
+    /// including the alternatives of one parenthesized alternation, become
+    /// fields of different types.
+    #[test]
+    fn test_field_labels_must_be_distinct_within_a_sequence() {
+        for (source, expected) in [
+            ("grammar g S = x:\"a\" x:\"b\"", "duplicate label `x`"),
+            (
+                "grammar g S = fooBar:\"a\" foo_bar:\"b\"",
+                "`fooBar` and `foo_bar` both become the field `foo_bar`",
+            ),
+            (
+                "grammar g S = \"c\" (x:\"a\" x:\"b\")",
+                "duplicate label `x`",
+            ),
+            (
+                "grammar g S = (\"c\" | x:\"a\" x:\"b\")",
+                "duplicate label `x`",
+            ),
+            ("grammar g S = (x:\"a\" x:\"b\")*", "duplicate label `x`"),
+            ("grammar g S = {x:\"a\" x:\",\"}*", "duplicate label `x`"),
+            ("grammar g S = (x:\"a\" x:\"b\")?", "duplicate label `x`"),
+        ] {
+            let errors = parse_grammar(source).expect_err(source);
+            assert_eq!(messages(&errors), [expected], "{source}");
+        }
+        for source in [
+            "grammar g S = x:\"a\" | x:\"b\"",
+            "grammar g S = x:\"a\" (x:\"b\")",
+            "grammar g S = (x:\"a\" | x:\"b\")",
+            "grammar g S = x:\"a\" {x:\"b\" \",\"}*",
+            "grammar g S = x:\"a\" y = x:\"b\"",
+        ] {
+            parse_grammar(source).unwrap_or_else(|errors| panic!("{source}: {errors:?}"));
         }
     }
 

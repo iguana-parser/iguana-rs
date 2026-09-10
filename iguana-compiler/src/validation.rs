@@ -1,9 +1,11 @@
+use std::iter;
 use std::path::Path;
 
 use iguana_runtime::input::{Input, Span};
 use rustc_hash::{FxHashMap, FxHashSet};
 
 use crate::generator::grammar_utils::{parse_tree_builder_ident, parser_ident};
+use crate::generator::utils::is_rust_keyword;
 use crate::grammar::{
     def::{GrammarDef, LexicalRule, SyntaxRule},
     symbols::{Identifier, Symbol, Terminal},
@@ -49,6 +51,7 @@ pub fn validate<'a>(grammar_def: &'a GrammarDef, spans: &GrammarSpans<'a>) -> Ve
     check_exclusions(grammar_def, spans, &mut errors);
     check_restriction_targets(grammar_def, spans, &mut errors);
     check_one_label_per_symbol(grammar_def, spans, &mut errors);
+    check_duplicate_field_labels(grammar_def, spans, &mut errors);
     check_reserved_names(grammar_def, spans, &mut errors);
     check_layout_is_not_an_identifier_rule(grammar_def, spans, &mut errors);
     check_grammar_has_a_syntax_rule(grammar_def, &mut errors);
@@ -425,6 +428,71 @@ fn check_one_label_per_symbol<'a>(
     });
 }
 
+/// Reports two labeled symbols in an alternative whose labels become the same
+/// field name, such as `x:"a" x:"b"` or `fooBar:A foo_bar:B`.
+///
+/// Validation runs before EBNF-to-BNF conversion, because an error needs the
+/// source span of its symbol and only the parsed grammar (GrammarDef) has
+/// spans. At this point a parenthesized group or a list is still a symbol
+/// nested inside its enclosing alternative, and EBNF-to-BNF later turns it
+/// into a rule of its own. The check therefore also visits every nested
+/// sequence, the symbols of a group or a list element together with its
+/// separator, and compares each sequence's labels on their own, as they will
+/// be fields of one alternative in the generated parser.
+fn check_duplicate_field_labels<'a>(
+    grammar_def: &'a GrammarDef,
+    spans: &GrammarSpans<'a>,
+    errors: &mut Vec<GrammarError>,
+) {
+    for rule in &grammar_def.syntax_rules {
+        for alternative in rule.alternatives() {
+            check_sequence_field_labels(alternative.symbols.iter(), spans, errors);
+        }
+    }
+    // An alternation element or an option body is a sequence of one symbol,
+    // which cannot repeat a label.
+    grammar_def.for_each_symbol(&mut |symbol| match symbol {
+        Symbol::Group(symbols) => check_sequence_field_labels(symbols.iter(), spans, errors),
+        Symbol::Star(element, separator) | Symbol::Plus(element, separator) => {
+            check_sequence_field_labels(
+                iter::once(element.as_ref()).chain(separator.as_deref()),
+                spans,
+                errors,
+            );
+        }
+        _ => {}
+    });
+}
+
+/// Compares the labels of the symbols of one sequence. A label is the
+/// outermost wrapper of a parsed symbol, so the label of the symbol itself is
+/// the one the generator names the field after.
+fn check_sequence_field_labels<'a>(
+    symbols: impl Iterator<Item = &'a Symbol>,
+    spans: &GrammarSpans<'a>,
+    errors: &mut Vec<GrammarError>,
+) {
+    // A map from generated field names to source labels.
+    let mut field_names: FxHashMap<String, &str> = FxHashMap::default();
+    for symbol in symbols {
+        let Some(label) = symbol.label() else {
+            continue;
+        };
+        let field_name = to_snake_case(label);
+        if let Some(previous) = field_names.insert(field_name.clone(), label) {
+            let message = if previous == label {
+                format!("duplicate label `{label}`")
+            } else {
+                format!("`{previous}` and `{label}` both become the field `{field_name}`")
+            };
+            errors.push(GrammarError {
+                message,
+                span: spans.symbol(symbol).span,
+            });
+        }
+    }
+}
+
 /// Names of types and traits imported or defined by the generated parse tree.
 ///
 /// Keep this list synchronized with generated-code type and trait names in
@@ -468,7 +536,12 @@ const AMBIGUITY_VARIANT_NAME: &str = "Amb";
 
 const ALTERNATIVE_SPAN_FIELD_NAME: &str = "span";
 
-/// Reports rule and label names that collide with generated Rust identifiers.
+/// The Rust keywords that cannot be escaped as raw identifiers. Every other
+/// keyword label becomes a raw identifier, such as `r#type` for `type:A`.
+const UNESCAPABLE_FIELD_NAMES: &[&str] = &["self", "super", "crate"];
+
+/// Reports rule and label names that collide with generated Rust identifiers
+/// or cannot be Rust identifiers.
 ///
 /// The check compares each name after applying the generator's case conversion.
 /// Rule names become PascalCase types and UPPER_SNAKE_CASE constants.
@@ -533,6 +606,21 @@ fn check_reserved_names<'a>(
             };
             let variant_name = to_pascal_case(label);
             let alternative_span = spans.alternative(alternative).span;
+            // Alternative labels become PascalCase Rust enum variants:
+            // `#type` becomes `Type`, and `#match` becomes `Match`. Rust keywords
+            // are case-sensitive, so those variant names are valid. However,
+            // `#self` and `#Self` both become `Self`, which is a Rust keyword
+            // meaning the current type. Rust lets us escape most keywords with
+            // `r#`, as in `r#type`, but explicitly forbids `r#Self`. We therefore
+            // reject labels that become `Self`.
+            if is_rust_keyword(&variant_name) {
+                errors.push(GrammarError {
+                    message: format!(
+                        "`#{label}` becomes the variant `{variant_name}`, which is a Rust keyword"
+                    ),
+                    span: alternative_span,
+                });
+            }
             if variant_name == AMBIGUITY_VARIANT_NAME {
                 errors.push(GrammarError {
                     message: format!(
@@ -570,12 +658,22 @@ fn check_reserved_names<'a>(
     // numeric indexes. Whether an unlabeled field collides with `span` therefore
     // cannot be decided from the rule name alone.
     grammar_def.for_each_symbol(&mut |symbol| {
-        if let Symbol::Labeled { label, .. } = symbol
-            && to_snake_case(label) == ALTERNATIVE_SPAN_FIELD_NAME
-        {
+        let Symbol::Labeled { label, .. } = symbol else {
+            return;
+        };
+        let field_name = to_snake_case(label);
+        if field_name == ALTERNATIVE_SPAN_FIELD_NAME {
             errors.push(GrammarError {
                 message: format!(
                     "`{label}` becomes the field `{ALTERNATIVE_SPAN_FIELD_NAME}`, which the generator uses for an alternative's span"
+                ),
+                span: spans.symbol(symbol).span,
+            });
+        }
+        if UNESCAPABLE_FIELD_NAMES.contains(&field_name.as_str()) {
+            errors.push(GrammarError {
+                message: format!(
+                    "`{label}` becomes the field `{field_name}`, which cannot be a Rust field name"
                 ),
                 span: spans.symbol(symbol).span,
             });

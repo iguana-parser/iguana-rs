@@ -32,12 +32,12 @@
         root: [
           [/\/\/.*$/, "comment"],
           [/@(regex|NoLayout|Layout)\b/, "decorator"],
-          [/#[A-Za-z_]\w*/, "comment"], // labels
+          [/#[A-Za-z]\w*/, "comment"], // labels
           [/"[^"]*"/, "string"],
           [/'[^']*'/, "string"],
           [/!>>>|!>>|!<</, "operator"],
           [/[=|>*+?!:\\(){}\[\]\-]/, "operator"],
-          [/[A-Za-z_]\w*/, { cases: { "@keywords": "keyword", "@default": "type" } }],
+          [/[A-Za-z]\w*/, { cases: { "@keywords": "keyword", "@default": "type" } }],
         ],
       },
     });

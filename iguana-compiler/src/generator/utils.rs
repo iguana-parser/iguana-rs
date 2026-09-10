@@ -25,11 +25,14 @@ pub fn is_valid_rust_ident(s: &str) -> bool {
     true
 }
 
+/// The keywords of the 2024 edition, including the reserved ones such as
+/// `do` and `gen`, which cannot be identifiers either.
 const RUST_KEYWORDS: &[&str] = &[
-    "as", "async", "await", "break", "const", "continue", "crate", "dyn", "else", "enum", "extern",
-    "false", "fn", "for", "if", "impl", "in", "let", "loop", "match", "mod", "move", "mut", "pub",
-    "ref", "return", "self", "Self", "static", "struct", "super", "trait", "true", "type",
-    "unsafe", "use", "where", "while",
+    "abstract", "as", "async", "await", "become", "box", "break", "const", "continue", "crate",
+    "do", "dyn", "else", "enum", "extern", "false", "final", "fn", "for", "gen", "if", "impl",
+    "in", "let", "loop", "macro", "match", "mod", "move", "mut", "override", "priv", "pub", "ref",
+    "return", "self", "Self", "static", "struct", "super", "trait", "true", "try", "type",
+    "typeof", "unsafe", "unsized", "use", "virtual", "where", "while", "yield",
 ];
 
 pub fn is_rust_keyword(s: &str) -> bool {
@@ -38,6 +41,9 @@ pub fn is_rust_keyword(s: &str) -> bool {
 
 /// Creates an identifier that is safe to use in generated Rust code.
 /// If the name is a Rust keyword, uses raw identifier syntax (r#keyword).
+///
+/// `self`, `Self`, `super`, and `crate` cannot be raw identifiers, so grammar
+/// validation rejects the labels that would produce them.
 pub fn safe_ident(name: &str) -> proc_macro2::Ident {
     if is_rust_keyword(name) {
         proc_macro2::Ident::new_raw(name, proc_macro2::Span::call_site())
