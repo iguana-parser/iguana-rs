@@ -414,7 +414,7 @@ var E = class {
 	findRoot() {
 		if (!this.cy) return null;
 		let e = this.cy.nodes().filter((e) => e.incomers("edge").length === 0);
-		return e.length > 0 ? e.first().id() : null;
+		return e.length > 0 ? e.first().id() : this.cy.nodes().first().id() ?? null;
 	}
 	getReachableFromNode(e, t) {
 		if (!this.cy) return /* @__PURE__ */ new Set();
@@ -455,14 +455,15 @@ var E = class {
 	}
 	expandAncestors(e) {
 		if (!this.cy) return;
-		let t = !1, n = e;
-		for (; n !== null;) {
-			let e = this.cy.getElementById(n);
+		let t = !1, n = /* @__PURE__ */ new Set(), r = e;
+		for (; r !== null && !n.has(r);) {
+			n.add(r);
+			let e = this.cy.getElementById(r);
 			if (e.length === 0) break;
-			let r = e.incomers("node");
-			if (r.length === 0) break;
-			let i = r.first(), a = i.id();
-			this.collapsedNodes.has(a) && (this.collapsedNodes.delete(a), i.removeClass("collapsed"), t = !0), n = a;
+			let i = e.incomers("node");
+			if (i.length === 0) break;
+			let a = i.first(), o = a.id();
+			this.collapsedNodes.has(o) && (this.collapsedNodes.delete(o), a.removeClass("collapsed"), t = !0), r = o;
 		}
 		t && this.updateVisibility();
 	}

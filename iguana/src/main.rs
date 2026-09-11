@@ -237,6 +237,8 @@ fn run() -> io::Result<()> {
                     output.display()
                 );
             }
+            // Sources are generated first so a rejected grammar leaves no scaffold behind.
+            let result = generate_sources(&grammar, &output, config)?;
             generate_scaffold(
                 &grammar,
                 &output,
@@ -245,7 +247,6 @@ fn run() -> io::Result<()> {
                 bin_name.as_deref(),
                 force,
             )?;
-            let result = generate_sources(&grammar, &output, config)?;
             if config.wasm {
                 generate_wasm(&grammar, &output, config, runtime_path.as_deref(), force)?;
                 iguana_compiler::wasm_build::build(&output.join("wasm"))?;

@@ -581,13 +581,13 @@ impl<'a> Start<&'a D<'a>, ()> {
     }
 }
 impl<'a> Alt0<'a> {
-    pub fn as_c(&self) -> Option<&C<'_>> {
+    pub fn as_c(&self) -> Option<&C<'a>> {
         match self {
             Alt0::Alt0 { c, .. } => Some(c),
             _ => None,
         }
     }
-    pub fn as_d(&self) -> Option<&D<'_>> {
+    pub fn as_d(&self) -> Option<&D<'a>> {
         match self {
             Alt0::Alt1 { d, .. } => Some(d),
             _ => None,

@@ -1,4 +1,7 @@
-use std::fmt::{Debug, Write};
+use std::{
+    fmt::{self, Debug, Write},
+    sync::OnceLock,
+};
 
 use rustc_hash::{FxHashMap, FxHashSet};
 
@@ -179,6 +182,9 @@ pub fn visit_sppf<'i, 'arena, T: Debug + Clone, P: Parser<'i, 'arena>>(
     // Memoize across the SPPF only when ambiguity is reachable; otherwise
     // each node is visited at most once anyway, and the empty map plus its
     // per-node check would be pure overhead.
+    // Every SPPF cycle includes an ambiguous node: closing a cycle adds an
+    // edge to an existing node. So a cyclic SPPF always takes the memoized
+    // path, which the walker relies on to terminate.
     let mut memo = if is_ambiguous(parser, node_id) {
         Some(FxHashMap::default())
     } else {
@@ -258,8 +264,30 @@ struct Frame<'arena, T: Debug> {
     results: InlineVec<'arena, OneOrMany<T>>,
 }
 
+/// A nonterminal under construction or a completed SPPF node's result.
+enum MemoEntry<T: Debug> {
+    /// The nonterminal's frame is still on the stack. The Cycle node is
+    /// allocated on the first back-edge and shared by later references.
+    Active(Option<T>),
+    /// The finished result, available for reuse.
+    Done(OneOrMany<T>),
+}
+
 impl<'arena, T: Debug> Frame<'arena, T> {
-    fn new<'i>(node_id: SPPFNodeId, parser: &impl Parser<'i, 'arena>) -> Self {
+    fn enter<'i>(
+        node_id: SPPFNodeId,
+        parser: &impl Parser<'i, 'arena>,
+        memo: &mut Option<FxHashMap<SPPFNodeId, MemoEntry<T>>>,
+    ) -> Self {
+        // Only nonterminals are marked active. An intermediate node produces
+        // a child sequence rather than a typed value, so a re-entered
+        // intermediate node is expanded again until the walk reaches an
+        // active nonterminal.
+        if let Some(m) = memo.as_mut()
+            && matches!(parser.sppf_node(node_id), SPPFNode::Nonterminal(_))
+        {
+            m.insert(node_id, MemoEntry::Active(None));
+        }
         Frame {
             node_id,
             children: parser.sppf_children(node_id),
@@ -273,30 +301,45 @@ fn visit_sppf_impl<'i, 'arena, T: Debug + Clone, P: Parser<'i, 'arena>>(
     root_id: SPPFNodeId,
     parser: &P,
     builder: &impl ParseTreeBuilder<T>,
-    memo: &mut Option<FxHashMap<SPPFNodeId, OneOrMany<T>>>,
+    memo: &mut Option<FxHashMap<SPPFNodeId, MemoEntry<T>>>,
 ) -> OneOrMany<T> {
-    // A frame is fully built (and memoized) before its parent advances to the
-    // next child, so a shared node's first visit completes before any later one
-    // and children land on a frame's `results` in source order.
+    // A child frame is fully built before its parent visits the next child,
+    // so results arrive in source order. Completed nodes are reused;
+    // re-entering an active nonterminal produces a Cycle reference.
     let arena = parser.vec_arena();
-    let mut stack = vec![Frame::new(root_id, parser)];
+    let mut stack = vec![Frame::enter(root_id, parser, memo)];
     loop {
         let top = stack.len() - 1;
         match stack[top].children.get(stack[top].next).copied() {
             Some(child) => {
                 stack[top].next += 1;
-                // Reuse a child already built elsewhere (only possible once the
-                // memo is active, i.e. when the parse is ambiguous).
-                match memo.as_ref().and_then(|m| m.get(&child).cloned()) {
-                    Some(cached) => stack[top].results.push(cached, arena),
-                    None => stack.push(Frame::new(child, parser)),
+                match memo.as_mut().and_then(|m| m.get_mut(&child)) {
+                    Some(MemoEntry::Done(cached)) => stack[top].results.push(cached.clone(), arena),
+                    Some(MemoEntry::Active(cycle)) => {
+                        let cycle = cycle.get_or_insert_with(|| {
+                            let SPPFNode::Nonterminal(node) = parser.sppf_node(child) else {
+                                unreachable!("only nonterminals are marked active")
+                            };
+                            builder.new_cycle_node(node)
+                        });
+                        stack[top]
+                            .results
+                            .push(OneOrMany::One(cycle.clone()), arena);
+                    }
+                    None => stack.push(Frame::enter(child, parser, memo)),
                 }
             }
             None => {
                 let frame = stack.pop().unwrap();
                 let result = build_node(parser, builder, frame.node_id, frame.results);
-                if let Some(m) = memo.as_mut() {
-                    m.insert(frame.node_id, result.clone());
+                if let Some(m) = memo.as_mut()
+                    && let Some(MemoEntry::Active(Some(cycle))) =
+                        m.insert(frame.node_id, MemoEntry::Done(result.clone()))
+                {
+                    let OneOrMany::One(target) = &result else {
+                        unreachable!("a cycle target must be a single nonterminal value")
+                    };
+                    builder.set_cycle_target(&cycle, target);
                 }
                 match stack.last_mut() {
                     Some(parent) => parent.results.push(result, arena),
@@ -431,6 +474,58 @@ pub trait ParseTreeBuilder<T: Debug> {
         let _ = (parent, alternatives);
         unimplemented!("ambiguity handling not yet implemented for this builder")
     }
+
+    /// Creates an uninitialized cycle reference. Clones of the returned value
+    /// must share the target later initialized by `set_cycle_target`.
+    fn new_cycle_node(&self, node: &NonterminalNode) -> T {
+        let _ = node;
+        unimplemented!("cycle handling requires regenerating this parser")
+    }
+
+    /// Initializes the cycle reference and all its clones with the completed
+    /// nonterminal result, including its `Amb` node when present.
+    fn set_cycle_target(&self, cycle: &T, target: &T) {
+        let _ = (cycle, target);
+        unimplemented!("cycle handling requires regenerating this parser")
+    }
+}
+
+/// A typed cycle reference initialized when its target finishes construction.
+/// Debug prints the target's address without following the reference.
+pub struct CycleTarget<'a, T>(OnceLock<&'a T>);
+
+impl<'a, T> CycleTarget<'a, T> {
+    pub const fn new() -> Self {
+        Self(OnceLock::new())
+    }
+
+    /// The target, which is initialized before the parser returns the tree.
+    /// Panics if construction has not initialized it yet.
+    pub fn get(&self) -> &'a T {
+        self.0
+            .get()
+            .copied()
+            .expect("cycle target has not been initialized")
+    }
+
+    /// Initializes the reference. Panics if it was already initialized.
+    pub fn set(&self, target: &'a T) {
+        assert!(self.0.set(target).is_ok(), "cycle target initialized twice");
+    }
+}
+
+impl<T> Default for CycleTarget<'_, T> {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+impl<T> Debug for CycleTarget<'_, T> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_tuple("CycleTarget")
+            .field(&self.0.get().map(|node| *node as *const T))
+            .finish()
+    }
 }
 
 #[derive(Clone, Copy, PartialEq, Eq)]
@@ -438,6 +533,7 @@ pub enum NodeKind {
     Token,
     Nonterminal,
     Amb,
+    Cycle,
 }
 
 /// The grammar construct a nonterminal node was derived from. Drives the
@@ -477,12 +573,42 @@ pub trait ParseTreeNode: Copy {
         None
     }
 
-    /// Whether any node in this subtree is ambiguous.
+    /// The target of a Cycle node. It is not part of `children()`.
+    fn cycle_target(&self) -> Option<Self> {
+        None
+    }
+
+    /// Whether any reachable node is ambiguous, including cycle targets.
     fn contains_ambiguity(&self) -> bool {
+        let mut visited = FxHashSet::default();
         let mut stack = vec![*self];
         while let Some(node) = stack.pop() {
             if node.kind() == NodeKind::Amb {
                 return true;
+            }
+            if let Some(id) = node.node_id()
+                && !visited.insert(id)
+            {
+                continue;
+            }
+            stack.extend(node.cycle_target());
+            stack.extend(node.children());
+        }
+        false
+    }
+
+    /// Whether any node reachable through `children()` is a Cycle node.
+    fn contains_cycle(&self) -> bool {
+        let mut visited = FxHashSet::default();
+        let mut stack = vec![*self];
+        while let Some(node) = stack.pop() {
+            if node.kind() == NodeKind::Cycle {
+                return true;
+            }
+            if let Some(id) = node.node_id()
+                && !visited.insert(id)
+            {
+                continue;
             }
             stack.extend(node.children());
         }
@@ -541,10 +667,12 @@ pub fn walk<N: ParseTreeNode, V: TreeVisitor<N>>(root: N, visitor: &mut V) {
 
 /// Renders a parse tree as a JSON graph of nodes and edges, for visualization.
 /// A node shared in an ambiguity DAG is emitted once; later parents get an edge
-/// to the existing node instead of a re-expanded subtree.
+/// to the existing node instead of a re-expanded subtree. Cycle references are
+/// edges to their targets, without separate nodes.
+/// The root is always the first entry in `nodes`.
 pub fn to_json<N: ParseTreeNode>(root: N, layout_name: Option<&str>) -> String {
     let mut builder = JsonBuilder::default();
-    walk(root, &mut builder);
+    walk(resolve_cycle(root), &mut builder);
     serde_json::json!({
         "layout_name": layout_name,
         "nodes": builder.nodes,
@@ -599,6 +727,7 @@ impl<N: ParseTreeNode> TreeVisitor<N> for JsonBuilder {
             NodeKind::Token => "Token",
             NodeKind::Nonterminal => "Nonterminal",
             NodeKind::Amb => "Amb",
+            NodeKind::Cycle => unreachable!("cycle references are resolved before rendering"),
         };
         self.nodes.push(serde_json::json!({
             "id": id,
@@ -616,6 +745,15 @@ impl<N: ParseTreeNode> TreeVisitor<N> for JsonBuilder {
     fn exit(&mut self, _node: N) {
         self.ancestors.pop();
     }
+
+    fn children(&self, node: N) -> Vec<N> {
+        node.children().into_iter().map(resolve_cycle).collect()
+    }
+}
+
+/// The node a renderer shows: a Cycle's target, or the node itself.
+fn resolve_cycle<N: ParseTreeNode>(node: N) -> N {
+    node.cycle_target().unwrap_or(node)
 }
 
 /// Renders a parse tree as an s-expression with default options.
@@ -626,6 +764,7 @@ pub fn to_sexpr<N: ParseTreeNode>(root: N, layout_name: Option<&str>) -> String 
 /// Renders a parse tree as an s-expression. A first pass counts how many parents
 /// reach each node; a node reached by more than one is written once with a `#N=`
 /// label and referenced as `#N#` elsewhere, so a shared forest stays bounded.
+/// A Cycle node is written as the `#N#` reference to its target.
 pub fn to_sexpr_with<N: ParseTreeNode>(
     root: N,
     layout_name: Option<&str>,
@@ -695,6 +834,7 @@ fn display_children<N: ParseTreeNode>(
 ) -> Vec<N> {
     let mut result = Vec::new();
     for child in node.children() {
+        let child = resolve_cycle(child);
         if is_hidden_layout(child, layout_name, options) {
             continue;
         }
@@ -725,7 +865,7 @@ fn display_root<N: ParseTreeNode>(
     layout_name: Option<&str>,
     options: DisplayOptions,
 ) -> N {
-    let mut node = root;
+    let mut node = resolve_cycle(root);
     while !options.show_wrappers && is_wrapper(node.origin()) {
         match display_children(node, layout_name, options).as_slice() {
             [only] => node = *only,

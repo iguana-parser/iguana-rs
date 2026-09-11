@@ -1,0 +1,32 @@
+[package]
+name = "cycles"
+version = "0.1.0"
+publish = false
+edition = "2024"
+
+[lib]
+path = "src/lib.rs"
+test = false
+doctest = false
+
+[[bin]]
+name = "cycles"
+path = "src/main.rs"
+test = false
+
+[dependencies]
+iguana-runtime.workspace = true
+clap = { version = "4.5.51", features = ["derive"] }
+log = "0.4"
+rustc-hash = "2.1.1"
+serde_json = "1.0"
+dhat = { version = "0.3", optional = true }
+pprof = { version = "0.15", features = ["flamegraph"], optional = true }
+
+[features]
+debug-trace = ["iguana-runtime/debug-trace"]
+instrument = ["iguana-runtime/instrument"]
+dhat-heap = ["dep:dhat"]
+profile = ["dep:pprof"]
+[lints]
+workspace = true

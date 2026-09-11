@@ -37,7 +37,7 @@ pub struct ParserGen<'a> {
     terminal_ids: &'a TerminalIds,
     slot_ids: &'a SlotIds<'a>,
     binding_ids: &'a BindingIds,
-    ff: FirstFollowSets<'a>,
+    ff: &'a FirstFollowSets<'a>,
     config: GenConfig,
 }
 
@@ -48,6 +48,7 @@ impl<'a> ParserGen<'a> {
         terminal_ids: &'a TerminalIds,
         slot_ids: &'a SlotIds<'a>,
         binding_ids: &'a BindingIds,
+        ff: &'a FirstFollowSets<'a>,
         config: GenConfig,
     ) -> Self {
         Self {
@@ -56,7 +57,7 @@ impl<'a> ParserGen<'a> {
             terminal_ids,
             slot_ids,
             binding_ids,
-            ff: FirstFollowSets::new(grammar),
+            ff,
             config,
         }
     }

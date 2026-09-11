@@ -601,13 +601,13 @@ impl<'a> ListNode<'a> for Plus0<'a> {
     }
 }
 impl<'a> Alt0<'a> {
-    pub fn as_a(&self) -> Option<&A<'_>> {
+    pub fn as_a(&self) -> Option<&A<'a>> {
         match self {
             Alt0::Alt0 { a, .. } => Some(a),
             _ => None,
         }
     }
-    pub fn as_num(&self) -> Option<&Num<'_>> {
+    pub fn as_num(&self) -> Option<&Num<'a>> {
         match self {
             Alt0::Alt1 { num, .. } => Some(num),
             _ => None,

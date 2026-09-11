@@ -1,0 +1,9 @@
+(Start
+  #1=(Amb
+    (OverlapC "b")
+    (OverlapC
+      #2=(Amb
+        (OverlapB
+          #1#)
+        (OverlapB
+          #2#)))))

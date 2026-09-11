@@ -234,6 +234,18 @@ pub fn generate_sources(
     // Checked before the first write, so a rejected grammar leaves no
     // half-written sources behind.
     check_layout_aware_follow(grammar, &ff, config)?;
+    let cyclic_nonterminals = ff.cyclic_nonterminals();
+    if config.unsafe_mode && !cyclic_nonterminals.is_empty() {
+        let mut names: Vec<_> = cyclic_nonterminals
+            .iter()
+            .map(|nt| nt.name.as_str())
+            .collect();
+        names.sort_unstable();
+        return Err(io::Error::other(format!(
+            "unsafe mode does not support nonterminals that can derive themselves without consuming input: {} (conditions and restrictions are not taken into account)",
+            names.join(", ")
+        )));
+    }
 
     if !output_dir.exists() {
         fs::create_dir_all(output_dir)?;
@@ -265,6 +277,7 @@ pub fn generate_sources(
         &terminal_ids,
         &slot_ids,
         &binding_ids,
+        &ff,
         config,
     );
     let parser_code = parser_gen.generate();
@@ -277,7 +290,13 @@ pub fn generate_sources(
         &scanner_path,
     )?;
 
-    let parse_tree_gen = ParseTreeGen::new(grammar, &nonterminal_ids, &terminal_ids, config);
+    let parse_tree_gen = ParseTreeGen::new(
+        grammar,
+        &nonterminal_ids,
+        &terminal_ids,
+        config,
+        cyclic_nonterminals,
+    );
     write_rust_file(
         post_process(&parse_tree_gen.generate().to_string()),
         &parse_tree_path,
@@ -444,6 +463,37 @@ mod tests {
         env, process,
         time::{SystemTime, UNIX_EPOCH},
     };
+
+    #[test]
+    fn unsafe_mode_rejects_cycles_before_writing_sources() {
+        let grammar: Grammar = parse_grammar(
+            r#"grammar G
+C = C | "b"
+"#,
+        )
+        .unwrap()
+        .try_into()
+        .unwrap();
+        let nonce = SystemTime::now()
+            .duration_since(UNIX_EPOCH)
+            .unwrap()
+            .as_nanos();
+        let dir = env::temp_dir().join(format!("iguana-unsafe-cycles-{}-{nonce}", process::id()));
+        let result = generate_sources(
+            &grammar,
+            &dir,
+            GenConfig {
+                unsafe_mode: true,
+                ..GenConfig::default()
+            },
+        );
+        let error = result.err().expect("cyclic grammars must be rejected");
+        assert_eq!(
+            error.to_string(),
+            "unsafe mode does not support nonterminals that can derive themselves without consuming input: C (conditions and restrictions are not taken into account)"
+        );
+        assert!(!dir.exists(), "rejection must precede any generated files");
+    }
 
     // The same structural rule describes an enum variant and its construction:
     //

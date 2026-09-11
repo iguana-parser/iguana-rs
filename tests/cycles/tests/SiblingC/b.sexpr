@@ -1,0 +1,8 @@
+(Start
+  #1=(Amb
+    (SiblingC "b")
+    (SiblingC
+      #1#
+      (Amb
+        (SiblingD EmptyF)
+        (SiblingD EmptyE)))))

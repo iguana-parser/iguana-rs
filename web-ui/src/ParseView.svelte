@@ -155,16 +155,13 @@
 
     // Build adjacency list from edges
     const childrenMap = new Map<number, number[]>();
-    const hasParent = new Set<number>();
 
     for (const edge of parseTree.edges) {
       if (!childrenMap.has(edge.src)) childrenMap.set(edge.src, []);
       childrenMap.get(edge.src)!.push(edge.dest);
-      hasParent.add(edge.dest);
     }
 
-    // Find root (node with no parent)
-    const rootNode = parseTree.nodes.find(n => !hasParent.has(n.id));
+    const rootNode = parseTree.nodes[0];
     if (!rootNode) return { root: null, parentMap };
 
     // Build node lookup for efficient access
@@ -206,17 +203,18 @@
   function collectOutermostAmbs(parseTree: ParseTree): { start: number; end: number; message: string }[] {
     if (parseTree.nodes.length === 0) return [];
     const childrenMap = new Map<number, number[]>();
-    const hasParent = new Set<number>();
     for (const edge of parseTree.edges) {
       if (!childrenMap.has(edge.src)) childrenMap.set(edge.src, []);
       childrenMap.get(edge.src)!.push(edge.dest);
-      hasParent.add(edge.dest);
     }
     const nodeMap = new Map(parseTree.nodes.map(n => [n.id, n]));
-    const root = parseTree.nodes.find(n => !hasParent.has(n.id));
+    const root = parseTree.nodes[0];
     if (!root) return [];
     const out: { start: number; end: number; message: string }[] = [];
+    const visited = new Set<number>();
     function visit(id: number) {
+      if (visited.has(id)) return;
+      visited.add(id);
       const node = nodeMap.get(id)!;
       if (node.kind === "Amb") {
         const childIds = childrenMap.get(id) ?? [];
@@ -997,8 +995,10 @@
       childrenMap.get(edge.src)!.push(edge.dest);
       indegree.set(edge.dest, (indegree.get(edge.dest) ?? 0) + 1);
     }
-    const root = parseTree.nodes.find(n => !indegree.has(n.id));
+    const root = parseTree.nodes[0];
     if (!root) return null;
+    // Entering the root is a reference too; a cycle back to it needs a label.
+    indegree.set(root.id, (indegree.get(root.id) ?? 0) + 1);
     const nodeMap = new Map(parseTree.nodes.map(n => [n.id, n]));
 
     const labels = new Map<number, number>();

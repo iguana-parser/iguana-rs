@@ -1,0 +1,11 @@
+(Start
+  (NullableStar
+    (EmptyE*
+      (Amb
+        EmptyE+?
+        (EmptyE+?
+          #1=(Amb
+            (EmptyE+ EmptyE)
+            (EmptyE+
+              #1#
+              EmptyE)))))))

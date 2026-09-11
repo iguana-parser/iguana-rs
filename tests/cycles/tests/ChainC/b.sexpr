@@ -1,0 +1,7 @@
+(Start
+  #1=(Amb
+    (ChainC "b")
+    (ChainC
+      (ChainA
+        (ChainB
+          #1#)))))

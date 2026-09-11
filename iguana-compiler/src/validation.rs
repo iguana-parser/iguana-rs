@@ -499,6 +499,7 @@ fn check_sequence_field_labels<'a>(
 /// `generator/parse_tree_gen.rs` that are not derived from the grammar.
 const RESERVED_TYPE_NAMES: &[&str] = &[
     "Arena",
+    "CycleTarget",
     "DisplayOptions",
     "IntoIter",
     "ListNode",
@@ -625,6 +626,14 @@ fn check_reserved_names<'a>(
                 errors.push(GrammarError {
                     message: format!(
                         "`#{label}` becomes `{AMBIGUITY_VARIANT_NAME}`, which is reserved for ambiguous alternatives"
+                    ),
+                    span: alternative_span,
+                });
+            }
+            if variant_name == "Cycle" {
+                errors.push(GrammarError {
+                    message: format!(
+                        "`#{label}` becomes `Cycle`, which is reserved for cyclic references"
                     ),
                     span: alternative_span,
                 });

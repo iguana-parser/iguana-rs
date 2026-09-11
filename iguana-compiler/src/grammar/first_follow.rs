@@ -321,6 +321,11 @@ impl<'a> FirstFollowSets<'a> {
             return false;
         }
         let continuation = &self.grammar.alternatives(nt)[0].symbols[1..];
+        // A loop iteration must consume input. Nullable continuations can produce
+        // cycles and need GLL even if their FIRST set has no conflicts.
+        if continuation.iter().all(|symbol| self.is_nullable(symbol)) {
+            return false;
+        }
         // FIRST set of the continuation. Walk symbols left to right:
         // - contribute each symbol's FIRST set to the running set;
         // - stop after the first non-nullable symbol;
@@ -504,6 +509,63 @@ impl<'a> FirstFollowSets<'a> {
     /// Returns true if the nonterminal has any nullable alternative.
     pub fn is_nonterminal_nullable(&self, nt: &Nonterminal) -> bool {
         self.nullables.contains(nt)
+    }
+
+    /// Nonterminals that can derive themselves without consuming input around
+    /// the recursive occurrence.
+    ///
+    /// ```text
+    /// C = C | "a"
+    /// ```
+    /// Returns `{C}`.
+    ///
+    /// ```text
+    /// A = B
+    /// B = A | "a"
+    /// ```
+    /// Returns `{A, B}`.
+    ///
+    /// ```text
+    /// C = C "x" | "a"
+    /// ```
+    /// Returns the empty set: the recursive `C` is followed by `"x"`, which is
+    /// not nullable.
+    ///
+    /// Conditions and restrictions are ignored. `C = C !>> X | "a"` reports
+    /// `C` as cyclic even though the restriction can rule the derivation out.
+    pub fn cyclic_nonterminals(&self) -> FxHashSet<&'a Nonterminal> {
+        self.grammar
+            .nonterminals()
+            .filter(|nt| self.is_cyclic(nt))
+            .collect()
+    }
+
+    fn is_cyclic(&self, start: &'a Nonterminal) -> bool {
+        let mut visited = FxHashSet::default();
+        let mut stack = vec![start];
+        while let Some(nt) = stack.pop() {
+            if !visited.insert(nt) {
+                continue;
+            }
+            for alt in self.grammar.alternatives(nt) {
+                for (index, symbol) in alt.symbols.iter().enumerate() {
+                    if let Some(referenced) = self.symbol_nonterminal(symbol) {
+                        if alt
+                            .symbols
+                            .iter()
+                            .enumerate()
+                            .all(|(i, sibling)| i == index || self.is_nullable(sibling))
+                        {
+                            if referenced == start {
+                                return true;
+                            }
+                            stack.push(referenced);
+                        }
+                    }
+                }
+            }
+        }
+        false
     }
 
     /// Returns the FIRST set of an alternative. Walks symbols left to right,
@@ -754,6 +816,206 @@ mod tests {
     use super::*;
     use crate::grammar::def::GrammarDef;
     use crate::{alternative, follow, grammar_def, id, lit, priority_level, syntax_rule};
+
+    #[test]
+    fn test_direct_cycle() {
+        let grammar: Grammar = grammar_def!("direct_cycle",
+            syntax: [
+                syntax_rule!("C" => priority_level!(
+                    alternative!(id!("C")),
+                    alternative!(lit!("b"))
+                ))
+            ]
+        )
+        .try_into()
+        .unwrap();
+        let ff = FirstFollowSets::new(&grammar);
+        assert_eq!(
+            ff.cyclic_nonterminals(),
+            [grammar.nonterminal("C").unwrap()].into_iter().collect()
+        );
+    }
+
+    #[test]
+    fn test_mutual_cycle() {
+        let grammar: Grammar = grammar_def!("mutual_cycle",
+            syntax: [
+                syntax_rule!("A" => alternative!(id!("B"))),
+                syntax_rule!("B" => priority_level!(
+                    alternative!(id!("A")),
+                    alternative!(lit!("b"))
+                ))
+            ]
+        )
+        .try_into()
+        .unwrap();
+        let ff = FirstFollowSets::new(&grammar);
+        assert_eq!(
+            ff.cyclic_nonterminals(),
+            [
+                grammar.nonterminal("A").unwrap(),
+                grammar.nonterminal("B").unwrap(),
+            ]
+            .into_iter()
+            .collect()
+        );
+    }
+
+    #[test]
+    fn test_nullable_cycle() {
+        let grammar: Grammar = grammar_def!("nullable_cycle",
+            syntax: [
+                syntax_rule!("H" => priority_level!(
+                    alternative!(id!("H"), id!("H")),
+                    alternative!(lit!("a")),
+                    alternative!()
+                ))
+            ]
+        )
+        .try_into()
+        .unwrap();
+        let ff = FirstFollowSets::new(&grammar);
+        assert_eq!(
+            ff.cyclic_nonterminals(),
+            [grammar.nonterminal("H").unwrap()].into_iter().collect()
+        );
+    }
+
+    #[test]
+    fn test_cycle_with_nullable_siblings() {
+        let grammar: Grammar = grammar_def!("nullable_siblings",
+            syntax: [
+                syntax_rule!("Y" => priority_level!(
+                    alternative!(id!("A"), id!("Y"), id!("B")),
+                    alternative!(lit!("a"))
+                )),
+                syntax_rule!("A" => alternative!()),
+                syntax_rule!("B" => priority_level!(alternative!(), alternative!(lit!("b"))))
+            ]
+        )
+        .try_into()
+        .unwrap();
+        let ff = FirstFollowSets::new(&grammar);
+        assert_eq!(
+            ff.cyclic_nonterminals(),
+            [grammar.nonterminal("Y").unwrap()].into_iter().collect()
+        );
+    }
+
+    #[test]
+    fn test_overlapping_cycles() {
+        let grammar: Grammar = grammar_def!("overlapping_cycles",
+            syntax: [
+                syntax_rule!("C" => priority_level!(
+                    alternative!(id!("B")),
+                    alternative!(lit!("b"))
+                )),
+                syntax_rule!("B" => priority_level!(
+                    alternative!(id!("B")),
+                    alternative!(id!("C"))
+                ))
+            ]
+        )
+        .try_into()
+        .unwrap();
+        let ff = FirstFollowSets::new(&grammar);
+        assert_eq!(
+            ff.cyclic_nonterminals(),
+            [
+                grammar.nonterminal("B").unwrap(),
+                grammar.nonterminal("C").unwrap(),
+            ]
+            .into_iter()
+            .collect()
+        );
+    }
+
+    #[test]
+    fn test_cycle_with_nullable_terminal_sibling() {
+        use crate::grammar::regex::Regex;
+        use crate::lexical_rule;
+
+        let grammar: Grammar = grammar_def!("nullable_terminal_sibling",
+            syntax: [
+                syntax_rule!("C" => priority_level!(
+                    alternative!(id!("C"), id!("W")),
+                    alternative!(lit!("b"))
+                ))
+            ],
+            lexical: [lexical_rule!("W" => Regex::star(Regex::char(' ')))]
+        )
+        .try_into()
+        .unwrap();
+        let ff = FirstFollowSets::new(&grammar);
+        assert_eq!(
+            ff.cyclic_nonterminals(),
+            [grammar.nonterminal("C").unwrap()].into_iter().collect()
+        );
+    }
+
+    #[test]
+    fn test_consuming_left_recursion_is_not_cyclic() {
+        let grammar: Grammar = grammar_def!("consuming_left_recursion",
+            syntax: [
+                syntax_rule!("C" => priority_level!(
+                    alternative!(id!("C"), lit!("b")),
+                    alternative!(lit!("b"))
+                ))
+            ]
+        )
+        .try_into()
+        .unwrap();
+        let ff = FirstFollowSets::new(&grammar);
+        assert!(ff.cyclic_nonterminals().is_empty());
+    }
+
+    #[test]
+    fn test_consuming_right_recursion_is_not_cyclic() {
+        let grammar: Grammar = grammar_def!("consuming_right_recursion",
+            syntax: [
+                syntax_rule!("C" => priority_level!(
+                    alternative!(lit!("b"), id!("C")),
+                    alternative!(lit!("b"))
+                ))
+            ]
+        )
+        .try_into()
+        .unwrap();
+        let ff = FirstFollowSets::new(&grammar);
+        assert!(ff.cyclic_nonterminals().is_empty());
+    }
+
+    #[test]
+    fn test_nonnullable_sibling_prevents_cycle() {
+        let grammar: Grammar = grammar_def!("nonnullable_sibling",
+            syntax: [
+                syntax_rule!("Y" => priority_level!(
+                    alternative!(id!("A"), id!("Y"), id!("B")),
+                    alternative!(lit!("a"))
+                )),
+                syntax_rule!("A" => alternative!(lit!("a"))),
+                syntax_rule!("B" => alternative!())
+            ]
+        )
+        .try_into()
+        .unwrap();
+        let ff = FirstFollowSets::new(&grammar);
+        assert!(ff.cyclic_nonterminals().is_empty());
+    }
+
+    #[test]
+    fn test_acyclic_nonterminal_chain() {
+        let grammar: Grammar = grammar_def!("acyclic_chain",
+            syntax: [
+                syntax_rule!("A" => alternative!(id!("B"))),
+                syntax_rule!("B" => alternative!(lit!("b")))
+            ]
+        )
+        .try_into()
+        .unwrap();
+        let ff = FirstFollowSets::new(&grammar);
+        assert!(ff.cyclic_nonterminals().is_empty());
+    }
 
     // ---------------------------------------------------------------
     // Grammar 1: Classic expression grammar (Dragon Book, Example 4.17)

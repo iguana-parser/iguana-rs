@@ -2,7 +2,7 @@ use proc_macro2::{Literal, Span, TokenStream};
 use quote::{format_ident, quote};
 use syn::Ident;
 
-use rustc_hash::FxHashMap;
+use rustc_hash::{FxHashMap, FxHashSet};
 
 use crate::{
     generator::{
@@ -25,6 +25,7 @@ pub struct ParseTreeGen<'a> {
     nonterminal_ids: &'a NonterminalIds,
     terminal_ids: &'a TerminalIds,
     config: GenConfig,
+    cyclic_nonterminals: FxHashSet<&'a Nonterminal>,
 }
 
 /// Formats a rule for both its type declaration and its tree-builder cases.
@@ -83,12 +84,49 @@ impl<'a> ParseTreeGen<'a> {
         nonterminal_ids: &'a NonterminalIds,
         terminal_ids: &'a TerminalIds,
         config: GenConfig,
+        cyclic_nonterminals: FxHashSet<&'a Nonterminal>,
     ) -> Self {
         Self {
             grammar,
             nonterminal_ids,
             terminal_ids,
             config,
+            cyclic_nonterminals,
+        }
+    }
+
+    fn cycle_arm(&self, nonterminal: &Nonterminal, arm: TokenStream) -> TokenStream {
+        if self.cyclic_nonterminals.contains(nonterminal) {
+            arm
+        } else {
+            quote! {}
+        }
+    }
+
+    fn cycle_panic_arm(&self, nonterminal: &Nonterminal) -> TokenStream {
+        let ident = nt_ident(&nonterminal.name);
+        let message = format!("{} is a cycle", nonterminal.name);
+        self.cycle_arm(
+            nonterminal,
+            quote! { #ident::Cycle { .. } => panic!(#message), },
+        )
+    }
+
+    fn cycle_variant(&self, nonterminal: &Nonterminal) -> TokenStream {
+        self.cycle_arm(
+            nonterminal,
+            quote! {
+                Cycle { target: CycleTarget<'a, Self> },
+            },
+        )
+    }
+
+    fn cycle_accessor_guard(&self, nonterminal: &Nonterminal) -> TokenStream {
+        if self.cyclic_nonterminals.is_empty() {
+            quote! {}
+        } else {
+            let panic_msg = format!("{} is a cycle", nonterminal.name);
+            quote! { other if other.is_cycle() => panic!(#panic_msg), }
         }
     }
 
@@ -243,6 +281,11 @@ impl<'a> ParseTreeGen<'a> {
         } else {
             quote! { OneOrMany, }
         };
+        let cycle_target = if self.cyclic_nonterminals.is_empty() {
+            quote! {}
+        } else {
+            quote! { CycleTarget, }
+        };
         quote! {
             use std::vec::IntoIter;
             use iguana_runtime::{
@@ -250,7 +293,7 @@ impl<'a> ParseTreeGen<'a> {
                 ids::{NonterminalId, SlotId, TerminalId},
                 input::Span,
                 parse_tree::{
-                    DisplayOptions, NodeKind, #one_or_many Origin, ParseTreeBuilder,
+                    #cycle_target DisplayOptions, NodeKind, #one_or_many Origin, ParseTreeBuilder,
                     ParseTreeNode, visit_sppf,
                 },
                 sppf::{NonterminalNode, SPPFNodeId, TerminalNode},
@@ -368,12 +411,14 @@ impl<'a> ParseTreeGen<'a> {
             quote! { Amb(&'a [&'a #nonterminal_name_id<'a>]), }
         };
         let generics = self.gen_enum_generics(nonterminal);
+        let cycle_variant = self.cycle_variant(nonterminal);
         quote! {
             #comment
             #[derive(Debug)]
             pub enum #nonterminal_name_id #generics {
                 #alt0_variant { #(#fields,)* span: Span },
                 #amb_variant
+                #cycle_variant
             }
         }
     }
@@ -412,15 +457,17 @@ impl<'a> ParseTreeGen<'a> {
         let amb_variant = if self.config.unsafe_mode {
             quote! {}
         } else {
-            quote! { Amb(&'a [&'a #nonterminal_name_id<'a>]) }
+            quote! { Amb(&'a [&'a #nonterminal_name_id<'a>]), }
         };
         let generics = self.gen_enum_generics(nonterminal);
+        let cycle_variant = self.cycle_variant(nonterminal);
         quote! {
             #comment
             #[derive(Debug)]
             pub enum #nonterminal_name_id #generics {
                 #(#arms,)*
                 #amb_variant
+                #cycle_variant
             }
         }
     }
@@ -476,6 +523,7 @@ impl<'a> ParseTreeGen<'a> {
         let counts = count_symbol_occurrences(self.grammar, &alternative.symbols);
         let panic_msg = format!("{} is ambiguous", nt_name);
         let amb_arm = self.amb_arm(quote! { #ident::Amb(_) => panic!(#panic_msg), });
+        let cycle_arm = self.cycle_panic_arm(nonterminal);
         let methods: Vec<_> = alternative
             .symbols
             .iter()
@@ -507,6 +555,7 @@ impl<'a> ParseTreeGen<'a> {
                         match self {
                             #ident::#alt0_variant { #field_ident, .. } => #body,
                             #amb_arm
+                            #cycle_arm
                         }
                     }
                 }
@@ -523,6 +572,7 @@ impl<'a> ParseTreeGen<'a> {
     fn gen_nonterminal_display_name_method(&self, nonterminal: &Nonterminal) -> TokenStream {
         let display_name = nonterminal.display_name();
         let ident = nt_ident(&nonterminal.name);
+        let cycle_arm = self.cycle_arm(nonterminal, quote! { #ident::Cycle { .. } => "Cycle", });
         if self.config.unsafe_mode {
             return quote! {
                 pub fn display_name(&self) -> &'static str {
@@ -534,6 +584,7 @@ impl<'a> ParseTreeGen<'a> {
             pub fn display_name(&self) -> &'static str {
                 match self {
                     #ident::Amb(_) => "Amb",
+                    #cycle_arm
                     _ => #display_name,
                 }
             }
@@ -548,6 +599,7 @@ impl<'a> ParseTreeGen<'a> {
     /// returns the origin the same way.
     fn gen_nonterminal_origin_method(&self, nonterminal: &Nonterminal) -> TokenStream {
         let ident = nt_ident(&nonterminal.name);
+        let cycle_arm = self.cycle_arm(nonterminal, quote! { #ident::Cycle { .. } => None, });
         match origin_kind(nonterminal) {
             Some(kind) if self.config.unsafe_mode => quote! {
                 pub fn origin(&self) -> Option<Origin> {
@@ -558,6 +610,7 @@ impl<'a> ParseTreeGen<'a> {
                 pub fn origin(&self) -> Option<Origin> {
                     match self {
                         #ident::Amb(_) => None,
+                        #cycle_arm
                         _ => Some(#kind),
                     }
                 }
@@ -653,11 +706,18 @@ impl<'a> ParseTreeGen<'a> {
             })
             .collect();
         let amb_arm = self.amb_arm(quote! { #ident::Amb(alts) => alts[0].span(), });
+        let cycle_arm = self.cycle_arm(
+            nonterminal,
+            quote! {
+                #ident::Cycle { target } => target.get().span(),
+            },
+        );
         quote! {
             pub fn span(&self) -> Span {
                 match self {
                     #(#arms,)*
                     #amb_arm
+                    #cycle_arm
                 }
             }
         }
@@ -706,10 +766,12 @@ impl<'a> ParseTreeGen<'a> {
         let amb_arm = self.amb_arm(
             quote! { #ident::Amb(alts) => alts.get(index).copied().map(ParseTree::#ident), },
         );
+        let cycle_arm = self.cycle_arm(nonterminal, quote! { #ident::Cycle { .. } => None, });
         quote! {
             match self {
                 #(#arms,)*
                 #amb_arm
+                #cycle_arm
             }
         }
     }
@@ -734,11 +796,13 @@ impl<'a> ParseTreeGen<'a> {
             })
             .collect();
         let amb_arm = self.amb_arm(quote! { #ident::Amb(alts) => alts.len(), });
+        let cycle_arm = self.cycle_arm(nonterminal, quote! { #ident::Cycle { .. } => 0, });
         quote! {
             pub fn child_count(&self) -> usize {
                 match self {
                     #(#arms,)*
                     #amb_arm
+                    #cycle_arm
                 }
             }
         }
@@ -759,6 +823,7 @@ impl<'a> ParseTreeGen<'a> {
         let nonterminal_node_method = self.gen_nonterminal_node_method();
         let new_token_method = gen_new_token_method();
         let new_ambiguity_node_method = self.gen_new_ambiguity_node_method();
+        let cycle_methods = self.gen_builder_cycle_methods();
         quote! {
             pub struct #builder_name_ident<'a> {
                 pub arena: &'a Arena,
@@ -772,6 +837,48 @@ impl<'a> ParseTreeGen<'a> {
                 #nonterminal_node_method
                 #new_token_method
                 #new_ambiguity_node_method
+                #cycle_methods
+            }
+        }
+    }
+
+    fn gen_builder_cycle_methods(&self) -> TokenStream {
+        if self.cyclic_nonterminals.is_empty() {
+            return quote! {};
+        }
+        let mut new_arms = Vec::new();
+        let mut set_arms = Vec::new();
+        for nt in self
+            .grammar
+            .nonterminals()
+            .filter(|nt| self.cyclic_nonterminals.contains(nt))
+        {
+            let variant = nt_ident(&nt.name);
+            let id = format_ident!("{}", to_snake_case(&nt.name).to_uppercase());
+            new_arms.push(quote! {
+                crate::grammar_data::#id => ParseTree::#variant(self.arena.alloc(
+                    #variant::Cycle { target: CycleTarget::new() }
+                )),
+            });
+            set_arms.push(quote! {
+                (ParseTree::#variant(#variant::Cycle { target: cell }), ParseTree::#variant(target)) => {
+                    cell.set(target);
+                }
+            });
+        }
+        quote! {
+            fn new_cycle_node(&self, node: &NonterminalNode) -> ParseTree<'a> {
+                match node.nonterminal_id {
+                    #(#new_arms)*
+                    _ => unreachable!("nonterminal cannot be cyclic"),
+                }
+            }
+
+            fn set_cycle_target(&self, cycle: &ParseTree<'a>, target: &ParseTree<'a>) {
+                match (cycle, target) {
+                    #(#set_arms)*
+                    _ => unreachable!("cycle target has a different nonterminal type"),
+                }
             }
         }
     }
@@ -1011,6 +1118,7 @@ impl<'a> ParseTreeGen<'a> {
         let is_amb_method = self.gen_parse_tree_is_amb_method();
         let node_id_method = self.gen_parse_tree_node_id_method();
         let origin_method = self.gen_parse_tree_origin_method();
+        let cycle_methods = self.gen_parse_tree_cycle_methods();
         quote! {
             impl<'a> ParseTree<'a> {
                 #children_method
@@ -1020,12 +1128,42 @@ impl<'a> ParseTreeGen<'a> {
                 #is_amb_method
                 #node_id_method
                 #origin_method
+                #cycle_methods
                 #(#unwrap_methods)*
                 fn unwrap_token(self) -> Token {
                     match self {
                         ParseTree::Token(t) => t,
                         _ => panic!(),
                     }
+                }
+            }
+        }
+    }
+
+    fn gen_parse_tree_cycle_methods(&self) -> TokenStream {
+        if self.cyclic_nonterminals.is_empty() {
+            return quote! {};
+        }
+        let variants: Vec<_> = self
+            .grammar
+            .nonterminals()
+            .filter(|nt| self.cyclic_nonterminals.contains(nt))
+            .map(|nt| nt_ident(&nt.name))
+            .collect();
+        quote! {
+            #[doc = "Whether this node is a cyclic reference (`Cycle`)."]
+            pub fn is_cycle(&self) -> bool {
+                matches!(self, #(ParseTree::#variants(#variants::Cycle { .. }))|*)
+            }
+
+            #[doc = "The target of a `Cycle` node as a `ParseTree`, or `None` for any other node."]
+            #[doc = "The target is not among `children()`."]
+            pub fn cycle_target(&self) -> Option<Self> {
+                match self {
+                    #(ParseTree::#variants(#variants::Cycle { target }) => Some(ParseTree::#variants(
+                        target.get()
+                    )),)*
+                    _ => None,
                 }
             }
         }
@@ -1058,6 +1196,7 @@ impl<'a> ParseTreeGen<'a> {
             .map(|n| {
                 let variant = nt_ident(&n.name);
                 let var_ident = safe_ident(&to_snake_case(&n.name));
+                let cycle_arm = self.cycle_arm(n, quote! { #variant::Cycle { .. } => vec![], });
                 if n.is_plus() && !self.config.unsafe_mode {
                     // Plus::Amb wraps a slice of complete Plus subtrees. Show those as
                     // children directly; routing through iter() would push the same Amb
@@ -1066,12 +1205,20 @@ impl<'a> ParseTreeGen<'a> {
                     quote! {
                         ParseTree::#variant(#var_ident) => match #var_ident {
                             #variant::Amb(alts) => alts.iter().copied().map(ParseTree::#variant).collect(),
+                            #cycle_arm
                             _ => #var_ident.iter().collect(),
                         }
                     }
                 } else if n.is_plus() || n.is_star() {
-                    quote! {
-                        ParseTree::#variant(#var_ident) => #var_ident.iter().collect()
+                    if self.cyclic_nonterminals.contains(n) {
+                        quote! {
+                            ParseTree::#variant(#var_ident) => match #var_ident {
+                                #cycle_arm
+                                _ => #var_ident.iter().collect(),
+                            }
+                        }
+                    } else {
+                        quote! { ParseTree::#variant(#var_ident) => #var_ident.iter().collect() }
                     }
                 } else {
                     quote! {
@@ -1246,6 +1393,7 @@ impl<'a> ParseTreeGen<'a> {
         let amb_arm = self.amb_arm(
             quote! { #opt_type::Amb(_) => panic!("unexpected ambiguity in optional node"), },
         );
+        let cycle_arm = self.cycle_panic_arm(nonterminal);
 
         quote! {
             impl #generics OptNode for #ty {
@@ -1255,6 +1403,7 @@ impl<'a> ParseTreeGen<'a> {
                         #opt_type::Alt0 { #field_name, .. } => Some(#field_name),
                         #opt_type::Alt1 { .. } => None,
                         #amb_arm
+                        #cycle_arm
                     }
                 }
             }
@@ -1301,17 +1450,7 @@ impl<'a> ParseTreeGen<'a> {
                     }
                     Definition::Nonterminal(nt) => {
                         let method = format_ident!("as_{}", to_snake_case(&nt.name));
-                        let ret = nt_ident(&nt.name);
-                        // Same lifetime rule as `grammar_utils::nonterminal_type`, but the
-                        // return sits behind a `&` (`Option<&#ret_ty>`), so the lifetime is
-                        // elided (`<'_>`) rather than the named `<'a>` that function emits;
-                        // that difference is why we can't just call it here.
-                        let ret_ty = if self.nonterminal_has_lifetime(nt) {
-                            quote! { #ret<'_> }
-                        } else {
-                            quote! { #ret }
-                        };
-                        (method, ret_ty)
+                        (method, self.nonterminal_type(nt))
                     }
                 };
                 let variant = format_ident!("{}", to_pascal_case(&alternative_label(alt, i)));
@@ -1407,6 +1546,7 @@ impl<'a> ParseTreeGen<'a> {
                 let panic_msg = format!("{} is ambiguous", nonterminal.name);
                 let amb_arm =
                     self.amb_arm(quote! { other if other.is_amb() => panic!(#panic_msg), });
+                let cycle_arm = self.cycle_accessor_guard(nonterminal);
 
                 let return_type = self.gen_accessor_return_type(nonterminal, innermost);
                 if child_name == innermost.name {
@@ -1416,6 +1556,7 @@ impl<'a> ParseTreeGen<'a> {
                             self.iter().filter_map(|node| match node {
                                 ParseTree::#innermost_type(r) => Some(r),
                                 #amb_arm
+                                #cycle_arm
                                 _ => None,
                             })
                         }
@@ -1428,6 +1569,7 @@ impl<'a> ParseTreeGen<'a> {
                             self.iter().filter_map(|node| match node {
                                 ParseTree::#child_type(r) => Some(r.#field_name()),
                                 #amb_arm
+                                #cycle_arm
                                 _ => None,
                             })
                         }
@@ -1439,6 +1581,7 @@ impl<'a> ParseTreeGen<'a> {
                             self.iter().filter_map(|node| match node {
                                 ParseTree::#child_type(r) => Some(r.#method_name()),
                                 #amb_arm
+                                #cycle_arm
                                 _ => None,
                             })
                         }
@@ -1458,6 +1601,7 @@ impl<'a> ParseTreeGen<'a> {
                 let alt0_variant = nt_ident(&alternative_label(&alternatives[0], 0));
                 let panic_msg = format!("{} is ambiguous", nonterminal.name);
                 let amb_arm = self.amb_arm(quote! { #ident::Amb(_) => panic!(#panic_msg), });
+                let cycle_arm = self.cycle_panic_arm(nonterminal);
 
                 let methods: Vec<_> = element_types
                     .iter()
@@ -1469,6 +1613,7 @@ impl<'a> ParseTreeGen<'a> {
                                 match self {
                                     #ident::#alt0_variant { #opt_field_name, .. } => #opt_field_name.#method_name(),
                                     #amb_arm
+                                    #cycle_arm
                                 }
                             }
                         }
@@ -1545,6 +1690,7 @@ impl<'a> ParseTreeGen<'a> {
         let alt0_variant = nt_ident(&alternative_label(&alternatives[0], 0));
         let panic_msg = format!("{} is ambiguous", nonterminal.name);
         let amb_arm = self.amb_arm(quote! { #ident::Amb(_) => panic!(#panic_msg), });
+        let cycle_arm = self.cycle_panic_arm(nonterminal);
         let element_types = get_list_element_types(self.grammar, inner);
         let methods: Vec<_> = element_types
             .iter()
@@ -1563,6 +1709,7 @@ impl<'a> ParseTreeGen<'a> {
                         match self {
                             #ident::#alt0_variant { #field_name, .. } => #field_name.#method_name(),
                             #amb_arm
+                            #cycle_arm
                         }
                     }
                 }
@@ -1637,6 +1784,7 @@ impl<'a> ParseTreeGen<'a> {
         // variants. An ambiguous segment, however, must fail loud rather than be dropped.
         let panic_msg = format!("{} is ambiguous", nonterminal.name);
         let amb_arm = self.amb_arm(quote! { other if other.is_amb() => panic!(#panic_msg), });
+        let cycle_arm = self.cycle_accessor_guard(nonterminal);
 
         let methods: Vec<_> = element_types
             .iter()
@@ -1653,6 +1801,7 @@ impl<'a> ParseTreeGen<'a> {
                         self.iter().filter_map(|node| match node {
                             ParseTree::#child_type(#child_type::#variant_name { #field_name, .. }) => Some(*#field_name),
                             #amb_arm
+                            #cycle_arm
                             _ => None,
                         })
                     }
@@ -1755,6 +1904,15 @@ impl<'a> ParseTreeGen<'a> {
                 break;
             }
         });
+        let cycle_arm = self.cycle_arm(
+            nonterminal,
+            quote! {
+                #ident::Cycle { .. } => {
+                    items.push(ParseTree::#ident(current));
+                    break;
+                }
+            },
+        );
         quote! {
             impl<'a> ListNode<'a> for #ty {
                 fn iter(&'a self) -> IntoIter<ParseTree<'a>> {
@@ -1765,6 +1923,7 @@ impl<'a> ParseTreeGen<'a> {
                             #first_arm
                             #second_arm
                             #amb_arm
+                            #cycle_arm
                         }
                     }
                     items.reverse();
@@ -1800,6 +1959,12 @@ impl<'a> ParseTreeGen<'a> {
         let star_amb_arm = self.amb_arm(
             quote! { #star_ident::Amb(_) => vec![ParseTree::#star_ident(self)].into_iter(), },
         );
+        let opt_cycle_arm = self.cycle_arm(opt_nonterminal,
+            quote! { #opt_ident::Cycle { .. } => vec![ParseTree::#opt_ident(#field_name)].into_iter(), });
+        let star_cycle_arm = self.cycle_arm(
+            nonterminal,
+            quote! { #star_ident::Cycle { .. } => vec![ParseTree::#star_ident(self)].into_iter(), },
+        );
         quote! {
             impl<'a> ListNode<'a> for #star_ty {
                 fn iter(&'a self) -> IntoIter<ParseTree<'a>> {
@@ -1808,8 +1973,10 @@ impl<'a> ParseTreeGen<'a> {
                             #opt_ident::#opt_alt0 { #f0: #var_ident, .. } => #var_ident.iter(),
                             #opt_ident::#opt_alt1 { .. } => vec![].into_iter(),
                             #opt_amb_arm
+                            #opt_cycle_arm
                         },
                         #star_amb_arm
+                        #star_cycle_arm
                     }
                 }
             }
@@ -1833,6 +2000,10 @@ impl<'a> ParseTreeGen<'a> {
 
         let amb_arm =
             self.amb_arm(quote! { #ident::Amb(_) => vec![ParseTree::#ident(self)].into_iter(), });
+        let cycle_arm = self.cycle_arm(
+            nonterminal,
+            quote! { #ident::Cycle { .. } => vec![ParseTree::#ident(self)].into_iter(), },
+        );
         quote! {
             impl<'a> ListNode<'a> for #ty {
                 fn iter(&'a self) -> IntoIter<ParseTree<'a>> {
@@ -1841,6 +2012,7 @@ impl<'a> ParseTreeGen<'a> {
                             vec![#(#item_exprs),*].into_iter()
                         }
                         #amb_arm
+                        #cycle_arm
                     }
                 }
             }
@@ -1926,6 +2098,18 @@ impl<'a> ParseTreeGen<'a> {
         } else {
             quote! { if self.is_amb() { NodeKind::Amb } else }
         };
+        let (cycle_check, cycle_target) = if self.cyclic_nonterminals.is_empty() {
+            (quote! {}, quote! {})
+        } else {
+            (
+                quote! { if self.is_cycle() { NodeKind::Cycle } else },
+                quote! {
+                    fn cycle_target(&self) -> Option<Self> {
+                        ParseTree::cycle_target(self)
+                    }
+                },
+            )
+        };
         quote! {
             impl<'a> ParseTreeNode for ParseTree<'a> {
                 fn children(&self) -> Vec<Self> {
@@ -1941,7 +2125,7 @@ impl<'a> ParseTreeGen<'a> {
                 }
 
                 fn kind(&self) -> NodeKind {
-                    #amb_check if matches!(self, ParseTree::Token(_)) {
+                    #amb_check #cycle_check if matches!(self, ParseTree::Token(_)) {
                         NodeKind::Token
                     } else {
                         NodeKind::Nonterminal
@@ -1951,6 +2135,8 @@ impl<'a> ParseTreeGen<'a> {
                 fn node_id(&self) -> Option<usize> {
                     ParseTree::node_id(self)
                 }
+
+                #cycle_target
 
                 fn origin(&self) -> Option<Origin> {
                     ParseTree::origin(self)

@@ -1,0 +1,8 @@
+(Start
+  (NullableSeparated
+    #1=(Amb
+      ({EmptyE EmptyF}+ EmptyE)
+      ({EmptyE EmptyF}+
+        #1#
+        EmptyF
+        EmptyE))))

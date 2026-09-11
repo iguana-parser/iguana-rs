@@ -6098,13 +6098,13 @@ impl<'a> OptNode for Opt11<'a> {
     }
 }
 impl<'a> Rule<'a> {
-    pub fn as_syntax_rule(&self) -> Option<&SyntaxRule<'_>> {
+    pub fn as_syntax_rule(&self) -> Option<&SyntaxRule<'a>> {
         match self {
             Rule::SyntaxRule { syntax_rule, .. } => Some(syntax_rule),
             _ => None,
         }
     }
-    pub fn as_regex_rule(&self) -> Option<&RegexRule<'_>> {
+    pub fn as_regex_rule(&self) -> Option<&RegexRule<'a>> {
         match self {
             Rule::RegexRule { regex_rule, .. } => Some(regex_rule),
             _ => None,
@@ -6112,7 +6112,7 @@ impl<'a> Rule<'a> {
     }
 }
 impl<'a> RangeElement<'a> {
-    pub fn as_range(&self) -> Option<&Range<'_>> {
+    pub fn as_range(&self) -> Option<&Range<'a>> {
         match self {
             RangeElement::Alt0 { range, .. } => Some(range),
             _ => None,

@@ -1,0 +1,7 @@
+(Start
+  (NullablePlus
+    #1=(Amb
+      (EmptyE+ EmptyE)
+      (EmptyE+
+        #1#
+        EmptyE))))

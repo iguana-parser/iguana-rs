@@ -1,0 +1,15 @@
+(Start
+  #1=(Amb
+    (IntermediateY
+      #2=IntermediateA
+      #3=(Amb
+        (IntermediateY "a")
+        (IntermediateY
+          #2#
+          #3#
+          IntermediateB))
+      (IntermediateB "b"))
+    (IntermediateY
+      #2#
+      #1#
+      IntermediateB)))

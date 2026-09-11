@@ -1,0 +1,17 @@
+(Start
+  #1=(Amb
+    (Nullable "b")
+    (Nullable
+      #1#
+      #2=(Amb
+        Nullable
+        (Nullable
+          #2#
+          #2#)))
+    (Nullable
+      #3=(Amb
+        Nullable
+        (Nullable
+          #3#
+          #3#))
+      #1#)))

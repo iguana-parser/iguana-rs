@@ -1,0 +1,53 @@
+grammar Cycles
+
+// Each family is a separate example, with names prefixed to share one test crate.
+Direct = Direct #C1 | "b" #C2
+
+MutualC = MutualB #C1 | "b" #C2
+MutualB = MutualC #B1
+
+ChainC = ChainA #C1 | "b" #C2
+ChainA = ChainB #A1
+ChainB = ChainC #B1
+
+// B is memoized under A, then reused by S outside that ancestor path.
+SharedS = SharedA SharedB
+SharedA = SharedB #A1 | () #A2
+SharedB = SharedA #B1
+
+TwoExitsC = TwoExitsB #C1 | "b" #C2
+TwoExitsB = TwoExitsC #B1 | "b" #B2
+
+TwoRoutesC = TwoRoutesA #C1 | TwoRoutesB #C2 | "b" #C3
+TwoRoutesA = TwoRoutesC #A1
+TwoRoutesB = TwoRoutesC #B1
+
+Nullable = Nullable Nullable #C1 | "b" #C2 | () #C3
+
+SiblingC = SiblingC SiblingD #C1 | "b" #C2
+SiblingD = EmptyE #D1 | EmptyF #D2
+EmptyE = () #E1
+EmptyF = () #F1
+
+ParentC = ParentD "b" #C1
+ParentD = ParentD #D1 | "a" #D2
+
+OverlapC = OverlapB #C1 | "b" #C2
+OverlapB = OverlapB #B1 | OverlapC #B2
+
+IntermediateY = IntermediateA IntermediateY IntermediateB #Y1 | "a" #Y2
+IntermediateA = () #A1
+IntermediateB = () #B1 | "b" #B2
+
+MidInput = Direct "b" #S1
+
+// Consuming recursion and an ordinary rule get no Cycle variant.
+Consuming = Consuming "b" #C1 | "b" #C2
+Ordinary = "b" #C1
+
+// The EBNF rules cover the generated list, optional, and group types.
+NullablePlus = EmptyE+
+NullableStar = EmptyE*
+NullableSeparated = {EmptyE EmptyF}+
+Optional = Optional? #C1 | "b" #C2
+Grouped = (Grouped) #C1 | "b" #C2

@@ -688,6 +688,10 @@ TypeId = [A-Z][a-z]*
                 "`#amb` becomes `Amb`, which is reserved for ambiguous alternatives",
             ),
             (
+                "grammar g S = \"a\" #cycle",
+                "`#cycle` becomes `Cycle`, which is reserved for cyclic references",
+            ),
+            (
                 "grammar g S = \"a\" #alt_0",
                 "`#alt_0` becomes `Alt0`, which is reserved for unlabeled alternatives",
             ),

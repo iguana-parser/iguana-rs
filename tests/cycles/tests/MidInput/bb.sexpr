@@ -1,0 +1,7 @@
+(Start
+  (MidInput
+    #1=(Amb
+      (Direct "b")
+      (Direct
+        #1#))
+    "b"))

@@ -1,0 +1,4 @@
+(Start
+  (Consuming
+    (Consuming "b")
+    "b"))

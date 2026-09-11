@@ -32,10 +32,12 @@ export class GraphCollapseManager {
 
   private findRoot(): string | null {
     if (!this.cy) return null;
+    // This controller also handles SPPF and GSS graphs, whose nodes are not
+    // necessarily emitted in root-first order.
     const roots = this.cy.nodes().filter((node: NodeSingular) =>
       node.incomers('edge').length === 0
     );
-    return roots.length > 0 ? roots.first().id() : null;
+    return roots.length > 0 ? roots.first().id() : this.cy.nodes().first().id() ?? null;
   }
 
   /**
@@ -146,8 +148,11 @@ export class GraphCollapseManager {
     if (!this.cy) return;
 
     let changed = false;
+    const visited = new Set<string>();
     let currentId: string | null = nodeId;
     while (currentId !== null) {
+      if (visited.has(currentId)) break;
+      visited.add(currentId);
       const current = this.cy.getElementById(currentId);
       if (current.length === 0) break;
       const parents = current.incomers('node');
@@ -213,7 +218,7 @@ export interface ParseTreeNodeData {
   origin?: Origin | null;
 }
 
-/** The parse-tree shape `to_json` emits, as consumed by the parse view. */
+/** The parse-tree shape `to_json` emits, with the root first in `nodes`. */
 export interface ParseTreeData {
   layout_name?: string | null;
   nodes: ParseTreeNodeData[];
@@ -245,11 +250,9 @@ export function buildDisplayGraph(raw: ParseTreeData, options: DisplayOptions): 
   const layoutName = raw.layout_name ?? null;
   const nodeMap = new Map(raw.nodes.map((n) => [n.id, n]));
   const childrenMap = new Map<number, number[]>();
-  const hasParent = new Set<number>();
   for (const edge of raw.edges) {
     if (!childrenMap.has(edge.src)) childrenMap.set(edge.src, []);
     childrenMap.get(edge.src)!.push(edge.dest);
-    hasParent.add(edge.dest);
   }
 
   const isWrapper = (n: ParseTreeNodeData) => n.origin != null && WRAPPER_ORIGINS.has(n.origin);
@@ -305,7 +308,7 @@ export function buildDisplayGraph(raw: ParseTreeData, options: DisplayOptions): 
     for (const childId of displayChildren(id)) emit(childId, id);
   }
 
-  let rootId = raw.nodes.find((n) => !hasParent.has(n.id))?.id;
+  let rootId = raw.nodes[0]?.id;
   if (rootId === undefined) return { layout_name: raw.layout_name, nodes, edges };
   // With wrappers spliced, descend through a wrapper root to the single node it
   // wraps, so the display is not headed by scaffolding.

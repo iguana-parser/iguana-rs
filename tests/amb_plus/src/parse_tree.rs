@@ -784,13 +784,13 @@ impl<'a> OptNode for Opt0<'a> {
     }
 }
 impl<'a> A<'a> {
-    pub fn as_x(&self) -> Option<&X<'_>> {
+    pub fn as_x(&self) -> Option<&X<'a>> {
         match self {
             A::Alt0 { x, .. } => Some(x),
             _ => None,
         }
     }
-    pub fn as_y(&self) -> Option<&Y<'_>> {
+    pub fn as_y(&self) -> Option<&Y<'a>> {
         match self {
             A::Alt1 { y, .. } => Some(y),
             _ => None,

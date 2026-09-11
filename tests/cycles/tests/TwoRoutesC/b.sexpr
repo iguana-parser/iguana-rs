@@ -1,0 +1,9 @@
+(Start
+  #1=(Amb
+    (TwoRoutesC "b")
+    (TwoRoutesC
+      (TwoRoutesB
+        #1#))
+    (TwoRoutesC
+      (TwoRoutesA
+        #1#))))

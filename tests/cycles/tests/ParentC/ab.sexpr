@@ -1,0 +1,7 @@
+(Start
+  (ParentC
+    #1=(Amb
+      (ParentD "a")
+      (ParentD
+        #1#))
+    "b"))

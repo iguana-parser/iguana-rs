@@ -1,0 +1,8 @@
+(Start
+  (SharedS
+    #1=(Amb
+      SharedA
+      (SharedA
+        #2=(SharedB
+          #1#)))
+    #2#))
