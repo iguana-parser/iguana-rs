@@ -7,9 +7,8 @@ Iguana has two kinds of tests:
 - **Grammar tests.** Each directory under `tests/<name>/` generates a parser and
   compares its output with golden s-expression files.
 
-This guide covers grammar tests. The workspace-root `iguana-tests` crate holds
-only the non-grammar integration tests, `scanner_tests` and
-`error_reporting_tests`. Each grammar test runs through its own parser binary.
+This guide covers grammar tests. Each grammar test runs through its own parser
+binary.
 
 ## Layout
 
@@ -31,6 +30,10 @@ without running the generator. Each test crate has a library, which exposes
 functions such as `mygrammar::parse_s`, and a binary named after the grammar.
 The grammar-test runner executes the binary.
 
+The generated crates form a Cargo workspace of their own, rooted at
+`tests/Cargo.toml`, so the checks of the root workspace do not compile them.
+Their build artifacts live under `tests/target`.
+
 A test case pairs a `<name>.txt` input with a `<name>.sexpr` expected-output
 file. The enclosing directory names the start nonterminal. The `S` directory
 above parses every input from `S`; a grammar with several start nonterminals
@@ -51,13 +54,19 @@ cargo xtask test          # Run the Rust tests, then every grammar test
 cargo xtask test --regen  # Rewrite the grammar golden files instead of checking them
 ```
 
-`cargo xtask test` first runs the Rust tests through
-`cargo nextest run --workspace`, or `cargo test --workspace` when nextest is
-not installed. It then builds the workspace and runs the grammar-test binaries
-concurrently. Each binary parses every input in one start directory with
-`--check-sexpr` and compares the rendered result with the matching `.sexpr`
-file. Extra arguments to `cargo xtask test` are forwarded only to the Rust test
-command; the grammar tests always run in full.
+`cargo xtask test` first runs the Rust tests of the root workspace and of the
+grammar-test workspace through `cargo nextest run`, or `cargo test` when
+nextest is not installed. It then builds the grammar-test workspace and runs
+the parser binaries concurrently. Each binary parses every input in one start
+directory with `--check-sexpr` and compares the rendered result with the
+matching `.sexpr` file. Extra arguments to `cargo xtask test` are forwarded
+only to the Rust test command of the root workspace. The Rust tests of the
+grammar-test workspace and the grammar tests always run in full. To select
+within the grammar-test workspace, run cargo against its manifest:
+
+```sh
+cargo test --manifest-path tests/Cargo.toml -p cycles
+```
 
 `cargo xtask test --regen` skips the Rust tests and runs each parser with
 `--regenerate-sexpr`. This rewrites every `.sexpr` file from the current parser
@@ -84,7 +93,7 @@ cargo xtask test-gen mygrammar
 ```
 
 `test-gen` writes the parser sources under `src/`, creates a workspace-ready
-`Cargo.toml`, and adds the crate to the root workspace. `test-gen-all` repeats
+`Cargo.toml`, and adds the crate to the grammar-test workspace. `test-gen-all` repeats
 that operation for every directory under `tests/` that contains a grammar
 file.
 
@@ -105,4 +114,4 @@ and confirm that the parser produced the intended result before committing it.
 cargo xtask test-rm mygrammar
 ```
 
-`test-rm` deletes `tests/mygrammar/` and removes the crate from the workspace `members` list.
+`test-rm` deletes `tests/mygrammar/` and removes the crate from the grammar-test workspace's `members` list.

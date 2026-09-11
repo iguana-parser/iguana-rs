@@ -45,15 +45,16 @@ enum Commands {
     },
     /// Regenerate all test parsers
     TestGenAll,
-    /// Run the workspace test suite: the cargo tests (nextest if available)
-    /// plus the grammar tests (each parser binary checked against its
-    /// expected .sexpr output)
+    /// Run the test suite: the cargo tests of the root and grammar-test
+    /// workspaces (nextest if available) plus the grammar tests (each parser
+    /// binary checked against its expected .sexpr output)
     Test {
         /// Rewrite the grammar tests' expected output instead of checking it;
         /// skips the cargo tests
         #[arg(long)]
         regen: bool,
-        /// Extra arguments forwarded to nextest / cargo test
+        /// Extra arguments forwarded to nextest / cargo test for the root
+        /// workspace
         #[arg(trailing_var_arg = true, allow_hyphen_values = true)]
         args: Vec<String>,
     },
@@ -283,28 +284,36 @@ fn test_gen(name: &str) -> io::Result<()> {
     Ok(())
 }
 
+/// The manifest of the grammar-test workspace, which lists every generated
+/// test crate as a member.
+fn tests_manifest() -> PathBuf {
+    workspace_root().join("tests").join("Cargo.toml")
+}
+
 fn add_workspace_member(name: &str) -> io::Result<()> {
-    let workspace_cargo = workspace_root().join("Cargo.toml");
-    let content = fs::read_to_string(&workspace_cargo)?;
-    let member_entry = format!("    \"tests/{name}\",\n");
+    let manifest = tests_manifest();
+    let content = fs::read_to_string(&manifest)?;
+    let member_entry = format!("    \"{name}\",\n");
     if content.contains(&member_entry) {
         return Ok(());
     }
-    let new_content = content.replace(
-        "    \"xtask\",\n",
-        &format!("    \"xtask\",\n{member_entry}"),
-    );
-    fs::write(&workspace_cargo, new_content)?;
-    println!("Added tests/{name} to workspace members");
+    let new_content = content.replace("members = [\n", &format!("members = [\n{member_entry}"));
+    if new_content == content {
+        return Err(io::Error::other(
+            "tests/Cargo.toml: `members = [` line not found; the member list needs updating by hand",
+        ));
+    }
+    fs::write(&manifest, new_content)?;
+    println!("Added {name} to the grammar-test workspace members");
     Ok(())
 }
 
 fn remove_workspace_member(name: &str) -> io::Result<()> {
-    let workspace_cargo = workspace_root().join("Cargo.toml");
-    let content = fs::read_to_string(&workspace_cargo)?;
-    let member_entry = format!("    \"tests/{name}\",\n");
+    let manifest = tests_manifest();
+    let content = fs::read_to_string(&manifest)?;
+    let member_entry = format!("    \"{name}\",\n");
     if content.contains(&member_entry) {
-        fs::write(&workspace_cargo, content.replace(&member_entry, ""))?;
+        fs::write(&manifest, content.replace(&member_entry, ""))?;
     }
     Ok(())
 }
@@ -382,18 +391,26 @@ fn test(regen: bool, extra: &[String]) -> io::Result<()> {
         .map(|o| o.status.success())
         .unwrap_or(false);
 
-    let mut cmd = Command::new("cargo");
-    cmd.current_dir(root);
-    if nextest_available {
-        cmd.args(["nextest", "run", "--workspace"]);
-    } else {
-        cmd.args(["test", "--workspace"]);
-    }
-    cmd.args(extra);
+    // A generated test crate can carry Rust integration tests of its typed
+    // API, so the cargo tests run in the root workspace and in the
+    // grammar-test workspace. The forwarded arguments apply to the root
+    // workspace; the grammar-test workspace always runs whole, and cargo with
+    // `--manifest-path tests/Cargo.toml` selects within it.
+    for (manifest, forwarded) in [("Cargo.toml", extra), ("tests/Cargo.toml", &[][..])] {
+        let mut cmd = Command::new("cargo");
+        cmd.current_dir(root);
+        if nextest_available {
+            cmd.args(["nextest", "run"]);
+        } else {
+            cmd.arg("test");
+        }
+        cmd.args(["--manifest-path", manifest, "--workspace"]);
+        cmd.args(forwarded);
 
-    let status = cmd.status()?;
-    if !status.success() {
-        return Err(io::Error::other("test run failed"));
+        let status = cmd.status()?;
+        if !status.success() {
+            return Err(io::Error::other("test run failed"));
+        }
     }
 
     // The grammar tests run through each parser binary, not the cargo test
@@ -402,7 +419,7 @@ fn test(regen: bool, extra: &[String]) -> io::Result<()> {
 }
 
 /// Runs every grammar's tests: its input/expected-output file pairs. Builds the
-/// workspace binaries, then for each `tests/<grammar>/tests/<Start>/` directory
+/// grammar-test workspace, then for each `tests/<grammar>/tests/<Start>/` directory
 /// runs that grammar's parser with the truthful render flags: `--check-sexpr` to
 /// compare against the expected `.sexpr` output, or `--regenerate-sexpr` to
 /// rewrite it. The directory name is the start nonterminal, so no per-grammar
@@ -421,7 +438,7 @@ fn run_grammar_tests(regenerate: bool) -> io::Result<()> {
     let root = workspace_root();
     let status = Command::new("cargo")
         .current_dir(root)
-        .args(["build", "--workspace", "--quiet"])
+        .args(["build", "--manifest-path", "tests/Cargo.toml", "--quiet"])
         .status()?;
     if !status.success() {
         return Err(io::Error::other("cargo build failed"));
@@ -468,7 +485,7 @@ fn run_grammar_tests(regenerate: bool) -> io::Result<()> {
         ("", "", "")
     };
 
-    let bin_dir = root.join("target/debug");
+    let bin_dir = root.join("tests/target/debug");
     let next = AtomicUsize::new(0);
     let results: Mutex<Vec<(String, bool, String)>> = Mutex::new(Vec::new());
     let threads = std::thread::available_parallelism().map_or(4, |n| n.get());

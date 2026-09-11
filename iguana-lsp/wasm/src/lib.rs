@@ -98,7 +98,7 @@ fn with_spans<T>(
 ) -> T {
     let input = Input::from(source);
     let tree_arena = Arena::new();
-    let BuildResult::Success { ref tree, .. } = build(&input, &tree_arena) else {
+    let BuildResult::Success { tree, .. } = build(&input, &tree_arena) else {
         return default;
     };
     let grammar_def = build_grammar_def(tree, &input);

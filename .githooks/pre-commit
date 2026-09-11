@@ -1,6 +1,6 @@
 #!/bin/sh
-cargo fmt --check --all || {
+cargo fmt --check --all && cargo fmt --manifest-path tests/Cargo.toml --check --all || {
     echo
-    echo "Run: cargo fmt --all"
+    echo "Run: cargo fmt --all && cargo fmt --manifest-path tests/Cargo.toml --all"
     exit 1
 }

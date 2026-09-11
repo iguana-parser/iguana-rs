@@ -38,9 +38,9 @@ dependencies = [
 
 [[package]]
 name = "aho-corasick"
-version = "1.1.4"
+version = "1.1.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ddd31a130427c27518df266943a5308ed92d4b226cc639f5a8f1002816174301"
+checksum = "c982642fa9e8606056828ee9a8505737230110bb1099153c79efe865c59d12ba"
 dependencies = [
  "memchr",
 ]
@@ -59,6 +59,123 @@ name = "allocator-api2"
 version = "0.2.21"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "683d7910e743518b0e34f1186f92494becacb047c7b6bf616c96772180fef923"
+
+[[package]]
+name = "alt_seq"
+version = "0.1.0"
+dependencies = [
+ "clap",
+ "dhat",
+ "iguana-runtime",
+ "log",
+ "pprof",
+ "rustc-hash 2.1.3",
+ "serde_json",
+]
+
+[[package]]
+name = "amb"
+version = "0.1.0"
+dependencies = [
+ "clap",
+ "dhat",
+ "iguana-runtime",
+ "log",
+ "pprof",
+ "rustc-hash 2.1.3",
+ "serde_json",
+]
+
+[[package]]
+name = "amb_list"
+version = "0.1.0"
+dependencies = [
+ "clap",
+ "dhat",
+ "iguana-runtime",
+ "log",
+ "pprof",
+ "rustc-hash 2.1.3",
+ "serde_json",
+]
+
+[[package]]
+name = "amb_plus"
+version = "0.1.0"
+dependencies = [
+ "clap",
+ "dhat",
+ "iguana-runtime",
+ "log",
+ "pprof",
+ "rustc-hash 2.1.3",
+ "serde_json",
+]
+
+[[package]]
+name = "amb_root"
+version = "0.1.0"
+dependencies = [
+ "clap",
+ "dhat",
+ "iguana-runtime",
+ "log",
+ "pprof",
+ "rustc-hash 2.1.3",
+ "serde_json",
+]
+
+[[package]]
+name = "amb_root_nested"
+version = "0.1.0"
+dependencies = [
+ "clap",
+ "dhat",
+ "iguana-runtime",
+ "log",
+ "pprof",
+ "rustc-hash 2.1.3",
+ "serde_json",
+]
+
+[[package]]
+name = "amb_root_start"
+version = "0.1.0"
+dependencies = [
+ "clap",
+ "dhat",
+ "iguana-runtime",
+ "log",
+ "pprof",
+ "rustc-hash 2.1.3",
+ "serde_json",
+]
+
+[[package]]
+name = "ambiguous_expr"
+version = "0.1.0"
+dependencies = [
+ "clap",
+ "dhat",
+ "iguana-runtime",
+ "log",
+ "pprof",
+ "rustc-hash 2.1.3",
+ "serde_json",
+]
+
+[[package]]
+name = "ambiguous_expr_unsafe"
+version = "0.1.0"
+dependencies = [
+ "clap",
+ "dhat",
+ "iguana-runtime",
+ "log",
+ "pprof",
+ "rustc-hash 2.1.3",
+ "serde_json",
+]
 
 [[package]]
 name = "anstream"
@@ -117,10 +234,30 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d3fb67a6e08acf24fdeccbac2cb6ac4305825bd1f117462e0e6f2f193345ad56"
 
 [[package]]
-name = "ascii"
-version = "1.1.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d92bec98840b8f03a5ff5413de5293bfcd8bf96467cf5452609f939ec6f5de16"
+name = "assoc_single_level"
+version = "0.1.0"
+dependencies = [
+ "clap",
+ "dhat",
+ "iguana-runtime",
+ "log",
+ "pprof",
+ "rustc-hash 2.1.3",
+ "serde_json",
+]
+
+[[package]]
+name = "assoc_test"
+version = "0.1.0"
+dependencies = [
+ "clap",
+ "dhat",
+ "iguana-runtime",
+ "log",
+ "pprof",
+ "rustc-hash 2.1.3",
+ "serde_json",
+]
 
 [[package]]
 name = "backtrace"
@@ -138,6 +275,19 @@ dependencies = [
 ]
 
 [[package]]
+name = "binary_expression_priority"
+version = "0.1.0"
+dependencies = [
+ "clap",
+ "dhat",
+ "iguana-runtime",
+ "log",
+ "pprof",
+ "rustc-hash 2.1.3",
+ "serde_json",
+]
+
+[[package]]
 name = "bitflags"
 version = "1.3.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -145,9 +295,9 @@ checksum = "bef38d45163c2f1dde094a7dfd33ccf595c92905c8f8f4fdc18d06fb1037718a"
 
 [[package]]
 name = "bitflags"
-version = "2.13.1"
+version = "2.13.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b588b76d00fde79687d7646a9b5bdf3cc0f655e0bbd080335a95d7e96f3587da"
+checksum = "3ded4057c258ba199e2d26386d3af3780957ecaee6c4ef4041c6b4b8b97c0b06"
 
 [[package]]
 name = "bumpalo"
@@ -159,12 +309,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "by_address"
-version = "1.2.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "64fa3c856b712db6612c019f14756e64e4bcea13337a6b33b696333a9eaa2d06"
-
-[[package]]
 name = "bytemuck"
 version = "1.25.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -172,9 +316,9 @@ checksum = "95832e849adfb21180ccb6826a99da14e5d266ae5c2e668e1602cf234f153797"
 
 [[package]]
 name = "cc"
-version = "1.4.0"
+version = "1.4.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5add81bb678e6cb321aff7fa0dc7689ad82b112dbc032cea19f91d6b8e3582b9"
+checksum = "005ec2760ca554fae18df7a11195552ec576cd665632a881bc011d5bb2fd4d80"
 dependencies = [
  "find-msvc-tools",
  "shlex",
@@ -187,16 +331,10 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "9330f8b2ff13f34540b44e946ef35111825727b38d33286ef986142615121801"
 
 [[package]]
-name = "chunked_transfer"
-version = "1.5.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6e4de3bc4ea267985becf712dc6d9eed8b04c953b3fcfb339ebc87acd9804901"
-
-[[package]]
 name = "clap"
-version = "4.6.4"
+version = "4.6.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d91e0c145792ef73a6ad36d27c75ac09f1832222a3c209689d90f534685ee5b7"
+checksum = "473c7e07f409a8d772161724aa8db6a765a2532a70f9667eeb7b49d3d02fbdca"
 dependencies = [
  "clap_builder",
  "clap_derive",
@@ -204,9 +342,9 @@ dependencies = [
 
 [[package]]
 name = "clap_builder"
-version = "4.6.2"
+version = "4.6.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f09628afdcc538b57f3c6341e9c8e9970f18e4a481690a64974d7023bd33548b"
+checksum = "7b48fea5a88e9ae728a2dcbedbfc0e730f7d60da42e1cb049a83c9fb8b789889"
 dependencies = [
  "anstream",
  "anstyle",
@@ -223,7 +361,7 @@ dependencies = [
  "heck",
  "proc-macro2",
  "quote",
- "syn 3.0.3",
+ "syn 3.0.5",
 ]
 
 [[package]]
@@ -239,6 +377,19 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1d07550c9036bf2ae0c684c4297d503f838287c83c53686d05370d0e139ae570"
 
 [[package]]
+name = "comments"
+version = "0.1.0"
+dependencies = [
+ "clap",
+ "dhat",
+ "iguana-runtime",
+ "log",
+ "pprof",
+ "rustc-hash 2.1.3",
+ "serde_json",
+]
+
+[[package]]
 name = "cpp_demangle"
 version = "0.4.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -248,19 +399,43 @@ dependencies = [
 ]
 
 [[package]]
-name = "crossbeam-channel"
-version = "0.5.16"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d85363c37faeca707aef026efa9f3b34d077bce547e48f770770625c6013679e"
+name = "cycles"
+version = "0.1.0"
 dependencies = [
- "crossbeam-utils",
+ "clap",
+ "dhat",
+ "iguana-runtime",
+ "log",
+ "pprof",
+ "rustc-hash 2.1.3",
+ "serde_json",
 ]
 
 [[package]]
-name = "crossbeam-utils"
-version = "0.8.22"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "61803da095bee82a81bb1a452ecc25d3b2f1416d1897eb86430c6159ef717c17"
+name = "dangling_else"
+version = "0.1.0"
+dependencies = [
+ "clap",
+ "dhat",
+ "iguana-runtime",
+ "log",
+ "pprof",
+ "rustc-hash 2.1.3",
+ "serde_json",
+]
+
+[[package]]
+name = "dangling_else_unsafe"
+version = "0.1.0"
+dependencies = [
+ "clap",
+ "dhat",
+ "iguana-runtime",
+ "log",
+ "pprof",
+ "rustc-hash 2.1.3",
+ "serde_json",
+]
 
 [[package]]
 name = "debugid"
@@ -269,6 +444,32 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "bef552e6f588e446098f6ba40d89ac146c8c7b64aade83c051ee00bb5d2bc18d"
 dependencies = [
  "uuid",
+]
+
+[[package]]
+name = "deep_priority"
+version = "0.1.0"
+dependencies = [
+ "clap",
+ "dhat",
+ "iguana-runtime",
+ "log",
+ "pprof",
+ "rustc-hash 2.1.3",
+ "serde_json",
+]
+
+[[package]]
+name = "deep_priority_full"
+version = "0.1.0"
+dependencies = [
+ "clap",
+ "dhat",
+ "iguana-runtime",
+ "log",
+ "pprof",
+ "rustc-hash 2.1.3",
+ "serde_json",
 ]
 
 [[package]]
@@ -317,12 +518,6 @@ dependencies = [
  "serde_json",
  "thousands",
 ]
-
-[[package]]
-name = "either"
-version = "1.17.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9e5e8f6c15a24b9a3ee5efec809ccd006d3b30e8b3bb63c39af737c7f87daa1d"
 
 [[package]]
 name = "env_filter"
@@ -384,6 +579,240 @@ dependencies = [
 ]
 
 [[package]]
+name = "error_union"
+version = "0.1.0"
+dependencies = [
+ "clap",
+ "dhat",
+ "iguana-runtime",
+ "log",
+ "pprof",
+ "rustc-hash 2.1.3",
+ "serde_json",
+]
+
+[[package]]
+name = "escaped_lit"
+version = "0.1.0"
+dependencies = [
+ "clap",
+ "dhat",
+ "iguana-runtime",
+ "log",
+ "pprof",
+ "rustc-hash 2.1.3",
+ "serde_json",
+]
+
+[[package]]
+name = "exact_keyword"
+version = "0.1.0"
+dependencies = [
+ "clap",
+ "dhat",
+ "iguana-runtime",
+ "log",
+ "pprof",
+ "rustc-hash 2.1.3",
+ "serde_json",
+]
+
+[[package]]
+name = "exact_keyword_contextual"
+version = "0.1.0"
+dependencies = [
+ "clap",
+ "dhat",
+ "iguana-runtime",
+ "log",
+ "pprof",
+ "rustc-hash 2.1.3",
+ "serde_json",
+]
+
+[[package]]
+name = "exact_keyword_generics"
+version = "0.1.0"
+dependencies = [
+ "clap",
+ "dhat",
+ "iguana-runtime",
+ "log",
+ "pprof",
+ "rustc-hash 2.1.3",
+ "serde_json",
+]
+
+[[package]]
+name = "exact_keyword_lexical_set"
+version = "0.1.0"
+dependencies = [
+ "clap",
+ "dhat",
+ "iguana-runtime",
+ "log",
+ "pprof",
+ "rustc-hash 2.1.3",
+ "serde_json",
+]
+
+[[package]]
+name = "exact_keyword_multiple_ids"
+version = "0.1.0"
+dependencies = [
+ "clap",
+ "dhat",
+ "iguana-runtime",
+ "log",
+ "pprof",
+ "rustc-hash 2.1.3",
+ "serde_json",
+]
+
+[[package]]
+name = "exact_keyword_no_layout"
+version = "0.1.0"
+dependencies = [
+ "clap",
+ "dhat",
+ "iguana-runtime",
+ "log",
+ "pprof",
+ "rustc-hash 2.1.3",
+ "serde_json",
+]
+
+[[package]]
+name = "exact_keyword_precede"
+version = "0.1.0"
+dependencies = [
+ "clap",
+ "dhat",
+ "iguana-runtime",
+ "log",
+ "pprof",
+ "rustc-hash 2.1.3",
+ "serde_json",
+]
+
+[[package]]
+name = "except_follow_restriction"
+version = "0.1.0"
+dependencies = [
+ "clap",
+ "dhat",
+ "iguana-runtime",
+ "log",
+ "pprof",
+ "rustc-hash 2.1.3",
+ "serde_json",
+]
+
+[[package]]
+name = "except_lexical"
+version = "0.1.0"
+dependencies = [
+ "clap",
+ "dhat",
+ "iguana-runtime",
+ "log",
+ "pprof",
+ "rustc-hash 2.1.3",
+ "serde_json",
+]
+
+[[package]]
+name = "except_longest_match"
+version = "0.1.0"
+dependencies = [
+ "clap",
+ "dhat",
+ "iguana-runtime",
+ "log",
+ "pprof",
+ "rustc-hash 2.1.3",
+ "serde_json",
+]
+
+[[package]]
+name = "except_nonterminal"
+version = "0.1.0"
+dependencies = [
+ "clap",
+ "dhat",
+ "iguana-runtime",
+ "log",
+ "pprof",
+ "rustc-hash 2.1.3",
+ "serde_json",
+]
+
+[[package]]
+name = "except_nonterminal_longest_match"
+version = "0.1.0"
+dependencies = [
+ "clap",
+ "dhat",
+ "iguana-runtime",
+ "log",
+ "pprof",
+ "rustc-hash 2.1.3",
+ "serde_json",
+]
+
+[[package]]
+name = "except_regex_reference"
+version = "0.1.0"
+dependencies = [
+ "clap",
+ "dhat",
+ "iguana-runtime",
+ "log",
+ "pprof",
+ "rustc-hash 2.1.3",
+ "serde_json",
+]
+
+[[package]]
+name = "except_terminal"
+version = "0.1.0"
+dependencies = [
+ "clap",
+ "dhat",
+ "iguana-runtime",
+ "log",
+ "pprof",
+ "rustc-hash 2.1.3",
+ "serde_json",
+]
+
+[[package]]
+name = "exclude_by_label"
+version = "0.1.0"
+dependencies = [
+ "clap",
+ "dhat",
+ "iguana-runtime",
+ "log",
+ "pprof",
+ "rustc-hash 2.1.3",
+ "serde_json",
+]
+
+[[package]]
+name = "expression"
+version = "0.1.0"
+dependencies = [
+ "clap",
+ "dhat",
+ "iguana-runtime",
+ "log",
+ "pprof",
+ "rustc-hash 2.1.3",
+ "serde_json",
+]
+
+[[package]]
 name = "fastrand"
 version = "2.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -391,9 +820,9 @@ checksum = "da7c62ceae207dd37ea5b845da6a0696c799f85e97da1ab5b7910be3c1c80223"
 
 [[package]]
 name = "find-msvc-tools"
-version = "0.1.9"
+version = "0.1.12"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5baebc0774151f905a1a2cc41989300b1e6fbb29aff0ceffa1064fdd3088d582"
+checksum = "3e0f1c7c3a72c66fd80abe965175f7523475c0489a87d3ff9d6e8c87d87a9d2d"
 
 [[package]]
 name = "findshlibs"
@@ -408,37 +837,80 @@ dependencies = [
 ]
 
 [[package]]
-name = "fluent-uri"
-version = "0.1.4"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "17c704e9dbe1ddd863da1e6ff3567795087b1eb201ce80d8fa81162e1516500d"
-dependencies = [
- "bitflags 1.3.2",
-]
-
-[[package]]
 name = "foldhash"
 version = "0.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "77ce24cb58228fbb8aa041425bb1050850ac19177686ea6e0f41a70416f56fdb"
 
 [[package]]
+name = "follow_restriction"
+version = "0.1.0"
+dependencies = [
+ "clap",
+ "dhat",
+ "iguana-runtime",
+ "log",
+ "pprof",
+ "rustc-hash 2.1.3",
+ "serde_json",
+]
+
+[[package]]
+name = "follow_restriction_lexical"
+version = "0.1.0"
+dependencies = [
+ "clap",
+ "dhat",
+ "iguana-runtime",
+ "log",
+ "pprof",
+ "rustc-hash 2.1.3",
+ "serde_json",
+]
+
+[[package]]
+name = "follow_restriction_lexical_multiple"
+version = "0.1.0"
+dependencies = [
+ "clap",
+ "dhat",
+ "iguana-runtime",
+ "log",
+ "pprof",
+ "rustc-hash 2.1.3",
+ "serde_json",
+]
+
+[[package]]
+name = "follow_restriction_multiple"
+version = "0.1.0"
+dependencies = [
+ "clap",
+ "dhat",
+ "iguana-runtime",
+ "log",
+ "pprof",
+ "rustc-hash 2.1.3",
+ "serde_json",
+]
+
+[[package]]
 name = "futures-core"
-version = "0.3.33"
+version = "0.3.34"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2cd50c473c80f6d7c3670a752354b8e569b1a7cbfdc0419ec88e5edad85e0dc7"
+checksum = "92d699e522242e69e3003b94ecc1f960f3a5e015aa7c5d7486e65ad01dd94f5e"
 
 [[package]]
 name = "futures-task"
-version = "0.3.33"
+version = "0.3.34"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b231ed28831efb4a61a08580c4bc233ec56bc009f4cd8f52da2c3cb97df0c109"
+checksum = "cd417de3d1d015fc3bfd2b1ea46dfc7bab72ef86f1cc7cc9c78e728b34a6d1fd"
 
 [[package]]
 name = "futures-util"
-version = "0.3.33"
+version = "0.3.34"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a77a90a256fce34da66415271e30f94ee91c57b04b8a2c042d9cf3220179deaa"
+checksum = "0d50a92467f8ba5dd6e3ee5d4bd04d73ab2e4e1c44474a0674821dfce14b79bc"
 dependencies = [
  "futures-core",
  "futures-task",
@@ -476,6 +948,32 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e629b9b98ef3dd8afe6ca2bd0f89306cec16d43d907889945bc5d6687f2f13c7"
 
 [[package]]
+name = "group"
+version = "0.1.0"
+dependencies = [
+ "clap",
+ "dhat",
+ "iguana-runtime",
+ "log",
+ "pprof",
+ "rustc-hash 2.1.3",
+ "serde_json",
+]
+
+[[package]]
+name = "group_single_element"
+version = "0.1.0"
+dependencies = [
+ "clap",
+ "dhat",
+ "iguana-runtime",
+ "log",
+ "pprof",
+ "rustc-hash 2.1.3",
+ "serde_json",
+]
+
+[[package]]
 name = "hashbrown"
 version = "0.17.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -494,73 +992,9 @@ checksum = "2304e00983f87ffb38b55b444b5e3b60a884b5d30c0fca7d82fe33449bbe55ea"
 
 [[package]]
 name = "hermit-abi"
-version = "0.5.2"
+version = "0.5.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "fc0fef456e4baa96da950455cd02c081ca953b141298e41db3fc7e36b1da849c"
-
-[[package]]
-name = "httpdate"
-version = "1.0.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "df3b46402a9d5adb4c86a0cf463f42e19994e3ee891101b1841f30a545cb49a9"
-
-[[package]]
-name = "iguana"
-version = "0.1.0-alpha.1"
-dependencies = [
- "clap",
- "iguana-compiler",
- "include_dir",
- "serde_json",
- "tiny_http",
-]
-
-[[package]]
-name = "iguana-compiler"
-version = "0.1.0-alpha.1"
-dependencies = [
- "by_address",
- "iguana-iggy",
- "iguana-runtime",
- "indexmap",
- "itertools",
- "proc-macro2",
- "quote",
- "regex",
- "rustc-hash 2.1.3",
- "serde",
- "serde_json",
- "specta",
- "syn 2.0.119",
- "toml",
-]
-
-[[package]]
-name = "iguana-iggy"
-version = "0.1.0-alpha.1"
-dependencies = [
- "clap",
- "dhat",
- "iguana-runtime",
- "log",
- "pprof",
- "rustc-hash 2.1.3",
- "serde_json",
-]
-
-[[package]]
-name = "iguana-lsp"
-version = "0.1.0-alpha.1"
-dependencies = [
- "iguana-compiler",
- "iguana-iggy",
- "iguana-runtime",
- "lsp-server",
- "lsp-types",
- "rustc-hash 2.1.3",
- "serde",
- "serde_json",
-]
+checksum = "e17592d60ebacc7d5e169f4663c5f84f9161cc90328abcfe8456f41e4dfcb284"
 
 [[package]]
 name = "iguana-runtime"
@@ -581,32 +1015,65 @@ dependencies = [
 ]
 
 [[package]]
-name = "include_dir"
-version = "0.7.4"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "923d117408f1e49d914f1a379a309cffe4f18c05cf4e3d12e613a15fc81bd0dd"
-dependencies = [
- "include_dir_macros",
-]
-
-[[package]]
-name = "include_dir_macros"
-version = "0.7.4"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7cab85a7ed0bd5f0e76d93846e0147172bed2e2d3f859bcc33a8d9699cad1a75"
-dependencies = [
- "proc-macro2",
- "quote",
-]
-
-[[package]]
 name = "indexmap"
-version = "2.14.0"
+version = "2.14.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d466e9454f08e4a911e14806c24e16fba1b4c121d1ea474396f396069cf949d9"
+checksum = "cc4e190f5d26ca7051642629da2c52fc03bde85a03197c99408dcd291734c855"
 dependencies = [
  "equivalent",
  "hashbrown",
+]
+
+[[package]]
+name = "indirect_binary"
+version = "0.1.0"
+dependencies = [
+ "clap",
+ "dhat",
+ "iguana-runtime",
+ "log",
+ "pprof",
+ "rustc-hash 2.1.3",
+ "serde_json",
+]
+
+[[package]]
+name = "indirect_postfix"
+version = "0.1.0"
+dependencies = [
+ "clap",
+ "dhat",
+ "iguana-runtime",
+ "log",
+ "pprof",
+ "rustc-hash 2.1.3",
+ "serde_json",
+]
+
+[[package]]
+name = "indirect_precedence"
+version = "0.1.0"
+dependencies = [
+ "clap",
+ "dhat",
+ "iguana-runtime",
+ "log",
+ "pprof",
+ "rustc-hash 2.1.3",
+ "serde_json",
+]
+
+[[package]]
+name = "indirect_prefix"
+version = "0.1.0"
+dependencies = [
+ "clap",
+ "dhat",
+ "iguana-runtime",
+ "log",
+ "pprof",
+ "rustc-hash 2.1.3",
+ "serde_json",
 ]
 
 [[package]]
@@ -643,15 +1110,6 @@ name = "is_terminal_polyfill"
 version = "1.70.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "a6cb138bb79a146c1bd460005623e142ef0181e3d0219cb493e02f7d08a35695"
-
-[[package]]
-name = "itertools"
-version = "0.15.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8b4baf93f58d4425749ca49a51c50ebab072c5df6994d08fed93541c331481dc"
-dependencies = [
- "either",
-]
 
 [[package]]
 name = "itoa"
@@ -697,9 +1155,9 @@ dependencies = [
 
 [[package]]
 name = "js-sys"
-version = "0.3.103"
+version = "0.3.105"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "53b44bfcdb3f8d5837a46dae1ca9660a837176eee74a28b229bc626816589102"
+checksum = "ce57d20d1ea864ce2ac172ab472d409214f4fd359f0b2a2775abdf522e2af99e"
 dependencies = [
  "cfg-if",
  "futures-util",
@@ -707,10 +1165,114 @@ dependencies = [
 ]
 
 [[package]]
+name = "keyword_labels"
+version = "0.1.0"
+dependencies = [
+ "clap",
+ "dhat",
+ "iguana-runtime",
+ "log",
+ "pprof",
+ "rustc-hash 2.1.3",
+ "serde_json",
+]
+
+[[package]]
+name = "labeled_follow_restriction"
+version = "0.1.0"
+dependencies = [
+ "clap",
+ "dhat",
+ "iguana-runtime",
+ "log",
+ "pprof",
+ "rustc-hash 2.1.3",
+ "serde_json",
+]
+
+[[package]]
+name = "layout_aware_follow_midrule"
+version = "0.1.0"
+dependencies = [
+ "clap",
+ "dhat",
+ "iguana-runtime",
+ "log",
+ "pprof",
+ "rustc-hash 2.1.3",
+ "serde_json",
+]
+
+[[package]]
+name = "layout_aware_follow_no_layout"
+version = "0.1.0"
+dependencies = [
+ "clap",
+ "dhat",
+ "iguana-runtime",
+ "log",
+ "pprof",
+ "rustc-hash 2.1.3",
+ "serde_json",
+]
+
+[[package]]
+name = "layout_aware_follow_required_layout"
+version = "0.1.0"
+dependencies = [
+ "clap",
+ "dhat",
+ "iguana-runtime",
+ "log",
+ "pprof",
+ "rustc-hash 2.1.3",
+ "serde_json",
+]
+
+[[package]]
+name = "layout_aware_follow_same_position"
+version = "0.1.0"
+dependencies = [
+ "clap",
+ "dhat",
+ "iguana-runtime",
+ "log",
+ "pprof",
+ "rustc-hash 2.1.3",
+ "serde_json",
+]
+
+[[package]]
+name = "layout_nonterminal"
+version = "0.1.0"
+dependencies = [
+ "clap",
+ "dhat",
+ "iguana-runtime",
+ "log",
+ "pprof",
+ "rustc-hash 2.1.3",
+ "serde_json",
+]
+
+[[package]]
 name = "lazy_static"
 version = "1.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "bbd2bcb4c963f2ddae06a2efc7e9f3591312473c50c6685e1f298068316e66fe"
+
+[[package]]
+name = "left_recursive_list"
+version = "0.1.0"
+dependencies = [
+ "clap",
+ "dhat",
+ "iguana-runtime",
+ "log",
+ "pprof",
+ "rustc-hash 2.1.3",
+ "serde_json",
+]
 
 [[package]]
 name = "libc"
@@ -725,6 +1287,110 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "32a66949e030da00e8c7d4434b251670a91556f4144941d37452769c25d58a53"
 
 [[package]]
+name = "ll1_alt_prefix_conflict"
+version = "0.1.0"
+dependencies = [
+ "clap",
+ "dhat",
+ "iguana-runtime",
+ "log",
+ "pprof",
+ "rustc-hash 2.1.3",
+ "serde_json",
+]
+
+[[package]]
+name = "ll1_call_error"
+version = "0.1.0"
+dependencies = [
+ "clap",
+ "dhat",
+ "iguana-runtime",
+ "log",
+ "pprof",
+ "rustc-hash 2.1.3",
+ "serde_json",
+]
+
+[[package]]
+name = "ll1_follow_restriction"
+version = "0.1.0"
+dependencies = [
+ "clap",
+ "dhat",
+ "iguana-runtime",
+ "log",
+ "pprof",
+ "rustc-hash 2.1.3",
+ "serde_json",
+]
+
+[[package]]
+name = "ll1_opt_prefix_conflict"
+version = "0.1.0"
+dependencies = [
+ "clap",
+ "dhat",
+ "iguana-runtime",
+ "log",
+ "pprof",
+ "rustc-hash 2.1.3",
+ "serde_json",
+]
+
+[[package]]
+name = "ll1_plus_follow_prefix"
+version = "0.1.0"
+dependencies = [
+ "clap",
+ "dhat",
+ "iguana-runtime",
+ "log",
+ "pprof",
+ "rustc-hash 2.1.3",
+ "serde_json",
+]
+
+[[package]]
+name = "ll1_plus_prefix_conflict"
+version = "0.1.0"
+dependencies = [
+ "clap",
+ "dhat",
+ "iguana-runtime",
+ "log",
+ "pprof",
+ "rustc-hash 2.1.3",
+ "serde_json",
+]
+
+[[package]]
+name = "ll1_prefix_ambiguity"
+version = "0.1.0"
+dependencies = [
+ "clap",
+ "dhat",
+ "iguana-runtime",
+ "log",
+ "pprof",
+ "rustc-hash 2.1.3",
+ "serde_json",
+]
+
+[[package]]
+name = "ll1_prefix_conflict"
+version = "0.1.0"
+dependencies = [
+ "clap",
+ "dhat",
+ "iguana-runtime",
+ "log",
+ "pprof",
+ "rustc-hash 2.1.3",
+ "serde_json",
+]
+
+[[package]]
 name = "lock_api"
 version = "0.4.14"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -735,34 +1401,34 @@ dependencies = [
 
 [[package]]
 name = "log"
-version = "0.4.33"
+version = "0.4.34"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0ceec5bc11778974d1bcb055b18002eba7f4b3518b6a0081b3af5f21666da9ad"
+checksum = "f9f8bd3e56ce4dfc153cf470fffbfa98c7620958b312ca5c3a4b8d5181fd13c6"
 
 [[package]]
-name = "lsp-server"
-version = "0.10.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3ee25a31f2e571e426eef2896179450cafc7e2f5be00d8a93b1c2d21c0ff7656"
+name = "longest_match"
+version = "0.1.0"
 dependencies = [
- "crossbeam-channel",
+ "clap",
+ "dhat",
+ "iguana-runtime",
  "log",
- "serde",
- "serde_derive",
+ "pprof",
+ "rustc-hash 2.1.3",
  "serde_json",
 ]
 
 [[package]]
-name = "lsp-types"
-version = "0.97.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "53353550a17c04ac46c585feb189c2db82154fc84b79c7a66c96c2c644f66071"
+name = "lowercase_name"
+version = "0.1.0"
 dependencies = [
- "bitflags 1.3.2",
- "fluent-uri",
- "serde",
+ "clap",
+ "dhat",
+ "iguana-runtime",
+ "log",
+ "pprof",
+ "rustc-hash 2.1.3",
  "serde_json",
- "serde_repr",
 ]
 
 [[package]]
@@ -796,6 +1462,19 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c505b3e17ed6b70a7ed2e67fbb2c560ee327353556120d6e72f5232b6880d536"
 
 [[package]]
+name = "multiple_except"
+version = "0.1.0"
+dependencies = [
+ "clap",
+ "dhat",
+ "iguana-runtime",
+ "log",
+ "pprof",
+ "rustc-hash 2.1.3",
+ "serde_json",
+]
+
+[[package]]
 name = "nix"
 version = "0.26.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -804,6 +1483,19 @@ dependencies = [
  "bitflags 1.3.2",
  "cfg-if",
  "libc",
+]
+
+[[package]]
+name = "no_layout"
+version = "0.1.0"
+dependencies = [
+ "clap",
+ "dhat",
+ "iguana-runtime",
+ "log",
+ "pprof",
+ "rustc-hash 2.1.3",
+ "serde_json",
 ]
 
 [[package]]
@@ -838,6 +1530,19 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "384b8ab6d37215f3c5301a95a4accb5d64aa607f1fcb26a11b5303878451b4fe"
 
 [[package]]
+name = "opt"
+version = "0.1.0"
+dependencies = [
+ "clap",
+ "dhat",
+ "iguana-runtime",
+ "log",
+ "pprof",
+ "rustc-hash 2.1.3",
+ "serde_json",
+]
+
+[[package]]
 name = "parking_lot"
 version = "0.12.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -861,22 +1566,100 @@ dependencies = [
 ]
 
 [[package]]
+name = "pepm16_expressions"
+version = "0.1.0"
+dependencies = [
+ "clap",
+ "dhat",
+ "iguana-runtime",
+ "log",
+ "pprof",
+ "rustc-hash 2.1.3",
+ "serde_json",
+]
+
+[[package]]
 name = "pin-project-lite"
 version = "0.2.17"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "a89322df9ebe1c1578d689c92318e070967d1042b512afbe49518723f4e6d5cd"
 
 [[package]]
+name = "plus"
+version = "0.1.0"
+dependencies = [
+ "clap",
+ "dhat",
+ "iguana-runtime",
+ "log",
+ "pprof",
+ "rustc-hash 2.1.3",
+ "serde_json",
+]
+
+[[package]]
+name = "plus_alt"
+version = "0.1.0"
+dependencies = [
+ "clap",
+ "dhat",
+ "iguana-runtime",
+ "log",
+ "pprof",
+ "rustc-hash 2.1.3",
+ "serde_json",
+]
+
+[[package]]
+name = "plus_except"
+version = "0.1.0"
+dependencies = [
+ "clap",
+ "dhat",
+ "iguana-runtime",
+ "log",
+ "pprof",
+ "rustc-hash 2.1.3",
+ "serde_json",
+]
+
+[[package]]
+name = "plus_group"
+version = "0.1.0"
+dependencies = [
+ "clap",
+ "dhat",
+ "iguana-runtime",
+ "log",
+ "pprof",
+ "rustc-hash 2.1.3",
+ "serde_json",
+]
+
+[[package]]
+name = "plus_with_sep"
+version = "0.1.0"
+dependencies = [
+ "clap",
+ "dhat",
+ "iguana-runtime",
+ "log",
+ "pprof",
+ "rustc-hash 2.1.3",
+ "serde_json",
+]
+
+[[package]]
 name = "portable-atomic"
-version = "1.14.0"
+version = "1.15.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3d20d5497ef88037a52ff98267d066e7f11fcc5e99bbfbd58a42336193aacec3"
+checksum = "05c8b63e8d9609db387f0324918f81d68fe27748f084ef092fb35954d0539a85"
 
 [[package]]
 name = "portable-atomic-util"
-version = "0.2.7"
+version = "0.2.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c2a106d1259c23fac8e543272398ae0e3c0b8d33c88ed73d0cc71b0f1d902618"
+checksum = "10ab3eb7f3becc3a1cbc4f2c6f20267996cfc1a6467a873763411b136a122715"
 dependencies = [
  "portable-atomic",
 ]
@@ -901,6 +1684,71 @@ dependencies = [
  "symbolic-demangle",
  "tempfile",
  "thiserror",
+]
+
+[[package]]
+name = "precede_follow_restriction"
+version = "0.1.0"
+dependencies = [
+ "clap",
+ "dhat",
+ "iguana-runtime",
+ "log",
+ "pprof",
+ "rustc-hash 2.1.3",
+ "serde_json",
+]
+
+[[package]]
+name = "precede_restriction"
+version = "0.1.0"
+dependencies = [
+ "clap",
+ "dhat",
+ "iguana-runtime",
+ "log",
+ "pprof",
+ "rustc-hash 2.1.3",
+ "serde_json",
+]
+
+[[package]]
+name = "precede_restriction_lexical"
+version = "0.1.0"
+dependencies = [
+ "clap",
+ "dhat",
+ "iguana-runtime",
+ "log",
+ "pprof",
+ "rustc-hash 2.1.3",
+ "serde_json",
+]
+
+[[package]]
+name = "prefix_above_binary"
+version = "0.1.0"
+dependencies = [
+ "clap",
+ "dhat",
+ "iguana-runtime",
+ "log",
+ "pprof",
+ "rustc-hash 2.1.3",
+ "serde_json",
+]
+
+[[package]]
+name = "prefix_postfix_priority"
+version = "0.1.0"
+dependencies = [
+ "clap",
+ "dhat",
+ "iguana-runtime",
+ "log",
+ "pprof",
+ "rustc-hash 2.1.3",
+ "serde_json",
 ]
 
 [[package]]
@@ -948,7 +1796,7 @@ version = "0.5.18"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ed2bf2547551a7053d6fdfafda3f938979645c44812fbfcda098faae3f1a362d"
 dependencies = [
- "bitflags 2.13.1",
+ "bitflags 2.13.2",
 ]
 
 [[package]]
@@ -965,9 +1813,9 @@ dependencies = [
 
 [[package]]
 name = "regex-automata"
-version = "0.4.16"
+version = "0.4.18"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8fcfdb36bda0c880c5931cdc7a2bcdc8ba4556847b9d912bca70bc94708711ad"
+checksum = "ad8553b9b26413251cbf30e620595c7a41b3887f03da04579c0e6b0d6a06b4b2"
 dependencies = [
  "aho-corasick",
  "memchr",
@@ -979,6 +1827,19 @@ name = "regex-syntax"
 version = "0.8.11"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d6f6ff9a378485b298a5286656da665ba74413d36db0979633275d2e708145d4"
+
+[[package]]
+name = "regex_composition"
+version = "0.1.0"
+dependencies = [
+ "clap",
+ "dhat",
+ "iguana-runtime",
+ "log",
+ "pprof",
+ "rustc-hash 2.1.3",
+ "serde_json",
+]
 
 [[package]]
 name = "rgb"
@@ -1022,7 +1883,7 @@ version = "1.1.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b6fe4565b9518b83ef4f91bb47ce29620ca828bd32cb7e408f0062e9930ba190"
 dependencies = [
- "bitflags 2.13.1",
+ "bitflags 2.13.2",
  "errno",
  "libc",
  "linux-raw-sys",
@@ -1074,7 +1935,7 @@ checksum = "e7a5d71263a5a7d47b41f6b3f06ba276f10cc18b0931f1799f710578e2309348"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn 3.0.3",
+ "syn 3.0.5",
 ]
 
 [[package]]
@@ -1091,30 +1952,23 @@ dependencies = [
 ]
 
 [[package]]
-name = "serde_repr"
-version = "0.1.21"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8d3b1629de253c70a0508c3899572da79ca359fdab27c7920ff00406df418906"
-dependencies = [
- "proc-macro2",
- "quote",
- "syn 3.0.3",
-]
-
-[[package]]
-name = "serde_spanned"
-version = "1.1.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6662b5879511e06e8999a8a235d848113e942c9124f211511b16466ee2995f26"
-dependencies = [
- "serde_core",
-]
-
-[[package]]
 name = "shlex"
 version = "2.0.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f8fadd59c855ef2080decdef8ff161eb6661b86933c9d82e5ba29dc602a55aba"
+
+[[package]]
+name = "simple_alt"
+version = "0.1.0"
+dependencies = [
+ "clap",
+ "dhat",
+ "iguana-runtime",
+ "log",
+ "pprof",
+ "rustc-hash 2.1.3",
+ "serde_json",
+]
 
 [[package]]
 name = "slab"
@@ -1124,9 +1978,9 @@ checksum = "0c790de23124f9ab44544d7ac05d60440adc586479ce501c1d6d7da3cd8c9cf5"
 
 [[package]]
 name = "smallvec"
-version = "1.15.2"
+version = "1.16.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8ed6a63f02c8539c91a8685a86f4099661ba3da017932f6ebbea6de3f0fa7c90"
+checksum = "ba467056f1b547ed52077911161fc86985becbc60e8e1857c8a144dab0def891"
 
 [[package]]
 name = "specta"
@@ -1164,6 +2018,32 @@ name = "stable_deref_trait"
 version = "1.2.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "6ce2be8dc25455e1f91df71bfa12ad37d7af1092ae736f3a6cd0e37bc7810596"
+
+[[package]]
+name = "star"
+version = "0.1.0"
+dependencies = [
+ "clap",
+ "dhat",
+ "iguana-runtime",
+ "log",
+ "pprof",
+ "rustc-hash 2.1.3",
+ "serde_json",
+]
+
+[[package]]
+name = "star_with_sep"
+version = "0.1.0"
+dependencies = [
+ "clap",
+ "dhat",
+ "iguana-runtime",
+ "log",
+ "pprof",
+ "rustc-hash 2.1.3",
+ "serde_json",
+]
 
 [[package]]
 name = "str_stack"
@@ -1213,9 +2093,9 @@ dependencies = [
 
 [[package]]
 name = "syn"
-version = "3.0.3"
+version = "3.0.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "53e9bae58849f64dfa4f5d5ae372c8341f7305f82a3868709269343628b659a3"
+checksum = "12df2e0110f65b775f769bb17ef989067a1d931b2eb822bd4346631eeada89f9"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -1237,22 +2117,22 @@ dependencies = [
 
 [[package]]
 name = "thiserror"
-version = "2.0.19"
+version = "2.0.20"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "09a43598840e33d5b0331f38c5e30d13bb11c11210a4b58f0d9b18a5a5eefcd9"
+checksum = "ec86235f5fcc2a73650310756d2ac5b138a5780bbbdfae3eeccec992c435ba4f"
 dependencies = [
  "thiserror-impl",
 ]
 
 [[package]]
 name = "thiserror-impl"
-version = "2.0.19"
+version = "2.0.20"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "43cbfe0cf76104d42a574802844187e84a305e531ed54455f11fbde0f10541cd"
+checksum = "bc04cd3e1236dd4a98afca4569f2deb3f120e5422a4023be2cb683f8486292af"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn 3.0.3",
+ "syn 3.0.5",
 ]
 
 [[package]]
@@ -1262,55 +2142,17 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "3bf63baf9f5039dadc247375c29eb13706706cfde997d0330d05aa63a77d8820"
 
 [[package]]
-name = "tiny_http"
-version = "0.12.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "389915df6413a2e74fb181895f933386023c71110878cd0825588928e64cdc82"
+name = "token_only_unsafe"
+version = "0.1.0"
 dependencies = [
- "ascii",
- "chunked_transfer",
- "httpdate",
+ "clap",
+ "dhat",
+ "iguana-runtime",
  "log",
+ "pprof",
+ "rustc-hash 2.1.3",
+ "serde_json",
 ]
-
-[[package]]
-name = "toml"
-version = "1.1.4+spec-1.1.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3aace63f4bbcdfc2c965b059de67119c89c4017a70d633be6c104910f67056f5"
-dependencies = [
- "indexmap",
- "serde_core",
- "serde_spanned",
- "toml_datetime",
- "toml_parser",
- "toml_writer",
- "winnow",
-]
-
-[[package]]
-name = "toml_datetime"
-version = "1.1.1+spec-1.1.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3165f65f62e28e0115a00b2ebdd37eb6f3b641855f9d636d3cd4103767159ad7"
-dependencies = [
- "serde_core",
-]
-
-[[package]]
-name = "toml_parser"
-version = "1.1.3+spec-1.1.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1d38ac1cf9b95face32296c0a3ede1fdc270627c9d9c02a7274dd6d960dc4d56"
-dependencies = [
- "winnow",
-]
-
-[[package]]
-name = "toml_writer"
-version = "1.1.2+spec-1.1.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7d56353a2a665ad0f41a421187180aab746c8c325620617ad883a99a1cbe66d2"
 
 [[package]]
 name = "unicode-ident"
@@ -1326,9 +2168,9 @@ checksum = "06abde3611657adf66d383f00b093d7faecc7fa57071cce2578660c9f1010821"
 
 [[package]]
 name = "uuid"
-version = "1.24.0"
+version = "1.26.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "bf3923a6f5c4c6382e0b653c4117f48d631ea17f38ed86e2a828e6f7412f5239"
+checksum = "2ef6dac1e96601b4fb3acccccff2139741fcb757cb9a36089bf5be91cfb285ce"
 dependencies = [
  "js-sys",
  "wasm-bindgen",
@@ -1351,9 +2193,9 @@ dependencies = [
 
 [[package]]
 name = "wasm-bindgen"
-version = "0.2.126"
+version = "0.2.128"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4b067c0c11094aef6b7a801c1e34a26affafdf3d051dba08456b868789aaf9a4"
+checksum = "aecb87a33d3b0c5e3b7aa46336eaf486cffafbd281b195e4c8b80d50df2351bf"
 dependencies = [
  "cfg-if",
  "once_cell",
@@ -1364,9 +2206,9 @@ dependencies = [
 
 [[package]]
 name = "wasm-bindgen-macro"
-version = "0.2.126"
+version = "0.2.128"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "167ce5e579f6bcf889c4f7175a8a5a585de84e8ff93976ce393efa5f2837aab1"
+checksum = "a690d511e3c1a8b3a55e33511e3c2c00c78415cd23650f32b808627f5696b9ed"
 dependencies = [
  "quote",
  "wasm-bindgen-macro-support",
@@ -1374,22 +2216,22 @@ dependencies = [
 
 [[package]]
 name = "wasm-bindgen-macro-support"
-version = "0.2.126"
+version = "0.2.128"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f3997c7839262f4ef12cf90b818d6340c18e80f263f1a94bf157d0ec4420380e"
+checksum = "411e4887f0071ef2d2164a9d5fdf2d20efbef78fccd3a78b0c10a1dc5295e48a"
 dependencies = [
  "bumpalo",
  "proc-macro2",
  "quote",
- "syn 2.0.119",
+ "syn 3.0.5",
  "wasm-bindgen-shared",
 ]
 
 [[package]]
 name = "wasm-bindgen-shared"
-version = "0.2.126"
+version = "0.2.128"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "dc1b4cb0cc549fcf58d7dfc081778139b3d283a081644e833e84682ad71cea24"
+checksum = "81941cd78d0c92026c33e5e01312845a4cb1e9af3407f9134b100dd03144103e"
 dependencies = [
  "unicode-ident",
 ]
@@ -1442,41 +2284,25 @@ dependencies = [
 ]
 
 [[package]]
-name = "winnow"
-version = "1.0.4"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "23b97319f7b8343df12cc98938e5c3eb436064524c8d2b4e30a1d3a36eecdf81"
-
-[[package]]
 name = "wit-bindgen"
 version = "0.57.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1ebf944e87a7c253233ad6766e082e3cd714b5d03812acc24c318f549614536e"
 
 [[package]]
-name = "xtask"
-version = "0.0.0"
-dependencies = [
- "clap",
- "iguana-compiler",
- "proc-macro2",
- "quote",
-]
-
-[[package]]
 name = "zerocopy"
-version = "0.8.55"
+version = "0.8.57"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b5a105cd7b140f6eeec8acff2ea38135d3cab283ada58540f629fe51e46696eb"
+checksum = "d35102a9f36d089ccae9e4c6802bc118be4487b80aaffc0ab4e0cf5ce92d2873"
 dependencies = [
  "zerocopy-derive",
 ]
 
 [[package]]
 name = "zerocopy-derive"
-version = "0.8.55"
+version = "0.8.57"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0fe976fb70c78cd64cccfe3a6fc142244e8a77b70959b30faf9d0ac37ee228eb"
+checksum = "146c01f5ab44258da43cf276c74a2763db2ff3969c9c652c3f2de07041d0b2bc"
 dependencies = [
  "proc-macro2",
  "quote",

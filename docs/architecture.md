@@ -18,9 +18,9 @@ the GLL data structures and algorithms shared by every parser.
 | `iguana-lsp` | Language server and reusable grammar-analysis functions. | `iggy`, `iguana-compiler`, `iguana-runtime`. |
 | `xtask` | Repository build, regeneration, and test workflows. | `iguana-compiler`. |
 
-The workspace root also defines the `iguana-tests` integration-test crate.
 Each directory under `tests/` is a generated parser crate for one grammar and
-depends on `iguana-runtime`.
+depends on `iguana-runtime`. These crates form a separate workspace rooted at
+`tests/Cargo.toml`, so the checks of the root workspace do not compile them.
 
 ### Applications and web packages
 

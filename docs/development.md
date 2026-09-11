@@ -29,14 +29,16 @@ installation, and points Git at the tracked `.githooks/` directory. The VS
 Code extension has a separate npm installation under `editors/vscode`.
 
 The pre-commit hook rejects unformatted commits through
-`cargo fmt --check --all`. The commit-message hook rejects `Co-Authored-By`,
+`cargo fmt --check --all` on the root and grammar-test workspaces. The commit-message hook rejects `Co-Authored-By`,
 `Signed-off-by`, and `Generated-by` trailers and AI-attribution lines. CI
 applies the same checks to pull requests.
 
 ## Build and check
 
-The root Cargo workspace contains the Rust crates, `xtask`, and the generated
-grammar-test crates. Use `-p` to limit an iteration to the package you changed:
+The root Cargo workspace contains the Rust crates and `xtask`. The generated
+grammar-test crates form a second workspace under `tests/`, which
+`cargo xtask test` builds; see the [testing guide](testing.md). Use `-p` to
+limit an iteration to the package you changed:
 
 ```sh
 cargo fmt --all --check
@@ -50,8 +52,9 @@ cargo xtask test
 Replace `<package>` with a Cargo package name such as `iguana-compiler`,
 `iguana-runtime`, or `iguana-lsp`. Use the package-level commands while
 iterating, then run `cargo xtask test` when the change can affect generated
-parsers or more than one crate. This command uses `cargo-nextest` when it is
-available and otherwise falls back to `cargo test --workspace`.
+parsers or more than one crate. This command runs the Rust tests of both
+workspaces, using `cargo-nextest` when it is available and otherwise
+`cargo test`.
 
 The Terrarium backend is a separate Cargo workspace because its Tauri
 dependencies slow rust-analyzer for the root workspace. Keep it outside the
@@ -130,11 +133,11 @@ website.
 | `cargo xtask install` | Rebuild the web viewer (`npm run build`), then build `iguana` in release mode and install it into `$CARGO_HOME/bin`. Needs npm on PATH; a plain `cargo install` stays npm-free and embeds the committed `iguana/viewer-dist`. |
 | `cargo xtask install-vscode-extension` | Build and install the current `iguana-lsp`, package the VS Code extension as a VSIX, and install or replace it through the `code` command. Reload VS Code afterward. Requires Node.js 22.12 or newer, npm, and `code` on PATH. |
 | `cargo xtask bootstrap` | Regenerate `iggy` from `iggy/iggy.iggy`. |
-| `cargo xtask test [args...]` | Run the Cargo tests (`cargo-nextest` if installed, otherwise `cargo test --workspace`), then build the grammar-test binaries and check every grammar's output against its golden files. Extra arguments are forwarded to the Rust test command. `--regen` rewrites the golden files instead of checking them and skips the Rust tests. |
+| `cargo xtask test [args...]` | Run the Cargo tests of the root and grammar-test workspaces (`cargo-nextest` if installed, otherwise `cargo test`), then build the grammar-test workspace and check every grammar's output against its golden files. Extra arguments are forwarded to the Rust test command of the root workspace; the grammar-test workspace's Rust tests always run in full. `--regen` rewrites the golden files instead of checking them and skips the Rust tests. |
 | `cargo xtask test-new <name>` | Scaffold a new grammar test (directory + stub `.iggy`). Pure scaffolding; no generator. |
-| `cargo xtask test-gen <name>` | Run the generator on the grammar (lib + `main.rs`), patch the Cargo.toml to workspace membership, and add the crate to workspace `members`. |
+| `cargo xtask test-gen <name>` | Run the generator on the grammar (lib + `main.rs`), patch the Cargo.toml to workspace membership, and add the crate to the grammar-test workspace's `members`. |
 | `cargo xtask test-gen-all` | Run `test-gen` for every directory under `tests/` that has a grammar file. |
-| `cargo xtask test-rm <name>` | Remove a grammar test: delete the directory and remove the crate from workspace `members`. |
+| `cargo xtask test-rm <name>` | Remove a grammar test: delete the directory and remove the crate from the grammar-test workspace's `members`. |
 | `cargo xtask wasm [test]` | Generate a WebAssembly bundle for Iggy, or for the named grammar test, under `target/wasm/` and build it with `wasm-pack` against the local runtime. Requires `wasm-pack` and the `wasm32-unknown-unknown` target. |
 | `cargo xtask terrarium` | Install `iguana`, then launch the Terrarium dev server. |
 
@@ -169,7 +172,7 @@ directory containing the changed code:
 | Affected output | Command | Result |
 |---|---|---|
 | The committed Iggy parser, including its generated Rust sources, CLI, and `Cargo.toml` | Run `cargo xtask bootstrap` twice. | Rewrites generated files under `iggy/`; the second run must produce no diff. |
-| One grammar-test parser or its scaffold | Run `cargo xtask test-gen <name>`. | Rewrites the generated crate under `tests/<name>/` and ensures it is a root workspace member. |
+| One grammar-test parser or its scaffold | Run `cargo xtask test-gen <name>`. | Rewrites the generated crate under `tests/<name>/` and ensures it is a member of the grammar-test workspace. |
 | Generated Rust or scaffolding shared by grammar tests | Run `cargo xtask test-gen-all`. | Rewrites every generated parser crate under `tests/`. |
 | Grammar-test s-expression expectations | Run `cargo xtask test --regen`. | Rewrites the golden files without running the Rust tests. |
 | A generated WebAssembly parser, wrapper, or manifest | Run `cargo xtask wasm [test]`. | Rebuilds the selected bundle under the ignored `target/wasm/` directory. |

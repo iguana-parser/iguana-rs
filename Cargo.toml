@@ -1,22 +1,9 @@
-[package]
-name = "iguana-tests"
-version = "0.1.0"
-edition = "2024"
-license.workspace = true
-publish = false
-
-[dependencies]
-iggy.workspace = true
-iguana-runtime.workspace = true
-
-[lints]
-workspace = true
-
 [workspace]
 resolver = "3"
-# Terrarium is a separate workspace because its Tauri dependencies slow
-# rust-analyzer for the root workspace. Its checks run through its own manifest
-# (docs/development.md).
+# Terrarium and the grammar tests are separate workspaces: Terrarium's Tauri
+# dependencies and the generated parser crates under tests/ would slow every
+# check and rust-analyzer for the root workspace. Their checks run through
+# their own manifests (docs/development.md).
 members = [
     "iguana",
     "iguana-compiler",
@@ -24,89 +11,6 @@ members = [
     "iggy",
     "iguana-lsp",
     "xtask",
-    "tests/cycles",
-    "tests/keyword_labels",
-    "tests/indirect_binary",
-    "tests/error_union",
-    "tests/lowercase_name",
-    "tests/exact_keyword_lexical_set",
-    "tests/exact_keyword_no_layout",
-    "tests/exact_keyword_multiple_ids",
-    "tests/exact_keyword_generics",
-    "tests/exact_keyword_contextual",
-    "tests/exact_keyword_precede",
-    "tests/exact_keyword",
-    "tests/layout_aware_follow_required_layout",
-    "tests/layout_aware_follow_no_layout",
-    "tests/layout_aware_follow_same_position",
-    "tests/layout_aware_follow_midrule",
-    "tests/dangling_else_unsafe",
-    "tests/dangling_else",
-    "tests/precede_follow_restriction",
-    "tests/except_follow_restriction",
-    "tests/labeled_follow_restriction",
-    "tests/ll1_call_error",
-    "tests/amb_root_start",
-    "tests/assoc_single_level",
-    "tests/escaped_lit",
-    "tests/alt_seq",
-    "tests/amb_root_nested",
-    "tests/amb_root",
-    "tests/group_single_element",
-    "tests/plus_alt",
-    "tests/token_only_unsafe",
-    "tests/ambiguous_expr_unsafe",
-    "tests/ambiguous_expr",
-    "tests/except_regex_reference",
-    "tests/follow_restriction_lexical_multiple",
-    "tests/plus_except",
-    "tests/amb",
-    "tests/except_nonterminal_longest_match",
-    "tests/except_longest_match",
-    "tests/indirect_postfix",
-    "tests/indirect_prefix",
-    "tests/amb_plus",
-    "tests/amb_list",
-    "tests/layout_nonterminal",
-    "tests/longest_match",
-    "tests/assoc_test",
-    "tests/binary_expression_priority",
-    "tests/comments",
-    "tests/deep_priority",
-    "tests/deep_priority_full",
-    "tests/except_lexical",
-    "tests/except_nonterminal",
-    "tests/except_terminal",
-    "tests/exclude_by_label",
-    "tests/expression",
-    "tests/follow_restriction",
-    "tests/follow_restriction_lexical",
-    "tests/follow_restriction_multiple",
-    "tests/group",
-    "tests/indirect_precedence",
-    "tests/left_recursive_list",
-    "tests/multiple_except",
-    "tests/no_layout",
-    "tests/opt",
-    "tests/pepm16_expressions",
-    "tests/plus",
-    "tests/plus_group",
-    "tests/plus_with_sep",
-    "tests/precede_restriction",
-    "tests/precede_restriction_lexical",
-    "tests/prefix_above_binary",
-    "tests/prefix_postfix_priority",
-    "tests/regex_composition",
-    "tests/simple_alt",
-    "tests/star",
-    "tests/star_with_sep",
-    "tests/ll1_prefix_conflict",
-    "tests/ll1_prefix_ambiguity",
-    "tests/ll1_plus_prefix_conflict",
-    "tests/ll1_alt_prefix_conflict",
-    "tests/ll1_follow_restriction",
-    "tests/ll1_opt_prefix_conflict",
-    "tests/ll1_plus_follow_prefix",
 ]
 
 # The current iguana version. Generated parsers depend on iguana-runtime at

@@ -1,0 +1,110 @@
+# The grammar tests are a workspace of their own, like the Terrarium backend,
+# so that the root workspace's checks and rust-analyzer do not compile the
+# generated parser crates. `cargo xtask test` builds them through this
+# manifest (docs/testing.md).
+[workspace]
+resolver = "3"
+members = [
+    "alt_seq",
+    "amb",
+    "amb_list",
+    "amb_plus",
+    "amb_root",
+    "amb_root_nested",
+    "amb_root_start",
+    "ambiguous_expr",
+    "ambiguous_expr_unsafe",
+    "assoc_single_level",
+    "assoc_test",
+    "binary_expression_priority",
+    "comments",
+    "cycles",
+    "dangling_else",
+    "dangling_else_unsafe",
+    "deep_priority",
+    "deep_priority_full",
+    "error_union",
+    "escaped_lit",
+    "exact_keyword",
+    "exact_keyword_contextual",
+    "exact_keyword_generics",
+    "exact_keyword_lexical_set",
+    "exact_keyword_multiple_ids",
+    "exact_keyword_no_layout",
+    "exact_keyword_precede",
+    "except_follow_restriction",
+    "except_lexical",
+    "except_longest_match",
+    "except_nonterminal",
+    "except_nonterminal_longest_match",
+    "except_regex_reference",
+    "except_terminal",
+    "exclude_by_label",
+    "expression",
+    "follow_restriction",
+    "follow_restriction_lexical",
+    "follow_restriction_lexical_multiple",
+    "follow_restriction_multiple",
+    "group",
+    "group_single_element",
+    "indirect_binary",
+    "indirect_postfix",
+    "indirect_precedence",
+    "indirect_prefix",
+    "keyword_labels",
+    "labeled_follow_restriction",
+    "layout_aware_follow_midrule",
+    "layout_aware_follow_no_layout",
+    "layout_aware_follow_required_layout",
+    "layout_aware_follow_same_position",
+    "layout_nonterminal",
+    "left_recursive_list",
+    "ll1_alt_prefix_conflict",
+    "ll1_call_error",
+    "ll1_follow_restriction",
+    "ll1_opt_prefix_conflict",
+    "ll1_plus_follow_prefix",
+    "ll1_plus_prefix_conflict",
+    "ll1_prefix_ambiguity",
+    "ll1_prefix_conflict",
+    "longest_match",
+    "lowercase_name",
+    "multiple_except",
+    "no_layout",
+    "opt",
+    "pepm16_expressions",
+    "plus",
+    "plus_alt",
+    "plus_except",
+    "plus_group",
+    "plus_with_sep",
+    "precede_follow_restriction",
+    "precede_restriction",
+    "precede_restriction_lexical",
+    "prefix_above_binary",
+    "prefix_postfix_priority",
+    "regex_composition",
+    "simple_alt",
+    "star",
+    "star_with_sep",
+    "token_only_unsafe",
+]
+
+[workspace.dependencies]
+iguana-runtime = { path = "../iguana-runtime" }
+
+# Mirrors the root workspace lint policy (see the root Cargo.toml).
+[workspace.lints.rust]
+warnings = "deny"
+# No unsafe anywhere in the codebase; `forbid` so it cannot be re-enabled locally.
+unsafe_code = "forbid"
+
+[workspace.lints.clippy]
+collapsible_if = "allow"
+collapsible_match = "allow"
+
+# Line tables keep file and line numbers in backtraces and leave out the
+# variable and type information of the default profile, which the golden-file
+# runs never use.
+[profile.dev]
+debug = "line-tables-only"
