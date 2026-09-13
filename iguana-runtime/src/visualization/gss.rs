@@ -4,6 +4,7 @@ use serde::{Deserialize, Serialize};
 use specta::Type;
 
 use crate::{
+    grammar::Grammar,
     ids::GssNodeId,
     parser::Parser,
     visualization::dot::{ToDot, escape_label},
@@ -60,7 +61,7 @@ pub fn build_gss_dot_graph<'i, 'arena, P: Parser<'i, 'arena>>(parser: &P) -> GSS
             edges.push(GSSDotEdge {
                 src: gss_node.id,
                 dest: gss_edge.dest_id,
-                label: P::slot_name(gss_edge.return_slot).into(),
+                label: P::Grammar::slot_name(gss_edge.return_slot).into(),
             });
         }
     }

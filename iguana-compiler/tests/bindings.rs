@@ -94,7 +94,7 @@ instrument = ["iguana-runtime/instrument"]
     fs::write(
         dir.join("tests/values.rs"),
         r#"
-use binding_values::{grammar_data::*, parser::BindingsParser};
+use binding_values::{grammar::*, parser::BindingsParser};
 use iguana_runtime::{arena::Arena, input::Input, parser::{GLLResult, Parser}};
 
 #[test]
@@ -108,8 +108,8 @@ fn values_survive_rebinding_and_shared_returns() {
     ] {
         let input = Input::from(text);
         let arena = Arena::new();
-        let mut parser = BindingsParser::new(&input, start, &arena);
-        assert!(matches!(parser.run(), GLLResult::Success(_)), "{text}");
+        let mut parser = BindingsParser::new(&input, &arena);
+        assert!(matches!(parser.run(start), GLLResult::Success(_)), "{text}");
     }
 }
 "#,

@@ -64,6 +64,18 @@ pub struct ParseSuccess<T> {
     pub ambiguity_node_added: bool,
 }
 
+impl<T> ParseSuccess<T> {
+    /// The same result with the tree replaced by `f(tree)`.
+    pub fn map<U>(self, f: impl FnOnce(T) -> U) -> ParseSuccess<U> {
+        ParseSuccess {
+            tree: f(self.tree),
+            parse_duration: self.parse_duration,
+            tree_construction_duration: self.tree_construction_duration,
+            ambiguity_node_added: self.ambiguity_node_added,
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

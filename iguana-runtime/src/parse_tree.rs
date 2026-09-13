@@ -6,6 +6,7 @@ use std::{
 use rustc_hash::{FxHashMap, FxHashSet};
 
 use crate::{
+    grammar::Grammar,
     ids::NonterminalId,
     input::Span,
     parser::Parser,
@@ -227,7 +228,7 @@ fn visit_sppf_unambiguous<'i, 'arena, T: Debug + Clone, P: Parser<'i, 'arena>>(
         match frame {
             UnambiguousFrame::Pre(node_id) => match parser.sppf_node(node_id) {
                 SPPFNode::Terminal(t) => {
-                    if t.terminal_id != P::epsilon() {
+                    if t.terminal_id != P::Grammar::epsilon() {
                         values.push(builder.new_token(t));
                     }
                 }
@@ -359,7 +360,7 @@ fn build_node<'i, 'arena, T: Debug + Clone, P: Parser<'i, 'arena>>(
 ) -> OneOrMany<T> {
     match parser.sppf_node(node_id) {
         SPPFNode::Terminal(t) => {
-            if t.terminal_id == P::epsilon() {
+            if t.terminal_id == P::Grammar::epsilon() {
                 OneOrMany::Zero
             } else {
                 OneOrMany::One(builder.new_token(t))

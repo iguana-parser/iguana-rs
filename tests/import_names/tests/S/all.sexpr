@@ -1,0 +1,13 @@
+(Start
+  (S
+    (Parse "a")
+    (Parser "b")
+    (SPPFNode "c")
+    (Input "d")
+    (ParseError "e")
+    (ParseSuccess "f")
+    (Grammar "g")
+    (Nonterminal "h")
+    (Terminal "i")
+    (Slot "j")
+    (TerminalSet "k")))

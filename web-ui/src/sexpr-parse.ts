@@ -1,7 +1,7 @@
 import type { ParseTreeData, ParseTreeNodeData } from "./parse-tree-graph";
 
 // Parses a printed parse-tree s-expression back into the ParseTreeData DAG the
-// graph views consume: the inverse of the generated to_sexpr (mirrored by the
+// graph views consume: the inverse of the runtime's to_sexpr (mirrored by the
 // parse view's sexprToText). The parser exists for hosts that only have the
 // printed tree: the docs site renders its verified .sexpr snippets as graphs
 // without shipping a parser wasm per page.

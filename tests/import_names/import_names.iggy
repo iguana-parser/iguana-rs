@@ -1,0 +1,15 @@
+grammar ImportNames
+
+// Nonterminals named after the runtime items the generated modules use.
+S = Parse Parser SPPFNode Input ParseError ParseSuccess Grammar Nonterminal Terminal Slot TerminalSet
+Parse = "a"
+Parser = "b"
+SPPFNode = "c"
+Input = "d"
+ParseError = "e"
+ParseSuccess = "f"
+Grammar = "g"
+Nonterminal = "h"
+Terminal = "i"
+Slot = "j"
+TerminalSet = "k"

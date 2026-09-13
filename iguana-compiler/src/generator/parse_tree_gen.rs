@@ -197,12 +197,6 @@ impl<'a> ParseTreeGen<'a> {
             .collect();
         let parse_tree_builder_impl = self.gen_parse_tree_builder_impl();
         let create_parse_tree_function = self.gen_create_parse_tree_function();
-        let create_parse_tree_functions: Vec<_> = self
-            .grammar
-            .nonterminals()
-            .map(|n| self.gen_create_parse_tree_nonterminal_function(n))
-            .collect();
-
         let nonterminal_types: Vec<_> = self
             .grammar
             .nonterminals()
@@ -241,14 +235,14 @@ impl<'a> ParseTreeGen<'a> {
         };
 
         let parse_tree_node_impl = self.gen_parse_tree_node_impl();
-        let to_sexpr_function = self.gen_to_sexpr_function();
-        let to_json_function = gen_to_json_function();
+        let start_aliases = self.gen_start_aliases();
 
         quote! {
             #imports
             #token_kind_enum
             #token_kind_impl
             #start_struct
+            #(#start_aliases)*
             #parse_tree_enum
             #parse_tree_impl
             #list_node_trait
@@ -265,10 +259,7 @@ impl<'a> ParseTreeGen<'a> {
             #token_kind_function
             #parse_tree_builder_impl
             #create_parse_tree_function
-            #(#create_parse_tree_functions)*
             #parse_tree_node_impl
-            #to_sexpr_function
-            #to_json_function
         }
     }
 
@@ -293,12 +284,12 @@ impl<'a> ParseTreeGen<'a> {
                 ids::{NonterminalId, SlotId, TerminalId},
                 input::Span,
                 parse_tree::{
-                    #cycle_target DisplayOptions, NodeKind, #one_or_many Origin, ParseTreeBuilder,
+                    #cycle_target NodeKind, #one_or_many Origin, ParseTreeBuilder,
                     ParseTreeNode, visit_sppf,
                 },
                 sppf::{NonterminalNode, SPPFNodeId, TerminalNode},
             };
-            use crate::parser::#parser_name;
+            use crate::{grammar, parser::#parser_name};
         }
     }
 
@@ -856,7 +847,7 @@ impl<'a> ParseTreeGen<'a> {
             let variant = nt_ident(&nt.name);
             let id = format_ident!("{}", to_snake_case(&nt.name).to_uppercase());
             new_arms.push(quote! {
-                crate::grammar_data::#id => ParseTree::#variant(self.arena.alloc(
+                grammar::#id => ParseTree::#variant(self.arena.alloc(
                     #variant::Cycle { target: CycleTarget::new() }
                 )),
             });
@@ -920,7 +911,7 @@ impl<'a> ParseTreeGen<'a> {
                     // The `&*` reborrows the allocation shared; without it the
                     // wrapper's generic node type infers as a mutable reference.
                     quote! {
-                        crate::grammar_data::#const_name => {
+                        grammar::#const_name => {
                             let first = alternatives[0].#unwrap_method();
                             let inner = self.arena.alloc_slice(
                                 alternatives.into_iter().map(|a| a.#unwrap_method().node)
@@ -936,7 +927,7 @@ impl<'a> ParseTreeGen<'a> {
                     }
                 } else {
                     quote! {
-                        crate::grammar_data::#const_name => {
+                        grammar::#const_name => {
                             let slice = self.arena.alloc_slice(
                                 alternatives.into_iter().map(|a| a.#unwrap_method())
                             );
@@ -1178,7 +1169,7 @@ impl<'a> ParseTreeGen<'a> {
                 let var = safe_ident(&to_snake_case(&n.name));
                 let return_type = self.nonterminal_type(n);
                 quote! {
-                    fn #method_ident(self) -> &'a #return_type {
+                    pub(crate) fn #method_ident(self) -> &'a #return_type {
                         match self {
                             ParseTree::#variant(#var) => #var,
                             _ => panic!(),
@@ -2028,19 +2019,28 @@ impl<'a> ParseTreeGen<'a> {
             .map(|n| {
                 let name = &n.name;
                 let const_name = format_ident!("{}", to_snake_case(name).to_uppercase());
-                let function_name = format_ident!("create_parse_tree_{}", to_snake_case(name));
+                let unwrap_method = format_ident!("unwrap_{}", to_snake_case(name));
                 let variant_name = nt_ident(name);
-                quote! { crate::grammar_data::#const_name => ParseTree::#variant_name(#function_name(root_id, parser, builder)) }
+                quote! {
+                    grammar::#const_name => ParseTree::#variant_name(
+                        visit_sppf(root_id, parser, builder).unwrap_one().#unwrap_method(),
+                    )
+                }
             })
             .collect();
         quote! {
+            #[comment = "The parse tree of a finished parse, from the nonterminal node that spans the input."]
             pub fn create_parse_tree<'a>(
                 root_id: SPPFNodeId,
-                nonterminal_id: NonterminalId,
                 parser: &#parser_name_ident,
                 builder: &#builder_name_ident<'a>,
             ) -> ParseTree<'a> {
-                match nonterminal_id {
+                let iguana_runtime::sppf::SPPFNode::Nonterminal(root) =
+                    iguana_runtime::parser::Parser::sppf_node(parser, root_id)
+                else {
+                    panic!("the SPPF root is not a nonterminal node")
+                };
+                match root.nonterminal_id {
                     #(#arms,)*
                     _ => panic!()
                 }
@@ -2048,46 +2048,19 @@ impl<'a> ParseTreeGen<'a> {
         }
     }
 
-    /// Generates functions with the name create_parse_tree_#name, where name is the name of a nonterminal.
-    fn gen_create_parse_tree_nonterminal_function(&self, nonterminal: &Nonterminal) -> TokenStream {
-        let nonterminal_name = &nonterminal.name;
-        let parser_name_ident = parser_ident(&self.grammar.name);
-        let builder_name_ident = parse_tree_builder_ident(&self.grammar.name);
-        let return_type = self.nonterminal_type(nonterminal);
-        let function_name = format_ident!("create_parse_tree_{}", to_snake_case(nonterminal_name));
-        let unwrap_method = format_ident!("unwrap_{}", to_snake_case(nonterminal_name));
-        quote! {
-            pub fn #function_name<'a>(
-                root_id: SPPFNodeId,
-                parser: &#parser_name_ident,
-                builder: &#builder_name_ident<'a>,
-            ) -> &'a #return_type {
-                visit_sppf(root_id, parser, builder).unwrap_one().#unwrap_method()
-            }
-        }
-    }
-
-    fn gen_to_sexpr_function(&self) -> TokenStream {
-        let layout_name = self
-            .grammar
-            .layout
-            .as_ref()
-            .and_then(|s| s.as_identifier())
-            .map(|i| i.name.as_str())
-            .map(|s| quote! { Some(#s) })
-            .unwrap_or_else(|| quote! { None });
-
-        quote! {
-            const LAYOUT_NAME: Option<&str> = #layout_name;
-
-            pub fn to_sexpr(node: ParseTree<'_>) -> String {
-                iguana_runtime::parse_tree::to_sexpr(node, LAYOUT_NAME)
-            }
-
-            pub fn to_sexpr_with(node: ParseTree<'_>, options: DisplayOptions) -> String {
-                iguana_runtime::parse_tree::to_sexpr_with(node, LAYOUT_NAME, options)
-            }
-        }
+    /// One type alias per start wrapper, `StartX<'a>`, naming the wrapper
+    /// type the typed entry point for `X` returns.
+    fn gen_start_aliases(&self) -> Vec<TokenStream> {
+        self.grammar
+            .nonterminals()
+            .filter(|nt| !nt.is_derived())
+            .filter_map(|nt| self.grammar.start_nonterminal(nt))
+            .map(|start| {
+                let alias = nt_ident(&start.name);
+                let ty = self.nonterminal_type(start);
+                quote! { pub type #alias<'a> = #ty; }
+            })
+            .collect()
     }
 
     fn gen_parse_tree_node_impl(&self) -> TokenStream {
@@ -2639,14 +2612,5 @@ fn pluralize(word: &str) -> String {
         format!("{}ies", &word[..word.len() - 1])
     } else {
         format!("{}s", word)
-    }
-}
-
-fn gen_to_json_function() -> TokenStream {
-    quote! {
-        /// Converts a parse tree to a JSON string of nodes and edges, for visualization.
-        pub fn to_json(node: ParseTree<'_>) -> String {
-            iguana_runtime::parse_tree::to_json(node, LAYOUT_NAME)
-        }
     }
 }

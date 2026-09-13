@@ -1,5 +1,5 @@
 use iggy::{
-    ParseError, parse_tree,
+    IggyParser, ParseError, parse_tree,
     parse_tree::{OptNode, Start},
 };
 use iguana_runtime::{arena::Arena, input::Input};
@@ -19,8 +19,11 @@ use crate::validation::{GrammarError, validate};
 /// references resolved.
 pub fn parse_grammar(source: &str) -> Result<GrammarDef, Vec<GrammarError>> {
     let input = Input::from(source);
+    let parser_arena = Arena::new();
     let tree_arena = Arena::new();
-    let success = iggy::parse_grammar(&input, &tree_arena).map_err(parse_error)?;
+    let success = IggyParser::new(&input, &parser_arena)
+        .parse_grammar(&tree_arena)
+        .map_err(parse_error)?;
     let grammar_def = build_grammar(success.tree, &input).resolve();
 
     // Validate here because source spans require the parse tree.
@@ -488,8 +491,11 @@ mod tests {
     /// each and leave the names they mention undefined.
     fn parse_unvalidated(source: &str) -> GrammarDef {
         let input = Input::from(source);
+        let parser_arena = Arena::new();
         let tree_arena = Arena::new();
-        let success = iggy::parse_grammar(&input, &tree_arena).expect("the grammar should parse");
+        let success = IggyParser::new(&input, &parser_arena)
+            .parse_grammar(&tree_arena)
+            .expect("the grammar should parse");
         build_grammar(success.tree, &input)
     }
 
@@ -669,11 +675,11 @@ TypeId = [A-Z][a-z]*
         for (source, expected) in [
             (
                 "grammar g S = parse_tree parse_tree = \"a\"",
-                "`parse_tree` is a reserved name in the generated parse tree",
+                "`parse_tree` is a reserved name in the generated crate",
             ),
             (
                 "grammar g S = GParser GParser = \"a\"",
-                "`GParser` is a reserved name in the generated parse tree",
+                "`GParser` is a reserved name in the generated crate",
             ),
             (
                 "grammar g S = Span:\"a\"",

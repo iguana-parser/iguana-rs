@@ -9,11 +9,13 @@ use crate::{
     arena::Arena,
     descriptor::Descriptor,
     env::{Env, EnvId},
+    grammar::Grammar,
     gss::{GSSEdge, GSSNode},
     ids::{BindingId, GssNodeId, NonterminalId, SlotId, TerminalId},
     input::{Input, Span},
+    parse_tree::ParseTreeNode,
     record,
-    result::ParseError,
+    result::{ParseError, ParseSuccess},
     sppf::{IntermediateNode, NonterminalNode, SPPFNode, SPPFNodeId, TerminalNode},
     utils::inline_vec::InlineVec,
 };
@@ -64,35 +66,40 @@ pub enum GLLFailureKind {
     ForbiddenFollow { forbidden: Vec<TerminalId> },
 }
 
-pub trait Parser<'i, 'arena> {
-    /// The unsafe mode runs the parser as if the grammar is unambiguous.
-    ///
-    /// Static ambiguity detection for the full class of context-free grammars is
-    /// undecidable. Iguana detects ambiguities at runtime and returns a parse forest
-    /// containing all the derivations. The unsafe mode may silently disambiguate,
-    /// returning the first parse tree while in reality there were multiple
-    /// derivations. The unsafe mode is only recommended if the user understands its
-    /// implications, has a well-tested grammar, and wants better performance.
-    ///
-    /// The unsafe mode changes the parser behavior as follows:
-    /// - The parser stops when it finds the first derivation of the start nonterminal
-    ///   that spans the whole input, without exploring the pending descriptors.
-    /// - The machinery for detecting and recording ambiguity nodes, e.g., SPPF node
-    ///   indexes, is disabled.
+/// The Iguana runtime implements the GLL algorithm as the provided methods of
+/// the `Parser` trait. The generator implements the required methods for each
+/// grammar. The trait is the contract between the generated code and the
+/// runtime; the interface for users of a generated crate is the inherent
+/// methods of its parser type.
+#[doc(hidden)]
+pub trait Parser<'i, 'arena>: Sized {
+    type Grammar: Grammar;
+    type Tree<'a>: ParseTreeNode;
+
+    fn parse<'a>(
+        mut self,
+        start: NonterminalId,
+        tree_arena: &'a Arena,
+    ) -> Result<ParseSuccess<Self::Tree<'a>>, ParseError> {
+        match self.run(start) {
+            GLLResult::Success(success) => {
+                let timer = Instant::now();
+                let tree = self.build_tree(success.sppf_node_id, tree_arena);
+                Ok(ParseSuccess {
+                    tree,
+                    parse_duration: success.duration,
+                    tree_construction_duration: timer.elapsed(),
+                    ambiguity_node_added: self.ambiguity_node_added(),
+                })
+            }
+            GLLResult::Failure(error) => Err(self.to_parse_error(&error)),
+        }
+    }
+
+    fn build_tree<'a>(&self, root: SPPFNodeId, tree_arena: &'a Arena) -> Self::Tree<'a>;
+
     const UNSAFE: bool = false;
 
-    fn nonterminal_display_name(nonterminal_id: NonterminalId) -> &'static str;
-    fn terminal_name(terminal_id: TerminalId) -> &'static str;
-    /// Whether the terminal is a literal written in the grammar, such as
-    /// `"else"`, rather than a named lexical definition.
-    /// Literal terminal names retain their leading quote, so this test is exact.
-    fn is_literal(terminal_id: TerminalId) -> bool {
-        Self::terminal_name(terminal_id).starts_with('"')
-    }
-    fn slot_name(slot_id: SlotId) -> &'static str;
-    fn epsilon() -> TerminalId;
-    /// The number of terminals, excluding the synthetic Epsilon and EOF.
-    fn terminal_count() -> u16;
     fn execute(
         &mut self,
         input_index: u32,
@@ -108,8 +115,8 @@ pub trait Parser<'i, 'arena> {
         gss_node_id: GssNodeId,
         env: Option<EnvId>,
     );
-    fn start_nonterminal(&self) -> NonterminalId;
-    fn start_env(&mut self) -> Option<EnvId>;
+    fn start_env(&mut self, start: NonterminalId) -> Option<EnvId>;
+    fn ambiguity_node_added(&self) -> bool;
     fn get_gss_node(&self, nonterminal_id: NonterminalId, input_index: u32) -> Option<GssNodeId>;
     fn add_gss_node(
         &mut self,
@@ -264,7 +271,10 @@ pub trait Parser<'i, 'arena> {
     fn failure_message(&self, failure: &GLLFailure) -> String {
         match &failure.kind {
             GLLFailureKind::UnexpectedToken { expected } => {
-                let names: Vec<_> = expected.iter().map(|t| Self::terminal_name(*t)).collect();
+                let names: Vec<_> = expected
+                    .iter()
+                    .map(|t| Self::Grammar::terminal_name(*t))
+                    .collect();
                 match names.len() {
                     0 => "Unexpected input".to_string(),
                     1 => format!("Expected {}", names[0]),
@@ -274,12 +284,15 @@ pub trait Parser<'i, 'arena> {
             GLLFailureKind::ExcludedMatch { excluded_by } => {
                 let names: Vec<_> = excluded_by
                     .iter()
-                    .map(|t| Self::terminal_name(*t))
+                    .map(|t| Self::Grammar::terminal_name(*t))
                     .collect();
                 format!("Match excluded by {}", names.join(", "))
             }
             GLLFailureKind::ForbiddenFollow { forbidden } => {
-                let names: Vec<_> = forbidden.iter().map(|t| Self::terminal_name(*t)).collect();
+                let names: Vec<_> = forbidden
+                    .iter()
+                    .map(|t| Self::Grammar::terminal_name(*t))
+                    .collect();
                 format!("Forbidden follow: {}", names.join(", "))
             }
         }
@@ -293,7 +306,7 @@ pub trait Parser<'i, 'arena> {
     /// at the error position. The length is at least one character, so a
     /// zero-length or unmatched position still highlights one character.
     fn error_span_len(&mut self, input_index: u32) -> u32 {
-        let longest = (0..Self::terminal_count())
+        let longest = (0..Self::Grammar::terminal_count())
             .filter_map(|id| self.match_token(TerminalId(id), input_index))
             .max()
             .unwrap_or(input_index);
@@ -317,10 +330,6 @@ pub trait Parser<'i, 'arena> {
             message: self.failure_message(failure),
         }
     }
-
-    /// The terminals reachable from the grammar's layout definition, or an
-    /// empty slice when the grammar has no layout.
-    fn layout_terminals() -> &'static [TerminalId];
 
     /// The failures recorded at the farthest input index reached, in recording
     /// order.
@@ -368,11 +377,12 @@ pub trait Parser<'i, 'arena> {
             }
         }
 
-        let layout = Self::layout_terminals();
+        let layout = Self::Grammar::LAYOUT_TERMINALS;
         if expected.iter().any(|terminal| !layout.contains(terminal)) {
             expected.retain(|terminal| !layout.contains(terminal));
         }
-        expected.sort_unstable_by_key(|terminal| (!Self::is_literal(*terminal), terminal.0));
+        expected
+            .sort_unstable_by_key(|terminal| (!Self::Grammar::is_literal(*terminal), terminal.0));
         expected.dedup();
         Some(failure)
     }
@@ -647,7 +657,7 @@ pub trait Parser<'i, 'arena> {
         let gss_node = self.gss_node(gss_node_id);
         format!(
             "({},{})",
-            Self::nonterminal_display_name(gss_node.nonterminal_id),
+            Self::Grammar::nonterminal_display_name(gss_node.nonterminal_id),
             gss_node.index
         )
     }
@@ -657,21 +667,21 @@ pub trait Parser<'i, 'arena> {
             SPPFNode::Terminal(t) => {
                 format!(
                     "({}, {}, {})",
-                    Self::terminal_name(t.terminal_id),
+                    Self::Grammar::terminal_name(t.terminal_id),
                     t.span.left_extent,
                     t.span.right_extent
                 )
             }
             SPPFNode::Nonterminal(n) => format!(
                 "({}, {}, {})",
-                Self::nonterminal_display_name(n.nonterminal_id),
+                Self::Grammar::nonterminal_display_name(n.nonterminal_id),
                 n.span.left_extent,
                 n.span.right_extent
             ),
             SPPFNode::Intermediate(i) => {
                 format!(
                     "({}, {}, {})",
-                    Self::slot_name(i.slot_id),
+                    Self::Grammar::slot_name(i.slot_id),
                     i.span.left_extent,
                     i.span.right_extent
                 )
@@ -915,23 +925,22 @@ pub trait Parser<'i, 'arena> {
         result
     }
 
-    fn run(&mut self) -> GLLResult {
-        let start = Instant::now();
+    fn run(&mut self, start: NonterminalId) -> GLLResult {
+        assert!(
+            start.index() < Self::Grammar::NONTERMINALS.len(),
+            "start nonterminal id {} is out of range for this grammar",
+            start.0
+        );
+        let timer = Instant::now();
         let start_input_index = 0;
-        let start_nonterminal_id = self.start_nonterminal();
-        let start_gss_node_id = self.new_gss_node(start_nonterminal_id, start_input_index);
+        let start_gss_node_id = self.new_gss_node(start, start_input_index);
         // The start node is created before any other GSS node, so its id is
         // `GssNodeId(0)`. `pop` relies on this id to recognize the start node when
         // it terminates an unsafe parse early.
         debug_assert_eq!(start_gss_node_id, GssNodeId(0));
-        let start_env = self.start_env();
-        self.add_first_descriptors(
-            start_nonterminal_id,
-            start_input_index,
-            start_gss_node_id,
-            start_env,
-        );
-        self.add_start_gss_node(start_nonterminal_id, start_input_index, start_gss_node_id);
+        let start_env = self.start_env(start);
+        self.add_first_descriptors(start, start_input_index, start_gss_node_id, start_env);
+        self.add_start_gss_node(start, start_input_index, start_gss_node_id);
         while let Some(descriptor) = self.next_descriptor() {
             self.execute(
                 descriptor.input_index,
@@ -941,7 +950,7 @@ pub trait Parser<'i, 'arena> {
                 descriptor.env_id(),
             );
         }
-        let duration = start.elapsed();
+        let duration = timer.elapsed();
         let right_extent = self.input().len();
         if let Some(sppf_node_id) = self.start_result(right_extent, start_gss_node_id) {
             GLLResult::Success(GLLSuccess {
@@ -968,6 +977,7 @@ pub trait Parser<'i, 'arena> {
             })
         }
     }
+
     fn gss_nodes<'p>(&'p self) -> impl Iterator<Item = &'p GSSNode<'arena>>
     where
         'arena: 'p;

@@ -7,6 +7,7 @@ pub mod references;
 pub mod semantic_tokens;
 pub mod symbols;
 
+use iggy::IggyParser;
 use iggy::parse_tree::{Grammar, Layout, Start};
 pub use iguana_compiler::grammar::def::GrammarDef;
 pub use iguana_compiler::validation::GrammarError;
@@ -49,7 +50,8 @@ pub fn build_spans<'a>(
 /// Parse the grammar source and build the result.
 pub fn build<'a>(input: &Input, tree_arena: &'a Arena) -> BuildResult<'a> {
     let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
-        iggy::parse_grammar(input, tree_arena)
+        let parser_arena = Arena::new();
+        IggyParser::new(input, &parser_arena).parse_grammar(tree_arena)
     }));
     match result {
         Ok(Ok(success)) => {

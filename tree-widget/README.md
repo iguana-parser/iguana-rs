@@ -1,8 +1,8 @@
 # tree-widget
 
 `tree-widget` embeds Iguana's interactive parse-tree graph in a static page.
-`mountParseTreeGraph(container, sexprText)` reads the s-expression produced by
-generated `to_sexpr` functions, including subtree-sharing markers, and renders
+`mountParseTreeGraph(container, sexprText)` reads the s-expression that the
+runtime's `to_sexpr` renders, including subtree-sharing markers, and renders
 the same Cytoscape graph used by `ParseView`.
 
 The host owns the surrounding controls, sizing, and styles. The widget owns the

@@ -1,10 +1,12 @@
 use std::{collections::HashSet, ptr};
 
-use cycles::parse_tree::{self, *};
+use cycles::{CyclesGrammar, CyclesParser, Grammar, parse_tree::*};
 use iguana_runtime::{
     arena::Arena,
     input::{Input, Span},
-    parse_tree::{CycleTarget, DisplayOptions, NodeKind, ParseTreeNode},
+    parse_tree::{
+        CycleTarget, DisplayOptions, NodeKind, ParseTreeNode, to_json, to_sexpr, to_sexpr_with,
+    },
 };
 
 fn nodes(root: ParseTree<'_>) -> Vec<ParseTree<'_>> {
@@ -50,7 +52,7 @@ fn check_graph(root: ParseTree<'_>, cyclic: bool) {
     // in s-expressions and an edge in JSON, never as a rendered node.
     assert!(format!("{root:?}").len() < 100_000);
     for options in [DisplayOptions::default(), DisplayOptions::simplified()] {
-        let rendered = parse_tree::to_sexpr_with(root, options);
+        let rendered = to_sexpr_with(root, CyclesGrammar::LAYOUT_NAME, options);
         assert!(!rendered.contains("Cycle"), "{rendered}");
         if cyclic {
             assert!(rendered.contains("#1="), "{rendered}");
@@ -58,7 +60,8 @@ fn check_graph(root: ParseTree<'_>, cyclic: bool) {
         }
         assert!(rendered.len() < 100_000);
     }
-    let graph: serde_json::Value = serde_json::from_str(&parse_tree::to_json(root)).unwrap();
+    let graph: serde_json::Value =
+        serde_json::from_str(&to_json(root, CyclesGrammar::LAYOUT_NAME)).unwrap();
     let json_nodes = graph["nodes"].as_array().unwrap();
     let edges = graph["edges"].as_array().unwrap();
     assert!(json_nodes.iter().all(|n| n["kind"] != "Cycle"));
@@ -79,8 +82,10 @@ fn check_graph(root: ParseTree<'_>, cyclic: bool) {
 #[test]
 fn direct_cycle_builds_a_finite_graph() {
     let arena = Arena::new();
+    let parser_arena = Arena::new();
     let input = Input::from("b");
-    let root = cycles::parse_direct(&input, &arena)
+    let root = CyclesParser::new(&input, &parser_arena)
+        .parse_direct(&arena)
         .unwrap()
         .tree
         .as_parse_tree();
@@ -90,8 +95,10 @@ fn direct_cycle_builds_a_finite_graph() {
 #[test]
 fn mutual_cycle_from_c_builds_a_finite_graph() {
     let arena = Arena::new();
+    let parser_arena = Arena::new();
     let input = Input::from("b");
-    let root = cycles::parse_mutual_c(&input, &arena)
+    let root = CyclesParser::new(&input, &parser_arena)
+        .parse_mutual_c(&arena)
         .unwrap()
         .tree
         .as_parse_tree();
@@ -101,8 +108,10 @@ fn mutual_cycle_from_c_builds_a_finite_graph() {
 #[test]
 fn mutual_cycle_from_b_builds_a_finite_graph() {
     let arena = Arena::new();
+    let parser_arena = Arena::new();
     let input = Input::from("b");
-    let root = cycles::parse_mutual_b(&input, &arena)
+    let root = CyclesParser::new(&input, &parser_arena)
+        .parse_mutual_b(&arena)
         .unwrap()
         .tree
         .as_parse_tree();
@@ -112,8 +121,10 @@ fn mutual_cycle_from_b_builds_a_finite_graph() {
 #[test]
 fn cycle_chain_from_c_builds_a_finite_graph() {
     let arena = Arena::new();
+    let parser_arena = Arena::new();
     let input = Input::from("b");
-    let root = cycles::parse_chain_c(&input, &arena)
+    let root = CyclesParser::new(&input, &parser_arena)
+        .parse_chain_c(&arena)
         .unwrap()
         .tree
         .as_parse_tree();
@@ -123,8 +134,10 @@ fn cycle_chain_from_c_builds_a_finite_graph() {
 #[test]
 fn cycle_chain_from_b_builds_a_finite_graph() {
     let arena = Arena::new();
+    let parser_arena = Arena::new();
     let input = Input::from("b");
-    let root = cycles::parse_chain_b(&input, &arena)
+    let root = CyclesParser::new(&input, &parser_arena)
+        .parse_chain_b(&arena)
         .unwrap()
         .tree
         .as_parse_tree();
@@ -134,8 +147,10 @@ fn cycle_chain_from_b_builds_a_finite_graph() {
 #[test]
 fn shared_cycle_builds_a_finite_graph() {
     let arena = Arena::new();
+    let parser_arena = Arena::new();
     let input = Input::from("");
-    let root = cycles::parse_shared_s(&input, &arena)
+    let root = CyclesParser::new(&input, &parser_arena)
+        .parse_shared_s(&arena)
         .unwrap()
         .tree
         .as_parse_tree();
@@ -145,8 +160,10 @@ fn shared_cycle_builds_a_finite_graph() {
 #[test]
 fn two_exit_cycle_from_c_builds_a_finite_graph() {
     let arena = Arena::new();
+    let parser_arena = Arena::new();
     let input = Input::from("b");
-    let root = cycles::parse_two_exits_c(&input, &arena)
+    let root = CyclesParser::new(&input, &parser_arena)
+        .parse_two_exits_c(&arena)
         .unwrap()
         .tree
         .as_parse_tree();
@@ -156,8 +173,10 @@ fn two_exit_cycle_from_c_builds_a_finite_graph() {
 #[test]
 fn two_exit_cycle_from_b_builds_a_finite_graph() {
     let arena = Arena::new();
+    let parser_arena = Arena::new();
     let input = Input::from("b");
-    let root = cycles::parse_two_exits_b(&input, &arena)
+    let root = CyclesParser::new(&input, &parser_arena)
+        .parse_two_exits_b(&arena)
         .unwrap()
         .tree
         .as_parse_tree();
@@ -167,8 +186,10 @@ fn two_exit_cycle_from_b_builds_a_finite_graph() {
 #[test]
 fn two_route_cycle_builds_a_finite_graph() {
     let arena = Arena::new();
+    let parser_arena = Arena::new();
     let input = Input::from("b");
-    let root = cycles::parse_two_routes_c(&input, &arena)
+    let root = CyclesParser::new(&input, &parser_arena)
+        .parse_two_routes_c(&arena)
         .unwrap()
         .tree
         .as_parse_tree();
@@ -178,8 +199,10 @@ fn two_route_cycle_builds_a_finite_graph() {
 #[test]
 fn nullable_cycle_on_empty_input_builds_a_finite_graph() {
     let arena = Arena::new();
+    let parser_arena = Arena::new();
     let input = Input::from("");
-    let root = cycles::parse_nullable(&input, &arena)
+    let root = CyclesParser::new(&input, &parser_arena)
+        .parse_nullable(&arena)
         .unwrap()
         .tree
         .as_parse_tree();
@@ -189,8 +212,10 @@ fn nullable_cycle_on_empty_input_builds_a_finite_graph() {
 #[test]
 fn nullable_cycle_on_nonempty_input_builds_a_finite_graph() {
     let arena = Arena::new();
+    let parser_arena = Arena::new();
     let input = Input::from("b");
-    let root = cycles::parse_nullable(&input, &arena)
+    let root = CyclesParser::new(&input, &parser_arena)
+        .parse_nullable(&arena)
         .unwrap()
         .tree
         .as_parse_tree();
@@ -200,8 +225,10 @@ fn nullable_cycle_on_nonempty_input_builds_a_finite_graph() {
 #[test]
 fn cycle_with_ambiguous_nullable_sibling_builds_a_finite_graph() {
     let arena = Arena::new();
+    let parser_arena = Arena::new();
     let input = Input::from("b");
-    let root = cycles::parse_sibling_c(&input, &arena)
+    let root = CyclesParser::new(&input, &parser_arena)
+        .parse_sibling_c(&arena)
         .unwrap()
         .tree
         .as_parse_tree();
@@ -211,8 +238,10 @@ fn cycle_with_ambiguous_nullable_sibling_builds_a_finite_graph() {
 #[test]
 fn parent_of_cycle_builds_a_finite_graph() {
     let arena = Arena::new();
+    let parser_arena = Arena::new();
     let input = Input::from("ab");
-    let root = cycles::parse_parent_c(&input, &arena)
+    let root = CyclesParser::new(&input, &parser_arena)
+        .parse_parent_c(&arena)
         .unwrap()
         .tree
         .as_parse_tree();
@@ -222,8 +251,10 @@ fn parent_of_cycle_builds_a_finite_graph() {
 #[test]
 fn overlapping_cycles_from_c_builds_a_finite_graph() {
     let arena = Arena::new();
+    let parser_arena = Arena::new();
     let input = Input::from("b");
-    let root = cycles::parse_overlap_c(&input, &arena)
+    let root = CyclesParser::new(&input, &parser_arena)
+        .parse_overlap_c(&arena)
         .unwrap()
         .tree
         .as_parse_tree();
@@ -233,8 +264,10 @@ fn overlapping_cycles_from_c_builds_a_finite_graph() {
 #[test]
 fn overlapping_cycles_from_b_builds_a_finite_graph() {
     let arena = Arena::new();
+    let parser_arena = Arena::new();
     let input = Input::from("b");
-    let root = cycles::parse_overlap_b(&input, &arena)
+    let root = CyclesParser::new(&input, &parser_arena)
+        .parse_overlap_b(&arena)
         .unwrap()
         .tree
         .as_parse_tree();
@@ -244,8 +277,10 @@ fn overlapping_cycles_from_b_builds_a_finite_graph() {
 #[test]
 fn cycle_entered_through_an_intermediate_node_builds_a_finite_graph() {
     let arena = Arena::new();
+    let parser_arena = Arena::new();
     let input = Input::from("ab");
-    let root = cycles::parse_intermediate_y(&input, &arena)
+    let root = CyclesParser::new(&input, &parser_arena)
+        .parse_intermediate_y(&arena)
         .unwrap()
         .tree
         .as_parse_tree();
@@ -255,8 +290,10 @@ fn cycle_entered_through_an_intermediate_node_builds_a_finite_graph() {
 #[test]
 fn cycle_followed_by_input_builds_a_finite_graph() {
     let arena = Arena::new();
+    let parser_arena = Arena::new();
     let input = Input::from("bb");
-    let root = cycles::parse_mid_input(&input, &arena)
+    let root = CyclesParser::new(&input, &parser_arena)
+        .parse_mid_input(&arena)
         .unwrap()
         .tree
         .as_parse_tree();
@@ -266,8 +303,10 @@ fn cycle_followed_by_input_builds_a_finite_graph() {
 #[test]
 fn consuming_recursion_builds_a_finite_graph() {
     let arena = Arena::new();
+    let parser_arena = Arena::new();
     let input = Input::from("bb");
-    let root = cycles::parse_consuming(&input, &arena)
+    let root = CyclesParser::new(&input, &parser_arena)
+        .parse_consuming(&arena)
         .unwrap()
         .tree
         .as_parse_tree();
@@ -278,8 +317,10 @@ fn consuming_recursion_builds_a_finite_graph() {
 #[test]
 fn ordinary_rule_builds_a_finite_graph() {
     let arena = Arena::new();
+    let parser_arena = Arena::new();
     let input = Input::from("b");
-    let root = cycles::parse_ordinary(&input, &arena)
+    let root = CyclesParser::new(&input, &parser_arena)
+        .parse_ordinary(&arena)
         .unwrap()
         .tree
         .as_parse_tree();
@@ -290,8 +331,10 @@ fn ordinary_rule_builds_a_finite_graph() {
 #[test]
 fn nullable_plus_builds_a_finite_graph() {
     let arena = Arena::new();
+    let parser_arena = Arena::new();
     let input = Input::from("");
-    let root = cycles::parse_nullable_plus(&input, &arena)
+    let root = CyclesParser::new(&input, &parser_arena)
+        .parse_nullable_plus(&arena)
         .unwrap()
         .tree
         .as_parse_tree();
@@ -301,8 +344,10 @@ fn nullable_plus_builds_a_finite_graph() {
 #[test]
 fn nullable_star_builds_a_finite_graph() {
     let arena = Arena::new();
+    let parser_arena = Arena::new();
     let input = Input::from("");
-    let root = cycles::parse_nullable_star(&input, &arena)
+    let root = CyclesParser::new(&input, &parser_arena)
+        .parse_nullable_star(&arena)
         .unwrap()
         .tree
         .as_parse_tree();
@@ -312,8 +357,10 @@ fn nullable_star_builds_a_finite_graph() {
 #[test]
 fn nullable_separated_list_builds_a_finite_graph() {
     let arena = Arena::new();
+    let parser_arena = Arena::new();
     let input = Input::from("");
-    let root = cycles::parse_nullable_separated(&input, &arena)
+    let root = CyclesParser::new(&input, &parser_arena)
+        .parse_nullable_separated(&arena)
         .unwrap()
         .tree
         .as_parse_tree();
@@ -323,8 +370,10 @@ fn nullable_separated_list_builds_a_finite_graph() {
 #[test]
 fn optional_cycle_on_empty_input_builds_a_finite_graph() {
     let arena = Arena::new();
+    let parser_arena = Arena::new();
     let input = Input::from("");
-    let root = cycles::parse_optional(&input, &arena)
+    let root = CyclesParser::new(&input, &parser_arena)
+        .parse_optional(&arena)
         .unwrap()
         .tree
         .as_parse_tree();
@@ -334,8 +383,10 @@ fn optional_cycle_on_empty_input_builds_a_finite_graph() {
 #[test]
 fn optional_cycle_on_nonempty_input_builds_a_finite_graph() {
     let arena = Arena::new();
+    let parser_arena = Arena::new();
     let input = Input::from("b");
-    let root = cycles::parse_optional(&input, &arena)
+    let root = CyclesParser::new(&input, &parser_arena)
+        .parse_optional(&arena)
         .unwrap()
         .tree
         .as_parse_tree();
@@ -345,8 +396,10 @@ fn optional_cycle_on_nonempty_input_builds_a_finite_graph() {
 #[test]
 fn grouped_cycle_builds_a_finite_graph() {
     let arena = Arena::new();
+    let parser_arena = Arena::new();
     let input = Input::from("b");
-    let root = cycles::parse_grouped(&input, &arena)
+    let root = CyclesParser::new(&input, &parser_arena)
+        .parse_grouped(&arena)
         .unwrap()
         .tree
         .as_parse_tree();
@@ -356,8 +409,10 @@ fn grouped_cycle_builds_a_finite_graph() {
 #[test]
 fn ambiguity_does_not_require_a_cycle() {
     let arena = Arena::new();
+    let parser_arena = Arena::new();
     let input = Input::from("");
-    let root = cycles::parse_sibling_d(&input, &arena)
+    let root = CyclesParser::new(&input, &parser_arena)
+        .parse_sibling_d(&arena)
         .unwrap()
         .tree
         .as_parse_tree();
@@ -369,8 +424,13 @@ fn ambiguity_does_not_require_a_cycle() {
 #[test]
 fn direct_cycle_targets_the_complete_ambiguity() {
     let arena = Arena::new();
+    let parser_arena = Arena::new();
     let input = Input::from("b");
-    let root = cycles::parse_direct(&input, &arena).unwrap().tree.node;
+    let root = CyclesParser::new(&input, &parser_arena)
+        .parse_direct(&arena)
+        .unwrap()
+        .tree
+        .node;
     let Direct::Amb(alternatives) = root else {
         panic!("expected Amb")
     };
@@ -398,8 +458,13 @@ fn direct_cycle_targets_the_complete_ambiguity() {
 #[test]
 fn mutual_cycle_can_target_an_unambiguous_nonterminal() {
     let arena = Arena::new();
+    let parser_arena = Arena::new();
     let input = Input::from("b");
-    let root = cycles::parse_mutual_b(&input, &arena).unwrap().tree.node;
+    let root = CyclesParser::new(&input, &parser_arena)
+        .parse_mutual_b(&arena)
+        .unwrap()
+        .tree
+        .node;
     let MutualB::B1 {
         mutual_c: MutualC::Amb(alternatives),
         ..
@@ -423,8 +488,10 @@ fn mutual_cycle_can_target_an_unambiguous_nonterminal() {
 #[test]
 fn nullable_cycle_targets_distinguish_both_empty_spans() {
     let arena = Arena::new();
+    let parser_arena = Arena::new();
     let input = Input::from("b");
-    let root = cycles::parse_nullable(&input, &arena)
+    let root = CyclesParser::new(&input, &parser_arena)
+        .parse_nullable(&arena)
         .unwrap()
         .tree
         .as_parse_tree();
@@ -443,8 +510,13 @@ fn nullable_cycle_targets_distinguish_both_empty_spans() {
 #[test]
 fn memoized_cycle_keeps_its_target_outside_the_original_ancestor_path() {
     let arena = Arena::new();
+    let parser_arena = Arena::new();
     let input = Input::from("");
-    let root = cycles::parse_shared_s(&input, &arena).unwrap().tree.node;
+    let root = CyclesParser::new(&input, &parser_arena)
+        .parse_shared_s(&arena)
+        .unwrap()
+        .tree
+        .node;
     let a = root.shared_a();
     let b = root.shared_b();
     let SharedA::Amb(alternatives) = a else {
@@ -464,7 +536,7 @@ fn memoized_cycle_keeps_its_target_outside_the_original_ancestor_path() {
     assert!(ptr::eq(cycle.get(), a));
     // Querying or rendering the reused subtree must also handle that target.
     assert!(b.as_parse_tree().contains_ambiguity());
-    let rendered = parse_tree::to_sexpr(b.as_parse_tree());
+    let rendered = to_sexpr(b.as_parse_tree(), CyclesGrammar::LAYOUT_NAME);
     assert!(!rendered.contains("Cycle"));
     assert!(rendered.contains("#1="));
     assert!(rendered.contains("#1#"));
@@ -480,8 +552,10 @@ fn trees_remain_send_and_sync() {
 #[test]
 fn typed_accessors_reject_cycles() {
     let arena = Arena::new();
+    let parser_arena = Arena::new();
     let input = Input::from("b");
-    let root = cycles::parse_mutual_b(&input, &arena)
+    let root = CyclesParser::new(&input, &parser_arena)
+        .parse_mutual_b(&arena)
         .unwrap()
         .tree
         .as_parse_tree();
@@ -495,7 +569,8 @@ fn typed_accessors_reject_cycles() {
     assert!(std::panic::catch_unwind(|| cycle.mutual_c()).is_err());
 
     let empty = Input::from("");
-    let root = cycles::parse_nullable_plus(&empty, &arena)
+    let root = CyclesParser::new(&empty, &parser_arena)
+        .parse_nullable_plus(&arena)
         .unwrap()
         .tree
         .as_parse_tree();

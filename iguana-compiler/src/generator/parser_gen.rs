@@ -6,6 +6,10 @@ use quote::quote;
 use rustc_hash::FxHashSet;
 
 use crate::generator::GenConfig;
+use crate::generator::grammar_utils::grammar_ident;
+use crate::generator::grammar_utils::nonterminal_has_lifetime;
+use crate::generator::grammar_utils::nt_ident;
+use crate::generator::grammar_utils::parse_tree_builder_ident;
 use crate::generator::grammar_utils::parser_ident;
 use crate::generator::grammar_utils::scanner_ident;
 use crate::generator::id::BindingIds;
@@ -28,7 +32,6 @@ use crate::grammar::symbols::Symbol;
 use crate::grammar::symbols::Terminal;
 use crate::ids::NonterminalId;
 use crate::ids::SlotId;
-use crate::ids::TerminalId;
 use crate::utils::to_snake_case;
 
 pub struct ParserGen<'a> {
@@ -107,11 +110,7 @@ impl<'a> ParserGen<'a> {
         let binding_consts = self.gen_binding_consts();
         let execute_method = self.gen_execute_method();
         let first_descriptors = self.gen_add_first_descriptors_method();
-        let nonterminal_display_name_method = Self::gen_nonterminal_display_name_method();
-        let terminal_name_method = Self::gen_terminal_name_method();
-        let slot_name_method = Self::gen_slot_name_method();
-        let epsilon_method = Self::gen_epsilon_method();
-        let terminal_count_method = Self::gen_terminal_count_method();
+        let grammar_type = grammar_ident(grammar_name);
         let get_gss_node_method = Self::gen_get_gss_node_method();
         let gen_add_gss_node_method = Self::gen_add_gss_node_method();
         let gen_new_gss_node_method = Self::gen_new_gss_node_method();
@@ -138,8 +137,8 @@ impl<'a> ParserGen<'a> {
         let intermediate_nodes_children_method = self.gen_intermediate_nodes_children_map_method();
         let nonterminal_nodes_children_method = self.gen_nonterminal_nodes_children_map_method();
         let add_trace_event_method = Self::gen_add_trace_event_method();
-        let start_nonterminal_method = Self::gen_start_nonterminal_method();
         let start_env_method = self.gen_start_env_method();
+        let ambiguity_node_added_method = self.gen_ambiguity_node_added_method();
         let add_start_gss_node_method = self.gen_add_start_gss_node_method();
         let new_env_method = Self::gen_new_env_method();
         let lookup_method = Self::gen_lookup_method();
@@ -150,21 +149,18 @@ impl<'a> ParserGen<'a> {
         let post_conditions_method = self.gen_post_conditions_method();
         let follow_set_check_method = self.gen_follow_set_check_method();
         let follow_set_terminals_method = self.gen_follow_set_terminals_method();
-        let layout_terminals_method = self.gen_layout_terminals_method();
         let failures_method = Self::gen_failures_method();
         let parser_struct = self.gen_parser_struct();
         let parser_impl = self.gen_parser_impl();
+        let tree_hook = self.gen_tree_hook();
         let grammar_name_ident = parser_ident(grammar_name);
         quote! {
             #imports
             #binding_consts
             impl<'i, 'arena> Parser<'i, 'arena> for #grammar_name_ident<'i, 'arena> {
+                type Grammar = #grammar_type;
+                #tree_hook
                 #unsafe_const
-                #nonterminal_display_name_method
-                #terminal_name_method
-                #slot_name_method
-                #epsilon_method
-                #terminal_count_method
                 #execute_method
                 #first_descriptors
                 #get_gss_node_method
@@ -192,8 +188,8 @@ impl<'a> ParserGen<'a> {
                 #intermediate_nodes_children_method
                 #nonterminal_nodes_children_method
                 #add_trace_event_method
-                #start_nonterminal_method
                 #start_env_method
+                #ambiguity_node_added_method
                 #add_start_gss_node_method
                 #new_env_method
                 #lookup_method
@@ -204,7 +200,6 @@ impl<'a> ParserGen<'a> {
                 #post_conditions_method
                 #follow_set_check_method
                 #follow_set_terminals_method
-                #layout_terminals_method
                 #failures_method
 
                 fn add_failure(
@@ -267,6 +262,7 @@ impl<'a> ParserGen<'a> {
 
     fn gen_imports(&self) -> TokenStream {
         let scanner_name = scanner_ident(&self.grammar.name);
+        let parse_tree_builder_name = parse_tree_builder_ident(&self.grammar.name);
         // The unsafe mode omits the side maps, the only users of OnceCell and FxHashMap.
         let (once_cell_import, fx_hashmap_import) = if self.config.unsafe_mode {
             (quote! {}, quote! {})
@@ -283,7 +279,11 @@ impl<'a> ParserGen<'a> {
         };
         quote! {
             #once_cell_import
-            use crate::{grammar_data::*, scanner::#scanner_name};
+            use crate::{
+                grammar::*,
+                parse_tree::{self, #parse_tree_builder_name, ParseTree, create_parse_tree},
+                scanner::#scanner_name,
+            };
             use iguana_runtime::{
                 descriptor::Descriptor,
                 env::{Env, EnvId},
@@ -293,6 +293,7 @@ impl<'a> ParserGen<'a> {
                 input::Input,
                 parser::{Parser, GLLFailure, GLLFailureKind, init_logger, DESCRIPTORS_CAPACITY_DIVISOR, DESCRIPTORS_CAPACITY_FLOOR, #envs_capacity_import GSS_CAPACITY_MULTIPLIER, SPPF_CAPACITY_MULTIPLIER},
                 record,
+                result::{ParseError, ParseSuccess},
                 scanner::Scanner,
                 sppf::{IntermediateNode, NonterminalNode, SPPFNode, SPPFNodeId, TerminalNode},
                 utils::{inline_map::InlineMap, inline_vec::InlineVec}
@@ -303,6 +304,10 @@ impl<'a> ParserGen<'a> {
             use iguana_runtime::input::Span;
             #[cfg(feature = "debug-trace")]
             use iguana_runtime::trace::TraceEvent;
+            // The statistics record names LL(1) calls through the grammar; nothing
+            // else in the parser reads the trait.
+            #[cfg(feature = "instrument")]
+            use iguana_runtime::grammar::Grammar;
             #fx_hashmap_import
         }
     }
@@ -918,46 +923,6 @@ impl<'a> ParserGen<'a> {
         }
     }
 
-    fn layout_terminal_ids(&self) -> Vec<TerminalId> {
-        let Some(layout) = self.grammar.layout.as_ref().and_then(Symbol::as_identifier) else {
-            return vec![];
-        };
-
-        let mut pending = vec![layout.resolve()];
-        let mut visited = FxHashSet::default();
-        let mut terminals = vec![];
-        while let Some(definition_id) = pending.pop() {
-            if !visited.insert(definition_id) {
-                continue;
-            }
-            match self.grammar.definition(definition_id) {
-                Definition::Terminal(terminal) => {
-                    terminals.push(self.terminal_ids.get_id(terminal));
-                }
-                Definition::Nonterminal(nonterminal) => {
-                    for alternative in self.grammar.alternatives(nonterminal) {
-                        for symbol in &alternative.symbols {
-                            if let Some(identifier) = symbol.as_identifier() {
-                                pending.push(identifier.resolve());
-                            }
-                        }
-                    }
-                }
-            }
-        }
-        terminals.sort_unstable_by_key(|terminal| terminal.0);
-        terminals
-    }
-
-    fn gen_layout_terminals_method(&self) -> TokenStream {
-        let terminals = self.layout_terminal_ids();
-        quote! {
-            fn layout_terminals() -> &'static [TerminalId] {
-                &[#(#terminals),*]
-            }
-        }
-    }
-
     fn gen_nonterminal_slot(
         &self,
         nonterminal: &'a Nonterminal,
@@ -1109,8 +1074,10 @@ impl<'a> ParserGen<'a> {
 
     fn gen_parser_impl(&mut self) -> TokenStream {
         let grammar_name = &self.grammar.name;
-        let new_method = self.gen_new_method();
         let name_ident = parser_ident(grammar_name);
+        let new_method = self.gen_new_method();
+        let parse_method = Self::gen_parse_method();
+        let typed_entry_points = self.gen_typed_entry_points();
         let create_methods: Vec<_> = self
             .nonterminal_ids
             .nonterminals()
@@ -1140,18 +1107,86 @@ impl<'a> ParserGen<'a> {
             .map(Self::gen_add_gss_node_method_with_parameters)
             .collect();
         let get_or_create_epsilon_node_method = self.gen_get_or_create_epsilon_node_method();
-        let ambiguity_node_added_method = self.gen_ambiguity_node_added_method();
         quote! {
             impl<'i, 'arena> #name_ident<'i, 'arena> {
                 #new_method
+                #parse_method
+                #(#typed_entry_points)*
                 #(#create_methods)*
                 #(#ll1_parse_methods)*
                 #(#get_gss_node_methods)*
                 #(#add_gss_node_methods)*
                 #get_or_create_epsilon_node_method
-                #ambiguity_node_added_method
             }
         }
+    }
+
+    /// The tree type and the tree-construction hook the runtime's `parse`
+    /// calls.
+    fn gen_tree_hook(&self) -> TokenStream {
+        let builder = parse_tree_builder_ident(&self.grammar.name);
+        quote! {
+            type Tree<'a> = ParseTree<'a>;
+
+            fn build_tree<'a>(&self, root: SPPFNodeId, tree_arena: &'a Arena) -> ParseTree<'a> {
+                let builder = #builder::new(tree_arena);
+                create_parse_tree(root, self, &builder)
+            }
+        }
+    }
+
+    /// The user-facing `parse`, which runs the runtime's provided one without
+    /// the trait in scope.
+    fn gen_parse_method() -> TokenStream {
+        quote! {
+            #[doc = " Parses the input from `start` and builds the parse tree in the given"]
+            #[doc = " `tree_arena`. The parser is consumed. The tree lives as long as the"]
+            #[doc = " arena lives. `start` is normally the start wrapper of a declared"]
+            #[doc = " nonterminal, `grammar::START_<NAME>`, which allows layout around the"]
+            #[doc = " input; a bare nonterminal id parses without it."]
+            pub fn parse<'a>(
+                self,
+                start: NonterminalId,
+                tree_arena: &'a Arena,
+            ) -> Result<ParseSuccess<ParseTree<'a>>, ParseError> {
+                Parser::parse(self, start, tree_arena)
+            }
+        }
+    }
+
+    /// The typed entry points: one consuming method per declared nonterminal,
+    /// which parses from the nonterminal's start wrapper and narrows the tree
+    /// to the wrapper's type.
+    fn gen_typed_entry_points(&self) -> Vec<TokenStream> {
+        self.grammar
+            .nonterminals()
+            .filter(|nt| !nt.is_derived())
+            .map(|nt| {
+                let target = self.grammar.start_nonterminal(nt).unwrap_or(nt);
+                let fn_name = format_ident!("parse_{}", to_snake_case(&nt.name));
+                let nt_const = format_ident!("{}", to_snake_case(&target.name).to_uppercase());
+                let unwrap_method = format_ident!("unwrap_{}", to_snake_case(&target.name));
+                // A start wrapper has a generated alias, which always has a
+                // lifetime. The layout nonterminal has no wrapper and is returned
+                // as its own type.
+                let target_ident = nt_ident(&target.name);
+                let return_type = if self.grammar.is_start(target)
+                    || nonterminal_has_lifetime(self.grammar, target, self.config.unsafe_mode)
+                {
+                    quote! { parse_tree::#target_ident<'_> }
+                } else {
+                    quote! { parse_tree::#target_ident }
+                };
+                quote! {
+                    pub fn #fn_name(
+                        self,
+                        tree_arena: &Arena,
+                    ) -> Result<ParseSuccess<&#return_type>, ParseError> {
+                        Ok(self.parse(#nt_const, tree_arena)?.map(ParseTree::#unwrap_method))
+                    }
+                }
+            })
+            .collect()
     }
 
     fn gen_ambiguity_node_added_method(&self) -> TokenStream {
@@ -1168,7 +1203,7 @@ impl<'a> ParserGen<'a> {
             #[comment = "True if a local ambiguity node was added during parsing. This does not
                          guarantee the ambiguity is reachable from the root, so a tree walk is still
                          needed to confirm it."]
-            pub fn ambiguity_node_added(&self) -> bool {
+            fn ambiguity_node_added(&self) -> bool {
                 #body
             }
         }
@@ -1253,10 +1288,14 @@ impl<'a> ParserGen<'a> {
             quote! { envs: vec_arena.vec(), }
         };
         quote! {
-            pub fn new(input: &'i Input, start_nonterminal: NonterminalId, vec_arena: &'arena Arena) -> Self {
+            #[doc = " Creates a new parser."]
+            #[doc = " A reference to `input` is stored in the parser for scanning."]
+            #[doc = " `parser_arena` is where the parser's internal objects (GSS, SPPF nodes,"]
+            #[doc = " etc.) are allocated."]
+            pub fn new(input: &'i Input, parser_arena: &'arena Arena) -> Self {
                 init_logger();
+                let vec_arena = parser_arena;
                 Self {
-                    start_nonterminal,
                     vec_arena,
                     scanner: #scanner_init,
                     #gss_nodes_index_field,
@@ -1368,7 +1407,6 @@ impl<'a> ParserGen<'a> {
         };
         quote! {
             pub struct #parser_name_ident<'i, 'arena> {
-                start_nonterminal: NonterminalId,
                 #[comment = "Arena backing the parser's internal collections; reset in bulk after the parse."]
                 vec_arena: &'arena Arena,
                 scanner: #scanner_ty,
@@ -1896,46 +1934,6 @@ impl<'a> ParserGen<'a> {
         });
 
         quote! { #(#body)* }
-    }
-
-    fn gen_nonterminal_display_name_method() -> TokenStream {
-        quote! {
-            fn nonterminal_display_name(nonterminal_id: NonterminalId) -> &'static str {
-                NONTERMINALS[nonterminal_id.index()].display
-            }
-        }
-    }
-
-    fn gen_terminal_name_method() -> TokenStream {
-        quote! {
-            fn terminal_name(terminal_id: TerminalId) -> &'static str {
-                TERMINALS[terminal_id.index()].name
-            }
-        }
-    }
-
-    fn gen_slot_name_method() -> TokenStream {
-        quote! {
-            fn slot_name(slot_id: SlotId) -> &'static str {
-                SLOTS[slot_id.index()].display_name
-            }
-        }
-    }
-
-    fn gen_epsilon_method() -> TokenStream {
-        quote! {
-            fn epsilon() -> TerminalId {
-                TerminalId((TERMINALS.len() - 2) as u16)
-            }
-        }
-    }
-
-    fn gen_terminal_count_method() -> TokenStream {
-        quote! {
-            fn terminal_count() -> u16 {
-                (TERMINALS.len() - 2) as u16
-            }
-        }
     }
 
     fn gen_get_gss_node_method() -> TokenStream {
@@ -2511,14 +2509,6 @@ impl<'a> ParserGen<'a> {
         }
     }
 
-    fn gen_start_nonterminal_method() -> TokenStream {
-        quote! {
-            fn start_nonterminal(&self) -> NonterminalId {
-                self.start_nonterminal
-            }
-        }
-    }
-
     // Builds the initial environment when the start nonterminal is data-dependent.
     // Today the only data-dependent use case is operator precedence, so every parameter
     // is bound to 0 ("any precedence"). TODO: once parameters can have non-i32 types,
@@ -2547,18 +2537,21 @@ impl<'a> ParserGen<'a> {
                 }
             })
             .collect();
-        let body = if arms.is_empty() {
-            quote! { None }
+        let (start, body) = if arms.is_empty() {
+            (quote! { _start }, quote! { None })
         } else {
-            quote! {
-                match self.start_nonterminal {
-                    #(#arms)*
-                    _ => None,
-                }
-            }
+            (
+                quote! { start },
+                quote! {
+                    match start {
+                        #(#arms)*
+                        _ => None,
+                    }
+                },
+            )
         };
         quote! {
-            fn start_env(&mut self) -> Option<EnvId> {
+            fn start_env(&mut self, #start: NonterminalId) -> Option<EnvId> {
                 #body
             }
         }
@@ -2757,7 +2750,7 @@ impl<'a> ParserGen<'a> {
                 }
                 #(#gss_index_records)*
                 for (nt_id, pos) in &self.ll1_call_log {
-                    let name = NONTERMINALS[nt_id.index()].display;
+                    let name = Self::Grammar::nonterminal_display_name(*nt_id);
                     stats.record_ll1_call(name, *pos);
                 }
                 stats

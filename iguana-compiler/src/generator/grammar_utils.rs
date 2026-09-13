@@ -93,6 +93,12 @@ pub fn nonterminal_type_name(name: &str) -> String {
     to_pascal_case(name)
 }
 
+/// Returns the identifier of the generated grammar type, the `Grammar` trait
+/// implementation, with the grammar name in PascalCase.
+pub fn grammar_ident(grammar_name: &str) -> Ident {
+    format_ident!("{}Grammar", to_pascal_case(grammar_name))
+}
+
 /// Returns the identifier of the generated parser type, with the grammar name
 /// in PascalCase. Every generator that names the type calls this function, so
 /// the definition and the references to it agree.

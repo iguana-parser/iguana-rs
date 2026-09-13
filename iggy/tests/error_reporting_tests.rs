@@ -1,10 +1,12 @@
+use iggy::IggyParser;
 use iguana_runtime::arena::Arena;
 use iguana_runtime::input::Input;
 
 fn parse_error(source: &str) -> String {
     let input = Input::from(source);
+    let parser_arena = Arena::new();
     let tree_arena = Arena::new();
-    match iggy::parse_grammar(&input, &tree_arena) {
+    match IggyParser::new(&input, &parser_arena).parse_grammar(&tree_arena) {
         Err(e) => e.message,
         Ok(_) => panic!("expected parse error"),
     }

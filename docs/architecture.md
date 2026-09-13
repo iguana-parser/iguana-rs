@@ -69,23 +69,22 @@ The compiler processes a grammar in six ordered phases:
 The generator then writes the grammar-specific crate:
 
 ```text
-src/grammar_data.rs    terminals, nonterminals, slots, and analysis tables
+src/grammar.rs         the grammar type: symbol tables and terminal sets
 src/parser.rs          parse functions and parser state
 src/parse_tree.rs      typed parse-tree definitions and construction
 src/scanner.rs         scanner code for lexical rules
-src/types.rs           types shared by the generated modules
 src/lib.rs             public API and re-exports
 src/main.rs            CLI binary for the generated parser when enabled
 Cargo.toml             crate scaffolding
 ```
 
-The six library modules are rewritten on each generation. `src/main.rs` is
+The five library modules are rewritten on each generation. `src/main.rs` is
 rewritten when CLI scaffolding is enabled; generation without a CLI neither
 creates nor removes it. `Cargo.toml` is created when missing and then
 preserved, so local dependency or package changes survive regeneration.
-`--force` replaces it with the current scaffold.
-The generator does not create or modify license or notice files. Users supply
-any such files required for their generated project.
+`--force` replaces it with the current scaffold. The generator does not create
+or modify license or notice files. Users supply any such files required for
+their generated project.
 
 The modules under `iguana-compiler/src/generator/` produce these files.
 `post_process.rs` converts comment placeholders to Rust comments and inserts
@@ -96,7 +95,10 @@ blank lines before item-level definitions.
 `iguana-runtime` implements input handling, descriptors, the graph-structured
 stack (GSS), the shared packed parse forest (SPPF), scanner support, and generic
 parse-tree traversal and rendering. The generated crate supplies the
-grammar-specific parser functions, node types, and parse-tree builder.
+grammar-specific parser functions, node types, and parse-tree builder. The
+runtime's `Parser` trait is the contract between the runtime and the generated
+crate: the runtime implements the parsing algorithm as the trait's provided
+methods, and the generated parser implements its required methods.
 
 Most runtime operations are on parser hot paths. New allocations, hashing, or
 trait dispatch in the runtime therefore require measurement and justification.

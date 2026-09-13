@@ -6,7 +6,7 @@ use crate::parser::GLLFailureKind;
 use crate::sppf::SPPFNodeId;
 
 #[cfg(feature = "debug-trace")]
-use crate::parser::Parser;
+use crate::{grammar::Grammar, parser::Parser};
 
 /// Trace events emitted during GLL parsing.
 /// Always available for deserialization; runtime tracing requires `debug-trace` feature.
@@ -43,7 +43,7 @@ impl TraceEvent {
             TraceEvent::ProcessingDescriptor(slot_id, input_index, gss_node_id, sppf_node_id) => {
                 format!(
                     "Processing ({}, {}, {}, {})",
-                    P::slot_name(slot_id),
+                    P::Grammar::slot_name(slot_id),
                     input_index,
                     parser.gss_to_string(gss_node_id),
                     if let Some(sppf_node_id) = sppf_node_id {
@@ -56,7 +56,7 @@ impl TraceEvent {
             TraceEvent::DescriptorAdded(slot_id, input_index, gss_node_id, sppf_node_id) => {
                 format!(
                     "Descriptor ({}, {}, {}, {}) added.",
-                    P::slot_name(slot_id),
+                    P::Grammar::slot_name(slot_id),
                     input_index,
                     parser.gss_to_string(gss_node_id),
                     if let Some(sppf_node_id) = sppf_node_id {
@@ -74,12 +74,12 @@ impl TraceEvent {
             }
             TraceEvent::MatchingTerminal(terminal_id, input_index) => format!(
                 "Matched terminal {} at input index {}",
-                P::terminal_name(terminal_id),
+                P::Grammar::terminal_name(terminal_id),
                 input_index,
             ),
             TraceEvent::MatchSuccess(terminal_id, input_index, matched_index) => format!(
                 "Matched terminal {} at input index {}. Match length: {}",
-                P::terminal_name(terminal_id),
+                P::Grammar::terminal_name(terminal_id),
                 input_index,
                 matched_index - input_index
             ),
@@ -89,25 +89,31 @@ impl TraceEvent {
                     .unwrap_or_else(|| "?".to_string());
                 let kind_str = match kind {
                     GLLFailureKind::UnexpectedToken { expected } => {
-                        let names: Vec<&str> =
-                            expected.iter().map(|id| P::terminal_name(*id)).collect();
+                        let names: Vec<&str> = expected
+                            .iter()
+                            .map(|id| P::Grammar::terminal_name(*id))
+                            .collect();
                         format!("expected {}", names.join(", "))
                     }
                     GLLFailureKind::ExcludedMatch { excluded_by } => {
-                        let names: Vec<&str> =
-                            excluded_by.iter().map(|id| P::terminal_name(*id)).collect();
+                        let names: Vec<&str> = excluded_by
+                            .iter()
+                            .map(|id| P::Grammar::terminal_name(*id))
+                            .collect();
                         format!("excluded by {}", names.join(", "))
                     }
                     GLLFailureKind::ForbiddenFollow { forbidden } => {
-                        let names: Vec<&str> =
-                            forbidden.iter().map(|id| P::terminal_name(*id)).collect();
+                        let names: Vec<&str> = forbidden
+                            .iter()
+                            .map(|id| P::Grammar::terminal_name(*id))
+                            .collect();
                         format!("forbidden follow {}", names.join(", "))
                     }
                 };
                 format!(
                     "Parse error at input index {} (slot: {}, GSS node: {}): {}",
                     input_index,
-                    P::slot_name(slot_id),
+                    P::Grammar::slot_name(slot_id),
                     gss,
                     kind_str
                 )
@@ -121,41 +127,41 @@ impl TraceEvent {
             }
             TraceEvent::GSSNodeCreated(nonterminal_id, input_index) => format!(
                 "GSS node ({},{}) created",
-                P::nonterminal_display_name(nonterminal_id),
+                P::Grammar::nonterminal_display_name(nonterminal_id),
                 input_index
             ),
             TraceEvent::GSSNodeFound(nonterminal_id, input_index) => format!(
                 "GSS node ({},{}) found",
-                P::nonterminal_display_name(nonterminal_id),
+                P::Grammar::nonterminal_display_name(nonterminal_id),
                 input_index
             ),
             TraceEvent::GSSNodeNotFound(nonterminal_id, input_index) => format!(
                 "GSS node ({},{}) not found",
-                P::nonterminal_display_name(nonterminal_id),
+                P::Grammar::nonterminal_display_name(nonterminal_id),
                 input_index
             ),
             TraceEvent::GSSNodeAdded(origin_gss_node_id, dest_gss_node_id, return_slot) => format!(
                 "GSS edge added from {} to {} with return label {}",
                 parser.gss_to_string(origin_gss_node_id),
                 parser.gss_to_string(dest_gss_node_id),
-                P::slot_name(return_slot)
+                P::Grammar::slot_name(return_slot)
             ),
             TraceEvent::TerminalNodeCreated(terminal_id, span) => format!(
                 "Terminal node created: ({}, {}, {})",
-                P::terminal_name(terminal_id),
+                P::Grammar::terminal_name(terminal_id),
                 span.left_extent,
                 span.right_extent
             ),
             TraceEvent::NonterminalNodeCreated(nonterminal_id, span, child) => format!(
                 "Nonterminal node created: ({}, {}, {}, {})",
-                P::nonterminal_display_name(nonterminal_id),
+                P::Grammar::nonterminal_display_name(nonterminal_id),
                 span.left_extent,
                 span.right_extent,
                 parser.sppf_node_to_string(parser.sppf_node(child)),
             ),
             TraceEvent::IntermediateNodeCreated(slot_id, span, left_child, right_child) => format!(
                 "Intermediate node created: ({}, {}, {}, {}, {})",
-                P::slot_name(slot_id),
+                P::Grammar::slot_name(slot_id),
                 span.left_extent,
                 span.right_extent,
                 parser.sppf_node_to_string(parser.sppf_node(left_child)),
@@ -178,14 +184,14 @@ impl TraceEvent {
                     Some(return_value) => format!(
                         "Pop GSS node {} for the slot {} with SPPF node {} and return value {}",
                         parser.gss_to_string(gss_node_id),
-                        P::slot_name(slot_id),
+                        P::Grammar::slot_name(slot_id),
                         parser.sppf_node_to_string(parser.sppf_node(nonterminal_node_id)),
                         return_value
                     ),
                     None => format!(
                         "Pop GSS node {} for the slot {} with SPPF node {}",
                         parser.gss_to_string(gss_node_id),
-                        P::slot_name(slot_id),
+                        P::Grammar::slot_name(slot_id),
                         parser.sppf_node_to_string(parser.sppf_node(nonterminal_node_id))
                     ),
                 }
@@ -214,7 +220,7 @@ impl TraceEvent {
                     .map(|sppf_node_id| parser.sppf_node_to_string(parser.sppf_node(sppf_node_id)))
                     .unwrap_or("$".to_owned()),
                 parser.gss_to_string(gss_node_id),
-                P::slot_name(slot_id)
+                P::Grammar::slot_name(slot_id)
             ),
         }
     }

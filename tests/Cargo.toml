@@ -47,6 +47,7 @@ members = [
     "follow_restriction_multiple",
     "group",
     "group_single_element",
+    "import_names",
     "indirect_binary",
     "indirect_postfix",
     "indirect_precedence",

@@ -74,8 +74,8 @@ enum Commands {
         #[arg(long, num_args = 0..=1, default_missing_value = "true")]
         format: Option<bool>,
 
-        /// When true, the generated parser runs in the unsafe mode (see Parser::UNSAFE
-        /// in iguana-runtime).
+        /// When true, the generated parser runs in the unsafe mode: it assumes the
+        /// grammar is unambiguous and stops at the first derivation that spans the input.
         #[arg(long = "unsafe", value_name = "UNSAFE", num_args = 0..=1, default_missing_value = "true")]
         unsafe_mode: Option<bool>,
 

@@ -984,7 +984,7 @@
   }
 
   // Build the interactive s-expression model from the (already transformed)
-  // display tree, mirroring the generated to_sexpr: a node reachable from several
+  // display tree, mirroring the runtime's to_sexpr: a node reachable from several
   // parents (indegree > 1 in the rendered DAG) is written once with a `#N=` label,
   // and later occurrences become `#N#` refs.
   function buildSexprModel(parseTree: ParseTree): SexprNode | null {
@@ -1024,7 +1024,7 @@
     return build(root.id);
   }
 
-  // Serialize an s-expression node to text, matching the generated to_sexpr:
+  // Serialize an s-expression node to text, matching the runtime's to_sexpr:
   // the closing paren hugs the last child, an all-leaf node prints on one line,
   // and a node shared in the ambiguity DAG carries a `#N=` / `#N#` datum label.
   function sexprToText(node: SexprNode): string {

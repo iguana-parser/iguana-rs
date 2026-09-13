@@ -26,8 +26,9 @@ tests/mygrammar/
 ```
 
 `src/` and `Cargo.toml` are generated and committed, so a fresh checkout builds
-without running the generator. Each test crate has a library, which exposes
-functions such as `mygrammar::parse_s`, and a binary named after the grammar.
+without running the generator. Each test crate has a library, whose parser
+type has typed entry points such as `parse_s`, and a binary named after the
+grammar.
 The grammar-test runner executes the binary.
 
 The generated crates form a Cargo workspace of their own, rooted at

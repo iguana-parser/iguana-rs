@@ -2,20 +2,17 @@
 
 use clap::{Parser as ClapParser, ValueEnum as ClapValueEnum};
 use except_nonterminal_longest_match::{
-    grammar_data::{NONTERMINAL_DISPLAY_ORDER, NONTERMINALS, SLOTS, TERMINALS, nonterminal_id},
-    parse_tree::{
-        ExceptNonterminalLongestMatchParseTreeBuilder, create_parse_tree, to_json, to_sexpr_with,
-    },
-    parser::ExceptNonterminalLongestMatchParser,
+    ExceptNonterminalLongestMatchGrammar, ExceptNonterminalLongestMatchParser,
 };
 #[cfg(feature = "debug-trace")]
 use iguana_runtime::trace::TraceEvent;
 use iguana_runtime::{
     arena::Arena,
     cli,
+    grammar::Grammar,
     ids::NonterminalId,
     input::Input,
-    parse_tree::{DisplayOptions, is_ambiguous},
+    parse_tree::{DisplayOptions, is_ambiguous, to_json, to_sexpr_with},
     parser::{GLLResult, Parser},
     visualization::{dot::write_graph, gss::build_gss_dot_graph, sppf::build_sppf_graph},
 };
@@ -282,19 +279,25 @@ fn run() -> io::Result<()> {
         }
     }
     if args.list_nonterminals {
-        for name in NONTERMINAL_DISPLAY_ORDER.iter() {
+        for name in ExceptNonterminalLongestMatchGrammar::DISPLAY_ORDER.iter() {
             println!("{}", name);
         }
         return Ok(());
     }
     if let Some(ref path) = args.write_symbols {
         let symbols = cli::Symbols {
-            nonterminals: NONTERMINALS
+            nonterminals: ExceptNonterminalLongestMatchGrammar::NONTERMINALS
                 .iter()
-                .map(|nt| nt.display.to_string())
+                .map(|nt| nt.display_name.to_string())
                 .collect(),
-            terminals: TERMINALS.iter().map(|t| t.name.to_string()).collect(),
-            slots: SLOTS.iter().map(|s| s.display_name.to_string()).collect(),
+            terminals: ExceptNonterminalLongestMatchGrammar::TERMINALS
+                .iter()
+                .map(|t| t.name.to_string())
+                .collect(),
+            slots: ExceptNonterminalLongestMatchGrammar::SLOTS
+                .iter()
+                .map(|s| s.display_name.to_string())
+                .collect(),
         };
         let file = File::create(path)?;
         let mut writer = BufWriter::new(file);
@@ -357,23 +360,16 @@ fn run() -> io::Result<()> {
             |path| {
                 let input = Input::try_from(path)?;
                 let tree_arena = Arena::new();
-                let parse_tree_builder =
-                    ExceptNonterminalLongestMatchParseTreeBuilder::new(&tree_arena);
-                let vec_arena = Arena::new();
-                let mut parser = ExceptNonterminalLongestMatchParser::new(
-                    &input,
-                    start_nonterminal_id,
-                    &vec_arena,
-                );
-                let content = match parser.run() {
+                let parser_arena = Arena::new();
+                let mut parser = ExceptNonterminalLongestMatchParser::new(&input, &parser_arena);
+                let content = match parser.run(start_nonterminal_id) {
                     GLLResult::Success(success) => {
-                        let tree = create_parse_tree(
-                            success.sppf_node_id,
-                            start_nonterminal_id,
-                            &parser,
-                            &parse_tree_builder,
-                        );
-                        to_sexpr_with(tree, display_options)
+                        let tree = parser.build_tree(success.sppf_node_id, &tree_arena);
+                        to_sexpr_with(
+                            tree,
+                            ExceptNonterminalLongestMatchGrammar::LAYOUT_NAME,
+                            display_options,
+                        )
                     }
                     GLLResult::Failure(error) => {
                         format!("{}\n", parser.to_parse_error(&error).render(&input))
@@ -413,7 +409,7 @@ fn run() -> io::Result<()> {
         }
         let mut ran = 0usize;
         let mut passed = 0usize;
-        let mut vec_arena = Arena::new();
+        let mut parser_arena = Arena::new();
         for entry in &entries {
             if let Some(name) = only {
                 if entry.name != name {
@@ -449,12 +445,9 @@ fn run() -> io::Result<()> {
                             };
                         }
                     };
-                    let mut parser = ExceptNonterminalLongestMatchParser::new(
-                        &input,
-                        start_nonterminal_id,
-                        &vec_arena,
-                    );
-                    let outcome = match parser.run() {
+                    let mut parser =
+                        ExceptNonterminalLongestMatchParser::new(&input, &parser_arena);
+                    let outcome = match parser.run(start_nonterminal_id) {
                         GLLResult::Success(success) => cli::CorpusOutcome::Ok {
                             ambiguous: is_ambiguous(&parser, success.sppf_node_id),
                         },
@@ -472,7 +465,7 @@ fn run() -> io::Result<()> {
                         }
                     };
                     drop(parser);
-                    vec_arena.reset();
+                    parser_arena.reset();
                     outcome
                 },
             )?;
@@ -538,13 +531,13 @@ fn run() -> io::Result<()> {
             );
             let file_path = file.clone();
             let mut tree_arena = Arena::new();
-            let mut vec_arena = Arena::new();
+            let mut parser_arena = Arena::new();
             return cli::run_benchmark(config, move || {
                 bench_parse_file(
                     &file_path,
                     start_nonterminal_id,
                     &mut tree_arena,
-                    &mut vec_arena,
+                    &mut parser_arena,
                 )
                 .expect("benchmark input could not be read, failed to parse, or is ambiguous")
             });
@@ -642,7 +635,7 @@ fn run() -> io::Result<()> {
             .unwrap_or(0);
         let mut pass = 0usize;
         let mut tree_arena = Arena::new();
-        let mut vec_arena = Arena::new();
+        let mut parser_arena = Arena::new();
         return cli::run_benchmark(config, move || {
             if pass > 0 {
                 eprintln!();
@@ -676,7 +669,7 @@ fn run() -> io::Result<()> {
                         path,
                         *start_nonterminal_id,
                         &mut tree_arena,
-                        &mut vec_arena,
+                        &mut parser_arena,
                     ) {
                         input += t.input;
                         init += t.init;
@@ -741,23 +734,19 @@ fn run() -> io::Result<()> {
         cli::run_repl(display_options, |text, display_options| {
             let input = Input::from(text);
             let tree_arena = Arena::new();
-            let parse_tree_builder =
-                ExceptNonterminalLongestMatchParseTreeBuilder::new(&tree_arena);
-            let vec_arena = Arena::new();
-            let mut parser =
-                ExceptNonterminalLongestMatchParser::new(&input, start_nonterminal_id, &vec_arena);
-            match parser.run() {
+            let parser_arena = Arena::new();
+            let mut parser = ExceptNonterminalLongestMatchParser::new(&input, &parser_arena);
+            match parser.run(start_nonterminal_id) {
                 GLLResult::Success(success) => {
                     let node_id = success.sppf_node_id;
                     let ambiguous = is_ambiguous(&parser, node_id);
-                    let tree = create_parse_tree(
-                        node_id,
-                        start_nonterminal_id,
-                        &parser,
-                        &parse_tree_builder,
-                    );
+                    let tree = parser.build_tree(node_id, &tree_arena);
                     cli::ReplOutcome::Parsed {
-                        tree: to_sexpr_with(tree, display_options),
+                        tree: to_sexpr_with(
+                            tree,
+                            ExceptNonterminalLongestMatchGrammar::LAYOUT_NAME,
+                            display_options,
+                        ),
                         ambiguous,
                     }
                 }
@@ -795,23 +784,15 @@ fn run() -> io::Result<()> {
             .build()
             .unwrap();
         let mut tree_arena = Arena::new();
-        let mut vec_arena = Arena::new();
+        let mut parser_arena = Arena::new();
         for _ in 0..iterations {
-            let mut parser =
-                ExceptNonterminalLongestMatchParser::new(&input, start_nonterminal_id, &vec_arena);
-            let result = parser.run();
+            let mut parser = ExceptNonterminalLongestMatchParser::new(&input, &parser_arena);
+            let result = parser.run(start_nonterminal_id);
             if let GLLResult::Success(success) = result {
-                let parse_tree_builder =
-                    ExceptNonterminalLongestMatchParseTreeBuilder::new(&tree_arena);
-                let _ = create_parse_tree(
-                    success.sppf_node_id,
-                    start_nonterminal_id,
-                    &parser,
-                    &parse_tree_builder,
-                );
+                let _ = parser.build_tree(success.sppf_node_id, &tree_arena);
             }
             drop(parser);
-            vec_arena.reset();
+            parser_arena.reset();
             tree_arena.reset();
         }
         let report = guard.report().build().unwrap();
@@ -827,15 +808,13 @@ fn run() -> io::Result<()> {
         );
     }
     let tree_arena = Arena::new();
-    let vec_arena = Arena::new();
-    let mut parser =
-        ExceptNonterminalLongestMatchParser::new(&input, start_nonterminal_id, &vec_arena);
+    let parser_arena = Arena::new();
+    let mut parser = ExceptNonterminalLongestMatchParser::new(&input, &parser_arena);
     #[cfg(feature = "debug-trace")]
     if args.trace.is_some() {
         parser.trace_events = Some(vec![]);
     }
-    let parse_tree_builder = ExceptNonterminalLongestMatchParseTreeBuilder::new(&tree_arena);
-    let result = parser.run();
+    let result = parser.run(start_nonterminal_id);
     #[cfg(feature = "debug-trace")]
     if let Some(ref trace_events) = parser.trace_events {
         let as_json = matches!(args.format, Some(Format::Json));
@@ -864,12 +843,7 @@ fn run() -> io::Result<()> {
                 || args.write_result.is_some()
                 || (args.write_sppf.is_none() && args.write_gss.is_none() && args.trace.is_none())
             {
-                Some(create_parse_tree(
-                    node_id,
-                    start_nonterminal_id,
-                    &parser,
-                    &parse_tree_builder,
-                ))
+                Some(parser.build_tree(node_id, &tree_arena))
             } else {
                 None
             };
@@ -879,7 +853,10 @@ fn run() -> io::Result<()> {
             if let (Some(path), Some(parse_tree)) =
                 (args.write_parse_tree.as_ref(), parse_tree_opt.as_ref())
             {
-                let json = to_json(*parse_tree);
+                let json = to_json(
+                    *parse_tree,
+                    ExceptNonterminalLongestMatchGrammar::LAYOUT_NAME,
+                );
                 let file = File::create(path)?;
                 let mut writer = BufWriter::new(file);
                 writeln!(writer, "{}", json)?;
@@ -911,7 +888,14 @@ fn run() -> io::Result<()> {
                         show_empty: args.show_empty,
                         show_wrappers: args.show_wrappers,
                     };
-                    println!("{}", to_sexpr_with(*parse_tree, display_options));
+                    println!(
+                        "{}",
+                        to_sexpr_with(
+                            *parse_tree,
+                            ExceptNonterminalLongestMatchGrammar::LAYOUT_NAME,
+                            display_options
+                        )
+                    );
                 }
             }
         }
@@ -957,15 +941,7 @@ fn run() -> io::Result<()> {
 /// (a typo, or a nonterminal introduced by desugaring) is not an entry
 /// point and is an error.
 fn resolve_start_nonterminal(name: &str) -> io::Result<NonterminalId> {
-    nonterminal_id(&format!("Start{}", name)).ok_or_else(|| {
-        io::Error::new(
-            io::ErrorKind::InvalidInput,
-            format!(
-                "Unknown start nonterminal: '{}'. Use --list-nonterminals to see the valid names.",
-                name,
-            ),
-        )
-    })
+    ExceptNonterminalLongestMatchGrammar :: nonterminal_id (& format ! ("Start{}" , name)) . ok_or_else (|| io :: Error :: new (io :: ErrorKind :: InvalidInput , format ! ("Unknown start nonterminal: '{}'. Use --list-nonterminals to see the valid names." , name ,) ,))
 }
 fn run_batch(
     dir: &Path,
@@ -1023,32 +999,24 @@ fn run_batch(
         let bytes = input.len() as u64;
         let init_start = Instant::now();
         let tree_arena = Arena::new();
-        let parse_tree_builder = ExceptNonterminalLongestMatchParseTreeBuilder::new(&tree_arena);
-        let vec_arena = Arena::new();
-        let mut parser =
-            ExceptNonterminalLongestMatchParser::new(&input, start_nonterminal_id, &vec_arena);
+        let parser_arena = Arena::new();
+        let mut parser = ExceptNonterminalLongestMatchParser::new(&input, &parser_arena);
         let init_ms = init_start.elapsed().as_secs_f64() * 1000.0;
-        match parser.run() {
+        match parser.run(start_nonterminal_id) {
             GLLResult::Success(success) => {
                 let parse_ms = success.duration.as_secs_f64() * 1000.0;
                 let ambig = is_ambiguous(&parser, success.sppf_node_id);
                 let tc_start = Instant::now();
                 {
-                    let tree = create_parse_tree(
-                        success.sppf_node_id,
-                        start_nonterminal_id,
-                        &parser,
-                        &parse_tree_builder,
-                    );
+                    let tree = parser.build_tree(success.sppf_node_id, &tree_arena);
                     std::hint::black_box(tree);
                 }
                 let tree_ms = tc_start.elapsed().as_secs_f64() * 1000.0;
                 #[cfg(feature = "instrument")]
                 corpus_stats.merge(parser.record_stats());
-                let _ = parse_tree_builder;
                 let drop_start = Instant::now();
                 drop(parser);
-                drop(vec_arena);
+                drop(parser_arena);
                 drop(tree_arena);
                 drop(input);
                 let drop_ms = drop_start.elapsed().as_secs_f64() * 1000.0;
@@ -1206,42 +1174,35 @@ fn bench_parse_file(
     path: &Path,
     start_nonterminal_id: NonterminalId,
     tree_arena: &mut Arena,
-    vec_arena: &mut Arena,
+    parser_arena: &mut Arena,
 ) -> Option<cli::PhaseTimings> {
     let input_start = Instant::now();
     let input = Input::try_from(path).ok()?;
     let input_time = input_start.elapsed();
     let bytes = input.len() as u64;
     let init_start = Instant::now();
-    let mut parser =
-        ExceptNonterminalLongestMatchParser::new(&input, start_nonterminal_id, vec_arena);
+    let mut parser = ExceptNonterminalLongestMatchParser::new(&input, parser_arena);
     let init = init_start.elapsed();
-    let GLLResult::Success(success) = parser.run() else {
+    let GLLResult::Success(success) = parser.run(start_nonterminal_id) else {
         drop(parser);
-        vec_arena.reset();
+        parser_arena.reset();
         return None;
     };
     let parse = success.duration;
     if is_ambiguous(&parser, success.sppf_node_id) {
         drop(parser);
-        vec_arena.reset();
+        parser_arena.reset();
         return None;
     }
     let tree_start = Instant::now();
     {
-        let parse_tree_builder = ExceptNonterminalLongestMatchParseTreeBuilder::new(tree_arena);
-        let tree = create_parse_tree(
-            success.sppf_node_id,
-            start_nonterminal_id,
-            &parser,
-            &parse_tree_builder,
-        );
+        let tree = parser.build_tree(success.sppf_node_id, tree_arena);
         std::hint::black_box(tree);
     }
     let tree = tree_start.elapsed();
     let drop_start = Instant::now();
     drop(parser);
-    vec_arena.reset();
+    parser_arena.reset();
     tree_arena.reset();
     drop(input);
     let drop = drop_start.elapsed();

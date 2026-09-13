@@ -4,7 +4,7 @@ use std::path::Path;
 use iguana_runtime::input::{Input, Span};
 use rustc_hash::{FxHashMap, FxHashSet};
 
-use crate::generator::grammar_utils::{parse_tree_builder_ident, parser_ident};
+use crate::generator::grammar_utils::{grammar_ident, parse_tree_builder_ident, parser_ident};
 use crate::generator::utils::is_rust_keyword;
 use crate::grammar::{
     def::{GrammarDef, LexicalRule, SyntaxRule},
@@ -496,11 +496,11 @@ fn check_sequence_field_labels<'a>(
 /// Names of types and traits imported or defined by the generated parse tree.
 ///
 /// Keep this list synchronized with generated-code type and trait names in
-/// `generator/parse_tree_gen.rs` that are not derived from the grammar.
+/// `generator/parse_tree_gen.rs` that are not derived from the grammar,
+/// including the prelude types the generated code uses unqualified.
 const RESERVED_TYPE_NAMES: &[&str] = &[
     "Arena",
     "CycleTarget",
-    "DisplayOptions",
     "IntoIter",
     "ListNode",
     "NodeKind",
@@ -508,6 +508,7 @@ const RESERVED_TYPE_NAMES: &[&str] = &[
     "NonterminalNode",
     "OneOrMany",
     "OptNode",
+    "Option",
     "Origin",
     "ParseTree",
     "ParseTreeBuilder",
@@ -520,17 +521,7 @@ const RESERVED_TYPE_NAMES: &[&str] = &[
     "TerminalNode",
     "Token",
     "TokenKind",
-];
-
-/// Names of constants generated alongside upper-snake-case nonterminal IDs.
-///
-/// Keep this list synchronized with generated-code constant names in
-/// `generator/grammar_data_gen.rs` that are not derived from the grammar.
-const RESERVED_CONSTANT_NAMES: &[&str] = &[
-    "NONTERMINALS",
-    "NONTERMINAL_DISPLAY_ORDER",
-    "SLOTS",
-    "TERMINALS",
+    "Vec",
 ];
 
 const AMBIGUITY_VARIANT_NAME: &str = "Amb";
@@ -568,6 +559,7 @@ fn check_reserved_names<'a>(
         .filter(|name| Some(*name) != layout_name)
         .map(|name| (constant_name(&format!("Start{name}")), name))
         .collect();
+    let grammar_type = grammar_ident(&grammar_def.name);
     let parser_type = parser_ident(&grammar_def.name);
     let parse_tree_builder_type = parse_tree_builder_ident(&grammar_def.name);
 
@@ -585,17 +577,12 @@ fn check_reserved_names<'a>(
         }
         let type_name = to_pascal_case(name);
         if RESERVED_TYPE_NAMES.contains(&type_name.as_str())
+            || grammar_type == type_name
             || parser_type == type_name
             || parse_tree_builder_type == type_name
         {
             errors.push(GrammarError {
-                message: format!("`{name}` is a reserved name in the generated parse tree"),
-                span,
-            });
-        }
-        if RESERVED_CONSTANT_NAMES.contains(&constant_name(name).as_str()) {
-            errors.push(GrammarError {
-                message: format!("`{name}` is a reserved name in the generated grammar data"),
+                message: format!("`{name}` is a reserved name in the generated crate"),
                 span,
             });
         }
@@ -736,6 +723,33 @@ fn lexical_head<'a>(grammar_def: &'a GrammarDef, name: &str) -> Option<&'a Termi
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    use crate::iggy::parse_grammar;
+
+    #[test]
+    fn a_rule_named_like_the_generated_grammar_type_is_rejected() {
+        let source = "grammar Foo\n\nS = FooGrammar\nFooGrammar = \"a\"\n";
+        let errors = parse_grammar(source).unwrap_err();
+        let messages: Vec<&str> = errors.iter().map(|error| error.message.as_str()).collect();
+        assert_eq!(
+            messages,
+            ["`FooGrammar` is a reserved name in the generated crate"]
+        );
+    }
+
+    #[test]
+    fn rules_named_like_prelude_types_are_rejected() {
+        let source = "grammar G\n\nS = Option Vec\nOption = \"a\"\nVec = \"b\"\n";
+        let errors = parse_grammar(source).unwrap_err();
+        let messages: Vec<&str> = errors.iter().map(|error| error.message.as_str()).collect();
+        assert_eq!(
+            messages,
+            [
+                "`Option` is a reserved name in the generated crate",
+                "`Vec` is a reserved name in the generated crate",
+            ]
+        );
+    }
 
     #[test]
     fn renders_a_spanned_error_at_a_one_based_line_and_column() {

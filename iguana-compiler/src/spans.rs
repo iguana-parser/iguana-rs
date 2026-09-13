@@ -673,8 +673,11 @@ Id = X !<< [a-z]+ \ Kw
 WS = [\ ]*
 "#;
         let input = Input::from(source);
+        let parser_arena = Arena::new();
         let tree_arena = Arena::new();
-        let success = iggy::parse_grammar(&input, &tree_arena).expect("the grammar should parse");
+        let success = iggy::IggyParser::new(&input, &parser_arena)
+            .parse_grammar(&tree_arena)
+            .expect("the grammar should parse");
         let grammar_def = crate::iggy::build_grammar(success.tree, &input).resolve();
         let spans = build_spans(&grammar_def, success.tree, &input);
 
