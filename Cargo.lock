@@ -539,11 +539,7 @@ dependencies = [
 name = "iguana-iggy"
 version = "0.1.0-alpha.1"
 dependencies = [
- "clap",
- "dhat",
  "iguana-runtime",
- "log",
- "pprof",
  "rustc-hash 2.1.3",
  "serde_json",
 ]
@@ -568,9 +564,12 @@ version = "0.1.0-alpha.1"
 dependencies = [
  "allocator-api2",
  "bumpalo",
+ "clap",
+ "dhat",
  "env_logger",
  "hashbrown",
  "log",
+ "pprof",
  "proc-macro2",
  "quote",
  "rustc-hash 2.1.3",

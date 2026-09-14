@@ -11,6 +11,7 @@ pub const START_S: NonterminalId = NonterminalId(2);
 pub const START_X: NonterminalId = NonterminalId(3);
 pub struct Ll1AltPrefixConflictGrammar;
 impl Grammar for Ll1AltPrefixConflictGrammar {
+    const NAME: &'static str = "Ll1AltPrefixConflict";
     const NONTERMINALS: &'static [Nonterminal] = &[
         Nonterminal {
             name: "S",

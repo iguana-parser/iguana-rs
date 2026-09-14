@@ -16,6 +16,7 @@ pub const START_C: NonterminalId = NonterminalId(7);
 pub const START_D: NonterminalId = NonterminalId(8);
 pub struct SimpleAltGrammar;
 impl Grammar for SimpleAltGrammar {
+    const NAME: &'static str = "SimpleAlt";
     const NONTERMINALS: &'static [Nonterminal] = &[
         Nonterminal {
             name: "A",

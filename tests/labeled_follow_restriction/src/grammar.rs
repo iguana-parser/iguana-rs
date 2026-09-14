@@ -9,6 +9,7 @@ pub const S: NonterminalId = NonterminalId(0);
 pub const START_S: NonterminalId = NonterminalId(1);
 pub struct LabeledFollowRestrictionGrammar;
 impl Grammar for LabeledFollowRestrictionGrammar {
+    const NAME: &'static str = "LabeledFollowRestriction";
     const NONTERMINALS: &'static [Nonterminal] = &[
         Nonterminal {
             name: "S",

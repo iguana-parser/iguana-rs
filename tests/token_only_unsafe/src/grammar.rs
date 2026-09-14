@@ -15,6 +15,7 @@ pub const START_EMPTY: NonterminalId = NonterminalId(6);
 pub const START_TAG: NonterminalId = NonterminalId(7);
 pub struct TokenOnlyUnsafeGrammar;
 impl Grammar for TokenOnlyUnsafeGrammar {
+    const NAME: &'static str = "TokenOnlyUnsafe";
     const NONTERMINALS: &'static [Nonterminal] = &[
         Nonterminal {
             name: "S",

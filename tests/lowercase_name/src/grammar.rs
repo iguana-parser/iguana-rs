@@ -11,6 +11,7 @@ pub const START_S: NonterminalId = NonterminalId(2);
 pub const START_B: NonterminalId = NonterminalId(3);
 pub struct LowercaseNameGrammar;
 impl Grammar for LowercaseNameGrammar {
+    const NAME: &'static str = "lowercase_name";
     const NONTERMINALS: &'static [Nonterminal] = &[
         Nonterminal {
             name: "S",

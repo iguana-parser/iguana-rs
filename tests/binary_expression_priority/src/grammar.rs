@@ -11,6 +11,7 @@ pub const START_E: NonterminalId = NonterminalId(2);
 pub const E: NonterminalId = NonterminalId(3);
 pub struct BinaryExpressionPriorityGrammar;
 impl Grammar for BinaryExpressionPriorityGrammar {
+    const NAME: &'static str = "BinaryExpressionPriority";
     const NONTERMINALS: &'static [Nonterminal] = &[
         Nonterminal {
             name: "S",

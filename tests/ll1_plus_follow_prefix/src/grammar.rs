@@ -10,6 +10,7 @@ pub const PLUS_0: NonterminalId = NonterminalId(1);
 pub const START_S: NonterminalId = NonterminalId(2);
 pub struct Ll1PlusFollowPrefixGrammar;
 impl Grammar for Ll1PlusFollowPrefixGrammar {
+    const NAME: &'static str = "Ll1PlusFollowPrefix";
     const NONTERMINALS: &'static [Nonterminal] = &[
         Nonterminal {
             name: "S",

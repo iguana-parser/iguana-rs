@@ -75,6 +75,17 @@ pub enum GLLFailureKind {
 pub trait Parser<'i, 'arena>: Sized {
     type Grammar: Grammar;
     type Tree<'a>: ParseTreeNode;
+    /// The concrete parser type, detached from the trait's `'i` and `'arena`,
+    /// so the runtime can instantiate a parser over an input and arena of its
+    /// own. A generic `P: Parser<'i, 'arena>` is the parser at one fixed pair
+    /// of lifetimes, so `P::new` accepts only borrows that live that long.
+    /// The runtime CLI reads an input per file and builds a parser over it,
+    /// and `P::ConcreteParser::<'_, '_>::new(&input, &arena)` instantiates
+    /// the parser at those shorter lifetimes. The generated impl sets this to
+    /// the parser struct itself.
+    type ConcreteParser<'input, 'parser_arena>: Parser<'input, 'parser_arena, Grammar = Self::Grammar>;
+
+    fn new(input: &'i Input, parser_arena: &'arena Arena) -> Self;
 
     fn parse<'a>(
         mut self,
@@ -1073,8 +1084,14 @@ pub trait Parser<'i, 'arena>: Sized {
 
     fn envs(&self) -> &[Env<'arena>];
 
+    /// Starts recording trace events. Before this call, `add_trace_event`
+    /// discards its event.
+    #[cfg(feature = "debug-trace")]
+    fn enable_trace(&mut self);
     #[cfg(feature = "debug-trace")]
     fn add_trace_event(&mut self, event: TraceEvent);
+    #[cfg(feature = "debug-trace")]
+    fn trace_events(&self) -> &[TraceEvent];
 }
 
 pub fn init_logger() {

@@ -24,6 +24,7 @@ pub fn generate<'a>(
     longest_match_sets: &SetIds,
 ) -> TokenStream {
     let grammar_type = grammar_ident(&grammar.name);
+    let grammar_name = &grammar.name;
 
     let mut terminal_set_items = vec![];
     for set in terminal_sets {
@@ -59,13 +60,19 @@ pub fn generate<'a>(
         }
     });
 
-    // The nonterminals the grammar text declares, in `.iggy` source order:
+    let layout_name = grammar
+        .layout
+        .as_ref()
+        .and_then(|s| s.as_identifier())
+        .map(|i| i.name.as_str());
+
+    // The entry points, in `.iggy` source order: the layout nonterminal and
     // the derived nonterminals (start wrappers, EBNF expansions, exclusion and
-    // precedence desugarings) are left out, and the rest sort by declaration
-    // position.
+    // precedence desugarings) have no start wrapper and are left out, and the
+    // rest sort by declaration position.
     let mut display_order: Vec<&Nonterminal> = nonterminal_ids
         .nonterminals()
-        .filter(|n| !n.is_derived())
+        .filter(|n| !n.is_derived() && Some(n.name.as_str()) != layout_name)
         .collect();
     display_order.sort_by_key(|n| grammar.source_index(&n.name));
     let display_order_names: Vec<&str> = display_order.iter().map(|n| n.name.as_str()).collect();
@@ -104,11 +111,7 @@ pub fn generate<'a>(
         }
     });
 
-    let layout_name = grammar
-        .layout
-        .as_ref()
-        .and_then(|s| s.as_identifier())
-        .map(|i| i.name.as_str())
+    let layout_name = layout_name
         .map(|s| quote! { Some(#s) })
         .unwrap_or_else(|| quote! { None });
     let layout_terminals = layout_terminal_ids(grammar, terminal_ids);
@@ -125,6 +128,8 @@ pub fn generate<'a>(
         pub struct #grammar_type;
 
         impl Grammar for #grammar_type {
+            const NAME: &'static str = #grammar_name;
+
             const NONTERMINALS: &'static [Nonterminal] = &[#(#nonterminals),*];
 
             const DISPLAY_ORDER: &'static [&'static str] = &[#(#display_order_names),*];

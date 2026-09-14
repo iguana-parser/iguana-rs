@@ -31,6 +31,7 @@ pub const START_SLOT: NonterminalId = NonterminalId(22);
 pub const START_TERMINAL_SET: NonterminalId = NonterminalId(23);
 pub struct ImportNamesGrammar;
 impl Grammar for ImportNamesGrammar {
+    const NAME: &'static str = "ImportNames";
     const NONTERMINALS: &'static [Nonterminal] = &[
         Nonterminal {
             name: "S",

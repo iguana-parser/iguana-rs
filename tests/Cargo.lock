@@ -64,11 +64,7 @@ checksum = "683d7910e743518b0e34f1186f92494becacb047c7b6bf616c96772180fef923"
 name = "alt_seq"
 version = "0.1.0"
 dependencies = [
- "clap",
- "dhat",
  "iguana-runtime",
- "log",
- "pprof",
  "rustc-hash 2.1.3",
  "serde_json",
 ]
@@ -77,11 +73,7 @@ dependencies = [
 name = "amb"
 version = "0.1.0"
 dependencies = [
- "clap",
- "dhat",
  "iguana-runtime",
- "log",
- "pprof",
  "rustc-hash 2.1.3",
  "serde_json",
 ]
@@ -90,11 +82,7 @@ dependencies = [
 name = "amb_list"
 version = "0.1.0"
 dependencies = [
- "clap",
- "dhat",
  "iguana-runtime",
- "log",
- "pprof",
  "rustc-hash 2.1.3",
  "serde_json",
 ]
@@ -103,11 +91,7 @@ dependencies = [
 name = "amb_plus"
 version = "0.1.0"
 dependencies = [
- "clap",
- "dhat",
  "iguana-runtime",
- "log",
- "pprof",
  "rustc-hash 2.1.3",
  "serde_json",
 ]
@@ -116,11 +100,7 @@ dependencies = [
 name = "amb_root"
 version = "0.1.0"
 dependencies = [
- "clap",
- "dhat",
  "iguana-runtime",
- "log",
- "pprof",
  "rustc-hash 2.1.3",
  "serde_json",
 ]
@@ -129,11 +109,7 @@ dependencies = [
 name = "amb_root_nested"
 version = "0.1.0"
 dependencies = [
- "clap",
- "dhat",
  "iguana-runtime",
- "log",
- "pprof",
  "rustc-hash 2.1.3",
  "serde_json",
 ]
@@ -142,11 +118,7 @@ dependencies = [
 name = "amb_root_start"
 version = "0.1.0"
 dependencies = [
- "clap",
- "dhat",
  "iguana-runtime",
- "log",
- "pprof",
  "rustc-hash 2.1.3",
  "serde_json",
 ]
@@ -155,11 +127,7 @@ dependencies = [
 name = "ambiguous_expr"
 version = "0.1.0"
 dependencies = [
- "clap",
- "dhat",
  "iguana-runtime",
- "log",
- "pprof",
  "rustc-hash 2.1.3",
  "serde_json",
 ]
@@ -168,11 +136,7 @@ dependencies = [
 name = "ambiguous_expr_unsafe"
 version = "0.1.0"
 dependencies = [
- "clap",
- "dhat",
  "iguana-runtime",
- "log",
- "pprof",
  "rustc-hash 2.1.3",
  "serde_json",
 ]
@@ -237,11 +201,7 @@ checksum = "d3fb67a6e08acf24fdeccbac2cb6ac4305825bd1f117462e0e6f2f193345ad56"
 name = "assoc_single_level"
 version = "0.1.0"
 dependencies = [
- "clap",
- "dhat",
  "iguana-runtime",
- "log",
- "pprof",
  "rustc-hash 2.1.3",
  "serde_json",
 ]
@@ -250,11 +210,7 @@ dependencies = [
 name = "assoc_test"
 version = "0.1.0"
 dependencies = [
- "clap",
- "dhat",
  "iguana-runtime",
- "log",
- "pprof",
  "rustc-hash 2.1.3",
  "serde_json",
 ]
@@ -278,11 +234,7 @@ dependencies = [
 name = "binary_expression_priority"
 version = "0.1.0"
 dependencies = [
- "clap",
- "dhat",
  "iguana-runtime",
- "log",
- "pprof",
  "rustc-hash 2.1.3",
  "serde_json",
 ]
@@ -380,11 +332,7 @@ checksum = "1d07550c9036bf2ae0c684c4297d503f838287c83c53686d05370d0e139ae570"
 name = "comments"
 version = "0.1.0"
 dependencies = [
- "clap",
- "dhat",
  "iguana-runtime",
- "log",
- "pprof",
  "rustc-hash 2.1.3",
  "serde_json",
 ]
@@ -402,11 +350,7 @@ dependencies = [
 name = "cycles"
 version = "0.1.0"
 dependencies = [
- "clap",
- "dhat",
  "iguana-runtime",
- "log",
- "pprof",
  "rustc-hash 2.1.3",
  "serde_json",
 ]
@@ -415,11 +359,7 @@ dependencies = [
 name = "dangling_else"
 version = "0.1.0"
 dependencies = [
- "clap",
- "dhat",
  "iguana-runtime",
- "log",
- "pprof",
  "rustc-hash 2.1.3",
  "serde_json",
 ]
@@ -428,11 +368,7 @@ dependencies = [
 name = "dangling_else_unsafe"
 version = "0.1.0"
 dependencies = [
- "clap",
- "dhat",
  "iguana-runtime",
- "log",
- "pprof",
  "rustc-hash 2.1.3",
  "serde_json",
 ]
@@ -450,11 +386,7 @@ dependencies = [
 name = "deep_priority"
 version = "0.1.0"
 dependencies = [
- "clap",
- "dhat",
  "iguana-runtime",
- "log",
- "pprof",
  "rustc-hash 2.1.3",
  "serde_json",
 ]
@@ -463,11 +395,7 @@ dependencies = [
 name = "deep_priority_full"
 version = "0.1.0"
 dependencies = [
- "clap",
- "dhat",
  "iguana-runtime",
- "log",
- "pprof",
  "rustc-hash 2.1.3",
  "serde_json",
 ]
@@ -582,11 +510,7 @@ dependencies = [
 name = "error_union"
 version = "0.1.0"
 dependencies = [
- "clap",
- "dhat",
  "iguana-runtime",
- "log",
- "pprof",
  "rustc-hash 2.1.3",
  "serde_json",
 ]
@@ -595,11 +519,7 @@ dependencies = [
 name = "escaped_lit"
 version = "0.1.0"
 dependencies = [
- "clap",
- "dhat",
  "iguana-runtime",
- "log",
- "pprof",
  "rustc-hash 2.1.3",
  "serde_json",
 ]
@@ -608,11 +528,7 @@ dependencies = [
 name = "exact_keyword"
 version = "0.1.0"
 dependencies = [
- "clap",
- "dhat",
  "iguana-runtime",
- "log",
- "pprof",
  "rustc-hash 2.1.3",
  "serde_json",
 ]
@@ -621,11 +537,7 @@ dependencies = [
 name = "exact_keyword_contextual"
 version = "0.1.0"
 dependencies = [
- "clap",
- "dhat",
  "iguana-runtime",
- "log",
- "pprof",
  "rustc-hash 2.1.3",
  "serde_json",
 ]
@@ -634,11 +546,7 @@ dependencies = [
 name = "exact_keyword_generics"
 version = "0.1.0"
 dependencies = [
- "clap",
- "dhat",
  "iguana-runtime",
- "log",
- "pprof",
  "rustc-hash 2.1.3",
  "serde_json",
 ]
@@ -647,11 +555,7 @@ dependencies = [
 name = "exact_keyword_lexical_set"
 version = "0.1.0"
 dependencies = [
- "clap",
- "dhat",
  "iguana-runtime",
- "log",
- "pprof",
  "rustc-hash 2.1.3",
  "serde_json",
 ]
@@ -660,11 +564,7 @@ dependencies = [
 name = "exact_keyword_multiple_ids"
 version = "0.1.0"
 dependencies = [
- "clap",
- "dhat",
  "iguana-runtime",
- "log",
- "pprof",
  "rustc-hash 2.1.3",
  "serde_json",
 ]
@@ -673,11 +573,7 @@ dependencies = [
 name = "exact_keyword_no_layout"
 version = "0.1.0"
 dependencies = [
- "clap",
- "dhat",
  "iguana-runtime",
- "log",
- "pprof",
  "rustc-hash 2.1.3",
  "serde_json",
 ]
@@ -686,11 +582,7 @@ dependencies = [
 name = "exact_keyword_precede"
 version = "0.1.0"
 dependencies = [
- "clap",
- "dhat",
  "iguana-runtime",
- "log",
- "pprof",
  "rustc-hash 2.1.3",
  "serde_json",
 ]
@@ -699,11 +591,7 @@ dependencies = [
 name = "except_follow_restriction"
 version = "0.1.0"
 dependencies = [
- "clap",
- "dhat",
  "iguana-runtime",
- "log",
- "pprof",
  "rustc-hash 2.1.3",
  "serde_json",
 ]
@@ -712,11 +600,7 @@ dependencies = [
 name = "except_lexical"
 version = "0.1.0"
 dependencies = [
- "clap",
- "dhat",
  "iguana-runtime",
- "log",
- "pprof",
  "rustc-hash 2.1.3",
  "serde_json",
 ]
@@ -725,11 +609,7 @@ dependencies = [
 name = "except_longest_match"
 version = "0.1.0"
 dependencies = [
- "clap",
- "dhat",
  "iguana-runtime",
- "log",
- "pprof",
  "rustc-hash 2.1.3",
  "serde_json",
 ]
@@ -738,11 +618,7 @@ dependencies = [
 name = "except_nonterminal"
 version = "0.1.0"
 dependencies = [
- "clap",
- "dhat",
  "iguana-runtime",
- "log",
- "pprof",
  "rustc-hash 2.1.3",
  "serde_json",
 ]
@@ -751,11 +627,7 @@ dependencies = [
 name = "except_nonterminal_longest_match"
 version = "0.1.0"
 dependencies = [
- "clap",
- "dhat",
  "iguana-runtime",
- "log",
- "pprof",
  "rustc-hash 2.1.3",
  "serde_json",
 ]
@@ -764,11 +636,7 @@ dependencies = [
 name = "except_regex_reference"
 version = "0.1.0"
 dependencies = [
- "clap",
- "dhat",
  "iguana-runtime",
- "log",
- "pprof",
  "rustc-hash 2.1.3",
  "serde_json",
 ]
@@ -777,11 +645,7 @@ dependencies = [
 name = "except_terminal"
 version = "0.1.0"
 dependencies = [
- "clap",
- "dhat",
  "iguana-runtime",
- "log",
- "pprof",
  "rustc-hash 2.1.3",
  "serde_json",
 ]
@@ -790,11 +654,7 @@ dependencies = [
 name = "exclude_by_label"
 version = "0.1.0"
 dependencies = [
- "clap",
- "dhat",
  "iguana-runtime",
- "log",
- "pprof",
  "rustc-hash 2.1.3",
  "serde_json",
 ]
@@ -803,11 +663,7 @@ dependencies = [
 name = "expression"
 version = "0.1.0"
 dependencies = [
- "clap",
- "dhat",
  "iguana-runtime",
- "log",
- "pprof",
  "rustc-hash 2.1.3",
  "serde_json",
 ]
@@ -846,11 +702,7 @@ checksum = "77ce24cb58228fbb8aa041425bb1050850ac19177686ea6e0f41a70416f56fdb"
 name = "follow_restriction"
 version = "0.1.0"
 dependencies = [
- "clap",
- "dhat",
  "iguana-runtime",
- "log",
- "pprof",
  "rustc-hash 2.1.3",
  "serde_json",
 ]
@@ -859,11 +711,7 @@ dependencies = [
 name = "follow_restriction_lexical"
 version = "0.1.0"
 dependencies = [
- "clap",
- "dhat",
  "iguana-runtime",
- "log",
- "pprof",
  "rustc-hash 2.1.3",
  "serde_json",
 ]
@@ -872,11 +720,7 @@ dependencies = [
 name = "follow_restriction_lexical_multiple"
 version = "0.1.0"
 dependencies = [
- "clap",
- "dhat",
  "iguana-runtime",
- "log",
- "pprof",
  "rustc-hash 2.1.3",
  "serde_json",
 ]
@@ -885,11 +729,7 @@ dependencies = [
 name = "follow_restriction_multiple"
 version = "0.1.0"
 dependencies = [
- "clap",
- "dhat",
  "iguana-runtime",
- "log",
- "pprof",
  "rustc-hash 2.1.3",
  "serde_json",
 ]
@@ -951,11 +791,7 @@ checksum = "e629b9b98ef3dd8afe6ca2bd0f89306cec16d43d907889945bc5d6687f2f13c7"
 name = "group"
 version = "0.1.0"
 dependencies = [
- "clap",
- "dhat",
  "iguana-runtime",
- "log",
- "pprof",
  "rustc-hash 2.1.3",
  "serde_json",
 ]
@@ -964,11 +800,7 @@ dependencies = [
 name = "group_single_element"
 version = "0.1.0"
 dependencies = [
- "clap",
- "dhat",
  "iguana-runtime",
- "log",
- "pprof",
  "rustc-hash 2.1.3",
  "serde_json",
 ]
@@ -1002,9 +834,12 @@ version = "0.1.0-alpha.1"
 dependencies = [
  "allocator-api2",
  "bumpalo",
+ "clap",
+ "dhat",
  "env_logger",
  "hashbrown",
  "log",
+ "pprof",
  "proc-macro2",
  "quote",
  "rustc-hash 2.1.3",
@@ -1018,11 +853,7 @@ dependencies = [
 name = "import_names"
 version = "0.1.0"
 dependencies = [
- "clap",
- "dhat",
  "iguana-runtime",
- "log",
- "pprof",
  "rustc-hash 2.1.3",
  "serde_json",
 ]
@@ -1041,11 +872,7 @@ dependencies = [
 name = "indirect_binary"
 version = "0.1.0"
 dependencies = [
- "clap",
- "dhat",
  "iguana-runtime",
- "log",
- "pprof",
  "rustc-hash 2.1.3",
  "serde_json",
 ]
@@ -1054,11 +881,7 @@ dependencies = [
 name = "indirect_postfix"
 version = "0.1.0"
 dependencies = [
- "clap",
- "dhat",
  "iguana-runtime",
- "log",
- "pprof",
  "rustc-hash 2.1.3",
  "serde_json",
 ]
@@ -1067,11 +890,7 @@ dependencies = [
 name = "indirect_precedence"
 version = "0.1.0"
 dependencies = [
- "clap",
- "dhat",
  "iguana-runtime",
- "log",
- "pprof",
  "rustc-hash 2.1.3",
  "serde_json",
 ]
@@ -1080,11 +899,7 @@ dependencies = [
 name = "indirect_prefix"
 version = "0.1.0"
 dependencies = [
- "clap",
- "dhat",
  "iguana-runtime",
- "log",
- "pprof",
  "rustc-hash 2.1.3",
  "serde_json",
 ]
@@ -1181,11 +996,7 @@ dependencies = [
 name = "keyword_labels"
 version = "0.1.0"
 dependencies = [
- "clap",
- "dhat",
  "iguana-runtime",
- "log",
- "pprof",
  "rustc-hash 2.1.3",
  "serde_json",
 ]
@@ -1194,11 +1005,7 @@ dependencies = [
 name = "labeled_follow_restriction"
 version = "0.1.0"
 dependencies = [
- "clap",
- "dhat",
  "iguana-runtime",
- "log",
- "pprof",
  "rustc-hash 2.1.3",
  "serde_json",
 ]
@@ -1207,11 +1014,7 @@ dependencies = [
 name = "layout_aware_follow_midrule"
 version = "0.1.0"
 dependencies = [
- "clap",
- "dhat",
  "iguana-runtime",
- "log",
- "pprof",
  "rustc-hash 2.1.3",
  "serde_json",
 ]
@@ -1220,11 +1023,7 @@ dependencies = [
 name = "layout_aware_follow_no_layout"
 version = "0.1.0"
 dependencies = [
- "clap",
- "dhat",
  "iguana-runtime",
- "log",
- "pprof",
  "rustc-hash 2.1.3",
  "serde_json",
 ]
@@ -1233,11 +1032,7 @@ dependencies = [
 name = "layout_aware_follow_required_layout"
 version = "0.1.0"
 dependencies = [
- "clap",
- "dhat",
  "iguana-runtime",
- "log",
- "pprof",
  "rustc-hash 2.1.3",
  "serde_json",
 ]
@@ -1246,11 +1041,7 @@ dependencies = [
 name = "layout_aware_follow_same_position"
 version = "0.1.0"
 dependencies = [
- "clap",
- "dhat",
  "iguana-runtime",
- "log",
- "pprof",
  "rustc-hash 2.1.3",
  "serde_json",
 ]
@@ -1259,11 +1050,7 @@ dependencies = [
 name = "layout_nonterminal"
 version = "0.1.0"
 dependencies = [
- "clap",
- "dhat",
  "iguana-runtime",
- "log",
- "pprof",
  "rustc-hash 2.1.3",
  "serde_json",
 ]
@@ -1278,11 +1065,7 @@ checksum = "bbd2bcb4c963f2ddae06a2efc7e9f3591312473c50c6685e1f298068316e66fe"
 name = "left_recursive_list"
 version = "0.1.0"
 dependencies = [
- "clap",
- "dhat",
  "iguana-runtime",
- "log",
- "pprof",
  "rustc-hash 2.1.3",
  "serde_json",
 ]
@@ -1303,11 +1086,7 @@ checksum = "32a66949e030da00e8c7d4434b251670a91556f4144941d37452769c25d58a53"
 name = "ll1_alt_prefix_conflict"
 version = "0.1.0"
 dependencies = [
- "clap",
- "dhat",
  "iguana-runtime",
- "log",
- "pprof",
  "rustc-hash 2.1.3",
  "serde_json",
 ]
@@ -1316,11 +1095,7 @@ dependencies = [
 name = "ll1_call_error"
 version = "0.1.0"
 dependencies = [
- "clap",
- "dhat",
  "iguana-runtime",
- "log",
- "pprof",
  "rustc-hash 2.1.3",
  "serde_json",
 ]
@@ -1329,11 +1104,7 @@ dependencies = [
 name = "ll1_follow_restriction"
 version = "0.1.0"
 dependencies = [
- "clap",
- "dhat",
  "iguana-runtime",
- "log",
- "pprof",
  "rustc-hash 2.1.3",
  "serde_json",
 ]
@@ -1342,11 +1113,7 @@ dependencies = [
 name = "ll1_opt_prefix_conflict"
 version = "0.1.0"
 dependencies = [
- "clap",
- "dhat",
  "iguana-runtime",
- "log",
- "pprof",
  "rustc-hash 2.1.3",
  "serde_json",
 ]
@@ -1355,11 +1122,7 @@ dependencies = [
 name = "ll1_plus_follow_prefix"
 version = "0.1.0"
 dependencies = [
- "clap",
- "dhat",
  "iguana-runtime",
- "log",
- "pprof",
  "rustc-hash 2.1.3",
  "serde_json",
 ]
@@ -1368,11 +1131,7 @@ dependencies = [
 name = "ll1_plus_prefix_conflict"
 version = "0.1.0"
 dependencies = [
- "clap",
- "dhat",
  "iguana-runtime",
- "log",
- "pprof",
  "rustc-hash 2.1.3",
  "serde_json",
 ]
@@ -1381,11 +1140,7 @@ dependencies = [
 name = "ll1_prefix_ambiguity"
 version = "0.1.0"
 dependencies = [
- "clap",
- "dhat",
  "iguana-runtime",
- "log",
- "pprof",
  "rustc-hash 2.1.3",
  "serde_json",
 ]
@@ -1394,11 +1149,7 @@ dependencies = [
 name = "ll1_prefix_conflict"
 version = "0.1.0"
 dependencies = [
- "clap",
- "dhat",
  "iguana-runtime",
- "log",
- "pprof",
  "rustc-hash 2.1.3",
  "serde_json",
 ]
@@ -1422,11 +1173,7 @@ checksum = "f9f8bd3e56ce4dfc153cf470fffbfa98c7620958b312ca5c3a4b8d5181fd13c6"
 name = "longest_match"
 version = "0.1.0"
 dependencies = [
- "clap",
- "dhat",
  "iguana-runtime",
- "log",
- "pprof",
  "rustc-hash 2.1.3",
  "serde_json",
 ]
@@ -1435,11 +1182,7 @@ dependencies = [
 name = "lowercase_name"
 version = "0.1.0"
 dependencies = [
- "clap",
- "dhat",
  "iguana-runtime",
- "log",
- "pprof",
  "rustc-hash 2.1.3",
  "serde_json",
 ]
@@ -1478,11 +1221,7 @@ checksum = "c505b3e17ed6b70a7ed2e67fbb2c560ee327353556120d6e72f5232b6880d536"
 name = "multiple_except"
 version = "0.1.0"
 dependencies = [
- "clap",
- "dhat",
  "iguana-runtime",
- "log",
- "pprof",
  "rustc-hash 2.1.3",
  "serde_json",
 ]
@@ -1502,11 +1241,7 @@ dependencies = [
 name = "no_layout"
 version = "0.1.0"
 dependencies = [
- "clap",
- "dhat",
  "iguana-runtime",
- "log",
- "pprof",
  "rustc-hash 2.1.3",
  "serde_json",
 ]
@@ -1546,11 +1281,7 @@ checksum = "384b8ab6d37215f3c5301a95a4accb5d64aa607f1fcb26a11b5303878451b4fe"
 name = "opt"
 version = "0.1.0"
 dependencies = [
- "clap",
- "dhat",
  "iguana-runtime",
- "log",
- "pprof",
  "rustc-hash 2.1.3",
  "serde_json",
 ]
@@ -1582,11 +1313,7 @@ dependencies = [
 name = "pepm16_expressions"
 version = "0.1.0"
 dependencies = [
- "clap",
- "dhat",
  "iguana-runtime",
- "log",
- "pprof",
  "rustc-hash 2.1.3",
  "serde_json",
 ]
@@ -1601,11 +1328,7 @@ checksum = "a89322df9ebe1c1578d689c92318e070967d1042b512afbe49518723f4e6d5cd"
 name = "plus"
 version = "0.1.0"
 dependencies = [
- "clap",
- "dhat",
  "iguana-runtime",
- "log",
- "pprof",
  "rustc-hash 2.1.3",
  "serde_json",
 ]
@@ -1614,11 +1337,7 @@ dependencies = [
 name = "plus_alt"
 version = "0.1.0"
 dependencies = [
- "clap",
- "dhat",
  "iguana-runtime",
- "log",
- "pprof",
  "rustc-hash 2.1.3",
  "serde_json",
 ]
@@ -1627,11 +1346,7 @@ dependencies = [
 name = "plus_except"
 version = "0.1.0"
 dependencies = [
- "clap",
- "dhat",
  "iguana-runtime",
- "log",
- "pprof",
  "rustc-hash 2.1.3",
  "serde_json",
 ]
@@ -1640,11 +1355,7 @@ dependencies = [
 name = "plus_group"
 version = "0.1.0"
 dependencies = [
- "clap",
- "dhat",
  "iguana-runtime",
- "log",
- "pprof",
  "rustc-hash 2.1.3",
  "serde_json",
 ]
@@ -1653,11 +1364,7 @@ dependencies = [
 name = "plus_with_sep"
 version = "0.1.0"
 dependencies = [
- "clap",
- "dhat",
  "iguana-runtime",
- "log",
- "pprof",
  "rustc-hash 2.1.3",
  "serde_json",
 ]
@@ -1703,11 +1410,7 @@ dependencies = [
 name = "precede_follow_restriction"
 version = "0.1.0"
 dependencies = [
- "clap",
- "dhat",
  "iguana-runtime",
- "log",
- "pprof",
  "rustc-hash 2.1.3",
  "serde_json",
 ]
@@ -1716,11 +1419,7 @@ dependencies = [
 name = "precede_restriction"
 version = "0.1.0"
 dependencies = [
- "clap",
- "dhat",
  "iguana-runtime",
- "log",
- "pprof",
  "rustc-hash 2.1.3",
  "serde_json",
 ]
@@ -1729,11 +1428,7 @@ dependencies = [
 name = "precede_restriction_lexical"
 version = "0.1.0"
 dependencies = [
- "clap",
- "dhat",
  "iguana-runtime",
- "log",
- "pprof",
  "rustc-hash 2.1.3",
  "serde_json",
 ]
@@ -1742,11 +1437,7 @@ dependencies = [
 name = "prefix_above_binary"
 version = "0.1.0"
 dependencies = [
- "clap",
- "dhat",
  "iguana-runtime",
- "log",
- "pprof",
  "rustc-hash 2.1.3",
  "serde_json",
 ]
@@ -1755,11 +1446,7 @@ dependencies = [
 name = "prefix_postfix_priority"
 version = "0.1.0"
 dependencies = [
- "clap",
- "dhat",
  "iguana-runtime",
- "log",
- "pprof",
  "rustc-hash 2.1.3",
  "serde_json",
 ]
@@ -1845,11 +1532,7 @@ checksum = "d6f6ff9a378485b298a5286656da665ba74413d36db0979633275d2e708145d4"
 name = "regex_composition"
 version = "0.1.0"
 dependencies = [
- "clap",
- "dhat",
  "iguana-runtime",
- "log",
- "pprof",
  "rustc-hash 2.1.3",
  "serde_json",
 ]
@@ -1974,11 +1657,7 @@ checksum = "f8fadd59c855ef2080decdef8ff161eb6661b86933c9d82e5ba29dc602a55aba"
 name = "simple_alt"
 version = "0.1.0"
 dependencies = [
- "clap",
- "dhat",
  "iguana-runtime",
- "log",
- "pprof",
  "rustc-hash 2.1.3",
  "serde_json",
 ]
@@ -2036,11 +1715,7 @@ checksum = "6ce2be8dc25455e1f91df71bfa12ad37d7af1092ae736f3a6cd0e37bc7810596"
 name = "star"
 version = "0.1.0"
 dependencies = [
- "clap",
- "dhat",
  "iguana-runtime",
- "log",
- "pprof",
  "rustc-hash 2.1.3",
  "serde_json",
 ]
@@ -2049,11 +1724,7 @@ dependencies = [
 name = "star_with_sep"
 version = "0.1.0"
 dependencies = [
- "clap",
- "dhat",
  "iguana-runtime",
- "log",
- "pprof",
  "rustc-hash 2.1.3",
  "serde_json",
 ]
@@ -2158,11 +1829,7 @@ checksum = "3bf63baf9f5039dadc247375c29eb13706706cfde997d0330d05aa63a77d8820"
 name = "token_only_unsafe"
 version = "0.1.0"
 dependencies = [
- "clap",
- "dhat",
  "iguana-runtime",
- "log",
- "pprof",
  "rustc-hash 2.1.3",
  "serde_json",
 ]

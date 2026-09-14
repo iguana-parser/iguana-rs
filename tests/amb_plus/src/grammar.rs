@@ -18,6 +18,7 @@ pub const START_X: NonterminalId = NonterminalId(9);
 pub const START_Y: NonterminalId = NonterminalId(10);
 pub struct AmbPlusGrammar;
 impl Grammar for AmbPlusGrammar {
+    const NAME: &'static str = "AmbPlus";
     const NONTERMINALS: &'static [Nonterminal] = &[
         Nonterminal {
             name: "S",

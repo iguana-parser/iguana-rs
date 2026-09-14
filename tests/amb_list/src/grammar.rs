@@ -14,6 +14,7 @@ pub const START_S: NonterminalId = NonterminalId(5);
 pub const START_A: NonterminalId = NonterminalId(6);
 pub struct AmbListGrammar;
 impl Grammar for AmbListGrammar {
+    const NAME: &'static str = "AmbList";
     const NONTERMINALS: &'static [Nonterminal] = &[
         Nonterminal {
             name: "S",

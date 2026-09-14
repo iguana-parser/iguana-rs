@@ -13,6 +13,7 @@ pub const START_SEP: NonterminalId = NonterminalId(4);
 pub const START_BASE: NonterminalId = NonterminalId(5);
 pub struct PlusExceptGrammar;
 impl Grammar for PlusExceptGrammar {
+    const NAME: &'static str = "PlusExcept";
     const NONTERMINALS: &'static [Nonterminal] = &[
         Nonterminal {
             name: "Sep",

@@ -14,6 +14,7 @@ pub const START_S: NonterminalId = NonterminalId(5);
 pub const START_A: NonterminalId = NonterminalId(6);
 pub struct StarGrammar;
 impl Grammar for StarGrammar {
+    const NAME: &'static str = "Star";
     const NONTERMINALS: &'static [Nonterminal] = &[
         Nonterminal {
             name: "S",

@@ -72,6 +72,7 @@ pub const START_RANGE: NonterminalId = NonterminalId(63);
 pub const SYMBOL: NonterminalId = NonterminalId(64);
 pub struct IggyGrammar;
 impl Grammar for IggyGrammar {
+    const NAME: &'static str = "Iggy";
     const NONTERMINALS: &'static [Nonterminal] = &[
         Nonterminal {
             name: "Grammar",
@@ -352,7 +353,6 @@ impl Grammar for IggyGrammar {
         "CharClass",
         "RangeElement",
         "Range",
-        "Layout",
     ];
     const TERMINALS: &'static [Terminal] = &[
         Terminal { name: "Keyword" },

@@ -11,6 +11,7 @@ pub const START_E: NonterminalId = NonterminalId(2);
 pub const E: NonterminalId = NonterminalId(3);
 pub struct PrefixPostfixPriorityGrammar;
 impl Grammar for PrefixPostfixPriorityGrammar {
+    const NAME: &'static str = "PrefixPostfixPriority";
     const NONTERMINALS: &'static [Nonterminal] = &[
         Nonterminal {
             name: "S",

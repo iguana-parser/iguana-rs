@@ -13,6 +13,12 @@ categories = ["parsing"]
 [features]
 debug-trace = []
 instrument = []
+# The command-line interface of a generated parser (`cli::main`).
+cli = ["dep:clap"]
+# Heap profiling with dhat and the sampling profiler behind `--profile`, both
+# part of the command-line interface.
+dhat-heap = ["cli", "dep:dhat"]
+profile = ["cli", "dep:pprof"]
 
 [lints]
 workspace = true
@@ -33,3 +39,6 @@ serde_json.workspace = true
 specta.workspace = true
 web-time.workspace = true
 env_logger = "0.11.8"
+clap = { workspace = true, optional = true }
+dhat = { version = "0.3", optional = true }
+pprof = { version = "0.15", features = ["flamegraph"], optional = true }

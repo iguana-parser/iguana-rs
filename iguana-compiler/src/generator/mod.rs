@@ -163,7 +163,7 @@ pub struct GenerateResult {
 
 mod cargo_toml_gen;
 mod format;
-pub use cargo_toml_gen::pinned_runtime_dependency;
+pub use cargo_toml_gen::{pinned_cli_runtime_dependency, pinned_runtime_dependency};
 pub use format::format_files;
 mod gen_config_file;
 pub use gen_config_file::GenConfigFile;

@@ -9,7 +9,7 @@ use clap::{Parser, Subcommand};
 use iguana_compiler::{
     generator::{
         GenConfig, GenConfigFile, GenerateResult, generate_scaffold, generate_sources,
-        generate_wasm, pinned_runtime_dependency,
+        generate_wasm, pinned_cli_runtime_dependency,
     },
     grammar::def::Grammar,
     iggy::parse_grammar,
@@ -104,20 +104,21 @@ fn bootstrap() -> io::Result<()> {
 
 /// Adapt a generated `cli=true` Cargo.toml to workspace membership: the
 /// pinned crates.io dependency on iguana-runtime becomes a workspace
-/// dependency. Returns the patched text.
+/// dependency, keeping the `cli` feature. Returns the patched text.
 ///
 /// Each substitution asserts it actually fired; if a `cargo_toml_gen` template
 /// change breaks a pattern, the caller fails loudly instead of silently leaving
 /// a broken Cargo.toml.
 fn patch_workspace_cargo_toml(original: &str) -> io::Result<String> {
     let replaced = original.replace(
-        &pinned_runtime_dependency(),
-        "iguana-runtime.workspace = true",
+        &pinned_cli_runtime_dependency(),
+        "iguana-runtime = { workspace = true, features = [\"cli\"] }",
     );
     if replaced == original {
         return Err(io::Error::other(
-            "Cargo.toml: `iguana-runtime = \"=<version>\"` pattern not found; \
-             cargo_toml_gen template may have changed and this patch needs updating",
+            "Cargo.toml: `iguana-runtime = { version = \"=<version>\", features = [\"cli\"] }` \
+             pattern not found; cargo_toml_gen template may have changed and this patch \
+             needs updating",
         ));
     }
 

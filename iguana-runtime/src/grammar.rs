@@ -21,13 +21,15 @@ pub struct Slot {
 
 /// The runtime's view of `iguana_compiler::grammar::def::Grammar`. It holds
 /// only the information the runtime needs. The generator implements the trait
-/// once per grammar, and the generated CLI, the wasm wrapper, and the parser
+/// once per grammar, and the runtime CLI, the wasm wrapper, and the parser
 /// reach the grammar's tables and lookups through it.
 pub trait Grammar {
+    /// The name of the grammar.
+    const NAME: &'static str;
     /// Every nonterminal, indexed by `NonterminalId`.
     const NONTERMINALS: &'static [Nonterminal];
     /// The names of the nonterminals the grammar text declares, in source
-    /// order.
+    /// order, without the layout nonterminal. These are the entry points.
     const DISPLAY_ORDER: &'static [&'static str];
     /// Every terminal, indexed by `TerminalId`. The last two entries are the
     /// synthetic epsilon and end-of-file terminals.
@@ -43,6 +45,14 @@ pub trait Grammar {
 
     /// The id of the nonterminal with the given name.
     fn nonterminal_id(name: &str) -> Option<NonterminalId>;
+
+    /// The id of the start wrapper for a nonterminal, which is the entry point
+    /// for parsing from the nonterminal. For example, the id of the `StartA`
+    /// wrapper for the nonterminal `A`. Derived nonterminals and the layout
+    /// nonterminal do not have start wrappers.
+    fn start_nonterminal_id(name: &str) -> Option<NonterminalId> {
+        Self::nonterminal_id(&format!("Start{name}"))
+    }
 
     fn nonterminal_display_name(nonterminal_id: NonterminalId) -> &'static str {
         Self::NONTERMINALS[nonterminal_id.index()].display_name

@@ -11,6 +11,7 @@ pub const START_TYPE: NonterminalId = NonterminalId(2);
 pub const E: NonterminalId = NonterminalId(3);
 pub struct AmbRootNestedGrammar;
 impl Grammar for AmbRootNestedGrammar {
+    const NAME: &'static str = "AmbRootNested";
     const NONTERMINALS: &'static [Nonterminal] = &[
         Nonterminal {
             name: "Type",

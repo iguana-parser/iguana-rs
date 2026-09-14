@@ -14,6 +14,7 @@ pub const START_S: NonterminalId = NonterminalId(5);
 pub const START_ID: NonterminalId = NonterminalId(6);
 pub struct RegexCompositionGrammar;
 impl Grammar for RegexCompositionGrammar {
+    const NAME: &'static str = "RegexComposition";
     const NONTERMINALS: &'static [Nonterminal] = &[
         Nonterminal {
             name: "S",

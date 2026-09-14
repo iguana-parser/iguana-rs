@@ -11,6 +11,7 @@ pub const START_S: NonterminalId = NonterminalId(2);
 pub const START_TYPE: NonterminalId = NonterminalId(3);
 pub struct ExactKeywordGenericsGrammar;
 impl Grammar for ExactKeywordGenericsGrammar {
+    const NAME: &'static str = "ExactKeywordGenerics";
     const NONTERMINALS: &'static [Nonterminal] = &[
         Nonterminal {
             name: "S",

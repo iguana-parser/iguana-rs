@@ -11,6 +11,7 @@ pub const START_S: NonterminalId = NonterminalId(2);
 pub const START_X: NonterminalId = NonterminalId(3);
 pub struct LongestMatchGrammar;
 impl Grammar for LongestMatchGrammar {
+    const NAME: &'static str = "LongestMatch";
     const NONTERMINALS: &'static [Nonterminal] = &[
         Nonterminal {
             name: "S",

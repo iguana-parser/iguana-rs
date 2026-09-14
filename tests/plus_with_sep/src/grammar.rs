@@ -12,6 +12,7 @@ pub const START_S: NonterminalId = NonterminalId(3);
 pub const START_A: NonterminalId = NonterminalId(4);
 pub struct PlusWithSepGrammar;
 impl Grammar for PlusWithSepGrammar {
+    const NAME: &'static str = "PlusWithSep";
     const NONTERMINALS: &'static [Nonterminal] = &[
         Nonterminal {
             name: "S",

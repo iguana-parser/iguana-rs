@@ -13,6 +13,7 @@ pub const START_S: NonterminalId = NonterminalId(4);
 pub const START_WORD: NonterminalId = NonterminalId(5);
 pub struct LayoutAwareFollowNoLayoutGrammar;
 impl Grammar for LayoutAwareFollowNoLayoutGrammar {
+    const NAME: &'static str = "LayoutAwareFollowNoLayout";
     const NONTERMINALS: &'static [Nonterminal] = &[
         Nonterminal {
             name: "S",

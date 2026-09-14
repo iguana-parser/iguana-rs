@@ -11,6 +11,7 @@ pub const START_S: NonterminalId = NonterminalId(2);
 pub const START_ID: NonterminalId = NonterminalId(3);
 pub struct PrecedeFollowRestrictionGrammar;
 impl Grammar for PrecedeFollowRestrictionGrammar {
+    const NAME: &'static str = "PrecedeFollowRestriction";
     const NONTERMINALS: &'static [Nonterminal] = &[
         Nonterminal {
             name: "S",

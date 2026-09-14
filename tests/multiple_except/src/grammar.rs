@@ -11,6 +11,7 @@ pub const START_SYNTAX_IDENTIFIER: NonterminalId = NonterminalId(2);
 pub const START_LEXICAL_IDENTIFIER: NonterminalId = NonterminalId(3);
 pub struct MultipleExceptGrammar;
 impl Grammar for MultipleExceptGrammar {
+    const NAME: &'static str = "MultipleExcept";
     const NONTERMINALS: &'static [Nonterminal] = &[
         Nonterminal {
             name: "SyntaxIdentifier",

@@ -177,6 +177,7 @@ pub const OPT_2: NonterminalId = NonterminalId(168);
 pub const OPT_3: NonterminalId = NonterminalId(169);
 pub struct IndirectBinaryGrammar;
 impl Grammar for IndirectBinaryGrammar {
+    const NAME: &'static str = "IndirectBinary";
     const NONTERMINALS: &'static [Nonterminal] = &[
         Nonterminal {
             name: "S",

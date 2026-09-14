@@ -9,6 +9,7 @@ pub const A: NonterminalId = NonterminalId(0);
 pub const START_A: NonterminalId = NonterminalId(1);
 pub struct LeftRecursiveListGrammar;
 impl Grammar for LeftRecursiveListGrammar {
+    const NAME: &'static str = "LeftRecursiveList";
     const NONTERMINALS: &'static [Nonterminal] = &[
         Nonterminal {
             name: "A",

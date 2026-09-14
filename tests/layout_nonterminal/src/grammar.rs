@@ -14,6 +14,7 @@ pub const STAR_0: NonterminalId = NonterminalId(5);
 pub const START_S: NonterminalId = NonterminalId(6);
 pub struct LayoutNonterminalGrammar;
 impl Grammar for LayoutNonterminalGrammar {
+    const NAME: &'static str = "LayoutNonterminal";
     const NONTERMINALS: &'static [Nonterminal] = &[
         Nonterminal {
             name: "S",
@@ -44,7 +45,7 @@ impl Grammar for LayoutNonterminalGrammar {
             display_name: "S",
         },
     ];
-    const DISPLAY_ORDER: &'static [&'static str] = &["S", "Layout"];
+    const DISPLAY_ORDER: &'static [&'static str] = &["S"];
     const TERMINALS: &'static [Terminal] = &[
         Terminal { name: "WhiteSpace" },
         Terminal { name: "Comment" },

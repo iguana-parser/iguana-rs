@@ -13,6 +13,7 @@ pub const START_ID: NonterminalId = NonterminalId(4);
 pub const START_NAME: NonterminalId = NonterminalId(5);
 pub struct ExceptNonterminalLongestMatchGrammar;
 impl Grammar for ExceptNonterminalLongestMatchGrammar {
+    const NAME: &'static str = "ExceptNonterminalLongestMatch";
     const NONTERMINALS: &'static [Nonterminal] = &[
         Nonterminal {
             name: "S",

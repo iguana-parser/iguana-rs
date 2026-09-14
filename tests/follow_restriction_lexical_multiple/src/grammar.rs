@@ -12,6 +12,7 @@ pub const START_S: NonterminalId = NonterminalId(3);
 pub const START_ELEMENT: NonterminalId = NonterminalId(4);
 pub struct FollowRestrictionLexicalMultipleGrammar;
 impl Grammar for FollowRestrictionLexicalMultipleGrammar {
+    const NAME: &'static str = "FollowRestrictionLexicalMultiple";
     const NONTERMINALS: &'static [Nonterminal] = &[
         Nonterminal {
             name: "S",

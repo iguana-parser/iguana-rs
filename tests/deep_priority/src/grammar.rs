@@ -11,6 +11,7 @@ pub const START_E: NonterminalId = NonterminalId(2);
 pub const E: NonterminalId = NonterminalId(3);
 pub struct DeepPriorityGrammar;
 impl Grammar for DeepPriorityGrammar {
+    const NAME: &'static str = "DeepPriority";
     const NONTERMINALS: &'static [Nonterminal] = &[
         Nonterminal {
             name: "S",

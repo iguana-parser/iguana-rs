@@ -28,6 +28,7 @@ pub const START_UNEXPECTED_FIRST: NonterminalId = NonterminalId(19);
 pub const START_EXCLUDED_FIRST: NonterminalId = NonterminalId(20);
 pub struct ErrorUnionGrammar;
 impl Grammar for ErrorUnionGrammar {
+    const NAME: &'static str = "ErrorUnion";
     const NONTERMINALS: &'static [Nonterminal] = &[
         Nonterminal {
             name: "T",
@@ -123,7 +124,6 @@ impl Grammar for ErrorUnionGrammar {
         "BeforeQ",
         "UnexpectedFirst",
         "ExcludedFirst",
-        "Layout",
     ];
     const TERMINALS: &'static [Terminal] = &[
         Terminal { name: "Word" },

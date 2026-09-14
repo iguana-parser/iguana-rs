@@ -12,6 +12,7 @@ pub const START_D: NonterminalId = NonterminalId(3);
 pub const START_NUM: NonterminalId = NonterminalId(4);
 pub struct GroupSingleElementGrammar;
 impl Grammar for GroupSingleElementGrammar {
+    const NAME: &'static str = "GroupSingleElement";
     const NONTERMINALS: &'static [Nonterminal] = &[
         Nonterminal {
             name: "D",

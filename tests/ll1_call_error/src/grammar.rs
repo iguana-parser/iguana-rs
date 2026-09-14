@@ -14,6 +14,7 @@ pub const STAR_0: NonterminalId = NonterminalId(5);
 pub const START_S: NonterminalId = NonterminalId(6);
 pub struct Ll1CallErrorGrammar;
 impl Grammar for Ll1CallErrorGrammar {
+    const NAME: &'static str = "Ll1CallError";
     const NONTERMINALS: &'static [Nonterminal] = &[
         Nonterminal {
             name: "S",
@@ -44,7 +45,7 @@ impl Grammar for Ll1CallErrorGrammar {
             display_name: "S",
         },
     ];
-    const DISPLAY_ORDER: &'static [&'static str] = &["S", "Layout"];
+    const DISPLAY_ORDER: &'static [&'static str] = &["S"];
     const TERMINALS: &'static [Terminal] = &[
         Terminal { name: "Word" },
         Terminal { name: "WS" },

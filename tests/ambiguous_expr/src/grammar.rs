@@ -11,6 +11,7 @@ pub const START_S: NonterminalId = NonterminalId(2);
 pub const START_E: NonterminalId = NonterminalId(3);
 pub struct AmbiguousExprGrammar;
 impl Grammar for AmbiguousExprGrammar {
+    const NAME: &'static str = "AmbiguousExpr";
     const NONTERMINALS: &'static [Nonterminal] = &[
         Nonterminal {
             name: "S",

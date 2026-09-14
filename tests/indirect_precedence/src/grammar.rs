@@ -15,6 +15,7 @@ pub const F: NonterminalId = NonterminalId(6);
 pub const K: NonterminalId = NonterminalId(7);
 pub struct IndirectPrecedenceGrammar;
 impl Grammar for IndirectPrecedenceGrammar {
+    const NAME: &'static str = "IndirectPrecedence";
     const NONTERMINALS: &'static [Nonterminal] = &[
         Nonterminal {
             name: "S",

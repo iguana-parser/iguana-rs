@@ -9,6 +9,7 @@ pub const S: NonterminalId = NonterminalId(0);
 pub const START_S: NonterminalId = NonterminalId(1);
 pub struct LayoutAwareFollowMidruleGrammar;
 impl Grammar for LayoutAwareFollowMidruleGrammar {
+    const NAME: &'static str = "LayoutAwareFollowMidrule";
     const NONTERMINALS: &'static [Nonterminal] = &[
         Nonterminal {
             name: "S",

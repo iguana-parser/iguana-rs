@@ -9,6 +9,7 @@ pub const S: NonterminalId = NonterminalId(0);
 pub const START_S: NonterminalId = NonterminalId(1);
 pub struct KeywordLabelsGrammar;
 impl Grammar for KeywordLabelsGrammar {
+    const NAME: &'static str = "KeywordLabels";
     const NONTERMINALS: &'static [Nonterminal] = &[
         Nonterminal {
             name: "S",

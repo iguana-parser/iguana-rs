@@ -9,6 +9,7 @@ pub const DECL: NonterminalId = NonterminalId(0);
 pub const START_DECL: NonterminalId = NonterminalId(1);
 pub struct ExactKeywordContextualGrammar;
 impl Grammar for ExactKeywordContextualGrammar {
+    const NAME: &'static str = "ExactKeywordContextual";
     const NONTERMINALS: &'static [Nonterminal] = &[
         Nonterminal {
             name: "Decl",

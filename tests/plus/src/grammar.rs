@@ -12,6 +12,7 @@ pub const START_S: NonterminalId = NonterminalId(3);
 pub const START_A: NonterminalId = NonterminalId(4);
 pub struct PlusGrammar;
 impl Grammar for PlusGrammar {
+    const NAME: &'static str = "Plus";
     const NONTERMINALS: &'static [Nonterminal] = &[
         Nonterminal {
             name: "S",

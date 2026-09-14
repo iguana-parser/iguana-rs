@@ -136,7 +136,7 @@ impl<'a> ParserGen<'a> {
         let add_intermediate_node_child_method = self.gen_add_intermediate_node_child_method();
         let intermediate_nodes_children_method = self.gen_intermediate_nodes_children_map_method();
         let nonterminal_nodes_children_method = self.gen_nonterminal_nodes_children_map_method();
-        let add_trace_event_method = Self::gen_add_trace_event_method();
+        let trace_methods = Self::gen_trace_methods();
         let start_env_method = self.gen_start_env_method();
         let ambiguity_node_added_method = self.gen_ambiguity_node_added_method();
         let add_start_gss_node_method = self.gen_add_start_gss_node_method();
@@ -159,6 +159,10 @@ impl<'a> ParserGen<'a> {
             #binding_consts
             impl<'i, 'arena> Parser<'i, 'arena> for #grammar_name_ident<'i, 'arena> {
                 type Grammar = #grammar_type;
+                type ConcreteParser<'input, 'parser_arena> = #grammar_name_ident<'input, 'parser_arena>;
+                fn new(input: &'i Input, parser_arena: &'arena Arena) -> Self {
+                    #grammar_name_ident::new(input, parser_arena)
+                }
                 #tree_hook
                 #unsafe_const
                 #execute_method
@@ -187,7 +191,7 @@ impl<'a> ParserGen<'a> {
                 #add_nonterminal_node_child_method
                 #intermediate_nodes_children_method
                 #nonterminal_nodes_children_method
-                #add_trace_event_method
+                #trace_methods
                 #start_env_method
                 #ambiguity_node_added_method
                 #add_start_gss_node_method
@@ -2413,13 +2417,21 @@ impl<'a> ParserGen<'a> {
         }
     }
 
-    fn gen_add_trace_event_method() -> TokenStream {
+    fn gen_trace_methods() -> TokenStream {
         quote! {
+            #[cfg(feature = "debug-trace")]
+            fn enable_trace(&mut self) {
+                self.trace_events = Some(Vec::new());
+            }
             #[cfg(feature = "debug-trace")]
             fn add_trace_event(&mut self, event: TraceEvent) {
                 if let Some(trace_events) = &mut self.trace_events {
                     trace_events.push(event);
                 }
+            }
+            #[cfg(feature = "debug-trace")]
+            fn trace_events(&self) -> &[TraceEvent] {
+                self.trace_events.as_deref().unwrap_or(&[])
             }
         }
     }

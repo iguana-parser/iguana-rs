@@ -15,6 +15,7 @@ pub const LAMBDA: NonterminalId = NonterminalId(6);
 pub const BODY: NonterminalId = NonterminalId(7);
 pub struct IndirectPrefixGrammar;
 impl Grammar for IndirectPrefixGrammar {
+    const NAME: &'static str = "IndirectPrefix";
     const NONTERMINALS: &'static [Nonterminal] = &[
         Nonterminal {
             name: "S",

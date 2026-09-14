@@ -9,6 +9,7 @@ pub const S: NonterminalId = NonterminalId(0);
 pub const START_S: NonterminalId = NonterminalId(1);
 pub struct PrecedeRestrictionLexicalGrammar;
 impl Grammar for PrecedeRestrictionLexicalGrammar {
+    const NAME: &'static str = "PrecedeRestrictionLexical";
     const NONTERMINALS: &'static [Nonterminal] = &[
         Nonterminal {
             name: "S",

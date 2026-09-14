@@ -34,6 +34,11 @@ use rustc_hash::FxHashMap;
 use std::cell::OnceCell;
 impl<'i, 'arena> Parser<'i, 'arena> for FollowRestrictionLexicalMultipleParser<'i, 'arena> {
     type Grammar = FollowRestrictionLexicalMultipleGrammar;
+    type ConcreteParser<'input, 'parser_arena> =
+        FollowRestrictionLexicalMultipleParser<'input, 'parser_arena>;
+    fn new(input: &'i Input, parser_arena: &'arena Arena) -> Self {
+        FollowRestrictionLexicalMultipleParser::new(input, parser_arena)
+    }
     type Tree<'a> = ParseTree<'a>;
     fn build_tree<'a>(&self, root: SPPFNodeId, tree_arena: &'a Arena) -> ParseTree<'a> {
         let builder = FollowRestrictionLexicalMultipleParseTreeBuilder::new(tree_arena);
@@ -582,10 +587,18 @@ impl<'i, 'arena> Parser<'i, 'arena> for FollowRestrictionLexicalMultipleParser<'
         })
     }
     #[cfg(feature = "debug-trace")]
+    fn enable_trace(&mut self) {
+        self.trace_events = Some(Vec::new());
+    }
+    #[cfg(feature = "debug-trace")]
     fn add_trace_event(&mut self, event: TraceEvent) {
         if let Some(trace_events) = &mut self.trace_events {
             trace_events.push(event);
         }
+    }
+    #[cfg(feature = "debug-trace")]
+    fn trace_events(&self) -> &[TraceEvent] {
+        self.trace_events.as_deref().unwrap_or(&[])
     }
     fn start_env(&mut self, _start: NonterminalId) -> Option<EnvId> {
         None

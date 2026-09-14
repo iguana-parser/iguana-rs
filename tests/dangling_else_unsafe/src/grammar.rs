@@ -17,6 +17,7 @@ pub const START_S: NonterminalId = NonterminalId(8);
 pub const START_STATEMENT: NonterminalId = NonterminalId(9);
 pub struct DanglingElseUnsafeGrammar;
 impl Grammar for DanglingElseUnsafeGrammar {
+    const NAME: &'static str = "DanglingElseUnsafe";
     const NONTERMINALS: &'static [Nonterminal] = &[
         Nonterminal {
             name: "S",
@@ -59,7 +60,7 @@ impl Grammar for DanglingElseUnsafeGrammar {
             display_name: "Statement",
         },
     ];
-    const DISPLAY_ORDER: &'static [&'static str] = &["S", "Statement", "Layout"];
+    const DISPLAY_ORDER: &'static [&'static str] = &["S", "Statement"];
     const TERMINALS: &'static [Terminal] = &[
         Terminal { name: "Cond" },
         Terminal { name: "Id" },

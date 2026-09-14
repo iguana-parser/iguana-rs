@@ -15,6 +15,7 @@ pub const POSTFIX: NonterminalId = NonterminalId(6);
 pub const BODY: NonterminalId = NonterminalId(7);
 pub struct IndirectPostfixGrammar;
 impl Grammar for IndirectPostfixGrammar {
+    const NAME: &'static str = "IndirectPostfix";
     const NONTERMINALS: &'static [Nonterminal] = &[
         Nonterminal {
             name: "S",

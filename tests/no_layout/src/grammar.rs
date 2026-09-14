@@ -12,6 +12,7 @@ pub const START_S: NonterminalId = NonterminalId(3);
 pub const START_ID: NonterminalId = NonterminalId(4);
 pub struct NoLayoutGrammar;
 impl Grammar for NoLayoutGrammar {
+    const NAME: &'static str = "NoLayout";
     const NONTERMINALS: &'static [Nonterminal] = &[
         Nonterminal {
             name: "S",

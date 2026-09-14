@@ -81,6 +81,7 @@ pub const START_OPTIONAL: NonterminalId = NonterminalId(72);
 pub const START_GROUPED: NonterminalId = NonterminalId(73);
 pub struct CyclesGrammar;
 impl Grammar for CyclesGrammar {
+    const NAME: &'static str = "Cycles";
     const NONTERMINALS: &'static [Nonterminal] = &[
         Nonterminal {
             name: "Direct",

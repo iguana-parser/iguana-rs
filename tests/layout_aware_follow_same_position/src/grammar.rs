@@ -9,6 +9,7 @@ pub const S: NonterminalId = NonterminalId(0);
 pub const START_S: NonterminalId = NonterminalId(1);
 pub struct LayoutAwareFollowSamePositionGrammar;
 impl Grammar for LayoutAwareFollowSamePositionGrammar {
+    const NAME: &'static str = "LayoutAwareFollowSamePosition";
     const NONTERMINALS: &'static [Nonterminal] = &[
         Nonterminal {
             name: "S",

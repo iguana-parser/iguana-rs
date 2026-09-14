@@ -12,6 +12,7 @@ pub const START_S: NonterminalId = NonterminalId(3);
 pub const START_A: NonterminalId = NonterminalId(4);
 pub struct OptGrammar;
 impl Grammar for OptGrammar {
+    const NAME: &'static str = "Opt";
     const NONTERMINALS: &'static [Nonterminal] = &[
         Nonterminal {
             name: "S",

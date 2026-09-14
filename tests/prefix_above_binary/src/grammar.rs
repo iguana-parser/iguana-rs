@@ -11,6 +11,7 @@ pub const START_E: NonterminalId = NonterminalId(2);
 pub const E: NonterminalId = NonterminalId(3);
 pub struct PrefixAboveBinaryGrammar;
 impl Grammar for PrefixAboveBinaryGrammar {
+    const NAME: &'static str = "PrefixAboveBinary";
     const NONTERMINALS: &'static [Nonterminal] = &[
         Nonterminal {
             name: "S",

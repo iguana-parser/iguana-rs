@@ -9,6 +9,7 @@ pub const S: NonterminalId = NonterminalId(0);
 pub const START_S: NonterminalId = NonterminalId(1);
 pub struct ExceptRegexReferenceGrammar;
 impl Grammar for ExceptRegexReferenceGrammar {
+    const NAME: &'static str = "ExceptRegexReference";
     const NONTERMINALS: &'static [Nonterminal] = &[
         Nonterminal {
             name: "S",

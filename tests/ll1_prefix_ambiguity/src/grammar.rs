@@ -11,6 +11,7 @@ pub const START_E: NonterminalId = NonterminalId(2);
 pub const START_EXPR: NonterminalId = NonterminalId(3);
 pub struct Ll1PrefixAmbiguityGrammar;
 impl Grammar for Ll1PrefixAmbiguityGrammar {
+    const NAME: &'static str = "Ll1PrefixAmbiguity";
     const NONTERMINALS: &'static [Nonterminal] = &[
         Nonterminal {
             name: "E",

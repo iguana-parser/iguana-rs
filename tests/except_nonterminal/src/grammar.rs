@@ -13,6 +13,7 @@ pub const START_ID: NonterminalId = NonterminalId(4);
 pub const START_NAME: NonterminalId = NonterminalId(5);
 pub struct ExceptNonterminalGrammar;
 impl Grammar for ExceptNonterminalGrammar {
+    const NAME: &'static str = "ExceptNonterminal";
     const NONTERMINALS: &'static [Nonterminal] = &[
         Nonterminal {
             name: "S",

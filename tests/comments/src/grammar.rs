@@ -9,6 +9,7 @@ pub const EXPR: NonterminalId = NonterminalId(0);
 pub const START_EXPR: NonterminalId = NonterminalId(1);
 pub struct CommentsGrammar;
 impl Grammar for CommentsGrammar {
+    const NAME: &'static str = "Comments";
     const NONTERMINALS: &'static [Nonterminal] = &[
         Nonterminal {
             name: "Expr",

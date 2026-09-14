@@ -9,6 +9,7 @@ pub const E: NonterminalId = NonterminalId(0);
 pub const START_E: NonterminalId = NonterminalId(1);
 pub struct ExpressionGrammar;
 impl Grammar for ExpressionGrammar {
+    const NAME: &'static str = "Expression";
     const NONTERMINALS: &'static [Nonterminal] = &[
         Nonterminal {
             name: "E",

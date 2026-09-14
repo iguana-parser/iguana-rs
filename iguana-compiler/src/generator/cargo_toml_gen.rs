@@ -6,18 +6,34 @@ use crate::{generator::GenConfig, grammar::def::Grammar, utils::to_snake_case};
 /// the crates.io release matching the generator's own version. A published
 /// version is immutable, so a parser keeps compiling against the runtime it
 /// was generated for, offline and vendored builds work, and a change to an
-/// unreleased runtime cannot reach a generated parser. Public because
-/// xtask's workspace patching replaces this exact line.
+/// unreleased runtime cannot reach a generated parser.
 pub fn pinned_runtime_dependency() -> String {
     format!("iguana-runtime = \"={}\"", env!("CARGO_PKG_VERSION"))
 }
 
+/// The `iguana-runtime` dependency line of the CLI shape: the pinned release
+/// with the runtime's `cli` feature, which holds the command-line interface
+/// the generated `main.rs` calls. Public because xtask's workspace patching
+/// replaces this exact line.
+pub fn pinned_cli_runtime_dependency() -> String {
+    format!(
+        "iguana-runtime = {{ version = \"={}\", features = [\"cli\"] }}",
+        env!("CARGO_PKG_VERSION")
+    )
+}
+
 /// The `iguana-runtime` dependency line for a generated Cargo.toml: a local
 /// path when `runtime_path` is set, otherwise the pinned crates.io release.
-fn runtime_dependency(runtime_path: Option<&Path>) -> String {
-    match runtime_path {
-        Some(path) => format!("iguana-runtime = {{ path = \"{}\" }}", path.display()),
-        None => pinned_runtime_dependency(),
+/// The CLI shape adds the runtime's `cli` feature.
+fn runtime_dependency(runtime_path: Option<&Path>, cli: bool) -> String {
+    match (runtime_path, cli) {
+        (Some(path), true) => format!(
+            "iguana-runtime = {{ path = \"{}\", features = [\"cli\"] }}",
+            path.display()
+        ),
+        (Some(path), false) => format!("iguana-runtime = {{ path = \"{}\" }}", path.display()),
+        (None, true) => pinned_cli_runtime_dependency(),
+        (None, false) => pinned_runtime_dependency(),
     }
 }
 
@@ -44,8 +60,8 @@ fn generated_source_features(extra: &[&str]) -> String {
 /// (`iguana-runtime`, `rustc-hash`, `serde_json`) and no `[[bin]]`, so the
 /// crate compiles for `wasm32` as a dependency of the wrapper crate.
 ///
-/// `cli` (without `wasm`) produces a full standalone-parser shape with CLI deps
-/// and a `src/main.rs` binary.
+/// `cli` (without `wasm`) produces a full standalone-parser shape with the
+/// runtime's `cli` feature and a `src/main.rs` binary.
 ///
 /// With neither flag, the output is a minimal lib-only shape that assumes the
 /// crate is a workspace member: deps come from `workspace = true`, the `[lib]`
@@ -75,7 +91,7 @@ pub fn generate(
 /// runtime and the serialization deps the wrapper itself uses.
 pub fn generate_wasm_wrapper(grammar: &Grammar, runtime_path: Option<&Path>) -> String {
     let name = to_snake_case(&grammar.name);
-    let runtime = runtime_dependency(runtime_path);
+    let runtime = runtime_dependency(runtime_path, false);
     format!(
         r#"
 # A self-contained workspace, so the bundle builds when dropped into a repo
@@ -103,7 +119,7 @@ serde_json = "1.0"
 
 /// The wasm lib shape, which adds no features.
 fn generate_wasm_lib(name: &str, runtime_path: Option<&Path>) -> (String, &'static [&'static str]) {
-    let runtime = runtime_dependency(runtime_path);
+    let runtime = runtime_dependency(runtime_path, false);
     let body = format!(
         r#"
 [package]
@@ -123,15 +139,15 @@ serde_json = "1.0"
     (body.trim().to_owned(), &[])
 }
 
-/// The standalone CLI shape. Its dhat and pprof dependencies are optional and
-/// named with `dep:`, so a build compiles them only under `dhat-heap` or
-/// `profile`.
+/// The standalone CLI shape. The command-line interface, its profilers
+/// included, lives in the runtime, so the shape only forwards the two
+/// profiling features to it.
 fn generate_full(
     name: &str,
     runtime_path: Option<&Path>,
     bin_name: Option<&str>,
 ) -> (String, &'static [&'static str]) {
-    let runtime = runtime_dependency(runtime_path);
+    let runtime = runtime_dependency(runtime_path, true);
     // The [[bin]] is always explicit. It lets bin_name decouple the binary
     // name from the crate name (a grammar like Java avoids a binary called
     // "java" that shadows the JDK), and test = false keeps cargo test and
@@ -151,17 +167,16 @@ path = "src/lib.rs"
 
 {bin_section}[dependencies]
 {runtime}
-clap = {{ version = "4.5.51", features = ["derive"] }}
-log = "0.4"
 rustc-hash = "2.1.1"
 serde_json = "1.0"
-dhat = {{ version = "0.3", optional = true }}
-pprof = {{ version = "0.15", features = ["flamegraph"], optional = true }}
     "#
     );
     (
         body.trim().to_owned(),
-        &["dhat-heap = [\"dep:dhat\"]", "profile = [\"dep:pprof\"]"],
+        &[
+            "dhat-heap = [\"iguana-runtime/dhat-heap\"]",
+            "profile = [\"iguana-runtime/profile\"]",
+        ],
     )
 }
 
@@ -200,7 +215,12 @@ mod tests {
     fn standalone_crate_pins_the_matching_runtime_release() {
         let expected = format!("iguana-runtime = \"={}\"", env!("CARGO_PKG_VERSION"));
         assert_eq!(pinned_runtime_dependency(), expected);
-        assert!(manifest(GenConfig::default()).contains(&expected));
+        let expected_cli = format!(
+            "iguana-runtime = {{ version = \"={}\", features = [\"cli\"] }}",
+            env!("CARGO_PKG_VERSION")
+        );
+        assert_eq!(pinned_cli_runtime_dependency(), expected_cli);
+        assert!(manifest(GenConfig::default()).contains(&expected_cli));
         assert!(
             manifest(GenConfig {
                 wasm: true,
@@ -245,16 +265,17 @@ mod tests {
         }
     }
 
-    /// The CLI shape is the only one with profiling dependencies. `dep:` keeps
-    /// them from becoming features that compile a dependency without switching
-    /// anything on.
+    /// The CLI shape is the only one with profiling features, and it forwards
+    /// them to the runtime rather than depending on the profilers itself.
     #[test]
     fn the_cli_shape_adds_only_its_profiling_features() {
         let full = manifest(GenConfig::default());
-        let expected =
-            generated_source_features(&["dhat-heap = [\"dep:dhat\"]", "profile = [\"dep:pprof\"]"]);
+        let expected = generated_source_features(&[
+            "dhat-heap = [\"iguana-runtime/dhat-heap\"]",
+            "profile = [\"iguana-runtime/profile\"]",
+        ]);
         assert!(full.contains(&expected), "{full}");
-        assert!(!full.contains("= [\"dhat\"]"), "{full}");
-        assert!(!full.contains("= [\"pprof\"]"), "{full}");
+        assert!(!full.contains("dhat = "), "{full}");
+        assert!(!full.contains("pprof = "), "{full}");
     }
 }

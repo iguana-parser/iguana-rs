@@ -23,6 +23,7 @@ pub const START_E: NonterminalId = NonterminalId(14);
 pub const START_F: NonterminalId = NonterminalId(15);
 pub struct AltSeqGrammar;
 impl Grammar for AltSeqGrammar {
+    const NAME: &'static str = "AltSeq";
     const NONTERMINALS: &'static [Nonterminal] = &[
         Nonterminal {
             name: "S",

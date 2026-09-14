@@ -12,6 +12,7 @@ pub const START_EXPR: NonterminalId = NonterminalId(3);
 pub const EXPR: NonterminalId = NonterminalId(4);
 pub struct ExcludeByLabelGrammar;
 impl Grammar for ExcludeByLabelGrammar {
+    const NAME: &'static str = "ExcludeByLabel";
     const NONTERMINALS: &'static [Nonterminal] = &[
         Nonterminal {
             name: "Plus_0",

@@ -11,6 +11,7 @@ pub const START_E: NonterminalId = NonterminalId(2);
 pub const E: NonterminalId = NonterminalId(3);
 pub struct AssocTestGrammar;
 impl Grammar for AssocTestGrammar {
+    const NAME: &'static str = "AssocTest";
     const NONTERMINALS: &'static [Nonterminal] = &[
         Nonterminal {
             name: "S",

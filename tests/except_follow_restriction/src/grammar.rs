@@ -9,6 +9,7 @@ pub const S: NonterminalId = NonterminalId(0);
 pub const START_S: NonterminalId = NonterminalId(1);
 pub struct ExceptFollowRestrictionGrammar;
 impl Grammar for ExceptFollowRestrictionGrammar {
+    const NAME: &'static str = "ExceptFollowRestriction";
     const NONTERMINALS: &'static [Nonterminal] = &[
         Nonterminal {
             name: "S",

@@ -33,10 +33,7 @@ pub fn generate(grammar: &Grammar) -> TokenStream {
         #[doc = r" An unrecognized start nonterminal cannot run at all, so it returns an error."]
         #[wasm_bindgen]
         pub fn parse(input: &str, start: &str) -> Result<String, JsError> {
-            // A start nonterminal A has a generated StartA wrapper that handles
-            // layout and EOF; fall back to A directly when it is not one.
-            let start_nonterminal_id = #grammar_type::nonterminal_id(&format!("Start{start}"))
-                .or_else(|| #grammar_type::nonterminal_id(start))
+            let start_nonterminal_id = #grammar_type::start_nonterminal_id(start)
                 .ok_or_else(|| JsError::new(&format!("unknown start nonterminal: {start}")))?;
 
             let input = Input::from(input);

@@ -16,6 +16,7 @@ pub const START_STMT: NonterminalId = NonterminalId(7);
 pub const START_EXPR: NonterminalId = NonterminalId(8);
 pub struct ExactKeywordGrammar;
 impl Grammar for ExactKeywordGrammar {
+    const NAME: &'static str = "ExactKeyword";
     const NONTERMINALS: &'static [Nonterminal] = &[
         Nonterminal {
             name: "Program",

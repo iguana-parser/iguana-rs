@@ -12,6 +12,7 @@ pub const START_S: NonterminalId = NonterminalId(3);
 pub const START_WORD: NonterminalId = NonterminalId(4);
 pub struct ExactKeywordNoLayoutGrammar;
 impl Grammar for ExactKeywordNoLayoutGrammar {
+    const NAME: &'static str = "ExactKeywordNoLayout";
     const NONTERMINALS: &'static [Nonterminal] = &[
         Nonterminal {
             name: "S",

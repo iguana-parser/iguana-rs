@@ -13,6 +13,7 @@ pub const F: NonterminalId = NonterminalId(4);
 pub const G: NonterminalId = NonterminalId(5);
 pub struct AssocSingleLevelGrammar;
 impl Grammar for AssocSingleLevelGrammar {
+    const NAME: &'static str = "AssocSingleLevel";
     const NONTERMINALS: &'static [Nonterminal] = &[
         Nonterminal {
             name: "StartE",

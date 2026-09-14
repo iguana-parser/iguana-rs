@@ -74,7 +74,7 @@ src/parser.rs          parse functions and parser state
 src/parse_tree.rs      typed parse-tree definitions and construction
 src/scanner.rs         scanner code for lexical rules
 src/lib.rs             public API and re-exports
-src/main.rs            CLI binary for the generated parser when enabled
+src/main.rs            CLI binary: a stub that runs the runtime's command-line interface, when enabled
 Cargo.toml             crate scaffolding
 ```
 
@@ -99,6 +99,13 @@ grammar-specific parser functions, node types, and parse-tree builder. The
 runtime's `Parser` trait is the contract between the runtime and the generated
 crate: the runtime implements the parsing algorithm as the trait's provided
 methods, and the generated parser implements its required methods.
+
+The runtime also holds the command-line interface of a generated parser,
+behind its `cli` feature. The generated `main.rs` is a stub that calls the
+interface with the crate's parser type, and the generated `Cargo.toml` enables
+the feature. The `dhat-heap` and `profile` features add the heap and sampling
+profilers to the interface. A crate generated without a CLI, such as a
+WebAssembly bundle, depends on the runtime without these features.
 
 Most runtime operations are on parser hot paths. New allocations, hashing, or
 trait dispatch in the runtime therefore require measurement and justification.

@@ -9,6 +9,7 @@ pub const S: NonterminalId = NonterminalId(0);
 pub const START_S: NonterminalId = NonterminalId(1);
 pub struct ExactKeywordLexicalSetGrammar;
 impl Grammar for ExactKeywordLexicalSetGrammar {
+    const NAME: &'static str = "ExactKeywordLexicalSet";
     const NONTERMINALS: &'static [Nonterminal] = &[
         Nonterminal {
             name: "S",

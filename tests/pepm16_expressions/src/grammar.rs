@@ -11,6 +11,7 @@ pub const START_E: NonterminalId = NonterminalId(2);
 pub const E: NonterminalId = NonterminalId(3);
 pub struct Pepm16ExpressionsGrammar;
 impl Grammar for Pepm16ExpressionsGrammar {
+    const NAME: &'static str = "Pepm16Expressions";
     const NONTERMINALS: &'static [Nonterminal] = &[
         Nonterminal {
             name: "S",
