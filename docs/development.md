@@ -224,10 +224,3 @@ rewrites: `#[comment = "..."]` becomes `//`, and `#[doc = "..."]` becomes
 
 `terrarium/src/bindings.ts` is also generated. Specta rewrites it when a debug
 build of the Terrarium backend starts.
-
-## Release checklist
-
-Before publishing 0.1.0, remove `--version 0.1.0-alpha` from the installation
-commands in the `iguana` and `iguana-lsp` READMEs and on the website's
-installation page. The explicit version is required while crates.io contains
-only prerelease versions.

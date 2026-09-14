@@ -17,6 +17,8 @@ use iguana_compiler::{
     validation::render_errors,
 };
 
+mod release;
+
 #[derive(Parser)]
 #[command(name = "xtask", about = "Iguana dev commands")]
 struct Cli {
@@ -26,6 +28,14 @@ struct Cli {
 
 #[derive(Subcommand)]
 enum Commands {
+    /// Helpers for the CI release workflow
+    Release {
+        /// Candidate checkout (the helper may be built from a newer workflow commit)
+        #[arg(long, global = true)]
+        root: Option<PathBuf>,
+        #[command(subcommand)]
+        command: release::Command,
+    },
     /// Regenerate the iggy bootstrap parser from iggy/iggy.iggy
     Bootstrap,
     /// Scaffold a new grammar test under `tests/<name>/`
@@ -76,6 +86,9 @@ enum Commands {
 fn main() -> io::Result<()> {
     let cli = Cli::parse();
     match cli.command {
+        Commands::Release { root, command } => {
+            release::run(command, root.as_deref().unwrap_or_else(|| workspace_root()))
+        }
         Commands::Bootstrap => bootstrap(),
         Commands::TestNew { name } => test_new(&name),
         Commands::TestRm { name } => test_rm(&name),
