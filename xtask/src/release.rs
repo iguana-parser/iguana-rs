@@ -12,6 +12,8 @@ use semver::Version;
 use serde_json::{Value, json};
 use toml_edit::{DocumentMut, Item};
 
+mod smoke;
+
 const PACKAGES: [&str; 5] = [
     "iguana-runtime",
     "iguana-iggy",
@@ -41,6 +43,15 @@ pub enum Command {
     Prepare { version: String },
     /// Check all publishable crates, exact internal pins, READMEs and lockfiles
     Check { version: String },
+    /// Install the packaged tools offline and exercise a generated parser
+    SmokePackages {
+        version: String,
+        commit: String,
+        /// Directory containing the five .crate archives from cargo package
+        packages: PathBuf,
+        /// New temporary directory outside the release checkout
+        directory: PathBuf,
+    },
     /// Reject tracked or untracked changes in the release checkout
     Clean,
     /// Write a release PR body with editable release notes
@@ -75,6 +86,12 @@ pub fn run(command: Command, root: &Path) -> io::Result<()> {
         }
         Command::Prepare { version } => prepare(root, &version),
         Command::Check { version } => check(root, &version),
+        Command::SmokePackages {
+            version,
+            commit,
+            packages,
+            directory,
+        } => smoke::run(root, &version, &commit, &packages, &directory),
         Command::Clean => clean(root),
         Command::Notes {
             version,
@@ -229,7 +246,9 @@ fn pr_body(
          Java grammar validation uses `iguana-parser/iguana-java-grammar@{java}`.\n\n\
          [Current release run]({run_url}).\n\n\
          Edit the notes between the markers before approving publication.\n\
-         Approve validation, merge, and publication in the Actions run.\n\n\
+         Preparation and validation run automatically. Review the diff and checks,\n\
+         then approve merging this exact candidate in the Actions run.\n\
+         Publication requires a separate approval after merging.\n\n\
          {NOTES_START}{notes}{NOTES_END}"
     );
     extract_notes(&body)?;

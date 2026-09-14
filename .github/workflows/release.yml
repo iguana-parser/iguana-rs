@@ -58,13 +58,13 @@ jobs:
         with:
           toolchain: ${{ env.RUST_TOOLCHAIN }}
       - uses: Swatinem/rust-cache@v2
-      - name: Require all four approval gates before preparing anything
+      - name: Require merge and publication approval gates
         env:
           GH_TOKEN: ${{ github.token }}
         # Separate environments make each approval independent. Check them
         # first so a missing environment cannot silently skip review.
         run: |
-          for stage in prepare validate merge publish; do
+          for stage in merge publish; do
             gh api "repos/$GITHUB_REPOSITORY/environments/release-$stage" > "$RUNNER_TEMP/environment.json"
             jq -e --arg actor "$GITHUB_ACTOR" '
               any(.protection_rules[];
@@ -124,7 +124,7 @@ jobs:
             echo "Candidate base: $BASE_COMMIT. Branch: $RELEASE_BRANCH."
             if [ -n "$CANDIDATE" ]; then echo "Resume PR #$RESUME_PR at $CANDIDATE."; fi
             echo "Java grammar: $JAVA_COMMIT. Its repository will not be modified."
-            echo 'Next approval: prepare the candidate PR, or resume it and refresh its validation metadata.'
+            echo 'Preparation and validation run automatically. The first approval is to merge the tested PR.'
           } >> "$GITHUB_STEP_SUMMARY"
       - uses: actions/upload-artifact@v4
         with:
@@ -133,9 +133,8 @@ jobs:
           if-no-files-found: error
 
   prepare:
-    name: 1 · Prepare release branch and notes
+    name: Prepare release PR automatically
     needs: plan
-    environment: release-prepare
     runs-on: ubuntu-latest
     timeout-minutes: 30
     outputs:
@@ -253,29 +252,20 @@ jobs:
           {
             echo "Review [release PR #$PR]($URL), including the version changes and editable notes."
             echo "Candidate: $COMMIT."
-            echo 'Next approval: run full CI and the Java golden/corpus tests against this candidate.'
+            echo 'Full CI, packaged installation and Java golden/corpus tests will now run automatically.'
+            echo 'The merge approval becomes available only after all checks pass.'
           } >> "$GITHUB_STEP_SUMMARY"
-
-  validate-approval:
-    name: 2 · Approve full CI and Java validation
-    needs: prepare
-    environment:
-      name: release-validate
-      url: ${{ needs.prepare.outputs.url }}
-    runs-on: ubuntu-latest
-    steps:
-      - run: echo 'Validation approved; full CI and release validation must both pass before merging.'
 
   full-ci:
     name: Full candidate CI
-    needs: [prepare, validate-approval]
+    needs: prepare
     uses: ./.github/workflows/ci.yml
     with:
       commit: ${{ needs.prepare.outputs.commit }}
 
   validate:
     name: Validate packages and Java grammar
-    needs: [plan, prepare, validate-approval]
+    needs: [plan, prepare]
     runs-on: ubuntu-latest
     timeout-minutes: 90
     steps:
@@ -320,7 +310,15 @@ jobs:
           done
       - name: Verify all five crate packages without uploading
         run: |
-          cargo publish --workspace --locked --dry-run
+          cargo package --locked -p iguana-runtime -p iguana-iggy -p iguana-compiler -p iguana -p iguana-lsp
+          "$RELEASE_HELPER" release --root "$GITHUB_WORKSPACE" clean
+      - name: Install packaged tools and run a generated parser before publication
+        env:
+          RELEASE_COMMIT: ${{ needs.prepare.outputs.commit }}
+        run: |
+          PACKAGE_DIR=$(cargo metadata --locked --no-deps --format-version 1 | jq -r '.target_directory + "/package"')
+          "$RELEASE_HELPER" release --root "$GITHUB_WORKSPACE" smoke-packages \
+            "$RELEASE_VERSION" "$RELEASE_COMMIT" "$PACKAGE_DIR" "$RUNNER_TEMP/package-smoke"
           "$RELEASE_HELPER" release --root "$GITHUB_WORKSPACE" clean
       - name: Check out the recorded Java grammar in temporary storage
         env:
@@ -358,12 +356,37 @@ jobs:
             echo 'The merge approval also requires every job in the full CI workflow to pass.'
           } >> "$GITHUB_STEP_SUMMARY"
 
-  merge:
-    name: 3 · Merge the tested release commit
+  review:
+    name: Summarize the tested PR for approval
     needs: [plan, prepare, validate, full-ci]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Explain the merge approval
+        env:
+          RELEASE_COMMIT: ${{ needs.prepare.outputs.commit }}
+          RELEASE_PR: ${{ needs.prepare.outputs.pr }}
+          PR_URL: ${{ needs.prepare.outputs.url }}
+          JAVA_COMMIT: ${{ needs.plan.outputs.java_commit }}
+        run: |
+          {
+            echo "## Ready to merge $RELEASE_VERSION"
+            echo
+            echo "Review [PR #$RELEASE_PR]($PR_URL) and its [complete diff]($PR_URL/files)."
+            echo "Tested candidate: $RELEASE_COMMIT."
+            echo
+            echo 'Passed: full CI, release metadata, generated sources, VS Code notices, all five crate packages, offline installation of both packaged tools, and a generated parser smoke test.'
+            echo "Java generation, build, golden files and corpus passed using grammar commit $JAVA_COMMIT."
+            echo
+            echo '**Approving release-merge fast-forwards main to this exact candidate.** It stops if main or the candidate branch has changed unexpectedly.'
+            echo 'Publication requires a separate approval after the merge. Review and edit the release notes in the PR before that approval.'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+  merge:
+    name: Approve merging PR ${{ needs.prepare.outputs.pr }} for ${{ inputs.version }}
+    needs: [plan, prepare, review]
     environment:
       name: release-merge
-      url: ${{ needs.prepare.outputs.url }}
+      url: ${{ needs.prepare.outputs.url }}/files
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -379,6 +402,8 @@ jobs:
           RELEASE_PR: ${{ needs.prepare.outputs.pr }}
           RELEASE_BRANCH: ${{ needs.plan.outputs.branch }}
           BASE_COMMIT: ${{ needs.plan.outputs.base_commit }}
+          PR_URL: ${{ needs.prepare.outputs.url }}
+          RELEASE_TAG: ${{ needs.plan.outputs.tag }}
         run: |
           test -n "$GH_TOKEN"
           gh auth setup-git
@@ -400,13 +425,23 @@ jobs:
             git push origin "$RELEASE_COMMIT:refs/heads/main"
           fi
           {
+            echo "## Ready to publish $RELEASE_VERSION"
+            echo
             echo "Validated candidate $RELEASE_COMMIT is on main."
-            echo 'Next approval: publish the five crates, tag the commit, verify fresh installs, publish the reviewed notes and delete the release branch.'
-            echo "Review the PR notes before approving. After a partial upload, retry this run or start a fresh run with version $RELEASE_VERSION and resume_pr=$RELEASE_PR."
+            echo "Review the [release notes in PR #$RELEASE_PR]($PR_URL) before approving release-publish."
+            echo
+            echo '**Approving release-publish authorizes these actions, in order:**'
+            echo
+            echo '1. Upload iguana-runtime, iguana-iggy, iguana-compiler, iguana and iguana-lsp to crates.io.'
+            echo "2. Create tag $RELEASE_TAG at $RELEASE_COMMIT."
+            echo '3. Verify installation and parser generation using the public crates.io packages and empty caches.'
+            echo "4. Publish the GitHub release titled $RELEASE_VERSION with the reviewed notes, then delete the completed release branch."
+            echo
+            echo "Crates are public as soon as they upload. A later failure stops the remaining steps; it does not undo uploads. Retry this run or start a fresh run with version $RELEASE_VERSION and resume_pr=$RELEASE_PR to recover using the same candidate."
           } >> "$GITHUB_STEP_SUMMARY"
 
   publish:
-    name: 4 · Publish release and verify installation
+    name: Approve publishing ${{ inputs.version }} to crates.io and GitHub
     needs: [plan, prepare, merge]
     environment:
       name: release-publish
@@ -468,7 +503,7 @@ jobs:
             gh api --method POST "repos/$GITHUB_REPOSITORY/git/refs" \
               -f "ref=refs/tags/$RELEASE_TAG" -f "sha=$RELEASE_COMMIT"
           fi
-      - name: Install and use the published crates with empty Cargo caches
+      - name: Verify the public crates.io installation with empty Cargo caches
         working-directory: ${{ runner.temp }}
         # No workspace config, path dependencies, build cache or release tokens.
         env:
