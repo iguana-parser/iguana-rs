@@ -16,7 +16,7 @@ code generation.
 ## Installation
 
 ```sh
-cargo install iguana --version 0.1.0-alpha.1
+cargo install iguana --version 0.1.0-alpha.2
 ```
 
 Create a project:
