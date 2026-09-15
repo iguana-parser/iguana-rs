@@ -74,7 +74,7 @@ pub(super) fn review(release: &Value, version: &str, commit: &str) -> io::Result
         release["body"]
             .as_str()
             .is_some_and(|body| !body.trim().is_empty()),
-        "Save nonempty release notes in the draft editor before approving publication",
+        "Release notes cannot be empty. Open Releases, edit the draft with the pencil button, and click Save draft before approving publication",
     )
 }
 

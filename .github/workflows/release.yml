@@ -483,7 +483,7 @@ jobs:
             echo
             echo '**Approve release-merge here in Actions. Leave the PR as a draft.** The workflow marks it ready and fast-forwards main to this exact candidate, preserving a single release commit.'
             echo 'It stops if main or the candidate branch has changed unexpectedly.'
-            echo 'After merging, the workflow opens a separate draft release for editing the notes. Publication requires a second approval after you save that draft.'
+            echo "After merging, the workflow creates a draft on the [Releases page](https://github.com/$GITHUB_REPOSITORY/releases). Edit and save its notes before approving publication."
           } >> "$GITHUB_STEP_SUMMARY"
 
   merge:
@@ -541,17 +541,18 @@ jobs:
           fi
           {
             echo "Validated candidate $RELEASE_COMMIT is on main."
-            echo 'Next, the workflow prepares a separate draft release and links to its notes editor. It then waits for publication approval.'
+            echo 'Next, the workflow prepares a separate draft and links to the Releases page. It then waits for publication approval after you edit and save the notes.'
           } >> "$GITHUB_STEP_SUMMARY"
 
   draft:
-    name: Prepare release notes in the GitHub draft editor
+    name: Prepare the draft and instructions for publication approval
     needs: [plan, prepare, merge]
     runs-on: ubuntu-latest
     timeout-minutes: 10
     outputs:
       release_id: ${{ steps.draft.outputs.release_id }}
-      editor_url: ${{ steps.draft.outputs.editor_url }}
+      releases_url: ${{ steps.draft.outputs.releases_url }}
+      approval_name: ${{ steps.draft.outputs.approval_name }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -603,20 +604,35 @@ jobs:
           [[ "$RELEASE_ID" =~ ^[1-9][0-9]*$ ]]
           URL=$(jq -r .html_url "$RUNNER_TEMP/release.json")
           [[ "$URL" == "https://github.com/$GITHUB_REPOSITORY/releases/tag/"* ]]
-          EDITOR_URL=$(jq -r '.html_url | sub("/releases/tag/"; "/releases/edit/")' "$RUNNER_TEMP/release.json")
+          # Saving an untagged draft changes its editor URL. The Releases
+          # page always provides the current edit link for the same draft.
+          RELEASES_URL="https://github.com/$GITHUB_REPOSITORY/releases"
+          DRAFT=$(jq -r '.draft == true' "$RUNNER_TEMP/release.json")
           echo "release_id=$RELEASE_ID" >> "$GITHUB_OUTPUT"
-          echo "editor_url=$EDITOR_URL" >> "$GITHUB_OUTPUT"
+          echo "releases_url=$RELEASES_URL" >> "$GITHUB_OUTPUT"
+          if [ "$DRAFT" = true ]; then
+            echo "approval_name=Save notes in Releases, then approve publishing $RELEASE_VERSION" >> "$GITHUB_OUTPUT"
+            echo "::notice title=Edit release notes before approving publication::Open $RELEASES_URL and click the pencil button for draft $RELEASE_VERSION. Edit the notes and Save draft, then approve release-publish in this run."
+          else
+            echo "approval_name=Approve completing publication of $RELEASE_VERSION" >> "$GITHUB_OUTPUT"
+          fi
           {
-            echo "## Edit release notes for $RELEASE_VERSION"
-            echo
-            if jq -e '.draft == true' "$RUNNER_TEMP/release.json" > /dev/null; then
-              echo "1. Open the [release notes editor]($EDITOR_URL). The generated notes are already loaded."
+            if [ "$DRAFT" = true ]; then
+              echo "## Before approving release-publish: edit the notes for $RELEASE_VERSION"
+              echo
+              echo "**[Open Releases to edit draft $RELEASE_VERSION]($RELEASES_URL)**"
+              echo
+              echo "1. Click the pencil button next to draft **$RELEASE_VERSION**. The generated notes are already loaded."
               echo '2. Edit or preview the notes, then **Save draft**. Keep the version, target and prerelease settings unchanged.'
-              echo '3. Return to this Actions run and approve **release-publish** to confirm publication.'
+              echo "3. Return to [this Actions run](https://github.com/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID), select **Review deployments**, and approve **release-publish** to confirm publication."
+              echo
+              echo "To edit the notes again, reopen [Releases]($RELEASES_URL) and click the pencil button for the same draft."
               echo
               echo 'Saving the draft does not publish it. Use the Actions approval for publication. Do not click Publish release in the editor.'
             else
               test "$(git rev-parse "$RELEASE_TAG^{commit}")" = "$RELEASE_COMMIT"
+              echo "## Complete publication of $RELEASE_VERSION"
+              echo
               echo "The [release]($URL) is already public. Resuming will verify the published crates and finish cleanup while preserving its notes."
             fi
             echo
@@ -633,11 +649,13 @@ jobs:
           } >> "$GITHUB_STEP_SUMMARY"
 
   publish:
-    name: Approve publishing ${{ inputs.version }} to crates.io and GitHub
+    name: ${{ needs.draft.outputs.approval_name }}
     needs: [plan, prepare, draft]
     environment:
       name: release-publish
-      url: ${{ needs.draft.outputs.editor_url }}
+      # GitHub controls the approval popup. The publish job's name and the
+      # draft job's notice and summary explain the review steps.
+      url: ${{ needs.draft.outputs.releases_url }}
     runs-on: ubuntu-latest
     timeout-minutes: 60
     env:
