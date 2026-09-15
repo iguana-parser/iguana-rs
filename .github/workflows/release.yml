@@ -30,7 +30,7 @@ env:
 
 defaults:
   run:
-    shell: bash
+    shell: bash --noprofile --norc -euo pipefail {0}
 
 jobs:
   plan:
@@ -45,6 +45,7 @@ jobs:
       branch: ${{ steps.plan.outputs.branch }}
       resume_commit: ${{ steps.plan.outputs.resume_commit }}
       helper_artifact: ${{ steps.plan.outputs.helper_artifact }}
+      rust_toolchain: ${{ env.RUST_TOOLCHAIN }}
     steps:
       - name: Require a manual run on main in the Iguana repository
         run: |
@@ -133,7 +134,7 @@ jobs:
           if-no-files-found: error
 
   prepare:
-    name: Prepare release PR automatically
+    name: Prepare draft release PR automatically
     needs: plan
     runs-on: ubuntu-latest
     timeout-minutes: 30
@@ -160,20 +161,17 @@ jobs:
         run: |
           chmod +x "$RUNNER_TEMP/release-helper/xtask"
           echo "RELEASE_HELPER=$RUNNER_TEMP/release-helper/xtask" >> "$GITHUB_ENV"
-      - name: Prepare or recover this release candidate
-        id: prepare
+      - name: Locate or recover the candidate with read-only access
+        id: resolve
         env:
-          GH_TOKEN: ${{ secrets.RELEASE_GITHUB_TOKEN }}
-          PREVIOUS_TAG: ${{ needs.plan.outputs.previous_tag }}
-          JAVA_COMMIT: ${{ needs.plan.outputs.java_commit }}
+          GH_TOKEN: ${{ github.token }}
           BASE_COMMIT: ${{ needs.plan.outputs.base_commit }}
           RELEASE_BRANCH: ${{ needs.plan.outputs.branch }}
           RESUME_COMMIT: ${{ needs.plan.outputs.resume_commit }}
           RESUME_PR: ${{ inputs.resume_pr }}
         run: |
-          test -n "$GH_TOKEN" || { echo '::error::Missing RELEASE_GITHUB_TOKEN'; exit 1; }
-          gh auth setup-git
           PR="$RESUME_PR"
+          CREATE=false
           if [ -z "$PR" ]; then
             # The run ID isolates replacement candidates from stale/closed PRs.
             gh pr list --repo "$GITHUB_REPOSITORY" --head "$RELEASE_BRANCH" --base main --state all \
@@ -200,71 +198,108 @@ jobs:
               git checkout --detach FETCH_HEAD
             else
               git checkout -b "$RELEASE_BRANCH" "$BASE_COMMIT"
-              "$RELEASE_HELPER" release --root "$GITHUB_WORKSPACE" prepare "$RELEASE_VERSION"
-              for manifest in Cargo.toml tests/Cargo.toml iguana-lsp/wasm/Cargo.toml terrarium/src-tauri/Cargo.toml; do
-                cargo update --workspace --manifest-path "$manifest"
-              done
-              # Fresh processes rebuild the compiler with the new embedded version.
-              cargo xtask bootstrap
-              git diff --binary > "$RUNNER_TEMP/bootstrap-first.diff"
-              cargo xtask bootstrap
-              git diff --binary > "$RUNNER_TEMP/bootstrap-second.diff"
-              cmp "$RUNNER_TEMP/bootstrap-first.diff" "$RUNNER_TEMP/bootstrap-second.diff"
-              cargo xtask test-gen-all
-              cargo fmt --all --check
-              cargo fmt --manifest-path tests/Cargo.toml --all --check
-              "$RELEASE_HELPER" release --root "$GITHUB_WORKSPACE" check "$RELEASE_VERSION"
-              git config user.name "$GITHUB_ACTOR"
-              git config user.email "$GITHUB_ACTOR_ID+$GITHUB_ACTOR@users.noreply.github.com"
-              git add --all
-              git commit -m "Prepare release $RELEASE_VERSION"
-              git push origin "HEAD:refs/heads/$RELEASE_BRANCH"
+              CREATE=true
             fi
+          fi
+          echo "pr=$PR" >> "$GITHUB_OUTPUT"
+          echo "create=$CREATE" >> "$GITHUB_OUTPUT"
+      - name: Prepare and check the candidate without release credentials
+        id: candidate
+        env:
+          CREATE: ${{ steps.resolve.outputs.create }}
+          BASE_COMMIT: ${{ needs.plan.outputs.base_commit }}
+          JAVA_COMMIT: ${{ needs.plan.outputs.java_commit }}
+        run: |
+          if [ "$CREATE" = true ]; then
+            "$RELEASE_HELPER" release --root "$GITHUB_WORKSPACE" prepare "$RELEASE_VERSION"
+            for manifest in Cargo.toml tests/Cargo.toml iguana-lsp/wasm/Cargo.toml terrarium/src-tauri/Cargo.toml; do
+              cargo update --workspace --manifest-path "$manifest"
+            done
+            # Fresh processes rebuild the compiler with the new embedded version.
+            cargo xtask bootstrap
+            # Compare file contents, additions, deletions and modes, including
+            # new generated files that an unstaged diff would omit.
+            git add --all
+            BOOTSTRAP_TREE=$(git write-tree)
+            cargo xtask bootstrap
+            git add --all
+            test "$(git write-tree)" = "$BOOTSTRAP_TREE" || {
+              echo '::error::Bootstrapping did not reproduce the same candidate tree.'
+              exit 1
+            }
+            cargo xtask test-gen-all
+            cargo fmt --all --check
+            cargo fmt --manifest-path tests/Cargo.toml --all --check
+            "$RELEASE_HELPER" release --root "$GITHUB_WORKSPACE" check "$RELEASE_VERSION"
+            git config user.name "$GITHUB_ACTOR"
+            git config user.email "$GITHUB_ACTOR_ID+$GITHUB_ACTOR@users.noreply.github.com"
+            git add --all
+            git commit -m "Release $RELEASE_VERSION"
           fi
           COMMIT=$(git rev-parse HEAD)
           test "$(git rev-list --parents -n 1 HEAD)" = "$COMMIT $BASE_COMMIT"
           "$RELEASE_HELPER" release --root "$GITHUB_WORKSPACE" check "$RELEASE_VERSION"
           "$RELEASE_HELPER" release --root "$GITHUB_WORKSPACE" clean
-          OPTIONS=()
-          if [ -n "$PR" ]; then
-            jq -r .body "$RUNNER_TEMP/pr.json" > "$RUNNER_TEMP/old-pr-body.md"
-            OPTIONS+=(--body "$RUNNER_TEMP/old-pr-body.md")
+          "$RELEASE_HELPER" release --root "$GITHUB_WORKSPACE" pr-body \
+            "$RELEASE_VERSION" "$JAVA_COMMIT" "$COMMIT" \
+            "https://github.com/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID" > "$RUNNER_TEMP/pr-body.md"
+          echo "commit=$COMMIT" >> "$GITHUB_OUTPUT"
+      - name: Push the prepared candidate and create or refresh its draft PR
+        id: prepare
+        env:
+          GH_TOKEN: ${{ secrets.RELEASE_GITHUB_TOKEN }}
+          RELEASE_BRANCH: ${{ needs.plan.outputs.branch }}
+          PR: ${{ steps.resolve.outputs.pr }}
+          CREATE: ${{ steps.resolve.outputs.create }}
+          COMMIT: ${{ steps.candidate.outputs.commit }}
+        # All Cargo commands finish before the release PAT is available.
+        run: |
+          test -n "$GH_TOKEN" || { echo '::error::Missing RELEASE_GITHUB_TOKEN'; exit 1; }
+          test "$(git rev-parse HEAD)" = "$COMMIT"
+          gh auth setup-git
+          if [ "$CREATE" = true ]; then
+            git push origin "$COMMIT:refs/heads/$RELEASE_BRANCH"
           fi
-          "$RELEASE_HELPER" release --root "$GITHUB_WORKSPACE" notes \
-            "$RELEASE_VERSION" "$PREVIOUS_TAG" "$JAVA_COMMIT" "$COMMIT" \
-            "https://github.com/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID" \
-            "${OPTIONS[@]}" > "$RUNNER_TEMP/pr-body.md"
           if [ -z "$PR" ]; then
-            URL=$(gh pr create --repo "$GITHUB_REPOSITORY" --base main --head "$RELEASE_BRANCH" \
+            URL=$(gh pr create --draft --repo "$GITHUB_REPOSITORY" --base main --head "$RELEASE_BRANCH" \
               --title "Release $RELEASE_VERSION" --body-file "$RUNNER_TEMP/pr-body.md")
             PR=$(gh pr view "$URL" --repo "$GITHUB_REPOSITORY" --json number --jq .number)
           else
-            # Refresh candidate/Java/run metadata; retain the marked notes exactly.
-            gh pr edit "$PR" --repo "$GITHUB_REPOSITORY" --body-file "$RUNNER_TEMP/pr-body.md"
+            # Restore the draft PR guard when recovering an unmerged PR.
+            if jq -e '.state == "open" and .draft == false' "$RUNNER_TEMP/pr.json" > /dev/null; then
+              gh pr ready "$PR" --undo --repo "$GITHUB_REPOSITORY"
+            fi
+            gh pr edit "$PR" --repo "$GITHUB_REPOSITORY" \
+              --title "Release $RELEASE_VERSION" --body-file "$RUNNER_TEMP/pr-body.md"
           fi
-          gh pr view "$PR" --repo "$GITHUB_REPOSITORY" --json url,state,headRefOid > "$RUNNER_TEMP/final-pr.json"
-          jq -e --arg commit "$COMMIT" '.headRefOid == $commit and (.state == "OPEN" or .state == "MERGED")' \
+          gh pr view "$PR" --repo "$GITHUB_REPOSITORY" --json url,state,isDraft,headRefOid > "$RUNNER_TEMP/final-pr.json"
+          jq -e --arg commit "$COMMIT" '.headRefOid == $commit and ((.state == "OPEN" and .isDraft == true) or .state == "MERGED")' \
             "$RUNNER_TEMP/final-pr.json" > /dev/null
           URL=$(jq -r .url "$RUNNER_TEMP/final-pr.json")
           echo "commit=$COMMIT" >> "$GITHUB_OUTPUT"
           echo "pr=$PR" >> "$GITHUB_OUTPUT"
           echo "url=$URL" >> "$GITHUB_OUTPUT"
           {
-            echo "Review [release PR #$PR]($URL), including the version changes and editable notes."
+            echo "Review [release PR #$PR]($URL) and its version, lockfile and installation-command changes."
             echo "Candidate: $COMMIT."
-            echo 'Full CI, packaged installation and Java golden/corpus tests will now run automatically.'
+            echo 'The workflow now runs full CI, packaged installation checks and Java golden and corpus tests.'
             echo 'The merge approval becomes available only after all checks pass.'
+            echo 'Leave the PR as a draft. Approve release-merge in Actions. The workflow handles its fast-forward merge.'
+            echo 'A failed check leaves the candidate branch and its draft PR in place for inspection and retry.'
+            echo 'To abandon the candidate, close the PR and delete the branch.'
           } >> "$GITHUB_STEP_SUMMARY"
 
   full-ci:
     name: Full candidate CI
-    needs: prepare
+    needs: [plan, prepare]
     uses: ./.github/workflows/ci.yml
     with:
       commit: ${{ needs.prepare.outputs.commit }}
+      # Reusable-workflow inputs cannot use env here; plan exposes our pin as an output.
+      rust_toolchain: ${{ needs.plan.outputs.rust_toolchain }}
 
   validate:
-    name: Validate packages and Java grammar
+    name: Validate release packages and installation
     needs: [plan, prepare]
     runs-on: ubuntu-latest
     timeout-minutes: 90
@@ -278,6 +313,9 @@ jobs:
           toolchain: ${{ env.RUST_TOOLCHAIN }}
           components: rustfmt
       - uses: Swatinem/rust-cache@v2
+        with:
+          # Do not restore old caches containing target/package source trees.
+          prefix-key: v1-release-validation
       - uses: actions/download-artifact@v4
         with:
           name: ${{ needs.plan.outputs.helper_artifact }}
@@ -296,8 +334,6 @@ jobs:
           "$RELEASE_HELPER" release --root "$GITHUB_WORKSPACE" check "$RELEASE_VERSION"
           cargo xtask bootstrap
           "$RELEASE_HELPER" release --root "$GITHUB_WORKSPACE" clean
-          cargo xtask bootstrap
-          "$RELEASE_HELPER" release --root "$GITHUB_WORKSPACE" clean
           cargo xtask test-gen-all
           "$RELEASE_HELPER" release --root "$GITHUB_WORKSPACE" clean
       - name: Check VS Code package notices
@@ -310,16 +346,50 @@ jobs:
           done
       - name: Verify all five crate packages without uploading
         run: |
-          cargo package --locked -p iguana-runtime -p iguana-iggy -p iguana-compiler -p iguana -p iguana-lsp
+          # Keep unpacked crate sources away from rust-cache's target cleanup.
+          cargo package --locked --target-dir "$RUNNER_TEMP/release-packages" \
+            -p iguana-runtime -p iguana-iggy -p iguana-compiler -p iguana -p iguana-lsp
           "$RELEASE_HELPER" release --root "$GITHUB_WORKSPACE" clean
       - name: Install packaged tools and run a generated parser before publication
         env:
           RELEASE_COMMIT: ${{ needs.prepare.outputs.commit }}
         run: |
-          PACKAGE_DIR=$(cargo metadata --locked --no-deps --format-version 1 | jq -r '.target_directory + "/package"')
           "$RELEASE_HELPER" release --root "$GITHUB_WORKSPACE" smoke-packages \
-            "$RELEASE_VERSION" "$RELEASE_COMMIT" "$PACKAGE_DIR" "$RUNNER_TEMP/package-smoke"
+            "$RELEASE_VERSION" "$RELEASE_COMMIT" "$RUNNER_TEMP/release-packages/package" "$RUNNER_TEMP/package-smoke"
           "$RELEASE_HELPER" release --root "$GITHUB_WORKSPACE" clean
+      - name: Record package validation result
+        env:
+          RELEASE_COMMIT: ${{ needs.prepare.outputs.commit }}
+        run: |
+          echo "Package and installation checks passed for $RELEASE_COMMIT. The merge approval also requires full CI and Java validation." >> "$GITHUB_STEP_SUMMARY"
+
+  java:
+    name: Validate the Java grammar against the release candidate
+    needs: [plan, prepare]
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.prepare.outputs.commit }}
+          persist-credentials: false
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: ${{ env.RUST_TOOLCHAIN }}
+          components: rustfmt
+      - uses: Swatinem/rust-cache@v2
+        with:
+          prefix-key: v1-release-java
+      - uses: actions/download-artifact@v4
+        with:
+          name: ${{ needs.plan.outputs.helper_artifact }}
+          path: ${{ runner.temp }}/release-helper
+      - name: Enable the release helper
+        run: |
+          chmod +x "$RUNNER_TEMP/release-helper/xtask"
+          echo "RELEASE_HELPER=$RUNNER_TEMP/release-helper/xtask" >> "$GITHUB_ENV"
+      - name: Check Java candidate release metadata
+        run: '"$RELEASE_HELPER" release --root "$GITHUB_WORKSPACE" check "$RELEASE_VERSION"'
       - name: Check out the recorded Java grammar in temporary storage
         env:
           JAVA_COMMIT: ${{ needs.plan.outputs.java_commit }}
@@ -332,6 +402,23 @@ jobs:
           mkdir "$RUNNER_TEMP/java"
           cp "$RUNNER_TEMP/java-source/java.iggy" "$RUNNER_TEMP/java/"
           cp -R "$RUNNER_TEMP/java-source/tests" "$RUNNER_TEMP/java-source/corpus" "$RUNNER_TEMP/java/"
+      - name: Require substantive Java golden and corpus inputs
+        working-directory: ${{ runner.temp }}/java
+        # The grammar currently has 32 golden inputs and three corpus entries.
+        # The CLI accepts empty suites, so check coverage before invoking it.
+        run: |
+          GOLDEN_INPUTS=$(find tests -type f -name '*.java' | wc -l)
+          test "$GOLDEN_INPUTS" -ge 30 || {
+            echo '::error::Java validation requires at least 30 .java golden inputs.'
+            exit 1
+          }
+          test -s corpus/repos.txt && awk '
+            NF && $1 !~ /^#/ { count++; if (NF != 5 || $2 != "java") invalid = 1 }
+            END { exit (invalid || count < 3) }
+          ' corpus/repos.txt || {
+            echo '::error::Java validation requires at least three valid Java corpus entries in corpus/repos.txt.'
+            exit 1
+          }
       - name: Generate Java with the candidate compiler and runtime
         run: |
           cargo run --locked -p iguana -- generate \
@@ -345,21 +432,38 @@ jobs:
           cargo build --release
           ./target/release/iguana-java --dir tests --ext java --start CompilationUnit --check-sexpr
           ./target/release/iguana-java --corpus-test
-      - name: Record validation result
+      - name: Require Java inputs in every checked corpus
+        working-directory: ${{ runner.temp }}/java
+        # The corpus harness treats removed inputs as soft changes, including
+        # removal of every input. Inspect the checkouts it actually parsed.
+        run: |
+          while read -r CORPUS _ || [ -n "$CORPUS" ]; do
+            case "$CORPUS" in ''|\#*) continue ;; esac
+            JAVA_INPUT=$(find "corpus/.cache/$CORPUS" -type f -name '*.java' -print -quit) || {
+              echo "::error::Cannot inspect the checkout for Java corpus $CORPUS."
+              exit 1
+            }
+            test -n "$JAVA_INPUT" || {
+              echo "::error::Java corpus $CORPUS contains no .java inputs."
+              exit 1
+            }
+          done < corpus/repos.txt
+      - name: Record Java validation result
         env:
           RELEASE_COMMIT: ${{ needs.prepare.outputs.commit }}
           JAVA_COMMIT: ${{ needs.plan.outputs.java_commit }}
         run: |
           "$RELEASE_HELPER" release --root "$GITHUB_WORKSPACE" clean
           {
-            echo "Release checks passed for $RELEASE_COMMIT, including Java $JAVA_COMMIT."
-            echo 'The merge approval also requires every job in the full CI workflow to pass.'
+            echo "Java golden and corpus checks passed for $RELEASE_COMMIT using grammar commit $JAVA_COMMIT."
+            echo 'The merge approval also requires full CI and package validation.'
           } >> "$GITHUB_STEP_SUMMARY"
 
   review:
     name: Summarize the tested PR for approval
-    needs: [plan, prepare, validate, full-ci]
+    needs: [plan, prepare, validate, java, full-ci]
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     steps:
       - name: Explain the merge approval
         env:
@@ -377,8 +481,9 @@ jobs:
             echo 'Passed: full CI, release metadata, generated sources, VS Code notices, all five crate packages, offline installation of both packaged tools, and a generated parser smoke test.'
             echo "Java generation, build, golden files and corpus passed using grammar commit $JAVA_COMMIT."
             echo
-            echo '**Approving release-merge fast-forwards main to this exact candidate.** It stops if main or the candidate branch has changed unexpectedly.'
-            echo 'Publication requires a separate approval after the merge. Review and edit the release notes in the PR before that approval.'
+            echo '**Approve release-merge here in Actions. Leave the PR as a draft.** The workflow marks it ready and fast-forwards main to this exact candidate, preserving a single release commit.'
+            echo 'It stops if main or the candidate branch has changed unexpectedly.'
+            echo 'After merging, the workflow opens a separate draft release for editing the notes. Publication requires a second approval after you save that draft.'
           } >> "$GITHUB_STEP_SUMMARY"
 
   merge:
@@ -402,19 +507,17 @@ jobs:
           RELEASE_PR: ${{ needs.prepare.outputs.pr }}
           RELEASE_BRANCH: ${{ needs.plan.outputs.branch }}
           BASE_COMMIT: ${{ needs.plan.outputs.base_commit }}
-          PR_URL: ${{ needs.prepare.outputs.url }}
-          RELEASE_TAG: ${{ needs.plan.outputs.tag }}
         run: |
           test -n "$GH_TOKEN"
           gh auth setup-git
           test "$(git rev-list --parents -n 1 HEAD)" = "$RELEASE_COMMIT $BASE_COMMIT"
-          gh pr view "$RELEASE_PR" --repo "$GITHUB_REPOSITORY" --json state,headRefOid > "$RUNNER_TEMP/pr.json"
+          gh pr view "$RELEASE_PR" --repo "$GITHUB_REPOSITORY" --json state,isDraft,headRefOid > "$RUNNER_TEMP/pr.json"
           jq -e --arg commit "$RELEASE_COMMIT" '.headRefOid == $commit and (.state == "OPEN" or .state == "MERGED")' \
             "$RUNNER_TEMP/pr.json" > /dev/null
           git fetch origin refs/heads/main
           MAIN=$(git rev-parse FETCH_HEAD)
           if git merge-base --is-ancestor "$RELEASE_COMMIT" "$MAIN"; then
-            echo 'The validated candidate is already on main; continuing recovery.'
+            echo 'The validated candidate is already on main. The workflow is resuming the release.'
           else
             test "$MAIN" = "$BASE_COMMIT" || {
               echo '::error::main advanced. Start a new release run with the same version and leave resume_pr empty to prepare a replacement candidate.'
@@ -422,30 +525,119 @@ jobs:
             }
             jq -e '.state == "OPEN"' "$RUNNER_TEMP/pr.json" > /dev/null
             test "$(git ls-remote origin "refs/heads/$RELEASE_BRANCH" | cut -f1)" = "$RELEASE_COMMIT"
-            git push origin "$RELEASE_COMMIT:refs/heads/main"
+            if jq -e '.isDraft == true' "$RUNNER_TEMP/pr.json" > /dev/null; then
+              gh pr ready "$RELEASE_PR" --repo "$GITHUB_REPOSITORY"
+            fi
+            if ! git push origin "$RELEASE_COMMIT:refs/heads/main"; then
+              # The release token must allow direct pushes to main, including
+              # a bypass if future branch rules require PRs or status checks.
+              echo '::error::Fast-forward push failed. Check for concurrent changes to main and ensure RELEASE_GITHUB_TOKEN is allowed to push directly under the branch rules.'
+              # Restore the draft PR guard if the fast-forward failed before merging.
+              if [ "$(gh pr view "$RELEASE_PR" --repo "$GITHUB_REPOSITORY" --json state --jq .state)" = OPEN ]; then
+                gh pr ready "$RELEASE_PR" --undo --repo "$GITHUB_REPOSITORY"
+              fi
+              exit 1
+            fi
           fi
           {
-            echo "## Ready to publish $RELEASE_VERSION"
-            echo
             echo "Validated candidate $RELEASE_COMMIT is on main."
-            echo "Review the [release notes in PR #$RELEASE_PR]($PR_URL) before approving release-publish."
+            echo 'Next, the workflow prepares a separate draft release and links to its notes editor. It then waits for publication approval.'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+  draft:
+    name: Prepare release notes in the GitHub draft editor
+    needs: [plan, prepare, merge]
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    outputs:
+      release_id: ${{ steps.draft.outputs.release_id }}
+      editor_url: ${{ steps.draft.outputs.editor_url }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.prepare.outputs.commit }}
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/download-artifact@v4
+        with:
+          name: ${{ needs.plan.outputs.helper_artifact }}
+          path: ${{ runner.temp }}/release-helper
+      - name: Enable the release helper
+        run: |
+          chmod +x "$RUNNER_TEMP/release-helper/xtask"
+          echo "RELEASE_HELPER=$RUNNER_TEMP/release-helper/xtask" >> "$GITHUB_ENV"
+      - name: Create or recover the draft without overwriting edited notes
+        id: draft
+        env:
+          GH_TOKEN: ${{ secrets.RELEASE_GITHUB_TOKEN }}
+          RELEASE_COMMIT: ${{ needs.prepare.outputs.commit }}
+          RELEASE_PR: ${{ needs.prepare.outputs.pr }}
+          RELEASE_TAG: ${{ needs.plan.outputs.tag }}
+          PREVIOUS_TAG: ${{ needs.plan.outputs.previous_tag }}
+        run: |
+          test -n "$GH_TOKEN"
+          git fetch origin main --tags
+          git merge-base --is-ancestor "$RELEASE_COMMIT" FETCH_HEAD
+          if git show-ref --verify --quiet "refs/tags/$RELEASE_TAG"; then
+            test "$(git rev-parse "$RELEASE_TAG^{commit}")" = "$RELEASE_COMMIT"
+          fi
+          "$RELEASE_HELPER" release --root "$GITHUB_WORKSPACE" notes \
+            "$RELEASE_VERSION" "$PREVIOUS_TAG" "$RELEASE_COMMIT" > "$RUNNER_TEMP/initial-notes.md"
+          gh api --paginate "repos/$GITHUB_REPOSITORY/releases" | jq -s 'add' > "$RUNNER_TEMP/releases.json"
+          "$RELEASE_HELPER" release --root "$GITHUB_WORKSPACE" github-draft \
+            "$RELEASE_VERSION" "$RELEASE_COMMIT" "$RUNNER_TEMP/initial-notes.md" \
+            "$RUNNER_TEMP/releases.json" > "$RUNNER_TEMP/draft-plan.json"
+          case "$(jq -r .method "$RUNNER_TEMP/draft-plan.json")" in
+            POST)
+              jq .payload "$RUNNER_TEMP/draft-plan.json" > "$RUNNER_TEMP/draft-payload.json"
+              gh api --method POST "repos/$GITHUB_REPOSITORY/releases" \
+                --input "$RUNNER_TEMP/draft-payload.json" > "$RUNNER_TEMP/release.json"
+              ;;
+            none)
+              RELEASE_ID=$(jq -r .id "$RUNNER_TEMP/draft-plan.json")
+              gh api "repos/$GITHUB_REPOSITORY/releases/$RELEASE_ID" > "$RUNNER_TEMP/release.json"
+              ;;
+            *) exit 1 ;;
+          esac
+          RELEASE_ID=$(jq -r .id "$RUNNER_TEMP/release.json")
+          [[ "$RELEASE_ID" =~ ^[1-9][0-9]*$ ]]
+          URL=$(jq -r .html_url "$RUNNER_TEMP/release.json")
+          [[ "$URL" == "https://github.com/$GITHUB_REPOSITORY/releases/tag/"* ]]
+          EDITOR_URL=$(jq -r '.html_url | sub("/releases/tag/"; "/releases/edit/")' "$RUNNER_TEMP/release.json")
+          echo "release_id=$RELEASE_ID" >> "$GITHUB_OUTPUT"
+          echo "editor_url=$EDITOR_URL" >> "$GITHUB_OUTPUT"
+          {
+            echo "## Edit release notes for $RELEASE_VERSION"
             echo
+            if jq -e '.draft == true' "$RUNNER_TEMP/release.json" > /dev/null; then
+              echo "1. Open the [release notes editor]($EDITOR_URL). The generated notes are already loaded."
+              echo '2. Edit or preview the notes, then **Save draft**. Keep the version, target and prerelease settings unchanged.'
+              echo '3. Return to this Actions run and approve **release-publish** to confirm publication.'
+              echo
+              echo 'Saving the draft does not publish it. Use the Actions approval for publication. Do not click Publish release in the editor.'
+            else
+              test "$(git rev-parse "$RELEASE_TAG^{commit}")" = "$RELEASE_COMMIT"
+              echo "The [release]($URL) is already public. Resuming will verify the published crates and finish cleanup while preserving its notes."
+            fi
+            echo
+            echo "Candidate: $RELEASE_COMMIT. Tag: $RELEASE_TAG."
             echo '**Approving release-publish authorizes these actions, in order:**'
             echo
             echo '1. Upload iguana-runtime, iguana-iggy, iguana-compiler, iguana and iguana-lsp to crates.io.'
-            echo "2. Create tag $RELEASE_TAG at $RELEASE_COMMIT."
-            echo '3. Verify installation and parser generation using the public crates.io packages and empty caches.'
-            echo "4. Publish the GitHub release titled $RELEASE_VERSION with the reviewed notes, then delete the completed release branch."
+            echo "2. Create tag $RELEASE_TAG at the tested commit."
+            echo '3. Verify installation and parser generation from crates.io with empty caches.'
+            echo "4. Publish the saved draft as $RELEASE_VERSION and delete the completed release branch."
             echo
-            echo "Crates are public as soon as they upload. A later failure stops the remaining steps; it does not undo uploads. Retry this run or start a fresh run with version $RELEASE_VERSION and resume_pr=$RELEASE_PR to recover using the same candidate."
+            echo 'Crates are public as soon as they upload. If a later step fails, the workflow stops. Uploaded crates remain public.'
+            echo "Retry this run or start a new run with version $RELEASE_VERSION and resume_pr=$RELEASE_PR to recover using the same candidate and saved notes."
           } >> "$GITHUB_STEP_SUMMARY"
 
   publish:
     name: Approve publishing ${{ inputs.version }} to crates.io and GitHub
-    needs: [plan, prepare, merge]
+    needs: [plan, prepare, draft]
     environment:
       name: release-publish
-      url: ${{ needs.prepare.outputs.url }}
+      url: ${{ needs.draft.outputs.editor_url }}
     runs-on: ubuntu-latest
     timeout-minutes: 60
     env:
@@ -453,6 +645,7 @@ jobs:
       RELEASE_COMMIT: ${{ needs.prepare.outputs.commit }}
       RELEASE_PR: ${{ needs.prepare.outputs.pr }}
       RELEASE_BRANCH: ${{ needs.plan.outputs.branch }}
+      RELEASE_ID: ${{ needs.draft.outputs.release_id }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -471,7 +664,7 @@ jobs:
         run: |
           chmod +x "$RUNNER_TEMP/release-helper/xtask"
           echo "RELEASE_HELPER=$RUNNER_TEMP/release-helper/xtask" >> "$GITHUB_ENV"
-      - name: Check credentials, commit, tag and reviewed notes
+      - name: Check credentials and snapshot the saved draft after approval
         env:
           GH_TOKEN: ${{ secrets.RELEASE_GITHUB_TOKEN }}
           CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
@@ -484,10 +677,15 @@ jobs:
           if git show-ref --verify --quiet "refs/tags/$RELEASE_TAG"; then
             test "$(git rev-parse "$RELEASE_TAG^{commit}")" = "$RELEASE_COMMIT"
           fi
-          gh pr view "$RELEASE_PR" --repo "$GITHUB_REPOSITORY" --json body,headRefOid > "$RUNNER_TEMP/pr.json"
+          gh pr view "$RELEASE_PR" --repo "$GITHUB_REPOSITORY" --json headRefOid > "$RUNNER_TEMP/pr.json"
           jq -e --arg commit "$RELEASE_COMMIT" '.headRefOid == $commit' "$RUNNER_TEMP/pr.json" > /dev/null
-          jq -r .body "$RUNNER_TEMP/pr.json" > "$RUNNER_TEMP/pr-body.md"
-          "$RELEASE_HELPER" release --root "$GITHUB_WORKSPACE" extract-notes "$RUNNER_TEMP/pr-body.md" > "$RUNNER_TEMP/release-notes.md"
+          [[ "$RELEASE_ID" =~ ^[1-9][0-9]*$ ]]
+          gh api "repos/$GITHUB_REPOSITORY/releases/$RELEASE_ID" > "$RUNNER_TEMP/release.json"
+          "$RELEASE_HELPER" release --root "$GITHUB_WORKSPACE" review-release \
+            "$RELEASE_VERSION" "$RELEASE_COMMIT" "$RUNNER_TEMP/release.json" > "$RUNNER_TEMP/approved-release.json"
+          if jq -e '.draft == false' "$RUNNER_TEMP/approved-release.json" > /dev/null; then
+            test "$(git rev-parse "$RELEASE_TAG^{commit}")" = "$RELEASE_COMMIT"
+          fi
       - name: Publish unpublished crates from the validated commit
         env:
           CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
@@ -510,14 +708,29 @@ jobs:
           CARGO_HOME: ${{ runner.temp }}/cold-cargo
           CARGO_TARGET_DIR: ${{ runner.temp }}/cold-target
         run: |
-          cargo install iguana --version "=$RELEASE_VERSION" --locked --root "$RUNNER_TEMP/cold-tools"
-          cargo install iguana-lsp --version "=$RELEASE_VERSION" --locked --root "$RUNNER_TEMP/cold-tools"
+          install_published_tool() {
+            local package="$1" attempt
+            for attempt in 1 2 3 4 5; do
+              if cargo install "$package" --version "=$RELEASE_VERSION" --locked --root "$RUNNER_TEMP/cold-tools"; then
+                return 0
+              fi
+              if [ "$attempt" -lt 5 ]; then
+                echo "::warning::Installation of $package failed (attempt $attempt/5). The workflow will retry in 30 seconds."
+                sleep 30
+              fi
+            done
+            echo "::error::Installation of $package failed after five attempts."
+            return 1
+          }
+          install_published_tool iguana
+          install_published_tool iguana-lsp
           IGUANA="$RUNNER_TEMP/cold-tools/bin/iguana"
           test "$("$IGUANA" --version)" = "iguana $RELEASE_VERSION"
           "$IGUANA" new release_smoke
           cd release_smoke
           "$IGUANA" generate
-          cargo metadata --format-version 1 > "$RUNNER_TEMP/cold-metadata.json"
+          cargo generate-lockfile
+          cargo metadata --locked --format-version 1 > "$RUNNER_TEMP/cold-metadata.json"
           jq -e --arg version "$RELEASE_VERSION" '
             [.packages[] | select(.name == "iguana-runtime")] as $runtime |
             ($runtime | length) == 1 and $runtime[0].version == $version and
@@ -529,25 +742,22 @@ jobs:
           printf '(S "hello")\n' > hello.sexpr
           cargo build --locked
           "$CARGO_TARGET_DIR/debug/release_smoke" hello.txt --start S --check-sexpr
-      - name: Publish reviewed notes and remove the completed release branch
+      - name: Publish the approved draft and remove the completed release branch
         env:
           GH_TOKEN: ${{ secrets.RELEASE_GITHUB_TOKEN }}
         run: |
-          gh api --paginate "repos/$GITHUB_REPOSITORY/releases" | jq -s 'add' > "$RUNNER_TEMP/releases.json"
+          gh api "repos/$GITHUB_REPOSITORY/releases/$RELEASE_ID" > "$RUNNER_TEMP/release.json"
           "$RELEASE_HELPER" release --root "$GITHUB_WORKSPACE" github-release \
-            "$RELEASE_VERSION" "$RELEASE_COMMIT" "$RUNNER_TEMP/release-notes.md" \
-            "$RUNNER_TEMP/releases.json" > "$RUNNER_TEMP/publication.json"
+            "$RELEASE_VERSION" "$RELEASE_COMMIT" "$RUNNER_TEMP/approved-release.json" \
+            "$RUNNER_TEMP/release.json" > "$RUNNER_TEMP/publication.json"
           jq .payload "$RUNNER_TEMP/publication.json" > "$RUNNER_TEMP/release-payload.json"
           METHOD=$(jq -r .method "$RUNNER_TEMP/publication.json")
           case "$METHOD" in
-            POST)
-              gh api --method POST "repos/$GITHUB_REPOSITORY/releases" --input "$RUNNER_TEMP/release-payload.json"
-              ;;
             PATCH)
-              RELEASE_ID=$(jq -r .id "$RUNNER_TEMP/publication.json")
+              test "$(jq -r .id "$RUNNER_TEMP/publication.json")" = "$RELEASE_ID"
               gh api --method PATCH "repos/$GITHUB_REPOSITORY/releases/$RELEASE_ID" --input "$RUNNER_TEMP/release-payload.json"
               ;;
-            none) echo 'Release already public; preserving its published fields.' ;;
+            none) echo 'The release is already public. Its published fields are unchanged.' ;;
             *) exit 1 ;;
           esac
           gh auth setup-git
@@ -556,4 +766,4 @@ jobs:
             test "$REMOTE_BRANCH" = "$RELEASE_COMMIT"
             git push --force-with-lease="refs/heads/$RELEASE_BRANCH:$RELEASE_COMMIT" origin ":refs/heads/$RELEASE_BRANCH"
           fi
-          echo "Released [Iguana $RELEASE_VERSION](https://github.com/$GITHUB_REPOSITORY/releases/tag/$RELEASE_TAG) from $RELEASE_COMMIT; fresh installs and parser smoke test passed." >> "$GITHUB_STEP_SUMMARY"
+          echo "Released [Iguana $RELEASE_VERSION](https://github.com/$GITHUB_REPOSITORY/releases/tag/$RELEASE_TAG) from $RELEASE_COMMIT. Fresh installs and the parser smoke test passed." >> "$GITHUB_STEP_SUMMARY"

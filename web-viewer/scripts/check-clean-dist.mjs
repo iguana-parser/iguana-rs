@@ -1,5 +1,14 @@
 import { execSync } from "node:child_process";
-import { cpSync, existsSync, mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import {
+  cpSync,
+  existsSync,
+  mkdirSync,
+  mkdtempSync,
+  readdirSync,
+  readFileSync,
+  rmSync,
+  writeFileSync,
+} from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -19,11 +28,32 @@ const viewerDist = join(webViewerDir, "..", "iguana", "viewer-dist");
 // check snapshots it first and restores it on every exit. A failed build or a
 // detected regression therefore reports the defect without leaving a partial
 // or contaminated viewer behind, and the check as a whole modifies nothing.
+// Comparing the cleaned build with this snapshot also rejects stale embedded
+// files. On CI the snapshot is the bundle committed with the candidate sources.
 const backupRoot = mkdtempSync(join(tmpdir(), "check-clean-dist-"));
 const viewerDistBackup = join(backupRoot, "viewer-dist");
 const hadViewerDist = existsSync(viewerDist);
 if (hadViewerDist) {
   cpSync(viewerDist, viewerDistBackup, { recursive: true });
+}
+
+function filesUnder(directory, prefix = "") {
+  const files = new Map();
+  if (!existsSync(directory)) return files;
+  for (const entry of readdirSync(directory, { withFileTypes: true })) {
+    const path = join(directory, entry.name);
+    const name = join(prefix, entry.name);
+    if (entry.isDirectory()) {
+      for (const [child, contents] of filesUnder(path, name)) {
+        files.set(child, contents);
+      }
+    } else if (entry.isFile()) {
+      files.set(name, readFileSync(path));
+    } else {
+      throw new Error(`Unexpected non-file entry in the viewer bundle: ${name}`);
+    }
+  }
+  return files;
 }
 
 // A bundle staged by stage:iggy already exercises the copy, so the check
@@ -62,6 +92,20 @@ try {
       );
     }
   }
+
+  const saved = filesUnder(viewerDistBackup);
+  const rebuilt = filesUnder(viewerDist);
+  const names = new Set([...saved.keys(), ...rebuilt.keys()]);
+  const changed = [...names].filter(
+    (name) => !saved.has(name) || !rebuilt.has(name) || !saved.get(name).equals(rebuilt.get(name)),
+  ).sort();
+  if (!hadViewerDist || changed.length > 0) {
+    throw new Error(
+      "The embedded viewer does not match its sources. " +
+        "Run `npm run build --workspace web-viewer` and commit iguana/viewer-dist/.\n" +
+        changed.map((name) => `  ${name}`).join("\n"),
+    );
+  }
 } finally {
   rmSync(viewerDist, { recursive: true, force: true });
   if (hadViewerDist) {
@@ -73,4 +117,4 @@ try {
   }
 }
 
-console.log("The committed viewer excludes staged grammar files.");
+console.log("The embedded viewer matches its sources and excludes staged grammar files.");

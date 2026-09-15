@@ -11,14 +11,44 @@ on:
         description: Exact candidate commit to validate
         required: true
         type: string
+      rust_toolchain:
+        description: Rust toolchain to validate (releases pass their pinned version)
+        required: true
+        type: string
 
 env:
   CARGO_TERM_COLOR: always
 
 jobs:
+  configure:
+    name: Select CI toolchain
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      rust_toolchain: ${{ steps.toolchain.outputs.rust_toolchain }}
+    steps:
+      - id: toolchain
+        env:
+          CI_INPUTS: ${{ toJSON(inputs) }}
+        run: |
+          # workflow_call requires this key; ordinary CI may have unrelated inputs.
+          # An explicitly empty toolchain must fail instead of falling back to stable.
+          if jq -e 'type == "object" and has("rust_toolchain")' <<< "$CI_INPUTS" > /dev/null; then
+            TOOLCHAIN=$(jq -r '.rust_toolchain // ""' <<< "$CI_INPUTS")
+          else
+            TOOLCHAIN=stable
+          fi
+          if [[ -z "$TOOLCHAIN" || "$TOOLCHAIN" == *[[:space:]]* ]]; then
+            echo '::error::Reusable CI requires a nonempty rust_toolchain input with no whitespace.'
+            exit 1
+          fi
+          echo "rust_toolchain=$TOOLCHAIN" >> "$GITHUB_OUTPUT"
+
   fmt:
     name: rustfmt
+    needs: configure
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
         with:
@@ -26,6 +56,7 @@ jobs:
           persist-credentials: false
       - uses: dtolnay/rust-toolchain@stable
         with:
+          toolchain: ${{ needs.configure.outputs.rust_toolchain }}
           components: rustfmt
       - run: cargo fmt --all --check
       - run: cargo fmt --manifest-path tests/Cargo.toml --all --check
@@ -34,13 +65,17 @@ jobs:
 
   check:
     name: cargo check
+    needs: configure
     runs-on: ubuntu-latest
+    timeout-minutes: 60
     steps:
       - uses: actions/checkout@v4
         with:
           ref: ${{ inputs.commit || github.sha }}
           persist-credentials: false
       - uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: ${{ needs.configure.outputs.rust_toolchain }}
       - uses: Swatinem/rust-cache@v2
         with:
           workspaces: |
@@ -51,8 +86,9 @@ jobs:
 
   clippy:
     name: clippy
-    needs: check
+    needs: [configure, check]
     runs-on: ubuntu-latest
+    timeout-minutes: 60
     steps:
       - uses: actions/checkout@v4
         with:
@@ -60,6 +96,7 @@ jobs:
           persist-credentials: false
       - uses: dtolnay/rust-toolchain@stable
         with:
+          toolchain: ${{ needs.configure.outputs.rust_toolchain }}
           components: clippy
       - uses: Swatinem/rust-cache@v2
         with:
@@ -71,8 +108,9 @@ jobs:
 
   lsp-wasm-clippy:
     name: clippy (iguana-lsp wasm)
-    needs: check
+    needs: [configure, check]
     runs-on: ubuntu-latest
+    timeout-minutes: 60
     steps:
       - uses: actions/checkout@v4
         with:
@@ -80,6 +118,7 @@ jobs:
           persist-credentials: false
       - uses: dtolnay/rust-toolchain@stable
         with:
+          toolchain: ${{ needs.configure.outputs.rust_toolchain }}
           components: clippy
           targets: wasm32-unknown-unknown
       - uses: Swatinem/rust-cache@v2
@@ -92,6 +131,7 @@ jobs:
   npm-check:
     name: svelte-check
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
         with:
@@ -108,8 +148,9 @@ jobs:
 
   parser-generation:
     name: parser generation
-    needs: check
+    needs: [configure, check]
     runs-on: ubuntu-latest
+    timeout-minutes: 60
     steps:
       - uses: actions/checkout@v4
         with:
@@ -117,19 +158,22 @@ jobs:
           persist-credentials: false
       - uses: dtolnay/rust-toolchain@stable
         with:
+          toolchain: ${{ needs.configure.outputs.rust_toolchain }}
           components: rustfmt
       - uses: Swatinem/rust-cache@v2
 
       - name: bootstrap twice (verify stable)
         run: |
-          cargo xtask bootstrap
-          cargo xtask bootstrap
-          if ! git diff --quiet; then
-            echo "::error::cargo xtask bootstrap produced changes:"
-            git diff --stat
-            git diff
-            exit 1
-          fi
+          for pass in 1 2; do
+            cargo xtask bootstrap
+            git add --all
+            if [ "$(git write-tree)" != "$(git rev-parse 'HEAD^{tree}')" ]; then
+              echo "::error::cargo xtask bootstrap produced changes on pass $pass:"
+              git diff --cached --stat
+              git diff --cached
+              exit 1
+            fi
+          done
 
       - name: iguana & iguana-runtime tests
         run: |
@@ -139,23 +183,27 @@ jobs:
       - name: regenerate all test parsers (verify stable)
         run: |
           cargo xtask test-gen-all
-          if ! git diff --quiet; then
+          git add --all
+          if [ "$(git write-tree)" != "$(git rev-parse 'HEAD^{tree}')" ]; then
             echo "::error::cargo xtask test-gen-all produced changes:"
-            git diff --stat
-            git diff
+            git diff --cached --stat
+            git diff --cached
             exit 1
           fi
 
   workspace-test:
     name: workspace and grammar tests
-    needs: parser-generation
+    needs: [configure, parser-generation]
     runs-on: ubuntu-latest
+    timeout-minutes: 60
     steps:
       - uses: actions/checkout@v4
         with:
           ref: ${{ inputs.commit || github.sha }}
           persist-credentials: false
       - uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: ${{ needs.configure.outputs.rust_toolchain }}
       - uses: Swatinem/rust-cache@v2
         with:
           workspaces: |
@@ -166,7 +214,7 @@ jobs:
 
   terrarium:
     name: terrarium build, checks & smoke test
-    needs: parser-generation
+    needs: [configure, parser-generation]
     runs-on: ubuntu-latest
     # Without a limit a hung smoke test runs to GitHub's 6-hour kill and burns
     # the private-repo minute budget.
@@ -178,6 +226,7 @@ jobs:
           persist-credentials: false
       - uses: dtolnay/rust-toolchain@stable
         with:
+          toolchain: ${{ needs.configure.outputs.rust_toolchain }}
           components: clippy
       - uses: Swatinem/rust-cache@v2
         with:

@@ -19,4 +19,5 @@ proc-macro2.workspace = true
 quote.workspace = true
 semver = "1"
 serde_json.workspace = true
+sha2 = "0.10"
 toml_edit = "0.25"

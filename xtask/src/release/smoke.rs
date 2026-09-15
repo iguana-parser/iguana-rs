@@ -3,6 +3,7 @@
 //! manifests, sources and packaged lockfiles remain unchanged.
 
 use super::*;
+use sha2::{Digest, Sha256};
 use std::collections::BTreeMap;
 
 pub(super) fn run(
@@ -109,14 +110,16 @@ pub(super) fn run(
     let sandbox = Sandbox { directory, home };
     let tools = sandbox.directory.join("tools");
     for package in ["iguana", "iguana-lsp"] {
+        // Install the extracted archive itself. The directory source supplies
+        // its locked dependencies; registry installation is checked after upload.
+        let unpacked = vendor.join(format!("{package}-{version}"));
         sandbox.execute(
             &sandbox.directory,
             "cargo",
             &[
                 "install",
-                package,
-                "--version",
-                &format!("={version}"),
+                "--path",
+                unpacked.to_str().unwrap(),
                 "--locked",
                 "--offline",
                 "--root",
@@ -133,10 +136,11 @@ pub(super) fn run(
     sandbox.execute(&sandbox.directory, iguana, &["new", "release_smoke"])?;
     let project = sandbox.directory.join("release_smoke");
     sandbox.execute(&project, iguana, &["generate"])?;
+    sandbox.execute(&project, "cargo", &["generate-lockfile", "--offline"])?;
     let metadata = sandbox.output(
         &project,
         "cargo",
-        &["metadata", "--offline", "--format-version", "1"],
+        &["metadata", "--locked", "--offline", "--format-version", "1"],
     )?;
     validate_runtime(
         &serde_json::from_str(&metadata).map_err(io::Error::other)?,
@@ -205,17 +209,7 @@ fn validate_manifest(text: &str, package: &str, version: &str) -> io::Result<()>
 }
 
 fn sha256(path: &Path) -> io::Result<String> {
-    let text = output(
-        path.parent().unwrap(),
-        "shasum",
-        &["-a", "256", "--", path.to_str().unwrap()],
-    )?;
-    let hash = text.split_whitespace().next().unwrap_or_default();
-    require(
-        hash.len() == 64 && hash.bytes().all(|b| b.is_ascii_hexdigit()),
-        "Invalid SHA-256 output",
-    )?;
-    Ok(hash.to_owned())
+    Ok(format!("{:x}", Sha256::digest(fs::read(path)?)))
 }
 
 fn checksums(

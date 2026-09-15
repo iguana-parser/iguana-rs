@@ -1,7 +1,7 @@
 use std::{
     fs, io,
     path::{Path, PathBuf},
-    process::Command,
+    process::{Command, ExitCode},
     sync::OnceLock,
 };
 
@@ -83,7 +83,17 @@ enum Commands {
     },
 }
 
-fn main() -> io::Result<()> {
+fn main() -> ExitCode {
+    match run() {
+        Ok(()) => ExitCode::SUCCESS,
+        Err(error) => {
+            eprintln!("Error: {error}");
+            ExitCode::FAILURE
+        }
+    }
+}
+
+fn run() -> io::Result<()> {
     let cli = Cli::parse();
     match cli.command {
         Commands::Release { root, command } => {

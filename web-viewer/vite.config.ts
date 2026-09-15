@@ -1,5 +1,6 @@
 import { defineConfig } from "vite";
 import { svelte } from "@sveltejs/vite-plugin-svelte";
+import { fileURLToPath } from "node:url";
 
 // The heavy libraries (Monaco, Cytoscape) are not bundled. They load at runtime
 // from a CDN via the importmap in index.html, so the embedded viewer stays
@@ -11,7 +12,15 @@ export default defineConfig({
   // root by `iguana try` or under a subpath on the website, with no path
   // rewriting. App.svelte resolves BASE_URL against the document before use.
   base: "./",
-  plugins: [svelte()],
+  plugins: [
+    svelte({
+      compilerOptions: {
+        // Shared components live outside web-viewer. Keep their scoped CSS
+        // hashes independent of the checkout path so the bundle reproduces in CI.
+        rootDir: fileURLToPath(new URL("../", import.meta.url)),
+      },
+    }),
+  ],
   optimizeDeps: { exclude: external },
   build: {
     // The output lives inside the iguana crate so cargo packages it and a

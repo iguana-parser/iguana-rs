@@ -12,6 +12,7 @@ use semver::Version;
 use serde_json::{Value, json};
 use toml_edit::{DocumentMut, Item};
 
+mod github;
 mod smoke;
 
 const PACKAGES: [&str; 5] = [
@@ -28,8 +29,6 @@ const LOCKFILES: [&str; 4] = [
     "iguana-lsp/wasm/Cargo.lock",
     "terrarium/src-tauri/Cargo.lock",
 ];
-const NOTES_START: &str = "<!-- release-notes:start -->";
-const NOTES_END: &str = "<!-- release-notes:end -->";
 
 #[derive(clap::Subcommand)]
 pub enum Command {
@@ -54,25 +53,38 @@ pub enum Command {
     },
     /// Reject tracked or untracked changes in the release checkout
     Clean,
-    /// Write a release PR body with editable release notes
-    Notes {
+    /// Describe the release changes and the Actions merge approval in the PR
+    PrBody {
         version: String,
-        previous_tag: String,
         java_commit: String,
         candidate_commit: String,
         run_url: String,
-        /// Preserve the editable notes from an existing PR
-        #[arg(long)]
-        body: Option<PathBuf>,
     },
-    /// Extract the reviewed release notes from a saved PR body
-    ExtractNotes { body: PathBuf },
-    /// Plan a GitHub release create/update from the reviewed notes and API data
-    GithubRelease {
+    /// Generate initial Markdown notes for the separate draft release
+    Notes {
+        version: String,
+        previous_tag: String,
+        candidate_commit: String,
+    },
+    /// Create a draft release, or preserve an existing release and its edits
+    GithubDraft {
         version: String,
         commit: String,
         notes: PathBuf,
         releases: PathBuf,
+    },
+    /// Validate and snapshot the saved release after publication approval
+    ReviewRelease {
+        version: String,
+        commit: String,
+        release: PathBuf,
+    },
+    /// Publish the approved draft without regenerating or replacing edited notes
+    GithubRelease {
+        version: String,
+        commit: String,
+        approved: PathBuf,
+        release: PathBuf,
     },
     /// Publish missing crates; existing crates must come from the same commit
     Publish { version: String, commit: String },
@@ -93,59 +105,70 @@ pub fn run(command: Command, root: &Path) -> io::Result<()> {
             directory,
         } => smoke::run(root, &version, &commit, &packages, &directory),
         Command::Clean => clean(root),
-        Command::Notes {
+        Command::PrBody {
             version,
-            previous_tag,
             java_commit,
             candidate_commit,
             run_url,
-            body,
         } => {
-            let parsed = parse_version(&version)?;
-            let notes = if let Some(body) = body {
-                let body = fs::read_to_string(body)?;
-                // Keep the entire marked region, including intentional whitespace.
-                notes_region(&body)?.to_owned()
-            } else {
-                require(valid_commit(&candidate_commit), "Invalid candidate commit")?;
-                parse_version(previous_tag.strip_prefix('v').unwrap_or(""))?;
-                let changes = output(
-                    root,
-                    "git",
-                    &[
-                        "log",
-                        "--reverse",
-                        "--format=- %s (%h)",
-                        &format!("{previous_tag}..{candidate_commit}"),
-                    ],
-                )?;
-                format!(
-                    "\n## Changes\n\n{changes}\n\n## Installation\n\n```sh\n{}\n{}\n```\n",
-                    install_command("iguana", &parsed),
-                    install_command("iguana-lsp", &parsed)
-                )
-            };
             println!(
                 "{}",
-                pr_body(&version, &candidate_commit, &java_commit, &run_url, &notes)?
+                pr_body(&version, &candidate_commit, &java_commit, &run_url)?
             );
             Ok(())
         }
-        Command::ExtractNotes { body } => {
-            println!("{}", extract_notes(&fs::read_to_string(body)?)?);
+        Command::Notes {
+            version,
+            previous_tag,
+            candidate_commit,
+        } => {
+            println!(
+                "{}",
+                release_notes(root, &version, &previous_tag, &candidate_commit)?
+            );
             Ok(())
         }
-        Command::GithubRelease {
+        Command::GithubDraft {
             version,
             commit,
             notes,
             releases,
         } => {
-            let releases =
-                serde_json::from_str(&fs::read_to_string(releases)?).map_err(io::Error::other)?;
             println!(
                 "{}",
-                github_publication(&releases, &version, &commit, &fs::read_to_string(notes)?)?
+                github::draft(
+                    &read_json(&releases)?,
+                    &version,
+                    &commit,
+                    &fs::read_to_string(notes)?
+                )?
+            );
+            Ok(())
+        }
+        Command::ReviewRelease {
+            version,
+            commit,
+            release,
+        } => {
+            let release = read_json(&release)?;
+            github::review(&release, &version, &commit)?;
+            println!("{release}");
+            Ok(())
+        }
+        Command::GithubRelease {
+            version,
+            commit,
+            approved,
+            release,
+        } => {
+            println!(
+                "{}",
+                github::publication(
+                    &read_json(&release)?,
+                    &read_json(&approved)?,
+                    &version,
+                    &commit
+                )?
             );
             Ok(())
         }
@@ -159,6 +182,10 @@ fn require(condition: bool, message: impl Into<String>) -> io::Result<()> {
     } else {
         Err(io::Error::other(message.into()))
     }
+}
+
+fn read_json(path: &Path) -> io::Result<Value> {
+    serde_json::from_str(&fs::read_to_string(path)?).map_err(io::Error::other)
 }
 
 fn parse_version(value: &str) -> io::Result<Version> {
@@ -185,6 +212,20 @@ fn release_tag(version: &str) -> String {
 
 fn plan(root: &Path, version: &str, candidate: Option<&str>) -> io::Result<Value> {
     let requested = parse_version(version)?;
+    let tag = release_tag(version);
+    if !output(root, "git", &["tag", "--list", &tag])?.is_empty() {
+        require(
+            candidate.is_some(),
+            format!(
+                "Tag {tag} already exists. Resume its release PR instead of preparing a new candidate"
+            ),
+        )?;
+        let tagged = output(root, "git", &["rev-parse", &format!("{tag}^{{commit}}")])?;
+        require(
+            candidate == Some(tagged.as_str()),
+            format!("Tag {tag} points to a different release candidate"),
+        )?;
+    }
     let base = if let Some(commit) = candidate {
         require(valid_commit(commit), "Invalid candidate commit")?;
         let manifest = output(root, "git", &["show", &format!("{commit}:Cargo.toml")])?;
@@ -215,18 +256,12 @@ fn plan(root: &Path, version: &str, candidate: Option<&str>) -> io::Result<Value
             io::Error::other("No earlier v<version> release tag in candidate history")
         })?;
     Ok(json!({
-        "tag": release_tag(version), "previous_tag": release_tag(&previous.to_string()),
+        "tag": tag, "previous_tag": release_tag(&previous.to_string()),
         "base_commit": base,
     }))
 }
 
-fn pr_body(
-    version: &str,
-    candidate: &str,
-    java: &str,
-    run_url: &str,
-    notes: &str,
-) -> io::Result<String> {
+fn pr_body(version: &str, candidate: &str, java: &str, run_url: &str) -> io::Result<String> {
     parse_version(version)?;
     require(
         valid_commit(candidate) && valid_commit(java),
@@ -240,58 +275,50 @@ fn pr_body(
                 .is_some_and(|id| !id.is_empty() && id.bytes().all(|b| b.is_ascii_digit())),
         "Invalid release run URL",
     )?;
-    let body = format!(
-        "Prepare Iguana {version}.\n\n\
+    Ok(format!(
+        "Release {version}.\n\n\
+         This PR updates the five Iguana crate versions and their exact internal dependency pins to `{version}`. \
+         It refreshes the root, grammar-test, LSP WebAssembly and Terrarium lockfiles. \
+         The CLI and LSP README installation commands use the new version. \
+         Generated parser sources should be unchanged.\n\n\
+         CI runs the full test suite and validates the release packages. \
+         It checks tool installation and parser generation from those packages. \
+         CI also generates and builds the Java parser, then runs its golden and corpus tests.\n\n\
+         **To merge:** review the diff and checks, then approve `release-merge` in the \
+         [Actions run]({run_url}). Leave this PR as a draft. The workflow marks it ready \
+         and fast-forwards `main` to the single `Release {version}` commit.\n\n\
+         After merging, the workflow provides a separate draft release editor for the release notes. \
+         Saving that draft and approving `release-publish` in Actions authorizes publication.\n\n\
          Candidate: `{candidate}`.\n\n\
-         Java grammar validation uses `iguana-parser/iguana-java-grammar@{java}`.\n\n\
-         [Current release run]({run_url}).\n\n\
-         Edit the notes between the markers before approving publication.\n\
-         Preparation and validation run automatically. Review the diff and checks,\n\
-         then approve merging this exact candidate in the Actions run.\n\
-         Publication requires a separate approval after merging.\n\n\
-         {NOTES_START}{notes}{NOTES_END}"
-    );
-    extract_notes(&body)?;
-    Ok(body)
+         Java grammar: `iguana-parser/iguana-java-grammar@{java}`.\n"
+    ))
 }
 
-fn github_publication(
-    releases: &Value,
+fn release_notes(
+    root: &Path,
     version: &str,
+    previous_tag: &str,
     commit: &str,
-    notes: &str,
-) -> io::Result<Value> {
+) -> io::Result<String> {
     let parsed = parse_version(version)?;
     require(valid_commit(commit), "Invalid release commit")?;
-    require(!notes.trim().is_empty(), "Release notes cannot be empty")?;
-    let tag = release_tag(version);
-    let matching: Vec<_> = releases
-        .as_array()
-        .ok_or_else(|| io::Error::other("Expected a releases array"))?
-        .iter()
-        .filter(|release| release["tag_name"] == tag)
-        .collect();
-    require(matching.len() <= 1, "Multiple releases have this tag")?;
-    let (method, id) = if let Some(release) = matching.first() {
-        let draft = release["draft"]
-            .as_bool()
-            .ok_or_else(|| io::Error::other("Missing release draft status"))?;
-        if !draft {
-            return Ok(json!({"method": "none"}));
-        }
-        let id = release["id"]
-            .as_u64()
-            .filter(|id| *id > 0)
-            .ok_or_else(|| io::Error::other("Invalid draft release ID"))?;
-        ("PATCH", Some(id))
-    } else {
-        ("POST", None)
-    };
-    Ok(json!({"method": method, "id": id, "payload": {
-        "tag_name": tag, "target_commitish": commit, "name": version,
-        "body": notes, "draft": false, "prerelease": !parsed.pre.is_empty(),
-        "make_latest": if parsed.pre.is_empty() { "legacy" } else { "false" },
-    }}))
+    parse_version(previous_tag.strip_prefix('v').unwrap_or(""))?;
+    // The version-bump commit itself is release bookkeeping, not a release note.
+    let changes = output(
+        root,
+        "git",
+        &[
+            "log",
+            "--reverse",
+            "--format=- %s (%h)",
+            &format!("{previous_tag}..{commit}^"),
+        ],
+    )?;
+    Ok(format!(
+        "## Changes\n\n{changes}\n\n## Installation\n\n```sh\n{}\n{}\n```\n",
+        install_command("iguana", &parsed),
+        install_command("iguana-lsp", &parsed)
+    ))
 }
 
 fn document(text: &str) -> io::Result<DocumentMut> {
@@ -339,23 +366,26 @@ fn install_command(package: &str, version: &Version) -> String {
     }
 }
 
+fn require_install_command(text: &str, package: &str, version: &Version) -> io::Result<()> {
+    let expected = install_command(package, version);
+    require(
+        text.lines().any(|line| line.trim() == expected),
+        format!("Missing current installation command for {package}"),
+    )
+}
+
 fn bump_readme(text: &str, package: &str, old: &Version, new: &Version) -> io::Result<String> {
+    require_install_command(text, package, old)?;
     let expected = install_command(package, old);
     let replacement = install_command(package, new);
-    let mut found = false;
     let mut result = String::new();
     for line in text.split_inclusive('\n') {
         if line.trim() == expected {
             result.push_str(&line.replacen(&expected, &replacement, 1));
-            found = true;
         } else {
             result.push_str(line);
         }
     }
-    require(
-        found,
-        format!("Missing current installation command for {package}"),
-    )?;
     Ok(result)
 }
 
@@ -377,8 +407,8 @@ fn prepare(root: &Path, new: &str) -> io::Result<()> {
         )?;
         edits.push((path, text));
     }
-    // Validate every input before writing anything. Lockfiles and generated
-    // sources are then updated by fresh Cargo processes in the workflow.
+    // Validate every input before writing anything. Fresh Cargo processes in
+    // the workflow then update lockfiles and verify generated sources.
     for (path, text) in edits {
         fs::write(root.join(path), text)?;
     }
@@ -456,27 +486,9 @@ fn check(root: &Path, version: &str) -> io::Result<()> {
     }
     for package in ["iguana", "iguana-lsp"] {
         let text = fs::read_to_string(root.join(format!("{package}/README.md")))?;
-        bump_readme(&text, package, &parsed, &parsed)?;
+        require_install_command(&text, package, &parsed)?;
     }
     Ok(())
-}
-
-fn notes_region(body: &str) -> io::Result<&str> {
-    require(
-        body.matches(NOTES_START).count() == 1 && body.matches(NOTES_END).count() == 1,
-        "PR body must contain exactly one pair of release-notes markers",
-    )?;
-    let after_start = body.split_once(NOTES_START).unwrap().1;
-    let notes = after_start
-        .split_once(NOTES_END)
-        .ok_or_else(|| io::Error::other("Release notes markers are reversed"))?
-        .0;
-    require(!notes.trim().is_empty(), "Release notes cannot be empty")?;
-    Ok(notes)
-}
-
-fn extract_notes(body: &str) -> io::Result<&str> {
-    Ok(notes_region(body)?.trim())
 }
 
 fn clean(root: &Path) -> io::Result<()> {
@@ -504,7 +516,7 @@ fn output(root: &Path, program: &str, args: &[&str]) -> io::Result<String> {
         ),
     )?;
     String::from_utf8(result.stdout)
-        .map(|s| s.trim().to_owned())
+        .map(|s| s.trim_end().to_owned())
         .map_err(io::Error::other)
 }
 
@@ -538,7 +550,7 @@ fn registry_status(status: &str, metadata: &str, package: &str, version: &str) -
     )?;
     require(
         data["version"]["yanked"] == false,
-        format!("{package} {version} is yanked or has invalid metadata; choose a new version"),
+        format!("{package} {version} is yanked or has invalid metadata. Choose a new version"),
     )?;
     Ok(true)
 }
@@ -549,7 +561,7 @@ fn check_provenance(vcs: &str, commit: &str) -> io::Result<()> {
         data["git"]["sha1"] == commit
             && (data["git"]["dirty"].is_null() || data["git"]["dirty"] == false),
         format!(
-            "Existing crate was not published from clean commit {commit}; choose a new version"
+            "Existing crate was not published from clean commit {commit}. Choose a new version"
         ),
     )
 }
@@ -637,7 +649,7 @@ fn publish(root: &Path, version: &str, commit: &str) -> io::Result<()> {
     )
     .join("iguana-release-crates");
     fs::create_dir_all(&directory)?;
-    // Check ALL crates before uploading ANY. A retry may skip only versions
+    // Check every crate before uploading any. A retry may skip only versions
     // whose archived VCS information proves they came from this same commit.
     let mut existing = Vec::new();
     for package in PACKAGES {
@@ -698,8 +710,28 @@ mod tests {
 
     impl Drop for Repository {
         fn drop(&mut self) {
-            fs::remove_dir_all(&self.0).unwrap();
+            let _ = fs::remove_dir_all(&self.0);
         }
+    }
+
+    #[test]
+    fn existing_tag_blocks_new_candidates_and_mismatched_resumes() {
+        let repo = Repository::new();
+        repo.git(&["tag", "v0.1.0-alpha.2"]);
+        let error = plan(&repo.0, "0.1.0-alpha.2", None).unwrap_err();
+        assert!(error.to_string().contains("already exists"));
+        let candidate = repo.commit_version("0.1.0-alpha.2");
+        let error = plan(&repo.0, "0.1.0-alpha.2", Some(&candidate)).unwrap_err();
+        assert!(error.to_string().contains("different release candidate"));
+    }
+
+    #[test]
+    fn annotated_tag_at_the_candidate_allows_publication_recovery() {
+        let repo = Repository::new();
+        let candidate = repo.commit_version("0.1.0-alpha.2");
+        repo.git(&["tag", "-a", "v0.1.0-alpha.2", "-m", "0.1.0-alpha.2"]);
+        let resumed = plan(&repo.0, "0.1.0-alpha.2", Some(&candidate)).unwrap();
+        assert_eq!(resumed["tag"], "v0.1.0-alpha.2");
     }
 
     #[test]
@@ -750,73 +782,38 @@ mod tests {
     }
 
     #[test]
-    fn refreshes_validation_metadata_without_changing_edited_notes() {
-        let candidate = "a".repeat(40);
-        let old_java = "b".repeat(40);
-        let new_java = "c".repeat(40);
-        let notes = "\n\nHand-edited **notes**.\n\n```sh\necho '$KEEP'\n```\n\n";
-        let old_body = pr_body(
+    fn pr_describes_changes_and_approval_without_embedding_release_notes() {
+        let body = pr_body(
             "0.1.0-alpha.2",
-            &candidate,
-            &old_java,
-            "https://github.com/iguana-parser/iguana-rs/actions/runs/100",
-            notes,
-        )
-        .unwrap();
-        let refreshed = pr_body(
-            "0.1.0-alpha.2",
-            &candidate,
-            &new_java,
+            &"a".repeat(40),
+            &"b".repeat(40),
             "https://github.com/iguana-parser/iguana-rs/actions/runs/200",
-            notes_region(&old_body).unwrap(),
         )
         .unwrap();
-        assert_eq!(notes_region(&refreshed).unwrap(), notes);
-        assert!(refreshed.contains(&candidate));
-        assert!(refreshed.contains(&new_java));
-        assert!(refreshed.contains("/runs/200"));
-        assert!(!refreshed.contains(&old_java));
-        assert!(!refreshed.contains("/runs/100"));
+        assert!(body.contains("five Iguana crate versions"));
+        assert!(body.contains("lockfiles"));
+        assert!(body.contains("README installation commands"));
+        assert!(body.contains("approve `release-merge`"));
+        assert!(body.contains("Leave this PR as a draft"));
+        assert!(body.contains("single `Release 0.1.0-alpha.2` commit"));
+        assert!(body.contains("separate draft release editor"));
+        assert!(!body.contains("release-notes:"));
+        assert!(!body.contains("cargo install"));
     }
 
     #[test]
-    fn draft_and_new_releases_share_canonical_fields() {
-        let commit = "a".repeat(40);
-        for version in ["0.1.0-alpha.2", "0.1.0"] {
-            let drafts = json!([{"id": 42, "tag_name": release_tag(version), "draft": true,
-                "name": "Wrong title", "body": "Stale draft notes", "prerelease": false}]);
-            let draft = github_publication(&drafts, version, &commit, "Reviewed notes").unwrap();
-            let fresh = github_publication(&json!([]), version, &commit, "Reviewed notes").unwrap();
-            assert_eq!(draft["method"], "PATCH");
-            assert_eq!(draft["id"], 42);
-            assert_eq!(fresh["method"], "POST");
-            assert_eq!(draft["payload"], fresh["payload"]);
-            assert_eq!(draft["payload"]["name"], version);
-            assert_eq!(draft["payload"]["tag_name"], release_tag(version));
-            assert_eq!(draft["payload"]["target_commitish"], commit);
-            assert_eq!(draft["payload"]["body"], "Reviewed notes");
-            assert_eq!(draft["payload"]["draft"], false);
-            assert_eq!(draft["payload"]["prerelease"], version.contains('-'));
-        }
-    }
-
-    #[test]
-    fn already_public_releases_are_untouched_and_malformed_data_fails_closed() {
-        let commit = "a".repeat(40);
-        let public = json!([{"id": 42, "tag_name": "v0.1.0-alpha.2", "draft": false,
-            "name": "Published title", "body": "Published notes", "prerelease": true}]);
-        assert_eq!(
-            github_publication(&public, "0.1.0-alpha.2", &commit, "New notes").unwrap(),
-            json!({"method": "none"})
-        );
-        for data in [
-            json!({}),
-            json!([{"tag_name": "v0.1.0-alpha.2"}]),
-            json!([{"tag_name": "v0.1.0-alpha.2", "draft": true, "id": 0}]),
-            json!([public[0], public[0]]),
-        ] {
-            assert!(github_publication(&data, "0.1.0-alpha.2", &commit, "notes").is_err());
-        }
+    fn notes_stop_before_release_bookkeeping_and_exclude_later_commits() {
+        let repo = Repository::new();
+        repo.git(&["commit", "--allow-empty", "-m", "Improve parsing"]);
+        let candidate = repo.commit_version("0.1.0-alpha.2");
+        repo.git(&["commit", "--allow-empty", "-m", "Later work"]);
+        let notes = release_notes(&repo.0, "0.1.0-alpha.2", "v0.1.0-alpha.1", &candidate).unwrap();
+        assert!(notes.contains("Improve parsing"));
+        assert!(!notes.contains("Later work"));
+        assert!(!notes.contains("- 0.1.0-alpha.2"));
+        assert!(notes.contains("cargo install iguana --version 0.1.0-alpha.2"));
+        assert!(notes.contains("cargo install iguana-lsp --version 0.1.0-alpha.2"));
+        assert!(release_notes(&repo.0, "0.1.0-alpha.2", "bad-tag", &candidate).is_err());
     }
 
     #[test]
@@ -893,25 +890,6 @@ mod tests {
         let mut value = metadata();
         value["packages"][0]["publish"] = json!([]);
         assert!(validate_metadata(&value, "0.1.0-alpha.2").is_err());
-    }
-
-    #[test]
-    fn release_notes_must_be_present_unambiguous_and_nonempty() {
-        assert_eq!(
-            extract_notes(&format!(
-                "intro\n{NOTES_START}\nEdited notes\n{NOTES_END}\nfooter"
-            ))
-            .unwrap(),
-            "Edited notes"
-        );
-        for body in [
-            String::new(),
-            format!("{NOTES_START} {NOTES_END}"),
-            format!("{NOTES_END}notes{NOTES_START}"),
-            format!("{NOTES_START}{NOTES_START}notes{NOTES_END}"),
-        ] {
-            assert!(extract_notes(&body).is_err());
-        }
     }
 
     #[test]
