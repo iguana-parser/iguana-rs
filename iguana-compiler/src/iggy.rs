@@ -60,14 +60,14 @@ pub fn build_grammar(
             parse_tree::Rule::SyntaxRule { syntax_rule, .. } => {
                 let converted = convert_syntax_rule(syntax_rule, input);
                 if has_layout_annotation(syntax_rule) {
-                    layout_name = Some(converted.head.name.clone());
+                    layout_name.get_or_insert_with(|| converted.head.name.clone());
                 }
                 syntax_rules.push(converted);
             }
             parse_tree::Rule::RegexRule { regex_rule, .. } => {
                 let converted = convert_regex_rule(regex_rule, input);
                 if regex_rule.layout().value().is_some() {
-                    layout_name = Some(converted.head.name.clone());
+                    layout_name.get_or_insert_with(|| converted.head.name.clone());
                 }
                 if regex_rule.id_annot().value().is_some() {
                     identifier_rules.push(Identifier {
@@ -81,7 +81,8 @@ pub fn build_grammar(
         }
     }
 
-    // The grammar's layout is the rule marked `@Layout`.
+    // The grammar's layout is the first rule marked `@Layout`.
+    // `validate` rejects a grammar that marks more than one.
     let layout = layout_name.map(|name| {
         Symbol::Identifier(Identifier {
             name,
@@ -108,9 +109,9 @@ pub fn build_grammar(
     }
 }
 
-/// Whether a syntax rule carries the `@Layout` annotation, marking it as the
+/// Whether a syntax rule has the `@Layout` annotation, marking it as the
 /// grammar's layout rule.
-fn has_layout_annotation(rule: &parse_tree::SyntaxRule) -> bool {
+pub(crate) fn has_layout_annotation(rule: &parse_tree::SyntaxRule) -> bool {
     matches!(
         rule.annotation().value(),
         Some(parse_tree::Annotation::Layout { .. })
@@ -592,6 +593,190 @@ TypeId = [A-Z][a-z]*
             messages(&errors),
             ["`WS` cannot be both the layout rule and an identifier rule"]
         );
+    }
+
+    #[test]
+    fn test_duplicate_layout_rules_are_rejected_in_source_order() {
+        for first in [r#"@Layout Spaces = " "*"#, r"@Layout @Regex Spaces = [\ ]*"] {
+            for second in [r#"@Layout Tabs = "\t"*"#, r"@Layout @Regex Tabs = [\t]*"] {
+                let source = format!(
+                    r#"grammar g
+S = "a"
+{first}
+{second}
+"#
+                );
+                let errors = parse_grammar(&source).expect_err("two rules are marked @Layout");
+                assert_eq!(
+                    messages(&errors),
+                    ["`Tabs` is marked `@Layout`, but `Spaces` is already the layout rule"],
+                    "{source}"
+                );
+                let start = source.find("Tabs").unwrap() as u32;
+                assert_eq!(errors[0].span, Span::new(start, start + 4), "{source}");
+            }
+        }
+    }
+
+    #[test]
+    fn test_duplicate_layout_name_only_reports_duplicate_definition() {
+        for annotation in ["@Layout", "@Layout @Regex"] {
+            let source = format!(
+                r#"grammar g
+S = "a"
+{annotation} WS = " "*
+{annotation} WS = "\t"*
+"#
+            );
+            let errors = parse_grammar(&source).expect_err("WS is defined twice");
+            assert_eq!(messages(&errors), ["duplicate definition `WS`"]);
+            let start = source.rfind("WS").unwrap() as u32;
+            assert_eq!(errors[0].span, Span::new(start, start + 2));
+        }
+    }
+
+    #[test]
+    fn test_duplicate_definitions_stop_semantic_validation() {
+        for rules in [
+            r#"Item = "a" #One
+Item = "b" #Two"#,
+            r#"@Regex Item = [a]
+@Regex Item = [b]"#,
+        ] {
+            let source = format!(
+                r#"grammar g
+S = Item!MissingLabel Undefined
+{rules}
+@Layout @Identifier @Regex WS = [a-z]*
+@Layout Tabs = "\t"*
+"#
+            );
+            let errors = parse_grammar(&source).expect_err("Item is defined twice");
+            assert_eq!(messages(&errors), ["duplicate definition `Item`"]);
+            let start = source.rfind("Item").unwrap() as u32;
+            assert_eq!(errors[0].span, Span::new(start, start + 4));
+        }
+    }
+
+    #[test]
+    fn test_all_duplicate_definitions_are_reported_before_other_errors() {
+        let source = r#"grammar g
+S = A Missing
+A = "a"
+A = "b"
+A = "c"
+@Regex B = [a]
+@Regex B = [b]
+"#;
+        let errors = parse_grammar(source).expect_err("A and B have duplicate definitions");
+        assert_eq!(
+            messages(&errors),
+            [
+                "duplicate definition `B`",
+                "duplicate definition `A`",
+                "duplicate definition `A`",
+            ]
+        );
+        for (error, declaration) in errors.iter().zip(["B = [b]", "A = \"b\"", "A = \"c\""]) {
+            let start = source.find(declaration).unwrap() as u32;
+            assert_eq!(error.span, Span::new(start, start + 1));
+        }
+    }
+
+    #[test]
+    fn test_duplicate_names_across_syntax_and_lexical_rules() {
+        for rules in [
+            r#"A = "a"
+@Regex A = [a]
+"#,
+            r#"@Regex A = [a]
+A = "a"
+"#,
+        ] {
+            let source = format!(
+                r#"grammar g
+S = A Missing
+{rules}"#
+            );
+            let errors =
+                parse_grammar(&source).expect_err("A names both a syntax and lexical rule");
+            assert_eq!(messages(&errors), ["duplicate definition `A`"]);
+            let start = source.find("A = \"a\"").unwrap() as u32;
+            assert_eq!(errors[0].span, Span::new(start, start + 1));
+        }
+    }
+
+    #[test]
+    fn test_duplicate_layout_does_not_hide_the_first_rules_identifier_conflict() {
+        for annotation in ["@Layout", "@Layout @Regex"] {
+            let source = format!(
+                r#"grammar g
+S = "a"
+@Layout @Identifier @Regex WS = [a-z]*
+{annotation} Tabs = "\t"*
+"#
+            );
+            let errors =
+                parse_grammar(&source).expect_err("both layout checks should report errors");
+            assert_eq!(
+                messages(&errors),
+                [
+                    "`Tabs` is marked `@Layout`, but `WS` is already the layout rule",
+                    "`WS` cannot be both the layout rule and an identifier rule",
+                ]
+            );
+            for (error, name) in errors.iter().zip(["Tabs", "WS"]) {
+                let start = source.find(name).unwrap() as u32;
+                assert_eq!(error.span, Span::new(start, start + name.len() as u32));
+            }
+        }
+    }
+
+    #[test]
+    fn test_every_additional_layout_rule_is_reported() {
+        let source = r#"grammar g
+S = "a"
+@Layout @Regex Spaces = [\ ]*
+@Layout Tabs = "\t"*
+@Layout @Regex Newlines = [\n]*
+"#;
+        let errors = parse_grammar(source).expect_err("three rules are marked @Layout");
+        assert_eq!(
+            messages(&errors),
+            [
+                "`Tabs` is marked `@Layout`, but `Spaces` is already the layout rule",
+                "`Newlines` is marked `@Layout`, but `Spaces` is already the layout rule",
+            ]
+        );
+        for (error, name) in errors.iter().zip(["Tabs", "Newlines"]) {
+            let start = source.find(name).unwrap() as u32;
+            assert_eq!(error.span, Span::new(start, start + name.len() as u32));
+        }
+    }
+
+    #[test]
+    fn test_zero_or_one_layout_rule_is_accepted() {
+        for layout_rule in ["", r#"@Layout WS = " "*"#, r"@Layout @Regex WS = [\ ]*"] {
+            let source = format!(
+                r#"grammar g
+@NoLayout S = "a"
+{layout_rule}
+"#
+            );
+            let grammar = parse_grammar(&source).expect("at most one rule is marked @Layout");
+            assert_eq!(
+                grammar
+                    .layout
+                    .as_ref()
+                    .and_then(Symbol::as_identifier)
+                    .map(|id| id.name.as_str()),
+                if layout_rule.is_empty() {
+                    None
+                } else {
+                    Some("WS")
+                }
+            );
+        }
     }
 
     #[test]

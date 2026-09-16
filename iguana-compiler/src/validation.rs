@@ -42,10 +42,17 @@ pub fn render_errors(errors: &[GrammarError], path: &Path, source: &str) -> Stri
         .join("\n")
 }
 
-/// Checks a resolved `GrammarDef` and reports all errors.
+/// Checks a resolved grammar for semantic errors in rule definitions, symbol
+/// references, and annotations, reporting each error at its source location.
+///
+/// Duplicate rule names stop the remaining checks because those checks assume
+/// unique names.
 pub fn validate<'a>(grammar_def: &'a GrammarDef, spans: &GrammarSpans<'a>) -> Vec<GrammarError> {
     let mut errors = Vec::new();
     check_duplicate_definitions(grammar_def, spans, &mut errors);
+    if !errors.is_empty() {
+        return errors;
+    }
     check_generated_rule_name_collisions(grammar_def, spans, &mut errors);
     check_unresolved_identifiers(grammar_def, spans, &mut errors);
     check_exclusions(grammar_def, spans, &mut errors);
@@ -53,6 +60,7 @@ pub fn validate<'a>(grammar_def: &'a GrammarDef, spans: &GrammarSpans<'a>) -> Ve
     check_one_label_per_symbol(grammar_def, spans, &mut errors);
     check_duplicate_field_labels(grammar_def, spans, &mut errors);
     check_reserved_names(grammar_def, spans, &mut errors);
+    check_duplicate_layout_rules(spans, &mut errors);
     check_layout_is_not_an_identifier_rule(grammar_def, spans, &mut errors);
     check_grammar_has_a_syntax_rule(grammar_def, &mut errors);
     errors
@@ -71,8 +79,8 @@ fn check_grammar_has_a_syntax_rule(grammar_def: &GrammarDef, errors: &mut Vec<Gr
     }
 }
 
-/// Rule names must be unique. When two rules have the same name, the error is
-/// reported on the later rule.
+/// Checks that syntax and lexical rule names are unique. Each repeated
+/// definition produces an error at its rule name.
 ///
 /// Lexical rules are checked before syntax rules, the same order that assigns
 /// definition IDs. As a result, a name used by both lexical and syntax rules is
@@ -680,6 +688,25 @@ fn check_reserved_names<'a>(
 /// Converts a rule name to the upper snake case used for grammar-data constants.
 fn constant_name(rule_name: &str) -> String {
     to_snake_case(rule_name).to_uppercase()
+}
+
+/// Reports every rule after the first marked `@Layout`, at its rule head,
+/// naming the first in source order. A grammar has at most one layout rule.
+///
+/// Rule names are unique here, because `validate` returns early on a duplicate
+/// definition.
+fn check_duplicate_layout_rules(spans: &GrammarSpans<'_>, errors: &mut Vec<GrammarError>) {
+    let Some(((first, _), rest)) = spans.layout_rules.split_first() else {
+        return;
+    };
+    for (name, span) in rest {
+        errors.push(GrammarError {
+            message: format!(
+                "`{name}` is marked `@Layout`, but `{first}` is already the layout rule"
+            ),
+            span: *span,
+        });
+    }
 }
 
 /// Reports a rule annotated both `@Layout` and `@Identifier`. Keyword

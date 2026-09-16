@@ -9,6 +9,7 @@ use crate::grammar::{
     regex::Regex,
     symbols::{Identifier, Nonterminal, Symbol, Terminal},
 };
+use crate::iggy::has_layout_annotation;
 
 /// Walk the right spine of `node`, skipping `Layout` children, and return the
 /// `right_extent` of the rightmost non-layout `Token` leaf. Parse tree nodes
@@ -73,6 +74,10 @@ pub struct GrammarSpans<'a> {
     /// A map from an `Exclude` symbol to one span per `!label` on it, in
     /// source order.
     pub label_spans: FxHashMap<ByAddress<&'a Symbol>, Vec<Span>>,
+    /// Names and head spans of rules marked `@Layout`, in source order.
+    /// `GrammarDef::layout` keeps only one rule, so validation needs this
+    /// record of every declaration to report duplicates.
+    pub layout_rules: Vec<(&'a str, Span)>,
 }
 
 impl<'a> GrammarSpans<'a> {
@@ -189,6 +194,11 @@ impl<'a, 'b> SpanBuilder<'a, 'b> {
                         },
                     );
                     let head_span = syntax_rule.head().span();
+                    if has_layout_annotation(syntax_rule) {
+                        self.spans
+                            .layout_rules
+                            .push((&gr_rule.head.name, head_span));
+                    }
                     self.spans
                         .nonterminals
                         .insert(ByAddress(&gr_rule.head), SourceRegion::new(head_span));
@@ -227,6 +237,11 @@ impl<'a, 'b> SpanBuilder<'a, 'b> {
                         },
                     );
                     let head_span = regex_rule.identifier().span();
+                    if regex_rule.layout().value().is_some() {
+                        self.spans
+                            .layout_rules
+                            .push((&gr_rule.head.name, head_span));
+                    }
                     self.spans
                         .terminals
                         .insert(ByAddress(&gr_rule.head), SourceRegion::new(head_span));

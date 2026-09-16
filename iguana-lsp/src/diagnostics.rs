@@ -473,6 +473,50 @@ Kw
         assert_eq!(d[0].range.start.character, 13);
     }
 
+    #[test]
+    fn duplicate_layout_rule_is_an_error_on_the_later_rule() {
+        let d = diags(
+            r#"
+grammar T
+
+S = "x"
+
+@Layout
+Spaces = " "*
+
+@Layout @Regex
+Tabs = [\t]*
+"#,
+        );
+        assert_eq!(d.len(), 1, "{d:?}");
+        assert_eq!(
+            d[0].message,
+            "`Tabs` is marked `@Layout`, but `Spaces` is already the layout rule"
+        );
+        assert_eq!(d[0].severity, Some(DiagnosticSeverity::ERROR));
+        assert_eq!(d[0].range.start, Position::new(8, 0));
+        assert_eq!(d[0].range.end, Position::new(8, 4));
+    }
+
+    #[test]
+    fn duplicate_names_stop_semantic_validation() {
+        let d = diags(
+            r#"
+grammar T
+S = A!Unknown Missing
+A = "a" #One
+A = "b" #Two
+@Layout @Identifier @Regex WS = [a-z]*
+@Layout Tabs = "\t"*
+"#,
+        );
+        assert_eq!(d.len(), 1, "{d:?}");
+        assert_eq!(d[0].message, "duplicate definition `A`");
+        assert_eq!(d[0].severity, Some(DiagnosticSeverity::ERROR));
+        assert_eq!(d[0].range.start, Position::new(3, 0));
+        assert_eq!(d[0].range.end, Position::new(3, 1));
+    }
+
     /// Identifier-rule references are not resolved, so this diagnostic finds
     /// the corresponding lexical rule head by name.
     #[test]
