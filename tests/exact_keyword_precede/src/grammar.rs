@@ -98,39 +98,39 @@ pub static FOLLOW_SET_S: TerminalSet = TerminalSet {
     id: 0,
     terminals: &[TerminalId(2), TerminalId(7)],
 };
-// S { Id, Num }
-pub static FIRST_SET_S: TerminalSet = TerminalSet {
-    id: 0,
-    terminals: &[TerminalId(0), TerminalId(1)],
-};
 // S : . Num WS [0-9 A-Z _ a-z] !<< "else" !>> [0-9 A-Z _ a-z] WS Id WS ";" { Num }
 pub static FIRST_SET_S_ALT0: TerminalSet = TerminalSet {
     id: 1,
     terminals: &[TerminalId(1)],
 };
-// S : . Id WS ";" { Id }
-pub static FIRST_SET_S_ALT1: TerminalSet = TerminalSet {
-    id: 2,
-    terminals: &[TerminalId(0)],
-};
 // S : Num WS . [0-9 A-Z _ a-z] !<< "else" !>> [0-9 A-Z _ a-z] WS Id WS ";" !>> { [0-9 A-Z _
 // a-z] }
 pub static FOLLOW_RESTRICTION_S_ALT0_POS2: TerminalSet = TerminalSet {
-    id: 3,
+    id: 2,
     terminals: &[TerminalId(5)],
+};
+// S : . Id WS ";" { Id }
+pub static FIRST_SET_S_ALT1: TerminalSet = TerminalSet {
+    id: 3,
+    terminals: &[TerminalId(0)],
 };
 // StartS { EOF }
 pub static FOLLOW_SET_START_S: TerminalSet = TerminalSet {
     id: 4,
     terminals: &[TerminalId(7)],
 };
-// StartS { Id, Num, WS }
-pub static FIRST_SET_START_S: TerminalSet = TerminalSet {
-    id: 1,
-    terminals: &[TerminalId(0), TerminalId(1), TerminalId(2)],
-};
 // StartS : . WS start:S WS { Id, Num, WS }
 pub static FIRST_SET_START_S_ALT0: TerminalSet = TerminalSet {
     id: 5,
+    terminals: &[TerminalId(0), TerminalId(1), TerminalId(2)],
+};
+// S { Id, Num }
+pub static FIRST_SET_S: TerminalSet = TerminalSet {
+    id: 6,
+    terminals: &[TerminalId(0), TerminalId(1)],
+};
+// StartS { Id, Num, WS }
+pub static FIRST_SET_START_S: TerminalSet = TerminalSet {
+    id: 7,
     terminals: &[TerminalId(0), TerminalId(1), TerminalId(2)],
 };

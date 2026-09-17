@@ -3,7 +3,7 @@ use quote::{format_ident, quote};
 
 use crate::{
     dfa::{Dfa, Nfa},
-    generator::{GenConfig, grammar_utils::scanner_ident, id::TerminalIds, terminal_sets::SetIds},
+    generator::{GenConfig, grammar_utils::scanner_ident, id::TerminalIds},
     grammar::{
         def::Grammar,
         regex::Regex,
@@ -14,14 +14,14 @@ use crate::{
 pub fn generate(
     grammar: &Grammar,
     terminal_ids: &TerminalIds,
-    match_any_sets: &SetIds,
+    match_any_count: usize,
     config: &GenConfig,
 ) -> TokenStream {
     let grammar_name = &grammar.name;
 
     let imports = gen_imports(config);
     let memo_words = gen_memo_words_const(terminal_ids, config);
-    let match_any_words = gen_match_any_words_const(match_any_sets, config);
+    let match_any_words = gen_match_any_words_const(match_any_count, config);
     let dfa_statics = gen_dfa_statics(grammar, terminal_ids);
     let scanner_struct = gen_scanner_struct(grammar_name, config);
     let scanner_impl = gen_scanner_imp(grammar, terminal_ids, config);
@@ -72,15 +72,15 @@ fn gen_memo_words_const(terminal_ids: &TerminalIds, config: &GenConfig) -> Token
 /// Emits `MATCH_ANY_SET_WORDS`, the number of `u64` words in each of the
 /// `match_any` memo's bitsets.
 ///
-/// The memo packs one bit per set id at each input position, so `count`
-/// distinct sets need `ceil(count / 64)` words, at least one so the array is
-/// never zero-length. The scanner sizes its table as
-/// `MatchAnyMemo<MATCH_ANY_SET_WORDS>`.
-fn gen_match_any_words_const(match_any_sets: &SetIds, config: &GenConfig) -> TokenStream {
+/// The memo packs one bit per set id at each input position, so
+/// `match_any_count` distinct sets need `ceil(match_any_count / 64)` words,
+/// at least one so the array is never zero-length. The scanner sizes its
+/// table as `MatchAnyMemo<MATCH_ANY_SET_WORDS>`.
+fn gen_match_any_words_const(match_any_count: usize, config: &GenConfig) -> TokenStream {
     if !config.match_memo {
         return quote! {};
     }
-    let words = match_any_sets.count().div_ceil(64).max(1);
+    let words = match_any_count.div_ceil(64).max(1);
     let words_lit = Literal::usize_unsuffixed(words);
     quote! {
         const MATCH_ANY_SET_WORDS: usize = #words_lit;

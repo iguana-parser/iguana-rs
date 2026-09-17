@@ -237,11 +237,6 @@ pub static FOLLOW_SET_S: TerminalSet = TerminalSet {
     id: 0,
     terminals: &[TerminalId(0), TerminalId(10)],
 };
-// S { "-", "if", "a" }
-pub static FIRST_SET_S: TerminalSet = TerminalSet {
-    id: 0,
-    terminals: &[TerminalId(3), TerminalId(4), TerminalId(8)],
-};
 // S : . E(0) { "-", "if", "a" }
 pub static FIRST_SET_S_ALT0: TerminalSet = TerminalSet {
     id: 1,
@@ -259,11 +254,6 @@ pub static FOLLOW_SET_E: TerminalSet = TerminalSet {
         TerminalId(7),
         TerminalId(10),
     ],
-};
-// E { "-", "if", "a" }
-pub static FIRST_SET_E: TerminalSet = TerminalSet {
-    id: 0,
-    terminals: &[TerminalId(3), TerminalId(4), TerminalId(8)],
 };
 // E(p: i32) : . [5 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 5)] WS "*" WS r_pr=E(6) return
 // (r_pr == 0) ? 5 : min(r_pr, 5) { "-", "if", "a" }
@@ -303,11 +293,6 @@ pub static FOLLOW_SET_START_S: TerminalSet = TerminalSet {
     id: 6,
     terminals: &[TerminalId(10)],
 };
-// StartS { WS, "-", "if", "a" }
-pub static FIRST_SET_START_S: TerminalSet = TerminalSet {
-    id: 1,
-    terminals: &[TerminalId(0), TerminalId(3), TerminalId(4), TerminalId(8)],
-};
 // StartS : . WS start:S WS { WS, "-", "if", "a" }
 pub static FIRST_SET_START_S_ALT0: TerminalSet = TerminalSet {
     id: 7,
@@ -318,13 +303,28 @@ pub static FOLLOW_SET_START_E: TerminalSet = TerminalSet {
     id: 6,
     terminals: &[TerminalId(10)],
 };
-// StartE { WS, "-", "if", "a" }
-pub static FIRST_SET_START_E: TerminalSet = TerminalSet {
-    id: 1,
-    terminals: &[TerminalId(0), TerminalId(3), TerminalId(4), TerminalId(8)],
-};
 // StartE : . WS start:E(0) WS { WS, "-", "if", "a" }
 pub static FIRST_SET_START_E_ALT0: TerminalSet = TerminalSet {
     id: 7,
+    terminals: &[TerminalId(0), TerminalId(3), TerminalId(4), TerminalId(8)],
+};
+// S { "-", "if", "a" }
+pub static FIRST_SET_S: TerminalSet = TerminalSet {
+    id: 8,
+    terminals: &[TerminalId(3), TerminalId(4), TerminalId(8)],
+};
+// E { "-", "if", "a" }
+pub static FIRST_SET_E: TerminalSet = TerminalSet {
+    id: 8,
+    terminals: &[TerminalId(3), TerminalId(4), TerminalId(8)],
+};
+// StartS { WS, "-", "if", "a" }
+pub static FIRST_SET_START_S: TerminalSet = TerminalSet {
+    id: 9,
+    terminals: &[TerminalId(0), TerminalId(3), TerminalId(4), TerminalId(8)],
+};
+// StartE { WS, "-", "if", "a" }
+pub static FIRST_SET_START_E: TerminalSet = TerminalSet {
+    id: 9,
     terminals: &[TerminalId(0), TerminalId(3), TerminalId(4), TerminalId(8)],
 };

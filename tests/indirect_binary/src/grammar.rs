@@ -4702,11 +4702,6 @@ pub static FOLLOW_SET_S: TerminalSet = TerminalSet {
     id: 0,
     terminals: &[TerminalId(1), TerminalId(41)],
 };
-// S { "a" }
-pub static FIRST_SET_S: TerminalSet = TerminalSet {
-    id: 0,
-    terminals: &[TerminalId(2)],
-};
 // S : . E(0) { "a" }
 pub static FIRST_SET_S_ALT0: TerminalSet = TerminalSet {
     id: 1,
@@ -4722,11 +4717,6 @@ pub static FOLLOW_SET_E: TerminalSet = TerminalSet {
         TerminalId(5),
         TerminalId(41),
     ],
-};
-// E { "a" }
-pub static FIRST_SET_E: TerminalSet = TerminalSet {
-    id: 0,
-    terminals: &[TerminalId(2)],
 };
 // E(p: i32) : . "a" return 0 { "a" }
 pub static FIRST_SET_E_ALT0: TerminalSet = TerminalSet {
@@ -4762,11 +4752,6 @@ pub static FOLLOW_SET_L: TerminalSet = TerminalSet {
         TerminalId(41),
     ],
 };
-// L { "a" }
-pub static FIRST_SET_L: TerminalSet = TerminalSet {
-    id: 0,
-    terminals: &[TerminalId(2)],
-};
 // L(p: i32, end: i32) : . v_pr=E(p) return v_pr { "a" }
 pub static FIRST_SET_L_ALT0: TerminalSet = TerminalSet {
     id: 1,
@@ -4776,11 +4761,6 @@ pub static FIRST_SET_L_ALT0: TerminalSet = TerminalSet {
 pub static FOLLOW_SET_ONLY: TerminalSet = TerminalSet {
     id: 3,
     terminals: &[TerminalId(1), TerminalId(7), TerminalId(41)],
-};
-// Only { "b" }
-pub static FIRST_SET_ONLY: TerminalSet = TerminalSet {
-    id: 1,
-    terminals: &[TerminalId(6)],
 };
 // Only(p: i32) : . "b" return 0 { "b" }
 pub static FIRST_SET_ONLY_ALT0: TerminalSet = TerminalSet {
@@ -4798,11 +4778,6 @@ pub static FOLLOW_SET_ONLY_OPERAND: TerminalSet = TerminalSet {
     id: 3,
     terminals: &[TerminalId(1), TerminalId(7), TerminalId(41)],
 };
-// OnlyOperand { "b" }
-pub static FIRST_SET_ONLY_OPERAND: TerminalSet = TerminalSet {
-    id: 1,
-    terminals: &[TerminalId(6)],
-};
 // OnlyOperand(p: i32, end: i32) : . v_pr=Only(p) return v_pr { "b" }
 pub static FIRST_SET_ONLY_OPERAND_ALT0: TerminalSet = TerminalSet {
     id: 4,
@@ -4818,11 +4793,6 @@ pub static FOLLOW_SET_CROSS: TerminalSet = TerminalSet {
         TerminalId(5),
         TerminalId(41),
     ],
-};
-// Cross { "c" }
-pub static FIRST_SET_CROSS: TerminalSet = TerminalSet {
-    id: 2,
-    terminals: &[TerminalId(8)],
 };
 // Cross(p: i32) : . "c" return 0 { "c" }
 pub static FIRST_SET_CROSS_ALT0: TerminalSet = TerminalSet {
@@ -4852,11 +4822,6 @@ pub static FOLLOW_SET_FOREIGN: TerminalSet = TerminalSet {
         TerminalId(41),
     ],
 };
-// Foreign { "c", "d" }
-pub static FIRST_SET_FOREIGN: TerminalSet = TerminalSet {
-    id: 3,
-    terminals: &[TerminalId(8), TerminalId(9)],
-};
 // Foreign(p: i32) : . "d" return 0 { "d" }
 pub static FIRST_SET_FOREIGN_ALT0: TerminalSet = TerminalSet {
     id: 6,
@@ -4883,11 +4848,6 @@ pub static FOLLOW_SET_CASCADE: TerminalSet = TerminalSet {
         TerminalId(12),
         TerminalId(41),
     ],
-};
-// Cascade { "t" }
-pub static FIRST_SET_CASCADE: TerminalSet = TerminalSet {
-    id: 4,
-    terminals: &[TerminalId(10)],
 };
 // Cascade(p: i32) : . "t" return 0 { "t" }
 pub static FIRST_SET_CASCADE_ALT0: TerminalSet = TerminalSet {
@@ -4916,11 +4876,6 @@ pub static FOLLOW_SET_TERNARY: TerminalSet = TerminalSet {
         TerminalId(41),
     ],
 };
-// Ternary { "t" }
-pub static FIRST_SET_TERNARY: TerminalSet = TerminalSet {
-    id: 4,
-    terminals: &[TerminalId(10)],
-};
 // Ternary : . Cascade(0) WS "?" WS Cascade(0) WS ":" WS Cascade(0) { "t" }
 pub static FIRST_SET_TERNARY_ALT0: TerminalSet = TerminalSet {
     id: 9,
@@ -4930,11 +4885,6 @@ pub static FIRST_SET_TERNARY_ALT0: TerminalSet = TerminalSet {
 pub static FOLLOW_SET_NULLABLE: TerminalSet = TerminalSet {
     id: 10,
     terminals: &[TerminalId(1), TerminalId(14), TerminalId(41)],
-};
-// Nullable { WS, "n", "x" }
-pub static FIRST_SET_NULLABLE: TerminalSet = TerminalSet {
-    id: 5,
-    terminals: &[TerminalId(1), TerminalId(13), TerminalId(15)],
 };
 // Nullable(p: i32) : . "n" return 0 { "n" }
 pub static FIRST_SET_NULLABLE_ALT0: TerminalSet = TerminalSet {
@@ -4951,11 +4901,6 @@ pub static FOLLOW_SET_NULLABLE_LEFT: TerminalSet = TerminalSet {
     id: 10,
     terminals: &[TerminalId(1), TerminalId(14), TerminalId(41)],
 };
-// NullableLeft { WS, "n", "x" }
-pub static FIRST_SET_NULLABLE_LEFT: TerminalSet = TerminalSet {
-    id: 5,
-    terminals: &[TerminalId(1), TerminalId(13), TerminalId(15)],
-};
 // NullableLeft : . Opt_0 WS Nullable(0) { WS, "n", "x" }
 pub static FIRST_SET_NULLABLE_LEFT_ALT0: TerminalSet = TerminalSet {
     id: 12,
@@ -4966,11 +4911,6 @@ pub static FOLLOW_SET_NULLABLE_RIGHT: TerminalSet = TerminalSet {
     id: 10,
     terminals: &[TerminalId(1), TerminalId(14), TerminalId(41)],
 };
-// NullableRight { WS, "n", "x" }
-pub static FIRST_SET_NULLABLE_RIGHT: TerminalSet = TerminalSet {
-    id: 5,
-    terminals: &[TerminalId(1), TerminalId(13), TerminalId(15)],
-};
 // NullableRight(p: i32) : . r_pr=Nullable(p) return r_pr { WS, "n", "x" }
 pub static FIRST_SET_NULLABLE_RIGHT_ALT0: TerminalSet = TerminalSet {
     id: 12,
@@ -4980,11 +4920,6 @@ pub static FIRST_SET_NULLABLE_RIGHT_ALT0: TerminalSet = TerminalSet {
 pub static FOLLOW_SET_RIGHT_EXPR: TerminalSet = TerminalSet {
     id: 13,
     terminals: &[TerminalId(1), TerminalId(17), TerminalId(41)],
-};
-// RightExpr { "r" }
-pub static FIRST_SET_RIGHT_EXPR: TerminalSet = TerminalSet {
-    id: 6,
-    terminals: &[TerminalId(16)],
 };
 // RightExpr(p: i32) : . "r" return 0 { "r" }
 pub static FIRST_SET_RIGHT_EXPR_ALT0: TerminalSet = TerminalSet {
@@ -5002,11 +4937,6 @@ pub static FOLLOW_SET_RIGHT_OPERAND: TerminalSet = TerminalSet {
     id: 13,
     terminals: &[TerminalId(1), TerminalId(17), TerminalId(41)],
 };
-// RightOperand { "r" }
-pub static FIRST_SET_RIGHT_OPERAND: TerminalSet = TerminalSet {
-    id: 6,
-    terminals: &[TerminalId(16)],
-};
 // RightOperand(p: i32, end: i32) : . v_pr=RightExpr(p) return v_pr { "r" }
 pub static FIRST_SET_RIGHT_OPERAND_ALT0: TerminalSet = TerminalSet {
     id: 14,
@@ -5016,11 +4946,6 @@ pub static FIRST_SET_RIGHT_OPERAND_ALT0: TerminalSet = TerminalSet {
 pub static FOLLOW_SET_NONE_EXPR: TerminalSet = TerminalSet {
     id: 15,
     terminals: &[TerminalId(1), TerminalId(19), TerminalId(41)],
-};
-// NoneExpr { "z" }
-pub static FIRST_SET_NONE_EXPR: TerminalSet = TerminalSet {
-    id: 7,
-    terminals: &[TerminalId(18)],
 };
 // NoneExpr(p: i32) : . "z" return 0 { "z" }
 pub static FIRST_SET_NONE_EXPR_ALT0: TerminalSet = TerminalSet {
@@ -5038,11 +4963,6 @@ pub static FOLLOW_SET_NONE_OPERAND: TerminalSet = TerminalSet {
     id: 15,
     terminals: &[TerminalId(1), TerminalId(19), TerminalId(41)],
 };
-// NoneOperand { "z" }
-pub static FIRST_SET_NONE_OPERAND: TerminalSet = TerminalSet {
-    id: 7,
-    terminals: &[TerminalId(18)],
-};
 // NoneOperand(p: i32, end: i32) : . v_pr=NoneExpr(p) return v_pr { "z" }
 pub static FIRST_SET_NONE_OPERAND_ALT0: TerminalSet = TerminalSet {
     id: 16,
@@ -5057,11 +4977,6 @@ pub static FOLLOW_SET_EXCLUDED: TerminalSet = TerminalSet {
         TerminalId(23),
         TerminalId(41),
     ],
-};
-// Excluded { "e", "(" }
-pub static FIRST_SET_EXCLUDED: TerminalSet = TerminalSet {
-    id: 8,
-    terminals: &[TerminalId(20), TerminalId(22)],
 };
 // Excluded(p: i32, a: i32) : . "e" return 0 { "e" }
 pub static FIRST_SET_EXCLUDED_ALT0: TerminalSet = TerminalSet {
@@ -5087,11 +5002,6 @@ pub static FOLLOW_SET_EXCLUDED_OPERAND: TerminalSet = TerminalSet {
         TerminalId(41),
     ],
 };
-// ExcludedOperand { "e", "(" }
-pub static FIRST_SET_EXCLUDED_OPERAND: TerminalSet = TerminalSet {
-    id: 8,
-    terminals: &[TerminalId(20), TerminalId(22)],
-};
 // ExcludedOperand(p: i32, end: i32, a: i32, e: i32) : . [1 & e == 0] v_pr=Excluded(p, a)
 // return (v_pr, 0) { "e", "(" }
 pub static FIRST_SET_EXCLUDED_OPERAND_ALT0: TerminalSet = TerminalSet {
@@ -5109,11 +5019,6 @@ pub static FOLLOW_SET_FILTERED: TerminalSet = TerminalSet {
     id: 0,
     terminals: &[TerminalId(1), TerminalId(41)],
 };
-// Filtered { "e", "(" }
-pub static FIRST_SET_FILTERED: TerminalSet = TerminalSet {
-    id: 8,
-    terminals: &[TerminalId(20), TerminalId(22)],
-};
 // Filtered : . ExcludedOperand(0, 0, 0, 2) { "e", "(" }
 pub static FIRST_SET_FILTERED_ALT0: TerminalSet = TerminalSet {
     id: 19,
@@ -5123,11 +5028,6 @@ pub static FIRST_SET_FILTERED_ALT0: TerminalSet = TerminalSet {
 pub static FOLLOW_SET_LEX_NULLABLE: TerminalSet = TerminalSet {
     id: 21,
     terminals: &[TerminalId(1), TerminalId(25), TerminalId(41)],
-};
-// LexNullable { Digits, WS, "q" }
-pub static FIRST_SET_LEX_NULLABLE: TerminalSet = TerminalSet {
-    id: 9,
-    terminals: &[TerminalId(0), TerminalId(1), TerminalId(24)],
 };
 // LexNullable(p: i32) : . "q" return 0 { "q" }
 pub static FIRST_SET_LEX_NULLABLE_ALT0: TerminalSet = TerminalSet {
@@ -5145,11 +5045,6 @@ pub static FOLLOW_SET_LEX_NULLABLE_LEFT: TerminalSet = TerminalSet {
     id: 21,
     terminals: &[TerminalId(1), TerminalId(25), TerminalId(41)],
 };
-// LexNullableLeft { Digits, WS, "q" }
-pub static FIRST_SET_LEX_NULLABLE_LEFT: TerminalSet = TerminalSet {
-    id: 9,
-    terminals: &[TerminalId(0), TerminalId(1), TerminalId(24)],
-};
 // LexNullableLeft : . Digits WS LexNullable(0) { Digits, WS, "q" }
 pub static FIRST_SET_LEX_NULLABLE_LEFT_ALT0: TerminalSet = TerminalSet {
     id: 23,
@@ -5160,11 +5055,6 @@ pub static FOLLOW_SET_LEX_NULLABLE_RIGHT: TerminalSet = TerminalSet {
     id: 21,
     terminals: &[TerminalId(1), TerminalId(25), TerminalId(41)],
 };
-// LexNullableRight { Digits, WS, "q" }
-pub static FIRST_SET_LEX_NULLABLE_RIGHT: TerminalSet = TerminalSet {
-    id: 9,
-    terminals: &[TerminalId(0), TerminalId(1), TerminalId(24)],
-};
 // LexNullableRight(p: i32) : . r_pr=LexNullable(p) return r_pr { Digits, WS, "q" }
 pub static FIRST_SET_LEX_NULLABLE_RIGHT_ALT0: TerminalSet = TerminalSet {
     id: 23,
@@ -5174,11 +5064,6 @@ pub static FIRST_SET_LEX_NULLABLE_RIGHT_ALT0: TerminalSet = TerminalSet {
 pub static FOLLOW_SET_MIXED_SCALE: TerminalSet = TerminalSet {
     id: 24,
     terminals: &[TerminalId(1), TerminalId(27), TerminalId(41)],
-};
-// MixedScale { "m", "f" }
-pub static FIRST_SET_MIXED_SCALE: TerminalSet = TerminalSet {
-    id: 10,
-    terminals: &[TerminalId(26), TerminalId(28)],
 };
 // MixedScale(p: i32, a: i32) : . "m" return 0 { "m" }
 pub static FIRST_SET_MIXED_SCALE_ALT0: TerminalSet = TerminalSet {
@@ -5198,11 +5083,6 @@ pub static FOLLOW_SET_MIXED_OPERAND: TerminalSet = TerminalSet {
     id: 24,
     terminals: &[TerminalId(1), TerminalId(27), TerminalId(41)],
 };
-// MixedOperand { "m", "f" }
-pub static FIRST_SET_MIXED_OPERAND: TerminalSet = TerminalSet {
-    id: 10,
-    terminals: &[TerminalId(26), TerminalId(28)],
-};
 // MixedOperand(p: i32, a: i32) : . l_pr=MixedScale(p, a) return l_pr { "m", "f" }
 pub static FIRST_SET_MIXED_OPERAND_ALT0: TerminalSet = TerminalSet {
     id: 26,
@@ -5217,11 +5097,6 @@ pub static FIRST_SET_MIXED_OPERAND_ALT1: TerminalSet = TerminalSet {
 pub static FOLLOW_SET_MIXED_RIGHT: TerminalSet = TerminalSet {
     id: 24,
     terminals: &[TerminalId(1), TerminalId(27), TerminalId(41)],
-};
-// MixedRight { "m", "f" }
-pub static FIRST_SET_MIXED_RIGHT: TerminalSet = TerminalSet {
-    id: 10,
-    terminals: &[TerminalId(26), TerminalId(28)],
 };
 // MixedRight(p: i32, a: i32) : . r_pr=MixedScale(p, a) return r_pr { "m", "f" }
 pub static FIRST_SET_MIXED_RIGHT_ALT0: TerminalSet = TerminalSet {
@@ -5238,11 +5113,6 @@ pub static FOLLOW_SET_MIXED_FOREIGN: TerminalSet = TerminalSet {
         TerminalId(41),
     ],
 };
-// MixedForeign { "f" }
-pub static FIRST_SET_MIXED_FOREIGN: TerminalSet = TerminalSet {
-    id: 11,
-    terminals: &[TerminalId(28)],
-};
 // MixedForeign(p: i32) : . "f" return 0 { "f" }
 pub static FIRST_SET_MIXED_FOREIGN_ALT0: TerminalSet = TerminalSet {
     id: 27,
@@ -5258,11 +5128,6 @@ pub static FIRST_SET_MIXED_FOREIGN_ALT1: TerminalSet = TerminalSet {
 pub static FOLLOW_SET_PACKED: TerminalSet = TerminalSet {
     id: 29,
     terminals: &[TerminalId(1), TerminalId(4), TerminalId(23), TerminalId(41)],
-};
-// Packed { "(", "p" }
-pub static FIRST_SET_PACKED: TerminalSet = TerminalSet {
-    id: 12,
-    terminals: &[TerminalId(22), TerminalId(30)],
 };
 // Packed(p: i32, a: i32) : . "p" return (0, 0) { "p" }
 pub static FIRST_SET_PACKED_ALT0: TerminalSet = TerminalSet {
@@ -5283,11 +5148,6 @@ pub static FOLLOW_SET_PACKED_OPERAND: TerminalSet = TerminalSet {
     id: 29,
     terminals: &[TerminalId(1), TerminalId(4), TerminalId(23), TerminalId(41)],
 };
-// PackedOperand { "(", "p" }
-pub static FIRST_SET_PACKED_OPERAND: TerminalSet = TerminalSet {
-    id: 12,
-    terminals: &[TerminalId(22), TerminalId(30)],
-};
 // PackedOperand(p: i32, end: i32, a: i32) : . (v_pr, v_assoc, v_label)=PackedMiddle(p, end,
 // a, 0) return (v_pr, v_assoc) { "(", "p" }
 pub static FIRST_SET_PACKED_OPERAND_ALT0: TerminalSet = TerminalSet {
@@ -5298,11 +5158,6 @@ pub static FIRST_SET_PACKED_OPERAND_ALT0: TerminalSet = TerminalSet {
 pub static FOLLOW_SET_PACKED_MIDDLE: TerminalSet = TerminalSet {
     id: 29,
     terminals: &[TerminalId(1), TerminalId(4), TerminalId(23), TerminalId(41)],
-};
-// PackedMiddle { "(", "p" }
-pub static FIRST_SET_PACKED_MIDDLE: TerminalSet = TerminalSet {
-    id: 12,
-    terminals: &[TerminalId(22), TerminalId(30)],
 };
 // PackedMiddle(p: i32, end: i32, a: i32, e: i32) : . [1 & e == 0] (v_pr, v_assoc)=Packed(p,
 // a) return (v_pr, v_assoc, 0) { "(", "p" }
@@ -5321,11 +5176,6 @@ pub static FOLLOW_SET_PACKED_FILTERED: TerminalSet = TerminalSet {
     id: 0,
     terminals: &[TerminalId(1), TerminalId(41)],
 };
-// PackedFiltered { "(", "p" }
-pub static FIRST_SET_PACKED_FILTERED: TerminalSet = TerminalSet {
-    id: 12,
-    terminals: &[TerminalId(22), TerminalId(30)],
-};
 // PackedFiltered : . PackedMiddle(0, 0, 0, 2) { "(", "p" }
 pub static FIRST_SET_PACKED_FILTERED_ALT0: TerminalSet = TerminalSet {
     id: 31,
@@ -5335,11 +5185,6 @@ pub static FIRST_SET_PACKED_FILTERED_ALT0: TerminalSet = TerminalSet {
 pub static FOLLOW_SET_NULLABLE_RECURSIVE: TerminalSet = TerminalSet {
     id: 32,
     terminals: &[TerminalId(1), TerminalId(4), TerminalId(31), TerminalId(41)],
-};
-// NullableRecursive { WS, "u" }
-pub static FIRST_SET_NULLABLE_RECURSIVE: TerminalSet = TerminalSet {
-    id: 13,
-    terminals: &[TerminalId(1), TerminalId(31)],
 };
 // NullableRecursive(p: i32, a: i32) : . "u" return (0, 0) { "u" }
 pub static FIRST_SET_NULLABLE_RECURSIVE_ALT0: TerminalSet = TerminalSet {
@@ -5359,11 +5204,6 @@ pub static FOLLOW_SET_NULLABLE_OPERAND: TerminalSet = TerminalSet {
     id: 35,
     terminals: &[TerminalId(1), TerminalId(4), TerminalId(41)],
 };
-// NullableOperand { WS, "u" }
-pub static FIRST_SET_NULLABLE_OPERAND: TerminalSet = TerminalSet {
-    id: 13,
-    terminals: &[TerminalId(1), TerminalId(31)],
-};
 // NullableOperand(p: i32, a: i32) : . (l_pr, l_assoc)=NullableMaybe(p, a) WS
 // NullableRecursive(0, 0) return (l_pr, l_assoc) { WS, "u" }
 pub static FIRST_SET_NULLABLE_OPERAND_ALT0: TerminalSet = TerminalSet {
@@ -5374,11 +5214,6 @@ pub static FIRST_SET_NULLABLE_OPERAND_ALT0: TerminalSet = TerminalSet {
 pub static FOLLOW_SET_NULLABLE_MAYBE: TerminalSet = TerminalSet {
     id: 36,
     terminals: &[TerminalId(1), TerminalId(31), TerminalId(41)],
-};
-// NullableMaybe { WS, "u" }
-pub static FIRST_SET_NULLABLE_MAYBE: TerminalSet = TerminalSet {
-    id: 13,
-    terminals: &[TerminalId(1), TerminalId(31)],
 };
 // NullableMaybe(p: i32, a: i32) : . (l_pr, l_assoc)=Opt_1(p, a) return (l_pr, l_assoc) { WS,
 // "u" }
@@ -5396,11 +5231,6 @@ pub static FOLLOW_SET_NULLABLE_LEX_RECURSIVE: TerminalSet = TerminalSet {
         TerminalId(32),
         TerminalId(41),
     ],
-};
-// NullableLexRecursive { Digits, WS, "v" }
-pub static FIRST_SET_NULLABLE_LEX_RECURSIVE: TerminalSet = TerminalSet {
-    id: 14,
-    terminals: &[TerminalId(0), TerminalId(1), TerminalId(32)],
 };
 // NullableLexRecursive(p: i32, a: i32) : . "v" return (0, 0) { "v" }
 pub static FIRST_SET_NULLABLE_LEX_RECURSIVE_ALT0: TerminalSet = TerminalSet {
@@ -5420,11 +5250,6 @@ pub static FOLLOW_SET_NULLABLE_LEX_OPERAND: TerminalSet = TerminalSet {
     id: 35,
     terminals: &[TerminalId(1), TerminalId(4), TerminalId(41)],
 };
-// NullableLexOperand { Digits, WS, "v" }
-pub static FIRST_SET_NULLABLE_LEX_OPERAND: TerminalSet = TerminalSet {
-    id: 14,
-    terminals: &[TerminalId(0), TerminalId(1), TerminalId(32)],
-};
 // NullableLexOperand(p: i32, a: i32) : . (l_pr, l_assoc)=NullableLexMaybe(p, a) WS
 // NullableLexRecursive(0, 0) return (l_pr, l_assoc) { Digits, WS, "v" }
 pub static FIRST_SET_NULLABLE_LEX_OPERAND_ALT0: TerminalSet = TerminalSet {
@@ -5435,11 +5260,6 @@ pub static FIRST_SET_NULLABLE_LEX_OPERAND_ALT0: TerminalSet = TerminalSet {
 pub static FOLLOW_SET_NULLABLE_LEX_MAYBE: TerminalSet = TerminalSet {
     id: 40,
     terminals: &[TerminalId(0), TerminalId(1), TerminalId(32), TerminalId(41)],
-};
-// NullableLexMaybe { Digits, WS, "v" }
-pub static FIRST_SET_NULLABLE_LEX_MAYBE: TerminalSet = TerminalSet {
-    id: 14,
-    terminals: &[TerminalId(0), TerminalId(1), TerminalId(32)],
 };
 // NullableLexMaybe(p: i32, a: i32) : . (l_pr, l_assoc)=NullableLexRecursive(p, a) return
 // (l_pr, l_assoc) { Digits, WS, "v" }
@@ -5456,11 +5276,6 @@ pub static FIRST_SET_NULLABLE_LEX_MAYBE_ALT1: TerminalSet = TerminalSet {
 pub static FOLLOW_SET_NULLABLE_SUFFIX: TerminalSet = TerminalSet {
     id: 42,
     terminals: &[TerminalId(1), TerminalId(4), TerminalId(33), TerminalId(41)],
-};
-// NullableSuffix { "w" }
-pub static FIRST_SET_NULLABLE_SUFFIX: TerminalSet = TerminalSet {
-    id: 15,
-    terminals: &[TerminalId(33)],
 };
 // NullableSuffix(p: i32, a: i32) : . "w" return 0 { "w" }
 pub static FIRST_SET_NULLABLE_SUFFIX_ALT0: TerminalSet = TerminalSet {
@@ -5479,11 +5294,6 @@ pub static FOLLOW_SET_NULLABLE_SUFFIX_OPERAND: TerminalSet = TerminalSet {
     id: 42,
     terminals: &[TerminalId(1), TerminalId(4), TerminalId(33), TerminalId(41)],
 };
-// NullableSuffixOperand { "w" }
-pub static FIRST_SET_NULLABLE_SUFFIX_OPERAND: TerminalSet = TerminalSet {
-    id: 15,
-    terminals: &[TerminalId(33)],
-};
 // NullableSuffixOperand(p: i32, a: i32) : . NullableSuffix(0, 0) WS
 // r_pr=NullableSuffixMaybe(p, a) return r_pr { "w" }
 pub static FIRST_SET_NULLABLE_SUFFIX_OPERAND_ALT0: TerminalSet = TerminalSet {
@@ -5495,11 +5305,6 @@ pub static FOLLOW_SET_NULLABLE_SUFFIX_MAYBE: TerminalSet = TerminalSet {
     id: 42,
     terminals: &[TerminalId(1), TerminalId(4), TerminalId(33), TerminalId(41)],
 };
-// NullableSuffixMaybe { "w" }
-pub static FIRST_SET_NULLABLE_SUFFIX_MAYBE: TerminalSet = TerminalSet {
-    id: 15,
-    terminals: &[TerminalId(33)],
-};
 // NullableSuffixMaybe(p: i32, a: i32) : . r_pr=Opt_2(p, a) return r_pr { "w" }
 pub static FIRST_SET_NULLABLE_SUFFIX_MAYBE_ALT0: TerminalSet = TerminalSet {
     id: 43,
@@ -5509,11 +5314,6 @@ pub static FIRST_SET_NULLABLE_SUFFIX_MAYBE_ALT0: TerminalSet = TerminalSet {
 pub static FOLLOW_SET_NULLABLE_SHARED: TerminalSet = TerminalSet {
     id: 44,
     terminals: &[TerminalId(1), TerminalId(4), TerminalId(34), TerminalId(41)],
-};
-// NullableShared { WS, "j" }
-pub static FIRST_SET_NULLABLE_SHARED: TerminalSet = TerminalSet {
-    id: 16,
-    terminals: &[TerminalId(1), TerminalId(34)],
 };
 // NullableShared(p: i32, a: i32) : . "j" return (0, 0) { "j" }
 pub static FIRST_SET_NULLABLE_SHARED_ALT0: TerminalSet = TerminalSet {
@@ -5534,11 +5334,6 @@ pub static FOLLOW_SET_NULLABLE_SHARED_OPERAND: TerminalSet = TerminalSet {
     id: 44,
     terminals: &[TerminalId(1), TerminalId(4), TerminalId(34), TerminalId(41)],
 };
-// NullableSharedOperand { WS, "j" }
-pub static FIRST_SET_NULLABLE_SHARED_OPERAND: TerminalSet = TerminalSet {
-    id: 16,
-    terminals: &[TerminalId(1), TerminalId(34)],
-};
 // NullableSharedOperand(p: i32, end: i32, a: i32) : . (l_pr,
 // l_assoc)=NullableSharedMaybe((end == 0) ? p : 0, 0, (end == 0) ? a : 0) WS
 // NullableShared(0, 0) WS (r_pr, r_assoc)=NullableSharedMaybe((end == 1) ? p : 0, 1, (end ==
@@ -5552,11 +5347,6 @@ pub static FOLLOW_SET_NULLABLE_SHARED_MAYBE: TerminalSet = TerminalSet {
     id: 44,
     terminals: &[TerminalId(1), TerminalId(4), TerminalId(34), TerminalId(41)],
 };
-// NullableSharedMaybe { WS, "j" }
-pub static FIRST_SET_NULLABLE_SHARED_MAYBE: TerminalSet = TerminalSet {
-    id: 16,
-    terminals: &[TerminalId(1), TerminalId(34)],
-};
 // NullableSharedMaybe(p: i32, end: i32, a: i32) : . (v_pr, v_assoc)=Opt_3(p, end, a) return
 // (v_pr, v_assoc) { WS, "j" }
 pub static FIRST_SET_NULLABLE_SHARED_MAYBE_ALT0: TerminalSet = TerminalSet {
@@ -5567,11 +5357,6 @@ pub static FIRST_SET_NULLABLE_SHARED_MAYBE_ALT0: TerminalSet = TerminalSet {
 pub static FOLLOW_SET_OWN_LABEL: TerminalSet = TerminalSet {
     id: 29,
     terminals: &[TerminalId(1), TerminalId(4), TerminalId(23), TerminalId(41)],
-};
-// OwnLabel { "(", "k" }
-pub static FIRST_SET_OWN_LABEL: TerminalSet = TerminalSet {
-    id: 17,
-    terminals: &[TerminalId(22), TerminalId(35)],
 };
 // OwnLabel(p: i32, a: i32, e: i32) : . [1 & e == 0] "k" return (0, 0) { "k" }
 pub static FIRST_SET_OWN_LABEL_ALT0: TerminalSet = TerminalSet {
@@ -5593,11 +5378,6 @@ pub static FOLLOW_SET_OWN_OPERAND: TerminalSet = TerminalSet {
     id: 29,
     terminals: &[TerminalId(1), TerminalId(4), TerminalId(23), TerminalId(41)],
 };
-// OwnOperand { "(", "k" }
-pub static FIRST_SET_OWN_OPERAND: TerminalSet = TerminalSet {
-    id: 17,
-    terminals: &[TerminalId(22), TerminalId(35)],
-};
 // OwnOperand(p: i32, end: i32, a: i32, e: i32) : . [1 & e == 0] (v_pr, v_label)=OwnLabel(p,
 // a, 0) return (v_pr, 0) { "(", "k" }
 pub static FIRST_SET_OWN_OPERAND_ALT0: TerminalSet = TerminalSet {
@@ -5615,11 +5395,6 @@ pub static FOLLOW_SET_OWN_HEAD_FILTERED: TerminalSet = TerminalSet {
     id: 0,
     terminals: &[TerminalId(1), TerminalId(41)],
 };
-// OwnHeadFiltered { "(", "k" }
-pub static FIRST_SET_OWN_HEAD_FILTERED: TerminalSet = TerminalSet {
-    id: 17,
-    terminals: &[TerminalId(22), TerminalId(35)],
-};
 // OwnHeadFiltered : . OwnLabel(0, 0, 1) { "(", "k" }
 pub static FIRST_SET_OWN_HEAD_FILTERED_ALT0: TerminalSet = TerminalSet {
     id: 48,
@@ -5629,11 +5404,6 @@ pub static FIRST_SET_OWN_HEAD_FILTERED_ALT0: TerminalSet = TerminalSet {
 pub static FOLLOW_SET_EXCLUDE_ONLY: TerminalSet = TerminalSet {
     id: 0,
     terminals: &[TerminalId(1), TerminalId(41)],
-};
-// ExcludeOnly { "t", "s" }
-pub static FIRST_SET_EXCLUDE_ONLY: TerminalSet = TerminalSet {
-    id: 18,
-    terminals: &[TerminalId(10), TerminalId(36)],
 };
 // ExcludeOnly(e: i32) : . [1 & e == 0] "s" return (0, 0) { "s" }
 pub static FIRST_SET_EXCLUDE_ONLY_ALT0: TerminalSet = TerminalSet {
@@ -5650,11 +5420,6 @@ pub static FOLLOW_SET_EXCLUDE_ONLY_FILTERED: TerminalSet = TerminalSet {
     id: 0,
     terminals: &[TerminalId(1), TerminalId(41)],
 };
-// ExcludeOnlyFiltered { "t", "s" }
-pub static FIRST_SET_EXCLUDE_ONLY_FILTERED: TerminalSet = TerminalSet {
-    id: 18,
-    terminals: &[TerminalId(10), TerminalId(36)],
-};
 // ExcludeOnlyFiltered : . ExcludeOnly(1) { "t", "s" }
 pub static FIRST_SET_EXCLUDE_ONLY_FILTERED_ALT0: TerminalSet = TerminalSet {
     id: 50,
@@ -5664,11 +5429,6 @@ pub static FIRST_SET_EXCLUDE_ONLY_FILTERED_ALT0: TerminalSet = TerminalSet {
 pub static FOLLOW_SET_ABSENT: TerminalSet = TerminalSet {
     id: 51,
     terminals: &[TerminalId(1), TerminalId(3), TerminalId(4), TerminalId(41)],
-};
-// Absent { "a", "b" }
-pub static FIRST_SET_ABSENT: TerminalSet = TerminalSet {
-    id: 19,
-    terminals: &[TerminalId(2), TerminalId(6)],
 };
 // Absent(p: i32) : . "a" return 0 { "a" }
 pub static FIRST_SET_ABSENT_ALT0: TerminalSet = TerminalSet {
@@ -5693,11 +5453,6 @@ pub static FOLLOW_SET_ABSENT_OPERAND: TerminalSet = TerminalSet {
     id: 51,
     terminals: &[TerminalId(1), TerminalId(3), TerminalId(4), TerminalId(41)],
 };
-// AbsentOperand { "a", "b" }
-pub static FIRST_SET_ABSENT_OPERAND: TerminalSet = TerminalSet {
-    id: 19,
-    terminals: &[TerminalId(2), TerminalId(6)],
-};
 // AbsentOperand(p: i32, end: i32) : . v_pr=Absent(p) return v_pr { "a", "b" }
 pub static FIRST_SET_ABSENT_OPERAND_ALT0: TerminalSet = TerminalSet {
     id: 52,
@@ -5712,11 +5467,6 @@ pub static FIRST_SET_ABSENT_OPERAND_ALT1: TerminalSet = TerminalSet {
 pub static FOLLOW_SET_CLOSED_PREFIX: TerminalSet = TerminalSet {
     id: 35,
     terminals: &[TerminalId(1), TerminalId(4), TerminalId(41)],
-};
-// ClosedPrefix { "a", "pre" }
-pub static FIRST_SET_CLOSED_PREFIX: TerminalSet = TerminalSet {
-    id: 20,
-    terminals: &[TerminalId(2), TerminalId(37)],
 };
 // ClosedPrefix(p: i32) : . "a" return 0 { "a" }
 pub static FIRST_SET_CLOSED_PREFIX_ALT0: TerminalSet = TerminalSet {
@@ -5740,11 +5490,6 @@ pub static FOLLOW_SET_CLOSED_PREFIX_BODY: TerminalSet = TerminalSet {
     id: 35,
     terminals: &[TerminalId(1), TerminalId(4), TerminalId(41)],
 };
-// ClosedPrefixBody { "a", "b", "pre" }
-pub static FIRST_SET_CLOSED_PREFIX_BODY: TerminalSet = TerminalSet {
-    id: 21,
-    terminals: &[TerminalId(2), TerminalId(6), TerminalId(37)],
-};
 // ClosedPrefixBody(p: i32) : . r_pr=ClosedPrefix(p) return r_pr { "a", "pre" }
 pub static FIRST_SET_CLOSED_PREFIX_BODY_ALT0: TerminalSet = TerminalSet {
     id: 53,
@@ -5759,11 +5504,6 @@ pub static FIRST_SET_CLOSED_PREFIX_BODY_ALT1: TerminalSet = TerminalSet {
 pub static FOLLOW_SET_CLOSED_POSTFIX: TerminalSet = TerminalSet {
     id: 55,
     terminals: &[TerminalId(1), TerminalId(29), TerminalId(41)],
-};
-// ClosedPostfix { "a", "b", "pre" }
-pub static FIRST_SET_CLOSED_POSTFIX: TerminalSet = TerminalSet {
-    id: 21,
-    terminals: &[TerminalId(2), TerminalId(6), TerminalId(37)],
 };
 // ClosedPostfix(p: i32) : . "a" return 0 { "a" }
 pub static FIRST_SET_CLOSED_POSTFIX_ALT0: TerminalSet = TerminalSet {
@@ -5786,11 +5526,6 @@ pub static FOLLOW_SET_CLOSED_POSTFIX_BODY: TerminalSet = TerminalSet {
     id: 55,
     terminals: &[TerminalId(1), TerminalId(29), TerminalId(41)],
 };
-// ClosedPostfixBody { "a", "b", "pre" }
-pub static FIRST_SET_CLOSED_POSTFIX_BODY: TerminalSet = TerminalSet {
-    id: 21,
-    terminals: &[TerminalId(2), TerminalId(6), TerminalId(37)],
-};
 // ClosedPostfixBody(p: i32) : . l_pr=ClosedPostfix(p) return l_pr { "a", "b", "pre" }
 pub static FIRST_SET_CLOSED_POSTFIX_BODY_ALT0: TerminalSet = TerminalSet {
     id: 56,
@@ -5805,11 +5540,6 @@ pub static FIRST_SET_CLOSED_POSTFIX_BODY_ALT1: TerminalSet = TerminalSet {
 pub static FOLLOW_SET_HEAD_CHOICE: TerminalSet = TerminalSet {
     id: 35,
     terminals: &[TerminalId(1), TerminalId(4), TerminalId(41)],
-};
-// HeadChoice { "a", "b" }
-pub static FIRST_SET_HEAD_CHOICE: TerminalSet = TerminalSet {
-    id: 19,
-    terminals: &[TerminalId(2), TerminalId(6)],
 };
 // HeadChoice(p: i32) : . "a" return 0 { "a" }
 pub static FIRST_SET_HEAD_CHOICE_ALT0: TerminalSet = TerminalSet {
@@ -5832,11 +5562,6 @@ pub static FOLLOW_SET_HEAD_OPERAND: TerminalSet = TerminalSet {
     id: 35,
     terminals: &[TerminalId(1), TerminalId(4), TerminalId(41)],
 };
-// HeadOperand { "a", "b" }
-pub static FIRST_SET_HEAD_OPERAND: TerminalSet = TerminalSet {
-    id: 19,
-    terminals: &[TerminalId(2), TerminalId(6)],
-};
 // HeadOperand(p: i32, end: i32) : . v_pr=HeadChoice(p) return v_pr { "a", "b" }
 pub static FIRST_SET_HEAD_OPERAND_ALT0: TerminalSet = TerminalSet {
     id: 52,
@@ -5846,11 +5571,6 @@ pub static FIRST_SET_HEAD_OPERAND_ALT0: TerminalSet = TerminalSet {
 pub static FOLLOW_SET_INNER: TerminalSet = TerminalSet {
     id: 51,
     terminals: &[TerminalId(1), TerminalId(3), TerminalId(4), TerminalId(41)],
-};
-// Inner { "b" }
-pub static FIRST_SET_INNER: TerminalSet = TerminalSet {
-    id: 1,
-    terminals: &[TerminalId(6)],
 };
 // Inner(p: i32) : . "b" return 0 { "b" }
 pub static FIRST_SET_INNER_ALT0: TerminalSet = TerminalSet {
@@ -5867,11 +5587,6 @@ pub static FIRST_SET_INNER_ALT1: TerminalSet = TerminalSet {
 pub static FOLLOW_SET_UNARY_MIXED_LEFT: TerminalSet = TerminalSet {
     id: 57,
     terminals: &[TerminalId(1), TerminalId(4), TerminalId(29), TerminalId(41)],
-};
-// UnaryMixedLeft { "a", "-" }
-pub static FIRST_SET_UNARY_MIXED_LEFT: TerminalSet = TerminalSet {
-    id: 22,
-    terminals: &[TerminalId(2), TerminalId(5)],
 };
 // UnaryMixedLeft(p: i32, a: i32) : . [1 >= p] [a != 1] l_pr=UnaryMixedLeft(p, 0) [(l_pr ==
 // 0) || (l_pr >= 1)] WS "+" WS r_pr=UnaryMixedLeft(1, 1) return 1 { "a", "-" }
@@ -5899,11 +5614,6 @@ pub static FIRST_SET_UNARY_MIXED_LEFT_ALT3: TerminalSet = TerminalSet {
 pub static FOLLOW_SET_UNARY_MIXED_RIGHT: TerminalSet = TerminalSet {
     id: 57,
     terminals: &[TerminalId(1), TerminalId(4), TerminalId(29), TerminalId(41)],
-};
-// UnaryMixedRight { "a", "-" }
-pub static FIRST_SET_UNARY_MIXED_RIGHT: TerminalSet = TerminalSet {
-    id: 22,
-    terminals: &[TerminalId(2), TerminalId(5)],
 };
 // UnaryMixedRight(p: i32, a: i32) : . [1 >= p] (l_pr, l_assoc)=UnaryMixedRight(p, 0) [(l_pr
 // == 0) || (l_pr >= 1)] [l_assoc != 1] WS "+" WS (r_pr, r_assoc)=UnaryMixedRight(1, 0)
@@ -5933,11 +5643,6 @@ pub static FOLLOW_SET_UNARY_MIXED_NONE: TerminalSet = TerminalSet {
     id: 57,
     terminals: &[TerminalId(1), TerminalId(4), TerminalId(29), TerminalId(41)],
 };
-// UnaryMixedNone { "a", "-" }
-pub static FIRST_SET_UNARY_MIXED_NONE: TerminalSet = TerminalSet {
-    id: 22,
-    terminals: &[TerminalId(2), TerminalId(5)],
-};
 // UnaryMixedNone(p: i32, a: i32) : . [1 >= p] [a != 1] (l_pr, l_assoc)=UnaryMixedNone(p, 0)
 // [(l_pr == 0) || (l_pr >= 1)] [l_assoc != 1] WS "+" WS (r_pr, r_assoc)=UnaryMixedNone(1, 1)
 // return (1, 1) { "a", "-" }
@@ -5965,11 +5670,6 @@ pub static FIRST_SET_UNARY_MIXED_NONE_ALT3: TerminalSet = TerminalSet {
 pub static FOLLOW_SET_DYNAMIC: TerminalSet = TerminalSet {
     id: 57,
     terminals: &[TerminalId(1), TerminalId(4), TerminalId(29), TerminalId(41)],
-};
-// Dynamic { "a", "-", "b" }
-pub static FIRST_SET_DYNAMIC: TerminalSet = TerminalSet {
-    id: 23,
-    terminals: &[TerminalId(2), TerminalId(5), TerminalId(6)],
 };
 // Dynamic(p: i32, a: i32, e: i32) : . [1 & e == 0] (l_pr, l_assoc,
 // l_label)=DynamicOperand(p, 0, 0, 0) [(l_pr == UNDEFINED_PRECEDENCE) || ((1 >= p) && ((l_pr
@@ -6006,11 +5706,6 @@ pub static FOLLOW_SET_DYNAMIC_OPERAND: TerminalSet = TerminalSet {
     id: 57,
     terminals: &[TerminalId(1), TerminalId(4), TerminalId(29), TerminalId(41)],
 };
-// DynamicOperand { "a", "-", "b" }
-pub static FIRST_SET_DYNAMIC_OPERAND: TerminalSet = TerminalSet {
-    id: 23,
-    terminals: &[TerminalId(2), TerminalId(5), TerminalId(6)],
-};
 // DynamicOperand(p: i32, end: i32, a: i32, e: i32) : . [1 & e == 0] (v_pr, v_assoc,
 // v_label)=Dynamic(p, a, 0) return (v_pr, v_assoc, 0) { "a", "-", "b" }
 pub static FIRST_SET_DYNAMIC_OPERAND_ALT0: TerminalSet = TerminalSet {
@@ -6028,11 +5723,6 @@ pub static FOLLOW_SET_DYNAMIC_FILTERED: TerminalSet = TerminalSet {
     id: 0,
     terminals: &[TerminalId(1), TerminalId(41)],
 };
-// DynamicFiltered { "a", "-", "b" }
-pub static FIRST_SET_DYNAMIC_FILTERED: TerminalSet = TerminalSet {
-    id: 23,
-    terminals: &[TerminalId(2), TerminalId(5), TerminalId(6)],
-};
 // DynamicFiltered : . DynamicOperand(0, 0, 0, 2) { "a", "-", "b" }
 pub static FIRST_SET_DYNAMIC_FILTERED_ALT0: TerminalSet = TerminalSet {
     id: 60,
@@ -6042,11 +5732,6 @@ pub static FIRST_SET_DYNAMIC_FILTERED_ALT0: TerminalSet = TerminalSet {
 pub static FOLLOW_SET_DYNAMIC_HEAD_FILTERED: TerminalSet = TerminalSet {
     id: 0,
     terminals: &[TerminalId(1), TerminalId(41)],
-};
-// DynamicHeadFiltered { "a", "-", "b" }
-pub static FIRST_SET_DYNAMIC_HEAD_FILTERED: TerminalSet = TerminalSet {
-    id: 23,
-    terminals: &[TerminalId(2), TerminalId(5), TerminalId(6)],
 };
 // DynamicHeadFiltered : . Dynamic(0, 0, 8) { "a", "-", "b" }
 pub static FIRST_SET_DYNAMIC_HEAD_FILTERED_ALT0: TerminalSet = TerminalSet {
@@ -6063,11 +5748,6 @@ pub static FOLLOW_SET_DYNAMIC_MULTI: TerminalSet = TerminalSet {
         TerminalId(38),
         TerminalId(41),
     ],
-};
-// DynamicMulti { "a", "-", "b" }
-pub static FIRST_SET_DYNAMIC_MULTI: TerminalSet = TerminalSet {
-    id: 23,
-    terminals: &[TerminalId(2), TerminalId(5), TerminalId(6)],
 };
 // DynamicMulti(p: i32, a: i32) : . (l_pr, l_assoc)=DynamicMultiOperand(p, 0, 0) [(l_pr ==
 // UNDEFINED_PRECEDENCE) || ((2 >= p) && ((l_pr == 0) || (l_pr >= 2)))] WS "+" WS (r_pr,
@@ -6117,11 +5797,6 @@ pub static FOLLOW_SET_DYNAMIC_MULTI_OPERAND: TerminalSet = TerminalSet {
         TerminalId(41),
     ],
 };
-// DynamicMultiOperand { "a", "-", "b" }
-pub static FIRST_SET_DYNAMIC_MULTI_OPERAND: TerminalSet = TerminalSet {
-    id: 23,
-    terminals: &[TerminalId(2), TerminalId(5), TerminalId(6)],
-};
 // DynamicMultiOperand(p: i32, end: i32, a: i32) : . (v_pr, v_assoc)=DynamicMulti(p, a)
 // return (v_pr, v_assoc) { "a", "-", "b" }
 pub static FIRST_SET_DYNAMIC_MULTI_OPERAND_ALT0: TerminalSet = TerminalSet {
@@ -6138,11 +5813,6 @@ pub static FIRST_SET_DYNAMIC_MULTI_OPERAND_ALT1: TerminalSet = TerminalSet {
 pub static FOLLOW_SET_NULLABLE_BOUNDARY_PREFIX: TerminalSet = TerminalSet {
     id: 57,
     terminals: &[TerminalId(1), TerminalId(4), TerminalId(29), TerminalId(41)],
-};
-// NullableBoundaryPrefix { "a", "-" }
-pub static FIRST_SET_NULLABLE_BOUNDARY_PREFIX: TerminalSet = TerminalSet {
-    id: 22,
-    terminals: &[TerminalId(2), TerminalId(5)],
 };
 // NullableBoundaryPrefix(p: i32) : . "a" return 0 { "a" }
 pub static FIRST_SET_NULLABLE_BOUNDARY_PREFIX_ALT0: TerminalSet = TerminalSet {
@@ -6165,11 +5835,6 @@ pub static FOLLOW_SET_NULLABLE_BOUNDARY_RIGHT: TerminalSet = TerminalSet {
     id: 57,
     terminals: &[TerminalId(1), TerminalId(4), TerminalId(29), TerminalId(41)],
 };
-// NullableBoundaryRight { "a", "-" }
-pub static FIRST_SET_NULLABLE_BOUNDARY_RIGHT: TerminalSet = TerminalSet {
-    id: 22,
-    terminals: &[TerminalId(2), TerminalId(5)],
-};
 // NullableBoundaryRight : . NullableBoundaryPrefix(0) WS NullableBoundaryOpt { "a", "-" }
 pub static FIRST_SET_NULLABLE_BOUNDARY_RIGHT_ALT0: TerminalSet = TerminalSet {
     id: 58,
@@ -6187,11 +5852,6 @@ pub static FOLLOW_SET_NULLABLE_BOUNDARY_OPT: TerminalSet = TerminalSet {
         TerminalId(41),
     ],
 };
-// NullableBoundaryOpt { "!" }
-pub static FIRST_SET_NULLABLE_BOUNDARY_OPT: TerminalSet = TerminalSet {
-    id: 24,
-    terminals: &[TerminalId(29)],
-};
 // NullableBoundaryOpt : . "!" { "!" }
 pub static FIRST_SET_NULLABLE_BOUNDARY_OPT_ALT0: TerminalSet = TerminalSet {
     id: 63,
@@ -6206,11 +5866,6 @@ pub static FIRST_SET_NULLABLE_BOUNDARY_OPT_ALT1: TerminalSet = TerminalSet {
 pub static FOLLOW_SET_NULLABLE_BOUNDARY_POSTFIX: TerminalSet = TerminalSet {
     id: 65,
     terminals: &[TerminalId(1), TerminalId(4), TerminalId(5), TerminalId(41)],
-};
-// NullableBoundaryPostfix { WS, "a", "!" }
-pub static FIRST_SET_NULLABLE_BOUNDARY_POSTFIX: TerminalSet = TerminalSet {
-    id: 25,
-    terminals: &[TerminalId(1), TerminalId(2), TerminalId(29)],
 };
 // NullableBoundaryPostfix(p: i32) : . "a" return 0 { "a" }
 pub static FIRST_SET_NULLABLE_BOUNDARY_POSTFIX_ALT0: TerminalSet = TerminalSet {
@@ -6233,11 +5888,6 @@ pub static FOLLOW_SET_NULLABLE_BOUNDARY_LEFT: TerminalSet = TerminalSet {
     id: 67,
     terminals: &[TerminalId(1), TerminalId(5), TerminalId(41)],
 };
-// NullableBoundaryLeft { WS, "a", "!" }
-pub static FIRST_SET_NULLABLE_BOUNDARY_LEFT: TerminalSet = TerminalSet {
-    id: 25,
-    terminals: &[TerminalId(1), TerminalId(2), TerminalId(29)],
-};
 // NullableBoundaryLeft : . NullableBoundaryOpt WS NullableBoundaryPostfix(0) { WS, "a", "!"
 // }
 pub static FIRST_SET_NULLABLE_BOUNDARY_LEFT_ALT0: TerminalSet = TerminalSet {
@@ -6254,11 +5904,6 @@ pub static FOLLOW_SET_NULLABLE_BOUNDARY_BINARY: TerminalSet = TerminalSet {
         TerminalId(29),
         TerminalId(41),
     ],
-};
-// NullableBoundaryBinary { "a" }
-pub static FIRST_SET_NULLABLE_BOUNDARY_BINARY: TerminalSet = TerminalSet {
-    id: 0,
-    terminals: &[TerminalId(2)],
 };
 // NullableBoundaryBinary(p: i32) : . "a" return 0 { "a" }
 pub static FIRST_SET_NULLABLE_BOUNDARY_BINARY_ALT0: TerminalSet = TerminalSet {
@@ -6288,11 +5933,6 @@ pub static FOLLOW_SET_NULLABLE_BOUNDARY_OPERAND: TerminalSet = TerminalSet {
         TerminalId(41),
     ],
 };
-// NullableBoundaryOperand { "a" }
-pub static FIRST_SET_NULLABLE_BOUNDARY_OPERAND: TerminalSet = TerminalSet {
-    id: 0,
-    terminals: &[TerminalId(2)],
-};
 // NullableBoundaryOperand : . NullableBoundaryBinary(0) WS NullableBoundaryOpt { "a" }
 pub static FIRST_SET_NULLABLE_BOUNDARY_OPERAND_ALT0: TerminalSet = TerminalSet {
     id: 1,
@@ -6302,11 +5942,6 @@ pub static FIRST_SET_NULLABLE_BOUNDARY_OPERAND_ALT0: TerminalSet = TerminalSet {
 pub static FOLLOW_SET_CLOSED_LEFT_ASSOC: TerminalSet = TerminalSet {
     id: 35,
     terminals: &[TerminalId(1), TerminalId(4), TerminalId(41)],
-};
-// ClosedLeftAssoc { "a", "!" }
-pub static FIRST_SET_CLOSED_LEFT_ASSOC: TerminalSet = TerminalSet {
-    id: 26,
-    terminals: &[TerminalId(2), TerminalId(29)],
 };
 // ClosedLeftAssoc(p: i32, a: i32) : . "a" return 0 { "a" }
 pub static FIRST_SET_CLOSED_LEFT_ASSOC_ALT0: TerminalSet = TerminalSet {
@@ -6326,11 +5961,6 @@ pub static FOLLOW_SET_CLOSED_LEFT_OPERAND: TerminalSet = TerminalSet {
     id: 35,
     terminals: &[TerminalId(1), TerminalId(4), TerminalId(41)],
 };
-// ClosedLeftOperand { "a", "!" }
-pub static FIRST_SET_CLOSED_LEFT_OPERAND: TerminalSet = TerminalSet {
-    id: 26,
-    terminals: &[TerminalId(2), TerminalId(29)],
-};
 // ClosedLeftOperand(p: i32, a: i32) : . l_pr=ClosedLeftAssoc(p, a) return l_pr { "a", "!" }
 pub static FIRST_SET_CLOSED_LEFT_OPERAND_ALT0: TerminalSet = TerminalSet {
     id: 69,
@@ -6345,11 +5975,6 @@ pub static FIRST_SET_CLOSED_LEFT_OPERAND_ALT1: TerminalSet = TerminalSet {
 pub static FOLLOW_SET_CLOSED_RIGHT_ASSOC: TerminalSet = TerminalSet {
     id: 35,
     terminals: &[TerminalId(1), TerminalId(4), TerminalId(41)],
-};
-// ClosedRightAssoc { "a" }
-pub static FIRST_SET_CLOSED_RIGHT_ASSOC: TerminalSet = TerminalSet {
-    id: 0,
-    terminals: &[TerminalId(2)],
 };
 // ClosedRightAssoc(p: i32, a: i32) : . "a" return (0, 0) { "a" }
 pub static FIRST_SET_CLOSED_RIGHT_ASSOC_ALT0: TerminalSet = TerminalSet {
@@ -6369,11 +5994,6 @@ pub static FOLLOW_SET_CLOSED_RIGHT_OPERAND: TerminalSet = TerminalSet {
     id: 35,
     terminals: &[TerminalId(1), TerminalId(4), TerminalId(41)],
 };
-// ClosedRightOperand { "a", "!" }
-pub static FIRST_SET_CLOSED_RIGHT_OPERAND: TerminalSet = TerminalSet {
-    id: 26,
-    terminals: &[TerminalId(2), TerminalId(29)],
-};
 // ClosedRightOperand(p: i32, a: i32) : . (r_pr, r_assoc)=ClosedRightAssoc(p, a) return
 // (r_pr, r_assoc) { "a" }
 pub static FIRST_SET_CLOSED_RIGHT_OPERAND_ALT0: TerminalSet = TerminalSet {
@@ -6389,11 +6009,6 @@ pub static FIRST_SET_CLOSED_RIGHT_OPERAND_ALT1: TerminalSet = TerminalSet {
 pub static FOLLOW_SET_INDIRECT_EXCLUDE: TerminalSet = TerminalSet {
     id: 35,
     terminals: &[TerminalId(1), TerminalId(4), TerminalId(41)],
-};
-// IndirectExclude { "a", "b" }
-pub static FIRST_SET_INDIRECT_EXCLUDE: TerminalSet = TerminalSet {
-    id: 19,
-    terminals: &[TerminalId(2), TerminalId(6)],
 };
 // IndirectExclude(p: i32, a: i32, e: i32) : . [1 & e == 0] "a" return (0, 0) { "a" }
 pub static FIRST_SET_INDIRECT_EXCLUDE_ALT0: TerminalSet = TerminalSet {
@@ -6415,11 +6030,6 @@ pub static FOLLOW_SET_INDIRECT_EXCLUDE_OPERAND: TerminalSet = TerminalSet {
     id: 35,
     terminals: &[TerminalId(1), TerminalId(4), TerminalId(41)],
 };
-// IndirectExcludeOperand { "a", "b" }
-pub static FIRST_SET_INDIRECT_EXCLUDE_OPERAND: TerminalSet = TerminalSet {
-    id: 19,
-    terminals: &[TerminalId(2), TerminalId(6)],
-};
 // IndirectExcludeOperand(p: i32, end: i32, a: i32, e: i32) : . [1 & e == 0] (v_pr,
 // v_label)=IndirectExclude(p, a, 0) [(v_label == NO_LABEL) || ((1 >> v_label) & 1 == 0)]
 // return (v_pr, 0) { "a", "b" }
@@ -6438,11 +6048,6 @@ pub static FOLLOW_SET_INDIRECT_EXCLUDE_FILTERED: TerminalSet = TerminalSet {
     id: 0,
     terminals: &[TerminalId(1), TerminalId(41)],
 };
-// IndirectExcludeFiltered { "a", "b" }
-pub static FIRST_SET_INDIRECT_EXCLUDE_FILTERED: TerminalSet = TerminalSet {
-    id: 19,
-    terminals: &[TerminalId(2), TerminalId(6)],
-};
 // IndirectExcludeFiltered : . IndirectExcludeOperand(0, 0, 0, 2) { "a", "b" }
 pub static FIRST_SET_INDIRECT_EXCLUDE_FILTERED_ALT0: TerminalSet = TerminalSet {
     id: 52,
@@ -6452,11 +6057,6 @@ pub static FIRST_SET_INDIRECT_EXCLUDE_FILTERED_ALT0: TerminalSet = TerminalSet {
 pub static FOLLOW_SET_OPERAND_LITERAL: TerminalSet = TerminalSet {
     id: 51,
     terminals: &[TerminalId(1), TerminalId(3), TerminalId(4), TerminalId(41)],
-};
-// OperandLiteral { "x", "1" }
-pub static FIRST_SET_OPERAND_LITERAL: TerminalSet = TerminalSet {
-    id: 27,
-    terminals: &[TerminalId(15), TerminalId(39)],
 };
 // OperandLiteral(p: i32, a: i32) : . "x" return 0 { "x" }
 pub static FIRST_SET_OPERAND_LITERAL_ALT0: TerminalSet = TerminalSet {
@@ -6486,11 +6086,6 @@ pub static FOLLOW_SET_OPERAND_LITERAL_END: TerminalSet = TerminalSet {
     id: 51,
     terminals: &[TerminalId(1), TerminalId(3), TerminalId(4), TerminalId(41)],
 };
-// OperandLiteralEnd { "x", "1" }
-pub static FIRST_SET_OPERAND_LITERAL_END: TerminalSet = TerminalSet {
-    id: 27,
-    terminals: &[TerminalId(15), TerminalId(39)],
-};
 // OperandLiteralEnd(p: i32, end: i32, a: i32) : . v_pr=OperandLiteral(p, a) return v_pr {
 // "x", "1" }
 pub static FIRST_SET_OPERAND_LITERAL_END_ALT0: TerminalSet = TerminalSet {
@@ -6506,11 +6101,6 @@ pub static FIRST_SET_OPERAND_LITERAL_END_ALT1: TerminalSet = TerminalSet {
 pub static FOLLOW_SET_HEAD_LITERAL: TerminalSet = TerminalSet {
     id: 51,
     terminals: &[TerminalId(1), TerminalId(3), TerminalId(4), TerminalId(41)],
-};
-// HeadLiteral { "x", "1" }
-pub static FIRST_SET_HEAD_LITERAL: TerminalSet = TerminalSet {
-    id: 27,
-    terminals: &[TerminalId(15), TerminalId(39)],
 };
 // HeadLiteral(p: i32) : . "x" return 0 { "x" }
 pub static FIRST_SET_HEAD_LITERAL_ALT0: TerminalSet = TerminalSet {
@@ -6539,11 +6129,6 @@ pub static FOLLOW_SET_HEAD_LITERAL_END: TerminalSet = TerminalSet {
     id: 51,
     terminals: &[TerminalId(1), TerminalId(3), TerminalId(4), TerminalId(41)],
 };
-// HeadLiteralEnd { "x", "1" }
-pub static FIRST_SET_HEAD_LITERAL_END: TerminalSet = TerminalSet {
-    id: 27,
-    terminals: &[TerminalId(15), TerminalId(39)],
-};
 // HeadLiteralEnd(p: i32, end: i32) : . v_pr=HeadLiteral(p) return v_pr { "x", "1" }
 pub static FIRST_SET_HEAD_LITERAL_END_ALT0: TerminalSet = TerminalSet {
     id: 71,
@@ -6559,11 +6144,6 @@ pub static FOLLOW_SET_OPT_0: TerminalSet = TerminalSet {
         TerminalId(41),
     ],
 };
-// Opt_0 { "x" }
-pub static FIRST_SET_OPT_0: TerminalSet = TerminalSet {
-    id: 28,
-    terminals: &[TerminalId(15)],
-};
 // Opt_0 : . "x" { "x" }
 pub static FIRST_SET_OPT_0_ALT0: TerminalSet = TerminalSet {
     id: 70,
@@ -6578,11 +6158,6 @@ pub static FIRST_SET_OPT_0_ALT1: TerminalSet = TerminalSet {
 pub static FOLLOW_SET_OPT_1: TerminalSet = TerminalSet {
     id: 36,
     terminals: &[TerminalId(1), TerminalId(31), TerminalId(41)],
-};
-// Opt_1 { WS, "u" }
-pub static FIRST_SET_OPT_1: TerminalSet = TerminalSet {
-    id: 13,
-    terminals: &[TerminalId(1), TerminalId(31)],
 };
 // Opt_1(p: i32, a: i32) : . (l_pr, l_assoc)=NullableRecursive(p, a) return (l_pr, l_assoc) {
 // WS, "u" }
@@ -6600,11 +6175,6 @@ pub static FOLLOW_SET_OPT_2: TerminalSet = TerminalSet {
     id: 42,
     terminals: &[TerminalId(1), TerminalId(4), TerminalId(33), TerminalId(41)],
 };
-// Opt_2 { "w" }
-pub static FIRST_SET_OPT_2: TerminalSet = TerminalSet {
-    id: 15,
-    terminals: &[TerminalId(33)],
-};
 // Opt_2(p: i32, a: i32) : . r_pr=NullableSuffix(p, a) return r_pr { "w" }
 pub static FIRST_SET_OPT_2_ALT0: TerminalSet = TerminalSet {
     id: 43,
@@ -6619,11 +6189,6 @@ pub static FIRST_SET_OPT_2_ALT1: TerminalSet = TerminalSet {
 pub static FOLLOW_SET_OPT_3: TerminalSet = TerminalSet {
     id: 44,
     terminals: &[TerminalId(1), TerminalId(4), TerminalId(34), TerminalId(41)],
-};
-// Opt_3 { WS, "j" }
-pub static FIRST_SET_OPT_3: TerminalSet = TerminalSet {
-    id: 16,
-    terminals: &[TerminalId(1), TerminalId(34)],
 };
 // Opt_3(p: i32, end: i32, a: i32) : . (v_pr, v_assoc)=NullableShared(p, a) return (v_pr,
 // v_assoc) { WS, "j" }
@@ -6641,11 +6206,6 @@ pub static FOLLOW_SET_START_S: TerminalSet = TerminalSet {
     id: 74,
     terminals: &[TerminalId(41)],
 };
-// StartS { WS, "a" }
-pub static FIRST_SET_START_S: TerminalSet = TerminalSet {
-    id: 29,
-    terminals: &[TerminalId(1), TerminalId(2)],
-};
 // StartS : . WS start:S WS { WS, "a" }
 pub static FIRST_SET_START_S_ALT0: TerminalSet = TerminalSet {
     id: 75,
@@ -6655,11 +6215,6 @@ pub static FIRST_SET_START_S_ALT0: TerminalSet = TerminalSet {
 pub static FOLLOW_SET_START_E: TerminalSet = TerminalSet {
     id: 74,
     terminals: &[TerminalId(41)],
-};
-// StartE { WS, "a" }
-pub static FIRST_SET_START_E: TerminalSet = TerminalSet {
-    id: 29,
-    terminals: &[TerminalId(1), TerminalId(2)],
 };
 // StartE : . WS start:E(0) WS { WS, "a" }
 pub static FIRST_SET_START_E_ALT0: TerminalSet = TerminalSet {
@@ -6671,11 +6226,6 @@ pub static FOLLOW_SET_START_L: TerminalSet = TerminalSet {
     id: 74,
     terminals: &[TerminalId(41)],
 };
-// StartL { WS, "a" }
-pub static FIRST_SET_START_L: TerminalSet = TerminalSet {
-    id: 29,
-    terminals: &[TerminalId(1), TerminalId(2)],
-};
 // StartL : . WS start:L(0, 0) WS { WS, "a" }
 pub static FIRST_SET_START_L_ALT0: TerminalSet = TerminalSet {
     id: 75,
@@ -6685,11 +6235,6 @@ pub static FIRST_SET_START_L_ALT0: TerminalSet = TerminalSet {
 pub static FOLLOW_SET_START_ONLY: TerminalSet = TerminalSet {
     id: 74,
     terminals: &[TerminalId(41)],
-};
-// StartOnly { WS, "b" }
-pub static FIRST_SET_START_ONLY: TerminalSet = TerminalSet {
-    id: 30,
-    terminals: &[TerminalId(1), TerminalId(6)],
 };
 // StartOnly : . WS start:Only(0) WS { WS, "b" }
 pub static FIRST_SET_START_ONLY_ALT0: TerminalSet = TerminalSet {
@@ -6701,11 +6246,6 @@ pub static FOLLOW_SET_START_ONLY_OPERAND: TerminalSet = TerminalSet {
     id: 74,
     terminals: &[TerminalId(41)],
 };
-// StartOnlyOperand { WS, "b" }
-pub static FIRST_SET_START_ONLY_OPERAND: TerminalSet = TerminalSet {
-    id: 30,
-    terminals: &[TerminalId(1), TerminalId(6)],
-};
 // StartOnlyOperand : . WS start:OnlyOperand(0, 0) WS { WS, "b" }
 pub static FIRST_SET_START_ONLY_OPERAND_ALT0: TerminalSet = TerminalSet {
     id: 76,
@@ -6715,11 +6255,6 @@ pub static FIRST_SET_START_ONLY_OPERAND_ALT0: TerminalSet = TerminalSet {
 pub static FOLLOW_SET_START_CROSS: TerminalSet = TerminalSet {
     id: 74,
     terminals: &[TerminalId(41)],
-};
-// StartCross { WS, "c" }
-pub static FIRST_SET_START_CROSS: TerminalSet = TerminalSet {
-    id: 31,
-    terminals: &[TerminalId(1), TerminalId(8)],
 };
 // StartCross : . WS start:Cross(0) WS { WS, "c" }
 pub static FIRST_SET_START_CROSS_ALT0: TerminalSet = TerminalSet {
@@ -6731,11 +6266,6 @@ pub static FOLLOW_SET_START_FOREIGN: TerminalSet = TerminalSet {
     id: 74,
     terminals: &[TerminalId(41)],
 };
-// StartForeign { WS, "c", "d" }
-pub static FIRST_SET_START_FOREIGN: TerminalSet = TerminalSet {
-    id: 32,
-    terminals: &[TerminalId(1), TerminalId(8), TerminalId(9)],
-};
 // StartForeign : . WS start:Foreign(0) WS { WS, "c", "d" }
 pub static FIRST_SET_START_FOREIGN_ALT0: TerminalSet = TerminalSet {
     id: 78,
@@ -6745,11 +6275,6 @@ pub static FIRST_SET_START_FOREIGN_ALT0: TerminalSet = TerminalSet {
 pub static FOLLOW_SET_START_CASCADE: TerminalSet = TerminalSet {
     id: 74,
     terminals: &[TerminalId(41)],
-};
-// StartCascade { WS, "t" }
-pub static FIRST_SET_START_CASCADE: TerminalSet = TerminalSet {
-    id: 33,
-    terminals: &[TerminalId(1), TerminalId(10)],
 };
 // StartCascade : . WS start:Cascade(0) WS { WS, "t" }
 pub static FIRST_SET_START_CASCADE_ALT0: TerminalSet = TerminalSet {
@@ -6761,11 +6286,6 @@ pub static FOLLOW_SET_START_TERNARY: TerminalSet = TerminalSet {
     id: 74,
     terminals: &[TerminalId(41)],
 };
-// StartTernary { WS, "t" }
-pub static FIRST_SET_START_TERNARY: TerminalSet = TerminalSet {
-    id: 33,
-    terminals: &[TerminalId(1), TerminalId(10)],
-};
 // StartTernary : . WS start:Ternary WS { WS, "t" }
 pub static FIRST_SET_START_TERNARY_ALT0: TerminalSet = TerminalSet {
     id: 79,
@@ -6775,11 +6295,6 @@ pub static FIRST_SET_START_TERNARY_ALT0: TerminalSet = TerminalSet {
 pub static FOLLOW_SET_START_NULLABLE: TerminalSet = TerminalSet {
     id: 74,
     terminals: &[TerminalId(41)],
-};
-// StartNullable { WS, "n", "x" }
-pub static FIRST_SET_START_NULLABLE: TerminalSet = TerminalSet {
-    id: 5,
-    terminals: &[TerminalId(1), TerminalId(13), TerminalId(15)],
 };
 // StartNullable : . WS start:Nullable(0) WS { WS, "n", "x" }
 pub static FIRST_SET_START_NULLABLE_ALT0: TerminalSet = TerminalSet {
@@ -6791,11 +6306,6 @@ pub static FOLLOW_SET_START_NULLABLE_LEFT: TerminalSet = TerminalSet {
     id: 74,
     terminals: &[TerminalId(41)],
 };
-// StartNullableLeft { WS, "n", "x" }
-pub static FIRST_SET_START_NULLABLE_LEFT: TerminalSet = TerminalSet {
-    id: 5,
-    terminals: &[TerminalId(1), TerminalId(13), TerminalId(15)],
-};
 // StartNullableLeft : . WS start:NullableLeft WS { WS, "n", "x" }
 pub static FIRST_SET_START_NULLABLE_LEFT_ALT0: TerminalSet = TerminalSet {
     id: 12,
@@ -6805,11 +6315,6 @@ pub static FIRST_SET_START_NULLABLE_LEFT_ALT0: TerminalSet = TerminalSet {
 pub static FOLLOW_SET_START_NULLABLE_RIGHT: TerminalSet = TerminalSet {
     id: 74,
     terminals: &[TerminalId(41)],
-};
-// StartNullableRight { WS, "n", "x" }
-pub static FIRST_SET_START_NULLABLE_RIGHT: TerminalSet = TerminalSet {
-    id: 5,
-    terminals: &[TerminalId(1), TerminalId(13), TerminalId(15)],
 };
 // StartNullableRight : . WS start:NullableRight(0) WS { WS, "n", "x" }
 pub static FIRST_SET_START_NULLABLE_RIGHT_ALT0: TerminalSet = TerminalSet {
@@ -6821,11 +6326,6 @@ pub static FOLLOW_SET_START_RIGHT_EXPR: TerminalSet = TerminalSet {
     id: 74,
     terminals: &[TerminalId(41)],
 };
-// StartRightExpr { WS, "r" }
-pub static FIRST_SET_START_RIGHT_EXPR: TerminalSet = TerminalSet {
-    id: 34,
-    terminals: &[TerminalId(1), TerminalId(16)],
-};
 // StartRightExpr : . WS start:RightExpr(0) WS { WS, "r" }
 pub static FIRST_SET_START_RIGHT_EXPR_ALT0: TerminalSet = TerminalSet {
     id: 80,
@@ -6835,11 +6335,6 @@ pub static FIRST_SET_START_RIGHT_EXPR_ALT0: TerminalSet = TerminalSet {
 pub static FOLLOW_SET_START_RIGHT_OPERAND: TerminalSet = TerminalSet {
     id: 74,
     terminals: &[TerminalId(41)],
-};
-// StartRightOperand { WS, "r" }
-pub static FIRST_SET_START_RIGHT_OPERAND: TerminalSet = TerminalSet {
-    id: 34,
-    terminals: &[TerminalId(1), TerminalId(16)],
 };
 // StartRightOperand : . WS start:RightOperand(0, 0) WS { WS, "r" }
 pub static FIRST_SET_START_RIGHT_OPERAND_ALT0: TerminalSet = TerminalSet {
@@ -6851,11 +6346,6 @@ pub static FOLLOW_SET_START_NONE_EXPR: TerminalSet = TerminalSet {
     id: 74,
     terminals: &[TerminalId(41)],
 };
-// StartNoneExpr { WS, "z" }
-pub static FIRST_SET_START_NONE_EXPR: TerminalSet = TerminalSet {
-    id: 35,
-    terminals: &[TerminalId(1), TerminalId(18)],
-};
 // StartNoneExpr : . WS start:NoneExpr(0) WS { WS, "z" }
 pub static FIRST_SET_START_NONE_EXPR_ALT0: TerminalSet = TerminalSet {
     id: 81,
@@ -6865,11 +6355,6 @@ pub static FIRST_SET_START_NONE_EXPR_ALT0: TerminalSet = TerminalSet {
 pub static FOLLOW_SET_START_NONE_OPERAND: TerminalSet = TerminalSet {
     id: 74,
     terminals: &[TerminalId(41)],
-};
-// StartNoneOperand { WS, "z" }
-pub static FIRST_SET_START_NONE_OPERAND: TerminalSet = TerminalSet {
-    id: 35,
-    terminals: &[TerminalId(1), TerminalId(18)],
 };
 // StartNoneOperand : . WS start:NoneOperand(0, 0) WS { WS, "z" }
 pub static FIRST_SET_START_NONE_OPERAND_ALT0: TerminalSet = TerminalSet {
@@ -6881,11 +6366,6 @@ pub static FOLLOW_SET_START_EXCLUDED: TerminalSet = TerminalSet {
     id: 74,
     terminals: &[TerminalId(41)],
 };
-// StartExcluded { WS, "e", "(" }
-pub static FIRST_SET_START_EXCLUDED: TerminalSet = TerminalSet {
-    id: 36,
-    terminals: &[TerminalId(1), TerminalId(20), TerminalId(22)],
-};
 // StartExcluded : . WS start:Excluded(0, 0) WS { WS, "e", "(" }
 pub static FIRST_SET_START_EXCLUDED_ALT0: TerminalSet = TerminalSet {
     id: 82,
@@ -6895,11 +6375,6 @@ pub static FIRST_SET_START_EXCLUDED_ALT0: TerminalSet = TerminalSet {
 pub static FOLLOW_SET_START_EXCLUDED_OPERAND: TerminalSet = TerminalSet {
     id: 74,
     terminals: &[TerminalId(41)],
-};
-// StartExcludedOperand { WS, "e", "(" }
-pub static FIRST_SET_START_EXCLUDED_OPERAND: TerminalSet = TerminalSet {
-    id: 36,
-    terminals: &[TerminalId(1), TerminalId(20), TerminalId(22)],
 };
 // StartExcludedOperand : . WS start:ExcludedOperand(0, 0, 0, 0) WS { WS, "e", "(" }
 pub static FIRST_SET_START_EXCLUDED_OPERAND_ALT0: TerminalSet = TerminalSet {
@@ -6911,11 +6386,6 @@ pub static FOLLOW_SET_START_FILTERED: TerminalSet = TerminalSet {
     id: 74,
     terminals: &[TerminalId(41)],
 };
-// StartFiltered { WS, "e", "(" }
-pub static FIRST_SET_START_FILTERED: TerminalSet = TerminalSet {
-    id: 36,
-    terminals: &[TerminalId(1), TerminalId(20), TerminalId(22)],
-};
 // StartFiltered : . WS start:Filtered WS { WS, "e", "(" }
 pub static FIRST_SET_START_FILTERED_ALT0: TerminalSet = TerminalSet {
     id: 82,
@@ -6925,11 +6395,6 @@ pub static FIRST_SET_START_FILTERED_ALT0: TerminalSet = TerminalSet {
 pub static FOLLOW_SET_START_LEX_NULLABLE: TerminalSet = TerminalSet {
     id: 74,
     terminals: &[TerminalId(41)],
-};
-// StartLexNullable { Digits, WS, "q" }
-pub static FIRST_SET_START_LEX_NULLABLE: TerminalSet = TerminalSet {
-    id: 9,
-    terminals: &[TerminalId(0), TerminalId(1), TerminalId(24)],
 };
 // StartLexNullable : . WS start:LexNullable(0) WS { Digits, WS, "q" }
 pub static FIRST_SET_START_LEX_NULLABLE_ALT0: TerminalSet = TerminalSet {
@@ -6941,11 +6406,6 @@ pub static FOLLOW_SET_START_LEX_NULLABLE_LEFT: TerminalSet = TerminalSet {
     id: 74,
     terminals: &[TerminalId(41)],
 };
-// StartLexNullableLeft { Digits, WS, "q" }
-pub static FIRST_SET_START_LEX_NULLABLE_LEFT: TerminalSet = TerminalSet {
-    id: 9,
-    terminals: &[TerminalId(0), TerminalId(1), TerminalId(24)],
-};
 // StartLexNullableLeft : . WS start:LexNullableLeft WS { Digits, WS, "q" }
 pub static FIRST_SET_START_LEX_NULLABLE_LEFT_ALT0: TerminalSet = TerminalSet {
     id: 23,
@@ -6955,11 +6415,6 @@ pub static FIRST_SET_START_LEX_NULLABLE_LEFT_ALT0: TerminalSet = TerminalSet {
 pub static FOLLOW_SET_START_LEX_NULLABLE_RIGHT: TerminalSet = TerminalSet {
     id: 74,
     terminals: &[TerminalId(41)],
-};
-// StartLexNullableRight { Digits, WS, "q" }
-pub static FIRST_SET_START_LEX_NULLABLE_RIGHT: TerminalSet = TerminalSet {
-    id: 9,
-    terminals: &[TerminalId(0), TerminalId(1), TerminalId(24)],
 };
 // StartLexNullableRight : . WS start:LexNullableRight(0) WS { Digits, WS, "q" }
 pub static FIRST_SET_START_LEX_NULLABLE_RIGHT_ALT0: TerminalSet = TerminalSet {
@@ -6971,11 +6426,6 @@ pub static FOLLOW_SET_START_MIXED_SCALE: TerminalSet = TerminalSet {
     id: 74,
     terminals: &[TerminalId(41)],
 };
-// StartMixedScale { WS, "m", "f" }
-pub static FIRST_SET_START_MIXED_SCALE: TerminalSet = TerminalSet {
-    id: 37,
-    terminals: &[TerminalId(1), TerminalId(26), TerminalId(28)],
-};
 // StartMixedScale : . WS start:MixedScale(0, 0) WS { WS, "m", "f" }
 pub static FIRST_SET_START_MIXED_SCALE_ALT0: TerminalSet = TerminalSet {
     id: 83,
@@ -6985,11 +6435,6 @@ pub static FIRST_SET_START_MIXED_SCALE_ALT0: TerminalSet = TerminalSet {
 pub static FOLLOW_SET_START_MIXED_OPERAND: TerminalSet = TerminalSet {
     id: 74,
     terminals: &[TerminalId(41)],
-};
-// StartMixedOperand { WS, "m", "f" }
-pub static FIRST_SET_START_MIXED_OPERAND: TerminalSet = TerminalSet {
-    id: 37,
-    terminals: &[TerminalId(1), TerminalId(26), TerminalId(28)],
 };
 // StartMixedOperand : . WS start:MixedOperand(0, 0) WS { WS, "m", "f" }
 pub static FIRST_SET_START_MIXED_OPERAND_ALT0: TerminalSet = TerminalSet {
@@ -7001,11 +6446,6 @@ pub static FOLLOW_SET_START_MIXED_RIGHT: TerminalSet = TerminalSet {
     id: 74,
     terminals: &[TerminalId(41)],
 };
-// StartMixedRight { WS, "m", "f" }
-pub static FIRST_SET_START_MIXED_RIGHT: TerminalSet = TerminalSet {
-    id: 37,
-    terminals: &[TerminalId(1), TerminalId(26), TerminalId(28)],
-};
 // StartMixedRight : . WS start:MixedRight(0, 0) WS { WS, "m", "f" }
 pub static FIRST_SET_START_MIXED_RIGHT_ALT0: TerminalSet = TerminalSet {
     id: 83,
@@ -7015,11 +6455,6 @@ pub static FIRST_SET_START_MIXED_RIGHT_ALT0: TerminalSet = TerminalSet {
 pub static FOLLOW_SET_START_MIXED_FOREIGN: TerminalSet = TerminalSet {
     id: 74,
     terminals: &[TerminalId(41)],
-};
-// StartMixedForeign { WS, "f" }
-pub static FIRST_SET_START_MIXED_FOREIGN: TerminalSet = TerminalSet {
-    id: 38,
-    terminals: &[TerminalId(1), TerminalId(28)],
 };
 // StartMixedForeign : . WS start:MixedForeign(0) WS { WS, "f" }
 pub static FIRST_SET_START_MIXED_FOREIGN_ALT0: TerminalSet = TerminalSet {
@@ -7031,11 +6466,6 @@ pub static FOLLOW_SET_START_PACKED: TerminalSet = TerminalSet {
     id: 74,
     terminals: &[TerminalId(41)],
 };
-// StartPacked { WS, "(", "p" }
-pub static FIRST_SET_START_PACKED: TerminalSet = TerminalSet {
-    id: 39,
-    terminals: &[TerminalId(1), TerminalId(22), TerminalId(30)],
-};
 // StartPacked : . WS start:Packed(0, 0) WS { WS, "(", "p" }
 pub static FIRST_SET_START_PACKED_ALT0: TerminalSet = TerminalSet {
     id: 85,
@@ -7045,11 +6475,6 @@ pub static FIRST_SET_START_PACKED_ALT0: TerminalSet = TerminalSet {
 pub static FOLLOW_SET_START_PACKED_OPERAND: TerminalSet = TerminalSet {
     id: 74,
     terminals: &[TerminalId(41)],
-};
-// StartPackedOperand { WS, "(", "p" }
-pub static FIRST_SET_START_PACKED_OPERAND: TerminalSet = TerminalSet {
-    id: 39,
-    terminals: &[TerminalId(1), TerminalId(22), TerminalId(30)],
 };
 // StartPackedOperand : . WS start:PackedOperand(0, 0, 0) WS { WS, "(", "p" }
 pub static FIRST_SET_START_PACKED_OPERAND_ALT0: TerminalSet = TerminalSet {
@@ -7061,11 +6486,6 @@ pub static FOLLOW_SET_START_PACKED_MIDDLE: TerminalSet = TerminalSet {
     id: 74,
     terminals: &[TerminalId(41)],
 };
-// StartPackedMiddle { WS, "(", "p" }
-pub static FIRST_SET_START_PACKED_MIDDLE: TerminalSet = TerminalSet {
-    id: 39,
-    terminals: &[TerminalId(1), TerminalId(22), TerminalId(30)],
-};
 // StartPackedMiddle : . WS start:PackedMiddle(0, 0, 0, 0) WS { WS, "(", "p" }
 pub static FIRST_SET_START_PACKED_MIDDLE_ALT0: TerminalSet = TerminalSet {
     id: 85,
@@ -7075,11 +6495,6 @@ pub static FIRST_SET_START_PACKED_MIDDLE_ALT0: TerminalSet = TerminalSet {
 pub static FOLLOW_SET_START_PACKED_FILTERED: TerminalSet = TerminalSet {
     id: 74,
     terminals: &[TerminalId(41)],
-};
-// StartPackedFiltered { WS, "(", "p" }
-pub static FIRST_SET_START_PACKED_FILTERED: TerminalSet = TerminalSet {
-    id: 39,
-    terminals: &[TerminalId(1), TerminalId(22), TerminalId(30)],
 };
 // StartPackedFiltered : . WS start:PackedFiltered WS { WS, "(", "p" }
 pub static FIRST_SET_START_PACKED_FILTERED_ALT0: TerminalSet = TerminalSet {
@@ -7091,11 +6506,6 @@ pub static FOLLOW_SET_START_NULLABLE_RECURSIVE: TerminalSet = TerminalSet {
     id: 74,
     terminals: &[TerminalId(41)],
 };
-// StartNullableRecursive { WS, "u" }
-pub static FIRST_SET_START_NULLABLE_RECURSIVE: TerminalSet = TerminalSet {
-    id: 13,
-    terminals: &[TerminalId(1), TerminalId(31)],
-};
 // StartNullableRecursive : . WS start:NullableRecursive(0, 0) WS { WS, "u" }
 pub static FIRST_SET_START_NULLABLE_RECURSIVE_ALT0: TerminalSet = TerminalSet {
     id: 34,
@@ -7105,11 +6515,6 @@ pub static FIRST_SET_START_NULLABLE_RECURSIVE_ALT0: TerminalSet = TerminalSet {
 pub static FOLLOW_SET_START_NULLABLE_OPERAND: TerminalSet = TerminalSet {
     id: 74,
     terminals: &[TerminalId(41)],
-};
-// StartNullableOperand { WS, "u" }
-pub static FIRST_SET_START_NULLABLE_OPERAND: TerminalSet = TerminalSet {
-    id: 13,
-    terminals: &[TerminalId(1), TerminalId(31)],
 };
 // StartNullableOperand : . WS start:NullableOperand(0, 0) WS { WS, "u" }
 pub static FIRST_SET_START_NULLABLE_OPERAND_ALT0: TerminalSet = TerminalSet {
@@ -7121,11 +6526,6 @@ pub static FOLLOW_SET_START_NULLABLE_MAYBE: TerminalSet = TerminalSet {
     id: 74,
     terminals: &[TerminalId(41)],
 };
-// StartNullableMaybe { WS, "u" }
-pub static FIRST_SET_START_NULLABLE_MAYBE: TerminalSet = TerminalSet {
-    id: 13,
-    terminals: &[TerminalId(1), TerminalId(31)],
-};
 // StartNullableMaybe : . WS start:NullableMaybe(0, 0) WS { WS, "u" }
 pub static FIRST_SET_START_NULLABLE_MAYBE_ALT0: TerminalSet = TerminalSet {
     id: 34,
@@ -7135,11 +6535,6 @@ pub static FIRST_SET_START_NULLABLE_MAYBE_ALT0: TerminalSet = TerminalSet {
 pub static FOLLOW_SET_START_NULLABLE_LEX_RECURSIVE: TerminalSet = TerminalSet {
     id: 74,
     terminals: &[TerminalId(41)],
-};
-// StartNullableLexRecursive { Digits, WS, "v" }
-pub static FIRST_SET_START_NULLABLE_LEX_RECURSIVE: TerminalSet = TerminalSet {
-    id: 14,
-    terminals: &[TerminalId(0), TerminalId(1), TerminalId(32)],
 };
 // StartNullableLexRecursive : . WS start:NullableLexRecursive(0, 0) WS { Digits, WS, "v" }
 pub static FIRST_SET_START_NULLABLE_LEX_RECURSIVE_ALT0: TerminalSet = TerminalSet {
@@ -7151,11 +6546,6 @@ pub static FOLLOW_SET_START_NULLABLE_LEX_OPERAND: TerminalSet = TerminalSet {
     id: 74,
     terminals: &[TerminalId(41)],
 };
-// StartNullableLexOperand { Digits, WS, "v" }
-pub static FIRST_SET_START_NULLABLE_LEX_OPERAND: TerminalSet = TerminalSet {
-    id: 14,
-    terminals: &[TerminalId(0), TerminalId(1), TerminalId(32)],
-};
 // StartNullableLexOperand : . WS start:NullableLexOperand(0, 0) WS { Digits, WS, "v" }
 pub static FIRST_SET_START_NULLABLE_LEX_OPERAND_ALT0: TerminalSet = TerminalSet {
     id: 39,
@@ -7165,11 +6555,6 @@ pub static FIRST_SET_START_NULLABLE_LEX_OPERAND_ALT0: TerminalSet = TerminalSet 
 pub static FOLLOW_SET_START_NULLABLE_LEX_MAYBE: TerminalSet = TerminalSet {
     id: 74,
     terminals: &[TerminalId(41)],
-};
-// StartNullableLexMaybe { Digits, WS, "v" }
-pub static FIRST_SET_START_NULLABLE_LEX_MAYBE: TerminalSet = TerminalSet {
-    id: 14,
-    terminals: &[TerminalId(0), TerminalId(1), TerminalId(32)],
 };
 // StartNullableLexMaybe : . WS start:NullableLexMaybe(0, 0) WS { Digits, WS, "v" }
 pub static FIRST_SET_START_NULLABLE_LEX_MAYBE_ALT0: TerminalSet = TerminalSet {
@@ -7181,11 +6566,6 @@ pub static FOLLOW_SET_START_NULLABLE_SUFFIX: TerminalSet = TerminalSet {
     id: 74,
     terminals: &[TerminalId(41)],
 };
-// StartNullableSuffix { WS, "w" }
-pub static FIRST_SET_START_NULLABLE_SUFFIX: TerminalSet = TerminalSet {
-    id: 40,
-    terminals: &[TerminalId(1), TerminalId(33)],
-};
 // StartNullableSuffix : . WS start:NullableSuffix(0, 0) WS { WS, "w" }
 pub static FIRST_SET_START_NULLABLE_SUFFIX_ALT0: TerminalSet = TerminalSet {
     id: 86,
@@ -7195,11 +6575,6 @@ pub static FIRST_SET_START_NULLABLE_SUFFIX_ALT0: TerminalSet = TerminalSet {
 pub static FOLLOW_SET_START_NULLABLE_SUFFIX_OPERAND: TerminalSet = TerminalSet {
     id: 74,
     terminals: &[TerminalId(41)],
-};
-// StartNullableSuffixOperand { WS, "w" }
-pub static FIRST_SET_START_NULLABLE_SUFFIX_OPERAND: TerminalSet = TerminalSet {
-    id: 40,
-    terminals: &[TerminalId(1), TerminalId(33)],
 };
 // StartNullableSuffixOperand : . WS start:NullableSuffixOperand(0, 0) WS { WS, "w" }
 pub static FIRST_SET_START_NULLABLE_SUFFIX_OPERAND_ALT0: TerminalSet = TerminalSet {
@@ -7211,11 +6586,6 @@ pub static FOLLOW_SET_START_NULLABLE_SUFFIX_MAYBE: TerminalSet = TerminalSet {
     id: 74,
     terminals: &[TerminalId(41)],
 };
-// StartNullableSuffixMaybe { WS, "w" }
-pub static FIRST_SET_START_NULLABLE_SUFFIX_MAYBE: TerminalSet = TerminalSet {
-    id: 40,
-    terminals: &[TerminalId(1), TerminalId(33)],
-};
 // StartNullableSuffixMaybe : . WS start:NullableSuffixMaybe(0, 0) WS { WS, "w" }
 pub static FIRST_SET_START_NULLABLE_SUFFIX_MAYBE_ALT0: TerminalSet = TerminalSet {
     id: 86,
@@ -7225,11 +6595,6 @@ pub static FIRST_SET_START_NULLABLE_SUFFIX_MAYBE_ALT0: TerminalSet = TerminalSet
 pub static FOLLOW_SET_START_NULLABLE_SHARED: TerminalSet = TerminalSet {
     id: 74,
     terminals: &[TerminalId(41)],
-};
-// StartNullableShared { WS, "j" }
-pub static FIRST_SET_START_NULLABLE_SHARED: TerminalSet = TerminalSet {
-    id: 16,
-    terminals: &[TerminalId(1), TerminalId(34)],
 };
 // StartNullableShared : . WS start:NullableShared(0, 0) WS { WS, "j" }
 pub static FIRST_SET_START_NULLABLE_SHARED_ALT0: TerminalSet = TerminalSet {
@@ -7241,11 +6606,6 @@ pub static FOLLOW_SET_START_NULLABLE_SHARED_OPERAND: TerminalSet = TerminalSet {
     id: 74,
     terminals: &[TerminalId(41)],
 };
-// StartNullableSharedOperand { WS, "j" }
-pub static FIRST_SET_START_NULLABLE_SHARED_OPERAND: TerminalSet = TerminalSet {
-    id: 16,
-    terminals: &[TerminalId(1), TerminalId(34)],
-};
 // StartNullableSharedOperand : . WS start:NullableSharedOperand(0, 0, 0) WS { WS, "j" }
 pub static FIRST_SET_START_NULLABLE_SHARED_OPERAND_ALT0: TerminalSet = TerminalSet {
     id: 46,
@@ -7255,11 +6615,6 @@ pub static FIRST_SET_START_NULLABLE_SHARED_OPERAND_ALT0: TerminalSet = TerminalS
 pub static FOLLOW_SET_START_NULLABLE_SHARED_MAYBE: TerminalSet = TerminalSet {
     id: 74,
     terminals: &[TerminalId(41)],
-};
-// StartNullableSharedMaybe { WS, "j" }
-pub static FIRST_SET_START_NULLABLE_SHARED_MAYBE: TerminalSet = TerminalSet {
-    id: 16,
-    terminals: &[TerminalId(1), TerminalId(34)],
 };
 // StartNullableSharedMaybe : . WS start:NullableSharedMaybe(0, 0, 0) WS { WS, "j" }
 pub static FIRST_SET_START_NULLABLE_SHARED_MAYBE_ALT0: TerminalSet = TerminalSet {
@@ -7271,11 +6626,6 @@ pub static FOLLOW_SET_START_OWN_LABEL: TerminalSet = TerminalSet {
     id: 74,
     terminals: &[TerminalId(41)],
 };
-// StartOwnLabel { WS, "(", "k" }
-pub static FIRST_SET_START_OWN_LABEL: TerminalSet = TerminalSet {
-    id: 41,
-    terminals: &[TerminalId(1), TerminalId(22), TerminalId(35)],
-};
 // StartOwnLabel : . WS start:OwnLabel(0, 0, 0) WS { WS, "(", "k" }
 pub static FIRST_SET_START_OWN_LABEL_ALT0: TerminalSet = TerminalSet {
     id: 87,
@@ -7285,11 +6635,6 @@ pub static FIRST_SET_START_OWN_LABEL_ALT0: TerminalSet = TerminalSet {
 pub static FOLLOW_SET_START_OWN_OPERAND: TerminalSet = TerminalSet {
     id: 74,
     terminals: &[TerminalId(41)],
-};
-// StartOwnOperand { WS, "(", "k" }
-pub static FIRST_SET_START_OWN_OPERAND: TerminalSet = TerminalSet {
-    id: 41,
-    terminals: &[TerminalId(1), TerminalId(22), TerminalId(35)],
 };
 // StartOwnOperand : . WS start:OwnOperand(0, 0, 0, 0) WS { WS, "(", "k" }
 pub static FIRST_SET_START_OWN_OPERAND_ALT0: TerminalSet = TerminalSet {
@@ -7301,11 +6646,6 @@ pub static FOLLOW_SET_START_OWN_HEAD_FILTERED: TerminalSet = TerminalSet {
     id: 74,
     terminals: &[TerminalId(41)],
 };
-// StartOwnHeadFiltered { WS, "(", "k" }
-pub static FIRST_SET_START_OWN_HEAD_FILTERED: TerminalSet = TerminalSet {
-    id: 41,
-    terminals: &[TerminalId(1), TerminalId(22), TerminalId(35)],
-};
 // StartOwnHeadFiltered : . WS start:OwnHeadFiltered WS { WS, "(", "k" }
 pub static FIRST_SET_START_OWN_HEAD_FILTERED_ALT0: TerminalSet = TerminalSet {
     id: 87,
@@ -7315,11 +6655,6 @@ pub static FIRST_SET_START_OWN_HEAD_FILTERED_ALT0: TerminalSet = TerminalSet {
 pub static FOLLOW_SET_START_EXCLUDE_ONLY: TerminalSet = TerminalSet {
     id: 74,
     terminals: &[TerminalId(41)],
-};
-// StartExcludeOnly { WS, "t", "s" }
-pub static FIRST_SET_START_EXCLUDE_ONLY: TerminalSet = TerminalSet {
-    id: 42,
-    terminals: &[TerminalId(1), TerminalId(10), TerminalId(36)],
 };
 // StartExcludeOnly : . WS start:ExcludeOnly(0) WS { WS, "t", "s" }
 pub static FIRST_SET_START_EXCLUDE_ONLY_ALT0: TerminalSet = TerminalSet {
@@ -7331,11 +6666,6 @@ pub static FOLLOW_SET_START_EXCLUDE_ONLY_FILTERED: TerminalSet = TerminalSet {
     id: 74,
     terminals: &[TerminalId(41)],
 };
-// StartExcludeOnlyFiltered { WS, "t", "s" }
-pub static FIRST_SET_START_EXCLUDE_ONLY_FILTERED: TerminalSet = TerminalSet {
-    id: 42,
-    terminals: &[TerminalId(1), TerminalId(10), TerminalId(36)],
-};
 // StartExcludeOnlyFiltered : . WS start:ExcludeOnlyFiltered WS { WS, "t", "s" }
 pub static FIRST_SET_START_EXCLUDE_ONLY_FILTERED_ALT0: TerminalSet = TerminalSet {
     id: 88,
@@ -7345,11 +6675,6 @@ pub static FIRST_SET_START_EXCLUDE_ONLY_FILTERED_ALT0: TerminalSet = TerminalSet
 pub static FOLLOW_SET_START_ABSENT: TerminalSet = TerminalSet {
     id: 74,
     terminals: &[TerminalId(41)],
-};
-// StartAbsent { WS, "a", "b" }
-pub static FIRST_SET_START_ABSENT: TerminalSet = TerminalSet {
-    id: 43,
-    terminals: &[TerminalId(1), TerminalId(2), TerminalId(6)],
 };
 // StartAbsent : . WS start:Absent(0) WS { WS, "a", "b" }
 pub static FIRST_SET_START_ABSENT_ALT0: TerminalSet = TerminalSet {
@@ -7361,11 +6686,6 @@ pub static FOLLOW_SET_START_ABSENT_OPERAND: TerminalSet = TerminalSet {
     id: 74,
     terminals: &[TerminalId(41)],
 };
-// StartAbsentOperand { WS, "a", "b" }
-pub static FIRST_SET_START_ABSENT_OPERAND: TerminalSet = TerminalSet {
-    id: 43,
-    terminals: &[TerminalId(1), TerminalId(2), TerminalId(6)],
-};
 // StartAbsentOperand : . WS start:AbsentOperand(0, 0) WS { WS, "a", "b" }
 pub static FIRST_SET_START_ABSENT_OPERAND_ALT0: TerminalSet = TerminalSet {
     id: 89,
@@ -7375,11 +6695,6 @@ pub static FIRST_SET_START_ABSENT_OPERAND_ALT0: TerminalSet = TerminalSet {
 pub static FOLLOW_SET_START_CLOSED_PREFIX: TerminalSet = TerminalSet {
     id: 74,
     terminals: &[TerminalId(41)],
-};
-// StartClosedPrefix { WS, "a", "pre" }
-pub static FIRST_SET_START_CLOSED_PREFIX: TerminalSet = TerminalSet {
-    id: 44,
-    terminals: &[TerminalId(1), TerminalId(2), TerminalId(37)],
 };
 // StartClosedPrefix : . WS start:ClosedPrefix(0) WS { WS, "a", "pre" }
 pub static FIRST_SET_START_CLOSED_PREFIX_ALT0: TerminalSet = TerminalSet {
@@ -7391,11 +6706,6 @@ pub static FOLLOW_SET_START_CLOSED_PREFIX_BODY: TerminalSet = TerminalSet {
     id: 74,
     terminals: &[TerminalId(41)],
 };
-// StartClosedPrefixBody { WS, "a", "b", "pre" }
-pub static FIRST_SET_START_CLOSED_PREFIX_BODY: TerminalSet = TerminalSet {
-    id: 45,
-    terminals: &[TerminalId(1), TerminalId(2), TerminalId(6), TerminalId(37)],
-};
 // StartClosedPrefixBody : . WS start:ClosedPrefixBody(0) WS { WS, "a", "b", "pre" }
 pub static FIRST_SET_START_CLOSED_PREFIX_BODY_ALT0: TerminalSet = TerminalSet {
     id: 91,
@@ -7405,11 +6715,6 @@ pub static FIRST_SET_START_CLOSED_PREFIX_BODY_ALT0: TerminalSet = TerminalSet {
 pub static FOLLOW_SET_START_CLOSED_POSTFIX: TerminalSet = TerminalSet {
     id: 74,
     terminals: &[TerminalId(41)],
-};
-// StartClosedPostfix { WS, "a", "b", "pre" }
-pub static FIRST_SET_START_CLOSED_POSTFIX: TerminalSet = TerminalSet {
-    id: 45,
-    terminals: &[TerminalId(1), TerminalId(2), TerminalId(6), TerminalId(37)],
 };
 // StartClosedPostfix : . WS start:ClosedPostfix(0) WS { WS, "a", "b", "pre" }
 pub static FIRST_SET_START_CLOSED_POSTFIX_ALT0: TerminalSet = TerminalSet {
@@ -7421,11 +6726,6 @@ pub static FOLLOW_SET_START_CLOSED_POSTFIX_BODY: TerminalSet = TerminalSet {
     id: 74,
     terminals: &[TerminalId(41)],
 };
-// StartClosedPostfixBody { WS, "a", "b", "pre" }
-pub static FIRST_SET_START_CLOSED_POSTFIX_BODY: TerminalSet = TerminalSet {
-    id: 45,
-    terminals: &[TerminalId(1), TerminalId(2), TerminalId(6), TerminalId(37)],
-};
 // StartClosedPostfixBody : . WS start:ClosedPostfixBody(0) WS { WS, "a", "b", "pre" }
 pub static FIRST_SET_START_CLOSED_POSTFIX_BODY_ALT0: TerminalSet = TerminalSet {
     id: 91,
@@ -7435,11 +6735,6 @@ pub static FIRST_SET_START_CLOSED_POSTFIX_BODY_ALT0: TerminalSet = TerminalSet {
 pub static FOLLOW_SET_START_HEAD_CHOICE: TerminalSet = TerminalSet {
     id: 74,
     terminals: &[TerminalId(41)],
-};
-// StartHeadChoice { WS, "a", "b" }
-pub static FIRST_SET_START_HEAD_CHOICE: TerminalSet = TerminalSet {
-    id: 43,
-    terminals: &[TerminalId(1), TerminalId(2), TerminalId(6)],
 };
 // StartHeadChoice : . WS start:HeadChoice(0) WS { WS, "a", "b" }
 pub static FIRST_SET_START_HEAD_CHOICE_ALT0: TerminalSet = TerminalSet {
@@ -7451,11 +6746,6 @@ pub static FOLLOW_SET_START_HEAD_OPERAND: TerminalSet = TerminalSet {
     id: 74,
     terminals: &[TerminalId(41)],
 };
-// StartHeadOperand { WS, "a", "b" }
-pub static FIRST_SET_START_HEAD_OPERAND: TerminalSet = TerminalSet {
-    id: 43,
-    terminals: &[TerminalId(1), TerminalId(2), TerminalId(6)],
-};
 // StartHeadOperand : . WS start:HeadOperand(0, 0) WS { WS, "a", "b" }
 pub static FIRST_SET_START_HEAD_OPERAND_ALT0: TerminalSet = TerminalSet {
     id: 89,
@@ -7465,11 +6755,6 @@ pub static FIRST_SET_START_HEAD_OPERAND_ALT0: TerminalSet = TerminalSet {
 pub static FOLLOW_SET_START_INNER: TerminalSet = TerminalSet {
     id: 74,
     terminals: &[TerminalId(41)],
-};
-// StartInner { WS, "b" }
-pub static FIRST_SET_START_INNER: TerminalSet = TerminalSet {
-    id: 30,
-    terminals: &[TerminalId(1), TerminalId(6)],
 };
 // StartInner : . WS start:Inner(0) WS { WS, "b" }
 pub static FIRST_SET_START_INNER_ALT0: TerminalSet = TerminalSet {
@@ -7481,11 +6766,6 @@ pub static FOLLOW_SET_START_UNARY_MIXED_LEFT: TerminalSet = TerminalSet {
     id: 74,
     terminals: &[TerminalId(41)],
 };
-// StartUnaryMixedLeft { WS, "a", "-" }
-pub static FIRST_SET_START_UNARY_MIXED_LEFT: TerminalSet = TerminalSet {
-    id: 46,
-    terminals: &[TerminalId(1), TerminalId(2), TerminalId(5)],
-};
 // StartUnaryMixedLeft : . WS start:UnaryMixedLeft(0, 0) WS { WS, "a", "-" }
 pub static FIRST_SET_START_UNARY_MIXED_LEFT_ALT0: TerminalSet = TerminalSet {
     id: 92,
@@ -7495,11 +6775,6 @@ pub static FIRST_SET_START_UNARY_MIXED_LEFT_ALT0: TerminalSet = TerminalSet {
 pub static FOLLOW_SET_START_UNARY_MIXED_RIGHT: TerminalSet = TerminalSet {
     id: 74,
     terminals: &[TerminalId(41)],
-};
-// StartUnaryMixedRight { WS, "a", "-" }
-pub static FIRST_SET_START_UNARY_MIXED_RIGHT: TerminalSet = TerminalSet {
-    id: 46,
-    terminals: &[TerminalId(1), TerminalId(2), TerminalId(5)],
 };
 // StartUnaryMixedRight : . WS start:UnaryMixedRight(0, 0) WS { WS, "a", "-" }
 pub static FIRST_SET_START_UNARY_MIXED_RIGHT_ALT0: TerminalSet = TerminalSet {
@@ -7511,11 +6786,6 @@ pub static FOLLOW_SET_START_UNARY_MIXED_NONE: TerminalSet = TerminalSet {
     id: 74,
     terminals: &[TerminalId(41)],
 };
-// StartUnaryMixedNone { WS, "a", "-" }
-pub static FIRST_SET_START_UNARY_MIXED_NONE: TerminalSet = TerminalSet {
-    id: 46,
-    terminals: &[TerminalId(1), TerminalId(2), TerminalId(5)],
-};
 // StartUnaryMixedNone : . WS start:UnaryMixedNone(0, 0) WS { WS, "a", "-" }
 pub static FIRST_SET_START_UNARY_MIXED_NONE_ALT0: TerminalSet = TerminalSet {
     id: 92,
@@ -7525,11 +6795,6 @@ pub static FIRST_SET_START_UNARY_MIXED_NONE_ALT0: TerminalSet = TerminalSet {
 pub static FOLLOW_SET_START_DYNAMIC: TerminalSet = TerminalSet {
     id: 74,
     terminals: &[TerminalId(41)],
-};
-// StartDynamic { WS, "a", "-", "b" }
-pub static FIRST_SET_START_DYNAMIC: TerminalSet = TerminalSet {
-    id: 47,
-    terminals: &[TerminalId(1), TerminalId(2), TerminalId(5), TerminalId(6)],
 };
 // StartDynamic : . WS start:Dynamic(0, 0, 0) WS { WS, "a", "-", "b" }
 pub static FIRST_SET_START_DYNAMIC_ALT0: TerminalSet = TerminalSet {
@@ -7541,11 +6806,6 @@ pub static FOLLOW_SET_START_DYNAMIC_OPERAND: TerminalSet = TerminalSet {
     id: 74,
     terminals: &[TerminalId(41)],
 };
-// StartDynamicOperand { WS, "a", "-", "b" }
-pub static FIRST_SET_START_DYNAMIC_OPERAND: TerminalSet = TerminalSet {
-    id: 47,
-    terminals: &[TerminalId(1), TerminalId(2), TerminalId(5), TerminalId(6)],
-};
 // StartDynamicOperand : . WS start:DynamicOperand(0, 0, 0, 0) WS { WS, "a", "-", "b" }
 pub static FIRST_SET_START_DYNAMIC_OPERAND_ALT0: TerminalSet = TerminalSet {
     id: 93,
@@ -7555,11 +6815,6 @@ pub static FIRST_SET_START_DYNAMIC_OPERAND_ALT0: TerminalSet = TerminalSet {
 pub static FOLLOW_SET_START_DYNAMIC_FILTERED: TerminalSet = TerminalSet {
     id: 74,
     terminals: &[TerminalId(41)],
-};
-// StartDynamicFiltered { WS, "a", "-", "b" }
-pub static FIRST_SET_START_DYNAMIC_FILTERED: TerminalSet = TerminalSet {
-    id: 47,
-    terminals: &[TerminalId(1), TerminalId(2), TerminalId(5), TerminalId(6)],
 };
 // StartDynamicFiltered : . WS start:DynamicFiltered WS { WS, "a", "-", "b" }
 pub static FIRST_SET_START_DYNAMIC_FILTERED_ALT0: TerminalSet = TerminalSet {
@@ -7571,11 +6826,6 @@ pub static FOLLOW_SET_START_DYNAMIC_HEAD_FILTERED: TerminalSet = TerminalSet {
     id: 74,
     terminals: &[TerminalId(41)],
 };
-// StartDynamicHeadFiltered { WS, "a", "-", "b" }
-pub static FIRST_SET_START_DYNAMIC_HEAD_FILTERED: TerminalSet = TerminalSet {
-    id: 47,
-    terminals: &[TerminalId(1), TerminalId(2), TerminalId(5), TerminalId(6)],
-};
 // StartDynamicHeadFiltered : . WS start:DynamicHeadFiltered WS { WS, "a", "-", "b" }
 pub static FIRST_SET_START_DYNAMIC_HEAD_FILTERED_ALT0: TerminalSet = TerminalSet {
     id: 93,
@@ -7586,11 +6836,6 @@ pub static FOLLOW_SET_START_DYNAMIC_MULTI: TerminalSet = TerminalSet {
     id: 74,
     terminals: &[TerminalId(41)],
 };
-// StartDynamicMulti { WS, "a", "-", "b" }
-pub static FIRST_SET_START_DYNAMIC_MULTI: TerminalSet = TerminalSet {
-    id: 47,
-    terminals: &[TerminalId(1), TerminalId(2), TerminalId(5), TerminalId(6)],
-};
 // StartDynamicMulti : . WS start:DynamicMulti(0, 0) WS { WS, "a", "-", "b" }
 pub static FIRST_SET_START_DYNAMIC_MULTI_ALT0: TerminalSet = TerminalSet {
     id: 93,
@@ -7600,11 +6845,6 @@ pub static FIRST_SET_START_DYNAMIC_MULTI_ALT0: TerminalSet = TerminalSet {
 pub static FOLLOW_SET_START_DYNAMIC_MULTI_OPERAND: TerminalSet = TerminalSet {
     id: 74,
     terminals: &[TerminalId(41)],
-};
-// StartDynamicMultiOperand { WS, "a", "-", "b" }
-pub static FIRST_SET_START_DYNAMIC_MULTI_OPERAND: TerminalSet = TerminalSet {
-    id: 47,
-    terminals: &[TerminalId(1), TerminalId(2), TerminalId(5), TerminalId(6)],
 };
 // StartDynamicMultiOperand : . WS start:DynamicMultiOperand(0, 0, 0) WS { WS, "a", "-", "b"
 // }
@@ -7617,11 +6857,6 @@ pub static FOLLOW_SET_START_NULLABLE_BOUNDARY_PREFIX: TerminalSet = TerminalSet 
     id: 74,
     terminals: &[TerminalId(41)],
 };
-// StartNullableBoundaryPrefix { WS, "a", "-" }
-pub static FIRST_SET_START_NULLABLE_BOUNDARY_PREFIX: TerminalSet = TerminalSet {
-    id: 46,
-    terminals: &[TerminalId(1), TerminalId(2), TerminalId(5)],
-};
 // StartNullableBoundaryPrefix : . WS start:NullableBoundaryPrefix(0) WS { WS, "a", "-" }
 pub static FIRST_SET_START_NULLABLE_BOUNDARY_PREFIX_ALT0: TerminalSet = TerminalSet {
     id: 92,
@@ -7631,11 +6866,6 @@ pub static FIRST_SET_START_NULLABLE_BOUNDARY_PREFIX_ALT0: TerminalSet = Terminal
 pub static FOLLOW_SET_START_NULLABLE_BOUNDARY_RIGHT: TerminalSet = TerminalSet {
     id: 74,
     terminals: &[TerminalId(41)],
-};
-// StartNullableBoundaryRight { WS, "a", "-" }
-pub static FIRST_SET_START_NULLABLE_BOUNDARY_RIGHT: TerminalSet = TerminalSet {
-    id: 46,
-    terminals: &[TerminalId(1), TerminalId(2), TerminalId(5)],
 };
 // StartNullableBoundaryRight : . WS start:NullableBoundaryRight WS { WS, "a", "-" }
 pub static FIRST_SET_START_NULLABLE_BOUNDARY_RIGHT_ALT0: TerminalSet = TerminalSet {
@@ -7647,11 +6877,6 @@ pub static FOLLOW_SET_START_NULLABLE_BOUNDARY_OPT: TerminalSet = TerminalSet {
     id: 74,
     terminals: &[TerminalId(41)],
 };
-// StartNullableBoundaryOpt { WS, "!" }
-pub static FIRST_SET_START_NULLABLE_BOUNDARY_OPT: TerminalSet = TerminalSet {
-    id: 48,
-    terminals: &[TerminalId(1), TerminalId(29)],
-};
 // StartNullableBoundaryOpt : . WS start:NullableBoundaryOpt WS { WS, "!" }
 pub static FIRST_SET_START_NULLABLE_BOUNDARY_OPT_ALT0: TerminalSet = TerminalSet {
     id: 94,
@@ -7661,11 +6886,6 @@ pub static FIRST_SET_START_NULLABLE_BOUNDARY_OPT_ALT0: TerminalSet = TerminalSet
 pub static FOLLOW_SET_START_NULLABLE_BOUNDARY_POSTFIX: TerminalSet = TerminalSet {
     id: 74,
     terminals: &[TerminalId(41)],
-};
-// StartNullableBoundaryPostfix { WS, "a", "!" }
-pub static FIRST_SET_START_NULLABLE_BOUNDARY_POSTFIX: TerminalSet = TerminalSet {
-    id: 25,
-    terminals: &[TerminalId(1), TerminalId(2), TerminalId(29)],
 };
 // StartNullableBoundaryPostfix : . WS start:NullableBoundaryPostfix(0) WS { WS, "a", "!" }
 pub static FIRST_SET_START_NULLABLE_BOUNDARY_POSTFIX_ALT0: TerminalSet = TerminalSet {
@@ -7677,11 +6897,6 @@ pub static FOLLOW_SET_START_NULLABLE_BOUNDARY_LEFT: TerminalSet = TerminalSet {
     id: 74,
     terminals: &[TerminalId(41)],
 };
-// StartNullableBoundaryLeft { WS, "a", "!" }
-pub static FIRST_SET_START_NULLABLE_BOUNDARY_LEFT: TerminalSet = TerminalSet {
-    id: 25,
-    terminals: &[TerminalId(1), TerminalId(2), TerminalId(29)],
-};
 // StartNullableBoundaryLeft : . WS start:NullableBoundaryLeft WS { WS, "a", "!" }
 pub static FIRST_SET_START_NULLABLE_BOUNDARY_LEFT_ALT0: TerminalSet = TerminalSet {
     id: 66,
@@ -7691,11 +6906,6 @@ pub static FIRST_SET_START_NULLABLE_BOUNDARY_LEFT_ALT0: TerminalSet = TerminalSe
 pub static FOLLOW_SET_START_NULLABLE_BOUNDARY_BINARY: TerminalSet = TerminalSet {
     id: 74,
     terminals: &[TerminalId(41)],
-};
-// StartNullableBoundaryBinary { WS, "a" }
-pub static FIRST_SET_START_NULLABLE_BOUNDARY_BINARY: TerminalSet = TerminalSet {
-    id: 29,
-    terminals: &[TerminalId(1), TerminalId(2)],
 };
 // StartNullableBoundaryBinary : . WS start:NullableBoundaryBinary(0) WS { WS, "a" }
 pub static FIRST_SET_START_NULLABLE_BOUNDARY_BINARY_ALT0: TerminalSet = TerminalSet {
@@ -7707,11 +6917,6 @@ pub static FOLLOW_SET_START_NULLABLE_BOUNDARY_OPERAND: TerminalSet = TerminalSet
     id: 74,
     terminals: &[TerminalId(41)],
 };
-// StartNullableBoundaryOperand { WS, "a" }
-pub static FIRST_SET_START_NULLABLE_BOUNDARY_OPERAND: TerminalSet = TerminalSet {
-    id: 29,
-    terminals: &[TerminalId(1), TerminalId(2)],
-};
 // StartNullableBoundaryOperand : . WS start:NullableBoundaryOperand WS { WS, "a" }
 pub static FIRST_SET_START_NULLABLE_BOUNDARY_OPERAND_ALT0: TerminalSet = TerminalSet {
     id: 75,
@@ -7721,11 +6926,6 @@ pub static FIRST_SET_START_NULLABLE_BOUNDARY_OPERAND_ALT0: TerminalSet = Termina
 pub static FOLLOW_SET_START_CLOSED_LEFT_ASSOC: TerminalSet = TerminalSet {
     id: 74,
     terminals: &[TerminalId(41)],
-};
-// StartClosedLeftAssoc { WS, "a", "!" }
-pub static FIRST_SET_START_CLOSED_LEFT_ASSOC: TerminalSet = TerminalSet {
-    id: 25,
-    terminals: &[TerminalId(1), TerminalId(2), TerminalId(29)],
 };
 // StartClosedLeftAssoc : . WS start:ClosedLeftAssoc(0, 0) WS { WS, "a", "!" }
 pub static FIRST_SET_START_CLOSED_LEFT_ASSOC_ALT0: TerminalSet = TerminalSet {
@@ -7737,11 +6937,6 @@ pub static FOLLOW_SET_START_CLOSED_LEFT_OPERAND: TerminalSet = TerminalSet {
     id: 74,
     terminals: &[TerminalId(41)],
 };
-// StartClosedLeftOperand { WS, "a", "!" }
-pub static FIRST_SET_START_CLOSED_LEFT_OPERAND: TerminalSet = TerminalSet {
-    id: 25,
-    terminals: &[TerminalId(1), TerminalId(2), TerminalId(29)],
-};
 // StartClosedLeftOperand : . WS start:ClosedLeftOperand(0, 0) WS { WS, "a", "!" }
 pub static FIRST_SET_START_CLOSED_LEFT_OPERAND_ALT0: TerminalSet = TerminalSet {
     id: 66,
@@ -7751,11 +6946,6 @@ pub static FIRST_SET_START_CLOSED_LEFT_OPERAND_ALT0: TerminalSet = TerminalSet {
 pub static FOLLOW_SET_START_CLOSED_RIGHT_ASSOC: TerminalSet = TerminalSet {
     id: 74,
     terminals: &[TerminalId(41)],
-};
-// StartClosedRightAssoc { WS, "a" }
-pub static FIRST_SET_START_CLOSED_RIGHT_ASSOC: TerminalSet = TerminalSet {
-    id: 29,
-    terminals: &[TerminalId(1), TerminalId(2)],
 };
 // StartClosedRightAssoc : . WS start:ClosedRightAssoc(0, 0) WS { WS, "a" }
 pub static FIRST_SET_START_CLOSED_RIGHT_ASSOC_ALT0: TerminalSet = TerminalSet {
@@ -7767,11 +6957,6 @@ pub static FOLLOW_SET_START_CLOSED_RIGHT_OPERAND: TerminalSet = TerminalSet {
     id: 74,
     terminals: &[TerminalId(41)],
 };
-// StartClosedRightOperand { WS, "a", "!" }
-pub static FIRST_SET_START_CLOSED_RIGHT_OPERAND: TerminalSet = TerminalSet {
-    id: 25,
-    terminals: &[TerminalId(1), TerminalId(2), TerminalId(29)],
-};
 // StartClosedRightOperand : . WS start:ClosedRightOperand(0, 0) WS { WS, "a", "!" }
 pub static FIRST_SET_START_CLOSED_RIGHT_OPERAND_ALT0: TerminalSet = TerminalSet {
     id: 66,
@@ -7782,11 +6967,6 @@ pub static FOLLOW_SET_START_INDIRECT_EXCLUDE: TerminalSet = TerminalSet {
     id: 74,
     terminals: &[TerminalId(41)],
 };
-// StartIndirectExclude { WS, "a", "b" }
-pub static FIRST_SET_START_INDIRECT_EXCLUDE: TerminalSet = TerminalSet {
-    id: 43,
-    terminals: &[TerminalId(1), TerminalId(2), TerminalId(6)],
-};
 // StartIndirectExclude : . WS start:IndirectExclude(0, 0, 0) WS { WS, "a", "b" }
 pub static FIRST_SET_START_INDIRECT_EXCLUDE_ALT0: TerminalSet = TerminalSet {
     id: 89,
@@ -7796,11 +6976,6 @@ pub static FIRST_SET_START_INDIRECT_EXCLUDE_ALT0: TerminalSet = TerminalSet {
 pub static FOLLOW_SET_START_INDIRECT_EXCLUDE_OPERAND: TerminalSet = TerminalSet {
     id: 74,
     terminals: &[TerminalId(41)],
-};
-// StartIndirectExcludeOperand { WS, "a", "b" }
-pub static FIRST_SET_START_INDIRECT_EXCLUDE_OPERAND: TerminalSet = TerminalSet {
-    id: 43,
-    terminals: &[TerminalId(1), TerminalId(2), TerminalId(6)],
 };
 // StartIndirectExcludeOperand : . WS start:IndirectExcludeOperand(0, 0, 0, 0) WS { WS, "a",
 // "b" }
@@ -7813,11 +6988,6 @@ pub static FOLLOW_SET_START_INDIRECT_EXCLUDE_FILTERED: TerminalSet = TerminalSet
     id: 74,
     terminals: &[TerminalId(41)],
 };
-// StartIndirectExcludeFiltered { WS, "a", "b" }
-pub static FIRST_SET_START_INDIRECT_EXCLUDE_FILTERED: TerminalSet = TerminalSet {
-    id: 43,
-    terminals: &[TerminalId(1), TerminalId(2), TerminalId(6)],
-};
 // StartIndirectExcludeFiltered : . WS start:IndirectExcludeFiltered WS { WS, "a", "b" }
 pub static FIRST_SET_START_INDIRECT_EXCLUDE_FILTERED_ALT0: TerminalSet = TerminalSet {
     id: 89,
@@ -7827,11 +6997,6 @@ pub static FIRST_SET_START_INDIRECT_EXCLUDE_FILTERED_ALT0: TerminalSet = Termina
 pub static FOLLOW_SET_START_OPERAND_LITERAL: TerminalSet = TerminalSet {
     id: 74,
     terminals: &[TerminalId(41)],
-};
-// StartOperandLiteral { WS, "x", "1" }
-pub static FIRST_SET_START_OPERAND_LITERAL: TerminalSet = TerminalSet {
-    id: 49,
-    terminals: &[TerminalId(1), TerminalId(15), TerminalId(39)],
 };
 // StartOperandLiteral : . WS start:OperandLiteral(0, 0) WS { WS, "x", "1" }
 pub static FIRST_SET_START_OPERAND_LITERAL_ALT0: TerminalSet = TerminalSet {
@@ -7843,11 +7008,6 @@ pub static FOLLOW_SET_START_OPERAND_LITERAL_END: TerminalSet = TerminalSet {
     id: 74,
     terminals: &[TerminalId(41)],
 };
-// StartOperandLiteralEnd { WS, "x", "1" }
-pub static FIRST_SET_START_OPERAND_LITERAL_END: TerminalSet = TerminalSet {
-    id: 49,
-    terminals: &[TerminalId(1), TerminalId(15), TerminalId(39)],
-};
 // StartOperandLiteralEnd : . WS start:OperandLiteralEnd(0, 0, 0) WS { WS, "x", "1" }
 pub static FIRST_SET_START_OPERAND_LITERAL_END_ALT0: TerminalSet = TerminalSet {
     id: 95,
@@ -7857,11 +7017,6 @@ pub static FIRST_SET_START_OPERAND_LITERAL_END_ALT0: TerminalSet = TerminalSet {
 pub static FOLLOW_SET_START_HEAD_LITERAL: TerminalSet = TerminalSet {
     id: 74,
     terminals: &[TerminalId(41)],
-};
-// StartHeadLiteral { WS, "x", "1" }
-pub static FIRST_SET_START_HEAD_LITERAL: TerminalSet = TerminalSet {
-    id: 49,
-    terminals: &[TerminalId(1), TerminalId(15), TerminalId(39)],
 };
 // StartHeadLiteral : . WS start:HeadLiteral(0) WS { WS, "x", "1" }
 pub static FIRST_SET_START_HEAD_LITERAL_ALT0: TerminalSet = TerminalSet {
@@ -7873,13 +7028,858 @@ pub static FOLLOW_SET_START_HEAD_LITERAL_END: TerminalSet = TerminalSet {
     id: 74,
     terminals: &[TerminalId(41)],
 };
-// StartHeadLiteralEnd { WS, "x", "1" }
-pub static FIRST_SET_START_HEAD_LITERAL_END: TerminalSet = TerminalSet {
-    id: 49,
-    terminals: &[TerminalId(1), TerminalId(15), TerminalId(39)],
-};
 // StartHeadLiteralEnd : . WS start:HeadLiteralEnd(0, 0) WS { WS, "x", "1" }
 pub static FIRST_SET_START_HEAD_LITERAL_END_ALT0: TerminalSet = TerminalSet {
     id: 95,
+    terminals: &[TerminalId(1), TerminalId(15), TerminalId(39)],
+};
+// S { "a" }
+pub static FIRST_SET_S: TerminalSet = TerminalSet {
+    id: 96,
+    terminals: &[TerminalId(2)],
+};
+// E { "a" }
+pub static FIRST_SET_E: TerminalSet = TerminalSet {
+    id: 96,
+    terminals: &[TerminalId(2)],
+};
+// L { "a" }
+pub static FIRST_SET_L: TerminalSet = TerminalSet {
+    id: 96,
+    terminals: &[TerminalId(2)],
+};
+// Only { "b" }
+pub static FIRST_SET_ONLY: TerminalSet = TerminalSet {
+    id: 97,
+    terminals: &[TerminalId(6)],
+};
+// OnlyOperand { "b" }
+pub static FIRST_SET_ONLY_OPERAND: TerminalSet = TerminalSet {
+    id: 97,
+    terminals: &[TerminalId(6)],
+};
+// Cross { "c" }
+pub static FIRST_SET_CROSS: TerminalSet = TerminalSet {
+    id: 98,
+    terminals: &[TerminalId(8)],
+};
+// Foreign { "c", "d" }
+pub static FIRST_SET_FOREIGN: TerminalSet = TerminalSet {
+    id: 99,
+    terminals: &[TerminalId(8), TerminalId(9)],
+};
+// Cascade { "t" }
+pub static FIRST_SET_CASCADE: TerminalSet = TerminalSet {
+    id: 100,
+    terminals: &[TerminalId(10)],
+};
+// Ternary { "t" }
+pub static FIRST_SET_TERNARY: TerminalSet = TerminalSet {
+    id: 100,
+    terminals: &[TerminalId(10)],
+};
+// Nullable { WS, "n", "x" }
+pub static FIRST_SET_NULLABLE: TerminalSet = TerminalSet {
+    id: 101,
+    terminals: &[TerminalId(1), TerminalId(13), TerminalId(15)],
+};
+// NullableLeft { WS, "n", "x" }
+pub static FIRST_SET_NULLABLE_LEFT: TerminalSet = TerminalSet {
+    id: 101,
+    terminals: &[TerminalId(1), TerminalId(13), TerminalId(15)],
+};
+// NullableRight { WS, "n", "x" }
+pub static FIRST_SET_NULLABLE_RIGHT: TerminalSet = TerminalSet {
+    id: 101,
+    terminals: &[TerminalId(1), TerminalId(13), TerminalId(15)],
+};
+// RightExpr { "r" }
+pub static FIRST_SET_RIGHT_EXPR: TerminalSet = TerminalSet {
+    id: 102,
+    terminals: &[TerminalId(16)],
+};
+// RightOperand { "r" }
+pub static FIRST_SET_RIGHT_OPERAND: TerminalSet = TerminalSet {
+    id: 102,
+    terminals: &[TerminalId(16)],
+};
+// NoneExpr { "z" }
+pub static FIRST_SET_NONE_EXPR: TerminalSet = TerminalSet {
+    id: 103,
+    terminals: &[TerminalId(18)],
+};
+// NoneOperand { "z" }
+pub static FIRST_SET_NONE_OPERAND: TerminalSet = TerminalSet {
+    id: 103,
+    terminals: &[TerminalId(18)],
+};
+// Excluded { "e", "(" }
+pub static FIRST_SET_EXCLUDED: TerminalSet = TerminalSet {
+    id: 104,
+    terminals: &[TerminalId(20), TerminalId(22)],
+};
+// ExcludedOperand { "e", "(" }
+pub static FIRST_SET_EXCLUDED_OPERAND: TerminalSet = TerminalSet {
+    id: 104,
+    terminals: &[TerminalId(20), TerminalId(22)],
+};
+// Filtered { "e", "(" }
+pub static FIRST_SET_FILTERED: TerminalSet = TerminalSet {
+    id: 104,
+    terminals: &[TerminalId(20), TerminalId(22)],
+};
+// LexNullable { Digits, WS, "q" }
+pub static FIRST_SET_LEX_NULLABLE: TerminalSet = TerminalSet {
+    id: 105,
+    terminals: &[TerminalId(0), TerminalId(1), TerminalId(24)],
+};
+// LexNullableLeft { Digits, WS, "q" }
+pub static FIRST_SET_LEX_NULLABLE_LEFT: TerminalSet = TerminalSet {
+    id: 105,
+    terminals: &[TerminalId(0), TerminalId(1), TerminalId(24)],
+};
+// LexNullableRight { Digits, WS, "q" }
+pub static FIRST_SET_LEX_NULLABLE_RIGHT: TerminalSet = TerminalSet {
+    id: 105,
+    terminals: &[TerminalId(0), TerminalId(1), TerminalId(24)],
+};
+// MixedScale { "m", "f" }
+pub static FIRST_SET_MIXED_SCALE: TerminalSet = TerminalSet {
+    id: 106,
+    terminals: &[TerminalId(26), TerminalId(28)],
+};
+// MixedOperand { "m", "f" }
+pub static FIRST_SET_MIXED_OPERAND: TerminalSet = TerminalSet {
+    id: 106,
+    terminals: &[TerminalId(26), TerminalId(28)],
+};
+// MixedRight { "m", "f" }
+pub static FIRST_SET_MIXED_RIGHT: TerminalSet = TerminalSet {
+    id: 106,
+    terminals: &[TerminalId(26), TerminalId(28)],
+};
+// MixedForeign { "f" }
+pub static FIRST_SET_MIXED_FOREIGN: TerminalSet = TerminalSet {
+    id: 107,
+    terminals: &[TerminalId(28)],
+};
+// Packed { "(", "p" }
+pub static FIRST_SET_PACKED: TerminalSet = TerminalSet {
+    id: 108,
+    terminals: &[TerminalId(22), TerminalId(30)],
+};
+// PackedOperand { "(", "p" }
+pub static FIRST_SET_PACKED_OPERAND: TerminalSet = TerminalSet {
+    id: 108,
+    terminals: &[TerminalId(22), TerminalId(30)],
+};
+// PackedMiddle { "(", "p" }
+pub static FIRST_SET_PACKED_MIDDLE: TerminalSet = TerminalSet {
+    id: 108,
+    terminals: &[TerminalId(22), TerminalId(30)],
+};
+// PackedFiltered { "(", "p" }
+pub static FIRST_SET_PACKED_FILTERED: TerminalSet = TerminalSet {
+    id: 108,
+    terminals: &[TerminalId(22), TerminalId(30)],
+};
+// NullableRecursive { WS, "u" }
+pub static FIRST_SET_NULLABLE_RECURSIVE: TerminalSet = TerminalSet {
+    id: 109,
+    terminals: &[TerminalId(1), TerminalId(31)],
+};
+// NullableOperand { WS, "u" }
+pub static FIRST_SET_NULLABLE_OPERAND: TerminalSet = TerminalSet {
+    id: 109,
+    terminals: &[TerminalId(1), TerminalId(31)],
+};
+// NullableMaybe { WS, "u" }
+pub static FIRST_SET_NULLABLE_MAYBE: TerminalSet = TerminalSet {
+    id: 109,
+    terminals: &[TerminalId(1), TerminalId(31)],
+};
+// NullableLexRecursive { Digits, WS, "v" }
+pub static FIRST_SET_NULLABLE_LEX_RECURSIVE: TerminalSet = TerminalSet {
+    id: 110,
+    terminals: &[TerminalId(0), TerminalId(1), TerminalId(32)],
+};
+// NullableLexOperand { Digits, WS, "v" }
+pub static FIRST_SET_NULLABLE_LEX_OPERAND: TerminalSet = TerminalSet {
+    id: 110,
+    terminals: &[TerminalId(0), TerminalId(1), TerminalId(32)],
+};
+// NullableLexMaybe { Digits, WS, "v" }
+pub static FIRST_SET_NULLABLE_LEX_MAYBE: TerminalSet = TerminalSet {
+    id: 110,
+    terminals: &[TerminalId(0), TerminalId(1), TerminalId(32)],
+};
+// NullableSuffix { "w" }
+pub static FIRST_SET_NULLABLE_SUFFIX: TerminalSet = TerminalSet {
+    id: 111,
+    terminals: &[TerminalId(33)],
+};
+// NullableSuffixOperand { "w" }
+pub static FIRST_SET_NULLABLE_SUFFIX_OPERAND: TerminalSet = TerminalSet {
+    id: 111,
+    terminals: &[TerminalId(33)],
+};
+// NullableSuffixMaybe { "w" }
+pub static FIRST_SET_NULLABLE_SUFFIX_MAYBE: TerminalSet = TerminalSet {
+    id: 111,
+    terminals: &[TerminalId(33)],
+};
+// NullableShared { WS, "j" }
+pub static FIRST_SET_NULLABLE_SHARED: TerminalSet = TerminalSet {
+    id: 112,
+    terminals: &[TerminalId(1), TerminalId(34)],
+};
+// NullableSharedOperand { WS, "j" }
+pub static FIRST_SET_NULLABLE_SHARED_OPERAND: TerminalSet = TerminalSet {
+    id: 112,
+    terminals: &[TerminalId(1), TerminalId(34)],
+};
+// NullableSharedMaybe { WS, "j" }
+pub static FIRST_SET_NULLABLE_SHARED_MAYBE: TerminalSet = TerminalSet {
+    id: 112,
+    terminals: &[TerminalId(1), TerminalId(34)],
+};
+// OwnLabel { "(", "k" }
+pub static FIRST_SET_OWN_LABEL: TerminalSet = TerminalSet {
+    id: 113,
+    terminals: &[TerminalId(22), TerminalId(35)],
+};
+// OwnOperand { "(", "k" }
+pub static FIRST_SET_OWN_OPERAND: TerminalSet = TerminalSet {
+    id: 113,
+    terminals: &[TerminalId(22), TerminalId(35)],
+};
+// OwnHeadFiltered { "(", "k" }
+pub static FIRST_SET_OWN_HEAD_FILTERED: TerminalSet = TerminalSet {
+    id: 113,
+    terminals: &[TerminalId(22), TerminalId(35)],
+};
+// ExcludeOnly { "t", "s" }
+pub static FIRST_SET_EXCLUDE_ONLY: TerminalSet = TerminalSet {
+    id: 114,
+    terminals: &[TerminalId(10), TerminalId(36)],
+};
+// ExcludeOnlyFiltered { "t", "s" }
+pub static FIRST_SET_EXCLUDE_ONLY_FILTERED: TerminalSet = TerminalSet {
+    id: 114,
+    terminals: &[TerminalId(10), TerminalId(36)],
+};
+// Absent { "a", "b" }
+pub static FIRST_SET_ABSENT: TerminalSet = TerminalSet {
+    id: 115,
+    terminals: &[TerminalId(2), TerminalId(6)],
+};
+// AbsentOperand { "a", "b" }
+pub static FIRST_SET_ABSENT_OPERAND: TerminalSet = TerminalSet {
+    id: 115,
+    terminals: &[TerminalId(2), TerminalId(6)],
+};
+// ClosedPrefix { "a", "pre" }
+pub static FIRST_SET_CLOSED_PREFIX: TerminalSet = TerminalSet {
+    id: 116,
+    terminals: &[TerminalId(2), TerminalId(37)],
+};
+// ClosedPrefixBody { "a", "b", "pre" }
+pub static FIRST_SET_CLOSED_PREFIX_BODY: TerminalSet = TerminalSet {
+    id: 117,
+    terminals: &[TerminalId(2), TerminalId(6), TerminalId(37)],
+};
+// ClosedPostfix { "a", "b", "pre" }
+pub static FIRST_SET_CLOSED_POSTFIX: TerminalSet = TerminalSet {
+    id: 117,
+    terminals: &[TerminalId(2), TerminalId(6), TerminalId(37)],
+};
+// ClosedPostfixBody { "a", "b", "pre" }
+pub static FIRST_SET_CLOSED_POSTFIX_BODY: TerminalSet = TerminalSet {
+    id: 117,
+    terminals: &[TerminalId(2), TerminalId(6), TerminalId(37)],
+};
+// HeadChoice { "a", "b" }
+pub static FIRST_SET_HEAD_CHOICE: TerminalSet = TerminalSet {
+    id: 115,
+    terminals: &[TerminalId(2), TerminalId(6)],
+};
+// HeadOperand { "a", "b" }
+pub static FIRST_SET_HEAD_OPERAND: TerminalSet = TerminalSet {
+    id: 115,
+    terminals: &[TerminalId(2), TerminalId(6)],
+};
+// Inner { "b" }
+pub static FIRST_SET_INNER: TerminalSet = TerminalSet {
+    id: 97,
+    terminals: &[TerminalId(6)],
+};
+// UnaryMixedLeft { "a", "-" }
+pub static FIRST_SET_UNARY_MIXED_LEFT: TerminalSet = TerminalSet {
+    id: 118,
+    terminals: &[TerminalId(2), TerminalId(5)],
+};
+// UnaryMixedRight { "a", "-" }
+pub static FIRST_SET_UNARY_MIXED_RIGHT: TerminalSet = TerminalSet {
+    id: 118,
+    terminals: &[TerminalId(2), TerminalId(5)],
+};
+// UnaryMixedNone { "a", "-" }
+pub static FIRST_SET_UNARY_MIXED_NONE: TerminalSet = TerminalSet {
+    id: 118,
+    terminals: &[TerminalId(2), TerminalId(5)],
+};
+// Dynamic { "a", "-", "b" }
+pub static FIRST_SET_DYNAMIC: TerminalSet = TerminalSet {
+    id: 119,
+    terminals: &[TerminalId(2), TerminalId(5), TerminalId(6)],
+};
+// DynamicOperand { "a", "-", "b" }
+pub static FIRST_SET_DYNAMIC_OPERAND: TerminalSet = TerminalSet {
+    id: 119,
+    terminals: &[TerminalId(2), TerminalId(5), TerminalId(6)],
+};
+// DynamicFiltered { "a", "-", "b" }
+pub static FIRST_SET_DYNAMIC_FILTERED: TerminalSet = TerminalSet {
+    id: 119,
+    terminals: &[TerminalId(2), TerminalId(5), TerminalId(6)],
+};
+// DynamicHeadFiltered { "a", "-", "b" }
+pub static FIRST_SET_DYNAMIC_HEAD_FILTERED: TerminalSet = TerminalSet {
+    id: 119,
+    terminals: &[TerminalId(2), TerminalId(5), TerminalId(6)],
+};
+// DynamicMulti { "a", "-", "b" }
+pub static FIRST_SET_DYNAMIC_MULTI: TerminalSet = TerminalSet {
+    id: 119,
+    terminals: &[TerminalId(2), TerminalId(5), TerminalId(6)],
+};
+// DynamicMultiOperand { "a", "-", "b" }
+pub static FIRST_SET_DYNAMIC_MULTI_OPERAND: TerminalSet = TerminalSet {
+    id: 119,
+    terminals: &[TerminalId(2), TerminalId(5), TerminalId(6)],
+};
+// NullableBoundaryPrefix { "a", "-" }
+pub static FIRST_SET_NULLABLE_BOUNDARY_PREFIX: TerminalSet = TerminalSet {
+    id: 118,
+    terminals: &[TerminalId(2), TerminalId(5)],
+};
+// NullableBoundaryRight { "a", "-" }
+pub static FIRST_SET_NULLABLE_BOUNDARY_RIGHT: TerminalSet = TerminalSet {
+    id: 118,
+    terminals: &[TerminalId(2), TerminalId(5)],
+};
+// NullableBoundaryOpt { "!" }
+pub static FIRST_SET_NULLABLE_BOUNDARY_OPT: TerminalSet = TerminalSet {
+    id: 120,
+    terminals: &[TerminalId(29)],
+};
+// NullableBoundaryPostfix { WS, "a", "!" }
+pub static FIRST_SET_NULLABLE_BOUNDARY_POSTFIX: TerminalSet = TerminalSet {
+    id: 121,
+    terminals: &[TerminalId(1), TerminalId(2), TerminalId(29)],
+};
+// NullableBoundaryLeft { WS, "a", "!" }
+pub static FIRST_SET_NULLABLE_BOUNDARY_LEFT: TerminalSet = TerminalSet {
+    id: 121,
+    terminals: &[TerminalId(1), TerminalId(2), TerminalId(29)],
+};
+// NullableBoundaryBinary { "a" }
+pub static FIRST_SET_NULLABLE_BOUNDARY_BINARY: TerminalSet = TerminalSet {
+    id: 96,
+    terminals: &[TerminalId(2)],
+};
+// NullableBoundaryOperand { "a" }
+pub static FIRST_SET_NULLABLE_BOUNDARY_OPERAND: TerminalSet = TerminalSet {
+    id: 96,
+    terminals: &[TerminalId(2)],
+};
+// ClosedLeftAssoc { "a", "!" }
+pub static FIRST_SET_CLOSED_LEFT_ASSOC: TerminalSet = TerminalSet {
+    id: 122,
+    terminals: &[TerminalId(2), TerminalId(29)],
+};
+// ClosedLeftOperand { "a", "!" }
+pub static FIRST_SET_CLOSED_LEFT_OPERAND: TerminalSet = TerminalSet {
+    id: 122,
+    terminals: &[TerminalId(2), TerminalId(29)],
+};
+// ClosedRightAssoc { "a" }
+pub static FIRST_SET_CLOSED_RIGHT_ASSOC: TerminalSet = TerminalSet {
+    id: 96,
+    terminals: &[TerminalId(2)],
+};
+// ClosedRightOperand { "a", "!" }
+pub static FIRST_SET_CLOSED_RIGHT_OPERAND: TerminalSet = TerminalSet {
+    id: 122,
+    terminals: &[TerminalId(2), TerminalId(29)],
+};
+// IndirectExclude { "a", "b" }
+pub static FIRST_SET_INDIRECT_EXCLUDE: TerminalSet = TerminalSet {
+    id: 115,
+    terminals: &[TerminalId(2), TerminalId(6)],
+};
+// IndirectExcludeOperand { "a", "b" }
+pub static FIRST_SET_INDIRECT_EXCLUDE_OPERAND: TerminalSet = TerminalSet {
+    id: 115,
+    terminals: &[TerminalId(2), TerminalId(6)],
+};
+// IndirectExcludeFiltered { "a", "b" }
+pub static FIRST_SET_INDIRECT_EXCLUDE_FILTERED: TerminalSet = TerminalSet {
+    id: 115,
+    terminals: &[TerminalId(2), TerminalId(6)],
+};
+// OperandLiteral { "x", "1" }
+pub static FIRST_SET_OPERAND_LITERAL: TerminalSet = TerminalSet {
+    id: 123,
+    terminals: &[TerminalId(15), TerminalId(39)],
+};
+// OperandLiteralEnd { "x", "1" }
+pub static FIRST_SET_OPERAND_LITERAL_END: TerminalSet = TerminalSet {
+    id: 123,
+    terminals: &[TerminalId(15), TerminalId(39)],
+};
+// HeadLiteral { "x", "1" }
+pub static FIRST_SET_HEAD_LITERAL: TerminalSet = TerminalSet {
+    id: 123,
+    terminals: &[TerminalId(15), TerminalId(39)],
+};
+// HeadLiteralEnd { "x", "1" }
+pub static FIRST_SET_HEAD_LITERAL_END: TerminalSet = TerminalSet {
+    id: 123,
+    terminals: &[TerminalId(15), TerminalId(39)],
+};
+// Opt_0 { "x" }
+pub static FIRST_SET_OPT_0: TerminalSet = TerminalSet {
+    id: 124,
+    terminals: &[TerminalId(15)],
+};
+// Opt_1 { WS, "u" }
+pub static FIRST_SET_OPT_1: TerminalSet = TerminalSet {
+    id: 109,
+    terminals: &[TerminalId(1), TerminalId(31)],
+};
+// Opt_2 { "w" }
+pub static FIRST_SET_OPT_2: TerminalSet = TerminalSet {
+    id: 111,
+    terminals: &[TerminalId(33)],
+};
+// Opt_3 { WS, "j" }
+pub static FIRST_SET_OPT_3: TerminalSet = TerminalSet {
+    id: 112,
+    terminals: &[TerminalId(1), TerminalId(34)],
+};
+// StartS { WS, "a" }
+pub static FIRST_SET_START_S: TerminalSet = TerminalSet {
+    id: 125,
+    terminals: &[TerminalId(1), TerminalId(2)],
+};
+// StartE { WS, "a" }
+pub static FIRST_SET_START_E: TerminalSet = TerminalSet {
+    id: 125,
+    terminals: &[TerminalId(1), TerminalId(2)],
+};
+// StartL { WS, "a" }
+pub static FIRST_SET_START_L: TerminalSet = TerminalSet {
+    id: 125,
+    terminals: &[TerminalId(1), TerminalId(2)],
+};
+// StartOnly { WS, "b" }
+pub static FIRST_SET_START_ONLY: TerminalSet = TerminalSet {
+    id: 126,
+    terminals: &[TerminalId(1), TerminalId(6)],
+};
+// StartOnlyOperand { WS, "b" }
+pub static FIRST_SET_START_ONLY_OPERAND: TerminalSet = TerminalSet {
+    id: 126,
+    terminals: &[TerminalId(1), TerminalId(6)],
+};
+// StartCross { WS, "c" }
+pub static FIRST_SET_START_CROSS: TerminalSet = TerminalSet {
+    id: 127,
+    terminals: &[TerminalId(1), TerminalId(8)],
+};
+// StartForeign { WS, "c", "d" }
+pub static FIRST_SET_START_FOREIGN: TerminalSet = TerminalSet {
+    id: 128,
+    terminals: &[TerminalId(1), TerminalId(8), TerminalId(9)],
+};
+// StartCascade { WS, "t" }
+pub static FIRST_SET_START_CASCADE: TerminalSet = TerminalSet {
+    id: 129,
+    terminals: &[TerminalId(1), TerminalId(10)],
+};
+// StartTernary { WS, "t" }
+pub static FIRST_SET_START_TERNARY: TerminalSet = TerminalSet {
+    id: 129,
+    terminals: &[TerminalId(1), TerminalId(10)],
+};
+// StartNullable { WS, "n", "x" }
+pub static FIRST_SET_START_NULLABLE: TerminalSet = TerminalSet {
+    id: 101,
+    terminals: &[TerminalId(1), TerminalId(13), TerminalId(15)],
+};
+// StartNullableLeft { WS, "n", "x" }
+pub static FIRST_SET_START_NULLABLE_LEFT: TerminalSet = TerminalSet {
+    id: 101,
+    terminals: &[TerminalId(1), TerminalId(13), TerminalId(15)],
+};
+// StartNullableRight { WS, "n", "x" }
+pub static FIRST_SET_START_NULLABLE_RIGHT: TerminalSet = TerminalSet {
+    id: 101,
+    terminals: &[TerminalId(1), TerminalId(13), TerminalId(15)],
+};
+// StartRightExpr { WS, "r" }
+pub static FIRST_SET_START_RIGHT_EXPR: TerminalSet = TerminalSet {
+    id: 130,
+    terminals: &[TerminalId(1), TerminalId(16)],
+};
+// StartRightOperand { WS, "r" }
+pub static FIRST_SET_START_RIGHT_OPERAND: TerminalSet = TerminalSet {
+    id: 130,
+    terminals: &[TerminalId(1), TerminalId(16)],
+};
+// StartNoneExpr { WS, "z" }
+pub static FIRST_SET_START_NONE_EXPR: TerminalSet = TerminalSet {
+    id: 131,
+    terminals: &[TerminalId(1), TerminalId(18)],
+};
+// StartNoneOperand { WS, "z" }
+pub static FIRST_SET_START_NONE_OPERAND: TerminalSet = TerminalSet {
+    id: 131,
+    terminals: &[TerminalId(1), TerminalId(18)],
+};
+// StartExcluded { WS, "e", "(" }
+pub static FIRST_SET_START_EXCLUDED: TerminalSet = TerminalSet {
+    id: 132,
+    terminals: &[TerminalId(1), TerminalId(20), TerminalId(22)],
+};
+// StartExcludedOperand { WS, "e", "(" }
+pub static FIRST_SET_START_EXCLUDED_OPERAND: TerminalSet = TerminalSet {
+    id: 132,
+    terminals: &[TerminalId(1), TerminalId(20), TerminalId(22)],
+};
+// StartFiltered { WS, "e", "(" }
+pub static FIRST_SET_START_FILTERED: TerminalSet = TerminalSet {
+    id: 132,
+    terminals: &[TerminalId(1), TerminalId(20), TerminalId(22)],
+};
+// StartLexNullable { Digits, WS, "q" }
+pub static FIRST_SET_START_LEX_NULLABLE: TerminalSet = TerminalSet {
+    id: 105,
+    terminals: &[TerminalId(0), TerminalId(1), TerminalId(24)],
+};
+// StartLexNullableLeft { Digits, WS, "q" }
+pub static FIRST_SET_START_LEX_NULLABLE_LEFT: TerminalSet = TerminalSet {
+    id: 105,
+    terminals: &[TerminalId(0), TerminalId(1), TerminalId(24)],
+};
+// StartLexNullableRight { Digits, WS, "q" }
+pub static FIRST_SET_START_LEX_NULLABLE_RIGHT: TerminalSet = TerminalSet {
+    id: 105,
+    terminals: &[TerminalId(0), TerminalId(1), TerminalId(24)],
+};
+// StartMixedScale { WS, "m", "f" }
+pub static FIRST_SET_START_MIXED_SCALE: TerminalSet = TerminalSet {
+    id: 133,
+    terminals: &[TerminalId(1), TerminalId(26), TerminalId(28)],
+};
+// StartMixedOperand { WS, "m", "f" }
+pub static FIRST_SET_START_MIXED_OPERAND: TerminalSet = TerminalSet {
+    id: 133,
+    terminals: &[TerminalId(1), TerminalId(26), TerminalId(28)],
+};
+// StartMixedRight { WS, "m", "f" }
+pub static FIRST_SET_START_MIXED_RIGHT: TerminalSet = TerminalSet {
+    id: 133,
+    terminals: &[TerminalId(1), TerminalId(26), TerminalId(28)],
+};
+// StartMixedForeign { WS, "f" }
+pub static FIRST_SET_START_MIXED_FOREIGN: TerminalSet = TerminalSet {
+    id: 134,
+    terminals: &[TerminalId(1), TerminalId(28)],
+};
+// StartPacked { WS, "(", "p" }
+pub static FIRST_SET_START_PACKED: TerminalSet = TerminalSet {
+    id: 135,
+    terminals: &[TerminalId(1), TerminalId(22), TerminalId(30)],
+};
+// StartPackedOperand { WS, "(", "p" }
+pub static FIRST_SET_START_PACKED_OPERAND: TerminalSet = TerminalSet {
+    id: 135,
+    terminals: &[TerminalId(1), TerminalId(22), TerminalId(30)],
+};
+// StartPackedMiddle { WS, "(", "p" }
+pub static FIRST_SET_START_PACKED_MIDDLE: TerminalSet = TerminalSet {
+    id: 135,
+    terminals: &[TerminalId(1), TerminalId(22), TerminalId(30)],
+};
+// StartPackedFiltered { WS, "(", "p" }
+pub static FIRST_SET_START_PACKED_FILTERED: TerminalSet = TerminalSet {
+    id: 135,
+    terminals: &[TerminalId(1), TerminalId(22), TerminalId(30)],
+};
+// StartNullableRecursive { WS, "u" }
+pub static FIRST_SET_START_NULLABLE_RECURSIVE: TerminalSet = TerminalSet {
+    id: 109,
+    terminals: &[TerminalId(1), TerminalId(31)],
+};
+// StartNullableOperand { WS, "u" }
+pub static FIRST_SET_START_NULLABLE_OPERAND: TerminalSet = TerminalSet {
+    id: 109,
+    terminals: &[TerminalId(1), TerminalId(31)],
+};
+// StartNullableMaybe { WS, "u" }
+pub static FIRST_SET_START_NULLABLE_MAYBE: TerminalSet = TerminalSet {
+    id: 109,
+    terminals: &[TerminalId(1), TerminalId(31)],
+};
+// StartNullableLexRecursive { Digits, WS, "v" }
+pub static FIRST_SET_START_NULLABLE_LEX_RECURSIVE: TerminalSet = TerminalSet {
+    id: 110,
+    terminals: &[TerminalId(0), TerminalId(1), TerminalId(32)],
+};
+// StartNullableLexOperand { Digits, WS, "v" }
+pub static FIRST_SET_START_NULLABLE_LEX_OPERAND: TerminalSet = TerminalSet {
+    id: 110,
+    terminals: &[TerminalId(0), TerminalId(1), TerminalId(32)],
+};
+// StartNullableLexMaybe { Digits, WS, "v" }
+pub static FIRST_SET_START_NULLABLE_LEX_MAYBE: TerminalSet = TerminalSet {
+    id: 110,
+    terminals: &[TerminalId(0), TerminalId(1), TerminalId(32)],
+};
+// StartNullableSuffix { WS, "w" }
+pub static FIRST_SET_START_NULLABLE_SUFFIX: TerminalSet = TerminalSet {
+    id: 136,
+    terminals: &[TerminalId(1), TerminalId(33)],
+};
+// StartNullableSuffixOperand { WS, "w" }
+pub static FIRST_SET_START_NULLABLE_SUFFIX_OPERAND: TerminalSet = TerminalSet {
+    id: 136,
+    terminals: &[TerminalId(1), TerminalId(33)],
+};
+// StartNullableSuffixMaybe { WS, "w" }
+pub static FIRST_SET_START_NULLABLE_SUFFIX_MAYBE: TerminalSet = TerminalSet {
+    id: 136,
+    terminals: &[TerminalId(1), TerminalId(33)],
+};
+// StartNullableShared { WS, "j" }
+pub static FIRST_SET_START_NULLABLE_SHARED: TerminalSet = TerminalSet {
+    id: 112,
+    terminals: &[TerminalId(1), TerminalId(34)],
+};
+// StartNullableSharedOperand { WS, "j" }
+pub static FIRST_SET_START_NULLABLE_SHARED_OPERAND: TerminalSet = TerminalSet {
+    id: 112,
+    terminals: &[TerminalId(1), TerminalId(34)],
+};
+// StartNullableSharedMaybe { WS, "j" }
+pub static FIRST_SET_START_NULLABLE_SHARED_MAYBE: TerminalSet = TerminalSet {
+    id: 112,
+    terminals: &[TerminalId(1), TerminalId(34)],
+};
+// StartOwnLabel { WS, "(", "k" }
+pub static FIRST_SET_START_OWN_LABEL: TerminalSet = TerminalSet {
+    id: 137,
+    terminals: &[TerminalId(1), TerminalId(22), TerminalId(35)],
+};
+// StartOwnOperand { WS, "(", "k" }
+pub static FIRST_SET_START_OWN_OPERAND: TerminalSet = TerminalSet {
+    id: 137,
+    terminals: &[TerminalId(1), TerminalId(22), TerminalId(35)],
+};
+// StartOwnHeadFiltered { WS, "(", "k" }
+pub static FIRST_SET_START_OWN_HEAD_FILTERED: TerminalSet = TerminalSet {
+    id: 137,
+    terminals: &[TerminalId(1), TerminalId(22), TerminalId(35)],
+};
+// StartExcludeOnly { WS, "t", "s" }
+pub static FIRST_SET_START_EXCLUDE_ONLY: TerminalSet = TerminalSet {
+    id: 138,
+    terminals: &[TerminalId(1), TerminalId(10), TerminalId(36)],
+};
+// StartExcludeOnlyFiltered { WS, "t", "s" }
+pub static FIRST_SET_START_EXCLUDE_ONLY_FILTERED: TerminalSet = TerminalSet {
+    id: 138,
+    terminals: &[TerminalId(1), TerminalId(10), TerminalId(36)],
+};
+// StartAbsent { WS, "a", "b" }
+pub static FIRST_SET_START_ABSENT: TerminalSet = TerminalSet {
+    id: 139,
+    terminals: &[TerminalId(1), TerminalId(2), TerminalId(6)],
+};
+// StartAbsentOperand { WS, "a", "b" }
+pub static FIRST_SET_START_ABSENT_OPERAND: TerminalSet = TerminalSet {
+    id: 139,
+    terminals: &[TerminalId(1), TerminalId(2), TerminalId(6)],
+};
+// StartClosedPrefix { WS, "a", "pre" }
+pub static FIRST_SET_START_CLOSED_PREFIX: TerminalSet = TerminalSet {
+    id: 140,
+    terminals: &[TerminalId(1), TerminalId(2), TerminalId(37)],
+};
+// StartClosedPrefixBody { WS, "a", "b", "pre" }
+pub static FIRST_SET_START_CLOSED_PREFIX_BODY: TerminalSet = TerminalSet {
+    id: 141,
+    terminals: &[TerminalId(1), TerminalId(2), TerminalId(6), TerminalId(37)],
+};
+// StartClosedPostfix { WS, "a", "b", "pre" }
+pub static FIRST_SET_START_CLOSED_POSTFIX: TerminalSet = TerminalSet {
+    id: 141,
+    terminals: &[TerminalId(1), TerminalId(2), TerminalId(6), TerminalId(37)],
+};
+// StartClosedPostfixBody { WS, "a", "b", "pre" }
+pub static FIRST_SET_START_CLOSED_POSTFIX_BODY: TerminalSet = TerminalSet {
+    id: 141,
+    terminals: &[TerminalId(1), TerminalId(2), TerminalId(6), TerminalId(37)],
+};
+// StartHeadChoice { WS, "a", "b" }
+pub static FIRST_SET_START_HEAD_CHOICE: TerminalSet = TerminalSet {
+    id: 139,
+    terminals: &[TerminalId(1), TerminalId(2), TerminalId(6)],
+};
+// StartHeadOperand { WS, "a", "b" }
+pub static FIRST_SET_START_HEAD_OPERAND: TerminalSet = TerminalSet {
+    id: 139,
+    terminals: &[TerminalId(1), TerminalId(2), TerminalId(6)],
+};
+// StartInner { WS, "b" }
+pub static FIRST_SET_START_INNER: TerminalSet = TerminalSet {
+    id: 126,
+    terminals: &[TerminalId(1), TerminalId(6)],
+};
+// StartUnaryMixedLeft { WS, "a", "-" }
+pub static FIRST_SET_START_UNARY_MIXED_LEFT: TerminalSet = TerminalSet {
+    id: 142,
+    terminals: &[TerminalId(1), TerminalId(2), TerminalId(5)],
+};
+// StartUnaryMixedRight { WS, "a", "-" }
+pub static FIRST_SET_START_UNARY_MIXED_RIGHT: TerminalSet = TerminalSet {
+    id: 142,
+    terminals: &[TerminalId(1), TerminalId(2), TerminalId(5)],
+};
+// StartUnaryMixedNone { WS, "a", "-" }
+pub static FIRST_SET_START_UNARY_MIXED_NONE: TerminalSet = TerminalSet {
+    id: 142,
+    terminals: &[TerminalId(1), TerminalId(2), TerminalId(5)],
+};
+// StartDynamic { WS, "a", "-", "b" }
+pub static FIRST_SET_START_DYNAMIC: TerminalSet = TerminalSet {
+    id: 143,
+    terminals: &[TerminalId(1), TerminalId(2), TerminalId(5), TerminalId(6)],
+};
+// StartDynamicOperand { WS, "a", "-", "b" }
+pub static FIRST_SET_START_DYNAMIC_OPERAND: TerminalSet = TerminalSet {
+    id: 143,
+    terminals: &[TerminalId(1), TerminalId(2), TerminalId(5), TerminalId(6)],
+};
+// StartDynamicFiltered { WS, "a", "-", "b" }
+pub static FIRST_SET_START_DYNAMIC_FILTERED: TerminalSet = TerminalSet {
+    id: 143,
+    terminals: &[TerminalId(1), TerminalId(2), TerminalId(5), TerminalId(6)],
+};
+// StartDynamicHeadFiltered { WS, "a", "-", "b" }
+pub static FIRST_SET_START_DYNAMIC_HEAD_FILTERED: TerminalSet = TerminalSet {
+    id: 143,
+    terminals: &[TerminalId(1), TerminalId(2), TerminalId(5), TerminalId(6)],
+};
+// StartDynamicMulti { WS, "a", "-", "b" }
+pub static FIRST_SET_START_DYNAMIC_MULTI: TerminalSet = TerminalSet {
+    id: 143,
+    terminals: &[TerminalId(1), TerminalId(2), TerminalId(5), TerminalId(6)],
+};
+// StartDynamicMultiOperand { WS, "a", "-", "b" }
+pub static FIRST_SET_START_DYNAMIC_MULTI_OPERAND: TerminalSet = TerminalSet {
+    id: 143,
+    terminals: &[TerminalId(1), TerminalId(2), TerminalId(5), TerminalId(6)],
+};
+// StartNullableBoundaryPrefix { WS, "a", "-" }
+pub static FIRST_SET_START_NULLABLE_BOUNDARY_PREFIX: TerminalSet = TerminalSet {
+    id: 142,
+    terminals: &[TerminalId(1), TerminalId(2), TerminalId(5)],
+};
+// StartNullableBoundaryRight { WS, "a", "-" }
+pub static FIRST_SET_START_NULLABLE_BOUNDARY_RIGHT: TerminalSet = TerminalSet {
+    id: 142,
+    terminals: &[TerminalId(1), TerminalId(2), TerminalId(5)],
+};
+// StartNullableBoundaryOpt { WS, "!" }
+pub static FIRST_SET_START_NULLABLE_BOUNDARY_OPT: TerminalSet = TerminalSet {
+    id: 144,
+    terminals: &[TerminalId(1), TerminalId(29)],
+};
+// StartNullableBoundaryPostfix { WS, "a", "!" }
+pub static FIRST_SET_START_NULLABLE_BOUNDARY_POSTFIX: TerminalSet = TerminalSet {
+    id: 121,
+    terminals: &[TerminalId(1), TerminalId(2), TerminalId(29)],
+};
+// StartNullableBoundaryLeft { WS, "a", "!" }
+pub static FIRST_SET_START_NULLABLE_BOUNDARY_LEFT: TerminalSet = TerminalSet {
+    id: 121,
+    terminals: &[TerminalId(1), TerminalId(2), TerminalId(29)],
+};
+// StartNullableBoundaryBinary { WS, "a" }
+pub static FIRST_SET_START_NULLABLE_BOUNDARY_BINARY: TerminalSet = TerminalSet {
+    id: 125,
+    terminals: &[TerminalId(1), TerminalId(2)],
+};
+// StartNullableBoundaryOperand { WS, "a" }
+pub static FIRST_SET_START_NULLABLE_BOUNDARY_OPERAND: TerminalSet = TerminalSet {
+    id: 125,
+    terminals: &[TerminalId(1), TerminalId(2)],
+};
+// StartClosedLeftAssoc { WS, "a", "!" }
+pub static FIRST_SET_START_CLOSED_LEFT_ASSOC: TerminalSet = TerminalSet {
+    id: 121,
+    terminals: &[TerminalId(1), TerminalId(2), TerminalId(29)],
+};
+// StartClosedLeftOperand { WS, "a", "!" }
+pub static FIRST_SET_START_CLOSED_LEFT_OPERAND: TerminalSet = TerminalSet {
+    id: 121,
+    terminals: &[TerminalId(1), TerminalId(2), TerminalId(29)],
+};
+// StartClosedRightAssoc { WS, "a" }
+pub static FIRST_SET_START_CLOSED_RIGHT_ASSOC: TerminalSet = TerminalSet {
+    id: 125,
+    terminals: &[TerminalId(1), TerminalId(2)],
+};
+// StartClosedRightOperand { WS, "a", "!" }
+pub static FIRST_SET_START_CLOSED_RIGHT_OPERAND: TerminalSet = TerminalSet {
+    id: 121,
+    terminals: &[TerminalId(1), TerminalId(2), TerminalId(29)],
+};
+// StartIndirectExclude { WS, "a", "b" }
+pub static FIRST_SET_START_INDIRECT_EXCLUDE: TerminalSet = TerminalSet {
+    id: 139,
+    terminals: &[TerminalId(1), TerminalId(2), TerminalId(6)],
+};
+// StartIndirectExcludeOperand { WS, "a", "b" }
+pub static FIRST_SET_START_INDIRECT_EXCLUDE_OPERAND: TerminalSet = TerminalSet {
+    id: 139,
+    terminals: &[TerminalId(1), TerminalId(2), TerminalId(6)],
+};
+// StartIndirectExcludeFiltered { WS, "a", "b" }
+pub static FIRST_SET_START_INDIRECT_EXCLUDE_FILTERED: TerminalSet = TerminalSet {
+    id: 139,
+    terminals: &[TerminalId(1), TerminalId(2), TerminalId(6)],
+};
+// StartOperandLiteral { WS, "x", "1" }
+pub static FIRST_SET_START_OPERAND_LITERAL: TerminalSet = TerminalSet {
+    id: 145,
+    terminals: &[TerminalId(1), TerminalId(15), TerminalId(39)],
+};
+// StartOperandLiteralEnd { WS, "x", "1" }
+pub static FIRST_SET_START_OPERAND_LITERAL_END: TerminalSet = TerminalSet {
+    id: 145,
+    terminals: &[TerminalId(1), TerminalId(15), TerminalId(39)],
+};
+// StartHeadLiteral { WS, "x", "1" }
+pub static FIRST_SET_START_HEAD_LITERAL: TerminalSet = TerminalSet {
+    id: 145,
+    terminals: &[TerminalId(1), TerminalId(15), TerminalId(39)],
+};
+// StartHeadLiteralEnd { WS, "x", "1" }
+pub static FIRST_SET_START_HEAD_LITERAL_END: TerminalSet = TerminalSet {
+    id: 145,
     terminals: &[TerminalId(1), TerminalId(15), TerminalId(39)],
 };

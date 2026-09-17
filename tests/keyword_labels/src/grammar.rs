@@ -63,11 +63,6 @@ pub static FOLLOW_SET_S: TerminalSet = TerminalSet {
     id: 0,
     terminals: &[TerminalId(4)],
 };
-// S { "a" }
-pub static FIRST_SET_S: TerminalSet = TerminalSet {
-    id: 0,
-    terminals: &[TerminalId(0)],
-};
 // S : . do:"a" type:"b" gen:"c" { "a" }
 pub static FIRST_SET_S_ALT0: TerminalSet = TerminalSet {
     id: 1,
@@ -78,13 +73,18 @@ pub static FOLLOW_SET_START_S: TerminalSet = TerminalSet {
     id: 0,
     terminals: &[TerminalId(4)],
 };
-// StartS { "a" }
-pub static FIRST_SET_START_S: TerminalSet = TerminalSet {
-    id: 0,
-    terminals: &[TerminalId(0)],
-};
 // StartS : . start:S { "a" }
 pub static FIRST_SET_START_S_ALT0: TerminalSet = TerminalSet {
     id: 1,
+    terminals: &[TerminalId(0)],
+};
+// S { "a" }
+pub static FIRST_SET_S: TerminalSet = TerminalSet {
+    id: 2,
+    terminals: &[TerminalId(0)],
+};
+// StartS { "a" }
+pub static FIRST_SET_START_S: TerminalSet = TerminalSet {
+    id: 2,
     terminals: &[TerminalId(0)],
 };

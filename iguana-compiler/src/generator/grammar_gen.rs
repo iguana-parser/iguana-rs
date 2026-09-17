@@ -4,7 +4,7 @@ use rustc_hash::FxHashSet;
 
 use crate::generator::grammar_utils::grammar_ident;
 use crate::generator::id::{NonterminalIds, SlotIds, TerminalIds};
-use crate::generator::terminal_sets::{SetIds, SetKind, TerminalSet};
+use crate::generator::terminal_sets::{TerminalSet, TerminalSetKind};
 use crate::grammar::def::Grammar;
 use crate::grammar::symbols::{Definition, Nonterminal};
 use crate::utils::to_snake_case;
@@ -20,29 +20,20 @@ pub fn generate<'a>(
     terminal_ids: &TerminalIds,
     slot_ids: &SlotIds<'a>,
     terminal_sets: &[TerminalSet],
-    match_any_sets: &SetIds,
-    longest_match_sets: &SetIds,
 ) -> TokenStream {
     let grammar_type = grammar_ident(&grammar.name);
     let grammar_name = &grammar.name;
 
     let mut terminal_set_items = vec![];
     for set in terminal_sets {
-        let name = format_ident!("{}", set.name());
-        let comment = set.comment(grammar);
+        let name = format_ident!("{}", terminal_set_name(set, grammar));
+        let comment = terminal_set_comment(set);
         let ids: Vec<_> = set
             .terminals
             .iter()
             .map(|t| terminal_ids.get_id(t))
             .collect();
-        // Every set is emitted as a `TerminalSet`. Its id comes from the
-        // `match_any` space (which keys that memo), except the combined FIRST
-        // set, which is numbered in the `longest_match` space.
-        let set_id = match set.kind {
-            SetKind::First => longest_match_sets.id(&set.name()),
-            _ => match_any_sets.id(&set.name()),
-        };
-        let set_id = Literal::usize_unsuffixed(set_id);
+        let set_id = Literal::usize_unsuffixed(set.id);
         terminal_set_items.push(quote! {
             #[comment = #comment]
             pub static #name: TerminalSet = TerminalSet { id: #set_id, terminals: &[#(#ids),*] };
@@ -189,4 +180,45 @@ fn layout_terminal_ids(grammar: &Grammar, terminal_ids: &TerminalIds) -> Vec<Ter
     }
     terminals.sort_unstable_by_key(|terminal| terminal.0);
     terminals
+}
+
+/// Identifier of the static for `set`, e.g. `FIRST_SET_E_ALT0`.
+fn terminal_set_name(set: &TerminalSet, grammar: &Grammar) -> String {
+    let upper = |nonterminal: &Nonterminal| to_snake_case(&nonterminal.name).to_uppercase();
+    match &set.kind {
+        TerminalSetKind::Follow(nonterminal) => format!("FOLLOW_SET_{}", upper(nonterminal)),
+        TerminalSetKind::First(nonterminal) => format!("FIRST_SET_{}", upper(nonterminal)),
+        TerminalSetKind::FirstAlt(slot) => format!(
+            "FIRST_SET_{}_ALT{}",
+            upper(slot.head()),
+            slot.alternative_index(grammar)
+        ),
+        TerminalSetKind::FollowRestriction(slot) => format!(
+            "FOLLOW_RESTRICTION_{}_ALT{}_POS{}",
+            upper(slot.head()),
+            slot.alternative_index(grammar),
+            slot.pos()
+        ),
+        TerminalSetKind::LayoutAwareFollowRestriction(slot) => format!(
+            "LAYOUT_AWARE_FOLLOW_RESTRICTION_{}_ALT{}_POS{}",
+            upper(slot.head()),
+            slot.alternative_index(grammar),
+            slot.pos()
+        ),
+    }
+}
+
+/// Comment line above the static for `set`: the grammar position, then the
+/// terminals, e.g. `E : . E "+" E { "a" }`.
+fn terminal_set_comment(set: &TerminalSet) -> String {
+    let position = match &set.kind {
+        TerminalSetKind::Follow(nonterminal) | TerminalSetKind::First(nonterminal) => {
+            nonterminal.name.clone()
+        }
+        TerminalSetKind::FirstAlt(slot) => slot.name(),
+        TerminalSetKind::FollowRestriction(slot) => format!("{} !>>", slot.name()),
+        TerminalSetKind::LayoutAwareFollowRestriction(slot) => format!("{} !>>>", slot.name()),
+    };
+    let names: Vec<_> = set.terminals.iter().map(|t| t.name.clone()).collect();
+    format!("{position} {{ {} }}", names.join(", "))
 }

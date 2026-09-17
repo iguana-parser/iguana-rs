@@ -60,11 +60,6 @@ pub static FOLLOW_SET_S: TerminalSet = TerminalSet {
     id: 0,
     terminals: &[TerminalId(4)],
 };
-// S { Name }
-pub static FIRST_SET_S: TerminalSet = TerminalSet {
-    id: 0,
-    terminals: &[TerminalId(0)],
-};
 // S : . x:Name !>> Eq Tail { Name }
 pub static FIRST_SET_S_ALT0: TerminalSet = TerminalSet {
     id: 1,
@@ -80,13 +75,18 @@ pub static FOLLOW_SET_START_S: TerminalSet = TerminalSet {
     id: 0,
     terminals: &[TerminalId(4)],
 };
-// StartS { Name }
-pub static FIRST_SET_START_S: TerminalSet = TerminalSet {
-    id: 0,
-    terminals: &[TerminalId(0)],
-};
 // StartS : . start:S { Name }
 pub static FIRST_SET_START_S_ALT0: TerminalSet = TerminalSet {
     id: 1,
+    terminals: &[TerminalId(0)],
+};
+// S { Name }
+pub static FIRST_SET_S: TerminalSet = TerminalSet {
+    id: 3,
+    terminals: &[TerminalId(0)],
+};
+// StartS { Name }
+pub static FIRST_SET_START_S: TerminalSet = TerminalSet {
+    id: 3,
     terminals: &[TerminalId(0)],
 };

@@ -61,11 +61,6 @@ pub static FOLLOW_SET_S: TerminalSet = TerminalSet {
     id: 0,
     terminals: &[TerminalId(5)],
 };
-// S { Id }
-pub static FIRST_SET_S: TerminalSet = TerminalSet {
-    id: 0,
-    terminals: &[TerminalId(0)],
-};
 // S : . Id \ Kw !>> Eq Tail { Id }
 pub static FIRST_SET_S_ALT0: TerminalSet = TerminalSet {
     id: 1,
@@ -81,13 +76,18 @@ pub static FOLLOW_SET_START_S: TerminalSet = TerminalSet {
     id: 0,
     terminals: &[TerminalId(5)],
 };
-// StartS { Id }
-pub static FIRST_SET_START_S: TerminalSet = TerminalSet {
-    id: 0,
-    terminals: &[TerminalId(0)],
-};
 // StartS : . start:S { Id }
 pub static FIRST_SET_START_S_ALT0: TerminalSet = TerminalSet {
     id: 1,
+    terminals: &[TerminalId(0)],
+};
+// S { Id }
+pub static FIRST_SET_S: TerminalSet = TerminalSet {
+    id: 3,
+    terminals: &[TerminalId(0)],
+};
+// StartS { Id }
+pub static FIRST_SET_START_S: TerminalSet = TerminalSet {
+    id: 3,
     terminals: &[TerminalId(0)],
 };

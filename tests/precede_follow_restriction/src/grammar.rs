@@ -98,11 +98,6 @@ pub static FOLLOW_SET_S: TerminalSet = TerminalSet {
     id: 0,
     terminals: &[TerminalId(6)],
 };
-// S { Name, Num }
-pub static FIRST_SET_S: TerminalSet = TerminalSet {
-    id: 0,
-    terminals: &[TerminalId(0), TerminalId(2)],
-};
 // S : . Num Id Tail { Num }
 pub static FIRST_SET_S_ALT0: TerminalSet = TerminalSet {
     id: 1,
@@ -117,11 +112,6 @@ pub static FIRST_SET_S_ALT1: TerminalSet = TerminalSet {
 pub static FOLLOW_SET_ID: TerminalSet = TerminalSet {
     id: 3,
     terminals: &[TerminalId(4), TerminalId(6)],
-};
-// Id { Name }
-pub static FIRST_SET_ID: TerminalSet = TerminalSet {
-    id: 1,
-    terminals: &[TerminalId(0)],
 };
 // Id : . Digit !<< Name !>> Eq { Name }
 pub static FIRST_SET_ID_ALT0: TerminalSet = TerminalSet {
@@ -138,11 +128,6 @@ pub static FOLLOW_SET_START_S: TerminalSet = TerminalSet {
     id: 0,
     terminals: &[TerminalId(6)],
 };
-// StartS { Name, Num }
-pub static FIRST_SET_START_S: TerminalSet = TerminalSet {
-    id: 0,
-    terminals: &[TerminalId(0), TerminalId(2)],
-};
 // StartS : . start:S { Name, Num }
 pub static FIRST_SET_START_S_ALT0: TerminalSet = TerminalSet {
     id: 5,
@@ -153,13 +138,28 @@ pub static FOLLOW_SET_START_ID: TerminalSet = TerminalSet {
     id: 0,
     terminals: &[TerminalId(6)],
 };
-// StartId { Name }
-pub static FIRST_SET_START_ID: TerminalSet = TerminalSet {
-    id: 1,
-    terminals: &[TerminalId(0)],
-};
 // StartId : . start:Id { Name }
 pub static FIRST_SET_START_ID_ALT0: TerminalSet = TerminalSet {
     id: 2,
+    terminals: &[TerminalId(0)],
+};
+// S { Name, Num }
+pub static FIRST_SET_S: TerminalSet = TerminalSet {
+    id: 6,
+    terminals: &[TerminalId(0), TerminalId(2)],
+};
+// Id { Name }
+pub static FIRST_SET_ID: TerminalSet = TerminalSet {
+    id: 7,
+    terminals: &[TerminalId(0)],
+};
+// StartS { Name, Num }
+pub static FIRST_SET_START_S: TerminalSet = TerminalSet {
+    id: 6,
+    terminals: &[TerminalId(0), TerminalId(2)],
+};
+// StartId { Name }
+pub static FIRST_SET_START_ID: TerminalSet = TerminalSet {
+    id: 7,
     terminals: &[TerminalId(0)],
 };

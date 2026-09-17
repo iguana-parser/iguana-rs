@@ -81,11 +81,6 @@ pub static FOLLOW_SET_E: TerminalSet = TerminalSet {
     id: 0,
     terminals: &[TerminalId(0), TerminalId(1), TerminalId(4)],
 };
-// E { "a" }
-pub static FIRST_SET_E: TerminalSet = TerminalSet {
-    id: 0,
-    terminals: &[TerminalId(2)],
-};
 // E : . E "*" E { "a" }
 pub static FIRST_SET_E_ALT0: TerminalSet = TerminalSet {
     id: 1,
@@ -106,13 +101,18 @@ pub static FOLLOW_SET_START_E: TerminalSet = TerminalSet {
     id: 2,
     terminals: &[TerminalId(4)],
 };
-// StartE { "a" }
-pub static FIRST_SET_START_E: TerminalSet = TerminalSet {
-    id: 0,
-    terminals: &[TerminalId(2)],
-};
 // StartE : . start:E { "a" }
 pub static FIRST_SET_START_E_ALT0: TerminalSet = TerminalSet {
     id: 1,
+    terminals: &[TerminalId(2)],
+};
+// E { "a" }
+pub static FIRST_SET_E: TerminalSet = TerminalSet {
+    id: 3,
+    terminals: &[TerminalId(2)],
+};
+// StartE { "a" }
+pub static FIRST_SET_START_E: TerminalSet = TerminalSet {
+    id: 3,
     terminals: &[TerminalId(2)],
 };

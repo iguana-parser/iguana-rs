@@ -137,11 +137,6 @@ pub static FOLLOW_SET_S: TerminalSet = TerminalSet {
     id: 0,
     terminals: &[TerminalId(1), TerminalId(3)],
 };
-// S { Char }
-pub static FIRST_SET_S: TerminalSet = TerminalSet {
-    id: 0,
-    terminals: &[TerminalId(0)],
-};
 // S : . Plus_0 { Char }
 pub static FIRST_SET_S_ALT0: TerminalSet = TerminalSet {
     id: 1,
@@ -151,11 +146,6 @@ pub static FIRST_SET_S_ALT0: TerminalSet = TerminalSet {
 pub static FOLLOW_SET_WORD: TerminalSet = TerminalSet {
     id: 2,
     terminals: &[TerminalId(0), TerminalId(1), TerminalId(3)],
-};
-// Word { Char }
-pub static FIRST_SET_WORD: TerminalSet = TerminalSet {
-    id: 0,
-    terminals: &[TerminalId(0)],
 };
 // Word : . Plus_1 !>> Char { Char }
 pub static FIRST_SET_WORD_ALT0: TerminalSet = TerminalSet {
@@ -172,11 +162,6 @@ pub static FOLLOW_SET_PLUS_0: TerminalSet = TerminalSet {
     id: 2,
     terminals: &[TerminalId(0), TerminalId(1), TerminalId(3)],
 };
-// Plus_0 { Char }
-pub static FIRST_SET_PLUS_0: TerminalSet = TerminalSet {
-    id: 0,
-    terminals: &[TerminalId(0)],
-};
 // Plus_0 : . Plus_0 WS Word { Char }
 pub static FIRST_SET_PLUS_0_ALT0: TerminalSet = TerminalSet {
     id: 1,
@@ -191,11 +176,6 @@ pub static FIRST_SET_PLUS_0_ALT1: TerminalSet = TerminalSet {
 pub static FOLLOW_SET_PLUS_1: TerminalSet = TerminalSet {
     id: 2,
     terminals: &[TerminalId(0), TerminalId(1), TerminalId(3)],
-};
-// Plus_1 { Char }
-pub static FIRST_SET_PLUS_1: TerminalSet = TerminalSet {
-    id: 0,
-    terminals: &[TerminalId(0)],
 };
 // Plus_1 : . Plus_1 Char { Char }
 pub static FIRST_SET_PLUS_1_ALT0: TerminalSet = TerminalSet {
@@ -212,11 +192,6 @@ pub static FOLLOW_SET_START_S: TerminalSet = TerminalSet {
     id: 3,
     terminals: &[TerminalId(3)],
 };
-// StartS { Char, WS }
-pub static FIRST_SET_START_S: TerminalSet = TerminalSet {
-    id: 1,
-    terminals: &[TerminalId(0), TerminalId(1)],
-};
 // StartS : . WS start:S WS { Char, WS }
 pub static FIRST_SET_START_S_ALT0: TerminalSet = TerminalSet {
     id: 4,
@@ -227,13 +202,38 @@ pub static FOLLOW_SET_START_WORD: TerminalSet = TerminalSet {
     id: 3,
     terminals: &[TerminalId(3)],
 };
-// StartWord { Char, WS }
-pub static FIRST_SET_START_WORD: TerminalSet = TerminalSet {
-    id: 1,
-    terminals: &[TerminalId(0), TerminalId(1)],
-};
 // StartWord : . WS start:Word WS { Char, WS }
 pub static FIRST_SET_START_WORD_ALT0: TerminalSet = TerminalSet {
     id: 4,
+    terminals: &[TerminalId(0), TerminalId(1)],
+};
+// S { Char }
+pub static FIRST_SET_S: TerminalSet = TerminalSet {
+    id: 5,
+    terminals: &[TerminalId(0)],
+};
+// Word { Char }
+pub static FIRST_SET_WORD: TerminalSet = TerminalSet {
+    id: 5,
+    terminals: &[TerminalId(0)],
+};
+// Plus_0 { Char }
+pub static FIRST_SET_PLUS_0: TerminalSet = TerminalSet {
+    id: 5,
+    terminals: &[TerminalId(0)],
+};
+// Plus_1 { Char }
+pub static FIRST_SET_PLUS_1: TerminalSet = TerminalSet {
+    id: 5,
+    terminals: &[TerminalId(0)],
+};
+// StartS { Char, WS }
+pub static FIRST_SET_START_S: TerminalSet = TerminalSet {
+    id: 6,
+    terminals: &[TerminalId(0), TerminalId(1)],
+};
+// StartWord { Char, WS }
+pub static FIRST_SET_START_WORD: TerminalSet = TerminalSet {
+    id: 6,
     terminals: &[TerminalId(0), TerminalId(1)],
 };

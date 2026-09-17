@@ -89,11 +89,6 @@ pub static FOLLOW_SET_S: TerminalSet = TerminalSet {
     id: 0,
     terminals: &[TerminalId(3)],
 };
-// S { "a", "aa" }
-pub static FIRST_SET_S: TerminalSet = TerminalSet {
-    id: 0,
-    terminals: &[TerminalId(0), TerminalId(1)],
-};
 // S : . X X { "a", "aa" }
 pub static FIRST_SET_S_ALT0: TerminalSet = TerminalSet {
     id: 1,
@@ -103,11 +98,6 @@ pub static FIRST_SET_S_ALT0: TerminalSet = TerminalSet {
 pub static FOLLOW_SET_X: TerminalSet = TerminalSet {
     id: 2,
     terminals: &[TerminalId(0), TerminalId(1), TerminalId(3)],
-};
-// X { "a", "aa" }
-pub static FIRST_SET_X: TerminalSet = TerminalSet {
-    id: 0,
-    terminals: &[TerminalId(0), TerminalId(1)],
 };
 // X : . "a" { "a" }
 pub static FIRST_SET_X_ALT0: TerminalSet = TerminalSet {
@@ -124,11 +114,6 @@ pub static FOLLOW_SET_START_S: TerminalSet = TerminalSet {
     id: 0,
     terminals: &[TerminalId(3)],
 };
-// StartS { "a", "aa" }
-pub static FIRST_SET_START_S: TerminalSet = TerminalSet {
-    id: 0,
-    terminals: &[TerminalId(0), TerminalId(1)],
-};
 // StartS : . start:S { "a", "aa" }
 pub static FIRST_SET_START_S_ALT0: TerminalSet = TerminalSet {
     id: 1,
@@ -139,13 +124,28 @@ pub static FOLLOW_SET_START_X: TerminalSet = TerminalSet {
     id: 0,
     terminals: &[TerminalId(3)],
 };
-// StartX { "a", "aa" }
-pub static FIRST_SET_START_X: TerminalSet = TerminalSet {
-    id: 0,
-    terminals: &[TerminalId(0), TerminalId(1)],
-};
 // StartX : . start:X { "a", "aa" }
 pub static FIRST_SET_START_X_ALT0: TerminalSet = TerminalSet {
     id: 1,
+    terminals: &[TerminalId(0), TerminalId(1)],
+};
+// S { "a", "aa" }
+pub static FIRST_SET_S: TerminalSet = TerminalSet {
+    id: 5,
+    terminals: &[TerminalId(0), TerminalId(1)],
+};
+// X { "a", "aa" }
+pub static FIRST_SET_X: TerminalSet = TerminalSet {
+    id: 5,
+    terminals: &[TerminalId(0), TerminalId(1)],
+};
+// StartS { "a", "aa" }
+pub static FIRST_SET_START_S: TerminalSet = TerminalSet {
+    id: 5,
+    terminals: &[TerminalId(0), TerminalId(1)],
+};
+// StartX { "a", "aa" }
+pub static FIRST_SET_START_X: TerminalSet = TerminalSet {
+    id: 5,
     terminals: &[TerminalId(0), TerminalId(1)],
 };

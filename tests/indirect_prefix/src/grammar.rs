@@ -205,11 +205,6 @@ pub static FOLLOW_SET_S: TerminalSet = TerminalSet {
     id: 0,
     terminals: &[TerminalId(0), TerminalId(5)],
 };
-// S { "a", "fn" }
-pub static FIRST_SET_S: TerminalSet = TerminalSet {
-    id: 0,
-    terminals: &[TerminalId(1), TerminalId(3)],
-};
 // S : . E(0) { "a", "fn" }
 pub static FIRST_SET_S_ALT0: TerminalSet = TerminalSet {
     id: 1,
@@ -219,11 +214,6 @@ pub static FIRST_SET_S_ALT0: TerminalSet = TerminalSet {
 pub static FOLLOW_SET_E: TerminalSet = TerminalSet {
     id: 2,
     terminals: &[TerminalId(0), TerminalId(2), TerminalId(5)],
-};
-// E { "a", "fn" }
-pub static FIRST_SET_E: TerminalSet = TerminalSet {
-    id: 0,
-    terminals: &[TerminalId(1), TerminalId(3)],
 };
 // E(p: i32) : . "a" return 0 { "a" }
 pub static FIRST_SET_E_ALT0: TerminalSet = TerminalSet {
@@ -246,11 +236,6 @@ pub static FOLLOW_SET_LAMBDA: TerminalSet = TerminalSet {
     id: 2,
     terminals: &[TerminalId(0), TerminalId(2), TerminalId(5)],
 };
-// Lambda { "fn" }
-pub static FIRST_SET_LAMBDA: TerminalSet = TerminalSet {
-    id: 1,
-    terminals: &[TerminalId(3)],
-};
 // Lambda(p: i32) : . "fn" WS r_pr=Body(p) return r_pr { "fn" }
 pub static FIRST_SET_LAMBDA_ALT0: TerminalSet = TerminalSet {
     id: 4,
@@ -260,11 +245,6 @@ pub static FIRST_SET_LAMBDA_ALT0: TerminalSet = TerminalSet {
 pub static FOLLOW_SET_BODY: TerminalSet = TerminalSet {
     id: 2,
     terminals: &[TerminalId(0), TerminalId(2), TerminalId(5)],
-};
-// Body { "a", "fn" }
-pub static FIRST_SET_BODY: TerminalSet = TerminalSet {
-    id: 0,
-    terminals: &[TerminalId(1), TerminalId(3)],
 };
 // Body(p: i32) : . r_pr=E(p) return r_pr { "a", "fn" }
 pub static FIRST_SET_BODY_ALT0: TerminalSet = TerminalSet {
@@ -276,11 +256,6 @@ pub static FOLLOW_SET_START_S: TerminalSet = TerminalSet {
     id: 5,
     terminals: &[TerminalId(5)],
 };
-// StartS { WS, "a", "fn" }
-pub static FIRST_SET_START_S: TerminalSet = TerminalSet {
-    id: 2,
-    terminals: &[TerminalId(0), TerminalId(1), TerminalId(3)],
-};
 // StartS : . WS start:S WS { WS, "a", "fn" }
 pub static FIRST_SET_START_S_ALT0: TerminalSet = TerminalSet {
     id: 6,
@@ -290,11 +265,6 @@ pub static FIRST_SET_START_S_ALT0: TerminalSet = TerminalSet {
 pub static FOLLOW_SET_START_E: TerminalSet = TerminalSet {
     id: 5,
     terminals: &[TerminalId(5)],
-};
-// StartE { WS, "a", "fn" }
-pub static FIRST_SET_START_E: TerminalSet = TerminalSet {
-    id: 2,
-    terminals: &[TerminalId(0), TerminalId(1), TerminalId(3)],
 };
 // StartE : . WS start:E(0) WS { WS, "a", "fn" }
 pub static FIRST_SET_START_E_ALT0: TerminalSet = TerminalSet {
@@ -306,11 +276,6 @@ pub static FOLLOW_SET_START_LAMBDA: TerminalSet = TerminalSet {
     id: 5,
     terminals: &[TerminalId(5)],
 };
-// StartLambda { WS, "fn" }
-pub static FIRST_SET_START_LAMBDA: TerminalSet = TerminalSet {
-    id: 3,
-    terminals: &[TerminalId(0), TerminalId(3)],
-};
 // StartLambda : . WS start:Lambda(0) WS { WS, "fn" }
 pub static FIRST_SET_START_LAMBDA_ALT0: TerminalSet = TerminalSet {
     id: 7,
@@ -321,13 +286,48 @@ pub static FOLLOW_SET_START_BODY: TerminalSet = TerminalSet {
     id: 5,
     terminals: &[TerminalId(5)],
 };
-// StartBody { WS, "a", "fn" }
-pub static FIRST_SET_START_BODY: TerminalSet = TerminalSet {
-    id: 2,
-    terminals: &[TerminalId(0), TerminalId(1), TerminalId(3)],
-};
 // StartBody : . WS start:Body(0) WS { WS, "a", "fn" }
 pub static FIRST_SET_START_BODY_ALT0: TerminalSet = TerminalSet {
     id: 6,
+    terminals: &[TerminalId(0), TerminalId(1), TerminalId(3)],
+};
+// S { "a", "fn" }
+pub static FIRST_SET_S: TerminalSet = TerminalSet {
+    id: 8,
+    terminals: &[TerminalId(1), TerminalId(3)],
+};
+// E { "a", "fn" }
+pub static FIRST_SET_E: TerminalSet = TerminalSet {
+    id: 8,
+    terminals: &[TerminalId(1), TerminalId(3)],
+};
+// Lambda { "fn" }
+pub static FIRST_SET_LAMBDA: TerminalSet = TerminalSet {
+    id: 9,
+    terminals: &[TerminalId(3)],
+};
+// Body { "a", "fn" }
+pub static FIRST_SET_BODY: TerminalSet = TerminalSet {
+    id: 8,
+    terminals: &[TerminalId(1), TerminalId(3)],
+};
+// StartS { WS, "a", "fn" }
+pub static FIRST_SET_START_S: TerminalSet = TerminalSet {
+    id: 10,
+    terminals: &[TerminalId(0), TerminalId(1), TerminalId(3)],
+};
+// StartE { WS, "a", "fn" }
+pub static FIRST_SET_START_E: TerminalSet = TerminalSet {
+    id: 10,
+    terminals: &[TerminalId(0), TerminalId(1), TerminalId(3)],
+};
+// StartLambda { WS, "fn" }
+pub static FIRST_SET_START_LAMBDA: TerminalSet = TerminalSet {
+    id: 11,
+    terminals: &[TerminalId(0), TerminalId(3)],
+};
+// StartBody { WS, "a", "fn" }
+pub static FIRST_SET_START_BODY: TerminalSet = TerminalSet {
+    id: 10,
     terminals: &[TerminalId(0), TerminalId(1), TerminalId(3)],
 };

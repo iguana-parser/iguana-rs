@@ -170,11 +170,6 @@ pub static FOLLOW_SET_S: TerminalSet = TerminalSet {
     id: 0,
     terminals: &[TerminalId(6)],
 };
-// S { "a" }
-pub static FIRST_SET_S: TerminalSet = TerminalSet {
-    id: 0,
-    terminals: &[TerminalId(4)],
-};
 // S : . E(0) { "a" }
 pub static FIRST_SET_S_ALT0: TerminalSet = TerminalSet {
     id: 1,
@@ -190,11 +185,6 @@ pub static FOLLOW_SET_E: TerminalSet = TerminalSet {
         TerminalId(3),
         TerminalId(6),
     ],
-};
-// E { "a" }
-pub static FIRST_SET_E: TerminalSet = TerminalSet {
-    id: 0,
-    terminals: &[TerminalId(4)],
 };
 // E(p: i32) : . [3 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 3)] "+" E(4) return 3 { "a" }
 pub static FIRST_SET_E_ALT0: TerminalSet = TerminalSet {
@@ -226,11 +216,6 @@ pub static FOLLOW_SET_START_S: TerminalSet = TerminalSet {
     id: 0,
     terminals: &[TerminalId(6)],
 };
-// StartS { "a" }
-pub static FIRST_SET_START_S: TerminalSet = TerminalSet {
-    id: 0,
-    terminals: &[TerminalId(4)],
-};
 // StartS : . start:S { "a" }
 pub static FIRST_SET_START_S_ALT0: TerminalSet = TerminalSet {
     id: 1,
@@ -241,13 +226,28 @@ pub static FOLLOW_SET_START_E: TerminalSet = TerminalSet {
     id: 0,
     terminals: &[TerminalId(6)],
 };
-// StartE { "a" }
-pub static FIRST_SET_START_E: TerminalSet = TerminalSet {
-    id: 0,
-    terminals: &[TerminalId(4)],
-};
 // StartE : . start:E(0) { "a" }
 pub static FIRST_SET_START_E_ALT0: TerminalSet = TerminalSet {
     id: 1,
+    terminals: &[TerminalId(4)],
+};
+// S { "a" }
+pub static FIRST_SET_S: TerminalSet = TerminalSet {
+    id: 3,
+    terminals: &[TerminalId(4)],
+};
+// E { "a" }
+pub static FIRST_SET_E: TerminalSet = TerminalSet {
+    id: 3,
+    terminals: &[TerminalId(4)],
+};
+// StartS { "a" }
+pub static FIRST_SET_START_S: TerminalSet = TerminalSet {
+    id: 3,
+    terminals: &[TerminalId(4)],
+};
+// StartE { "a" }
+pub static FIRST_SET_START_E: TerminalSet = TerminalSet {
+    id: 3,
     terminals: &[TerminalId(4)],
 };

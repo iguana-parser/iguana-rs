@@ -95,11 +95,6 @@ pub static FOLLOW_SET_S: TerminalSet = TerminalSet {
     id: 0,
     terminals: &[TerminalId(1), TerminalId(6)],
 };
-// S { "\"" }
-pub static FIRST_SET_S: TerminalSet = TerminalSet {
-    id: 0,
-    terminals: &[TerminalId(2)],
-};
 // S : . "\"" WS Id WS "\"" WS "\\" WS Id WS "\f'" { "\"" }
 pub static FIRST_SET_S_ALT0: TerminalSet = TerminalSet {
     id: 1,
@@ -110,13 +105,18 @@ pub static FOLLOW_SET_START_S: TerminalSet = TerminalSet {
     id: 2,
     terminals: &[TerminalId(6)],
 };
-// StartS { WS, "\"" }
-pub static FIRST_SET_START_S: TerminalSet = TerminalSet {
-    id: 1,
-    terminals: &[TerminalId(1), TerminalId(2)],
-};
 // StartS : . WS start:S WS { WS, "\"" }
 pub static FIRST_SET_START_S_ALT0: TerminalSet = TerminalSet {
     id: 3,
+    terminals: &[TerminalId(1), TerminalId(2)],
+};
+// S { "\"" }
+pub static FIRST_SET_S: TerminalSet = TerminalSet {
+    id: 4,
+    terminals: &[TerminalId(2)],
+};
+// StartS { WS, "\"" }
+pub static FIRST_SET_START_S: TerminalSet = TerminalSet {
+    id: 5,
     terminals: &[TerminalId(1), TerminalId(2)],
 };

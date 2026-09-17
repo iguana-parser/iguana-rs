@@ -60,11 +60,6 @@ pub static FOLLOW_SET_S: TerminalSet = TerminalSet {
     id: 0,
     terminals: &[TerminalId(5)],
 };
-// S { TypeIdentifier }
-pub static FIRST_SET_S: TerminalSet = TerminalSet {
-    id: 0,
-    terminals: &[TerminalId(0)],
-};
 // S : . TypeIdentifier { TypeIdentifier }
 pub static FIRST_SET_S_ALT0: TerminalSet = TerminalSet {
     id: 1,
@@ -75,13 +70,18 @@ pub static FOLLOW_SET_START_S: TerminalSet = TerminalSet {
     id: 0,
     terminals: &[TerminalId(5)],
 };
-// StartS { TypeIdentifier }
-pub static FIRST_SET_START_S: TerminalSet = TerminalSet {
-    id: 0,
-    terminals: &[TerminalId(0)],
-};
 // StartS : . start:S { TypeIdentifier }
 pub static FIRST_SET_START_S_ALT0: TerminalSet = TerminalSet {
     id: 1,
+    terminals: &[TerminalId(0)],
+};
+// S { TypeIdentifier }
+pub static FIRST_SET_S: TerminalSet = TerminalSet {
+    id: 2,
+    terminals: &[TerminalId(0)],
+};
+// StartS { TypeIdentifier }
+pub static FIRST_SET_START_S: TerminalSet = TerminalSet {
+    id: 2,
     terminals: &[TerminalId(0)],
 };

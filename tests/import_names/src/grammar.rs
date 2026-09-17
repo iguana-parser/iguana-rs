@@ -372,11 +372,6 @@ pub static FOLLOW_SET_S: TerminalSet = TerminalSet {
     id: 0,
     terminals: &[TerminalId(12)],
 };
-// S { "a" }
-pub static FIRST_SET_S: TerminalSet = TerminalSet {
-    id: 0,
-    terminals: &[TerminalId(0)],
-};
 // S : . Parse Parser SPPFNode Input ParseError ParseSuccess Grammar Nonterminal Terminal
 // Slot TerminalSet { "a" }
 pub static FIRST_SET_S_ALT0: TerminalSet = TerminalSet {
@@ -388,11 +383,6 @@ pub static FOLLOW_SET_PARSE: TerminalSet = TerminalSet {
     id: 2,
     terminals: &[TerminalId(1), TerminalId(12)],
 };
-// Parse { "a" }
-pub static FIRST_SET_PARSE: TerminalSet = TerminalSet {
-    id: 0,
-    terminals: &[TerminalId(0)],
-};
 // Parse : . "a" { "a" }
 pub static FIRST_SET_PARSE_ALT0: TerminalSet = TerminalSet {
     id: 1,
@@ -402,11 +392,6 @@ pub static FIRST_SET_PARSE_ALT0: TerminalSet = TerminalSet {
 pub static FOLLOW_SET_PARSER: TerminalSet = TerminalSet {
     id: 3,
     terminals: &[TerminalId(2), TerminalId(12)],
-};
-// Parser { "b" }
-pub static FIRST_SET_PARSER: TerminalSet = TerminalSet {
-    id: 1,
-    terminals: &[TerminalId(1)],
 };
 // Parser : . "b" { "b" }
 pub static FIRST_SET_PARSER_ALT0: TerminalSet = TerminalSet {
@@ -418,11 +403,6 @@ pub static FOLLOW_SET_SPPF_NODE: TerminalSet = TerminalSet {
     id: 5,
     terminals: &[TerminalId(3), TerminalId(12)],
 };
-// SPPFNode { "c" }
-pub static FIRST_SET_SPPF_NODE: TerminalSet = TerminalSet {
-    id: 2,
-    terminals: &[TerminalId(2)],
-};
 // SPPFNode : . "c" { "c" }
 pub static FIRST_SET_SPPF_NODE_ALT0: TerminalSet = TerminalSet {
     id: 6,
@@ -432,11 +412,6 @@ pub static FIRST_SET_SPPF_NODE_ALT0: TerminalSet = TerminalSet {
 pub static FOLLOW_SET_INPUT: TerminalSet = TerminalSet {
     id: 7,
     terminals: &[TerminalId(4), TerminalId(12)],
-};
-// Input { "d" }
-pub static FIRST_SET_INPUT: TerminalSet = TerminalSet {
-    id: 3,
-    terminals: &[TerminalId(3)],
 };
 // Input : . "d" { "d" }
 pub static FIRST_SET_INPUT_ALT0: TerminalSet = TerminalSet {
@@ -448,11 +423,6 @@ pub static FOLLOW_SET_PARSE_ERROR: TerminalSet = TerminalSet {
     id: 9,
     terminals: &[TerminalId(5), TerminalId(12)],
 };
-// ParseError { "e" }
-pub static FIRST_SET_PARSE_ERROR: TerminalSet = TerminalSet {
-    id: 4,
-    terminals: &[TerminalId(4)],
-};
 // ParseError : . "e" { "e" }
 pub static FIRST_SET_PARSE_ERROR_ALT0: TerminalSet = TerminalSet {
     id: 10,
@@ -462,11 +432,6 @@ pub static FIRST_SET_PARSE_ERROR_ALT0: TerminalSet = TerminalSet {
 pub static FOLLOW_SET_PARSE_SUCCESS: TerminalSet = TerminalSet {
     id: 11,
     terminals: &[TerminalId(6), TerminalId(12)],
-};
-// ParseSuccess { "f" }
-pub static FIRST_SET_PARSE_SUCCESS: TerminalSet = TerminalSet {
-    id: 5,
-    terminals: &[TerminalId(5)],
 };
 // ParseSuccess : . "f" { "f" }
 pub static FIRST_SET_PARSE_SUCCESS_ALT0: TerminalSet = TerminalSet {
@@ -478,11 +443,6 @@ pub static FOLLOW_SET_GRAMMAR: TerminalSet = TerminalSet {
     id: 13,
     terminals: &[TerminalId(7), TerminalId(12)],
 };
-// Grammar { "g" }
-pub static FIRST_SET_GRAMMAR: TerminalSet = TerminalSet {
-    id: 6,
-    terminals: &[TerminalId(6)],
-};
 // Grammar : . "g" { "g" }
 pub static FIRST_SET_GRAMMAR_ALT0: TerminalSet = TerminalSet {
     id: 14,
@@ -492,11 +452,6 @@ pub static FIRST_SET_GRAMMAR_ALT0: TerminalSet = TerminalSet {
 pub static FOLLOW_SET_NONTERMINAL: TerminalSet = TerminalSet {
     id: 15,
     terminals: &[TerminalId(8), TerminalId(12)],
-};
-// Nonterminal { "h" }
-pub static FIRST_SET_NONTERMINAL: TerminalSet = TerminalSet {
-    id: 7,
-    terminals: &[TerminalId(7)],
 };
 // Nonterminal : . "h" { "h" }
 pub static FIRST_SET_NONTERMINAL_ALT0: TerminalSet = TerminalSet {
@@ -508,11 +463,6 @@ pub static FOLLOW_SET_TERMINAL: TerminalSet = TerminalSet {
     id: 17,
     terminals: &[TerminalId(9), TerminalId(12)],
 };
-// Terminal { "i" }
-pub static FIRST_SET_TERMINAL: TerminalSet = TerminalSet {
-    id: 8,
-    terminals: &[TerminalId(8)],
-};
 // Terminal : . "i" { "i" }
 pub static FIRST_SET_TERMINAL_ALT0: TerminalSet = TerminalSet {
     id: 18,
@@ -522,11 +472,6 @@ pub static FIRST_SET_TERMINAL_ALT0: TerminalSet = TerminalSet {
 pub static FOLLOW_SET_SLOT: TerminalSet = TerminalSet {
     id: 19,
     terminals: &[TerminalId(10), TerminalId(12)],
-};
-// Slot { "j" }
-pub static FIRST_SET_SLOT: TerminalSet = TerminalSet {
-    id: 9,
-    terminals: &[TerminalId(9)],
 };
 // Slot : . "j" { "j" }
 pub static FIRST_SET_SLOT_ALT0: TerminalSet = TerminalSet {
@@ -538,11 +483,6 @@ pub static FOLLOW_SET_TERMINAL_SET: TerminalSet = TerminalSet {
     id: 0,
     terminals: &[TerminalId(12)],
 };
-// TerminalSet { "k" }
-pub static FIRST_SET_TERMINAL_SET: TerminalSet = TerminalSet {
-    id: 10,
-    terminals: &[TerminalId(10)],
-};
 // TerminalSet : . "k" { "k" }
 pub static FIRST_SET_TERMINAL_SET_ALT0: TerminalSet = TerminalSet {
     id: 21,
@@ -552,11 +492,6 @@ pub static FIRST_SET_TERMINAL_SET_ALT0: TerminalSet = TerminalSet {
 pub static FOLLOW_SET_START_S: TerminalSet = TerminalSet {
     id: 0,
     terminals: &[TerminalId(12)],
-};
-// StartS { "a" }
-pub static FIRST_SET_START_S: TerminalSet = TerminalSet {
-    id: 0,
-    terminals: &[TerminalId(0)],
 };
 // StartS : . start:S { "a" }
 pub static FIRST_SET_START_S_ALT0: TerminalSet = TerminalSet {
@@ -568,11 +503,6 @@ pub static FOLLOW_SET_START_PARSE: TerminalSet = TerminalSet {
     id: 0,
     terminals: &[TerminalId(12)],
 };
-// StartParse { "a" }
-pub static FIRST_SET_START_PARSE: TerminalSet = TerminalSet {
-    id: 0,
-    terminals: &[TerminalId(0)],
-};
 // StartParse : . start:Parse { "a" }
 pub static FIRST_SET_START_PARSE_ALT0: TerminalSet = TerminalSet {
     id: 1,
@@ -582,11 +512,6 @@ pub static FIRST_SET_START_PARSE_ALT0: TerminalSet = TerminalSet {
 pub static FOLLOW_SET_START_PARSER: TerminalSet = TerminalSet {
     id: 0,
     terminals: &[TerminalId(12)],
-};
-// StartParser { "b" }
-pub static FIRST_SET_START_PARSER: TerminalSet = TerminalSet {
-    id: 1,
-    terminals: &[TerminalId(1)],
 };
 // StartParser : . start:Parser { "b" }
 pub static FIRST_SET_START_PARSER_ALT0: TerminalSet = TerminalSet {
@@ -598,11 +523,6 @@ pub static FOLLOW_SET_START_SPPF_NODE: TerminalSet = TerminalSet {
     id: 0,
     terminals: &[TerminalId(12)],
 };
-// StartSPPFNode { "c" }
-pub static FIRST_SET_START_SPPF_NODE: TerminalSet = TerminalSet {
-    id: 2,
-    terminals: &[TerminalId(2)],
-};
 // StartSPPFNode : . start:SPPFNode { "c" }
 pub static FIRST_SET_START_SPPF_NODE_ALT0: TerminalSet = TerminalSet {
     id: 6,
@@ -612,11 +532,6 @@ pub static FIRST_SET_START_SPPF_NODE_ALT0: TerminalSet = TerminalSet {
 pub static FOLLOW_SET_START_INPUT: TerminalSet = TerminalSet {
     id: 0,
     terminals: &[TerminalId(12)],
-};
-// StartInput { "d" }
-pub static FIRST_SET_START_INPUT: TerminalSet = TerminalSet {
-    id: 3,
-    terminals: &[TerminalId(3)],
 };
 // StartInput : . start:Input { "d" }
 pub static FIRST_SET_START_INPUT_ALT0: TerminalSet = TerminalSet {
@@ -628,11 +543,6 @@ pub static FOLLOW_SET_START_PARSE_ERROR: TerminalSet = TerminalSet {
     id: 0,
     terminals: &[TerminalId(12)],
 };
-// StartParseError { "e" }
-pub static FIRST_SET_START_PARSE_ERROR: TerminalSet = TerminalSet {
-    id: 4,
-    terminals: &[TerminalId(4)],
-};
 // StartParseError : . start:ParseError { "e" }
 pub static FIRST_SET_START_PARSE_ERROR_ALT0: TerminalSet = TerminalSet {
     id: 10,
@@ -642,11 +552,6 @@ pub static FIRST_SET_START_PARSE_ERROR_ALT0: TerminalSet = TerminalSet {
 pub static FOLLOW_SET_START_PARSE_SUCCESS: TerminalSet = TerminalSet {
     id: 0,
     terminals: &[TerminalId(12)],
-};
-// StartParseSuccess { "f" }
-pub static FIRST_SET_START_PARSE_SUCCESS: TerminalSet = TerminalSet {
-    id: 5,
-    terminals: &[TerminalId(5)],
 };
 // StartParseSuccess : . start:ParseSuccess { "f" }
 pub static FIRST_SET_START_PARSE_SUCCESS_ALT0: TerminalSet = TerminalSet {
@@ -658,11 +563,6 @@ pub static FOLLOW_SET_START_GRAMMAR: TerminalSet = TerminalSet {
     id: 0,
     terminals: &[TerminalId(12)],
 };
-// StartGrammar { "g" }
-pub static FIRST_SET_START_GRAMMAR: TerminalSet = TerminalSet {
-    id: 6,
-    terminals: &[TerminalId(6)],
-};
 // StartGrammar : . start:Grammar { "g" }
 pub static FIRST_SET_START_GRAMMAR_ALT0: TerminalSet = TerminalSet {
     id: 14,
@@ -672,11 +572,6 @@ pub static FIRST_SET_START_GRAMMAR_ALT0: TerminalSet = TerminalSet {
 pub static FOLLOW_SET_START_NONTERMINAL: TerminalSet = TerminalSet {
     id: 0,
     terminals: &[TerminalId(12)],
-};
-// StartNonterminal { "h" }
-pub static FIRST_SET_START_NONTERMINAL: TerminalSet = TerminalSet {
-    id: 7,
-    terminals: &[TerminalId(7)],
 };
 // StartNonterminal : . start:Nonterminal { "h" }
 pub static FIRST_SET_START_NONTERMINAL_ALT0: TerminalSet = TerminalSet {
@@ -688,11 +583,6 @@ pub static FOLLOW_SET_START_TERMINAL: TerminalSet = TerminalSet {
     id: 0,
     terminals: &[TerminalId(12)],
 };
-// StartTerminal { "i" }
-pub static FIRST_SET_START_TERMINAL: TerminalSet = TerminalSet {
-    id: 8,
-    terminals: &[TerminalId(8)],
-};
 // StartTerminal : . start:Terminal { "i" }
 pub static FIRST_SET_START_TERMINAL_ALT0: TerminalSet = TerminalSet {
     id: 18,
@@ -702,11 +592,6 @@ pub static FIRST_SET_START_TERMINAL_ALT0: TerminalSet = TerminalSet {
 pub static FOLLOW_SET_START_SLOT: TerminalSet = TerminalSet {
     id: 0,
     terminals: &[TerminalId(12)],
-};
-// StartSlot { "j" }
-pub static FIRST_SET_START_SLOT: TerminalSet = TerminalSet {
-    id: 9,
-    terminals: &[TerminalId(9)],
 };
 // StartSlot : . start:Slot { "j" }
 pub static FIRST_SET_START_SLOT_ALT0: TerminalSet = TerminalSet {
@@ -718,13 +603,128 @@ pub static FOLLOW_SET_START_TERMINAL_SET: TerminalSet = TerminalSet {
     id: 0,
     terminals: &[TerminalId(12)],
 };
-// StartTerminalSet { "k" }
-pub static FIRST_SET_START_TERMINAL_SET: TerminalSet = TerminalSet {
-    id: 10,
-    terminals: &[TerminalId(10)],
-};
 // StartTerminalSet : . start:TerminalSet { "k" }
 pub static FIRST_SET_START_TERMINAL_SET_ALT0: TerminalSet = TerminalSet {
     id: 21,
+    terminals: &[TerminalId(10)],
+};
+// S { "a" }
+pub static FIRST_SET_S: TerminalSet = TerminalSet {
+    id: 22,
+    terminals: &[TerminalId(0)],
+};
+// Parse { "a" }
+pub static FIRST_SET_PARSE: TerminalSet = TerminalSet {
+    id: 22,
+    terminals: &[TerminalId(0)],
+};
+// Parser { "b" }
+pub static FIRST_SET_PARSER: TerminalSet = TerminalSet {
+    id: 23,
+    terminals: &[TerminalId(1)],
+};
+// SPPFNode { "c" }
+pub static FIRST_SET_SPPF_NODE: TerminalSet = TerminalSet {
+    id: 24,
+    terminals: &[TerminalId(2)],
+};
+// Input { "d" }
+pub static FIRST_SET_INPUT: TerminalSet = TerminalSet {
+    id: 25,
+    terminals: &[TerminalId(3)],
+};
+// ParseError { "e" }
+pub static FIRST_SET_PARSE_ERROR: TerminalSet = TerminalSet {
+    id: 26,
+    terminals: &[TerminalId(4)],
+};
+// ParseSuccess { "f" }
+pub static FIRST_SET_PARSE_SUCCESS: TerminalSet = TerminalSet {
+    id: 27,
+    terminals: &[TerminalId(5)],
+};
+// Grammar { "g" }
+pub static FIRST_SET_GRAMMAR: TerminalSet = TerminalSet {
+    id: 28,
+    terminals: &[TerminalId(6)],
+};
+// Nonterminal { "h" }
+pub static FIRST_SET_NONTERMINAL: TerminalSet = TerminalSet {
+    id: 29,
+    terminals: &[TerminalId(7)],
+};
+// Terminal { "i" }
+pub static FIRST_SET_TERMINAL: TerminalSet = TerminalSet {
+    id: 30,
+    terminals: &[TerminalId(8)],
+};
+// Slot { "j" }
+pub static FIRST_SET_SLOT: TerminalSet = TerminalSet {
+    id: 31,
+    terminals: &[TerminalId(9)],
+};
+// TerminalSet { "k" }
+pub static FIRST_SET_TERMINAL_SET: TerminalSet = TerminalSet {
+    id: 32,
+    terminals: &[TerminalId(10)],
+};
+// StartS { "a" }
+pub static FIRST_SET_START_S: TerminalSet = TerminalSet {
+    id: 22,
+    terminals: &[TerminalId(0)],
+};
+// StartParse { "a" }
+pub static FIRST_SET_START_PARSE: TerminalSet = TerminalSet {
+    id: 22,
+    terminals: &[TerminalId(0)],
+};
+// StartParser { "b" }
+pub static FIRST_SET_START_PARSER: TerminalSet = TerminalSet {
+    id: 23,
+    terminals: &[TerminalId(1)],
+};
+// StartSPPFNode { "c" }
+pub static FIRST_SET_START_SPPF_NODE: TerminalSet = TerminalSet {
+    id: 24,
+    terminals: &[TerminalId(2)],
+};
+// StartInput { "d" }
+pub static FIRST_SET_START_INPUT: TerminalSet = TerminalSet {
+    id: 25,
+    terminals: &[TerminalId(3)],
+};
+// StartParseError { "e" }
+pub static FIRST_SET_START_PARSE_ERROR: TerminalSet = TerminalSet {
+    id: 26,
+    terminals: &[TerminalId(4)],
+};
+// StartParseSuccess { "f" }
+pub static FIRST_SET_START_PARSE_SUCCESS: TerminalSet = TerminalSet {
+    id: 27,
+    terminals: &[TerminalId(5)],
+};
+// StartGrammar { "g" }
+pub static FIRST_SET_START_GRAMMAR: TerminalSet = TerminalSet {
+    id: 28,
+    terminals: &[TerminalId(6)],
+};
+// StartNonterminal { "h" }
+pub static FIRST_SET_START_NONTERMINAL: TerminalSet = TerminalSet {
+    id: 29,
+    terminals: &[TerminalId(7)],
+};
+// StartTerminal { "i" }
+pub static FIRST_SET_START_TERMINAL: TerminalSet = TerminalSet {
+    id: 30,
+    terminals: &[TerminalId(8)],
+};
+// StartSlot { "j" }
+pub static FIRST_SET_START_SLOT: TerminalSet = TerminalSet {
+    id: 31,
+    terminals: &[TerminalId(9)],
+};
+// StartTerminalSet { "k" }
+pub static FIRST_SET_START_TERMINAL_SET: TerminalSet = TerminalSet {
+    id: 32,
     terminals: &[TerminalId(10)],
 };

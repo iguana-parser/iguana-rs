@@ -141,11 +141,6 @@ pub static FOLLOW_SET_S: TerminalSet = TerminalSet {
     id: 0,
     terminals: &[TerminalId(0), TerminalId(1), TerminalId(4)],
 };
-// S { "x" }
-pub static FIRST_SET_S: TerminalSet = TerminalSet {
-    id: 0,
-    terminals: &[TerminalId(2)],
-};
 // S : . "x" { "x" }
 pub static FIRST_SET_S_ALT0: TerminalSet = TerminalSet {
     id: 1,
@@ -156,11 +151,6 @@ pub static FOLLOW_SET_LAYOUT: TerminalSet = TerminalSet {
     id: 2,
     terminals: &[TerminalId(2), TerminalId(4)],
 };
-// Layout { WhiteSpace, Comment }
-pub static FIRST_SET_LAYOUT: TerminalSet = TerminalSet {
-    id: 1,
-    terminals: &[TerminalId(0), TerminalId(1)],
-};
 // Layout : . Star_0 { WhiteSpace, Comment }
 pub static FIRST_SET_LAYOUT_ALT0: TerminalSet = TerminalSet {
     id: 3,
@@ -170,11 +160,6 @@ pub static FIRST_SET_LAYOUT_ALT0: TerminalSet = TerminalSet {
 pub static FOLLOW_SET_ALT_0: TerminalSet = TerminalSet {
     id: 4,
     terminals: &[TerminalId(0), TerminalId(1), TerminalId(2), TerminalId(4)],
-};
-// Alt_0 { WhiteSpace, Comment }
-pub static FIRST_SET_ALT_0: TerminalSet = TerminalSet {
-    id: 1,
-    terminals: &[TerminalId(0), TerminalId(1)],
 };
 // Alt_0 : . WhiteSpace { WhiteSpace }
 pub static FIRST_SET_ALT_0_ALT0: TerminalSet = TerminalSet {
@@ -191,11 +176,6 @@ pub static FOLLOW_SET_PLUS_0: TerminalSet = TerminalSet {
     id: 4,
     terminals: &[TerminalId(0), TerminalId(1), TerminalId(2), TerminalId(4)],
 };
-// Plus_0 { WhiteSpace, Comment }
-pub static FIRST_SET_PLUS_0: TerminalSet = TerminalSet {
-    id: 1,
-    terminals: &[TerminalId(0), TerminalId(1)],
-};
 // Plus_0 : . Plus_0 Alt_0 { WhiteSpace, Comment }
 pub static FIRST_SET_PLUS_0_ALT0: TerminalSet = TerminalSet {
     id: 3,
@@ -210,11 +190,6 @@ pub static FIRST_SET_PLUS_0_ALT1: TerminalSet = TerminalSet {
 pub static FOLLOW_SET_OPT_0: TerminalSet = TerminalSet {
     id: 2,
     terminals: &[TerminalId(2), TerminalId(4)],
-};
-// Opt_0 { WhiteSpace, Comment }
-pub static FIRST_SET_OPT_0: TerminalSet = TerminalSet {
-    id: 1,
-    terminals: &[TerminalId(0), TerminalId(1)],
 };
 // Opt_0 : . Plus_0 { WhiteSpace, Comment }
 pub static FIRST_SET_OPT_0_ALT0: TerminalSet = TerminalSet {
@@ -231,11 +206,6 @@ pub static FOLLOW_SET_STAR_0: TerminalSet = TerminalSet {
     id: 2,
     terminals: &[TerminalId(2), TerminalId(4)],
 };
-// Star_0 { WhiteSpace, Comment }
-pub static FIRST_SET_STAR_0: TerminalSet = TerminalSet {
-    id: 1,
-    terminals: &[TerminalId(0), TerminalId(1)],
-};
 // Star_0 : . Opt_0 { WhiteSpace, Comment }
 pub static FIRST_SET_STAR_0_ALT0: TerminalSet = TerminalSet {
     id: 3,
@@ -246,13 +216,43 @@ pub static FOLLOW_SET_START_S: TerminalSet = TerminalSet {
     id: 8,
     terminals: &[TerminalId(4)],
 };
-// StartS { WhiteSpace, Comment, "x" }
-pub static FIRST_SET_START_S: TerminalSet = TerminalSet {
-    id: 2,
-    terminals: &[TerminalId(0), TerminalId(1), TerminalId(2)],
-};
 // StartS : . Layout start:S Layout { WhiteSpace, Comment, "x" }
 pub static FIRST_SET_START_S_ALT0: TerminalSet = TerminalSet {
     id: 9,
+    terminals: &[TerminalId(0), TerminalId(1), TerminalId(2)],
+};
+// S { "x" }
+pub static FIRST_SET_S: TerminalSet = TerminalSet {
+    id: 10,
+    terminals: &[TerminalId(2)],
+};
+// Layout { WhiteSpace, Comment }
+pub static FIRST_SET_LAYOUT: TerminalSet = TerminalSet {
+    id: 11,
+    terminals: &[TerminalId(0), TerminalId(1)],
+};
+// Alt_0 { WhiteSpace, Comment }
+pub static FIRST_SET_ALT_0: TerminalSet = TerminalSet {
+    id: 11,
+    terminals: &[TerminalId(0), TerminalId(1)],
+};
+// Plus_0 { WhiteSpace, Comment }
+pub static FIRST_SET_PLUS_0: TerminalSet = TerminalSet {
+    id: 11,
+    terminals: &[TerminalId(0), TerminalId(1)],
+};
+// Opt_0 { WhiteSpace, Comment }
+pub static FIRST_SET_OPT_0: TerminalSet = TerminalSet {
+    id: 11,
+    terminals: &[TerminalId(0), TerminalId(1)],
+};
+// Star_0 { WhiteSpace, Comment }
+pub static FIRST_SET_STAR_0: TerminalSet = TerminalSet {
+    id: 11,
+    terminals: &[TerminalId(0), TerminalId(1)],
+};
+// StartS { WhiteSpace, Comment, "x" }
+pub static FIRST_SET_START_S: TerminalSet = TerminalSet {
+    id: 12,
     terminals: &[TerminalId(0), TerminalId(1), TerminalId(2)],
 };

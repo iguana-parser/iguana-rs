@@ -86,11 +86,6 @@ pub static FOLLOW_SET_S: TerminalSet = TerminalSet {
     id: 0,
     terminals: &[TerminalId(3)],
 };
-// S { A_, AA }
-pub static FIRST_SET_S: TerminalSet = TerminalSet {
-    id: 0,
-    terminals: &[TerminalId(0), TerminalId(1)],
-};
 // S : . A { A_, AA }
 pub static FIRST_SET_S_ALT0: TerminalSet = TerminalSet {
     id: 1,
@@ -101,13 +96,13 @@ pub static FOLLOW_SET_A: TerminalSet = TerminalSet {
     id: 0,
     terminals: &[TerminalId(3)],
 };
-// A { A_, AA }
-pub static FIRST_SET_A: TerminalSet = TerminalSet {
-    id: 0,
-    terminals: &[TerminalId(0), TerminalId(1)],
-};
 // A : . A_ !>> A_ { A_ }
 pub static FIRST_SET_A_ALT0: TerminalSet = TerminalSet {
+    id: 2,
+    terminals: &[TerminalId(0)],
+};
+// A : . A_ !>> A_ !>> { A_ }
+pub static FOLLOW_RESTRICTION_A_ALT0_POS0: TerminalSet = TerminalSet {
     id: 2,
     terminals: &[TerminalId(0)],
 };
@@ -116,20 +111,10 @@ pub static FIRST_SET_A_ALT1: TerminalSet = TerminalSet {
     id: 3,
     terminals: &[TerminalId(1)],
 };
-// A : . A_ !>> A_ !>> { A_ }
-pub static FOLLOW_RESTRICTION_A_ALT0_POS0: TerminalSet = TerminalSet {
-    id: 2,
-    terminals: &[TerminalId(0)],
-};
 // StartS { EOF }
 pub static FOLLOW_SET_START_S: TerminalSet = TerminalSet {
     id: 0,
     terminals: &[TerminalId(3)],
-};
-// StartS { A_, AA }
-pub static FIRST_SET_START_S: TerminalSet = TerminalSet {
-    id: 0,
-    terminals: &[TerminalId(0), TerminalId(1)],
 };
 // StartS : . start:S { A_, AA }
 pub static FIRST_SET_START_S_ALT0: TerminalSet = TerminalSet {
@@ -141,13 +126,28 @@ pub static FOLLOW_SET_START_A: TerminalSet = TerminalSet {
     id: 0,
     terminals: &[TerminalId(3)],
 };
-// StartA { A_, AA }
-pub static FIRST_SET_START_A: TerminalSet = TerminalSet {
-    id: 0,
-    terminals: &[TerminalId(0), TerminalId(1)],
-};
 // StartA : . start:A { A_, AA }
 pub static FIRST_SET_START_A_ALT0: TerminalSet = TerminalSet {
     id: 1,
+    terminals: &[TerminalId(0), TerminalId(1)],
+};
+// S { A_, AA }
+pub static FIRST_SET_S: TerminalSet = TerminalSet {
+    id: 4,
+    terminals: &[TerminalId(0), TerminalId(1)],
+};
+// A { A_, AA }
+pub static FIRST_SET_A: TerminalSet = TerminalSet {
+    id: 4,
+    terminals: &[TerminalId(0), TerminalId(1)],
+};
+// StartS { A_, AA }
+pub static FIRST_SET_START_S: TerminalSet = TerminalSet {
+    id: 4,
+    terminals: &[TerminalId(0), TerminalId(1)],
+};
+// StartA { A_, AA }
+pub static FIRST_SET_START_A: TerminalSet = TerminalSet {
+    id: 4,
     terminals: &[TerminalId(0), TerminalId(1)],
 };

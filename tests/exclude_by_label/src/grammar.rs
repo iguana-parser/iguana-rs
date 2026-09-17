@@ -154,11 +154,6 @@ pub static FOLLOW_SET_EXPR: TerminalSet = TerminalSet {
     id: 0,
     terminals: &[TerminalId(1), TerminalId(2), TerminalId(3), TerminalId(5)],
 };
-// Expr { Id }
-pub static FIRST_SET_EXPR: TerminalSet = TerminalSet {
-    id: 0,
-    terminals: &[TerminalId(0)],
-};
 // Expr(e: i32) : . [1 & e == 0] Id return (0, 0) { Id }
 pub static FIRST_SET_EXPR_ALT0: TerminalSet = TerminalSet {
     id: 1,
@@ -179,11 +174,6 @@ pub static FOLLOW_SET_PLUS_0: TerminalSet = TerminalSet {
     id: 2,
     terminals: &[TerminalId(2), TerminalId(3), TerminalId(5)],
 };
-// Plus_0 { Id }
-pub static FIRST_SET_PLUS_0: TerminalSet = TerminalSet {
-    id: 0,
-    terminals: &[TerminalId(0)],
-};
 // Plus_0 : . Plus_0 "," Expr(4) { Id }
 pub static FIRST_SET_PLUS_0_ALT0: TerminalSet = TerminalSet {
     id: 1,
@@ -198,11 +188,6 @@ pub static FIRST_SET_PLUS_0_ALT1: TerminalSet = TerminalSet {
 pub static FOLLOW_SET_OPT_0: TerminalSet = TerminalSet {
     id: 3,
     terminals: &[TerminalId(3), TerminalId(5)],
-};
-// Opt_0 { Id }
-pub static FIRST_SET_OPT_0: TerminalSet = TerminalSet {
-    id: 0,
-    terminals: &[TerminalId(0)],
 };
 // Opt_0 : . Plus_0 { Id }
 pub static FIRST_SET_OPT_0_ALT0: TerminalSet = TerminalSet {
@@ -219,11 +204,6 @@ pub static FOLLOW_SET_STAR_0: TerminalSet = TerminalSet {
     id: 3,
     terminals: &[TerminalId(3), TerminalId(5)],
 };
-// Star_0 { Id }
-pub static FIRST_SET_STAR_0: TerminalSet = TerminalSet {
-    id: 0,
-    terminals: &[TerminalId(0)],
-};
 // Star_0 : . Opt_0 { Id }
 pub static FIRST_SET_STAR_0_ALT0: TerminalSet = TerminalSet {
     id: 1,
@@ -234,13 +214,33 @@ pub static FOLLOW_SET_START_EXPR: TerminalSet = TerminalSet {
     id: 5,
     terminals: &[TerminalId(5)],
 };
-// StartExpr { Id }
-pub static FIRST_SET_START_EXPR: TerminalSet = TerminalSet {
-    id: 0,
-    terminals: &[TerminalId(0)],
-};
 // StartExpr : . start:Expr(0) { Id }
 pub static FIRST_SET_START_EXPR_ALT0: TerminalSet = TerminalSet {
     id: 1,
+    terminals: &[TerminalId(0)],
+};
+// Expr { Id }
+pub static FIRST_SET_EXPR: TerminalSet = TerminalSet {
+    id: 6,
+    terminals: &[TerminalId(0)],
+};
+// Plus_0 { Id }
+pub static FIRST_SET_PLUS_0: TerminalSet = TerminalSet {
+    id: 6,
+    terminals: &[TerminalId(0)],
+};
+// Opt_0 { Id }
+pub static FIRST_SET_OPT_0: TerminalSet = TerminalSet {
+    id: 6,
+    terminals: &[TerminalId(0)],
+};
+// Star_0 { Id }
+pub static FIRST_SET_STAR_0: TerminalSet = TerminalSet {
+    id: 6,
+    terminals: &[TerminalId(0)],
+};
+// StartExpr { Id }
+pub static FIRST_SET_START_EXPR: TerminalSet = TerminalSet {
+    id: 6,
     terminals: &[TerminalId(0)],
 };

@@ -24,6 +24,19 @@ impl<'a> Slot<'a> {
         self.head
     }
 
+    pub fn pos(&self) -> usize {
+        self.pos
+    }
+
+    /// The index of the slot's alternative among the head's alternatives.
+    pub fn alternative_index(&self, grammar: &Grammar) -> usize {
+        grammar
+            .alternatives(self.head)
+            .iter()
+            .position(|alternative| std::ptr::eq(alternative, self.alternative))
+            .expect("the slot's alternative belongs to its head")
+    }
+
     /// Returns the next grammar slot by moving the dot to the next position.
     pub fn next(&self) -> Self {
         Slot::new(self.head, self.alternative, self.pos + 1)

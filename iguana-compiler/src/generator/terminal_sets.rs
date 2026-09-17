@@ -6,223 +6,119 @@ use crate::grammar::first_follow::FirstFollowSets;
 use crate::grammar::slot::Slot;
 use crate::grammar::symbols::{Definition, Identifier, Nonterminal, Terminal};
 use crate::ids::TerminalId;
-use crate::utils::to_snake_case;
 
-/// Which first/follow set a `TerminalSet` is. The kind determines the emitted
-/// static's name and comment, and whether the parser queries the set with
-/// `match_any`.
-pub enum SetKind {
-    /// FOLLOW set of the nonterminal: the terminals that may follow it.
-    Follow,
-    /// FIRST set of the nonterminal, combined over all its alternatives. The
-    /// LL(1) path dispatches on it with `longest_match`.
-    First,
-    /// FIRST set of an alternative, identified by its index. The GLL path
-    /// tests each alternative's set with `match_any` to choose which
-    /// alternatives to start.
-    FirstAlt(usize),
-    /// Terminals forbidden right after the symbol at position `pos` in
-    /// alternative `alt` (a `!>>` restriction).
-    FollowRestriction { alt: usize, pos: usize },
-    /// Terminals forbidden after the layout that follows the symbol at
-    /// position `pos` in alternative `alt` (a `!>>>` restriction). A
-    /// separate set from `FollowRestriction` is needed because the two sets
-    /// are checked at different positions: `!>>` at the symbol's right
-    /// extent, and `!>>>` at the right extent of the layout after the symbol.
-    LayoutAwareFollowRestriction { alt: usize, pos: usize },
+pub enum TerminalSetKind<'a> {
+    /// FOLLOW set of the nonterminal.
+    Follow(&'a Nonterminal),
+    /// FIRST set of the nonterminal, the union of the FIRST sets of its
+    /// alternatives. The LL(1) prediction runs `longest_match` on it.
+    First(&'a Nonterminal),
+    /// FIRST set of the alternative at the slot. GLL runs `match_any` on it
+    /// to choose which alternatives to schedule.
+    FirstAlt(Slot<'a>),
+    /// Terminals forbidden right after the symbol at the slot (a `!>>`
+    /// restriction).
+    FollowRestriction(Slot<'a>),
+    /// Terminals forbidden after the layout that follows the symbol at the
+    /// slot (a `!>>>` restriction). The check happens at the right extent of
+    /// that layout, whereas a `FollowRestriction` is checked at the symbol's
+    /// right extent.
+    LayoutAwareFollowRestriction(Slot<'a>),
 }
 
-/// A terminal set emitted as a `static &[TerminalId]`. The name and comment are
-/// derived from the nonterminal and kind; `terminals` holds the contents.
+/// A set of terminals that a parsing action checks the input against, for
+/// example a follow restriction. The generator emits each set as a static in
+/// the generated parser and refers to it where that action runs.
 pub struct TerminalSet<'a> {
-    pub nonterminal: &'a Nonterminal,
-    pub kind: SetKind,
+    pub kind: TerminalSetKind<'a>,
     pub terminals: Vec<Terminal>,
+    /// The id of the set. Two `match_any` sets with the same terminals share
+    /// an id, and so do two combined FIRST sets, but the two groups are
+    /// numbered separately.
+    ///
+    /// The scanner memoizes each `match_any` result in a bitset per input
+    /// position, at bit `id`. The bitset has `match_any_count` bits, one per
+    /// distinct `match_any` set id.
+    pub id: usize,
 }
 
-impl TerminalSet<'_> {
-    /// Identifier of the emitted static, e.g. `FIRST_SET_E_ALT0`.
-    pub fn name(&self) -> String {
-        let nt = to_snake_case(&self.nonterminal.name).to_uppercase();
-        match self.kind {
-            SetKind::Follow => format!("FOLLOW_SET_{nt}"),
-            SetKind::First => format!("FIRST_SET_{nt}"),
-            SetKind::FirstAlt(alt) => format!("FIRST_SET_{nt}_ALT{alt}"),
-            SetKind::FollowRestriction { alt, pos } => {
-                format!("FOLLOW_RESTRICTION_{nt}_ALT{alt}_POS{pos}")
-            }
-            SetKind::LayoutAwareFollowRestriction { alt, pos } => {
-                format!("LAYOUT_AWARE_FOLLOW_RESTRICTION_{nt}_ALT{alt}_POS{pos}")
-            }
-        }
-    }
-
-    /// Documentation line above the static, e.g. `E ::= . E "+" E { "a" }`.
-    pub fn comment(&self, grammar: &Grammar) -> String {
-        let names = terminal_names(&self.terminals);
-        match self.kind {
-            SetKind::Follow | SetKind::First => format!("{} {names}", self.nonterminal.name),
-            SetKind::FirstAlt(alt) => {
-                let alternative = &grammar.alternatives(self.nonterminal)[alt];
-                format!(
-                    "{} {names}",
-                    Slot::new(self.nonterminal, alternative, 0).name()
-                )
-            }
-            SetKind::FollowRestriction { alt, pos } => {
-                let alternative = &grammar.alternatives(self.nonterminal)[alt];
-                format!(
-                    "{} !>> {names}",
-                    Slot::new(self.nonterminal, alternative, pos).name()
-                )
-            }
-            SetKind::LayoutAwareFollowRestriction { alt, pos } => {
-                let alternative = &grammar.alternatives(self.nonterminal)[alt];
-                format!(
-                    "{} !>>> {names}",
-                    Slot::new(self.nonterminal, alternative, pos).name()
-                )
-            }
-        }
-    }
-}
-
+/// Builds the terminal sets of every nonterminal and assigns their ids.
+/// Returns the sets and the number of distinct `match_any` set ids, which
+/// are the ids below that count.
 pub fn terminal_sets<'a>(
     grammar: &'a Grammar,
     ff: &FirstFollowSets,
     terminal_ids: &TerminalIds,
-) -> Vec<TerminalSet<'a>> {
+) -> (Vec<TerminalSet<'a>>, usize) {
     let mut sets = vec![];
-    for nonterminal in grammar.nonterminals() {
-        let alternatives = grammar.alternatives(nonterminal);
 
-        sets.push(TerminalSet {
-            nonterminal,
-            kind: SetKind::Follow,
-            terminals: canonical_order(ff.follow_set(nonterminal).cloned().collect(), terminal_ids),
-        });
-
-        sets.push(TerminalSet {
-            nonterminal,
-            kind: SetKind::First,
-            terminals: canonical_order(
-                alternatives
-                    .iter()
-                    .flat_map(|alt| ff.first_set(alt))
-                    .collect(),
-                terminal_ids,
-            ),
-        });
-
-        for (alt, alternative) in alternatives.iter().enumerate() {
-            sets.push(TerminalSet {
-                nonterminal,
-                kind: SetKind::FirstAlt(alt),
-                terminals: canonical_order(
-                    ff.first_set(alternative).into_iter().collect(),
-                    terminal_ids,
-                ),
-            });
+    // The sets the parser tests with `match_any`, numbered from zero. Sets
+    // with the same terminals share an id.
+    let mut match_any_ids: FxHashMap<Vec<TerminalId>, usize> = FxHashMap::default();
+    let mut match_any_set = |kind: TerminalSetKind<'a>, terminals: Vec<Terminal>| {
+        let terminals = canonical_order(terminals, terminal_ids);
+        let content = terminals.iter().map(|t| terminal_ids.get_id(t)).collect();
+        let next_id = match_any_ids.len();
+        let id = *match_any_ids.entry(content).or_insert(next_id);
+        TerminalSet {
+            kind,
+            terminals,
+            id,
         }
-
-        for (alt, alternative) in alternatives.iter().enumerate() {
+    };
+    // The terminals of each nonterminal's combined FIRST set, collected from
+    // its alternatives on the way.
+    let mut combined_first = vec![];
+    for nonterminal in grammar.nonterminals() {
+        sets.push(match_any_set(
+            TerminalSetKind::Follow(nonterminal),
+            ff.follow_set(nonterminal).cloned().collect(),
+        ));
+        let mut first = vec![];
+        for alternative in grammar.alternatives(nonterminal) {
+            let alternative_first: Vec<Terminal> = ff.first_set(alternative).into_iter().collect();
+            first.extend(alternative_first.iter().cloned());
+            sets.push(match_any_set(
+                TerminalSetKind::FirstAlt(Slot::new(nonterminal, alternative, 0)),
+                alternative_first,
+            ));
             for (pos, symbol) in alternative.symbols.iter().enumerate() {
                 let restrictions = symbol.restrictions();
+                let slot = Slot::new(nonterminal, alternative, pos);
                 if !restrictions.follow.is_empty() {
-                    sets.push(TerminalSet {
-                        nonterminal,
-                        kind: SetKind::FollowRestriction { alt, pos },
-                        terminals: canonical_order(
-                            restriction_terminals(grammar, &restrictions.follow),
-                            terminal_ids,
-                        ),
-                    });
+                    sets.push(match_any_set(
+                        TerminalSetKind::FollowRestriction(slot.clone()),
+                        restriction_terminals(grammar, &restrictions.follow),
+                    ));
                 }
                 if !restrictions.layout_aware_follow.is_empty() {
-                    sets.push(TerminalSet {
-                        nonterminal,
-                        kind: SetKind::LayoutAwareFollowRestriction { alt, pos },
-                        terminals: canonical_order(
-                            restriction_terminals(grammar, &restrictions.layout_aware_follow),
-                            terminal_ids,
-                        ),
-                    });
+                    sets.push(match_any_set(
+                        TerminalSetKind::LayoutAwareFollowRestriction(slot),
+                        restriction_terminals(grammar, &restrictions.layout_aware_follow),
+                    ));
                 }
             }
         }
+        combined_first.push((nonterminal, first));
     }
-    sets
-}
+    let match_any_count = match_any_ids.len();
 
-/// Content-deduplicated ids for one family of terminal sets: two sets with
-/// the same terminals share an id. Ids are assigned by content in the order
-/// `terminal_sets` yields the sets, so the generated code is deterministic.
-///
-/// The two families get separate id spaces, each numbered from zero.
-/// `match_any` keys its per-position memo by this id, so that family must be
-/// dense. `longest_match` is not memoized, but its sets are numbered the same
-/// way so every `TerminalSet` has one id.
-pub struct SetIds {
-    ids: FxHashMap<String, usize>,
-    count: usize,
-}
-
-impl SetIds {
-    /// Ids for the sets the parser tests with `match_any`, which only tests
-    /// membership: every set except the combined FIRST set.
-    pub fn match_any(sets: &[TerminalSet], terminal_ids: &TerminalIds) -> Self {
-        Self::new(sets, terminal_ids, |kind| !matches!(kind, SetKind::First))
+    // The combined FIRST sets, which `longest_match` tests, numbered after the
+    // `match_any` sets.
+    let mut first_ids: FxHashMap<Vec<TerminalId>, usize> = FxHashMap::default();
+    for (nonterminal, terminals) in combined_first {
+        let terminals = canonical_order(terminals, terminal_ids);
+        let content = terminals.iter().map(|t| terminal_ids.get_id(t)).collect();
+        let next_id = match_any_count + first_ids.len();
+        let id = *first_ids.entry(content).or_insert(next_id);
+        sets.push(TerminalSet {
+            kind: TerminalSetKind::First(nonterminal),
+            terminals,
+            id,
+        });
     }
 
-    /// Ids for the combined FIRST sets, which the LL(1) path dispatches on with
-    /// `longest_match`. Sharing an id between sets that differ only in order is
-    /// safe: `longest_match` returns the first terminal that reaches the longest
-    /// match, but the LL(1) path uses the result only to choose an alternative,
-    /// and the LL(1) classification rejects a nonterminal whose alternatives
-    /// start with prefix-overlapping terminals. A tie is therefore always between
-    /// terminals of the same alternative, and every order chooses the same one.
-    pub fn longest_match(sets: &[TerminalSet], terminal_ids: &TerminalIds) -> Self {
-        Self::new(sets, terminal_ids, |kind| matches!(kind, SetKind::First))
-    }
-
-    fn new(
-        sets: &[TerminalSet],
-        terminal_ids: &TerminalIds,
-        include: impl Fn(&SetKind) -> bool,
-    ) -> Self {
-        let mut ids = FxHashMap::default();
-        let mut content_ids: FxHashMap<Vec<TerminalId>, usize> = FxHashMap::default();
-        for set in sets {
-            if !include(&set.kind) {
-                continue;
-            }
-            // The sets are in canonical order, so equal contents compare equal.
-            let content: Vec<TerminalId> = set
-                .terminals
-                .iter()
-                .map(|t| terminal_ids.get_id(t))
-                .collect();
-            let next_id = content_ids.len();
-            let id = *content_ids.entry(content).or_insert(next_id);
-            ids.insert(set.name(), id);
-        }
-
-        Self {
-            ids,
-            count: content_ids.len(),
-        }
-    }
-
-    pub fn id(&self, set_name: &str) -> usize {
-        *self
-            .ids
-            .get(set_name)
-            .unwrap_or_else(|| panic!("no set id for `{set_name}`"))
-    }
-
-    pub fn count(&self) -> usize {
-        self.count
-    }
+    (sets, match_any_count)
 }
 
 /// Sorts `terminals` by ascending terminal id and removes duplicates, so that
@@ -243,9 +139,4 @@ fn restriction_terminals(grammar: &Grammar, restrictions: &[Identifier]) -> Vec<
             t.clone()
         })
         .collect()
-}
-
-fn terminal_names(terminals: &[Terminal]) -> String {
-    let names: Vec<_> = terminals.iter().map(|t| t.name.clone()).collect();
-    format!("{{ {} }}", names.join(", "))
 }

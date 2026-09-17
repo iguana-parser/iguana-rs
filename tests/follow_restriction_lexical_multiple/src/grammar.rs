@@ -131,11 +131,6 @@ pub static FOLLOW_SET_S: TerminalSet = TerminalSet {
     id: 0,
     terminals: &[TerminalId(4), TerminalId(6)],
 };
-// S { Num, Dot, Word }
-pub static FIRST_SET_S: TerminalSet = TerminalSet {
-    id: 0,
-    terminals: &[TerminalId(0), TerminalId(2), TerminalId(3)],
-};
 // S : . Plus_0 { Num, Dot, Word }
 pub static FIRST_SET_S_ALT0: TerminalSet = TerminalSet {
     id: 1,
@@ -151,11 +146,6 @@ pub static FOLLOW_SET_ELEMENT: TerminalSet = TerminalSet {
         TerminalId(4),
         TerminalId(6),
     ],
-};
-// Element { Num, Dot, Word }
-pub static FIRST_SET_ELEMENT: TerminalSet = TerminalSet {
-    id: 0,
-    terminals: &[TerminalId(0), TerminalId(2), TerminalId(3)],
 };
 // Element : . Num { Num }
 pub static FIRST_SET_ELEMENT_ALT0: TerminalSet = TerminalSet {
@@ -183,11 +173,6 @@ pub static FOLLOW_SET_PLUS_0: TerminalSet = TerminalSet {
         TerminalId(6),
     ],
 };
-// Plus_0 { Num, Dot, Word }
-pub static FIRST_SET_PLUS_0: TerminalSet = TerminalSet {
-    id: 0,
-    terminals: &[TerminalId(0), TerminalId(2), TerminalId(3)],
-};
 // Plus_0 : . Plus_0 WS Element { Num, Dot, Word }
 pub static FIRST_SET_PLUS_0_ALT0: TerminalSet = TerminalSet {
     id: 1,
@@ -203,11 +188,6 @@ pub static FOLLOW_SET_START_S: TerminalSet = TerminalSet {
     id: 6,
     terminals: &[TerminalId(6)],
 };
-// StartS { Num, Dot, Word, WS }
-pub static FIRST_SET_START_S: TerminalSet = TerminalSet {
-    id: 1,
-    terminals: &[TerminalId(0), TerminalId(2), TerminalId(3), TerminalId(4)],
-};
 // StartS : . WS start:S WS { Num, Dot, Word, WS }
 pub static FIRST_SET_START_S_ALT0: TerminalSet = TerminalSet {
     id: 7,
@@ -218,13 +198,33 @@ pub static FOLLOW_SET_START_ELEMENT: TerminalSet = TerminalSet {
     id: 6,
     terminals: &[TerminalId(6)],
 };
-// StartElement { Num, Dot, Word, WS }
-pub static FIRST_SET_START_ELEMENT: TerminalSet = TerminalSet {
-    id: 1,
-    terminals: &[TerminalId(0), TerminalId(2), TerminalId(3), TerminalId(4)],
-};
 // StartElement : . WS start:Element WS { Num, Dot, Word, WS }
 pub static FIRST_SET_START_ELEMENT_ALT0: TerminalSet = TerminalSet {
     id: 7,
+    terminals: &[TerminalId(0), TerminalId(2), TerminalId(3), TerminalId(4)],
+};
+// S { Num, Dot, Word }
+pub static FIRST_SET_S: TerminalSet = TerminalSet {
+    id: 8,
+    terminals: &[TerminalId(0), TerminalId(2), TerminalId(3)],
+};
+// Element { Num, Dot, Word }
+pub static FIRST_SET_ELEMENT: TerminalSet = TerminalSet {
+    id: 8,
+    terminals: &[TerminalId(0), TerminalId(2), TerminalId(3)],
+};
+// Plus_0 { Num, Dot, Word }
+pub static FIRST_SET_PLUS_0: TerminalSet = TerminalSet {
+    id: 8,
+    terminals: &[TerminalId(0), TerminalId(2), TerminalId(3)],
+};
+// StartS { Num, Dot, Word, WS }
+pub static FIRST_SET_START_S: TerminalSet = TerminalSet {
+    id: 9,
+    terminals: &[TerminalId(0), TerminalId(2), TerminalId(3), TerminalId(4)],
+};
+// StartElement { Num, Dot, Word, WS }
+pub static FIRST_SET_START_ELEMENT: TerminalSet = TerminalSet {
+    id: 9,
     terminals: &[TerminalId(0), TerminalId(2), TerminalId(3), TerminalId(4)],
 };

@@ -116,11 +116,6 @@ pub static FOLLOW_SET_S: TerminalSet = TerminalSet {
     id: 0,
     terminals: &[TerminalId(3)],
 };
-// S { Letter }
-pub static FIRST_SET_S: TerminalSet = TerminalSet {
-    id: 0,
-    terminals: &[TerminalId(0)],
-};
 // S : . Id Id { Letter }
 pub static FIRST_SET_S_ALT0: TerminalSet = TerminalSet {
     id: 1,
@@ -131,11 +126,6 @@ pub static FOLLOW_SET_ID: TerminalSet = TerminalSet {
     id: 2,
     terminals: &[TerminalId(0), TerminalId(3)],
 };
-// Id { Letter }
-pub static FIRST_SET_ID: TerminalSet = TerminalSet {
-    id: 0,
-    terminals: &[TerminalId(0)],
-};
 // Id : . Name \ Keyword { Letter }
 pub static FIRST_SET_ID_ALT0: TerminalSet = TerminalSet {
     id: 1,
@@ -145,11 +135,6 @@ pub static FIRST_SET_ID_ALT0: TerminalSet = TerminalSet {
 pub static FOLLOW_SET_NAME: TerminalSet = TerminalSet {
     id: 2,
     terminals: &[TerminalId(0), TerminalId(3)],
-};
-// Name { Letter }
-pub static FIRST_SET_NAME: TerminalSet = TerminalSet {
-    id: 0,
-    terminals: &[TerminalId(0)],
 };
 // Name : . Letter Letter { Letter }
 pub static FIRST_SET_NAME_ALT0: TerminalSet = TerminalSet {
@@ -166,11 +151,6 @@ pub static FOLLOW_SET_START_S: TerminalSet = TerminalSet {
     id: 0,
     terminals: &[TerminalId(3)],
 };
-// StartS { Letter }
-pub static FIRST_SET_START_S: TerminalSet = TerminalSet {
-    id: 0,
-    terminals: &[TerminalId(0)],
-};
 // StartS : . start:S { Letter }
 pub static FIRST_SET_START_S_ALT0: TerminalSet = TerminalSet {
     id: 1,
@@ -180,11 +160,6 @@ pub static FIRST_SET_START_S_ALT0: TerminalSet = TerminalSet {
 pub static FOLLOW_SET_START_ID: TerminalSet = TerminalSet {
     id: 0,
     terminals: &[TerminalId(3)],
-};
-// StartId { Letter }
-pub static FIRST_SET_START_ID: TerminalSet = TerminalSet {
-    id: 0,
-    terminals: &[TerminalId(0)],
 };
 // StartId : . start:Id { Letter }
 pub static FIRST_SET_START_ID_ALT0: TerminalSet = TerminalSet {
@@ -196,13 +171,38 @@ pub static FOLLOW_SET_START_NAME: TerminalSet = TerminalSet {
     id: 0,
     terminals: &[TerminalId(3)],
 };
-// StartName { Letter }
-pub static FIRST_SET_START_NAME: TerminalSet = TerminalSet {
-    id: 0,
-    terminals: &[TerminalId(0)],
-};
 // StartName : . start:Name { Letter }
 pub static FIRST_SET_START_NAME_ALT0: TerminalSet = TerminalSet {
     id: 1,
+    terminals: &[TerminalId(0)],
+};
+// S { Letter }
+pub static FIRST_SET_S: TerminalSet = TerminalSet {
+    id: 3,
+    terminals: &[TerminalId(0)],
+};
+// Id { Letter }
+pub static FIRST_SET_ID: TerminalSet = TerminalSet {
+    id: 3,
+    terminals: &[TerminalId(0)],
+};
+// Name { Letter }
+pub static FIRST_SET_NAME: TerminalSet = TerminalSet {
+    id: 3,
+    terminals: &[TerminalId(0)],
+};
+// StartS { Letter }
+pub static FIRST_SET_START_S: TerminalSet = TerminalSet {
+    id: 3,
+    terminals: &[TerminalId(0)],
+};
+// StartId { Letter }
+pub static FIRST_SET_START_ID: TerminalSet = TerminalSet {
+    id: 3,
+    terminals: &[TerminalId(0)],
+};
+// StartName { Letter }
+pub static FIRST_SET_START_NAME: TerminalSet = TerminalSet {
+    id: 3,
     terminals: &[TerminalId(0)],
 };

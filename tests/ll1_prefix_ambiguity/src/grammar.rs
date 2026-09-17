@@ -94,11 +94,6 @@ pub static FOLLOW_SET_E: TerminalSet = TerminalSet {
     id: 0,
     terminals: &[TerminalId(5)],
 };
-// E { Int, Float }
-pub static FIRST_SET_E: TerminalSet = TerminalSet {
-    id: 0,
-    terminals: &[TerminalId(0), TerminalId(1)],
-};
 // E : . Expr { Int, Float }
 pub static FIRST_SET_E_ALT0: TerminalSet = TerminalSet {
     id: 1,
@@ -108,11 +103,6 @@ pub static FIRST_SET_E_ALT0: TerminalSet = TerminalSet {
 pub static FOLLOW_SET_EXPR: TerminalSet = TerminalSet {
     id: 0,
     terminals: &[TerminalId(5)],
-};
-// Expr { Int, Float }
-pub static FIRST_SET_EXPR: TerminalSet = TerminalSet {
-    id: 0,
-    terminals: &[TerminalId(0), TerminalId(1)],
 };
 // Expr : . Int "." Id { Int }
 pub static FIRST_SET_EXPR_ALT0: TerminalSet = TerminalSet {
@@ -129,11 +119,6 @@ pub static FOLLOW_SET_START_E: TerminalSet = TerminalSet {
     id: 0,
     terminals: &[TerminalId(5)],
 };
-// StartE { Int, Float }
-pub static FIRST_SET_START_E: TerminalSet = TerminalSet {
-    id: 0,
-    terminals: &[TerminalId(0), TerminalId(1)],
-};
 // StartE : . start:E { Int, Float }
 pub static FIRST_SET_START_E_ALT0: TerminalSet = TerminalSet {
     id: 1,
@@ -144,13 +129,28 @@ pub static FOLLOW_SET_START_EXPR: TerminalSet = TerminalSet {
     id: 0,
     terminals: &[TerminalId(5)],
 };
-// StartExpr { Int, Float }
-pub static FIRST_SET_START_EXPR: TerminalSet = TerminalSet {
-    id: 0,
-    terminals: &[TerminalId(0), TerminalId(1)],
-};
 // StartExpr : . start:Expr { Int, Float }
 pub static FIRST_SET_START_EXPR_ALT0: TerminalSet = TerminalSet {
     id: 1,
+    terminals: &[TerminalId(0), TerminalId(1)],
+};
+// E { Int, Float }
+pub static FIRST_SET_E: TerminalSet = TerminalSet {
+    id: 4,
+    terminals: &[TerminalId(0), TerminalId(1)],
+};
+// Expr { Int, Float }
+pub static FIRST_SET_EXPR: TerminalSet = TerminalSet {
+    id: 4,
+    terminals: &[TerminalId(0), TerminalId(1)],
+};
+// StartE { Int, Float }
+pub static FIRST_SET_START_E: TerminalSet = TerminalSet {
+    id: 4,
+    terminals: &[TerminalId(0), TerminalId(1)],
+};
+// StartExpr { Int, Float }
+pub static FIRST_SET_START_EXPR: TerminalSet = TerminalSet {
+    id: 4,
     terminals: &[TerminalId(0), TerminalId(1)],
 };

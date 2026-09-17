@@ -103,43 +103,43 @@ pub static FOLLOW_SET_S: TerminalSet = TerminalSet {
     id: 0,
     terminals: &[TerminalId(2), TerminalId(8)],
 };
-// S { VarId, NumId, "else" }
-pub static FIRST_SET_S: TerminalSet = TerminalSet {
-    id: 0,
-    terminals: &[TerminalId(0), TerminalId(1), TerminalId(3)],
-};
 // S : . [a-z] !<< "else" !>> [0-9 a-z] WS VarId WS ";" { "else" }
 pub static FIRST_SET_S_ALT0: TerminalSet = TerminalSet {
     id: 1,
     terminals: &[TerminalId(3)],
 };
+// S : . [a-z] !<< "else" !>> [0-9 a-z] WS VarId WS ";" !>> { [0-9 a-z] }
+pub static FOLLOW_RESTRICTION_S_ALT0_POS0: TerminalSet = TerminalSet {
+    id: 2,
+    terminals: &[TerminalId(6)],
+};
 // S : . NumId WS ";" { NumId }
 pub static FIRST_SET_S_ALT1: TerminalSet = TerminalSet {
-    id: 2,
+    id: 3,
     terminals: &[TerminalId(1)],
 };
 // S : . VarId WS ";" { VarId }
 pub static FIRST_SET_S_ALT2: TerminalSet = TerminalSet {
-    id: 3,
-    terminals: &[TerminalId(0)],
-};
-// S : . [a-z] !<< "else" !>> [0-9 a-z] WS VarId WS ";" !>> { [0-9 a-z] }
-pub static FOLLOW_RESTRICTION_S_ALT0_POS0: TerminalSet = TerminalSet {
     id: 4,
-    terminals: &[TerminalId(6)],
+    terminals: &[TerminalId(0)],
 };
 // StartS { EOF }
 pub static FOLLOW_SET_START_S: TerminalSet = TerminalSet {
     id: 5,
     terminals: &[TerminalId(8)],
 };
-// StartS { VarId, NumId, WS, "else" }
-pub static FIRST_SET_START_S: TerminalSet = TerminalSet {
-    id: 1,
-    terminals: &[TerminalId(0), TerminalId(1), TerminalId(2), TerminalId(3)],
-};
 // StartS : . WS start:S WS { VarId, NumId, WS, "else" }
 pub static FIRST_SET_START_S_ALT0: TerminalSet = TerminalSet {
     id: 6,
+    terminals: &[TerminalId(0), TerminalId(1), TerminalId(2), TerminalId(3)],
+};
+// S { VarId, NumId, "else" }
+pub static FIRST_SET_S: TerminalSet = TerminalSet {
+    id: 7,
+    terminals: &[TerminalId(0), TerminalId(1), TerminalId(3)],
+};
+// StartS { VarId, NumId, WS, "else" }
+pub static FIRST_SET_START_S: TerminalSet = TerminalSet {
+    id: 8,
     terminals: &[TerminalId(0), TerminalId(1), TerminalId(2), TerminalId(3)],
 };

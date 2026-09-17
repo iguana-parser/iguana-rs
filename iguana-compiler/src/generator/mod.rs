@@ -10,7 +10,7 @@ use crate::{
         id::{BindingIds, EndSlot, NonterminalIds, SlotIds, TerminalIds},
         parse_tree_gen::ParseTreeGen,
         parser_gen::ParserGen,
-        terminal_sets::{SetIds, terminal_sets},
+        terminal_sets::terminal_sets,
     },
     grammar::{
         def::Grammar,
@@ -277,9 +277,7 @@ pub fn generate_sources(
         &lib_path,
     )?;
 
-    let terminal_sets = terminal_sets(grammar, &ff, &terminal_ids);
-    let match_any_sets = SetIds::match_any(&terminal_sets, &terminal_ids);
-    let longest_match_sets = SetIds::longest_match(&terminal_sets, &terminal_ids);
+    let (terminal_sets, match_any_count) = terminal_sets(grammar, &ff, &terminal_ids);
 
     let mut parser_gen = ParserGen::new(
         grammar,
@@ -295,7 +293,7 @@ pub fn generate_sources(
 
     write_rust_file(
         post_process(
-            &scanner_gen::generate(grammar, &terminal_ids, &match_any_sets, &config).to_string(),
+            &scanner_gen::generate(grammar, &terminal_ids, match_any_count, &config).to_string(),
         ),
         &scanner_path,
     )?;
@@ -320,8 +318,6 @@ pub fn generate_sources(
                 &terminal_ids,
                 &slot_ids,
                 &terminal_sets,
-                &match_any_sets,
-                &longest_match_sets,
             )
             .to_string(),
         ),

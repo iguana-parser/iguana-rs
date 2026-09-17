@@ -490,11 +490,6 @@ pub static FOLLOW_SET_T: TerminalSet = TerminalSet {
     id: 0,
     terminals: &[TerminalId(3), TerminalId(4), TerminalId(14)],
 };
-// T { "[" }
-pub static FIRST_SET_T: TerminalSet = TerminalSet {
-    id: 0,
-    terminals: &[TerminalId(5)],
-};
 // T : . "[" BeforeP Layout P Layout "]" { "[" }
 pub static FIRST_SET_T_ALT0: TerminalSet = TerminalSet {
     id: 1,
@@ -509,11 +504,6 @@ pub static FIRST_SET_T_ALT1: TerminalSet = TerminalSet {
 pub static FOLLOW_SET_U: TerminalSet = TerminalSet {
     id: 0,
     terminals: &[TerminalId(3), TerminalId(4), TerminalId(14)],
-};
-// U { "[" }
-pub static FIRST_SET_U: TerminalSet = TerminalSet {
-    id: 0,
-    terminals: &[TerminalId(5)],
 };
 // U : . "[" BeforeQ Layout Q Layout "]" { "[" }
 pub static FIRST_SET_U_ALT0: TerminalSet = TerminalSet {
@@ -530,11 +520,6 @@ pub static FOLLOW_SET_P: TerminalSet = TerminalSet {
     id: 2,
     terminals: &[TerminalId(3), TerminalId(4), TerminalId(6), TerminalId(14)],
 };
-// P { Word, "p" }
-pub static FIRST_SET_P: TerminalSet = TerminalSet {
-    id: 1,
-    terminals: &[TerminalId(0), TerminalId(7)],
-};
 // P : . "p" { "p" }
 pub static FIRST_SET_P_ALT0: TerminalSet = TerminalSet {
     id: 3,
@@ -549,11 +534,6 @@ pub static FIRST_SET_P_ALT1: TerminalSet = TerminalSet {
 pub static FOLLOW_SET_Q: TerminalSet = TerminalSet {
     id: 2,
     terminals: &[TerminalId(3), TerminalId(4), TerminalId(6), TerminalId(14)],
-};
-// Q { "q" }
-pub static FIRST_SET_Q: TerminalSet = TerminalSet {
-    id: 2,
-    terminals: &[TerminalId(8)],
 };
 // Q : . "q" { "q" }
 pub static FIRST_SET_Q_ALT0: TerminalSet = TerminalSet {
@@ -571,11 +551,6 @@ pub static FOLLOW_SET_BEFORE_P: TerminalSet = TerminalSet {
         TerminalId(14),
     ],
 };
-// BeforeP { "x" }
-pub static FIRST_SET_BEFORE_P: TerminalSet = TerminalSet {
-    id: 3,
-    terminals: &[TerminalId(9)],
-};
 // BeforeP : . "x" { "x" }
 pub static FIRST_SET_BEFORE_P_ALT0: TerminalSet = TerminalSet {
     id: 7,
@@ -590,11 +565,6 @@ pub static FIRST_SET_BEFORE_P_ALT1: TerminalSet = TerminalSet {
 pub static FOLLOW_SET_BEFORE_Q: TerminalSet = TerminalSet {
     id: 8,
     terminals: &[TerminalId(3), TerminalId(4), TerminalId(8), TerminalId(14)],
-};
-// BeforeQ { "x" }
-pub static FIRST_SET_BEFORE_Q: TerminalSet = TerminalSet {
-    id: 3,
-    terminals: &[TerminalId(9)],
 };
 // BeforeQ : . "x" { "x" }
 pub static FIRST_SET_BEFORE_Q_ALT0: TerminalSet = TerminalSet {
@@ -611,11 +581,6 @@ pub static FOLLOW_SET_UNEXPECTED_FIRST: TerminalSet = TerminalSet {
     id: 0,
     terminals: &[TerminalId(3), TerminalId(4), TerminalId(14)],
 };
-// UnexpectedFirst { Identifier }
-pub static FIRST_SET_UNEXPECTED_FIRST: TerminalSet = TerminalSet {
-    id: 4,
-    terminals: &[TerminalId(1)],
-};
 // UnexpectedFirst : . Identifier \ Keyword { Identifier }
 pub static FIRST_SET_UNEXPECTED_FIRST_ALT0: TerminalSet = TerminalSet {
     id: 9,
@@ -630,11 +595,6 @@ pub static FIRST_SET_UNEXPECTED_FIRST_ALT1: TerminalSet = TerminalSet {
 pub static FOLLOW_SET_EXCLUDED_FIRST: TerminalSet = TerminalSet {
     id: 0,
     terminals: &[TerminalId(3), TerminalId(4), TerminalId(14)],
-};
-// ExcludedFirst { Identifier }
-pub static FIRST_SET_EXCLUDED_FIRST: TerminalSet = TerminalSet {
-    id: 4,
-    terminals: &[TerminalId(1)],
 };
 // ExcludedFirst : . Identifier "!" { Identifier }
 pub static FIRST_SET_EXCLUDED_FIRST_ALT0: TerminalSet = TerminalSet {
@@ -662,11 +622,6 @@ pub static FOLLOW_SET_LAYOUT: TerminalSet = TerminalSet {
         TerminalId(14),
     ],
 };
-// Layout { WS, Newline }
-pub static FIRST_SET_LAYOUT: TerminalSet = TerminalSet {
-    id: 5,
-    terminals: &[TerminalId(3), TerminalId(4)],
-};
 // Layout : . Star_0 { WS, Newline }
 pub static FIRST_SET_LAYOUT_ALT0: TerminalSet = TerminalSet {
     id: 11,
@@ -689,11 +644,6 @@ pub static FOLLOW_SET_ALT_0: TerminalSet = TerminalSet {
         TerminalId(11),
         TerminalId(14),
     ],
-};
-// Alt_0 { WS, Newline }
-pub static FIRST_SET_ALT_0: TerminalSet = TerminalSet {
-    id: 5,
-    terminals: &[TerminalId(3), TerminalId(4)],
 };
 // Alt_0 : . WS { WS }
 pub static FIRST_SET_ALT_0_ALT0: TerminalSet = TerminalSet {
@@ -723,11 +673,6 @@ pub static FOLLOW_SET_PLUS_0: TerminalSet = TerminalSet {
         TerminalId(14),
     ],
 };
-// Plus_0 { WS, Newline }
-pub static FIRST_SET_PLUS_0: TerminalSet = TerminalSet {
-    id: 5,
-    terminals: &[TerminalId(3), TerminalId(4)],
-};
 // Plus_0 : . Plus_0 Alt_0 { WS, Newline }
 pub static FIRST_SET_PLUS_0_ALT0: TerminalSet = TerminalSet {
     id: 11,
@@ -753,11 +698,6 @@ pub static FOLLOW_SET_OPT_0: TerminalSet = TerminalSet {
         TerminalId(11),
         TerminalId(14),
     ],
-};
-// Opt_0 { WS, Newline }
-pub static FIRST_SET_OPT_0: TerminalSet = TerminalSet {
-    id: 5,
-    terminals: &[TerminalId(3), TerminalId(4)],
 };
 // Opt_0 : . Plus_0 { WS, Newline }
 pub static FIRST_SET_OPT_0_ALT0: TerminalSet = TerminalSet {
@@ -785,11 +725,6 @@ pub static FOLLOW_SET_STAR_0: TerminalSet = TerminalSet {
         TerminalId(14),
     ],
 };
-// Star_0 { WS, Newline }
-pub static FIRST_SET_STAR_0: TerminalSet = TerminalSet {
-    id: 5,
-    terminals: &[TerminalId(3), TerminalId(4)],
-};
 // Star_0 : . Opt_0 { WS, Newline }
 pub static FIRST_SET_STAR_0_ALT0: TerminalSet = TerminalSet {
     id: 11,
@@ -799,11 +734,6 @@ pub static FIRST_SET_STAR_0_ALT0: TerminalSet = TerminalSet {
 pub static FOLLOW_SET_START_T: TerminalSet = TerminalSet {
     id: 16,
     terminals: &[TerminalId(14)],
-};
-// StartT { WS, Newline, "[" }
-pub static FIRST_SET_START_T: TerminalSet = TerminalSet {
-    id: 6,
-    terminals: &[TerminalId(3), TerminalId(4), TerminalId(5)],
 };
 // StartT : . Layout start:T Layout { WS, Newline, "[" }
 pub static FIRST_SET_START_T_ALT0: TerminalSet = TerminalSet {
@@ -815,11 +745,6 @@ pub static FOLLOW_SET_START_U: TerminalSet = TerminalSet {
     id: 16,
     terminals: &[TerminalId(14)],
 };
-// StartU { WS, Newline, "[" }
-pub static FIRST_SET_START_U: TerminalSet = TerminalSet {
-    id: 6,
-    terminals: &[TerminalId(3), TerminalId(4), TerminalId(5)],
-};
 // StartU : . Layout start:U Layout { WS, Newline, "[" }
 pub static FIRST_SET_START_U_ALT0: TerminalSet = TerminalSet {
     id: 17,
@@ -829,11 +754,6 @@ pub static FIRST_SET_START_U_ALT0: TerminalSet = TerminalSet {
 pub static FOLLOW_SET_START_P: TerminalSet = TerminalSet {
     id: 16,
     terminals: &[TerminalId(14)],
-};
-// StartP { Word, WS, Newline, "p" }
-pub static FIRST_SET_START_P: TerminalSet = TerminalSet {
-    id: 7,
-    terminals: &[TerminalId(0), TerminalId(3), TerminalId(4), TerminalId(7)],
 };
 // StartP : . Layout start:P Layout { Word, WS, Newline, "p" }
 pub static FIRST_SET_START_P_ALT0: TerminalSet = TerminalSet {
@@ -845,11 +765,6 @@ pub static FOLLOW_SET_START_Q: TerminalSet = TerminalSet {
     id: 16,
     terminals: &[TerminalId(14)],
 };
-// StartQ { WS, Newline, "q" }
-pub static FIRST_SET_START_Q: TerminalSet = TerminalSet {
-    id: 8,
-    terminals: &[TerminalId(3), TerminalId(4), TerminalId(8)],
-};
 // StartQ : . Layout start:Q Layout { WS, Newline, "q" }
 pub static FIRST_SET_START_Q_ALT0: TerminalSet = TerminalSet {
     id: 19,
@@ -859,11 +774,6 @@ pub static FIRST_SET_START_Q_ALT0: TerminalSet = TerminalSet {
 pub static FOLLOW_SET_START_BEFORE_P: TerminalSet = TerminalSet {
     id: 16,
     terminals: &[TerminalId(14)],
-};
-// StartBeforeP { WS, Newline, "x" }
-pub static FIRST_SET_START_BEFORE_P: TerminalSet = TerminalSet {
-    id: 9,
-    terminals: &[TerminalId(3), TerminalId(4), TerminalId(9)],
 };
 // StartBeforeP : . Layout start:BeforeP Layout { WS, Newline, "x" }
 pub static FIRST_SET_START_BEFORE_P_ALT0: TerminalSet = TerminalSet {
@@ -875,11 +785,6 @@ pub static FOLLOW_SET_START_BEFORE_Q: TerminalSet = TerminalSet {
     id: 16,
     terminals: &[TerminalId(14)],
 };
-// StartBeforeQ { WS, Newline, "x" }
-pub static FIRST_SET_START_BEFORE_Q: TerminalSet = TerminalSet {
-    id: 9,
-    terminals: &[TerminalId(3), TerminalId(4), TerminalId(9)],
-};
 // StartBeforeQ : . Layout start:BeforeQ Layout { WS, Newline, "x" }
 pub static FIRST_SET_START_BEFORE_Q_ALT0: TerminalSet = TerminalSet {
     id: 20,
@@ -889,11 +794,6 @@ pub static FIRST_SET_START_BEFORE_Q_ALT0: TerminalSet = TerminalSet {
 pub static FOLLOW_SET_START_UNEXPECTED_FIRST: TerminalSet = TerminalSet {
     id: 16,
     terminals: &[TerminalId(14)],
-};
-// StartUnexpectedFirst { Identifier, WS, Newline }
-pub static FIRST_SET_START_UNEXPECTED_FIRST: TerminalSet = TerminalSet {
-    id: 10,
-    terminals: &[TerminalId(1), TerminalId(3), TerminalId(4)],
 };
 // StartUnexpectedFirst : . Layout start:UnexpectedFirst Layout { Identifier, WS, Newline }
 pub static FIRST_SET_START_UNEXPECTED_FIRST_ALT0: TerminalSet = TerminalSet {
@@ -905,13 +805,113 @@ pub static FOLLOW_SET_START_EXCLUDED_FIRST: TerminalSet = TerminalSet {
     id: 16,
     terminals: &[TerminalId(14)],
 };
-// StartExcludedFirst { Identifier, WS, Newline }
-pub static FIRST_SET_START_EXCLUDED_FIRST: TerminalSet = TerminalSet {
-    id: 10,
-    terminals: &[TerminalId(1), TerminalId(3), TerminalId(4)],
-};
 // StartExcludedFirst : . Layout start:ExcludedFirst Layout { Identifier, WS, Newline }
 pub static FIRST_SET_START_EXCLUDED_FIRST_ALT0: TerminalSet = TerminalSet {
     id: 21,
+    terminals: &[TerminalId(1), TerminalId(3), TerminalId(4)],
+};
+// T { "[" }
+pub static FIRST_SET_T: TerminalSet = TerminalSet {
+    id: 22,
+    terminals: &[TerminalId(5)],
+};
+// U { "[" }
+pub static FIRST_SET_U: TerminalSet = TerminalSet {
+    id: 22,
+    terminals: &[TerminalId(5)],
+};
+// P { Word, "p" }
+pub static FIRST_SET_P: TerminalSet = TerminalSet {
+    id: 23,
+    terminals: &[TerminalId(0), TerminalId(7)],
+};
+// Q { "q" }
+pub static FIRST_SET_Q: TerminalSet = TerminalSet {
+    id: 24,
+    terminals: &[TerminalId(8)],
+};
+// BeforeP { "x" }
+pub static FIRST_SET_BEFORE_P: TerminalSet = TerminalSet {
+    id: 25,
+    terminals: &[TerminalId(9)],
+};
+// BeforeQ { "x" }
+pub static FIRST_SET_BEFORE_Q: TerminalSet = TerminalSet {
+    id: 25,
+    terminals: &[TerminalId(9)],
+};
+// UnexpectedFirst { Identifier }
+pub static FIRST_SET_UNEXPECTED_FIRST: TerminalSet = TerminalSet {
+    id: 26,
+    terminals: &[TerminalId(1)],
+};
+// ExcludedFirst { Identifier }
+pub static FIRST_SET_EXCLUDED_FIRST: TerminalSet = TerminalSet {
+    id: 26,
+    terminals: &[TerminalId(1)],
+};
+// Layout { WS, Newline }
+pub static FIRST_SET_LAYOUT: TerminalSet = TerminalSet {
+    id: 27,
+    terminals: &[TerminalId(3), TerminalId(4)],
+};
+// Alt_0 { WS, Newline }
+pub static FIRST_SET_ALT_0: TerminalSet = TerminalSet {
+    id: 27,
+    terminals: &[TerminalId(3), TerminalId(4)],
+};
+// Plus_0 { WS, Newline }
+pub static FIRST_SET_PLUS_0: TerminalSet = TerminalSet {
+    id: 27,
+    terminals: &[TerminalId(3), TerminalId(4)],
+};
+// Opt_0 { WS, Newline }
+pub static FIRST_SET_OPT_0: TerminalSet = TerminalSet {
+    id: 27,
+    terminals: &[TerminalId(3), TerminalId(4)],
+};
+// Star_0 { WS, Newline }
+pub static FIRST_SET_STAR_0: TerminalSet = TerminalSet {
+    id: 27,
+    terminals: &[TerminalId(3), TerminalId(4)],
+};
+// StartT { WS, Newline, "[" }
+pub static FIRST_SET_START_T: TerminalSet = TerminalSet {
+    id: 28,
+    terminals: &[TerminalId(3), TerminalId(4), TerminalId(5)],
+};
+// StartU { WS, Newline, "[" }
+pub static FIRST_SET_START_U: TerminalSet = TerminalSet {
+    id: 28,
+    terminals: &[TerminalId(3), TerminalId(4), TerminalId(5)],
+};
+// StartP { Word, WS, Newline, "p" }
+pub static FIRST_SET_START_P: TerminalSet = TerminalSet {
+    id: 29,
+    terminals: &[TerminalId(0), TerminalId(3), TerminalId(4), TerminalId(7)],
+};
+// StartQ { WS, Newline, "q" }
+pub static FIRST_SET_START_Q: TerminalSet = TerminalSet {
+    id: 30,
+    terminals: &[TerminalId(3), TerminalId(4), TerminalId(8)],
+};
+// StartBeforeP { WS, Newline, "x" }
+pub static FIRST_SET_START_BEFORE_P: TerminalSet = TerminalSet {
+    id: 31,
+    terminals: &[TerminalId(3), TerminalId(4), TerminalId(9)],
+};
+// StartBeforeQ { WS, Newline, "x" }
+pub static FIRST_SET_START_BEFORE_Q: TerminalSet = TerminalSet {
+    id: 31,
+    terminals: &[TerminalId(3), TerminalId(4), TerminalId(9)],
+};
+// StartUnexpectedFirst { Identifier, WS, Newline }
+pub static FIRST_SET_START_UNEXPECTED_FIRST: TerminalSet = TerminalSet {
+    id: 32,
+    terminals: &[TerminalId(1), TerminalId(3), TerminalId(4)],
+};
+// StartExcludedFirst { Identifier, WS, Newline }
+pub static FIRST_SET_START_EXCLUDED_FIRST: TerminalSet = TerminalSet {
+    id: 32,
     terminals: &[TerminalId(1), TerminalId(3), TerminalId(4)],
 };

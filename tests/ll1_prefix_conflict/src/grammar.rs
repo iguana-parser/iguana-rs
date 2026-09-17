@@ -94,11 +94,6 @@ pub static FOLLOW_SET_T: TerminalSet = TerminalSet {
     id: 0,
     terminals: &[TerminalId(5)],
 };
-// T { "ab", "a" }
-pub static FIRST_SET_T: TerminalSet = TerminalSet {
-    id: 0,
-    terminals: &[TerminalId(0), TerminalId(2)],
-};
 // T : . S { "ab", "a" }
 pub static FIRST_SET_T_ALT0: TerminalSet = TerminalSet {
     id: 1,
@@ -108,11 +103,6 @@ pub static FIRST_SET_T_ALT0: TerminalSet = TerminalSet {
 pub static FOLLOW_SET_S: TerminalSet = TerminalSet {
     id: 0,
     terminals: &[TerminalId(5)],
-};
-// S { "ab", "a" }
-pub static FIRST_SET_S: TerminalSet = TerminalSet {
-    id: 0,
-    terminals: &[TerminalId(0), TerminalId(2)],
 };
 // S : . "ab" "x" { "ab" }
 pub static FIRST_SET_S_ALT0: TerminalSet = TerminalSet {
@@ -129,11 +119,6 @@ pub static FOLLOW_SET_START_T: TerminalSet = TerminalSet {
     id: 0,
     terminals: &[TerminalId(5)],
 };
-// StartT { "ab", "a" }
-pub static FIRST_SET_START_T: TerminalSet = TerminalSet {
-    id: 0,
-    terminals: &[TerminalId(0), TerminalId(2)],
-};
 // StartT : . start:T { "ab", "a" }
 pub static FIRST_SET_START_T_ALT0: TerminalSet = TerminalSet {
     id: 1,
@@ -144,13 +129,28 @@ pub static FOLLOW_SET_START_S: TerminalSet = TerminalSet {
     id: 0,
     terminals: &[TerminalId(5)],
 };
-// StartS { "ab", "a" }
-pub static FIRST_SET_START_S: TerminalSet = TerminalSet {
-    id: 0,
-    terminals: &[TerminalId(0), TerminalId(2)],
-};
 // StartS : . start:S { "ab", "a" }
 pub static FIRST_SET_START_S_ALT0: TerminalSet = TerminalSet {
     id: 1,
+    terminals: &[TerminalId(0), TerminalId(2)],
+};
+// T { "ab", "a" }
+pub static FIRST_SET_T: TerminalSet = TerminalSet {
+    id: 4,
+    terminals: &[TerminalId(0), TerminalId(2)],
+};
+// S { "ab", "a" }
+pub static FIRST_SET_S: TerminalSet = TerminalSet {
+    id: 4,
+    terminals: &[TerminalId(0), TerminalId(2)],
+};
+// StartT { "ab", "a" }
+pub static FIRST_SET_START_T: TerminalSet = TerminalSet {
+    id: 4,
+    terminals: &[TerminalId(0), TerminalId(2)],
+};
+// StartS { "ab", "a" }
+pub static FIRST_SET_START_S: TerminalSet = TerminalSet {
+    id: 4,
     terminals: &[TerminalId(0), TerminalId(2)],
 };

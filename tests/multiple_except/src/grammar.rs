@@ -89,11 +89,6 @@ pub static FOLLOW_SET_SYNTAX_IDENTIFIER: TerminalSet = TerminalSet {
     id: 0,
     terminals: &[TerminalId(6)],
 };
-// SyntaxIdentifier { IdentifierChars }
-pub static FIRST_SET_SYNTAX_IDENTIFIER: TerminalSet = TerminalSet {
-    id: 0,
-    terminals: &[TerminalId(1)],
-};
 // SyntaxIdentifier : . IdentifierChars \ Keyword \ BooleanLiteral \ NullLiteral {
 // IdentifierChars }
 pub static FIRST_SET_SYNTAX_IDENTIFIER_ALT0: TerminalSet = TerminalSet {
@@ -105,11 +100,6 @@ pub static FOLLOW_SET_LEXICAL_IDENTIFIER: TerminalSet = TerminalSet {
     id: 0,
     terminals: &[TerminalId(6)],
 };
-// LexicalIdentifier { Identifier }
-pub static FIRST_SET_LEXICAL_IDENTIFIER: TerminalSet = TerminalSet {
-    id: 1,
-    terminals: &[TerminalId(0)],
-};
 // LexicalIdentifier : . Identifier { Identifier }
 pub static FIRST_SET_LEXICAL_IDENTIFIER_ALT0: TerminalSet = TerminalSet {
     id: 2,
@@ -119,11 +109,6 @@ pub static FIRST_SET_LEXICAL_IDENTIFIER_ALT0: TerminalSet = TerminalSet {
 pub static FOLLOW_SET_START_SYNTAX_IDENTIFIER: TerminalSet = TerminalSet {
     id: 0,
     terminals: &[TerminalId(6)],
-};
-// StartSyntaxIdentifier { IdentifierChars }
-pub static FIRST_SET_START_SYNTAX_IDENTIFIER: TerminalSet = TerminalSet {
-    id: 0,
-    terminals: &[TerminalId(1)],
 };
 // StartSyntaxIdentifier : . start:SyntaxIdentifier { IdentifierChars }
 pub static FIRST_SET_START_SYNTAX_IDENTIFIER_ALT0: TerminalSet = TerminalSet {
@@ -135,13 +120,28 @@ pub static FOLLOW_SET_START_LEXICAL_IDENTIFIER: TerminalSet = TerminalSet {
     id: 0,
     terminals: &[TerminalId(6)],
 };
-// StartLexicalIdentifier { Identifier }
-pub static FIRST_SET_START_LEXICAL_IDENTIFIER: TerminalSet = TerminalSet {
-    id: 1,
-    terminals: &[TerminalId(0)],
-};
 // StartLexicalIdentifier : . start:LexicalIdentifier { Identifier }
 pub static FIRST_SET_START_LEXICAL_IDENTIFIER_ALT0: TerminalSet = TerminalSet {
     id: 2,
+    terminals: &[TerminalId(0)],
+};
+// SyntaxIdentifier { IdentifierChars }
+pub static FIRST_SET_SYNTAX_IDENTIFIER: TerminalSet = TerminalSet {
+    id: 3,
+    terminals: &[TerminalId(1)],
+};
+// LexicalIdentifier { Identifier }
+pub static FIRST_SET_LEXICAL_IDENTIFIER: TerminalSet = TerminalSet {
+    id: 4,
+    terminals: &[TerminalId(0)],
+};
+// StartSyntaxIdentifier { IdentifierChars }
+pub static FIRST_SET_START_SYNTAX_IDENTIFIER: TerminalSet = TerminalSet {
+    id: 3,
+    terminals: &[TerminalId(1)],
+};
+// StartLexicalIdentifier { Identifier }
+pub static FIRST_SET_START_LEXICAL_IDENTIFIER: TerminalSet = TerminalSet {
+    id: 4,
     terminals: &[TerminalId(0)],
 };
