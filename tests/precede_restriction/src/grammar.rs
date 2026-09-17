@@ -127,10 +127,10 @@ pub static FOLLOW_SET_S: TerminalSet = TerminalSet {
     id: 0,
     terminals: &[TerminalId(1), TerminalId(5)],
 };
-// S { "forall", "for" }
+// S { "for", "forall" }
 pub static FIRST_SET_S: TerminalSet = TerminalSet {
     id: 0,
-    terminals: &[TerminalId(3), TerminalId(2)],
+    terminals: &[TerminalId(2), TerminalId(3)],
 };
 // S : . "for" WS Id { "for" }
 pub static FIRST_SET_S_ALT0: TerminalSet = TerminalSet {
@@ -157,10 +157,10 @@ pub static FIRST_SET_ID_ALT0: TerminalSet = TerminalSet {
     id: 3,
     terminals: &[TerminalId(0)],
 };
-// Plus_0 { WS, Char, EOF }
+// Plus_0 { Char, WS, EOF }
 pub static FOLLOW_SET_PLUS_0: TerminalSet = TerminalSet {
     id: 4,
-    terminals: &[TerminalId(1), TerminalId(0), TerminalId(5)],
+    terminals: &[TerminalId(0), TerminalId(1), TerminalId(5)],
 };
 // Plus_0 { Char }
 pub static FIRST_SET_PLUS_0: TerminalSet = TerminalSet {
@@ -182,15 +182,15 @@ pub static FOLLOW_SET_START_S: TerminalSet = TerminalSet {
     id: 5,
     terminals: &[TerminalId(5)],
 };
-// StartS { WS, "forall", "for" }
+// StartS { WS, "for", "forall" }
 pub static FIRST_SET_START_S: TerminalSet = TerminalSet {
     id: 2,
-    terminals: &[TerminalId(1), TerminalId(3), TerminalId(2)],
+    terminals: &[TerminalId(1), TerminalId(2), TerminalId(3)],
 };
-// StartS : . WS start:S WS { "for", "forall", WS }
+// StartS : . WS start:S WS { WS, "for", "forall" }
 pub static FIRST_SET_START_S_ALT0: TerminalSet = TerminalSet {
     id: 6,
-    terminals: &[TerminalId(2), TerminalId(3), TerminalId(1)],
+    terminals: &[TerminalId(1), TerminalId(2), TerminalId(3)],
 };
 // StartId { EOF }
 pub static FOLLOW_SET_START_ID: TerminalSet = TerminalSet {

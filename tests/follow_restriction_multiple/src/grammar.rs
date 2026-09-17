@@ -140,65 +140,65 @@ pub static FOLLOW_SET_S: TerminalSet = TerminalSet {
     id: 0,
     terminals: &[TerminalId(3)],
 };
-// S { Digit, Alpha }
+// S { Alpha, Digit }
 pub static FIRST_SET_S: TerminalSet = TerminalSet {
     id: 0,
-    terminals: &[TerminalId(1), TerminalId(0)],
+    terminals: &[TerminalId(0), TerminalId(1)],
 };
-// S : . Plus_0 { Digit, Alpha }
+// S : . Plus_0 { Alpha, Digit }
 pub static FIRST_SET_S_ALT0: TerminalSet = TerminalSet {
     id: 1,
-    terminals: &[TerminalId(1), TerminalId(0)],
+    terminals: &[TerminalId(0), TerminalId(1)],
 };
-// Id { Digit, Alpha, EOF }
+// Id { Alpha, Digit, EOF }
 pub static FOLLOW_SET_ID: TerminalSet = TerminalSet {
     id: 2,
-    terminals: &[TerminalId(1), TerminalId(0), TerminalId(3)],
+    terminals: &[TerminalId(0), TerminalId(1), TerminalId(3)],
 };
-// Id { Digit, Alpha }
+// Id { Alpha, Digit }
 pub static FIRST_SET_ID: TerminalSet = TerminalSet {
     id: 0,
-    terminals: &[TerminalId(1), TerminalId(0)],
+    terminals: &[TerminalId(0), TerminalId(1)],
 };
-// Id : . Plus_1 !>> Alpha !>> Digit { Digit, Alpha }
+// Id : . Plus_1 !>> Alpha !>> Digit { Alpha, Digit }
 pub static FIRST_SET_ID_ALT0: TerminalSet = TerminalSet {
     id: 1,
-    terminals: &[TerminalId(1), TerminalId(0)],
+    terminals: &[TerminalId(0), TerminalId(1)],
 };
 // Id : . Plus_1 !>> Alpha !>> Digit !>> { Alpha, Digit }
 pub static FOLLOW_RESTRICTION_ID_ALT0_POS0: TerminalSet = TerminalSet {
     id: 1,
     terminals: &[TerminalId(0), TerminalId(1)],
 };
-// Plus_0 { Digit, Alpha, EOF }
+// Plus_0 { Alpha, Digit, EOF }
 pub static FOLLOW_SET_PLUS_0: TerminalSet = TerminalSet {
     id: 2,
-    terminals: &[TerminalId(1), TerminalId(0), TerminalId(3)],
+    terminals: &[TerminalId(0), TerminalId(1), TerminalId(3)],
 };
-// Plus_0 { Digit, Alpha }
+// Plus_0 { Alpha, Digit }
 pub static FIRST_SET_PLUS_0: TerminalSet = TerminalSet {
     id: 0,
-    terminals: &[TerminalId(1), TerminalId(0)],
+    terminals: &[TerminalId(0), TerminalId(1)],
 };
-// Plus_0 : . Plus_0 Id { Digit, Alpha }
+// Plus_0 : . Plus_0 Id { Alpha, Digit }
 pub static FIRST_SET_PLUS_0_ALT0: TerminalSet = TerminalSet {
     id: 1,
-    terminals: &[TerminalId(1), TerminalId(0)],
+    terminals: &[TerminalId(0), TerminalId(1)],
 };
-// Plus_0 : . Id { Digit, Alpha }
+// Plus_0 : . Id { Alpha, Digit }
 pub static FIRST_SET_PLUS_0_ALT1: TerminalSet = TerminalSet {
     id: 1,
-    terminals: &[TerminalId(1), TerminalId(0)],
+    terminals: &[TerminalId(0), TerminalId(1)],
 };
-// Alt_0 { Digit, Alpha, EOF }
+// Alt_0 { Alpha, Digit, EOF }
 pub static FOLLOW_SET_ALT_0: TerminalSet = TerminalSet {
     id: 2,
-    terminals: &[TerminalId(1), TerminalId(0), TerminalId(3)],
+    terminals: &[TerminalId(0), TerminalId(1), TerminalId(3)],
 };
-// Alt_0 { Digit, Alpha }
+// Alt_0 { Alpha, Digit }
 pub static FIRST_SET_ALT_0: TerminalSet = TerminalSet {
     id: 0,
-    terminals: &[TerminalId(1), TerminalId(0)],
+    terminals: &[TerminalId(0), TerminalId(1)],
 };
 // Alt_0 : . Alpha { Alpha }
 pub static FIRST_SET_ALT_0_ALT0: TerminalSet = TerminalSet {
@@ -210,53 +210,53 @@ pub static FIRST_SET_ALT_0_ALT1: TerminalSet = TerminalSet {
     id: 4,
     terminals: &[TerminalId(1)],
 };
-// Plus_1 { Digit, Alpha, EOF }
+// Plus_1 { Alpha, Digit, EOF }
 pub static FOLLOW_SET_PLUS_1: TerminalSet = TerminalSet {
     id: 2,
-    terminals: &[TerminalId(1), TerminalId(0), TerminalId(3)],
+    terminals: &[TerminalId(0), TerminalId(1), TerminalId(3)],
 };
-// Plus_1 { Digit, Alpha }
+// Plus_1 { Alpha, Digit }
 pub static FIRST_SET_PLUS_1: TerminalSet = TerminalSet {
     id: 0,
-    terminals: &[TerminalId(1), TerminalId(0)],
+    terminals: &[TerminalId(0), TerminalId(1)],
 };
-// Plus_1 : . Plus_1 Alt_0 { Digit, Alpha }
+// Plus_1 : . Plus_1 Alt_0 { Alpha, Digit }
 pub static FIRST_SET_PLUS_1_ALT0: TerminalSet = TerminalSet {
     id: 1,
-    terminals: &[TerminalId(1), TerminalId(0)],
+    terminals: &[TerminalId(0), TerminalId(1)],
 };
-// Plus_1 : . Alt_0 { Digit, Alpha }
+// Plus_1 : . Alt_0 { Alpha, Digit }
 pub static FIRST_SET_PLUS_1_ALT1: TerminalSet = TerminalSet {
     id: 1,
-    terminals: &[TerminalId(1), TerminalId(0)],
+    terminals: &[TerminalId(0), TerminalId(1)],
 };
 // StartS { EOF }
 pub static FOLLOW_SET_START_S: TerminalSet = TerminalSet {
     id: 0,
     terminals: &[TerminalId(3)],
 };
-// StartS { Digit, Alpha }
+// StartS { Alpha, Digit }
 pub static FIRST_SET_START_S: TerminalSet = TerminalSet {
     id: 0,
-    terminals: &[TerminalId(1), TerminalId(0)],
+    terminals: &[TerminalId(0), TerminalId(1)],
 };
-// StartS : . start:S { Digit, Alpha }
+// StartS : . start:S { Alpha, Digit }
 pub static FIRST_SET_START_S_ALT0: TerminalSet = TerminalSet {
     id: 1,
-    terminals: &[TerminalId(1), TerminalId(0)],
+    terminals: &[TerminalId(0), TerminalId(1)],
 };
 // StartId { EOF }
 pub static FOLLOW_SET_START_ID: TerminalSet = TerminalSet {
     id: 0,
     terminals: &[TerminalId(3)],
 };
-// StartId { Digit, Alpha }
+// StartId { Alpha, Digit }
 pub static FIRST_SET_START_ID: TerminalSet = TerminalSet {
     id: 0,
-    terminals: &[TerminalId(1), TerminalId(0)],
+    terminals: &[TerminalId(0), TerminalId(1)],
 };
-// StartId : . start:Id { Digit, Alpha }
+// StartId : . start:Id { Alpha, Digit }
 pub static FIRST_SET_START_ID_ALT0: TerminalSet = TerminalSet {
     id: 1,
-    terminals: &[TerminalId(1), TerminalId(0)],
+    terminals: &[TerminalId(0), TerminalId(1)],
 };

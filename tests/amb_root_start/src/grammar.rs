@@ -210,15 +210,15 @@ impl Grammar for AmbRootStartGrammar {
         }
     }
 }
-// E { "-", EOF, ")", WS }
+// E { WS, ")", "-", EOF }
 pub static FOLLOW_SET_E: TerminalSet = TerminalSet {
     id: 0,
-    terminals: &[TerminalId(4), TerminalId(6), TerminalId(3), TerminalId(1)],
+    terminals: &[TerminalId(1), TerminalId(3), TerminalId(4), TerminalId(6)],
 };
-// E { "(", Id, "-" }
+// E { Id, "(", "-" }
 pub static FIRST_SET_E: TerminalSet = TerminalSet {
     id: 0,
-    terminals: &[TerminalId(2), TerminalId(0), TerminalId(4)],
+    terminals: &[TerminalId(0), TerminalId(2), TerminalId(4)],
 };
 // E(p: i32) : . "(" WS Type WS ")" WS E(2) return 2 { "(" }
 pub static FIRST_SET_E_ALT0: TerminalSet = TerminalSet {
@@ -272,25 +272,25 @@ pub static FOLLOW_SET_START_E: TerminalSet = TerminalSet {
     id: 6,
     terminals: &[TerminalId(6)],
 };
-// StartE { "-", "(", Id, WS }
+// StartE { Id, WS, "(", "-" }
 pub static FIRST_SET_START_E: TerminalSet = TerminalSet {
     id: 2,
-    terminals: &[TerminalId(4), TerminalId(2), TerminalId(0), TerminalId(1)],
+    terminals: &[TerminalId(0), TerminalId(1), TerminalId(2), TerminalId(4)],
 };
-// StartE : . WS start:E(0) WS { WS, "(", Id, "-" }
+// StartE : . WS start:E(0) WS { Id, WS, "(", "-" }
 pub static FIRST_SET_START_E_ALT0: TerminalSet = TerminalSet {
     id: 7,
-    terminals: &[TerminalId(1), TerminalId(2), TerminalId(0), TerminalId(4)],
+    terminals: &[TerminalId(0), TerminalId(1), TerminalId(2), TerminalId(4)],
 };
 // StartType { EOF }
 pub static FOLLOW_SET_START_TYPE: TerminalSet = TerminalSet {
     id: 6,
     terminals: &[TerminalId(6)],
 };
-// StartType { WS, Id }
+// StartType { Id, WS }
 pub static FIRST_SET_START_TYPE: TerminalSet = TerminalSet {
     id: 3,
-    terminals: &[TerminalId(1), TerminalId(0)],
+    terminals: &[TerminalId(0), TerminalId(1)],
 };
 // StartType : . WS start:Type WS { Id, WS }
 pub static FIRST_SET_START_TYPE_ALT0: TerminalSet = TerminalSet {

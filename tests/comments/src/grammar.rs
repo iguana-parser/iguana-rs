@@ -98,10 +98,10 @@ impl Grammar for CommentsGrammar {
         }
     }
 }
-// Expr { "+", "*", Layout, EOF }
+// Expr { Layout, "+", "*", EOF }
 pub static FOLLOW_SET_EXPR: TerminalSet = TerminalSet {
     id: 0,
-    terminals: &[TerminalId(4), TerminalId(5), TerminalId(0), TerminalId(8)],
+    terminals: &[TerminalId(0), TerminalId(4), TerminalId(5), TerminalId(8)],
 };
 // Expr { "x" }
 pub static FIRST_SET_EXPR: TerminalSet = TerminalSet {

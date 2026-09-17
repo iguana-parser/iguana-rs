@@ -1,4 +1,4 @@
-use rustc_hash::{FxHashMap, FxHashSet};
+use rustc_hash::FxHashMap;
 
 use crate::generator::id::TerminalIds;
 use crate::grammar::def::Grammar;
@@ -87,7 +87,11 @@ impl TerminalSet<'_> {
     }
 }
 
-pub fn terminal_sets<'a>(grammar: &'a Grammar, ff: &FirstFollowSets) -> Vec<TerminalSet<'a>> {
+pub fn terminal_sets<'a>(
+    grammar: &'a Grammar,
+    ff: &FirstFollowSets,
+    terminal_ids: &TerminalIds,
+) -> Vec<TerminalSet<'a>> {
     let mut sets = vec![];
     for nonterminal in grammar.nonterminals() {
         let alternatives = grammar.alternatives(nonterminal);
@@ -95,25 +99,29 @@ pub fn terminal_sets<'a>(grammar: &'a Grammar, ff: &FirstFollowSets) -> Vec<Term
         sets.push(TerminalSet {
             nonterminal,
             kind: SetKind::Follow,
-            terminals: ff.follow_set(nonterminal).cloned().collect(),
+            terminals: canonical_order(ff.follow_set(nonterminal).cloned().collect(), terminal_ids),
         });
 
         sets.push(TerminalSet {
             nonterminal,
             kind: SetKind::First,
-            terminals: alternatives
-                .iter()
-                .flat_map(|alt| ff.first_set(alt))
-                .collect::<FxHashSet<_>>()
-                .into_iter()
-                .collect(),
+            terminals: canonical_order(
+                alternatives
+                    .iter()
+                    .flat_map(|alt| ff.first_set(alt))
+                    .collect(),
+                terminal_ids,
+            ),
         });
 
         for (alt, alternative) in alternatives.iter().enumerate() {
             sets.push(TerminalSet {
                 nonterminal,
                 kind: SetKind::FirstAlt(alt),
-                terminals: ff.first_set(alternative).into_iter().collect(),
+                terminals: canonical_order(
+                    ff.first_set(alternative).into_iter().collect(),
+                    terminal_ids,
+                ),
             });
         }
 
@@ -124,16 +132,19 @@ pub fn terminal_sets<'a>(grammar: &'a Grammar, ff: &FirstFollowSets) -> Vec<Term
                     sets.push(TerminalSet {
                         nonterminal,
                         kind: SetKind::FollowRestriction { alt, pos },
-                        terminals: restriction_terminals(grammar, &restrictions.follow),
+                        terminals: canonical_order(
+                            restriction_terminals(grammar, &restrictions.follow),
+                            terminal_ids,
+                        ),
                     });
                 }
                 if !restrictions.layout_aware_follow.is_empty() {
                     sets.push(TerminalSet {
                         nonterminal,
                         kind: SetKind::LayoutAwareFollowRestriction { alt, pos },
-                        terminals: restriction_terminals(
-                            grammar,
-                            &restrictions.layout_aware_follow,
+                        terminals: canonical_order(
+                            restriction_terminals(grammar, &restrictions.layout_aware_follow),
+                            terminal_ids,
                         ),
                     });
                 }
@@ -143,28 +154,33 @@ pub fn terminal_sets<'a>(grammar: &'a Grammar, ff: &FirstFollowSets) -> Vec<Term
     sets
 }
 
-/// Content-deduplicated ids for one family of terminal sets.
-///
-/// `match_any` and `longest_match` are both order-insensitive, so two sets with
+/// Content-deduplicated ids for one family of terminal sets: two sets with
 /// the same terminals share an id. Ids are assigned by content in the order
-/// `terminal_sets` yields the sets, so the generated code is deterministic. The
-/// two families get separate id spaces, each numbered from zero: `match_any`
-/// keys its per-position memo by this id; `longest_match` is not memoized, but
-/// its sets are numbered the same way so every `TerminalSet` has one id.
+/// `terminal_sets` yields the sets, so the generated code is deterministic.
+///
+/// The two families get separate id spaces, each numbered from zero.
+/// `match_any` keys its per-position memo by this id, so that family must be
+/// dense. `longest_match` is not memoized, but its sets are numbered the same
+/// way so every `TerminalSet` has one id.
 pub struct SetIds {
     ids: FxHashMap<String, usize>,
     count: usize,
 }
 
 impl SetIds {
-    /// Ids for the sets the parser tests with `match_any`: every set except the
-    /// combined FIRST set.
+    /// Ids for the sets the parser tests with `match_any`, which only tests
+    /// membership: every set except the combined FIRST set.
     pub fn match_any(sets: &[TerminalSet], terminal_ids: &TerminalIds) -> Self {
         Self::new(sets, terminal_ids, |kind| !matches!(kind, SetKind::First))
     }
 
     /// Ids for the combined FIRST sets, which the LL(1) path dispatches on with
-    /// `longest_match`.
+    /// `longest_match`. Sharing an id between sets that differ only in order is
+    /// safe: `longest_match` returns the first terminal that reaches the longest
+    /// match, but the LL(1) path uses the result only to choose an alternative,
+    /// and the LL(1) classification rejects a nonterminal whose alternatives
+    /// start with prefix-overlapping terminals. A tie is therefore always between
+    /// terminals of the same alternative, and every order chooses the same one.
     pub fn longest_match(sets: &[TerminalSet], terminal_ids: &TerminalIds) -> Self {
         Self::new(sets, terminal_ids, |kind| matches!(kind, SetKind::First))
     }
@@ -180,14 +196,12 @@ impl SetIds {
             if !include(&set.kind) {
                 continue;
             }
-            // Sort and dedup so sets that differ only in terminal order share an id.
-            let mut content: Vec<TerminalId> = set
+            // The sets are in canonical order, so equal contents compare equal.
+            let content: Vec<TerminalId> = set
                 .terminals
                 .iter()
                 .map(|t| terminal_ids.get_id(t))
                 .collect();
-            content.sort_by_key(|t| t.0);
-            content.dedup();
             let next_id = content_ids.len();
             let id = *content_ids.entry(content).or_insert(next_id);
             ids.insert(set.name(), id);
@@ -209,6 +223,14 @@ impl SetIds {
     pub fn count(&self) -> usize {
         self.count
     }
+}
+
+/// Sorts `terminals` by ascending terminal id and removes duplicates, so that
+/// the same set is emitted the same way regardless of how it was collected.
+fn canonical_order(mut terminals: Vec<Terminal>, terminal_ids: &TerminalIds) -> Vec<Terminal> {
+    terminals.sort_by_key(|t| terminal_ids.get_id(t).0);
+    terminals.dedup();
+    terminals
 }
 
 fn restriction_terminals(grammar: &Grammar, restrictions: &[Identifier]) -> Vec<Terminal> {

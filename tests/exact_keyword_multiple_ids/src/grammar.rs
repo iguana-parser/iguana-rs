@@ -103,10 +103,10 @@ pub static FOLLOW_SET_S: TerminalSet = TerminalSet {
     id: 0,
     terminals: &[TerminalId(2), TerminalId(8)],
 };
-// S { "else", NumId, VarId }
+// S { VarId, NumId, "else" }
 pub static FIRST_SET_S: TerminalSet = TerminalSet {
     id: 0,
-    terminals: &[TerminalId(3), TerminalId(1), TerminalId(0)],
+    terminals: &[TerminalId(0), TerminalId(1), TerminalId(3)],
 };
 // S : . [a-z] !<< "else" !>> [0-9 a-z] WS VarId WS ";" { "else" }
 pub static FIRST_SET_S_ALT0: TerminalSet = TerminalSet {
@@ -133,13 +133,13 @@ pub static FOLLOW_SET_START_S: TerminalSet = TerminalSet {
     id: 5,
     terminals: &[TerminalId(8)],
 };
-// StartS { NumId, VarId, "else", WS }
+// StartS { VarId, NumId, WS, "else" }
 pub static FIRST_SET_START_S: TerminalSet = TerminalSet {
     id: 1,
-    terminals: &[TerminalId(1), TerminalId(0), TerminalId(3), TerminalId(2)],
+    terminals: &[TerminalId(0), TerminalId(1), TerminalId(2), TerminalId(3)],
 };
-// StartS : . WS start:S WS { NumId, VarId, "else", WS }
+// StartS : . WS start:S WS { VarId, NumId, WS, "else" }
 pub static FIRST_SET_START_S_ALT0: TerminalSet = TerminalSet {
     id: 6,
-    terminals: &[TerminalId(1), TerminalId(0), TerminalId(3), TerminalId(2)],
+    terminals: &[TerminalId(0), TerminalId(1), TerminalId(2), TerminalId(3)],
 };

@@ -275,30 +275,30 @@ impl Grammar for DanglingElseUnsafeGrammar {
         }
     }
 }
-// S { Comment, WhiteSpace, EOF }
+// S { WhiteSpace, Comment, EOF }
 pub static FOLLOW_SET_S: TerminalSet = TerminalSet {
     id: 0,
-    terminals: &[TerminalId(5), TerminalId(4), TerminalId(11)],
+    terminals: &[TerminalId(4), TerminalId(5), TerminalId(11)],
 };
-// S { "if", Id }
+// S { Id, "if" }
 pub static FIRST_SET_S: TerminalSet = TerminalSet {
     id: 0,
-    terminals: &[TerminalId(6), TerminalId(1)],
+    terminals: &[TerminalId(1), TerminalId(6)],
 };
 // S : . Plus_0 { Id, "if" }
 pub static FIRST_SET_S_ALT0: TerminalSet = TerminalSet {
     id: 1,
     terminals: &[TerminalId(1), TerminalId(6)],
 };
-// Statement { Comment, "if", Else, Id, WhiteSpace, EOF }
+// Statement { Id, Else, WhiteSpace, Comment, "if", EOF }
 pub static FOLLOW_SET_STATEMENT: TerminalSet = TerminalSet {
     id: 2,
     terminals: &[
+        TerminalId(1),
+        TerminalId(2),
+        TerminalId(4),
         TerminalId(5),
         TerminalId(6),
-        TerminalId(2),
-        TerminalId(1),
-        TerminalId(4),
         TerminalId(11),
     ],
 };
@@ -329,45 +329,45 @@ pub static LAYOUT_AWARE_FOLLOW_RESTRICTION_STATEMENT_ALT0_POS8: TerminalSet = Te
     id: 5,
     terminals: &[TerminalId(2)],
 };
-// Layout { "if", Else, ";", EOF, Cond, "(", Id, ")" }
+// Layout { Cond, Id, Else, "if", "(", ")", ";", EOF }
 pub static FOLLOW_SET_LAYOUT: TerminalSet = TerminalSet {
     id: 6,
     terminals: &[
-        TerminalId(6),
+        TerminalId(0),
+        TerminalId(1),
         TerminalId(2),
+        TerminalId(6),
+        TerminalId(7),
+        TerminalId(8),
         TerminalId(9),
         TerminalId(11),
-        TerminalId(0),
-        TerminalId(7),
-        TerminalId(1),
-        TerminalId(8),
     ],
 };
-// Layout { Comment, WhiteSpace }
+// Layout { WhiteSpace, Comment }
 pub static FIRST_SET_LAYOUT: TerminalSet = TerminalSet {
     id: 1,
-    terminals: &[TerminalId(5), TerminalId(4)],
+    terminals: &[TerminalId(4), TerminalId(5)],
 };
-// Layout : . Star_0 { Comment, WhiteSpace }
+// Layout : . Star_0 { WhiteSpace, Comment }
 pub static FIRST_SET_LAYOUT_ALT0: TerminalSet = TerminalSet {
     id: 7,
-    terminals: &[TerminalId(5), TerminalId(4)],
+    terminals: &[TerminalId(4), TerminalId(5)],
 };
-// Plus_0 { Comment, "if", Id, WhiteSpace, EOF }
+// Plus_0 { Id, WhiteSpace, Comment, "if", EOF }
 pub static FOLLOW_SET_PLUS_0: TerminalSet = TerminalSet {
     id: 8,
     terminals: &[
-        TerminalId(5),
-        TerminalId(6),
         TerminalId(1),
         TerminalId(4),
+        TerminalId(5),
+        TerminalId(6),
         TerminalId(11),
     ],
 };
-// Plus_0 { "if", Id }
+// Plus_0 { Id, "if" }
 pub static FIRST_SET_PLUS_0: TerminalSet = TerminalSet {
     id: 0,
-    terminals: &[TerminalId(6), TerminalId(1)],
+    terminals: &[TerminalId(1), TerminalId(6)],
 };
 // Plus_0 : . Plus_0 Layout Statement { Id, "if" }
 pub static FIRST_SET_PLUS_0_ALT0: TerminalSet = TerminalSet {
@@ -379,26 +379,26 @@ pub static FIRST_SET_PLUS_0_ALT1: TerminalSet = TerminalSet {
     id: 1,
     terminals: &[TerminalId(1), TerminalId(6)],
 };
-// Alt_0 { Comment, "if", Else, ";", WhiteSpace, Cond, EOF, "(", Id, ")" }
+// Alt_0 { Cond, Id, Else, WhiteSpace, Comment, "if", "(", ")", ";", EOF }
 pub static FOLLOW_SET_ALT_0: TerminalSet = TerminalSet {
     id: 9,
     terminals: &[
+        TerminalId(0),
+        TerminalId(1),
+        TerminalId(2),
+        TerminalId(4),
         TerminalId(5),
         TerminalId(6),
-        TerminalId(2),
-        TerminalId(9),
-        TerminalId(4),
-        TerminalId(0),
-        TerminalId(11),
         TerminalId(7),
-        TerminalId(1),
         TerminalId(8),
+        TerminalId(9),
+        TerminalId(11),
     ],
 };
-// Alt_0 { Comment, WhiteSpace }
+// Alt_0 { WhiteSpace, Comment }
 pub static FIRST_SET_ALT_0: TerminalSet = TerminalSet {
     id: 1,
-    terminals: &[TerminalId(5), TerminalId(4)],
+    terminals: &[TerminalId(4), TerminalId(5)],
 };
 // Alt_0 : . WhiteSpace { WhiteSpace }
 pub static FIRST_SET_ALT_0_ALT0: TerminalSet = TerminalSet {
@@ -410,117 +410,117 @@ pub static FIRST_SET_ALT_0_ALT1: TerminalSet = TerminalSet {
     id: 11,
     terminals: &[TerminalId(5)],
 };
-// Plus_1 { Comment, "if", Else, ";", WhiteSpace, Cond, EOF, "(", Id, ")" }
+// Plus_1 { Cond, Id, Else, WhiteSpace, Comment, "if", "(", ")", ";", EOF }
 pub static FOLLOW_SET_PLUS_1: TerminalSet = TerminalSet {
     id: 9,
     terminals: &[
+        TerminalId(0),
+        TerminalId(1),
+        TerminalId(2),
+        TerminalId(4),
         TerminalId(5),
         TerminalId(6),
-        TerminalId(2),
-        TerminalId(9),
-        TerminalId(4),
-        TerminalId(0),
-        TerminalId(11),
         TerminalId(7),
-        TerminalId(1),
         TerminalId(8),
+        TerminalId(9),
+        TerminalId(11),
     ],
 };
-// Plus_1 { Comment, WhiteSpace }
+// Plus_1 { WhiteSpace, Comment }
 pub static FIRST_SET_PLUS_1: TerminalSet = TerminalSet {
     id: 1,
-    terminals: &[TerminalId(5), TerminalId(4)],
+    terminals: &[TerminalId(4), TerminalId(5)],
 };
-// Plus_1 : . Plus_1 Alt_0 { Comment, WhiteSpace }
+// Plus_1 : . Plus_1 Alt_0 { WhiteSpace, Comment }
 pub static FIRST_SET_PLUS_1_ALT0: TerminalSet = TerminalSet {
     id: 7,
-    terminals: &[TerminalId(5), TerminalId(4)],
+    terminals: &[TerminalId(4), TerminalId(5)],
 };
-// Plus_1 : . Alt_0 { Comment, WhiteSpace }
+// Plus_1 : . Alt_0 { WhiteSpace, Comment }
 pub static FIRST_SET_PLUS_1_ALT1: TerminalSet = TerminalSet {
     id: 7,
-    terminals: &[TerminalId(5), TerminalId(4)],
+    terminals: &[TerminalId(4), TerminalId(5)],
 };
-// Opt_0 { "if", Else, ";", EOF, Cond, "(", Id, ")" }
+// Opt_0 { Cond, Id, Else, "if", "(", ")", ";", EOF }
 pub static FOLLOW_SET_OPT_0: TerminalSet = TerminalSet {
     id: 6,
     terminals: &[
-        TerminalId(6),
+        TerminalId(0),
+        TerminalId(1),
         TerminalId(2),
+        TerminalId(6),
+        TerminalId(7),
+        TerminalId(8),
         TerminalId(9),
         TerminalId(11),
-        TerminalId(0),
-        TerminalId(7),
-        TerminalId(1),
-        TerminalId(8),
     ],
 };
-// Opt_0 { Comment, WhiteSpace }
+// Opt_0 { WhiteSpace, Comment }
 pub static FIRST_SET_OPT_0: TerminalSet = TerminalSet {
     id: 1,
-    terminals: &[TerminalId(5), TerminalId(4)],
+    terminals: &[TerminalId(4), TerminalId(5)],
 };
-// Opt_0 : . Plus_1 { Comment, WhiteSpace }
+// Opt_0 : . Plus_1 { WhiteSpace, Comment }
 pub static FIRST_SET_OPT_0_ALT0: TerminalSet = TerminalSet {
     id: 7,
-    terminals: &[TerminalId(5), TerminalId(4)],
+    terminals: &[TerminalId(4), TerminalId(5)],
 };
 // Opt_0 : . { }
 pub static FIRST_SET_OPT_0_ALT1: TerminalSet = TerminalSet {
     id: 12,
     terminals: &[],
 };
-// Star_0 { "if", Else, ";", EOF, Cond, "(", Id, ")" }
+// Star_0 { Cond, Id, Else, "if", "(", ")", ";", EOF }
 pub static FOLLOW_SET_STAR_0: TerminalSet = TerminalSet {
     id: 6,
     terminals: &[
-        TerminalId(6),
+        TerminalId(0),
+        TerminalId(1),
         TerminalId(2),
+        TerminalId(6),
+        TerminalId(7),
+        TerminalId(8),
         TerminalId(9),
         TerminalId(11),
-        TerminalId(0),
-        TerminalId(7),
-        TerminalId(1),
-        TerminalId(8),
     ],
 };
-// Star_0 { Comment, WhiteSpace }
+// Star_0 { WhiteSpace, Comment }
 pub static FIRST_SET_STAR_0: TerminalSet = TerminalSet {
     id: 1,
-    terminals: &[TerminalId(5), TerminalId(4)],
+    terminals: &[TerminalId(4), TerminalId(5)],
 };
-// Star_0 : . Opt_0 { Comment, WhiteSpace }
+// Star_0 : . Opt_0 { WhiteSpace, Comment }
 pub static FIRST_SET_STAR_0_ALT0: TerminalSet = TerminalSet {
     id: 7,
-    terminals: &[TerminalId(5), TerminalId(4)],
+    terminals: &[TerminalId(4), TerminalId(5)],
 };
 // StartS { EOF }
 pub static FOLLOW_SET_START_S: TerminalSet = TerminalSet {
     id: 13,
     terminals: &[TerminalId(11)],
 };
-// StartS { Comment, Id, "if", WhiteSpace }
+// StartS { Id, WhiteSpace, Comment, "if" }
 pub static FIRST_SET_START_S: TerminalSet = TerminalSet {
     id: 2,
-    terminals: &[TerminalId(5), TerminalId(1), TerminalId(6), TerminalId(4)],
+    terminals: &[TerminalId(1), TerminalId(4), TerminalId(5), TerminalId(6)],
 };
-// StartS : . Layout start:S Layout { Comment, "if", Id, WhiteSpace }
+// StartS : . Layout start:S Layout { Id, WhiteSpace, Comment, "if" }
 pub static FIRST_SET_START_S_ALT0: TerminalSet = TerminalSet {
     id: 14,
-    terminals: &[TerminalId(5), TerminalId(6), TerminalId(1), TerminalId(4)],
+    terminals: &[TerminalId(1), TerminalId(4), TerminalId(5), TerminalId(6)],
 };
 // StartStatement { EOF }
 pub static FOLLOW_SET_START_STATEMENT: TerminalSet = TerminalSet {
     id: 13,
     terminals: &[TerminalId(11)],
 };
-// StartStatement { Comment, Id, "if", WhiteSpace }
+// StartStatement { Id, WhiteSpace, Comment, "if" }
 pub static FIRST_SET_START_STATEMENT: TerminalSet = TerminalSet {
     id: 2,
-    terminals: &[TerminalId(5), TerminalId(1), TerminalId(6), TerminalId(4)],
+    terminals: &[TerminalId(1), TerminalId(4), TerminalId(5), TerminalId(6)],
 };
-// StartStatement : . Layout start:Statement Layout { Comment, "if", Id, WhiteSpace }
+// StartStatement : . Layout start:Statement Layout { Id, WhiteSpace, Comment, "if" }
 pub static FIRST_SET_START_STATEMENT_ALT0: TerminalSet = TerminalSet {
     id: 14,
-    terminals: &[TerminalId(5), TerminalId(6), TerminalId(1), TerminalId(4)],
+    terminals: &[TerminalId(1), TerminalId(4), TerminalId(5), TerminalId(6)],
 };

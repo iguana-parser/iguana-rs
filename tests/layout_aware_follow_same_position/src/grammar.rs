@@ -89,10 +89,10 @@ pub static FOLLOW_SET_START_S: TerminalSet = TerminalSet {
     id: 4,
     terminals: &[TerminalId(5)],
 };
-// StartS { WS, Id }
+// StartS { Id, WS }
 pub static FIRST_SET_START_S: TerminalSet = TerminalSet {
     id: 1,
-    terminals: &[TerminalId(3), TerminalId(0)],
+    terminals: &[TerminalId(0), TerminalId(3)],
 };
 // StartS : . WS start:S WS { Id, WS }
 pub static FIRST_SET_START_S_ALT0: TerminalSet = TerminalSet {

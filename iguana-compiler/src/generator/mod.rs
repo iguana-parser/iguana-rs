@@ -277,7 +277,7 @@ pub fn generate_sources(
         &lib_path,
     )?;
 
-    let terminal_sets = terminal_sets(grammar, &ff);
+    let terminal_sets = terminal_sets(grammar, &ff, &terminal_ids);
     let match_any_sets = SetIds::match_any(&terminal_sets, &terminal_ids);
     let longest_match_sets = SetIds::longest_match(&terminal_sets, &terminal_ids);
 

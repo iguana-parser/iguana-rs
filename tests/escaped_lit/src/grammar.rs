@@ -110,13 +110,13 @@ pub static FOLLOW_SET_START_S: TerminalSet = TerminalSet {
     id: 2,
     terminals: &[TerminalId(6)],
 };
-// StartS { "\"", WS }
+// StartS { WS, "\"" }
 pub static FIRST_SET_START_S: TerminalSet = TerminalSet {
     id: 1,
-    terminals: &[TerminalId(2), TerminalId(1)],
+    terminals: &[TerminalId(1), TerminalId(2)],
 };
-// StartS : . WS start:S WS { "\"", WS }
+// StartS : . WS start:S WS { WS, "\"" }
 pub static FIRST_SET_START_S_ALT0: TerminalSet = TerminalSet {
     id: 3,
-    terminals: &[TerminalId(2), TerminalId(1)],
+    terminals: &[TerminalId(1), TerminalId(2)],
 };

@@ -255,38 +255,38 @@ pub static FOLLOW_SET_PROGRAM: TerminalSet = TerminalSet {
     id: 0,
     terminals: &[TerminalId(2), TerminalId(11)],
 };
-// Program { Num, Id, "if", "assert" }
+// Program { Id, Num, "if", "assert" }
 pub static FIRST_SET_PROGRAM: TerminalSet = TerminalSet {
     id: 0,
-    terminals: &[TerminalId(1), TerminalId(0), TerminalId(4), TerminalId(8)],
+    terminals: &[TerminalId(0), TerminalId(1), TerminalId(4), TerminalId(8)],
 };
-// Program : . Plus_0 { Num, "if", Id, "assert" }
+// Program : . Plus_0 { Id, Num, "if", "assert" }
 pub static FIRST_SET_PROGRAM_ALT0: TerminalSet = TerminalSet {
     id: 1,
-    terminals: &[TerminalId(1), TerminalId(4), TerminalId(0), TerminalId(8)],
+    terminals: &[TerminalId(0), TerminalId(1), TerminalId(4), TerminalId(8)],
 };
-// Stmt { EOF, Num, "if", "else", Id, "assert", WS }
+// Stmt { Id, Num, WS, "if", "else", "assert", EOF }
 pub static FOLLOW_SET_STMT: TerminalSet = TerminalSet {
     id: 2,
     terminals: &[
-        TerminalId(11),
+        TerminalId(0),
         TerminalId(1),
+        TerminalId(2),
         TerminalId(4),
         TerminalId(7),
-        TerminalId(0),
         TerminalId(8),
-        TerminalId(2),
+        TerminalId(11),
     ],
 };
-// Stmt { Num, "if", Id, "assert" }
+// Stmt { Id, Num, "if", "assert" }
 pub static FIRST_SET_STMT: TerminalSet = TerminalSet {
     id: 0,
-    terminals: &[TerminalId(1), TerminalId(4), TerminalId(0), TerminalId(8)],
+    terminals: &[TerminalId(0), TerminalId(1), TerminalId(4), TerminalId(8)],
 };
-// Stmt : . Expr WS ";" { Num, Id }
+// Stmt : . Expr WS ";" { Id, Num }
 pub static FIRST_SET_STMT_ALT0: TerminalSet = TerminalSet {
     id: 3,
-    terminals: &[TerminalId(1), TerminalId(0)],
+    terminals: &[TerminalId(0), TerminalId(1)],
 };
 // Stmt : . [0-9 A-Z _ a-z] !<< "if" !>> [0-9 A-Z _ a-z] WS "(" WS Expr WS ")" WS Stmt WS
 // Opt_0 { "if" }
@@ -311,15 +311,15 @@ pub static FOLLOW_RESTRICTION_STMT_ALT2_POS0: TerminalSet = TerminalSet {
     id: 6,
     terminals: &[TerminalId(9)],
 };
-// Expr { EOF, ")", ";", WS }
+// Expr { WS, ";", ")", EOF }
 pub static FOLLOW_SET_EXPR: TerminalSet = TerminalSet {
     id: 7,
-    terminals: &[TerminalId(11), TerminalId(6), TerminalId(3), TerminalId(2)],
+    terminals: &[TerminalId(2), TerminalId(3), TerminalId(6), TerminalId(11)],
 };
-// Expr { Num, Id }
+// Expr { Id, Num }
 pub static FIRST_SET_EXPR: TerminalSet = TerminalSet {
     id: 1,
-    terminals: &[TerminalId(1), TerminalId(0)],
+    terminals: &[TerminalId(0), TerminalId(1)],
 };
 // Expr : . Id { Id }
 pub static FIRST_SET_EXPR_ALT0: TerminalSet = TerminalSet {
@@ -331,44 +331,44 @@ pub static FIRST_SET_EXPR_ALT1: TerminalSet = TerminalSet {
     id: 9,
     terminals: &[TerminalId(1)],
 };
-// Plus_0 { EOF, Num, "if", Id, "assert", WS }
+// Plus_0 { Id, Num, WS, "if", "assert", EOF }
 pub static FOLLOW_SET_PLUS_0: TerminalSet = TerminalSet {
     id: 10,
     terminals: &[
-        TerminalId(11),
-        TerminalId(1),
-        TerminalId(4),
         TerminalId(0),
-        TerminalId(8),
+        TerminalId(1),
         TerminalId(2),
+        TerminalId(4),
+        TerminalId(8),
+        TerminalId(11),
     ],
 };
-// Plus_0 { Num, Id, "if", "assert" }
+// Plus_0 { Id, Num, "if", "assert" }
 pub static FIRST_SET_PLUS_0: TerminalSet = TerminalSet {
     id: 0,
-    terminals: &[TerminalId(1), TerminalId(0), TerminalId(4), TerminalId(8)],
+    terminals: &[TerminalId(0), TerminalId(1), TerminalId(4), TerminalId(8)],
 };
-// Plus_0 : . Plus_0 WS Stmt { Num, "if", Id, "assert" }
+// Plus_0 : . Plus_0 WS Stmt { Id, Num, "if", "assert" }
 pub static FIRST_SET_PLUS_0_ALT0: TerminalSet = TerminalSet {
     id: 1,
-    terminals: &[TerminalId(1), TerminalId(4), TerminalId(0), TerminalId(8)],
+    terminals: &[TerminalId(0), TerminalId(1), TerminalId(4), TerminalId(8)],
 };
-// Plus_0 : . Stmt { Num, "if", Id, "assert" }
+// Plus_0 : . Stmt { Id, Num, "if", "assert" }
 pub static FIRST_SET_PLUS_0_ALT1: TerminalSet = TerminalSet {
     id: 1,
-    terminals: &[TerminalId(1), TerminalId(4), TerminalId(0), TerminalId(8)],
+    terminals: &[TerminalId(0), TerminalId(1), TerminalId(4), TerminalId(8)],
 };
-// Group_0 { EOF, Num, "if", "else", Id, "assert", WS }
+// Group_0 { Id, Num, WS, "if", "else", "assert", EOF }
 pub static FOLLOW_SET_GROUP_0: TerminalSet = TerminalSet {
     id: 2,
     terminals: &[
-        TerminalId(11),
+        TerminalId(0),
         TerminalId(1),
+        TerminalId(2),
         TerminalId(4),
         TerminalId(7),
-        TerminalId(0),
         TerminalId(8),
-        TerminalId(2),
+        TerminalId(11),
     ],
 };
 // Group_0 { "else" }
@@ -386,17 +386,17 @@ pub static FOLLOW_RESTRICTION_GROUP_0_ALT0_POS0: TerminalSet = TerminalSet {
     id: 6,
     terminals: &[TerminalId(9)],
 };
-// Opt_0 { EOF, Num, "if", "else", Id, "assert", WS }
+// Opt_0 { Id, Num, WS, "if", "else", "assert", EOF }
 pub static FOLLOW_SET_OPT_0: TerminalSet = TerminalSet {
     id: 2,
     terminals: &[
-        TerminalId(11),
+        TerminalId(0),
         TerminalId(1),
+        TerminalId(2),
         TerminalId(4),
         TerminalId(7),
-        TerminalId(0),
         TerminalId(8),
-        TerminalId(2),
+        TerminalId(11),
     ],
 };
 // Opt_0 { "else" }
@@ -419,26 +419,26 @@ pub static FOLLOW_SET_START_PROGRAM: TerminalSet = TerminalSet {
     id: 13,
     terminals: &[TerminalId(11)],
 };
-// StartProgram { Num, Id, "if", "assert", WS }
+// StartProgram { Id, Num, WS, "if", "assert" }
 pub static FIRST_SET_START_PROGRAM: TerminalSet = TerminalSet {
     id: 3,
     terminals: &[
-        TerminalId(1),
         TerminalId(0),
+        TerminalId(1),
+        TerminalId(2),
         TerminalId(4),
         TerminalId(8),
-        TerminalId(2),
     ],
 };
-// StartProgram : . WS start:Program WS { Num, "if", Id, "assert", WS }
+// StartProgram : . WS start:Program WS { Id, Num, WS, "if", "assert" }
 pub static FIRST_SET_START_PROGRAM_ALT0: TerminalSet = TerminalSet {
     id: 14,
     terminals: &[
-        TerminalId(1),
-        TerminalId(4),
         TerminalId(0),
-        TerminalId(8),
+        TerminalId(1),
         TerminalId(2),
+        TerminalId(4),
+        TerminalId(8),
     ],
 };
 // StartStmt { EOF }
@@ -446,26 +446,26 @@ pub static FOLLOW_SET_START_STMT: TerminalSet = TerminalSet {
     id: 13,
     terminals: &[TerminalId(11)],
 };
-// StartStmt { Num, Id, "if", "assert", WS }
+// StartStmt { Id, Num, WS, "if", "assert" }
 pub static FIRST_SET_START_STMT: TerminalSet = TerminalSet {
     id: 3,
     terminals: &[
-        TerminalId(1),
         TerminalId(0),
+        TerminalId(1),
+        TerminalId(2),
         TerminalId(4),
         TerminalId(8),
-        TerminalId(2),
     ],
 };
-// StartStmt : . WS start:Stmt WS { Num, "if", Id, "assert", WS }
+// StartStmt : . WS start:Stmt WS { Id, Num, WS, "if", "assert" }
 pub static FIRST_SET_START_STMT_ALT0: TerminalSet = TerminalSet {
     id: 14,
     terminals: &[
-        TerminalId(1),
-        TerminalId(4),
         TerminalId(0),
-        TerminalId(8),
+        TerminalId(1),
         TerminalId(2),
+        TerminalId(4),
+        TerminalId(8),
     ],
 };
 // StartExpr { EOF }
@@ -473,10 +473,10 @@ pub static FOLLOW_SET_START_EXPR: TerminalSet = TerminalSet {
     id: 13,
     terminals: &[TerminalId(11)],
 };
-// StartExpr { WS, Num, Id }
+// StartExpr { Id, Num, WS }
 pub static FIRST_SET_START_EXPR: TerminalSet = TerminalSet {
     id: 4,
-    terminals: &[TerminalId(2), TerminalId(1), TerminalId(0)],
+    terminals: &[TerminalId(0), TerminalId(1), TerminalId(2)],
 };
 // StartExpr : . WS start:Expr WS { Id, Num, WS }
 pub static FIRST_SET_START_EXPR_ALT0: TerminalSet = TerminalSet {

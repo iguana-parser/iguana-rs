@@ -147,10 +147,10 @@ pub static FOLLOW_SET_S: TerminalSet = TerminalSet {
     id: 0,
     terminals: &[TerminalId(1), TerminalId(8)],
 };
-// S { "new", Id }
+// S { Id, "new" }
 pub static FIRST_SET_S: TerminalSet = TerminalSet {
     id: 0,
-    terminals: &[TerminalId(3), TerminalId(0)],
+    terminals: &[TerminalId(0), TerminalId(3)],
 };
 // S : . Type WS ";" { Id }
 pub static FIRST_SET_S_ALT0: TerminalSet = TerminalSet {
@@ -167,10 +167,10 @@ pub static FOLLOW_RESTRICTION_S_ALT1_POS0: TerminalSet = TerminalSet {
     id: 3,
     terminals: &[TerminalId(6)],
 };
-// Type { EOF, ">", ";", WS }
+// Type { WS, ";", ">", EOF }
 pub static FOLLOW_SET_TYPE: TerminalSet = TerminalSet {
     id: 4,
-    terminals: &[TerminalId(8), TerminalId(5), TerminalId(2), TerminalId(1)],
+    terminals: &[TerminalId(1), TerminalId(2), TerminalId(5), TerminalId(8)],
 };
 // Type { Id }
 pub static FIRST_SET_TYPE: TerminalSet = TerminalSet {
@@ -192,25 +192,25 @@ pub static FOLLOW_SET_START_S: TerminalSet = TerminalSet {
     id: 5,
     terminals: &[TerminalId(8)],
 };
-// StartS { "new", WS, Id }
+// StartS { Id, WS, "new" }
 pub static FIRST_SET_START_S: TerminalSet = TerminalSet {
     id: 2,
-    terminals: &[TerminalId(3), TerminalId(1), TerminalId(0)],
+    terminals: &[TerminalId(0), TerminalId(1), TerminalId(3)],
 };
-// StartS : . WS start:S WS { "new", Id, WS }
+// StartS : . WS start:S WS { Id, WS, "new" }
 pub static FIRST_SET_START_S_ALT0: TerminalSet = TerminalSet {
     id: 6,
-    terminals: &[TerminalId(3), TerminalId(0), TerminalId(1)],
+    terminals: &[TerminalId(0), TerminalId(1), TerminalId(3)],
 };
 // StartType { EOF }
 pub static FOLLOW_SET_START_TYPE: TerminalSet = TerminalSet {
     id: 5,
     terminals: &[TerminalId(8)],
 };
-// StartType { WS, Id }
+// StartType { Id, WS }
 pub static FIRST_SET_START_TYPE: TerminalSet = TerminalSet {
     id: 3,
-    terminals: &[TerminalId(1), TerminalId(0)],
+    terminals: &[TerminalId(0), TerminalId(1)],
 };
 // StartType : . WS start:Type WS { Id, WS }
 pub static FIRST_SET_START_TYPE_ALT0: TerminalSet = TerminalSet {

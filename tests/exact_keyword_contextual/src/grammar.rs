@@ -104,10 +104,10 @@ pub static FOLLOW_SET_DECL: TerminalSet = TerminalSet {
     id: 0,
     terminals: &[TerminalId(1), TerminalId(7)],
 };
-// Decl { "var", Id }
+// Decl { Id, "var" }
 pub static FIRST_SET_DECL: TerminalSet = TerminalSet {
     id: 0,
-    terminals: &[TerminalId(2), TerminalId(0)],
+    terminals: &[TerminalId(0), TerminalId(2)],
 };
 // Decl : . [0-9 A-Z _ a-z] !<< "var" !>> [0-9 A-Z _ a-z] WS Id WS ";" { "var" }
 pub static FIRST_SET_DECL_ALT0: TerminalSet = TerminalSet {
@@ -130,13 +130,13 @@ pub static FOLLOW_SET_START_DECL: TerminalSet = TerminalSet {
     id: 4,
     terminals: &[TerminalId(7)],
 };
-// StartDecl { WS, "var", Id }
+// StartDecl { Id, WS, "var" }
 pub static FIRST_SET_START_DECL: TerminalSet = TerminalSet {
     id: 1,
-    terminals: &[TerminalId(1), TerminalId(2), TerminalId(0)],
+    terminals: &[TerminalId(0), TerminalId(1), TerminalId(2)],
 };
-// StartDecl : . WS start:Decl WS { Id, "var", WS }
+// StartDecl : . WS start:Decl WS { Id, WS, "var" }
 pub static FIRST_SET_START_DECL_ALT0: TerminalSet = TerminalSet {
     id: 5,
-    terminals: &[TerminalId(0), TerminalId(2), TerminalId(1)],
+    terminals: &[TerminalId(0), TerminalId(1), TerminalId(2)],
 };

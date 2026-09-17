@@ -221,10 +221,10 @@ pub static FIRST_SET_S_ALT0: TerminalSet = TerminalSet {
     id: 1,
     terminals: &[TerminalId(1)],
 };
-// E { "+", EOF, "!", WS }
+// E { WS, "+", "!", EOF }
 pub static FOLLOW_SET_E: TerminalSet = TerminalSet {
     id: 2,
-    terminals: &[TerminalId(2), TerminalId(5), TerminalId(3), TerminalId(0)],
+    terminals: &[TerminalId(0), TerminalId(2), TerminalId(3), TerminalId(5)],
 };
 // E { "a" }
 pub static FIRST_SET_E: TerminalSet = TerminalSet {
@@ -247,10 +247,10 @@ pub static FIRST_SET_E_ALT2: TerminalSet = TerminalSet {
     id: 1,
     terminals: &[TerminalId(1)],
 };
-// Postfix { "+", EOF, "!", WS }
+// Postfix { WS, "+", "!", EOF }
 pub static FOLLOW_SET_POSTFIX: TerminalSet = TerminalSet {
     id: 2,
-    terminals: &[TerminalId(2), TerminalId(5), TerminalId(3), TerminalId(0)],
+    terminals: &[TerminalId(0), TerminalId(2), TerminalId(3), TerminalId(5)],
 };
 // Postfix { "a" }
 pub static FIRST_SET_POSTFIX: TerminalSet = TerminalSet {
@@ -282,58 +282,58 @@ pub static FOLLOW_SET_START_S: TerminalSet = TerminalSet {
     id: 4,
     terminals: &[TerminalId(5)],
 };
-// StartS { "a", WS }
+// StartS { WS, "a" }
 pub static FIRST_SET_START_S: TerminalSet = TerminalSet {
     id: 1,
-    terminals: &[TerminalId(1), TerminalId(0)],
+    terminals: &[TerminalId(0), TerminalId(1)],
 };
-// StartS : . WS start:S WS { "a", WS }
+// StartS : . WS start:S WS { WS, "a" }
 pub static FIRST_SET_START_S_ALT0: TerminalSet = TerminalSet {
     id: 5,
-    terminals: &[TerminalId(1), TerminalId(0)],
+    terminals: &[TerminalId(0), TerminalId(1)],
 };
 // StartE { EOF }
 pub static FOLLOW_SET_START_E: TerminalSet = TerminalSet {
     id: 4,
     terminals: &[TerminalId(5)],
 };
-// StartE { "a", WS }
+// StartE { WS, "a" }
 pub static FIRST_SET_START_E: TerminalSet = TerminalSet {
     id: 1,
-    terminals: &[TerminalId(1), TerminalId(0)],
+    terminals: &[TerminalId(0), TerminalId(1)],
 };
-// StartE : . WS start:E(0) WS { "a", WS }
+// StartE : . WS start:E(0) WS { WS, "a" }
 pub static FIRST_SET_START_E_ALT0: TerminalSet = TerminalSet {
     id: 5,
-    terminals: &[TerminalId(1), TerminalId(0)],
+    terminals: &[TerminalId(0), TerminalId(1)],
 };
 // StartPostfix { EOF }
 pub static FOLLOW_SET_START_POSTFIX: TerminalSet = TerminalSet {
     id: 4,
     terminals: &[TerminalId(5)],
 };
-// StartPostfix { "a", WS }
+// StartPostfix { WS, "a" }
 pub static FIRST_SET_START_POSTFIX: TerminalSet = TerminalSet {
     id: 1,
-    terminals: &[TerminalId(1), TerminalId(0)],
+    terminals: &[TerminalId(0), TerminalId(1)],
 };
-// StartPostfix : . WS start:Postfix(0) WS { "a", WS }
+// StartPostfix : . WS start:Postfix(0) WS { WS, "a" }
 pub static FIRST_SET_START_POSTFIX_ALT0: TerminalSet = TerminalSet {
     id: 5,
-    terminals: &[TerminalId(1), TerminalId(0)],
+    terminals: &[TerminalId(0), TerminalId(1)],
 };
 // StartBody { EOF }
 pub static FOLLOW_SET_START_BODY: TerminalSet = TerminalSet {
     id: 4,
     terminals: &[TerminalId(5)],
 };
-// StartBody { "a", WS }
+// StartBody { WS, "a" }
 pub static FIRST_SET_START_BODY: TerminalSet = TerminalSet {
     id: 1,
-    terminals: &[TerminalId(1), TerminalId(0)],
+    terminals: &[TerminalId(0), TerminalId(1)],
 };
-// StartBody : . WS start:Body(0) WS { "a", WS }
+// StartBody : . WS start:Body(0) WS { WS, "a" }
 pub static FIRST_SET_START_BODY_ALT0: TerminalSet = TerminalSet {
     id: 5,
-    terminals: &[TerminalId(1), TerminalId(0)],
+    terminals: &[TerminalId(0), TerminalId(1)],
 };

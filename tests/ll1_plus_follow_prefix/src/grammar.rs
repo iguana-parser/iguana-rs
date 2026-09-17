@@ -94,10 +94,10 @@ pub static FIRST_SET_S_ALT0: TerminalSet = TerminalSet {
     id: 1,
     terminals: &[TerminalId(0)],
 };
-// Plus_0 { "a", "ab", EOF }
+// Plus_0 { "ab", "a", EOF }
 pub static FOLLOW_SET_PLUS_0: TerminalSet = TerminalSet {
     id: 2,
-    terminals: &[TerminalId(1), TerminalId(0), TerminalId(4)],
+    terminals: &[TerminalId(0), TerminalId(1), TerminalId(4)],
 };
 // Plus_0 { "ab" }
 pub static FIRST_SET_PLUS_0: TerminalSet = TerminalSet {

@@ -169,25 +169,25 @@ pub static FOLLOW_SET_S: TerminalSet = TerminalSet {
     id: 0,
     terminals: &[TerminalId(1), TerminalId(5)],
 };
-// S { "static", "public" }
+// S { "public", "static" }
 pub static FIRST_SET_S: TerminalSet = TerminalSet {
     id: 0,
-    terminals: &[TerminalId(3), TerminalId(2)],
+    terminals: &[TerminalId(2), TerminalId(3)],
 };
-// S : . Mod WS Empty WS Tag { "static", "public" }
+// S : . Mod WS Empty WS Tag { "public", "static" }
 pub static FIRST_SET_S_ALT0: TerminalSet = TerminalSet {
     id: 1,
-    terminals: &[TerminalId(3), TerminalId(2)],
+    terminals: &[TerminalId(2), TerminalId(3)],
 };
-// Mod { WS, Id, EOF }
+// Mod { Id, WS, EOF }
 pub static FOLLOW_SET_MOD: TerminalSet = TerminalSet {
     id: 2,
-    terminals: &[TerminalId(1), TerminalId(0), TerminalId(5)],
+    terminals: &[TerminalId(0), TerminalId(1), TerminalId(5)],
 };
-// Mod { "static", "public" }
+// Mod { "public", "static" }
 pub static FIRST_SET_MOD: TerminalSet = TerminalSet {
     id: 0,
-    terminals: &[TerminalId(3), TerminalId(2)],
+    terminals: &[TerminalId(2), TerminalId(3)],
 };
 // Mod : . "public" { "public" }
 pub static FIRST_SET_MOD_ALT0: TerminalSet = TerminalSet {
@@ -199,10 +199,10 @@ pub static FIRST_SET_MOD_ALT1: TerminalSet = TerminalSet {
     id: 4,
     terminals: &[TerminalId(3)],
 };
-// Empty { WS, Id, EOF }
+// Empty { Id, WS, EOF }
 pub static FOLLOW_SET_EMPTY: TerminalSet = TerminalSet {
     id: 2,
-    terminals: &[TerminalId(1), TerminalId(0), TerminalId(5)],
+    terminals: &[TerminalId(0), TerminalId(1), TerminalId(5)],
 };
 // Empty { }
 pub static FIRST_SET_EMPTY: TerminalSet = TerminalSet {
@@ -234,30 +234,30 @@ pub static FOLLOW_SET_START_S: TerminalSet = TerminalSet {
     id: 7,
     terminals: &[TerminalId(5)],
 };
-// StartS { "static", "public", WS }
+// StartS { WS, "public", "static" }
 pub static FIRST_SET_START_S: TerminalSet = TerminalSet {
     id: 3,
-    terminals: &[TerminalId(3), TerminalId(2), TerminalId(1)],
+    terminals: &[TerminalId(1), TerminalId(2), TerminalId(3)],
 };
-// StartS : . WS start:S WS { "static", "public", WS }
+// StartS : . WS start:S WS { WS, "public", "static" }
 pub static FIRST_SET_START_S_ALT0: TerminalSet = TerminalSet {
     id: 8,
-    terminals: &[TerminalId(3), TerminalId(2), TerminalId(1)],
+    terminals: &[TerminalId(1), TerminalId(2), TerminalId(3)],
 };
 // StartMod { EOF }
 pub static FOLLOW_SET_START_MOD: TerminalSet = TerminalSet {
     id: 7,
     terminals: &[TerminalId(5)],
 };
-// StartMod { "static", "public", WS }
+// StartMod { WS, "public", "static" }
 pub static FIRST_SET_START_MOD: TerminalSet = TerminalSet {
     id: 3,
-    terminals: &[TerminalId(3), TerminalId(2), TerminalId(1)],
+    terminals: &[TerminalId(1), TerminalId(2), TerminalId(3)],
 };
-// StartMod : . WS start:Mod WS { "static", "public", WS }
+// StartMod : . WS start:Mod WS { WS, "public", "static" }
 pub static FIRST_SET_START_MOD_ALT0: TerminalSet = TerminalSet {
     id: 8,
-    terminals: &[TerminalId(3), TerminalId(2), TerminalId(1)],
+    terminals: &[TerminalId(1), TerminalId(2), TerminalId(3)],
 };
 // StartEmpty { EOF }
 pub static FOLLOW_SET_START_EMPTY: TerminalSet = TerminalSet {
@@ -279,10 +279,10 @@ pub static FOLLOW_SET_START_TAG: TerminalSet = TerminalSet {
     id: 7,
     terminals: &[TerminalId(5)],
 };
-// StartTag { WS, Id }
+// StartTag { Id, WS }
 pub static FIRST_SET_START_TAG: TerminalSet = TerminalSet {
     id: 5,
-    terminals: &[TerminalId(1), TerminalId(0)],
+    terminals: &[TerminalId(0), TerminalId(1)],
 };
 // StartTag : . WS start:Tag WS { Id, WS }
 pub static FIRST_SET_START_TAG_ALT0: TerminalSet = TerminalSet {

@@ -134,10 +134,10 @@ pub static FIRST_SET_S_ALT0: TerminalSet = TerminalSet {
     id: 1,
     terminals: &[TerminalId(0), TerminalId(2)],
 };
-// Element { WS, Num, Id, EOF }
+// Element { Num, Id, WS, EOF }
 pub static FOLLOW_SET_ELEMENT: TerminalSet = TerminalSet {
     id: 2,
-    terminals: &[TerminalId(3), TerminalId(0), TerminalId(2), TerminalId(5)],
+    terminals: &[TerminalId(0), TerminalId(2), TerminalId(3), TerminalId(5)],
 };
 // Element { Num, Id }
 pub static FIRST_SET_ELEMENT: TerminalSet = TerminalSet {
@@ -154,10 +154,10 @@ pub static FIRST_SET_ELEMENT_ALT1: TerminalSet = TerminalSet {
     id: 4,
     terminals: &[TerminalId(2)],
 };
-// Plus_0 { EOF, Num, Id, WS }
+// Plus_0 { Num, Id, WS, EOF }
 pub static FOLLOW_SET_PLUS_0: TerminalSet = TerminalSet {
     id: 2,
-    terminals: &[TerminalId(5), TerminalId(0), TerminalId(2), TerminalId(3)],
+    terminals: &[TerminalId(0), TerminalId(2), TerminalId(3), TerminalId(5)],
 };
 // Plus_0 { Num, Id }
 pub static FIRST_SET_PLUS_0: TerminalSet = TerminalSet {
@@ -179,28 +179,28 @@ pub static FOLLOW_SET_START_S: TerminalSet = TerminalSet {
     id: 5,
     terminals: &[TerminalId(5)],
 };
-// StartS { WS, Num, Id }
+// StartS { Num, Id, WS }
 pub static FIRST_SET_START_S: TerminalSet = TerminalSet {
     id: 1,
-    terminals: &[TerminalId(3), TerminalId(0), TerminalId(2)],
+    terminals: &[TerminalId(0), TerminalId(2), TerminalId(3)],
 };
-// StartS : . WS start:S WS { Id, Num, WS }
+// StartS : . WS start:S WS { Num, Id, WS }
 pub static FIRST_SET_START_S_ALT0: TerminalSet = TerminalSet {
     id: 6,
-    terminals: &[TerminalId(2), TerminalId(0), TerminalId(3)],
+    terminals: &[TerminalId(0), TerminalId(2), TerminalId(3)],
 };
 // StartElement { EOF }
 pub static FOLLOW_SET_START_ELEMENT: TerminalSet = TerminalSet {
     id: 5,
     terminals: &[TerminalId(5)],
 };
-// StartElement { WS, Num, Id }
+// StartElement { Num, Id, WS }
 pub static FIRST_SET_START_ELEMENT: TerminalSet = TerminalSet {
     id: 1,
-    terminals: &[TerminalId(3), TerminalId(0), TerminalId(2)],
+    terminals: &[TerminalId(0), TerminalId(2), TerminalId(3)],
 };
-// StartElement : . WS start:Element WS { Id, Num, WS }
+// StartElement : . WS start:Element WS { Num, Id, WS }
 pub static FIRST_SET_START_ELEMENT_ALT0: TerminalSet = TerminalSet {
     id: 6,
-    terminals: &[TerminalId(2), TerminalId(0), TerminalId(3)],
+    terminals: &[TerminalId(0), TerminalId(2), TerminalId(3)],
 };

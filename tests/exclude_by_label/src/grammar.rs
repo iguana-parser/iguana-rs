@@ -149,10 +149,10 @@ impl Grammar for ExcludeByLabelGrammar {
         }
     }
 }
-// Expr { ",", "(", ")", EOF }
+// Expr { "(", ",", ")", EOF }
 pub static FOLLOW_SET_EXPR: TerminalSet = TerminalSet {
     id: 0,
-    terminals: &[TerminalId(2), TerminalId(1), TerminalId(3), TerminalId(5)],
+    terminals: &[TerminalId(1), TerminalId(2), TerminalId(3), TerminalId(5)],
 };
 // Expr { Id }
 pub static FIRST_SET_EXPR: TerminalSet = TerminalSet {
@@ -174,10 +174,10 @@ pub static FIRST_SET_EXPR_ALT2: TerminalSet = TerminalSet {
     id: 1,
     terminals: &[TerminalId(0)],
 };
-// Plus_0 { ")", ",", EOF }
+// Plus_0 { ",", ")", EOF }
 pub static FOLLOW_SET_PLUS_0: TerminalSet = TerminalSet {
     id: 2,
-    terminals: &[TerminalId(3), TerminalId(2), TerminalId(5)],
+    terminals: &[TerminalId(2), TerminalId(3), TerminalId(5)],
 };
 // Plus_0 { Id }
 pub static FIRST_SET_PLUS_0: TerminalSet = TerminalSet {
