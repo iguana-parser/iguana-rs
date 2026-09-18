@@ -49,6 +49,7 @@ pub fn render_errors(errors: &[GrammarError], path: &Path, source: &str) -> Stri
 /// unique names.
 pub fn validate<'a>(grammar_def: &'a GrammarDef, spans: &GrammarSpans<'a>) -> Vec<GrammarError> {
     let mut errors = Vec::new();
+    check_grammar_name(grammar_def, spans, &mut errors);
     check_duplicate_definitions(grammar_def, spans, &mut errors);
     if !errors.is_empty() {
         return errors;
@@ -64,6 +65,49 @@ pub fn validate<'a>(grammar_def: &'a GrammarDef, spans: &GrammarSpans<'a>) -> Ve
     check_layout_is_not_an_identifier_rule(grammar_def, spans, &mut errors);
     check_grammar_has_a_syntax_rule(grammar_def, &mut errors);
     errors
+}
+
+/// The dependencies of every generated crate shape, as crate names. Keep in
+/// sync with the `[dependencies]` sections written by `cargo_toml_gen`.
+const GENERATED_CRATE_DEPENDENCIES: &[&str] = &["iguana_runtime", "rustc_hash", "serde_json"];
+
+/// Returns why a grammar named `grammar_name` cannot generate a crate, or
+/// `None` when it can. The generated crate takes the snake_case form of the
+/// grammar name, and the scaffold imports the crate by that name. A Rust
+/// keyword cannot be imported, `std` shadows the standard library, and a
+/// dependency's name makes the import ambiguous.
+pub fn crate_name_error(grammar_name: &str) -> Option<String> {
+    let crate_name = to_snake_case(grammar_name);
+    let reason = if is_rust_keyword(&crate_name) {
+        "is a Rust keyword"
+    } else if crate_name == "std" {
+        "shadows the standard library"
+    } else if GENERATED_CRATE_DEPENDENCIES.contains(&crate_name.as_str()) {
+        "is a dependency of the generated crate"
+    } else {
+        return None;
+    };
+    Some(format!(
+        "the generated crate would be named `{crate_name}`, which {reason}"
+    ))
+}
+
+/// The grammar name parses as an identifier but also names the generated
+/// crate, which has its own restrictions. The error points at the header name.
+fn check_grammar_name(
+    grammar_def: &GrammarDef,
+    spans: &GrammarSpans<'_>,
+    errors: &mut Vec<GrammarError>,
+) {
+    if let Some(reason) = crate_name_error(&grammar_def.name) {
+        errors.push(GrammarError {
+            message: format!(
+                "`{}` cannot be the grammar name: {reason}",
+                grammar_def.name
+            ),
+            span: spans.grammar_name,
+        });
+    }
 }
 
 /// A grammar needs at least one syntax rule. Generating from a grammar without
@@ -761,6 +805,41 @@ mod tests {
         assert_eq!(
             messages,
             ["`FooGrammar` is a reserved name in the generated crate"]
+        );
+    }
+
+    #[test]
+    fn a_grammar_name_that_snake_cases_to_a_rust_keyword_is_rejected() {
+        let source = "grammar Match\n\nS = \"a\"\n";
+        let errors = parse_grammar(source).unwrap_err();
+        let messages: Vec<&str> = errors.iter().map(|error| error.message.as_str()).collect();
+        assert_eq!(
+            messages,
+            [
+                "`Match` cannot be the grammar name: the generated crate would be named `match`, which is a Rust keyword"
+            ]
+        );
+        let start = source.find("Match").unwrap() as u32;
+        assert_eq!(
+            errors[0].span,
+            Span::new(start, start + "Match".len() as u32)
+        );
+    }
+
+    #[test]
+    fn crate_name_error_names_the_reserved_crate_names() {
+        for name in ["Calculator", "MyMatch", "Core", "Alloc", "Test", "Build"] {
+            assert_eq!(crate_name_error(name), None, "{name}");
+        }
+        assert_eq!(
+            crate_name_error("Std").as_deref(),
+            Some("the generated crate would be named `std`, which shadows the standard library")
+        );
+        assert_eq!(
+            crate_name_error("RustcHash").as_deref(),
+            Some(
+                "the generated crate would be named `rustc_hash`, which is a dependency of the generated crate"
+            )
         );
     }
 

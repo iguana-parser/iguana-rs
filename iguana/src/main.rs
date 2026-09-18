@@ -9,8 +9,8 @@ use iguana_compiler::{
     generator::{GenConfig, GenConfigFile, generate_scaffold, generate_sources, generate_wasm},
     grammar::def::{Grammar, Phase},
     iggy::parse_grammar,
-    utils::to_pascal_case,
-    validation::render_errors,
+    utils::{to_pascal_case, to_snake_case},
+    validation::{crate_name_error, render_errors},
 };
 
 mod viewer;
@@ -30,7 +30,9 @@ enum Commands {
     New {
         /// Path of the new project directory
         ///
-        /// Must not already exist
+        /// Must not already exist. The grammar name is the PascalCase form of
+        /// the directory name, which starts with an ASCII letter and contains
+        /// only ASCII letters, digits, `_`, and `-`.
         path: PathBuf,
     },
     /// Generate a parser crate from an iggy grammar
@@ -292,6 +294,7 @@ fn new_project(path: &Path) -> io::Result<()> {
             )
         })?
         .to_owned();
+    check_project_name(&name)?;
     let grammar_name = to_pascal_case(&name);
 
     std::fs::create_dir_all(path)?;
@@ -303,6 +306,46 @@ fn new_project(path: &Path) -> io::Result<()> {
 
     println!("Created iggy grammar project at {}", path.display());
     println!("Run `iguana generate` to generate the parser from {name}.iggy");
+    Ok(())
+}
+
+/// The directories cargo creates under `target/<profile>/`. A binary with one
+/// of these names collides with the directory and fails to build.
+const CARGO_OUTPUT_DIRECTORIES: &[&str] = &["build", "deps", "examples", "incremental"];
+
+/// Checks that the project name can be the grammar name and name the
+/// generated crate and its binary. The grammar name is the PascalCase form of
+/// the project name, and Iggy identifiers are ASCII letters, digits, and
+/// underscores, so the project name is limited to those characters plus `-`.
+fn check_project_name(name: &str) -> io::Result<()> {
+    let invalid = |reason: String| {
+        io::Error::new(
+            io::ErrorKind::InvalidInput,
+            format!("`{name}` is not a valid project name: {reason}"),
+        )
+    };
+    let mut chars = name.chars();
+    let starts_with_letter = chars.next().is_some_and(|c| c.is_ascii_alphabetic());
+    let rest_is_valid = chars.all(|c| c.is_ascii_alphanumeric() || c == '_' || c == '-');
+    if !starts_with_letter || !rest_is_valid {
+        return Err(invalid(
+            "a project name starts with an ASCII letter and contains only ASCII letters, \
+             digits, `_`, and `-`"
+                .to_owned(),
+        ));
+    }
+    let grammar_name = to_pascal_case(name);
+    if let Some(reason) = crate_name_error(&grammar_name) {
+        return Err(invalid(reason));
+    }
+    // The scaffold names the binary after the crate.
+    let binary_name = to_snake_case(&grammar_name);
+    if CARGO_OUTPUT_DIRECTORIES.contains(&binary_name.as_str()) {
+        return Err(invalid(format!(
+            "the generated binary would be named `{binary_name}`, which is a directory in \
+             cargo's build output"
+        )));
+    }
     Ok(())
 }
 
@@ -360,4 +403,62 @@ fn available_phases() -> String {
     }
     writeln!(message, "  {:<11}every phase", "all").unwrap();
     message
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn project_name_error(name: &str) -> String {
+        check_project_name(name).unwrap_err().to_string()
+    }
+
+    #[test]
+    fn accepted_names_produce_a_starter_grammar_that_parses() {
+        for name in [
+            "calculator",
+            "my-grammar",
+            "release_smoke",
+            "Foo2",
+            "a-b",
+            "a-",
+            "a--b",
+            "a-1",
+            "fooBar",
+            "grammar",
+            "none",
+        ] {
+            check_project_name(name).unwrap_or_else(|error| panic!("{error}"));
+            let source = starter_grammar(&to_pascal_case(name));
+            assert!(parse_grammar(&source).is_ok(), "{name}: {source}");
+        }
+    }
+
+    #[test]
+    fn rejects_names_that_do_not_parse_as_a_grammar_name() {
+        let rule = "a project name starts with an ASCII letter and contains only ASCII letters, \
+                    digits, `_`, and `-`";
+        assert_eq!(
+            project_name_error("2fast"),
+            format!("`2fast` is not a valid project name: {rule}")
+        );
+        for name in ["foo.bar", "Foo Bar", "foo!", "émile", "_foo", "..."] {
+            assert!(project_name_error(name).ends_with(rule), "{name}");
+        }
+    }
+
+    #[test]
+    fn rejects_names_that_cannot_name_the_generated_crate() {
+        assert_eq!(
+            project_name_error("match"),
+            "`match` is not a valid project name: the generated crate would be named `match`, \
+             which is a Rust keyword"
+        );
+        assert_eq!(
+            project_name_error("build"),
+            "`build` is not a valid project name: the generated binary would be named `build`, \
+             which is a directory in cargo's build output"
+        );
+        assert!(check_project_name("my-match").is_ok());
+    }
 }

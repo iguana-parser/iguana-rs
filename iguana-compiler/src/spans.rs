@@ -64,6 +64,8 @@ impl SourceRegion {
 /// directly; a missing entry is a bug in the span-building walk and panics.
 #[derive(Default)]
 pub struct GrammarSpans<'a> {
+    /// The name in the `grammar` header.
+    pub grammar_name: Span,
     pub syntax_rules: FxHashMap<ByAddress<&'a SyntaxRule>, SourceRegion>,
     pub lexical_rules: FxHashMap<ByAddress<&'a LexicalRule>, SourceRegion>,
     pub alternatives: FxHashMap<ByAddress<&'a Alternative>, SourceRegion>,
@@ -274,6 +276,7 @@ pub fn build_spans<'a>(
         syntax_idx: 0,
         lexical_idx: 0,
     };
+    builder.spans.grammar_name = grammar.name().span();
     builder.walk(grammar.as_parse_tree());
 
     // Now collect the finer-grained spans (alternatives, symbols) by walking
