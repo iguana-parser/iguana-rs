@@ -337,6 +337,63 @@ impl Grammar for ImportNamesGrammar {
     ];
     const LAYOUT_NAME: Option<&'static str> = None;
     const LAYOUT_TERMINALS: &'static [TerminalId] = &[];
+    // A failed terminal match refers to a static terminal set like every other failure, so the
+    // error reporting path needs to reach a terminal set from a terminal id. This slice, indexed
+    // by terminal id, serves only that.
+    const SINGLE_TERMINAL_SETS: &'static [TerminalSet] = &[
+        TerminalSet {
+            id: 33,
+            terminals: &[TerminalId(0)],
+        },
+        TerminalSet {
+            id: 34,
+            terminals: &[TerminalId(1)],
+        },
+        TerminalSet {
+            id: 35,
+            terminals: &[TerminalId(2)],
+        },
+        TerminalSet {
+            id: 36,
+            terminals: &[TerminalId(3)],
+        },
+        TerminalSet {
+            id: 37,
+            terminals: &[TerminalId(4)],
+        },
+        TerminalSet {
+            id: 38,
+            terminals: &[TerminalId(5)],
+        },
+        TerminalSet {
+            id: 39,
+            terminals: &[TerminalId(6)],
+        },
+        TerminalSet {
+            id: 40,
+            terminals: &[TerminalId(7)],
+        },
+        TerminalSet {
+            id: 41,
+            terminals: &[TerminalId(8)],
+        },
+        TerminalSet {
+            id: 42,
+            terminals: &[TerminalId(9)],
+        },
+        TerminalSet {
+            id: 43,
+            terminals: &[TerminalId(10)],
+        },
+        TerminalSet {
+            id: 44,
+            terminals: &[TerminalId(11)],
+        },
+        TerminalSet {
+            id: 45,
+            terminals: &[TerminalId(12)],
+        },
+    ];
     fn nonterminal_id(name: &str) -> Option<NonterminalId> {
         match name {
             "S" => Some(S),

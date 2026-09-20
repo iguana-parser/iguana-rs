@@ -138,6 +138,35 @@ impl Grammar for ExcludeByLabelGrammar {
     ];
     const LAYOUT_NAME: Option<&'static str> = None;
     const LAYOUT_TERMINALS: &'static [TerminalId] = &[];
+    // A failed terminal match refers to a static terminal set like every other failure, so the
+    // error reporting path needs to reach a terminal set from a terminal id. This slice, indexed
+    // by terminal id, serves only that.
+    const SINGLE_TERMINAL_SETS: &'static [TerminalSet] = &[
+        TerminalSet {
+            id: 8,
+            terminals: &[TerminalId(0)],
+        },
+        TerminalSet {
+            id: 9,
+            terminals: &[TerminalId(1)],
+        },
+        TerminalSet {
+            id: 10,
+            terminals: &[TerminalId(2)],
+        },
+        TerminalSet {
+            id: 11,
+            terminals: &[TerminalId(3)],
+        },
+        TerminalSet {
+            id: 12,
+            terminals: &[TerminalId(4)],
+        },
+        TerminalSet {
+            id: 13,
+            terminals: &[TerminalId(5)],
+        },
+    ];
     fn nonterminal_id(name: &str) -> Option<NonterminalId> {
         match name {
             "Plus_0" => Some(PLUS_0),
@@ -228,6 +257,11 @@ pub static FIRST_SET_EXPR: TerminalSet = TerminalSet {
 pub static FIRST_SET_PLUS_0: TerminalSet = TerminalSet {
     id: 6,
     terminals: &[TerminalId(0)],
+};
+// Opt_0 prediction { Id, ")", EOF }
+pub static PREDICTION_SET_OPT_0: TerminalSet = TerminalSet {
+    id: 7,
+    terminals: &[TerminalId(0), TerminalId(3), TerminalId(5)],
 };
 // Opt_0 { Id }
 pub static FIRST_SET_OPT_0: TerminalSet = TerminalSet {

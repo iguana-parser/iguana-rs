@@ -24,7 +24,7 @@ use iguana_runtime::{
     },
     record,
     result::{ParseError, ParseSuccess},
-    scanner::Scanner,
+    scanner::{Scanner, TerminalSet},
     sppf::{IntermediateNode, NonterminalNode, SPPFNode, SPPFNodeId, TerminalNode},
     utils::{inline_map::InlineMap, inline_vec::InlineVec},
 };
@@ -41,125 +41,157 @@ impl<'i, 'arena> Parser<'i, 'arena> for OptParser<'i, 'arena> {
         let builder = OptParseTreeBuilder::new(tree_arena);
         create_parse_tree(root, self, &builder)
     }
-    // env is threaded only through recursive execute calls in grammars without data-dependent
-    // constructs, so clippy sees it as recursion-only there.
-    #[allow(clippy::only_used_in_recursion)]
-    fn execute(
-        &mut self,
-        input_index: u32,
-        slot_id: SlotId,
-        result: Option<SPPFNodeId>,
-        gss_node_id: GssNodeId,
-        env: Option<EnvId>,
-    ) {
-        record!(
-            self,
-            ProcessingDescriptor,
-            input_index,
-            slot_id,
-            result,
-            gss_node_id
-        );
-        match slot_id {
-            // S : . Opt_0
-            SlotId(0) => {
-                if let Some(right_child) = self.parse_opt_0_ll1(input_index) {
-                    let j = self.sppf_node(right_child).right_extent();
-                    // S : Opt_0.
-                    self.execute(j, SlotId(1), Some(right_child), gss_node_id, env);
-                }
-            }
-            // S : Opt_0.
-            SlotId(1) => {
-                let nonterminal_node_id =
-                    self.create_nonterminal_node(result, NonterminalId(0), SlotId(1), gss_node_id);
-                self.pop(gss_node_id, SlotId(1), nonterminal_node_id, None);
-            }
-            // A : . "a"
-            SlotId(2) => {
-                if let Some((j, right_child)) =
-                    self.match_terminal(TerminalId(0), input_index, SlotId(2), Some(gss_node_id))
-                {
-                    // A : "a".
-                    self.execute(j, SlotId(3), Some(right_child), gss_node_id, env);
-                }
-            }
-            // A : "a".
-            SlotId(3) => {
-                let nonterminal_node_id =
-                    self.create_nonterminal_node(result, NonterminalId(1), SlotId(3), gss_node_id);
-                self.pop(gss_node_id, SlotId(3), nonterminal_node_id, None);
-            }
-            // Opt_0 : . A
-            SlotId(4) => {
-                if let Some(right_child) = self.parse_a_ll1(input_index) {
-                    let j = self.sppf_node(right_child).right_extent();
-                    // Opt_0 : A.
-                    self.execute(j, SlotId(5), Some(right_child), gss_node_id, env);
-                } else {
-                    self.add_failure(input_index, SlotId(4), Some(gss_node_id), || {
-                        GLLFailureKind::UnexpectedToken {
-                            expected: FIRST_SET_A.terminals.to_vec(),
-                        }
-                    });
-                }
-            }
-            // Opt_0 : A.
-            SlotId(5) => {
-                let nonterminal_node_id =
-                    self.create_nonterminal_node(result, NonterminalId(2), SlotId(5), gss_node_id);
-                self.pop(gss_node_id, SlotId(5), nonterminal_node_id, None);
-            }
-            // Opt_0 : .
-            SlotId(6) => {
-                let epsilon_node_id = self.get_or_create_epsilon_node(input_index);
-                let nonterminal_node_id = self.get_or_create_nonterminal_node(
-                    NonterminalId(2),
-                    SlotId(6),
+    // The GLL main loop. Each descriptor starts at its slot. A slot that reaches the next slot
+    // of its alternative sets `next`, so a descriptor runs through its alternative as far as it
+    // can before the loop takes the next descriptor. The GSS node and the environment are fixed
+    // for the whole alternative.
+    fn execute(&mut self) {
+        while let Some(descriptor) = self.next_descriptor() {
+            let mut input_index = descriptor.input_index;
+            let mut result = descriptor.sppf_node_id();
+            let gss_node_id = descriptor.gss_node_id;
+            let mut next = Some(descriptor.slot_id);
+            while let Some(slot_id) = next {
+                next = None;
+                record!(
+                    self,
+                    ProcessingDescriptor,
                     input_index,
-                    input_index,
-                    epsilon_node_id,
-                    gss_node_id,
-                    None,
+                    slot_id,
+                    result,
+                    gss_node_id
                 );
-                self.pop(gss_node_id, SlotId(6), nonterminal_node_id, None);
-            }
-            // StartS : . start:S
-            SlotId(7) => {
-                if let Some(right_child) = self.parse_s_ll1(input_index) {
-                    let j = self.sppf_node(right_child).right_extent();
-                    // StartS : start:S.
-                    self.execute(j, SlotId(8), Some(right_child), gss_node_id, env);
-                }
-            }
-            // StartS : start:S.
-            SlotId(8) => {
-                let nonterminal_node_id =
-                    self.create_nonterminal_node(result, NonterminalId(3), SlotId(8), gss_node_id);
-                self.pop(gss_node_id, SlotId(8), nonterminal_node_id, None);
-            }
-            // StartA : . start:A
-            SlotId(9) => {
-                if let Some(right_child) = self.parse_a_ll1(input_index) {
-                    let j = self.sppf_node(right_child).right_extent();
-                    // StartA : start:A.
-                    self.execute(j, SlotId(10), Some(right_child), gss_node_id, env);
-                } else {
-                    self.add_failure(input_index, SlotId(9), Some(gss_node_id), || {
-                        GLLFailureKind::UnexpectedToken {
-                            expected: FIRST_SET_A.terminals.to_vec(),
+                match slot_id {
+                    // S : . Opt_0
+                    SlotId(0) => {
+                        if let Some(right_child) =
+                            self.parse_opt_0_ll1(input_index, Some((SlotId(0), Some(gss_node_id))))
+                        {
+                            let j = self.sppf_node(right_child).right_extent();
+                            // S : Opt_0.
+                            input_index = j;
+                            result = Some(right_child);
+                            next = Some(SlotId(1));
                         }
-                    });
+                    }
+                    // S : Opt_0.
+                    SlotId(1) => {
+                        let nonterminal_node_id = self.create_nonterminal_node(
+                            result,
+                            NonterminalId(0),
+                            SlotId(1),
+                            gss_node_id,
+                        );
+                        self.pop(gss_node_id, SlotId(1), nonterminal_node_id, None);
+                    }
+                    // A : . "a"
+                    SlotId(2) => {
+                        if let Some((j, right_child)) = self.match_terminal(
+                            TerminalId(0),
+                            input_index,
+                            SlotId(2),
+                            Some(gss_node_id),
+                        ) {
+                            // A : "a".
+                            input_index = j;
+                            result = Some(right_child);
+                            next = Some(SlotId(3));
+                        }
+                    }
+                    // A : "a".
+                    SlotId(3) => {
+                        let nonterminal_node_id = self.create_nonterminal_node(
+                            result,
+                            NonterminalId(1),
+                            SlotId(3),
+                            gss_node_id,
+                        );
+                        self.pop(gss_node_id, SlotId(3), nonterminal_node_id, None);
+                    }
+                    // Opt_0 : . A
+                    SlotId(4) => {
+                        if let Some(right_child) =
+                            self.parse_a_ll1(input_index, Some((SlotId(4), Some(gss_node_id))))
+                        {
+                            let j = self.sppf_node(right_child).right_extent();
+                            // Opt_0 : A.
+                            input_index = j;
+                            result = Some(right_child);
+                            next = Some(SlotId(5));
+                        }
+                    }
+                    // Opt_0 : A.
+                    SlotId(5) => {
+                        let nonterminal_node_id = self.create_nonterminal_node(
+                            result,
+                            NonterminalId(2),
+                            SlotId(5),
+                            gss_node_id,
+                        );
+                        self.pop(gss_node_id, SlotId(5), nonterminal_node_id, None);
+                    }
+                    // Opt_0 : .
+                    SlotId(6) => {
+                        let epsilon_node_id = self.get_or_create_epsilon_node(input_index);
+                        let nonterminal_node_id = self.get_or_create_nonterminal_node(
+                            NonterminalId(2),
+                            SlotId(6),
+                            input_index,
+                            input_index,
+                            epsilon_node_id,
+                            gss_node_id,
+                            None,
+                        );
+                        self.pop(gss_node_id, SlotId(6), nonterminal_node_id, None);
+                    }
+                    // StartS : . start:S
+                    SlotId(7) => {
+                        if let Some(right_child) =
+                            self.parse_s_ll1(input_index, Some((SlotId(7), Some(gss_node_id))))
+                        {
+                            let j = self.sppf_node(right_child).right_extent();
+                            // StartS : start:S.
+                            input_index = j;
+                            result = Some(right_child);
+                            next = Some(SlotId(8));
+                        }
+                    }
+                    // StartS : start:S.
+                    SlotId(8) => {
+                        let nonterminal_node_id = self.create_nonterminal_node(
+                            result,
+                            NonterminalId(3),
+                            SlotId(8),
+                            gss_node_id,
+                        );
+                        self.pop(gss_node_id, SlotId(8), nonterminal_node_id, None);
+                    }
+                    // StartA : . start:A
+                    SlotId(9) => {
+                        if let Some(right_child) =
+                            self.parse_a_ll1(input_index, Some((SlotId(9), Some(gss_node_id))))
+                        {
+                            let j = self.sppf_node(right_child).right_extent();
+                            // StartA : start:A.
+                            input_index = j;
+                            result = Some(right_child);
+                            next = Some(SlotId(10));
+                        }
+                    }
+                    // StartA : start:A.
+                    SlotId(10) => {
+                        let nonterminal_node_id = self.create_nonterminal_node(
+                            result,
+                            NonterminalId(4),
+                            SlotId(10),
+                            gss_node_id,
+                        );
+                        self.pop(gss_node_id, SlotId(10), nonterminal_node_id, None);
+                    }
+                    _ => {
+                        panic!("Unknown grammar slot id: {slot_id}");
+                    }
                 }
-            }
-            // StartA : start:A.
-            SlotId(10) => {
-                let nonterminal_node_id =
-                    self.create_nonterminal_node(result, NonterminalId(4), SlotId(10), gss_node_id);
-                self.pop(gss_node_id, SlotId(10), nonterminal_node_id, None);
-            }
-            _ => {
-                panic!("Unknown grammar slot id: {slot_id}");
             }
         }
     }
@@ -195,15 +227,12 @@ impl<'i, 'arena> Parser<'i, 'arena> for OptParser<'i, 'arena> {
                     self.add_first_descriptor(SlotId(6), input_index, gss_node_id, env);
                 }
                 if !matched {
-                    self.add_failure(input_index, SlotId(4), Some(gss_node_id), || {
-                        GLLFailureKind::UnexpectedToken {
-                            expected: {
-                                let mut expected = FIRST_SET_OPT_0.terminals.to_vec();
-                                expected.extend_from_slice(FOLLOW_SET_OPT_0.terminals);
-                                expected
-                            },
-                        }
-                    });
+                    self.add_failure(
+                        input_index,
+                        SlotId(4),
+                        Some(gss_node_id),
+                        GLLFailureKind::UnexpectedToken(&PREDICTION_SET_OPT_0),
+                    );
                 }
             }
             // StartS : . start:S
@@ -578,43 +607,35 @@ impl<'i, 'arena> Parser<'i, 'arena> for OptParser<'i, 'arena> {
             _ => true,
         }
     }
-    fn follow_set_terminals(&self, nonterminal_id: NonterminalId) -> Vec<TerminalId> {
+    fn follow_set(&self, nonterminal_id: NonterminalId) -> &'static TerminalSet {
         match nonterminal_id {
-            NonterminalId(0) => FOLLOW_SET_S.terminals.to_vec(),
-            NonterminalId(1) => FOLLOW_SET_A.terminals.to_vec(),
-            NonterminalId(2) => FOLLOW_SET_OPT_0.terminals.to_vec(),
-            NonterminalId(3) => FOLLOW_SET_START_S.terminals.to_vec(),
-            NonterminalId(4) => FOLLOW_SET_START_A.terminals.to_vec(),
-            _ => vec![],
+            NonterminalId(0) => &FOLLOW_SET_S,
+            NonterminalId(1) => &FOLLOW_SET_A,
+            NonterminalId(2) => &FOLLOW_SET_OPT_0,
+            NonterminalId(3) => &FOLLOW_SET_START_S,
+            NonterminalId(4) => &FOLLOW_SET_START_A,
+            _ => unreachable!("no FOLLOW set for nonterminal {nonterminal_id}"),
         }
     }
     fn failures(&self) -> impl Iterator<Item = &GLLFailure> {
         self.failures.iter()
     }
+    #[inline(never)]
     fn add_failure(
         &mut self,
         input_index: u32,
         slot_id: SlotId,
         gss_node_id: Option<GssNodeId>,
-        kind: impl FnOnce() -> GLLFailureKind,
+        kind: GLLFailureKind,
     ) {
         if self.suppress_failures {
             return;
         }
         let level = self.failures.first().map_or(0, |e| e.input_index);
+        record!(self, GLLFailure, input_index, slot_id, gss_node_id, kind);
         if input_index < level {
-            record!(self, GLLFailure, input_index, slot_id, gss_node_id, kind());
             return;
         }
-        let kind = kind();
-        record!(
-            self,
-            GLLFailure,
-            input_index,
-            slot_id,
-            gss_node_id,
-            kind.clone()
-        );
         if input_index > level {
             self.failures.clear();
         }
@@ -750,13 +771,17 @@ impl<'i, 'arena> OptParser<'i, 'arena> {
             .parse(START_A, tree_arena)?
             .map(ParseTree::unwrap_start_a))
     }
-    fn parse_s_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
+    fn parse_s_ll1(
+        &mut self,
+        i: u32,
+        _failure_context: Option<(SlotId, Option<GssNodeId>)>,
+    ) -> Option<SPPFNodeId> {
         #[cfg(feature = "instrument")]
         self.ll1_call_log.push((NonterminalId(0), i));
         let mut j = i;
         let right_child = {
             let start = j;
-            let node = self.parse_opt_0_ll1(start)?;
+            let node = self.parse_opt_0_ll1(start, Some((SlotId(1), None)))?;
             let end = self.sppf_node(node).right_extent();
             j = end;
             node
@@ -774,36 +799,58 @@ impl<'i, 'arena> OptParser<'i, 'arena> {
             ambiguous: false,
         }))
     }
-    fn parse_a_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
+    fn parse_a_ll1(
+        &mut self,
+        i: u32,
+        failure_context: Option<(SlotId, Option<GssNodeId>)>,
+    ) -> Option<SPPFNodeId> {
         #[cfg(feature = "instrument")]
         self.ll1_call_log.push((NonterminalId(1), i));
-        let matched = self.scanner.longest_match(&FIRST_SET_A, i)?;
-        match matched {
-            TerminalId(0) => {
-                let mut j = i;
-                let right_child = {
-                    let start = j;
-                    let (end, node) = self.match_terminal(TerminalId(0), start, SlotId(3), None)?;
-                    j = end;
-                    node
-                };
-                let left_extent = self.sppf_node(right_child).left_extent();
-                let current = right_child;
-                Some(self.add_nonterminal_node(NonterminalNode {
-                    nonterminal_id: NonterminalId(1),
-                    return_slot: SlotId(3),
-                    span: Span {
-                        left_extent,
-                        right_extent: j,
-                    },
-                    child: current,
-                    ambiguous: false,
-                }))
+        let result = (|| -> Option<SPPFNodeId> {
+            let matched = self.scanner.longest_match(&FIRST_SET_A, i)?;
+            match matched {
+                TerminalId(0) => {
+                    let mut j = i;
+                    let right_child = {
+                        let start = j;
+                        let (end, node) =
+                            self.match_terminal(TerminalId(0), start, SlotId(3), None)?;
+                        j = end;
+                        node
+                    };
+                    let left_extent = self.sppf_node(right_child).left_extent();
+                    let current = right_child;
+                    Some(self.add_nonterminal_node(NonterminalNode {
+                        nonterminal_id: NonterminalId(1),
+                        return_slot: SlotId(3),
+                        span: Span {
+                            left_extent,
+                            right_extent: j,
+                        },
+                        child: current,
+                        ambiguous: false,
+                    }))
+                }
+                _ => unreachable!("LL(1) dispatch covers every terminal in FIRST_SET"),
             }
-            _ => unreachable!("LL(1) dispatch covers every terminal in FIRST_SET"),
+        })();
+        if result.is_none() {
+            if let Some((slot_id, gss_node_id)) = failure_context {
+                self.add_failure(
+                    i,
+                    slot_id,
+                    gss_node_id,
+                    GLLFailureKind::UnexpectedToken(&FIRST_SET_A),
+                );
+            }
         }
+        result
     }
-    fn parse_opt_0_ll1(&mut self, i: u32) -> Option<SPPFNodeId> {
+    fn parse_opt_0_ll1(
+        &mut self,
+        i: u32,
+        _failure_context: Option<(SlotId, Option<GssNodeId>)>,
+    ) -> Option<SPPFNodeId> {
         #[cfg(feature = "instrument")]
         self.ll1_call_log.push((NonterminalId(2), i));
         let Some(matched) = self.scanner.longest_match(&FIRST_SET_OPT_0, i) else {
@@ -826,14 +873,7 @@ impl<'i, 'arena> OptParser<'i, 'arena> {
                 let mut j = i;
                 let right_child = {
                     let start = j;
-                    let Some(node) = self.parse_a_ll1(start) else {
-                        self.add_failure(start, SlotId(5), None, || {
-                            GLLFailureKind::UnexpectedToken {
-                                expected: FIRST_SET_A.terminals.to_vec(),
-                            }
-                        });
-                        return None;
-                    };
+                    let node = self.parse_a_ll1(start, Some((SlotId(5), None)))?;
                     let end = self.sppf_node(node).right_extent();
                     j = end;
                     node

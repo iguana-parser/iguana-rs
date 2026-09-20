@@ -161,6 +161,7 @@ impl<'arena, const W: usize> MatchAnyMemo<'arena, W> {
 /// `id` is a content-deduplicated id within the set's family. `match_any` keys
 /// its memo by it; `longest_match` is not memoized and ignores it, but the field
 /// is kept so every set has the same shape.
+#[derive(Debug, PartialEq, Eq)]
 pub struct TerminalSet {
     pub id: usize,
     pub terminals: &'static [TerminalId],

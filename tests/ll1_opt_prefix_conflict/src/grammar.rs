@@ -64,6 +64,31 @@ impl Grammar for Ll1OptPrefixConflictGrammar {
     ];
     const LAYOUT_NAME: Option<&'static str> = None;
     const LAYOUT_TERMINALS: &'static [TerminalId] = &[];
+    // A failed terminal match refers to a static terminal set like every other failure, so the
+    // error reporting path needs to reach a terminal set from a terminal id. This slice, indexed
+    // by terminal id, serves only that.
+    const SINGLE_TERMINAL_SETS: &'static [TerminalSet] = &[
+        TerminalSet {
+            id: 8,
+            terminals: &[TerminalId(0)],
+        },
+        TerminalSet {
+            id: 9,
+            terminals: &[TerminalId(1)],
+        },
+        TerminalSet {
+            id: 10,
+            terminals: &[TerminalId(2)],
+        },
+        TerminalSet {
+            id: 11,
+            terminals: &[TerminalId(3)],
+        },
+        TerminalSet {
+            id: 12,
+            terminals: &[TerminalId(4)],
+        },
+    ];
     fn nonterminal_id(name: &str) -> Option<NonterminalId> {
         match name {
             "S" => Some(S),
@@ -113,9 +138,14 @@ pub static FIRST_SET_S: TerminalSet = TerminalSet {
     id: 5,
     terminals: &[TerminalId(0), TerminalId(1)],
 };
+// Opt_0 prediction { "ab", "a", EOF }
+pub static PREDICTION_SET_OPT_0: TerminalSet = TerminalSet {
+    id: 6,
+    terminals: &[TerminalId(0), TerminalId(1), TerminalId(4)],
+};
 // Opt_0 { "ab" }
 pub static FIRST_SET_OPT_0: TerminalSet = TerminalSet {
-    id: 6,
+    id: 7,
     terminals: &[TerminalId(0)],
 };
 // StartS { "ab", "a" }

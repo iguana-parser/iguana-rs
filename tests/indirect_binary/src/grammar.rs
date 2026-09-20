@@ -4521,6 +4521,179 @@ impl Grammar for IndirectBinaryGrammar {
     ];
     const LAYOUT_NAME: Option<&'static str> = Some("WS");
     const LAYOUT_TERMINALS: &'static [TerminalId] = &[TerminalId(1)];
+    // A failed terminal match refers to a static terminal set like every other failure, so the
+    // error reporting path needs to reach a terminal set from a terminal id. This slice, indexed
+    // by terminal id, serves only that.
+    const SINGLE_TERMINAL_SETS: &'static [TerminalSet] = &[
+        TerminalSet {
+            id: 152,
+            terminals: &[TerminalId(0)],
+        },
+        TerminalSet {
+            id: 153,
+            terminals: &[TerminalId(1)],
+        },
+        TerminalSet {
+            id: 154,
+            terminals: &[TerminalId(2)],
+        },
+        TerminalSet {
+            id: 155,
+            terminals: &[TerminalId(3)],
+        },
+        TerminalSet {
+            id: 156,
+            terminals: &[TerminalId(4)],
+        },
+        TerminalSet {
+            id: 157,
+            terminals: &[TerminalId(5)],
+        },
+        TerminalSet {
+            id: 158,
+            terminals: &[TerminalId(6)],
+        },
+        TerminalSet {
+            id: 159,
+            terminals: &[TerminalId(7)],
+        },
+        TerminalSet {
+            id: 160,
+            terminals: &[TerminalId(8)],
+        },
+        TerminalSet {
+            id: 161,
+            terminals: &[TerminalId(9)],
+        },
+        TerminalSet {
+            id: 162,
+            terminals: &[TerminalId(10)],
+        },
+        TerminalSet {
+            id: 163,
+            terminals: &[TerminalId(11)],
+        },
+        TerminalSet {
+            id: 164,
+            terminals: &[TerminalId(12)],
+        },
+        TerminalSet {
+            id: 165,
+            terminals: &[TerminalId(13)],
+        },
+        TerminalSet {
+            id: 166,
+            terminals: &[TerminalId(14)],
+        },
+        TerminalSet {
+            id: 167,
+            terminals: &[TerminalId(15)],
+        },
+        TerminalSet {
+            id: 168,
+            terminals: &[TerminalId(16)],
+        },
+        TerminalSet {
+            id: 169,
+            terminals: &[TerminalId(17)],
+        },
+        TerminalSet {
+            id: 170,
+            terminals: &[TerminalId(18)],
+        },
+        TerminalSet {
+            id: 171,
+            terminals: &[TerminalId(19)],
+        },
+        TerminalSet {
+            id: 172,
+            terminals: &[TerminalId(20)],
+        },
+        TerminalSet {
+            id: 173,
+            terminals: &[TerminalId(21)],
+        },
+        TerminalSet {
+            id: 174,
+            terminals: &[TerminalId(22)],
+        },
+        TerminalSet {
+            id: 175,
+            terminals: &[TerminalId(23)],
+        },
+        TerminalSet {
+            id: 176,
+            terminals: &[TerminalId(24)],
+        },
+        TerminalSet {
+            id: 177,
+            terminals: &[TerminalId(25)],
+        },
+        TerminalSet {
+            id: 178,
+            terminals: &[TerminalId(26)],
+        },
+        TerminalSet {
+            id: 179,
+            terminals: &[TerminalId(27)],
+        },
+        TerminalSet {
+            id: 180,
+            terminals: &[TerminalId(28)],
+        },
+        TerminalSet {
+            id: 181,
+            terminals: &[TerminalId(29)],
+        },
+        TerminalSet {
+            id: 182,
+            terminals: &[TerminalId(30)],
+        },
+        TerminalSet {
+            id: 183,
+            terminals: &[TerminalId(31)],
+        },
+        TerminalSet {
+            id: 184,
+            terminals: &[TerminalId(32)],
+        },
+        TerminalSet {
+            id: 185,
+            terminals: &[TerminalId(33)],
+        },
+        TerminalSet {
+            id: 186,
+            terminals: &[TerminalId(34)],
+        },
+        TerminalSet {
+            id: 187,
+            terminals: &[TerminalId(35)],
+        },
+        TerminalSet {
+            id: 188,
+            terminals: &[TerminalId(36)],
+        },
+        TerminalSet {
+            id: 189,
+            terminals: &[TerminalId(37)],
+        },
+        TerminalSet {
+            id: 190,
+            terminals: &[TerminalId(38)],
+        },
+        TerminalSet {
+            id: 191,
+            terminals: &[TerminalId(39)],
+        },
+        TerminalSet {
+            id: 192,
+            terminals: &[TerminalId(40)],
+        },
+        TerminalSet {
+            id: 193,
+            terminals: &[TerminalId(41)],
+        },
+    ];
     fn nonterminal_id(name: &str) -> Option<NonterminalId> {
         match name {
             "S" => Some(S),
@@ -7208,6 +7381,19 @@ pub static FIRST_SET_NULLABLE_LEX_OPERAND: TerminalSet = TerminalSet {
     id: 110,
     terminals: &[TerminalId(0), TerminalId(1), TerminalId(32)],
 };
+// NullableLexMaybe prediction { Digits, WS, "v", Digits, WS, "v", EOF }
+pub static PREDICTION_SET_NULLABLE_LEX_MAYBE: TerminalSet = TerminalSet {
+    id: 111,
+    terminals: &[
+        TerminalId(0),
+        TerminalId(1),
+        TerminalId(32),
+        TerminalId(0),
+        TerminalId(1),
+        TerminalId(32),
+        TerminalId(41),
+    ],
+};
 // NullableLexMaybe { Digits, WS, "v" }
 pub static FIRST_SET_NULLABLE_LEX_MAYBE: TerminalSet = TerminalSet {
     id: 110,
@@ -7215,97 +7401,97 @@ pub static FIRST_SET_NULLABLE_LEX_MAYBE: TerminalSet = TerminalSet {
 };
 // NullableSuffix { "w" }
 pub static FIRST_SET_NULLABLE_SUFFIX: TerminalSet = TerminalSet {
-    id: 111,
+    id: 112,
     terminals: &[TerminalId(33)],
 };
 // NullableSuffixOperand { "w" }
 pub static FIRST_SET_NULLABLE_SUFFIX_OPERAND: TerminalSet = TerminalSet {
-    id: 111,
+    id: 112,
     terminals: &[TerminalId(33)],
 };
 // NullableSuffixMaybe { "w" }
 pub static FIRST_SET_NULLABLE_SUFFIX_MAYBE: TerminalSet = TerminalSet {
-    id: 111,
+    id: 112,
     terminals: &[TerminalId(33)],
 };
 // NullableShared { WS, "j" }
 pub static FIRST_SET_NULLABLE_SHARED: TerminalSet = TerminalSet {
-    id: 112,
+    id: 113,
     terminals: &[TerminalId(1), TerminalId(34)],
 };
 // NullableSharedOperand { WS, "j" }
 pub static FIRST_SET_NULLABLE_SHARED_OPERAND: TerminalSet = TerminalSet {
-    id: 112,
+    id: 113,
     terminals: &[TerminalId(1), TerminalId(34)],
 };
 // NullableSharedMaybe { WS, "j" }
 pub static FIRST_SET_NULLABLE_SHARED_MAYBE: TerminalSet = TerminalSet {
-    id: 112,
+    id: 113,
     terminals: &[TerminalId(1), TerminalId(34)],
 };
 // OwnLabel { "(", "k" }
 pub static FIRST_SET_OWN_LABEL: TerminalSet = TerminalSet {
-    id: 113,
+    id: 114,
     terminals: &[TerminalId(22), TerminalId(35)],
 };
 // OwnOperand { "(", "k" }
 pub static FIRST_SET_OWN_OPERAND: TerminalSet = TerminalSet {
-    id: 113,
+    id: 114,
     terminals: &[TerminalId(22), TerminalId(35)],
 };
 // OwnHeadFiltered { "(", "k" }
 pub static FIRST_SET_OWN_HEAD_FILTERED: TerminalSet = TerminalSet {
-    id: 113,
+    id: 114,
     terminals: &[TerminalId(22), TerminalId(35)],
 };
 // ExcludeOnly { "t", "s" }
 pub static FIRST_SET_EXCLUDE_ONLY: TerminalSet = TerminalSet {
-    id: 114,
+    id: 115,
     terminals: &[TerminalId(10), TerminalId(36)],
 };
 // ExcludeOnlyFiltered { "t", "s" }
 pub static FIRST_SET_EXCLUDE_ONLY_FILTERED: TerminalSet = TerminalSet {
-    id: 114,
+    id: 115,
     terminals: &[TerminalId(10), TerminalId(36)],
 };
 // Absent { "a", "b" }
 pub static FIRST_SET_ABSENT: TerminalSet = TerminalSet {
-    id: 115,
+    id: 116,
     terminals: &[TerminalId(2), TerminalId(6)],
 };
 // AbsentOperand { "a", "b" }
 pub static FIRST_SET_ABSENT_OPERAND: TerminalSet = TerminalSet {
-    id: 115,
+    id: 116,
     terminals: &[TerminalId(2), TerminalId(6)],
 };
 // ClosedPrefix { "a", "pre" }
 pub static FIRST_SET_CLOSED_PREFIX: TerminalSet = TerminalSet {
-    id: 116,
+    id: 117,
     terminals: &[TerminalId(2), TerminalId(37)],
 };
 // ClosedPrefixBody { "a", "b", "pre" }
 pub static FIRST_SET_CLOSED_PREFIX_BODY: TerminalSet = TerminalSet {
-    id: 117,
+    id: 118,
     terminals: &[TerminalId(2), TerminalId(6), TerminalId(37)],
 };
 // ClosedPostfix { "a", "b", "pre" }
 pub static FIRST_SET_CLOSED_POSTFIX: TerminalSet = TerminalSet {
-    id: 117,
+    id: 118,
     terminals: &[TerminalId(2), TerminalId(6), TerminalId(37)],
 };
 // ClosedPostfixBody { "a", "b", "pre" }
 pub static FIRST_SET_CLOSED_POSTFIX_BODY: TerminalSet = TerminalSet {
-    id: 117,
+    id: 118,
     terminals: &[TerminalId(2), TerminalId(6), TerminalId(37)],
 };
 // HeadChoice { "a", "b" }
 pub static FIRST_SET_HEAD_CHOICE: TerminalSet = TerminalSet {
-    id: 115,
+    id: 116,
     terminals: &[TerminalId(2), TerminalId(6)],
 };
 // HeadOperand { "a", "b" }
 pub static FIRST_SET_HEAD_OPERAND: TerminalSet = TerminalSet {
-    id: 115,
+    id: 116,
     terminals: &[TerminalId(2), TerminalId(6)],
 };
 // Inner { "b" }
@@ -7315,72 +7501,85 @@ pub static FIRST_SET_INNER: TerminalSet = TerminalSet {
 };
 // UnaryMixedLeft { "a", "-" }
 pub static FIRST_SET_UNARY_MIXED_LEFT: TerminalSet = TerminalSet {
-    id: 118,
+    id: 119,
     terminals: &[TerminalId(2), TerminalId(5)],
 };
 // UnaryMixedRight { "a", "-" }
 pub static FIRST_SET_UNARY_MIXED_RIGHT: TerminalSet = TerminalSet {
-    id: 118,
+    id: 119,
     terminals: &[TerminalId(2), TerminalId(5)],
 };
 // UnaryMixedNone { "a", "-" }
 pub static FIRST_SET_UNARY_MIXED_NONE: TerminalSet = TerminalSet {
-    id: 118,
+    id: 119,
     terminals: &[TerminalId(2), TerminalId(5)],
 };
 // Dynamic { "a", "-", "b" }
 pub static FIRST_SET_DYNAMIC: TerminalSet = TerminalSet {
-    id: 119,
+    id: 120,
     terminals: &[TerminalId(2), TerminalId(5), TerminalId(6)],
 };
 // DynamicOperand { "a", "-", "b" }
 pub static FIRST_SET_DYNAMIC_OPERAND: TerminalSet = TerminalSet {
-    id: 119,
+    id: 120,
     terminals: &[TerminalId(2), TerminalId(5), TerminalId(6)],
 };
 // DynamicFiltered { "a", "-", "b" }
 pub static FIRST_SET_DYNAMIC_FILTERED: TerminalSet = TerminalSet {
-    id: 119,
+    id: 120,
     terminals: &[TerminalId(2), TerminalId(5), TerminalId(6)],
 };
 // DynamicHeadFiltered { "a", "-", "b" }
 pub static FIRST_SET_DYNAMIC_HEAD_FILTERED: TerminalSet = TerminalSet {
-    id: 119,
+    id: 120,
     terminals: &[TerminalId(2), TerminalId(5), TerminalId(6)],
 };
 // DynamicMulti { "a", "-", "b" }
 pub static FIRST_SET_DYNAMIC_MULTI: TerminalSet = TerminalSet {
-    id: 119,
+    id: 120,
     terminals: &[TerminalId(2), TerminalId(5), TerminalId(6)],
 };
 // DynamicMultiOperand { "a", "-", "b" }
 pub static FIRST_SET_DYNAMIC_MULTI_OPERAND: TerminalSet = TerminalSet {
-    id: 119,
+    id: 120,
     terminals: &[TerminalId(2), TerminalId(5), TerminalId(6)],
 };
 // NullableBoundaryPrefix { "a", "-" }
 pub static FIRST_SET_NULLABLE_BOUNDARY_PREFIX: TerminalSet = TerminalSet {
-    id: 118,
+    id: 119,
     terminals: &[TerminalId(2), TerminalId(5)],
 };
 // NullableBoundaryRight { "a", "-" }
 pub static FIRST_SET_NULLABLE_BOUNDARY_RIGHT: TerminalSet = TerminalSet {
-    id: 118,
+    id: 119,
     terminals: &[TerminalId(2), TerminalId(5)],
+};
+// NullableBoundaryOpt prediction { "!", WS, "a", "*", "+", "!", EOF }
+pub static PREDICTION_SET_NULLABLE_BOUNDARY_OPT: TerminalSet = TerminalSet {
+    id: 121,
+    terminals: &[
+        TerminalId(29),
+        TerminalId(1),
+        TerminalId(2),
+        TerminalId(3),
+        TerminalId(4),
+        TerminalId(29),
+        TerminalId(41),
+    ],
 };
 // NullableBoundaryOpt { "!" }
 pub static FIRST_SET_NULLABLE_BOUNDARY_OPT: TerminalSet = TerminalSet {
-    id: 120,
+    id: 122,
     terminals: &[TerminalId(29)],
 };
 // NullableBoundaryPostfix { WS, "a", "!" }
 pub static FIRST_SET_NULLABLE_BOUNDARY_POSTFIX: TerminalSet = TerminalSet {
-    id: 121,
+    id: 123,
     terminals: &[TerminalId(1), TerminalId(2), TerminalId(29)],
 };
 // NullableBoundaryLeft { WS, "a", "!" }
 pub static FIRST_SET_NULLABLE_BOUNDARY_LEFT: TerminalSet = TerminalSet {
-    id: 121,
+    id: 123,
     terminals: &[TerminalId(1), TerminalId(2), TerminalId(29)],
 };
 // NullableBoundaryBinary { "a" }
@@ -7395,12 +7594,12 @@ pub static FIRST_SET_NULLABLE_BOUNDARY_OPERAND: TerminalSet = TerminalSet {
 };
 // ClosedLeftAssoc { "a", "!" }
 pub static FIRST_SET_CLOSED_LEFT_ASSOC: TerminalSet = TerminalSet {
-    id: 122,
+    id: 124,
     terminals: &[TerminalId(2), TerminalId(29)],
 };
 // ClosedLeftOperand { "a", "!" }
 pub static FIRST_SET_CLOSED_LEFT_OPERAND: TerminalSet = TerminalSet {
-    id: 122,
+    id: 124,
     terminals: &[TerminalId(2), TerminalId(29)],
 };
 // ClosedRightAssoc { "a" }
@@ -7410,107 +7609,152 @@ pub static FIRST_SET_CLOSED_RIGHT_ASSOC: TerminalSet = TerminalSet {
 };
 // ClosedRightOperand { "a", "!" }
 pub static FIRST_SET_CLOSED_RIGHT_OPERAND: TerminalSet = TerminalSet {
-    id: 122,
+    id: 124,
     terminals: &[TerminalId(2), TerminalId(29)],
 };
 // IndirectExclude { "a", "b" }
 pub static FIRST_SET_INDIRECT_EXCLUDE: TerminalSet = TerminalSet {
-    id: 115,
+    id: 116,
     terminals: &[TerminalId(2), TerminalId(6)],
 };
 // IndirectExcludeOperand { "a", "b" }
 pub static FIRST_SET_INDIRECT_EXCLUDE_OPERAND: TerminalSet = TerminalSet {
-    id: 115,
+    id: 116,
     terminals: &[TerminalId(2), TerminalId(6)],
 };
 // IndirectExcludeFiltered { "a", "b" }
 pub static FIRST_SET_INDIRECT_EXCLUDE_FILTERED: TerminalSet = TerminalSet {
-    id: 115,
+    id: 116,
     terminals: &[TerminalId(2), TerminalId(6)],
 };
 // OperandLiteral { "x", "1" }
 pub static FIRST_SET_OPERAND_LITERAL: TerminalSet = TerminalSet {
-    id: 123,
+    id: 125,
     terminals: &[TerminalId(15), TerminalId(39)],
 };
 // OperandLiteralEnd { "x", "1" }
 pub static FIRST_SET_OPERAND_LITERAL_END: TerminalSet = TerminalSet {
-    id: 123,
+    id: 125,
     terminals: &[TerminalId(15), TerminalId(39)],
 };
 // HeadLiteral { "x", "1" }
 pub static FIRST_SET_HEAD_LITERAL: TerminalSet = TerminalSet {
-    id: 123,
+    id: 125,
     terminals: &[TerminalId(15), TerminalId(39)],
 };
 // HeadLiteralEnd { "x", "1" }
 pub static FIRST_SET_HEAD_LITERAL_END: TerminalSet = TerminalSet {
-    id: 123,
+    id: 125,
     terminals: &[TerminalId(15), TerminalId(39)],
+};
+// Opt_0 prediction { "x", WS, "n", "x", EOF }
+pub static PREDICTION_SET_OPT_0: TerminalSet = TerminalSet {
+    id: 126,
+    terminals: &[
+        TerminalId(15),
+        TerminalId(1),
+        TerminalId(13),
+        TerminalId(15),
+        TerminalId(41),
+    ],
 };
 // Opt_0 { "x" }
 pub static FIRST_SET_OPT_0: TerminalSet = TerminalSet {
-    id: 124,
+    id: 127,
     terminals: &[TerminalId(15)],
+};
+// Opt_1 prediction { WS, "u", WS, "u", EOF }
+pub static PREDICTION_SET_OPT_1: TerminalSet = TerminalSet {
+    id: 128,
+    terminals: &[
+        TerminalId(1),
+        TerminalId(31),
+        TerminalId(1),
+        TerminalId(31),
+        TerminalId(41),
+    ],
 };
 // Opt_1 { WS, "u" }
 pub static FIRST_SET_OPT_1: TerminalSet = TerminalSet {
     id: 109,
     terminals: &[TerminalId(1), TerminalId(31)],
 };
+// Opt_2 prediction { "w", WS, "+", "w", EOF }
+pub static PREDICTION_SET_OPT_2: TerminalSet = TerminalSet {
+    id: 129,
+    terminals: &[
+        TerminalId(33),
+        TerminalId(1),
+        TerminalId(4),
+        TerminalId(33),
+        TerminalId(41),
+    ],
+};
 // Opt_2 { "w" }
 pub static FIRST_SET_OPT_2: TerminalSet = TerminalSet {
-    id: 111,
+    id: 112,
     terminals: &[TerminalId(33)],
+};
+// Opt_3 prediction { WS, "j", WS, "+", "j", EOF }
+pub static PREDICTION_SET_OPT_3: TerminalSet = TerminalSet {
+    id: 130,
+    terminals: &[
+        TerminalId(1),
+        TerminalId(34),
+        TerminalId(1),
+        TerminalId(4),
+        TerminalId(34),
+        TerminalId(41),
+    ],
 };
 // Opt_3 { WS, "j" }
 pub static FIRST_SET_OPT_3: TerminalSet = TerminalSet {
-    id: 112,
+    id: 113,
     terminals: &[TerminalId(1), TerminalId(34)],
 };
 // StartS { WS, "a" }
 pub static FIRST_SET_START_S: TerminalSet = TerminalSet {
-    id: 125,
+    id: 131,
     terminals: &[TerminalId(1), TerminalId(2)],
 };
 // StartE { WS, "a" }
 pub static FIRST_SET_START_E: TerminalSet = TerminalSet {
-    id: 125,
+    id: 131,
     terminals: &[TerminalId(1), TerminalId(2)],
 };
 // StartL { WS, "a" }
 pub static FIRST_SET_START_L: TerminalSet = TerminalSet {
-    id: 125,
+    id: 131,
     terminals: &[TerminalId(1), TerminalId(2)],
 };
 // StartOnly { WS, "b" }
 pub static FIRST_SET_START_ONLY: TerminalSet = TerminalSet {
-    id: 126,
+    id: 132,
     terminals: &[TerminalId(1), TerminalId(6)],
 };
 // StartOnlyOperand { WS, "b" }
 pub static FIRST_SET_START_ONLY_OPERAND: TerminalSet = TerminalSet {
-    id: 126,
+    id: 132,
     terminals: &[TerminalId(1), TerminalId(6)],
 };
 // StartCross { WS, "c" }
 pub static FIRST_SET_START_CROSS: TerminalSet = TerminalSet {
-    id: 127,
+    id: 133,
     terminals: &[TerminalId(1), TerminalId(8)],
 };
 // StartForeign { WS, "c", "d" }
 pub static FIRST_SET_START_FOREIGN: TerminalSet = TerminalSet {
-    id: 128,
+    id: 134,
     terminals: &[TerminalId(1), TerminalId(8), TerminalId(9)],
 };
 // StartCascade { WS, "t" }
 pub static FIRST_SET_START_CASCADE: TerminalSet = TerminalSet {
-    id: 129,
+    id: 135,
     terminals: &[TerminalId(1), TerminalId(10)],
 };
 // StartTernary { WS, "t" }
 pub static FIRST_SET_START_TERNARY: TerminalSet = TerminalSet {
-    id: 129,
+    id: 135,
     terminals: &[TerminalId(1), TerminalId(10)],
 };
 // StartNullable { WS, "n", "x" }
@@ -7530,37 +7774,37 @@ pub static FIRST_SET_START_NULLABLE_RIGHT: TerminalSet = TerminalSet {
 };
 // StartRightExpr { WS, "r" }
 pub static FIRST_SET_START_RIGHT_EXPR: TerminalSet = TerminalSet {
-    id: 130,
+    id: 136,
     terminals: &[TerminalId(1), TerminalId(16)],
 };
 // StartRightOperand { WS, "r" }
 pub static FIRST_SET_START_RIGHT_OPERAND: TerminalSet = TerminalSet {
-    id: 130,
+    id: 136,
     terminals: &[TerminalId(1), TerminalId(16)],
 };
 // StartNoneExpr { WS, "z" }
 pub static FIRST_SET_START_NONE_EXPR: TerminalSet = TerminalSet {
-    id: 131,
+    id: 137,
     terminals: &[TerminalId(1), TerminalId(18)],
 };
 // StartNoneOperand { WS, "z" }
 pub static FIRST_SET_START_NONE_OPERAND: TerminalSet = TerminalSet {
-    id: 131,
+    id: 137,
     terminals: &[TerminalId(1), TerminalId(18)],
 };
 // StartExcluded { WS, "e", "(" }
 pub static FIRST_SET_START_EXCLUDED: TerminalSet = TerminalSet {
-    id: 132,
+    id: 138,
     terminals: &[TerminalId(1), TerminalId(20), TerminalId(22)],
 };
 // StartExcludedOperand { WS, "e", "(" }
 pub static FIRST_SET_START_EXCLUDED_OPERAND: TerminalSet = TerminalSet {
-    id: 132,
+    id: 138,
     terminals: &[TerminalId(1), TerminalId(20), TerminalId(22)],
 };
 // StartFiltered { WS, "e", "(" }
 pub static FIRST_SET_START_FILTERED: TerminalSet = TerminalSet {
-    id: 132,
+    id: 138,
     terminals: &[TerminalId(1), TerminalId(20), TerminalId(22)],
 };
 // StartLexNullable { Digits, WS, "q" }
@@ -7580,42 +7824,42 @@ pub static FIRST_SET_START_LEX_NULLABLE_RIGHT: TerminalSet = TerminalSet {
 };
 // StartMixedScale { WS, "m", "f" }
 pub static FIRST_SET_START_MIXED_SCALE: TerminalSet = TerminalSet {
-    id: 133,
+    id: 139,
     terminals: &[TerminalId(1), TerminalId(26), TerminalId(28)],
 };
 // StartMixedOperand { WS, "m", "f" }
 pub static FIRST_SET_START_MIXED_OPERAND: TerminalSet = TerminalSet {
-    id: 133,
+    id: 139,
     terminals: &[TerminalId(1), TerminalId(26), TerminalId(28)],
 };
 // StartMixedRight { WS, "m", "f" }
 pub static FIRST_SET_START_MIXED_RIGHT: TerminalSet = TerminalSet {
-    id: 133,
+    id: 139,
     terminals: &[TerminalId(1), TerminalId(26), TerminalId(28)],
 };
 // StartMixedForeign { WS, "f" }
 pub static FIRST_SET_START_MIXED_FOREIGN: TerminalSet = TerminalSet {
-    id: 134,
+    id: 140,
     terminals: &[TerminalId(1), TerminalId(28)],
 };
 // StartPacked { WS, "(", "p" }
 pub static FIRST_SET_START_PACKED: TerminalSet = TerminalSet {
-    id: 135,
+    id: 141,
     terminals: &[TerminalId(1), TerminalId(22), TerminalId(30)],
 };
 // StartPackedOperand { WS, "(", "p" }
 pub static FIRST_SET_START_PACKED_OPERAND: TerminalSet = TerminalSet {
-    id: 135,
+    id: 141,
     terminals: &[TerminalId(1), TerminalId(22), TerminalId(30)],
 };
 // StartPackedMiddle { WS, "(", "p" }
 pub static FIRST_SET_START_PACKED_MIDDLE: TerminalSet = TerminalSet {
-    id: 135,
+    id: 141,
     terminals: &[TerminalId(1), TerminalId(22), TerminalId(30)],
 };
 // StartPackedFiltered { WS, "(", "p" }
 pub static FIRST_SET_START_PACKED_FILTERED: TerminalSet = TerminalSet {
-    id: 135,
+    id: 141,
     terminals: &[TerminalId(1), TerminalId(22), TerminalId(30)],
 };
 // StartNullableRecursive { WS, "u" }
@@ -7650,236 +7894,236 @@ pub static FIRST_SET_START_NULLABLE_LEX_MAYBE: TerminalSet = TerminalSet {
 };
 // StartNullableSuffix { WS, "w" }
 pub static FIRST_SET_START_NULLABLE_SUFFIX: TerminalSet = TerminalSet {
-    id: 136,
+    id: 142,
     terminals: &[TerminalId(1), TerminalId(33)],
 };
 // StartNullableSuffixOperand { WS, "w" }
 pub static FIRST_SET_START_NULLABLE_SUFFIX_OPERAND: TerminalSet = TerminalSet {
-    id: 136,
+    id: 142,
     terminals: &[TerminalId(1), TerminalId(33)],
 };
 // StartNullableSuffixMaybe { WS, "w" }
 pub static FIRST_SET_START_NULLABLE_SUFFIX_MAYBE: TerminalSet = TerminalSet {
-    id: 136,
+    id: 142,
     terminals: &[TerminalId(1), TerminalId(33)],
 };
 // StartNullableShared { WS, "j" }
 pub static FIRST_SET_START_NULLABLE_SHARED: TerminalSet = TerminalSet {
-    id: 112,
+    id: 113,
     terminals: &[TerminalId(1), TerminalId(34)],
 };
 // StartNullableSharedOperand { WS, "j" }
 pub static FIRST_SET_START_NULLABLE_SHARED_OPERAND: TerminalSet = TerminalSet {
-    id: 112,
+    id: 113,
     terminals: &[TerminalId(1), TerminalId(34)],
 };
 // StartNullableSharedMaybe { WS, "j" }
 pub static FIRST_SET_START_NULLABLE_SHARED_MAYBE: TerminalSet = TerminalSet {
-    id: 112,
+    id: 113,
     terminals: &[TerminalId(1), TerminalId(34)],
 };
 // StartOwnLabel { WS, "(", "k" }
 pub static FIRST_SET_START_OWN_LABEL: TerminalSet = TerminalSet {
-    id: 137,
+    id: 143,
     terminals: &[TerminalId(1), TerminalId(22), TerminalId(35)],
 };
 // StartOwnOperand { WS, "(", "k" }
 pub static FIRST_SET_START_OWN_OPERAND: TerminalSet = TerminalSet {
-    id: 137,
+    id: 143,
     terminals: &[TerminalId(1), TerminalId(22), TerminalId(35)],
 };
 // StartOwnHeadFiltered { WS, "(", "k" }
 pub static FIRST_SET_START_OWN_HEAD_FILTERED: TerminalSet = TerminalSet {
-    id: 137,
+    id: 143,
     terminals: &[TerminalId(1), TerminalId(22), TerminalId(35)],
 };
 // StartExcludeOnly { WS, "t", "s" }
 pub static FIRST_SET_START_EXCLUDE_ONLY: TerminalSet = TerminalSet {
-    id: 138,
+    id: 144,
     terminals: &[TerminalId(1), TerminalId(10), TerminalId(36)],
 };
 // StartExcludeOnlyFiltered { WS, "t", "s" }
 pub static FIRST_SET_START_EXCLUDE_ONLY_FILTERED: TerminalSet = TerminalSet {
-    id: 138,
+    id: 144,
     terminals: &[TerminalId(1), TerminalId(10), TerminalId(36)],
 };
 // StartAbsent { WS, "a", "b" }
 pub static FIRST_SET_START_ABSENT: TerminalSet = TerminalSet {
-    id: 139,
+    id: 145,
     terminals: &[TerminalId(1), TerminalId(2), TerminalId(6)],
 };
 // StartAbsentOperand { WS, "a", "b" }
 pub static FIRST_SET_START_ABSENT_OPERAND: TerminalSet = TerminalSet {
-    id: 139,
+    id: 145,
     terminals: &[TerminalId(1), TerminalId(2), TerminalId(6)],
 };
 // StartClosedPrefix { WS, "a", "pre" }
 pub static FIRST_SET_START_CLOSED_PREFIX: TerminalSet = TerminalSet {
-    id: 140,
+    id: 146,
     terminals: &[TerminalId(1), TerminalId(2), TerminalId(37)],
 };
 // StartClosedPrefixBody { WS, "a", "b", "pre" }
 pub static FIRST_SET_START_CLOSED_PREFIX_BODY: TerminalSet = TerminalSet {
-    id: 141,
+    id: 147,
     terminals: &[TerminalId(1), TerminalId(2), TerminalId(6), TerminalId(37)],
 };
 // StartClosedPostfix { WS, "a", "b", "pre" }
 pub static FIRST_SET_START_CLOSED_POSTFIX: TerminalSet = TerminalSet {
-    id: 141,
+    id: 147,
     terminals: &[TerminalId(1), TerminalId(2), TerminalId(6), TerminalId(37)],
 };
 // StartClosedPostfixBody { WS, "a", "b", "pre" }
 pub static FIRST_SET_START_CLOSED_POSTFIX_BODY: TerminalSet = TerminalSet {
-    id: 141,
+    id: 147,
     terminals: &[TerminalId(1), TerminalId(2), TerminalId(6), TerminalId(37)],
 };
 // StartHeadChoice { WS, "a", "b" }
 pub static FIRST_SET_START_HEAD_CHOICE: TerminalSet = TerminalSet {
-    id: 139,
+    id: 145,
     terminals: &[TerminalId(1), TerminalId(2), TerminalId(6)],
 };
 // StartHeadOperand { WS, "a", "b" }
 pub static FIRST_SET_START_HEAD_OPERAND: TerminalSet = TerminalSet {
-    id: 139,
+    id: 145,
     terminals: &[TerminalId(1), TerminalId(2), TerminalId(6)],
 };
 // StartInner { WS, "b" }
 pub static FIRST_SET_START_INNER: TerminalSet = TerminalSet {
-    id: 126,
+    id: 132,
     terminals: &[TerminalId(1), TerminalId(6)],
 };
 // StartUnaryMixedLeft { WS, "a", "-" }
 pub static FIRST_SET_START_UNARY_MIXED_LEFT: TerminalSet = TerminalSet {
-    id: 142,
+    id: 148,
     terminals: &[TerminalId(1), TerminalId(2), TerminalId(5)],
 };
 // StartUnaryMixedRight { WS, "a", "-" }
 pub static FIRST_SET_START_UNARY_MIXED_RIGHT: TerminalSet = TerminalSet {
-    id: 142,
+    id: 148,
     terminals: &[TerminalId(1), TerminalId(2), TerminalId(5)],
 };
 // StartUnaryMixedNone { WS, "a", "-" }
 pub static FIRST_SET_START_UNARY_MIXED_NONE: TerminalSet = TerminalSet {
-    id: 142,
+    id: 148,
     terminals: &[TerminalId(1), TerminalId(2), TerminalId(5)],
 };
 // StartDynamic { WS, "a", "-", "b" }
 pub static FIRST_SET_START_DYNAMIC: TerminalSet = TerminalSet {
-    id: 143,
+    id: 149,
     terminals: &[TerminalId(1), TerminalId(2), TerminalId(5), TerminalId(6)],
 };
 // StartDynamicOperand { WS, "a", "-", "b" }
 pub static FIRST_SET_START_DYNAMIC_OPERAND: TerminalSet = TerminalSet {
-    id: 143,
+    id: 149,
     terminals: &[TerminalId(1), TerminalId(2), TerminalId(5), TerminalId(6)],
 };
 // StartDynamicFiltered { WS, "a", "-", "b" }
 pub static FIRST_SET_START_DYNAMIC_FILTERED: TerminalSet = TerminalSet {
-    id: 143,
+    id: 149,
     terminals: &[TerminalId(1), TerminalId(2), TerminalId(5), TerminalId(6)],
 };
 // StartDynamicHeadFiltered { WS, "a", "-", "b" }
 pub static FIRST_SET_START_DYNAMIC_HEAD_FILTERED: TerminalSet = TerminalSet {
-    id: 143,
+    id: 149,
     terminals: &[TerminalId(1), TerminalId(2), TerminalId(5), TerminalId(6)],
 };
 // StartDynamicMulti { WS, "a", "-", "b" }
 pub static FIRST_SET_START_DYNAMIC_MULTI: TerminalSet = TerminalSet {
-    id: 143,
+    id: 149,
     terminals: &[TerminalId(1), TerminalId(2), TerminalId(5), TerminalId(6)],
 };
 // StartDynamicMultiOperand { WS, "a", "-", "b" }
 pub static FIRST_SET_START_DYNAMIC_MULTI_OPERAND: TerminalSet = TerminalSet {
-    id: 143,
+    id: 149,
     terminals: &[TerminalId(1), TerminalId(2), TerminalId(5), TerminalId(6)],
 };
 // StartNullableBoundaryPrefix { WS, "a", "-" }
 pub static FIRST_SET_START_NULLABLE_BOUNDARY_PREFIX: TerminalSet = TerminalSet {
-    id: 142,
+    id: 148,
     terminals: &[TerminalId(1), TerminalId(2), TerminalId(5)],
 };
 // StartNullableBoundaryRight { WS, "a", "-" }
 pub static FIRST_SET_START_NULLABLE_BOUNDARY_RIGHT: TerminalSet = TerminalSet {
-    id: 142,
+    id: 148,
     terminals: &[TerminalId(1), TerminalId(2), TerminalId(5)],
 };
 // StartNullableBoundaryOpt { WS, "!" }
 pub static FIRST_SET_START_NULLABLE_BOUNDARY_OPT: TerminalSet = TerminalSet {
-    id: 144,
+    id: 150,
     terminals: &[TerminalId(1), TerminalId(29)],
 };
 // StartNullableBoundaryPostfix { WS, "a", "!" }
 pub static FIRST_SET_START_NULLABLE_BOUNDARY_POSTFIX: TerminalSet = TerminalSet {
-    id: 121,
+    id: 123,
     terminals: &[TerminalId(1), TerminalId(2), TerminalId(29)],
 };
 // StartNullableBoundaryLeft { WS, "a", "!" }
 pub static FIRST_SET_START_NULLABLE_BOUNDARY_LEFT: TerminalSet = TerminalSet {
-    id: 121,
+    id: 123,
     terminals: &[TerminalId(1), TerminalId(2), TerminalId(29)],
 };
 // StartNullableBoundaryBinary { WS, "a" }
 pub static FIRST_SET_START_NULLABLE_BOUNDARY_BINARY: TerminalSet = TerminalSet {
-    id: 125,
+    id: 131,
     terminals: &[TerminalId(1), TerminalId(2)],
 };
 // StartNullableBoundaryOperand { WS, "a" }
 pub static FIRST_SET_START_NULLABLE_BOUNDARY_OPERAND: TerminalSet = TerminalSet {
-    id: 125,
+    id: 131,
     terminals: &[TerminalId(1), TerminalId(2)],
 };
 // StartClosedLeftAssoc { WS, "a", "!" }
 pub static FIRST_SET_START_CLOSED_LEFT_ASSOC: TerminalSet = TerminalSet {
-    id: 121,
+    id: 123,
     terminals: &[TerminalId(1), TerminalId(2), TerminalId(29)],
 };
 // StartClosedLeftOperand { WS, "a", "!" }
 pub static FIRST_SET_START_CLOSED_LEFT_OPERAND: TerminalSet = TerminalSet {
-    id: 121,
+    id: 123,
     terminals: &[TerminalId(1), TerminalId(2), TerminalId(29)],
 };
 // StartClosedRightAssoc { WS, "a" }
 pub static FIRST_SET_START_CLOSED_RIGHT_ASSOC: TerminalSet = TerminalSet {
-    id: 125,
+    id: 131,
     terminals: &[TerminalId(1), TerminalId(2)],
 };
 // StartClosedRightOperand { WS, "a", "!" }
 pub static FIRST_SET_START_CLOSED_RIGHT_OPERAND: TerminalSet = TerminalSet {
-    id: 121,
+    id: 123,
     terminals: &[TerminalId(1), TerminalId(2), TerminalId(29)],
 };
 // StartIndirectExclude { WS, "a", "b" }
 pub static FIRST_SET_START_INDIRECT_EXCLUDE: TerminalSet = TerminalSet {
-    id: 139,
+    id: 145,
     terminals: &[TerminalId(1), TerminalId(2), TerminalId(6)],
 };
 // StartIndirectExcludeOperand { WS, "a", "b" }
 pub static FIRST_SET_START_INDIRECT_EXCLUDE_OPERAND: TerminalSet = TerminalSet {
-    id: 139,
+    id: 145,
     terminals: &[TerminalId(1), TerminalId(2), TerminalId(6)],
 };
 // StartIndirectExcludeFiltered { WS, "a", "b" }
 pub static FIRST_SET_START_INDIRECT_EXCLUDE_FILTERED: TerminalSet = TerminalSet {
-    id: 139,
+    id: 145,
     terminals: &[TerminalId(1), TerminalId(2), TerminalId(6)],
 };
 // StartOperandLiteral { WS, "x", "1" }
 pub static FIRST_SET_START_OPERAND_LITERAL: TerminalSet = TerminalSet {
-    id: 145,
+    id: 151,
     terminals: &[TerminalId(1), TerminalId(15), TerminalId(39)],
 };
 // StartOperandLiteralEnd { WS, "x", "1" }
 pub static FIRST_SET_START_OPERAND_LITERAL_END: TerminalSet = TerminalSet {
-    id: 145,
+    id: 151,
     terminals: &[TerminalId(1), TerminalId(15), TerminalId(39)],
 };
 // StartHeadLiteral { WS, "x", "1" }
 pub static FIRST_SET_START_HEAD_LITERAL: TerminalSet = TerminalSet {
-    id: 145,
+    id: 151,
     terminals: &[TerminalId(1), TerminalId(15), TerminalId(39)],
 };
 // StartHeadLiteralEnd { WS, "x", "1" }
 pub static FIRST_SET_START_HEAD_LITERAL_END: TerminalSet = TerminalSet {
-    id: 145,
+    id: 151,
     terminals: &[TerminalId(1), TerminalId(15), TerminalId(39)],
 };

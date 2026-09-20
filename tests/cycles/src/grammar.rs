@@ -1023,6 +1023,27 @@ impl Grammar for CyclesGrammar {
     ];
     const LAYOUT_NAME: Option<&'static str> = None;
     const LAYOUT_TERMINALS: &'static [TerminalId] = &[];
+    // A failed terminal match refers to a static terminal set like every other failure, so the
+    // error reporting path needs to reach a terminal set from a terminal id. This slice, indexed
+    // by terminal id, serves only that.
+    const SINGLE_TERMINAL_SETS: &'static [TerminalSet] = &[
+        TerminalSet {
+            id: 12,
+            terminals: &[TerminalId(0)],
+        },
+        TerminalSet {
+            id: 13,
+            terminals: &[TerminalId(1)],
+        },
+        TerminalSet {
+            id: 14,
+            terminals: &[TerminalId(2)],
+        },
+        TerminalSet {
+            id: 15,
+            terminals: &[TerminalId(3)],
+        },
+    ];
     fn nonterminal_id(name: &str) -> Option<NonterminalId> {
         match name {
             "Direct" => Some(DIRECT),
@@ -1998,6 +2019,11 @@ pub static FIRST_SET_SHARED_S: TerminalSet = TerminalSet {
     id: 7,
     terminals: &[],
 };
+// SharedA prediction { EOF }
+pub static PREDICTION_SET_SHARED_A: TerminalSet = TerminalSet {
+    id: 8,
+    terminals: &[TerminalId(3)],
+};
 // SharedA { }
 pub static FIRST_SET_SHARED_A: TerminalSet = TerminalSet {
     id: 7,
@@ -2033,6 +2059,11 @@ pub static FIRST_SET_TWO_ROUTES_B: TerminalSet = TerminalSet {
     id: 6,
     terminals: &[TerminalId(0)],
 };
+// Nullable prediction { "b", "b", EOF }
+pub static PREDICTION_SET_NULLABLE: TerminalSet = TerminalSet {
+    id: 9,
+    terminals: &[TerminalId(0), TerminalId(0), TerminalId(3)],
+};
 // Nullable { "b" }
 pub static FIRST_SET_NULLABLE: TerminalSet = TerminalSet {
     id: 6,
@@ -2042,6 +2073,11 @@ pub static FIRST_SET_NULLABLE: TerminalSet = TerminalSet {
 pub static FIRST_SET_SIBLING_C: TerminalSet = TerminalSet {
     id: 6,
     terminals: &[TerminalId(0)],
+};
+// SiblingD prediction { EOF }
+pub static PREDICTION_SET_SIBLING_D: TerminalSet = TerminalSet {
+    id: 8,
+    terminals: &[TerminalId(3)],
 };
 // SiblingD { }
 pub static FIRST_SET_SIBLING_D: TerminalSet = TerminalSet {
@@ -2060,12 +2096,12 @@ pub static FIRST_SET_EMPTY_F: TerminalSet = TerminalSet {
 };
 // ParentC { "a" }
 pub static FIRST_SET_PARENT_C: TerminalSet = TerminalSet {
-    id: 8,
+    id: 10,
     terminals: &[TerminalId(1)],
 };
 // ParentD { "a" }
 pub static FIRST_SET_PARENT_D: TerminalSet = TerminalSet {
-    id: 8,
+    id: 10,
     terminals: &[TerminalId(1)],
 };
 // OverlapC { "b" }
@@ -2080,13 +2116,18 @@ pub static FIRST_SET_OVERLAP_B: TerminalSet = TerminalSet {
 };
 // IntermediateY { "a" }
 pub static FIRST_SET_INTERMEDIATE_Y: TerminalSet = TerminalSet {
-    id: 8,
+    id: 10,
     terminals: &[TerminalId(1)],
 };
 // IntermediateA { }
 pub static FIRST_SET_INTERMEDIATE_A: TerminalSet = TerminalSet {
     id: 7,
     terminals: &[],
+};
+// IntermediateB prediction { "b", "b", EOF }
+pub static PREDICTION_SET_INTERMEDIATE_B: TerminalSet = TerminalSet {
+    id: 9,
+    terminals: &[TerminalId(0), TerminalId(0), TerminalId(3)],
 };
 // IntermediateB { "b" }
 pub static FIRST_SET_INTERMEDIATE_B: TerminalSet = TerminalSet {
@@ -2123,6 +2164,11 @@ pub static FIRST_SET_NULLABLE_SEPARATED: TerminalSet = TerminalSet {
     id: 7,
     terminals: &[],
 };
+// Optional prediction { "b", EOF }
+pub static PREDICTION_SET_OPTIONAL: TerminalSet = TerminalSet {
+    id: 11,
+    terminals: &[TerminalId(0), TerminalId(3)],
+};
 // Optional { "b" }
 pub static FIRST_SET_OPTIONAL: TerminalSet = TerminalSet {
     id: 6,
@@ -2133,10 +2179,20 @@ pub static FIRST_SET_GROUPED: TerminalSet = TerminalSet {
     id: 6,
     terminals: &[TerminalId(0)],
 };
+// Plus_0 prediction { EOF }
+pub static PREDICTION_SET_PLUS_0: TerminalSet = TerminalSet {
+    id: 8,
+    terminals: &[TerminalId(3)],
+};
 // Plus_0 { }
 pub static FIRST_SET_PLUS_0: TerminalSet = TerminalSet {
     id: 7,
     terminals: &[],
+};
+// Opt_0 prediction { EOF }
+pub static PREDICTION_SET_OPT_0: TerminalSet = TerminalSet {
+    id: 8,
+    terminals: &[TerminalId(3)],
 };
 // Opt_0 { }
 pub static FIRST_SET_OPT_0: TerminalSet = TerminalSet {
@@ -2148,10 +2204,20 @@ pub static FIRST_SET_STAR_0: TerminalSet = TerminalSet {
     id: 7,
     terminals: &[],
 };
+// Plus_1 prediction { EOF }
+pub static PREDICTION_SET_PLUS_1: TerminalSet = TerminalSet {
+    id: 8,
+    terminals: &[TerminalId(3)],
+};
 // Plus_1 { }
 pub static FIRST_SET_PLUS_1: TerminalSet = TerminalSet {
     id: 7,
     terminals: &[],
+};
+// Opt_1 prediction { "b", EOF }
+pub static PREDICTION_SET_OPT_1: TerminalSet = TerminalSet {
+    id: 11,
+    terminals: &[TerminalId(0), TerminalId(3)],
 };
 // Opt_1 { "b" }
 pub static FIRST_SET_OPT_1: TerminalSet = TerminalSet {
@@ -2260,12 +2326,12 @@ pub static FIRST_SET_START_EMPTY_F: TerminalSet = TerminalSet {
 };
 // StartParentC { "a" }
 pub static FIRST_SET_START_PARENT_C: TerminalSet = TerminalSet {
-    id: 8,
+    id: 10,
     terminals: &[TerminalId(1)],
 };
 // StartParentD { "a" }
 pub static FIRST_SET_START_PARENT_D: TerminalSet = TerminalSet {
-    id: 8,
+    id: 10,
     terminals: &[TerminalId(1)],
 };
 // StartOverlapC { "b" }
@@ -2280,7 +2346,7 @@ pub static FIRST_SET_START_OVERLAP_B: TerminalSet = TerminalSet {
 };
 // StartIntermediateY { "a" }
 pub static FIRST_SET_START_INTERMEDIATE_Y: TerminalSet = TerminalSet {
-    id: 8,
+    id: 10,
     terminals: &[TerminalId(1)],
 };
 // StartIntermediateA { }

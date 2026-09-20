@@ -24,7 +24,7 @@ use iguana_runtime::{
     },
     record,
     result::{ParseError, ParseSuccess},
-    scanner::Scanner,
+    scanner::{Scanner, TerminalSet},
     sppf::{IntermediateNode, NonterminalNode, SPPFNode, SPPFNodeId, TerminalNode},
     utils::{inline_map::InlineMap, inline_vec::InlineVec},
 };
@@ -41,239 +41,336 @@ impl<'i, 'arena> Parser<'i, 'arena> for ExactKeywordNoLayoutParser<'i, 'arena> {
         let builder = ExactKeywordNoLayoutParseTreeBuilder::new(tree_arena);
         create_parse_tree(root, self, &builder)
     }
-    // env is threaded only through recursive execute calls in grammars without data-dependent
-    // constructs, so clippy sees it as recursion-only there.
-    #[allow(clippy::only_used_in_recursion)]
-    fn execute(
-        &mut self,
-        input_index: u32,
-        slot_id: SlotId,
-        result: Option<SPPFNodeId>,
-        gss_node_id: GssNodeId,
-        env: Option<EnvId>,
-    ) {
-        record!(
-            self,
-            ProcessingDescriptor,
-            input_index,
-            slot_id,
-            result,
-            gss_node_id
-        );
-        match slot_id {
-            // S : . Word WS ";"
-            SlotId(0) => {
-                self.create(NonterminalId(1), result, gss_node_id, SlotId(1), env);
-            }
-            // S : Word . WS ";"
-            SlotId(1) => {
-                if let Some((_, right_child)) =
-                    self.match_terminal(TerminalId(2), input_index, SlotId(1), Some(gss_node_id))
-                {
-                    if let Some((j, new_node)) =
-                        self.create_intermediate_node(result, right_child, SlotId(2), env)
-                    {
-                        // S : Word WS . ";"
-                        self.execute(j, SlotId(2), Some(new_node), gss_node_id, env);
+    // The GLL main loop. Each descriptor starts at its slot. A slot that reaches the next slot
+    // of its alternative sets `next`, so a descriptor runs through its alternative as far as it
+    // can before the loop takes the next descriptor. The GSS node and the environment are fixed
+    // for the whole alternative.
+    fn execute(&mut self) {
+        while let Some(descriptor) = self.next_descriptor() {
+            let mut input_index = descriptor.input_index;
+            let mut result = descriptor.sppf_node_id();
+            let gss_node_id = descriptor.gss_node_id;
+            let env = descriptor.env_id();
+            let mut next = Some(descriptor.slot_id);
+            while let Some(slot_id) = next {
+                next = None;
+                record!(
+                    self,
+                    ProcessingDescriptor,
+                    input_index,
+                    slot_id,
+                    result,
+                    gss_node_id
+                );
+                match slot_id {
+                    // S : . Word WS ";"
+                    SlotId(0) => {
+                        self.create(NonterminalId(1), result, gss_node_id, SlotId(1), env);
                     }
-                }
-            }
-            // S : Word WS . ";"
-            SlotId(2) => {
-                if let Some((_, right_child)) =
-                    self.match_terminal(TerminalId(3), input_index, SlotId(2), Some(gss_node_id))
-                {
-                    if let Some((j, new_node)) =
-                        self.create_intermediate_node(result, right_child, SlotId(3), env)
-                    {
-                        // S : Word WS ";".
-                        self.execute(j, SlotId(3), Some(new_node), gss_node_id, env);
+                    // S : Word . WS ";"
+                    SlotId(1) => {
+                        if let Some((j, right_child)) = self.match_terminal(
+                            TerminalId(2),
+                            input_index,
+                            SlotId(1),
+                            Some(gss_node_id),
+                        ) {
+                            if let Some(new_node) =
+                                self.create_intermediate_node(result, right_child, SlotId(2), env)
+                            {
+                                // S : Word WS . ";"
+                                input_index = j;
+                                result = Some(new_node);
+                                next = Some(SlotId(2));
+                            }
+                        }
                     }
-                }
-            }
-            // S : Word WS ";".
-            SlotId(3) => {
-                let nonterminal_node_id =
-                    self.create_nonterminal_node(result, NonterminalId(0), SlotId(3), gss_node_id);
-                self.pop(gss_node_id, SlotId(3), nonterminal_node_id, None);
-            }
-            // S : . Id WS ";"
-            SlotId(4) => {
-                if let Some((j, right_child)) =
-                    self.match_terminal(TerminalId(0), input_index, SlotId(4), Some(gss_node_id))
-                {
+                    // S : Word WS . ";"
+                    SlotId(2) => {
+                        if let Some((j, right_child)) = self.match_terminal(
+                            TerminalId(3),
+                            input_index,
+                            SlotId(2),
+                            Some(gss_node_id),
+                        ) {
+                            if let Some(new_node) =
+                                self.create_intermediate_node(result, right_child, SlotId(3), env)
+                            {
+                                // S : Word WS ";".
+                                input_index = j;
+                                result = Some(new_node);
+                                next = Some(SlotId(3));
+                            }
+                        }
+                    }
+                    // S : Word WS ";".
+                    SlotId(3) => {
+                        let nonterminal_node_id = self.create_nonterminal_node(
+                            result,
+                            NonterminalId(0),
+                            SlotId(3),
+                            gss_node_id,
+                        );
+                        self.pop(gss_node_id, SlotId(3), nonterminal_node_id, None);
+                    }
+                    // S : . Id WS ";"
+                    SlotId(4) => {
+                        if let Some((j, right_child)) = self.match_terminal(
+                            TerminalId(0),
+                            input_index,
+                            SlotId(4),
+                            Some(gss_node_id),
+                        ) {
+                            // S : Id . WS ";"
+                            input_index = j;
+                            result = Some(right_child);
+                            next = Some(SlotId(5));
+                        }
+                    }
                     // S : Id . WS ";"
-                    self.execute(j, SlotId(5), Some(right_child), gss_node_id, env);
-                }
-            }
-            // S : Id . WS ";"
-            SlotId(5) => {
-                if let Some((_, right_child)) =
-                    self.match_terminal(TerminalId(2), input_index, SlotId(5), Some(gss_node_id))
-                {
-                    if let Some((j, new_node)) =
-                        self.create_intermediate_node(result, right_child, SlotId(6), env)
-                    {
-                        // S : Id WS . ";"
-                        self.execute(j, SlotId(6), Some(new_node), gss_node_id, env);
+                    SlotId(5) => {
+                        if let Some((j, right_child)) = self.match_terminal(
+                            TerminalId(2),
+                            input_index,
+                            SlotId(5),
+                            Some(gss_node_id),
+                        ) {
+                            if let Some(new_node) =
+                                self.create_intermediate_node(result, right_child, SlotId(6), env)
+                            {
+                                // S : Id WS . ";"
+                                input_index = j;
+                                result = Some(new_node);
+                                next = Some(SlotId(6));
+                            }
+                        }
                     }
-                }
-            }
-            // S : Id WS . ";"
-            SlotId(6) => {
-                if let Some((_, right_child)) =
-                    self.match_terminal(TerminalId(3), input_index, SlotId(6), Some(gss_node_id))
-                {
-                    if let Some((j, new_node)) =
-                        self.create_intermediate_node(result, right_child, SlotId(7), env)
-                    {
-                        // S : Id WS ";".
-                        self.execute(j, SlotId(7), Some(new_node), gss_node_id, env);
+                    // S : Id WS . ";"
+                    SlotId(6) => {
+                        if let Some((j, right_child)) = self.match_terminal(
+                            TerminalId(3),
+                            input_index,
+                            SlotId(6),
+                            Some(gss_node_id),
+                        ) {
+                            if let Some(new_node) =
+                                self.create_intermediate_node(result, right_child, SlotId(7), env)
+                            {
+                                // S : Id WS ";".
+                                input_index = j;
+                                result = Some(new_node);
+                                next = Some(SlotId(7));
+                            }
+                        }
                     }
-                }
-            }
-            // S : Id WS ";".
-            SlotId(7) => {
-                let nonterminal_node_id =
-                    self.create_nonterminal_node(result, NonterminalId(0), SlotId(7), gss_node_id);
-                self.pop(gss_node_id, SlotId(7), nonterminal_node_id, None);
-            }
-            // Word : . "@" "go" Plus_0
-            SlotId(8) => {
-                if let Some((j, right_child)) =
-                    self.match_terminal(TerminalId(4), input_index, SlotId(8), Some(gss_node_id))
-                {
+                    // S : Id WS ";".
+                    SlotId(7) => {
+                        let nonterminal_node_id = self.create_nonterminal_node(
+                            result,
+                            NonterminalId(0),
+                            SlotId(7),
+                            gss_node_id,
+                        );
+                        self.pop(gss_node_id, SlotId(7), nonterminal_node_id, None);
+                    }
+                    // Word : . "@" "go" Plus_0
+                    SlotId(8) => {
+                        if let Some((j, right_child)) = self.match_terminal(
+                            TerminalId(4),
+                            input_index,
+                            SlotId(8),
+                            Some(gss_node_id),
+                        ) {
+                            // Word : "@" . "go" Plus_0
+                            input_index = j;
+                            result = Some(right_child);
+                            next = Some(SlotId(9));
+                        }
+                    }
                     // Word : "@" . "go" Plus_0
-                    self.execute(j, SlotId(9), Some(right_child), gss_node_id, env);
-                }
-            }
-            // Word : "@" . "go" Plus_0
-            SlotId(9) => {
-                if let Some((_, right_child)) =
-                    self.match_terminal(TerminalId(5), input_index, SlotId(9), Some(gss_node_id))
-                {
-                    if let Some((j, new_node)) =
-                        self.create_intermediate_node(result, right_child, SlotId(10), env)
-                    {
-                        // Word : "@" "go" . Plus_0
-                        self.execute(j, SlotId(10), Some(new_node), gss_node_id, env);
+                    SlotId(9) => {
+                        if let Some((j, right_child)) = self.match_terminal(
+                            TerminalId(5),
+                            input_index,
+                            SlotId(9),
+                            Some(gss_node_id),
+                        ) {
+                            if let Some(new_node) =
+                                self.create_intermediate_node(result, right_child, SlotId(10), env)
+                            {
+                                // Word : "@" "go" . Plus_0
+                                input_index = j;
+                                result = Some(new_node);
+                                next = Some(SlotId(10));
+                            }
+                        }
                     }
-                }
-            }
-            // Word : "@" "go" . Plus_0
-            SlotId(10) => {
-                self.create(NonterminalId(2), result, gss_node_id, SlotId(11), env);
-            }
-            // Word : "@" "go" Plus_0.
-            SlotId(11) => {
-                let nonterminal_node_id =
-                    self.create_nonterminal_node(result, NonterminalId(1), SlotId(11), gss_node_id);
-                self.pop(gss_node_id, SlotId(11), nonterminal_node_id, None);
-            }
-            // Plus_0 : . Plus_0 Letter
-            SlotId(12) => {
-                self.create(NonterminalId(2), result, gss_node_id, SlotId(13), env);
-            }
-            // Plus_0 : Plus_0 . Letter
-            SlotId(13) => {
-                if let Some((_, right_child)) =
-                    self.match_terminal(TerminalId(1), input_index, SlotId(13), Some(gss_node_id))
-                {
-                    if let Some((j, new_node)) =
-                        self.create_intermediate_node(result, right_child, SlotId(14), env)
-                    {
-                        // Plus_0 : Plus_0 Letter.
-                        self.execute(j, SlotId(14), Some(new_node), gss_node_id, env);
+                    // Word : "@" "go" . Plus_0
+                    SlotId(10) => {
+                        self.create(NonterminalId(2), result, gss_node_id, SlotId(11), env);
                     }
-                }
-            }
-            // Plus_0 : Plus_0 Letter.
-            SlotId(14) => {
-                let nonterminal_node_id =
-                    self.create_nonterminal_node(result, NonterminalId(2), SlotId(14), gss_node_id);
-                self.pop(gss_node_id, SlotId(14), nonterminal_node_id, None);
-            }
-            // Plus_0 : . Letter
-            SlotId(15) => {
-                if let Some((j, right_child)) =
-                    self.match_terminal(TerminalId(1), input_index, SlotId(15), Some(gss_node_id))
-                {
+                    // Word : "@" "go" Plus_0.
+                    SlotId(11) => {
+                        let nonterminal_node_id = self.create_nonterminal_node(
+                            result,
+                            NonterminalId(1),
+                            SlotId(11),
+                            gss_node_id,
+                        );
+                        self.pop(gss_node_id, SlotId(11), nonterminal_node_id, None);
+                    }
+                    // Plus_0 : . Plus_0 Letter
+                    SlotId(12) => {
+                        self.create(NonterminalId(2), result, gss_node_id, SlotId(13), env);
+                    }
+                    // Plus_0 : Plus_0 . Letter
+                    SlotId(13) => {
+                        if let Some((j, right_child)) = self.match_terminal(
+                            TerminalId(1),
+                            input_index,
+                            SlotId(13),
+                            Some(gss_node_id),
+                        ) {
+                            if let Some(new_node) =
+                                self.create_intermediate_node(result, right_child, SlotId(14), env)
+                            {
+                                // Plus_0 : Plus_0 Letter.
+                                input_index = j;
+                                result = Some(new_node);
+                                next = Some(SlotId(14));
+                            }
+                        }
+                    }
+                    // Plus_0 : Plus_0 Letter.
+                    SlotId(14) => {
+                        let nonterminal_node_id = self.create_nonterminal_node(
+                            result,
+                            NonterminalId(2),
+                            SlotId(14),
+                            gss_node_id,
+                        );
+                        self.pop(gss_node_id, SlotId(14), nonterminal_node_id, None);
+                    }
+                    // Plus_0 : . Letter
+                    SlotId(15) => {
+                        if let Some((j, right_child)) = self.match_terminal(
+                            TerminalId(1),
+                            input_index,
+                            SlotId(15),
+                            Some(gss_node_id),
+                        ) {
+                            // Plus_0 : Letter.
+                            input_index = j;
+                            result = Some(right_child);
+                            next = Some(SlotId(16));
+                        }
+                    }
                     // Plus_0 : Letter.
-                    self.execute(j, SlotId(16), Some(right_child), gss_node_id, env);
-                }
-            }
-            // Plus_0 : Letter.
-            SlotId(16) => {
-                let nonterminal_node_id =
-                    self.create_nonterminal_node(result, NonterminalId(2), SlotId(16), gss_node_id);
-                self.pop(gss_node_id, SlotId(16), nonterminal_node_id, None);
-            }
-            // StartS : . WS start:S WS
-            SlotId(17) => {
-                if let Some((j, right_child)) =
-                    self.match_terminal(TerminalId(2), input_index, SlotId(17), Some(gss_node_id))
-                {
+                    SlotId(16) => {
+                        let nonterminal_node_id = self.create_nonterminal_node(
+                            result,
+                            NonterminalId(2),
+                            SlotId(16),
+                            gss_node_id,
+                        );
+                        self.pop(gss_node_id, SlotId(16), nonterminal_node_id, None);
+                    }
+                    // StartS : . WS start:S WS
+                    SlotId(17) => {
+                        if let Some((j, right_child)) = self.match_terminal(
+                            TerminalId(2),
+                            input_index,
+                            SlotId(17),
+                            Some(gss_node_id),
+                        ) {
+                            // StartS : WS . start:S WS
+                            input_index = j;
+                            result = Some(right_child);
+                            next = Some(SlotId(18));
+                        }
+                    }
                     // StartS : WS . start:S WS
-                    self.execute(j, SlotId(18), Some(right_child), gss_node_id, env);
-                }
-            }
-            // StartS : WS . start:S WS
-            SlotId(18) => {
-                self.create(NonterminalId(0), result, gss_node_id, SlotId(19), env);
-            }
-            // StartS : WS start:S . WS
-            SlotId(19) => {
-                if let Some((_, right_child)) =
-                    self.match_terminal(TerminalId(2), input_index, SlotId(19), Some(gss_node_id))
-                {
-                    if let Some((j, new_node)) =
-                        self.create_intermediate_node(result, right_child, SlotId(20), env)
-                    {
-                        // StartS : WS start:S WS.
-                        self.execute(j, SlotId(20), Some(new_node), gss_node_id, env);
+                    SlotId(18) => {
+                        self.create(NonterminalId(0), result, gss_node_id, SlotId(19), env);
                     }
-                }
-            }
-            // StartS : WS start:S WS.
-            SlotId(20) => {
-                let nonterminal_node_id =
-                    self.create_nonterminal_node(result, NonterminalId(3), SlotId(20), gss_node_id);
-                self.pop(gss_node_id, SlotId(20), nonterminal_node_id, None);
-            }
-            // StartWord : . WS start:Word WS
-            SlotId(21) => {
-                if let Some((j, right_child)) =
-                    self.match_terminal(TerminalId(2), input_index, SlotId(21), Some(gss_node_id))
-                {
+                    // StartS : WS start:S . WS
+                    SlotId(19) => {
+                        if let Some((j, right_child)) = self.match_terminal(
+                            TerminalId(2),
+                            input_index,
+                            SlotId(19),
+                            Some(gss_node_id),
+                        ) {
+                            if let Some(new_node) =
+                                self.create_intermediate_node(result, right_child, SlotId(20), env)
+                            {
+                                // StartS : WS start:S WS.
+                                input_index = j;
+                                result = Some(new_node);
+                                next = Some(SlotId(20));
+                            }
+                        }
+                    }
+                    // StartS : WS start:S WS.
+                    SlotId(20) => {
+                        let nonterminal_node_id = self.create_nonterminal_node(
+                            result,
+                            NonterminalId(3),
+                            SlotId(20),
+                            gss_node_id,
+                        );
+                        self.pop(gss_node_id, SlotId(20), nonterminal_node_id, None);
+                    }
+                    // StartWord : . WS start:Word WS
+                    SlotId(21) => {
+                        if let Some((j, right_child)) = self.match_terminal(
+                            TerminalId(2),
+                            input_index,
+                            SlotId(21),
+                            Some(gss_node_id),
+                        ) {
+                            // StartWord : WS . start:Word WS
+                            input_index = j;
+                            result = Some(right_child);
+                            next = Some(SlotId(22));
+                        }
+                    }
                     // StartWord : WS . start:Word WS
-                    self.execute(j, SlotId(22), Some(right_child), gss_node_id, env);
-                }
-            }
-            // StartWord : WS . start:Word WS
-            SlotId(22) => {
-                self.create(NonterminalId(1), result, gss_node_id, SlotId(23), env);
-            }
-            // StartWord : WS start:Word . WS
-            SlotId(23) => {
-                if let Some((_, right_child)) =
-                    self.match_terminal(TerminalId(2), input_index, SlotId(23), Some(gss_node_id))
-                {
-                    if let Some((j, new_node)) =
-                        self.create_intermediate_node(result, right_child, SlotId(24), env)
-                    {
-                        // StartWord : WS start:Word WS.
-                        self.execute(j, SlotId(24), Some(new_node), gss_node_id, env);
+                    SlotId(22) => {
+                        self.create(NonterminalId(1), result, gss_node_id, SlotId(23), env);
+                    }
+                    // StartWord : WS start:Word . WS
+                    SlotId(23) => {
+                        if let Some((j, right_child)) = self.match_terminal(
+                            TerminalId(2),
+                            input_index,
+                            SlotId(23),
+                            Some(gss_node_id),
+                        ) {
+                            if let Some(new_node) =
+                                self.create_intermediate_node(result, right_child, SlotId(24), env)
+                            {
+                                // StartWord : WS start:Word WS.
+                                input_index = j;
+                                result = Some(new_node);
+                                next = Some(SlotId(24));
+                            }
+                        }
+                    }
+                    // StartWord : WS start:Word WS.
+                    SlotId(24) => {
+                        let nonterminal_node_id = self.create_nonterminal_node(
+                            result,
+                            NonterminalId(4),
+                            SlotId(24),
+                            gss_node_id,
+                        );
+                        self.pop(gss_node_id, SlotId(24), nonterminal_node_id, None);
+                    }
+                    _ => {
+                        panic!("Unknown grammar slot id: {slot_id}");
                     }
                 }
-            }
-            // StartWord : WS start:Word WS.
-            SlotId(24) => {
-                let nonterminal_node_id =
-                    self.create_nonterminal_node(result, NonterminalId(4), SlotId(24), gss_node_id);
-                self.pop(gss_node_id, SlotId(24), nonterminal_node_id, None);
-            }
-            _ => {
-                panic!("Unknown grammar slot id: {slot_id}");
             }
         }
     }
@@ -299,11 +396,12 @@ impl<'i, 'arena> Parser<'i, 'arena> for ExactKeywordNoLayoutParser<'i, 'arena> {
                     self.add_first_descriptor(SlotId(4), input_index, gss_node_id, env);
                 }
                 if !matched {
-                    self.add_failure(input_index, SlotId(0), Some(gss_node_id), || {
-                        GLLFailureKind::UnexpectedToken {
-                            expected: FIRST_SET_S.terminals.to_vec(),
-                        }
-                    });
+                    self.add_failure(
+                        input_index,
+                        SlotId(0),
+                        Some(gss_node_id),
+                        GLLFailureKind::UnexpectedToken(&FIRST_SET_S),
+                    );
                 }
             }
             // Word : . "@" "go" Plus_0
@@ -324,11 +422,12 @@ impl<'i, 'arena> Parser<'i, 'arena> for ExactKeywordNoLayoutParser<'i, 'arena> {
                     self.add_first_descriptor(SlotId(15), input_index, gss_node_id, env);
                 }
                 if !matched {
-                    self.add_failure(input_index, SlotId(12), Some(gss_node_id), || {
-                        GLLFailureKind::UnexpectedToken {
-                            expected: FIRST_SET_PLUS_0.terminals.to_vec(),
-                        }
-                    });
+                    self.add_failure(
+                        input_index,
+                        SlotId(12),
+                        Some(gss_node_id),
+                        GLLFailureKind::UnexpectedToken(&FIRST_SET_PLUS_0),
+                    );
                 }
             }
             // StartS : . WS start:S WS
@@ -703,43 +802,35 @@ impl<'i, 'arena> Parser<'i, 'arena> for ExactKeywordNoLayoutParser<'i, 'arena> {
             _ => true,
         }
     }
-    fn follow_set_terminals(&self, nonterminal_id: NonterminalId) -> Vec<TerminalId> {
+    fn follow_set(&self, nonterminal_id: NonterminalId) -> &'static TerminalSet {
         match nonterminal_id {
-            NonterminalId(0) => FOLLOW_SET_S.terminals.to_vec(),
-            NonterminalId(1) => FOLLOW_SET_WORD.terminals.to_vec(),
-            NonterminalId(2) => FOLLOW_SET_PLUS_0.terminals.to_vec(),
-            NonterminalId(3) => FOLLOW_SET_START_S.terminals.to_vec(),
-            NonterminalId(4) => FOLLOW_SET_START_WORD.terminals.to_vec(),
-            _ => vec![],
+            NonterminalId(0) => &FOLLOW_SET_S,
+            NonterminalId(1) => &FOLLOW_SET_WORD,
+            NonterminalId(2) => &FOLLOW_SET_PLUS_0,
+            NonterminalId(3) => &FOLLOW_SET_START_S,
+            NonterminalId(4) => &FOLLOW_SET_START_WORD,
+            _ => unreachable!("no FOLLOW set for nonterminal {nonterminal_id}"),
         }
     }
     fn failures(&self) -> impl Iterator<Item = &GLLFailure> {
         self.failures.iter()
     }
+    #[inline(never)]
     fn add_failure(
         &mut self,
         input_index: u32,
         slot_id: SlotId,
         gss_node_id: Option<GssNodeId>,
-        kind: impl FnOnce() -> GLLFailureKind,
+        kind: GLLFailureKind,
     ) {
         if self.suppress_failures {
             return;
         }
         let level = self.failures.first().map_or(0, |e| e.input_index);
+        record!(self, GLLFailure, input_index, slot_id, gss_node_id, kind);
         if input_index < level {
-            record!(self, GLLFailure, input_index, slot_id, gss_node_id, kind());
             return;
         }
-        let kind = kind();
-        record!(
-            self,
-            GLLFailure,
-            input_index,
-            slot_id,
-            gss_node_id,
-            kind.clone()
-        );
         if input_index > level {
             self.failures.clear();
         }

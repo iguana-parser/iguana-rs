@@ -226,6 +226,47 @@ impl Grammar for AltSeqGrammar {
     ];
     const LAYOUT_NAME: Option<&'static str> = None;
     const LAYOUT_TERMINALS: &'static [TerminalId] = &[];
+    // A failed terminal match refers to a static terminal set like every other failure, so the
+    // error reporting path needs to reach a terminal set from a terminal id. This slice, indexed
+    // by terminal id, serves only that.
+    const SINGLE_TERMINAL_SETS: &'static [TerminalSet] = &[
+        TerminalSet {
+            id: 20,
+            terminals: &[TerminalId(0)],
+        },
+        TerminalSet {
+            id: 21,
+            terminals: &[TerminalId(1)],
+        },
+        TerminalSet {
+            id: 22,
+            terminals: &[TerminalId(2)],
+        },
+        TerminalSet {
+            id: 23,
+            terminals: &[TerminalId(3)],
+        },
+        TerminalSet {
+            id: 24,
+            terminals: &[TerminalId(4)],
+        },
+        TerminalSet {
+            id: 25,
+            terminals: &[TerminalId(5)],
+        },
+        TerminalSet {
+            id: 26,
+            terminals: &[TerminalId(6)],
+        },
+        TerminalSet {
+            id: 27,
+            terminals: &[TerminalId(7)],
+        },
+        TerminalSet {
+            id: 28,
+            terminals: &[TerminalId(8)],
+        },
+    ];
     fn nonterminal_id(name: &str) -> Option<NonterminalId> {
         match name {
             "S" => Some(S),

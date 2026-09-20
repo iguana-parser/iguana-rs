@@ -1,4 +1,4 @@
-use serde::{Deserialize, Serialize};
+use serde::Serialize;
 
 use crate::ids::{GssNodeId, NonterminalId, SlotId, TerminalId};
 use crate::input::Span;
@@ -8,9 +8,9 @@ use crate::sppf::SPPFNodeId;
 #[cfg(feature = "debug-trace")]
 use crate::{grammar::Grammar, parser::Parser};
 
-/// Trace events emitted during GLL parsing.
-/// Always available for deserialization; runtime tracing requires `debug-trace` feature.
-#[derive(Debug, Serialize, Deserialize)]
+/// Trace events emitted during GLL parsing. Serializable in every build;
+/// recording them requires the `debug-trace` feature.
+#[derive(Debug, Serialize)]
 pub enum TraceEvent {
     ProcessingDescriptor(SlotId, u32, GssNodeId, Option<SPPFNodeId>),
     DescriptorAdded(SlotId, u32, GssNodeId, Option<SPPFNodeId>),
@@ -87,26 +87,15 @@ impl TraceEvent {
                 let gss = gss_node_id
                     .map(|id| parser.gss_to_string(id))
                     .unwrap_or_else(|| "?".to_string());
+                let names: Vec<&str> = kind
+                    .terminals()
+                    .iter()
+                    .map(|id| P::Grammar::terminal_name(*id))
+                    .collect();
                 let kind_str = match kind {
-                    GLLFailureKind::UnexpectedToken { expected } => {
-                        let names: Vec<&str> = expected
-                            .iter()
-                            .map(|id| P::Grammar::terminal_name(*id))
-                            .collect();
-                        format!("expected {}", names.join(", "))
-                    }
-                    GLLFailureKind::ExcludedMatch { excluded_by } => {
-                        let names: Vec<&str> = excluded_by
-                            .iter()
-                            .map(|id| P::Grammar::terminal_name(*id))
-                            .collect();
-                        format!("excluded by {}", names.join(", "))
-                    }
-                    GLLFailureKind::ForbiddenFollow { forbidden } => {
-                        let names: Vec<&str> = forbidden
-                            .iter()
-                            .map(|id| P::Grammar::terminal_name(*id))
-                            .collect();
+                    GLLFailureKind::UnexpectedToken(_) => format!("expected {}", names.join(", ")),
+                    GLLFailureKind::ExcludedMatch(_) => format!("excluded by {}", names.join(", ")),
+                    GLLFailureKind::ForbiddenFollow(_) => {
                         format!("forbidden follow {}", names.join(", "))
                     }
                 };

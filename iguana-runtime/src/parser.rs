@@ -3,7 +3,7 @@ use std::time::Duration;
 use web_time::Instant;
 
 use rustc_hash::FxHashMap;
-use serde::{Deserialize, Serialize};
+use serde::Serialize;
 
 use crate::{
     arena::Arena,
@@ -16,6 +16,7 @@ use crate::{
     parse_tree::ParseTreeNode,
     record,
     result::{ParseError, ParseSuccess},
+    scanner::TerminalSet,
     sppf::{IntermediateNode, NonterminalNode, SPPFNode, SPPFNodeId, TerminalNode},
     utils::inline_vec::InlineVec,
 };
@@ -40,7 +41,7 @@ pub const DESCRIPTORS_CAPACITY_FLOOR: usize = 1024;
 
 pub enum GLLResult {
     Success(GLLSuccess),
-    Failure(GLLFailure),
+    Failure(FailureReport),
 }
 
 pub struct GLLSuccess {
@@ -48,7 +49,10 @@ pub struct GLLSuccess {
     pub duration: Duration,
 }
 
-#[derive(Debug, Clone)]
+/// A failure the parser recorded: where it happened and which static
+/// terminal set it refers to. Recording one stores two words and allocates
+/// nothing; the terminal lists live in the generated grammar's statics.
+#[derive(Debug, Clone, Copy)]
 pub struct GLLFailure {
     pub input_index: u32,
     pub slot_id: SlotId,
@@ -56,14 +60,61 @@ pub struct GLLFailure {
     pub kind: GLLFailureKind,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+/// The kind of a recorded failure and the terminal set it refers to. Every
+/// variant holds a reference to a generated static, so the value is a tag
+/// and a pointer and travels in registers.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum GLLFailureKind {
     /// Terminal match failed: expected one of these terminals at this position.
-    UnexpectedToken { expected: Vec<TerminalId> },
+    UnexpectedToken(&'static TerminalSet),
     /// Nonterminal except (`\`): matched a nonterminal but it was excluded.
-    ExcludedMatch { excluded_by: Vec<TerminalId> },
+    ExcludedMatch(&'static TerminalSet),
     /// Follow restriction (`!>>`): the symbol after the match is forbidden.
-    ForbiddenFollow { forbidden: Vec<TerminalId> },
+    ForbiddenFollow(&'static TerminalSet),
+}
+
+impl GLLFailureKind {
+    pub fn terminals(&self) -> &'static [TerminalId] {
+        match self {
+            Self::UnexpectedToken(set) | Self::ExcludedMatch(set) | Self::ForbiddenFollow(set) => {
+                set.terminals
+            }
+        }
+    }
+}
+
+impl Serialize for GLLFailureKind {
+    fn serialize<S: serde::Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
+        use serde::ser::SerializeStructVariant;
+        let (variant, index, field) = match self {
+            Self::UnexpectedToken(_) => ("UnexpectedToken", 0, "expected"),
+            Self::ExcludedMatch(_) => ("ExcludedMatch", 1, "excluded_by"),
+            Self::ForbiddenFollow(_) => ("ForbiddenFollow", 2, "forbidden"),
+        };
+        let mut sv = serializer.serialize_struct_variant("GLLFailureKind", index, variant, 1)?;
+        sv.serialize_field(field, self.terminals())?;
+        sv.end()
+    }
+}
+
+/// The failure a parse reports: the first retained failure, with the
+/// expected terminals of every retained `UnexpectedToken` failure merged
+/// into one list. This is the only place a failure owns its terminals.
+#[derive(Debug, Clone)]
+pub struct FailureReport {
+    pub input_index: u32,
+    pub slot_id: SlotId,
+    pub gss_node_id: Option<GssNodeId>,
+    pub kind: FailureReportKind,
+}
+
+/// The kind of a reported failure. Only the expected list of an
+/// `UnexpectedToken` is owned, since it merges several sets.
+#[derive(Debug, Clone)]
+pub enum FailureReportKind {
+    UnexpectedToken { expected: Vec<TerminalId> },
+    ExcludedMatch { excluded_by: &'static TerminalSet },
+    ForbiddenFollow { forbidden: &'static TerminalSet },
 }
 
 /// The Iguana runtime implements the GLL algorithm as the provided methods of
@@ -111,14 +162,9 @@ pub trait Parser<'i, 'arena>: Sized {
 
     const UNSAFE: bool = false;
 
-    fn execute(
-        &mut self,
-        input_index: u32,
-        slot_id: SlotId,
-        sppf_node_id: Option<SPPFNodeId>,
-        gss_node_id: GssNodeId,
-        env: Option<EnvId>,
-    );
+    /// The GLL main loop: takes descriptors until the set is empty and runs
+    /// each one through the generated slot dispatch.
+    fn execute(&mut self);
     fn add_first_descriptors(
         &mut self,
         nonterminal_id: NonterminalId,
@@ -265,7 +311,8 @@ pub trait Parser<'i, 'arena>: Sized {
 
     /// Checks whether the post-conditions for a given slot are satisfied.
     /// Called during pop and edge processing to filter results (e.g., nonterminal except).
-    /// Returns `None` if the result should be accepted, or `Some(error_kind)` if rejected.
+    /// Returns `None` if the result should be accepted, or the failure that
+    /// rejects it, referring to the restriction's static terminal set.
     fn post_conditions(
         &mut self,
         slot: SlotId,
@@ -274,37 +321,38 @@ pub trait Parser<'i, 'arena>: Sized {
     ) -> Option<GLLFailureKind>;
     /// Checks whether the input at the given position is in the follow set of the nonterminal.
     fn follow_set_check(&mut self, nonterminal_id: NonterminalId, input_index: u32) -> bool;
-    /// Returns the terminal IDs in the follow set of the given nonterminal.
-    fn follow_set_terminals(&self, nonterminal_id: NonterminalId) -> Vec<TerminalId>;
+    /// The FOLLOW set of the given nonterminal.
+    fn follow_set(&self, nonterminal_id: NonterminalId) -> &'static TerminalSet;
 
     /// The message a person reads for a failure. It names what was expected,
     /// not what was found, and holds no source context or position.
-    fn failure_message(&self, failure: &GLLFailure) -> String {
+    fn failure_message(&self, failure: &FailureReport) -> String {
+        let names = |terminals: &[TerminalId]| -> Vec<&'static str> {
+            terminals
+                .iter()
+                .map(|t| Self::Grammar::terminal_name(*t))
+                .collect()
+        };
         match &failure.kind {
-            GLLFailureKind::UnexpectedToken { expected } => {
-                let names: Vec<_> = expected
-                    .iter()
-                    .map(|t| Self::Grammar::terminal_name(*t))
-                    .collect();
+            FailureReportKind::UnexpectedToken { expected } => {
+                let names = names(expected);
                 match names.len() {
                     0 => "Unexpected input".to_string(),
                     1 => format!("Expected {}", names[0]),
                     _ => format!("Expected one of {}", names.join(", ")),
                 }
             }
-            GLLFailureKind::ExcludedMatch { excluded_by } => {
-                let names: Vec<_> = excluded_by
-                    .iter()
-                    .map(|t| Self::Grammar::terminal_name(*t))
-                    .collect();
-                format!("Match excluded by {}", names.join(", "))
+            FailureReportKind::ExcludedMatch { excluded_by } => {
+                format!(
+                    "Match excluded by {}",
+                    names(excluded_by.terminals).join(", ")
+                )
             }
-            GLLFailureKind::ForbiddenFollow { forbidden } => {
-                let names: Vec<_> = forbidden
-                    .iter()
-                    .map(|t| Self::Grammar::terminal_name(*t))
-                    .collect();
-                format!("Forbidden follow: {}", names.join(", "))
+            FailureReportKind::ForbiddenFollow { forbidden } => {
+                format!(
+                    "Forbidden follow: {}",
+                    names(forbidden.terminals).join(", ")
+                )
             }
         }
     }
@@ -330,7 +378,7 @@ pub trait Parser<'i, 'arena>: Sized {
     /// there (`error_span_len`), clamped to the input length: a failure at
     /// the end of the input gets the empty span there, so the span is always
     /// a valid source range.
-    fn to_parse_error(&mut self, failure: &GLLFailure) -> ParseError {
+    fn to_parse_error(&mut self, failure: &FailureReport) -> ParseError {
         let len = self.error_span_len(failure.input_index);
         let end = failure
             .input_index
@@ -372,19 +420,29 @@ pub trait Parser<'i, 'arena>: Sized {
     /// The global layout filter can therefore hide an explicitly expected
     /// layout terminal when the set also contains other terminals. Preserving
     /// that distinction requires richer error-reporting context.
-    fn failure(&self) -> Option<GLLFailure> {
+    fn failure(&self) -> Option<FailureReport> {
         let mut failures = self.failures();
-        let mut failure = failures.next()?.clone();
-        let GLLFailureKind::UnexpectedToken { expected } = &mut failure.kind else {
-            return Some(failure);
+        let first = *failures.next()?;
+        let report = |kind| FailureReport {
+            input_index: first.input_index,
+            slot_id: first.slot_id,
+            gss_node_id: first.gss_node_id,
+            kind,
+        };
+        let set = match first.kind {
+            GLLFailureKind::UnexpectedToken(set) => set,
+            GLLFailureKind::ExcludedMatch(set) => {
+                return Some(report(FailureReportKind::ExcludedMatch { excluded_by: set }));
+            }
+            GLLFailureKind::ForbiddenFollow(set) => {
+                return Some(report(FailureReportKind::ForbiddenFollow { forbidden: set }));
+            }
         };
 
+        let mut expected = set.terminals.to_vec();
         for other in failures {
-            if let GLLFailureKind::UnexpectedToken {
-                expected: additional,
-            } = &other.kind
-            {
-                expected.extend_from_slice(additional);
+            if let GLLFailureKind::UnexpectedToken(additional) = other.kind {
+                expected.extend_from_slice(additional.terminals);
             }
         }
 
@@ -395,22 +453,22 @@ pub trait Parser<'i, 'arena>: Sized {
         expected
             .sort_unstable_by_key(|terminal| (!Self::Grammar::is_literal(*terminal), terminal.0));
         expected.dedup();
-        Some(failure)
+        Some(report(FailureReportKind::UnexpectedToken { expected }))
     }
 
     /// Records a failure at the given input position.
     ///
-    /// Only failures at the farthest input position seen so far are kept; calls at
-    /// strictly lower positions are discarded without invoking `kind`. A higher
-    /// position clears the prior level. Taking `kind` as a closure lets call sites
-    /// avoid building the `GLLFailureKind` (and its `Vec<TerminalId>`) on the drop
-    /// path, which is the common case during GLL parsing.
+    /// Only failures at the farthest input position seen so far are kept; a
+    /// higher position clears the prior level. The kind is a tag and a pointer
+    /// to static data, so recording allocates nothing. The generated
+    /// implementation stays out of line so all failure sites share one
+    /// recorder per parser.
     fn add_failure(
         &mut self,
         input_index: u32,
         slot_id: SlotId,
         gss_node_id: Option<GssNodeId>,
-        kind: impl FnOnce() -> GLLFailureKind,
+        kind: GLLFailureKind,
     );
     /// Delegates to the scanner's match_token.
     fn match_token(&mut self, terminal_id: TerminalId, input_index: u32) -> Option<u32>;
@@ -418,6 +476,13 @@ pub trait Parser<'i, 'arena>: Sized {
     /// Matches a terminal at the given input position.
     /// On success, creates a terminal node and returns the end position and node id.
     /// On failure, records it and returns None.
+    ///
+    /// Do not inline. `execute` matches terminals at many places, all inside
+    /// the GLL dispatch loop. The compiler would copy this body into every one
+    /// of them, and the success and failure branches it brings made LLVM's jump
+    /// threading quadratic on a large grammar, multiplying the compile time.
+    /// The call itself costs nothing measurable.
+    #[inline(never)]
     fn match_terminal(
         &mut self,
         terminal_id: TerminalId,
@@ -426,14 +491,15 @@ pub trait Parser<'i, 'arena>: Sized {
         gss_node_id: Option<GssNodeId>,
     ) -> Option<(u32, SPPFNodeId)> {
         record!(self, MatchingTerminal, terminal_id, input_index);
-        let j = self.match_token(terminal_id, input_index).or_else(|| {
-            self.add_failure(input_index, slot_id, gss_node_id, || {
-                GLLFailureKind::UnexpectedToken {
-                    expected: vec![terminal_id],
-                }
-            });
-            None
-        })?;
+        let Some(j) = self.match_token(terminal_id, input_index) else {
+            self.add_failure(
+                input_index,
+                slot_id,
+                gss_node_id,
+                GLLFailureKind::UnexpectedToken(Self::Grammar::terminal_set(terminal_id)),
+            );
+            return None;
+        };
         record!(self, MatchSuccess, terminal_id, input_index, j);
         let node = self.get_or_create_terminal_node(terminal_id, input_index, j);
         Some((j, node))
@@ -505,12 +571,12 @@ pub trait Parser<'i, 'arena>: Sized {
         );
 
         for (&(right_extent, return_value), &nonterminal_node_id) in popped_elements.iter() {
-            if let Some(error_kind) = self.post_conditions(return_slot, left_extent, right_extent) {
+            if let Some(failure) = self.post_conditions(return_slot, left_extent, right_extent) {
                 self.add_failure(
                     right_extent,
                     return_slot,
                     Some(existing_gss_node_id),
-                    || error_kind,
+                    failure,
                 );
                 continue;
             }
@@ -589,10 +655,13 @@ pub trait Parser<'i, 'arena>: Sized {
         }
         let left_extent = gss.index;
         if !self.follow_set_check(nonterminal_id, right_extent) {
-            let expected = self.follow_set_terminals(nonterminal_id);
-            self.add_failure(right_extent, slot_id, Some(gss_node_id), || {
-                GLLFailureKind::UnexpectedToken { expected }
-            });
+            let expected = self.follow_set(nonterminal_id);
+            self.add_failure(
+                right_extent,
+                slot_id,
+                Some(gss_node_id),
+                GLLFailureKind::UnexpectedToken(expected),
+            );
             return;
         }
         let right_child = (nonterminal_node_id, right_extent);
@@ -608,12 +677,9 @@ pub trait Parser<'i, 'arena>: Sized {
         let edge_count = gss.edges().len();
         for i in 0..edge_count {
             let edge = *self.gss_node(gss_node_id).edges().get(i).unwrap();
-            if let Some(error_kind) =
-                self.post_conditions(edge.return_slot, left_extent, right_extent)
+            if let Some(failure) = self.post_conditions(edge.return_slot, left_extent, right_extent)
             {
-                self.add_failure(right_extent, edge.return_slot, Some(gss_node_id), || {
-                    error_kind
-                });
+                self.add_failure(right_extent, edge.return_slot, Some(gss_node_id), failure);
                 continue;
             }
             let left_child = edge
@@ -828,10 +894,15 @@ pub trait Parser<'i, 'arena>: Sized {
     }
 
     /// Combines the left child (result from previous slots) and a right child
-    /// into an intermediate node. Returns `Some((right_extent, node_id))` when
+    /// into an intermediate node. Returns `Some(node_id)` when
     /// a fresh intermediate is created. Returns `None` when an existing
     /// intermediate is found; the caller skips its continuation because the
     /// original descriptor already drove it forward.
+    ///
+    /// Inlined into every dispatch arm that creates an intermediate node, which
+    /// is cheap only while the return fits in registers. If the return type
+    /// changes, measure the compile time of a large generated parser before
+    /// keeping the hint.
     #[inline]
     fn create_intermediate_node(
         &mut self,
@@ -839,7 +910,7 @@ pub trait Parser<'i, 'arena>: Sized {
         right_child_id: SPPFNodeId,
         next_slot_id: SlotId,
         env: Option<EnvId>,
-    ) -> Option<(u32, SPPFNodeId)> {
+    ) -> Option<SPPFNodeId> {
         let right_extent = self.sppf_node(right_child_id).right_extent();
         let left_child_id = result.expect("Result should not be None.");
         let left_extent = self.sppf_node(left_child_id).left_extent();
@@ -851,7 +922,6 @@ pub trait Parser<'i, 'arena>: Sized {
             right_child_id,
             env,
         )
-        .map(|node_id| (right_extent, node_id))
     }
 
     /// Extracts extents from the result node and creates the nonterminal SPPF
@@ -952,15 +1022,7 @@ pub trait Parser<'i, 'arena>: Sized {
         let start_env = self.start_env(start);
         self.add_first_descriptors(start, start_input_index, start_gss_node_id, start_env);
         self.add_start_gss_node(start, start_input_index, start_gss_node_id);
-        while let Some(descriptor) = self.next_descriptor() {
-            self.execute(
-                descriptor.input_index,
-                descriptor.slot_id,
-                descriptor.sppf_node_id(),
-                descriptor.gss_node_id,
-                descriptor.env_id(),
-            );
-        }
+        self.execute();
         let duration = timer.elapsed();
         let right_extent = self.input().len();
         if let Some(sppf_node_id) = self.start_result(right_extent, start_gss_node_id) {
@@ -980,11 +1042,11 @@ pub trait Parser<'i, 'arena>: Sized {
                 .map(|((right_extent, _), _)| *right_extent)
                 .max()
                 .unwrap_or(0);
-            GLLResult::Failure(GLLFailure {
+            GLLResult::Failure(FailureReport {
                 input_index: farthest,
                 slot_id: SlotId(0),
                 gss_node_id: Some(start_gss_node_id),
-                kind: GLLFailureKind::UnexpectedToken { expected: vec![] },
+                kind: FailureReportKind::UnexpectedToken { expected: vec![] },
             })
         }
     }

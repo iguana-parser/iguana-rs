@@ -458,6 +458,71 @@ impl Grammar for ErrorUnionGrammar {
     ];
     const LAYOUT_NAME: Option<&'static str> = Some("Layout");
     const LAYOUT_TERMINALS: &'static [TerminalId] = &[TerminalId(3), TerminalId(4)];
+    // A failed terminal match refers to a static terminal set like every other failure, so the
+    // error reporting path needs to reach a terminal set from a terminal id. This slice, indexed
+    // by terminal id, serves only that.
+    const SINGLE_TERMINAL_SETS: &'static [TerminalSet] = &[
+        TerminalSet {
+            id: 35,
+            terminals: &[TerminalId(0)],
+        },
+        TerminalSet {
+            id: 36,
+            terminals: &[TerminalId(1)],
+        },
+        TerminalSet {
+            id: 37,
+            terminals: &[TerminalId(2)],
+        },
+        TerminalSet {
+            id: 38,
+            terminals: &[TerminalId(3)],
+        },
+        TerminalSet {
+            id: 39,
+            terminals: &[TerminalId(4)],
+        },
+        TerminalSet {
+            id: 40,
+            terminals: &[TerminalId(5)],
+        },
+        TerminalSet {
+            id: 41,
+            terminals: &[TerminalId(6)],
+        },
+        TerminalSet {
+            id: 42,
+            terminals: &[TerminalId(7)],
+        },
+        TerminalSet {
+            id: 43,
+            terminals: &[TerminalId(8)],
+        },
+        TerminalSet {
+            id: 44,
+            terminals: &[TerminalId(9)],
+        },
+        TerminalSet {
+            id: 45,
+            terminals: &[TerminalId(10)],
+        },
+        TerminalSet {
+            id: 46,
+            terminals: &[TerminalId(11)],
+        },
+        TerminalSet {
+            id: 47,
+            terminals: &[TerminalId(12)],
+        },
+        TerminalSet {
+            id: 48,
+            terminals: &[TerminalId(13)],
+        },
+        TerminalSet {
+            id: 49,
+            terminals: &[TerminalId(14)],
+        },
+    ];
     fn nonterminal_id(name: &str) -> Option<NonterminalId> {
         match name {
             "T" => Some(T),
@@ -865,6 +930,24 @@ pub static FIRST_SET_PLUS_0: TerminalSet = TerminalSet {
     id: 27,
     terminals: &[TerminalId(3), TerminalId(4)],
 };
+// Opt_0 prediction { WS, Newline, Word, Identifier, "[", "]", "p", "q", "x", "y", "z", EOF }
+pub static PREDICTION_SET_OPT_0: TerminalSet = TerminalSet {
+    id: 28,
+    terminals: &[
+        TerminalId(3),
+        TerminalId(4),
+        TerminalId(0),
+        TerminalId(1),
+        TerminalId(5),
+        TerminalId(6),
+        TerminalId(7),
+        TerminalId(8),
+        TerminalId(9),
+        TerminalId(10),
+        TerminalId(11),
+        TerminalId(14),
+    ],
+};
 // Opt_0 { WS, Newline }
 pub static FIRST_SET_OPT_0: TerminalSet = TerminalSet {
     id: 27,
@@ -877,41 +960,51 @@ pub static FIRST_SET_STAR_0: TerminalSet = TerminalSet {
 };
 // StartT { WS, Newline, "[" }
 pub static FIRST_SET_START_T: TerminalSet = TerminalSet {
-    id: 28,
+    id: 29,
     terminals: &[TerminalId(3), TerminalId(4), TerminalId(5)],
 };
 // StartU { WS, Newline, "[" }
 pub static FIRST_SET_START_U: TerminalSet = TerminalSet {
-    id: 28,
+    id: 29,
     terminals: &[TerminalId(3), TerminalId(4), TerminalId(5)],
 };
 // StartP { Word, WS, Newline, "p" }
 pub static FIRST_SET_START_P: TerminalSet = TerminalSet {
-    id: 29,
+    id: 30,
     terminals: &[TerminalId(0), TerminalId(3), TerminalId(4), TerminalId(7)],
 };
 // StartQ { WS, Newline, "q" }
 pub static FIRST_SET_START_Q: TerminalSet = TerminalSet {
-    id: 30,
+    id: 31,
     terminals: &[TerminalId(3), TerminalId(4), TerminalId(8)],
 };
 // StartBeforeP { WS, Newline, "x" }
 pub static FIRST_SET_START_BEFORE_P: TerminalSet = TerminalSet {
-    id: 31,
+    id: 32,
     terminals: &[TerminalId(3), TerminalId(4), TerminalId(9)],
 };
 // StartBeforeQ { WS, Newline, "x" }
 pub static FIRST_SET_START_BEFORE_Q: TerminalSet = TerminalSet {
-    id: 31,
+    id: 32,
     terminals: &[TerminalId(3), TerminalId(4), TerminalId(9)],
 };
 // StartUnexpectedFirst { Identifier, WS, Newline }
 pub static FIRST_SET_START_UNEXPECTED_FIRST: TerminalSet = TerminalSet {
-    id: 32,
+    id: 33,
     terminals: &[TerminalId(1), TerminalId(3), TerminalId(4)],
 };
 // StartExcludedFirst { Identifier, WS, Newline }
 pub static FIRST_SET_START_EXCLUDED_FIRST: TerminalSet = TerminalSet {
-    id: 32,
+    id: 33,
     terminals: &[TerminalId(1), TerminalId(3), TerminalId(4)],
+};
+// UnexpectedFirst : . Identifier \ Keyword \ { Keyword }
+pub static EXCEPT_UNEXPECTED_FIRST_ALT0_POS0: TerminalSet = TerminalSet {
+    id: 34,
+    terminals: &[TerminalId(2)],
+};
+// ExcludedFirst : . Identifier \ Keyword \ { Keyword }
+pub static EXCEPT_EXCLUDED_FIRST_ALT1_POS0: TerminalSet = TerminalSet {
+    id: 34,
+    terminals: &[TerminalId(2)],
 };

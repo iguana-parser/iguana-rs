@@ -259,6 +259,59 @@ impl Grammar for DanglingElseUnsafeGrammar {
     ];
     const LAYOUT_NAME: Option<&'static str> = Some("Layout");
     const LAYOUT_TERMINALS: &'static [TerminalId] = &[TerminalId(4), TerminalId(5)];
+    // A failed terminal match refers to a static terminal set like every other failure, so the
+    // error reporting path needs to reach a terminal set from a terminal id. This slice, indexed
+    // by terminal id, serves only that.
+    const SINGLE_TERMINAL_SETS: &'static [TerminalSet] = &[
+        TerminalSet {
+            id: 19,
+            terminals: &[TerminalId(0)],
+        },
+        TerminalSet {
+            id: 20,
+            terminals: &[TerminalId(1)],
+        },
+        TerminalSet {
+            id: 21,
+            terminals: &[TerminalId(2)],
+        },
+        TerminalSet {
+            id: 22,
+            terminals: &[TerminalId(3)],
+        },
+        TerminalSet {
+            id: 23,
+            terminals: &[TerminalId(4)],
+        },
+        TerminalSet {
+            id: 24,
+            terminals: &[TerminalId(5)],
+        },
+        TerminalSet {
+            id: 25,
+            terminals: &[TerminalId(6)],
+        },
+        TerminalSet {
+            id: 26,
+            terminals: &[TerminalId(7)],
+        },
+        TerminalSet {
+            id: 27,
+            terminals: &[TerminalId(8)],
+        },
+        TerminalSet {
+            id: 28,
+            terminals: &[TerminalId(9)],
+        },
+        TerminalSet {
+            id: 29,
+            terminals: &[TerminalId(10)],
+        },
+        TerminalSet {
+            id: 30,
+            terminals: &[TerminalId(11)],
+        },
+    ];
     fn nonterminal_id(name: &str) -> Option<NonterminalId> {
         match name {
             "S" => Some(S),
@@ -504,6 +557,22 @@ pub static FIRST_SET_PLUS_1: TerminalSet = TerminalSet {
     id: 16,
     terminals: &[TerminalId(4), TerminalId(5)],
 };
+// Opt_0 prediction { WhiteSpace, Comment, Cond, Id, Else, "if", "(", ")", ";", EOF }
+pub static PREDICTION_SET_OPT_0: TerminalSet = TerminalSet {
+    id: 17,
+    terminals: &[
+        TerminalId(4),
+        TerminalId(5),
+        TerminalId(0),
+        TerminalId(1),
+        TerminalId(2),
+        TerminalId(6),
+        TerminalId(7),
+        TerminalId(8),
+        TerminalId(9),
+        TerminalId(11),
+    ],
+};
 // Opt_0 { WhiteSpace, Comment }
 pub static FIRST_SET_OPT_0: TerminalSet = TerminalSet {
     id: 16,
@@ -516,11 +585,11 @@ pub static FIRST_SET_STAR_0: TerminalSet = TerminalSet {
 };
 // StartS { Id, WhiteSpace, Comment, "if" }
 pub static FIRST_SET_START_S: TerminalSet = TerminalSet {
-    id: 17,
+    id: 18,
     terminals: &[TerminalId(1), TerminalId(4), TerminalId(5), TerminalId(6)],
 };
 // StartStatement { Id, WhiteSpace, Comment, "if" }
 pub static FIRST_SET_START_STATEMENT: TerminalSet = TerminalSet {
-    id: 17,
+    id: 18,
     terminals: &[TerminalId(1), TerminalId(4), TerminalId(5), TerminalId(6)],
 };

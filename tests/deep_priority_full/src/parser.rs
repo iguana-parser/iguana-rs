@@ -25,7 +25,7 @@ use iguana_runtime::{
     },
     record,
     result::{ParseError, ParseSuccess},
-    scanner::Scanner,
+    scanner::{Scanner, TerminalSet},
     sppf::{IntermediateNode, NonterminalNode, SPPFNode, SPPFNodeId, TerminalNode},
     utils::{inline_map::InlineMap, inline_vec::InlineVec},
 };
@@ -45,648 +45,784 @@ impl<'i, 'arena> Parser<'i, 'arena> for DeepPriorityFullParser<'i, 'arena> {
         let builder = DeepPriorityFullParseTreeBuilder::new(tree_arena);
         create_parse_tree(root, self, &builder)
     }
-    // env is threaded only through recursive execute calls in grammars without data-dependent
-    // constructs, so clippy sees it as recursion-only there.
-    #[allow(clippy::only_used_in_recursion)]
-    fn execute(
-        &mut self,
-        input_index: u32,
-        slot_id: SlotId,
-        result: Option<SPPFNodeId>,
-        gss_node_id: GssNodeId,
-        env: Option<EnvId>,
-    ) {
-        record!(
-            self,
-            ProcessingDescriptor,
-            input_index,
-            slot_id,
-            result,
-            gss_node_id
-        );
-        match slot_id {
-            // S : . E(0)
-            SlotId(0) => {
-                self.create_e(result, gss_node_id, SlotId(1), env, 0);
-            }
-            // S : E(0).
-            SlotId(1) => {
-                let nonterminal_node_id =
-                    self.create_nonterminal_node(result, NonterminalId(0), SlotId(1), gss_node_id);
-                self.pop(gss_node_id, SlotId(1), nonterminal_node_id, None);
-            }
-            // E(p: i32) : . [5 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 5)] WS "*" WS r_pr=E(6) return
-            // (r_pr == 0) ? 5 : min(r_pr, 5)
-            SlotId(10) => {
-                if 5 >= self.lookup(BINDING_P, env.unwrap()) {
-                    self.execute(input_index, SlotId(11), result, gss_node_id, env);
-                }
-            }
-            // E(p: i32) : [5 >= p] . l_pr=E(p) [(l_pr == 0) || (l_pr >= 5)] WS "*" WS r_pr=E(6) return
-            // (r_pr == 0) ? 5 : min(r_pr, 5)
-            SlotId(11) => {
-                self.create_e(
+    // The GLL main loop. Each descriptor starts at its slot. A slot that reaches the next slot
+    // of its alternative sets `next`, so a descriptor runs through its alternative as far as it
+    // can before the loop takes the next descriptor. The GSS node and the environment are fixed
+    // for the whole alternative.
+    fn execute(&mut self) {
+        while let Some(descriptor) = self.next_descriptor() {
+            let mut input_index = descriptor.input_index;
+            let mut result = descriptor.sppf_node_id();
+            let gss_node_id = descriptor.gss_node_id;
+            let env = descriptor.env_id();
+            let mut next = Some(descriptor.slot_id);
+            while let Some(slot_id) = next {
+                next = None;
+                record!(
+                    self,
+                    ProcessingDescriptor,
+                    input_index,
+                    slot_id,
                     result,
-                    gss_node_id,
-                    SlotId(12),
-                    env,
-                    self.lookup(BINDING_P, env.unwrap()),
+                    gss_node_id
                 );
-            }
-            // E(p: i32) : [5 >= p] l_pr=E(p) . [(l_pr == 0) || (l_pr >= 5)] WS "*" WS r_pr=E(6) return
-            // (r_pr == 0) ? 5 : min(r_pr, 5)
-            SlotId(12) => {
-                if (self.lookup(BINDING_L_PR, env.unwrap()) == 0)
-                    || (self.lookup(BINDING_L_PR, env.unwrap()) >= 5)
-                {
-                    self.execute(input_index, SlotId(13), result, gss_node_id, env);
-                }
-            }
-            // E(p: i32) : [5 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 5)] . WS "*" WS r_pr=E(6) return
-            // (r_pr == 0) ? 5 : min(r_pr, 5)
-            SlotId(13) => {
-                if let Some((_, right_child)) =
-                    self.match_terminal(TerminalId(0), input_index, SlotId(13), Some(gss_node_id))
-                {
-                    if let Some((j, new_node)) =
-                        self.create_intermediate_node(result, right_child, SlotId(14), env)
-                    {
-                        // E(p: i32) : [5 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 5)] WS . "*" WS r_pr=E(6) return
-                        // (r_pr == 0) ? 5 : min(r_pr, 5)
-                        self.execute(j, SlotId(14), Some(new_node), gss_node_id, env);
+                match slot_id {
+                    // S : . E(0)
+                    SlotId(0) => {
+                        self.create_e(result, gss_node_id, SlotId(1), env, 0);
                     }
-                }
-            }
-            // E(p: i32) : [5 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 5)] WS . "*" WS r_pr=E(6) return
-            // (r_pr == 0) ? 5 : min(r_pr, 5)
-            SlotId(14) => {
-                if let Some((_, right_child)) =
-                    self.match_terminal(TerminalId(1), input_index, SlotId(14), Some(gss_node_id))
-                {
-                    if let Some((j, new_node)) =
-                        self.create_intermediate_node(result, right_child, SlotId(15), env)
-                    {
-                        // E(p: i32) : [5 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 5)] WS "*" . WS r_pr=E(6) return
-                        // (r_pr == 0) ? 5 : min(r_pr, 5)
-                        self.execute(j, SlotId(15), Some(new_node), gss_node_id, env);
+                    // S : E(0).
+                    SlotId(1) => {
+                        let nonterminal_node_id = self.create_nonterminal_node(
+                            result,
+                            NonterminalId(0),
+                            SlotId(1),
+                            gss_node_id,
+                        );
+                        self.pop(gss_node_id, SlotId(1), nonterminal_node_id, None);
                     }
-                }
-            }
-            // E(p: i32) : [5 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 5)] WS "*" . WS r_pr=E(6) return
-            // (r_pr == 0) ? 5 : min(r_pr, 5)
-            SlotId(15) => {
-                if let Some((_, right_child)) =
-                    self.match_terminal(TerminalId(0), input_index, SlotId(15), Some(gss_node_id))
-                {
-                    if let Some((j, new_node)) =
-                        self.create_intermediate_node(result, right_child, SlotId(16), env)
-                    {
-                        // E(p: i32) : [5 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 5)] WS "*" WS . r_pr=E(6) return
-                        // (r_pr == 0) ? 5 : min(r_pr, 5)
-                        self.execute(j, SlotId(16), Some(new_node), gss_node_id, env);
+                    // E(p: i32) : . [5 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 5)] WS "*" WS r_pr=E(6) return
+                    // (r_pr == 0) ? 5 : min(r_pr, 5)
+                    SlotId(10) => {
+                        if 5 >= self.lookup(BINDING_P, env.unwrap()) {
+                            next = Some(SlotId(11));
+                        }
                     }
-                }
-            }
-            // E(p: i32) : [5 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 5)] WS "*" WS . r_pr=E(6) return
-            // (r_pr == 0) ? 5 : min(r_pr, 5)
-            SlotId(16) => {
-                self.create_e(result, gss_node_id, SlotId(17), env, 6);
-            }
-            // E(p: i32) : [5 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 5)] WS "*" WS r_pr=E(6) . return
-            // (r_pr == 0) ? 5 : min(r_pr, 5)
-            SlotId(17) => {
-                self.execute(input_index, SlotId(18), result, gss_node_id, env);
-            }
-            // E(p: i32) : [5 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 5)] WS "*" WS r_pr=E(6) return
-            // (r_pr == 0) ? 5 : min(r_pr, 5).
-            SlotId(18) => {
-                let Some(result) = result else {
-                    unreachable!("result cannot be None here.")
-                };
-                let node = self.sppf_node(result);
-                let return_value = if self.lookup(BINDING_R_PR, env.unwrap()) == 0 {
-                    5
-                } else {
-                    std::cmp::min(self.lookup(BINDING_R_PR, env.unwrap()), 5)
-                };
-                let nonterminal_node_id = self.get_or_create_nonterminal_node(
-                    NonterminalId(3),
-                    SlotId(18),
-                    node.left_extent(),
-                    node.right_extent(),
-                    result,
-                    gss_node_id,
-                    Some(return_value),
-                );
-                self.pop(
-                    gss_node_id,
-                    SlotId(18),
-                    nonterminal_node_id,
-                    Some(return_value),
-                );
-            }
-            // E(p: i32) : . [4 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 4)] WS "+" WS r_pr=E(5) return
-            // (r_pr == 0) ? 4 : min(r_pr, 4)
-            SlotId(19) => {
-                if 4 >= self.lookup(BINDING_P, env.unwrap()) {
-                    self.execute(input_index, SlotId(20), result, gss_node_id, env);
-                }
-            }
-            // E(p: i32) : [4 >= p] . l_pr=E(p) [(l_pr == 0) || (l_pr >= 4)] WS "+" WS r_pr=E(5) return
-            // (r_pr == 0) ? 4 : min(r_pr, 4)
-            SlotId(20) => {
-                self.create_e(
-                    result,
-                    gss_node_id,
-                    SlotId(21),
-                    env,
-                    self.lookup(BINDING_P, env.unwrap()),
-                );
-            }
-            // E(p: i32) : [4 >= p] l_pr=E(p) . [(l_pr == 0) || (l_pr >= 4)] WS "+" WS r_pr=E(5) return
-            // (r_pr == 0) ? 4 : min(r_pr, 4)
-            SlotId(21) => {
-                if (self.lookup(BINDING_L_PR, env.unwrap()) == 0)
-                    || (self.lookup(BINDING_L_PR, env.unwrap()) >= 4)
-                {
-                    self.execute(input_index, SlotId(22), result, gss_node_id, env);
-                }
-            }
-            // E(p: i32) : [4 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 4)] . WS "+" WS r_pr=E(5) return
-            // (r_pr == 0) ? 4 : min(r_pr, 4)
-            SlotId(22) => {
-                if let Some((_, right_child)) =
-                    self.match_terminal(TerminalId(0), input_index, SlotId(22), Some(gss_node_id))
-                {
-                    if let Some((j, new_node)) =
-                        self.create_intermediate_node(result, right_child, SlotId(23), env)
-                    {
-                        // E(p: i32) : [4 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 4)] WS . "+" WS r_pr=E(5) return
-                        // (r_pr == 0) ? 4 : min(r_pr, 4)
-                        self.execute(j, SlotId(23), Some(new_node), gss_node_id, env);
+                    // E(p: i32) : [5 >= p] . l_pr=E(p) [(l_pr == 0) || (l_pr >= 5)] WS "*" WS r_pr=E(6) return
+                    // (r_pr == 0) ? 5 : min(r_pr, 5)
+                    SlotId(11) => {
+                        self.create_e(
+                            result,
+                            gss_node_id,
+                            SlotId(12),
+                            env,
+                            self.lookup(BINDING_P, env.unwrap()),
+                        );
                     }
-                }
-            }
-            // E(p: i32) : [4 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 4)] WS . "+" WS r_pr=E(5) return
-            // (r_pr == 0) ? 4 : min(r_pr, 4)
-            SlotId(23) => {
-                if let Some((_, right_child)) =
-                    self.match_terminal(TerminalId(2), input_index, SlotId(23), Some(gss_node_id))
-                {
-                    if let Some((j, new_node)) =
-                        self.create_intermediate_node(result, right_child, SlotId(24), env)
-                    {
-                        // E(p: i32) : [4 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 4)] WS "+" . WS r_pr=E(5) return
-                        // (r_pr == 0) ? 4 : min(r_pr, 4)
-                        self.execute(j, SlotId(24), Some(new_node), gss_node_id, env);
+                    // E(p: i32) : [5 >= p] l_pr=E(p) . [(l_pr == 0) || (l_pr >= 5)] WS "*" WS r_pr=E(6) return
+                    // (r_pr == 0) ? 5 : min(r_pr, 5)
+                    SlotId(12) => {
+                        if (self.lookup(BINDING_L_PR, env.unwrap()) == 0)
+                            || (self.lookup(BINDING_L_PR, env.unwrap()) >= 5)
+                        {
+                            next = Some(SlotId(13));
+                        }
                     }
-                }
-            }
-            // E(p: i32) : [4 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 4)] WS "+" . WS r_pr=E(5) return
-            // (r_pr == 0) ? 4 : min(r_pr, 4)
-            SlotId(24) => {
-                if let Some((_, right_child)) =
-                    self.match_terminal(TerminalId(0), input_index, SlotId(24), Some(gss_node_id))
-                {
-                    if let Some((j, new_node)) =
-                        self.create_intermediate_node(result, right_child, SlotId(25), env)
-                    {
-                        // E(p: i32) : [4 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 4)] WS "+" WS . r_pr=E(5) return
-                        // (r_pr == 0) ? 4 : min(r_pr, 4)
-                        self.execute(j, SlotId(25), Some(new_node), gss_node_id, env);
+                    // E(p: i32) : [5 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 5)] . WS "*" WS r_pr=E(6) return
+                    // (r_pr == 0) ? 5 : min(r_pr, 5)
+                    SlotId(13) => {
+                        if let Some((j, right_child)) = self.match_terminal(
+                            TerminalId(0),
+                            input_index,
+                            SlotId(13),
+                            Some(gss_node_id),
+                        ) {
+                            if let Some(new_node) =
+                                self.create_intermediate_node(result, right_child, SlotId(14), env)
+                            {
+                                // E(p: i32) : [5 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 5)] WS . "*" WS r_pr=E(6) return
+                                // (r_pr == 0) ? 5 : min(r_pr, 5)
+                                input_index = j;
+                                result = Some(new_node);
+                                next = Some(SlotId(14));
+                            }
+                        }
                     }
-                }
-            }
-            // E(p: i32) : [4 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 4)] WS "+" WS . r_pr=E(5) return
-            // (r_pr == 0) ? 4 : min(r_pr, 4)
-            SlotId(25) => {
-                self.create_e(result, gss_node_id, SlotId(26), env, 5);
-            }
-            // E(p: i32) : [4 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 4)] WS "+" WS r_pr=E(5) . return
-            // (r_pr == 0) ? 4 : min(r_pr, 4)
-            SlotId(26) => {
-                self.execute(input_index, SlotId(27), result, gss_node_id, env);
-            }
-            // E(p: i32) : [4 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 4)] WS "+" WS r_pr=E(5) return
-            // (r_pr == 0) ? 4 : min(r_pr, 4).
-            SlotId(27) => {
-                let Some(result) = result else {
-                    unreachable!("result cannot be None here.")
-                };
-                let node = self.sppf_node(result);
-                let return_value = if self.lookup(BINDING_R_PR, env.unwrap()) == 0 {
-                    4
-                } else {
-                    std::cmp::min(self.lookup(BINDING_R_PR, env.unwrap()), 4)
-                };
-                let nonterminal_node_id = self.get_or_create_nonterminal_node(
-                    NonterminalId(3),
-                    SlotId(27),
-                    node.left_extent(),
-                    node.right_extent(),
-                    result,
-                    gss_node_id,
-                    Some(return_value),
-                );
-                self.pop(
-                    gss_node_id,
-                    SlotId(27),
-                    nonterminal_node_id,
-                    Some(return_value),
-                );
-            }
-            // E(p: i32) : . "-" WS r_pr=E(3) return (r_pr == 0) ? 3 : min(r_pr, 3)
-            SlotId(28) => {
-                if let Some((j, right_child)) =
-                    self.match_terminal(TerminalId(3), input_index, SlotId(28), Some(gss_node_id))
-                {
+                    // E(p: i32) : [5 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 5)] WS . "*" WS r_pr=E(6) return
+                    // (r_pr == 0) ? 5 : min(r_pr, 5)
+                    SlotId(14) => {
+                        if let Some((j, right_child)) = self.match_terminal(
+                            TerminalId(1),
+                            input_index,
+                            SlotId(14),
+                            Some(gss_node_id),
+                        ) {
+                            if let Some(new_node) =
+                                self.create_intermediate_node(result, right_child, SlotId(15), env)
+                            {
+                                // E(p: i32) : [5 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 5)] WS "*" . WS r_pr=E(6) return
+                                // (r_pr == 0) ? 5 : min(r_pr, 5)
+                                input_index = j;
+                                result = Some(new_node);
+                                next = Some(SlotId(15));
+                            }
+                        }
+                    }
+                    // E(p: i32) : [5 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 5)] WS "*" . WS r_pr=E(6) return
+                    // (r_pr == 0) ? 5 : min(r_pr, 5)
+                    SlotId(15) => {
+                        if let Some((j, right_child)) = self.match_terminal(
+                            TerminalId(0),
+                            input_index,
+                            SlotId(15),
+                            Some(gss_node_id),
+                        ) {
+                            if let Some(new_node) =
+                                self.create_intermediate_node(result, right_child, SlotId(16), env)
+                            {
+                                // E(p: i32) : [5 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 5)] WS "*" WS . r_pr=E(6) return
+                                // (r_pr == 0) ? 5 : min(r_pr, 5)
+                                input_index = j;
+                                result = Some(new_node);
+                                next = Some(SlotId(16));
+                            }
+                        }
+                    }
+                    // E(p: i32) : [5 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 5)] WS "*" WS . r_pr=E(6) return
+                    // (r_pr == 0) ? 5 : min(r_pr, 5)
+                    SlotId(16) => {
+                        self.create_e(result, gss_node_id, SlotId(17), env, 6);
+                    }
+                    // E(p: i32) : [5 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 5)] WS "*" WS r_pr=E(6) . return
+                    // (r_pr == 0) ? 5 : min(r_pr, 5)
+                    SlotId(17) => {
+                        next = Some(SlotId(18));
+                    }
+                    // E(p: i32) : [5 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 5)] WS "*" WS r_pr=E(6) return
+                    // (r_pr == 0) ? 5 : min(r_pr, 5).
+                    SlotId(18) => {
+                        let Some(result) = result else {
+                            unreachable!("result cannot be None here.")
+                        };
+                        let node = self.sppf_node(result);
+                        let return_value = if self.lookup(BINDING_R_PR, env.unwrap()) == 0 {
+                            5
+                        } else {
+                            std::cmp::min(self.lookup(BINDING_R_PR, env.unwrap()), 5)
+                        };
+                        let nonterminal_node_id = self.get_or_create_nonterminal_node(
+                            NonterminalId(3),
+                            SlotId(18),
+                            node.left_extent(),
+                            node.right_extent(),
+                            result,
+                            gss_node_id,
+                            Some(return_value),
+                        );
+                        self.pop(
+                            gss_node_id,
+                            SlotId(18),
+                            nonterminal_node_id,
+                            Some(return_value),
+                        );
+                    }
+                    // E(p: i32) : . [4 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 4)] WS "+" WS r_pr=E(5) return
+                    // (r_pr == 0) ? 4 : min(r_pr, 4)
+                    SlotId(19) => {
+                        if 4 >= self.lookup(BINDING_P, env.unwrap()) {
+                            next = Some(SlotId(20));
+                        }
+                    }
+                    // E(p: i32) : [4 >= p] . l_pr=E(p) [(l_pr == 0) || (l_pr >= 4)] WS "+" WS r_pr=E(5) return
+                    // (r_pr == 0) ? 4 : min(r_pr, 4)
+                    SlotId(20) => {
+                        self.create_e(
+                            result,
+                            gss_node_id,
+                            SlotId(21),
+                            env,
+                            self.lookup(BINDING_P, env.unwrap()),
+                        );
+                    }
+                    // E(p: i32) : [4 >= p] l_pr=E(p) . [(l_pr == 0) || (l_pr >= 4)] WS "+" WS r_pr=E(5) return
+                    // (r_pr == 0) ? 4 : min(r_pr, 4)
+                    SlotId(21) => {
+                        if (self.lookup(BINDING_L_PR, env.unwrap()) == 0)
+                            || (self.lookup(BINDING_L_PR, env.unwrap()) >= 4)
+                        {
+                            next = Some(SlotId(22));
+                        }
+                    }
+                    // E(p: i32) : [4 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 4)] . WS "+" WS r_pr=E(5) return
+                    // (r_pr == 0) ? 4 : min(r_pr, 4)
+                    SlotId(22) => {
+                        if let Some((j, right_child)) = self.match_terminal(
+                            TerminalId(0),
+                            input_index,
+                            SlotId(22),
+                            Some(gss_node_id),
+                        ) {
+                            if let Some(new_node) =
+                                self.create_intermediate_node(result, right_child, SlotId(23), env)
+                            {
+                                // E(p: i32) : [4 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 4)] WS . "+" WS r_pr=E(5) return
+                                // (r_pr == 0) ? 4 : min(r_pr, 4)
+                                input_index = j;
+                                result = Some(new_node);
+                                next = Some(SlotId(23));
+                            }
+                        }
+                    }
+                    // E(p: i32) : [4 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 4)] WS . "+" WS r_pr=E(5) return
+                    // (r_pr == 0) ? 4 : min(r_pr, 4)
+                    SlotId(23) => {
+                        if let Some((j, right_child)) = self.match_terminal(
+                            TerminalId(2),
+                            input_index,
+                            SlotId(23),
+                            Some(gss_node_id),
+                        ) {
+                            if let Some(new_node) =
+                                self.create_intermediate_node(result, right_child, SlotId(24), env)
+                            {
+                                // E(p: i32) : [4 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 4)] WS "+" . WS r_pr=E(5) return
+                                // (r_pr == 0) ? 4 : min(r_pr, 4)
+                                input_index = j;
+                                result = Some(new_node);
+                                next = Some(SlotId(24));
+                            }
+                        }
+                    }
+                    // E(p: i32) : [4 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 4)] WS "+" . WS r_pr=E(5) return
+                    // (r_pr == 0) ? 4 : min(r_pr, 4)
+                    SlotId(24) => {
+                        if let Some((j, right_child)) = self.match_terminal(
+                            TerminalId(0),
+                            input_index,
+                            SlotId(24),
+                            Some(gss_node_id),
+                        ) {
+                            if let Some(new_node) =
+                                self.create_intermediate_node(result, right_child, SlotId(25), env)
+                            {
+                                // E(p: i32) : [4 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 4)] WS "+" WS . r_pr=E(5) return
+                                // (r_pr == 0) ? 4 : min(r_pr, 4)
+                                input_index = j;
+                                result = Some(new_node);
+                                next = Some(SlotId(25));
+                            }
+                        }
+                    }
+                    // E(p: i32) : [4 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 4)] WS "+" WS . r_pr=E(5) return
+                    // (r_pr == 0) ? 4 : min(r_pr, 4)
+                    SlotId(25) => {
+                        self.create_e(result, gss_node_id, SlotId(26), env, 5);
+                    }
+                    // E(p: i32) : [4 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 4)] WS "+" WS r_pr=E(5) . return
+                    // (r_pr == 0) ? 4 : min(r_pr, 4)
+                    SlotId(26) => {
+                        next = Some(SlotId(27));
+                    }
+                    // E(p: i32) : [4 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 4)] WS "+" WS r_pr=E(5) return
+                    // (r_pr == 0) ? 4 : min(r_pr, 4).
+                    SlotId(27) => {
+                        let Some(result) = result else {
+                            unreachable!("result cannot be None here.")
+                        };
+                        let node = self.sppf_node(result);
+                        let return_value = if self.lookup(BINDING_R_PR, env.unwrap()) == 0 {
+                            4
+                        } else {
+                            std::cmp::min(self.lookup(BINDING_R_PR, env.unwrap()), 4)
+                        };
+                        let nonterminal_node_id = self.get_or_create_nonterminal_node(
+                            NonterminalId(3),
+                            SlotId(27),
+                            node.left_extent(),
+                            node.right_extent(),
+                            result,
+                            gss_node_id,
+                            Some(return_value),
+                        );
+                        self.pop(
+                            gss_node_id,
+                            SlotId(27),
+                            nonterminal_node_id,
+                            Some(return_value),
+                        );
+                    }
+                    // E(p: i32) : . "-" WS r_pr=E(3) return (r_pr == 0) ? 3 : min(r_pr, 3)
+                    SlotId(28) => {
+                        if let Some((j, right_child)) = self.match_terminal(
+                            TerminalId(3),
+                            input_index,
+                            SlotId(28),
+                            Some(gss_node_id),
+                        ) {
+                            // E(p: i32) : "-" . WS r_pr=E(3) return (r_pr == 0) ? 3 : min(r_pr, 3)
+                            input_index = j;
+                            result = Some(right_child);
+                            next = Some(SlotId(29));
+                        }
+                    }
                     // E(p: i32) : "-" . WS r_pr=E(3) return (r_pr == 0) ? 3 : min(r_pr, 3)
-                    self.execute(j, SlotId(29), Some(right_child), gss_node_id, env);
-                }
-            }
-            // E(p: i32) : "-" . WS r_pr=E(3) return (r_pr == 0) ? 3 : min(r_pr, 3)
-            SlotId(29) => {
-                if let Some((_, right_child)) =
-                    self.match_terminal(TerminalId(0), input_index, SlotId(29), Some(gss_node_id))
-                {
-                    if let Some((j, new_node)) =
-                        self.create_intermediate_node(result, right_child, SlotId(30), env)
-                    {
-                        // E(p: i32) : "-" WS . r_pr=E(3) return (r_pr == 0) ? 3 : min(r_pr, 3)
-                        self.execute(j, SlotId(30), Some(new_node), gss_node_id, env);
+                    SlotId(29) => {
+                        if let Some((j, right_child)) = self.match_terminal(
+                            TerminalId(0),
+                            input_index,
+                            SlotId(29),
+                            Some(gss_node_id),
+                        ) {
+                            if let Some(new_node) =
+                                self.create_intermediate_node(result, right_child, SlotId(30), env)
+                            {
+                                // E(p: i32) : "-" WS . r_pr=E(3) return (r_pr == 0) ? 3 : min(r_pr, 3)
+                                input_index = j;
+                                result = Some(new_node);
+                                next = Some(SlotId(30));
+                            }
+                        }
                     }
-                }
-            }
-            // E(p: i32) : "-" WS . r_pr=E(3) return (r_pr == 0) ? 3 : min(r_pr, 3)
-            SlotId(30) => {
-                self.create_e(result, gss_node_id, SlotId(31), env, 3);
-            }
-            // E(p: i32) : "-" WS r_pr=E(3) . return (r_pr == 0) ? 3 : min(r_pr, 3)
-            SlotId(31) => {
-                self.execute(input_index, SlotId(32), result, gss_node_id, env);
-            }
-            // E(p: i32) : "-" WS r_pr=E(3) return (r_pr == 0) ? 3 : min(r_pr, 3).
-            SlotId(32) => {
-                let Some(result) = result else {
-                    unreachable!("result cannot be None here.")
-                };
-                let node = self.sppf_node(result);
-                let return_value = if self.lookup(BINDING_R_PR, env.unwrap()) == 0 {
-                    3
-                } else {
-                    std::cmp::min(self.lookup(BINDING_R_PR, env.unwrap()), 3)
-                };
-                let nonterminal_node_id = self.get_or_create_nonterminal_node(
-                    NonterminalId(3),
-                    SlotId(32),
-                    node.left_extent(),
-                    node.right_extent(),
-                    result,
-                    gss_node_id,
-                    Some(return_value),
-                );
-                self.pop(
-                    gss_node_id,
-                    SlotId(32),
-                    nonterminal_node_id,
-                    Some(return_value),
-                );
-            }
-            // E(p: i32) : . "if" WS E(0) WS "then" WS E(0) WS "else" WS E(2) return 2
-            SlotId(33) => {
-                if let Some((j, right_child)) =
-                    self.match_terminal(TerminalId(4), input_index, SlotId(33), Some(gss_node_id))
-                {
+                    // E(p: i32) : "-" WS . r_pr=E(3) return (r_pr == 0) ? 3 : min(r_pr, 3)
+                    SlotId(30) => {
+                        self.create_e(result, gss_node_id, SlotId(31), env, 3);
+                    }
+                    // E(p: i32) : "-" WS r_pr=E(3) . return (r_pr == 0) ? 3 : min(r_pr, 3)
+                    SlotId(31) => {
+                        next = Some(SlotId(32));
+                    }
+                    // E(p: i32) : "-" WS r_pr=E(3) return (r_pr == 0) ? 3 : min(r_pr, 3).
+                    SlotId(32) => {
+                        let Some(result) = result else {
+                            unreachable!("result cannot be None here.")
+                        };
+                        let node = self.sppf_node(result);
+                        let return_value = if self.lookup(BINDING_R_PR, env.unwrap()) == 0 {
+                            3
+                        } else {
+                            std::cmp::min(self.lookup(BINDING_R_PR, env.unwrap()), 3)
+                        };
+                        let nonterminal_node_id = self.get_or_create_nonterminal_node(
+                            NonterminalId(3),
+                            SlotId(32),
+                            node.left_extent(),
+                            node.right_extent(),
+                            result,
+                            gss_node_id,
+                            Some(return_value),
+                        );
+                        self.pop(
+                            gss_node_id,
+                            SlotId(32),
+                            nonterminal_node_id,
+                            Some(return_value),
+                        );
+                    }
+                    // E(p: i32) : . "if" WS E(0) WS "then" WS E(0) WS "else" WS E(2) return 2
+                    SlotId(33) => {
+                        if let Some((j, right_child)) = self.match_terminal(
+                            TerminalId(4),
+                            input_index,
+                            SlotId(33),
+                            Some(gss_node_id),
+                        ) {
+                            // E(p: i32) : "if" . WS E(0) WS "then" WS E(0) WS "else" WS E(2) return 2
+                            input_index = j;
+                            result = Some(right_child);
+                            next = Some(SlotId(34));
+                        }
+                    }
                     // E(p: i32) : "if" . WS E(0) WS "then" WS E(0) WS "else" WS E(2) return 2
-                    self.execute(j, SlotId(34), Some(right_child), gss_node_id, env);
-                }
-            }
-            // E(p: i32) : "if" . WS E(0) WS "then" WS E(0) WS "else" WS E(2) return 2
-            SlotId(34) => {
-                if let Some((_, right_child)) =
-                    self.match_terminal(TerminalId(0), input_index, SlotId(34), Some(gss_node_id))
-                {
-                    if let Some((j, new_node)) =
-                        self.create_intermediate_node(result, right_child, SlotId(35), env)
-                    {
-                        // E(p: i32) : "if" WS . E(0) WS "then" WS E(0) WS "else" WS E(2) return 2
-                        self.execute(j, SlotId(35), Some(new_node), gss_node_id, env);
+                    SlotId(34) => {
+                        if let Some((j, right_child)) = self.match_terminal(
+                            TerminalId(0),
+                            input_index,
+                            SlotId(34),
+                            Some(gss_node_id),
+                        ) {
+                            if let Some(new_node) =
+                                self.create_intermediate_node(result, right_child, SlotId(35), env)
+                            {
+                                // E(p: i32) : "if" WS . E(0) WS "then" WS E(0) WS "else" WS E(2) return 2
+                                input_index = j;
+                                result = Some(new_node);
+                                next = Some(SlotId(35));
+                            }
+                        }
                     }
-                }
-            }
-            // E(p: i32) : "if" WS . E(0) WS "then" WS E(0) WS "else" WS E(2) return 2
-            SlotId(35) => {
-                self.create_e(result, gss_node_id, SlotId(36), env, 0);
-            }
-            // E(p: i32) : "if" WS E(0) . WS "then" WS E(0) WS "else" WS E(2) return 2
-            SlotId(36) => {
-                if let Some((_, right_child)) =
-                    self.match_terminal(TerminalId(0), input_index, SlotId(36), Some(gss_node_id))
-                {
-                    if let Some((j, new_node)) =
-                        self.create_intermediate_node(result, right_child, SlotId(37), env)
-                    {
-                        // E(p: i32) : "if" WS E(0) WS . "then" WS E(0) WS "else" WS E(2) return 2
-                        self.execute(j, SlotId(37), Some(new_node), gss_node_id, env);
+                    // E(p: i32) : "if" WS . E(0) WS "then" WS E(0) WS "else" WS E(2) return 2
+                    SlotId(35) => {
+                        self.create_e(result, gss_node_id, SlotId(36), env, 0);
                     }
-                }
-            }
-            // E(p: i32) : "if" WS E(0) WS . "then" WS E(0) WS "else" WS E(2) return 2
-            SlotId(37) => {
-                if let Some((_, right_child)) =
-                    self.match_terminal(TerminalId(5), input_index, SlotId(37), Some(gss_node_id))
-                {
-                    if let Some((j, new_node)) =
-                        self.create_intermediate_node(result, right_child, SlotId(38), env)
-                    {
-                        // E(p: i32) : "if" WS E(0) WS "then" . WS E(0) WS "else" WS E(2) return 2
-                        self.execute(j, SlotId(38), Some(new_node), gss_node_id, env);
+                    // E(p: i32) : "if" WS E(0) . WS "then" WS E(0) WS "else" WS E(2) return 2
+                    SlotId(36) => {
+                        if let Some((j, right_child)) = self.match_terminal(
+                            TerminalId(0),
+                            input_index,
+                            SlotId(36),
+                            Some(gss_node_id),
+                        ) {
+                            if let Some(new_node) =
+                                self.create_intermediate_node(result, right_child, SlotId(37), env)
+                            {
+                                // E(p: i32) : "if" WS E(0) WS . "then" WS E(0) WS "else" WS E(2) return 2
+                                input_index = j;
+                                result = Some(new_node);
+                                next = Some(SlotId(37));
+                            }
+                        }
                     }
-                }
-            }
-            // E(p: i32) : "if" WS E(0) WS "then" . WS E(0) WS "else" WS E(2) return 2
-            SlotId(38) => {
-                if let Some((_, right_child)) =
-                    self.match_terminal(TerminalId(0), input_index, SlotId(38), Some(gss_node_id))
-                {
-                    if let Some((j, new_node)) =
-                        self.create_intermediate_node(result, right_child, SlotId(39), env)
-                    {
-                        // E(p: i32) : "if" WS E(0) WS "then" WS . E(0) WS "else" WS E(2) return 2
-                        self.execute(j, SlotId(39), Some(new_node), gss_node_id, env);
+                    // E(p: i32) : "if" WS E(0) WS . "then" WS E(0) WS "else" WS E(2) return 2
+                    SlotId(37) => {
+                        if let Some((j, right_child)) = self.match_terminal(
+                            TerminalId(5),
+                            input_index,
+                            SlotId(37),
+                            Some(gss_node_id),
+                        ) {
+                            if let Some(new_node) =
+                                self.create_intermediate_node(result, right_child, SlotId(38), env)
+                            {
+                                // E(p: i32) : "if" WS E(0) WS "then" . WS E(0) WS "else" WS E(2) return 2
+                                input_index = j;
+                                result = Some(new_node);
+                                next = Some(SlotId(38));
+                            }
+                        }
                     }
-                }
-            }
-            // E(p: i32) : "if" WS E(0) WS "then" WS . E(0) WS "else" WS E(2) return 2
-            SlotId(39) => {
-                self.create_e(result, gss_node_id, SlotId(40), env, 0);
-            }
-            // E(p: i32) : "if" WS E(0) WS "then" WS E(0) . WS "else" WS E(2) return 2
-            SlotId(40) => {
-                if let Some((_, right_child)) =
-                    self.match_terminal(TerminalId(0), input_index, SlotId(40), Some(gss_node_id))
-                {
-                    if let Some((j, new_node)) =
-                        self.create_intermediate_node(result, right_child, SlotId(41), env)
-                    {
-                        // E(p: i32) : "if" WS E(0) WS "then" WS E(0) WS . "else" WS E(2) return 2
-                        self.execute(j, SlotId(41), Some(new_node), gss_node_id, env);
+                    // E(p: i32) : "if" WS E(0) WS "then" . WS E(0) WS "else" WS E(2) return 2
+                    SlotId(38) => {
+                        if let Some((j, right_child)) = self.match_terminal(
+                            TerminalId(0),
+                            input_index,
+                            SlotId(38),
+                            Some(gss_node_id),
+                        ) {
+                            if let Some(new_node) =
+                                self.create_intermediate_node(result, right_child, SlotId(39), env)
+                            {
+                                // E(p: i32) : "if" WS E(0) WS "then" WS . E(0) WS "else" WS E(2) return 2
+                                input_index = j;
+                                result = Some(new_node);
+                                next = Some(SlotId(39));
+                            }
+                        }
                     }
-                }
-            }
-            // E(p: i32) : "if" WS E(0) WS "then" WS E(0) WS . "else" WS E(2) return 2
-            SlotId(41) => {
-                if let Some((_, right_child)) =
-                    self.match_terminal(TerminalId(6), input_index, SlotId(41), Some(gss_node_id))
-                {
-                    if let Some((j, new_node)) =
-                        self.create_intermediate_node(result, right_child, SlotId(42), env)
-                    {
-                        // E(p: i32) : "if" WS E(0) WS "then" WS E(0) WS "else" . WS E(2) return 2
-                        self.execute(j, SlotId(42), Some(new_node), gss_node_id, env);
+                    // E(p: i32) : "if" WS E(0) WS "then" WS . E(0) WS "else" WS E(2) return 2
+                    SlotId(39) => {
+                        self.create_e(result, gss_node_id, SlotId(40), env, 0);
                     }
-                }
-            }
-            // E(p: i32) : "if" WS E(0) WS "then" WS E(0) WS "else" . WS E(2) return 2
-            SlotId(42) => {
-                if let Some((_, right_child)) =
-                    self.match_terminal(TerminalId(0), input_index, SlotId(42), Some(gss_node_id))
-                {
-                    if let Some((j, new_node)) =
-                        self.create_intermediate_node(result, right_child, SlotId(43), env)
-                    {
-                        // E(p: i32) : "if" WS E(0) WS "then" WS E(0) WS "else" WS . E(2) return 2
-                        self.execute(j, SlotId(43), Some(new_node), gss_node_id, env);
+                    // E(p: i32) : "if" WS E(0) WS "then" WS E(0) . WS "else" WS E(2) return 2
+                    SlotId(40) => {
+                        if let Some((j, right_child)) = self.match_terminal(
+                            TerminalId(0),
+                            input_index,
+                            SlotId(40),
+                            Some(gss_node_id),
+                        ) {
+                            if let Some(new_node) =
+                                self.create_intermediate_node(result, right_child, SlotId(41), env)
+                            {
+                                // E(p: i32) : "if" WS E(0) WS "then" WS E(0) WS . "else" WS E(2) return 2
+                                input_index = j;
+                                result = Some(new_node);
+                                next = Some(SlotId(41));
+                            }
+                        }
                     }
-                }
-            }
-            // E(p: i32) : "if" WS E(0) WS "then" WS E(0) WS "else" WS . E(2) return 2
-            SlotId(43) => {
-                self.create_e(result, gss_node_id, SlotId(44), env, 2);
-            }
-            // E(p: i32) : "if" WS E(0) WS "then" WS E(0) WS "else" WS E(2) . return 2
-            SlotId(44) => {
-                self.execute(input_index, SlotId(45), result, gss_node_id, env);
-            }
-            // E(p: i32) : "if" WS E(0) WS "then" WS E(0) WS "else" WS E(2) return 2.
-            SlotId(45) => {
-                let Some(result) = result else {
-                    unreachable!("result cannot be None here.")
-                };
-                let node = self.sppf_node(result);
-                let return_value = 2;
-                let nonterminal_node_id = self.get_or_create_nonterminal_node(
-                    NonterminalId(3),
-                    SlotId(45),
-                    node.left_extent(),
-                    node.right_extent(),
-                    result,
-                    gss_node_id,
-                    Some(return_value),
-                );
-                self.pop(
-                    gss_node_id,
-                    SlotId(45),
-                    nonterminal_node_id,
-                    Some(return_value),
-                );
-            }
-            // E(p: i32) : . [1 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 2)] WS ";" WS E(1) return 1
-            SlotId(46) => {
-                if 1 >= self.lookup(BINDING_P, env.unwrap()) {
-                    self.execute(input_index, SlotId(47), result, gss_node_id, env);
-                }
-            }
-            // E(p: i32) : [1 >= p] . l_pr=E(p) [(l_pr == 0) || (l_pr >= 2)] WS ";" WS E(1) return 1
-            SlotId(47) => {
-                self.create_e(
-                    result,
-                    gss_node_id,
-                    SlotId(48),
-                    env,
-                    self.lookup(BINDING_P, env.unwrap()),
-                );
-            }
-            // E(p: i32) : [1 >= p] l_pr=E(p) . [(l_pr == 0) || (l_pr >= 2)] WS ";" WS E(1) return 1
-            SlotId(48) => {
-                if (self.lookup(BINDING_L_PR, env.unwrap()) == 0)
-                    || (self.lookup(BINDING_L_PR, env.unwrap()) >= 2)
-                {
-                    self.execute(input_index, SlotId(49), result, gss_node_id, env);
-                }
-            }
-            // E(p: i32) : [1 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 2)] . WS ";" WS E(1) return 1
-            SlotId(49) => {
-                if let Some((_, right_child)) =
-                    self.match_terminal(TerminalId(0), input_index, SlotId(49), Some(gss_node_id))
-                {
-                    if let Some((j, new_node)) =
-                        self.create_intermediate_node(result, right_child, SlotId(50), env)
-                    {
-                        // E(p: i32) : [1 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 2)] WS . ";" WS E(1) return 1
-                        self.execute(j, SlotId(50), Some(new_node), gss_node_id, env);
+                    // E(p: i32) : "if" WS E(0) WS "then" WS E(0) WS . "else" WS E(2) return 2
+                    SlotId(41) => {
+                        if let Some((j, right_child)) = self.match_terminal(
+                            TerminalId(6),
+                            input_index,
+                            SlotId(41),
+                            Some(gss_node_id),
+                        ) {
+                            if let Some(new_node) =
+                                self.create_intermediate_node(result, right_child, SlotId(42), env)
+                            {
+                                // E(p: i32) : "if" WS E(0) WS "then" WS E(0) WS "else" . WS E(2) return 2
+                                input_index = j;
+                                result = Some(new_node);
+                                next = Some(SlotId(42));
+                            }
+                        }
                     }
-                }
-            }
-            // E(p: i32) : [1 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 2)] WS . ";" WS E(1) return 1
-            SlotId(50) => {
-                if let Some((_, right_child)) =
-                    self.match_terminal(TerminalId(7), input_index, SlotId(50), Some(gss_node_id))
-                {
-                    if let Some((j, new_node)) =
-                        self.create_intermediate_node(result, right_child, SlotId(51), env)
-                    {
-                        // E(p: i32) : [1 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 2)] WS ";" . WS E(1) return 1
-                        self.execute(j, SlotId(51), Some(new_node), gss_node_id, env);
+                    // E(p: i32) : "if" WS E(0) WS "then" WS E(0) WS "else" . WS E(2) return 2
+                    SlotId(42) => {
+                        if let Some((j, right_child)) = self.match_terminal(
+                            TerminalId(0),
+                            input_index,
+                            SlotId(42),
+                            Some(gss_node_id),
+                        ) {
+                            if let Some(new_node) =
+                                self.create_intermediate_node(result, right_child, SlotId(43), env)
+                            {
+                                // E(p: i32) : "if" WS E(0) WS "then" WS E(0) WS "else" WS . E(2) return 2
+                                input_index = j;
+                                result = Some(new_node);
+                                next = Some(SlotId(43));
+                            }
+                        }
                     }
-                }
-            }
-            // E(p: i32) : [1 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 2)] WS ";" . WS E(1) return 1
-            SlotId(51) => {
-                if let Some((_, right_child)) =
-                    self.match_terminal(TerminalId(0), input_index, SlotId(51), Some(gss_node_id))
-                {
-                    if let Some((j, new_node)) =
-                        self.create_intermediate_node(result, right_child, SlotId(52), env)
-                    {
-                        // E(p: i32) : [1 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 2)] WS ";" WS . E(1) return 1
-                        self.execute(j, SlotId(52), Some(new_node), gss_node_id, env);
+                    // E(p: i32) : "if" WS E(0) WS "then" WS E(0) WS "else" WS . E(2) return 2
+                    SlotId(43) => {
+                        self.create_e(result, gss_node_id, SlotId(44), env, 2);
                     }
-                }
-            }
-            // E(p: i32) : [1 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 2)] WS ";" WS . E(1) return 1
-            SlotId(52) => {
-                self.create_e(result, gss_node_id, SlotId(53), env, 1);
-            }
-            // E(p: i32) : [1 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 2)] WS ";" WS E(1) . return 1
-            SlotId(53) => {
-                self.execute(input_index, SlotId(54), result, gss_node_id, env);
-            }
-            // E(p: i32) : [1 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 2)] WS ";" WS E(1) return 1.
-            SlotId(54) => {
-                let Some(result) = result else {
-                    unreachable!("result cannot be None here.")
-                };
-                let node = self.sppf_node(result);
-                let return_value = 1;
-                let nonterminal_node_id = self.get_or_create_nonterminal_node(
-                    NonterminalId(3),
-                    SlotId(54),
-                    node.left_extent(),
-                    node.right_extent(),
-                    result,
-                    gss_node_id,
-                    Some(return_value),
-                );
-                self.pop(
-                    gss_node_id,
-                    SlotId(54),
-                    nonterminal_node_id,
-                    Some(return_value),
-                );
-            }
-            // E(p: i32) : . "a" return 0
-            SlotId(55) => {
-                if let Some((j, right_child)) =
-                    self.match_terminal(TerminalId(8), input_index, SlotId(55), Some(gss_node_id))
-                {
+                    // E(p: i32) : "if" WS E(0) WS "then" WS E(0) WS "else" WS E(2) . return 2
+                    SlotId(44) => {
+                        next = Some(SlotId(45));
+                    }
+                    // E(p: i32) : "if" WS E(0) WS "then" WS E(0) WS "else" WS E(2) return 2.
+                    SlotId(45) => {
+                        let Some(result) = result else {
+                            unreachable!("result cannot be None here.")
+                        };
+                        let node = self.sppf_node(result);
+                        let return_value = 2;
+                        let nonterminal_node_id = self.get_or_create_nonterminal_node(
+                            NonterminalId(3),
+                            SlotId(45),
+                            node.left_extent(),
+                            node.right_extent(),
+                            result,
+                            gss_node_id,
+                            Some(return_value),
+                        );
+                        self.pop(
+                            gss_node_id,
+                            SlotId(45),
+                            nonterminal_node_id,
+                            Some(return_value),
+                        );
+                    }
+                    // E(p: i32) : . [1 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 2)] WS ";" WS E(1) return 1
+                    SlotId(46) => {
+                        if 1 >= self.lookup(BINDING_P, env.unwrap()) {
+                            next = Some(SlotId(47));
+                        }
+                    }
+                    // E(p: i32) : [1 >= p] . l_pr=E(p) [(l_pr == 0) || (l_pr >= 2)] WS ";" WS E(1) return 1
+                    SlotId(47) => {
+                        self.create_e(
+                            result,
+                            gss_node_id,
+                            SlotId(48),
+                            env,
+                            self.lookup(BINDING_P, env.unwrap()),
+                        );
+                    }
+                    // E(p: i32) : [1 >= p] l_pr=E(p) . [(l_pr == 0) || (l_pr >= 2)] WS ";" WS E(1) return 1
+                    SlotId(48) => {
+                        if (self.lookup(BINDING_L_PR, env.unwrap()) == 0)
+                            || (self.lookup(BINDING_L_PR, env.unwrap()) >= 2)
+                        {
+                            next = Some(SlotId(49));
+                        }
+                    }
+                    // E(p: i32) : [1 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 2)] . WS ";" WS E(1) return 1
+                    SlotId(49) => {
+                        if let Some((j, right_child)) = self.match_terminal(
+                            TerminalId(0),
+                            input_index,
+                            SlotId(49),
+                            Some(gss_node_id),
+                        ) {
+                            if let Some(new_node) =
+                                self.create_intermediate_node(result, right_child, SlotId(50), env)
+                            {
+                                // E(p: i32) : [1 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 2)] WS . ";" WS E(1) return 1
+                                input_index = j;
+                                result = Some(new_node);
+                                next = Some(SlotId(50));
+                            }
+                        }
+                    }
+                    // E(p: i32) : [1 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 2)] WS . ";" WS E(1) return 1
+                    SlotId(50) => {
+                        if let Some((j, right_child)) = self.match_terminal(
+                            TerminalId(7),
+                            input_index,
+                            SlotId(50),
+                            Some(gss_node_id),
+                        ) {
+                            if let Some(new_node) =
+                                self.create_intermediate_node(result, right_child, SlotId(51), env)
+                            {
+                                // E(p: i32) : [1 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 2)] WS ";" . WS E(1) return 1
+                                input_index = j;
+                                result = Some(new_node);
+                                next = Some(SlotId(51));
+                            }
+                        }
+                    }
+                    // E(p: i32) : [1 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 2)] WS ";" . WS E(1) return 1
+                    SlotId(51) => {
+                        if let Some((j, right_child)) = self.match_terminal(
+                            TerminalId(0),
+                            input_index,
+                            SlotId(51),
+                            Some(gss_node_id),
+                        ) {
+                            if let Some(new_node) =
+                                self.create_intermediate_node(result, right_child, SlotId(52), env)
+                            {
+                                // E(p: i32) : [1 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 2)] WS ";" WS . E(1) return 1
+                                input_index = j;
+                                result = Some(new_node);
+                                next = Some(SlotId(52));
+                            }
+                        }
+                    }
+                    // E(p: i32) : [1 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 2)] WS ";" WS . E(1) return 1
+                    SlotId(52) => {
+                        self.create_e(result, gss_node_id, SlotId(53), env, 1);
+                    }
+                    // E(p: i32) : [1 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 2)] WS ";" WS E(1) . return 1
+                    SlotId(53) => {
+                        next = Some(SlotId(54));
+                    }
+                    // E(p: i32) : [1 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 2)] WS ";" WS E(1) return 1.
+                    SlotId(54) => {
+                        let Some(result) = result else {
+                            unreachable!("result cannot be None here.")
+                        };
+                        let node = self.sppf_node(result);
+                        let return_value = 1;
+                        let nonterminal_node_id = self.get_or_create_nonterminal_node(
+                            NonterminalId(3),
+                            SlotId(54),
+                            node.left_extent(),
+                            node.right_extent(),
+                            result,
+                            gss_node_id,
+                            Some(return_value),
+                        );
+                        self.pop(
+                            gss_node_id,
+                            SlotId(54),
+                            nonterminal_node_id,
+                            Some(return_value),
+                        );
+                    }
+                    // E(p: i32) : . "a" return 0
+                    SlotId(55) => {
+                        if let Some((j, right_child)) = self.match_terminal(
+                            TerminalId(8),
+                            input_index,
+                            SlotId(55),
+                            Some(gss_node_id),
+                        ) {
+                            // E(p: i32) : "a" . return 0
+                            input_index = j;
+                            result = Some(right_child);
+                            next = Some(SlotId(56));
+                        }
+                    }
                     // E(p: i32) : "a" . return 0
-                    self.execute(j, SlotId(56), Some(right_child), gss_node_id, env);
-                }
-            }
-            // E(p: i32) : "a" . return 0
-            SlotId(56) => {
-                self.execute(input_index, SlotId(57), result, gss_node_id, env);
-            }
-            // E(p: i32) : "a" return 0.
-            SlotId(57) => {
-                let Some(result) = result else {
-                    unreachable!("result cannot be None here.")
-                };
-                let node = self.sppf_node(result);
-                let return_value = 0;
-                let nonterminal_node_id = self.get_or_create_nonterminal_node(
-                    NonterminalId(3),
-                    SlotId(57),
-                    node.left_extent(),
-                    node.right_extent(),
-                    result,
-                    gss_node_id,
-                    Some(return_value),
-                );
-                self.pop(
-                    gss_node_id,
-                    SlotId(57),
-                    nonterminal_node_id,
-                    Some(return_value),
-                );
-            }
-            // StartS : . WS start:S WS
-            SlotId(2) => {
-                if let Some((j, right_child)) =
-                    self.match_terminal(TerminalId(0), input_index, SlotId(2), Some(gss_node_id))
-                {
+                    SlotId(56) => {
+                        next = Some(SlotId(57));
+                    }
+                    // E(p: i32) : "a" return 0.
+                    SlotId(57) => {
+                        let Some(result) = result else {
+                            unreachable!("result cannot be None here.")
+                        };
+                        let node = self.sppf_node(result);
+                        let return_value = 0;
+                        let nonterminal_node_id = self.get_or_create_nonterminal_node(
+                            NonterminalId(3),
+                            SlotId(57),
+                            node.left_extent(),
+                            node.right_extent(),
+                            result,
+                            gss_node_id,
+                            Some(return_value),
+                        );
+                        self.pop(
+                            gss_node_id,
+                            SlotId(57),
+                            nonterminal_node_id,
+                            Some(return_value),
+                        );
+                    }
+                    // StartS : . WS start:S WS
+                    SlotId(2) => {
+                        if let Some((j, right_child)) = self.match_terminal(
+                            TerminalId(0),
+                            input_index,
+                            SlotId(2),
+                            Some(gss_node_id),
+                        ) {
+                            // StartS : WS . start:S WS
+                            input_index = j;
+                            result = Some(right_child);
+                            next = Some(SlotId(3));
+                        }
+                    }
                     // StartS : WS . start:S WS
-                    self.execute(j, SlotId(3), Some(right_child), gss_node_id, env);
-                }
-            }
-            // StartS : WS . start:S WS
-            SlotId(3) => {
-                self.create(NonterminalId(0), result, gss_node_id, SlotId(4), env);
-            }
-            // StartS : WS start:S . WS
-            SlotId(4) => {
-                if let Some((_, right_child)) =
-                    self.match_terminal(TerminalId(0), input_index, SlotId(4), Some(gss_node_id))
-                {
-                    if let Some((j, new_node)) =
-                        self.create_intermediate_node(result, right_child, SlotId(5), env)
-                    {
-                        // StartS : WS start:S WS.
-                        self.execute(j, SlotId(5), Some(new_node), gss_node_id, env);
+                    SlotId(3) => {
+                        self.create(NonterminalId(0), result, gss_node_id, SlotId(4), env);
                     }
-                }
-            }
-            // StartS : WS start:S WS.
-            SlotId(5) => {
-                let nonterminal_node_id =
-                    self.create_nonterminal_node(result, NonterminalId(1), SlotId(5), gss_node_id);
-                self.pop(gss_node_id, SlotId(5), nonterminal_node_id, None);
-            }
-            // StartE : . WS start:E(0) WS
-            SlotId(6) => {
-                if let Some((j, right_child)) =
-                    self.match_terminal(TerminalId(0), input_index, SlotId(6), Some(gss_node_id))
-                {
+                    // StartS : WS start:S . WS
+                    SlotId(4) => {
+                        if let Some((j, right_child)) = self.match_terminal(
+                            TerminalId(0),
+                            input_index,
+                            SlotId(4),
+                            Some(gss_node_id),
+                        ) {
+                            if let Some(new_node) =
+                                self.create_intermediate_node(result, right_child, SlotId(5), env)
+                            {
+                                // StartS : WS start:S WS.
+                                input_index = j;
+                                result = Some(new_node);
+                                next = Some(SlotId(5));
+                            }
+                        }
+                    }
+                    // StartS : WS start:S WS.
+                    SlotId(5) => {
+                        let nonterminal_node_id = self.create_nonterminal_node(
+                            result,
+                            NonterminalId(1),
+                            SlotId(5),
+                            gss_node_id,
+                        );
+                        self.pop(gss_node_id, SlotId(5), nonterminal_node_id, None);
+                    }
+                    // StartE : . WS start:E(0) WS
+                    SlotId(6) => {
+                        if let Some((j, right_child)) = self.match_terminal(
+                            TerminalId(0),
+                            input_index,
+                            SlotId(6),
+                            Some(gss_node_id),
+                        ) {
+                            // StartE : WS . start:E(0) WS
+                            input_index = j;
+                            result = Some(right_child);
+                            next = Some(SlotId(7));
+                        }
+                    }
                     // StartE : WS . start:E(0) WS
-                    self.execute(j, SlotId(7), Some(right_child), gss_node_id, env);
-                }
-            }
-            // StartE : WS . start:E(0) WS
-            SlotId(7) => {
-                self.create_e(result, gss_node_id, SlotId(8), env, 0);
-            }
-            // StartE : WS start:E(0) . WS
-            SlotId(8) => {
-                if let Some((_, right_child)) =
-                    self.match_terminal(TerminalId(0), input_index, SlotId(8), Some(gss_node_id))
-                {
-                    if let Some((j, new_node)) =
-                        self.create_intermediate_node(result, right_child, SlotId(9), env)
-                    {
-                        // StartE : WS start:E(0) WS.
-                        self.execute(j, SlotId(9), Some(new_node), gss_node_id, env);
+                    SlotId(7) => {
+                        self.create_e(result, gss_node_id, SlotId(8), env, 0);
+                    }
+                    // StartE : WS start:E(0) . WS
+                    SlotId(8) => {
+                        if let Some((j, right_child)) = self.match_terminal(
+                            TerminalId(0),
+                            input_index,
+                            SlotId(8),
+                            Some(gss_node_id),
+                        ) {
+                            if let Some(new_node) =
+                                self.create_intermediate_node(result, right_child, SlotId(9), env)
+                            {
+                                // StartE : WS start:E(0) WS.
+                                input_index = j;
+                                result = Some(new_node);
+                                next = Some(SlotId(9));
+                            }
+                        }
+                    }
+                    // StartE : WS start:E(0) WS.
+                    SlotId(9) => {
+                        let nonterminal_node_id = self.create_nonterminal_node(
+                            result,
+                            NonterminalId(2),
+                            SlotId(9),
+                            gss_node_id,
+                        );
+                        self.pop(gss_node_id, SlotId(9), nonterminal_node_id, None);
+                    }
+                    _ => {
+                        panic!("Unknown grammar slot id: {slot_id}");
                     }
                 }
-            }
-            // StartE : WS start:E(0) WS.
-            SlotId(9) => {
-                let nonterminal_node_id =
-                    self.create_nonterminal_node(result, NonterminalId(2), SlotId(9), gss_node_id);
-                self.pop(gss_node_id, SlotId(9), nonterminal_node_id, None);
-            }
-            _ => {
-                panic!("Unknown grammar slot id: {slot_id}");
             }
         }
     }
@@ -738,11 +874,12 @@ impl<'i, 'arena> Parser<'i, 'arena> for DeepPriorityFullParser<'i, 'arena> {
                     self.add_first_descriptor(SlotId(55), input_index, gss_node_id, env);
                 }
                 if !matched {
-                    self.add_failure(input_index, SlotId(10), Some(gss_node_id), || {
-                        GLLFailureKind::UnexpectedToken {
-                            expected: FIRST_SET_E.terminals.to_vec(),
-                        }
-                    });
+                    self.add_failure(
+                        input_index,
+                        SlotId(10),
+                        Some(gss_node_id),
+                        GLLFailureKind::UnexpectedToken(&FIRST_SET_E),
+                    );
                 }
             }
             // StartS : . WS start:S WS
@@ -1153,42 +1290,34 @@ impl<'i, 'arena> Parser<'i, 'arena> for DeepPriorityFullParser<'i, 'arena> {
             _ => true,
         }
     }
-    fn follow_set_terminals(&self, nonterminal_id: NonterminalId) -> Vec<TerminalId> {
+    fn follow_set(&self, nonterminal_id: NonterminalId) -> &'static TerminalSet {
         match nonterminal_id {
-            NonterminalId(0) => FOLLOW_SET_S.terminals.to_vec(),
-            NonterminalId(3) => FOLLOW_SET_E.terminals.to_vec(),
-            NonterminalId(1) => FOLLOW_SET_START_S.terminals.to_vec(),
-            NonterminalId(2) => FOLLOW_SET_START_E.terminals.to_vec(),
-            _ => vec![],
+            NonterminalId(0) => &FOLLOW_SET_S,
+            NonterminalId(3) => &FOLLOW_SET_E,
+            NonterminalId(1) => &FOLLOW_SET_START_S,
+            NonterminalId(2) => &FOLLOW_SET_START_E,
+            _ => unreachable!("no FOLLOW set for nonterminal {nonterminal_id}"),
         }
     }
     fn failures(&self) -> impl Iterator<Item = &GLLFailure> {
         self.failures.iter()
     }
+    #[inline(never)]
     fn add_failure(
         &mut self,
         input_index: u32,
         slot_id: SlotId,
         gss_node_id: Option<GssNodeId>,
-        kind: impl FnOnce() -> GLLFailureKind,
+        kind: GLLFailureKind,
     ) {
         if self.suppress_failures {
             return;
         }
         let level = self.failures.first().map_or(0, |e| e.input_index);
+        record!(self, GLLFailure, input_index, slot_id, gss_node_id, kind);
         if input_index < level {
-            record!(self, GLLFailure, input_index, slot_id, gss_node_id, kind());
             return;
         }
-        let kind = kind();
-        record!(
-            self,
-            GLLFailure,
-            input_index,
-            slot_id,
-            gss_node_id,
-            kind.clone()
-        );
         if input_index > level {
             self.failures.clear();
         }

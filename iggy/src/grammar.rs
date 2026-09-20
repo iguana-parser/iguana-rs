@@ -1670,6 +1670,171 @@ impl Grammar for IggyGrammar {
     ];
     const LAYOUT_NAME: Option<&'static str> = Some("Layout");
     const LAYOUT_TERMINALS: &'static [TerminalId] = &[TerminalId(8), TerminalId(10)];
+    // A failed terminal match refers to a static terminal set like every other failure, so the
+    // error reporting path needs to reach a terminal set from a terminal id. This slice, indexed
+    // by terminal id, serves only that.
+    const SINGLE_TERMINAL_SETS: &'static [TerminalSet] = &[
+        TerminalSet {
+            id: 105,
+            terminals: &[TerminalId(0)],
+        },
+        TerminalSet {
+            id: 106,
+            terminals: &[TerminalId(1)],
+        },
+        TerminalSet {
+            id: 107,
+            terminals: &[TerminalId(2)],
+        },
+        TerminalSet {
+            id: 108,
+            terminals: &[TerminalId(3)],
+        },
+        TerminalSet {
+            id: 109,
+            terminals: &[TerminalId(4)],
+        },
+        TerminalSet {
+            id: 110,
+            terminals: &[TerminalId(5)],
+        },
+        TerminalSet {
+            id: 111,
+            terminals: &[TerminalId(6)],
+        },
+        TerminalSet {
+            id: 112,
+            terminals: &[TerminalId(7)],
+        },
+        TerminalSet {
+            id: 113,
+            terminals: &[TerminalId(8)],
+        },
+        TerminalSet {
+            id: 114,
+            terminals: &[TerminalId(9)],
+        },
+        TerminalSet {
+            id: 115,
+            terminals: &[TerminalId(10)],
+        },
+        TerminalSet {
+            id: 116,
+            terminals: &[TerminalId(11)],
+        },
+        TerminalSet {
+            id: 117,
+            terminals: &[TerminalId(12)],
+        },
+        TerminalSet {
+            id: 118,
+            terminals: &[TerminalId(13)],
+        },
+        TerminalSet {
+            id: 119,
+            terminals: &[TerminalId(14)],
+        },
+        TerminalSet {
+            id: 120,
+            terminals: &[TerminalId(15)],
+        },
+        TerminalSet {
+            id: 121,
+            terminals: &[TerminalId(16)],
+        },
+        TerminalSet {
+            id: 122,
+            terminals: &[TerminalId(17)],
+        },
+        TerminalSet {
+            id: 123,
+            terminals: &[TerminalId(18)],
+        },
+        TerminalSet {
+            id: 124,
+            terminals: &[TerminalId(19)],
+        },
+        TerminalSet {
+            id: 125,
+            terminals: &[TerminalId(20)],
+        },
+        TerminalSet {
+            id: 126,
+            terminals: &[TerminalId(21)],
+        },
+        TerminalSet {
+            id: 127,
+            terminals: &[TerminalId(22)],
+        },
+        TerminalSet {
+            id: 128,
+            terminals: &[TerminalId(23)],
+        },
+        TerminalSet {
+            id: 129,
+            terminals: &[TerminalId(24)],
+        },
+        TerminalSet {
+            id: 130,
+            terminals: &[TerminalId(25)],
+        },
+        TerminalSet {
+            id: 131,
+            terminals: &[TerminalId(26)],
+        },
+        TerminalSet {
+            id: 132,
+            terminals: &[TerminalId(27)],
+        },
+        TerminalSet {
+            id: 133,
+            terminals: &[TerminalId(28)],
+        },
+        TerminalSet {
+            id: 134,
+            terminals: &[TerminalId(29)],
+        },
+        TerminalSet {
+            id: 135,
+            terminals: &[TerminalId(30)],
+        },
+        TerminalSet {
+            id: 136,
+            terminals: &[TerminalId(31)],
+        },
+        TerminalSet {
+            id: 137,
+            terminals: &[TerminalId(32)],
+        },
+        TerminalSet {
+            id: 138,
+            terminals: &[TerminalId(33)],
+        },
+        TerminalSet {
+            id: 139,
+            terminals: &[TerminalId(34)],
+        },
+        TerminalSet {
+            id: 140,
+            terminals: &[TerminalId(35)],
+        },
+        TerminalSet {
+            id: 141,
+            terminals: &[TerminalId(36)],
+        },
+        TerminalSet {
+            id: 142,
+            terminals: &[TerminalId(37)],
+        },
+        TerminalSet {
+            id: 143,
+            terminals: &[TerminalId(38)],
+        },
+        TerminalSet {
+            id: 144,
+            terminals: &[TerminalId(39)],
+        },
+    ];
     fn nonterminal_id(name: &str) -> Option<NonterminalId> {
         match name {
             "Grammar" => Some(GRAMMAR),
@@ -3763,6 +3928,23 @@ pub static FIRST_SET_PLUS_0: TerminalSet = TerminalSet {
         TerminalId(17),
     ],
 };
+// Opt_0 prediction { Identifier, WS, LineComment, "@NoLayout", "@Layout", "@Identifier",
+// "@Regex", WS, LineComment, EOF }
+pub static PREDICTION_SET_OPT_0: TerminalSet = TerminalSet {
+    id: 79,
+    terminals: &[
+        TerminalId(2),
+        TerminalId(8),
+        TerminalId(10),
+        TerminalId(14),
+        TerminalId(15),
+        TerminalId(16),
+        TerminalId(17),
+        TerminalId(8),
+        TerminalId(10),
+        TerminalId(39),
+    ],
+};
 // Opt_0 { Identifier, WS, LineComment, "@NoLayout", "@Layout", "@Identifier", "@Regex" }
 pub static FIRST_SET_OPT_0: TerminalSet = TerminalSet {
     id: 65,
@@ -3789,14 +3971,53 @@ pub static FIRST_SET_STAR_0: TerminalSet = TerminalSet {
         TerminalId(17),
     ],
 };
+// Opt_1 prediction { "@NoLayout", "@Layout", Identifier, WS, LineComment, EOF }
+pub static PREDICTION_SET_OPT_1: TerminalSet = TerminalSet {
+    id: 80,
+    terminals: &[
+        TerminalId(14),
+        TerminalId(15),
+        TerminalId(2),
+        TerminalId(8),
+        TerminalId(10),
+        TerminalId(39),
+    ],
+};
 // Opt_1 { "@NoLayout", "@Layout" }
 pub static FIRST_SET_OPT_1: TerminalSet = TerminalSet {
     id: 67,
     terminals: &[TerminalId(14), TerminalId(15)],
 };
+// Plus_1 prediction { Identifier, String, WS, LineComment, ">", "left", "right", "none",
+// "(", "{", Identifier, WS, LineComment, ">", "@NoLayout", "@Layout", "@Identifier",
+// "@Regex", EOF }
+pub static PREDICTION_SET_PLUS_1: TerminalSet = TerminalSet {
+    id: 81,
+    terminals: &[
+        TerminalId(2),
+        TerminalId(3),
+        TerminalId(8),
+        TerminalId(10),
+        TerminalId(13),
+        TerminalId(22),
+        TerminalId(23),
+        TerminalId(24),
+        TerminalId(25),
+        TerminalId(27),
+        TerminalId(2),
+        TerminalId(8),
+        TerminalId(10),
+        TerminalId(13),
+        TerminalId(14),
+        TerminalId(15),
+        TerminalId(16),
+        TerminalId(17),
+        TerminalId(39),
+    ],
+};
 // Plus_1 { Identifier, String, WS, LineComment, ">", "left", "right", "none", "(", "{" }
 pub static FIRST_SET_PLUS_1: TerminalSet = TerminalSet {
-    id: 79,
+    id: 82,
     terminals: &[
         TerminalId(2),
         TerminalId(3),
@@ -3810,9 +4031,34 @@ pub static FIRST_SET_PLUS_1: TerminalSet = TerminalSet {
         TerminalId(27),
     ],
 };
+// Opt_2 prediction { Identifier, String, WS, LineComment, ">", "left", "right", "none", "(",
+// "{", Identifier, WS, LineComment, "@NoLayout", "@Layout", "@Identifier", "@Regex", EOF }
+pub static PREDICTION_SET_OPT_2: TerminalSet = TerminalSet {
+    id: 83,
+    terminals: &[
+        TerminalId(2),
+        TerminalId(3),
+        TerminalId(8),
+        TerminalId(10),
+        TerminalId(13),
+        TerminalId(22),
+        TerminalId(23),
+        TerminalId(24),
+        TerminalId(25),
+        TerminalId(27),
+        TerminalId(2),
+        TerminalId(8),
+        TerminalId(10),
+        TerminalId(14),
+        TerminalId(15),
+        TerminalId(16),
+        TerminalId(17),
+        TerminalId(39),
+    ],
+};
 // Opt_2 { Identifier, String, WS, LineComment, ">", "left", "right", "none", "(", "{" }
 pub static FIRST_SET_OPT_2: TerminalSet = TerminalSet {
-    id: 79,
+    id: 82,
     terminals: &[
         TerminalId(2),
         TerminalId(3),
@@ -3828,7 +4074,7 @@ pub static FIRST_SET_OPT_2: TerminalSet = TerminalSet {
 };
 // Star_1 { Identifier, String, WS, LineComment, ">", "left", "right", "none", "(", "{" }
 pub static FIRST_SET_STAR_1: TerminalSet = TerminalSet {
-    id: 79,
+    id: 82,
     terminals: &[
         TerminalId(2),
         TerminalId(3),
@@ -3842,15 +4088,55 @@ pub static FIRST_SET_STAR_1: TerminalSet = TerminalSet {
         TerminalId(27),
     ],
 };
+// Opt_3 prediction { "@Layout", WS, LineComment, "@Identifier", "@Regex", EOF }
+pub static PREDICTION_SET_OPT_3: TerminalSet = TerminalSet {
+    id: 84,
+    terminals: &[
+        TerminalId(15),
+        TerminalId(8),
+        TerminalId(10),
+        TerminalId(16),
+        TerminalId(17),
+        TerminalId(39),
+    ],
+};
 // Opt_3 { "@Layout" }
 pub static FIRST_SET_OPT_3: TerminalSet = TerminalSet {
-    id: 80,
+    id: 85,
     terminals: &[TerminalId(15)],
+};
+// Opt_4 prediction { "@Identifier", WS, LineComment, "@Regex", EOF }
+pub static PREDICTION_SET_OPT_4: TerminalSet = TerminalSet {
+    id: 86,
+    terminals: &[
+        TerminalId(16),
+        TerminalId(8),
+        TerminalId(10),
+        TerminalId(17),
+        TerminalId(39),
+    ],
 };
 // Opt_4 { "@Identifier" }
 pub static FIRST_SET_OPT_4: TerminalSet = TerminalSet {
-    id: 81,
+    id: 87,
     terminals: &[TerminalId(16)],
+};
+// Opt_5 prediction { Identifier, Identifier, String, Char, WS, LineComment, "(", "!", "[",
+// EOF }
+pub static PREDICTION_SET_OPT_5: TerminalSet = TerminalSet {
+    id: 88,
+    terminals: &[
+        TerminalId(2),
+        TerminalId(2),
+        TerminalId(3),
+        TerminalId(4),
+        TerminalId(8),
+        TerminalId(10),
+        TerminalId(25),
+        TerminalId(34),
+        TerminalId(35),
+        TerminalId(39),
+    ],
 };
 // Opt_5 { Identifier }
 pub static FIRST_SET_OPT_5: TerminalSet = TerminalSet {
@@ -3890,6 +4176,23 @@ pub static FIRST_SET_PLUS_4: TerminalSet = TerminalSet {
     id: 70,
     terminals: &[TerminalId(20), TerminalId(21)],
 };
+// Opt_6 prediction { "\\", "!>>", Identifier, WS, LineComment, "@NoLayout", "@Layout",
+// "@Identifier", "@Regex", EOF }
+pub static PREDICTION_SET_OPT_6: TerminalSet = TerminalSet {
+    id: 89,
+    terminals: &[
+        TerminalId(20),
+        TerminalId(21),
+        TerminalId(2),
+        TerminalId(8),
+        TerminalId(10),
+        TerminalId(14),
+        TerminalId(15),
+        TerminalId(16),
+        TerminalId(17),
+        TerminalId(39),
+    ],
+};
 // Opt_6 { "\\", "!>>" }
 pub static FIRST_SET_OPT_6: TerminalSet = TerminalSet {
     id: 70,
@@ -3900,6 +4203,28 @@ pub static FIRST_SET_STAR_2: TerminalSet = TerminalSet {
     id: 70,
     terminals: &[TerminalId(20), TerminalId(21)],
 };
+// Opt_7 prediction { "left", "right", "none", Identifier, String, WS, LineComment, ">",
+// "@NoLayout", "@Layout", "@Identifier", "@Regex", "(", "{", EOF }
+pub static PREDICTION_SET_OPT_7: TerminalSet = TerminalSet {
+    id: 90,
+    terminals: &[
+        TerminalId(22),
+        TerminalId(23),
+        TerminalId(24),
+        TerminalId(2),
+        TerminalId(3),
+        TerminalId(8),
+        TerminalId(10),
+        TerminalId(13),
+        TerminalId(14),
+        TerminalId(15),
+        TerminalId(16),
+        TerminalId(17),
+        TerminalId(25),
+        TerminalId(27),
+        TerminalId(39),
+    ],
+};
 // Opt_7 { "left", "right", "none" }
 pub static FIRST_SET_OPT_7: TerminalSet = TerminalSet {
     id: 72,
@@ -3909,6 +4234,26 @@ pub static FIRST_SET_OPT_7: TerminalSet = TerminalSet {
 pub static FIRST_SET_PLUS_5: TerminalSet = TerminalSet {
     id: 73,
     terminals: &[TerminalId(2), TerminalId(3), TerminalId(25), TerminalId(27)],
+};
+// Opt_8 prediction { Identifier, String, "(", "{", Identifier, WS, LineComment, ">",
+// "@NoLayout", "@Layout", "@Identifier", "@Regex", EOF }
+pub static PREDICTION_SET_OPT_8: TerminalSet = TerminalSet {
+    id: 91,
+    terminals: &[
+        TerminalId(2),
+        TerminalId(3),
+        TerminalId(25),
+        TerminalId(27),
+        TerminalId(2),
+        TerminalId(8),
+        TerminalId(10),
+        TerminalId(13),
+        TerminalId(14),
+        TerminalId(15),
+        TerminalId(16),
+        TerminalId(17),
+        TerminalId(39),
+    ],
 };
 // Opt_8 { Identifier, String, "(", "{" }
 pub static FIRST_SET_OPT_8: TerminalSet = TerminalSet {
@@ -3925,9 +4270,27 @@ pub static FIRST_SET_PLUS_6: TerminalSet = TerminalSet {
     id: 73,
     terminals: &[TerminalId(2), TerminalId(3), TerminalId(25), TerminalId(27)],
 };
+// Opt_9 prediction { Label, Identifier, WS, LineComment, ">", "@NoLayout", "@Layout",
+// "@Identifier", "@Regex", "|", EOF }
+pub static PREDICTION_SET_OPT_9: TerminalSet = TerminalSet {
+    id: 92,
+    terminals: &[
+        TerminalId(7),
+        TerminalId(2),
+        TerminalId(8),
+        TerminalId(10),
+        TerminalId(13),
+        TerminalId(14),
+        TerminalId(15),
+        TerminalId(16),
+        TerminalId(17),
+        TerminalId(18),
+        TerminalId(39),
+    ],
+};
 // Opt_9 { Label }
 pub static FIRST_SET_OPT_9: TerminalSet = TerminalSet {
-    id: 82,
+    id: 93,
     terminals: &[TerminalId(7)],
 };
 // Plus_7 { Identifier, String, "(", "{" }
@@ -3950,9 +4313,20 @@ pub static FIRST_SET_PLUS_9: TerminalSet = TerminalSet {
     id: 69,
     terminals: &[TerminalId(2)],
 };
+// Opt_10 prediction { "!", WS, LineComment, "[", EOF }
+pub static PREDICTION_SET_OPT_10: TerminalSet = TerminalSet {
+    id: 94,
+    terminals: &[
+        TerminalId(34),
+        TerminalId(8),
+        TerminalId(10),
+        TerminalId(35),
+        TerminalId(39),
+    ],
+};
 // Opt_10 { "!" }
 pub static FIRST_SET_OPT_10: TerminalSet = TerminalSet {
-    id: 83,
+    id: 95,
     terminals: &[TerminalId(34)],
 };
 // Plus_10 { RangeChar }
@@ -3970,6 +4344,50 @@ pub static FIRST_SET_PLUS_11: TerminalSet = TerminalSet {
     id: 78,
     terminals: &[TerminalId(8), TerminalId(10)],
 };
+// Opt_11 prediction { WS, LineComment, Identifier, String, Char, RangeChar, Label,
+// "grammar", "=", ">", "@NoLayout", "@Layout", "@Identifier", "@Regex", "|", "!<<", "\\",
+// "!>>", "left", "right", "none", "(", ")", "{", "}", "*", "+", "?", ":", "!>>>", "!", "[",
+// "]", "-", EOF }
+pub static PREDICTION_SET_OPT_11: TerminalSet = TerminalSet {
+    id: 96,
+    terminals: &[
+        TerminalId(8),
+        TerminalId(10),
+        TerminalId(2),
+        TerminalId(3),
+        TerminalId(4),
+        TerminalId(6),
+        TerminalId(7),
+        TerminalId(11),
+        TerminalId(12),
+        TerminalId(13),
+        TerminalId(14),
+        TerminalId(15),
+        TerminalId(16),
+        TerminalId(17),
+        TerminalId(18),
+        TerminalId(19),
+        TerminalId(20),
+        TerminalId(21),
+        TerminalId(22),
+        TerminalId(23),
+        TerminalId(24),
+        TerminalId(25),
+        TerminalId(26),
+        TerminalId(27),
+        TerminalId(28),
+        TerminalId(29),
+        TerminalId(30),
+        TerminalId(31),
+        TerminalId(32),
+        TerminalId(33),
+        TerminalId(34),
+        TerminalId(35),
+        TerminalId(36),
+        TerminalId(37),
+        TerminalId(39),
+    ],
+};
 // Opt_11 { WS, LineComment }
 pub static FIRST_SET_OPT_11: TerminalSet = TerminalSet {
     id: 78,
@@ -3982,7 +4400,7 @@ pub static FIRST_SET_STAR_4: TerminalSet = TerminalSet {
 };
 // StartGrammar { WS, LineComment, "grammar" }
 pub static FIRST_SET_START_GRAMMAR: TerminalSet = TerminalSet {
-    id: 84,
+    id: 97,
     terminals: &[TerminalId(8), TerminalId(10), TerminalId(11)],
 };
 // StartRule { Identifier, WS, LineComment, "@NoLayout", "@Layout", "@Identifier", "@Regex" }
@@ -4011,7 +4429,7 @@ pub static FIRST_SET_START_SYNTAX_RULE: TerminalSet = TerminalSet {
 };
 // StartAnnotation { WS, LineComment, "@NoLayout", "@Layout" }
 pub static FIRST_SET_START_ANNOTATION: TerminalSet = TerminalSet {
-    id: 85,
+    id: 98,
     terminals: &[
         TerminalId(8),
         TerminalId(10),
@@ -4032,12 +4450,12 @@ pub static FIRST_SET_START_REGEX_RULE: TerminalSet = TerminalSet {
 };
 // StartRegexPreCondition { Identifier, WS, LineComment }
 pub static FIRST_SET_START_REGEX_PRE_CONDITION: TerminalSet = TerminalSet {
-    id: 86,
+    id: 99,
     terminals: &[TerminalId(2), TerminalId(8), TerminalId(10)],
 };
 // StartRegexPostCondition { WS, LineComment, "\\", "!>>" }
 pub static FIRST_SET_START_REGEX_POST_CONDITION: TerminalSet = TerminalSet {
-    id: 87,
+    id: 100,
     terminals: &[
         TerminalId(8),
         TerminalId(10),
@@ -4063,7 +4481,7 @@ pub static FIRST_SET_START_PRIORITY_LEVEL: TerminalSet = TerminalSet {
 };
 // StartAssociativity { WS, LineComment, "left", "right", "none" }
 pub static FIRST_SET_START_ASSOCIATIVITY: TerminalSet = TerminalSet {
-    id: 88,
+    id: 101,
     terminals: &[
         TerminalId(8),
         TerminalId(10),
@@ -4074,7 +4492,7 @@ pub static FIRST_SET_START_ASSOCIATIVITY: TerminalSet = TerminalSet {
 };
 // StartAlternative { Identifier, String, WS, LineComment, "(", "{" }
 pub static FIRST_SET_START_ALTERNATIVE: TerminalSet = TerminalSet {
-    id: 89,
+    id: 102,
     terminals: &[
         TerminalId(2),
         TerminalId(3),
@@ -4086,7 +4504,7 @@ pub static FIRST_SET_START_ALTERNATIVE: TerminalSet = TerminalSet {
 };
 // StartSymbol { Identifier, String, WS, LineComment, "(", "{" }
 pub static FIRST_SET_START_SYMBOL: TerminalSet = TerminalSet {
-    id: 89,
+    id: 102,
     terminals: &[
         TerminalId(2),
         TerminalId(3),
@@ -4098,12 +4516,12 @@ pub static FIRST_SET_START_SYMBOL: TerminalSet = TerminalSet {
 };
 // StartPreCondition { Identifier, WS, LineComment }
 pub static FIRST_SET_START_PRE_CONDITION: TerminalSet = TerminalSet {
-    id: 86,
+    id: 99,
     terminals: &[TerminalId(2), TerminalId(8), TerminalId(10)],
 };
 // StartPostCondition { WS, LineComment, "\\", "!>>", "!>>>", "!" }
 pub static FIRST_SET_START_POST_CONDITION: TerminalSet = TerminalSet {
-    id: 90,
+    id: 103,
     terminals: &[
         TerminalId(8),
         TerminalId(10),
@@ -4139,11 +4557,11 @@ pub static FIRST_SET_START_CHAR_CLASS: TerminalSet = TerminalSet {
 };
 // StartRangeElement { RangeChar, WS, LineComment }
 pub static FIRST_SET_START_RANGE_ELEMENT: TerminalSet = TerminalSet {
-    id: 91,
+    id: 104,
     terminals: &[TerminalId(6), TerminalId(8), TerminalId(10)],
 };
 // StartRange { RangeChar, WS, LineComment }
 pub static FIRST_SET_START_RANGE: TerminalSet = TerminalSet {
-    id: 91,
+    id: 104,
     terminals: &[TerminalId(6), TerminalId(8), TerminalId(10)],
 };

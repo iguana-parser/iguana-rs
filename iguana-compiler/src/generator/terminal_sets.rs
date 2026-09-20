@@ -24,11 +24,22 @@ pub enum TerminalSetKind<'a> {
     /// that layout, whereas a `FollowRestriction` is checked at the symbol's
     /// right extent.
     LayoutAwareFollowRestriction(Slot<'a>),
+    /// The operands of the except at the grammar slot (a `\` except). A match
+    /// of the symbol is rejected when one of the operands matches the same
+    /// span exactly. Except checks run by `match_exact`, and a failure
+    /// reports the terminal set of this kind.
+    Except(Slot<'a>),
+    /// The prediction set of a nullable nonterminal: its FIRST set and its
+    /// FOLLOW set together. The failure recorded when no alternative can be
+    /// predicted reports it. For non-nullable nonterminals, the failure refers
+    /// to `FIRST_SET_<NT>` instead.
+    Prediction(&'a Nonterminal),
 }
 
-/// A set of terminals that a parsing action checks the input against, for
-/// example a follow restriction. The generator emits each set as a static in
-/// the generated parser and refers to it where that action runs.
+/// A set of terminals that the parser passes to the scanner for matching, for
+/// example a follow restriction, or that a recorded failure refers to. The
+/// generator emits each set as a static in the generated parser and refers to
+/// it where that action runs.
 pub struct TerminalSet<'a> {
     pub kind: TerminalSetKind<'a>,
     pub terminals: Vec<Terminal>,
@@ -104,18 +115,53 @@ pub fn terminal_sets<'a>(
     let match_any_count = match_any_ids.len();
 
     // The combined FIRST sets, which `longest_match` tests, numbered after the
-    // `match_any` sets.
+    // `match_any` sets. The sets that only a failure refers to share this
+    // family, since the scanner never sees them.
     let mut first_ids: FxHashMap<Vec<TerminalId>, usize> = FxHashMap::default();
-    for (nonterminal, terminals) in combined_first {
-        let terminals = canonical_order(terminals, terminal_ids);
+    let mut first_set = |kind: TerminalSetKind<'a>, terminals: Vec<Terminal>| {
         let content = terminals.iter().map(|t| terminal_ids.get_id(t)).collect();
         let next_id = match_any_count + first_ids.len();
         let id = *first_ids.entry(content).or_insert(next_id);
-        sets.push(TerminalSet {
-            kind: TerminalSetKind::First(nonterminal),
+        TerminalSet {
+            kind,
             terminals,
             id,
-        });
+        }
+    };
+    for (nonterminal, terminals) in combined_first {
+        let terminals = canonical_order(terminals, terminal_ids);
+        // A prediction set only where it differs from the FIRST set: a nullable
+        // nonterminal with several alternatives. A single-alternative nonterminal
+        // never goes through the dispatch that records this failure.
+        if ff.is_nonterminal_nullable(nonterminal) && grammar.alternatives(nonterminal).len() > 1 {
+            // FIRST then FOLLOW, each in canonical order, as the failure
+            // message lists them.
+            let mut prediction = terminals.clone();
+            prediction.extend(canonical_order(
+                ff.follow_set(nonterminal).cloned().collect(),
+                terminal_ids,
+            ));
+            sets.push(first_set(TerminalSetKind::Prediction(nonterminal), prediction));
+        }
+        sets.push(first_set(TerminalSetKind::First(nonterminal), terminals));
+    }
+    for nonterminal in grammar.nonterminals() {
+        for alternative in grammar.alternatives(nonterminal) {
+            for (pos, symbol) in alternative.symbols.iter().enumerate() {
+                let excepts = &symbol.restrictions().excepts;
+                if excepts.is_empty() || symbol.as_identifier().is_none() {
+                    continue;
+                }
+                let terminals = excepts
+                    .iter()
+                    .map(|e| grammar.except_terminal(e).0.clone())
+                    .collect();
+                sets.push(first_set(
+                    TerminalSetKind::Except(Slot::new(nonterminal, alternative, pos)),
+                    terminals,
+                ));
+            }
+        }
     }
 
     (sets, match_any_count)

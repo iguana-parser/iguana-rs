@@ -11,9 +11,10 @@ use crate::utils::to_snake_case;
 use iguana_runtime::ids::TerminalId;
 
 /// Generates `grammar.rs`: the nonterminal id constants, the grammar type
-/// with its `Grammar` implementation, and the terminal sets the parser matches
-/// against. The sets are public because the parser references only some of
-/// them, and a private unused static fails the denied dead-code lint.
+/// with its `Grammar` implementation, and the terminal sets the parser passes
+/// to the scanner or refers to in failures. The sets are public because the
+/// parser references only some of them, and a private unused static fails the
+/// denied dead-code lint.
 pub fn generate<'a>(
     grammar: &'a Grammar,
     nonterminal_ids: &NonterminalIds,
@@ -24,21 +25,8 @@ pub fn generate<'a>(
     let grammar_type = grammar_ident(&grammar.name);
     let grammar_name = &grammar.name;
 
-    let mut terminal_set_items = vec![];
-    for set in terminal_sets {
-        let name = format_ident!("{}", terminal_set_name(set, grammar));
-        let comment = terminal_set_comment(set);
-        let ids: Vec<_> = set
-            .terminals
-            .iter()
-            .map(|t| terminal_ids.get_id(t))
-            .collect();
-        let set_id = Literal::usize_unsuffixed(set.id);
-        terminal_set_items.push(quote! {
-            #[comment = #comment]
-            pub static #name: TerminalSet = TerminalSet { id: #set_id, terminals: &[#(#ids),*] };
-        });
-    }
+    let terminal_set_statics = terminal_set_statics(grammar, terminal_ids, terminal_sets);
+    let single_terminal_sets = single_terminal_sets(terminal_ids, terminal_sets);
 
     let nonterminals = nonterminal_ids.nonterminals().map(|n| {
         let nonterminal_name = &n.name;
@@ -137,6 +125,11 @@ pub fn generate<'a>(
 
             const LAYOUT_TERMINALS: &'static [TerminalId] = &[#(#layout_terminals),*];
 
+            #[comment = "A failed terminal match refers to a static terminal set like every other
+                         failure, so the error reporting path needs to reach a terminal set
+                         from a terminal id. This slice, indexed by terminal id, serves only that."]
+            const SINGLE_TERMINAL_SETS: &'static [TerminalSet] = &[#(#single_terminal_sets),*];
+
             fn nonterminal_id(name: &str) -> Option<NonterminalId> {
                 match name {
                     #(#nonterminal_id_arms)*
@@ -145,8 +138,61 @@ pub fn generate<'a>(
             }
         }
 
-        #(#terminal_set_items)*
+        #(#terminal_set_statics)*
     }
+}
+
+/// The statics for the terminal sets, for example:
+///
+///     // Grammar { WS, LineComment, EOF }
+///     pub static FOLLOW_SET_GRAMMAR: TerminalSet = TerminalSet {
+///         id: 0,
+///         terminals: &[TerminalId(8), TerminalId(10), TerminalId(39)],
+///     };
+///
+/// The parser passes these sets to the scanner for matching, and a recorded
+/// failure refers to the set the parser expected. What each kind of set
+/// contains and who uses it is documented on `TerminalSetKind`.
+fn terminal_set_statics(
+    grammar: &Grammar,
+    terminal_ids: &TerminalIds,
+    terminal_sets: &[TerminalSet],
+) -> Vec<TokenStream> {
+    terminal_sets
+        .iter()
+        .map(|set| {
+            let name = format_ident!("{}", terminal_set_name(set, grammar));
+            let comment = terminal_set_comment(set);
+            let ids: Vec<_> = set
+                .terminals
+                .iter()
+                .map(|t| terminal_ids.get_id(t))
+                .collect();
+            let set_id = Literal::usize_unsuffixed(set.id);
+            quote! {
+                #[comment = #comment]
+                pub static #name: TerminalSet = TerminalSet { id: #set_id, terminals: &[#(#ids),*] };
+            }
+        })
+        .collect()
+}
+
+/// `SINGLE_TERMINAL_SETS` is a slice of `TerminalSet`s, each holding a single
+/// terminal: entry `i` holds the set for the terminal with id `i`. Failure
+/// reporting only accepts a `TerminalSet`, and this slice is the way to reach a
+/// terminal set from a single terminal id. These sets are not used for
+/// matching by the scanner.
+fn single_terminal_sets(terminal_ids: &TerminalIds, terminal_sets: &[TerminalSet]) -> Vec<TokenStream> {
+    let first_id = terminal_sets.iter().map(|set| set.id + 1).max().unwrap_or(0);
+    // Plus the synthetic epsilon and EOF terminals: this slice is indexed like
+    // `TERMINALS`, so it must contain those two as well.
+    (0..terminal_ids.len() + 2)
+        .map(|index| {
+            let set_id = Literal::usize_unsuffixed(first_id + index);
+            let id = TerminalId(index as u16);
+            quote! { TerminalSet { id: #set_id, terminals: &[#id] } }
+        })
+        .collect()
 }
 
 /// The ids of the terminals reachable from the grammar's layout definition,
@@ -205,6 +251,13 @@ fn terminal_set_name(set: &TerminalSet, grammar: &Grammar) -> String {
             slot.alternative_index(grammar),
             slot.pos()
         ),
+        TerminalSetKind::Except(slot) => format!(
+            "EXCEPT_{}_ALT{}_POS{}",
+            upper(slot.head()),
+            slot.alternative_index(grammar),
+            slot.pos()
+        ),
+        TerminalSetKind::Prediction(nonterminal) => format!("PREDICTION_SET_{}", upper(nonterminal)),
     }
 }
 
@@ -218,6 +271,8 @@ fn terminal_set_comment(set: &TerminalSet) -> String {
         TerminalSetKind::FirstAlt(slot) => slot.name(),
         TerminalSetKind::FollowRestriction(slot) => format!("{} !>>", slot.name()),
         TerminalSetKind::LayoutAwareFollowRestriction(slot) => format!("{} !>>>", slot.name()),
+        TerminalSetKind::Except(slot) => format!("{} \\", slot.name()),
+        TerminalSetKind::Prediction(nonterminal) => format!("{} prediction", nonterminal.name),
     };
     let names: Vec<_> = set.terminals.iter().map(|t| t.name.clone()).collect();
     format!("{position} {{ {} }}", names.join(", "))

@@ -113,6 +113,27 @@ impl Grammar for StarWithSepGrammar {
     ];
     const LAYOUT_NAME: Option<&'static str> = None;
     const LAYOUT_TERMINALS: &'static [TerminalId] = &[];
+    // A failed terminal match refers to a static terminal set like every other failure, so the
+    // error reporting path needs to reach a terminal set from a terminal id. This slice, indexed
+    // by terminal id, serves only that.
+    const SINGLE_TERMINAL_SETS: &'static [TerminalSet] = &[
+        TerminalSet {
+            id: 6,
+            terminals: &[TerminalId(0)],
+        },
+        TerminalSet {
+            id: 7,
+            terminals: &[TerminalId(1)],
+        },
+        TerminalSet {
+            id: 8,
+            terminals: &[TerminalId(2)],
+        },
+        TerminalSet {
+            id: 9,
+            terminals: &[TerminalId(3)],
+        },
+    ];
     fn nonterminal_id(name: &str) -> Option<NonterminalId> {
         match name {
             "S" => Some(S),
@@ -220,6 +241,11 @@ pub static FIRST_SET_A: TerminalSet = TerminalSet {
 pub static FIRST_SET_PLUS_0: TerminalSet = TerminalSet {
     id: 4,
     terminals: &[TerminalId(1)],
+};
+// Opt_0 prediction { "a", EOF }
+pub static PREDICTION_SET_OPT_0: TerminalSet = TerminalSet {
+    id: 5,
+    terminals: &[TerminalId(1), TerminalId(3)],
 };
 // Opt_0 { "a" }
 pub static FIRST_SET_OPT_0: TerminalSet = TerminalSet {

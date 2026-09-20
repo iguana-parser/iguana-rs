@@ -148,7 +148,7 @@ impl<'a> ParserGen<'a> {
         let record_stats_method = self.gen_record_stats_method();
         let post_conditions_method = self.gen_post_conditions_method();
         let follow_set_check_method = self.gen_follow_set_check_method();
-        let follow_set_terminals_method = self.gen_follow_set_terminals_method();
+        let follow_set_method = self.gen_follow_set_method();
         let failures_method = Self::gen_failures_method();
         let parser_struct = self.gen_parser_struct();
         let parser_impl = self.gen_parser_impl();
@@ -203,26 +203,29 @@ impl<'a> ParserGen<'a> {
                 #record_stats_method
                 #post_conditions_method
                 #follow_set_check_method
-                #follow_set_terminals_method
+                #follow_set_method
                 #failures_method
 
+                // Do not inline. `execute` records failures at many places, all inside
+                // the GLL dispatch loop. The compiler would copy this body into every one
+                // of them. A failure is the cold path, so the call is free, while inlining
+                // adds to the compile time and to the size of `execute`.
+                #[inline(never)]
                 fn add_failure(
                     &mut self,
                     input_index: u32,
                     slot_id: SlotId,
                     gss_node_id: Option<GssNodeId>,
-                    kind: impl FnOnce() -> GLLFailureKind,
+                    kind: GLLFailureKind,
                 ) {
                     if self.suppress_failures {
                         return;
                     }
                     let level = self.failures.first().map_or(0, |e| e.input_index);
+                    record!(self, GLLFailure, input_index, slot_id, gss_node_id, kind);
                     if input_index < level {
-                        record!(self, GLLFailure, input_index, slot_id, gss_node_id, kind());
                         return;
                     }
-                    let kind = kind();
-                    record!(self, GLLFailure, input_index, slot_id, gss_node_id, kind.clone());
                     if input_index > level {
                         self.failures.clear();
                     }
@@ -298,7 +301,7 @@ impl<'a> ParserGen<'a> {
                 parser::{Parser, GLLFailure, GLLFailureKind, init_logger, DESCRIPTORS_CAPACITY_DIVISOR, DESCRIPTORS_CAPACITY_FLOOR, #envs_capacity_import GSS_CAPACITY_MULTIPLIER, SPPF_CAPACITY_MULTIPLIER},
                 record,
                 result::{ParseError, ParseSuccess},
-                scanner::Scanner,
+                scanner::{Scanner, TerminalSet},
                 sppf::{IntermediateNode, NonterminalNode, SPPFNode, SPPFNodeId, TerminalNode},
                 utils::{inline_map::InlineMap, inline_vec::InlineVec}
             };
@@ -402,24 +405,90 @@ impl<'a> ParserGen<'a> {
             }
         }
 
+        let slots = quote! { #(#slot_quotes)* };
+        // A grammar whose alternatives never reach a second symbol has no
+        // transition, so the input index and the result are never reassigned;
+        // `j` occurs only in a transition and in the guards around one.
+        let mutability = if mentions_ident(&slots, "j") {
+            quote! { mut }
+        } else {
+            quote! {}
+        };
+        let env = if mentions_ident(&slots, "env") {
+            quote! { let env = descriptor.env_id(); }
+        } else {
+            quote! {}
+        };
         quote! {
-            #[comment = "env is threaded only through recursive execute calls in grammars without
-                         data-dependent constructs, so clippy sees it as recursion-only there."]
-            #[allow(clippy::only_used_in_recursion)]
-            fn execute(
-                &mut self,
-                input_index: u32,
-                slot_id: SlotId,
-                result: Option<SPPFNodeId>,
-                gss_node_id: GssNodeId,
-                env: Option<EnvId>,
-            ) {
-                record!(self, ProcessingDescriptor, input_index, slot_id, result, gss_node_id);
-                match slot_id {
-                    #(#slot_quotes)*
-                    _ => {
-                        panic!("Unknown grammar slot id: {slot_id}");
+            #[comment = "The GLL main loop. Each descriptor starts at its slot. A slot that
+                         reaches the next slot of its alternative sets `next`, so a descriptor
+                         runs through its alternative as far as it can before the loop takes
+                         the next descriptor. The GSS node and the environment are fixed for
+                         the whole alternative."]
+            fn execute(&mut self) {
+                while let Some(descriptor) = self.next_descriptor() {
+                    let #mutability input_index = descriptor.input_index;
+                    let #mutability result = descriptor.sppf_node_id();
+                    let gss_node_id = descriptor.gss_node_id;
+                    #env
+                    let mut next = Some(descriptor.slot_id);
+                    while let Some(slot_id) = next {
+                        next = None;
+                        record!(self, ProcessingDescriptor, input_index, slot_id, result, gss_node_id);
+                        match slot_id {
+                            #slots
+                            _ => {
+                                panic!("Unknown grammar slot id: {slot_id}");
+                            }
+                        }
                     }
+                }
+            }
+        }
+    }
+
+    /// The transition to the next slot of the alternative: the matched node
+    /// becomes the result, its right extent `j` the input index, and the
+    /// dispatch loop continues with the slot.
+    fn gen_advance(next_slot_name: &str, next_slot_id: SlotId, node: TokenStream) -> TokenStream {
+        quote! {
+            #[comment = #next_slot_name]
+            input_index = j;
+            result = Some(#node);
+            next = Some(#next_slot_id);
+        }
+    }
+
+    /// Wraps a slot body in its pre-conditions. A failed pre-condition makes
+    /// no transition, so the dispatch loop moves on to the next descriptor.
+    fn guard_pre_conditions(pre_conditions: &[TokenStream], body: TokenStream) -> TokenStream {
+        if pre_conditions.is_empty() {
+            body
+        } else {
+            quote! {
+                if #(#pre_conditions)&&* {
+                    #body
+                }
+            }
+        }
+    }
+
+    /// Wraps the transition after a matched symbol in its post-conditions,
+    /// checked at the right extent `j`. A violated post-condition records the
+    /// failure instead of the transition.
+    fn guard_post_conditions(
+        post_conditions: &[TokenStream],
+        next_slot_id: SlotId,
+        body: TokenStream,
+    ) -> TokenStream {
+        if post_conditions.is_empty() {
+            body
+        } else {
+            quote! {
+                if let Some(failure) = self.post_conditions(#next_slot_id, input_index, j) {
+                    self.add_failure(j, #next_slot_id, Some(gss_node_id), failure);
+                } else {
+                    #body
                 }
             }
         }
@@ -474,7 +543,6 @@ impl<'a> ParserGen<'a> {
         let nonterminal_id = self.nonterminal_ids.get_id(nonterminal);
         let nt_const_suffix = to_snake_case(&nonterminal.name).to_uppercase();
         let alternatives = self.grammar.alternatives(nonterminal);
-        let follow_name = format_ident!("FOLLOW_SET_{}", nt_const_suffix);
 
         let alt_arms: Vec<_> = alternatives
             .iter()
@@ -506,23 +574,11 @@ impl<'a> ParserGen<'a> {
             })
             .collect();
 
-        let first_set_name = format_ident!("FIRST_SET_{}", nt_const_suffix);
         let first_slot_id = self
             .slot_ids
             .get_id(&Slot::new(nonterminal, &alternatives[0], 0));
 
-        // Nullable NTs accept FOLLOW tokens as valid continuations via the ε arm.
-        let expected = if self.ff.is_nonterminal_nullable(nonterminal) {
-            quote! {
-                {
-                    let mut expected = #first_set_name.terminals.to_vec();
-                    expected.extend_from_slice(#follow_name.terminals);
-                    expected
-                }
-            }
-        } else {
-            quote! { #first_set_name.terminals.to_vec() }
-        };
+        let prediction_set = self.prediction_set_name(nonterminal);
 
         quote! {
             #[comment = #nt_name]
@@ -530,9 +586,8 @@ impl<'a> ParserGen<'a> {
                 let mut matched = false;
                 #(#alt_arms)*
                 if !matched {
-                    self.add_failure(input_index, #first_slot_id, Some(gss_node_id), || {
-                        GLLFailureKind::UnexpectedToken { expected: #expected }
-                    });
+                    self.add_failure(input_index, #first_slot_id, Some(gss_node_id),
+                        GLLFailureKind::UnexpectedToken(&#prediction_set));
                 }
             }
         }
@@ -644,52 +699,31 @@ impl<'a> ParserGen<'a> {
         let next_slot_id = self.slot_ids.get_id(&next_slot);
         let next_slot_name = next_slot.name();
         // At grammar position 0, we do not need to create an intermediate node.
-        let new_node = if slot.is_first() {
-            quote! {
-                #[comment = #next_slot_name]
-                self.execute(j, #next_slot_id, Some(right_child), gss_node_id, env);
-            }
+        let advance = if slot.is_first() {
+            Self::gen_advance(&next_slot_name, next_slot_id, quote! { right_child })
         } else {
+            let advance = Self::gen_advance(&next_slot_name, next_slot_id, quote! { new_node });
             quote! {
-                if let Some((j, new_node)) = self.create_intermediate_node(
+                if let Some(new_node) = self.create_intermediate_node(
                     result, right_child, #next_slot_id, env,
                 ) {
-                    #[comment = #next_slot_name]
-                    self.execute(j, #next_slot_id, Some(new_node), gss_node_id, env);
+                    #advance
                 }
             }
         };
-        let new_node = if post_conditions.is_empty() {
-            new_node
-        } else {
+        let advance = Self::guard_post_conditions(post_conditions, next_slot_id, advance);
+        let body = Self::guard_pre_conditions(
+            pre_conditions,
             quote! {
-                if let Some(error_kind) = self.post_conditions(#next_slot_id, input_index, j) {
-                    self.add_failure(j, #next_slot_id, Some(gss_node_id), || error_kind);
-                } else {
-                    #new_node
+                if let Some((j, right_child)) = self.match_terminal(#terminal_id, input_index, #slot_id, Some(gss_node_id)) {
+                    #advance
                 }
-            }
-        };
-        let pre_condition_check = if pre_conditions.is_empty() {
-            quote! {}
-        } else {
-            quote! {
-                if !(#(#pre_conditions)&&*) { return; }
-            }
-        };
-        let uses_j = slot.is_first() || !post_conditions.is_empty();
-        let destructure = if uses_j {
-            quote! { (j, right_child) }
-        } else {
-            quote! { (_, right_child) }
-        };
+            },
+        );
         quote! {
             #[comment = #current_slot_name]
             #slot_id => {
-                #pre_condition_check
-                if let Some(#destructure) = self.match_terminal(#terminal_id, input_index, #slot_id, Some(gss_node_id)) {
-                    #new_node
-                }
+                #body
             }
         }
     }
@@ -734,11 +768,15 @@ impl<'a> ParserGen<'a> {
                             .collect();
                         uses_left_extent = true;
                         uses_right_extent = true;
+                        let except_set = format_ident!(
+                            "EXCEPT_{}_ALT{}_POS{}",
+                            to_snake_case(&nonterminal.name).to_uppercase(),
+                            alt_index,
+                            pos
+                        );
                         branches.push(quote! {
                             if #(#checks)||* {
-                                Some(GLLFailureKind::ExcludedMatch {
-                                    excluded_by: vec![#(#except_ids),*],
-                                })
+                                Some(GLLFailureKind::ExcludedMatch(&#except_set))
                             } else
                         });
                     }
@@ -755,9 +793,7 @@ impl<'a> ParserGen<'a> {
                         uses_right_extent = true;
                         branches.push(quote! {
                             if #restriction_check {
-                                Some(GLLFailureKind::ForbiddenFollow {
-                                    forbidden: #static_name.terminals.to_vec(),
-                                })
+                                Some(GLLFailureKind::ForbiddenFollow(&#static_name))
                             } else
                         });
                     }
@@ -783,9 +819,7 @@ impl<'a> ParserGen<'a> {
                         uses_right_extent = true;
                         branches.push(quote! {
                             if (#layout_match).is_some_and(|end| #restriction_check) {
-                                Some(GLLFailureKind::ForbiddenFollow {
-                                    forbidden: #static_name.terminals.to_vec(),
-                                })
+                                Some(GLLFailureKind::ForbiddenFollow(&#static_name))
                             } else
                         });
                     }
@@ -865,7 +899,7 @@ impl<'a> ParserGen<'a> {
                 quote! {
                     {
                         self.suppress_failures = true;
-                        let node = self.#method_name(#pos);
+                        let node = self.#method_name(#pos, None);
                         self.suppress_failures = false;
                         node.map(|node| self.sppf_node(node).right_extent())
                     }
@@ -905,7 +939,7 @@ impl<'a> ParserGen<'a> {
         }
     }
 
-    fn gen_follow_set_terminals_method(&self) -> TokenStream {
+    fn gen_follow_set_method(&self) -> TokenStream {
         let mut arms = vec![];
         for nonterminal in self.grammar.nonterminals() {
             let nonterminal_id = self.nonterminal_ids.get_id(nonterminal);
@@ -914,14 +948,14 @@ impl<'a> ParserGen<'a> {
                 to_snake_case(&nonterminal.name).to_uppercase(),
             );
             arms.push(quote! {
-                #nonterminal_id => { #follow_name.terminals.to_vec() }
+                #nonterminal_id => &#follow_name,
             });
         }
         quote! {
-            fn follow_set_terminals(&self, nonterminal_id: NonterminalId) -> Vec<TerminalId> {
+            fn follow_set(&self, nonterminal_id: NonterminalId) -> &'static TerminalSet {
                 match nonterminal_id {
                     #(#arms)*
-                    _ => vec![],
+                    _ => unreachable!("no FOLLOW set for nonterminal {nonterminal_id}"),
                 }
             }
         }
@@ -939,81 +973,73 @@ impl<'a> ParserGen<'a> {
         let slot_name = slot.name();
         let next_slot = slot.next();
         let next_slot_id = self.slot_ids.get_id(&next_slot);
-        let pre_condition_check = if pre_conditions.is_empty() {
-            quote! {}
-        } else {
-            quote! { if !(#(#pre_conditions)&&*) { return; } }
-        };
-        if self.config.ll1_optimization && self.ff.is_ll1(nonterminal) {
+        let body = if self.config.ll1_optimization && self.ff.is_ll1(nonterminal) {
             let next_slot_name = next_slot.name();
-            let post_condition_check = if post_conditions.is_empty() {
-                quote! {}
-            } else {
-                quote! {
-                    if let Some(error_kind) = self.post_conditions(#next_slot_id, input_index, j) {
-                        self.add_failure(j, #next_slot_id, Some(gss_node_id), || error_kind);
-                        return;
-                    }
-                }
-            };
             let method_name = format_ident!("parse_{}_ll1", to_snake_case(&nonterminal.name));
-            let ll1_error = self.gen_ll1_call_error(nonterminal, quote! { #slot_id });
             if slot.is_first() {
+                let advance = Self::guard_post_conditions(
+                    post_conditions,
+                    next_slot_id,
+                    Self::gen_advance(&next_slot_name, next_slot_id, quote! { right_child }),
+                );
                 quote! {
-                    #[comment = #slot_name]
-                    #slot_id => {
-                        #pre_condition_check
-                        if let Some(right_child) = self.#method_name(input_index) {
-                            let j = self.sppf_node(right_child).right_extent();
-                            #post_condition_check
-                            #[comment = #next_slot_name]
-                            self.execute(j, #next_slot_id, Some(right_child), gss_node_id, env);
-                        } #ll1_error
+                    if let Some(right_child) = self.#method_name(input_index, Some((#slot_id, Some(gss_node_id)))) {
+                        let j = self.sppf_node(right_child).right_extent();
+                        #advance
                     }
                 }
             } else {
-                let compute_j = if post_conditions.is_empty() {
-                    quote! {}
-                } else {
-                    quote! { let j = self.sppf_node(right_child).right_extent(); }
-                };
+                let advance = Self::gen_advance(&next_slot_name, next_slot_id, quote! { new_node });
+                let advance = Self::guard_post_conditions(
+                    post_conditions,
+                    next_slot_id,
+                    quote! {
+                        if let Some(new_node) = self.create_intermediate_node(
+                            result, right_child, #next_slot_id, env,
+                        ) {
+                            #advance
+                        }
+                    },
+                );
                 quote! {
-                    #[comment = #slot_name]
-                    #slot_id => {
-                        #pre_condition_check
-                        if let Some(right_child) = self.#method_name(input_index) {
-                            #compute_j
-                            #post_condition_check
-                            if let Some((j, new_node)) = self.create_intermediate_node(
-                                result, right_child, #next_slot_id, env,
-                            ) {
-                                #[comment = #next_slot_name]
-                                self.execute(j, #next_slot_id, Some(new_node), gss_node_id, env);
-                            }
-                        } #ll1_error
+                    if let Some(right_child) = self.#method_name(input_index, Some((#slot_id, Some(gss_node_id)))) {
+                        let j = self.sppf_node(right_child).right_extent();
+                        #advance
                     }
                 }
             }
         } else if nonterminal.parameters.is_empty() {
             let nonterminal_id = self.nonterminal_ids.get_id(nonterminal);
             quote! {
-                #[comment = #slot_name]
-                #slot_id => {
-                    #pre_condition_check
-                    self.create(#nonterminal_id, result, gss_node_id, #next_slot_id, env);
-                }
+                self.create(#nonterminal_id, result, gss_node_id, #next_slot_id, env);
             }
         } else {
             let method_name = format_ident!("create_{}", to_snake_case(&nonterminal.name));
             let arguments: Vec<_> = arguments.iter().map(Self::gen_expr).collect();
             let arguments = quote! { result, gss_node_id, #next_slot_id, env, #(#arguments),* };
             quote! {
-                #[comment = #slot_name]
-                #slot_id => {
-                    #pre_condition_check
-                    self.#method_name(#arguments);
-                }
+                self.#method_name(#arguments);
             }
+        };
+        let body = Self::guard_pre_conditions(pre_conditions, body);
+        quote! {
+            #[comment = #slot_name]
+            #slot_id => {
+                #body
+            }
+        }
+    }
+
+    /// The failure recorded when no alternative of `nonterminal` can be
+    /// predicted refers to this static: the prediction set when the
+    /// nonterminal is nullable, the FIRST set otherwise, since the two
+    /// coincide then and no prediction set is emitted.
+    fn prediction_set_name(&self, nonterminal: &Nonterminal) -> Ident {
+        let suffix = to_snake_case(&nonterminal.name).to_uppercase();
+        if self.ff.is_nonterminal_nullable(nonterminal) {
+            format_ident!("PREDICTION_SET_{suffix}")
+        } else {
+            format_ident!("FIRST_SET_{suffix}")
         }
     }
 
@@ -1031,22 +1057,6 @@ impl<'a> ParserGen<'a> {
         ))
     }
 
-    /// The `else` that records `expected FIRST(X)` when the GLL main loop's call
-    /// to `parse_X_ll1` returns None. Empty for a nullable X. See
-    /// `gen_parse_method_ll1` for why the record lives at the caller.
-    fn gen_ll1_call_error(&self, nonterminal: &Nonterminal, slot_id: TokenStream) -> TokenStream {
-        let Some(first_set_name) = self.ll1_first_set_if_non_nullable(nonterminal) else {
-            return quote! {};
-        };
-        quote! {
-            else {
-                self.add_failure(input_index, #slot_id, Some(gss_node_id), || {
-                    GLLFailureKind::UnexpectedToken { expected: #first_set_name.terminals.to_vec() }
-                });
-            }
-        }
-    }
-
     fn gen_condition_code(&self, expr: &Expr, slot: &Slot<'a>) -> TokenStream {
         let slot_id = self.slot_ids.get_id(slot);
         let slot_name = slot.name();
@@ -1057,7 +1067,7 @@ impl<'a> ParserGen<'a> {
             #[comment = #slot_name]
             #slot_id => {
                 if #condition_expr {
-                    self.execute(input_index, #next_slot_id, result, gss_node_id, env);
+                    next = Some(#next_slot_id);
                 }
             }
         }
@@ -1071,7 +1081,7 @@ impl<'a> ParserGen<'a> {
         quote! {
             #[comment = #slot_name]
             #slot_id => {
-                self.execute(input_index, #next_slot_id, result, gss_node_id, env);
+                next = Some(#next_slot_id);
             }
         }
     }
@@ -1489,77 +1499,115 @@ impl<'a> ParserGen<'a> {
     ///
     /// `parse_X_ll1` predicts its alternative with one lookahead token:
     /// `longest_match(&FIRST_SET_X, i)`. When no alternative can be predicted,
-    /// `parse_X_ll1` returns None without recording a failure.
+    /// `parse_X_ll1` returns None, recording a failure only when the caller
+    /// supplies a failure context.
     ///
     /// This is in contrast to GLL, where we record a failure when no
-    /// alternative can be predicted. The LL(1) path stays silent because whether
+    /// alternative can be predicted. The LL(1) path can stay silent because whether
     /// the failure is an error depends on the grammar context where `parse_X_ll1`
     /// is called:
     ///
     /// - If X is a plain symbol reference in a rule, a None means none of X's
     ///   alternatives could be predicted. This is a real error, and the caller
-    ///   records "expected FIRST(X)". Two callers are of this kind: the GLL main
-    ///   loop and a call to X inside another nonterminal's LL(1) function.
+    ///   supplies its slot and GSS node to record "expected FIRST(X)". Two callers
+    ///   are of this kind: the GLL main loop and a call to X inside another
+    ///   nonterminal's LL(1) function.
     /// - If X is the repeated element of a * or +, a None means the repetition
     ///   could not go further, and this is actually a loop continuation
     ///   condition, not a real error, so no error is recorded.
     ///
-    /// Because only the caller knows which case it is in, the record must live at
-    /// the call site, not in `parse_X_ll1`. This is also what lets the repetition
-    /// probe stay silent: if `parse_X_ll1` recorded its own prediction failures,
-    /// the probe would record `expected FIRST(<loop element>)` every time a
-    /// repetition ends. Such a record is usually harmless: the parser keeps only
-    /// the error at the farthest input position, so it is discarded as soon as
-    /// the parse advances past it. It matters only when the repetition ends
-    /// exactly where the parse then fails, which is the common case for layout.
+    /// Because only the caller knows which case it is in, it passes its failure
+    /// context for a required reference, or None for a repetition probe. This is
+    /// what lets the repetition probe stay silent: if `parse_X_ll1` recorded its
+    /// prediction failures unconditionally, the probe would record `expected
+    /// FIRST(<loop element>)` every time a repetition ends. Such a record is
+    /// usually harmless: the parser keeps only the error at the farthest input
+    /// position, so it is discarded as soon as the parse advances past it. It
+    /// matters only when the repetition ends exactly where the parse then
+    /// fails, which is the common case for layout.
     /// Layout is inserted immediately before the next symbol, so a layout
     /// repetition ends right where a missing symbol is reported, and its spurious
     /// error, recorded first, is reported instead of the real one.
-    /// `tests/ll1_call_error` guards against this. Keeping the record in the
-    /// caller also makes the LL(1) path report the same error as GLL for the same
-    /// input.
+    /// `tests/ll1_call_error` guards against this. Passing the caller's context
+    /// also makes the LL(1) path report the same error as GLL for the same input.
+    /// The call failure is recorded after any failures inside the body, preserving
+    /// their order even when a predicted alternative fails later in the parse.
     ///
     /// A nullable nonterminal can always succeed without matching, so not
     /// predicting an alternative is not an error for it. Its `parse_X_ll1`
-    /// matches its nullable alternative rather than returning None, so its
-    /// callers never receive None and never record an error.
+    /// matches its nullable alternative rather than returning None on a
+    /// prediction failure, so it never records a FIRST-set error.
     fn gen_parse_method_ll1(&self, nonterminal: &'a Nonterminal, memoize: bool) -> TokenStream {
         // For Plus, generate a loop rather than matching the left-recursive
         // desugared alternatives, which would cause infinite recursion.
         // Star is desugared as `(A+)?`, so Opt and Star are handled by the
         // standard alternative-matching below.
-        if matches!(&nonterminal.origin, Some(Symbol::Plus(_, _))) {
-            return self.gen_plus_loop_ll1(nonterminal);
-        }
+        let is_plus = matches!(&nonterminal.origin, Some(Symbol::Plus(_, _)));
         let method_name = format_ident!("parse_{}_ll1", to_snake_case(&nonterminal.name));
-        let body_tokens = self.gen_parse_body_ll1(nonterminal);
+        let body_tokens = if is_plus {
+            self.gen_plus_body_ll1(nonterminal)
+        } else {
+            self.gen_parse_body_ll1(nonterminal)
+        };
+        // Only the ordinary layout method is memoized, not the Plus loop.
+        let memoize = memoize && !is_plus;
         let nt_id = self.nonterminal_ids.get_id(nonterminal);
         let instrument_entry = quote! {
             #[cfg(feature = "instrument")]
             self.ll1_call_log.push((#nt_id, i));
         };
-        if memoize {
-            quote! {
-                fn #method_name(&mut self, i: u32) -> Option<SPPFNodeId> {
-                    #instrument_entry
+        let first_set = self.ll1_first_set_if_non_nullable(nonterminal);
+        let (failure_context, record_failure) = match &first_set {
+            Some(first_set_name) => (
+                format_ident!("failure_context"),
+                quote! {
+                    if result.is_none() {
+                        if let Some((slot_id, gss_node_id)) = failure_context {
+                            self.add_failure(i, slot_id, gss_node_id,
+                                GLLFailureKind::UnexpectedToken(&#first_set_name));
+                        }
+                    }
+                },
+            ),
+            None => (format_ident!("_failure_context"), quote! {}),
+        };
+        let (memo_lookup, memo_store) = if memoize {
+            (
+                quote! {
                     if let Some(memo) = self.layout_memo[i as usize] {
                         return Some(memo);
                     }
-                    let result: Option<SPPFNodeId> = (|| -> Option<SPPFNodeId> {
-                        #body_tokens
-                    })();
+                },
+                quote! {
                     if let Some(node) = result {
                         self.layout_memo[i as usize] = Some(node);
                     }
-                    result
-                }
+                },
+            )
+        } else {
+            (quote! {}, quote! {})
+        };
+        let body_tokens = if first_set.is_some() || memoize {
+            quote! {
+                let result = (|| -> Option<SPPFNodeId> {
+                    #body_tokens
+                })();
+                #record_failure
+                #memo_store
+                result
             }
         } else {
-            quote! {
-                fn #method_name(&mut self, i: u32) -> Option<SPPFNodeId> {
-                    #instrument_entry
-                    #body_tokens
-                }
+            body_tokens
+        };
+        quote! {
+            fn #method_name(
+                &mut self,
+                i: u32,
+                #failure_context: Option<(SlotId, Option<GssNodeId>)>,
+            ) -> Option<SPPFNodeId> {
+                #instrument_entry
+                #memo_lookup
+                #body_tokens
             }
         }
     }
@@ -1591,7 +1639,8 @@ impl<'a> ParserGen<'a> {
                     nonterminal_id,
                 );
                 // The `?` returns None on a prediction failure without recording;
-                // the caller records `expected FIRST(X)`. See gen_parse_method_ll1.
+                // the method then records `expected FIRST(X)` if the caller
+                // supplied a failure context. See gen_parse_method_ll1.
                 quote! {
                     let matched = self.scanner.longest_match(&#first_set_name, i)?;
                     match matched {
@@ -1668,7 +1717,7 @@ impl<'a> ParserGen<'a> {
             .collect()
     }
 
-    /// Generates an LL(1) parse method for a Plus nonterminal as a loop.
+    /// Generates the LL(1) parse body for a Plus nonterminal as a loop.
     ///
     /// `A+` desugars to `APlus = APlus A | A`. This is left-recursive,
     /// so a recursive-descent parser would loop infinitely. The standard
@@ -1690,8 +1739,7 @@ impl<'a> ParserGen<'a> {
     /// Iteration 1 (loop):  APlus[0,2] -> Intermediate[0,2] -> (APlus[0,1], "x"[1,2])
     /// Iteration 2 (loop):  APlus[0,3] -> Intermediate[0,3] -> (APlus[0,2], "x"[2,3])
     /// ```
-    fn gen_plus_loop_ll1(&self, nonterminal: &'a Nonterminal) -> TokenStream {
-        let method_name = format_ident!("parse_{}_ll1", to_snake_case(&nonterminal.name));
+    fn gen_plus_body_ll1(&self, nonterminal: &'a Nonterminal) -> TokenStream {
         let nonterminal_id = self.nonterminal_ids.get_id(nonterminal);
         let alternatives = self.grammar.alternatives(nonterminal);
         assert_eq!(alternatives.len(), 2);
@@ -1747,34 +1795,30 @@ impl<'a> ParserGen<'a> {
         }
 
         quote! {
-            fn #method_name(&mut self, i: u32) -> Option<SPPFNodeId> {
-                #[cfg(feature = "instrument")]
-                self.ll1_call_log.push((#nonterminal_id, i));
-                let mut j = i;
-                let (body_node, body_end) = (#base_parse)?;
-                j = body_end;
-                let left_extent = i;
-                let mut current = self.add_nonterminal_node(NonterminalNode {
+            let mut j = i;
+            let (body_node, body_end) = (#base_parse)?;
+            j = body_end;
+            let left_extent = i;
+            let mut current = self.add_nonterminal_node(NonterminalNode {
+                nonterminal_id: #nonterminal_id,
+                return_slot: #base_end_slot_id,
+                span: Span { left_extent, right_extent: j },
+                child: body_node,
+                ambiguous: false,
+            });
+            #[allow(clippy::while_let_loop)]
+            loop {
+                #(#parses)*
+                #(#build_nodes)*
+                current = self.add_nonterminal_node(NonterminalNode {
                     nonterminal_id: #nonterminal_id,
-                    return_slot: #base_end_slot_id,
+                    return_slot: #recursive_end_slot_id,
                     span: Span { left_extent, right_extent: j },
-                    child: body_node,
+                    child: current,
                     ambiguous: false,
                 });
-                #[allow(clippy::while_let_loop)]
-                loop {
-                    #(#parses)*
-                    #(#build_nodes)*
-                    current = self.add_nonterminal_node(NonterminalNode {
-                        nonterminal_id: #nonterminal_id,
-                        return_slot: #recursive_end_slot_id,
-                        span: Span { left_extent, right_extent: j },
-                        child: current,
-                        ambiguous: false,
-                    });
-                }
-                Some(current)
             }
+            Some(current)
         }
     }
 
@@ -1800,7 +1844,7 @@ impl<'a> ParserGen<'a> {
             Definition::Nonterminal(nt) => {
                 let nt_method = format_ident!("parse_{}_ll1", to_snake_case(&nt.name));
                 quote! {
-                    self.#nt_method(#pos).map(|node| {
+                    self.#nt_method(#pos, None).map(|node| {
                         let end = self.sppf_node(node).right_extent();
                         (node, end)
                     })
@@ -1856,8 +1900,8 @@ impl<'a> ParserGen<'a> {
                 quote! {}
             } else {
                 quote! {
-                    if let Some(error_kind) = self.post_conditions(#next_slot_id, start, end) {
-                        self.add_failure(end, #next_slot_id, None, || error_kind);
+                    if let Some(failure) = self.post_conditions(#next_slot_id, start, end) {
+                        self.add_failure(end, #next_slot_id, None, failure);
                         return None;
                     }
                 }
@@ -1880,19 +1924,12 @@ impl<'a> ParserGen<'a> {
                 Definition::Nonterminal(nt) => {
                     let nt_method = format_ident!("parse_{}_ll1", to_snake_case(&nt.name));
                     // Symbol-reference call inside an alternative body: on a
-                    // prediction failure, record `expected FIRST(nt)` at `start`
-                    // and return None. Empty (plain `?`) for a nullable nt. See
+                    // prediction failure, the callee records `expected FIRST(nt)`
+                    // at `start` using this call's slot, and returns None. No
+                    // FIRST-set failure is recorded for a nullable nt. See
                     // gen_parse_method_ll1.
-                    let call = match self.ll1_first_set_if_non_nullable(nt) {
-                        Some(first_set_name) => quote! {
-                            let Some(node) = self.#nt_method(start) else {
-                                self.add_failure(start, #next_slot_id, None, || {
-                                    GLLFailureKind::UnexpectedToken { expected: #first_set_name.terminals.to_vec() }
-                                });
-                                return None;
-                            };
-                        },
-                        None => quote! { let node = self.#nt_method(start)?; },
+                    let call = quote! {
+                        let node = self.#nt_method(start, Some((#next_slot_id, None)))?;
                     };
                     body.push(quote! {
                         #pre_check
@@ -2862,6 +2899,16 @@ fn empty_inline_map_array(count: usize) -> TokenStream {
         let count = Literal::usize_unsuffixed(count);
         quote! { [const { InlineMap::Empty }; #count] }
     }
+}
+
+/// Whether `name` occurs as an identifier anywhere in the token stream,
+/// including inside groups.
+fn mentions_ident(tokens: &TokenStream, name: &str) -> bool {
+    tokens.clone().into_iter().any(|tree| match tree {
+        proc_macro2::TokenTree::Ident(ident) => ident == name,
+        proc_macro2::TokenTree::Group(group) => mentions_ident(&group.stream(), name),
+        _ => false,
+    })
 }
 
 #[cfg(test)]
