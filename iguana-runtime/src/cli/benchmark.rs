@@ -17,15 +17,28 @@ use super::{
     Color, args::Args, collect_files, corpus, start_nonterminal_id, start_nonterminal_name,
 };
 
-/// Runs `--benchmark`. A single file (the positional argument) is parsed
-/// `--iters` times after `--warmup` discarded runs, with defaults of 100 and
-/// 10. A `--dir` or, without one, the corpora listed in `repos.txt` are
-/// parsed as whole passes, with defaults of 3 and 0.
+/// Runs a benchmark (the `--benchmark` flag). A benchmark has two modes:
+/// - Single: a single file (the positional argument) is parsed `--iters`
+///   times (100 by default), after `--warmup` runs that are discarded (10 by
+///   default).
+/// - Batch: every file in a directory (`--dir`) is parsed, or every file in
+///   the corpus when no directory is given. The corpus is the list of
+///   repositories in the `repos.txt` file of the corpus directory
+///   (`--corpus-dir`, `corpus` by default). An iteration in the batch mode
+///   is a pass over all the files. By default, the number of iterations is
+///   3 and the number of warmup passes is 0. The files are reported in two
+///   groups: Success, for the files that are parsed to a single parse tree,
+///   and Failure, for the files that have a parse error, are ambiguous, or
+///   cannot be read because of an I/O error.
 pub(super) fn run<'i, 'arena, P: Parser<'i, 'arena>>(args: &Args) -> io::Result<()> {
     if let Some(file) = args.file.as_ref() {
         let start_nonterminal_id =
             start_nonterminal_id::<P::Grammar>(start_nonterminal_name(args)?)?;
+        // A file that cannot be read has no time to report.
+        Input::try_from(file.as_path())
+            .map_err(|e| io::Error::new(e.kind(), format!("{}: {}", file.display(), e)))?;
         let config = BenchConfig {
+            mode: BenchMode::Single,
             iters: args.iters.unwrap_or(100) as usize,
             warmup: args.warmup.unwrap_or(10) as usize,
             save: args.save.clone(),
@@ -45,16 +58,19 @@ pub(super) fn run<'i, 'arena, P: Parser<'i, 'arena>>(args: &Args) -> io::Result<
         let mut tree_arena = Arena::new();
         let mut parser_arena = Arena::new();
         return run_benchmark(config, move || {
+            let mut stats = Pass::default();
             bench_parse_file::<P>(
                 &file_path,
                 start_nonterminal_id,
                 &mut tree_arena,
                 &mut parser_arena,
-            )
-            .expect("benchmark input could not be read, failed to parse, or is ambiguous")
+                &mut stats,
+            );
+            stats
         });
     }
     let config = BenchConfig {
+        mode: BenchMode::Batch,
         iters: args.iters.unwrap_or(3) as usize,
         warmup: args.warmup.unwrap_or(0) as usize,
         save: args.save.clone(),
@@ -161,32 +177,21 @@ pub(super) fn run<'i, 'arena, P: Parser<'i, 'arena>>(args: &Args) -> io::Result<
             if is_warmup { warmup } else { iters }
         );
         pass += 1;
-        let mut input = Duration::ZERO;
-        let mut init = Duration::ZERO;
-        let mut parse = Duration::ZERO;
-        let mut tree = Duration::ZERO;
-        let mut drop = Duration::ZERO;
-        let mut bytes = 0u64;
+        let mut stats = Pass::default();
         for (label, files) in &groups {
             eprint!("  {}...", label);
             let _ = io::stderr().flush();
-            let mut source_time = Duration::ZERO;
+            let time_before = total_time(&stats);
             for (path, start_nonterminal_id) in files {
-                if let Some(t) = bench_parse_file::<P>(
+                bench_parse_file::<P>(
                     path,
                     *start_nonterminal_id,
                     &mut tree_arena,
                     &mut parser_arena,
-                ) {
-                    input += t.input;
-                    init += t.init;
-                    parse += t.parse;
-                    tree += t.tree;
-                    drop += t.drop;
-                    bytes += t.bytes;
-                    source_time += t.input + t.init + t.parse + t.tree + t.drop;
-                }
+                    &mut stats,
+                );
             }
+            let source_time = total_time(&stats) - time_before;
             let pad = " ".repeat(max_label - label.len() + 1);
             eprintln!(
                 "{}{} ms",
@@ -194,55 +199,63 @@ pub(super) fn run<'i, 'arena, P: Parser<'i, 'arena>>(args: &Args) -> io::Result<
                 group_digits(&format!("{:.0}", source_time.as_secs_f64() * 1000.0))
             );
         }
-        let run_ms = (input + init + parse + tree + drop).as_secs_f64() * 1000.0;
+        let run_ms = as_ms(total_time(&stats));
         eprintln!(
             "{} {} completed in {} ms",
             kind,
             run_num,
             group_digits(&format!("{:.0}", run_ms))
         );
-        PhaseTimings {
-            input,
-            init,
-            parse,
-            tree,
-            drop,
-            bytes,
-        }
+        stats
     })
 }
 
-/// Parses one file under a benchmark, returning its per-phase timings, or
-/// `None` when the file should not count toward the measurement: it cannot
-/// be read, it fails to parse, or it parses ambiguously. A benchmark times
-/// clean single-tree parses, so a whole-corpus run skips the rest rather
-/// than mixing their work in. The input is reloaded so the `input` phase is
-/// measured. The caller's arenas are reused across files and reset
-/// between them, so they keep their chunks and teardown is a bulk
+/// Parses one file under a benchmark and records the file in `pass`, under
+/// each phase the file goes through (`Phase`). The input is reloaded so the
+/// `input` phase is measured. The caller's arenas are reused across files
+/// and reset between them, so they keep their chunks and teardown is a bulk
 /// reset rather than a per-file free, the pattern the arena is built for.
 fn bench_parse_file<'i, 'arena, P: Parser<'i, 'arena>>(
     path: &Path,
     start_nonterminal_id: NonterminalId,
     tree_arena: &mut Arena,
     parser_arena: &mut Arena,
-) -> Option<PhaseTimings> {
+    pass: &mut Pass,
+) {
     let input_start = Instant::now();
-    let input = Input::try_from(path).ok()?;
+    let input = match Input::try_from(path) {
+        Ok(input) => input,
+        Err(_) => {
+            let bytes = fs::metadata(path).map(|m| m.len()).unwrap_or(0);
+            record(pass, Phase::IoError, Duration::ZERO, bytes);
+            return;
+        }
+    };
     let input_time = input_start.elapsed();
-    let bytes = input.len() as u64;
+    let bytes = input.byte_len() as u64;
     let init_start = Instant::now();
     let mut parser = P::ConcreteParser::<'_, '_>::new(&input, parser_arena);
     let init = init_start.elapsed();
-    let GLLResult::Success(success) = parser.run(start_nonterminal_id) else {
-        drop(parser);
-        parser_arena.reset();
-        return None;
+    // `GLLResult::Failure` has no duration, so the benchmark also times the
+    // run itself. This time includes computing the failure to report.
+    let run_start = Instant::now();
+    let result = parser.run(start_nonterminal_id);
+    let run_time = run_start.elapsed();
+    let success = match result {
+        GLLResult::Success(success) => success,
+        GLLResult::Failure(_) => {
+            drop(parser);
+            parser_arena.reset();
+            record(pass, Phase::Error, run_time, bytes);
+            return;
+        }
     };
     let parse = success.duration;
     if is_ambiguous(&parser, success.sppf_node_id) {
         drop(parser);
         parser_arena.reset();
-        return None;
+        record(pass, Phase::Amb, parse, bytes);
+        return;
     }
     let tree_start = Instant::now();
     {
@@ -256,17 +269,23 @@ fn bench_parse_file<'i, 'arena, P: Parser<'i, 'arena>>(
     tree_arena.reset();
     drop(input);
     let drop = drop_start.elapsed();
-    Some(PhaseTimings {
-        input: input_time,
-        init,
-        parse,
-        tree,
-        drop,
-        bytes,
-    })
+    record(pass, Phase::Input, input_time, bytes);
+    record(pass, Phase::Init, init, bytes);
+    record(pass, Phase::Parse, parse, bytes);
+    record(pass, Phase::Tree, tree, bytes);
+    record(pass, Phase::Drop, drop, bytes);
+}
+
+/// The mode of a benchmark: a single file, or every file of a directory or
+/// of the corpus.
+#[derive(Clone, Copy, PartialEq, Eq)]
+enum BenchMode {
+    Single,
+    Batch,
 }
 
 struct BenchConfig {
+    mode: BenchMode,
     iters: usize,
     warmup: usize,
     save: Option<PathBuf>,
@@ -284,112 +303,261 @@ struct BenchSummary {
     stddev: f64,
 }
 
-/// Per-iteration phase breakdown. Total wall time is the sum of all phases.
-///   - `input`: file read + line/column offset table construction
-///   - `init`: arenas + parse tree builder + Parser allocation
-///   - `parse`: the GLL parse itself
-///   - `tree`: SPPF → parse tree extraction
-///   - `drop`: teardown of all the above
-struct PhaseTimings {
-    input: Duration,
-    init: Duration,
-    parse: Duration,
-    tree: Duration,
-    drop: Duration,
-    /// Bytes of input parsed in this iteration (used for throughput).
+/// A part of a benchmark that is timed on its own. The phases form two
+/// groups. A file that is parsed to a single parse tree goes through the
+/// five phases of the Success group. Every other file is in one phase of the
+/// Failure group.
+#[derive(Clone, Copy, PartialEq, Eq, Debug)]
+enum Phase {
+    /// File read + line/column offset table construction.
+    Input,
+    /// Arenas + parse tree builder + Parser allocation.
+    Init,
+    /// The GLL parse itself.
+    Parse,
+    /// SPPF → parse tree extraction.
+    Tree,
+    /// Teardown of all the above.
+    Drop,
+    /// A file with a parse error. The time of the phase is the time until the
+    /// parser reported the error.
+    Error,
+    /// An ambiguous file. The time of the phase is the time of the parse.
+    Amb,
+    /// A file that could not be read. The file does not reach the parser, so
+    /// the phase has no time.
+    IoError,
+}
+
+impl Phase {
+    const COUNT: usize = 8;
+    const SUCCESS: [Phase; 5] = [Self::Input, Self::Init, Self::Parse, Self::Tree, Self::Drop];
+    const FAILURE: [Phase; 3] = [Self::Error, Self::Amb, Self::IoError];
+
+    fn name(self) -> &'static str {
+        match self {
+            Self::Input => "input",
+            Self::Init => "init",
+            Self::Parse => "parse",
+            Self::Tree => "tree",
+            Self::Drop => "drop",
+            Self::Error => "error",
+            Self::Amb => "amb",
+            Self::IoError => "ioerror",
+        }
+    }
+}
+
+/// The time, the number of files, and the size of the files of one phase in
+/// one pass.
+#[derive(Clone, Copy, Default)]
+struct PhaseStats {
+    time: Duration,
+    files: usize,
     bytes: u64,
+}
+
+/// The stats of one pass over the files of a benchmark, indexed by `Phase`.
+type Pass = [PhaseStats; Phase::COUNT];
+
+/// Adds a file of `bytes` bytes that took `time` in `phase` to `pass`.
+fn record(pass: &mut Pass, phase: Phase, time: Duration, bytes: u64) {
+    let stats = &mut pass[phase as usize];
+    stats.time += time;
+    stats.files += 1;
+    stats.bytes += bytes;
+}
+
+/// Returns the time of the Success group in `pass`.
+fn success_time(pass: &Pass) -> Duration {
+    Phase::SUCCESS
+        .iter()
+        .map(|phase| pass[*phase as usize].time)
+        .sum()
+}
+
+/// Returns the time of all phases in `pass`.
+fn total_time(pass: &Pass) -> Duration {
+    pass.iter().map(|stats| stats.time).sum()
+}
+
+fn as_ms(time: Duration) -> f64 {
+    time.as_secs_f64() * 1000.0
 }
 
 /// Runs `parse_once` `warmup + iters` times, collecting per-phase timings.
 /// Warmup samples are discarded. Prints summary stats for total and each
-/// phase plus throughput (MB/s) at the median total. If `config.save` is
-/// set, writes the raw samples as JSON. If `config.baseline` is set, loads
-/// a prior run and reports the mean delta on total time with a 95% CI on
-/// the difference (Welch's SE for unequal variances).
-fn run_benchmark(
-    config: BenchConfig,
-    mut parse_once: impl FnMut() -> PhaseTimings,
-) -> io::Result<()> {
-    let mut input_samples = Vec::with_capacity(config.iters);
-    let mut init_samples = Vec::with_capacity(config.iters);
-    let mut parse_samples = Vec::with_capacity(config.iters);
-    let mut tree_samples = Vec::with_capacity(config.iters);
-    let mut drop_samples = Vec::with_capacity(config.iters);
+/// phase plus throughput (MB/s) at the median total. In the batch mode, the
+/// phases cover the Success group, and the Failure group follows them: its
+/// files and time by status, then the time of all files. In the single mode,
+/// a file with a parse error or an ambiguity is printed as its status and
+/// the stats of its time, with no phases. If `config.save` is set, writes
+/// the raw samples as JSON. If `config.baseline` is set, loads a prior run
+/// and reports the mean delta on total time with a 95% CI on the difference
+/// (Welch's SE for unequal variances).
+fn run_benchmark(config: BenchConfig, mut parse_once: impl FnMut() -> Pass) -> io::Result<()> {
+    // The time of each phase in each measured pass, indexed by `Phase`.
+    let mut samples: [Vec<f64>; Phase::COUNT] = Default::default();
+    // The time of the Success group and of all phases in each measured pass.
     let mut total_samples = Vec::with_capacity(config.iters);
-    let mut bytes_per_iter: u64 = 0;
+    let mut all_files_samples = Vec::with_capacity(config.iters);
+    // The file counts and the sizes come from the last measured pass. Every
+    // pass parses the same files.
+    let mut last_pass = Pass::default();
 
     for i in 0..(config.warmup + config.iters) {
-        let timings = parse_once();
+        let pass = parse_once();
         if i >= config.warmup {
-            let inp = timings.input.as_secs_f64() * 1000.0;
-            let ini = timings.init.as_secs_f64() * 1000.0;
-            let p = timings.parse.as_secs_f64() * 1000.0;
-            let t = timings.tree.as_secs_f64() * 1000.0;
-            let d = timings.drop.as_secs_f64() * 1000.0;
-            input_samples.push(inp);
-            init_samples.push(ini);
-            parse_samples.push(p);
-            tree_samples.push(t);
-            drop_samples.push(d);
-            total_samples.push(inp + ini + p + t + d);
-            bytes_per_iter = timings.bytes;
+            for (phase_samples, stats) in samples.iter_mut().zip(&pass) {
+                phase_samples.push(as_ms(stats.time));
+            }
+            total_samples.push(as_ms(success_time(&pass)));
+            all_files_samples.push(as_ms(total_time(&pass)));
+            last_pass = pass;
         }
     }
+    // A file of the Success group goes through all five phases of the group,
+    // so each of the five has the files and the size of the group.
+    let success = last_pass[Phase::Parse as usize];
+    let failure_files: usize = Phase::FAILURE
+        .iter()
+        .map(|phase| last_pass[*phase as usize].files)
+        .sum();
 
-    let total = summarize(&total_samples);
-    let input = summarize(&input_samples);
-    let init = summarize(&init_samples);
-    let parse = summarize(&parse_samples);
-    let tree = summarize(&tree_samples);
-    let drop = summarize(&drop_samples);
+    // The Failure phase of the file of the single mode, when the file is in
+    // one.
+    let single_failure = match config.mode {
+        BenchMode::Single => Phase::FAILURE
+            .into_iter()
+            .find(|phase| last_pass[*phase as usize].files > 0),
+        BenchMode::Batch => None,
+    };
+    // The status of the run, the samples of the time it measures, and its
+    // size. They are those of the Success group, or those of the Failure
+    // phase of the file in the single mode. `--save` writes them, and
+    // `--baseline` compares the status and the samples.
+    let (status, measured_samples, bytes_per_iter) = match single_failure {
+        None => ("ok", &total_samples, success.bytes),
+        Some(phase) => (
+            phase.name(),
+            &samples[phase as usize],
+            last_pass[phase as usize].bytes,
+        ),
+    };
+    let measured = summarize(measured_samples);
 
     let color = Color::for_stdout();
-    let warmup_note = if config.warmup > 0 {
-        format!(" (+{} warmup)", config.warmup)
-    } else {
-        String::new()
-    };
-    println!();
-    println!(
-        "Benchmark: {} iteration{}{}, {} bytes per iteration (times in ms)",
+    let iterations = format!(
+        "{} iteration{}{}",
         config.iters,
         if config.iters == 1 { "" } else { "s" },
-        warmup_note,
-        group_digits(&bytes_per_iter.to_string()),
+        if config.warmup > 0 {
+            format!(" (+{} warmup)", config.warmup)
+        } else {
+            String::new()
+        },
     );
     println!();
-    // Header (bold on a terminal), then a phase per row, a rule, and the total
-    // last since it is the sum of the phases above it.
-    println!(
-        "  {}{:<8}{:>14}{:>14}{:>14}{:>14}{:>14}{:>14}{}",
-        color.bold, "phase", "min", "mean", "stddev", "median", "p90", "max", color.reset
-    );
-    let decimals = ms_decimals(total.max);
-    print_phase_row("input", &input, decimals);
-    print_phase_row("init", &init, decimals);
-    print_phase_row("parse", &parse, decimals);
-    print_phase_row("tree", &tree, decimals);
-    print_phase_row("drop", &drop, decimals);
-    println!("  {}", "-".repeat(8 + 6 * 14));
-    print_phase_row("total", &total, decimals);
+    match config.mode {
+        BenchMode::Single => println!(
+            "Benchmark: {}, {} bytes per iteration (times in ms)",
+            iterations,
+            group_digits(&bytes_per_iter.to_string()),
+        ),
+        BenchMode::Batch => {
+            println!("Benchmark: {}, times in ms", iterations);
+            println!();
+            println!(
+                "Success: {} file{}, {} bytes per iteration",
+                group_digits(&success.files.to_string()),
+                if success.files == 1 { "" } else { "s" },
+                group_digits(&bytes_per_iter.to_string()),
+            );
+        }
+    }
     println!();
-    println!(
-        "Throughput (median): {:.2} MB/s total, {:.2} MB/s parse-only",
-        mb_per_s(bytes_per_iter, total.median),
-        mb_per_s(bytes_per_iter, parse.median),
-    );
+    if single_failure.is_some() {
+        println!("Status: {}", status);
+        println!();
+        print_phase_header(&color);
+        print_phase_row(status, &measured, ms_decimals(measured.max));
+    } else {
+        // Header, then a phase per row, a rule, and the total last since it
+        // is the sum of the phases above it.
+        print_phase_header(&color);
+        let decimals = ms_decimals(measured.max);
+        for phase in Phase::SUCCESS {
+            let summary = summarize(&samples[phase as usize]);
+            print_phase_row(phase.name(), &summary, decimals);
+        }
+        println!("  {}", "-".repeat(8 + 6 * 14));
+        print_phase_row("total", &measured, decimals);
+        println!();
+        let parse = summarize(&samples[Phase::Parse as usize]);
+        println!(
+            "Throughput (median): {:.2} MB/s total, {:.2} MB/s parse-only",
+            mb_per_s(bytes_per_iter, measured.median),
+            mb_per_s(bytes_per_iter, parse.median),
+        );
+    }
+
+    if config.mode == BenchMode::Batch && failure_files > 0 {
+        let failure_bytes: u64 = Phase::FAILURE
+            .iter()
+            .map(|phase| last_pass[*phase as usize].bytes)
+            .sum();
+        let summaries = Phase::FAILURE.map(|phase| summarize(&samples[phase as usize]));
+        let all_files = summarize(&all_files_samples);
+        println!();
+        println!(
+            "Failure: {} file{}, {} bytes per iteration",
+            group_digits(&failure_files.to_string()),
+            if failure_files == 1 { "" } else { "s" },
+            group_digits(&failure_bytes.to_string()),
+        );
+        println!();
+        println!(
+            "  {}{:<8}{:>8}{:>14}{:>14}{:>14}{:>14}{:>14}{:>14}{}",
+            color.bold,
+            "status",
+            "files",
+            "min",
+            "mean",
+            "stddev",
+            "median",
+            "p90",
+            "max",
+            color.reset
+        );
+        let decimals = ms_decimals(summaries.iter().map(|s| s.max).fold(0.0, f64::max));
+        for (phase, summary) in Phase::FAILURE.into_iter().zip(&summaries) {
+            print_failure_row(phase, last_pass[phase as usize].files, summary, decimals);
+        }
+        println!();
+        println!(
+            "All files (median): {} ms for {} files",
+            fmt_ms(all_files.median, ms_decimals(all_files.max)),
+            group_digits(&(success.files + failure_files).to_string()),
+        );
+    }
 
     if let Some(ref path) = config.save {
-        let json = serde_json::json!({
-            "version": 2,
+        let mut json = serde_json::json!({
+            "version": 3,
+            "files": success.files,
             "bytes": bytes_per_iter,
-            "samples_ms": total_samples,
-            "input_samples_ms": input_samples,
-            "init_samples_ms": init_samples,
-            "parse_samples_ms": parse_samples,
-            "tree_samples_ms": tree_samples,
-            "drop_samples_ms": drop_samples,
+            "samples_ms": measured_samples,
         });
+        for phase in Phase::SUCCESS {
+            json[format!("{}_samples_ms", phase.name())] = samples[phase as usize].clone().into();
+        }
+        for phase in Phase::FAILURE {
+            json[format!("{}_files", phase.name())] = last_pass[phase as usize].files.into();
+            json[format!("{}_samples_ms", phase.name())] = samples[phase as usize].clone().into();
+        }
+        if config.mode == BenchMode::Single {
+            json["status"] = status.into();
+        }
         fs::write(path, serde_json::to_string_pretty(&json).unwrap())?;
         eprintln!("Saved baseline to {}", path.display());
     }
@@ -397,6 +565,16 @@ fn run_benchmark(
     if let Some(ref path) = config.baseline {
         let text = fs::read_to_string(path)?;
         let parsed: serde_json::Value = serde_json::from_str(&text).map_err(io::Error::other)?;
+        // A baseline without a status is a batch run or predates the status.
+        let baseline_status = parsed["status"].as_str().unwrap_or("ok");
+        if baseline_status != status {
+            return Err(io::Error::other(format!(
+                "the baseline {} has the status {}, and this run has the status {}, so the two are not comparable",
+                path.display(),
+                baseline_status,
+                status
+            )));
+        }
         let baseline_samples: Vec<f64> = parsed["samples_ms"]
             .as_array()
             .ok_or_else(|| io::Error::other("baseline missing samples_ms array"))?
@@ -404,8 +582,9 @@ fn run_benchmark(
             .map(|v| v.as_f64().unwrap())
             .collect();
         let baseline = summarize(&baseline_samples);
-        let delta = total.mean - baseline.mean;
-        let se = (total.variance / total.n as f64 + baseline.variance / baseline.n as f64).sqrt();
+        let delta = measured.mean - baseline.mean;
+        let se =
+            (measured.variance / measured.n as f64 + baseline.variance / baseline.n as f64).sqrt();
         let ci_half = 1.96 * se;
         let pct = 100.0 * delta / baseline.mean;
         println!();
@@ -433,6 +612,14 @@ fn run_benchmark(
     Ok(())
 }
 
+/// Prints the header of a phase table, bold on a terminal.
+fn print_phase_header(color: &Color) {
+    println!(
+        "  {}{:<8}{:>14}{:>14}{:>14}{:>14}{:>14}{:>14}{}",
+        color.bold, "phase", "min", "mean", "stddev", "median", "p90", "max", color.reset
+    );
+}
+
 fn print_phase_row(name: &str, s: &BenchSummary, decimals: usize) {
     println!(
         "  {:<8}{:>14}{:>14}{:>14}{:>14}{:>14}{:>14}",
@@ -443,6 +630,28 @@ fn print_phase_row(name: &str, s: &BenchSummary, decimals: usize) {
         fmt_ms(s.median, decimals),
         fmt_ms(s.p90, decimals),
         fmt_ms(s.max, decimals),
+    );
+}
+
+/// Prints the row of `phase` in the Failure table: the number of files, then
+/// the stats of the time a pass spent on them. The stats are dashes for a
+/// phase with no files and for `IoError`, which has no time.
+fn print_failure_row(phase: Phase, files: usize, s: &BenchSummary, decimals: usize) {
+    let stats = if files > 0 && phase != Phase::IoError {
+        [s.min, s.mean, s.stddev, s.median, s.p90, s.max].map(|v| fmt_ms(v, decimals))
+    } else {
+        [(); 6].map(|_| "-".to_string())
+    };
+    println!(
+        "  {:<8}{:>8}{:>14}{:>14}{:>14}{:>14}{:>14}{:>14}",
+        phase.name(),
+        group_digits(&files.to_string()),
+        stats[0],
+        stats[1],
+        stats[2],
+        stats[3],
+        stats[4],
+        stats[5],
     );
 }
 
@@ -513,5 +722,59 @@ fn summarize(samples_ms: &[f64]) -> BenchSummary {
         max: sorted[n - 1],
         variance,
         stddev: variance.sqrt(),
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn phase_groups_cover_every_phase_once() {
+        let mut indexes: Vec<usize> = Phase::SUCCESS
+            .into_iter()
+            .chain(Phase::FAILURE)
+            .map(|phase| phase as usize)
+            .collect();
+        indexes.sort();
+        assert_eq!(indexes, (0..Phase::COUNT).collect::<Vec<_>>());
+    }
+
+    #[test]
+    fn record_adds_a_file_to_its_phase() {
+        let ms = Duration::from_millis;
+        let mut pass = Pass::default();
+        // Two files of the Success group, 10 bytes each.
+        for _ in 0..2 {
+            record(&mut pass, Phase::Input, ms(1), 10);
+            record(&mut pass, Phase::Init, ms(2), 10);
+            record(&mut pass, Phase::Parse, ms(3), 10);
+            record(&mut pass, Phase::Tree, ms(4), 10);
+            record(&mut pass, Phase::Drop, ms(5), 10);
+        }
+        record(&mut pass, Phase::Error, ms(7), 30);
+        record(&mut pass, Phase::Error, ms(8), 40);
+        record(&mut pass, Phase::Amb, ms(9), 50);
+        record(&mut pass, Phase::IoError, Duration::ZERO, 60);
+
+        for phase in Phase::SUCCESS {
+            assert_eq!(pass[phase as usize].files, 2, "{phase:?}");
+            assert_eq!(pass[phase as usize].bytes, 20, "{phase:?}");
+        }
+        assert_eq!(pass[Phase::Parse as usize].time, ms(6));
+        assert_eq!(success_time(&pass), ms(30));
+
+        let error = pass[Phase::Error as usize];
+        assert_eq!((error.time, error.files, error.bytes), (ms(15), 2, 70));
+        let amb = pass[Phase::Amb as usize];
+        assert_eq!((amb.time, amb.files, amb.bytes), (ms(9), 1, 50));
+        let ioerror = pass[Phase::IoError as usize];
+        assert_eq!(
+            (ioerror.time, ioerror.files, ioerror.bytes),
+            (Duration::ZERO, 1, 60)
+        );
+
+        // The time of all phases is the Success time plus the Failure times.
+        assert_eq!(total_time(&pass), ms(54));
     }
 }

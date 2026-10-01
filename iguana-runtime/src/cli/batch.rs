@@ -79,7 +79,7 @@ fn run_batch<'i, 'arena, P: Parser<'i, 'arena>>(
             }
         };
         let input_ms = input_start.elapsed().as_secs_f64() * 1000.0;
-        let bytes = input.len() as u64;
+        let bytes = input.byte_len() as u64;
         let init_start = Instant::now();
         let tree_arena = Arena::new();
         let parser_arena = Arena::new();

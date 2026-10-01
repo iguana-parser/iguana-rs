@@ -100,7 +100,9 @@ pub struct Args {
     pub trace: Option<Option<PathBuf>>,
     /// Run the parser many times and report timing statistics
     ///
-    /// Benchmarks a single file (the positional argument) or a --dir; otherwise the corpus listed in repos.txt. Reports min, mean, median, p90, max, stddev (in ms) for each phase: input (file read), init (allocation), parse (input characters to the SPPF), tree (SPPF to parse tree), drop (teardown); total is their sum
+    /// Benchmarks a single file (the positional argument) or a --dir; otherwise the corpus listed in repos.txt. Reports min, mean, median, p90, max, stddev (in ms) for each phase: input (file read), init (allocation), parse (input characters to the SPPF), tree (SPPF to parse tree), drop (teardown); total is their sum.
+    ///
+    /// A file that has a parse error or is ambiguous does not count toward the phases. A single file is then reported by its status and its time, which for a parse error is the time until the parser reported the error. With a --dir or the corpus, these files and the files that cannot be read are reported separately by status
     #[arg(long, help_heading = "Benchmarking and profiling")]
     pub benchmark: bool,
     /// Number of measured iterations for --benchmark

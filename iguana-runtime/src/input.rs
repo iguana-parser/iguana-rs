@@ -36,6 +36,8 @@ impl Hash for Span {
 #[derive(Debug)]
 pub struct Input {
     source: Vec<char>,
+    // The size of the source text in bytes.
+    byte_len: u32,
     // line_start_end_offsets[i] = (start_offset, end_offset) at line i
     line_start_end_offsets: Vec<(u32, u32)>,
 }
@@ -57,6 +59,7 @@ impl From<&str> for Input {
         let line_columns = Self::calc_line_start_offsets(&source);
         Input {
             source,
+            byte_len: value.len() as u32,
             line_start_end_offsets: line_columns,
         }
     }
@@ -72,8 +75,18 @@ impl TryFrom<&Path> for Input {
 }
 
 impl Input {
+    /// Returns the number of characters in the input. A character is a
+    /// Unicode code point and may take more than one byte in the source
+    /// text. In the parser, an input index refers to a character position
+    /// rather than a byte offset.
     pub fn len(&self) -> u32 {
         self.source.len() as u32
+    }
+    /// Returns the size of the source text in bytes. The input is built from
+    /// a Rust string, which is encoded in UTF-8, and this method returns the
+    /// length of that string.
+    pub fn byte_len(&self) -> u32 {
+        self.byte_len
     }
     pub fn is_empty(&self) -> bool {
         self.source.is_empty()
@@ -200,6 +213,22 @@ impl Input {
 #[cfg(test)]
 mod tests {
     use crate::input::Input;
+
+    #[test]
+    fn test_byte_len_counts_utf8_bytes() {
+        let ascii = Input::from("abc\n");
+        assert_eq!(ascii.len(), 4);
+        assert_eq!(ascii.byte_len(), 4);
+
+        // 'é' takes two bytes and '→' takes three.
+        let input = Input::from("é→a");
+        assert_eq!(input.len(), 3);
+        assert_eq!(input.byte_len(), 6);
+
+        let empty = Input::from("");
+        assert_eq!(empty.len(), 0);
+        assert_eq!(empty.byte_len(), 0);
+    }
 
     #[test]
     fn test_line_column() {
