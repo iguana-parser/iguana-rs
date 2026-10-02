@@ -5,7 +5,6 @@ use crate::{
     parse_tree::{self, ParseTree, Pepm16ExpressionsParseTreeBuilder, create_parse_tree},
     scanner::Pepm16ExpressionsScanner,
 };
-#[cfg(feature = "instrument")]
 use iguana_runtime::grammar::Grammar;
 #[allow(unused_imports)]
 use iguana_runtime::input::Span;
@@ -73,13 +72,10 @@ impl<'i, 'arena> Parser<'i, 'arena> for Pepm16ExpressionsParser<'i, 'arena> {
                     }
                     // S : E(0).
                     SlotId(1) => {
-                        let nonterminal_node_id = self.create_nonterminal_node(
-                            result,
-                            NonterminalId(0),
-                            SlotId(1),
-                            gss_node_id,
-                        );
-                        self.pop(gss_node_id, SlotId(1), nonterminal_node_id, None);
+                        let Some(result) = result else {
+                            unreachable!("result cannot be None here.")
+                        };
+                        self.pop(gss_node_id, SlotId(1), result, None, &FOLLOW_SET_S);
                     }
                     // E(p: i32) : . [6 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 6)] WS "." WS "f" return 0
                     SlotId(10) => {
@@ -186,22 +182,13 @@ impl<'i, 'arena> Parser<'i, 'arena> for Pepm16ExpressionsParser<'i, 'arena> {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        let node = self.sppf_node(result);
                         let return_value = 0;
-                        let nonterminal_node_id = self.get_or_create_nonterminal_node(
-                            NonterminalId(3),
-                            SlotId(18),
-                            node.left_extent(),
-                            node.right_extent(),
-                            result,
-                            gss_node_id,
-                            Some(return_value),
-                        );
                         self.pop(
                             gss_node_id,
                             SlotId(18),
-                            nonterminal_node_id,
+                            result,
                             Some(return_value),
+                            &FOLLOW_SET_E,
                         );
                     }
                     // E(p: i32) : . [6 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 6)] WS r_pr=E(6) return (r_pr ==
@@ -267,26 +254,17 @@ impl<'i, 'arena> Parser<'i, 'arena> for Pepm16ExpressionsParser<'i, 'arena> {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        let node = self.sppf_node(result);
                         let return_value = if self.lookup(BINDING_R_PR, env.unwrap()) == 0 {
                             6
                         } else {
                             std::cmp::min(self.lookup(BINDING_R_PR, env.unwrap()), 6)
                         };
-                        let nonterminal_node_id = self.get_or_create_nonterminal_node(
-                            NonterminalId(3),
-                            SlotId(25),
-                            node.left_extent(),
-                            node.right_extent(),
-                            result,
-                            gss_node_id,
-                            Some(return_value),
-                        );
                         self.pop(
                             gss_node_id,
                             SlotId(25),
-                            nonterminal_node_id,
+                            result,
                             Some(return_value),
+                            &FOLLOW_SET_E,
                         );
                     }
                     // E(p: i32) : . [5 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 5)] WS "*" WS r_pr=E(6) return
@@ -392,26 +370,17 @@ impl<'i, 'arena> Parser<'i, 'arena> for Pepm16ExpressionsParser<'i, 'arena> {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        let node = self.sppf_node(result);
                         let return_value = if self.lookup(BINDING_R_PR, env.unwrap()) == 0 {
                             5
                         } else {
                             std::cmp::min(self.lookup(BINDING_R_PR, env.unwrap()), 5)
                         };
-                        let nonterminal_node_id = self.get_or_create_nonterminal_node(
-                            NonterminalId(3),
-                            SlotId(34),
-                            node.left_extent(),
-                            node.right_extent(),
-                            result,
-                            gss_node_id,
-                            Some(return_value),
-                        );
                         self.pop(
                             gss_node_id,
                             SlotId(34),
-                            nonterminal_node_id,
+                            result,
                             Some(return_value),
+                            &FOLLOW_SET_E,
                         );
                     }
                     // E(p: i32) : . [4 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 4)] WS "+" WS r_pr=E(5) return
@@ -517,26 +486,17 @@ impl<'i, 'arena> Parser<'i, 'arena> for Pepm16ExpressionsParser<'i, 'arena> {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        let node = self.sppf_node(result);
                         let return_value = if self.lookup(BINDING_R_PR, env.unwrap()) == 0 {
                             4
                         } else {
                             std::cmp::min(self.lookup(BINDING_R_PR, env.unwrap()), 4)
                         };
-                        let nonterminal_node_id = self.get_or_create_nonterminal_node(
-                            NonterminalId(3),
-                            SlotId(43),
-                            node.left_extent(),
-                            node.right_extent(),
-                            result,
-                            gss_node_id,
-                            Some(return_value),
-                        );
                         self.pop(
                             gss_node_id,
                             SlotId(43),
-                            nonterminal_node_id,
+                            result,
                             Some(return_value),
+                            &FOLLOW_SET_E,
                         );
                     }
                     // E(p: i32) : . [4 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 4)] WS "-" WS r_pr=E(5) return
@@ -642,26 +602,17 @@ impl<'i, 'arena> Parser<'i, 'arena> for Pepm16ExpressionsParser<'i, 'arena> {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        let node = self.sppf_node(result);
                         let return_value = if self.lookup(BINDING_R_PR, env.unwrap()) == 0 {
                             4
                         } else {
                             std::cmp::min(self.lookup(BINDING_R_PR, env.unwrap()), 4)
                         };
-                        let nonterminal_node_id = self.get_or_create_nonterminal_node(
-                            NonterminalId(3),
-                            SlotId(52),
-                            node.left_extent(),
-                            node.right_extent(),
-                            result,
-                            gss_node_id,
-                            Some(return_value),
-                        );
                         self.pop(
                             gss_node_id,
                             SlotId(52),
-                            nonterminal_node_id,
+                            result,
                             Some(return_value),
+                            &FOLLOW_SET_E,
                         );
                     }
                     // E(p: i32) : . "-" WS r_pr=E(3) return (r_pr == 0) ? 3 : min(r_pr, 3)
@@ -709,26 +660,17 @@ impl<'i, 'arena> Parser<'i, 'arena> for Pepm16ExpressionsParser<'i, 'arena> {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        let node = self.sppf_node(result);
                         let return_value = if self.lookup(BINDING_R_PR, env.unwrap()) == 0 {
                             3
                         } else {
                             std::cmp::min(self.lookup(BINDING_R_PR, env.unwrap()), 3)
                         };
-                        let nonterminal_node_id = self.get_or_create_nonterminal_node(
-                            NonterminalId(3),
-                            SlotId(57),
-                            node.left_extent(),
-                            node.right_extent(),
-                            result,
-                            gss_node_id,
-                            Some(return_value),
-                        );
                         self.pop(
                             gss_node_id,
                             SlotId(57),
-                            nonterminal_node_id,
+                            result,
                             Some(return_value),
+                            &FOLLOW_SET_E,
                         );
                     }
                     // E(p: i32) : . "if" WS E(0) WS "then" WS E(0) WS "else" WS E(2) return 2
@@ -892,22 +834,13 @@ impl<'i, 'arena> Parser<'i, 'arena> for Pepm16ExpressionsParser<'i, 'arena> {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        let node = self.sppf_node(result);
                         let return_value = 2;
-                        let nonterminal_node_id = self.get_or_create_nonterminal_node(
-                            NonterminalId(3),
-                            SlotId(70),
-                            node.left_extent(),
-                            node.right_extent(),
-                            result,
-                            gss_node_id,
-                            Some(return_value),
-                        );
                         self.pop(
                             gss_node_id,
                             SlotId(70),
-                            nonterminal_node_id,
+                            result,
                             Some(return_value),
+                            &FOLLOW_SET_E,
                         );
                     }
                     // E(p: i32) : . [1 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 2)] WS ";" WS E(1) return 1
@@ -1001,22 +934,13 @@ impl<'i, 'arena> Parser<'i, 'arena> for Pepm16ExpressionsParser<'i, 'arena> {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        let node = self.sppf_node(result);
                         let return_value = 1;
-                        let nonterminal_node_id = self.get_or_create_nonterminal_node(
-                            NonterminalId(3),
-                            SlotId(79),
-                            node.left_extent(),
-                            node.right_extent(),
-                            result,
-                            gss_node_id,
-                            Some(return_value),
-                        );
                         self.pop(
                             gss_node_id,
                             SlotId(79),
-                            nonterminal_node_id,
+                            result,
                             Some(return_value),
+                            &FOLLOW_SET_E,
                         );
                     }
                     // E(p: i32) : . "(" WS E(0) WS ")" return 0
@@ -1100,22 +1024,13 @@ impl<'i, 'arena> Parser<'i, 'arena> for Pepm16ExpressionsParser<'i, 'arena> {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        let node = self.sppf_node(result);
                         let return_value = 0;
-                        let nonterminal_node_id = self.get_or_create_nonterminal_node(
-                            NonterminalId(3),
-                            SlotId(86),
-                            node.left_extent(),
-                            node.right_extent(),
-                            result,
-                            gss_node_id,
-                            Some(return_value),
-                        );
                         self.pop(
                             gss_node_id,
                             SlotId(86),
-                            nonterminal_node_id,
+                            result,
                             Some(return_value),
+                            &FOLLOW_SET_E,
                         );
                     }
                     // E(p: i32) : . "a" return 0
@@ -1141,22 +1056,13 @@ impl<'i, 'arena> Parser<'i, 'arena> for Pepm16ExpressionsParser<'i, 'arena> {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        let node = self.sppf_node(result);
                         let return_value = 0;
-                        let nonterminal_node_id = self.get_or_create_nonterminal_node(
-                            NonterminalId(3),
-                            SlotId(89),
-                            node.left_extent(),
-                            node.right_extent(),
-                            result,
-                            gss_node_id,
-                            Some(return_value),
-                        );
                         self.pop(
                             gss_node_id,
                             SlotId(89),
-                            nonterminal_node_id,
+                            result,
                             Some(return_value),
+                            &FOLLOW_SET_E,
                         );
                     }
                     // StartS : . WS start:S WS
@@ -1175,7 +1081,14 @@ impl<'i, 'arena> Parser<'i, 'arena> for Pepm16ExpressionsParser<'i, 'arena> {
                     }
                     // StartS : WS . start:S WS
                     SlotId(3) => {
-                        self.create(NonterminalId(0), result, gss_node_id, SlotId(4), env);
+                        self.create(
+                            NonterminalId(0),
+                            &PREDICTION_SET_S,
+                            result,
+                            gss_node_id,
+                            SlotId(4),
+                            env,
+                        );
                     }
                     // StartS : WS start:S . WS
                     SlotId(4) => {
@@ -1197,13 +1110,10 @@ impl<'i, 'arena> Parser<'i, 'arena> for Pepm16ExpressionsParser<'i, 'arena> {
                     }
                     // StartS : WS start:S WS.
                     SlotId(5) => {
-                        let nonterminal_node_id = self.create_nonterminal_node(
-                            result,
-                            NonterminalId(1),
-                            SlotId(5),
-                            gss_node_id,
-                        );
-                        self.pop(gss_node_id, SlotId(5), nonterminal_node_id, None);
+                        let Some(result) = result else {
+                            unreachable!("result cannot be None here.")
+                        };
+                        self.pop(gss_node_id, SlotId(5), result, None, &FOLLOW_SET_START_S);
                     }
                     // StartE : . WS start:E(0) WS
                     SlotId(6) => {
@@ -1243,13 +1153,10 @@ impl<'i, 'arena> Parser<'i, 'arena> for Pepm16ExpressionsParser<'i, 'arena> {
                     }
                     // StartE : WS start:E(0) WS.
                     SlotId(9) => {
-                        let nonterminal_node_id = self.create_nonterminal_node(
-                            result,
-                            NonterminalId(2),
-                            SlotId(9),
-                            gss_node_id,
-                        );
-                        self.pop(gss_node_id, SlotId(9), nonterminal_node_id, None);
+                        let Some(result) = result else {
+                            unreachable!("result cannot be None here.")
+                        };
+                        self.pop(gss_node_id, SlotId(9), result, None, &FOLLOW_SET_START_E);
                     }
                     _ => {
                         panic!("Unknown grammar slot id: {slot_id}");
@@ -1272,68 +1179,49 @@ impl<'i, 'arena> Parser<'i, 'arena> for Pepm16ExpressionsParser<'i, 'arena> {
             }
             // E
             NonterminalId(3) => {
-                let mut matched = false;
                 // E(p: i32) : . [6 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 6)] WS "." WS "f" return 0
                 if self.scanner.match_any(&FIRST_SET_E_ALT0, input_index) {
-                    matched = true;
                     self.add_first_descriptor(SlotId(10), input_index, gss_node_id, env);
                 }
                 // E(p: i32) : . [6 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 6)] WS r_pr=E(6) return (r_pr ==
                 // 0) ? 6 : min(r_pr, 6)
                 if self.scanner.match_any(&FIRST_SET_E_ALT1, input_index) {
-                    matched = true;
                     self.add_first_descriptor(SlotId(19), input_index, gss_node_id, env);
                 }
                 // E(p: i32) : . [5 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 5)] WS "*" WS r_pr=E(6) return
                 // (r_pr == 0) ? 5 : min(r_pr, 5)
                 if self.scanner.match_any(&FIRST_SET_E_ALT2, input_index) {
-                    matched = true;
                     self.add_first_descriptor(SlotId(26), input_index, gss_node_id, env);
                 }
                 // E(p: i32) : . [4 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 4)] WS "+" WS r_pr=E(5) return
                 // (r_pr == 0) ? 4 : min(r_pr, 4)
                 if self.scanner.match_any(&FIRST_SET_E_ALT3, input_index) {
-                    matched = true;
                     self.add_first_descriptor(SlotId(35), input_index, gss_node_id, env);
                 }
                 // E(p: i32) : . [4 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 4)] WS "-" WS r_pr=E(5) return
                 // (r_pr == 0) ? 4 : min(r_pr, 4)
                 if self.scanner.match_any(&FIRST_SET_E_ALT4, input_index) {
-                    matched = true;
                     self.add_first_descriptor(SlotId(44), input_index, gss_node_id, env);
                 }
                 // E(p: i32) : . "-" WS r_pr=E(3) return (r_pr == 0) ? 3 : min(r_pr, 3)
                 if self.scanner.match_any(&FIRST_SET_E_ALT5, input_index) {
-                    matched = true;
                     self.add_first_descriptor(SlotId(53), input_index, gss_node_id, env);
                 }
                 // E(p: i32) : . "if" WS E(0) WS "then" WS E(0) WS "else" WS E(2) return 2
                 if self.scanner.match_any(&FIRST_SET_E_ALT6, input_index) {
-                    matched = true;
                     self.add_first_descriptor(SlotId(58), input_index, gss_node_id, env);
                 }
                 // E(p: i32) : . [1 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 2)] WS ";" WS E(1) return 1
                 if self.scanner.match_any(&FIRST_SET_E_ALT7, input_index) {
-                    matched = true;
                     self.add_first_descriptor(SlotId(71), input_index, gss_node_id, env);
                 }
                 // E(p: i32) : . "(" WS E(0) WS ")" return 0
                 if self.scanner.match_any(&FIRST_SET_E_ALT8, input_index) {
-                    matched = true;
                     self.add_first_descriptor(SlotId(80), input_index, gss_node_id, env);
                 }
                 // E(p: i32) : . "a" return 0
                 if self.scanner.match_any(&FIRST_SET_E_ALT9, input_index) {
-                    matched = true;
                     self.add_first_descriptor(SlotId(87), input_index, gss_node_id, env);
-                }
-                if !matched {
-                    self.add_failure(
-                        input_index,
-                        SlotId(10),
-                        Some(gss_node_id),
-                        GLLFailureKind::UnexpectedToken(&FIRST_SET_E),
-                    );
                 }
             }
             // StartS : . WS start:S WS
@@ -1740,24 +1628,6 @@ impl<'i, 'arena> Parser<'i, 'arena> for Pepm16ExpressionsParser<'i, 'arena> {
     ) -> Option<GLLFailureKind> {
         None
     }
-    fn follow_set_check(&mut self, nonterminal_id: NonterminalId, input_index: u32) -> bool {
-        match nonterminal_id {
-            NonterminalId(0) => self.scanner.match_any(&FOLLOW_SET_S, input_index),
-            NonterminalId(3) => self.scanner.match_any(&FOLLOW_SET_E, input_index),
-            NonterminalId(1) => self.scanner.match_any(&FOLLOW_SET_START_S, input_index),
-            NonterminalId(2) => self.scanner.match_any(&FOLLOW_SET_START_E, input_index),
-            _ => true,
-        }
-    }
-    fn follow_set(&self, nonterminal_id: NonterminalId) -> &'static TerminalSet {
-        match nonterminal_id {
-            NonterminalId(0) => &FOLLOW_SET_S,
-            NonterminalId(3) => &FOLLOW_SET_E,
-            NonterminalId(1) => &FOLLOW_SET_START_S,
-            NonterminalId(2) => &FOLLOW_SET_START_E,
-            _ => unreachable!("no FOLLOW set for nonterminal {nonterminal_id}"),
-        }
-    }
     fn failures(&self) -> impl Iterator<Item = &GLLFailure> {
         self.failures.iter()
     }
@@ -1780,6 +1650,9 @@ impl<'i, 'arena> Parser<'i, 'arena> for Pepm16ExpressionsParser<'i, 'arena> {
         if input_index > level {
             self.failures.clear();
         }
+        if self.failures.last().is_some_and(|last| last.kind == kind) {
+            return;
+        }
         self.failures.push(
             GLLFailure {
                 input_index,
@@ -1792,6 +1665,9 @@ impl<'i, 'arena> Parser<'i, 'arena> for Pepm16ExpressionsParser<'i, 'arena> {
     }
     fn match_token(&mut self, terminal_id: TerminalId, input_index: u32) -> Option<u32> {
         self.scanner.match_token(terminal_id, input_index)
+    }
+    fn match_any(&mut self, set: &'static TerminalSet, input_index: u32) -> bool {
+        self.scanner.match_any(set, input_index)
     }
     fn vec_arena(&self) -> &'arena Arena {
         self.vec_arena
@@ -1882,10 +1758,10 @@ impl<'i, 'arena> Pepm16ExpressionsParser<'i, 'arena> {
     }
     /// Parses the input from `start` and builds the parse tree in the given
     /// `tree_arena`. The parser is consumed. The tree lives as long as the
-    /// arena lives. `start` is normally the start wrapper of a declared
-    /// nonterminal, `grammar::START_<NAME>`, which allows layout around the
-    /// input; a bare nonterminal id parses without it.
-    pub fn parse<'a>(
+    /// arena lives. `start` is the start wrapper of a declared nonterminal,
+    /// `grammar::START_<NAME>`, which allows layout around the input. The
+    /// public entry points are the typed `parse_<name>` methods.
+    fn parse<'a>(
         self,
         start: NonterminalId,
         tree_arena: &'a Arena,
@@ -1918,14 +1794,9 @@ impl<'i, 'arena> Pepm16ExpressionsParser<'i, 'arena> {
         p: i32,
     ) {
         record!(self, Call, sppf_node_id, gss_node_id, return_slot);
-        let left_child = sppf_node_id.map(|id| {
-            let node = self.sppf_node(id);
-            (id, node.left_extent())
-        });
-        let gss_node = self.gss_node(gss_node_id);
-        let i = match left_child {
-            Some((id, _)) => self.sppf_node(id).right_extent(),
-            None => gss_node.index,
+        let i = match sppf_node_id {
+            Some(id) => self.sppf_node(id).right_extent(),
+            None => self.gss_node(gss_node_id).index,
         };
         // If there is already a GSS node for this call, add an edge.
         if let Some(existing_gss_node_id) = self.get_gss_node_e(i, p) {
@@ -1933,11 +1804,11 @@ impl<'i, 'arena> Pepm16ExpressionsParser<'i, 'arena> {
             self.add_edge_to_existing_gss_node(
                 existing_gss_node_id,
                 gss_node_id,
-                left_child,
+                sppf_node_id,
                 return_slot,
                 env,
             );
-        } else {
+        } else if self.match_any(&PREDICTION_SET_E, i) {
             record!(self, GSSNodeNotFound, NonterminalId(3), i);
             let new_gss_node_id = self.new_gss_node(NonterminalId(3), i);
             self.add_gss_edge(new_gss_node_id, gss_node_id, sppf_node_id, return_slot, env);
@@ -1946,6 +1817,17 @@ impl<'i, 'arena> Pepm16ExpressionsParser<'i, 'arena> {
             env.bind(BINDING_P, p, arena);
             self.add_first_descriptors(NonterminalId(3), i, new_gss_node_id, Some(env_id));
             self.add_gss_node_e(i, p, new_gss_node_id);
+        } else {
+            // The call symbol precedes the return slot in its alternative, so the return slot is never
+            // at the first position.
+            let call_slot = Pepm16ExpressionsGrammar::previous_slot(return_slot)
+                .expect("a return slot follows the call symbol");
+            self.add_failure(
+                i,
+                call_slot,
+                Some(gss_node_id),
+                GLLFailureKind::UnexpectedToken(&PREDICTION_SET_E),
+            );
         }
     }
     fn get_gss_node_e(&self, input_index: u32, p: i32) -> Option<GssNodeId> {

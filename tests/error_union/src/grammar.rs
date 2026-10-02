@@ -13,19 +13,39 @@ pub const BEFORE_P: NonterminalId = NonterminalId(4);
 pub const BEFORE_Q: NonterminalId = NonterminalId(5);
 pub const UNEXPECTED_FIRST: NonterminalId = NonterminalId(6);
 pub const EXCLUDED_FIRST: NonterminalId = NonterminalId(7);
-pub const LAYOUT: NonterminalId = NonterminalId(8);
-pub const ALT_0: NonterminalId = NonterminalId(9);
-pub const PLUS_0: NonterminalId = NonterminalId(10);
-pub const OPT_0: NonterminalId = NonterminalId(11);
-pub const STAR_0: NonterminalId = NonterminalId(12);
-pub const START_T: NonterminalId = NonterminalId(13);
-pub const START_U: NonterminalId = NonterminalId(14);
-pub const START_P: NonterminalId = NonterminalId(15);
-pub const START_Q: NonterminalId = NonterminalId(16);
-pub const START_BEFORE_P: NonterminalId = NonterminalId(17);
-pub const START_BEFORE_Q: NonterminalId = NonterminalId(18);
-pub const START_UNEXPECTED_FIRST: NonterminalId = NonterminalId(19);
-pub const START_EXCLUDED_FIRST: NonterminalId = NonterminalId(20);
+pub const PREDICTION_BEFORE_EXCEPT: NonterminalId = NonterminalId(8);
+pub const EXCEPT_BEFORE_PREDICTION: NonterminalId = NonterminalId(9);
+pub const PREDICTION_BEFORE_FOLLOW: NonterminalId = NonterminalId(10);
+pub const FOLLOW_BEFORE_PREDICTION: NonterminalId = NonterminalId(11);
+pub const MISSING_SUFFIX: NonterminalId = NonterminalId(12);
+pub const SUFFIX_CHOICE: NonterminalId = NonterminalId(13);
+pub const CALL_PREDICTION: NonterminalId = NonterminalId(14);
+pub const PREFIX_X: NonterminalId = NonterminalId(15);
+pub const PREFIX_W: NonterminalId = NonterminalId(16);
+pub const NULLABLE_PREFIX: NonterminalId = NonterminalId(17);
+pub const LAYOUT: NonterminalId = NonterminalId(18);
+pub const ALT_0: NonterminalId = NonterminalId(19);
+pub const PLUS_0: NonterminalId = NonterminalId(20);
+pub const OPT_0: NonterminalId = NonterminalId(21);
+pub const STAR_0: NonterminalId = NonterminalId(22);
+pub const START_T: NonterminalId = NonterminalId(23);
+pub const START_U: NonterminalId = NonterminalId(24);
+pub const START_P: NonterminalId = NonterminalId(25);
+pub const START_Q: NonterminalId = NonterminalId(26);
+pub const START_BEFORE_P: NonterminalId = NonterminalId(27);
+pub const START_BEFORE_Q: NonterminalId = NonterminalId(28);
+pub const START_UNEXPECTED_FIRST: NonterminalId = NonterminalId(29);
+pub const START_EXCLUDED_FIRST: NonterminalId = NonterminalId(30);
+pub const START_PREDICTION_BEFORE_EXCEPT: NonterminalId = NonterminalId(31);
+pub const START_EXCEPT_BEFORE_PREDICTION: NonterminalId = NonterminalId(32);
+pub const START_PREDICTION_BEFORE_FOLLOW: NonterminalId = NonterminalId(33);
+pub const START_FOLLOW_BEFORE_PREDICTION: NonterminalId = NonterminalId(34);
+pub const START_MISSING_SUFFIX: NonterminalId = NonterminalId(35);
+pub const START_SUFFIX_CHOICE: NonterminalId = NonterminalId(36);
+pub const START_CALL_PREDICTION: NonterminalId = NonterminalId(37);
+pub const START_PREFIX_X: NonterminalId = NonterminalId(38);
+pub const START_PREFIX_W: NonterminalId = NonterminalId(39);
+pub const START_NULLABLE_PREFIX: NonterminalId = NonterminalId(40);
 pub struct ErrorUnionGrammar;
 impl Grammar for ErrorUnionGrammar {
     const NAME: &'static str = "ErrorUnion";
@@ -61,6 +81,46 @@ impl Grammar for ErrorUnionGrammar {
         Nonterminal {
             name: "ExcludedFirst",
             display_name: "ExcludedFirst",
+        },
+        Nonterminal {
+            name: "PredictionBeforeExcept",
+            display_name: "PredictionBeforeExcept",
+        },
+        Nonterminal {
+            name: "ExceptBeforePrediction",
+            display_name: "ExceptBeforePrediction",
+        },
+        Nonterminal {
+            name: "PredictionBeforeFollow",
+            display_name: "PredictionBeforeFollow",
+        },
+        Nonterminal {
+            name: "FollowBeforePrediction",
+            display_name: "FollowBeforePrediction",
+        },
+        Nonterminal {
+            name: "MissingSuffix",
+            display_name: "MissingSuffix",
+        },
+        Nonterminal {
+            name: "SuffixChoice",
+            display_name: "SuffixChoice",
+        },
+        Nonterminal {
+            name: "CallPrediction",
+            display_name: "CallPrediction",
+        },
+        Nonterminal {
+            name: "PrefixX",
+            display_name: "PrefixX",
+        },
+        Nonterminal {
+            name: "PrefixW",
+            display_name: "PrefixW",
+        },
+        Nonterminal {
+            name: "NullablePrefix",
+            display_name: "NullablePrefix",
         },
         Nonterminal {
             name: "Layout",
@@ -114,6 +174,46 @@ impl Grammar for ErrorUnionGrammar {
             name: "StartExcludedFirst",
             display_name: "ExcludedFirst",
         },
+        Nonterminal {
+            name: "StartPredictionBeforeExcept",
+            display_name: "PredictionBeforeExcept",
+        },
+        Nonterminal {
+            name: "StartExceptBeforePrediction",
+            display_name: "ExceptBeforePrediction",
+        },
+        Nonterminal {
+            name: "StartPredictionBeforeFollow",
+            display_name: "PredictionBeforeFollow",
+        },
+        Nonterminal {
+            name: "StartFollowBeforePrediction",
+            display_name: "FollowBeforePrediction",
+        },
+        Nonterminal {
+            name: "StartMissingSuffix",
+            display_name: "MissingSuffix",
+        },
+        Nonterminal {
+            name: "StartSuffixChoice",
+            display_name: "SuffixChoice",
+        },
+        Nonterminal {
+            name: "StartCallPrediction",
+            display_name: "CallPrediction",
+        },
+        Nonterminal {
+            name: "StartPrefixX",
+            display_name: "PrefixX",
+        },
+        Nonterminal {
+            name: "StartPrefixW",
+            display_name: "PrefixW",
+        },
+        Nonterminal {
+            name: "StartNullablePrefix",
+            display_name: "NullablePrefix",
+        },
     ];
     const DISPLAY_ORDER: &'static [&'static str] = &[
         "T",
@@ -124,8 +224,19 @@ impl Grammar for ErrorUnionGrammar {
         "BeforeQ",
         "UnexpectedFirst",
         "ExcludedFirst",
+        "PredictionBeforeExcept",
+        "ExceptBeforePrediction",
+        "PredictionBeforeFollow",
+        "FollowBeforePrediction",
+        "MissingSuffix",
+        "SuffixChoice",
+        "CallPrediction",
+        "PrefixX",
+        "PrefixW",
+        "NullablePrefix",
     ];
     const TERMINALS: &'static [Terminal] = &[
+        Terminal { name: "Question" },
         Terminal { name: "Word" },
         Terminal { name: "Identifier" },
         Terminal { name: "Keyword" },
@@ -139,388 +250,859 @@ impl Grammar for ErrorUnionGrammar {
         Terminal { name: "\"y\"" },
         Terminal { name: "\"z\"" },
         Terminal { name: "\"!\"" },
+        Terminal { name: "\"1\"" },
+        Terminal { name: "\"2\"" },
+        Terminal { name: "\"w\"" },
         Terminal { name: "Epsilon" },
         Terminal { name: "EOF" },
     ];
     const SLOTS: &'static [Slot] = &[
         Slot {
             display_name: "T : . \"[\" BeforeP Layout P Layout \"]\"",
+            position: 0,
         },
         Slot {
             display_name: "T : \"[\" . BeforeP Layout P Layout \"]\"",
+            position: 1,
         },
         Slot {
             display_name: "T : \"[\" BeforeP . Layout P Layout \"]\"",
+            position: 2,
         },
         Slot {
             display_name: "T : \"[\" BeforeP Layout . P Layout \"]\"",
+            position: 3,
         },
         Slot {
             display_name: "T : \"[\" BeforeP Layout P . Layout \"]\"",
+            position: 4,
         },
         Slot {
             display_name: "T : \"[\" BeforeP Layout P Layout . \"]\"",
+            position: 5,
         },
         Slot {
             display_name: "T : \"[\" BeforeP Layout P Layout \"]\".",
+            position: 6,
         },
         Slot {
             display_name: "T : . \"[\" BeforeQ Layout Q Layout \"]\"",
+            position: 0,
         },
         Slot {
             display_name: "T : \"[\" . BeforeQ Layout Q Layout \"]\"",
+            position: 1,
         },
         Slot {
             display_name: "T : \"[\" BeforeQ . Layout Q Layout \"]\"",
+            position: 2,
         },
         Slot {
             display_name: "T : \"[\" BeforeQ Layout . Q Layout \"]\"",
+            position: 3,
         },
         Slot {
             display_name: "T : \"[\" BeforeQ Layout Q . Layout \"]\"",
+            position: 4,
         },
         Slot {
             display_name: "T : \"[\" BeforeQ Layout Q Layout . \"]\"",
+            position: 5,
         },
         Slot {
             display_name: "T : \"[\" BeforeQ Layout Q Layout \"]\".",
+            position: 6,
         },
         Slot {
             display_name: "U : . \"[\" BeforeQ Layout Q Layout \"]\"",
+            position: 0,
         },
         Slot {
             display_name: "U : \"[\" . BeforeQ Layout Q Layout \"]\"",
+            position: 1,
         },
         Slot {
             display_name: "U : \"[\" BeforeQ . Layout Q Layout \"]\"",
+            position: 2,
         },
         Slot {
             display_name: "U : \"[\" BeforeQ Layout . Q Layout \"]\"",
+            position: 3,
         },
         Slot {
             display_name: "U : \"[\" BeforeQ Layout Q . Layout \"]\"",
+            position: 4,
         },
         Slot {
             display_name: "U : \"[\" BeforeQ Layout Q Layout . \"]\"",
+            position: 5,
         },
         Slot {
             display_name: "U : \"[\" BeforeQ Layout Q Layout \"]\".",
+            position: 6,
         },
         Slot {
             display_name: "U : . \"[\" BeforeP Layout P Layout \"]\"",
+            position: 0,
         },
         Slot {
             display_name: "U : \"[\" . BeforeP Layout P Layout \"]\"",
+            position: 1,
         },
         Slot {
             display_name: "U : \"[\" BeforeP . Layout P Layout \"]\"",
+            position: 2,
         },
         Slot {
             display_name: "U : \"[\" BeforeP Layout . P Layout \"]\"",
+            position: 3,
         },
         Slot {
             display_name: "U : \"[\" BeforeP Layout P . Layout \"]\"",
+            position: 4,
         },
         Slot {
             display_name: "U : \"[\" BeforeP Layout P Layout . \"]\"",
+            position: 5,
         },
         Slot {
             display_name: "U : \"[\" BeforeP Layout P Layout \"]\".",
+            position: 6,
         },
         Slot {
             display_name: "P : . \"p\"",
+            position: 0,
         },
         Slot {
             display_name: "P : \"p\".",
+            position: 1,
         },
         Slot {
             display_name: "P : . Word",
+            position: 0,
         },
         Slot {
             display_name: "P : Word.",
+            position: 1,
         },
         Slot {
             display_name: "Q : . \"q\"",
+            position: 0,
         },
         Slot {
             display_name: "Q : \"q\".",
+            position: 1,
         },
         Slot {
             display_name: "BeforeP : . \"x\"",
+            position: 0,
         },
         Slot {
             display_name: "BeforeP : \"x\".",
+            position: 1,
         },
         Slot {
             display_name: "BeforeP : . \"x\" Layout \"y\"",
+            position: 0,
         },
         Slot {
             display_name: "BeforeP : \"x\" . Layout \"y\"",
+            position: 1,
         },
         Slot {
             display_name: "BeforeP : \"x\" Layout . \"y\"",
+            position: 2,
         },
         Slot {
             display_name: "BeforeP : \"x\" Layout \"y\".",
+            position: 3,
         },
         Slot {
             display_name: "BeforeQ : . \"x\"",
+            position: 0,
         },
         Slot {
             display_name: "BeforeQ : \"x\".",
+            position: 1,
         },
         Slot {
             display_name: "BeforeQ : . \"x\" Layout \"z\"",
+            position: 0,
         },
         Slot {
             display_name: "BeforeQ : \"x\" . Layout \"z\"",
+            position: 1,
         },
         Slot {
             display_name: "BeforeQ : \"x\" Layout . \"z\"",
+            position: 2,
         },
         Slot {
             display_name: "BeforeQ : \"x\" Layout \"z\".",
+            position: 3,
         },
         Slot {
             display_name: "UnexpectedFirst : . Identifier \\ Keyword",
+            position: 0,
         },
         Slot {
             display_name: "UnexpectedFirst : Identifier \\ Keyword.",
+            position: 1,
         },
         Slot {
             display_name: "UnexpectedFirst : . Identifier \"!\"",
+            position: 0,
         },
         Slot {
             display_name: "UnexpectedFirst : Identifier . \"!\"",
+            position: 1,
         },
         Slot {
             display_name: "UnexpectedFirst : Identifier \"!\".",
+            position: 2,
         },
         Slot {
             display_name: "ExcludedFirst : . Identifier \"!\"",
+            position: 0,
         },
         Slot {
             display_name: "ExcludedFirst : Identifier . \"!\"",
+            position: 1,
         },
         Slot {
             display_name: "ExcludedFirst : Identifier \"!\".",
+            position: 2,
         },
         Slot {
             display_name: "ExcludedFirst : . Identifier \\ Keyword",
+            position: 0,
         },
         Slot {
             display_name: "ExcludedFirst : Identifier \\ Keyword.",
+            position: 1,
         },
         Slot {
-            display_name: "Layout : . (WS | Newline)*",
+            display_name: "PredictionBeforeExcept : . Identifier \\ Keyword",
+            position: 0,
         },
         Slot {
-            display_name: "Layout : (WS | Newline)*.",
+            display_name: "PredictionBeforeExcept : Identifier \\ Keyword.",
+            position: 1,
+        },
+        Slot {
+            display_name: "PredictionBeforeExcept : . Identifier MissingSuffix",
+            position: 0,
+        },
+        Slot {
+            display_name: "PredictionBeforeExcept : Identifier . MissingSuffix",
+            position: 1,
+        },
+        Slot {
+            display_name: "PredictionBeforeExcept : Identifier MissingSuffix.",
+            position: 2,
+        },
+        Slot {
+            display_name: "ExceptBeforePrediction : . Identifier MissingSuffix",
+            position: 0,
+        },
+        Slot {
+            display_name: "ExceptBeforePrediction : Identifier . MissingSuffix",
+            position: 1,
+        },
+        Slot {
+            display_name: "ExceptBeforePrediction : Identifier MissingSuffix.",
+            position: 2,
+        },
+        Slot {
+            display_name: "ExceptBeforePrediction : . Identifier \\ Keyword",
+            position: 0,
+        },
+        Slot {
+            display_name: "ExceptBeforePrediction : Identifier \\ Keyword.",
+            position: 1,
+        },
+        Slot {
+            display_name: "PredictionBeforeFollow : . Identifier !>> Question Question",
+            position: 0,
+        },
+        Slot {
+            display_name: "PredictionBeforeFollow : Identifier !>> Question . Question",
+            position: 1,
+        },
+        Slot {
+            display_name: "PredictionBeforeFollow : Identifier !>> Question Question.",
+            position: 2,
+        },
+        Slot {
+            display_name: "PredictionBeforeFollow : . Identifier MissingSuffix",
+            position: 0,
+        },
+        Slot {
+            display_name: "PredictionBeforeFollow : Identifier . MissingSuffix",
+            position: 1,
+        },
+        Slot {
+            display_name: "PredictionBeforeFollow : Identifier MissingSuffix.",
+            position: 2,
+        },
+        Slot {
+            display_name: "FollowBeforePrediction : . Identifier MissingSuffix",
+            position: 0,
+        },
+        Slot {
+            display_name: "FollowBeforePrediction : Identifier . MissingSuffix",
+            position: 1,
+        },
+        Slot {
+            display_name: "FollowBeforePrediction : Identifier MissingSuffix.",
+            position: 2,
+        },
+        Slot {
+            display_name: "FollowBeforePrediction : . Identifier !>> Question Question",
+            position: 0,
+        },
+        Slot {
+            display_name: "FollowBeforePrediction : Identifier !>> Question . Question",
+            position: 1,
+        },
+        Slot {
+            display_name: "FollowBeforePrediction : Identifier !>> Question Question.",
+            position: 2,
+        },
+        Slot {
+            display_name: "MissingSuffix : . SuffixChoice",
+            position: 0,
+        },
+        Slot {
+            display_name: "MissingSuffix : SuffixChoice.",
+            position: 1,
+        },
+        Slot {
+            display_name: "SuffixChoice : . \"!\"",
+            position: 0,
+        },
+        Slot {
+            display_name: "SuffixChoice : \"!\".",
+            position: 1,
+        },
+        Slot {
+            display_name: "SuffixChoice : . \"!\" \"!\"",
+            position: 0,
+        },
+        Slot {
+            display_name: "SuffixChoice : \"!\" . \"!\"",
+            position: 1,
+        },
+        Slot {
+            display_name: "SuffixChoice : \"!\" \"!\".",
+            position: 2,
+        },
+        Slot {
+            display_name: "CallPrediction : . \"1\" PrefixX",
+            position: 0,
+        },
+        Slot {
+            display_name: "CallPrediction : \"1\" . PrefixX",
+            position: 1,
+        },
+        Slot {
+            display_name: "CallPrediction : \"1\" PrefixX.",
+            position: 2,
+        },
+        Slot {
+            display_name: "CallPrediction : . \"2\" PrefixW",
+            position: 0,
+        },
+        Slot {
+            display_name: "CallPrediction : \"2\" . PrefixW",
+            position: 1,
+        },
+        Slot {
+            display_name: "CallPrediction : \"2\" PrefixW.",
+            position: 2,
+        },
+        Slot {
+            display_name: "PrefixX : . NullablePrefix \"x\"",
+            position: 0,
+        },
+        Slot {
+            display_name: "PrefixX : NullablePrefix . \"x\"",
+            position: 1,
+        },
+        Slot {
+            display_name: "PrefixX : NullablePrefix \"x\".",
+            position: 2,
+        },
+        Slot {
+            display_name: "PrefixW : . NullablePrefix \"w\"",
+            position: 0,
+        },
+        Slot {
+            display_name: "PrefixW : NullablePrefix . \"w\"",
+            position: 1,
+        },
+        Slot {
+            display_name: "PrefixW : NullablePrefix \"w\".",
+            position: 2,
+        },
+        Slot {
+            display_name: "NullablePrefix : . \"y\"",
+            position: 0,
+        },
+        Slot {
+            display_name: "NullablePrefix : \"y\".",
+            position: 1,
+        },
+        Slot {
+            display_name: "NullablePrefix : . \"y\" \"y\"",
+            position: 0,
+        },
+        Slot {
+            display_name: "NullablePrefix : \"y\" . \"y\"",
+            position: 1,
+        },
+        Slot {
+            display_name: "NullablePrefix : \"y\" \"y\".",
+            position: 2,
+        },
+        Slot {
+            display_name: "NullablePrefix : .",
+            position: 0,
+        },
+        Slot {
+            display_name: "Layout : . (WS | Newline)* !>> WS !>> Newline",
+            position: 0,
+        },
+        Slot {
+            display_name: "Layout : (WS | Newline)* !>> WS !>> Newline.",
+            position: 1,
         },
         Slot {
             display_name: "(WS | Newline) : . WS",
+            position: 0,
         },
         Slot {
             display_name: "(WS | Newline) : WS.",
+            position: 1,
         },
         Slot {
             display_name: "(WS | Newline) : . Newline",
+            position: 0,
         },
         Slot {
             display_name: "(WS | Newline) : Newline.",
+            position: 1,
         },
         Slot {
             display_name: "(WS | Newline)+ : . (WS | Newline)+ (WS | Newline)",
+            position: 0,
         },
         Slot {
             display_name: "(WS | Newline)+ : (WS | Newline)+ . (WS | Newline)",
+            position: 1,
         },
         Slot {
             display_name: "(WS | Newline)+ : (WS | Newline)+ (WS | Newline).",
+            position: 2,
         },
         Slot {
             display_name: "(WS | Newline)+ : . (WS | Newline)",
+            position: 0,
         },
         Slot {
             display_name: "(WS | Newline)+ : (WS | Newline).",
+            position: 1,
         },
         Slot {
             display_name: "(WS | Newline)+? : . (WS | Newline)+",
+            position: 0,
         },
         Slot {
             display_name: "(WS | Newline)+? : (WS | Newline)+.",
+            position: 1,
         },
         Slot {
             display_name: "(WS | Newline)+? : .",
+            position: 0,
         },
         Slot {
             display_name: "(WS | Newline)* : . (WS | Newline)+?",
+            position: 0,
         },
         Slot {
             display_name: "(WS | Newline)* : (WS | Newline)+?.",
+            position: 1,
         },
         Slot {
             display_name: "T : . Layout start:T Layout",
+            position: 0,
         },
         Slot {
             display_name: "T : Layout . start:T Layout",
+            position: 1,
         },
         Slot {
             display_name: "T : Layout start:T . Layout",
+            position: 2,
         },
         Slot {
             display_name: "T : Layout start:T Layout.",
+            position: 3,
         },
         Slot {
             display_name: "U : . Layout start:U Layout",
+            position: 0,
         },
         Slot {
             display_name: "U : Layout . start:U Layout",
+            position: 1,
         },
         Slot {
             display_name: "U : Layout start:U . Layout",
+            position: 2,
         },
         Slot {
             display_name: "U : Layout start:U Layout.",
+            position: 3,
         },
         Slot {
             display_name: "P : . Layout start:P Layout",
+            position: 0,
         },
         Slot {
             display_name: "P : Layout . start:P Layout",
+            position: 1,
         },
         Slot {
             display_name: "P : Layout start:P . Layout",
+            position: 2,
         },
         Slot {
             display_name: "P : Layout start:P Layout.",
+            position: 3,
         },
         Slot {
             display_name: "Q : . Layout start:Q Layout",
+            position: 0,
         },
         Slot {
             display_name: "Q : Layout . start:Q Layout",
+            position: 1,
         },
         Slot {
             display_name: "Q : Layout start:Q . Layout",
+            position: 2,
         },
         Slot {
             display_name: "Q : Layout start:Q Layout.",
+            position: 3,
         },
         Slot {
             display_name: "BeforeP : . Layout start:BeforeP Layout",
+            position: 0,
         },
         Slot {
             display_name: "BeforeP : Layout . start:BeforeP Layout",
+            position: 1,
         },
         Slot {
             display_name: "BeforeP : Layout start:BeforeP . Layout",
+            position: 2,
         },
         Slot {
             display_name: "BeforeP : Layout start:BeforeP Layout.",
+            position: 3,
         },
         Slot {
             display_name: "BeforeQ : . Layout start:BeforeQ Layout",
+            position: 0,
         },
         Slot {
             display_name: "BeforeQ : Layout . start:BeforeQ Layout",
+            position: 1,
         },
         Slot {
             display_name: "BeforeQ : Layout start:BeforeQ . Layout",
+            position: 2,
         },
         Slot {
             display_name: "BeforeQ : Layout start:BeforeQ Layout.",
+            position: 3,
         },
         Slot {
             display_name: "UnexpectedFirst : . Layout start:UnexpectedFirst Layout",
+            position: 0,
         },
         Slot {
             display_name: "UnexpectedFirst : Layout . start:UnexpectedFirst Layout",
+            position: 1,
         },
         Slot {
             display_name: "UnexpectedFirst : Layout start:UnexpectedFirst . Layout",
+            position: 2,
         },
         Slot {
             display_name: "UnexpectedFirst : Layout start:UnexpectedFirst Layout.",
+            position: 3,
         },
         Slot {
             display_name: "ExcludedFirst : . Layout start:ExcludedFirst Layout",
+            position: 0,
         },
         Slot {
             display_name: "ExcludedFirst : Layout . start:ExcludedFirst Layout",
+            position: 1,
         },
         Slot {
             display_name: "ExcludedFirst : Layout start:ExcludedFirst . Layout",
+            position: 2,
         },
         Slot {
             display_name: "ExcludedFirst : Layout start:ExcludedFirst Layout.",
+            position: 3,
+        },
+        Slot {
+            display_name: "PredictionBeforeExcept : . Layout start:PredictionBeforeExcept Layout",
+            position: 0,
+        },
+        Slot {
+            display_name: "PredictionBeforeExcept : Layout . start:PredictionBeforeExcept Layout",
+            position: 1,
+        },
+        Slot {
+            display_name: "PredictionBeforeExcept : Layout start:PredictionBeforeExcept . Layout",
+            position: 2,
+        },
+        Slot {
+            display_name: "PredictionBeforeExcept : Layout start:PredictionBeforeExcept Layout.",
+            position: 3,
+        },
+        Slot {
+            display_name: "ExceptBeforePrediction : . Layout start:ExceptBeforePrediction Layout",
+            position: 0,
+        },
+        Slot {
+            display_name: "ExceptBeforePrediction : Layout . start:ExceptBeforePrediction Layout",
+            position: 1,
+        },
+        Slot {
+            display_name: "ExceptBeforePrediction : Layout start:ExceptBeforePrediction . Layout",
+            position: 2,
+        },
+        Slot {
+            display_name: "ExceptBeforePrediction : Layout start:ExceptBeforePrediction Layout.",
+            position: 3,
+        },
+        Slot {
+            display_name: "PredictionBeforeFollow : . Layout start:PredictionBeforeFollow Layout",
+            position: 0,
+        },
+        Slot {
+            display_name: "PredictionBeforeFollow : Layout . start:PredictionBeforeFollow Layout",
+            position: 1,
+        },
+        Slot {
+            display_name: "PredictionBeforeFollow : Layout start:PredictionBeforeFollow . Layout",
+            position: 2,
+        },
+        Slot {
+            display_name: "PredictionBeforeFollow : Layout start:PredictionBeforeFollow Layout.",
+            position: 3,
+        },
+        Slot {
+            display_name: "FollowBeforePrediction : . Layout start:FollowBeforePrediction Layout",
+            position: 0,
+        },
+        Slot {
+            display_name: "FollowBeforePrediction : Layout . start:FollowBeforePrediction Layout",
+            position: 1,
+        },
+        Slot {
+            display_name: "FollowBeforePrediction : Layout start:FollowBeforePrediction . Layout",
+            position: 2,
+        },
+        Slot {
+            display_name: "FollowBeforePrediction : Layout start:FollowBeforePrediction Layout.",
+            position: 3,
+        },
+        Slot {
+            display_name: "MissingSuffix : . Layout start:MissingSuffix Layout",
+            position: 0,
+        },
+        Slot {
+            display_name: "MissingSuffix : Layout . start:MissingSuffix Layout",
+            position: 1,
+        },
+        Slot {
+            display_name: "MissingSuffix : Layout start:MissingSuffix . Layout",
+            position: 2,
+        },
+        Slot {
+            display_name: "MissingSuffix : Layout start:MissingSuffix Layout.",
+            position: 3,
+        },
+        Slot {
+            display_name: "SuffixChoice : . Layout start:SuffixChoice Layout",
+            position: 0,
+        },
+        Slot {
+            display_name: "SuffixChoice : Layout . start:SuffixChoice Layout",
+            position: 1,
+        },
+        Slot {
+            display_name: "SuffixChoice : Layout start:SuffixChoice . Layout",
+            position: 2,
+        },
+        Slot {
+            display_name: "SuffixChoice : Layout start:SuffixChoice Layout.",
+            position: 3,
+        },
+        Slot {
+            display_name: "CallPrediction : . Layout start:CallPrediction Layout",
+            position: 0,
+        },
+        Slot {
+            display_name: "CallPrediction : Layout . start:CallPrediction Layout",
+            position: 1,
+        },
+        Slot {
+            display_name: "CallPrediction : Layout start:CallPrediction . Layout",
+            position: 2,
+        },
+        Slot {
+            display_name: "CallPrediction : Layout start:CallPrediction Layout.",
+            position: 3,
+        },
+        Slot {
+            display_name: "PrefixX : . Layout start:PrefixX Layout",
+            position: 0,
+        },
+        Slot {
+            display_name: "PrefixX : Layout . start:PrefixX Layout",
+            position: 1,
+        },
+        Slot {
+            display_name: "PrefixX : Layout start:PrefixX . Layout",
+            position: 2,
+        },
+        Slot {
+            display_name: "PrefixX : Layout start:PrefixX Layout.",
+            position: 3,
+        },
+        Slot {
+            display_name: "PrefixW : . Layout start:PrefixW Layout",
+            position: 0,
+        },
+        Slot {
+            display_name: "PrefixW : Layout . start:PrefixW Layout",
+            position: 1,
+        },
+        Slot {
+            display_name: "PrefixW : Layout start:PrefixW . Layout",
+            position: 2,
+        },
+        Slot {
+            display_name: "PrefixW : Layout start:PrefixW Layout.",
+            position: 3,
+        },
+        Slot {
+            display_name: "NullablePrefix : . Layout start:NullablePrefix Layout",
+            position: 0,
+        },
+        Slot {
+            display_name: "NullablePrefix : Layout . start:NullablePrefix Layout",
+            position: 1,
+        },
+        Slot {
+            display_name: "NullablePrefix : Layout start:NullablePrefix . Layout",
+            position: 2,
+        },
+        Slot {
+            display_name: "NullablePrefix : Layout start:NullablePrefix Layout.",
+            position: 3,
         },
     ];
     const LAYOUT_NAME: Option<&'static str> = Some("Layout");
-    const LAYOUT_TERMINALS: &'static [TerminalId] = &[TerminalId(3), TerminalId(4)];
+    const LAYOUT_TERMINALS: &'static [TerminalId] = &[TerminalId(4), TerminalId(5)];
     // A failed terminal match refers to a static terminal set like every other failure, so the
     // error reporting path needs to reach a terminal set from a terminal id. This slice, indexed
     // by terminal id, serves only that.
     const SINGLE_TERMINAL_SETS: &'static [TerminalSet] = &[
         TerminalSet {
-            id: 35,
+            id: 31,
             terminals: &[TerminalId(0)],
         },
         TerminalSet {
-            id: 36,
+            id: 32,
             terminals: &[TerminalId(1)],
         },
         TerminalSet {
-            id: 37,
+            id: 33,
             terminals: &[TerminalId(2)],
         },
         TerminalSet {
-            id: 38,
+            id: 34,
             terminals: &[TerminalId(3)],
         },
         TerminalSet {
-            id: 39,
+            id: 35,
             terminals: &[TerminalId(4)],
         },
         TerminalSet {
-            id: 40,
+            id: 36,
             terminals: &[TerminalId(5)],
         },
         TerminalSet {
-            id: 41,
+            id: 37,
             terminals: &[TerminalId(6)],
         },
         TerminalSet {
-            id: 42,
+            id: 38,
             terminals: &[TerminalId(7)],
         },
         TerminalSet {
-            id: 43,
+            id: 39,
             terminals: &[TerminalId(8)],
         },
         TerminalSet {
-            id: 44,
+            id: 40,
             terminals: &[TerminalId(9)],
         },
         TerminalSet {
-            id: 45,
+            id: 41,
             terminals: &[TerminalId(10)],
         },
         TerminalSet {
-            id: 46,
+            id: 42,
             terminals: &[TerminalId(11)],
         },
         TerminalSet {
-            id: 47,
+            id: 43,
             terminals: &[TerminalId(12)],
         },
         TerminalSet {
-            id: 48,
+            id: 44,
             terminals: &[TerminalId(13)],
         },
         TerminalSet {
-            id: 49,
+            id: 45,
             terminals: &[TerminalId(14)],
+        },
+        TerminalSet {
+            id: 46,
+            terminals: &[TerminalId(15)],
+        },
+        TerminalSet {
+            id: 47,
+            terminals: &[TerminalId(16)],
+        },
+        TerminalSet {
+            id: 48,
+            terminals: &[TerminalId(17)],
+        },
+        TerminalSet {
+            id: 49,
+            terminals: &[TerminalId(18)],
         },
     ];
     fn nonterminal_id(name: &str) -> Option<NonterminalId> {
@@ -533,6 +1115,16 @@ impl Grammar for ErrorUnionGrammar {
             "BeforeQ" => Some(BEFORE_Q),
             "UnexpectedFirst" => Some(UNEXPECTED_FIRST),
             "ExcludedFirst" => Some(EXCLUDED_FIRST),
+            "PredictionBeforeExcept" => Some(PREDICTION_BEFORE_EXCEPT),
+            "ExceptBeforePrediction" => Some(EXCEPT_BEFORE_PREDICTION),
+            "PredictionBeforeFollow" => Some(PREDICTION_BEFORE_FOLLOW),
+            "FollowBeforePrediction" => Some(FOLLOW_BEFORE_PREDICTION),
+            "MissingSuffix" => Some(MISSING_SUFFIX),
+            "SuffixChoice" => Some(SUFFIX_CHOICE),
+            "CallPrediction" => Some(CALL_PREDICTION),
+            "PrefixX" => Some(PREFIX_X),
+            "PrefixW" => Some(PREFIX_W),
+            "NullablePrefix" => Some(NULLABLE_PREFIX),
             "Layout" => Some(LAYOUT),
             "Alt_0" => Some(ALT_0),
             "Plus_0" => Some(PLUS_0),
@@ -546,6 +1138,16 @@ impl Grammar for ErrorUnionGrammar {
             "StartBeforeQ" => Some(START_BEFORE_Q),
             "StartUnexpectedFirst" => Some(START_UNEXPECTED_FIRST),
             "StartExcludedFirst" => Some(START_EXCLUDED_FIRST),
+            "StartPredictionBeforeExcept" => Some(START_PREDICTION_BEFORE_EXCEPT),
+            "StartExceptBeforePrediction" => Some(START_EXCEPT_BEFORE_PREDICTION),
+            "StartPredictionBeforeFollow" => Some(START_PREDICTION_BEFORE_FOLLOW),
+            "StartFollowBeforePrediction" => Some(START_FOLLOW_BEFORE_PREDICTION),
+            "StartMissingSuffix" => Some(START_MISSING_SUFFIX),
+            "StartSuffixChoice" => Some(START_SUFFIX_CHOICE),
+            "StartCallPrediction" => Some(START_CALL_PREDICTION),
+            "StartPrefixX" => Some(START_PREFIX_X),
+            "StartPrefixW" => Some(START_PREFIX_W),
+            "StartNullablePrefix" => Some(START_NULLABLE_PREFIX),
             _ => None,
         }
     }
@@ -553,152 +1155,267 @@ impl Grammar for ErrorUnionGrammar {
 // T { WS, Newline, EOF }
 pub static FOLLOW_SET_T: TerminalSet = TerminalSet {
     id: 0,
-    terminals: &[TerminalId(3), TerminalId(4), TerminalId(14)],
+    terminals: &[TerminalId(4), TerminalId(5), TerminalId(18)],
 };
 // T : . "[" BeforeP Layout P Layout "]" { "[" }
 pub static FIRST_SET_T_ALT0: TerminalSet = TerminalSet {
     id: 1,
-    terminals: &[TerminalId(5)],
+    terminals: &[TerminalId(6)],
 };
 // T : . "[" BeforeQ Layout Q Layout "]" { "[" }
 pub static FIRST_SET_T_ALT1: TerminalSet = TerminalSet {
     id: 1,
-    terminals: &[TerminalId(5)],
+    terminals: &[TerminalId(6)],
 };
 // U { WS, Newline, EOF }
 pub static FOLLOW_SET_U: TerminalSet = TerminalSet {
     id: 0,
-    terminals: &[TerminalId(3), TerminalId(4), TerminalId(14)],
+    terminals: &[TerminalId(4), TerminalId(5), TerminalId(18)],
 };
 // U : . "[" BeforeQ Layout Q Layout "]" { "[" }
 pub static FIRST_SET_U_ALT0: TerminalSet = TerminalSet {
     id: 1,
-    terminals: &[TerminalId(5)],
+    terminals: &[TerminalId(6)],
 };
 // U : . "[" BeforeP Layout P Layout "]" { "[" }
 pub static FIRST_SET_U_ALT1: TerminalSet = TerminalSet {
     id: 1,
-    terminals: &[TerminalId(5)],
+    terminals: &[TerminalId(6)],
 };
 // P { WS, Newline, "]", EOF }
 pub static FOLLOW_SET_P: TerminalSet = TerminalSet {
     id: 2,
-    terminals: &[TerminalId(3), TerminalId(4), TerminalId(6), TerminalId(14)],
+    terminals: &[TerminalId(4), TerminalId(5), TerminalId(7), TerminalId(18)],
 };
 // P : . "p" { "p" }
 pub static FIRST_SET_P_ALT0: TerminalSet = TerminalSet {
     id: 3,
-    terminals: &[TerminalId(7)],
+    terminals: &[TerminalId(8)],
 };
 // P : . Word { Word }
 pub static FIRST_SET_P_ALT1: TerminalSet = TerminalSet {
     id: 4,
-    terminals: &[TerminalId(0)],
+    terminals: &[TerminalId(1)],
 };
 // Q { WS, Newline, "]", EOF }
 pub static FOLLOW_SET_Q: TerminalSet = TerminalSet {
     id: 2,
-    terminals: &[TerminalId(3), TerminalId(4), TerminalId(6), TerminalId(14)],
-};
-// Q : . "q" { "q" }
-pub static FIRST_SET_Q_ALT0: TerminalSet = TerminalSet {
-    id: 5,
-    terminals: &[TerminalId(8)],
+    terminals: &[TerminalId(4), TerminalId(5), TerminalId(7), TerminalId(18)],
 };
 // BeforeP { Word, WS, Newline, "p", EOF }
 pub static FOLLOW_SET_BEFORE_P: TerminalSet = TerminalSet {
-    id: 6,
+    id: 5,
     terminals: &[
-        TerminalId(0),
-        TerminalId(3),
+        TerminalId(1),
         TerminalId(4),
-        TerminalId(7),
-        TerminalId(14),
+        TerminalId(5),
+        TerminalId(8),
+        TerminalId(18),
     ],
 };
 // BeforeP : . "x" { "x" }
 pub static FIRST_SET_BEFORE_P_ALT0: TerminalSet = TerminalSet {
-    id: 7,
-    terminals: &[TerminalId(9)],
+    id: 6,
+    terminals: &[TerminalId(10)],
 };
 // BeforeP : . "x" Layout "y" { "x" }
 pub static FIRST_SET_BEFORE_P_ALT1: TerminalSet = TerminalSet {
-    id: 7,
-    terminals: &[TerminalId(9)],
+    id: 6,
+    terminals: &[TerminalId(10)],
 };
 // BeforeQ { WS, Newline, "q", EOF }
 pub static FOLLOW_SET_BEFORE_Q: TerminalSet = TerminalSet {
-    id: 8,
-    terminals: &[TerminalId(3), TerminalId(4), TerminalId(8), TerminalId(14)],
+    id: 7,
+    terminals: &[TerminalId(4), TerminalId(5), TerminalId(9), TerminalId(18)],
 };
 // BeforeQ : . "x" { "x" }
 pub static FIRST_SET_BEFORE_Q_ALT0: TerminalSet = TerminalSet {
-    id: 7,
-    terminals: &[TerminalId(9)],
+    id: 6,
+    terminals: &[TerminalId(10)],
 };
 // BeforeQ : . "x" Layout "z" { "x" }
 pub static FIRST_SET_BEFORE_Q_ALT1: TerminalSet = TerminalSet {
-    id: 7,
-    terminals: &[TerminalId(9)],
+    id: 6,
+    terminals: &[TerminalId(10)],
 };
 // UnexpectedFirst { WS, Newline, EOF }
 pub static FOLLOW_SET_UNEXPECTED_FIRST: TerminalSet = TerminalSet {
     id: 0,
-    terminals: &[TerminalId(3), TerminalId(4), TerminalId(14)],
+    terminals: &[TerminalId(4), TerminalId(5), TerminalId(18)],
 };
 // UnexpectedFirst : . Identifier \ Keyword { Identifier }
 pub static FIRST_SET_UNEXPECTED_FIRST_ALT0: TerminalSet = TerminalSet {
-    id: 9,
-    terminals: &[TerminalId(1)],
+    id: 8,
+    terminals: &[TerminalId(2)],
 };
 // UnexpectedFirst : . Identifier "!" { Identifier }
 pub static FIRST_SET_UNEXPECTED_FIRST_ALT1: TerminalSet = TerminalSet {
-    id: 9,
-    terminals: &[TerminalId(1)],
+    id: 8,
+    terminals: &[TerminalId(2)],
 };
 // ExcludedFirst { WS, Newline, EOF }
 pub static FOLLOW_SET_EXCLUDED_FIRST: TerminalSet = TerminalSet {
     id: 0,
-    terminals: &[TerminalId(3), TerminalId(4), TerminalId(14)],
+    terminals: &[TerminalId(4), TerminalId(5), TerminalId(18)],
 };
 // ExcludedFirst : . Identifier "!" { Identifier }
 pub static FIRST_SET_EXCLUDED_FIRST_ALT0: TerminalSet = TerminalSet {
-    id: 9,
-    terminals: &[TerminalId(1)],
+    id: 8,
+    terminals: &[TerminalId(2)],
 };
 // ExcludedFirst : . Identifier \ Keyword { Identifier }
 pub static FIRST_SET_EXCLUDED_FIRST_ALT1: TerminalSet = TerminalSet {
-    id: 9,
-    terminals: &[TerminalId(1)],
+    id: 8,
+    terminals: &[TerminalId(2)],
 };
-// Layout { Word, Identifier, "[", "]", "p", "q", "x", "y", "z", EOF }
-pub static FOLLOW_SET_LAYOUT: TerminalSet = TerminalSet {
+// PredictionBeforeExcept { WS, Newline, EOF }
+pub static FOLLOW_SET_PREDICTION_BEFORE_EXCEPT: TerminalSet = TerminalSet {
+    id: 0,
+    terminals: &[TerminalId(4), TerminalId(5), TerminalId(18)],
+};
+// PredictionBeforeExcept : . Identifier \ Keyword { Identifier }
+pub static FIRST_SET_PREDICTION_BEFORE_EXCEPT_ALT0: TerminalSet = TerminalSet {
+    id: 8,
+    terminals: &[TerminalId(2)],
+};
+// PredictionBeforeExcept : . Identifier MissingSuffix { Identifier }
+pub static FIRST_SET_PREDICTION_BEFORE_EXCEPT_ALT1: TerminalSet = TerminalSet {
+    id: 8,
+    terminals: &[TerminalId(2)],
+};
+// ExceptBeforePrediction { WS, Newline, EOF }
+pub static FOLLOW_SET_EXCEPT_BEFORE_PREDICTION: TerminalSet = TerminalSet {
+    id: 0,
+    terminals: &[TerminalId(4), TerminalId(5), TerminalId(18)],
+};
+// ExceptBeforePrediction : . Identifier MissingSuffix { Identifier }
+pub static FIRST_SET_EXCEPT_BEFORE_PREDICTION_ALT0: TerminalSet = TerminalSet {
+    id: 8,
+    terminals: &[TerminalId(2)],
+};
+// ExceptBeforePrediction : . Identifier \ Keyword { Identifier }
+pub static FIRST_SET_EXCEPT_BEFORE_PREDICTION_ALT1: TerminalSet = TerminalSet {
+    id: 8,
+    terminals: &[TerminalId(2)],
+};
+// PredictionBeforeFollow { WS, Newline, EOF }
+pub static FOLLOW_SET_PREDICTION_BEFORE_FOLLOW: TerminalSet = TerminalSet {
+    id: 0,
+    terminals: &[TerminalId(4), TerminalId(5), TerminalId(18)],
+};
+// PredictionBeforeFollow : . Identifier !>> Question Question { Identifier }
+pub static FIRST_SET_PREDICTION_BEFORE_FOLLOW_ALT0: TerminalSet = TerminalSet {
+    id: 8,
+    terminals: &[TerminalId(2)],
+};
+// PredictionBeforeFollow : . Identifier !>> Question Question !>> { Question }
+pub static FOLLOW_RESTRICTION_PREDICTION_BEFORE_FOLLOW_ALT0_POS0: TerminalSet = TerminalSet {
+    id: 9,
+    terminals: &[TerminalId(0)],
+};
+// PredictionBeforeFollow : . Identifier MissingSuffix { Identifier }
+pub static FIRST_SET_PREDICTION_BEFORE_FOLLOW_ALT1: TerminalSet = TerminalSet {
+    id: 8,
+    terminals: &[TerminalId(2)],
+};
+// FollowBeforePrediction { WS, Newline, EOF }
+pub static FOLLOW_SET_FOLLOW_BEFORE_PREDICTION: TerminalSet = TerminalSet {
+    id: 0,
+    terminals: &[TerminalId(4), TerminalId(5), TerminalId(18)],
+};
+// FollowBeforePrediction : . Identifier MissingSuffix { Identifier }
+pub static FIRST_SET_FOLLOW_BEFORE_PREDICTION_ALT0: TerminalSet = TerminalSet {
+    id: 8,
+    terminals: &[TerminalId(2)],
+};
+// FollowBeforePrediction : . Identifier !>> Question Question { Identifier }
+pub static FIRST_SET_FOLLOW_BEFORE_PREDICTION_ALT1: TerminalSet = TerminalSet {
+    id: 8,
+    terminals: &[TerminalId(2)],
+};
+// FollowBeforePrediction : . Identifier !>> Question Question !>> { Question }
+pub static FOLLOW_RESTRICTION_FOLLOW_BEFORE_PREDICTION_ALT1_POS0: TerminalSet = TerminalSet {
+    id: 9,
+    terminals: &[TerminalId(0)],
+};
+// MissingSuffix { WS, Newline, EOF }
+pub static FOLLOW_SET_MISSING_SUFFIX: TerminalSet = TerminalSet {
+    id: 0,
+    terminals: &[TerminalId(4), TerminalId(5), TerminalId(18)],
+};
+// SuffixChoice { WS, Newline, EOF }
+pub static FOLLOW_SET_SUFFIX_CHOICE: TerminalSet = TerminalSet {
+    id: 0,
+    terminals: &[TerminalId(4), TerminalId(5), TerminalId(18)],
+};
+// SuffixChoice : . "!" { "!" }
+pub static FIRST_SET_SUFFIX_CHOICE_ALT0: TerminalSet = TerminalSet {
     id: 10,
+    terminals: &[TerminalId(13)],
+};
+// SuffixChoice : . "!" "!" { "!" }
+pub static FIRST_SET_SUFFIX_CHOICE_ALT1: TerminalSet = TerminalSet {
+    id: 10,
+    terminals: &[TerminalId(13)],
+};
+// CallPrediction { WS, Newline, EOF }
+pub static FOLLOW_SET_CALL_PREDICTION: TerminalSet = TerminalSet {
+    id: 0,
+    terminals: &[TerminalId(4), TerminalId(5), TerminalId(18)],
+};
+// CallPrediction : . "1" PrefixX { "1" }
+pub static FIRST_SET_CALL_PREDICTION_ALT0: TerminalSet = TerminalSet {
+    id: 11,
+    terminals: &[TerminalId(14)],
+};
+// CallPrediction : . "2" PrefixW { "2" }
+pub static FIRST_SET_CALL_PREDICTION_ALT1: TerminalSet = TerminalSet {
+    id: 12,
+    terminals: &[TerminalId(15)],
+};
+// PrefixX { WS, Newline, EOF }
+pub static FOLLOW_SET_PREFIX_X: TerminalSet = TerminalSet {
+    id: 0,
+    terminals: &[TerminalId(4), TerminalId(5), TerminalId(18)],
+};
+// PrefixW { WS, Newline, EOF }
+pub static FOLLOW_SET_PREFIX_W: TerminalSet = TerminalSet {
+    id: 0,
+    terminals: &[TerminalId(4), TerminalId(5), TerminalId(18)],
+};
+// NullablePrefix { WS, Newline, "x", "w", EOF }
+pub static FOLLOW_SET_NULLABLE_PREFIX: TerminalSet = TerminalSet {
+    id: 13,
     terminals: &[
-        TerminalId(0),
-        TerminalId(1),
+        TerminalId(4),
         TerminalId(5),
-        TerminalId(6),
-        TerminalId(7),
-        TerminalId(8),
-        TerminalId(9),
         TerminalId(10),
-        TerminalId(11),
-        TerminalId(14),
+        TerminalId(16),
+        TerminalId(18),
     ],
 };
-// Layout : . Star_0 { WS, Newline }
-pub static FIRST_SET_LAYOUT_ALT0: TerminalSet = TerminalSet {
-    id: 11,
-    terminals: &[TerminalId(3), TerminalId(4)],
+// NullablePrefix : . "y" { "y" }
+pub static FIRST_SET_NULLABLE_PREFIX_ALT0: TerminalSet = TerminalSet {
+    id: 14,
+    terminals: &[TerminalId(11)],
 };
-// Alt_0 { Word, Identifier, WS, Newline, "[", "]", "p", "q", "x", "y", "z", EOF }
-pub static FOLLOW_SET_ALT_0: TerminalSet = TerminalSet {
-    id: 12,
+// NullablePrefix : . "y" "y" { "y" }
+pub static FIRST_SET_NULLABLE_PREFIX_ALT1: TerminalSet = TerminalSet {
+    id: 14,
+    terminals: &[TerminalId(11)],
+};
+// NullablePrefix : . { }
+pub static FIRST_SET_NULLABLE_PREFIX_ALT2: TerminalSet = TerminalSet {
+    id: 15,
+    terminals: &[],
+};
+// Layout { Word, Identifier, WS, Newline, "[", "]", "p", "q", "x", "y", "z", "!", "1", "2",
+// "w", EOF }
+pub static FOLLOW_SET_LAYOUT: TerminalSet = TerminalSet {
+    id: 16,
     terminals: &[
-        TerminalId(0),
         TerminalId(1),
-        TerminalId(3),
+        TerminalId(2),
         TerminalId(4),
         TerminalId(5),
         TerminalId(6),
@@ -707,26 +1424,59 @@ pub static FOLLOW_SET_ALT_0: TerminalSet = TerminalSet {
         TerminalId(9),
         TerminalId(10),
         TerminalId(11),
+        TerminalId(12),
+        TerminalId(13),
         TerminalId(14),
+        TerminalId(15),
+        TerminalId(16),
+        TerminalId(18),
+    ],
+};
+// Layout : . Star_0 !>> WS !>> Newline !>> { WS, Newline }
+pub static FOLLOW_RESTRICTION_LAYOUT_ALT0_POS0: TerminalSet = TerminalSet {
+    id: 17,
+    terminals: &[TerminalId(4), TerminalId(5)],
+};
+// Alt_0 { Word, Identifier, WS, Newline, "[", "]", "p", "q", "x", "y", "z", "!", "1", "2",
+// "w", EOF }
+pub static FOLLOW_SET_ALT_0: TerminalSet = TerminalSet {
+    id: 16,
+    terminals: &[
+        TerminalId(1),
+        TerminalId(2),
+        TerminalId(4),
+        TerminalId(5),
+        TerminalId(6),
+        TerminalId(7),
+        TerminalId(8),
+        TerminalId(9),
+        TerminalId(10),
+        TerminalId(11),
+        TerminalId(12),
+        TerminalId(13),
+        TerminalId(14),
+        TerminalId(15),
+        TerminalId(16),
+        TerminalId(18),
     ],
 };
 // Alt_0 : . WS { WS }
 pub static FIRST_SET_ALT_0_ALT0: TerminalSet = TerminalSet {
-    id: 13,
-    terminals: &[TerminalId(3)],
+    id: 18,
+    terminals: &[TerminalId(4)],
 };
 // Alt_0 : . Newline { Newline }
 pub static FIRST_SET_ALT_0_ALT1: TerminalSet = TerminalSet {
-    id: 14,
-    terminals: &[TerminalId(4)],
+    id: 19,
+    terminals: &[TerminalId(5)],
 };
-// Plus_0 { Word, Identifier, WS, Newline, "[", "]", "p", "q", "x", "y", "z", EOF }
+// Plus_0 { Word, Identifier, WS, Newline, "[", "]", "p", "q", "x", "y", "z", "!", "1", "2",
+// "w", EOF }
 pub static FOLLOW_SET_PLUS_0: TerminalSet = TerminalSet {
-    id: 12,
+    id: 16,
     terminals: &[
-        TerminalId(0),
         TerminalId(1),
-        TerminalId(3),
+        TerminalId(2),
         TerminalId(4),
         TerminalId(5),
         TerminalId(6),
@@ -735,276 +1485,308 @@ pub static FOLLOW_SET_PLUS_0: TerminalSet = TerminalSet {
         TerminalId(9),
         TerminalId(10),
         TerminalId(11),
+        TerminalId(12),
+        TerminalId(13),
         TerminalId(14),
+        TerminalId(15),
+        TerminalId(16),
+        TerminalId(18),
     ],
 };
 // Plus_0 : . Plus_0 Alt_0 { WS, Newline }
 pub static FIRST_SET_PLUS_0_ALT0: TerminalSet = TerminalSet {
-    id: 11,
-    terminals: &[TerminalId(3), TerminalId(4)],
+    id: 17,
+    terminals: &[TerminalId(4), TerminalId(5)],
 };
 // Plus_0 : . Alt_0 { WS, Newline }
 pub static FIRST_SET_PLUS_0_ALT1: TerminalSet = TerminalSet {
-    id: 11,
-    terminals: &[TerminalId(3), TerminalId(4)],
+    id: 17,
+    terminals: &[TerminalId(4), TerminalId(5)],
 };
-// Opt_0 { Word, Identifier, "[", "]", "p", "q", "x", "y", "z", EOF }
+// Opt_0 { Word, Identifier, "[", "]", "p", "q", "x", "y", "z", "!", "1", "2", "w", EOF }
 pub static FOLLOW_SET_OPT_0: TerminalSet = TerminalSet {
-    id: 10,
+    id: 20,
     terminals: &[
-        TerminalId(0),
         TerminalId(1),
-        TerminalId(5),
+        TerminalId(2),
         TerminalId(6),
         TerminalId(7),
         TerminalId(8),
         TerminalId(9),
         TerminalId(10),
         TerminalId(11),
+        TerminalId(12),
+        TerminalId(13),
         TerminalId(14),
+        TerminalId(15),
+        TerminalId(16),
+        TerminalId(18),
     ],
 };
 // Opt_0 : . Plus_0 { WS, Newline }
 pub static FIRST_SET_OPT_0_ALT0: TerminalSet = TerminalSet {
-    id: 11,
-    terminals: &[TerminalId(3), TerminalId(4)],
+    id: 17,
+    terminals: &[TerminalId(4), TerminalId(5)],
 };
 // Opt_0 : . { }
 pub static FIRST_SET_OPT_0_ALT1: TerminalSet = TerminalSet {
     id: 15,
     terminals: &[],
 };
-// Star_0 { Word, Identifier, "[", "]", "p", "q", "x", "y", "z", EOF }
+// Star_0 { Word, Identifier, "[", "]", "p", "q", "x", "y", "z", "!", "1", "2", "w", EOF }
 pub static FOLLOW_SET_STAR_0: TerminalSet = TerminalSet {
-    id: 10,
+    id: 20,
     terminals: &[
-        TerminalId(0),
         TerminalId(1),
-        TerminalId(5),
+        TerminalId(2),
         TerminalId(6),
         TerminalId(7),
         TerminalId(8),
         TerminalId(9),
         TerminalId(10),
         TerminalId(11),
+        TerminalId(12),
+        TerminalId(13),
         TerminalId(14),
+        TerminalId(15),
+        TerminalId(16),
+        TerminalId(18),
     ],
-};
-// Star_0 : . Opt_0 { WS, Newline }
-pub static FIRST_SET_STAR_0_ALT0: TerminalSet = TerminalSet {
-    id: 11,
-    terminals: &[TerminalId(3), TerminalId(4)],
 };
 // StartT { EOF }
 pub static FOLLOW_SET_START_T: TerminalSet = TerminalSet {
-    id: 16,
-    terminals: &[TerminalId(14)],
-};
-// StartT : . Layout start:T Layout { WS, Newline, "[" }
-pub static FIRST_SET_START_T_ALT0: TerminalSet = TerminalSet {
-    id: 17,
-    terminals: &[TerminalId(3), TerminalId(4), TerminalId(5)],
+    id: 21,
+    terminals: &[TerminalId(18)],
 };
 // StartU { EOF }
 pub static FOLLOW_SET_START_U: TerminalSet = TerminalSet {
-    id: 16,
-    terminals: &[TerminalId(14)],
-};
-// StartU : . Layout start:U Layout { WS, Newline, "[" }
-pub static FIRST_SET_START_U_ALT0: TerminalSet = TerminalSet {
-    id: 17,
-    terminals: &[TerminalId(3), TerminalId(4), TerminalId(5)],
+    id: 21,
+    terminals: &[TerminalId(18)],
 };
 // StartP { EOF }
 pub static FOLLOW_SET_START_P: TerminalSet = TerminalSet {
-    id: 16,
-    terminals: &[TerminalId(14)],
-};
-// StartP : . Layout start:P Layout { Word, WS, Newline, "p" }
-pub static FIRST_SET_START_P_ALT0: TerminalSet = TerminalSet {
-    id: 18,
-    terminals: &[TerminalId(0), TerminalId(3), TerminalId(4), TerminalId(7)],
+    id: 21,
+    terminals: &[TerminalId(18)],
 };
 // StartQ { EOF }
 pub static FOLLOW_SET_START_Q: TerminalSet = TerminalSet {
-    id: 16,
-    terminals: &[TerminalId(14)],
-};
-// StartQ : . Layout start:Q Layout { WS, Newline, "q" }
-pub static FIRST_SET_START_Q_ALT0: TerminalSet = TerminalSet {
-    id: 19,
-    terminals: &[TerminalId(3), TerminalId(4), TerminalId(8)],
+    id: 21,
+    terminals: &[TerminalId(18)],
 };
 // StartBeforeP { EOF }
 pub static FOLLOW_SET_START_BEFORE_P: TerminalSet = TerminalSet {
-    id: 16,
-    terminals: &[TerminalId(14)],
-};
-// StartBeforeP : . Layout start:BeforeP Layout { WS, Newline, "x" }
-pub static FIRST_SET_START_BEFORE_P_ALT0: TerminalSet = TerminalSet {
-    id: 20,
-    terminals: &[TerminalId(3), TerminalId(4), TerminalId(9)],
+    id: 21,
+    terminals: &[TerminalId(18)],
 };
 // StartBeforeQ { EOF }
 pub static FOLLOW_SET_START_BEFORE_Q: TerminalSet = TerminalSet {
-    id: 16,
-    terminals: &[TerminalId(14)],
-};
-// StartBeforeQ : . Layout start:BeforeQ Layout { WS, Newline, "x" }
-pub static FIRST_SET_START_BEFORE_Q_ALT0: TerminalSet = TerminalSet {
-    id: 20,
-    terminals: &[TerminalId(3), TerminalId(4), TerminalId(9)],
+    id: 21,
+    terminals: &[TerminalId(18)],
 };
 // StartUnexpectedFirst { EOF }
 pub static FOLLOW_SET_START_UNEXPECTED_FIRST: TerminalSet = TerminalSet {
-    id: 16,
-    terminals: &[TerminalId(14)],
-};
-// StartUnexpectedFirst : . Layout start:UnexpectedFirst Layout { Identifier, WS, Newline }
-pub static FIRST_SET_START_UNEXPECTED_FIRST_ALT0: TerminalSet = TerminalSet {
     id: 21,
-    terminals: &[TerminalId(1), TerminalId(3), TerminalId(4)],
+    terminals: &[TerminalId(18)],
 };
 // StartExcludedFirst { EOF }
 pub static FOLLOW_SET_START_EXCLUDED_FIRST: TerminalSet = TerminalSet {
-    id: 16,
-    terminals: &[TerminalId(14)],
-};
-// StartExcludedFirst : . Layout start:ExcludedFirst Layout { Identifier, WS, Newline }
-pub static FIRST_SET_START_EXCLUDED_FIRST_ALT0: TerminalSet = TerminalSet {
     id: 21,
-    terminals: &[TerminalId(1), TerminalId(3), TerminalId(4)],
+    terminals: &[TerminalId(18)],
 };
-// T { "[" }
-pub static FIRST_SET_T: TerminalSet = TerminalSet {
+// StartPredictionBeforeExcept { EOF }
+pub static FOLLOW_SET_START_PREDICTION_BEFORE_EXCEPT: TerminalSet = TerminalSet {
+    id: 21,
+    terminals: &[TerminalId(18)],
+};
+// StartExceptBeforePrediction { EOF }
+pub static FOLLOW_SET_START_EXCEPT_BEFORE_PREDICTION: TerminalSet = TerminalSet {
+    id: 21,
+    terminals: &[TerminalId(18)],
+};
+// StartPredictionBeforeFollow { EOF }
+pub static FOLLOW_SET_START_PREDICTION_BEFORE_FOLLOW: TerminalSet = TerminalSet {
+    id: 21,
+    terminals: &[TerminalId(18)],
+};
+// StartFollowBeforePrediction { EOF }
+pub static FOLLOW_SET_START_FOLLOW_BEFORE_PREDICTION: TerminalSet = TerminalSet {
+    id: 21,
+    terminals: &[TerminalId(18)],
+};
+// StartMissingSuffix { EOF }
+pub static FOLLOW_SET_START_MISSING_SUFFIX: TerminalSet = TerminalSet {
+    id: 21,
+    terminals: &[TerminalId(18)],
+};
+// StartSuffixChoice { EOF }
+pub static FOLLOW_SET_START_SUFFIX_CHOICE: TerminalSet = TerminalSet {
+    id: 21,
+    terminals: &[TerminalId(18)],
+};
+// StartCallPrediction { EOF }
+pub static FOLLOW_SET_START_CALL_PREDICTION: TerminalSet = TerminalSet {
+    id: 21,
+    terminals: &[TerminalId(18)],
+};
+// StartPrefixX { EOF }
+pub static FOLLOW_SET_START_PREFIX_X: TerminalSet = TerminalSet {
+    id: 21,
+    terminals: &[TerminalId(18)],
+};
+// StartPrefixW { EOF }
+pub static FOLLOW_SET_START_PREFIX_W: TerminalSet = TerminalSet {
+    id: 21,
+    terminals: &[TerminalId(18)],
+};
+// StartNullablePrefix { EOF }
+pub static FOLLOW_SET_START_NULLABLE_PREFIX: TerminalSet = TerminalSet {
+    id: 21,
+    terminals: &[TerminalId(18)],
+};
+// T prediction { "[" }
+pub static PREDICTION_SET_T: TerminalSet = TerminalSet {
+    id: 1,
+    terminals: &[TerminalId(6)],
+};
+// U prediction { "[" }
+pub static PREDICTION_SET_U: TerminalSet = TerminalSet {
+    id: 1,
+    terminals: &[TerminalId(6)],
+};
+// P prediction { Word, "p" }
+pub static PREDICTION_SET_P: TerminalSet = TerminalSet {
     id: 22,
-    terminals: &[TerminalId(5)],
+    terminals: &[TerminalId(1), TerminalId(8)],
 };
-// U { "[" }
-pub static FIRST_SET_U: TerminalSet = TerminalSet {
-    id: 22,
-    terminals: &[TerminalId(5)],
+// BeforeP prediction { "x" }
+pub static PREDICTION_SET_BEFORE_P: TerminalSet = TerminalSet {
+    id: 6,
+    terminals: &[TerminalId(10)],
 };
-// P { Word, "p" }
-pub static FIRST_SET_P: TerminalSet = TerminalSet {
+// BeforeQ prediction { "x" }
+pub static PREDICTION_SET_BEFORE_Q: TerminalSet = TerminalSet {
+    id: 6,
+    terminals: &[TerminalId(10)],
+};
+// UnexpectedFirst prediction { Identifier }
+pub static PREDICTION_SET_UNEXPECTED_FIRST: TerminalSet = TerminalSet {
+    id: 8,
+    terminals: &[TerminalId(2)],
+};
+// ExcludedFirst prediction { Identifier }
+pub static PREDICTION_SET_EXCLUDED_FIRST: TerminalSet = TerminalSet {
+    id: 8,
+    terminals: &[TerminalId(2)],
+};
+// PredictionBeforeExcept prediction { Identifier }
+pub static PREDICTION_SET_PREDICTION_BEFORE_EXCEPT: TerminalSet = TerminalSet {
+    id: 8,
+    terminals: &[TerminalId(2)],
+};
+// ExceptBeforePrediction prediction { Identifier }
+pub static PREDICTION_SET_EXCEPT_BEFORE_PREDICTION: TerminalSet = TerminalSet {
+    id: 8,
+    terminals: &[TerminalId(2)],
+};
+// PredictionBeforeFollow prediction { Identifier }
+pub static PREDICTION_SET_PREDICTION_BEFORE_FOLLOW: TerminalSet = TerminalSet {
+    id: 8,
+    terminals: &[TerminalId(2)],
+};
+// FollowBeforePrediction prediction { Identifier }
+pub static PREDICTION_SET_FOLLOW_BEFORE_PREDICTION: TerminalSet = TerminalSet {
+    id: 8,
+    terminals: &[TerminalId(2)],
+};
+// MissingSuffix prediction { "!" }
+pub static PREDICTION_SET_MISSING_SUFFIX: TerminalSet = TerminalSet {
+    id: 10,
+    terminals: &[TerminalId(13)],
+};
+// SuffixChoice prediction { "!" }
+pub static PREDICTION_SET_SUFFIX_CHOICE: TerminalSet = TerminalSet {
+    id: 10,
+    terminals: &[TerminalId(13)],
+};
+// CallPrediction prediction { "1", "2" }
+pub static PREDICTION_SET_CALL_PREDICTION: TerminalSet = TerminalSet {
     id: 23,
-    terminals: &[TerminalId(0), TerminalId(7)],
+    terminals: &[TerminalId(14), TerminalId(15)],
+};
+// PrefixX prediction { "x", "y" }
+pub static PREDICTION_SET_PREFIX_X: TerminalSet = TerminalSet {
+    id: 24,
+    terminals: &[TerminalId(10), TerminalId(11)],
+};
+// PrefixW prediction { "y", "w" }
+pub static PREDICTION_SET_PREFIX_W: TerminalSet = TerminalSet {
+    id: 25,
+    terminals: &[TerminalId(11), TerminalId(16)],
+};
+// NullablePrefix prediction { WS, Newline, "x", "y", "w", EOF }
+pub static PREDICTION_SET_NULLABLE_PREFIX: TerminalSet = TerminalSet {
+    id: 26,
+    terminals: &[
+        TerminalId(4),
+        TerminalId(5),
+        TerminalId(10),
+        TerminalId(11),
+        TerminalId(16),
+        TerminalId(18),
+    ],
 };
 // Q { "q" }
 pub static FIRST_SET_Q: TerminalSet = TerminalSet {
-    id: 24,
-    terminals: &[TerminalId(8)],
-};
-// BeforeP { "x" }
-pub static FIRST_SET_BEFORE_P: TerminalSet = TerminalSet {
-    id: 25,
+    id: 27,
     terminals: &[TerminalId(9)],
-};
-// BeforeQ { "x" }
-pub static FIRST_SET_BEFORE_Q: TerminalSet = TerminalSet {
-    id: 25,
-    terminals: &[TerminalId(9)],
-};
-// UnexpectedFirst { Identifier }
-pub static FIRST_SET_UNEXPECTED_FIRST: TerminalSet = TerminalSet {
-    id: 26,
-    terminals: &[TerminalId(1)],
-};
-// ExcludedFirst { Identifier }
-pub static FIRST_SET_EXCLUDED_FIRST: TerminalSet = TerminalSet {
-    id: 26,
-    terminals: &[TerminalId(1)],
 };
 // Layout { WS, Newline }
 pub static FIRST_SET_LAYOUT: TerminalSet = TerminalSet {
-    id: 27,
-    terminals: &[TerminalId(3), TerminalId(4)],
+    id: 28,
+    terminals: &[TerminalId(4), TerminalId(5)],
 };
 // Alt_0 { WS, Newline }
 pub static FIRST_SET_ALT_0: TerminalSet = TerminalSet {
-    id: 27,
-    terminals: &[TerminalId(3), TerminalId(4)],
+    id: 28,
+    terminals: &[TerminalId(4), TerminalId(5)],
 };
 // Plus_0 { WS, Newline }
 pub static FIRST_SET_PLUS_0: TerminalSet = TerminalSet {
-    id: 27,
-    terminals: &[TerminalId(3), TerminalId(4)],
-};
-// Opt_0 prediction { WS, Newline, Word, Identifier, "[", "]", "p", "q", "x", "y", "z", EOF }
-pub static PREDICTION_SET_OPT_0: TerminalSet = TerminalSet {
     id: 28,
-    terminals: &[
-        TerminalId(3),
-        TerminalId(4),
-        TerminalId(0),
-        TerminalId(1),
-        TerminalId(5),
-        TerminalId(6),
-        TerminalId(7),
-        TerminalId(8),
-        TerminalId(9),
-        TerminalId(10),
-        TerminalId(11),
-        TerminalId(14),
-    ],
+    terminals: &[TerminalId(4), TerminalId(5)],
 };
 // Opt_0 { WS, Newline }
 pub static FIRST_SET_OPT_0: TerminalSet = TerminalSet {
-    id: 27,
-    terminals: &[TerminalId(3), TerminalId(4)],
+    id: 28,
+    terminals: &[TerminalId(4), TerminalId(5)],
 };
 // Star_0 { WS, Newline }
 pub static FIRST_SET_STAR_0: TerminalSet = TerminalSet {
-    id: 27,
-    terminals: &[TerminalId(3), TerminalId(4)],
-};
-// StartT { WS, Newline, "[" }
-pub static FIRST_SET_START_T: TerminalSet = TerminalSet {
-    id: 29,
-    terminals: &[TerminalId(3), TerminalId(4), TerminalId(5)],
-};
-// StartU { WS, Newline, "[" }
-pub static FIRST_SET_START_U: TerminalSet = TerminalSet {
-    id: 29,
-    terminals: &[TerminalId(3), TerminalId(4), TerminalId(5)],
-};
-// StartP { Word, WS, Newline, "p" }
-pub static FIRST_SET_START_P: TerminalSet = TerminalSet {
-    id: 30,
-    terminals: &[TerminalId(0), TerminalId(3), TerminalId(4), TerminalId(7)],
+    id: 28,
+    terminals: &[TerminalId(4), TerminalId(5)],
 };
 // StartQ { WS, Newline, "q" }
 pub static FIRST_SET_START_Q: TerminalSet = TerminalSet {
-    id: 31,
-    terminals: &[TerminalId(3), TerminalId(4), TerminalId(8)],
-};
-// StartBeforeP { WS, Newline, "x" }
-pub static FIRST_SET_START_BEFORE_P: TerminalSet = TerminalSet {
-    id: 32,
-    terminals: &[TerminalId(3), TerminalId(4), TerminalId(9)],
-};
-// StartBeforeQ { WS, Newline, "x" }
-pub static FIRST_SET_START_BEFORE_Q: TerminalSet = TerminalSet {
-    id: 32,
-    terminals: &[TerminalId(3), TerminalId(4), TerminalId(9)],
-};
-// StartUnexpectedFirst { Identifier, WS, Newline }
-pub static FIRST_SET_START_UNEXPECTED_FIRST: TerminalSet = TerminalSet {
-    id: 33,
-    terminals: &[TerminalId(1), TerminalId(3), TerminalId(4)],
-};
-// StartExcludedFirst { Identifier, WS, Newline }
-pub static FIRST_SET_START_EXCLUDED_FIRST: TerminalSet = TerminalSet {
-    id: 33,
-    terminals: &[TerminalId(1), TerminalId(3), TerminalId(4)],
+    id: 29,
+    terminals: &[TerminalId(4), TerminalId(5), TerminalId(9)],
 };
 // UnexpectedFirst : . Identifier \ Keyword \ { Keyword }
 pub static EXCEPT_UNEXPECTED_FIRST_ALT0_POS0: TerminalSet = TerminalSet {
-    id: 34,
-    terminals: &[TerminalId(2)],
+    id: 30,
+    terminals: &[TerminalId(3)],
 };
 // ExcludedFirst : . Identifier \ Keyword \ { Keyword }
 pub static EXCEPT_EXCLUDED_FIRST_ALT1_POS0: TerminalSet = TerminalSet {
-    id: 34,
-    terminals: &[TerminalId(2)],
+    id: 30,
+    terminals: &[TerminalId(3)],
+};
+// PredictionBeforeExcept : . Identifier \ Keyword \ { Keyword }
+pub static EXCEPT_PREDICTION_BEFORE_EXCEPT_ALT0_POS0: TerminalSet = TerminalSet {
+    id: 30,
+    terminals: &[TerminalId(3)],
+};
+// ExceptBeforePrediction : . Identifier \ Keyword \ { Keyword }
+pub static EXCEPT_EXCEPT_BEFORE_PREDICTION_ALT1_POS0: TerminalSet = TerminalSet {
+    id: 30,
+    terminals: &[TerminalId(3)],
 };

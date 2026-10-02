@@ -18,6 +18,8 @@ pub struct Terminal {
 /// holds only the information the runtime needs.
 pub struct Slot {
     pub display_name: &'static str,
+    /// The number of symbols before the slot in its alternative.
+    pub position: u16,
 }
 
 /// The runtime's view of `iguana_compiler::grammar::def::Grammar`. It holds
@@ -83,6 +85,16 @@ pub trait Grammar {
 
     fn slot_name(slot_id: SlotId) -> &'static str {
         Self::SLOTS[slot_id.index()].display_name
+    }
+
+    /// The id of the previous slot. To get the previous slot, we need to move
+    /// the dot one symbol back in an alternative. For example, for
+    /// `S = A . B C`, the previous slot is `S = . A B C`. Returns `None` when
+    /// the dot is at position 0. The generator numbers the slots of an
+    /// alternative consecutively in position order, so the earlier slot is the
+    /// one with the next lower id.
+    fn previous_slot(slot_id: SlotId) -> Option<SlotId> {
+        (Self::SLOTS[slot_id.index()].position > 0).then(|| SlotId(slot_id.0 - 1))
     }
 
     /// The synthetic epsilon terminal.

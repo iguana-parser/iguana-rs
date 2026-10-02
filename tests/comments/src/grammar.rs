@@ -35,57 +35,75 @@ impl Grammar for CommentsGrammar {
     const SLOTS: &'static [Slot] = &[
         Slot {
             display_name: "Expr : . Expr Layout \"+\" Layout Expr",
+            position: 0,
         },
         Slot {
             display_name: "Expr : Expr . Layout \"+\" Layout Expr",
+            position: 1,
         },
         Slot {
             display_name: "Expr : Expr Layout . \"+\" Layout Expr",
+            position: 2,
         },
         Slot {
             display_name: "Expr : Expr Layout \"+\" . Layout Expr",
+            position: 3,
         },
         Slot {
             display_name: "Expr : Expr Layout \"+\" Layout . Expr",
+            position: 4,
         },
         Slot {
             display_name: "Expr : Expr Layout \"+\" Layout Expr.",
+            position: 5,
         },
         Slot {
             display_name: "Expr : . Expr Layout \"*\" Layout Expr",
+            position: 0,
         },
         Slot {
             display_name: "Expr : Expr . Layout \"*\" Layout Expr",
+            position: 1,
         },
         Slot {
             display_name: "Expr : Expr Layout . \"*\" Layout Expr",
+            position: 2,
         },
         Slot {
             display_name: "Expr : Expr Layout \"*\" . Layout Expr",
+            position: 3,
         },
         Slot {
             display_name: "Expr : Expr Layout \"*\" Layout . Expr",
+            position: 4,
         },
         Slot {
             display_name: "Expr : Expr Layout \"*\" Layout Expr.",
+            position: 5,
         },
         Slot {
             display_name: "Expr : . \"x\"",
+            position: 0,
         },
         Slot {
             display_name: "Expr : \"x\".",
+            position: 1,
         },
         Slot {
             display_name: "Expr : . Layout start:Expr Layout",
+            position: 0,
         },
         Slot {
             display_name: "Expr : Layout . start:Expr Layout",
+            position: 1,
         },
         Slot {
             display_name: "Expr : Layout start:Expr . Layout",
+            position: 2,
         },
         Slot {
             display_name: "Expr : Layout start:Expr Layout.",
+            position: 3,
         },
     ];
     const LAYOUT_NAME: Option<&'static str> = Some("Layout");
@@ -95,39 +113,39 @@ impl Grammar for CommentsGrammar {
     // by terminal id, serves only that.
     const SINGLE_TERMINAL_SETS: &'static [TerminalSet] = &[
         TerminalSet {
-            id: 6,
+            id: 3,
             terminals: &[TerminalId(0)],
         },
         TerminalSet {
-            id: 7,
+            id: 4,
             terminals: &[TerminalId(1)],
         },
         TerminalSet {
-            id: 8,
+            id: 5,
             terminals: &[TerminalId(2)],
         },
         TerminalSet {
-            id: 9,
+            id: 6,
             terminals: &[TerminalId(3)],
         },
         TerminalSet {
-            id: 10,
+            id: 7,
             terminals: &[TerminalId(4)],
         },
         TerminalSet {
-            id: 11,
+            id: 8,
             terminals: &[TerminalId(5)],
         },
         TerminalSet {
-            id: 12,
+            id: 9,
             terminals: &[TerminalId(6)],
         },
         TerminalSet {
-            id: 13,
+            id: 10,
             terminals: &[TerminalId(7)],
         },
         TerminalSet {
-            id: 14,
+            id: 11,
             terminals: &[TerminalId(8)],
         },
     ];
@@ -164,18 +182,8 @@ pub static FOLLOW_SET_START_EXPR: TerminalSet = TerminalSet {
     id: 2,
     terminals: &[TerminalId(8)],
 };
-// StartExpr : . Layout start:Expr Layout { Layout, "x" }
-pub static FIRST_SET_START_EXPR_ALT0: TerminalSet = TerminalSet {
-    id: 3,
-    terminals: &[TerminalId(0), TerminalId(6)],
-};
-// Expr { "x" }
-pub static FIRST_SET_EXPR: TerminalSet = TerminalSet {
-    id: 4,
+// Expr prediction { "x" }
+pub static PREDICTION_SET_EXPR: TerminalSet = TerminalSet {
+    id: 1,
     terminals: &[TerminalId(6)],
-};
-// StartExpr { Layout, "x" }
-pub static FIRST_SET_START_EXPR: TerminalSet = TerminalSet {
-    id: 5,
-    terminals: &[TerminalId(0), TerminalId(6)],
 };

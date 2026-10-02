@@ -24,7 +24,7 @@ pub fn generate(
     let match_any_words = gen_match_any_words_const(match_any_count, config);
     let dfa_statics = gen_dfa_statics(grammar, terminal_ids);
     let scanner_struct = gen_scanner_struct(grammar_name, config);
-    let scanner_impl = gen_scanner_imp(grammar, terminal_ids, config);
+    let scanner_impl = gen_scanner_imp(grammar, terminal_ids, match_any_count, config);
     let scanner_trait_impl = gen_scanner_trait_impl(grammar, terminal_ids, config);
     quote! {
         #imports
@@ -182,6 +182,7 @@ fn gen_dfa_static(id: u16, dfa: &Dfa) -> TokenStream {
 fn gen_scanner_imp(
     grammar: &Grammar,
     terminal_ids: &TerminalIds,
+    match_any_count: usize,
     config: &GenConfig,
 ) -> TokenStream {
     let name_ident = scanner_ident(&grammar.name);
@@ -209,7 +210,7 @@ fn gen_scanner_imp(
             quote! { Self { input } },
         )
     };
-    let match_any_method = gen_match_any_method(config);
+    let match_any_method = gen_match_any_method(match_any_count, config);
     let match_exact_method = gen_match_exact_method(grammar, terminal_ids);
     quote! {
         impl #impl_generics #name_ident #ty_generics {
@@ -268,12 +269,18 @@ fn gen_match_exact_method(grammar: &Grammar, terminal_ids: &TerminalIds) -> Toke
     }
 }
 
-fn gen_match_any_method(config: &GenConfig) -> TokenStream {
+fn gen_match_any_method(match_any_count: usize, config: &GenConfig) -> TokenStream {
     if config.match_memo {
+        let match_any_count = Literal::usize_unsuffixed(match_any_count);
         quote! {
             #[comment = "Whether any terminal in `set` matches at `input_index`, cached by the set's memo id. The
                          first query of a set at a position scans it; later queries return the cached bit."]
             pub fn match_any(&mut self, set: &TerminalSet, input_index: u32) -> bool {
+                debug_assert!(
+                    set.id < #match_any_count,
+                    "terminal set {} does not have a match_any memo id",
+                    set.id,
+                );
                 if let Some(matched) = self.match_any_memo.get(set.id, input_index) {
                     return matched;
                 }

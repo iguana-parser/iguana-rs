@@ -62,90 +62,119 @@ impl Grammar for TokenOnlyUnsafeGrammar {
     const SLOTS: &'static [Slot] = &[
         Slot {
             display_name: "S : . Mod WS Empty WS Tag",
+            position: 0,
         },
         Slot {
             display_name: "S : Mod . WS Empty WS Tag",
+            position: 1,
         },
         Slot {
             display_name: "S : Mod WS . Empty WS Tag",
+            position: 2,
         },
         Slot {
             display_name: "S : Mod WS Empty . WS Tag",
+            position: 3,
         },
         Slot {
             display_name: "S : Mod WS Empty WS . Tag",
+            position: 4,
         },
         Slot {
             display_name: "S : Mod WS Empty WS Tag.",
+            position: 5,
         },
         Slot {
             display_name: "Mod : . \"public\"",
+            position: 0,
         },
         Slot {
             display_name: "Mod : \"public\".",
+            position: 1,
         },
         Slot {
             display_name: "Mod : . \"static\"",
+            position: 0,
         },
         Slot {
             display_name: "Mod : \"static\".",
+            position: 1,
         },
         Slot {
             display_name: "Empty : .",
+            position: 0,
         },
         Slot {
             display_name: "Tag : . Id",
+            position: 0,
         },
         Slot {
             display_name: "Tag : Id.",
+            position: 1,
         },
         Slot {
             display_name: "S : . WS start:S WS",
+            position: 0,
         },
         Slot {
             display_name: "S : WS . start:S WS",
+            position: 1,
         },
         Slot {
             display_name: "S : WS start:S . WS",
+            position: 2,
         },
         Slot {
             display_name: "S : WS start:S WS.",
+            position: 3,
         },
         Slot {
             display_name: "Mod : . WS start:Mod WS",
+            position: 0,
         },
         Slot {
             display_name: "Mod : WS . start:Mod WS",
+            position: 1,
         },
         Slot {
             display_name: "Mod : WS start:Mod . WS",
+            position: 2,
         },
         Slot {
             display_name: "Mod : WS start:Mod WS.",
+            position: 3,
         },
         Slot {
             display_name: "Empty : . WS start:Empty WS",
+            position: 0,
         },
         Slot {
             display_name: "Empty : WS . start:Empty WS",
+            position: 1,
         },
         Slot {
             display_name: "Empty : WS start:Empty . WS",
+            position: 2,
         },
         Slot {
             display_name: "Empty : WS start:Empty WS.",
+            position: 3,
         },
         Slot {
             display_name: "Tag : . WS start:Tag WS",
+            position: 0,
         },
         Slot {
             display_name: "Tag : WS . start:Tag WS",
+            position: 1,
         },
         Slot {
             display_name: "Tag : WS start:Tag . WS",
+            position: 2,
         },
         Slot {
             display_name: "Tag : WS start:Tag WS.",
+            position: 3,
         },
     ];
     const LAYOUT_NAME: Option<&'static str> = Some("WS");
@@ -155,27 +184,27 @@ impl Grammar for TokenOnlyUnsafeGrammar {
     // by terminal id, serves only that.
     const SINGLE_TERMINAL_SETS: &'static [TerminalSet] = &[
         TerminalSet {
-            id: 17,
+            id: 11,
             terminals: &[TerminalId(0)],
         },
         TerminalSet {
-            id: 18,
+            id: 12,
             terminals: &[TerminalId(1)],
         },
         TerminalSet {
-            id: 19,
+            id: 13,
             terminals: &[TerminalId(2)],
         },
         TerminalSet {
-            id: 20,
+            id: 14,
             terminals: &[TerminalId(3)],
         },
         TerminalSet {
-            id: 21,
+            id: 15,
             terminals: &[TerminalId(4)],
         },
         TerminalSet {
-            id: 22,
+            id: 16,
             terminals: &[TerminalId(5)],
         },
     ];
@@ -198,123 +227,88 @@ pub static FOLLOW_SET_S: TerminalSet = TerminalSet {
     id: 0,
     terminals: &[TerminalId(1), TerminalId(5)],
 };
-// S : . Mod WS Empty WS Tag { "public", "static" }
-pub static FIRST_SET_S_ALT0: TerminalSet = TerminalSet {
-    id: 1,
-    terminals: &[TerminalId(2), TerminalId(3)],
-};
 // Mod { Id, WS, EOF }
 pub static FOLLOW_SET_MOD: TerminalSet = TerminalSet {
-    id: 2,
+    id: 1,
     terminals: &[TerminalId(0), TerminalId(1), TerminalId(5)],
 };
 // Mod : . "public" { "public" }
 pub static FIRST_SET_MOD_ALT0: TerminalSet = TerminalSet {
-    id: 3,
+    id: 2,
     terminals: &[TerminalId(2)],
 };
 // Mod : . "static" { "static" }
 pub static FIRST_SET_MOD_ALT1: TerminalSet = TerminalSet {
-    id: 4,
+    id: 3,
     terminals: &[TerminalId(3)],
 };
 // Empty { Id, WS, EOF }
 pub static FOLLOW_SET_EMPTY: TerminalSet = TerminalSet {
-    id: 2,
+    id: 1,
     terminals: &[TerminalId(0), TerminalId(1), TerminalId(5)],
-};
-// Empty : . { }
-pub static FIRST_SET_EMPTY_ALT0: TerminalSet = TerminalSet {
-    id: 5,
-    terminals: &[],
 };
 // Tag { WS, EOF }
 pub static FOLLOW_SET_TAG: TerminalSet = TerminalSet {
     id: 0,
     terminals: &[TerminalId(1), TerminalId(5)],
 };
-// Tag : . Id { Id }
-pub static FIRST_SET_TAG_ALT0: TerminalSet = TerminalSet {
-    id: 6,
-    terminals: &[TerminalId(0)],
-};
 // StartS { EOF }
 pub static FOLLOW_SET_START_S: TerminalSet = TerminalSet {
-    id: 7,
+    id: 4,
     terminals: &[TerminalId(5)],
-};
-// StartS : . WS start:S WS { WS, "public", "static" }
-pub static FIRST_SET_START_S_ALT0: TerminalSet = TerminalSet {
-    id: 8,
-    terminals: &[TerminalId(1), TerminalId(2), TerminalId(3)],
 };
 // StartMod { EOF }
 pub static FOLLOW_SET_START_MOD: TerminalSet = TerminalSet {
-    id: 7,
+    id: 4,
     terminals: &[TerminalId(5)],
-};
-// StartMod : . WS start:Mod WS { WS, "public", "static" }
-pub static FIRST_SET_START_MOD_ALT0: TerminalSet = TerminalSet {
-    id: 8,
-    terminals: &[TerminalId(1), TerminalId(2), TerminalId(3)],
 };
 // StartEmpty { EOF }
 pub static FOLLOW_SET_START_EMPTY: TerminalSet = TerminalSet {
-    id: 7,
+    id: 4,
     terminals: &[TerminalId(5)],
-};
-// StartEmpty : . WS start:Empty WS { WS }
-pub static FIRST_SET_START_EMPTY_ALT0: TerminalSet = TerminalSet {
-    id: 9,
-    terminals: &[TerminalId(1)],
 };
 // StartTag { EOF }
 pub static FOLLOW_SET_START_TAG: TerminalSet = TerminalSet {
-    id: 7,
+    id: 4,
     terminals: &[TerminalId(5)],
-};
-// StartTag : . WS start:Tag WS { Id, WS }
-pub static FIRST_SET_START_TAG_ALT0: TerminalSet = TerminalSet {
-    id: 10,
-    terminals: &[TerminalId(0), TerminalId(1)],
 };
 // S { "public", "static" }
 pub static FIRST_SET_S: TerminalSet = TerminalSet {
-    id: 11,
+    id: 5,
     terminals: &[TerminalId(2), TerminalId(3)],
 };
 // Mod { "public", "static" }
 pub static FIRST_SET_MOD: TerminalSet = TerminalSet {
-    id: 11,
+    id: 5,
     terminals: &[TerminalId(2), TerminalId(3)],
 };
 // Empty { }
 pub static FIRST_SET_EMPTY: TerminalSet = TerminalSet {
-    id: 12,
+    id: 6,
     terminals: &[],
 };
 // Tag { Id }
 pub static FIRST_SET_TAG: TerminalSet = TerminalSet {
-    id: 13,
+    id: 7,
     terminals: &[TerminalId(0)],
 };
 // StartS { WS, "public", "static" }
 pub static FIRST_SET_START_S: TerminalSet = TerminalSet {
-    id: 14,
+    id: 8,
     terminals: &[TerminalId(1), TerminalId(2), TerminalId(3)],
 };
 // StartMod { WS, "public", "static" }
 pub static FIRST_SET_START_MOD: TerminalSet = TerminalSet {
-    id: 14,
+    id: 8,
     terminals: &[TerminalId(1), TerminalId(2), TerminalId(3)],
 };
 // StartEmpty { WS }
 pub static FIRST_SET_START_EMPTY: TerminalSet = TerminalSet {
-    id: 15,
+    id: 9,
     terminals: &[TerminalId(1)],
 };
 // StartTag { Id, WS }
 pub static FIRST_SET_START_TAG: TerminalSet = TerminalSet {
-    id: 16,
+    id: 10,
     terminals: &[TerminalId(0), TerminalId(1)],
 };

@@ -81,6 +81,16 @@ impl<'arena, T, const MULTIPLE_CAPACITY: usize> InlineVec<'arena, T, MULTIPLE_CA
         }
     }
 
+    pub fn last(&self) -> Option<&T> {
+        match self {
+            InlineVec::Empty => None,
+            InlineVec::Single(v) => Some(v),
+            InlineVec::Pair(_, last) => Some(last),
+            InlineVec::Triple(_, _, last) => Some(last),
+            InlineVec::Multiple(v) => v.last(),
+        }
+    }
+
     pub fn get(&self, index: usize) -> Option<&T> {
         match self {
             InlineVec::Empty => None,
@@ -262,6 +272,17 @@ mod tests {
     fn test_pair_first() {
         let l: InlineVec<i32, 8> = InlineVec::Pair(1, 2);
         assert_eq!(l.first(), Some(&1));
+    }
+
+    #[test]
+    fn last_covers_every_representation() {
+        let arena = Arena::new();
+        let mut l: InlineVec<i32, 8> = InlineVec::default();
+        assert_eq!(l.last(), None);
+        for i in 1..=5 {
+            l.push(i, &arena);
+            assert_eq!(l.last(), Some(&i));
+        }
     }
 
     #[test]

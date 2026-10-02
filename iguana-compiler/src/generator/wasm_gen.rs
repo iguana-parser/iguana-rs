@@ -24,6 +24,7 @@ pub fn generate(grammar: &Grammar) -> TokenStream {
             grammar::Grammar,
             input::Input,
             parse_tree::to_json,
+            parser::Parser,
         };
         use #grammar_name::{#grammar_type, #parser};
 
@@ -40,7 +41,7 @@ pub fn generate(grammar: &Grammar) -> TokenStream {
             let tree_arena = Arena::new();
             let parser_arena = Arena::new();
             let parser = #parser::new(&input, &parser_arena);
-            let envelope = match parser.parse(start_nonterminal_id, &tree_arena) {
+            let envelope = match Parser::parse(parser, start_nonterminal_id, &tree_arena) {
                 Ok(success) => ParseOutput {
                     error: None,
                     parse_ms: Some(success.parse_duration.as_millis() as u32),

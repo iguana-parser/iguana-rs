@@ -29,24 +29,31 @@ impl Grammar for LeftRecursiveListGrammar {
     const SLOTS: &'static [Slot] = &[
         Slot {
             display_name: "A : . A \"a\"",
+            position: 0,
         },
         Slot {
             display_name: "A : A . \"a\"",
+            position: 1,
         },
         Slot {
             display_name: "A : A \"a\".",
+            position: 2,
         },
         Slot {
             display_name: "A : . \"a\"",
+            position: 0,
         },
         Slot {
             display_name: "A : \"a\".",
+            position: 1,
         },
         Slot {
             display_name: "A : . start:A",
+            position: 0,
         },
         Slot {
             display_name: "A : start:A.",
+            position: 1,
         },
     ];
     const LAYOUT_NAME: Option<&'static str> = None;
@@ -56,15 +63,15 @@ impl Grammar for LeftRecursiveListGrammar {
     // by terminal id, serves only that.
     const SINGLE_TERMINAL_SETS: &'static [TerminalSet] = &[
         TerminalSet {
-            id: 4,
+            id: 3,
             terminals: &[TerminalId(0)],
         },
         TerminalSet {
-            id: 5,
+            id: 4,
             terminals: &[TerminalId(1)],
         },
         TerminalSet {
-            id: 6,
+            id: 5,
             terminals: &[TerminalId(2)],
         },
     ];
@@ -96,18 +103,8 @@ pub static FOLLOW_SET_START_A: TerminalSet = TerminalSet {
     id: 2,
     terminals: &[TerminalId(2)],
 };
-// StartA : . start:A { "a" }
-pub static FIRST_SET_START_A_ALT0: TerminalSet = TerminalSet {
+// A prediction { "a" }
+pub static PREDICTION_SET_A: TerminalSet = TerminalSet {
     id: 1,
-    terminals: &[TerminalId(0)],
-};
-// A { "a" }
-pub static FIRST_SET_A: TerminalSet = TerminalSet {
-    id: 3,
-    terminals: &[TerminalId(0)],
-};
-// StartA { "a" }
-pub static FIRST_SET_START_A: TerminalSet = TerminalSet {
-    id: 3,
     terminals: &[TerminalId(0)],
 };

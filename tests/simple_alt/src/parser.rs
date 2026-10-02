@@ -93,13 +93,10 @@ impl<'i, 'arena> Parser<'i, 'arena> for SimpleAltParser<'i, 'arena> {
                     }
                     // A : B Alt_0.
                     SlotId(2) => {
-                        let nonterminal_node_id = self.create_nonterminal_node(
-                            result,
-                            NonterminalId(0),
-                            SlotId(2),
-                            gss_node_id,
-                        );
-                        self.pop(gss_node_id, SlotId(2), nonterminal_node_id, None);
+                        let Some(result) = result else {
+                            unreachable!("result cannot be None here.")
+                        };
+                        self.pop(gss_node_id, SlotId(2), result, None, &FOLLOW_SET_A);
                     }
                     // B : . "b"
                     SlotId(3) => {
@@ -117,13 +114,10 @@ impl<'i, 'arena> Parser<'i, 'arena> for SimpleAltParser<'i, 'arena> {
                     }
                     // B : "b".
                     SlotId(4) => {
-                        let nonterminal_node_id = self.create_nonterminal_node(
-                            result,
-                            NonterminalId(1),
-                            SlotId(4),
-                            gss_node_id,
-                        );
-                        self.pop(gss_node_id, SlotId(4), nonterminal_node_id, None);
+                        let Some(result) = result else {
+                            unreachable!("result cannot be None here.")
+                        };
+                        self.pop(gss_node_id, SlotId(4), result, None, &FOLLOW_SET_B);
                     }
                     // C : . "c"
                     SlotId(5) => {
@@ -141,13 +135,10 @@ impl<'i, 'arena> Parser<'i, 'arena> for SimpleAltParser<'i, 'arena> {
                     }
                     // C : "c".
                     SlotId(6) => {
-                        let nonterminal_node_id = self.create_nonterminal_node(
-                            result,
-                            NonterminalId(2),
-                            SlotId(6),
-                            gss_node_id,
-                        );
-                        self.pop(gss_node_id, SlotId(6), nonterminal_node_id, None);
+                        let Some(result) = result else {
+                            unreachable!("result cannot be None here.")
+                        };
+                        self.pop(gss_node_id, SlotId(6), result, None, &FOLLOW_SET_C);
                     }
                     // D : . "d"
                     SlotId(7) => {
@@ -165,13 +156,10 @@ impl<'i, 'arena> Parser<'i, 'arena> for SimpleAltParser<'i, 'arena> {
                     }
                     // D : "d".
                     SlotId(8) => {
-                        let nonterminal_node_id = self.create_nonterminal_node(
-                            result,
-                            NonterminalId(3),
-                            SlotId(8),
-                            gss_node_id,
-                        );
-                        self.pop(gss_node_id, SlotId(8), nonterminal_node_id, None);
+                        let Some(result) = result else {
+                            unreachable!("result cannot be None here.")
+                        };
+                        self.pop(gss_node_id, SlotId(8), result, None, &FOLLOW_SET_D);
                     }
                     // Alt_0 : . C
                     SlotId(9) => {
@@ -187,13 +175,10 @@ impl<'i, 'arena> Parser<'i, 'arena> for SimpleAltParser<'i, 'arena> {
                     }
                     // Alt_0 : C.
                     SlotId(10) => {
-                        let nonterminal_node_id = self.create_nonterminal_node(
-                            result,
-                            NonterminalId(4),
-                            SlotId(10),
-                            gss_node_id,
-                        );
-                        self.pop(gss_node_id, SlotId(10), nonterminal_node_id, None);
+                        let Some(result) = result else {
+                            unreachable!("result cannot be None here.")
+                        };
+                        self.pop(gss_node_id, SlotId(10), result, None, &FOLLOW_SET_ALT_0);
                     }
                     // Alt_0 : . D
                     SlotId(11) => {
@@ -209,13 +194,10 @@ impl<'i, 'arena> Parser<'i, 'arena> for SimpleAltParser<'i, 'arena> {
                     }
                     // Alt_0 : D.
                     SlotId(12) => {
-                        let nonterminal_node_id = self.create_nonterminal_node(
-                            result,
-                            NonterminalId(4),
-                            SlotId(12),
-                            gss_node_id,
-                        );
-                        self.pop(gss_node_id, SlotId(12), nonterminal_node_id, None);
+                        let Some(result) = result else {
+                            unreachable!("result cannot be None here.")
+                        };
+                        self.pop(gss_node_id, SlotId(12), result, None, &FOLLOW_SET_ALT_0);
                     }
                     // StartA : . start:A
                     SlotId(13) => {
@@ -231,13 +213,10 @@ impl<'i, 'arena> Parser<'i, 'arena> for SimpleAltParser<'i, 'arena> {
                     }
                     // StartA : start:A.
                     SlotId(14) => {
-                        let nonterminal_node_id = self.create_nonterminal_node(
-                            result,
-                            NonterminalId(5),
-                            SlotId(14),
-                            gss_node_id,
-                        );
-                        self.pop(gss_node_id, SlotId(14), nonterminal_node_id, None);
+                        let Some(result) = result else {
+                            unreachable!("result cannot be None here.")
+                        };
+                        self.pop(gss_node_id, SlotId(14), result, None, &FOLLOW_SET_START_A);
                     }
                     // StartB : . start:B
                     SlotId(15) => {
@@ -253,13 +232,10 @@ impl<'i, 'arena> Parser<'i, 'arena> for SimpleAltParser<'i, 'arena> {
                     }
                     // StartB : start:B.
                     SlotId(16) => {
-                        let nonterminal_node_id = self.create_nonterminal_node(
-                            result,
-                            NonterminalId(6),
-                            SlotId(16),
-                            gss_node_id,
-                        );
-                        self.pop(gss_node_id, SlotId(16), nonterminal_node_id, None);
+                        let Some(result) = result else {
+                            unreachable!("result cannot be None here.")
+                        };
+                        self.pop(gss_node_id, SlotId(16), result, None, &FOLLOW_SET_START_B);
                     }
                     // StartC : . start:C
                     SlotId(17) => {
@@ -275,13 +251,10 @@ impl<'i, 'arena> Parser<'i, 'arena> for SimpleAltParser<'i, 'arena> {
                     }
                     // StartC : start:C.
                     SlotId(18) => {
-                        let nonterminal_node_id = self.create_nonterminal_node(
-                            result,
-                            NonterminalId(7),
-                            SlotId(18),
-                            gss_node_id,
-                        );
-                        self.pop(gss_node_id, SlotId(18), nonterminal_node_id, None);
+                        let Some(result) = result else {
+                            unreachable!("result cannot be None here.")
+                        };
+                        self.pop(gss_node_id, SlotId(18), result, None, &FOLLOW_SET_START_C);
                     }
                     // StartD : . start:D
                     SlotId(19) => {
@@ -297,13 +270,10 @@ impl<'i, 'arena> Parser<'i, 'arena> for SimpleAltParser<'i, 'arena> {
                     }
                     // StartD : start:D.
                     SlotId(20) => {
-                        let nonterminal_node_id = self.create_nonterminal_node(
-                            result,
-                            NonterminalId(8),
-                            SlotId(20),
-                            gss_node_id,
-                        );
-                        self.pop(gss_node_id, SlotId(20), nonterminal_node_id, None);
+                        let Some(result) = result else {
+                            unreachable!("result cannot be None here.")
+                        };
+                        self.pop(gss_node_id, SlotId(20), result, None, &FOLLOW_SET_START_D);
                     }
                     _ => {
                         panic!("Unknown grammar slot id: {slot_id}");
@@ -338,24 +308,13 @@ impl<'i, 'arena> Parser<'i, 'arena> for SimpleAltParser<'i, 'arena> {
             }
             // Alt_0
             NonterminalId(4) => {
-                let mut matched = false;
                 // Alt_0 : . C
                 if self.scanner.match_any(&FIRST_SET_ALT_0_ALT0, input_index) {
-                    matched = true;
                     self.add_first_descriptor(SlotId(9), input_index, gss_node_id, env);
                 }
                 // Alt_0 : . D
                 if self.scanner.match_any(&FIRST_SET_ALT_0_ALT1, input_index) {
-                    matched = true;
                     self.add_first_descriptor(SlotId(11), input_index, gss_node_id, env);
-                }
-                if !matched {
-                    self.add_failure(
-                        input_index,
-                        SlotId(9),
-                        Some(gss_node_id),
-                        GLLFailureKind::UnexpectedToken(&FIRST_SET_ALT_0),
-                    );
                 }
             }
             // StartA : . start:A
@@ -728,34 +687,6 @@ impl<'i, 'arena> Parser<'i, 'arena> for SimpleAltParser<'i, 'arena> {
     ) -> Option<GLLFailureKind> {
         None
     }
-    fn follow_set_check(&mut self, nonterminal_id: NonterminalId, input_index: u32) -> bool {
-        match nonterminal_id {
-            NonterminalId(0) => self.scanner.match_any(&FOLLOW_SET_A, input_index),
-            NonterminalId(1) => self.scanner.match_any(&FOLLOW_SET_B, input_index),
-            NonterminalId(2) => self.scanner.match_any(&FOLLOW_SET_C, input_index),
-            NonterminalId(3) => self.scanner.match_any(&FOLLOW_SET_D, input_index),
-            NonterminalId(4) => self.scanner.match_any(&FOLLOW_SET_ALT_0, input_index),
-            NonterminalId(5) => self.scanner.match_any(&FOLLOW_SET_START_A, input_index),
-            NonterminalId(6) => self.scanner.match_any(&FOLLOW_SET_START_B, input_index),
-            NonterminalId(7) => self.scanner.match_any(&FOLLOW_SET_START_C, input_index),
-            NonterminalId(8) => self.scanner.match_any(&FOLLOW_SET_START_D, input_index),
-            _ => true,
-        }
-    }
-    fn follow_set(&self, nonterminal_id: NonterminalId) -> &'static TerminalSet {
-        match nonterminal_id {
-            NonterminalId(0) => &FOLLOW_SET_A,
-            NonterminalId(1) => &FOLLOW_SET_B,
-            NonterminalId(2) => &FOLLOW_SET_C,
-            NonterminalId(3) => &FOLLOW_SET_D,
-            NonterminalId(4) => &FOLLOW_SET_ALT_0,
-            NonterminalId(5) => &FOLLOW_SET_START_A,
-            NonterminalId(6) => &FOLLOW_SET_START_B,
-            NonterminalId(7) => &FOLLOW_SET_START_C,
-            NonterminalId(8) => &FOLLOW_SET_START_D,
-            _ => unreachable!("no FOLLOW set for nonterminal {nonterminal_id}"),
-        }
-    }
     fn failures(&self) -> impl Iterator<Item = &GLLFailure> {
         self.failures.iter()
     }
@@ -778,6 +709,9 @@ impl<'i, 'arena> Parser<'i, 'arena> for SimpleAltParser<'i, 'arena> {
         if input_index > level {
             self.failures.clear();
         }
+        if self.failures.last().is_some_and(|last| last.kind == kind) {
+            return;
+        }
         self.failures.push(
             GLLFailure {
                 input_index,
@@ -790,6 +724,9 @@ impl<'i, 'arena> Parser<'i, 'arena> for SimpleAltParser<'i, 'arena> {
     }
     fn match_token(&mut self, terminal_id: TerminalId, input_index: u32) -> Option<u32> {
         self.scanner.match_token(terminal_id, input_index)
+    }
+    fn match_any(&mut self, set: &'static TerminalSet, input_index: u32) -> bool {
+        self.scanner.match_any(set, input_index)
     }
     fn vec_arena(&self) -> &'arena Arena {
         self.vec_arena
@@ -877,10 +814,10 @@ impl<'i, 'arena> SimpleAltParser<'i, 'arena> {
     }
     /// Parses the input from `start` and builds the parse tree in the given
     /// `tree_arena`. The parser is consumed. The tree lives as long as the
-    /// arena lives. `start` is normally the start wrapper of a declared
-    /// nonterminal, `grammar::START_<NAME>`, which allows layout around the
-    /// input; a bare nonterminal id parses without it.
-    pub fn parse<'a>(
+    /// arena lives. `start` is the start wrapper of a declared nonterminal,
+    /// `grammar::START_<NAME>`, which allows layout around the input. The
+    /// public entry points are the typed `parse_<name>` methods.
+    fn parse<'a>(
         self,
         start: NonterminalId,
         tree_arena: &'a Arena,

@@ -40,33 +40,43 @@ impl Grammar for Ll1FollowRestrictionGrammar {
     const SLOTS: &'static [Slot] = &[
         Slot {
             display_name: "S : . A",
+            position: 0,
         },
         Slot {
             display_name: "S : A.",
+            position: 1,
         },
         Slot {
             display_name: "A : . A_ !>> A_",
+            position: 0,
         },
         Slot {
             display_name: "A : A_ !>> A_.",
+            position: 1,
         },
         Slot {
             display_name: "A : . AA",
+            position: 0,
         },
         Slot {
             display_name: "A : AA.",
+            position: 1,
         },
         Slot {
             display_name: "S : . start:S",
+            position: 0,
         },
         Slot {
             display_name: "S : start:S.",
+            position: 1,
         },
         Slot {
             display_name: "A : . start:A",
+            position: 0,
         },
         Slot {
             display_name: "A : start:A.",
+            position: 1,
         },
     ];
     const LAYOUT_NAME: Option<&'static str> = None;
@@ -76,19 +86,19 @@ impl Grammar for Ll1FollowRestrictionGrammar {
     // by terminal id, serves only that.
     const SINGLE_TERMINAL_SETS: &'static [TerminalSet] = &[
         TerminalSet {
-            id: 5,
+            id: 4,
             terminals: &[TerminalId(0)],
         },
         TerminalSet {
-            id: 6,
+            id: 5,
             terminals: &[TerminalId(1)],
         },
         TerminalSet {
-            id: 7,
+            id: 6,
             terminals: &[TerminalId(2)],
         },
         TerminalSet {
-            id: 8,
+            id: 7,
             terminals: &[TerminalId(3)],
         },
     ];
@@ -107,11 +117,6 @@ pub static FOLLOW_SET_S: TerminalSet = TerminalSet {
     id: 0,
     terminals: &[TerminalId(3)],
 };
-// S : . A { A_, AA }
-pub static FIRST_SET_S_ALT0: TerminalSet = TerminalSet {
-    id: 1,
-    terminals: &[TerminalId(0), TerminalId(1)],
-};
 // A { EOF }
 pub static FOLLOW_SET_A: TerminalSet = TerminalSet {
     id: 0,
@@ -119,17 +124,17 @@ pub static FOLLOW_SET_A: TerminalSet = TerminalSet {
 };
 // A : . A_ !>> A_ { A_ }
 pub static FIRST_SET_A_ALT0: TerminalSet = TerminalSet {
-    id: 2,
+    id: 1,
     terminals: &[TerminalId(0)],
 };
 // A : . A_ !>> A_ !>> { A_ }
 pub static FOLLOW_RESTRICTION_A_ALT0_POS0: TerminalSet = TerminalSet {
-    id: 2,
+    id: 1,
     terminals: &[TerminalId(0)],
 };
 // A : . AA { AA }
 pub static FIRST_SET_A_ALT1: TerminalSet = TerminalSet {
-    id: 3,
+    id: 2,
     terminals: &[TerminalId(1)],
 };
 // StartS { EOF }
@@ -137,38 +142,18 @@ pub static FOLLOW_SET_START_S: TerminalSet = TerminalSet {
     id: 0,
     terminals: &[TerminalId(3)],
 };
-// StartS : . start:S { A_, AA }
-pub static FIRST_SET_START_S_ALT0: TerminalSet = TerminalSet {
-    id: 1,
-    terminals: &[TerminalId(0), TerminalId(1)],
-};
 // StartA { EOF }
 pub static FOLLOW_SET_START_A: TerminalSet = TerminalSet {
     id: 0,
     terminals: &[TerminalId(3)],
 };
-// StartA : . start:A { A_, AA }
-pub static FIRST_SET_START_A_ALT0: TerminalSet = TerminalSet {
-    id: 1,
+// S prediction { A_, AA }
+pub static PREDICTION_SET_S: TerminalSet = TerminalSet {
+    id: 3,
     terminals: &[TerminalId(0), TerminalId(1)],
 };
-// S { A_, AA }
-pub static FIRST_SET_S: TerminalSet = TerminalSet {
-    id: 4,
-    terminals: &[TerminalId(0), TerminalId(1)],
-};
-// A { A_, AA }
-pub static FIRST_SET_A: TerminalSet = TerminalSet {
-    id: 4,
-    terminals: &[TerminalId(0), TerminalId(1)],
-};
-// StartS { A_, AA }
-pub static FIRST_SET_START_S: TerminalSet = TerminalSet {
-    id: 4,
-    terminals: &[TerminalId(0), TerminalId(1)],
-};
-// StartA { A_, AA }
-pub static FIRST_SET_START_A: TerminalSet = TerminalSet {
-    id: 4,
+// A prediction { A_, AA }
+pub static PREDICTION_SET_A: TerminalSet = TerminalSet {
+    id: 3,
     terminals: &[TerminalId(0), TerminalId(1)],
 };

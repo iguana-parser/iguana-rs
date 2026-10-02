@@ -36,51 +36,67 @@ impl Grammar for ExactKeywordPrecedeGrammar {
     const SLOTS: &'static [Slot] = &[
         Slot {
             display_name: "S : . Num WS [0-9 A-Z _ a-z] !<< \"else\" !>> [0-9 A-Z _ a-z] WS Id WS \";\"",
+            position: 0,
         },
         Slot {
             display_name: "S : Num . WS [0-9 A-Z _ a-z] !<< \"else\" !>> [0-9 A-Z _ a-z] WS Id WS \";\"",
+            position: 1,
         },
         Slot {
             display_name: "S : Num WS . [0-9 A-Z _ a-z] !<< \"else\" !>> [0-9 A-Z _ a-z] WS Id WS \";\"",
+            position: 2,
         },
         Slot {
             display_name: "S : Num WS [0-9 A-Z _ a-z] !<< \"else\" !>> [0-9 A-Z _ a-z] . WS Id WS \";\"",
+            position: 3,
         },
         Slot {
             display_name: "S : Num WS [0-9 A-Z _ a-z] !<< \"else\" !>> [0-9 A-Z _ a-z] WS . Id WS \";\"",
+            position: 4,
         },
         Slot {
             display_name: "S : Num WS [0-9 A-Z _ a-z] !<< \"else\" !>> [0-9 A-Z _ a-z] WS Id . WS \";\"",
+            position: 5,
         },
         Slot {
             display_name: "S : Num WS [0-9 A-Z _ a-z] !<< \"else\" !>> [0-9 A-Z _ a-z] WS Id WS . \";\"",
+            position: 6,
         },
         Slot {
             display_name: "S : Num WS [0-9 A-Z _ a-z] !<< \"else\" !>> [0-9 A-Z _ a-z] WS Id WS \";\".",
+            position: 7,
         },
         Slot {
             display_name: "S : . Id WS \";\"",
+            position: 0,
         },
         Slot {
             display_name: "S : Id . WS \";\"",
+            position: 1,
         },
         Slot {
             display_name: "S : Id WS . \";\"",
+            position: 2,
         },
         Slot {
             display_name: "S : Id WS \";\".",
+            position: 3,
         },
         Slot {
             display_name: "S : . WS start:S WS",
+            position: 0,
         },
         Slot {
             display_name: "S : WS . start:S WS",
+            position: 1,
         },
         Slot {
             display_name: "S : WS start:S . WS",
+            position: 2,
         },
         Slot {
             display_name: "S : WS start:S WS.",
+            position: 3,
         },
     ];
     const LAYOUT_NAME: Option<&'static str> = Some("WS");
@@ -90,35 +106,35 @@ impl Grammar for ExactKeywordPrecedeGrammar {
     // by terminal id, serves only that.
     const SINGLE_TERMINAL_SETS: &'static [TerminalSet] = &[
         TerminalSet {
-            id: 8,
+            id: 7,
             terminals: &[TerminalId(0)],
         },
         TerminalSet {
-            id: 9,
+            id: 8,
             terminals: &[TerminalId(1)],
         },
         TerminalSet {
-            id: 10,
+            id: 9,
             terminals: &[TerminalId(2)],
         },
         TerminalSet {
-            id: 11,
+            id: 10,
             terminals: &[TerminalId(3)],
         },
         TerminalSet {
-            id: 12,
+            id: 11,
             terminals: &[TerminalId(4)],
         },
         TerminalSet {
-            id: 13,
+            id: 12,
             terminals: &[TerminalId(5)],
         },
         TerminalSet {
-            id: 14,
+            id: 13,
             terminals: &[TerminalId(6)],
         },
         TerminalSet {
-            id: 15,
+            id: 14,
             terminals: &[TerminalId(7)],
         },
     ];
@@ -156,18 +172,13 @@ pub static FOLLOW_SET_START_S: TerminalSet = TerminalSet {
     id: 4,
     terminals: &[TerminalId(7)],
 };
-// StartS : . WS start:S WS { Id, Num, WS }
-pub static FIRST_SET_START_S_ALT0: TerminalSet = TerminalSet {
-    id: 5,
-    terminals: &[TerminalId(0), TerminalId(1), TerminalId(2)],
-};
 // S { Id, Num }
 pub static FIRST_SET_S: TerminalSet = TerminalSet {
-    id: 6,
+    id: 5,
     terminals: &[TerminalId(0), TerminalId(1)],
 };
 // StartS { Id, Num, WS }
 pub static FIRST_SET_START_S: TerminalSet = TerminalSet {
-    id: 7,
+    id: 6,
     terminals: &[TerminalId(0), TerminalId(1), TerminalId(2)],
 };

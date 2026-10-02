@@ -31,18 +31,23 @@ impl Grammar for LabeledFollowRestrictionGrammar {
     const SLOTS: &'static [Slot] = &[
         Slot {
             display_name: "S : . x:Name !>> Eq Tail",
+            position: 0,
         },
         Slot {
             display_name: "S : x:Name !>> Eq . Tail",
+            position: 1,
         },
         Slot {
             display_name: "S : x:Name !>> Eq Tail.",
+            position: 2,
         },
         Slot {
             display_name: "S : . start:S",
+            position: 0,
         },
         Slot {
             display_name: "S : start:S.",
+            position: 1,
         },
     ];
     const LAYOUT_NAME: Option<&'static str> = None;
@@ -52,23 +57,23 @@ impl Grammar for LabeledFollowRestrictionGrammar {
     // by terminal id, serves only that.
     const SINGLE_TERMINAL_SETS: &'static [TerminalSet] = &[
         TerminalSet {
-            id: 4,
+            id: 3,
             terminals: &[TerminalId(0)],
         },
         TerminalSet {
-            id: 5,
+            id: 4,
             terminals: &[TerminalId(1)],
         },
         TerminalSet {
-            id: 6,
+            id: 5,
             terminals: &[TerminalId(2)],
         },
         TerminalSet {
-            id: 7,
+            id: 6,
             terminals: &[TerminalId(3)],
         },
         TerminalSet {
-            id: 8,
+            id: 7,
             terminals: &[TerminalId(4)],
         },
     ];
@@ -85,14 +90,9 @@ pub static FOLLOW_SET_S: TerminalSet = TerminalSet {
     id: 0,
     terminals: &[TerminalId(4)],
 };
-// S : . x:Name !>> Eq Tail { Name }
-pub static FIRST_SET_S_ALT0: TerminalSet = TerminalSet {
-    id: 1,
-    terminals: &[TerminalId(0)],
-};
 // S : . x:Name !>> Eq Tail !>> { Eq }
 pub static FOLLOW_RESTRICTION_S_ALT0_POS0: TerminalSet = TerminalSet {
-    id: 2,
+    id: 1,
     terminals: &[TerminalId(1)],
 };
 // StartS { EOF }
@@ -100,18 +100,13 @@ pub static FOLLOW_SET_START_S: TerminalSet = TerminalSet {
     id: 0,
     terminals: &[TerminalId(4)],
 };
-// StartS : . start:S { Name }
-pub static FIRST_SET_START_S_ALT0: TerminalSet = TerminalSet {
-    id: 1,
-    terminals: &[TerminalId(0)],
-};
 // S { Name }
 pub static FIRST_SET_S: TerminalSet = TerminalSet {
-    id: 3,
+    id: 2,
     terminals: &[TerminalId(0)],
 };
 // StartS { Name }
 pub static FIRST_SET_START_S: TerminalSet = TerminalSet {
-    id: 3,
+    id: 2,
     terminals: &[TerminalId(0)],
 };

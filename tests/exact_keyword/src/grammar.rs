@@ -75,162 +75,215 @@ impl Grammar for ExactKeywordGrammar {
     const SLOTS: &'static [Slot] = &[
         Slot {
             display_name: "Program : . Stmt+",
+            position: 0,
         },
         Slot {
             display_name: "Program : Stmt+.",
+            position: 1,
         },
         Slot {
             display_name: "Stmt : . Expr WS \";\"",
+            position: 0,
         },
         Slot {
             display_name: "Stmt : Expr . WS \";\"",
+            position: 1,
         },
         Slot {
             display_name: "Stmt : Expr WS . \";\"",
+            position: 2,
         },
         Slot {
             display_name: "Stmt : Expr WS \";\".",
+            position: 3,
         },
         Slot {
             display_name: "Stmt : . [0-9 A-Z _ a-z] !<< \"if\" !>> [0-9 A-Z _ a-z] WS \"(\" WS Expr WS \")\" WS Stmt WS ([0-9 A-Z _ a-z] !<< \"else\" !>> [0-9 A-Z _ a-z] Stmt)?",
+            position: 0,
         },
         Slot {
             display_name: "Stmt : [0-9 A-Z _ a-z] !<< \"if\" !>> [0-9 A-Z _ a-z] . WS \"(\" WS Expr WS \")\" WS Stmt WS ([0-9 A-Z _ a-z] !<< \"else\" !>> [0-9 A-Z _ a-z] Stmt)?",
+            position: 1,
         },
         Slot {
             display_name: "Stmt : [0-9 A-Z _ a-z] !<< \"if\" !>> [0-9 A-Z _ a-z] WS . \"(\" WS Expr WS \")\" WS Stmt WS ([0-9 A-Z _ a-z] !<< \"else\" !>> [0-9 A-Z _ a-z] Stmt)?",
+            position: 2,
         },
         Slot {
             display_name: "Stmt : [0-9 A-Z _ a-z] !<< \"if\" !>> [0-9 A-Z _ a-z] WS \"(\" . WS Expr WS \")\" WS Stmt WS ([0-9 A-Z _ a-z] !<< \"else\" !>> [0-9 A-Z _ a-z] Stmt)?",
+            position: 3,
         },
         Slot {
             display_name: "Stmt : [0-9 A-Z _ a-z] !<< \"if\" !>> [0-9 A-Z _ a-z] WS \"(\" WS . Expr WS \")\" WS Stmt WS ([0-9 A-Z _ a-z] !<< \"else\" !>> [0-9 A-Z _ a-z] Stmt)?",
+            position: 4,
         },
         Slot {
             display_name: "Stmt : [0-9 A-Z _ a-z] !<< \"if\" !>> [0-9 A-Z _ a-z] WS \"(\" WS Expr . WS \")\" WS Stmt WS ([0-9 A-Z _ a-z] !<< \"else\" !>> [0-9 A-Z _ a-z] Stmt)?",
+            position: 5,
         },
         Slot {
             display_name: "Stmt : [0-9 A-Z _ a-z] !<< \"if\" !>> [0-9 A-Z _ a-z] WS \"(\" WS Expr WS . \")\" WS Stmt WS ([0-9 A-Z _ a-z] !<< \"else\" !>> [0-9 A-Z _ a-z] Stmt)?",
+            position: 6,
         },
         Slot {
             display_name: "Stmt : [0-9 A-Z _ a-z] !<< \"if\" !>> [0-9 A-Z _ a-z] WS \"(\" WS Expr WS \")\" . WS Stmt WS ([0-9 A-Z _ a-z] !<< \"else\" !>> [0-9 A-Z _ a-z] Stmt)?",
+            position: 7,
         },
         Slot {
             display_name: "Stmt : [0-9 A-Z _ a-z] !<< \"if\" !>> [0-9 A-Z _ a-z] WS \"(\" WS Expr WS \")\" WS . Stmt WS ([0-9 A-Z _ a-z] !<< \"else\" !>> [0-9 A-Z _ a-z] Stmt)?",
+            position: 8,
         },
         Slot {
             display_name: "Stmt : [0-9 A-Z _ a-z] !<< \"if\" !>> [0-9 A-Z _ a-z] WS \"(\" WS Expr WS \")\" WS Stmt . WS ([0-9 A-Z _ a-z] !<< \"else\" !>> [0-9 A-Z _ a-z] Stmt)?",
+            position: 9,
         },
         Slot {
             display_name: "Stmt : [0-9 A-Z _ a-z] !<< \"if\" !>> [0-9 A-Z _ a-z] WS \"(\" WS Expr WS \")\" WS Stmt WS . ([0-9 A-Z _ a-z] !<< \"else\" !>> [0-9 A-Z _ a-z] Stmt)?",
+            position: 10,
         },
         Slot {
             display_name: "Stmt : [0-9 A-Z _ a-z] !<< \"if\" !>> [0-9 A-Z _ a-z] WS \"(\" WS Expr WS \")\" WS Stmt WS ([0-9 A-Z _ a-z] !<< \"else\" !>> [0-9 A-Z _ a-z] Stmt)?.",
+            position: 11,
         },
         Slot {
             display_name: "Stmt : . [0-9 A-Z _ a-z] !<< \"assert\" !>> [0-9 A-Z _ a-z] WS Expr WS \";\"",
+            position: 0,
         },
         Slot {
             display_name: "Stmt : [0-9 A-Z _ a-z] !<< \"assert\" !>> [0-9 A-Z _ a-z] . WS Expr WS \";\"",
+            position: 1,
         },
         Slot {
             display_name: "Stmt : [0-9 A-Z _ a-z] !<< \"assert\" !>> [0-9 A-Z _ a-z] WS . Expr WS \";\"",
+            position: 2,
         },
         Slot {
             display_name: "Stmt : [0-9 A-Z _ a-z] !<< \"assert\" !>> [0-9 A-Z _ a-z] WS Expr . WS \";\"",
+            position: 3,
         },
         Slot {
             display_name: "Stmt : [0-9 A-Z _ a-z] !<< \"assert\" !>> [0-9 A-Z _ a-z] WS Expr WS . \";\"",
+            position: 4,
         },
         Slot {
             display_name: "Stmt : [0-9 A-Z _ a-z] !<< \"assert\" !>> [0-9 A-Z _ a-z] WS Expr WS \";\".",
+            position: 5,
         },
         Slot {
             display_name: "Expr : . Id",
+            position: 0,
         },
         Slot {
             display_name: "Expr : Id.",
+            position: 1,
         },
         Slot {
             display_name: "Expr : . Num",
+            position: 0,
         },
         Slot {
             display_name: "Expr : Num.",
+            position: 1,
         },
         Slot {
             display_name: "Stmt+ : . Stmt+ WS Stmt",
+            position: 0,
         },
         Slot {
             display_name: "Stmt+ : Stmt+ . WS Stmt",
+            position: 1,
         },
         Slot {
             display_name: "Stmt+ : Stmt+ WS . Stmt",
+            position: 2,
         },
         Slot {
             display_name: "Stmt+ : Stmt+ WS Stmt.",
+            position: 3,
         },
         Slot {
             display_name: "Stmt+ : . Stmt",
+            position: 0,
         },
         Slot {
             display_name: "Stmt+ : Stmt.",
+            position: 1,
         },
         Slot {
             display_name: "([0-9 A-Z _ a-z] !<< \"else\" !>> [0-9 A-Z _ a-z] Stmt) : . [0-9 A-Z _ a-z] !<< \"else\" !>> [0-9 A-Z _ a-z] WS Stmt",
+            position: 0,
         },
         Slot {
             display_name: "([0-9 A-Z _ a-z] !<< \"else\" !>> [0-9 A-Z _ a-z] Stmt) : [0-9 A-Z _ a-z] !<< \"else\" !>> [0-9 A-Z _ a-z] . WS Stmt",
+            position: 1,
         },
         Slot {
             display_name: "([0-9 A-Z _ a-z] !<< \"else\" !>> [0-9 A-Z _ a-z] Stmt) : [0-9 A-Z _ a-z] !<< \"else\" !>> [0-9 A-Z _ a-z] WS . Stmt",
+            position: 2,
         },
         Slot {
             display_name: "([0-9 A-Z _ a-z] !<< \"else\" !>> [0-9 A-Z _ a-z] Stmt) : [0-9 A-Z _ a-z] !<< \"else\" !>> [0-9 A-Z _ a-z] WS Stmt.",
+            position: 3,
         },
         Slot {
             display_name: "([0-9 A-Z _ a-z] !<< \"else\" !>> [0-9 A-Z _ a-z] Stmt)? : . ([0-9 A-Z _ a-z] !<< \"else\" !>> [0-9 A-Z _ a-z] Stmt)",
+            position: 0,
         },
         Slot {
             display_name: "([0-9 A-Z _ a-z] !<< \"else\" !>> [0-9 A-Z _ a-z] Stmt)? : ([0-9 A-Z _ a-z] !<< \"else\" !>> [0-9 A-Z _ a-z] Stmt).",
+            position: 1,
         },
         Slot {
             display_name: "([0-9 A-Z _ a-z] !<< \"else\" !>> [0-9 A-Z _ a-z] Stmt)? : .",
+            position: 0,
         },
         Slot {
             display_name: "Program : . WS start:Program WS",
+            position: 0,
         },
         Slot {
             display_name: "Program : WS . start:Program WS",
+            position: 1,
         },
         Slot {
             display_name: "Program : WS start:Program . WS",
+            position: 2,
         },
         Slot {
             display_name: "Program : WS start:Program WS.",
+            position: 3,
         },
         Slot {
             display_name: "Stmt : . WS start:Stmt WS",
+            position: 0,
         },
         Slot {
             display_name: "Stmt : WS . start:Stmt WS",
+            position: 1,
         },
         Slot {
             display_name: "Stmt : WS start:Stmt . WS",
+            position: 2,
         },
         Slot {
             display_name: "Stmt : WS start:Stmt WS.",
+            position: 3,
         },
         Slot {
             display_name: "Expr : . WS start:Expr WS",
+            position: 0,
         },
         Slot {
             display_name: "Expr : WS . start:Expr WS",
+            position: 1,
         },
         Slot {
             display_name: "Expr : WS start:Expr . WS",
+            position: 2,
         },
         Slot {
             display_name: "Expr : WS start:Expr WS.",
+            position: 3,
         },
     ];
     const LAYOUT_NAME: Option<&'static str> = Some("WS");
@@ -240,51 +293,51 @@ impl Grammar for ExactKeywordGrammar {
     // by terminal id, serves only that.
     const SINGLE_TERMINAL_SETS: &'static [TerminalSet] = &[
         TerminalSet {
-            id: 22,
+            id: 16,
             terminals: &[TerminalId(0)],
         },
         TerminalSet {
-            id: 23,
+            id: 17,
             terminals: &[TerminalId(1)],
         },
         TerminalSet {
-            id: 24,
+            id: 18,
             terminals: &[TerminalId(2)],
         },
         TerminalSet {
-            id: 25,
+            id: 19,
             terminals: &[TerminalId(3)],
         },
         TerminalSet {
-            id: 26,
+            id: 20,
             terminals: &[TerminalId(4)],
         },
         TerminalSet {
-            id: 27,
+            id: 21,
             terminals: &[TerminalId(5)],
         },
         TerminalSet {
-            id: 28,
+            id: 22,
             terminals: &[TerminalId(6)],
         },
         TerminalSet {
-            id: 29,
+            id: 23,
             terminals: &[TerminalId(7)],
         },
         TerminalSet {
-            id: 30,
+            id: 24,
             terminals: &[TerminalId(8)],
         },
         TerminalSet {
-            id: 31,
+            id: 25,
             terminals: &[TerminalId(9)],
         },
         TerminalSet {
-            id: 32,
+            id: 26,
             terminals: &[TerminalId(10)],
         },
         TerminalSet {
-            id: 33,
+            id: 27,
             terminals: &[TerminalId(11)],
         },
     ];
@@ -308,14 +361,9 @@ pub static FOLLOW_SET_PROGRAM: TerminalSet = TerminalSet {
     id: 0,
     terminals: &[TerminalId(2), TerminalId(11)],
 };
-// Program : . Plus_0 { Id, Num, "if", "assert" }
-pub static FIRST_SET_PROGRAM_ALT0: TerminalSet = TerminalSet {
-    id: 1,
-    terminals: &[TerminalId(0), TerminalId(1), TerminalId(4), TerminalId(8)],
-};
 // Stmt { Id, Num, WS, "if", "else", "assert", EOF }
 pub static FOLLOW_SET_STMT: TerminalSet = TerminalSet {
-    id: 2,
+    id: 1,
     terminals: &[
         TerminalId(0),
         TerminalId(1),
@@ -328,50 +376,50 @@ pub static FOLLOW_SET_STMT: TerminalSet = TerminalSet {
 };
 // Stmt : . Expr WS ";" { Id, Num }
 pub static FIRST_SET_STMT_ALT0: TerminalSet = TerminalSet {
-    id: 3,
+    id: 2,
     terminals: &[TerminalId(0), TerminalId(1)],
 };
 // Stmt : . [0-9 A-Z _ a-z] !<< "if" !>> [0-9 A-Z _ a-z] WS "(" WS Expr WS ")" WS Stmt WS
 // Opt_0 { "if" }
 pub static FIRST_SET_STMT_ALT1: TerminalSet = TerminalSet {
-    id: 4,
+    id: 3,
     terminals: &[TerminalId(4)],
 };
 // Stmt : . [0-9 A-Z _ a-z] !<< "if" !>> [0-9 A-Z _ a-z] WS "(" WS Expr WS ")" WS Stmt WS
 // Opt_0 !>> { [0-9 A-Z _ a-z] }
 pub static FOLLOW_RESTRICTION_STMT_ALT1_POS0: TerminalSet = TerminalSet {
-    id: 5,
+    id: 4,
     terminals: &[TerminalId(9)],
 };
 // Stmt : . [0-9 A-Z _ a-z] !<< "assert" !>> [0-9 A-Z _ a-z] WS Expr WS ";" { "assert" }
 pub static FIRST_SET_STMT_ALT2: TerminalSet = TerminalSet {
-    id: 6,
+    id: 5,
     terminals: &[TerminalId(8)],
 };
 // Stmt : . [0-9 A-Z _ a-z] !<< "assert" !>> [0-9 A-Z _ a-z] WS Expr WS ";" !>> { [0-9 A-Z _
 // a-z] }
 pub static FOLLOW_RESTRICTION_STMT_ALT2_POS0: TerminalSet = TerminalSet {
-    id: 5,
+    id: 4,
     terminals: &[TerminalId(9)],
 };
 // Expr { WS, ";", ")", EOF }
 pub static FOLLOW_SET_EXPR: TerminalSet = TerminalSet {
-    id: 7,
+    id: 6,
     terminals: &[TerminalId(2), TerminalId(3), TerminalId(6), TerminalId(11)],
 };
 // Expr : . Id { Id }
 pub static FIRST_SET_EXPR_ALT0: TerminalSet = TerminalSet {
-    id: 8,
+    id: 7,
     terminals: &[TerminalId(0)],
 };
 // Expr : . Num { Num }
 pub static FIRST_SET_EXPR_ALT1: TerminalSet = TerminalSet {
-    id: 9,
+    id: 8,
     terminals: &[TerminalId(1)],
 };
 // Plus_0 { Id, Num, WS, "if", "assert", EOF }
 pub static FOLLOW_SET_PLUS_0: TerminalSet = TerminalSet {
-    id: 10,
+    id: 9,
     terminals: &[
         TerminalId(0),
         TerminalId(1),
@@ -383,17 +431,17 @@ pub static FOLLOW_SET_PLUS_0: TerminalSet = TerminalSet {
 };
 // Plus_0 : . Plus_0 WS Stmt { Id, Num, "if", "assert" }
 pub static FIRST_SET_PLUS_0_ALT0: TerminalSet = TerminalSet {
-    id: 1,
+    id: 10,
     terminals: &[TerminalId(0), TerminalId(1), TerminalId(4), TerminalId(8)],
 };
 // Plus_0 : . Stmt { Id, Num, "if", "assert" }
 pub static FIRST_SET_PLUS_0_ALT1: TerminalSet = TerminalSet {
-    id: 1,
+    id: 10,
     terminals: &[TerminalId(0), TerminalId(1), TerminalId(4), TerminalId(8)],
 };
 // Group_0 { Id, Num, WS, "if", "else", "assert", EOF }
 pub static FOLLOW_SET_GROUP_0: TerminalSet = TerminalSet {
-    id: 2,
+    id: 1,
     terminals: &[
         TerminalId(0),
         TerminalId(1),
@@ -404,19 +452,14 @@ pub static FOLLOW_SET_GROUP_0: TerminalSet = TerminalSet {
         TerminalId(11),
     ],
 };
-// Group_0 : . [0-9 A-Z _ a-z] !<< "else" !>> [0-9 A-Z _ a-z] WS Stmt { "else" }
-pub static FIRST_SET_GROUP_0_ALT0: TerminalSet = TerminalSet {
-    id: 11,
-    terminals: &[TerminalId(7)],
-};
 // Group_0 : . [0-9 A-Z _ a-z] !<< "else" !>> [0-9 A-Z _ a-z] WS Stmt !>> { [0-9 A-Z _ a-z] }
 pub static FOLLOW_RESTRICTION_GROUP_0_ALT0_POS0: TerminalSet = TerminalSet {
-    id: 5,
+    id: 4,
     terminals: &[TerminalId(9)],
 };
 // Opt_0 { Id, Num, WS, "if", "else", "assert", EOF }
 pub static FOLLOW_SET_OPT_0: TerminalSet = TerminalSet {
-    id: 2,
+    id: 1,
     terminals: &[
         TerminalId(0),
         TerminalId(1),
@@ -442,73 +485,40 @@ pub static FOLLOW_SET_START_PROGRAM: TerminalSet = TerminalSet {
     id: 13,
     terminals: &[TerminalId(11)],
 };
-// StartProgram : . WS start:Program WS { Id, Num, WS, "if", "assert" }
-pub static FIRST_SET_START_PROGRAM_ALT0: TerminalSet = TerminalSet {
-    id: 14,
-    terminals: &[
-        TerminalId(0),
-        TerminalId(1),
-        TerminalId(2),
-        TerminalId(4),
-        TerminalId(8),
-    ],
-};
 // StartStmt { EOF }
 pub static FOLLOW_SET_START_STMT: TerminalSet = TerminalSet {
     id: 13,
     terminals: &[TerminalId(11)],
-};
-// StartStmt : . WS start:Stmt WS { Id, Num, WS, "if", "assert" }
-pub static FIRST_SET_START_STMT_ALT0: TerminalSet = TerminalSet {
-    id: 14,
-    terminals: &[
-        TerminalId(0),
-        TerminalId(1),
-        TerminalId(2),
-        TerminalId(4),
-        TerminalId(8),
-    ],
 };
 // StartExpr { EOF }
 pub static FOLLOW_SET_START_EXPR: TerminalSet = TerminalSet {
     id: 13,
     terminals: &[TerminalId(11)],
 };
-// StartExpr : . WS start:Expr WS { Id, Num, WS }
-pub static FIRST_SET_START_EXPR_ALT0: TerminalSet = TerminalSet {
-    id: 15,
-    terminals: &[TerminalId(0), TerminalId(1), TerminalId(2)],
-};
-// Program { Id, Num, "if", "assert" }
-pub static FIRST_SET_PROGRAM: TerminalSet = TerminalSet {
-    id: 16,
+// Program prediction { Id, Num, "if", "assert" }
+pub static PREDICTION_SET_PROGRAM: TerminalSet = TerminalSet {
+    id: 10,
     terminals: &[TerminalId(0), TerminalId(1), TerminalId(4), TerminalId(8)],
 };
-// Stmt { Id, Num, "if", "assert" }
-pub static FIRST_SET_STMT: TerminalSet = TerminalSet {
-    id: 16,
+// Stmt prediction { Id, Num, "if", "assert" }
+pub static PREDICTION_SET_STMT: TerminalSet = TerminalSet {
+    id: 10,
     terminals: &[TerminalId(0), TerminalId(1), TerminalId(4), TerminalId(8)],
 };
-// Expr { Id, Num }
-pub static FIRST_SET_EXPR: TerminalSet = TerminalSet {
-    id: 17,
-    terminals: &[TerminalId(0), TerminalId(1)],
-};
-// Plus_0 { Id, Num, "if", "assert" }
-pub static FIRST_SET_PLUS_0: TerminalSet = TerminalSet {
-    id: 16,
+// Plus_0 prediction { Id, Num, "if", "assert" }
+pub static PREDICTION_SET_PLUS_0: TerminalSet = TerminalSet {
+    id: 10,
     terminals: &[TerminalId(0), TerminalId(1), TerminalId(4), TerminalId(8)],
 };
-// Group_0 { "else" }
-pub static FIRST_SET_GROUP_0: TerminalSet = TerminalSet {
-    id: 18,
+// Group_0 prediction { "else" }
+pub static PREDICTION_SET_GROUP_0: TerminalSet = TerminalSet {
+    id: 11,
     terminals: &[TerminalId(7)],
 };
-// Opt_0 prediction { "else", Id, Num, WS, "if", "else", "assert", EOF }
+// Opt_0 prediction { Id, Num, WS, "if", "else", "assert", EOF }
 pub static PREDICTION_SET_OPT_0: TerminalSet = TerminalSet {
-    id: 19,
+    id: 1,
     terminals: &[
-        TerminalId(7),
         TerminalId(0),
         TerminalId(1),
         TerminalId(2),
@@ -518,35 +528,13 @@ pub static PREDICTION_SET_OPT_0: TerminalSet = TerminalSet {
         TerminalId(11),
     ],
 };
-// Opt_0 { "else" }
-pub static FIRST_SET_OPT_0: TerminalSet = TerminalSet {
-    id: 18,
-    terminals: &[TerminalId(7)],
-};
-// StartProgram { Id, Num, WS, "if", "assert" }
-pub static FIRST_SET_START_PROGRAM: TerminalSet = TerminalSet {
-    id: 20,
-    terminals: &[
-        TerminalId(0),
-        TerminalId(1),
-        TerminalId(2),
-        TerminalId(4),
-        TerminalId(8),
-    ],
-};
-// StartStmt { Id, Num, WS, "if", "assert" }
-pub static FIRST_SET_START_STMT: TerminalSet = TerminalSet {
-    id: 20,
-    terminals: &[
-        TerminalId(0),
-        TerminalId(1),
-        TerminalId(2),
-        TerminalId(4),
-        TerminalId(8),
-    ],
+// Expr { Id, Num }
+pub static FIRST_SET_EXPR: TerminalSet = TerminalSet {
+    id: 14,
+    terminals: &[TerminalId(0), TerminalId(1)],
 };
 // StartExpr { Id, Num, WS }
 pub static FIRST_SET_START_EXPR: TerminalSet = TerminalSet {
-    id: 21,
+    id: 15,
     terminals: &[TerminalId(0), TerminalId(1), TerminalId(2)],
 };

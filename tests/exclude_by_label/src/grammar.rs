@@ -47,93 +47,123 @@ impl Grammar for ExcludeByLabelGrammar {
     const SLOTS: &'static [Slot] = &[
         Slot {
             display_name: "{Expr !comma \",\"}+ : . {Expr !comma \",\"}+ \",\" Expr(4)",
+            position: 0,
         },
         Slot {
             display_name: "{Expr !comma \",\"}+ : {Expr !comma \",\"}+ . \",\" Expr(4)",
+            position: 1,
         },
         Slot {
             display_name: "{Expr !comma \",\"}+ : {Expr !comma \",\"}+ \",\" . Expr(4)",
+            position: 2,
         },
         Slot {
             display_name: "{Expr !comma \",\"}+ : {Expr !comma \",\"}+ \",\" Expr(4).",
+            position: 3,
         },
         Slot {
             display_name: "{Expr !comma \",\"}+ : . Expr(4)",
+            position: 0,
         },
         Slot {
             display_name: "{Expr !comma \",\"}+ : Expr(4).",
+            position: 1,
         },
         Slot {
             display_name: "{Expr !comma \",\"}+? : . {Expr !comma \",\"}+",
+            position: 0,
         },
         Slot {
             display_name: "{Expr !comma \",\"}+? : {Expr !comma \",\"}+.",
+            position: 1,
         },
         Slot {
             display_name: "{Expr !comma \",\"}+? : .",
+            position: 0,
         },
         Slot {
             display_name: "{Expr !comma \",\"}* : . {Expr !comma \",\"}+?",
+            position: 0,
         },
         Slot {
             display_name: "{Expr !comma \",\"}* : {Expr !comma \",\"}+?.",
+            position: 1,
         },
         Slot {
             display_name: "Expr(0) : . start:Expr(0)",
+            position: 0,
         },
         Slot {
             display_name: "Expr(0) : start:Expr(0).",
+            position: 1,
         },
         Slot {
             display_name: "Expr : . [1 & e == 0] Id return (0, 0)",
+            position: 0,
         },
         Slot {
             display_name: "Expr : [1 & e == 0] . Id return (0, 0)",
+            position: 1,
         },
         Slot {
             display_name: "Expr : [1 & e == 0] Id . return (0, 0)",
+            position: 2,
         },
         Slot {
             display_name: "Expr : [1 & e == 0] Id return (0, 0).",
+            position: 3,
         },
         Slot {
             display_name: "Expr : . [2 & e == 0] Expr(0) \"(\" {Expr !comma \",\"}* \")\" return (0, 1)",
+            position: 0,
         },
         Slot {
             display_name: "Expr : [2 & e == 0] . Expr(0) \"(\" {Expr !comma \",\"}* \")\" return (0, 1)",
+            position: 1,
         },
         Slot {
             display_name: "Expr : [2 & e == 0] Expr(0) . \"(\" {Expr !comma \",\"}* \")\" return (0, 1)",
+            position: 2,
         },
         Slot {
             display_name: "Expr : [2 & e == 0] Expr(0) \"(\" . {Expr !comma \",\"}* \")\" return (0, 1)",
+            position: 3,
         },
         Slot {
             display_name: "Expr : [2 & e == 0] Expr(0) \"(\" {Expr !comma \",\"}* . \")\" return (0, 1)",
+            position: 4,
         },
         Slot {
             display_name: "Expr : [2 & e == 0] Expr(0) \"(\" {Expr !comma \",\"}* \")\" . return (0, 1)",
+            position: 5,
         },
         Slot {
             display_name: "Expr : [2 & e == 0] Expr(0) \"(\" {Expr !comma \",\"}* \")\" return (0, 1).",
+            position: 6,
         },
         Slot {
             display_name: "Expr : . [4 & e == 0] Expr(0) \",\" Expr(0) return (0, 2)",
+            position: 0,
         },
         Slot {
             display_name: "Expr : [4 & e == 0] . Expr(0) \",\" Expr(0) return (0, 2)",
+            position: 1,
         },
         Slot {
             display_name: "Expr : [4 & e == 0] Expr(0) . \",\" Expr(0) return (0, 2)",
+            position: 2,
         },
         Slot {
             display_name: "Expr : [4 & e == 0] Expr(0) \",\" . Expr(0) return (0, 2)",
+            position: 3,
         },
         Slot {
             display_name: "Expr : [4 & e == 0] Expr(0) \",\" Expr(0) . return (0, 2)",
+            position: 4,
         },
         Slot {
             display_name: "Expr : [4 & e == 0] Expr(0) \",\" Expr(0) return (0, 2).",
+            position: 5,
         },
     ];
     const LAYOUT_NAME: Option<&'static str> = None;
@@ -143,27 +173,27 @@ impl Grammar for ExcludeByLabelGrammar {
     // by terminal id, serves only that.
     const SINGLE_TERMINAL_SETS: &'static [TerminalSet] = &[
         TerminalSet {
-            id: 8,
+            id: 7,
             terminals: &[TerminalId(0)],
         },
         TerminalSet {
-            id: 9,
+            id: 8,
             terminals: &[TerminalId(1)],
         },
         TerminalSet {
-            id: 10,
+            id: 9,
             terminals: &[TerminalId(2)],
         },
         TerminalSet {
-            id: 11,
+            id: 10,
             terminals: &[TerminalId(3)],
         },
         TerminalSet {
-            id: 12,
+            id: 11,
             terminals: &[TerminalId(4)],
         },
         TerminalSet {
-            id: 13,
+            id: 12,
             terminals: &[TerminalId(5)],
         },
     ];
@@ -233,48 +263,28 @@ pub static FOLLOW_SET_STAR_0: TerminalSet = TerminalSet {
     id: 3,
     terminals: &[TerminalId(3), TerminalId(5)],
 };
-// Star_0 : . Opt_0 { Id }
-pub static FIRST_SET_STAR_0_ALT0: TerminalSet = TerminalSet {
-    id: 1,
-    terminals: &[TerminalId(0)],
-};
 // StartExpr { EOF }
 pub static FOLLOW_SET_START_EXPR: TerminalSet = TerminalSet {
     id: 5,
     terminals: &[TerminalId(5)],
 };
-// StartExpr : . start:Expr(0) { Id }
-pub static FIRST_SET_START_EXPR_ALT0: TerminalSet = TerminalSet {
+// Expr prediction { Id }
+pub static PREDICTION_SET_EXPR: TerminalSet = TerminalSet {
     id: 1,
     terminals: &[TerminalId(0)],
 };
-// Expr { Id }
-pub static FIRST_SET_EXPR: TerminalSet = TerminalSet {
-    id: 6,
-    terminals: &[TerminalId(0)],
-};
-// Plus_0 { Id }
-pub static FIRST_SET_PLUS_0: TerminalSet = TerminalSet {
-    id: 6,
+// Plus_0 prediction { Id }
+pub static PREDICTION_SET_PLUS_0: TerminalSet = TerminalSet {
+    id: 1,
     terminals: &[TerminalId(0)],
 };
 // Opt_0 prediction { Id, ")", EOF }
 pub static PREDICTION_SET_OPT_0: TerminalSet = TerminalSet {
-    id: 7,
+    id: 6,
     terminals: &[TerminalId(0), TerminalId(3), TerminalId(5)],
 };
-// Opt_0 { Id }
-pub static FIRST_SET_OPT_0: TerminalSet = TerminalSet {
+// Star_0 prediction { Id, ")", EOF }
+pub static PREDICTION_SET_STAR_0: TerminalSet = TerminalSet {
     id: 6,
-    terminals: &[TerminalId(0)],
-};
-// Star_0 { Id }
-pub static FIRST_SET_STAR_0: TerminalSet = TerminalSet {
-    id: 6,
-    terminals: &[TerminalId(0)],
-};
-// StartExpr { Id }
-pub static FIRST_SET_START_EXPR: TerminalSet = TerminalSet {
-    id: 6,
-    terminals: &[TerminalId(0)],
+    terminals: &[TerminalId(0), TerminalId(3), TerminalId(5)],
 };

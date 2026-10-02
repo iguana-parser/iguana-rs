@@ -49,27 +49,35 @@ impl Grammar for MultipleExceptGrammar {
     const SLOTS: &'static [Slot] = &[
         Slot {
             display_name: "SyntaxIdentifier : . IdentifierChars \\ Keyword \\ BooleanLiteral \\ NullLiteral",
+            position: 0,
         },
         Slot {
             display_name: "SyntaxIdentifier : IdentifierChars \\ Keyword \\ BooleanLiteral \\ NullLiteral.",
+            position: 1,
         },
         Slot {
             display_name: "LexicalIdentifier : . Identifier",
+            position: 0,
         },
         Slot {
             display_name: "LexicalIdentifier : Identifier.",
+            position: 1,
         },
         Slot {
             display_name: "SyntaxIdentifier : . start:SyntaxIdentifier",
+            position: 0,
         },
         Slot {
             display_name: "SyntaxIdentifier : start:SyntaxIdentifier.",
+            position: 1,
         },
         Slot {
             display_name: "LexicalIdentifier : . start:LexicalIdentifier",
+            position: 0,
         },
         Slot {
             display_name: "LexicalIdentifier : start:LexicalIdentifier.",
+            position: 1,
         },
     ];
     const LAYOUT_NAME: Option<&'static str> = None;
@@ -79,31 +87,31 @@ impl Grammar for MultipleExceptGrammar {
     // by terminal id, serves only that.
     const SINGLE_TERMINAL_SETS: &'static [TerminalSet] = &[
         TerminalSet {
-            id: 6,
+            id: 4,
             terminals: &[TerminalId(0)],
         },
         TerminalSet {
-            id: 7,
+            id: 5,
             terminals: &[TerminalId(1)],
         },
         TerminalSet {
-            id: 8,
+            id: 6,
             terminals: &[TerminalId(2)],
         },
         TerminalSet {
-            id: 9,
+            id: 7,
             terminals: &[TerminalId(3)],
         },
         TerminalSet {
-            id: 10,
+            id: 8,
             terminals: &[TerminalId(4)],
         },
         TerminalSet {
-            id: 11,
+            id: 9,
             terminals: &[TerminalId(5)],
         },
         TerminalSet {
-            id: 12,
+            id: 10,
             terminals: &[TerminalId(6)],
         },
     ];
@@ -122,65 +130,44 @@ pub static FOLLOW_SET_SYNTAX_IDENTIFIER: TerminalSet = TerminalSet {
     id: 0,
     terminals: &[TerminalId(6)],
 };
-// SyntaxIdentifier : . IdentifierChars \ Keyword \ BooleanLiteral \ NullLiteral {
-// IdentifierChars }
-pub static FIRST_SET_SYNTAX_IDENTIFIER_ALT0: TerminalSet = TerminalSet {
-    id: 1,
-    terminals: &[TerminalId(1)],
-};
 // LexicalIdentifier { EOF }
 pub static FOLLOW_SET_LEXICAL_IDENTIFIER: TerminalSet = TerminalSet {
     id: 0,
     terminals: &[TerminalId(6)],
-};
-// LexicalIdentifier : . Identifier { Identifier }
-pub static FIRST_SET_LEXICAL_IDENTIFIER_ALT0: TerminalSet = TerminalSet {
-    id: 2,
-    terminals: &[TerminalId(0)],
 };
 // StartSyntaxIdentifier { EOF }
 pub static FOLLOW_SET_START_SYNTAX_IDENTIFIER: TerminalSet = TerminalSet {
     id: 0,
     terminals: &[TerminalId(6)],
 };
-// StartSyntaxIdentifier : . start:SyntaxIdentifier { IdentifierChars }
-pub static FIRST_SET_START_SYNTAX_IDENTIFIER_ALT0: TerminalSet = TerminalSet {
-    id: 1,
-    terminals: &[TerminalId(1)],
-};
 // StartLexicalIdentifier { EOF }
 pub static FOLLOW_SET_START_LEXICAL_IDENTIFIER: TerminalSet = TerminalSet {
     id: 0,
     terminals: &[TerminalId(6)],
 };
-// StartLexicalIdentifier : . start:LexicalIdentifier { Identifier }
-pub static FIRST_SET_START_LEXICAL_IDENTIFIER_ALT0: TerminalSet = TerminalSet {
-    id: 2,
-    terminals: &[TerminalId(0)],
-};
 // SyntaxIdentifier { IdentifierChars }
 pub static FIRST_SET_SYNTAX_IDENTIFIER: TerminalSet = TerminalSet {
-    id: 3,
+    id: 1,
     terminals: &[TerminalId(1)],
 };
 // LexicalIdentifier { Identifier }
 pub static FIRST_SET_LEXICAL_IDENTIFIER: TerminalSet = TerminalSet {
-    id: 4,
+    id: 2,
     terminals: &[TerminalId(0)],
 };
 // StartSyntaxIdentifier { IdentifierChars }
 pub static FIRST_SET_START_SYNTAX_IDENTIFIER: TerminalSet = TerminalSet {
-    id: 3,
+    id: 1,
     terminals: &[TerminalId(1)],
 };
 // StartLexicalIdentifier { Identifier }
 pub static FIRST_SET_START_LEXICAL_IDENTIFIER: TerminalSet = TerminalSet {
-    id: 4,
+    id: 2,
     terminals: &[TerminalId(0)],
 };
 // SyntaxIdentifier : . IdentifierChars \ Keyword \ BooleanLiteral \ NullLiteral \ { Keyword,
 // BooleanLiteral, NullLiteral }
 pub static EXCEPT_SYNTAX_IDENTIFIER_ALT0_POS0: TerminalSet = TerminalSet {
-    id: 5,
+    id: 3,
     terminals: &[TerminalId(2), TerminalId(3), TerminalId(4)],
 };

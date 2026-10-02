@@ -10,66 +10,82 @@ use iguana_runtime::{
 const MATCH_MEMO_WORDS: usize = 1;
 const MATCH_ANY_SET_WORDS: usize = 1;
 static DFA_0: Dfa = Dfa::new(&[
-    State::new(&[('a', 'z', 1)], None),
-    State::new(&[('a', 'z', 1)], Some(TerminalId(0))),
+    State::new(&[('?', '?', 1)], None),
+    State::new(&[], Some(TerminalId(0))),
 ]);
 static DFA_1: Dfa = Dfa::new(&[
-    State::new(&[('A', 'Z', 1), ('a', 'z', 1)], None),
-    State::new(&[('A', 'Z', 1), ('a', 'z', 1)], Some(TerminalId(1))),
+    State::new(&[('a', 'z', 1)], None),
+    State::new(&[('a', 'z', 1)], Some(TerminalId(1))),
 ]);
 static DFA_2: Dfa = Dfa::new(&[
+    State::new(&[('A', 'Z', 1), ('a', 'z', 1)], None),
+    State::new(&[('A', 'Z', 1), ('a', 'z', 1)], Some(TerminalId(2))),
+]);
+static DFA_3: Dfa = Dfa::new(&[
     State::new(&[('e', 'e', 1), ('i', 'i', 2), ('w', 'w', 3)], None),
     State::new(&[('l', 'l', 4)], None),
     State::new(&[('f', 'f', 5)], None),
     State::new(&[('h', 'h', 6)], None),
     State::new(&[('s', 's', 7)], None),
-    State::new(&[], Some(TerminalId(2))),
+    State::new(&[], Some(TerminalId(3))),
     State::new(&[('i', 'i', 8)], None),
     State::new(&[('e', 'e', 9)], None),
     State::new(&[('l', 'l', 10)], None),
-    State::new(&[], Some(TerminalId(2))),
+    State::new(&[], Some(TerminalId(3))),
     State::new(&[('e', 'e', 11)], None),
-    State::new(&[], Some(TerminalId(2))),
-]);
-static DFA_3: Dfa = Dfa::new(&[
-    State::new(&[(' ', ' ', 1)], None),
-    State::new(&[(' ', ' ', 1)], Some(TerminalId(3))),
+    State::new(&[], Some(TerminalId(3))),
 ]);
 static DFA_4: Dfa = Dfa::new(&[
-    State::new(&[('\n', '\n', 1)], None),
-    State::new(&[('\n', '\n', 1)], Some(TerminalId(4))),
+    State::new(&[(' ', ' ', 1)], None),
+    State::new(&[(' ', ' ', 1)], Some(TerminalId(4))),
 ]);
 static DFA_5: Dfa = Dfa::new(&[
-    State::new(&[('[', '[', 1)], None),
-    State::new(&[], Some(TerminalId(5))),
+    State::new(&[('\n', '\n', 1)], None),
+    State::new(&[('\n', '\n', 1)], Some(TerminalId(5))),
 ]);
 static DFA_6: Dfa = Dfa::new(&[
-    State::new(&[(']', ']', 1)], None),
+    State::new(&[('[', '[', 1)], None),
     State::new(&[], Some(TerminalId(6))),
 ]);
 static DFA_7: Dfa = Dfa::new(&[
-    State::new(&[('p', 'p', 1)], None),
+    State::new(&[(']', ']', 1)], None),
     State::new(&[], Some(TerminalId(7))),
 ]);
 static DFA_8: Dfa = Dfa::new(&[
-    State::new(&[('q', 'q', 1)], None),
+    State::new(&[('p', 'p', 1)], None),
     State::new(&[], Some(TerminalId(8))),
 ]);
 static DFA_9: Dfa = Dfa::new(&[
-    State::new(&[('x', 'x', 1)], None),
+    State::new(&[('q', 'q', 1)], None),
     State::new(&[], Some(TerminalId(9))),
 ]);
 static DFA_10: Dfa = Dfa::new(&[
-    State::new(&[('y', 'y', 1)], None),
+    State::new(&[('x', 'x', 1)], None),
     State::new(&[], Some(TerminalId(10))),
 ]);
 static DFA_11: Dfa = Dfa::new(&[
-    State::new(&[('z', 'z', 1)], None),
+    State::new(&[('y', 'y', 1)], None),
     State::new(&[], Some(TerminalId(11))),
 ]);
 static DFA_12: Dfa = Dfa::new(&[
-    State::new(&[('!', '!', 1)], None),
+    State::new(&[('z', 'z', 1)], None),
     State::new(&[], Some(TerminalId(12))),
+]);
+static DFA_13: Dfa = Dfa::new(&[
+    State::new(&[('!', '!', 1)], None),
+    State::new(&[], Some(TerminalId(13))),
+]);
+static DFA_14: Dfa = Dfa::new(&[
+    State::new(&[('1', '1', 1)], None),
+    State::new(&[], Some(TerminalId(14))),
+]);
+static DFA_15: Dfa = Dfa::new(&[
+    State::new(&[('2', '2', 1)], None),
+    State::new(&[], Some(TerminalId(15))),
+]);
+static DFA_16: Dfa = Dfa::new(&[
+    State::new(&[('w', 'w', 1)], None),
+    State::new(&[], Some(TerminalId(16))),
 ]);
 pub struct ErrorUnionScanner<'i, 'arena> {
     pub input: &'i Input,
@@ -88,61 +104,82 @@ impl<'i, 'arena> ErrorUnionScanner<'i, 'arena> {
             match_any_memo,
         }
     }
-    // Word = [a-z]+
+    // Question = ?
     pub fn match_terminal_0(&self, input_index: u32) -> Option<u32> {
         self.scan(&DFA_0, input_index)
     }
-    // Identifier = [a-z A-Z]+
+    // Word = [a-z]+
     pub fn match_terminal_1(&self, input_index: u32) -> Option<u32> {
         self.scan(&DFA_1, input_index)
     }
-    // Keyword = (if|else|while)
+    // Identifier = [a-z A-Z]+
     pub fn match_terminal_2(&self, input_index: u32) -> Option<u32> {
         self.scan(&DFA_2, input_index)
     }
-    // WS = [ ]+
+    // Keyword = (if|else|while)
     pub fn match_terminal_3(&self, input_index: u32) -> Option<u32> {
         self.scan(&DFA_3, input_index)
     }
-    // Newline = [\n]+
+    // WS = [ ]+
     pub fn match_terminal_4(&self, input_index: u32) -> Option<u32> {
         self.scan(&DFA_4, input_index)
     }
-    // "[" = [
+    // Newline = [\n]+
     pub fn match_terminal_5(&self, input_index: u32) -> Option<u32> {
         self.scan(&DFA_5, input_index)
     }
-    // "]" = ]
+    // "[" = [
     pub fn match_terminal_6(&self, input_index: u32) -> Option<u32> {
         self.scan(&DFA_6, input_index)
     }
-    // "p" = p
+    // "]" = ]
     pub fn match_terminal_7(&self, input_index: u32) -> Option<u32> {
         self.scan(&DFA_7, input_index)
     }
-    // "q" = q
+    // "p" = p
     pub fn match_terminal_8(&self, input_index: u32) -> Option<u32> {
         self.scan(&DFA_8, input_index)
     }
-    // "x" = x
+    // "q" = q
     pub fn match_terminal_9(&self, input_index: u32) -> Option<u32> {
         self.scan(&DFA_9, input_index)
     }
-    // "y" = y
+    // "x" = x
     pub fn match_terminal_10(&self, input_index: u32) -> Option<u32> {
         self.scan(&DFA_10, input_index)
     }
-    // "z" = z
+    // "y" = y
     pub fn match_terminal_11(&self, input_index: u32) -> Option<u32> {
         self.scan(&DFA_11, input_index)
     }
-    // "!" = !
+    // "z" = z
     pub fn match_terminal_12(&self, input_index: u32) -> Option<u32> {
         self.scan(&DFA_12, input_index)
+    }
+    // "!" = !
+    pub fn match_terminal_13(&self, input_index: u32) -> Option<u32> {
+        self.scan(&DFA_13, input_index)
+    }
+    // "1" = 1
+    pub fn match_terminal_14(&self, input_index: u32) -> Option<u32> {
+        self.scan(&DFA_14, input_index)
+    }
+    // "2" = 2
+    pub fn match_terminal_15(&self, input_index: u32) -> Option<u32> {
+        self.scan(&DFA_15, input_index)
+    }
+    // "w" = w
+    pub fn match_terminal_16(&self, input_index: u32) -> Option<u32> {
+        self.scan(&DFA_16, input_index)
     }
     // Whether any terminal in `set` matches at `input_index`, cached by the set's memo id. The
     // first query of a set at a position scans it; later queries return the cached bit.
     pub fn match_any(&mut self, set: &TerminalSet, input_index: u32) -> bool {
+        debug_assert!(
+            set.id < 27,
+            "terminal set {} does not have a match_any memo id",
+            set.id,
+        );
         if let Some(matched) = self.match_any_memo.get(set.id, input_index) {
             return matched;
         }
@@ -157,7 +194,7 @@ impl<'i, 'arena> ErrorUnionScanner<'i, 'arena> {
     // terminals used as syntax-level excepts.
     pub fn match_exact(&self, terminal_id: TerminalId, start: u32, end: u32) -> bool {
         match terminal_id {
-            TerminalId(2) => self.scan_exact(&DFA_2, start, end),
+            TerminalId(3) => self.scan_exact(&DFA_3, start, end),
             _ => unreachable!("match_exact called for {terminal_id}, which is not an except"),
         }
     }
@@ -184,7 +221,11 @@ impl Scanner for ErrorUnionScanner<'_, '_> {
             TerminalId(10) => self.match_terminal_10(input_index),
             TerminalId(11) => self.match_terminal_11(input_index),
             TerminalId(12) => self.match_terminal_12(input_index),
-            TerminalId(14) => {
+            TerminalId(13) => self.match_terminal_13(input_index),
+            TerminalId(14) => self.match_terminal_14(input_index),
+            TerminalId(15) => self.match_terminal_15(input_index),
+            TerminalId(16) => self.match_terminal_16(input_index),
+            TerminalId(18) => {
                 if input_index == self.input.len() {
                     Some(input_index)
                 } else {

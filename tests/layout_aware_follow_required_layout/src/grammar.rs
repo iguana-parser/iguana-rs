@@ -31,21 +31,27 @@ impl Grammar for LayoutAwareFollowRequiredLayoutGrammar {
     const SLOTS: &'static [Slot] = &[
         Slot {
             display_name: "S : . Id !>>> Semi",
+            position: 0,
         },
         Slot {
             display_name: "S : Id !>>> Semi.",
+            position: 1,
         },
         Slot {
             display_name: "S : . WS start:S WS",
+            position: 0,
         },
         Slot {
             display_name: "S : WS . start:S WS",
+            position: 1,
         },
         Slot {
             display_name: "S : WS start:S . WS",
+            position: 2,
         },
         Slot {
             display_name: "S : WS start:S WS.",
+            position: 3,
         },
     ];
     const LAYOUT_NAME: Option<&'static str> = Some("WS");
@@ -55,23 +61,23 @@ impl Grammar for LayoutAwareFollowRequiredLayoutGrammar {
     // by terminal id, serves only that.
     const SINGLE_TERMINAL_SETS: &'static [TerminalSet] = &[
         TerminalSet {
-            id: 7,
+            id: 5,
             terminals: &[TerminalId(0)],
         },
         TerminalSet {
-            id: 8,
+            id: 6,
             terminals: &[TerminalId(1)],
         },
         TerminalSet {
-            id: 9,
+            id: 7,
             terminals: &[TerminalId(2)],
         },
         TerminalSet {
-            id: 10,
+            id: 8,
             terminals: &[TerminalId(3)],
         },
         TerminalSet {
-            id: 11,
+            id: 9,
             terminals: &[TerminalId(4)],
         },
     ];
@@ -88,33 +94,23 @@ pub static FOLLOW_SET_S: TerminalSet = TerminalSet {
     id: 0,
     terminals: &[TerminalId(2), TerminalId(4)],
 };
-// S : . Id !>>> Semi { Id }
-pub static FIRST_SET_S_ALT0: TerminalSet = TerminalSet {
-    id: 1,
-    terminals: &[TerminalId(0)],
-};
 // S : . Id !>>> Semi !>>> { Semi }
 pub static LAYOUT_AWARE_FOLLOW_RESTRICTION_S_ALT0_POS0: TerminalSet = TerminalSet {
-    id: 2,
+    id: 1,
     terminals: &[TerminalId(1)],
 };
 // StartS { EOF }
 pub static FOLLOW_SET_START_S: TerminalSet = TerminalSet {
-    id: 3,
+    id: 2,
     terminals: &[TerminalId(4)],
-};
-// StartS : . WS start:S WS { WS }
-pub static FIRST_SET_START_S_ALT0: TerminalSet = TerminalSet {
-    id: 4,
-    terminals: &[TerminalId(2)],
 };
 // S { Id }
 pub static FIRST_SET_S: TerminalSet = TerminalSet {
-    id: 5,
+    id: 3,
     terminals: &[TerminalId(0)],
 };
 // StartS { WS }
 pub static FIRST_SET_START_S: TerminalSet = TerminalSet {
-    id: 6,
+    id: 4,
     terminals: &[TerminalId(2)],
 };

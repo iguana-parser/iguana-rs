@@ -49,13 +49,14 @@ pub struct GLLSuccess {
     pub duration: Duration,
 }
 
-/// A failure the parser recorded: where it happened and which static
-/// terminal set it refers to. Recording one stores two words and allocates
-/// nothing; the terminal lists live in the generated grammar's statics.
+/// A failure recorded by the parser. A failure corresponds to a terminal set test
+/// at a specific grammar position.
 #[derive(Debug, Clone, Copy)]
 pub struct GLLFailure {
     pub input_index: u32,
     pub slot_id: SlotId,
+    /// The current GSS node where the failure occurred. `None` when it happens
+    /// inside an LL(1) function, where there is no GSS node.
     pub gss_node_id: Option<GssNodeId>,
     pub kind: GLLFailureKind,
 }
@@ -319,10 +320,6 @@ pub trait Parser<'i, 'arena>: Sized {
         left_extent: u32,
         right_extent: u32,
     ) -> Option<GLLFailureKind>;
-    /// Checks whether the input at the given position is in the follow set of the nonterminal.
-    fn follow_set_check(&mut self, nonterminal_id: NonterminalId, input_index: u32) -> bool;
-    /// The FOLLOW set of the given nonterminal.
-    fn follow_set(&self, nonterminal_id: NonterminalId) -> &'static TerminalSet;
 
     /// The message a person reads for a failure. It names what was expected,
     /// not what was found, and holds no source context or position.
@@ -432,10 +429,14 @@ pub trait Parser<'i, 'arena>: Sized {
         let set = match first.kind {
             GLLFailureKind::UnexpectedToken(set) => set,
             GLLFailureKind::ExcludedMatch(set) => {
-                return Some(report(FailureReportKind::ExcludedMatch { excluded_by: set }));
+                return Some(report(FailureReportKind::ExcludedMatch {
+                    excluded_by: set,
+                }));
             }
             GLLFailureKind::ForbiddenFollow(set) => {
-                return Some(report(FailureReportKind::ForbiddenFollow { forbidden: set }));
+                return Some(report(FailureReportKind::ForbiddenFollow {
+                    forbidden: set,
+                }));
             }
         };
 
@@ -458,11 +459,12 @@ pub trait Parser<'i, 'arena>: Sized {
 
     /// Records a failure at the given input position.
     ///
-    /// Only failures at the farthest input position seen so far are kept; a
-    /// higher position clears the prior level. The kind is a tag and a pointer
-    /// to static data, so recording allocates nothing. The generated
-    /// implementation stays out of line so all failure sites share one
-    /// recorder per parser.
+    /// Only failures at the farthest input position are kept.
+    /// For failures at the same input position, we do not keep a failure whose
+    /// kind and terminal set are the same as those of the failure kept just
+    /// before it, because it does not change the error message.
+    /// The generated implementation has `#[inline(never)]` so that we do not inline
+    /// the failure handling code in the main parser loop.
     fn add_failure(
         &mut self,
         input_index: u32,
@@ -472,6 +474,9 @@ pub trait Parser<'i, 'arena>: Sized {
     );
     /// Delegates to the scanner's match_token.
     fn match_token(&mut self, terminal_id: TerminalId, input_index: u32) -> Option<u32>;
+    /// Delegates to the scanner's match_any, which tests whether a terminal in
+    /// `set` matches at `input_index`.
+    fn match_any(&mut self, set: &'static TerminalSet, input_index: u32) -> bool;
 
     /// Matches a terminal at the given input position.
     /// On success, creates a terminal node and returns the end position and node id.
@@ -507,34 +512,36 @@ pub trait Parser<'i, 'arena>: Sized {
 
     /// Creates a new GSS node if it does not exist.
     /// If a GSS node with the same nonterminal name and input index exists, just adds an edge.
+    /// If the prediction set does not match at the current input position, records a failure
+    /// instead of creating the node.
     /// `create` corresponds to a function call in recursive-descent parsers.
     ///
     /// # Arguments
     ///
     /// * `nonterminal_id` - The nonterminal id.
+    /// * `prediction_set` - The nonterminal's prediction set: its FIRST set, plus its FOLLOW set when
+    ///   the nonterminal is nullable.
     /// * `sppf_node_id` - The current sppf_node, corresponding to the result of parsing before the call.
     ///   If the nonterminal is called at position 0, i.e., it's the first symbol in the production rule,
     ///   the sppf_node_id is `None`
     /// * `gss_node_id` - The id of the current GSS node.
-    /// * `return_slot` - The grammar slot immediately after the nonterminal being called. This is used to record
-    ///   the grammar slot to continue parsing when the call returns (pop action).
+    /// * `return_slot` - The grammar slot immediately after the nonterminal being called.
+    ///   The return slot is recorded on the edge, so that parsing can continue from there after
+    ///   the pop.
+    /// * `env` - The caller's environment, saved on the GSS edge for when the call returns.
     fn create(
         &mut self,
         nonterminal_id: NonterminalId,
+        prediction_set: &'static TerminalSet,
         sppf_node_id: Option<SPPFNodeId>,
         gss_node_id: GssNodeId,
         return_slot: SlotId,
         env: Option<EnvId>,
     ) {
         record!(self, Call, sppf_node_id, gss_node_id, return_slot);
-        let left_child = sppf_node_id.map(|id| {
-            let node = self.sppf_node(id);
-            (id, node.left_extent())
-        });
-        let gss_node = self.gss_node(gss_node_id);
-        let i = match left_child {
-            Some((id, _)) => self.sppf_node(id).right_extent(),
-            None => gss_node.index,
+        let i = match sppf_node_id {
+            Some(id) => self.sppf_node(id).right_extent(),
+            None => self.gss_node(gss_node_id).index,
         };
         // If there is already a GSS node for this call, just add the edge
         if let Some(exiting_gss_node_id) = self.get_gss_node(nonterminal_id, i) {
@@ -542,16 +549,27 @@ pub trait Parser<'i, 'arena>: Sized {
             self.add_edge_to_existing_gss_node(
                 exiting_gss_node_id,
                 gss_node_id,
-                left_child,
+                sppf_node_id,
                 return_slot,
                 env,
             );
-        } else {
+        } else if self.match_any(prediction_set, i) {
             record!(self, GSSNodeNotFound, nonterminal_id, i);
             let new_gss_node_id = self.new_gss_node(nonterminal_id, i);
             self.add_gss_edge(new_gss_node_id, gss_node_id, sppf_node_id, return_slot, env);
             self.add_first_descriptors(nonterminal_id, i, new_gss_node_id, None);
             self.add_gss_node(nonterminal_id, i, new_gss_node_id);
+        } else {
+            // The call symbol precedes the return slot in its alternative, so
+            // the return slot is never at the first position.
+            let call_slot = Self::Grammar::previous_slot(return_slot)
+                .expect("a return slot follows the call symbol");
+            self.add_failure(
+                i,
+                call_slot,
+                Some(gss_node_id),
+                GLLFailureKind::UnexpectedToken(prediction_set),
+            );
         }
     }
 
@@ -559,7 +577,7 @@ pub trait Parser<'i, 'arena>: Sized {
         &mut self,
         existing_gss_node_id: GssNodeId,
         gss_node_id: GssNodeId,
-        left_child: Option<(SPPFNodeId, u32)>,
+        left_child: Option<SPPFNodeId>,
         return_slot: SlotId,
         env: Option<EnvId>,
     ) {
@@ -603,7 +621,7 @@ pub trait Parser<'i, 'arena>: Sized {
         self.add_gss_edge(
             existing_gss_node_id,
             gss_node_id,
-            left_child.map(|(id, _)| id),
+            left_child,
             return_slot,
             env,
         );
@@ -629,16 +647,37 @@ pub trait Parser<'i, 'arena>: Sized {
             return_slot
         );
     }
-
     fn pop(
         &mut self,
         gss_node_id: GssNodeId,
         slot_id: SlotId,
-        nonterminal_node_id: SPPFNodeId,
+        result: SPPFNodeId,
         return_value: Option<i32>,
+        follow_set: &'static TerminalSet,
     ) {
+        let node = self.sppf_node(result);
+        let left_extent = node.left_extent();
+        let right_extent = node.right_extent();
+        if !self.match_any(follow_set, right_extent) {
+            self.add_failure(
+                right_extent,
+                slot_id,
+                Some(gss_node_id),
+                GLLFailureKind::UnexpectedToken(follow_set),
+            );
+            return;
+        }
+        let nonterminal_id = self.gss_node(gss_node_id).nonterminal_id;
+        let nonterminal_node_id = self.get_or_create_nonterminal_node(
+            nonterminal_id,
+            slot_id,
+            left_extent,
+            right_extent,
+            result,
+            gss_node_id,
+            return_value,
+        );
         let arena = self.vec_arena();
-        let right_extent = self.sppf_node(nonterminal_node_id).right_extent();
         record!(
             self,
             Pop,
@@ -648,20 +687,8 @@ pub trait Parser<'i, 'arena>: Sized {
             return_value
         );
         let gss = self.gss_node(gss_node_id);
-        let nonterminal_id = gss.nonterminal_id;
         if gss.contains_popped_element(right_extent, return_value) {
             record!(self, NodeAlreadyInPoppedElements);
-            return;
-        }
-        let left_extent = gss.index;
-        if !self.follow_set_check(nonterminal_id, right_extent) {
-            let expected = self.follow_set(nonterminal_id);
-            self.add_failure(
-                right_extent,
-                slot_id,
-                Some(gss_node_id),
-                GLLFailureKind::UnexpectedToken(expected),
-            );
             return;
         }
         let right_child = (nonterminal_node_id, right_extent);
@@ -682,9 +709,7 @@ pub trait Parser<'i, 'arena>: Sized {
                 self.add_failure(right_extent, edge.return_slot, Some(gss_node_id), failure);
                 continue;
             }
-            let left_child = edge
-                .sppf_node_id()
-                .map(|id| (id, self.sppf_node(id).left_extent()));
+            let left_child = edge.sppf_node_id();
             let env = match return_value {
                 Some(value) => self.bind_return_value(edge.return_slot, edge.env_id(), value),
                 None => edge.env_id(),
@@ -710,13 +735,14 @@ pub trait Parser<'i, 'arena>: Sized {
     /// the caller skips its `add_descriptor` call.
     fn merge(
         &mut self,
-        left_child: Option<(SPPFNodeId, u32)>,
+        left_child: Option<SPPFNodeId>,
         right_child: (SPPFNodeId, u32),
         slot_id: SlotId,
         env: Option<EnvId>,
     ) -> Option<SPPFNodeId> {
         let (right_child_id, right_extent) = right_child;
-        if let Some((left_child_id, left_extent)) = left_child {
+        if let Some(left_child_id) = left_child {
+            let left_extent = self.sppf_node(left_child_id).left_extent();
             self.get_or_create_intermediate_node(
                 slot_id,
                 left_extent,
@@ -921,31 +947,6 @@ pub trait Parser<'i, 'arena>: Sized {
             left_child_id,
             right_child_id,
             env,
-        )
-    }
-
-    /// Extracts extents from the result node and creates the nonterminal SPPF
-    /// node via the GLL get-or-create path.
-    #[inline]
-    fn create_nonterminal_node(
-        &mut self,
-        result: Option<SPPFNodeId>,
-        nonterminal_id: NonterminalId,
-        end_slot_id: SlotId,
-        gss_node_id: GssNodeId,
-    ) -> SPPFNodeId {
-        let result = result.expect("Result should not be None.");
-        let node = self.sppf_node(result);
-        let left_extent = node.left_extent();
-        let right_extent = node.right_extent();
-        self.get_or_create_nonterminal_node(
-            nonterminal_id,
-            end_slot_id,
-            left_extent,
-            right_extent,
-            result,
-            gss_node_id,
-            None,
         )
     }
 

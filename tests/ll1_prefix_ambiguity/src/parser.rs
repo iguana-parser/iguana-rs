@@ -65,17 +65,21 @@ impl<'i, 'arena> Parser<'i, 'arena> for Ll1PrefixAmbiguityParser<'i, 'arena> {
                 match slot_id {
                     // E : . Expr
                     SlotId(0) => {
-                        self.create(NonterminalId(1), result, gss_node_id, SlotId(1), env);
+                        self.create(
+                            NonterminalId(1),
+                            &PREDICTION_SET_EXPR,
+                            result,
+                            gss_node_id,
+                            SlotId(1),
+                            env,
+                        );
                     }
                     // E : Expr.
                     SlotId(1) => {
-                        let nonterminal_node_id = self.create_nonterminal_node(
-                            result,
-                            NonterminalId(0),
-                            SlotId(1),
-                            gss_node_id,
-                        );
-                        self.pop(gss_node_id, SlotId(1), nonterminal_node_id, None);
+                        let Some(result) = result else {
+                            unreachable!("result cannot be None here.")
+                        };
+                        self.pop(gss_node_id, SlotId(1), result, None, &FOLLOW_SET_E);
                     }
                     // Expr : . Int "." Id
                     SlotId(2) => {
@@ -129,13 +133,10 @@ impl<'i, 'arena> Parser<'i, 'arena> for Ll1PrefixAmbiguityParser<'i, 'arena> {
                     }
                     // Expr : Int "." Id.
                     SlotId(5) => {
-                        let nonterminal_node_id = self.create_nonterminal_node(
-                            result,
-                            NonterminalId(1),
-                            SlotId(5),
-                            gss_node_id,
-                        );
-                        self.pop(gss_node_id, SlotId(5), nonterminal_node_id, None);
+                        let Some(result) = result else {
+                            unreachable!("result cannot be None here.")
+                        };
+                        self.pop(gss_node_id, SlotId(5), result, None, &FOLLOW_SET_EXPR);
                     }
                     // Expr : . Float
                     SlotId(6) => {
@@ -153,41 +154,52 @@ impl<'i, 'arena> Parser<'i, 'arena> for Ll1PrefixAmbiguityParser<'i, 'arena> {
                     }
                     // Expr : Float.
                     SlotId(7) => {
-                        let nonterminal_node_id = self.create_nonterminal_node(
-                            result,
-                            NonterminalId(1),
-                            SlotId(7),
-                            gss_node_id,
-                        );
-                        self.pop(gss_node_id, SlotId(7), nonterminal_node_id, None);
+                        let Some(result) = result else {
+                            unreachable!("result cannot be None here.")
+                        };
+                        self.pop(gss_node_id, SlotId(7), result, None, &FOLLOW_SET_EXPR);
                     }
                     // StartE : . start:E
                     SlotId(8) => {
-                        self.create(NonterminalId(0), result, gss_node_id, SlotId(9), env);
+                        self.create(
+                            NonterminalId(0),
+                            &PREDICTION_SET_E,
+                            result,
+                            gss_node_id,
+                            SlotId(9),
+                            env,
+                        );
                     }
                     // StartE : start:E.
                     SlotId(9) => {
-                        let nonterminal_node_id = self.create_nonterminal_node(
-                            result,
-                            NonterminalId(2),
-                            SlotId(9),
-                            gss_node_id,
-                        );
-                        self.pop(gss_node_id, SlotId(9), nonterminal_node_id, None);
+                        let Some(result) = result else {
+                            unreachable!("result cannot be None here.")
+                        };
+                        self.pop(gss_node_id, SlotId(9), result, None, &FOLLOW_SET_START_E);
                     }
                     // StartExpr : . start:Expr
                     SlotId(10) => {
-                        self.create(NonterminalId(1), result, gss_node_id, SlotId(11), env);
+                        self.create(
+                            NonterminalId(1),
+                            &PREDICTION_SET_EXPR,
+                            result,
+                            gss_node_id,
+                            SlotId(11),
+                            env,
+                        );
                     }
                     // StartExpr : start:Expr.
                     SlotId(11) => {
-                        let nonterminal_node_id = self.create_nonterminal_node(
-                            result,
-                            NonterminalId(3),
-                            SlotId(11),
+                        let Some(result) = result else {
+                            unreachable!("result cannot be None here.")
+                        };
+                        self.pop(
                             gss_node_id,
+                            SlotId(11),
+                            result,
+                            None,
+                            &FOLLOW_SET_START_EXPR,
                         );
-                        self.pop(gss_node_id, SlotId(11), nonterminal_node_id, None);
                     }
                     _ => {
                         panic!("Unknown grammar slot id: {slot_id}");
@@ -210,24 +222,13 @@ impl<'i, 'arena> Parser<'i, 'arena> for Ll1PrefixAmbiguityParser<'i, 'arena> {
             }
             // Expr
             NonterminalId(1) => {
-                let mut matched = false;
                 // Expr : . Int "." Id
                 if self.scanner.match_any(&FIRST_SET_EXPR_ALT0, input_index) {
-                    matched = true;
                     self.add_first_descriptor(SlotId(2), input_index, gss_node_id, env);
                 }
                 // Expr : . Float
                 if self.scanner.match_any(&FIRST_SET_EXPR_ALT1, input_index) {
-                    matched = true;
                     self.add_first_descriptor(SlotId(6), input_index, gss_node_id, env);
-                }
-                if !matched {
-                    self.add_failure(
-                        input_index,
-                        SlotId(2),
-                        Some(gss_node_id),
-                        GLLFailureKind::UnexpectedToken(&FIRST_SET_EXPR),
-                    );
                 }
             }
             // StartE : . start:E
@@ -592,24 +593,6 @@ impl<'i, 'arena> Parser<'i, 'arena> for Ll1PrefixAmbiguityParser<'i, 'arena> {
     ) -> Option<GLLFailureKind> {
         None
     }
-    fn follow_set_check(&mut self, nonterminal_id: NonterminalId, input_index: u32) -> bool {
-        match nonterminal_id {
-            NonterminalId(0) => self.scanner.match_any(&FOLLOW_SET_E, input_index),
-            NonterminalId(1) => self.scanner.match_any(&FOLLOW_SET_EXPR, input_index),
-            NonterminalId(2) => self.scanner.match_any(&FOLLOW_SET_START_E, input_index),
-            NonterminalId(3) => self.scanner.match_any(&FOLLOW_SET_START_EXPR, input_index),
-            _ => true,
-        }
-    }
-    fn follow_set(&self, nonterminal_id: NonterminalId) -> &'static TerminalSet {
-        match nonterminal_id {
-            NonterminalId(0) => &FOLLOW_SET_E,
-            NonterminalId(1) => &FOLLOW_SET_EXPR,
-            NonterminalId(2) => &FOLLOW_SET_START_E,
-            NonterminalId(3) => &FOLLOW_SET_START_EXPR,
-            _ => unreachable!("no FOLLOW set for nonterminal {nonterminal_id}"),
-        }
-    }
     fn failures(&self) -> impl Iterator<Item = &GLLFailure> {
         self.failures.iter()
     }
@@ -632,6 +615,9 @@ impl<'i, 'arena> Parser<'i, 'arena> for Ll1PrefixAmbiguityParser<'i, 'arena> {
         if input_index > level {
             self.failures.clear();
         }
+        if self.failures.last().is_some_and(|last| last.kind == kind) {
+            return;
+        }
         self.failures.push(
             GLLFailure {
                 input_index,
@@ -644,6 +630,9 @@ impl<'i, 'arena> Parser<'i, 'arena> for Ll1PrefixAmbiguityParser<'i, 'arena> {
     }
     fn match_token(&mut self, terminal_id: TerminalId, input_index: u32) -> Option<u32> {
         self.scanner.match_token(terminal_id, input_index)
+    }
+    fn match_any(&mut self, set: &'static TerminalSet, input_index: u32) -> bool {
+        self.scanner.match_any(set, input_index)
     }
     fn vec_arena(&self) -> &'arena Arena {
         self.vec_arena
@@ -731,10 +720,10 @@ impl<'i, 'arena> Ll1PrefixAmbiguityParser<'i, 'arena> {
     }
     /// Parses the input from `start` and builds the parse tree in the given
     /// `tree_arena`. The parser is consumed. The tree lives as long as the
-    /// arena lives. `start` is normally the start wrapper of a declared
-    /// nonterminal, `grammar::START_<NAME>`, which allows layout around the
-    /// input; a bare nonterminal id parses without it.
-    pub fn parse<'a>(
+    /// arena lives. `start` is the start wrapper of a declared nonterminal,
+    /// `grammar::START_<NAME>`, which allows layout around the input. The
+    /// public entry points are the typed `parse_<name>` methods.
+    fn parse<'a>(
         self,
         start: NonterminalId,
         tree_arena: &'a Arena,

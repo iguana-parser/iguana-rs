@@ -50,72 +50,95 @@ impl Grammar for LayoutAwareFollowNoLayoutGrammar {
     const SLOTS: &'static [Slot] = &[
         Slot {
             display_name: "S : . Word+",
+            position: 0,
         },
         Slot {
             display_name: "S : Word+.",
+            position: 1,
         },
         Slot {
             display_name: "Word : . Char+ !>> Char",
+            position: 0,
         },
         Slot {
             display_name: "Word : Char+ !>> Char.",
+            position: 1,
         },
         Slot {
             display_name: "Word+ : . Word+ WS Word",
+            position: 0,
         },
         Slot {
             display_name: "Word+ : Word+ . WS Word",
+            position: 1,
         },
         Slot {
             display_name: "Word+ : Word+ WS . Word",
+            position: 2,
         },
         Slot {
             display_name: "Word+ : Word+ WS Word.",
+            position: 3,
         },
         Slot {
             display_name: "Word+ : . Word",
+            position: 0,
         },
         Slot {
             display_name: "Word+ : Word.",
+            position: 1,
         },
         Slot {
             display_name: "Char+ : . Char+ Char",
+            position: 0,
         },
         Slot {
             display_name: "Char+ : Char+ . Char",
+            position: 1,
         },
         Slot {
             display_name: "Char+ : Char+ Char.",
+            position: 2,
         },
         Slot {
             display_name: "Char+ : . Char",
+            position: 0,
         },
         Slot {
             display_name: "Char+ : Char.",
+            position: 1,
         },
         Slot {
             display_name: "S : . WS start:S WS",
+            position: 0,
         },
         Slot {
             display_name: "S : WS . start:S WS",
+            position: 1,
         },
         Slot {
             display_name: "S : WS start:S . WS",
+            position: 2,
         },
         Slot {
             display_name: "S : WS start:S WS.",
+            position: 3,
         },
         Slot {
             display_name: "Word : . WS start:Word WS",
+            position: 0,
         },
         Slot {
             display_name: "Word : WS . start:Word WS",
+            position: 1,
         },
         Slot {
             display_name: "Word : WS start:Word . WS",
+            position: 2,
         },
         Slot {
             display_name: "Word : WS start:Word WS.",
+            position: 3,
         },
     ];
     const LAYOUT_NAME: Option<&'static str> = Some("WS");
@@ -125,19 +148,19 @@ impl Grammar for LayoutAwareFollowNoLayoutGrammar {
     // by terminal id, serves only that.
     const SINGLE_TERMINAL_SETS: &'static [TerminalSet] = &[
         TerminalSet {
-            id: 7,
+            id: 6,
             terminals: &[TerminalId(0)],
         },
         TerminalSet {
-            id: 8,
+            id: 7,
             terminals: &[TerminalId(1)],
         },
         TerminalSet {
-            id: 9,
+            id: 8,
             terminals: &[TerminalId(2)],
         },
         TerminalSet {
-            id: 10,
+            id: 9,
             terminals: &[TerminalId(3)],
         },
     ];
@@ -158,54 +181,44 @@ pub static FOLLOW_SET_S: TerminalSet = TerminalSet {
     id: 0,
     terminals: &[TerminalId(1), TerminalId(3)],
 };
-// S : . Plus_0 { Char }
-pub static FIRST_SET_S_ALT0: TerminalSet = TerminalSet {
-    id: 1,
-    terminals: &[TerminalId(0)],
-};
 // Word { Char, WS, EOF }
 pub static FOLLOW_SET_WORD: TerminalSet = TerminalSet {
-    id: 2,
-    terminals: &[TerminalId(0), TerminalId(1), TerminalId(3)],
-};
-// Word : . Plus_1 !>> Char { Char }
-pub static FIRST_SET_WORD_ALT0: TerminalSet = TerminalSet {
     id: 1,
-    terminals: &[TerminalId(0)],
+    terminals: &[TerminalId(0), TerminalId(1), TerminalId(3)],
 };
 // Word : . Plus_1 !>> Char !>> { Char }
 pub static FOLLOW_RESTRICTION_WORD_ALT0_POS0: TerminalSet = TerminalSet {
-    id: 1,
+    id: 2,
     terminals: &[TerminalId(0)],
 };
 // Plus_0 { Char, WS, EOF }
 pub static FOLLOW_SET_PLUS_0: TerminalSet = TerminalSet {
-    id: 2,
+    id: 1,
     terminals: &[TerminalId(0), TerminalId(1), TerminalId(3)],
 };
 // Plus_0 : . Plus_0 WS Word { Char }
 pub static FIRST_SET_PLUS_0_ALT0: TerminalSet = TerminalSet {
-    id: 1,
+    id: 2,
     terminals: &[TerminalId(0)],
 };
 // Plus_0 : . Word { Char }
 pub static FIRST_SET_PLUS_0_ALT1: TerminalSet = TerminalSet {
-    id: 1,
+    id: 2,
     terminals: &[TerminalId(0)],
 };
 // Plus_1 { Char, WS, EOF }
 pub static FOLLOW_SET_PLUS_1: TerminalSet = TerminalSet {
-    id: 2,
+    id: 1,
     terminals: &[TerminalId(0), TerminalId(1), TerminalId(3)],
 };
 // Plus_1 : . Plus_1 Char { Char }
 pub static FIRST_SET_PLUS_1_ALT0: TerminalSet = TerminalSet {
-    id: 1,
+    id: 2,
     terminals: &[TerminalId(0)],
 };
 // Plus_1 : . Char { Char }
 pub static FIRST_SET_PLUS_1_ALT1: TerminalSet = TerminalSet {
-    id: 1,
+    id: 2,
     terminals: &[TerminalId(0)],
 };
 // StartS { EOF }
@@ -213,48 +226,33 @@ pub static FOLLOW_SET_START_S: TerminalSet = TerminalSet {
     id: 3,
     terminals: &[TerminalId(3)],
 };
-// StartS : . WS start:S WS { Char, WS }
-pub static FIRST_SET_START_S_ALT0: TerminalSet = TerminalSet {
-    id: 4,
-    terminals: &[TerminalId(0), TerminalId(1)],
-};
 // StartWord { EOF }
 pub static FOLLOW_SET_START_WORD: TerminalSet = TerminalSet {
     id: 3,
     terminals: &[TerminalId(3)],
 };
-// StartWord : . WS start:Word WS { Char, WS }
-pub static FIRST_SET_START_WORD_ALT0: TerminalSet = TerminalSet {
-    id: 4,
-    terminals: &[TerminalId(0), TerminalId(1)],
+// S prediction { Char }
+pub static PREDICTION_SET_S: TerminalSet = TerminalSet {
+    id: 2,
+    terminals: &[TerminalId(0)],
 };
-// S { Char }
-pub static FIRST_SET_S: TerminalSet = TerminalSet {
-    id: 5,
+// Plus_0 prediction { Char }
+pub static PREDICTION_SET_PLUS_0: TerminalSet = TerminalSet {
+    id: 2,
     terminals: &[TerminalId(0)],
 };
 // Word { Char }
 pub static FIRST_SET_WORD: TerminalSet = TerminalSet {
-    id: 5,
-    terminals: &[TerminalId(0)],
-};
-// Plus_0 { Char }
-pub static FIRST_SET_PLUS_0: TerminalSet = TerminalSet {
-    id: 5,
+    id: 4,
     terminals: &[TerminalId(0)],
 };
 // Plus_1 { Char }
 pub static FIRST_SET_PLUS_1: TerminalSet = TerminalSet {
-    id: 5,
+    id: 4,
     terminals: &[TerminalId(0)],
-};
-// StartS { Char, WS }
-pub static FIRST_SET_START_S: TerminalSet = TerminalSet {
-    id: 6,
-    terminals: &[TerminalId(0), TerminalId(1)],
 };
 // StartWord { Char, WS }
 pub static FIRST_SET_START_WORD: TerminalSet = TerminalSet {
-    id: 6,
+    id: 5,
     terminals: &[TerminalId(0), TerminalId(1)],
 };

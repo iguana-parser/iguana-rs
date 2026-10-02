@@ -59,72 +59,95 @@ impl Grammar for RegexCompositionGrammar {
     const SLOTS: &'static [Slot] = &[
         Slot {
             display_name: "S : . Id",
+            position: 0,
         },
         Slot {
             display_name: "S : Id.",
+            position: 1,
         },
         Slot {
             display_name: "Id : . Letter LetterOrDigit*",
+            position: 0,
         },
         Slot {
             display_name: "Id : Letter . LetterOrDigit*",
+            position: 1,
         },
         Slot {
             display_name: "Id : Letter LetterOrDigit*.",
+            position: 2,
         },
         Slot {
             display_name: "LetterOrDigit+ : . LetterOrDigit+ LetterOrDigit",
+            position: 0,
         },
         Slot {
             display_name: "LetterOrDigit+ : LetterOrDigit+ . LetterOrDigit",
+            position: 1,
         },
         Slot {
             display_name: "LetterOrDigit+ : LetterOrDigit+ LetterOrDigit.",
+            position: 2,
         },
         Slot {
             display_name: "LetterOrDigit+ : . LetterOrDigit",
+            position: 0,
         },
         Slot {
             display_name: "LetterOrDigit+ : LetterOrDigit.",
+            position: 1,
         },
         Slot {
             display_name: "LetterOrDigit+? : . LetterOrDigit+",
+            position: 0,
         },
         Slot {
             display_name: "LetterOrDigit+? : LetterOrDigit+.",
+            position: 1,
         },
         Slot {
             display_name: "LetterOrDigit+? : .",
+            position: 0,
         },
         Slot {
             display_name: "LetterOrDigit* : . LetterOrDigit+?",
+            position: 0,
         },
         Slot {
             display_name: "LetterOrDigit* : LetterOrDigit+?.",
+            position: 1,
         },
         Slot {
             display_name: "S : . WS start:S WS",
+            position: 0,
         },
         Slot {
             display_name: "S : WS . start:S WS",
+            position: 1,
         },
         Slot {
             display_name: "S : WS start:S . WS",
+            position: 2,
         },
         Slot {
             display_name: "S : WS start:S WS.",
+            position: 3,
         },
         Slot {
             display_name: "Id : . WS start:Id WS",
+            position: 0,
         },
         Slot {
             display_name: "Id : WS . start:Id WS",
+            position: 1,
         },
         Slot {
             display_name: "Id : WS start:Id . WS",
+            position: 2,
         },
         Slot {
             display_name: "Id : WS start:Id WS.",
+            position: 3,
         },
     ];
     const LAYOUT_NAME: Option<&'static str> = Some("WS");
@@ -134,27 +157,27 @@ impl Grammar for RegexCompositionGrammar {
     // by terminal id, serves only that.
     const SINGLE_TERMINAL_SETS: &'static [TerminalSet] = &[
         TerminalSet {
-            id: 11,
+            id: 6,
             terminals: &[TerminalId(0)],
         },
         TerminalSet {
-            id: 12,
+            id: 7,
             terminals: &[TerminalId(1)],
         },
         TerminalSet {
-            id: 13,
+            id: 8,
             terminals: &[TerminalId(2)],
         },
         TerminalSet {
-            id: 14,
+            id: 9,
             terminals: &[TerminalId(3)],
         },
         TerminalSet {
-            id: 15,
+            id: 10,
             terminals: &[TerminalId(4)],
         },
         TerminalSet {
-            id: 16,
+            id: 11,
             terminals: &[TerminalId(5)],
         },
     ];
@@ -176,34 +199,24 @@ pub static FOLLOW_SET_S: TerminalSet = TerminalSet {
     id: 0,
     terminals: &[TerminalId(3), TerminalId(5)],
 };
-// S : . Id { Letter }
-pub static FIRST_SET_S_ALT0: TerminalSet = TerminalSet {
-    id: 1,
-    terminals: &[TerminalId(1)],
-};
 // Id { WS, EOF }
 pub static FOLLOW_SET_ID: TerminalSet = TerminalSet {
     id: 0,
     terminals: &[TerminalId(3), TerminalId(5)],
 };
-// Id : . Letter Star_0 { Letter }
-pub static FIRST_SET_ID_ALT0: TerminalSet = TerminalSet {
-    id: 1,
-    terminals: &[TerminalId(1)],
-};
 // Plus_0 { LetterOrDigit, WS, EOF }
 pub static FOLLOW_SET_PLUS_0: TerminalSet = TerminalSet {
-    id: 2,
+    id: 1,
     terminals: &[TerminalId(2), TerminalId(3), TerminalId(5)],
 };
 // Plus_0 : . Plus_0 LetterOrDigit { LetterOrDigit }
 pub static FIRST_SET_PLUS_0_ALT0: TerminalSet = TerminalSet {
-    id: 3,
+    id: 2,
     terminals: &[TerminalId(2)],
 };
 // Plus_0 : . LetterOrDigit { LetterOrDigit }
 pub static FIRST_SET_PLUS_0_ALT1: TerminalSet = TerminalSet {
-    id: 3,
+    id: 2,
     terminals: &[TerminalId(2)],
 };
 // Opt_0 { WS, EOF }
@@ -213,12 +226,12 @@ pub static FOLLOW_SET_OPT_0: TerminalSet = TerminalSet {
 };
 // Opt_0 : . Plus_0 { LetterOrDigit }
 pub static FIRST_SET_OPT_0_ALT0: TerminalSet = TerminalSet {
-    id: 3,
+    id: 2,
     terminals: &[TerminalId(2)],
 };
 // Opt_0 : . { }
 pub static FIRST_SET_OPT_0_ALT1: TerminalSet = TerminalSet {
-    id: 4,
+    id: 3,
     terminals: &[],
 };
 // Star_0 { WS, EOF }
@@ -226,68 +239,38 @@ pub static FOLLOW_SET_STAR_0: TerminalSet = TerminalSet {
     id: 0,
     terminals: &[TerminalId(3), TerminalId(5)],
 };
-// Star_0 : . Opt_0 { LetterOrDigit }
-pub static FIRST_SET_STAR_0_ALT0: TerminalSet = TerminalSet {
-    id: 3,
-    terminals: &[TerminalId(2)],
-};
 // StartS { EOF }
 pub static FOLLOW_SET_START_S: TerminalSet = TerminalSet {
-    id: 5,
+    id: 4,
     terminals: &[TerminalId(5)],
-};
-// StartS : . WS start:S WS { Letter, WS }
-pub static FIRST_SET_START_S_ALT0: TerminalSet = TerminalSet {
-    id: 6,
-    terminals: &[TerminalId(1), TerminalId(3)],
 };
 // StartId { EOF }
 pub static FOLLOW_SET_START_ID: TerminalSet = TerminalSet {
-    id: 5,
+    id: 4,
     terminals: &[TerminalId(5)],
 };
-// StartId : . WS start:Id WS { Letter, WS }
-pub static FIRST_SET_START_ID_ALT0: TerminalSet = TerminalSet {
-    id: 6,
-    terminals: &[TerminalId(1), TerminalId(3)],
-};
-// S { Letter }
-pub static FIRST_SET_S: TerminalSet = TerminalSet {
-    id: 7,
+// S prediction { Letter }
+pub static PREDICTION_SET_S: TerminalSet = TerminalSet {
+    id: 5,
     terminals: &[TerminalId(1)],
 };
-// Id { Letter }
-pub static FIRST_SET_ID: TerminalSet = TerminalSet {
-    id: 7,
+// Id prediction { Letter }
+pub static PREDICTION_SET_ID: TerminalSet = TerminalSet {
+    id: 5,
     terminals: &[TerminalId(1)],
 };
-// Plus_0 { LetterOrDigit }
-pub static FIRST_SET_PLUS_0: TerminalSet = TerminalSet {
-    id: 8,
+// Plus_0 prediction { LetterOrDigit }
+pub static PREDICTION_SET_PLUS_0: TerminalSet = TerminalSet {
+    id: 2,
     terminals: &[TerminalId(2)],
 };
 // Opt_0 prediction { LetterOrDigit, WS, EOF }
 pub static PREDICTION_SET_OPT_0: TerminalSet = TerminalSet {
-    id: 9,
+    id: 1,
     terminals: &[TerminalId(2), TerminalId(3), TerminalId(5)],
 };
-// Opt_0 { LetterOrDigit }
-pub static FIRST_SET_OPT_0: TerminalSet = TerminalSet {
-    id: 8,
-    terminals: &[TerminalId(2)],
-};
-// Star_0 { LetterOrDigit }
-pub static FIRST_SET_STAR_0: TerminalSet = TerminalSet {
-    id: 8,
-    terminals: &[TerminalId(2)],
-};
-// StartS { Letter, WS }
-pub static FIRST_SET_START_S: TerminalSet = TerminalSet {
-    id: 10,
-    terminals: &[TerminalId(1), TerminalId(3)],
-};
-// StartId { Letter, WS }
-pub static FIRST_SET_START_ID: TerminalSet = TerminalSet {
-    id: 10,
-    terminals: &[TerminalId(1), TerminalId(3)],
+// Star_0 prediction { LetterOrDigit, WS, EOF }
+pub static PREDICTION_SET_STAR_0: TerminalSet = TerminalSet {
+    id: 1,
+    terminals: &[TerminalId(2), TerminalId(3), TerminalId(5)],
 };

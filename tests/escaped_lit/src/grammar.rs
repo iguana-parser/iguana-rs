@@ -33,51 +33,67 @@ impl Grammar for EscapedLitGrammar {
     const SLOTS: &'static [Slot] = &[
         Slot {
             display_name: "S : . \"\\\"\" WS Id WS \"\\\"\" WS \"\\\\\" WS Id WS \"\\f'\"",
+            position: 0,
         },
         Slot {
             display_name: "S : \"\\\"\" . WS Id WS \"\\\"\" WS \"\\\\\" WS Id WS \"\\f'\"",
+            position: 1,
         },
         Slot {
             display_name: "S : \"\\\"\" WS . Id WS \"\\\"\" WS \"\\\\\" WS Id WS \"\\f'\"",
+            position: 2,
         },
         Slot {
             display_name: "S : \"\\\"\" WS Id . WS \"\\\"\" WS \"\\\\\" WS Id WS \"\\f'\"",
+            position: 3,
         },
         Slot {
             display_name: "S : \"\\\"\" WS Id WS . \"\\\"\" WS \"\\\\\" WS Id WS \"\\f'\"",
+            position: 4,
         },
         Slot {
             display_name: "S : \"\\\"\" WS Id WS \"\\\"\" . WS \"\\\\\" WS Id WS \"\\f'\"",
+            position: 5,
         },
         Slot {
             display_name: "S : \"\\\"\" WS Id WS \"\\\"\" WS . \"\\\\\" WS Id WS \"\\f'\"",
+            position: 6,
         },
         Slot {
             display_name: "S : \"\\\"\" WS Id WS \"\\\"\" WS \"\\\\\" . WS Id WS \"\\f'\"",
+            position: 7,
         },
         Slot {
             display_name: "S : \"\\\"\" WS Id WS \"\\\"\" WS \"\\\\\" WS . Id WS \"\\f'\"",
+            position: 8,
         },
         Slot {
             display_name: "S : \"\\\"\" WS Id WS \"\\\"\" WS \"\\\\\" WS Id . WS \"\\f'\"",
+            position: 9,
         },
         Slot {
             display_name: "S : \"\\\"\" WS Id WS \"\\\"\" WS \"\\\\\" WS Id WS . \"\\f'\"",
+            position: 10,
         },
         Slot {
             display_name: "S : \"\\\"\" WS Id WS \"\\\"\" WS \"\\\\\" WS Id WS \"\\f'\".",
+            position: 11,
         },
         Slot {
             display_name: "S : . WS start:S WS",
+            position: 0,
         },
         Slot {
             display_name: "S : WS . start:S WS",
+            position: 1,
         },
         Slot {
             display_name: "S : WS start:S . WS",
+            position: 2,
         },
         Slot {
             display_name: "S : WS start:S WS.",
+            position: 3,
         },
     ];
     const LAYOUT_NAME: Option<&'static str> = Some("WS");
@@ -87,31 +103,31 @@ impl Grammar for EscapedLitGrammar {
     // by terminal id, serves only that.
     const SINGLE_TERMINAL_SETS: &'static [TerminalSet] = &[
         TerminalSet {
-            id: 6,
+            id: 4,
             terminals: &[TerminalId(0)],
         },
         TerminalSet {
-            id: 7,
+            id: 5,
             terminals: &[TerminalId(1)],
         },
         TerminalSet {
-            id: 8,
+            id: 6,
             terminals: &[TerminalId(2)],
         },
         TerminalSet {
-            id: 9,
+            id: 7,
             terminals: &[TerminalId(3)],
         },
         TerminalSet {
-            id: 10,
+            id: 8,
             terminals: &[TerminalId(4)],
         },
         TerminalSet {
-            id: 11,
+            id: 9,
             terminals: &[TerminalId(5)],
         },
         TerminalSet {
-            id: 12,
+            id: 10,
             terminals: &[TerminalId(6)],
         },
     ];
@@ -128,28 +144,18 @@ pub static FOLLOW_SET_S: TerminalSet = TerminalSet {
     id: 0,
     terminals: &[TerminalId(1), TerminalId(6)],
 };
-// S : . "\"" WS Id WS "\"" WS "\\" WS Id WS "\f'" { "\"" }
-pub static FIRST_SET_S_ALT0: TerminalSet = TerminalSet {
-    id: 1,
-    terminals: &[TerminalId(2)],
-};
 // StartS { EOF }
 pub static FOLLOW_SET_START_S: TerminalSet = TerminalSet {
-    id: 2,
+    id: 1,
     terminals: &[TerminalId(6)],
-};
-// StartS : . WS start:S WS { WS, "\"" }
-pub static FIRST_SET_START_S_ALT0: TerminalSet = TerminalSet {
-    id: 3,
-    terminals: &[TerminalId(1), TerminalId(2)],
 };
 // S { "\"" }
 pub static FIRST_SET_S: TerminalSet = TerminalSet {
-    id: 4,
+    id: 2,
     terminals: &[TerminalId(2)],
 };
 // StartS { WS, "\"" }
 pub static FIRST_SET_START_S: TerminalSet = TerminalSet {
-    id: 5,
+    id: 3,
     terminals: &[TerminalId(1), TerminalId(2)],
 };

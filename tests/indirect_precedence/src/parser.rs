@@ -5,7 +5,6 @@ use crate::{
     parse_tree::{self, IndirectPrecedenceParseTreeBuilder, ParseTree, create_parse_tree},
     scanner::IndirectPrecedenceScanner,
 };
-#[cfg(feature = "instrument")]
 use iguana_runtime::grammar::Grammar;
 #[allow(unused_imports)]
 use iguana_runtime::input::Span;
@@ -73,13 +72,10 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectPrecedenceParser<'i, 'arena> {
                     }
                     // S : E(0).
                     SlotId(1) => {
-                        let nonterminal_node_id = self.create_nonterminal_node(
-                            result,
-                            NonterminalId(0),
-                            SlotId(1),
-                            gss_node_id,
-                        );
-                        self.pop(gss_node_id, SlotId(1), nonterminal_node_id, None);
+                        let Some(result) = result else {
+                            unreachable!("result cannot be None here.")
+                        };
+                        self.pop(gss_node_id, SlotId(1), result, None, &FOLLOW_SET_S);
                     }
                     // E(p: i32) : . "-" E(2) return 2
                     SlotId(10) => {
@@ -108,22 +104,13 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectPrecedenceParser<'i, 'arena> {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        let node = self.sppf_node(result);
                         let return_value = 2;
-                        let nonterminal_node_id = self.get_or_create_nonterminal_node(
-                            NonterminalId(5),
-                            SlotId(13),
-                            node.left_extent(),
-                            node.right_extent(),
-                            result,
-                            gss_node_id,
-                            Some(return_value),
-                        );
                         self.pop(
                             gss_node_id,
                             SlotId(13),
-                            nonterminal_node_id,
+                            result,
                             Some(return_value),
+                            &FOLLOW_SET_E,
                         );
                     }
                     // E(p: i32) : . [1 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 1)] "*" F(1) return 1
@@ -181,22 +168,13 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectPrecedenceParser<'i, 'arena> {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        let node = self.sppf_node(result);
                         let return_value = 1;
-                        let nonterminal_node_id = self.get_or_create_nonterminal_node(
-                            NonterminalId(5),
-                            SlotId(20),
-                            node.left_extent(),
-                            node.right_extent(),
-                            result,
-                            gss_node_id,
-                            Some(return_value),
-                        );
                         self.pop(
                             gss_node_id,
                             SlotId(20),
-                            nonterminal_node_id,
+                            result,
                             Some(return_value),
+                            &FOLLOW_SET_E,
                         );
                     }
                     // E(p: i32) : . "a" return 0
@@ -222,22 +200,13 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectPrecedenceParser<'i, 'arena> {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        let node = self.sppf_node(result);
                         let return_value = 0;
-                        let nonterminal_node_id = self.get_or_create_nonterminal_node(
-                            NonterminalId(5),
-                            SlotId(23),
-                            node.left_extent(),
-                            node.right_extent(),
-                            result,
-                            gss_node_id,
-                            Some(return_value),
-                        );
                         self.pop(
                             gss_node_id,
                             SlotId(23),
-                            nonterminal_node_id,
+                            result,
                             Some(return_value),
+                            &FOLLOW_SET_E,
                         );
                     }
                     // F(p: i32) : . E(0) "/" r_pr=K(p) return r_pr
@@ -281,22 +250,13 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectPrecedenceParser<'i, 'arena> {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        let node = self.sppf_node(result);
                         let return_value = self.lookup(BINDING_R_PR, env.unwrap());
-                        let nonterminal_node_id = self.get_or_create_nonterminal_node(
-                            NonterminalId(6),
-                            SlotId(28),
-                            node.left_extent(),
-                            node.right_extent(),
-                            result,
-                            gss_node_id,
-                            Some(return_value),
-                        );
                         self.pop(
                             gss_node_id,
                             SlotId(28),
-                            nonterminal_node_id,
+                            result,
                             Some(return_value),
+                            &FOLLOW_SET_F,
                         );
                     }
                     // K(p: i32) : . r_pr=E(p) return r_pr
@@ -318,37 +278,32 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectPrecedenceParser<'i, 'arena> {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        let node = self.sppf_node(result);
                         let return_value = self.lookup(BINDING_R_PR, env.unwrap());
-                        let nonterminal_node_id = self.get_or_create_nonterminal_node(
-                            NonterminalId(7),
-                            SlotId(31),
-                            node.left_extent(),
-                            node.right_extent(),
-                            result,
-                            gss_node_id,
-                            Some(return_value),
-                        );
                         self.pop(
                             gss_node_id,
                             SlotId(31),
-                            nonterminal_node_id,
+                            result,
                             Some(return_value),
+                            &FOLLOW_SET_K,
                         );
                     }
                     // StartS : . start:S
                     SlotId(2) => {
-                        self.create(NonterminalId(0), result, gss_node_id, SlotId(3), env);
+                        self.create(
+                            NonterminalId(0),
+                            &PREDICTION_SET_S,
+                            result,
+                            gss_node_id,
+                            SlotId(3),
+                            env,
+                        );
                     }
                     // StartS : start:S.
                     SlotId(3) => {
-                        let nonterminal_node_id = self.create_nonterminal_node(
-                            result,
-                            NonterminalId(1),
-                            SlotId(3),
-                            gss_node_id,
-                        );
-                        self.pop(gss_node_id, SlotId(3), nonterminal_node_id, None);
+                        let Some(result) = result else {
+                            unreachable!("result cannot be None here.")
+                        };
+                        self.pop(gss_node_id, SlotId(3), result, None, &FOLLOW_SET_START_S);
                     }
                     // StartE : . start:E(0)
                     SlotId(4) => {
@@ -356,13 +311,10 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectPrecedenceParser<'i, 'arena> {
                     }
                     // StartE : start:E(0).
                     SlotId(5) => {
-                        let nonterminal_node_id = self.create_nonterminal_node(
-                            result,
-                            NonterminalId(2),
-                            SlotId(5),
-                            gss_node_id,
-                        );
-                        self.pop(gss_node_id, SlotId(5), nonterminal_node_id, None);
+                        let Some(result) = result else {
+                            unreachable!("result cannot be None here.")
+                        };
+                        self.pop(gss_node_id, SlotId(5), result, None, &FOLLOW_SET_START_E);
                     }
                     // StartF : . start:F(0)
                     SlotId(6) => {
@@ -370,13 +322,10 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectPrecedenceParser<'i, 'arena> {
                     }
                     // StartF : start:F(0).
                     SlotId(7) => {
-                        let nonterminal_node_id = self.create_nonterminal_node(
-                            result,
-                            NonterminalId(3),
-                            SlotId(7),
-                            gss_node_id,
-                        );
-                        self.pop(gss_node_id, SlotId(7), nonterminal_node_id, None);
+                        let Some(result) = result else {
+                            unreachable!("result cannot be None here.")
+                        };
+                        self.pop(gss_node_id, SlotId(7), result, None, &FOLLOW_SET_START_F);
                     }
                     // StartK : . start:K(0)
                     SlotId(8) => {
@@ -384,13 +333,10 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectPrecedenceParser<'i, 'arena> {
                     }
                     // StartK : start:K(0).
                     SlotId(9) => {
-                        let nonterminal_node_id = self.create_nonterminal_node(
-                            result,
-                            NonterminalId(4),
-                            SlotId(9),
-                            gss_node_id,
-                        );
-                        self.pop(gss_node_id, SlotId(9), nonterminal_node_id, None);
+                        let Some(result) = result else {
+                            unreachable!("result cannot be None here.")
+                        };
+                        self.pop(gss_node_id, SlotId(9), result, None, &FOLLOW_SET_START_K);
                     }
                     _ => {
                         panic!("Unknown grammar slot id: {slot_id}");
@@ -413,29 +359,17 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectPrecedenceParser<'i, 'arena> {
             }
             // E
             NonterminalId(5) => {
-                let mut matched = false;
                 // E(p: i32) : . "-" E(2) return 2
                 if self.scanner.match_any(&FIRST_SET_E_ALT0, input_index) {
-                    matched = true;
                     self.add_first_descriptor(SlotId(10), input_index, gss_node_id, env);
                 }
                 // E(p: i32) : . [1 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 1)] "*" F(1) return 1
                 if self.scanner.match_any(&FIRST_SET_E_ALT1, input_index) {
-                    matched = true;
                     self.add_first_descriptor(SlotId(14), input_index, gss_node_id, env);
                 }
                 // E(p: i32) : . "a" return 0
                 if self.scanner.match_any(&FIRST_SET_E_ALT2, input_index) {
-                    matched = true;
                     self.add_first_descriptor(SlotId(21), input_index, gss_node_id, env);
-                }
-                if !matched {
-                    self.add_failure(
-                        input_index,
-                        SlotId(10),
-                        Some(gss_node_id),
-                        GLLFailureKind::UnexpectedToken(&FIRST_SET_E),
-                    );
                 }
             }
             // F(p: i32) : . E(0) "/" r_pr=K(p) return r_pr
@@ -866,32 +800,6 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectPrecedenceParser<'i, 'arena> {
     ) -> Option<GLLFailureKind> {
         None
     }
-    fn follow_set_check(&mut self, nonterminal_id: NonterminalId, input_index: u32) -> bool {
-        match nonterminal_id {
-            NonterminalId(0) => self.scanner.match_any(&FOLLOW_SET_S, input_index),
-            NonterminalId(5) => self.scanner.match_any(&FOLLOW_SET_E, input_index),
-            NonterminalId(6) => self.scanner.match_any(&FOLLOW_SET_F, input_index),
-            NonterminalId(7) => self.scanner.match_any(&FOLLOW_SET_K, input_index),
-            NonterminalId(1) => self.scanner.match_any(&FOLLOW_SET_START_S, input_index),
-            NonterminalId(2) => self.scanner.match_any(&FOLLOW_SET_START_E, input_index),
-            NonterminalId(3) => self.scanner.match_any(&FOLLOW_SET_START_F, input_index),
-            NonterminalId(4) => self.scanner.match_any(&FOLLOW_SET_START_K, input_index),
-            _ => true,
-        }
-    }
-    fn follow_set(&self, nonterminal_id: NonterminalId) -> &'static TerminalSet {
-        match nonterminal_id {
-            NonterminalId(0) => &FOLLOW_SET_S,
-            NonterminalId(5) => &FOLLOW_SET_E,
-            NonterminalId(6) => &FOLLOW_SET_F,
-            NonterminalId(7) => &FOLLOW_SET_K,
-            NonterminalId(1) => &FOLLOW_SET_START_S,
-            NonterminalId(2) => &FOLLOW_SET_START_E,
-            NonterminalId(3) => &FOLLOW_SET_START_F,
-            NonterminalId(4) => &FOLLOW_SET_START_K,
-            _ => unreachable!("no FOLLOW set for nonterminal {nonterminal_id}"),
-        }
-    }
     fn failures(&self) -> impl Iterator<Item = &GLLFailure> {
         self.failures.iter()
     }
@@ -914,6 +822,9 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectPrecedenceParser<'i, 'arena> {
         if input_index > level {
             self.failures.clear();
         }
+        if self.failures.last().is_some_and(|last| last.kind == kind) {
+            return;
+        }
         self.failures.push(
             GLLFailure {
                 input_index,
@@ -926,6 +837,9 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectPrecedenceParser<'i, 'arena> {
     }
     fn match_token(&mut self, terminal_id: TerminalId, input_index: u32) -> Option<u32> {
         self.scanner.match_token(terminal_id, input_index)
+    }
+    fn match_any(&mut self, set: &'static TerminalSet, input_index: u32) -> bool {
+        self.scanner.match_any(set, input_index)
     }
     fn vec_arena(&self) -> &'arena Arena {
         self.vec_arena
@@ -1022,10 +936,10 @@ impl<'i, 'arena> IndirectPrecedenceParser<'i, 'arena> {
     }
     /// Parses the input from `start` and builds the parse tree in the given
     /// `tree_arena`. The parser is consumed. The tree lives as long as the
-    /// arena lives. `start` is normally the start wrapper of a declared
-    /// nonterminal, `grammar::START_<NAME>`, which allows layout around the
-    /// input; a bare nonterminal id parses without it.
-    pub fn parse<'a>(
+    /// arena lives. `start` is the start wrapper of a declared nonterminal,
+    /// `grammar::START_<NAME>`, which allows layout around the input. The
+    /// public entry points are the typed `parse_<name>` methods.
+    fn parse<'a>(
         self,
         start: NonterminalId,
         tree_arena: &'a Arena,
@@ -1074,14 +988,9 @@ impl<'i, 'arena> IndirectPrecedenceParser<'i, 'arena> {
         p: i32,
     ) {
         record!(self, Call, sppf_node_id, gss_node_id, return_slot);
-        let left_child = sppf_node_id.map(|id| {
-            let node = self.sppf_node(id);
-            (id, node.left_extent())
-        });
-        let gss_node = self.gss_node(gss_node_id);
-        let i = match left_child {
-            Some((id, _)) => self.sppf_node(id).right_extent(),
-            None => gss_node.index,
+        let i = match sppf_node_id {
+            Some(id) => self.sppf_node(id).right_extent(),
+            None => self.gss_node(gss_node_id).index,
         };
         // If there is already a GSS node for this call, add an edge.
         if let Some(existing_gss_node_id) = self.get_gss_node_e(i, p) {
@@ -1089,11 +998,11 @@ impl<'i, 'arena> IndirectPrecedenceParser<'i, 'arena> {
             self.add_edge_to_existing_gss_node(
                 existing_gss_node_id,
                 gss_node_id,
-                left_child,
+                sppf_node_id,
                 return_slot,
                 env,
             );
-        } else {
+        } else if self.match_any(&PREDICTION_SET_E, i) {
             record!(self, GSSNodeNotFound, NonterminalId(5), i);
             let new_gss_node_id = self.new_gss_node(NonterminalId(5), i);
             self.add_gss_edge(new_gss_node_id, gss_node_id, sppf_node_id, return_slot, env);
@@ -1102,6 +1011,17 @@ impl<'i, 'arena> IndirectPrecedenceParser<'i, 'arena> {
             env.bind(BINDING_P, p, arena);
             self.add_first_descriptors(NonterminalId(5), i, new_gss_node_id, Some(env_id));
             self.add_gss_node_e(i, p, new_gss_node_id);
+        } else {
+            // The call symbol precedes the return slot in its alternative, so the return slot is never
+            // at the first position.
+            let call_slot = IndirectPrecedenceGrammar::previous_slot(return_slot)
+                .expect("a return slot follows the call symbol");
+            self.add_failure(
+                i,
+                call_slot,
+                Some(gss_node_id),
+                GLLFailureKind::UnexpectedToken(&PREDICTION_SET_E),
+            );
         }
     }
     #[allow(clippy::too_many_arguments)]
@@ -1114,14 +1034,9 @@ impl<'i, 'arena> IndirectPrecedenceParser<'i, 'arena> {
         p: i32,
     ) {
         record!(self, Call, sppf_node_id, gss_node_id, return_slot);
-        let left_child = sppf_node_id.map(|id| {
-            let node = self.sppf_node(id);
-            (id, node.left_extent())
-        });
-        let gss_node = self.gss_node(gss_node_id);
-        let i = match left_child {
-            Some((id, _)) => self.sppf_node(id).right_extent(),
-            None => gss_node.index,
+        let i = match sppf_node_id {
+            Some(id) => self.sppf_node(id).right_extent(),
+            None => self.gss_node(gss_node_id).index,
         };
         // If there is already a GSS node for this call, add an edge.
         if let Some(existing_gss_node_id) = self.get_gss_node_f(i, p) {
@@ -1129,11 +1044,11 @@ impl<'i, 'arena> IndirectPrecedenceParser<'i, 'arena> {
             self.add_edge_to_existing_gss_node(
                 existing_gss_node_id,
                 gss_node_id,
-                left_child,
+                sppf_node_id,
                 return_slot,
                 env,
             );
-        } else {
+        } else if self.match_any(&PREDICTION_SET_F, i) {
             record!(self, GSSNodeNotFound, NonterminalId(6), i);
             let new_gss_node_id = self.new_gss_node(NonterminalId(6), i);
             self.add_gss_edge(new_gss_node_id, gss_node_id, sppf_node_id, return_slot, env);
@@ -1142,6 +1057,17 @@ impl<'i, 'arena> IndirectPrecedenceParser<'i, 'arena> {
             env.bind(BINDING_P, p, arena);
             self.add_first_descriptors(NonterminalId(6), i, new_gss_node_id, Some(env_id));
             self.add_gss_node_f(i, p, new_gss_node_id);
+        } else {
+            // The call symbol precedes the return slot in its alternative, so the return slot is never
+            // at the first position.
+            let call_slot = IndirectPrecedenceGrammar::previous_slot(return_slot)
+                .expect("a return slot follows the call symbol");
+            self.add_failure(
+                i,
+                call_slot,
+                Some(gss_node_id),
+                GLLFailureKind::UnexpectedToken(&PREDICTION_SET_F),
+            );
         }
     }
     #[allow(clippy::too_many_arguments)]
@@ -1154,14 +1080,9 @@ impl<'i, 'arena> IndirectPrecedenceParser<'i, 'arena> {
         p: i32,
     ) {
         record!(self, Call, sppf_node_id, gss_node_id, return_slot);
-        let left_child = sppf_node_id.map(|id| {
-            let node = self.sppf_node(id);
-            (id, node.left_extent())
-        });
-        let gss_node = self.gss_node(gss_node_id);
-        let i = match left_child {
-            Some((id, _)) => self.sppf_node(id).right_extent(),
-            None => gss_node.index,
+        let i = match sppf_node_id {
+            Some(id) => self.sppf_node(id).right_extent(),
+            None => self.gss_node(gss_node_id).index,
         };
         // If there is already a GSS node for this call, add an edge.
         if let Some(existing_gss_node_id) = self.get_gss_node_k(i, p) {
@@ -1169,11 +1090,11 @@ impl<'i, 'arena> IndirectPrecedenceParser<'i, 'arena> {
             self.add_edge_to_existing_gss_node(
                 existing_gss_node_id,
                 gss_node_id,
-                left_child,
+                sppf_node_id,
                 return_slot,
                 env,
             );
-        } else {
+        } else if self.match_any(&PREDICTION_SET_K, i) {
             record!(self, GSSNodeNotFound, NonterminalId(7), i);
             let new_gss_node_id = self.new_gss_node(NonterminalId(7), i);
             self.add_gss_edge(new_gss_node_id, gss_node_id, sppf_node_id, return_slot, env);
@@ -1182,6 +1103,17 @@ impl<'i, 'arena> IndirectPrecedenceParser<'i, 'arena> {
             env.bind(BINDING_P, p, arena);
             self.add_first_descriptors(NonterminalId(7), i, new_gss_node_id, Some(env_id));
             self.add_gss_node_k(i, p, new_gss_node_id);
+        } else {
+            // The call symbol precedes the return slot in its alternative, so the return slot is never
+            // at the first position.
+            let call_slot = IndirectPrecedenceGrammar::previous_slot(return_slot)
+                .expect("a return slot follows the call symbol");
+            self.add_failure(
+                i,
+                call_slot,
+                Some(gss_node_id),
+                GLLFailureKind::UnexpectedToken(&PREDICTION_SET_K),
+            );
         }
     }
     fn get_gss_node_e(&self, input_index: u32, p: i32) -> Option<GssNodeId> {

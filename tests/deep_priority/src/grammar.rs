@@ -44,108 +44,143 @@ impl Grammar for DeepPriorityGrammar {
     const SLOTS: &'static [Slot] = &[
         Slot {
             display_name: "S : . E(0)",
+            position: 0,
         },
         Slot {
             display_name: "S : E(0).",
+            position: 1,
         },
         Slot {
             display_name: "S : . WS start:S WS",
+            position: 0,
         },
         Slot {
             display_name: "S : WS . start:S WS",
+            position: 1,
         },
         Slot {
             display_name: "S : WS start:S . WS",
+            position: 2,
         },
         Slot {
             display_name: "S : WS start:S WS.",
+            position: 3,
         },
         Slot {
             display_name: "E(0) : . WS start:E(0) WS",
+            position: 0,
         },
         Slot {
             display_name: "E(0) : WS . start:E(0) WS",
+            position: 1,
         },
         Slot {
             display_name: "E(0) : WS start:E(0) . WS",
+            position: 2,
         },
         Slot {
             display_name: "E(0) : WS start:E(0) WS.",
+            position: 3,
         },
         Slot {
             display_name: "E : . \"a\" return 0",
+            position: 0,
         },
         Slot {
             display_name: "E : \"a\" . return 0",
+            position: 1,
         },
         Slot {
             display_name: "E : \"a\" return 0.",
+            position: 2,
         },
         Slot {
             display_name: "E : . [2 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 2)] WS \"+\" WS r_pr=E(2) return (r_pr == 0) ? 2 : min(r_pr, 2)",
+            position: 0,
         },
         Slot {
             display_name: "E : [2 >= p] . l_pr=E(p) [(l_pr == 0) || (l_pr >= 2)] WS \"+\" WS r_pr=E(2) return (r_pr == 0) ? 2 : min(r_pr, 2)",
+            position: 1,
         },
         Slot {
             display_name: "E : [2 >= p] l_pr=E(p) . [(l_pr == 0) || (l_pr >= 2)] WS \"+\" WS r_pr=E(2) return (r_pr == 0) ? 2 : min(r_pr, 2)",
+            position: 2,
         },
         Slot {
             display_name: "E : [2 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 2)] . WS \"+\" WS r_pr=E(2) return (r_pr == 0) ? 2 : min(r_pr, 2)",
+            position: 3,
         },
         Slot {
             display_name: "E : [2 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 2)] WS . \"+\" WS r_pr=E(2) return (r_pr == 0) ? 2 : min(r_pr, 2)",
+            position: 4,
         },
         Slot {
             display_name: "E : [2 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 2)] WS \"+\" . WS r_pr=E(2) return (r_pr == 0) ? 2 : min(r_pr, 2)",
+            position: 5,
         },
         Slot {
             display_name: "E : [2 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 2)] WS \"+\" WS . r_pr=E(2) return (r_pr == 0) ? 2 : min(r_pr, 2)",
+            position: 6,
         },
         Slot {
             display_name: "E : [2 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 2)] WS \"+\" WS r_pr=E(2) . return (r_pr == 0) ? 2 : min(r_pr, 2)",
+            position: 7,
         },
         Slot {
             display_name: "E : [2 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 2)] WS \"+\" WS r_pr=E(2) return (r_pr == 0) ? 2 : min(r_pr, 2).",
+            position: 8,
         },
         Slot {
             display_name: "E : . \"if\" WS E(0) WS \"then\" WS E(0) WS \"else\" WS E(1) return 1",
+            position: 0,
         },
         Slot {
             display_name: "E : \"if\" . WS E(0) WS \"then\" WS E(0) WS \"else\" WS E(1) return 1",
+            position: 1,
         },
         Slot {
             display_name: "E : \"if\" WS . E(0) WS \"then\" WS E(0) WS \"else\" WS E(1) return 1",
+            position: 2,
         },
         Slot {
             display_name: "E : \"if\" WS E(0) . WS \"then\" WS E(0) WS \"else\" WS E(1) return 1",
+            position: 3,
         },
         Slot {
             display_name: "E : \"if\" WS E(0) WS . \"then\" WS E(0) WS \"else\" WS E(1) return 1",
+            position: 4,
         },
         Slot {
             display_name: "E : \"if\" WS E(0) WS \"then\" . WS E(0) WS \"else\" WS E(1) return 1",
+            position: 5,
         },
         Slot {
             display_name: "E : \"if\" WS E(0) WS \"then\" WS . E(0) WS \"else\" WS E(1) return 1",
+            position: 6,
         },
         Slot {
             display_name: "E : \"if\" WS E(0) WS \"then\" WS E(0) . WS \"else\" WS E(1) return 1",
+            position: 7,
         },
         Slot {
             display_name: "E : \"if\" WS E(0) WS \"then\" WS E(0) WS . \"else\" WS E(1) return 1",
+            position: 8,
         },
         Slot {
             display_name: "E : \"if\" WS E(0) WS \"then\" WS E(0) WS \"else\" . WS E(1) return 1",
+            position: 9,
         },
         Slot {
             display_name: "E : \"if\" WS E(0) WS \"then\" WS E(0) WS \"else\" WS . E(1) return 1",
+            position: 10,
         },
         Slot {
             display_name: "E : \"if\" WS E(0) WS \"then\" WS E(0) WS \"else\" WS E(1) . return 1",
+            position: 11,
         },
         Slot {
             display_name: "E : \"if\" WS E(0) WS \"then\" WS E(0) WS \"else\" WS E(1) return 1.",
+            position: 12,
         },
     ];
     const LAYOUT_NAME: Option<&'static str> = Some("WS");
@@ -155,35 +190,35 @@ impl Grammar for DeepPriorityGrammar {
     // by terminal id, serves only that.
     const SINGLE_TERMINAL_SETS: &'static [TerminalSet] = &[
         TerminalSet {
-            id: 9,
+            id: 6,
             terminals: &[TerminalId(0)],
         },
         TerminalSet {
-            id: 10,
+            id: 7,
             terminals: &[TerminalId(1)],
         },
         TerminalSet {
-            id: 11,
+            id: 8,
             terminals: &[TerminalId(2)],
         },
         TerminalSet {
-            id: 12,
+            id: 9,
             terminals: &[TerminalId(3)],
         },
         TerminalSet {
-            id: 13,
+            id: 10,
             terminals: &[TerminalId(4)],
         },
         TerminalSet {
-            id: 14,
+            id: 11,
             terminals: &[TerminalId(5)],
         },
         TerminalSet {
-            id: 15,
+            id: 12,
             terminals: &[TerminalId(6)],
         },
         TerminalSet {
-            id: 16,
+            id: 13,
             terminals: &[TerminalId(7)],
         },
     ];
@@ -202,14 +237,9 @@ pub static FOLLOW_SET_S: TerminalSet = TerminalSet {
     id: 0,
     terminals: &[TerminalId(0), TerminalId(7)],
 };
-// S : . E(0) { "a", "if" }
-pub static FIRST_SET_S_ALT0: TerminalSet = TerminalSet {
-    id: 1,
-    terminals: &[TerminalId(1), TerminalId(3)],
-};
 // E { WS, "+", "then", "else", EOF }
 pub static FOLLOW_SET_E: TerminalSet = TerminalSet {
-    id: 2,
+    id: 1,
     terminals: &[
         TerminalId(0),
         TerminalId(2),
@@ -220,13 +250,13 @@ pub static FOLLOW_SET_E: TerminalSet = TerminalSet {
 };
 // E(p: i32) : . "a" return 0 { "a" }
 pub static FIRST_SET_E_ALT0: TerminalSet = TerminalSet {
-    id: 3,
+    id: 2,
     terminals: &[TerminalId(1)],
 };
 // E(p: i32) : . [2 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 2)] WS "+" WS r_pr=E(2) return
 // (r_pr == 0) ? 2 : min(r_pr, 2) { "a", "if" }
 pub static FIRST_SET_E_ALT1: TerminalSet = TerminalSet {
-    id: 1,
+    id: 3,
     terminals: &[TerminalId(1), TerminalId(3)],
 };
 // E(p: i32) : . "if" WS E(0) WS "then" WS E(0) WS "else" WS E(1) return 1 { "if" }
@@ -239,38 +269,18 @@ pub static FOLLOW_SET_START_S: TerminalSet = TerminalSet {
     id: 5,
     terminals: &[TerminalId(7)],
 };
-// StartS : . WS start:S WS { WS, "a", "if" }
-pub static FIRST_SET_START_S_ALT0: TerminalSet = TerminalSet {
-    id: 6,
-    terminals: &[TerminalId(0), TerminalId(1), TerminalId(3)],
-};
 // StartE { EOF }
 pub static FOLLOW_SET_START_E: TerminalSet = TerminalSet {
     id: 5,
     terminals: &[TerminalId(7)],
 };
-// StartE : . WS start:E(0) WS { WS, "a", "if" }
-pub static FIRST_SET_START_E_ALT0: TerminalSet = TerminalSet {
-    id: 6,
-    terminals: &[TerminalId(0), TerminalId(1), TerminalId(3)],
-};
-// S { "a", "if" }
-pub static FIRST_SET_S: TerminalSet = TerminalSet {
-    id: 7,
+// S prediction { "a", "if" }
+pub static PREDICTION_SET_S: TerminalSet = TerminalSet {
+    id: 3,
     terminals: &[TerminalId(1), TerminalId(3)],
 };
-// E { "a", "if" }
-pub static FIRST_SET_E: TerminalSet = TerminalSet {
-    id: 7,
+// E prediction { "a", "if" }
+pub static PREDICTION_SET_E: TerminalSet = TerminalSet {
+    id: 3,
     terminals: &[TerminalId(1), TerminalId(3)],
-};
-// StartS { WS, "a", "if" }
-pub static FIRST_SET_START_S: TerminalSet = TerminalSet {
-    id: 8,
-    terminals: &[TerminalId(0), TerminalId(1), TerminalId(3)],
-};
-// StartE { WS, "a", "if" }
-pub static FIRST_SET_START_E: TerminalSet = TerminalSet {
-    id: 8,
-    terminals: &[TerminalId(0), TerminalId(1), TerminalId(3)],
 };

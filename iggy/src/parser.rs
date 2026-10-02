@@ -5,7 +5,6 @@ use crate::{
     parse_tree::{self, IggyParseTreeBuilder, ParseTree, create_parse_tree},
     scanner::IggyScanner,
 };
-#[cfg(feature = "instrument")]
 use iguana_runtime::grammar::Grammar;
 #[allow(unused_imports)]
 use iguana_runtime::input::Span;
@@ -136,45 +135,57 @@ impl<'i, 'arena> Parser<'i, 'arena> for IggyParser<'i, 'arena> {
                     }
                     // Grammar : "grammar" Layout name:Identifier Layout . Star_0
                     SlotId(4) => {
-                        self.create(NonterminalId(19), result, gss_node_id, SlotId(5), env);
+                        self.create(
+                            NonterminalId(19),
+                            &PREDICTION_SET_STAR_0,
+                            result,
+                            gss_node_id,
+                            SlotId(5),
+                            env,
+                        );
                     }
                     // Grammar : "grammar" Layout name:Identifier Layout Star_0.
                     SlotId(5) => {
-                        let nonterminal_node_id = self.create_nonterminal_node(
-                            result,
-                            NonterminalId(0),
-                            SlotId(5),
-                            gss_node_id,
-                        );
-                        self.pop(gss_node_id, SlotId(5), nonterminal_node_id, None);
+                        let Some(result) = result else {
+                            unreachable!("result cannot be None here.")
+                        };
+                        self.pop(gss_node_id, SlotId(5), result, None, &FOLLOW_SET_GRAMMAR);
                     }
                     // Rule : . SyntaxRule
                     SlotId(6) => {
-                        self.create(NonterminalId(2), result, gss_node_id, SlotId(7), env);
+                        self.create(
+                            NonterminalId(2),
+                            &PREDICTION_SET_SYNTAX_RULE,
+                            result,
+                            gss_node_id,
+                            SlotId(7),
+                            env,
+                        );
                     }
                     // Rule : SyntaxRule.
                     SlotId(7) => {
-                        let nonterminal_node_id = self.create_nonterminal_node(
-                            result,
-                            NonterminalId(1),
-                            SlotId(7),
-                            gss_node_id,
-                        );
-                        self.pop(gss_node_id, SlotId(7), nonterminal_node_id, None);
+                        let Some(result) = result else {
+                            unreachable!("result cannot be None here.")
+                        };
+                        self.pop(gss_node_id, SlotId(7), result, None, &FOLLOW_SET_RULE);
                     }
                     // Rule : . RegexRule
                     SlotId(8) => {
-                        self.create(NonterminalId(4), result, gss_node_id, SlotId(9), env);
+                        self.create(
+                            NonterminalId(4),
+                            &PREDICTION_SET_REGEX_RULE,
+                            result,
+                            gss_node_id,
+                            SlotId(9),
+                            env,
+                        );
                     }
                     // Rule : RegexRule.
                     SlotId(9) => {
-                        let nonterminal_node_id = self.create_nonterminal_node(
-                            result,
-                            NonterminalId(1),
-                            SlotId(9),
-                            gss_node_id,
-                        );
-                        self.pop(gss_node_id, SlotId(9), nonterminal_node_id, None);
+                        let Some(result) = result else {
+                            unreachable!("result cannot be None here.")
+                        };
+                        self.pop(gss_node_id, SlotId(9), result, None, &FOLLOW_SET_RULE);
                     }
                     // SyntaxRule : . Opt_1 Layout head:Identifier Layout "=" Layout Star_1
                     SlotId(10) => {
@@ -274,17 +285,27 @@ impl<'i, 'arena> Parser<'i, 'arena> for IggyParser<'i, 'arena> {
                     }
                     // SyntaxRule : Opt_1 Layout head:Identifier Layout "=" Layout . Star_1
                     SlotId(16) => {
-                        self.create(NonterminalId(23), result, gss_node_id, SlotId(17), env);
+                        self.create(
+                            NonterminalId(23),
+                            &PREDICTION_SET_STAR_1,
+                            result,
+                            gss_node_id,
+                            SlotId(17),
+                            env,
+                        );
                     }
                     // SyntaxRule : Opt_1 Layout head:Identifier Layout "=" Layout Star_1.
                     SlotId(17) => {
-                        let nonterminal_node_id = self.create_nonterminal_node(
-                            result,
-                            NonterminalId(2),
-                            SlotId(17),
+                        let Some(result) = result else {
+                            unreachable!("result cannot be None here.")
+                        };
+                        self.pop(
                             gss_node_id,
+                            SlotId(17),
+                            result,
+                            None,
+                            &FOLLOW_SET_SYNTAX_RULE,
                         );
-                        self.pop(gss_node_id, SlotId(17), nonterminal_node_id, None);
                     }
                     // Annotation : . "@NoLayout"
                     SlotId(18) => {
@@ -302,13 +323,16 @@ impl<'i, 'arena> Parser<'i, 'arena> for IggyParser<'i, 'arena> {
                     }
                     // Annotation : "@NoLayout".
                     SlotId(19) => {
-                        let nonterminal_node_id = self.create_nonterminal_node(
-                            result,
-                            NonterminalId(3),
-                            SlotId(19),
+                        let Some(result) = result else {
+                            unreachable!("result cannot be None here.")
+                        };
+                        self.pop(
                             gss_node_id,
+                            SlotId(19),
+                            result,
+                            None,
+                            &FOLLOW_SET_ANNOTATION,
                         );
-                        self.pop(gss_node_id, SlotId(19), nonterminal_node_id, None);
                     }
                     // Annotation : . "@Layout"
                     SlotId(20) => {
@@ -326,13 +350,16 @@ impl<'i, 'arena> Parser<'i, 'arena> for IggyParser<'i, 'arena> {
                     }
                     // Annotation : "@Layout".
                     SlotId(21) => {
-                        let nonterminal_node_id = self.create_nonterminal_node(
-                            result,
-                            NonterminalId(3),
-                            SlotId(21),
+                        let Some(result) = result else {
+                            unreachable!("result cannot be None here.")
+                        };
+                        self.pop(
                             gss_node_id,
+                            SlotId(21),
+                            result,
+                            None,
+                            &FOLLOW_SET_ANNOTATION,
                         );
-                        self.pop(gss_node_id, SlotId(21), nonterminal_node_id, None);
                     }
                     // RegexRule : . layout:Opt_3 Layout id_annot:Opt_4 Layout "@Regex" Layout Identifier Layout
                     // "=" Layout Opt_5 Layout body:Plus_2 Layout Star_2
@@ -519,7 +546,14 @@ impl<'i, 'arena> Parser<'i, 'arena> for IggyParser<'i, 'arena> {
                     // RegexRule : layout:Opt_3 Layout id_annot:Opt_4 Layout "@Regex" Layout Identifier Layout
                     // "=" Layout . Opt_5 Layout body:Plus_2 Layout Star_2
                     SlotId(32) => {
-                        self.create(NonterminalId(26), result, gss_node_id, SlotId(33), env);
+                        self.create(
+                            NonterminalId(26),
+                            &PREDICTION_SET_OPT_5,
+                            result,
+                            gss_node_id,
+                            SlotId(33),
+                            env,
+                        );
                     }
                     // RegexRule : layout:Opt_3 Layout id_annot:Opt_4 Layout "@Regex" Layout Identifier Layout
                     // "=" Layout Opt_5 . Layout body:Plus_2 Layout Star_2
@@ -542,7 +576,14 @@ impl<'i, 'arena> Parser<'i, 'arena> for IggyParser<'i, 'arena> {
                     // RegexRule : layout:Opt_3 Layout id_annot:Opt_4 Layout "@Regex" Layout Identifier Layout
                     // "=" Layout Opt_5 Layout . body:Plus_2 Layout Star_2
                     SlotId(34) => {
-                        self.create(NonterminalId(28), result, gss_node_id, SlotId(35), env);
+                        self.create(
+                            NonterminalId(28),
+                            &PREDICTION_SET_PLUS_2,
+                            result,
+                            gss_node_id,
+                            SlotId(35),
+                            env,
+                        );
                     }
                     // RegexRule : layout:Opt_3 Layout id_annot:Opt_4 Layout "@Regex" Layout Identifier Layout
                     // "=" Layout Opt_5 Layout body:Plus_2 . Layout Star_2
@@ -583,13 +624,16 @@ impl<'i, 'arena> Parser<'i, 'arena> for IggyParser<'i, 'arena> {
                     // RegexRule : layout:Opt_3 Layout id_annot:Opt_4 Layout "@Regex" Layout Identifier Layout
                     // "=" Layout Opt_5 Layout body:Plus_2 Layout Star_2.
                     SlotId(37) => {
-                        let nonterminal_node_id = self.create_nonterminal_node(
-                            result,
-                            NonterminalId(4),
-                            SlotId(37),
+                        let Some(result) = result else {
+                            unreachable!("result cannot be None here.")
+                        };
+                        self.pop(
                             gss_node_id,
+                            SlotId(37),
+                            result,
+                            None,
+                            &FOLLOW_SET_REGEX_RULE,
                         );
-                        self.pop(gss_node_id, SlotId(37), nonterminal_node_id, None);
                     }
                     // RegexPreCondition : . Identifier Layout "!<<"
                     SlotId(38) => {
@@ -641,13 +685,16 @@ impl<'i, 'arena> Parser<'i, 'arena> for IggyParser<'i, 'arena> {
                     }
                     // RegexPreCondition : Identifier Layout "!<<".
                     SlotId(41) => {
-                        let nonterminal_node_id = self.create_nonterminal_node(
-                            result,
-                            NonterminalId(5),
-                            SlotId(41),
+                        let Some(result) = result else {
+                            unreachable!("result cannot be None here.")
+                        };
+                        self.pop(
                             gss_node_id,
+                            SlotId(41),
+                            result,
+                            None,
+                            &FOLLOW_SET_REGEX_PRE_CONDITION,
                         );
-                        self.pop(gss_node_id, SlotId(41), nonterminal_node_id, None);
                     }
                     // RegexPostCondition : . "\\" Layout Identifier
                     SlotId(42) => {
@@ -699,13 +746,16 @@ impl<'i, 'arena> Parser<'i, 'arena> for IggyParser<'i, 'arena> {
                     }
                     // RegexPostCondition : "\\" Layout Identifier.
                     SlotId(45) => {
-                        let nonterminal_node_id = self.create_nonterminal_node(
-                            result,
-                            NonterminalId(6),
-                            SlotId(45),
+                        let Some(result) = result else {
+                            unreachable!("result cannot be None here.")
+                        };
+                        self.pop(
                             gss_node_id,
+                            SlotId(45),
+                            result,
+                            None,
+                            &FOLLOW_SET_REGEX_POST_CONDITION,
                         );
-                        self.pop(gss_node_id, SlotId(45), nonterminal_node_id, None);
                     }
                     // RegexPostCondition : . "!>>" Layout Identifier
                     SlotId(46) => {
@@ -757,17 +807,27 @@ impl<'i, 'arena> Parser<'i, 'arena> for IggyParser<'i, 'arena> {
                     }
                     // RegexPostCondition : "!>>" Layout Identifier.
                     SlotId(49) => {
-                        let nonterminal_node_id = self.create_nonterminal_node(
-                            result,
-                            NonterminalId(6),
-                            SlotId(49),
+                        let Some(result) = result else {
+                            unreachable!("result cannot be None here.")
+                        };
+                        self.pop(
                             gss_node_id,
+                            SlotId(49),
+                            result,
+                            None,
+                            &FOLLOW_SET_REGEX_POST_CONDITION,
                         );
-                        self.pop(gss_node_id, SlotId(49), nonterminal_node_id, None);
                     }
                     // PriorityLevel : . Opt_7 Layout Star_3
                     SlotId(50) => {
-                        self.create(NonterminalId(32), result, gss_node_id, SlotId(51), env);
+                        self.create(
+                            NonterminalId(32),
+                            &PREDICTION_SET_OPT_7,
+                            result,
+                            gss_node_id,
+                            SlotId(51),
+                            env,
+                        );
                     }
                     // PriorityLevel : Opt_7 . Layout Star_3
                     SlotId(51) => {
@@ -787,17 +847,27 @@ impl<'i, 'arena> Parser<'i, 'arena> for IggyParser<'i, 'arena> {
                     }
                     // PriorityLevel : Opt_7 Layout . Star_3
                     SlotId(52) => {
-                        self.create(NonterminalId(35), result, gss_node_id, SlotId(53), env);
+                        self.create(
+                            NonterminalId(35),
+                            &PREDICTION_SET_STAR_3,
+                            result,
+                            gss_node_id,
+                            SlotId(53),
+                            env,
+                        );
                     }
                     // PriorityLevel : Opt_7 Layout Star_3.
                     SlotId(53) => {
-                        let nonterminal_node_id = self.create_nonterminal_node(
-                            result,
-                            NonterminalId(7),
-                            SlotId(53),
+                        let Some(result) = result else {
+                            unreachable!("result cannot be None here.")
+                        };
+                        self.pop(
                             gss_node_id,
+                            SlotId(53),
+                            result,
+                            None,
+                            &FOLLOW_SET_PRIORITY_LEVEL,
                         );
-                        self.pop(gss_node_id, SlotId(53), nonterminal_node_id, None);
                     }
                     // Associativity : . "left"
                     SlotId(54) => {
@@ -815,13 +885,16 @@ impl<'i, 'arena> Parser<'i, 'arena> for IggyParser<'i, 'arena> {
                     }
                     // Associativity : "left".
                     SlotId(55) => {
-                        let nonterminal_node_id = self.create_nonterminal_node(
-                            result,
-                            NonterminalId(8),
-                            SlotId(55),
+                        let Some(result) = result else {
+                            unreachable!("result cannot be None here.")
+                        };
+                        self.pop(
                             gss_node_id,
+                            SlotId(55),
+                            result,
+                            None,
+                            &FOLLOW_SET_ASSOCIATIVITY,
                         );
-                        self.pop(gss_node_id, SlotId(55), nonterminal_node_id, None);
                     }
                     // Associativity : . "right"
                     SlotId(56) => {
@@ -839,13 +912,16 @@ impl<'i, 'arena> Parser<'i, 'arena> for IggyParser<'i, 'arena> {
                     }
                     // Associativity : "right".
                     SlotId(57) => {
-                        let nonterminal_node_id = self.create_nonterminal_node(
-                            result,
-                            NonterminalId(8),
-                            SlotId(57),
+                        let Some(result) = result else {
+                            unreachable!("result cannot be None here.")
+                        };
+                        self.pop(
                             gss_node_id,
+                            SlotId(57),
+                            result,
+                            None,
+                            &FOLLOW_SET_ASSOCIATIVITY,
                         );
-                        self.pop(gss_node_id, SlotId(57), nonterminal_node_id, None);
                     }
                     // Associativity : . "none"
                     SlotId(58) => {
@@ -863,17 +939,27 @@ impl<'i, 'arena> Parser<'i, 'arena> for IggyParser<'i, 'arena> {
                     }
                     // Associativity : "none".
                     SlotId(59) => {
-                        let nonterminal_node_id = self.create_nonterminal_node(
-                            result,
-                            NonterminalId(8),
-                            SlotId(59),
+                        let Some(result) = result else {
+                            unreachable!("result cannot be None here.")
+                        };
+                        self.pop(
                             gss_node_id,
+                            SlotId(59),
+                            result,
+                            None,
+                            &FOLLOW_SET_ASSOCIATIVITY,
                         );
-                        self.pop(gss_node_id, SlotId(59), nonterminal_node_id, None);
                     }
                     // Alternative : . Plus_6 Layout Opt_9
                     SlotId(60) => {
-                        self.create(NonterminalId(36), result, gss_node_id, SlotId(61), env);
+                        self.create(
+                            NonterminalId(36),
+                            &PREDICTION_SET_PLUS_6,
+                            result,
+                            gss_node_id,
+                            SlotId(61),
+                            env,
+                        );
                     }
                     // Alternative : Plus_6 . Layout Opt_9
                     SlotId(61) => {
@@ -909,13 +995,16 @@ impl<'i, 'arena> Parser<'i, 'arena> for IggyParser<'i, 'arena> {
                     }
                     // Alternative : Plus_6 Layout Opt_9.
                     SlotId(63) => {
-                        let nonterminal_node_id = self.create_nonterminal_node(
-                            result,
-                            NonterminalId(9),
-                            SlotId(63),
+                        let Some(result) = result else {
+                            unreachable!("result cannot be None here.")
+                        };
+                        self.pop(
                             gss_node_id,
+                            SlotId(63),
+                            result,
+                            None,
+                            &FOLLOW_SET_ALTERNATIVE,
                         );
-                        self.pop(gss_node_id, SlotId(63), nonterminal_node_id, None);
                     }
                     // Alternative : . "(" Layout ")" Layout Opt_9
                     SlotId(64) => {
@@ -999,13 +1088,16 @@ impl<'i, 'arena> Parser<'i, 'arena> for IggyParser<'i, 'arena> {
                     }
                     // Alternative : "(" Layout ")" Layout Opt_9.
                     SlotId(69) => {
-                        let nonterminal_node_id = self.create_nonterminal_node(
-                            result,
-                            NonterminalId(9),
-                            SlotId(69),
+                        let Some(result) = result else {
+                            unreachable!("result cannot be None here.")
+                        };
+                        self.pop(
                             gss_node_id,
+                            SlotId(69),
+                            result,
+                            None,
+                            &FOLLOW_SET_ALTERNATIVE,
                         );
-                        self.pop(gss_node_id, SlotId(69), nonterminal_node_id, None);
                     }
                     // Symbol(p: i32, e: i32) : . [1 & e == 0] Identifier return (0, 0)
                     SlotId(333) => {
@@ -1036,22 +1128,13 @@ impl<'i, 'arena> Parser<'i, 'arena> for IggyParser<'i, 'arena> {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        let node = self.sppf_node(result);
                         let return_value = 0;
-                        let nonterminal_node_id = self.get_or_create_nonterminal_node(
-                            NonterminalId(64),
-                            SlotId(336),
-                            node.left_extent(),
-                            node.right_extent(),
-                            result,
-                            gss_node_id,
-                            Some(return_value),
-                        );
                         self.pop(
                             gss_node_id,
                             SlotId(336),
-                            nonterminal_node_id,
+                            result,
                             Some(return_value),
+                            &FOLLOW_SET_SYMBOL,
                         );
                     }
                     // Symbol(p: i32, e: i32) : . [2 & e == 0] "(" Layout seqs:Plus_7 Layout ")" return (0, 1)
@@ -1092,7 +1175,14 @@ impl<'i, 'arena> Parser<'i, 'arena> for IggyParser<'i, 'arena> {
                     }
                     // Symbol(p: i32, e: i32) : [2 & e == 0] "(" Layout . seqs:Plus_7 Layout ")" return (0, 1)
                     SlotId(340) => {
-                        self.create(NonterminalId(38), result, gss_node_id, SlotId(341), env);
+                        self.create(
+                            NonterminalId(38),
+                            &PREDICTION_SET_PLUS_7,
+                            result,
+                            gss_node_id,
+                            SlotId(341),
+                            env,
+                        );
                     }
                     // Symbol(p: i32, e: i32) : [2 & e == 0] "(" Layout seqs:Plus_7 . Layout ")" return (0, 1)
                     SlotId(341) => {
@@ -1137,22 +1227,13 @@ impl<'i, 'arena> Parser<'i, 'arena> for IggyParser<'i, 'arena> {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        let node = self.sppf_node(result);
                         let return_value = 1;
-                        let nonterminal_node_id = self.get_or_create_nonterminal_node(
-                            NonterminalId(64),
-                            SlotId(344),
-                            node.left_extent(),
-                            node.right_extent(),
-                            result,
-                            gss_node_id,
-                            Some(return_value),
-                        );
                         self.pop(
                             gss_node_id,
                             SlotId(344),
-                            nonterminal_node_id,
+                            result,
                             Some(return_value),
+                            &FOLLOW_SET_SYMBOL,
                         );
                     }
                     // Symbol(p: i32, e: i32) : . [4 & e == 0] String return (0, 2)
@@ -1184,22 +1265,13 @@ impl<'i, 'arena> Parser<'i, 'arena> for IggyParser<'i, 'arena> {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        let node = self.sppf_node(result);
                         let return_value = 2;
-                        let nonterminal_node_id = self.get_or_create_nonterminal_node(
-                            NonterminalId(64),
-                            SlotId(348),
-                            node.left_extent(),
-                            node.right_extent(),
-                            result,
-                            gss_node_id,
-                            Some(return_value),
-                        );
                         self.pop(
                             gss_node_id,
                             SlotId(348),
-                            nonterminal_node_id,
+                            result,
                             Some(return_value),
+                            &FOLLOW_SET_SYMBOL,
                         );
                     }
                     // Symbol(p: i32, e: i32) : . [8 & e == 0] "{" Layout symbol:Symbol(0, 0) Layout
@@ -1358,22 +1430,13 @@ impl<'i, 'arena> Parser<'i, 'arena> for IggyParser<'i, 'arena> {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        let node = self.sppf_node(result);
                         let return_value = 3;
-                        let nonterminal_node_id = self.get_or_create_nonterminal_node(
-                            NonterminalId(64),
-                            SlotId(360),
-                            node.left_extent(),
-                            node.right_extent(),
-                            result,
-                            gss_node_id,
-                            Some(return_value),
-                        );
                         self.pop(
                             gss_node_id,
                             SlotId(360),
-                            nonterminal_node_id,
+                            result,
                             Some(return_value),
+                            &FOLLOW_SET_SYMBOL,
                         );
                     }
                     // Symbol(p: i32, e: i32) : . [16 & e == 0] "{" Layout symbol:Symbol(0, 0) Layout
@@ -1532,22 +1595,13 @@ impl<'i, 'arena> Parser<'i, 'arena> for IggyParser<'i, 'arena> {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        let node = self.sppf_node(result);
                         let return_value = 4;
-                        let nonterminal_node_id = self.get_or_create_nonterminal_node(
-                            NonterminalId(64),
-                            SlotId(372),
-                            node.left_extent(),
-                            node.right_extent(),
-                            result,
-                            gss_node_id,
-                            Some(return_value),
-                        );
                         self.pop(
                             gss_node_id,
                             SlotId(372),
-                            nonterminal_node_id,
+                            result,
                             Some(return_value),
+                            &FOLLOW_SET_SYMBOL,
                         );
                     }
                     // Symbol(p: i32, e: i32) : . [32 & e == 0] [3 >= p] (l_pr, l_label)=Symbol(p, 0) [(l_pr ==
@@ -1634,22 +1688,13 @@ impl<'i, 'arena> Parser<'i, 'arena> for IggyParser<'i, 'arena> {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        let node = self.sppf_node(result);
                         let return_value = 5;
-                        let nonterminal_node_id = self.get_or_create_nonterminal_node(
-                            NonterminalId(64),
-                            SlotId(380),
-                            node.left_extent(),
-                            node.right_extent(),
-                            result,
-                            gss_node_id,
-                            Some(return_value),
-                        );
                         self.pop(
                             gss_node_id,
                             SlotId(380),
-                            nonterminal_node_id,
+                            result,
                             Some(return_value),
+                            &FOLLOW_SET_SYMBOL,
                         );
                     }
                     // Symbol(p: i32, e: i32) : . [64 & e == 0] [3 >= p] (l_pr, l_label)=Symbol(p, 0) [(l_pr ==
@@ -1736,22 +1781,13 @@ impl<'i, 'arena> Parser<'i, 'arena> for IggyParser<'i, 'arena> {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        let node = self.sppf_node(result);
                         let return_value = 6;
-                        let nonterminal_node_id = self.get_or_create_nonterminal_node(
-                            NonterminalId(64),
-                            SlotId(388),
-                            node.left_extent(),
-                            node.right_extent(),
-                            result,
-                            gss_node_id,
-                            Some(return_value),
-                        );
                         self.pop(
                             gss_node_id,
                             SlotId(388),
-                            nonterminal_node_id,
+                            result,
                             Some(return_value),
+                            &FOLLOW_SET_SYMBOL,
                         );
                     }
                     // Symbol(p: i32, e: i32) : . [128 & e == 0] [3 >= p] (l_pr, l_label)=Symbol(p, 0) [(l_pr ==
@@ -1838,22 +1874,13 @@ impl<'i, 'arena> Parser<'i, 'arena> for IggyParser<'i, 'arena> {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        let node = self.sppf_node(result);
                         let return_value = 7;
-                        let nonterminal_node_id = self.get_or_create_nonterminal_node(
-                            NonterminalId(64),
-                            SlotId(396),
-                            node.left_extent(),
-                            node.right_extent(),
-                            result,
-                            gss_node_id,
-                            Some(return_value),
-                        );
                         self.pop(
                             gss_node_id,
                             SlotId(396),
-                            nonterminal_node_id,
+                            result,
                             Some(return_value),
+                            &FOLLOW_SET_SYMBOL,
                         );
                     }
                     // Symbol(p: i32, e: i32) : . [256 & e == 0] [3 >= p] (l_pr, l_label)=Symbol(p, 0) [(l_pr ==
@@ -1929,7 +1956,14 @@ impl<'i, 'arena> Parser<'i, 'arena> for IggyParser<'i, 'arena> {
                     // || (l_pr >= 3)] [(l_label == NO_LABEL) || ((256 >> l_label) & 1 == 0)] Layout .
                     // conditions:Plus_8 return (0, 8)
                     SlotId(403) => {
-                        self.create(NonterminalId(39), result, gss_node_id, SlotId(404), env);
+                        self.create(
+                            NonterminalId(39),
+                            &PREDICTION_SET_PLUS_8,
+                            result,
+                            gss_node_id,
+                            SlotId(404),
+                            env,
+                        );
                     }
                     // Symbol(p: i32, e: i32) : [256 & e == 0] [3 >= p] (l_pr, l_label)=Symbol(p, 0) [(l_pr == 0)
                     // || (l_pr >= 3)] [(l_label == NO_LABEL) || ((256 >> l_label) & 1 == 0)] Layout
@@ -1944,22 +1978,13 @@ impl<'i, 'arena> Parser<'i, 'arena> for IggyParser<'i, 'arena> {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        let node = self.sppf_node(result);
                         let return_value = 8;
-                        let nonterminal_node_id = self.get_or_create_nonterminal_node(
-                            NonterminalId(64),
-                            SlotId(405),
-                            node.left_extent(),
-                            node.right_extent(),
-                            result,
-                            gss_node_id,
-                            Some(return_value),
-                        );
                         self.pop(
                             gss_node_id,
                             SlotId(405),
-                            nonterminal_node_id,
+                            result,
                             Some(return_value),
+                            &FOLLOW_SET_SYMBOL,
                         );
                     }
                     // Symbol(p: i32, e: i32) : . [512 & e == 0] conditions:Plus_9 Layout (r_pr,
@@ -1972,7 +1997,14 @@ impl<'i, 'arena> Parser<'i, 'arena> for IggyParser<'i, 'arena> {
                     // Symbol(p: i32, e: i32) : [512 & e == 0] . conditions:Plus_9 Layout (r_pr,
                     // r_label)=Symbol(2, 512) return ((r_pr == 0) ? 2 : min(r_pr, 2), 9)
                     SlotId(407) => {
-                        self.create(NonterminalId(40), result, gss_node_id, SlotId(408), env);
+                        self.create(
+                            NonterminalId(40),
+                            &PREDICTION_SET_PLUS_9,
+                            result,
+                            gss_node_id,
+                            SlotId(408),
+                            env,
+                        );
                     }
                     // Symbol(p: i32, e: i32) : [512 & e == 0] conditions:Plus_9 . Layout (r_pr,
                     // r_label)=Symbol(2, 512) return ((r_pr == 0) ? 2 : min(r_pr, 2), 9)
@@ -2008,27 +2040,18 @@ impl<'i, 'arena> Parser<'i, 'arena> for IggyParser<'i, 'arena> {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        let node = self.sppf_node(result);
                         let return_value = ((if self.lookup(BINDING_R_PR, env.unwrap()) == 0 {
                             2
                         } else {
                             std::cmp::min(self.lookup(BINDING_R_PR, env.unwrap()), 2)
                         }) << (16))
                             | (9);
-                        let nonterminal_node_id = self.get_or_create_nonterminal_node(
-                            NonterminalId(64),
-                            SlotId(411),
-                            node.left_extent(),
-                            node.right_extent(),
-                            result,
-                            gss_node_id,
-                            Some(return_value),
-                        );
                         self.pop(
                             gss_node_id,
                             SlotId(411),
-                            nonterminal_node_id,
+                            result,
                             Some(return_value),
+                            &FOLLOW_SET_SYMBOL,
                         );
                     }
                     // Symbol(p: i32, e: i32) : . [1024 & e == 0] label:Identifier Layout ":" Layout Symbol(1, 0)
@@ -2126,22 +2149,13 @@ impl<'i, 'arena> Parser<'i, 'arena> for IggyParser<'i, 'arena> {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        let node = self.sppf_node(result);
                         let return_value = 65546;
-                        let nonterminal_node_id = self.get_or_create_nonterminal_node(
-                            NonterminalId(64),
-                            SlotId(419),
-                            node.left_extent(),
-                            node.right_extent(),
-                            result,
-                            gss_node_id,
-                            Some(return_value),
-                        );
                         self.pop(
                             gss_node_id,
                             SlotId(419),
-                            nonterminal_node_id,
+                            result,
                             Some(return_value),
+                            &FOLLOW_SET_SYMBOL,
                         );
                     }
                     // PreCondition : . Identifier Layout "!<<"
@@ -2194,13 +2208,16 @@ impl<'i, 'arena> Parser<'i, 'arena> for IggyParser<'i, 'arena> {
                     }
                     // PreCondition : Identifier Layout "!<<".
                     SlotId(73) => {
-                        let nonterminal_node_id = self.create_nonterminal_node(
-                            result,
-                            NonterminalId(10),
-                            SlotId(73),
+                        let Some(result) = result else {
+                            unreachable!("result cannot be None here.")
+                        };
+                        self.pop(
                             gss_node_id,
+                            SlotId(73),
+                            result,
+                            None,
+                            &FOLLOW_SET_PRE_CONDITION,
                         );
-                        self.pop(gss_node_id, SlotId(73), nonterminal_node_id, None);
                     }
                     // PostCondition : . "\\" Layout Identifier
                     SlotId(74) => {
@@ -2252,13 +2269,16 @@ impl<'i, 'arena> Parser<'i, 'arena> for IggyParser<'i, 'arena> {
                     }
                     // PostCondition : "\\" Layout Identifier.
                     SlotId(77) => {
-                        let nonterminal_node_id = self.create_nonterminal_node(
-                            result,
-                            NonterminalId(11),
-                            SlotId(77),
+                        let Some(result) = result else {
+                            unreachable!("result cannot be None here.")
+                        };
+                        self.pop(
                             gss_node_id,
+                            SlotId(77),
+                            result,
+                            None,
+                            &FOLLOW_SET_POST_CONDITION,
                         );
-                        self.pop(gss_node_id, SlotId(77), nonterminal_node_id, None);
                     }
                     // PostCondition : . "!>>" Layout Identifier
                     SlotId(78) => {
@@ -2310,13 +2330,16 @@ impl<'i, 'arena> Parser<'i, 'arena> for IggyParser<'i, 'arena> {
                     }
                     // PostCondition : "!>>" Layout Identifier.
                     SlotId(81) => {
-                        let nonterminal_node_id = self.create_nonterminal_node(
-                            result,
-                            NonterminalId(11),
-                            SlotId(81),
+                        let Some(result) = result else {
+                            unreachable!("result cannot be None here.")
+                        };
+                        self.pop(
                             gss_node_id,
+                            SlotId(81),
+                            result,
+                            None,
+                            &FOLLOW_SET_POST_CONDITION,
                         );
-                        self.pop(gss_node_id, SlotId(81), nonterminal_node_id, None);
                     }
                     // PostCondition : . "!>>>" Layout Identifier
                     SlotId(82) => {
@@ -2368,13 +2391,16 @@ impl<'i, 'arena> Parser<'i, 'arena> for IggyParser<'i, 'arena> {
                     }
                     // PostCondition : "!>>>" Layout Identifier.
                     SlotId(85) => {
-                        let nonterminal_node_id = self.create_nonterminal_node(
-                            result,
-                            NonterminalId(11),
-                            SlotId(85),
+                        let Some(result) = result else {
+                            unreachable!("result cannot be None here.")
+                        };
+                        self.pop(
                             gss_node_id,
+                            SlotId(85),
+                            result,
+                            None,
+                            &FOLLOW_SET_POST_CONDITION,
                         );
-                        self.pop(gss_node_id, SlotId(85), nonterminal_node_id, None);
                     }
                     // PostCondition : . "!" Layout Identifier
                     SlotId(86) => {
@@ -2426,17 +2452,27 @@ impl<'i, 'arena> Parser<'i, 'arena> for IggyParser<'i, 'arena> {
                     }
                     // PostCondition : "!" Layout Identifier.
                     SlotId(89) => {
-                        let nonterminal_node_id = self.create_nonterminal_node(
-                            result,
-                            NonterminalId(11),
-                            SlotId(89),
+                        let Some(result) = result else {
+                            unreachable!("result cannot be None here.")
+                        };
+                        self.pop(
                             gss_node_id,
+                            SlotId(89),
+                            result,
+                            None,
+                            &FOLLOW_SET_POST_CONDITION,
                         );
-                        self.pop(gss_node_id, SlotId(89), nonterminal_node_id, None);
                     }
                     // Regex : . Regex Layout "+"
                     SlotId(90) => {
-                        self.create(NonterminalId(12), result, gss_node_id, SlotId(91), env);
+                        self.create(
+                            NonterminalId(12),
+                            &PREDICTION_SET_REGEX,
+                            result,
+                            gss_node_id,
+                            SlotId(91),
+                            env,
+                        );
                     }
                     // Regex : Regex . Layout "+"
                     SlotId(91) => {
@@ -2474,17 +2510,21 @@ impl<'i, 'arena> Parser<'i, 'arena> for IggyParser<'i, 'arena> {
                     }
                     // Regex : Regex Layout "+".
                     SlotId(93) => {
-                        let nonterminal_node_id = self.create_nonterminal_node(
-                            result,
-                            NonterminalId(12),
-                            SlotId(93),
-                            gss_node_id,
-                        );
-                        self.pop(gss_node_id, SlotId(93), nonterminal_node_id, None);
+                        let Some(result) = result else {
+                            unreachable!("result cannot be None here.")
+                        };
+                        self.pop(gss_node_id, SlotId(93), result, None, &FOLLOW_SET_REGEX);
                     }
                     // Regex : . Regex Layout "*"
                     SlotId(94) => {
-                        self.create(NonterminalId(12), result, gss_node_id, SlotId(95), env);
+                        self.create(
+                            NonterminalId(12),
+                            &PREDICTION_SET_REGEX,
+                            result,
+                            gss_node_id,
+                            SlotId(95),
+                            env,
+                        );
                     }
                     // Regex : Regex . Layout "*"
                     SlotId(95) => {
@@ -2522,17 +2562,21 @@ impl<'i, 'arena> Parser<'i, 'arena> for IggyParser<'i, 'arena> {
                     }
                     // Regex : Regex Layout "*".
                     SlotId(97) => {
-                        let nonterminal_node_id = self.create_nonterminal_node(
-                            result,
-                            NonterminalId(12),
-                            SlotId(97),
-                            gss_node_id,
-                        );
-                        self.pop(gss_node_id, SlotId(97), nonterminal_node_id, None);
+                        let Some(result) = result else {
+                            unreachable!("result cannot be None here.")
+                        };
+                        self.pop(gss_node_id, SlotId(97), result, None, &FOLLOW_SET_REGEX);
                     }
                     // Regex : . Regex Layout "?"
                     SlotId(98) => {
-                        self.create(NonterminalId(12), result, gss_node_id, SlotId(99), env);
+                        self.create(
+                            NonterminalId(12),
+                            &PREDICTION_SET_REGEX,
+                            result,
+                            gss_node_id,
+                            SlotId(99),
+                            env,
+                        );
                     }
                     // Regex : Regex . Layout "?"
                     SlotId(99) => {
@@ -2570,13 +2614,10 @@ impl<'i, 'arena> Parser<'i, 'arena> for IggyParser<'i, 'arena> {
                     }
                     // Regex : Regex Layout "?".
                     SlotId(101) => {
-                        let nonterminal_node_id = self.create_nonterminal_node(
-                            result,
-                            NonterminalId(12),
-                            SlotId(101),
-                            gss_node_id,
-                        );
-                        self.pop(gss_node_id, SlotId(101), nonterminal_node_id, None);
+                        let Some(result) = result else {
+                            unreachable!("result cannot be None here.")
+                        };
+                        self.pop(gss_node_id, SlotId(101), result, None, &FOLLOW_SET_REGEX);
                     }
                     // Regex : . "(" Layout seqs:Plus_2 Layout ")"
                     SlotId(102) => {
@@ -2610,7 +2651,14 @@ impl<'i, 'arena> Parser<'i, 'arena> for IggyParser<'i, 'arena> {
                     }
                     // Regex : "(" Layout . seqs:Plus_2 Layout ")"
                     SlotId(104) => {
-                        self.create(NonterminalId(28), result, gss_node_id, SlotId(105), env);
+                        self.create(
+                            NonterminalId(28),
+                            &PREDICTION_SET_PLUS_2,
+                            result,
+                            gss_node_id,
+                            SlotId(105),
+                            env,
+                        );
                     }
                     // Regex : "(" Layout seqs:Plus_2 . Layout ")"
                     SlotId(105) => {
@@ -2648,27 +2696,28 @@ impl<'i, 'arena> Parser<'i, 'arena> for IggyParser<'i, 'arena> {
                     }
                     // Regex : "(" Layout seqs:Plus_2 Layout ")".
                     SlotId(107) => {
-                        let nonterminal_node_id = self.create_nonterminal_node(
-                            result,
-                            NonterminalId(12),
-                            SlotId(107),
-                            gss_node_id,
-                        );
-                        self.pop(gss_node_id, SlotId(107), nonterminal_node_id, None);
+                        let Some(result) = result else {
+                            unreachable!("result cannot be None here.")
+                        };
+                        self.pop(gss_node_id, SlotId(107), result, None, &FOLLOW_SET_REGEX);
                     }
                     // Regex : . CharClass
                     SlotId(108) => {
-                        self.create(NonterminalId(13), result, gss_node_id, SlotId(109), env);
+                        self.create(
+                            NonterminalId(13),
+                            &PREDICTION_SET_CHAR_CLASS,
+                            result,
+                            gss_node_id,
+                            SlotId(109),
+                            env,
+                        );
                     }
                     // Regex : CharClass.
                     SlotId(109) => {
-                        let nonterminal_node_id = self.create_nonterminal_node(
-                            result,
-                            NonterminalId(12),
-                            SlotId(109),
-                            gss_node_id,
-                        );
-                        self.pop(gss_node_id, SlotId(109), nonterminal_node_id, None);
+                        let Some(result) = result else {
+                            unreachable!("result cannot be None here.")
+                        };
+                        self.pop(gss_node_id, SlotId(109), result, None, &FOLLOW_SET_REGEX);
                     }
                     // Regex : . Char
                     SlotId(110) => {
@@ -2686,13 +2735,10 @@ impl<'i, 'arena> Parser<'i, 'arena> for IggyParser<'i, 'arena> {
                     }
                     // Regex : Char.
                     SlotId(111) => {
-                        let nonterminal_node_id = self.create_nonterminal_node(
-                            result,
-                            NonterminalId(12),
-                            SlotId(111),
-                            gss_node_id,
-                        );
-                        self.pop(gss_node_id, SlotId(111), nonterminal_node_id, None);
+                        let Some(result) = result else {
+                            unreachable!("result cannot be None here.")
+                        };
+                        self.pop(gss_node_id, SlotId(111), result, None, &FOLLOW_SET_REGEX);
                     }
                     // Regex : . String
                     SlotId(112) => {
@@ -2710,13 +2756,10 @@ impl<'i, 'arena> Parser<'i, 'arena> for IggyParser<'i, 'arena> {
                     }
                     // Regex : String.
                     SlotId(113) => {
-                        let nonterminal_node_id = self.create_nonterminal_node(
-                            result,
-                            NonterminalId(12),
-                            SlotId(113),
-                            gss_node_id,
-                        );
-                        self.pop(gss_node_id, SlotId(113), nonterminal_node_id, None);
+                        let Some(result) = result else {
+                            unreachable!("result cannot be None here.")
+                        };
+                        self.pop(gss_node_id, SlotId(113), result, None, &FOLLOW_SET_REGEX);
                     }
                     // Regex : . Identifier
                     SlotId(114) => {
@@ -2734,13 +2777,10 @@ impl<'i, 'arena> Parser<'i, 'arena> for IggyParser<'i, 'arena> {
                     }
                     // Regex : Identifier.
                     SlotId(115) => {
-                        let nonterminal_node_id = self.create_nonterminal_node(
-                            result,
-                            NonterminalId(12),
-                            SlotId(115),
-                            gss_node_id,
-                        );
-                        self.pop(gss_node_id, SlotId(115), nonterminal_node_id, None);
+                        let Some(result) = result else {
+                            unreachable!("result cannot be None here.")
+                        };
+                        self.pop(gss_node_id, SlotId(115), result, None, &FOLLOW_SET_REGEX);
                     }
                     // CharClass : . neg:Opt_10 Layout "[" Layout Plus_10 Layout "]"
                     SlotId(116) => {
@@ -2806,7 +2846,14 @@ impl<'i, 'arena> Parser<'i, 'arena> for IggyParser<'i, 'arena> {
                     }
                     // CharClass : neg:Opt_10 Layout "[" Layout . Plus_10 Layout "]"
                     SlotId(120) => {
-                        self.create(NonterminalId(42), result, gss_node_id, SlotId(121), env);
+                        self.create(
+                            NonterminalId(42),
+                            &PREDICTION_SET_PLUS_10,
+                            result,
+                            gss_node_id,
+                            SlotId(121),
+                            env,
+                        );
                     }
                     // CharClass : neg:Opt_10 Layout "[" Layout Plus_10 . Layout "]"
                     SlotId(121) => {
@@ -2844,13 +2891,16 @@ impl<'i, 'arena> Parser<'i, 'arena> for IggyParser<'i, 'arena> {
                     }
                     // CharClass : neg:Opt_10 Layout "[" Layout Plus_10 Layout "]".
                     SlotId(123) => {
-                        let nonterminal_node_id = self.create_nonterminal_node(
-                            result,
-                            NonterminalId(13),
-                            SlotId(123),
+                        let Some(result) = result else {
+                            unreachable!("result cannot be None here.")
+                        };
+                        self.pop(
                             gss_node_id,
+                            SlotId(123),
+                            result,
+                            None,
+                            &FOLLOW_SET_CHAR_CLASS,
                         );
-                        self.pop(gss_node_id, SlotId(123), nonterminal_node_id, None);
                     }
                     // RangeElement : . Range
                     SlotId(124) => {
@@ -2866,13 +2916,16 @@ impl<'i, 'arena> Parser<'i, 'arena> for IggyParser<'i, 'arena> {
                     }
                     // RangeElement : Range.
                     SlotId(125) => {
-                        let nonterminal_node_id = self.create_nonterminal_node(
-                            result,
-                            NonterminalId(14),
-                            SlotId(125),
+                        let Some(result) = result else {
+                            unreachable!("result cannot be None here.")
+                        };
+                        self.pop(
                             gss_node_id,
+                            SlotId(125),
+                            result,
+                            None,
+                            &FOLLOW_SET_RANGE_ELEMENT,
                         );
-                        self.pop(gss_node_id, SlotId(125), nonterminal_node_id, None);
                     }
                     // RangeElement : . RangeChar
                     SlotId(126) => {
@@ -2890,13 +2943,16 @@ impl<'i, 'arena> Parser<'i, 'arena> for IggyParser<'i, 'arena> {
                     }
                     // RangeElement : RangeChar.
                     SlotId(127) => {
-                        let nonterminal_node_id = self.create_nonterminal_node(
-                            result,
-                            NonterminalId(14),
-                            SlotId(127),
+                        let Some(result) = result else {
+                            unreachable!("result cannot be None here.")
+                        };
+                        self.pop(
                             gss_node_id,
+                            SlotId(127),
+                            result,
+                            None,
+                            &FOLLOW_SET_RANGE_ELEMENT,
                         );
-                        self.pop(gss_node_id, SlotId(127), nonterminal_node_id, None);
                     }
                     // Range : . start:RangeChar Layout "-" Layout end:RangeChar
                     SlotId(128) => {
@@ -2982,13 +3038,10 @@ impl<'i, 'arena> Parser<'i, 'arena> for IggyParser<'i, 'arena> {
                     }
                     // Range : start:RangeChar Layout "-" Layout end:RangeChar.
                     SlotId(133) => {
-                        let nonterminal_node_id = self.create_nonterminal_node(
-                            result,
-                            NonterminalId(15),
-                            SlotId(133),
-                            gss_node_id,
-                        );
-                        self.pop(gss_node_id, SlotId(133), nonterminal_node_id, None);
+                        let Some(result) = result else {
+                            unreachable!("result cannot be None here.")
+                        };
+                        self.pop(gss_node_id, SlotId(133), result, None, &FOLLOW_SET_RANGE);
                     }
                     // Layout : . Star_4 !>> WS !>> LineComment
                     SlotId(134) => {
@@ -3009,17 +3062,21 @@ impl<'i, 'arena> Parser<'i, 'arena> for IggyParser<'i, 'arena> {
                     }
                     // Layout : Star_4 !>> WS !>> LineComment.
                     SlotId(135) => {
-                        let nonterminal_node_id = self.create_nonterminal_node(
-                            result,
-                            NonterminalId(16),
-                            SlotId(135),
-                            gss_node_id,
-                        );
-                        self.pop(gss_node_id, SlotId(135), nonterminal_node_id, None);
+                        let Some(result) = result else {
+                            unreachable!("result cannot be None here.")
+                        };
+                        self.pop(gss_node_id, SlotId(135), result, None, &FOLLOW_SET_LAYOUT);
                     }
                     // Plus_0 : . Plus_0 Layout Rule
                     SlotId(136) => {
-                        self.create(NonterminalId(17), result, gss_node_id, SlotId(137), env);
+                        self.create(
+                            NonterminalId(17),
+                            &PREDICTION_SET_PLUS_0,
+                            result,
+                            gss_node_id,
+                            SlotId(137),
+                            env,
+                        );
                     }
                     // Plus_0 : Plus_0 . Layout Rule
                     SlotId(137) => {
@@ -3039,73 +3096,80 @@ impl<'i, 'arena> Parser<'i, 'arena> for IggyParser<'i, 'arena> {
                     }
                     // Plus_0 : Plus_0 Layout . Rule
                     SlotId(138) => {
-                        self.create(NonterminalId(1), result, gss_node_id, SlotId(139), env);
+                        self.create(
+                            NonterminalId(1),
+                            &PREDICTION_SET_RULE,
+                            result,
+                            gss_node_id,
+                            SlotId(139),
+                            env,
+                        );
                     }
                     // Plus_0 : Plus_0 Layout Rule.
                     SlotId(139) => {
-                        let nonterminal_node_id = self.create_nonterminal_node(
-                            result,
-                            NonterminalId(17),
-                            SlotId(139),
-                            gss_node_id,
-                        );
-                        self.pop(gss_node_id, SlotId(139), nonterminal_node_id, None);
+                        let Some(result) = result else {
+                            unreachable!("result cannot be None here.")
+                        };
+                        self.pop(gss_node_id, SlotId(139), result, None, &FOLLOW_SET_PLUS_0);
                     }
                     // Plus_0 : . Rule
                     SlotId(140) => {
-                        self.create(NonterminalId(1), result, gss_node_id, SlotId(141), env);
+                        self.create(
+                            NonterminalId(1),
+                            &PREDICTION_SET_RULE,
+                            result,
+                            gss_node_id,
+                            SlotId(141),
+                            env,
+                        );
                     }
                     // Plus_0 : Rule.
                     SlotId(141) => {
-                        let nonterminal_node_id = self.create_nonterminal_node(
-                            result,
-                            NonterminalId(17),
-                            SlotId(141),
-                            gss_node_id,
-                        );
-                        self.pop(gss_node_id, SlotId(141), nonterminal_node_id, None);
+                        let Some(result) = result else {
+                            unreachable!("result cannot be None here.")
+                        };
+                        self.pop(gss_node_id, SlotId(141), result, None, &FOLLOW_SET_PLUS_0);
                     }
                     // Opt_0 : . Plus_0
                     SlotId(142) => {
-                        self.create(NonterminalId(17), result, gss_node_id, SlotId(143), env);
+                        self.create(
+                            NonterminalId(17),
+                            &PREDICTION_SET_PLUS_0,
+                            result,
+                            gss_node_id,
+                            SlotId(143),
+                            env,
+                        );
                     }
                     // Opt_0 : Plus_0.
                     SlotId(143) => {
-                        let nonterminal_node_id = self.create_nonterminal_node(
-                            result,
-                            NonterminalId(18),
-                            SlotId(143),
-                            gss_node_id,
-                        );
-                        self.pop(gss_node_id, SlotId(143), nonterminal_node_id, None);
+                        let Some(result) = result else {
+                            unreachable!("result cannot be None here.")
+                        };
+                        self.pop(gss_node_id, SlotId(143), result, None, &FOLLOW_SET_OPT_0);
                     }
                     // Opt_0 : .
                     SlotId(144) => {
-                        let epsilon_node_id = self.get_or_create_epsilon_node(input_index);
-                        let nonterminal_node_id = self.get_or_create_nonterminal_node(
-                            NonterminalId(18),
-                            SlotId(144),
-                            input_index,
-                            input_index,
-                            epsilon_node_id,
-                            gss_node_id,
-                            None,
-                        );
-                        self.pop(gss_node_id, SlotId(144), nonterminal_node_id, None);
+                        let result = self.get_or_create_epsilon_node(input_index);
+                        self.pop(gss_node_id, SlotId(144), result, None, &FOLLOW_SET_OPT_0);
                     }
                     // Star_0 : . Opt_0
                     SlotId(145) => {
-                        self.create(NonterminalId(18), result, gss_node_id, SlotId(146), env);
+                        self.create(
+                            NonterminalId(18),
+                            &PREDICTION_SET_OPT_0,
+                            result,
+                            gss_node_id,
+                            SlotId(146),
+                            env,
+                        );
                     }
                     // Star_0 : Opt_0.
                     SlotId(146) => {
-                        let nonterminal_node_id = self.create_nonterminal_node(
-                            result,
-                            NonterminalId(19),
-                            SlotId(146),
-                            gss_node_id,
-                        );
-                        self.pop(gss_node_id, SlotId(146), nonterminal_node_id, None);
+                        let Some(result) = result else {
+                            unreachable!("result cannot be None here.")
+                        };
+                        self.pop(gss_node_id, SlotId(146), result, None, &FOLLOW_SET_STAR_0);
                     }
                     // Opt_1 : . Annotation
                     SlotId(147) => {
@@ -3122,31 +3186,26 @@ impl<'i, 'arena> Parser<'i, 'arena> for IggyParser<'i, 'arena> {
                     }
                     // Opt_1 : Annotation.
                     SlotId(148) => {
-                        let nonterminal_node_id = self.create_nonterminal_node(
-                            result,
-                            NonterminalId(20),
-                            SlotId(148),
-                            gss_node_id,
-                        );
-                        self.pop(gss_node_id, SlotId(148), nonterminal_node_id, None);
+                        let Some(result) = result else {
+                            unreachable!("result cannot be None here.")
+                        };
+                        self.pop(gss_node_id, SlotId(148), result, None, &FOLLOW_SET_OPT_1);
                     }
                     // Opt_1 : .
                     SlotId(149) => {
-                        let epsilon_node_id = self.get_or_create_epsilon_node(input_index);
-                        let nonterminal_node_id = self.get_or_create_nonterminal_node(
-                            NonterminalId(20),
-                            SlotId(149),
-                            input_index,
-                            input_index,
-                            epsilon_node_id,
-                            gss_node_id,
-                            None,
-                        );
-                        self.pop(gss_node_id, SlotId(149), nonterminal_node_id, None);
+                        let result = self.get_or_create_epsilon_node(input_index);
+                        self.pop(gss_node_id, SlotId(149), result, None, &FOLLOW_SET_OPT_1);
                     }
                     // Plus_1 : . Plus_1 Layout ">" Layout PriorityLevel
                     SlotId(150) => {
-                        self.create(NonterminalId(21), result, gss_node_id, SlotId(151), env);
+                        self.create(
+                            NonterminalId(21),
+                            &PREDICTION_SET_PLUS_1,
+                            result,
+                            gss_node_id,
+                            SlotId(151),
+                            env,
+                        );
                     }
                     // Plus_1 : Plus_1 . Layout ">" Layout PriorityLevel
                     SlotId(151) => {
@@ -3200,73 +3259,80 @@ impl<'i, 'arena> Parser<'i, 'arena> for IggyParser<'i, 'arena> {
                     }
                     // Plus_1 : Plus_1 Layout ">" Layout . PriorityLevel
                     SlotId(154) => {
-                        self.create(NonterminalId(7), result, gss_node_id, SlotId(155), env);
+                        self.create(
+                            NonterminalId(7),
+                            &PREDICTION_SET_PRIORITY_LEVEL,
+                            result,
+                            gss_node_id,
+                            SlotId(155),
+                            env,
+                        );
                     }
                     // Plus_1 : Plus_1 Layout ">" Layout PriorityLevel.
                     SlotId(155) => {
-                        let nonterminal_node_id = self.create_nonterminal_node(
-                            result,
-                            NonterminalId(21),
-                            SlotId(155),
-                            gss_node_id,
-                        );
-                        self.pop(gss_node_id, SlotId(155), nonterminal_node_id, None);
+                        let Some(result) = result else {
+                            unreachable!("result cannot be None here.")
+                        };
+                        self.pop(gss_node_id, SlotId(155), result, None, &FOLLOW_SET_PLUS_1);
                     }
                     // Plus_1 : . PriorityLevel
                     SlotId(156) => {
-                        self.create(NonterminalId(7), result, gss_node_id, SlotId(157), env);
+                        self.create(
+                            NonterminalId(7),
+                            &PREDICTION_SET_PRIORITY_LEVEL,
+                            result,
+                            gss_node_id,
+                            SlotId(157),
+                            env,
+                        );
                     }
                     // Plus_1 : PriorityLevel.
                     SlotId(157) => {
-                        let nonterminal_node_id = self.create_nonterminal_node(
-                            result,
-                            NonterminalId(21),
-                            SlotId(157),
-                            gss_node_id,
-                        );
-                        self.pop(gss_node_id, SlotId(157), nonterminal_node_id, None);
+                        let Some(result) = result else {
+                            unreachable!("result cannot be None here.")
+                        };
+                        self.pop(gss_node_id, SlotId(157), result, None, &FOLLOW_SET_PLUS_1);
                     }
                     // Opt_2 : . Plus_1
                     SlotId(158) => {
-                        self.create(NonterminalId(21), result, gss_node_id, SlotId(159), env);
+                        self.create(
+                            NonterminalId(21),
+                            &PREDICTION_SET_PLUS_1,
+                            result,
+                            gss_node_id,
+                            SlotId(159),
+                            env,
+                        );
                     }
                     // Opt_2 : Plus_1.
                     SlotId(159) => {
-                        let nonterminal_node_id = self.create_nonterminal_node(
-                            result,
-                            NonterminalId(22),
-                            SlotId(159),
-                            gss_node_id,
-                        );
-                        self.pop(gss_node_id, SlotId(159), nonterminal_node_id, None);
+                        let Some(result) = result else {
+                            unreachable!("result cannot be None here.")
+                        };
+                        self.pop(gss_node_id, SlotId(159), result, None, &FOLLOW_SET_OPT_2);
                     }
                     // Opt_2 : .
                     SlotId(160) => {
-                        let epsilon_node_id = self.get_or_create_epsilon_node(input_index);
-                        let nonterminal_node_id = self.get_or_create_nonterminal_node(
-                            NonterminalId(22),
-                            SlotId(160),
-                            input_index,
-                            input_index,
-                            epsilon_node_id,
-                            gss_node_id,
-                            None,
-                        );
-                        self.pop(gss_node_id, SlotId(160), nonterminal_node_id, None);
+                        let result = self.get_or_create_epsilon_node(input_index);
+                        self.pop(gss_node_id, SlotId(160), result, None, &FOLLOW_SET_OPT_2);
                     }
                     // Star_1 : . Opt_2
                     SlotId(161) => {
-                        self.create(NonterminalId(22), result, gss_node_id, SlotId(162), env);
+                        self.create(
+                            NonterminalId(22),
+                            &PREDICTION_SET_OPT_2,
+                            result,
+                            gss_node_id,
+                            SlotId(162),
+                            env,
+                        );
                     }
                     // Star_1 : Opt_2.
                     SlotId(162) => {
-                        let nonterminal_node_id = self.create_nonterminal_node(
-                            result,
-                            NonterminalId(23),
-                            SlotId(162),
-                            gss_node_id,
-                        );
-                        self.pop(gss_node_id, SlotId(162), nonterminal_node_id, None);
+                        let Some(result) = result else {
+                            unreachable!("result cannot be None here.")
+                        };
+                        self.pop(gss_node_id, SlotId(162), result, None, &FOLLOW_SET_STAR_1);
                     }
                     // Opt_3 : . "@Layout"
                     SlotId(163) => {
@@ -3284,27 +3350,15 @@ impl<'i, 'arena> Parser<'i, 'arena> for IggyParser<'i, 'arena> {
                     }
                     // Opt_3 : "@Layout".
                     SlotId(164) => {
-                        let nonterminal_node_id = self.create_nonterminal_node(
-                            result,
-                            NonterminalId(24),
-                            SlotId(164),
-                            gss_node_id,
-                        );
-                        self.pop(gss_node_id, SlotId(164), nonterminal_node_id, None);
+                        let Some(result) = result else {
+                            unreachable!("result cannot be None here.")
+                        };
+                        self.pop(gss_node_id, SlotId(164), result, None, &FOLLOW_SET_OPT_3);
                     }
                     // Opt_3 : .
                     SlotId(165) => {
-                        let epsilon_node_id = self.get_or_create_epsilon_node(input_index);
-                        let nonterminal_node_id = self.get_or_create_nonterminal_node(
-                            NonterminalId(24),
-                            SlotId(165),
-                            input_index,
-                            input_index,
-                            epsilon_node_id,
-                            gss_node_id,
-                            None,
-                        );
-                        self.pop(gss_node_id, SlotId(165), nonterminal_node_id, None);
+                        let result = self.get_or_create_epsilon_node(input_index);
+                        self.pop(gss_node_id, SlotId(165), result, None, &FOLLOW_SET_OPT_3);
                     }
                     // Opt_4 : . "@Identifier"
                     SlotId(166) => {
@@ -3322,27 +3376,15 @@ impl<'i, 'arena> Parser<'i, 'arena> for IggyParser<'i, 'arena> {
                     }
                     // Opt_4 : "@Identifier".
                     SlotId(167) => {
-                        let nonterminal_node_id = self.create_nonterminal_node(
-                            result,
-                            NonterminalId(25),
-                            SlotId(167),
-                            gss_node_id,
-                        );
-                        self.pop(gss_node_id, SlotId(167), nonterminal_node_id, None);
+                        let Some(result) = result else {
+                            unreachable!("result cannot be None here.")
+                        };
+                        self.pop(gss_node_id, SlotId(167), result, None, &FOLLOW_SET_OPT_4);
                     }
                     // Opt_4 : .
                     SlotId(168) => {
-                        let epsilon_node_id = self.get_or_create_epsilon_node(input_index);
-                        let nonterminal_node_id = self.get_or_create_nonterminal_node(
-                            NonterminalId(25),
-                            SlotId(168),
-                            input_index,
-                            input_index,
-                            epsilon_node_id,
-                            gss_node_id,
-                            None,
-                        );
-                        self.pop(gss_node_id, SlotId(168), nonterminal_node_id, None);
+                        let result = self.get_or_create_epsilon_node(input_index);
+                        self.pop(gss_node_id, SlotId(168), result, None, &FOLLOW_SET_OPT_4);
                     }
                     // Opt_5 : . RegexPreCondition
                     SlotId(169) => {
@@ -3359,31 +3401,26 @@ impl<'i, 'arena> Parser<'i, 'arena> for IggyParser<'i, 'arena> {
                     }
                     // Opt_5 : RegexPreCondition.
                     SlotId(170) => {
-                        let nonterminal_node_id = self.create_nonterminal_node(
-                            result,
-                            NonterminalId(26),
-                            SlotId(170),
-                            gss_node_id,
-                        );
-                        self.pop(gss_node_id, SlotId(170), nonterminal_node_id, None);
+                        let Some(result) = result else {
+                            unreachable!("result cannot be None here.")
+                        };
+                        self.pop(gss_node_id, SlotId(170), result, None, &FOLLOW_SET_OPT_5);
                     }
                     // Opt_5 : .
                     SlotId(171) => {
-                        let epsilon_node_id = self.get_or_create_epsilon_node(input_index);
-                        let nonterminal_node_id = self.get_or_create_nonterminal_node(
-                            NonterminalId(26),
-                            SlotId(171),
-                            input_index,
-                            input_index,
-                            epsilon_node_id,
-                            gss_node_id,
-                            None,
-                        );
-                        self.pop(gss_node_id, SlotId(171), nonterminal_node_id, None);
+                        let result = self.get_or_create_epsilon_node(input_index);
+                        self.pop(gss_node_id, SlotId(171), result, None, &FOLLOW_SET_OPT_5);
                     }
                     // Plus_3 : . Plus_3 Layout Regex
                     SlotId(172) => {
-                        self.create(NonterminalId(27), result, gss_node_id, SlotId(173), env);
+                        self.create(
+                            NonterminalId(27),
+                            &PREDICTION_SET_PLUS_3,
+                            result,
+                            gss_node_id,
+                            SlotId(173),
+                            env,
+                        );
                     }
                     // Plus_3 : Plus_3 . Layout Regex
                     SlotId(173) => {
@@ -3403,35 +3440,50 @@ impl<'i, 'arena> Parser<'i, 'arena> for IggyParser<'i, 'arena> {
                     }
                     // Plus_3 : Plus_3 Layout . Regex
                     SlotId(174) => {
-                        self.create(NonterminalId(12), result, gss_node_id, SlotId(175), env);
+                        self.create(
+                            NonterminalId(12),
+                            &PREDICTION_SET_REGEX,
+                            result,
+                            gss_node_id,
+                            SlotId(175),
+                            env,
+                        );
                     }
                     // Plus_3 : Plus_3 Layout Regex.
                     SlotId(175) => {
-                        let nonterminal_node_id = self.create_nonterminal_node(
-                            result,
-                            NonterminalId(27),
-                            SlotId(175),
-                            gss_node_id,
-                        );
-                        self.pop(gss_node_id, SlotId(175), nonterminal_node_id, None);
+                        let Some(result) = result else {
+                            unreachable!("result cannot be None here.")
+                        };
+                        self.pop(gss_node_id, SlotId(175), result, None, &FOLLOW_SET_PLUS_3);
                     }
                     // Plus_3 : . Regex
                     SlotId(176) => {
-                        self.create(NonterminalId(12), result, gss_node_id, SlotId(177), env);
+                        self.create(
+                            NonterminalId(12),
+                            &PREDICTION_SET_REGEX,
+                            result,
+                            gss_node_id,
+                            SlotId(177),
+                            env,
+                        );
                     }
                     // Plus_3 : Regex.
                     SlotId(177) => {
-                        let nonterminal_node_id = self.create_nonterminal_node(
-                            result,
-                            NonterminalId(27),
-                            SlotId(177),
-                            gss_node_id,
-                        );
-                        self.pop(gss_node_id, SlotId(177), nonterminal_node_id, None);
+                        let Some(result) = result else {
+                            unreachable!("result cannot be None here.")
+                        };
+                        self.pop(gss_node_id, SlotId(177), result, None, &FOLLOW_SET_PLUS_3);
                     }
                     // Plus_2 : . Plus_2 Layout "|" Layout Plus_3
                     SlotId(178) => {
-                        self.create(NonterminalId(28), result, gss_node_id, SlotId(179), env);
+                        self.create(
+                            NonterminalId(28),
+                            &PREDICTION_SET_PLUS_2,
+                            result,
+                            gss_node_id,
+                            SlotId(179),
+                            env,
+                        );
                     }
                     // Plus_2 : Plus_2 . Layout "|" Layout Plus_3
                     SlotId(179) => {
@@ -3485,31 +3537,39 @@ impl<'i, 'arena> Parser<'i, 'arena> for IggyParser<'i, 'arena> {
                     }
                     // Plus_2 : Plus_2 Layout "|" Layout . Plus_3
                     SlotId(182) => {
-                        self.create(NonterminalId(27), result, gss_node_id, SlotId(183), env);
+                        self.create(
+                            NonterminalId(27),
+                            &PREDICTION_SET_PLUS_3,
+                            result,
+                            gss_node_id,
+                            SlotId(183),
+                            env,
+                        );
                     }
                     // Plus_2 : Plus_2 Layout "|" Layout Plus_3.
                     SlotId(183) => {
-                        let nonterminal_node_id = self.create_nonterminal_node(
-                            result,
-                            NonterminalId(28),
-                            SlotId(183),
-                            gss_node_id,
-                        );
-                        self.pop(gss_node_id, SlotId(183), nonterminal_node_id, None);
+                        let Some(result) = result else {
+                            unreachable!("result cannot be None here.")
+                        };
+                        self.pop(gss_node_id, SlotId(183), result, None, &FOLLOW_SET_PLUS_2);
                     }
                     // Plus_2 : . Plus_3
                     SlotId(184) => {
-                        self.create(NonterminalId(27), result, gss_node_id, SlotId(185), env);
+                        self.create(
+                            NonterminalId(27),
+                            &PREDICTION_SET_PLUS_3,
+                            result,
+                            gss_node_id,
+                            SlotId(185),
+                            env,
+                        );
                     }
                     // Plus_2 : Plus_3.
                     SlotId(185) => {
-                        let nonterminal_node_id = self.create_nonterminal_node(
-                            result,
-                            NonterminalId(28),
-                            SlotId(185),
-                            gss_node_id,
-                        );
-                        self.pop(gss_node_id, SlotId(185), nonterminal_node_id, None);
+                        let Some(result) = result else {
+                            unreachable!("result cannot be None here.")
+                        };
+                        self.pop(gss_node_id, SlotId(185), result, None, &FOLLOW_SET_PLUS_2);
                     }
                     // Plus_4 : . Plus_4 Layout RegexPostCondition
                     SlotId(186) => {
@@ -3558,13 +3618,10 @@ impl<'i, 'arena> Parser<'i, 'arena> for IggyParser<'i, 'arena> {
                     }
                     // Plus_4 : Plus_4 Layout RegexPostCondition.
                     SlotId(189) => {
-                        let nonterminal_node_id = self.create_nonterminal_node(
-                            result,
-                            NonterminalId(29),
-                            SlotId(189),
-                            gss_node_id,
-                        );
-                        self.pop(gss_node_id, SlotId(189), nonterminal_node_id, None);
+                        let Some(result) = result else {
+                            unreachable!("result cannot be None here.")
+                        };
+                        self.pop(gss_node_id, SlotId(189), result, None, &FOLLOW_SET_PLUS_4);
                     }
                     // Plus_4 : . RegexPostCondition
                     SlotId(190) => {
@@ -3581,13 +3638,10 @@ impl<'i, 'arena> Parser<'i, 'arena> for IggyParser<'i, 'arena> {
                     }
                     // Plus_4 : RegexPostCondition.
                     SlotId(191) => {
-                        let nonterminal_node_id = self.create_nonterminal_node(
-                            result,
-                            NonterminalId(29),
-                            SlotId(191),
-                            gss_node_id,
-                        );
-                        self.pop(gss_node_id, SlotId(191), nonterminal_node_id, None);
+                        let Some(result) = result else {
+                            unreachable!("result cannot be None here.")
+                        };
+                        self.pop(gss_node_id, SlotId(191), result, None, &FOLLOW_SET_PLUS_4);
                     }
                     // Opt_6 : . Plus_4
                     SlotId(192) => {
@@ -3603,27 +3657,15 @@ impl<'i, 'arena> Parser<'i, 'arena> for IggyParser<'i, 'arena> {
                     }
                     // Opt_6 : Plus_4.
                     SlotId(193) => {
-                        let nonterminal_node_id = self.create_nonterminal_node(
-                            result,
-                            NonterminalId(30),
-                            SlotId(193),
-                            gss_node_id,
-                        );
-                        self.pop(gss_node_id, SlotId(193), nonterminal_node_id, None);
+                        let Some(result) = result else {
+                            unreachable!("result cannot be None here.")
+                        };
+                        self.pop(gss_node_id, SlotId(193), result, None, &FOLLOW_SET_OPT_6);
                     }
                     // Opt_6 : .
                     SlotId(194) => {
-                        let epsilon_node_id = self.get_or_create_epsilon_node(input_index);
-                        let nonterminal_node_id = self.get_or_create_nonterminal_node(
-                            NonterminalId(30),
-                            SlotId(194),
-                            input_index,
-                            input_index,
-                            epsilon_node_id,
-                            gss_node_id,
-                            None,
-                        );
-                        self.pop(gss_node_id, SlotId(194), nonterminal_node_id, None);
+                        let result = self.get_or_create_epsilon_node(input_index);
+                        self.pop(gss_node_id, SlotId(194), result, None, &FOLLOW_SET_OPT_6);
                     }
                     // Star_2 : . Opt_6
                     SlotId(195) => {
@@ -3639,13 +3681,10 @@ impl<'i, 'arena> Parser<'i, 'arena> for IggyParser<'i, 'arena> {
                     }
                     // Star_2 : Opt_6.
                     SlotId(196) => {
-                        let nonterminal_node_id = self.create_nonterminal_node(
-                            result,
-                            NonterminalId(31),
-                            SlotId(196),
-                            gss_node_id,
-                        );
-                        self.pop(gss_node_id, SlotId(196), nonterminal_node_id, None);
+                        let Some(result) = result else {
+                            unreachable!("result cannot be None here.")
+                        };
+                        self.pop(gss_node_id, SlotId(196), result, None, &FOLLOW_SET_STAR_2);
                     }
                     // Opt_7 : . Associativity
                     SlotId(197) => {
@@ -3662,31 +3701,26 @@ impl<'i, 'arena> Parser<'i, 'arena> for IggyParser<'i, 'arena> {
                     }
                     // Opt_7 : Associativity.
                     SlotId(198) => {
-                        let nonterminal_node_id = self.create_nonterminal_node(
-                            result,
-                            NonterminalId(32),
-                            SlotId(198),
-                            gss_node_id,
-                        );
-                        self.pop(gss_node_id, SlotId(198), nonterminal_node_id, None);
+                        let Some(result) = result else {
+                            unreachable!("result cannot be None here.")
+                        };
+                        self.pop(gss_node_id, SlotId(198), result, None, &FOLLOW_SET_OPT_7);
                     }
                     // Opt_7 : .
                     SlotId(199) => {
-                        let epsilon_node_id = self.get_or_create_epsilon_node(input_index);
-                        let nonterminal_node_id = self.get_or_create_nonterminal_node(
-                            NonterminalId(32),
-                            SlotId(199),
-                            input_index,
-                            input_index,
-                            epsilon_node_id,
-                            gss_node_id,
-                            None,
-                        );
-                        self.pop(gss_node_id, SlotId(199), nonterminal_node_id, None);
+                        let result = self.get_or_create_epsilon_node(input_index);
+                        self.pop(gss_node_id, SlotId(199), result, None, &FOLLOW_SET_OPT_7);
                     }
                     // Plus_5 : . Plus_5 Layout "|" Layout Alternative
                     SlotId(200) => {
-                        self.create(NonterminalId(33), result, gss_node_id, SlotId(201), env);
+                        self.create(
+                            NonterminalId(33),
+                            &PREDICTION_SET_PLUS_5,
+                            result,
+                            gss_node_id,
+                            SlotId(201),
+                            env,
+                        );
                     }
                     // Plus_5 : Plus_5 . Layout "|" Layout Alternative
                     SlotId(201) => {
@@ -3740,77 +3774,91 @@ impl<'i, 'arena> Parser<'i, 'arena> for IggyParser<'i, 'arena> {
                     }
                     // Plus_5 : Plus_5 Layout "|" Layout . Alternative
                     SlotId(204) => {
-                        self.create(NonterminalId(9), result, gss_node_id, SlotId(205), env);
+                        self.create(
+                            NonterminalId(9),
+                            &PREDICTION_SET_ALTERNATIVE,
+                            result,
+                            gss_node_id,
+                            SlotId(205),
+                            env,
+                        );
                     }
                     // Plus_5 : Plus_5 Layout "|" Layout Alternative.
                     SlotId(205) => {
-                        let nonterminal_node_id = self.create_nonterminal_node(
-                            result,
-                            NonterminalId(33),
-                            SlotId(205),
-                            gss_node_id,
-                        );
-                        self.pop(gss_node_id, SlotId(205), nonterminal_node_id, None);
+                        let Some(result) = result else {
+                            unreachable!("result cannot be None here.")
+                        };
+                        self.pop(gss_node_id, SlotId(205), result, None, &FOLLOW_SET_PLUS_5);
                     }
                     // Plus_5 : . Alternative
                     SlotId(206) => {
-                        self.create(NonterminalId(9), result, gss_node_id, SlotId(207), env);
+                        self.create(
+                            NonterminalId(9),
+                            &PREDICTION_SET_ALTERNATIVE,
+                            result,
+                            gss_node_id,
+                            SlotId(207),
+                            env,
+                        );
                     }
                     // Plus_5 : Alternative.
                     SlotId(207) => {
-                        let nonterminal_node_id = self.create_nonterminal_node(
-                            result,
-                            NonterminalId(33),
-                            SlotId(207),
-                            gss_node_id,
-                        );
-                        self.pop(gss_node_id, SlotId(207), nonterminal_node_id, None);
+                        let Some(result) = result else {
+                            unreachable!("result cannot be None here.")
+                        };
+                        self.pop(gss_node_id, SlotId(207), result, None, &FOLLOW_SET_PLUS_5);
                     }
                     // Opt_8 : . Plus_5
                     SlotId(208) => {
-                        self.create(NonterminalId(33), result, gss_node_id, SlotId(209), env);
+                        self.create(
+                            NonterminalId(33),
+                            &PREDICTION_SET_PLUS_5,
+                            result,
+                            gss_node_id,
+                            SlotId(209),
+                            env,
+                        );
                     }
                     // Opt_8 : Plus_5.
                     SlotId(209) => {
-                        let nonterminal_node_id = self.create_nonterminal_node(
-                            result,
-                            NonterminalId(34),
-                            SlotId(209),
-                            gss_node_id,
-                        );
-                        self.pop(gss_node_id, SlotId(209), nonterminal_node_id, None);
+                        let Some(result) = result else {
+                            unreachable!("result cannot be None here.")
+                        };
+                        self.pop(gss_node_id, SlotId(209), result, None, &FOLLOW_SET_OPT_8);
                     }
                     // Opt_8 : .
                     SlotId(210) => {
-                        let epsilon_node_id = self.get_or_create_epsilon_node(input_index);
-                        let nonterminal_node_id = self.get_or_create_nonterminal_node(
-                            NonterminalId(34),
-                            SlotId(210),
-                            input_index,
-                            input_index,
-                            epsilon_node_id,
-                            gss_node_id,
-                            None,
-                        );
-                        self.pop(gss_node_id, SlotId(210), nonterminal_node_id, None);
+                        let result = self.get_or_create_epsilon_node(input_index);
+                        self.pop(gss_node_id, SlotId(210), result, None, &FOLLOW_SET_OPT_8);
                     }
                     // Star_3 : . Opt_8
                     SlotId(211) => {
-                        self.create(NonterminalId(34), result, gss_node_id, SlotId(212), env);
+                        self.create(
+                            NonterminalId(34),
+                            &PREDICTION_SET_OPT_8,
+                            result,
+                            gss_node_id,
+                            SlotId(212),
+                            env,
+                        );
                     }
                     // Star_3 : Opt_8.
                     SlotId(212) => {
-                        let nonterminal_node_id = self.create_nonterminal_node(
-                            result,
-                            NonterminalId(35),
-                            SlotId(212),
-                            gss_node_id,
-                        );
-                        self.pop(gss_node_id, SlotId(212), nonterminal_node_id, None);
+                        let Some(result) = result else {
+                            unreachable!("result cannot be None here.")
+                        };
+                        self.pop(gss_node_id, SlotId(212), result, None, &FOLLOW_SET_STAR_3);
                     }
                     // Plus_6 : . Plus_6 Layout Symbol(0, 0)
                     SlotId(213) => {
-                        self.create(NonterminalId(36), result, gss_node_id, SlotId(214), env);
+                        self.create(
+                            NonterminalId(36),
+                            &PREDICTION_SET_PLUS_6,
+                            result,
+                            gss_node_id,
+                            SlotId(214),
+                            env,
+                        );
                     }
                     // Plus_6 : Plus_6 . Layout Symbol(0, 0)
                     SlotId(214) => {
@@ -3834,13 +3882,10 @@ impl<'i, 'arena> Parser<'i, 'arena> for IggyParser<'i, 'arena> {
                     }
                     // Plus_6 : Plus_6 Layout Symbol(0, 0).
                     SlotId(216) => {
-                        let nonterminal_node_id = self.create_nonterminal_node(
-                            result,
-                            NonterminalId(36),
-                            SlotId(216),
-                            gss_node_id,
-                        );
-                        self.pop(gss_node_id, SlotId(216), nonterminal_node_id, None);
+                        let Some(result) = result else {
+                            unreachable!("result cannot be None here.")
+                        };
+                        self.pop(gss_node_id, SlotId(216), result, None, &FOLLOW_SET_PLUS_6);
                     }
                     // Plus_6 : . Symbol(0, 0)
                     SlotId(217) => {
@@ -3848,13 +3893,10 @@ impl<'i, 'arena> Parser<'i, 'arena> for IggyParser<'i, 'arena> {
                     }
                     // Plus_6 : Symbol(0, 0).
                     SlotId(218) => {
-                        let nonterminal_node_id = self.create_nonterminal_node(
-                            result,
-                            NonterminalId(36),
-                            SlotId(218),
-                            gss_node_id,
-                        );
-                        self.pop(gss_node_id, SlotId(218), nonterminal_node_id, None);
+                        let Some(result) = result else {
+                            unreachable!("result cannot be None here.")
+                        };
+                        self.pop(gss_node_id, SlotId(218), result, None, &FOLLOW_SET_PLUS_6);
                     }
                     // Opt_9 : . Label
                     SlotId(219) => {
@@ -3872,31 +3914,26 @@ impl<'i, 'arena> Parser<'i, 'arena> for IggyParser<'i, 'arena> {
                     }
                     // Opt_9 : Label.
                     SlotId(220) => {
-                        let nonterminal_node_id = self.create_nonterminal_node(
-                            result,
-                            NonterminalId(37),
-                            SlotId(220),
-                            gss_node_id,
-                        );
-                        self.pop(gss_node_id, SlotId(220), nonterminal_node_id, None);
+                        let Some(result) = result else {
+                            unreachable!("result cannot be None here.")
+                        };
+                        self.pop(gss_node_id, SlotId(220), result, None, &FOLLOW_SET_OPT_9);
                     }
                     // Opt_9 : .
                     SlotId(221) => {
-                        let epsilon_node_id = self.get_or_create_epsilon_node(input_index);
-                        let nonterminal_node_id = self.get_or_create_nonterminal_node(
-                            NonterminalId(37),
-                            SlotId(221),
-                            input_index,
-                            input_index,
-                            epsilon_node_id,
-                            gss_node_id,
-                            None,
-                        );
-                        self.pop(gss_node_id, SlotId(221), nonterminal_node_id, None);
+                        let result = self.get_or_create_epsilon_node(input_index);
+                        self.pop(gss_node_id, SlotId(221), result, None, &FOLLOW_SET_OPT_9);
                     }
                     // Plus_7 : . Plus_7 Layout "|" Layout Plus_6
                     SlotId(222) => {
-                        self.create(NonterminalId(38), result, gss_node_id, SlotId(223), env);
+                        self.create(
+                            NonterminalId(38),
+                            &PREDICTION_SET_PLUS_7,
+                            result,
+                            gss_node_id,
+                            SlotId(223),
+                            env,
+                        );
                     }
                     // Plus_7 : Plus_7 . Layout "|" Layout Plus_6
                     SlotId(223) => {
@@ -3950,35 +3987,50 @@ impl<'i, 'arena> Parser<'i, 'arena> for IggyParser<'i, 'arena> {
                     }
                     // Plus_7 : Plus_7 Layout "|" Layout . Plus_6
                     SlotId(226) => {
-                        self.create(NonterminalId(36), result, gss_node_id, SlotId(227), env);
+                        self.create(
+                            NonterminalId(36),
+                            &PREDICTION_SET_PLUS_6,
+                            result,
+                            gss_node_id,
+                            SlotId(227),
+                            env,
+                        );
                     }
                     // Plus_7 : Plus_7 Layout "|" Layout Plus_6.
                     SlotId(227) => {
-                        let nonterminal_node_id = self.create_nonterminal_node(
-                            result,
-                            NonterminalId(38),
-                            SlotId(227),
-                            gss_node_id,
-                        );
-                        self.pop(gss_node_id, SlotId(227), nonterminal_node_id, None);
+                        let Some(result) = result else {
+                            unreachable!("result cannot be None here.")
+                        };
+                        self.pop(gss_node_id, SlotId(227), result, None, &FOLLOW_SET_PLUS_7);
                     }
                     // Plus_7 : . Plus_6
                     SlotId(228) => {
-                        self.create(NonterminalId(36), result, gss_node_id, SlotId(229), env);
+                        self.create(
+                            NonterminalId(36),
+                            &PREDICTION_SET_PLUS_6,
+                            result,
+                            gss_node_id,
+                            SlotId(229),
+                            env,
+                        );
                     }
                     // Plus_7 : Plus_6.
                     SlotId(229) => {
-                        let nonterminal_node_id = self.create_nonterminal_node(
-                            result,
-                            NonterminalId(38),
-                            SlotId(229),
-                            gss_node_id,
-                        );
-                        self.pop(gss_node_id, SlotId(229), nonterminal_node_id, None);
+                        let Some(result) = result else {
+                            unreachable!("result cannot be None here.")
+                        };
+                        self.pop(gss_node_id, SlotId(229), result, None, &FOLLOW_SET_PLUS_7);
                     }
                     // Plus_8 : . Plus_8 Layout PostCondition
                     SlotId(230) => {
-                        self.create(NonterminalId(39), result, gss_node_id, SlotId(231), env);
+                        self.create(
+                            NonterminalId(39),
+                            &PREDICTION_SET_PLUS_8,
+                            result,
+                            gss_node_id,
+                            SlotId(231),
+                            env,
+                        );
                     }
                     // Plus_8 : Plus_8 . Layout PostCondition
                     SlotId(231) => {
@@ -3998,35 +4050,50 @@ impl<'i, 'arena> Parser<'i, 'arena> for IggyParser<'i, 'arena> {
                     }
                     // Plus_8 : Plus_8 Layout . PostCondition
                     SlotId(232) => {
-                        self.create(NonterminalId(11), result, gss_node_id, SlotId(233), env);
+                        self.create(
+                            NonterminalId(11),
+                            &PREDICTION_SET_POST_CONDITION,
+                            result,
+                            gss_node_id,
+                            SlotId(233),
+                            env,
+                        );
                     }
                     // Plus_8 : Plus_8 Layout PostCondition.
                     SlotId(233) => {
-                        let nonterminal_node_id = self.create_nonterminal_node(
-                            result,
-                            NonterminalId(39),
-                            SlotId(233),
-                            gss_node_id,
-                        );
-                        self.pop(gss_node_id, SlotId(233), nonterminal_node_id, None);
+                        let Some(result) = result else {
+                            unreachable!("result cannot be None here.")
+                        };
+                        self.pop(gss_node_id, SlotId(233), result, None, &FOLLOW_SET_PLUS_8);
                     }
                     // Plus_8 : . PostCondition
                     SlotId(234) => {
-                        self.create(NonterminalId(11), result, gss_node_id, SlotId(235), env);
+                        self.create(
+                            NonterminalId(11),
+                            &PREDICTION_SET_POST_CONDITION,
+                            result,
+                            gss_node_id,
+                            SlotId(235),
+                            env,
+                        );
                     }
                     // Plus_8 : PostCondition.
                     SlotId(235) => {
-                        let nonterminal_node_id = self.create_nonterminal_node(
-                            result,
-                            NonterminalId(39),
-                            SlotId(235),
-                            gss_node_id,
-                        );
-                        self.pop(gss_node_id, SlotId(235), nonterminal_node_id, None);
+                        let Some(result) = result else {
+                            unreachable!("result cannot be None here.")
+                        };
+                        self.pop(gss_node_id, SlotId(235), result, None, &FOLLOW_SET_PLUS_8);
                     }
                     // Plus_9 : . Plus_9 Layout PreCondition
                     SlotId(236) => {
-                        self.create(NonterminalId(40), result, gss_node_id, SlotId(237), env);
+                        self.create(
+                            NonterminalId(40),
+                            &PREDICTION_SET_PLUS_9,
+                            result,
+                            gss_node_id,
+                            SlotId(237),
+                            env,
+                        );
                     }
                     // Plus_9 : Plus_9 . Layout PreCondition
                     SlotId(237) => {
@@ -4063,13 +4130,10 @@ impl<'i, 'arena> Parser<'i, 'arena> for IggyParser<'i, 'arena> {
                     }
                     // Plus_9 : Plus_9 Layout PreCondition.
                     SlotId(239) => {
-                        let nonterminal_node_id = self.create_nonterminal_node(
-                            result,
-                            NonterminalId(40),
-                            SlotId(239),
-                            gss_node_id,
-                        );
-                        self.pop(gss_node_id, SlotId(239), nonterminal_node_id, None);
+                        let Some(result) = result else {
+                            unreachable!("result cannot be None here.")
+                        };
+                        self.pop(gss_node_id, SlotId(239), result, None, &FOLLOW_SET_PLUS_9);
                     }
                     // Plus_9 : . PreCondition
                     SlotId(240) => {
@@ -4086,13 +4150,10 @@ impl<'i, 'arena> Parser<'i, 'arena> for IggyParser<'i, 'arena> {
                     }
                     // Plus_9 : PreCondition.
                     SlotId(241) => {
-                        let nonterminal_node_id = self.create_nonterminal_node(
-                            result,
-                            NonterminalId(40),
-                            SlotId(241),
-                            gss_node_id,
-                        );
-                        self.pop(gss_node_id, SlotId(241), nonterminal_node_id, None);
+                        let Some(result) = result else {
+                            unreachable!("result cannot be None here.")
+                        };
+                        self.pop(gss_node_id, SlotId(241), result, None, &FOLLOW_SET_PLUS_9);
                     }
                     // Opt_10 : . "!"
                     SlotId(242) => {
@@ -4110,31 +4171,26 @@ impl<'i, 'arena> Parser<'i, 'arena> for IggyParser<'i, 'arena> {
                     }
                     // Opt_10 : "!".
                     SlotId(243) => {
-                        let nonterminal_node_id = self.create_nonterminal_node(
-                            result,
-                            NonterminalId(41),
-                            SlotId(243),
-                            gss_node_id,
-                        );
-                        self.pop(gss_node_id, SlotId(243), nonterminal_node_id, None);
+                        let Some(result) = result else {
+                            unreachable!("result cannot be None here.")
+                        };
+                        self.pop(gss_node_id, SlotId(243), result, None, &FOLLOW_SET_OPT_10);
                     }
                     // Opt_10 : .
                     SlotId(244) => {
-                        let epsilon_node_id = self.get_or_create_epsilon_node(input_index);
-                        let nonterminal_node_id = self.get_or_create_nonterminal_node(
-                            NonterminalId(41),
-                            SlotId(244),
-                            input_index,
-                            input_index,
-                            epsilon_node_id,
-                            gss_node_id,
-                            None,
-                        );
-                        self.pop(gss_node_id, SlotId(244), nonterminal_node_id, None);
+                        let result = self.get_or_create_epsilon_node(input_index);
+                        self.pop(gss_node_id, SlotId(244), result, None, &FOLLOW_SET_OPT_10);
                     }
                     // Plus_10 : . Plus_10 Layout RangeElement
                     SlotId(245) => {
-                        self.create(NonterminalId(42), result, gss_node_id, SlotId(246), env);
+                        self.create(
+                            NonterminalId(42),
+                            &PREDICTION_SET_PLUS_10,
+                            result,
+                            gss_node_id,
+                            SlotId(246),
+                            env,
+                        );
                     }
                     // Plus_10 : Plus_10 . Layout RangeElement
                     SlotId(246) => {
@@ -4154,31 +4210,39 @@ impl<'i, 'arena> Parser<'i, 'arena> for IggyParser<'i, 'arena> {
                     }
                     // Plus_10 : Plus_10 Layout . RangeElement
                     SlotId(247) => {
-                        self.create(NonterminalId(14), result, gss_node_id, SlotId(248), env);
+                        self.create(
+                            NonterminalId(14),
+                            &PREDICTION_SET_RANGE_ELEMENT,
+                            result,
+                            gss_node_id,
+                            SlotId(248),
+                            env,
+                        );
                     }
                     // Plus_10 : Plus_10 Layout RangeElement.
                     SlotId(248) => {
-                        let nonterminal_node_id = self.create_nonterminal_node(
-                            result,
-                            NonterminalId(42),
-                            SlotId(248),
-                            gss_node_id,
-                        );
-                        self.pop(gss_node_id, SlotId(248), nonterminal_node_id, None);
+                        let Some(result) = result else {
+                            unreachable!("result cannot be None here.")
+                        };
+                        self.pop(gss_node_id, SlotId(248), result, None, &FOLLOW_SET_PLUS_10);
                     }
                     // Plus_10 : . RangeElement
                     SlotId(249) => {
-                        self.create(NonterminalId(14), result, gss_node_id, SlotId(250), env);
+                        self.create(
+                            NonterminalId(14),
+                            &PREDICTION_SET_RANGE_ELEMENT,
+                            result,
+                            gss_node_id,
+                            SlotId(250),
+                            env,
+                        );
                     }
                     // Plus_10 : RangeElement.
                     SlotId(250) => {
-                        let nonterminal_node_id = self.create_nonterminal_node(
-                            result,
-                            NonterminalId(42),
-                            SlotId(250),
-                            gss_node_id,
-                        );
-                        self.pop(gss_node_id, SlotId(250), nonterminal_node_id, None);
+                        let Some(result) = result else {
+                            unreachable!("result cannot be None here.")
+                        };
+                        self.pop(gss_node_id, SlotId(250), result, None, &FOLLOW_SET_PLUS_10);
                     }
                     // Alt_0 : . WS
                     SlotId(251) => {
@@ -4196,13 +4260,10 @@ impl<'i, 'arena> Parser<'i, 'arena> for IggyParser<'i, 'arena> {
                     }
                     // Alt_0 : WS.
                     SlotId(252) => {
-                        let nonterminal_node_id = self.create_nonterminal_node(
-                            result,
-                            NonterminalId(43),
-                            SlotId(252),
-                            gss_node_id,
-                        );
-                        self.pop(gss_node_id, SlotId(252), nonterminal_node_id, None);
+                        let Some(result) = result else {
+                            unreachable!("result cannot be None here.")
+                        };
+                        self.pop(gss_node_id, SlotId(252), result, None, &FOLLOW_SET_ALT_0);
                     }
                     // Alt_0 : . LineComment
                     SlotId(253) => {
@@ -4220,13 +4281,10 @@ impl<'i, 'arena> Parser<'i, 'arena> for IggyParser<'i, 'arena> {
                     }
                     // Alt_0 : LineComment.
                     SlotId(254) => {
-                        let nonterminal_node_id = self.create_nonterminal_node(
-                            result,
-                            NonterminalId(43),
-                            SlotId(254),
-                            gss_node_id,
-                        );
-                        self.pop(gss_node_id, SlotId(254), nonterminal_node_id, None);
+                        let Some(result) = result else {
+                            unreachable!("result cannot be None here.")
+                        };
+                        self.pop(gss_node_id, SlotId(254), result, None, &FOLLOW_SET_ALT_0);
                     }
                     // Plus_11 : . Plus_11 Alt_0
                     SlotId(255) => {
@@ -4258,13 +4316,10 @@ impl<'i, 'arena> Parser<'i, 'arena> for IggyParser<'i, 'arena> {
                     }
                     // Plus_11 : Plus_11 Alt_0.
                     SlotId(257) => {
-                        let nonterminal_node_id = self.create_nonterminal_node(
-                            result,
-                            NonterminalId(44),
-                            SlotId(257),
-                            gss_node_id,
-                        );
-                        self.pop(gss_node_id, SlotId(257), nonterminal_node_id, None);
+                        let Some(result) = result else {
+                            unreachable!("result cannot be None here.")
+                        };
+                        self.pop(gss_node_id, SlotId(257), result, None, &FOLLOW_SET_PLUS_11);
                     }
                     // Plus_11 : . Alt_0
                     SlotId(258) => {
@@ -4280,13 +4335,10 @@ impl<'i, 'arena> Parser<'i, 'arena> for IggyParser<'i, 'arena> {
                     }
                     // Plus_11 : Alt_0.
                     SlotId(259) => {
-                        let nonterminal_node_id = self.create_nonterminal_node(
-                            result,
-                            NonterminalId(44),
-                            SlotId(259),
-                            gss_node_id,
-                        );
-                        self.pop(gss_node_id, SlotId(259), nonterminal_node_id, None);
+                        let Some(result) = result else {
+                            unreachable!("result cannot be None here.")
+                        };
+                        self.pop(gss_node_id, SlotId(259), result, None, &FOLLOW_SET_PLUS_11);
                     }
                     // Opt_11 : . Plus_11
                     SlotId(260) => {
@@ -4302,27 +4354,15 @@ impl<'i, 'arena> Parser<'i, 'arena> for IggyParser<'i, 'arena> {
                     }
                     // Opt_11 : Plus_11.
                     SlotId(261) => {
-                        let nonterminal_node_id = self.create_nonterminal_node(
-                            result,
-                            NonterminalId(45),
-                            SlotId(261),
-                            gss_node_id,
-                        );
-                        self.pop(gss_node_id, SlotId(261), nonterminal_node_id, None);
+                        let Some(result) = result else {
+                            unreachable!("result cannot be None here.")
+                        };
+                        self.pop(gss_node_id, SlotId(261), result, None, &FOLLOW_SET_OPT_11);
                     }
                     // Opt_11 : .
                     SlotId(262) => {
-                        let epsilon_node_id = self.get_or_create_epsilon_node(input_index);
-                        let nonterminal_node_id = self.get_or_create_nonterminal_node(
-                            NonterminalId(45),
-                            SlotId(262),
-                            input_index,
-                            input_index,
-                            epsilon_node_id,
-                            gss_node_id,
-                            None,
-                        );
-                        self.pop(gss_node_id, SlotId(262), nonterminal_node_id, None);
+                        let result = self.get_or_create_epsilon_node(input_index);
+                        self.pop(gss_node_id, SlotId(262), result, None, &FOLLOW_SET_OPT_11);
                     }
                     // Star_4 : . Opt_11
                     SlotId(263) => {
@@ -4338,13 +4378,10 @@ impl<'i, 'arena> Parser<'i, 'arena> for IggyParser<'i, 'arena> {
                     }
                     // Star_4 : Opt_11.
                     SlotId(264) => {
-                        let nonterminal_node_id = self.create_nonterminal_node(
-                            result,
-                            NonterminalId(46),
-                            SlotId(264),
-                            gss_node_id,
-                        );
-                        self.pop(gss_node_id, SlotId(264), nonterminal_node_id, None);
+                        let Some(result) = result else {
+                            unreachable!("result cannot be None here.")
+                        };
+                        self.pop(gss_node_id, SlotId(264), result, None, &FOLLOW_SET_STAR_4);
                     }
                     // StartGrammar : . Layout start:Grammar Layout
                     SlotId(265) => {
@@ -4360,7 +4397,14 @@ impl<'i, 'arena> Parser<'i, 'arena> for IggyParser<'i, 'arena> {
                     }
                     // StartGrammar : Layout . start:Grammar Layout
                     SlotId(266) => {
-                        self.create(NonterminalId(0), result, gss_node_id, SlotId(267), env);
+                        self.create(
+                            NonterminalId(0),
+                            &PREDICTION_SET_GRAMMAR,
+                            result,
+                            gss_node_id,
+                            SlotId(267),
+                            env,
+                        );
                     }
                     // StartGrammar : Layout start:Grammar . Layout
                     SlotId(267) => {
@@ -4380,13 +4424,16 @@ impl<'i, 'arena> Parser<'i, 'arena> for IggyParser<'i, 'arena> {
                     }
                     // StartGrammar : Layout start:Grammar Layout.
                     SlotId(268) => {
-                        let nonterminal_node_id = self.create_nonterminal_node(
-                            result,
-                            NonterminalId(47),
-                            SlotId(268),
+                        let Some(result) = result else {
+                            unreachable!("result cannot be None here.")
+                        };
+                        self.pop(
                             gss_node_id,
+                            SlotId(268),
+                            result,
+                            None,
+                            &FOLLOW_SET_START_GRAMMAR,
                         );
-                        self.pop(gss_node_id, SlotId(268), nonterminal_node_id, None);
                     }
                     // StartRule : . Layout start:Rule Layout
                     SlotId(269) => {
@@ -4402,7 +4449,14 @@ impl<'i, 'arena> Parser<'i, 'arena> for IggyParser<'i, 'arena> {
                     }
                     // StartRule : Layout . start:Rule Layout
                     SlotId(270) => {
-                        self.create(NonterminalId(1), result, gss_node_id, SlotId(271), env);
+                        self.create(
+                            NonterminalId(1),
+                            &PREDICTION_SET_RULE,
+                            result,
+                            gss_node_id,
+                            SlotId(271),
+                            env,
+                        );
                     }
                     // StartRule : Layout start:Rule . Layout
                     SlotId(271) => {
@@ -4422,13 +4476,16 @@ impl<'i, 'arena> Parser<'i, 'arena> for IggyParser<'i, 'arena> {
                     }
                     // StartRule : Layout start:Rule Layout.
                     SlotId(272) => {
-                        let nonterminal_node_id = self.create_nonterminal_node(
-                            result,
-                            NonterminalId(48),
-                            SlotId(272),
+                        let Some(result) = result else {
+                            unreachable!("result cannot be None here.")
+                        };
+                        self.pop(
                             gss_node_id,
+                            SlotId(272),
+                            result,
+                            None,
+                            &FOLLOW_SET_START_RULE,
                         );
-                        self.pop(gss_node_id, SlotId(272), nonterminal_node_id, None);
                     }
                     // StartSyntaxRule : . Layout start:SyntaxRule Layout
                     SlotId(273) => {
@@ -4444,7 +4501,14 @@ impl<'i, 'arena> Parser<'i, 'arena> for IggyParser<'i, 'arena> {
                     }
                     // StartSyntaxRule : Layout . start:SyntaxRule Layout
                     SlotId(274) => {
-                        self.create(NonterminalId(2), result, gss_node_id, SlotId(275), env);
+                        self.create(
+                            NonterminalId(2),
+                            &PREDICTION_SET_SYNTAX_RULE,
+                            result,
+                            gss_node_id,
+                            SlotId(275),
+                            env,
+                        );
                     }
                     // StartSyntaxRule : Layout start:SyntaxRule . Layout
                     SlotId(275) => {
@@ -4464,13 +4528,16 @@ impl<'i, 'arena> Parser<'i, 'arena> for IggyParser<'i, 'arena> {
                     }
                     // StartSyntaxRule : Layout start:SyntaxRule Layout.
                     SlotId(276) => {
-                        let nonterminal_node_id = self.create_nonterminal_node(
-                            result,
-                            NonterminalId(49),
-                            SlotId(276),
+                        let Some(result) = result else {
+                            unreachable!("result cannot be None here.")
+                        };
+                        self.pop(
                             gss_node_id,
+                            SlotId(276),
+                            result,
+                            None,
+                            &FOLLOW_SET_START_SYNTAX_RULE,
                         );
-                        self.pop(gss_node_id, SlotId(276), nonterminal_node_id, None);
                     }
                     // StartAnnotation : . Layout start:Annotation Layout
                     SlotId(277) => {
@@ -4519,13 +4586,16 @@ impl<'i, 'arena> Parser<'i, 'arena> for IggyParser<'i, 'arena> {
                     }
                     // StartAnnotation : Layout start:Annotation Layout.
                     SlotId(280) => {
-                        let nonterminal_node_id = self.create_nonterminal_node(
-                            result,
-                            NonterminalId(50),
-                            SlotId(280),
+                        let Some(result) = result else {
+                            unreachable!("result cannot be None here.")
+                        };
+                        self.pop(
                             gss_node_id,
+                            SlotId(280),
+                            result,
+                            None,
+                            &FOLLOW_SET_START_ANNOTATION,
                         );
-                        self.pop(gss_node_id, SlotId(280), nonterminal_node_id, None);
                     }
                     // StartRegexRule : . Layout start:RegexRule Layout
                     SlotId(281) => {
@@ -4541,7 +4611,14 @@ impl<'i, 'arena> Parser<'i, 'arena> for IggyParser<'i, 'arena> {
                     }
                     // StartRegexRule : Layout . start:RegexRule Layout
                     SlotId(282) => {
-                        self.create(NonterminalId(4), result, gss_node_id, SlotId(283), env);
+                        self.create(
+                            NonterminalId(4),
+                            &PREDICTION_SET_REGEX_RULE,
+                            result,
+                            gss_node_id,
+                            SlotId(283),
+                            env,
+                        );
                     }
                     // StartRegexRule : Layout start:RegexRule . Layout
                     SlotId(283) => {
@@ -4561,13 +4638,16 @@ impl<'i, 'arena> Parser<'i, 'arena> for IggyParser<'i, 'arena> {
                     }
                     // StartRegexRule : Layout start:RegexRule Layout.
                     SlotId(284) => {
-                        let nonterminal_node_id = self.create_nonterminal_node(
-                            result,
-                            NonterminalId(51),
-                            SlotId(284),
+                        let Some(result) = result else {
+                            unreachable!("result cannot be None here.")
+                        };
+                        self.pop(
                             gss_node_id,
+                            SlotId(284),
+                            result,
+                            None,
+                            &FOLLOW_SET_START_REGEX_RULE,
                         );
-                        self.pop(gss_node_id, SlotId(284), nonterminal_node_id, None);
                     }
                     // StartRegexPreCondition : . Layout start:RegexPreCondition Layout
                     SlotId(285) => {
@@ -4616,13 +4696,16 @@ impl<'i, 'arena> Parser<'i, 'arena> for IggyParser<'i, 'arena> {
                     }
                     // StartRegexPreCondition : Layout start:RegexPreCondition Layout.
                     SlotId(288) => {
-                        let nonterminal_node_id = self.create_nonterminal_node(
-                            result,
-                            NonterminalId(52),
-                            SlotId(288),
+                        let Some(result) = result else {
+                            unreachable!("result cannot be None here.")
+                        };
+                        self.pop(
                             gss_node_id,
+                            SlotId(288),
+                            result,
+                            None,
+                            &FOLLOW_SET_START_REGEX_PRE_CONDITION,
                         );
-                        self.pop(gss_node_id, SlotId(288), nonterminal_node_id, None);
                     }
                     // StartRegexPostCondition : . Layout start:RegexPostCondition Layout
                     SlotId(289) => {
@@ -4671,13 +4754,16 @@ impl<'i, 'arena> Parser<'i, 'arena> for IggyParser<'i, 'arena> {
                     }
                     // StartRegexPostCondition : Layout start:RegexPostCondition Layout.
                     SlotId(292) => {
-                        let nonterminal_node_id = self.create_nonterminal_node(
-                            result,
-                            NonterminalId(53),
-                            SlotId(292),
+                        let Some(result) = result else {
+                            unreachable!("result cannot be None here.")
+                        };
+                        self.pop(
                             gss_node_id,
+                            SlotId(292),
+                            result,
+                            None,
+                            &FOLLOW_SET_START_REGEX_POST_CONDITION,
                         );
-                        self.pop(gss_node_id, SlotId(292), nonterminal_node_id, None);
                     }
                     // StartPriorityLevel : . Layout start:PriorityLevel Layout
                     SlotId(293) => {
@@ -4693,7 +4779,14 @@ impl<'i, 'arena> Parser<'i, 'arena> for IggyParser<'i, 'arena> {
                     }
                     // StartPriorityLevel : Layout . start:PriorityLevel Layout
                     SlotId(294) => {
-                        self.create(NonterminalId(7), result, gss_node_id, SlotId(295), env);
+                        self.create(
+                            NonterminalId(7),
+                            &PREDICTION_SET_PRIORITY_LEVEL,
+                            result,
+                            gss_node_id,
+                            SlotId(295),
+                            env,
+                        );
                     }
                     // StartPriorityLevel : Layout start:PriorityLevel . Layout
                     SlotId(295) => {
@@ -4713,13 +4806,16 @@ impl<'i, 'arena> Parser<'i, 'arena> for IggyParser<'i, 'arena> {
                     }
                     // StartPriorityLevel : Layout start:PriorityLevel Layout.
                     SlotId(296) => {
-                        let nonterminal_node_id = self.create_nonterminal_node(
-                            result,
-                            NonterminalId(54),
-                            SlotId(296),
+                        let Some(result) = result else {
+                            unreachable!("result cannot be None here.")
+                        };
+                        self.pop(
                             gss_node_id,
+                            SlotId(296),
+                            result,
+                            None,
+                            &FOLLOW_SET_START_PRIORITY_LEVEL,
                         );
-                        self.pop(gss_node_id, SlotId(296), nonterminal_node_id, None);
                     }
                     // StartAssociativity : . Layout start:Associativity Layout
                     SlotId(297) => {
@@ -4768,13 +4864,16 @@ impl<'i, 'arena> Parser<'i, 'arena> for IggyParser<'i, 'arena> {
                     }
                     // StartAssociativity : Layout start:Associativity Layout.
                     SlotId(300) => {
-                        let nonterminal_node_id = self.create_nonterminal_node(
-                            result,
-                            NonterminalId(55),
-                            SlotId(300),
+                        let Some(result) = result else {
+                            unreachable!("result cannot be None here.")
+                        };
+                        self.pop(
                             gss_node_id,
+                            SlotId(300),
+                            result,
+                            None,
+                            &FOLLOW_SET_START_ASSOCIATIVITY,
                         );
-                        self.pop(gss_node_id, SlotId(300), nonterminal_node_id, None);
                     }
                     // StartAlternative : . Layout start:Alternative Layout
                     SlotId(301) => {
@@ -4790,7 +4889,14 @@ impl<'i, 'arena> Parser<'i, 'arena> for IggyParser<'i, 'arena> {
                     }
                     // StartAlternative : Layout . start:Alternative Layout
                     SlotId(302) => {
-                        self.create(NonterminalId(9), result, gss_node_id, SlotId(303), env);
+                        self.create(
+                            NonterminalId(9),
+                            &PREDICTION_SET_ALTERNATIVE,
+                            result,
+                            gss_node_id,
+                            SlotId(303),
+                            env,
+                        );
                     }
                     // StartAlternative : Layout start:Alternative . Layout
                     SlotId(303) => {
@@ -4810,13 +4916,16 @@ impl<'i, 'arena> Parser<'i, 'arena> for IggyParser<'i, 'arena> {
                     }
                     // StartAlternative : Layout start:Alternative Layout.
                     SlotId(304) => {
-                        let nonterminal_node_id = self.create_nonterminal_node(
-                            result,
-                            NonterminalId(56),
-                            SlotId(304),
+                        let Some(result) = result else {
+                            unreachable!("result cannot be None here.")
+                        };
+                        self.pop(
                             gss_node_id,
+                            SlotId(304),
+                            result,
+                            None,
+                            &FOLLOW_SET_START_ALTERNATIVE,
                         );
-                        self.pop(gss_node_id, SlotId(304), nonterminal_node_id, None);
                     }
                     // StartSymbol : . Layout start:Symbol(0, 0) Layout
                     SlotId(305) => {
@@ -4852,13 +4961,16 @@ impl<'i, 'arena> Parser<'i, 'arena> for IggyParser<'i, 'arena> {
                     }
                     // StartSymbol : Layout start:Symbol(0, 0) Layout.
                     SlotId(308) => {
-                        let nonterminal_node_id = self.create_nonterminal_node(
-                            result,
-                            NonterminalId(57),
-                            SlotId(308),
+                        let Some(result) = result else {
+                            unreachable!("result cannot be None here.")
+                        };
+                        self.pop(
                             gss_node_id,
+                            SlotId(308),
+                            result,
+                            None,
+                            &FOLLOW_SET_START_SYMBOL,
                         );
-                        self.pop(gss_node_id, SlotId(308), nonterminal_node_id, None);
                     }
                     // StartPreCondition : . Layout start:PreCondition Layout
                     SlotId(309) => {
@@ -4907,13 +5019,16 @@ impl<'i, 'arena> Parser<'i, 'arena> for IggyParser<'i, 'arena> {
                     }
                     // StartPreCondition : Layout start:PreCondition Layout.
                     SlotId(312) => {
-                        let nonterminal_node_id = self.create_nonterminal_node(
-                            result,
-                            NonterminalId(58),
-                            SlotId(312),
+                        let Some(result) = result else {
+                            unreachable!("result cannot be None here.")
+                        };
+                        self.pop(
                             gss_node_id,
+                            SlotId(312),
+                            result,
+                            None,
+                            &FOLLOW_SET_START_PRE_CONDITION,
                         );
-                        self.pop(gss_node_id, SlotId(312), nonterminal_node_id, None);
                     }
                     // StartPostCondition : . Layout start:PostCondition Layout
                     SlotId(313) => {
@@ -4929,7 +5044,14 @@ impl<'i, 'arena> Parser<'i, 'arena> for IggyParser<'i, 'arena> {
                     }
                     // StartPostCondition : Layout . start:PostCondition Layout
                     SlotId(314) => {
-                        self.create(NonterminalId(11), result, gss_node_id, SlotId(315), env);
+                        self.create(
+                            NonterminalId(11),
+                            &PREDICTION_SET_POST_CONDITION,
+                            result,
+                            gss_node_id,
+                            SlotId(315),
+                            env,
+                        );
                     }
                     // StartPostCondition : Layout start:PostCondition . Layout
                     SlotId(315) => {
@@ -4949,13 +5071,16 @@ impl<'i, 'arena> Parser<'i, 'arena> for IggyParser<'i, 'arena> {
                     }
                     // StartPostCondition : Layout start:PostCondition Layout.
                     SlotId(316) => {
-                        let nonterminal_node_id = self.create_nonterminal_node(
-                            result,
-                            NonterminalId(59),
-                            SlotId(316),
+                        let Some(result) = result else {
+                            unreachable!("result cannot be None here.")
+                        };
+                        self.pop(
                             gss_node_id,
+                            SlotId(316),
+                            result,
+                            None,
+                            &FOLLOW_SET_START_POST_CONDITION,
                         );
-                        self.pop(gss_node_id, SlotId(316), nonterminal_node_id, None);
                     }
                     // StartRegex : . Layout start:Regex Layout
                     SlotId(317) => {
@@ -4971,7 +5096,14 @@ impl<'i, 'arena> Parser<'i, 'arena> for IggyParser<'i, 'arena> {
                     }
                     // StartRegex : Layout . start:Regex Layout
                     SlotId(318) => {
-                        self.create(NonterminalId(12), result, gss_node_id, SlotId(319), env);
+                        self.create(
+                            NonterminalId(12),
+                            &PREDICTION_SET_REGEX,
+                            result,
+                            gss_node_id,
+                            SlotId(319),
+                            env,
+                        );
                     }
                     // StartRegex : Layout start:Regex . Layout
                     SlotId(319) => {
@@ -4991,13 +5123,16 @@ impl<'i, 'arena> Parser<'i, 'arena> for IggyParser<'i, 'arena> {
                     }
                     // StartRegex : Layout start:Regex Layout.
                     SlotId(320) => {
-                        let nonterminal_node_id = self.create_nonterminal_node(
-                            result,
-                            NonterminalId(60),
-                            SlotId(320),
+                        let Some(result) = result else {
+                            unreachable!("result cannot be None here.")
+                        };
+                        self.pop(
                             gss_node_id,
+                            SlotId(320),
+                            result,
+                            None,
+                            &FOLLOW_SET_START_REGEX,
                         );
-                        self.pop(gss_node_id, SlotId(320), nonterminal_node_id, None);
                     }
                     // StartCharClass : . Layout start:CharClass Layout
                     SlotId(321) => {
@@ -5013,7 +5148,14 @@ impl<'i, 'arena> Parser<'i, 'arena> for IggyParser<'i, 'arena> {
                     }
                     // StartCharClass : Layout . start:CharClass Layout
                     SlotId(322) => {
-                        self.create(NonterminalId(13), result, gss_node_id, SlotId(323), env);
+                        self.create(
+                            NonterminalId(13),
+                            &PREDICTION_SET_CHAR_CLASS,
+                            result,
+                            gss_node_id,
+                            SlotId(323),
+                            env,
+                        );
                     }
                     // StartCharClass : Layout start:CharClass . Layout
                     SlotId(323) => {
@@ -5033,13 +5175,16 @@ impl<'i, 'arena> Parser<'i, 'arena> for IggyParser<'i, 'arena> {
                     }
                     // StartCharClass : Layout start:CharClass Layout.
                     SlotId(324) => {
-                        let nonterminal_node_id = self.create_nonterminal_node(
-                            result,
-                            NonterminalId(61),
-                            SlotId(324),
+                        let Some(result) = result else {
+                            unreachable!("result cannot be None here.")
+                        };
+                        self.pop(
                             gss_node_id,
+                            SlotId(324),
+                            result,
+                            None,
+                            &FOLLOW_SET_START_CHAR_CLASS,
                         );
-                        self.pop(gss_node_id, SlotId(324), nonterminal_node_id, None);
                     }
                     // StartRangeElement : . Layout start:RangeElement Layout
                     SlotId(325) => {
@@ -5055,7 +5200,14 @@ impl<'i, 'arena> Parser<'i, 'arena> for IggyParser<'i, 'arena> {
                     }
                     // StartRangeElement : Layout . start:RangeElement Layout
                     SlotId(326) => {
-                        self.create(NonterminalId(14), result, gss_node_id, SlotId(327), env);
+                        self.create(
+                            NonterminalId(14),
+                            &PREDICTION_SET_RANGE_ELEMENT,
+                            result,
+                            gss_node_id,
+                            SlotId(327),
+                            env,
+                        );
                     }
                     // StartRangeElement : Layout start:RangeElement . Layout
                     SlotId(327) => {
@@ -5075,13 +5227,16 @@ impl<'i, 'arena> Parser<'i, 'arena> for IggyParser<'i, 'arena> {
                     }
                     // StartRangeElement : Layout start:RangeElement Layout.
                     SlotId(328) => {
-                        let nonterminal_node_id = self.create_nonterminal_node(
-                            result,
-                            NonterminalId(62),
-                            SlotId(328),
+                        let Some(result) = result else {
+                            unreachable!("result cannot be None here.")
+                        };
+                        self.pop(
                             gss_node_id,
+                            SlotId(328),
+                            result,
+                            None,
+                            &FOLLOW_SET_START_RANGE_ELEMENT,
                         );
-                        self.pop(gss_node_id, SlotId(328), nonterminal_node_id, None);
                     }
                     // StartRange : . Layout start:Range Layout
                     SlotId(329) => {
@@ -5129,13 +5284,16 @@ impl<'i, 'arena> Parser<'i, 'arena> for IggyParser<'i, 'arena> {
                     }
                     // StartRange : Layout start:Range Layout.
                     SlotId(332) => {
-                        let nonterminal_node_id = self.create_nonterminal_node(
-                            result,
-                            NonterminalId(63),
-                            SlotId(332),
+                        let Some(result) = result else {
+                            unreachable!("result cannot be None here.")
+                        };
+                        self.pop(
                             gss_node_id,
+                            SlotId(332),
+                            result,
+                            None,
+                            &FOLLOW_SET_START_RANGE,
                         );
-                        self.pop(gss_node_id, SlotId(332), nonterminal_node_id, None);
                     }
                     _ => {
                         panic!("Unknown grammar slot id: {slot_id}");
@@ -5158,24 +5316,13 @@ impl<'i, 'arena> Parser<'i, 'arena> for IggyParser<'i, 'arena> {
             }
             // Rule
             NonterminalId(1) => {
-                let mut matched = false;
                 // Rule : . SyntaxRule
                 if self.scanner.match_any(&FIRST_SET_RULE_ALT0, input_index) {
-                    matched = true;
                     self.add_first_descriptor(SlotId(6), input_index, gss_node_id, env);
                 }
                 // Rule : . RegexRule
                 if self.scanner.match_any(&FIRST_SET_RULE_ALT1, input_index) {
-                    matched = true;
                     self.add_first_descriptor(SlotId(8), input_index, gss_node_id, env);
-                }
-                if !matched {
-                    self.add_failure(
-                        input_index,
-                        SlotId(6),
-                        Some(gss_node_id),
-                        GLLFailureKind::UnexpectedToken(&FIRST_SET_RULE),
-                    );
                 }
             }
             // SyntaxRule : . Opt_1 Layout head:Identifier Layout "=" Layout Star_1
@@ -5184,13 +5331,11 @@ impl<'i, 'arena> Parser<'i, 'arena> for IggyParser<'i, 'arena> {
             }
             // Annotation
             NonterminalId(3) => {
-                let mut matched = false;
                 // Annotation : . "@NoLayout"
                 if self
                     .scanner
                     .match_any(&FIRST_SET_ANNOTATION_ALT0, input_index)
                 {
-                    matched = true;
                     self.add_first_descriptor(SlotId(18), input_index, gss_node_id, env);
                 }
                 // Annotation : . "@Layout"
@@ -5198,16 +5343,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for IggyParser<'i, 'arena> {
                     .scanner
                     .match_any(&FIRST_SET_ANNOTATION_ALT1, input_index)
                 {
-                    matched = true;
                     self.add_first_descriptor(SlotId(20), input_index, gss_node_id, env);
-                }
-                if !matched {
-                    self.add_failure(
-                        input_index,
-                        SlotId(18),
-                        Some(gss_node_id),
-                        GLLFailureKind::UnexpectedToken(&FIRST_SET_ANNOTATION),
-                    );
                 }
             }
             // RegexRule : . layout:Opt_3 Layout id_annot:Opt_4 Layout "@Regex" Layout Identifier Layout
@@ -5221,13 +5357,11 @@ impl<'i, 'arena> Parser<'i, 'arena> for IggyParser<'i, 'arena> {
             }
             // RegexPostCondition
             NonterminalId(6) => {
-                let mut matched = false;
                 // RegexPostCondition : . "\\" Layout Identifier
                 if self
                     .scanner
                     .match_any(&FIRST_SET_REGEX_POST_CONDITION_ALT0, input_index)
                 {
-                    matched = true;
                     self.add_first_descriptor(SlotId(42), input_index, gss_node_id, env);
                 }
                 // RegexPostCondition : . "!>>" Layout Identifier
@@ -5235,16 +5369,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for IggyParser<'i, 'arena> {
                     .scanner
                     .match_any(&FIRST_SET_REGEX_POST_CONDITION_ALT1, input_index)
                 {
-                    matched = true;
                     self.add_first_descriptor(SlotId(46), input_index, gss_node_id, env);
-                }
-                if !matched {
-                    self.add_failure(
-                        input_index,
-                        SlotId(42),
-                        Some(gss_node_id),
-                        GLLFailureKind::UnexpectedToken(&FIRST_SET_REGEX_POST_CONDITION),
-                    );
                 }
             }
             // PriorityLevel : . Opt_7 Layout Star_3
@@ -5253,13 +5378,11 @@ impl<'i, 'arena> Parser<'i, 'arena> for IggyParser<'i, 'arena> {
             }
             // Associativity
             NonterminalId(8) => {
-                let mut matched = false;
                 // Associativity : . "left"
                 if self
                     .scanner
                     .match_any(&FIRST_SET_ASSOCIATIVITY_ALT0, input_index)
                 {
-                    matched = true;
                     self.add_first_descriptor(SlotId(54), input_index, gss_node_id, env);
                 }
                 // Associativity : . "right"
@@ -5267,7 +5390,6 @@ impl<'i, 'arena> Parser<'i, 'arena> for IggyParser<'i, 'arena> {
                     .scanner
                     .match_any(&FIRST_SET_ASSOCIATIVITY_ALT1, input_index)
                 {
-                    matched = true;
                     self.add_first_descriptor(SlotId(56), input_index, gss_node_id, env);
                 }
                 // Associativity : . "none"
@@ -5275,27 +5397,16 @@ impl<'i, 'arena> Parser<'i, 'arena> for IggyParser<'i, 'arena> {
                     .scanner
                     .match_any(&FIRST_SET_ASSOCIATIVITY_ALT2, input_index)
                 {
-                    matched = true;
                     self.add_first_descriptor(SlotId(58), input_index, gss_node_id, env);
-                }
-                if !matched {
-                    self.add_failure(
-                        input_index,
-                        SlotId(54),
-                        Some(gss_node_id),
-                        GLLFailureKind::UnexpectedToken(&FIRST_SET_ASSOCIATIVITY),
-                    );
                 }
             }
             // Alternative
             NonterminalId(9) => {
-                let mut matched = false;
                 // Alternative : . Plus_6 Layout Opt_9
                 if self
                     .scanner
                     .match_any(&FIRST_SET_ALTERNATIVE_ALT0, input_index)
                 {
-                    matched = true;
                     self.add_first_descriptor(SlotId(60), input_index, gss_node_id, env);
                 }
                 // Alternative : . "(" Layout ")" Layout Opt_9
@@ -5303,92 +5414,63 @@ impl<'i, 'arena> Parser<'i, 'arena> for IggyParser<'i, 'arena> {
                     .scanner
                     .match_any(&FIRST_SET_ALTERNATIVE_ALT1, input_index)
                 {
-                    matched = true;
                     self.add_first_descriptor(SlotId(64), input_index, gss_node_id, env);
-                }
-                if !matched {
-                    self.add_failure(
-                        input_index,
-                        SlotId(60),
-                        Some(gss_node_id),
-                        GLLFailureKind::UnexpectedToken(&FIRST_SET_ALTERNATIVE),
-                    );
                 }
             }
             // Symbol
             NonterminalId(64) => {
-                let mut matched = false;
                 // Symbol(p: i32, e: i32) : . [1 & e == 0] Identifier return (0, 0)
                 if self.scanner.match_any(&FIRST_SET_SYMBOL_ALT0, input_index) {
-                    matched = true;
                     self.add_first_descriptor(SlotId(333), input_index, gss_node_id, env);
                 }
                 // Symbol(p: i32, e: i32) : . [2 & e == 0] "(" Layout seqs:Plus_7 Layout ")" return (0, 1)
                 if self.scanner.match_any(&FIRST_SET_SYMBOL_ALT1, input_index) {
-                    matched = true;
                     self.add_first_descriptor(SlotId(337), input_index, gss_node_id, env);
                 }
                 // Symbol(p: i32, e: i32) : . [4 & e == 0] String return (0, 2)
                 if self.scanner.match_any(&FIRST_SET_SYMBOL_ALT2, input_index) {
-                    matched = true;
                     self.add_first_descriptor(SlotId(345), input_index, gss_node_id, env);
                 }
                 // Symbol(p: i32, e: i32) : . [8 & e == 0] "{" Layout symbol:Symbol(0, 0) Layout
                 // sep:Symbol(0, 0) Layout "}" Layout "*" return (0, 3)
                 if self.scanner.match_any(&FIRST_SET_SYMBOL_ALT3, input_index) {
-                    matched = true;
                     self.add_first_descriptor(SlotId(349), input_index, gss_node_id, env);
                 }
                 // Symbol(p: i32, e: i32) : . [16 & e == 0] "{" Layout symbol:Symbol(0, 0) Layout
                 // sep:Symbol(0, 0) Layout "}" Layout "+" return (0, 4)
                 if self.scanner.match_any(&FIRST_SET_SYMBOL_ALT4, input_index) {
-                    matched = true;
                     self.add_first_descriptor(SlotId(361), input_index, gss_node_id, env);
                 }
                 // Symbol(p: i32, e: i32) : . [32 & e == 0] [3 >= p] (l_pr, l_label)=Symbol(p, 0) [(l_pr ==
                 // 0) || (l_pr >= 3)] Layout "*" return (0, 5)
                 if self.scanner.match_any(&FIRST_SET_SYMBOL_ALT5, input_index) {
-                    matched = true;
                     self.add_first_descriptor(SlotId(373), input_index, gss_node_id, env);
                 }
                 // Symbol(p: i32, e: i32) : . [64 & e == 0] [3 >= p] (l_pr, l_label)=Symbol(p, 0) [(l_pr ==
                 // 0) || (l_pr >= 3)] Layout "+" return (0, 6)
                 if self.scanner.match_any(&FIRST_SET_SYMBOL_ALT6, input_index) {
-                    matched = true;
                     self.add_first_descriptor(SlotId(381), input_index, gss_node_id, env);
                 }
                 // Symbol(p: i32, e: i32) : . [128 & e == 0] [3 >= p] (l_pr, l_label)=Symbol(p, 0) [(l_pr ==
                 // 0) || (l_pr >= 3)] Layout "?" return (0, 7)
                 if self.scanner.match_any(&FIRST_SET_SYMBOL_ALT7, input_index) {
-                    matched = true;
                     self.add_first_descriptor(SlotId(389), input_index, gss_node_id, env);
                 }
                 // Symbol(p: i32, e: i32) : . [256 & e == 0] [3 >= p] (l_pr, l_label)=Symbol(p, 0) [(l_pr ==
                 // 0) || (l_pr >= 3)] [(l_label == NO_LABEL) || ((256 >> l_label) & 1 == 0)] Layout
                 // conditions:Plus_8 return (0, 8)
                 if self.scanner.match_any(&FIRST_SET_SYMBOL_ALT8, input_index) {
-                    matched = true;
                     self.add_first_descriptor(SlotId(397), input_index, gss_node_id, env);
                 }
                 // Symbol(p: i32, e: i32) : . [512 & e == 0] conditions:Plus_9 Layout (r_pr,
                 // r_label)=Symbol(2, 512) return ((r_pr == 0) ? 2 : min(r_pr, 2), 9)
                 if self.scanner.match_any(&FIRST_SET_SYMBOL_ALT9, input_index) {
-                    matched = true;
                     self.add_first_descriptor(SlotId(406), input_index, gss_node_id, env);
                 }
                 // Symbol(p: i32, e: i32) : . [1024 & e == 0] label:Identifier Layout ":" Layout Symbol(1, 0)
                 // return (1, 10)
                 if self.scanner.match_any(&FIRST_SET_SYMBOL_ALT10, input_index) {
-                    matched = true;
                     self.add_first_descriptor(SlotId(412), input_index, gss_node_id, env);
-                }
-                if !matched {
-                    self.add_failure(
-                        input_index,
-                        SlotId(333),
-                        Some(gss_node_id),
-                        GLLFailureKind::UnexpectedToken(&FIRST_SET_SYMBOL),
-                    );
                 }
             }
             // PreCondition : . Identifier Layout "!<<"
@@ -5397,13 +5479,11 @@ impl<'i, 'arena> Parser<'i, 'arena> for IggyParser<'i, 'arena> {
             }
             // PostCondition
             NonterminalId(11) => {
-                let mut matched = false;
                 // PostCondition : . "\\" Layout Identifier
                 if self
                     .scanner
                     .match_any(&FIRST_SET_POST_CONDITION_ALT0, input_index)
                 {
-                    matched = true;
                     self.add_first_descriptor(SlotId(74), input_index, gss_node_id, env);
                 }
                 // PostCondition : . "!>>" Layout Identifier
@@ -5411,7 +5491,6 @@ impl<'i, 'arena> Parser<'i, 'arena> for IggyParser<'i, 'arena> {
                     .scanner
                     .match_any(&FIRST_SET_POST_CONDITION_ALT1, input_index)
                 {
-                    matched = true;
                     self.add_first_descriptor(SlotId(78), input_index, gss_node_id, env);
                 }
                 // PostCondition : . "!>>>" Layout Identifier
@@ -5419,7 +5498,6 @@ impl<'i, 'arena> Parser<'i, 'arena> for IggyParser<'i, 'arena> {
                     .scanner
                     .match_any(&FIRST_SET_POST_CONDITION_ALT2, input_index)
                 {
-                    matched = true;
                     self.add_first_descriptor(SlotId(82), input_index, gss_node_id, env);
                 }
                 // PostCondition : . "!" Layout Identifier
@@ -5427,68 +5505,42 @@ impl<'i, 'arena> Parser<'i, 'arena> for IggyParser<'i, 'arena> {
                     .scanner
                     .match_any(&FIRST_SET_POST_CONDITION_ALT3, input_index)
                 {
-                    matched = true;
                     self.add_first_descriptor(SlotId(86), input_index, gss_node_id, env);
-                }
-                if !matched {
-                    self.add_failure(
-                        input_index,
-                        SlotId(74),
-                        Some(gss_node_id),
-                        GLLFailureKind::UnexpectedToken(&FIRST_SET_POST_CONDITION),
-                    );
                 }
             }
             // Regex
             NonterminalId(12) => {
-                let mut matched = false;
                 // Regex : . Regex Layout "+"
                 if self.scanner.match_any(&FIRST_SET_REGEX_ALT0, input_index) {
-                    matched = true;
                     self.add_first_descriptor(SlotId(90), input_index, gss_node_id, env);
                 }
                 // Regex : . Regex Layout "*"
                 if self.scanner.match_any(&FIRST_SET_REGEX_ALT1, input_index) {
-                    matched = true;
                     self.add_first_descriptor(SlotId(94), input_index, gss_node_id, env);
                 }
                 // Regex : . Regex Layout "?"
                 if self.scanner.match_any(&FIRST_SET_REGEX_ALT2, input_index) {
-                    matched = true;
                     self.add_first_descriptor(SlotId(98), input_index, gss_node_id, env);
                 }
                 // Regex : . "(" Layout seqs:Plus_2 Layout ")"
                 if self.scanner.match_any(&FIRST_SET_REGEX_ALT3, input_index) {
-                    matched = true;
                     self.add_first_descriptor(SlotId(102), input_index, gss_node_id, env);
                 }
                 // Regex : . CharClass
                 if self.scanner.match_any(&FIRST_SET_REGEX_ALT4, input_index) {
-                    matched = true;
                     self.add_first_descriptor(SlotId(108), input_index, gss_node_id, env);
                 }
                 // Regex : . Char
                 if self.scanner.match_any(&FIRST_SET_REGEX_ALT5, input_index) {
-                    matched = true;
                     self.add_first_descriptor(SlotId(110), input_index, gss_node_id, env);
                 }
                 // Regex : . String
                 if self.scanner.match_any(&FIRST_SET_REGEX_ALT6, input_index) {
-                    matched = true;
                     self.add_first_descriptor(SlotId(112), input_index, gss_node_id, env);
                 }
                 // Regex : . Identifier
                 if self.scanner.match_any(&FIRST_SET_REGEX_ALT7, input_index) {
-                    matched = true;
                     self.add_first_descriptor(SlotId(114), input_index, gss_node_id, env);
-                }
-                if !matched {
-                    self.add_failure(
-                        input_index,
-                        SlotId(90),
-                        Some(gss_node_id),
-                        GLLFailureKind::UnexpectedToken(&FIRST_SET_REGEX),
-                    );
                 }
             }
             // CharClass : . neg:Opt_10 Layout "[" Layout Plus_10 Layout "]"
@@ -5497,13 +5549,11 @@ impl<'i, 'arena> Parser<'i, 'arena> for IggyParser<'i, 'arena> {
             }
             // RangeElement
             NonterminalId(14) => {
-                let mut matched = false;
                 // RangeElement : . Range
                 if self
                     .scanner
                     .match_any(&FIRST_SET_RANGE_ELEMENT_ALT0, input_index)
                 {
-                    matched = true;
                     self.add_first_descriptor(SlotId(124), input_index, gss_node_id, env);
                 }
                 // RangeElement : . RangeChar
@@ -5511,16 +5561,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for IggyParser<'i, 'arena> {
                     .scanner
                     .match_any(&FIRST_SET_RANGE_ELEMENT_ALT1, input_index)
                 {
-                    matched = true;
                     self.add_first_descriptor(SlotId(126), input_index, gss_node_id, env);
-                }
-                if !matched {
-                    self.add_failure(
-                        input_index,
-                        SlotId(124),
-                        Some(gss_node_id),
-                        GLLFailureKind::UnexpectedToken(&FIRST_SET_RANGE_ELEMENT),
-                    );
                 }
             }
             // Range : . start:RangeChar Layout "-" Layout end:RangeChar
@@ -5533,48 +5574,26 @@ impl<'i, 'arena> Parser<'i, 'arena> for IggyParser<'i, 'arena> {
             }
             // Plus_0
             NonterminalId(17) => {
-                let mut matched = false;
                 // Plus_0 : . Plus_0 Layout Rule
                 if self.scanner.match_any(&FIRST_SET_PLUS_0_ALT0, input_index) {
-                    matched = true;
                     self.add_first_descriptor(SlotId(136), input_index, gss_node_id, env);
                 }
                 // Plus_0 : . Rule
                 if self.scanner.match_any(&FIRST_SET_PLUS_0_ALT1, input_index) {
-                    matched = true;
                     self.add_first_descriptor(SlotId(140), input_index, gss_node_id, env);
-                }
-                if !matched {
-                    self.add_failure(
-                        input_index,
-                        SlotId(136),
-                        Some(gss_node_id),
-                        GLLFailureKind::UnexpectedToken(&FIRST_SET_PLUS_0),
-                    );
                 }
             }
             // Opt_0
             NonterminalId(18) => {
-                let mut matched = false;
                 // Opt_0 : . Plus_0
                 if self.scanner.match_any(&FIRST_SET_OPT_0_ALT0, input_index) {
-                    matched = true;
                     self.add_first_descriptor(SlotId(142), input_index, gss_node_id, env);
                 }
                 // Opt_0 : .
                 if self.scanner.match_any(&FIRST_SET_OPT_0_ALT1, input_index)
                     || self.scanner.match_any(&FOLLOW_SET_OPT_0, input_index)
                 {
-                    matched = true;
                     self.add_first_descriptor(SlotId(144), input_index, gss_node_id, env);
-                }
-                if !matched {
-                    self.add_failure(
-                        input_index,
-                        SlotId(142),
-                        Some(gss_node_id),
-                        GLLFailureKind::UnexpectedToken(&PREDICTION_SET_OPT_0),
-                    );
                 }
             }
             // Star_0 : . Opt_0
@@ -5583,76 +5602,43 @@ impl<'i, 'arena> Parser<'i, 'arena> for IggyParser<'i, 'arena> {
             }
             // Opt_1
             NonterminalId(20) => {
-                let mut matched = false;
                 // Opt_1 : . Annotation
                 if self.scanner.match_any(&FIRST_SET_OPT_1_ALT0, input_index) {
-                    matched = true;
                     self.add_first_descriptor(SlotId(147), input_index, gss_node_id, env);
                 }
                 // Opt_1 : .
                 if self.scanner.match_any(&FIRST_SET_OPT_1_ALT1, input_index)
                     || self.scanner.match_any(&FOLLOW_SET_OPT_1, input_index)
                 {
-                    matched = true;
                     self.add_first_descriptor(SlotId(149), input_index, gss_node_id, env);
-                }
-                if !matched {
-                    self.add_failure(
-                        input_index,
-                        SlotId(147),
-                        Some(gss_node_id),
-                        GLLFailureKind::UnexpectedToken(&PREDICTION_SET_OPT_1),
-                    );
                 }
             }
             // Plus_1
             NonterminalId(21) => {
-                let mut matched = false;
                 // Plus_1 : . Plus_1 Layout ">" Layout PriorityLevel
                 if self.scanner.match_any(&FIRST_SET_PLUS_1_ALT0, input_index) {
-                    matched = true;
                     self.add_first_descriptor(SlotId(150), input_index, gss_node_id, env);
                 }
                 // Plus_1 : . PriorityLevel
                 if self.scanner.match_any(&FIRST_SET_PLUS_1_ALT1, input_index)
                     || self.scanner.match_any(&FOLLOW_SET_PLUS_1, input_index)
                 {
-                    matched = true;
                     self.add_first_descriptor(SlotId(156), input_index, gss_node_id, env);
-                }
-                if !matched {
-                    self.add_failure(
-                        input_index,
-                        SlotId(150),
-                        Some(gss_node_id),
-                        GLLFailureKind::UnexpectedToken(&PREDICTION_SET_PLUS_1),
-                    );
                 }
             }
             // Opt_2
             NonterminalId(22) => {
-                let mut matched = false;
                 // Opt_2 : . Plus_1
                 if self.scanner.match_any(&FIRST_SET_OPT_2_ALT0, input_index)
                     || self.scanner.match_any(&FOLLOW_SET_OPT_2, input_index)
                 {
-                    matched = true;
                     self.add_first_descriptor(SlotId(158), input_index, gss_node_id, env);
                 }
                 // Opt_2 : .
                 if self.scanner.match_any(&FIRST_SET_OPT_2_ALT1, input_index)
                     || self.scanner.match_any(&FOLLOW_SET_OPT_2, input_index)
                 {
-                    matched = true;
                     self.add_first_descriptor(SlotId(160), input_index, gss_node_id, env);
-                }
-                if !matched {
-                    self.add_failure(
-                        input_index,
-                        SlotId(158),
-                        Some(gss_node_id),
-                        GLLFailureKind::UnexpectedToken(&PREDICTION_SET_OPT_2),
-                    );
                 }
             }
             // Star_1 : . Opt_2
@@ -5661,164 +5647,87 @@ impl<'i, 'arena> Parser<'i, 'arena> for IggyParser<'i, 'arena> {
             }
             // Opt_3
             NonterminalId(24) => {
-                let mut matched = false;
                 // Opt_3 : . "@Layout"
                 if self.scanner.match_any(&FIRST_SET_OPT_3_ALT0, input_index) {
-                    matched = true;
                     self.add_first_descriptor(SlotId(163), input_index, gss_node_id, env);
                 }
                 // Opt_3 : .
                 if self.scanner.match_any(&FIRST_SET_OPT_3_ALT1, input_index)
                     || self.scanner.match_any(&FOLLOW_SET_OPT_3, input_index)
                 {
-                    matched = true;
                     self.add_first_descriptor(SlotId(165), input_index, gss_node_id, env);
-                }
-                if !matched {
-                    self.add_failure(
-                        input_index,
-                        SlotId(163),
-                        Some(gss_node_id),
-                        GLLFailureKind::UnexpectedToken(&PREDICTION_SET_OPT_3),
-                    );
                 }
             }
             // Opt_4
             NonterminalId(25) => {
-                let mut matched = false;
                 // Opt_4 : . "@Identifier"
                 if self.scanner.match_any(&FIRST_SET_OPT_4_ALT0, input_index) {
-                    matched = true;
                     self.add_first_descriptor(SlotId(166), input_index, gss_node_id, env);
                 }
                 // Opt_4 : .
                 if self.scanner.match_any(&FIRST_SET_OPT_4_ALT1, input_index)
                     || self.scanner.match_any(&FOLLOW_SET_OPT_4, input_index)
                 {
-                    matched = true;
                     self.add_first_descriptor(SlotId(168), input_index, gss_node_id, env);
-                }
-                if !matched {
-                    self.add_failure(
-                        input_index,
-                        SlotId(166),
-                        Some(gss_node_id),
-                        GLLFailureKind::UnexpectedToken(&PREDICTION_SET_OPT_4),
-                    );
                 }
             }
             // Opt_5
             NonterminalId(26) => {
-                let mut matched = false;
                 // Opt_5 : . RegexPreCondition
                 if self.scanner.match_any(&FIRST_SET_OPT_5_ALT0, input_index) {
-                    matched = true;
                     self.add_first_descriptor(SlotId(169), input_index, gss_node_id, env);
                 }
                 // Opt_5 : .
                 if self.scanner.match_any(&FIRST_SET_OPT_5_ALT1, input_index)
                     || self.scanner.match_any(&FOLLOW_SET_OPT_5, input_index)
                 {
-                    matched = true;
                     self.add_first_descriptor(SlotId(171), input_index, gss_node_id, env);
-                }
-                if !matched {
-                    self.add_failure(
-                        input_index,
-                        SlotId(169),
-                        Some(gss_node_id),
-                        GLLFailureKind::UnexpectedToken(&PREDICTION_SET_OPT_5),
-                    );
                 }
             }
             // Plus_3
             NonterminalId(27) => {
-                let mut matched = false;
                 // Plus_3 : . Plus_3 Layout Regex
                 if self.scanner.match_any(&FIRST_SET_PLUS_3_ALT0, input_index) {
-                    matched = true;
                     self.add_first_descriptor(SlotId(172), input_index, gss_node_id, env);
                 }
                 // Plus_3 : . Regex
                 if self.scanner.match_any(&FIRST_SET_PLUS_3_ALT1, input_index) {
-                    matched = true;
                     self.add_first_descriptor(SlotId(176), input_index, gss_node_id, env);
-                }
-                if !matched {
-                    self.add_failure(
-                        input_index,
-                        SlotId(172),
-                        Some(gss_node_id),
-                        GLLFailureKind::UnexpectedToken(&FIRST_SET_PLUS_3),
-                    );
                 }
             }
             // Plus_2
             NonterminalId(28) => {
-                let mut matched = false;
                 // Plus_2 : . Plus_2 Layout "|" Layout Plus_3
                 if self.scanner.match_any(&FIRST_SET_PLUS_2_ALT0, input_index) {
-                    matched = true;
                     self.add_first_descriptor(SlotId(178), input_index, gss_node_id, env);
                 }
                 // Plus_2 : . Plus_3
                 if self.scanner.match_any(&FIRST_SET_PLUS_2_ALT1, input_index) {
-                    matched = true;
                     self.add_first_descriptor(SlotId(184), input_index, gss_node_id, env);
-                }
-                if !matched {
-                    self.add_failure(
-                        input_index,
-                        SlotId(178),
-                        Some(gss_node_id),
-                        GLLFailureKind::UnexpectedToken(&FIRST_SET_PLUS_2),
-                    );
                 }
             }
             // Plus_4
             NonterminalId(29) => {
-                let mut matched = false;
                 // Plus_4 : . Plus_4 Layout RegexPostCondition
                 if self.scanner.match_any(&FIRST_SET_PLUS_4_ALT0, input_index) {
-                    matched = true;
                     self.add_first_descriptor(SlotId(186), input_index, gss_node_id, env);
                 }
                 // Plus_4 : . RegexPostCondition
                 if self.scanner.match_any(&FIRST_SET_PLUS_4_ALT1, input_index) {
-                    matched = true;
                     self.add_first_descriptor(SlotId(190), input_index, gss_node_id, env);
-                }
-                if !matched {
-                    self.add_failure(
-                        input_index,
-                        SlotId(186),
-                        Some(gss_node_id),
-                        GLLFailureKind::UnexpectedToken(&FIRST_SET_PLUS_4),
-                    );
                 }
             }
             // Opt_6
             NonterminalId(30) => {
-                let mut matched = false;
                 // Opt_6 : . Plus_4
                 if self.scanner.match_any(&FIRST_SET_OPT_6_ALT0, input_index) {
-                    matched = true;
                     self.add_first_descriptor(SlotId(192), input_index, gss_node_id, env);
                 }
                 // Opt_6 : .
                 if self.scanner.match_any(&FIRST_SET_OPT_6_ALT1, input_index)
                     || self.scanner.match_any(&FOLLOW_SET_OPT_6, input_index)
                 {
-                    matched = true;
                     self.add_first_descriptor(SlotId(194), input_index, gss_node_id, env);
-                }
-                if !matched {
-                    self.add_failure(
-                        input_index,
-                        SlotId(192),
-                        Some(gss_node_id),
-                        GLLFailureKind::UnexpectedToken(&PREDICTION_SET_OPT_6),
-                    );
                 }
             }
             // Star_2 : . Opt_6
@@ -5827,72 +5736,39 @@ impl<'i, 'arena> Parser<'i, 'arena> for IggyParser<'i, 'arena> {
             }
             // Opt_7
             NonterminalId(32) => {
-                let mut matched = false;
                 // Opt_7 : . Associativity
                 if self.scanner.match_any(&FIRST_SET_OPT_7_ALT0, input_index) {
-                    matched = true;
                     self.add_first_descriptor(SlotId(197), input_index, gss_node_id, env);
                 }
                 // Opt_7 : .
                 if self.scanner.match_any(&FIRST_SET_OPT_7_ALT1, input_index)
                     || self.scanner.match_any(&FOLLOW_SET_OPT_7, input_index)
                 {
-                    matched = true;
                     self.add_first_descriptor(SlotId(199), input_index, gss_node_id, env);
-                }
-                if !matched {
-                    self.add_failure(
-                        input_index,
-                        SlotId(197),
-                        Some(gss_node_id),
-                        GLLFailureKind::UnexpectedToken(&PREDICTION_SET_OPT_7),
-                    );
                 }
             }
             // Plus_5
             NonterminalId(33) => {
-                let mut matched = false;
                 // Plus_5 : . Plus_5 Layout "|" Layout Alternative
                 if self.scanner.match_any(&FIRST_SET_PLUS_5_ALT0, input_index) {
-                    matched = true;
                     self.add_first_descriptor(SlotId(200), input_index, gss_node_id, env);
                 }
                 // Plus_5 : . Alternative
                 if self.scanner.match_any(&FIRST_SET_PLUS_5_ALT1, input_index) {
-                    matched = true;
                     self.add_first_descriptor(SlotId(206), input_index, gss_node_id, env);
-                }
-                if !matched {
-                    self.add_failure(
-                        input_index,
-                        SlotId(200),
-                        Some(gss_node_id),
-                        GLLFailureKind::UnexpectedToken(&FIRST_SET_PLUS_5),
-                    );
                 }
             }
             // Opt_8
             NonterminalId(34) => {
-                let mut matched = false;
                 // Opt_8 : . Plus_5
                 if self.scanner.match_any(&FIRST_SET_OPT_8_ALT0, input_index) {
-                    matched = true;
                     self.add_first_descriptor(SlotId(208), input_index, gss_node_id, env);
                 }
                 // Opt_8 : .
                 if self.scanner.match_any(&FIRST_SET_OPT_8_ALT1, input_index)
                     || self.scanner.match_any(&FOLLOW_SET_OPT_8, input_index)
                 {
-                    matched = true;
                     self.add_first_descriptor(SlotId(210), input_index, gss_node_id, env);
-                }
-                if !matched {
-                    self.add_failure(
-                        input_index,
-                        SlotId(208),
-                        Some(gss_node_id),
-                        GLLFailureKind::UnexpectedToken(&PREDICTION_SET_OPT_8),
-                    );
                 }
             }
             // Star_3 : . Opt_8
@@ -5901,228 +5777,118 @@ impl<'i, 'arena> Parser<'i, 'arena> for IggyParser<'i, 'arena> {
             }
             // Plus_6
             NonterminalId(36) => {
-                let mut matched = false;
                 // Plus_6 : . Plus_6 Layout Symbol(0, 0)
                 if self.scanner.match_any(&FIRST_SET_PLUS_6_ALT0, input_index) {
-                    matched = true;
                     self.add_first_descriptor(SlotId(213), input_index, gss_node_id, env);
                 }
                 // Plus_6 : . Symbol(0, 0)
                 if self.scanner.match_any(&FIRST_SET_PLUS_6_ALT1, input_index) {
-                    matched = true;
                     self.add_first_descriptor(SlotId(217), input_index, gss_node_id, env);
-                }
-                if !matched {
-                    self.add_failure(
-                        input_index,
-                        SlotId(213),
-                        Some(gss_node_id),
-                        GLLFailureKind::UnexpectedToken(&FIRST_SET_PLUS_6),
-                    );
                 }
             }
             // Opt_9
             NonterminalId(37) => {
-                let mut matched = false;
                 // Opt_9 : . Label
                 if self.scanner.match_any(&FIRST_SET_OPT_9_ALT0, input_index) {
-                    matched = true;
                     self.add_first_descriptor(SlotId(219), input_index, gss_node_id, env);
                 }
                 // Opt_9 : .
                 if self.scanner.match_any(&FIRST_SET_OPT_9_ALT1, input_index)
                     || self.scanner.match_any(&FOLLOW_SET_OPT_9, input_index)
                 {
-                    matched = true;
                     self.add_first_descriptor(SlotId(221), input_index, gss_node_id, env);
-                }
-                if !matched {
-                    self.add_failure(
-                        input_index,
-                        SlotId(219),
-                        Some(gss_node_id),
-                        GLLFailureKind::UnexpectedToken(&PREDICTION_SET_OPT_9),
-                    );
                 }
             }
             // Plus_7
             NonterminalId(38) => {
-                let mut matched = false;
                 // Plus_7 : . Plus_7 Layout "|" Layout Plus_6
                 if self.scanner.match_any(&FIRST_SET_PLUS_7_ALT0, input_index) {
-                    matched = true;
                     self.add_first_descriptor(SlotId(222), input_index, gss_node_id, env);
                 }
                 // Plus_7 : . Plus_6
                 if self.scanner.match_any(&FIRST_SET_PLUS_7_ALT1, input_index) {
-                    matched = true;
                     self.add_first_descriptor(SlotId(228), input_index, gss_node_id, env);
-                }
-                if !matched {
-                    self.add_failure(
-                        input_index,
-                        SlotId(222),
-                        Some(gss_node_id),
-                        GLLFailureKind::UnexpectedToken(&FIRST_SET_PLUS_7),
-                    );
                 }
             }
             // Plus_8
             NonterminalId(39) => {
-                let mut matched = false;
                 // Plus_8 : . Plus_8 Layout PostCondition
                 if self.scanner.match_any(&FIRST_SET_PLUS_8_ALT0, input_index) {
-                    matched = true;
                     self.add_first_descriptor(SlotId(230), input_index, gss_node_id, env);
                 }
                 // Plus_8 : . PostCondition
                 if self.scanner.match_any(&FIRST_SET_PLUS_8_ALT1, input_index) {
-                    matched = true;
                     self.add_first_descriptor(SlotId(234), input_index, gss_node_id, env);
-                }
-                if !matched {
-                    self.add_failure(
-                        input_index,
-                        SlotId(230),
-                        Some(gss_node_id),
-                        GLLFailureKind::UnexpectedToken(&FIRST_SET_PLUS_8),
-                    );
                 }
             }
             // Plus_9
             NonterminalId(40) => {
-                let mut matched = false;
                 // Plus_9 : . Plus_9 Layout PreCondition
                 if self.scanner.match_any(&FIRST_SET_PLUS_9_ALT0, input_index) {
-                    matched = true;
                     self.add_first_descriptor(SlotId(236), input_index, gss_node_id, env);
                 }
                 // Plus_9 : . PreCondition
                 if self.scanner.match_any(&FIRST_SET_PLUS_9_ALT1, input_index) {
-                    matched = true;
                     self.add_first_descriptor(SlotId(240), input_index, gss_node_id, env);
-                }
-                if !matched {
-                    self.add_failure(
-                        input_index,
-                        SlotId(236),
-                        Some(gss_node_id),
-                        GLLFailureKind::UnexpectedToken(&FIRST_SET_PLUS_9),
-                    );
                 }
             }
             // Opt_10
             NonterminalId(41) => {
-                let mut matched = false;
                 // Opt_10 : . "!"
                 if self.scanner.match_any(&FIRST_SET_OPT_10_ALT0, input_index) {
-                    matched = true;
                     self.add_first_descriptor(SlotId(242), input_index, gss_node_id, env);
                 }
                 // Opt_10 : .
                 if self.scanner.match_any(&FIRST_SET_OPT_10_ALT1, input_index)
                     || self.scanner.match_any(&FOLLOW_SET_OPT_10, input_index)
                 {
-                    matched = true;
                     self.add_first_descriptor(SlotId(244), input_index, gss_node_id, env);
-                }
-                if !matched {
-                    self.add_failure(
-                        input_index,
-                        SlotId(242),
-                        Some(gss_node_id),
-                        GLLFailureKind::UnexpectedToken(&PREDICTION_SET_OPT_10),
-                    );
                 }
             }
             // Plus_10
             NonterminalId(42) => {
-                let mut matched = false;
                 // Plus_10 : . Plus_10 Layout RangeElement
                 if self.scanner.match_any(&FIRST_SET_PLUS_10_ALT0, input_index) {
-                    matched = true;
                     self.add_first_descriptor(SlotId(245), input_index, gss_node_id, env);
                 }
                 // Plus_10 : . RangeElement
                 if self.scanner.match_any(&FIRST_SET_PLUS_10_ALT1, input_index) {
-                    matched = true;
                     self.add_first_descriptor(SlotId(249), input_index, gss_node_id, env);
-                }
-                if !matched {
-                    self.add_failure(
-                        input_index,
-                        SlotId(245),
-                        Some(gss_node_id),
-                        GLLFailureKind::UnexpectedToken(&FIRST_SET_PLUS_10),
-                    );
                 }
             }
             // Alt_0
             NonterminalId(43) => {
-                let mut matched = false;
                 // Alt_0 : . WS
                 if self.scanner.match_any(&FIRST_SET_ALT_0_ALT0, input_index) {
-                    matched = true;
                     self.add_first_descriptor(SlotId(251), input_index, gss_node_id, env);
                 }
                 // Alt_0 : . LineComment
                 if self.scanner.match_any(&FIRST_SET_ALT_0_ALT1, input_index) {
-                    matched = true;
                     self.add_first_descriptor(SlotId(253), input_index, gss_node_id, env);
-                }
-                if !matched {
-                    self.add_failure(
-                        input_index,
-                        SlotId(251),
-                        Some(gss_node_id),
-                        GLLFailureKind::UnexpectedToken(&FIRST_SET_ALT_0),
-                    );
                 }
             }
             // Plus_11
             NonterminalId(44) => {
-                let mut matched = false;
                 // Plus_11 : . Plus_11 Alt_0
                 if self.scanner.match_any(&FIRST_SET_PLUS_11_ALT0, input_index) {
-                    matched = true;
                     self.add_first_descriptor(SlotId(255), input_index, gss_node_id, env);
                 }
                 // Plus_11 : . Alt_0
                 if self.scanner.match_any(&FIRST_SET_PLUS_11_ALT1, input_index) {
-                    matched = true;
                     self.add_first_descriptor(SlotId(258), input_index, gss_node_id, env);
-                }
-                if !matched {
-                    self.add_failure(
-                        input_index,
-                        SlotId(255),
-                        Some(gss_node_id),
-                        GLLFailureKind::UnexpectedToken(&FIRST_SET_PLUS_11),
-                    );
                 }
             }
             // Opt_11
             NonterminalId(45) => {
-                let mut matched = false;
                 // Opt_11 : . Plus_11
                 if self.scanner.match_any(&FIRST_SET_OPT_11_ALT0, input_index) {
-                    matched = true;
                     self.add_first_descriptor(SlotId(260), input_index, gss_node_id, env);
                 }
                 // Opt_11 : .
                 if self.scanner.match_any(&FIRST_SET_OPT_11_ALT1, input_index)
                     || self.scanner.match_any(&FOLLOW_SET_OPT_11, input_index)
                 {
-                    matched = true;
                     self.add_first_descriptor(SlotId(262), input_index, gss_node_id, env);
-                }
-                if !matched {
-                    self.add_failure(
-                        input_index,
-                        SlotId(260),
-                        Some(gss_node_id),
-                        GLLFailureKind::UnexpectedToken(&PREDICTION_SET_OPT_11),
-                    );
                 }
             }
             // Star_4 : . Opt_11
@@ -6620,188 +6386,6 @@ impl<'i, 'arena> Parser<'i, 'arena> for IggyParser<'i, 'arena> {
             _ => None,
         }
     }
-    fn follow_set_check(&mut self, nonterminal_id: NonterminalId, input_index: u32) -> bool {
-        match nonterminal_id {
-            NonterminalId(0) => self.scanner.match_any(&FOLLOW_SET_GRAMMAR, input_index),
-            NonterminalId(1) => self.scanner.match_any(&FOLLOW_SET_RULE, input_index),
-            NonterminalId(2) => self.scanner.match_any(&FOLLOW_SET_SYNTAX_RULE, input_index),
-            NonterminalId(3) => self.scanner.match_any(&FOLLOW_SET_ANNOTATION, input_index),
-            NonterminalId(4) => self.scanner.match_any(&FOLLOW_SET_REGEX_RULE, input_index),
-            NonterminalId(5) => self
-                .scanner
-                .match_any(&FOLLOW_SET_REGEX_PRE_CONDITION, input_index),
-            NonterminalId(6) => self
-                .scanner
-                .match_any(&FOLLOW_SET_REGEX_POST_CONDITION, input_index),
-            NonterminalId(7) => self
-                .scanner
-                .match_any(&FOLLOW_SET_PRIORITY_LEVEL, input_index),
-            NonterminalId(8) => self
-                .scanner
-                .match_any(&FOLLOW_SET_ASSOCIATIVITY, input_index),
-            NonterminalId(9) => self.scanner.match_any(&FOLLOW_SET_ALTERNATIVE, input_index),
-            NonterminalId(64) => self.scanner.match_any(&FOLLOW_SET_SYMBOL, input_index),
-            NonterminalId(10) => self
-                .scanner
-                .match_any(&FOLLOW_SET_PRE_CONDITION, input_index),
-            NonterminalId(11) => self
-                .scanner
-                .match_any(&FOLLOW_SET_POST_CONDITION, input_index),
-            NonterminalId(12) => self.scanner.match_any(&FOLLOW_SET_REGEX, input_index),
-            NonterminalId(13) => self.scanner.match_any(&FOLLOW_SET_CHAR_CLASS, input_index),
-            NonterminalId(14) => self
-                .scanner
-                .match_any(&FOLLOW_SET_RANGE_ELEMENT, input_index),
-            NonterminalId(15) => self.scanner.match_any(&FOLLOW_SET_RANGE, input_index),
-            NonterminalId(16) => self.scanner.match_any(&FOLLOW_SET_LAYOUT, input_index),
-            NonterminalId(17) => self.scanner.match_any(&FOLLOW_SET_PLUS_0, input_index),
-            NonterminalId(18) => self.scanner.match_any(&FOLLOW_SET_OPT_0, input_index),
-            NonterminalId(19) => self.scanner.match_any(&FOLLOW_SET_STAR_0, input_index),
-            NonterminalId(20) => self.scanner.match_any(&FOLLOW_SET_OPT_1, input_index),
-            NonterminalId(21) => self.scanner.match_any(&FOLLOW_SET_PLUS_1, input_index),
-            NonterminalId(22) => self.scanner.match_any(&FOLLOW_SET_OPT_2, input_index),
-            NonterminalId(23) => self.scanner.match_any(&FOLLOW_SET_STAR_1, input_index),
-            NonterminalId(24) => self.scanner.match_any(&FOLLOW_SET_OPT_3, input_index),
-            NonterminalId(25) => self.scanner.match_any(&FOLLOW_SET_OPT_4, input_index),
-            NonterminalId(26) => self.scanner.match_any(&FOLLOW_SET_OPT_5, input_index),
-            NonterminalId(27) => self.scanner.match_any(&FOLLOW_SET_PLUS_3, input_index),
-            NonterminalId(28) => self.scanner.match_any(&FOLLOW_SET_PLUS_2, input_index),
-            NonterminalId(29) => self.scanner.match_any(&FOLLOW_SET_PLUS_4, input_index),
-            NonterminalId(30) => self.scanner.match_any(&FOLLOW_SET_OPT_6, input_index),
-            NonterminalId(31) => self.scanner.match_any(&FOLLOW_SET_STAR_2, input_index),
-            NonterminalId(32) => self.scanner.match_any(&FOLLOW_SET_OPT_7, input_index),
-            NonterminalId(33) => self.scanner.match_any(&FOLLOW_SET_PLUS_5, input_index),
-            NonterminalId(34) => self.scanner.match_any(&FOLLOW_SET_OPT_8, input_index),
-            NonterminalId(35) => self.scanner.match_any(&FOLLOW_SET_STAR_3, input_index),
-            NonterminalId(36) => self.scanner.match_any(&FOLLOW_SET_PLUS_6, input_index),
-            NonterminalId(37) => self.scanner.match_any(&FOLLOW_SET_OPT_9, input_index),
-            NonterminalId(38) => self.scanner.match_any(&FOLLOW_SET_PLUS_7, input_index),
-            NonterminalId(39) => self.scanner.match_any(&FOLLOW_SET_PLUS_8, input_index),
-            NonterminalId(40) => self.scanner.match_any(&FOLLOW_SET_PLUS_9, input_index),
-            NonterminalId(41) => self.scanner.match_any(&FOLLOW_SET_OPT_10, input_index),
-            NonterminalId(42) => self.scanner.match_any(&FOLLOW_SET_PLUS_10, input_index),
-            NonterminalId(43) => self.scanner.match_any(&FOLLOW_SET_ALT_0, input_index),
-            NonterminalId(44) => self.scanner.match_any(&FOLLOW_SET_PLUS_11, input_index),
-            NonterminalId(45) => self.scanner.match_any(&FOLLOW_SET_OPT_11, input_index),
-            NonterminalId(46) => self.scanner.match_any(&FOLLOW_SET_STAR_4, input_index),
-            NonterminalId(47) => self
-                .scanner
-                .match_any(&FOLLOW_SET_START_GRAMMAR, input_index),
-            NonterminalId(48) => self.scanner.match_any(&FOLLOW_SET_START_RULE, input_index),
-            NonterminalId(49) => self
-                .scanner
-                .match_any(&FOLLOW_SET_START_SYNTAX_RULE, input_index),
-            NonterminalId(50) => self
-                .scanner
-                .match_any(&FOLLOW_SET_START_ANNOTATION, input_index),
-            NonterminalId(51) => self
-                .scanner
-                .match_any(&FOLLOW_SET_START_REGEX_RULE, input_index),
-            NonterminalId(52) => self
-                .scanner
-                .match_any(&FOLLOW_SET_START_REGEX_PRE_CONDITION, input_index),
-            NonterminalId(53) => self
-                .scanner
-                .match_any(&FOLLOW_SET_START_REGEX_POST_CONDITION, input_index),
-            NonterminalId(54) => self
-                .scanner
-                .match_any(&FOLLOW_SET_START_PRIORITY_LEVEL, input_index),
-            NonterminalId(55) => self
-                .scanner
-                .match_any(&FOLLOW_SET_START_ASSOCIATIVITY, input_index),
-            NonterminalId(56) => self
-                .scanner
-                .match_any(&FOLLOW_SET_START_ALTERNATIVE, input_index),
-            NonterminalId(57) => self
-                .scanner
-                .match_any(&FOLLOW_SET_START_SYMBOL, input_index),
-            NonterminalId(58) => self
-                .scanner
-                .match_any(&FOLLOW_SET_START_PRE_CONDITION, input_index),
-            NonterminalId(59) => self
-                .scanner
-                .match_any(&FOLLOW_SET_START_POST_CONDITION, input_index),
-            NonterminalId(60) => self.scanner.match_any(&FOLLOW_SET_START_REGEX, input_index),
-            NonterminalId(61) => self
-                .scanner
-                .match_any(&FOLLOW_SET_START_CHAR_CLASS, input_index),
-            NonterminalId(62) => self
-                .scanner
-                .match_any(&FOLLOW_SET_START_RANGE_ELEMENT, input_index),
-            NonterminalId(63) => self.scanner.match_any(&FOLLOW_SET_START_RANGE, input_index),
-            _ => true,
-        }
-    }
-    fn follow_set(&self, nonterminal_id: NonterminalId) -> &'static TerminalSet {
-        match nonterminal_id {
-            NonterminalId(0) => &FOLLOW_SET_GRAMMAR,
-            NonterminalId(1) => &FOLLOW_SET_RULE,
-            NonterminalId(2) => &FOLLOW_SET_SYNTAX_RULE,
-            NonterminalId(3) => &FOLLOW_SET_ANNOTATION,
-            NonterminalId(4) => &FOLLOW_SET_REGEX_RULE,
-            NonterminalId(5) => &FOLLOW_SET_REGEX_PRE_CONDITION,
-            NonterminalId(6) => &FOLLOW_SET_REGEX_POST_CONDITION,
-            NonterminalId(7) => &FOLLOW_SET_PRIORITY_LEVEL,
-            NonterminalId(8) => &FOLLOW_SET_ASSOCIATIVITY,
-            NonterminalId(9) => &FOLLOW_SET_ALTERNATIVE,
-            NonterminalId(64) => &FOLLOW_SET_SYMBOL,
-            NonterminalId(10) => &FOLLOW_SET_PRE_CONDITION,
-            NonterminalId(11) => &FOLLOW_SET_POST_CONDITION,
-            NonterminalId(12) => &FOLLOW_SET_REGEX,
-            NonterminalId(13) => &FOLLOW_SET_CHAR_CLASS,
-            NonterminalId(14) => &FOLLOW_SET_RANGE_ELEMENT,
-            NonterminalId(15) => &FOLLOW_SET_RANGE,
-            NonterminalId(16) => &FOLLOW_SET_LAYOUT,
-            NonterminalId(17) => &FOLLOW_SET_PLUS_0,
-            NonterminalId(18) => &FOLLOW_SET_OPT_0,
-            NonterminalId(19) => &FOLLOW_SET_STAR_0,
-            NonterminalId(20) => &FOLLOW_SET_OPT_1,
-            NonterminalId(21) => &FOLLOW_SET_PLUS_1,
-            NonterminalId(22) => &FOLLOW_SET_OPT_2,
-            NonterminalId(23) => &FOLLOW_SET_STAR_1,
-            NonterminalId(24) => &FOLLOW_SET_OPT_3,
-            NonterminalId(25) => &FOLLOW_SET_OPT_4,
-            NonterminalId(26) => &FOLLOW_SET_OPT_5,
-            NonterminalId(27) => &FOLLOW_SET_PLUS_3,
-            NonterminalId(28) => &FOLLOW_SET_PLUS_2,
-            NonterminalId(29) => &FOLLOW_SET_PLUS_4,
-            NonterminalId(30) => &FOLLOW_SET_OPT_6,
-            NonterminalId(31) => &FOLLOW_SET_STAR_2,
-            NonterminalId(32) => &FOLLOW_SET_OPT_7,
-            NonterminalId(33) => &FOLLOW_SET_PLUS_5,
-            NonterminalId(34) => &FOLLOW_SET_OPT_8,
-            NonterminalId(35) => &FOLLOW_SET_STAR_3,
-            NonterminalId(36) => &FOLLOW_SET_PLUS_6,
-            NonterminalId(37) => &FOLLOW_SET_OPT_9,
-            NonterminalId(38) => &FOLLOW_SET_PLUS_7,
-            NonterminalId(39) => &FOLLOW_SET_PLUS_8,
-            NonterminalId(40) => &FOLLOW_SET_PLUS_9,
-            NonterminalId(41) => &FOLLOW_SET_OPT_10,
-            NonterminalId(42) => &FOLLOW_SET_PLUS_10,
-            NonterminalId(43) => &FOLLOW_SET_ALT_0,
-            NonterminalId(44) => &FOLLOW_SET_PLUS_11,
-            NonterminalId(45) => &FOLLOW_SET_OPT_11,
-            NonterminalId(46) => &FOLLOW_SET_STAR_4,
-            NonterminalId(47) => &FOLLOW_SET_START_GRAMMAR,
-            NonterminalId(48) => &FOLLOW_SET_START_RULE,
-            NonterminalId(49) => &FOLLOW_SET_START_SYNTAX_RULE,
-            NonterminalId(50) => &FOLLOW_SET_START_ANNOTATION,
-            NonterminalId(51) => &FOLLOW_SET_START_REGEX_RULE,
-            NonterminalId(52) => &FOLLOW_SET_START_REGEX_PRE_CONDITION,
-            NonterminalId(53) => &FOLLOW_SET_START_REGEX_POST_CONDITION,
-            NonterminalId(54) => &FOLLOW_SET_START_PRIORITY_LEVEL,
-            NonterminalId(55) => &FOLLOW_SET_START_ASSOCIATIVITY,
-            NonterminalId(56) => &FOLLOW_SET_START_ALTERNATIVE,
-            NonterminalId(57) => &FOLLOW_SET_START_SYMBOL,
-            NonterminalId(58) => &FOLLOW_SET_START_PRE_CONDITION,
-            NonterminalId(59) => &FOLLOW_SET_START_POST_CONDITION,
-            NonterminalId(60) => &FOLLOW_SET_START_REGEX,
-            NonterminalId(61) => &FOLLOW_SET_START_CHAR_CLASS,
-            NonterminalId(62) => &FOLLOW_SET_START_RANGE_ELEMENT,
-            NonterminalId(63) => &FOLLOW_SET_START_RANGE,
-            _ => unreachable!("no FOLLOW set for nonterminal {nonterminal_id}"),
-        }
-    }
     fn failures(&self) -> impl Iterator<Item = &GLLFailure> {
         self.failures.iter()
     }
@@ -6824,6 +6408,9 @@ impl<'i, 'arena> Parser<'i, 'arena> for IggyParser<'i, 'arena> {
         if input_index > level {
             self.failures.clear();
         }
+        if self.failures.last().is_some_and(|last| last.kind == kind) {
+            return;
+        }
         self.failures.push(
             GLLFailure {
                 input_index,
@@ -6836,6 +6423,9 @@ impl<'i, 'arena> Parser<'i, 'arena> for IggyParser<'i, 'arena> {
     }
     fn match_token(&mut self, terminal_id: TerminalId, input_index: u32) -> Option<u32> {
         self.scanner.match_token(terminal_id, input_index)
+    }
+    fn match_any(&mut self, set: &'static TerminalSet, input_index: u32) -> bool {
+        self.scanner.match_any(set, input_index)
     }
     fn vec_arena(&self) -> &'arena Arena {
         self.vec_arena
@@ -6939,10 +6529,10 @@ impl<'i, 'arena> IggyParser<'i, 'arena> {
     }
     /// Parses the input from `start` and builds the parse tree in the given
     /// `tree_arena`. The parser is consumed. The tree lives as long as the
-    /// arena lives. `start` is normally the start wrapper of a declared
-    /// nonterminal, `grammar::START_<NAME>`, which allows layout around the
-    /// input; a bare nonterminal id parses without it.
-    pub fn parse<'a>(
+    /// arena lives. `start` is the start wrapper of a declared nonterminal,
+    /// `grammar::START_<NAME>`, which allows layout around the input. The
+    /// public entry points are the typed `parse_<name>` methods.
+    fn parse<'a>(
         self,
         start: NonterminalId,
         tree_arena: &'a Arena,
@@ -7104,14 +6694,9 @@ impl<'i, 'arena> IggyParser<'i, 'arena> {
         e: i32,
     ) {
         record!(self, Call, sppf_node_id, gss_node_id, return_slot);
-        let left_child = sppf_node_id.map(|id| {
-            let node = self.sppf_node(id);
-            (id, node.left_extent())
-        });
-        let gss_node = self.gss_node(gss_node_id);
-        let i = match left_child {
-            Some((id, _)) => self.sppf_node(id).right_extent(),
-            None => gss_node.index,
+        let i = match sppf_node_id {
+            Some(id) => self.sppf_node(id).right_extent(),
+            None => self.gss_node(gss_node_id).index,
         };
         // If there is already a GSS node for this call, add an edge.
         if let Some(existing_gss_node_id) = self.get_gss_node_symbol(i, p, e) {
@@ -7119,11 +6704,11 @@ impl<'i, 'arena> IggyParser<'i, 'arena> {
             self.add_edge_to_existing_gss_node(
                 existing_gss_node_id,
                 gss_node_id,
-                left_child,
+                sppf_node_id,
                 return_slot,
                 env,
             );
-        } else {
+        } else if self.match_any(&PREDICTION_SET_SYMBOL, i) {
             record!(self, GSSNodeNotFound, NonterminalId(64), i);
             let new_gss_node_id = self.new_gss_node(NonterminalId(64), i);
             self.add_gss_edge(new_gss_node_id, gss_node_id, sppf_node_id, return_slot, env);
@@ -7133,6 +6718,17 @@ impl<'i, 'arena> IggyParser<'i, 'arena> {
             env.bind(BINDING_E, e, arena);
             self.add_first_descriptors(NonterminalId(64), i, new_gss_node_id, Some(env_id));
             self.add_gss_node_symbol(i, p, e, new_gss_node_id);
+        } else {
+            // The call symbol precedes the return slot in its alternative, so the return slot is never
+            // at the first position.
+            let call_slot = IggyGrammar::previous_slot(return_slot)
+                .expect("a return slot follows the call symbol");
+            self.add_failure(
+                i,
+                call_slot,
+                Some(gss_node_id),
+                GLLFailureKind::UnexpectedToken(&PREDICTION_SET_SYMBOL),
+            );
         }
     }
     fn parse_annotation_ll1(

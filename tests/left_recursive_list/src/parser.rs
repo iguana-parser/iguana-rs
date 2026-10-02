@@ -65,7 +65,14 @@ impl<'i, 'arena> Parser<'i, 'arena> for LeftRecursiveListParser<'i, 'arena> {
                 match slot_id {
                     // A : . A "a"
                     SlotId(0) => {
-                        self.create(NonterminalId(0), result, gss_node_id, SlotId(1), env);
+                        self.create(
+                            NonterminalId(0),
+                            &PREDICTION_SET_A,
+                            result,
+                            gss_node_id,
+                            SlotId(1),
+                            env,
+                        );
                     }
                     // A : A . "a"
                     SlotId(1) => {
@@ -87,13 +94,10 @@ impl<'i, 'arena> Parser<'i, 'arena> for LeftRecursiveListParser<'i, 'arena> {
                     }
                     // A : A "a".
                     SlotId(2) => {
-                        let nonterminal_node_id = self.create_nonterminal_node(
-                            result,
-                            NonterminalId(0),
-                            SlotId(2),
-                            gss_node_id,
-                        );
-                        self.pop(gss_node_id, SlotId(2), nonterminal_node_id, None);
+                        let Some(result) = result else {
+                            unreachable!("result cannot be None here.")
+                        };
+                        self.pop(gss_node_id, SlotId(2), result, None, &FOLLOW_SET_A);
                     }
                     // A : . "a"
                     SlotId(3) => {
@@ -111,27 +115,28 @@ impl<'i, 'arena> Parser<'i, 'arena> for LeftRecursiveListParser<'i, 'arena> {
                     }
                     // A : "a".
                     SlotId(4) => {
-                        let nonterminal_node_id = self.create_nonterminal_node(
-                            result,
-                            NonterminalId(0),
-                            SlotId(4),
-                            gss_node_id,
-                        );
-                        self.pop(gss_node_id, SlotId(4), nonterminal_node_id, None);
+                        let Some(result) = result else {
+                            unreachable!("result cannot be None here.")
+                        };
+                        self.pop(gss_node_id, SlotId(4), result, None, &FOLLOW_SET_A);
                     }
                     // StartA : . start:A
                     SlotId(5) => {
-                        self.create(NonterminalId(0), result, gss_node_id, SlotId(6), env);
+                        self.create(
+                            NonterminalId(0),
+                            &PREDICTION_SET_A,
+                            result,
+                            gss_node_id,
+                            SlotId(6),
+                            env,
+                        );
                     }
                     // StartA : start:A.
                     SlotId(6) => {
-                        let nonterminal_node_id = self.create_nonterminal_node(
-                            result,
-                            NonterminalId(1),
-                            SlotId(6),
-                            gss_node_id,
-                        );
-                        self.pop(gss_node_id, SlotId(6), nonterminal_node_id, None);
+                        let Some(result) = result else {
+                            unreachable!("result cannot be None here.")
+                        };
+                        self.pop(gss_node_id, SlotId(6), result, None, &FOLLOW_SET_START_A);
                     }
                     _ => {
                         panic!("Unknown grammar slot id: {slot_id}");
@@ -150,24 +155,13 @@ impl<'i, 'arena> Parser<'i, 'arena> for LeftRecursiveListParser<'i, 'arena> {
         match nonterminal_id {
             // A
             NonterminalId(0) => {
-                let mut matched = false;
                 // A : . A "a"
                 if self.scanner.match_any(&FIRST_SET_A_ALT0, input_index) {
-                    matched = true;
                     self.add_first_descriptor(SlotId(0), input_index, gss_node_id, env);
                 }
                 // A : . "a"
                 if self.scanner.match_any(&FIRST_SET_A_ALT1, input_index) {
-                    matched = true;
                     self.add_first_descriptor(SlotId(3), input_index, gss_node_id, env);
-                }
-                if !matched {
-                    self.add_failure(
-                        input_index,
-                        SlotId(0),
-                        Some(gss_node_id),
-                        GLLFailureKind::UnexpectedToken(&FIRST_SET_A),
-                    );
                 }
             }
             // StartA : . start:A
@@ -528,20 +522,6 @@ impl<'i, 'arena> Parser<'i, 'arena> for LeftRecursiveListParser<'i, 'arena> {
     ) -> Option<GLLFailureKind> {
         None
     }
-    fn follow_set_check(&mut self, nonterminal_id: NonterminalId, input_index: u32) -> bool {
-        match nonterminal_id {
-            NonterminalId(0) => self.scanner.match_any(&FOLLOW_SET_A, input_index),
-            NonterminalId(1) => self.scanner.match_any(&FOLLOW_SET_START_A, input_index),
-            _ => true,
-        }
-    }
-    fn follow_set(&self, nonterminal_id: NonterminalId) -> &'static TerminalSet {
-        match nonterminal_id {
-            NonterminalId(0) => &FOLLOW_SET_A,
-            NonterminalId(1) => &FOLLOW_SET_START_A,
-            _ => unreachable!("no FOLLOW set for nonterminal {nonterminal_id}"),
-        }
-    }
     fn failures(&self) -> impl Iterator<Item = &GLLFailure> {
         self.failures.iter()
     }
@@ -564,6 +544,9 @@ impl<'i, 'arena> Parser<'i, 'arena> for LeftRecursiveListParser<'i, 'arena> {
         if input_index > level {
             self.failures.clear();
         }
+        if self.failures.last().is_some_and(|last| last.kind == kind) {
+            return;
+        }
         self.failures.push(
             GLLFailure {
                 input_index,
@@ -576,6 +559,9 @@ impl<'i, 'arena> Parser<'i, 'arena> for LeftRecursiveListParser<'i, 'arena> {
     }
     fn match_token(&mut self, terminal_id: TerminalId, input_index: u32) -> Option<u32> {
         self.scanner.match_token(terminal_id, input_index)
+    }
+    fn match_any(&mut self, set: &'static TerminalSet, input_index: u32) -> bool {
+        self.scanner.match_any(set, input_index)
     }
     fn vec_arena(&self) -> &'arena Arena {
         self.vec_arena
@@ -663,10 +649,10 @@ impl<'i, 'arena> LeftRecursiveListParser<'i, 'arena> {
     }
     /// Parses the input from `start` and builds the parse tree in the given
     /// `tree_arena`. The parser is consumed. The tree lives as long as the
-    /// arena lives. `start` is normally the start wrapper of a declared
-    /// nonterminal, `grammar::START_<NAME>`, which allows layout around the
-    /// input; a bare nonterminal id parses without it.
-    pub fn parse<'a>(
+    /// arena lives. `start` is the start wrapper of a declared nonterminal,
+    /// `grammar::START_<NAME>`, which allows layout around the input. The
+    /// public entry points are the typed `parse_<name>` methods.
+    fn parse<'a>(
         self,
         start: NonterminalId,
         tree_arena: &'a Arena,

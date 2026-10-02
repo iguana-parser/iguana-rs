@@ -41,36 +41,47 @@ impl Grammar for LongestMatchGrammar {
     const SLOTS: &'static [Slot] = &[
         Slot {
             display_name: "S : . X \"x\"",
+            position: 0,
         },
         Slot {
             display_name: "S : X . \"x\"",
+            position: 1,
         },
         Slot {
             display_name: "S : X \"x\".",
+            position: 2,
         },
         Slot {
             display_name: "X : . \"<\"",
+            position: 0,
         },
         Slot {
             display_name: "X : \"<\".",
+            position: 1,
         },
         Slot {
             display_name: "X : . \"<=\"",
+            position: 0,
         },
         Slot {
             display_name: "X : \"<=\".",
+            position: 1,
         },
         Slot {
             display_name: "S : . start:S",
+            position: 0,
         },
         Slot {
             display_name: "S : start:S.",
+            position: 1,
         },
         Slot {
             display_name: "X : . start:X",
+            position: 0,
         },
         Slot {
             display_name: "X : start:X.",
+            position: 1,
         },
     ];
     const LAYOUT_NAME: Option<&'static str> = None;
@@ -80,23 +91,23 @@ impl Grammar for LongestMatchGrammar {
     // by terminal id, serves only that.
     const SINGLE_TERMINAL_SETS: &'static [TerminalSet] = &[
         TerminalSet {
-            id: 6,
+            id: 5,
             terminals: &[TerminalId(0)],
         },
         TerminalSet {
-            id: 7,
+            id: 6,
             terminals: &[TerminalId(1)],
         },
         TerminalSet {
-            id: 8,
+            id: 7,
             terminals: &[TerminalId(2)],
         },
         TerminalSet {
-            id: 9,
+            id: 8,
             terminals: &[TerminalId(3)],
         },
         TerminalSet {
-            id: 10,
+            id: 9,
             terminals: &[TerminalId(4)],
         },
     ];
@@ -115,24 +126,19 @@ pub static FOLLOW_SET_S: TerminalSet = TerminalSet {
     id: 0,
     terminals: &[TerminalId(4)],
 };
-// S : . X "x" { "<", "<=" }
-pub static FIRST_SET_S_ALT0: TerminalSet = TerminalSet {
-    id: 1,
-    terminals: &[TerminalId(1), TerminalId(2)],
-};
 // X { "x", EOF }
 pub static FOLLOW_SET_X: TerminalSet = TerminalSet {
-    id: 2,
+    id: 1,
     terminals: &[TerminalId(0), TerminalId(4)],
 };
 // X : . "<" { "<" }
 pub static FIRST_SET_X_ALT0: TerminalSet = TerminalSet {
-    id: 3,
+    id: 2,
     terminals: &[TerminalId(1)],
 };
 // X : . "<=" { "<=" }
 pub static FIRST_SET_X_ALT1: TerminalSet = TerminalSet {
-    id: 4,
+    id: 3,
     terminals: &[TerminalId(2)],
 };
 // StartS { EOF }
@@ -140,38 +146,18 @@ pub static FOLLOW_SET_START_S: TerminalSet = TerminalSet {
     id: 0,
     terminals: &[TerminalId(4)],
 };
-// StartS : . start:S { "<", "<=" }
-pub static FIRST_SET_START_S_ALT0: TerminalSet = TerminalSet {
-    id: 1,
-    terminals: &[TerminalId(1), TerminalId(2)],
-};
 // StartX { EOF }
 pub static FOLLOW_SET_START_X: TerminalSet = TerminalSet {
     id: 0,
     terminals: &[TerminalId(4)],
 };
-// StartX : . start:X { "<", "<=" }
-pub static FIRST_SET_START_X_ALT0: TerminalSet = TerminalSet {
-    id: 1,
+// S prediction { "<", "<=" }
+pub static PREDICTION_SET_S: TerminalSet = TerminalSet {
+    id: 4,
     terminals: &[TerminalId(1), TerminalId(2)],
 };
-// S { "<", "<=" }
-pub static FIRST_SET_S: TerminalSet = TerminalSet {
-    id: 5,
-    terminals: &[TerminalId(1), TerminalId(2)],
-};
-// X { "<", "<=" }
-pub static FIRST_SET_X: TerminalSet = TerminalSet {
-    id: 5,
-    terminals: &[TerminalId(1), TerminalId(2)],
-};
-// StartS { "<", "<=" }
-pub static FIRST_SET_START_S: TerminalSet = TerminalSet {
-    id: 5,
-    terminals: &[TerminalId(1), TerminalId(2)],
-};
-// StartX { "<", "<=" }
-pub static FIRST_SET_START_X: TerminalSet = TerminalSet {
-    id: 5,
+// X prediction { "<", "<=" }
+pub static PREDICTION_SET_X: TerminalSet = TerminalSet {
+    id: 4,
     terminals: &[TerminalId(1), TerminalId(2)],
 };

@@ -105,123 +105,163 @@ impl Grammar for AltSeqGrammar {
     const SLOTS: &'static [Slot] = &[
         Slot {
             display_name: "S : . (A B | C) (D | E F) Hex",
+            position: 0,
         },
         Slot {
             display_name: "S : (A B | C) . (D | E F) Hex",
+            position: 1,
         },
         Slot {
             display_name: "S : (A B | C) (D | E F) . Hex",
+            position: 2,
         },
         Slot {
             display_name: "S : (A B | C) (D | E F) Hex.",
+            position: 3,
         },
         Slot {
             display_name: "A : . \"a\"",
+            position: 0,
         },
         Slot {
             display_name: "A : \"a\".",
+            position: 1,
         },
         Slot {
             display_name: "B : . \"b\"",
+            position: 0,
         },
         Slot {
             display_name: "B : \"b\".",
+            position: 1,
         },
         Slot {
             display_name: "C : . \"c\"",
+            position: 0,
         },
         Slot {
             display_name: "C : \"c\".",
+            position: 1,
         },
         Slot {
             display_name: "D : . \"d\"",
+            position: 0,
         },
         Slot {
             display_name: "D : \"d\".",
+            position: 1,
         },
         Slot {
             display_name: "E : . \"e\"",
+            position: 0,
         },
         Slot {
             display_name: "E : \"e\".",
+            position: 1,
         },
         Slot {
             display_name: "F : . \"f\"",
+            position: 0,
         },
         Slot {
             display_name: "F : \"f\".",
+            position: 1,
         },
         Slot {
             display_name: "(A B | C) : . A B",
+            position: 0,
         },
         Slot {
             display_name: "(A B | C) : A . B",
+            position: 1,
         },
         Slot {
             display_name: "(A B | C) : A B.",
+            position: 2,
         },
         Slot {
             display_name: "(A B | C) : . C",
+            position: 0,
         },
         Slot {
             display_name: "(A B | C) : C.",
+            position: 1,
         },
         Slot {
             display_name: "(D | E F) : . D",
+            position: 0,
         },
         Slot {
             display_name: "(D | E F) : D.",
+            position: 1,
         },
         Slot {
             display_name: "(D | E F) : . E F",
+            position: 0,
         },
         Slot {
             display_name: "(D | E F) : E . F",
+            position: 1,
         },
         Slot {
             display_name: "(D | E F) : E F.",
+            position: 2,
         },
         Slot {
             display_name: "S : . start:S",
+            position: 0,
         },
         Slot {
             display_name: "S : start:S.",
+            position: 1,
         },
         Slot {
             display_name: "A : . start:A",
+            position: 0,
         },
         Slot {
             display_name: "A : start:A.",
+            position: 1,
         },
         Slot {
             display_name: "B : . start:B",
+            position: 0,
         },
         Slot {
             display_name: "B : start:B.",
+            position: 1,
         },
         Slot {
             display_name: "C : . start:C",
+            position: 0,
         },
         Slot {
             display_name: "C : start:C.",
+            position: 1,
         },
         Slot {
             display_name: "D : . start:D",
+            position: 0,
         },
         Slot {
             display_name: "D : start:D.",
+            position: 1,
         },
         Slot {
             display_name: "E : . start:E",
+            position: 0,
         },
         Slot {
             display_name: "E : start:E.",
+            position: 1,
         },
         Slot {
             display_name: "F : . start:F",
+            position: 0,
         },
         Slot {
             display_name: "F : start:F.",
+            position: 1,
         },
     ];
     const LAYOUT_NAME: Option<&'static str> = None;
@@ -231,39 +271,39 @@ impl Grammar for AltSeqGrammar {
     // by terminal id, serves only that.
     const SINGLE_TERMINAL_SETS: &'static [TerminalSet] = &[
         TerminalSet {
-            id: 20,
+            id: 17,
             terminals: &[TerminalId(0)],
         },
         TerminalSet {
-            id: 21,
+            id: 18,
             terminals: &[TerminalId(1)],
         },
         TerminalSet {
-            id: 22,
+            id: 19,
             terminals: &[TerminalId(2)],
         },
         TerminalSet {
-            id: 23,
+            id: 20,
             terminals: &[TerminalId(3)],
         },
         TerminalSet {
-            id: 24,
+            id: 21,
             terminals: &[TerminalId(4)],
         },
         TerminalSet {
-            id: 25,
+            id: 22,
             terminals: &[TerminalId(5)],
         },
         TerminalSet {
-            id: 26,
+            id: 23,
             terminals: &[TerminalId(6)],
         },
         TerminalSet {
-            id: 27,
+            id: 24,
             terminals: &[TerminalId(7)],
         },
         TerminalSet {
-            id: 28,
+            id: 25,
             terminals: &[TerminalId(8)],
         },
     ];
@@ -294,79 +334,44 @@ pub static FOLLOW_SET_S: TerminalSet = TerminalSet {
     id: 0,
     terminals: &[TerminalId(8)],
 };
-// S : . Alt_0 Alt_1 Hex { "a", "c" }
-pub static FIRST_SET_S_ALT0: TerminalSet = TerminalSet {
-    id: 1,
-    terminals: &[TerminalId(1), TerminalId(3)],
-};
 // A { "b", EOF }
 pub static FOLLOW_SET_A: TerminalSet = TerminalSet {
-    id: 2,
+    id: 1,
     terminals: &[TerminalId(2), TerminalId(8)],
-};
-// A : . "a" { "a" }
-pub static FIRST_SET_A_ALT0: TerminalSet = TerminalSet {
-    id: 3,
-    terminals: &[TerminalId(1)],
 };
 // B { "d", "e", EOF }
 pub static FOLLOW_SET_B: TerminalSet = TerminalSet {
-    id: 4,
+    id: 2,
     terminals: &[TerminalId(4), TerminalId(5), TerminalId(8)],
-};
-// B : . "b" { "b" }
-pub static FIRST_SET_B_ALT0: TerminalSet = TerminalSet {
-    id: 5,
-    terminals: &[TerminalId(2)],
 };
 // C { "d", "e", EOF }
 pub static FOLLOW_SET_C: TerminalSet = TerminalSet {
-    id: 4,
+    id: 2,
     terminals: &[TerminalId(4), TerminalId(5), TerminalId(8)],
-};
-// C : . "c" { "c" }
-pub static FIRST_SET_C_ALT0: TerminalSet = TerminalSet {
-    id: 6,
-    terminals: &[TerminalId(3)],
 };
 // D { Hex, EOF }
 pub static FOLLOW_SET_D: TerminalSet = TerminalSet {
-    id: 7,
+    id: 3,
     terminals: &[TerminalId(0), TerminalId(8)],
-};
-// D : . "d" { "d" }
-pub static FIRST_SET_D_ALT0: TerminalSet = TerminalSet {
-    id: 8,
-    terminals: &[TerminalId(4)],
 };
 // E { "f", EOF }
 pub static FOLLOW_SET_E: TerminalSet = TerminalSet {
-    id: 9,
+    id: 4,
     terminals: &[TerminalId(6), TerminalId(8)],
-};
-// E : . "e" { "e" }
-pub static FIRST_SET_E_ALT0: TerminalSet = TerminalSet {
-    id: 10,
-    terminals: &[TerminalId(5)],
 };
 // F { Hex, EOF }
 pub static FOLLOW_SET_F: TerminalSet = TerminalSet {
-    id: 7,
+    id: 3,
     terminals: &[TerminalId(0), TerminalId(8)],
-};
-// F : . "f" { "f" }
-pub static FIRST_SET_F_ALT0: TerminalSet = TerminalSet {
-    id: 11,
-    terminals: &[TerminalId(6)],
 };
 // Alt_0 { "d", "e", EOF }
 pub static FOLLOW_SET_ALT_0: TerminalSet = TerminalSet {
-    id: 4,
+    id: 2,
     terminals: &[TerminalId(4), TerminalId(5), TerminalId(8)],
 };
 // Alt_0 : . A B { "a" }
 pub static FIRST_SET_ALT_0_ALT0: TerminalSet = TerminalSet {
-    id: 3,
+    id: 5,
     terminals: &[TerminalId(1)],
 };
 // Alt_0 : . C { "c" }
@@ -376,17 +381,17 @@ pub static FIRST_SET_ALT_0_ALT1: TerminalSet = TerminalSet {
 };
 // Alt_1 { Hex, EOF }
 pub static FOLLOW_SET_ALT_1: TerminalSet = TerminalSet {
-    id: 7,
+    id: 3,
     terminals: &[TerminalId(0), TerminalId(8)],
 };
 // Alt_1 : . D { "d" }
 pub static FIRST_SET_ALT_1_ALT0: TerminalSet = TerminalSet {
-    id: 8,
+    id: 7,
     terminals: &[TerminalId(4)],
 };
 // Alt_1 : . E F { "e" }
 pub static FIRST_SET_ALT_1_ALT1: TerminalSet = TerminalSet {
-    id: 10,
+    id: 8,
     terminals: &[TerminalId(5)],
 };
 // StartS { EOF }
@@ -394,148 +399,113 @@ pub static FOLLOW_SET_START_S: TerminalSet = TerminalSet {
     id: 0,
     terminals: &[TerminalId(8)],
 };
-// StartS : . start:S { "a", "c" }
-pub static FIRST_SET_START_S_ALT0: TerminalSet = TerminalSet {
-    id: 1,
-    terminals: &[TerminalId(1), TerminalId(3)],
-};
 // StartA { EOF }
 pub static FOLLOW_SET_START_A: TerminalSet = TerminalSet {
     id: 0,
     terminals: &[TerminalId(8)],
-};
-// StartA : . start:A { "a" }
-pub static FIRST_SET_START_A_ALT0: TerminalSet = TerminalSet {
-    id: 3,
-    terminals: &[TerminalId(1)],
 };
 // StartB { EOF }
 pub static FOLLOW_SET_START_B: TerminalSet = TerminalSet {
     id: 0,
     terminals: &[TerminalId(8)],
 };
-// StartB : . start:B { "b" }
-pub static FIRST_SET_START_B_ALT0: TerminalSet = TerminalSet {
-    id: 5,
-    terminals: &[TerminalId(2)],
-};
 // StartC { EOF }
 pub static FOLLOW_SET_START_C: TerminalSet = TerminalSet {
     id: 0,
     terminals: &[TerminalId(8)],
-};
-// StartC : . start:C { "c" }
-pub static FIRST_SET_START_C_ALT0: TerminalSet = TerminalSet {
-    id: 6,
-    terminals: &[TerminalId(3)],
 };
 // StartD { EOF }
 pub static FOLLOW_SET_START_D: TerminalSet = TerminalSet {
     id: 0,
     terminals: &[TerminalId(8)],
 };
-// StartD : . start:D { "d" }
-pub static FIRST_SET_START_D_ALT0: TerminalSet = TerminalSet {
-    id: 8,
-    terminals: &[TerminalId(4)],
-};
 // StartE { EOF }
 pub static FOLLOW_SET_START_E: TerminalSet = TerminalSet {
     id: 0,
     terminals: &[TerminalId(8)],
-};
-// StartE : . start:E { "e" }
-pub static FIRST_SET_START_E_ALT0: TerminalSet = TerminalSet {
-    id: 10,
-    terminals: &[TerminalId(5)],
 };
 // StartF { EOF }
 pub static FOLLOW_SET_START_F: TerminalSet = TerminalSet {
     id: 0,
     terminals: &[TerminalId(8)],
 };
-// StartF : . start:F { "f" }
-pub static FIRST_SET_START_F_ALT0: TerminalSet = TerminalSet {
-    id: 11,
-    terminals: &[TerminalId(6)],
-};
 // S { "a", "c" }
 pub static FIRST_SET_S: TerminalSet = TerminalSet {
-    id: 12,
+    id: 9,
     terminals: &[TerminalId(1), TerminalId(3)],
 };
 // A { "a" }
 pub static FIRST_SET_A: TerminalSet = TerminalSet {
-    id: 13,
+    id: 10,
     terminals: &[TerminalId(1)],
 };
 // B { "b" }
 pub static FIRST_SET_B: TerminalSet = TerminalSet {
-    id: 14,
+    id: 11,
     terminals: &[TerminalId(2)],
 };
 // C { "c" }
 pub static FIRST_SET_C: TerminalSet = TerminalSet {
-    id: 15,
+    id: 12,
     terminals: &[TerminalId(3)],
 };
 // D { "d" }
 pub static FIRST_SET_D: TerminalSet = TerminalSet {
-    id: 16,
+    id: 13,
     terminals: &[TerminalId(4)],
 };
 // E { "e" }
 pub static FIRST_SET_E: TerminalSet = TerminalSet {
-    id: 17,
+    id: 14,
     terminals: &[TerminalId(5)],
 };
 // F { "f" }
 pub static FIRST_SET_F: TerminalSet = TerminalSet {
-    id: 18,
+    id: 15,
     terminals: &[TerminalId(6)],
 };
 // Alt_0 { "a", "c" }
 pub static FIRST_SET_ALT_0: TerminalSet = TerminalSet {
-    id: 12,
+    id: 9,
     terminals: &[TerminalId(1), TerminalId(3)],
 };
 // Alt_1 { "d", "e" }
 pub static FIRST_SET_ALT_1: TerminalSet = TerminalSet {
-    id: 19,
+    id: 16,
     terminals: &[TerminalId(4), TerminalId(5)],
 };
 // StartS { "a", "c" }
 pub static FIRST_SET_START_S: TerminalSet = TerminalSet {
-    id: 12,
+    id: 9,
     terminals: &[TerminalId(1), TerminalId(3)],
 };
 // StartA { "a" }
 pub static FIRST_SET_START_A: TerminalSet = TerminalSet {
-    id: 13,
+    id: 10,
     terminals: &[TerminalId(1)],
 };
 // StartB { "b" }
 pub static FIRST_SET_START_B: TerminalSet = TerminalSet {
-    id: 14,
+    id: 11,
     terminals: &[TerminalId(2)],
 };
 // StartC { "c" }
 pub static FIRST_SET_START_C: TerminalSet = TerminalSet {
-    id: 15,
+    id: 12,
     terminals: &[TerminalId(3)],
 };
 // StartD { "d" }
 pub static FIRST_SET_START_D: TerminalSet = TerminalSet {
-    id: 16,
+    id: 13,
     terminals: &[TerminalId(4)],
 };
 // StartE { "e" }
 pub static FIRST_SET_START_E: TerminalSet = TerminalSet {
-    id: 17,
+    id: 14,
     terminals: &[TerminalId(5)],
 };
 // StartF { "f" }
 pub static FIRST_SET_START_F: TerminalSet = TerminalSet {
-    id: 18,
+    id: 15,
     terminals: &[TerminalId(6)],
 };

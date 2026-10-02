@@ -43,159 +43,211 @@ impl Grammar for AmbRootStartGrammar {
     const SLOTS: &'static [Slot] = &[
         Slot {
             display_name: "Type : . Id",
+            position: 0,
         },
         Slot {
             display_name: "Type : Id.",
+            position: 1,
         },
         Slot {
             display_name: "E(0) : . WS start:E(0) WS",
+            position: 0,
         },
         Slot {
             display_name: "E(0) : WS . start:E(0) WS",
+            position: 1,
         },
         Slot {
             display_name: "E(0) : WS start:E(0) . WS",
+            position: 2,
         },
         Slot {
             display_name: "E(0) : WS start:E(0) WS.",
+            position: 3,
         },
         Slot {
             display_name: "Type : . WS start:Type WS",
+            position: 0,
         },
         Slot {
             display_name: "Type : WS . start:Type WS",
+            position: 1,
         },
         Slot {
             display_name: "Type : WS start:Type . WS",
+            position: 2,
         },
         Slot {
             display_name: "Type : WS start:Type WS.",
+            position: 3,
         },
         Slot {
             display_name: "E : . \"(\" WS Type WS \")\" WS E(2) return 2",
+            position: 0,
         },
         Slot {
             display_name: "E : \"(\" . WS Type WS \")\" WS E(2) return 2",
+            position: 1,
         },
         Slot {
             display_name: "E : \"(\" WS . Type WS \")\" WS E(2) return 2",
+            position: 2,
         },
         Slot {
             display_name: "E : \"(\" WS Type . WS \")\" WS E(2) return 2",
+            position: 3,
         },
         Slot {
             display_name: "E : \"(\" WS Type WS . \")\" WS E(2) return 2",
+            position: 4,
         },
         Slot {
             display_name: "E : \"(\" WS Type WS \")\" . WS E(2) return 2",
+            position: 5,
         },
         Slot {
             display_name: "E : \"(\" WS Type WS \")\" WS . E(2) return 2",
+            position: 6,
         },
         Slot {
             display_name: "E : \"(\" WS Type WS \")\" WS E(2) . return 2",
+            position: 7,
         },
         Slot {
             display_name: "E : \"(\" WS Type WS \")\" WS E(2) return 2.",
+            position: 8,
         },
         Slot {
             display_name: "E : . \"-\" WS E(2) return 2",
+            position: 0,
         },
         Slot {
             display_name: "E : \"-\" . WS E(2) return 2",
+            position: 1,
         },
         Slot {
             display_name: "E : \"-\" WS . E(2) return 2",
+            position: 2,
         },
         Slot {
             display_name: "E : \"-\" WS E(2) . return 2",
+            position: 3,
         },
         Slot {
             display_name: "E : \"-\" WS E(2) return 2.",
+            position: 4,
         },
         Slot {
             display_name: "E : . [1 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 1)] WS \"-\" WS E(1) return 1",
+            position: 0,
         },
         Slot {
             display_name: "E : [1 >= p] . l_pr=E(p) [(l_pr == 0) || (l_pr >= 1)] WS \"-\" WS E(1) return 1",
+            position: 1,
         },
         Slot {
             display_name: "E : [1 >= p] l_pr=E(p) . [(l_pr == 0) || (l_pr >= 1)] WS \"-\" WS E(1) return 1",
+            position: 2,
         },
         Slot {
             display_name: "E : [1 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 1)] . WS \"-\" WS E(1) return 1",
+            position: 3,
         },
         Slot {
             display_name: "E : [1 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 1)] WS . \"-\" WS E(1) return 1",
+            position: 4,
         },
         Slot {
             display_name: "E : [1 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 1)] WS \"-\" . WS E(1) return 1",
+            position: 5,
         },
         Slot {
             display_name: "E : [1 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 1)] WS \"-\" WS . E(1) return 1",
+            position: 6,
         },
         Slot {
             display_name: "E : [1 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 1)] WS \"-\" WS E(1) . return 1",
+            position: 7,
         },
         Slot {
             display_name: "E : [1 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 1)] WS \"-\" WS E(1) return 1.",
+            position: 8,
         },
         Slot {
             display_name: "E : . [1 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 1)] WS \"-\" WS E(1) return 1",
+            position: 0,
         },
         Slot {
             display_name: "E : [1 >= p] . l_pr=E(p) [(l_pr == 0) || (l_pr >= 1)] WS \"-\" WS E(1) return 1",
+            position: 1,
         },
         Slot {
             display_name: "E : [1 >= p] l_pr=E(p) . [(l_pr == 0) || (l_pr >= 1)] WS \"-\" WS E(1) return 1",
+            position: 2,
         },
         Slot {
             display_name: "E : [1 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 1)] . WS \"-\" WS E(1) return 1",
+            position: 3,
         },
         Slot {
             display_name: "E : [1 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 1)] WS . \"-\" WS E(1) return 1",
+            position: 4,
         },
         Slot {
             display_name: "E : [1 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 1)] WS \"-\" . WS E(1) return 1",
+            position: 5,
         },
         Slot {
             display_name: "E : [1 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 1)] WS \"-\" WS . E(1) return 1",
+            position: 6,
         },
         Slot {
             display_name: "E : [1 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 1)] WS \"-\" WS E(1) . return 1",
+            position: 7,
         },
         Slot {
             display_name: "E : [1 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 1)] WS \"-\" WS E(1) return 1.",
+            position: 8,
         },
         Slot {
             display_name: "E : . \"(\" WS E(0) WS \")\" return 0",
+            position: 0,
         },
         Slot {
             display_name: "E : \"(\" . WS E(0) WS \")\" return 0",
+            position: 1,
         },
         Slot {
             display_name: "E : \"(\" WS . E(0) WS \")\" return 0",
+            position: 2,
         },
         Slot {
             display_name: "E : \"(\" WS E(0) . WS \")\" return 0",
+            position: 3,
         },
         Slot {
             display_name: "E : \"(\" WS E(0) WS . \")\" return 0",
+            position: 4,
         },
         Slot {
             display_name: "E : \"(\" WS E(0) WS \")\" . return 0",
+            position: 5,
         },
         Slot {
             display_name: "E : \"(\" WS E(0) WS \")\" return 0.",
+            position: 6,
         },
         Slot {
             display_name: "E : . Id return 0",
+            position: 0,
         },
         Slot {
             display_name: "E : Id . return 0",
+            position: 1,
         },
         Slot {
             display_name: "E : Id return 0.",
+            position: 2,
         },
     ];
     const LAYOUT_NAME: Option<&'static str> = Some("WS");
@@ -205,31 +257,31 @@ impl Grammar for AmbRootStartGrammar {
     // by terminal id, serves only that.
     const SINGLE_TERMINAL_SETS: &'static [TerminalSet] = &[
         TerminalSet {
-            id: 13,
+            id: 9,
             terminals: &[TerminalId(0)],
         },
         TerminalSet {
-            id: 14,
+            id: 10,
             terminals: &[TerminalId(1)],
         },
         TerminalSet {
-            id: 15,
+            id: 11,
             terminals: &[TerminalId(2)],
         },
         TerminalSet {
-            id: 16,
+            id: 12,
             terminals: &[TerminalId(3)],
         },
         TerminalSet {
-            id: 17,
+            id: 13,
             terminals: &[TerminalId(4)],
         },
         TerminalSet {
-            id: 18,
+            id: 14,
             terminals: &[TerminalId(5)],
         },
         TerminalSet {
-            id: 19,
+            id: 15,
             terminals: &[TerminalId(6)],
         },
     ];
@@ -285,48 +337,28 @@ pub static FOLLOW_SET_TYPE: TerminalSet = TerminalSet {
     id: 5,
     terminals: &[TerminalId(1), TerminalId(3), TerminalId(6)],
 };
-// Type : . Id { Id }
-pub static FIRST_SET_TYPE_ALT0: TerminalSet = TerminalSet {
-    id: 4,
-    terminals: &[TerminalId(0)],
-};
 // StartE { EOF }
 pub static FOLLOW_SET_START_E: TerminalSet = TerminalSet {
     id: 6,
     terminals: &[TerminalId(6)],
-};
-// StartE : . WS start:E(0) WS { Id, WS, "(", "-" }
-pub static FIRST_SET_START_E_ALT0: TerminalSet = TerminalSet {
-    id: 7,
-    terminals: &[TerminalId(0), TerminalId(1), TerminalId(2), TerminalId(4)],
 };
 // StartType { EOF }
 pub static FOLLOW_SET_START_TYPE: TerminalSet = TerminalSet {
     id: 6,
     terminals: &[TerminalId(6)],
 };
-// StartType : . WS start:Type WS { Id, WS }
-pub static FIRST_SET_START_TYPE_ALT0: TerminalSet = TerminalSet {
-    id: 8,
-    terminals: &[TerminalId(0), TerminalId(1)],
-};
-// E { Id, "(", "-" }
-pub static FIRST_SET_E: TerminalSet = TerminalSet {
-    id: 9,
+// E prediction { Id, "(", "-" }
+pub static PREDICTION_SET_E: TerminalSet = TerminalSet {
+    id: 3,
     terminals: &[TerminalId(0), TerminalId(2), TerminalId(4)],
 };
 // Type { Id }
 pub static FIRST_SET_TYPE: TerminalSet = TerminalSet {
-    id: 10,
+    id: 7,
     terminals: &[TerminalId(0)],
-};
-// StartE { Id, WS, "(", "-" }
-pub static FIRST_SET_START_E: TerminalSet = TerminalSet {
-    id: 11,
-    terminals: &[TerminalId(0), TerminalId(1), TerminalId(2), TerminalId(4)],
 };
 // StartType { Id, WS }
 pub static FIRST_SET_START_TYPE: TerminalSet = TerminalSet {
-    id: 12,
+    id: 8,
     terminals: &[TerminalId(0), TerminalId(1)],
 };

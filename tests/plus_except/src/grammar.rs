@@ -52,63 +52,83 @@ impl Grammar for PlusExceptGrammar {
     const SLOTS: &'static [Slot] = &[
         Slot {
             display_name: "Sep : . {Number Identifier \\ Keyword}+",
+            position: 0,
         },
         Slot {
             display_name: "Sep : {Number Identifier \\ Keyword}+.",
+            position: 1,
         },
         Slot {
             display_name: "Base : . {Identifier \\ Keyword \",\"}+",
+            position: 0,
         },
         Slot {
             display_name: "Base : {Identifier \\ Keyword \",\"}+.",
+            position: 1,
         },
         Slot {
             display_name: "{Number Identifier \\ Keyword}+ : . {Number Identifier \\ Keyword}+ Identifier \\ Keyword Number",
+            position: 0,
         },
         Slot {
             display_name: "{Number Identifier \\ Keyword}+ : {Number Identifier \\ Keyword}+ . Identifier \\ Keyword Number",
+            position: 1,
         },
         Slot {
             display_name: "{Number Identifier \\ Keyword}+ : {Number Identifier \\ Keyword}+ Identifier \\ Keyword . Number",
+            position: 2,
         },
         Slot {
             display_name: "{Number Identifier \\ Keyword}+ : {Number Identifier \\ Keyword}+ Identifier \\ Keyword Number.",
+            position: 3,
         },
         Slot {
             display_name: "{Number Identifier \\ Keyword}+ : . Number",
+            position: 0,
         },
         Slot {
             display_name: "{Number Identifier \\ Keyword}+ : Number.",
+            position: 1,
         },
         Slot {
             display_name: "{Identifier \\ Keyword \",\"}+ : . {Identifier \\ Keyword \",\"}+ \",\" Identifier \\ Keyword",
+            position: 0,
         },
         Slot {
             display_name: "{Identifier \\ Keyword \",\"}+ : {Identifier \\ Keyword \",\"}+ . \",\" Identifier \\ Keyword",
+            position: 1,
         },
         Slot {
             display_name: "{Identifier \\ Keyword \",\"}+ : {Identifier \\ Keyword \",\"}+ \",\" . Identifier \\ Keyword",
+            position: 2,
         },
         Slot {
             display_name: "{Identifier \\ Keyword \",\"}+ : {Identifier \\ Keyword \",\"}+ \",\" Identifier \\ Keyword.",
+            position: 3,
         },
         Slot {
             display_name: "{Identifier \\ Keyword \",\"}+ : . Identifier \\ Keyword",
+            position: 0,
         },
         Slot {
             display_name: "{Identifier \\ Keyword \",\"}+ : Identifier \\ Keyword.",
+            position: 1,
         },
         Slot {
             display_name: "Sep : . start:Sep",
+            position: 0,
         },
         Slot {
             display_name: "Sep : start:Sep.",
+            position: 1,
         },
         Slot {
             display_name: "Base : . start:Base",
+            position: 0,
         },
         Slot {
             display_name: "Base : start:Base.",
+            position: 1,
         },
     ];
     const LAYOUT_NAME: Option<&'static str> = None;
@@ -118,27 +138,27 @@ impl Grammar for PlusExceptGrammar {
     // by terminal id, serves only that.
     const SINGLE_TERMINAL_SETS: &'static [TerminalSet] = &[
         TerminalSet {
-            id: 8,
+            id: 6,
             terminals: &[TerminalId(0)],
         },
         TerminalSet {
-            id: 9,
+            id: 7,
             terminals: &[TerminalId(1)],
         },
         TerminalSet {
-            id: 10,
+            id: 8,
             terminals: &[TerminalId(2)],
         },
         TerminalSet {
-            id: 11,
+            id: 9,
             terminals: &[TerminalId(3)],
         },
         TerminalSet {
-            id: 12,
+            id: 10,
             terminals: &[TerminalId(4)],
         },
         TerminalSet {
-            id: 13,
+            id: 11,
             terminals: &[TerminalId(5)],
         },
     ];
@@ -159,49 +179,39 @@ pub static FOLLOW_SET_SEP: TerminalSet = TerminalSet {
     id: 0,
     terminals: &[TerminalId(5)],
 };
-// Sep : . Plus_0 { Number }
-pub static FIRST_SET_SEP_ALT0: TerminalSet = TerminalSet {
-    id: 1,
-    terminals: &[TerminalId(0)],
-};
 // Base { EOF }
 pub static FOLLOW_SET_BASE: TerminalSet = TerminalSet {
     id: 0,
     terminals: &[TerminalId(5)],
 };
-// Base : . Plus_1 { Identifier }
-pub static FIRST_SET_BASE_ALT0: TerminalSet = TerminalSet {
-    id: 2,
-    terminals: &[TerminalId(1)],
-};
 // Plus_0 { Identifier, EOF }
 pub static FOLLOW_SET_PLUS_0: TerminalSet = TerminalSet {
-    id: 3,
+    id: 1,
     terminals: &[TerminalId(1), TerminalId(5)],
 };
 // Plus_0 : . Plus_0 Identifier \ Keyword Number { Number }
 pub static FIRST_SET_PLUS_0_ALT0: TerminalSet = TerminalSet {
-    id: 1,
+    id: 2,
     terminals: &[TerminalId(0)],
 };
 // Plus_0 : . Number { Number }
 pub static FIRST_SET_PLUS_0_ALT1: TerminalSet = TerminalSet {
-    id: 1,
+    id: 2,
     terminals: &[TerminalId(0)],
 };
 // Plus_1 { ",", EOF }
 pub static FOLLOW_SET_PLUS_1: TerminalSet = TerminalSet {
-    id: 4,
+    id: 3,
     terminals: &[TerminalId(3), TerminalId(5)],
 };
 // Plus_1 : . Plus_1 "," Identifier \ Keyword { Identifier }
 pub static FIRST_SET_PLUS_1_ALT0: TerminalSet = TerminalSet {
-    id: 2,
+    id: 4,
     terminals: &[TerminalId(1)],
 };
 // Plus_1 : . Identifier \ Keyword { Identifier }
 pub static FIRST_SET_PLUS_1_ALT1: TerminalSet = TerminalSet {
-    id: 2,
+    id: 4,
     terminals: &[TerminalId(1)],
 };
 // StartSep { EOF }
@@ -209,63 +219,43 @@ pub static FOLLOW_SET_START_SEP: TerminalSet = TerminalSet {
     id: 0,
     terminals: &[TerminalId(5)],
 };
-// StartSep : . start:Sep { Number }
-pub static FIRST_SET_START_SEP_ALT0: TerminalSet = TerminalSet {
-    id: 1,
-    terminals: &[TerminalId(0)],
-};
 // StartBase { EOF }
 pub static FOLLOW_SET_START_BASE: TerminalSet = TerminalSet {
     id: 0,
     terminals: &[TerminalId(5)],
 };
-// StartBase : . start:Base { Identifier }
-pub static FIRST_SET_START_BASE_ALT0: TerminalSet = TerminalSet {
+// Sep prediction { Number }
+pub static PREDICTION_SET_SEP: TerminalSet = TerminalSet {
     id: 2,
-    terminals: &[TerminalId(1)],
-};
-// Sep { Number }
-pub static FIRST_SET_SEP: TerminalSet = TerminalSet {
-    id: 5,
     terminals: &[TerminalId(0)],
 };
-// Base { Identifier }
-pub static FIRST_SET_BASE: TerminalSet = TerminalSet {
-    id: 6,
+// Base prediction { Identifier }
+pub static PREDICTION_SET_BASE: TerminalSet = TerminalSet {
+    id: 4,
     terminals: &[TerminalId(1)],
 };
-// Plus_0 { Number }
-pub static FIRST_SET_PLUS_0: TerminalSet = TerminalSet {
-    id: 5,
+// Plus_0 prediction { Number }
+pub static PREDICTION_SET_PLUS_0: TerminalSet = TerminalSet {
+    id: 2,
     terminals: &[TerminalId(0)],
 };
-// Plus_1 { Identifier }
-pub static FIRST_SET_PLUS_1: TerminalSet = TerminalSet {
-    id: 6,
-    terminals: &[TerminalId(1)],
-};
-// StartSep { Number }
-pub static FIRST_SET_START_SEP: TerminalSet = TerminalSet {
-    id: 5,
-    terminals: &[TerminalId(0)],
-};
-// StartBase { Identifier }
-pub static FIRST_SET_START_BASE: TerminalSet = TerminalSet {
-    id: 6,
+// Plus_1 prediction { Identifier }
+pub static PREDICTION_SET_PLUS_1: TerminalSet = TerminalSet {
+    id: 4,
     terminals: &[TerminalId(1)],
 };
 // Plus_0 : Plus_0 . Identifier \ Keyword Number \ { Keyword }
 pub static EXCEPT_PLUS_0_ALT0_POS1: TerminalSet = TerminalSet {
-    id: 7,
+    id: 5,
     terminals: &[TerminalId(2)],
 };
 // Plus_1 : Plus_1 "," . Identifier \ Keyword \ { Keyword }
 pub static EXCEPT_PLUS_1_ALT0_POS2: TerminalSet = TerminalSet {
-    id: 7,
+    id: 5,
     terminals: &[TerminalId(2)],
 };
 // Plus_1 : . Identifier \ Keyword \ { Keyword }
 pub static EXCEPT_PLUS_1_ALT1_POS0: TerminalSet = TerminalSet {
-    id: 7,
+    id: 5,
     terminals: &[TerminalId(2)],
 };

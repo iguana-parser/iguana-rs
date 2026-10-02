@@ -191,6 +191,11 @@ impl<'i, 'arena> CommentsScanner<'i, 'arena> {
     // Whether any terminal in `set` matches at `input_index`, cached by the set's memo id. The
     // first query of a set at a position scans it; later queries return the cached bit.
     pub fn match_any(&mut self, set: &TerminalSet, input_index: u32) -> bool {
+        debug_assert!(
+            set.id < 3,
+            "terminal set {} does not have a match_any memo id",
+            set.id,
+        );
         if let Some(matched) = self.match_any_memo.get(set.id, input_index) {
             return matched;
         }

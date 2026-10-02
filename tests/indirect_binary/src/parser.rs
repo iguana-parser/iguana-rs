@@ -5,7 +5,6 @@ use crate::{
     parse_tree::{self, IndirectBinaryParseTreeBuilder, ParseTree, create_parse_tree},
     scanner::IndirectBinaryScanner,
 };
-#[cfg(feature = "instrument")]
 use iguana_runtime::grammar::Grammar;
 #[allow(unused_imports)]
 use iguana_runtime::input::Span;
@@ -83,13 +82,10 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     }
                     // S : E(0).
                     SlotId(1) => {
-                        let nonterminal_node_id = self.create_nonterminal_node(
-                            result,
-                            NonterminalId(0),
-                            SlotId(1),
-                            gss_node_id,
-                        );
-                        self.pop(gss_node_id, SlotId(1), nonterminal_node_id, None);
+                        let Some(result) = result else {
+                            unreachable!("result cannot be None here.")
+                        };
+                        self.pop(gss_node_id, SlotId(1), result, None, &FOLLOW_SET_S);
                     }
                     // E(p: i32) : . "a" return 0
                     SlotId(384) => {
@@ -114,22 +110,13 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        let node = self.sppf_node(result);
                         let return_value = 0;
-                        let nonterminal_node_id = self.get_or_create_nonterminal_node(
-                            NonterminalId(99),
-                            SlotId(386),
-                            node.left_extent(),
-                            node.right_extent(),
-                            result,
-                            gss_node_id,
-                            Some(return_value),
-                        );
                         self.pop(
                             gss_node_id,
                             SlotId(386),
-                            nonterminal_node_id,
+                            result,
                             Some(return_value),
+                            &FOLLOW_SET_E,
                         );
                     }
                     // E(p: i32) : . [2 >= p] l_pr=L(p, 0) [(l_pr == 0) || (l_pr >= 2)] WS "*" WS L(3, 1) return
@@ -235,22 +222,13 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        let node = self.sppf_node(result);
                         let return_value = 2;
-                        let nonterminal_node_id = self.get_or_create_nonterminal_node(
-                            NonterminalId(99),
-                            SlotId(395),
-                            node.left_extent(),
-                            node.right_extent(),
-                            result,
-                            gss_node_id,
-                            Some(return_value),
-                        );
                         self.pop(
                             gss_node_id,
                             SlotId(395),
-                            nonterminal_node_id,
+                            result,
                             Some(return_value),
+                            &FOLLOW_SET_E,
                         );
                     }
                     // E(p: i32) : . [1 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 1)] WS "+" WS L(2, 1) return 1
@@ -344,22 +322,13 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        let node = self.sppf_node(result);
                         let return_value = 1;
-                        let nonterminal_node_id = self.get_or_create_nonterminal_node(
-                            NonterminalId(99),
-                            SlotId(404),
-                            node.left_extent(),
-                            node.right_extent(),
-                            result,
-                            gss_node_id,
-                            Some(return_value),
-                        );
                         self.pop(
                             gss_node_id,
                             SlotId(404),
-                            nonterminal_node_id,
+                            result,
                             Some(return_value),
+                            &FOLLOW_SET_E,
                         );
                     }
                     // E(p: i32) : . [1 >= p] l_pr=L(p, 0) [(l_pr == 0) || (l_pr >= 1)] WS "-" WS E(2) return 1
@@ -454,22 +423,13 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        let node = self.sppf_node(result);
                         let return_value = 1;
-                        let nonterminal_node_id = self.get_or_create_nonterminal_node(
-                            NonterminalId(99),
-                            SlotId(413),
-                            node.left_extent(),
-                            node.right_extent(),
-                            result,
-                            gss_node_id,
-                            Some(return_value),
-                        );
                         self.pop(
                             gss_node_id,
                             SlotId(413),
-                            nonterminal_node_id,
+                            result,
                             Some(return_value),
+                            &FOLLOW_SET_E,
                         );
                     }
                     // L(p: i32, end: i32) : . v_pr=E(p) return v_pr
@@ -491,22 +451,13 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        let node = self.sppf_node(result);
                         let return_value = self.lookup(BINDING_V_PR, env.unwrap());
-                        let nonterminal_node_id = self.get_or_create_nonterminal_node(
-                            NonterminalId(100),
-                            SlotId(416),
-                            node.left_extent(),
-                            node.right_extent(),
-                            result,
-                            gss_node_id,
-                            Some(return_value),
-                        );
                         self.pop(
                             gss_node_id,
                             SlotId(416),
-                            nonterminal_node_id,
+                            result,
                             Some(return_value),
+                            &FOLLOW_SET_L,
                         );
                     }
                     // Only(p: i32) : . "b" return 0
@@ -532,22 +483,13 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        let node = self.sppf_node(result);
                         let return_value = 0;
-                        let nonterminal_node_id = self.get_or_create_nonterminal_node(
-                            NonterminalId(101),
-                            SlotId(419),
-                            node.left_extent(),
-                            node.right_extent(),
-                            result,
-                            gss_node_id,
-                            Some(return_value),
-                        );
                         self.pop(
                             gss_node_id,
                             SlotId(419),
-                            nonterminal_node_id,
+                            result,
                             Some(return_value),
+                            &FOLLOW_SET_ONLY,
                         );
                     }
                     // Only(p: i32) : . [1 >= p] l_pr=OnlyOperand(p, 0) [(l_pr == 0) || (l_pr >= 1)] WS "^" WS
@@ -654,22 +596,13 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        let node = self.sppf_node(result);
                         let return_value = 1;
-                        let nonterminal_node_id = self.get_or_create_nonterminal_node(
-                            NonterminalId(101),
-                            SlotId(428),
-                            node.left_extent(),
-                            node.right_extent(),
-                            result,
-                            gss_node_id,
-                            Some(return_value),
-                        );
                         self.pop(
                             gss_node_id,
                             SlotId(428),
-                            nonterminal_node_id,
+                            result,
                             Some(return_value),
+                            &FOLLOW_SET_ONLY,
                         );
                     }
                     // OnlyOperand(p: i32, end: i32) : . v_pr=Only(p) return v_pr
@@ -691,22 +624,13 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        let node = self.sppf_node(result);
                         let return_value = self.lookup(BINDING_V_PR, env.unwrap());
-                        let nonterminal_node_id = self.get_or_create_nonterminal_node(
-                            NonterminalId(102),
-                            SlotId(431),
-                            node.left_extent(),
-                            node.right_extent(),
-                            result,
-                            gss_node_id,
-                            Some(return_value),
-                        );
                         self.pop(
                             gss_node_id,
                             SlotId(431),
-                            nonterminal_node_id,
+                            result,
                             Some(return_value),
+                            &FOLLOW_SET_ONLY_OPERAND,
                         );
                     }
                     // Cross(p: i32) : . "c" return 0
@@ -732,22 +656,13 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        let node = self.sppf_node(result);
                         let return_value = 0;
-                        let nonterminal_node_id = self.get_or_create_nonterminal_node(
-                            NonterminalId(103),
-                            SlotId(434),
-                            node.left_extent(),
-                            node.right_extent(),
-                            result,
-                            gss_node_id,
-                            Some(return_value),
-                        );
                         self.pop(
                             gss_node_id,
                             SlotId(434),
-                            nonterminal_node_id,
+                            result,
                             Some(return_value),
+                            &FOLLOW_SET_CROSS,
                         );
                     }
                     // Cross(p: i32) : . [2 >= p] l_pr=Cross(p) [(l_pr == 0) || (l_pr >= 2)] WS "-" WS Foreign(0)
@@ -853,22 +768,13 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        let node = self.sppf_node(result);
                         let return_value = 0;
-                        let nonterminal_node_id = self.get_or_create_nonterminal_node(
-                            NonterminalId(103),
-                            SlotId(443),
-                            node.left_extent(),
-                            node.right_extent(),
-                            result,
-                            gss_node_id,
-                            Some(return_value),
-                        );
                         self.pop(
                             gss_node_id,
                             SlotId(443),
-                            nonterminal_node_id,
+                            result,
                             Some(return_value),
+                            &FOLLOW_SET_CROSS,
                         );
                     }
                     // Cross(p: i32) : . [1 >= p] l_pr=Cross(p) [(l_pr == 0) || (l_pr >= 1)] WS "+" WS Foreign(0)
@@ -974,22 +880,13 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        let node = self.sppf_node(result);
                         let return_value = 0;
-                        let nonterminal_node_id = self.get_or_create_nonterminal_node(
-                            NonterminalId(103),
-                            SlotId(452),
-                            node.left_extent(),
-                            node.right_extent(),
-                            result,
-                            gss_node_id,
-                            Some(return_value),
-                        );
                         self.pop(
                             gss_node_id,
                             SlotId(452),
-                            nonterminal_node_id,
+                            result,
                             Some(return_value),
+                            &FOLLOW_SET_CROSS,
                         );
                     }
                     // Foreign(p: i32) : . "d" return 0
@@ -1015,22 +912,13 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        let node = self.sppf_node(result);
                         let return_value = 0;
-                        let nonterminal_node_id = self.get_or_create_nonterminal_node(
-                            NonterminalId(104),
-                            SlotId(455),
-                            node.left_extent(),
-                            node.right_extent(),
-                            result,
-                            gss_node_id,
-                            Some(return_value),
-                        );
                         self.pop(
                             gss_node_id,
                             SlotId(455),
-                            nonterminal_node_id,
+                            result,
                             Some(return_value),
+                            &FOLLOW_SET_FOREIGN,
                         );
                     }
                     // Foreign(p: i32) : . [1 >= p] l_pr=Foreign(p) [(l_pr == 0) || (l_pr >= 1)] WS "*" WS
@@ -1136,22 +1024,13 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        let node = self.sppf_node(result);
                         let return_value = 1;
-                        let nonterminal_node_id = self.get_or_create_nonterminal_node(
-                            NonterminalId(104),
-                            SlotId(464),
-                            node.left_extent(),
-                            node.right_extent(),
-                            result,
-                            gss_node_id,
-                            Some(return_value),
-                        );
                         self.pop(
                             gss_node_id,
                             SlotId(464),
-                            nonterminal_node_id,
+                            result,
                             Some(return_value),
+                            &FOLLOW_SET_FOREIGN,
                         );
                     }
                     // Foreign(p: i32) : . Cross(0) return 0
@@ -1167,22 +1046,13 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        let node = self.sppf_node(result);
                         let return_value = 0;
-                        let nonterminal_node_id = self.get_or_create_nonterminal_node(
-                            NonterminalId(104),
-                            SlotId(467),
-                            node.left_extent(),
-                            node.right_extent(),
-                            result,
-                            gss_node_id,
-                            Some(return_value),
-                        );
                         self.pop(
                             gss_node_id,
                             SlotId(467),
-                            nonterminal_node_id,
+                            result,
                             Some(return_value),
+                            &FOLLOW_SET_FOREIGN,
                         );
                     }
                     // Cascade(p: i32) : . "t" return 0
@@ -1208,22 +1078,13 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        let node = self.sppf_node(result);
                         let return_value = 0;
-                        let nonterminal_node_id = self.get_or_create_nonterminal_node(
-                            NonterminalId(105),
-                            SlotId(470),
-                            node.left_extent(),
-                            node.right_extent(),
-                            result,
-                            gss_node_id,
-                            Some(return_value),
-                        );
                         self.pop(
                             gss_node_id,
                             SlotId(470),
-                            nonterminal_node_id,
+                            result,
                             Some(return_value),
+                            &FOLLOW_SET_CASCADE,
                         );
                     }
                     // Cascade(p: i32) : . [1 >= p] l_pr=Cascade(p) [(l_pr == 0) || (l_pr >= 1)] WS "+" WS
@@ -1329,27 +1190,25 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        let node = self.sppf_node(result);
                         let return_value = 1;
-                        let nonterminal_node_id = self.get_or_create_nonterminal_node(
-                            NonterminalId(105),
-                            SlotId(479),
-                            node.left_extent(),
-                            node.right_extent(),
-                            result,
-                            gss_node_id,
-                            Some(return_value),
-                        );
                         self.pop(
                             gss_node_id,
                             SlotId(479),
-                            nonterminal_node_id,
+                            result,
                             Some(return_value),
+                            &FOLLOW_SET_CASCADE,
                         );
                     }
                     // Cascade(p: i32) : . Ternary return 0
                     SlotId(480) => {
-                        self.create(NonterminalId(1), result, gss_node_id, SlotId(481), env);
+                        self.create(
+                            NonterminalId(1),
+                            &PREDICTION_SET_TERNARY,
+                            result,
+                            gss_node_id,
+                            SlotId(481),
+                            env,
+                        );
                     }
                     // Cascade(p: i32) : Ternary . return 0
                     SlotId(481) => {
@@ -1360,22 +1219,13 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        let node = self.sppf_node(result);
                         let return_value = 0;
-                        let nonterminal_node_id = self.get_or_create_nonterminal_node(
-                            NonterminalId(105),
-                            SlotId(482),
-                            node.left_extent(),
-                            node.right_extent(),
-                            result,
-                            gss_node_id,
-                            Some(return_value),
-                        );
                         self.pop(
                             gss_node_id,
                             SlotId(482),
-                            nonterminal_node_id,
+                            result,
                             Some(return_value),
+                            &FOLLOW_SET_CASCADE,
                         );
                     }
                     // Ternary : . Cascade(0) WS "?" WS Cascade(0) WS ":" WS Cascade(0)
@@ -1500,13 +1350,10 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     }
                     // Ternary : Cascade(0) WS "?" WS Cascade(0) WS ":" WS Cascade(0).
                     SlotId(11) => {
-                        let nonterminal_node_id = self.create_nonterminal_node(
-                            result,
-                            NonterminalId(1),
-                            SlotId(11),
-                            gss_node_id,
-                        );
-                        self.pop(gss_node_id, SlotId(11), nonterminal_node_id, None);
+                        let Some(result) = result else {
+                            unreachable!("result cannot be None here.")
+                        };
+                        self.pop(gss_node_id, SlotId(11), result, None, &FOLLOW_SET_TERNARY);
                     }
                     // Nullable(p: i32) : . "n" return 0
                     SlotId(483) => {
@@ -1531,27 +1378,25 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        let node = self.sppf_node(result);
                         let return_value = 0;
-                        let nonterminal_node_id = self.get_or_create_nonterminal_node(
-                            NonterminalId(106),
-                            SlotId(485),
-                            node.left_extent(),
-                            node.right_extent(),
-                            result,
-                            gss_node_id,
-                            Some(return_value),
-                        );
                         self.pop(
                             gss_node_id,
                             SlotId(485),
-                            nonterminal_node_id,
+                            result,
                             Some(return_value),
+                            &FOLLOW_SET_NULLABLE,
                         );
                     }
                     // Nullable(p: i32) : . NullableLeft WS "%" WS NullableRight(1) return 1
                     SlotId(486) => {
-                        self.create(NonterminalId(2), result, gss_node_id, SlotId(487), env);
+                        self.create(
+                            NonterminalId(2),
+                            &PREDICTION_SET_NULLABLE_LEFT,
+                            result,
+                            gss_node_id,
+                            SlotId(487),
+                            env,
+                        );
                     }
                     // Nullable(p: i32) : NullableLeft . WS "%" WS NullableRight(1) return 1
                     SlotId(487) => {
@@ -1620,27 +1465,25 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        let node = self.sppf_node(result);
                         let return_value = 1;
-                        let nonterminal_node_id = self.get_or_create_nonterminal_node(
-                            NonterminalId(106),
-                            SlotId(492),
-                            node.left_extent(),
-                            node.right_extent(),
-                            result,
-                            gss_node_id,
-                            Some(return_value),
-                        );
                         self.pop(
                             gss_node_id,
                             SlotId(492),
-                            nonterminal_node_id,
+                            result,
                             Some(return_value),
+                            &FOLLOW_SET_NULLABLE,
                         );
                     }
                     // NullableLeft : . Opt_0 WS Nullable(0)
                     SlotId(12) => {
-                        self.create(NonterminalId(15), result, gss_node_id, SlotId(13), env);
+                        self.create(
+                            NonterminalId(15),
+                            &PREDICTION_SET_OPT_0,
+                            result,
+                            gss_node_id,
+                            SlotId(13),
+                            env,
+                        );
                     }
                     // NullableLeft : Opt_0 . WS Nullable(0)
                     SlotId(13) => {
@@ -1666,13 +1509,16 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     }
                     // NullableLeft : Opt_0 WS Nullable(0).
                     SlotId(15) => {
-                        let nonterminal_node_id = self.create_nonterminal_node(
-                            result,
-                            NonterminalId(2),
-                            SlotId(15),
+                        let Some(result) = result else {
+                            unreachable!("result cannot be None here.")
+                        };
+                        self.pop(
                             gss_node_id,
+                            SlotId(15),
+                            result,
+                            None,
+                            &FOLLOW_SET_NULLABLE_LEFT,
                         );
-                        self.pop(gss_node_id, SlotId(15), nonterminal_node_id, None);
                     }
                     // NullableRight(p: i32) : . r_pr=Nullable(p) return r_pr
                     SlotId(493) => {
@@ -1693,22 +1539,13 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        let node = self.sppf_node(result);
                         let return_value = self.lookup(BINDING_R_PR, env.unwrap());
-                        let nonterminal_node_id = self.get_or_create_nonterminal_node(
-                            NonterminalId(107),
-                            SlotId(495),
-                            node.left_extent(),
-                            node.right_extent(),
-                            result,
-                            gss_node_id,
-                            Some(return_value),
-                        );
                         self.pop(
                             gss_node_id,
                             SlotId(495),
-                            nonterminal_node_id,
+                            result,
                             Some(return_value),
+                            &FOLLOW_SET_NULLABLE_RIGHT,
                         );
                     }
                     // RightExpr(p: i32) : . "r" return 0
@@ -1734,22 +1571,13 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        let node = self.sppf_node(result);
                         let return_value = 0;
-                        let nonterminal_node_id = self.get_or_create_nonterminal_node(
-                            NonterminalId(108),
-                            SlotId(498),
-                            node.left_extent(),
-                            node.right_extent(),
-                            result,
-                            gss_node_id,
-                            Some(return_value),
-                        );
                         self.pop(
                             gss_node_id,
                             SlotId(498),
-                            nonterminal_node_id,
+                            result,
                             Some(return_value),
+                            &FOLLOW_SET_RIGHT_EXPR,
                         );
                     }
                     // RightExpr(p: i32) : . [1 >= p] l_pr=RightOperand(p, 0) [(l_pr == 0) || (l_pr >= 2)] WS ">"
@@ -1856,22 +1684,13 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        let node = self.sppf_node(result);
                         let return_value = 1;
-                        let nonterminal_node_id = self.get_or_create_nonterminal_node(
-                            NonterminalId(108),
-                            SlotId(507),
-                            node.left_extent(),
-                            node.right_extent(),
-                            result,
-                            gss_node_id,
-                            Some(return_value),
-                        );
                         self.pop(
                             gss_node_id,
                             SlotId(507),
-                            nonterminal_node_id,
+                            result,
                             Some(return_value),
+                            &FOLLOW_SET_RIGHT_EXPR,
                         );
                     }
                     // RightOperand(p: i32, end: i32) : . v_pr=RightExpr(p) return v_pr
@@ -1893,22 +1712,13 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        let node = self.sppf_node(result);
                         let return_value = self.lookup(BINDING_V_PR, env.unwrap());
-                        let nonterminal_node_id = self.get_or_create_nonterminal_node(
-                            NonterminalId(109),
-                            SlotId(510),
-                            node.left_extent(),
-                            node.right_extent(),
-                            result,
-                            gss_node_id,
-                            Some(return_value),
-                        );
                         self.pop(
                             gss_node_id,
                             SlotId(510),
-                            nonterminal_node_id,
+                            result,
                             Some(return_value),
+                            &FOLLOW_SET_RIGHT_OPERAND,
                         );
                     }
                     // NoneExpr(p: i32) : . "z" return 0
@@ -1934,22 +1744,13 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        let node = self.sppf_node(result);
                         let return_value = 0;
-                        let nonterminal_node_id = self.get_or_create_nonterminal_node(
-                            NonterminalId(110),
-                            SlotId(513),
-                            node.left_extent(),
-                            node.right_extent(),
-                            result,
-                            gss_node_id,
-                            Some(return_value),
-                        );
                         self.pop(
                             gss_node_id,
                             SlotId(513),
-                            nonterminal_node_id,
+                            result,
                             Some(return_value),
+                            &FOLLOW_SET_NONE_EXPR,
                         );
                     }
                     // NoneExpr(p: i32) : . [1 >= p] l_pr=NoneOperand(p, 0) [(l_pr == 0) || (l_pr >= 2)] WS "="
@@ -2056,22 +1857,13 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        let node = self.sppf_node(result);
                         let return_value = 1;
-                        let nonterminal_node_id = self.get_or_create_nonterminal_node(
-                            NonterminalId(110),
-                            SlotId(522),
-                            node.left_extent(),
-                            node.right_extent(),
-                            result,
-                            gss_node_id,
-                            Some(return_value),
-                        );
                         self.pop(
                             gss_node_id,
                             SlotId(522),
-                            nonterminal_node_id,
+                            result,
                             Some(return_value),
+                            &FOLLOW_SET_NONE_EXPR,
                         );
                     }
                     // NoneOperand(p: i32, end: i32) : . v_pr=NoneExpr(p) return v_pr
@@ -2093,22 +1885,13 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        let node = self.sppf_node(result);
                         let return_value = self.lookup(BINDING_V_PR, env.unwrap());
-                        let nonterminal_node_id = self.get_or_create_nonterminal_node(
-                            NonterminalId(111),
-                            SlotId(525),
-                            node.left_extent(),
-                            node.right_extent(),
-                            result,
-                            gss_node_id,
-                            Some(return_value),
-                        );
                         self.pop(
                             gss_node_id,
                             SlotId(525),
-                            nonterminal_node_id,
+                            result,
                             Some(return_value),
+                            &FOLLOW_SET_NONE_OPERAND,
                         );
                     }
                     // Excluded(p: i32, a: i32) : . "e" return 0
@@ -2134,22 +1917,13 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        let node = self.sppf_node(result);
                         let return_value = 0;
-                        let nonterminal_node_id = self.get_or_create_nonterminal_node(
-                            NonterminalId(112),
-                            SlotId(528),
-                            node.left_extent(),
-                            node.right_extent(),
-                            result,
-                            gss_node_id,
-                            Some(return_value),
-                        );
                         self.pop(
                             gss_node_id,
                             SlotId(528),
-                            nonterminal_node_id,
+                            result,
                             Some(return_value),
+                            &FOLLOW_SET_EXCLUDED,
                         );
                     }
                     // Excluded(p: i32, a: i32) : . (l_pr, l_label)=ExcludedOperand(p, 0, 0, 0) [(l_pr ==
@@ -2312,26 +2086,17 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        let node = self.sppf_node(result);
                         let return_value = if self.lookup(BINDING_R_PR, env.unwrap()) == -1 {
                             0
                         } else {
                             1
                         };
-                        let nonterminal_node_id = self.get_or_create_nonterminal_node(
-                            NonterminalId(112),
-                            SlotId(537),
-                            node.left_extent(),
-                            node.right_extent(),
-                            result,
-                            gss_node_id,
-                            Some(return_value),
-                        );
                         self.pop(
                             gss_node_id,
                             SlotId(537),
-                            nonterminal_node_id,
+                            result,
                             Some(return_value),
+                            &FOLLOW_SET_EXCLUDED,
                         );
                     }
                     // ExcludedOperand(p: i32, end: i32, a: i32, e: i32) : . [1 & e == 0] v_pr=Excluded(p, a)
@@ -2364,22 +2129,13 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        let node = self.sppf_node(result);
                         let return_value = (self.lookup(BINDING_V_PR, env.unwrap())) << (16);
-                        let nonterminal_node_id = self.get_or_create_nonterminal_node(
-                            NonterminalId(113),
-                            SlotId(541),
-                            node.left_extent(),
-                            node.right_extent(),
-                            result,
-                            gss_node_id,
-                            Some(return_value),
-                        );
                         self.pop(
                             gss_node_id,
                             SlotId(541),
-                            nonterminal_node_id,
+                            result,
                             Some(return_value),
+                            &FOLLOW_SET_EXCLUDED_OPERAND,
                         );
                     }
                     // ExcludedOperand(p: i32, end: i32, a: i32, e: i32) : . [2 & e == 0] "(" WS
@@ -2490,22 +2246,13 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        let node = self.sppf_node(result);
                         let return_value = -65535;
-                        let nonterminal_node_id = self.get_or_create_nonterminal_node(
-                            NonterminalId(113),
-                            SlotId(549),
-                            node.left_extent(),
-                            node.right_extent(),
-                            result,
-                            gss_node_id,
-                            Some(return_value),
-                        );
                         self.pop(
                             gss_node_id,
                             SlotId(549),
-                            nonterminal_node_id,
+                            result,
                             Some(return_value),
+                            &FOLLOW_SET_EXCLUDED_OPERAND,
                         );
                     }
                     // Filtered : . ExcludedOperand(0, 0, 0, 2)
@@ -2523,13 +2270,10 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     }
                     // Filtered : ExcludedOperand(0, 0, 0, 2).
                     SlotId(17) => {
-                        let nonterminal_node_id = self.create_nonterminal_node(
-                            result,
-                            NonterminalId(3),
-                            SlotId(17),
-                            gss_node_id,
-                        );
-                        self.pop(gss_node_id, SlotId(17), nonterminal_node_id, None);
+                        let Some(result) = result else {
+                            unreachable!("result cannot be None here.")
+                        };
+                        self.pop(gss_node_id, SlotId(17), result, None, &FOLLOW_SET_FILTERED);
                     }
                     // LexNullable(p: i32) : . "q" return 0
                     SlotId(550) => {
@@ -2554,27 +2298,25 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        let node = self.sppf_node(result);
                         let return_value = 0;
-                        let nonterminal_node_id = self.get_or_create_nonterminal_node(
-                            NonterminalId(114),
-                            SlotId(552),
-                            node.left_extent(),
-                            node.right_extent(),
-                            result,
-                            gss_node_id,
-                            Some(return_value),
-                        );
                         self.pop(
                             gss_node_id,
                             SlotId(552),
-                            nonterminal_node_id,
+                            result,
                             Some(return_value),
+                            &FOLLOW_SET_LEX_NULLABLE,
                         );
                     }
                     // LexNullable(p: i32) : . LexNullableLeft WS "/" WS LexNullableRight(1) return 1
                     SlotId(553) => {
-                        self.create(NonterminalId(4), result, gss_node_id, SlotId(554), env);
+                        self.create(
+                            NonterminalId(4),
+                            &PREDICTION_SET_LEX_NULLABLE_LEFT,
+                            result,
+                            gss_node_id,
+                            SlotId(554),
+                            env,
+                        );
                     }
                     // LexNullable(p: i32) : LexNullableLeft . WS "/" WS LexNullableRight(1) return 1
                     SlotId(554) => {
@@ -2643,22 +2385,13 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        let node = self.sppf_node(result);
                         let return_value = 1;
-                        let nonterminal_node_id = self.get_or_create_nonterminal_node(
-                            NonterminalId(114),
-                            SlotId(559),
-                            node.left_extent(),
-                            node.right_extent(),
-                            result,
-                            gss_node_id,
-                            Some(return_value),
-                        );
                         self.pop(
                             gss_node_id,
                             SlotId(559),
-                            nonterminal_node_id,
+                            result,
                             Some(return_value),
+                            &FOLLOW_SET_LEX_NULLABLE,
                         );
                     }
                     // LexNullableLeft : . Digits WS LexNullable(0)
@@ -2699,13 +2432,16 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     }
                     // LexNullableLeft : Digits WS LexNullable(0).
                     SlotId(21) => {
-                        let nonterminal_node_id = self.create_nonterminal_node(
-                            result,
-                            NonterminalId(4),
-                            SlotId(21),
+                        let Some(result) = result else {
+                            unreachable!("result cannot be None here.")
+                        };
+                        self.pop(
                             gss_node_id,
+                            SlotId(21),
+                            result,
+                            None,
+                            &FOLLOW_SET_LEX_NULLABLE_LEFT,
                         );
-                        self.pop(gss_node_id, SlotId(21), nonterminal_node_id, None);
                     }
                     // LexNullableRight(p: i32) : . r_pr=LexNullable(p) return r_pr
                     SlotId(560) => {
@@ -2726,22 +2462,13 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        let node = self.sppf_node(result);
                         let return_value = self.lookup(BINDING_R_PR, env.unwrap());
-                        let nonterminal_node_id = self.get_or_create_nonterminal_node(
-                            NonterminalId(115),
-                            SlotId(562),
-                            node.left_extent(),
-                            node.right_extent(),
-                            result,
-                            gss_node_id,
-                            Some(return_value),
-                        );
                         self.pop(
                             gss_node_id,
                             SlotId(562),
-                            nonterminal_node_id,
+                            result,
                             Some(return_value),
+                            &FOLLOW_SET_LEX_NULLABLE_RIGHT,
                         );
                     }
                     // MixedScale(p: i32, a: i32) : . "m" return 0
@@ -2767,22 +2494,13 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        let node = self.sppf_node(result);
                         let return_value = 0;
-                        let nonterminal_node_id = self.get_or_create_nonterminal_node(
-                            NonterminalId(116),
-                            SlotId(565),
-                            node.left_extent(),
-                            node.right_extent(),
-                            result,
-                            gss_node_id,
-                            Some(return_value),
-                        );
                         self.pop(
                             gss_node_id,
                             SlotId(565),
-                            nonterminal_node_id,
+                            result,
                             Some(return_value),
+                            &FOLLOW_SET_MIXED_SCALE,
                         );
                     }
                     // MixedScale(p: i32, a: i32) : . l_pr=MixedOperand(p, 0) [(l_pr == UNDEFINED_PRECEDENCE) ||
@@ -2916,22 +2634,13 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        let node = self.sppf_node(result);
                         let return_value = 1;
-                        let nonterminal_node_id = self.get_or_create_nonterminal_node(
-                            NonterminalId(116),
-                            SlotId(574),
-                            node.left_extent(),
-                            node.right_extent(),
-                            result,
-                            gss_node_id,
-                            Some(return_value),
-                        );
                         self.pop(
                             gss_node_id,
                             SlotId(574),
-                            nonterminal_node_id,
+                            result,
                             Some(return_value),
+                            &FOLLOW_SET_MIXED_SCALE,
                         );
                     }
                     // MixedOperand(p: i32, a: i32) : . l_pr=MixedScale(p, a) return l_pr
@@ -2954,22 +2663,13 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        let node = self.sppf_node(result);
                         let return_value = self.lookup(BINDING_L_PR, env.unwrap());
-                        let nonterminal_node_id = self.get_or_create_nonterminal_node(
-                            NonterminalId(117),
-                            SlotId(577),
-                            node.left_extent(),
-                            node.right_extent(),
-                            result,
-                            gss_node_id,
-                            Some(return_value),
-                        );
                         self.pop(
                             gss_node_id,
                             SlotId(577),
-                            nonterminal_node_id,
+                            result,
                             Some(return_value),
+                            &FOLLOW_SET_MIXED_OPERAND,
                         );
                     }
                     // MixedOperand(p: i32, a: i32) : . MixedForeign(0) return UNDEFINED_PRECEDENCE
@@ -2985,22 +2685,13 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        let node = self.sppf_node(result);
                         let return_value = -1;
-                        let nonterminal_node_id = self.get_or_create_nonterminal_node(
-                            NonterminalId(117),
-                            SlotId(580),
-                            node.left_extent(),
-                            node.right_extent(),
-                            result,
-                            gss_node_id,
-                            Some(return_value),
-                        );
                         self.pop(
                             gss_node_id,
                             SlotId(580),
-                            nonterminal_node_id,
+                            result,
                             Some(return_value),
+                            &FOLLOW_SET_MIXED_OPERAND,
                         );
                     }
                     // MixedRight(p: i32, a: i32) : . r_pr=MixedScale(p, a) return r_pr
@@ -3023,22 +2714,13 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        let node = self.sppf_node(result);
                         let return_value = self.lookup(BINDING_R_PR, env.unwrap());
-                        let nonterminal_node_id = self.get_or_create_nonterminal_node(
-                            NonterminalId(118),
-                            SlotId(583),
-                            node.left_extent(),
-                            node.right_extent(),
-                            result,
-                            gss_node_id,
-                            Some(return_value),
-                        );
                         self.pop(
                             gss_node_id,
                             SlotId(583),
-                            nonterminal_node_id,
+                            result,
                             Some(return_value),
+                            &FOLLOW_SET_MIXED_RIGHT,
                         );
                     }
                     // MixedForeign(p: i32) : . "f" return 0
@@ -3064,22 +2746,13 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        let node = self.sppf_node(result);
                         let return_value = 0;
-                        let nonterminal_node_id = self.get_or_create_nonterminal_node(
-                            NonterminalId(119),
-                            SlotId(586),
-                            node.left_extent(),
-                            node.right_extent(),
-                            result,
-                            gss_node_id,
-                            Some(return_value),
-                        );
                         self.pop(
                             gss_node_id,
                             SlotId(586),
-                            nonterminal_node_id,
+                            result,
                             Some(return_value),
+                            &FOLLOW_SET_MIXED_FOREIGN,
                         );
                     }
                     // MixedForeign(p: i32) : . [1 >= p] l_pr=MixedForeign(p) [(l_pr == 0) || (l_pr >= 1)] WS "!"
@@ -3185,22 +2858,13 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        let node = self.sppf_node(result);
                         let return_value = 1;
-                        let nonterminal_node_id = self.get_or_create_nonterminal_node(
-                            NonterminalId(119),
-                            SlotId(595),
-                            node.left_extent(),
-                            node.right_extent(),
-                            result,
-                            gss_node_id,
-                            Some(return_value),
-                        );
                         self.pop(
                             gss_node_id,
                             SlotId(595),
-                            nonterminal_node_id,
+                            result,
                             Some(return_value),
+                            &FOLLOW_SET_MIXED_FOREIGN,
                         );
                     }
                     // Packed(p: i32, a: i32) : . "p" return (0, 0)
@@ -3226,22 +2890,13 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        let node = self.sppf_node(result);
                         let return_value = 0;
-                        let nonterminal_node_id = self.get_or_create_nonterminal_node(
-                            NonterminalId(120),
-                            SlotId(598),
-                            node.left_extent(),
-                            node.right_extent(),
-                            result,
-                            gss_node_id,
-                            Some(return_value),
-                        );
                         self.pop(
                             gss_node_id,
                             SlotId(598),
-                            nonterminal_node_id,
+                            result,
                             Some(return_value),
+                            &FOLLOW_SET_PACKED,
                         );
                     }
                     // Packed(p: i32, a: i32) : . (l_pr, l_assoc)=PackedOperand(p, 0, 0) [(l_pr ==
@@ -3390,7 +3045,6 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        let node = self.sppf_node(result);
                         let return_value = ((if self.lookup(BINDING_R_PR, env.unwrap()) == -1 {
                             0
                         } else {
@@ -3403,20 +3057,12 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                             } else {
                                 1
                             });
-                        let nonterminal_node_id = self.get_or_create_nonterminal_node(
-                            NonterminalId(120),
-                            SlotId(607),
-                            node.left_extent(),
-                            node.right_extent(),
-                            result,
-                            gss_node_id,
-                            Some(return_value),
-                        );
                         self.pop(
                             gss_node_id,
                             SlotId(607),
-                            nonterminal_node_id,
+                            result,
                             Some(return_value),
+                            &FOLLOW_SET_PACKED,
                         );
                     }
                     // PackedOperand(p: i32, end: i32, a: i32) : . (v_pr, v_assoc, v_label)=PackedMiddle(p, end,
@@ -3444,23 +3090,14 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        let node = self.sppf_node(result);
                         let return_value = ((self.lookup(BINDING_V_PR, env.unwrap())) << (16))
                             | (self.lookup(BINDING_V_ASSOC, env.unwrap()));
-                        let nonterminal_node_id = self.get_or_create_nonterminal_node(
-                            NonterminalId(121),
-                            SlotId(610),
-                            node.left_extent(),
-                            node.right_extent(),
-                            result,
-                            gss_node_id,
-                            Some(return_value),
-                        );
                         self.pop(
                             gss_node_id,
                             SlotId(610),
-                            nonterminal_node_id,
+                            result,
                             Some(return_value),
+                            &FOLLOW_SET_PACKED_OPERAND,
                         );
                     }
                     // PackedMiddle(p: i32, end: i32, a: i32, e: i32) : . [1 & e == 0] (v_pr, v_assoc)=Packed(p,
@@ -3493,23 +3130,14 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        let node = self.sppf_node(result);
                         let return_value = ((self.lookup(BINDING_V_PR, env.unwrap())) << (18))
                             | ((self.lookup(BINDING_V_ASSOC, env.unwrap())) << (5));
-                        let nonterminal_node_id = self.get_or_create_nonterminal_node(
-                            NonterminalId(122),
-                            SlotId(614),
-                            node.left_extent(),
-                            node.right_extent(),
-                            result,
-                            gss_node_id,
-                            Some(return_value),
-                        );
                         self.pop(
                             gss_node_id,
                             SlotId(614),
-                            nonterminal_node_id,
+                            result,
                             Some(return_value),
+                            &FOLLOW_SET_PACKED_MIDDLE,
                         );
                     }
                     // PackedMiddle(p: i32, end: i32, a: i32, e: i32) : . [2 & e == 0] "(" WS Packed(0, 0) WS ")"
@@ -3611,22 +3239,13 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        let node = self.sppf_node(result);
                         let return_value = -262143;
-                        let nonterminal_node_id = self.get_or_create_nonterminal_node(
-                            NonterminalId(122),
-                            SlotId(622),
-                            node.left_extent(),
-                            node.right_extent(),
-                            result,
-                            gss_node_id,
-                            Some(return_value),
-                        );
                         self.pop(
                             gss_node_id,
                             SlotId(622),
-                            nonterminal_node_id,
+                            result,
                             Some(return_value),
+                            &FOLLOW_SET_PACKED_MIDDLE,
                         );
                     }
                     // PackedFiltered : . PackedMiddle(0, 0, 0, 2)
@@ -3635,13 +3254,16 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     }
                     // PackedFiltered : PackedMiddle(0, 0, 0, 2).
                     SlotId(23) => {
-                        let nonterminal_node_id = self.create_nonterminal_node(
-                            result,
-                            NonterminalId(5),
-                            SlotId(23),
+                        let Some(result) = result else {
+                            unreachable!("result cannot be None here.")
+                        };
+                        self.pop(
                             gss_node_id,
+                            SlotId(23),
+                            result,
+                            None,
+                            &FOLLOW_SET_PACKED_FILTERED,
                         );
-                        self.pop(gss_node_id, SlotId(23), nonterminal_node_id, None);
                     }
                     // NullableRecursive(p: i32, a: i32) : . "u" return (0, 0)
                     SlotId(623) => {
@@ -3666,22 +3288,13 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        let node = self.sppf_node(result);
                         let return_value = 0;
-                        let nonterminal_node_id = self.get_or_create_nonterminal_node(
-                            NonterminalId(123),
-                            SlotId(625),
-                            node.left_extent(),
-                            node.right_extent(),
-                            result,
-                            gss_node_id,
-                            Some(return_value),
-                        );
                         self.pop(
                             gss_node_id,
                             SlotId(625),
-                            nonterminal_node_id,
+                            result,
                             Some(return_value),
+                            &FOLLOW_SET_NULLABLE_RECURSIVE,
                         );
                     }
                     // NullableRecursive(p: i32, a: i32) : . (l_pr, l_assoc)=NullableOperand(p, 0) [(l_pr ==
@@ -3816,27 +3429,18 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        let node = self.sppf_node(result);
                         let return_value = (65536)
                             | (if self.lookup(BINDING_L_PR, env.unwrap()) == -1 {
                                 0
                             } else {
                                 1
                             });
-                        let nonterminal_node_id = self.get_or_create_nonterminal_node(
-                            NonterminalId(123),
-                            SlotId(634),
-                            node.left_extent(),
-                            node.right_extent(),
-                            result,
-                            gss_node_id,
-                            Some(return_value),
-                        );
                         self.pop(
                             gss_node_id,
                             SlotId(634),
-                            nonterminal_node_id,
+                            result,
                             Some(return_value),
+                            &FOLLOW_SET_NULLABLE_RECURSIVE,
                         );
                     }
                     // NullableOperand(p: i32, a: i32) : . (l_pr, l_assoc)=NullableMaybe(p, a) WS
@@ -3887,23 +3491,14 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        let node = self.sppf_node(result);
                         let return_value = ((self.lookup(BINDING_L_PR, env.unwrap())) << (16))
                             | (self.lookup(BINDING_L_ASSOC, env.unwrap()));
-                        let nonterminal_node_id = self.get_or_create_nonterminal_node(
-                            NonterminalId(124),
-                            SlotId(639),
-                            node.left_extent(),
-                            node.right_extent(),
-                            result,
-                            gss_node_id,
-                            Some(return_value),
-                        );
                         self.pop(
                             gss_node_id,
                             SlotId(639),
-                            nonterminal_node_id,
+                            result,
                             Some(return_value),
+                            &FOLLOW_SET_NULLABLE_OPERAND,
                         );
                     }
                     // NullableMaybe(p: i32, a: i32) : . (l_pr, l_assoc)=Opt_1(p, a) return (l_pr, l_assoc)
@@ -3926,23 +3521,14 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        let node = self.sppf_node(result);
                         let return_value = ((self.lookup(BINDING_L_PR, env.unwrap())) << (16))
                             | (self.lookup(BINDING_L_ASSOC, env.unwrap()));
-                        let nonterminal_node_id = self.get_or_create_nonterminal_node(
-                            NonterminalId(125),
-                            SlotId(642),
-                            node.left_extent(),
-                            node.right_extent(),
-                            result,
-                            gss_node_id,
-                            Some(return_value),
-                        );
                         self.pop(
                             gss_node_id,
                             SlotId(642),
-                            nonterminal_node_id,
+                            result,
                             Some(return_value),
+                            &FOLLOW_SET_NULLABLE_MAYBE,
                         );
                     }
                     // NullableLexRecursive(p: i32, a: i32) : . "v" return (0, 0)
@@ -3968,22 +3554,13 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        let node = self.sppf_node(result);
                         let return_value = 0;
-                        let nonterminal_node_id = self.get_or_create_nonterminal_node(
-                            NonterminalId(126),
-                            SlotId(645),
-                            node.left_extent(),
-                            node.right_extent(),
-                            result,
-                            gss_node_id,
-                            Some(return_value),
-                        );
                         self.pop(
                             gss_node_id,
                             SlotId(645),
-                            nonterminal_node_id,
+                            result,
                             Some(return_value),
+                            &FOLLOW_SET_NULLABLE_LEX_RECURSIVE,
                         );
                     }
                     // NullableLexRecursive(p: i32, a: i32) : . (l_pr, l_assoc)=NullableLexOperand(p, 0) [(l_pr
@@ -4125,27 +3702,18 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        let node = self.sppf_node(result);
                         let return_value = (65536)
                             | (if self.lookup(BINDING_L_PR, env.unwrap()) == -1 {
                                 0
                             } else {
                                 1
                             });
-                        let nonterminal_node_id = self.get_or_create_nonterminal_node(
-                            NonterminalId(126),
-                            SlotId(654),
-                            node.left_extent(),
-                            node.right_extent(),
-                            result,
-                            gss_node_id,
-                            Some(return_value),
-                        );
                         self.pop(
                             gss_node_id,
                             SlotId(654),
-                            nonterminal_node_id,
+                            result,
                             Some(return_value),
+                            &FOLLOW_SET_NULLABLE_LEX_RECURSIVE,
                         );
                     }
                     // NullableLexOperand(p: i32, a: i32) : . (l_pr, l_assoc)=NullableLexMaybe(p, a) WS
@@ -4203,23 +3771,14 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        let node = self.sppf_node(result);
                         let return_value = ((self.lookup(BINDING_L_PR, env.unwrap())) << (16))
                             | (self.lookup(BINDING_L_ASSOC, env.unwrap()));
-                        let nonterminal_node_id = self.get_or_create_nonterminal_node(
-                            NonterminalId(127),
-                            SlotId(659),
-                            node.left_extent(),
-                            node.right_extent(),
-                            result,
-                            gss_node_id,
-                            Some(return_value),
-                        );
                         self.pop(
                             gss_node_id,
                             SlotId(659),
-                            nonterminal_node_id,
+                            result,
                             Some(return_value),
+                            &FOLLOW_SET_NULLABLE_LEX_OPERAND,
                         );
                     }
                     // NullableLexMaybe(p: i32, a: i32) : . (l_pr, l_assoc)=NullableLexRecursive(p, a) return
@@ -4245,23 +3804,14 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        let node = self.sppf_node(result);
                         let return_value = ((self.lookup(BINDING_L_PR, env.unwrap())) << (16))
                             | (self.lookup(BINDING_L_ASSOC, env.unwrap()));
-                        let nonterminal_node_id = self.get_or_create_nonterminal_node(
-                            NonterminalId(128),
-                            SlotId(662),
-                            node.left_extent(),
-                            node.right_extent(),
-                            result,
-                            gss_node_id,
-                            Some(return_value),
-                        );
                         self.pop(
                             gss_node_id,
                             SlotId(662),
-                            nonterminal_node_id,
+                            result,
                             Some(return_value),
+                            &FOLLOW_SET_NULLABLE_LEX_MAYBE,
                         );
                     }
                     // NullableLexMaybe(p: i32, a: i32) : . Digits return (UNDEFINED_PRECEDENCE, 0)
@@ -4287,22 +3837,13 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        let node = self.sppf_node(result);
                         let return_value = -65536;
-                        let nonterminal_node_id = self.get_or_create_nonterminal_node(
-                            NonterminalId(128),
-                            SlotId(665),
-                            node.left_extent(),
-                            node.right_extent(),
-                            result,
-                            gss_node_id,
-                            Some(return_value),
-                        );
                         self.pop(
                             gss_node_id,
                             SlotId(665),
-                            nonterminal_node_id,
+                            result,
                             Some(return_value),
+                            &FOLLOW_SET_NULLABLE_LEX_MAYBE,
                         );
                     }
                     // NullableSuffix(p: i32, a: i32) : . "w" return 0
@@ -4328,22 +3869,13 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        let node = self.sppf_node(result);
                         let return_value = 0;
-                        let nonterminal_node_id = self.get_or_create_nonterminal_node(
-                            NonterminalId(129),
-                            SlotId(668),
-                            node.left_extent(),
-                            node.right_extent(),
-                            result,
-                            gss_node_id,
-                            Some(return_value),
-                        );
                         self.pop(
                             gss_node_id,
                             SlotId(668),
-                            nonterminal_node_id,
+                            result,
                             Some(return_value),
+                            &FOLLOW_SET_NULLABLE_SUFFIX,
                         );
                     }
                     // NullableSuffix(p: i32, a: i32) : . [1 >= p] l_pr=NullableSuffix(p, 0) [(l_pr == 0) ||
@@ -4479,26 +4011,17 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        let node = self.sppf_node(result);
                         let return_value = if self.lookup(BINDING_R_PR, env.unwrap()) == -1 {
                             0
                         } else {
                             1
                         };
-                        let nonterminal_node_id = self.get_or_create_nonterminal_node(
-                            NonterminalId(129),
-                            SlotId(678),
-                            node.left_extent(),
-                            node.right_extent(),
-                            result,
-                            gss_node_id,
-                            Some(return_value),
-                        );
                         self.pop(
                             gss_node_id,
                             SlotId(678),
-                            nonterminal_node_id,
+                            result,
                             Some(return_value),
+                            &FOLLOW_SET_NULLABLE_SUFFIX,
                         );
                     }
                     // NullableSuffixOperand(p: i32, a: i32) : . NullableSuffix(0, 0) WS
@@ -4549,22 +4072,13 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        let node = self.sppf_node(result);
                         let return_value = self.lookup(BINDING_R_PR, env.unwrap());
-                        let nonterminal_node_id = self.get_or_create_nonterminal_node(
-                            NonterminalId(130),
-                            SlotId(683),
-                            node.left_extent(),
-                            node.right_extent(),
-                            result,
-                            gss_node_id,
-                            Some(return_value),
-                        );
                         self.pop(
                             gss_node_id,
                             SlotId(683),
-                            nonterminal_node_id,
+                            result,
                             Some(return_value),
+                            &FOLLOW_SET_NULLABLE_SUFFIX_OPERAND,
                         );
                     }
                     // NullableSuffixMaybe(p: i32, a: i32) : . r_pr=Opt_2(p, a) return r_pr
@@ -4587,22 +4101,13 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        let node = self.sppf_node(result);
                         let return_value = self.lookup(BINDING_R_PR, env.unwrap());
-                        let nonterminal_node_id = self.get_or_create_nonterminal_node(
-                            NonterminalId(131),
-                            SlotId(686),
-                            node.left_extent(),
-                            node.right_extent(),
-                            result,
-                            gss_node_id,
-                            Some(return_value),
-                        );
                         self.pop(
                             gss_node_id,
                             SlotId(686),
-                            nonterminal_node_id,
+                            result,
                             Some(return_value),
+                            &FOLLOW_SET_NULLABLE_SUFFIX_MAYBE,
                         );
                     }
                     // NullableShared(p: i32, a: i32) : . "j" return (0, 0)
@@ -4628,22 +4133,13 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        let node = self.sppf_node(result);
                         let return_value = 0;
-                        let nonterminal_node_id = self.get_or_create_nonterminal_node(
-                            NonterminalId(132),
-                            SlotId(689),
-                            node.left_extent(),
-                            node.right_extent(),
-                            result,
-                            gss_node_id,
-                            Some(return_value),
-                        );
                         self.pop(
                             gss_node_id,
                             SlotId(689),
-                            nonterminal_node_id,
+                            result,
                             Some(return_value),
+                            &FOLLOW_SET_NULLABLE_SHARED,
                         );
                     }
                     // NullableShared(p: i32, a: i32) : . (l_pr, l_assoc)=NullableSharedOperand(p, 0, 0) [(l_pr
@@ -4800,7 +4296,6 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        let node = self.sppf_node(result);
                         let return_value = ((if self.lookup(BINDING_R_PR, env.unwrap()) == -1 {
                             0
                         } else {
@@ -4813,20 +4308,12 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                             } else {
                                 1
                             });
-                        let nonterminal_node_id = self.get_or_create_nonterminal_node(
-                            NonterminalId(132),
-                            SlotId(698),
-                            node.left_extent(),
-                            node.right_extent(),
-                            result,
-                            gss_node_id,
-                            Some(return_value),
-                        );
                         self.pop(
                             gss_node_id,
                             SlotId(698),
-                            nonterminal_node_id,
+                            result,
                             Some(return_value),
+                            &FOLLOW_SET_NULLABLE_SHARED,
                         );
                     }
                     // NullableSharedOperand(p: i32, end: i32, a: i32) : . (l_pr,
@@ -4945,7 +4432,6 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        let node = self.sppf_node(result);
                         let return_value = ((if self.lookup(BINDING_END, env.unwrap()) == 0 {
                             self.lookup(BINDING_L_PR, env.unwrap())
                         } else {
@@ -4956,20 +4442,12 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                             } else {
                                 self.lookup(BINDING_R_ASSOC, env.unwrap())
                             });
-                        let nonterminal_node_id = self.get_or_create_nonterminal_node(
-                            NonterminalId(133),
-                            SlotId(705),
-                            node.left_extent(),
-                            node.right_extent(),
-                            result,
-                            gss_node_id,
-                            Some(return_value),
-                        );
                         self.pop(
                             gss_node_id,
                             SlotId(705),
-                            nonterminal_node_id,
+                            result,
                             Some(return_value),
+                            &FOLLOW_SET_NULLABLE_SHARED_OPERAND,
                         );
                     }
                     // NullableSharedMaybe(p: i32, end: i32, a: i32) : . (v_pr, v_assoc)=Opt_3(p, end, a) return
@@ -4996,23 +4474,14 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        let node = self.sppf_node(result);
                         let return_value = ((self.lookup(BINDING_V_PR, env.unwrap())) << (16))
                             | (self.lookup(BINDING_V_ASSOC, env.unwrap()));
-                        let nonterminal_node_id = self.get_or_create_nonterminal_node(
-                            NonterminalId(134),
-                            SlotId(708),
-                            node.left_extent(),
-                            node.right_extent(),
-                            result,
-                            gss_node_id,
-                            Some(return_value),
-                        );
                         self.pop(
                             gss_node_id,
                             SlotId(708),
-                            nonterminal_node_id,
+                            result,
                             Some(return_value),
+                            &FOLLOW_SET_NULLABLE_SHARED_MAYBE,
                         );
                     }
                     // OwnLabel(p: i32, a: i32, e: i32) : . [1 & e == 0] "k" return (0, 0)
@@ -5044,22 +4513,13 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        let node = self.sppf_node(result);
                         let return_value = 0;
-                        let nonterminal_node_id = self.get_or_create_nonterminal_node(
-                            NonterminalId(135),
-                            SlotId(712),
-                            node.left_extent(),
-                            node.right_extent(),
-                            result,
-                            gss_node_id,
-                            Some(return_value),
-                        );
                         self.pop(
                             gss_node_id,
                             SlotId(712),
-                            nonterminal_node_id,
+                            result,
                             Some(return_value),
+                            &FOLLOW_SET_OWN_LABEL,
                         );
                     }
                     // OwnLabel(p: i32, a: i32, e: i32) : . [2 & e == 0] (l_pr, l_label)=OwnOperand(p, 0, 0, 0)
@@ -5244,27 +4704,18 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        let node = self.sppf_node(result);
                         let return_value = ((if self.lookup(BINDING_R_PR, env.unwrap()) == -1 {
                             0
                         } else {
                             1
                         }) << (16))
                             | (1);
-                        let nonterminal_node_id = self.get_or_create_nonterminal_node(
-                            NonterminalId(135),
-                            SlotId(723),
-                            node.left_extent(),
-                            node.right_extent(),
-                            result,
-                            gss_node_id,
-                            Some(return_value),
-                        );
                         self.pop(
                             gss_node_id,
                             SlotId(723),
-                            nonterminal_node_id,
+                            result,
                             Some(return_value),
+                            &FOLLOW_SET_OWN_LABEL,
                         );
                     }
                     // OwnOperand(p: i32, end: i32, a: i32, e: i32) : . [1 & e == 0] (v_pr, v_label)=OwnLabel(p,
@@ -5298,22 +4749,13 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        let node = self.sppf_node(result);
                         let return_value = (self.lookup(BINDING_V_PR, env.unwrap())) << (16);
-                        let nonterminal_node_id = self.get_or_create_nonterminal_node(
-                            NonterminalId(136),
-                            SlotId(727),
-                            node.left_extent(),
-                            node.right_extent(),
-                            result,
-                            gss_node_id,
-                            Some(return_value),
-                        );
                         self.pop(
                             gss_node_id,
                             SlotId(727),
-                            nonterminal_node_id,
+                            result,
                             Some(return_value),
+                            &FOLLOW_SET_OWN_OPERAND,
                         );
                     }
                     // OwnOperand(p: i32, end: i32, a: i32, e: i32) : . [2 & e == 0] "(" WS OwnLabel(0, 0, 0) WS
@@ -5415,22 +4857,13 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        let node = self.sppf_node(result);
                         let return_value = -65535;
-                        let nonterminal_node_id = self.get_or_create_nonterminal_node(
-                            NonterminalId(136),
-                            SlotId(735),
-                            node.left_extent(),
-                            node.right_extent(),
-                            result,
-                            gss_node_id,
-                            Some(return_value),
-                        );
                         self.pop(
                             gss_node_id,
                             SlotId(735),
-                            nonterminal_node_id,
+                            result,
                             Some(return_value),
+                            &FOLLOW_SET_OWN_OPERAND,
                         );
                     }
                     // OwnHeadFiltered : . OwnLabel(0, 0, 1)
@@ -5439,13 +4872,16 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     }
                     // OwnHeadFiltered : OwnLabel(0, 0, 1).
                     SlotId(25) => {
-                        let nonterminal_node_id = self.create_nonterminal_node(
-                            result,
-                            NonterminalId(6),
-                            SlotId(25),
+                        let Some(result) = result else {
+                            unreachable!("result cannot be None here.")
+                        };
+                        self.pop(
                             gss_node_id,
+                            SlotId(25),
+                            result,
+                            None,
+                            &FOLLOW_SET_OWN_HEAD_FILTERED,
                         );
-                        self.pop(gss_node_id, SlotId(25), nonterminal_node_id, None);
                     }
                     // ExcludeOnly(e: i32) : . [1 & e == 0] "s" return (0, 0)
                     SlotId(736) => {
@@ -5476,22 +4912,13 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        let node = self.sppf_node(result);
                         let return_value = 0;
-                        let nonterminal_node_id = self.get_or_create_nonterminal_node(
-                            NonterminalId(137),
-                            SlotId(739),
-                            node.left_extent(),
-                            node.right_extent(),
-                            result,
-                            gss_node_id,
-                            Some(return_value),
-                        );
                         self.pop(
                             gss_node_id,
                             SlotId(739),
-                            nonterminal_node_id,
+                            result,
                             Some(return_value),
+                            &FOLLOW_SET_EXCLUDE_ONLY,
                         );
                     }
                     // ExcludeOnly(e: i32) : . "t" return (0, NO_LABEL)
@@ -5517,22 +4944,13 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        let node = self.sppf_node(result);
                         let return_value = 31;
-                        let nonterminal_node_id = self.get_or_create_nonterminal_node(
-                            NonterminalId(137),
-                            SlotId(742),
-                            node.left_extent(),
-                            node.right_extent(),
-                            result,
-                            gss_node_id,
-                            Some(return_value),
-                        );
                         self.pop(
                             gss_node_id,
                             SlotId(742),
-                            nonterminal_node_id,
+                            result,
                             Some(return_value),
+                            &FOLLOW_SET_EXCLUDE_ONLY,
                         );
                     }
                     // ExcludeOnlyFiltered : . ExcludeOnly(1)
@@ -5541,13 +4959,16 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     }
                     // ExcludeOnlyFiltered : ExcludeOnly(1).
                     SlotId(27) => {
-                        let nonterminal_node_id = self.create_nonterminal_node(
-                            result,
-                            NonterminalId(7),
-                            SlotId(27),
+                        let Some(result) = result else {
+                            unreachable!("result cannot be None here.")
+                        };
+                        self.pop(
                             gss_node_id,
+                            SlotId(27),
+                            result,
+                            None,
+                            &FOLLOW_SET_EXCLUDE_ONLY_FILTERED,
                         );
-                        self.pop(gss_node_id, SlotId(27), nonterminal_node_id, None);
                     }
                     // Absent(p: i32) : . "a" return 0
                     SlotId(743) => {
@@ -5572,22 +4993,13 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        let node = self.sppf_node(result);
                         let return_value = 0;
-                        let nonterminal_node_id = self.get_or_create_nonterminal_node(
-                            NonterminalId(138),
-                            SlotId(745),
-                            node.left_extent(),
-                            node.right_extent(),
-                            result,
-                            gss_node_id,
-                            Some(return_value),
-                        );
                         self.pop(
                             gss_node_id,
                             SlotId(745),
-                            nonterminal_node_id,
+                            result,
                             Some(return_value),
+                            &FOLLOW_SET_ABSENT,
                         );
                     }
                     // Absent(p: i32) : . [2 >= p] l_pr=Absent(p) [(l_pr == 0) || (l_pr >= 2)] WS "*" WS
@@ -5693,26 +5105,17 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        let node = self.sppf_node(result);
                         let return_value = if self.lookup(BINDING_R_PR, env.unwrap()) == 0 {
                             2
                         } else {
                             std::cmp::min(self.lookup(BINDING_R_PR, env.unwrap()), 2)
                         };
-                        let nonterminal_node_id = self.get_or_create_nonterminal_node(
-                            NonterminalId(138),
-                            SlotId(754),
-                            node.left_extent(),
-                            node.right_extent(),
-                            result,
-                            gss_node_id,
-                            Some(return_value),
-                        );
                         self.pop(
                             gss_node_id,
                             SlotId(754),
-                            nonterminal_node_id,
+                            result,
                             Some(return_value),
+                            &FOLLOW_SET_ABSENT,
                         );
                     }
                     // Absent(p: i32) : . l_pr=AbsentOperand(p, 0) [(l_pr == UNDEFINED_PRECEDENCE) || ((1 >= p)
@@ -5825,26 +5228,17 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        let node = self.sppf_node(result);
                         let return_value = if self.lookup(BINDING_R_PR, env.unwrap()) == -1 {
                             0
                         } else {
                             1
                         };
-                        let nonterminal_node_id = self.get_or_create_nonterminal_node(
-                            NonterminalId(138),
-                            SlotId(762),
-                            node.left_extent(),
-                            node.right_extent(),
-                            result,
-                            gss_node_id,
-                            Some(return_value),
-                        );
                         self.pop(
                             gss_node_id,
                             SlotId(762),
-                            nonterminal_node_id,
+                            result,
                             Some(return_value),
+                            &FOLLOW_SET_ABSENT,
                         );
                     }
                     // AbsentOperand(p: i32, end: i32) : . v_pr=Absent(p) return v_pr
@@ -5866,22 +5260,13 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        let node = self.sppf_node(result);
                         let return_value = self.lookup(BINDING_V_PR, env.unwrap());
-                        let nonterminal_node_id = self.get_or_create_nonterminal_node(
-                            NonterminalId(139),
-                            SlotId(765),
-                            node.left_extent(),
-                            node.right_extent(),
-                            result,
-                            gss_node_id,
-                            Some(return_value),
-                        );
                         self.pop(
                             gss_node_id,
                             SlotId(765),
-                            nonterminal_node_id,
+                            result,
                             Some(return_value),
+                            &FOLLOW_SET_ABSENT_OPERAND,
                         );
                     }
                     // AbsentOperand(p: i32, end: i32) : . "b" return UNDEFINED_PRECEDENCE
@@ -5907,22 +5292,13 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        let node = self.sppf_node(result);
                         let return_value = -1;
-                        let nonterminal_node_id = self.get_or_create_nonterminal_node(
-                            NonterminalId(139),
-                            SlotId(768),
-                            node.left_extent(),
-                            node.right_extent(),
-                            result,
-                            gss_node_id,
-                            Some(return_value),
-                        );
                         self.pop(
                             gss_node_id,
                             SlotId(768),
-                            nonterminal_node_id,
+                            result,
                             Some(return_value),
+                            &FOLLOW_SET_ABSENT_OPERAND,
                         );
                     }
                     // ClosedPrefix(p: i32) : . "a" return 0
@@ -5948,22 +5324,13 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        let node = self.sppf_node(result);
                         let return_value = 0;
-                        let nonterminal_node_id = self.get_or_create_nonterminal_node(
-                            NonterminalId(140),
-                            SlotId(771),
-                            node.left_extent(),
-                            node.right_extent(),
-                            result,
-                            gss_node_id,
-                            Some(return_value),
-                        );
                         self.pop(
                             gss_node_id,
                             SlotId(771),
-                            nonterminal_node_id,
+                            result,
                             Some(return_value),
+                            &FOLLOW_SET_CLOSED_PREFIX,
                         );
                     }
                     // ClosedPrefix(p: i32) : . [2 >= p] l_pr=ClosedPrefix(p) [(l_pr == 0) || (l_pr >= 2)] WS "+"
@@ -6069,26 +5436,17 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        let node = self.sppf_node(result);
                         let return_value = if self.lookup(BINDING_R_PR, env.unwrap()) == 0 {
                             2
                         } else {
                             std::cmp::min(self.lookup(BINDING_R_PR, env.unwrap()), 2)
                         };
-                        let nonterminal_node_id = self.get_or_create_nonterminal_node(
-                            NonterminalId(140),
-                            SlotId(780),
-                            node.left_extent(),
-                            node.right_extent(),
-                            result,
-                            gss_node_id,
-                            Some(return_value),
-                        );
                         self.pop(
                             gss_node_id,
                             SlotId(780),
-                            nonterminal_node_id,
+                            result,
                             Some(return_value),
+                            &FOLLOW_SET_CLOSED_PREFIX,
                         );
                     }
                     // ClosedPrefix(p: i32) : . "pre" WS r_pr=ClosedPrefixBody(1) return (r_pr ==
@@ -6143,26 +5501,17 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        let node = self.sppf_node(result);
                         let return_value = if self.lookup(BINDING_R_PR, env.unwrap()) == -1 {
                             0
                         } else {
                             1
                         };
-                        let nonterminal_node_id = self.get_or_create_nonterminal_node(
-                            NonterminalId(140),
-                            SlotId(785),
-                            node.left_extent(),
-                            node.right_extent(),
-                            result,
-                            gss_node_id,
-                            Some(return_value),
-                        );
                         self.pop(
                             gss_node_id,
                             SlotId(785),
-                            nonterminal_node_id,
+                            result,
                             Some(return_value),
+                            &FOLLOW_SET_CLOSED_PREFIX,
                         );
                     }
                     // ClosedPrefixBody(p: i32) : . r_pr=ClosedPrefix(p) return r_pr
@@ -6184,22 +5533,13 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        let node = self.sppf_node(result);
                         let return_value = self.lookup(BINDING_R_PR, env.unwrap());
-                        let nonterminal_node_id = self.get_or_create_nonterminal_node(
-                            NonterminalId(141),
-                            SlotId(788),
-                            node.left_extent(),
-                            node.right_extent(),
-                            result,
-                            gss_node_id,
-                            Some(return_value),
-                        );
                         self.pop(
                             gss_node_id,
                             SlotId(788),
-                            nonterminal_node_id,
+                            result,
                             Some(return_value),
+                            &FOLLOW_SET_CLOSED_PREFIX_BODY,
                         );
                     }
                     // ClosedPrefixBody(p: i32) : . "b" return UNDEFINED_PRECEDENCE
@@ -6225,22 +5565,13 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        let node = self.sppf_node(result);
                         let return_value = -1;
-                        let nonterminal_node_id = self.get_or_create_nonterminal_node(
-                            NonterminalId(141),
-                            SlotId(791),
-                            node.left_extent(),
-                            node.right_extent(),
-                            result,
-                            gss_node_id,
-                            Some(return_value),
-                        );
                         self.pop(
                             gss_node_id,
                             SlotId(791),
-                            nonterminal_node_id,
+                            result,
                             Some(return_value),
+                            &FOLLOW_SET_CLOSED_PREFIX_BODY,
                         );
                     }
                     // ClosedPostfix(p: i32) : . "a" return 0
@@ -6266,22 +5597,13 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        let node = self.sppf_node(result);
                         let return_value = 0;
-                        let nonterminal_node_id = self.get_or_create_nonterminal_node(
-                            NonterminalId(142),
-                            SlotId(794),
-                            node.left_extent(),
-                            node.right_extent(),
-                            result,
-                            gss_node_id,
-                            Some(return_value),
-                        );
                         self.pop(
                             gss_node_id,
                             SlotId(794),
-                            nonterminal_node_id,
+                            result,
                             Some(return_value),
+                            &FOLLOW_SET_CLOSED_POSTFIX,
                         );
                     }
                     // ClosedPostfix(p: i32) : . "pre" WS ClosedPostfix(2) return 2
@@ -6329,22 +5651,13 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        let node = self.sppf_node(result);
                         let return_value = 2;
-                        let nonterminal_node_id = self.get_or_create_nonterminal_node(
-                            NonterminalId(142),
-                            SlotId(799),
-                            node.left_extent(),
-                            node.right_extent(),
-                            result,
-                            gss_node_id,
-                            Some(return_value),
-                        );
                         self.pop(
                             gss_node_id,
                             SlotId(799),
-                            nonterminal_node_id,
+                            result,
                             Some(return_value),
+                            &FOLLOW_SET_CLOSED_POSTFIX,
                         );
                     }
                     // ClosedPostfix(p: i32) : . l_pr=ClosedPostfixBody(p) [(l_pr == UNDEFINED_PRECEDENCE) || ((1
@@ -6420,22 +5733,13 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        let node = self.sppf_node(result);
                         let return_value = 0;
-                        let nonterminal_node_id = self.get_or_create_nonterminal_node(
-                            NonterminalId(142),
-                            SlotId(805),
-                            node.left_extent(),
-                            node.right_extent(),
-                            result,
-                            gss_node_id,
-                            Some(return_value),
-                        );
                         self.pop(
                             gss_node_id,
                             SlotId(805),
-                            nonterminal_node_id,
+                            result,
                             Some(return_value),
+                            &FOLLOW_SET_CLOSED_POSTFIX,
                         );
                     }
                     // ClosedPostfixBody(p: i32) : . l_pr=ClosedPostfix(p) return l_pr
@@ -6457,22 +5761,13 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        let node = self.sppf_node(result);
                         let return_value = self.lookup(BINDING_L_PR, env.unwrap());
-                        let nonterminal_node_id = self.get_or_create_nonterminal_node(
-                            NonterminalId(143),
-                            SlotId(808),
-                            node.left_extent(),
-                            node.right_extent(),
-                            result,
-                            gss_node_id,
-                            Some(return_value),
-                        );
                         self.pop(
                             gss_node_id,
                             SlotId(808),
-                            nonterminal_node_id,
+                            result,
                             Some(return_value),
+                            &FOLLOW_SET_CLOSED_POSTFIX_BODY,
                         );
                     }
                     // ClosedPostfixBody(p: i32) : . "b" return UNDEFINED_PRECEDENCE
@@ -6498,22 +5793,13 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        let node = self.sppf_node(result);
                         let return_value = -1;
-                        let nonterminal_node_id = self.get_or_create_nonterminal_node(
-                            NonterminalId(143),
-                            SlotId(811),
-                            node.left_extent(),
-                            node.right_extent(),
-                            result,
-                            gss_node_id,
-                            Some(return_value),
-                        );
                         self.pop(
                             gss_node_id,
                             SlotId(811),
-                            nonterminal_node_id,
+                            result,
                             Some(return_value),
+                            &FOLLOW_SET_CLOSED_POSTFIX_BODY,
                         );
                     }
                     // HeadChoice(p: i32) : . "a" return 0
@@ -6539,22 +5825,13 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        let node = self.sppf_node(result);
                         let return_value = 0;
-                        let nonterminal_node_id = self.get_or_create_nonterminal_node(
-                            NonterminalId(144),
-                            SlotId(814),
-                            node.left_extent(),
-                            node.right_extent(),
-                            result,
-                            gss_node_id,
-                            Some(return_value),
-                        );
                         self.pop(
                             gss_node_id,
                             SlotId(814),
-                            nonterminal_node_id,
+                            result,
                             Some(return_value),
+                            &FOLLOW_SET_HEAD_CHOICE,
                         );
                     }
                     // HeadChoice(p: i32) : . [1 >= p] l_pr=HeadOperand(p, 0) [(l_pr == 0) || (l_pr >= 1)] WS "+"
@@ -6661,22 +5938,13 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        let node = self.sppf_node(result);
                         let return_value = 1;
-                        let nonterminal_node_id = self.get_or_create_nonterminal_node(
-                            NonterminalId(144),
-                            SlotId(823),
-                            node.left_extent(),
-                            node.right_extent(),
-                            result,
-                            gss_node_id,
-                            Some(return_value),
-                        );
                         self.pop(
                             gss_node_id,
                             SlotId(823),
-                            nonterminal_node_id,
+                            result,
                             Some(return_value),
+                            &FOLLOW_SET_HEAD_CHOICE,
                         );
                     }
                     // HeadChoice(p: i32) : . Inner(0) return 0
@@ -6692,22 +5960,13 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        let node = self.sppf_node(result);
                         let return_value = 0;
-                        let nonterminal_node_id = self.get_or_create_nonterminal_node(
-                            NonterminalId(144),
-                            SlotId(826),
-                            node.left_extent(),
-                            node.right_extent(),
-                            result,
-                            gss_node_id,
-                            Some(return_value),
-                        );
                         self.pop(
                             gss_node_id,
                             SlotId(826),
-                            nonterminal_node_id,
+                            result,
                             Some(return_value),
+                            &FOLLOW_SET_HEAD_CHOICE,
                         );
                     }
                     // HeadOperand(p: i32, end: i32) : . v_pr=HeadChoice(p) return v_pr
@@ -6729,22 +5988,13 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        let node = self.sppf_node(result);
                         let return_value = self.lookup(BINDING_V_PR, env.unwrap());
-                        let nonterminal_node_id = self.get_or_create_nonterminal_node(
-                            NonterminalId(145),
-                            SlotId(829),
-                            node.left_extent(),
-                            node.right_extent(),
-                            result,
-                            gss_node_id,
-                            Some(return_value),
-                        );
                         self.pop(
                             gss_node_id,
                             SlotId(829),
-                            nonterminal_node_id,
+                            result,
                             Some(return_value),
+                            &FOLLOW_SET_HEAD_OPERAND,
                         );
                     }
                     // Inner(p: i32) : . "b" return 0
@@ -6770,22 +6020,13 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        let node = self.sppf_node(result);
                         let return_value = 0;
-                        let nonterminal_node_id = self.get_or_create_nonterminal_node(
-                            NonterminalId(146),
-                            SlotId(832),
-                            node.left_extent(),
-                            node.right_extent(),
-                            result,
-                            gss_node_id,
-                            Some(return_value),
-                        );
                         self.pop(
                             gss_node_id,
                             SlotId(832),
-                            nonterminal_node_id,
+                            result,
                             Some(return_value),
+                            &FOLLOW_SET_INNER,
                         );
                     }
                     // Inner(p: i32) : . [1 >= p] l_pr=Inner(p) [(l_pr == 0) || (l_pr >= 1)] WS "*" WS Inner(2)
@@ -6891,22 +6132,13 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        let node = self.sppf_node(result);
                         let return_value = 1;
-                        let nonterminal_node_id = self.get_or_create_nonterminal_node(
-                            NonterminalId(146),
-                            SlotId(841),
-                            node.left_extent(),
-                            node.right_extent(),
-                            result,
-                            gss_node_id,
-                            Some(return_value),
-                        );
                         self.pop(
                             gss_node_id,
                             SlotId(841),
-                            nonterminal_node_id,
+                            result,
                             Some(return_value),
+                            &FOLLOW_SET_INNER,
                         );
                     }
                     // UnaryMixedLeft(p: i32, a: i32) : . [1 >= p] [a != 1] l_pr=UnaryMixedLeft(p, 0) [(l_pr ==
@@ -7020,22 +6252,13 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        let node = self.sppf_node(result);
                         let return_value = 1;
-                        let nonterminal_node_id = self.get_or_create_nonterminal_node(
-                            NonterminalId(147),
-                            SlotId(851),
-                            node.left_extent(),
-                            node.right_extent(),
-                            result,
-                            gss_node_id,
-                            Some(return_value),
-                        );
                         self.pop(
                             gss_node_id,
                             SlotId(851),
-                            nonterminal_node_id,
+                            result,
                             Some(return_value),
+                            &FOLLOW_SET_UNARY_MIXED_LEFT,
                         );
                     }
                     // UnaryMixedLeft(p: i32, a: i32) : . "-" WS UnaryMixedLeft(1, 0) return 1
@@ -7083,22 +6306,13 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        let node = self.sppf_node(result);
                         let return_value = 1;
-                        let nonterminal_node_id = self.get_or_create_nonterminal_node(
-                            NonterminalId(147),
-                            SlotId(856),
-                            node.left_extent(),
-                            node.right_extent(),
-                            result,
-                            gss_node_id,
-                            Some(return_value),
-                        );
                         self.pop(
                             gss_node_id,
                             SlotId(856),
-                            nonterminal_node_id,
+                            result,
                             Some(return_value),
+                            &FOLLOW_SET_UNARY_MIXED_LEFT,
                         );
                     }
                     // UnaryMixedLeft(p: i32, a: i32) : . [1 >= p] l_pr=UnaryMixedLeft(p, 0) [(l_pr == 0) ||
@@ -7180,22 +6394,13 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        let node = self.sppf_node(result);
                         let return_value = 0;
-                        let nonterminal_node_id = self.get_or_create_nonterminal_node(
-                            NonterminalId(147),
-                            SlotId(863),
-                            node.left_extent(),
-                            node.right_extent(),
-                            result,
-                            gss_node_id,
-                            Some(return_value),
-                        );
                         self.pop(
                             gss_node_id,
                             SlotId(863),
-                            nonterminal_node_id,
+                            result,
                             Some(return_value),
+                            &FOLLOW_SET_UNARY_MIXED_LEFT,
                         );
                     }
                     // UnaryMixedLeft(p: i32, a: i32) : . "a" return 0
@@ -7221,22 +6426,13 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        let node = self.sppf_node(result);
                         let return_value = 0;
-                        let nonterminal_node_id = self.get_or_create_nonterminal_node(
-                            NonterminalId(147),
-                            SlotId(866),
-                            node.left_extent(),
-                            node.right_extent(),
-                            result,
-                            gss_node_id,
-                            Some(return_value),
-                        );
                         self.pop(
                             gss_node_id,
                             SlotId(866),
-                            nonterminal_node_id,
+                            result,
                             Some(return_value),
+                            &FOLLOW_SET_UNARY_MIXED_LEFT,
                         );
                     }
                     // UnaryMixedRight(p: i32, a: i32) : . [1 >= p] (l_pr, l_assoc)=UnaryMixedRight(p, 0) [(l_pr
@@ -7363,22 +6559,13 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        let node = self.sppf_node(result);
                         let return_value = 65537;
-                        let nonterminal_node_id = self.get_or_create_nonterminal_node(
-                            NonterminalId(148),
-                            SlotId(876),
-                            node.left_extent(),
-                            node.right_extent(),
-                            result,
-                            gss_node_id,
-                            Some(return_value),
-                        );
                         self.pop(
                             gss_node_id,
                             SlotId(876),
-                            nonterminal_node_id,
+                            result,
                             Some(return_value),
+                            &FOLLOW_SET_UNARY_MIXED_RIGHT,
                         );
                     }
                     // UnaryMixedRight(p: i32, a: i32) : . "-" WS UnaryMixedRight(1, 0) return (1, 0)
@@ -7426,22 +6613,13 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        let node = self.sppf_node(result);
                         let return_value = 65536;
-                        let nonterminal_node_id = self.get_or_create_nonterminal_node(
-                            NonterminalId(148),
-                            SlotId(881),
-                            node.left_extent(),
-                            node.right_extent(),
-                            result,
-                            gss_node_id,
-                            Some(return_value),
-                        );
                         self.pop(
                             gss_node_id,
                             SlotId(881),
-                            nonterminal_node_id,
+                            result,
                             Some(return_value),
+                            &FOLLOW_SET_UNARY_MIXED_RIGHT,
                         );
                     }
                     // UnaryMixedRight(p: i32, a: i32) : . [1 >= p] (l_pr, l_assoc)=UnaryMixedRight(p, 0) [(l_pr
@@ -7523,22 +6701,13 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        let node = self.sppf_node(result);
                         let return_value = 0;
-                        let nonterminal_node_id = self.get_or_create_nonterminal_node(
-                            NonterminalId(148),
-                            SlotId(888),
-                            node.left_extent(),
-                            node.right_extent(),
-                            result,
-                            gss_node_id,
-                            Some(return_value),
-                        );
                         self.pop(
                             gss_node_id,
                             SlotId(888),
-                            nonterminal_node_id,
+                            result,
                             Some(return_value),
+                            &FOLLOW_SET_UNARY_MIXED_RIGHT,
                         );
                     }
                     // UnaryMixedRight(p: i32, a: i32) : . "a" return (0, 0)
@@ -7564,22 +6733,13 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        let node = self.sppf_node(result);
                         let return_value = 0;
-                        let nonterminal_node_id = self.get_or_create_nonterminal_node(
-                            NonterminalId(148),
-                            SlotId(891),
-                            node.left_extent(),
-                            node.right_extent(),
-                            result,
-                            gss_node_id,
-                            Some(return_value),
-                        );
                         self.pop(
                             gss_node_id,
                             SlotId(891),
-                            nonterminal_node_id,
+                            result,
                             Some(return_value),
+                            &FOLLOW_SET_UNARY_MIXED_RIGHT,
                         );
                     }
                     // UnaryMixedNone(p: i32, a: i32) : . [1 >= p] [a != 1] (l_pr, l_assoc)=UnaryMixedNone(p, 0)
@@ -7714,22 +6874,13 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        let node = self.sppf_node(result);
                         let return_value = 65537;
-                        let nonterminal_node_id = self.get_or_create_nonterminal_node(
-                            NonterminalId(149),
-                            SlotId(902),
-                            node.left_extent(),
-                            node.right_extent(),
-                            result,
-                            gss_node_id,
-                            Some(return_value),
-                        );
                         self.pop(
                             gss_node_id,
                             SlotId(902),
-                            nonterminal_node_id,
+                            result,
                             Some(return_value),
+                            &FOLLOW_SET_UNARY_MIXED_NONE,
                         );
                     }
                     // UnaryMixedNone(p: i32, a: i32) : . "-" WS UnaryMixedNone(1, 0) return (1, 0)
@@ -7777,22 +6928,13 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        let node = self.sppf_node(result);
                         let return_value = 65536;
-                        let nonterminal_node_id = self.get_or_create_nonterminal_node(
-                            NonterminalId(149),
-                            SlotId(907),
-                            node.left_extent(),
-                            node.right_extent(),
-                            result,
-                            gss_node_id,
-                            Some(return_value),
-                        );
                         self.pop(
                             gss_node_id,
                             SlotId(907),
-                            nonterminal_node_id,
+                            result,
                             Some(return_value),
+                            &FOLLOW_SET_UNARY_MIXED_NONE,
                         );
                     }
                     // UnaryMixedNone(p: i32, a: i32) : . [1 >= p] (l_pr, l_assoc)=UnaryMixedNone(p, 0) [(l_pr ==
@@ -7874,22 +7016,13 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        let node = self.sppf_node(result);
                         let return_value = 0;
-                        let nonterminal_node_id = self.get_or_create_nonterminal_node(
-                            NonterminalId(149),
-                            SlotId(914),
-                            node.left_extent(),
-                            node.right_extent(),
-                            result,
-                            gss_node_id,
-                            Some(return_value),
-                        );
                         self.pop(
                             gss_node_id,
                             SlotId(914),
-                            nonterminal_node_id,
+                            result,
                             Some(return_value),
+                            &FOLLOW_SET_UNARY_MIXED_NONE,
                         );
                     }
                     // UnaryMixedNone(p: i32, a: i32) : . "a" return (0, 0)
@@ -7915,22 +7048,13 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        let node = self.sppf_node(result);
                         let return_value = 0;
-                        let nonterminal_node_id = self.get_or_create_nonterminal_node(
-                            NonterminalId(149),
-                            SlotId(917),
-                            node.left_extent(),
-                            node.right_extent(),
-                            result,
-                            gss_node_id,
-                            Some(return_value),
-                        );
                         self.pop(
                             gss_node_id,
                             SlotId(917),
-                            nonterminal_node_id,
+                            result,
                             Some(return_value),
+                            &FOLLOW_SET_UNARY_MIXED_NONE,
                         );
                     }
                     // Dynamic(p: i32, a: i32, e: i32) : . [1 & e == 0] (l_pr, l_assoc,
@@ -8125,7 +7249,6 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        let node = self.sppf_node(result);
                         let return_value = ((if self.lookup(BINDING_R_PR, env.unwrap()) == -1 {
                             0
                         } else {
@@ -8138,20 +7261,12 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                             } else {
                                 1
                             }) << (5));
-                        let nonterminal_node_id = self.get_or_create_nonterminal_node(
-                            NonterminalId(150),
-                            SlotId(928),
-                            node.left_extent(),
-                            node.right_extent(),
-                            result,
-                            gss_node_id,
-                            Some(return_value),
-                        );
                         self.pop(
                             gss_node_id,
                             SlotId(928),
-                            nonterminal_node_id,
+                            result,
                             Some(return_value),
+                            &FOLLOW_SET_DYNAMIC,
                         );
                     }
                     // Dynamic(p: i32, a: i32, e: i32) : . [2 & e == 0] "-" WS (r_pr, r_assoc,
@@ -8223,27 +7338,18 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        let node = self.sppf_node(result);
                         let return_value = ((if self.lookup(BINDING_R_PR, env.unwrap()) == -1 {
                             0
                         } else {
                             1
                         }) << (18))
                             | (1);
-                        let nonterminal_node_id = self.get_or_create_nonterminal_node(
-                            NonterminalId(150),
-                            SlotId(934),
-                            node.left_extent(),
-                            node.right_extent(),
-                            result,
-                            gss_node_id,
-                            Some(return_value),
-                        );
                         self.pop(
                             gss_node_id,
                             SlotId(934),
-                            nonterminal_node_id,
+                            result,
                             Some(return_value),
+                            &FOLLOW_SET_DYNAMIC,
                         );
                     }
                     // Dynamic(p: i32, a: i32, e: i32) : . [4 & e == 0] (l_pr, l_assoc,
@@ -8338,22 +7444,13 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        let node = self.sppf_node(result);
                         let return_value = 2;
-                        let nonterminal_node_id = self.get_or_create_nonterminal_node(
-                            NonterminalId(150),
-                            SlotId(941),
-                            node.left_extent(),
-                            node.right_extent(),
-                            result,
-                            gss_node_id,
-                            Some(return_value),
-                        );
                         self.pop(
                             gss_node_id,
                             SlotId(941),
-                            nonterminal_node_id,
+                            result,
                             Some(return_value),
+                            &FOLLOW_SET_DYNAMIC,
                         );
                     }
                     // Dynamic(p: i32, a: i32, e: i32) : . [8 & e == 0] "a" return (0, 0, 3)
@@ -8385,22 +7482,13 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        let node = self.sppf_node(result);
                         let return_value = 3;
-                        let nonterminal_node_id = self.get_or_create_nonterminal_node(
-                            NonterminalId(150),
-                            SlotId(945),
-                            node.left_extent(),
-                            node.right_extent(),
-                            result,
-                            gss_node_id,
-                            Some(return_value),
-                        );
                         self.pop(
                             gss_node_id,
                             SlotId(945),
-                            nonterminal_node_id,
+                            result,
                             Some(return_value),
+                            &FOLLOW_SET_DYNAMIC,
                         );
                     }
                     // DynamicOperand(p: i32, end: i32, a: i32, e: i32) : . [1 & e == 0] (v_pr, v_assoc,
@@ -8434,23 +7522,14 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        let node = self.sppf_node(result);
                         let return_value = ((self.lookup(BINDING_V_PR, env.unwrap())) << (18))
                             | ((self.lookup(BINDING_V_ASSOC, env.unwrap())) << (5));
-                        let nonterminal_node_id = self.get_or_create_nonterminal_node(
-                            NonterminalId(151),
-                            SlotId(949),
-                            node.left_extent(),
-                            node.right_extent(),
-                            result,
-                            gss_node_id,
-                            Some(return_value),
-                        );
                         self.pop(
                             gss_node_id,
                             SlotId(949),
-                            nonterminal_node_id,
+                            result,
                             Some(return_value),
+                            &FOLLOW_SET_DYNAMIC_OPERAND,
                         );
                     }
                     // DynamicOperand(p: i32, end: i32, a: i32, e: i32) : . [2 & e == 0] "b" return
@@ -8487,22 +7566,13 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        let node = self.sppf_node(result);
                         let return_value = -262143;
-                        let nonterminal_node_id = self.get_or_create_nonterminal_node(
-                            NonterminalId(151),
-                            SlotId(953),
-                            node.left_extent(),
-                            node.right_extent(),
-                            result,
-                            gss_node_id,
-                            Some(return_value),
-                        );
                         self.pop(
                             gss_node_id,
                             SlotId(953),
-                            nonterminal_node_id,
+                            result,
                             Some(return_value),
+                            &FOLLOW_SET_DYNAMIC_OPERAND,
                         );
                     }
                     // DynamicFiltered : . DynamicOperand(0, 0, 0, 2)
@@ -8520,13 +7590,16 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     }
                     // DynamicFiltered : DynamicOperand(0, 0, 0, 2).
                     SlotId(29) => {
-                        let nonterminal_node_id = self.create_nonterminal_node(
-                            result,
-                            NonterminalId(8),
-                            SlotId(29),
+                        let Some(result) = result else {
+                            unreachable!("result cannot be None here.")
+                        };
+                        self.pop(
                             gss_node_id,
+                            SlotId(29),
+                            result,
+                            None,
+                            &FOLLOW_SET_DYNAMIC_FILTERED,
                         );
-                        self.pop(gss_node_id, SlotId(29), nonterminal_node_id, None);
                     }
                     // DynamicHeadFiltered : . Dynamic(0, 0, 8)
                     SlotId(30) => {
@@ -8534,13 +7607,16 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     }
                     // DynamicHeadFiltered : Dynamic(0, 0, 8).
                     SlotId(31) => {
-                        let nonterminal_node_id = self.create_nonterminal_node(
-                            result,
-                            NonterminalId(9),
-                            SlotId(31),
+                        let Some(result) = result else {
+                            unreachable!("result cannot be None here.")
+                        };
+                        self.pop(
                             gss_node_id,
+                            SlotId(31),
+                            result,
+                            None,
+                            &FOLLOW_SET_DYNAMIC_HEAD_FILTERED,
                         );
-                        self.pop(gss_node_id, SlotId(31), nonterminal_node_id, None);
                     }
                     // DynamicMulti(p: i32, a: i32) : . (l_pr, l_assoc)=DynamicMultiOperand(p, 0, 0) [(l_pr ==
                     // UNDEFINED_PRECEDENCE) || ((2 >= p) && ((l_pr == 0) || (l_pr >= 2)))] WS "+" WS (r_pr,
@@ -8700,7 +7776,6 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        let node = self.sppf_node(result);
                         let return_value = (if self.lookup(BINDING_R_PR, env.unwrap()) == -1 {
                             0
                         } else {
@@ -8710,20 +7785,12 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                                 std::cmp::min(self.lookup(BINDING_R_PR, env.unwrap()), 2)
                             }
                         }) << (16);
-                        let nonterminal_node_id = self.get_or_create_nonterminal_node(
-                            NonterminalId(152),
-                            SlotId(962),
-                            node.left_extent(),
-                            node.right_extent(),
-                            result,
-                            gss_node_id,
-                            Some(return_value),
-                        );
                         self.pop(
                             gss_node_id,
                             SlotId(962),
-                            nonterminal_node_id,
+                            result,
                             Some(return_value),
+                            &FOLLOW_SET_DYNAMIC_MULTI,
                         );
                     }
                     // DynamicMulti(p: i32, a: i32) : . "-" WS (r_pr, r_assoc)=DynamicMultiOperand(2, 1, 0)
@@ -8786,7 +7853,6 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        let node = self.sppf_node(result);
                         let return_value = (if self.lookup(BINDING_R_PR, env.unwrap()) == -1 {
                             0
                         } else {
@@ -8796,20 +7862,12 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                                 std::cmp::min(self.lookup(BINDING_R_PR, env.unwrap()), 2)
                             }
                         }) << (16);
-                        let nonterminal_node_id = self.get_or_create_nonterminal_node(
-                            NonterminalId(152),
-                            SlotId(967),
-                            node.left_extent(),
-                            node.right_extent(),
-                            result,
-                            gss_node_id,
-                            Some(return_value),
-                        );
                         self.pop(
                             gss_node_id,
                             SlotId(967),
-                            nonterminal_node_id,
+                            result,
                             Some(return_value),
+                            &FOLLOW_SET_DYNAMIC_MULTI,
                         );
                     }
                     // DynamicMulti(p: i32, a: i32) : . (l_pr, l_assoc)=DynamicMultiOperand(p, 0, 0) [(l_pr ==
@@ -8892,22 +7950,13 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        let node = self.sppf_node(result);
                         let return_value = 0;
-                        let nonterminal_node_id = self.get_or_create_nonterminal_node(
-                            NonterminalId(152),
-                            SlotId(973),
-                            node.left_extent(),
-                            node.right_extent(),
-                            result,
-                            gss_node_id,
-                            Some(return_value),
-                        );
                         self.pop(
                             gss_node_id,
                             SlotId(973),
-                            nonterminal_node_id,
+                            result,
                             Some(return_value),
+                            &FOLLOW_SET_DYNAMIC_MULTI,
                         );
                     }
                     // DynamicMulti(p: i32, a: i32) : . (l_pr, l_assoc)=DynamicMultiOperand(p, 0, 0) [(l_pr ==
@@ -9064,7 +8113,6 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        let node = self.sppf_node(result);
                         let return_value = ((if self.lookup(BINDING_R_PR, env.unwrap()) == -1 {
                             0
                         } else {
@@ -9077,20 +8125,12 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                             } else {
                                 1
                             });
-                        let nonterminal_node_id = self.get_or_create_nonterminal_node(
-                            NonterminalId(152),
-                            SlotId(982),
-                            node.left_extent(),
-                            node.right_extent(),
-                            result,
-                            gss_node_id,
-                            Some(return_value),
-                        );
                         self.pop(
                             gss_node_id,
                             SlotId(982),
-                            nonterminal_node_id,
+                            result,
                             Some(return_value),
+                            &FOLLOW_SET_DYNAMIC_MULTI,
                         );
                     }
                     // DynamicMulti(p: i32, a: i32) : . "a" return (0, 0)
@@ -9116,22 +8156,13 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        let node = self.sppf_node(result);
                         let return_value = 0;
-                        let nonterminal_node_id = self.get_or_create_nonterminal_node(
-                            NonterminalId(152),
-                            SlotId(985),
-                            node.left_extent(),
-                            node.right_extent(),
-                            result,
-                            gss_node_id,
-                            Some(return_value),
-                        );
                         self.pop(
                             gss_node_id,
                             SlotId(985),
-                            nonterminal_node_id,
+                            result,
                             Some(return_value),
+                            &FOLLOW_SET_DYNAMIC_MULTI,
                         );
                     }
                     // DynamicMultiOperand(p: i32, end: i32, a: i32) : . (v_pr, v_assoc)=DynamicMulti(p, a)
@@ -9157,23 +8188,14 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        let node = self.sppf_node(result);
                         let return_value = ((self.lookup(BINDING_V_PR, env.unwrap())) << (16))
                             | (self.lookup(BINDING_V_ASSOC, env.unwrap()));
-                        let nonterminal_node_id = self.get_or_create_nonterminal_node(
-                            NonterminalId(153),
-                            SlotId(988),
-                            node.left_extent(),
-                            node.right_extent(),
-                            result,
-                            gss_node_id,
-                            Some(return_value),
-                        );
                         self.pop(
                             gss_node_id,
                             SlotId(988),
-                            nonterminal_node_id,
+                            result,
                             Some(return_value),
+                            &FOLLOW_SET_DYNAMIC_MULTI_OPERAND,
                         );
                     }
                     // DynamicMultiOperand(p: i32, end: i32, a: i32) : . "b" return (UNDEFINED_PRECEDENCE, 0)
@@ -9199,22 +8221,13 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        let node = self.sppf_node(result);
                         let return_value = -65536;
-                        let nonterminal_node_id = self.get_or_create_nonterminal_node(
-                            NonterminalId(153),
-                            SlotId(991),
-                            node.left_extent(),
-                            node.right_extent(),
-                            result,
-                            gss_node_id,
-                            Some(return_value),
-                        );
                         self.pop(
                             gss_node_id,
                             SlotId(991),
-                            nonterminal_node_id,
+                            result,
                             Some(return_value),
+                            &FOLLOW_SET_DYNAMIC_MULTI_OPERAND,
                         );
                     }
                     // NullableBoundaryPrefix(p: i32) : . "a" return 0
@@ -9240,22 +8253,13 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        let node = self.sppf_node(result);
                         let return_value = 0;
-                        let nonterminal_node_id = self.get_or_create_nonterminal_node(
-                            NonterminalId(154),
-                            SlotId(994),
-                            node.left_extent(),
-                            node.right_extent(),
-                            result,
-                            gss_node_id,
-                            Some(return_value),
-                        );
                         self.pop(
                             gss_node_id,
                             SlotId(994),
-                            nonterminal_node_id,
+                            result,
                             Some(return_value),
+                            &FOLLOW_SET_NULLABLE_BOUNDARY_PREFIX,
                         );
                     }
                     // NullableBoundaryPrefix(p: i32) : . "-" WS NullableBoundaryRight return 0
@@ -9292,7 +8296,14 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     }
                     // NullableBoundaryPrefix(p: i32) : "-" WS . NullableBoundaryRight return 0
                     SlotId(997) => {
-                        self.create(NonterminalId(10), result, gss_node_id, SlotId(998), env);
+                        self.create(
+                            NonterminalId(10),
+                            &PREDICTION_SET_NULLABLE_BOUNDARY_RIGHT,
+                            result,
+                            gss_node_id,
+                            SlotId(998),
+                            env,
+                        );
                     }
                     // NullableBoundaryPrefix(p: i32) : "-" WS NullableBoundaryRight . return 0
                     SlotId(998) => {
@@ -9303,22 +8314,13 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        let node = self.sppf_node(result);
                         let return_value = 0;
-                        let nonterminal_node_id = self.get_or_create_nonterminal_node(
-                            NonterminalId(154),
-                            SlotId(999),
-                            node.left_extent(),
-                            node.right_extent(),
-                            result,
-                            gss_node_id,
-                            Some(return_value),
-                        );
                         self.pop(
                             gss_node_id,
                             SlotId(999),
-                            nonterminal_node_id,
+                            result,
                             Some(return_value),
+                            &FOLLOW_SET_NULLABLE_BOUNDARY_PREFIX,
                         );
                     }
                     // NullableBoundaryPrefix(p: i32) : . [1 >= p] l_pr=NullableBoundaryPrefix(p) [(l_pr == 0) ||
@@ -9439,22 +8441,13 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        let node = self.sppf_node(result);
                         let return_value = 1;
-                        let nonterminal_node_id = self.get_or_create_nonterminal_node(
-                            NonterminalId(154),
-                            SlotId(1008),
-                            node.left_extent(),
-                            node.right_extent(),
-                            result,
-                            gss_node_id,
-                            Some(return_value),
-                        );
                         self.pop(
                             gss_node_id,
                             SlotId(1008),
-                            nonterminal_node_id,
+                            result,
                             Some(return_value),
+                            &FOLLOW_SET_NULLABLE_BOUNDARY_PREFIX,
                         );
                     }
                     // NullableBoundaryRight : . NullableBoundaryPrefix(0) WS NullableBoundaryOpt
@@ -9487,17 +8480,27 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     }
                     // NullableBoundaryRight : NullableBoundaryPrefix(0) WS . NullableBoundaryOpt
                     SlotId(34) => {
-                        self.create(NonterminalId(11), result, gss_node_id, SlotId(35), env);
+                        self.create(
+                            NonterminalId(11),
+                            &PREDICTION_SET_NULLABLE_BOUNDARY_OPT,
+                            result,
+                            gss_node_id,
+                            SlotId(35),
+                            env,
+                        );
                     }
                     // NullableBoundaryRight : NullableBoundaryPrefix(0) WS NullableBoundaryOpt.
                     SlotId(35) => {
-                        let nonterminal_node_id = self.create_nonterminal_node(
-                            result,
-                            NonterminalId(10),
-                            SlotId(35),
+                        let Some(result) = result else {
+                            unreachable!("result cannot be None here.")
+                        };
+                        self.pop(
                             gss_node_id,
+                            SlotId(35),
+                            result,
+                            None,
+                            &FOLLOW_SET_NULLABLE_BOUNDARY_RIGHT,
                         );
-                        self.pop(gss_node_id, SlotId(35), nonterminal_node_id, None);
                     }
                     // NullableBoundaryOpt : . "!"
                     SlotId(36) => {
@@ -9515,27 +8518,27 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     }
                     // NullableBoundaryOpt : "!".
                     SlotId(37) => {
-                        let nonterminal_node_id = self.create_nonterminal_node(
-                            result,
-                            NonterminalId(11),
-                            SlotId(37),
+                        let Some(result) = result else {
+                            unreachable!("result cannot be None here.")
+                        };
+                        self.pop(
                             gss_node_id,
+                            SlotId(37),
+                            result,
+                            None,
+                            &FOLLOW_SET_NULLABLE_BOUNDARY_OPT,
                         );
-                        self.pop(gss_node_id, SlotId(37), nonterminal_node_id, None);
                     }
                     // NullableBoundaryOpt : .
                     SlotId(38) => {
-                        let epsilon_node_id = self.get_or_create_epsilon_node(input_index);
-                        let nonterminal_node_id = self.get_or_create_nonterminal_node(
-                            NonterminalId(11),
-                            SlotId(38),
-                            input_index,
-                            input_index,
-                            epsilon_node_id,
+                        let result = self.get_or_create_epsilon_node(input_index);
+                        self.pop(
                             gss_node_id,
+                            SlotId(38),
+                            result,
                             None,
+                            &FOLLOW_SET_NULLABLE_BOUNDARY_OPT,
                         );
-                        self.pop(gss_node_id, SlotId(38), nonterminal_node_id, None);
                     }
                     // NullableBoundaryPostfix(p: i32) : . "a" return 0
                     SlotId(1009) => {
@@ -9560,27 +8563,25 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        let node = self.sppf_node(result);
                         let return_value = 0;
-                        let nonterminal_node_id = self.get_or_create_nonterminal_node(
-                            NonterminalId(155),
-                            SlotId(1011),
-                            node.left_extent(),
-                            node.right_extent(),
-                            result,
-                            gss_node_id,
-                            Some(return_value),
-                        );
                         self.pop(
                             gss_node_id,
                             SlotId(1011),
-                            nonterminal_node_id,
+                            result,
                             Some(return_value),
+                            &FOLLOW_SET_NULLABLE_BOUNDARY_POSTFIX,
                         );
                     }
                     // NullableBoundaryPostfix(p: i32) : . NullableBoundaryLeft WS "-" return 0
                     SlotId(1012) => {
-                        self.create(NonterminalId(12), result, gss_node_id, SlotId(1013), env);
+                        self.create(
+                            NonterminalId(12),
+                            &PREDICTION_SET_NULLABLE_BOUNDARY_LEFT,
+                            result,
+                            gss_node_id,
+                            SlotId(1013),
+                            env,
+                        );
                     }
                     // NullableBoundaryPostfix(p: i32) : NullableBoundaryLeft . WS "-" return 0
                     SlotId(1013) => {
@@ -9633,22 +8634,13 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        let node = self.sppf_node(result);
                         let return_value = 0;
-                        let nonterminal_node_id = self.get_or_create_nonterminal_node(
-                            NonterminalId(155),
-                            SlotId(1016),
-                            node.left_extent(),
-                            node.right_extent(),
-                            result,
-                            gss_node_id,
-                            Some(return_value),
-                        );
                         self.pop(
                             gss_node_id,
                             SlotId(1016),
-                            nonterminal_node_id,
+                            result,
                             Some(return_value),
+                            &FOLLOW_SET_NULLABLE_BOUNDARY_POSTFIX,
                         );
                     }
                     // NullableBoundaryPostfix(p: i32) : . [1 >= p] l_pr=NullableBoundaryPostfix(p) [(l_pr == 0)
@@ -9769,27 +8761,25 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        let node = self.sppf_node(result);
                         let return_value = 1;
-                        let nonterminal_node_id = self.get_or_create_nonterminal_node(
-                            NonterminalId(155),
-                            SlotId(1025),
-                            node.left_extent(),
-                            node.right_extent(),
-                            result,
-                            gss_node_id,
-                            Some(return_value),
-                        );
                         self.pop(
                             gss_node_id,
                             SlotId(1025),
-                            nonterminal_node_id,
+                            result,
                             Some(return_value),
+                            &FOLLOW_SET_NULLABLE_BOUNDARY_POSTFIX,
                         );
                     }
                     // NullableBoundaryLeft : . NullableBoundaryOpt WS NullableBoundaryPostfix(0)
                     SlotId(39) => {
-                        self.create(NonterminalId(11), result, gss_node_id, SlotId(40), env);
+                        self.create(
+                            NonterminalId(11),
+                            &PREDICTION_SET_NULLABLE_BOUNDARY_OPT,
+                            result,
+                            gss_node_id,
+                            SlotId(40),
+                            env,
+                        );
                     }
                     // NullableBoundaryLeft : NullableBoundaryOpt . WS NullableBoundaryPostfix(0)
                     SlotId(40) => {
@@ -9821,13 +8811,16 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     }
                     // NullableBoundaryLeft : NullableBoundaryOpt WS NullableBoundaryPostfix(0).
                     SlotId(42) => {
-                        let nonterminal_node_id = self.create_nonterminal_node(
-                            result,
-                            NonterminalId(12),
-                            SlotId(42),
+                        let Some(result) = result else {
+                            unreachable!("result cannot be None here.")
+                        };
+                        self.pop(
                             gss_node_id,
+                            SlotId(42),
+                            result,
+                            None,
+                            &FOLLOW_SET_NULLABLE_BOUNDARY_LEFT,
                         );
-                        self.pop(gss_node_id, SlotId(42), nonterminal_node_id, None);
                     }
                     // NullableBoundaryBinary(p: i32) : . "a" return 0
                     SlotId(1026) => {
@@ -9852,22 +8845,13 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        let node = self.sppf_node(result);
                         let return_value = 0;
-                        let nonterminal_node_id = self.get_or_create_nonterminal_node(
-                            NonterminalId(156),
-                            SlotId(1028),
-                            node.left_extent(),
-                            node.right_extent(),
-                            result,
-                            gss_node_id,
-                            Some(return_value),
-                        );
                         self.pop(
                             gss_node_id,
                             SlotId(1028),
-                            nonterminal_node_id,
+                            result,
                             Some(return_value),
+                            &FOLLOW_SET_NULLABLE_BOUNDARY_BINARY,
                         );
                     }
                     // NullableBoundaryBinary(p: i32) : . [2 >= p] l_pr=NullableBoundaryBinary(p) [(l_pr == 0) ||
@@ -9969,7 +8953,14 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     // NullableBoundaryBinary(p: i32) : [2 >= p] l_pr=NullableBoundaryBinary(p) [(l_pr == 0) ||
                     // (l_pr >= 2)] WS "*" WS . NullableBoundaryOperand return 0
                     SlotId(1035) => {
-                        self.create(NonterminalId(13), result, gss_node_id, SlotId(1036), env);
+                        self.create(
+                            NonterminalId(13),
+                            &PREDICTION_SET_NULLABLE_BOUNDARY_OPERAND,
+                            result,
+                            gss_node_id,
+                            SlotId(1036),
+                            env,
+                        );
                     }
                     // NullableBoundaryBinary(p: i32) : [2 >= p] l_pr=NullableBoundaryBinary(p) [(l_pr == 0) ||
                     // (l_pr >= 2)] WS "*" WS NullableBoundaryOperand . return 0
@@ -9982,22 +8973,13 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        let node = self.sppf_node(result);
                         let return_value = 0;
-                        let nonterminal_node_id = self.get_or_create_nonterminal_node(
-                            NonterminalId(156),
-                            SlotId(1037),
-                            node.left_extent(),
-                            node.right_extent(),
-                            result,
-                            gss_node_id,
-                            Some(return_value),
-                        );
                         self.pop(
                             gss_node_id,
                             SlotId(1037),
-                            nonterminal_node_id,
+                            result,
                             Some(return_value),
+                            &FOLLOW_SET_NULLABLE_BOUNDARY_BINARY,
                         );
                     }
                     // NullableBoundaryBinary(p: i32) : . [1 >= p] l_pr=NullableBoundaryBinary(p) [(l_pr == 0) ||
@@ -10118,22 +9100,13 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        let node = self.sppf_node(result);
                         let return_value = 1;
-                        let nonterminal_node_id = self.get_or_create_nonterminal_node(
-                            NonterminalId(156),
-                            SlotId(1046),
-                            node.left_extent(),
-                            node.right_extent(),
-                            result,
-                            gss_node_id,
-                            Some(return_value),
-                        );
                         self.pop(
                             gss_node_id,
                             SlotId(1046),
-                            nonterminal_node_id,
+                            result,
                             Some(return_value),
+                            &FOLLOW_SET_NULLABLE_BOUNDARY_BINARY,
                         );
                     }
                     // NullableBoundaryOperand : . NullableBoundaryBinary(0) WS NullableBoundaryOpt
@@ -10166,17 +9139,27 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     }
                     // NullableBoundaryOperand : NullableBoundaryBinary(0) WS . NullableBoundaryOpt
                     SlotId(45) => {
-                        self.create(NonterminalId(11), result, gss_node_id, SlotId(46), env);
+                        self.create(
+                            NonterminalId(11),
+                            &PREDICTION_SET_NULLABLE_BOUNDARY_OPT,
+                            result,
+                            gss_node_id,
+                            SlotId(46),
+                            env,
+                        );
                     }
                     // NullableBoundaryOperand : NullableBoundaryBinary(0) WS NullableBoundaryOpt.
                     SlotId(46) => {
-                        let nonterminal_node_id = self.create_nonterminal_node(
-                            result,
-                            NonterminalId(13),
-                            SlotId(46),
+                        let Some(result) = result else {
+                            unreachable!("result cannot be None here.")
+                        };
+                        self.pop(
                             gss_node_id,
+                            SlotId(46),
+                            result,
+                            None,
+                            &FOLLOW_SET_NULLABLE_BOUNDARY_OPERAND,
                         );
-                        self.pop(gss_node_id, SlotId(46), nonterminal_node_id, None);
                     }
                     // ClosedLeftAssoc(p: i32, a: i32) : . "a" return 0
                     SlotId(1047) => {
@@ -10201,22 +9184,13 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        let node = self.sppf_node(result);
                         let return_value = 0;
-                        let nonterminal_node_id = self.get_or_create_nonterminal_node(
-                            NonterminalId(157),
-                            SlotId(1049),
-                            node.left_extent(),
-                            node.right_extent(),
-                            result,
-                            gss_node_id,
-                            Some(return_value),
-                        );
                         self.pop(
                             gss_node_id,
                             SlotId(1049),
-                            nonterminal_node_id,
+                            result,
                             Some(return_value),
+                            &FOLLOW_SET_CLOSED_LEFT_ASSOC,
                         );
                     }
                     // ClosedLeftAssoc(p: i32, a: i32) : . l_pr=ClosedLeftOperand(p, 0) [(l_pr ==
@@ -10371,22 +9345,13 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        let node = self.sppf_node(result);
                         let return_value = 1;
-                        let nonterminal_node_id = self.get_or_create_nonterminal_node(
-                            NonterminalId(157),
-                            SlotId(1058),
-                            node.left_extent(),
-                            node.right_extent(),
-                            result,
-                            gss_node_id,
-                            Some(return_value),
-                        );
                         self.pop(
                             gss_node_id,
                             SlotId(1058),
-                            nonterminal_node_id,
+                            result,
                             Some(return_value),
+                            &FOLLOW_SET_CLOSED_LEFT_ASSOC,
                         );
                     }
                     // ClosedLeftOperand(p: i32, a: i32) : . l_pr=ClosedLeftAssoc(p, a) return l_pr
@@ -10409,22 +9374,13 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        let node = self.sppf_node(result);
                         let return_value = self.lookup(BINDING_L_PR, env.unwrap());
-                        let nonterminal_node_id = self.get_or_create_nonterminal_node(
-                            NonterminalId(158),
-                            SlotId(1061),
-                            node.left_extent(),
-                            node.right_extent(),
-                            result,
-                            gss_node_id,
-                            Some(return_value),
-                        );
                         self.pop(
                             gss_node_id,
                             SlotId(1061),
-                            nonterminal_node_id,
+                            result,
                             Some(return_value),
+                            &FOLLOW_SET_CLOSED_LEFT_OPERAND,
                         );
                     }
                     // ClosedLeftOperand(p: i32, a: i32) : . "!" return UNDEFINED_PRECEDENCE
@@ -10450,22 +9406,13 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        let node = self.sppf_node(result);
                         let return_value = -1;
-                        let nonterminal_node_id = self.get_or_create_nonterminal_node(
-                            NonterminalId(158),
-                            SlotId(1064),
-                            node.left_extent(),
-                            node.right_extent(),
-                            result,
-                            gss_node_id,
-                            Some(return_value),
-                        );
                         self.pop(
                             gss_node_id,
                             SlotId(1064),
-                            nonterminal_node_id,
+                            result,
                             Some(return_value),
+                            &FOLLOW_SET_CLOSED_LEFT_OPERAND,
                         );
                     }
                     // ClosedRightAssoc(p: i32, a: i32) : . "a" return (0, 0)
@@ -10491,22 +9438,13 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        let node = self.sppf_node(result);
                         let return_value = 0;
-                        let nonterminal_node_id = self.get_or_create_nonterminal_node(
-                            NonterminalId(159),
-                            SlotId(1067),
-                            node.left_extent(),
-                            node.right_extent(),
-                            result,
-                            gss_node_id,
-                            Some(return_value),
-                        );
                         self.pop(
                             gss_node_id,
                             SlotId(1067),
-                            nonterminal_node_id,
+                            result,
                             Some(return_value),
+                            &FOLLOW_SET_CLOSED_RIGHT_ASSOC,
                         );
                     }
                     // ClosedRightAssoc(p: i32, a: i32) : . [1 >= p] (l_pr, l_assoc)=ClosedRightAssoc(p, 0)
@@ -10664,7 +9602,6 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        let node = self.sppf_node(result);
                         let return_value = ((if self.lookup(BINDING_R_PR, env.unwrap()) == -1 {
                             0
                         } else {
@@ -10675,20 +9612,12 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                             } else {
                                 1
                             });
-                        let nonterminal_node_id = self.get_or_create_nonterminal_node(
-                            NonterminalId(159),
-                            SlotId(1077),
-                            node.left_extent(),
-                            node.right_extent(),
-                            result,
-                            gss_node_id,
-                            Some(return_value),
-                        );
                         self.pop(
                             gss_node_id,
                             SlotId(1077),
-                            nonterminal_node_id,
+                            result,
                             Some(return_value),
+                            &FOLLOW_SET_CLOSED_RIGHT_ASSOC,
                         );
                     }
                     // ClosedRightOperand(p: i32, a: i32) : . (r_pr, r_assoc)=ClosedRightAssoc(p, a) return
@@ -10714,23 +9643,14 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        let node = self.sppf_node(result);
                         let return_value = ((self.lookup(BINDING_R_PR, env.unwrap())) << (16))
                             | (self.lookup(BINDING_R_ASSOC, env.unwrap()));
-                        let nonterminal_node_id = self.get_or_create_nonterminal_node(
-                            NonterminalId(160),
-                            SlotId(1080),
-                            node.left_extent(),
-                            node.right_extent(),
-                            result,
-                            gss_node_id,
-                            Some(return_value),
-                        );
                         self.pop(
                             gss_node_id,
                             SlotId(1080),
-                            nonterminal_node_id,
+                            result,
                             Some(return_value),
+                            &FOLLOW_SET_CLOSED_RIGHT_OPERAND,
                         );
                     }
                     // ClosedRightOperand(p: i32, a: i32) : . "!" return (UNDEFINED_PRECEDENCE, 0)
@@ -10756,22 +9676,13 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        let node = self.sppf_node(result);
                         let return_value = -65536;
-                        let nonterminal_node_id = self.get_or_create_nonterminal_node(
-                            NonterminalId(160),
-                            SlotId(1083),
-                            node.left_extent(),
-                            node.right_extent(),
-                            result,
-                            gss_node_id,
-                            Some(return_value),
-                        );
                         self.pop(
                             gss_node_id,
                             SlotId(1083),
-                            nonterminal_node_id,
+                            result,
                             Some(return_value),
+                            &FOLLOW_SET_CLOSED_RIGHT_OPERAND,
                         );
                     }
                     // IndirectExclude(p: i32, a: i32, e: i32) : . [1 & e == 0] "a" return (0, 0)
@@ -10803,22 +9714,13 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        let node = self.sppf_node(result);
                         let return_value = 0;
-                        let nonterminal_node_id = self.get_or_create_nonterminal_node(
-                            NonterminalId(161),
-                            SlotId(1087),
-                            node.left_extent(),
-                            node.right_extent(),
-                            result,
-                            gss_node_id,
-                            Some(return_value),
-                        );
                         self.pop(
                             gss_node_id,
                             SlotId(1087),
-                            nonterminal_node_id,
+                            result,
                             Some(return_value),
+                            &FOLLOW_SET_INDIRECT_EXCLUDE,
                         );
                     }
                     // IndirectExclude(p: i32, a: i32, e: i32) : . [2 & e == 0] (l_pr,
@@ -11000,27 +9902,18 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        let node = self.sppf_node(result);
                         let return_value = ((if self.lookup(BINDING_R_PR, env.unwrap()) == -1 {
                             0
                         } else {
                             1
                         }) << (16))
                             | (1);
-                        let nonterminal_node_id = self.get_or_create_nonterminal_node(
-                            NonterminalId(161),
-                            SlotId(1097),
-                            node.left_extent(),
-                            node.right_extent(),
-                            result,
-                            gss_node_id,
-                            Some(return_value),
-                        );
                         self.pop(
                             gss_node_id,
                             SlotId(1097),
-                            nonterminal_node_id,
+                            result,
                             Some(return_value),
+                            &FOLLOW_SET_INDIRECT_EXCLUDE,
                         );
                     }
                     // IndirectExcludeOperand(p: i32, end: i32, a: i32, e: i32) : . [1 & e == 0] (v_pr,
@@ -11068,22 +9961,13 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        let node = self.sppf_node(result);
                         let return_value = (self.lookup(BINDING_V_PR, env.unwrap())) << (16);
-                        let nonterminal_node_id = self.get_or_create_nonterminal_node(
-                            NonterminalId(162),
-                            SlotId(1102),
-                            node.left_extent(),
-                            node.right_extent(),
-                            result,
-                            gss_node_id,
-                            Some(return_value),
-                        );
                         self.pop(
                             gss_node_id,
                             SlotId(1102),
-                            nonterminal_node_id,
+                            result,
                             Some(return_value),
+                            &FOLLOW_SET_INDIRECT_EXCLUDE_OPERAND,
                         );
                     }
                     // IndirectExcludeOperand(p: i32, end: i32, a: i32, e: i32) : . [2 & e == 0] "b" return
@@ -11120,22 +10004,13 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        let node = self.sppf_node(result);
                         let return_value = -65535;
-                        let nonterminal_node_id = self.get_or_create_nonterminal_node(
-                            NonterminalId(162),
-                            SlotId(1106),
-                            node.left_extent(),
-                            node.right_extent(),
-                            result,
-                            gss_node_id,
-                            Some(return_value),
-                        );
                         self.pop(
                             gss_node_id,
                             SlotId(1106),
-                            nonterminal_node_id,
+                            result,
                             Some(return_value),
+                            &FOLLOW_SET_INDIRECT_EXCLUDE_OPERAND,
                         );
                     }
                     // IndirectExcludeFiltered : . IndirectExcludeOperand(0, 0, 0, 2)
@@ -11153,13 +10028,16 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     }
                     // IndirectExcludeFiltered : IndirectExcludeOperand(0, 0, 0, 2).
                     SlotId(48) => {
-                        let nonterminal_node_id = self.create_nonterminal_node(
-                            result,
-                            NonterminalId(14),
-                            SlotId(48),
+                        let Some(result) = result else {
+                            unreachable!("result cannot be None here.")
+                        };
+                        self.pop(
                             gss_node_id,
+                            SlotId(48),
+                            result,
+                            None,
+                            &FOLLOW_SET_INDIRECT_EXCLUDE_FILTERED,
                         );
-                        self.pop(gss_node_id, SlotId(48), nonterminal_node_id, None);
                     }
                     // OperandLiteral(p: i32, a: i32) : . "x" return 0
                     SlotId(1107) => {
@@ -11184,22 +10062,13 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        let node = self.sppf_node(result);
                         let return_value = 0;
-                        let nonterminal_node_id = self.get_or_create_nonterminal_node(
-                            NonterminalId(163),
-                            SlotId(1109),
-                            node.left_extent(),
-                            node.right_extent(),
-                            result,
-                            gss_node_id,
-                            Some(return_value),
-                        );
                         self.pop(
                             gss_node_id,
                             SlotId(1109),
-                            nonterminal_node_id,
+                            result,
                             Some(return_value),
+                            &FOLLOW_SET_OPERAND_LITERAL,
                         );
                     }
                     // OperandLiteral(p: i32, a: i32) : . l_pr=OperandLiteralEnd(p, 0, 0) [(l_pr ==
@@ -11369,7 +10238,6 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        let node = self.sppf_node(result);
                         let return_value = if self.lookup(BINDING_R_PR, env.unwrap()) == -1 {
                             0
                         } else {
@@ -11379,20 +10247,12 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                                 std::cmp::min(self.lookup(BINDING_R_PR, env.unwrap()), 2)
                             }
                         };
-                        let nonterminal_node_id = self.get_or_create_nonterminal_node(
-                            NonterminalId(163),
-                            SlotId(1118),
-                            node.left_extent(),
-                            node.right_extent(),
-                            result,
-                            gss_node_id,
-                            Some(return_value),
-                        );
                         self.pop(
                             gss_node_id,
                             SlotId(1118),
-                            nonterminal_node_id,
+                            result,
                             Some(return_value),
+                            &FOLLOW_SET_OPERAND_LITERAL,
                         );
                     }
                     // OperandLiteral(p: i32, a: i32) : . l_pr=OperandLiteralEnd(p, 0, 0) [(l_pr ==
@@ -11562,26 +10422,17 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        let node = self.sppf_node(result);
                         let return_value = if self.lookup(BINDING_R_PR, env.unwrap()) == -1 {
                             0
                         } else {
                             1
                         };
-                        let nonterminal_node_id = self.get_or_create_nonterminal_node(
-                            NonterminalId(163),
-                            SlotId(1127),
-                            node.left_extent(),
-                            node.right_extent(),
-                            result,
-                            gss_node_id,
-                            Some(return_value),
-                        );
                         self.pop(
                             gss_node_id,
                             SlotId(1127),
-                            nonterminal_node_id,
+                            result,
                             Some(return_value),
+                            &FOLLOW_SET_OPERAND_LITERAL,
                         );
                     }
                     // OperandLiteralEnd(p: i32, end: i32, a: i32) : . v_pr=OperandLiteral(p, a) return v_pr
@@ -11604,22 +10455,13 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        let node = self.sppf_node(result);
                         let return_value = self.lookup(BINDING_V_PR, env.unwrap());
-                        let nonterminal_node_id = self.get_or_create_nonterminal_node(
-                            NonterminalId(164),
-                            SlotId(1130),
-                            node.left_extent(),
-                            node.right_extent(),
-                            result,
-                            gss_node_id,
-                            Some(return_value),
-                        );
                         self.pop(
                             gss_node_id,
                             SlotId(1130),
-                            nonterminal_node_id,
+                            result,
                             Some(return_value),
+                            &FOLLOW_SET_OPERAND_LITERAL_END,
                         );
                     }
                     // OperandLiteralEnd(p: i32, end: i32, a: i32) : . "1" return UNDEFINED_PRECEDENCE
@@ -11645,22 +10487,13 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        let node = self.sppf_node(result);
                         let return_value = -1;
-                        let nonterminal_node_id = self.get_or_create_nonterminal_node(
-                            NonterminalId(164),
-                            SlotId(1133),
-                            node.left_extent(),
-                            node.right_extent(),
-                            result,
-                            gss_node_id,
-                            Some(return_value),
-                        );
                         self.pop(
                             gss_node_id,
                             SlotId(1133),
-                            nonterminal_node_id,
+                            result,
                             Some(return_value),
+                            &FOLLOW_SET_OPERAND_LITERAL_END,
                         );
                     }
                     // HeadLiteral(p: i32) : . "x" return 0
@@ -11686,22 +10519,13 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        let node = self.sppf_node(result);
                         let return_value = 0;
-                        let nonterminal_node_id = self.get_or_create_nonterminal_node(
-                            NonterminalId(165),
-                            SlotId(1136),
-                            node.left_extent(),
-                            node.right_extent(),
-                            result,
-                            gss_node_id,
-                            Some(return_value),
-                        );
                         self.pop(
                             gss_node_id,
                             SlotId(1136),
-                            nonterminal_node_id,
+                            result,
                             Some(return_value),
+                            &FOLLOW_SET_HEAD_LITERAL,
                         );
                     }
                     // HeadLiteral(p: i32) : . "1" return 0
@@ -11727,22 +10551,13 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        let node = self.sppf_node(result);
                         let return_value = 0;
-                        let nonterminal_node_id = self.get_or_create_nonterminal_node(
-                            NonterminalId(165),
-                            SlotId(1139),
-                            node.left_extent(),
-                            node.right_extent(),
-                            result,
-                            gss_node_id,
-                            Some(return_value),
-                        );
                         self.pop(
                             gss_node_id,
                             SlotId(1139),
-                            nonterminal_node_id,
+                            result,
                             Some(return_value),
+                            &FOLLOW_SET_HEAD_LITERAL,
                         );
                     }
                     // HeadLiteral(p: i32) : . [2 >= p] l_pr=HeadLiteralEnd(p, 0) [(l_pr == 0) || (l_pr >= 2)] WS
@@ -11858,22 +10673,13 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        let node = self.sppf_node(result);
                         let return_value = 2;
-                        let nonterminal_node_id = self.get_or_create_nonterminal_node(
-                            NonterminalId(165),
-                            SlotId(1148),
-                            node.left_extent(),
-                            node.right_extent(),
-                            result,
-                            gss_node_id,
-                            Some(return_value),
-                        );
                         self.pop(
                             gss_node_id,
                             SlotId(1148),
-                            nonterminal_node_id,
+                            result,
                             Some(return_value),
+                            &FOLLOW_SET_HEAD_LITERAL,
                         );
                     }
                     // HeadLiteral(p: i32) : . [1 >= p] l_pr=HeadLiteralEnd(p, 0) [(l_pr == 0) || (l_pr >= 1)] WS
@@ -11989,22 +10795,13 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        let node = self.sppf_node(result);
                         let return_value = 1;
-                        let nonterminal_node_id = self.get_or_create_nonterminal_node(
-                            NonterminalId(165),
-                            SlotId(1157),
-                            node.left_extent(),
-                            node.right_extent(),
-                            result,
-                            gss_node_id,
-                            Some(return_value),
-                        );
                         self.pop(
                             gss_node_id,
                             SlotId(1157),
-                            nonterminal_node_id,
+                            result,
                             Some(return_value),
+                            &FOLLOW_SET_HEAD_LITERAL,
                         );
                     }
                     // HeadLiteralEnd(p: i32, end: i32) : . v_pr=HeadLiteral(p) return v_pr
@@ -12026,22 +10823,13 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        let node = self.sppf_node(result);
                         let return_value = self.lookup(BINDING_V_PR, env.unwrap());
-                        let nonterminal_node_id = self.get_or_create_nonterminal_node(
-                            NonterminalId(166),
-                            SlotId(1160),
-                            node.left_extent(),
-                            node.right_extent(),
-                            result,
-                            gss_node_id,
-                            Some(return_value),
-                        );
                         self.pop(
                             gss_node_id,
                             SlotId(1160),
-                            nonterminal_node_id,
+                            result,
                             Some(return_value),
+                            &FOLLOW_SET_HEAD_LITERAL_END,
                         );
                     }
                     // Opt_0 : . "x"
@@ -12060,27 +10848,15 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     }
                     // Opt_0 : "x".
                     SlotId(50) => {
-                        let nonterminal_node_id = self.create_nonterminal_node(
-                            result,
-                            NonterminalId(15),
-                            SlotId(50),
-                            gss_node_id,
-                        );
-                        self.pop(gss_node_id, SlotId(50), nonterminal_node_id, None);
+                        let Some(result) = result else {
+                            unreachable!("result cannot be None here.")
+                        };
+                        self.pop(gss_node_id, SlotId(50), result, None, &FOLLOW_SET_OPT_0);
                     }
                     // Opt_0 : .
                     SlotId(51) => {
-                        let epsilon_node_id = self.get_or_create_epsilon_node(input_index);
-                        let nonterminal_node_id = self.get_or_create_nonterminal_node(
-                            NonterminalId(15),
-                            SlotId(51),
-                            input_index,
-                            input_index,
-                            epsilon_node_id,
-                            gss_node_id,
-                            None,
-                        );
-                        self.pop(gss_node_id, SlotId(51), nonterminal_node_id, None);
+                        let result = self.get_or_create_epsilon_node(input_index);
+                        self.pop(gss_node_id, SlotId(51), result, None, &FOLLOW_SET_OPT_0);
                     }
                     // Opt_1(p: i32, a: i32) : . (l_pr, l_assoc)=NullableRecursive(p, a) return (l_pr, l_assoc)
                     SlotId(1161) => {
@@ -12102,23 +10878,14 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        let node = self.sppf_node(result);
                         let return_value = ((self.lookup(BINDING_L_PR, env.unwrap())) << (16))
                             | (self.lookup(BINDING_L_ASSOC, env.unwrap()));
-                        let nonterminal_node_id = self.get_or_create_nonterminal_node(
-                            NonterminalId(167),
-                            SlotId(1163),
-                            node.left_extent(),
-                            node.right_extent(),
-                            result,
-                            gss_node_id,
-                            Some(return_value),
-                        );
                         self.pop(
                             gss_node_id,
                             SlotId(1163),
-                            nonterminal_node_id,
+                            result,
                             Some(return_value),
+                            &FOLLOW_SET_OPT_1,
                         );
                     }
                     // Opt_1(p: i32, a: i32) : . return (UNDEFINED_PRECEDENCE, 0)
@@ -12128,22 +10895,13 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     // Opt_1(p: i32, a: i32) : return (UNDEFINED_PRECEDENCE, 0).
                     SlotId(1165) => {
                         let result = self.get_or_create_epsilon_node(input_index);
-                        let node = self.sppf_node(result);
                         let return_value = -65536;
-                        let nonterminal_node_id = self.get_or_create_nonterminal_node(
-                            NonterminalId(167),
-                            SlotId(1165),
-                            node.left_extent(),
-                            node.right_extent(),
-                            result,
-                            gss_node_id,
-                            Some(return_value),
-                        );
                         self.pop(
                             gss_node_id,
                             SlotId(1165),
-                            nonterminal_node_id,
+                            result,
                             Some(return_value),
+                            &FOLLOW_SET_OPT_1,
                         );
                     }
                     // Opt_2(p: i32, a: i32) : . r_pr=NullableSuffix(p, a) return r_pr
@@ -12166,22 +10924,13 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        let node = self.sppf_node(result);
                         let return_value = self.lookup(BINDING_R_PR, env.unwrap());
-                        let nonterminal_node_id = self.get_or_create_nonterminal_node(
-                            NonterminalId(168),
-                            SlotId(1168),
-                            node.left_extent(),
-                            node.right_extent(),
-                            result,
-                            gss_node_id,
-                            Some(return_value),
-                        );
                         self.pop(
                             gss_node_id,
                             SlotId(1168),
-                            nonterminal_node_id,
+                            result,
                             Some(return_value),
+                            &FOLLOW_SET_OPT_2,
                         );
                     }
                     // Opt_2(p: i32, a: i32) : . return UNDEFINED_PRECEDENCE
@@ -12191,22 +10940,13 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     // Opt_2(p: i32, a: i32) : return UNDEFINED_PRECEDENCE.
                     SlotId(1170) => {
                         let result = self.get_or_create_epsilon_node(input_index);
-                        let node = self.sppf_node(result);
                         let return_value = -1;
-                        let nonterminal_node_id = self.get_or_create_nonterminal_node(
-                            NonterminalId(168),
-                            SlotId(1170),
-                            node.left_extent(),
-                            node.right_extent(),
-                            result,
-                            gss_node_id,
-                            Some(return_value),
-                        );
                         self.pop(
                             gss_node_id,
                             SlotId(1170),
-                            nonterminal_node_id,
+                            result,
                             Some(return_value),
+                            &FOLLOW_SET_OPT_2,
                         );
                     }
                     // Opt_3(p: i32, end: i32, a: i32) : . (v_pr, v_assoc)=NullableShared(p, a) return (v_pr,
@@ -12232,23 +10972,14 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        let node = self.sppf_node(result);
                         let return_value = ((self.lookup(BINDING_V_PR, env.unwrap())) << (16))
                             | (self.lookup(BINDING_V_ASSOC, env.unwrap()));
-                        let nonterminal_node_id = self.get_or_create_nonterminal_node(
-                            NonterminalId(169),
-                            SlotId(1173),
-                            node.left_extent(),
-                            node.right_extent(),
-                            result,
-                            gss_node_id,
-                            Some(return_value),
-                        );
                         self.pop(
                             gss_node_id,
                             SlotId(1173),
-                            nonterminal_node_id,
+                            result,
                             Some(return_value),
+                            &FOLLOW_SET_OPT_3,
                         );
                     }
                     // Opt_3(p: i32, end: i32, a: i32) : . return (UNDEFINED_PRECEDENCE, 0)
@@ -12258,22 +10989,13 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     // Opt_3(p: i32, end: i32, a: i32) : return (UNDEFINED_PRECEDENCE, 0).
                     SlotId(1175) => {
                         let result = self.get_or_create_epsilon_node(input_index);
-                        let node = self.sppf_node(result);
                         let return_value = -65536;
-                        let nonterminal_node_id = self.get_or_create_nonterminal_node(
-                            NonterminalId(169),
-                            SlotId(1175),
-                            node.left_extent(),
-                            node.right_extent(),
-                            result,
-                            gss_node_id,
-                            Some(return_value),
-                        );
                         self.pop(
                             gss_node_id,
                             SlotId(1175),
-                            nonterminal_node_id,
+                            result,
                             Some(return_value),
+                            &FOLLOW_SET_OPT_3,
                         );
                     }
                     // StartS : . WS start:S WS
@@ -12292,7 +11014,14 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     }
                     // StartS : WS . start:S WS
                     SlotId(53) => {
-                        self.create(NonterminalId(0), result, gss_node_id, SlotId(54), env);
+                        self.create(
+                            NonterminalId(0),
+                            &PREDICTION_SET_S,
+                            result,
+                            gss_node_id,
+                            SlotId(54),
+                            env,
+                        );
                     }
                     // StartS : WS start:S . WS
                     SlotId(54) => {
@@ -12314,13 +11043,10 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     }
                     // StartS : WS start:S WS.
                     SlotId(55) => {
-                        let nonterminal_node_id = self.create_nonterminal_node(
-                            result,
-                            NonterminalId(16),
-                            SlotId(55),
-                            gss_node_id,
-                        );
-                        self.pop(gss_node_id, SlotId(55), nonterminal_node_id, None);
+                        let Some(result) = result else {
+                            unreachable!("result cannot be None here.")
+                        };
+                        self.pop(gss_node_id, SlotId(55), result, None, &FOLLOW_SET_START_S);
                     }
                     // StartE : . WS start:E(0) WS
                     SlotId(56) => {
@@ -12360,13 +11086,10 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     }
                     // StartE : WS start:E(0) WS.
                     SlotId(59) => {
-                        let nonterminal_node_id = self.create_nonterminal_node(
-                            result,
-                            NonterminalId(17),
-                            SlotId(59),
-                            gss_node_id,
-                        );
-                        self.pop(gss_node_id, SlotId(59), nonterminal_node_id, None);
+                        let Some(result) = result else {
+                            unreachable!("result cannot be None here.")
+                        };
+                        self.pop(gss_node_id, SlotId(59), result, None, &FOLLOW_SET_START_E);
                     }
                     // StartL : . WS start:L(0, 0) WS
                     SlotId(60) => {
@@ -12406,13 +11129,10 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     }
                     // StartL : WS start:L(0, 0) WS.
                     SlotId(63) => {
-                        let nonterminal_node_id = self.create_nonterminal_node(
-                            result,
-                            NonterminalId(18),
-                            SlotId(63),
-                            gss_node_id,
-                        );
-                        self.pop(gss_node_id, SlotId(63), nonterminal_node_id, None);
+                        let Some(result) = result else {
+                            unreachable!("result cannot be None here.")
+                        };
+                        self.pop(gss_node_id, SlotId(63), result, None, &FOLLOW_SET_START_L);
                     }
                     // StartOnly : . WS start:Only(0) WS
                     SlotId(64) => {
@@ -12452,13 +11172,16 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     }
                     // StartOnly : WS start:Only(0) WS.
                     SlotId(67) => {
-                        let nonterminal_node_id = self.create_nonterminal_node(
-                            result,
-                            NonterminalId(19),
-                            SlotId(67),
+                        let Some(result) = result else {
+                            unreachable!("result cannot be None here.")
+                        };
+                        self.pop(
                             gss_node_id,
+                            SlotId(67),
+                            result,
+                            None,
+                            &FOLLOW_SET_START_ONLY,
                         );
-                        self.pop(gss_node_id, SlotId(67), nonterminal_node_id, None);
                     }
                     // StartOnlyOperand : . WS start:OnlyOperand(0, 0) WS
                     SlotId(68) => {
@@ -12498,13 +11221,16 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     }
                     // StartOnlyOperand : WS start:OnlyOperand(0, 0) WS.
                     SlotId(71) => {
-                        let nonterminal_node_id = self.create_nonterminal_node(
-                            result,
-                            NonterminalId(20),
-                            SlotId(71),
+                        let Some(result) = result else {
+                            unreachable!("result cannot be None here.")
+                        };
+                        self.pop(
                             gss_node_id,
+                            SlotId(71),
+                            result,
+                            None,
+                            &FOLLOW_SET_START_ONLY_OPERAND,
                         );
-                        self.pop(gss_node_id, SlotId(71), nonterminal_node_id, None);
                     }
                     // StartCross : . WS start:Cross(0) WS
                     SlotId(72) => {
@@ -12544,13 +11270,16 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     }
                     // StartCross : WS start:Cross(0) WS.
                     SlotId(75) => {
-                        let nonterminal_node_id = self.create_nonterminal_node(
-                            result,
-                            NonterminalId(21),
-                            SlotId(75),
+                        let Some(result) = result else {
+                            unreachable!("result cannot be None here.")
+                        };
+                        self.pop(
                             gss_node_id,
+                            SlotId(75),
+                            result,
+                            None,
+                            &FOLLOW_SET_START_CROSS,
                         );
-                        self.pop(gss_node_id, SlotId(75), nonterminal_node_id, None);
                     }
                     // StartForeign : . WS start:Foreign(0) WS
                     SlotId(76) => {
@@ -12590,13 +11319,16 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     }
                     // StartForeign : WS start:Foreign(0) WS.
                     SlotId(79) => {
-                        let nonterminal_node_id = self.create_nonterminal_node(
-                            result,
-                            NonterminalId(22),
-                            SlotId(79),
+                        let Some(result) = result else {
+                            unreachable!("result cannot be None here.")
+                        };
+                        self.pop(
                             gss_node_id,
+                            SlotId(79),
+                            result,
+                            None,
+                            &FOLLOW_SET_START_FOREIGN,
                         );
-                        self.pop(gss_node_id, SlotId(79), nonterminal_node_id, None);
                     }
                     // StartCascade : . WS start:Cascade(0) WS
                     SlotId(80) => {
@@ -12636,13 +11368,16 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     }
                     // StartCascade : WS start:Cascade(0) WS.
                     SlotId(83) => {
-                        let nonterminal_node_id = self.create_nonterminal_node(
-                            result,
-                            NonterminalId(23),
-                            SlotId(83),
+                        let Some(result) = result else {
+                            unreachable!("result cannot be None here.")
+                        };
+                        self.pop(
                             gss_node_id,
+                            SlotId(83),
+                            result,
+                            None,
+                            &FOLLOW_SET_START_CASCADE,
                         );
-                        self.pop(gss_node_id, SlotId(83), nonterminal_node_id, None);
                     }
                     // StartTernary : . WS start:Ternary WS
                     SlotId(84) => {
@@ -12660,7 +11395,14 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     }
                     // StartTernary : WS . start:Ternary WS
                     SlotId(85) => {
-                        self.create(NonterminalId(1), result, gss_node_id, SlotId(86), env);
+                        self.create(
+                            NonterminalId(1),
+                            &PREDICTION_SET_TERNARY,
+                            result,
+                            gss_node_id,
+                            SlotId(86),
+                            env,
+                        );
                     }
                     // StartTernary : WS start:Ternary . WS
                     SlotId(86) => {
@@ -12682,13 +11424,16 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     }
                     // StartTernary : WS start:Ternary WS.
                     SlotId(87) => {
-                        let nonterminal_node_id = self.create_nonterminal_node(
-                            result,
-                            NonterminalId(24),
-                            SlotId(87),
+                        let Some(result) = result else {
+                            unreachable!("result cannot be None here.")
+                        };
+                        self.pop(
                             gss_node_id,
+                            SlotId(87),
+                            result,
+                            None,
+                            &FOLLOW_SET_START_TERNARY,
                         );
-                        self.pop(gss_node_id, SlotId(87), nonterminal_node_id, None);
                     }
                     // StartNullable : . WS start:Nullable(0) WS
                     SlotId(88) => {
@@ -12728,13 +11473,16 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     }
                     // StartNullable : WS start:Nullable(0) WS.
                     SlotId(91) => {
-                        let nonterminal_node_id = self.create_nonterminal_node(
-                            result,
-                            NonterminalId(25),
-                            SlotId(91),
+                        let Some(result) = result else {
+                            unreachable!("result cannot be None here.")
+                        };
+                        self.pop(
                             gss_node_id,
+                            SlotId(91),
+                            result,
+                            None,
+                            &FOLLOW_SET_START_NULLABLE,
                         );
-                        self.pop(gss_node_id, SlotId(91), nonterminal_node_id, None);
                     }
                     // StartNullableLeft : . WS start:NullableLeft WS
                     SlotId(92) => {
@@ -12752,7 +11500,14 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     }
                     // StartNullableLeft : WS . start:NullableLeft WS
                     SlotId(93) => {
-                        self.create(NonterminalId(2), result, gss_node_id, SlotId(94), env);
+                        self.create(
+                            NonterminalId(2),
+                            &PREDICTION_SET_NULLABLE_LEFT,
+                            result,
+                            gss_node_id,
+                            SlotId(94),
+                            env,
+                        );
                     }
                     // StartNullableLeft : WS start:NullableLeft . WS
                     SlotId(94) => {
@@ -12774,13 +11529,16 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     }
                     // StartNullableLeft : WS start:NullableLeft WS.
                     SlotId(95) => {
-                        let nonterminal_node_id = self.create_nonterminal_node(
-                            result,
-                            NonterminalId(26),
-                            SlotId(95),
+                        let Some(result) = result else {
+                            unreachable!("result cannot be None here.")
+                        };
+                        self.pop(
                             gss_node_id,
+                            SlotId(95),
+                            result,
+                            None,
+                            &FOLLOW_SET_START_NULLABLE_LEFT,
                         );
-                        self.pop(gss_node_id, SlotId(95), nonterminal_node_id, None);
                     }
                     // StartNullableRight : . WS start:NullableRight(0) WS
                     SlotId(96) => {
@@ -12820,13 +11578,16 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     }
                     // StartNullableRight : WS start:NullableRight(0) WS.
                     SlotId(99) => {
-                        let nonterminal_node_id = self.create_nonterminal_node(
-                            result,
-                            NonterminalId(27),
-                            SlotId(99),
+                        let Some(result) = result else {
+                            unreachable!("result cannot be None here.")
+                        };
+                        self.pop(
                             gss_node_id,
+                            SlotId(99),
+                            result,
+                            None,
+                            &FOLLOW_SET_START_NULLABLE_RIGHT,
                         );
-                        self.pop(gss_node_id, SlotId(99), nonterminal_node_id, None);
                     }
                     // StartRightExpr : . WS start:RightExpr(0) WS
                     SlotId(100) => {
@@ -12866,13 +11627,16 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     }
                     // StartRightExpr : WS start:RightExpr(0) WS.
                     SlotId(103) => {
-                        let nonterminal_node_id = self.create_nonterminal_node(
-                            result,
-                            NonterminalId(28),
-                            SlotId(103),
+                        let Some(result) = result else {
+                            unreachable!("result cannot be None here.")
+                        };
+                        self.pop(
                             gss_node_id,
+                            SlotId(103),
+                            result,
+                            None,
+                            &FOLLOW_SET_START_RIGHT_EXPR,
                         );
-                        self.pop(gss_node_id, SlotId(103), nonterminal_node_id, None);
                     }
                     // StartRightOperand : . WS start:RightOperand(0, 0) WS
                     SlotId(104) => {
@@ -12912,13 +11676,16 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     }
                     // StartRightOperand : WS start:RightOperand(0, 0) WS.
                     SlotId(107) => {
-                        let nonterminal_node_id = self.create_nonterminal_node(
-                            result,
-                            NonterminalId(29),
-                            SlotId(107),
+                        let Some(result) = result else {
+                            unreachable!("result cannot be None here.")
+                        };
+                        self.pop(
                             gss_node_id,
+                            SlotId(107),
+                            result,
+                            None,
+                            &FOLLOW_SET_START_RIGHT_OPERAND,
                         );
-                        self.pop(gss_node_id, SlotId(107), nonterminal_node_id, None);
                     }
                     // StartNoneExpr : . WS start:NoneExpr(0) WS
                     SlotId(108) => {
@@ -12958,13 +11725,16 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     }
                     // StartNoneExpr : WS start:NoneExpr(0) WS.
                     SlotId(111) => {
-                        let nonterminal_node_id = self.create_nonterminal_node(
-                            result,
-                            NonterminalId(30),
-                            SlotId(111),
+                        let Some(result) = result else {
+                            unreachable!("result cannot be None here.")
+                        };
+                        self.pop(
                             gss_node_id,
+                            SlotId(111),
+                            result,
+                            None,
+                            &FOLLOW_SET_START_NONE_EXPR,
                         );
-                        self.pop(gss_node_id, SlotId(111), nonterminal_node_id, None);
                     }
                     // StartNoneOperand : . WS start:NoneOperand(0, 0) WS
                     SlotId(112) => {
@@ -13004,13 +11774,16 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     }
                     // StartNoneOperand : WS start:NoneOperand(0, 0) WS.
                     SlotId(115) => {
-                        let nonterminal_node_id = self.create_nonterminal_node(
-                            result,
-                            NonterminalId(31),
-                            SlotId(115),
+                        let Some(result) = result else {
+                            unreachable!("result cannot be None here.")
+                        };
+                        self.pop(
                             gss_node_id,
+                            SlotId(115),
+                            result,
+                            None,
+                            &FOLLOW_SET_START_NONE_OPERAND,
                         );
-                        self.pop(gss_node_id, SlotId(115), nonterminal_node_id, None);
                     }
                     // StartExcluded : . WS start:Excluded(0, 0) WS
                     SlotId(116) => {
@@ -13050,13 +11823,16 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     }
                     // StartExcluded : WS start:Excluded(0, 0) WS.
                     SlotId(119) => {
-                        let nonterminal_node_id = self.create_nonterminal_node(
-                            result,
-                            NonterminalId(32),
-                            SlotId(119),
+                        let Some(result) = result else {
+                            unreachable!("result cannot be None here.")
+                        };
+                        self.pop(
                             gss_node_id,
+                            SlotId(119),
+                            result,
+                            None,
+                            &FOLLOW_SET_START_EXCLUDED,
                         );
-                        self.pop(gss_node_id, SlotId(119), nonterminal_node_id, None);
                     }
                     // StartExcludedOperand : . WS start:ExcludedOperand(0, 0, 0, 0) WS
                     SlotId(120) => {
@@ -13105,13 +11881,16 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     }
                     // StartExcludedOperand : WS start:ExcludedOperand(0, 0, 0, 0) WS.
                     SlotId(123) => {
-                        let nonterminal_node_id = self.create_nonterminal_node(
-                            result,
-                            NonterminalId(33),
-                            SlotId(123),
+                        let Some(result) = result else {
+                            unreachable!("result cannot be None here.")
+                        };
+                        self.pop(
                             gss_node_id,
+                            SlotId(123),
+                            result,
+                            None,
+                            &FOLLOW_SET_START_EXCLUDED_OPERAND,
                         );
-                        self.pop(gss_node_id, SlotId(123), nonterminal_node_id, None);
                     }
                     // StartFiltered : . WS start:Filtered WS
                     SlotId(124) => {
@@ -13129,7 +11908,14 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     }
                     // StartFiltered : WS . start:Filtered WS
                     SlotId(125) => {
-                        self.create(NonterminalId(3), result, gss_node_id, SlotId(126), env);
+                        self.create(
+                            NonterminalId(3),
+                            &PREDICTION_SET_FILTERED,
+                            result,
+                            gss_node_id,
+                            SlotId(126),
+                            env,
+                        );
                     }
                     // StartFiltered : WS start:Filtered . WS
                     SlotId(126) => {
@@ -13151,13 +11937,16 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     }
                     // StartFiltered : WS start:Filtered WS.
                     SlotId(127) => {
-                        let nonterminal_node_id = self.create_nonterminal_node(
-                            result,
-                            NonterminalId(34),
-                            SlotId(127),
+                        let Some(result) = result else {
+                            unreachable!("result cannot be None here.")
+                        };
+                        self.pop(
                             gss_node_id,
+                            SlotId(127),
+                            result,
+                            None,
+                            &FOLLOW_SET_START_FILTERED,
                         );
-                        self.pop(gss_node_id, SlotId(127), nonterminal_node_id, None);
                     }
                     // StartLexNullable : . WS start:LexNullable(0) WS
                     SlotId(128) => {
@@ -13197,13 +11986,16 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     }
                     // StartLexNullable : WS start:LexNullable(0) WS.
                     SlotId(131) => {
-                        let nonterminal_node_id = self.create_nonterminal_node(
-                            result,
-                            NonterminalId(35),
-                            SlotId(131),
+                        let Some(result) = result else {
+                            unreachable!("result cannot be None here.")
+                        };
+                        self.pop(
                             gss_node_id,
+                            SlotId(131),
+                            result,
+                            None,
+                            &FOLLOW_SET_START_LEX_NULLABLE,
                         );
-                        self.pop(gss_node_id, SlotId(131), nonterminal_node_id, None);
                     }
                     // StartLexNullableLeft : . WS start:LexNullableLeft WS
                     SlotId(132) => {
@@ -13221,7 +12013,14 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     }
                     // StartLexNullableLeft : WS . start:LexNullableLeft WS
                     SlotId(133) => {
-                        self.create(NonterminalId(4), result, gss_node_id, SlotId(134), env);
+                        self.create(
+                            NonterminalId(4),
+                            &PREDICTION_SET_LEX_NULLABLE_LEFT,
+                            result,
+                            gss_node_id,
+                            SlotId(134),
+                            env,
+                        );
                     }
                     // StartLexNullableLeft : WS start:LexNullableLeft . WS
                     SlotId(134) => {
@@ -13243,13 +12042,16 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     }
                     // StartLexNullableLeft : WS start:LexNullableLeft WS.
                     SlotId(135) => {
-                        let nonterminal_node_id = self.create_nonterminal_node(
-                            result,
-                            NonterminalId(36),
-                            SlotId(135),
+                        let Some(result) = result else {
+                            unreachable!("result cannot be None here.")
+                        };
+                        self.pop(
                             gss_node_id,
+                            SlotId(135),
+                            result,
+                            None,
+                            &FOLLOW_SET_START_LEX_NULLABLE_LEFT,
                         );
-                        self.pop(gss_node_id, SlotId(135), nonterminal_node_id, None);
                     }
                     // StartLexNullableRight : . WS start:LexNullableRight(0) WS
                     SlotId(136) => {
@@ -13289,13 +12091,16 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     }
                     // StartLexNullableRight : WS start:LexNullableRight(0) WS.
                     SlotId(139) => {
-                        let nonterminal_node_id = self.create_nonterminal_node(
-                            result,
-                            NonterminalId(37),
-                            SlotId(139),
+                        let Some(result) = result else {
+                            unreachable!("result cannot be None here.")
+                        };
+                        self.pop(
                             gss_node_id,
+                            SlotId(139),
+                            result,
+                            None,
+                            &FOLLOW_SET_START_LEX_NULLABLE_RIGHT,
                         );
-                        self.pop(gss_node_id, SlotId(139), nonterminal_node_id, None);
                     }
                     // StartMixedScale : . WS start:MixedScale(0, 0) WS
                     SlotId(140) => {
@@ -13335,13 +12140,16 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     }
                     // StartMixedScale : WS start:MixedScale(0, 0) WS.
                     SlotId(143) => {
-                        let nonterminal_node_id = self.create_nonterminal_node(
-                            result,
-                            NonterminalId(38),
-                            SlotId(143),
+                        let Some(result) = result else {
+                            unreachable!("result cannot be None here.")
+                        };
+                        self.pop(
                             gss_node_id,
+                            SlotId(143),
+                            result,
+                            None,
+                            &FOLLOW_SET_START_MIXED_SCALE,
                         );
-                        self.pop(gss_node_id, SlotId(143), nonterminal_node_id, None);
                     }
                     // StartMixedOperand : . WS start:MixedOperand(0, 0) WS
                     SlotId(144) => {
@@ -13381,13 +12189,16 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     }
                     // StartMixedOperand : WS start:MixedOperand(0, 0) WS.
                     SlotId(147) => {
-                        let nonterminal_node_id = self.create_nonterminal_node(
-                            result,
-                            NonterminalId(39),
-                            SlotId(147),
+                        let Some(result) = result else {
+                            unreachable!("result cannot be None here.")
+                        };
+                        self.pop(
                             gss_node_id,
+                            SlotId(147),
+                            result,
+                            None,
+                            &FOLLOW_SET_START_MIXED_OPERAND,
                         );
-                        self.pop(gss_node_id, SlotId(147), nonterminal_node_id, None);
                     }
                     // StartMixedRight : . WS start:MixedRight(0, 0) WS
                     SlotId(148) => {
@@ -13427,13 +12238,16 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     }
                     // StartMixedRight : WS start:MixedRight(0, 0) WS.
                     SlotId(151) => {
-                        let nonterminal_node_id = self.create_nonterminal_node(
-                            result,
-                            NonterminalId(40),
-                            SlotId(151),
+                        let Some(result) = result else {
+                            unreachable!("result cannot be None here.")
+                        };
+                        self.pop(
                             gss_node_id,
+                            SlotId(151),
+                            result,
+                            None,
+                            &FOLLOW_SET_START_MIXED_RIGHT,
                         );
-                        self.pop(gss_node_id, SlotId(151), nonterminal_node_id, None);
                     }
                     // StartMixedForeign : . WS start:MixedForeign(0) WS
                     SlotId(152) => {
@@ -13473,13 +12287,16 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     }
                     // StartMixedForeign : WS start:MixedForeign(0) WS.
                     SlotId(155) => {
-                        let nonterminal_node_id = self.create_nonterminal_node(
-                            result,
-                            NonterminalId(41),
-                            SlotId(155),
+                        let Some(result) = result else {
+                            unreachable!("result cannot be None here.")
+                        };
+                        self.pop(
                             gss_node_id,
+                            SlotId(155),
+                            result,
+                            None,
+                            &FOLLOW_SET_START_MIXED_FOREIGN,
                         );
-                        self.pop(gss_node_id, SlotId(155), nonterminal_node_id, None);
                     }
                     // StartPacked : . WS start:Packed(0, 0) WS
                     SlotId(156) => {
@@ -13519,13 +12336,16 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     }
                     // StartPacked : WS start:Packed(0, 0) WS.
                     SlotId(159) => {
-                        let nonterminal_node_id = self.create_nonterminal_node(
-                            result,
-                            NonterminalId(42),
-                            SlotId(159),
+                        let Some(result) = result else {
+                            unreachable!("result cannot be None here.")
+                        };
+                        self.pop(
                             gss_node_id,
+                            SlotId(159),
+                            result,
+                            None,
+                            &FOLLOW_SET_START_PACKED,
                         );
-                        self.pop(gss_node_id, SlotId(159), nonterminal_node_id, None);
                     }
                     // StartPackedOperand : . WS start:PackedOperand(0, 0, 0) WS
                     SlotId(160) => {
@@ -13565,13 +12385,16 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     }
                     // StartPackedOperand : WS start:PackedOperand(0, 0, 0) WS.
                     SlotId(163) => {
-                        let nonterminal_node_id = self.create_nonterminal_node(
-                            result,
-                            NonterminalId(43),
-                            SlotId(163),
+                        let Some(result) = result else {
+                            unreachable!("result cannot be None here.")
+                        };
+                        self.pop(
                             gss_node_id,
+                            SlotId(163),
+                            result,
+                            None,
+                            &FOLLOW_SET_START_PACKED_OPERAND,
                         );
-                        self.pop(gss_node_id, SlotId(163), nonterminal_node_id, None);
                     }
                     // StartPackedMiddle : . WS start:PackedMiddle(0, 0, 0, 0) WS
                     SlotId(164) => {
@@ -13620,13 +12443,16 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     }
                     // StartPackedMiddle : WS start:PackedMiddle(0, 0, 0, 0) WS.
                     SlotId(167) => {
-                        let nonterminal_node_id = self.create_nonterminal_node(
-                            result,
-                            NonterminalId(44),
-                            SlotId(167),
+                        let Some(result) = result else {
+                            unreachable!("result cannot be None here.")
+                        };
+                        self.pop(
                             gss_node_id,
+                            SlotId(167),
+                            result,
+                            None,
+                            &FOLLOW_SET_START_PACKED_MIDDLE,
                         );
-                        self.pop(gss_node_id, SlotId(167), nonterminal_node_id, None);
                     }
                     // StartPackedFiltered : . WS start:PackedFiltered WS
                     SlotId(168) => {
@@ -13644,7 +12470,14 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     }
                     // StartPackedFiltered : WS . start:PackedFiltered WS
                     SlotId(169) => {
-                        self.create(NonterminalId(5), result, gss_node_id, SlotId(170), env);
+                        self.create(
+                            NonterminalId(5),
+                            &PREDICTION_SET_PACKED_FILTERED,
+                            result,
+                            gss_node_id,
+                            SlotId(170),
+                            env,
+                        );
                     }
                     // StartPackedFiltered : WS start:PackedFiltered . WS
                     SlotId(170) => {
@@ -13666,13 +12499,16 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     }
                     // StartPackedFiltered : WS start:PackedFiltered WS.
                     SlotId(171) => {
-                        let nonterminal_node_id = self.create_nonterminal_node(
-                            result,
-                            NonterminalId(45),
-                            SlotId(171),
+                        let Some(result) = result else {
+                            unreachable!("result cannot be None here.")
+                        };
+                        self.pop(
                             gss_node_id,
+                            SlotId(171),
+                            result,
+                            None,
+                            &FOLLOW_SET_START_PACKED_FILTERED,
                         );
-                        self.pop(gss_node_id, SlotId(171), nonterminal_node_id, None);
                     }
                     // StartNullableRecursive : . WS start:NullableRecursive(0, 0) WS
                     SlotId(172) => {
@@ -13712,13 +12548,16 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     }
                     // StartNullableRecursive : WS start:NullableRecursive(0, 0) WS.
                     SlotId(175) => {
-                        let nonterminal_node_id = self.create_nonterminal_node(
-                            result,
-                            NonterminalId(46),
-                            SlotId(175),
+                        let Some(result) = result else {
+                            unreachable!("result cannot be None here.")
+                        };
+                        self.pop(
                             gss_node_id,
+                            SlotId(175),
+                            result,
+                            None,
+                            &FOLLOW_SET_START_NULLABLE_RECURSIVE,
                         );
-                        self.pop(gss_node_id, SlotId(175), nonterminal_node_id, None);
                     }
                     // StartNullableOperand : . WS start:NullableOperand(0, 0) WS
                     SlotId(176) => {
@@ -13758,13 +12597,16 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     }
                     // StartNullableOperand : WS start:NullableOperand(0, 0) WS.
                     SlotId(179) => {
-                        let nonterminal_node_id = self.create_nonterminal_node(
-                            result,
-                            NonterminalId(47),
-                            SlotId(179),
+                        let Some(result) = result else {
+                            unreachable!("result cannot be None here.")
+                        };
+                        self.pop(
                             gss_node_id,
+                            SlotId(179),
+                            result,
+                            None,
+                            &FOLLOW_SET_START_NULLABLE_OPERAND,
                         );
-                        self.pop(gss_node_id, SlotId(179), nonterminal_node_id, None);
                     }
                     // StartNullableMaybe : . WS start:NullableMaybe(0, 0) WS
                     SlotId(180) => {
@@ -13804,13 +12646,16 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     }
                     // StartNullableMaybe : WS start:NullableMaybe(0, 0) WS.
                     SlotId(183) => {
-                        let nonterminal_node_id = self.create_nonterminal_node(
-                            result,
-                            NonterminalId(48),
-                            SlotId(183),
+                        let Some(result) = result else {
+                            unreachable!("result cannot be None here.")
+                        };
+                        self.pop(
                             gss_node_id,
+                            SlotId(183),
+                            result,
+                            None,
+                            &FOLLOW_SET_START_NULLABLE_MAYBE,
                         );
-                        self.pop(gss_node_id, SlotId(183), nonterminal_node_id, None);
                     }
                     // StartNullableLexRecursive : . WS start:NullableLexRecursive(0, 0) WS
                     SlotId(184) => {
@@ -13857,13 +12702,16 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     }
                     // StartNullableLexRecursive : WS start:NullableLexRecursive(0, 0) WS.
                     SlotId(187) => {
-                        let nonterminal_node_id = self.create_nonterminal_node(
-                            result,
-                            NonterminalId(49),
-                            SlotId(187),
+                        let Some(result) = result else {
+                            unreachable!("result cannot be None here.")
+                        };
+                        self.pop(
                             gss_node_id,
+                            SlotId(187),
+                            result,
+                            None,
+                            &FOLLOW_SET_START_NULLABLE_LEX_RECURSIVE,
                         );
-                        self.pop(gss_node_id, SlotId(187), nonterminal_node_id, None);
                     }
                     // StartNullableLexOperand : . WS start:NullableLexOperand(0, 0) WS
                     SlotId(188) => {
@@ -13910,13 +12758,16 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     }
                     // StartNullableLexOperand : WS start:NullableLexOperand(0, 0) WS.
                     SlotId(191) => {
-                        let nonterminal_node_id = self.create_nonterminal_node(
-                            result,
-                            NonterminalId(50),
-                            SlotId(191),
+                        let Some(result) = result else {
+                            unreachable!("result cannot be None here.")
+                        };
+                        self.pop(
                             gss_node_id,
+                            SlotId(191),
+                            result,
+                            None,
+                            &FOLLOW_SET_START_NULLABLE_LEX_OPERAND,
                         );
-                        self.pop(gss_node_id, SlotId(191), nonterminal_node_id, None);
                     }
                     // StartNullableLexMaybe : . WS start:NullableLexMaybe(0, 0) WS
                     SlotId(192) => {
@@ -13956,13 +12807,16 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     }
                     // StartNullableLexMaybe : WS start:NullableLexMaybe(0, 0) WS.
                     SlotId(195) => {
-                        let nonterminal_node_id = self.create_nonterminal_node(
-                            result,
-                            NonterminalId(51),
-                            SlotId(195),
+                        let Some(result) = result else {
+                            unreachable!("result cannot be None here.")
+                        };
+                        self.pop(
                             gss_node_id,
+                            SlotId(195),
+                            result,
+                            None,
+                            &FOLLOW_SET_START_NULLABLE_LEX_MAYBE,
                         );
-                        self.pop(gss_node_id, SlotId(195), nonterminal_node_id, None);
                     }
                     // StartNullableSuffix : . WS start:NullableSuffix(0, 0) WS
                     SlotId(196) => {
@@ -14002,13 +12856,16 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     }
                     // StartNullableSuffix : WS start:NullableSuffix(0, 0) WS.
                     SlotId(199) => {
-                        let nonterminal_node_id = self.create_nonterminal_node(
-                            result,
-                            NonterminalId(52),
-                            SlotId(199),
+                        let Some(result) = result else {
+                            unreachable!("result cannot be None here.")
+                        };
+                        self.pop(
                             gss_node_id,
+                            SlotId(199),
+                            result,
+                            None,
+                            &FOLLOW_SET_START_NULLABLE_SUFFIX,
                         );
-                        self.pop(gss_node_id, SlotId(199), nonterminal_node_id, None);
                     }
                     // StartNullableSuffixOperand : . WS start:NullableSuffixOperand(0, 0) WS
                     SlotId(200) => {
@@ -14055,13 +12912,16 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     }
                     // StartNullableSuffixOperand : WS start:NullableSuffixOperand(0, 0) WS.
                     SlotId(203) => {
-                        let nonterminal_node_id = self.create_nonterminal_node(
-                            result,
-                            NonterminalId(53),
-                            SlotId(203),
+                        let Some(result) = result else {
+                            unreachable!("result cannot be None here.")
+                        };
+                        self.pop(
                             gss_node_id,
+                            SlotId(203),
+                            result,
+                            None,
+                            &FOLLOW_SET_START_NULLABLE_SUFFIX_OPERAND,
                         );
-                        self.pop(gss_node_id, SlotId(203), nonterminal_node_id, None);
                     }
                     // StartNullableSuffixMaybe : . WS start:NullableSuffixMaybe(0, 0) WS
                     SlotId(204) => {
@@ -14108,13 +12968,16 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     }
                     // StartNullableSuffixMaybe : WS start:NullableSuffixMaybe(0, 0) WS.
                     SlotId(207) => {
-                        let nonterminal_node_id = self.create_nonterminal_node(
-                            result,
-                            NonterminalId(54),
-                            SlotId(207),
+                        let Some(result) = result else {
+                            unreachable!("result cannot be None here.")
+                        };
+                        self.pop(
                             gss_node_id,
+                            SlotId(207),
+                            result,
+                            None,
+                            &FOLLOW_SET_START_NULLABLE_SUFFIX_MAYBE,
                         );
-                        self.pop(gss_node_id, SlotId(207), nonterminal_node_id, None);
                     }
                     // StartNullableShared : . WS start:NullableShared(0, 0) WS
                     SlotId(208) => {
@@ -14154,13 +13017,16 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     }
                     // StartNullableShared : WS start:NullableShared(0, 0) WS.
                     SlotId(211) => {
-                        let nonterminal_node_id = self.create_nonterminal_node(
-                            result,
-                            NonterminalId(55),
-                            SlotId(211),
+                        let Some(result) = result else {
+                            unreachable!("result cannot be None here.")
+                        };
+                        self.pop(
                             gss_node_id,
+                            SlotId(211),
+                            result,
+                            None,
+                            &FOLLOW_SET_START_NULLABLE_SHARED,
                         );
-                        self.pop(gss_node_id, SlotId(211), nonterminal_node_id, None);
                     }
                     // StartNullableSharedOperand : . WS start:NullableSharedOperand(0, 0, 0) WS
                     SlotId(212) => {
@@ -14208,13 +13074,16 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     }
                     // StartNullableSharedOperand : WS start:NullableSharedOperand(0, 0, 0) WS.
                     SlotId(215) => {
-                        let nonterminal_node_id = self.create_nonterminal_node(
-                            result,
-                            NonterminalId(56),
-                            SlotId(215),
+                        let Some(result) = result else {
+                            unreachable!("result cannot be None here.")
+                        };
+                        self.pop(
                             gss_node_id,
+                            SlotId(215),
+                            result,
+                            None,
+                            &FOLLOW_SET_START_NULLABLE_SHARED_OPERAND,
                         );
-                        self.pop(gss_node_id, SlotId(215), nonterminal_node_id, None);
                     }
                     // StartNullableSharedMaybe : . WS start:NullableSharedMaybe(0, 0, 0) WS
                     SlotId(216) => {
@@ -14262,13 +13131,16 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     }
                     // StartNullableSharedMaybe : WS start:NullableSharedMaybe(0, 0, 0) WS.
                     SlotId(219) => {
-                        let nonterminal_node_id = self.create_nonterminal_node(
-                            result,
-                            NonterminalId(57),
-                            SlotId(219),
+                        let Some(result) = result else {
+                            unreachable!("result cannot be None here.")
+                        };
+                        self.pop(
                             gss_node_id,
+                            SlotId(219),
+                            result,
+                            None,
+                            &FOLLOW_SET_START_NULLABLE_SHARED_MAYBE,
                         );
-                        self.pop(gss_node_id, SlotId(219), nonterminal_node_id, None);
                     }
                     // StartOwnLabel : . WS start:OwnLabel(0, 0, 0) WS
                     SlotId(220) => {
@@ -14308,13 +13180,16 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     }
                     // StartOwnLabel : WS start:OwnLabel(0, 0, 0) WS.
                     SlotId(223) => {
-                        let nonterminal_node_id = self.create_nonterminal_node(
-                            result,
-                            NonterminalId(58),
-                            SlotId(223),
+                        let Some(result) = result else {
+                            unreachable!("result cannot be None here.")
+                        };
+                        self.pop(
                             gss_node_id,
+                            SlotId(223),
+                            result,
+                            None,
+                            &FOLLOW_SET_START_OWN_LABEL,
                         );
-                        self.pop(gss_node_id, SlotId(223), nonterminal_node_id, None);
                     }
                     // StartOwnOperand : . WS start:OwnOperand(0, 0, 0, 0) WS
                     SlotId(224) => {
@@ -14354,13 +13229,16 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     }
                     // StartOwnOperand : WS start:OwnOperand(0, 0, 0, 0) WS.
                     SlotId(227) => {
-                        let nonterminal_node_id = self.create_nonterminal_node(
-                            result,
-                            NonterminalId(59),
-                            SlotId(227),
+                        let Some(result) = result else {
+                            unreachable!("result cannot be None here.")
+                        };
+                        self.pop(
                             gss_node_id,
+                            SlotId(227),
+                            result,
+                            None,
+                            &FOLLOW_SET_START_OWN_OPERAND,
                         );
-                        self.pop(gss_node_id, SlotId(227), nonterminal_node_id, None);
                     }
                     // StartOwnHeadFiltered : . WS start:OwnHeadFiltered WS
                     SlotId(228) => {
@@ -14378,7 +13256,14 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     }
                     // StartOwnHeadFiltered : WS . start:OwnHeadFiltered WS
                     SlotId(229) => {
-                        self.create(NonterminalId(6), result, gss_node_id, SlotId(230), env);
+                        self.create(
+                            NonterminalId(6),
+                            &PREDICTION_SET_OWN_HEAD_FILTERED,
+                            result,
+                            gss_node_id,
+                            SlotId(230),
+                            env,
+                        );
                     }
                     // StartOwnHeadFiltered : WS start:OwnHeadFiltered . WS
                     SlotId(230) => {
@@ -14400,13 +13285,16 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     }
                     // StartOwnHeadFiltered : WS start:OwnHeadFiltered WS.
                     SlotId(231) => {
-                        let nonterminal_node_id = self.create_nonterminal_node(
-                            result,
-                            NonterminalId(60),
-                            SlotId(231),
+                        let Some(result) = result else {
+                            unreachable!("result cannot be None here.")
+                        };
+                        self.pop(
                             gss_node_id,
+                            SlotId(231),
+                            result,
+                            None,
+                            &FOLLOW_SET_START_OWN_HEAD_FILTERED,
                         );
-                        self.pop(gss_node_id, SlotId(231), nonterminal_node_id, None);
                     }
                     // StartExcludeOnly : . WS start:ExcludeOnly(0) WS
                     SlotId(232) => {
@@ -14446,13 +13334,16 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     }
                     // StartExcludeOnly : WS start:ExcludeOnly(0) WS.
                     SlotId(235) => {
-                        let nonterminal_node_id = self.create_nonterminal_node(
-                            result,
-                            NonterminalId(61),
-                            SlotId(235),
+                        let Some(result) = result else {
+                            unreachable!("result cannot be None here.")
+                        };
+                        self.pop(
                             gss_node_id,
+                            SlotId(235),
+                            result,
+                            None,
+                            &FOLLOW_SET_START_EXCLUDE_ONLY,
                         );
-                        self.pop(gss_node_id, SlotId(235), nonterminal_node_id, None);
                     }
                     // StartExcludeOnlyFiltered : . WS start:ExcludeOnlyFiltered WS
                     SlotId(236) => {
@@ -14470,7 +13361,14 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     }
                     // StartExcludeOnlyFiltered : WS . start:ExcludeOnlyFiltered WS
                     SlotId(237) => {
-                        self.create(NonterminalId(7), result, gss_node_id, SlotId(238), env);
+                        self.create(
+                            NonterminalId(7),
+                            &PREDICTION_SET_EXCLUDE_ONLY_FILTERED,
+                            result,
+                            gss_node_id,
+                            SlotId(238),
+                            env,
+                        );
                     }
                     // StartExcludeOnlyFiltered : WS start:ExcludeOnlyFiltered . WS
                     SlotId(238) => {
@@ -14492,13 +13390,16 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     }
                     // StartExcludeOnlyFiltered : WS start:ExcludeOnlyFiltered WS.
                     SlotId(239) => {
-                        let nonterminal_node_id = self.create_nonterminal_node(
-                            result,
-                            NonterminalId(62),
-                            SlotId(239),
+                        let Some(result) = result else {
+                            unreachable!("result cannot be None here.")
+                        };
+                        self.pop(
                             gss_node_id,
+                            SlotId(239),
+                            result,
+                            None,
+                            &FOLLOW_SET_START_EXCLUDE_ONLY_FILTERED,
                         );
-                        self.pop(gss_node_id, SlotId(239), nonterminal_node_id, None);
                     }
                     // StartAbsent : . WS start:Absent(0) WS
                     SlotId(240) => {
@@ -14538,13 +13439,16 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     }
                     // StartAbsent : WS start:Absent(0) WS.
                     SlotId(243) => {
-                        let nonterminal_node_id = self.create_nonterminal_node(
-                            result,
-                            NonterminalId(63),
-                            SlotId(243),
+                        let Some(result) = result else {
+                            unreachable!("result cannot be None here.")
+                        };
+                        self.pop(
                             gss_node_id,
+                            SlotId(243),
+                            result,
+                            None,
+                            &FOLLOW_SET_START_ABSENT,
                         );
-                        self.pop(gss_node_id, SlotId(243), nonterminal_node_id, None);
                     }
                     // StartAbsentOperand : . WS start:AbsentOperand(0, 0) WS
                     SlotId(244) => {
@@ -14584,13 +13488,16 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     }
                     // StartAbsentOperand : WS start:AbsentOperand(0, 0) WS.
                     SlotId(247) => {
-                        let nonterminal_node_id = self.create_nonterminal_node(
-                            result,
-                            NonterminalId(64),
-                            SlotId(247),
+                        let Some(result) = result else {
+                            unreachable!("result cannot be None here.")
+                        };
+                        self.pop(
                             gss_node_id,
+                            SlotId(247),
+                            result,
+                            None,
+                            &FOLLOW_SET_START_ABSENT_OPERAND,
                         );
-                        self.pop(gss_node_id, SlotId(247), nonterminal_node_id, None);
                     }
                     // StartClosedPrefix : . WS start:ClosedPrefix(0) WS
                     SlotId(248) => {
@@ -14630,13 +13537,16 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     }
                     // StartClosedPrefix : WS start:ClosedPrefix(0) WS.
                     SlotId(251) => {
-                        let nonterminal_node_id = self.create_nonterminal_node(
-                            result,
-                            NonterminalId(65),
-                            SlotId(251),
+                        let Some(result) = result else {
+                            unreachable!("result cannot be None here.")
+                        };
+                        self.pop(
                             gss_node_id,
+                            SlotId(251),
+                            result,
+                            None,
+                            &FOLLOW_SET_START_CLOSED_PREFIX,
                         );
-                        self.pop(gss_node_id, SlotId(251), nonterminal_node_id, None);
                     }
                     // StartClosedPrefixBody : . WS start:ClosedPrefixBody(0) WS
                     SlotId(252) => {
@@ -14676,13 +13586,16 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     }
                     // StartClosedPrefixBody : WS start:ClosedPrefixBody(0) WS.
                     SlotId(255) => {
-                        let nonterminal_node_id = self.create_nonterminal_node(
-                            result,
-                            NonterminalId(66),
-                            SlotId(255),
+                        let Some(result) = result else {
+                            unreachable!("result cannot be None here.")
+                        };
+                        self.pop(
                             gss_node_id,
+                            SlotId(255),
+                            result,
+                            None,
+                            &FOLLOW_SET_START_CLOSED_PREFIX_BODY,
                         );
-                        self.pop(gss_node_id, SlotId(255), nonterminal_node_id, None);
                     }
                     // StartClosedPostfix : . WS start:ClosedPostfix(0) WS
                     SlotId(256) => {
@@ -14722,13 +13635,16 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     }
                     // StartClosedPostfix : WS start:ClosedPostfix(0) WS.
                     SlotId(259) => {
-                        let nonterminal_node_id = self.create_nonterminal_node(
-                            result,
-                            NonterminalId(67),
-                            SlotId(259),
+                        let Some(result) = result else {
+                            unreachable!("result cannot be None here.")
+                        };
+                        self.pop(
                             gss_node_id,
+                            SlotId(259),
+                            result,
+                            None,
+                            &FOLLOW_SET_START_CLOSED_POSTFIX,
                         );
-                        self.pop(gss_node_id, SlotId(259), nonterminal_node_id, None);
                     }
                     // StartClosedPostfixBody : . WS start:ClosedPostfixBody(0) WS
                     SlotId(260) => {
@@ -14768,13 +13684,16 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     }
                     // StartClosedPostfixBody : WS start:ClosedPostfixBody(0) WS.
                     SlotId(263) => {
-                        let nonterminal_node_id = self.create_nonterminal_node(
-                            result,
-                            NonterminalId(68),
-                            SlotId(263),
+                        let Some(result) = result else {
+                            unreachable!("result cannot be None here.")
+                        };
+                        self.pop(
                             gss_node_id,
+                            SlotId(263),
+                            result,
+                            None,
+                            &FOLLOW_SET_START_CLOSED_POSTFIX_BODY,
                         );
-                        self.pop(gss_node_id, SlotId(263), nonterminal_node_id, None);
                     }
                     // StartHeadChoice : . WS start:HeadChoice(0) WS
                     SlotId(264) => {
@@ -14814,13 +13733,16 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     }
                     // StartHeadChoice : WS start:HeadChoice(0) WS.
                     SlotId(267) => {
-                        let nonterminal_node_id = self.create_nonterminal_node(
-                            result,
-                            NonterminalId(69),
-                            SlotId(267),
+                        let Some(result) = result else {
+                            unreachable!("result cannot be None here.")
+                        };
+                        self.pop(
                             gss_node_id,
+                            SlotId(267),
+                            result,
+                            None,
+                            &FOLLOW_SET_START_HEAD_CHOICE,
                         );
-                        self.pop(gss_node_id, SlotId(267), nonterminal_node_id, None);
                     }
                     // StartHeadOperand : . WS start:HeadOperand(0, 0) WS
                     SlotId(268) => {
@@ -14860,13 +13782,16 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     }
                     // StartHeadOperand : WS start:HeadOperand(0, 0) WS.
                     SlotId(271) => {
-                        let nonterminal_node_id = self.create_nonterminal_node(
-                            result,
-                            NonterminalId(70),
-                            SlotId(271),
+                        let Some(result) = result else {
+                            unreachable!("result cannot be None here.")
+                        };
+                        self.pop(
                             gss_node_id,
+                            SlotId(271),
+                            result,
+                            None,
+                            &FOLLOW_SET_START_HEAD_OPERAND,
                         );
-                        self.pop(gss_node_id, SlotId(271), nonterminal_node_id, None);
                     }
                     // StartInner : . WS start:Inner(0) WS
                     SlotId(272) => {
@@ -14906,13 +13831,16 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     }
                     // StartInner : WS start:Inner(0) WS.
                     SlotId(275) => {
-                        let nonterminal_node_id = self.create_nonterminal_node(
-                            result,
-                            NonterminalId(71),
-                            SlotId(275),
+                        let Some(result) = result else {
+                            unreachable!("result cannot be None here.")
+                        };
+                        self.pop(
                             gss_node_id,
+                            SlotId(275),
+                            result,
+                            None,
+                            &FOLLOW_SET_START_INNER,
                         );
-                        self.pop(gss_node_id, SlotId(275), nonterminal_node_id, None);
                     }
                     // StartUnaryMixedLeft : . WS start:UnaryMixedLeft(0, 0) WS
                     SlotId(276) => {
@@ -14952,13 +13880,16 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     }
                     // StartUnaryMixedLeft : WS start:UnaryMixedLeft(0, 0) WS.
                     SlotId(279) => {
-                        let nonterminal_node_id = self.create_nonterminal_node(
-                            result,
-                            NonterminalId(72),
-                            SlotId(279),
+                        let Some(result) = result else {
+                            unreachable!("result cannot be None here.")
+                        };
+                        self.pop(
                             gss_node_id,
+                            SlotId(279),
+                            result,
+                            None,
+                            &FOLLOW_SET_START_UNARY_MIXED_LEFT,
                         );
-                        self.pop(gss_node_id, SlotId(279), nonterminal_node_id, None);
                     }
                     // StartUnaryMixedRight : . WS start:UnaryMixedRight(0, 0) WS
                     SlotId(280) => {
@@ -14998,13 +13929,16 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     }
                     // StartUnaryMixedRight : WS start:UnaryMixedRight(0, 0) WS.
                     SlotId(283) => {
-                        let nonterminal_node_id = self.create_nonterminal_node(
-                            result,
-                            NonterminalId(73),
-                            SlotId(283),
+                        let Some(result) = result else {
+                            unreachable!("result cannot be None here.")
+                        };
+                        self.pop(
                             gss_node_id,
+                            SlotId(283),
+                            result,
+                            None,
+                            &FOLLOW_SET_START_UNARY_MIXED_RIGHT,
                         );
-                        self.pop(gss_node_id, SlotId(283), nonterminal_node_id, None);
                     }
                     // StartUnaryMixedNone : . WS start:UnaryMixedNone(0, 0) WS
                     SlotId(284) => {
@@ -15044,13 +13978,16 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     }
                     // StartUnaryMixedNone : WS start:UnaryMixedNone(0, 0) WS.
                     SlotId(287) => {
-                        let nonterminal_node_id = self.create_nonterminal_node(
-                            result,
-                            NonterminalId(74),
-                            SlotId(287),
+                        let Some(result) = result else {
+                            unreachable!("result cannot be None here.")
+                        };
+                        self.pop(
                             gss_node_id,
+                            SlotId(287),
+                            result,
+                            None,
+                            &FOLLOW_SET_START_UNARY_MIXED_NONE,
                         );
-                        self.pop(gss_node_id, SlotId(287), nonterminal_node_id, None);
                     }
                     // StartDynamic : . WS start:Dynamic(0, 0, 0) WS
                     SlotId(288) => {
@@ -15090,13 +14027,16 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     }
                     // StartDynamic : WS start:Dynamic(0, 0, 0) WS.
                     SlotId(291) => {
-                        let nonterminal_node_id = self.create_nonterminal_node(
-                            result,
-                            NonterminalId(75),
-                            SlotId(291),
+                        let Some(result) = result else {
+                            unreachable!("result cannot be None here.")
+                        };
+                        self.pop(
                             gss_node_id,
+                            SlotId(291),
+                            result,
+                            None,
+                            &FOLLOW_SET_START_DYNAMIC,
                         );
-                        self.pop(gss_node_id, SlotId(291), nonterminal_node_id, None);
                     }
                     // StartDynamicOperand : . WS start:DynamicOperand(0, 0, 0, 0) WS
                     SlotId(292) => {
@@ -15145,13 +14085,16 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     }
                     // StartDynamicOperand : WS start:DynamicOperand(0, 0, 0, 0) WS.
                     SlotId(295) => {
-                        let nonterminal_node_id = self.create_nonterminal_node(
-                            result,
-                            NonterminalId(76),
-                            SlotId(295),
+                        let Some(result) = result else {
+                            unreachable!("result cannot be None here.")
+                        };
+                        self.pop(
                             gss_node_id,
+                            SlotId(295),
+                            result,
+                            None,
+                            &FOLLOW_SET_START_DYNAMIC_OPERAND,
                         );
-                        self.pop(gss_node_id, SlotId(295), nonterminal_node_id, None);
                     }
                     // StartDynamicFiltered : . WS start:DynamicFiltered WS
                     SlotId(296) => {
@@ -15169,7 +14112,14 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     }
                     // StartDynamicFiltered : WS . start:DynamicFiltered WS
                     SlotId(297) => {
-                        self.create(NonterminalId(8), result, gss_node_id, SlotId(298), env);
+                        self.create(
+                            NonterminalId(8),
+                            &PREDICTION_SET_DYNAMIC_FILTERED,
+                            result,
+                            gss_node_id,
+                            SlotId(298),
+                            env,
+                        );
                     }
                     // StartDynamicFiltered : WS start:DynamicFiltered . WS
                     SlotId(298) => {
@@ -15191,13 +14141,16 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     }
                     // StartDynamicFiltered : WS start:DynamicFiltered WS.
                     SlotId(299) => {
-                        let nonterminal_node_id = self.create_nonterminal_node(
-                            result,
-                            NonterminalId(77),
-                            SlotId(299),
+                        let Some(result) = result else {
+                            unreachable!("result cannot be None here.")
+                        };
+                        self.pop(
                             gss_node_id,
+                            SlotId(299),
+                            result,
+                            None,
+                            &FOLLOW_SET_START_DYNAMIC_FILTERED,
                         );
-                        self.pop(gss_node_id, SlotId(299), nonterminal_node_id, None);
                     }
                     // StartDynamicHeadFiltered : . WS start:DynamicHeadFiltered WS
                     SlotId(300) => {
@@ -15215,7 +14168,14 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     }
                     // StartDynamicHeadFiltered : WS . start:DynamicHeadFiltered WS
                     SlotId(301) => {
-                        self.create(NonterminalId(9), result, gss_node_id, SlotId(302), env);
+                        self.create(
+                            NonterminalId(9),
+                            &PREDICTION_SET_DYNAMIC_HEAD_FILTERED,
+                            result,
+                            gss_node_id,
+                            SlotId(302),
+                            env,
+                        );
                     }
                     // StartDynamicHeadFiltered : WS start:DynamicHeadFiltered . WS
                     SlotId(302) => {
@@ -15237,13 +14197,16 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     }
                     // StartDynamicHeadFiltered : WS start:DynamicHeadFiltered WS.
                     SlotId(303) => {
-                        let nonterminal_node_id = self.create_nonterminal_node(
-                            result,
-                            NonterminalId(78),
-                            SlotId(303),
+                        let Some(result) = result else {
+                            unreachable!("result cannot be None here.")
+                        };
+                        self.pop(
                             gss_node_id,
+                            SlotId(303),
+                            result,
+                            None,
+                            &FOLLOW_SET_START_DYNAMIC_HEAD_FILTERED,
                         );
-                        self.pop(gss_node_id, SlotId(303), nonterminal_node_id, None);
                     }
                     // StartDynamicMulti : . WS start:DynamicMulti(0, 0) WS
                     SlotId(304) => {
@@ -15283,13 +14246,16 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     }
                     // StartDynamicMulti : WS start:DynamicMulti(0, 0) WS.
                     SlotId(307) => {
-                        let nonterminal_node_id = self.create_nonterminal_node(
-                            result,
-                            NonterminalId(79),
-                            SlotId(307),
+                        let Some(result) = result else {
+                            unreachable!("result cannot be None here.")
+                        };
+                        self.pop(
                             gss_node_id,
+                            SlotId(307),
+                            result,
+                            None,
+                            &FOLLOW_SET_START_DYNAMIC_MULTI,
                         );
-                        self.pop(gss_node_id, SlotId(307), nonterminal_node_id, None);
                     }
                     // StartDynamicMultiOperand : . WS start:DynamicMultiOperand(0, 0, 0) WS
                     SlotId(308) => {
@@ -15337,13 +14303,16 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     }
                     // StartDynamicMultiOperand : WS start:DynamicMultiOperand(0, 0, 0) WS.
                     SlotId(311) => {
-                        let nonterminal_node_id = self.create_nonterminal_node(
-                            result,
-                            NonterminalId(80),
-                            SlotId(311),
+                        let Some(result) = result else {
+                            unreachable!("result cannot be None here.")
+                        };
+                        self.pop(
                             gss_node_id,
+                            SlotId(311),
+                            result,
+                            None,
+                            &FOLLOW_SET_START_DYNAMIC_MULTI_OPERAND,
                         );
-                        self.pop(gss_node_id, SlotId(311), nonterminal_node_id, None);
                     }
                     // StartNullableBoundaryPrefix : . WS start:NullableBoundaryPrefix(0) WS
                     SlotId(312) => {
@@ -15389,13 +14358,16 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     }
                     // StartNullableBoundaryPrefix : WS start:NullableBoundaryPrefix(0) WS.
                     SlotId(315) => {
-                        let nonterminal_node_id = self.create_nonterminal_node(
-                            result,
-                            NonterminalId(81),
-                            SlotId(315),
+                        let Some(result) = result else {
+                            unreachable!("result cannot be None here.")
+                        };
+                        self.pop(
                             gss_node_id,
+                            SlotId(315),
+                            result,
+                            None,
+                            &FOLLOW_SET_START_NULLABLE_BOUNDARY_PREFIX,
                         );
-                        self.pop(gss_node_id, SlotId(315), nonterminal_node_id, None);
                     }
                     // StartNullableBoundaryRight : . WS start:NullableBoundaryRight WS
                     SlotId(316) => {
@@ -15413,7 +14385,14 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     }
                     // StartNullableBoundaryRight : WS . start:NullableBoundaryRight WS
                     SlotId(317) => {
-                        self.create(NonterminalId(10), result, gss_node_id, SlotId(318), env);
+                        self.create(
+                            NonterminalId(10),
+                            &PREDICTION_SET_NULLABLE_BOUNDARY_RIGHT,
+                            result,
+                            gss_node_id,
+                            SlotId(318),
+                            env,
+                        );
                     }
                     // StartNullableBoundaryRight : WS start:NullableBoundaryRight . WS
                     SlotId(318) => {
@@ -15435,13 +14414,16 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     }
                     // StartNullableBoundaryRight : WS start:NullableBoundaryRight WS.
                     SlotId(319) => {
-                        let nonterminal_node_id = self.create_nonterminal_node(
-                            result,
-                            NonterminalId(82),
-                            SlotId(319),
+                        let Some(result) = result else {
+                            unreachable!("result cannot be None here.")
+                        };
+                        self.pop(
                             gss_node_id,
+                            SlotId(319),
+                            result,
+                            None,
+                            &FOLLOW_SET_START_NULLABLE_BOUNDARY_RIGHT,
                         );
-                        self.pop(gss_node_id, SlotId(319), nonterminal_node_id, None);
                     }
                     // StartNullableBoundaryOpt : . WS start:NullableBoundaryOpt WS
                     SlotId(320) => {
@@ -15459,7 +14441,14 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     }
                     // StartNullableBoundaryOpt : WS . start:NullableBoundaryOpt WS
                     SlotId(321) => {
-                        self.create(NonterminalId(11), result, gss_node_id, SlotId(322), env);
+                        self.create(
+                            NonterminalId(11),
+                            &PREDICTION_SET_NULLABLE_BOUNDARY_OPT,
+                            result,
+                            gss_node_id,
+                            SlotId(322),
+                            env,
+                        );
                     }
                     // StartNullableBoundaryOpt : WS start:NullableBoundaryOpt . WS
                     SlotId(322) => {
@@ -15481,13 +14470,16 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     }
                     // StartNullableBoundaryOpt : WS start:NullableBoundaryOpt WS.
                     SlotId(323) => {
-                        let nonterminal_node_id = self.create_nonterminal_node(
-                            result,
-                            NonterminalId(83),
-                            SlotId(323),
+                        let Some(result) = result else {
+                            unreachable!("result cannot be None here.")
+                        };
+                        self.pop(
                             gss_node_id,
+                            SlotId(323),
+                            result,
+                            None,
+                            &FOLLOW_SET_START_NULLABLE_BOUNDARY_OPT,
                         );
-                        self.pop(gss_node_id, SlotId(323), nonterminal_node_id, None);
                     }
                     // StartNullableBoundaryPostfix : . WS start:NullableBoundaryPostfix(0) WS
                     SlotId(324) => {
@@ -15533,13 +14525,16 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     }
                     // StartNullableBoundaryPostfix : WS start:NullableBoundaryPostfix(0) WS.
                     SlotId(327) => {
-                        let nonterminal_node_id = self.create_nonterminal_node(
-                            result,
-                            NonterminalId(84),
-                            SlotId(327),
+                        let Some(result) = result else {
+                            unreachable!("result cannot be None here.")
+                        };
+                        self.pop(
                             gss_node_id,
+                            SlotId(327),
+                            result,
+                            None,
+                            &FOLLOW_SET_START_NULLABLE_BOUNDARY_POSTFIX,
                         );
-                        self.pop(gss_node_id, SlotId(327), nonterminal_node_id, None);
                     }
                     // StartNullableBoundaryLeft : . WS start:NullableBoundaryLeft WS
                     SlotId(328) => {
@@ -15557,7 +14552,14 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     }
                     // StartNullableBoundaryLeft : WS . start:NullableBoundaryLeft WS
                     SlotId(329) => {
-                        self.create(NonterminalId(12), result, gss_node_id, SlotId(330), env);
+                        self.create(
+                            NonterminalId(12),
+                            &PREDICTION_SET_NULLABLE_BOUNDARY_LEFT,
+                            result,
+                            gss_node_id,
+                            SlotId(330),
+                            env,
+                        );
                     }
                     // StartNullableBoundaryLeft : WS start:NullableBoundaryLeft . WS
                     SlotId(330) => {
@@ -15579,13 +14581,16 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     }
                     // StartNullableBoundaryLeft : WS start:NullableBoundaryLeft WS.
                     SlotId(331) => {
-                        let nonterminal_node_id = self.create_nonterminal_node(
-                            result,
-                            NonterminalId(85),
-                            SlotId(331),
+                        let Some(result) = result else {
+                            unreachable!("result cannot be None here.")
+                        };
+                        self.pop(
                             gss_node_id,
+                            SlotId(331),
+                            result,
+                            None,
+                            &FOLLOW_SET_START_NULLABLE_BOUNDARY_LEFT,
                         );
-                        self.pop(gss_node_id, SlotId(331), nonterminal_node_id, None);
                     }
                     // StartNullableBoundaryBinary : . WS start:NullableBoundaryBinary(0) WS
                     SlotId(332) => {
@@ -15631,13 +14636,16 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     }
                     // StartNullableBoundaryBinary : WS start:NullableBoundaryBinary(0) WS.
                     SlotId(335) => {
-                        let nonterminal_node_id = self.create_nonterminal_node(
-                            result,
-                            NonterminalId(86),
-                            SlotId(335),
+                        let Some(result) = result else {
+                            unreachable!("result cannot be None here.")
+                        };
+                        self.pop(
                             gss_node_id,
+                            SlotId(335),
+                            result,
+                            None,
+                            &FOLLOW_SET_START_NULLABLE_BOUNDARY_BINARY,
                         );
-                        self.pop(gss_node_id, SlotId(335), nonterminal_node_id, None);
                     }
                     // StartNullableBoundaryOperand : . WS start:NullableBoundaryOperand WS
                     SlotId(336) => {
@@ -15655,7 +14663,14 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     }
                     // StartNullableBoundaryOperand : WS . start:NullableBoundaryOperand WS
                     SlotId(337) => {
-                        self.create(NonterminalId(13), result, gss_node_id, SlotId(338), env);
+                        self.create(
+                            NonterminalId(13),
+                            &PREDICTION_SET_NULLABLE_BOUNDARY_OPERAND,
+                            result,
+                            gss_node_id,
+                            SlotId(338),
+                            env,
+                        );
                     }
                     // StartNullableBoundaryOperand : WS start:NullableBoundaryOperand . WS
                     SlotId(338) => {
@@ -15677,13 +14692,16 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     }
                     // StartNullableBoundaryOperand : WS start:NullableBoundaryOperand WS.
                     SlotId(339) => {
-                        let nonterminal_node_id = self.create_nonterminal_node(
-                            result,
-                            NonterminalId(87),
-                            SlotId(339),
+                        let Some(result) = result else {
+                            unreachable!("result cannot be None here.")
+                        };
+                        self.pop(
                             gss_node_id,
+                            SlotId(339),
+                            result,
+                            None,
+                            &FOLLOW_SET_START_NULLABLE_BOUNDARY_OPERAND,
                         );
-                        self.pop(gss_node_id, SlotId(339), nonterminal_node_id, None);
                     }
                     // StartClosedLeftAssoc : . WS start:ClosedLeftAssoc(0, 0) WS
                     SlotId(340) => {
@@ -15723,13 +14741,16 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     }
                     // StartClosedLeftAssoc : WS start:ClosedLeftAssoc(0, 0) WS.
                     SlotId(343) => {
-                        let nonterminal_node_id = self.create_nonterminal_node(
-                            result,
-                            NonterminalId(88),
-                            SlotId(343),
+                        let Some(result) = result else {
+                            unreachable!("result cannot be None here.")
+                        };
+                        self.pop(
                             gss_node_id,
+                            SlotId(343),
+                            result,
+                            None,
+                            &FOLLOW_SET_START_CLOSED_LEFT_ASSOC,
                         );
-                        self.pop(gss_node_id, SlotId(343), nonterminal_node_id, None);
                     }
                     // StartClosedLeftOperand : . WS start:ClosedLeftOperand(0, 0) WS
                     SlotId(344) => {
@@ -15776,13 +14797,16 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     }
                     // StartClosedLeftOperand : WS start:ClosedLeftOperand(0, 0) WS.
                     SlotId(347) => {
-                        let nonterminal_node_id = self.create_nonterminal_node(
-                            result,
-                            NonterminalId(89),
-                            SlotId(347),
+                        let Some(result) = result else {
+                            unreachable!("result cannot be None here.")
+                        };
+                        self.pop(
                             gss_node_id,
+                            SlotId(347),
+                            result,
+                            None,
+                            &FOLLOW_SET_START_CLOSED_LEFT_OPERAND,
                         );
-                        self.pop(gss_node_id, SlotId(347), nonterminal_node_id, None);
                     }
                     // StartClosedRightAssoc : . WS start:ClosedRightAssoc(0, 0) WS
                     SlotId(348) => {
@@ -15822,13 +14846,16 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     }
                     // StartClosedRightAssoc : WS start:ClosedRightAssoc(0, 0) WS.
                     SlotId(351) => {
-                        let nonterminal_node_id = self.create_nonterminal_node(
-                            result,
-                            NonterminalId(90),
-                            SlotId(351),
+                        let Some(result) = result else {
+                            unreachable!("result cannot be None here.")
+                        };
+                        self.pop(
                             gss_node_id,
+                            SlotId(351),
+                            result,
+                            None,
+                            &FOLLOW_SET_START_CLOSED_RIGHT_ASSOC,
                         );
-                        self.pop(gss_node_id, SlotId(351), nonterminal_node_id, None);
                     }
                     // StartClosedRightOperand : . WS start:ClosedRightOperand(0, 0) WS
                     SlotId(352) => {
@@ -15875,13 +14902,16 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     }
                     // StartClosedRightOperand : WS start:ClosedRightOperand(0, 0) WS.
                     SlotId(355) => {
-                        let nonterminal_node_id = self.create_nonterminal_node(
-                            result,
-                            NonterminalId(91),
-                            SlotId(355),
+                        let Some(result) = result else {
+                            unreachable!("result cannot be None here.")
+                        };
+                        self.pop(
                             gss_node_id,
+                            SlotId(355),
+                            result,
+                            None,
+                            &FOLLOW_SET_START_CLOSED_RIGHT_OPERAND,
                         );
-                        self.pop(gss_node_id, SlotId(355), nonterminal_node_id, None);
                     }
                     // StartIndirectExclude : . WS start:IndirectExclude(0, 0, 0) WS
                     SlotId(356) => {
@@ -15929,13 +14959,16 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     }
                     // StartIndirectExclude : WS start:IndirectExclude(0, 0, 0) WS.
                     SlotId(359) => {
-                        let nonterminal_node_id = self.create_nonterminal_node(
-                            result,
-                            NonterminalId(92),
-                            SlotId(359),
+                        let Some(result) = result else {
+                            unreachable!("result cannot be None here.")
+                        };
+                        self.pop(
                             gss_node_id,
+                            SlotId(359),
+                            result,
+                            None,
+                            &FOLLOW_SET_START_INDIRECT_EXCLUDE,
                         );
-                        self.pop(gss_node_id, SlotId(359), nonterminal_node_id, None);
                     }
                     // StartIndirectExcludeOperand : . WS start:IndirectExcludeOperand(0, 0, 0, 0) WS
                     SlotId(360) => {
@@ -15984,13 +15017,16 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     }
                     // StartIndirectExcludeOperand : WS start:IndirectExcludeOperand(0, 0, 0, 0) WS.
                     SlotId(363) => {
-                        let nonterminal_node_id = self.create_nonterminal_node(
-                            result,
-                            NonterminalId(93),
-                            SlotId(363),
+                        let Some(result) = result else {
+                            unreachable!("result cannot be None here.")
+                        };
+                        self.pop(
                             gss_node_id,
+                            SlotId(363),
+                            result,
+                            None,
+                            &FOLLOW_SET_START_INDIRECT_EXCLUDE_OPERAND,
                         );
-                        self.pop(gss_node_id, SlotId(363), nonterminal_node_id, None);
                     }
                     // StartIndirectExcludeFiltered : . WS start:IndirectExcludeFiltered WS
                     SlotId(364) => {
@@ -16008,7 +15044,14 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     }
                     // StartIndirectExcludeFiltered : WS . start:IndirectExcludeFiltered WS
                     SlotId(365) => {
-                        self.create(NonterminalId(14), result, gss_node_id, SlotId(366), env);
+                        self.create(
+                            NonterminalId(14),
+                            &PREDICTION_SET_INDIRECT_EXCLUDE_FILTERED,
+                            result,
+                            gss_node_id,
+                            SlotId(366),
+                            env,
+                        );
                     }
                     // StartIndirectExcludeFiltered : WS start:IndirectExcludeFiltered . WS
                     SlotId(366) => {
@@ -16030,13 +15073,16 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     }
                     // StartIndirectExcludeFiltered : WS start:IndirectExcludeFiltered WS.
                     SlotId(367) => {
-                        let nonterminal_node_id = self.create_nonterminal_node(
-                            result,
-                            NonterminalId(94),
-                            SlotId(367),
+                        let Some(result) = result else {
+                            unreachable!("result cannot be None here.")
+                        };
+                        self.pop(
                             gss_node_id,
+                            SlotId(367),
+                            result,
+                            None,
+                            &FOLLOW_SET_START_INDIRECT_EXCLUDE_FILTERED,
                         );
-                        self.pop(gss_node_id, SlotId(367), nonterminal_node_id, None);
                     }
                     // StartOperandLiteral : . WS start:OperandLiteral(0, 0) WS
                     SlotId(368) => {
@@ -16076,13 +15122,16 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     }
                     // StartOperandLiteral : WS start:OperandLiteral(0, 0) WS.
                     SlotId(371) => {
-                        let nonterminal_node_id = self.create_nonterminal_node(
-                            result,
-                            NonterminalId(95),
-                            SlotId(371),
+                        let Some(result) = result else {
+                            unreachable!("result cannot be None here.")
+                        };
+                        self.pop(
                             gss_node_id,
+                            SlotId(371),
+                            result,
+                            None,
+                            &FOLLOW_SET_START_OPERAND_LITERAL,
                         );
-                        self.pop(gss_node_id, SlotId(371), nonterminal_node_id, None);
                     }
                     // StartOperandLiteralEnd : . WS start:OperandLiteralEnd(0, 0, 0) WS
                     SlotId(372) => {
@@ -16130,13 +15179,16 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     }
                     // StartOperandLiteralEnd : WS start:OperandLiteralEnd(0, 0, 0) WS.
                     SlotId(375) => {
-                        let nonterminal_node_id = self.create_nonterminal_node(
-                            result,
-                            NonterminalId(96),
-                            SlotId(375),
+                        let Some(result) = result else {
+                            unreachable!("result cannot be None here.")
+                        };
+                        self.pop(
                             gss_node_id,
+                            SlotId(375),
+                            result,
+                            None,
+                            &FOLLOW_SET_START_OPERAND_LITERAL_END,
                         );
-                        self.pop(gss_node_id, SlotId(375), nonterminal_node_id, None);
                     }
                     // StartHeadLiteral : . WS start:HeadLiteral(0) WS
                     SlotId(376) => {
@@ -16176,13 +15228,16 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     }
                     // StartHeadLiteral : WS start:HeadLiteral(0) WS.
                     SlotId(379) => {
-                        let nonterminal_node_id = self.create_nonterminal_node(
-                            result,
-                            NonterminalId(97),
-                            SlotId(379),
+                        let Some(result) = result else {
+                            unreachable!("result cannot be None here.")
+                        };
+                        self.pop(
                             gss_node_id,
+                            SlotId(379),
+                            result,
+                            None,
+                            &FOLLOW_SET_START_HEAD_LITERAL,
                         );
-                        self.pop(gss_node_id, SlotId(379), nonterminal_node_id, None);
                     }
                     // StartHeadLiteralEnd : . WS start:HeadLiteralEnd(0, 0) WS
                     SlotId(380) => {
@@ -16222,13 +15277,16 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     }
                     // StartHeadLiteralEnd : WS start:HeadLiteralEnd(0, 0) WS.
                     SlotId(383) => {
-                        let nonterminal_node_id = self.create_nonterminal_node(
-                            result,
-                            NonterminalId(98),
-                            SlotId(383),
+                        let Some(result) = result else {
+                            unreachable!("result cannot be None here.")
+                        };
+                        self.pop(
                             gss_node_id,
+                            SlotId(383),
+                            result,
+                            None,
+                            &FOLLOW_SET_START_HEAD_LITERAL_END,
                         );
-                        self.pop(gss_node_id, SlotId(383), nonterminal_node_id, None);
                     }
                     _ => {
                         panic!("Unknown grammar slot id: {slot_id}");
@@ -16251,35 +15309,22 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
             }
             // E
             NonterminalId(99) => {
-                let mut matched = false;
                 // E(p: i32) : . "a" return 0
                 if self.scanner.match_any(&FIRST_SET_E_ALT0, input_index) {
-                    matched = true;
                     self.add_first_descriptor(SlotId(384), input_index, gss_node_id, env);
                 }
                 // E(p: i32) : . [2 >= p] l_pr=L(p, 0) [(l_pr == 0) || (l_pr >= 2)] WS "*" WS L(3, 1) return
                 // 2
                 if self.scanner.match_any(&FIRST_SET_E_ALT1, input_index) {
-                    matched = true;
                     self.add_first_descriptor(SlotId(387), input_index, gss_node_id, env);
                 }
                 // E(p: i32) : . [1 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 1)] WS "+" WS L(2, 1) return 1
                 if self.scanner.match_any(&FIRST_SET_E_ALT2, input_index) {
-                    matched = true;
                     self.add_first_descriptor(SlotId(396), input_index, gss_node_id, env);
                 }
                 // E(p: i32) : . [1 >= p] l_pr=L(p, 0) [(l_pr == 0) || (l_pr >= 1)] WS "-" WS E(2) return 1
                 if self.scanner.match_any(&FIRST_SET_E_ALT3, input_index) {
-                    matched = true;
                     self.add_first_descriptor(SlotId(405), input_index, gss_node_id, env);
-                }
-                if !matched {
-                    self.add_failure(
-                        input_index,
-                        SlotId(384),
-                        Some(gss_node_id),
-                        GLLFailureKind::UnexpectedToken(&FIRST_SET_E),
-                    );
                 }
             }
             // L(p: i32, end: i32) : . v_pr=E(p) return v_pr
@@ -16288,25 +15333,14 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
             }
             // Only
             NonterminalId(101) => {
-                let mut matched = false;
                 // Only(p: i32) : . "b" return 0
                 if self.scanner.match_any(&FIRST_SET_ONLY_ALT0, input_index) {
-                    matched = true;
                     self.add_first_descriptor(SlotId(417), input_index, gss_node_id, env);
                 }
                 // Only(p: i32) : . [1 >= p] l_pr=OnlyOperand(p, 0) [(l_pr == 0) || (l_pr >= 1)] WS "^" WS
                 // OnlyOperand(2, 1) return 1
                 if self.scanner.match_any(&FIRST_SET_ONLY_ALT1, input_index) {
-                    matched = true;
                     self.add_first_descriptor(SlotId(420), input_index, gss_node_id, env);
-                }
-                if !matched {
-                    self.add_failure(
-                        input_index,
-                        SlotId(417),
-                        Some(gss_node_id),
-                        GLLFailureKind::UnexpectedToken(&FIRST_SET_ONLY),
-                    );
                 }
             }
             // OnlyOperand(p: i32, end: i32) : . v_pr=Only(p) return v_pr
@@ -16315,87 +15349,51 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
             }
             // Cross
             NonterminalId(103) => {
-                let mut matched = false;
                 // Cross(p: i32) : . "c" return 0
                 if self.scanner.match_any(&FIRST_SET_CROSS_ALT0, input_index) {
-                    matched = true;
                     self.add_first_descriptor(SlotId(432), input_index, gss_node_id, env);
                 }
                 // Cross(p: i32) : . [2 >= p] l_pr=Cross(p) [(l_pr == 0) || (l_pr >= 2)] WS "-" WS Foreign(0)
                 // return 0
                 if self.scanner.match_any(&FIRST_SET_CROSS_ALT1, input_index) {
-                    matched = true;
                     self.add_first_descriptor(SlotId(435), input_index, gss_node_id, env);
                 }
                 // Cross(p: i32) : . [1 >= p] l_pr=Cross(p) [(l_pr == 0) || (l_pr >= 1)] WS "+" WS Foreign(0)
                 // return 0
                 if self.scanner.match_any(&FIRST_SET_CROSS_ALT2, input_index) {
-                    matched = true;
                     self.add_first_descriptor(SlotId(444), input_index, gss_node_id, env);
-                }
-                if !matched {
-                    self.add_failure(
-                        input_index,
-                        SlotId(432),
-                        Some(gss_node_id),
-                        GLLFailureKind::UnexpectedToken(&FIRST_SET_CROSS),
-                    );
                 }
             }
             // Foreign
             NonterminalId(104) => {
-                let mut matched = false;
                 // Foreign(p: i32) : . "d" return 0
                 if self.scanner.match_any(&FIRST_SET_FOREIGN_ALT0, input_index) {
-                    matched = true;
                     self.add_first_descriptor(SlotId(453), input_index, gss_node_id, env);
                 }
                 // Foreign(p: i32) : . [1 >= p] l_pr=Foreign(p) [(l_pr == 0) || (l_pr >= 1)] WS "*" WS
                 // Foreign(2) return 1
                 if self.scanner.match_any(&FIRST_SET_FOREIGN_ALT1, input_index) {
-                    matched = true;
                     self.add_first_descriptor(SlotId(456), input_index, gss_node_id, env);
                 }
                 // Foreign(p: i32) : . Cross(0) return 0
                 if self.scanner.match_any(&FIRST_SET_FOREIGN_ALT2, input_index) {
-                    matched = true;
                     self.add_first_descriptor(SlotId(465), input_index, gss_node_id, env);
-                }
-                if !matched {
-                    self.add_failure(
-                        input_index,
-                        SlotId(453),
-                        Some(gss_node_id),
-                        GLLFailureKind::UnexpectedToken(&FIRST_SET_FOREIGN),
-                    );
                 }
             }
             // Cascade
             NonterminalId(105) => {
-                let mut matched = false;
                 // Cascade(p: i32) : . "t" return 0
                 if self.scanner.match_any(&FIRST_SET_CASCADE_ALT0, input_index) {
-                    matched = true;
                     self.add_first_descriptor(SlotId(468), input_index, gss_node_id, env);
                 }
                 // Cascade(p: i32) : . [1 >= p] l_pr=Cascade(p) [(l_pr == 0) || (l_pr >= 1)] WS "+" WS
                 // Cascade(2) return 1
                 if self.scanner.match_any(&FIRST_SET_CASCADE_ALT1, input_index) {
-                    matched = true;
                     self.add_first_descriptor(SlotId(471), input_index, gss_node_id, env);
                 }
                 // Cascade(p: i32) : . Ternary return 0
                 if self.scanner.match_any(&FIRST_SET_CASCADE_ALT2, input_index) {
-                    matched = true;
                     self.add_first_descriptor(SlotId(480), input_index, gss_node_id, env);
-                }
-                if !matched {
-                    self.add_failure(
-                        input_index,
-                        SlotId(468),
-                        Some(gss_node_id),
-                        GLLFailureKind::UnexpectedToken(&FIRST_SET_CASCADE),
-                    );
                 }
             }
             // Ternary : . Cascade(0) WS "?" WS Cascade(0) WS ":" WS Cascade(0)
@@ -16404,13 +15402,11 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
             }
             // Nullable
             NonterminalId(106) => {
-                let mut matched = false;
                 // Nullable(p: i32) : . "n" return 0
                 if self
                     .scanner
                     .match_any(&FIRST_SET_NULLABLE_ALT0, input_index)
                 {
-                    matched = true;
                     self.add_first_descriptor(SlotId(483), input_index, gss_node_id, env);
                 }
                 // Nullable(p: i32) : . NullableLeft WS "%" WS NullableRight(1) return 1
@@ -16418,16 +15414,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     .scanner
                     .match_any(&FIRST_SET_NULLABLE_ALT1, input_index)
                 {
-                    matched = true;
                     self.add_first_descriptor(SlotId(486), input_index, gss_node_id, env);
-                }
-                if !matched {
-                    self.add_failure(
-                        input_index,
-                        SlotId(483),
-                        Some(gss_node_id),
-                        GLLFailureKind::UnexpectedToken(&FIRST_SET_NULLABLE),
-                    );
                 }
             }
             // NullableLeft : . Opt_0 WS Nullable(0)
@@ -16440,13 +15427,11 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
             }
             // RightExpr
             NonterminalId(108) => {
-                let mut matched = false;
                 // RightExpr(p: i32) : . "r" return 0
                 if self
                     .scanner
                     .match_any(&FIRST_SET_RIGHT_EXPR_ALT0, input_index)
                 {
-                    matched = true;
                     self.add_first_descriptor(SlotId(496), input_index, gss_node_id, env);
                 }
                 // RightExpr(p: i32) : . [1 >= p] l_pr=RightOperand(p, 0) [(l_pr == 0) || (l_pr >= 2)] WS ">"
@@ -16455,16 +15440,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     .scanner
                     .match_any(&FIRST_SET_RIGHT_EXPR_ALT1, input_index)
                 {
-                    matched = true;
                     self.add_first_descriptor(SlotId(499), input_index, gss_node_id, env);
-                }
-                if !matched {
-                    self.add_failure(
-                        input_index,
-                        SlotId(496),
-                        Some(gss_node_id),
-                        GLLFailureKind::UnexpectedToken(&FIRST_SET_RIGHT_EXPR),
-                    );
                 }
             }
             // RightOperand(p: i32, end: i32) : . v_pr=RightExpr(p) return v_pr
@@ -16473,13 +15449,11 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
             }
             // NoneExpr
             NonterminalId(110) => {
-                let mut matched = false;
                 // NoneExpr(p: i32) : . "z" return 0
                 if self
                     .scanner
                     .match_any(&FIRST_SET_NONE_EXPR_ALT0, input_index)
                 {
-                    matched = true;
                     self.add_first_descriptor(SlotId(511), input_index, gss_node_id, env);
                 }
                 // NoneExpr(p: i32) : . [1 >= p] l_pr=NoneOperand(p, 0) [(l_pr == 0) || (l_pr >= 2)] WS "="
@@ -16488,16 +15462,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     .scanner
                     .match_any(&FIRST_SET_NONE_EXPR_ALT1, input_index)
                 {
-                    matched = true;
                     self.add_first_descriptor(SlotId(514), input_index, gss_node_id, env);
-                }
-                if !matched {
-                    self.add_failure(
-                        input_index,
-                        SlotId(511),
-                        Some(gss_node_id),
-                        GLLFailureKind::UnexpectedToken(&FIRST_SET_NONE_EXPR),
-                    );
                 }
             }
             // NoneOperand(p: i32, end: i32) : . v_pr=NoneExpr(p) return v_pr
@@ -16506,13 +15471,11 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
             }
             // Excluded
             NonterminalId(112) => {
-                let mut matched = false;
                 // Excluded(p: i32, a: i32) : . "e" return 0
                 if self
                     .scanner
                     .match_any(&FIRST_SET_EXCLUDED_ALT0, input_index)
                 {
-                    matched = true;
                     self.add_first_descriptor(SlotId(526), input_index, gss_node_id, env);
                 }
                 // Excluded(p: i32, a: i32) : . (l_pr, l_label)=ExcludedOperand(p, 0, 0, 0) [(l_pr ==
@@ -16524,28 +15487,17 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     .scanner
                     .match_any(&FIRST_SET_EXCLUDED_ALT1, input_index)
                 {
-                    matched = true;
                     self.add_first_descriptor(SlotId(529), input_index, gss_node_id, env);
-                }
-                if !matched {
-                    self.add_failure(
-                        input_index,
-                        SlotId(526),
-                        Some(gss_node_id),
-                        GLLFailureKind::UnexpectedToken(&FIRST_SET_EXCLUDED),
-                    );
                 }
             }
             // ExcludedOperand
             NonterminalId(113) => {
-                let mut matched = false;
                 // ExcludedOperand(p: i32, end: i32, a: i32, e: i32) : . [1 & e == 0] v_pr=Excluded(p, a)
                 // return (v_pr, 0)
                 if self
                     .scanner
                     .match_any(&FIRST_SET_EXCLUDED_OPERAND_ALT0, input_index)
                 {
-                    matched = true;
                     self.add_first_descriptor(SlotId(538), input_index, gss_node_id, env);
                 }
                 // ExcludedOperand(p: i32, end: i32, a: i32, e: i32) : . [2 & e == 0] "(" WS
@@ -16554,16 +15506,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     .scanner
                     .match_any(&FIRST_SET_EXCLUDED_OPERAND_ALT1, input_index)
                 {
-                    matched = true;
                     self.add_first_descriptor(SlotId(542), input_index, gss_node_id, env);
-                }
-                if !matched {
-                    self.add_failure(
-                        input_index,
-                        SlotId(538),
-                        Some(gss_node_id),
-                        GLLFailureKind::UnexpectedToken(&FIRST_SET_EXCLUDED_OPERAND),
-                    );
                 }
             }
             // Filtered : . ExcludedOperand(0, 0, 0, 2)
@@ -16572,13 +15515,11 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
             }
             // LexNullable
             NonterminalId(114) => {
-                let mut matched = false;
                 // LexNullable(p: i32) : . "q" return 0
                 if self
                     .scanner
                     .match_any(&FIRST_SET_LEX_NULLABLE_ALT0, input_index)
                 {
-                    matched = true;
                     self.add_first_descriptor(SlotId(550), input_index, gss_node_id, env);
                 }
                 // LexNullable(p: i32) : . LexNullableLeft WS "/" WS LexNullableRight(1) return 1
@@ -16586,16 +15527,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     .scanner
                     .match_any(&FIRST_SET_LEX_NULLABLE_ALT1, input_index)
                 {
-                    matched = true;
                     self.add_first_descriptor(SlotId(553), input_index, gss_node_id, env);
-                }
-                if !matched {
-                    self.add_failure(
-                        input_index,
-                        SlotId(550),
-                        Some(gss_node_id),
-                        GLLFailureKind::UnexpectedToken(&FIRST_SET_LEX_NULLABLE),
-                    );
                 }
             }
             // LexNullableLeft : . Digits WS LexNullable(0)
@@ -16608,13 +15540,11 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
             }
             // MixedScale
             NonterminalId(116) => {
-                let mut matched = false;
                 // MixedScale(p: i32, a: i32) : . "m" return 0
                 if self
                     .scanner
                     .match_any(&FIRST_SET_MIXED_SCALE_ALT0, input_index)
                 {
-                    matched = true;
                     self.add_first_descriptor(SlotId(563), input_index, gss_node_id, env);
                 }
                 // MixedScale(p: i32, a: i32) : . l_pr=MixedOperand(p, 0) [(l_pr == UNDEFINED_PRECEDENCE) ||
@@ -16624,27 +15554,16 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     .scanner
                     .match_any(&FIRST_SET_MIXED_SCALE_ALT1, input_index)
                 {
-                    matched = true;
                     self.add_first_descriptor(SlotId(566), input_index, gss_node_id, env);
-                }
-                if !matched {
-                    self.add_failure(
-                        input_index,
-                        SlotId(563),
-                        Some(gss_node_id),
-                        GLLFailureKind::UnexpectedToken(&FIRST_SET_MIXED_SCALE),
-                    );
                 }
             }
             // MixedOperand
             NonterminalId(117) => {
-                let mut matched = false;
                 // MixedOperand(p: i32, a: i32) : . l_pr=MixedScale(p, a) return l_pr
                 if self
                     .scanner
                     .match_any(&FIRST_SET_MIXED_OPERAND_ALT0, input_index)
                 {
-                    matched = true;
                     self.add_first_descriptor(SlotId(575), input_index, gss_node_id, env);
                 }
                 // MixedOperand(p: i32, a: i32) : . MixedForeign(0) return UNDEFINED_PRECEDENCE
@@ -16652,16 +15571,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     .scanner
                     .match_any(&FIRST_SET_MIXED_OPERAND_ALT1, input_index)
                 {
-                    matched = true;
                     self.add_first_descriptor(SlotId(578), input_index, gss_node_id, env);
-                }
-                if !matched {
-                    self.add_failure(
-                        input_index,
-                        SlotId(575),
-                        Some(gss_node_id),
-                        GLLFailureKind::UnexpectedToken(&FIRST_SET_MIXED_OPERAND),
-                    );
                 }
             }
             // MixedRight(p: i32, a: i32) : . r_pr=MixedScale(p, a) return r_pr
@@ -16670,13 +15580,11 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
             }
             // MixedForeign
             NonterminalId(119) => {
-                let mut matched = false;
                 // MixedForeign(p: i32) : . "f" return 0
                 if self
                     .scanner
                     .match_any(&FIRST_SET_MIXED_FOREIGN_ALT0, input_index)
                 {
-                    matched = true;
                     self.add_first_descriptor(SlotId(584), input_index, gss_node_id, env);
                 }
                 // MixedForeign(p: i32) : . [1 >= p] l_pr=MixedForeign(p) [(l_pr == 0) || (l_pr >= 1)] WS "!"
@@ -16685,24 +15593,13 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     .scanner
                     .match_any(&FIRST_SET_MIXED_FOREIGN_ALT1, input_index)
                 {
-                    matched = true;
                     self.add_first_descriptor(SlotId(587), input_index, gss_node_id, env);
-                }
-                if !matched {
-                    self.add_failure(
-                        input_index,
-                        SlotId(584),
-                        Some(gss_node_id),
-                        GLLFailureKind::UnexpectedToken(&FIRST_SET_MIXED_FOREIGN),
-                    );
                 }
             }
             // Packed
             NonterminalId(120) => {
-                let mut matched = false;
                 // Packed(p: i32, a: i32) : . "p" return (0, 0)
                 if self.scanner.match_any(&FIRST_SET_PACKED_ALT0, input_index) {
-                    matched = true;
                     self.add_first_descriptor(SlotId(596), input_index, gss_node_id, env);
                 }
                 // Packed(p: i32, a: i32) : . (l_pr, l_assoc)=PackedOperand(p, 0, 0) [(l_pr ==
@@ -16711,16 +15608,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                 // UNDEFINED_PRECEDENCE)) || (l_assoc != 1)] return ((r_pr == UNDEFINED_PRECEDENCE) ? 0 : 1,
                 // ((l_pr == UNDEFINED_PRECEDENCE) || (r_pr == UNDEFINED_PRECEDENCE)) ? 0 : 1)
                 if self.scanner.match_any(&FIRST_SET_PACKED_ALT1, input_index) {
-                    matched = true;
                     self.add_first_descriptor(SlotId(599), input_index, gss_node_id, env);
-                }
-                if !matched {
-                    self.add_failure(
-                        input_index,
-                        SlotId(596),
-                        Some(gss_node_id),
-                        GLLFailureKind::UnexpectedToken(&FIRST_SET_PACKED),
-                    );
                 }
             }
             // PackedOperand(p: i32, end: i32, a: i32) : . (v_pr, v_assoc, v_label)=PackedMiddle(p, end,
@@ -16730,14 +15618,12 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
             }
             // PackedMiddle
             NonterminalId(122) => {
-                let mut matched = false;
                 // PackedMiddle(p: i32, end: i32, a: i32, e: i32) : . [1 & e == 0] (v_pr, v_assoc)=Packed(p,
                 // a) return (v_pr, v_assoc, 0)
                 if self
                     .scanner
                     .match_any(&FIRST_SET_PACKED_MIDDLE_ALT0, input_index)
                 {
-                    matched = true;
                     self.add_first_descriptor(SlotId(611), input_index, gss_node_id, env);
                 }
                 // PackedMiddle(p: i32, end: i32, a: i32, e: i32) : . [2 & e == 0] "(" WS Packed(0, 0) WS ")"
@@ -16746,16 +15632,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     .scanner
                     .match_any(&FIRST_SET_PACKED_MIDDLE_ALT1, input_index)
                 {
-                    matched = true;
                     self.add_first_descriptor(SlotId(615), input_index, gss_node_id, env);
-                }
-                if !matched {
-                    self.add_failure(
-                        input_index,
-                        SlotId(611),
-                        Some(gss_node_id),
-                        GLLFailureKind::UnexpectedToken(&FIRST_SET_PACKED_MIDDLE),
-                    );
                 }
             }
             // PackedFiltered : . PackedMiddle(0, 0, 0, 2)
@@ -16764,13 +15641,11 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
             }
             // NullableRecursive
             NonterminalId(123) => {
-                let mut matched = false;
                 // NullableRecursive(p: i32, a: i32) : . "u" return (0, 0)
                 if self
                     .scanner
                     .match_any(&FIRST_SET_NULLABLE_RECURSIVE_ALT0, input_index)
                 {
-                    matched = true;
                     self.add_first_descriptor(SlotId(623), input_index, gss_node_id, env);
                 }
                 // NullableRecursive(p: i32, a: i32) : . (l_pr, l_assoc)=NullableOperand(p, 0) [(l_pr ==
@@ -16781,16 +15656,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     .scanner
                     .match_any(&FIRST_SET_NULLABLE_RECURSIVE_ALT1, input_index)
                 {
-                    matched = true;
                     self.add_first_descriptor(SlotId(626), input_index, gss_node_id, env);
-                }
-                if !matched {
-                    self.add_failure(
-                        input_index,
-                        SlotId(623),
-                        Some(gss_node_id),
-                        GLLFailureKind::UnexpectedToken(&FIRST_SET_NULLABLE_RECURSIVE),
-                    );
                 }
             }
             // NullableOperand(p: i32, a: i32) : . (l_pr, l_assoc)=NullableMaybe(p, a) WS
@@ -16804,13 +15670,11 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
             }
             // NullableLexRecursive
             NonterminalId(126) => {
-                let mut matched = false;
                 // NullableLexRecursive(p: i32, a: i32) : . "v" return (0, 0)
                 if self
                     .scanner
                     .match_any(&FIRST_SET_NULLABLE_LEX_RECURSIVE_ALT0, input_index)
                 {
-                    matched = true;
                     self.add_first_descriptor(SlotId(643), input_index, gss_node_id, env);
                 }
                 // NullableLexRecursive(p: i32, a: i32) : . (l_pr, l_assoc)=NullableLexOperand(p, 0) [(l_pr
@@ -16821,16 +15685,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     .scanner
                     .match_any(&FIRST_SET_NULLABLE_LEX_RECURSIVE_ALT1, input_index)
                 {
-                    matched = true;
                     self.add_first_descriptor(SlotId(646), input_index, gss_node_id, env);
-                }
-                if !matched {
-                    self.add_failure(
-                        input_index,
-                        SlotId(643),
-                        Some(gss_node_id),
-                        GLLFailureKind::UnexpectedToken(&FIRST_SET_NULLABLE_LEX_RECURSIVE),
-                    );
                 }
             }
             // NullableLexOperand(p: i32, a: i32) : . (l_pr, l_assoc)=NullableLexMaybe(p, a) WS
@@ -16840,14 +15695,12 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
             }
             // NullableLexMaybe
             NonterminalId(128) => {
-                let mut matched = false;
                 // NullableLexMaybe(p: i32, a: i32) : . (l_pr, l_assoc)=NullableLexRecursive(p, a) return
                 // (l_pr, l_assoc)
                 if self
                     .scanner
                     .match_any(&FIRST_SET_NULLABLE_LEX_MAYBE_ALT0, input_index)
                 {
-                    matched = true;
                     self.add_first_descriptor(SlotId(660), input_index, gss_node_id, env);
                 }
                 // NullableLexMaybe(p: i32, a: i32) : . Digits return (UNDEFINED_PRECEDENCE, 0)
@@ -16858,27 +15711,16 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         .scanner
                         .match_any(&FOLLOW_SET_NULLABLE_LEX_MAYBE, input_index)
                 {
-                    matched = true;
                     self.add_first_descriptor(SlotId(663), input_index, gss_node_id, env);
-                }
-                if !matched {
-                    self.add_failure(
-                        input_index,
-                        SlotId(660),
-                        Some(gss_node_id),
-                        GLLFailureKind::UnexpectedToken(&PREDICTION_SET_NULLABLE_LEX_MAYBE),
-                    );
                 }
             }
             // NullableSuffix
             NonterminalId(129) => {
-                let mut matched = false;
                 // NullableSuffix(p: i32, a: i32) : . "w" return 0
                 if self
                     .scanner
                     .match_any(&FIRST_SET_NULLABLE_SUFFIX_ALT0, input_index)
                 {
-                    matched = true;
                     self.add_first_descriptor(SlotId(666), input_index, gss_node_id, env);
                 }
                 // NullableSuffix(p: i32, a: i32) : . [1 >= p] l_pr=NullableSuffix(p, 0) [(l_pr == 0) ||
@@ -16888,16 +15730,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     .scanner
                     .match_any(&FIRST_SET_NULLABLE_SUFFIX_ALT1, input_index)
                 {
-                    matched = true;
                     self.add_first_descriptor(SlotId(669), input_index, gss_node_id, env);
-                }
-                if !matched {
-                    self.add_failure(
-                        input_index,
-                        SlotId(666),
-                        Some(gss_node_id),
-                        GLLFailureKind::UnexpectedToken(&FIRST_SET_NULLABLE_SUFFIX),
-                    );
                 }
             }
             // NullableSuffixOperand(p: i32, a: i32) : . NullableSuffix(0, 0) WS
@@ -16911,13 +15744,11 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
             }
             // NullableShared
             NonterminalId(132) => {
-                let mut matched = false;
                 // NullableShared(p: i32, a: i32) : . "j" return (0, 0)
                 if self
                     .scanner
                     .match_any(&FIRST_SET_NULLABLE_SHARED_ALT0, input_index)
                 {
-                    matched = true;
                     self.add_first_descriptor(SlotId(687), input_index, gss_node_id, env);
                 }
                 // NullableShared(p: i32, a: i32) : . (l_pr, l_assoc)=NullableSharedOperand(p, 0, 0) [(l_pr
@@ -16929,16 +15760,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     .scanner
                     .match_any(&FIRST_SET_NULLABLE_SHARED_ALT1, input_index)
                 {
-                    matched = true;
                     self.add_first_descriptor(SlotId(690), input_index, gss_node_id, env);
-                }
-                if !matched {
-                    self.add_failure(
-                        input_index,
-                        SlotId(687),
-                        Some(gss_node_id),
-                        GLLFailureKind::UnexpectedToken(&FIRST_SET_NULLABLE_SHARED),
-                    );
                 }
             }
             // NullableSharedOperand(p: i32, end: i32, a: i32) : . (l_pr,
@@ -16955,13 +15777,11 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
             }
             // OwnLabel
             NonterminalId(135) => {
-                let mut matched = false;
                 // OwnLabel(p: i32, a: i32, e: i32) : . [1 & e == 0] "k" return (0, 0)
                 if self
                     .scanner
                     .match_any(&FIRST_SET_OWN_LABEL_ALT0, input_index)
                 {
-                    matched = true;
                     self.add_first_descriptor(SlotId(709), input_index, gss_node_id, env);
                 }
                 // OwnLabel(p: i32, a: i32, e: i32) : . [2 & e == 0] (l_pr, l_label)=OwnOperand(p, 0, 0, 0)
@@ -16973,28 +15793,17 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     .scanner
                     .match_any(&FIRST_SET_OWN_LABEL_ALT1, input_index)
                 {
-                    matched = true;
                     self.add_first_descriptor(SlotId(713), input_index, gss_node_id, env);
-                }
-                if !matched {
-                    self.add_failure(
-                        input_index,
-                        SlotId(709),
-                        Some(gss_node_id),
-                        GLLFailureKind::UnexpectedToken(&FIRST_SET_OWN_LABEL),
-                    );
                 }
             }
             // OwnOperand
             NonterminalId(136) => {
-                let mut matched = false;
                 // OwnOperand(p: i32, end: i32, a: i32, e: i32) : . [1 & e == 0] (v_pr, v_label)=OwnLabel(p,
                 // a, 0) return (v_pr, 0)
                 if self
                     .scanner
                     .match_any(&FIRST_SET_OWN_OPERAND_ALT0, input_index)
                 {
-                    matched = true;
                     self.add_first_descriptor(SlotId(724), input_index, gss_node_id, env);
                 }
                 // OwnOperand(p: i32, end: i32, a: i32, e: i32) : . [2 & e == 0] "(" WS OwnLabel(0, 0, 0) WS
@@ -17003,16 +15812,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     .scanner
                     .match_any(&FIRST_SET_OWN_OPERAND_ALT1, input_index)
                 {
-                    matched = true;
                     self.add_first_descriptor(SlotId(728), input_index, gss_node_id, env);
-                }
-                if !matched {
-                    self.add_failure(
-                        input_index,
-                        SlotId(724),
-                        Some(gss_node_id),
-                        GLLFailureKind::UnexpectedToken(&FIRST_SET_OWN_OPERAND),
-                    );
                 }
             }
             // OwnHeadFiltered : . OwnLabel(0, 0, 1)
@@ -17021,13 +15821,11 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
             }
             // ExcludeOnly
             NonterminalId(137) => {
-                let mut matched = false;
                 // ExcludeOnly(e: i32) : . [1 & e == 0] "s" return (0, 0)
                 if self
                     .scanner
                     .match_any(&FIRST_SET_EXCLUDE_ONLY_ALT0, input_index)
                 {
-                    matched = true;
                     self.add_first_descriptor(SlotId(736), input_index, gss_node_id, env);
                 }
                 // ExcludeOnly(e: i32) : . "t" return (0, NO_LABEL)
@@ -17035,16 +15833,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     .scanner
                     .match_any(&FIRST_SET_EXCLUDE_ONLY_ALT1, input_index)
                 {
-                    matched = true;
                     self.add_first_descriptor(SlotId(740), input_index, gss_node_id, env);
-                }
-                if !matched {
-                    self.add_failure(
-                        input_index,
-                        SlotId(736),
-                        Some(gss_node_id),
-                        GLLFailureKind::UnexpectedToken(&FIRST_SET_EXCLUDE_ONLY),
-                    );
                 }
             }
             // ExcludeOnlyFiltered : . ExcludeOnly(1)
@@ -17053,43 +15842,29 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
             }
             // Absent
             NonterminalId(138) => {
-                let mut matched = false;
                 // Absent(p: i32) : . "a" return 0
                 if self.scanner.match_any(&FIRST_SET_ABSENT_ALT0, input_index) {
-                    matched = true;
                     self.add_first_descriptor(SlotId(743), input_index, gss_node_id, env);
                 }
                 // Absent(p: i32) : . [2 >= p] l_pr=Absent(p) [(l_pr == 0) || (l_pr >= 2)] WS "*" WS
                 // r_pr=Absent(2) return (r_pr == 0) ? 2 : min(r_pr, 2)
                 if self.scanner.match_any(&FIRST_SET_ABSENT_ALT1, input_index) {
-                    matched = true;
                     self.add_first_descriptor(SlotId(746), input_index, gss_node_id, env);
                 }
                 // Absent(p: i32) : . l_pr=AbsentOperand(p, 0) [(l_pr == UNDEFINED_PRECEDENCE) || ((1 >= p)
                 // && ((l_pr == 0) || (l_pr >= 1)))] WS "+" WS r_pr=AbsentOperand(1, 1) return (r_pr ==
                 // UNDEFINED_PRECEDENCE) ? 0 : 1
                 if self.scanner.match_any(&FIRST_SET_ABSENT_ALT2, input_index) {
-                    matched = true;
                     self.add_first_descriptor(SlotId(755), input_index, gss_node_id, env);
-                }
-                if !matched {
-                    self.add_failure(
-                        input_index,
-                        SlotId(743),
-                        Some(gss_node_id),
-                        GLLFailureKind::UnexpectedToken(&FIRST_SET_ABSENT),
-                    );
                 }
             }
             // AbsentOperand
             NonterminalId(139) => {
-                let mut matched = false;
                 // AbsentOperand(p: i32, end: i32) : . v_pr=Absent(p) return v_pr
                 if self
                     .scanner
                     .match_any(&FIRST_SET_ABSENT_OPERAND_ALT0, input_index)
                 {
-                    matched = true;
                     self.add_first_descriptor(SlotId(763), input_index, gss_node_id, env);
                 }
                 // AbsentOperand(p: i32, end: i32) : . "b" return UNDEFINED_PRECEDENCE
@@ -17097,27 +15872,16 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     .scanner
                     .match_any(&FIRST_SET_ABSENT_OPERAND_ALT1, input_index)
                 {
-                    matched = true;
                     self.add_first_descriptor(SlotId(766), input_index, gss_node_id, env);
-                }
-                if !matched {
-                    self.add_failure(
-                        input_index,
-                        SlotId(763),
-                        Some(gss_node_id),
-                        GLLFailureKind::UnexpectedToken(&FIRST_SET_ABSENT_OPERAND),
-                    );
                 }
             }
             // ClosedPrefix
             NonterminalId(140) => {
-                let mut matched = false;
                 // ClosedPrefix(p: i32) : . "a" return 0
                 if self
                     .scanner
                     .match_any(&FIRST_SET_CLOSED_PREFIX_ALT0, input_index)
                 {
-                    matched = true;
                     self.add_first_descriptor(SlotId(769), input_index, gss_node_id, env);
                 }
                 // ClosedPrefix(p: i32) : . [2 >= p] l_pr=ClosedPrefix(p) [(l_pr == 0) || (l_pr >= 2)] WS "+"
@@ -17126,7 +15890,6 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     .scanner
                     .match_any(&FIRST_SET_CLOSED_PREFIX_ALT1, input_index)
                 {
-                    matched = true;
                     self.add_first_descriptor(SlotId(772), input_index, gss_node_id, env);
                 }
                 // ClosedPrefix(p: i32) : . "pre" WS r_pr=ClosedPrefixBody(1) return (r_pr ==
@@ -17135,27 +15898,16 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     .scanner
                     .match_any(&FIRST_SET_CLOSED_PREFIX_ALT2, input_index)
                 {
-                    matched = true;
                     self.add_first_descriptor(SlotId(781), input_index, gss_node_id, env);
-                }
-                if !matched {
-                    self.add_failure(
-                        input_index,
-                        SlotId(769),
-                        Some(gss_node_id),
-                        GLLFailureKind::UnexpectedToken(&FIRST_SET_CLOSED_PREFIX),
-                    );
                 }
             }
             // ClosedPrefixBody
             NonterminalId(141) => {
-                let mut matched = false;
                 // ClosedPrefixBody(p: i32) : . r_pr=ClosedPrefix(p) return r_pr
                 if self
                     .scanner
                     .match_any(&FIRST_SET_CLOSED_PREFIX_BODY_ALT0, input_index)
                 {
-                    matched = true;
                     self.add_first_descriptor(SlotId(786), input_index, gss_node_id, env);
                 }
                 // ClosedPrefixBody(p: i32) : . "b" return UNDEFINED_PRECEDENCE
@@ -17163,27 +15915,16 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     .scanner
                     .match_any(&FIRST_SET_CLOSED_PREFIX_BODY_ALT1, input_index)
                 {
-                    matched = true;
                     self.add_first_descriptor(SlotId(789), input_index, gss_node_id, env);
-                }
-                if !matched {
-                    self.add_failure(
-                        input_index,
-                        SlotId(786),
-                        Some(gss_node_id),
-                        GLLFailureKind::UnexpectedToken(&FIRST_SET_CLOSED_PREFIX_BODY),
-                    );
                 }
             }
             // ClosedPostfix
             NonterminalId(142) => {
-                let mut matched = false;
                 // ClosedPostfix(p: i32) : . "a" return 0
                 if self
                     .scanner
                     .match_any(&FIRST_SET_CLOSED_POSTFIX_ALT0, input_index)
                 {
-                    matched = true;
                     self.add_first_descriptor(SlotId(792), input_index, gss_node_id, env);
                 }
                 // ClosedPostfix(p: i32) : . "pre" WS ClosedPostfix(2) return 2
@@ -17191,7 +15932,6 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     .scanner
                     .match_any(&FIRST_SET_CLOSED_POSTFIX_ALT1, input_index)
                 {
-                    matched = true;
                     self.add_first_descriptor(SlotId(795), input_index, gss_node_id, env);
                 }
                 // ClosedPostfix(p: i32) : . l_pr=ClosedPostfixBody(p) [(l_pr == UNDEFINED_PRECEDENCE) || ((1
@@ -17200,27 +15940,16 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     .scanner
                     .match_any(&FIRST_SET_CLOSED_POSTFIX_ALT2, input_index)
                 {
-                    matched = true;
                     self.add_first_descriptor(SlotId(800), input_index, gss_node_id, env);
-                }
-                if !matched {
-                    self.add_failure(
-                        input_index,
-                        SlotId(792),
-                        Some(gss_node_id),
-                        GLLFailureKind::UnexpectedToken(&FIRST_SET_CLOSED_POSTFIX),
-                    );
                 }
             }
             // ClosedPostfixBody
             NonterminalId(143) => {
-                let mut matched = false;
                 // ClosedPostfixBody(p: i32) : . l_pr=ClosedPostfix(p) return l_pr
                 if self
                     .scanner
                     .match_any(&FIRST_SET_CLOSED_POSTFIX_BODY_ALT0, input_index)
                 {
-                    matched = true;
                     self.add_first_descriptor(SlotId(806), input_index, gss_node_id, env);
                 }
                 // ClosedPostfixBody(p: i32) : . "b" return UNDEFINED_PRECEDENCE
@@ -17228,27 +15957,16 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     .scanner
                     .match_any(&FIRST_SET_CLOSED_POSTFIX_BODY_ALT1, input_index)
                 {
-                    matched = true;
                     self.add_first_descriptor(SlotId(809), input_index, gss_node_id, env);
-                }
-                if !matched {
-                    self.add_failure(
-                        input_index,
-                        SlotId(806),
-                        Some(gss_node_id),
-                        GLLFailureKind::UnexpectedToken(&FIRST_SET_CLOSED_POSTFIX_BODY),
-                    );
                 }
             }
             // HeadChoice
             NonterminalId(144) => {
-                let mut matched = false;
                 // HeadChoice(p: i32) : . "a" return 0
                 if self
                     .scanner
                     .match_any(&FIRST_SET_HEAD_CHOICE_ALT0, input_index)
                 {
-                    matched = true;
                     self.add_first_descriptor(SlotId(812), input_index, gss_node_id, env);
                 }
                 // HeadChoice(p: i32) : . [1 >= p] l_pr=HeadOperand(p, 0) [(l_pr == 0) || (l_pr >= 1)] WS "+"
@@ -17257,7 +15975,6 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     .scanner
                     .match_any(&FIRST_SET_HEAD_CHOICE_ALT1, input_index)
                 {
-                    matched = true;
                     self.add_first_descriptor(SlotId(815), input_index, gss_node_id, env);
                 }
                 // HeadChoice(p: i32) : . Inner(0) return 0
@@ -17265,16 +15982,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     .scanner
                     .match_any(&FIRST_SET_HEAD_CHOICE_ALT2, input_index)
                 {
-                    matched = true;
                     self.add_first_descriptor(SlotId(824), input_index, gss_node_id, env);
-                }
-                if !matched {
-                    self.add_failure(
-                        input_index,
-                        SlotId(812),
-                        Some(gss_node_id),
-                        GLLFailureKind::UnexpectedToken(&FIRST_SET_HEAD_CHOICE),
-                    );
                 }
             }
             // HeadOperand(p: i32, end: i32) : . v_pr=HeadChoice(p) return v_pr
@@ -17283,37 +15991,24 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
             }
             // Inner
             NonterminalId(146) => {
-                let mut matched = false;
                 // Inner(p: i32) : . "b" return 0
                 if self.scanner.match_any(&FIRST_SET_INNER_ALT0, input_index) {
-                    matched = true;
                     self.add_first_descriptor(SlotId(830), input_index, gss_node_id, env);
                 }
                 // Inner(p: i32) : . [1 >= p] l_pr=Inner(p) [(l_pr == 0) || (l_pr >= 1)] WS "*" WS Inner(2)
                 // return 1
                 if self.scanner.match_any(&FIRST_SET_INNER_ALT1, input_index) {
-                    matched = true;
                     self.add_first_descriptor(SlotId(833), input_index, gss_node_id, env);
-                }
-                if !matched {
-                    self.add_failure(
-                        input_index,
-                        SlotId(830),
-                        Some(gss_node_id),
-                        GLLFailureKind::UnexpectedToken(&FIRST_SET_INNER),
-                    );
                 }
             }
             // UnaryMixedLeft
             NonterminalId(147) => {
-                let mut matched = false;
                 // UnaryMixedLeft(p: i32, a: i32) : . [1 >= p] [a != 1] l_pr=UnaryMixedLeft(p, 0) [(l_pr ==
                 // 0) || (l_pr >= 1)] WS "+" WS r_pr=UnaryMixedLeft(1, 1) return 1
                 if self
                     .scanner
                     .match_any(&FIRST_SET_UNARY_MIXED_LEFT_ALT0, input_index)
                 {
-                    matched = true;
                     self.add_first_descriptor(SlotId(842), input_index, gss_node_id, env);
                 }
                 // UnaryMixedLeft(p: i32, a: i32) : . "-" WS UnaryMixedLeft(1, 0) return 1
@@ -17321,7 +16016,6 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     .scanner
                     .match_any(&FIRST_SET_UNARY_MIXED_LEFT_ALT1, input_index)
                 {
-                    matched = true;
                     self.add_first_descriptor(SlotId(852), input_index, gss_node_id, env);
                 }
                 // UnaryMixedLeft(p: i32, a: i32) : . [1 >= p] l_pr=UnaryMixedLeft(p, 0) [(l_pr == 0) ||
@@ -17330,7 +16024,6 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     .scanner
                     .match_any(&FIRST_SET_UNARY_MIXED_LEFT_ALT2, input_index)
                 {
-                    matched = true;
                     self.add_first_descriptor(SlotId(857), input_index, gss_node_id, env);
                 }
                 // UnaryMixedLeft(p: i32, a: i32) : . "a" return 0
@@ -17338,21 +16031,11 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     .scanner
                     .match_any(&FIRST_SET_UNARY_MIXED_LEFT_ALT3, input_index)
                 {
-                    matched = true;
                     self.add_first_descriptor(SlotId(864), input_index, gss_node_id, env);
-                }
-                if !matched {
-                    self.add_failure(
-                        input_index,
-                        SlotId(842),
-                        Some(gss_node_id),
-                        GLLFailureKind::UnexpectedToken(&FIRST_SET_UNARY_MIXED_LEFT),
-                    );
                 }
             }
             // UnaryMixedRight
             NonterminalId(148) => {
-                let mut matched = false;
                 // UnaryMixedRight(p: i32, a: i32) : . [1 >= p] (l_pr, l_assoc)=UnaryMixedRight(p, 0) [(l_pr
                 // == 0) || (l_pr >= 1)] [l_assoc != 1] WS "+" WS (r_pr, r_assoc)=UnaryMixedRight(1, 0)
                 // return (1, 1)
@@ -17360,7 +16043,6 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     .scanner
                     .match_any(&FIRST_SET_UNARY_MIXED_RIGHT_ALT0, input_index)
                 {
-                    matched = true;
                     self.add_first_descriptor(SlotId(867), input_index, gss_node_id, env);
                 }
                 // UnaryMixedRight(p: i32, a: i32) : . "-" WS UnaryMixedRight(1, 0) return (1, 0)
@@ -17368,7 +16050,6 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     .scanner
                     .match_any(&FIRST_SET_UNARY_MIXED_RIGHT_ALT1, input_index)
                 {
-                    matched = true;
                     self.add_first_descriptor(SlotId(877), input_index, gss_node_id, env);
                 }
                 // UnaryMixedRight(p: i32, a: i32) : . [1 >= p] (l_pr, l_assoc)=UnaryMixedRight(p, 0) [(l_pr
@@ -17377,7 +16058,6 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     .scanner
                     .match_any(&FIRST_SET_UNARY_MIXED_RIGHT_ALT2, input_index)
                 {
-                    matched = true;
                     self.add_first_descriptor(SlotId(882), input_index, gss_node_id, env);
                 }
                 // UnaryMixedRight(p: i32, a: i32) : . "a" return (0, 0)
@@ -17385,21 +16065,11 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     .scanner
                     .match_any(&FIRST_SET_UNARY_MIXED_RIGHT_ALT3, input_index)
                 {
-                    matched = true;
                     self.add_first_descriptor(SlotId(889), input_index, gss_node_id, env);
-                }
-                if !matched {
-                    self.add_failure(
-                        input_index,
-                        SlotId(867),
-                        Some(gss_node_id),
-                        GLLFailureKind::UnexpectedToken(&FIRST_SET_UNARY_MIXED_RIGHT),
-                    );
                 }
             }
             // UnaryMixedNone
             NonterminalId(149) => {
-                let mut matched = false;
                 // UnaryMixedNone(p: i32, a: i32) : . [1 >= p] [a != 1] (l_pr, l_assoc)=UnaryMixedNone(p, 0)
                 // [(l_pr == 0) || (l_pr >= 1)] [l_assoc != 1] WS "+" WS (r_pr, r_assoc)=UnaryMixedNone(1, 1)
                 // return (1, 1)
@@ -17407,7 +16077,6 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     .scanner
                     .match_any(&FIRST_SET_UNARY_MIXED_NONE_ALT0, input_index)
                 {
-                    matched = true;
                     self.add_first_descriptor(SlotId(892), input_index, gss_node_id, env);
                 }
                 // UnaryMixedNone(p: i32, a: i32) : . "-" WS UnaryMixedNone(1, 0) return (1, 0)
@@ -17415,7 +16084,6 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     .scanner
                     .match_any(&FIRST_SET_UNARY_MIXED_NONE_ALT1, input_index)
                 {
-                    matched = true;
                     self.add_first_descriptor(SlotId(903), input_index, gss_node_id, env);
                 }
                 // UnaryMixedNone(p: i32, a: i32) : . [1 >= p] (l_pr, l_assoc)=UnaryMixedNone(p, 0) [(l_pr ==
@@ -17424,7 +16092,6 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     .scanner
                     .match_any(&FIRST_SET_UNARY_MIXED_NONE_ALT2, input_index)
                 {
-                    matched = true;
                     self.add_first_descriptor(SlotId(908), input_index, gss_node_id, env);
                 }
                 // UnaryMixedNone(p: i32, a: i32) : . "a" return (0, 0)
@@ -17432,21 +16099,11 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     .scanner
                     .match_any(&FIRST_SET_UNARY_MIXED_NONE_ALT3, input_index)
                 {
-                    matched = true;
                     self.add_first_descriptor(SlotId(915), input_index, gss_node_id, env);
-                }
-                if !matched {
-                    self.add_failure(
-                        input_index,
-                        SlotId(892),
-                        Some(gss_node_id),
-                        GLLFailureKind::UnexpectedToken(&FIRST_SET_UNARY_MIXED_NONE),
-                    );
                 }
             }
             // Dynamic
             NonterminalId(150) => {
-                let mut matched = false;
                 // Dynamic(p: i32, a: i32, e: i32) : . [1 & e == 0] (l_pr, l_assoc,
                 // l_label)=DynamicOperand(p, 0, 0, 0) [(l_pr == UNDEFINED_PRECEDENCE) || ((1 >= p) && ((l_pr
                 // == 0) || (l_pr >= 1)))] [(l_label == NO_LABEL) || ((2 >> l_label) & 1 == 0)] WS "+" WS
@@ -17454,46 +16111,32 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                 // (r_pr == UNDEFINED_PRECEDENCE)) || (l_assoc != 1)] return ((r_pr == UNDEFINED_PRECEDENCE)
                 // ? 0 : 1, ((l_pr == UNDEFINED_PRECEDENCE) || (r_pr == UNDEFINED_PRECEDENCE)) ? 0 : 1, 0)
                 if self.scanner.match_any(&FIRST_SET_DYNAMIC_ALT0, input_index) {
-                    matched = true;
                     self.add_first_descriptor(SlotId(918), input_index, gss_node_id, env);
                 }
                 // Dynamic(p: i32, a: i32, e: i32) : . [2 & e == 0] "-" WS (r_pr, r_assoc,
                 // r_label)=DynamicOperand(1, 1, 0, 0) return ((r_pr == UNDEFINED_PRECEDENCE) ? 0 : 1, 0, 1)
                 if self.scanner.match_any(&FIRST_SET_DYNAMIC_ALT1, input_index) {
-                    matched = true;
                     self.add_first_descriptor(SlotId(929), input_index, gss_node_id, env);
                 }
                 // Dynamic(p: i32, a: i32, e: i32) : . [4 & e == 0] (l_pr, l_assoc,
                 // l_label)=DynamicOperand(p, 0, 0, 0) [(l_pr == UNDEFINED_PRECEDENCE) || ((1 >= p) && ((l_pr
                 // == 0) || (l_pr >= 1)))] WS "!" return (0, 0, 2)
                 if self.scanner.match_any(&FIRST_SET_DYNAMIC_ALT2, input_index) {
-                    matched = true;
                     self.add_first_descriptor(SlotId(935), input_index, gss_node_id, env);
                 }
                 // Dynamic(p: i32, a: i32, e: i32) : . [8 & e == 0] "a" return (0, 0, 3)
                 if self.scanner.match_any(&FIRST_SET_DYNAMIC_ALT3, input_index) {
-                    matched = true;
                     self.add_first_descriptor(SlotId(942), input_index, gss_node_id, env);
-                }
-                if !matched {
-                    self.add_failure(
-                        input_index,
-                        SlotId(918),
-                        Some(gss_node_id),
-                        GLLFailureKind::UnexpectedToken(&FIRST_SET_DYNAMIC),
-                    );
                 }
             }
             // DynamicOperand
             NonterminalId(151) => {
-                let mut matched = false;
                 // DynamicOperand(p: i32, end: i32, a: i32, e: i32) : . [1 & e == 0] (v_pr, v_assoc,
                 // v_label)=Dynamic(p, a, 0) return (v_pr, v_assoc, 0)
                 if self
                     .scanner
                     .match_any(&FIRST_SET_DYNAMIC_OPERAND_ALT0, input_index)
                 {
-                    matched = true;
                     self.add_first_descriptor(SlotId(946), input_index, gss_node_id, env);
                 }
                 // DynamicOperand(p: i32, end: i32, a: i32, e: i32) : . [2 & e == 0] "b" return
@@ -17502,16 +16145,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     .scanner
                     .match_any(&FIRST_SET_DYNAMIC_OPERAND_ALT1, input_index)
                 {
-                    matched = true;
                     self.add_first_descriptor(SlotId(950), input_index, gss_node_id, env);
-                }
-                if !matched {
-                    self.add_failure(
-                        input_index,
-                        SlotId(946),
-                        Some(gss_node_id),
-                        GLLFailureKind::UnexpectedToken(&FIRST_SET_DYNAMIC_OPERAND),
-                    );
                 }
             }
             // DynamicFiltered : . DynamicOperand(0, 0, 0, 2)
@@ -17524,7 +16158,6 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
             }
             // DynamicMulti
             NonterminalId(152) => {
-                let mut matched = false;
                 // DynamicMulti(p: i32, a: i32) : . (l_pr, l_assoc)=DynamicMultiOperand(p, 0, 0) [(l_pr ==
                 // UNDEFINED_PRECEDENCE) || ((2 >= p) && ((l_pr == 0) || (l_pr >= 2)))] WS "+" WS (r_pr,
                 // r_assoc)=DynamicMultiOperand(2, 1, (l_pr == UNDEFINED_PRECEDENCE) ? 0 : 2) [((l_pr ==
@@ -17534,7 +16167,6 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     .scanner
                     .match_any(&FIRST_SET_DYNAMIC_MULTI_ALT0, input_index)
                 {
-                    matched = true;
                     self.add_first_descriptor(SlotId(954), input_index, gss_node_id, env);
                 }
                 // DynamicMulti(p: i32, a: i32) : . "-" WS (r_pr, r_assoc)=DynamicMultiOperand(2, 1, 0)
@@ -17543,7 +16175,6 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     .scanner
                     .match_any(&FIRST_SET_DYNAMIC_MULTI_ALT1, input_index)
                 {
-                    matched = true;
                     self.add_first_descriptor(SlotId(963), input_index, gss_node_id, env);
                 }
                 // DynamicMulti(p: i32, a: i32) : . (l_pr, l_assoc)=DynamicMultiOperand(p, 0, 0) [(l_pr ==
@@ -17552,7 +16183,6 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     .scanner
                     .match_any(&FIRST_SET_DYNAMIC_MULTI_ALT2, input_index)
                 {
-                    matched = true;
                     self.add_first_descriptor(SlotId(968), input_index, gss_node_id, env);
                 }
                 // DynamicMulti(p: i32, a: i32) : . (l_pr, l_assoc)=DynamicMultiOperand(p, 0, 0) [(l_pr ==
@@ -17564,7 +16194,6 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     .scanner
                     .match_any(&FIRST_SET_DYNAMIC_MULTI_ALT3, input_index)
                 {
-                    matched = true;
                     self.add_first_descriptor(SlotId(974), input_index, gss_node_id, env);
                 }
                 // DynamicMulti(p: i32, a: i32) : . "a" return (0, 0)
@@ -17572,28 +16201,17 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     .scanner
                     .match_any(&FIRST_SET_DYNAMIC_MULTI_ALT4, input_index)
                 {
-                    matched = true;
                     self.add_first_descriptor(SlotId(983), input_index, gss_node_id, env);
-                }
-                if !matched {
-                    self.add_failure(
-                        input_index,
-                        SlotId(954),
-                        Some(gss_node_id),
-                        GLLFailureKind::UnexpectedToken(&FIRST_SET_DYNAMIC_MULTI),
-                    );
                 }
             }
             // DynamicMultiOperand
             NonterminalId(153) => {
-                let mut matched = false;
                 // DynamicMultiOperand(p: i32, end: i32, a: i32) : . (v_pr, v_assoc)=DynamicMulti(p, a)
                 // return (v_pr, v_assoc)
                 if self
                     .scanner
                     .match_any(&FIRST_SET_DYNAMIC_MULTI_OPERAND_ALT0, input_index)
                 {
-                    matched = true;
                     self.add_first_descriptor(SlotId(986), input_index, gss_node_id, env);
                 }
                 // DynamicMultiOperand(p: i32, end: i32, a: i32) : . "b" return (UNDEFINED_PRECEDENCE, 0)
@@ -17601,27 +16219,16 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     .scanner
                     .match_any(&FIRST_SET_DYNAMIC_MULTI_OPERAND_ALT1, input_index)
                 {
-                    matched = true;
                     self.add_first_descriptor(SlotId(989), input_index, gss_node_id, env);
-                }
-                if !matched {
-                    self.add_failure(
-                        input_index,
-                        SlotId(986),
-                        Some(gss_node_id),
-                        GLLFailureKind::UnexpectedToken(&FIRST_SET_DYNAMIC_MULTI_OPERAND),
-                    );
                 }
             }
             // NullableBoundaryPrefix
             NonterminalId(154) => {
-                let mut matched = false;
                 // NullableBoundaryPrefix(p: i32) : . "a" return 0
                 if self
                     .scanner
                     .match_any(&FIRST_SET_NULLABLE_BOUNDARY_PREFIX_ALT0, input_index)
                 {
-                    matched = true;
                     self.add_first_descriptor(SlotId(992), input_index, gss_node_id, env);
                 }
                 // NullableBoundaryPrefix(p: i32) : . "-" WS NullableBoundaryRight return 0
@@ -17629,7 +16236,6 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     .scanner
                     .match_any(&FIRST_SET_NULLABLE_BOUNDARY_PREFIX_ALT1, input_index)
                 {
-                    matched = true;
                     self.add_first_descriptor(SlotId(995), input_index, gss_node_id, env);
                 }
                 // NullableBoundaryPrefix(p: i32) : . [1 >= p] l_pr=NullableBoundaryPrefix(p) [(l_pr == 0) ||
@@ -17638,16 +16244,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     .scanner
                     .match_any(&FIRST_SET_NULLABLE_BOUNDARY_PREFIX_ALT2, input_index)
                 {
-                    matched = true;
                     self.add_first_descriptor(SlotId(1000), input_index, gss_node_id, env);
-                }
-                if !matched {
-                    self.add_failure(
-                        input_index,
-                        SlotId(992),
-                        Some(gss_node_id),
-                        GLLFailureKind::UnexpectedToken(&FIRST_SET_NULLABLE_BOUNDARY_PREFIX),
-                    );
                 }
             }
             // NullableBoundaryRight : . NullableBoundaryPrefix(0) WS NullableBoundaryOpt
@@ -17656,13 +16253,11 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
             }
             // NullableBoundaryOpt
             NonterminalId(11) => {
-                let mut matched = false;
                 // NullableBoundaryOpt : . "!"
                 if self
                     .scanner
                     .match_any(&FIRST_SET_NULLABLE_BOUNDARY_OPT_ALT0, input_index)
                 {
-                    matched = true;
                     self.add_first_descriptor(SlotId(36), input_index, gss_node_id, env);
                 }
                 // NullableBoundaryOpt : .
@@ -17673,27 +16268,16 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         .scanner
                         .match_any(&FOLLOW_SET_NULLABLE_BOUNDARY_OPT, input_index)
                 {
-                    matched = true;
                     self.add_first_descriptor(SlotId(38), input_index, gss_node_id, env);
-                }
-                if !matched {
-                    self.add_failure(
-                        input_index,
-                        SlotId(36),
-                        Some(gss_node_id),
-                        GLLFailureKind::UnexpectedToken(&PREDICTION_SET_NULLABLE_BOUNDARY_OPT),
-                    );
                 }
             }
             // NullableBoundaryPostfix
             NonterminalId(155) => {
-                let mut matched = false;
                 // NullableBoundaryPostfix(p: i32) : . "a" return 0
                 if self
                     .scanner
                     .match_any(&FIRST_SET_NULLABLE_BOUNDARY_POSTFIX_ALT0, input_index)
                 {
-                    matched = true;
                     self.add_first_descriptor(SlotId(1009), input_index, gss_node_id, env);
                 }
                 // NullableBoundaryPostfix(p: i32) : . NullableBoundaryLeft WS "-" return 0
@@ -17701,7 +16285,6 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     .scanner
                     .match_any(&FIRST_SET_NULLABLE_BOUNDARY_POSTFIX_ALT1, input_index)
                 {
-                    matched = true;
                     self.add_first_descriptor(SlotId(1012), input_index, gss_node_id, env);
                 }
                 // NullableBoundaryPostfix(p: i32) : . [1 >= p] l_pr=NullableBoundaryPostfix(p) [(l_pr == 0)
@@ -17710,16 +16293,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     .scanner
                     .match_any(&FIRST_SET_NULLABLE_BOUNDARY_POSTFIX_ALT2, input_index)
                 {
-                    matched = true;
                     self.add_first_descriptor(SlotId(1017), input_index, gss_node_id, env);
-                }
-                if !matched {
-                    self.add_failure(
-                        input_index,
-                        SlotId(1009),
-                        Some(gss_node_id),
-                        GLLFailureKind::UnexpectedToken(&FIRST_SET_NULLABLE_BOUNDARY_POSTFIX),
-                    );
                 }
             }
             // NullableBoundaryLeft : . NullableBoundaryOpt WS NullableBoundaryPostfix(0)
@@ -17728,13 +16302,11 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
             }
             // NullableBoundaryBinary
             NonterminalId(156) => {
-                let mut matched = false;
                 // NullableBoundaryBinary(p: i32) : . "a" return 0
                 if self
                     .scanner
                     .match_any(&FIRST_SET_NULLABLE_BOUNDARY_BINARY_ALT0, input_index)
                 {
-                    matched = true;
                     self.add_first_descriptor(SlotId(1026), input_index, gss_node_id, env);
                 }
                 // NullableBoundaryBinary(p: i32) : . [2 >= p] l_pr=NullableBoundaryBinary(p) [(l_pr == 0) ||
@@ -17743,7 +16315,6 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     .scanner
                     .match_any(&FIRST_SET_NULLABLE_BOUNDARY_BINARY_ALT1, input_index)
                 {
-                    matched = true;
                     self.add_first_descriptor(SlotId(1029), input_index, gss_node_id, env);
                 }
                 // NullableBoundaryBinary(p: i32) : . [1 >= p] l_pr=NullableBoundaryBinary(p) [(l_pr == 0) ||
@@ -17752,16 +16323,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     .scanner
                     .match_any(&FIRST_SET_NULLABLE_BOUNDARY_BINARY_ALT2, input_index)
                 {
-                    matched = true;
                     self.add_first_descriptor(SlotId(1038), input_index, gss_node_id, env);
-                }
-                if !matched {
-                    self.add_failure(
-                        input_index,
-                        SlotId(1026),
-                        Some(gss_node_id),
-                        GLLFailureKind::UnexpectedToken(&FIRST_SET_NULLABLE_BOUNDARY_BINARY),
-                    );
                 }
             }
             // NullableBoundaryOperand : . NullableBoundaryBinary(0) WS NullableBoundaryOpt
@@ -17770,13 +16332,11 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
             }
             // ClosedLeftAssoc
             NonterminalId(157) => {
-                let mut matched = false;
                 // ClosedLeftAssoc(p: i32, a: i32) : . "a" return 0
                 if self
                     .scanner
                     .match_any(&FIRST_SET_CLOSED_LEFT_ASSOC_ALT0, input_index)
                 {
-                    matched = true;
                     self.add_first_descriptor(SlotId(1047), input_index, gss_node_id, env);
                 }
                 // ClosedLeftAssoc(p: i32, a: i32) : . l_pr=ClosedLeftOperand(p, 0) [(l_pr ==
@@ -17787,27 +16347,16 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     .scanner
                     .match_any(&FIRST_SET_CLOSED_LEFT_ASSOC_ALT1, input_index)
                 {
-                    matched = true;
                     self.add_first_descriptor(SlotId(1050), input_index, gss_node_id, env);
-                }
-                if !matched {
-                    self.add_failure(
-                        input_index,
-                        SlotId(1047),
-                        Some(gss_node_id),
-                        GLLFailureKind::UnexpectedToken(&FIRST_SET_CLOSED_LEFT_ASSOC),
-                    );
                 }
             }
             // ClosedLeftOperand
             NonterminalId(158) => {
-                let mut matched = false;
                 // ClosedLeftOperand(p: i32, a: i32) : . l_pr=ClosedLeftAssoc(p, a) return l_pr
                 if self
                     .scanner
                     .match_any(&FIRST_SET_CLOSED_LEFT_OPERAND_ALT0, input_index)
                 {
-                    matched = true;
                     self.add_first_descriptor(SlotId(1059), input_index, gss_node_id, env);
                 }
                 // ClosedLeftOperand(p: i32, a: i32) : . "!" return UNDEFINED_PRECEDENCE
@@ -17815,27 +16364,16 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     .scanner
                     .match_any(&FIRST_SET_CLOSED_LEFT_OPERAND_ALT1, input_index)
                 {
-                    matched = true;
                     self.add_first_descriptor(SlotId(1062), input_index, gss_node_id, env);
-                }
-                if !matched {
-                    self.add_failure(
-                        input_index,
-                        SlotId(1059),
-                        Some(gss_node_id),
-                        GLLFailureKind::UnexpectedToken(&FIRST_SET_CLOSED_LEFT_OPERAND),
-                    );
                 }
             }
             // ClosedRightAssoc
             NonterminalId(159) => {
-                let mut matched = false;
                 // ClosedRightAssoc(p: i32, a: i32) : . "a" return (0, 0)
                 if self
                     .scanner
                     .match_any(&FIRST_SET_CLOSED_RIGHT_ASSOC_ALT0, input_index)
                 {
-                    matched = true;
                     self.add_first_descriptor(SlotId(1065), input_index, gss_node_id, env);
                 }
                 // ClosedRightAssoc(p: i32, a: i32) : . [1 >= p] (l_pr, l_assoc)=ClosedRightAssoc(p, 0)
@@ -17846,28 +16384,17 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     .scanner
                     .match_any(&FIRST_SET_CLOSED_RIGHT_ASSOC_ALT1, input_index)
                 {
-                    matched = true;
                     self.add_first_descriptor(SlotId(1068), input_index, gss_node_id, env);
-                }
-                if !matched {
-                    self.add_failure(
-                        input_index,
-                        SlotId(1065),
-                        Some(gss_node_id),
-                        GLLFailureKind::UnexpectedToken(&FIRST_SET_CLOSED_RIGHT_ASSOC),
-                    );
                 }
             }
             // ClosedRightOperand
             NonterminalId(160) => {
-                let mut matched = false;
                 // ClosedRightOperand(p: i32, a: i32) : . (r_pr, r_assoc)=ClosedRightAssoc(p, a) return
                 // (r_pr, r_assoc)
                 if self
                     .scanner
                     .match_any(&FIRST_SET_CLOSED_RIGHT_OPERAND_ALT0, input_index)
                 {
-                    matched = true;
                     self.add_first_descriptor(SlotId(1078), input_index, gss_node_id, env);
                 }
                 // ClosedRightOperand(p: i32, a: i32) : . "!" return (UNDEFINED_PRECEDENCE, 0)
@@ -17875,27 +16402,16 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     .scanner
                     .match_any(&FIRST_SET_CLOSED_RIGHT_OPERAND_ALT1, input_index)
                 {
-                    matched = true;
                     self.add_first_descriptor(SlotId(1081), input_index, gss_node_id, env);
-                }
-                if !matched {
-                    self.add_failure(
-                        input_index,
-                        SlotId(1078),
-                        Some(gss_node_id),
-                        GLLFailureKind::UnexpectedToken(&FIRST_SET_CLOSED_RIGHT_OPERAND),
-                    );
                 }
             }
             // IndirectExclude
             NonterminalId(161) => {
-                let mut matched = false;
                 // IndirectExclude(p: i32, a: i32, e: i32) : . [1 & e == 0] "a" return (0, 0)
                 if self
                     .scanner
                     .match_any(&FIRST_SET_INDIRECT_EXCLUDE_ALT0, input_index)
                 {
-                    matched = true;
                     self.add_first_descriptor(SlotId(1084), input_index, gss_node_id, env);
                 }
                 // IndirectExclude(p: i32, a: i32, e: i32) : . [2 & e == 0] (l_pr,
@@ -17907,21 +16423,11 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     .scanner
                     .match_any(&FIRST_SET_INDIRECT_EXCLUDE_ALT1, input_index)
                 {
-                    matched = true;
                     self.add_first_descriptor(SlotId(1088), input_index, gss_node_id, env);
-                }
-                if !matched {
-                    self.add_failure(
-                        input_index,
-                        SlotId(1084),
-                        Some(gss_node_id),
-                        GLLFailureKind::UnexpectedToken(&FIRST_SET_INDIRECT_EXCLUDE),
-                    );
                 }
             }
             // IndirectExcludeOperand
             NonterminalId(162) => {
-                let mut matched = false;
                 // IndirectExcludeOperand(p: i32, end: i32, a: i32, e: i32) : . [1 & e == 0] (v_pr,
                 // v_label)=IndirectExclude(p, a, 0) [(v_label == NO_LABEL) || ((1 >> v_label) & 1 == 0)]
                 // return (v_pr, 0)
@@ -17929,7 +16435,6 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     .scanner
                     .match_any(&FIRST_SET_INDIRECT_EXCLUDE_OPERAND_ALT0, input_index)
                 {
-                    matched = true;
                     self.add_first_descriptor(SlotId(1098), input_index, gss_node_id, env);
                 }
                 // IndirectExcludeOperand(p: i32, end: i32, a: i32, e: i32) : . [2 & e == 0] "b" return
@@ -17938,16 +16443,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     .scanner
                     .match_any(&FIRST_SET_INDIRECT_EXCLUDE_OPERAND_ALT1, input_index)
                 {
-                    matched = true;
                     self.add_first_descriptor(SlotId(1103), input_index, gss_node_id, env);
-                }
-                if !matched {
-                    self.add_failure(
-                        input_index,
-                        SlotId(1098),
-                        Some(gss_node_id),
-                        GLLFailureKind::UnexpectedToken(&FIRST_SET_INDIRECT_EXCLUDE_OPERAND),
-                    );
                 }
             }
             // IndirectExcludeFiltered : . IndirectExcludeOperand(0, 0, 0, 2)
@@ -17956,13 +16452,11 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
             }
             // OperandLiteral
             NonterminalId(163) => {
-                let mut matched = false;
                 // OperandLiteral(p: i32, a: i32) : . "x" return 0
                 if self
                     .scanner
                     .match_any(&FIRST_SET_OPERAND_LITERAL_ALT0, input_index)
                 {
-                    matched = true;
                     self.add_first_descriptor(SlotId(1107), input_index, gss_node_id, env);
                 }
                 // OperandLiteral(p: i32, a: i32) : . l_pr=OperandLiteralEnd(p, 0, 0) [(l_pr ==
@@ -17974,7 +16468,6 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     .scanner
                     .match_any(&FIRST_SET_OPERAND_LITERAL_ALT1, input_index)
                 {
-                    matched = true;
                     self.add_first_descriptor(SlotId(1110), input_index, gss_node_id, env);
                 }
                 // OperandLiteral(p: i32, a: i32) : . l_pr=OperandLiteralEnd(p, 0, 0) [(l_pr ==
@@ -17986,27 +16479,16 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     .scanner
                     .match_any(&FIRST_SET_OPERAND_LITERAL_ALT2, input_index)
                 {
-                    matched = true;
                     self.add_first_descriptor(SlotId(1119), input_index, gss_node_id, env);
-                }
-                if !matched {
-                    self.add_failure(
-                        input_index,
-                        SlotId(1107),
-                        Some(gss_node_id),
-                        GLLFailureKind::UnexpectedToken(&FIRST_SET_OPERAND_LITERAL),
-                    );
                 }
             }
             // OperandLiteralEnd
             NonterminalId(164) => {
-                let mut matched = false;
                 // OperandLiteralEnd(p: i32, end: i32, a: i32) : . v_pr=OperandLiteral(p, a) return v_pr
                 if self
                     .scanner
                     .match_any(&FIRST_SET_OPERAND_LITERAL_END_ALT0, input_index)
                 {
-                    matched = true;
                     self.add_first_descriptor(SlotId(1128), input_index, gss_node_id, env);
                 }
                 // OperandLiteralEnd(p: i32, end: i32, a: i32) : . "1" return UNDEFINED_PRECEDENCE
@@ -18014,27 +16496,16 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     .scanner
                     .match_any(&FIRST_SET_OPERAND_LITERAL_END_ALT1, input_index)
                 {
-                    matched = true;
                     self.add_first_descriptor(SlotId(1131), input_index, gss_node_id, env);
-                }
-                if !matched {
-                    self.add_failure(
-                        input_index,
-                        SlotId(1128),
-                        Some(gss_node_id),
-                        GLLFailureKind::UnexpectedToken(&FIRST_SET_OPERAND_LITERAL_END),
-                    );
                 }
             }
             // HeadLiteral
             NonterminalId(165) => {
-                let mut matched = false;
                 // HeadLiteral(p: i32) : . "x" return 0
                 if self
                     .scanner
                     .match_any(&FIRST_SET_HEAD_LITERAL_ALT0, input_index)
                 {
-                    matched = true;
                     self.add_first_descriptor(SlotId(1134), input_index, gss_node_id, env);
                 }
                 // HeadLiteral(p: i32) : . "1" return 0
@@ -18042,7 +16513,6 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     .scanner
                     .match_any(&FIRST_SET_HEAD_LITERAL_ALT1, input_index)
                 {
-                    matched = true;
                     self.add_first_descriptor(SlotId(1137), input_index, gss_node_id, env);
                 }
                 // HeadLiteral(p: i32) : . [2 >= p] l_pr=HeadLiteralEnd(p, 0) [(l_pr == 0) || (l_pr >= 2)] WS
@@ -18051,7 +16521,6 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     .scanner
                     .match_any(&FIRST_SET_HEAD_LITERAL_ALT2, input_index)
                 {
-                    matched = true;
                     self.add_first_descriptor(SlotId(1140), input_index, gss_node_id, env);
                 }
                 // HeadLiteral(p: i32) : . [1 >= p] l_pr=HeadLiteralEnd(p, 0) [(l_pr == 0) || (l_pr >= 1)] WS
@@ -18060,16 +16529,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     .scanner
                     .match_any(&FIRST_SET_HEAD_LITERAL_ALT3, input_index)
                 {
-                    matched = true;
                     self.add_first_descriptor(SlotId(1149), input_index, gss_node_id, env);
-                }
-                if !matched {
-                    self.add_failure(
-                        input_index,
-                        SlotId(1134),
-                        Some(gss_node_id),
-                        GLLFailureKind::UnexpectedToken(&FIRST_SET_HEAD_LITERAL),
-                    );
                 }
             }
             // HeadLiteralEnd(p: i32, end: i32) : . v_pr=HeadLiteral(p) return v_pr
@@ -18078,99 +16538,55 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
             }
             // Opt_0
             NonterminalId(15) => {
-                let mut matched = false;
                 // Opt_0 : . "x"
                 if self.scanner.match_any(&FIRST_SET_OPT_0_ALT0, input_index) {
-                    matched = true;
                     self.add_first_descriptor(SlotId(49), input_index, gss_node_id, env);
                 }
                 // Opt_0 : .
                 if self.scanner.match_any(&FIRST_SET_OPT_0_ALT1, input_index)
                     || self.scanner.match_any(&FOLLOW_SET_OPT_0, input_index)
                 {
-                    matched = true;
                     self.add_first_descriptor(SlotId(51), input_index, gss_node_id, env);
-                }
-                if !matched {
-                    self.add_failure(
-                        input_index,
-                        SlotId(49),
-                        Some(gss_node_id),
-                        GLLFailureKind::UnexpectedToken(&PREDICTION_SET_OPT_0),
-                    );
                 }
             }
             // Opt_1
             NonterminalId(167) => {
-                let mut matched = false;
                 // Opt_1(p: i32, a: i32) : . (l_pr, l_assoc)=NullableRecursive(p, a) return (l_pr, l_assoc)
                 if self.scanner.match_any(&FIRST_SET_OPT_1_ALT0, input_index) {
-                    matched = true;
                     self.add_first_descriptor(SlotId(1161), input_index, gss_node_id, env);
                 }
                 // Opt_1(p: i32, a: i32) : . return (UNDEFINED_PRECEDENCE, 0)
                 if self.scanner.match_any(&FIRST_SET_OPT_1_ALT1, input_index)
                     || self.scanner.match_any(&FOLLOW_SET_OPT_1, input_index)
                 {
-                    matched = true;
                     self.add_first_descriptor(SlotId(1164), input_index, gss_node_id, env);
-                }
-                if !matched {
-                    self.add_failure(
-                        input_index,
-                        SlotId(1161),
-                        Some(gss_node_id),
-                        GLLFailureKind::UnexpectedToken(&PREDICTION_SET_OPT_1),
-                    );
                 }
             }
             // Opt_2
             NonterminalId(168) => {
-                let mut matched = false;
                 // Opt_2(p: i32, a: i32) : . r_pr=NullableSuffix(p, a) return r_pr
                 if self.scanner.match_any(&FIRST_SET_OPT_2_ALT0, input_index) {
-                    matched = true;
                     self.add_first_descriptor(SlotId(1166), input_index, gss_node_id, env);
                 }
                 // Opt_2(p: i32, a: i32) : . return UNDEFINED_PRECEDENCE
                 if self.scanner.match_any(&FIRST_SET_OPT_2_ALT1, input_index)
                     || self.scanner.match_any(&FOLLOW_SET_OPT_2, input_index)
                 {
-                    matched = true;
                     self.add_first_descriptor(SlotId(1169), input_index, gss_node_id, env);
-                }
-                if !matched {
-                    self.add_failure(
-                        input_index,
-                        SlotId(1166),
-                        Some(gss_node_id),
-                        GLLFailureKind::UnexpectedToken(&PREDICTION_SET_OPT_2),
-                    );
                 }
             }
             // Opt_3
             NonterminalId(169) => {
-                let mut matched = false;
                 // Opt_3(p: i32, end: i32, a: i32) : . (v_pr, v_assoc)=NullableShared(p, a) return (v_pr,
                 // v_assoc)
                 if self.scanner.match_any(&FIRST_SET_OPT_3_ALT0, input_index) {
-                    matched = true;
                     self.add_first_descriptor(SlotId(1171), input_index, gss_node_id, env);
                 }
                 // Opt_3(p: i32, end: i32, a: i32) : . return (UNDEFINED_PRECEDENCE, 0)
                 if self.scanner.match_any(&FIRST_SET_OPT_3_ALT1, input_index)
                     || self.scanner.match_any(&FOLLOW_SET_OPT_3, input_index)
                 {
-                    matched = true;
                     self.add_first_descriptor(SlotId(1174), input_index, gss_node_id, env);
-                }
-                if !matched {
-                    self.add_failure(
-                        input_index,
-                        SlotId(1171),
-                        Some(gss_node_id),
-                        GLLFailureKind::UnexpectedToken(&PREDICTION_SET_OPT_3),
-                    );
                 }
             }
             // StartS : . WS start:S WS
@@ -20040,632 +18456,6 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
     ) -> Option<GLLFailureKind> {
         None
     }
-    fn follow_set_check(&mut self, nonterminal_id: NonterminalId, input_index: u32) -> bool {
-        match nonterminal_id {
-            NonterminalId(0) => self.scanner.match_any(&FOLLOW_SET_S, input_index),
-            NonterminalId(99) => self.scanner.match_any(&FOLLOW_SET_E, input_index),
-            NonterminalId(100) => self.scanner.match_any(&FOLLOW_SET_L, input_index),
-            NonterminalId(101) => self.scanner.match_any(&FOLLOW_SET_ONLY, input_index),
-            NonterminalId(102) => self
-                .scanner
-                .match_any(&FOLLOW_SET_ONLY_OPERAND, input_index),
-            NonterminalId(103) => self.scanner.match_any(&FOLLOW_SET_CROSS, input_index),
-            NonterminalId(104) => self.scanner.match_any(&FOLLOW_SET_FOREIGN, input_index),
-            NonterminalId(105) => self.scanner.match_any(&FOLLOW_SET_CASCADE, input_index),
-            NonterminalId(1) => self.scanner.match_any(&FOLLOW_SET_TERNARY, input_index),
-            NonterminalId(106) => self.scanner.match_any(&FOLLOW_SET_NULLABLE, input_index),
-            NonterminalId(2) => self
-                .scanner
-                .match_any(&FOLLOW_SET_NULLABLE_LEFT, input_index),
-            NonterminalId(107) => self
-                .scanner
-                .match_any(&FOLLOW_SET_NULLABLE_RIGHT, input_index),
-            NonterminalId(108) => self.scanner.match_any(&FOLLOW_SET_RIGHT_EXPR, input_index),
-            NonterminalId(109) => self
-                .scanner
-                .match_any(&FOLLOW_SET_RIGHT_OPERAND, input_index),
-            NonterminalId(110) => self.scanner.match_any(&FOLLOW_SET_NONE_EXPR, input_index),
-            NonterminalId(111) => self
-                .scanner
-                .match_any(&FOLLOW_SET_NONE_OPERAND, input_index),
-            NonterminalId(112) => self.scanner.match_any(&FOLLOW_SET_EXCLUDED, input_index),
-            NonterminalId(113) => self
-                .scanner
-                .match_any(&FOLLOW_SET_EXCLUDED_OPERAND, input_index),
-            NonterminalId(3) => self.scanner.match_any(&FOLLOW_SET_FILTERED, input_index),
-            NonterminalId(114) => self
-                .scanner
-                .match_any(&FOLLOW_SET_LEX_NULLABLE, input_index),
-            NonterminalId(4) => self
-                .scanner
-                .match_any(&FOLLOW_SET_LEX_NULLABLE_LEFT, input_index),
-            NonterminalId(115) => self
-                .scanner
-                .match_any(&FOLLOW_SET_LEX_NULLABLE_RIGHT, input_index),
-            NonterminalId(116) => self.scanner.match_any(&FOLLOW_SET_MIXED_SCALE, input_index),
-            NonterminalId(117) => self
-                .scanner
-                .match_any(&FOLLOW_SET_MIXED_OPERAND, input_index),
-            NonterminalId(118) => self.scanner.match_any(&FOLLOW_SET_MIXED_RIGHT, input_index),
-            NonterminalId(119) => self
-                .scanner
-                .match_any(&FOLLOW_SET_MIXED_FOREIGN, input_index),
-            NonterminalId(120) => self.scanner.match_any(&FOLLOW_SET_PACKED, input_index),
-            NonterminalId(121) => self
-                .scanner
-                .match_any(&FOLLOW_SET_PACKED_OPERAND, input_index),
-            NonterminalId(122) => self
-                .scanner
-                .match_any(&FOLLOW_SET_PACKED_MIDDLE, input_index),
-            NonterminalId(5) => self
-                .scanner
-                .match_any(&FOLLOW_SET_PACKED_FILTERED, input_index),
-            NonterminalId(123) => self
-                .scanner
-                .match_any(&FOLLOW_SET_NULLABLE_RECURSIVE, input_index),
-            NonterminalId(124) => self
-                .scanner
-                .match_any(&FOLLOW_SET_NULLABLE_OPERAND, input_index),
-            NonterminalId(125) => self
-                .scanner
-                .match_any(&FOLLOW_SET_NULLABLE_MAYBE, input_index),
-            NonterminalId(126) => self
-                .scanner
-                .match_any(&FOLLOW_SET_NULLABLE_LEX_RECURSIVE, input_index),
-            NonterminalId(127) => self
-                .scanner
-                .match_any(&FOLLOW_SET_NULLABLE_LEX_OPERAND, input_index),
-            NonterminalId(128) => self
-                .scanner
-                .match_any(&FOLLOW_SET_NULLABLE_LEX_MAYBE, input_index),
-            NonterminalId(129) => self
-                .scanner
-                .match_any(&FOLLOW_SET_NULLABLE_SUFFIX, input_index),
-            NonterminalId(130) => self
-                .scanner
-                .match_any(&FOLLOW_SET_NULLABLE_SUFFIX_OPERAND, input_index),
-            NonterminalId(131) => self
-                .scanner
-                .match_any(&FOLLOW_SET_NULLABLE_SUFFIX_MAYBE, input_index),
-            NonterminalId(132) => self
-                .scanner
-                .match_any(&FOLLOW_SET_NULLABLE_SHARED, input_index),
-            NonterminalId(133) => self
-                .scanner
-                .match_any(&FOLLOW_SET_NULLABLE_SHARED_OPERAND, input_index),
-            NonterminalId(134) => self
-                .scanner
-                .match_any(&FOLLOW_SET_NULLABLE_SHARED_MAYBE, input_index),
-            NonterminalId(135) => self.scanner.match_any(&FOLLOW_SET_OWN_LABEL, input_index),
-            NonterminalId(136) => self.scanner.match_any(&FOLLOW_SET_OWN_OPERAND, input_index),
-            NonterminalId(6) => self
-                .scanner
-                .match_any(&FOLLOW_SET_OWN_HEAD_FILTERED, input_index),
-            NonterminalId(137) => self
-                .scanner
-                .match_any(&FOLLOW_SET_EXCLUDE_ONLY, input_index),
-            NonterminalId(7) => self
-                .scanner
-                .match_any(&FOLLOW_SET_EXCLUDE_ONLY_FILTERED, input_index),
-            NonterminalId(138) => self.scanner.match_any(&FOLLOW_SET_ABSENT, input_index),
-            NonterminalId(139) => self
-                .scanner
-                .match_any(&FOLLOW_SET_ABSENT_OPERAND, input_index),
-            NonterminalId(140) => self
-                .scanner
-                .match_any(&FOLLOW_SET_CLOSED_PREFIX, input_index),
-            NonterminalId(141) => self
-                .scanner
-                .match_any(&FOLLOW_SET_CLOSED_PREFIX_BODY, input_index),
-            NonterminalId(142) => self
-                .scanner
-                .match_any(&FOLLOW_SET_CLOSED_POSTFIX, input_index),
-            NonterminalId(143) => self
-                .scanner
-                .match_any(&FOLLOW_SET_CLOSED_POSTFIX_BODY, input_index),
-            NonterminalId(144) => self.scanner.match_any(&FOLLOW_SET_HEAD_CHOICE, input_index),
-            NonterminalId(145) => self
-                .scanner
-                .match_any(&FOLLOW_SET_HEAD_OPERAND, input_index),
-            NonterminalId(146) => self.scanner.match_any(&FOLLOW_SET_INNER, input_index),
-            NonterminalId(147) => self
-                .scanner
-                .match_any(&FOLLOW_SET_UNARY_MIXED_LEFT, input_index),
-            NonterminalId(148) => self
-                .scanner
-                .match_any(&FOLLOW_SET_UNARY_MIXED_RIGHT, input_index),
-            NonterminalId(149) => self
-                .scanner
-                .match_any(&FOLLOW_SET_UNARY_MIXED_NONE, input_index),
-            NonterminalId(150) => self.scanner.match_any(&FOLLOW_SET_DYNAMIC, input_index),
-            NonterminalId(151) => self
-                .scanner
-                .match_any(&FOLLOW_SET_DYNAMIC_OPERAND, input_index),
-            NonterminalId(8) => self
-                .scanner
-                .match_any(&FOLLOW_SET_DYNAMIC_FILTERED, input_index),
-            NonterminalId(9) => self
-                .scanner
-                .match_any(&FOLLOW_SET_DYNAMIC_HEAD_FILTERED, input_index),
-            NonterminalId(152) => self
-                .scanner
-                .match_any(&FOLLOW_SET_DYNAMIC_MULTI, input_index),
-            NonterminalId(153) => self
-                .scanner
-                .match_any(&FOLLOW_SET_DYNAMIC_MULTI_OPERAND, input_index),
-            NonterminalId(154) => self
-                .scanner
-                .match_any(&FOLLOW_SET_NULLABLE_BOUNDARY_PREFIX, input_index),
-            NonterminalId(10) => self
-                .scanner
-                .match_any(&FOLLOW_SET_NULLABLE_BOUNDARY_RIGHT, input_index),
-            NonterminalId(11) => self
-                .scanner
-                .match_any(&FOLLOW_SET_NULLABLE_BOUNDARY_OPT, input_index),
-            NonterminalId(155) => self
-                .scanner
-                .match_any(&FOLLOW_SET_NULLABLE_BOUNDARY_POSTFIX, input_index),
-            NonterminalId(12) => self
-                .scanner
-                .match_any(&FOLLOW_SET_NULLABLE_BOUNDARY_LEFT, input_index),
-            NonterminalId(156) => self
-                .scanner
-                .match_any(&FOLLOW_SET_NULLABLE_BOUNDARY_BINARY, input_index),
-            NonterminalId(13) => self
-                .scanner
-                .match_any(&FOLLOW_SET_NULLABLE_BOUNDARY_OPERAND, input_index),
-            NonterminalId(157) => self
-                .scanner
-                .match_any(&FOLLOW_SET_CLOSED_LEFT_ASSOC, input_index),
-            NonterminalId(158) => self
-                .scanner
-                .match_any(&FOLLOW_SET_CLOSED_LEFT_OPERAND, input_index),
-            NonterminalId(159) => self
-                .scanner
-                .match_any(&FOLLOW_SET_CLOSED_RIGHT_ASSOC, input_index),
-            NonterminalId(160) => self
-                .scanner
-                .match_any(&FOLLOW_SET_CLOSED_RIGHT_OPERAND, input_index),
-            NonterminalId(161) => self
-                .scanner
-                .match_any(&FOLLOW_SET_INDIRECT_EXCLUDE, input_index),
-            NonterminalId(162) => self
-                .scanner
-                .match_any(&FOLLOW_SET_INDIRECT_EXCLUDE_OPERAND, input_index),
-            NonterminalId(14) => self
-                .scanner
-                .match_any(&FOLLOW_SET_INDIRECT_EXCLUDE_FILTERED, input_index),
-            NonterminalId(163) => self
-                .scanner
-                .match_any(&FOLLOW_SET_OPERAND_LITERAL, input_index),
-            NonterminalId(164) => self
-                .scanner
-                .match_any(&FOLLOW_SET_OPERAND_LITERAL_END, input_index),
-            NonterminalId(165) => self
-                .scanner
-                .match_any(&FOLLOW_SET_HEAD_LITERAL, input_index),
-            NonterminalId(166) => self
-                .scanner
-                .match_any(&FOLLOW_SET_HEAD_LITERAL_END, input_index),
-            NonterminalId(15) => self.scanner.match_any(&FOLLOW_SET_OPT_0, input_index),
-            NonterminalId(167) => self.scanner.match_any(&FOLLOW_SET_OPT_1, input_index),
-            NonterminalId(168) => self.scanner.match_any(&FOLLOW_SET_OPT_2, input_index),
-            NonterminalId(169) => self.scanner.match_any(&FOLLOW_SET_OPT_3, input_index),
-            NonterminalId(16) => self.scanner.match_any(&FOLLOW_SET_START_S, input_index),
-            NonterminalId(17) => self.scanner.match_any(&FOLLOW_SET_START_E, input_index),
-            NonterminalId(18) => self.scanner.match_any(&FOLLOW_SET_START_L, input_index),
-            NonterminalId(19) => self.scanner.match_any(&FOLLOW_SET_START_ONLY, input_index),
-            NonterminalId(20) => self
-                .scanner
-                .match_any(&FOLLOW_SET_START_ONLY_OPERAND, input_index),
-            NonterminalId(21) => self.scanner.match_any(&FOLLOW_SET_START_CROSS, input_index),
-            NonterminalId(22) => self
-                .scanner
-                .match_any(&FOLLOW_SET_START_FOREIGN, input_index),
-            NonterminalId(23) => self
-                .scanner
-                .match_any(&FOLLOW_SET_START_CASCADE, input_index),
-            NonterminalId(24) => self
-                .scanner
-                .match_any(&FOLLOW_SET_START_TERNARY, input_index),
-            NonterminalId(25) => self
-                .scanner
-                .match_any(&FOLLOW_SET_START_NULLABLE, input_index),
-            NonterminalId(26) => self
-                .scanner
-                .match_any(&FOLLOW_SET_START_NULLABLE_LEFT, input_index),
-            NonterminalId(27) => self
-                .scanner
-                .match_any(&FOLLOW_SET_START_NULLABLE_RIGHT, input_index),
-            NonterminalId(28) => self
-                .scanner
-                .match_any(&FOLLOW_SET_START_RIGHT_EXPR, input_index),
-            NonterminalId(29) => self
-                .scanner
-                .match_any(&FOLLOW_SET_START_RIGHT_OPERAND, input_index),
-            NonterminalId(30) => self
-                .scanner
-                .match_any(&FOLLOW_SET_START_NONE_EXPR, input_index),
-            NonterminalId(31) => self
-                .scanner
-                .match_any(&FOLLOW_SET_START_NONE_OPERAND, input_index),
-            NonterminalId(32) => self
-                .scanner
-                .match_any(&FOLLOW_SET_START_EXCLUDED, input_index),
-            NonterminalId(33) => self
-                .scanner
-                .match_any(&FOLLOW_SET_START_EXCLUDED_OPERAND, input_index),
-            NonterminalId(34) => self
-                .scanner
-                .match_any(&FOLLOW_SET_START_FILTERED, input_index),
-            NonterminalId(35) => self
-                .scanner
-                .match_any(&FOLLOW_SET_START_LEX_NULLABLE, input_index),
-            NonterminalId(36) => self
-                .scanner
-                .match_any(&FOLLOW_SET_START_LEX_NULLABLE_LEFT, input_index),
-            NonterminalId(37) => self
-                .scanner
-                .match_any(&FOLLOW_SET_START_LEX_NULLABLE_RIGHT, input_index),
-            NonterminalId(38) => self
-                .scanner
-                .match_any(&FOLLOW_SET_START_MIXED_SCALE, input_index),
-            NonterminalId(39) => self
-                .scanner
-                .match_any(&FOLLOW_SET_START_MIXED_OPERAND, input_index),
-            NonterminalId(40) => self
-                .scanner
-                .match_any(&FOLLOW_SET_START_MIXED_RIGHT, input_index),
-            NonterminalId(41) => self
-                .scanner
-                .match_any(&FOLLOW_SET_START_MIXED_FOREIGN, input_index),
-            NonterminalId(42) => self
-                .scanner
-                .match_any(&FOLLOW_SET_START_PACKED, input_index),
-            NonterminalId(43) => self
-                .scanner
-                .match_any(&FOLLOW_SET_START_PACKED_OPERAND, input_index),
-            NonterminalId(44) => self
-                .scanner
-                .match_any(&FOLLOW_SET_START_PACKED_MIDDLE, input_index),
-            NonterminalId(45) => self
-                .scanner
-                .match_any(&FOLLOW_SET_START_PACKED_FILTERED, input_index),
-            NonterminalId(46) => self
-                .scanner
-                .match_any(&FOLLOW_SET_START_NULLABLE_RECURSIVE, input_index),
-            NonterminalId(47) => self
-                .scanner
-                .match_any(&FOLLOW_SET_START_NULLABLE_OPERAND, input_index),
-            NonterminalId(48) => self
-                .scanner
-                .match_any(&FOLLOW_SET_START_NULLABLE_MAYBE, input_index),
-            NonterminalId(49) => self
-                .scanner
-                .match_any(&FOLLOW_SET_START_NULLABLE_LEX_RECURSIVE, input_index),
-            NonterminalId(50) => self
-                .scanner
-                .match_any(&FOLLOW_SET_START_NULLABLE_LEX_OPERAND, input_index),
-            NonterminalId(51) => self
-                .scanner
-                .match_any(&FOLLOW_SET_START_NULLABLE_LEX_MAYBE, input_index),
-            NonterminalId(52) => self
-                .scanner
-                .match_any(&FOLLOW_SET_START_NULLABLE_SUFFIX, input_index),
-            NonterminalId(53) => self
-                .scanner
-                .match_any(&FOLLOW_SET_START_NULLABLE_SUFFIX_OPERAND, input_index),
-            NonterminalId(54) => self
-                .scanner
-                .match_any(&FOLLOW_SET_START_NULLABLE_SUFFIX_MAYBE, input_index),
-            NonterminalId(55) => self
-                .scanner
-                .match_any(&FOLLOW_SET_START_NULLABLE_SHARED, input_index),
-            NonterminalId(56) => self
-                .scanner
-                .match_any(&FOLLOW_SET_START_NULLABLE_SHARED_OPERAND, input_index),
-            NonterminalId(57) => self
-                .scanner
-                .match_any(&FOLLOW_SET_START_NULLABLE_SHARED_MAYBE, input_index),
-            NonterminalId(58) => self
-                .scanner
-                .match_any(&FOLLOW_SET_START_OWN_LABEL, input_index),
-            NonterminalId(59) => self
-                .scanner
-                .match_any(&FOLLOW_SET_START_OWN_OPERAND, input_index),
-            NonterminalId(60) => self
-                .scanner
-                .match_any(&FOLLOW_SET_START_OWN_HEAD_FILTERED, input_index),
-            NonterminalId(61) => self
-                .scanner
-                .match_any(&FOLLOW_SET_START_EXCLUDE_ONLY, input_index),
-            NonterminalId(62) => self
-                .scanner
-                .match_any(&FOLLOW_SET_START_EXCLUDE_ONLY_FILTERED, input_index),
-            NonterminalId(63) => self
-                .scanner
-                .match_any(&FOLLOW_SET_START_ABSENT, input_index),
-            NonterminalId(64) => self
-                .scanner
-                .match_any(&FOLLOW_SET_START_ABSENT_OPERAND, input_index),
-            NonterminalId(65) => self
-                .scanner
-                .match_any(&FOLLOW_SET_START_CLOSED_PREFIX, input_index),
-            NonterminalId(66) => self
-                .scanner
-                .match_any(&FOLLOW_SET_START_CLOSED_PREFIX_BODY, input_index),
-            NonterminalId(67) => self
-                .scanner
-                .match_any(&FOLLOW_SET_START_CLOSED_POSTFIX, input_index),
-            NonterminalId(68) => self
-                .scanner
-                .match_any(&FOLLOW_SET_START_CLOSED_POSTFIX_BODY, input_index),
-            NonterminalId(69) => self
-                .scanner
-                .match_any(&FOLLOW_SET_START_HEAD_CHOICE, input_index),
-            NonterminalId(70) => self
-                .scanner
-                .match_any(&FOLLOW_SET_START_HEAD_OPERAND, input_index),
-            NonterminalId(71) => self.scanner.match_any(&FOLLOW_SET_START_INNER, input_index),
-            NonterminalId(72) => self
-                .scanner
-                .match_any(&FOLLOW_SET_START_UNARY_MIXED_LEFT, input_index),
-            NonterminalId(73) => self
-                .scanner
-                .match_any(&FOLLOW_SET_START_UNARY_MIXED_RIGHT, input_index),
-            NonterminalId(74) => self
-                .scanner
-                .match_any(&FOLLOW_SET_START_UNARY_MIXED_NONE, input_index),
-            NonterminalId(75) => self
-                .scanner
-                .match_any(&FOLLOW_SET_START_DYNAMIC, input_index),
-            NonterminalId(76) => self
-                .scanner
-                .match_any(&FOLLOW_SET_START_DYNAMIC_OPERAND, input_index),
-            NonterminalId(77) => self
-                .scanner
-                .match_any(&FOLLOW_SET_START_DYNAMIC_FILTERED, input_index),
-            NonterminalId(78) => self
-                .scanner
-                .match_any(&FOLLOW_SET_START_DYNAMIC_HEAD_FILTERED, input_index),
-            NonterminalId(79) => self
-                .scanner
-                .match_any(&FOLLOW_SET_START_DYNAMIC_MULTI, input_index),
-            NonterminalId(80) => self
-                .scanner
-                .match_any(&FOLLOW_SET_START_DYNAMIC_MULTI_OPERAND, input_index),
-            NonterminalId(81) => self
-                .scanner
-                .match_any(&FOLLOW_SET_START_NULLABLE_BOUNDARY_PREFIX, input_index),
-            NonterminalId(82) => self
-                .scanner
-                .match_any(&FOLLOW_SET_START_NULLABLE_BOUNDARY_RIGHT, input_index),
-            NonterminalId(83) => self
-                .scanner
-                .match_any(&FOLLOW_SET_START_NULLABLE_BOUNDARY_OPT, input_index),
-            NonterminalId(84) => self
-                .scanner
-                .match_any(&FOLLOW_SET_START_NULLABLE_BOUNDARY_POSTFIX, input_index),
-            NonterminalId(85) => self
-                .scanner
-                .match_any(&FOLLOW_SET_START_NULLABLE_BOUNDARY_LEFT, input_index),
-            NonterminalId(86) => self
-                .scanner
-                .match_any(&FOLLOW_SET_START_NULLABLE_BOUNDARY_BINARY, input_index),
-            NonterminalId(87) => self
-                .scanner
-                .match_any(&FOLLOW_SET_START_NULLABLE_BOUNDARY_OPERAND, input_index),
-            NonterminalId(88) => self
-                .scanner
-                .match_any(&FOLLOW_SET_START_CLOSED_LEFT_ASSOC, input_index),
-            NonterminalId(89) => self
-                .scanner
-                .match_any(&FOLLOW_SET_START_CLOSED_LEFT_OPERAND, input_index),
-            NonterminalId(90) => self
-                .scanner
-                .match_any(&FOLLOW_SET_START_CLOSED_RIGHT_ASSOC, input_index),
-            NonterminalId(91) => self
-                .scanner
-                .match_any(&FOLLOW_SET_START_CLOSED_RIGHT_OPERAND, input_index),
-            NonterminalId(92) => self
-                .scanner
-                .match_any(&FOLLOW_SET_START_INDIRECT_EXCLUDE, input_index),
-            NonterminalId(93) => self
-                .scanner
-                .match_any(&FOLLOW_SET_START_INDIRECT_EXCLUDE_OPERAND, input_index),
-            NonterminalId(94) => self
-                .scanner
-                .match_any(&FOLLOW_SET_START_INDIRECT_EXCLUDE_FILTERED, input_index),
-            NonterminalId(95) => self
-                .scanner
-                .match_any(&FOLLOW_SET_START_OPERAND_LITERAL, input_index),
-            NonterminalId(96) => self
-                .scanner
-                .match_any(&FOLLOW_SET_START_OPERAND_LITERAL_END, input_index),
-            NonterminalId(97) => self
-                .scanner
-                .match_any(&FOLLOW_SET_START_HEAD_LITERAL, input_index),
-            NonterminalId(98) => self
-                .scanner
-                .match_any(&FOLLOW_SET_START_HEAD_LITERAL_END, input_index),
-            _ => true,
-        }
-    }
-    fn follow_set(&self, nonterminal_id: NonterminalId) -> &'static TerminalSet {
-        match nonterminal_id {
-            NonterminalId(0) => &FOLLOW_SET_S,
-            NonterminalId(99) => &FOLLOW_SET_E,
-            NonterminalId(100) => &FOLLOW_SET_L,
-            NonterminalId(101) => &FOLLOW_SET_ONLY,
-            NonterminalId(102) => &FOLLOW_SET_ONLY_OPERAND,
-            NonterminalId(103) => &FOLLOW_SET_CROSS,
-            NonterminalId(104) => &FOLLOW_SET_FOREIGN,
-            NonterminalId(105) => &FOLLOW_SET_CASCADE,
-            NonterminalId(1) => &FOLLOW_SET_TERNARY,
-            NonterminalId(106) => &FOLLOW_SET_NULLABLE,
-            NonterminalId(2) => &FOLLOW_SET_NULLABLE_LEFT,
-            NonterminalId(107) => &FOLLOW_SET_NULLABLE_RIGHT,
-            NonterminalId(108) => &FOLLOW_SET_RIGHT_EXPR,
-            NonterminalId(109) => &FOLLOW_SET_RIGHT_OPERAND,
-            NonterminalId(110) => &FOLLOW_SET_NONE_EXPR,
-            NonterminalId(111) => &FOLLOW_SET_NONE_OPERAND,
-            NonterminalId(112) => &FOLLOW_SET_EXCLUDED,
-            NonterminalId(113) => &FOLLOW_SET_EXCLUDED_OPERAND,
-            NonterminalId(3) => &FOLLOW_SET_FILTERED,
-            NonterminalId(114) => &FOLLOW_SET_LEX_NULLABLE,
-            NonterminalId(4) => &FOLLOW_SET_LEX_NULLABLE_LEFT,
-            NonterminalId(115) => &FOLLOW_SET_LEX_NULLABLE_RIGHT,
-            NonterminalId(116) => &FOLLOW_SET_MIXED_SCALE,
-            NonterminalId(117) => &FOLLOW_SET_MIXED_OPERAND,
-            NonterminalId(118) => &FOLLOW_SET_MIXED_RIGHT,
-            NonterminalId(119) => &FOLLOW_SET_MIXED_FOREIGN,
-            NonterminalId(120) => &FOLLOW_SET_PACKED,
-            NonterminalId(121) => &FOLLOW_SET_PACKED_OPERAND,
-            NonterminalId(122) => &FOLLOW_SET_PACKED_MIDDLE,
-            NonterminalId(5) => &FOLLOW_SET_PACKED_FILTERED,
-            NonterminalId(123) => &FOLLOW_SET_NULLABLE_RECURSIVE,
-            NonterminalId(124) => &FOLLOW_SET_NULLABLE_OPERAND,
-            NonterminalId(125) => &FOLLOW_SET_NULLABLE_MAYBE,
-            NonterminalId(126) => &FOLLOW_SET_NULLABLE_LEX_RECURSIVE,
-            NonterminalId(127) => &FOLLOW_SET_NULLABLE_LEX_OPERAND,
-            NonterminalId(128) => &FOLLOW_SET_NULLABLE_LEX_MAYBE,
-            NonterminalId(129) => &FOLLOW_SET_NULLABLE_SUFFIX,
-            NonterminalId(130) => &FOLLOW_SET_NULLABLE_SUFFIX_OPERAND,
-            NonterminalId(131) => &FOLLOW_SET_NULLABLE_SUFFIX_MAYBE,
-            NonterminalId(132) => &FOLLOW_SET_NULLABLE_SHARED,
-            NonterminalId(133) => &FOLLOW_SET_NULLABLE_SHARED_OPERAND,
-            NonterminalId(134) => &FOLLOW_SET_NULLABLE_SHARED_MAYBE,
-            NonterminalId(135) => &FOLLOW_SET_OWN_LABEL,
-            NonterminalId(136) => &FOLLOW_SET_OWN_OPERAND,
-            NonterminalId(6) => &FOLLOW_SET_OWN_HEAD_FILTERED,
-            NonterminalId(137) => &FOLLOW_SET_EXCLUDE_ONLY,
-            NonterminalId(7) => &FOLLOW_SET_EXCLUDE_ONLY_FILTERED,
-            NonterminalId(138) => &FOLLOW_SET_ABSENT,
-            NonterminalId(139) => &FOLLOW_SET_ABSENT_OPERAND,
-            NonterminalId(140) => &FOLLOW_SET_CLOSED_PREFIX,
-            NonterminalId(141) => &FOLLOW_SET_CLOSED_PREFIX_BODY,
-            NonterminalId(142) => &FOLLOW_SET_CLOSED_POSTFIX,
-            NonterminalId(143) => &FOLLOW_SET_CLOSED_POSTFIX_BODY,
-            NonterminalId(144) => &FOLLOW_SET_HEAD_CHOICE,
-            NonterminalId(145) => &FOLLOW_SET_HEAD_OPERAND,
-            NonterminalId(146) => &FOLLOW_SET_INNER,
-            NonterminalId(147) => &FOLLOW_SET_UNARY_MIXED_LEFT,
-            NonterminalId(148) => &FOLLOW_SET_UNARY_MIXED_RIGHT,
-            NonterminalId(149) => &FOLLOW_SET_UNARY_MIXED_NONE,
-            NonterminalId(150) => &FOLLOW_SET_DYNAMIC,
-            NonterminalId(151) => &FOLLOW_SET_DYNAMIC_OPERAND,
-            NonterminalId(8) => &FOLLOW_SET_DYNAMIC_FILTERED,
-            NonterminalId(9) => &FOLLOW_SET_DYNAMIC_HEAD_FILTERED,
-            NonterminalId(152) => &FOLLOW_SET_DYNAMIC_MULTI,
-            NonterminalId(153) => &FOLLOW_SET_DYNAMIC_MULTI_OPERAND,
-            NonterminalId(154) => &FOLLOW_SET_NULLABLE_BOUNDARY_PREFIX,
-            NonterminalId(10) => &FOLLOW_SET_NULLABLE_BOUNDARY_RIGHT,
-            NonterminalId(11) => &FOLLOW_SET_NULLABLE_BOUNDARY_OPT,
-            NonterminalId(155) => &FOLLOW_SET_NULLABLE_BOUNDARY_POSTFIX,
-            NonterminalId(12) => &FOLLOW_SET_NULLABLE_BOUNDARY_LEFT,
-            NonterminalId(156) => &FOLLOW_SET_NULLABLE_BOUNDARY_BINARY,
-            NonterminalId(13) => &FOLLOW_SET_NULLABLE_BOUNDARY_OPERAND,
-            NonterminalId(157) => &FOLLOW_SET_CLOSED_LEFT_ASSOC,
-            NonterminalId(158) => &FOLLOW_SET_CLOSED_LEFT_OPERAND,
-            NonterminalId(159) => &FOLLOW_SET_CLOSED_RIGHT_ASSOC,
-            NonterminalId(160) => &FOLLOW_SET_CLOSED_RIGHT_OPERAND,
-            NonterminalId(161) => &FOLLOW_SET_INDIRECT_EXCLUDE,
-            NonterminalId(162) => &FOLLOW_SET_INDIRECT_EXCLUDE_OPERAND,
-            NonterminalId(14) => &FOLLOW_SET_INDIRECT_EXCLUDE_FILTERED,
-            NonterminalId(163) => &FOLLOW_SET_OPERAND_LITERAL,
-            NonterminalId(164) => &FOLLOW_SET_OPERAND_LITERAL_END,
-            NonterminalId(165) => &FOLLOW_SET_HEAD_LITERAL,
-            NonterminalId(166) => &FOLLOW_SET_HEAD_LITERAL_END,
-            NonterminalId(15) => &FOLLOW_SET_OPT_0,
-            NonterminalId(167) => &FOLLOW_SET_OPT_1,
-            NonterminalId(168) => &FOLLOW_SET_OPT_2,
-            NonterminalId(169) => &FOLLOW_SET_OPT_3,
-            NonterminalId(16) => &FOLLOW_SET_START_S,
-            NonterminalId(17) => &FOLLOW_SET_START_E,
-            NonterminalId(18) => &FOLLOW_SET_START_L,
-            NonterminalId(19) => &FOLLOW_SET_START_ONLY,
-            NonterminalId(20) => &FOLLOW_SET_START_ONLY_OPERAND,
-            NonterminalId(21) => &FOLLOW_SET_START_CROSS,
-            NonterminalId(22) => &FOLLOW_SET_START_FOREIGN,
-            NonterminalId(23) => &FOLLOW_SET_START_CASCADE,
-            NonterminalId(24) => &FOLLOW_SET_START_TERNARY,
-            NonterminalId(25) => &FOLLOW_SET_START_NULLABLE,
-            NonterminalId(26) => &FOLLOW_SET_START_NULLABLE_LEFT,
-            NonterminalId(27) => &FOLLOW_SET_START_NULLABLE_RIGHT,
-            NonterminalId(28) => &FOLLOW_SET_START_RIGHT_EXPR,
-            NonterminalId(29) => &FOLLOW_SET_START_RIGHT_OPERAND,
-            NonterminalId(30) => &FOLLOW_SET_START_NONE_EXPR,
-            NonterminalId(31) => &FOLLOW_SET_START_NONE_OPERAND,
-            NonterminalId(32) => &FOLLOW_SET_START_EXCLUDED,
-            NonterminalId(33) => &FOLLOW_SET_START_EXCLUDED_OPERAND,
-            NonterminalId(34) => &FOLLOW_SET_START_FILTERED,
-            NonterminalId(35) => &FOLLOW_SET_START_LEX_NULLABLE,
-            NonterminalId(36) => &FOLLOW_SET_START_LEX_NULLABLE_LEFT,
-            NonterminalId(37) => &FOLLOW_SET_START_LEX_NULLABLE_RIGHT,
-            NonterminalId(38) => &FOLLOW_SET_START_MIXED_SCALE,
-            NonterminalId(39) => &FOLLOW_SET_START_MIXED_OPERAND,
-            NonterminalId(40) => &FOLLOW_SET_START_MIXED_RIGHT,
-            NonterminalId(41) => &FOLLOW_SET_START_MIXED_FOREIGN,
-            NonterminalId(42) => &FOLLOW_SET_START_PACKED,
-            NonterminalId(43) => &FOLLOW_SET_START_PACKED_OPERAND,
-            NonterminalId(44) => &FOLLOW_SET_START_PACKED_MIDDLE,
-            NonterminalId(45) => &FOLLOW_SET_START_PACKED_FILTERED,
-            NonterminalId(46) => &FOLLOW_SET_START_NULLABLE_RECURSIVE,
-            NonterminalId(47) => &FOLLOW_SET_START_NULLABLE_OPERAND,
-            NonterminalId(48) => &FOLLOW_SET_START_NULLABLE_MAYBE,
-            NonterminalId(49) => &FOLLOW_SET_START_NULLABLE_LEX_RECURSIVE,
-            NonterminalId(50) => &FOLLOW_SET_START_NULLABLE_LEX_OPERAND,
-            NonterminalId(51) => &FOLLOW_SET_START_NULLABLE_LEX_MAYBE,
-            NonterminalId(52) => &FOLLOW_SET_START_NULLABLE_SUFFIX,
-            NonterminalId(53) => &FOLLOW_SET_START_NULLABLE_SUFFIX_OPERAND,
-            NonterminalId(54) => &FOLLOW_SET_START_NULLABLE_SUFFIX_MAYBE,
-            NonterminalId(55) => &FOLLOW_SET_START_NULLABLE_SHARED,
-            NonterminalId(56) => &FOLLOW_SET_START_NULLABLE_SHARED_OPERAND,
-            NonterminalId(57) => &FOLLOW_SET_START_NULLABLE_SHARED_MAYBE,
-            NonterminalId(58) => &FOLLOW_SET_START_OWN_LABEL,
-            NonterminalId(59) => &FOLLOW_SET_START_OWN_OPERAND,
-            NonterminalId(60) => &FOLLOW_SET_START_OWN_HEAD_FILTERED,
-            NonterminalId(61) => &FOLLOW_SET_START_EXCLUDE_ONLY,
-            NonterminalId(62) => &FOLLOW_SET_START_EXCLUDE_ONLY_FILTERED,
-            NonterminalId(63) => &FOLLOW_SET_START_ABSENT,
-            NonterminalId(64) => &FOLLOW_SET_START_ABSENT_OPERAND,
-            NonterminalId(65) => &FOLLOW_SET_START_CLOSED_PREFIX,
-            NonterminalId(66) => &FOLLOW_SET_START_CLOSED_PREFIX_BODY,
-            NonterminalId(67) => &FOLLOW_SET_START_CLOSED_POSTFIX,
-            NonterminalId(68) => &FOLLOW_SET_START_CLOSED_POSTFIX_BODY,
-            NonterminalId(69) => &FOLLOW_SET_START_HEAD_CHOICE,
-            NonterminalId(70) => &FOLLOW_SET_START_HEAD_OPERAND,
-            NonterminalId(71) => &FOLLOW_SET_START_INNER,
-            NonterminalId(72) => &FOLLOW_SET_START_UNARY_MIXED_LEFT,
-            NonterminalId(73) => &FOLLOW_SET_START_UNARY_MIXED_RIGHT,
-            NonterminalId(74) => &FOLLOW_SET_START_UNARY_MIXED_NONE,
-            NonterminalId(75) => &FOLLOW_SET_START_DYNAMIC,
-            NonterminalId(76) => &FOLLOW_SET_START_DYNAMIC_OPERAND,
-            NonterminalId(77) => &FOLLOW_SET_START_DYNAMIC_FILTERED,
-            NonterminalId(78) => &FOLLOW_SET_START_DYNAMIC_HEAD_FILTERED,
-            NonterminalId(79) => &FOLLOW_SET_START_DYNAMIC_MULTI,
-            NonterminalId(80) => &FOLLOW_SET_START_DYNAMIC_MULTI_OPERAND,
-            NonterminalId(81) => &FOLLOW_SET_START_NULLABLE_BOUNDARY_PREFIX,
-            NonterminalId(82) => &FOLLOW_SET_START_NULLABLE_BOUNDARY_RIGHT,
-            NonterminalId(83) => &FOLLOW_SET_START_NULLABLE_BOUNDARY_OPT,
-            NonterminalId(84) => &FOLLOW_SET_START_NULLABLE_BOUNDARY_POSTFIX,
-            NonterminalId(85) => &FOLLOW_SET_START_NULLABLE_BOUNDARY_LEFT,
-            NonterminalId(86) => &FOLLOW_SET_START_NULLABLE_BOUNDARY_BINARY,
-            NonterminalId(87) => &FOLLOW_SET_START_NULLABLE_BOUNDARY_OPERAND,
-            NonterminalId(88) => &FOLLOW_SET_START_CLOSED_LEFT_ASSOC,
-            NonterminalId(89) => &FOLLOW_SET_START_CLOSED_LEFT_OPERAND,
-            NonterminalId(90) => &FOLLOW_SET_START_CLOSED_RIGHT_ASSOC,
-            NonterminalId(91) => &FOLLOW_SET_START_CLOSED_RIGHT_OPERAND,
-            NonterminalId(92) => &FOLLOW_SET_START_INDIRECT_EXCLUDE,
-            NonterminalId(93) => &FOLLOW_SET_START_INDIRECT_EXCLUDE_OPERAND,
-            NonterminalId(94) => &FOLLOW_SET_START_INDIRECT_EXCLUDE_FILTERED,
-            NonterminalId(95) => &FOLLOW_SET_START_OPERAND_LITERAL,
-            NonterminalId(96) => &FOLLOW_SET_START_OPERAND_LITERAL_END,
-            NonterminalId(97) => &FOLLOW_SET_START_HEAD_LITERAL,
-            NonterminalId(98) => &FOLLOW_SET_START_HEAD_LITERAL_END,
-            _ => unreachable!("no FOLLOW set for nonterminal {nonterminal_id}"),
-        }
-    }
     fn failures(&self) -> impl Iterator<Item = &GLLFailure> {
         self.failures.iter()
     }
@@ -20688,6 +18478,9 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
         if input_index > level {
             self.failures.clear();
         }
+        if self.failures.last().is_some_and(|last| last.kind == kind) {
+            return;
+        }
         self.failures.push(
             GLLFailure {
                 input_index,
@@ -20700,6 +18493,9 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
     }
     fn match_token(&mut self, terminal_id: TerminalId, input_index: u32) -> Option<u32> {
         self.scanner.match_token(terminal_id, input_index)
+    }
+    fn match_any(&mut self, set: &'static TerminalSet, input_index: u32) -> bool {
+        self.scanner.match_any(set, input_index)
     }
     fn vec_arena(&self) -> &'arena Arena {
         self.vec_arena
@@ -21008,10 +18804,10 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
     }
     /// Parses the input from `start` and builds the parse tree in the given
     /// `tree_arena`. The parser is consumed. The tree lives as long as the
-    /// arena lives. `start` is normally the start wrapper of a declared
-    /// nonterminal, `grammar::START_<NAME>`, which allows layout around the
-    /// input; a bare nonterminal id parses without it.
-    pub fn parse<'a>(
+    /// arena lives. `start` is the start wrapper of a declared nonterminal,
+    /// `grammar::START_<NAME>`, which allows layout around the input. The
+    /// public entry points are the typed `parse_<name>` methods.
+    fn parse<'a>(
         self,
         start: NonterminalId,
         tree_arena: &'a Arena,
@@ -21692,14 +19488,9 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
         p: i32,
     ) {
         record!(self, Call, sppf_node_id, gss_node_id, return_slot);
-        let left_child = sppf_node_id.map(|id| {
-            let node = self.sppf_node(id);
-            (id, node.left_extent())
-        });
-        let gss_node = self.gss_node(gss_node_id);
-        let i = match left_child {
-            Some((id, _)) => self.sppf_node(id).right_extent(),
-            None => gss_node.index,
+        let i = match sppf_node_id {
+            Some(id) => self.sppf_node(id).right_extent(),
+            None => self.gss_node(gss_node_id).index,
         };
         // If there is already a GSS node for this call, add an edge.
         if let Some(existing_gss_node_id) = self.get_gss_node_e(i, p) {
@@ -21707,11 +19498,11 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
             self.add_edge_to_existing_gss_node(
                 existing_gss_node_id,
                 gss_node_id,
-                left_child,
+                sppf_node_id,
                 return_slot,
                 env,
             );
-        } else {
+        } else if self.match_any(&PREDICTION_SET_E, i) {
             record!(self, GSSNodeNotFound, NonterminalId(99), i);
             let new_gss_node_id = self.new_gss_node(NonterminalId(99), i);
             self.add_gss_edge(new_gss_node_id, gss_node_id, sppf_node_id, return_slot, env);
@@ -21720,6 +19511,17 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
             env.bind(BINDING_P, p, arena);
             self.add_first_descriptors(NonterminalId(99), i, new_gss_node_id, Some(env_id));
             self.add_gss_node_e(i, p, new_gss_node_id);
+        } else {
+            // The call symbol precedes the return slot in its alternative, so the return slot is never
+            // at the first position.
+            let call_slot = IndirectBinaryGrammar::previous_slot(return_slot)
+                .expect("a return slot follows the call symbol");
+            self.add_failure(
+                i,
+                call_slot,
+                Some(gss_node_id),
+                GLLFailureKind::UnexpectedToken(&PREDICTION_SET_E),
+            );
         }
     }
     #[allow(clippy::too_many_arguments)]
@@ -21733,14 +19535,9 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
         end: i32,
     ) {
         record!(self, Call, sppf_node_id, gss_node_id, return_slot);
-        let left_child = sppf_node_id.map(|id| {
-            let node = self.sppf_node(id);
-            (id, node.left_extent())
-        });
-        let gss_node = self.gss_node(gss_node_id);
-        let i = match left_child {
-            Some((id, _)) => self.sppf_node(id).right_extent(),
-            None => gss_node.index,
+        let i = match sppf_node_id {
+            Some(id) => self.sppf_node(id).right_extent(),
+            None => self.gss_node(gss_node_id).index,
         };
         // If there is already a GSS node for this call, add an edge.
         if let Some(existing_gss_node_id) = self.get_gss_node_l(i, p, end) {
@@ -21748,11 +19545,11 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
             self.add_edge_to_existing_gss_node(
                 existing_gss_node_id,
                 gss_node_id,
-                left_child,
+                sppf_node_id,
                 return_slot,
                 env,
             );
-        } else {
+        } else if self.match_any(&PREDICTION_SET_L, i) {
             record!(self, GSSNodeNotFound, NonterminalId(100), i);
             let new_gss_node_id = self.new_gss_node(NonterminalId(100), i);
             self.add_gss_edge(new_gss_node_id, gss_node_id, sppf_node_id, return_slot, env);
@@ -21762,6 +19559,17 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
             env.bind(BINDING_END, end, arena);
             self.add_first_descriptors(NonterminalId(100), i, new_gss_node_id, Some(env_id));
             self.add_gss_node_l(i, p, end, new_gss_node_id);
+        } else {
+            // The call symbol precedes the return slot in its alternative, so the return slot is never
+            // at the first position.
+            let call_slot = IndirectBinaryGrammar::previous_slot(return_slot)
+                .expect("a return slot follows the call symbol");
+            self.add_failure(
+                i,
+                call_slot,
+                Some(gss_node_id),
+                GLLFailureKind::UnexpectedToken(&PREDICTION_SET_L),
+            );
         }
     }
     #[allow(clippy::too_many_arguments)]
@@ -21774,14 +19582,9 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
         p: i32,
     ) {
         record!(self, Call, sppf_node_id, gss_node_id, return_slot);
-        let left_child = sppf_node_id.map(|id| {
-            let node = self.sppf_node(id);
-            (id, node.left_extent())
-        });
-        let gss_node = self.gss_node(gss_node_id);
-        let i = match left_child {
-            Some((id, _)) => self.sppf_node(id).right_extent(),
-            None => gss_node.index,
+        let i = match sppf_node_id {
+            Some(id) => self.sppf_node(id).right_extent(),
+            None => self.gss_node(gss_node_id).index,
         };
         // If there is already a GSS node for this call, add an edge.
         if let Some(existing_gss_node_id) = self.get_gss_node_only(i, p) {
@@ -21789,11 +19592,11 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
             self.add_edge_to_existing_gss_node(
                 existing_gss_node_id,
                 gss_node_id,
-                left_child,
+                sppf_node_id,
                 return_slot,
                 env,
             );
-        } else {
+        } else if self.match_any(&PREDICTION_SET_ONLY, i) {
             record!(self, GSSNodeNotFound, NonterminalId(101), i);
             let new_gss_node_id = self.new_gss_node(NonterminalId(101), i);
             self.add_gss_edge(new_gss_node_id, gss_node_id, sppf_node_id, return_slot, env);
@@ -21802,6 +19605,17 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
             env.bind(BINDING_P, p, arena);
             self.add_first_descriptors(NonterminalId(101), i, new_gss_node_id, Some(env_id));
             self.add_gss_node_only(i, p, new_gss_node_id);
+        } else {
+            // The call symbol precedes the return slot in its alternative, so the return slot is never
+            // at the first position.
+            let call_slot = IndirectBinaryGrammar::previous_slot(return_slot)
+                .expect("a return slot follows the call symbol");
+            self.add_failure(
+                i,
+                call_slot,
+                Some(gss_node_id),
+                GLLFailureKind::UnexpectedToken(&PREDICTION_SET_ONLY),
+            );
         }
     }
     #[allow(clippy::too_many_arguments)]
@@ -21815,14 +19629,9 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
         end: i32,
     ) {
         record!(self, Call, sppf_node_id, gss_node_id, return_slot);
-        let left_child = sppf_node_id.map(|id| {
-            let node = self.sppf_node(id);
-            (id, node.left_extent())
-        });
-        let gss_node = self.gss_node(gss_node_id);
-        let i = match left_child {
-            Some((id, _)) => self.sppf_node(id).right_extent(),
-            None => gss_node.index,
+        let i = match sppf_node_id {
+            Some(id) => self.sppf_node(id).right_extent(),
+            None => self.gss_node(gss_node_id).index,
         };
         // If there is already a GSS node for this call, add an edge.
         if let Some(existing_gss_node_id) = self.get_gss_node_only_operand(i, p, end) {
@@ -21830,11 +19639,11 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
             self.add_edge_to_existing_gss_node(
                 existing_gss_node_id,
                 gss_node_id,
-                left_child,
+                sppf_node_id,
                 return_slot,
                 env,
             );
-        } else {
+        } else if self.match_any(&PREDICTION_SET_ONLY_OPERAND, i) {
             record!(self, GSSNodeNotFound, NonterminalId(102), i);
             let new_gss_node_id = self.new_gss_node(NonterminalId(102), i);
             self.add_gss_edge(new_gss_node_id, gss_node_id, sppf_node_id, return_slot, env);
@@ -21844,6 +19653,17 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
             env.bind(BINDING_END, end, arena);
             self.add_first_descriptors(NonterminalId(102), i, new_gss_node_id, Some(env_id));
             self.add_gss_node_only_operand(i, p, end, new_gss_node_id);
+        } else {
+            // The call symbol precedes the return slot in its alternative, so the return slot is never
+            // at the first position.
+            let call_slot = IndirectBinaryGrammar::previous_slot(return_slot)
+                .expect("a return slot follows the call symbol");
+            self.add_failure(
+                i,
+                call_slot,
+                Some(gss_node_id),
+                GLLFailureKind::UnexpectedToken(&PREDICTION_SET_ONLY_OPERAND),
+            );
         }
     }
     #[allow(clippy::too_many_arguments)]
@@ -21856,14 +19676,9 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
         p: i32,
     ) {
         record!(self, Call, sppf_node_id, gss_node_id, return_slot);
-        let left_child = sppf_node_id.map(|id| {
-            let node = self.sppf_node(id);
-            (id, node.left_extent())
-        });
-        let gss_node = self.gss_node(gss_node_id);
-        let i = match left_child {
-            Some((id, _)) => self.sppf_node(id).right_extent(),
-            None => gss_node.index,
+        let i = match sppf_node_id {
+            Some(id) => self.sppf_node(id).right_extent(),
+            None => self.gss_node(gss_node_id).index,
         };
         // If there is already a GSS node for this call, add an edge.
         if let Some(existing_gss_node_id) = self.get_gss_node_cross(i, p) {
@@ -21871,11 +19686,11 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
             self.add_edge_to_existing_gss_node(
                 existing_gss_node_id,
                 gss_node_id,
-                left_child,
+                sppf_node_id,
                 return_slot,
                 env,
             );
-        } else {
+        } else if self.match_any(&PREDICTION_SET_CROSS, i) {
             record!(self, GSSNodeNotFound, NonterminalId(103), i);
             let new_gss_node_id = self.new_gss_node(NonterminalId(103), i);
             self.add_gss_edge(new_gss_node_id, gss_node_id, sppf_node_id, return_slot, env);
@@ -21884,6 +19699,17 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
             env.bind(BINDING_P, p, arena);
             self.add_first_descriptors(NonterminalId(103), i, new_gss_node_id, Some(env_id));
             self.add_gss_node_cross(i, p, new_gss_node_id);
+        } else {
+            // The call symbol precedes the return slot in its alternative, so the return slot is never
+            // at the first position.
+            let call_slot = IndirectBinaryGrammar::previous_slot(return_slot)
+                .expect("a return slot follows the call symbol");
+            self.add_failure(
+                i,
+                call_slot,
+                Some(gss_node_id),
+                GLLFailureKind::UnexpectedToken(&PREDICTION_SET_CROSS),
+            );
         }
     }
     #[allow(clippy::too_many_arguments)]
@@ -21896,14 +19722,9 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
         p: i32,
     ) {
         record!(self, Call, sppf_node_id, gss_node_id, return_slot);
-        let left_child = sppf_node_id.map(|id| {
-            let node = self.sppf_node(id);
-            (id, node.left_extent())
-        });
-        let gss_node = self.gss_node(gss_node_id);
-        let i = match left_child {
-            Some((id, _)) => self.sppf_node(id).right_extent(),
-            None => gss_node.index,
+        let i = match sppf_node_id {
+            Some(id) => self.sppf_node(id).right_extent(),
+            None => self.gss_node(gss_node_id).index,
         };
         // If there is already a GSS node for this call, add an edge.
         if let Some(existing_gss_node_id) = self.get_gss_node_foreign(i, p) {
@@ -21911,11 +19732,11 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
             self.add_edge_to_existing_gss_node(
                 existing_gss_node_id,
                 gss_node_id,
-                left_child,
+                sppf_node_id,
                 return_slot,
                 env,
             );
-        } else {
+        } else if self.match_any(&PREDICTION_SET_FOREIGN, i) {
             record!(self, GSSNodeNotFound, NonterminalId(104), i);
             let new_gss_node_id = self.new_gss_node(NonterminalId(104), i);
             self.add_gss_edge(new_gss_node_id, gss_node_id, sppf_node_id, return_slot, env);
@@ -21924,6 +19745,17 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
             env.bind(BINDING_P, p, arena);
             self.add_first_descriptors(NonterminalId(104), i, new_gss_node_id, Some(env_id));
             self.add_gss_node_foreign(i, p, new_gss_node_id);
+        } else {
+            // The call symbol precedes the return slot in its alternative, so the return slot is never
+            // at the first position.
+            let call_slot = IndirectBinaryGrammar::previous_slot(return_slot)
+                .expect("a return slot follows the call symbol");
+            self.add_failure(
+                i,
+                call_slot,
+                Some(gss_node_id),
+                GLLFailureKind::UnexpectedToken(&PREDICTION_SET_FOREIGN),
+            );
         }
     }
     #[allow(clippy::too_many_arguments)]
@@ -21936,14 +19768,9 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
         p: i32,
     ) {
         record!(self, Call, sppf_node_id, gss_node_id, return_slot);
-        let left_child = sppf_node_id.map(|id| {
-            let node = self.sppf_node(id);
-            (id, node.left_extent())
-        });
-        let gss_node = self.gss_node(gss_node_id);
-        let i = match left_child {
-            Some((id, _)) => self.sppf_node(id).right_extent(),
-            None => gss_node.index,
+        let i = match sppf_node_id {
+            Some(id) => self.sppf_node(id).right_extent(),
+            None => self.gss_node(gss_node_id).index,
         };
         // If there is already a GSS node for this call, add an edge.
         if let Some(existing_gss_node_id) = self.get_gss_node_cascade(i, p) {
@@ -21951,11 +19778,11 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
             self.add_edge_to_existing_gss_node(
                 existing_gss_node_id,
                 gss_node_id,
-                left_child,
+                sppf_node_id,
                 return_slot,
                 env,
             );
-        } else {
+        } else if self.match_any(&PREDICTION_SET_CASCADE, i) {
             record!(self, GSSNodeNotFound, NonterminalId(105), i);
             let new_gss_node_id = self.new_gss_node(NonterminalId(105), i);
             self.add_gss_edge(new_gss_node_id, gss_node_id, sppf_node_id, return_slot, env);
@@ -21964,6 +19791,17 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
             env.bind(BINDING_P, p, arena);
             self.add_first_descriptors(NonterminalId(105), i, new_gss_node_id, Some(env_id));
             self.add_gss_node_cascade(i, p, new_gss_node_id);
+        } else {
+            // The call symbol precedes the return slot in its alternative, so the return slot is never
+            // at the first position.
+            let call_slot = IndirectBinaryGrammar::previous_slot(return_slot)
+                .expect("a return slot follows the call symbol");
+            self.add_failure(
+                i,
+                call_slot,
+                Some(gss_node_id),
+                GLLFailureKind::UnexpectedToken(&PREDICTION_SET_CASCADE),
+            );
         }
     }
     #[allow(clippy::too_many_arguments)]
@@ -21976,14 +19814,9 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
         p: i32,
     ) {
         record!(self, Call, sppf_node_id, gss_node_id, return_slot);
-        let left_child = sppf_node_id.map(|id| {
-            let node = self.sppf_node(id);
-            (id, node.left_extent())
-        });
-        let gss_node = self.gss_node(gss_node_id);
-        let i = match left_child {
-            Some((id, _)) => self.sppf_node(id).right_extent(),
-            None => gss_node.index,
+        let i = match sppf_node_id {
+            Some(id) => self.sppf_node(id).right_extent(),
+            None => self.gss_node(gss_node_id).index,
         };
         // If there is already a GSS node for this call, add an edge.
         if let Some(existing_gss_node_id) = self.get_gss_node_nullable(i, p) {
@@ -21991,11 +19824,11 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
             self.add_edge_to_existing_gss_node(
                 existing_gss_node_id,
                 gss_node_id,
-                left_child,
+                sppf_node_id,
                 return_slot,
                 env,
             );
-        } else {
+        } else if self.match_any(&PREDICTION_SET_NULLABLE, i) {
             record!(self, GSSNodeNotFound, NonterminalId(106), i);
             let new_gss_node_id = self.new_gss_node(NonterminalId(106), i);
             self.add_gss_edge(new_gss_node_id, gss_node_id, sppf_node_id, return_slot, env);
@@ -22004,6 +19837,17 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
             env.bind(BINDING_P, p, arena);
             self.add_first_descriptors(NonterminalId(106), i, new_gss_node_id, Some(env_id));
             self.add_gss_node_nullable(i, p, new_gss_node_id);
+        } else {
+            // The call symbol precedes the return slot in its alternative, so the return slot is never
+            // at the first position.
+            let call_slot = IndirectBinaryGrammar::previous_slot(return_slot)
+                .expect("a return slot follows the call symbol");
+            self.add_failure(
+                i,
+                call_slot,
+                Some(gss_node_id),
+                GLLFailureKind::UnexpectedToken(&PREDICTION_SET_NULLABLE),
+            );
         }
     }
     #[allow(clippy::too_many_arguments)]
@@ -22016,14 +19860,9 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
         p: i32,
     ) {
         record!(self, Call, sppf_node_id, gss_node_id, return_slot);
-        let left_child = sppf_node_id.map(|id| {
-            let node = self.sppf_node(id);
-            (id, node.left_extent())
-        });
-        let gss_node = self.gss_node(gss_node_id);
-        let i = match left_child {
-            Some((id, _)) => self.sppf_node(id).right_extent(),
-            None => gss_node.index,
+        let i = match sppf_node_id {
+            Some(id) => self.sppf_node(id).right_extent(),
+            None => self.gss_node(gss_node_id).index,
         };
         // If there is already a GSS node for this call, add an edge.
         if let Some(existing_gss_node_id) = self.get_gss_node_nullable_right(i, p) {
@@ -22031,11 +19870,11 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
             self.add_edge_to_existing_gss_node(
                 existing_gss_node_id,
                 gss_node_id,
-                left_child,
+                sppf_node_id,
                 return_slot,
                 env,
             );
-        } else {
+        } else if self.match_any(&PREDICTION_SET_NULLABLE_RIGHT, i) {
             record!(self, GSSNodeNotFound, NonterminalId(107), i);
             let new_gss_node_id = self.new_gss_node(NonterminalId(107), i);
             self.add_gss_edge(new_gss_node_id, gss_node_id, sppf_node_id, return_slot, env);
@@ -22044,6 +19883,17 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
             env.bind(BINDING_P, p, arena);
             self.add_first_descriptors(NonterminalId(107), i, new_gss_node_id, Some(env_id));
             self.add_gss_node_nullable_right(i, p, new_gss_node_id);
+        } else {
+            // The call symbol precedes the return slot in its alternative, so the return slot is never
+            // at the first position.
+            let call_slot = IndirectBinaryGrammar::previous_slot(return_slot)
+                .expect("a return slot follows the call symbol");
+            self.add_failure(
+                i,
+                call_slot,
+                Some(gss_node_id),
+                GLLFailureKind::UnexpectedToken(&PREDICTION_SET_NULLABLE_RIGHT),
+            );
         }
     }
     #[allow(clippy::too_many_arguments)]
@@ -22056,14 +19906,9 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
         p: i32,
     ) {
         record!(self, Call, sppf_node_id, gss_node_id, return_slot);
-        let left_child = sppf_node_id.map(|id| {
-            let node = self.sppf_node(id);
-            (id, node.left_extent())
-        });
-        let gss_node = self.gss_node(gss_node_id);
-        let i = match left_child {
-            Some((id, _)) => self.sppf_node(id).right_extent(),
-            None => gss_node.index,
+        let i = match sppf_node_id {
+            Some(id) => self.sppf_node(id).right_extent(),
+            None => self.gss_node(gss_node_id).index,
         };
         // If there is already a GSS node for this call, add an edge.
         if let Some(existing_gss_node_id) = self.get_gss_node_right_expr(i, p) {
@@ -22071,11 +19916,11 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
             self.add_edge_to_existing_gss_node(
                 existing_gss_node_id,
                 gss_node_id,
-                left_child,
+                sppf_node_id,
                 return_slot,
                 env,
             );
-        } else {
+        } else if self.match_any(&PREDICTION_SET_RIGHT_EXPR, i) {
             record!(self, GSSNodeNotFound, NonterminalId(108), i);
             let new_gss_node_id = self.new_gss_node(NonterminalId(108), i);
             self.add_gss_edge(new_gss_node_id, gss_node_id, sppf_node_id, return_slot, env);
@@ -22084,6 +19929,17 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
             env.bind(BINDING_P, p, arena);
             self.add_first_descriptors(NonterminalId(108), i, new_gss_node_id, Some(env_id));
             self.add_gss_node_right_expr(i, p, new_gss_node_id);
+        } else {
+            // The call symbol precedes the return slot in its alternative, so the return slot is never
+            // at the first position.
+            let call_slot = IndirectBinaryGrammar::previous_slot(return_slot)
+                .expect("a return slot follows the call symbol");
+            self.add_failure(
+                i,
+                call_slot,
+                Some(gss_node_id),
+                GLLFailureKind::UnexpectedToken(&PREDICTION_SET_RIGHT_EXPR),
+            );
         }
     }
     #[allow(clippy::too_many_arguments)]
@@ -22097,14 +19953,9 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
         end: i32,
     ) {
         record!(self, Call, sppf_node_id, gss_node_id, return_slot);
-        let left_child = sppf_node_id.map(|id| {
-            let node = self.sppf_node(id);
-            (id, node.left_extent())
-        });
-        let gss_node = self.gss_node(gss_node_id);
-        let i = match left_child {
-            Some((id, _)) => self.sppf_node(id).right_extent(),
-            None => gss_node.index,
+        let i = match sppf_node_id {
+            Some(id) => self.sppf_node(id).right_extent(),
+            None => self.gss_node(gss_node_id).index,
         };
         // If there is already a GSS node for this call, add an edge.
         if let Some(existing_gss_node_id) = self.get_gss_node_right_operand(i, p, end) {
@@ -22112,11 +19963,11 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
             self.add_edge_to_existing_gss_node(
                 existing_gss_node_id,
                 gss_node_id,
-                left_child,
+                sppf_node_id,
                 return_slot,
                 env,
             );
-        } else {
+        } else if self.match_any(&PREDICTION_SET_RIGHT_OPERAND, i) {
             record!(self, GSSNodeNotFound, NonterminalId(109), i);
             let new_gss_node_id = self.new_gss_node(NonterminalId(109), i);
             self.add_gss_edge(new_gss_node_id, gss_node_id, sppf_node_id, return_slot, env);
@@ -22126,6 +19977,17 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
             env.bind(BINDING_END, end, arena);
             self.add_first_descriptors(NonterminalId(109), i, new_gss_node_id, Some(env_id));
             self.add_gss_node_right_operand(i, p, end, new_gss_node_id);
+        } else {
+            // The call symbol precedes the return slot in its alternative, so the return slot is never
+            // at the first position.
+            let call_slot = IndirectBinaryGrammar::previous_slot(return_slot)
+                .expect("a return slot follows the call symbol");
+            self.add_failure(
+                i,
+                call_slot,
+                Some(gss_node_id),
+                GLLFailureKind::UnexpectedToken(&PREDICTION_SET_RIGHT_OPERAND),
+            );
         }
     }
     #[allow(clippy::too_many_arguments)]
@@ -22138,14 +20000,9 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
         p: i32,
     ) {
         record!(self, Call, sppf_node_id, gss_node_id, return_slot);
-        let left_child = sppf_node_id.map(|id| {
-            let node = self.sppf_node(id);
-            (id, node.left_extent())
-        });
-        let gss_node = self.gss_node(gss_node_id);
-        let i = match left_child {
-            Some((id, _)) => self.sppf_node(id).right_extent(),
-            None => gss_node.index,
+        let i = match sppf_node_id {
+            Some(id) => self.sppf_node(id).right_extent(),
+            None => self.gss_node(gss_node_id).index,
         };
         // If there is already a GSS node for this call, add an edge.
         if let Some(existing_gss_node_id) = self.get_gss_node_none_expr(i, p) {
@@ -22153,11 +20010,11 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
             self.add_edge_to_existing_gss_node(
                 existing_gss_node_id,
                 gss_node_id,
-                left_child,
+                sppf_node_id,
                 return_slot,
                 env,
             );
-        } else {
+        } else if self.match_any(&PREDICTION_SET_NONE_EXPR, i) {
             record!(self, GSSNodeNotFound, NonterminalId(110), i);
             let new_gss_node_id = self.new_gss_node(NonterminalId(110), i);
             self.add_gss_edge(new_gss_node_id, gss_node_id, sppf_node_id, return_slot, env);
@@ -22166,6 +20023,17 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
             env.bind(BINDING_P, p, arena);
             self.add_first_descriptors(NonterminalId(110), i, new_gss_node_id, Some(env_id));
             self.add_gss_node_none_expr(i, p, new_gss_node_id);
+        } else {
+            // The call symbol precedes the return slot in its alternative, so the return slot is never
+            // at the first position.
+            let call_slot = IndirectBinaryGrammar::previous_slot(return_slot)
+                .expect("a return slot follows the call symbol");
+            self.add_failure(
+                i,
+                call_slot,
+                Some(gss_node_id),
+                GLLFailureKind::UnexpectedToken(&PREDICTION_SET_NONE_EXPR),
+            );
         }
     }
     #[allow(clippy::too_many_arguments)]
@@ -22179,14 +20047,9 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
         end: i32,
     ) {
         record!(self, Call, sppf_node_id, gss_node_id, return_slot);
-        let left_child = sppf_node_id.map(|id| {
-            let node = self.sppf_node(id);
-            (id, node.left_extent())
-        });
-        let gss_node = self.gss_node(gss_node_id);
-        let i = match left_child {
-            Some((id, _)) => self.sppf_node(id).right_extent(),
-            None => gss_node.index,
+        let i = match sppf_node_id {
+            Some(id) => self.sppf_node(id).right_extent(),
+            None => self.gss_node(gss_node_id).index,
         };
         // If there is already a GSS node for this call, add an edge.
         if let Some(existing_gss_node_id) = self.get_gss_node_none_operand(i, p, end) {
@@ -22194,11 +20057,11 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
             self.add_edge_to_existing_gss_node(
                 existing_gss_node_id,
                 gss_node_id,
-                left_child,
+                sppf_node_id,
                 return_slot,
                 env,
             );
-        } else {
+        } else if self.match_any(&PREDICTION_SET_NONE_OPERAND, i) {
             record!(self, GSSNodeNotFound, NonterminalId(111), i);
             let new_gss_node_id = self.new_gss_node(NonterminalId(111), i);
             self.add_gss_edge(new_gss_node_id, gss_node_id, sppf_node_id, return_slot, env);
@@ -22208,6 +20071,17 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
             env.bind(BINDING_END, end, arena);
             self.add_first_descriptors(NonterminalId(111), i, new_gss_node_id, Some(env_id));
             self.add_gss_node_none_operand(i, p, end, new_gss_node_id);
+        } else {
+            // The call symbol precedes the return slot in its alternative, so the return slot is never
+            // at the first position.
+            let call_slot = IndirectBinaryGrammar::previous_slot(return_slot)
+                .expect("a return slot follows the call symbol");
+            self.add_failure(
+                i,
+                call_slot,
+                Some(gss_node_id),
+                GLLFailureKind::UnexpectedToken(&PREDICTION_SET_NONE_OPERAND),
+            );
         }
     }
     #[allow(clippy::too_many_arguments)]
@@ -22221,14 +20095,9 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
         a: i32,
     ) {
         record!(self, Call, sppf_node_id, gss_node_id, return_slot);
-        let left_child = sppf_node_id.map(|id| {
-            let node = self.sppf_node(id);
-            (id, node.left_extent())
-        });
-        let gss_node = self.gss_node(gss_node_id);
-        let i = match left_child {
-            Some((id, _)) => self.sppf_node(id).right_extent(),
-            None => gss_node.index,
+        let i = match sppf_node_id {
+            Some(id) => self.sppf_node(id).right_extent(),
+            None => self.gss_node(gss_node_id).index,
         };
         // If there is already a GSS node for this call, add an edge.
         if let Some(existing_gss_node_id) = self.get_gss_node_excluded(i, p, a) {
@@ -22236,11 +20105,11 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
             self.add_edge_to_existing_gss_node(
                 existing_gss_node_id,
                 gss_node_id,
-                left_child,
+                sppf_node_id,
                 return_slot,
                 env,
             );
-        } else {
+        } else if self.match_any(&PREDICTION_SET_EXCLUDED, i) {
             record!(self, GSSNodeNotFound, NonterminalId(112), i);
             let new_gss_node_id = self.new_gss_node(NonterminalId(112), i);
             self.add_gss_edge(new_gss_node_id, gss_node_id, sppf_node_id, return_slot, env);
@@ -22250,6 +20119,17 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
             env.bind(BINDING_A, a, arena);
             self.add_first_descriptors(NonterminalId(112), i, new_gss_node_id, Some(env_id));
             self.add_gss_node_excluded(i, p, a, new_gss_node_id);
+        } else {
+            // The call symbol precedes the return slot in its alternative, so the return slot is never
+            // at the first position.
+            let call_slot = IndirectBinaryGrammar::previous_slot(return_slot)
+                .expect("a return slot follows the call symbol");
+            self.add_failure(
+                i,
+                call_slot,
+                Some(gss_node_id),
+                GLLFailureKind::UnexpectedToken(&PREDICTION_SET_EXCLUDED),
+            );
         }
     }
     #[allow(clippy::too_many_arguments)]
@@ -22265,14 +20145,9 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
         e: i32,
     ) {
         record!(self, Call, sppf_node_id, gss_node_id, return_slot);
-        let left_child = sppf_node_id.map(|id| {
-            let node = self.sppf_node(id);
-            (id, node.left_extent())
-        });
-        let gss_node = self.gss_node(gss_node_id);
-        let i = match left_child {
-            Some((id, _)) => self.sppf_node(id).right_extent(),
-            None => gss_node.index,
+        let i = match sppf_node_id {
+            Some(id) => self.sppf_node(id).right_extent(),
+            None => self.gss_node(gss_node_id).index,
         };
         // If there is already a GSS node for this call, add an edge.
         if let Some(existing_gss_node_id) = self.get_gss_node_excluded_operand(i, p, end, a, e) {
@@ -22280,11 +20155,11 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
             self.add_edge_to_existing_gss_node(
                 existing_gss_node_id,
                 gss_node_id,
-                left_child,
+                sppf_node_id,
                 return_slot,
                 env,
             );
-        } else {
+        } else if self.match_any(&PREDICTION_SET_EXCLUDED_OPERAND, i) {
             record!(self, GSSNodeNotFound, NonterminalId(113), i);
             let new_gss_node_id = self.new_gss_node(NonterminalId(113), i);
             self.add_gss_edge(new_gss_node_id, gss_node_id, sppf_node_id, return_slot, env);
@@ -22296,6 +20171,17 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
             env.bind(BINDING_E, e, arena);
             self.add_first_descriptors(NonterminalId(113), i, new_gss_node_id, Some(env_id));
             self.add_gss_node_excluded_operand(i, p, end, a, e, new_gss_node_id);
+        } else {
+            // The call symbol precedes the return slot in its alternative, so the return slot is never
+            // at the first position.
+            let call_slot = IndirectBinaryGrammar::previous_slot(return_slot)
+                .expect("a return slot follows the call symbol");
+            self.add_failure(
+                i,
+                call_slot,
+                Some(gss_node_id),
+                GLLFailureKind::UnexpectedToken(&PREDICTION_SET_EXCLUDED_OPERAND),
+            );
         }
     }
     #[allow(clippy::too_many_arguments)]
@@ -22308,14 +20194,9 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
         p: i32,
     ) {
         record!(self, Call, sppf_node_id, gss_node_id, return_slot);
-        let left_child = sppf_node_id.map(|id| {
-            let node = self.sppf_node(id);
-            (id, node.left_extent())
-        });
-        let gss_node = self.gss_node(gss_node_id);
-        let i = match left_child {
-            Some((id, _)) => self.sppf_node(id).right_extent(),
-            None => gss_node.index,
+        let i = match sppf_node_id {
+            Some(id) => self.sppf_node(id).right_extent(),
+            None => self.gss_node(gss_node_id).index,
         };
         // If there is already a GSS node for this call, add an edge.
         if let Some(existing_gss_node_id) = self.get_gss_node_lex_nullable(i, p) {
@@ -22323,11 +20204,11 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
             self.add_edge_to_existing_gss_node(
                 existing_gss_node_id,
                 gss_node_id,
-                left_child,
+                sppf_node_id,
                 return_slot,
                 env,
             );
-        } else {
+        } else if self.match_any(&PREDICTION_SET_LEX_NULLABLE, i) {
             record!(self, GSSNodeNotFound, NonterminalId(114), i);
             let new_gss_node_id = self.new_gss_node(NonterminalId(114), i);
             self.add_gss_edge(new_gss_node_id, gss_node_id, sppf_node_id, return_slot, env);
@@ -22336,6 +20217,17 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
             env.bind(BINDING_P, p, arena);
             self.add_first_descriptors(NonterminalId(114), i, new_gss_node_id, Some(env_id));
             self.add_gss_node_lex_nullable(i, p, new_gss_node_id);
+        } else {
+            // The call symbol precedes the return slot in its alternative, so the return slot is never
+            // at the first position.
+            let call_slot = IndirectBinaryGrammar::previous_slot(return_slot)
+                .expect("a return slot follows the call symbol");
+            self.add_failure(
+                i,
+                call_slot,
+                Some(gss_node_id),
+                GLLFailureKind::UnexpectedToken(&PREDICTION_SET_LEX_NULLABLE),
+            );
         }
     }
     #[allow(clippy::too_many_arguments)]
@@ -22348,14 +20240,9 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
         p: i32,
     ) {
         record!(self, Call, sppf_node_id, gss_node_id, return_slot);
-        let left_child = sppf_node_id.map(|id| {
-            let node = self.sppf_node(id);
-            (id, node.left_extent())
-        });
-        let gss_node = self.gss_node(gss_node_id);
-        let i = match left_child {
-            Some((id, _)) => self.sppf_node(id).right_extent(),
-            None => gss_node.index,
+        let i = match sppf_node_id {
+            Some(id) => self.sppf_node(id).right_extent(),
+            None => self.gss_node(gss_node_id).index,
         };
         // If there is already a GSS node for this call, add an edge.
         if let Some(existing_gss_node_id) = self.get_gss_node_lex_nullable_right(i, p) {
@@ -22363,11 +20250,11 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
             self.add_edge_to_existing_gss_node(
                 existing_gss_node_id,
                 gss_node_id,
-                left_child,
+                sppf_node_id,
                 return_slot,
                 env,
             );
-        } else {
+        } else if self.match_any(&PREDICTION_SET_LEX_NULLABLE_RIGHT, i) {
             record!(self, GSSNodeNotFound, NonterminalId(115), i);
             let new_gss_node_id = self.new_gss_node(NonterminalId(115), i);
             self.add_gss_edge(new_gss_node_id, gss_node_id, sppf_node_id, return_slot, env);
@@ -22376,6 +20263,17 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
             env.bind(BINDING_P, p, arena);
             self.add_first_descriptors(NonterminalId(115), i, new_gss_node_id, Some(env_id));
             self.add_gss_node_lex_nullable_right(i, p, new_gss_node_id);
+        } else {
+            // The call symbol precedes the return slot in its alternative, so the return slot is never
+            // at the first position.
+            let call_slot = IndirectBinaryGrammar::previous_slot(return_slot)
+                .expect("a return slot follows the call symbol");
+            self.add_failure(
+                i,
+                call_slot,
+                Some(gss_node_id),
+                GLLFailureKind::UnexpectedToken(&PREDICTION_SET_LEX_NULLABLE_RIGHT),
+            );
         }
     }
     #[allow(clippy::too_many_arguments)]
@@ -22389,14 +20287,9 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
         a: i32,
     ) {
         record!(self, Call, sppf_node_id, gss_node_id, return_slot);
-        let left_child = sppf_node_id.map(|id| {
-            let node = self.sppf_node(id);
-            (id, node.left_extent())
-        });
-        let gss_node = self.gss_node(gss_node_id);
-        let i = match left_child {
-            Some((id, _)) => self.sppf_node(id).right_extent(),
-            None => gss_node.index,
+        let i = match sppf_node_id {
+            Some(id) => self.sppf_node(id).right_extent(),
+            None => self.gss_node(gss_node_id).index,
         };
         // If there is already a GSS node for this call, add an edge.
         if let Some(existing_gss_node_id) = self.get_gss_node_mixed_scale(i, p, a) {
@@ -22404,11 +20297,11 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
             self.add_edge_to_existing_gss_node(
                 existing_gss_node_id,
                 gss_node_id,
-                left_child,
+                sppf_node_id,
                 return_slot,
                 env,
             );
-        } else {
+        } else if self.match_any(&PREDICTION_SET_MIXED_SCALE, i) {
             record!(self, GSSNodeNotFound, NonterminalId(116), i);
             let new_gss_node_id = self.new_gss_node(NonterminalId(116), i);
             self.add_gss_edge(new_gss_node_id, gss_node_id, sppf_node_id, return_slot, env);
@@ -22418,6 +20311,17 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
             env.bind(BINDING_A, a, arena);
             self.add_first_descriptors(NonterminalId(116), i, new_gss_node_id, Some(env_id));
             self.add_gss_node_mixed_scale(i, p, a, new_gss_node_id);
+        } else {
+            // The call symbol precedes the return slot in its alternative, so the return slot is never
+            // at the first position.
+            let call_slot = IndirectBinaryGrammar::previous_slot(return_slot)
+                .expect("a return slot follows the call symbol");
+            self.add_failure(
+                i,
+                call_slot,
+                Some(gss_node_id),
+                GLLFailureKind::UnexpectedToken(&PREDICTION_SET_MIXED_SCALE),
+            );
         }
     }
     #[allow(clippy::too_many_arguments)]
@@ -22431,14 +20335,9 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
         a: i32,
     ) {
         record!(self, Call, sppf_node_id, gss_node_id, return_slot);
-        let left_child = sppf_node_id.map(|id| {
-            let node = self.sppf_node(id);
-            (id, node.left_extent())
-        });
-        let gss_node = self.gss_node(gss_node_id);
-        let i = match left_child {
-            Some((id, _)) => self.sppf_node(id).right_extent(),
-            None => gss_node.index,
+        let i = match sppf_node_id {
+            Some(id) => self.sppf_node(id).right_extent(),
+            None => self.gss_node(gss_node_id).index,
         };
         // If there is already a GSS node for this call, add an edge.
         if let Some(existing_gss_node_id) = self.get_gss_node_mixed_operand(i, p, a) {
@@ -22446,11 +20345,11 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
             self.add_edge_to_existing_gss_node(
                 existing_gss_node_id,
                 gss_node_id,
-                left_child,
+                sppf_node_id,
                 return_slot,
                 env,
             );
-        } else {
+        } else if self.match_any(&PREDICTION_SET_MIXED_OPERAND, i) {
             record!(self, GSSNodeNotFound, NonterminalId(117), i);
             let new_gss_node_id = self.new_gss_node(NonterminalId(117), i);
             self.add_gss_edge(new_gss_node_id, gss_node_id, sppf_node_id, return_slot, env);
@@ -22460,6 +20359,17 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
             env.bind(BINDING_A, a, arena);
             self.add_first_descriptors(NonterminalId(117), i, new_gss_node_id, Some(env_id));
             self.add_gss_node_mixed_operand(i, p, a, new_gss_node_id);
+        } else {
+            // The call symbol precedes the return slot in its alternative, so the return slot is never
+            // at the first position.
+            let call_slot = IndirectBinaryGrammar::previous_slot(return_slot)
+                .expect("a return slot follows the call symbol");
+            self.add_failure(
+                i,
+                call_slot,
+                Some(gss_node_id),
+                GLLFailureKind::UnexpectedToken(&PREDICTION_SET_MIXED_OPERAND),
+            );
         }
     }
     #[allow(clippy::too_many_arguments)]
@@ -22473,14 +20383,9 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
         a: i32,
     ) {
         record!(self, Call, sppf_node_id, gss_node_id, return_slot);
-        let left_child = sppf_node_id.map(|id| {
-            let node = self.sppf_node(id);
-            (id, node.left_extent())
-        });
-        let gss_node = self.gss_node(gss_node_id);
-        let i = match left_child {
-            Some((id, _)) => self.sppf_node(id).right_extent(),
-            None => gss_node.index,
+        let i = match sppf_node_id {
+            Some(id) => self.sppf_node(id).right_extent(),
+            None => self.gss_node(gss_node_id).index,
         };
         // If there is already a GSS node for this call, add an edge.
         if let Some(existing_gss_node_id) = self.get_gss_node_mixed_right(i, p, a) {
@@ -22488,11 +20393,11 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
             self.add_edge_to_existing_gss_node(
                 existing_gss_node_id,
                 gss_node_id,
-                left_child,
+                sppf_node_id,
                 return_slot,
                 env,
             );
-        } else {
+        } else if self.match_any(&PREDICTION_SET_MIXED_RIGHT, i) {
             record!(self, GSSNodeNotFound, NonterminalId(118), i);
             let new_gss_node_id = self.new_gss_node(NonterminalId(118), i);
             self.add_gss_edge(new_gss_node_id, gss_node_id, sppf_node_id, return_slot, env);
@@ -22502,6 +20407,17 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
             env.bind(BINDING_A, a, arena);
             self.add_first_descriptors(NonterminalId(118), i, new_gss_node_id, Some(env_id));
             self.add_gss_node_mixed_right(i, p, a, new_gss_node_id);
+        } else {
+            // The call symbol precedes the return slot in its alternative, so the return slot is never
+            // at the first position.
+            let call_slot = IndirectBinaryGrammar::previous_slot(return_slot)
+                .expect("a return slot follows the call symbol");
+            self.add_failure(
+                i,
+                call_slot,
+                Some(gss_node_id),
+                GLLFailureKind::UnexpectedToken(&PREDICTION_SET_MIXED_RIGHT),
+            );
         }
     }
     #[allow(clippy::too_many_arguments)]
@@ -22514,14 +20430,9 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
         p: i32,
     ) {
         record!(self, Call, sppf_node_id, gss_node_id, return_slot);
-        let left_child = sppf_node_id.map(|id| {
-            let node = self.sppf_node(id);
-            (id, node.left_extent())
-        });
-        let gss_node = self.gss_node(gss_node_id);
-        let i = match left_child {
-            Some((id, _)) => self.sppf_node(id).right_extent(),
-            None => gss_node.index,
+        let i = match sppf_node_id {
+            Some(id) => self.sppf_node(id).right_extent(),
+            None => self.gss_node(gss_node_id).index,
         };
         // If there is already a GSS node for this call, add an edge.
         if let Some(existing_gss_node_id) = self.get_gss_node_mixed_foreign(i, p) {
@@ -22529,11 +20440,11 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
             self.add_edge_to_existing_gss_node(
                 existing_gss_node_id,
                 gss_node_id,
-                left_child,
+                sppf_node_id,
                 return_slot,
                 env,
             );
-        } else {
+        } else if self.match_any(&PREDICTION_SET_MIXED_FOREIGN, i) {
             record!(self, GSSNodeNotFound, NonterminalId(119), i);
             let new_gss_node_id = self.new_gss_node(NonterminalId(119), i);
             self.add_gss_edge(new_gss_node_id, gss_node_id, sppf_node_id, return_slot, env);
@@ -22542,6 +20453,17 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
             env.bind(BINDING_P, p, arena);
             self.add_first_descriptors(NonterminalId(119), i, new_gss_node_id, Some(env_id));
             self.add_gss_node_mixed_foreign(i, p, new_gss_node_id);
+        } else {
+            // The call symbol precedes the return slot in its alternative, so the return slot is never
+            // at the first position.
+            let call_slot = IndirectBinaryGrammar::previous_slot(return_slot)
+                .expect("a return slot follows the call symbol");
+            self.add_failure(
+                i,
+                call_slot,
+                Some(gss_node_id),
+                GLLFailureKind::UnexpectedToken(&PREDICTION_SET_MIXED_FOREIGN),
+            );
         }
     }
     #[allow(clippy::too_many_arguments)]
@@ -22555,14 +20477,9 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
         a: i32,
     ) {
         record!(self, Call, sppf_node_id, gss_node_id, return_slot);
-        let left_child = sppf_node_id.map(|id| {
-            let node = self.sppf_node(id);
-            (id, node.left_extent())
-        });
-        let gss_node = self.gss_node(gss_node_id);
-        let i = match left_child {
-            Some((id, _)) => self.sppf_node(id).right_extent(),
-            None => gss_node.index,
+        let i = match sppf_node_id {
+            Some(id) => self.sppf_node(id).right_extent(),
+            None => self.gss_node(gss_node_id).index,
         };
         // If there is already a GSS node for this call, add an edge.
         if let Some(existing_gss_node_id) = self.get_gss_node_packed(i, p, a) {
@@ -22570,11 +20487,11 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
             self.add_edge_to_existing_gss_node(
                 existing_gss_node_id,
                 gss_node_id,
-                left_child,
+                sppf_node_id,
                 return_slot,
                 env,
             );
-        } else {
+        } else if self.match_any(&PREDICTION_SET_PACKED, i) {
             record!(self, GSSNodeNotFound, NonterminalId(120), i);
             let new_gss_node_id = self.new_gss_node(NonterminalId(120), i);
             self.add_gss_edge(new_gss_node_id, gss_node_id, sppf_node_id, return_slot, env);
@@ -22584,6 +20501,17 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
             env.bind(BINDING_A, a, arena);
             self.add_first_descriptors(NonterminalId(120), i, new_gss_node_id, Some(env_id));
             self.add_gss_node_packed(i, p, a, new_gss_node_id);
+        } else {
+            // The call symbol precedes the return slot in its alternative, so the return slot is never
+            // at the first position.
+            let call_slot = IndirectBinaryGrammar::previous_slot(return_slot)
+                .expect("a return slot follows the call symbol");
+            self.add_failure(
+                i,
+                call_slot,
+                Some(gss_node_id),
+                GLLFailureKind::UnexpectedToken(&PREDICTION_SET_PACKED),
+            );
         }
     }
     #[allow(clippy::too_many_arguments)]
@@ -22598,14 +20526,9 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
         a: i32,
     ) {
         record!(self, Call, sppf_node_id, gss_node_id, return_slot);
-        let left_child = sppf_node_id.map(|id| {
-            let node = self.sppf_node(id);
-            (id, node.left_extent())
-        });
-        let gss_node = self.gss_node(gss_node_id);
-        let i = match left_child {
-            Some((id, _)) => self.sppf_node(id).right_extent(),
-            None => gss_node.index,
+        let i = match sppf_node_id {
+            Some(id) => self.sppf_node(id).right_extent(),
+            None => self.gss_node(gss_node_id).index,
         };
         // If there is already a GSS node for this call, add an edge.
         if let Some(existing_gss_node_id) = self.get_gss_node_packed_operand(i, p, end, a) {
@@ -22613,11 +20536,11 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
             self.add_edge_to_existing_gss_node(
                 existing_gss_node_id,
                 gss_node_id,
-                left_child,
+                sppf_node_id,
                 return_slot,
                 env,
             );
-        } else {
+        } else if self.match_any(&PREDICTION_SET_PACKED_OPERAND, i) {
             record!(self, GSSNodeNotFound, NonterminalId(121), i);
             let new_gss_node_id = self.new_gss_node(NonterminalId(121), i);
             self.add_gss_edge(new_gss_node_id, gss_node_id, sppf_node_id, return_slot, env);
@@ -22628,6 +20551,17 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
             env.bind(BINDING_A, a, arena);
             self.add_first_descriptors(NonterminalId(121), i, new_gss_node_id, Some(env_id));
             self.add_gss_node_packed_operand(i, p, end, a, new_gss_node_id);
+        } else {
+            // The call symbol precedes the return slot in its alternative, so the return slot is never
+            // at the first position.
+            let call_slot = IndirectBinaryGrammar::previous_slot(return_slot)
+                .expect("a return slot follows the call symbol");
+            self.add_failure(
+                i,
+                call_slot,
+                Some(gss_node_id),
+                GLLFailureKind::UnexpectedToken(&PREDICTION_SET_PACKED_OPERAND),
+            );
         }
     }
     #[allow(clippy::too_many_arguments)]
@@ -22643,14 +20577,9 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
         e: i32,
     ) {
         record!(self, Call, sppf_node_id, gss_node_id, return_slot);
-        let left_child = sppf_node_id.map(|id| {
-            let node = self.sppf_node(id);
-            (id, node.left_extent())
-        });
-        let gss_node = self.gss_node(gss_node_id);
-        let i = match left_child {
-            Some((id, _)) => self.sppf_node(id).right_extent(),
-            None => gss_node.index,
+        let i = match sppf_node_id {
+            Some(id) => self.sppf_node(id).right_extent(),
+            None => self.gss_node(gss_node_id).index,
         };
         // If there is already a GSS node for this call, add an edge.
         if let Some(existing_gss_node_id) = self.get_gss_node_packed_middle(i, p, end, a, e) {
@@ -22658,11 +20587,11 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
             self.add_edge_to_existing_gss_node(
                 existing_gss_node_id,
                 gss_node_id,
-                left_child,
+                sppf_node_id,
                 return_slot,
                 env,
             );
-        } else {
+        } else if self.match_any(&PREDICTION_SET_PACKED_MIDDLE, i) {
             record!(self, GSSNodeNotFound, NonterminalId(122), i);
             let new_gss_node_id = self.new_gss_node(NonterminalId(122), i);
             self.add_gss_edge(new_gss_node_id, gss_node_id, sppf_node_id, return_slot, env);
@@ -22674,6 +20603,17 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
             env.bind(BINDING_E, e, arena);
             self.add_first_descriptors(NonterminalId(122), i, new_gss_node_id, Some(env_id));
             self.add_gss_node_packed_middle(i, p, end, a, e, new_gss_node_id);
+        } else {
+            // The call symbol precedes the return slot in its alternative, so the return slot is never
+            // at the first position.
+            let call_slot = IndirectBinaryGrammar::previous_slot(return_slot)
+                .expect("a return slot follows the call symbol");
+            self.add_failure(
+                i,
+                call_slot,
+                Some(gss_node_id),
+                GLLFailureKind::UnexpectedToken(&PREDICTION_SET_PACKED_MIDDLE),
+            );
         }
     }
     #[allow(clippy::too_many_arguments)]
@@ -22687,14 +20627,9 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
         a: i32,
     ) {
         record!(self, Call, sppf_node_id, gss_node_id, return_slot);
-        let left_child = sppf_node_id.map(|id| {
-            let node = self.sppf_node(id);
-            (id, node.left_extent())
-        });
-        let gss_node = self.gss_node(gss_node_id);
-        let i = match left_child {
-            Some((id, _)) => self.sppf_node(id).right_extent(),
-            None => gss_node.index,
+        let i = match sppf_node_id {
+            Some(id) => self.sppf_node(id).right_extent(),
+            None => self.gss_node(gss_node_id).index,
         };
         // If there is already a GSS node for this call, add an edge.
         if let Some(existing_gss_node_id) = self.get_gss_node_nullable_recursive(i, p, a) {
@@ -22702,11 +20637,11 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
             self.add_edge_to_existing_gss_node(
                 existing_gss_node_id,
                 gss_node_id,
-                left_child,
+                sppf_node_id,
                 return_slot,
                 env,
             );
-        } else {
+        } else if self.match_any(&PREDICTION_SET_NULLABLE_RECURSIVE, i) {
             record!(self, GSSNodeNotFound, NonterminalId(123), i);
             let new_gss_node_id = self.new_gss_node(NonterminalId(123), i);
             self.add_gss_edge(new_gss_node_id, gss_node_id, sppf_node_id, return_slot, env);
@@ -22716,6 +20651,17 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
             env.bind(BINDING_A, a, arena);
             self.add_first_descriptors(NonterminalId(123), i, new_gss_node_id, Some(env_id));
             self.add_gss_node_nullable_recursive(i, p, a, new_gss_node_id);
+        } else {
+            // The call symbol precedes the return slot in its alternative, so the return slot is never
+            // at the first position.
+            let call_slot = IndirectBinaryGrammar::previous_slot(return_slot)
+                .expect("a return slot follows the call symbol");
+            self.add_failure(
+                i,
+                call_slot,
+                Some(gss_node_id),
+                GLLFailureKind::UnexpectedToken(&PREDICTION_SET_NULLABLE_RECURSIVE),
+            );
         }
     }
     #[allow(clippy::too_many_arguments)]
@@ -22729,14 +20675,9 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
         a: i32,
     ) {
         record!(self, Call, sppf_node_id, gss_node_id, return_slot);
-        let left_child = sppf_node_id.map(|id| {
-            let node = self.sppf_node(id);
-            (id, node.left_extent())
-        });
-        let gss_node = self.gss_node(gss_node_id);
-        let i = match left_child {
-            Some((id, _)) => self.sppf_node(id).right_extent(),
-            None => gss_node.index,
+        let i = match sppf_node_id {
+            Some(id) => self.sppf_node(id).right_extent(),
+            None => self.gss_node(gss_node_id).index,
         };
         // If there is already a GSS node for this call, add an edge.
         if let Some(existing_gss_node_id) = self.get_gss_node_nullable_operand(i, p, a) {
@@ -22744,11 +20685,11 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
             self.add_edge_to_existing_gss_node(
                 existing_gss_node_id,
                 gss_node_id,
-                left_child,
+                sppf_node_id,
                 return_slot,
                 env,
             );
-        } else {
+        } else if self.match_any(&PREDICTION_SET_NULLABLE_OPERAND, i) {
             record!(self, GSSNodeNotFound, NonterminalId(124), i);
             let new_gss_node_id = self.new_gss_node(NonterminalId(124), i);
             self.add_gss_edge(new_gss_node_id, gss_node_id, sppf_node_id, return_slot, env);
@@ -22758,6 +20699,17 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
             env.bind(BINDING_A, a, arena);
             self.add_first_descriptors(NonterminalId(124), i, new_gss_node_id, Some(env_id));
             self.add_gss_node_nullable_operand(i, p, a, new_gss_node_id);
+        } else {
+            // The call symbol precedes the return slot in its alternative, so the return slot is never
+            // at the first position.
+            let call_slot = IndirectBinaryGrammar::previous_slot(return_slot)
+                .expect("a return slot follows the call symbol");
+            self.add_failure(
+                i,
+                call_slot,
+                Some(gss_node_id),
+                GLLFailureKind::UnexpectedToken(&PREDICTION_SET_NULLABLE_OPERAND),
+            );
         }
     }
     #[allow(clippy::too_many_arguments)]
@@ -22771,14 +20723,9 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
         a: i32,
     ) {
         record!(self, Call, sppf_node_id, gss_node_id, return_slot);
-        let left_child = sppf_node_id.map(|id| {
-            let node = self.sppf_node(id);
-            (id, node.left_extent())
-        });
-        let gss_node = self.gss_node(gss_node_id);
-        let i = match left_child {
-            Some((id, _)) => self.sppf_node(id).right_extent(),
-            None => gss_node.index,
+        let i = match sppf_node_id {
+            Some(id) => self.sppf_node(id).right_extent(),
+            None => self.gss_node(gss_node_id).index,
         };
         // If there is already a GSS node for this call, add an edge.
         if let Some(existing_gss_node_id) = self.get_gss_node_nullable_maybe(i, p, a) {
@@ -22786,11 +20733,11 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
             self.add_edge_to_existing_gss_node(
                 existing_gss_node_id,
                 gss_node_id,
-                left_child,
+                sppf_node_id,
                 return_slot,
                 env,
             );
-        } else {
+        } else if self.match_any(&PREDICTION_SET_NULLABLE_MAYBE, i) {
             record!(self, GSSNodeNotFound, NonterminalId(125), i);
             let new_gss_node_id = self.new_gss_node(NonterminalId(125), i);
             self.add_gss_edge(new_gss_node_id, gss_node_id, sppf_node_id, return_slot, env);
@@ -22800,6 +20747,17 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
             env.bind(BINDING_A, a, arena);
             self.add_first_descriptors(NonterminalId(125), i, new_gss_node_id, Some(env_id));
             self.add_gss_node_nullable_maybe(i, p, a, new_gss_node_id);
+        } else {
+            // The call symbol precedes the return slot in its alternative, so the return slot is never
+            // at the first position.
+            let call_slot = IndirectBinaryGrammar::previous_slot(return_slot)
+                .expect("a return slot follows the call symbol");
+            self.add_failure(
+                i,
+                call_slot,
+                Some(gss_node_id),
+                GLLFailureKind::UnexpectedToken(&PREDICTION_SET_NULLABLE_MAYBE),
+            );
         }
     }
     #[allow(clippy::too_many_arguments)]
@@ -22813,14 +20771,9 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
         a: i32,
     ) {
         record!(self, Call, sppf_node_id, gss_node_id, return_slot);
-        let left_child = sppf_node_id.map(|id| {
-            let node = self.sppf_node(id);
-            (id, node.left_extent())
-        });
-        let gss_node = self.gss_node(gss_node_id);
-        let i = match left_child {
-            Some((id, _)) => self.sppf_node(id).right_extent(),
-            None => gss_node.index,
+        let i = match sppf_node_id {
+            Some(id) => self.sppf_node(id).right_extent(),
+            None => self.gss_node(gss_node_id).index,
         };
         // If there is already a GSS node for this call, add an edge.
         if let Some(existing_gss_node_id) = self.get_gss_node_nullable_lex_recursive(i, p, a) {
@@ -22828,11 +20781,11 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
             self.add_edge_to_existing_gss_node(
                 existing_gss_node_id,
                 gss_node_id,
-                left_child,
+                sppf_node_id,
                 return_slot,
                 env,
             );
-        } else {
+        } else if self.match_any(&PREDICTION_SET_NULLABLE_LEX_RECURSIVE, i) {
             record!(self, GSSNodeNotFound, NonterminalId(126), i);
             let new_gss_node_id = self.new_gss_node(NonterminalId(126), i);
             self.add_gss_edge(new_gss_node_id, gss_node_id, sppf_node_id, return_slot, env);
@@ -22842,6 +20795,17 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
             env.bind(BINDING_A, a, arena);
             self.add_first_descriptors(NonterminalId(126), i, new_gss_node_id, Some(env_id));
             self.add_gss_node_nullable_lex_recursive(i, p, a, new_gss_node_id);
+        } else {
+            // The call symbol precedes the return slot in its alternative, so the return slot is never
+            // at the first position.
+            let call_slot = IndirectBinaryGrammar::previous_slot(return_slot)
+                .expect("a return slot follows the call symbol");
+            self.add_failure(
+                i,
+                call_slot,
+                Some(gss_node_id),
+                GLLFailureKind::UnexpectedToken(&PREDICTION_SET_NULLABLE_LEX_RECURSIVE),
+            );
         }
     }
     #[allow(clippy::too_many_arguments)]
@@ -22855,14 +20819,9 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
         a: i32,
     ) {
         record!(self, Call, sppf_node_id, gss_node_id, return_slot);
-        let left_child = sppf_node_id.map(|id| {
-            let node = self.sppf_node(id);
-            (id, node.left_extent())
-        });
-        let gss_node = self.gss_node(gss_node_id);
-        let i = match left_child {
-            Some((id, _)) => self.sppf_node(id).right_extent(),
-            None => gss_node.index,
+        let i = match sppf_node_id {
+            Some(id) => self.sppf_node(id).right_extent(),
+            None => self.gss_node(gss_node_id).index,
         };
         // If there is already a GSS node for this call, add an edge.
         if let Some(existing_gss_node_id) = self.get_gss_node_nullable_lex_operand(i, p, a) {
@@ -22870,11 +20829,11 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
             self.add_edge_to_existing_gss_node(
                 existing_gss_node_id,
                 gss_node_id,
-                left_child,
+                sppf_node_id,
                 return_slot,
                 env,
             );
-        } else {
+        } else if self.match_any(&PREDICTION_SET_NULLABLE_LEX_OPERAND, i) {
             record!(self, GSSNodeNotFound, NonterminalId(127), i);
             let new_gss_node_id = self.new_gss_node(NonterminalId(127), i);
             self.add_gss_edge(new_gss_node_id, gss_node_id, sppf_node_id, return_slot, env);
@@ -22884,6 +20843,17 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
             env.bind(BINDING_A, a, arena);
             self.add_first_descriptors(NonterminalId(127), i, new_gss_node_id, Some(env_id));
             self.add_gss_node_nullable_lex_operand(i, p, a, new_gss_node_id);
+        } else {
+            // The call symbol precedes the return slot in its alternative, so the return slot is never
+            // at the first position.
+            let call_slot = IndirectBinaryGrammar::previous_slot(return_slot)
+                .expect("a return slot follows the call symbol");
+            self.add_failure(
+                i,
+                call_slot,
+                Some(gss_node_id),
+                GLLFailureKind::UnexpectedToken(&PREDICTION_SET_NULLABLE_LEX_OPERAND),
+            );
         }
     }
     #[allow(clippy::too_many_arguments)]
@@ -22897,14 +20867,9 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
         a: i32,
     ) {
         record!(self, Call, sppf_node_id, gss_node_id, return_slot);
-        let left_child = sppf_node_id.map(|id| {
-            let node = self.sppf_node(id);
-            (id, node.left_extent())
-        });
-        let gss_node = self.gss_node(gss_node_id);
-        let i = match left_child {
-            Some((id, _)) => self.sppf_node(id).right_extent(),
-            None => gss_node.index,
+        let i = match sppf_node_id {
+            Some(id) => self.sppf_node(id).right_extent(),
+            None => self.gss_node(gss_node_id).index,
         };
         // If there is already a GSS node for this call, add an edge.
         if let Some(existing_gss_node_id) = self.get_gss_node_nullable_lex_maybe(i, p, a) {
@@ -22912,11 +20877,11 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
             self.add_edge_to_existing_gss_node(
                 existing_gss_node_id,
                 gss_node_id,
-                left_child,
+                sppf_node_id,
                 return_slot,
                 env,
             );
-        } else {
+        } else if self.match_any(&PREDICTION_SET_NULLABLE_LEX_MAYBE, i) {
             record!(self, GSSNodeNotFound, NonterminalId(128), i);
             let new_gss_node_id = self.new_gss_node(NonterminalId(128), i);
             self.add_gss_edge(new_gss_node_id, gss_node_id, sppf_node_id, return_slot, env);
@@ -22926,6 +20891,17 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
             env.bind(BINDING_A, a, arena);
             self.add_first_descriptors(NonterminalId(128), i, new_gss_node_id, Some(env_id));
             self.add_gss_node_nullable_lex_maybe(i, p, a, new_gss_node_id);
+        } else {
+            // The call symbol precedes the return slot in its alternative, so the return slot is never
+            // at the first position.
+            let call_slot = IndirectBinaryGrammar::previous_slot(return_slot)
+                .expect("a return slot follows the call symbol");
+            self.add_failure(
+                i,
+                call_slot,
+                Some(gss_node_id),
+                GLLFailureKind::UnexpectedToken(&PREDICTION_SET_NULLABLE_LEX_MAYBE),
+            );
         }
     }
     #[allow(clippy::too_many_arguments)]
@@ -22939,14 +20915,9 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
         a: i32,
     ) {
         record!(self, Call, sppf_node_id, gss_node_id, return_slot);
-        let left_child = sppf_node_id.map(|id| {
-            let node = self.sppf_node(id);
-            (id, node.left_extent())
-        });
-        let gss_node = self.gss_node(gss_node_id);
-        let i = match left_child {
-            Some((id, _)) => self.sppf_node(id).right_extent(),
-            None => gss_node.index,
+        let i = match sppf_node_id {
+            Some(id) => self.sppf_node(id).right_extent(),
+            None => self.gss_node(gss_node_id).index,
         };
         // If there is already a GSS node for this call, add an edge.
         if let Some(existing_gss_node_id) = self.get_gss_node_nullable_suffix(i, p, a) {
@@ -22954,11 +20925,11 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
             self.add_edge_to_existing_gss_node(
                 existing_gss_node_id,
                 gss_node_id,
-                left_child,
+                sppf_node_id,
                 return_slot,
                 env,
             );
-        } else {
+        } else if self.match_any(&PREDICTION_SET_NULLABLE_SUFFIX, i) {
             record!(self, GSSNodeNotFound, NonterminalId(129), i);
             let new_gss_node_id = self.new_gss_node(NonterminalId(129), i);
             self.add_gss_edge(new_gss_node_id, gss_node_id, sppf_node_id, return_slot, env);
@@ -22968,6 +20939,17 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
             env.bind(BINDING_A, a, arena);
             self.add_first_descriptors(NonterminalId(129), i, new_gss_node_id, Some(env_id));
             self.add_gss_node_nullable_suffix(i, p, a, new_gss_node_id);
+        } else {
+            // The call symbol precedes the return slot in its alternative, so the return slot is never
+            // at the first position.
+            let call_slot = IndirectBinaryGrammar::previous_slot(return_slot)
+                .expect("a return slot follows the call symbol");
+            self.add_failure(
+                i,
+                call_slot,
+                Some(gss_node_id),
+                GLLFailureKind::UnexpectedToken(&PREDICTION_SET_NULLABLE_SUFFIX),
+            );
         }
     }
     #[allow(clippy::too_many_arguments)]
@@ -22981,14 +20963,9 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
         a: i32,
     ) {
         record!(self, Call, sppf_node_id, gss_node_id, return_slot);
-        let left_child = sppf_node_id.map(|id| {
-            let node = self.sppf_node(id);
-            (id, node.left_extent())
-        });
-        let gss_node = self.gss_node(gss_node_id);
-        let i = match left_child {
-            Some((id, _)) => self.sppf_node(id).right_extent(),
-            None => gss_node.index,
+        let i = match sppf_node_id {
+            Some(id) => self.sppf_node(id).right_extent(),
+            None => self.gss_node(gss_node_id).index,
         };
         // If there is already a GSS node for this call, add an edge.
         if let Some(existing_gss_node_id) = self.get_gss_node_nullable_suffix_operand(i, p, a) {
@@ -22996,11 +20973,11 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
             self.add_edge_to_existing_gss_node(
                 existing_gss_node_id,
                 gss_node_id,
-                left_child,
+                sppf_node_id,
                 return_slot,
                 env,
             );
-        } else {
+        } else if self.match_any(&PREDICTION_SET_NULLABLE_SUFFIX_OPERAND, i) {
             record!(self, GSSNodeNotFound, NonterminalId(130), i);
             let new_gss_node_id = self.new_gss_node(NonterminalId(130), i);
             self.add_gss_edge(new_gss_node_id, gss_node_id, sppf_node_id, return_slot, env);
@@ -23010,6 +20987,17 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
             env.bind(BINDING_A, a, arena);
             self.add_first_descriptors(NonterminalId(130), i, new_gss_node_id, Some(env_id));
             self.add_gss_node_nullable_suffix_operand(i, p, a, new_gss_node_id);
+        } else {
+            // The call symbol precedes the return slot in its alternative, so the return slot is never
+            // at the first position.
+            let call_slot = IndirectBinaryGrammar::previous_slot(return_slot)
+                .expect("a return slot follows the call symbol");
+            self.add_failure(
+                i,
+                call_slot,
+                Some(gss_node_id),
+                GLLFailureKind::UnexpectedToken(&PREDICTION_SET_NULLABLE_SUFFIX_OPERAND),
+            );
         }
     }
     #[allow(clippy::too_many_arguments)]
@@ -23023,14 +21011,9 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
         a: i32,
     ) {
         record!(self, Call, sppf_node_id, gss_node_id, return_slot);
-        let left_child = sppf_node_id.map(|id| {
-            let node = self.sppf_node(id);
-            (id, node.left_extent())
-        });
-        let gss_node = self.gss_node(gss_node_id);
-        let i = match left_child {
-            Some((id, _)) => self.sppf_node(id).right_extent(),
-            None => gss_node.index,
+        let i = match sppf_node_id {
+            Some(id) => self.sppf_node(id).right_extent(),
+            None => self.gss_node(gss_node_id).index,
         };
         // If there is already a GSS node for this call, add an edge.
         if let Some(existing_gss_node_id) = self.get_gss_node_nullable_suffix_maybe(i, p, a) {
@@ -23038,11 +21021,11 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
             self.add_edge_to_existing_gss_node(
                 existing_gss_node_id,
                 gss_node_id,
-                left_child,
+                sppf_node_id,
                 return_slot,
                 env,
             );
-        } else {
+        } else if self.match_any(&PREDICTION_SET_NULLABLE_SUFFIX_MAYBE, i) {
             record!(self, GSSNodeNotFound, NonterminalId(131), i);
             let new_gss_node_id = self.new_gss_node(NonterminalId(131), i);
             self.add_gss_edge(new_gss_node_id, gss_node_id, sppf_node_id, return_slot, env);
@@ -23052,6 +21035,17 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
             env.bind(BINDING_A, a, arena);
             self.add_first_descriptors(NonterminalId(131), i, new_gss_node_id, Some(env_id));
             self.add_gss_node_nullable_suffix_maybe(i, p, a, new_gss_node_id);
+        } else {
+            // The call symbol precedes the return slot in its alternative, so the return slot is never
+            // at the first position.
+            let call_slot = IndirectBinaryGrammar::previous_slot(return_slot)
+                .expect("a return slot follows the call symbol");
+            self.add_failure(
+                i,
+                call_slot,
+                Some(gss_node_id),
+                GLLFailureKind::UnexpectedToken(&PREDICTION_SET_NULLABLE_SUFFIX_MAYBE),
+            );
         }
     }
     #[allow(clippy::too_many_arguments)]
@@ -23065,14 +21059,9 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
         a: i32,
     ) {
         record!(self, Call, sppf_node_id, gss_node_id, return_slot);
-        let left_child = sppf_node_id.map(|id| {
-            let node = self.sppf_node(id);
-            (id, node.left_extent())
-        });
-        let gss_node = self.gss_node(gss_node_id);
-        let i = match left_child {
-            Some((id, _)) => self.sppf_node(id).right_extent(),
-            None => gss_node.index,
+        let i = match sppf_node_id {
+            Some(id) => self.sppf_node(id).right_extent(),
+            None => self.gss_node(gss_node_id).index,
         };
         // If there is already a GSS node for this call, add an edge.
         if let Some(existing_gss_node_id) = self.get_gss_node_nullable_shared(i, p, a) {
@@ -23080,11 +21069,11 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
             self.add_edge_to_existing_gss_node(
                 existing_gss_node_id,
                 gss_node_id,
-                left_child,
+                sppf_node_id,
                 return_slot,
                 env,
             );
-        } else {
+        } else if self.match_any(&PREDICTION_SET_NULLABLE_SHARED, i) {
             record!(self, GSSNodeNotFound, NonterminalId(132), i);
             let new_gss_node_id = self.new_gss_node(NonterminalId(132), i);
             self.add_gss_edge(new_gss_node_id, gss_node_id, sppf_node_id, return_slot, env);
@@ -23094,6 +21083,17 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
             env.bind(BINDING_A, a, arena);
             self.add_first_descriptors(NonterminalId(132), i, new_gss_node_id, Some(env_id));
             self.add_gss_node_nullable_shared(i, p, a, new_gss_node_id);
+        } else {
+            // The call symbol precedes the return slot in its alternative, so the return slot is never
+            // at the first position.
+            let call_slot = IndirectBinaryGrammar::previous_slot(return_slot)
+                .expect("a return slot follows the call symbol");
+            self.add_failure(
+                i,
+                call_slot,
+                Some(gss_node_id),
+                GLLFailureKind::UnexpectedToken(&PREDICTION_SET_NULLABLE_SHARED),
+            );
         }
     }
     #[allow(clippy::too_many_arguments)]
@@ -23108,14 +21108,9 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
         a: i32,
     ) {
         record!(self, Call, sppf_node_id, gss_node_id, return_slot);
-        let left_child = sppf_node_id.map(|id| {
-            let node = self.sppf_node(id);
-            (id, node.left_extent())
-        });
-        let gss_node = self.gss_node(gss_node_id);
-        let i = match left_child {
-            Some((id, _)) => self.sppf_node(id).right_extent(),
-            None => gss_node.index,
+        let i = match sppf_node_id {
+            Some(id) => self.sppf_node(id).right_extent(),
+            None => self.gss_node(gss_node_id).index,
         };
         // If there is already a GSS node for this call, add an edge.
         if let Some(existing_gss_node_id) = self.get_gss_node_nullable_shared_operand(i, p, end, a)
@@ -23124,11 +21119,11 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
             self.add_edge_to_existing_gss_node(
                 existing_gss_node_id,
                 gss_node_id,
-                left_child,
+                sppf_node_id,
                 return_slot,
                 env,
             );
-        } else {
+        } else if self.match_any(&PREDICTION_SET_NULLABLE_SHARED_OPERAND, i) {
             record!(self, GSSNodeNotFound, NonterminalId(133), i);
             let new_gss_node_id = self.new_gss_node(NonterminalId(133), i);
             self.add_gss_edge(new_gss_node_id, gss_node_id, sppf_node_id, return_slot, env);
@@ -23139,6 +21134,17 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
             env.bind(BINDING_A, a, arena);
             self.add_first_descriptors(NonterminalId(133), i, new_gss_node_id, Some(env_id));
             self.add_gss_node_nullable_shared_operand(i, p, end, a, new_gss_node_id);
+        } else {
+            // The call symbol precedes the return slot in its alternative, so the return slot is never
+            // at the first position.
+            let call_slot = IndirectBinaryGrammar::previous_slot(return_slot)
+                .expect("a return slot follows the call symbol");
+            self.add_failure(
+                i,
+                call_slot,
+                Some(gss_node_id),
+                GLLFailureKind::UnexpectedToken(&PREDICTION_SET_NULLABLE_SHARED_OPERAND),
+            );
         }
     }
     #[allow(clippy::too_many_arguments)]
@@ -23153,14 +21159,9 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
         a: i32,
     ) {
         record!(self, Call, sppf_node_id, gss_node_id, return_slot);
-        let left_child = sppf_node_id.map(|id| {
-            let node = self.sppf_node(id);
-            (id, node.left_extent())
-        });
-        let gss_node = self.gss_node(gss_node_id);
-        let i = match left_child {
-            Some((id, _)) => self.sppf_node(id).right_extent(),
-            None => gss_node.index,
+        let i = match sppf_node_id {
+            Some(id) => self.sppf_node(id).right_extent(),
+            None => self.gss_node(gss_node_id).index,
         };
         // If there is already a GSS node for this call, add an edge.
         if let Some(existing_gss_node_id) = self.get_gss_node_nullable_shared_maybe(i, p, end, a) {
@@ -23168,11 +21169,11 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
             self.add_edge_to_existing_gss_node(
                 existing_gss_node_id,
                 gss_node_id,
-                left_child,
+                sppf_node_id,
                 return_slot,
                 env,
             );
-        } else {
+        } else if self.match_any(&PREDICTION_SET_NULLABLE_SHARED_MAYBE, i) {
             record!(self, GSSNodeNotFound, NonterminalId(134), i);
             let new_gss_node_id = self.new_gss_node(NonterminalId(134), i);
             self.add_gss_edge(new_gss_node_id, gss_node_id, sppf_node_id, return_slot, env);
@@ -23183,6 +21184,17 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
             env.bind(BINDING_A, a, arena);
             self.add_first_descriptors(NonterminalId(134), i, new_gss_node_id, Some(env_id));
             self.add_gss_node_nullable_shared_maybe(i, p, end, a, new_gss_node_id);
+        } else {
+            // The call symbol precedes the return slot in its alternative, so the return slot is never
+            // at the first position.
+            let call_slot = IndirectBinaryGrammar::previous_slot(return_slot)
+                .expect("a return slot follows the call symbol");
+            self.add_failure(
+                i,
+                call_slot,
+                Some(gss_node_id),
+                GLLFailureKind::UnexpectedToken(&PREDICTION_SET_NULLABLE_SHARED_MAYBE),
+            );
         }
     }
     #[allow(clippy::too_many_arguments)]
@@ -23197,14 +21209,9 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
         e: i32,
     ) {
         record!(self, Call, sppf_node_id, gss_node_id, return_slot);
-        let left_child = sppf_node_id.map(|id| {
-            let node = self.sppf_node(id);
-            (id, node.left_extent())
-        });
-        let gss_node = self.gss_node(gss_node_id);
-        let i = match left_child {
-            Some((id, _)) => self.sppf_node(id).right_extent(),
-            None => gss_node.index,
+        let i = match sppf_node_id {
+            Some(id) => self.sppf_node(id).right_extent(),
+            None => self.gss_node(gss_node_id).index,
         };
         // If there is already a GSS node for this call, add an edge.
         if let Some(existing_gss_node_id) = self.get_gss_node_own_label(i, p, a, e) {
@@ -23212,11 +21219,11 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
             self.add_edge_to_existing_gss_node(
                 existing_gss_node_id,
                 gss_node_id,
-                left_child,
+                sppf_node_id,
                 return_slot,
                 env,
             );
-        } else {
+        } else if self.match_any(&PREDICTION_SET_OWN_LABEL, i) {
             record!(self, GSSNodeNotFound, NonterminalId(135), i);
             let new_gss_node_id = self.new_gss_node(NonterminalId(135), i);
             self.add_gss_edge(new_gss_node_id, gss_node_id, sppf_node_id, return_slot, env);
@@ -23227,6 +21234,17 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
             env.bind(BINDING_E, e, arena);
             self.add_first_descriptors(NonterminalId(135), i, new_gss_node_id, Some(env_id));
             self.add_gss_node_own_label(i, p, a, e, new_gss_node_id);
+        } else {
+            // The call symbol precedes the return slot in its alternative, so the return slot is never
+            // at the first position.
+            let call_slot = IndirectBinaryGrammar::previous_slot(return_slot)
+                .expect("a return slot follows the call symbol");
+            self.add_failure(
+                i,
+                call_slot,
+                Some(gss_node_id),
+                GLLFailureKind::UnexpectedToken(&PREDICTION_SET_OWN_LABEL),
+            );
         }
     }
     #[allow(clippy::too_many_arguments)]
@@ -23242,14 +21260,9 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
         e: i32,
     ) {
         record!(self, Call, sppf_node_id, gss_node_id, return_slot);
-        let left_child = sppf_node_id.map(|id| {
-            let node = self.sppf_node(id);
-            (id, node.left_extent())
-        });
-        let gss_node = self.gss_node(gss_node_id);
-        let i = match left_child {
-            Some((id, _)) => self.sppf_node(id).right_extent(),
-            None => gss_node.index,
+        let i = match sppf_node_id {
+            Some(id) => self.sppf_node(id).right_extent(),
+            None => self.gss_node(gss_node_id).index,
         };
         // If there is already a GSS node for this call, add an edge.
         if let Some(existing_gss_node_id) = self.get_gss_node_own_operand(i, p, end, a, e) {
@@ -23257,11 +21270,11 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
             self.add_edge_to_existing_gss_node(
                 existing_gss_node_id,
                 gss_node_id,
-                left_child,
+                sppf_node_id,
                 return_slot,
                 env,
             );
-        } else {
+        } else if self.match_any(&PREDICTION_SET_OWN_OPERAND, i) {
             record!(self, GSSNodeNotFound, NonterminalId(136), i);
             let new_gss_node_id = self.new_gss_node(NonterminalId(136), i);
             self.add_gss_edge(new_gss_node_id, gss_node_id, sppf_node_id, return_slot, env);
@@ -23273,6 +21286,17 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
             env.bind(BINDING_E, e, arena);
             self.add_first_descriptors(NonterminalId(136), i, new_gss_node_id, Some(env_id));
             self.add_gss_node_own_operand(i, p, end, a, e, new_gss_node_id);
+        } else {
+            // The call symbol precedes the return slot in its alternative, so the return slot is never
+            // at the first position.
+            let call_slot = IndirectBinaryGrammar::previous_slot(return_slot)
+                .expect("a return slot follows the call symbol");
+            self.add_failure(
+                i,
+                call_slot,
+                Some(gss_node_id),
+                GLLFailureKind::UnexpectedToken(&PREDICTION_SET_OWN_OPERAND),
+            );
         }
     }
     #[allow(clippy::too_many_arguments)]
@@ -23285,14 +21309,9 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
         e: i32,
     ) {
         record!(self, Call, sppf_node_id, gss_node_id, return_slot);
-        let left_child = sppf_node_id.map(|id| {
-            let node = self.sppf_node(id);
-            (id, node.left_extent())
-        });
-        let gss_node = self.gss_node(gss_node_id);
-        let i = match left_child {
-            Some((id, _)) => self.sppf_node(id).right_extent(),
-            None => gss_node.index,
+        let i = match sppf_node_id {
+            Some(id) => self.sppf_node(id).right_extent(),
+            None => self.gss_node(gss_node_id).index,
         };
         // If there is already a GSS node for this call, add an edge.
         if let Some(existing_gss_node_id) = self.get_gss_node_exclude_only(i, e) {
@@ -23300,11 +21319,11 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
             self.add_edge_to_existing_gss_node(
                 existing_gss_node_id,
                 gss_node_id,
-                left_child,
+                sppf_node_id,
                 return_slot,
                 env,
             );
-        } else {
+        } else if self.match_any(&PREDICTION_SET_EXCLUDE_ONLY, i) {
             record!(self, GSSNodeNotFound, NonterminalId(137), i);
             let new_gss_node_id = self.new_gss_node(NonterminalId(137), i);
             self.add_gss_edge(new_gss_node_id, gss_node_id, sppf_node_id, return_slot, env);
@@ -23313,6 +21332,17 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
             env.bind(BINDING_E, e, arena);
             self.add_first_descriptors(NonterminalId(137), i, new_gss_node_id, Some(env_id));
             self.add_gss_node_exclude_only(i, e, new_gss_node_id);
+        } else {
+            // The call symbol precedes the return slot in its alternative, so the return slot is never
+            // at the first position.
+            let call_slot = IndirectBinaryGrammar::previous_slot(return_slot)
+                .expect("a return slot follows the call symbol");
+            self.add_failure(
+                i,
+                call_slot,
+                Some(gss_node_id),
+                GLLFailureKind::UnexpectedToken(&PREDICTION_SET_EXCLUDE_ONLY),
+            );
         }
     }
     #[allow(clippy::too_many_arguments)]
@@ -23325,14 +21355,9 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
         p: i32,
     ) {
         record!(self, Call, sppf_node_id, gss_node_id, return_slot);
-        let left_child = sppf_node_id.map(|id| {
-            let node = self.sppf_node(id);
-            (id, node.left_extent())
-        });
-        let gss_node = self.gss_node(gss_node_id);
-        let i = match left_child {
-            Some((id, _)) => self.sppf_node(id).right_extent(),
-            None => gss_node.index,
+        let i = match sppf_node_id {
+            Some(id) => self.sppf_node(id).right_extent(),
+            None => self.gss_node(gss_node_id).index,
         };
         // If there is already a GSS node for this call, add an edge.
         if let Some(existing_gss_node_id) = self.get_gss_node_absent(i, p) {
@@ -23340,11 +21365,11 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
             self.add_edge_to_existing_gss_node(
                 existing_gss_node_id,
                 gss_node_id,
-                left_child,
+                sppf_node_id,
                 return_slot,
                 env,
             );
-        } else {
+        } else if self.match_any(&PREDICTION_SET_ABSENT, i) {
             record!(self, GSSNodeNotFound, NonterminalId(138), i);
             let new_gss_node_id = self.new_gss_node(NonterminalId(138), i);
             self.add_gss_edge(new_gss_node_id, gss_node_id, sppf_node_id, return_slot, env);
@@ -23353,6 +21378,17 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
             env.bind(BINDING_P, p, arena);
             self.add_first_descriptors(NonterminalId(138), i, new_gss_node_id, Some(env_id));
             self.add_gss_node_absent(i, p, new_gss_node_id);
+        } else {
+            // The call symbol precedes the return slot in its alternative, so the return slot is never
+            // at the first position.
+            let call_slot = IndirectBinaryGrammar::previous_slot(return_slot)
+                .expect("a return slot follows the call symbol");
+            self.add_failure(
+                i,
+                call_slot,
+                Some(gss_node_id),
+                GLLFailureKind::UnexpectedToken(&PREDICTION_SET_ABSENT),
+            );
         }
     }
     #[allow(clippy::too_many_arguments)]
@@ -23366,14 +21402,9 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
         end: i32,
     ) {
         record!(self, Call, sppf_node_id, gss_node_id, return_slot);
-        let left_child = sppf_node_id.map(|id| {
-            let node = self.sppf_node(id);
-            (id, node.left_extent())
-        });
-        let gss_node = self.gss_node(gss_node_id);
-        let i = match left_child {
-            Some((id, _)) => self.sppf_node(id).right_extent(),
-            None => gss_node.index,
+        let i = match sppf_node_id {
+            Some(id) => self.sppf_node(id).right_extent(),
+            None => self.gss_node(gss_node_id).index,
         };
         // If there is already a GSS node for this call, add an edge.
         if let Some(existing_gss_node_id) = self.get_gss_node_absent_operand(i, p, end) {
@@ -23381,11 +21412,11 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
             self.add_edge_to_existing_gss_node(
                 existing_gss_node_id,
                 gss_node_id,
-                left_child,
+                sppf_node_id,
                 return_slot,
                 env,
             );
-        } else {
+        } else if self.match_any(&PREDICTION_SET_ABSENT_OPERAND, i) {
             record!(self, GSSNodeNotFound, NonterminalId(139), i);
             let new_gss_node_id = self.new_gss_node(NonterminalId(139), i);
             self.add_gss_edge(new_gss_node_id, gss_node_id, sppf_node_id, return_slot, env);
@@ -23395,6 +21426,17 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
             env.bind(BINDING_END, end, arena);
             self.add_first_descriptors(NonterminalId(139), i, new_gss_node_id, Some(env_id));
             self.add_gss_node_absent_operand(i, p, end, new_gss_node_id);
+        } else {
+            // The call symbol precedes the return slot in its alternative, so the return slot is never
+            // at the first position.
+            let call_slot = IndirectBinaryGrammar::previous_slot(return_slot)
+                .expect("a return slot follows the call symbol");
+            self.add_failure(
+                i,
+                call_slot,
+                Some(gss_node_id),
+                GLLFailureKind::UnexpectedToken(&PREDICTION_SET_ABSENT_OPERAND),
+            );
         }
     }
     #[allow(clippy::too_many_arguments)]
@@ -23407,14 +21449,9 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
         p: i32,
     ) {
         record!(self, Call, sppf_node_id, gss_node_id, return_slot);
-        let left_child = sppf_node_id.map(|id| {
-            let node = self.sppf_node(id);
-            (id, node.left_extent())
-        });
-        let gss_node = self.gss_node(gss_node_id);
-        let i = match left_child {
-            Some((id, _)) => self.sppf_node(id).right_extent(),
-            None => gss_node.index,
+        let i = match sppf_node_id {
+            Some(id) => self.sppf_node(id).right_extent(),
+            None => self.gss_node(gss_node_id).index,
         };
         // If there is already a GSS node for this call, add an edge.
         if let Some(existing_gss_node_id) = self.get_gss_node_closed_prefix(i, p) {
@@ -23422,11 +21459,11 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
             self.add_edge_to_existing_gss_node(
                 existing_gss_node_id,
                 gss_node_id,
-                left_child,
+                sppf_node_id,
                 return_slot,
                 env,
             );
-        } else {
+        } else if self.match_any(&PREDICTION_SET_CLOSED_PREFIX, i) {
             record!(self, GSSNodeNotFound, NonterminalId(140), i);
             let new_gss_node_id = self.new_gss_node(NonterminalId(140), i);
             self.add_gss_edge(new_gss_node_id, gss_node_id, sppf_node_id, return_slot, env);
@@ -23435,6 +21472,17 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
             env.bind(BINDING_P, p, arena);
             self.add_first_descriptors(NonterminalId(140), i, new_gss_node_id, Some(env_id));
             self.add_gss_node_closed_prefix(i, p, new_gss_node_id);
+        } else {
+            // The call symbol precedes the return slot in its alternative, so the return slot is never
+            // at the first position.
+            let call_slot = IndirectBinaryGrammar::previous_slot(return_slot)
+                .expect("a return slot follows the call symbol");
+            self.add_failure(
+                i,
+                call_slot,
+                Some(gss_node_id),
+                GLLFailureKind::UnexpectedToken(&PREDICTION_SET_CLOSED_PREFIX),
+            );
         }
     }
     #[allow(clippy::too_many_arguments)]
@@ -23447,14 +21495,9 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
         p: i32,
     ) {
         record!(self, Call, sppf_node_id, gss_node_id, return_slot);
-        let left_child = sppf_node_id.map(|id| {
-            let node = self.sppf_node(id);
-            (id, node.left_extent())
-        });
-        let gss_node = self.gss_node(gss_node_id);
-        let i = match left_child {
-            Some((id, _)) => self.sppf_node(id).right_extent(),
-            None => gss_node.index,
+        let i = match sppf_node_id {
+            Some(id) => self.sppf_node(id).right_extent(),
+            None => self.gss_node(gss_node_id).index,
         };
         // If there is already a GSS node for this call, add an edge.
         if let Some(existing_gss_node_id) = self.get_gss_node_closed_prefix_body(i, p) {
@@ -23462,11 +21505,11 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
             self.add_edge_to_existing_gss_node(
                 existing_gss_node_id,
                 gss_node_id,
-                left_child,
+                sppf_node_id,
                 return_slot,
                 env,
             );
-        } else {
+        } else if self.match_any(&PREDICTION_SET_CLOSED_PREFIX_BODY, i) {
             record!(self, GSSNodeNotFound, NonterminalId(141), i);
             let new_gss_node_id = self.new_gss_node(NonterminalId(141), i);
             self.add_gss_edge(new_gss_node_id, gss_node_id, sppf_node_id, return_slot, env);
@@ -23475,6 +21518,17 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
             env.bind(BINDING_P, p, arena);
             self.add_first_descriptors(NonterminalId(141), i, new_gss_node_id, Some(env_id));
             self.add_gss_node_closed_prefix_body(i, p, new_gss_node_id);
+        } else {
+            // The call symbol precedes the return slot in its alternative, so the return slot is never
+            // at the first position.
+            let call_slot = IndirectBinaryGrammar::previous_slot(return_slot)
+                .expect("a return slot follows the call symbol");
+            self.add_failure(
+                i,
+                call_slot,
+                Some(gss_node_id),
+                GLLFailureKind::UnexpectedToken(&PREDICTION_SET_CLOSED_PREFIX_BODY),
+            );
         }
     }
     #[allow(clippy::too_many_arguments)]
@@ -23487,14 +21541,9 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
         p: i32,
     ) {
         record!(self, Call, sppf_node_id, gss_node_id, return_slot);
-        let left_child = sppf_node_id.map(|id| {
-            let node = self.sppf_node(id);
-            (id, node.left_extent())
-        });
-        let gss_node = self.gss_node(gss_node_id);
-        let i = match left_child {
-            Some((id, _)) => self.sppf_node(id).right_extent(),
-            None => gss_node.index,
+        let i = match sppf_node_id {
+            Some(id) => self.sppf_node(id).right_extent(),
+            None => self.gss_node(gss_node_id).index,
         };
         // If there is already a GSS node for this call, add an edge.
         if let Some(existing_gss_node_id) = self.get_gss_node_closed_postfix(i, p) {
@@ -23502,11 +21551,11 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
             self.add_edge_to_existing_gss_node(
                 existing_gss_node_id,
                 gss_node_id,
-                left_child,
+                sppf_node_id,
                 return_slot,
                 env,
             );
-        } else {
+        } else if self.match_any(&PREDICTION_SET_CLOSED_POSTFIX, i) {
             record!(self, GSSNodeNotFound, NonterminalId(142), i);
             let new_gss_node_id = self.new_gss_node(NonterminalId(142), i);
             self.add_gss_edge(new_gss_node_id, gss_node_id, sppf_node_id, return_slot, env);
@@ -23515,6 +21564,17 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
             env.bind(BINDING_P, p, arena);
             self.add_first_descriptors(NonterminalId(142), i, new_gss_node_id, Some(env_id));
             self.add_gss_node_closed_postfix(i, p, new_gss_node_id);
+        } else {
+            // The call symbol precedes the return slot in its alternative, so the return slot is never
+            // at the first position.
+            let call_slot = IndirectBinaryGrammar::previous_slot(return_slot)
+                .expect("a return slot follows the call symbol");
+            self.add_failure(
+                i,
+                call_slot,
+                Some(gss_node_id),
+                GLLFailureKind::UnexpectedToken(&PREDICTION_SET_CLOSED_POSTFIX),
+            );
         }
     }
     #[allow(clippy::too_many_arguments)]
@@ -23527,14 +21587,9 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
         p: i32,
     ) {
         record!(self, Call, sppf_node_id, gss_node_id, return_slot);
-        let left_child = sppf_node_id.map(|id| {
-            let node = self.sppf_node(id);
-            (id, node.left_extent())
-        });
-        let gss_node = self.gss_node(gss_node_id);
-        let i = match left_child {
-            Some((id, _)) => self.sppf_node(id).right_extent(),
-            None => gss_node.index,
+        let i = match sppf_node_id {
+            Some(id) => self.sppf_node(id).right_extent(),
+            None => self.gss_node(gss_node_id).index,
         };
         // If there is already a GSS node for this call, add an edge.
         if let Some(existing_gss_node_id) = self.get_gss_node_closed_postfix_body(i, p) {
@@ -23542,11 +21597,11 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
             self.add_edge_to_existing_gss_node(
                 existing_gss_node_id,
                 gss_node_id,
-                left_child,
+                sppf_node_id,
                 return_slot,
                 env,
             );
-        } else {
+        } else if self.match_any(&PREDICTION_SET_CLOSED_POSTFIX_BODY, i) {
             record!(self, GSSNodeNotFound, NonterminalId(143), i);
             let new_gss_node_id = self.new_gss_node(NonterminalId(143), i);
             self.add_gss_edge(new_gss_node_id, gss_node_id, sppf_node_id, return_slot, env);
@@ -23555,6 +21610,17 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
             env.bind(BINDING_P, p, arena);
             self.add_first_descriptors(NonterminalId(143), i, new_gss_node_id, Some(env_id));
             self.add_gss_node_closed_postfix_body(i, p, new_gss_node_id);
+        } else {
+            // The call symbol precedes the return slot in its alternative, so the return slot is never
+            // at the first position.
+            let call_slot = IndirectBinaryGrammar::previous_slot(return_slot)
+                .expect("a return slot follows the call symbol");
+            self.add_failure(
+                i,
+                call_slot,
+                Some(gss_node_id),
+                GLLFailureKind::UnexpectedToken(&PREDICTION_SET_CLOSED_POSTFIX_BODY),
+            );
         }
     }
     #[allow(clippy::too_many_arguments)]
@@ -23567,14 +21633,9 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
         p: i32,
     ) {
         record!(self, Call, sppf_node_id, gss_node_id, return_slot);
-        let left_child = sppf_node_id.map(|id| {
-            let node = self.sppf_node(id);
-            (id, node.left_extent())
-        });
-        let gss_node = self.gss_node(gss_node_id);
-        let i = match left_child {
-            Some((id, _)) => self.sppf_node(id).right_extent(),
-            None => gss_node.index,
+        let i = match sppf_node_id {
+            Some(id) => self.sppf_node(id).right_extent(),
+            None => self.gss_node(gss_node_id).index,
         };
         // If there is already a GSS node for this call, add an edge.
         if let Some(existing_gss_node_id) = self.get_gss_node_head_choice(i, p) {
@@ -23582,11 +21643,11 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
             self.add_edge_to_existing_gss_node(
                 existing_gss_node_id,
                 gss_node_id,
-                left_child,
+                sppf_node_id,
                 return_slot,
                 env,
             );
-        } else {
+        } else if self.match_any(&PREDICTION_SET_HEAD_CHOICE, i) {
             record!(self, GSSNodeNotFound, NonterminalId(144), i);
             let new_gss_node_id = self.new_gss_node(NonterminalId(144), i);
             self.add_gss_edge(new_gss_node_id, gss_node_id, sppf_node_id, return_slot, env);
@@ -23595,6 +21656,17 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
             env.bind(BINDING_P, p, arena);
             self.add_first_descriptors(NonterminalId(144), i, new_gss_node_id, Some(env_id));
             self.add_gss_node_head_choice(i, p, new_gss_node_id);
+        } else {
+            // The call symbol precedes the return slot in its alternative, so the return slot is never
+            // at the first position.
+            let call_slot = IndirectBinaryGrammar::previous_slot(return_slot)
+                .expect("a return slot follows the call symbol");
+            self.add_failure(
+                i,
+                call_slot,
+                Some(gss_node_id),
+                GLLFailureKind::UnexpectedToken(&PREDICTION_SET_HEAD_CHOICE),
+            );
         }
     }
     #[allow(clippy::too_many_arguments)]
@@ -23608,14 +21680,9 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
         end: i32,
     ) {
         record!(self, Call, sppf_node_id, gss_node_id, return_slot);
-        let left_child = sppf_node_id.map(|id| {
-            let node = self.sppf_node(id);
-            (id, node.left_extent())
-        });
-        let gss_node = self.gss_node(gss_node_id);
-        let i = match left_child {
-            Some((id, _)) => self.sppf_node(id).right_extent(),
-            None => gss_node.index,
+        let i = match sppf_node_id {
+            Some(id) => self.sppf_node(id).right_extent(),
+            None => self.gss_node(gss_node_id).index,
         };
         // If there is already a GSS node for this call, add an edge.
         if let Some(existing_gss_node_id) = self.get_gss_node_head_operand(i, p, end) {
@@ -23623,11 +21690,11 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
             self.add_edge_to_existing_gss_node(
                 existing_gss_node_id,
                 gss_node_id,
-                left_child,
+                sppf_node_id,
                 return_slot,
                 env,
             );
-        } else {
+        } else if self.match_any(&PREDICTION_SET_HEAD_OPERAND, i) {
             record!(self, GSSNodeNotFound, NonterminalId(145), i);
             let new_gss_node_id = self.new_gss_node(NonterminalId(145), i);
             self.add_gss_edge(new_gss_node_id, gss_node_id, sppf_node_id, return_slot, env);
@@ -23637,6 +21704,17 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
             env.bind(BINDING_END, end, arena);
             self.add_first_descriptors(NonterminalId(145), i, new_gss_node_id, Some(env_id));
             self.add_gss_node_head_operand(i, p, end, new_gss_node_id);
+        } else {
+            // The call symbol precedes the return slot in its alternative, so the return slot is never
+            // at the first position.
+            let call_slot = IndirectBinaryGrammar::previous_slot(return_slot)
+                .expect("a return slot follows the call symbol");
+            self.add_failure(
+                i,
+                call_slot,
+                Some(gss_node_id),
+                GLLFailureKind::UnexpectedToken(&PREDICTION_SET_HEAD_OPERAND),
+            );
         }
     }
     #[allow(clippy::too_many_arguments)]
@@ -23649,14 +21727,9 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
         p: i32,
     ) {
         record!(self, Call, sppf_node_id, gss_node_id, return_slot);
-        let left_child = sppf_node_id.map(|id| {
-            let node = self.sppf_node(id);
-            (id, node.left_extent())
-        });
-        let gss_node = self.gss_node(gss_node_id);
-        let i = match left_child {
-            Some((id, _)) => self.sppf_node(id).right_extent(),
-            None => gss_node.index,
+        let i = match sppf_node_id {
+            Some(id) => self.sppf_node(id).right_extent(),
+            None => self.gss_node(gss_node_id).index,
         };
         // If there is already a GSS node for this call, add an edge.
         if let Some(existing_gss_node_id) = self.get_gss_node_inner(i, p) {
@@ -23664,11 +21737,11 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
             self.add_edge_to_existing_gss_node(
                 existing_gss_node_id,
                 gss_node_id,
-                left_child,
+                sppf_node_id,
                 return_slot,
                 env,
             );
-        } else {
+        } else if self.match_any(&PREDICTION_SET_INNER, i) {
             record!(self, GSSNodeNotFound, NonterminalId(146), i);
             let new_gss_node_id = self.new_gss_node(NonterminalId(146), i);
             self.add_gss_edge(new_gss_node_id, gss_node_id, sppf_node_id, return_slot, env);
@@ -23677,6 +21750,17 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
             env.bind(BINDING_P, p, arena);
             self.add_first_descriptors(NonterminalId(146), i, new_gss_node_id, Some(env_id));
             self.add_gss_node_inner(i, p, new_gss_node_id);
+        } else {
+            // The call symbol precedes the return slot in its alternative, so the return slot is never
+            // at the first position.
+            let call_slot = IndirectBinaryGrammar::previous_slot(return_slot)
+                .expect("a return slot follows the call symbol");
+            self.add_failure(
+                i,
+                call_slot,
+                Some(gss_node_id),
+                GLLFailureKind::UnexpectedToken(&PREDICTION_SET_INNER),
+            );
         }
     }
     #[allow(clippy::too_many_arguments)]
@@ -23690,14 +21774,9 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
         a: i32,
     ) {
         record!(self, Call, sppf_node_id, gss_node_id, return_slot);
-        let left_child = sppf_node_id.map(|id| {
-            let node = self.sppf_node(id);
-            (id, node.left_extent())
-        });
-        let gss_node = self.gss_node(gss_node_id);
-        let i = match left_child {
-            Some((id, _)) => self.sppf_node(id).right_extent(),
-            None => gss_node.index,
+        let i = match sppf_node_id {
+            Some(id) => self.sppf_node(id).right_extent(),
+            None => self.gss_node(gss_node_id).index,
         };
         // If there is already a GSS node for this call, add an edge.
         if let Some(existing_gss_node_id) = self.get_gss_node_unary_mixed_left(i, p, a) {
@@ -23705,11 +21784,11 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
             self.add_edge_to_existing_gss_node(
                 existing_gss_node_id,
                 gss_node_id,
-                left_child,
+                sppf_node_id,
                 return_slot,
                 env,
             );
-        } else {
+        } else if self.match_any(&PREDICTION_SET_UNARY_MIXED_LEFT, i) {
             record!(self, GSSNodeNotFound, NonterminalId(147), i);
             let new_gss_node_id = self.new_gss_node(NonterminalId(147), i);
             self.add_gss_edge(new_gss_node_id, gss_node_id, sppf_node_id, return_slot, env);
@@ -23719,6 +21798,17 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
             env.bind(BINDING_A, a, arena);
             self.add_first_descriptors(NonterminalId(147), i, new_gss_node_id, Some(env_id));
             self.add_gss_node_unary_mixed_left(i, p, a, new_gss_node_id);
+        } else {
+            // The call symbol precedes the return slot in its alternative, so the return slot is never
+            // at the first position.
+            let call_slot = IndirectBinaryGrammar::previous_slot(return_slot)
+                .expect("a return slot follows the call symbol");
+            self.add_failure(
+                i,
+                call_slot,
+                Some(gss_node_id),
+                GLLFailureKind::UnexpectedToken(&PREDICTION_SET_UNARY_MIXED_LEFT),
+            );
         }
     }
     #[allow(clippy::too_many_arguments)]
@@ -23732,14 +21822,9 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
         a: i32,
     ) {
         record!(self, Call, sppf_node_id, gss_node_id, return_slot);
-        let left_child = sppf_node_id.map(|id| {
-            let node = self.sppf_node(id);
-            (id, node.left_extent())
-        });
-        let gss_node = self.gss_node(gss_node_id);
-        let i = match left_child {
-            Some((id, _)) => self.sppf_node(id).right_extent(),
-            None => gss_node.index,
+        let i = match sppf_node_id {
+            Some(id) => self.sppf_node(id).right_extent(),
+            None => self.gss_node(gss_node_id).index,
         };
         // If there is already a GSS node for this call, add an edge.
         if let Some(existing_gss_node_id) = self.get_gss_node_unary_mixed_right(i, p, a) {
@@ -23747,11 +21832,11 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
             self.add_edge_to_existing_gss_node(
                 existing_gss_node_id,
                 gss_node_id,
-                left_child,
+                sppf_node_id,
                 return_slot,
                 env,
             );
-        } else {
+        } else if self.match_any(&PREDICTION_SET_UNARY_MIXED_RIGHT, i) {
             record!(self, GSSNodeNotFound, NonterminalId(148), i);
             let new_gss_node_id = self.new_gss_node(NonterminalId(148), i);
             self.add_gss_edge(new_gss_node_id, gss_node_id, sppf_node_id, return_slot, env);
@@ -23761,6 +21846,17 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
             env.bind(BINDING_A, a, arena);
             self.add_first_descriptors(NonterminalId(148), i, new_gss_node_id, Some(env_id));
             self.add_gss_node_unary_mixed_right(i, p, a, new_gss_node_id);
+        } else {
+            // The call symbol precedes the return slot in its alternative, so the return slot is never
+            // at the first position.
+            let call_slot = IndirectBinaryGrammar::previous_slot(return_slot)
+                .expect("a return slot follows the call symbol");
+            self.add_failure(
+                i,
+                call_slot,
+                Some(gss_node_id),
+                GLLFailureKind::UnexpectedToken(&PREDICTION_SET_UNARY_MIXED_RIGHT),
+            );
         }
     }
     #[allow(clippy::too_many_arguments)]
@@ -23774,14 +21870,9 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
         a: i32,
     ) {
         record!(self, Call, sppf_node_id, gss_node_id, return_slot);
-        let left_child = sppf_node_id.map(|id| {
-            let node = self.sppf_node(id);
-            (id, node.left_extent())
-        });
-        let gss_node = self.gss_node(gss_node_id);
-        let i = match left_child {
-            Some((id, _)) => self.sppf_node(id).right_extent(),
-            None => gss_node.index,
+        let i = match sppf_node_id {
+            Some(id) => self.sppf_node(id).right_extent(),
+            None => self.gss_node(gss_node_id).index,
         };
         // If there is already a GSS node for this call, add an edge.
         if let Some(existing_gss_node_id) = self.get_gss_node_unary_mixed_none(i, p, a) {
@@ -23789,11 +21880,11 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
             self.add_edge_to_existing_gss_node(
                 existing_gss_node_id,
                 gss_node_id,
-                left_child,
+                sppf_node_id,
                 return_slot,
                 env,
             );
-        } else {
+        } else if self.match_any(&PREDICTION_SET_UNARY_MIXED_NONE, i) {
             record!(self, GSSNodeNotFound, NonterminalId(149), i);
             let new_gss_node_id = self.new_gss_node(NonterminalId(149), i);
             self.add_gss_edge(new_gss_node_id, gss_node_id, sppf_node_id, return_slot, env);
@@ -23803,6 +21894,17 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
             env.bind(BINDING_A, a, arena);
             self.add_first_descriptors(NonterminalId(149), i, new_gss_node_id, Some(env_id));
             self.add_gss_node_unary_mixed_none(i, p, a, new_gss_node_id);
+        } else {
+            // The call symbol precedes the return slot in its alternative, so the return slot is never
+            // at the first position.
+            let call_slot = IndirectBinaryGrammar::previous_slot(return_slot)
+                .expect("a return slot follows the call symbol");
+            self.add_failure(
+                i,
+                call_slot,
+                Some(gss_node_id),
+                GLLFailureKind::UnexpectedToken(&PREDICTION_SET_UNARY_MIXED_NONE),
+            );
         }
     }
     #[allow(clippy::too_many_arguments)]
@@ -23817,14 +21919,9 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
         e: i32,
     ) {
         record!(self, Call, sppf_node_id, gss_node_id, return_slot);
-        let left_child = sppf_node_id.map(|id| {
-            let node = self.sppf_node(id);
-            (id, node.left_extent())
-        });
-        let gss_node = self.gss_node(gss_node_id);
-        let i = match left_child {
-            Some((id, _)) => self.sppf_node(id).right_extent(),
-            None => gss_node.index,
+        let i = match sppf_node_id {
+            Some(id) => self.sppf_node(id).right_extent(),
+            None => self.gss_node(gss_node_id).index,
         };
         // If there is already a GSS node for this call, add an edge.
         if let Some(existing_gss_node_id) = self.get_gss_node_dynamic(i, p, a, e) {
@@ -23832,11 +21929,11 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
             self.add_edge_to_existing_gss_node(
                 existing_gss_node_id,
                 gss_node_id,
-                left_child,
+                sppf_node_id,
                 return_slot,
                 env,
             );
-        } else {
+        } else if self.match_any(&PREDICTION_SET_DYNAMIC, i) {
             record!(self, GSSNodeNotFound, NonterminalId(150), i);
             let new_gss_node_id = self.new_gss_node(NonterminalId(150), i);
             self.add_gss_edge(new_gss_node_id, gss_node_id, sppf_node_id, return_slot, env);
@@ -23847,6 +21944,17 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
             env.bind(BINDING_E, e, arena);
             self.add_first_descriptors(NonterminalId(150), i, new_gss_node_id, Some(env_id));
             self.add_gss_node_dynamic(i, p, a, e, new_gss_node_id);
+        } else {
+            // The call symbol precedes the return slot in its alternative, so the return slot is never
+            // at the first position.
+            let call_slot = IndirectBinaryGrammar::previous_slot(return_slot)
+                .expect("a return slot follows the call symbol");
+            self.add_failure(
+                i,
+                call_slot,
+                Some(gss_node_id),
+                GLLFailureKind::UnexpectedToken(&PREDICTION_SET_DYNAMIC),
+            );
         }
     }
     #[allow(clippy::too_many_arguments)]
@@ -23862,14 +21970,9 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
         e: i32,
     ) {
         record!(self, Call, sppf_node_id, gss_node_id, return_slot);
-        let left_child = sppf_node_id.map(|id| {
-            let node = self.sppf_node(id);
-            (id, node.left_extent())
-        });
-        let gss_node = self.gss_node(gss_node_id);
-        let i = match left_child {
-            Some((id, _)) => self.sppf_node(id).right_extent(),
-            None => gss_node.index,
+        let i = match sppf_node_id {
+            Some(id) => self.sppf_node(id).right_extent(),
+            None => self.gss_node(gss_node_id).index,
         };
         // If there is already a GSS node for this call, add an edge.
         if let Some(existing_gss_node_id) = self.get_gss_node_dynamic_operand(i, p, end, a, e) {
@@ -23877,11 +21980,11 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
             self.add_edge_to_existing_gss_node(
                 existing_gss_node_id,
                 gss_node_id,
-                left_child,
+                sppf_node_id,
                 return_slot,
                 env,
             );
-        } else {
+        } else if self.match_any(&PREDICTION_SET_DYNAMIC_OPERAND, i) {
             record!(self, GSSNodeNotFound, NonterminalId(151), i);
             let new_gss_node_id = self.new_gss_node(NonterminalId(151), i);
             self.add_gss_edge(new_gss_node_id, gss_node_id, sppf_node_id, return_slot, env);
@@ -23893,6 +21996,17 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
             env.bind(BINDING_E, e, arena);
             self.add_first_descriptors(NonterminalId(151), i, new_gss_node_id, Some(env_id));
             self.add_gss_node_dynamic_operand(i, p, end, a, e, new_gss_node_id);
+        } else {
+            // The call symbol precedes the return slot in its alternative, so the return slot is never
+            // at the first position.
+            let call_slot = IndirectBinaryGrammar::previous_slot(return_slot)
+                .expect("a return slot follows the call symbol");
+            self.add_failure(
+                i,
+                call_slot,
+                Some(gss_node_id),
+                GLLFailureKind::UnexpectedToken(&PREDICTION_SET_DYNAMIC_OPERAND),
+            );
         }
     }
     #[allow(clippy::too_many_arguments)]
@@ -23906,14 +22020,9 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
         a: i32,
     ) {
         record!(self, Call, sppf_node_id, gss_node_id, return_slot);
-        let left_child = sppf_node_id.map(|id| {
-            let node = self.sppf_node(id);
-            (id, node.left_extent())
-        });
-        let gss_node = self.gss_node(gss_node_id);
-        let i = match left_child {
-            Some((id, _)) => self.sppf_node(id).right_extent(),
-            None => gss_node.index,
+        let i = match sppf_node_id {
+            Some(id) => self.sppf_node(id).right_extent(),
+            None => self.gss_node(gss_node_id).index,
         };
         // If there is already a GSS node for this call, add an edge.
         if let Some(existing_gss_node_id) = self.get_gss_node_dynamic_multi(i, p, a) {
@@ -23921,11 +22030,11 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
             self.add_edge_to_existing_gss_node(
                 existing_gss_node_id,
                 gss_node_id,
-                left_child,
+                sppf_node_id,
                 return_slot,
                 env,
             );
-        } else {
+        } else if self.match_any(&PREDICTION_SET_DYNAMIC_MULTI, i) {
             record!(self, GSSNodeNotFound, NonterminalId(152), i);
             let new_gss_node_id = self.new_gss_node(NonterminalId(152), i);
             self.add_gss_edge(new_gss_node_id, gss_node_id, sppf_node_id, return_slot, env);
@@ -23935,6 +22044,17 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
             env.bind(BINDING_A, a, arena);
             self.add_first_descriptors(NonterminalId(152), i, new_gss_node_id, Some(env_id));
             self.add_gss_node_dynamic_multi(i, p, a, new_gss_node_id);
+        } else {
+            // The call symbol precedes the return slot in its alternative, so the return slot is never
+            // at the first position.
+            let call_slot = IndirectBinaryGrammar::previous_slot(return_slot)
+                .expect("a return slot follows the call symbol");
+            self.add_failure(
+                i,
+                call_slot,
+                Some(gss_node_id),
+                GLLFailureKind::UnexpectedToken(&PREDICTION_SET_DYNAMIC_MULTI),
+            );
         }
     }
     #[allow(clippy::too_many_arguments)]
@@ -23949,14 +22069,9 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
         a: i32,
     ) {
         record!(self, Call, sppf_node_id, gss_node_id, return_slot);
-        let left_child = sppf_node_id.map(|id| {
-            let node = self.sppf_node(id);
-            (id, node.left_extent())
-        });
-        let gss_node = self.gss_node(gss_node_id);
-        let i = match left_child {
-            Some((id, _)) => self.sppf_node(id).right_extent(),
-            None => gss_node.index,
+        let i = match sppf_node_id {
+            Some(id) => self.sppf_node(id).right_extent(),
+            None => self.gss_node(gss_node_id).index,
         };
         // If there is already a GSS node for this call, add an edge.
         if let Some(existing_gss_node_id) = self.get_gss_node_dynamic_multi_operand(i, p, end, a) {
@@ -23964,11 +22079,11 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
             self.add_edge_to_existing_gss_node(
                 existing_gss_node_id,
                 gss_node_id,
-                left_child,
+                sppf_node_id,
                 return_slot,
                 env,
             );
-        } else {
+        } else if self.match_any(&PREDICTION_SET_DYNAMIC_MULTI_OPERAND, i) {
             record!(self, GSSNodeNotFound, NonterminalId(153), i);
             let new_gss_node_id = self.new_gss_node(NonterminalId(153), i);
             self.add_gss_edge(new_gss_node_id, gss_node_id, sppf_node_id, return_slot, env);
@@ -23979,6 +22094,17 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
             env.bind(BINDING_A, a, arena);
             self.add_first_descriptors(NonterminalId(153), i, new_gss_node_id, Some(env_id));
             self.add_gss_node_dynamic_multi_operand(i, p, end, a, new_gss_node_id);
+        } else {
+            // The call symbol precedes the return slot in its alternative, so the return slot is never
+            // at the first position.
+            let call_slot = IndirectBinaryGrammar::previous_slot(return_slot)
+                .expect("a return slot follows the call symbol");
+            self.add_failure(
+                i,
+                call_slot,
+                Some(gss_node_id),
+                GLLFailureKind::UnexpectedToken(&PREDICTION_SET_DYNAMIC_MULTI_OPERAND),
+            );
         }
     }
     #[allow(clippy::too_many_arguments)]
@@ -23991,14 +22117,9 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
         p: i32,
     ) {
         record!(self, Call, sppf_node_id, gss_node_id, return_slot);
-        let left_child = sppf_node_id.map(|id| {
-            let node = self.sppf_node(id);
-            (id, node.left_extent())
-        });
-        let gss_node = self.gss_node(gss_node_id);
-        let i = match left_child {
-            Some((id, _)) => self.sppf_node(id).right_extent(),
-            None => gss_node.index,
+        let i = match sppf_node_id {
+            Some(id) => self.sppf_node(id).right_extent(),
+            None => self.gss_node(gss_node_id).index,
         };
         // If there is already a GSS node for this call, add an edge.
         if let Some(existing_gss_node_id) = self.get_gss_node_nullable_boundary_prefix(i, p) {
@@ -24006,11 +22127,11 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
             self.add_edge_to_existing_gss_node(
                 existing_gss_node_id,
                 gss_node_id,
-                left_child,
+                sppf_node_id,
                 return_slot,
                 env,
             );
-        } else {
+        } else if self.match_any(&PREDICTION_SET_NULLABLE_BOUNDARY_PREFIX, i) {
             record!(self, GSSNodeNotFound, NonterminalId(154), i);
             let new_gss_node_id = self.new_gss_node(NonterminalId(154), i);
             self.add_gss_edge(new_gss_node_id, gss_node_id, sppf_node_id, return_slot, env);
@@ -24019,6 +22140,17 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
             env.bind(BINDING_P, p, arena);
             self.add_first_descriptors(NonterminalId(154), i, new_gss_node_id, Some(env_id));
             self.add_gss_node_nullable_boundary_prefix(i, p, new_gss_node_id);
+        } else {
+            // The call symbol precedes the return slot in its alternative, so the return slot is never
+            // at the first position.
+            let call_slot = IndirectBinaryGrammar::previous_slot(return_slot)
+                .expect("a return slot follows the call symbol");
+            self.add_failure(
+                i,
+                call_slot,
+                Some(gss_node_id),
+                GLLFailureKind::UnexpectedToken(&PREDICTION_SET_NULLABLE_BOUNDARY_PREFIX),
+            );
         }
     }
     #[allow(clippy::too_many_arguments)]
@@ -24031,14 +22163,9 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
         p: i32,
     ) {
         record!(self, Call, sppf_node_id, gss_node_id, return_slot);
-        let left_child = sppf_node_id.map(|id| {
-            let node = self.sppf_node(id);
-            (id, node.left_extent())
-        });
-        let gss_node = self.gss_node(gss_node_id);
-        let i = match left_child {
-            Some((id, _)) => self.sppf_node(id).right_extent(),
-            None => gss_node.index,
+        let i = match sppf_node_id {
+            Some(id) => self.sppf_node(id).right_extent(),
+            None => self.gss_node(gss_node_id).index,
         };
         // If there is already a GSS node for this call, add an edge.
         if let Some(existing_gss_node_id) = self.get_gss_node_nullable_boundary_postfix(i, p) {
@@ -24046,11 +22173,11 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
             self.add_edge_to_existing_gss_node(
                 existing_gss_node_id,
                 gss_node_id,
-                left_child,
+                sppf_node_id,
                 return_slot,
                 env,
             );
-        } else {
+        } else if self.match_any(&PREDICTION_SET_NULLABLE_BOUNDARY_POSTFIX, i) {
             record!(self, GSSNodeNotFound, NonterminalId(155), i);
             let new_gss_node_id = self.new_gss_node(NonterminalId(155), i);
             self.add_gss_edge(new_gss_node_id, gss_node_id, sppf_node_id, return_slot, env);
@@ -24059,6 +22186,17 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
             env.bind(BINDING_P, p, arena);
             self.add_first_descriptors(NonterminalId(155), i, new_gss_node_id, Some(env_id));
             self.add_gss_node_nullable_boundary_postfix(i, p, new_gss_node_id);
+        } else {
+            // The call symbol precedes the return slot in its alternative, so the return slot is never
+            // at the first position.
+            let call_slot = IndirectBinaryGrammar::previous_slot(return_slot)
+                .expect("a return slot follows the call symbol");
+            self.add_failure(
+                i,
+                call_slot,
+                Some(gss_node_id),
+                GLLFailureKind::UnexpectedToken(&PREDICTION_SET_NULLABLE_BOUNDARY_POSTFIX),
+            );
         }
     }
     #[allow(clippy::too_many_arguments)]
@@ -24071,14 +22209,9 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
         p: i32,
     ) {
         record!(self, Call, sppf_node_id, gss_node_id, return_slot);
-        let left_child = sppf_node_id.map(|id| {
-            let node = self.sppf_node(id);
-            (id, node.left_extent())
-        });
-        let gss_node = self.gss_node(gss_node_id);
-        let i = match left_child {
-            Some((id, _)) => self.sppf_node(id).right_extent(),
-            None => gss_node.index,
+        let i = match sppf_node_id {
+            Some(id) => self.sppf_node(id).right_extent(),
+            None => self.gss_node(gss_node_id).index,
         };
         // If there is already a GSS node for this call, add an edge.
         if let Some(existing_gss_node_id) = self.get_gss_node_nullable_boundary_binary(i, p) {
@@ -24086,11 +22219,11 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
             self.add_edge_to_existing_gss_node(
                 existing_gss_node_id,
                 gss_node_id,
-                left_child,
+                sppf_node_id,
                 return_slot,
                 env,
             );
-        } else {
+        } else if self.match_any(&PREDICTION_SET_NULLABLE_BOUNDARY_BINARY, i) {
             record!(self, GSSNodeNotFound, NonterminalId(156), i);
             let new_gss_node_id = self.new_gss_node(NonterminalId(156), i);
             self.add_gss_edge(new_gss_node_id, gss_node_id, sppf_node_id, return_slot, env);
@@ -24099,6 +22232,17 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
             env.bind(BINDING_P, p, arena);
             self.add_first_descriptors(NonterminalId(156), i, new_gss_node_id, Some(env_id));
             self.add_gss_node_nullable_boundary_binary(i, p, new_gss_node_id);
+        } else {
+            // The call symbol precedes the return slot in its alternative, so the return slot is never
+            // at the first position.
+            let call_slot = IndirectBinaryGrammar::previous_slot(return_slot)
+                .expect("a return slot follows the call symbol");
+            self.add_failure(
+                i,
+                call_slot,
+                Some(gss_node_id),
+                GLLFailureKind::UnexpectedToken(&PREDICTION_SET_NULLABLE_BOUNDARY_BINARY),
+            );
         }
     }
     #[allow(clippy::too_many_arguments)]
@@ -24112,14 +22256,9 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
         a: i32,
     ) {
         record!(self, Call, sppf_node_id, gss_node_id, return_slot);
-        let left_child = sppf_node_id.map(|id| {
-            let node = self.sppf_node(id);
-            (id, node.left_extent())
-        });
-        let gss_node = self.gss_node(gss_node_id);
-        let i = match left_child {
-            Some((id, _)) => self.sppf_node(id).right_extent(),
-            None => gss_node.index,
+        let i = match sppf_node_id {
+            Some(id) => self.sppf_node(id).right_extent(),
+            None => self.gss_node(gss_node_id).index,
         };
         // If there is already a GSS node for this call, add an edge.
         if let Some(existing_gss_node_id) = self.get_gss_node_closed_left_assoc(i, p, a) {
@@ -24127,11 +22266,11 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
             self.add_edge_to_existing_gss_node(
                 existing_gss_node_id,
                 gss_node_id,
-                left_child,
+                sppf_node_id,
                 return_slot,
                 env,
             );
-        } else {
+        } else if self.match_any(&PREDICTION_SET_CLOSED_LEFT_ASSOC, i) {
             record!(self, GSSNodeNotFound, NonterminalId(157), i);
             let new_gss_node_id = self.new_gss_node(NonterminalId(157), i);
             self.add_gss_edge(new_gss_node_id, gss_node_id, sppf_node_id, return_slot, env);
@@ -24141,6 +22280,17 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
             env.bind(BINDING_A, a, arena);
             self.add_first_descriptors(NonterminalId(157), i, new_gss_node_id, Some(env_id));
             self.add_gss_node_closed_left_assoc(i, p, a, new_gss_node_id);
+        } else {
+            // The call symbol precedes the return slot in its alternative, so the return slot is never
+            // at the first position.
+            let call_slot = IndirectBinaryGrammar::previous_slot(return_slot)
+                .expect("a return slot follows the call symbol");
+            self.add_failure(
+                i,
+                call_slot,
+                Some(gss_node_id),
+                GLLFailureKind::UnexpectedToken(&PREDICTION_SET_CLOSED_LEFT_ASSOC),
+            );
         }
     }
     #[allow(clippy::too_many_arguments)]
@@ -24154,14 +22304,9 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
         a: i32,
     ) {
         record!(self, Call, sppf_node_id, gss_node_id, return_slot);
-        let left_child = sppf_node_id.map(|id| {
-            let node = self.sppf_node(id);
-            (id, node.left_extent())
-        });
-        let gss_node = self.gss_node(gss_node_id);
-        let i = match left_child {
-            Some((id, _)) => self.sppf_node(id).right_extent(),
-            None => gss_node.index,
+        let i = match sppf_node_id {
+            Some(id) => self.sppf_node(id).right_extent(),
+            None => self.gss_node(gss_node_id).index,
         };
         // If there is already a GSS node for this call, add an edge.
         if let Some(existing_gss_node_id) = self.get_gss_node_closed_left_operand(i, p, a) {
@@ -24169,11 +22314,11 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
             self.add_edge_to_existing_gss_node(
                 existing_gss_node_id,
                 gss_node_id,
-                left_child,
+                sppf_node_id,
                 return_slot,
                 env,
             );
-        } else {
+        } else if self.match_any(&PREDICTION_SET_CLOSED_LEFT_OPERAND, i) {
             record!(self, GSSNodeNotFound, NonterminalId(158), i);
             let new_gss_node_id = self.new_gss_node(NonterminalId(158), i);
             self.add_gss_edge(new_gss_node_id, gss_node_id, sppf_node_id, return_slot, env);
@@ -24183,6 +22328,17 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
             env.bind(BINDING_A, a, arena);
             self.add_first_descriptors(NonterminalId(158), i, new_gss_node_id, Some(env_id));
             self.add_gss_node_closed_left_operand(i, p, a, new_gss_node_id);
+        } else {
+            // The call symbol precedes the return slot in its alternative, so the return slot is never
+            // at the first position.
+            let call_slot = IndirectBinaryGrammar::previous_slot(return_slot)
+                .expect("a return slot follows the call symbol");
+            self.add_failure(
+                i,
+                call_slot,
+                Some(gss_node_id),
+                GLLFailureKind::UnexpectedToken(&PREDICTION_SET_CLOSED_LEFT_OPERAND),
+            );
         }
     }
     #[allow(clippy::too_many_arguments)]
@@ -24196,14 +22352,9 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
         a: i32,
     ) {
         record!(self, Call, sppf_node_id, gss_node_id, return_slot);
-        let left_child = sppf_node_id.map(|id| {
-            let node = self.sppf_node(id);
-            (id, node.left_extent())
-        });
-        let gss_node = self.gss_node(gss_node_id);
-        let i = match left_child {
-            Some((id, _)) => self.sppf_node(id).right_extent(),
-            None => gss_node.index,
+        let i = match sppf_node_id {
+            Some(id) => self.sppf_node(id).right_extent(),
+            None => self.gss_node(gss_node_id).index,
         };
         // If there is already a GSS node for this call, add an edge.
         if let Some(existing_gss_node_id) = self.get_gss_node_closed_right_assoc(i, p, a) {
@@ -24211,11 +22362,11 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
             self.add_edge_to_existing_gss_node(
                 existing_gss_node_id,
                 gss_node_id,
-                left_child,
+                sppf_node_id,
                 return_slot,
                 env,
             );
-        } else {
+        } else if self.match_any(&PREDICTION_SET_CLOSED_RIGHT_ASSOC, i) {
             record!(self, GSSNodeNotFound, NonterminalId(159), i);
             let new_gss_node_id = self.new_gss_node(NonterminalId(159), i);
             self.add_gss_edge(new_gss_node_id, gss_node_id, sppf_node_id, return_slot, env);
@@ -24225,6 +22376,17 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
             env.bind(BINDING_A, a, arena);
             self.add_first_descriptors(NonterminalId(159), i, new_gss_node_id, Some(env_id));
             self.add_gss_node_closed_right_assoc(i, p, a, new_gss_node_id);
+        } else {
+            // The call symbol precedes the return slot in its alternative, so the return slot is never
+            // at the first position.
+            let call_slot = IndirectBinaryGrammar::previous_slot(return_slot)
+                .expect("a return slot follows the call symbol");
+            self.add_failure(
+                i,
+                call_slot,
+                Some(gss_node_id),
+                GLLFailureKind::UnexpectedToken(&PREDICTION_SET_CLOSED_RIGHT_ASSOC),
+            );
         }
     }
     #[allow(clippy::too_many_arguments)]
@@ -24238,14 +22400,9 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
         a: i32,
     ) {
         record!(self, Call, sppf_node_id, gss_node_id, return_slot);
-        let left_child = sppf_node_id.map(|id| {
-            let node = self.sppf_node(id);
-            (id, node.left_extent())
-        });
-        let gss_node = self.gss_node(gss_node_id);
-        let i = match left_child {
-            Some((id, _)) => self.sppf_node(id).right_extent(),
-            None => gss_node.index,
+        let i = match sppf_node_id {
+            Some(id) => self.sppf_node(id).right_extent(),
+            None => self.gss_node(gss_node_id).index,
         };
         // If there is already a GSS node for this call, add an edge.
         if let Some(existing_gss_node_id) = self.get_gss_node_closed_right_operand(i, p, a) {
@@ -24253,11 +22410,11 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
             self.add_edge_to_existing_gss_node(
                 existing_gss_node_id,
                 gss_node_id,
-                left_child,
+                sppf_node_id,
                 return_slot,
                 env,
             );
-        } else {
+        } else if self.match_any(&PREDICTION_SET_CLOSED_RIGHT_OPERAND, i) {
             record!(self, GSSNodeNotFound, NonterminalId(160), i);
             let new_gss_node_id = self.new_gss_node(NonterminalId(160), i);
             self.add_gss_edge(new_gss_node_id, gss_node_id, sppf_node_id, return_slot, env);
@@ -24267,6 +22424,17 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
             env.bind(BINDING_A, a, arena);
             self.add_first_descriptors(NonterminalId(160), i, new_gss_node_id, Some(env_id));
             self.add_gss_node_closed_right_operand(i, p, a, new_gss_node_id);
+        } else {
+            // The call symbol precedes the return slot in its alternative, so the return slot is never
+            // at the first position.
+            let call_slot = IndirectBinaryGrammar::previous_slot(return_slot)
+                .expect("a return slot follows the call symbol");
+            self.add_failure(
+                i,
+                call_slot,
+                Some(gss_node_id),
+                GLLFailureKind::UnexpectedToken(&PREDICTION_SET_CLOSED_RIGHT_OPERAND),
+            );
         }
     }
     #[allow(clippy::too_many_arguments)]
@@ -24281,14 +22449,9 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
         e: i32,
     ) {
         record!(self, Call, sppf_node_id, gss_node_id, return_slot);
-        let left_child = sppf_node_id.map(|id| {
-            let node = self.sppf_node(id);
-            (id, node.left_extent())
-        });
-        let gss_node = self.gss_node(gss_node_id);
-        let i = match left_child {
-            Some((id, _)) => self.sppf_node(id).right_extent(),
-            None => gss_node.index,
+        let i = match sppf_node_id {
+            Some(id) => self.sppf_node(id).right_extent(),
+            None => self.gss_node(gss_node_id).index,
         };
         // If there is already a GSS node for this call, add an edge.
         if let Some(existing_gss_node_id) = self.get_gss_node_indirect_exclude(i, p, a, e) {
@@ -24296,11 +22459,11 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
             self.add_edge_to_existing_gss_node(
                 existing_gss_node_id,
                 gss_node_id,
-                left_child,
+                sppf_node_id,
                 return_slot,
                 env,
             );
-        } else {
+        } else if self.match_any(&PREDICTION_SET_INDIRECT_EXCLUDE, i) {
             record!(self, GSSNodeNotFound, NonterminalId(161), i);
             let new_gss_node_id = self.new_gss_node(NonterminalId(161), i);
             self.add_gss_edge(new_gss_node_id, gss_node_id, sppf_node_id, return_slot, env);
@@ -24311,6 +22474,17 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
             env.bind(BINDING_E, e, arena);
             self.add_first_descriptors(NonterminalId(161), i, new_gss_node_id, Some(env_id));
             self.add_gss_node_indirect_exclude(i, p, a, e, new_gss_node_id);
+        } else {
+            // The call symbol precedes the return slot in its alternative, so the return slot is never
+            // at the first position.
+            let call_slot = IndirectBinaryGrammar::previous_slot(return_slot)
+                .expect("a return slot follows the call symbol");
+            self.add_failure(
+                i,
+                call_slot,
+                Some(gss_node_id),
+                GLLFailureKind::UnexpectedToken(&PREDICTION_SET_INDIRECT_EXCLUDE),
+            );
         }
     }
     #[allow(clippy::too_many_arguments)]
@@ -24326,14 +22500,9 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
         e: i32,
     ) {
         record!(self, Call, sppf_node_id, gss_node_id, return_slot);
-        let left_child = sppf_node_id.map(|id| {
-            let node = self.sppf_node(id);
-            (id, node.left_extent())
-        });
-        let gss_node = self.gss_node(gss_node_id);
-        let i = match left_child {
-            Some((id, _)) => self.sppf_node(id).right_extent(),
-            None => gss_node.index,
+        let i = match sppf_node_id {
+            Some(id) => self.sppf_node(id).right_extent(),
+            None => self.gss_node(gss_node_id).index,
         };
         // If there is already a GSS node for this call, add an edge.
         if let Some(existing_gss_node_id) =
@@ -24343,11 +22512,11 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
             self.add_edge_to_existing_gss_node(
                 existing_gss_node_id,
                 gss_node_id,
-                left_child,
+                sppf_node_id,
                 return_slot,
                 env,
             );
-        } else {
+        } else if self.match_any(&PREDICTION_SET_INDIRECT_EXCLUDE_OPERAND, i) {
             record!(self, GSSNodeNotFound, NonterminalId(162), i);
             let new_gss_node_id = self.new_gss_node(NonterminalId(162), i);
             self.add_gss_edge(new_gss_node_id, gss_node_id, sppf_node_id, return_slot, env);
@@ -24359,6 +22528,17 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
             env.bind(BINDING_E, e, arena);
             self.add_first_descriptors(NonterminalId(162), i, new_gss_node_id, Some(env_id));
             self.add_gss_node_indirect_exclude_operand(i, p, end, a, e, new_gss_node_id);
+        } else {
+            // The call symbol precedes the return slot in its alternative, so the return slot is never
+            // at the first position.
+            let call_slot = IndirectBinaryGrammar::previous_slot(return_slot)
+                .expect("a return slot follows the call symbol");
+            self.add_failure(
+                i,
+                call_slot,
+                Some(gss_node_id),
+                GLLFailureKind::UnexpectedToken(&PREDICTION_SET_INDIRECT_EXCLUDE_OPERAND),
+            );
         }
     }
     #[allow(clippy::too_many_arguments)]
@@ -24372,14 +22552,9 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
         a: i32,
     ) {
         record!(self, Call, sppf_node_id, gss_node_id, return_slot);
-        let left_child = sppf_node_id.map(|id| {
-            let node = self.sppf_node(id);
-            (id, node.left_extent())
-        });
-        let gss_node = self.gss_node(gss_node_id);
-        let i = match left_child {
-            Some((id, _)) => self.sppf_node(id).right_extent(),
-            None => gss_node.index,
+        let i = match sppf_node_id {
+            Some(id) => self.sppf_node(id).right_extent(),
+            None => self.gss_node(gss_node_id).index,
         };
         // If there is already a GSS node for this call, add an edge.
         if let Some(existing_gss_node_id) = self.get_gss_node_operand_literal(i, p, a) {
@@ -24387,11 +22562,11 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
             self.add_edge_to_existing_gss_node(
                 existing_gss_node_id,
                 gss_node_id,
-                left_child,
+                sppf_node_id,
                 return_slot,
                 env,
             );
-        } else {
+        } else if self.match_any(&PREDICTION_SET_OPERAND_LITERAL, i) {
             record!(self, GSSNodeNotFound, NonterminalId(163), i);
             let new_gss_node_id = self.new_gss_node(NonterminalId(163), i);
             self.add_gss_edge(new_gss_node_id, gss_node_id, sppf_node_id, return_slot, env);
@@ -24401,6 +22576,17 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
             env.bind(BINDING_A, a, arena);
             self.add_first_descriptors(NonterminalId(163), i, new_gss_node_id, Some(env_id));
             self.add_gss_node_operand_literal(i, p, a, new_gss_node_id);
+        } else {
+            // The call symbol precedes the return slot in its alternative, so the return slot is never
+            // at the first position.
+            let call_slot = IndirectBinaryGrammar::previous_slot(return_slot)
+                .expect("a return slot follows the call symbol");
+            self.add_failure(
+                i,
+                call_slot,
+                Some(gss_node_id),
+                GLLFailureKind::UnexpectedToken(&PREDICTION_SET_OPERAND_LITERAL),
+            );
         }
     }
     #[allow(clippy::too_many_arguments)]
@@ -24415,14 +22601,9 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
         a: i32,
     ) {
         record!(self, Call, sppf_node_id, gss_node_id, return_slot);
-        let left_child = sppf_node_id.map(|id| {
-            let node = self.sppf_node(id);
-            (id, node.left_extent())
-        });
-        let gss_node = self.gss_node(gss_node_id);
-        let i = match left_child {
-            Some((id, _)) => self.sppf_node(id).right_extent(),
-            None => gss_node.index,
+        let i = match sppf_node_id {
+            Some(id) => self.sppf_node(id).right_extent(),
+            None => self.gss_node(gss_node_id).index,
         };
         // If there is already a GSS node for this call, add an edge.
         if let Some(existing_gss_node_id) = self.get_gss_node_operand_literal_end(i, p, end, a) {
@@ -24430,11 +22611,11 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
             self.add_edge_to_existing_gss_node(
                 existing_gss_node_id,
                 gss_node_id,
-                left_child,
+                sppf_node_id,
                 return_slot,
                 env,
             );
-        } else {
+        } else if self.match_any(&PREDICTION_SET_OPERAND_LITERAL_END, i) {
             record!(self, GSSNodeNotFound, NonterminalId(164), i);
             let new_gss_node_id = self.new_gss_node(NonterminalId(164), i);
             self.add_gss_edge(new_gss_node_id, gss_node_id, sppf_node_id, return_slot, env);
@@ -24445,6 +22626,17 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
             env.bind(BINDING_A, a, arena);
             self.add_first_descriptors(NonterminalId(164), i, new_gss_node_id, Some(env_id));
             self.add_gss_node_operand_literal_end(i, p, end, a, new_gss_node_id);
+        } else {
+            // The call symbol precedes the return slot in its alternative, so the return slot is never
+            // at the first position.
+            let call_slot = IndirectBinaryGrammar::previous_slot(return_slot)
+                .expect("a return slot follows the call symbol");
+            self.add_failure(
+                i,
+                call_slot,
+                Some(gss_node_id),
+                GLLFailureKind::UnexpectedToken(&PREDICTION_SET_OPERAND_LITERAL_END),
+            );
         }
     }
     #[allow(clippy::too_many_arguments)]
@@ -24457,14 +22649,9 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
         p: i32,
     ) {
         record!(self, Call, sppf_node_id, gss_node_id, return_slot);
-        let left_child = sppf_node_id.map(|id| {
-            let node = self.sppf_node(id);
-            (id, node.left_extent())
-        });
-        let gss_node = self.gss_node(gss_node_id);
-        let i = match left_child {
-            Some((id, _)) => self.sppf_node(id).right_extent(),
-            None => gss_node.index,
+        let i = match sppf_node_id {
+            Some(id) => self.sppf_node(id).right_extent(),
+            None => self.gss_node(gss_node_id).index,
         };
         // If there is already a GSS node for this call, add an edge.
         if let Some(existing_gss_node_id) = self.get_gss_node_head_literal(i, p) {
@@ -24472,11 +22659,11 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
             self.add_edge_to_existing_gss_node(
                 existing_gss_node_id,
                 gss_node_id,
-                left_child,
+                sppf_node_id,
                 return_slot,
                 env,
             );
-        } else {
+        } else if self.match_any(&PREDICTION_SET_HEAD_LITERAL, i) {
             record!(self, GSSNodeNotFound, NonterminalId(165), i);
             let new_gss_node_id = self.new_gss_node(NonterminalId(165), i);
             self.add_gss_edge(new_gss_node_id, gss_node_id, sppf_node_id, return_slot, env);
@@ -24485,6 +22672,17 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
             env.bind(BINDING_P, p, arena);
             self.add_first_descriptors(NonterminalId(165), i, new_gss_node_id, Some(env_id));
             self.add_gss_node_head_literal(i, p, new_gss_node_id);
+        } else {
+            // The call symbol precedes the return slot in its alternative, so the return slot is never
+            // at the first position.
+            let call_slot = IndirectBinaryGrammar::previous_slot(return_slot)
+                .expect("a return slot follows the call symbol");
+            self.add_failure(
+                i,
+                call_slot,
+                Some(gss_node_id),
+                GLLFailureKind::UnexpectedToken(&PREDICTION_SET_HEAD_LITERAL),
+            );
         }
     }
     #[allow(clippy::too_many_arguments)]
@@ -24498,14 +22696,9 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
         end: i32,
     ) {
         record!(self, Call, sppf_node_id, gss_node_id, return_slot);
-        let left_child = sppf_node_id.map(|id| {
-            let node = self.sppf_node(id);
-            (id, node.left_extent())
-        });
-        let gss_node = self.gss_node(gss_node_id);
-        let i = match left_child {
-            Some((id, _)) => self.sppf_node(id).right_extent(),
-            None => gss_node.index,
+        let i = match sppf_node_id {
+            Some(id) => self.sppf_node(id).right_extent(),
+            None => self.gss_node(gss_node_id).index,
         };
         // If there is already a GSS node for this call, add an edge.
         if let Some(existing_gss_node_id) = self.get_gss_node_head_literal_end(i, p, end) {
@@ -24513,11 +22706,11 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
             self.add_edge_to_existing_gss_node(
                 existing_gss_node_id,
                 gss_node_id,
-                left_child,
+                sppf_node_id,
                 return_slot,
                 env,
             );
-        } else {
+        } else if self.match_any(&PREDICTION_SET_HEAD_LITERAL_END, i) {
             record!(self, GSSNodeNotFound, NonterminalId(166), i);
             let new_gss_node_id = self.new_gss_node(NonterminalId(166), i);
             self.add_gss_edge(new_gss_node_id, gss_node_id, sppf_node_id, return_slot, env);
@@ -24527,6 +22720,17 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
             env.bind(BINDING_END, end, arena);
             self.add_first_descriptors(NonterminalId(166), i, new_gss_node_id, Some(env_id));
             self.add_gss_node_head_literal_end(i, p, end, new_gss_node_id);
+        } else {
+            // The call symbol precedes the return slot in its alternative, so the return slot is never
+            // at the first position.
+            let call_slot = IndirectBinaryGrammar::previous_slot(return_slot)
+                .expect("a return slot follows the call symbol");
+            self.add_failure(
+                i,
+                call_slot,
+                Some(gss_node_id),
+                GLLFailureKind::UnexpectedToken(&PREDICTION_SET_HEAD_LITERAL_END),
+            );
         }
     }
     #[allow(clippy::too_many_arguments)]
@@ -24540,14 +22744,9 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
         a: i32,
     ) {
         record!(self, Call, sppf_node_id, gss_node_id, return_slot);
-        let left_child = sppf_node_id.map(|id| {
-            let node = self.sppf_node(id);
-            (id, node.left_extent())
-        });
-        let gss_node = self.gss_node(gss_node_id);
-        let i = match left_child {
-            Some((id, _)) => self.sppf_node(id).right_extent(),
-            None => gss_node.index,
+        let i = match sppf_node_id {
+            Some(id) => self.sppf_node(id).right_extent(),
+            None => self.gss_node(gss_node_id).index,
         };
         // If there is already a GSS node for this call, add an edge.
         if let Some(existing_gss_node_id) = self.get_gss_node_opt_1(i, p, a) {
@@ -24555,11 +22754,11 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
             self.add_edge_to_existing_gss_node(
                 existing_gss_node_id,
                 gss_node_id,
-                left_child,
+                sppf_node_id,
                 return_slot,
                 env,
             );
-        } else {
+        } else if self.match_any(&PREDICTION_SET_OPT_1, i) {
             record!(self, GSSNodeNotFound, NonterminalId(167), i);
             let new_gss_node_id = self.new_gss_node(NonterminalId(167), i);
             self.add_gss_edge(new_gss_node_id, gss_node_id, sppf_node_id, return_slot, env);
@@ -24569,6 +22768,17 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
             env.bind(BINDING_A, a, arena);
             self.add_first_descriptors(NonterminalId(167), i, new_gss_node_id, Some(env_id));
             self.add_gss_node_opt_1(i, p, a, new_gss_node_id);
+        } else {
+            // The call symbol precedes the return slot in its alternative, so the return slot is never
+            // at the first position.
+            let call_slot = IndirectBinaryGrammar::previous_slot(return_slot)
+                .expect("a return slot follows the call symbol");
+            self.add_failure(
+                i,
+                call_slot,
+                Some(gss_node_id),
+                GLLFailureKind::UnexpectedToken(&PREDICTION_SET_OPT_1),
+            );
         }
     }
     #[allow(clippy::too_many_arguments)]
@@ -24582,14 +22792,9 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
         a: i32,
     ) {
         record!(self, Call, sppf_node_id, gss_node_id, return_slot);
-        let left_child = sppf_node_id.map(|id| {
-            let node = self.sppf_node(id);
-            (id, node.left_extent())
-        });
-        let gss_node = self.gss_node(gss_node_id);
-        let i = match left_child {
-            Some((id, _)) => self.sppf_node(id).right_extent(),
-            None => gss_node.index,
+        let i = match sppf_node_id {
+            Some(id) => self.sppf_node(id).right_extent(),
+            None => self.gss_node(gss_node_id).index,
         };
         // If there is already a GSS node for this call, add an edge.
         if let Some(existing_gss_node_id) = self.get_gss_node_opt_2(i, p, a) {
@@ -24597,11 +22802,11 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
             self.add_edge_to_existing_gss_node(
                 existing_gss_node_id,
                 gss_node_id,
-                left_child,
+                sppf_node_id,
                 return_slot,
                 env,
             );
-        } else {
+        } else if self.match_any(&PREDICTION_SET_OPT_2, i) {
             record!(self, GSSNodeNotFound, NonterminalId(168), i);
             let new_gss_node_id = self.new_gss_node(NonterminalId(168), i);
             self.add_gss_edge(new_gss_node_id, gss_node_id, sppf_node_id, return_slot, env);
@@ -24611,6 +22816,17 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
             env.bind(BINDING_A, a, arena);
             self.add_first_descriptors(NonterminalId(168), i, new_gss_node_id, Some(env_id));
             self.add_gss_node_opt_2(i, p, a, new_gss_node_id);
+        } else {
+            // The call symbol precedes the return slot in its alternative, so the return slot is never
+            // at the first position.
+            let call_slot = IndirectBinaryGrammar::previous_slot(return_slot)
+                .expect("a return slot follows the call symbol");
+            self.add_failure(
+                i,
+                call_slot,
+                Some(gss_node_id),
+                GLLFailureKind::UnexpectedToken(&PREDICTION_SET_OPT_2),
+            );
         }
     }
     #[allow(clippy::too_many_arguments)]
@@ -24625,14 +22841,9 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
         a: i32,
     ) {
         record!(self, Call, sppf_node_id, gss_node_id, return_slot);
-        let left_child = sppf_node_id.map(|id| {
-            let node = self.sppf_node(id);
-            (id, node.left_extent())
-        });
-        let gss_node = self.gss_node(gss_node_id);
-        let i = match left_child {
-            Some((id, _)) => self.sppf_node(id).right_extent(),
-            None => gss_node.index,
+        let i = match sppf_node_id {
+            Some(id) => self.sppf_node(id).right_extent(),
+            None => self.gss_node(gss_node_id).index,
         };
         // If there is already a GSS node for this call, add an edge.
         if let Some(existing_gss_node_id) = self.get_gss_node_opt_3(i, p, end, a) {
@@ -24640,11 +22851,11 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
             self.add_edge_to_existing_gss_node(
                 existing_gss_node_id,
                 gss_node_id,
-                left_child,
+                sppf_node_id,
                 return_slot,
                 env,
             );
-        } else {
+        } else if self.match_any(&PREDICTION_SET_OPT_3, i) {
             record!(self, GSSNodeNotFound, NonterminalId(169), i);
             let new_gss_node_id = self.new_gss_node(NonterminalId(169), i);
             self.add_gss_edge(new_gss_node_id, gss_node_id, sppf_node_id, return_slot, env);
@@ -24655,6 +22866,17 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
             env.bind(BINDING_A, a, arena);
             self.add_first_descriptors(NonterminalId(169), i, new_gss_node_id, Some(env_id));
             self.add_gss_node_opt_3(i, p, end, a, new_gss_node_id);
+        } else {
+            // The call symbol precedes the return slot in its alternative, so the return slot is never
+            // at the first position.
+            let call_slot = IndirectBinaryGrammar::previous_slot(return_slot)
+                .expect("a return slot follows the call symbol");
+            self.add_failure(
+                i,
+                call_slot,
+                Some(gss_node_id),
+                GLLFailureKind::UnexpectedToken(&PREDICTION_SET_OPT_3),
+            );
         }
     }
     fn get_gss_node_e(&self, input_index: u32, p: i32) -> Option<GssNodeId> {

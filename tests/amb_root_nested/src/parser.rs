@@ -5,7 +5,6 @@ use crate::{
     parse_tree::{self, AmbRootNestedParseTreeBuilder, ParseTree, create_parse_tree},
     scanner::AmbRootNestedScanner,
 };
-#[cfg(feature = "instrument")]
 use iguana_runtime::grammar::Grammar;
 #[allow(unused_imports)]
 use iguana_runtime::input::Span;
@@ -181,22 +180,13 @@ impl<'i, 'arena> Parser<'i, 'arena> for AmbRootNestedParser<'i, 'arena> {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        let node = self.sppf_node(result);
                         let return_value = 2;
-                        let nonterminal_node_id = self.get_or_create_nonterminal_node(
-                            NonterminalId(3),
-                            SlotId(18),
-                            node.left_extent(),
-                            node.right_extent(),
-                            result,
-                            gss_node_id,
-                            Some(return_value),
-                        );
                         self.pop(
                             gss_node_id,
                             SlotId(18),
-                            nonterminal_node_id,
+                            result,
                             Some(return_value),
+                            &FOLLOW_SET_E,
                         );
                     }
                     // E(p: i32) : . "-" WS E(2) return 2
@@ -244,22 +234,13 @@ impl<'i, 'arena> Parser<'i, 'arena> for AmbRootNestedParser<'i, 'arena> {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        let node = self.sppf_node(result);
                         let return_value = 2;
-                        let nonterminal_node_id = self.get_or_create_nonterminal_node(
-                            NonterminalId(3),
-                            SlotId(23),
-                            node.left_extent(),
-                            node.right_extent(),
-                            result,
-                            gss_node_id,
-                            Some(return_value),
-                        );
                         self.pop(
                             gss_node_id,
                             SlotId(23),
-                            nonterminal_node_id,
+                            result,
                             Some(return_value),
+                            &FOLLOW_SET_E,
                         );
                     }
                     // E(p: i32) : . [1 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 1)] WS "-" WS E(1) return 1
@@ -353,22 +334,13 @@ impl<'i, 'arena> Parser<'i, 'arena> for AmbRootNestedParser<'i, 'arena> {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        let node = self.sppf_node(result);
                         let return_value = 1;
-                        let nonterminal_node_id = self.get_or_create_nonterminal_node(
-                            NonterminalId(3),
-                            SlotId(32),
-                            node.left_extent(),
-                            node.right_extent(),
-                            result,
-                            gss_node_id,
-                            Some(return_value),
-                        );
                         self.pop(
                             gss_node_id,
                             SlotId(32),
-                            nonterminal_node_id,
+                            result,
                             Some(return_value),
+                            &FOLLOW_SET_E,
                         );
                     }
                     // E(p: i32) : . [1 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 1)] WS "-" WS E(1) return 1
@@ -462,22 +434,13 @@ impl<'i, 'arena> Parser<'i, 'arena> for AmbRootNestedParser<'i, 'arena> {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        let node = self.sppf_node(result);
                         let return_value = 1;
-                        let nonterminal_node_id = self.get_or_create_nonterminal_node(
-                            NonterminalId(3),
-                            SlotId(41),
-                            node.left_extent(),
-                            node.right_extent(),
-                            result,
-                            gss_node_id,
-                            Some(return_value),
-                        );
                         self.pop(
                             gss_node_id,
                             SlotId(41),
-                            nonterminal_node_id,
+                            result,
                             Some(return_value),
+                            &FOLLOW_SET_E,
                         );
                     }
                     // E(p: i32) : . "(" WS E(0) WS ")" return 0
@@ -561,22 +524,13 @@ impl<'i, 'arena> Parser<'i, 'arena> for AmbRootNestedParser<'i, 'arena> {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        let node = self.sppf_node(result);
                         let return_value = 0;
-                        let nonterminal_node_id = self.get_or_create_nonterminal_node(
-                            NonterminalId(3),
-                            SlotId(48),
-                            node.left_extent(),
-                            node.right_extent(),
-                            result,
-                            gss_node_id,
-                            Some(return_value),
-                        );
                         self.pop(
                             gss_node_id,
                             SlotId(48),
-                            nonterminal_node_id,
+                            result,
                             Some(return_value),
+                            &FOLLOW_SET_E,
                         );
                     }
                     // E(p: i32) : . Id return 0
@@ -602,22 +556,13 @@ impl<'i, 'arena> Parser<'i, 'arena> for AmbRootNestedParser<'i, 'arena> {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        let node = self.sppf_node(result);
                         let return_value = 0;
-                        let nonterminal_node_id = self.get_or_create_nonterminal_node(
-                            NonterminalId(3),
-                            SlotId(51),
-                            node.left_extent(),
-                            node.right_extent(),
-                            result,
-                            gss_node_id,
-                            Some(return_value),
-                        );
                         self.pop(
                             gss_node_id,
                             SlotId(51),
-                            nonterminal_node_id,
+                            result,
                             Some(return_value),
+                            &FOLLOW_SET_E,
                         );
                     }
                     // Type : . Id
@@ -636,13 +581,10 @@ impl<'i, 'arena> Parser<'i, 'arena> for AmbRootNestedParser<'i, 'arena> {
                     }
                     // Type : Id.
                     SlotId(1) => {
-                        let nonterminal_node_id = self.create_nonterminal_node(
-                            result,
-                            NonterminalId(0),
-                            SlotId(1),
-                            gss_node_id,
-                        );
-                        self.pop(gss_node_id, SlotId(1), nonterminal_node_id, None);
+                        let Some(result) = result else {
+                            unreachable!("result cannot be None here.")
+                        };
+                        self.pop(gss_node_id, SlotId(1), result, None, &FOLLOW_SET_TYPE);
                     }
                     // StartE : . WS start:E(0) WS
                     SlotId(2) => {
@@ -682,13 +624,10 @@ impl<'i, 'arena> Parser<'i, 'arena> for AmbRootNestedParser<'i, 'arena> {
                     }
                     // StartE : WS start:E(0) WS.
                     SlotId(5) => {
-                        let nonterminal_node_id = self.create_nonterminal_node(
-                            result,
-                            NonterminalId(1),
-                            SlotId(5),
-                            gss_node_id,
-                        );
-                        self.pop(gss_node_id, SlotId(5), nonterminal_node_id, None);
+                        let Some(result) = result else {
+                            unreachable!("result cannot be None here.")
+                        };
+                        self.pop(gss_node_id, SlotId(5), result, None, &FOLLOW_SET_START_E);
                     }
                     // StartType : . WS start:Type WS
                     SlotId(6) => {
@@ -740,13 +679,10 @@ impl<'i, 'arena> Parser<'i, 'arena> for AmbRootNestedParser<'i, 'arena> {
                     }
                     // StartType : WS start:Type WS.
                     SlotId(9) => {
-                        let nonterminal_node_id = self.create_nonterminal_node(
-                            result,
-                            NonterminalId(2),
-                            SlotId(9),
-                            gss_node_id,
-                        );
-                        self.pop(gss_node_id, SlotId(9), nonterminal_node_id, None);
+                        let Some(result) = result else {
+                            unreachable!("result cannot be None here.")
+                        };
+                        self.pop(gss_node_id, SlotId(9), result, None, &FOLLOW_SET_START_TYPE);
                     }
                     _ => {
                         panic!("Unknown grammar slot id: {slot_id}");
@@ -765,44 +701,29 @@ impl<'i, 'arena> Parser<'i, 'arena> for AmbRootNestedParser<'i, 'arena> {
         match nonterminal_id {
             // E
             NonterminalId(3) => {
-                let mut matched = false;
                 // E(p: i32) : . "(" WS Type WS ")" WS E(2) return 2
                 if self.scanner.match_any(&FIRST_SET_E_ALT0, input_index) {
-                    matched = true;
                     self.add_first_descriptor(SlotId(10), input_index, gss_node_id, env);
                 }
                 // E(p: i32) : . "-" WS E(2) return 2
                 if self.scanner.match_any(&FIRST_SET_E_ALT1, input_index) {
-                    matched = true;
                     self.add_first_descriptor(SlotId(19), input_index, gss_node_id, env);
                 }
                 // E(p: i32) : . [1 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 1)] WS "-" WS E(1) return 1
                 if self.scanner.match_any(&FIRST_SET_E_ALT2, input_index) {
-                    matched = true;
                     self.add_first_descriptor(SlotId(24), input_index, gss_node_id, env);
                 }
                 // E(p: i32) : . [1 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 1)] WS "-" WS E(1) return 1
                 if self.scanner.match_any(&FIRST_SET_E_ALT3, input_index) {
-                    matched = true;
                     self.add_first_descriptor(SlotId(33), input_index, gss_node_id, env);
                 }
                 // E(p: i32) : . "(" WS E(0) WS ")" return 0
                 if self.scanner.match_any(&FIRST_SET_E_ALT4, input_index) {
-                    matched = true;
                     self.add_first_descriptor(SlotId(42), input_index, gss_node_id, env);
                 }
                 // E(p: i32) : . Id return 0
                 if self.scanner.match_any(&FIRST_SET_E_ALT5, input_index) {
-                    matched = true;
                     self.add_first_descriptor(SlotId(49), input_index, gss_node_id, env);
-                }
-                if !matched {
-                    self.add_failure(
-                        input_index,
-                        SlotId(10),
-                        Some(gss_node_id),
-                        GLLFailureKind::UnexpectedToken(&FIRST_SET_E),
-                    );
                 }
             }
             // Type : . Id
@@ -1204,24 +1125,6 @@ impl<'i, 'arena> Parser<'i, 'arena> for AmbRootNestedParser<'i, 'arena> {
     ) -> Option<GLLFailureKind> {
         None
     }
-    fn follow_set_check(&mut self, nonterminal_id: NonterminalId, input_index: u32) -> bool {
-        match nonterminal_id {
-            NonterminalId(3) => self.scanner.match_any(&FOLLOW_SET_E, input_index),
-            NonterminalId(0) => self.scanner.match_any(&FOLLOW_SET_TYPE, input_index),
-            NonterminalId(1) => self.scanner.match_any(&FOLLOW_SET_START_E, input_index),
-            NonterminalId(2) => self.scanner.match_any(&FOLLOW_SET_START_TYPE, input_index),
-            _ => true,
-        }
-    }
-    fn follow_set(&self, nonterminal_id: NonterminalId) -> &'static TerminalSet {
-        match nonterminal_id {
-            NonterminalId(3) => &FOLLOW_SET_E,
-            NonterminalId(0) => &FOLLOW_SET_TYPE,
-            NonterminalId(1) => &FOLLOW_SET_START_E,
-            NonterminalId(2) => &FOLLOW_SET_START_TYPE,
-            _ => unreachable!("no FOLLOW set for nonterminal {nonterminal_id}"),
-        }
-    }
     fn failures(&self) -> impl Iterator<Item = &GLLFailure> {
         self.failures.iter()
     }
@@ -1244,6 +1147,9 @@ impl<'i, 'arena> Parser<'i, 'arena> for AmbRootNestedParser<'i, 'arena> {
         if input_index > level {
             self.failures.clear();
         }
+        if self.failures.last().is_some_and(|last| last.kind == kind) {
+            return;
+        }
         self.failures.push(
             GLLFailure {
                 input_index,
@@ -1256,6 +1162,9 @@ impl<'i, 'arena> Parser<'i, 'arena> for AmbRootNestedParser<'i, 'arena> {
     }
     fn match_token(&mut self, terminal_id: TerminalId, input_index: u32) -> Option<u32> {
         self.scanner.match_token(terminal_id, input_index)
+    }
+    fn match_any(&mut self, set: &'static TerminalSet, input_index: u32) -> bool {
+        self.scanner.match_any(set, input_index)
     }
     fn vec_arena(&self) -> &'arena Arena {
         self.vec_arena
@@ -1346,10 +1255,10 @@ impl<'i, 'arena> AmbRootNestedParser<'i, 'arena> {
     }
     /// Parses the input from `start` and builds the parse tree in the given
     /// `tree_arena`. The parser is consumed. The tree lives as long as the
-    /// arena lives. `start` is normally the start wrapper of a declared
-    /// nonterminal, `grammar::START_<NAME>`, which allows layout around the
-    /// input; a bare nonterminal id parses without it.
-    pub fn parse<'a>(
+    /// arena lives. `start` is the start wrapper of a declared nonterminal,
+    /// `grammar::START_<NAME>`, which allows layout around the input. The
+    /// public entry points are the typed `parse_<name>` methods.
+    fn parse<'a>(
         self,
         start: NonterminalId,
         tree_arena: &'a Arena,
@@ -1382,14 +1291,9 @@ impl<'i, 'arena> AmbRootNestedParser<'i, 'arena> {
         p: i32,
     ) {
         record!(self, Call, sppf_node_id, gss_node_id, return_slot);
-        let left_child = sppf_node_id.map(|id| {
-            let node = self.sppf_node(id);
-            (id, node.left_extent())
-        });
-        let gss_node = self.gss_node(gss_node_id);
-        let i = match left_child {
-            Some((id, _)) => self.sppf_node(id).right_extent(),
-            None => gss_node.index,
+        let i = match sppf_node_id {
+            Some(id) => self.sppf_node(id).right_extent(),
+            None => self.gss_node(gss_node_id).index,
         };
         // If there is already a GSS node for this call, add an edge.
         if let Some(existing_gss_node_id) = self.get_gss_node_e(i, p) {
@@ -1397,11 +1301,11 @@ impl<'i, 'arena> AmbRootNestedParser<'i, 'arena> {
             self.add_edge_to_existing_gss_node(
                 existing_gss_node_id,
                 gss_node_id,
-                left_child,
+                sppf_node_id,
                 return_slot,
                 env,
             );
-        } else {
+        } else if self.match_any(&PREDICTION_SET_E, i) {
             record!(self, GSSNodeNotFound, NonterminalId(3), i);
             let new_gss_node_id = self.new_gss_node(NonterminalId(3), i);
             self.add_gss_edge(new_gss_node_id, gss_node_id, sppf_node_id, return_slot, env);
@@ -1410,6 +1314,17 @@ impl<'i, 'arena> AmbRootNestedParser<'i, 'arena> {
             env.bind(BINDING_P, p, arena);
             self.add_first_descriptors(NonterminalId(3), i, new_gss_node_id, Some(env_id));
             self.add_gss_node_e(i, p, new_gss_node_id);
+        } else {
+            // The call symbol precedes the return slot in its alternative, so the return slot is never
+            // at the first position.
+            let call_slot = AmbRootNestedGrammar::previous_slot(return_slot)
+                .expect("a return slot follows the call symbol");
+            self.add_failure(
+                i,
+                call_slot,
+                Some(gss_node_id),
+                GLLFailureKind::UnexpectedToken(&PREDICTION_SET_E),
+            );
         }
     }
     fn parse_type_ll1(

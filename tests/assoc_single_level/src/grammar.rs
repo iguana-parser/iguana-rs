@@ -50,111 +50,147 @@ impl Grammar for AssocSingleLevelGrammar {
     const SLOTS: &'static [Slot] = &[
         Slot {
             display_name: "E(0) : . start:E(0)",
+            position: 0,
         },
         Slot {
             display_name: "E(0) : start:E(0).",
+            position: 1,
         },
         Slot {
             display_name: "F(0) : . start:F(0)",
+            position: 0,
         },
         Slot {
             display_name: "F(0) : start:F(0).",
+            position: 1,
         },
         Slot {
             display_name: "G(0) : . start:G(0)",
+            position: 0,
         },
         Slot {
             display_name: "G(0) : start:G(0).",
+            position: 1,
         },
         Slot {
             display_name: "E : . [1 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 1)] \"<\" E(2) return 1",
+            position: 0,
         },
         Slot {
             display_name: "E : [1 >= p] . l_pr=E(p) [(l_pr == 0) || (l_pr >= 1)] \"<\" E(2) return 1",
+            position: 1,
         },
         Slot {
             display_name: "E : [1 >= p] l_pr=E(p) . [(l_pr == 0) || (l_pr >= 1)] \"<\" E(2) return 1",
+            position: 2,
         },
         Slot {
             display_name: "E : [1 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 1)] . \"<\" E(2) return 1",
+            position: 3,
         },
         Slot {
             display_name: "E : [1 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 1)] \"<\" . E(2) return 1",
+            position: 4,
         },
         Slot {
             display_name: "E : [1 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 1)] \"<\" E(2) . return 1",
+            position: 5,
         },
         Slot {
             display_name: "E : [1 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 1)] \"<\" E(2) return 1.",
+            position: 6,
         },
         Slot {
             display_name: "E : . \"a\" return 0",
+            position: 0,
         },
         Slot {
             display_name: "E : \"a\" . return 0",
+            position: 1,
         },
         Slot {
             display_name: "E : \"a\" return 0.",
+            position: 2,
         },
         Slot {
             display_name: "F : . [1 >= p] l_pr=F(p) [(l_pr == 0) || (l_pr >= 2)] \"<\" F(1) return 1",
+            position: 0,
         },
         Slot {
             display_name: "F : [1 >= p] . l_pr=F(p) [(l_pr == 0) || (l_pr >= 2)] \"<\" F(1) return 1",
+            position: 1,
         },
         Slot {
             display_name: "F : [1 >= p] l_pr=F(p) . [(l_pr == 0) || (l_pr >= 2)] \"<\" F(1) return 1",
+            position: 2,
         },
         Slot {
             display_name: "F : [1 >= p] l_pr=F(p) [(l_pr == 0) || (l_pr >= 2)] . \"<\" F(1) return 1",
+            position: 3,
         },
         Slot {
             display_name: "F : [1 >= p] l_pr=F(p) [(l_pr == 0) || (l_pr >= 2)] \"<\" . F(1) return 1",
+            position: 4,
         },
         Slot {
             display_name: "F : [1 >= p] l_pr=F(p) [(l_pr == 0) || (l_pr >= 2)] \"<\" F(1) . return 1",
+            position: 5,
         },
         Slot {
             display_name: "F : [1 >= p] l_pr=F(p) [(l_pr == 0) || (l_pr >= 2)] \"<\" F(1) return 1.",
+            position: 6,
         },
         Slot {
             display_name: "F : . \"a\" return 0",
+            position: 0,
         },
         Slot {
             display_name: "F : \"a\" . return 0",
+            position: 1,
         },
         Slot {
             display_name: "F : \"a\" return 0.",
+            position: 2,
         },
         Slot {
             display_name: "G : . [1 >= p] l_pr=G(p) [(l_pr == 0) || (l_pr >= 2)] \"<\" G(2) return 1",
+            position: 0,
         },
         Slot {
             display_name: "G : [1 >= p] . l_pr=G(p) [(l_pr == 0) || (l_pr >= 2)] \"<\" G(2) return 1",
+            position: 1,
         },
         Slot {
             display_name: "G : [1 >= p] l_pr=G(p) . [(l_pr == 0) || (l_pr >= 2)] \"<\" G(2) return 1",
+            position: 2,
         },
         Slot {
             display_name: "G : [1 >= p] l_pr=G(p) [(l_pr == 0) || (l_pr >= 2)] . \"<\" G(2) return 1",
+            position: 3,
         },
         Slot {
             display_name: "G : [1 >= p] l_pr=G(p) [(l_pr == 0) || (l_pr >= 2)] \"<\" . G(2) return 1",
+            position: 4,
         },
         Slot {
             display_name: "G : [1 >= p] l_pr=G(p) [(l_pr == 0) || (l_pr >= 2)] \"<\" G(2) . return 1",
+            position: 5,
         },
         Slot {
             display_name: "G : [1 >= p] l_pr=G(p) [(l_pr == 0) || (l_pr >= 2)] \"<\" G(2) return 1.",
+            position: 6,
         },
         Slot {
             display_name: "G : . \"a\" return 0",
+            position: 0,
         },
         Slot {
             display_name: "G : \"a\" . return 0",
+            position: 1,
         },
         Slot {
             display_name: "G : \"a\" return 0.",
+            position: 2,
         },
     ];
     const LAYOUT_NAME: Option<&'static str> = None;
@@ -164,19 +200,19 @@ impl Grammar for AssocSingleLevelGrammar {
     // by terminal id, serves only that.
     const SINGLE_TERMINAL_SETS: &'static [TerminalSet] = &[
         TerminalSet {
-            id: 4,
+            id: 3,
             terminals: &[TerminalId(0)],
         },
         TerminalSet {
-            id: 5,
+            id: 4,
             terminals: &[TerminalId(1)],
         },
         TerminalSet {
-            id: 6,
+            id: 5,
             terminals: &[TerminalId(2)],
         },
         TerminalSet {
-            id: 7,
+            id: 6,
             terminals: &[TerminalId(3)],
         },
     ];
@@ -242,58 +278,28 @@ pub static FOLLOW_SET_START_E: TerminalSet = TerminalSet {
     id: 2,
     terminals: &[TerminalId(3)],
 };
-// StartE : . start:E(0) { "a" }
-pub static FIRST_SET_START_E_ALT0: TerminalSet = TerminalSet {
-    id: 1,
-    terminals: &[TerminalId(1)],
-};
 // StartF { EOF }
 pub static FOLLOW_SET_START_F: TerminalSet = TerminalSet {
     id: 2,
     terminals: &[TerminalId(3)],
-};
-// StartF : . start:F(0) { "a" }
-pub static FIRST_SET_START_F_ALT0: TerminalSet = TerminalSet {
-    id: 1,
-    terminals: &[TerminalId(1)],
 };
 // StartG { EOF }
 pub static FOLLOW_SET_START_G: TerminalSet = TerminalSet {
     id: 2,
     terminals: &[TerminalId(3)],
 };
-// StartG : . start:G(0) { "a" }
-pub static FIRST_SET_START_G_ALT0: TerminalSet = TerminalSet {
+// E prediction { "a" }
+pub static PREDICTION_SET_E: TerminalSet = TerminalSet {
     id: 1,
     terminals: &[TerminalId(1)],
 };
-// E { "a" }
-pub static FIRST_SET_E: TerminalSet = TerminalSet {
-    id: 3,
+// F prediction { "a" }
+pub static PREDICTION_SET_F: TerminalSet = TerminalSet {
+    id: 1,
     terminals: &[TerminalId(1)],
 };
-// F { "a" }
-pub static FIRST_SET_F: TerminalSet = TerminalSet {
-    id: 3,
-    terminals: &[TerminalId(1)],
-};
-// G { "a" }
-pub static FIRST_SET_G: TerminalSet = TerminalSet {
-    id: 3,
-    terminals: &[TerminalId(1)],
-};
-// StartE { "a" }
-pub static FIRST_SET_START_E: TerminalSet = TerminalSet {
-    id: 3,
-    terminals: &[TerminalId(1)],
-};
-// StartF { "a" }
-pub static FIRST_SET_START_F: TerminalSet = TerminalSet {
-    id: 3,
-    terminals: &[TerminalId(1)],
-};
-// StartG { "a" }
-pub static FIRST_SET_START_G: TerminalSet = TerminalSet {
-    id: 3,
+// G prediction { "a" }
+pub static PREDICTION_SET_G: TerminalSet = TerminalSet {
+    id: 1,
     terminals: &[TerminalId(1)],
 };

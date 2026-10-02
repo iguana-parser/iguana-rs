@@ -49,78 +49,103 @@ impl Grammar for ExactKeywordNoLayoutGrammar {
     const SLOTS: &'static [Slot] = &[
         Slot {
             display_name: "S : . Word WS \";\"",
+            position: 0,
         },
         Slot {
             display_name: "S : Word . WS \";\"",
+            position: 1,
         },
         Slot {
             display_name: "S : Word WS . \";\"",
+            position: 2,
         },
         Slot {
             display_name: "S : Word WS \";\".",
+            position: 3,
         },
         Slot {
             display_name: "S : . Id WS \";\"",
+            position: 0,
         },
         Slot {
             display_name: "S : Id . WS \";\"",
+            position: 1,
         },
         Slot {
             display_name: "S : Id WS . \";\"",
+            position: 2,
         },
         Slot {
             display_name: "S : Id WS \";\".",
+            position: 3,
         },
         Slot {
             display_name: "Word : . \"@\" \"go\" Letter+",
+            position: 0,
         },
         Slot {
             display_name: "Word : \"@\" . \"go\" Letter+",
+            position: 1,
         },
         Slot {
             display_name: "Word : \"@\" \"go\" . Letter+",
+            position: 2,
         },
         Slot {
             display_name: "Word : \"@\" \"go\" Letter+.",
+            position: 3,
         },
         Slot {
             display_name: "Letter+ : . Letter+ Letter",
+            position: 0,
         },
         Slot {
             display_name: "Letter+ : Letter+ . Letter",
+            position: 1,
         },
         Slot {
             display_name: "Letter+ : Letter+ Letter.",
+            position: 2,
         },
         Slot {
             display_name: "Letter+ : . Letter",
+            position: 0,
         },
         Slot {
             display_name: "Letter+ : Letter.",
+            position: 1,
         },
         Slot {
             display_name: "S : . WS start:S WS",
+            position: 0,
         },
         Slot {
             display_name: "S : WS . start:S WS",
+            position: 1,
         },
         Slot {
             display_name: "S : WS start:S . WS",
+            position: 2,
         },
         Slot {
             display_name: "S : WS start:S WS.",
+            position: 3,
         },
         Slot {
             display_name: "Word : . WS start:Word WS",
+            position: 0,
         },
         Slot {
             display_name: "Word : WS . start:Word WS",
+            position: 1,
         },
         Slot {
             display_name: "Word : WS start:Word . WS",
+            position: 2,
         },
         Slot {
             display_name: "Word : WS start:Word WS.",
+            position: 3,
         },
     ];
     const LAYOUT_NAME: Option<&'static str> = Some("WS");
@@ -130,35 +155,35 @@ impl Grammar for ExactKeywordNoLayoutGrammar {
     // by terminal id, serves only that.
     const SINGLE_TERMINAL_SETS: &'static [TerminalSet] = &[
         TerminalSet {
-            id: 14,
+            id: 8,
             terminals: &[TerminalId(0)],
         },
         TerminalSet {
-            id: 15,
+            id: 9,
             terminals: &[TerminalId(1)],
         },
         TerminalSet {
-            id: 16,
+            id: 10,
             terminals: &[TerminalId(2)],
         },
         TerminalSet {
-            id: 17,
+            id: 11,
             terminals: &[TerminalId(3)],
         },
         TerminalSet {
-            id: 18,
+            id: 12,
             terminals: &[TerminalId(4)],
         },
         TerminalSet {
-            id: 19,
+            id: 13,
             terminals: &[TerminalId(5)],
         },
         TerminalSet {
-            id: 20,
+            id: 14,
             terminals: &[TerminalId(6)],
         },
         TerminalSet {
-            id: 21,
+            id: 15,
             terminals: &[TerminalId(7)],
         },
     ];
@@ -193,11 +218,6 @@ pub static FOLLOW_SET_WORD: TerminalSet = TerminalSet {
     id: 3,
     terminals: &[TerminalId(2), TerminalId(3), TerminalId(7)],
 };
-// Word : . "@" "go" Plus_0 { "@" }
-pub static FIRST_SET_WORD_ALT0: TerminalSet = TerminalSet {
-    id: 1,
-    terminals: &[TerminalId(4)],
-};
 // Plus_0 { Letter, WS, ";", EOF }
 pub static FOLLOW_SET_PLUS_0: TerminalSet = TerminalSet {
     id: 4,
@@ -218,43 +238,23 @@ pub static FOLLOW_SET_START_S: TerminalSet = TerminalSet {
     id: 6,
     terminals: &[TerminalId(7)],
 };
-// StartS : . WS start:S WS { Id, WS, "@" }
-pub static FIRST_SET_START_S_ALT0: TerminalSet = TerminalSet {
-    id: 7,
-    terminals: &[TerminalId(0), TerminalId(2), TerminalId(4)],
-};
 // StartWord { EOF }
 pub static FOLLOW_SET_START_WORD: TerminalSet = TerminalSet {
     id: 6,
     terminals: &[TerminalId(7)],
 };
-// StartWord : . WS start:Word WS { WS, "@" }
-pub static FIRST_SET_START_WORD_ALT0: TerminalSet = TerminalSet {
-    id: 8,
-    terminals: &[TerminalId(2), TerminalId(4)],
-};
-// S { Id, "@" }
-pub static FIRST_SET_S: TerminalSet = TerminalSet {
-    id: 9,
+// S prediction { Id, "@" }
+pub static PREDICTION_SET_S: TerminalSet = TerminalSet {
+    id: 7,
     terminals: &[TerminalId(0), TerminalId(4)],
 };
-// Word { "@" }
-pub static FIRST_SET_WORD: TerminalSet = TerminalSet {
-    id: 10,
+// Word prediction { "@" }
+pub static PREDICTION_SET_WORD: TerminalSet = TerminalSet {
+    id: 1,
     terminals: &[TerminalId(4)],
 };
-// Plus_0 { Letter }
-pub static FIRST_SET_PLUS_0: TerminalSet = TerminalSet {
-    id: 11,
+// Plus_0 prediction { Letter }
+pub static PREDICTION_SET_PLUS_0: TerminalSet = TerminalSet {
+    id: 5,
     terminals: &[TerminalId(1)],
-};
-// StartS { Id, WS, "@" }
-pub static FIRST_SET_START_S: TerminalSet = TerminalSet {
-    id: 12,
-    terminals: &[TerminalId(0), TerminalId(2), TerminalId(4)],
-};
-// StartWord { WS, "@" }
-pub static FIRST_SET_START_WORD: TerminalSet = TerminalSet {
-    id: 13,
-    terminals: &[TerminalId(2), TerminalId(4)],
 };

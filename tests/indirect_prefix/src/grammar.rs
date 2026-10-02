@@ -62,126 +62,167 @@ impl Grammar for IndirectPrefixGrammar {
     const SLOTS: &'static [Slot] = &[
         Slot {
             display_name: "S : . E(0)",
+            position: 0,
         },
         Slot {
             display_name: "S : E(0).",
+            position: 1,
         },
         Slot {
             display_name: "S : . WS start:S WS",
+            position: 0,
         },
         Slot {
             display_name: "S : WS . start:S WS",
+            position: 1,
         },
         Slot {
             display_name: "S : WS start:S . WS",
+            position: 2,
         },
         Slot {
             display_name: "S : WS start:S WS.",
+            position: 3,
         },
         Slot {
             display_name: "E(0) : . WS start:E(0) WS",
+            position: 0,
         },
         Slot {
             display_name: "E(0) : WS . start:E(0) WS",
+            position: 1,
         },
         Slot {
             display_name: "E(0) : WS start:E(0) . WS",
+            position: 2,
         },
         Slot {
             display_name: "E(0) : WS start:E(0) WS.",
+            position: 3,
         },
         Slot {
             display_name: "Lambda(0) : . WS start:Lambda(0) WS",
+            position: 0,
         },
         Slot {
             display_name: "Lambda(0) : WS . start:Lambda(0) WS",
+            position: 1,
         },
         Slot {
             display_name: "Lambda(0) : WS start:Lambda(0) . WS",
+            position: 2,
         },
         Slot {
             display_name: "Lambda(0) : WS start:Lambda(0) WS.",
+            position: 3,
         },
         Slot {
             display_name: "Body(0) : . WS start:Body(0) WS",
+            position: 0,
         },
         Slot {
             display_name: "Body(0) : WS . start:Body(0) WS",
+            position: 1,
         },
         Slot {
             display_name: "Body(0) : WS start:Body(0) . WS",
+            position: 2,
         },
         Slot {
             display_name: "Body(0) : WS start:Body(0) WS.",
+            position: 3,
         },
         Slot {
             display_name: "E : . \"a\" return 0",
+            position: 0,
         },
         Slot {
             display_name: "E : \"a\" . return 0",
+            position: 1,
         },
         Slot {
             display_name: "E : \"a\" return 0.",
+            position: 2,
         },
         Slot {
             display_name: "E : . [2 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 2)] WS \"+\" WS r_pr=E(2) return (r_pr == 0) ? 2 : min(r_pr, 2)",
+            position: 0,
         },
         Slot {
             display_name: "E : [2 >= p] . l_pr=E(p) [(l_pr == 0) || (l_pr >= 2)] WS \"+\" WS r_pr=E(2) return (r_pr == 0) ? 2 : min(r_pr, 2)",
+            position: 1,
         },
         Slot {
             display_name: "E : [2 >= p] l_pr=E(p) . [(l_pr == 0) || (l_pr >= 2)] WS \"+\" WS r_pr=E(2) return (r_pr == 0) ? 2 : min(r_pr, 2)",
+            position: 2,
         },
         Slot {
             display_name: "E : [2 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 2)] . WS \"+\" WS r_pr=E(2) return (r_pr == 0) ? 2 : min(r_pr, 2)",
+            position: 3,
         },
         Slot {
             display_name: "E : [2 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 2)] WS . \"+\" WS r_pr=E(2) return (r_pr == 0) ? 2 : min(r_pr, 2)",
+            position: 4,
         },
         Slot {
             display_name: "E : [2 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 2)] WS \"+\" . WS r_pr=E(2) return (r_pr == 0) ? 2 : min(r_pr, 2)",
+            position: 5,
         },
         Slot {
             display_name: "E : [2 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 2)] WS \"+\" WS . r_pr=E(2) return (r_pr == 0) ? 2 : min(r_pr, 2)",
+            position: 6,
         },
         Slot {
             display_name: "E : [2 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 2)] WS \"+\" WS r_pr=E(2) . return (r_pr == 0) ? 2 : min(r_pr, 2)",
+            position: 7,
         },
         Slot {
             display_name: "E : [2 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 2)] WS \"+\" WS r_pr=E(2) return (r_pr == 0) ? 2 : min(r_pr, 2).",
+            position: 8,
         },
         Slot {
             display_name: "E : . Lambda(1) return 1",
+            position: 0,
         },
         Slot {
             display_name: "E : Lambda(1) . return 1",
+            position: 1,
         },
         Slot {
             display_name: "E : Lambda(1) return 1.",
+            position: 2,
         },
         Slot {
             display_name: "Lambda : . \"fn\" WS r_pr=Body(p) return r_pr",
+            position: 0,
         },
         Slot {
             display_name: "Lambda : \"fn\" . WS r_pr=Body(p) return r_pr",
+            position: 1,
         },
         Slot {
             display_name: "Lambda : \"fn\" WS . r_pr=Body(p) return r_pr",
+            position: 2,
         },
         Slot {
             display_name: "Lambda : \"fn\" WS r_pr=Body(p) . return r_pr",
+            position: 3,
         },
         Slot {
             display_name: "Lambda : \"fn\" WS r_pr=Body(p) return r_pr.",
+            position: 4,
         },
         Slot {
             display_name: "Body : . r_pr=E(p) return r_pr",
+            position: 0,
         },
         Slot {
             display_name: "Body : r_pr=E(p) . return r_pr",
+            position: 1,
         },
         Slot {
             display_name: "Body : r_pr=E(p) return r_pr.",
+            position: 2,
         },
     ];
     const LAYOUT_NAME: Option<&'static str> = Some("WS");
@@ -191,27 +232,27 @@ impl Grammar for IndirectPrefixGrammar {
     // by terminal id, serves only that.
     const SINGLE_TERMINAL_SETS: &'static [TerminalSet] = &[
         TerminalSet {
-            id: 12,
+            id: 6,
             terminals: &[TerminalId(0)],
         },
         TerminalSet {
-            id: 13,
+            id: 7,
             terminals: &[TerminalId(1)],
         },
         TerminalSet {
-            id: 14,
+            id: 8,
             terminals: &[TerminalId(2)],
         },
         TerminalSet {
-            id: 15,
+            id: 9,
             terminals: &[TerminalId(3)],
         },
         TerminalSet {
-            id: 16,
+            id: 10,
             terminals: &[TerminalId(4)],
         },
         TerminalSet {
-            id: 17,
+            id: 11,
             terminals: &[TerminalId(5)],
         },
     ];
@@ -234,25 +275,20 @@ pub static FOLLOW_SET_S: TerminalSet = TerminalSet {
     id: 0,
     terminals: &[TerminalId(0), TerminalId(5)],
 };
-// S : . E(0) { "a", "fn" }
-pub static FIRST_SET_S_ALT0: TerminalSet = TerminalSet {
-    id: 1,
-    terminals: &[TerminalId(1), TerminalId(3)],
-};
 // E { WS, "+", EOF }
 pub static FOLLOW_SET_E: TerminalSet = TerminalSet {
-    id: 2,
+    id: 1,
     terminals: &[TerminalId(0), TerminalId(2), TerminalId(5)],
 };
 // E(p: i32) : . "a" return 0 { "a" }
 pub static FIRST_SET_E_ALT0: TerminalSet = TerminalSet {
-    id: 3,
+    id: 2,
     terminals: &[TerminalId(1)],
 };
 // E(p: i32) : . [2 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 2)] WS "+" WS r_pr=E(2) return
 // (r_pr == 0) ? 2 : min(r_pr, 2) { "a", "fn" }
 pub static FIRST_SET_E_ALT1: TerminalSet = TerminalSet {
-    id: 1,
+    id: 3,
     terminals: &[TerminalId(1), TerminalId(3)],
 };
 // E(p: i32) : . Lambda(1) return 1 { "fn" }
@@ -262,101 +298,51 @@ pub static FIRST_SET_E_ALT2: TerminalSet = TerminalSet {
 };
 // Lambda { WS, "+", EOF }
 pub static FOLLOW_SET_LAMBDA: TerminalSet = TerminalSet {
-    id: 2,
+    id: 1,
     terminals: &[TerminalId(0), TerminalId(2), TerminalId(5)],
-};
-// Lambda(p: i32) : . "fn" WS r_pr=Body(p) return r_pr { "fn" }
-pub static FIRST_SET_LAMBDA_ALT0: TerminalSet = TerminalSet {
-    id: 4,
-    terminals: &[TerminalId(3)],
 };
 // Body { WS, "+", EOF }
 pub static FOLLOW_SET_BODY: TerminalSet = TerminalSet {
-    id: 2,
-    terminals: &[TerminalId(0), TerminalId(2), TerminalId(5)],
-};
-// Body(p: i32) : . r_pr=E(p) return r_pr { "a", "fn" }
-pub static FIRST_SET_BODY_ALT0: TerminalSet = TerminalSet {
     id: 1,
-    terminals: &[TerminalId(1), TerminalId(3)],
+    terminals: &[TerminalId(0), TerminalId(2), TerminalId(5)],
 };
 // StartS { EOF }
 pub static FOLLOW_SET_START_S: TerminalSet = TerminalSet {
     id: 5,
     terminals: &[TerminalId(5)],
 };
-// StartS : . WS start:S WS { WS, "a", "fn" }
-pub static FIRST_SET_START_S_ALT0: TerminalSet = TerminalSet {
-    id: 6,
-    terminals: &[TerminalId(0), TerminalId(1), TerminalId(3)],
-};
 // StartE { EOF }
 pub static FOLLOW_SET_START_E: TerminalSet = TerminalSet {
     id: 5,
     terminals: &[TerminalId(5)],
-};
-// StartE : . WS start:E(0) WS { WS, "a", "fn" }
-pub static FIRST_SET_START_E_ALT0: TerminalSet = TerminalSet {
-    id: 6,
-    terminals: &[TerminalId(0), TerminalId(1), TerminalId(3)],
 };
 // StartLambda { EOF }
 pub static FOLLOW_SET_START_LAMBDA: TerminalSet = TerminalSet {
     id: 5,
     terminals: &[TerminalId(5)],
 };
-// StartLambda : . WS start:Lambda(0) WS { WS, "fn" }
-pub static FIRST_SET_START_LAMBDA_ALT0: TerminalSet = TerminalSet {
-    id: 7,
-    terminals: &[TerminalId(0), TerminalId(3)],
-};
 // StartBody { EOF }
 pub static FOLLOW_SET_START_BODY: TerminalSet = TerminalSet {
     id: 5,
     terminals: &[TerminalId(5)],
 };
-// StartBody : . WS start:Body(0) WS { WS, "a", "fn" }
-pub static FIRST_SET_START_BODY_ALT0: TerminalSet = TerminalSet {
-    id: 6,
-    terminals: &[TerminalId(0), TerminalId(1), TerminalId(3)],
-};
-// S { "a", "fn" }
-pub static FIRST_SET_S: TerminalSet = TerminalSet {
-    id: 8,
+// S prediction { "a", "fn" }
+pub static PREDICTION_SET_S: TerminalSet = TerminalSet {
+    id: 3,
     terminals: &[TerminalId(1), TerminalId(3)],
 };
-// E { "a", "fn" }
-pub static FIRST_SET_E: TerminalSet = TerminalSet {
-    id: 8,
+// E prediction { "a", "fn" }
+pub static PREDICTION_SET_E: TerminalSet = TerminalSet {
+    id: 3,
     terminals: &[TerminalId(1), TerminalId(3)],
 };
-// Lambda { "fn" }
-pub static FIRST_SET_LAMBDA: TerminalSet = TerminalSet {
-    id: 9,
+// Lambda prediction { "fn" }
+pub static PREDICTION_SET_LAMBDA: TerminalSet = TerminalSet {
+    id: 4,
     terminals: &[TerminalId(3)],
 };
-// Body { "a", "fn" }
-pub static FIRST_SET_BODY: TerminalSet = TerminalSet {
-    id: 8,
+// Body prediction { "a", "fn" }
+pub static PREDICTION_SET_BODY: TerminalSet = TerminalSet {
+    id: 3,
     terminals: &[TerminalId(1), TerminalId(3)],
-};
-// StartS { WS, "a", "fn" }
-pub static FIRST_SET_START_S: TerminalSet = TerminalSet {
-    id: 10,
-    terminals: &[TerminalId(0), TerminalId(1), TerminalId(3)],
-};
-// StartE { WS, "a", "fn" }
-pub static FIRST_SET_START_E: TerminalSet = TerminalSet {
-    id: 10,
-    terminals: &[TerminalId(0), TerminalId(1), TerminalId(3)],
-};
-// StartLambda { WS, "fn" }
-pub static FIRST_SET_START_LAMBDA: TerminalSet = TerminalSet {
-    id: 11,
-    terminals: &[TerminalId(0), TerminalId(3)],
-};
-// StartBody { WS, "a", "fn" }
-pub static FIRST_SET_START_BODY: TerminalSet = TerminalSet {
-    id: 10,
-    terminals: &[TerminalId(0), TerminalId(1), TerminalId(3)],
 };

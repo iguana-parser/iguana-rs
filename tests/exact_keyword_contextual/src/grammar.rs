@@ -36,57 +36,75 @@ impl Grammar for ExactKeywordContextualGrammar {
     const SLOTS: &'static [Slot] = &[
         Slot {
             display_name: "Decl : . [0-9 A-Z _ a-z] !<< \"var\" !>> [0-9 A-Z _ a-z] WS Id WS \";\"",
+            position: 0,
         },
         Slot {
             display_name: "Decl : [0-9 A-Z _ a-z] !<< \"var\" !>> [0-9 A-Z _ a-z] . WS Id WS \";\"",
+            position: 1,
         },
         Slot {
             display_name: "Decl : [0-9 A-Z _ a-z] !<< \"var\" !>> [0-9 A-Z _ a-z] WS . Id WS \";\"",
+            position: 2,
         },
         Slot {
             display_name: "Decl : [0-9 A-Z _ a-z] !<< \"var\" !>> [0-9 A-Z _ a-z] WS Id . WS \";\"",
+            position: 3,
         },
         Slot {
             display_name: "Decl : [0-9 A-Z _ a-z] !<< \"var\" !>> [0-9 A-Z _ a-z] WS Id WS . \";\"",
+            position: 4,
         },
         Slot {
             display_name: "Decl : [0-9 A-Z _ a-z] !<< \"var\" !>> [0-9 A-Z _ a-z] WS Id WS \";\".",
+            position: 5,
         },
         Slot {
             display_name: "Decl : . Id WS \"=\" WS Id WS \";\"",
+            position: 0,
         },
         Slot {
             display_name: "Decl : Id . WS \"=\" WS Id WS \";\"",
+            position: 1,
         },
         Slot {
             display_name: "Decl : Id WS . \"=\" WS Id WS \";\"",
+            position: 2,
         },
         Slot {
             display_name: "Decl : Id WS \"=\" . WS Id WS \";\"",
+            position: 3,
         },
         Slot {
             display_name: "Decl : Id WS \"=\" WS . Id WS \";\"",
+            position: 4,
         },
         Slot {
             display_name: "Decl : Id WS \"=\" WS Id . WS \";\"",
+            position: 5,
         },
         Slot {
             display_name: "Decl : Id WS \"=\" WS Id WS . \";\"",
+            position: 6,
         },
         Slot {
             display_name: "Decl : Id WS \"=\" WS Id WS \";\".",
+            position: 7,
         },
         Slot {
             display_name: "Decl : . WS start:Decl WS",
+            position: 0,
         },
         Slot {
             display_name: "Decl : WS . start:Decl WS",
+            position: 1,
         },
         Slot {
             display_name: "Decl : WS start:Decl . WS",
+            position: 2,
         },
         Slot {
             display_name: "Decl : WS start:Decl WS.",
+            position: 3,
         },
     ];
     const LAYOUT_NAME: Option<&'static str> = Some("WS");
@@ -96,35 +114,35 @@ impl Grammar for ExactKeywordContextualGrammar {
     // by terminal id, serves only that.
     const SINGLE_TERMINAL_SETS: &'static [TerminalSet] = &[
         TerminalSet {
-            id: 8,
+            id: 6,
             terminals: &[TerminalId(0)],
         },
         TerminalSet {
-            id: 9,
+            id: 7,
             terminals: &[TerminalId(1)],
         },
         TerminalSet {
-            id: 10,
+            id: 8,
             terminals: &[TerminalId(2)],
         },
         TerminalSet {
-            id: 11,
+            id: 9,
             terminals: &[TerminalId(3)],
         },
         TerminalSet {
-            id: 12,
+            id: 10,
             terminals: &[TerminalId(4)],
         },
         TerminalSet {
-            id: 13,
+            id: 11,
             terminals: &[TerminalId(5)],
         },
         TerminalSet {
-            id: 14,
+            id: 12,
             terminals: &[TerminalId(6)],
         },
         TerminalSet {
-            id: 15,
+            id: 13,
             terminals: &[TerminalId(7)],
         },
     ];
@@ -162,18 +180,8 @@ pub static FOLLOW_SET_START_DECL: TerminalSet = TerminalSet {
     id: 4,
     terminals: &[TerminalId(7)],
 };
-// StartDecl : . WS start:Decl WS { Id, WS, "var" }
-pub static FIRST_SET_START_DECL_ALT0: TerminalSet = TerminalSet {
+// Decl prediction { Id, "var" }
+pub static PREDICTION_SET_DECL: TerminalSet = TerminalSet {
     id: 5,
-    terminals: &[TerminalId(0), TerminalId(1), TerminalId(2)],
-};
-// Decl { Id, "var" }
-pub static FIRST_SET_DECL: TerminalSet = TerminalSet {
-    id: 6,
     terminals: &[TerminalId(0), TerminalId(2)],
-};
-// StartDecl { Id, WS, "var" }
-pub static FIRST_SET_START_DECL: TerminalSet = TerminalSet {
-    id: 7,
-    terminals: &[TerminalId(0), TerminalId(1), TerminalId(2)],
 };

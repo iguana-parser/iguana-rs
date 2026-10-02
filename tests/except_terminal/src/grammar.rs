@@ -40,27 +40,35 @@ impl Grammar for ExceptTerminalGrammar {
     const SLOTS: &'static [Slot] = &[
         Slot {
             display_name: "S : . Id",
+            position: 0,
         },
         Slot {
             display_name: "S : Id.",
+            position: 1,
         },
         Slot {
             display_name: "Id : . Identifier \\ Keyword",
+            position: 0,
         },
         Slot {
             display_name: "Id : Identifier \\ Keyword.",
+            position: 1,
         },
         Slot {
             display_name: "S : . start:S",
+            position: 0,
         },
         Slot {
             display_name: "S : start:S.",
+            position: 1,
         },
         Slot {
             display_name: "Id : . start:Id",
+            position: 0,
         },
         Slot {
             display_name: "Id : start:Id.",
+            position: 1,
         },
     ];
     const LAYOUT_NAME: Option<&'static str> = None;
@@ -70,19 +78,19 @@ impl Grammar for ExceptTerminalGrammar {
     // by terminal id, serves only that.
     const SINGLE_TERMINAL_SETS: &'static [TerminalSet] = &[
         TerminalSet {
-            id: 4,
+            id: 3,
             terminals: &[TerminalId(0)],
         },
         TerminalSet {
-            id: 5,
+            id: 4,
             terminals: &[TerminalId(1)],
         },
         TerminalSet {
-            id: 6,
+            id: 5,
             terminals: &[TerminalId(2)],
         },
         TerminalSet {
-            id: 7,
+            id: 6,
             terminals: &[TerminalId(3)],
         },
     ];
@@ -101,63 +109,43 @@ pub static FOLLOW_SET_S: TerminalSet = TerminalSet {
     id: 0,
     terminals: &[TerminalId(3)],
 };
-// S : . Id { Identifier }
-pub static FIRST_SET_S_ALT0: TerminalSet = TerminalSet {
-    id: 1,
-    terminals: &[TerminalId(0)],
-};
 // Id { EOF }
 pub static FOLLOW_SET_ID: TerminalSet = TerminalSet {
     id: 0,
     terminals: &[TerminalId(3)],
-};
-// Id : . Identifier \ Keyword { Identifier }
-pub static FIRST_SET_ID_ALT0: TerminalSet = TerminalSet {
-    id: 1,
-    terminals: &[TerminalId(0)],
 };
 // StartS { EOF }
 pub static FOLLOW_SET_START_S: TerminalSet = TerminalSet {
     id: 0,
     terminals: &[TerminalId(3)],
 };
-// StartS : . start:S { Identifier }
-pub static FIRST_SET_START_S_ALT0: TerminalSet = TerminalSet {
-    id: 1,
-    terminals: &[TerminalId(0)],
-};
 // StartId { EOF }
 pub static FOLLOW_SET_START_ID: TerminalSet = TerminalSet {
     id: 0,
     terminals: &[TerminalId(3)],
 };
-// StartId : . start:Id { Identifier }
-pub static FIRST_SET_START_ID_ALT0: TerminalSet = TerminalSet {
-    id: 1,
-    terminals: &[TerminalId(0)],
-};
 // S { Identifier }
 pub static FIRST_SET_S: TerminalSet = TerminalSet {
-    id: 2,
+    id: 1,
     terminals: &[TerminalId(0)],
 };
 // Id { Identifier }
 pub static FIRST_SET_ID: TerminalSet = TerminalSet {
-    id: 2,
+    id: 1,
     terminals: &[TerminalId(0)],
 };
 // StartS { Identifier }
 pub static FIRST_SET_START_S: TerminalSet = TerminalSet {
-    id: 2,
+    id: 1,
     terminals: &[TerminalId(0)],
 };
 // StartId { Identifier }
 pub static FIRST_SET_START_ID: TerminalSet = TerminalSet {
-    id: 2,
+    id: 1,
     terminals: &[TerminalId(0)],
 };
 // Id : . Identifier \ Keyword \ { Keyword }
 pub static EXCEPT_ID_ALT0_POS0: TerminalSet = TerminalSet {
-    id: 3,
+    id: 2,
     terminals: &[TerminalId(1)],
 };

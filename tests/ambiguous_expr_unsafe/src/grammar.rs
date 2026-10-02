@@ -51,207 +51,275 @@ impl Grammar for AmbiguousExprUnsafeGrammar {
     const SLOTS: &'static [Slot] = &[
         Slot {
             display_name: "S : . E",
+            position: 0,
         },
         Slot {
             display_name: "S : E.",
+            position: 1,
         },
         Slot {
             display_name: "E : . E WS \".\" WS \"f\"",
+            position: 0,
         },
         Slot {
             display_name: "E : E . WS \".\" WS \"f\"",
+            position: 1,
         },
         Slot {
             display_name: "E : E WS . \".\" WS \"f\"",
+            position: 2,
         },
         Slot {
             display_name: "E : E WS \".\" . WS \"f\"",
+            position: 3,
         },
         Slot {
             display_name: "E : E WS \".\" WS . \"f\"",
+            position: 4,
         },
         Slot {
             display_name: "E : E WS \".\" WS \"f\".",
+            position: 5,
         },
         Slot {
             display_name: "E : . E WS E",
+            position: 0,
         },
         Slot {
             display_name: "E : E . WS E",
+            position: 1,
         },
         Slot {
             display_name: "E : E WS . E",
+            position: 2,
         },
         Slot {
             display_name: "E : E WS E.",
+            position: 3,
         },
         Slot {
             display_name: "E : . E WS \"*\" WS E",
+            position: 0,
         },
         Slot {
             display_name: "E : E . WS \"*\" WS E",
+            position: 1,
         },
         Slot {
             display_name: "E : E WS . \"*\" WS E",
+            position: 2,
         },
         Slot {
             display_name: "E : E WS \"*\" . WS E",
+            position: 3,
         },
         Slot {
             display_name: "E : E WS \"*\" WS . E",
+            position: 4,
         },
         Slot {
             display_name: "E : E WS \"*\" WS E.",
+            position: 5,
         },
         Slot {
             display_name: "E : . E WS \"+\" WS E",
+            position: 0,
         },
         Slot {
             display_name: "E : E . WS \"+\" WS E",
+            position: 1,
         },
         Slot {
             display_name: "E : E WS . \"+\" WS E",
+            position: 2,
         },
         Slot {
             display_name: "E : E WS \"+\" . WS E",
+            position: 3,
         },
         Slot {
             display_name: "E : E WS \"+\" WS . E",
+            position: 4,
         },
         Slot {
             display_name: "E : E WS \"+\" WS E.",
+            position: 5,
         },
         Slot {
             display_name: "E : . E WS \"-\" WS E",
+            position: 0,
         },
         Slot {
             display_name: "E : E . WS \"-\" WS E",
+            position: 1,
         },
         Slot {
             display_name: "E : E WS . \"-\" WS E",
+            position: 2,
         },
         Slot {
             display_name: "E : E WS \"-\" . WS E",
+            position: 3,
         },
         Slot {
             display_name: "E : E WS \"-\" WS . E",
+            position: 4,
         },
         Slot {
             display_name: "E : E WS \"-\" WS E.",
+            position: 5,
         },
         Slot {
             display_name: "E : . \"-\" WS E",
+            position: 0,
         },
         Slot {
             display_name: "E : \"-\" . WS E",
+            position: 1,
         },
         Slot {
             display_name: "E : \"-\" WS . E",
+            position: 2,
         },
         Slot {
             display_name: "E : \"-\" WS E.",
+            position: 3,
         },
         Slot {
             display_name: "E : . \"if\" WS E WS \"then\" WS E WS \"else\" WS E",
+            position: 0,
         },
         Slot {
             display_name: "E : \"if\" . WS E WS \"then\" WS E WS \"else\" WS E",
+            position: 1,
         },
         Slot {
             display_name: "E : \"if\" WS . E WS \"then\" WS E WS \"else\" WS E",
+            position: 2,
         },
         Slot {
             display_name: "E : \"if\" WS E . WS \"then\" WS E WS \"else\" WS E",
+            position: 3,
         },
         Slot {
             display_name: "E : \"if\" WS E WS . \"then\" WS E WS \"else\" WS E",
+            position: 4,
         },
         Slot {
             display_name: "E : \"if\" WS E WS \"then\" . WS E WS \"else\" WS E",
+            position: 5,
         },
         Slot {
             display_name: "E : \"if\" WS E WS \"then\" WS . E WS \"else\" WS E",
+            position: 6,
         },
         Slot {
             display_name: "E : \"if\" WS E WS \"then\" WS E . WS \"else\" WS E",
+            position: 7,
         },
         Slot {
             display_name: "E : \"if\" WS E WS \"then\" WS E WS . \"else\" WS E",
+            position: 8,
         },
         Slot {
             display_name: "E : \"if\" WS E WS \"then\" WS E WS \"else\" . WS E",
+            position: 9,
         },
         Slot {
             display_name: "E : \"if\" WS E WS \"then\" WS E WS \"else\" WS . E",
+            position: 10,
         },
         Slot {
             display_name: "E : \"if\" WS E WS \"then\" WS E WS \"else\" WS E.",
+            position: 11,
         },
         Slot {
             display_name: "E : . E WS \";\" WS E",
+            position: 0,
         },
         Slot {
             display_name: "E : E . WS \";\" WS E",
+            position: 1,
         },
         Slot {
             display_name: "E : E WS . \";\" WS E",
+            position: 2,
         },
         Slot {
             display_name: "E : E WS \";\" . WS E",
+            position: 3,
         },
         Slot {
             display_name: "E : E WS \";\" WS . E",
+            position: 4,
         },
         Slot {
             display_name: "E : E WS \";\" WS E.",
+            position: 5,
         },
         Slot {
             display_name: "E : . \"(\" WS E WS \")\"",
+            position: 0,
         },
         Slot {
             display_name: "E : \"(\" . WS E WS \")\"",
+            position: 1,
         },
         Slot {
             display_name: "E : \"(\" WS . E WS \")\"",
+            position: 2,
         },
         Slot {
             display_name: "E : \"(\" WS E . WS \")\"",
+            position: 3,
         },
         Slot {
             display_name: "E : \"(\" WS E WS . \")\"",
+            position: 4,
         },
         Slot {
             display_name: "E : \"(\" WS E WS \")\".",
+            position: 5,
         },
         Slot {
             display_name: "E : . \"a\"",
+            position: 0,
         },
         Slot {
             display_name: "E : \"a\".",
+            position: 1,
         },
         Slot {
             display_name: "S : . WS start:S WS",
+            position: 0,
         },
         Slot {
             display_name: "S : WS . start:S WS",
+            position: 1,
         },
         Slot {
             display_name: "S : WS start:S . WS",
+            position: 2,
         },
         Slot {
             display_name: "S : WS start:S WS.",
+            position: 3,
         },
         Slot {
             display_name: "E : . WS start:E WS",
+            position: 0,
         },
         Slot {
             display_name: "E : WS . start:E WS",
+            position: 1,
         },
         Slot {
             display_name: "E : WS start:E . WS",
+            position: 2,
         },
         Slot {
             display_name: "E : WS start:E WS.",
+            position: 3,
         },
     ];
     const LAYOUT_NAME: Option<&'static str> = Some("WS");
@@ -261,63 +329,63 @@ impl Grammar for AmbiguousExprUnsafeGrammar {
     // by terminal id, serves only that.
     const SINGLE_TERMINAL_SETS: &'static [TerminalSet] = &[
         TerminalSet {
-            id: 11,
+            id: 8,
             terminals: &[TerminalId(0)],
         },
         TerminalSet {
-            id: 12,
+            id: 9,
             terminals: &[TerminalId(1)],
         },
         TerminalSet {
-            id: 13,
+            id: 10,
             terminals: &[TerminalId(2)],
         },
         TerminalSet {
-            id: 14,
+            id: 11,
             terminals: &[TerminalId(3)],
         },
         TerminalSet {
-            id: 15,
+            id: 12,
             terminals: &[TerminalId(4)],
         },
         TerminalSet {
-            id: 16,
+            id: 13,
             terminals: &[TerminalId(5)],
         },
         TerminalSet {
-            id: 17,
+            id: 14,
             terminals: &[TerminalId(6)],
         },
         TerminalSet {
-            id: 18,
+            id: 15,
             terminals: &[TerminalId(7)],
         },
         TerminalSet {
-            id: 19,
+            id: 16,
             terminals: &[TerminalId(8)],
         },
         TerminalSet {
-            id: 20,
+            id: 17,
             terminals: &[TerminalId(9)],
         },
         TerminalSet {
-            id: 21,
+            id: 18,
             terminals: &[TerminalId(10)],
         },
         TerminalSet {
-            id: 22,
+            id: 19,
             terminals: &[TerminalId(11)],
         },
         TerminalSet {
-            id: 23,
+            id: 20,
             terminals: &[TerminalId(12)],
         },
         TerminalSet {
-            id: 24,
+            id: 21,
             terminals: &[TerminalId(13)],
         },
         TerminalSet {
-            id: 25,
+            id: 22,
             terminals: &[TerminalId(14)],
         },
     ];
@@ -336,14 +404,9 @@ pub static FOLLOW_SET_S: TerminalSet = TerminalSet {
     id: 0,
     terminals: &[TerminalId(0), TerminalId(14)],
 };
-// S : . E { "-", "if", "(", "a" }
-pub static FIRST_SET_S_ALT0: TerminalSet = TerminalSet {
-    id: 1,
-    terminals: &[TerminalId(5), TerminalId(6), TerminalId(10), TerminalId(12)],
-};
 // E { WS, ".", "*", "+", "-", "if", "then", "else", ";", "(", ")", "a", EOF }
 pub static FOLLOW_SET_E: TerminalSet = TerminalSet {
-    id: 2,
+    id: 1,
     terminals: &[
         TerminalId(0),
         TerminalId(1),
@@ -362,27 +425,27 @@ pub static FOLLOW_SET_E: TerminalSet = TerminalSet {
 };
 // E : . E WS "." WS "f" { "-", "if", "(", "a" }
 pub static FIRST_SET_E_ALT0: TerminalSet = TerminalSet {
-    id: 1,
+    id: 2,
     terminals: &[TerminalId(5), TerminalId(6), TerminalId(10), TerminalId(12)],
 };
 // E : . E WS E { "-", "if", "(", "a" }
 pub static FIRST_SET_E_ALT1: TerminalSet = TerminalSet {
-    id: 1,
+    id: 2,
     terminals: &[TerminalId(5), TerminalId(6), TerminalId(10), TerminalId(12)],
 };
 // E : . E WS "*" WS E { "-", "if", "(", "a" }
 pub static FIRST_SET_E_ALT2: TerminalSet = TerminalSet {
-    id: 1,
+    id: 2,
     terminals: &[TerminalId(5), TerminalId(6), TerminalId(10), TerminalId(12)],
 };
 // E : . E WS "+" WS E { "-", "if", "(", "a" }
 pub static FIRST_SET_E_ALT3: TerminalSet = TerminalSet {
-    id: 1,
+    id: 2,
     terminals: &[TerminalId(5), TerminalId(6), TerminalId(10), TerminalId(12)],
 };
 // E : . E WS "-" WS E { "-", "if", "(", "a" }
 pub static FIRST_SET_E_ALT4: TerminalSet = TerminalSet {
-    id: 1,
+    id: 2,
     terminals: &[TerminalId(5), TerminalId(6), TerminalId(10), TerminalId(12)],
 };
 // E : . "-" WS E { "-" }
@@ -397,7 +460,7 @@ pub static FIRST_SET_E_ALT6: TerminalSet = TerminalSet {
 };
 // E : . E WS ";" WS E { "-", "if", "(", "a" }
 pub static FIRST_SET_E_ALT7: TerminalSet = TerminalSet {
-    id: 1,
+    id: 2,
     terminals: &[TerminalId(5), TerminalId(6), TerminalId(10), TerminalId(12)],
 };
 // E : . "(" WS E WS ")" { "(" }
@@ -415,62 +478,18 @@ pub static FOLLOW_SET_START_S: TerminalSet = TerminalSet {
     id: 7,
     terminals: &[TerminalId(14)],
 };
-// StartS : . WS start:S WS { WS, "-", "if", "(", "a" }
-pub static FIRST_SET_START_S_ALT0: TerminalSet = TerminalSet {
-    id: 8,
-    terminals: &[
-        TerminalId(0),
-        TerminalId(5),
-        TerminalId(6),
-        TerminalId(10),
-        TerminalId(12),
-    ],
-};
 // StartE { EOF }
 pub static FOLLOW_SET_START_E: TerminalSet = TerminalSet {
     id: 7,
     terminals: &[TerminalId(14)],
 };
-// StartE : . WS start:E WS { WS, "-", "if", "(", "a" }
-pub static FIRST_SET_START_E_ALT0: TerminalSet = TerminalSet {
-    id: 8,
-    terminals: &[
-        TerminalId(0),
-        TerminalId(5),
-        TerminalId(6),
-        TerminalId(10),
-        TerminalId(12),
-    ],
-};
-// S { "-", "if", "(", "a" }
-pub static FIRST_SET_S: TerminalSet = TerminalSet {
-    id: 9,
+// S prediction { "-", "if", "(", "a" }
+pub static PREDICTION_SET_S: TerminalSet = TerminalSet {
+    id: 2,
     terminals: &[TerminalId(5), TerminalId(6), TerminalId(10), TerminalId(12)],
 };
-// E { "-", "if", "(", "a" }
-pub static FIRST_SET_E: TerminalSet = TerminalSet {
-    id: 9,
+// E prediction { "-", "if", "(", "a" }
+pub static PREDICTION_SET_E: TerminalSet = TerminalSet {
+    id: 2,
     terminals: &[TerminalId(5), TerminalId(6), TerminalId(10), TerminalId(12)],
-};
-// StartS { WS, "-", "if", "(", "a" }
-pub static FIRST_SET_START_S: TerminalSet = TerminalSet {
-    id: 10,
-    terminals: &[
-        TerminalId(0),
-        TerminalId(5),
-        TerminalId(6),
-        TerminalId(10),
-        TerminalId(12),
-    ],
-};
-// StartE { WS, "-", "if", "(", "a" }
-pub static FIRST_SET_START_E: TerminalSet = TerminalSet {
-    id: 10,
-    terminals: &[
-        TerminalId(0),
-        TerminalId(5),
-        TerminalId(6),
-        TerminalId(10),
-        TerminalId(12),
-    ],
 };

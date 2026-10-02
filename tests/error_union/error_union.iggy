@@ -29,6 +29,51 @@ UnexpectedFirst = Identifier \ Keyword
 ExcludedFirst = Identifier "!"
               | Identifier \ Keyword
 
+// The same pinning, with the unexpected-token failure recorded by the
+// prediction check of the call to MissingSuffix. Each pair reverses the
+// alternatives to record the two failures in both orders.
+@NoLayout
+PredictionBeforeExcept = Identifier \ Keyword
+                       | Identifier MissingSuffix
+
+@NoLayout
+ExceptBeforePrediction = Identifier MissingSuffix
+                       | Identifier \ Keyword
+
+@NoLayout
+PredictionBeforeFollow = Identifier !>> Question Question
+                       | Identifier MissingSuffix
+
+@NoLayout
+FollowBeforePrediction = Identifier MissingSuffix
+                       | Identifier !>> Question Question
+
+@NoLayout
+MissingSuffix = SuffixChoice
+
+@NoLayout
+SuffixChoice = "!" | "!" "!"
+
+// A failed call reports the prediction set of the called nonterminal. On `1q`,
+// the call to PrefixX expects the terminals that can start PrefixX, "x" and
+// "y". The report does not include "w", which follows NullablePrefix only
+// inside PrefixW. NullablePrefix has two nonempty alternatives so that the
+// parser does not take the LL(1) path for it.
+@NoLayout
+CallPrediction = "1" PrefixX | "2" PrefixW
+
+@NoLayout
+PrefixX = NullablePrefix "x"
+
+@NoLayout
+PrefixW = NullablePrefix "w"
+
+@NoLayout
+NullablePrefix = "y" | "y" "y" | ()
+
+@Regex
+Question = "?"
+
 @Regex
 Word = [a-z]+
 
@@ -39,7 +84,7 @@ Identifier = [a-zA-Z]+
 Keyword = "if" | "else" | "while"
 
 @Layout
-Layout = (WS | Newline)*
+Layout = (WS | Newline)* !>> WS !>> Newline
 
 @Regex
 WS = [\ ]+

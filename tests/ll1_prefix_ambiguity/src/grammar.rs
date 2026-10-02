@@ -42,39 +42,51 @@ impl Grammar for Ll1PrefixAmbiguityGrammar {
     const SLOTS: &'static [Slot] = &[
         Slot {
             display_name: "E : . Expr",
+            position: 0,
         },
         Slot {
             display_name: "E : Expr.",
+            position: 1,
         },
         Slot {
             display_name: "Expr : . Int \".\" Id",
+            position: 0,
         },
         Slot {
             display_name: "Expr : Int . \".\" Id",
+            position: 1,
         },
         Slot {
             display_name: "Expr : Int \".\" . Id",
+            position: 2,
         },
         Slot {
             display_name: "Expr : Int \".\" Id.",
+            position: 3,
         },
         Slot {
             display_name: "Expr : . Float",
+            position: 0,
         },
         Slot {
             display_name: "Expr : Float.",
+            position: 1,
         },
         Slot {
             display_name: "E : . start:E",
+            position: 0,
         },
         Slot {
             display_name: "E : start:E.",
+            position: 1,
         },
         Slot {
             display_name: "Expr : . start:Expr",
+            position: 0,
         },
         Slot {
             display_name: "Expr : start:Expr.",
+            position: 1,
         },
     ];
     const LAYOUT_NAME: Option<&'static str> = None;
@@ -84,27 +96,27 @@ impl Grammar for Ll1PrefixAmbiguityGrammar {
     // by terminal id, serves only that.
     const SINGLE_TERMINAL_SETS: &'static [TerminalSet] = &[
         TerminalSet {
-            id: 5,
+            id: 4,
             terminals: &[TerminalId(0)],
         },
         TerminalSet {
-            id: 6,
+            id: 5,
             terminals: &[TerminalId(1)],
         },
         TerminalSet {
-            id: 7,
+            id: 6,
             terminals: &[TerminalId(2)],
         },
         TerminalSet {
-            id: 8,
+            id: 7,
             terminals: &[TerminalId(3)],
         },
         TerminalSet {
-            id: 9,
+            id: 8,
             terminals: &[TerminalId(4)],
         },
         TerminalSet {
-            id: 10,
+            id: 9,
             terminals: &[TerminalId(5)],
         },
     ];
@@ -123,11 +135,6 @@ pub static FOLLOW_SET_E: TerminalSet = TerminalSet {
     id: 0,
     terminals: &[TerminalId(5)],
 };
-// E : . Expr { Int, Float }
-pub static FIRST_SET_E_ALT0: TerminalSet = TerminalSet {
-    id: 1,
-    terminals: &[TerminalId(0), TerminalId(1)],
-};
 // Expr { EOF }
 pub static FOLLOW_SET_EXPR: TerminalSet = TerminalSet {
     id: 0,
@@ -135,12 +142,12 @@ pub static FOLLOW_SET_EXPR: TerminalSet = TerminalSet {
 };
 // Expr : . Int "." Id { Int }
 pub static FIRST_SET_EXPR_ALT0: TerminalSet = TerminalSet {
-    id: 2,
+    id: 1,
     terminals: &[TerminalId(0)],
 };
 // Expr : . Float { Float }
 pub static FIRST_SET_EXPR_ALT1: TerminalSet = TerminalSet {
-    id: 3,
+    id: 2,
     terminals: &[TerminalId(1)],
 };
 // StartE { EOF }
@@ -148,38 +155,18 @@ pub static FOLLOW_SET_START_E: TerminalSet = TerminalSet {
     id: 0,
     terminals: &[TerminalId(5)],
 };
-// StartE : . start:E { Int, Float }
-pub static FIRST_SET_START_E_ALT0: TerminalSet = TerminalSet {
-    id: 1,
-    terminals: &[TerminalId(0), TerminalId(1)],
-};
 // StartExpr { EOF }
 pub static FOLLOW_SET_START_EXPR: TerminalSet = TerminalSet {
     id: 0,
     terminals: &[TerminalId(5)],
 };
-// StartExpr : . start:Expr { Int, Float }
-pub static FIRST_SET_START_EXPR_ALT0: TerminalSet = TerminalSet {
-    id: 1,
+// E prediction { Int, Float }
+pub static PREDICTION_SET_E: TerminalSet = TerminalSet {
+    id: 3,
     terminals: &[TerminalId(0), TerminalId(1)],
 };
-// E { Int, Float }
-pub static FIRST_SET_E: TerminalSet = TerminalSet {
-    id: 4,
-    terminals: &[TerminalId(0), TerminalId(1)],
-};
-// Expr { Int, Float }
-pub static FIRST_SET_EXPR: TerminalSet = TerminalSet {
-    id: 4,
-    terminals: &[TerminalId(0), TerminalId(1)],
-};
-// StartE { Int, Float }
-pub static FIRST_SET_START_E: TerminalSet = TerminalSet {
-    id: 4,
-    terminals: &[TerminalId(0), TerminalId(1)],
-};
-// StartExpr { Int, Float }
-pub static FIRST_SET_START_EXPR: TerminalSet = TerminalSet {
-    id: 4,
+// Expr prediction { Int, Float }
+pub static PREDICTION_SET_EXPR: TerminalSet = TerminalSet {
+    id: 3,
     terminals: &[TerminalId(0), TerminalId(1)],
 };

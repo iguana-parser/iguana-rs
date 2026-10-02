@@ -45,54 +45,71 @@ impl Grammar for NoLayoutGrammar {
     const SLOTS: &'static [Slot] = &[
         Slot {
             display_name: "S : . Id",
+            position: 0,
         },
         Slot {
             display_name: "S : Id.",
+            position: 1,
         },
         Slot {
             display_name: "Id : . Char+",
+            position: 0,
         },
         Slot {
             display_name: "Id : Char+.",
+            position: 1,
         },
         Slot {
             display_name: "Char+ : . Char+ Char",
+            position: 0,
         },
         Slot {
             display_name: "Char+ : Char+ . Char",
+            position: 1,
         },
         Slot {
             display_name: "Char+ : Char+ Char.",
+            position: 2,
         },
         Slot {
             display_name: "Char+ : . Char",
+            position: 0,
         },
         Slot {
             display_name: "Char+ : Char.",
+            position: 1,
         },
         Slot {
             display_name: "S : . WS start:S WS",
+            position: 0,
         },
         Slot {
             display_name: "S : WS . start:S WS",
+            position: 1,
         },
         Slot {
             display_name: "S : WS start:S . WS",
+            position: 2,
         },
         Slot {
             display_name: "S : WS start:S WS.",
+            position: 3,
         },
         Slot {
             display_name: "Id : . WS start:Id WS",
+            position: 0,
         },
         Slot {
             display_name: "Id : WS . start:Id WS",
+            position: 1,
         },
         Slot {
             display_name: "Id : WS start:Id . WS",
+            position: 2,
         },
         Slot {
             display_name: "Id : WS start:Id WS.",
+            position: 3,
         },
     ];
     const LAYOUT_NAME: Option<&'static str> = Some("WS");
@@ -102,19 +119,19 @@ impl Grammar for NoLayoutGrammar {
     // by terminal id, serves only that.
     const SINGLE_TERMINAL_SETS: &'static [TerminalSet] = &[
         TerminalSet {
-            id: 7,
+            id: 4,
             terminals: &[TerminalId(0)],
         },
         TerminalSet {
-            id: 8,
+            id: 5,
             terminals: &[TerminalId(1)],
         },
         TerminalSet {
-            id: 9,
+            id: 6,
             terminals: &[TerminalId(2)],
         },
         TerminalSet {
-            id: 10,
+            id: 7,
             terminals: &[TerminalId(3)],
         },
     ];
@@ -134,34 +151,24 @@ pub static FOLLOW_SET_S: TerminalSet = TerminalSet {
     id: 0,
     terminals: &[TerminalId(1), TerminalId(3)],
 };
-// S : . Id { Char }
-pub static FIRST_SET_S_ALT0: TerminalSet = TerminalSet {
-    id: 1,
-    terminals: &[TerminalId(0)],
-};
 // Id { WS, EOF }
 pub static FOLLOW_SET_ID: TerminalSet = TerminalSet {
     id: 0,
     terminals: &[TerminalId(1), TerminalId(3)],
 };
-// Id : . Plus_0 { Char }
-pub static FIRST_SET_ID_ALT0: TerminalSet = TerminalSet {
-    id: 1,
-    terminals: &[TerminalId(0)],
-};
 // Plus_0 { Char, WS, EOF }
 pub static FOLLOW_SET_PLUS_0: TerminalSet = TerminalSet {
-    id: 2,
+    id: 1,
     terminals: &[TerminalId(0), TerminalId(1), TerminalId(3)],
 };
 // Plus_0 : . Plus_0 Char { Char }
 pub static FIRST_SET_PLUS_0_ALT0: TerminalSet = TerminalSet {
-    id: 1,
+    id: 2,
     terminals: &[TerminalId(0)],
 };
 // Plus_0 : . Char { Char }
 pub static FIRST_SET_PLUS_0_ALT1: TerminalSet = TerminalSet {
-    id: 1,
+    id: 2,
     terminals: &[TerminalId(0)],
 };
 // StartS { EOF }
@@ -169,43 +176,23 @@ pub static FOLLOW_SET_START_S: TerminalSet = TerminalSet {
     id: 3,
     terminals: &[TerminalId(3)],
 };
-// StartS : . WS start:S WS { Char, WS }
-pub static FIRST_SET_START_S_ALT0: TerminalSet = TerminalSet {
-    id: 4,
-    terminals: &[TerminalId(0), TerminalId(1)],
-};
 // StartId { EOF }
 pub static FOLLOW_SET_START_ID: TerminalSet = TerminalSet {
     id: 3,
     terminals: &[TerminalId(3)],
 };
-// StartId : . WS start:Id WS { Char, WS }
-pub static FIRST_SET_START_ID_ALT0: TerminalSet = TerminalSet {
-    id: 4,
-    terminals: &[TerminalId(0), TerminalId(1)],
-};
-// S { Char }
-pub static FIRST_SET_S: TerminalSet = TerminalSet {
-    id: 5,
+// S prediction { Char }
+pub static PREDICTION_SET_S: TerminalSet = TerminalSet {
+    id: 2,
     terminals: &[TerminalId(0)],
 };
-// Id { Char }
-pub static FIRST_SET_ID: TerminalSet = TerminalSet {
-    id: 5,
+// Id prediction { Char }
+pub static PREDICTION_SET_ID: TerminalSet = TerminalSet {
+    id: 2,
     terminals: &[TerminalId(0)],
 };
-// Plus_0 { Char }
-pub static FIRST_SET_PLUS_0: TerminalSet = TerminalSet {
-    id: 5,
+// Plus_0 prediction { Char }
+pub static PREDICTION_SET_PLUS_0: TerminalSet = TerminalSet {
+    id: 2,
     terminals: &[TerminalId(0)],
-};
-// StartS { Char, WS }
-pub static FIRST_SET_START_S: TerminalSet = TerminalSet {
-    id: 6,
-    terminals: &[TerminalId(0), TerminalId(1)],
-};
-// StartId { Char, WS }
-pub static FIRST_SET_START_ID: TerminalSet = TerminalSet {
-    id: 6,
-    terminals: &[TerminalId(0), TerminalId(1)],
 };

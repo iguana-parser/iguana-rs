@@ -48,69 +48,91 @@ impl Grammar for FollowRestrictionLexicalMultipleGrammar {
     const SLOTS: &'static [Slot] = &[
         Slot {
             display_name: "S : . Element+",
+            position: 0,
         },
         Slot {
             display_name: "S : Element+.",
+            position: 1,
         },
         Slot {
             display_name: "Element : . Num",
+            position: 0,
         },
         Slot {
             display_name: "Element : Num.",
+            position: 1,
         },
         Slot {
             display_name: "Element : . Word",
+            position: 0,
         },
         Slot {
             display_name: "Element : Word.",
+            position: 1,
         },
         Slot {
             display_name: "Element : . Dot",
+            position: 0,
         },
         Slot {
             display_name: "Element : Dot.",
+            position: 1,
         },
         Slot {
             display_name: "Element+ : . Element+ WS Element",
+            position: 0,
         },
         Slot {
             display_name: "Element+ : Element+ . WS Element",
+            position: 1,
         },
         Slot {
             display_name: "Element+ : Element+ WS . Element",
+            position: 2,
         },
         Slot {
             display_name: "Element+ : Element+ WS Element.",
+            position: 3,
         },
         Slot {
             display_name: "Element+ : . Element",
+            position: 0,
         },
         Slot {
             display_name: "Element+ : Element.",
+            position: 1,
         },
         Slot {
             display_name: "S : . WS start:S WS",
+            position: 0,
         },
         Slot {
             display_name: "S : WS . start:S WS",
+            position: 1,
         },
         Slot {
             display_name: "S : WS start:S . WS",
+            position: 2,
         },
         Slot {
             display_name: "S : WS start:S WS.",
+            position: 3,
         },
         Slot {
             display_name: "Element : . WS start:Element WS",
+            position: 0,
         },
         Slot {
             display_name: "Element : WS . start:Element WS",
+            position: 1,
         },
         Slot {
             display_name: "Element : WS start:Element . WS",
+            position: 2,
         },
         Slot {
             display_name: "Element : WS start:Element WS.",
+            position: 3,
         },
     ];
     const LAYOUT_NAME: Option<&'static str> = Some("WS");
@@ -120,31 +142,31 @@ impl Grammar for FollowRestrictionLexicalMultipleGrammar {
     // by terminal id, serves only that.
     const SINGLE_TERMINAL_SETS: &'static [TerminalSet] = &[
         TerminalSet {
-            id: 10,
+            id: 9,
             terminals: &[TerminalId(0)],
         },
         TerminalSet {
-            id: 11,
+            id: 10,
             terminals: &[TerminalId(1)],
         },
         TerminalSet {
-            id: 12,
+            id: 11,
             terminals: &[TerminalId(2)],
         },
         TerminalSet {
-            id: 13,
+            id: 12,
             terminals: &[TerminalId(3)],
         },
         TerminalSet {
-            id: 14,
+            id: 13,
             terminals: &[TerminalId(4)],
         },
         TerminalSet {
-            id: 15,
+            id: 14,
             terminals: &[TerminalId(5)],
         },
         TerminalSet {
-            id: 16,
+            id: 15,
             terminals: &[TerminalId(6)],
         },
     ];
@@ -164,14 +186,9 @@ pub static FOLLOW_SET_S: TerminalSet = TerminalSet {
     id: 0,
     terminals: &[TerminalId(4), TerminalId(6)],
 };
-// S : . Plus_0 { Num, Dot, Word }
-pub static FIRST_SET_S_ALT0: TerminalSet = TerminalSet {
-    id: 1,
-    terminals: &[TerminalId(0), TerminalId(2), TerminalId(3)],
-};
 // Element { Num, Dot, Word, WS, EOF }
 pub static FOLLOW_SET_ELEMENT: TerminalSet = TerminalSet {
-    id: 2,
+    id: 1,
     terminals: &[
         TerminalId(0),
         TerminalId(2),
@@ -182,22 +199,22 @@ pub static FOLLOW_SET_ELEMENT: TerminalSet = TerminalSet {
 };
 // Element : . Num { Num }
 pub static FIRST_SET_ELEMENT_ALT0: TerminalSet = TerminalSet {
-    id: 3,
+    id: 2,
     terminals: &[TerminalId(0)],
 };
 // Element : . Word { Word }
 pub static FIRST_SET_ELEMENT_ALT1: TerminalSet = TerminalSet {
-    id: 4,
+    id: 3,
     terminals: &[TerminalId(3)],
 };
 // Element : . Dot { Dot }
 pub static FIRST_SET_ELEMENT_ALT2: TerminalSet = TerminalSet {
-    id: 5,
+    id: 4,
     terminals: &[TerminalId(2)],
 };
 // Plus_0 { Num, Dot, Word, WS, EOF }
 pub static FOLLOW_SET_PLUS_0: TerminalSet = TerminalSet {
-    id: 2,
+    id: 1,
     terminals: &[
         TerminalId(0),
         TerminalId(2),
@@ -208,12 +225,12 @@ pub static FOLLOW_SET_PLUS_0: TerminalSet = TerminalSet {
 };
 // Plus_0 : . Plus_0 WS Element { Num, Dot, Word }
 pub static FIRST_SET_PLUS_0_ALT0: TerminalSet = TerminalSet {
-    id: 1,
+    id: 5,
     terminals: &[TerminalId(0), TerminalId(2), TerminalId(3)],
 };
 // Plus_0 : . Element { Num, Dot, Word }
 pub static FIRST_SET_PLUS_0_ALT1: TerminalSet = TerminalSet {
-    id: 1,
+    id: 5,
     terminals: &[TerminalId(0), TerminalId(2), TerminalId(3)],
 };
 // StartS { EOF }
@@ -221,43 +238,28 @@ pub static FOLLOW_SET_START_S: TerminalSet = TerminalSet {
     id: 6,
     terminals: &[TerminalId(6)],
 };
-// StartS : . WS start:S WS { Num, Dot, Word, WS }
-pub static FIRST_SET_START_S_ALT0: TerminalSet = TerminalSet {
-    id: 7,
-    terminals: &[TerminalId(0), TerminalId(2), TerminalId(3), TerminalId(4)],
-};
 // StartElement { EOF }
 pub static FOLLOW_SET_START_ELEMENT: TerminalSet = TerminalSet {
     id: 6,
     terminals: &[TerminalId(6)],
 };
-// StartElement : . WS start:Element WS { Num, Dot, Word, WS }
-pub static FIRST_SET_START_ELEMENT_ALT0: TerminalSet = TerminalSet {
-    id: 7,
-    terminals: &[TerminalId(0), TerminalId(2), TerminalId(3), TerminalId(4)],
+// S prediction { Num, Dot, Word }
+pub static PREDICTION_SET_S: TerminalSet = TerminalSet {
+    id: 5,
+    terminals: &[TerminalId(0), TerminalId(2), TerminalId(3)],
 };
-// S { Num, Dot, Word }
-pub static FIRST_SET_S: TerminalSet = TerminalSet {
-    id: 8,
+// Plus_0 prediction { Num, Dot, Word }
+pub static PREDICTION_SET_PLUS_0: TerminalSet = TerminalSet {
+    id: 5,
     terminals: &[TerminalId(0), TerminalId(2), TerminalId(3)],
 };
 // Element { Num, Dot, Word }
 pub static FIRST_SET_ELEMENT: TerminalSet = TerminalSet {
-    id: 8,
+    id: 7,
     terminals: &[TerminalId(0), TerminalId(2), TerminalId(3)],
-};
-// Plus_0 { Num, Dot, Word }
-pub static FIRST_SET_PLUS_0: TerminalSet = TerminalSet {
-    id: 8,
-    terminals: &[TerminalId(0), TerminalId(2), TerminalId(3)],
-};
-// StartS { Num, Dot, Word, WS }
-pub static FIRST_SET_START_S: TerminalSet = TerminalSet {
-    id: 9,
-    terminals: &[TerminalId(0), TerminalId(2), TerminalId(3), TerminalId(4)],
 };
 // StartElement { Num, Dot, Word, WS }
 pub static FIRST_SET_START_ELEMENT: TerminalSet = TerminalSet {
-    id: 9,
+    id: 8,
     terminals: &[TerminalId(0), TerminalId(2), TerminalId(3), TerminalId(4)],
 };

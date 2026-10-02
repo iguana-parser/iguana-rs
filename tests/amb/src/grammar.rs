@@ -41,72 +41,95 @@ impl Grammar for AmbGrammar {
     const SLOTS: &'static [Slot] = &[
         Slot {
             display_name: "S : . E(0)",
+            position: 0,
         },
         Slot {
             display_name: "S : E(0).",
+            position: 1,
         },
         Slot {
             display_name: "S : . start:S",
+            position: 0,
         },
         Slot {
             display_name: "S : start:S.",
+            position: 1,
         },
         Slot {
             display_name: "E(0) : . start:E(0)",
+            position: 0,
         },
         Slot {
             display_name: "E(0) : start:E(0).",
+            position: 1,
         },
         Slot {
             display_name: "E : . Num return 0",
+            position: 0,
         },
         Slot {
             display_name: "E : Num . return 0",
+            position: 1,
         },
         Slot {
             display_name: "E : Num return 0.",
+            position: 2,
         },
         Slot {
             display_name: "E : . [2 >= p] l_pr=lhs:E(p) [(l_pr == 0) || (l_pr >= 2)] \"*\" rhs:E(3) return 2",
+            position: 0,
         },
         Slot {
             display_name: "E : [2 >= p] . l_pr=lhs:E(p) [(l_pr == 0) || (l_pr >= 2)] \"*\" rhs:E(3) return 2",
+            position: 1,
         },
         Slot {
             display_name: "E : [2 >= p] l_pr=lhs:E(p) . [(l_pr == 0) || (l_pr >= 2)] \"*\" rhs:E(3) return 2",
+            position: 2,
         },
         Slot {
             display_name: "E : [2 >= p] l_pr=lhs:E(p) [(l_pr == 0) || (l_pr >= 2)] . \"*\" rhs:E(3) return 2",
+            position: 3,
         },
         Slot {
             display_name: "E : [2 >= p] l_pr=lhs:E(p) [(l_pr == 0) || (l_pr >= 2)] \"*\" . rhs:E(3) return 2",
+            position: 4,
         },
         Slot {
             display_name: "E : [2 >= p] l_pr=lhs:E(p) [(l_pr == 0) || (l_pr >= 2)] \"*\" rhs:E(3) . return 2",
+            position: 5,
         },
         Slot {
             display_name: "E : [2 >= p] l_pr=lhs:E(p) [(l_pr == 0) || (l_pr >= 2)] \"*\" rhs:E(3) return 2.",
+            position: 6,
         },
         Slot {
             display_name: "E : . [1 >= p] l_pr=lhs:E(p) [(l_pr == 0) || (l_pr >= 1)] \"+\" rhs:E(2) return 1",
+            position: 0,
         },
         Slot {
             display_name: "E : [1 >= p] . l_pr=lhs:E(p) [(l_pr == 0) || (l_pr >= 1)] \"+\" rhs:E(2) return 1",
+            position: 1,
         },
         Slot {
             display_name: "E : [1 >= p] l_pr=lhs:E(p) . [(l_pr == 0) || (l_pr >= 1)] \"+\" rhs:E(2) return 1",
+            position: 2,
         },
         Slot {
             display_name: "E : [1 >= p] l_pr=lhs:E(p) [(l_pr == 0) || (l_pr >= 1)] . \"+\" rhs:E(2) return 1",
+            position: 3,
         },
         Slot {
             display_name: "E : [1 >= p] l_pr=lhs:E(p) [(l_pr == 0) || (l_pr >= 1)] \"+\" . rhs:E(2) return 1",
+            position: 4,
         },
         Slot {
             display_name: "E : [1 >= p] l_pr=lhs:E(p) [(l_pr == 0) || (l_pr >= 1)] \"+\" rhs:E(2) . return 1",
+            position: 5,
         },
         Slot {
             display_name: "E : [1 >= p] l_pr=lhs:E(p) [(l_pr == 0) || (l_pr >= 1)] \"+\" rhs:E(2) return 1.",
+            position: 6,
         },
     ];
     const LAYOUT_NAME: Option<&'static str> = None;
@@ -116,23 +139,23 @@ impl Grammar for AmbGrammar {
     // by terminal id, serves only that.
     const SINGLE_TERMINAL_SETS: &'static [TerminalSet] = &[
         TerminalSet {
-            id: 4,
+            id: 3,
             terminals: &[TerminalId(0)],
         },
         TerminalSet {
-            id: 5,
+            id: 4,
             terminals: &[TerminalId(1)],
         },
         TerminalSet {
-            id: 6,
+            id: 5,
             terminals: &[TerminalId(2)],
         },
         TerminalSet {
-            id: 7,
+            id: 6,
             terminals: &[TerminalId(3)],
         },
         TerminalSet {
-            id: 8,
+            id: 7,
             terminals: &[TerminalId(4)],
         },
     ];
@@ -151,31 +174,26 @@ pub static FOLLOW_SET_S: TerminalSet = TerminalSet {
     id: 0,
     terminals: &[TerminalId(4)],
 };
-// S : . E(0) { Num }
-pub static FIRST_SET_S_ALT0: TerminalSet = TerminalSet {
-    id: 1,
-    terminals: &[TerminalId(0)],
-};
 // E { "*", "+", EOF }
 pub static FOLLOW_SET_E: TerminalSet = TerminalSet {
-    id: 2,
+    id: 1,
     terminals: &[TerminalId(1), TerminalId(2), TerminalId(4)],
 };
 // E(p: i32) : . Num return 0 { Num }
 pub static FIRST_SET_E_ALT0: TerminalSet = TerminalSet {
-    id: 1,
+    id: 2,
     terminals: &[TerminalId(0)],
 };
 // E(p: i32) : . [2 >= p] l_pr=lhs:E(p) [(l_pr == 0) || (l_pr >= 2)] "*" rhs:E(3) return 2 {
 // Num }
 pub static FIRST_SET_E_ALT1: TerminalSet = TerminalSet {
-    id: 1,
+    id: 2,
     terminals: &[TerminalId(0)],
 };
 // E(p: i32) : . [1 >= p] l_pr=lhs:E(p) [(l_pr == 0) || (l_pr >= 1)] "+" rhs:E(2) return 1 {
 // Num }
 pub static FIRST_SET_E_ALT2: TerminalSet = TerminalSet {
-    id: 1,
+    id: 2,
     terminals: &[TerminalId(0)],
 };
 // StartS { EOF }
@@ -183,38 +201,18 @@ pub static FOLLOW_SET_START_S: TerminalSet = TerminalSet {
     id: 0,
     terminals: &[TerminalId(4)],
 };
-// StartS : . start:S { Num }
-pub static FIRST_SET_START_S_ALT0: TerminalSet = TerminalSet {
-    id: 1,
-    terminals: &[TerminalId(0)],
-};
 // StartE { EOF }
 pub static FOLLOW_SET_START_E: TerminalSet = TerminalSet {
     id: 0,
     terminals: &[TerminalId(4)],
 };
-// StartE : . start:E(0) { Num }
-pub static FIRST_SET_START_E_ALT0: TerminalSet = TerminalSet {
-    id: 1,
+// S prediction { Num }
+pub static PREDICTION_SET_S: TerminalSet = TerminalSet {
+    id: 2,
     terminals: &[TerminalId(0)],
 };
-// S { Num }
-pub static FIRST_SET_S: TerminalSet = TerminalSet {
-    id: 3,
-    terminals: &[TerminalId(0)],
-};
-// E { Num }
-pub static FIRST_SET_E: TerminalSet = TerminalSet {
-    id: 3,
-    terminals: &[TerminalId(0)],
-};
-// StartS { Num }
-pub static FIRST_SET_START_S: TerminalSet = TerminalSet {
-    id: 3,
-    terminals: &[TerminalId(0)],
-};
-// StartE { Num }
-pub static FIRST_SET_START_E: TerminalSet = TerminalSet {
-    id: 3,
+// E prediction { Num }
+pub static PREDICTION_SET_E: TerminalSet = TerminalSet {
+    id: 2,
     terminals: &[TerminalId(0)],
 };

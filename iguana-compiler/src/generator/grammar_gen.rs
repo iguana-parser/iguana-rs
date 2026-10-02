@@ -85,8 +85,9 @@ pub fn generate<'a>(
 
     let slots = slot_ids.slots().map(|s| {
         let display_name = slot_ids.display_name(&slot_ids.get_id(s));
+        let position = Literal::usize_unsuffixed(s.pos());
         quote! {
-            Slot { display_name: #display_name }
+            Slot { display_name: #display_name, position: #position }
         }
     });
 
@@ -144,11 +145,13 @@ pub fn generate<'a>(
 
 /// The statics for the terminal sets, for example:
 ///
-///     // Grammar { WS, LineComment, EOF }
-///     pub static FOLLOW_SET_GRAMMAR: TerminalSet = TerminalSet {
-///         id: 0,
-///         terminals: &[TerminalId(8), TerminalId(10), TerminalId(39)],
-///     };
+/// ```text
+/// // Grammar { WS, LineComment, EOF }
+/// pub static FOLLOW_SET_GRAMMAR: TerminalSet = TerminalSet {
+///     id: 0,
+///     terminals: &[TerminalId(8), TerminalId(10), TerminalId(39)],
+/// };
+/// ```
 ///
 /// The parser passes these sets to the scanner for matching, and a recorded
 /// failure refers to the set the parser expected. What each kind of set
@@ -182,8 +185,15 @@ fn terminal_set_statics(
 /// reporting only accepts a `TerminalSet`, and this slice is the way to reach a
 /// terminal set from a single terminal id. These sets are not used for
 /// matching by the scanner.
-fn single_terminal_sets(terminal_ids: &TerminalIds, terminal_sets: &[TerminalSet]) -> Vec<TokenStream> {
-    let first_id = terminal_sets.iter().map(|set| set.id + 1).max().unwrap_or(0);
+fn single_terminal_sets(
+    terminal_ids: &TerminalIds,
+    terminal_sets: &[TerminalSet],
+) -> Vec<TokenStream> {
+    let first_id = terminal_sets
+        .iter()
+        .map(|set| set.id + 1)
+        .max()
+        .unwrap_or(0);
     // Plus the synthetic epsilon and EOF terminals: this slice is indexed like
     // `TERMINALS`, so it must contain those two as well.
     (0..terminal_ids.len() + 2)
@@ -257,7 +267,9 @@ fn terminal_set_name(set: &TerminalSet, grammar: &Grammar) -> String {
             slot.alternative_index(grammar),
             slot.pos()
         ),
-        TerminalSetKind::Prediction(nonterminal) => format!("PREDICTION_SET_{}", upper(nonterminal)),
+        TerminalSetKind::Prediction(nonterminal) => {
+            format!("PREDICTION_SET_{}", upper(nonterminal))
+        }
     }
 }
 

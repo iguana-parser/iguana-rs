@@ -43,42 +43,55 @@ impl Grammar for PrecedeFollowRestrictionGrammar {
     const SLOTS: &'static [Slot] = &[
         Slot {
             display_name: "S : . Num Id Tail",
+            position: 0,
         },
         Slot {
             display_name: "S : Num . Id Tail",
+            position: 1,
         },
         Slot {
             display_name: "S : Num Id . Tail",
+            position: 2,
         },
         Slot {
             display_name: "S : Num Id Tail.",
+            position: 3,
         },
         Slot {
             display_name: "S : . Id Tail",
+            position: 0,
         },
         Slot {
             display_name: "S : Id . Tail",
+            position: 1,
         },
         Slot {
             display_name: "S : Id Tail.",
+            position: 2,
         },
         Slot {
             display_name: "Id : . Digit !<< Name !>> Eq",
+            position: 0,
         },
         Slot {
             display_name: "Id : Digit !<< Name !>> Eq.",
+            position: 1,
         },
         Slot {
             display_name: "S : . start:S",
+            position: 0,
         },
         Slot {
             display_name: "S : start:S.",
+            position: 1,
         },
         Slot {
             display_name: "Id : . start:Id",
+            position: 0,
         },
         Slot {
             display_name: "Id : start:Id.",
+            position: 1,
         },
     ];
     const LAYOUT_NAME: Option<&'static str> = None;
@@ -88,31 +101,31 @@ impl Grammar for PrecedeFollowRestrictionGrammar {
     // by terminal id, serves only that.
     const SINGLE_TERMINAL_SETS: &'static [TerminalSet] = &[
         TerminalSet {
-            id: 8,
+            id: 7,
             terminals: &[TerminalId(0)],
         },
         TerminalSet {
-            id: 9,
+            id: 8,
             terminals: &[TerminalId(1)],
         },
         TerminalSet {
-            id: 10,
+            id: 9,
             terminals: &[TerminalId(2)],
         },
         TerminalSet {
-            id: 11,
+            id: 10,
             terminals: &[TerminalId(3)],
         },
         TerminalSet {
-            id: 12,
+            id: 11,
             terminals: &[TerminalId(4)],
         },
         TerminalSet {
-            id: 13,
+            id: 12,
             terminals: &[TerminalId(5)],
         },
         TerminalSet {
-            id: 14,
+            id: 13,
             terminals: &[TerminalId(6)],
         },
     ];
@@ -146,11 +159,6 @@ pub static FOLLOW_SET_ID: TerminalSet = TerminalSet {
     id: 3,
     terminals: &[TerminalId(4), TerminalId(6)],
 };
-// Id : . Digit !<< Name !>> Eq { Name }
-pub static FIRST_SET_ID_ALT0: TerminalSet = TerminalSet {
-    id: 2,
-    terminals: &[TerminalId(0)],
-};
 // Id : . Digit !<< Name !>> Eq !>> { Eq }
 pub static FOLLOW_RESTRICTION_ID_ALT0_POS0: TerminalSet = TerminalSet {
     id: 4,
@@ -161,38 +169,28 @@ pub static FOLLOW_SET_START_S: TerminalSet = TerminalSet {
     id: 0,
     terminals: &[TerminalId(6)],
 };
-// StartS : . start:S { Name, Num }
-pub static FIRST_SET_START_S_ALT0: TerminalSet = TerminalSet {
-    id: 5,
-    terminals: &[TerminalId(0), TerminalId(2)],
-};
 // StartId { EOF }
 pub static FOLLOW_SET_START_ID: TerminalSet = TerminalSet {
     id: 0,
     terminals: &[TerminalId(6)],
 };
-// StartId : . start:Id { Name }
-pub static FIRST_SET_START_ID_ALT0: TerminalSet = TerminalSet {
-    id: 2,
-    terminals: &[TerminalId(0)],
-};
 // S { Name, Num }
 pub static FIRST_SET_S: TerminalSet = TerminalSet {
-    id: 6,
+    id: 5,
     terminals: &[TerminalId(0), TerminalId(2)],
 };
 // Id { Name }
 pub static FIRST_SET_ID: TerminalSet = TerminalSet {
-    id: 7,
+    id: 6,
     terminals: &[TerminalId(0)],
 };
 // StartS { Name, Num }
 pub static FIRST_SET_START_S: TerminalSet = TerminalSet {
-    id: 6,
+    id: 5,
     terminals: &[TerminalId(0), TerminalId(2)],
 };
 // StartId { Name }
 pub static FIRST_SET_START_ID: TerminalSet = TerminalSet {
-    id: 7,
+    id: 6,
     terminals: &[TerminalId(0)],
 };

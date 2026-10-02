@@ -58,75 +58,99 @@ impl Grammar for Ll1CallErrorGrammar {
     const SLOTS: &'static [Slot] = &[
         Slot {
             display_name: "S : . Word Layout Word",
+            position: 0,
         },
         Slot {
             display_name: "S : Word . Layout Word",
+            position: 1,
         },
         Slot {
             display_name: "S : Word Layout . Word",
+            position: 2,
         },
         Slot {
             display_name: "S : Word Layout Word.",
+            position: 3,
         },
         Slot {
             display_name: "Layout : . (WS | LineComment)* !>> WS !>> LineComment",
+            position: 0,
         },
         Slot {
             display_name: "Layout : (WS | LineComment)* !>> WS !>> LineComment.",
+            position: 1,
         },
         Slot {
             display_name: "(WS | LineComment) : . WS",
+            position: 0,
         },
         Slot {
             display_name: "(WS | LineComment) : WS.",
+            position: 1,
         },
         Slot {
             display_name: "(WS | LineComment) : . LineComment",
+            position: 0,
         },
         Slot {
             display_name: "(WS | LineComment) : LineComment.",
+            position: 1,
         },
         Slot {
             display_name: "(WS | LineComment)+ : . (WS | LineComment)+ (WS | LineComment)",
+            position: 0,
         },
         Slot {
             display_name: "(WS | LineComment)+ : (WS | LineComment)+ . (WS | LineComment)",
+            position: 1,
         },
         Slot {
             display_name: "(WS | LineComment)+ : (WS | LineComment)+ (WS | LineComment).",
+            position: 2,
         },
         Slot {
             display_name: "(WS | LineComment)+ : . (WS | LineComment)",
+            position: 0,
         },
         Slot {
             display_name: "(WS | LineComment)+ : (WS | LineComment).",
+            position: 1,
         },
         Slot {
             display_name: "(WS | LineComment)+? : . (WS | LineComment)+",
+            position: 0,
         },
         Slot {
             display_name: "(WS | LineComment)+? : (WS | LineComment)+.",
+            position: 1,
         },
         Slot {
             display_name: "(WS | LineComment)+? : .",
+            position: 0,
         },
         Slot {
             display_name: "(WS | LineComment)* : . (WS | LineComment)+?",
+            position: 0,
         },
         Slot {
             display_name: "(WS | LineComment)* : (WS | LineComment)+?.",
+            position: 1,
         },
         Slot {
             display_name: "S : . Layout start:S Layout",
+            position: 0,
         },
         Slot {
             display_name: "S : Layout . start:S Layout",
+            position: 1,
         },
         Slot {
             display_name: "S : Layout start:S . Layout",
+            position: 2,
         },
         Slot {
             display_name: "S : Layout start:S Layout.",
+            position: 3,
         },
     ];
     const LAYOUT_NAME: Option<&'static str> = Some("Layout");
@@ -136,23 +160,23 @@ impl Grammar for Ll1CallErrorGrammar {
     // by terminal id, serves only that.
     const SINGLE_TERMINAL_SETS: &'static [TerminalSet] = &[
         TerminalSet {
-            id: 14,
+            id: 11,
             terminals: &[TerminalId(0)],
         },
         TerminalSet {
-            id: 15,
+            id: 12,
             terminals: &[TerminalId(1)],
         },
         TerminalSet {
-            id: 16,
+            id: 13,
             terminals: &[TerminalId(2)],
         },
         TerminalSet {
-            id: 17,
+            id: 14,
             terminals: &[TerminalId(3)],
         },
         TerminalSet {
-            id: 18,
+            id: 15,
             terminals: &[TerminalId(4)],
         },
     ];
@@ -174,128 +198,103 @@ pub static FOLLOW_SET_S: TerminalSet = TerminalSet {
     id: 0,
     terminals: &[TerminalId(1), TerminalId(2), TerminalId(4)],
 };
-// S : . Word Layout Word { Word }
-pub static FIRST_SET_S_ALT0: TerminalSet = TerminalSet {
-    id: 1,
-    terminals: &[TerminalId(0)],
-};
 // Layout { Word, EOF }
 pub static FOLLOW_SET_LAYOUT: TerminalSet = TerminalSet {
-    id: 2,
+    id: 1,
     terminals: &[TerminalId(0), TerminalId(4)],
-};
-// Layout : . Star_0 !>> WS !>> LineComment { WS, LineComment }
-pub static FIRST_SET_LAYOUT_ALT0: TerminalSet = TerminalSet {
-    id: 3,
-    terminals: &[TerminalId(1), TerminalId(2)],
 };
 // Layout : . Star_0 !>> WS !>> LineComment !>> { WS, LineComment }
 pub static FOLLOW_RESTRICTION_LAYOUT_ALT0_POS0: TerminalSet = TerminalSet {
-    id: 3,
+    id: 2,
     terminals: &[TerminalId(1), TerminalId(2)],
 };
 // Alt_0 { Word, WS, LineComment, EOF }
 pub static FOLLOW_SET_ALT_0: TerminalSet = TerminalSet {
-    id: 4,
+    id: 3,
     terminals: &[TerminalId(0), TerminalId(1), TerminalId(2), TerminalId(4)],
 };
 // Alt_0 : . WS { WS }
 pub static FIRST_SET_ALT_0_ALT0: TerminalSet = TerminalSet {
-    id: 5,
+    id: 4,
     terminals: &[TerminalId(1)],
 };
 // Alt_0 : . LineComment { LineComment }
 pub static FIRST_SET_ALT_0_ALT1: TerminalSet = TerminalSet {
-    id: 6,
+    id: 5,
     terminals: &[TerminalId(2)],
 };
 // Plus_0 { Word, WS, LineComment, EOF }
 pub static FOLLOW_SET_PLUS_0: TerminalSet = TerminalSet {
-    id: 4,
+    id: 3,
     terminals: &[TerminalId(0), TerminalId(1), TerminalId(2), TerminalId(4)],
 };
 // Plus_0 : . Plus_0 Alt_0 { WS, LineComment }
 pub static FIRST_SET_PLUS_0_ALT0: TerminalSet = TerminalSet {
-    id: 3,
+    id: 2,
     terminals: &[TerminalId(1), TerminalId(2)],
 };
 // Plus_0 : . Alt_0 { WS, LineComment }
 pub static FIRST_SET_PLUS_0_ALT1: TerminalSet = TerminalSet {
-    id: 3,
+    id: 2,
     terminals: &[TerminalId(1), TerminalId(2)],
 };
 // Opt_0 { Word, EOF }
 pub static FOLLOW_SET_OPT_0: TerminalSet = TerminalSet {
-    id: 2,
+    id: 1,
     terminals: &[TerminalId(0), TerminalId(4)],
 };
 // Opt_0 : . Plus_0 { WS, LineComment }
 pub static FIRST_SET_OPT_0_ALT0: TerminalSet = TerminalSet {
-    id: 3,
+    id: 2,
     terminals: &[TerminalId(1), TerminalId(2)],
 };
 // Opt_0 : . { }
 pub static FIRST_SET_OPT_0_ALT1: TerminalSet = TerminalSet {
-    id: 7,
+    id: 6,
     terminals: &[],
 };
 // Star_0 { Word, EOF }
 pub static FOLLOW_SET_STAR_0: TerminalSet = TerminalSet {
-    id: 2,
+    id: 1,
     terminals: &[TerminalId(0), TerminalId(4)],
-};
-// Star_0 : . Opt_0 { WS, LineComment }
-pub static FIRST_SET_STAR_0_ALT0: TerminalSet = TerminalSet {
-    id: 3,
-    terminals: &[TerminalId(1), TerminalId(2)],
 };
 // StartS { EOF }
 pub static FOLLOW_SET_START_S: TerminalSet = TerminalSet {
-    id: 8,
+    id: 7,
     terminals: &[TerminalId(4)],
-};
-// StartS : . Layout start:S Layout { Word, WS, LineComment }
-pub static FIRST_SET_START_S_ALT0: TerminalSet = TerminalSet {
-    id: 9,
-    terminals: &[TerminalId(0), TerminalId(1), TerminalId(2)],
 };
 // S { Word }
 pub static FIRST_SET_S: TerminalSet = TerminalSet {
-    id: 10,
+    id: 8,
     terminals: &[TerminalId(0)],
 };
 // Layout { WS, LineComment }
 pub static FIRST_SET_LAYOUT: TerminalSet = TerminalSet {
-    id: 11,
+    id: 9,
     terminals: &[TerminalId(1), TerminalId(2)],
 };
 // Alt_0 { WS, LineComment }
 pub static FIRST_SET_ALT_0: TerminalSet = TerminalSet {
-    id: 11,
+    id: 9,
     terminals: &[TerminalId(1), TerminalId(2)],
 };
 // Plus_0 { WS, LineComment }
 pub static FIRST_SET_PLUS_0: TerminalSet = TerminalSet {
-    id: 11,
+    id: 9,
     terminals: &[TerminalId(1), TerminalId(2)],
-};
-// Opt_0 prediction { WS, LineComment, Word, EOF }
-pub static PREDICTION_SET_OPT_0: TerminalSet = TerminalSet {
-    id: 12,
-    terminals: &[TerminalId(1), TerminalId(2), TerminalId(0), TerminalId(4)],
 };
 // Opt_0 { WS, LineComment }
 pub static FIRST_SET_OPT_0: TerminalSet = TerminalSet {
-    id: 11,
+    id: 9,
     terminals: &[TerminalId(1), TerminalId(2)],
 };
 // Star_0 { WS, LineComment }
 pub static FIRST_SET_STAR_0: TerminalSet = TerminalSet {
-    id: 11,
+    id: 9,
     terminals: &[TerminalId(1), TerminalId(2)],
 };
 // StartS { Word, WS, LineComment }
 pub static FIRST_SET_START_S: TerminalSet = TerminalSet {
-    id: 13,
+    id: 10,
     terminals: &[TerminalId(0), TerminalId(1), TerminalId(2)],
 };

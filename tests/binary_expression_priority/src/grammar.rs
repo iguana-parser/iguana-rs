@@ -42,93 +42,123 @@ impl Grammar for BinaryExpressionPriorityGrammar {
     const SLOTS: &'static [Slot] = &[
         Slot {
             display_name: "S : . E(0)",
+            position: 0,
         },
         Slot {
             display_name: "S : E(0).",
+            position: 1,
         },
         Slot {
             display_name: "S : . start:S",
+            position: 0,
         },
         Slot {
             display_name: "S : start:S.",
+            position: 1,
         },
         Slot {
             display_name: "E(0) : . start:E(0)",
+            position: 0,
         },
         Slot {
             display_name: "E(0) : start:E(0).",
+            position: 1,
         },
         Slot {
             display_name: "E : . \"a\" return 0",
+            position: 0,
         },
         Slot {
             display_name: "E : \"a\" . return 0",
+            position: 1,
         },
         Slot {
             display_name: "E : \"a\" return 0.",
+            position: 2,
         },
         Slot {
             display_name: "E : . [2 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 2)] \"*\" E(2) return 2",
+            position: 0,
         },
         Slot {
             display_name: "E : [2 >= p] . l_pr=E(p) [(l_pr == 0) || (l_pr >= 2)] \"*\" E(2) return 2",
+            position: 1,
         },
         Slot {
             display_name: "E : [2 >= p] l_pr=E(p) . [(l_pr == 0) || (l_pr >= 2)] \"*\" E(2) return 2",
+            position: 2,
         },
         Slot {
             display_name: "E : [2 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 2)] . \"*\" E(2) return 2",
+            position: 3,
         },
         Slot {
             display_name: "E : [2 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 2)] \"*\" . E(2) return 2",
+            position: 4,
         },
         Slot {
             display_name: "E : [2 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 2)] \"*\" E(2) . return 2",
+            position: 5,
         },
         Slot {
             display_name: "E : [2 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 2)] \"*\" E(2) return 2.",
+            position: 6,
         },
         Slot {
             display_name: "E : . [1 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 1)] \"+\" E(1) return 1",
+            position: 0,
         },
         Slot {
             display_name: "E : [1 >= p] . l_pr=E(p) [(l_pr == 0) || (l_pr >= 1)] \"+\" E(1) return 1",
+            position: 1,
         },
         Slot {
             display_name: "E : [1 >= p] l_pr=E(p) . [(l_pr == 0) || (l_pr >= 1)] \"+\" E(1) return 1",
+            position: 2,
         },
         Slot {
             display_name: "E : [1 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 1)] . \"+\" E(1) return 1",
+            position: 3,
         },
         Slot {
             display_name: "E : [1 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 1)] \"+\" . E(1) return 1",
+            position: 4,
         },
         Slot {
             display_name: "E : [1 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 1)] \"+\" E(1) . return 1",
+            position: 5,
         },
         Slot {
             display_name: "E : [1 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 1)] \"+\" E(1) return 1.",
+            position: 6,
         },
         Slot {
             display_name: "E : . [1 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 1)] \"-\" E(1) return 1",
+            position: 0,
         },
         Slot {
             display_name: "E : [1 >= p] . l_pr=E(p) [(l_pr == 0) || (l_pr >= 1)] \"-\" E(1) return 1",
+            position: 1,
         },
         Slot {
             display_name: "E : [1 >= p] l_pr=E(p) . [(l_pr == 0) || (l_pr >= 1)] \"-\" E(1) return 1",
+            position: 2,
         },
         Slot {
             display_name: "E : [1 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 1)] . \"-\" E(1) return 1",
+            position: 3,
         },
         Slot {
             display_name: "E : [1 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 1)] \"-\" . E(1) return 1",
+            position: 4,
         },
         Slot {
             display_name: "E : [1 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 1)] \"-\" E(1) . return 1",
+            position: 5,
         },
         Slot {
             display_name: "E : [1 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 1)] \"-\" E(1) return 1.",
+            position: 6,
         },
     ];
     const LAYOUT_NAME: Option<&'static str> = None;
@@ -138,27 +168,27 @@ impl Grammar for BinaryExpressionPriorityGrammar {
     // by terminal id, serves only that.
     const SINGLE_TERMINAL_SETS: &'static [TerminalSet] = &[
         TerminalSet {
-            id: 4,
+            id: 3,
             terminals: &[TerminalId(0)],
         },
         TerminalSet {
-            id: 5,
+            id: 4,
             terminals: &[TerminalId(1)],
         },
         TerminalSet {
-            id: 6,
+            id: 5,
             terminals: &[TerminalId(2)],
         },
         TerminalSet {
-            id: 7,
+            id: 6,
             terminals: &[TerminalId(3)],
         },
         TerminalSet {
-            id: 8,
+            id: 7,
             terminals: &[TerminalId(4)],
         },
         TerminalSet {
-            id: 9,
+            id: 8,
             terminals: &[TerminalId(5)],
         },
     ];
@@ -177,34 +207,29 @@ pub static FOLLOW_SET_S: TerminalSet = TerminalSet {
     id: 0,
     terminals: &[TerminalId(5)],
 };
-// S : . E(0) { "a" }
-pub static FIRST_SET_S_ALT0: TerminalSet = TerminalSet {
-    id: 1,
-    terminals: &[TerminalId(0)],
-};
 // E { "*", "+", "-", EOF }
 pub static FOLLOW_SET_E: TerminalSet = TerminalSet {
-    id: 2,
+    id: 1,
     terminals: &[TerminalId(1), TerminalId(2), TerminalId(3), TerminalId(5)],
 };
 // E(p: i32) : . "a" return 0 { "a" }
 pub static FIRST_SET_E_ALT0: TerminalSet = TerminalSet {
-    id: 1,
+    id: 2,
     terminals: &[TerminalId(0)],
 };
 // E(p: i32) : . [2 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 2)] "*" E(2) return 2 { "a" }
 pub static FIRST_SET_E_ALT1: TerminalSet = TerminalSet {
-    id: 1,
+    id: 2,
     terminals: &[TerminalId(0)],
 };
 // E(p: i32) : . [1 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 1)] "+" E(1) return 1 { "a" }
 pub static FIRST_SET_E_ALT2: TerminalSet = TerminalSet {
-    id: 1,
+    id: 2,
     terminals: &[TerminalId(0)],
 };
 // E(p: i32) : . [1 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 1)] "-" E(1) return 1 { "a" }
 pub static FIRST_SET_E_ALT3: TerminalSet = TerminalSet {
-    id: 1,
+    id: 2,
     terminals: &[TerminalId(0)],
 };
 // StartS { EOF }
@@ -212,38 +237,18 @@ pub static FOLLOW_SET_START_S: TerminalSet = TerminalSet {
     id: 0,
     terminals: &[TerminalId(5)],
 };
-// StartS : . start:S { "a" }
-pub static FIRST_SET_START_S_ALT0: TerminalSet = TerminalSet {
-    id: 1,
-    terminals: &[TerminalId(0)],
-};
 // StartE { EOF }
 pub static FOLLOW_SET_START_E: TerminalSet = TerminalSet {
     id: 0,
     terminals: &[TerminalId(5)],
 };
-// StartE : . start:E(0) { "a" }
-pub static FIRST_SET_START_E_ALT0: TerminalSet = TerminalSet {
-    id: 1,
+// S prediction { "a" }
+pub static PREDICTION_SET_S: TerminalSet = TerminalSet {
+    id: 2,
     terminals: &[TerminalId(0)],
 };
-// S { "a" }
-pub static FIRST_SET_S: TerminalSet = TerminalSet {
-    id: 3,
-    terminals: &[TerminalId(0)],
-};
-// E { "a" }
-pub static FIRST_SET_E: TerminalSet = TerminalSet {
-    id: 3,
-    terminals: &[TerminalId(0)],
-};
-// StartS { "a" }
-pub static FIRST_SET_START_S: TerminalSet = TerminalSet {
-    id: 3,
-    terminals: &[TerminalId(0)],
-};
-// StartE { "a" }
-pub static FIRST_SET_START_E: TerminalSet = TerminalSet {
-    id: 3,
+// E prediction { "a" }
+pub static PREDICTION_SET_E: TerminalSet = TerminalSet {
+    id: 2,
     terminals: &[TerminalId(0)],
 };

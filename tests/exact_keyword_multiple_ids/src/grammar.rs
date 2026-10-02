@@ -35,57 +35,75 @@ impl Grammar for ExactKeywordMultipleIdsGrammar {
     const SLOTS: &'static [Slot] = &[
         Slot {
             display_name: "S : . [a-z] !<< \"else\" !>> [0-9 a-z] WS VarId WS \";\"",
+            position: 0,
         },
         Slot {
             display_name: "S : [a-z] !<< \"else\" !>> [0-9 a-z] . WS VarId WS \";\"",
+            position: 1,
         },
         Slot {
             display_name: "S : [a-z] !<< \"else\" !>> [0-9 a-z] WS . VarId WS \";\"",
+            position: 2,
         },
         Slot {
             display_name: "S : [a-z] !<< \"else\" !>> [0-9 a-z] WS VarId . WS \";\"",
+            position: 3,
         },
         Slot {
             display_name: "S : [a-z] !<< \"else\" !>> [0-9 a-z] WS VarId WS . \";\"",
+            position: 4,
         },
         Slot {
             display_name: "S : [a-z] !<< \"else\" !>> [0-9 a-z] WS VarId WS \";\".",
+            position: 5,
         },
         Slot {
             display_name: "S : . NumId WS \";\"",
+            position: 0,
         },
         Slot {
             display_name: "S : NumId . WS \";\"",
+            position: 1,
         },
         Slot {
             display_name: "S : NumId WS . \";\"",
+            position: 2,
         },
         Slot {
             display_name: "S : NumId WS \";\".",
+            position: 3,
         },
         Slot {
             display_name: "S : . VarId WS \";\"",
+            position: 0,
         },
         Slot {
             display_name: "S : VarId . WS \";\"",
+            position: 1,
         },
         Slot {
             display_name: "S : VarId WS . \";\"",
+            position: 2,
         },
         Slot {
             display_name: "S : VarId WS \";\".",
+            position: 3,
         },
         Slot {
             display_name: "S : . WS start:S WS",
+            position: 0,
         },
         Slot {
             display_name: "S : WS . start:S WS",
+            position: 1,
         },
         Slot {
             display_name: "S : WS start:S . WS",
+            position: 2,
         },
         Slot {
             display_name: "S : WS start:S WS.",
+            position: 3,
         },
     ];
     const LAYOUT_NAME: Option<&'static str> = Some("WS");
@@ -95,39 +113,39 @@ impl Grammar for ExactKeywordMultipleIdsGrammar {
     // by terminal id, serves only that.
     const SINGLE_TERMINAL_SETS: &'static [TerminalSet] = &[
         TerminalSet {
-            id: 9,
+            id: 7,
             terminals: &[TerminalId(0)],
         },
         TerminalSet {
-            id: 10,
+            id: 8,
             terminals: &[TerminalId(1)],
         },
         TerminalSet {
-            id: 11,
+            id: 9,
             terminals: &[TerminalId(2)],
         },
         TerminalSet {
-            id: 12,
+            id: 10,
             terminals: &[TerminalId(3)],
         },
         TerminalSet {
-            id: 13,
+            id: 11,
             terminals: &[TerminalId(4)],
         },
         TerminalSet {
-            id: 14,
+            id: 12,
             terminals: &[TerminalId(5)],
         },
         TerminalSet {
-            id: 15,
+            id: 13,
             terminals: &[TerminalId(6)],
         },
         TerminalSet {
-            id: 16,
+            id: 14,
             terminals: &[TerminalId(7)],
         },
         TerminalSet {
-            id: 17,
+            id: 15,
             terminals: &[TerminalId(8)],
         },
     ];
@@ -169,18 +187,8 @@ pub static FOLLOW_SET_START_S: TerminalSet = TerminalSet {
     id: 5,
     terminals: &[TerminalId(8)],
 };
-// StartS : . WS start:S WS { VarId, NumId, WS, "else" }
-pub static FIRST_SET_START_S_ALT0: TerminalSet = TerminalSet {
+// S prediction { VarId, NumId, "else" }
+pub static PREDICTION_SET_S: TerminalSet = TerminalSet {
     id: 6,
-    terminals: &[TerminalId(0), TerminalId(1), TerminalId(2), TerminalId(3)],
-};
-// S { VarId, NumId, "else" }
-pub static FIRST_SET_S: TerminalSet = TerminalSet {
-    id: 7,
     terminals: &[TerminalId(0), TerminalId(1), TerminalId(3)],
-};
-// StartS { VarId, NumId, WS, "else" }
-pub static FIRST_SET_START_S: TerminalSet = TerminalSet {
-    id: 8,
-    terminals: &[TerminalId(0), TerminalId(1), TerminalId(2), TerminalId(3)],
 };

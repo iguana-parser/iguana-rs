@@ -47,87 +47,115 @@ impl Grammar for ExactKeywordGenericsGrammar {
     const SLOTS: &'static [Slot] = &[
         Slot {
             display_name: "S : . Type WS \";\"",
+            position: 0,
         },
         Slot {
             display_name: "S : Type . WS \";\"",
+            position: 1,
         },
         Slot {
             display_name: "S : Type WS . \";\"",
+            position: 2,
         },
         Slot {
             display_name: "S : Type WS \";\".",
+            position: 3,
         },
         Slot {
             display_name: "S : . [0-9 A-Z _ a-z] !<< \"new\" !>> [0-9 A-Z _ a-z] WS Type WS \";\"",
+            position: 0,
         },
         Slot {
             display_name: "S : [0-9 A-Z _ a-z] !<< \"new\" !>> [0-9 A-Z _ a-z] . WS Type WS \";\"",
+            position: 1,
         },
         Slot {
             display_name: "S : [0-9 A-Z _ a-z] !<< \"new\" !>> [0-9 A-Z _ a-z] WS . Type WS \";\"",
+            position: 2,
         },
         Slot {
             display_name: "S : [0-9 A-Z _ a-z] !<< \"new\" !>> [0-9 A-Z _ a-z] WS Type . WS \";\"",
+            position: 3,
         },
         Slot {
             display_name: "S : [0-9 A-Z _ a-z] !<< \"new\" !>> [0-9 A-Z _ a-z] WS Type WS . \";\"",
+            position: 4,
         },
         Slot {
             display_name: "S : [0-9 A-Z _ a-z] !<< \"new\" !>> [0-9 A-Z _ a-z] WS Type WS \";\".",
+            position: 5,
         },
         Slot {
             display_name: "Type : . Id",
+            position: 0,
         },
         Slot {
             display_name: "Type : Id.",
+            position: 1,
         },
         Slot {
             display_name: "Type : . Id WS \"<\" WS Type WS \">\"",
+            position: 0,
         },
         Slot {
             display_name: "Type : Id . WS \"<\" WS Type WS \">\"",
+            position: 1,
         },
         Slot {
             display_name: "Type : Id WS . \"<\" WS Type WS \">\"",
+            position: 2,
         },
         Slot {
             display_name: "Type : Id WS \"<\" . WS Type WS \">\"",
+            position: 3,
         },
         Slot {
             display_name: "Type : Id WS \"<\" WS . Type WS \">\"",
+            position: 4,
         },
         Slot {
             display_name: "Type : Id WS \"<\" WS Type . WS \">\"",
+            position: 5,
         },
         Slot {
             display_name: "Type : Id WS \"<\" WS Type WS . \">\"",
+            position: 6,
         },
         Slot {
             display_name: "Type : Id WS \"<\" WS Type WS \">\".",
+            position: 7,
         },
         Slot {
             display_name: "S : . WS start:S WS",
+            position: 0,
         },
         Slot {
             display_name: "S : WS . start:S WS",
+            position: 1,
         },
         Slot {
             display_name: "S : WS start:S . WS",
+            position: 2,
         },
         Slot {
             display_name: "S : WS start:S WS.",
+            position: 3,
         },
         Slot {
             display_name: "Type : . WS start:Type WS",
+            position: 0,
         },
         Slot {
             display_name: "Type : WS . start:Type WS",
+            position: 1,
         },
         Slot {
             display_name: "Type : WS start:Type . WS",
+            position: 2,
         },
         Slot {
             display_name: "Type : WS start:Type WS.",
+            position: 3,
         },
     ];
     const LAYOUT_NAME: Option<&'static str> = Some("WS");
@@ -137,39 +165,39 @@ impl Grammar for ExactKeywordGenericsGrammar {
     // by terminal id, serves only that.
     const SINGLE_TERMINAL_SETS: &'static [TerminalSet] = &[
         TerminalSet {
-            id: 12,
+            id: 7,
             terminals: &[TerminalId(0)],
         },
         TerminalSet {
-            id: 13,
+            id: 8,
             terminals: &[TerminalId(1)],
         },
         TerminalSet {
-            id: 14,
+            id: 9,
             terminals: &[TerminalId(2)],
         },
         TerminalSet {
-            id: 15,
+            id: 10,
             terminals: &[TerminalId(3)],
         },
         TerminalSet {
-            id: 16,
+            id: 11,
             terminals: &[TerminalId(4)],
         },
         TerminalSet {
-            id: 17,
+            id: 12,
             terminals: &[TerminalId(5)],
         },
         TerminalSet {
-            id: 18,
+            id: 13,
             terminals: &[TerminalId(6)],
         },
         TerminalSet {
-            id: 19,
+            id: 14,
             terminals: &[TerminalId(7)],
         },
         TerminalSet {
-            id: 20,
+            id: 15,
             terminals: &[TerminalId(8)],
         },
     ];
@@ -223,38 +251,18 @@ pub static FOLLOW_SET_START_S: TerminalSet = TerminalSet {
     id: 5,
     terminals: &[TerminalId(8)],
 };
-// StartS : . WS start:S WS { Id, WS, "new" }
-pub static FIRST_SET_START_S_ALT0: TerminalSet = TerminalSet {
-    id: 6,
-    terminals: &[TerminalId(0), TerminalId(1), TerminalId(3)],
-};
 // StartType { EOF }
 pub static FOLLOW_SET_START_TYPE: TerminalSet = TerminalSet {
     id: 5,
     terminals: &[TerminalId(8)],
 };
-// StartType : . WS start:Type WS { Id, WS }
-pub static FIRST_SET_START_TYPE_ALT0: TerminalSet = TerminalSet {
-    id: 7,
-    terminals: &[TerminalId(0), TerminalId(1)],
-};
-// S { Id, "new" }
-pub static FIRST_SET_S: TerminalSet = TerminalSet {
-    id: 8,
+// S prediction { Id, "new" }
+pub static PREDICTION_SET_S: TerminalSet = TerminalSet {
+    id: 6,
     terminals: &[TerminalId(0), TerminalId(3)],
 };
-// Type { Id }
-pub static FIRST_SET_TYPE: TerminalSet = TerminalSet {
-    id: 9,
+// Type prediction { Id }
+pub static PREDICTION_SET_TYPE: TerminalSet = TerminalSet {
+    id: 1,
     terminals: &[TerminalId(0)],
-};
-// StartS { Id, WS, "new" }
-pub static FIRST_SET_START_S: TerminalSet = TerminalSet {
-    id: 10,
-    terminals: &[TerminalId(0), TerminalId(1), TerminalId(3)],
-};
-// StartType { Id, WS }
-pub static FIRST_SET_START_TYPE: TerminalSet = TerminalSet {
-    id: 11,
-    terminals: &[TerminalId(0), TerminalId(1)],
 };

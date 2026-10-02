@@ -60,66 +60,87 @@ impl Grammar for PlusAltGrammar {
     const SLOTS: &'static [Slot] = &[
         Slot {
             display_name: "S : . (A | Num)+",
+            position: 0,
         },
         Slot {
             display_name: "S : (A | Num)+.",
+            position: 1,
         },
         Slot {
             display_name: "A : . \"a\"",
+            position: 0,
         },
         Slot {
             display_name: "A : \"a\".",
+            position: 1,
         },
         Slot {
             display_name: "Num : . \"1\"",
+            position: 0,
         },
         Slot {
             display_name: "Num : \"1\".",
+            position: 1,
         },
         Slot {
             display_name: "(A | Num) : . A",
+            position: 0,
         },
         Slot {
             display_name: "(A | Num) : A.",
+            position: 1,
         },
         Slot {
             display_name: "(A | Num) : . Num",
+            position: 0,
         },
         Slot {
             display_name: "(A | Num) : Num.",
+            position: 1,
         },
         Slot {
             display_name: "(A | Num)+ : . (A | Num)+ (A | Num)",
+            position: 0,
         },
         Slot {
             display_name: "(A | Num)+ : (A | Num)+ . (A | Num)",
+            position: 1,
         },
         Slot {
             display_name: "(A | Num)+ : (A | Num)+ (A | Num).",
+            position: 2,
         },
         Slot {
             display_name: "(A | Num)+ : . (A | Num)",
+            position: 0,
         },
         Slot {
             display_name: "(A | Num)+ : (A | Num).",
+            position: 1,
         },
         Slot {
             display_name: "S : . start:S",
+            position: 0,
         },
         Slot {
             display_name: "S : start:S.",
+            position: 1,
         },
         Slot {
             display_name: "A : . start:A",
+            position: 0,
         },
         Slot {
             display_name: "A : start:A.",
+            position: 1,
         },
         Slot {
             display_name: "Num : . start:Num",
+            position: 0,
         },
         Slot {
             display_name: "Num : start:Num.",
+            position: 1,
         },
     ];
     const LAYOUT_NAME: Option<&'static str> = None;
@@ -164,59 +185,44 @@ pub static FOLLOW_SET_S: TerminalSet = TerminalSet {
     id: 0,
     terminals: &[TerminalId(3)],
 };
-// S : . Plus_0 { "a", "1" }
-pub static FIRST_SET_S_ALT0: TerminalSet = TerminalSet {
-    id: 1,
-    terminals: &[TerminalId(0), TerminalId(1)],
-};
 // A { "a", "1", EOF }
 pub static FOLLOW_SET_A: TerminalSet = TerminalSet {
-    id: 2,
+    id: 1,
     terminals: &[TerminalId(0), TerminalId(1), TerminalId(3)],
-};
-// A : . "a" { "a" }
-pub static FIRST_SET_A_ALT0: TerminalSet = TerminalSet {
-    id: 3,
-    terminals: &[TerminalId(0)],
 };
 // Num { "a", "1", EOF }
 pub static FOLLOW_SET_NUM: TerminalSet = TerminalSet {
-    id: 2,
+    id: 1,
     terminals: &[TerminalId(0), TerminalId(1), TerminalId(3)],
-};
-// Num : . "1" { "1" }
-pub static FIRST_SET_NUM_ALT0: TerminalSet = TerminalSet {
-    id: 4,
-    terminals: &[TerminalId(1)],
 };
 // Alt_0 { "a", "1", EOF }
 pub static FOLLOW_SET_ALT_0: TerminalSet = TerminalSet {
-    id: 2,
+    id: 1,
     terminals: &[TerminalId(0), TerminalId(1), TerminalId(3)],
 };
 // Alt_0 : . A { "a" }
 pub static FIRST_SET_ALT_0_ALT0: TerminalSet = TerminalSet {
-    id: 3,
+    id: 2,
     terminals: &[TerminalId(0)],
 };
 // Alt_0 : . Num { "1" }
 pub static FIRST_SET_ALT_0_ALT1: TerminalSet = TerminalSet {
-    id: 4,
+    id: 3,
     terminals: &[TerminalId(1)],
 };
 // Plus_0 { "a", "1", EOF }
 pub static FOLLOW_SET_PLUS_0: TerminalSet = TerminalSet {
-    id: 2,
+    id: 1,
     terminals: &[TerminalId(0), TerminalId(1), TerminalId(3)],
 };
 // Plus_0 : . Plus_0 Alt_0 { "a", "1" }
 pub static FIRST_SET_PLUS_0_ALT0: TerminalSet = TerminalSet {
-    id: 1,
+    id: 4,
     terminals: &[TerminalId(0), TerminalId(1)],
 };
 // Plus_0 : . Alt_0 { "a", "1" }
 pub static FIRST_SET_PLUS_0_ALT1: TerminalSet = TerminalSet {
-    id: 1,
+    id: 4,
     terminals: &[TerminalId(0), TerminalId(1)],
 };
 // StartS { EOF }
@@ -224,30 +230,15 @@ pub static FOLLOW_SET_START_S: TerminalSet = TerminalSet {
     id: 0,
     terminals: &[TerminalId(3)],
 };
-// StartS : . start:S { "a", "1" }
-pub static FIRST_SET_START_S_ALT0: TerminalSet = TerminalSet {
-    id: 1,
-    terminals: &[TerminalId(0), TerminalId(1)],
-};
 // StartA { EOF }
 pub static FOLLOW_SET_START_A: TerminalSet = TerminalSet {
     id: 0,
     terminals: &[TerminalId(3)],
 };
-// StartA : . start:A { "a" }
-pub static FIRST_SET_START_A_ALT0: TerminalSet = TerminalSet {
-    id: 3,
-    terminals: &[TerminalId(0)],
-};
 // StartNum { EOF }
 pub static FOLLOW_SET_START_NUM: TerminalSet = TerminalSet {
     id: 0,
     terminals: &[TerminalId(3)],
-};
-// StartNum : . start:Num { "1" }
-pub static FIRST_SET_START_NUM_ALT0: TerminalSet = TerminalSet {
-    id: 4,
-    terminals: &[TerminalId(1)],
 };
 // S { "a", "1" }
 pub static FIRST_SET_S: TerminalSet = TerminalSet {

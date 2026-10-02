@@ -425,600 +425,799 @@ impl Grammar for CyclesGrammar {
     const SLOTS: &'static [Slot] = &[
         Slot {
             display_name: "Direct : . Direct",
+            position: 0,
         },
         Slot {
             display_name: "Direct : Direct.",
+            position: 1,
         },
         Slot {
             display_name: "Direct : . \"b\"",
+            position: 0,
         },
         Slot {
             display_name: "Direct : \"b\".",
+            position: 1,
         },
         Slot {
             display_name: "MutualC : . MutualB",
+            position: 0,
         },
         Slot {
             display_name: "MutualC : MutualB.",
+            position: 1,
         },
         Slot {
             display_name: "MutualC : . \"b\"",
+            position: 0,
         },
         Slot {
             display_name: "MutualC : \"b\".",
+            position: 1,
         },
         Slot {
             display_name: "MutualB : . MutualC",
+            position: 0,
         },
         Slot {
             display_name: "MutualB : MutualC.",
+            position: 1,
         },
         Slot {
             display_name: "ChainC : . ChainA",
+            position: 0,
         },
         Slot {
             display_name: "ChainC : ChainA.",
+            position: 1,
         },
         Slot {
             display_name: "ChainC : . \"b\"",
+            position: 0,
         },
         Slot {
             display_name: "ChainC : \"b\".",
+            position: 1,
         },
         Slot {
             display_name: "ChainA : . ChainB",
+            position: 0,
         },
         Slot {
             display_name: "ChainA : ChainB.",
+            position: 1,
         },
         Slot {
             display_name: "ChainB : . ChainC",
+            position: 0,
         },
         Slot {
             display_name: "ChainB : ChainC.",
+            position: 1,
         },
         Slot {
             display_name: "SharedS : . SharedA SharedB",
+            position: 0,
         },
         Slot {
             display_name: "SharedS : SharedA . SharedB",
+            position: 1,
         },
         Slot {
             display_name: "SharedS : SharedA SharedB.",
+            position: 2,
         },
         Slot {
             display_name: "SharedA : . SharedB",
+            position: 0,
         },
         Slot {
             display_name: "SharedA : SharedB.",
+            position: 1,
         },
         Slot {
             display_name: "SharedA : .",
+            position: 0,
         },
         Slot {
             display_name: "SharedB : . SharedA",
+            position: 0,
         },
         Slot {
             display_name: "SharedB : SharedA.",
+            position: 1,
         },
         Slot {
             display_name: "TwoExitsC : . TwoExitsB",
+            position: 0,
         },
         Slot {
             display_name: "TwoExitsC : TwoExitsB.",
+            position: 1,
         },
         Slot {
             display_name: "TwoExitsC : . \"b\"",
+            position: 0,
         },
         Slot {
             display_name: "TwoExitsC : \"b\".",
+            position: 1,
         },
         Slot {
             display_name: "TwoExitsB : . TwoExitsC",
+            position: 0,
         },
         Slot {
             display_name: "TwoExitsB : TwoExitsC.",
+            position: 1,
         },
         Slot {
             display_name: "TwoExitsB : . \"b\"",
+            position: 0,
         },
         Slot {
             display_name: "TwoExitsB : \"b\".",
+            position: 1,
         },
         Slot {
             display_name: "TwoRoutesC : . TwoRoutesA",
+            position: 0,
         },
         Slot {
             display_name: "TwoRoutesC : TwoRoutesA.",
+            position: 1,
         },
         Slot {
             display_name: "TwoRoutesC : . TwoRoutesB",
+            position: 0,
         },
         Slot {
             display_name: "TwoRoutesC : TwoRoutesB.",
+            position: 1,
         },
         Slot {
             display_name: "TwoRoutesC : . \"b\"",
+            position: 0,
         },
         Slot {
             display_name: "TwoRoutesC : \"b\".",
+            position: 1,
         },
         Slot {
             display_name: "TwoRoutesA : . TwoRoutesC",
+            position: 0,
         },
         Slot {
             display_name: "TwoRoutesA : TwoRoutesC.",
+            position: 1,
         },
         Slot {
             display_name: "TwoRoutesB : . TwoRoutesC",
+            position: 0,
         },
         Slot {
             display_name: "TwoRoutesB : TwoRoutesC.",
+            position: 1,
         },
         Slot {
             display_name: "Nullable : . Nullable Nullable",
+            position: 0,
         },
         Slot {
             display_name: "Nullable : Nullable . Nullable",
+            position: 1,
         },
         Slot {
             display_name: "Nullable : Nullable Nullable.",
+            position: 2,
         },
         Slot {
             display_name: "Nullable : . \"b\"",
+            position: 0,
         },
         Slot {
             display_name: "Nullable : \"b\".",
+            position: 1,
         },
         Slot {
             display_name: "Nullable : .",
+            position: 0,
         },
         Slot {
             display_name: "SiblingC : . SiblingC SiblingD",
+            position: 0,
         },
         Slot {
             display_name: "SiblingC : SiblingC . SiblingD",
+            position: 1,
         },
         Slot {
             display_name: "SiblingC : SiblingC SiblingD.",
+            position: 2,
         },
         Slot {
             display_name: "SiblingC : . \"b\"",
+            position: 0,
         },
         Slot {
             display_name: "SiblingC : \"b\".",
+            position: 1,
         },
         Slot {
             display_name: "SiblingD : . EmptyE",
+            position: 0,
         },
         Slot {
             display_name: "SiblingD : EmptyE.",
+            position: 1,
         },
         Slot {
             display_name: "SiblingD : . EmptyF",
+            position: 0,
         },
         Slot {
             display_name: "SiblingD : EmptyF.",
+            position: 1,
         },
         Slot {
             display_name: "EmptyE : .",
+            position: 0,
         },
         Slot {
             display_name: "EmptyF : .",
+            position: 0,
         },
         Slot {
             display_name: "ParentC : . ParentD \"b\"",
+            position: 0,
         },
         Slot {
             display_name: "ParentC : ParentD . \"b\"",
+            position: 1,
         },
         Slot {
             display_name: "ParentC : ParentD \"b\".",
+            position: 2,
         },
         Slot {
             display_name: "ParentD : . ParentD",
+            position: 0,
         },
         Slot {
             display_name: "ParentD : ParentD.",
+            position: 1,
         },
         Slot {
             display_name: "ParentD : . \"a\"",
+            position: 0,
         },
         Slot {
             display_name: "ParentD : \"a\".",
+            position: 1,
         },
         Slot {
             display_name: "OverlapC : . OverlapB",
+            position: 0,
         },
         Slot {
             display_name: "OverlapC : OverlapB.",
+            position: 1,
         },
         Slot {
             display_name: "OverlapC : . \"b\"",
+            position: 0,
         },
         Slot {
             display_name: "OverlapC : \"b\".",
+            position: 1,
         },
         Slot {
             display_name: "OverlapB : . OverlapB",
+            position: 0,
         },
         Slot {
             display_name: "OverlapB : OverlapB.",
+            position: 1,
         },
         Slot {
             display_name: "OverlapB : . OverlapC",
+            position: 0,
         },
         Slot {
             display_name: "OverlapB : OverlapC.",
+            position: 1,
         },
         Slot {
             display_name: "IntermediateY : . IntermediateA IntermediateY IntermediateB",
+            position: 0,
         },
         Slot {
             display_name: "IntermediateY : IntermediateA . IntermediateY IntermediateB",
+            position: 1,
         },
         Slot {
             display_name: "IntermediateY : IntermediateA IntermediateY . IntermediateB",
+            position: 2,
         },
         Slot {
             display_name: "IntermediateY : IntermediateA IntermediateY IntermediateB.",
+            position: 3,
         },
         Slot {
             display_name: "IntermediateY : . \"a\"",
+            position: 0,
         },
         Slot {
             display_name: "IntermediateY : \"a\".",
+            position: 1,
         },
         Slot {
             display_name: "IntermediateA : .",
+            position: 0,
         },
         Slot {
             display_name: "IntermediateB : .",
+            position: 0,
         },
         Slot {
             display_name: "IntermediateB : . \"b\"",
+            position: 0,
         },
         Slot {
             display_name: "IntermediateB : \"b\".",
+            position: 1,
         },
         Slot {
             display_name: "MidInput : . Direct \"b\"",
+            position: 0,
         },
         Slot {
             display_name: "MidInput : Direct . \"b\"",
+            position: 1,
         },
         Slot {
             display_name: "MidInput : Direct \"b\".",
+            position: 2,
         },
         Slot {
             display_name: "Consuming : . Consuming \"b\"",
+            position: 0,
         },
         Slot {
             display_name: "Consuming : Consuming . \"b\"",
+            position: 1,
         },
         Slot {
             display_name: "Consuming : Consuming \"b\".",
+            position: 2,
         },
         Slot {
             display_name: "Consuming : . \"b\"",
+            position: 0,
         },
         Slot {
             display_name: "Consuming : \"b\".",
+            position: 1,
         },
         Slot {
             display_name: "Ordinary : . \"b\"",
+            position: 0,
         },
         Slot {
             display_name: "Ordinary : \"b\".",
+            position: 1,
         },
         Slot {
             display_name: "NullablePlus : . EmptyE+",
+            position: 0,
         },
         Slot {
             display_name: "NullablePlus : EmptyE+.",
+            position: 1,
         },
         Slot {
             display_name: "NullableStar : . EmptyE*",
+            position: 0,
         },
         Slot {
             display_name: "NullableStar : EmptyE*.",
+            position: 1,
         },
         Slot {
             display_name: "NullableSeparated : . {EmptyE EmptyF}+",
+            position: 0,
         },
         Slot {
             display_name: "NullableSeparated : {EmptyE EmptyF}+.",
+            position: 1,
         },
         Slot {
             display_name: "Optional : . Optional?",
+            position: 0,
         },
         Slot {
             display_name: "Optional : Optional?.",
+            position: 1,
         },
         Slot {
             display_name: "Optional : . \"b\"",
+            position: 0,
         },
         Slot {
             display_name: "Optional : \"b\".",
+            position: 1,
         },
         Slot {
             display_name: "Grouped : . (Grouped)",
+            position: 0,
         },
         Slot {
             display_name: "Grouped : (Grouped).",
+            position: 1,
         },
         Slot {
             display_name: "Grouped : . \"b\"",
+            position: 0,
         },
         Slot {
             display_name: "Grouped : \"b\".",
+            position: 1,
         },
         Slot {
             display_name: "EmptyE+ : . EmptyE+ EmptyE",
+            position: 0,
         },
         Slot {
             display_name: "EmptyE+ : EmptyE+ . EmptyE",
+            position: 1,
         },
         Slot {
             display_name: "EmptyE+ : EmptyE+ EmptyE.",
+            position: 2,
         },
         Slot {
             display_name: "EmptyE+ : . EmptyE",
+            position: 0,
         },
         Slot {
             display_name: "EmptyE+ : EmptyE.",
+            position: 1,
         },
         Slot {
             display_name: "EmptyE+? : . EmptyE+",
+            position: 0,
         },
         Slot {
             display_name: "EmptyE+? : EmptyE+.",
+            position: 1,
         },
         Slot {
             display_name: "EmptyE+? : .",
+            position: 0,
         },
         Slot {
             display_name: "EmptyE* : . EmptyE+?",
+            position: 0,
         },
         Slot {
             display_name: "EmptyE* : EmptyE+?.",
+            position: 1,
         },
         Slot {
             display_name: "{EmptyE EmptyF}+ : . {EmptyE EmptyF}+ EmptyF EmptyE",
+            position: 0,
         },
         Slot {
             display_name: "{EmptyE EmptyF}+ : {EmptyE EmptyF}+ . EmptyF EmptyE",
+            position: 1,
         },
         Slot {
             display_name: "{EmptyE EmptyF}+ : {EmptyE EmptyF}+ EmptyF . EmptyE",
+            position: 2,
         },
         Slot {
             display_name: "{EmptyE EmptyF}+ : {EmptyE EmptyF}+ EmptyF EmptyE.",
+            position: 3,
         },
         Slot {
             display_name: "{EmptyE EmptyF}+ : . EmptyE",
+            position: 0,
         },
         Slot {
             display_name: "{EmptyE EmptyF}+ : EmptyE.",
+            position: 1,
         },
         Slot {
             display_name: "Optional? : . Optional",
+            position: 0,
         },
         Slot {
             display_name: "Optional? : Optional.",
+            position: 1,
         },
         Slot {
             display_name: "Optional? : .",
+            position: 0,
         },
         Slot {
             display_name: "(Grouped) : . Grouped",
+            position: 0,
         },
         Slot {
             display_name: "(Grouped) : Grouped.",
+            position: 1,
         },
         Slot {
             display_name: "Direct : . start:Direct",
+            position: 0,
         },
         Slot {
             display_name: "Direct : start:Direct.",
+            position: 1,
         },
         Slot {
             display_name: "MutualC : . start:MutualC",
+            position: 0,
         },
         Slot {
             display_name: "MutualC : start:MutualC.",
+            position: 1,
         },
         Slot {
             display_name: "MutualB : . start:MutualB",
+            position: 0,
         },
         Slot {
             display_name: "MutualB : start:MutualB.",
+            position: 1,
         },
         Slot {
             display_name: "ChainC : . start:ChainC",
+            position: 0,
         },
         Slot {
             display_name: "ChainC : start:ChainC.",
+            position: 1,
         },
         Slot {
             display_name: "ChainA : . start:ChainA",
+            position: 0,
         },
         Slot {
             display_name: "ChainA : start:ChainA.",
+            position: 1,
         },
         Slot {
             display_name: "ChainB : . start:ChainB",
+            position: 0,
         },
         Slot {
             display_name: "ChainB : start:ChainB.",
+            position: 1,
         },
         Slot {
             display_name: "SharedS : . start:SharedS",
+            position: 0,
         },
         Slot {
             display_name: "SharedS : start:SharedS.",
+            position: 1,
         },
         Slot {
             display_name: "SharedA : . start:SharedA",
+            position: 0,
         },
         Slot {
             display_name: "SharedA : start:SharedA.",
+            position: 1,
         },
         Slot {
             display_name: "SharedB : . start:SharedB",
+            position: 0,
         },
         Slot {
             display_name: "SharedB : start:SharedB.",
+            position: 1,
         },
         Slot {
             display_name: "TwoExitsC : . start:TwoExitsC",
+            position: 0,
         },
         Slot {
             display_name: "TwoExitsC : start:TwoExitsC.",
+            position: 1,
         },
         Slot {
             display_name: "TwoExitsB : . start:TwoExitsB",
+            position: 0,
         },
         Slot {
             display_name: "TwoExitsB : start:TwoExitsB.",
+            position: 1,
         },
         Slot {
             display_name: "TwoRoutesC : . start:TwoRoutesC",
+            position: 0,
         },
         Slot {
             display_name: "TwoRoutesC : start:TwoRoutesC.",
+            position: 1,
         },
         Slot {
             display_name: "TwoRoutesA : . start:TwoRoutesA",
+            position: 0,
         },
         Slot {
             display_name: "TwoRoutesA : start:TwoRoutesA.",
+            position: 1,
         },
         Slot {
             display_name: "TwoRoutesB : . start:TwoRoutesB",
+            position: 0,
         },
         Slot {
             display_name: "TwoRoutesB : start:TwoRoutesB.",
+            position: 1,
         },
         Slot {
             display_name: "Nullable : . start:Nullable",
+            position: 0,
         },
         Slot {
             display_name: "Nullable : start:Nullable.",
+            position: 1,
         },
         Slot {
             display_name: "SiblingC : . start:SiblingC",
+            position: 0,
         },
         Slot {
             display_name: "SiblingC : start:SiblingC.",
+            position: 1,
         },
         Slot {
             display_name: "SiblingD : . start:SiblingD",
+            position: 0,
         },
         Slot {
             display_name: "SiblingD : start:SiblingD.",
+            position: 1,
         },
         Slot {
             display_name: "EmptyE : . start:EmptyE",
+            position: 0,
         },
         Slot {
             display_name: "EmptyE : start:EmptyE.",
+            position: 1,
         },
         Slot {
             display_name: "EmptyF : . start:EmptyF",
+            position: 0,
         },
         Slot {
             display_name: "EmptyF : start:EmptyF.",
+            position: 1,
         },
         Slot {
             display_name: "ParentC : . start:ParentC",
+            position: 0,
         },
         Slot {
             display_name: "ParentC : start:ParentC.",
+            position: 1,
         },
         Slot {
             display_name: "ParentD : . start:ParentD",
+            position: 0,
         },
         Slot {
             display_name: "ParentD : start:ParentD.",
+            position: 1,
         },
         Slot {
             display_name: "OverlapC : . start:OverlapC",
+            position: 0,
         },
         Slot {
             display_name: "OverlapC : start:OverlapC.",
+            position: 1,
         },
         Slot {
             display_name: "OverlapB : . start:OverlapB",
+            position: 0,
         },
         Slot {
             display_name: "OverlapB : start:OverlapB.",
+            position: 1,
         },
         Slot {
             display_name: "IntermediateY : . start:IntermediateY",
+            position: 0,
         },
         Slot {
             display_name: "IntermediateY : start:IntermediateY.",
+            position: 1,
         },
         Slot {
             display_name: "IntermediateA : . start:IntermediateA",
+            position: 0,
         },
         Slot {
             display_name: "IntermediateA : start:IntermediateA.",
+            position: 1,
         },
         Slot {
             display_name: "IntermediateB : . start:IntermediateB",
+            position: 0,
         },
         Slot {
             display_name: "IntermediateB : start:IntermediateB.",
+            position: 1,
         },
         Slot {
             display_name: "MidInput : . start:MidInput",
+            position: 0,
         },
         Slot {
             display_name: "MidInput : start:MidInput.",
+            position: 1,
         },
         Slot {
             display_name: "Consuming : . start:Consuming",
+            position: 0,
         },
         Slot {
             display_name: "Consuming : start:Consuming.",
+            position: 1,
         },
         Slot {
             display_name: "Ordinary : . start:Ordinary",
+            position: 0,
         },
         Slot {
             display_name: "Ordinary : start:Ordinary.",
+            position: 1,
         },
         Slot {
             display_name: "NullablePlus : . start:NullablePlus",
+            position: 0,
         },
         Slot {
             display_name: "NullablePlus : start:NullablePlus.",
+            position: 1,
         },
         Slot {
             display_name: "NullableStar : . start:NullableStar",
+            position: 0,
         },
         Slot {
             display_name: "NullableStar : start:NullableStar.",
+            position: 1,
         },
         Slot {
             display_name: "NullableSeparated : . start:NullableSeparated",
+            position: 0,
         },
         Slot {
             display_name: "NullableSeparated : start:NullableSeparated.",
+            position: 1,
         },
         Slot {
             display_name: "Optional : . start:Optional",
+            position: 0,
         },
         Slot {
             display_name: "Optional : start:Optional.",
+            position: 1,
         },
         Slot {
             display_name: "Grouped : . start:Grouped",
+            position: 0,
         },
         Slot {
             display_name: "Grouped : start:Grouped.",
+            position: 1,
         },
     ];
     const LAYOUT_NAME: Option<&'static str> = None;
@@ -1028,19 +1227,19 @@ impl Grammar for CyclesGrammar {
     // by terminal id, serves only that.
     const SINGLE_TERMINAL_SETS: &'static [TerminalSet] = &[
         TerminalSet {
-            id: 12,
+            id: 8,
             terminals: &[TerminalId(0)],
         },
         TerminalSet {
-            id: 13,
+            id: 9,
             terminals: &[TerminalId(1)],
         },
         TerminalSet {
-            id: 14,
+            id: 10,
             terminals: &[TerminalId(2)],
         },
         TerminalSet {
-            id: 15,
+            id: 11,
             terminals: &[TerminalId(3)],
         },
     ];
@@ -1159,11 +1358,6 @@ pub static FOLLOW_SET_MUTUAL_B: TerminalSet = TerminalSet {
     id: 2,
     terminals: &[TerminalId(3)],
 };
-// MutualB : . MutualC { "b" }
-pub static FIRST_SET_MUTUAL_B_ALT0: TerminalSet = TerminalSet {
-    id: 1,
-    terminals: &[TerminalId(0)],
-};
 // ChainC { EOF }
 pub static FOLLOW_SET_CHAIN_C: TerminalSet = TerminalSet {
     id: 2,
@@ -1184,30 +1378,15 @@ pub static FOLLOW_SET_CHAIN_A: TerminalSet = TerminalSet {
     id: 2,
     terminals: &[TerminalId(3)],
 };
-// ChainA : . ChainB { "b" }
-pub static FIRST_SET_CHAIN_A_ALT0: TerminalSet = TerminalSet {
-    id: 1,
-    terminals: &[TerminalId(0)],
-};
 // ChainB { EOF }
 pub static FOLLOW_SET_CHAIN_B: TerminalSet = TerminalSet {
     id: 2,
     terminals: &[TerminalId(3)],
 };
-// ChainB : . ChainC { "b" }
-pub static FIRST_SET_CHAIN_B_ALT0: TerminalSet = TerminalSet {
-    id: 1,
-    terminals: &[TerminalId(0)],
-};
 // SharedS { EOF }
 pub static FOLLOW_SET_SHARED_S: TerminalSet = TerminalSet {
     id: 2,
     terminals: &[TerminalId(3)],
-};
-// SharedS : . SharedA SharedB { }
-pub static FIRST_SET_SHARED_S_ALT0: TerminalSet = TerminalSet {
-    id: 3,
-    terminals: &[],
 };
 // SharedA { EOF }
 pub static FOLLOW_SET_SHARED_A: TerminalSet = TerminalSet {
@@ -1228,11 +1407,6 @@ pub static FIRST_SET_SHARED_A_ALT1: TerminalSet = TerminalSet {
 pub static FOLLOW_SET_SHARED_B: TerminalSet = TerminalSet {
     id: 2,
     terminals: &[TerminalId(3)],
-};
-// SharedB : . SharedA { }
-pub static FIRST_SET_SHARED_B_ALT0: TerminalSet = TerminalSet {
-    id: 3,
-    terminals: &[],
 };
 // TwoExitsC { EOF }
 pub static FOLLOW_SET_TWO_EXITS_C: TerminalSet = TerminalSet {
@@ -1289,20 +1463,10 @@ pub static FOLLOW_SET_TWO_ROUTES_A: TerminalSet = TerminalSet {
     id: 2,
     terminals: &[TerminalId(3)],
 };
-// TwoRoutesA : . TwoRoutesC { "b" }
-pub static FIRST_SET_TWO_ROUTES_A_ALT0: TerminalSet = TerminalSet {
-    id: 1,
-    terminals: &[TerminalId(0)],
-};
 // TwoRoutesB { EOF }
 pub static FOLLOW_SET_TWO_ROUTES_B: TerminalSet = TerminalSet {
     id: 2,
     terminals: &[TerminalId(3)],
-};
-// TwoRoutesB : . TwoRoutesC { "b" }
-pub static FIRST_SET_TWO_ROUTES_B_ALT0: TerminalSet = TerminalSet {
-    id: 1,
-    terminals: &[TerminalId(0)],
 };
 // Nullable { "b", EOF }
 pub static FOLLOW_SET_NULLABLE: TerminalSet = TerminalSet {
@@ -1359,30 +1523,15 @@ pub static FOLLOW_SET_EMPTY_E: TerminalSet = TerminalSet {
     id: 2,
     terminals: &[TerminalId(3)],
 };
-// EmptyE : . { }
-pub static FIRST_SET_EMPTY_E_ALT0: TerminalSet = TerminalSet {
-    id: 3,
-    terminals: &[],
-};
 // EmptyF { EOF }
 pub static FOLLOW_SET_EMPTY_F: TerminalSet = TerminalSet {
     id: 2,
     terminals: &[TerminalId(3)],
 };
-// EmptyF : . { }
-pub static FIRST_SET_EMPTY_F_ALT0: TerminalSet = TerminalSet {
-    id: 3,
-    terminals: &[],
-};
 // ParentC { EOF }
 pub static FOLLOW_SET_PARENT_C: TerminalSet = TerminalSet {
     id: 2,
     terminals: &[TerminalId(3)],
-};
-// ParentC : . ParentD "b" { "a" }
-pub static FIRST_SET_PARENT_C_ALT0: TerminalSet = TerminalSet {
-    id: 4,
-    terminals: &[TerminalId(1)],
 };
 // ParentD { "b", EOF }
 pub static FOLLOW_SET_PARENT_D: TerminalSet = TerminalSet {
@@ -1449,11 +1598,6 @@ pub static FOLLOW_SET_INTERMEDIATE_A: TerminalSet = TerminalSet {
     id: 5,
     terminals: &[TerminalId(1), TerminalId(3)],
 };
-// IntermediateA : . { }
-pub static FIRST_SET_INTERMEDIATE_A_ALT0: TerminalSet = TerminalSet {
-    id: 3,
-    terminals: &[],
-};
 // IntermediateB { "b", EOF }
 pub static FOLLOW_SET_INTERMEDIATE_B: TerminalSet = TerminalSet {
     id: 0,
@@ -1473,11 +1617,6 @@ pub static FIRST_SET_INTERMEDIATE_B_ALT1: TerminalSet = TerminalSet {
 pub static FOLLOW_SET_MID_INPUT: TerminalSet = TerminalSet {
     id: 2,
     terminals: &[TerminalId(3)],
-};
-// MidInput : . Direct "b" { "b" }
-pub static FIRST_SET_MID_INPUT_ALT0: TerminalSet = TerminalSet {
-    id: 1,
-    terminals: &[TerminalId(0)],
 };
 // Consuming { "b", EOF }
 pub static FOLLOW_SET_CONSUMING: TerminalSet = TerminalSet {
@@ -1499,40 +1638,20 @@ pub static FOLLOW_SET_ORDINARY: TerminalSet = TerminalSet {
     id: 2,
     terminals: &[TerminalId(3)],
 };
-// Ordinary : . "b" { "b" }
-pub static FIRST_SET_ORDINARY_ALT0: TerminalSet = TerminalSet {
-    id: 1,
-    terminals: &[TerminalId(0)],
-};
 // NullablePlus { EOF }
 pub static FOLLOW_SET_NULLABLE_PLUS: TerminalSet = TerminalSet {
     id: 2,
     terminals: &[TerminalId(3)],
-};
-// NullablePlus : . Plus_0 { }
-pub static FIRST_SET_NULLABLE_PLUS_ALT0: TerminalSet = TerminalSet {
-    id: 3,
-    terminals: &[],
 };
 // NullableStar { EOF }
 pub static FOLLOW_SET_NULLABLE_STAR: TerminalSet = TerminalSet {
     id: 2,
     terminals: &[TerminalId(3)],
 };
-// NullableStar : . Star_0 { }
-pub static FIRST_SET_NULLABLE_STAR_ALT0: TerminalSet = TerminalSet {
-    id: 3,
-    terminals: &[],
-};
 // NullableSeparated { EOF }
 pub static FOLLOW_SET_NULLABLE_SEPARATED: TerminalSet = TerminalSet {
     id: 2,
     terminals: &[TerminalId(3)],
-};
-// NullableSeparated : . Plus_1 { }
-pub static FIRST_SET_NULLABLE_SEPARATED_ALT0: TerminalSet = TerminalSet {
-    id: 3,
-    terminals: &[],
 };
 // Optional { EOF }
 pub static FOLLOW_SET_OPTIONAL: TerminalSet = TerminalSet {
@@ -1599,11 +1718,6 @@ pub static FOLLOW_SET_STAR_0: TerminalSet = TerminalSet {
     id: 2,
     terminals: &[TerminalId(3)],
 };
-// Star_0 : . Opt_0 { }
-pub static FIRST_SET_STAR_0_ALT0: TerminalSet = TerminalSet {
-    id: 3,
-    terminals: &[],
-};
 // Plus_1 { EOF }
 pub static FOLLOW_SET_PLUS_1: TerminalSet = TerminalSet {
     id: 2,
@@ -1639,763 +1753,393 @@ pub static FOLLOW_SET_GROUP_0: TerminalSet = TerminalSet {
     id: 2,
     terminals: &[TerminalId(3)],
 };
-// Group_0 : . Grouped { "b" }
-pub static FIRST_SET_GROUP_0_ALT0: TerminalSet = TerminalSet {
-    id: 1,
-    terminals: &[TerminalId(0)],
-};
 // StartDirect { EOF }
 pub static FOLLOW_SET_START_DIRECT: TerminalSet = TerminalSet {
     id: 2,
     terminals: &[TerminalId(3)],
-};
-// StartDirect : . start:Direct { "b" }
-pub static FIRST_SET_START_DIRECT_ALT0: TerminalSet = TerminalSet {
-    id: 1,
-    terminals: &[TerminalId(0)],
 };
 // StartMutualC { EOF }
 pub static FOLLOW_SET_START_MUTUAL_C: TerminalSet = TerminalSet {
     id: 2,
     terminals: &[TerminalId(3)],
 };
-// StartMutualC : . start:MutualC { "b" }
-pub static FIRST_SET_START_MUTUAL_C_ALT0: TerminalSet = TerminalSet {
-    id: 1,
-    terminals: &[TerminalId(0)],
-};
 // StartMutualB { EOF }
 pub static FOLLOW_SET_START_MUTUAL_B: TerminalSet = TerminalSet {
     id: 2,
     terminals: &[TerminalId(3)],
-};
-// StartMutualB : . start:MutualB { "b" }
-pub static FIRST_SET_START_MUTUAL_B_ALT0: TerminalSet = TerminalSet {
-    id: 1,
-    terminals: &[TerminalId(0)],
 };
 // StartChainC { EOF }
 pub static FOLLOW_SET_START_CHAIN_C: TerminalSet = TerminalSet {
     id: 2,
     terminals: &[TerminalId(3)],
 };
-// StartChainC : . start:ChainC { "b" }
-pub static FIRST_SET_START_CHAIN_C_ALT0: TerminalSet = TerminalSet {
-    id: 1,
-    terminals: &[TerminalId(0)],
-};
 // StartChainA { EOF }
 pub static FOLLOW_SET_START_CHAIN_A: TerminalSet = TerminalSet {
     id: 2,
     terminals: &[TerminalId(3)],
-};
-// StartChainA : . start:ChainA { "b" }
-pub static FIRST_SET_START_CHAIN_A_ALT0: TerminalSet = TerminalSet {
-    id: 1,
-    terminals: &[TerminalId(0)],
 };
 // StartChainB { EOF }
 pub static FOLLOW_SET_START_CHAIN_B: TerminalSet = TerminalSet {
     id: 2,
     terminals: &[TerminalId(3)],
 };
-// StartChainB : . start:ChainB { "b" }
-pub static FIRST_SET_START_CHAIN_B_ALT0: TerminalSet = TerminalSet {
-    id: 1,
-    terminals: &[TerminalId(0)],
-};
 // StartSharedS { EOF }
 pub static FOLLOW_SET_START_SHARED_S: TerminalSet = TerminalSet {
     id: 2,
     terminals: &[TerminalId(3)],
-};
-// StartSharedS : . start:SharedS { }
-pub static FIRST_SET_START_SHARED_S_ALT0: TerminalSet = TerminalSet {
-    id: 3,
-    terminals: &[],
 };
 // StartSharedA { EOF }
 pub static FOLLOW_SET_START_SHARED_A: TerminalSet = TerminalSet {
     id: 2,
     terminals: &[TerminalId(3)],
 };
-// StartSharedA : . start:SharedA { }
-pub static FIRST_SET_START_SHARED_A_ALT0: TerminalSet = TerminalSet {
-    id: 3,
-    terminals: &[],
-};
 // StartSharedB { EOF }
 pub static FOLLOW_SET_START_SHARED_B: TerminalSet = TerminalSet {
     id: 2,
     terminals: &[TerminalId(3)],
-};
-// StartSharedB : . start:SharedB { }
-pub static FIRST_SET_START_SHARED_B_ALT0: TerminalSet = TerminalSet {
-    id: 3,
-    terminals: &[],
 };
 // StartTwoExitsC { EOF }
 pub static FOLLOW_SET_START_TWO_EXITS_C: TerminalSet = TerminalSet {
     id: 2,
     terminals: &[TerminalId(3)],
 };
-// StartTwoExitsC : . start:TwoExitsC { "b" }
-pub static FIRST_SET_START_TWO_EXITS_C_ALT0: TerminalSet = TerminalSet {
-    id: 1,
-    terminals: &[TerminalId(0)],
-};
 // StartTwoExitsB { EOF }
 pub static FOLLOW_SET_START_TWO_EXITS_B: TerminalSet = TerminalSet {
     id: 2,
     terminals: &[TerminalId(3)],
-};
-// StartTwoExitsB : . start:TwoExitsB { "b" }
-pub static FIRST_SET_START_TWO_EXITS_B_ALT0: TerminalSet = TerminalSet {
-    id: 1,
-    terminals: &[TerminalId(0)],
 };
 // StartTwoRoutesC { EOF }
 pub static FOLLOW_SET_START_TWO_ROUTES_C: TerminalSet = TerminalSet {
     id: 2,
     terminals: &[TerminalId(3)],
 };
-// StartTwoRoutesC : . start:TwoRoutesC { "b" }
-pub static FIRST_SET_START_TWO_ROUTES_C_ALT0: TerminalSet = TerminalSet {
-    id: 1,
-    terminals: &[TerminalId(0)],
-};
 // StartTwoRoutesA { EOF }
 pub static FOLLOW_SET_START_TWO_ROUTES_A: TerminalSet = TerminalSet {
     id: 2,
     terminals: &[TerminalId(3)],
-};
-// StartTwoRoutesA : . start:TwoRoutesA { "b" }
-pub static FIRST_SET_START_TWO_ROUTES_A_ALT0: TerminalSet = TerminalSet {
-    id: 1,
-    terminals: &[TerminalId(0)],
 };
 // StartTwoRoutesB { EOF }
 pub static FOLLOW_SET_START_TWO_ROUTES_B: TerminalSet = TerminalSet {
     id: 2,
     terminals: &[TerminalId(3)],
 };
-// StartTwoRoutesB : . start:TwoRoutesB { "b" }
-pub static FIRST_SET_START_TWO_ROUTES_B_ALT0: TerminalSet = TerminalSet {
-    id: 1,
-    terminals: &[TerminalId(0)],
-};
 // StartNullable { EOF }
 pub static FOLLOW_SET_START_NULLABLE: TerminalSet = TerminalSet {
     id: 2,
     terminals: &[TerminalId(3)],
-};
-// StartNullable : . start:Nullable { "b" }
-pub static FIRST_SET_START_NULLABLE_ALT0: TerminalSet = TerminalSet {
-    id: 1,
-    terminals: &[TerminalId(0)],
 };
 // StartSiblingC { EOF }
 pub static FOLLOW_SET_START_SIBLING_C: TerminalSet = TerminalSet {
     id: 2,
     terminals: &[TerminalId(3)],
 };
-// StartSiblingC : . start:SiblingC { "b" }
-pub static FIRST_SET_START_SIBLING_C_ALT0: TerminalSet = TerminalSet {
-    id: 1,
-    terminals: &[TerminalId(0)],
-};
 // StartSiblingD { EOF }
 pub static FOLLOW_SET_START_SIBLING_D: TerminalSet = TerminalSet {
     id: 2,
     terminals: &[TerminalId(3)],
-};
-// StartSiblingD : . start:SiblingD { }
-pub static FIRST_SET_START_SIBLING_D_ALT0: TerminalSet = TerminalSet {
-    id: 3,
-    terminals: &[],
 };
 // StartEmptyE { EOF }
 pub static FOLLOW_SET_START_EMPTY_E: TerminalSet = TerminalSet {
     id: 2,
     terminals: &[TerminalId(3)],
 };
-// StartEmptyE : . start:EmptyE { }
-pub static FIRST_SET_START_EMPTY_E_ALT0: TerminalSet = TerminalSet {
-    id: 3,
-    terminals: &[],
-};
 // StartEmptyF { EOF }
 pub static FOLLOW_SET_START_EMPTY_F: TerminalSet = TerminalSet {
     id: 2,
     terminals: &[TerminalId(3)],
-};
-// StartEmptyF : . start:EmptyF { }
-pub static FIRST_SET_START_EMPTY_F_ALT0: TerminalSet = TerminalSet {
-    id: 3,
-    terminals: &[],
 };
 // StartParentC { EOF }
 pub static FOLLOW_SET_START_PARENT_C: TerminalSet = TerminalSet {
     id: 2,
     terminals: &[TerminalId(3)],
 };
-// StartParentC : . start:ParentC { "a" }
-pub static FIRST_SET_START_PARENT_C_ALT0: TerminalSet = TerminalSet {
-    id: 4,
-    terminals: &[TerminalId(1)],
-};
 // StartParentD { EOF }
 pub static FOLLOW_SET_START_PARENT_D: TerminalSet = TerminalSet {
     id: 2,
     terminals: &[TerminalId(3)],
-};
-// StartParentD : . start:ParentD { "a" }
-pub static FIRST_SET_START_PARENT_D_ALT0: TerminalSet = TerminalSet {
-    id: 4,
-    terminals: &[TerminalId(1)],
 };
 // StartOverlapC { EOF }
 pub static FOLLOW_SET_START_OVERLAP_C: TerminalSet = TerminalSet {
     id: 2,
     terminals: &[TerminalId(3)],
 };
-// StartOverlapC : . start:OverlapC { "b" }
-pub static FIRST_SET_START_OVERLAP_C_ALT0: TerminalSet = TerminalSet {
-    id: 1,
-    terminals: &[TerminalId(0)],
-};
 // StartOverlapB { EOF }
 pub static FOLLOW_SET_START_OVERLAP_B: TerminalSet = TerminalSet {
     id: 2,
     terminals: &[TerminalId(3)],
-};
-// StartOverlapB : . start:OverlapB { "b" }
-pub static FIRST_SET_START_OVERLAP_B_ALT0: TerminalSet = TerminalSet {
-    id: 1,
-    terminals: &[TerminalId(0)],
 };
 // StartIntermediateY { EOF }
 pub static FOLLOW_SET_START_INTERMEDIATE_Y: TerminalSet = TerminalSet {
     id: 2,
     terminals: &[TerminalId(3)],
 };
-// StartIntermediateY : . start:IntermediateY { "a" }
-pub static FIRST_SET_START_INTERMEDIATE_Y_ALT0: TerminalSet = TerminalSet {
-    id: 4,
-    terminals: &[TerminalId(1)],
-};
 // StartIntermediateA { EOF }
 pub static FOLLOW_SET_START_INTERMEDIATE_A: TerminalSet = TerminalSet {
     id: 2,
     terminals: &[TerminalId(3)],
-};
-// StartIntermediateA : . start:IntermediateA { }
-pub static FIRST_SET_START_INTERMEDIATE_A_ALT0: TerminalSet = TerminalSet {
-    id: 3,
-    terminals: &[],
 };
 // StartIntermediateB { EOF }
 pub static FOLLOW_SET_START_INTERMEDIATE_B: TerminalSet = TerminalSet {
     id: 2,
     terminals: &[TerminalId(3)],
 };
-// StartIntermediateB : . start:IntermediateB { "b" }
-pub static FIRST_SET_START_INTERMEDIATE_B_ALT0: TerminalSet = TerminalSet {
-    id: 1,
-    terminals: &[TerminalId(0)],
-};
 // StartMidInput { EOF }
 pub static FOLLOW_SET_START_MID_INPUT: TerminalSet = TerminalSet {
     id: 2,
     terminals: &[TerminalId(3)],
-};
-// StartMidInput : . start:MidInput { "b" }
-pub static FIRST_SET_START_MID_INPUT_ALT0: TerminalSet = TerminalSet {
-    id: 1,
-    terminals: &[TerminalId(0)],
 };
 // StartConsuming { EOF }
 pub static FOLLOW_SET_START_CONSUMING: TerminalSet = TerminalSet {
     id: 2,
     terminals: &[TerminalId(3)],
 };
-// StartConsuming : . start:Consuming { "b" }
-pub static FIRST_SET_START_CONSUMING_ALT0: TerminalSet = TerminalSet {
-    id: 1,
-    terminals: &[TerminalId(0)],
-};
 // StartOrdinary { EOF }
 pub static FOLLOW_SET_START_ORDINARY: TerminalSet = TerminalSet {
     id: 2,
     terminals: &[TerminalId(3)],
-};
-// StartOrdinary : . start:Ordinary { "b" }
-pub static FIRST_SET_START_ORDINARY_ALT0: TerminalSet = TerminalSet {
-    id: 1,
-    terminals: &[TerminalId(0)],
 };
 // StartNullablePlus { EOF }
 pub static FOLLOW_SET_START_NULLABLE_PLUS: TerminalSet = TerminalSet {
     id: 2,
     terminals: &[TerminalId(3)],
 };
-// StartNullablePlus : . start:NullablePlus { }
-pub static FIRST_SET_START_NULLABLE_PLUS_ALT0: TerminalSet = TerminalSet {
-    id: 3,
-    terminals: &[],
-};
 // StartNullableStar { EOF }
 pub static FOLLOW_SET_START_NULLABLE_STAR: TerminalSet = TerminalSet {
     id: 2,
     terminals: &[TerminalId(3)],
-};
-// StartNullableStar : . start:NullableStar { }
-pub static FIRST_SET_START_NULLABLE_STAR_ALT0: TerminalSet = TerminalSet {
-    id: 3,
-    terminals: &[],
 };
 // StartNullableSeparated { EOF }
 pub static FOLLOW_SET_START_NULLABLE_SEPARATED: TerminalSet = TerminalSet {
     id: 2,
     terminals: &[TerminalId(3)],
 };
-// StartNullableSeparated : . start:NullableSeparated { }
-pub static FIRST_SET_START_NULLABLE_SEPARATED_ALT0: TerminalSet = TerminalSet {
-    id: 3,
-    terminals: &[],
-};
 // StartOptional { EOF }
 pub static FOLLOW_SET_START_OPTIONAL: TerminalSet = TerminalSet {
     id: 2,
     terminals: &[TerminalId(3)],
-};
-// StartOptional : . start:Optional { "b" }
-pub static FIRST_SET_START_OPTIONAL_ALT0: TerminalSet = TerminalSet {
-    id: 1,
-    terminals: &[TerminalId(0)],
 };
 // StartGrouped { EOF }
 pub static FOLLOW_SET_START_GROUPED: TerminalSet = TerminalSet {
     id: 2,
     terminals: &[TerminalId(3)],
 };
-// StartGrouped : . start:Grouped { "b" }
-pub static FIRST_SET_START_GROUPED_ALT0: TerminalSet = TerminalSet {
+// Direct prediction { "b" }
+pub static PREDICTION_SET_DIRECT: TerminalSet = TerminalSet {
     id: 1,
     terminals: &[TerminalId(0)],
 };
-// Direct { "b" }
-pub static FIRST_SET_DIRECT: TerminalSet = TerminalSet {
-    id: 6,
+// MutualC prediction { "b" }
+pub static PREDICTION_SET_MUTUAL_C: TerminalSet = TerminalSet {
+    id: 1,
     terminals: &[TerminalId(0)],
 };
-// MutualC { "b" }
-pub static FIRST_SET_MUTUAL_C: TerminalSet = TerminalSet {
-    id: 6,
+// MutualB prediction { "b" }
+pub static PREDICTION_SET_MUTUAL_B: TerminalSet = TerminalSet {
+    id: 1,
     terminals: &[TerminalId(0)],
 };
-// MutualB { "b" }
-pub static FIRST_SET_MUTUAL_B: TerminalSet = TerminalSet {
-    id: 6,
+// ChainC prediction { "b" }
+pub static PREDICTION_SET_CHAIN_C: TerminalSet = TerminalSet {
+    id: 1,
     terminals: &[TerminalId(0)],
 };
-// ChainC { "b" }
-pub static FIRST_SET_CHAIN_C: TerminalSet = TerminalSet {
-    id: 6,
+// ChainA prediction { "b" }
+pub static PREDICTION_SET_CHAIN_A: TerminalSet = TerminalSet {
+    id: 1,
     terminals: &[TerminalId(0)],
 };
-// ChainA { "b" }
-pub static FIRST_SET_CHAIN_A: TerminalSet = TerminalSet {
-    id: 6,
+// ChainB prediction { "b" }
+pub static PREDICTION_SET_CHAIN_B: TerminalSet = TerminalSet {
+    id: 1,
     terminals: &[TerminalId(0)],
 };
-// ChainB { "b" }
-pub static FIRST_SET_CHAIN_B: TerminalSet = TerminalSet {
-    id: 6,
-    terminals: &[TerminalId(0)],
-};
-// SharedS { }
-pub static FIRST_SET_SHARED_S: TerminalSet = TerminalSet {
-    id: 7,
-    terminals: &[],
+// SharedS prediction { EOF }
+pub static PREDICTION_SET_SHARED_S: TerminalSet = TerminalSet {
+    id: 2,
+    terminals: &[TerminalId(3)],
 };
 // SharedA prediction { EOF }
 pub static PREDICTION_SET_SHARED_A: TerminalSet = TerminalSet {
-    id: 8,
+    id: 2,
     terminals: &[TerminalId(3)],
 };
-// SharedA { }
-pub static FIRST_SET_SHARED_A: TerminalSet = TerminalSet {
-    id: 7,
-    terminals: &[],
+// SharedB prediction { EOF }
+pub static PREDICTION_SET_SHARED_B: TerminalSet = TerminalSet {
+    id: 2,
+    terminals: &[TerminalId(3)],
 };
-// SharedB { }
-pub static FIRST_SET_SHARED_B: TerminalSet = TerminalSet {
-    id: 7,
-    terminals: &[],
-};
-// TwoExitsC { "b" }
-pub static FIRST_SET_TWO_EXITS_C: TerminalSet = TerminalSet {
-    id: 6,
+// TwoExitsC prediction { "b" }
+pub static PREDICTION_SET_TWO_EXITS_C: TerminalSet = TerminalSet {
+    id: 1,
     terminals: &[TerminalId(0)],
 };
-// TwoExitsB { "b" }
-pub static FIRST_SET_TWO_EXITS_B: TerminalSet = TerminalSet {
-    id: 6,
+// TwoExitsB prediction { "b" }
+pub static PREDICTION_SET_TWO_EXITS_B: TerminalSet = TerminalSet {
+    id: 1,
     terminals: &[TerminalId(0)],
 };
-// TwoRoutesC { "b" }
-pub static FIRST_SET_TWO_ROUTES_C: TerminalSet = TerminalSet {
-    id: 6,
+// TwoRoutesC prediction { "b" }
+pub static PREDICTION_SET_TWO_ROUTES_C: TerminalSet = TerminalSet {
+    id: 1,
     terminals: &[TerminalId(0)],
 };
-// TwoRoutesA { "b" }
-pub static FIRST_SET_TWO_ROUTES_A: TerminalSet = TerminalSet {
-    id: 6,
+// TwoRoutesA prediction { "b" }
+pub static PREDICTION_SET_TWO_ROUTES_A: TerminalSet = TerminalSet {
+    id: 1,
     terminals: &[TerminalId(0)],
 };
-// TwoRoutesB { "b" }
-pub static FIRST_SET_TWO_ROUTES_B: TerminalSet = TerminalSet {
-    id: 6,
+// TwoRoutesB prediction { "b" }
+pub static PREDICTION_SET_TWO_ROUTES_B: TerminalSet = TerminalSet {
+    id: 1,
     terminals: &[TerminalId(0)],
 };
-// Nullable prediction { "b", "b", EOF }
+// Nullable prediction { "b", EOF }
 pub static PREDICTION_SET_NULLABLE: TerminalSet = TerminalSet {
-    id: 9,
-    terminals: &[TerminalId(0), TerminalId(0), TerminalId(3)],
+    id: 0,
+    terminals: &[TerminalId(0), TerminalId(3)],
 };
-// Nullable { "b" }
-pub static FIRST_SET_NULLABLE: TerminalSet = TerminalSet {
-    id: 6,
-    terminals: &[TerminalId(0)],
-};
-// SiblingC { "b" }
-pub static FIRST_SET_SIBLING_C: TerminalSet = TerminalSet {
-    id: 6,
+// SiblingC prediction { "b" }
+pub static PREDICTION_SET_SIBLING_C: TerminalSet = TerminalSet {
+    id: 1,
     terminals: &[TerminalId(0)],
 };
 // SiblingD prediction { EOF }
 pub static PREDICTION_SET_SIBLING_D: TerminalSet = TerminalSet {
-    id: 8,
+    id: 2,
     terminals: &[TerminalId(3)],
 };
-// SiblingD { }
-pub static FIRST_SET_SIBLING_D: TerminalSet = TerminalSet {
-    id: 7,
-    terminals: &[],
-};
-// EmptyE { }
-pub static FIRST_SET_EMPTY_E: TerminalSet = TerminalSet {
-    id: 7,
-    terminals: &[],
-};
-// EmptyF { }
-pub static FIRST_SET_EMPTY_F: TerminalSet = TerminalSet {
-    id: 7,
-    terminals: &[],
-};
-// ParentC { "a" }
-pub static FIRST_SET_PARENT_C: TerminalSet = TerminalSet {
-    id: 10,
+// ParentC prediction { "a" }
+pub static PREDICTION_SET_PARENT_C: TerminalSet = TerminalSet {
+    id: 4,
     terminals: &[TerminalId(1)],
 };
-// ParentD { "a" }
-pub static FIRST_SET_PARENT_D: TerminalSet = TerminalSet {
-    id: 10,
+// ParentD prediction { "a" }
+pub static PREDICTION_SET_PARENT_D: TerminalSet = TerminalSet {
+    id: 4,
     terminals: &[TerminalId(1)],
 };
-// OverlapC { "b" }
-pub static FIRST_SET_OVERLAP_C: TerminalSet = TerminalSet {
-    id: 6,
+// OverlapC prediction { "b" }
+pub static PREDICTION_SET_OVERLAP_C: TerminalSet = TerminalSet {
+    id: 1,
     terminals: &[TerminalId(0)],
 };
-// OverlapB { "b" }
-pub static FIRST_SET_OVERLAP_B: TerminalSet = TerminalSet {
-    id: 6,
+// OverlapB prediction { "b" }
+pub static PREDICTION_SET_OVERLAP_B: TerminalSet = TerminalSet {
+    id: 1,
     terminals: &[TerminalId(0)],
 };
-// IntermediateY { "a" }
-pub static FIRST_SET_INTERMEDIATE_Y: TerminalSet = TerminalSet {
-    id: 10,
+// IntermediateY prediction { "a" }
+pub static PREDICTION_SET_INTERMEDIATE_Y: TerminalSet = TerminalSet {
+    id: 4,
     terminals: &[TerminalId(1)],
 };
-// IntermediateA { }
-pub static FIRST_SET_INTERMEDIATE_A: TerminalSet = TerminalSet {
-    id: 7,
-    terminals: &[],
-};
-// IntermediateB prediction { "b", "b", EOF }
+// IntermediateB prediction { "b", EOF }
 pub static PREDICTION_SET_INTERMEDIATE_B: TerminalSet = TerminalSet {
-    id: 9,
-    terminals: &[TerminalId(0), TerminalId(0), TerminalId(3)],
+    id: 0,
+    terminals: &[TerminalId(0), TerminalId(3)],
 };
-// IntermediateB { "b" }
-pub static FIRST_SET_INTERMEDIATE_B: TerminalSet = TerminalSet {
-    id: 6,
+// MidInput prediction { "b" }
+pub static PREDICTION_SET_MID_INPUT: TerminalSet = TerminalSet {
+    id: 1,
     terminals: &[TerminalId(0)],
 };
-// MidInput { "b" }
-pub static FIRST_SET_MID_INPUT: TerminalSet = TerminalSet {
-    id: 6,
+// Consuming prediction { "b" }
+pub static PREDICTION_SET_CONSUMING: TerminalSet = TerminalSet {
+    id: 1,
     terminals: &[TerminalId(0)],
 };
-// Consuming { "b" }
-pub static FIRST_SET_CONSUMING: TerminalSet = TerminalSet {
-    id: 6,
-    terminals: &[TerminalId(0)],
+// NullablePlus prediction { EOF }
+pub static PREDICTION_SET_NULLABLE_PLUS: TerminalSet = TerminalSet {
+    id: 2,
+    terminals: &[TerminalId(3)],
 };
-// Ordinary { "b" }
-pub static FIRST_SET_ORDINARY: TerminalSet = TerminalSet {
-    id: 6,
-    terminals: &[TerminalId(0)],
+// NullableStar prediction { EOF }
+pub static PREDICTION_SET_NULLABLE_STAR: TerminalSet = TerminalSet {
+    id: 2,
+    terminals: &[TerminalId(3)],
 };
-// NullablePlus { }
-pub static FIRST_SET_NULLABLE_PLUS: TerminalSet = TerminalSet {
-    id: 7,
-    terminals: &[],
-};
-// NullableStar { }
-pub static FIRST_SET_NULLABLE_STAR: TerminalSet = TerminalSet {
-    id: 7,
-    terminals: &[],
-};
-// NullableSeparated { }
-pub static FIRST_SET_NULLABLE_SEPARATED: TerminalSet = TerminalSet {
-    id: 7,
-    terminals: &[],
+// NullableSeparated prediction { EOF }
+pub static PREDICTION_SET_NULLABLE_SEPARATED: TerminalSet = TerminalSet {
+    id: 2,
+    terminals: &[TerminalId(3)],
 };
 // Optional prediction { "b", EOF }
 pub static PREDICTION_SET_OPTIONAL: TerminalSet = TerminalSet {
-    id: 11,
+    id: 0,
     terminals: &[TerminalId(0), TerminalId(3)],
 };
-// Optional { "b" }
-pub static FIRST_SET_OPTIONAL: TerminalSet = TerminalSet {
-    id: 6,
-    terminals: &[TerminalId(0)],
-};
-// Grouped { "b" }
-pub static FIRST_SET_GROUPED: TerminalSet = TerminalSet {
-    id: 6,
+// Grouped prediction { "b" }
+pub static PREDICTION_SET_GROUPED: TerminalSet = TerminalSet {
+    id: 1,
     terminals: &[TerminalId(0)],
 };
 // Plus_0 prediction { EOF }
 pub static PREDICTION_SET_PLUS_0: TerminalSet = TerminalSet {
-    id: 8,
+    id: 2,
     terminals: &[TerminalId(3)],
-};
-// Plus_0 { }
-pub static FIRST_SET_PLUS_0: TerminalSet = TerminalSet {
-    id: 7,
-    terminals: &[],
 };
 // Opt_0 prediction { EOF }
 pub static PREDICTION_SET_OPT_0: TerminalSet = TerminalSet {
-    id: 8,
+    id: 2,
     terminals: &[TerminalId(3)],
 };
-// Opt_0 { }
-pub static FIRST_SET_OPT_0: TerminalSet = TerminalSet {
-    id: 7,
-    terminals: &[],
-};
-// Star_0 { }
-pub static FIRST_SET_STAR_0: TerminalSet = TerminalSet {
-    id: 7,
-    terminals: &[],
+// Star_0 prediction { EOF }
+pub static PREDICTION_SET_STAR_0: TerminalSet = TerminalSet {
+    id: 2,
+    terminals: &[TerminalId(3)],
 };
 // Plus_1 prediction { EOF }
 pub static PREDICTION_SET_PLUS_1: TerminalSet = TerminalSet {
-    id: 8,
+    id: 2,
     terminals: &[TerminalId(3)],
-};
-// Plus_1 { }
-pub static FIRST_SET_PLUS_1: TerminalSet = TerminalSet {
-    id: 7,
-    terminals: &[],
 };
 // Opt_1 prediction { "b", EOF }
 pub static PREDICTION_SET_OPT_1: TerminalSet = TerminalSet {
-    id: 11,
+    id: 0,
     terminals: &[TerminalId(0), TerminalId(3)],
 };
-// Opt_1 { "b" }
-pub static FIRST_SET_OPT_1: TerminalSet = TerminalSet {
-    id: 6,
+// Group_0 prediction { "b" }
+pub static PREDICTION_SET_GROUP_0: TerminalSet = TerminalSet {
+    id: 1,
     terminals: &[TerminalId(0)],
 };
-// Group_0 { "b" }
-pub static FIRST_SET_GROUP_0: TerminalSet = TerminalSet {
+// EmptyE { }
+pub static FIRST_SET_EMPTY_E: TerminalSet = TerminalSet {
     id: 6,
-    terminals: &[TerminalId(0)],
-};
-// StartDirect { "b" }
-pub static FIRST_SET_START_DIRECT: TerminalSet = TerminalSet {
-    id: 6,
-    terminals: &[TerminalId(0)],
-};
-// StartMutualC { "b" }
-pub static FIRST_SET_START_MUTUAL_C: TerminalSet = TerminalSet {
-    id: 6,
-    terminals: &[TerminalId(0)],
-};
-// StartMutualB { "b" }
-pub static FIRST_SET_START_MUTUAL_B: TerminalSet = TerminalSet {
-    id: 6,
-    terminals: &[TerminalId(0)],
-};
-// StartChainC { "b" }
-pub static FIRST_SET_START_CHAIN_C: TerminalSet = TerminalSet {
-    id: 6,
-    terminals: &[TerminalId(0)],
-};
-// StartChainA { "b" }
-pub static FIRST_SET_START_CHAIN_A: TerminalSet = TerminalSet {
-    id: 6,
-    terminals: &[TerminalId(0)],
-};
-// StartChainB { "b" }
-pub static FIRST_SET_START_CHAIN_B: TerminalSet = TerminalSet {
-    id: 6,
-    terminals: &[TerminalId(0)],
-};
-// StartSharedS { }
-pub static FIRST_SET_START_SHARED_S: TerminalSet = TerminalSet {
-    id: 7,
     terminals: &[],
 };
-// StartSharedA { }
-pub static FIRST_SET_START_SHARED_A: TerminalSet = TerminalSet {
-    id: 7,
+// EmptyF { }
+pub static FIRST_SET_EMPTY_F: TerminalSet = TerminalSet {
+    id: 6,
     terminals: &[],
 };
-// StartSharedB { }
-pub static FIRST_SET_START_SHARED_B: TerminalSet = TerminalSet {
-    id: 7,
+// IntermediateA { }
+pub static FIRST_SET_INTERMEDIATE_A: TerminalSet = TerminalSet {
+    id: 6,
     terminals: &[],
 };
-// StartTwoExitsC { "b" }
-pub static FIRST_SET_START_TWO_EXITS_C: TerminalSet = TerminalSet {
-    id: 6,
-    terminals: &[TerminalId(0)],
-};
-// StartTwoExitsB { "b" }
-pub static FIRST_SET_START_TWO_EXITS_B: TerminalSet = TerminalSet {
-    id: 6,
-    terminals: &[TerminalId(0)],
-};
-// StartTwoRoutesC { "b" }
-pub static FIRST_SET_START_TWO_ROUTES_C: TerminalSet = TerminalSet {
-    id: 6,
-    terminals: &[TerminalId(0)],
-};
-// StartTwoRoutesA { "b" }
-pub static FIRST_SET_START_TWO_ROUTES_A: TerminalSet = TerminalSet {
-    id: 6,
-    terminals: &[TerminalId(0)],
-};
-// StartTwoRoutesB { "b" }
-pub static FIRST_SET_START_TWO_ROUTES_B: TerminalSet = TerminalSet {
-    id: 6,
-    terminals: &[TerminalId(0)],
-};
-// StartNullable { "b" }
-pub static FIRST_SET_START_NULLABLE: TerminalSet = TerminalSet {
-    id: 6,
-    terminals: &[TerminalId(0)],
-};
-// StartSiblingC { "b" }
-pub static FIRST_SET_START_SIBLING_C: TerminalSet = TerminalSet {
-    id: 6,
-    terminals: &[TerminalId(0)],
-};
-// StartSiblingD { }
-pub static FIRST_SET_START_SIBLING_D: TerminalSet = TerminalSet {
+// Ordinary { "b" }
+pub static FIRST_SET_ORDINARY: TerminalSet = TerminalSet {
     id: 7,
-    terminals: &[],
+    terminals: &[TerminalId(0)],
 };
 // StartEmptyE { }
 pub static FIRST_SET_START_EMPTY_E: TerminalSet = TerminalSet {
-    id: 7,
+    id: 6,
     terminals: &[],
 };
 // StartEmptyF { }
 pub static FIRST_SET_START_EMPTY_F: TerminalSet = TerminalSet {
-    id: 7,
+    id: 6,
     terminals: &[],
-};
-// StartParentC { "a" }
-pub static FIRST_SET_START_PARENT_C: TerminalSet = TerminalSet {
-    id: 10,
-    terminals: &[TerminalId(1)],
-};
-// StartParentD { "a" }
-pub static FIRST_SET_START_PARENT_D: TerminalSet = TerminalSet {
-    id: 10,
-    terminals: &[TerminalId(1)],
-};
-// StartOverlapC { "b" }
-pub static FIRST_SET_START_OVERLAP_C: TerminalSet = TerminalSet {
-    id: 6,
-    terminals: &[TerminalId(0)],
-};
-// StartOverlapB { "b" }
-pub static FIRST_SET_START_OVERLAP_B: TerminalSet = TerminalSet {
-    id: 6,
-    terminals: &[TerminalId(0)],
-};
-// StartIntermediateY { "a" }
-pub static FIRST_SET_START_INTERMEDIATE_Y: TerminalSet = TerminalSet {
-    id: 10,
-    terminals: &[TerminalId(1)],
 };
 // StartIntermediateA { }
 pub static FIRST_SET_START_INTERMEDIATE_A: TerminalSet = TerminalSet {
-    id: 7,
+    id: 6,
     terminals: &[],
-};
-// StartIntermediateB { "b" }
-pub static FIRST_SET_START_INTERMEDIATE_B: TerminalSet = TerminalSet {
-    id: 6,
-    terminals: &[TerminalId(0)],
-};
-// StartMidInput { "b" }
-pub static FIRST_SET_START_MID_INPUT: TerminalSet = TerminalSet {
-    id: 6,
-    terminals: &[TerminalId(0)],
-};
-// StartConsuming { "b" }
-pub static FIRST_SET_START_CONSUMING: TerminalSet = TerminalSet {
-    id: 6,
-    terminals: &[TerminalId(0)],
 };
 // StartOrdinary { "b" }
 pub static FIRST_SET_START_ORDINARY: TerminalSet = TerminalSet {
-    id: 6,
-    terminals: &[TerminalId(0)],
-};
-// StartNullablePlus { }
-pub static FIRST_SET_START_NULLABLE_PLUS: TerminalSet = TerminalSet {
     id: 7,
-    terminals: &[],
-};
-// StartNullableStar { }
-pub static FIRST_SET_START_NULLABLE_STAR: TerminalSet = TerminalSet {
-    id: 7,
-    terminals: &[],
-};
-// StartNullableSeparated { }
-pub static FIRST_SET_START_NULLABLE_SEPARATED: TerminalSet = TerminalSet {
-    id: 7,
-    terminals: &[],
-};
-// StartOptional { "b" }
-pub static FIRST_SET_START_OPTIONAL: TerminalSet = TerminalSet {
-    id: 6,
-    terminals: &[TerminalId(0)],
-};
-// StartGrouped { "b" }
-pub static FIRST_SET_START_GROUPED: TerminalSet = TerminalSet {
-    id: 6,
     terminals: &[TerminalId(0)],
 };

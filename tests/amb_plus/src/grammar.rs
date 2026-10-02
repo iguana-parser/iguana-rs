@@ -74,90 +74,119 @@ impl Grammar for AmbPlusGrammar {
     const SLOTS: &'static [Slot] = &[
         Slot {
             display_name: "S : . A*",
+            position: 0,
         },
         Slot {
             display_name: "S : A*.",
+            position: 1,
         },
         Slot {
             display_name: "A : . X",
+            position: 0,
         },
         Slot {
             display_name: "A : X.",
+            position: 1,
         },
         Slot {
             display_name: "A : . Y",
+            position: 0,
         },
         Slot {
             display_name: "A : Y.",
+            position: 1,
         },
         Slot {
             display_name: "X : . \"a\"",
+            position: 0,
         },
         Slot {
             display_name: "X : \"a\".",
+            position: 1,
         },
         Slot {
             display_name: "Y : . \"a\" \"a\"",
+            position: 0,
         },
         Slot {
             display_name: "Y : \"a\" . \"a\"",
+            position: 1,
         },
         Slot {
             display_name: "Y : \"a\" \"a\".",
+            position: 2,
         },
         Slot {
             display_name: "A+ : . A+ A",
+            position: 0,
         },
         Slot {
             display_name: "A+ : A+ . A",
+            position: 1,
         },
         Slot {
             display_name: "A+ : A+ A.",
+            position: 2,
         },
         Slot {
             display_name: "A+ : . A",
+            position: 0,
         },
         Slot {
             display_name: "A+ : A.",
+            position: 1,
         },
         Slot {
             display_name: "A+? : . A+",
+            position: 0,
         },
         Slot {
             display_name: "A+? : A+.",
+            position: 1,
         },
         Slot {
             display_name: "A+? : .",
+            position: 0,
         },
         Slot {
             display_name: "A* : . A+?",
+            position: 0,
         },
         Slot {
             display_name: "A* : A+?.",
+            position: 1,
         },
         Slot {
             display_name: "S : . start:S",
+            position: 0,
         },
         Slot {
             display_name: "S : start:S.",
+            position: 1,
         },
         Slot {
             display_name: "A : . start:A",
+            position: 0,
         },
         Slot {
             display_name: "A : start:A.",
+            position: 1,
         },
         Slot {
             display_name: "X : . start:X",
+            position: 0,
         },
         Slot {
             display_name: "X : start:X.",
+            position: 1,
         },
         Slot {
             display_name: "Y : . start:Y",
+            position: 0,
         },
         Slot {
             display_name: "Y : start:Y.",
+            position: 1,
         },
     ];
     const LAYOUT_NAME: Option<&'static str> = None;
@@ -167,15 +196,15 @@ impl Grammar for AmbPlusGrammar {
     // by terminal id, serves only that.
     const SINGLE_TERMINAL_SETS: &'static [TerminalSet] = &[
         TerminalSet {
-            id: 6,
+            id: 5,
             terminals: &[TerminalId(0)],
         },
         TerminalSet {
-            id: 7,
+            id: 6,
             terminals: &[TerminalId(1)],
         },
         TerminalSet {
-            id: 8,
+            id: 7,
             terminals: &[TerminalId(2)],
         },
     ];
@@ -201,59 +230,44 @@ pub static FOLLOW_SET_S: TerminalSet = TerminalSet {
     id: 0,
     terminals: &[TerminalId(2)],
 };
-// S : . Star_0 { "a" }
-pub static FIRST_SET_S_ALT0: TerminalSet = TerminalSet {
-    id: 1,
-    terminals: &[TerminalId(0)],
-};
 // A { "a", EOF }
 pub static FOLLOW_SET_A: TerminalSet = TerminalSet {
-    id: 2,
+    id: 1,
     terminals: &[TerminalId(0), TerminalId(2)],
 };
 // A : . X { "a" }
 pub static FIRST_SET_A_ALT0: TerminalSet = TerminalSet {
-    id: 1,
+    id: 2,
     terminals: &[TerminalId(0)],
 };
 // A : . Y { "a" }
 pub static FIRST_SET_A_ALT1: TerminalSet = TerminalSet {
-    id: 1,
+    id: 2,
     terminals: &[TerminalId(0)],
 };
 // X { "a", EOF }
 pub static FOLLOW_SET_X: TerminalSet = TerminalSet {
-    id: 2,
-    terminals: &[TerminalId(0), TerminalId(2)],
-};
-// X : . "a" { "a" }
-pub static FIRST_SET_X_ALT0: TerminalSet = TerminalSet {
     id: 1,
-    terminals: &[TerminalId(0)],
+    terminals: &[TerminalId(0), TerminalId(2)],
 };
 // Y { "a", EOF }
 pub static FOLLOW_SET_Y: TerminalSet = TerminalSet {
-    id: 2,
-    terminals: &[TerminalId(0), TerminalId(2)],
-};
-// Y : . "a" "a" { "a" }
-pub static FIRST_SET_Y_ALT0: TerminalSet = TerminalSet {
     id: 1,
-    terminals: &[TerminalId(0)],
+    terminals: &[TerminalId(0), TerminalId(2)],
 };
 // Plus_0 { "a", EOF }
 pub static FOLLOW_SET_PLUS_0: TerminalSet = TerminalSet {
-    id: 2,
+    id: 1,
     terminals: &[TerminalId(0), TerminalId(2)],
 };
 // Plus_0 : . Plus_0 A { "a" }
 pub static FIRST_SET_PLUS_0_ALT0: TerminalSet = TerminalSet {
-    id: 1,
+    id: 2,
     terminals: &[TerminalId(0)],
 };
 // Plus_0 : . A { "a" }
 pub static FIRST_SET_PLUS_0_ALT1: TerminalSet = TerminalSet {
-    id: 1,
+    id: 2,
     terminals: &[TerminalId(0)],
 };
 // Opt_0 { EOF }
@@ -263,7 +277,7 @@ pub static FOLLOW_SET_OPT_0: TerminalSet = TerminalSet {
 };
 // Opt_0 : . Plus_0 { "a" }
 pub static FIRST_SET_OPT_0_ALT0: TerminalSet = TerminalSet {
-    id: 1,
+    id: 2,
     terminals: &[TerminalId(0)],
 };
 // Opt_0 : . { }
@@ -276,60 +290,50 @@ pub static FOLLOW_SET_STAR_0: TerminalSet = TerminalSet {
     id: 0,
     terminals: &[TerminalId(2)],
 };
-// Star_0 : . Opt_0 { "a" }
-pub static FIRST_SET_STAR_0_ALT0: TerminalSet = TerminalSet {
-    id: 1,
-    terminals: &[TerminalId(0)],
-};
 // StartS { EOF }
 pub static FOLLOW_SET_START_S: TerminalSet = TerminalSet {
     id: 0,
     terminals: &[TerminalId(2)],
-};
-// StartS : . start:S { "a" }
-pub static FIRST_SET_START_S_ALT0: TerminalSet = TerminalSet {
-    id: 1,
-    terminals: &[TerminalId(0)],
 };
 // StartA { EOF }
 pub static FOLLOW_SET_START_A: TerminalSet = TerminalSet {
     id: 0,
     terminals: &[TerminalId(2)],
 };
-// StartA : . start:A { "a" }
-pub static FIRST_SET_START_A_ALT0: TerminalSet = TerminalSet {
-    id: 1,
-    terminals: &[TerminalId(0)],
-};
 // StartX { EOF }
 pub static FOLLOW_SET_START_X: TerminalSet = TerminalSet {
     id: 0,
     terminals: &[TerminalId(2)],
-};
-// StartX : . start:X { "a" }
-pub static FIRST_SET_START_X_ALT0: TerminalSet = TerminalSet {
-    id: 1,
-    terminals: &[TerminalId(0)],
 };
 // StartY { EOF }
 pub static FOLLOW_SET_START_Y: TerminalSet = TerminalSet {
     id: 0,
     terminals: &[TerminalId(2)],
 };
-// StartY : . start:Y { "a" }
-pub static FIRST_SET_START_Y_ALT0: TerminalSet = TerminalSet {
+// S prediction { "a", EOF }
+pub static PREDICTION_SET_S: TerminalSet = TerminalSet {
     id: 1,
+    terminals: &[TerminalId(0), TerminalId(2)],
+};
+// A prediction { "a" }
+pub static PREDICTION_SET_A: TerminalSet = TerminalSet {
+    id: 2,
     terminals: &[TerminalId(0)],
 };
-// S { "a" }
-pub static FIRST_SET_S: TerminalSet = TerminalSet {
-    id: 4,
+// Plus_0 prediction { "a" }
+pub static PREDICTION_SET_PLUS_0: TerminalSet = TerminalSet {
+    id: 2,
     terminals: &[TerminalId(0)],
 };
-// A { "a" }
-pub static FIRST_SET_A: TerminalSet = TerminalSet {
-    id: 4,
-    terminals: &[TerminalId(0)],
+// Opt_0 prediction { "a", EOF }
+pub static PREDICTION_SET_OPT_0: TerminalSet = TerminalSet {
+    id: 1,
+    terminals: &[TerminalId(0), TerminalId(2)],
+};
+// Star_0 prediction { "a", EOF }
+pub static PREDICTION_SET_STAR_0: TerminalSet = TerminalSet {
+    id: 1,
+    terminals: &[TerminalId(0), TerminalId(2)],
 };
 // X { "a" }
 pub static FIRST_SET_X: TerminalSet = TerminalSet {
@@ -338,36 +342,6 @@ pub static FIRST_SET_X: TerminalSet = TerminalSet {
 };
 // Y { "a" }
 pub static FIRST_SET_Y: TerminalSet = TerminalSet {
-    id: 4,
-    terminals: &[TerminalId(0)],
-};
-// Plus_0 { "a" }
-pub static FIRST_SET_PLUS_0: TerminalSet = TerminalSet {
-    id: 4,
-    terminals: &[TerminalId(0)],
-};
-// Opt_0 prediction { "a", EOF }
-pub static PREDICTION_SET_OPT_0: TerminalSet = TerminalSet {
-    id: 5,
-    terminals: &[TerminalId(0), TerminalId(2)],
-};
-// Opt_0 { "a" }
-pub static FIRST_SET_OPT_0: TerminalSet = TerminalSet {
-    id: 4,
-    terminals: &[TerminalId(0)],
-};
-// Star_0 { "a" }
-pub static FIRST_SET_STAR_0: TerminalSet = TerminalSet {
-    id: 4,
-    terminals: &[TerminalId(0)],
-};
-// StartS { "a" }
-pub static FIRST_SET_START_S: TerminalSet = TerminalSet {
-    id: 4,
-    terminals: &[TerminalId(0)],
-};
-// StartA { "a" }
-pub static FIRST_SET_START_A: TerminalSet = TerminalSet {
     id: 4,
     terminals: &[TerminalId(0)],
 };
