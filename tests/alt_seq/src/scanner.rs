@@ -2,6 +2,7 @@
 
 use iguana_runtime::{
     arena::Arena,
+    char_set::{CharRange, CharSet},
     dfa::{Dfa, State},
     ids::TerminalId,
     input::Input,
@@ -43,6 +44,34 @@ static DFA_6: Dfa = Dfa::new(&[
     State::new(&[('f', 'f', 1)], None),
     State::new(&[], Some(TerminalId(6))),
 ]);
+static TERMINAL_FIRST_CHARS: [CharSet; 9] = [
+    CharSet::new(0x3ff000000000000, &[]),
+    CharSet::new(0x2000000000000000000000000, &[]),
+    CharSet::new(0x4000000000000000000000000, &[]),
+    CharSet::new(0x8000000000000000000000000, &[]),
+    CharSet::new(0x10000000000000000000000000, &[]),
+    CharSet::new(0x20000000000000000000000000, &[]),
+    CharSet::new(0x40000000000000000000000000, &[]),
+    CharSet::new(
+        0xffffffffffffffffffffffffffffffff,
+        &[CharRange {
+            start: '\u{80}',
+            end: '\u{10ffff}',
+        }],
+    ),
+    CharSet::new(0x0, &[]),
+];
+static MATCH_ANY_FIRST_CHARS: [CharSet; 9] = [
+    CharSet::new(0x0, &[]),
+    CharSet::new(0x4000000000000000000000000, &[]),
+    CharSet::new(0x30000000000000000000000000, &[]),
+    CharSet::new(0x3ff000000000000, &[]),
+    CharSet::new(0x40000000000000000000000000, &[]),
+    CharSet::new(0x2000000000000000000000000, &[]),
+    CharSet::new(0x8000000000000000000000000, &[]),
+    CharSet::new(0x10000000000000000000000000, &[]),
+    CharSet::new(0x20000000000000000000000000, &[]),
+];
 pub struct AltSeqScanner<'i, 'arena> {
     pub input: &'i Input,
     vec_arena: &'arena Arena,
@@ -96,6 +125,13 @@ impl<'i, 'arena> AltSeqScanner<'i, 'arena> {
             "terminal set {} does not have a match_any memo id",
             set.id,
         );
+        if self
+            .input
+            .char_at(input_index)
+            .is_some_and(|c| !MATCH_ANY_FIRST_CHARS[set.id].contains(c))
+        {
+            return false;
+        }
         if let Some(matched) = self.match_any_memo.get(set.id, input_index) {
             return matched;
         }
@@ -109,6 +145,13 @@ impl<'i, 'arena> AltSeqScanner<'i, 'arena> {
 }
 impl Scanner for AltSeqScanner<'_, '_> {
     fn match_token(&mut self, terminal_id: TerminalId, input_index: u32) -> Option<u32> {
+        if self
+            .input
+            .char_at(input_index)
+            .is_some_and(|c| !TERMINAL_FIRST_CHARS[terminal_id.index()].contains(c))
+        {
+            return None;
+        }
         if let Some(lookup) = self.memo.get(terminal_id, input_index) {
             return match lookup {
                 Lookup::Match(end) => Some(end),

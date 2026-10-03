@@ -4,7 +4,7 @@ use iguana_runtime::ids::TerminalId;
 use rustc_hash::{FxHashMap, FxHashSet};
 
 use super::nfa::{self, Nfa};
-use crate::grammar::regex::{CharClass, CharRange, Regex};
+use crate::grammar::regex::{CharRange, Regex};
 
 pub type StateId = usize;
 
@@ -38,42 +38,6 @@ impl Dfa {
     pub fn from_regex(regex: &Regex) -> Dfa {
         Dfa::from_nfa(&Nfa::from_regex(regex, TerminalId(0)))
     }
-}
-
-/// Complement of `ranges` over the Unicode scalar value space
-/// (`\0`..=`char::MAX`). Input may overlap; output is sorted and disjoint.
-fn complement(ranges: &[CharRange]) -> Vec<CharRange> {
-    let mut covered: Vec<(u32, u32)> = ranges
-        .iter()
-        .map(|r| (r.start as u32, r.end as u32))
-        .collect();
-    // The surrogate range U+D800..=U+DFFF has no `char` representation.
-    // Inject it as a fake-covered interval so the sweep skips over it,
-    // splitting the output into two segments around the hole instead of
-    // one that crosses it.
-    covered.push((0xD800, 0xDFFF));
-    covered.sort_by_key(|&(start, _)| start);
-
-    let mut result = Vec::new();
-    let mut cursor: u32 = 0;
-    for (start, end) in covered {
-        if cursor < start {
-            result.push(CharRange {
-                start: char::from_u32(cursor).unwrap(),
-                end: char::from_u32(start - 1).unwrap(),
-            });
-        }
-        if end + 1 > cursor {
-            cursor = end + 1;
-        }
-    }
-    if cursor <= char::MAX as u32 {
-        result.push(CharRange {
-            start: char::from_u32(cursor).unwrap(),
-            end: char::MAX,
-        });
-    }
-    result
 }
 
 /// Partition `ranges` (which may overlap) into a sorted list of disjoint
@@ -140,17 +104,6 @@ fn epsilon_closure(nfa: &Nfa, seeds: impl IntoIterator<Item = nfa::StateId>) -> 
     (0..nfa.num_states()).filter(|&i| in_closure[i]).collect()
 }
 
-/// `CharRange`s matched by `class`, with the negation flag applied: negated
-/// classes are flipped via `complement`, non-negated ones return their ranges
-/// unchanged.
-fn to_char_ranges(class: &CharClass) -> Vec<CharRange> {
-    if class.negated {
-        complement(&class.ranges)
-    } else {
-        class.ranges.clone()
-    }
-}
-
 struct DfaBuilder<'a> {
     nfa: &'a Nfa,
     /// Whether some state in `nfa.accepts` is reachable from each NFA state.
@@ -210,7 +163,7 @@ impl<'a> DfaBuilder<'a> {
         let outgoing: Vec<(Vec<CharRange>, nfa::StateId)> = nfa_set
             .iter()
             .flat_map(|&s| self.nfa.states[s].transitions.iter())
-            .map(|(class, t)| (to_char_ranges(class), *t))
+            .map(|(class, t)| (class.char_ranges(), *t))
             .collect();
         let all_ranges: Vec<CharRange> = outgoing
             .iter()
@@ -403,7 +356,7 @@ impl Dfa {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::grammar::regex::Regex;
+    use crate::grammar::regex::CharClass;
 
     fn cr(start: char, end: char) -> CharRange {
         CharRange { start, end }
@@ -433,34 +386,6 @@ mod tests {
     /// if a character has no transition.
     fn state_after<'a>(dfa: &'a Dfa, input: &str) -> Option<&'a State> {
         dfa.state_after(input).map(|id| &dfa.states[id])
-    }
-
-    #[test]
-    fn complement_of_empty_is_unicode_split_around_the_surrogate_gap() {
-        assert_eq!(
-            complement(&[]),
-            vec![cr('\0', '\u{D7FF}'), cr('\u{E000}', char::MAX)]
-        );
-    }
-
-    #[test]
-    fn complement_emits_low_middle_and_high_segments() {
-        assert_eq!(
-            complement(&[cr('a', 'c')]),
-            vec![
-                cr('\0', '`'),
-                cr('d', '\u{D7FF}'),
-                cr('\u{E000}', char::MAX),
-            ]
-        );
-    }
-
-    #[test]
-    fn complement_skips_segments_adjacent_to_the_surrogate_gap() {
-        assert_eq!(
-            complement(&[cr('\0', '\u{D7FF}')]),
-            vec![cr('\u{E000}', char::MAX)]
-        );
     }
 
     #[test]
@@ -519,31 +444,6 @@ mod tests {
             nfa::State::default(),
         ]);
         assert_eq!(epsilon_closure(&nfa, [0, 2]), vec![0, 1, 2, 3]);
-    }
-
-    #[test]
-    fn to_char_ranges_passes_non_negated_ranges_through() {
-        let class = CharClass {
-            ranges: vec![cr('a', 'c'), cr('x', 'z')],
-            negated: false,
-        };
-        assert_eq!(to_char_ranges(&class), vec![cr('a', 'c'), cr('x', 'z')]);
-    }
-
-    #[test]
-    fn to_char_ranges_complements_negated_ranges() {
-        let class = CharClass {
-            ranges: vec![cr('a', 'c')],
-            negated: true,
-        };
-        assert_eq!(
-            to_char_ranges(&class),
-            vec![
-                cr('\0', '`'),
-                cr('d', '\u{D7FF}'),
-                cr('\u{E000}', char::MAX),
-            ],
-        );
     }
 
     #[test]

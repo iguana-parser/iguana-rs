@@ -2,6 +2,7 @@
 
 use iguana_runtime::{
     arena::Arena,
+    char_set::{CharRange, CharSet},
     dfa::{Dfa, State},
     ids::TerminalId,
     input::Input,
@@ -68,6 +69,57 @@ static DFA_12: Dfa = Dfa::new(&[
     State::new(&[('a', 'a', 1)], None),
     State::new(&[], Some(TerminalId(12))),
 ]);
+static TERMINAL_FIRST_CHARS: [CharSet; 15] = [
+    CharSet::new(
+        0xffffffffffffffffffffffffffffffff,
+        &[CharRange {
+            start: '\u{80}',
+            end: '\u{10ffff}',
+        }],
+    ),
+    CharSet::new(0x400000000000, &[]),
+    CharSet::new(0x40000000000000000000000000, &[]),
+    CharSet::new(0x40000000000, &[]),
+    CharSet::new(0x80000000000, &[]),
+    CharSet::new(0x200000000000, &[]),
+    CharSet::new(0x200000000000000000000000000, &[]),
+    CharSet::new(0x100000000000000000000000000000, &[]),
+    CharSet::new(0x20000000000000000000000000, &[]),
+    CharSet::new(0x800000000000000, &[]),
+    CharSet::new(0x10000000000, &[]),
+    CharSet::new(0x20000000000, &[]),
+    CharSet::new(0x2000000000000000000000000, &[]),
+    CharSet::new(
+        0xffffffffffffffffffffffffffffffff,
+        &[CharRange {
+            start: '\u{80}',
+            end: '\u{10ffff}',
+        }],
+    ),
+    CharSet::new(0x0, &[]),
+];
+static MATCH_ANY_FIRST_CHARS: [CharSet; 8] = [
+    CharSet::new(
+        0xffffffffffffffffffffffffffffffff,
+        &[CharRange {
+            start: '\u{80}',
+            end: '\u{10ffff}',
+        }],
+    ),
+    CharSet::new(
+        0xffffffffffffffffffffffffffffffff,
+        &[CharRange {
+            start: '\u{80}',
+            end: '\u{10ffff}',
+        }],
+    ),
+    CharSet::new(0x202000000000000210000000000, &[]),
+    CharSet::new(0x200000000000, &[]),
+    CharSet::new(0x200000000000000000000000000, &[]),
+    CharSet::new(0x10000000000, &[]),
+    CharSet::new(0x2000000000000000000000000, &[]),
+    CharSet::new(0x0, &[]),
+];
 pub struct AmbiguousExprScanner<'i, 'arena> {
     pub input: &'i Input,
     vec_arena: &'arena Arena,
@@ -145,6 +197,13 @@ impl<'i, 'arena> AmbiguousExprScanner<'i, 'arena> {
             "terminal set {} does not have a match_any memo id",
             set.id,
         );
+        if self
+            .input
+            .char_at(input_index)
+            .is_some_and(|c| !MATCH_ANY_FIRST_CHARS[set.id].contains(c))
+        {
+            return false;
+        }
         if let Some(matched) = self.match_any_memo.get(set.id, input_index) {
             return matched;
         }
@@ -158,6 +217,13 @@ impl<'i, 'arena> AmbiguousExprScanner<'i, 'arena> {
 }
 impl Scanner for AmbiguousExprScanner<'_, '_> {
     fn match_token(&mut self, terminal_id: TerminalId, input_index: u32) -> Option<u32> {
+        if self
+            .input
+            .char_at(input_index)
+            .is_some_and(|c| !TERMINAL_FIRST_CHARS[terminal_id.index()].contains(c))
+        {
+            return None;
+        }
         if let Some(lookup) = self.memo.get(terminal_id, input_index) {
             return match lookup {
                 Lookup::Match(end) => Some(end),

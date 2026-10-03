@@ -1,4 +1,5 @@
 pub mod arena;
+pub mod char_set;
 pub mod cli;
 pub mod descriptor;
 pub mod dfa;

@@ -14,6 +14,7 @@ use crate::{
     },
     grammar::{
         def::Grammar,
+        first_chars::FirstChars,
         first_follow::FirstFollowSets,
         slot::Slot,
         symbols::{Definition, Symbol},
@@ -306,7 +307,15 @@ pub fn generate_sources(
 
     write_rust_file(
         post_process(
-            &scanner_gen::generate(grammar, &terminal_ids, match_any_count, &config).to_string(),
+            &scanner_gen::generate(
+                grammar,
+                &terminal_ids,
+                &FirstChars::new(grammar),
+                &terminal_sets,
+                match_any_count,
+                &config,
+            )
+            .to_string(),
         ),
         &scanner_path,
     )?;

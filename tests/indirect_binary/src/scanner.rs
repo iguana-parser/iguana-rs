@@ -2,6 +2,7 @@
 
 use iguana_runtime::{
     arena::Arena,
+    char_set::{CharRange, CharSet},
     dfa::{Dfa, State},
     ids::TerminalId,
     input::Input,
@@ -171,6 +172,355 @@ static DFA_39: Dfa = Dfa::new(&[
     State::new(&[('1', '1', 1)], None),
     State::new(&[], Some(TerminalId(39))),
 ]);
+static TERMINAL_FIRST_CHARS: [CharSet; 42] = [
+    CharSet::new(
+        0xffffffffffffffffffffffffffffffff,
+        &[CharRange {
+            start: '\u{80}',
+            end: '\u{10ffff}',
+        }],
+    ),
+    CharSet::new(
+        0xffffffffffffffffffffffffffffffff,
+        &[CharRange {
+            start: '\u{80}',
+            end: '\u{10ffff}',
+        }],
+    ),
+    CharSet::new(0x2000000000000000000000000, &[]),
+    CharSet::new(0x40000000000, &[]),
+    CharSet::new(0x80000000000, &[]),
+    CharSet::new(0x200000000000, &[]),
+    CharSet::new(0x4000000000000000000000000, &[]),
+    CharSet::new(0x400000000000000000000000, &[]),
+    CharSet::new(0x8000000000000000000000000, &[]),
+    CharSet::new(0x10000000000000000000000000, &[]),
+    CharSet::new(0x100000000000000000000000000000, &[]),
+    CharSet::new(0x8000000000000000, &[]),
+    CharSet::new(0x400000000000000, &[]),
+    CharSet::new(0x4000000000000000000000000000, &[]),
+    CharSet::new(0x2000000000, &[]),
+    CharSet::new(0x1000000000000000000000000000000, &[]),
+    CharSet::new(0x40000000000000000000000000000, &[]),
+    CharSet::new(0x4000000000000000, &[]),
+    CharSet::new(0x4000000000000000000000000000000, &[]),
+    CharSet::new(0x2000000000000000, &[]),
+    CharSet::new(0x20000000000000000000000000, &[]),
+    CharSet::new(0x4000000000, &[]),
+    CharSet::new(0x10000000000, &[]),
+    CharSet::new(0x20000000000, &[]),
+    CharSet::new(0x20000000000000000000000000000, &[]),
+    CharSet::new(0x800000000000, &[]),
+    CharSet::new(0x2000000000000000000000000000, &[]),
+    CharSet::new(0x40000000000000000000000000000000, &[]),
+    CharSet::new(0x40000000000000000000000000, &[]),
+    CharSet::new(0x200000000, &[]),
+    CharSet::new(0x10000000000000000000000000000, &[]),
+    CharSet::new(0x200000000000000000000000000000, &[]),
+    CharSet::new(0x400000000000000000000000000000, &[]),
+    CharSet::new(0x800000000000000000000000000000, &[]),
+    CharSet::new(0x400000000000000000000000000, &[]),
+    CharSet::new(0x800000000000000000000000000, &[]),
+    CharSet::new(0x80000000000000000000000000000, &[]),
+    CharSet::new(0x10000000000000000000000000000, &[]),
+    CharSet::new(0x800000000000000, &[]),
+    CharSet::new(0x2000000000000, &[]),
+    CharSet::new(
+        0xffffffffffffffffffffffffffffffff,
+        &[CharRange {
+            start: '\u{80}',
+            end: '\u{10ffff}',
+        }],
+    ),
+    CharSet::new(0x0, &[]),
+];
+static MATCH_ANY_FIRST_CHARS: [CharSet; 75] = [
+    CharSet::new(
+        0xffffffffffffffffffffffffffffffff,
+        &[CharRange {
+            start: '\u{80}',
+            end: '\u{10ffff}',
+        }],
+    ),
+    CharSet::new(
+        0xffffffffffffffffffffffffffffffff,
+        &[CharRange {
+            start: '\u{80}',
+            end: '\u{10ffff}',
+        }],
+    ),
+    CharSet::new(0x2000000000000000000000000, &[]),
+    CharSet::new(
+        0xffffffffffffffffffffffffffffffff,
+        &[CharRange {
+            start: '\u{80}',
+            end: '\u{10ffff}',
+        }],
+    ),
+    CharSet::new(0x4000000000000000000000000, &[]),
+    CharSet::new(0x8000000000000000000000000, &[]),
+    CharSet::new(0x10000000000000000000000000, &[]),
+    CharSet::new(0x18000000000000000000000000, &[]),
+    CharSet::new(
+        0xffffffffffffffffffffffffffffffff,
+        &[CharRange {
+            start: '\u{80}',
+            end: '\u{10ffff}',
+        }],
+    ),
+    CharSet::new(0x100000000000000000000000000000, &[]),
+    CharSet::new(
+        0xffffffffffffffffffffffffffffffff,
+        &[CharRange {
+            start: '\u{80}',
+            end: '\u{10ffff}',
+        }],
+    ),
+    CharSet::new(0x4000000000000000000000000000, &[]),
+    CharSet::new(
+        0xffffffffffffffffffffffffffffffff,
+        &[CharRange {
+            start: '\u{80}',
+            end: '\u{10ffff}',
+        }],
+    ),
+    CharSet::new(
+        0xffffffffffffffffffffffffffffffff,
+        &[CharRange {
+            start: '\u{80}',
+            end: '\u{10ffff}',
+        }],
+    ),
+    CharSet::new(0x40000000000000000000000000000, &[]),
+    CharSet::new(
+        0xffffffffffffffffffffffffffffffff,
+        &[CharRange {
+            start: '\u{80}',
+            end: '\u{10ffff}',
+        }],
+    ),
+    CharSet::new(0x4000000000000000000000000000000, &[]),
+    CharSet::new(
+        0xffffffffffffffffffffffffffffffff,
+        &[CharRange {
+            start: '\u{80}',
+            end: '\u{10ffff}',
+        }],
+    ),
+    CharSet::new(0x20000000000000000000000000, &[]),
+    CharSet::new(0x20000000000000010000000000, &[]),
+    CharSet::new(0x10000000000, &[]),
+    CharSet::new(
+        0xffffffffffffffffffffffffffffffff,
+        &[CharRange {
+            start: '\u{80}',
+            end: '\u{10ffff}',
+        }],
+    ),
+    CharSet::new(0x20000000000000000000000000000, &[]),
+    CharSet::new(
+        0xffffffffffffffffffffffffffffffff,
+        &[CharRange {
+            start: '\u{80}',
+            end: '\u{10ffff}',
+        }],
+    ),
+    CharSet::new(
+        0xffffffffffffffffffffffffffffffff,
+        &[CharRange {
+            start: '\u{80}',
+            end: '\u{10ffff}',
+        }],
+    ),
+    CharSet::new(0x2000000000000000000000000000, &[]),
+    CharSet::new(0x2040000000000000000000000000, &[]),
+    CharSet::new(0x40000000000000000000000000, &[]),
+    CharSet::new(
+        0xffffffffffffffffffffffffffffffff,
+        &[CharRange {
+            start: '\u{80}',
+            end: '\u{10ffff}',
+        }],
+    ),
+    CharSet::new(
+        0xffffffffffffffffffffffffffffffff,
+        &[CharRange {
+            start: '\u{80}',
+            end: '\u{10ffff}',
+        }],
+    ),
+    CharSet::new(0x10000000000000000000000000000, &[]),
+    CharSet::new(0x10000000000000000010000000000, &[]),
+    CharSet::new(
+        0xffffffffffffffffffffffffffffffff,
+        &[CharRange {
+            start: '\u{80}',
+            end: '\u{10ffff}',
+        }],
+    ),
+    CharSet::new(0x200000000000000000000000000000, &[]),
+    CharSet::new(
+        0xffffffffffffffffffffffffffffffff,
+        &[CharRange {
+            start: '\u{80}',
+            end: '\u{10ffff}',
+        }],
+    ),
+    CharSet::new(
+        0xffffffffffffffffffffffffffffffff,
+        &[CharRange {
+            start: '\u{80}',
+            end: '\u{10ffff}',
+        }],
+    ),
+    CharSet::new(
+        0xffffffffffffffffffffffffffffffff,
+        &[CharRange {
+            start: '\u{80}',
+            end: '\u{10ffff}',
+        }],
+    ),
+    CharSet::new(
+        0xffffffffffffffffffffffffffffffff,
+        &[CharRange {
+            start: '\u{80}',
+            end: '\u{10ffff}',
+        }],
+    ),
+    CharSet::new(0x400000000000000000000000000000, &[]),
+    CharSet::new(
+        0xffffffffffffffffffffffffffffffff,
+        &[CharRange {
+            start: '\u{80}',
+            end: '\u{10ffff}',
+        }],
+    ),
+    CharSet::new(
+        0xffffffffffffffffffffffffffffffff,
+        &[CharRange {
+            start: '\u{80}',
+            end: '\u{10ffff}',
+        }],
+    ),
+    CharSet::new(
+        0xffffffffffffffffffffffffffffffff,
+        &[CharRange {
+            start: '\u{80}',
+            end: '\u{10ffff}',
+        }],
+    ),
+    CharSet::new(
+        0xffffffffffffffffffffffffffffffff,
+        &[CharRange {
+            start: '\u{80}',
+            end: '\u{10ffff}',
+        }],
+    ),
+    CharSet::new(0x800000000000000000000000000000, &[]),
+    CharSet::new(
+        0xffffffffffffffffffffffffffffffff,
+        &[CharRange {
+            start: '\u{80}',
+            end: '\u{10ffff}',
+        }],
+    ),
+    CharSet::new(0x400000000000000000000000000, &[]),
+    CharSet::new(
+        0xffffffffffffffffffffffffffffffff,
+        &[CharRange {
+            start: '\u{80}',
+            end: '\u{10ffff}',
+        }],
+    ),
+    CharSet::new(0x800000000000000000000000000, &[]),
+    CharSet::new(0x800000000000000010000000000, &[]),
+    CharSet::new(0x80000000000000000000000000000, &[]),
+    CharSet::new(
+        0xffffffffffffffffffffffffffffffff,
+        &[CharRange {
+            start: '\u{80}',
+            end: '\u{10ffff}',
+        }],
+    ),
+    CharSet::new(0x6000000000000000000000000, &[]),
+    CharSet::new(0x10002000000000000000000000000, &[]),
+    CharSet::new(0x10000000000000000000000000000, &[]),
+    CharSet::new(
+        0xffffffffffffffffffffffffffffffff,
+        &[CharRange {
+            start: '\u{80}',
+            end: '\u{10ffff}',
+        }],
+    ),
+    CharSet::new(0x10006000000000000000000000000, &[]),
+    CharSet::new(
+        0xffffffffffffffffffffffffffffffff,
+        &[CharRange {
+            start: '\u{80}',
+            end: '\u{10ffff}',
+        }],
+    ),
+    CharSet::new(0x2000000000000200000000000, &[]),
+    CharSet::new(0x200000000000, &[]),
+    CharSet::new(0x6000000000000200000000000, &[]),
+    CharSet::new(
+        0xffffffffffffffffffffffffffffffff,
+        &[CharRange {
+            start: '\u{80}',
+            end: '\u{10ffff}',
+        }],
+    ),
+    CharSet::new(
+        0xffffffffffffffffffffffffffffffff,
+        &[CharRange {
+            start: '\u{80}',
+            end: '\u{10ffff}',
+        }],
+    ),
+    CharSet::new(0x200000000, &[]),
+    CharSet::new(0x0, &[]),
+    CharSet::new(
+        0xffffffffffffffffffffffffffffffff,
+        &[CharRange {
+            start: '\u{80}',
+            end: '\u{10ffff}',
+        }],
+    ),
+    CharSet::new(
+        0xffffffffffffffffffffffffffffffff,
+        &[CharRange {
+            start: '\u{80}',
+            end: '\u{10ffff}',
+        }],
+    ),
+    CharSet::new(
+        0xffffffffffffffffffffffffffffffff,
+        &[CharRange {
+            start: '\u{80}',
+            end: '\u{10ffff}',
+        }],
+    ),
+    CharSet::new(
+        0xffffffffffffffffffffffffffffffff,
+        &[CharRange {
+            start: '\u{80}',
+            end: '\u{10ffff}',
+        }],
+    ),
+    CharSet::new(0x2000000000000000200000000, &[]),
+    CharSet::new(0x1000000000000000000000000000000, &[]),
+    CharSet::new(0x1000000000000000002000000000000, &[]),
+    CharSet::new(0x2000000000000, &[]),
+    CharSet::new(
+        0xffffffffffffffffffffffffffffffff,
+        &[CharRange {
+            start: '\u{80}',
+            end: '\u{10ffff}',
+        }],
+    ),
+    CharSet::new(0x0, &[]),
+    CharSet::new(0x180000000000000000000000000000, &[]),
+];
 pub struct IndirectBinaryScanner<'i, 'arena> {
     pub input: &'i Input,
     vec_arena: &'arena Arena,
@@ -356,6 +706,13 @@ impl<'i, 'arena> IndirectBinaryScanner<'i, 'arena> {
             "terminal set {} does not have a match_any memo id",
             set.id,
         );
+        if self
+            .input
+            .char_at(input_index)
+            .is_some_and(|c| !MATCH_ANY_FIRST_CHARS[set.id].contains(c))
+        {
+            return false;
+        }
         if let Some(matched) = self.match_any_memo.get(set.id, input_index) {
             return matched;
         }
@@ -369,6 +726,13 @@ impl<'i, 'arena> IndirectBinaryScanner<'i, 'arena> {
 }
 impl Scanner for IndirectBinaryScanner<'_, '_> {
     fn match_token(&mut self, terminal_id: TerminalId, input_index: u32) -> Option<u32> {
+        if self
+            .input
+            .char_at(input_index)
+            .is_some_and(|c| !TERMINAL_FIRST_CHARS[terminal_id.index()].contains(c))
+        {
+            return None;
+        }
         if let Some(lookup) = self.memo.get(terminal_id, input_index) {
             return match lookup {
                 Lookup::Match(end) => Some(end),

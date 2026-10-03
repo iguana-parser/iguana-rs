@@ -3,10 +3,13 @@ use quote::{format_ident, quote};
 
 use crate::{
     dfa::{Dfa, Nfa},
-    generator::{GenConfig, grammar_utils::scanner_ident, id::TerminalIds},
+    generator::{
+        GenConfig, grammar_utils::scanner_ident, id::TerminalIds, terminal_sets::TerminalSet,
+    },
     grammar::{
         def::Grammar,
-        regex::Regex,
+        first_chars::FirstChars,
+        regex::{CharRange, Regex, merge_ranges},
         symbols::{Definition, Terminal},
     },
 };
@@ -14,6 +17,8 @@ use crate::{
 pub fn generate(
     grammar: &Grammar,
     terminal_ids: &TerminalIds,
+    first_chars: &FirstChars,
+    terminal_sets: &[TerminalSet],
     match_any_count: usize,
     config: &GenConfig,
 ) -> TokenStream {
@@ -23,6 +28,8 @@ pub fn generate(
     let memo_words = gen_memo_words_const(terminal_ids, config);
     let match_any_words = gen_match_any_words_const(match_any_count, config);
     let dfa_statics = gen_dfa_statics(grammar, terminal_ids);
+    let first_chars_statics =
+        gen_first_chars_statics(terminal_ids, first_chars, terminal_sets, match_any_count);
     let scanner_struct = gen_scanner_struct(grammar_name, config);
     let scanner_impl = gen_scanner_imp(grammar, terminal_ids, match_any_count, config);
     let scanner_trait_impl = gen_scanner_trait_impl(grammar, terminal_ids, config);
@@ -31,6 +38,7 @@ pub fn generate(
         #memo_words
         #match_any_words
         #dfa_statics
+        #first_chars_statics
         #scanner_struct
         #scanner_impl
         #scanner_trait_impl
@@ -50,6 +58,7 @@ fn gen_imports(config: &GenConfig) -> TokenStream {
     quote! {
         use iguana_runtime::{
             #arena_import
+            char_set::{CharRange, CharSet},
             dfa::{Dfa, State},
             ids::TerminalId,
             input::Input,
@@ -135,6 +144,79 @@ fn gen_dfa_statics(grammar: &Grammar, terminal_ids: &TerminalIds) -> TokenStream
     quote! {
         #(#statics)*
     }
+}
+
+/// Emits `TERMINAL_FIRST_CHARS`, the characters that can begin a match of
+/// each terminal, indexed by terminal id, and `MATCH_ANY_FIRST_CHARS`, the
+/// characters that can begin a match of a terminal of each `match_any` set,
+/// indexed by set id.
+///
+/// A nullable terminal matches at every position, so its entry is the full
+/// set, which contains every character, and the test always passes.
+fn gen_first_chars_statics(
+    terminal_ids: &TerminalIds,
+    first_chars: &FirstChars,
+    terminal_sets: &[TerminalSet],
+    match_any_count: usize,
+) -> TokenStream {
+    let all = vec![CharRange {
+        start: '\0',
+        end: char::MAX,
+    }];
+    let mut terminals: Vec<Vec<CharRange>> = terminal_ids
+        .terminals()
+        .map(|terminal| {
+            if first_chars.is_nullable(terminal) {
+                all.clone()
+            } else {
+                first_chars.first_chars(terminal).to_vec()
+            }
+        })
+        .collect();
+    // The synthetic epsilon and end-of-input terminals come after the grammar's
+    // terminals. The scanner never asks for epsilon. If it did, the full set
+    // would let the call reach the dispatch, which panics. The end-of-input
+    // terminal matches no character, and its entry is the empty set.
+    terminals.push(all);
+    terminals.push(vec![]);
+    let mut sets = vec![vec![]; match_any_count];
+    for set in terminal_sets.iter().filter(|set| set.id < match_any_count) {
+        let ranges = set
+            .terminals
+            .iter()
+            .flat_map(|terminal| &terminals[terminal_ids.get_id(terminal).index()])
+            .copied()
+            .collect();
+        sets[set.id] = merge_ranges(ranges);
+    }
+    let terminal_count = Literal::usize_unsuffixed(terminals.len());
+    let set_count = Literal::usize_unsuffixed(match_any_count);
+    let terminals = terminals.iter().map(|ranges| gen_char_set(ranges));
+    let sets = sets.iter().map(|ranges| gen_char_set(ranges));
+    quote! {
+        static TERMINAL_FIRST_CHARS: [CharSet; #terminal_count] = [#(#terminals),*];
+        static MATCH_ANY_FIRST_CHARS: [CharSet; #set_count] = [#(#sets),*];
+    }
+}
+
+/// Emits the `CharSet` of `ranges`, which are sorted and disjoint. The ASCII
+/// characters become the bitmask, and the other characters become ranges.
+fn gen_char_set(ranges: &[CharRange]) -> TokenStream {
+    let mut ascii: u128 = 0;
+    let mut non_ascii = Vec::new();
+    for range in ranges {
+        let (start, end) = (range.start as u32, range.end as u32);
+        for c in start..=end.min(127) {
+            ascii |= 1 << c;
+        }
+        if end >= 128 {
+            let start = range.start.max('\u{80}');
+            let end = range.end;
+            non_ascii.push(quote! { CharRange { start: #start, end: #end } });
+        }
+    }
+    let ascii: Literal = format!("{ascii:#x}").parse().unwrap();
+    quote! { CharSet::new(#ascii, &[#(#non_ascii),*]) }
 }
 
 fn gen_dfa_static(id: u16, dfa: &Dfa) -> TokenStream {
@@ -270,6 +352,9 @@ fn gen_match_exact_method(grammar: &Grammar, terminal_ids: &TerminalIds) -> Toke
 }
 
 fn gen_match_any_method(match_any_count: usize, config: &GenConfig) -> TokenStream {
+    // Both versions, with and without the memo, start with the set's
+    // first-character test. As in `match_token`, the test passes at the end of
+    // the input, where `char_at` is `None`.
     if config.match_memo {
         let match_any_count = Literal::usize_unsuffixed(match_any_count);
         quote! {
@@ -281,6 +366,13 @@ fn gen_match_any_method(match_any_count: usize, config: &GenConfig) -> TokenStre
                     "terminal set {} does not have a match_any memo id",
                     set.id,
                 );
+                if self
+                    .input
+                    .char_at(input_index)
+                    .is_some_and(|c| !MATCH_ANY_FIRST_CHARS[set.id].contains(c))
+                {
+                    return false;
+                }
                 if let Some(matched) = self.match_any_memo.get(set.id, input_index) {
                     return matched;
                 }
@@ -295,6 +387,13 @@ fn gen_match_any_method(match_any_count: usize, config: &GenConfig) -> TokenStre
     } else {
         quote! {
             pub fn match_any(&mut self, set: &TerminalSet, input_index: u32) -> bool {
+                if self
+                    .input
+                    .char_at(input_index)
+                    .is_some_and(|c| !MATCH_ANY_FIRST_CHARS[set.id].contains(c))
+                {
+                    return false;
+                }
                 set.terminals
                     .iter()
                     .any(|id| self.match_token(*id, input_index).is_some())
@@ -382,6 +481,15 @@ fn gen_match_token(terminal_ids: &TerminalIds, config: &GenConfig) -> TokenStrea
     };
     quote! {
         fn match_token(&mut self, terminal_id: TerminalId, input_index: u32) -> Option<u32> {
+            // `char_at` is `None` at the end of the input, where the test
+            // passes and the scan decides.
+            if self
+                .input
+                .char_at(input_index)
+                .is_some_and(|c| !TERMINAL_FIRST_CHARS[terminal_id.index()].contains(c))
+            {
+                return None;
+            }
             #match_token
         }
     }
@@ -446,5 +554,37 @@ fn gen_match_terminal_method(
             self.scan(&#dfa_name, input_index)
             #(#follow_restriction_checks)*
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn char_range(start: char, end: char) -> CharRange {
+        CharRange { start, end }
+    }
+
+    #[test]
+    fn gen_char_set_splits_a_range_at_the_end_of_ascii() {
+        let ascii: Literal = "0xffffffff000000000000000000000000".parse().unwrap();
+        let (start, end) = ('\u{80}', '\u{100}');
+        let expected = quote! {
+            CharSet::new(#ascii, &[CharRange { start: #start, end: #end }])
+        };
+        assert_eq!(
+            gen_char_set(&[char_range('`', '\u{100}')]).to_string(),
+            expected.to_string()
+        );
+    }
+
+    #[test]
+    fn gen_char_set_of_ascii_ranges_has_no_ranges_outside_ascii() {
+        let ascii: Literal = "0x3ff000000000000".parse().unwrap();
+        let expected = quote! { CharSet::new(#ascii, &[]) };
+        assert_eq!(
+            gen_char_set(&[char_range('0', '9')]).to_string(),
+            expected.to_string()
+        );
     }
 }

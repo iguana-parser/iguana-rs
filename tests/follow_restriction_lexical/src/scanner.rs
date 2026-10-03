@@ -2,6 +2,7 @@
 
 use iguana_runtime::{
     arena::Arena,
+    char_set::{CharRange, CharSet},
     dfa::{Dfa, State},
     ids::TerminalId,
     input::Input,
@@ -25,6 +26,46 @@ static DFA_3: Dfa = Dfa::new(&[
     State::new(&[(' ', ' ', 1)], Some(TerminalId(3))),
     State::new(&[(' ', ' ', 1)], Some(TerminalId(3))),
 ]);
+static TERMINAL_FIRST_CHARS: [CharSet; 6] = [
+    CharSet::new(0x3ff000000000000, &[]),
+    CharSet::new(0x7fffffe07fffffe0000000000000000, &[]),
+    CharSet::new(0x7fffffe07fffffe0000000000000000, &[]),
+    CharSet::new(
+        0xffffffffffffffffffffffffffffffff,
+        &[CharRange {
+            start: '\u{80}',
+            end: '\u{10ffff}',
+        }],
+    ),
+    CharSet::new(
+        0xffffffffffffffffffffffffffffffff,
+        &[CharRange {
+            start: '\u{80}',
+            end: '\u{10ffff}',
+        }],
+    ),
+    CharSet::new(0x0, &[]),
+];
+static MATCH_ANY_FIRST_CHARS: [CharSet; 6] = [
+    CharSet::new(
+        0xffffffffffffffffffffffffffffffff,
+        &[CharRange {
+            start: '\u{80}',
+            end: '\u{10ffff}',
+        }],
+    ),
+    CharSet::new(
+        0xffffffffffffffffffffffffffffffff,
+        &[CharRange {
+            start: '\u{80}',
+            end: '\u{10ffff}',
+        }],
+    ),
+    CharSet::new(0x3ff000000000000, &[]),
+    CharSet::new(0x7fffffe07fffffe0000000000000000, &[]),
+    CharSet::new(0x7fffffe07fffffe03ff000000000000, &[]),
+    CharSet::new(0x0, &[]),
+];
 pub struct FollowRestrictionLexicalScanner<'i, 'arena> {
     pub input: &'i Input,
     vec_arena: &'arena Arena,
@@ -67,6 +108,13 @@ impl<'i, 'arena> FollowRestrictionLexicalScanner<'i, 'arena> {
             "terminal set {} does not have a match_any memo id",
             set.id,
         );
+        if self
+            .input
+            .char_at(input_index)
+            .is_some_and(|c| !MATCH_ANY_FIRST_CHARS[set.id].contains(c))
+        {
+            return false;
+        }
         if let Some(matched) = self.match_any_memo.get(set.id, input_index) {
             return matched;
         }
@@ -80,6 +128,13 @@ impl<'i, 'arena> FollowRestrictionLexicalScanner<'i, 'arena> {
 }
 impl Scanner for FollowRestrictionLexicalScanner<'_, '_> {
     fn match_token(&mut self, terminal_id: TerminalId, input_index: u32) -> Option<u32> {
+        if self
+            .input
+            .char_at(input_index)
+            .is_some_and(|c| !TERMINAL_FIRST_CHARS[terminal_id.index()].contains(c))
+        {
+            return None;
+        }
         if let Some(lookup) = self.memo.get(terminal_id, input_index) {
             return match lookup {
                 Lookup::Match(end) => Some(end),

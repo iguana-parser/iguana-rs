@@ -2,6 +2,7 @@
 
 use iguana_runtime::{
     arena::Arena,
+    char_set::{CharRange, CharSet},
     dfa::{Dfa, State},
     ids::TerminalId,
     input::Input,
@@ -22,6 +23,24 @@ static DFA_2: Dfa = Dfa::new(&[
     State::new(&[('b', 'b', 1)], None),
     State::new(&[], Some(TerminalId(2))),
 ]);
+static TERMINAL_FIRST_CHARS: [CharSet; 5] = [
+    CharSet::new(0x2000000000000000000000000, &[]),
+    CharSet::new(0x2000000000000000000000000, &[]),
+    CharSet::new(0x4000000000000000000000000, &[]),
+    CharSet::new(
+        0xffffffffffffffffffffffffffffffff,
+        &[CharRange {
+            start: '\u{80}',
+            end: '\u{10ffff}',
+        }],
+    ),
+    CharSet::new(0x0, &[]),
+];
+static MATCH_ANY_FIRST_CHARS: [CharSet; 3] = [
+    CharSet::new(0x0, &[]),
+    CharSet::new(0x2000000000000000000000000, &[]),
+    CharSet::new(0x2000000000000000000000000, &[]),
+];
 pub struct Ll1PlusFollowPrefixScanner<'i, 'arena> {
     pub input: &'i Input,
     vec_arena: &'arena Arena,
@@ -59,6 +78,13 @@ impl<'i, 'arena> Ll1PlusFollowPrefixScanner<'i, 'arena> {
             "terminal set {} does not have a match_any memo id",
             set.id,
         );
+        if self
+            .input
+            .char_at(input_index)
+            .is_some_and(|c| !MATCH_ANY_FIRST_CHARS[set.id].contains(c))
+        {
+            return false;
+        }
         if let Some(matched) = self.match_any_memo.get(set.id, input_index) {
             return matched;
         }
@@ -72,6 +98,13 @@ impl<'i, 'arena> Ll1PlusFollowPrefixScanner<'i, 'arena> {
 }
 impl Scanner for Ll1PlusFollowPrefixScanner<'_, '_> {
     fn match_token(&mut self, terminal_id: TerminalId, input_index: u32) -> Option<u32> {
+        if self
+            .input
+            .char_at(input_index)
+            .is_some_and(|c| !TERMINAL_FIRST_CHARS[terminal_id.index()].contains(c))
+        {
+            return None;
+        }
         if let Some(lookup) = self.memo.get(terminal_id, input_index) {
             return match lookup {
                 Lookup::Match(end) => Some(end),
