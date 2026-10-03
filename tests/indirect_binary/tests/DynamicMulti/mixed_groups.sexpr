@@ -2,28 +2,8 @@
   WS
   (Amb
     (DynamicMulti
-      (DynamicMultiOperand
-        (DynamicMulti
-          #1=(DynamicMultiOperand
-            (DynamicMulti "a"))
-          WS
-          "+"
-          WS
-          (DynamicMultiOperand "b")))
-      WS
-      ";"
-      WS
-      #2=(DynamicMultiOperand
-        (DynamicMulti
-          (DynamicMultiOperand
-            (DynamicMulti "a"))
-          WS
-          "+"
-          WS
-          (DynamicMultiOperand
-            (DynamicMulti "a")))))
-    (DynamicMulti
-      #1#
+      #1=(DynamicMultiOperand
+        (DynamicMulti "a"))
       WS
       "+"
       WS
@@ -33,5 +13,25 @@
           WS
           ";"
           WS
-          #2#))))
+          #2=(DynamicMultiOperand
+            (DynamicMulti
+              (DynamicMultiOperand
+                (DynamicMulti "a"))
+              WS
+              "+"
+              WS
+              (DynamicMultiOperand
+                (DynamicMulti "a")))))))
+    (DynamicMulti
+      (DynamicMultiOperand
+        (DynamicMulti
+          #1#
+          WS
+          "+"
+          WS
+          (DynamicMultiOperand "b")))
+      WS
+      ";"
+      WS
+      #2#))
   WS)

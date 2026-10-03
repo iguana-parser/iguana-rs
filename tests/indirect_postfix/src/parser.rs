@@ -554,17 +554,17 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectPostfixParser<'i, 'arena> {
             }
             // E
             NonterminalId(5) => {
-                // E(p: i32) : . "a" return 0
-                if self.scanner.match_any(&FIRST_SET_E_ALT0, input_index) {
-                    self.add_first_descriptor(SlotId(18), input_index, gss_node_id, env);
+                // E(p: i32) : . [1 >= p] l_pr=Postfix(p) [(l_pr == 0) || (l_pr >= 1)] return 0
+                if self.scanner.match_any(&FIRST_SET_E_ALT2, input_index) {
+                    self.add_first_descriptor(SlotId(30), input_index, gss_node_id, env);
                 }
                 // E(p: i32) : . [2 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 2)] WS "+" WS E(2) return 2
                 if self.scanner.match_any(&FIRST_SET_E_ALT1, input_index) {
                     self.add_first_descriptor(SlotId(21), input_index, gss_node_id, env);
                 }
-                // E(p: i32) : . [1 >= p] l_pr=Postfix(p) [(l_pr == 0) || (l_pr >= 1)] return 0
-                if self.scanner.match_any(&FIRST_SET_E_ALT2, input_index) {
-                    self.add_first_descriptor(SlotId(30), input_index, gss_node_id, env);
+                // E(p: i32) : . "a" return 0
+                if self.scanner.match_any(&FIRST_SET_E_ALT0, input_index) {
+                    self.add_first_descriptor(SlotId(18), input_index, gss_node_id, env);
                 }
             }
             // Postfix(p: i32) : . l_pr=Body(p) WS "!" return l_pr

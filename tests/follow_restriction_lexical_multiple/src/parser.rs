@@ -350,28 +350,28 @@ impl<'i, 'arena> Parser<'i, 'arena> for FollowRestrictionLexicalMultipleParser<'
             }
             // Element
             NonterminalId(1) => {
-                // Element : . Num
-                if self.scanner.match_any(&FIRST_SET_ELEMENT_ALT0, input_index) {
-                    self.add_first_descriptor(SlotId(2), input_index, gss_node_id, env);
+                // Element : . Dot
+                if self.scanner.match_any(&FIRST_SET_ELEMENT_ALT2, input_index) {
+                    self.add_first_descriptor(SlotId(6), input_index, gss_node_id, env);
                 }
                 // Element : . Word
                 if self.scanner.match_any(&FIRST_SET_ELEMENT_ALT1, input_index) {
                     self.add_first_descriptor(SlotId(4), input_index, gss_node_id, env);
                 }
-                // Element : . Dot
-                if self.scanner.match_any(&FIRST_SET_ELEMENT_ALT2, input_index) {
-                    self.add_first_descriptor(SlotId(6), input_index, gss_node_id, env);
+                // Element : . Num
+                if self.scanner.match_any(&FIRST_SET_ELEMENT_ALT0, input_index) {
+                    self.add_first_descriptor(SlotId(2), input_index, gss_node_id, env);
                 }
             }
             // Plus_0
             NonterminalId(2) => {
-                // Plus_0 : . Plus_0 WS Element
-                if self.scanner.match_any(&FIRST_SET_PLUS_0_ALT0, input_index) {
-                    self.add_first_descriptor(SlotId(8), input_index, gss_node_id, env);
-                }
                 // Plus_0 : . Element
                 if self.scanner.match_any(&FIRST_SET_PLUS_0_ALT1, input_index) {
                     self.add_first_descriptor(SlotId(12), input_index, gss_node_id, env);
+                }
+                // Plus_0 : . Plus_0 WS Element
+                if self.scanner.match_any(&FIRST_SET_PLUS_0_ALT0, input_index) {
+                    self.add_first_descriptor(SlotId(8), input_index, gss_node_id, env);
                 }
             }
             // StartS : . WS start:S WS

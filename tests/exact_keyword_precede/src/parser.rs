@@ -337,13 +337,13 @@ impl<'i, 'arena> Parser<'i, 'arena> for ExactKeywordPrecedeParser<'i, 'arena> {
         match nonterminal_id {
             // S
             NonterminalId(0) => {
-                // S : . Num WS [0-9 A-Z _ a-z] !<< "else" !>> [0-9 A-Z _ a-z] WS Id WS ";"
-                if self.scanner.match_any(&FIRST_SET_S_ALT0, input_index) {
-                    self.add_first_descriptor(SlotId(0), input_index, gss_node_id, env);
-                }
                 // S : . Id WS ";"
                 if self.scanner.match_any(&FIRST_SET_S_ALT1, input_index) {
                     self.add_first_descriptor(SlotId(8), input_index, gss_node_id, env);
+                }
+                // S : . Num WS [0-9 A-Z _ a-z] !<< "else" !>> [0-9 A-Z _ a-z] WS Id WS ";"
+                if self.scanner.match_any(&FIRST_SET_S_ALT0, input_index) {
+                    self.add_first_descriptor(SlotId(0), input_index, gss_node_id, env);
                 }
             }
             // StartS : . WS start:S WS

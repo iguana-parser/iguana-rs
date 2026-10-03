@@ -189,15 +189,15 @@ impl<'i, 'arena> Parser<'i, 'arena> for OptParser<'i, 'arena> {
             }
             // Opt_0
             NonterminalId(2) => {
-                // Opt_0 : . A
-                if self.scanner.match_any(&FIRST_SET_OPT_0_ALT0, input_index) {
-                    self.add_first_descriptor(SlotId(4), input_index, gss_node_id, env);
-                }
                 // Opt_0 : .
                 if self.scanner.match_any(&FIRST_SET_OPT_0_ALT1, input_index)
                     || self.scanner.match_any(&FOLLOW_SET_OPT_0, input_index)
                 {
                     self.add_first_descriptor(SlotId(6), input_index, gss_node_id, env);
+                }
+                // Opt_0 : . A
+                if self.scanner.match_any(&FIRST_SET_OPT_0_ALT0, input_index) {
+                    self.add_first_descriptor(SlotId(4), input_index, gss_node_id, env);
                 }
             }
             // StartS : . start:S

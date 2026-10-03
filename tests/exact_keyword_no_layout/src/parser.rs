@@ -404,13 +404,13 @@ impl<'i, 'arena> Parser<'i, 'arena> for ExactKeywordNoLayoutParser<'i, 'arena> {
         match nonterminal_id {
             // S
             NonterminalId(0) => {
-                // S : . Word WS ";"
-                if self.scanner.match_any(&FIRST_SET_S_ALT0, input_index) {
-                    self.add_first_descriptor(SlotId(0), input_index, gss_node_id, env);
-                }
                 // S : . Id WS ";"
                 if self.scanner.match_any(&FIRST_SET_S_ALT1, input_index) {
                     self.add_first_descriptor(SlotId(4), input_index, gss_node_id, env);
+                }
+                // S : . Word WS ";"
+                if self.scanner.match_any(&FIRST_SET_S_ALT0, input_index) {
+                    self.add_first_descriptor(SlotId(0), input_index, gss_node_id, env);
                 }
             }
             // Word : . "@" "go" Plus_0
@@ -419,13 +419,13 @@ impl<'i, 'arena> Parser<'i, 'arena> for ExactKeywordNoLayoutParser<'i, 'arena> {
             }
             // Plus_0
             NonterminalId(2) => {
-                // Plus_0 : . Plus_0 Letter
-                if self.scanner.match_any(&FIRST_SET_PLUS_0_ALT0, input_index) {
-                    self.add_first_descriptor(SlotId(12), input_index, gss_node_id, env);
-                }
                 // Plus_0 : . Letter
                 if self.scanner.match_any(&FIRST_SET_PLUS_0_ALT1, input_index) {
                     self.add_first_descriptor(SlotId(15), input_index, gss_node_id, env);
+                }
+                // Plus_0 : . Plus_0 Letter
+                if self.scanner.match_any(&FIRST_SET_PLUS_0_ALT0, input_index) {
+                    self.add_first_descriptor(SlotId(12), input_index, gss_node_id, env);
                 }
             }
             // StartS : . WS start:S WS

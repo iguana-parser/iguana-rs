@@ -846,40 +846,40 @@ impl<'i, 'arena> Parser<'i, 'arena> for ExactKeywordParser<'i, 'arena> {
             }
             // Stmt
             NonterminalId(1) => {
-                // Stmt : . Expr WS ";"
-                if self.scanner.match_any(&FIRST_SET_STMT_ALT0, input_index) {
-                    self.add_first_descriptor(SlotId(2), input_index, gss_node_id, env);
+                // Stmt : . [0-9 A-Z _ a-z] !<< "assert" !>> [0-9 A-Z _ a-z] WS Expr WS ";"
+                if self.scanner.match_any(&FIRST_SET_STMT_ALT2, input_index) {
+                    self.add_first_descriptor(SlotId(18), input_index, gss_node_id, env);
                 }
                 // Stmt : . [0-9 A-Z _ a-z] !<< "if" !>> [0-9 A-Z _ a-z] WS "(" WS Expr WS ")" WS Stmt WS
                 // Opt_0
                 if self.scanner.match_any(&FIRST_SET_STMT_ALT1, input_index) {
                     self.add_first_descriptor(SlotId(6), input_index, gss_node_id, env);
                 }
-                // Stmt : . [0-9 A-Z _ a-z] !<< "assert" !>> [0-9 A-Z _ a-z] WS Expr WS ";"
-                if self.scanner.match_any(&FIRST_SET_STMT_ALT2, input_index) {
-                    self.add_first_descriptor(SlotId(18), input_index, gss_node_id, env);
+                // Stmt : . Expr WS ";"
+                if self.scanner.match_any(&FIRST_SET_STMT_ALT0, input_index) {
+                    self.add_first_descriptor(SlotId(2), input_index, gss_node_id, env);
                 }
             }
             // Expr
             NonterminalId(2) => {
-                // Expr : . Id
-                if self.scanner.match_any(&FIRST_SET_EXPR_ALT0, input_index) {
-                    self.add_first_descriptor(SlotId(24), input_index, gss_node_id, env);
-                }
                 // Expr : . Num
                 if self.scanner.match_any(&FIRST_SET_EXPR_ALT1, input_index) {
                     self.add_first_descriptor(SlotId(26), input_index, gss_node_id, env);
                 }
+                // Expr : . Id
+                if self.scanner.match_any(&FIRST_SET_EXPR_ALT0, input_index) {
+                    self.add_first_descriptor(SlotId(24), input_index, gss_node_id, env);
+                }
             }
             // Plus_0
             NonterminalId(3) => {
-                // Plus_0 : . Plus_0 WS Stmt
-                if self.scanner.match_any(&FIRST_SET_PLUS_0_ALT0, input_index) {
-                    self.add_first_descriptor(SlotId(28), input_index, gss_node_id, env);
-                }
                 // Plus_0 : . Stmt
                 if self.scanner.match_any(&FIRST_SET_PLUS_0_ALT1, input_index) {
                     self.add_first_descriptor(SlotId(32), input_index, gss_node_id, env);
+                }
+                // Plus_0 : . Plus_0 WS Stmt
+                if self.scanner.match_any(&FIRST_SET_PLUS_0_ALT0, input_index) {
+                    self.add_first_descriptor(SlotId(28), input_index, gss_node_id, env);
                 }
             }
             // Group_0 : . [0-9 A-Z _ a-z] !<< "else" !>> [0-9 A-Z _ a-z] WS Stmt
@@ -888,15 +888,15 @@ impl<'i, 'arena> Parser<'i, 'arena> for ExactKeywordParser<'i, 'arena> {
             }
             // Opt_0
             NonterminalId(5) => {
-                // Opt_0 : . Group_0
-                if self.scanner.match_any(&FIRST_SET_OPT_0_ALT0, input_index) {
-                    self.add_first_descriptor(SlotId(38), input_index, gss_node_id, env);
-                }
                 // Opt_0 : .
                 if self.scanner.match_any(&FIRST_SET_OPT_0_ALT1, input_index)
                     || self.scanner.match_any(&FOLLOW_SET_OPT_0, input_index)
                 {
                     self.add_first_descriptor(SlotId(40), input_index, gss_node_id, env);
+                }
+                // Opt_0 : . Group_0
+                if self.scanner.match_any(&FIRST_SET_OPT_0_ALT0, input_index) {
+                    self.add_first_descriptor(SlotId(38), input_index, gss_node_id, env);
                 }
             }
             // StartProgram : . WS start:Program WS

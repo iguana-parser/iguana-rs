@@ -660,7 +660,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for ErrorUnionParser<'i, 'arena> {
                         };
                         self.pop(gss_node_id, SlotId(45), result, None, &FOLLOW_SET_BEFORE_Q);
                     }
-                    // UnexpectedFirst : . Identifier \ Keyword
+                    // UnexpectedFirst : . Identifier "!"
                     SlotId(46) => {
                         if let Some((j, right_child)) = self.match_terminal(
                             TerminalId(2),
@@ -668,63 +668,63 @@ impl<'i, 'arena> Parser<'i, 'arena> for ErrorUnionParser<'i, 'arena> {
                             SlotId(46),
                             Some(gss_node_id),
                         ) {
-                            if let Some(failure) = self.post_conditions(SlotId(47), input_index, j)
+                            // UnexpectedFirst : Identifier . "!"
+                            input_index = j;
+                            result = Some(right_child);
+                            next = Some(SlotId(47));
+                        }
+                    }
+                    // UnexpectedFirst : Identifier . "!"
+                    SlotId(47) => {
+                        if let Some((j, right_child)) = self.match_terminal(
+                            TerminalId(13),
+                            input_index,
+                            SlotId(47),
+                            Some(gss_node_id),
+                        ) {
+                            if let Some(new_node) =
+                                self.create_intermediate_node(result, right_child, SlotId(48), env)
                             {
-                                self.add_failure(j, SlotId(47), Some(gss_node_id), failure);
-                            } else {
-                                // UnexpectedFirst : Identifier \ Keyword.
+                                // UnexpectedFirst : Identifier "!".
                                 input_index = j;
-                                result = Some(right_child);
-                                next = Some(SlotId(47));
+                                result = Some(new_node);
+                                next = Some(SlotId(48));
                             }
                         }
                     }
-                    // UnexpectedFirst : Identifier \ Keyword.
-                    SlotId(47) => {
+                    // UnexpectedFirst : Identifier "!".
+                    SlotId(48) => {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
                         self.pop(
                             gss_node_id,
-                            SlotId(47),
+                            SlotId(48),
                             result,
                             None,
                             &FOLLOW_SET_UNEXPECTED_FIRST,
                         );
                     }
-                    // UnexpectedFirst : . Identifier "!"
-                    SlotId(48) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(2),
-                            input_index,
-                            SlotId(48),
-                            Some(gss_node_id),
-                        ) {
-                            // UnexpectedFirst : Identifier . "!"
-                            input_index = j;
-                            result = Some(right_child);
-                            next = Some(SlotId(49));
-                        }
-                    }
-                    // UnexpectedFirst : Identifier . "!"
+                    // UnexpectedFirst : . Identifier \ Keyword
                     SlotId(49) => {
                         if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(13),
+                            TerminalId(2),
                             input_index,
                             SlotId(49),
                             Some(gss_node_id),
                         ) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(50), env)
+                            if let Some(failure) = self.post_conditions(SlotId(50), input_index, j)
                             {
-                                // UnexpectedFirst : Identifier "!".
+                                self.add_failure(j, SlotId(50), Some(gss_node_id), failure);
+                            } else {
+                                // UnexpectedFirst : Identifier \ Keyword.
                                 input_index = j;
-                                result = Some(new_node);
+                                result = Some(right_child);
                                 next = Some(SlotId(50));
                             }
                         }
                     }
-                    // UnexpectedFirst : Identifier "!".
+                    // UnexpectedFirst : Identifier \ Keyword.
                     SlotId(50) => {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
@@ -737,7 +737,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for ErrorUnionParser<'i, 'arena> {
                             &FOLLOW_SET_UNEXPECTED_FIRST,
                         );
                     }
-                    // ExcludedFirst : . Identifier "!"
+                    // ExcludedFirst : . Identifier \ Keyword
                     SlotId(51) => {
                         if let Some((j, right_child)) = self.match_terminal(
                             TerminalId(2),
@@ -745,63 +745,63 @@ impl<'i, 'arena> Parser<'i, 'arena> for ErrorUnionParser<'i, 'arena> {
                             SlotId(51),
                             Some(gss_node_id),
                         ) {
-                            // ExcludedFirst : Identifier . "!"
-                            input_index = j;
-                            result = Some(right_child);
-                            next = Some(SlotId(52));
-                        }
-                    }
-                    // ExcludedFirst : Identifier . "!"
-                    SlotId(52) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(13),
-                            input_index,
-                            SlotId(52),
-                            Some(gss_node_id),
-                        ) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(53), env)
+                            if let Some(failure) = self.post_conditions(SlotId(52), input_index, j)
                             {
-                                // ExcludedFirst : Identifier "!".
+                                self.add_failure(j, SlotId(52), Some(gss_node_id), failure);
+                            } else {
+                                // ExcludedFirst : Identifier \ Keyword.
                                 input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(53));
+                                result = Some(right_child);
+                                next = Some(SlotId(52));
                             }
                         }
                     }
-                    // ExcludedFirst : Identifier "!".
-                    SlotId(53) => {
+                    // ExcludedFirst : Identifier \ Keyword.
+                    SlotId(52) => {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
                         self.pop(
                             gss_node_id,
-                            SlotId(53),
+                            SlotId(52),
                             result,
                             None,
                             &FOLLOW_SET_EXCLUDED_FIRST,
                         );
                     }
-                    // ExcludedFirst : . Identifier \ Keyword
-                    SlotId(54) => {
+                    // ExcludedFirst : . Identifier "!"
+                    SlotId(53) => {
                         if let Some((j, right_child)) = self.match_terminal(
                             TerminalId(2),
+                            input_index,
+                            SlotId(53),
+                            Some(gss_node_id),
+                        ) {
+                            // ExcludedFirst : Identifier . "!"
+                            input_index = j;
+                            result = Some(right_child);
+                            next = Some(SlotId(54));
+                        }
+                    }
+                    // ExcludedFirst : Identifier . "!"
+                    SlotId(54) => {
+                        if let Some((j, right_child)) = self.match_terminal(
+                            TerminalId(13),
                             input_index,
                             SlotId(54),
                             Some(gss_node_id),
                         ) {
-                            if let Some(failure) = self.post_conditions(SlotId(55), input_index, j)
+                            if let Some(new_node) =
+                                self.create_intermediate_node(result, right_child, SlotId(55), env)
                             {
-                                self.add_failure(j, SlotId(55), Some(gss_node_id), failure);
-                            } else {
-                                // ExcludedFirst : Identifier \ Keyword.
+                                // ExcludedFirst : Identifier "!".
                                 input_index = j;
-                                result = Some(right_child);
+                                result = Some(new_node);
                                 next = Some(SlotId(55));
                             }
                         }
                     }
-                    // ExcludedFirst : Identifier \ Keyword.
+                    // ExcludedFirst : Identifier "!".
                     SlotId(55) => {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
@@ -814,7 +814,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for ErrorUnionParser<'i, 'arena> {
                             &FOLLOW_SET_EXCLUDED_FIRST,
                         );
                     }
-                    // PredictionBeforeExcept : . Identifier \ Keyword
+                    // PredictionBeforeExcept : . Identifier MissingSuffix
                     SlotId(56) => {
                         if let Some((j, right_child)) = self.match_terminal(
                             TerminalId(2),
@@ -822,56 +822,56 @@ impl<'i, 'arena> Parser<'i, 'arena> for ErrorUnionParser<'i, 'arena> {
                             SlotId(56),
                             Some(gss_node_id),
                         ) {
-                            if let Some(failure) = self.post_conditions(SlotId(57), input_index, j)
-                            {
-                                self.add_failure(j, SlotId(57), Some(gss_node_id), failure);
-                            } else {
-                                // PredictionBeforeExcept : Identifier \ Keyword.
-                                input_index = j;
-                                result = Some(right_child);
-                                next = Some(SlotId(57));
-                            }
-                        }
-                    }
-                    // PredictionBeforeExcept : Identifier \ Keyword.
-                    SlotId(57) => {
-                        let Some(result) = result else {
-                            unreachable!("result cannot be None here.")
-                        };
-                        self.pop(
-                            gss_node_id,
-                            SlotId(57),
-                            result,
-                            None,
-                            &FOLLOW_SET_PREDICTION_BEFORE_EXCEPT,
-                        );
-                    }
-                    // PredictionBeforeExcept : . Identifier MissingSuffix
-                    SlotId(58) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(2),
-                            input_index,
-                            SlotId(58),
-                            Some(gss_node_id),
-                        ) {
                             // PredictionBeforeExcept : Identifier . MissingSuffix
                             input_index = j;
                             result = Some(right_child);
-                            next = Some(SlotId(59));
+                            next = Some(SlotId(57));
                         }
                     }
                     // PredictionBeforeExcept : Identifier . MissingSuffix
-                    SlotId(59) => {
+                    SlotId(57) => {
                         self.create(
                             NonterminalId(12),
                             &PREDICTION_SET_MISSING_SUFFIX,
                             result,
                             gss_node_id,
-                            SlotId(60),
+                            SlotId(58),
                             env,
                         );
                     }
                     // PredictionBeforeExcept : Identifier MissingSuffix.
+                    SlotId(58) => {
+                        let Some(result) = result else {
+                            unreachable!("result cannot be None here.")
+                        };
+                        self.pop(
+                            gss_node_id,
+                            SlotId(58),
+                            result,
+                            None,
+                            &FOLLOW_SET_PREDICTION_BEFORE_EXCEPT,
+                        );
+                    }
+                    // PredictionBeforeExcept : . Identifier \ Keyword
+                    SlotId(59) => {
+                        if let Some((j, right_child)) = self.match_terminal(
+                            TerminalId(2),
+                            input_index,
+                            SlotId(59),
+                            Some(gss_node_id),
+                        ) {
+                            if let Some(failure) = self.post_conditions(SlotId(60), input_index, j)
+                            {
+                                self.add_failure(j, SlotId(60), Some(gss_node_id), failure);
+                            } else {
+                                // PredictionBeforeExcept : Identifier \ Keyword.
+                                input_index = j;
+                                result = Some(right_child);
+                                next = Some(SlotId(60));
+                            }
+                        }
+                    }
+                    // PredictionBeforeExcept : Identifier \ Keyword.
                     SlotId(60) => {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
@@ -884,7 +884,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for ErrorUnionParser<'i, 'arena> {
                             &FOLLOW_SET_PREDICTION_BEFORE_EXCEPT,
                         );
                     }
-                    // ExceptBeforePrediction : . Identifier MissingSuffix
+                    // ExceptBeforePrediction : . Identifier \ Keyword
                     SlotId(61) => {
                         if let Some((j, right_child)) = self.match_terminal(
                             TerminalId(2),
@@ -892,56 +892,56 @@ impl<'i, 'arena> Parser<'i, 'arena> for ErrorUnionParser<'i, 'arena> {
                             SlotId(61),
                             Some(gss_node_id),
                         ) {
-                            // ExceptBeforePrediction : Identifier . MissingSuffix
-                            input_index = j;
-                            result = Some(right_child);
-                            next = Some(SlotId(62));
+                            if let Some(failure) = self.post_conditions(SlotId(62), input_index, j)
+                            {
+                                self.add_failure(j, SlotId(62), Some(gss_node_id), failure);
+                            } else {
+                                // ExceptBeforePrediction : Identifier \ Keyword.
+                                input_index = j;
+                                result = Some(right_child);
+                                next = Some(SlotId(62));
+                            }
                         }
                     }
-                    // ExceptBeforePrediction : Identifier . MissingSuffix
+                    // ExceptBeforePrediction : Identifier \ Keyword.
                     SlotId(62) => {
-                        self.create(
-                            NonterminalId(12),
-                            &PREDICTION_SET_MISSING_SUFFIX,
-                            result,
-                            gss_node_id,
-                            SlotId(63),
-                            env,
-                        );
-                    }
-                    // ExceptBeforePrediction : Identifier MissingSuffix.
-                    SlotId(63) => {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
                         self.pop(
                             gss_node_id,
-                            SlotId(63),
+                            SlotId(62),
                             result,
                             None,
                             &FOLLOW_SET_EXCEPT_BEFORE_PREDICTION,
                         );
                     }
-                    // ExceptBeforePrediction : . Identifier \ Keyword
-                    SlotId(64) => {
+                    // ExceptBeforePrediction : . Identifier MissingSuffix
+                    SlotId(63) => {
                         if let Some((j, right_child)) = self.match_terminal(
                             TerminalId(2),
                             input_index,
-                            SlotId(64),
+                            SlotId(63),
                             Some(gss_node_id),
                         ) {
-                            if let Some(failure) = self.post_conditions(SlotId(65), input_index, j)
-                            {
-                                self.add_failure(j, SlotId(65), Some(gss_node_id), failure);
-                            } else {
-                                // ExceptBeforePrediction : Identifier \ Keyword.
-                                input_index = j;
-                                result = Some(right_child);
-                                next = Some(SlotId(65));
-                            }
+                            // ExceptBeforePrediction : Identifier . MissingSuffix
+                            input_index = j;
+                            result = Some(right_child);
+                            next = Some(SlotId(64));
                         }
                     }
-                    // ExceptBeforePrediction : Identifier \ Keyword.
+                    // ExceptBeforePrediction : Identifier . MissingSuffix
+                    SlotId(64) => {
+                        self.create(
+                            NonterminalId(12),
+                            &PREDICTION_SET_MISSING_SUFFIX,
+                            result,
+                            gss_node_id,
+                            SlotId(65),
+                            env,
+                        );
+                    }
+                    // ExceptBeforePrediction : Identifier MissingSuffix.
                     SlotId(65) => {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
@@ -954,7 +954,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for ErrorUnionParser<'i, 'arena> {
                             &FOLLOW_SET_EXCEPT_BEFORE_PREDICTION,
                         );
                     }
-                    // PredictionBeforeFollow : . Identifier !>> Question Question
+                    // PredictionBeforeFollow : . Identifier MissingSuffix
                     SlotId(66) => {
                         if let Some((j, right_child)) = self.match_terminal(
                             TerminalId(2),
@@ -962,36 +962,24 @@ impl<'i, 'arena> Parser<'i, 'arena> for ErrorUnionParser<'i, 'arena> {
                             SlotId(66),
                             Some(gss_node_id),
                         ) {
-                            if let Some(failure) = self.post_conditions(SlotId(67), input_index, j)
-                            {
-                                self.add_failure(j, SlotId(67), Some(gss_node_id), failure);
-                            } else {
-                                // PredictionBeforeFollow : Identifier !>> Question . Question
-                                input_index = j;
-                                result = Some(right_child);
-                                next = Some(SlotId(67));
-                            }
+                            // PredictionBeforeFollow : Identifier . MissingSuffix
+                            input_index = j;
+                            result = Some(right_child);
+                            next = Some(SlotId(67));
                         }
                     }
-                    // PredictionBeforeFollow : Identifier !>> Question . Question
+                    // PredictionBeforeFollow : Identifier . MissingSuffix
                     SlotId(67) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(0),
-                            input_index,
-                            SlotId(67),
-                            Some(gss_node_id),
-                        ) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(68), env)
-                            {
-                                // PredictionBeforeFollow : Identifier !>> Question Question.
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(68));
-                            }
-                        }
+                        self.create(
+                            NonterminalId(12),
+                            &PREDICTION_SET_MISSING_SUFFIX,
+                            result,
+                            gss_node_id,
+                            SlotId(68),
+                            env,
+                        );
                     }
-                    // PredictionBeforeFollow : Identifier !>> Question Question.
+                    // PredictionBeforeFollow : Identifier MissingSuffix.
                     SlotId(68) => {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
@@ -1004,7 +992,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for ErrorUnionParser<'i, 'arena> {
                             &FOLLOW_SET_PREDICTION_BEFORE_FOLLOW,
                         );
                     }
-                    // PredictionBeforeFollow : . Identifier MissingSuffix
+                    // PredictionBeforeFollow : . Identifier !>> Question Question
                     SlotId(69) => {
                         if let Some((j, right_child)) = self.match_terminal(
                             TerminalId(2),
@@ -1012,24 +1000,36 @@ impl<'i, 'arena> Parser<'i, 'arena> for ErrorUnionParser<'i, 'arena> {
                             SlotId(69),
                             Some(gss_node_id),
                         ) {
-                            // PredictionBeforeFollow : Identifier . MissingSuffix
-                            input_index = j;
-                            result = Some(right_child);
-                            next = Some(SlotId(70));
+                            if let Some(failure) = self.post_conditions(SlotId(70), input_index, j)
+                            {
+                                self.add_failure(j, SlotId(70), Some(gss_node_id), failure);
+                            } else {
+                                // PredictionBeforeFollow : Identifier !>> Question . Question
+                                input_index = j;
+                                result = Some(right_child);
+                                next = Some(SlotId(70));
+                            }
                         }
                     }
-                    // PredictionBeforeFollow : Identifier . MissingSuffix
+                    // PredictionBeforeFollow : Identifier !>> Question . Question
                     SlotId(70) => {
-                        self.create(
-                            NonterminalId(12),
-                            &PREDICTION_SET_MISSING_SUFFIX,
-                            result,
-                            gss_node_id,
-                            SlotId(71),
-                            env,
-                        );
+                        if let Some((j, right_child)) = self.match_terminal(
+                            TerminalId(0),
+                            input_index,
+                            SlotId(70),
+                            Some(gss_node_id),
+                        ) {
+                            if let Some(new_node) =
+                                self.create_intermediate_node(result, right_child, SlotId(71), env)
+                            {
+                                // PredictionBeforeFollow : Identifier !>> Question Question.
+                                input_index = j;
+                                result = Some(new_node);
+                                next = Some(SlotId(71));
+                            }
+                        }
                     }
-                    // PredictionBeforeFollow : Identifier MissingSuffix.
+                    // PredictionBeforeFollow : Identifier !>> Question Question.
                     SlotId(71) => {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
@@ -1042,7 +1042,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for ErrorUnionParser<'i, 'arena> {
                             &FOLLOW_SET_PREDICTION_BEFORE_FOLLOW,
                         );
                     }
-                    // FollowBeforePrediction : . Identifier MissingSuffix
+                    // FollowBeforePrediction : . Identifier !>> Question Question
                     SlotId(72) => {
                         if let Some((j, right_child)) = self.match_terminal(
                             TerminalId(2),
@@ -1050,24 +1050,36 @@ impl<'i, 'arena> Parser<'i, 'arena> for ErrorUnionParser<'i, 'arena> {
                             SlotId(72),
                             Some(gss_node_id),
                         ) {
-                            // FollowBeforePrediction : Identifier . MissingSuffix
-                            input_index = j;
-                            result = Some(right_child);
-                            next = Some(SlotId(73));
+                            if let Some(failure) = self.post_conditions(SlotId(73), input_index, j)
+                            {
+                                self.add_failure(j, SlotId(73), Some(gss_node_id), failure);
+                            } else {
+                                // FollowBeforePrediction : Identifier !>> Question . Question
+                                input_index = j;
+                                result = Some(right_child);
+                                next = Some(SlotId(73));
+                            }
                         }
                     }
-                    // FollowBeforePrediction : Identifier . MissingSuffix
+                    // FollowBeforePrediction : Identifier !>> Question . Question
                     SlotId(73) => {
-                        self.create(
-                            NonterminalId(12),
-                            &PREDICTION_SET_MISSING_SUFFIX,
-                            result,
-                            gss_node_id,
-                            SlotId(74),
-                            env,
-                        );
+                        if let Some((j, right_child)) = self.match_terminal(
+                            TerminalId(0),
+                            input_index,
+                            SlotId(73),
+                            Some(gss_node_id),
+                        ) {
+                            if let Some(new_node) =
+                                self.create_intermediate_node(result, right_child, SlotId(74), env)
+                            {
+                                // FollowBeforePrediction : Identifier !>> Question Question.
+                                input_index = j;
+                                result = Some(new_node);
+                                next = Some(SlotId(74));
+                            }
+                        }
                     }
-                    // FollowBeforePrediction : Identifier MissingSuffix.
+                    // FollowBeforePrediction : Identifier !>> Question Question.
                     SlotId(74) => {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
@@ -1080,7 +1092,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for ErrorUnionParser<'i, 'arena> {
                             &FOLLOW_SET_FOLLOW_BEFORE_PREDICTION,
                         );
                     }
-                    // FollowBeforePrediction : . Identifier !>> Question Question
+                    // FollowBeforePrediction : . Identifier MissingSuffix
                     SlotId(75) => {
                         if let Some((j, right_child)) = self.match_terminal(
                             TerminalId(2),
@@ -1088,36 +1100,24 @@ impl<'i, 'arena> Parser<'i, 'arena> for ErrorUnionParser<'i, 'arena> {
                             SlotId(75),
                             Some(gss_node_id),
                         ) {
-                            if let Some(failure) = self.post_conditions(SlotId(76), input_index, j)
-                            {
-                                self.add_failure(j, SlotId(76), Some(gss_node_id), failure);
-                            } else {
-                                // FollowBeforePrediction : Identifier !>> Question . Question
-                                input_index = j;
-                                result = Some(right_child);
-                                next = Some(SlotId(76));
-                            }
+                            // FollowBeforePrediction : Identifier . MissingSuffix
+                            input_index = j;
+                            result = Some(right_child);
+                            next = Some(SlotId(76));
                         }
                     }
-                    // FollowBeforePrediction : Identifier !>> Question . Question
+                    // FollowBeforePrediction : Identifier . MissingSuffix
                     SlotId(76) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(0),
-                            input_index,
-                            SlotId(76),
-                            Some(gss_node_id),
-                        ) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(77), env)
-                            {
-                                // FollowBeforePrediction : Identifier !>> Question Question.
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(77));
-                            }
-                        }
+                        self.create(
+                            NonterminalId(12),
+                            &PREDICTION_SET_MISSING_SUFFIX,
+                            result,
+                            gss_node_id,
+                            SlotId(77),
+                            env,
+                        );
                     }
-                    // FollowBeforePrediction : Identifier !>> Question Question.
+                    // FollowBeforePrediction : Identifier MissingSuffix.
                     SlotId(77) => {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
@@ -2554,35 +2554,35 @@ impl<'i, 'arena> Parser<'i, 'arena> for ErrorUnionParser<'i, 'arena> {
         match nonterminal_id {
             // T
             NonterminalId(0) => {
-                // T : . "[" BeforeP Layout P Layout "]"
-                if self.scanner.match_any(&FIRST_SET_T_ALT0, input_index) {
-                    self.add_first_descriptor(SlotId(0), input_index, gss_node_id, env);
-                }
                 // T : . "[" BeforeQ Layout Q Layout "]"
                 if self.scanner.match_any(&FIRST_SET_T_ALT1, input_index) {
                     self.add_first_descriptor(SlotId(7), input_index, gss_node_id, env);
                 }
+                // T : . "[" BeforeP Layout P Layout "]"
+                if self.scanner.match_any(&FIRST_SET_T_ALT0, input_index) {
+                    self.add_first_descriptor(SlotId(0), input_index, gss_node_id, env);
+                }
             }
             // U
             NonterminalId(1) => {
-                // U : . "[" BeforeQ Layout Q Layout "]"
-                if self.scanner.match_any(&FIRST_SET_U_ALT0, input_index) {
-                    self.add_first_descriptor(SlotId(14), input_index, gss_node_id, env);
-                }
                 // U : . "[" BeforeP Layout P Layout "]"
                 if self.scanner.match_any(&FIRST_SET_U_ALT1, input_index) {
                     self.add_first_descriptor(SlotId(21), input_index, gss_node_id, env);
                 }
+                // U : . "[" BeforeQ Layout Q Layout "]"
+                if self.scanner.match_any(&FIRST_SET_U_ALT0, input_index) {
+                    self.add_first_descriptor(SlotId(14), input_index, gss_node_id, env);
+                }
             }
             // P
             NonterminalId(2) => {
-                // P : . "p"
-                if self.scanner.match_any(&FIRST_SET_P_ALT0, input_index) {
-                    self.add_first_descriptor(SlotId(28), input_index, gss_node_id, env);
-                }
                 // P : . Word
                 if self.scanner.match_any(&FIRST_SET_P_ALT1, input_index) {
                     self.add_first_descriptor(SlotId(30), input_index, gss_node_id, env);
+                }
+                // P : . "p"
+                if self.scanner.match_any(&FIRST_SET_P_ALT0, input_index) {
+                    self.add_first_descriptor(SlotId(28), input_index, gss_node_id, env);
                 }
             }
             // Q : . "q"
@@ -2591,13 +2591,6 @@ impl<'i, 'arena> Parser<'i, 'arena> for ErrorUnionParser<'i, 'arena> {
             }
             // BeforeP
             NonterminalId(4) => {
-                // BeforeP : . "x"
-                if self
-                    .scanner
-                    .match_any(&FIRST_SET_BEFORE_P_ALT0, input_index)
-                {
-                    self.add_first_descriptor(SlotId(34), input_index, gss_node_id, env);
-                }
                 // BeforeP : . "x" Layout "y"
                 if self
                     .scanner
@@ -2605,16 +2598,16 @@ impl<'i, 'arena> Parser<'i, 'arena> for ErrorUnionParser<'i, 'arena> {
                 {
                     self.add_first_descriptor(SlotId(36), input_index, gss_node_id, env);
                 }
+                // BeforeP : . "x"
+                if self
+                    .scanner
+                    .match_any(&FIRST_SET_BEFORE_P_ALT0, input_index)
+                {
+                    self.add_first_descriptor(SlotId(34), input_index, gss_node_id, env);
+                }
             }
             // BeforeQ
             NonterminalId(5) => {
-                // BeforeQ : . "x"
-                if self
-                    .scanner
-                    .match_any(&FIRST_SET_BEFORE_Q_ALT0, input_index)
-                {
-                    self.add_first_descriptor(SlotId(40), input_index, gss_node_id, env);
-                }
                 // BeforeQ : . "x" Layout "z"
                 if self
                     .scanner
@@ -2622,22 +2615,29 @@ impl<'i, 'arena> Parser<'i, 'arena> for ErrorUnionParser<'i, 'arena> {
                 {
                     self.add_first_descriptor(SlotId(42), input_index, gss_node_id, env);
                 }
+                // BeforeQ : . "x"
+                if self
+                    .scanner
+                    .match_any(&FIRST_SET_BEFORE_Q_ALT0, input_index)
+                {
+                    self.add_first_descriptor(SlotId(40), input_index, gss_node_id, env);
+                }
             }
             // UnexpectedFirst
             NonterminalId(6) => {
                 // UnexpectedFirst : . Identifier \ Keyword
                 if self
                     .scanner
-                    .match_any(&FIRST_SET_UNEXPECTED_FIRST_ALT0, input_index)
+                    .match_any(&FIRST_SET_UNEXPECTED_FIRST_ALT1, input_index)
                 {
-                    self.add_first_descriptor(SlotId(46), input_index, gss_node_id, env);
+                    self.add_first_descriptor(SlotId(49), input_index, gss_node_id, env);
                 }
                 // UnexpectedFirst : . Identifier "!"
                 if self
                     .scanner
-                    .match_any(&FIRST_SET_UNEXPECTED_FIRST_ALT1, input_index)
+                    .match_any(&FIRST_SET_UNEXPECTED_FIRST_ALT0, input_index)
                 {
-                    self.add_first_descriptor(SlotId(48), input_index, gss_node_id, env);
+                    self.add_first_descriptor(SlotId(46), input_index, gss_node_id, env);
                 }
             }
             // ExcludedFirst
@@ -2645,16 +2645,16 @@ impl<'i, 'arena> Parser<'i, 'arena> for ErrorUnionParser<'i, 'arena> {
                 // ExcludedFirst : . Identifier "!"
                 if self
                     .scanner
-                    .match_any(&FIRST_SET_EXCLUDED_FIRST_ALT0, input_index)
+                    .match_any(&FIRST_SET_EXCLUDED_FIRST_ALT1, input_index)
                 {
-                    self.add_first_descriptor(SlotId(51), input_index, gss_node_id, env);
+                    self.add_first_descriptor(SlotId(53), input_index, gss_node_id, env);
                 }
                 // ExcludedFirst : . Identifier \ Keyword
                 if self
                     .scanner
-                    .match_any(&FIRST_SET_EXCLUDED_FIRST_ALT1, input_index)
+                    .match_any(&FIRST_SET_EXCLUDED_FIRST_ALT0, input_index)
                 {
-                    self.add_first_descriptor(SlotId(54), input_index, gss_node_id, env);
+                    self.add_first_descriptor(SlotId(51), input_index, gss_node_id, env);
                 }
             }
             // PredictionBeforeExcept
@@ -2662,16 +2662,16 @@ impl<'i, 'arena> Parser<'i, 'arena> for ErrorUnionParser<'i, 'arena> {
                 // PredictionBeforeExcept : . Identifier \ Keyword
                 if self
                     .scanner
-                    .match_any(&FIRST_SET_PREDICTION_BEFORE_EXCEPT_ALT0, input_index)
+                    .match_any(&FIRST_SET_PREDICTION_BEFORE_EXCEPT_ALT1, input_index)
                 {
-                    self.add_first_descriptor(SlotId(56), input_index, gss_node_id, env);
+                    self.add_first_descriptor(SlotId(59), input_index, gss_node_id, env);
                 }
                 // PredictionBeforeExcept : . Identifier MissingSuffix
                 if self
                     .scanner
-                    .match_any(&FIRST_SET_PREDICTION_BEFORE_EXCEPT_ALT1, input_index)
+                    .match_any(&FIRST_SET_PREDICTION_BEFORE_EXCEPT_ALT0, input_index)
                 {
-                    self.add_first_descriptor(SlotId(58), input_index, gss_node_id, env);
+                    self.add_first_descriptor(SlotId(56), input_index, gss_node_id, env);
                 }
             }
             // ExceptBeforePrediction
@@ -2679,16 +2679,16 @@ impl<'i, 'arena> Parser<'i, 'arena> for ErrorUnionParser<'i, 'arena> {
                 // ExceptBeforePrediction : . Identifier MissingSuffix
                 if self
                     .scanner
-                    .match_any(&FIRST_SET_EXCEPT_BEFORE_PREDICTION_ALT0, input_index)
+                    .match_any(&FIRST_SET_EXCEPT_BEFORE_PREDICTION_ALT1, input_index)
                 {
-                    self.add_first_descriptor(SlotId(61), input_index, gss_node_id, env);
+                    self.add_first_descriptor(SlotId(63), input_index, gss_node_id, env);
                 }
                 // ExceptBeforePrediction : . Identifier \ Keyword
                 if self
                     .scanner
-                    .match_any(&FIRST_SET_EXCEPT_BEFORE_PREDICTION_ALT1, input_index)
+                    .match_any(&FIRST_SET_EXCEPT_BEFORE_PREDICTION_ALT0, input_index)
                 {
-                    self.add_first_descriptor(SlotId(64), input_index, gss_node_id, env);
+                    self.add_first_descriptor(SlotId(61), input_index, gss_node_id, env);
                 }
             }
             // PredictionBeforeFollow
@@ -2696,16 +2696,16 @@ impl<'i, 'arena> Parser<'i, 'arena> for ErrorUnionParser<'i, 'arena> {
                 // PredictionBeforeFollow : . Identifier !>> Question Question
                 if self
                     .scanner
-                    .match_any(&FIRST_SET_PREDICTION_BEFORE_FOLLOW_ALT0, input_index)
+                    .match_any(&FIRST_SET_PREDICTION_BEFORE_FOLLOW_ALT1, input_index)
                 {
-                    self.add_first_descriptor(SlotId(66), input_index, gss_node_id, env);
+                    self.add_first_descriptor(SlotId(69), input_index, gss_node_id, env);
                 }
                 // PredictionBeforeFollow : . Identifier MissingSuffix
                 if self
                     .scanner
-                    .match_any(&FIRST_SET_PREDICTION_BEFORE_FOLLOW_ALT1, input_index)
+                    .match_any(&FIRST_SET_PREDICTION_BEFORE_FOLLOW_ALT0, input_index)
                 {
-                    self.add_first_descriptor(SlotId(69), input_index, gss_node_id, env);
+                    self.add_first_descriptor(SlotId(66), input_index, gss_node_id, env);
                 }
             }
             // FollowBeforePrediction
@@ -2713,16 +2713,16 @@ impl<'i, 'arena> Parser<'i, 'arena> for ErrorUnionParser<'i, 'arena> {
                 // FollowBeforePrediction : . Identifier MissingSuffix
                 if self
                     .scanner
-                    .match_any(&FIRST_SET_FOLLOW_BEFORE_PREDICTION_ALT0, input_index)
+                    .match_any(&FIRST_SET_FOLLOW_BEFORE_PREDICTION_ALT1, input_index)
                 {
-                    self.add_first_descriptor(SlotId(72), input_index, gss_node_id, env);
+                    self.add_first_descriptor(SlotId(75), input_index, gss_node_id, env);
                 }
                 // FollowBeforePrediction : . Identifier !>> Question Question
                 if self
                     .scanner
-                    .match_any(&FIRST_SET_FOLLOW_BEFORE_PREDICTION_ALT1, input_index)
+                    .match_any(&FIRST_SET_FOLLOW_BEFORE_PREDICTION_ALT0, input_index)
                 {
-                    self.add_first_descriptor(SlotId(75), input_index, gss_node_id, env);
+                    self.add_first_descriptor(SlotId(72), input_index, gss_node_id, env);
                 }
             }
             // MissingSuffix : . SuffixChoice
@@ -2731,13 +2731,6 @@ impl<'i, 'arena> Parser<'i, 'arena> for ErrorUnionParser<'i, 'arena> {
             }
             // SuffixChoice
             NonterminalId(13) => {
-                // SuffixChoice : . "!"
-                if self
-                    .scanner
-                    .match_any(&FIRST_SET_SUFFIX_CHOICE_ALT0, input_index)
-                {
-                    self.add_first_descriptor(SlotId(80), input_index, gss_node_id, env);
-                }
                 // SuffixChoice : . "!" "!"
                 if self
                     .scanner
@@ -2745,22 +2738,29 @@ impl<'i, 'arena> Parser<'i, 'arena> for ErrorUnionParser<'i, 'arena> {
                 {
                     self.add_first_descriptor(SlotId(82), input_index, gss_node_id, env);
                 }
+                // SuffixChoice : . "!"
+                if self
+                    .scanner
+                    .match_any(&FIRST_SET_SUFFIX_CHOICE_ALT0, input_index)
+                {
+                    self.add_first_descriptor(SlotId(80), input_index, gss_node_id, env);
+                }
             }
             // CallPrediction
             NonterminalId(14) => {
-                // CallPrediction : . "1" PrefixX
-                if self
-                    .scanner
-                    .match_any(&FIRST_SET_CALL_PREDICTION_ALT0, input_index)
-                {
-                    self.add_first_descriptor(SlotId(85), input_index, gss_node_id, env);
-                }
                 // CallPrediction : . "2" PrefixW
                 if self
                     .scanner
                     .match_any(&FIRST_SET_CALL_PREDICTION_ALT1, input_index)
                 {
                     self.add_first_descriptor(SlotId(88), input_index, gss_node_id, env);
+                }
+                // CallPrediction : . "1" PrefixX
+                if self
+                    .scanner
+                    .match_any(&FIRST_SET_CALL_PREDICTION_ALT0, input_index)
+                {
+                    self.add_first_descriptor(SlotId(85), input_index, gss_node_id, env);
                 }
             }
             // PrefixX : . NullablePrefix "x"
@@ -2773,20 +2773,6 @@ impl<'i, 'arena> Parser<'i, 'arena> for ErrorUnionParser<'i, 'arena> {
             }
             // NullablePrefix
             NonterminalId(17) => {
-                // NullablePrefix : . "y"
-                if self
-                    .scanner
-                    .match_any(&FIRST_SET_NULLABLE_PREFIX_ALT0, input_index)
-                {
-                    self.add_first_descriptor(SlotId(97), input_index, gss_node_id, env);
-                }
-                // NullablePrefix : . "y" "y"
-                if self
-                    .scanner
-                    .match_any(&FIRST_SET_NULLABLE_PREFIX_ALT1, input_index)
-                {
-                    self.add_first_descriptor(SlotId(99), input_index, gss_node_id, env);
-                }
                 // NullablePrefix : .
                 if self
                     .scanner
@@ -2797,6 +2783,20 @@ impl<'i, 'arena> Parser<'i, 'arena> for ErrorUnionParser<'i, 'arena> {
                 {
                     self.add_first_descriptor(SlotId(102), input_index, gss_node_id, env);
                 }
+                // NullablePrefix : . "y" "y"
+                if self
+                    .scanner
+                    .match_any(&FIRST_SET_NULLABLE_PREFIX_ALT1, input_index)
+                {
+                    self.add_first_descriptor(SlotId(99), input_index, gss_node_id, env);
+                }
+                // NullablePrefix : . "y"
+                if self
+                    .scanner
+                    .match_any(&FIRST_SET_NULLABLE_PREFIX_ALT0, input_index)
+                {
+                    self.add_first_descriptor(SlotId(97), input_index, gss_node_id, env);
+                }
             }
             // Layout : . Star_0 !>> WS !>> Newline
             NonterminalId(18) => {
@@ -2804,37 +2804,37 @@ impl<'i, 'arena> Parser<'i, 'arena> for ErrorUnionParser<'i, 'arena> {
             }
             // Alt_0
             NonterminalId(19) => {
-                // Alt_0 : . WS
-                if self.scanner.match_any(&FIRST_SET_ALT_0_ALT0, input_index) {
-                    self.add_first_descriptor(SlotId(105), input_index, gss_node_id, env);
-                }
                 // Alt_0 : . Newline
                 if self.scanner.match_any(&FIRST_SET_ALT_0_ALT1, input_index) {
                     self.add_first_descriptor(SlotId(107), input_index, gss_node_id, env);
                 }
+                // Alt_0 : . WS
+                if self.scanner.match_any(&FIRST_SET_ALT_0_ALT0, input_index) {
+                    self.add_first_descriptor(SlotId(105), input_index, gss_node_id, env);
+                }
             }
             // Plus_0
             NonterminalId(20) => {
-                // Plus_0 : . Plus_0 Alt_0
-                if self.scanner.match_any(&FIRST_SET_PLUS_0_ALT0, input_index) {
-                    self.add_first_descriptor(SlotId(109), input_index, gss_node_id, env);
-                }
                 // Plus_0 : . Alt_0
                 if self.scanner.match_any(&FIRST_SET_PLUS_0_ALT1, input_index) {
                     self.add_first_descriptor(SlotId(112), input_index, gss_node_id, env);
                 }
+                // Plus_0 : . Plus_0 Alt_0
+                if self.scanner.match_any(&FIRST_SET_PLUS_0_ALT0, input_index) {
+                    self.add_first_descriptor(SlotId(109), input_index, gss_node_id, env);
+                }
             }
             // Opt_0
             NonterminalId(21) => {
-                // Opt_0 : . Plus_0
-                if self.scanner.match_any(&FIRST_SET_OPT_0_ALT0, input_index) {
-                    self.add_first_descriptor(SlotId(114), input_index, gss_node_id, env);
-                }
                 // Opt_0 : .
                 if self.scanner.match_any(&FIRST_SET_OPT_0_ALT1, input_index)
                     || self.scanner.match_any(&FOLLOW_SET_OPT_0, input_index)
                 {
                     self.add_first_descriptor(SlotId(116), input_index, gss_node_id, env);
+                }
+                // Opt_0 : . Plus_0
+                if self.scanner.match_any(&FIRST_SET_OPT_0_ALT0, input_index) {
+                    self.add_first_descriptor(SlotId(114), input_index, gss_node_id, env);
                 }
             }
             // Star_0 : . Opt_0
@@ -3266,73 +3266,73 @@ impl<'i, 'arena> Parser<'i, 'arena> for ErrorUnionParser<'i, 'arena> {
         right_extent: u32,
     ) -> Option<GLLFailureKind> {
         match slot {
-            SlotId(47) => {
+            SlotId(50) => {
                 if self
                     .scanner
                     .match_exact(TerminalId(3), left_extent, right_extent)
                 {
                     Some(GLLFailureKind::ExcludedMatch(
-                        &EXCEPT_UNEXPECTED_FIRST_ALT0_POS0,
+                        &EXCEPT_UNEXPECTED_FIRST_ALT1_POS0,
                     ))
                 } else {
                     None
                 }
             }
-            SlotId(55) => {
+            SlotId(52) => {
                 if self
                     .scanner
                     .match_exact(TerminalId(3), left_extent, right_extent)
                 {
                     Some(GLLFailureKind::ExcludedMatch(
-                        &EXCEPT_EXCLUDED_FIRST_ALT1_POS0,
+                        &EXCEPT_EXCLUDED_FIRST_ALT0_POS0,
                     ))
                 } else {
                     None
                 }
             }
-            SlotId(57) => {
+            SlotId(60) => {
                 if self
                     .scanner
                     .match_exact(TerminalId(3), left_extent, right_extent)
                 {
                     Some(GLLFailureKind::ExcludedMatch(
-                        &EXCEPT_PREDICTION_BEFORE_EXCEPT_ALT0_POS0,
+                        &EXCEPT_PREDICTION_BEFORE_EXCEPT_ALT1_POS0,
                     ))
                 } else {
                     None
                 }
             }
-            SlotId(65) => {
+            SlotId(62) => {
                 if self
                     .scanner
                     .match_exact(TerminalId(3), left_extent, right_extent)
                 {
                     Some(GLLFailureKind::ExcludedMatch(
-                        &EXCEPT_EXCEPT_BEFORE_PREDICTION_ALT1_POS0,
+                        &EXCEPT_EXCEPT_BEFORE_PREDICTION_ALT0_POS0,
                     ))
                 } else {
                     None
                 }
             }
-            SlotId(67) => {
+            SlotId(70) => {
                 if self.scanner.match_any(
-                    &FOLLOW_RESTRICTION_PREDICTION_BEFORE_FOLLOW_ALT0_POS0,
+                    &FOLLOW_RESTRICTION_PREDICTION_BEFORE_FOLLOW_ALT1_POS0,
                     right_extent,
                 ) {
                     Some(GLLFailureKind::ForbiddenFollow(
-                        &FOLLOW_RESTRICTION_PREDICTION_BEFORE_FOLLOW_ALT0_POS0,
+                        &FOLLOW_RESTRICTION_PREDICTION_BEFORE_FOLLOW_ALT1_POS0,
                     ))
                 } else {
                     None
                 }
             }
-            SlotId(76) => {
+            SlotId(73) => {
                 if self.scanner.match_any(
-                    &FOLLOW_RESTRICTION_FOLLOW_BEFORE_PREDICTION_ALT1_POS0,
+                    &FOLLOW_RESTRICTION_FOLLOW_BEFORE_PREDICTION_ALT0_POS0,
                     right_extent,
                 ) {
                     Some(GLLFailureKind::ForbiddenFollow(
-                        &FOLLOW_RESTRICTION_FOLLOW_BEFORE_PREDICTION_ALT1_POS0,
+                        &FOLLOW_RESTRICTION_FOLLOW_BEFORE_PREDICTION_ALT0_POS0,
                     ))
                 } else {
                     None

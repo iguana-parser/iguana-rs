@@ -198,13 +198,13 @@ impl<'i, 'arena> Parser<'i, 'arena> for LongestMatchParser<'i, 'arena> {
             }
             // X
             NonterminalId(1) => {
-                // X : . "<"
-                if self.scanner.match_any(&FIRST_SET_X_ALT0, input_index) {
-                    self.add_first_descriptor(SlotId(3), input_index, gss_node_id, env);
-                }
                 // X : . "<="
                 if self.scanner.match_any(&FIRST_SET_X_ALT1, input_index) {
                     self.add_first_descriptor(SlotId(5), input_index, gss_node_id, env);
+                }
+                // X : . "<"
+                if self.scanner.match_any(&FIRST_SET_X_ALT0, input_index) {
+                    self.add_first_descriptor(SlotId(3), input_index, gss_node_id, env);
                 }
             }
             // StartS : . start:S

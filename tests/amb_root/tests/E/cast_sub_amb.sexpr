@@ -2,17 +2,6 @@
   WS
   (Amb
     (E
-      (E
-        "("
-        WS
-        (E Id)
-        WS
-        ")")
-      WS
-      "-"
-      WS
-      #1=(E Id))
-    (E
       "("
       WS
       (Type Id)
@@ -22,5 +11,16 @@
       (E
         "-"
         WS
-        #1#)))
+        #1=(E Id)))
+    (E
+      (E
+        "("
+        WS
+        (E Id)
+        WS
+        ")")
+      WS
+      "-"
+      WS
+      #1#))
   WS)

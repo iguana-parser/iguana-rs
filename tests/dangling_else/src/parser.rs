@@ -862,12 +862,12 @@ impl<'i, 'arena> Parser<'i, 'arena> for DanglingElseParser<'i, 'arena> {
             }
             // Statement
             NonterminalId(1) => {
-                // Statement : . "if" Layout "(" Layout Cond Layout ")" Layout Statement !>>> Else
+                // Statement : . Id Layout ";"
                 if self
                     .scanner
-                    .match_any(&FIRST_SET_STATEMENT_ALT0, input_index)
+                    .match_any(&FIRST_SET_STATEMENT_ALT2, input_index)
                 {
-                    self.add_first_descriptor(SlotId(2), input_index, gss_node_id, env);
+                    self.add_first_descriptor(SlotId(26), input_index, gss_node_id, env);
                 }
                 // Statement : . "if" Layout "(" Layout Cond Layout ")" Layout Statement Layout Else Layout
                 // Statement
@@ -877,12 +877,12 @@ impl<'i, 'arena> Parser<'i, 'arena> for DanglingElseParser<'i, 'arena> {
                 {
                     self.add_first_descriptor(SlotId(12), input_index, gss_node_id, env);
                 }
-                // Statement : . Id Layout ";"
+                // Statement : . "if" Layout "(" Layout Cond Layout ")" Layout Statement !>>> Else
                 if self
                     .scanner
-                    .match_any(&FIRST_SET_STATEMENT_ALT2, input_index)
+                    .match_any(&FIRST_SET_STATEMENT_ALT0, input_index)
                 {
-                    self.add_first_descriptor(SlotId(26), input_index, gss_node_id, env);
+                    self.add_first_descriptor(SlotId(2), input_index, gss_node_id, env);
                 }
             }
             // Layout : . Star_0
@@ -891,48 +891,48 @@ impl<'i, 'arena> Parser<'i, 'arena> for DanglingElseParser<'i, 'arena> {
             }
             // Plus_0
             NonterminalId(3) => {
-                // Plus_0 : . Plus_0 Layout Statement
-                if self.scanner.match_any(&FIRST_SET_PLUS_0_ALT0, input_index) {
-                    self.add_first_descriptor(SlotId(32), input_index, gss_node_id, env);
-                }
                 // Plus_0 : . Statement
                 if self.scanner.match_any(&FIRST_SET_PLUS_0_ALT1, input_index) {
                     self.add_first_descriptor(SlotId(36), input_index, gss_node_id, env);
                 }
+                // Plus_0 : . Plus_0 Layout Statement
+                if self.scanner.match_any(&FIRST_SET_PLUS_0_ALT0, input_index) {
+                    self.add_first_descriptor(SlotId(32), input_index, gss_node_id, env);
+                }
             }
             // Alt_0
             NonterminalId(4) => {
-                // Alt_0 : . WhiteSpace
-                if self.scanner.match_any(&FIRST_SET_ALT_0_ALT0, input_index) {
-                    self.add_first_descriptor(SlotId(38), input_index, gss_node_id, env);
-                }
                 // Alt_0 : . Comment
                 if self.scanner.match_any(&FIRST_SET_ALT_0_ALT1, input_index) {
                     self.add_first_descriptor(SlotId(40), input_index, gss_node_id, env);
                 }
+                // Alt_0 : . WhiteSpace
+                if self.scanner.match_any(&FIRST_SET_ALT_0_ALT0, input_index) {
+                    self.add_first_descriptor(SlotId(38), input_index, gss_node_id, env);
+                }
             }
             // Plus_1
             NonterminalId(5) => {
-                // Plus_1 : . Plus_1 Alt_0
-                if self.scanner.match_any(&FIRST_SET_PLUS_1_ALT0, input_index) {
-                    self.add_first_descriptor(SlotId(42), input_index, gss_node_id, env);
-                }
                 // Plus_1 : . Alt_0
                 if self.scanner.match_any(&FIRST_SET_PLUS_1_ALT1, input_index) {
                     self.add_first_descriptor(SlotId(45), input_index, gss_node_id, env);
                 }
+                // Plus_1 : . Plus_1 Alt_0
+                if self.scanner.match_any(&FIRST_SET_PLUS_1_ALT0, input_index) {
+                    self.add_first_descriptor(SlotId(42), input_index, gss_node_id, env);
+                }
             }
             // Opt_0
             NonterminalId(6) => {
-                // Opt_0 : . Plus_1
-                if self.scanner.match_any(&FIRST_SET_OPT_0_ALT0, input_index) {
-                    self.add_first_descriptor(SlotId(47), input_index, gss_node_id, env);
-                }
                 // Opt_0 : .
                 if self.scanner.match_any(&FIRST_SET_OPT_0_ALT1, input_index)
                     || self.scanner.match_any(&FOLLOW_SET_OPT_0, input_index)
                 {
                     self.add_first_descriptor(SlotId(49), input_index, gss_node_id, env);
+                }
+                // Opt_0 : . Plus_1
+                if self.scanner.match_any(&FIRST_SET_OPT_0_ALT0, input_index) {
+                    self.add_first_descriptor(SlotId(47), input_index, gss_node_id, env);
                 }
             }
             // Star_0 : . Opt_0

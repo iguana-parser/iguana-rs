@@ -308,13 +308,13 @@ impl<'i, 'arena> Parser<'i, 'arena> for SimpleAltParser<'i, 'arena> {
             }
             // Alt_0
             NonterminalId(4) => {
-                // Alt_0 : . C
-                if self.scanner.match_any(&FIRST_SET_ALT_0_ALT0, input_index) {
-                    self.add_first_descriptor(SlotId(9), input_index, gss_node_id, env);
-                }
                 // Alt_0 : . D
                 if self.scanner.match_any(&FIRST_SET_ALT_0_ALT1, input_index) {
                     self.add_first_descriptor(SlotId(11), input_index, gss_node_id, env);
+                }
+                // Alt_0 : . C
+                if self.scanner.match_any(&FIRST_SET_ALT_0_ALT0, input_index) {
+                    self.add_first_descriptor(SlotId(9), input_index, gss_node_id, env);
                 }
             }
             // StartA : . start:A

@@ -464,13 +464,13 @@ impl<'i, 'arena> Parser<'i, 'arena> for TokenOnlyUnsafeParser<'i, 'arena> {
             }
             // Mod
             NonterminalId(1) => {
-                // Mod : . "public"
-                if self.scanner.match_any(&FIRST_SET_MOD_ALT0, input_index) {
-                    self.add_first_descriptor(SlotId(6), input_index, gss_node_id, env);
-                }
                 // Mod : . "static"
                 if self.scanner.match_any(&FIRST_SET_MOD_ALT1, input_index) {
                     self.add_first_descriptor(SlotId(8), input_index, gss_node_id, env);
+                }
+                // Mod : . "public"
+                if self.scanner.match_any(&FIRST_SET_MOD_ALT0, input_index) {
+                    self.add_first_descriptor(SlotId(6), input_index, gss_node_id, env);
                 }
             }
             // Empty : .

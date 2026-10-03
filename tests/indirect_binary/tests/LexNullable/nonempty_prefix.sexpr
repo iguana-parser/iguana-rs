@@ -5,26 +5,7 @@
       (LexNullableLeft
         Digits
         WS
-        (LexNullable
-          (LexNullableLeft
-            Digits
-            WS
-            #1=(LexNullable "q"))
-          WS
-          "/"
-          WS
-          (LexNullableRight
-            (LexNullable "q"))))
-      WS
-      "/"
-      WS
-      #2=(LexNullableRight
-        (LexNullable "q")))
-    (LexNullable
-      (LexNullableLeft
-        Digits
-        WS
-        #1#)
+        #1=(LexNullable "q"))
       WS
       "/"
       WS
@@ -37,5 +18,24 @@
           WS
           "/"
           WS
-          #2#))))
+          #2=(LexNullableRight
+            (LexNullable "q")))))
+    (LexNullable
+      (LexNullableLeft
+        Digits
+        WS
+        (LexNullable
+          (LexNullableLeft
+            Digits
+            WS
+            #1#)
+          WS
+          "/"
+          WS
+          (LexNullableRight
+            (LexNullable "q"))))
+      WS
+      "/"
+      WS
+      #2#))
   WS)

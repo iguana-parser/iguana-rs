@@ -2,10 +2,24 @@
   WS
   (Amb
     (NullableLexRecursive
-      #1=(NullableLexOperand
-        #2=(NullableLexMaybe Digits)
+      (NullableLexOperand
+        #1=(NullableLexMaybe Digits)
         WS
-        (NullableLexRecursive "v"))
+        (NullableLexRecursive
+          #2=(NullableLexOperand
+            #1#
+            WS
+            (NullableLexRecursive "v"))
+          WS
+          "+"
+          WS
+          (NullableLexRecursive "v")))
+      WS
+      "+"
+      WS
+      #3=(NullableLexRecursive "v"))
+    (NullableLexRecursive
+      #2#
       WS
       "+"
       WS
@@ -17,19 +31,5 @@
         WS
         "+"
         WS
-        #3=(NullableLexRecursive "v")))
-    (NullableLexRecursive
-      (NullableLexOperand
-        #2#
-        WS
-        (NullableLexRecursive
-          #1#
-          WS
-          "+"
-          WS
-          (NullableLexRecursive "v")))
-      WS
-      "+"
-      WS
-      #3#))
+        #3#)))
   WS)

@@ -372,13 +372,13 @@ impl<'i, 'arena> Parser<'i, 'arena> for ExactKeywordContextualParser<'i, 'arena>
         match nonterminal_id {
             // Decl
             NonterminalId(0) => {
-                // Decl : . [0-9 A-Z _ a-z] !<< "var" !>> [0-9 A-Z _ a-z] WS Id WS ";"
-                if self.scanner.match_any(&FIRST_SET_DECL_ALT0, input_index) {
-                    self.add_first_descriptor(SlotId(0), input_index, gss_node_id, env);
-                }
                 // Decl : . Id WS "=" WS Id WS ";"
                 if self.scanner.match_any(&FIRST_SET_DECL_ALT1, input_index) {
                     self.add_first_descriptor(SlotId(6), input_index, gss_node_id, env);
+                }
+                // Decl : . [0-9 A-Z _ a-z] !<< "var" !>> [0-9 A-Z _ a-z] WS Id WS ";"
+                if self.scanner.match_any(&FIRST_SET_DECL_ALT0, input_index) {
+                    self.add_first_descriptor(SlotId(0), input_index, gss_node_id, env);
                 }
             }
             // StartDecl : . WS start:Decl WS

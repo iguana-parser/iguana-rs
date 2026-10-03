@@ -2,14 +2,14 @@
   WS
   (S
     (E
+      (E "a")
+      WS
+      "-"
+      WS
       (E
         (E "a")
         WS
         "-"
         WS
-        (E "a"))
-      WS
-      "-"
-      WS
-      (E "a")))
+        (E "a"))))
   WS)

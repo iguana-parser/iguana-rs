@@ -336,26 +336,26 @@ impl<'i, 'arena> Parser<'i, 'arena> for RegexCompositionParser<'i, 'arena> {
             }
             // Plus_0
             NonterminalId(2) => {
-                // Plus_0 : . Plus_0 LetterOrDigit
-                if self.scanner.match_any(&FIRST_SET_PLUS_0_ALT0, input_index) {
-                    self.add_first_descriptor(SlotId(5), input_index, gss_node_id, env);
-                }
                 // Plus_0 : . LetterOrDigit
                 if self.scanner.match_any(&FIRST_SET_PLUS_0_ALT1, input_index) {
                     self.add_first_descriptor(SlotId(8), input_index, gss_node_id, env);
                 }
+                // Plus_0 : . Plus_0 LetterOrDigit
+                if self.scanner.match_any(&FIRST_SET_PLUS_0_ALT0, input_index) {
+                    self.add_first_descriptor(SlotId(5), input_index, gss_node_id, env);
+                }
             }
             // Opt_0
             NonterminalId(3) => {
-                // Opt_0 : . Plus_0
-                if self.scanner.match_any(&FIRST_SET_OPT_0_ALT0, input_index) {
-                    self.add_first_descriptor(SlotId(10), input_index, gss_node_id, env);
-                }
                 // Opt_0 : .
                 if self.scanner.match_any(&FIRST_SET_OPT_0_ALT1, input_index)
                     || self.scanner.match_any(&FOLLOW_SET_OPT_0, input_index)
                 {
                     self.add_first_descriptor(SlotId(12), input_index, gss_node_id, env);
+                }
+                // Opt_0 : . Plus_0
+                if self.scanner.match_any(&FIRST_SET_OPT_0_ALT0, input_index) {
+                    self.add_first_descriptor(SlotId(10), input_index, gss_node_id, env);
                 }
             }
             // Star_0 : . Opt_0

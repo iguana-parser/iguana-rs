@@ -238,13 +238,13 @@ impl<'i, 'arena> Parser<'i, 'arena> for PlusWithSepParser<'i, 'arena> {
             }
             // Plus_0
             NonterminalId(2) => {
-                // Plus_0 : . Plus_0 "," A
-                if self.scanner.match_any(&FIRST_SET_PLUS_0_ALT0, input_index) {
-                    self.add_first_descriptor(SlotId(4), input_index, gss_node_id, env);
-                }
                 // Plus_0 : . A
                 if self.scanner.match_any(&FIRST_SET_PLUS_0_ALT1, input_index) {
                     self.add_first_descriptor(SlotId(8), input_index, gss_node_id, env);
+                }
+                // Plus_0 : . Plus_0 "," A
+                if self.scanner.match_any(&FIRST_SET_PLUS_0_ALT0, input_index) {
+                    self.add_first_descriptor(SlotId(4), input_index, gss_node_id, env);
                 }
             }
             // StartS : . start:S

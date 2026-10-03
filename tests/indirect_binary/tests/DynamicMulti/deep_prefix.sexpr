@@ -1,35 +1,35 @@
 (Start
   WS
   (Amb
+    (DynamicMulti
+      #1=(DynamicMultiOperand
+        (DynamicMulti "a"))
+      WS
+      "+"
+      WS
+      (DynamicMultiOperand
+        (DynamicMulti
+          #2=(DynamicMultiOperand "b")
+          WS
+          ";"
+          WS
+          #3=(DynamicMultiOperand
+            (DynamicMulti
+              (DynamicMultiOperand
+                #4=(DynamicMulti
+                  (DynamicMultiOperand
+                    (DynamicMulti "a"))
+                  WS
+                  "+"
+                  WS
+                  (DynamicMultiOperand
+                    (DynamicMulti "a"))))
+              WS
+              ";"
+              WS
+              #5=(DynamicMultiOperand
+                (DynamicMulti "a")))))))
     (Amb
-      (DynamicMulti
-        (DynamicMultiOperand
-          (DynamicMulti
-            #1=(DynamicMultiOperand
-              (DynamicMulti "a"))
-            WS
-            "+"
-            WS
-            (DynamicMultiOperand "b")))
-        WS
-        ";"
-        WS
-        #2=(DynamicMultiOperand
-          (DynamicMulti
-            (DynamicMultiOperand
-              #3=(DynamicMulti
-                (DynamicMultiOperand
-                  (DynamicMulti "a"))
-                WS
-                "+"
-                WS
-                (DynamicMultiOperand
-                  (DynamicMulti "a"))))
-            WS
-            ";"
-            WS
-            #4=(DynamicMultiOperand
-              (DynamicMulti "a")))))
       (DynamicMulti
         (DynamicMultiOperand
           (DynamicMulti
@@ -39,26 +39,26 @@
             WS
             (DynamicMultiOperand
               (DynamicMulti
-                #5=(DynamicMultiOperand "b")
+                #2#
                 WS
                 ";"
                 WS
                 (DynamicMultiOperand
-                  #3#)))))
+                  #4#)))))
         WS
         ";"
         WS
-        #4#))
-    (DynamicMulti
-      #1#
-      WS
-      "+"
-      WS
-      (DynamicMultiOperand
-        (DynamicMulti
-          #5#
-          WS
-          ";"
-          WS
-          #2#))))
+        #5#)
+      (DynamicMulti
+        (DynamicMultiOperand
+          (DynamicMulti
+            #1#
+            WS
+            "+"
+            WS
+            (DynamicMultiOperand "b")))
+        WS
+        ";"
+        WS
+        #3#)))
   WS)

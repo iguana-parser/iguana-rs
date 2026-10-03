@@ -353,41 +353,41 @@ impl<'i, 'arena> Parser<'i, 'arena> for ExcludeByLabelParser<'i, 'arena> {
         match nonterminal_id {
             // Expr
             NonterminalId(4) => {
-                // Expr(e: i32) : . [1 & e == 0] Id return (0, 0)
-                if self.scanner.match_any(&FIRST_SET_EXPR_ALT0, input_index) {
-                    self.add_first_descriptor(SlotId(13), input_index, gss_node_id, env);
+                // Expr(e: i32) : . [4 & e == 0] Expr(0) "," Expr(0) return (0, 2)
+                if self.scanner.match_any(&FIRST_SET_EXPR_ALT2, input_index) {
+                    self.add_first_descriptor(SlotId(24), input_index, gss_node_id, env);
                 }
                 // Expr(e: i32) : . [2 & e == 0] Expr(0) "(" Star_0 ")" return (0, 1)
                 if self.scanner.match_any(&FIRST_SET_EXPR_ALT1, input_index) {
                     self.add_first_descriptor(SlotId(17), input_index, gss_node_id, env);
                 }
-                // Expr(e: i32) : . [4 & e == 0] Expr(0) "," Expr(0) return (0, 2)
-                if self.scanner.match_any(&FIRST_SET_EXPR_ALT2, input_index) {
-                    self.add_first_descriptor(SlotId(24), input_index, gss_node_id, env);
+                // Expr(e: i32) : . [1 & e == 0] Id return (0, 0)
+                if self.scanner.match_any(&FIRST_SET_EXPR_ALT0, input_index) {
+                    self.add_first_descriptor(SlotId(13), input_index, gss_node_id, env);
                 }
             }
             // Plus_0
             NonterminalId(0) => {
-                // Plus_0 : . Plus_0 "," Expr(4)
-                if self.scanner.match_any(&FIRST_SET_PLUS_0_ALT0, input_index) {
-                    self.add_first_descriptor(SlotId(0), input_index, gss_node_id, env);
-                }
                 // Plus_0 : . Expr(4)
                 if self.scanner.match_any(&FIRST_SET_PLUS_0_ALT1, input_index) {
                     self.add_first_descriptor(SlotId(4), input_index, gss_node_id, env);
                 }
+                // Plus_0 : . Plus_0 "," Expr(4)
+                if self.scanner.match_any(&FIRST_SET_PLUS_0_ALT0, input_index) {
+                    self.add_first_descriptor(SlotId(0), input_index, gss_node_id, env);
+                }
             }
             // Opt_0
             NonterminalId(1) => {
-                // Opt_0 : . Plus_0
-                if self.scanner.match_any(&FIRST_SET_OPT_0_ALT0, input_index) {
-                    self.add_first_descriptor(SlotId(6), input_index, gss_node_id, env);
-                }
                 // Opt_0 : .
                 if self.scanner.match_any(&FIRST_SET_OPT_0_ALT1, input_index)
                     || self.scanner.match_any(&FOLLOW_SET_OPT_0, input_index)
                 {
                     self.add_first_descriptor(SlotId(8), input_index, gss_node_id, env);
+                }
+                // Opt_0 : . Plus_0
+                if self.scanner.match_any(&FIRST_SET_OPT_0_ALT0, input_index) {
+                    self.add_first_descriptor(SlotId(6), input_index, gss_node_id, env);
                 }
             }
             // Star_0 : . Opt_0

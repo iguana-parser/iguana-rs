@@ -286,17 +286,17 @@ impl<'i, 'arena> Parser<'i, 'arena> for AmbParser<'i, 'arena> {
             }
             // E
             NonterminalId(3) => {
-                // E(p: i32) : . Num return 0
-                if self.scanner.match_any(&FIRST_SET_E_ALT0, input_index) {
-                    self.add_first_descriptor(SlotId(6), input_index, gss_node_id, env);
+                // E(p: i32) : . [1 >= p] l_pr=lhs:E(p) [(l_pr == 0) || (l_pr >= 1)] "+" rhs:E(2) return 1
+                if self.scanner.match_any(&FIRST_SET_E_ALT2, input_index) {
+                    self.add_first_descriptor(SlotId(16), input_index, gss_node_id, env);
                 }
                 // E(p: i32) : . [2 >= p] l_pr=lhs:E(p) [(l_pr == 0) || (l_pr >= 2)] "*" rhs:E(3) return 2
                 if self.scanner.match_any(&FIRST_SET_E_ALT1, input_index) {
                     self.add_first_descriptor(SlotId(9), input_index, gss_node_id, env);
                 }
-                // E(p: i32) : . [1 >= p] l_pr=lhs:E(p) [(l_pr == 0) || (l_pr >= 1)] "+" rhs:E(2) return 1
-                if self.scanner.match_any(&FIRST_SET_E_ALT2, input_index) {
-                    self.add_first_descriptor(SlotId(16), input_index, gss_node_id, env);
+                // E(p: i32) : . Num return 0
+                if self.scanner.match_any(&FIRST_SET_E_ALT0, input_index) {
+                    self.add_first_descriptor(SlotId(6), input_index, gss_node_id, env);
                 }
             }
             // StartS : . start:S

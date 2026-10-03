@@ -222,13 +222,13 @@ impl<'i, 'arena> Parser<'i, 'arena> for Ll1PrefixAmbiguityParser<'i, 'arena> {
             }
             // Expr
             NonterminalId(1) => {
-                // Expr : . Int "." Id
-                if self.scanner.match_any(&FIRST_SET_EXPR_ALT0, input_index) {
-                    self.add_first_descriptor(SlotId(2), input_index, gss_node_id, env);
-                }
                 // Expr : . Float
                 if self.scanner.match_any(&FIRST_SET_EXPR_ALT1, input_index) {
                     self.add_first_descriptor(SlotId(6), input_index, gss_node_id, env);
+                }
+                // Expr : . Int "." Id
+                if self.scanner.match_any(&FIRST_SET_EXPR_ALT0, input_index) {
+                    self.add_first_descriptor(SlotId(2), input_index, gss_node_id, env);
                 }
             }
             // StartE : . start:E

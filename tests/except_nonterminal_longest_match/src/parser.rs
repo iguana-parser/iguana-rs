@@ -258,13 +258,13 @@ impl<'i, 'arena> Parser<'i, 'arena> for ExceptNonterminalLongestMatchParser<'i, 
             }
             // Name
             NonterminalId(2) => {
-                // Name : . Letter Letter
-                if self.scanner.match_any(&FIRST_SET_NAME_ALT0, input_index) {
-                    self.add_first_descriptor(SlotId(5), input_index, gss_node_id, env);
-                }
                 // Name : . Letter
                 if self.scanner.match_any(&FIRST_SET_NAME_ALT1, input_index) {
                     self.add_first_descriptor(SlotId(8), input_index, gss_node_id, env);
+                }
+                // Name : . Letter Letter
+                if self.scanner.match_any(&FIRST_SET_NAME_ALT0, input_index) {
+                    self.add_first_descriptor(SlotId(5), input_index, gss_node_id, env);
                 }
             }
             // StartS : . start:S

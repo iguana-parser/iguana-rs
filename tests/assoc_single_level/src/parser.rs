@@ -403,35 +403,35 @@ impl<'i, 'arena> Parser<'i, 'arena> for AssocSingleLevelParser<'i, 'arena> {
         match nonterminal_id {
             // E
             NonterminalId(3) => {
-                // E(p: i32) : . [1 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 1)] "<" E(2) return 1
-                if self.scanner.match_any(&FIRST_SET_E_ALT0, input_index) {
-                    self.add_first_descriptor(SlotId(6), input_index, gss_node_id, env);
-                }
                 // E(p: i32) : . "a" return 0
                 if self.scanner.match_any(&FIRST_SET_E_ALT1, input_index) {
                     self.add_first_descriptor(SlotId(13), input_index, gss_node_id, env);
                 }
+                // E(p: i32) : . [1 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 1)] "<" E(2) return 1
+                if self.scanner.match_any(&FIRST_SET_E_ALT0, input_index) {
+                    self.add_first_descriptor(SlotId(6), input_index, gss_node_id, env);
+                }
             }
             // F
             NonterminalId(4) => {
-                // F(p: i32) : . [1 >= p] l_pr=F(p) [(l_pr == 0) || (l_pr >= 2)] "<" F(1) return 1
-                if self.scanner.match_any(&FIRST_SET_F_ALT0, input_index) {
-                    self.add_first_descriptor(SlotId(16), input_index, gss_node_id, env);
-                }
                 // F(p: i32) : . "a" return 0
                 if self.scanner.match_any(&FIRST_SET_F_ALT1, input_index) {
                     self.add_first_descriptor(SlotId(23), input_index, gss_node_id, env);
                 }
+                // F(p: i32) : . [1 >= p] l_pr=F(p) [(l_pr == 0) || (l_pr >= 2)] "<" F(1) return 1
+                if self.scanner.match_any(&FIRST_SET_F_ALT0, input_index) {
+                    self.add_first_descriptor(SlotId(16), input_index, gss_node_id, env);
+                }
             }
             // G
             NonterminalId(5) => {
-                // G(p: i32) : . [1 >= p] l_pr=G(p) [(l_pr == 0) || (l_pr >= 2)] "<" G(2) return 1
-                if self.scanner.match_any(&FIRST_SET_G_ALT0, input_index) {
-                    self.add_first_descriptor(SlotId(26), input_index, gss_node_id, env);
-                }
                 // G(p: i32) : . "a" return 0
                 if self.scanner.match_any(&FIRST_SET_G_ALT1, input_index) {
                     self.add_first_descriptor(SlotId(33), input_index, gss_node_id, env);
+                }
+                // G(p: i32) : . [1 >= p] l_pr=G(p) [(l_pr == 0) || (l_pr >= 2)] "<" G(2) return 1
+                if self.scanner.match_any(&FIRST_SET_G_ALT0, input_index) {
+                    self.add_first_descriptor(SlotId(26), input_index, gss_node_id, env);
                 }
             }
             // StartE : . start:E(0)

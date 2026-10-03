@@ -319,35 +319,35 @@ impl<'i, 'arena> Parser<'i, 'arena> for FollowRestrictionMultipleParser<'i, 'are
             }
             // Plus_0
             NonterminalId(2) => {
-                // Plus_0 : . Plus_0 Id
-                if self.scanner.match_any(&FIRST_SET_PLUS_0_ALT0, input_index) {
-                    self.add_first_descriptor(SlotId(4), input_index, gss_node_id, env);
-                }
                 // Plus_0 : . Id
                 if self.scanner.match_any(&FIRST_SET_PLUS_0_ALT1, input_index) {
                     self.add_first_descriptor(SlotId(7), input_index, gss_node_id, env);
                 }
+                // Plus_0 : . Plus_0 Id
+                if self.scanner.match_any(&FIRST_SET_PLUS_0_ALT0, input_index) {
+                    self.add_first_descriptor(SlotId(4), input_index, gss_node_id, env);
+                }
             }
             // Alt_0
             NonterminalId(3) => {
-                // Alt_0 : . Alpha
-                if self.scanner.match_any(&FIRST_SET_ALT_0_ALT0, input_index) {
-                    self.add_first_descriptor(SlotId(9), input_index, gss_node_id, env);
-                }
                 // Alt_0 : . Digit
                 if self.scanner.match_any(&FIRST_SET_ALT_0_ALT1, input_index) {
                     self.add_first_descriptor(SlotId(11), input_index, gss_node_id, env);
                 }
+                // Alt_0 : . Alpha
+                if self.scanner.match_any(&FIRST_SET_ALT_0_ALT0, input_index) {
+                    self.add_first_descriptor(SlotId(9), input_index, gss_node_id, env);
+                }
             }
             // Plus_1
             NonterminalId(4) => {
-                // Plus_1 : . Plus_1 Alt_0
-                if self.scanner.match_any(&FIRST_SET_PLUS_1_ALT0, input_index) {
-                    self.add_first_descriptor(SlotId(13), input_index, gss_node_id, env);
-                }
                 // Plus_1 : . Alt_0
                 if self.scanner.match_any(&FIRST_SET_PLUS_1_ALT1, input_index) {
                     self.add_first_descriptor(SlotId(16), input_index, gss_node_id, env);
+                }
+                // Plus_1 : . Plus_1 Alt_0
+                if self.scanner.match_any(&FIRST_SET_PLUS_1_ALT0, input_index) {
+                    self.add_first_descriptor(SlotId(13), input_index, gss_node_id, env);
                 }
             }
             // StartS : . start:S

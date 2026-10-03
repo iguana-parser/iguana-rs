@@ -783,31 +783,31 @@ impl<'i, 'arena> Parser<'i, 'arena> for DeepPriorityFullParser<'i, 'arena> {
             }
             // E
             NonterminalId(3) => {
-                // E(p: i32) : . [5 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 5)] WS "*" WS r_pr=E(6) return
-                // (r_pr == 0) ? 5 : min(r_pr, 5)
-                if self.scanner.match_any(&FIRST_SET_E_ALT0, input_index) {
-                    self.add_first_descriptor(SlotId(10), input_index, gss_node_id, env);
+                // E(p: i32) : . "a" return 0
+                if self.scanner.match_any(&FIRST_SET_E_ALT5, input_index) {
+                    self.add_first_descriptor(SlotId(55), input_index, gss_node_id, env);
+                }
+                // E(p: i32) : . [1 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 2)] WS ";" WS E(1) return 1
+                if self.scanner.match_any(&FIRST_SET_E_ALT4, input_index) {
+                    self.add_first_descriptor(SlotId(46), input_index, gss_node_id, env);
+                }
+                // E(p: i32) : . "if" WS E(0) WS "then" WS E(0) WS "else" WS E(2) return 2
+                if self.scanner.match_any(&FIRST_SET_E_ALT3, input_index) {
+                    self.add_first_descriptor(SlotId(33), input_index, gss_node_id, env);
+                }
+                // E(p: i32) : . "-" WS r_pr=E(3) return (r_pr == 0) ? 3 : min(r_pr, 3)
+                if self.scanner.match_any(&FIRST_SET_E_ALT2, input_index) {
+                    self.add_first_descriptor(SlotId(28), input_index, gss_node_id, env);
                 }
                 // E(p: i32) : . [4 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 4)] WS "+" WS r_pr=E(5) return
                 // (r_pr == 0) ? 4 : min(r_pr, 4)
                 if self.scanner.match_any(&FIRST_SET_E_ALT1, input_index) {
                     self.add_first_descriptor(SlotId(19), input_index, gss_node_id, env);
                 }
-                // E(p: i32) : . "-" WS r_pr=E(3) return (r_pr == 0) ? 3 : min(r_pr, 3)
-                if self.scanner.match_any(&FIRST_SET_E_ALT2, input_index) {
-                    self.add_first_descriptor(SlotId(28), input_index, gss_node_id, env);
-                }
-                // E(p: i32) : . "if" WS E(0) WS "then" WS E(0) WS "else" WS E(2) return 2
-                if self.scanner.match_any(&FIRST_SET_E_ALT3, input_index) {
-                    self.add_first_descriptor(SlotId(33), input_index, gss_node_id, env);
-                }
-                // E(p: i32) : . [1 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 2)] WS ";" WS E(1) return 1
-                if self.scanner.match_any(&FIRST_SET_E_ALT4, input_index) {
-                    self.add_first_descriptor(SlotId(46), input_index, gss_node_id, env);
-                }
-                // E(p: i32) : . "a" return 0
-                if self.scanner.match_any(&FIRST_SET_E_ALT5, input_index) {
-                    self.add_first_descriptor(SlotId(55), input_index, gss_node_id, env);
+                // E(p: i32) : . [5 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 5)] WS "*" WS r_pr=E(6) return
+                // (r_pr == 0) ? 5 : min(r_pr, 5)
+                if self.scanner.match_any(&FIRST_SET_E_ALT0, input_index) {
+                    self.add_first_descriptor(SlotId(10), input_index, gss_node_id, env);
                 }
             }
             // StartS : . WS start:S WS

@@ -2,26 +2,26 @@
   WS
   (Amb
     (Dynamic
-      (DynamicOperand
-        (Dynamic
-          #1=(DynamicOperand
-            (Dynamic "a"))
-          WS
-          "+"
-          WS
-          (DynamicOperand
-            #2=(Dynamic "a"))))
-      WS
-      "!")
-    (Dynamic
-      #1#
+      #1=(DynamicOperand
+        (Dynamic "a"))
       WS
       "+"
       WS
       (DynamicOperand
         (Dynamic
           (DynamicOperand
-            #2#)
+            #2=(Dynamic "a"))
           WS
-          "!"))))
+          "!")))
+    (Dynamic
+      (DynamicOperand
+        (Dynamic
+          #1#
+          WS
+          "+"
+          WS
+          (DynamicOperand
+            #2#)))
+      WS
+      "!"))
   WS)

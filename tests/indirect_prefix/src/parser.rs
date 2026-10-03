@@ -547,18 +547,18 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectPrefixParser<'i, 'arena> {
             }
             // E
             NonterminalId(5) => {
-                // E(p: i32) : . "a" return 0
-                if self.scanner.match_any(&FIRST_SET_E_ALT0, input_index) {
-                    self.add_first_descriptor(SlotId(18), input_index, gss_node_id, env);
+                // E(p: i32) : . Lambda(1) return 1
+                if self.scanner.match_any(&FIRST_SET_E_ALT2, input_index) {
+                    self.add_first_descriptor(SlotId(30), input_index, gss_node_id, env);
                 }
                 // E(p: i32) : . [2 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 2)] WS "+" WS r_pr=E(2) return
                 // (r_pr == 0) ? 2 : min(r_pr, 2)
                 if self.scanner.match_any(&FIRST_SET_E_ALT1, input_index) {
                     self.add_first_descriptor(SlotId(21), input_index, gss_node_id, env);
                 }
-                // E(p: i32) : . Lambda(1) return 1
-                if self.scanner.match_any(&FIRST_SET_E_ALT2, input_index) {
-                    self.add_first_descriptor(SlotId(30), input_index, gss_node_id, env);
+                // E(p: i32) : . "a" return 0
+                if self.scanner.match_any(&FIRST_SET_E_ALT0, input_index) {
+                    self.add_first_descriptor(SlotId(18), input_index, gss_node_id, env);
                 }
             }
             // Lambda(p: i32) : . "fn" WS r_pr=Body(p) return r_pr

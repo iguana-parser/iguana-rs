@@ -209,13 +209,13 @@ impl<'i, 'arena> Parser<'i, 'arena> for PrecedeRestrictionLexicalParser<'i, 'are
         match nonterminal_id {
             // S
             NonterminalId(0) => {
-                // S : . "for" WS Id
-                if self.scanner.match_any(&FIRST_SET_S_ALT0, input_index) {
-                    self.add_first_descriptor(SlotId(0), input_index, gss_node_id, env);
-                }
                 // S : . "forall"
                 if self.scanner.match_any(&FIRST_SET_S_ALT1, input_index) {
                     self.add_first_descriptor(SlotId(4), input_index, gss_node_id, env);
+                }
+                // S : . "for" WS Id
+                if self.scanner.match_any(&FIRST_SET_S_ALT0, input_index) {
+                    self.add_first_descriptor(SlotId(0), input_index, gss_node_id, env);
                 }
             }
             // StartS : . WS start:S WS

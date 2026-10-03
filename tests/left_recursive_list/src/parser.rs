@@ -155,13 +155,13 @@ impl<'i, 'arena> Parser<'i, 'arena> for LeftRecursiveListParser<'i, 'arena> {
         match nonterminal_id {
             // A
             NonterminalId(0) => {
-                // A : . A "a"
-                if self.scanner.match_any(&FIRST_SET_A_ALT0, input_index) {
-                    self.add_first_descriptor(SlotId(0), input_index, gss_node_id, env);
-                }
                 // A : . "a"
                 if self.scanner.match_any(&FIRST_SET_A_ALT1, input_index) {
                     self.add_first_descriptor(SlotId(3), input_index, gss_node_id, env);
+                }
+                // A : . A "a"
+                if self.scanner.match_any(&FIRST_SET_A_ALT0, input_index) {
+                    self.add_first_descriptor(SlotId(0), input_index, gss_node_id, env);
                 }
             }
             // StartA : . start:A

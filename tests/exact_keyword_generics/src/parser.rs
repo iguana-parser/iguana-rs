@@ -482,24 +482,24 @@ impl<'i, 'arena> Parser<'i, 'arena> for ExactKeywordGenericsParser<'i, 'arena> {
         match nonterminal_id {
             // S
             NonterminalId(0) => {
-                // S : . Type WS ";"
-                if self.scanner.match_any(&FIRST_SET_S_ALT0, input_index) {
-                    self.add_first_descriptor(SlotId(0), input_index, gss_node_id, env);
-                }
                 // S : . [0-9 A-Z _ a-z] !<< "new" !>> [0-9 A-Z _ a-z] WS Type WS ";"
                 if self.scanner.match_any(&FIRST_SET_S_ALT1, input_index) {
                     self.add_first_descriptor(SlotId(4), input_index, gss_node_id, env);
                 }
+                // S : . Type WS ";"
+                if self.scanner.match_any(&FIRST_SET_S_ALT0, input_index) {
+                    self.add_first_descriptor(SlotId(0), input_index, gss_node_id, env);
+                }
             }
             // Type
             NonterminalId(1) => {
-                // Type : . Id
-                if self.scanner.match_any(&FIRST_SET_TYPE_ALT0, input_index) {
-                    self.add_first_descriptor(SlotId(10), input_index, gss_node_id, env);
-                }
                 // Type : . Id WS "<" WS Type WS ">"
                 if self.scanner.match_any(&FIRST_SET_TYPE_ALT1, input_index) {
                     self.add_first_descriptor(SlotId(12), input_index, gss_node_id, env);
+                }
+                // Type : . Id
+                if self.scanner.match_any(&FIRST_SET_TYPE_ALT0, input_index) {
+                    self.add_first_descriptor(SlotId(10), input_index, gss_node_id, env);
                 }
             }
             // StartS : . WS start:S WS

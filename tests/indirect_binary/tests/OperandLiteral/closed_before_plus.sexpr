@@ -2,19 +2,7 @@
   WS
   (Amb
     (OperandLiteral
-      (OperandLiteralEnd
-        (OperandLiteral
-          #1=(OperandLiteralEnd "1")
-          WS
-          "*"
-          WS
-          (OperandLiteralEnd "1")))
-      WS
-      "+"
-      WS
-      (OperandLiteralEnd "1"))
-    (OperandLiteral
-      #1#
+      #1=(OperandLiteralEnd "1")
       WS
       "*"
       WS
@@ -24,5 +12,17 @@
           WS
           "+"
           WS
-          (OperandLiteralEnd "1")))))
+          (OperandLiteralEnd "1"))))
+    (OperandLiteral
+      (OperandLiteralEnd
+        (OperandLiteral
+          #1#
+          WS
+          "*"
+          WS
+          (OperandLiteralEnd "1")))
+      WS
+      "+"
+      WS
+      (OperandLiteralEnd "1")))
   WS)

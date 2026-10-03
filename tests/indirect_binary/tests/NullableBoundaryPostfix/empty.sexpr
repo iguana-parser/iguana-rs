@@ -2,7 +2,19 @@
   WS
   (Amb
     (NullableBoundaryPostfix
-      #1=(NullableBoundaryPostfix "a")
+      (NullableBoundaryLeft
+        NullableBoundaryOpt
+        WS
+        (NullableBoundaryPostfix
+          #1=(NullableBoundaryPostfix "a")
+          WS
+          "+"
+          WS
+          (NullableBoundaryPostfix "a")))
+      WS
+      "-")
+    (NullableBoundaryPostfix
+      #1#
       WS
       "+"
       WS
@@ -12,17 +24,5 @@
           WS
           (NullableBoundaryPostfix "a"))
         WS
-        "-"))
-    (NullableBoundaryPostfix
-      (NullableBoundaryLeft
-        NullableBoundaryOpt
-        WS
-        (NullableBoundaryPostfix
-          #1#
-          WS
-          "+"
-          WS
-          (NullableBoundaryPostfix "a")))
-      WS
-      "-"))
+        "-")))
   WS)

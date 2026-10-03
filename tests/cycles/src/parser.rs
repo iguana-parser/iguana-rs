@@ -2262,30 +2262,30 @@ impl<'i, 'arena> Parser<'i, 'arena> for CyclesParser<'i, 'arena> {
         match nonterminal_id {
             // Direct
             NonterminalId(0) => {
-                // Direct : . Direct
-                if self.scanner.match_any(&FIRST_SET_DIRECT_ALT0, input_index) {
-                    self.add_first_descriptor(SlotId(0), input_index, gss_node_id, env);
-                }
                 // Direct : . "b"
                 if self.scanner.match_any(&FIRST_SET_DIRECT_ALT1, input_index) {
                     self.add_first_descriptor(SlotId(2), input_index, gss_node_id, env);
                 }
+                // Direct : . Direct
+                if self.scanner.match_any(&FIRST_SET_DIRECT_ALT0, input_index) {
+                    self.add_first_descriptor(SlotId(0), input_index, gss_node_id, env);
+                }
             }
             // MutualC
             NonterminalId(1) => {
-                // MutualC : . MutualB
-                if self
-                    .scanner
-                    .match_any(&FIRST_SET_MUTUAL_C_ALT0, input_index)
-                {
-                    self.add_first_descriptor(SlotId(4), input_index, gss_node_id, env);
-                }
                 // MutualC : . "b"
                 if self
                     .scanner
                     .match_any(&FIRST_SET_MUTUAL_C_ALT1, input_index)
                 {
                     self.add_first_descriptor(SlotId(6), input_index, gss_node_id, env);
+                }
+                // MutualC : . MutualB
+                if self
+                    .scanner
+                    .match_any(&FIRST_SET_MUTUAL_C_ALT0, input_index)
+                {
+                    self.add_first_descriptor(SlotId(4), input_index, gss_node_id, env);
                 }
             }
             // MutualB : . MutualC
@@ -2294,13 +2294,13 @@ impl<'i, 'arena> Parser<'i, 'arena> for CyclesParser<'i, 'arena> {
             }
             // ChainC
             NonterminalId(3) => {
-                // ChainC : . ChainA
-                if self.scanner.match_any(&FIRST_SET_CHAIN_C_ALT0, input_index) {
-                    self.add_first_descriptor(SlotId(10), input_index, gss_node_id, env);
-                }
                 // ChainC : . "b"
                 if self.scanner.match_any(&FIRST_SET_CHAIN_C_ALT1, input_index) {
                     self.add_first_descriptor(SlotId(12), input_index, gss_node_id, env);
+                }
+                // ChainC : . ChainA
+                if self.scanner.match_any(&FIRST_SET_CHAIN_C_ALT0, input_index) {
+                    self.add_first_descriptor(SlotId(10), input_index, gss_node_id, env);
                 }
             }
             // ChainA : . ChainB
@@ -2317,14 +2317,6 @@ impl<'i, 'arena> Parser<'i, 'arena> for CyclesParser<'i, 'arena> {
             }
             // SharedA
             NonterminalId(7) => {
-                // SharedA : . SharedB
-                if self
-                    .scanner
-                    .match_any(&FIRST_SET_SHARED_A_ALT0, input_index)
-                    || self.scanner.match_any(&FOLLOW_SET_SHARED_A, input_index)
-                {
-                    self.add_first_descriptor(SlotId(21), input_index, gss_node_id, env);
-                }
                 // SharedA : .
                 if self
                     .scanner
@@ -2333,6 +2325,14 @@ impl<'i, 'arena> Parser<'i, 'arena> for CyclesParser<'i, 'arena> {
                 {
                     self.add_first_descriptor(SlotId(23), input_index, gss_node_id, env);
                 }
+                // SharedA : . SharedB
+                if self
+                    .scanner
+                    .match_any(&FIRST_SET_SHARED_A_ALT0, input_index)
+                    || self.scanner.match_any(&FOLLOW_SET_SHARED_A, input_index)
+                {
+                    self.add_first_descriptor(SlotId(21), input_index, gss_node_id, env);
+                }
             }
             // SharedB : . SharedA
             NonterminalId(8) => {
@@ -2340,13 +2340,6 @@ impl<'i, 'arena> Parser<'i, 'arena> for CyclesParser<'i, 'arena> {
             }
             // TwoExitsC
             NonterminalId(9) => {
-                // TwoExitsC : . TwoExitsB
-                if self
-                    .scanner
-                    .match_any(&FIRST_SET_TWO_EXITS_C_ALT0, input_index)
-                {
-                    self.add_first_descriptor(SlotId(26), input_index, gss_node_id, env);
-                }
                 // TwoExitsC : . "b"
                 if self
                     .scanner
@@ -2354,16 +2347,16 @@ impl<'i, 'arena> Parser<'i, 'arena> for CyclesParser<'i, 'arena> {
                 {
                     self.add_first_descriptor(SlotId(28), input_index, gss_node_id, env);
                 }
+                // TwoExitsC : . TwoExitsB
+                if self
+                    .scanner
+                    .match_any(&FIRST_SET_TWO_EXITS_C_ALT0, input_index)
+                {
+                    self.add_first_descriptor(SlotId(26), input_index, gss_node_id, env);
+                }
             }
             // TwoExitsB
             NonterminalId(10) => {
-                // TwoExitsB : . TwoExitsC
-                if self
-                    .scanner
-                    .match_any(&FIRST_SET_TWO_EXITS_B_ALT0, input_index)
-                {
-                    self.add_first_descriptor(SlotId(30), input_index, gss_node_id, env);
-                }
                 // TwoExitsB : . "b"
                 if self
                     .scanner
@@ -2371,15 +2364,22 @@ impl<'i, 'arena> Parser<'i, 'arena> for CyclesParser<'i, 'arena> {
                 {
                     self.add_first_descriptor(SlotId(32), input_index, gss_node_id, env);
                 }
+                // TwoExitsB : . TwoExitsC
+                if self
+                    .scanner
+                    .match_any(&FIRST_SET_TWO_EXITS_B_ALT0, input_index)
+                {
+                    self.add_first_descriptor(SlotId(30), input_index, gss_node_id, env);
+                }
             }
             // TwoRoutesC
             NonterminalId(11) => {
-                // TwoRoutesC : . TwoRoutesA
+                // TwoRoutesC : . "b"
                 if self
                     .scanner
-                    .match_any(&FIRST_SET_TWO_ROUTES_C_ALT0, input_index)
+                    .match_any(&FIRST_SET_TWO_ROUTES_C_ALT2, input_index)
                 {
-                    self.add_first_descriptor(SlotId(34), input_index, gss_node_id, env);
+                    self.add_first_descriptor(SlotId(38), input_index, gss_node_id, env);
                 }
                 // TwoRoutesC : . TwoRoutesB
                 if self
@@ -2388,12 +2388,12 @@ impl<'i, 'arena> Parser<'i, 'arena> for CyclesParser<'i, 'arena> {
                 {
                     self.add_first_descriptor(SlotId(36), input_index, gss_node_id, env);
                 }
-                // TwoRoutesC : . "b"
+                // TwoRoutesC : . TwoRoutesA
                 if self
                     .scanner
-                    .match_any(&FIRST_SET_TWO_ROUTES_C_ALT2, input_index)
+                    .match_any(&FIRST_SET_TWO_ROUTES_C_ALT0, input_index)
                 {
-                    self.add_first_descriptor(SlotId(38), input_index, gss_node_id, env);
+                    self.add_first_descriptor(SlotId(34), input_index, gss_node_id, env);
                 }
             }
             // TwoRoutesA : . TwoRoutesC
@@ -2406,21 +2406,6 @@ impl<'i, 'arena> Parser<'i, 'arena> for CyclesParser<'i, 'arena> {
             }
             // Nullable
             NonterminalId(14) => {
-                // Nullable : . Nullable Nullable
-                if self
-                    .scanner
-                    .match_any(&FIRST_SET_NULLABLE_ALT0, input_index)
-                    || self.scanner.match_any(&FOLLOW_SET_NULLABLE, input_index)
-                {
-                    self.add_first_descriptor(SlotId(44), input_index, gss_node_id, env);
-                }
-                // Nullable : . "b"
-                if self
-                    .scanner
-                    .match_any(&FIRST_SET_NULLABLE_ALT1, input_index)
-                {
-                    self.add_first_descriptor(SlotId(47), input_index, gss_node_id, env);
-                }
                 // Nullable : .
                 if self
                     .scanner
@@ -2429,16 +2414,24 @@ impl<'i, 'arena> Parser<'i, 'arena> for CyclesParser<'i, 'arena> {
                 {
                     self.add_first_descriptor(SlotId(49), input_index, gss_node_id, env);
                 }
+                // Nullable : . "b"
+                if self
+                    .scanner
+                    .match_any(&FIRST_SET_NULLABLE_ALT1, input_index)
+                {
+                    self.add_first_descriptor(SlotId(47), input_index, gss_node_id, env);
+                }
+                // Nullable : . Nullable Nullable
+                if self
+                    .scanner
+                    .match_any(&FIRST_SET_NULLABLE_ALT0, input_index)
+                    || self.scanner.match_any(&FOLLOW_SET_NULLABLE, input_index)
+                {
+                    self.add_first_descriptor(SlotId(44), input_index, gss_node_id, env);
+                }
             }
             // SiblingC
             NonterminalId(15) => {
-                // SiblingC : . SiblingC SiblingD
-                if self
-                    .scanner
-                    .match_any(&FIRST_SET_SIBLING_C_ALT0, input_index)
-                {
-                    self.add_first_descriptor(SlotId(50), input_index, gss_node_id, env);
-                }
                 // SiblingC : . "b"
                 if self
                     .scanner
@@ -2446,17 +2439,16 @@ impl<'i, 'arena> Parser<'i, 'arena> for CyclesParser<'i, 'arena> {
                 {
                     self.add_first_descriptor(SlotId(53), input_index, gss_node_id, env);
                 }
+                // SiblingC : . SiblingC SiblingD
+                if self
+                    .scanner
+                    .match_any(&FIRST_SET_SIBLING_C_ALT0, input_index)
+                {
+                    self.add_first_descriptor(SlotId(50), input_index, gss_node_id, env);
+                }
             }
             // SiblingD
             NonterminalId(16) => {
-                // SiblingD : . EmptyE
-                if self
-                    .scanner
-                    .match_any(&FIRST_SET_SIBLING_D_ALT0, input_index)
-                    || self.scanner.match_any(&FOLLOW_SET_SIBLING_D, input_index)
-                {
-                    self.add_first_descriptor(SlotId(55), input_index, gss_node_id, env);
-                }
                 // SiblingD : . EmptyF
                 if self
                     .scanner
@@ -2464,6 +2456,14 @@ impl<'i, 'arena> Parser<'i, 'arena> for CyclesParser<'i, 'arena> {
                     || self.scanner.match_any(&FOLLOW_SET_SIBLING_D, input_index)
                 {
                     self.add_first_descriptor(SlotId(57), input_index, gss_node_id, env);
+                }
+                // SiblingD : . EmptyE
+                if self
+                    .scanner
+                    .match_any(&FIRST_SET_SIBLING_D_ALT0, input_index)
+                    || self.scanner.match_any(&FOLLOW_SET_SIBLING_D, input_index)
+                {
+                    self.add_first_descriptor(SlotId(55), input_index, gss_node_id, env);
                 }
             }
             // EmptyE : .
@@ -2480,13 +2480,6 @@ impl<'i, 'arena> Parser<'i, 'arena> for CyclesParser<'i, 'arena> {
             }
             // ParentD
             NonterminalId(20) => {
-                // ParentD : . ParentD
-                if self
-                    .scanner
-                    .match_any(&FIRST_SET_PARENT_D_ALT0, input_index)
-                {
-                    self.add_first_descriptor(SlotId(64), input_index, gss_node_id, env);
-                }
                 // ParentD : . "a"
                 if self
                     .scanner
@@ -2494,16 +2487,16 @@ impl<'i, 'arena> Parser<'i, 'arena> for CyclesParser<'i, 'arena> {
                 {
                     self.add_first_descriptor(SlotId(66), input_index, gss_node_id, env);
                 }
+                // ParentD : . ParentD
+                if self
+                    .scanner
+                    .match_any(&FIRST_SET_PARENT_D_ALT0, input_index)
+                {
+                    self.add_first_descriptor(SlotId(64), input_index, gss_node_id, env);
+                }
             }
             // OverlapC
             NonterminalId(21) => {
-                // OverlapC : . OverlapB
-                if self
-                    .scanner
-                    .match_any(&FIRST_SET_OVERLAP_C_ALT0, input_index)
-                {
-                    self.add_first_descriptor(SlotId(68), input_index, gss_node_id, env);
-                }
                 // OverlapC : . "b"
                 if self
                     .scanner
@@ -2511,16 +2504,16 @@ impl<'i, 'arena> Parser<'i, 'arena> for CyclesParser<'i, 'arena> {
                 {
                     self.add_first_descriptor(SlotId(70), input_index, gss_node_id, env);
                 }
+                // OverlapC : . OverlapB
+                if self
+                    .scanner
+                    .match_any(&FIRST_SET_OVERLAP_C_ALT0, input_index)
+                {
+                    self.add_first_descriptor(SlotId(68), input_index, gss_node_id, env);
+                }
             }
             // OverlapB
             NonterminalId(22) => {
-                // OverlapB : . OverlapB
-                if self
-                    .scanner
-                    .match_any(&FIRST_SET_OVERLAP_B_ALT0, input_index)
-                {
-                    self.add_first_descriptor(SlotId(72), input_index, gss_node_id, env);
-                }
                 // OverlapB : . OverlapC
                 if self
                     .scanner
@@ -2528,22 +2521,29 @@ impl<'i, 'arena> Parser<'i, 'arena> for CyclesParser<'i, 'arena> {
                 {
                     self.add_first_descriptor(SlotId(74), input_index, gss_node_id, env);
                 }
+                // OverlapB : . OverlapB
+                if self
+                    .scanner
+                    .match_any(&FIRST_SET_OVERLAP_B_ALT0, input_index)
+                {
+                    self.add_first_descriptor(SlotId(72), input_index, gss_node_id, env);
+                }
             }
             // IntermediateY
             NonterminalId(23) => {
-                // IntermediateY : . IntermediateA IntermediateY IntermediateB
-                if self
-                    .scanner
-                    .match_any(&FIRST_SET_INTERMEDIATE_Y_ALT0, input_index)
-                {
-                    self.add_first_descriptor(SlotId(76), input_index, gss_node_id, env);
-                }
                 // IntermediateY : . "a"
                 if self
                     .scanner
                     .match_any(&FIRST_SET_INTERMEDIATE_Y_ALT1, input_index)
                 {
                     self.add_first_descriptor(SlotId(80), input_index, gss_node_id, env);
+                }
+                // IntermediateY : . IntermediateA IntermediateY IntermediateB
+                if self
+                    .scanner
+                    .match_any(&FIRST_SET_INTERMEDIATE_Y_ALT0, input_index)
+                {
+                    self.add_first_descriptor(SlotId(76), input_index, gss_node_id, env);
                 }
             }
             // IntermediateA : .
@@ -2552,6 +2552,13 @@ impl<'i, 'arena> Parser<'i, 'arena> for CyclesParser<'i, 'arena> {
             }
             // IntermediateB
             NonterminalId(25) => {
+                // IntermediateB : . "b"
+                if self
+                    .scanner
+                    .match_any(&FIRST_SET_INTERMEDIATE_B_ALT1, input_index)
+                {
+                    self.add_first_descriptor(SlotId(84), input_index, gss_node_id, env);
+                }
                 // IntermediateB : .
                 if self
                     .scanner
@@ -2562,13 +2569,6 @@ impl<'i, 'arena> Parser<'i, 'arena> for CyclesParser<'i, 'arena> {
                 {
                     self.add_first_descriptor(SlotId(83), input_index, gss_node_id, env);
                 }
-                // IntermediateB : . "b"
-                if self
-                    .scanner
-                    .match_any(&FIRST_SET_INTERMEDIATE_B_ALT1, input_index)
-                {
-                    self.add_first_descriptor(SlotId(84), input_index, gss_node_id, env);
-                }
             }
             // MidInput : . Direct "b"
             NonterminalId(26) => {
@@ -2576,19 +2576,19 @@ impl<'i, 'arena> Parser<'i, 'arena> for CyclesParser<'i, 'arena> {
             }
             // Consuming
             NonterminalId(27) => {
-                // Consuming : . Consuming "b"
-                if self
-                    .scanner
-                    .match_any(&FIRST_SET_CONSUMING_ALT0, input_index)
-                {
-                    self.add_first_descriptor(SlotId(89), input_index, gss_node_id, env);
-                }
                 // Consuming : . "b"
                 if self
                     .scanner
                     .match_any(&FIRST_SET_CONSUMING_ALT1, input_index)
                 {
                     self.add_first_descriptor(SlotId(92), input_index, gss_node_id, env);
+                }
+                // Consuming : . Consuming "b"
+                if self
+                    .scanner
+                    .match_any(&FIRST_SET_CONSUMING_ALT0, input_index)
+                {
+                    self.add_first_descriptor(SlotId(89), input_index, gss_node_id, env);
                 }
             }
             // Ordinary : . "b"
@@ -2609,6 +2609,13 @@ impl<'i, 'arena> Parser<'i, 'arena> for CyclesParser<'i, 'arena> {
             }
             // Optional
             NonterminalId(32) => {
+                // Optional : . "b"
+                if self
+                    .scanner
+                    .match_any(&FIRST_SET_OPTIONAL_ALT1, input_index)
+                {
+                    self.add_first_descriptor(SlotId(104), input_index, gss_node_id, env);
+                }
                 // Optional : . Opt_1
                 if self
                     .scanner
@@ -2617,53 +2624,46 @@ impl<'i, 'arena> Parser<'i, 'arena> for CyclesParser<'i, 'arena> {
                 {
                     self.add_first_descriptor(SlotId(102), input_index, gss_node_id, env);
                 }
-                // Optional : . "b"
-                if self
-                    .scanner
-                    .match_any(&FIRST_SET_OPTIONAL_ALT1, input_index)
-                {
-                    self.add_first_descriptor(SlotId(104), input_index, gss_node_id, env);
-                }
             }
             // Grouped
             NonterminalId(33) => {
-                // Grouped : . Group_0
-                if self.scanner.match_any(&FIRST_SET_GROUPED_ALT0, input_index) {
-                    self.add_first_descriptor(SlotId(106), input_index, gss_node_id, env);
-                }
                 // Grouped : . "b"
                 if self.scanner.match_any(&FIRST_SET_GROUPED_ALT1, input_index) {
                     self.add_first_descriptor(SlotId(108), input_index, gss_node_id, env);
                 }
+                // Grouped : . Group_0
+                if self.scanner.match_any(&FIRST_SET_GROUPED_ALT0, input_index) {
+                    self.add_first_descriptor(SlotId(106), input_index, gss_node_id, env);
+                }
             }
             // Plus_0
             NonterminalId(34) => {
-                // Plus_0 : . Plus_0 EmptyE
-                if self.scanner.match_any(&FIRST_SET_PLUS_0_ALT0, input_index)
-                    || self.scanner.match_any(&FOLLOW_SET_PLUS_0, input_index)
-                {
-                    self.add_first_descriptor(SlotId(110), input_index, gss_node_id, env);
-                }
                 // Plus_0 : . EmptyE
                 if self.scanner.match_any(&FIRST_SET_PLUS_0_ALT1, input_index)
                     || self.scanner.match_any(&FOLLOW_SET_PLUS_0, input_index)
                 {
                     self.add_first_descriptor(SlotId(113), input_index, gss_node_id, env);
                 }
+                // Plus_0 : . Plus_0 EmptyE
+                if self.scanner.match_any(&FIRST_SET_PLUS_0_ALT0, input_index)
+                    || self.scanner.match_any(&FOLLOW_SET_PLUS_0, input_index)
+                {
+                    self.add_first_descriptor(SlotId(110), input_index, gss_node_id, env);
+                }
             }
             // Opt_0
             NonterminalId(35) => {
-                // Opt_0 : . Plus_0
-                if self.scanner.match_any(&FIRST_SET_OPT_0_ALT0, input_index)
-                    || self.scanner.match_any(&FOLLOW_SET_OPT_0, input_index)
-                {
-                    self.add_first_descriptor(SlotId(115), input_index, gss_node_id, env);
-                }
                 // Opt_0 : .
                 if self.scanner.match_any(&FIRST_SET_OPT_0_ALT1, input_index)
                     || self.scanner.match_any(&FOLLOW_SET_OPT_0, input_index)
                 {
                     self.add_first_descriptor(SlotId(117), input_index, gss_node_id, env);
+                }
+                // Opt_0 : . Plus_0
+                if self.scanner.match_any(&FIRST_SET_OPT_0_ALT0, input_index)
+                    || self.scanner.match_any(&FOLLOW_SET_OPT_0, input_index)
+                {
+                    self.add_first_descriptor(SlotId(115), input_index, gss_node_id, env);
                 }
             }
             // Star_0 : . Opt_0
@@ -2672,32 +2672,32 @@ impl<'i, 'arena> Parser<'i, 'arena> for CyclesParser<'i, 'arena> {
             }
             // Plus_1
             NonterminalId(37) => {
-                // Plus_1 : . Plus_1 EmptyF EmptyE
-                if self.scanner.match_any(&FIRST_SET_PLUS_1_ALT0, input_index)
-                    || self.scanner.match_any(&FOLLOW_SET_PLUS_1, input_index)
-                {
-                    self.add_first_descriptor(SlotId(120), input_index, gss_node_id, env);
-                }
                 // Plus_1 : . EmptyE
                 if self.scanner.match_any(&FIRST_SET_PLUS_1_ALT1, input_index)
                     || self.scanner.match_any(&FOLLOW_SET_PLUS_1, input_index)
                 {
                     self.add_first_descriptor(SlotId(124), input_index, gss_node_id, env);
                 }
+                // Plus_1 : . Plus_1 EmptyF EmptyE
+                if self.scanner.match_any(&FIRST_SET_PLUS_1_ALT0, input_index)
+                    || self.scanner.match_any(&FOLLOW_SET_PLUS_1, input_index)
+                {
+                    self.add_first_descriptor(SlotId(120), input_index, gss_node_id, env);
+                }
             }
             // Opt_1
             NonterminalId(38) => {
-                // Opt_1 : . Optional
-                if self.scanner.match_any(&FIRST_SET_OPT_1_ALT0, input_index)
-                    || self.scanner.match_any(&FOLLOW_SET_OPT_1, input_index)
-                {
-                    self.add_first_descriptor(SlotId(126), input_index, gss_node_id, env);
-                }
                 // Opt_1 : .
                 if self.scanner.match_any(&FIRST_SET_OPT_1_ALT1, input_index)
                     || self.scanner.match_any(&FOLLOW_SET_OPT_1, input_index)
                 {
                     self.add_first_descriptor(SlotId(128), input_index, gss_node_id, env);
+                }
+                // Opt_1 : . Optional
+                if self.scanner.match_any(&FIRST_SET_OPT_1_ALT0, input_index)
+                    || self.scanner.match_any(&FOLLOW_SET_OPT_1, input_index)
+                {
+                    self.add_first_descriptor(SlotId(126), input_index, gss_node_id, env);
                 }
             }
             // Group_0 : . Grouped

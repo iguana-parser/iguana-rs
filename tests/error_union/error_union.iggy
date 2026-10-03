@@ -22,31 +22,31 @@ BeforeQ = "x" | "x" "z"
 // kind is first reflects descriptor scheduling, not a semantic precedence rule;
 // these cases pin the current behavior rather than promising that order.
 @NoLayout
-UnexpectedFirst = Identifier \ Keyword
-                | Identifier "!"
+UnexpectedFirst = Identifier "!"
+                | Identifier \ Keyword
 
 @NoLayout
-ExcludedFirst = Identifier "!"
-              | Identifier \ Keyword
+ExcludedFirst = Identifier \ Keyword
+              | Identifier "!"
 
 // The same pinning, with the unexpected-token failure recorded by the
 // prediction check of the call to MissingSuffix. Each pair reverses the
 // alternatives to record the two failures in both orders.
 @NoLayout
-PredictionBeforeExcept = Identifier \ Keyword
-                       | Identifier MissingSuffix
-
-@NoLayout
-ExceptBeforePrediction = Identifier MissingSuffix
+PredictionBeforeExcept = Identifier MissingSuffix
                        | Identifier \ Keyword
 
 @NoLayout
-PredictionBeforeFollow = Identifier !>> Question Question
+ExceptBeforePrediction = Identifier \ Keyword
                        | Identifier MissingSuffix
 
 @NoLayout
-FollowBeforePrediction = Identifier MissingSuffix
+PredictionBeforeFollow = Identifier MissingSuffix
                        | Identifier !>> Question Question
+
+@NoLayout
+FollowBeforePrediction = Identifier !>> Question Question
+                       | Identifier MissingSuffix
 
 @NoLayout
 MissingSuffix = SuffixChoice

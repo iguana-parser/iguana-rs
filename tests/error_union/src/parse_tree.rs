@@ -1100,92 +1100,92 @@ pub enum BeforeQ<'a> {
 }
 #[derive(Debug)]
 pub enum UnexpectedFirst<'a> {
-    // UnexpectedFirst = Identifier
+    // UnexpectedFirst = Identifier "!"
     Alt0 {
         identifier: Token,
+        lit_1: Token,
         span: Span,
     },
-    // UnexpectedFirst = Identifier "!"
+    // UnexpectedFirst = Identifier
     Alt1 {
         identifier: Token,
-        lit_1: Token,
         span: Span,
     },
     Amb(&'a [&'a UnexpectedFirst<'a>]),
 }
 #[derive(Debug)]
 pub enum ExcludedFirst<'a> {
-    // ExcludedFirst = Identifier "!"
+    // ExcludedFirst = Identifier
     Alt0 {
         identifier: Token,
-        lit_1: Token,
         span: Span,
     },
-    // ExcludedFirst = Identifier
+    // ExcludedFirst = Identifier "!"
     Alt1 {
         identifier: Token,
+        lit_1: Token,
         span: Span,
     },
     Amb(&'a [&'a ExcludedFirst<'a>]),
 }
 #[derive(Debug)]
 pub enum PredictionBeforeExcept<'a> {
-    // PredictionBeforeExcept = Identifier
+    // PredictionBeforeExcept = Identifier MissingSuffix
     Alt0 {
         identifier: Token,
+        missing_suffix: &'a MissingSuffix<'a>,
         span: Span,
     },
-    // PredictionBeforeExcept = Identifier MissingSuffix
+    // PredictionBeforeExcept = Identifier
     Alt1 {
         identifier: Token,
-        missing_suffix: &'a MissingSuffix<'a>,
         span: Span,
     },
     Amb(&'a [&'a PredictionBeforeExcept<'a>]),
 }
 #[derive(Debug)]
 pub enum ExceptBeforePrediction<'a> {
-    // ExceptBeforePrediction = Identifier MissingSuffix
+    // ExceptBeforePrediction = Identifier
     Alt0 {
         identifier: Token,
-        missing_suffix: &'a MissingSuffix<'a>,
         span: Span,
     },
-    // ExceptBeforePrediction = Identifier
+    // ExceptBeforePrediction = Identifier MissingSuffix
     Alt1 {
         identifier: Token,
+        missing_suffix: &'a MissingSuffix<'a>,
         span: Span,
     },
     Amb(&'a [&'a ExceptBeforePrediction<'a>]),
 }
 #[derive(Debug)]
 pub enum PredictionBeforeFollow<'a> {
-    // PredictionBeforeFollow = Identifier Question
+    // PredictionBeforeFollow = Identifier MissingSuffix
     Alt0 {
         identifier: Token,
-        question: Token,
+        missing_suffix: &'a MissingSuffix<'a>,
         span: Span,
     },
-    // PredictionBeforeFollow = Identifier MissingSuffix
+    // PredictionBeforeFollow = Identifier Question
     Alt1 {
         identifier: Token,
-        missing_suffix: &'a MissingSuffix<'a>,
+        question: Token,
         span: Span,
     },
     Amb(&'a [&'a PredictionBeforeFollow<'a>]),
 }
 #[derive(Debug)]
 pub enum FollowBeforePrediction<'a> {
-    // FollowBeforePrediction = Identifier MissingSuffix
+    // FollowBeforePrediction = Identifier Question
     Alt0 {
         identifier: Token,
-        missing_suffix: &'a MissingSuffix<'a>,
+        question: Token,
         span: Span,
     },
-    // FollowBeforePrediction = Identifier Question
+    // FollowBeforePrediction = Identifier MissingSuffix
     Alt1 {
         identifier: Token,
-        question: Token,
+        missing_suffix: &'a MissingSuffix<'a>,
         span: Span,
     },
     Amb(&'a [&'a FollowBeforePrediction<'a>]),
@@ -1633,15 +1633,15 @@ impl<'a> UnexpectedFirst<'a> {
     }
     pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
         match self {
-            UnexpectedFirst::Alt0 { identifier, .. } => match index {
-                0 => Some(ParseTree::Token(*identifier)),
-                _ => None,
-            },
-            UnexpectedFirst::Alt1 {
+            UnexpectedFirst::Alt0 {
                 identifier, lit_1, ..
             } => match index {
                 0 => Some(ParseTree::Token(*identifier)),
                 1 => Some(ParseTree::Token(*lit_1)),
+                _ => None,
+            },
+            UnexpectedFirst::Alt1 { identifier, .. } => match index {
+                0 => Some(ParseTree::Token(*identifier)),
                 _ => None,
             },
             UnexpectedFirst::Amb(alts) => alts.get(index).copied().map(ParseTree::UnexpectedFirst),
@@ -1649,8 +1649,8 @@ impl<'a> UnexpectedFirst<'a> {
     }
     pub fn child_count(&self) -> usize {
         match self {
-            UnexpectedFirst::Alt0 { .. } => 1usize,
-            UnexpectedFirst::Alt1 { .. } => 2usize,
+            UnexpectedFirst::Alt0 { .. } => 2usize,
+            UnexpectedFirst::Alt1 { .. } => 1usize,
             UnexpectedFirst::Amb(alts) => alts.len(),
         }
     }
@@ -1677,15 +1677,15 @@ impl<'a> ExcludedFirst<'a> {
     }
     pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
         match self {
-            ExcludedFirst::Alt0 {
+            ExcludedFirst::Alt0 { identifier, .. } => match index {
+                0 => Some(ParseTree::Token(*identifier)),
+                _ => None,
+            },
+            ExcludedFirst::Alt1 {
                 identifier, lit_1, ..
             } => match index {
                 0 => Some(ParseTree::Token(*identifier)),
                 1 => Some(ParseTree::Token(*lit_1)),
-                _ => None,
-            },
-            ExcludedFirst::Alt1 { identifier, .. } => match index {
-                0 => Some(ParseTree::Token(*identifier)),
                 _ => None,
             },
             ExcludedFirst::Amb(alts) => alts.get(index).copied().map(ParseTree::ExcludedFirst),
@@ -1693,8 +1693,8 @@ impl<'a> ExcludedFirst<'a> {
     }
     pub fn child_count(&self) -> usize {
         match self {
-            ExcludedFirst::Alt0 { .. } => 2usize,
-            ExcludedFirst::Alt1 { .. } => 1usize,
+            ExcludedFirst::Alt0 { .. } => 1usize,
+            ExcludedFirst::Alt1 { .. } => 2usize,
             ExcludedFirst::Amb(alts) => alts.len(),
         }
     }
@@ -1721,17 +1721,17 @@ impl<'a> PredictionBeforeExcept<'a> {
     }
     pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
         match self {
-            PredictionBeforeExcept::Alt0 { identifier, .. } => match index {
-                0 => Some(ParseTree::Token(*identifier)),
-                _ => None,
-            },
-            PredictionBeforeExcept::Alt1 {
+            PredictionBeforeExcept::Alt0 {
                 identifier,
                 missing_suffix,
                 ..
             } => match index {
                 0 => Some(ParseTree::Token(*identifier)),
                 1 => Some(ParseTree::MissingSuffix(missing_suffix)),
+                _ => None,
+            },
+            PredictionBeforeExcept::Alt1 { identifier, .. } => match index {
+                0 => Some(ParseTree::Token(*identifier)),
                 _ => None,
             },
             PredictionBeforeExcept::Amb(alts) => alts
@@ -1742,8 +1742,8 @@ impl<'a> PredictionBeforeExcept<'a> {
     }
     pub fn child_count(&self) -> usize {
         match self {
-            PredictionBeforeExcept::Alt0 { .. } => 1usize,
-            PredictionBeforeExcept::Alt1 { .. } => 2usize,
+            PredictionBeforeExcept::Alt0 { .. } => 2usize,
+            PredictionBeforeExcept::Alt1 { .. } => 1usize,
             PredictionBeforeExcept::Amb(alts) => alts.len(),
         }
     }
@@ -1770,17 +1770,17 @@ impl<'a> ExceptBeforePrediction<'a> {
     }
     pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
         match self {
-            ExceptBeforePrediction::Alt0 {
+            ExceptBeforePrediction::Alt0 { identifier, .. } => match index {
+                0 => Some(ParseTree::Token(*identifier)),
+                _ => None,
+            },
+            ExceptBeforePrediction::Alt1 {
                 identifier,
                 missing_suffix,
                 ..
             } => match index {
                 0 => Some(ParseTree::Token(*identifier)),
                 1 => Some(ParseTree::MissingSuffix(missing_suffix)),
-                _ => None,
-            },
-            ExceptBeforePrediction::Alt1 { identifier, .. } => match index {
-                0 => Some(ParseTree::Token(*identifier)),
                 _ => None,
             },
             ExceptBeforePrediction::Amb(alts) => alts
@@ -1791,8 +1791,8 @@ impl<'a> ExceptBeforePrediction<'a> {
     }
     pub fn child_count(&self) -> usize {
         match self {
-            ExceptBeforePrediction::Alt0 { .. } => 2usize,
-            ExceptBeforePrediction::Alt1 { .. } => 1usize,
+            ExceptBeforePrediction::Alt0 { .. } => 1usize,
+            ExceptBeforePrediction::Alt1 { .. } => 2usize,
             ExceptBeforePrediction::Amb(alts) => alts.len(),
         }
     }
@@ -1821,20 +1821,20 @@ impl<'a> PredictionBeforeFollow<'a> {
         match self {
             PredictionBeforeFollow::Alt0 {
                 identifier,
-                question,
-                ..
-            } => match index {
-                0 => Some(ParseTree::Token(*identifier)),
-                1 => Some(ParseTree::Token(*question)),
-                _ => None,
-            },
-            PredictionBeforeFollow::Alt1 {
-                identifier,
                 missing_suffix,
                 ..
             } => match index {
                 0 => Some(ParseTree::Token(*identifier)),
                 1 => Some(ParseTree::MissingSuffix(missing_suffix)),
+                _ => None,
+            },
+            PredictionBeforeFollow::Alt1 {
+                identifier,
+                question,
+                ..
+            } => match index {
+                0 => Some(ParseTree::Token(*identifier)),
+                1 => Some(ParseTree::Token(*question)),
                 _ => None,
             },
             PredictionBeforeFollow::Amb(alts) => alts
@@ -1875,20 +1875,20 @@ impl<'a> FollowBeforePrediction<'a> {
         match self {
             FollowBeforePrediction::Alt0 {
                 identifier,
-                missing_suffix,
-                ..
-            } => match index {
-                0 => Some(ParseTree::Token(*identifier)),
-                1 => Some(ParseTree::MissingSuffix(missing_suffix)),
-                _ => None,
-            },
-            FollowBeforePrediction::Alt1 {
-                identifier,
                 question,
                 ..
             } => match index {
                 0 => Some(ParseTree::Token(*identifier)),
                 1 => Some(ParseTree::Token(*question)),
+                _ => None,
+            },
+            FollowBeforePrediction::Alt1 {
+                identifier,
+                missing_suffix,
+                ..
+            } => match index {
+                0 => Some(ParseTree::Token(*identifier)),
+                1 => Some(ParseTree::MissingSuffix(missing_suffix)),
                 _ => None,
             },
             FollowBeforePrediction::Amb(alts) => alts
@@ -3186,20 +3186,20 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for ErrorUnionParseTreeBuilder<'a> {
             },
             // UnexpectedFirst
             NonterminalId(6) => match nonterminal_node.return_slot {
-                // UnexpectedFirst = Identifier
-                SlotId(47) => {
-                    let [identifier] = children.into_array::<1usize>();
+                // UnexpectedFirst = Identifier "!"
+                SlotId(48) => {
+                    let [identifier, lit_1] = children.into_array::<2usize>();
                     ParseTree::UnexpectedFirst(self.arena.alloc(UnexpectedFirst::Alt0 {
                         identifier: identifier.unwrap_token(),
+                        lit_1: lit_1.unwrap_token(),
                         span: nonterminal_node.span,
                     }))
                 }
-                // UnexpectedFirst = Identifier "!"
+                // UnexpectedFirst = Identifier
                 SlotId(50) => {
-                    let [identifier, lit_1] = children.into_array::<2usize>();
+                    let [identifier] = children.into_array::<1usize>();
                     ParseTree::UnexpectedFirst(self.arena.alloc(UnexpectedFirst::Alt1 {
                         identifier: identifier.unwrap_token(),
-                        lit_1: lit_1.unwrap_token(),
                         span: nonterminal_node.span,
                     }))
                 }
@@ -3207,20 +3207,20 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for ErrorUnionParseTreeBuilder<'a> {
             },
             // ExcludedFirst
             NonterminalId(7) => match nonterminal_node.return_slot {
-                // ExcludedFirst = Identifier "!"
-                SlotId(53) => {
-                    let [identifier, lit_1] = children.into_array::<2usize>();
+                // ExcludedFirst = Identifier
+                SlotId(52) => {
+                    let [identifier] = children.into_array::<1usize>();
                     ParseTree::ExcludedFirst(self.arena.alloc(ExcludedFirst::Alt0 {
                         identifier: identifier.unwrap_token(),
-                        lit_1: lit_1.unwrap_token(),
                         span: nonterminal_node.span,
                     }))
                 }
-                // ExcludedFirst = Identifier
+                // ExcludedFirst = Identifier "!"
                 SlotId(55) => {
-                    let [identifier] = children.into_array::<1usize>();
+                    let [identifier, lit_1] = children.into_array::<2usize>();
                     ParseTree::ExcludedFirst(self.arena.alloc(ExcludedFirst::Alt1 {
                         identifier: identifier.unwrap_token(),
+                        lit_1: lit_1.unwrap_token(),
                         span: nonterminal_node.span,
                     }))
                 }
@@ -3228,23 +3228,23 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for ErrorUnionParseTreeBuilder<'a> {
             },
             // PredictionBeforeExcept
             NonterminalId(8) => match nonterminal_node.return_slot {
-                // PredictionBeforeExcept = Identifier
-                SlotId(57) => {
-                    let [identifier] = children.into_array::<1usize>();
+                // PredictionBeforeExcept = Identifier MissingSuffix
+                SlotId(58) => {
+                    let [identifier, missing_suffix] = children.into_array::<2usize>();
                     ParseTree::PredictionBeforeExcept(self.arena.alloc(
                         PredictionBeforeExcept::Alt0 {
                             identifier: identifier.unwrap_token(),
+                            missing_suffix: missing_suffix.unwrap_missing_suffix(),
                             span: nonterminal_node.span,
                         },
                     ))
                 }
-                // PredictionBeforeExcept = Identifier MissingSuffix
+                // PredictionBeforeExcept = Identifier
                 SlotId(60) => {
-                    let [identifier, missing_suffix] = children.into_array::<2usize>();
+                    let [identifier] = children.into_array::<1usize>();
                     ParseTree::PredictionBeforeExcept(self.arena.alloc(
                         PredictionBeforeExcept::Alt1 {
                             identifier: identifier.unwrap_token(),
-                            missing_suffix: missing_suffix.unwrap_missing_suffix(),
                             span: nonterminal_node.span,
                         },
                     ))
@@ -3253,23 +3253,23 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for ErrorUnionParseTreeBuilder<'a> {
             },
             // ExceptBeforePrediction
             NonterminalId(9) => match nonterminal_node.return_slot {
-                // ExceptBeforePrediction = Identifier MissingSuffix
-                SlotId(63) => {
-                    let [identifier, missing_suffix] = children.into_array::<2usize>();
+                // ExceptBeforePrediction = Identifier
+                SlotId(62) => {
+                    let [identifier] = children.into_array::<1usize>();
                     ParseTree::ExceptBeforePrediction(self.arena.alloc(
                         ExceptBeforePrediction::Alt0 {
                             identifier: identifier.unwrap_token(),
-                            missing_suffix: missing_suffix.unwrap_missing_suffix(),
                             span: nonterminal_node.span,
                         },
                     ))
                 }
-                // ExceptBeforePrediction = Identifier
+                // ExceptBeforePrediction = Identifier MissingSuffix
                 SlotId(65) => {
-                    let [identifier] = children.into_array::<1usize>();
+                    let [identifier, missing_suffix] = children.into_array::<2usize>();
                     ParseTree::ExceptBeforePrediction(self.arena.alloc(
                         ExceptBeforePrediction::Alt1 {
                             identifier: identifier.unwrap_token(),
+                            missing_suffix: missing_suffix.unwrap_missing_suffix(),
                             span: nonterminal_node.span,
                         },
                     ))
@@ -3278,24 +3278,24 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for ErrorUnionParseTreeBuilder<'a> {
             },
             // PredictionBeforeFollow
             NonterminalId(10) => match nonterminal_node.return_slot {
-                // PredictionBeforeFollow = Identifier Question
+                // PredictionBeforeFollow = Identifier MissingSuffix
                 SlotId(68) => {
-                    let [identifier, question] = children.into_array::<2usize>();
+                    let [identifier, missing_suffix] = children.into_array::<2usize>();
                     ParseTree::PredictionBeforeFollow(self.arena.alloc(
                         PredictionBeforeFollow::Alt0 {
                             identifier: identifier.unwrap_token(),
-                            question: question.unwrap_token(),
+                            missing_suffix: missing_suffix.unwrap_missing_suffix(),
                             span: nonterminal_node.span,
                         },
                     ))
                 }
-                // PredictionBeforeFollow = Identifier MissingSuffix
+                // PredictionBeforeFollow = Identifier Question
                 SlotId(71) => {
-                    let [identifier, missing_suffix] = children.into_array::<2usize>();
+                    let [identifier, question] = children.into_array::<2usize>();
                     ParseTree::PredictionBeforeFollow(self.arena.alloc(
                         PredictionBeforeFollow::Alt1 {
                             identifier: identifier.unwrap_token(),
-                            missing_suffix: missing_suffix.unwrap_missing_suffix(),
+                            question: question.unwrap_token(),
                             span: nonterminal_node.span,
                         },
                     ))
@@ -3304,24 +3304,24 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for ErrorUnionParseTreeBuilder<'a> {
             },
             // FollowBeforePrediction
             NonterminalId(11) => match nonterminal_node.return_slot {
-                // FollowBeforePrediction = Identifier MissingSuffix
+                // FollowBeforePrediction = Identifier Question
                 SlotId(74) => {
-                    let [identifier, missing_suffix] = children.into_array::<2usize>();
+                    let [identifier, question] = children.into_array::<2usize>();
                     ParseTree::FollowBeforePrediction(self.arena.alloc(
                         FollowBeforePrediction::Alt0 {
                             identifier: identifier.unwrap_token(),
-                            missing_suffix: missing_suffix.unwrap_missing_suffix(),
+                            question: question.unwrap_token(),
                             span: nonterminal_node.span,
                         },
                     ))
                 }
-                // FollowBeforePrediction = Identifier Question
+                // FollowBeforePrediction = Identifier MissingSuffix
                 SlotId(77) => {
-                    let [identifier, question] = children.into_array::<2usize>();
+                    let [identifier, missing_suffix] = children.into_array::<2usize>();
                     ParseTree::FollowBeforePrediction(self.arena.alloc(
                         FollowBeforePrediction::Alt1 {
                             identifier: identifier.unwrap_token(),
-                            question: question.unwrap_token(),
+                            missing_suffix: missing_suffix.unwrap_missing_suffix(),
                             span: nonterminal_node.span,
                         },
                     ))

@@ -528,24 +528,24 @@ impl<'i, 'arena> Parser<'i, 'arena> for AltSeqParser<'i, 'arena> {
             }
             // Alt_0
             NonterminalId(7) => {
-                // Alt_0 : . A B
-                if self.scanner.match_any(&FIRST_SET_ALT_0_ALT0, input_index) {
-                    self.add_first_descriptor(SlotId(16), input_index, gss_node_id, env);
-                }
                 // Alt_0 : . C
                 if self.scanner.match_any(&FIRST_SET_ALT_0_ALT1, input_index) {
                     self.add_first_descriptor(SlotId(19), input_index, gss_node_id, env);
                 }
+                // Alt_0 : . A B
+                if self.scanner.match_any(&FIRST_SET_ALT_0_ALT0, input_index) {
+                    self.add_first_descriptor(SlotId(16), input_index, gss_node_id, env);
+                }
             }
             // Alt_1
             NonterminalId(8) => {
-                // Alt_1 : . D
-                if self.scanner.match_any(&FIRST_SET_ALT_1_ALT0, input_index) {
-                    self.add_first_descriptor(SlotId(21), input_index, gss_node_id, env);
-                }
                 // Alt_1 : . E F
                 if self.scanner.match_any(&FIRST_SET_ALT_1_ALT1, input_index) {
                     self.add_first_descriptor(SlotId(23), input_index, gss_node_id, env);
+                }
+                // Alt_1 : . D
+                if self.scanner.match_any(&FIRST_SET_ALT_1_ALT0, input_index) {
+                    self.add_first_descriptor(SlotId(21), input_index, gss_node_id, env);
                 }
             }
             // StartS : . start:S

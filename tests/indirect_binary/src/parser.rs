@@ -15309,22 +15309,22 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
             }
             // E
             NonterminalId(99) => {
-                // E(p: i32) : . "a" return 0
-                if self.scanner.match_any(&FIRST_SET_E_ALT0, input_index) {
-                    self.add_first_descriptor(SlotId(384), input_index, gss_node_id, env);
+                // E(p: i32) : . [1 >= p] l_pr=L(p, 0) [(l_pr == 0) || (l_pr >= 1)] WS "-" WS E(2) return 1
+                if self.scanner.match_any(&FIRST_SET_E_ALT3, input_index) {
+                    self.add_first_descriptor(SlotId(405), input_index, gss_node_id, env);
+                }
+                // E(p: i32) : . [1 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 1)] WS "+" WS L(2, 1) return 1
+                if self.scanner.match_any(&FIRST_SET_E_ALT2, input_index) {
+                    self.add_first_descriptor(SlotId(396), input_index, gss_node_id, env);
                 }
                 // E(p: i32) : . [2 >= p] l_pr=L(p, 0) [(l_pr == 0) || (l_pr >= 2)] WS "*" WS L(3, 1) return
                 // 2
                 if self.scanner.match_any(&FIRST_SET_E_ALT1, input_index) {
                     self.add_first_descriptor(SlotId(387), input_index, gss_node_id, env);
                 }
-                // E(p: i32) : . [1 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 1)] WS "+" WS L(2, 1) return 1
-                if self.scanner.match_any(&FIRST_SET_E_ALT2, input_index) {
-                    self.add_first_descriptor(SlotId(396), input_index, gss_node_id, env);
-                }
-                // E(p: i32) : . [1 >= p] l_pr=L(p, 0) [(l_pr == 0) || (l_pr >= 1)] WS "-" WS E(2) return 1
-                if self.scanner.match_any(&FIRST_SET_E_ALT3, input_index) {
-                    self.add_first_descriptor(SlotId(405), input_index, gss_node_id, env);
+                // E(p: i32) : . "a" return 0
+                if self.scanner.match_any(&FIRST_SET_E_ALT0, input_index) {
+                    self.add_first_descriptor(SlotId(384), input_index, gss_node_id, env);
                 }
             }
             // L(p: i32, end: i32) : . v_pr=E(p) return v_pr
@@ -15333,14 +15333,14 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
             }
             // Only
             NonterminalId(101) => {
-                // Only(p: i32) : . "b" return 0
-                if self.scanner.match_any(&FIRST_SET_ONLY_ALT0, input_index) {
-                    self.add_first_descriptor(SlotId(417), input_index, gss_node_id, env);
-                }
                 // Only(p: i32) : . [1 >= p] l_pr=OnlyOperand(p, 0) [(l_pr == 0) || (l_pr >= 1)] WS "^" WS
                 // OnlyOperand(2, 1) return 1
                 if self.scanner.match_any(&FIRST_SET_ONLY_ALT1, input_index) {
                     self.add_first_descriptor(SlotId(420), input_index, gss_node_id, env);
+                }
+                // Only(p: i32) : . "b" return 0
+                if self.scanner.match_any(&FIRST_SET_ONLY_ALT0, input_index) {
+                    self.add_first_descriptor(SlotId(417), input_index, gss_node_id, env);
                 }
             }
             // OnlyOperand(p: i32, end: i32) : . v_pr=Only(p) return v_pr
@@ -15349,51 +15349,51 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
             }
             // Cross
             NonterminalId(103) => {
-                // Cross(p: i32) : . "c" return 0
-                if self.scanner.match_any(&FIRST_SET_CROSS_ALT0, input_index) {
-                    self.add_first_descriptor(SlotId(432), input_index, gss_node_id, env);
+                // Cross(p: i32) : . [1 >= p] l_pr=Cross(p) [(l_pr == 0) || (l_pr >= 1)] WS "+" WS Foreign(0)
+                // return 0
+                if self.scanner.match_any(&FIRST_SET_CROSS_ALT2, input_index) {
+                    self.add_first_descriptor(SlotId(444), input_index, gss_node_id, env);
                 }
                 // Cross(p: i32) : . [2 >= p] l_pr=Cross(p) [(l_pr == 0) || (l_pr >= 2)] WS "-" WS Foreign(0)
                 // return 0
                 if self.scanner.match_any(&FIRST_SET_CROSS_ALT1, input_index) {
                     self.add_first_descriptor(SlotId(435), input_index, gss_node_id, env);
                 }
-                // Cross(p: i32) : . [1 >= p] l_pr=Cross(p) [(l_pr == 0) || (l_pr >= 1)] WS "+" WS Foreign(0)
-                // return 0
-                if self.scanner.match_any(&FIRST_SET_CROSS_ALT2, input_index) {
-                    self.add_first_descriptor(SlotId(444), input_index, gss_node_id, env);
+                // Cross(p: i32) : . "c" return 0
+                if self.scanner.match_any(&FIRST_SET_CROSS_ALT0, input_index) {
+                    self.add_first_descriptor(SlotId(432), input_index, gss_node_id, env);
                 }
             }
             // Foreign
             NonterminalId(104) => {
-                // Foreign(p: i32) : . "d" return 0
-                if self.scanner.match_any(&FIRST_SET_FOREIGN_ALT0, input_index) {
-                    self.add_first_descriptor(SlotId(453), input_index, gss_node_id, env);
+                // Foreign(p: i32) : . Cross(0) return 0
+                if self.scanner.match_any(&FIRST_SET_FOREIGN_ALT2, input_index) {
+                    self.add_first_descriptor(SlotId(465), input_index, gss_node_id, env);
                 }
                 // Foreign(p: i32) : . [1 >= p] l_pr=Foreign(p) [(l_pr == 0) || (l_pr >= 1)] WS "*" WS
                 // Foreign(2) return 1
                 if self.scanner.match_any(&FIRST_SET_FOREIGN_ALT1, input_index) {
                     self.add_first_descriptor(SlotId(456), input_index, gss_node_id, env);
                 }
-                // Foreign(p: i32) : . Cross(0) return 0
-                if self.scanner.match_any(&FIRST_SET_FOREIGN_ALT2, input_index) {
-                    self.add_first_descriptor(SlotId(465), input_index, gss_node_id, env);
+                // Foreign(p: i32) : . "d" return 0
+                if self.scanner.match_any(&FIRST_SET_FOREIGN_ALT0, input_index) {
+                    self.add_first_descriptor(SlotId(453), input_index, gss_node_id, env);
                 }
             }
             // Cascade
             NonterminalId(105) => {
-                // Cascade(p: i32) : . "t" return 0
-                if self.scanner.match_any(&FIRST_SET_CASCADE_ALT0, input_index) {
-                    self.add_first_descriptor(SlotId(468), input_index, gss_node_id, env);
+                // Cascade(p: i32) : . Ternary return 0
+                if self.scanner.match_any(&FIRST_SET_CASCADE_ALT2, input_index) {
+                    self.add_first_descriptor(SlotId(480), input_index, gss_node_id, env);
                 }
                 // Cascade(p: i32) : . [1 >= p] l_pr=Cascade(p) [(l_pr == 0) || (l_pr >= 1)] WS "+" WS
                 // Cascade(2) return 1
                 if self.scanner.match_any(&FIRST_SET_CASCADE_ALT1, input_index) {
                     self.add_first_descriptor(SlotId(471), input_index, gss_node_id, env);
                 }
-                // Cascade(p: i32) : . Ternary return 0
-                if self.scanner.match_any(&FIRST_SET_CASCADE_ALT2, input_index) {
-                    self.add_first_descriptor(SlotId(480), input_index, gss_node_id, env);
+                // Cascade(p: i32) : . "t" return 0
+                if self.scanner.match_any(&FIRST_SET_CASCADE_ALT0, input_index) {
+                    self.add_first_descriptor(SlotId(468), input_index, gss_node_id, env);
                 }
             }
             // Ternary : . Cascade(0) WS "?" WS Cascade(0) WS ":" WS Cascade(0)
@@ -15402,19 +15402,19 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
             }
             // Nullable
             NonterminalId(106) => {
-                // Nullable(p: i32) : . "n" return 0
-                if self
-                    .scanner
-                    .match_any(&FIRST_SET_NULLABLE_ALT0, input_index)
-                {
-                    self.add_first_descriptor(SlotId(483), input_index, gss_node_id, env);
-                }
                 // Nullable(p: i32) : . NullableLeft WS "%" WS NullableRight(1) return 1
                 if self
                     .scanner
                     .match_any(&FIRST_SET_NULLABLE_ALT1, input_index)
                 {
                     self.add_first_descriptor(SlotId(486), input_index, gss_node_id, env);
+                }
+                // Nullable(p: i32) : . "n" return 0
+                if self
+                    .scanner
+                    .match_any(&FIRST_SET_NULLABLE_ALT0, input_index)
+                {
+                    self.add_first_descriptor(SlotId(483), input_index, gss_node_id, env);
                 }
             }
             // NullableLeft : . Opt_0 WS Nullable(0)
@@ -15427,13 +15427,6 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
             }
             // RightExpr
             NonterminalId(108) => {
-                // RightExpr(p: i32) : . "r" return 0
-                if self
-                    .scanner
-                    .match_any(&FIRST_SET_RIGHT_EXPR_ALT0, input_index)
-                {
-                    self.add_first_descriptor(SlotId(496), input_index, gss_node_id, env);
-                }
                 // RightExpr(p: i32) : . [1 >= p] l_pr=RightOperand(p, 0) [(l_pr == 0) || (l_pr >= 2)] WS ">"
                 // WS RightOperand(1, 1) return 1
                 if self
@@ -15442,6 +15435,13 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                 {
                     self.add_first_descriptor(SlotId(499), input_index, gss_node_id, env);
                 }
+                // RightExpr(p: i32) : . "r" return 0
+                if self
+                    .scanner
+                    .match_any(&FIRST_SET_RIGHT_EXPR_ALT0, input_index)
+                {
+                    self.add_first_descriptor(SlotId(496), input_index, gss_node_id, env);
+                }
             }
             // RightOperand(p: i32, end: i32) : . v_pr=RightExpr(p) return v_pr
             NonterminalId(109) => {
@@ -15449,13 +15449,6 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
             }
             // NoneExpr
             NonterminalId(110) => {
-                // NoneExpr(p: i32) : . "z" return 0
-                if self
-                    .scanner
-                    .match_any(&FIRST_SET_NONE_EXPR_ALT0, input_index)
-                {
-                    self.add_first_descriptor(SlotId(511), input_index, gss_node_id, env);
-                }
                 // NoneExpr(p: i32) : . [1 >= p] l_pr=NoneOperand(p, 0) [(l_pr == 0) || (l_pr >= 2)] WS "="
                 // WS NoneOperand(2, 1) return 1
                 if self
@@ -15464,6 +15457,13 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                 {
                     self.add_first_descriptor(SlotId(514), input_index, gss_node_id, env);
                 }
+                // NoneExpr(p: i32) : . "z" return 0
+                if self
+                    .scanner
+                    .match_any(&FIRST_SET_NONE_EXPR_ALT0, input_index)
+                {
+                    self.add_first_descriptor(SlotId(511), input_index, gss_node_id, env);
+                }
             }
             // NoneOperand(p: i32, end: i32) : . v_pr=NoneExpr(p) return v_pr
             NonterminalId(111) => {
@@ -15471,13 +15471,6 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
             }
             // Excluded
             NonterminalId(112) => {
-                // Excluded(p: i32, a: i32) : . "e" return 0
-                if self
-                    .scanner
-                    .match_any(&FIRST_SET_EXCLUDED_ALT0, input_index)
-                {
-                    self.add_first_descriptor(SlotId(526), input_index, gss_node_id, env);
-                }
                 // Excluded(p: i32, a: i32) : . (l_pr, l_label)=ExcludedOperand(p, 0, 0, 0) [(l_pr ==
                 // UNDEFINED_PRECEDENCE) || ((1 >= p) && ((l_pr == 0) || (l_pr >= 1)))] WS "&" WS (r_pr,
                 // r_label)=ExcludedOperand(1, 1, (l_pr == UNDEFINED_PRECEDENCE) ? 0 : 1, 0) [((l_pr ==
@@ -15489,17 +15482,16 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                 {
                     self.add_first_descriptor(SlotId(529), input_index, gss_node_id, env);
                 }
+                // Excluded(p: i32, a: i32) : . "e" return 0
+                if self
+                    .scanner
+                    .match_any(&FIRST_SET_EXCLUDED_ALT0, input_index)
+                {
+                    self.add_first_descriptor(SlotId(526), input_index, gss_node_id, env);
+                }
             }
             // ExcludedOperand
             NonterminalId(113) => {
-                // ExcludedOperand(p: i32, end: i32, a: i32, e: i32) : . [1 & e == 0] v_pr=Excluded(p, a)
-                // return (v_pr, 0)
-                if self
-                    .scanner
-                    .match_any(&FIRST_SET_EXCLUDED_OPERAND_ALT0, input_index)
-                {
-                    self.add_first_descriptor(SlotId(538), input_index, gss_node_id, env);
-                }
                 // ExcludedOperand(p: i32, end: i32, a: i32, e: i32) : . [2 & e == 0] "(" WS
                 // ExcludedOperand(0, 0, 0, 0) WS ")" return (UNDEFINED_PRECEDENCE, 1)
                 if self
@@ -15508,6 +15500,14 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                 {
                     self.add_first_descriptor(SlotId(542), input_index, gss_node_id, env);
                 }
+                // ExcludedOperand(p: i32, end: i32, a: i32, e: i32) : . [1 & e == 0] v_pr=Excluded(p, a)
+                // return (v_pr, 0)
+                if self
+                    .scanner
+                    .match_any(&FIRST_SET_EXCLUDED_OPERAND_ALT0, input_index)
+                {
+                    self.add_first_descriptor(SlotId(538), input_index, gss_node_id, env);
+                }
             }
             // Filtered : . ExcludedOperand(0, 0, 0, 2)
             NonterminalId(3) => {
@@ -15515,19 +15515,19 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
             }
             // LexNullable
             NonterminalId(114) => {
-                // LexNullable(p: i32) : . "q" return 0
-                if self
-                    .scanner
-                    .match_any(&FIRST_SET_LEX_NULLABLE_ALT0, input_index)
-                {
-                    self.add_first_descriptor(SlotId(550), input_index, gss_node_id, env);
-                }
                 // LexNullable(p: i32) : . LexNullableLeft WS "/" WS LexNullableRight(1) return 1
                 if self
                     .scanner
                     .match_any(&FIRST_SET_LEX_NULLABLE_ALT1, input_index)
                 {
                     self.add_first_descriptor(SlotId(553), input_index, gss_node_id, env);
+                }
+                // LexNullable(p: i32) : . "q" return 0
+                if self
+                    .scanner
+                    .match_any(&FIRST_SET_LEX_NULLABLE_ALT0, input_index)
+                {
+                    self.add_first_descriptor(SlotId(550), input_index, gss_node_id, env);
                 }
             }
             // LexNullableLeft : . Digits WS LexNullable(0)
@@ -15540,13 +15540,6 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
             }
             // MixedScale
             NonterminalId(116) => {
-                // MixedScale(p: i32, a: i32) : . "m" return 0
-                if self
-                    .scanner
-                    .match_any(&FIRST_SET_MIXED_SCALE_ALT0, input_index)
-                {
-                    self.add_first_descriptor(SlotId(563), input_index, gss_node_id, env);
-                }
                 // MixedScale(p: i32, a: i32) : . l_pr=MixedOperand(p, 0) [(l_pr == UNDEFINED_PRECEDENCE) ||
                 // ((1 >= p) && ((l_pr == 0) || (l_pr >= 1)))] WS "~" WS r_pr=MixedRight(1, (l_pr ==
                 // UNDEFINED_PRECEDENCE) ? 0 : 1) [(l_pr == UNDEFINED_PRECEDENCE) || (a != 1)] return 1
@@ -15556,22 +15549,29 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                 {
                     self.add_first_descriptor(SlotId(566), input_index, gss_node_id, env);
                 }
+                // MixedScale(p: i32, a: i32) : . "m" return 0
+                if self
+                    .scanner
+                    .match_any(&FIRST_SET_MIXED_SCALE_ALT0, input_index)
+                {
+                    self.add_first_descriptor(SlotId(563), input_index, gss_node_id, env);
+                }
             }
             // MixedOperand
             NonterminalId(117) => {
-                // MixedOperand(p: i32, a: i32) : . l_pr=MixedScale(p, a) return l_pr
-                if self
-                    .scanner
-                    .match_any(&FIRST_SET_MIXED_OPERAND_ALT0, input_index)
-                {
-                    self.add_first_descriptor(SlotId(575), input_index, gss_node_id, env);
-                }
                 // MixedOperand(p: i32, a: i32) : . MixedForeign(0) return UNDEFINED_PRECEDENCE
                 if self
                     .scanner
                     .match_any(&FIRST_SET_MIXED_OPERAND_ALT1, input_index)
                 {
                     self.add_first_descriptor(SlotId(578), input_index, gss_node_id, env);
+                }
+                // MixedOperand(p: i32, a: i32) : . l_pr=MixedScale(p, a) return l_pr
+                if self
+                    .scanner
+                    .match_any(&FIRST_SET_MIXED_OPERAND_ALT0, input_index)
+                {
+                    self.add_first_descriptor(SlotId(575), input_index, gss_node_id, env);
                 }
             }
             // MixedRight(p: i32, a: i32) : . r_pr=MixedScale(p, a) return r_pr
@@ -15580,13 +15580,6 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
             }
             // MixedForeign
             NonterminalId(119) => {
-                // MixedForeign(p: i32) : . "f" return 0
-                if self
-                    .scanner
-                    .match_any(&FIRST_SET_MIXED_FOREIGN_ALT0, input_index)
-                {
-                    self.add_first_descriptor(SlotId(584), input_index, gss_node_id, env);
-                }
                 // MixedForeign(p: i32) : . [1 >= p] l_pr=MixedForeign(p) [(l_pr == 0) || (l_pr >= 1)] WS "!"
                 // WS MixedForeign(2) return 1
                 if self
@@ -15595,13 +15588,16 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                 {
                     self.add_first_descriptor(SlotId(587), input_index, gss_node_id, env);
                 }
+                // MixedForeign(p: i32) : . "f" return 0
+                if self
+                    .scanner
+                    .match_any(&FIRST_SET_MIXED_FOREIGN_ALT0, input_index)
+                {
+                    self.add_first_descriptor(SlotId(584), input_index, gss_node_id, env);
+                }
             }
             // Packed
             NonterminalId(120) => {
-                // Packed(p: i32, a: i32) : . "p" return (0, 0)
-                if self.scanner.match_any(&FIRST_SET_PACKED_ALT0, input_index) {
-                    self.add_first_descriptor(SlotId(596), input_index, gss_node_id, env);
-                }
                 // Packed(p: i32, a: i32) : . (l_pr, l_assoc)=PackedOperand(p, 0, 0) [(l_pr ==
                 // UNDEFINED_PRECEDENCE) || ((1 >= p) && ((l_pr == 0) || (l_pr >= 1)))] WS "+" WS (r_pr,
                 // r_assoc)=PackedOperand(1, 1, 0) [((l_pr == UNDEFINED_PRECEDENCE) || (r_pr ==
@@ -15609,6 +15605,10 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                 // ((l_pr == UNDEFINED_PRECEDENCE) || (r_pr == UNDEFINED_PRECEDENCE)) ? 0 : 1)
                 if self.scanner.match_any(&FIRST_SET_PACKED_ALT1, input_index) {
                     self.add_first_descriptor(SlotId(599), input_index, gss_node_id, env);
+                }
+                // Packed(p: i32, a: i32) : . "p" return (0, 0)
+                if self.scanner.match_any(&FIRST_SET_PACKED_ALT0, input_index) {
+                    self.add_first_descriptor(SlotId(596), input_index, gss_node_id, env);
                 }
             }
             // PackedOperand(p: i32, end: i32, a: i32) : . (v_pr, v_assoc, v_label)=PackedMiddle(p, end,
@@ -15618,14 +15618,6 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
             }
             // PackedMiddle
             NonterminalId(122) => {
-                // PackedMiddle(p: i32, end: i32, a: i32, e: i32) : . [1 & e == 0] (v_pr, v_assoc)=Packed(p,
-                // a) return (v_pr, v_assoc, 0)
-                if self
-                    .scanner
-                    .match_any(&FIRST_SET_PACKED_MIDDLE_ALT0, input_index)
-                {
-                    self.add_first_descriptor(SlotId(611), input_index, gss_node_id, env);
-                }
                 // PackedMiddle(p: i32, end: i32, a: i32, e: i32) : . [2 & e == 0] "(" WS Packed(0, 0) WS ")"
                 // return (UNDEFINED_PRECEDENCE, 0, 1)
                 if self
@@ -15634,6 +15626,14 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                 {
                     self.add_first_descriptor(SlotId(615), input_index, gss_node_id, env);
                 }
+                // PackedMiddle(p: i32, end: i32, a: i32, e: i32) : . [1 & e == 0] (v_pr, v_assoc)=Packed(p,
+                // a) return (v_pr, v_assoc, 0)
+                if self
+                    .scanner
+                    .match_any(&FIRST_SET_PACKED_MIDDLE_ALT0, input_index)
+                {
+                    self.add_first_descriptor(SlotId(611), input_index, gss_node_id, env);
+                }
             }
             // PackedFiltered : . PackedMiddle(0, 0, 0, 2)
             NonterminalId(5) => {
@@ -15641,13 +15641,6 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
             }
             // NullableRecursive
             NonterminalId(123) => {
-                // NullableRecursive(p: i32, a: i32) : . "u" return (0, 0)
-                if self
-                    .scanner
-                    .match_any(&FIRST_SET_NULLABLE_RECURSIVE_ALT0, input_index)
-                {
-                    self.add_first_descriptor(SlotId(623), input_index, gss_node_id, env);
-                }
                 // NullableRecursive(p: i32, a: i32) : . (l_pr, l_assoc)=NullableOperand(p, 0) [(l_pr ==
                 // UNDEFINED_PRECEDENCE) || ((1 >= p) && ((l_pr == 0) || (l_pr >= 1)))] WS "+" WS (r_pr,
                 // r_assoc)=NullableRecursive(1, 0) [(l_pr == UNDEFINED_PRECEDENCE) || (l_assoc != 1)] return
@@ -15657,6 +15650,13 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     .match_any(&FIRST_SET_NULLABLE_RECURSIVE_ALT1, input_index)
                 {
                     self.add_first_descriptor(SlotId(626), input_index, gss_node_id, env);
+                }
+                // NullableRecursive(p: i32, a: i32) : . "u" return (0, 0)
+                if self
+                    .scanner
+                    .match_any(&FIRST_SET_NULLABLE_RECURSIVE_ALT0, input_index)
+                {
+                    self.add_first_descriptor(SlotId(623), input_index, gss_node_id, env);
                 }
             }
             // NullableOperand(p: i32, a: i32) : . (l_pr, l_assoc)=NullableMaybe(p, a) WS
@@ -15670,13 +15670,6 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
             }
             // NullableLexRecursive
             NonterminalId(126) => {
-                // NullableLexRecursive(p: i32, a: i32) : . "v" return (0, 0)
-                if self
-                    .scanner
-                    .match_any(&FIRST_SET_NULLABLE_LEX_RECURSIVE_ALT0, input_index)
-                {
-                    self.add_first_descriptor(SlotId(643), input_index, gss_node_id, env);
-                }
                 // NullableLexRecursive(p: i32, a: i32) : . (l_pr, l_assoc)=NullableLexOperand(p, 0) [(l_pr
                 // == UNDEFINED_PRECEDENCE) || ((1 >= p) && ((l_pr == 0) || (l_pr >= 1)))] WS "+" WS (r_pr,
                 // r_assoc)=NullableLexRecursive(1, 0) [(l_pr == UNDEFINED_PRECEDENCE) || (l_assoc != 1)]
@@ -15687,6 +15680,13 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                 {
                     self.add_first_descriptor(SlotId(646), input_index, gss_node_id, env);
                 }
+                // NullableLexRecursive(p: i32, a: i32) : . "v" return (0, 0)
+                if self
+                    .scanner
+                    .match_any(&FIRST_SET_NULLABLE_LEX_RECURSIVE_ALT0, input_index)
+                {
+                    self.add_first_descriptor(SlotId(643), input_index, gss_node_id, env);
+                }
             }
             // NullableLexOperand(p: i32, a: i32) : . (l_pr, l_assoc)=NullableLexMaybe(p, a) WS
             // NullableLexRecursive(0, 0) return (l_pr, l_assoc)
@@ -15695,14 +15695,6 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
             }
             // NullableLexMaybe
             NonterminalId(128) => {
-                // NullableLexMaybe(p: i32, a: i32) : . (l_pr, l_assoc)=NullableLexRecursive(p, a) return
-                // (l_pr, l_assoc)
-                if self
-                    .scanner
-                    .match_any(&FIRST_SET_NULLABLE_LEX_MAYBE_ALT0, input_index)
-                {
-                    self.add_first_descriptor(SlotId(660), input_index, gss_node_id, env);
-                }
                 // NullableLexMaybe(p: i32, a: i32) : . Digits return (UNDEFINED_PRECEDENCE, 0)
                 if self
                     .scanner
@@ -15713,16 +15705,17 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                 {
                     self.add_first_descriptor(SlotId(663), input_index, gss_node_id, env);
                 }
+                // NullableLexMaybe(p: i32, a: i32) : . (l_pr, l_assoc)=NullableLexRecursive(p, a) return
+                // (l_pr, l_assoc)
+                if self
+                    .scanner
+                    .match_any(&FIRST_SET_NULLABLE_LEX_MAYBE_ALT0, input_index)
+                {
+                    self.add_first_descriptor(SlotId(660), input_index, gss_node_id, env);
+                }
             }
             // NullableSuffix
             NonterminalId(129) => {
-                // NullableSuffix(p: i32, a: i32) : . "w" return 0
-                if self
-                    .scanner
-                    .match_any(&FIRST_SET_NULLABLE_SUFFIX_ALT0, input_index)
-                {
-                    self.add_first_descriptor(SlotId(666), input_index, gss_node_id, env);
-                }
                 // NullableSuffix(p: i32, a: i32) : . [1 >= p] l_pr=NullableSuffix(p, 0) [(l_pr == 0) ||
                 // (l_pr >= 1)] WS "+" WS r_pr=NullableSuffixOperand(1, 1) [(r_pr == UNDEFINED_PRECEDENCE) ||
                 // (a != 1)] return (r_pr == UNDEFINED_PRECEDENCE) ? 0 : 1
@@ -15731,6 +15724,13 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     .match_any(&FIRST_SET_NULLABLE_SUFFIX_ALT1, input_index)
                 {
                     self.add_first_descriptor(SlotId(669), input_index, gss_node_id, env);
+                }
+                // NullableSuffix(p: i32, a: i32) : . "w" return 0
+                if self
+                    .scanner
+                    .match_any(&FIRST_SET_NULLABLE_SUFFIX_ALT0, input_index)
+                {
+                    self.add_first_descriptor(SlotId(666), input_index, gss_node_id, env);
                 }
             }
             // NullableSuffixOperand(p: i32, a: i32) : . NullableSuffix(0, 0) WS
@@ -15744,13 +15744,6 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
             }
             // NullableShared
             NonterminalId(132) => {
-                // NullableShared(p: i32, a: i32) : . "j" return (0, 0)
-                if self
-                    .scanner
-                    .match_any(&FIRST_SET_NULLABLE_SHARED_ALT0, input_index)
-                {
-                    self.add_first_descriptor(SlotId(687), input_index, gss_node_id, env);
-                }
                 // NullableShared(p: i32, a: i32) : . (l_pr, l_assoc)=NullableSharedOperand(p, 0, 0) [(l_pr
                 // == UNDEFINED_PRECEDENCE) || ((1 >= p) && ((l_pr == 0) || (l_pr >= 1)))] WS "+" WS (r_pr,
                 // r_assoc)=NullableSharedOperand(1, 1, 0) [((l_pr == UNDEFINED_PRECEDENCE) || (r_pr ==
@@ -15761,6 +15754,13 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     .match_any(&FIRST_SET_NULLABLE_SHARED_ALT1, input_index)
                 {
                     self.add_first_descriptor(SlotId(690), input_index, gss_node_id, env);
+                }
+                // NullableShared(p: i32, a: i32) : . "j" return (0, 0)
+                if self
+                    .scanner
+                    .match_any(&FIRST_SET_NULLABLE_SHARED_ALT0, input_index)
+                {
+                    self.add_first_descriptor(SlotId(687), input_index, gss_node_id, env);
                 }
             }
             // NullableSharedOperand(p: i32, end: i32, a: i32) : . (l_pr,
@@ -15777,13 +15777,6 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
             }
             // OwnLabel
             NonterminalId(135) => {
-                // OwnLabel(p: i32, a: i32, e: i32) : . [1 & e == 0] "k" return (0, 0)
-                if self
-                    .scanner
-                    .match_any(&FIRST_SET_OWN_LABEL_ALT0, input_index)
-                {
-                    self.add_first_descriptor(SlotId(709), input_index, gss_node_id, env);
-                }
                 // OwnLabel(p: i32, a: i32, e: i32) : . [2 & e == 0] (l_pr, l_label)=OwnOperand(p, 0, 0, 0)
                 // [(l_pr == UNDEFINED_PRECEDENCE) || ((1 >= p) && ((l_pr == 0) || (l_pr >= 1)))] [(l_label
                 // == NO_LABEL) || ((2 >> l_label) & 1 == 0)] WS "+" WS (r_pr, r_label)=OwnOperand(1, 1,
@@ -15795,17 +15788,16 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                 {
                     self.add_first_descriptor(SlotId(713), input_index, gss_node_id, env);
                 }
+                // OwnLabel(p: i32, a: i32, e: i32) : . [1 & e == 0] "k" return (0, 0)
+                if self
+                    .scanner
+                    .match_any(&FIRST_SET_OWN_LABEL_ALT0, input_index)
+                {
+                    self.add_first_descriptor(SlotId(709), input_index, gss_node_id, env);
+                }
             }
             // OwnOperand
             NonterminalId(136) => {
-                // OwnOperand(p: i32, end: i32, a: i32, e: i32) : . [1 & e == 0] (v_pr, v_label)=OwnLabel(p,
-                // a, 0) return (v_pr, 0)
-                if self
-                    .scanner
-                    .match_any(&FIRST_SET_OWN_OPERAND_ALT0, input_index)
-                {
-                    self.add_first_descriptor(SlotId(724), input_index, gss_node_id, env);
-                }
                 // OwnOperand(p: i32, end: i32, a: i32, e: i32) : . [2 & e == 0] "(" WS OwnLabel(0, 0, 0) WS
                 // ")" return (UNDEFINED_PRECEDENCE, 1)
                 if self
@@ -15814,6 +15806,14 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                 {
                     self.add_first_descriptor(SlotId(728), input_index, gss_node_id, env);
                 }
+                // OwnOperand(p: i32, end: i32, a: i32, e: i32) : . [1 & e == 0] (v_pr, v_label)=OwnLabel(p,
+                // a, 0) return (v_pr, 0)
+                if self
+                    .scanner
+                    .match_any(&FIRST_SET_OWN_OPERAND_ALT0, input_index)
+                {
+                    self.add_first_descriptor(SlotId(724), input_index, gss_node_id, env);
+                }
             }
             // OwnHeadFiltered : . OwnLabel(0, 0, 1)
             NonterminalId(6) => {
@@ -15821,19 +15821,19 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
             }
             // ExcludeOnly
             NonterminalId(137) => {
-                // ExcludeOnly(e: i32) : . [1 & e == 0] "s" return (0, 0)
-                if self
-                    .scanner
-                    .match_any(&FIRST_SET_EXCLUDE_ONLY_ALT0, input_index)
-                {
-                    self.add_first_descriptor(SlotId(736), input_index, gss_node_id, env);
-                }
                 // ExcludeOnly(e: i32) : . "t" return (0, NO_LABEL)
                 if self
                     .scanner
                     .match_any(&FIRST_SET_EXCLUDE_ONLY_ALT1, input_index)
                 {
                     self.add_first_descriptor(SlotId(740), input_index, gss_node_id, env);
+                }
+                // ExcludeOnly(e: i32) : . [1 & e == 0] "s" return (0, 0)
+                if self
+                    .scanner
+                    .match_any(&FIRST_SET_EXCLUDE_ONLY_ALT0, input_index)
+                {
+                    self.add_first_descriptor(SlotId(736), input_index, gss_node_id, env);
                 }
             }
             // ExcludeOnlyFiltered : . ExcludeOnly(1)
@@ -15842,31 +15842,24 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
             }
             // Absent
             NonterminalId(138) => {
-                // Absent(p: i32) : . "a" return 0
-                if self.scanner.match_any(&FIRST_SET_ABSENT_ALT0, input_index) {
-                    self.add_first_descriptor(SlotId(743), input_index, gss_node_id, env);
-                }
-                // Absent(p: i32) : . [2 >= p] l_pr=Absent(p) [(l_pr == 0) || (l_pr >= 2)] WS "*" WS
-                // r_pr=Absent(2) return (r_pr == 0) ? 2 : min(r_pr, 2)
-                if self.scanner.match_any(&FIRST_SET_ABSENT_ALT1, input_index) {
-                    self.add_first_descriptor(SlotId(746), input_index, gss_node_id, env);
-                }
                 // Absent(p: i32) : . l_pr=AbsentOperand(p, 0) [(l_pr == UNDEFINED_PRECEDENCE) || ((1 >= p)
                 // && ((l_pr == 0) || (l_pr >= 1)))] WS "+" WS r_pr=AbsentOperand(1, 1) return (r_pr ==
                 // UNDEFINED_PRECEDENCE) ? 0 : 1
                 if self.scanner.match_any(&FIRST_SET_ABSENT_ALT2, input_index) {
                     self.add_first_descriptor(SlotId(755), input_index, gss_node_id, env);
                 }
+                // Absent(p: i32) : . [2 >= p] l_pr=Absent(p) [(l_pr == 0) || (l_pr >= 2)] WS "*" WS
+                // r_pr=Absent(2) return (r_pr == 0) ? 2 : min(r_pr, 2)
+                if self.scanner.match_any(&FIRST_SET_ABSENT_ALT1, input_index) {
+                    self.add_first_descriptor(SlotId(746), input_index, gss_node_id, env);
+                }
+                // Absent(p: i32) : . "a" return 0
+                if self.scanner.match_any(&FIRST_SET_ABSENT_ALT0, input_index) {
+                    self.add_first_descriptor(SlotId(743), input_index, gss_node_id, env);
+                }
             }
             // AbsentOperand
             NonterminalId(139) => {
-                // AbsentOperand(p: i32, end: i32) : . v_pr=Absent(p) return v_pr
-                if self
-                    .scanner
-                    .match_any(&FIRST_SET_ABSENT_OPERAND_ALT0, input_index)
-                {
-                    self.add_first_descriptor(SlotId(763), input_index, gss_node_id, env);
-                }
                 // AbsentOperand(p: i32, end: i32) : . "b" return UNDEFINED_PRECEDENCE
                 if self
                     .scanner
@@ -15874,15 +15867,23 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                 {
                     self.add_first_descriptor(SlotId(766), input_index, gss_node_id, env);
                 }
+                // AbsentOperand(p: i32, end: i32) : . v_pr=Absent(p) return v_pr
+                if self
+                    .scanner
+                    .match_any(&FIRST_SET_ABSENT_OPERAND_ALT0, input_index)
+                {
+                    self.add_first_descriptor(SlotId(763), input_index, gss_node_id, env);
+                }
             }
             // ClosedPrefix
             NonterminalId(140) => {
-                // ClosedPrefix(p: i32) : . "a" return 0
+                // ClosedPrefix(p: i32) : . "pre" WS r_pr=ClosedPrefixBody(1) return (r_pr ==
+                // UNDEFINED_PRECEDENCE) ? 0 : 1
                 if self
                     .scanner
-                    .match_any(&FIRST_SET_CLOSED_PREFIX_ALT0, input_index)
+                    .match_any(&FIRST_SET_CLOSED_PREFIX_ALT2, input_index)
                 {
-                    self.add_first_descriptor(SlotId(769), input_index, gss_node_id, env);
+                    self.add_first_descriptor(SlotId(781), input_index, gss_node_id, env);
                 }
                 // ClosedPrefix(p: i32) : . [2 >= p] l_pr=ClosedPrefix(p) [(l_pr == 0) || (l_pr >= 2)] WS "+"
                 // WS r_pr=ClosedPrefix(2) return (r_pr == 0) ? 2 : min(r_pr, 2)
@@ -15892,24 +15893,16 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                 {
                     self.add_first_descriptor(SlotId(772), input_index, gss_node_id, env);
                 }
-                // ClosedPrefix(p: i32) : . "pre" WS r_pr=ClosedPrefixBody(1) return (r_pr ==
-                // UNDEFINED_PRECEDENCE) ? 0 : 1
+                // ClosedPrefix(p: i32) : . "a" return 0
                 if self
                     .scanner
-                    .match_any(&FIRST_SET_CLOSED_PREFIX_ALT2, input_index)
+                    .match_any(&FIRST_SET_CLOSED_PREFIX_ALT0, input_index)
                 {
-                    self.add_first_descriptor(SlotId(781), input_index, gss_node_id, env);
+                    self.add_first_descriptor(SlotId(769), input_index, gss_node_id, env);
                 }
             }
             // ClosedPrefixBody
             NonterminalId(141) => {
-                // ClosedPrefixBody(p: i32) : . r_pr=ClosedPrefix(p) return r_pr
-                if self
-                    .scanner
-                    .match_any(&FIRST_SET_CLOSED_PREFIX_BODY_ALT0, input_index)
-                {
-                    self.add_first_descriptor(SlotId(786), input_index, gss_node_id, env);
-                }
                 // ClosedPrefixBody(p: i32) : . "b" return UNDEFINED_PRECEDENCE
                 if self
                     .scanner
@@ -15917,23 +15910,16 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                 {
                     self.add_first_descriptor(SlotId(789), input_index, gss_node_id, env);
                 }
+                // ClosedPrefixBody(p: i32) : . r_pr=ClosedPrefix(p) return r_pr
+                if self
+                    .scanner
+                    .match_any(&FIRST_SET_CLOSED_PREFIX_BODY_ALT0, input_index)
+                {
+                    self.add_first_descriptor(SlotId(786), input_index, gss_node_id, env);
+                }
             }
             // ClosedPostfix
             NonterminalId(142) => {
-                // ClosedPostfix(p: i32) : . "a" return 0
-                if self
-                    .scanner
-                    .match_any(&FIRST_SET_CLOSED_POSTFIX_ALT0, input_index)
-                {
-                    self.add_first_descriptor(SlotId(792), input_index, gss_node_id, env);
-                }
-                // ClosedPostfix(p: i32) : . "pre" WS ClosedPostfix(2) return 2
-                if self
-                    .scanner
-                    .match_any(&FIRST_SET_CLOSED_POSTFIX_ALT1, input_index)
-                {
-                    self.add_first_descriptor(SlotId(795), input_index, gss_node_id, env);
-                }
                 // ClosedPostfix(p: i32) : . l_pr=ClosedPostfixBody(p) [(l_pr == UNDEFINED_PRECEDENCE) || ((1
                 // >= p) && ((l_pr == 0) || (l_pr >= 1)))] WS "!" return 0
                 if self
@@ -15942,16 +15928,23 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                 {
                     self.add_first_descriptor(SlotId(800), input_index, gss_node_id, env);
                 }
+                // ClosedPostfix(p: i32) : . "pre" WS ClosedPostfix(2) return 2
+                if self
+                    .scanner
+                    .match_any(&FIRST_SET_CLOSED_POSTFIX_ALT1, input_index)
+                {
+                    self.add_first_descriptor(SlotId(795), input_index, gss_node_id, env);
+                }
+                // ClosedPostfix(p: i32) : . "a" return 0
+                if self
+                    .scanner
+                    .match_any(&FIRST_SET_CLOSED_POSTFIX_ALT0, input_index)
+                {
+                    self.add_first_descriptor(SlotId(792), input_index, gss_node_id, env);
+                }
             }
             // ClosedPostfixBody
             NonterminalId(143) => {
-                // ClosedPostfixBody(p: i32) : . l_pr=ClosedPostfix(p) return l_pr
-                if self
-                    .scanner
-                    .match_any(&FIRST_SET_CLOSED_POSTFIX_BODY_ALT0, input_index)
-                {
-                    self.add_first_descriptor(SlotId(806), input_index, gss_node_id, env);
-                }
                 // ClosedPostfixBody(p: i32) : . "b" return UNDEFINED_PRECEDENCE
                 if self
                     .scanner
@@ -15959,15 +15952,22 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                 {
                     self.add_first_descriptor(SlotId(809), input_index, gss_node_id, env);
                 }
+                // ClosedPostfixBody(p: i32) : . l_pr=ClosedPostfix(p) return l_pr
+                if self
+                    .scanner
+                    .match_any(&FIRST_SET_CLOSED_POSTFIX_BODY_ALT0, input_index)
+                {
+                    self.add_first_descriptor(SlotId(806), input_index, gss_node_id, env);
+                }
             }
             // HeadChoice
             NonterminalId(144) => {
-                // HeadChoice(p: i32) : . "a" return 0
+                // HeadChoice(p: i32) : . Inner(0) return 0
                 if self
                     .scanner
-                    .match_any(&FIRST_SET_HEAD_CHOICE_ALT0, input_index)
+                    .match_any(&FIRST_SET_HEAD_CHOICE_ALT2, input_index)
                 {
-                    self.add_first_descriptor(SlotId(812), input_index, gss_node_id, env);
+                    self.add_first_descriptor(SlotId(824), input_index, gss_node_id, env);
                 }
                 // HeadChoice(p: i32) : . [1 >= p] l_pr=HeadOperand(p, 0) [(l_pr == 0) || (l_pr >= 1)] WS "+"
                 // WS HeadOperand(2, 1) return 1
@@ -15977,12 +15977,12 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                 {
                     self.add_first_descriptor(SlotId(815), input_index, gss_node_id, env);
                 }
-                // HeadChoice(p: i32) : . Inner(0) return 0
+                // HeadChoice(p: i32) : . "a" return 0
                 if self
                     .scanner
-                    .match_any(&FIRST_SET_HEAD_CHOICE_ALT2, input_index)
+                    .match_any(&FIRST_SET_HEAD_CHOICE_ALT0, input_index)
                 {
-                    self.add_first_descriptor(SlotId(824), input_index, gss_node_id, env);
+                    self.add_first_descriptor(SlotId(812), input_index, gss_node_id, env);
                 }
             }
             // HeadOperand(p: i32, end: i32) : . v_pr=HeadChoice(p) return v_pr
@@ -15991,32 +15991,24 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
             }
             // Inner
             NonterminalId(146) => {
-                // Inner(p: i32) : . "b" return 0
-                if self.scanner.match_any(&FIRST_SET_INNER_ALT0, input_index) {
-                    self.add_first_descriptor(SlotId(830), input_index, gss_node_id, env);
-                }
                 // Inner(p: i32) : . [1 >= p] l_pr=Inner(p) [(l_pr == 0) || (l_pr >= 1)] WS "*" WS Inner(2)
                 // return 1
                 if self.scanner.match_any(&FIRST_SET_INNER_ALT1, input_index) {
                     self.add_first_descriptor(SlotId(833), input_index, gss_node_id, env);
                 }
+                // Inner(p: i32) : . "b" return 0
+                if self.scanner.match_any(&FIRST_SET_INNER_ALT0, input_index) {
+                    self.add_first_descriptor(SlotId(830), input_index, gss_node_id, env);
+                }
             }
             // UnaryMixedLeft
             NonterminalId(147) => {
-                // UnaryMixedLeft(p: i32, a: i32) : . [1 >= p] [a != 1] l_pr=UnaryMixedLeft(p, 0) [(l_pr ==
-                // 0) || (l_pr >= 1)] WS "+" WS r_pr=UnaryMixedLeft(1, 1) return 1
+                // UnaryMixedLeft(p: i32, a: i32) : . "a" return 0
                 if self
                     .scanner
-                    .match_any(&FIRST_SET_UNARY_MIXED_LEFT_ALT0, input_index)
+                    .match_any(&FIRST_SET_UNARY_MIXED_LEFT_ALT3, input_index)
                 {
-                    self.add_first_descriptor(SlotId(842), input_index, gss_node_id, env);
-                }
-                // UnaryMixedLeft(p: i32, a: i32) : . "-" WS UnaryMixedLeft(1, 0) return 1
-                if self
-                    .scanner
-                    .match_any(&FIRST_SET_UNARY_MIXED_LEFT_ALT1, input_index)
-                {
-                    self.add_first_descriptor(SlotId(852), input_index, gss_node_id, env);
+                    self.add_first_descriptor(SlotId(864), input_index, gss_node_id, env);
                 }
                 // UnaryMixedLeft(p: i32, a: i32) : . [1 >= p] l_pr=UnaryMixedLeft(p, 0) [(l_pr == 0) ||
                 // (l_pr >= 1)] WS "!" return 0
@@ -16026,31 +16018,30 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                 {
                     self.add_first_descriptor(SlotId(857), input_index, gss_node_id, env);
                 }
-                // UnaryMixedLeft(p: i32, a: i32) : . "a" return 0
+                // UnaryMixedLeft(p: i32, a: i32) : . "-" WS UnaryMixedLeft(1, 0) return 1
                 if self
                     .scanner
-                    .match_any(&FIRST_SET_UNARY_MIXED_LEFT_ALT3, input_index)
+                    .match_any(&FIRST_SET_UNARY_MIXED_LEFT_ALT1, input_index)
                 {
-                    self.add_first_descriptor(SlotId(864), input_index, gss_node_id, env);
+                    self.add_first_descriptor(SlotId(852), input_index, gss_node_id, env);
+                }
+                // UnaryMixedLeft(p: i32, a: i32) : . [1 >= p] [a != 1] l_pr=UnaryMixedLeft(p, 0) [(l_pr ==
+                // 0) || (l_pr >= 1)] WS "+" WS r_pr=UnaryMixedLeft(1, 1) return 1
+                if self
+                    .scanner
+                    .match_any(&FIRST_SET_UNARY_MIXED_LEFT_ALT0, input_index)
+                {
+                    self.add_first_descriptor(SlotId(842), input_index, gss_node_id, env);
                 }
             }
             // UnaryMixedRight
             NonterminalId(148) => {
-                // UnaryMixedRight(p: i32, a: i32) : . [1 >= p] (l_pr, l_assoc)=UnaryMixedRight(p, 0) [(l_pr
-                // == 0) || (l_pr >= 1)] [l_assoc != 1] WS "+" WS (r_pr, r_assoc)=UnaryMixedRight(1, 0)
-                // return (1, 1)
+                // UnaryMixedRight(p: i32, a: i32) : . "a" return (0, 0)
                 if self
                     .scanner
-                    .match_any(&FIRST_SET_UNARY_MIXED_RIGHT_ALT0, input_index)
+                    .match_any(&FIRST_SET_UNARY_MIXED_RIGHT_ALT3, input_index)
                 {
-                    self.add_first_descriptor(SlotId(867), input_index, gss_node_id, env);
-                }
-                // UnaryMixedRight(p: i32, a: i32) : . "-" WS UnaryMixedRight(1, 0) return (1, 0)
-                if self
-                    .scanner
-                    .match_any(&FIRST_SET_UNARY_MIXED_RIGHT_ALT1, input_index)
-                {
-                    self.add_first_descriptor(SlotId(877), input_index, gss_node_id, env);
+                    self.add_first_descriptor(SlotId(889), input_index, gss_node_id, env);
                 }
                 // UnaryMixedRight(p: i32, a: i32) : . [1 >= p] (l_pr, l_assoc)=UnaryMixedRight(p, 0) [(l_pr
                 // == 0) || (l_pr >= 1)] WS "!" return (0, 0)
@@ -16060,31 +16051,31 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                 {
                     self.add_first_descriptor(SlotId(882), input_index, gss_node_id, env);
                 }
-                // UnaryMixedRight(p: i32, a: i32) : . "a" return (0, 0)
+                // UnaryMixedRight(p: i32, a: i32) : . "-" WS UnaryMixedRight(1, 0) return (1, 0)
                 if self
                     .scanner
-                    .match_any(&FIRST_SET_UNARY_MIXED_RIGHT_ALT3, input_index)
+                    .match_any(&FIRST_SET_UNARY_MIXED_RIGHT_ALT1, input_index)
                 {
-                    self.add_first_descriptor(SlotId(889), input_index, gss_node_id, env);
+                    self.add_first_descriptor(SlotId(877), input_index, gss_node_id, env);
+                }
+                // UnaryMixedRight(p: i32, a: i32) : . [1 >= p] (l_pr, l_assoc)=UnaryMixedRight(p, 0) [(l_pr
+                // == 0) || (l_pr >= 1)] [l_assoc != 1] WS "+" WS (r_pr, r_assoc)=UnaryMixedRight(1, 0)
+                // return (1, 1)
+                if self
+                    .scanner
+                    .match_any(&FIRST_SET_UNARY_MIXED_RIGHT_ALT0, input_index)
+                {
+                    self.add_first_descriptor(SlotId(867), input_index, gss_node_id, env);
                 }
             }
             // UnaryMixedNone
             NonterminalId(149) => {
-                // UnaryMixedNone(p: i32, a: i32) : . [1 >= p] [a != 1] (l_pr, l_assoc)=UnaryMixedNone(p, 0)
-                // [(l_pr == 0) || (l_pr >= 1)] [l_assoc != 1] WS "+" WS (r_pr, r_assoc)=UnaryMixedNone(1, 1)
-                // return (1, 1)
+                // UnaryMixedNone(p: i32, a: i32) : . "a" return (0, 0)
                 if self
                     .scanner
-                    .match_any(&FIRST_SET_UNARY_MIXED_NONE_ALT0, input_index)
+                    .match_any(&FIRST_SET_UNARY_MIXED_NONE_ALT3, input_index)
                 {
-                    self.add_first_descriptor(SlotId(892), input_index, gss_node_id, env);
-                }
-                // UnaryMixedNone(p: i32, a: i32) : . "-" WS UnaryMixedNone(1, 0) return (1, 0)
-                if self
-                    .scanner
-                    .match_any(&FIRST_SET_UNARY_MIXED_NONE_ALT1, input_index)
-                {
-                    self.add_first_descriptor(SlotId(903), input_index, gss_node_id, env);
+                    self.add_first_descriptor(SlotId(915), input_index, gss_node_id, env);
                 }
                 // UnaryMixedNone(p: i32, a: i32) : . [1 >= p] (l_pr, l_assoc)=UnaryMixedNone(p, 0) [(l_pr ==
                 // 0) || (l_pr >= 1)] WS "!" return (0, 0)
@@ -16094,16 +16085,40 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                 {
                     self.add_first_descriptor(SlotId(908), input_index, gss_node_id, env);
                 }
-                // UnaryMixedNone(p: i32, a: i32) : . "a" return (0, 0)
+                // UnaryMixedNone(p: i32, a: i32) : . "-" WS UnaryMixedNone(1, 0) return (1, 0)
                 if self
                     .scanner
-                    .match_any(&FIRST_SET_UNARY_MIXED_NONE_ALT3, input_index)
+                    .match_any(&FIRST_SET_UNARY_MIXED_NONE_ALT1, input_index)
                 {
-                    self.add_first_descriptor(SlotId(915), input_index, gss_node_id, env);
+                    self.add_first_descriptor(SlotId(903), input_index, gss_node_id, env);
+                }
+                // UnaryMixedNone(p: i32, a: i32) : . [1 >= p] [a != 1] (l_pr, l_assoc)=UnaryMixedNone(p, 0)
+                // [(l_pr == 0) || (l_pr >= 1)] [l_assoc != 1] WS "+" WS (r_pr, r_assoc)=UnaryMixedNone(1, 1)
+                // return (1, 1)
+                if self
+                    .scanner
+                    .match_any(&FIRST_SET_UNARY_MIXED_NONE_ALT0, input_index)
+                {
+                    self.add_first_descriptor(SlotId(892), input_index, gss_node_id, env);
                 }
             }
             // Dynamic
             NonterminalId(150) => {
+                // Dynamic(p: i32, a: i32, e: i32) : . [8 & e == 0] "a" return (0, 0, 3)
+                if self.scanner.match_any(&FIRST_SET_DYNAMIC_ALT3, input_index) {
+                    self.add_first_descriptor(SlotId(942), input_index, gss_node_id, env);
+                }
+                // Dynamic(p: i32, a: i32, e: i32) : . [4 & e == 0] (l_pr, l_assoc,
+                // l_label)=DynamicOperand(p, 0, 0, 0) [(l_pr == UNDEFINED_PRECEDENCE) || ((1 >= p) && ((l_pr
+                // == 0) || (l_pr >= 1)))] WS "!" return (0, 0, 2)
+                if self.scanner.match_any(&FIRST_SET_DYNAMIC_ALT2, input_index) {
+                    self.add_first_descriptor(SlotId(935), input_index, gss_node_id, env);
+                }
+                // Dynamic(p: i32, a: i32, e: i32) : . [2 & e == 0] "-" WS (r_pr, r_assoc,
+                // r_label)=DynamicOperand(1, 1, 0, 0) return ((r_pr == UNDEFINED_PRECEDENCE) ? 0 : 1, 0, 1)
+                if self.scanner.match_any(&FIRST_SET_DYNAMIC_ALT1, input_index) {
+                    self.add_first_descriptor(SlotId(929), input_index, gss_node_id, env);
+                }
                 // Dynamic(p: i32, a: i32, e: i32) : . [1 & e == 0] (l_pr, l_assoc,
                 // l_label)=DynamicOperand(p, 0, 0, 0) [(l_pr == UNDEFINED_PRECEDENCE) || ((1 >= p) && ((l_pr
                 // == 0) || (l_pr >= 1)))] [(l_label == NO_LABEL) || ((2 >> l_label) & 1 == 0)] WS "+" WS
@@ -16113,32 +16128,9 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                 if self.scanner.match_any(&FIRST_SET_DYNAMIC_ALT0, input_index) {
                     self.add_first_descriptor(SlotId(918), input_index, gss_node_id, env);
                 }
-                // Dynamic(p: i32, a: i32, e: i32) : . [2 & e == 0] "-" WS (r_pr, r_assoc,
-                // r_label)=DynamicOperand(1, 1, 0, 0) return ((r_pr == UNDEFINED_PRECEDENCE) ? 0 : 1, 0, 1)
-                if self.scanner.match_any(&FIRST_SET_DYNAMIC_ALT1, input_index) {
-                    self.add_first_descriptor(SlotId(929), input_index, gss_node_id, env);
-                }
-                // Dynamic(p: i32, a: i32, e: i32) : . [4 & e == 0] (l_pr, l_assoc,
-                // l_label)=DynamicOperand(p, 0, 0, 0) [(l_pr == UNDEFINED_PRECEDENCE) || ((1 >= p) && ((l_pr
-                // == 0) || (l_pr >= 1)))] WS "!" return (0, 0, 2)
-                if self.scanner.match_any(&FIRST_SET_DYNAMIC_ALT2, input_index) {
-                    self.add_first_descriptor(SlotId(935), input_index, gss_node_id, env);
-                }
-                // Dynamic(p: i32, a: i32, e: i32) : . [8 & e == 0] "a" return (0, 0, 3)
-                if self.scanner.match_any(&FIRST_SET_DYNAMIC_ALT3, input_index) {
-                    self.add_first_descriptor(SlotId(942), input_index, gss_node_id, env);
-                }
             }
             // DynamicOperand
             NonterminalId(151) => {
-                // DynamicOperand(p: i32, end: i32, a: i32, e: i32) : . [1 & e == 0] (v_pr, v_assoc,
-                // v_label)=Dynamic(p, a, 0) return (v_pr, v_assoc, 0)
-                if self
-                    .scanner
-                    .match_any(&FIRST_SET_DYNAMIC_OPERAND_ALT0, input_index)
-                {
-                    self.add_first_descriptor(SlotId(946), input_index, gss_node_id, env);
-                }
                 // DynamicOperand(p: i32, end: i32, a: i32, e: i32) : . [2 & e == 0] "b" return
                 // (UNDEFINED_PRECEDENCE, 0, 1)
                 if self
@@ -16146,6 +16138,14 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     .match_any(&FIRST_SET_DYNAMIC_OPERAND_ALT1, input_index)
                 {
                     self.add_first_descriptor(SlotId(950), input_index, gss_node_id, env);
+                }
+                // DynamicOperand(p: i32, end: i32, a: i32, e: i32) : . [1 & e == 0] (v_pr, v_assoc,
+                // v_label)=Dynamic(p, a, 0) return (v_pr, v_assoc, 0)
+                if self
+                    .scanner
+                    .match_any(&FIRST_SET_DYNAMIC_OPERAND_ALT0, input_index)
+                {
+                    self.add_first_descriptor(SlotId(946), input_index, gss_node_id, env);
                 }
             }
             // DynamicFiltered : . DynamicOperand(0, 0, 0, 2)
@@ -16158,32 +16158,12 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
             }
             // DynamicMulti
             NonterminalId(152) => {
-                // DynamicMulti(p: i32, a: i32) : . (l_pr, l_assoc)=DynamicMultiOperand(p, 0, 0) [(l_pr ==
-                // UNDEFINED_PRECEDENCE) || ((2 >= p) && ((l_pr == 0) || (l_pr >= 2)))] WS "+" WS (r_pr,
-                // r_assoc)=DynamicMultiOperand(2, 1, (l_pr == UNDEFINED_PRECEDENCE) ? 0 : 2) [((l_pr ==
-                // UNDEFINED_PRECEDENCE) || (r_pr == UNDEFINED_PRECEDENCE)) || (a != 2)] return ((r_pr ==
-                // UNDEFINED_PRECEDENCE) ? 0 : ((r_pr == 0) ? 2 : min(r_pr, 2)), 0)
+                // DynamicMulti(p: i32, a: i32) : . "a" return (0, 0)
                 if self
                     .scanner
-                    .match_any(&FIRST_SET_DYNAMIC_MULTI_ALT0, input_index)
+                    .match_any(&FIRST_SET_DYNAMIC_MULTI_ALT4, input_index)
                 {
-                    self.add_first_descriptor(SlotId(954), input_index, gss_node_id, env);
-                }
-                // DynamicMulti(p: i32, a: i32) : . "-" WS (r_pr, r_assoc)=DynamicMultiOperand(2, 1, 0)
-                // return ((r_pr == UNDEFINED_PRECEDENCE) ? 0 : ((r_pr == 0) ? 2 : min(r_pr, 2)), 0)
-                if self
-                    .scanner
-                    .match_any(&FIRST_SET_DYNAMIC_MULTI_ALT1, input_index)
-                {
-                    self.add_first_descriptor(SlotId(963), input_index, gss_node_id, env);
-                }
-                // DynamicMulti(p: i32, a: i32) : . (l_pr, l_assoc)=DynamicMultiOperand(p, 0, 0) [(l_pr ==
-                // UNDEFINED_PRECEDENCE) || ((2 >= p) && ((l_pr == 0) || (l_pr >= 2)))] WS "!" return (0, 0)
-                if self
-                    .scanner
-                    .match_any(&FIRST_SET_DYNAMIC_MULTI_ALT2, input_index)
-                {
-                    self.add_first_descriptor(SlotId(968), input_index, gss_node_id, env);
+                    self.add_first_descriptor(SlotId(983), input_index, gss_node_id, env);
                 }
                 // DynamicMulti(p: i32, a: i32) : . (l_pr, l_assoc)=DynamicMultiOperand(p, 0, 0) [(l_pr ==
                 // UNDEFINED_PRECEDENCE) || ((1 >= p) && ((l_pr == 0) || (l_pr >= 1)))] WS ";" WS (r_pr,
@@ -16196,16 +16176,43 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                 {
                     self.add_first_descriptor(SlotId(974), input_index, gss_node_id, env);
                 }
-                // DynamicMulti(p: i32, a: i32) : . "a" return (0, 0)
+                // DynamicMulti(p: i32, a: i32) : . (l_pr, l_assoc)=DynamicMultiOperand(p, 0, 0) [(l_pr ==
+                // UNDEFINED_PRECEDENCE) || ((2 >= p) && ((l_pr == 0) || (l_pr >= 2)))] WS "!" return (0, 0)
                 if self
                     .scanner
-                    .match_any(&FIRST_SET_DYNAMIC_MULTI_ALT4, input_index)
+                    .match_any(&FIRST_SET_DYNAMIC_MULTI_ALT2, input_index)
                 {
-                    self.add_first_descriptor(SlotId(983), input_index, gss_node_id, env);
+                    self.add_first_descriptor(SlotId(968), input_index, gss_node_id, env);
+                }
+                // DynamicMulti(p: i32, a: i32) : . "-" WS (r_pr, r_assoc)=DynamicMultiOperand(2, 1, 0)
+                // return ((r_pr == UNDEFINED_PRECEDENCE) ? 0 : ((r_pr == 0) ? 2 : min(r_pr, 2)), 0)
+                if self
+                    .scanner
+                    .match_any(&FIRST_SET_DYNAMIC_MULTI_ALT1, input_index)
+                {
+                    self.add_first_descriptor(SlotId(963), input_index, gss_node_id, env);
+                }
+                // DynamicMulti(p: i32, a: i32) : . (l_pr, l_assoc)=DynamicMultiOperand(p, 0, 0) [(l_pr ==
+                // UNDEFINED_PRECEDENCE) || ((2 >= p) && ((l_pr == 0) || (l_pr >= 2)))] WS "+" WS (r_pr,
+                // r_assoc)=DynamicMultiOperand(2, 1, (l_pr == UNDEFINED_PRECEDENCE) ? 0 : 2) [((l_pr ==
+                // UNDEFINED_PRECEDENCE) || (r_pr == UNDEFINED_PRECEDENCE)) || (a != 2)] return ((r_pr ==
+                // UNDEFINED_PRECEDENCE) ? 0 : ((r_pr == 0) ? 2 : min(r_pr, 2)), 0)
+                if self
+                    .scanner
+                    .match_any(&FIRST_SET_DYNAMIC_MULTI_ALT0, input_index)
+                {
+                    self.add_first_descriptor(SlotId(954), input_index, gss_node_id, env);
                 }
             }
             // DynamicMultiOperand
             NonterminalId(153) => {
+                // DynamicMultiOperand(p: i32, end: i32, a: i32) : . "b" return (UNDEFINED_PRECEDENCE, 0)
+                if self
+                    .scanner
+                    .match_any(&FIRST_SET_DYNAMIC_MULTI_OPERAND_ALT1, input_index)
+                {
+                    self.add_first_descriptor(SlotId(989), input_index, gss_node_id, env);
+                }
                 // DynamicMultiOperand(p: i32, end: i32, a: i32) : . (v_pr, v_assoc)=DynamicMulti(p, a)
                 // return (v_pr, v_assoc)
                 if self
@@ -16214,30 +16221,9 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                 {
                     self.add_first_descriptor(SlotId(986), input_index, gss_node_id, env);
                 }
-                // DynamicMultiOperand(p: i32, end: i32, a: i32) : . "b" return (UNDEFINED_PRECEDENCE, 0)
-                if self
-                    .scanner
-                    .match_any(&FIRST_SET_DYNAMIC_MULTI_OPERAND_ALT1, input_index)
-                {
-                    self.add_first_descriptor(SlotId(989), input_index, gss_node_id, env);
-                }
             }
             // NullableBoundaryPrefix
             NonterminalId(154) => {
-                // NullableBoundaryPrefix(p: i32) : . "a" return 0
-                if self
-                    .scanner
-                    .match_any(&FIRST_SET_NULLABLE_BOUNDARY_PREFIX_ALT0, input_index)
-                {
-                    self.add_first_descriptor(SlotId(992), input_index, gss_node_id, env);
-                }
-                // NullableBoundaryPrefix(p: i32) : . "-" WS NullableBoundaryRight return 0
-                if self
-                    .scanner
-                    .match_any(&FIRST_SET_NULLABLE_BOUNDARY_PREFIX_ALT1, input_index)
-                {
-                    self.add_first_descriptor(SlotId(995), input_index, gss_node_id, env);
-                }
                 // NullableBoundaryPrefix(p: i32) : . [1 >= p] l_pr=NullableBoundaryPrefix(p) [(l_pr == 0) ||
                 // (l_pr >= 1)] WS "+" WS NullableBoundaryPrefix(2) return 1
                 if self
@@ -16246,6 +16232,20 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                 {
                     self.add_first_descriptor(SlotId(1000), input_index, gss_node_id, env);
                 }
+                // NullableBoundaryPrefix(p: i32) : . "-" WS NullableBoundaryRight return 0
+                if self
+                    .scanner
+                    .match_any(&FIRST_SET_NULLABLE_BOUNDARY_PREFIX_ALT1, input_index)
+                {
+                    self.add_first_descriptor(SlotId(995), input_index, gss_node_id, env);
+                }
+                // NullableBoundaryPrefix(p: i32) : . "a" return 0
+                if self
+                    .scanner
+                    .match_any(&FIRST_SET_NULLABLE_BOUNDARY_PREFIX_ALT0, input_index)
+                {
+                    self.add_first_descriptor(SlotId(992), input_index, gss_node_id, env);
+                }
             }
             // NullableBoundaryRight : . NullableBoundaryPrefix(0) WS NullableBoundaryOpt
             NonterminalId(10) => {
@@ -16253,13 +16253,6 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
             }
             // NullableBoundaryOpt
             NonterminalId(11) => {
-                // NullableBoundaryOpt : . "!"
-                if self
-                    .scanner
-                    .match_any(&FIRST_SET_NULLABLE_BOUNDARY_OPT_ALT0, input_index)
-                {
-                    self.add_first_descriptor(SlotId(36), input_index, gss_node_id, env);
-                }
                 // NullableBoundaryOpt : .
                 if self
                     .scanner
@@ -16270,23 +16263,16 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                 {
                     self.add_first_descriptor(SlotId(38), input_index, gss_node_id, env);
                 }
+                // NullableBoundaryOpt : . "!"
+                if self
+                    .scanner
+                    .match_any(&FIRST_SET_NULLABLE_BOUNDARY_OPT_ALT0, input_index)
+                {
+                    self.add_first_descriptor(SlotId(36), input_index, gss_node_id, env);
+                }
             }
             // NullableBoundaryPostfix
             NonterminalId(155) => {
-                // NullableBoundaryPostfix(p: i32) : . "a" return 0
-                if self
-                    .scanner
-                    .match_any(&FIRST_SET_NULLABLE_BOUNDARY_POSTFIX_ALT0, input_index)
-                {
-                    self.add_first_descriptor(SlotId(1009), input_index, gss_node_id, env);
-                }
-                // NullableBoundaryPostfix(p: i32) : . NullableBoundaryLeft WS "-" return 0
-                if self
-                    .scanner
-                    .match_any(&FIRST_SET_NULLABLE_BOUNDARY_POSTFIX_ALT1, input_index)
-                {
-                    self.add_first_descriptor(SlotId(1012), input_index, gss_node_id, env);
-                }
                 // NullableBoundaryPostfix(p: i32) : . [1 >= p] l_pr=NullableBoundaryPostfix(p) [(l_pr == 0)
                 // || (l_pr >= 2)] WS "+" WS NullableBoundaryPostfix(1) return 1
                 if self
@@ -16295,6 +16281,20 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                 {
                     self.add_first_descriptor(SlotId(1017), input_index, gss_node_id, env);
                 }
+                // NullableBoundaryPostfix(p: i32) : . NullableBoundaryLeft WS "-" return 0
+                if self
+                    .scanner
+                    .match_any(&FIRST_SET_NULLABLE_BOUNDARY_POSTFIX_ALT1, input_index)
+                {
+                    self.add_first_descriptor(SlotId(1012), input_index, gss_node_id, env);
+                }
+                // NullableBoundaryPostfix(p: i32) : . "a" return 0
+                if self
+                    .scanner
+                    .match_any(&FIRST_SET_NULLABLE_BOUNDARY_POSTFIX_ALT0, input_index)
+                {
+                    self.add_first_descriptor(SlotId(1009), input_index, gss_node_id, env);
+                }
             }
             // NullableBoundaryLeft : . NullableBoundaryOpt WS NullableBoundaryPostfix(0)
             NonterminalId(12) => {
@@ -16302,12 +16302,13 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
             }
             // NullableBoundaryBinary
             NonterminalId(156) => {
-                // NullableBoundaryBinary(p: i32) : . "a" return 0
+                // NullableBoundaryBinary(p: i32) : . [1 >= p] l_pr=NullableBoundaryBinary(p) [(l_pr == 0) ||
+                // (l_pr >= 1)] WS "+" WS NullableBoundaryBinary(2) return 1
                 if self
                     .scanner
-                    .match_any(&FIRST_SET_NULLABLE_BOUNDARY_BINARY_ALT0, input_index)
+                    .match_any(&FIRST_SET_NULLABLE_BOUNDARY_BINARY_ALT2, input_index)
                 {
-                    self.add_first_descriptor(SlotId(1026), input_index, gss_node_id, env);
+                    self.add_first_descriptor(SlotId(1038), input_index, gss_node_id, env);
                 }
                 // NullableBoundaryBinary(p: i32) : . [2 >= p] l_pr=NullableBoundaryBinary(p) [(l_pr == 0) ||
                 // (l_pr >= 2)] WS "*" WS NullableBoundaryOperand return 0
@@ -16317,13 +16318,12 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                 {
                     self.add_first_descriptor(SlotId(1029), input_index, gss_node_id, env);
                 }
-                // NullableBoundaryBinary(p: i32) : . [1 >= p] l_pr=NullableBoundaryBinary(p) [(l_pr == 0) ||
-                // (l_pr >= 1)] WS "+" WS NullableBoundaryBinary(2) return 1
+                // NullableBoundaryBinary(p: i32) : . "a" return 0
                 if self
                     .scanner
-                    .match_any(&FIRST_SET_NULLABLE_BOUNDARY_BINARY_ALT2, input_index)
+                    .match_any(&FIRST_SET_NULLABLE_BOUNDARY_BINARY_ALT0, input_index)
                 {
-                    self.add_first_descriptor(SlotId(1038), input_index, gss_node_id, env);
+                    self.add_first_descriptor(SlotId(1026), input_index, gss_node_id, env);
                 }
             }
             // NullableBoundaryOperand : . NullableBoundaryBinary(0) WS NullableBoundaryOpt
@@ -16332,13 +16332,6 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
             }
             // ClosedLeftAssoc
             NonterminalId(157) => {
-                // ClosedLeftAssoc(p: i32, a: i32) : . "a" return 0
-                if self
-                    .scanner
-                    .match_any(&FIRST_SET_CLOSED_LEFT_ASSOC_ALT0, input_index)
-                {
-                    self.add_first_descriptor(SlotId(1047), input_index, gss_node_id, env);
-                }
                 // ClosedLeftAssoc(p: i32, a: i32) : . l_pr=ClosedLeftOperand(p, 0) [(l_pr ==
                 // UNDEFINED_PRECEDENCE) || ((1 >= p) && ((l_pr == 0) || (l_pr >= 1)))] WS "+" WS
                 // r_pr=ClosedLeftAssoc(1, (l_pr == UNDEFINED_PRECEDENCE) ? 0 : 1) [(l_pr ==
@@ -16349,16 +16342,16 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                 {
                     self.add_first_descriptor(SlotId(1050), input_index, gss_node_id, env);
                 }
+                // ClosedLeftAssoc(p: i32, a: i32) : . "a" return 0
+                if self
+                    .scanner
+                    .match_any(&FIRST_SET_CLOSED_LEFT_ASSOC_ALT0, input_index)
+                {
+                    self.add_first_descriptor(SlotId(1047), input_index, gss_node_id, env);
+                }
             }
             // ClosedLeftOperand
             NonterminalId(158) => {
-                // ClosedLeftOperand(p: i32, a: i32) : . l_pr=ClosedLeftAssoc(p, a) return l_pr
-                if self
-                    .scanner
-                    .match_any(&FIRST_SET_CLOSED_LEFT_OPERAND_ALT0, input_index)
-                {
-                    self.add_first_descriptor(SlotId(1059), input_index, gss_node_id, env);
-                }
                 // ClosedLeftOperand(p: i32, a: i32) : . "!" return UNDEFINED_PRECEDENCE
                 if self
                     .scanner
@@ -16366,16 +16359,16 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                 {
                     self.add_first_descriptor(SlotId(1062), input_index, gss_node_id, env);
                 }
+                // ClosedLeftOperand(p: i32, a: i32) : . l_pr=ClosedLeftAssoc(p, a) return l_pr
+                if self
+                    .scanner
+                    .match_any(&FIRST_SET_CLOSED_LEFT_OPERAND_ALT0, input_index)
+                {
+                    self.add_first_descriptor(SlotId(1059), input_index, gss_node_id, env);
+                }
             }
             // ClosedRightAssoc
             NonterminalId(159) => {
-                // ClosedRightAssoc(p: i32, a: i32) : . "a" return (0, 0)
-                if self
-                    .scanner
-                    .match_any(&FIRST_SET_CLOSED_RIGHT_ASSOC_ALT0, input_index)
-                {
-                    self.add_first_descriptor(SlotId(1065), input_index, gss_node_id, env);
-                }
                 // ClosedRightAssoc(p: i32, a: i32) : . [1 >= p] (l_pr, l_assoc)=ClosedRightAssoc(p, 0)
                 // [(l_pr == 0) || (l_pr >= 1)] WS "+" WS (r_pr, r_assoc)=ClosedRightOperand(1, 0) [(r_pr ==
                 // UNDEFINED_PRECEDENCE) || (l_assoc != 1)] return ((r_pr == UNDEFINED_PRECEDENCE) ? 0 : 1,
@@ -16386,9 +16379,23 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                 {
                     self.add_first_descriptor(SlotId(1068), input_index, gss_node_id, env);
                 }
+                // ClosedRightAssoc(p: i32, a: i32) : . "a" return (0, 0)
+                if self
+                    .scanner
+                    .match_any(&FIRST_SET_CLOSED_RIGHT_ASSOC_ALT0, input_index)
+                {
+                    self.add_first_descriptor(SlotId(1065), input_index, gss_node_id, env);
+                }
             }
             // ClosedRightOperand
             NonterminalId(160) => {
+                // ClosedRightOperand(p: i32, a: i32) : . "!" return (UNDEFINED_PRECEDENCE, 0)
+                if self
+                    .scanner
+                    .match_any(&FIRST_SET_CLOSED_RIGHT_OPERAND_ALT1, input_index)
+                {
+                    self.add_first_descriptor(SlotId(1081), input_index, gss_node_id, env);
+                }
                 // ClosedRightOperand(p: i32, a: i32) : . (r_pr, r_assoc)=ClosedRightAssoc(p, a) return
                 // (r_pr, r_assoc)
                 if self
@@ -16397,23 +16404,9 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                 {
                     self.add_first_descriptor(SlotId(1078), input_index, gss_node_id, env);
                 }
-                // ClosedRightOperand(p: i32, a: i32) : . "!" return (UNDEFINED_PRECEDENCE, 0)
-                if self
-                    .scanner
-                    .match_any(&FIRST_SET_CLOSED_RIGHT_OPERAND_ALT1, input_index)
-                {
-                    self.add_first_descriptor(SlotId(1081), input_index, gss_node_id, env);
-                }
             }
             // IndirectExclude
             NonterminalId(161) => {
-                // IndirectExclude(p: i32, a: i32, e: i32) : . [1 & e == 0] "a" return (0, 0)
-                if self
-                    .scanner
-                    .match_any(&FIRST_SET_INDIRECT_EXCLUDE_ALT0, input_index)
-                {
-                    self.add_first_descriptor(SlotId(1084), input_index, gss_node_id, env);
-                }
                 // IndirectExclude(p: i32, a: i32, e: i32) : . [2 & e == 0] (l_pr,
                 // l_label)=IndirectExcludeOperand(p, 0, 0, 0) [(l_pr == UNDEFINED_PRECEDENCE) || ((1 >= p)
                 // && ((l_pr == 0) || (l_pr >= 1)))] WS "+" WS (r_pr, r_label)=IndirectExcludeOperand(1, 1,
@@ -16425,9 +16418,24 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                 {
                     self.add_first_descriptor(SlotId(1088), input_index, gss_node_id, env);
                 }
+                // IndirectExclude(p: i32, a: i32, e: i32) : . [1 & e == 0] "a" return (0, 0)
+                if self
+                    .scanner
+                    .match_any(&FIRST_SET_INDIRECT_EXCLUDE_ALT0, input_index)
+                {
+                    self.add_first_descriptor(SlotId(1084), input_index, gss_node_id, env);
+                }
             }
             // IndirectExcludeOperand
             NonterminalId(162) => {
+                // IndirectExcludeOperand(p: i32, end: i32, a: i32, e: i32) : . [2 & e == 0] "b" return
+                // (UNDEFINED_PRECEDENCE, 1)
+                if self
+                    .scanner
+                    .match_any(&FIRST_SET_INDIRECT_EXCLUDE_OPERAND_ALT1, input_index)
+                {
+                    self.add_first_descriptor(SlotId(1103), input_index, gss_node_id, env);
+                }
                 // IndirectExcludeOperand(p: i32, end: i32, a: i32, e: i32) : . [1 & e == 0] (v_pr,
                 // v_label)=IndirectExclude(p, a, 0) [(v_label == NO_LABEL) || ((1 >> v_label) & 1 == 0)]
                 // return (v_pr, 0)
@@ -16437,14 +16445,6 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                 {
                     self.add_first_descriptor(SlotId(1098), input_index, gss_node_id, env);
                 }
-                // IndirectExcludeOperand(p: i32, end: i32, a: i32, e: i32) : . [2 & e == 0] "b" return
-                // (UNDEFINED_PRECEDENCE, 1)
-                if self
-                    .scanner
-                    .match_any(&FIRST_SET_INDIRECT_EXCLUDE_OPERAND_ALT1, input_index)
-                {
-                    self.add_first_descriptor(SlotId(1103), input_index, gss_node_id, env);
-                }
             }
             // IndirectExcludeFiltered : . IndirectExcludeOperand(0, 0, 0, 2)
             NonterminalId(14) => {
@@ -16452,12 +16452,16 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
             }
             // OperandLiteral
             NonterminalId(163) => {
-                // OperandLiteral(p: i32, a: i32) : . "x" return 0
+                // OperandLiteral(p: i32, a: i32) : . l_pr=OperandLiteralEnd(p, 0, 0) [(l_pr ==
+                // UNDEFINED_PRECEDENCE) || ((1 >= p) && ((l_pr == 0) || (l_pr >= 1)))] WS "+" WS
+                // r_pr=OperandLiteralEnd(1, 1, (l_pr == UNDEFINED_PRECEDENCE) ? 0 : 1) [((l_pr ==
+                // UNDEFINED_PRECEDENCE) || (r_pr == UNDEFINED_PRECEDENCE)) || (a != 1)] return (r_pr ==
+                // UNDEFINED_PRECEDENCE) ? 0 : 1
                 if self
                     .scanner
-                    .match_any(&FIRST_SET_OPERAND_LITERAL_ALT0, input_index)
+                    .match_any(&FIRST_SET_OPERAND_LITERAL_ALT2, input_index)
                 {
-                    self.add_first_descriptor(SlotId(1107), input_index, gss_node_id, env);
+                    self.add_first_descriptor(SlotId(1119), input_index, gss_node_id, env);
                 }
                 // OperandLiteral(p: i32, a: i32) : . l_pr=OperandLiteralEnd(p, 0, 0) [(l_pr ==
                 // UNDEFINED_PRECEDENCE) || ((2 >= p) && ((l_pr == 0) || (l_pr >= 2)))] WS "*" WS
@@ -16470,27 +16474,16 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                 {
                     self.add_first_descriptor(SlotId(1110), input_index, gss_node_id, env);
                 }
-                // OperandLiteral(p: i32, a: i32) : . l_pr=OperandLiteralEnd(p, 0, 0) [(l_pr ==
-                // UNDEFINED_PRECEDENCE) || ((1 >= p) && ((l_pr == 0) || (l_pr >= 1)))] WS "+" WS
-                // r_pr=OperandLiteralEnd(1, 1, (l_pr == UNDEFINED_PRECEDENCE) ? 0 : 1) [((l_pr ==
-                // UNDEFINED_PRECEDENCE) || (r_pr == UNDEFINED_PRECEDENCE)) || (a != 1)] return (r_pr ==
-                // UNDEFINED_PRECEDENCE) ? 0 : 1
+                // OperandLiteral(p: i32, a: i32) : . "x" return 0
                 if self
                     .scanner
-                    .match_any(&FIRST_SET_OPERAND_LITERAL_ALT2, input_index)
+                    .match_any(&FIRST_SET_OPERAND_LITERAL_ALT0, input_index)
                 {
-                    self.add_first_descriptor(SlotId(1119), input_index, gss_node_id, env);
+                    self.add_first_descriptor(SlotId(1107), input_index, gss_node_id, env);
                 }
             }
             // OperandLiteralEnd
             NonterminalId(164) => {
-                // OperandLiteralEnd(p: i32, end: i32, a: i32) : . v_pr=OperandLiteral(p, a) return v_pr
-                if self
-                    .scanner
-                    .match_any(&FIRST_SET_OPERAND_LITERAL_END_ALT0, input_index)
-                {
-                    self.add_first_descriptor(SlotId(1128), input_index, gss_node_id, env);
-                }
                 // OperandLiteralEnd(p: i32, end: i32, a: i32) : . "1" return UNDEFINED_PRECEDENCE
                 if self
                     .scanner
@@ -16498,22 +16491,23 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                 {
                     self.add_first_descriptor(SlotId(1131), input_index, gss_node_id, env);
                 }
+                // OperandLiteralEnd(p: i32, end: i32, a: i32) : . v_pr=OperandLiteral(p, a) return v_pr
+                if self
+                    .scanner
+                    .match_any(&FIRST_SET_OPERAND_LITERAL_END_ALT0, input_index)
+                {
+                    self.add_first_descriptor(SlotId(1128), input_index, gss_node_id, env);
+                }
             }
             // HeadLiteral
             NonterminalId(165) => {
-                // HeadLiteral(p: i32) : . "x" return 0
+                // HeadLiteral(p: i32) : . [1 >= p] l_pr=HeadLiteralEnd(p, 0) [(l_pr == 0) || (l_pr >= 1)] WS
+                // "+" WS HeadLiteralEnd(2, 1) return 1
                 if self
                     .scanner
-                    .match_any(&FIRST_SET_HEAD_LITERAL_ALT0, input_index)
+                    .match_any(&FIRST_SET_HEAD_LITERAL_ALT3, input_index)
                 {
-                    self.add_first_descriptor(SlotId(1134), input_index, gss_node_id, env);
-                }
-                // HeadLiteral(p: i32) : . "1" return 0
-                if self
-                    .scanner
-                    .match_any(&FIRST_SET_HEAD_LITERAL_ALT1, input_index)
-                {
-                    self.add_first_descriptor(SlotId(1137), input_index, gss_node_id, env);
+                    self.add_first_descriptor(SlotId(1149), input_index, gss_node_id, env);
                 }
                 // HeadLiteral(p: i32) : . [2 >= p] l_pr=HeadLiteralEnd(p, 0) [(l_pr == 0) || (l_pr >= 2)] WS
                 // "*" WS HeadLiteralEnd(3, 1) return 2
@@ -16523,13 +16517,19 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                 {
                     self.add_first_descriptor(SlotId(1140), input_index, gss_node_id, env);
                 }
-                // HeadLiteral(p: i32) : . [1 >= p] l_pr=HeadLiteralEnd(p, 0) [(l_pr == 0) || (l_pr >= 1)] WS
-                // "+" WS HeadLiteralEnd(2, 1) return 1
+                // HeadLiteral(p: i32) : . "1" return 0
                 if self
                     .scanner
-                    .match_any(&FIRST_SET_HEAD_LITERAL_ALT3, input_index)
+                    .match_any(&FIRST_SET_HEAD_LITERAL_ALT1, input_index)
                 {
-                    self.add_first_descriptor(SlotId(1149), input_index, gss_node_id, env);
+                    self.add_first_descriptor(SlotId(1137), input_index, gss_node_id, env);
+                }
+                // HeadLiteral(p: i32) : . "x" return 0
+                if self
+                    .scanner
+                    .match_any(&FIRST_SET_HEAD_LITERAL_ALT0, input_index)
+                {
+                    self.add_first_descriptor(SlotId(1134), input_index, gss_node_id, env);
                 }
             }
             // HeadLiteralEnd(p: i32, end: i32) : . v_pr=HeadLiteral(p) return v_pr
@@ -16538,55 +16538,55 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
             }
             // Opt_0
             NonterminalId(15) => {
-                // Opt_0 : . "x"
-                if self.scanner.match_any(&FIRST_SET_OPT_0_ALT0, input_index) {
-                    self.add_first_descriptor(SlotId(49), input_index, gss_node_id, env);
-                }
                 // Opt_0 : .
                 if self.scanner.match_any(&FIRST_SET_OPT_0_ALT1, input_index)
                     || self.scanner.match_any(&FOLLOW_SET_OPT_0, input_index)
                 {
                     self.add_first_descriptor(SlotId(51), input_index, gss_node_id, env);
                 }
+                // Opt_0 : . "x"
+                if self.scanner.match_any(&FIRST_SET_OPT_0_ALT0, input_index) {
+                    self.add_first_descriptor(SlotId(49), input_index, gss_node_id, env);
+                }
             }
             // Opt_1
             NonterminalId(167) => {
-                // Opt_1(p: i32, a: i32) : . (l_pr, l_assoc)=NullableRecursive(p, a) return (l_pr, l_assoc)
-                if self.scanner.match_any(&FIRST_SET_OPT_1_ALT0, input_index) {
-                    self.add_first_descriptor(SlotId(1161), input_index, gss_node_id, env);
-                }
                 // Opt_1(p: i32, a: i32) : . return (UNDEFINED_PRECEDENCE, 0)
                 if self.scanner.match_any(&FIRST_SET_OPT_1_ALT1, input_index)
                     || self.scanner.match_any(&FOLLOW_SET_OPT_1, input_index)
                 {
                     self.add_first_descriptor(SlotId(1164), input_index, gss_node_id, env);
                 }
+                // Opt_1(p: i32, a: i32) : . (l_pr, l_assoc)=NullableRecursive(p, a) return (l_pr, l_assoc)
+                if self.scanner.match_any(&FIRST_SET_OPT_1_ALT0, input_index) {
+                    self.add_first_descriptor(SlotId(1161), input_index, gss_node_id, env);
+                }
             }
             // Opt_2
             NonterminalId(168) => {
-                // Opt_2(p: i32, a: i32) : . r_pr=NullableSuffix(p, a) return r_pr
-                if self.scanner.match_any(&FIRST_SET_OPT_2_ALT0, input_index) {
-                    self.add_first_descriptor(SlotId(1166), input_index, gss_node_id, env);
-                }
                 // Opt_2(p: i32, a: i32) : . return UNDEFINED_PRECEDENCE
                 if self.scanner.match_any(&FIRST_SET_OPT_2_ALT1, input_index)
                     || self.scanner.match_any(&FOLLOW_SET_OPT_2, input_index)
                 {
                     self.add_first_descriptor(SlotId(1169), input_index, gss_node_id, env);
                 }
+                // Opt_2(p: i32, a: i32) : . r_pr=NullableSuffix(p, a) return r_pr
+                if self.scanner.match_any(&FIRST_SET_OPT_2_ALT0, input_index) {
+                    self.add_first_descriptor(SlotId(1166), input_index, gss_node_id, env);
+                }
             }
             // Opt_3
             NonterminalId(169) => {
-                // Opt_3(p: i32, end: i32, a: i32) : . (v_pr, v_assoc)=NullableShared(p, a) return (v_pr,
-                // v_assoc)
-                if self.scanner.match_any(&FIRST_SET_OPT_3_ALT0, input_index) {
-                    self.add_first_descriptor(SlotId(1171), input_index, gss_node_id, env);
-                }
                 // Opt_3(p: i32, end: i32, a: i32) : . return (UNDEFINED_PRECEDENCE, 0)
                 if self.scanner.match_any(&FIRST_SET_OPT_3_ALT1, input_index)
                     || self.scanner.match_any(&FOLLOW_SET_OPT_3, input_index)
                 {
                     self.add_first_descriptor(SlotId(1174), input_index, gss_node_id, env);
+                }
+                // Opt_3(p: i32, end: i32, a: i32) : . (v_pr, v_assoc)=NullableShared(p, a) return (v_pr,
+                // v_assoc)
+                if self.scanner.match_any(&FIRST_SET_OPT_3_ALT0, input_index) {
+                    self.add_first_descriptor(SlotId(1171), input_index, gss_node_id, env);
                 }
             }
             // StartS : . WS start:S WS

@@ -216,13 +216,13 @@ impl<'i, 'arena> Parser<'i, 'arena> for Ll1PrefixConflictParser<'i, 'arena> {
             }
             // S
             NonterminalId(1) => {
-                // S : . "ab" "x"
-                if self.scanner.match_any(&FIRST_SET_S_ALT0, input_index) {
-                    self.add_first_descriptor(SlotId(2), input_index, gss_node_id, env);
-                }
                 // S : . "a" "by"
                 if self.scanner.match_any(&FIRST_SET_S_ALT1, input_index) {
                     self.add_first_descriptor(SlotId(5), input_index, gss_node_id, env);
+                }
+                // S : . "ab" "x"
+                if self.scanner.match_any(&FIRST_SET_S_ALT0, input_index) {
+                    self.add_first_descriptor(SlotId(2), input_index, gss_node_id, env);
                 }
             }
             // StartT : . start:T

@@ -442,14 +442,6 @@ impl Grammar for ErrorUnionGrammar {
             position: 3,
         },
         Slot {
-            display_name: "UnexpectedFirst : . Identifier \\ Keyword",
-            position: 0,
-        },
-        Slot {
-            display_name: "UnexpectedFirst : Identifier \\ Keyword.",
-            position: 1,
-        },
-        Slot {
             display_name: "UnexpectedFirst : . Identifier \"!\"",
             position: 0,
         },
@@ -460,6 +452,22 @@ impl Grammar for ErrorUnionGrammar {
         Slot {
             display_name: "UnexpectedFirst : Identifier \"!\".",
             position: 2,
+        },
+        Slot {
+            display_name: "UnexpectedFirst : . Identifier \\ Keyword",
+            position: 0,
+        },
+        Slot {
+            display_name: "UnexpectedFirst : Identifier \\ Keyword.",
+            position: 1,
+        },
+        Slot {
+            display_name: "ExcludedFirst : . Identifier \\ Keyword",
+            position: 0,
+        },
+        Slot {
+            display_name: "ExcludedFirst : Identifier \\ Keyword.",
+            position: 1,
         },
         Slot {
             display_name: "ExcludedFirst : . Identifier \"!\"",
@@ -474,22 +482,6 @@ impl Grammar for ErrorUnionGrammar {
             position: 2,
         },
         Slot {
-            display_name: "ExcludedFirst : . Identifier \\ Keyword",
-            position: 0,
-        },
-        Slot {
-            display_name: "ExcludedFirst : Identifier \\ Keyword.",
-            position: 1,
-        },
-        Slot {
-            display_name: "PredictionBeforeExcept : . Identifier \\ Keyword",
-            position: 0,
-        },
-        Slot {
-            display_name: "PredictionBeforeExcept : Identifier \\ Keyword.",
-            position: 1,
-        },
-        Slot {
             display_name: "PredictionBeforeExcept : . Identifier MissingSuffix",
             position: 0,
         },
@@ -502,16 +494,12 @@ impl Grammar for ErrorUnionGrammar {
             position: 2,
         },
         Slot {
-            display_name: "ExceptBeforePrediction : . Identifier MissingSuffix",
+            display_name: "PredictionBeforeExcept : . Identifier \\ Keyword",
             position: 0,
         },
         Slot {
-            display_name: "ExceptBeforePrediction : Identifier . MissingSuffix",
+            display_name: "PredictionBeforeExcept : Identifier \\ Keyword.",
             position: 1,
-        },
-        Slot {
-            display_name: "ExceptBeforePrediction : Identifier MissingSuffix.",
-            position: 2,
         },
         Slot {
             display_name: "ExceptBeforePrediction : . Identifier \\ Keyword",
@@ -522,15 +510,15 @@ impl Grammar for ErrorUnionGrammar {
             position: 1,
         },
         Slot {
-            display_name: "PredictionBeforeFollow : . Identifier !>> Question Question",
+            display_name: "ExceptBeforePrediction : . Identifier MissingSuffix",
             position: 0,
         },
         Slot {
-            display_name: "PredictionBeforeFollow : Identifier !>> Question . Question",
+            display_name: "ExceptBeforePrediction : Identifier . MissingSuffix",
             position: 1,
         },
         Slot {
-            display_name: "PredictionBeforeFollow : Identifier !>> Question Question.",
+            display_name: "ExceptBeforePrediction : Identifier MissingSuffix.",
             position: 2,
         },
         Slot {
@@ -546,15 +534,15 @@ impl Grammar for ErrorUnionGrammar {
             position: 2,
         },
         Slot {
-            display_name: "FollowBeforePrediction : . Identifier MissingSuffix",
+            display_name: "PredictionBeforeFollow : . Identifier !>> Question Question",
             position: 0,
         },
         Slot {
-            display_name: "FollowBeforePrediction : Identifier . MissingSuffix",
+            display_name: "PredictionBeforeFollow : Identifier !>> Question . Question",
             position: 1,
         },
         Slot {
-            display_name: "FollowBeforePrediction : Identifier MissingSuffix.",
+            display_name: "PredictionBeforeFollow : Identifier !>> Question Question.",
             position: 2,
         },
         Slot {
@@ -567,6 +555,18 @@ impl Grammar for ErrorUnionGrammar {
         },
         Slot {
             display_name: "FollowBeforePrediction : Identifier !>> Question Question.",
+            position: 2,
+        },
+        Slot {
+            display_name: "FollowBeforePrediction : . Identifier MissingSuffix",
+            position: 0,
+        },
+        Slot {
+            display_name: "FollowBeforePrediction : Identifier . MissingSuffix",
+            position: 1,
+        },
+        Slot {
+            display_name: "FollowBeforePrediction : Identifier MissingSuffix.",
             position: 2,
         },
         Slot {
@@ -1243,12 +1243,12 @@ pub static FOLLOW_SET_UNEXPECTED_FIRST: TerminalSet = TerminalSet {
     id: 0,
     terminals: &[TerminalId(4), TerminalId(5), TerminalId(18)],
 };
-// UnexpectedFirst : . Identifier \ Keyword { Identifier }
+// UnexpectedFirst : . Identifier "!" { Identifier }
 pub static FIRST_SET_UNEXPECTED_FIRST_ALT0: TerminalSet = TerminalSet {
     id: 8,
     terminals: &[TerminalId(2)],
 };
-// UnexpectedFirst : . Identifier "!" { Identifier }
+// UnexpectedFirst : . Identifier \ Keyword { Identifier }
 pub static FIRST_SET_UNEXPECTED_FIRST_ALT1: TerminalSet = TerminalSet {
     id: 8,
     terminals: &[TerminalId(2)],
@@ -1258,12 +1258,12 @@ pub static FOLLOW_SET_EXCLUDED_FIRST: TerminalSet = TerminalSet {
     id: 0,
     terminals: &[TerminalId(4), TerminalId(5), TerminalId(18)],
 };
-// ExcludedFirst : . Identifier "!" { Identifier }
+// ExcludedFirst : . Identifier \ Keyword { Identifier }
 pub static FIRST_SET_EXCLUDED_FIRST_ALT0: TerminalSet = TerminalSet {
     id: 8,
     terminals: &[TerminalId(2)],
 };
-// ExcludedFirst : . Identifier \ Keyword { Identifier }
+// ExcludedFirst : . Identifier "!" { Identifier }
 pub static FIRST_SET_EXCLUDED_FIRST_ALT1: TerminalSet = TerminalSet {
     id: 8,
     terminals: &[TerminalId(2)],
@@ -1273,12 +1273,12 @@ pub static FOLLOW_SET_PREDICTION_BEFORE_EXCEPT: TerminalSet = TerminalSet {
     id: 0,
     terminals: &[TerminalId(4), TerminalId(5), TerminalId(18)],
 };
-// PredictionBeforeExcept : . Identifier \ Keyword { Identifier }
+// PredictionBeforeExcept : . Identifier MissingSuffix { Identifier }
 pub static FIRST_SET_PREDICTION_BEFORE_EXCEPT_ALT0: TerminalSet = TerminalSet {
     id: 8,
     terminals: &[TerminalId(2)],
 };
-// PredictionBeforeExcept : . Identifier MissingSuffix { Identifier }
+// PredictionBeforeExcept : . Identifier \ Keyword { Identifier }
 pub static FIRST_SET_PREDICTION_BEFORE_EXCEPT_ALT1: TerminalSet = TerminalSet {
     id: 8,
     terminals: &[TerminalId(2)],
@@ -1288,12 +1288,12 @@ pub static FOLLOW_SET_EXCEPT_BEFORE_PREDICTION: TerminalSet = TerminalSet {
     id: 0,
     terminals: &[TerminalId(4), TerminalId(5), TerminalId(18)],
 };
-// ExceptBeforePrediction : . Identifier MissingSuffix { Identifier }
+// ExceptBeforePrediction : . Identifier \ Keyword { Identifier }
 pub static FIRST_SET_EXCEPT_BEFORE_PREDICTION_ALT0: TerminalSet = TerminalSet {
     id: 8,
     terminals: &[TerminalId(2)],
 };
-// ExceptBeforePrediction : . Identifier \ Keyword { Identifier }
+// ExceptBeforePrediction : . Identifier MissingSuffix { Identifier }
 pub static FIRST_SET_EXCEPT_BEFORE_PREDICTION_ALT1: TerminalSet = TerminalSet {
     id: 8,
     terminals: &[TerminalId(2)],
@@ -1303,40 +1303,40 @@ pub static FOLLOW_SET_PREDICTION_BEFORE_FOLLOW: TerminalSet = TerminalSet {
     id: 0,
     terminals: &[TerminalId(4), TerminalId(5), TerminalId(18)],
 };
-// PredictionBeforeFollow : . Identifier !>> Question Question { Identifier }
+// PredictionBeforeFollow : . Identifier MissingSuffix { Identifier }
 pub static FIRST_SET_PREDICTION_BEFORE_FOLLOW_ALT0: TerminalSet = TerminalSet {
     id: 8,
     terminals: &[TerminalId(2)],
 };
-// PredictionBeforeFollow : . Identifier !>> Question Question !>> { Question }
-pub static FOLLOW_RESTRICTION_PREDICTION_BEFORE_FOLLOW_ALT0_POS0: TerminalSet = TerminalSet {
-    id: 9,
-    terminals: &[TerminalId(0)],
-};
-// PredictionBeforeFollow : . Identifier MissingSuffix { Identifier }
+// PredictionBeforeFollow : . Identifier !>> Question Question { Identifier }
 pub static FIRST_SET_PREDICTION_BEFORE_FOLLOW_ALT1: TerminalSet = TerminalSet {
     id: 8,
     terminals: &[TerminalId(2)],
+};
+// PredictionBeforeFollow : . Identifier !>> Question Question !>> { Question }
+pub static FOLLOW_RESTRICTION_PREDICTION_BEFORE_FOLLOW_ALT1_POS0: TerminalSet = TerminalSet {
+    id: 9,
+    terminals: &[TerminalId(0)],
 };
 // FollowBeforePrediction { WS, Newline, EOF }
 pub static FOLLOW_SET_FOLLOW_BEFORE_PREDICTION: TerminalSet = TerminalSet {
     id: 0,
     terminals: &[TerminalId(4), TerminalId(5), TerminalId(18)],
 };
-// FollowBeforePrediction : . Identifier MissingSuffix { Identifier }
+// FollowBeforePrediction : . Identifier !>> Question Question { Identifier }
 pub static FIRST_SET_FOLLOW_BEFORE_PREDICTION_ALT0: TerminalSet = TerminalSet {
     id: 8,
     terminals: &[TerminalId(2)],
 };
-// FollowBeforePrediction : . Identifier !>> Question Question { Identifier }
+// FollowBeforePrediction : . Identifier !>> Question Question !>> { Question }
+pub static FOLLOW_RESTRICTION_FOLLOW_BEFORE_PREDICTION_ALT0_POS0: TerminalSet = TerminalSet {
+    id: 9,
+    terminals: &[TerminalId(0)],
+};
+// FollowBeforePrediction : . Identifier MissingSuffix { Identifier }
 pub static FIRST_SET_FOLLOW_BEFORE_PREDICTION_ALT1: TerminalSet = TerminalSet {
     id: 8,
     terminals: &[TerminalId(2)],
-};
-// FollowBeforePrediction : . Identifier !>> Question Question !>> { Question }
-pub static FOLLOW_RESTRICTION_FOLLOW_BEFORE_PREDICTION_ALT1_POS0: TerminalSet = TerminalSet {
-    id: 9,
-    terminals: &[TerminalId(0)],
 };
 // MissingSuffix { WS, Newline, EOF }
 pub static FOLLOW_SET_MISSING_SUFFIX: TerminalSet = TerminalSet {
@@ -1771,22 +1771,22 @@ pub static FIRST_SET_START_Q: TerminalSet = TerminalSet {
     terminals: &[TerminalId(4), TerminalId(5), TerminalId(9)],
 };
 // UnexpectedFirst : . Identifier \ Keyword \ { Keyword }
-pub static EXCEPT_UNEXPECTED_FIRST_ALT0_POS0: TerminalSet = TerminalSet {
+pub static EXCEPT_UNEXPECTED_FIRST_ALT1_POS0: TerminalSet = TerminalSet {
     id: 30,
     terminals: &[TerminalId(3)],
 };
 // ExcludedFirst : . Identifier \ Keyword \ { Keyword }
-pub static EXCEPT_EXCLUDED_FIRST_ALT1_POS0: TerminalSet = TerminalSet {
+pub static EXCEPT_EXCLUDED_FIRST_ALT0_POS0: TerminalSet = TerminalSet {
     id: 30,
     terminals: &[TerminalId(3)],
 };
 // PredictionBeforeExcept : . Identifier \ Keyword \ { Keyword }
-pub static EXCEPT_PREDICTION_BEFORE_EXCEPT_ALT0_POS0: TerminalSet = TerminalSet {
+pub static EXCEPT_PREDICTION_BEFORE_EXCEPT_ALT1_POS0: TerminalSet = TerminalSet {
     id: 30,
     terminals: &[TerminalId(3)],
 };
 // ExceptBeforePrediction : . Identifier \ Keyword \ { Keyword }
-pub static EXCEPT_EXCEPT_BEFORE_PREDICTION_ALT1_POS0: TerminalSet = TerminalSet {
+pub static EXCEPT_EXCEPT_BEFORE_PREDICTION_ALT0_POS0: TerminalSet = TerminalSet {
     id: 30,
     terminals: &[TerminalId(3)],
 };

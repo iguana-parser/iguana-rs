@@ -2,27 +2,27 @@
   WS
   (Amb
     (ClosedRightAssoc
-      #1=(ClosedRightAssoc "a")
+      (ClosedRightAssoc
+        #1=(ClosedRightAssoc "a")
+        WS
+        "+"
+        WS
+        (ClosedRightOperand
+          #2=(ClosedRightAssoc "a")))
+      WS
+      "+"
+      WS
+      #3=(ClosedRightOperand "!"))
+    (ClosedRightAssoc
+      #1#
       WS
       "+"
       WS
       (ClosedRightOperand
         (ClosedRightAssoc
-          #2=(ClosedRightAssoc "a")
+          #2#
           WS
           "+"
           WS
-          #3=(ClosedRightOperand "!"))))
-    (ClosedRightAssoc
-      (ClosedRightAssoc
-        #1#
-        WS
-        "+"
-        WS
-        (ClosedRightOperand
-          #2#))
-      WS
-      "+"
-      WS
-      #3#))
+          #3#))))
   WS)

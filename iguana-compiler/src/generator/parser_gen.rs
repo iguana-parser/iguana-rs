@@ -551,6 +551,17 @@ impl<'a> ParserGen<'a> {
     /// scanned only when FIRST misses. Repeat FOLLOW scans across multiple
     /// nullable alts hit the scanner's `(position, terminal)` memo and are
     /// near-free.
+    ///
+    /// The alternatives are scheduled in the reverse of their order in the
+    /// grammar. The descriptor worklist is a stack, and the reverse
+    /// scheduling allows the parser to run the first alternative first.
+    /// This also gives the GLL execution a depth-first exploration of the
+    /// alternatives.
+    ///
+    /// The benefit is in the unsafe mode, which stops at the first
+    /// derivation that spans the whole input. Taking the first alternative
+    /// first reaches that derivation earlier. The default mode drains every
+    /// descriptor, so the order changes nothing there.
     fn gen_multi_alt_first_dispatch(&self, nonterminal: &'a Nonterminal) -> TokenStream {
         let nt_name = &nonterminal.name;
         let nonterminal_id = self.nonterminal_ids.get_id(nonterminal);
@@ -560,6 +571,7 @@ impl<'a> ParserGen<'a> {
         let alt_arms: Vec<_> = alternatives
             .iter()
             .enumerate()
+            .rev()
             .map(|(alt_index, alt)| {
                 let slot = Slot::new(nonterminal, alt, 0);
                 let slot_id = self.slot_ids.get_id(&slot);

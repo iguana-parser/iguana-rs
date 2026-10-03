@@ -1,8 +1,8 @@
 (Start
   #1=(Amb
-    (TwoExitsC "b")
     (TwoExitsC
       (Amb
         (TwoExitsB "b")
         (TwoExitsB
-          #1#)))))
+          #1#)))
+    (TwoExitsC "b")))

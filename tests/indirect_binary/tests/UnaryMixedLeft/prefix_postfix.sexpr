@@ -6,47 +6,47 @@
         "-"
         WS
         (UnaryMixedLeft
-          #1=(UnaryMixedLeft
-            #2=(UnaryMixedLeft "a")
-            WS
-            "+"
-            WS
-            #3=(UnaryMixedLeft "a"))
-          WS
-          "!"))
-      (UnaryMixedLeft
-        "-"
-        WS
-        (UnaryMixedLeft
-          #2#
+          #1=(UnaryMixedLeft "a")
           WS
           "+"
           WS
-          #4=(UnaryMixedLeft
+          #2=(UnaryMixedLeft
             (UnaryMixedLeft "a")
             WS
             "!")))
       (UnaryMixedLeft
+        "-"
+        WS
+        (UnaryMixedLeft
+          #3=(UnaryMixedLeft
+            #1#
+            WS
+            "+"
+            WS
+            #4=(UnaryMixedLeft "a"))
+          WS
+          "!"))
+      (UnaryMixedLeft
         #5=(UnaryMixedLeft
           "-"
           WS
-          #2#)
+          #1#)
         WS
         "+"
         WS
-        #4#))
+        #2#))
     (UnaryMixedLeft
       (Amb
         (UnaryMixedLeft
           "-"
           WS
-          #1#)
+          #3#)
         (UnaryMixedLeft
           #5#
           WS
           "+"
           WS
-          #3#))
+          #4#))
       WS
       "!"))
   WS)

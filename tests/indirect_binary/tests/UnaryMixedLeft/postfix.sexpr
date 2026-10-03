@@ -2,21 +2,21 @@
   WS
   (Amb
     (UnaryMixedLeft
-      (UnaryMixedLeft
-        #1=(UnaryMixedLeft "a")
-        WS
-        "+"
-        WS
-        (UnaryMixedLeft "a"))
-      WS
-      "!")
-    (UnaryMixedLeft
-      #1#
+      #1=(UnaryMixedLeft "a")
       WS
       "+"
       WS
       (UnaryMixedLeft
         (UnaryMixedLeft "a")
         WS
-        "!")))
+        "!"))
+    (UnaryMixedLeft
+      (UnaryMixedLeft
+        #1#
+        WS
+        "+"
+        WS
+        (UnaryMixedLeft "a"))
+      WS
+      "!"))
   WS)

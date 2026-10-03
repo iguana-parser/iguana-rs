@@ -184,13 +184,13 @@ impl<'i, 'arena> Parser<'i, 'arena> for Ll1FollowRestrictionParser<'i, 'arena> {
             }
             // A
             NonterminalId(1) => {
-                // A : . A_ !>> A_
-                if self.scanner.match_any(&FIRST_SET_A_ALT0, input_index) {
-                    self.add_first_descriptor(SlotId(2), input_index, gss_node_id, env);
-                }
                 // A : . AA
                 if self.scanner.match_any(&FIRST_SET_A_ALT1, input_index) {
                     self.add_first_descriptor(SlotId(4), input_index, gss_node_id, env);
+                }
+                // A : . A_ !>> A_
+                if self.scanner.match_any(&FIRST_SET_A_ALT0, input_index) {
+                    self.add_first_descriptor(SlotId(2), input_index, gss_node_id, env);
                 }
             }
             // StartS : . start:S

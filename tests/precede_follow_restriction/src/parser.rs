@@ -245,13 +245,13 @@ impl<'i, 'arena> Parser<'i, 'arena> for PrecedeFollowRestrictionParser<'i, 'aren
         match nonterminal_id {
             // S
             NonterminalId(0) => {
-                // S : . Num Id Tail
-                if self.scanner.match_any(&FIRST_SET_S_ALT0, input_index) {
-                    self.add_first_descriptor(SlotId(0), input_index, gss_node_id, env);
-                }
                 // S : . Id Tail
                 if self.scanner.match_any(&FIRST_SET_S_ALT1, input_index) {
                     self.add_first_descriptor(SlotId(4), input_index, gss_node_id, env);
+                }
+                // S : . Num Id Tail
+                if self.scanner.match_any(&FIRST_SET_S_ALT0, input_index) {
+                    self.add_first_descriptor(SlotId(0), input_index, gss_node_id, env);
                 }
             }
             // Id : . Digit !<< Name !>> Eq

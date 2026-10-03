@@ -336,24 +336,24 @@ impl<'i, 'arena> Parser<'i, 'arena> for PlusExceptParser<'i, 'arena> {
             }
             // Plus_0
             NonterminalId(2) => {
-                // Plus_0 : . Plus_0 Identifier \ Keyword Number
-                if self.scanner.match_any(&FIRST_SET_PLUS_0_ALT0, input_index) {
-                    self.add_first_descriptor(SlotId(4), input_index, gss_node_id, env);
-                }
                 // Plus_0 : . Number
                 if self.scanner.match_any(&FIRST_SET_PLUS_0_ALT1, input_index) {
                     self.add_first_descriptor(SlotId(8), input_index, gss_node_id, env);
                 }
+                // Plus_0 : . Plus_0 Identifier \ Keyword Number
+                if self.scanner.match_any(&FIRST_SET_PLUS_0_ALT0, input_index) {
+                    self.add_first_descriptor(SlotId(4), input_index, gss_node_id, env);
+                }
             }
             // Plus_1
             NonterminalId(3) => {
-                // Plus_1 : . Plus_1 "," Identifier \ Keyword
-                if self.scanner.match_any(&FIRST_SET_PLUS_1_ALT0, input_index) {
-                    self.add_first_descriptor(SlotId(10), input_index, gss_node_id, env);
-                }
                 // Plus_1 : . Identifier \ Keyword
                 if self.scanner.match_any(&FIRST_SET_PLUS_1_ALT1, input_index) {
                     self.add_first_descriptor(SlotId(14), input_index, gss_node_id, env);
+                }
+                // Plus_1 : . Plus_1 "," Identifier \ Keyword
+                if self.scanner.match_any(&FIRST_SET_PLUS_1_ALT0, input_index) {
+                    self.add_first_descriptor(SlotId(10), input_index, gss_node_id, env);
                 }
             }
             // StartSep : . start:Sep

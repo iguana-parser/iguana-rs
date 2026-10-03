@@ -351,21 +351,21 @@ impl<'i, 'arena> Parser<'i, 'arena> for BinaryExpressionPriorityParser<'i, 'aren
             }
             // E
             NonterminalId(3) => {
-                // E(p: i32) : . "a" return 0
-                if self.scanner.match_any(&FIRST_SET_E_ALT0, input_index) {
-                    self.add_first_descriptor(SlotId(6), input_index, gss_node_id, env);
-                }
-                // E(p: i32) : . [2 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 2)] "*" E(2) return 2
-                if self.scanner.match_any(&FIRST_SET_E_ALT1, input_index) {
-                    self.add_first_descriptor(SlotId(9), input_index, gss_node_id, env);
+                // E(p: i32) : . [1 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 1)] "-" E(1) return 1
+                if self.scanner.match_any(&FIRST_SET_E_ALT3, input_index) {
+                    self.add_first_descriptor(SlotId(23), input_index, gss_node_id, env);
                 }
                 // E(p: i32) : . [1 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 1)] "+" E(1) return 1
                 if self.scanner.match_any(&FIRST_SET_E_ALT2, input_index) {
                     self.add_first_descriptor(SlotId(16), input_index, gss_node_id, env);
                 }
-                // E(p: i32) : . [1 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 1)] "-" E(1) return 1
-                if self.scanner.match_any(&FIRST_SET_E_ALT3, input_index) {
-                    self.add_first_descriptor(SlotId(23), input_index, gss_node_id, env);
+                // E(p: i32) : . [2 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 2)] "*" E(2) return 2
+                if self.scanner.match_any(&FIRST_SET_E_ALT1, input_index) {
+                    self.add_first_descriptor(SlotId(9), input_index, gss_node_id, env);
+                }
+                // E(p: i32) : . "a" return 0
+                if self.scanner.match_any(&FIRST_SET_E_ALT0, input_index) {
+                    self.add_first_descriptor(SlotId(6), input_index, gss_node_id, env);
                 }
             }
             // StartS : . start:S
