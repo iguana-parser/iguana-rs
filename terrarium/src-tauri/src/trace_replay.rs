@@ -6,9 +6,8 @@ use std::path::Path;
 use iguana_runtime::descriptor::Descriptor;
 use iguana_runtime::gss::GSSEdge;
 use iguana_runtime::ids::{GssNodeId, NonterminalId, SlotId, TerminalId};
-use iguana_runtime::parser::GLLFailureKind;
 use iguana_runtime::sppf::SPPFNodeId;
-use iguana_runtime::trace::TraceEvent;
+use iguana_runtime::trace::{TraceEvent, TraceFailureKind};
 use serde::{Deserialize, Serialize};
 use specta::Type;
 
@@ -28,7 +27,7 @@ pub enum DebugAction {
         input_index: u32,
         slot_id: SlotId,
         gss_node_id: Option<GssNodeId>,
-        kind: GLLFailureKind,
+        kind: TraceFailureKind,
     },
     /// Matching leading layout (whitespace before token)
     MatchingLeadingLayout { input_index: u32 },
@@ -336,10 +335,10 @@ impl TraceReplay {
         errors
     }
 
-    /// Format a GLLFailureKind as a human-readable description.
-    fn format_failure_kind(&self, kind: &GLLFailureKind) -> String {
+    /// Format a TraceFailureKind as a human-readable description.
+    fn format_failure_kind(&self, kind: &TraceFailureKind) -> String {
         match kind {
-            GLLFailureKind::UnexpectedToken { expected } => {
+            TraceFailureKind::UnexpectedToken { expected } => {
                 let names: Vec<String> = expected
                     .iter()
                     .map(|id| self.symbols.terminal(id))
@@ -350,14 +349,14 @@ impl TraceReplay {
                     _ => format!("expected {}", names.join(", ")),
                 }
             }
-            GLLFailureKind::ExcludedMatch { excluded_by } => {
+            TraceFailureKind::ExcludedMatch { excluded_by } => {
                 let names: Vec<String> = excluded_by
                     .iter()
                     .map(|id| self.symbols.terminal(id))
                     .collect();
                 format!("excluded by {}", names.join(", "))
             }
-            GLLFailureKind::ForbiddenFollow { forbidden } => {
+            TraceFailureKind::ForbiddenFollow { forbidden } => {
                 let names: Vec<String> = forbidden
                     .iter()
                     .map(|id| self.symbols.terminal(id))
@@ -439,7 +438,7 @@ impl TraceReplay {
         input_index: u32,
         slot_id: SlotId,
         gss_node_id: Option<GssNodeId>,
-        kind: &GLLFailureKind,
+        kind: &TraceFailureKind,
     ) -> String {
         let slot_name = self.symbols.slot(slot_id);
         let gss = gss_node_id

@@ -3,7 +3,6 @@ use std::time::Duration;
 use web_time::Instant;
 
 use rustc_hash::FxHashMap;
-use serde::Serialize;
 
 use crate::{
     arena::Arena,
@@ -81,20 +80,6 @@ impl GLLFailureKind {
                 set.terminals
             }
         }
-    }
-}
-
-impl Serialize for GLLFailureKind {
-    fn serialize<S: serde::Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
-        use serde::ser::SerializeStructVariant;
-        let (variant, index, field) = match self {
-            Self::UnexpectedToken(_) => ("UnexpectedToken", 0, "expected"),
-            Self::ExcludedMatch(_) => ("ExcludedMatch", 1, "excluded_by"),
-            Self::ForbiddenFollow(_) => ("ForbiddenFollow", 2, "forbidden"),
-        };
-        let mut sv = serializer.serialize_struct_variant("GLLFailureKind", index, variant, 1)?;
-        sv.serialize_field(field, self.terminals())?;
-        sv.end()
     }
 }
 

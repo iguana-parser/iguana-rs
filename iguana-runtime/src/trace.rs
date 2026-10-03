@@ -1,4 +1,4 @@
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 
 use crate::ids::{GssNodeId, NonterminalId, SlotId, TerminalId};
 use crate::input::Span;
@@ -8,9 +8,40 @@ use crate::sppf::SPPFNodeId;
 #[cfg(feature = "debug-trace")]
 use crate::{grammar::Grammar, parser::Parser};
 
-/// Trace events emitted during GLL parsing. Serializable in every build;
-/// recording them requires the `debug-trace` feature.
-#[derive(Debug, Serialize)]
+/// The kind of a failure in a trace. The terminal ids are stored as an owned
+/// vector, instead of a pointer to the static in `GLLFailureKind`. This is
+/// because a program that reads a trace file, such as Terrarium, does not
+/// have that static.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub enum TraceFailureKind {
+    /// Terminal match failed: expected one of these terminals at this position.
+    UnexpectedToken { expected: Vec<TerminalId> },
+    /// Nonterminal except (`\`): matched a nonterminal but it was excluded.
+    ExcludedMatch { excluded_by: Vec<TerminalId> },
+    /// Follow restriction (`!>>`): the symbol after the match is forbidden.
+    ForbiddenFollow { forbidden: Vec<TerminalId> },
+}
+
+impl From<GLLFailureKind> for TraceFailureKind {
+    fn from(kind: GLLFailureKind) -> Self {
+        let terminals = kind.terminals().to_vec();
+        match kind {
+            GLLFailureKind::UnexpectedToken(_) => Self::UnexpectedToken {
+                expected: terminals,
+            },
+            GLLFailureKind::ExcludedMatch(_) => Self::ExcludedMatch {
+                excluded_by: terminals,
+            },
+            GLLFailureKind::ForbiddenFollow(_) => Self::ForbiddenFollow {
+                forbidden: terminals,
+            },
+        }
+    }
+}
+
+/// Trace events emitted during GLL parsing. Serializable and deserializable
+/// in every build; recording them requires the `debug-trace` feature.
+#[derive(Debug, Serialize, Deserialize)]
 pub enum TraceEvent {
     ProcessingDescriptor(SlotId, u32, GssNodeId, Option<SPPFNodeId>),
     DescriptorAdded(SlotId, u32, GssNodeId, Option<SPPFNodeId>),
@@ -18,8 +49,8 @@ pub enum TraceEvent {
     MatchingTrailingLayout(u32),
     MatchingTerminal(TerminalId, u32),  // terminal, input_index
     MatchSuccess(TerminalId, u32, u32), // terminal, input_index, next_input match
-    GLLFailure(u32, SlotId, Option<GssNodeId>, GLLFailureKind), // input_index, slot, gss_node, kind
-    MatchedLayout(Option<u32>),         // next_input match
+    GLLFailure(u32, SlotId, Option<GssNodeId>, TraceFailureKind), // input_index, slot, gss_node, kind
+    MatchedLayout(Option<u32>),                                   // next_input match
     GSSNodeCreated(NonterminalId, u32),
     GSSNodeFound(NonterminalId, u32),
     GSSNodeNotFound(NonterminalId, u32),
@@ -87,18 +118,18 @@ impl TraceEvent {
                 let gss = gss_node_id
                     .map(|id| parser.gss_to_string(id))
                     .unwrap_or_else(|| "?".to_string());
-                let names: Vec<&str> = kind
-                    .terminals()
+                let (description, terminals) = match kind {
+                    TraceFailureKind::UnexpectedToken { expected } => ("expected", expected),
+                    TraceFailureKind::ExcludedMatch { excluded_by } => ("excluded by", excluded_by),
+                    TraceFailureKind::ForbiddenFollow { forbidden } => {
+                        ("forbidden follow", forbidden)
+                    }
+                };
+                let names: Vec<&str> = terminals
                     .iter()
                     .map(|id| P::Grammar::terminal_name(*id))
                     .collect();
-                let kind_str = match kind {
-                    GLLFailureKind::UnexpectedToken(_) => format!("expected {}", names.join(", ")),
-                    GLLFailureKind::ExcludedMatch(_) => format!("excluded by {}", names.join(", ")),
-                    GLLFailureKind::ForbiddenFollow(_) => {
-                        format!("forbidden follow {}", names.join(", "))
-                    }
-                };
+                let kind_str = format!("{description} {}", names.join(", "));
                 format!(
                     "Parse error at input index {} (slot: {}, GSS node: {}): {}",
                     input_index,
@@ -262,7 +293,7 @@ macro_rules! record {
             $input_index,
             $slot_id,
             $gss_node_id,
-            $kind,
+            $crate::trace::TraceFailureKind::from($kind),
         ));
     };
     ($parser:expr, MatchedLayout, $match_index:expr) => {
@@ -358,4 +389,33 @@ macro_rules! record {
 #[cfg(not(feature = "debug-trace"))]
 macro_rules! record {
     ($self:expr, $kind:ident $(, $args:expr)*) => {};
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::scanner::TerminalSet;
+
+    static SET: TerminalSet = TerminalSet {
+        id: 0,
+        terminals: &[TerminalId(1), TerminalId(2)],
+    };
+
+    #[test]
+    fn a_failure_event_reads_back_with_its_terminals() {
+        let kind = TraceFailureKind::from(GLLFailureKind::ExcludedMatch(&SET));
+        let events = vec![TraceEvent::GLLFailure(3, SlotId(4), None, kind.clone())];
+        let json = serde_json::to_string(&events).unwrap();
+        let read: Vec<TraceEvent> = serde_json::from_str(&json).unwrap();
+        let [TraceEvent::GLLFailure(3, SlotId(4), None, read_kind)] = read.as_slice() else {
+            panic!("expected the failure event back, got {read:?}");
+        };
+        assert_eq!(*read_kind, kind);
+        assert_eq!(
+            kind,
+            TraceFailureKind::ExcludedMatch {
+                excluded_by: vec![TerminalId(1), TerminalId(2)],
+            }
+        );
+    }
 }
