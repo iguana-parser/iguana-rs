@@ -5,7 +5,6 @@ use crate::{
     parse_tree::{self, ExactKeywordGenericsParseTreeBuilder, ParseTree, create_parse_tree},
     scanner::ExactKeywordGenericsScanner,
 };
-#[cfg(feature = "instrument")]
 use iguana_runtime::grammar::Grammar;
 #[allow(unused_imports)]
 use iguana_runtime::input::Span;
@@ -22,6 +21,7 @@ use iguana_runtime::{
         DESCRIPTORS_CAPACITY_DIVISOR, DESCRIPTORS_CAPACITY_FLOOR, GLLFailure, GLLFailureKind,
         GSS_CAPACITY_MULTIPLIER, Parser, SPPF_CAPACITY_MULTIPLIER, init_logger,
     },
+    prediction::Prediction,
     record,
     result::{ParseError, ParseSuccess},
     scanner::{Scanner, TerminalSet},
@@ -32,6 +32,7 @@ use rustc_hash::FxHashMap;
 use std::cell::OnceCell;
 impl<'i, 'arena> Parser<'i, 'arena> for ExactKeywordGenericsParser<'i, 'arena> {
     type Grammar = ExactKeywordGenericsGrammar;
+    type Alternatives = <ExactKeywordGenericsGrammar as Grammar>::Alternatives;
     type ConcreteParser<'input, 'parser_arena> = ExactKeywordGenericsParser<'input, 'parser_arena>;
     fn new(input: &'i Input, parser_arena: &'arena Arena) -> Self {
         ExactKeywordGenericsParser::new(input, parser_arena)
@@ -67,7 +68,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for ExactKeywordGenericsParser<'i, 'arena> {
                     SlotId(0) => {
                         self.create(
                             NonterminalId(1),
-                            &PREDICTION_SET_TYPE,
+                            &PREDICTION_TYPE,
                             result,
                             gss_node_id,
                             SlotId(1),
@@ -166,7 +167,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for ExactKeywordGenericsParser<'i, 'arena> {
                     SlotId(6) => {
                         self.create(
                             NonterminalId(1),
-                            &PREDICTION_SET_TYPE,
+                            &PREDICTION_TYPE,
                             result,
                             gss_node_id,
                             SlotId(7),
@@ -309,7 +310,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for ExactKeywordGenericsParser<'i, 'arena> {
                     SlotId(16) => {
                         self.create(
                             NonterminalId(1),
-                            &PREDICTION_SET_TYPE,
+                            &PREDICTION_TYPE,
                             result,
                             gss_node_id,
                             SlotId(17),
@@ -377,7 +378,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for ExactKeywordGenericsParser<'i, 'arena> {
                     SlotId(21) => {
                         self.create(
                             NonterminalId(0),
-                            &PREDICTION_SET_S,
+                            &PREDICTION_S,
                             result,
                             gss_node_id,
                             SlotId(22),
@@ -427,7 +428,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for ExactKeywordGenericsParser<'i, 'arena> {
                     SlotId(25) => {
                         self.create(
                             NonterminalId(1),
-                            &PREDICTION_SET_TYPE,
+                            &PREDICTION_TYPE,
                             result,
                             gss_node_id,
                             SlotId(26),
@@ -469,49 +470,6 @@ impl<'i, 'arena> Parser<'i, 'arena> for ExactKeywordGenericsParser<'i, 'arena> {
                         panic!("Unknown grammar slot id: {slot_id}");
                     }
                 }
-            }
-        }
-    }
-    fn add_first_descriptors(
-        &mut self,
-        nonterminal_id: NonterminalId,
-        input_index: u32,
-        gss_node_id: GssNodeId,
-        env: Option<EnvId>,
-    ) {
-        match nonterminal_id {
-            // S
-            NonterminalId(0) => {
-                // S : . [0-9 A-Z _ a-z] !<< "new" !>> [0-9 A-Z _ a-z] WS Type WS ";"
-                if self.scanner.match_any(&FIRST_SET_S_ALT1, input_index) {
-                    self.add_first_descriptor(SlotId(4), input_index, gss_node_id, env);
-                }
-                // S : . Type WS ";"
-                if self.scanner.match_any(&FIRST_SET_S_ALT0, input_index) {
-                    self.add_first_descriptor(SlotId(0), input_index, gss_node_id, env);
-                }
-            }
-            // Type
-            NonterminalId(1) => {
-                // Type : . Id WS "<" WS Type WS ">"
-                if self.scanner.match_any(&FIRST_SET_TYPE_ALT1, input_index) {
-                    self.add_first_descriptor(SlotId(12), input_index, gss_node_id, env);
-                }
-                // Type : . Id
-                if self.scanner.match_any(&FIRST_SET_TYPE_ALT0, input_index) {
-                    self.add_first_descriptor(SlotId(10), input_index, gss_node_id, env);
-                }
-            }
-            // StartS : . WS start:S WS
-            NonterminalId(2) => {
-                self.add_first_descriptor(SlotId(20), input_index, gss_node_id, env);
-            }
-            // StartType : . WS start:Type WS
-            NonterminalId(3) => {
-                self.add_first_descriptor(SlotId(24), input_index, gss_node_id, env);
-            }
-            _ => {
-                panic!("Unknown nonterminal id: {nonterminal_id}");
             }
         }
     }
@@ -918,6 +876,9 @@ impl<'i, 'arena> Parser<'i, 'arena> for ExactKeywordGenericsParser<'i, 'arena> {
     }
     fn match_any(&mut self, set: &'static TerminalSet, input_index: u32) -> bool {
         self.scanner.match_any(set, input_index)
+    }
+    fn predict(&mut self, prediction: &'static Prediction, input_index: u32) -> Self::Alternatives {
+        self.scanner.predict(prediction, input_index)
     }
     fn vec_arena(&self) -> &'arena Arena {
         self.vec_arena

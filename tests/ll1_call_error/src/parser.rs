@@ -5,7 +5,6 @@ use crate::{
     parse_tree::{self, Ll1CallErrorParseTreeBuilder, ParseTree, create_parse_tree},
     scanner::Ll1CallErrorScanner,
 };
-#[cfg(feature = "instrument")]
 use iguana_runtime::grammar::Grammar;
 #[allow(unused_imports)]
 use iguana_runtime::input::Span;
@@ -22,6 +21,7 @@ use iguana_runtime::{
         DESCRIPTORS_CAPACITY_DIVISOR, DESCRIPTORS_CAPACITY_FLOOR, GLLFailure, GLLFailureKind,
         GSS_CAPACITY_MULTIPLIER, Parser, SPPF_CAPACITY_MULTIPLIER, init_logger,
     },
+    prediction::Prediction,
     record,
     result::{ParseError, ParseSuccess},
     scanner::{Scanner, TerminalSet},
@@ -32,6 +32,7 @@ use rustc_hash::FxHashMap;
 use std::cell::OnceCell;
 impl<'i, 'arena> Parser<'i, 'arena> for Ll1CallErrorParser<'i, 'arena> {
     type Grammar = Ll1CallErrorGrammar;
+    type Alternatives = <Ll1CallErrorGrammar as Grammar>::Alternatives;
     type ConcreteParser<'input, 'parser_arena> = Ll1CallErrorParser<'input, 'parser_arena>;
     fn new(input: &'i Input, parser_arena: &'arena Arena) -> Self {
         Ll1CallErrorParser::new(input, parser_arena)
@@ -331,74 +332,35 @@ impl<'i, 'arena> Parser<'i, 'arena> for Ll1CallErrorParser<'i, 'arena> {
                         };
                         self.pop(gss_node_id, SlotId(23), result, None, &FOLLOW_SET_START_S);
                     }
+                    // StartLayout : . start:Layout
+                    SlotId(24) => {
+                        if let Some(right_child) = self
+                            .parse_layout_ll1(input_index, Some((SlotId(24), Some(gss_node_id))))
+                        {
+                            let j = self.sppf_node(right_child).right_extent();
+                            // StartLayout : start:Layout.
+                            input_index = j;
+                            result = Some(right_child);
+                            next = Some(SlotId(25));
+                        }
+                    }
+                    // StartLayout : start:Layout.
+                    SlotId(25) => {
+                        let Some(result) = result else {
+                            unreachable!("result cannot be None here.")
+                        };
+                        self.pop(
+                            gss_node_id,
+                            SlotId(25),
+                            result,
+                            None,
+                            &FOLLOW_SET_START_LAYOUT,
+                        );
+                    }
                     _ => {
                         panic!("Unknown grammar slot id: {slot_id}");
                     }
                 }
-            }
-        }
-    }
-    fn add_first_descriptors(
-        &mut self,
-        nonterminal_id: NonterminalId,
-        input_index: u32,
-        gss_node_id: GssNodeId,
-        env: Option<EnvId>,
-    ) {
-        match nonterminal_id {
-            // S : . Word Layout Word
-            NonterminalId(0) => {
-                self.add_first_descriptor(SlotId(0), input_index, gss_node_id, env);
-            }
-            // Layout : . Star_0 !>> WS !>> LineComment
-            NonterminalId(1) => {
-                self.add_first_descriptor(SlotId(4), input_index, gss_node_id, env);
-            }
-            // Alt_0
-            NonterminalId(2) => {
-                // Alt_0 : . LineComment
-                if self.scanner.match_any(&FIRST_SET_ALT_0_ALT1, input_index) {
-                    self.add_first_descriptor(SlotId(8), input_index, gss_node_id, env);
-                }
-                // Alt_0 : . WS
-                if self.scanner.match_any(&FIRST_SET_ALT_0_ALT0, input_index) {
-                    self.add_first_descriptor(SlotId(6), input_index, gss_node_id, env);
-                }
-            }
-            // Plus_0
-            NonterminalId(3) => {
-                // Plus_0 : . Alt_0
-                if self.scanner.match_any(&FIRST_SET_PLUS_0_ALT1, input_index) {
-                    self.add_first_descriptor(SlotId(13), input_index, gss_node_id, env);
-                }
-                // Plus_0 : . Plus_0 Alt_0
-                if self.scanner.match_any(&FIRST_SET_PLUS_0_ALT0, input_index) {
-                    self.add_first_descriptor(SlotId(10), input_index, gss_node_id, env);
-                }
-            }
-            // Opt_0
-            NonterminalId(4) => {
-                // Opt_0 : .
-                if self.scanner.match_any(&FIRST_SET_OPT_0_ALT1, input_index)
-                    || self.scanner.match_any(&FOLLOW_SET_OPT_0, input_index)
-                {
-                    self.add_first_descriptor(SlotId(17), input_index, gss_node_id, env);
-                }
-                // Opt_0 : . Plus_0
-                if self.scanner.match_any(&FIRST_SET_OPT_0_ALT0, input_index) {
-                    self.add_first_descriptor(SlotId(15), input_index, gss_node_id, env);
-                }
-            }
-            // Star_0 : . Opt_0
-            NonterminalId(5) => {
-                self.add_first_descriptor(SlotId(18), input_index, gss_node_id, env);
-            }
-            // StartS : . Layout start:S Layout
-            NonterminalId(6) => {
-                self.add_first_descriptor(SlotId(20), input_index, gss_node_id, env);
-            }
-            _ => {
-                panic!("Unknown nonterminal id: {nonterminal_id}");
             }
         }
     }
@@ -502,14 +464,14 @@ impl<'i, 'arena> Parser<'i, 'arena> for Ll1CallErrorParser<'i, 'arena> {
         if add_to_index {
             let arena = self.vec_arena;
             let slot_idx = intermediate_node.slot_id.index();
-            if slot_idx < 24 {
+            if slot_idx < 26 {
                 self.intermediate_nodes_index[slot_idx].insert(
                     intermediate_node.span,
                     intermediate_node_id,
                     arena,
                 );
             } else {
-                let idx = slot_idx - 24;
+                let idx = slot_idx - 26;
                 self.dd_intermediate_nodes_index[idx].insert(
                     (intermediate_node.span, env),
                     intermediate_node_id,
@@ -592,10 +554,10 @@ impl<'i, 'arena> Parser<'i, 'arena> for Ll1CallErrorParser<'i, 'arena> {
     ) -> Option<SPPFNodeId> {
         let slot_idx = slot_id.index();
         let span = Span::new(left_extent, right_extent);
-        if slot_idx < 24 {
+        if slot_idx < 26 {
             self.intermediate_nodes_index[slot_idx].get(&span).copied()
         } else {
-            let idx = slot_idx - 24;
+            let idx = slot_idx - 26;
             self.dd_intermediate_nodes_index[idx]
                 .get(&(span, env))
                 .copied()
@@ -806,6 +768,9 @@ impl<'i, 'arena> Parser<'i, 'arena> for Ll1CallErrorParser<'i, 'arena> {
     fn match_any(&mut self, set: &'static TerminalSet, input_index: u32) -> bool {
         self.scanner.match_any(set, input_index)
     }
+    fn predict(&mut self, prediction: &'static Prediction, input_index: u32) -> Self::Alternatives {
+        self.scanner.predict(prediction, input_index)
+    }
     fn vec_arena(&self) -> &'arena Arena {
         self.vec_arena
     }
@@ -817,7 +782,7 @@ pub struct Ll1CallErrorParser<'i, 'arena> {
     descriptors: ArenaVec<'arena, Descriptor>,
     gss_nodes: ArenaVec<'arena, GSSNode<'arena>>,
     // Per-nonterminal GSS-node index keyed by input position.
-    gss_nodes_index: [InlineMap<'arena, u32, GssNodeId>; 7],
+    gss_nodes_index: [InlineMap<'arena, u32, GssNodeId>; 8],
     sppf_nodes: ArenaVec<'arena, SPPFNode>,
     #[cfg(feature = "instrument")]
     descriptors_count: usize,
@@ -826,7 +791,7 @@ pub struct Ll1CallErrorParser<'i, 'arena> {
     #[cfg(feature = "instrument")]
     ll1_call_log: Vec<(NonterminalId, u32)>,
     // Per-slot Span-keyed intermediate-node index, for slots in non-parameterized nonterminals.
-    intermediate_nodes_index: [InlineMap<'arena, Span, SPPFNodeId>; 24],
+    intermediate_nodes_index: [InlineMap<'arena, Span, SPPFNodeId>; 26],
     // Per-slot (Span, env)-keyed intermediate-node index, for slots in parameterized
     // nonterminals; env separates calls made with different parameter values.
     dd_intermediate_nodes_index: [InlineMap<'arena, (Span, Option<EnvId>), SPPFNodeId>; 0],
@@ -866,14 +831,14 @@ impl<'i, 'arena> Ll1CallErrorParser<'i, 'arena> {
         Self {
             vec_arena,
             scanner: Ll1CallErrorScanner::new(input, vec_arena),
-            gss_nodes_index: [const { InlineMap::Empty }; 7],
+            gss_nodes_index: [const { InlineMap::Empty }; 8],
             descriptors: vec_arena.vec_with_capacity(
                 input.len() as usize / DESCRIPTORS_CAPACITY_DIVISOR + DESCRIPTORS_CAPACITY_FLOOR,
             ),
             gss_nodes: vec_arena.vec_with_capacity(input.len() as usize * GSS_CAPACITY_MULTIPLIER),
             sppf_nodes: vec_arena
                 .vec_with_capacity(input.len() as usize * SPPF_CAPACITY_MULTIPLIER),
-            intermediate_nodes_index: [const { InlineMap::Empty }; 24],
+            intermediate_nodes_index: [const { InlineMap::Empty }; 26],
             dd_intermediate_nodes_index: [],
             terminal_nodes_index: [const { InlineMap::Empty }; 5],
             epsilon_nodes: {
@@ -926,10 +891,10 @@ impl<'i, 'arena> Ll1CallErrorParser<'i, 'arena> {
     pub fn parse_layout(
         self,
         tree_arena: &Arena,
-    ) -> Result<ParseSuccess<&parse_tree::Layout<'_>>, ParseError> {
+    ) -> Result<ParseSuccess<&parse_tree::StartLayout<'_>>, ParseError> {
         Ok(self
-            .parse(LAYOUT, tree_arena)?
-            .map(ParseTree::unwrap_layout))
+            .parse(START_LAYOUT, tree_arena)?
+            .map(ParseTree::unwrap_start_layout))
     }
     fn parse_s_ll1(
         &mut self,

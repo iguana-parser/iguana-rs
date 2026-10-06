@@ -645,52 +645,20 @@ static TERMINAL_FIRST_CHARS: [CharSet; 40] = [
     ),
     CharSet::new(0x0, &[]),
 ];
-static MATCH_ANY_FIRST_CHARS: [CharSet; 57] = [
+static MATCH_ANY_FIRST_CHARS: [CharSet; 23] = [
     CharSet::new(0x800100000600, &[]),
     CharSet::new(0x7fffffe07ffffff0000800100000600, &[]),
-    CharSet::new(0x7fffffe07ffffff0000800100000600, &[]),
-    CharSet::new(0x10000800100000600, &[]),
     CharSet::new(0x7fffffe07fffffe0000800100000600, &[]),
-    CharSet::new(0x10000000000000000, &[]),
-    CharSet::new(0x10000000000000000, &[]),
     CharSet::new(0x7fffffe0ffffffe0000818700000600, &[]),
     CharSet::new(0x7fffffe17ffffff0000800300000600, &[]),
-    CharSet::new(0x100000000000000000000000, &[]),
-    CharSet::new(0x200000000, &[]),
     CharSet::new(0x7fffffe07ffffff4000800100000600, &[]),
     CharSet::new(0xffffffe07ffffff4000810500000600, &[]),
-    CharSet::new(0x1000000000000000000000000000, &[]),
-    CharSet::new(0x40000000000000000000000000000, &[]),
-    CharSet::new(0x4000000000000000000000000000, &[]),
     CharSet::new(0x17fffffe07ffffff4000800100000600, &[]),
-    CharSet::new(0xffffffe07fffffe0000010400000000, &[]),
-    CharSet::new(0x10000000000, &[]),
     CharSet::new(0x3ffffffe17ffffffc0008f0f00000600, &[]),
-    CharSet::new(0x7fffffe07fffffe0000000000000000, &[]),
-    CharSet::new(0x400000000, &[]),
-    CharSet::new(0x8000000000000000000000000000000, &[]),
     CharSet::new(0xffffffe07fffffe0000810500000600, &[]),
-    CharSet::new(0x200000000, &[]),
-    CharSet::new(0x200000000, &[]),
     CharSet::new(0x17fffffe1fffffff80008f8700000600, &[]),
-    CharSet::new(0x7fffffe0ffffffe0000818700000600, &[]),
-    CharSet::new(0x80000000000800300000600, &[]),
-    CharSet::new(0x8000000000, &[]),
     CharSet::new(
         0xfffffffff7ffffffffffdfffffffcfff,
-        &[
-            CharRange {
-                start: '\u{80}',
-                end: '\u{d7ff}',
-            },
-            CharRange {
-                start: '\u{e000}',
-                end: '\u{10ffff}',
-            },
-        ],
-    ),
-    CharSet::new(
-        0xffffffffd7ffffffffffdffeffffc9ff,
         &[
             CharRange {
                 start: '\u{80}',
@@ -716,25 +684,13 @@ static MATCH_ANY_FIRST_CHARS: [CharSet; 57] = [
         ],
     ),
     CharSet::new(0x800100000600, &[]),
-    CharSet::new(0x7fffffe07ffffff0000800100000600, &[]),
-    CharSet::new(0x0, &[]),
-    CharSet::new(0x10000000000000000, &[]),
-    CharSet::new(0xffffffe07fffffe4000810500000600, &[]),
-    CharSet::new(0xffffffe07fffffe0000810500000600, &[]),
     CharSet::new(0x10000800100000600, &[]),
     CharSet::new(0x10000800100000600, &[]),
-    CharSet::new(0x10000000000000000, &[]),
     CharSet::new(0x17fffffe1fffffff0000838700000600, &[]),
     CharSet::new(0x17fffffe17ffffff0000820300000600, &[]),
-    CharSet::new(0x100000000000000200000000, &[]),
-    CharSet::new(0x45000000000000000000000000000, &[]),
     CharSet::new(0x1ffffffe07ffffff4000830d00000600, &[]),
-    CharSet::new(0x800000000, &[]),
     CharSet::new(0x10000000000000000000820100000600, &[]),
-    CharSet::new(0x100000000000000200000000, &[]),
     CharSet::new(0x80000000000800100000600, &[]),
-    CharSet::new(0x100000600, &[]),
-    CharSet::new(0x800000000000, &[]),
     CharSet::new(
         0xfffffffffffffffffffffffeffffc9ff,
         &[
@@ -749,8 +705,6 @@ static MATCH_ANY_FIRST_CHARS: [CharSet; 57] = [
         ],
     ),
     CharSet::new(0x0, &[]),
-    CharSet::new(0x80000000000000000000000000, &[]),
-    CharSet::new(0xffffffe07ffffff4000810500000600, &[]),
 ];
 pub struct IggyScanner<'i, 'arena> {
     pub input: &'i Input,
@@ -928,7 +882,7 @@ impl<'i, 'arena> IggyScanner<'i, 'arena> {
     // first query of a set at a position scans it; later queries return the cached bit.
     pub fn match_any(&mut self, set: &TerminalSet, input_index: u32) -> bool {
         debug_assert!(
-            set.id < 57,
+            set.id < 23,
             "terminal set {} does not have a match_any memo id",
             set.id,
         );

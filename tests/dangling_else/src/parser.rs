@@ -5,7 +5,6 @@ use crate::{
     parse_tree::{self, DanglingElseParseTreeBuilder, ParseTree, create_parse_tree},
     scanner::DanglingElseScanner,
 };
-#[cfg(feature = "instrument")]
 use iguana_runtime::grammar::Grammar;
 #[allow(unused_imports)]
 use iguana_runtime::input::Span;
@@ -22,6 +21,7 @@ use iguana_runtime::{
         DESCRIPTORS_CAPACITY_DIVISOR, DESCRIPTORS_CAPACITY_FLOOR, GLLFailure, GLLFailureKind,
         GSS_CAPACITY_MULTIPLIER, Parser, SPPF_CAPACITY_MULTIPLIER, init_logger,
     },
+    prediction::Prediction,
     record,
     result::{ParseError, ParseSuccess},
     scanner::{Scanner, TerminalSet},
@@ -32,6 +32,7 @@ use rustc_hash::FxHashMap;
 use std::cell::OnceCell;
 impl<'i, 'arena> Parser<'i, 'arena> for DanglingElseParser<'i, 'arena> {
     type Grammar = DanglingElseGrammar;
+    type Alternatives = <DanglingElseGrammar as Grammar>::Alternatives;
     type ConcreteParser<'input, 'parser_arena> = DanglingElseParser<'input, 'parser_arena>;
     fn new(input: &'i Input, parser_arena: &'arena Arena) -> Self {
         DanglingElseParser::new(input, parser_arena)
@@ -67,7 +68,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for DanglingElseParser<'i, 'arena> {
                     SlotId(0) => {
                         self.create(
                             NonterminalId(3),
-                            &PREDICTION_SET_PLUS_0,
+                            &PREDICTION_PLUS_0,
                             result,
                             gss_node_id,
                             SlotId(1),
@@ -217,7 +218,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for DanglingElseParser<'i, 'arena> {
                     SlotId(10) => {
                         self.create(
                             NonterminalId(1),
-                            &PREDICTION_SET_STATEMENT,
+                            &PREDICTION_STATEMENT,
                             result,
                             gss_node_id,
                             SlotId(11),
@@ -384,7 +385,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for DanglingElseParser<'i, 'arena> {
                     SlotId(20) => {
                         self.create(
                             NonterminalId(1),
-                            &PREDICTION_SET_STATEMENT,
+                            &PREDICTION_STATEMENT,
                             result,
                             gss_node_id,
                             SlotId(21),
@@ -452,7 +453,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for DanglingElseParser<'i, 'arena> {
                     SlotId(24) => {
                         self.create(
                             NonterminalId(1),
-                            &PREDICTION_SET_STATEMENT,
+                            &PREDICTION_STATEMENT,
                             result,
                             gss_node_id,
                             SlotId(25),
@@ -545,7 +546,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for DanglingElseParser<'i, 'arena> {
                     SlotId(32) => {
                         self.create(
                             NonterminalId(3),
-                            &PREDICTION_SET_PLUS_0,
+                            &PREDICTION_PLUS_0,
                             result,
                             gss_node_id,
                             SlotId(33),
@@ -572,7 +573,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for DanglingElseParser<'i, 'arena> {
                     SlotId(34) => {
                         self.create(
                             NonterminalId(1),
-                            &PREDICTION_SET_STATEMENT,
+                            &PREDICTION_STATEMENT,
                             result,
                             gss_node_id,
                             SlotId(35),
@@ -590,7 +591,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for DanglingElseParser<'i, 'arena> {
                     SlotId(36) => {
                         self.create(
                             NonterminalId(1),
-                            &PREDICTION_SET_STATEMENT,
+                            &PREDICTION_STATEMENT,
                             result,
                             gss_node_id,
                             SlotId(37),
@@ -759,7 +760,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for DanglingElseParser<'i, 'arena> {
                     SlotId(53) => {
                         self.create(
                             NonterminalId(0),
-                            &PREDICTION_SET_S,
+                            &PREDICTION_S,
                             result,
                             gss_node_id,
                             SlotId(54),
@@ -805,7 +806,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for DanglingElseParser<'i, 'arena> {
                     SlotId(57) => {
                         self.create(
                             NonterminalId(1),
-                            &PREDICTION_SET_STATEMENT,
+                            &PREDICTION_STATEMENT,
                             result,
                             gss_node_id,
                             SlotId(58),
@@ -841,114 +842,35 @@ impl<'i, 'arena> Parser<'i, 'arena> for DanglingElseParser<'i, 'arena> {
                             &FOLLOW_SET_START_STATEMENT,
                         );
                     }
+                    // StartLayout : . start:Layout
+                    SlotId(60) => {
+                        if let Some(right_child) = self
+                            .parse_layout_ll1(input_index, Some((SlotId(60), Some(gss_node_id))))
+                        {
+                            let j = self.sppf_node(right_child).right_extent();
+                            // StartLayout : start:Layout.
+                            input_index = j;
+                            result = Some(right_child);
+                            next = Some(SlotId(61));
+                        }
+                    }
+                    // StartLayout : start:Layout.
+                    SlotId(61) => {
+                        let Some(result) = result else {
+                            unreachable!("result cannot be None here.")
+                        };
+                        self.pop(
+                            gss_node_id,
+                            SlotId(61),
+                            result,
+                            None,
+                            &FOLLOW_SET_START_LAYOUT,
+                        );
+                    }
                     _ => {
                         panic!("Unknown grammar slot id: {slot_id}");
                     }
                 }
-            }
-        }
-    }
-    fn add_first_descriptors(
-        &mut self,
-        nonterminal_id: NonterminalId,
-        input_index: u32,
-        gss_node_id: GssNodeId,
-        env: Option<EnvId>,
-    ) {
-        match nonterminal_id {
-            // S : . Plus_0
-            NonterminalId(0) => {
-                self.add_first_descriptor(SlotId(0), input_index, gss_node_id, env);
-            }
-            // Statement
-            NonterminalId(1) => {
-                // Statement : . Id Layout ";"
-                if self
-                    .scanner
-                    .match_any(&FIRST_SET_STATEMENT_ALT2, input_index)
-                {
-                    self.add_first_descriptor(SlotId(26), input_index, gss_node_id, env);
-                }
-                // Statement : . "if" Layout "(" Layout Cond Layout ")" Layout Statement Layout Else Layout
-                // Statement
-                if self
-                    .scanner
-                    .match_any(&FIRST_SET_STATEMENT_ALT1, input_index)
-                {
-                    self.add_first_descriptor(SlotId(12), input_index, gss_node_id, env);
-                }
-                // Statement : . "if" Layout "(" Layout Cond Layout ")" Layout Statement !>>> Else
-                if self
-                    .scanner
-                    .match_any(&FIRST_SET_STATEMENT_ALT0, input_index)
-                {
-                    self.add_first_descriptor(SlotId(2), input_index, gss_node_id, env);
-                }
-            }
-            // Layout : . Star_0
-            NonterminalId(2) => {
-                self.add_first_descriptor(SlotId(30), input_index, gss_node_id, env);
-            }
-            // Plus_0
-            NonterminalId(3) => {
-                // Plus_0 : . Statement
-                if self.scanner.match_any(&FIRST_SET_PLUS_0_ALT1, input_index) {
-                    self.add_first_descriptor(SlotId(36), input_index, gss_node_id, env);
-                }
-                // Plus_0 : . Plus_0 Layout Statement
-                if self.scanner.match_any(&FIRST_SET_PLUS_0_ALT0, input_index) {
-                    self.add_first_descriptor(SlotId(32), input_index, gss_node_id, env);
-                }
-            }
-            // Alt_0
-            NonterminalId(4) => {
-                // Alt_0 : . Comment
-                if self.scanner.match_any(&FIRST_SET_ALT_0_ALT1, input_index) {
-                    self.add_first_descriptor(SlotId(40), input_index, gss_node_id, env);
-                }
-                // Alt_0 : . WhiteSpace
-                if self.scanner.match_any(&FIRST_SET_ALT_0_ALT0, input_index) {
-                    self.add_first_descriptor(SlotId(38), input_index, gss_node_id, env);
-                }
-            }
-            // Plus_1
-            NonterminalId(5) => {
-                // Plus_1 : . Alt_0
-                if self.scanner.match_any(&FIRST_SET_PLUS_1_ALT1, input_index) {
-                    self.add_first_descriptor(SlotId(45), input_index, gss_node_id, env);
-                }
-                // Plus_1 : . Plus_1 Alt_0
-                if self.scanner.match_any(&FIRST_SET_PLUS_1_ALT0, input_index) {
-                    self.add_first_descriptor(SlotId(42), input_index, gss_node_id, env);
-                }
-            }
-            // Opt_0
-            NonterminalId(6) => {
-                // Opt_0 : .
-                if self.scanner.match_any(&FIRST_SET_OPT_0_ALT1, input_index)
-                    || self.scanner.match_any(&FOLLOW_SET_OPT_0, input_index)
-                {
-                    self.add_first_descriptor(SlotId(49), input_index, gss_node_id, env);
-                }
-                // Opt_0 : . Plus_1
-                if self.scanner.match_any(&FIRST_SET_OPT_0_ALT0, input_index) {
-                    self.add_first_descriptor(SlotId(47), input_index, gss_node_id, env);
-                }
-            }
-            // Star_0 : . Opt_0
-            NonterminalId(7) => {
-                self.add_first_descriptor(SlotId(50), input_index, gss_node_id, env);
-            }
-            // StartS : . Layout start:S Layout
-            NonterminalId(8) => {
-                self.add_first_descriptor(SlotId(52), input_index, gss_node_id, env);
-            }
-            // StartStatement : . Layout start:Statement Layout
-            NonterminalId(9) => {
-                self.add_first_descriptor(SlotId(56), input_index, gss_node_id, env);
-            }
-            _ => {
-                panic!("Unknown nonterminal id: {nonterminal_id}");
             }
         }
     }
@@ -1052,14 +974,14 @@ impl<'i, 'arena> Parser<'i, 'arena> for DanglingElseParser<'i, 'arena> {
         if add_to_index {
             let arena = self.vec_arena;
             let slot_idx = intermediate_node.slot_id.index();
-            if slot_idx < 60 {
+            if slot_idx < 62 {
                 self.intermediate_nodes_index[slot_idx].insert(
                     intermediate_node.span,
                     intermediate_node_id,
                     arena,
                 );
             } else {
-                let idx = slot_idx - 60;
+                let idx = slot_idx - 62;
                 self.dd_intermediate_nodes_index[idx].insert(
                     (intermediate_node.span, env),
                     intermediate_node_id,
@@ -1142,10 +1064,10 @@ impl<'i, 'arena> Parser<'i, 'arena> for DanglingElseParser<'i, 'arena> {
     ) -> Option<SPPFNodeId> {
         let slot_idx = slot_id.index();
         let span = Span::new(left_extent, right_extent);
-        if slot_idx < 60 {
+        if slot_idx < 62 {
             self.intermediate_nodes_index[slot_idx].get(&span).copied()
         } else {
-            let idx = slot_idx - 60;
+            let idx = slot_idx - 62;
             self.dd_intermediate_nodes_index[idx]
                 .get(&(span, env))
                 .copied()
@@ -1362,6 +1284,9 @@ impl<'i, 'arena> Parser<'i, 'arena> for DanglingElseParser<'i, 'arena> {
     fn match_any(&mut self, set: &'static TerminalSet, input_index: u32) -> bool {
         self.scanner.match_any(set, input_index)
     }
+    fn predict(&mut self, prediction: &'static Prediction, input_index: u32) -> Self::Alternatives {
+        self.scanner.predict(prediction, input_index)
+    }
     fn vec_arena(&self) -> &'arena Arena {
         self.vec_arena
     }
@@ -1373,7 +1298,7 @@ pub struct DanglingElseParser<'i, 'arena> {
     descriptors: ArenaVec<'arena, Descriptor>,
     gss_nodes: ArenaVec<'arena, GSSNode<'arena>>,
     // Per-nonterminal GSS-node index keyed by input position.
-    gss_nodes_index: [InlineMap<'arena, u32, GssNodeId>; 10],
+    gss_nodes_index: [InlineMap<'arena, u32, GssNodeId>; 11],
     sppf_nodes: ArenaVec<'arena, SPPFNode>,
     #[cfg(feature = "instrument")]
     descriptors_count: usize,
@@ -1382,7 +1307,7 @@ pub struct DanglingElseParser<'i, 'arena> {
     #[cfg(feature = "instrument")]
     ll1_call_log: Vec<(NonterminalId, u32)>,
     // Per-slot Span-keyed intermediate-node index, for slots in non-parameterized nonterminals.
-    intermediate_nodes_index: [InlineMap<'arena, Span, SPPFNodeId>; 60],
+    intermediate_nodes_index: [InlineMap<'arena, Span, SPPFNodeId>; 62],
     // Per-slot (Span, env)-keyed intermediate-node index, for slots in parameterized
     // nonterminals; env separates calls made with different parameter values.
     dd_intermediate_nodes_index: [InlineMap<'arena, (Span, Option<EnvId>), SPPFNodeId>; 0],
@@ -1422,14 +1347,14 @@ impl<'i, 'arena> DanglingElseParser<'i, 'arena> {
         Self {
             vec_arena,
             scanner: DanglingElseScanner::new(input, vec_arena),
-            gss_nodes_index: [const { InlineMap::Empty }; 10],
+            gss_nodes_index: [const { InlineMap::Empty }; 11],
             descriptors: vec_arena.vec_with_capacity(
                 input.len() as usize / DESCRIPTORS_CAPACITY_DIVISOR + DESCRIPTORS_CAPACITY_FLOOR,
             ),
             gss_nodes: vec_arena.vec_with_capacity(input.len() as usize * GSS_CAPACITY_MULTIPLIER),
             sppf_nodes: vec_arena
                 .vec_with_capacity(input.len() as usize * SPPF_CAPACITY_MULTIPLIER),
-            intermediate_nodes_index: [const { InlineMap::Empty }; 60],
+            intermediate_nodes_index: [const { InlineMap::Empty }; 62],
             dd_intermediate_nodes_index: [],
             terminal_nodes_index: [const { InlineMap::Empty }; 12],
             epsilon_nodes: {
@@ -1490,10 +1415,10 @@ impl<'i, 'arena> DanglingElseParser<'i, 'arena> {
     pub fn parse_layout(
         self,
         tree_arena: &Arena,
-    ) -> Result<ParseSuccess<&parse_tree::Layout<'_>>, ParseError> {
+    ) -> Result<ParseSuccess<&parse_tree::StartLayout<'_>>, ParseError> {
         Ok(self
-            .parse(LAYOUT, tree_arena)?
-            .map(ParseTree::unwrap_layout))
+            .parse(START_LAYOUT, tree_arena)?
+            .map(ParseTree::unwrap_start_layout))
     }
     fn parse_layout_ll1(
         &mut self,

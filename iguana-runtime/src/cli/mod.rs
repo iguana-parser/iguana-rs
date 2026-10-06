@@ -129,8 +129,8 @@ fn start_nonterminal_name(args: &args::Args) -> std::io::Result<&str> {
 
 /// Resolves a user-supplied start nonterminal name to the id of its
 /// generated `StartA` wrapper, so `--start A` resolves to `StartA`. A name
-/// with no wrapper (a typo, the layout nonterminal, or a nonterminal that
-/// desugaring introduced) is not an entry point and is an error.
+/// with no wrapper (a typo, or a nonterminal that desugaring introduced) is
+/// not an entry point and is an error.
 #[cfg(feature = "cli")]
 fn start_nonterminal_id<G: crate::grammar::Grammar>(
     name: &str,

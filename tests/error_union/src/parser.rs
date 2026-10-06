@@ -5,7 +5,6 @@ use crate::{
     parse_tree::{self, ErrorUnionParseTreeBuilder, ParseTree, create_parse_tree},
     scanner::ErrorUnionScanner,
 };
-#[cfg(feature = "instrument")]
 use iguana_runtime::grammar::Grammar;
 #[allow(unused_imports)]
 use iguana_runtime::input::Span;
@@ -22,6 +21,7 @@ use iguana_runtime::{
         DESCRIPTORS_CAPACITY_DIVISOR, DESCRIPTORS_CAPACITY_FLOOR, GLLFailure, GLLFailureKind,
         GSS_CAPACITY_MULTIPLIER, Parser, SPPF_CAPACITY_MULTIPLIER, init_logger,
     },
+    prediction::Prediction,
     record,
     result::{ParseError, ParseSuccess},
     scanner::{Scanner, TerminalSet},
@@ -32,6 +32,7 @@ use rustc_hash::FxHashMap;
 use std::cell::OnceCell;
 impl<'i, 'arena> Parser<'i, 'arena> for ErrorUnionParser<'i, 'arena> {
     type Grammar = ErrorUnionGrammar;
+    type Alternatives = <ErrorUnionGrammar as Grammar>::Alternatives;
     type ConcreteParser<'input, 'parser_arena> = ErrorUnionParser<'input, 'parser_arena>;
     fn new(input: &'i Input, parser_arena: &'arena Arena) -> Self {
         ErrorUnionParser::new(input, parser_arena)
@@ -81,7 +82,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for ErrorUnionParser<'i, 'arena> {
                     SlotId(1) => {
                         self.create(
                             NonterminalId(4),
-                            &PREDICTION_SET_BEFORE_P,
+                            &PREDICTION_BEFORE_P,
                             result,
                             gss_node_id,
                             SlotId(2),
@@ -108,7 +109,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for ErrorUnionParser<'i, 'arena> {
                     SlotId(3) => {
                         self.create(
                             NonterminalId(2),
-                            &PREDICTION_SET_P,
+                            &PREDICTION_P,
                             result,
                             gss_node_id,
                             SlotId(4),
@@ -174,7 +175,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for ErrorUnionParser<'i, 'arena> {
                     SlotId(8) => {
                         self.create(
                             NonterminalId(5),
-                            &PREDICTION_SET_BEFORE_Q,
+                            &PREDICTION_BEFORE_Q,
                             result,
                             gss_node_id,
                             SlotId(9),
@@ -272,7 +273,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for ErrorUnionParser<'i, 'arena> {
                     SlotId(15) => {
                         self.create(
                             NonterminalId(5),
-                            &PREDICTION_SET_BEFORE_Q,
+                            &PREDICTION_BEFORE_Q,
                             result,
                             gss_node_id,
                             SlotId(16),
@@ -370,7 +371,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for ErrorUnionParser<'i, 'arena> {
                     SlotId(22) => {
                         self.create(
                             NonterminalId(4),
-                            &PREDICTION_SET_BEFORE_P,
+                            &PREDICTION_BEFORE_P,
                             result,
                             gss_node_id,
                             SlotId(23),
@@ -397,7 +398,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for ErrorUnionParser<'i, 'arena> {
                     SlotId(24) => {
                         self.create(
                             NonterminalId(2),
-                            &PREDICTION_SET_P,
+                            &PREDICTION_P,
                             result,
                             gss_node_id,
                             SlotId(25),
@@ -832,7 +833,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for ErrorUnionParser<'i, 'arena> {
                     SlotId(57) => {
                         self.create(
                             NonterminalId(12),
-                            &PREDICTION_SET_MISSING_SUFFIX,
+                            &PREDICTION_MISSING_SUFFIX,
                             result,
                             gss_node_id,
                             SlotId(58),
@@ -934,7 +935,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for ErrorUnionParser<'i, 'arena> {
                     SlotId(64) => {
                         self.create(
                             NonterminalId(12),
-                            &PREDICTION_SET_MISSING_SUFFIX,
+                            &PREDICTION_MISSING_SUFFIX,
                             result,
                             gss_node_id,
                             SlotId(65),
@@ -972,7 +973,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for ErrorUnionParser<'i, 'arena> {
                     SlotId(67) => {
                         self.create(
                             NonterminalId(12),
-                            &PREDICTION_SET_MISSING_SUFFIX,
+                            &PREDICTION_MISSING_SUFFIX,
                             result,
                             gss_node_id,
                             SlotId(68),
@@ -1110,7 +1111,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for ErrorUnionParser<'i, 'arena> {
                     SlotId(76) => {
                         self.create(
                             NonterminalId(12),
-                            &PREDICTION_SET_MISSING_SUFFIX,
+                            &PREDICTION_MISSING_SUFFIX,
                             result,
                             gss_node_id,
                             SlotId(77),
@@ -1134,7 +1135,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for ErrorUnionParser<'i, 'arena> {
                     SlotId(78) => {
                         self.create(
                             NonterminalId(13),
-                            &PREDICTION_SET_SUFFIX_CHOICE,
+                            &PREDICTION_SUFFIX_CHOICE,
                             result,
                             gss_node_id,
                             SlotId(79),
@@ -1244,7 +1245,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for ErrorUnionParser<'i, 'arena> {
                     SlotId(86) => {
                         self.create(
                             NonterminalId(15),
-                            &PREDICTION_SET_PREFIX_X,
+                            &PREDICTION_PREFIX_X,
                             result,
                             gss_node_id,
                             SlotId(87),
@@ -1282,7 +1283,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for ErrorUnionParser<'i, 'arena> {
                     SlotId(89) => {
                         self.create(
                             NonterminalId(16),
-                            &PREDICTION_SET_PREFIX_W,
+                            &PREDICTION_PREFIX_W,
                             result,
                             gss_node_id,
                             SlotId(90),
@@ -1306,7 +1307,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for ErrorUnionParser<'i, 'arena> {
                     SlotId(91) => {
                         self.create(
                             NonterminalId(17),
-                            &PREDICTION_SET_NULLABLE_PREFIX,
+                            &PREDICTION_NULLABLE_PREFIX,
                             result,
                             gss_node_id,
                             SlotId(92),
@@ -1342,7 +1343,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for ErrorUnionParser<'i, 'arena> {
                     SlotId(94) => {
                         self.create(
                             NonterminalId(17),
-                            &PREDICTION_SET_NULLABLE_PREFIX,
+                            &PREDICTION_NULLABLE_PREFIX,
                             result,
                             gss_node_id,
                             SlotId(95),
@@ -1636,7 +1637,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for ErrorUnionParser<'i, 'arena> {
                     SlotId(120) => {
                         self.create(
                             NonterminalId(0),
-                            &PREDICTION_SET_T,
+                            &PREDICTION_T,
                             result,
                             gss_node_id,
                             SlotId(121),
@@ -1682,7 +1683,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for ErrorUnionParser<'i, 'arena> {
                     SlotId(124) => {
                         self.create(
                             NonterminalId(1),
-                            &PREDICTION_SET_U,
+                            &PREDICTION_U,
                             result,
                             gss_node_id,
                             SlotId(125),
@@ -1728,7 +1729,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for ErrorUnionParser<'i, 'arena> {
                     SlotId(128) => {
                         self.create(
                             NonterminalId(2),
-                            &PREDICTION_SET_P,
+                            &PREDICTION_P,
                             result,
                             gss_node_id,
                             SlotId(129),
@@ -1825,7 +1826,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for ErrorUnionParser<'i, 'arena> {
                     SlotId(136) => {
                         self.create(
                             NonterminalId(4),
-                            &PREDICTION_SET_BEFORE_P,
+                            &PREDICTION_BEFORE_P,
                             result,
                             gss_node_id,
                             SlotId(137),
@@ -1877,7 +1878,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for ErrorUnionParser<'i, 'arena> {
                     SlotId(140) => {
                         self.create(
                             NonterminalId(5),
-                            &PREDICTION_SET_BEFORE_Q,
+                            &PREDICTION_BEFORE_Q,
                             result,
                             gss_node_id,
                             SlotId(141),
@@ -1929,7 +1930,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for ErrorUnionParser<'i, 'arena> {
                     SlotId(144) => {
                         self.create(
                             NonterminalId(6),
-                            &PREDICTION_SET_UNEXPECTED_FIRST,
+                            &PREDICTION_UNEXPECTED_FIRST,
                             result,
                             gss_node_id,
                             SlotId(145),
@@ -1981,7 +1982,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for ErrorUnionParser<'i, 'arena> {
                     SlotId(148) => {
                         self.create(
                             NonterminalId(7),
-                            &PREDICTION_SET_EXCLUDED_FIRST,
+                            &PREDICTION_EXCLUDED_FIRST,
                             result,
                             gss_node_id,
                             SlotId(149),
@@ -2033,7 +2034,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for ErrorUnionParser<'i, 'arena> {
                     SlotId(152) => {
                         self.create(
                             NonterminalId(8),
-                            &PREDICTION_SET_PREDICTION_BEFORE_EXCEPT,
+                            &PREDICTION_PREDICTION_BEFORE_EXCEPT,
                             result,
                             gss_node_id,
                             SlotId(153),
@@ -2085,7 +2086,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for ErrorUnionParser<'i, 'arena> {
                     SlotId(156) => {
                         self.create(
                             NonterminalId(9),
-                            &PREDICTION_SET_EXCEPT_BEFORE_PREDICTION,
+                            &PREDICTION_EXCEPT_BEFORE_PREDICTION,
                             result,
                             gss_node_id,
                             SlotId(157),
@@ -2137,7 +2138,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for ErrorUnionParser<'i, 'arena> {
                     SlotId(160) => {
                         self.create(
                             NonterminalId(10),
-                            &PREDICTION_SET_PREDICTION_BEFORE_FOLLOW,
+                            &PREDICTION_PREDICTION_BEFORE_FOLLOW,
                             result,
                             gss_node_id,
                             SlotId(161),
@@ -2189,7 +2190,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for ErrorUnionParser<'i, 'arena> {
                     SlotId(164) => {
                         self.create(
                             NonterminalId(11),
-                            &PREDICTION_SET_FOLLOW_BEFORE_PREDICTION,
+                            &PREDICTION_FOLLOW_BEFORE_PREDICTION,
                             result,
                             gss_node_id,
                             SlotId(165),
@@ -2241,7 +2242,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for ErrorUnionParser<'i, 'arena> {
                     SlotId(168) => {
                         self.create(
                             NonterminalId(12),
-                            &PREDICTION_SET_MISSING_SUFFIX,
+                            &PREDICTION_MISSING_SUFFIX,
                             result,
                             gss_node_id,
                             SlotId(169),
@@ -2293,7 +2294,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for ErrorUnionParser<'i, 'arena> {
                     SlotId(172) => {
                         self.create(
                             NonterminalId(13),
-                            &PREDICTION_SET_SUFFIX_CHOICE,
+                            &PREDICTION_SUFFIX_CHOICE,
                             result,
                             gss_node_id,
                             SlotId(173),
@@ -2345,7 +2346,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for ErrorUnionParser<'i, 'arena> {
                     SlotId(176) => {
                         self.create(
                             NonterminalId(14),
-                            &PREDICTION_SET_CALL_PREDICTION,
+                            &PREDICTION_CALL_PREDICTION,
                             result,
                             gss_node_id,
                             SlotId(177),
@@ -2397,7 +2398,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for ErrorUnionParser<'i, 'arena> {
                     SlotId(180) => {
                         self.create(
                             NonterminalId(15),
-                            &PREDICTION_SET_PREFIX_X,
+                            &PREDICTION_PREFIX_X,
                             result,
                             gss_node_id,
                             SlotId(181),
@@ -2449,7 +2450,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for ErrorUnionParser<'i, 'arena> {
                     SlotId(184) => {
                         self.create(
                             NonterminalId(16),
-                            &PREDICTION_SET_PREFIX_W,
+                            &PREDICTION_PREFIX_W,
                             result,
                             gss_node_id,
                             SlotId(185),
@@ -2501,7 +2502,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for ErrorUnionParser<'i, 'arena> {
                     SlotId(188) => {
                         self.create(
                             NonterminalId(17),
-                            &PREDICTION_SET_NULLABLE_PREFIX,
+                            &PREDICTION_NULLABLE_PREFIX,
                             result,
                             gss_node_id,
                             SlotId(189),
@@ -2537,384 +2538,35 @@ impl<'i, 'arena> Parser<'i, 'arena> for ErrorUnionParser<'i, 'arena> {
                             &FOLLOW_SET_START_NULLABLE_PREFIX,
                         );
                     }
+                    // StartLayout : . start:Layout
+                    SlotId(191) => {
+                        if let Some(right_child) = self
+                            .parse_layout_ll1(input_index, Some((SlotId(191), Some(gss_node_id))))
+                        {
+                            let j = self.sppf_node(right_child).right_extent();
+                            // StartLayout : start:Layout.
+                            input_index = j;
+                            result = Some(right_child);
+                            next = Some(SlotId(192));
+                        }
+                    }
+                    // StartLayout : start:Layout.
+                    SlotId(192) => {
+                        let Some(result) = result else {
+                            unreachable!("result cannot be None here.")
+                        };
+                        self.pop(
+                            gss_node_id,
+                            SlotId(192),
+                            result,
+                            None,
+                            &FOLLOW_SET_START_LAYOUT,
+                        );
+                    }
                     _ => {
                         panic!("Unknown grammar slot id: {slot_id}");
                     }
                 }
-            }
-        }
-    }
-    fn add_first_descriptors(
-        &mut self,
-        nonterminal_id: NonterminalId,
-        input_index: u32,
-        gss_node_id: GssNodeId,
-        env: Option<EnvId>,
-    ) {
-        match nonterminal_id {
-            // T
-            NonterminalId(0) => {
-                // T : . "[" BeforeQ Layout Q Layout "]"
-                if self.scanner.match_any(&FIRST_SET_T_ALT1, input_index) {
-                    self.add_first_descriptor(SlotId(7), input_index, gss_node_id, env);
-                }
-                // T : . "[" BeforeP Layout P Layout "]"
-                if self.scanner.match_any(&FIRST_SET_T_ALT0, input_index) {
-                    self.add_first_descriptor(SlotId(0), input_index, gss_node_id, env);
-                }
-            }
-            // U
-            NonterminalId(1) => {
-                // U : . "[" BeforeP Layout P Layout "]"
-                if self.scanner.match_any(&FIRST_SET_U_ALT1, input_index) {
-                    self.add_first_descriptor(SlotId(21), input_index, gss_node_id, env);
-                }
-                // U : . "[" BeforeQ Layout Q Layout "]"
-                if self.scanner.match_any(&FIRST_SET_U_ALT0, input_index) {
-                    self.add_first_descriptor(SlotId(14), input_index, gss_node_id, env);
-                }
-            }
-            // P
-            NonterminalId(2) => {
-                // P : . Word
-                if self.scanner.match_any(&FIRST_SET_P_ALT1, input_index) {
-                    self.add_first_descriptor(SlotId(30), input_index, gss_node_id, env);
-                }
-                // P : . "p"
-                if self.scanner.match_any(&FIRST_SET_P_ALT0, input_index) {
-                    self.add_first_descriptor(SlotId(28), input_index, gss_node_id, env);
-                }
-            }
-            // Q : . "q"
-            NonterminalId(3) => {
-                self.add_first_descriptor(SlotId(32), input_index, gss_node_id, env);
-            }
-            // BeforeP
-            NonterminalId(4) => {
-                // BeforeP : . "x" Layout "y"
-                if self
-                    .scanner
-                    .match_any(&FIRST_SET_BEFORE_P_ALT1, input_index)
-                {
-                    self.add_first_descriptor(SlotId(36), input_index, gss_node_id, env);
-                }
-                // BeforeP : . "x"
-                if self
-                    .scanner
-                    .match_any(&FIRST_SET_BEFORE_P_ALT0, input_index)
-                {
-                    self.add_first_descriptor(SlotId(34), input_index, gss_node_id, env);
-                }
-            }
-            // BeforeQ
-            NonterminalId(5) => {
-                // BeforeQ : . "x" Layout "z"
-                if self
-                    .scanner
-                    .match_any(&FIRST_SET_BEFORE_Q_ALT1, input_index)
-                {
-                    self.add_first_descriptor(SlotId(42), input_index, gss_node_id, env);
-                }
-                // BeforeQ : . "x"
-                if self
-                    .scanner
-                    .match_any(&FIRST_SET_BEFORE_Q_ALT0, input_index)
-                {
-                    self.add_first_descriptor(SlotId(40), input_index, gss_node_id, env);
-                }
-            }
-            // UnexpectedFirst
-            NonterminalId(6) => {
-                // UnexpectedFirst : . Identifier \ Keyword
-                if self
-                    .scanner
-                    .match_any(&FIRST_SET_UNEXPECTED_FIRST_ALT1, input_index)
-                {
-                    self.add_first_descriptor(SlotId(49), input_index, gss_node_id, env);
-                }
-                // UnexpectedFirst : . Identifier "!"
-                if self
-                    .scanner
-                    .match_any(&FIRST_SET_UNEXPECTED_FIRST_ALT0, input_index)
-                {
-                    self.add_first_descriptor(SlotId(46), input_index, gss_node_id, env);
-                }
-            }
-            // ExcludedFirst
-            NonterminalId(7) => {
-                // ExcludedFirst : . Identifier "!"
-                if self
-                    .scanner
-                    .match_any(&FIRST_SET_EXCLUDED_FIRST_ALT1, input_index)
-                {
-                    self.add_first_descriptor(SlotId(53), input_index, gss_node_id, env);
-                }
-                // ExcludedFirst : . Identifier \ Keyword
-                if self
-                    .scanner
-                    .match_any(&FIRST_SET_EXCLUDED_FIRST_ALT0, input_index)
-                {
-                    self.add_first_descriptor(SlotId(51), input_index, gss_node_id, env);
-                }
-            }
-            // PredictionBeforeExcept
-            NonterminalId(8) => {
-                // PredictionBeforeExcept : . Identifier \ Keyword
-                if self
-                    .scanner
-                    .match_any(&FIRST_SET_PREDICTION_BEFORE_EXCEPT_ALT1, input_index)
-                {
-                    self.add_first_descriptor(SlotId(59), input_index, gss_node_id, env);
-                }
-                // PredictionBeforeExcept : . Identifier MissingSuffix
-                if self
-                    .scanner
-                    .match_any(&FIRST_SET_PREDICTION_BEFORE_EXCEPT_ALT0, input_index)
-                {
-                    self.add_first_descriptor(SlotId(56), input_index, gss_node_id, env);
-                }
-            }
-            // ExceptBeforePrediction
-            NonterminalId(9) => {
-                // ExceptBeforePrediction : . Identifier MissingSuffix
-                if self
-                    .scanner
-                    .match_any(&FIRST_SET_EXCEPT_BEFORE_PREDICTION_ALT1, input_index)
-                {
-                    self.add_first_descriptor(SlotId(63), input_index, gss_node_id, env);
-                }
-                // ExceptBeforePrediction : . Identifier \ Keyword
-                if self
-                    .scanner
-                    .match_any(&FIRST_SET_EXCEPT_BEFORE_PREDICTION_ALT0, input_index)
-                {
-                    self.add_first_descriptor(SlotId(61), input_index, gss_node_id, env);
-                }
-            }
-            // PredictionBeforeFollow
-            NonterminalId(10) => {
-                // PredictionBeforeFollow : . Identifier !>> Question Question
-                if self
-                    .scanner
-                    .match_any(&FIRST_SET_PREDICTION_BEFORE_FOLLOW_ALT1, input_index)
-                {
-                    self.add_first_descriptor(SlotId(69), input_index, gss_node_id, env);
-                }
-                // PredictionBeforeFollow : . Identifier MissingSuffix
-                if self
-                    .scanner
-                    .match_any(&FIRST_SET_PREDICTION_BEFORE_FOLLOW_ALT0, input_index)
-                {
-                    self.add_first_descriptor(SlotId(66), input_index, gss_node_id, env);
-                }
-            }
-            // FollowBeforePrediction
-            NonterminalId(11) => {
-                // FollowBeforePrediction : . Identifier MissingSuffix
-                if self
-                    .scanner
-                    .match_any(&FIRST_SET_FOLLOW_BEFORE_PREDICTION_ALT1, input_index)
-                {
-                    self.add_first_descriptor(SlotId(75), input_index, gss_node_id, env);
-                }
-                // FollowBeforePrediction : . Identifier !>> Question Question
-                if self
-                    .scanner
-                    .match_any(&FIRST_SET_FOLLOW_BEFORE_PREDICTION_ALT0, input_index)
-                {
-                    self.add_first_descriptor(SlotId(72), input_index, gss_node_id, env);
-                }
-            }
-            // MissingSuffix : . SuffixChoice
-            NonterminalId(12) => {
-                self.add_first_descriptor(SlotId(78), input_index, gss_node_id, env);
-            }
-            // SuffixChoice
-            NonterminalId(13) => {
-                // SuffixChoice : . "!" "!"
-                if self
-                    .scanner
-                    .match_any(&FIRST_SET_SUFFIX_CHOICE_ALT1, input_index)
-                {
-                    self.add_first_descriptor(SlotId(82), input_index, gss_node_id, env);
-                }
-                // SuffixChoice : . "!"
-                if self
-                    .scanner
-                    .match_any(&FIRST_SET_SUFFIX_CHOICE_ALT0, input_index)
-                {
-                    self.add_first_descriptor(SlotId(80), input_index, gss_node_id, env);
-                }
-            }
-            // CallPrediction
-            NonterminalId(14) => {
-                // CallPrediction : . "2" PrefixW
-                if self
-                    .scanner
-                    .match_any(&FIRST_SET_CALL_PREDICTION_ALT1, input_index)
-                {
-                    self.add_first_descriptor(SlotId(88), input_index, gss_node_id, env);
-                }
-                // CallPrediction : . "1" PrefixX
-                if self
-                    .scanner
-                    .match_any(&FIRST_SET_CALL_PREDICTION_ALT0, input_index)
-                {
-                    self.add_first_descriptor(SlotId(85), input_index, gss_node_id, env);
-                }
-            }
-            // PrefixX : . NullablePrefix "x"
-            NonterminalId(15) => {
-                self.add_first_descriptor(SlotId(91), input_index, gss_node_id, env);
-            }
-            // PrefixW : . NullablePrefix "w"
-            NonterminalId(16) => {
-                self.add_first_descriptor(SlotId(94), input_index, gss_node_id, env);
-            }
-            // NullablePrefix
-            NonterminalId(17) => {
-                // NullablePrefix : .
-                if self
-                    .scanner
-                    .match_any(&FIRST_SET_NULLABLE_PREFIX_ALT2, input_index)
-                    || self
-                        .scanner
-                        .match_any(&FOLLOW_SET_NULLABLE_PREFIX, input_index)
-                {
-                    self.add_first_descriptor(SlotId(102), input_index, gss_node_id, env);
-                }
-                // NullablePrefix : . "y" "y"
-                if self
-                    .scanner
-                    .match_any(&FIRST_SET_NULLABLE_PREFIX_ALT1, input_index)
-                {
-                    self.add_first_descriptor(SlotId(99), input_index, gss_node_id, env);
-                }
-                // NullablePrefix : . "y"
-                if self
-                    .scanner
-                    .match_any(&FIRST_SET_NULLABLE_PREFIX_ALT0, input_index)
-                {
-                    self.add_first_descriptor(SlotId(97), input_index, gss_node_id, env);
-                }
-            }
-            // Layout : . Star_0 !>> WS !>> Newline
-            NonterminalId(18) => {
-                self.add_first_descriptor(SlotId(103), input_index, gss_node_id, env);
-            }
-            // Alt_0
-            NonterminalId(19) => {
-                // Alt_0 : . Newline
-                if self.scanner.match_any(&FIRST_SET_ALT_0_ALT1, input_index) {
-                    self.add_first_descriptor(SlotId(107), input_index, gss_node_id, env);
-                }
-                // Alt_0 : . WS
-                if self.scanner.match_any(&FIRST_SET_ALT_0_ALT0, input_index) {
-                    self.add_first_descriptor(SlotId(105), input_index, gss_node_id, env);
-                }
-            }
-            // Plus_0
-            NonterminalId(20) => {
-                // Plus_0 : . Alt_0
-                if self.scanner.match_any(&FIRST_SET_PLUS_0_ALT1, input_index) {
-                    self.add_first_descriptor(SlotId(112), input_index, gss_node_id, env);
-                }
-                // Plus_0 : . Plus_0 Alt_0
-                if self.scanner.match_any(&FIRST_SET_PLUS_0_ALT0, input_index) {
-                    self.add_first_descriptor(SlotId(109), input_index, gss_node_id, env);
-                }
-            }
-            // Opt_0
-            NonterminalId(21) => {
-                // Opt_0 : .
-                if self.scanner.match_any(&FIRST_SET_OPT_0_ALT1, input_index)
-                    || self.scanner.match_any(&FOLLOW_SET_OPT_0, input_index)
-                {
-                    self.add_first_descriptor(SlotId(116), input_index, gss_node_id, env);
-                }
-                // Opt_0 : . Plus_0
-                if self.scanner.match_any(&FIRST_SET_OPT_0_ALT0, input_index) {
-                    self.add_first_descriptor(SlotId(114), input_index, gss_node_id, env);
-                }
-            }
-            // Star_0 : . Opt_0
-            NonterminalId(22) => {
-                self.add_first_descriptor(SlotId(117), input_index, gss_node_id, env);
-            }
-            // StartT : . Layout start:T Layout
-            NonterminalId(23) => {
-                self.add_first_descriptor(SlotId(119), input_index, gss_node_id, env);
-            }
-            // StartU : . Layout start:U Layout
-            NonterminalId(24) => {
-                self.add_first_descriptor(SlotId(123), input_index, gss_node_id, env);
-            }
-            // StartP : . Layout start:P Layout
-            NonterminalId(25) => {
-                self.add_first_descriptor(SlotId(127), input_index, gss_node_id, env);
-            }
-            // StartQ : . Layout start:Q Layout
-            NonterminalId(26) => {
-                self.add_first_descriptor(SlotId(131), input_index, gss_node_id, env);
-            }
-            // StartBeforeP : . Layout start:BeforeP Layout
-            NonterminalId(27) => {
-                self.add_first_descriptor(SlotId(135), input_index, gss_node_id, env);
-            }
-            // StartBeforeQ : . Layout start:BeforeQ Layout
-            NonterminalId(28) => {
-                self.add_first_descriptor(SlotId(139), input_index, gss_node_id, env);
-            }
-            // StartUnexpectedFirst : . Layout start:UnexpectedFirst Layout
-            NonterminalId(29) => {
-                self.add_first_descriptor(SlotId(143), input_index, gss_node_id, env);
-            }
-            // StartExcludedFirst : . Layout start:ExcludedFirst Layout
-            NonterminalId(30) => {
-                self.add_first_descriptor(SlotId(147), input_index, gss_node_id, env);
-            }
-            // StartPredictionBeforeExcept : . Layout start:PredictionBeforeExcept Layout
-            NonterminalId(31) => {
-                self.add_first_descriptor(SlotId(151), input_index, gss_node_id, env);
-            }
-            // StartExceptBeforePrediction : . Layout start:ExceptBeforePrediction Layout
-            NonterminalId(32) => {
-                self.add_first_descriptor(SlotId(155), input_index, gss_node_id, env);
-            }
-            // StartPredictionBeforeFollow : . Layout start:PredictionBeforeFollow Layout
-            NonterminalId(33) => {
-                self.add_first_descriptor(SlotId(159), input_index, gss_node_id, env);
-            }
-            // StartFollowBeforePrediction : . Layout start:FollowBeforePrediction Layout
-            NonterminalId(34) => {
-                self.add_first_descriptor(SlotId(163), input_index, gss_node_id, env);
-            }
-            // StartMissingSuffix : . Layout start:MissingSuffix Layout
-            NonterminalId(35) => {
-                self.add_first_descriptor(SlotId(167), input_index, gss_node_id, env);
-            }
-            // StartSuffixChoice : . Layout start:SuffixChoice Layout
-            NonterminalId(36) => {
-                self.add_first_descriptor(SlotId(171), input_index, gss_node_id, env);
-            }
-            // StartCallPrediction : . Layout start:CallPrediction Layout
-            NonterminalId(37) => {
-                self.add_first_descriptor(SlotId(175), input_index, gss_node_id, env);
-            }
-            // StartPrefixX : . Layout start:PrefixX Layout
-            NonterminalId(38) => {
-                self.add_first_descriptor(SlotId(179), input_index, gss_node_id, env);
-            }
-            // StartPrefixW : . Layout start:PrefixW Layout
-            NonterminalId(39) => {
-                self.add_first_descriptor(SlotId(183), input_index, gss_node_id, env);
-            }
-            // StartNullablePrefix : . Layout start:NullablePrefix Layout
-            NonterminalId(40) => {
-                self.add_first_descriptor(SlotId(187), input_index, gss_node_id, env);
-            }
-            _ => {
-                panic!("Unknown nonterminal id: {nonterminal_id}");
             }
         }
     }
@@ -3018,14 +2670,14 @@ impl<'i, 'arena> Parser<'i, 'arena> for ErrorUnionParser<'i, 'arena> {
         if add_to_index {
             let arena = self.vec_arena;
             let slot_idx = intermediate_node.slot_id.index();
-            if slot_idx < 191 {
+            if slot_idx < 193 {
                 self.intermediate_nodes_index[slot_idx].insert(
                     intermediate_node.span,
                     intermediate_node_id,
                     arena,
                 );
             } else {
-                let idx = slot_idx - 191;
+                let idx = slot_idx - 193;
                 self.dd_intermediate_nodes_index[idx].insert(
                     (intermediate_node.span, env),
                     intermediate_node_id,
@@ -3108,10 +2760,10 @@ impl<'i, 'arena> Parser<'i, 'arena> for ErrorUnionParser<'i, 'arena> {
     ) -> Option<SPPFNodeId> {
         let slot_idx = slot_id.index();
         let span = Span::new(left_extent, right_extent);
-        if slot_idx < 191 {
+        if slot_idx < 193 {
             self.intermediate_nodes_index[slot_idx].get(&span).copied()
         } else {
-            let idx = slot_idx - 191;
+            let idx = slot_idx - 193;
             self.dd_intermediate_nodes_index[idx]
                 .get(&(span, env))
                 .copied()
@@ -3394,6 +3046,9 @@ impl<'i, 'arena> Parser<'i, 'arena> for ErrorUnionParser<'i, 'arena> {
     fn match_any(&mut self, set: &'static TerminalSet, input_index: u32) -> bool {
         self.scanner.match_any(set, input_index)
     }
+    fn predict(&mut self, prediction: &'static Prediction, input_index: u32) -> Self::Alternatives {
+        self.scanner.predict(prediction, input_index)
+    }
     fn vec_arena(&self) -> &'arena Arena {
         self.vec_arena
     }
@@ -3405,7 +3060,7 @@ pub struct ErrorUnionParser<'i, 'arena> {
     descriptors: ArenaVec<'arena, Descriptor>,
     gss_nodes: ArenaVec<'arena, GSSNode<'arena>>,
     // Per-nonterminal GSS-node index keyed by input position.
-    gss_nodes_index: [InlineMap<'arena, u32, GssNodeId>; 41],
+    gss_nodes_index: [InlineMap<'arena, u32, GssNodeId>; 42],
     sppf_nodes: ArenaVec<'arena, SPPFNode>,
     #[cfg(feature = "instrument")]
     descriptors_count: usize,
@@ -3414,7 +3069,7 @@ pub struct ErrorUnionParser<'i, 'arena> {
     #[cfg(feature = "instrument")]
     ll1_call_log: Vec<(NonterminalId, u32)>,
     // Per-slot Span-keyed intermediate-node index, for slots in non-parameterized nonterminals.
-    intermediate_nodes_index: [InlineMap<'arena, Span, SPPFNodeId>; 191],
+    intermediate_nodes_index: [InlineMap<'arena, Span, SPPFNodeId>; 193],
     // Per-slot (Span, env)-keyed intermediate-node index, for slots in parameterized
     // nonterminals; env separates calls made with different parameter values.
     dd_intermediate_nodes_index: [InlineMap<'arena, (Span, Option<EnvId>), SPPFNodeId>; 0],
@@ -3454,14 +3109,14 @@ impl<'i, 'arena> ErrorUnionParser<'i, 'arena> {
         Self {
             vec_arena,
             scanner: ErrorUnionScanner::new(input, vec_arena),
-            gss_nodes_index: [const { InlineMap::Empty }; 41],
+            gss_nodes_index: [const { InlineMap::Empty }; 42],
             descriptors: vec_arena.vec_with_capacity(
                 input.len() as usize / DESCRIPTORS_CAPACITY_DIVISOR + DESCRIPTORS_CAPACITY_FLOOR,
             ),
             gss_nodes: vec_arena.vec_with_capacity(input.len() as usize * GSS_CAPACITY_MULTIPLIER),
             sppf_nodes: vec_arena
                 .vec_with_capacity(input.len() as usize * SPPF_CAPACITY_MULTIPLIER),
-            intermediate_nodes_index: [const { InlineMap::Empty }; 191],
+            intermediate_nodes_index: [const { InlineMap::Empty }; 193],
             dd_intermediate_nodes_index: [],
             terminal_nodes_index: [const { InlineMap::Empty }; 19],
             epsilon_nodes: {
@@ -3650,10 +3305,10 @@ impl<'i, 'arena> ErrorUnionParser<'i, 'arena> {
     pub fn parse_layout(
         self,
         tree_arena: &Arena,
-    ) -> Result<ParseSuccess<&parse_tree::Layout<'_>>, ParseError> {
+    ) -> Result<ParseSuccess<&parse_tree::StartLayout<'_>>, ParseError> {
         Ok(self
-            .parse(LAYOUT, tree_arena)?
-            .map(ParseTree::unwrap_layout))
+            .parse(START_LAYOUT, tree_arena)?
+            .map(ParseTree::unwrap_start_layout))
     }
     fn parse_q_ll1(
         &mut self,

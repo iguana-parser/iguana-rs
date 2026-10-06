@@ -5,7 +5,6 @@ use crate::{
     parse_tree::{self, ParseTree, PlusWithSepParseTreeBuilder, create_parse_tree},
     scanner::PlusWithSepScanner,
 };
-#[cfg(feature = "instrument")]
 use iguana_runtime::grammar::Grammar;
 #[allow(unused_imports)]
 use iguana_runtime::input::Span;
@@ -22,6 +21,7 @@ use iguana_runtime::{
         DESCRIPTORS_CAPACITY_DIVISOR, DESCRIPTORS_CAPACITY_FLOOR, GLLFailure, GLLFailureKind,
         GSS_CAPACITY_MULTIPLIER, Parser, SPPF_CAPACITY_MULTIPLIER, init_logger,
     },
+    prediction::Prediction,
     record,
     result::{ParseError, ParseSuccess},
     scanner::{Scanner, TerminalSet},
@@ -32,6 +32,7 @@ use rustc_hash::FxHashMap;
 use std::cell::OnceCell;
 impl<'i, 'arena> Parser<'i, 'arena> for PlusWithSepParser<'i, 'arena> {
     type Grammar = PlusWithSepGrammar;
+    type Alternatives = <PlusWithSepGrammar as Grammar>::Alternatives;
     type ConcreteParser<'input, 'parser_arena> = PlusWithSepParser<'input, 'parser_arena>;
     fn new(input: &'i Input, parser_arena: &'arena Arena) -> Self {
         PlusWithSepParser::new(input, parser_arena)
@@ -217,46 +218,6 @@ impl<'i, 'arena> Parser<'i, 'arena> for PlusWithSepParser<'i, 'arena> {
                         panic!("Unknown grammar slot id: {slot_id}");
                     }
                 }
-            }
-        }
-    }
-    fn add_first_descriptors(
-        &mut self,
-        nonterminal_id: NonterminalId,
-        input_index: u32,
-        gss_node_id: GssNodeId,
-        env: Option<EnvId>,
-    ) {
-        match nonterminal_id {
-            // S : . Plus_0
-            NonterminalId(0) => {
-                self.add_first_descriptor(SlotId(0), input_index, gss_node_id, env);
-            }
-            // A : . "a"
-            NonterminalId(1) => {
-                self.add_first_descriptor(SlotId(2), input_index, gss_node_id, env);
-            }
-            // Plus_0
-            NonterminalId(2) => {
-                // Plus_0 : . A
-                if self.scanner.match_any(&FIRST_SET_PLUS_0_ALT1, input_index) {
-                    self.add_first_descriptor(SlotId(8), input_index, gss_node_id, env);
-                }
-                // Plus_0 : . Plus_0 "," A
-                if self.scanner.match_any(&FIRST_SET_PLUS_0_ALT0, input_index) {
-                    self.add_first_descriptor(SlotId(4), input_index, gss_node_id, env);
-                }
-            }
-            // StartS : . start:S
-            NonterminalId(3) => {
-                self.add_first_descriptor(SlotId(10), input_index, gss_node_id, env);
-            }
-            // StartA : . start:A
-            NonterminalId(4) => {
-                self.add_first_descriptor(SlotId(12), input_index, gss_node_id, env);
-            }
-            _ => {
-                panic!("Unknown nonterminal id: {nonterminal_id}");
             }
         }
     }
@@ -649,6 +610,9 @@ impl<'i, 'arena> Parser<'i, 'arena> for PlusWithSepParser<'i, 'arena> {
     }
     fn match_any(&mut self, set: &'static TerminalSet, input_index: u32) -> bool {
         self.scanner.match_any(set, input_index)
+    }
+    fn predict(&mut self, prediction: &'static Prediction, input_index: u32) -> Self::Alternatives {
+        self.scanner.predict(prediction, input_index)
     }
     fn vec_arena(&self) -> &'arena Arena {
         self.vec_arena

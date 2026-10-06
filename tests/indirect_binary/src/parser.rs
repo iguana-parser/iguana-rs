@@ -22,6 +22,7 @@ use iguana_runtime::{
         GLLFailure, GLLFailureKind, GSS_CAPACITY_MULTIPLIER, Parser, SPPF_CAPACITY_MULTIPLIER,
         init_logger,
     },
+    prediction::Prediction,
     record,
     result::{ParseError, ParseSuccess},
     scanner::{Scanner, TerminalSet},
@@ -45,6 +46,7 @@ const BINDING_V_ASSOC: BindingId = BindingId(11);
 const BINDING_V_LABEL: BindingId = BindingId(12);
 impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
     type Grammar = IndirectBinaryGrammar;
+    type Alternatives = <IndirectBinaryGrammar as Grammar>::Alternatives;
     type ConcreteParser<'input, 'parser_arena> = IndirectBinaryParser<'input, 'parser_arena>;
     fn new(input: &'i Input, parser_arena: &'arena Arena) -> Self {
         IndirectBinaryParser::new(input, parser_arena)
@@ -1203,7 +1205,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     SlotId(480) => {
                         self.create(
                             NonterminalId(1),
-                            &PREDICTION_SET_TERNARY,
+                            &PREDICTION_TERNARY,
                             result,
                             gss_node_id,
                             SlotId(481),
@@ -1391,7 +1393,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     SlotId(486) => {
                         self.create(
                             NonterminalId(2),
-                            &PREDICTION_SET_NULLABLE_LEFT,
+                            &PREDICTION_NULLABLE_LEFT,
                             result,
                             gss_node_id,
                             SlotId(487),
@@ -1478,7 +1480,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     SlotId(12) => {
                         self.create(
                             NonterminalId(15),
-                            &PREDICTION_SET_OPT_0,
+                            &PREDICTION_OPT_0,
                             result,
                             gss_node_id,
                             SlotId(13),
@@ -2311,7 +2313,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     SlotId(553) => {
                         self.create(
                             NonterminalId(4),
-                            &PREDICTION_SET_LEX_NULLABLE_LEFT,
+                            &PREDICTION_LEX_NULLABLE_LEFT,
                             result,
                             gss_node_id,
                             SlotId(554),
@@ -8298,7 +8300,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     SlotId(997) => {
                         self.create(
                             NonterminalId(10),
-                            &PREDICTION_SET_NULLABLE_BOUNDARY_RIGHT,
+                            &PREDICTION_NULLABLE_BOUNDARY_RIGHT,
                             result,
                             gss_node_id,
                             SlotId(998),
@@ -8482,7 +8484,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     SlotId(34) => {
                         self.create(
                             NonterminalId(11),
-                            &PREDICTION_SET_NULLABLE_BOUNDARY_OPT,
+                            &PREDICTION_NULLABLE_BOUNDARY_OPT,
                             result,
                             gss_node_id,
                             SlotId(35),
@@ -8576,7 +8578,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     SlotId(1012) => {
                         self.create(
                             NonterminalId(12),
-                            &PREDICTION_SET_NULLABLE_BOUNDARY_LEFT,
+                            &PREDICTION_NULLABLE_BOUNDARY_LEFT,
                             result,
                             gss_node_id,
                             SlotId(1013),
@@ -8774,7 +8776,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     SlotId(39) => {
                         self.create(
                             NonterminalId(11),
-                            &PREDICTION_SET_NULLABLE_BOUNDARY_OPT,
+                            &PREDICTION_NULLABLE_BOUNDARY_OPT,
                             result,
                             gss_node_id,
                             SlotId(40),
@@ -8955,7 +8957,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     SlotId(1035) => {
                         self.create(
                             NonterminalId(13),
-                            &PREDICTION_SET_NULLABLE_BOUNDARY_OPERAND,
+                            &PREDICTION_NULLABLE_BOUNDARY_OPERAND,
                             result,
                             gss_node_id,
                             SlotId(1036),
@@ -9141,7 +9143,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     SlotId(45) => {
                         self.create(
                             NonterminalId(11),
-                            &PREDICTION_SET_NULLABLE_BOUNDARY_OPT,
+                            &PREDICTION_NULLABLE_BOUNDARY_OPT,
                             result,
                             gss_node_id,
                             SlotId(46),
@@ -11016,7 +11018,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     SlotId(53) => {
                         self.create(
                             NonterminalId(0),
-                            &PREDICTION_SET_S,
+                            &PREDICTION_S,
                             result,
                             gss_node_id,
                             SlotId(54),
@@ -11397,7 +11399,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     SlotId(85) => {
                         self.create(
                             NonterminalId(1),
-                            &PREDICTION_SET_TERNARY,
+                            &PREDICTION_TERNARY,
                             result,
                             gss_node_id,
                             SlotId(86),
@@ -11502,7 +11504,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     SlotId(93) => {
                         self.create(
                             NonterminalId(2),
-                            &PREDICTION_SET_NULLABLE_LEFT,
+                            &PREDICTION_NULLABLE_LEFT,
                             result,
                             gss_node_id,
                             SlotId(94),
@@ -11910,7 +11912,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     SlotId(125) => {
                         self.create(
                             NonterminalId(3),
-                            &PREDICTION_SET_FILTERED,
+                            &PREDICTION_FILTERED,
                             result,
                             gss_node_id,
                             SlotId(126),
@@ -12015,7 +12017,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     SlotId(133) => {
                         self.create(
                             NonterminalId(4),
-                            &PREDICTION_SET_LEX_NULLABLE_LEFT,
+                            &PREDICTION_LEX_NULLABLE_LEFT,
                             result,
                             gss_node_id,
                             SlotId(134),
@@ -12472,7 +12474,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     SlotId(169) => {
                         self.create(
                             NonterminalId(5),
-                            &PREDICTION_SET_PACKED_FILTERED,
+                            &PREDICTION_PACKED_FILTERED,
                             result,
                             gss_node_id,
                             SlotId(170),
@@ -13258,7 +13260,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     SlotId(229) => {
                         self.create(
                             NonterminalId(6),
-                            &PREDICTION_SET_OWN_HEAD_FILTERED,
+                            &PREDICTION_OWN_HEAD_FILTERED,
                             result,
                             gss_node_id,
                             SlotId(230),
@@ -13363,7 +13365,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     SlotId(237) => {
                         self.create(
                             NonterminalId(7),
-                            &PREDICTION_SET_EXCLUDE_ONLY_FILTERED,
+                            &PREDICTION_EXCLUDE_ONLY_FILTERED,
                             result,
                             gss_node_id,
                             SlotId(238),
@@ -14114,7 +14116,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     SlotId(297) => {
                         self.create(
                             NonterminalId(8),
-                            &PREDICTION_SET_DYNAMIC_FILTERED,
+                            &PREDICTION_DYNAMIC_FILTERED,
                             result,
                             gss_node_id,
                             SlotId(298),
@@ -14170,7 +14172,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     SlotId(301) => {
                         self.create(
                             NonterminalId(9),
-                            &PREDICTION_SET_DYNAMIC_HEAD_FILTERED,
+                            &PREDICTION_DYNAMIC_HEAD_FILTERED,
                             result,
                             gss_node_id,
                             SlotId(302),
@@ -14387,7 +14389,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     SlotId(317) => {
                         self.create(
                             NonterminalId(10),
-                            &PREDICTION_SET_NULLABLE_BOUNDARY_RIGHT,
+                            &PREDICTION_NULLABLE_BOUNDARY_RIGHT,
                             result,
                             gss_node_id,
                             SlotId(318),
@@ -14443,7 +14445,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     SlotId(321) => {
                         self.create(
                             NonterminalId(11),
-                            &PREDICTION_SET_NULLABLE_BOUNDARY_OPT,
+                            &PREDICTION_NULLABLE_BOUNDARY_OPT,
                             result,
                             gss_node_id,
                             SlotId(322),
@@ -14554,7 +14556,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     SlotId(329) => {
                         self.create(
                             NonterminalId(12),
-                            &PREDICTION_SET_NULLABLE_BOUNDARY_LEFT,
+                            &PREDICTION_NULLABLE_BOUNDARY_LEFT,
                             result,
                             gss_node_id,
                             SlotId(330),
@@ -14665,7 +14667,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     SlotId(337) => {
                         self.create(
                             NonterminalId(13),
-                            &PREDICTION_SET_NULLABLE_BOUNDARY_OPERAND,
+                            &PREDICTION_NULLABLE_BOUNDARY_OPERAND,
                             result,
                             gss_node_id,
                             SlotId(338),
@@ -15046,7 +15048,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     SlotId(365) => {
                         self.create(
                             NonterminalId(14),
-                            &PREDICTION_SET_INDIRECT_EXCLUDE_FILTERED,
+                            &PREDICTION_INDIRECT_EXCLUDE_FILTERED,
                             result,
                             gss_node_id,
                             SlotId(366),
@@ -15292,1637 +15294,6 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         panic!("Unknown grammar slot id: {slot_id}");
                     }
                 }
-            }
-        }
-    }
-    fn add_first_descriptors(
-        &mut self,
-        nonterminal_id: NonterminalId,
-        input_index: u32,
-        gss_node_id: GssNodeId,
-        env: Option<EnvId>,
-    ) {
-        match nonterminal_id {
-            // S : . E(0)
-            NonterminalId(0) => {
-                self.add_first_descriptor(SlotId(0), input_index, gss_node_id, env);
-            }
-            // E
-            NonterminalId(99) => {
-                // E(p: i32) : . [1 >= p] l_pr=L(p, 0) [(l_pr == 0) || (l_pr >= 1)] WS "-" WS E(2) return 1
-                if self.scanner.match_any(&FIRST_SET_E_ALT3, input_index) {
-                    self.add_first_descriptor(SlotId(405), input_index, gss_node_id, env);
-                }
-                // E(p: i32) : . [1 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 1)] WS "+" WS L(2, 1) return 1
-                if self.scanner.match_any(&FIRST_SET_E_ALT2, input_index) {
-                    self.add_first_descriptor(SlotId(396), input_index, gss_node_id, env);
-                }
-                // E(p: i32) : . [2 >= p] l_pr=L(p, 0) [(l_pr == 0) || (l_pr >= 2)] WS "*" WS L(3, 1) return
-                // 2
-                if self.scanner.match_any(&FIRST_SET_E_ALT1, input_index) {
-                    self.add_first_descriptor(SlotId(387), input_index, gss_node_id, env);
-                }
-                // E(p: i32) : . "a" return 0
-                if self.scanner.match_any(&FIRST_SET_E_ALT0, input_index) {
-                    self.add_first_descriptor(SlotId(384), input_index, gss_node_id, env);
-                }
-            }
-            // L(p: i32, end: i32) : . v_pr=E(p) return v_pr
-            NonterminalId(100) => {
-                self.add_first_descriptor(SlotId(414), input_index, gss_node_id, env);
-            }
-            // Only
-            NonterminalId(101) => {
-                // Only(p: i32) : . [1 >= p] l_pr=OnlyOperand(p, 0) [(l_pr == 0) || (l_pr >= 1)] WS "^" WS
-                // OnlyOperand(2, 1) return 1
-                if self.scanner.match_any(&FIRST_SET_ONLY_ALT1, input_index) {
-                    self.add_first_descriptor(SlotId(420), input_index, gss_node_id, env);
-                }
-                // Only(p: i32) : . "b" return 0
-                if self.scanner.match_any(&FIRST_SET_ONLY_ALT0, input_index) {
-                    self.add_first_descriptor(SlotId(417), input_index, gss_node_id, env);
-                }
-            }
-            // OnlyOperand(p: i32, end: i32) : . v_pr=Only(p) return v_pr
-            NonterminalId(102) => {
-                self.add_first_descriptor(SlotId(429), input_index, gss_node_id, env);
-            }
-            // Cross
-            NonterminalId(103) => {
-                // Cross(p: i32) : . [1 >= p] l_pr=Cross(p) [(l_pr == 0) || (l_pr >= 1)] WS "+" WS Foreign(0)
-                // return 0
-                if self.scanner.match_any(&FIRST_SET_CROSS_ALT2, input_index) {
-                    self.add_first_descriptor(SlotId(444), input_index, gss_node_id, env);
-                }
-                // Cross(p: i32) : . [2 >= p] l_pr=Cross(p) [(l_pr == 0) || (l_pr >= 2)] WS "-" WS Foreign(0)
-                // return 0
-                if self.scanner.match_any(&FIRST_SET_CROSS_ALT1, input_index) {
-                    self.add_first_descriptor(SlotId(435), input_index, gss_node_id, env);
-                }
-                // Cross(p: i32) : . "c" return 0
-                if self.scanner.match_any(&FIRST_SET_CROSS_ALT0, input_index) {
-                    self.add_first_descriptor(SlotId(432), input_index, gss_node_id, env);
-                }
-            }
-            // Foreign
-            NonterminalId(104) => {
-                // Foreign(p: i32) : . Cross(0) return 0
-                if self.scanner.match_any(&FIRST_SET_FOREIGN_ALT2, input_index) {
-                    self.add_first_descriptor(SlotId(465), input_index, gss_node_id, env);
-                }
-                // Foreign(p: i32) : . [1 >= p] l_pr=Foreign(p) [(l_pr == 0) || (l_pr >= 1)] WS "*" WS
-                // Foreign(2) return 1
-                if self.scanner.match_any(&FIRST_SET_FOREIGN_ALT1, input_index) {
-                    self.add_first_descriptor(SlotId(456), input_index, gss_node_id, env);
-                }
-                // Foreign(p: i32) : . "d" return 0
-                if self.scanner.match_any(&FIRST_SET_FOREIGN_ALT0, input_index) {
-                    self.add_first_descriptor(SlotId(453), input_index, gss_node_id, env);
-                }
-            }
-            // Cascade
-            NonterminalId(105) => {
-                // Cascade(p: i32) : . Ternary return 0
-                if self.scanner.match_any(&FIRST_SET_CASCADE_ALT2, input_index) {
-                    self.add_first_descriptor(SlotId(480), input_index, gss_node_id, env);
-                }
-                // Cascade(p: i32) : . [1 >= p] l_pr=Cascade(p) [(l_pr == 0) || (l_pr >= 1)] WS "+" WS
-                // Cascade(2) return 1
-                if self.scanner.match_any(&FIRST_SET_CASCADE_ALT1, input_index) {
-                    self.add_first_descriptor(SlotId(471), input_index, gss_node_id, env);
-                }
-                // Cascade(p: i32) : . "t" return 0
-                if self.scanner.match_any(&FIRST_SET_CASCADE_ALT0, input_index) {
-                    self.add_first_descriptor(SlotId(468), input_index, gss_node_id, env);
-                }
-            }
-            // Ternary : . Cascade(0) WS "?" WS Cascade(0) WS ":" WS Cascade(0)
-            NonterminalId(1) => {
-                self.add_first_descriptor(SlotId(2), input_index, gss_node_id, env);
-            }
-            // Nullable
-            NonterminalId(106) => {
-                // Nullable(p: i32) : . NullableLeft WS "%" WS NullableRight(1) return 1
-                if self
-                    .scanner
-                    .match_any(&FIRST_SET_NULLABLE_ALT1, input_index)
-                {
-                    self.add_first_descriptor(SlotId(486), input_index, gss_node_id, env);
-                }
-                // Nullable(p: i32) : . "n" return 0
-                if self
-                    .scanner
-                    .match_any(&FIRST_SET_NULLABLE_ALT0, input_index)
-                {
-                    self.add_first_descriptor(SlotId(483), input_index, gss_node_id, env);
-                }
-            }
-            // NullableLeft : . Opt_0 WS Nullable(0)
-            NonterminalId(2) => {
-                self.add_first_descriptor(SlotId(12), input_index, gss_node_id, env);
-            }
-            // NullableRight(p: i32) : . r_pr=Nullable(p) return r_pr
-            NonterminalId(107) => {
-                self.add_first_descriptor(SlotId(493), input_index, gss_node_id, env);
-            }
-            // RightExpr
-            NonterminalId(108) => {
-                // RightExpr(p: i32) : . [1 >= p] l_pr=RightOperand(p, 0) [(l_pr == 0) || (l_pr >= 2)] WS ">"
-                // WS RightOperand(1, 1) return 1
-                if self
-                    .scanner
-                    .match_any(&FIRST_SET_RIGHT_EXPR_ALT1, input_index)
-                {
-                    self.add_first_descriptor(SlotId(499), input_index, gss_node_id, env);
-                }
-                // RightExpr(p: i32) : . "r" return 0
-                if self
-                    .scanner
-                    .match_any(&FIRST_SET_RIGHT_EXPR_ALT0, input_index)
-                {
-                    self.add_first_descriptor(SlotId(496), input_index, gss_node_id, env);
-                }
-            }
-            // RightOperand(p: i32, end: i32) : . v_pr=RightExpr(p) return v_pr
-            NonterminalId(109) => {
-                self.add_first_descriptor(SlotId(508), input_index, gss_node_id, env);
-            }
-            // NoneExpr
-            NonterminalId(110) => {
-                // NoneExpr(p: i32) : . [1 >= p] l_pr=NoneOperand(p, 0) [(l_pr == 0) || (l_pr >= 2)] WS "="
-                // WS NoneOperand(2, 1) return 1
-                if self
-                    .scanner
-                    .match_any(&FIRST_SET_NONE_EXPR_ALT1, input_index)
-                {
-                    self.add_first_descriptor(SlotId(514), input_index, gss_node_id, env);
-                }
-                // NoneExpr(p: i32) : . "z" return 0
-                if self
-                    .scanner
-                    .match_any(&FIRST_SET_NONE_EXPR_ALT0, input_index)
-                {
-                    self.add_first_descriptor(SlotId(511), input_index, gss_node_id, env);
-                }
-            }
-            // NoneOperand(p: i32, end: i32) : . v_pr=NoneExpr(p) return v_pr
-            NonterminalId(111) => {
-                self.add_first_descriptor(SlotId(523), input_index, gss_node_id, env);
-            }
-            // Excluded
-            NonterminalId(112) => {
-                // Excluded(p: i32, a: i32) : . (l_pr, l_label)=ExcludedOperand(p, 0, 0, 0) [(l_pr ==
-                // UNDEFINED_PRECEDENCE) || ((1 >= p) && ((l_pr == 0) || (l_pr >= 1)))] WS "&" WS (r_pr,
-                // r_label)=ExcludedOperand(1, 1, (l_pr == UNDEFINED_PRECEDENCE) ? 0 : 1, 0) [((l_pr ==
-                // UNDEFINED_PRECEDENCE) || (r_pr == UNDEFINED_PRECEDENCE)) || (a != 1)] return (r_pr ==
-                // UNDEFINED_PRECEDENCE) ? 0 : 1
-                if self
-                    .scanner
-                    .match_any(&FIRST_SET_EXCLUDED_ALT1, input_index)
-                {
-                    self.add_first_descriptor(SlotId(529), input_index, gss_node_id, env);
-                }
-                // Excluded(p: i32, a: i32) : . "e" return 0
-                if self
-                    .scanner
-                    .match_any(&FIRST_SET_EXCLUDED_ALT0, input_index)
-                {
-                    self.add_first_descriptor(SlotId(526), input_index, gss_node_id, env);
-                }
-            }
-            // ExcludedOperand
-            NonterminalId(113) => {
-                // ExcludedOperand(p: i32, end: i32, a: i32, e: i32) : . [2 & e == 0] "(" WS
-                // ExcludedOperand(0, 0, 0, 0) WS ")" return (UNDEFINED_PRECEDENCE, 1)
-                if self
-                    .scanner
-                    .match_any(&FIRST_SET_EXCLUDED_OPERAND_ALT1, input_index)
-                {
-                    self.add_first_descriptor(SlotId(542), input_index, gss_node_id, env);
-                }
-                // ExcludedOperand(p: i32, end: i32, a: i32, e: i32) : . [1 & e == 0] v_pr=Excluded(p, a)
-                // return (v_pr, 0)
-                if self
-                    .scanner
-                    .match_any(&FIRST_SET_EXCLUDED_OPERAND_ALT0, input_index)
-                {
-                    self.add_first_descriptor(SlotId(538), input_index, gss_node_id, env);
-                }
-            }
-            // Filtered : . ExcludedOperand(0, 0, 0, 2)
-            NonterminalId(3) => {
-                self.add_first_descriptor(SlotId(16), input_index, gss_node_id, env);
-            }
-            // LexNullable
-            NonterminalId(114) => {
-                // LexNullable(p: i32) : . LexNullableLeft WS "/" WS LexNullableRight(1) return 1
-                if self
-                    .scanner
-                    .match_any(&FIRST_SET_LEX_NULLABLE_ALT1, input_index)
-                {
-                    self.add_first_descriptor(SlotId(553), input_index, gss_node_id, env);
-                }
-                // LexNullable(p: i32) : . "q" return 0
-                if self
-                    .scanner
-                    .match_any(&FIRST_SET_LEX_NULLABLE_ALT0, input_index)
-                {
-                    self.add_first_descriptor(SlotId(550), input_index, gss_node_id, env);
-                }
-            }
-            // LexNullableLeft : . Digits WS LexNullable(0)
-            NonterminalId(4) => {
-                self.add_first_descriptor(SlotId(18), input_index, gss_node_id, env);
-            }
-            // LexNullableRight(p: i32) : . r_pr=LexNullable(p) return r_pr
-            NonterminalId(115) => {
-                self.add_first_descriptor(SlotId(560), input_index, gss_node_id, env);
-            }
-            // MixedScale
-            NonterminalId(116) => {
-                // MixedScale(p: i32, a: i32) : . l_pr=MixedOperand(p, 0) [(l_pr == UNDEFINED_PRECEDENCE) ||
-                // ((1 >= p) && ((l_pr == 0) || (l_pr >= 1)))] WS "~" WS r_pr=MixedRight(1, (l_pr ==
-                // UNDEFINED_PRECEDENCE) ? 0 : 1) [(l_pr == UNDEFINED_PRECEDENCE) || (a != 1)] return 1
-                if self
-                    .scanner
-                    .match_any(&FIRST_SET_MIXED_SCALE_ALT1, input_index)
-                {
-                    self.add_first_descriptor(SlotId(566), input_index, gss_node_id, env);
-                }
-                // MixedScale(p: i32, a: i32) : . "m" return 0
-                if self
-                    .scanner
-                    .match_any(&FIRST_SET_MIXED_SCALE_ALT0, input_index)
-                {
-                    self.add_first_descriptor(SlotId(563), input_index, gss_node_id, env);
-                }
-            }
-            // MixedOperand
-            NonterminalId(117) => {
-                // MixedOperand(p: i32, a: i32) : . MixedForeign(0) return UNDEFINED_PRECEDENCE
-                if self
-                    .scanner
-                    .match_any(&FIRST_SET_MIXED_OPERAND_ALT1, input_index)
-                {
-                    self.add_first_descriptor(SlotId(578), input_index, gss_node_id, env);
-                }
-                // MixedOperand(p: i32, a: i32) : . l_pr=MixedScale(p, a) return l_pr
-                if self
-                    .scanner
-                    .match_any(&FIRST_SET_MIXED_OPERAND_ALT0, input_index)
-                {
-                    self.add_first_descriptor(SlotId(575), input_index, gss_node_id, env);
-                }
-            }
-            // MixedRight(p: i32, a: i32) : . r_pr=MixedScale(p, a) return r_pr
-            NonterminalId(118) => {
-                self.add_first_descriptor(SlotId(581), input_index, gss_node_id, env);
-            }
-            // MixedForeign
-            NonterminalId(119) => {
-                // MixedForeign(p: i32) : . [1 >= p] l_pr=MixedForeign(p) [(l_pr == 0) || (l_pr >= 1)] WS "!"
-                // WS MixedForeign(2) return 1
-                if self
-                    .scanner
-                    .match_any(&FIRST_SET_MIXED_FOREIGN_ALT1, input_index)
-                {
-                    self.add_first_descriptor(SlotId(587), input_index, gss_node_id, env);
-                }
-                // MixedForeign(p: i32) : . "f" return 0
-                if self
-                    .scanner
-                    .match_any(&FIRST_SET_MIXED_FOREIGN_ALT0, input_index)
-                {
-                    self.add_first_descriptor(SlotId(584), input_index, gss_node_id, env);
-                }
-            }
-            // Packed
-            NonterminalId(120) => {
-                // Packed(p: i32, a: i32) : . (l_pr, l_assoc)=PackedOperand(p, 0, 0) [(l_pr ==
-                // UNDEFINED_PRECEDENCE) || ((1 >= p) && ((l_pr == 0) || (l_pr >= 1)))] WS "+" WS (r_pr,
-                // r_assoc)=PackedOperand(1, 1, 0) [((l_pr == UNDEFINED_PRECEDENCE) || (r_pr ==
-                // UNDEFINED_PRECEDENCE)) || (l_assoc != 1)] return ((r_pr == UNDEFINED_PRECEDENCE) ? 0 : 1,
-                // ((l_pr == UNDEFINED_PRECEDENCE) || (r_pr == UNDEFINED_PRECEDENCE)) ? 0 : 1)
-                if self.scanner.match_any(&FIRST_SET_PACKED_ALT1, input_index) {
-                    self.add_first_descriptor(SlotId(599), input_index, gss_node_id, env);
-                }
-                // Packed(p: i32, a: i32) : . "p" return (0, 0)
-                if self.scanner.match_any(&FIRST_SET_PACKED_ALT0, input_index) {
-                    self.add_first_descriptor(SlotId(596), input_index, gss_node_id, env);
-                }
-            }
-            // PackedOperand(p: i32, end: i32, a: i32) : . (v_pr, v_assoc, v_label)=PackedMiddle(p, end,
-            // a, 0) return (v_pr, v_assoc)
-            NonterminalId(121) => {
-                self.add_first_descriptor(SlotId(608), input_index, gss_node_id, env);
-            }
-            // PackedMiddle
-            NonterminalId(122) => {
-                // PackedMiddle(p: i32, end: i32, a: i32, e: i32) : . [2 & e == 0] "(" WS Packed(0, 0) WS ")"
-                // return (UNDEFINED_PRECEDENCE, 0, 1)
-                if self
-                    .scanner
-                    .match_any(&FIRST_SET_PACKED_MIDDLE_ALT1, input_index)
-                {
-                    self.add_first_descriptor(SlotId(615), input_index, gss_node_id, env);
-                }
-                // PackedMiddle(p: i32, end: i32, a: i32, e: i32) : . [1 & e == 0] (v_pr, v_assoc)=Packed(p,
-                // a) return (v_pr, v_assoc, 0)
-                if self
-                    .scanner
-                    .match_any(&FIRST_SET_PACKED_MIDDLE_ALT0, input_index)
-                {
-                    self.add_first_descriptor(SlotId(611), input_index, gss_node_id, env);
-                }
-            }
-            // PackedFiltered : . PackedMiddle(0, 0, 0, 2)
-            NonterminalId(5) => {
-                self.add_first_descriptor(SlotId(22), input_index, gss_node_id, env);
-            }
-            // NullableRecursive
-            NonterminalId(123) => {
-                // NullableRecursive(p: i32, a: i32) : . (l_pr, l_assoc)=NullableOperand(p, 0) [(l_pr ==
-                // UNDEFINED_PRECEDENCE) || ((1 >= p) && ((l_pr == 0) || (l_pr >= 1)))] WS "+" WS (r_pr,
-                // r_assoc)=NullableRecursive(1, 0) [(l_pr == UNDEFINED_PRECEDENCE) || (l_assoc != 1)] return
-                // (1, (l_pr == UNDEFINED_PRECEDENCE) ? 0 : 1)
-                if self
-                    .scanner
-                    .match_any(&FIRST_SET_NULLABLE_RECURSIVE_ALT1, input_index)
-                {
-                    self.add_first_descriptor(SlotId(626), input_index, gss_node_id, env);
-                }
-                // NullableRecursive(p: i32, a: i32) : . "u" return (0, 0)
-                if self
-                    .scanner
-                    .match_any(&FIRST_SET_NULLABLE_RECURSIVE_ALT0, input_index)
-                {
-                    self.add_first_descriptor(SlotId(623), input_index, gss_node_id, env);
-                }
-            }
-            // NullableOperand(p: i32, a: i32) : . (l_pr, l_assoc)=NullableMaybe(p, a) WS
-            // NullableRecursive(0, 0) return (l_pr, l_assoc)
-            NonterminalId(124) => {
-                self.add_first_descriptor(SlotId(635), input_index, gss_node_id, env);
-            }
-            // NullableMaybe(p: i32, a: i32) : . (l_pr, l_assoc)=Opt_1(p, a) return (l_pr, l_assoc)
-            NonterminalId(125) => {
-                self.add_first_descriptor(SlotId(640), input_index, gss_node_id, env);
-            }
-            // NullableLexRecursive
-            NonterminalId(126) => {
-                // NullableLexRecursive(p: i32, a: i32) : . (l_pr, l_assoc)=NullableLexOperand(p, 0) [(l_pr
-                // == UNDEFINED_PRECEDENCE) || ((1 >= p) && ((l_pr == 0) || (l_pr >= 1)))] WS "+" WS (r_pr,
-                // r_assoc)=NullableLexRecursive(1, 0) [(l_pr == UNDEFINED_PRECEDENCE) || (l_assoc != 1)]
-                // return (1, (l_pr == UNDEFINED_PRECEDENCE) ? 0 : 1)
-                if self
-                    .scanner
-                    .match_any(&FIRST_SET_NULLABLE_LEX_RECURSIVE_ALT1, input_index)
-                {
-                    self.add_first_descriptor(SlotId(646), input_index, gss_node_id, env);
-                }
-                // NullableLexRecursive(p: i32, a: i32) : . "v" return (0, 0)
-                if self
-                    .scanner
-                    .match_any(&FIRST_SET_NULLABLE_LEX_RECURSIVE_ALT0, input_index)
-                {
-                    self.add_first_descriptor(SlotId(643), input_index, gss_node_id, env);
-                }
-            }
-            // NullableLexOperand(p: i32, a: i32) : . (l_pr, l_assoc)=NullableLexMaybe(p, a) WS
-            // NullableLexRecursive(0, 0) return (l_pr, l_assoc)
-            NonterminalId(127) => {
-                self.add_first_descriptor(SlotId(655), input_index, gss_node_id, env);
-            }
-            // NullableLexMaybe
-            NonterminalId(128) => {
-                // NullableLexMaybe(p: i32, a: i32) : . Digits return (UNDEFINED_PRECEDENCE, 0)
-                if self
-                    .scanner
-                    .match_any(&FIRST_SET_NULLABLE_LEX_MAYBE_ALT1, input_index)
-                    || self
-                        .scanner
-                        .match_any(&FOLLOW_SET_NULLABLE_LEX_MAYBE, input_index)
-                {
-                    self.add_first_descriptor(SlotId(663), input_index, gss_node_id, env);
-                }
-                // NullableLexMaybe(p: i32, a: i32) : . (l_pr, l_assoc)=NullableLexRecursive(p, a) return
-                // (l_pr, l_assoc)
-                if self
-                    .scanner
-                    .match_any(&FIRST_SET_NULLABLE_LEX_MAYBE_ALT0, input_index)
-                {
-                    self.add_first_descriptor(SlotId(660), input_index, gss_node_id, env);
-                }
-            }
-            // NullableSuffix
-            NonterminalId(129) => {
-                // NullableSuffix(p: i32, a: i32) : . [1 >= p] l_pr=NullableSuffix(p, 0) [(l_pr == 0) ||
-                // (l_pr >= 1)] WS "+" WS r_pr=NullableSuffixOperand(1, 1) [(r_pr == UNDEFINED_PRECEDENCE) ||
-                // (a != 1)] return (r_pr == UNDEFINED_PRECEDENCE) ? 0 : 1
-                if self
-                    .scanner
-                    .match_any(&FIRST_SET_NULLABLE_SUFFIX_ALT1, input_index)
-                {
-                    self.add_first_descriptor(SlotId(669), input_index, gss_node_id, env);
-                }
-                // NullableSuffix(p: i32, a: i32) : . "w" return 0
-                if self
-                    .scanner
-                    .match_any(&FIRST_SET_NULLABLE_SUFFIX_ALT0, input_index)
-                {
-                    self.add_first_descriptor(SlotId(666), input_index, gss_node_id, env);
-                }
-            }
-            // NullableSuffixOperand(p: i32, a: i32) : . NullableSuffix(0, 0) WS
-            // r_pr=NullableSuffixMaybe(p, a) return r_pr
-            NonterminalId(130) => {
-                self.add_first_descriptor(SlotId(679), input_index, gss_node_id, env);
-            }
-            // NullableSuffixMaybe(p: i32, a: i32) : . r_pr=Opt_2(p, a) return r_pr
-            NonterminalId(131) => {
-                self.add_first_descriptor(SlotId(684), input_index, gss_node_id, env);
-            }
-            // NullableShared
-            NonterminalId(132) => {
-                // NullableShared(p: i32, a: i32) : . (l_pr, l_assoc)=NullableSharedOperand(p, 0, 0) [(l_pr
-                // == UNDEFINED_PRECEDENCE) || ((1 >= p) && ((l_pr == 0) || (l_pr >= 1)))] WS "+" WS (r_pr,
-                // r_assoc)=NullableSharedOperand(1, 1, 0) [((l_pr == UNDEFINED_PRECEDENCE) || (r_pr ==
-                // UNDEFINED_PRECEDENCE)) || (l_assoc != 1)] return ((r_pr == UNDEFINED_PRECEDENCE) ? 0 : 1,
-                // ((l_pr == UNDEFINED_PRECEDENCE) || (r_pr == UNDEFINED_PRECEDENCE)) ? 0 : 1)
-                if self
-                    .scanner
-                    .match_any(&FIRST_SET_NULLABLE_SHARED_ALT1, input_index)
-                {
-                    self.add_first_descriptor(SlotId(690), input_index, gss_node_id, env);
-                }
-                // NullableShared(p: i32, a: i32) : . "j" return (0, 0)
-                if self
-                    .scanner
-                    .match_any(&FIRST_SET_NULLABLE_SHARED_ALT0, input_index)
-                {
-                    self.add_first_descriptor(SlotId(687), input_index, gss_node_id, env);
-                }
-            }
-            // NullableSharedOperand(p: i32, end: i32, a: i32) : . (l_pr,
-            // l_assoc)=NullableSharedMaybe((end == 0) ? p : 0, 0, (end == 0) ? a : 0) WS
-            // NullableShared(0, 0) WS (r_pr, r_assoc)=NullableSharedMaybe((end == 1) ? p : 0, 1, (end ==
-            // 1) ? a : 0) return ((end == 0) ? l_pr : r_pr, (end == 0) ? l_assoc : r_assoc)
-            NonterminalId(133) => {
-                self.add_first_descriptor(SlotId(699), input_index, gss_node_id, env);
-            }
-            // NullableSharedMaybe(p: i32, end: i32, a: i32) : . (v_pr, v_assoc)=Opt_3(p, end, a) return
-            // (v_pr, v_assoc)
-            NonterminalId(134) => {
-                self.add_first_descriptor(SlotId(706), input_index, gss_node_id, env);
-            }
-            // OwnLabel
-            NonterminalId(135) => {
-                // OwnLabel(p: i32, a: i32, e: i32) : . [2 & e == 0] (l_pr, l_label)=OwnOperand(p, 0, 0, 0)
-                // [(l_pr == UNDEFINED_PRECEDENCE) || ((1 >= p) && ((l_pr == 0) || (l_pr >= 1)))] [(l_label
-                // == NO_LABEL) || ((2 >> l_label) & 1 == 0)] WS "+" WS (r_pr, r_label)=OwnOperand(1, 1,
-                // (l_pr == UNDEFINED_PRECEDENCE) ? 0 : 1, 0) [((l_pr == UNDEFINED_PRECEDENCE) || (r_pr ==
-                // UNDEFINED_PRECEDENCE)) || (a != 1)] return ((r_pr == UNDEFINED_PRECEDENCE) ? 0 : 1, 1)
-                if self
-                    .scanner
-                    .match_any(&FIRST_SET_OWN_LABEL_ALT1, input_index)
-                {
-                    self.add_first_descriptor(SlotId(713), input_index, gss_node_id, env);
-                }
-                // OwnLabel(p: i32, a: i32, e: i32) : . [1 & e == 0] "k" return (0, 0)
-                if self
-                    .scanner
-                    .match_any(&FIRST_SET_OWN_LABEL_ALT0, input_index)
-                {
-                    self.add_first_descriptor(SlotId(709), input_index, gss_node_id, env);
-                }
-            }
-            // OwnOperand
-            NonterminalId(136) => {
-                // OwnOperand(p: i32, end: i32, a: i32, e: i32) : . [2 & e == 0] "(" WS OwnLabel(0, 0, 0) WS
-                // ")" return (UNDEFINED_PRECEDENCE, 1)
-                if self
-                    .scanner
-                    .match_any(&FIRST_SET_OWN_OPERAND_ALT1, input_index)
-                {
-                    self.add_first_descriptor(SlotId(728), input_index, gss_node_id, env);
-                }
-                // OwnOperand(p: i32, end: i32, a: i32, e: i32) : . [1 & e == 0] (v_pr, v_label)=OwnLabel(p,
-                // a, 0) return (v_pr, 0)
-                if self
-                    .scanner
-                    .match_any(&FIRST_SET_OWN_OPERAND_ALT0, input_index)
-                {
-                    self.add_first_descriptor(SlotId(724), input_index, gss_node_id, env);
-                }
-            }
-            // OwnHeadFiltered : . OwnLabel(0, 0, 1)
-            NonterminalId(6) => {
-                self.add_first_descriptor(SlotId(24), input_index, gss_node_id, env);
-            }
-            // ExcludeOnly
-            NonterminalId(137) => {
-                // ExcludeOnly(e: i32) : . "t" return (0, NO_LABEL)
-                if self
-                    .scanner
-                    .match_any(&FIRST_SET_EXCLUDE_ONLY_ALT1, input_index)
-                {
-                    self.add_first_descriptor(SlotId(740), input_index, gss_node_id, env);
-                }
-                // ExcludeOnly(e: i32) : . [1 & e == 0] "s" return (0, 0)
-                if self
-                    .scanner
-                    .match_any(&FIRST_SET_EXCLUDE_ONLY_ALT0, input_index)
-                {
-                    self.add_first_descriptor(SlotId(736), input_index, gss_node_id, env);
-                }
-            }
-            // ExcludeOnlyFiltered : . ExcludeOnly(1)
-            NonterminalId(7) => {
-                self.add_first_descriptor(SlotId(26), input_index, gss_node_id, env);
-            }
-            // Absent
-            NonterminalId(138) => {
-                // Absent(p: i32) : . l_pr=AbsentOperand(p, 0) [(l_pr == UNDEFINED_PRECEDENCE) || ((1 >= p)
-                // && ((l_pr == 0) || (l_pr >= 1)))] WS "+" WS r_pr=AbsentOperand(1, 1) return (r_pr ==
-                // UNDEFINED_PRECEDENCE) ? 0 : 1
-                if self.scanner.match_any(&FIRST_SET_ABSENT_ALT2, input_index) {
-                    self.add_first_descriptor(SlotId(755), input_index, gss_node_id, env);
-                }
-                // Absent(p: i32) : . [2 >= p] l_pr=Absent(p) [(l_pr == 0) || (l_pr >= 2)] WS "*" WS
-                // r_pr=Absent(2) return (r_pr == 0) ? 2 : min(r_pr, 2)
-                if self.scanner.match_any(&FIRST_SET_ABSENT_ALT1, input_index) {
-                    self.add_first_descriptor(SlotId(746), input_index, gss_node_id, env);
-                }
-                // Absent(p: i32) : . "a" return 0
-                if self.scanner.match_any(&FIRST_SET_ABSENT_ALT0, input_index) {
-                    self.add_first_descriptor(SlotId(743), input_index, gss_node_id, env);
-                }
-            }
-            // AbsentOperand
-            NonterminalId(139) => {
-                // AbsentOperand(p: i32, end: i32) : . "b" return UNDEFINED_PRECEDENCE
-                if self
-                    .scanner
-                    .match_any(&FIRST_SET_ABSENT_OPERAND_ALT1, input_index)
-                {
-                    self.add_first_descriptor(SlotId(766), input_index, gss_node_id, env);
-                }
-                // AbsentOperand(p: i32, end: i32) : . v_pr=Absent(p) return v_pr
-                if self
-                    .scanner
-                    .match_any(&FIRST_SET_ABSENT_OPERAND_ALT0, input_index)
-                {
-                    self.add_first_descriptor(SlotId(763), input_index, gss_node_id, env);
-                }
-            }
-            // ClosedPrefix
-            NonterminalId(140) => {
-                // ClosedPrefix(p: i32) : . "pre" WS r_pr=ClosedPrefixBody(1) return (r_pr ==
-                // UNDEFINED_PRECEDENCE) ? 0 : 1
-                if self
-                    .scanner
-                    .match_any(&FIRST_SET_CLOSED_PREFIX_ALT2, input_index)
-                {
-                    self.add_first_descriptor(SlotId(781), input_index, gss_node_id, env);
-                }
-                // ClosedPrefix(p: i32) : . [2 >= p] l_pr=ClosedPrefix(p) [(l_pr == 0) || (l_pr >= 2)] WS "+"
-                // WS r_pr=ClosedPrefix(2) return (r_pr == 0) ? 2 : min(r_pr, 2)
-                if self
-                    .scanner
-                    .match_any(&FIRST_SET_CLOSED_PREFIX_ALT1, input_index)
-                {
-                    self.add_first_descriptor(SlotId(772), input_index, gss_node_id, env);
-                }
-                // ClosedPrefix(p: i32) : . "a" return 0
-                if self
-                    .scanner
-                    .match_any(&FIRST_SET_CLOSED_PREFIX_ALT0, input_index)
-                {
-                    self.add_first_descriptor(SlotId(769), input_index, gss_node_id, env);
-                }
-            }
-            // ClosedPrefixBody
-            NonterminalId(141) => {
-                // ClosedPrefixBody(p: i32) : . "b" return UNDEFINED_PRECEDENCE
-                if self
-                    .scanner
-                    .match_any(&FIRST_SET_CLOSED_PREFIX_BODY_ALT1, input_index)
-                {
-                    self.add_first_descriptor(SlotId(789), input_index, gss_node_id, env);
-                }
-                // ClosedPrefixBody(p: i32) : . r_pr=ClosedPrefix(p) return r_pr
-                if self
-                    .scanner
-                    .match_any(&FIRST_SET_CLOSED_PREFIX_BODY_ALT0, input_index)
-                {
-                    self.add_first_descriptor(SlotId(786), input_index, gss_node_id, env);
-                }
-            }
-            // ClosedPostfix
-            NonterminalId(142) => {
-                // ClosedPostfix(p: i32) : . l_pr=ClosedPostfixBody(p) [(l_pr == UNDEFINED_PRECEDENCE) || ((1
-                // >= p) && ((l_pr == 0) || (l_pr >= 1)))] WS "!" return 0
-                if self
-                    .scanner
-                    .match_any(&FIRST_SET_CLOSED_POSTFIX_ALT2, input_index)
-                {
-                    self.add_first_descriptor(SlotId(800), input_index, gss_node_id, env);
-                }
-                // ClosedPostfix(p: i32) : . "pre" WS ClosedPostfix(2) return 2
-                if self
-                    .scanner
-                    .match_any(&FIRST_SET_CLOSED_POSTFIX_ALT1, input_index)
-                {
-                    self.add_first_descriptor(SlotId(795), input_index, gss_node_id, env);
-                }
-                // ClosedPostfix(p: i32) : . "a" return 0
-                if self
-                    .scanner
-                    .match_any(&FIRST_SET_CLOSED_POSTFIX_ALT0, input_index)
-                {
-                    self.add_first_descriptor(SlotId(792), input_index, gss_node_id, env);
-                }
-            }
-            // ClosedPostfixBody
-            NonterminalId(143) => {
-                // ClosedPostfixBody(p: i32) : . "b" return UNDEFINED_PRECEDENCE
-                if self
-                    .scanner
-                    .match_any(&FIRST_SET_CLOSED_POSTFIX_BODY_ALT1, input_index)
-                {
-                    self.add_first_descriptor(SlotId(809), input_index, gss_node_id, env);
-                }
-                // ClosedPostfixBody(p: i32) : . l_pr=ClosedPostfix(p) return l_pr
-                if self
-                    .scanner
-                    .match_any(&FIRST_SET_CLOSED_POSTFIX_BODY_ALT0, input_index)
-                {
-                    self.add_first_descriptor(SlotId(806), input_index, gss_node_id, env);
-                }
-            }
-            // HeadChoice
-            NonterminalId(144) => {
-                // HeadChoice(p: i32) : . Inner(0) return 0
-                if self
-                    .scanner
-                    .match_any(&FIRST_SET_HEAD_CHOICE_ALT2, input_index)
-                {
-                    self.add_first_descriptor(SlotId(824), input_index, gss_node_id, env);
-                }
-                // HeadChoice(p: i32) : . [1 >= p] l_pr=HeadOperand(p, 0) [(l_pr == 0) || (l_pr >= 1)] WS "+"
-                // WS HeadOperand(2, 1) return 1
-                if self
-                    .scanner
-                    .match_any(&FIRST_SET_HEAD_CHOICE_ALT1, input_index)
-                {
-                    self.add_first_descriptor(SlotId(815), input_index, gss_node_id, env);
-                }
-                // HeadChoice(p: i32) : . "a" return 0
-                if self
-                    .scanner
-                    .match_any(&FIRST_SET_HEAD_CHOICE_ALT0, input_index)
-                {
-                    self.add_first_descriptor(SlotId(812), input_index, gss_node_id, env);
-                }
-            }
-            // HeadOperand(p: i32, end: i32) : . v_pr=HeadChoice(p) return v_pr
-            NonterminalId(145) => {
-                self.add_first_descriptor(SlotId(827), input_index, gss_node_id, env);
-            }
-            // Inner
-            NonterminalId(146) => {
-                // Inner(p: i32) : . [1 >= p] l_pr=Inner(p) [(l_pr == 0) || (l_pr >= 1)] WS "*" WS Inner(2)
-                // return 1
-                if self.scanner.match_any(&FIRST_SET_INNER_ALT1, input_index) {
-                    self.add_first_descriptor(SlotId(833), input_index, gss_node_id, env);
-                }
-                // Inner(p: i32) : . "b" return 0
-                if self.scanner.match_any(&FIRST_SET_INNER_ALT0, input_index) {
-                    self.add_first_descriptor(SlotId(830), input_index, gss_node_id, env);
-                }
-            }
-            // UnaryMixedLeft
-            NonterminalId(147) => {
-                // UnaryMixedLeft(p: i32, a: i32) : . "a" return 0
-                if self
-                    .scanner
-                    .match_any(&FIRST_SET_UNARY_MIXED_LEFT_ALT3, input_index)
-                {
-                    self.add_first_descriptor(SlotId(864), input_index, gss_node_id, env);
-                }
-                // UnaryMixedLeft(p: i32, a: i32) : . [1 >= p] l_pr=UnaryMixedLeft(p, 0) [(l_pr == 0) ||
-                // (l_pr >= 1)] WS "!" return 0
-                if self
-                    .scanner
-                    .match_any(&FIRST_SET_UNARY_MIXED_LEFT_ALT2, input_index)
-                {
-                    self.add_first_descriptor(SlotId(857), input_index, gss_node_id, env);
-                }
-                // UnaryMixedLeft(p: i32, a: i32) : . "-" WS UnaryMixedLeft(1, 0) return 1
-                if self
-                    .scanner
-                    .match_any(&FIRST_SET_UNARY_MIXED_LEFT_ALT1, input_index)
-                {
-                    self.add_first_descriptor(SlotId(852), input_index, gss_node_id, env);
-                }
-                // UnaryMixedLeft(p: i32, a: i32) : . [1 >= p] [a != 1] l_pr=UnaryMixedLeft(p, 0) [(l_pr ==
-                // 0) || (l_pr >= 1)] WS "+" WS r_pr=UnaryMixedLeft(1, 1) return 1
-                if self
-                    .scanner
-                    .match_any(&FIRST_SET_UNARY_MIXED_LEFT_ALT0, input_index)
-                {
-                    self.add_first_descriptor(SlotId(842), input_index, gss_node_id, env);
-                }
-            }
-            // UnaryMixedRight
-            NonterminalId(148) => {
-                // UnaryMixedRight(p: i32, a: i32) : . "a" return (0, 0)
-                if self
-                    .scanner
-                    .match_any(&FIRST_SET_UNARY_MIXED_RIGHT_ALT3, input_index)
-                {
-                    self.add_first_descriptor(SlotId(889), input_index, gss_node_id, env);
-                }
-                // UnaryMixedRight(p: i32, a: i32) : . [1 >= p] (l_pr, l_assoc)=UnaryMixedRight(p, 0) [(l_pr
-                // == 0) || (l_pr >= 1)] WS "!" return (0, 0)
-                if self
-                    .scanner
-                    .match_any(&FIRST_SET_UNARY_MIXED_RIGHT_ALT2, input_index)
-                {
-                    self.add_first_descriptor(SlotId(882), input_index, gss_node_id, env);
-                }
-                // UnaryMixedRight(p: i32, a: i32) : . "-" WS UnaryMixedRight(1, 0) return (1, 0)
-                if self
-                    .scanner
-                    .match_any(&FIRST_SET_UNARY_MIXED_RIGHT_ALT1, input_index)
-                {
-                    self.add_first_descriptor(SlotId(877), input_index, gss_node_id, env);
-                }
-                // UnaryMixedRight(p: i32, a: i32) : . [1 >= p] (l_pr, l_assoc)=UnaryMixedRight(p, 0) [(l_pr
-                // == 0) || (l_pr >= 1)] [l_assoc != 1] WS "+" WS (r_pr, r_assoc)=UnaryMixedRight(1, 0)
-                // return (1, 1)
-                if self
-                    .scanner
-                    .match_any(&FIRST_SET_UNARY_MIXED_RIGHT_ALT0, input_index)
-                {
-                    self.add_first_descriptor(SlotId(867), input_index, gss_node_id, env);
-                }
-            }
-            // UnaryMixedNone
-            NonterminalId(149) => {
-                // UnaryMixedNone(p: i32, a: i32) : . "a" return (0, 0)
-                if self
-                    .scanner
-                    .match_any(&FIRST_SET_UNARY_MIXED_NONE_ALT3, input_index)
-                {
-                    self.add_first_descriptor(SlotId(915), input_index, gss_node_id, env);
-                }
-                // UnaryMixedNone(p: i32, a: i32) : . [1 >= p] (l_pr, l_assoc)=UnaryMixedNone(p, 0) [(l_pr ==
-                // 0) || (l_pr >= 1)] WS "!" return (0, 0)
-                if self
-                    .scanner
-                    .match_any(&FIRST_SET_UNARY_MIXED_NONE_ALT2, input_index)
-                {
-                    self.add_first_descriptor(SlotId(908), input_index, gss_node_id, env);
-                }
-                // UnaryMixedNone(p: i32, a: i32) : . "-" WS UnaryMixedNone(1, 0) return (1, 0)
-                if self
-                    .scanner
-                    .match_any(&FIRST_SET_UNARY_MIXED_NONE_ALT1, input_index)
-                {
-                    self.add_first_descriptor(SlotId(903), input_index, gss_node_id, env);
-                }
-                // UnaryMixedNone(p: i32, a: i32) : . [1 >= p] [a != 1] (l_pr, l_assoc)=UnaryMixedNone(p, 0)
-                // [(l_pr == 0) || (l_pr >= 1)] [l_assoc != 1] WS "+" WS (r_pr, r_assoc)=UnaryMixedNone(1, 1)
-                // return (1, 1)
-                if self
-                    .scanner
-                    .match_any(&FIRST_SET_UNARY_MIXED_NONE_ALT0, input_index)
-                {
-                    self.add_first_descriptor(SlotId(892), input_index, gss_node_id, env);
-                }
-            }
-            // Dynamic
-            NonterminalId(150) => {
-                // Dynamic(p: i32, a: i32, e: i32) : . [8 & e == 0] "a" return (0, 0, 3)
-                if self.scanner.match_any(&FIRST_SET_DYNAMIC_ALT3, input_index) {
-                    self.add_first_descriptor(SlotId(942), input_index, gss_node_id, env);
-                }
-                // Dynamic(p: i32, a: i32, e: i32) : . [4 & e == 0] (l_pr, l_assoc,
-                // l_label)=DynamicOperand(p, 0, 0, 0) [(l_pr == UNDEFINED_PRECEDENCE) || ((1 >= p) && ((l_pr
-                // == 0) || (l_pr >= 1)))] WS "!" return (0, 0, 2)
-                if self.scanner.match_any(&FIRST_SET_DYNAMIC_ALT2, input_index) {
-                    self.add_first_descriptor(SlotId(935), input_index, gss_node_id, env);
-                }
-                // Dynamic(p: i32, a: i32, e: i32) : . [2 & e == 0] "-" WS (r_pr, r_assoc,
-                // r_label)=DynamicOperand(1, 1, 0, 0) return ((r_pr == UNDEFINED_PRECEDENCE) ? 0 : 1, 0, 1)
-                if self.scanner.match_any(&FIRST_SET_DYNAMIC_ALT1, input_index) {
-                    self.add_first_descriptor(SlotId(929), input_index, gss_node_id, env);
-                }
-                // Dynamic(p: i32, a: i32, e: i32) : . [1 & e == 0] (l_pr, l_assoc,
-                // l_label)=DynamicOperand(p, 0, 0, 0) [(l_pr == UNDEFINED_PRECEDENCE) || ((1 >= p) && ((l_pr
-                // == 0) || (l_pr >= 1)))] [(l_label == NO_LABEL) || ((2 >> l_label) & 1 == 0)] WS "+" WS
-                // (r_pr, r_assoc, r_label)=DynamicOperand(1, 1, 0, 0) [((l_pr == UNDEFINED_PRECEDENCE) ||
-                // (r_pr == UNDEFINED_PRECEDENCE)) || (l_assoc != 1)] return ((r_pr == UNDEFINED_PRECEDENCE)
-                // ? 0 : 1, ((l_pr == UNDEFINED_PRECEDENCE) || (r_pr == UNDEFINED_PRECEDENCE)) ? 0 : 1, 0)
-                if self.scanner.match_any(&FIRST_SET_DYNAMIC_ALT0, input_index) {
-                    self.add_first_descriptor(SlotId(918), input_index, gss_node_id, env);
-                }
-            }
-            // DynamicOperand
-            NonterminalId(151) => {
-                // DynamicOperand(p: i32, end: i32, a: i32, e: i32) : . [2 & e == 0] "b" return
-                // (UNDEFINED_PRECEDENCE, 0, 1)
-                if self
-                    .scanner
-                    .match_any(&FIRST_SET_DYNAMIC_OPERAND_ALT1, input_index)
-                {
-                    self.add_first_descriptor(SlotId(950), input_index, gss_node_id, env);
-                }
-                // DynamicOperand(p: i32, end: i32, a: i32, e: i32) : . [1 & e == 0] (v_pr, v_assoc,
-                // v_label)=Dynamic(p, a, 0) return (v_pr, v_assoc, 0)
-                if self
-                    .scanner
-                    .match_any(&FIRST_SET_DYNAMIC_OPERAND_ALT0, input_index)
-                {
-                    self.add_first_descriptor(SlotId(946), input_index, gss_node_id, env);
-                }
-            }
-            // DynamicFiltered : . DynamicOperand(0, 0, 0, 2)
-            NonterminalId(8) => {
-                self.add_first_descriptor(SlotId(28), input_index, gss_node_id, env);
-            }
-            // DynamicHeadFiltered : . Dynamic(0, 0, 8)
-            NonterminalId(9) => {
-                self.add_first_descriptor(SlotId(30), input_index, gss_node_id, env);
-            }
-            // DynamicMulti
-            NonterminalId(152) => {
-                // DynamicMulti(p: i32, a: i32) : . "a" return (0, 0)
-                if self
-                    .scanner
-                    .match_any(&FIRST_SET_DYNAMIC_MULTI_ALT4, input_index)
-                {
-                    self.add_first_descriptor(SlotId(983), input_index, gss_node_id, env);
-                }
-                // DynamicMulti(p: i32, a: i32) : . (l_pr, l_assoc)=DynamicMultiOperand(p, 0, 0) [(l_pr ==
-                // UNDEFINED_PRECEDENCE) || ((1 >= p) && ((l_pr == 0) || (l_pr >= 1)))] WS ";" WS (r_pr,
-                // r_assoc)=DynamicMultiOperand(1, 1, 0) [((l_pr == UNDEFINED_PRECEDENCE) || (r_pr ==
-                // UNDEFINED_PRECEDENCE)) || (l_assoc != 1)] return ((r_pr == UNDEFINED_PRECEDENCE) ? 0 : 1,
-                // ((l_pr == UNDEFINED_PRECEDENCE) || (r_pr == UNDEFINED_PRECEDENCE)) ? 0 : 1)
-                if self
-                    .scanner
-                    .match_any(&FIRST_SET_DYNAMIC_MULTI_ALT3, input_index)
-                {
-                    self.add_first_descriptor(SlotId(974), input_index, gss_node_id, env);
-                }
-                // DynamicMulti(p: i32, a: i32) : . (l_pr, l_assoc)=DynamicMultiOperand(p, 0, 0) [(l_pr ==
-                // UNDEFINED_PRECEDENCE) || ((2 >= p) && ((l_pr == 0) || (l_pr >= 2)))] WS "!" return (0, 0)
-                if self
-                    .scanner
-                    .match_any(&FIRST_SET_DYNAMIC_MULTI_ALT2, input_index)
-                {
-                    self.add_first_descriptor(SlotId(968), input_index, gss_node_id, env);
-                }
-                // DynamicMulti(p: i32, a: i32) : . "-" WS (r_pr, r_assoc)=DynamicMultiOperand(2, 1, 0)
-                // return ((r_pr == UNDEFINED_PRECEDENCE) ? 0 : ((r_pr == 0) ? 2 : min(r_pr, 2)), 0)
-                if self
-                    .scanner
-                    .match_any(&FIRST_SET_DYNAMIC_MULTI_ALT1, input_index)
-                {
-                    self.add_first_descriptor(SlotId(963), input_index, gss_node_id, env);
-                }
-                // DynamicMulti(p: i32, a: i32) : . (l_pr, l_assoc)=DynamicMultiOperand(p, 0, 0) [(l_pr ==
-                // UNDEFINED_PRECEDENCE) || ((2 >= p) && ((l_pr == 0) || (l_pr >= 2)))] WS "+" WS (r_pr,
-                // r_assoc)=DynamicMultiOperand(2, 1, (l_pr == UNDEFINED_PRECEDENCE) ? 0 : 2) [((l_pr ==
-                // UNDEFINED_PRECEDENCE) || (r_pr == UNDEFINED_PRECEDENCE)) || (a != 2)] return ((r_pr ==
-                // UNDEFINED_PRECEDENCE) ? 0 : ((r_pr == 0) ? 2 : min(r_pr, 2)), 0)
-                if self
-                    .scanner
-                    .match_any(&FIRST_SET_DYNAMIC_MULTI_ALT0, input_index)
-                {
-                    self.add_first_descriptor(SlotId(954), input_index, gss_node_id, env);
-                }
-            }
-            // DynamicMultiOperand
-            NonterminalId(153) => {
-                // DynamicMultiOperand(p: i32, end: i32, a: i32) : . "b" return (UNDEFINED_PRECEDENCE, 0)
-                if self
-                    .scanner
-                    .match_any(&FIRST_SET_DYNAMIC_MULTI_OPERAND_ALT1, input_index)
-                {
-                    self.add_first_descriptor(SlotId(989), input_index, gss_node_id, env);
-                }
-                // DynamicMultiOperand(p: i32, end: i32, a: i32) : . (v_pr, v_assoc)=DynamicMulti(p, a)
-                // return (v_pr, v_assoc)
-                if self
-                    .scanner
-                    .match_any(&FIRST_SET_DYNAMIC_MULTI_OPERAND_ALT0, input_index)
-                {
-                    self.add_first_descriptor(SlotId(986), input_index, gss_node_id, env);
-                }
-            }
-            // NullableBoundaryPrefix
-            NonterminalId(154) => {
-                // NullableBoundaryPrefix(p: i32) : . [1 >= p] l_pr=NullableBoundaryPrefix(p) [(l_pr == 0) ||
-                // (l_pr >= 1)] WS "+" WS NullableBoundaryPrefix(2) return 1
-                if self
-                    .scanner
-                    .match_any(&FIRST_SET_NULLABLE_BOUNDARY_PREFIX_ALT2, input_index)
-                {
-                    self.add_first_descriptor(SlotId(1000), input_index, gss_node_id, env);
-                }
-                // NullableBoundaryPrefix(p: i32) : . "-" WS NullableBoundaryRight return 0
-                if self
-                    .scanner
-                    .match_any(&FIRST_SET_NULLABLE_BOUNDARY_PREFIX_ALT1, input_index)
-                {
-                    self.add_first_descriptor(SlotId(995), input_index, gss_node_id, env);
-                }
-                // NullableBoundaryPrefix(p: i32) : . "a" return 0
-                if self
-                    .scanner
-                    .match_any(&FIRST_SET_NULLABLE_BOUNDARY_PREFIX_ALT0, input_index)
-                {
-                    self.add_first_descriptor(SlotId(992), input_index, gss_node_id, env);
-                }
-            }
-            // NullableBoundaryRight : . NullableBoundaryPrefix(0) WS NullableBoundaryOpt
-            NonterminalId(10) => {
-                self.add_first_descriptor(SlotId(32), input_index, gss_node_id, env);
-            }
-            // NullableBoundaryOpt
-            NonterminalId(11) => {
-                // NullableBoundaryOpt : .
-                if self
-                    .scanner
-                    .match_any(&FIRST_SET_NULLABLE_BOUNDARY_OPT_ALT1, input_index)
-                    || self
-                        .scanner
-                        .match_any(&FOLLOW_SET_NULLABLE_BOUNDARY_OPT, input_index)
-                {
-                    self.add_first_descriptor(SlotId(38), input_index, gss_node_id, env);
-                }
-                // NullableBoundaryOpt : . "!"
-                if self
-                    .scanner
-                    .match_any(&FIRST_SET_NULLABLE_BOUNDARY_OPT_ALT0, input_index)
-                {
-                    self.add_first_descriptor(SlotId(36), input_index, gss_node_id, env);
-                }
-            }
-            // NullableBoundaryPostfix
-            NonterminalId(155) => {
-                // NullableBoundaryPostfix(p: i32) : . [1 >= p] l_pr=NullableBoundaryPostfix(p) [(l_pr == 0)
-                // || (l_pr >= 2)] WS "+" WS NullableBoundaryPostfix(1) return 1
-                if self
-                    .scanner
-                    .match_any(&FIRST_SET_NULLABLE_BOUNDARY_POSTFIX_ALT2, input_index)
-                {
-                    self.add_first_descriptor(SlotId(1017), input_index, gss_node_id, env);
-                }
-                // NullableBoundaryPostfix(p: i32) : . NullableBoundaryLeft WS "-" return 0
-                if self
-                    .scanner
-                    .match_any(&FIRST_SET_NULLABLE_BOUNDARY_POSTFIX_ALT1, input_index)
-                {
-                    self.add_first_descriptor(SlotId(1012), input_index, gss_node_id, env);
-                }
-                // NullableBoundaryPostfix(p: i32) : . "a" return 0
-                if self
-                    .scanner
-                    .match_any(&FIRST_SET_NULLABLE_BOUNDARY_POSTFIX_ALT0, input_index)
-                {
-                    self.add_first_descriptor(SlotId(1009), input_index, gss_node_id, env);
-                }
-            }
-            // NullableBoundaryLeft : . NullableBoundaryOpt WS NullableBoundaryPostfix(0)
-            NonterminalId(12) => {
-                self.add_first_descriptor(SlotId(39), input_index, gss_node_id, env);
-            }
-            // NullableBoundaryBinary
-            NonterminalId(156) => {
-                // NullableBoundaryBinary(p: i32) : . [1 >= p] l_pr=NullableBoundaryBinary(p) [(l_pr == 0) ||
-                // (l_pr >= 1)] WS "+" WS NullableBoundaryBinary(2) return 1
-                if self
-                    .scanner
-                    .match_any(&FIRST_SET_NULLABLE_BOUNDARY_BINARY_ALT2, input_index)
-                {
-                    self.add_first_descriptor(SlotId(1038), input_index, gss_node_id, env);
-                }
-                // NullableBoundaryBinary(p: i32) : . [2 >= p] l_pr=NullableBoundaryBinary(p) [(l_pr == 0) ||
-                // (l_pr >= 2)] WS "*" WS NullableBoundaryOperand return 0
-                if self
-                    .scanner
-                    .match_any(&FIRST_SET_NULLABLE_BOUNDARY_BINARY_ALT1, input_index)
-                {
-                    self.add_first_descriptor(SlotId(1029), input_index, gss_node_id, env);
-                }
-                // NullableBoundaryBinary(p: i32) : . "a" return 0
-                if self
-                    .scanner
-                    .match_any(&FIRST_SET_NULLABLE_BOUNDARY_BINARY_ALT0, input_index)
-                {
-                    self.add_first_descriptor(SlotId(1026), input_index, gss_node_id, env);
-                }
-            }
-            // NullableBoundaryOperand : . NullableBoundaryBinary(0) WS NullableBoundaryOpt
-            NonterminalId(13) => {
-                self.add_first_descriptor(SlotId(43), input_index, gss_node_id, env);
-            }
-            // ClosedLeftAssoc
-            NonterminalId(157) => {
-                // ClosedLeftAssoc(p: i32, a: i32) : . l_pr=ClosedLeftOperand(p, 0) [(l_pr ==
-                // UNDEFINED_PRECEDENCE) || ((1 >= p) && ((l_pr == 0) || (l_pr >= 1)))] WS "+" WS
-                // r_pr=ClosedLeftAssoc(1, (l_pr == UNDEFINED_PRECEDENCE) ? 0 : 1) [(l_pr ==
-                // UNDEFINED_PRECEDENCE) || (a != 1)] return 1
-                if self
-                    .scanner
-                    .match_any(&FIRST_SET_CLOSED_LEFT_ASSOC_ALT1, input_index)
-                {
-                    self.add_first_descriptor(SlotId(1050), input_index, gss_node_id, env);
-                }
-                // ClosedLeftAssoc(p: i32, a: i32) : . "a" return 0
-                if self
-                    .scanner
-                    .match_any(&FIRST_SET_CLOSED_LEFT_ASSOC_ALT0, input_index)
-                {
-                    self.add_first_descriptor(SlotId(1047), input_index, gss_node_id, env);
-                }
-            }
-            // ClosedLeftOperand
-            NonterminalId(158) => {
-                // ClosedLeftOperand(p: i32, a: i32) : . "!" return UNDEFINED_PRECEDENCE
-                if self
-                    .scanner
-                    .match_any(&FIRST_SET_CLOSED_LEFT_OPERAND_ALT1, input_index)
-                {
-                    self.add_first_descriptor(SlotId(1062), input_index, gss_node_id, env);
-                }
-                // ClosedLeftOperand(p: i32, a: i32) : . l_pr=ClosedLeftAssoc(p, a) return l_pr
-                if self
-                    .scanner
-                    .match_any(&FIRST_SET_CLOSED_LEFT_OPERAND_ALT0, input_index)
-                {
-                    self.add_first_descriptor(SlotId(1059), input_index, gss_node_id, env);
-                }
-            }
-            // ClosedRightAssoc
-            NonterminalId(159) => {
-                // ClosedRightAssoc(p: i32, a: i32) : . [1 >= p] (l_pr, l_assoc)=ClosedRightAssoc(p, 0)
-                // [(l_pr == 0) || (l_pr >= 1)] WS "+" WS (r_pr, r_assoc)=ClosedRightOperand(1, 0) [(r_pr ==
-                // UNDEFINED_PRECEDENCE) || (l_assoc != 1)] return ((r_pr == UNDEFINED_PRECEDENCE) ? 0 : 1,
-                // (r_pr == UNDEFINED_PRECEDENCE) ? 0 : 1)
-                if self
-                    .scanner
-                    .match_any(&FIRST_SET_CLOSED_RIGHT_ASSOC_ALT1, input_index)
-                {
-                    self.add_first_descriptor(SlotId(1068), input_index, gss_node_id, env);
-                }
-                // ClosedRightAssoc(p: i32, a: i32) : . "a" return (0, 0)
-                if self
-                    .scanner
-                    .match_any(&FIRST_SET_CLOSED_RIGHT_ASSOC_ALT0, input_index)
-                {
-                    self.add_first_descriptor(SlotId(1065), input_index, gss_node_id, env);
-                }
-            }
-            // ClosedRightOperand
-            NonterminalId(160) => {
-                // ClosedRightOperand(p: i32, a: i32) : . "!" return (UNDEFINED_PRECEDENCE, 0)
-                if self
-                    .scanner
-                    .match_any(&FIRST_SET_CLOSED_RIGHT_OPERAND_ALT1, input_index)
-                {
-                    self.add_first_descriptor(SlotId(1081), input_index, gss_node_id, env);
-                }
-                // ClosedRightOperand(p: i32, a: i32) : . (r_pr, r_assoc)=ClosedRightAssoc(p, a) return
-                // (r_pr, r_assoc)
-                if self
-                    .scanner
-                    .match_any(&FIRST_SET_CLOSED_RIGHT_OPERAND_ALT0, input_index)
-                {
-                    self.add_first_descriptor(SlotId(1078), input_index, gss_node_id, env);
-                }
-            }
-            // IndirectExclude
-            NonterminalId(161) => {
-                // IndirectExclude(p: i32, a: i32, e: i32) : . [2 & e == 0] (l_pr,
-                // l_label)=IndirectExcludeOperand(p, 0, 0, 0) [(l_pr == UNDEFINED_PRECEDENCE) || ((1 >= p)
-                // && ((l_pr == 0) || (l_pr >= 1)))] WS "+" WS (r_pr, r_label)=IndirectExcludeOperand(1, 1,
-                // (l_pr == UNDEFINED_PRECEDENCE) ? 0 : 1, 0) [((l_pr == UNDEFINED_PRECEDENCE) || (r_pr ==
-                // UNDEFINED_PRECEDENCE)) || (a != 1)] return ((r_pr == UNDEFINED_PRECEDENCE) ? 0 : 1, 1)
-                if self
-                    .scanner
-                    .match_any(&FIRST_SET_INDIRECT_EXCLUDE_ALT1, input_index)
-                {
-                    self.add_first_descriptor(SlotId(1088), input_index, gss_node_id, env);
-                }
-                // IndirectExclude(p: i32, a: i32, e: i32) : . [1 & e == 0] "a" return (0, 0)
-                if self
-                    .scanner
-                    .match_any(&FIRST_SET_INDIRECT_EXCLUDE_ALT0, input_index)
-                {
-                    self.add_first_descriptor(SlotId(1084), input_index, gss_node_id, env);
-                }
-            }
-            // IndirectExcludeOperand
-            NonterminalId(162) => {
-                // IndirectExcludeOperand(p: i32, end: i32, a: i32, e: i32) : . [2 & e == 0] "b" return
-                // (UNDEFINED_PRECEDENCE, 1)
-                if self
-                    .scanner
-                    .match_any(&FIRST_SET_INDIRECT_EXCLUDE_OPERAND_ALT1, input_index)
-                {
-                    self.add_first_descriptor(SlotId(1103), input_index, gss_node_id, env);
-                }
-                // IndirectExcludeOperand(p: i32, end: i32, a: i32, e: i32) : . [1 & e == 0] (v_pr,
-                // v_label)=IndirectExclude(p, a, 0) [(v_label == NO_LABEL) || ((1 >> v_label) & 1 == 0)]
-                // return (v_pr, 0)
-                if self
-                    .scanner
-                    .match_any(&FIRST_SET_INDIRECT_EXCLUDE_OPERAND_ALT0, input_index)
-                {
-                    self.add_first_descriptor(SlotId(1098), input_index, gss_node_id, env);
-                }
-            }
-            // IndirectExcludeFiltered : . IndirectExcludeOperand(0, 0, 0, 2)
-            NonterminalId(14) => {
-                self.add_first_descriptor(SlotId(47), input_index, gss_node_id, env);
-            }
-            // OperandLiteral
-            NonterminalId(163) => {
-                // OperandLiteral(p: i32, a: i32) : . l_pr=OperandLiteralEnd(p, 0, 0) [(l_pr ==
-                // UNDEFINED_PRECEDENCE) || ((1 >= p) && ((l_pr == 0) || (l_pr >= 1)))] WS "+" WS
-                // r_pr=OperandLiteralEnd(1, 1, (l_pr == UNDEFINED_PRECEDENCE) ? 0 : 1) [((l_pr ==
-                // UNDEFINED_PRECEDENCE) || (r_pr == UNDEFINED_PRECEDENCE)) || (a != 1)] return (r_pr ==
-                // UNDEFINED_PRECEDENCE) ? 0 : 1
-                if self
-                    .scanner
-                    .match_any(&FIRST_SET_OPERAND_LITERAL_ALT2, input_index)
-                {
-                    self.add_first_descriptor(SlotId(1119), input_index, gss_node_id, env);
-                }
-                // OperandLiteral(p: i32, a: i32) : . l_pr=OperandLiteralEnd(p, 0, 0) [(l_pr ==
-                // UNDEFINED_PRECEDENCE) || ((2 >= p) && ((l_pr == 0) || (l_pr >= 2)))] WS "*" WS
-                // r_pr=OperandLiteralEnd(2, 1, (l_pr == UNDEFINED_PRECEDENCE) ? 0 : 2) [((l_pr ==
-                // UNDEFINED_PRECEDENCE) || (r_pr == UNDEFINED_PRECEDENCE)) || (a != 2)] return (r_pr ==
-                // UNDEFINED_PRECEDENCE) ? 0 : ((r_pr == 0) ? 2 : min(r_pr, 2))
-                if self
-                    .scanner
-                    .match_any(&FIRST_SET_OPERAND_LITERAL_ALT1, input_index)
-                {
-                    self.add_first_descriptor(SlotId(1110), input_index, gss_node_id, env);
-                }
-                // OperandLiteral(p: i32, a: i32) : . "x" return 0
-                if self
-                    .scanner
-                    .match_any(&FIRST_SET_OPERAND_LITERAL_ALT0, input_index)
-                {
-                    self.add_first_descriptor(SlotId(1107), input_index, gss_node_id, env);
-                }
-            }
-            // OperandLiteralEnd
-            NonterminalId(164) => {
-                // OperandLiteralEnd(p: i32, end: i32, a: i32) : . "1" return UNDEFINED_PRECEDENCE
-                if self
-                    .scanner
-                    .match_any(&FIRST_SET_OPERAND_LITERAL_END_ALT1, input_index)
-                {
-                    self.add_first_descriptor(SlotId(1131), input_index, gss_node_id, env);
-                }
-                // OperandLiteralEnd(p: i32, end: i32, a: i32) : . v_pr=OperandLiteral(p, a) return v_pr
-                if self
-                    .scanner
-                    .match_any(&FIRST_SET_OPERAND_LITERAL_END_ALT0, input_index)
-                {
-                    self.add_first_descriptor(SlotId(1128), input_index, gss_node_id, env);
-                }
-            }
-            // HeadLiteral
-            NonterminalId(165) => {
-                // HeadLiteral(p: i32) : . [1 >= p] l_pr=HeadLiteralEnd(p, 0) [(l_pr == 0) || (l_pr >= 1)] WS
-                // "+" WS HeadLiteralEnd(2, 1) return 1
-                if self
-                    .scanner
-                    .match_any(&FIRST_SET_HEAD_LITERAL_ALT3, input_index)
-                {
-                    self.add_first_descriptor(SlotId(1149), input_index, gss_node_id, env);
-                }
-                // HeadLiteral(p: i32) : . [2 >= p] l_pr=HeadLiteralEnd(p, 0) [(l_pr == 0) || (l_pr >= 2)] WS
-                // "*" WS HeadLiteralEnd(3, 1) return 2
-                if self
-                    .scanner
-                    .match_any(&FIRST_SET_HEAD_LITERAL_ALT2, input_index)
-                {
-                    self.add_first_descriptor(SlotId(1140), input_index, gss_node_id, env);
-                }
-                // HeadLiteral(p: i32) : . "1" return 0
-                if self
-                    .scanner
-                    .match_any(&FIRST_SET_HEAD_LITERAL_ALT1, input_index)
-                {
-                    self.add_first_descriptor(SlotId(1137), input_index, gss_node_id, env);
-                }
-                // HeadLiteral(p: i32) : . "x" return 0
-                if self
-                    .scanner
-                    .match_any(&FIRST_SET_HEAD_LITERAL_ALT0, input_index)
-                {
-                    self.add_first_descriptor(SlotId(1134), input_index, gss_node_id, env);
-                }
-            }
-            // HeadLiteralEnd(p: i32, end: i32) : . v_pr=HeadLiteral(p) return v_pr
-            NonterminalId(166) => {
-                self.add_first_descriptor(SlotId(1158), input_index, gss_node_id, env);
-            }
-            // Opt_0
-            NonterminalId(15) => {
-                // Opt_0 : .
-                if self.scanner.match_any(&FIRST_SET_OPT_0_ALT1, input_index)
-                    || self.scanner.match_any(&FOLLOW_SET_OPT_0, input_index)
-                {
-                    self.add_first_descriptor(SlotId(51), input_index, gss_node_id, env);
-                }
-                // Opt_0 : . "x"
-                if self.scanner.match_any(&FIRST_SET_OPT_0_ALT0, input_index) {
-                    self.add_first_descriptor(SlotId(49), input_index, gss_node_id, env);
-                }
-            }
-            // Opt_1
-            NonterminalId(167) => {
-                // Opt_1(p: i32, a: i32) : . return (UNDEFINED_PRECEDENCE, 0)
-                if self.scanner.match_any(&FIRST_SET_OPT_1_ALT1, input_index)
-                    || self.scanner.match_any(&FOLLOW_SET_OPT_1, input_index)
-                {
-                    self.add_first_descriptor(SlotId(1164), input_index, gss_node_id, env);
-                }
-                // Opt_1(p: i32, a: i32) : . (l_pr, l_assoc)=NullableRecursive(p, a) return (l_pr, l_assoc)
-                if self.scanner.match_any(&FIRST_SET_OPT_1_ALT0, input_index) {
-                    self.add_first_descriptor(SlotId(1161), input_index, gss_node_id, env);
-                }
-            }
-            // Opt_2
-            NonterminalId(168) => {
-                // Opt_2(p: i32, a: i32) : . return UNDEFINED_PRECEDENCE
-                if self.scanner.match_any(&FIRST_SET_OPT_2_ALT1, input_index)
-                    || self.scanner.match_any(&FOLLOW_SET_OPT_2, input_index)
-                {
-                    self.add_first_descriptor(SlotId(1169), input_index, gss_node_id, env);
-                }
-                // Opt_2(p: i32, a: i32) : . r_pr=NullableSuffix(p, a) return r_pr
-                if self.scanner.match_any(&FIRST_SET_OPT_2_ALT0, input_index) {
-                    self.add_first_descriptor(SlotId(1166), input_index, gss_node_id, env);
-                }
-            }
-            // Opt_3
-            NonterminalId(169) => {
-                // Opt_3(p: i32, end: i32, a: i32) : . return (UNDEFINED_PRECEDENCE, 0)
-                if self.scanner.match_any(&FIRST_SET_OPT_3_ALT1, input_index)
-                    || self.scanner.match_any(&FOLLOW_SET_OPT_3, input_index)
-                {
-                    self.add_first_descriptor(SlotId(1174), input_index, gss_node_id, env);
-                }
-                // Opt_3(p: i32, end: i32, a: i32) : . (v_pr, v_assoc)=NullableShared(p, a) return (v_pr,
-                // v_assoc)
-                if self.scanner.match_any(&FIRST_SET_OPT_3_ALT0, input_index) {
-                    self.add_first_descriptor(SlotId(1171), input_index, gss_node_id, env);
-                }
-            }
-            // StartS : . WS start:S WS
-            NonterminalId(16) => {
-                self.add_first_descriptor(SlotId(52), input_index, gss_node_id, env);
-            }
-            // StartE : . WS start:E(0) WS
-            NonterminalId(17) => {
-                self.add_first_descriptor(SlotId(56), input_index, gss_node_id, env);
-            }
-            // StartL : . WS start:L(0, 0) WS
-            NonterminalId(18) => {
-                self.add_first_descriptor(SlotId(60), input_index, gss_node_id, env);
-            }
-            // StartOnly : . WS start:Only(0) WS
-            NonterminalId(19) => {
-                self.add_first_descriptor(SlotId(64), input_index, gss_node_id, env);
-            }
-            // StartOnlyOperand : . WS start:OnlyOperand(0, 0) WS
-            NonterminalId(20) => {
-                self.add_first_descriptor(SlotId(68), input_index, gss_node_id, env);
-            }
-            // StartCross : . WS start:Cross(0) WS
-            NonterminalId(21) => {
-                self.add_first_descriptor(SlotId(72), input_index, gss_node_id, env);
-            }
-            // StartForeign : . WS start:Foreign(0) WS
-            NonterminalId(22) => {
-                self.add_first_descriptor(SlotId(76), input_index, gss_node_id, env);
-            }
-            // StartCascade : . WS start:Cascade(0) WS
-            NonterminalId(23) => {
-                self.add_first_descriptor(SlotId(80), input_index, gss_node_id, env);
-            }
-            // StartTernary : . WS start:Ternary WS
-            NonterminalId(24) => {
-                self.add_first_descriptor(SlotId(84), input_index, gss_node_id, env);
-            }
-            // StartNullable : . WS start:Nullable(0) WS
-            NonterminalId(25) => {
-                self.add_first_descriptor(SlotId(88), input_index, gss_node_id, env);
-            }
-            // StartNullableLeft : . WS start:NullableLeft WS
-            NonterminalId(26) => {
-                self.add_first_descriptor(SlotId(92), input_index, gss_node_id, env);
-            }
-            // StartNullableRight : . WS start:NullableRight(0) WS
-            NonterminalId(27) => {
-                self.add_first_descriptor(SlotId(96), input_index, gss_node_id, env);
-            }
-            // StartRightExpr : . WS start:RightExpr(0) WS
-            NonterminalId(28) => {
-                self.add_first_descriptor(SlotId(100), input_index, gss_node_id, env);
-            }
-            // StartRightOperand : . WS start:RightOperand(0, 0) WS
-            NonterminalId(29) => {
-                self.add_first_descriptor(SlotId(104), input_index, gss_node_id, env);
-            }
-            // StartNoneExpr : . WS start:NoneExpr(0) WS
-            NonterminalId(30) => {
-                self.add_first_descriptor(SlotId(108), input_index, gss_node_id, env);
-            }
-            // StartNoneOperand : . WS start:NoneOperand(0, 0) WS
-            NonterminalId(31) => {
-                self.add_first_descriptor(SlotId(112), input_index, gss_node_id, env);
-            }
-            // StartExcluded : . WS start:Excluded(0, 0) WS
-            NonterminalId(32) => {
-                self.add_first_descriptor(SlotId(116), input_index, gss_node_id, env);
-            }
-            // StartExcludedOperand : . WS start:ExcludedOperand(0, 0, 0, 0) WS
-            NonterminalId(33) => {
-                self.add_first_descriptor(SlotId(120), input_index, gss_node_id, env);
-            }
-            // StartFiltered : . WS start:Filtered WS
-            NonterminalId(34) => {
-                self.add_first_descriptor(SlotId(124), input_index, gss_node_id, env);
-            }
-            // StartLexNullable : . WS start:LexNullable(0) WS
-            NonterminalId(35) => {
-                self.add_first_descriptor(SlotId(128), input_index, gss_node_id, env);
-            }
-            // StartLexNullableLeft : . WS start:LexNullableLeft WS
-            NonterminalId(36) => {
-                self.add_first_descriptor(SlotId(132), input_index, gss_node_id, env);
-            }
-            // StartLexNullableRight : . WS start:LexNullableRight(0) WS
-            NonterminalId(37) => {
-                self.add_first_descriptor(SlotId(136), input_index, gss_node_id, env);
-            }
-            // StartMixedScale : . WS start:MixedScale(0, 0) WS
-            NonterminalId(38) => {
-                self.add_first_descriptor(SlotId(140), input_index, gss_node_id, env);
-            }
-            // StartMixedOperand : . WS start:MixedOperand(0, 0) WS
-            NonterminalId(39) => {
-                self.add_first_descriptor(SlotId(144), input_index, gss_node_id, env);
-            }
-            // StartMixedRight : . WS start:MixedRight(0, 0) WS
-            NonterminalId(40) => {
-                self.add_first_descriptor(SlotId(148), input_index, gss_node_id, env);
-            }
-            // StartMixedForeign : . WS start:MixedForeign(0) WS
-            NonterminalId(41) => {
-                self.add_first_descriptor(SlotId(152), input_index, gss_node_id, env);
-            }
-            // StartPacked : . WS start:Packed(0, 0) WS
-            NonterminalId(42) => {
-                self.add_first_descriptor(SlotId(156), input_index, gss_node_id, env);
-            }
-            // StartPackedOperand : . WS start:PackedOperand(0, 0, 0) WS
-            NonterminalId(43) => {
-                self.add_first_descriptor(SlotId(160), input_index, gss_node_id, env);
-            }
-            // StartPackedMiddle : . WS start:PackedMiddle(0, 0, 0, 0) WS
-            NonterminalId(44) => {
-                self.add_first_descriptor(SlotId(164), input_index, gss_node_id, env);
-            }
-            // StartPackedFiltered : . WS start:PackedFiltered WS
-            NonterminalId(45) => {
-                self.add_first_descriptor(SlotId(168), input_index, gss_node_id, env);
-            }
-            // StartNullableRecursive : . WS start:NullableRecursive(0, 0) WS
-            NonterminalId(46) => {
-                self.add_first_descriptor(SlotId(172), input_index, gss_node_id, env);
-            }
-            // StartNullableOperand : . WS start:NullableOperand(0, 0) WS
-            NonterminalId(47) => {
-                self.add_first_descriptor(SlotId(176), input_index, gss_node_id, env);
-            }
-            // StartNullableMaybe : . WS start:NullableMaybe(0, 0) WS
-            NonterminalId(48) => {
-                self.add_first_descriptor(SlotId(180), input_index, gss_node_id, env);
-            }
-            // StartNullableLexRecursive : . WS start:NullableLexRecursive(0, 0) WS
-            NonterminalId(49) => {
-                self.add_first_descriptor(SlotId(184), input_index, gss_node_id, env);
-            }
-            // StartNullableLexOperand : . WS start:NullableLexOperand(0, 0) WS
-            NonterminalId(50) => {
-                self.add_first_descriptor(SlotId(188), input_index, gss_node_id, env);
-            }
-            // StartNullableLexMaybe : . WS start:NullableLexMaybe(0, 0) WS
-            NonterminalId(51) => {
-                self.add_first_descriptor(SlotId(192), input_index, gss_node_id, env);
-            }
-            // StartNullableSuffix : . WS start:NullableSuffix(0, 0) WS
-            NonterminalId(52) => {
-                self.add_first_descriptor(SlotId(196), input_index, gss_node_id, env);
-            }
-            // StartNullableSuffixOperand : . WS start:NullableSuffixOperand(0, 0) WS
-            NonterminalId(53) => {
-                self.add_first_descriptor(SlotId(200), input_index, gss_node_id, env);
-            }
-            // StartNullableSuffixMaybe : . WS start:NullableSuffixMaybe(0, 0) WS
-            NonterminalId(54) => {
-                self.add_first_descriptor(SlotId(204), input_index, gss_node_id, env);
-            }
-            // StartNullableShared : . WS start:NullableShared(0, 0) WS
-            NonterminalId(55) => {
-                self.add_first_descriptor(SlotId(208), input_index, gss_node_id, env);
-            }
-            // StartNullableSharedOperand : . WS start:NullableSharedOperand(0, 0, 0) WS
-            NonterminalId(56) => {
-                self.add_first_descriptor(SlotId(212), input_index, gss_node_id, env);
-            }
-            // StartNullableSharedMaybe : . WS start:NullableSharedMaybe(0, 0, 0) WS
-            NonterminalId(57) => {
-                self.add_first_descriptor(SlotId(216), input_index, gss_node_id, env);
-            }
-            // StartOwnLabel : . WS start:OwnLabel(0, 0, 0) WS
-            NonterminalId(58) => {
-                self.add_first_descriptor(SlotId(220), input_index, gss_node_id, env);
-            }
-            // StartOwnOperand : . WS start:OwnOperand(0, 0, 0, 0) WS
-            NonterminalId(59) => {
-                self.add_first_descriptor(SlotId(224), input_index, gss_node_id, env);
-            }
-            // StartOwnHeadFiltered : . WS start:OwnHeadFiltered WS
-            NonterminalId(60) => {
-                self.add_first_descriptor(SlotId(228), input_index, gss_node_id, env);
-            }
-            // StartExcludeOnly : . WS start:ExcludeOnly(0) WS
-            NonterminalId(61) => {
-                self.add_first_descriptor(SlotId(232), input_index, gss_node_id, env);
-            }
-            // StartExcludeOnlyFiltered : . WS start:ExcludeOnlyFiltered WS
-            NonterminalId(62) => {
-                self.add_first_descriptor(SlotId(236), input_index, gss_node_id, env);
-            }
-            // StartAbsent : . WS start:Absent(0) WS
-            NonterminalId(63) => {
-                self.add_first_descriptor(SlotId(240), input_index, gss_node_id, env);
-            }
-            // StartAbsentOperand : . WS start:AbsentOperand(0, 0) WS
-            NonterminalId(64) => {
-                self.add_first_descriptor(SlotId(244), input_index, gss_node_id, env);
-            }
-            // StartClosedPrefix : . WS start:ClosedPrefix(0) WS
-            NonterminalId(65) => {
-                self.add_first_descriptor(SlotId(248), input_index, gss_node_id, env);
-            }
-            // StartClosedPrefixBody : . WS start:ClosedPrefixBody(0) WS
-            NonterminalId(66) => {
-                self.add_first_descriptor(SlotId(252), input_index, gss_node_id, env);
-            }
-            // StartClosedPostfix : . WS start:ClosedPostfix(0) WS
-            NonterminalId(67) => {
-                self.add_first_descriptor(SlotId(256), input_index, gss_node_id, env);
-            }
-            // StartClosedPostfixBody : . WS start:ClosedPostfixBody(0) WS
-            NonterminalId(68) => {
-                self.add_first_descriptor(SlotId(260), input_index, gss_node_id, env);
-            }
-            // StartHeadChoice : . WS start:HeadChoice(0) WS
-            NonterminalId(69) => {
-                self.add_first_descriptor(SlotId(264), input_index, gss_node_id, env);
-            }
-            // StartHeadOperand : . WS start:HeadOperand(0, 0) WS
-            NonterminalId(70) => {
-                self.add_first_descriptor(SlotId(268), input_index, gss_node_id, env);
-            }
-            // StartInner : . WS start:Inner(0) WS
-            NonterminalId(71) => {
-                self.add_first_descriptor(SlotId(272), input_index, gss_node_id, env);
-            }
-            // StartUnaryMixedLeft : . WS start:UnaryMixedLeft(0, 0) WS
-            NonterminalId(72) => {
-                self.add_first_descriptor(SlotId(276), input_index, gss_node_id, env);
-            }
-            // StartUnaryMixedRight : . WS start:UnaryMixedRight(0, 0) WS
-            NonterminalId(73) => {
-                self.add_first_descriptor(SlotId(280), input_index, gss_node_id, env);
-            }
-            // StartUnaryMixedNone : . WS start:UnaryMixedNone(0, 0) WS
-            NonterminalId(74) => {
-                self.add_first_descriptor(SlotId(284), input_index, gss_node_id, env);
-            }
-            // StartDynamic : . WS start:Dynamic(0, 0, 0) WS
-            NonterminalId(75) => {
-                self.add_first_descriptor(SlotId(288), input_index, gss_node_id, env);
-            }
-            // StartDynamicOperand : . WS start:DynamicOperand(0, 0, 0, 0) WS
-            NonterminalId(76) => {
-                self.add_first_descriptor(SlotId(292), input_index, gss_node_id, env);
-            }
-            // StartDynamicFiltered : . WS start:DynamicFiltered WS
-            NonterminalId(77) => {
-                self.add_first_descriptor(SlotId(296), input_index, gss_node_id, env);
-            }
-            // StartDynamicHeadFiltered : . WS start:DynamicHeadFiltered WS
-            NonterminalId(78) => {
-                self.add_first_descriptor(SlotId(300), input_index, gss_node_id, env);
-            }
-            // StartDynamicMulti : . WS start:DynamicMulti(0, 0) WS
-            NonterminalId(79) => {
-                self.add_first_descriptor(SlotId(304), input_index, gss_node_id, env);
-            }
-            // StartDynamicMultiOperand : . WS start:DynamicMultiOperand(0, 0, 0) WS
-            NonterminalId(80) => {
-                self.add_first_descriptor(SlotId(308), input_index, gss_node_id, env);
-            }
-            // StartNullableBoundaryPrefix : . WS start:NullableBoundaryPrefix(0) WS
-            NonterminalId(81) => {
-                self.add_first_descriptor(SlotId(312), input_index, gss_node_id, env);
-            }
-            // StartNullableBoundaryRight : . WS start:NullableBoundaryRight WS
-            NonterminalId(82) => {
-                self.add_first_descriptor(SlotId(316), input_index, gss_node_id, env);
-            }
-            // StartNullableBoundaryOpt : . WS start:NullableBoundaryOpt WS
-            NonterminalId(83) => {
-                self.add_first_descriptor(SlotId(320), input_index, gss_node_id, env);
-            }
-            // StartNullableBoundaryPostfix : . WS start:NullableBoundaryPostfix(0) WS
-            NonterminalId(84) => {
-                self.add_first_descriptor(SlotId(324), input_index, gss_node_id, env);
-            }
-            // StartNullableBoundaryLeft : . WS start:NullableBoundaryLeft WS
-            NonterminalId(85) => {
-                self.add_first_descriptor(SlotId(328), input_index, gss_node_id, env);
-            }
-            // StartNullableBoundaryBinary : . WS start:NullableBoundaryBinary(0) WS
-            NonterminalId(86) => {
-                self.add_first_descriptor(SlotId(332), input_index, gss_node_id, env);
-            }
-            // StartNullableBoundaryOperand : . WS start:NullableBoundaryOperand WS
-            NonterminalId(87) => {
-                self.add_first_descriptor(SlotId(336), input_index, gss_node_id, env);
-            }
-            // StartClosedLeftAssoc : . WS start:ClosedLeftAssoc(0, 0) WS
-            NonterminalId(88) => {
-                self.add_first_descriptor(SlotId(340), input_index, gss_node_id, env);
-            }
-            // StartClosedLeftOperand : . WS start:ClosedLeftOperand(0, 0) WS
-            NonterminalId(89) => {
-                self.add_first_descriptor(SlotId(344), input_index, gss_node_id, env);
-            }
-            // StartClosedRightAssoc : . WS start:ClosedRightAssoc(0, 0) WS
-            NonterminalId(90) => {
-                self.add_first_descriptor(SlotId(348), input_index, gss_node_id, env);
-            }
-            // StartClosedRightOperand : . WS start:ClosedRightOperand(0, 0) WS
-            NonterminalId(91) => {
-                self.add_first_descriptor(SlotId(352), input_index, gss_node_id, env);
-            }
-            // StartIndirectExclude : . WS start:IndirectExclude(0, 0, 0) WS
-            NonterminalId(92) => {
-                self.add_first_descriptor(SlotId(356), input_index, gss_node_id, env);
-            }
-            // StartIndirectExcludeOperand : . WS start:IndirectExcludeOperand(0, 0, 0, 0) WS
-            NonterminalId(93) => {
-                self.add_first_descriptor(SlotId(360), input_index, gss_node_id, env);
-            }
-            // StartIndirectExcludeFiltered : . WS start:IndirectExcludeFiltered WS
-            NonterminalId(94) => {
-                self.add_first_descriptor(SlotId(364), input_index, gss_node_id, env);
-            }
-            // StartOperandLiteral : . WS start:OperandLiteral(0, 0) WS
-            NonterminalId(95) => {
-                self.add_first_descriptor(SlotId(368), input_index, gss_node_id, env);
-            }
-            // StartOperandLiteralEnd : . WS start:OperandLiteralEnd(0, 0, 0) WS
-            NonterminalId(96) => {
-                self.add_first_descriptor(SlotId(372), input_index, gss_node_id, env);
-            }
-            // StartHeadLiteral : . WS start:HeadLiteral(0) WS
-            NonterminalId(97) => {
-                self.add_first_descriptor(SlotId(376), input_index, gss_node_id, env);
-            }
-            // StartHeadLiteralEnd : . WS start:HeadLiteralEnd(0, 0) WS
-            NonterminalId(98) => {
-                self.add_first_descriptor(SlotId(380), input_index, gss_node_id, env);
-            }
-            _ => {
-                panic!("Unknown nonterminal id: {nonterminal_id}");
             }
         }
     }
@@ -18497,6 +16868,9 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
     fn match_any(&mut self, set: &'static TerminalSet, input_index: u32) -> bool {
         self.scanner.match_any(set, input_index)
     }
+    fn predict(&mut self, prediction: &'static Prediction, input_index: u32) -> Self::Alternatives {
+        self.scanner.predict(prediction, input_index)
+    }
     fn vec_arena(&self) -> &'arena Arena {
         self.vec_arena
     }
@@ -19478,6 +17852,7 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
             .parse(START_HEAD_LITERAL_END, tree_arena)?
             .map(ParseTree::unwrap_start_head_literal_end))
     }
+    #[inline(never)]
     #[allow(clippy::too_many_arguments)]
     fn create_e(
         &mut self,
@@ -19502,14 +17877,23 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
                 return_slot,
                 env,
             );
-        } else if self.match_any(&PREDICTION_SET_E, i) {
+            return;
+        }
+        let alternatives = self.predict(&PREDICTION_E, i);
+        if !alternatives.is_empty() {
             record!(self, GSSNodeNotFound, NonterminalId(99), i);
             let new_gss_node_id = self.new_gss_node(NonterminalId(99), i);
             self.add_gss_edge(new_gss_node_id, gss_node_id, sppf_node_id, return_slot, env);
             let arena = self.vec_arena;
             let (env_id, env) = self.new_env();
             env.bind(BINDING_P, p, arena);
-            self.add_first_descriptors(NonterminalId(99), i, new_gss_node_id, Some(env_id));
+            self.add_first_descriptors(
+                NonterminalId(99),
+                i,
+                new_gss_node_id,
+                Some(env_id),
+                alternatives,
+            );
             self.add_gss_node_e(i, p, new_gss_node_id);
         } else {
             // The call symbol precedes the return slot in its alternative, so the return slot is never
@@ -19520,10 +17904,11 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
                 i,
                 call_slot,
                 Some(gss_node_id),
-                GLLFailureKind::UnexpectedToken(&PREDICTION_SET_E),
+                GLLFailureKind::NoViableAlternative(&PREDICTION_E),
             );
         }
     }
+    #[inline(never)]
     #[allow(clippy::too_many_arguments)]
     fn create_l(
         &mut self,
@@ -19549,7 +17934,10 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
                 return_slot,
                 env,
             );
-        } else if self.match_any(&PREDICTION_SET_L, i) {
+            return;
+        }
+        let alternatives = self.predict(&PREDICTION_L, i);
+        if !alternatives.is_empty() {
             record!(self, GSSNodeNotFound, NonterminalId(100), i);
             let new_gss_node_id = self.new_gss_node(NonterminalId(100), i);
             self.add_gss_edge(new_gss_node_id, gss_node_id, sppf_node_id, return_slot, env);
@@ -19557,7 +17945,13 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
             let (env_id, env) = self.new_env();
             env.bind(BINDING_P, p, arena);
             env.bind(BINDING_END, end, arena);
-            self.add_first_descriptors(NonterminalId(100), i, new_gss_node_id, Some(env_id));
+            self.add_first_descriptors(
+                NonterminalId(100),
+                i,
+                new_gss_node_id,
+                Some(env_id),
+                alternatives,
+            );
             self.add_gss_node_l(i, p, end, new_gss_node_id);
         } else {
             // The call symbol precedes the return slot in its alternative, so the return slot is never
@@ -19568,10 +17962,11 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
                 i,
                 call_slot,
                 Some(gss_node_id),
-                GLLFailureKind::UnexpectedToken(&PREDICTION_SET_L),
+                GLLFailureKind::NoViableAlternative(&PREDICTION_L),
             );
         }
     }
+    #[inline(never)]
     #[allow(clippy::too_many_arguments)]
     fn create_only(
         &mut self,
@@ -19596,14 +17991,23 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
                 return_slot,
                 env,
             );
-        } else if self.match_any(&PREDICTION_SET_ONLY, i) {
+            return;
+        }
+        let alternatives = self.predict(&PREDICTION_ONLY, i);
+        if !alternatives.is_empty() {
             record!(self, GSSNodeNotFound, NonterminalId(101), i);
             let new_gss_node_id = self.new_gss_node(NonterminalId(101), i);
             self.add_gss_edge(new_gss_node_id, gss_node_id, sppf_node_id, return_slot, env);
             let arena = self.vec_arena;
             let (env_id, env) = self.new_env();
             env.bind(BINDING_P, p, arena);
-            self.add_first_descriptors(NonterminalId(101), i, new_gss_node_id, Some(env_id));
+            self.add_first_descriptors(
+                NonterminalId(101),
+                i,
+                new_gss_node_id,
+                Some(env_id),
+                alternatives,
+            );
             self.add_gss_node_only(i, p, new_gss_node_id);
         } else {
             // The call symbol precedes the return slot in its alternative, so the return slot is never
@@ -19614,10 +18018,11 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
                 i,
                 call_slot,
                 Some(gss_node_id),
-                GLLFailureKind::UnexpectedToken(&PREDICTION_SET_ONLY),
+                GLLFailureKind::NoViableAlternative(&PREDICTION_ONLY),
             );
         }
     }
+    #[inline(never)]
     #[allow(clippy::too_many_arguments)]
     fn create_only_operand(
         &mut self,
@@ -19643,7 +18048,10 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
                 return_slot,
                 env,
             );
-        } else if self.match_any(&PREDICTION_SET_ONLY_OPERAND, i) {
+            return;
+        }
+        let alternatives = self.predict(&PREDICTION_ONLY_OPERAND, i);
+        if !alternatives.is_empty() {
             record!(self, GSSNodeNotFound, NonterminalId(102), i);
             let new_gss_node_id = self.new_gss_node(NonterminalId(102), i);
             self.add_gss_edge(new_gss_node_id, gss_node_id, sppf_node_id, return_slot, env);
@@ -19651,7 +18059,13 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
             let (env_id, env) = self.new_env();
             env.bind(BINDING_P, p, arena);
             env.bind(BINDING_END, end, arena);
-            self.add_first_descriptors(NonterminalId(102), i, new_gss_node_id, Some(env_id));
+            self.add_first_descriptors(
+                NonterminalId(102),
+                i,
+                new_gss_node_id,
+                Some(env_id),
+                alternatives,
+            );
             self.add_gss_node_only_operand(i, p, end, new_gss_node_id);
         } else {
             // The call symbol precedes the return slot in its alternative, so the return slot is never
@@ -19662,10 +18076,11 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
                 i,
                 call_slot,
                 Some(gss_node_id),
-                GLLFailureKind::UnexpectedToken(&PREDICTION_SET_ONLY_OPERAND),
+                GLLFailureKind::NoViableAlternative(&PREDICTION_ONLY_OPERAND),
             );
         }
     }
+    #[inline(never)]
     #[allow(clippy::too_many_arguments)]
     fn create_cross(
         &mut self,
@@ -19690,14 +18105,23 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
                 return_slot,
                 env,
             );
-        } else if self.match_any(&PREDICTION_SET_CROSS, i) {
+            return;
+        }
+        let alternatives = self.predict(&PREDICTION_CROSS, i);
+        if !alternatives.is_empty() {
             record!(self, GSSNodeNotFound, NonterminalId(103), i);
             let new_gss_node_id = self.new_gss_node(NonterminalId(103), i);
             self.add_gss_edge(new_gss_node_id, gss_node_id, sppf_node_id, return_slot, env);
             let arena = self.vec_arena;
             let (env_id, env) = self.new_env();
             env.bind(BINDING_P, p, arena);
-            self.add_first_descriptors(NonterminalId(103), i, new_gss_node_id, Some(env_id));
+            self.add_first_descriptors(
+                NonterminalId(103),
+                i,
+                new_gss_node_id,
+                Some(env_id),
+                alternatives,
+            );
             self.add_gss_node_cross(i, p, new_gss_node_id);
         } else {
             // The call symbol precedes the return slot in its alternative, so the return slot is never
@@ -19708,10 +18132,11 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
                 i,
                 call_slot,
                 Some(gss_node_id),
-                GLLFailureKind::UnexpectedToken(&PREDICTION_SET_CROSS),
+                GLLFailureKind::NoViableAlternative(&PREDICTION_CROSS),
             );
         }
     }
+    #[inline(never)]
     #[allow(clippy::too_many_arguments)]
     fn create_foreign(
         &mut self,
@@ -19736,14 +18161,23 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
                 return_slot,
                 env,
             );
-        } else if self.match_any(&PREDICTION_SET_FOREIGN, i) {
+            return;
+        }
+        let alternatives = self.predict(&PREDICTION_FOREIGN, i);
+        if !alternatives.is_empty() {
             record!(self, GSSNodeNotFound, NonterminalId(104), i);
             let new_gss_node_id = self.new_gss_node(NonterminalId(104), i);
             self.add_gss_edge(new_gss_node_id, gss_node_id, sppf_node_id, return_slot, env);
             let arena = self.vec_arena;
             let (env_id, env) = self.new_env();
             env.bind(BINDING_P, p, arena);
-            self.add_first_descriptors(NonterminalId(104), i, new_gss_node_id, Some(env_id));
+            self.add_first_descriptors(
+                NonterminalId(104),
+                i,
+                new_gss_node_id,
+                Some(env_id),
+                alternatives,
+            );
             self.add_gss_node_foreign(i, p, new_gss_node_id);
         } else {
             // The call symbol precedes the return slot in its alternative, so the return slot is never
@@ -19754,10 +18188,11 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
                 i,
                 call_slot,
                 Some(gss_node_id),
-                GLLFailureKind::UnexpectedToken(&PREDICTION_SET_FOREIGN),
+                GLLFailureKind::NoViableAlternative(&PREDICTION_FOREIGN),
             );
         }
     }
+    #[inline(never)]
     #[allow(clippy::too_many_arguments)]
     fn create_cascade(
         &mut self,
@@ -19782,14 +18217,23 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
                 return_slot,
                 env,
             );
-        } else if self.match_any(&PREDICTION_SET_CASCADE, i) {
+            return;
+        }
+        let alternatives = self.predict(&PREDICTION_CASCADE, i);
+        if !alternatives.is_empty() {
             record!(self, GSSNodeNotFound, NonterminalId(105), i);
             let new_gss_node_id = self.new_gss_node(NonterminalId(105), i);
             self.add_gss_edge(new_gss_node_id, gss_node_id, sppf_node_id, return_slot, env);
             let arena = self.vec_arena;
             let (env_id, env) = self.new_env();
             env.bind(BINDING_P, p, arena);
-            self.add_first_descriptors(NonterminalId(105), i, new_gss_node_id, Some(env_id));
+            self.add_first_descriptors(
+                NonterminalId(105),
+                i,
+                new_gss_node_id,
+                Some(env_id),
+                alternatives,
+            );
             self.add_gss_node_cascade(i, p, new_gss_node_id);
         } else {
             // The call symbol precedes the return slot in its alternative, so the return slot is never
@@ -19800,10 +18244,11 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
                 i,
                 call_slot,
                 Some(gss_node_id),
-                GLLFailureKind::UnexpectedToken(&PREDICTION_SET_CASCADE),
+                GLLFailureKind::NoViableAlternative(&PREDICTION_CASCADE),
             );
         }
     }
+    #[inline(never)]
     #[allow(clippy::too_many_arguments)]
     fn create_nullable(
         &mut self,
@@ -19828,14 +18273,23 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
                 return_slot,
                 env,
             );
-        } else if self.match_any(&PREDICTION_SET_NULLABLE, i) {
+            return;
+        }
+        let alternatives = self.predict(&PREDICTION_NULLABLE, i);
+        if !alternatives.is_empty() {
             record!(self, GSSNodeNotFound, NonterminalId(106), i);
             let new_gss_node_id = self.new_gss_node(NonterminalId(106), i);
             self.add_gss_edge(new_gss_node_id, gss_node_id, sppf_node_id, return_slot, env);
             let arena = self.vec_arena;
             let (env_id, env) = self.new_env();
             env.bind(BINDING_P, p, arena);
-            self.add_first_descriptors(NonterminalId(106), i, new_gss_node_id, Some(env_id));
+            self.add_first_descriptors(
+                NonterminalId(106),
+                i,
+                new_gss_node_id,
+                Some(env_id),
+                alternatives,
+            );
             self.add_gss_node_nullable(i, p, new_gss_node_id);
         } else {
             // The call symbol precedes the return slot in its alternative, so the return slot is never
@@ -19846,10 +18300,11 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
                 i,
                 call_slot,
                 Some(gss_node_id),
-                GLLFailureKind::UnexpectedToken(&PREDICTION_SET_NULLABLE),
+                GLLFailureKind::NoViableAlternative(&PREDICTION_NULLABLE),
             );
         }
     }
+    #[inline(never)]
     #[allow(clippy::too_many_arguments)]
     fn create_nullable_right(
         &mut self,
@@ -19874,14 +18329,23 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
                 return_slot,
                 env,
             );
-        } else if self.match_any(&PREDICTION_SET_NULLABLE_RIGHT, i) {
+            return;
+        }
+        let alternatives = self.predict(&PREDICTION_NULLABLE_RIGHT, i);
+        if !alternatives.is_empty() {
             record!(self, GSSNodeNotFound, NonterminalId(107), i);
             let new_gss_node_id = self.new_gss_node(NonterminalId(107), i);
             self.add_gss_edge(new_gss_node_id, gss_node_id, sppf_node_id, return_slot, env);
             let arena = self.vec_arena;
             let (env_id, env) = self.new_env();
             env.bind(BINDING_P, p, arena);
-            self.add_first_descriptors(NonterminalId(107), i, new_gss_node_id, Some(env_id));
+            self.add_first_descriptors(
+                NonterminalId(107),
+                i,
+                new_gss_node_id,
+                Some(env_id),
+                alternatives,
+            );
             self.add_gss_node_nullable_right(i, p, new_gss_node_id);
         } else {
             // The call symbol precedes the return slot in its alternative, so the return slot is never
@@ -19892,10 +18356,11 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
                 i,
                 call_slot,
                 Some(gss_node_id),
-                GLLFailureKind::UnexpectedToken(&PREDICTION_SET_NULLABLE_RIGHT),
+                GLLFailureKind::NoViableAlternative(&PREDICTION_NULLABLE_RIGHT),
             );
         }
     }
+    #[inline(never)]
     #[allow(clippy::too_many_arguments)]
     fn create_right_expr(
         &mut self,
@@ -19920,14 +18385,23 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
                 return_slot,
                 env,
             );
-        } else if self.match_any(&PREDICTION_SET_RIGHT_EXPR, i) {
+            return;
+        }
+        let alternatives = self.predict(&PREDICTION_RIGHT_EXPR, i);
+        if !alternatives.is_empty() {
             record!(self, GSSNodeNotFound, NonterminalId(108), i);
             let new_gss_node_id = self.new_gss_node(NonterminalId(108), i);
             self.add_gss_edge(new_gss_node_id, gss_node_id, sppf_node_id, return_slot, env);
             let arena = self.vec_arena;
             let (env_id, env) = self.new_env();
             env.bind(BINDING_P, p, arena);
-            self.add_first_descriptors(NonterminalId(108), i, new_gss_node_id, Some(env_id));
+            self.add_first_descriptors(
+                NonterminalId(108),
+                i,
+                new_gss_node_id,
+                Some(env_id),
+                alternatives,
+            );
             self.add_gss_node_right_expr(i, p, new_gss_node_id);
         } else {
             // The call symbol precedes the return slot in its alternative, so the return slot is never
@@ -19938,10 +18412,11 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
                 i,
                 call_slot,
                 Some(gss_node_id),
-                GLLFailureKind::UnexpectedToken(&PREDICTION_SET_RIGHT_EXPR),
+                GLLFailureKind::NoViableAlternative(&PREDICTION_RIGHT_EXPR),
             );
         }
     }
+    #[inline(never)]
     #[allow(clippy::too_many_arguments)]
     fn create_right_operand(
         &mut self,
@@ -19967,7 +18442,10 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
                 return_slot,
                 env,
             );
-        } else if self.match_any(&PREDICTION_SET_RIGHT_OPERAND, i) {
+            return;
+        }
+        let alternatives = self.predict(&PREDICTION_RIGHT_OPERAND, i);
+        if !alternatives.is_empty() {
             record!(self, GSSNodeNotFound, NonterminalId(109), i);
             let new_gss_node_id = self.new_gss_node(NonterminalId(109), i);
             self.add_gss_edge(new_gss_node_id, gss_node_id, sppf_node_id, return_slot, env);
@@ -19975,7 +18453,13 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
             let (env_id, env) = self.new_env();
             env.bind(BINDING_P, p, arena);
             env.bind(BINDING_END, end, arena);
-            self.add_first_descriptors(NonterminalId(109), i, new_gss_node_id, Some(env_id));
+            self.add_first_descriptors(
+                NonterminalId(109),
+                i,
+                new_gss_node_id,
+                Some(env_id),
+                alternatives,
+            );
             self.add_gss_node_right_operand(i, p, end, new_gss_node_id);
         } else {
             // The call symbol precedes the return slot in its alternative, so the return slot is never
@@ -19986,10 +18470,11 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
                 i,
                 call_slot,
                 Some(gss_node_id),
-                GLLFailureKind::UnexpectedToken(&PREDICTION_SET_RIGHT_OPERAND),
+                GLLFailureKind::NoViableAlternative(&PREDICTION_RIGHT_OPERAND),
             );
         }
     }
+    #[inline(never)]
     #[allow(clippy::too_many_arguments)]
     fn create_none_expr(
         &mut self,
@@ -20014,14 +18499,23 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
                 return_slot,
                 env,
             );
-        } else if self.match_any(&PREDICTION_SET_NONE_EXPR, i) {
+            return;
+        }
+        let alternatives = self.predict(&PREDICTION_NONE_EXPR, i);
+        if !alternatives.is_empty() {
             record!(self, GSSNodeNotFound, NonterminalId(110), i);
             let new_gss_node_id = self.new_gss_node(NonterminalId(110), i);
             self.add_gss_edge(new_gss_node_id, gss_node_id, sppf_node_id, return_slot, env);
             let arena = self.vec_arena;
             let (env_id, env) = self.new_env();
             env.bind(BINDING_P, p, arena);
-            self.add_first_descriptors(NonterminalId(110), i, new_gss_node_id, Some(env_id));
+            self.add_first_descriptors(
+                NonterminalId(110),
+                i,
+                new_gss_node_id,
+                Some(env_id),
+                alternatives,
+            );
             self.add_gss_node_none_expr(i, p, new_gss_node_id);
         } else {
             // The call symbol precedes the return slot in its alternative, so the return slot is never
@@ -20032,10 +18526,11 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
                 i,
                 call_slot,
                 Some(gss_node_id),
-                GLLFailureKind::UnexpectedToken(&PREDICTION_SET_NONE_EXPR),
+                GLLFailureKind::NoViableAlternative(&PREDICTION_NONE_EXPR),
             );
         }
     }
+    #[inline(never)]
     #[allow(clippy::too_many_arguments)]
     fn create_none_operand(
         &mut self,
@@ -20061,7 +18556,10 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
                 return_slot,
                 env,
             );
-        } else if self.match_any(&PREDICTION_SET_NONE_OPERAND, i) {
+            return;
+        }
+        let alternatives = self.predict(&PREDICTION_NONE_OPERAND, i);
+        if !alternatives.is_empty() {
             record!(self, GSSNodeNotFound, NonterminalId(111), i);
             let new_gss_node_id = self.new_gss_node(NonterminalId(111), i);
             self.add_gss_edge(new_gss_node_id, gss_node_id, sppf_node_id, return_slot, env);
@@ -20069,7 +18567,13 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
             let (env_id, env) = self.new_env();
             env.bind(BINDING_P, p, arena);
             env.bind(BINDING_END, end, arena);
-            self.add_first_descriptors(NonterminalId(111), i, new_gss_node_id, Some(env_id));
+            self.add_first_descriptors(
+                NonterminalId(111),
+                i,
+                new_gss_node_id,
+                Some(env_id),
+                alternatives,
+            );
             self.add_gss_node_none_operand(i, p, end, new_gss_node_id);
         } else {
             // The call symbol precedes the return slot in its alternative, so the return slot is never
@@ -20080,10 +18584,11 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
                 i,
                 call_slot,
                 Some(gss_node_id),
-                GLLFailureKind::UnexpectedToken(&PREDICTION_SET_NONE_OPERAND),
+                GLLFailureKind::NoViableAlternative(&PREDICTION_NONE_OPERAND),
             );
         }
     }
+    #[inline(never)]
     #[allow(clippy::too_many_arguments)]
     fn create_excluded(
         &mut self,
@@ -20109,7 +18614,10 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
                 return_slot,
                 env,
             );
-        } else if self.match_any(&PREDICTION_SET_EXCLUDED, i) {
+            return;
+        }
+        let alternatives = self.predict(&PREDICTION_EXCLUDED, i);
+        if !alternatives.is_empty() {
             record!(self, GSSNodeNotFound, NonterminalId(112), i);
             let new_gss_node_id = self.new_gss_node(NonterminalId(112), i);
             self.add_gss_edge(new_gss_node_id, gss_node_id, sppf_node_id, return_slot, env);
@@ -20117,7 +18625,13 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
             let (env_id, env) = self.new_env();
             env.bind(BINDING_P, p, arena);
             env.bind(BINDING_A, a, arena);
-            self.add_first_descriptors(NonterminalId(112), i, new_gss_node_id, Some(env_id));
+            self.add_first_descriptors(
+                NonterminalId(112),
+                i,
+                new_gss_node_id,
+                Some(env_id),
+                alternatives,
+            );
             self.add_gss_node_excluded(i, p, a, new_gss_node_id);
         } else {
             // The call symbol precedes the return slot in its alternative, so the return slot is never
@@ -20128,10 +18642,11 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
                 i,
                 call_slot,
                 Some(gss_node_id),
-                GLLFailureKind::UnexpectedToken(&PREDICTION_SET_EXCLUDED),
+                GLLFailureKind::NoViableAlternative(&PREDICTION_EXCLUDED),
             );
         }
     }
+    #[inline(never)]
     #[allow(clippy::too_many_arguments)]
     fn create_excluded_operand(
         &mut self,
@@ -20159,7 +18674,10 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
                 return_slot,
                 env,
             );
-        } else if self.match_any(&PREDICTION_SET_EXCLUDED_OPERAND, i) {
+            return;
+        }
+        let alternatives = self.predict(&PREDICTION_EXCLUDED_OPERAND, i);
+        if !alternatives.is_empty() {
             record!(self, GSSNodeNotFound, NonterminalId(113), i);
             let new_gss_node_id = self.new_gss_node(NonterminalId(113), i);
             self.add_gss_edge(new_gss_node_id, gss_node_id, sppf_node_id, return_slot, env);
@@ -20169,7 +18687,13 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
             env.bind(BINDING_END, end, arena);
             env.bind(BINDING_A, a, arena);
             env.bind(BINDING_E, e, arena);
-            self.add_first_descriptors(NonterminalId(113), i, new_gss_node_id, Some(env_id));
+            self.add_first_descriptors(
+                NonterminalId(113),
+                i,
+                new_gss_node_id,
+                Some(env_id),
+                alternatives,
+            );
             self.add_gss_node_excluded_operand(i, p, end, a, e, new_gss_node_id);
         } else {
             // The call symbol precedes the return slot in its alternative, so the return slot is never
@@ -20180,10 +18704,11 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
                 i,
                 call_slot,
                 Some(gss_node_id),
-                GLLFailureKind::UnexpectedToken(&PREDICTION_SET_EXCLUDED_OPERAND),
+                GLLFailureKind::NoViableAlternative(&PREDICTION_EXCLUDED_OPERAND),
             );
         }
     }
+    #[inline(never)]
     #[allow(clippy::too_many_arguments)]
     fn create_lex_nullable(
         &mut self,
@@ -20208,14 +18733,23 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
                 return_slot,
                 env,
             );
-        } else if self.match_any(&PREDICTION_SET_LEX_NULLABLE, i) {
+            return;
+        }
+        let alternatives = self.predict(&PREDICTION_LEX_NULLABLE, i);
+        if !alternatives.is_empty() {
             record!(self, GSSNodeNotFound, NonterminalId(114), i);
             let new_gss_node_id = self.new_gss_node(NonterminalId(114), i);
             self.add_gss_edge(new_gss_node_id, gss_node_id, sppf_node_id, return_slot, env);
             let arena = self.vec_arena;
             let (env_id, env) = self.new_env();
             env.bind(BINDING_P, p, arena);
-            self.add_first_descriptors(NonterminalId(114), i, new_gss_node_id, Some(env_id));
+            self.add_first_descriptors(
+                NonterminalId(114),
+                i,
+                new_gss_node_id,
+                Some(env_id),
+                alternatives,
+            );
             self.add_gss_node_lex_nullable(i, p, new_gss_node_id);
         } else {
             // The call symbol precedes the return slot in its alternative, so the return slot is never
@@ -20226,10 +18760,11 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
                 i,
                 call_slot,
                 Some(gss_node_id),
-                GLLFailureKind::UnexpectedToken(&PREDICTION_SET_LEX_NULLABLE),
+                GLLFailureKind::NoViableAlternative(&PREDICTION_LEX_NULLABLE),
             );
         }
     }
+    #[inline(never)]
     #[allow(clippy::too_many_arguments)]
     fn create_lex_nullable_right(
         &mut self,
@@ -20254,14 +18789,23 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
                 return_slot,
                 env,
             );
-        } else if self.match_any(&PREDICTION_SET_LEX_NULLABLE_RIGHT, i) {
+            return;
+        }
+        let alternatives = self.predict(&PREDICTION_LEX_NULLABLE_RIGHT, i);
+        if !alternatives.is_empty() {
             record!(self, GSSNodeNotFound, NonterminalId(115), i);
             let new_gss_node_id = self.new_gss_node(NonterminalId(115), i);
             self.add_gss_edge(new_gss_node_id, gss_node_id, sppf_node_id, return_slot, env);
             let arena = self.vec_arena;
             let (env_id, env) = self.new_env();
             env.bind(BINDING_P, p, arena);
-            self.add_first_descriptors(NonterminalId(115), i, new_gss_node_id, Some(env_id));
+            self.add_first_descriptors(
+                NonterminalId(115),
+                i,
+                new_gss_node_id,
+                Some(env_id),
+                alternatives,
+            );
             self.add_gss_node_lex_nullable_right(i, p, new_gss_node_id);
         } else {
             // The call symbol precedes the return slot in its alternative, so the return slot is never
@@ -20272,10 +18816,11 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
                 i,
                 call_slot,
                 Some(gss_node_id),
-                GLLFailureKind::UnexpectedToken(&PREDICTION_SET_LEX_NULLABLE_RIGHT),
+                GLLFailureKind::NoViableAlternative(&PREDICTION_LEX_NULLABLE_RIGHT),
             );
         }
     }
+    #[inline(never)]
     #[allow(clippy::too_many_arguments)]
     fn create_mixed_scale(
         &mut self,
@@ -20301,7 +18846,10 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
                 return_slot,
                 env,
             );
-        } else if self.match_any(&PREDICTION_SET_MIXED_SCALE, i) {
+            return;
+        }
+        let alternatives = self.predict(&PREDICTION_MIXED_SCALE, i);
+        if !alternatives.is_empty() {
             record!(self, GSSNodeNotFound, NonterminalId(116), i);
             let new_gss_node_id = self.new_gss_node(NonterminalId(116), i);
             self.add_gss_edge(new_gss_node_id, gss_node_id, sppf_node_id, return_slot, env);
@@ -20309,7 +18857,13 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
             let (env_id, env) = self.new_env();
             env.bind(BINDING_P, p, arena);
             env.bind(BINDING_A, a, arena);
-            self.add_first_descriptors(NonterminalId(116), i, new_gss_node_id, Some(env_id));
+            self.add_first_descriptors(
+                NonterminalId(116),
+                i,
+                new_gss_node_id,
+                Some(env_id),
+                alternatives,
+            );
             self.add_gss_node_mixed_scale(i, p, a, new_gss_node_id);
         } else {
             // The call symbol precedes the return slot in its alternative, so the return slot is never
@@ -20320,10 +18874,11 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
                 i,
                 call_slot,
                 Some(gss_node_id),
-                GLLFailureKind::UnexpectedToken(&PREDICTION_SET_MIXED_SCALE),
+                GLLFailureKind::NoViableAlternative(&PREDICTION_MIXED_SCALE),
             );
         }
     }
+    #[inline(never)]
     #[allow(clippy::too_many_arguments)]
     fn create_mixed_operand(
         &mut self,
@@ -20349,7 +18904,10 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
                 return_slot,
                 env,
             );
-        } else if self.match_any(&PREDICTION_SET_MIXED_OPERAND, i) {
+            return;
+        }
+        let alternatives = self.predict(&PREDICTION_MIXED_OPERAND, i);
+        if !alternatives.is_empty() {
             record!(self, GSSNodeNotFound, NonterminalId(117), i);
             let new_gss_node_id = self.new_gss_node(NonterminalId(117), i);
             self.add_gss_edge(new_gss_node_id, gss_node_id, sppf_node_id, return_slot, env);
@@ -20357,7 +18915,13 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
             let (env_id, env) = self.new_env();
             env.bind(BINDING_P, p, arena);
             env.bind(BINDING_A, a, arena);
-            self.add_first_descriptors(NonterminalId(117), i, new_gss_node_id, Some(env_id));
+            self.add_first_descriptors(
+                NonterminalId(117),
+                i,
+                new_gss_node_id,
+                Some(env_id),
+                alternatives,
+            );
             self.add_gss_node_mixed_operand(i, p, a, new_gss_node_id);
         } else {
             // The call symbol precedes the return slot in its alternative, so the return slot is never
@@ -20368,10 +18932,11 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
                 i,
                 call_slot,
                 Some(gss_node_id),
-                GLLFailureKind::UnexpectedToken(&PREDICTION_SET_MIXED_OPERAND),
+                GLLFailureKind::NoViableAlternative(&PREDICTION_MIXED_OPERAND),
             );
         }
     }
+    #[inline(never)]
     #[allow(clippy::too_many_arguments)]
     fn create_mixed_right(
         &mut self,
@@ -20397,7 +18962,10 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
                 return_slot,
                 env,
             );
-        } else if self.match_any(&PREDICTION_SET_MIXED_RIGHT, i) {
+            return;
+        }
+        let alternatives = self.predict(&PREDICTION_MIXED_RIGHT, i);
+        if !alternatives.is_empty() {
             record!(self, GSSNodeNotFound, NonterminalId(118), i);
             let new_gss_node_id = self.new_gss_node(NonterminalId(118), i);
             self.add_gss_edge(new_gss_node_id, gss_node_id, sppf_node_id, return_slot, env);
@@ -20405,7 +18973,13 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
             let (env_id, env) = self.new_env();
             env.bind(BINDING_P, p, arena);
             env.bind(BINDING_A, a, arena);
-            self.add_first_descriptors(NonterminalId(118), i, new_gss_node_id, Some(env_id));
+            self.add_first_descriptors(
+                NonterminalId(118),
+                i,
+                new_gss_node_id,
+                Some(env_id),
+                alternatives,
+            );
             self.add_gss_node_mixed_right(i, p, a, new_gss_node_id);
         } else {
             // The call symbol precedes the return slot in its alternative, so the return slot is never
@@ -20416,10 +18990,11 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
                 i,
                 call_slot,
                 Some(gss_node_id),
-                GLLFailureKind::UnexpectedToken(&PREDICTION_SET_MIXED_RIGHT),
+                GLLFailureKind::NoViableAlternative(&PREDICTION_MIXED_RIGHT),
             );
         }
     }
+    #[inline(never)]
     #[allow(clippy::too_many_arguments)]
     fn create_mixed_foreign(
         &mut self,
@@ -20444,14 +19019,23 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
                 return_slot,
                 env,
             );
-        } else if self.match_any(&PREDICTION_SET_MIXED_FOREIGN, i) {
+            return;
+        }
+        let alternatives = self.predict(&PREDICTION_MIXED_FOREIGN, i);
+        if !alternatives.is_empty() {
             record!(self, GSSNodeNotFound, NonterminalId(119), i);
             let new_gss_node_id = self.new_gss_node(NonterminalId(119), i);
             self.add_gss_edge(new_gss_node_id, gss_node_id, sppf_node_id, return_slot, env);
             let arena = self.vec_arena;
             let (env_id, env) = self.new_env();
             env.bind(BINDING_P, p, arena);
-            self.add_first_descriptors(NonterminalId(119), i, new_gss_node_id, Some(env_id));
+            self.add_first_descriptors(
+                NonterminalId(119),
+                i,
+                new_gss_node_id,
+                Some(env_id),
+                alternatives,
+            );
             self.add_gss_node_mixed_foreign(i, p, new_gss_node_id);
         } else {
             // The call symbol precedes the return slot in its alternative, so the return slot is never
@@ -20462,10 +19046,11 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
                 i,
                 call_slot,
                 Some(gss_node_id),
-                GLLFailureKind::UnexpectedToken(&PREDICTION_SET_MIXED_FOREIGN),
+                GLLFailureKind::NoViableAlternative(&PREDICTION_MIXED_FOREIGN),
             );
         }
     }
+    #[inline(never)]
     #[allow(clippy::too_many_arguments)]
     fn create_packed(
         &mut self,
@@ -20491,7 +19076,10 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
                 return_slot,
                 env,
             );
-        } else if self.match_any(&PREDICTION_SET_PACKED, i) {
+            return;
+        }
+        let alternatives = self.predict(&PREDICTION_PACKED, i);
+        if !alternatives.is_empty() {
             record!(self, GSSNodeNotFound, NonterminalId(120), i);
             let new_gss_node_id = self.new_gss_node(NonterminalId(120), i);
             self.add_gss_edge(new_gss_node_id, gss_node_id, sppf_node_id, return_slot, env);
@@ -20499,7 +19087,13 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
             let (env_id, env) = self.new_env();
             env.bind(BINDING_P, p, arena);
             env.bind(BINDING_A, a, arena);
-            self.add_first_descriptors(NonterminalId(120), i, new_gss_node_id, Some(env_id));
+            self.add_first_descriptors(
+                NonterminalId(120),
+                i,
+                new_gss_node_id,
+                Some(env_id),
+                alternatives,
+            );
             self.add_gss_node_packed(i, p, a, new_gss_node_id);
         } else {
             // The call symbol precedes the return slot in its alternative, so the return slot is never
@@ -20510,10 +19104,11 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
                 i,
                 call_slot,
                 Some(gss_node_id),
-                GLLFailureKind::UnexpectedToken(&PREDICTION_SET_PACKED),
+                GLLFailureKind::NoViableAlternative(&PREDICTION_PACKED),
             );
         }
     }
+    #[inline(never)]
     #[allow(clippy::too_many_arguments)]
     fn create_packed_operand(
         &mut self,
@@ -20540,7 +19135,10 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
                 return_slot,
                 env,
             );
-        } else if self.match_any(&PREDICTION_SET_PACKED_OPERAND, i) {
+            return;
+        }
+        let alternatives = self.predict(&PREDICTION_PACKED_OPERAND, i);
+        if !alternatives.is_empty() {
             record!(self, GSSNodeNotFound, NonterminalId(121), i);
             let new_gss_node_id = self.new_gss_node(NonterminalId(121), i);
             self.add_gss_edge(new_gss_node_id, gss_node_id, sppf_node_id, return_slot, env);
@@ -20549,7 +19147,13 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
             env.bind(BINDING_P, p, arena);
             env.bind(BINDING_END, end, arena);
             env.bind(BINDING_A, a, arena);
-            self.add_first_descriptors(NonterminalId(121), i, new_gss_node_id, Some(env_id));
+            self.add_first_descriptors(
+                NonterminalId(121),
+                i,
+                new_gss_node_id,
+                Some(env_id),
+                alternatives,
+            );
             self.add_gss_node_packed_operand(i, p, end, a, new_gss_node_id);
         } else {
             // The call symbol precedes the return slot in its alternative, so the return slot is never
@@ -20560,10 +19164,11 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
                 i,
                 call_slot,
                 Some(gss_node_id),
-                GLLFailureKind::UnexpectedToken(&PREDICTION_SET_PACKED_OPERAND),
+                GLLFailureKind::NoViableAlternative(&PREDICTION_PACKED_OPERAND),
             );
         }
     }
+    #[inline(never)]
     #[allow(clippy::too_many_arguments)]
     fn create_packed_middle(
         &mut self,
@@ -20591,7 +19196,10 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
                 return_slot,
                 env,
             );
-        } else if self.match_any(&PREDICTION_SET_PACKED_MIDDLE, i) {
+            return;
+        }
+        let alternatives = self.predict(&PREDICTION_PACKED_MIDDLE, i);
+        if !alternatives.is_empty() {
             record!(self, GSSNodeNotFound, NonterminalId(122), i);
             let new_gss_node_id = self.new_gss_node(NonterminalId(122), i);
             self.add_gss_edge(new_gss_node_id, gss_node_id, sppf_node_id, return_slot, env);
@@ -20601,7 +19209,13 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
             env.bind(BINDING_END, end, arena);
             env.bind(BINDING_A, a, arena);
             env.bind(BINDING_E, e, arena);
-            self.add_first_descriptors(NonterminalId(122), i, new_gss_node_id, Some(env_id));
+            self.add_first_descriptors(
+                NonterminalId(122),
+                i,
+                new_gss_node_id,
+                Some(env_id),
+                alternatives,
+            );
             self.add_gss_node_packed_middle(i, p, end, a, e, new_gss_node_id);
         } else {
             // The call symbol precedes the return slot in its alternative, so the return slot is never
@@ -20612,10 +19226,11 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
                 i,
                 call_slot,
                 Some(gss_node_id),
-                GLLFailureKind::UnexpectedToken(&PREDICTION_SET_PACKED_MIDDLE),
+                GLLFailureKind::NoViableAlternative(&PREDICTION_PACKED_MIDDLE),
             );
         }
     }
+    #[inline(never)]
     #[allow(clippy::too_many_arguments)]
     fn create_nullable_recursive(
         &mut self,
@@ -20641,7 +19256,10 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
                 return_slot,
                 env,
             );
-        } else if self.match_any(&PREDICTION_SET_NULLABLE_RECURSIVE, i) {
+            return;
+        }
+        let alternatives = self.predict(&PREDICTION_NULLABLE_RECURSIVE, i);
+        if !alternatives.is_empty() {
             record!(self, GSSNodeNotFound, NonterminalId(123), i);
             let new_gss_node_id = self.new_gss_node(NonterminalId(123), i);
             self.add_gss_edge(new_gss_node_id, gss_node_id, sppf_node_id, return_slot, env);
@@ -20649,7 +19267,13 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
             let (env_id, env) = self.new_env();
             env.bind(BINDING_P, p, arena);
             env.bind(BINDING_A, a, arena);
-            self.add_first_descriptors(NonterminalId(123), i, new_gss_node_id, Some(env_id));
+            self.add_first_descriptors(
+                NonterminalId(123),
+                i,
+                new_gss_node_id,
+                Some(env_id),
+                alternatives,
+            );
             self.add_gss_node_nullable_recursive(i, p, a, new_gss_node_id);
         } else {
             // The call symbol precedes the return slot in its alternative, so the return slot is never
@@ -20660,10 +19284,11 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
                 i,
                 call_slot,
                 Some(gss_node_id),
-                GLLFailureKind::UnexpectedToken(&PREDICTION_SET_NULLABLE_RECURSIVE),
+                GLLFailureKind::NoViableAlternative(&PREDICTION_NULLABLE_RECURSIVE),
             );
         }
     }
+    #[inline(never)]
     #[allow(clippy::too_many_arguments)]
     fn create_nullable_operand(
         &mut self,
@@ -20689,7 +19314,10 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
                 return_slot,
                 env,
             );
-        } else if self.match_any(&PREDICTION_SET_NULLABLE_OPERAND, i) {
+            return;
+        }
+        let alternatives = self.predict(&PREDICTION_NULLABLE_OPERAND, i);
+        if !alternatives.is_empty() {
             record!(self, GSSNodeNotFound, NonterminalId(124), i);
             let new_gss_node_id = self.new_gss_node(NonterminalId(124), i);
             self.add_gss_edge(new_gss_node_id, gss_node_id, sppf_node_id, return_slot, env);
@@ -20697,7 +19325,13 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
             let (env_id, env) = self.new_env();
             env.bind(BINDING_P, p, arena);
             env.bind(BINDING_A, a, arena);
-            self.add_first_descriptors(NonterminalId(124), i, new_gss_node_id, Some(env_id));
+            self.add_first_descriptors(
+                NonterminalId(124),
+                i,
+                new_gss_node_id,
+                Some(env_id),
+                alternatives,
+            );
             self.add_gss_node_nullable_operand(i, p, a, new_gss_node_id);
         } else {
             // The call symbol precedes the return slot in its alternative, so the return slot is never
@@ -20708,10 +19342,11 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
                 i,
                 call_slot,
                 Some(gss_node_id),
-                GLLFailureKind::UnexpectedToken(&PREDICTION_SET_NULLABLE_OPERAND),
+                GLLFailureKind::NoViableAlternative(&PREDICTION_NULLABLE_OPERAND),
             );
         }
     }
+    #[inline(never)]
     #[allow(clippy::too_many_arguments)]
     fn create_nullable_maybe(
         &mut self,
@@ -20737,7 +19372,10 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
                 return_slot,
                 env,
             );
-        } else if self.match_any(&PREDICTION_SET_NULLABLE_MAYBE, i) {
+            return;
+        }
+        let alternatives = self.predict(&PREDICTION_NULLABLE_MAYBE, i);
+        if !alternatives.is_empty() {
             record!(self, GSSNodeNotFound, NonterminalId(125), i);
             let new_gss_node_id = self.new_gss_node(NonterminalId(125), i);
             self.add_gss_edge(new_gss_node_id, gss_node_id, sppf_node_id, return_slot, env);
@@ -20745,7 +19383,13 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
             let (env_id, env) = self.new_env();
             env.bind(BINDING_P, p, arena);
             env.bind(BINDING_A, a, arena);
-            self.add_first_descriptors(NonterminalId(125), i, new_gss_node_id, Some(env_id));
+            self.add_first_descriptors(
+                NonterminalId(125),
+                i,
+                new_gss_node_id,
+                Some(env_id),
+                alternatives,
+            );
             self.add_gss_node_nullable_maybe(i, p, a, new_gss_node_id);
         } else {
             // The call symbol precedes the return slot in its alternative, so the return slot is never
@@ -20756,10 +19400,11 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
                 i,
                 call_slot,
                 Some(gss_node_id),
-                GLLFailureKind::UnexpectedToken(&PREDICTION_SET_NULLABLE_MAYBE),
+                GLLFailureKind::NoViableAlternative(&PREDICTION_NULLABLE_MAYBE),
             );
         }
     }
+    #[inline(never)]
     #[allow(clippy::too_many_arguments)]
     fn create_nullable_lex_recursive(
         &mut self,
@@ -20785,7 +19430,10 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
                 return_slot,
                 env,
             );
-        } else if self.match_any(&PREDICTION_SET_NULLABLE_LEX_RECURSIVE, i) {
+            return;
+        }
+        let alternatives = self.predict(&PREDICTION_NULLABLE_LEX_RECURSIVE, i);
+        if !alternatives.is_empty() {
             record!(self, GSSNodeNotFound, NonterminalId(126), i);
             let new_gss_node_id = self.new_gss_node(NonterminalId(126), i);
             self.add_gss_edge(new_gss_node_id, gss_node_id, sppf_node_id, return_slot, env);
@@ -20793,7 +19441,13 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
             let (env_id, env) = self.new_env();
             env.bind(BINDING_P, p, arena);
             env.bind(BINDING_A, a, arena);
-            self.add_first_descriptors(NonterminalId(126), i, new_gss_node_id, Some(env_id));
+            self.add_first_descriptors(
+                NonterminalId(126),
+                i,
+                new_gss_node_id,
+                Some(env_id),
+                alternatives,
+            );
             self.add_gss_node_nullable_lex_recursive(i, p, a, new_gss_node_id);
         } else {
             // The call symbol precedes the return slot in its alternative, so the return slot is never
@@ -20804,10 +19458,11 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
                 i,
                 call_slot,
                 Some(gss_node_id),
-                GLLFailureKind::UnexpectedToken(&PREDICTION_SET_NULLABLE_LEX_RECURSIVE),
+                GLLFailureKind::NoViableAlternative(&PREDICTION_NULLABLE_LEX_RECURSIVE),
             );
         }
     }
+    #[inline(never)]
     #[allow(clippy::too_many_arguments)]
     fn create_nullable_lex_operand(
         &mut self,
@@ -20833,7 +19488,10 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
                 return_slot,
                 env,
             );
-        } else if self.match_any(&PREDICTION_SET_NULLABLE_LEX_OPERAND, i) {
+            return;
+        }
+        let alternatives = self.predict(&PREDICTION_NULLABLE_LEX_OPERAND, i);
+        if !alternatives.is_empty() {
             record!(self, GSSNodeNotFound, NonterminalId(127), i);
             let new_gss_node_id = self.new_gss_node(NonterminalId(127), i);
             self.add_gss_edge(new_gss_node_id, gss_node_id, sppf_node_id, return_slot, env);
@@ -20841,7 +19499,13 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
             let (env_id, env) = self.new_env();
             env.bind(BINDING_P, p, arena);
             env.bind(BINDING_A, a, arena);
-            self.add_first_descriptors(NonterminalId(127), i, new_gss_node_id, Some(env_id));
+            self.add_first_descriptors(
+                NonterminalId(127),
+                i,
+                new_gss_node_id,
+                Some(env_id),
+                alternatives,
+            );
             self.add_gss_node_nullable_lex_operand(i, p, a, new_gss_node_id);
         } else {
             // The call symbol precedes the return slot in its alternative, so the return slot is never
@@ -20852,10 +19516,11 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
                 i,
                 call_slot,
                 Some(gss_node_id),
-                GLLFailureKind::UnexpectedToken(&PREDICTION_SET_NULLABLE_LEX_OPERAND),
+                GLLFailureKind::NoViableAlternative(&PREDICTION_NULLABLE_LEX_OPERAND),
             );
         }
     }
+    #[inline(never)]
     #[allow(clippy::too_many_arguments)]
     fn create_nullable_lex_maybe(
         &mut self,
@@ -20881,7 +19546,10 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
                 return_slot,
                 env,
             );
-        } else if self.match_any(&PREDICTION_SET_NULLABLE_LEX_MAYBE, i) {
+            return;
+        }
+        let alternatives = self.predict(&PREDICTION_NULLABLE_LEX_MAYBE, i);
+        if !alternatives.is_empty() {
             record!(self, GSSNodeNotFound, NonterminalId(128), i);
             let new_gss_node_id = self.new_gss_node(NonterminalId(128), i);
             self.add_gss_edge(new_gss_node_id, gss_node_id, sppf_node_id, return_slot, env);
@@ -20889,7 +19557,13 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
             let (env_id, env) = self.new_env();
             env.bind(BINDING_P, p, arena);
             env.bind(BINDING_A, a, arena);
-            self.add_first_descriptors(NonterminalId(128), i, new_gss_node_id, Some(env_id));
+            self.add_first_descriptors(
+                NonterminalId(128),
+                i,
+                new_gss_node_id,
+                Some(env_id),
+                alternatives,
+            );
             self.add_gss_node_nullable_lex_maybe(i, p, a, new_gss_node_id);
         } else {
             // The call symbol precedes the return slot in its alternative, so the return slot is never
@@ -20900,10 +19574,11 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
                 i,
                 call_slot,
                 Some(gss_node_id),
-                GLLFailureKind::UnexpectedToken(&PREDICTION_SET_NULLABLE_LEX_MAYBE),
+                GLLFailureKind::NoViableAlternative(&PREDICTION_NULLABLE_LEX_MAYBE),
             );
         }
     }
+    #[inline(never)]
     #[allow(clippy::too_many_arguments)]
     fn create_nullable_suffix(
         &mut self,
@@ -20929,7 +19604,10 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
                 return_slot,
                 env,
             );
-        } else if self.match_any(&PREDICTION_SET_NULLABLE_SUFFIX, i) {
+            return;
+        }
+        let alternatives = self.predict(&PREDICTION_NULLABLE_SUFFIX, i);
+        if !alternatives.is_empty() {
             record!(self, GSSNodeNotFound, NonterminalId(129), i);
             let new_gss_node_id = self.new_gss_node(NonterminalId(129), i);
             self.add_gss_edge(new_gss_node_id, gss_node_id, sppf_node_id, return_slot, env);
@@ -20937,7 +19615,13 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
             let (env_id, env) = self.new_env();
             env.bind(BINDING_P, p, arena);
             env.bind(BINDING_A, a, arena);
-            self.add_first_descriptors(NonterminalId(129), i, new_gss_node_id, Some(env_id));
+            self.add_first_descriptors(
+                NonterminalId(129),
+                i,
+                new_gss_node_id,
+                Some(env_id),
+                alternatives,
+            );
             self.add_gss_node_nullable_suffix(i, p, a, new_gss_node_id);
         } else {
             // The call symbol precedes the return slot in its alternative, so the return slot is never
@@ -20948,10 +19632,11 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
                 i,
                 call_slot,
                 Some(gss_node_id),
-                GLLFailureKind::UnexpectedToken(&PREDICTION_SET_NULLABLE_SUFFIX),
+                GLLFailureKind::NoViableAlternative(&PREDICTION_NULLABLE_SUFFIX),
             );
         }
     }
+    #[inline(never)]
     #[allow(clippy::too_many_arguments)]
     fn create_nullable_suffix_operand(
         &mut self,
@@ -20977,7 +19662,10 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
                 return_slot,
                 env,
             );
-        } else if self.match_any(&PREDICTION_SET_NULLABLE_SUFFIX_OPERAND, i) {
+            return;
+        }
+        let alternatives = self.predict(&PREDICTION_NULLABLE_SUFFIX_OPERAND, i);
+        if !alternatives.is_empty() {
             record!(self, GSSNodeNotFound, NonterminalId(130), i);
             let new_gss_node_id = self.new_gss_node(NonterminalId(130), i);
             self.add_gss_edge(new_gss_node_id, gss_node_id, sppf_node_id, return_slot, env);
@@ -20985,7 +19673,13 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
             let (env_id, env) = self.new_env();
             env.bind(BINDING_P, p, arena);
             env.bind(BINDING_A, a, arena);
-            self.add_first_descriptors(NonterminalId(130), i, new_gss_node_id, Some(env_id));
+            self.add_first_descriptors(
+                NonterminalId(130),
+                i,
+                new_gss_node_id,
+                Some(env_id),
+                alternatives,
+            );
             self.add_gss_node_nullable_suffix_operand(i, p, a, new_gss_node_id);
         } else {
             // The call symbol precedes the return slot in its alternative, so the return slot is never
@@ -20996,10 +19690,11 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
                 i,
                 call_slot,
                 Some(gss_node_id),
-                GLLFailureKind::UnexpectedToken(&PREDICTION_SET_NULLABLE_SUFFIX_OPERAND),
+                GLLFailureKind::NoViableAlternative(&PREDICTION_NULLABLE_SUFFIX_OPERAND),
             );
         }
     }
+    #[inline(never)]
     #[allow(clippy::too_many_arguments)]
     fn create_nullable_suffix_maybe(
         &mut self,
@@ -21025,7 +19720,10 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
                 return_slot,
                 env,
             );
-        } else if self.match_any(&PREDICTION_SET_NULLABLE_SUFFIX_MAYBE, i) {
+            return;
+        }
+        let alternatives = self.predict(&PREDICTION_NULLABLE_SUFFIX_MAYBE, i);
+        if !alternatives.is_empty() {
             record!(self, GSSNodeNotFound, NonterminalId(131), i);
             let new_gss_node_id = self.new_gss_node(NonterminalId(131), i);
             self.add_gss_edge(new_gss_node_id, gss_node_id, sppf_node_id, return_slot, env);
@@ -21033,7 +19731,13 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
             let (env_id, env) = self.new_env();
             env.bind(BINDING_P, p, arena);
             env.bind(BINDING_A, a, arena);
-            self.add_first_descriptors(NonterminalId(131), i, new_gss_node_id, Some(env_id));
+            self.add_first_descriptors(
+                NonterminalId(131),
+                i,
+                new_gss_node_id,
+                Some(env_id),
+                alternatives,
+            );
             self.add_gss_node_nullable_suffix_maybe(i, p, a, new_gss_node_id);
         } else {
             // The call symbol precedes the return slot in its alternative, so the return slot is never
@@ -21044,10 +19748,11 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
                 i,
                 call_slot,
                 Some(gss_node_id),
-                GLLFailureKind::UnexpectedToken(&PREDICTION_SET_NULLABLE_SUFFIX_MAYBE),
+                GLLFailureKind::NoViableAlternative(&PREDICTION_NULLABLE_SUFFIX_MAYBE),
             );
         }
     }
+    #[inline(never)]
     #[allow(clippy::too_many_arguments)]
     fn create_nullable_shared(
         &mut self,
@@ -21073,7 +19778,10 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
                 return_slot,
                 env,
             );
-        } else if self.match_any(&PREDICTION_SET_NULLABLE_SHARED, i) {
+            return;
+        }
+        let alternatives = self.predict(&PREDICTION_NULLABLE_SHARED, i);
+        if !alternatives.is_empty() {
             record!(self, GSSNodeNotFound, NonterminalId(132), i);
             let new_gss_node_id = self.new_gss_node(NonterminalId(132), i);
             self.add_gss_edge(new_gss_node_id, gss_node_id, sppf_node_id, return_slot, env);
@@ -21081,7 +19789,13 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
             let (env_id, env) = self.new_env();
             env.bind(BINDING_P, p, arena);
             env.bind(BINDING_A, a, arena);
-            self.add_first_descriptors(NonterminalId(132), i, new_gss_node_id, Some(env_id));
+            self.add_first_descriptors(
+                NonterminalId(132),
+                i,
+                new_gss_node_id,
+                Some(env_id),
+                alternatives,
+            );
             self.add_gss_node_nullable_shared(i, p, a, new_gss_node_id);
         } else {
             // The call symbol precedes the return slot in its alternative, so the return slot is never
@@ -21092,10 +19806,11 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
                 i,
                 call_slot,
                 Some(gss_node_id),
-                GLLFailureKind::UnexpectedToken(&PREDICTION_SET_NULLABLE_SHARED),
+                GLLFailureKind::NoViableAlternative(&PREDICTION_NULLABLE_SHARED),
             );
         }
     }
+    #[inline(never)]
     #[allow(clippy::too_many_arguments)]
     fn create_nullable_shared_operand(
         &mut self,
@@ -21123,7 +19838,10 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
                 return_slot,
                 env,
             );
-        } else if self.match_any(&PREDICTION_SET_NULLABLE_SHARED_OPERAND, i) {
+            return;
+        }
+        let alternatives = self.predict(&PREDICTION_NULLABLE_SHARED_OPERAND, i);
+        if !alternatives.is_empty() {
             record!(self, GSSNodeNotFound, NonterminalId(133), i);
             let new_gss_node_id = self.new_gss_node(NonterminalId(133), i);
             self.add_gss_edge(new_gss_node_id, gss_node_id, sppf_node_id, return_slot, env);
@@ -21132,7 +19850,13 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
             env.bind(BINDING_P, p, arena);
             env.bind(BINDING_END, end, arena);
             env.bind(BINDING_A, a, arena);
-            self.add_first_descriptors(NonterminalId(133), i, new_gss_node_id, Some(env_id));
+            self.add_first_descriptors(
+                NonterminalId(133),
+                i,
+                new_gss_node_id,
+                Some(env_id),
+                alternatives,
+            );
             self.add_gss_node_nullable_shared_operand(i, p, end, a, new_gss_node_id);
         } else {
             // The call symbol precedes the return slot in its alternative, so the return slot is never
@@ -21143,10 +19867,11 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
                 i,
                 call_slot,
                 Some(gss_node_id),
-                GLLFailureKind::UnexpectedToken(&PREDICTION_SET_NULLABLE_SHARED_OPERAND),
+                GLLFailureKind::NoViableAlternative(&PREDICTION_NULLABLE_SHARED_OPERAND),
             );
         }
     }
+    #[inline(never)]
     #[allow(clippy::too_many_arguments)]
     fn create_nullable_shared_maybe(
         &mut self,
@@ -21173,7 +19898,10 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
                 return_slot,
                 env,
             );
-        } else if self.match_any(&PREDICTION_SET_NULLABLE_SHARED_MAYBE, i) {
+            return;
+        }
+        let alternatives = self.predict(&PREDICTION_NULLABLE_SHARED_MAYBE, i);
+        if !alternatives.is_empty() {
             record!(self, GSSNodeNotFound, NonterminalId(134), i);
             let new_gss_node_id = self.new_gss_node(NonterminalId(134), i);
             self.add_gss_edge(new_gss_node_id, gss_node_id, sppf_node_id, return_slot, env);
@@ -21182,7 +19910,13 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
             env.bind(BINDING_P, p, arena);
             env.bind(BINDING_END, end, arena);
             env.bind(BINDING_A, a, arena);
-            self.add_first_descriptors(NonterminalId(134), i, new_gss_node_id, Some(env_id));
+            self.add_first_descriptors(
+                NonterminalId(134),
+                i,
+                new_gss_node_id,
+                Some(env_id),
+                alternatives,
+            );
             self.add_gss_node_nullable_shared_maybe(i, p, end, a, new_gss_node_id);
         } else {
             // The call symbol precedes the return slot in its alternative, so the return slot is never
@@ -21193,10 +19927,11 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
                 i,
                 call_slot,
                 Some(gss_node_id),
-                GLLFailureKind::UnexpectedToken(&PREDICTION_SET_NULLABLE_SHARED_MAYBE),
+                GLLFailureKind::NoViableAlternative(&PREDICTION_NULLABLE_SHARED_MAYBE),
             );
         }
     }
+    #[inline(never)]
     #[allow(clippy::too_many_arguments)]
     fn create_own_label(
         &mut self,
@@ -21223,7 +19958,10 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
                 return_slot,
                 env,
             );
-        } else if self.match_any(&PREDICTION_SET_OWN_LABEL, i) {
+            return;
+        }
+        let alternatives = self.predict(&PREDICTION_OWN_LABEL, i);
+        if !alternatives.is_empty() {
             record!(self, GSSNodeNotFound, NonterminalId(135), i);
             let new_gss_node_id = self.new_gss_node(NonterminalId(135), i);
             self.add_gss_edge(new_gss_node_id, gss_node_id, sppf_node_id, return_slot, env);
@@ -21232,7 +19970,13 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
             env.bind(BINDING_P, p, arena);
             env.bind(BINDING_A, a, arena);
             env.bind(BINDING_E, e, arena);
-            self.add_first_descriptors(NonterminalId(135), i, new_gss_node_id, Some(env_id));
+            self.add_first_descriptors(
+                NonterminalId(135),
+                i,
+                new_gss_node_id,
+                Some(env_id),
+                alternatives,
+            );
             self.add_gss_node_own_label(i, p, a, e, new_gss_node_id);
         } else {
             // The call symbol precedes the return slot in its alternative, so the return slot is never
@@ -21243,10 +19987,11 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
                 i,
                 call_slot,
                 Some(gss_node_id),
-                GLLFailureKind::UnexpectedToken(&PREDICTION_SET_OWN_LABEL),
+                GLLFailureKind::NoViableAlternative(&PREDICTION_OWN_LABEL),
             );
         }
     }
+    #[inline(never)]
     #[allow(clippy::too_many_arguments)]
     fn create_own_operand(
         &mut self,
@@ -21274,7 +20019,10 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
                 return_slot,
                 env,
             );
-        } else if self.match_any(&PREDICTION_SET_OWN_OPERAND, i) {
+            return;
+        }
+        let alternatives = self.predict(&PREDICTION_OWN_OPERAND, i);
+        if !alternatives.is_empty() {
             record!(self, GSSNodeNotFound, NonterminalId(136), i);
             let new_gss_node_id = self.new_gss_node(NonterminalId(136), i);
             self.add_gss_edge(new_gss_node_id, gss_node_id, sppf_node_id, return_slot, env);
@@ -21284,7 +20032,13 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
             env.bind(BINDING_END, end, arena);
             env.bind(BINDING_A, a, arena);
             env.bind(BINDING_E, e, arena);
-            self.add_first_descriptors(NonterminalId(136), i, new_gss_node_id, Some(env_id));
+            self.add_first_descriptors(
+                NonterminalId(136),
+                i,
+                new_gss_node_id,
+                Some(env_id),
+                alternatives,
+            );
             self.add_gss_node_own_operand(i, p, end, a, e, new_gss_node_id);
         } else {
             // The call symbol precedes the return slot in its alternative, so the return slot is never
@@ -21295,10 +20049,11 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
                 i,
                 call_slot,
                 Some(gss_node_id),
-                GLLFailureKind::UnexpectedToken(&PREDICTION_SET_OWN_OPERAND),
+                GLLFailureKind::NoViableAlternative(&PREDICTION_OWN_OPERAND),
             );
         }
     }
+    #[inline(never)]
     #[allow(clippy::too_many_arguments)]
     fn create_exclude_only(
         &mut self,
@@ -21323,14 +20078,23 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
                 return_slot,
                 env,
             );
-        } else if self.match_any(&PREDICTION_SET_EXCLUDE_ONLY, i) {
+            return;
+        }
+        let alternatives = self.predict(&PREDICTION_EXCLUDE_ONLY, i);
+        if !alternatives.is_empty() {
             record!(self, GSSNodeNotFound, NonterminalId(137), i);
             let new_gss_node_id = self.new_gss_node(NonterminalId(137), i);
             self.add_gss_edge(new_gss_node_id, gss_node_id, sppf_node_id, return_slot, env);
             let arena = self.vec_arena;
             let (env_id, env) = self.new_env();
             env.bind(BINDING_E, e, arena);
-            self.add_first_descriptors(NonterminalId(137), i, new_gss_node_id, Some(env_id));
+            self.add_first_descriptors(
+                NonterminalId(137),
+                i,
+                new_gss_node_id,
+                Some(env_id),
+                alternatives,
+            );
             self.add_gss_node_exclude_only(i, e, new_gss_node_id);
         } else {
             // The call symbol precedes the return slot in its alternative, so the return slot is never
@@ -21341,10 +20105,11 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
                 i,
                 call_slot,
                 Some(gss_node_id),
-                GLLFailureKind::UnexpectedToken(&PREDICTION_SET_EXCLUDE_ONLY),
+                GLLFailureKind::NoViableAlternative(&PREDICTION_EXCLUDE_ONLY),
             );
         }
     }
+    #[inline(never)]
     #[allow(clippy::too_many_arguments)]
     fn create_absent(
         &mut self,
@@ -21369,14 +20134,23 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
                 return_slot,
                 env,
             );
-        } else if self.match_any(&PREDICTION_SET_ABSENT, i) {
+            return;
+        }
+        let alternatives = self.predict(&PREDICTION_ABSENT, i);
+        if !alternatives.is_empty() {
             record!(self, GSSNodeNotFound, NonterminalId(138), i);
             let new_gss_node_id = self.new_gss_node(NonterminalId(138), i);
             self.add_gss_edge(new_gss_node_id, gss_node_id, sppf_node_id, return_slot, env);
             let arena = self.vec_arena;
             let (env_id, env) = self.new_env();
             env.bind(BINDING_P, p, arena);
-            self.add_first_descriptors(NonterminalId(138), i, new_gss_node_id, Some(env_id));
+            self.add_first_descriptors(
+                NonterminalId(138),
+                i,
+                new_gss_node_id,
+                Some(env_id),
+                alternatives,
+            );
             self.add_gss_node_absent(i, p, new_gss_node_id);
         } else {
             // The call symbol precedes the return slot in its alternative, so the return slot is never
@@ -21387,10 +20161,11 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
                 i,
                 call_slot,
                 Some(gss_node_id),
-                GLLFailureKind::UnexpectedToken(&PREDICTION_SET_ABSENT),
+                GLLFailureKind::NoViableAlternative(&PREDICTION_ABSENT),
             );
         }
     }
+    #[inline(never)]
     #[allow(clippy::too_many_arguments)]
     fn create_absent_operand(
         &mut self,
@@ -21416,7 +20191,10 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
                 return_slot,
                 env,
             );
-        } else if self.match_any(&PREDICTION_SET_ABSENT_OPERAND, i) {
+            return;
+        }
+        let alternatives = self.predict(&PREDICTION_ABSENT_OPERAND, i);
+        if !alternatives.is_empty() {
             record!(self, GSSNodeNotFound, NonterminalId(139), i);
             let new_gss_node_id = self.new_gss_node(NonterminalId(139), i);
             self.add_gss_edge(new_gss_node_id, gss_node_id, sppf_node_id, return_slot, env);
@@ -21424,7 +20202,13 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
             let (env_id, env) = self.new_env();
             env.bind(BINDING_P, p, arena);
             env.bind(BINDING_END, end, arena);
-            self.add_first_descriptors(NonterminalId(139), i, new_gss_node_id, Some(env_id));
+            self.add_first_descriptors(
+                NonterminalId(139),
+                i,
+                new_gss_node_id,
+                Some(env_id),
+                alternatives,
+            );
             self.add_gss_node_absent_operand(i, p, end, new_gss_node_id);
         } else {
             // The call symbol precedes the return slot in its alternative, so the return slot is never
@@ -21435,10 +20219,11 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
                 i,
                 call_slot,
                 Some(gss_node_id),
-                GLLFailureKind::UnexpectedToken(&PREDICTION_SET_ABSENT_OPERAND),
+                GLLFailureKind::NoViableAlternative(&PREDICTION_ABSENT_OPERAND),
             );
         }
     }
+    #[inline(never)]
     #[allow(clippy::too_many_arguments)]
     fn create_closed_prefix(
         &mut self,
@@ -21463,14 +20248,23 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
                 return_slot,
                 env,
             );
-        } else if self.match_any(&PREDICTION_SET_CLOSED_PREFIX, i) {
+            return;
+        }
+        let alternatives = self.predict(&PREDICTION_CLOSED_PREFIX, i);
+        if !alternatives.is_empty() {
             record!(self, GSSNodeNotFound, NonterminalId(140), i);
             let new_gss_node_id = self.new_gss_node(NonterminalId(140), i);
             self.add_gss_edge(new_gss_node_id, gss_node_id, sppf_node_id, return_slot, env);
             let arena = self.vec_arena;
             let (env_id, env) = self.new_env();
             env.bind(BINDING_P, p, arena);
-            self.add_first_descriptors(NonterminalId(140), i, new_gss_node_id, Some(env_id));
+            self.add_first_descriptors(
+                NonterminalId(140),
+                i,
+                new_gss_node_id,
+                Some(env_id),
+                alternatives,
+            );
             self.add_gss_node_closed_prefix(i, p, new_gss_node_id);
         } else {
             // The call symbol precedes the return slot in its alternative, so the return slot is never
@@ -21481,10 +20275,11 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
                 i,
                 call_slot,
                 Some(gss_node_id),
-                GLLFailureKind::UnexpectedToken(&PREDICTION_SET_CLOSED_PREFIX),
+                GLLFailureKind::NoViableAlternative(&PREDICTION_CLOSED_PREFIX),
             );
         }
     }
+    #[inline(never)]
     #[allow(clippy::too_many_arguments)]
     fn create_closed_prefix_body(
         &mut self,
@@ -21509,14 +20304,23 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
                 return_slot,
                 env,
             );
-        } else if self.match_any(&PREDICTION_SET_CLOSED_PREFIX_BODY, i) {
+            return;
+        }
+        let alternatives = self.predict(&PREDICTION_CLOSED_PREFIX_BODY, i);
+        if !alternatives.is_empty() {
             record!(self, GSSNodeNotFound, NonterminalId(141), i);
             let new_gss_node_id = self.new_gss_node(NonterminalId(141), i);
             self.add_gss_edge(new_gss_node_id, gss_node_id, sppf_node_id, return_slot, env);
             let arena = self.vec_arena;
             let (env_id, env) = self.new_env();
             env.bind(BINDING_P, p, arena);
-            self.add_first_descriptors(NonterminalId(141), i, new_gss_node_id, Some(env_id));
+            self.add_first_descriptors(
+                NonterminalId(141),
+                i,
+                new_gss_node_id,
+                Some(env_id),
+                alternatives,
+            );
             self.add_gss_node_closed_prefix_body(i, p, new_gss_node_id);
         } else {
             // The call symbol precedes the return slot in its alternative, so the return slot is never
@@ -21527,10 +20331,11 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
                 i,
                 call_slot,
                 Some(gss_node_id),
-                GLLFailureKind::UnexpectedToken(&PREDICTION_SET_CLOSED_PREFIX_BODY),
+                GLLFailureKind::NoViableAlternative(&PREDICTION_CLOSED_PREFIX_BODY),
             );
         }
     }
+    #[inline(never)]
     #[allow(clippy::too_many_arguments)]
     fn create_closed_postfix(
         &mut self,
@@ -21555,14 +20360,23 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
                 return_slot,
                 env,
             );
-        } else if self.match_any(&PREDICTION_SET_CLOSED_POSTFIX, i) {
+            return;
+        }
+        let alternatives = self.predict(&PREDICTION_CLOSED_POSTFIX, i);
+        if !alternatives.is_empty() {
             record!(self, GSSNodeNotFound, NonterminalId(142), i);
             let new_gss_node_id = self.new_gss_node(NonterminalId(142), i);
             self.add_gss_edge(new_gss_node_id, gss_node_id, sppf_node_id, return_slot, env);
             let arena = self.vec_arena;
             let (env_id, env) = self.new_env();
             env.bind(BINDING_P, p, arena);
-            self.add_first_descriptors(NonterminalId(142), i, new_gss_node_id, Some(env_id));
+            self.add_first_descriptors(
+                NonterminalId(142),
+                i,
+                new_gss_node_id,
+                Some(env_id),
+                alternatives,
+            );
             self.add_gss_node_closed_postfix(i, p, new_gss_node_id);
         } else {
             // The call symbol precedes the return slot in its alternative, so the return slot is never
@@ -21573,10 +20387,11 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
                 i,
                 call_slot,
                 Some(gss_node_id),
-                GLLFailureKind::UnexpectedToken(&PREDICTION_SET_CLOSED_POSTFIX),
+                GLLFailureKind::NoViableAlternative(&PREDICTION_CLOSED_POSTFIX),
             );
         }
     }
+    #[inline(never)]
     #[allow(clippy::too_many_arguments)]
     fn create_closed_postfix_body(
         &mut self,
@@ -21601,14 +20416,23 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
                 return_slot,
                 env,
             );
-        } else if self.match_any(&PREDICTION_SET_CLOSED_POSTFIX_BODY, i) {
+            return;
+        }
+        let alternatives = self.predict(&PREDICTION_CLOSED_POSTFIX_BODY, i);
+        if !alternatives.is_empty() {
             record!(self, GSSNodeNotFound, NonterminalId(143), i);
             let new_gss_node_id = self.new_gss_node(NonterminalId(143), i);
             self.add_gss_edge(new_gss_node_id, gss_node_id, sppf_node_id, return_slot, env);
             let arena = self.vec_arena;
             let (env_id, env) = self.new_env();
             env.bind(BINDING_P, p, arena);
-            self.add_first_descriptors(NonterminalId(143), i, new_gss_node_id, Some(env_id));
+            self.add_first_descriptors(
+                NonterminalId(143),
+                i,
+                new_gss_node_id,
+                Some(env_id),
+                alternatives,
+            );
             self.add_gss_node_closed_postfix_body(i, p, new_gss_node_id);
         } else {
             // The call symbol precedes the return slot in its alternative, so the return slot is never
@@ -21619,10 +20443,11 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
                 i,
                 call_slot,
                 Some(gss_node_id),
-                GLLFailureKind::UnexpectedToken(&PREDICTION_SET_CLOSED_POSTFIX_BODY),
+                GLLFailureKind::NoViableAlternative(&PREDICTION_CLOSED_POSTFIX_BODY),
             );
         }
     }
+    #[inline(never)]
     #[allow(clippy::too_many_arguments)]
     fn create_head_choice(
         &mut self,
@@ -21647,14 +20472,23 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
                 return_slot,
                 env,
             );
-        } else if self.match_any(&PREDICTION_SET_HEAD_CHOICE, i) {
+            return;
+        }
+        let alternatives = self.predict(&PREDICTION_HEAD_CHOICE, i);
+        if !alternatives.is_empty() {
             record!(self, GSSNodeNotFound, NonterminalId(144), i);
             let new_gss_node_id = self.new_gss_node(NonterminalId(144), i);
             self.add_gss_edge(new_gss_node_id, gss_node_id, sppf_node_id, return_slot, env);
             let arena = self.vec_arena;
             let (env_id, env) = self.new_env();
             env.bind(BINDING_P, p, arena);
-            self.add_first_descriptors(NonterminalId(144), i, new_gss_node_id, Some(env_id));
+            self.add_first_descriptors(
+                NonterminalId(144),
+                i,
+                new_gss_node_id,
+                Some(env_id),
+                alternatives,
+            );
             self.add_gss_node_head_choice(i, p, new_gss_node_id);
         } else {
             // The call symbol precedes the return slot in its alternative, so the return slot is never
@@ -21665,10 +20499,11 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
                 i,
                 call_slot,
                 Some(gss_node_id),
-                GLLFailureKind::UnexpectedToken(&PREDICTION_SET_HEAD_CHOICE),
+                GLLFailureKind::NoViableAlternative(&PREDICTION_HEAD_CHOICE),
             );
         }
     }
+    #[inline(never)]
     #[allow(clippy::too_many_arguments)]
     fn create_head_operand(
         &mut self,
@@ -21694,7 +20529,10 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
                 return_slot,
                 env,
             );
-        } else if self.match_any(&PREDICTION_SET_HEAD_OPERAND, i) {
+            return;
+        }
+        let alternatives = self.predict(&PREDICTION_HEAD_OPERAND, i);
+        if !alternatives.is_empty() {
             record!(self, GSSNodeNotFound, NonterminalId(145), i);
             let new_gss_node_id = self.new_gss_node(NonterminalId(145), i);
             self.add_gss_edge(new_gss_node_id, gss_node_id, sppf_node_id, return_slot, env);
@@ -21702,7 +20540,13 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
             let (env_id, env) = self.new_env();
             env.bind(BINDING_P, p, arena);
             env.bind(BINDING_END, end, arena);
-            self.add_first_descriptors(NonterminalId(145), i, new_gss_node_id, Some(env_id));
+            self.add_first_descriptors(
+                NonterminalId(145),
+                i,
+                new_gss_node_id,
+                Some(env_id),
+                alternatives,
+            );
             self.add_gss_node_head_operand(i, p, end, new_gss_node_id);
         } else {
             // The call symbol precedes the return slot in its alternative, so the return slot is never
@@ -21713,10 +20557,11 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
                 i,
                 call_slot,
                 Some(gss_node_id),
-                GLLFailureKind::UnexpectedToken(&PREDICTION_SET_HEAD_OPERAND),
+                GLLFailureKind::NoViableAlternative(&PREDICTION_HEAD_OPERAND),
             );
         }
     }
+    #[inline(never)]
     #[allow(clippy::too_many_arguments)]
     fn create_inner(
         &mut self,
@@ -21741,14 +20586,23 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
                 return_slot,
                 env,
             );
-        } else if self.match_any(&PREDICTION_SET_INNER, i) {
+            return;
+        }
+        let alternatives = self.predict(&PREDICTION_INNER, i);
+        if !alternatives.is_empty() {
             record!(self, GSSNodeNotFound, NonterminalId(146), i);
             let new_gss_node_id = self.new_gss_node(NonterminalId(146), i);
             self.add_gss_edge(new_gss_node_id, gss_node_id, sppf_node_id, return_slot, env);
             let arena = self.vec_arena;
             let (env_id, env) = self.new_env();
             env.bind(BINDING_P, p, arena);
-            self.add_first_descriptors(NonterminalId(146), i, new_gss_node_id, Some(env_id));
+            self.add_first_descriptors(
+                NonterminalId(146),
+                i,
+                new_gss_node_id,
+                Some(env_id),
+                alternatives,
+            );
             self.add_gss_node_inner(i, p, new_gss_node_id);
         } else {
             // The call symbol precedes the return slot in its alternative, so the return slot is never
@@ -21759,10 +20613,11 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
                 i,
                 call_slot,
                 Some(gss_node_id),
-                GLLFailureKind::UnexpectedToken(&PREDICTION_SET_INNER),
+                GLLFailureKind::NoViableAlternative(&PREDICTION_INNER),
             );
         }
     }
+    #[inline(never)]
     #[allow(clippy::too_many_arguments)]
     fn create_unary_mixed_left(
         &mut self,
@@ -21788,7 +20643,10 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
                 return_slot,
                 env,
             );
-        } else if self.match_any(&PREDICTION_SET_UNARY_MIXED_LEFT, i) {
+            return;
+        }
+        let alternatives = self.predict(&PREDICTION_UNARY_MIXED_LEFT, i);
+        if !alternatives.is_empty() {
             record!(self, GSSNodeNotFound, NonterminalId(147), i);
             let new_gss_node_id = self.new_gss_node(NonterminalId(147), i);
             self.add_gss_edge(new_gss_node_id, gss_node_id, sppf_node_id, return_slot, env);
@@ -21796,7 +20654,13 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
             let (env_id, env) = self.new_env();
             env.bind(BINDING_P, p, arena);
             env.bind(BINDING_A, a, arena);
-            self.add_first_descriptors(NonterminalId(147), i, new_gss_node_id, Some(env_id));
+            self.add_first_descriptors(
+                NonterminalId(147),
+                i,
+                new_gss_node_id,
+                Some(env_id),
+                alternatives,
+            );
             self.add_gss_node_unary_mixed_left(i, p, a, new_gss_node_id);
         } else {
             // The call symbol precedes the return slot in its alternative, so the return slot is never
@@ -21807,10 +20671,11 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
                 i,
                 call_slot,
                 Some(gss_node_id),
-                GLLFailureKind::UnexpectedToken(&PREDICTION_SET_UNARY_MIXED_LEFT),
+                GLLFailureKind::NoViableAlternative(&PREDICTION_UNARY_MIXED_LEFT),
             );
         }
     }
+    #[inline(never)]
     #[allow(clippy::too_many_arguments)]
     fn create_unary_mixed_right(
         &mut self,
@@ -21836,7 +20701,10 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
                 return_slot,
                 env,
             );
-        } else if self.match_any(&PREDICTION_SET_UNARY_MIXED_RIGHT, i) {
+            return;
+        }
+        let alternatives = self.predict(&PREDICTION_UNARY_MIXED_RIGHT, i);
+        if !alternatives.is_empty() {
             record!(self, GSSNodeNotFound, NonterminalId(148), i);
             let new_gss_node_id = self.new_gss_node(NonterminalId(148), i);
             self.add_gss_edge(new_gss_node_id, gss_node_id, sppf_node_id, return_slot, env);
@@ -21844,7 +20712,13 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
             let (env_id, env) = self.new_env();
             env.bind(BINDING_P, p, arena);
             env.bind(BINDING_A, a, arena);
-            self.add_first_descriptors(NonterminalId(148), i, new_gss_node_id, Some(env_id));
+            self.add_first_descriptors(
+                NonterminalId(148),
+                i,
+                new_gss_node_id,
+                Some(env_id),
+                alternatives,
+            );
             self.add_gss_node_unary_mixed_right(i, p, a, new_gss_node_id);
         } else {
             // The call symbol precedes the return slot in its alternative, so the return slot is never
@@ -21855,10 +20729,11 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
                 i,
                 call_slot,
                 Some(gss_node_id),
-                GLLFailureKind::UnexpectedToken(&PREDICTION_SET_UNARY_MIXED_RIGHT),
+                GLLFailureKind::NoViableAlternative(&PREDICTION_UNARY_MIXED_RIGHT),
             );
         }
     }
+    #[inline(never)]
     #[allow(clippy::too_many_arguments)]
     fn create_unary_mixed_none(
         &mut self,
@@ -21884,7 +20759,10 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
                 return_slot,
                 env,
             );
-        } else if self.match_any(&PREDICTION_SET_UNARY_MIXED_NONE, i) {
+            return;
+        }
+        let alternatives = self.predict(&PREDICTION_UNARY_MIXED_NONE, i);
+        if !alternatives.is_empty() {
             record!(self, GSSNodeNotFound, NonterminalId(149), i);
             let new_gss_node_id = self.new_gss_node(NonterminalId(149), i);
             self.add_gss_edge(new_gss_node_id, gss_node_id, sppf_node_id, return_slot, env);
@@ -21892,7 +20770,13 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
             let (env_id, env) = self.new_env();
             env.bind(BINDING_P, p, arena);
             env.bind(BINDING_A, a, arena);
-            self.add_first_descriptors(NonterminalId(149), i, new_gss_node_id, Some(env_id));
+            self.add_first_descriptors(
+                NonterminalId(149),
+                i,
+                new_gss_node_id,
+                Some(env_id),
+                alternatives,
+            );
             self.add_gss_node_unary_mixed_none(i, p, a, new_gss_node_id);
         } else {
             // The call symbol precedes the return slot in its alternative, so the return slot is never
@@ -21903,10 +20787,11 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
                 i,
                 call_slot,
                 Some(gss_node_id),
-                GLLFailureKind::UnexpectedToken(&PREDICTION_SET_UNARY_MIXED_NONE),
+                GLLFailureKind::NoViableAlternative(&PREDICTION_UNARY_MIXED_NONE),
             );
         }
     }
+    #[inline(never)]
     #[allow(clippy::too_many_arguments)]
     fn create_dynamic(
         &mut self,
@@ -21933,7 +20818,10 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
                 return_slot,
                 env,
             );
-        } else if self.match_any(&PREDICTION_SET_DYNAMIC, i) {
+            return;
+        }
+        let alternatives = self.predict(&PREDICTION_DYNAMIC, i);
+        if !alternatives.is_empty() {
             record!(self, GSSNodeNotFound, NonterminalId(150), i);
             let new_gss_node_id = self.new_gss_node(NonterminalId(150), i);
             self.add_gss_edge(new_gss_node_id, gss_node_id, sppf_node_id, return_slot, env);
@@ -21942,7 +20830,13 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
             env.bind(BINDING_P, p, arena);
             env.bind(BINDING_A, a, arena);
             env.bind(BINDING_E, e, arena);
-            self.add_first_descriptors(NonterminalId(150), i, new_gss_node_id, Some(env_id));
+            self.add_first_descriptors(
+                NonterminalId(150),
+                i,
+                new_gss_node_id,
+                Some(env_id),
+                alternatives,
+            );
             self.add_gss_node_dynamic(i, p, a, e, new_gss_node_id);
         } else {
             // The call symbol precedes the return slot in its alternative, so the return slot is never
@@ -21953,10 +20847,11 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
                 i,
                 call_slot,
                 Some(gss_node_id),
-                GLLFailureKind::UnexpectedToken(&PREDICTION_SET_DYNAMIC),
+                GLLFailureKind::NoViableAlternative(&PREDICTION_DYNAMIC),
             );
         }
     }
+    #[inline(never)]
     #[allow(clippy::too_many_arguments)]
     fn create_dynamic_operand(
         &mut self,
@@ -21984,7 +20879,10 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
                 return_slot,
                 env,
             );
-        } else if self.match_any(&PREDICTION_SET_DYNAMIC_OPERAND, i) {
+            return;
+        }
+        let alternatives = self.predict(&PREDICTION_DYNAMIC_OPERAND, i);
+        if !alternatives.is_empty() {
             record!(self, GSSNodeNotFound, NonterminalId(151), i);
             let new_gss_node_id = self.new_gss_node(NonterminalId(151), i);
             self.add_gss_edge(new_gss_node_id, gss_node_id, sppf_node_id, return_slot, env);
@@ -21994,7 +20892,13 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
             env.bind(BINDING_END, end, arena);
             env.bind(BINDING_A, a, arena);
             env.bind(BINDING_E, e, arena);
-            self.add_first_descriptors(NonterminalId(151), i, new_gss_node_id, Some(env_id));
+            self.add_first_descriptors(
+                NonterminalId(151),
+                i,
+                new_gss_node_id,
+                Some(env_id),
+                alternatives,
+            );
             self.add_gss_node_dynamic_operand(i, p, end, a, e, new_gss_node_id);
         } else {
             // The call symbol precedes the return slot in its alternative, so the return slot is never
@@ -22005,10 +20909,11 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
                 i,
                 call_slot,
                 Some(gss_node_id),
-                GLLFailureKind::UnexpectedToken(&PREDICTION_SET_DYNAMIC_OPERAND),
+                GLLFailureKind::NoViableAlternative(&PREDICTION_DYNAMIC_OPERAND),
             );
         }
     }
+    #[inline(never)]
     #[allow(clippy::too_many_arguments)]
     fn create_dynamic_multi(
         &mut self,
@@ -22034,7 +20939,10 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
                 return_slot,
                 env,
             );
-        } else if self.match_any(&PREDICTION_SET_DYNAMIC_MULTI, i) {
+            return;
+        }
+        let alternatives = self.predict(&PREDICTION_DYNAMIC_MULTI, i);
+        if !alternatives.is_empty() {
             record!(self, GSSNodeNotFound, NonterminalId(152), i);
             let new_gss_node_id = self.new_gss_node(NonterminalId(152), i);
             self.add_gss_edge(new_gss_node_id, gss_node_id, sppf_node_id, return_slot, env);
@@ -22042,7 +20950,13 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
             let (env_id, env) = self.new_env();
             env.bind(BINDING_P, p, arena);
             env.bind(BINDING_A, a, arena);
-            self.add_first_descriptors(NonterminalId(152), i, new_gss_node_id, Some(env_id));
+            self.add_first_descriptors(
+                NonterminalId(152),
+                i,
+                new_gss_node_id,
+                Some(env_id),
+                alternatives,
+            );
             self.add_gss_node_dynamic_multi(i, p, a, new_gss_node_id);
         } else {
             // The call symbol precedes the return slot in its alternative, so the return slot is never
@@ -22053,10 +20967,11 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
                 i,
                 call_slot,
                 Some(gss_node_id),
-                GLLFailureKind::UnexpectedToken(&PREDICTION_SET_DYNAMIC_MULTI),
+                GLLFailureKind::NoViableAlternative(&PREDICTION_DYNAMIC_MULTI),
             );
         }
     }
+    #[inline(never)]
     #[allow(clippy::too_many_arguments)]
     fn create_dynamic_multi_operand(
         &mut self,
@@ -22083,7 +20998,10 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
                 return_slot,
                 env,
             );
-        } else if self.match_any(&PREDICTION_SET_DYNAMIC_MULTI_OPERAND, i) {
+            return;
+        }
+        let alternatives = self.predict(&PREDICTION_DYNAMIC_MULTI_OPERAND, i);
+        if !alternatives.is_empty() {
             record!(self, GSSNodeNotFound, NonterminalId(153), i);
             let new_gss_node_id = self.new_gss_node(NonterminalId(153), i);
             self.add_gss_edge(new_gss_node_id, gss_node_id, sppf_node_id, return_slot, env);
@@ -22092,7 +21010,13 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
             env.bind(BINDING_P, p, arena);
             env.bind(BINDING_END, end, arena);
             env.bind(BINDING_A, a, arena);
-            self.add_first_descriptors(NonterminalId(153), i, new_gss_node_id, Some(env_id));
+            self.add_first_descriptors(
+                NonterminalId(153),
+                i,
+                new_gss_node_id,
+                Some(env_id),
+                alternatives,
+            );
             self.add_gss_node_dynamic_multi_operand(i, p, end, a, new_gss_node_id);
         } else {
             // The call symbol precedes the return slot in its alternative, so the return slot is never
@@ -22103,10 +21027,11 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
                 i,
                 call_slot,
                 Some(gss_node_id),
-                GLLFailureKind::UnexpectedToken(&PREDICTION_SET_DYNAMIC_MULTI_OPERAND),
+                GLLFailureKind::NoViableAlternative(&PREDICTION_DYNAMIC_MULTI_OPERAND),
             );
         }
     }
+    #[inline(never)]
     #[allow(clippy::too_many_arguments)]
     fn create_nullable_boundary_prefix(
         &mut self,
@@ -22131,14 +21056,23 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
                 return_slot,
                 env,
             );
-        } else if self.match_any(&PREDICTION_SET_NULLABLE_BOUNDARY_PREFIX, i) {
+            return;
+        }
+        let alternatives = self.predict(&PREDICTION_NULLABLE_BOUNDARY_PREFIX, i);
+        if !alternatives.is_empty() {
             record!(self, GSSNodeNotFound, NonterminalId(154), i);
             let new_gss_node_id = self.new_gss_node(NonterminalId(154), i);
             self.add_gss_edge(new_gss_node_id, gss_node_id, sppf_node_id, return_slot, env);
             let arena = self.vec_arena;
             let (env_id, env) = self.new_env();
             env.bind(BINDING_P, p, arena);
-            self.add_first_descriptors(NonterminalId(154), i, new_gss_node_id, Some(env_id));
+            self.add_first_descriptors(
+                NonterminalId(154),
+                i,
+                new_gss_node_id,
+                Some(env_id),
+                alternatives,
+            );
             self.add_gss_node_nullable_boundary_prefix(i, p, new_gss_node_id);
         } else {
             // The call symbol precedes the return slot in its alternative, so the return slot is never
@@ -22149,10 +21083,11 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
                 i,
                 call_slot,
                 Some(gss_node_id),
-                GLLFailureKind::UnexpectedToken(&PREDICTION_SET_NULLABLE_BOUNDARY_PREFIX),
+                GLLFailureKind::NoViableAlternative(&PREDICTION_NULLABLE_BOUNDARY_PREFIX),
             );
         }
     }
+    #[inline(never)]
     #[allow(clippy::too_many_arguments)]
     fn create_nullable_boundary_postfix(
         &mut self,
@@ -22177,14 +21112,23 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
                 return_slot,
                 env,
             );
-        } else if self.match_any(&PREDICTION_SET_NULLABLE_BOUNDARY_POSTFIX, i) {
+            return;
+        }
+        let alternatives = self.predict(&PREDICTION_NULLABLE_BOUNDARY_POSTFIX, i);
+        if !alternatives.is_empty() {
             record!(self, GSSNodeNotFound, NonterminalId(155), i);
             let new_gss_node_id = self.new_gss_node(NonterminalId(155), i);
             self.add_gss_edge(new_gss_node_id, gss_node_id, sppf_node_id, return_slot, env);
             let arena = self.vec_arena;
             let (env_id, env) = self.new_env();
             env.bind(BINDING_P, p, arena);
-            self.add_first_descriptors(NonterminalId(155), i, new_gss_node_id, Some(env_id));
+            self.add_first_descriptors(
+                NonterminalId(155),
+                i,
+                new_gss_node_id,
+                Some(env_id),
+                alternatives,
+            );
             self.add_gss_node_nullable_boundary_postfix(i, p, new_gss_node_id);
         } else {
             // The call symbol precedes the return slot in its alternative, so the return slot is never
@@ -22195,10 +21139,11 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
                 i,
                 call_slot,
                 Some(gss_node_id),
-                GLLFailureKind::UnexpectedToken(&PREDICTION_SET_NULLABLE_BOUNDARY_POSTFIX),
+                GLLFailureKind::NoViableAlternative(&PREDICTION_NULLABLE_BOUNDARY_POSTFIX),
             );
         }
     }
+    #[inline(never)]
     #[allow(clippy::too_many_arguments)]
     fn create_nullable_boundary_binary(
         &mut self,
@@ -22223,14 +21168,23 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
                 return_slot,
                 env,
             );
-        } else if self.match_any(&PREDICTION_SET_NULLABLE_BOUNDARY_BINARY, i) {
+            return;
+        }
+        let alternatives = self.predict(&PREDICTION_NULLABLE_BOUNDARY_BINARY, i);
+        if !alternatives.is_empty() {
             record!(self, GSSNodeNotFound, NonterminalId(156), i);
             let new_gss_node_id = self.new_gss_node(NonterminalId(156), i);
             self.add_gss_edge(new_gss_node_id, gss_node_id, sppf_node_id, return_slot, env);
             let arena = self.vec_arena;
             let (env_id, env) = self.new_env();
             env.bind(BINDING_P, p, arena);
-            self.add_first_descriptors(NonterminalId(156), i, new_gss_node_id, Some(env_id));
+            self.add_first_descriptors(
+                NonterminalId(156),
+                i,
+                new_gss_node_id,
+                Some(env_id),
+                alternatives,
+            );
             self.add_gss_node_nullable_boundary_binary(i, p, new_gss_node_id);
         } else {
             // The call symbol precedes the return slot in its alternative, so the return slot is never
@@ -22241,10 +21195,11 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
                 i,
                 call_slot,
                 Some(gss_node_id),
-                GLLFailureKind::UnexpectedToken(&PREDICTION_SET_NULLABLE_BOUNDARY_BINARY),
+                GLLFailureKind::NoViableAlternative(&PREDICTION_NULLABLE_BOUNDARY_BINARY),
             );
         }
     }
+    #[inline(never)]
     #[allow(clippy::too_many_arguments)]
     fn create_closed_left_assoc(
         &mut self,
@@ -22270,7 +21225,10 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
                 return_slot,
                 env,
             );
-        } else if self.match_any(&PREDICTION_SET_CLOSED_LEFT_ASSOC, i) {
+            return;
+        }
+        let alternatives = self.predict(&PREDICTION_CLOSED_LEFT_ASSOC, i);
+        if !alternatives.is_empty() {
             record!(self, GSSNodeNotFound, NonterminalId(157), i);
             let new_gss_node_id = self.new_gss_node(NonterminalId(157), i);
             self.add_gss_edge(new_gss_node_id, gss_node_id, sppf_node_id, return_slot, env);
@@ -22278,7 +21236,13 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
             let (env_id, env) = self.new_env();
             env.bind(BINDING_P, p, arena);
             env.bind(BINDING_A, a, arena);
-            self.add_first_descriptors(NonterminalId(157), i, new_gss_node_id, Some(env_id));
+            self.add_first_descriptors(
+                NonterminalId(157),
+                i,
+                new_gss_node_id,
+                Some(env_id),
+                alternatives,
+            );
             self.add_gss_node_closed_left_assoc(i, p, a, new_gss_node_id);
         } else {
             // The call symbol precedes the return slot in its alternative, so the return slot is never
@@ -22289,10 +21253,11 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
                 i,
                 call_slot,
                 Some(gss_node_id),
-                GLLFailureKind::UnexpectedToken(&PREDICTION_SET_CLOSED_LEFT_ASSOC),
+                GLLFailureKind::NoViableAlternative(&PREDICTION_CLOSED_LEFT_ASSOC),
             );
         }
     }
+    #[inline(never)]
     #[allow(clippy::too_many_arguments)]
     fn create_closed_left_operand(
         &mut self,
@@ -22318,7 +21283,10 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
                 return_slot,
                 env,
             );
-        } else if self.match_any(&PREDICTION_SET_CLOSED_LEFT_OPERAND, i) {
+            return;
+        }
+        let alternatives = self.predict(&PREDICTION_CLOSED_LEFT_OPERAND, i);
+        if !alternatives.is_empty() {
             record!(self, GSSNodeNotFound, NonterminalId(158), i);
             let new_gss_node_id = self.new_gss_node(NonterminalId(158), i);
             self.add_gss_edge(new_gss_node_id, gss_node_id, sppf_node_id, return_slot, env);
@@ -22326,7 +21294,13 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
             let (env_id, env) = self.new_env();
             env.bind(BINDING_P, p, arena);
             env.bind(BINDING_A, a, arena);
-            self.add_first_descriptors(NonterminalId(158), i, new_gss_node_id, Some(env_id));
+            self.add_first_descriptors(
+                NonterminalId(158),
+                i,
+                new_gss_node_id,
+                Some(env_id),
+                alternatives,
+            );
             self.add_gss_node_closed_left_operand(i, p, a, new_gss_node_id);
         } else {
             // The call symbol precedes the return slot in its alternative, so the return slot is never
@@ -22337,10 +21311,11 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
                 i,
                 call_slot,
                 Some(gss_node_id),
-                GLLFailureKind::UnexpectedToken(&PREDICTION_SET_CLOSED_LEFT_OPERAND),
+                GLLFailureKind::NoViableAlternative(&PREDICTION_CLOSED_LEFT_OPERAND),
             );
         }
     }
+    #[inline(never)]
     #[allow(clippy::too_many_arguments)]
     fn create_closed_right_assoc(
         &mut self,
@@ -22366,7 +21341,10 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
                 return_slot,
                 env,
             );
-        } else if self.match_any(&PREDICTION_SET_CLOSED_RIGHT_ASSOC, i) {
+            return;
+        }
+        let alternatives = self.predict(&PREDICTION_CLOSED_RIGHT_ASSOC, i);
+        if !alternatives.is_empty() {
             record!(self, GSSNodeNotFound, NonterminalId(159), i);
             let new_gss_node_id = self.new_gss_node(NonterminalId(159), i);
             self.add_gss_edge(new_gss_node_id, gss_node_id, sppf_node_id, return_slot, env);
@@ -22374,7 +21352,13 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
             let (env_id, env) = self.new_env();
             env.bind(BINDING_P, p, arena);
             env.bind(BINDING_A, a, arena);
-            self.add_first_descriptors(NonterminalId(159), i, new_gss_node_id, Some(env_id));
+            self.add_first_descriptors(
+                NonterminalId(159),
+                i,
+                new_gss_node_id,
+                Some(env_id),
+                alternatives,
+            );
             self.add_gss_node_closed_right_assoc(i, p, a, new_gss_node_id);
         } else {
             // The call symbol precedes the return slot in its alternative, so the return slot is never
@@ -22385,10 +21369,11 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
                 i,
                 call_slot,
                 Some(gss_node_id),
-                GLLFailureKind::UnexpectedToken(&PREDICTION_SET_CLOSED_RIGHT_ASSOC),
+                GLLFailureKind::NoViableAlternative(&PREDICTION_CLOSED_RIGHT_ASSOC),
             );
         }
     }
+    #[inline(never)]
     #[allow(clippy::too_many_arguments)]
     fn create_closed_right_operand(
         &mut self,
@@ -22414,7 +21399,10 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
                 return_slot,
                 env,
             );
-        } else if self.match_any(&PREDICTION_SET_CLOSED_RIGHT_OPERAND, i) {
+            return;
+        }
+        let alternatives = self.predict(&PREDICTION_CLOSED_RIGHT_OPERAND, i);
+        if !alternatives.is_empty() {
             record!(self, GSSNodeNotFound, NonterminalId(160), i);
             let new_gss_node_id = self.new_gss_node(NonterminalId(160), i);
             self.add_gss_edge(new_gss_node_id, gss_node_id, sppf_node_id, return_slot, env);
@@ -22422,7 +21410,13 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
             let (env_id, env) = self.new_env();
             env.bind(BINDING_P, p, arena);
             env.bind(BINDING_A, a, arena);
-            self.add_first_descriptors(NonterminalId(160), i, new_gss_node_id, Some(env_id));
+            self.add_first_descriptors(
+                NonterminalId(160),
+                i,
+                new_gss_node_id,
+                Some(env_id),
+                alternatives,
+            );
             self.add_gss_node_closed_right_operand(i, p, a, new_gss_node_id);
         } else {
             // The call symbol precedes the return slot in its alternative, so the return slot is never
@@ -22433,10 +21427,11 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
                 i,
                 call_slot,
                 Some(gss_node_id),
-                GLLFailureKind::UnexpectedToken(&PREDICTION_SET_CLOSED_RIGHT_OPERAND),
+                GLLFailureKind::NoViableAlternative(&PREDICTION_CLOSED_RIGHT_OPERAND),
             );
         }
     }
+    #[inline(never)]
     #[allow(clippy::too_many_arguments)]
     fn create_indirect_exclude(
         &mut self,
@@ -22463,7 +21458,10 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
                 return_slot,
                 env,
             );
-        } else if self.match_any(&PREDICTION_SET_INDIRECT_EXCLUDE, i) {
+            return;
+        }
+        let alternatives = self.predict(&PREDICTION_INDIRECT_EXCLUDE, i);
+        if !alternatives.is_empty() {
             record!(self, GSSNodeNotFound, NonterminalId(161), i);
             let new_gss_node_id = self.new_gss_node(NonterminalId(161), i);
             self.add_gss_edge(new_gss_node_id, gss_node_id, sppf_node_id, return_slot, env);
@@ -22472,7 +21470,13 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
             env.bind(BINDING_P, p, arena);
             env.bind(BINDING_A, a, arena);
             env.bind(BINDING_E, e, arena);
-            self.add_first_descriptors(NonterminalId(161), i, new_gss_node_id, Some(env_id));
+            self.add_first_descriptors(
+                NonterminalId(161),
+                i,
+                new_gss_node_id,
+                Some(env_id),
+                alternatives,
+            );
             self.add_gss_node_indirect_exclude(i, p, a, e, new_gss_node_id);
         } else {
             // The call symbol precedes the return slot in its alternative, so the return slot is never
@@ -22483,10 +21487,11 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
                 i,
                 call_slot,
                 Some(gss_node_id),
-                GLLFailureKind::UnexpectedToken(&PREDICTION_SET_INDIRECT_EXCLUDE),
+                GLLFailureKind::NoViableAlternative(&PREDICTION_INDIRECT_EXCLUDE),
             );
         }
     }
+    #[inline(never)]
     #[allow(clippy::too_many_arguments)]
     fn create_indirect_exclude_operand(
         &mut self,
@@ -22516,7 +21521,10 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
                 return_slot,
                 env,
             );
-        } else if self.match_any(&PREDICTION_SET_INDIRECT_EXCLUDE_OPERAND, i) {
+            return;
+        }
+        let alternatives = self.predict(&PREDICTION_INDIRECT_EXCLUDE_OPERAND, i);
+        if !alternatives.is_empty() {
             record!(self, GSSNodeNotFound, NonterminalId(162), i);
             let new_gss_node_id = self.new_gss_node(NonterminalId(162), i);
             self.add_gss_edge(new_gss_node_id, gss_node_id, sppf_node_id, return_slot, env);
@@ -22526,7 +21534,13 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
             env.bind(BINDING_END, end, arena);
             env.bind(BINDING_A, a, arena);
             env.bind(BINDING_E, e, arena);
-            self.add_first_descriptors(NonterminalId(162), i, new_gss_node_id, Some(env_id));
+            self.add_first_descriptors(
+                NonterminalId(162),
+                i,
+                new_gss_node_id,
+                Some(env_id),
+                alternatives,
+            );
             self.add_gss_node_indirect_exclude_operand(i, p, end, a, e, new_gss_node_id);
         } else {
             // The call symbol precedes the return slot in its alternative, so the return slot is never
@@ -22537,10 +21551,11 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
                 i,
                 call_slot,
                 Some(gss_node_id),
-                GLLFailureKind::UnexpectedToken(&PREDICTION_SET_INDIRECT_EXCLUDE_OPERAND),
+                GLLFailureKind::NoViableAlternative(&PREDICTION_INDIRECT_EXCLUDE_OPERAND),
             );
         }
     }
+    #[inline(never)]
     #[allow(clippy::too_many_arguments)]
     fn create_operand_literal(
         &mut self,
@@ -22566,7 +21581,10 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
                 return_slot,
                 env,
             );
-        } else if self.match_any(&PREDICTION_SET_OPERAND_LITERAL, i) {
+            return;
+        }
+        let alternatives = self.predict(&PREDICTION_OPERAND_LITERAL, i);
+        if !alternatives.is_empty() {
             record!(self, GSSNodeNotFound, NonterminalId(163), i);
             let new_gss_node_id = self.new_gss_node(NonterminalId(163), i);
             self.add_gss_edge(new_gss_node_id, gss_node_id, sppf_node_id, return_slot, env);
@@ -22574,7 +21592,13 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
             let (env_id, env) = self.new_env();
             env.bind(BINDING_P, p, arena);
             env.bind(BINDING_A, a, arena);
-            self.add_first_descriptors(NonterminalId(163), i, new_gss_node_id, Some(env_id));
+            self.add_first_descriptors(
+                NonterminalId(163),
+                i,
+                new_gss_node_id,
+                Some(env_id),
+                alternatives,
+            );
             self.add_gss_node_operand_literal(i, p, a, new_gss_node_id);
         } else {
             // The call symbol precedes the return slot in its alternative, so the return slot is never
@@ -22585,10 +21609,11 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
                 i,
                 call_slot,
                 Some(gss_node_id),
-                GLLFailureKind::UnexpectedToken(&PREDICTION_SET_OPERAND_LITERAL),
+                GLLFailureKind::NoViableAlternative(&PREDICTION_OPERAND_LITERAL),
             );
         }
     }
+    #[inline(never)]
     #[allow(clippy::too_many_arguments)]
     fn create_operand_literal_end(
         &mut self,
@@ -22615,7 +21640,10 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
                 return_slot,
                 env,
             );
-        } else if self.match_any(&PREDICTION_SET_OPERAND_LITERAL_END, i) {
+            return;
+        }
+        let alternatives = self.predict(&PREDICTION_OPERAND_LITERAL_END, i);
+        if !alternatives.is_empty() {
             record!(self, GSSNodeNotFound, NonterminalId(164), i);
             let new_gss_node_id = self.new_gss_node(NonterminalId(164), i);
             self.add_gss_edge(new_gss_node_id, gss_node_id, sppf_node_id, return_slot, env);
@@ -22624,7 +21652,13 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
             env.bind(BINDING_P, p, arena);
             env.bind(BINDING_END, end, arena);
             env.bind(BINDING_A, a, arena);
-            self.add_first_descriptors(NonterminalId(164), i, new_gss_node_id, Some(env_id));
+            self.add_first_descriptors(
+                NonterminalId(164),
+                i,
+                new_gss_node_id,
+                Some(env_id),
+                alternatives,
+            );
             self.add_gss_node_operand_literal_end(i, p, end, a, new_gss_node_id);
         } else {
             // The call symbol precedes the return slot in its alternative, so the return slot is never
@@ -22635,10 +21669,11 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
                 i,
                 call_slot,
                 Some(gss_node_id),
-                GLLFailureKind::UnexpectedToken(&PREDICTION_SET_OPERAND_LITERAL_END),
+                GLLFailureKind::NoViableAlternative(&PREDICTION_OPERAND_LITERAL_END),
             );
         }
     }
+    #[inline(never)]
     #[allow(clippy::too_many_arguments)]
     fn create_head_literal(
         &mut self,
@@ -22663,14 +21698,23 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
                 return_slot,
                 env,
             );
-        } else if self.match_any(&PREDICTION_SET_HEAD_LITERAL, i) {
+            return;
+        }
+        let alternatives = self.predict(&PREDICTION_HEAD_LITERAL, i);
+        if !alternatives.is_empty() {
             record!(self, GSSNodeNotFound, NonterminalId(165), i);
             let new_gss_node_id = self.new_gss_node(NonterminalId(165), i);
             self.add_gss_edge(new_gss_node_id, gss_node_id, sppf_node_id, return_slot, env);
             let arena = self.vec_arena;
             let (env_id, env) = self.new_env();
             env.bind(BINDING_P, p, arena);
-            self.add_first_descriptors(NonterminalId(165), i, new_gss_node_id, Some(env_id));
+            self.add_first_descriptors(
+                NonterminalId(165),
+                i,
+                new_gss_node_id,
+                Some(env_id),
+                alternatives,
+            );
             self.add_gss_node_head_literal(i, p, new_gss_node_id);
         } else {
             // The call symbol precedes the return slot in its alternative, so the return slot is never
@@ -22681,10 +21725,11 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
                 i,
                 call_slot,
                 Some(gss_node_id),
-                GLLFailureKind::UnexpectedToken(&PREDICTION_SET_HEAD_LITERAL),
+                GLLFailureKind::NoViableAlternative(&PREDICTION_HEAD_LITERAL),
             );
         }
     }
+    #[inline(never)]
     #[allow(clippy::too_many_arguments)]
     fn create_head_literal_end(
         &mut self,
@@ -22710,7 +21755,10 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
                 return_slot,
                 env,
             );
-        } else if self.match_any(&PREDICTION_SET_HEAD_LITERAL_END, i) {
+            return;
+        }
+        let alternatives = self.predict(&PREDICTION_HEAD_LITERAL_END, i);
+        if !alternatives.is_empty() {
             record!(self, GSSNodeNotFound, NonterminalId(166), i);
             let new_gss_node_id = self.new_gss_node(NonterminalId(166), i);
             self.add_gss_edge(new_gss_node_id, gss_node_id, sppf_node_id, return_slot, env);
@@ -22718,7 +21766,13 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
             let (env_id, env) = self.new_env();
             env.bind(BINDING_P, p, arena);
             env.bind(BINDING_END, end, arena);
-            self.add_first_descriptors(NonterminalId(166), i, new_gss_node_id, Some(env_id));
+            self.add_first_descriptors(
+                NonterminalId(166),
+                i,
+                new_gss_node_id,
+                Some(env_id),
+                alternatives,
+            );
             self.add_gss_node_head_literal_end(i, p, end, new_gss_node_id);
         } else {
             // The call symbol precedes the return slot in its alternative, so the return slot is never
@@ -22729,10 +21783,11 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
                 i,
                 call_slot,
                 Some(gss_node_id),
-                GLLFailureKind::UnexpectedToken(&PREDICTION_SET_HEAD_LITERAL_END),
+                GLLFailureKind::NoViableAlternative(&PREDICTION_HEAD_LITERAL_END),
             );
         }
     }
+    #[inline(never)]
     #[allow(clippy::too_many_arguments)]
     fn create_opt_1(
         &mut self,
@@ -22758,7 +21813,10 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
                 return_slot,
                 env,
             );
-        } else if self.match_any(&PREDICTION_SET_OPT_1, i) {
+            return;
+        }
+        let alternatives = self.predict(&PREDICTION_OPT_1, i);
+        if !alternatives.is_empty() {
             record!(self, GSSNodeNotFound, NonterminalId(167), i);
             let new_gss_node_id = self.new_gss_node(NonterminalId(167), i);
             self.add_gss_edge(new_gss_node_id, gss_node_id, sppf_node_id, return_slot, env);
@@ -22766,7 +21824,13 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
             let (env_id, env) = self.new_env();
             env.bind(BINDING_P, p, arena);
             env.bind(BINDING_A, a, arena);
-            self.add_first_descriptors(NonterminalId(167), i, new_gss_node_id, Some(env_id));
+            self.add_first_descriptors(
+                NonterminalId(167),
+                i,
+                new_gss_node_id,
+                Some(env_id),
+                alternatives,
+            );
             self.add_gss_node_opt_1(i, p, a, new_gss_node_id);
         } else {
             // The call symbol precedes the return slot in its alternative, so the return slot is never
@@ -22777,10 +21841,11 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
                 i,
                 call_slot,
                 Some(gss_node_id),
-                GLLFailureKind::UnexpectedToken(&PREDICTION_SET_OPT_1),
+                GLLFailureKind::NoViableAlternative(&PREDICTION_OPT_1),
             );
         }
     }
+    #[inline(never)]
     #[allow(clippy::too_many_arguments)]
     fn create_opt_2(
         &mut self,
@@ -22806,7 +21871,10 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
                 return_slot,
                 env,
             );
-        } else if self.match_any(&PREDICTION_SET_OPT_2, i) {
+            return;
+        }
+        let alternatives = self.predict(&PREDICTION_OPT_2, i);
+        if !alternatives.is_empty() {
             record!(self, GSSNodeNotFound, NonterminalId(168), i);
             let new_gss_node_id = self.new_gss_node(NonterminalId(168), i);
             self.add_gss_edge(new_gss_node_id, gss_node_id, sppf_node_id, return_slot, env);
@@ -22814,7 +21882,13 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
             let (env_id, env) = self.new_env();
             env.bind(BINDING_P, p, arena);
             env.bind(BINDING_A, a, arena);
-            self.add_first_descriptors(NonterminalId(168), i, new_gss_node_id, Some(env_id));
+            self.add_first_descriptors(
+                NonterminalId(168),
+                i,
+                new_gss_node_id,
+                Some(env_id),
+                alternatives,
+            );
             self.add_gss_node_opt_2(i, p, a, new_gss_node_id);
         } else {
             // The call symbol precedes the return slot in its alternative, so the return slot is never
@@ -22825,10 +21899,11 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
                 i,
                 call_slot,
                 Some(gss_node_id),
-                GLLFailureKind::UnexpectedToken(&PREDICTION_SET_OPT_2),
+                GLLFailureKind::NoViableAlternative(&PREDICTION_OPT_2),
             );
         }
     }
+    #[inline(never)]
     #[allow(clippy::too_many_arguments)]
     fn create_opt_3(
         &mut self,
@@ -22855,7 +21930,10 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
                 return_slot,
                 env,
             );
-        } else if self.match_any(&PREDICTION_SET_OPT_3, i) {
+            return;
+        }
+        let alternatives = self.predict(&PREDICTION_OPT_3, i);
+        if !alternatives.is_empty() {
             record!(self, GSSNodeNotFound, NonterminalId(169), i);
             let new_gss_node_id = self.new_gss_node(NonterminalId(169), i);
             self.add_gss_edge(new_gss_node_id, gss_node_id, sppf_node_id, return_slot, env);
@@ -22864,7 +21942,13 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
             env.bind(BINDING_P, p, arena);
             env.bind(BINDING_END, end, arena);
             env.bind(BINDING_A, a, arena);
-            self.add_first_descriptors(NonterminalId(169), i, new_gss_node_id, Some(env_id));
+            self.add_first_descriptors(
+                NonterminalId(169),
+                i,
+                new_gss_node_id,
+                Some(env_id),
+                alternatives,
+            );
             self.add_gss_node_opt_3(i, p, end, a, new_gss_node_id);
         } else {
             // The call symbol precedes the return slot in its alternative, so the return slot is never
@@ -22875,7 +21959,7 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
                 i,
                 call_slot,
                 Some(gss_node_id),
-                GLLFailureKind::UnexpectedToken(&PREDICTION_SET_OPT_3),
+                GLLFailureKind::NoViableAlternative(&PREDICTION_OPT_3),
             );
         }
     }

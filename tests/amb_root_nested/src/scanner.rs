@@ -51,7 +51,7 @@ static TERMINAL_FIRST_CHARS: [CharSet; 7] = [
     ),
     CharSet::new(0x0, &[]),
 ];
-static MATCH_ANY_FIRST_CHARS: [CharSet; 7] = [
+static MATCH_ANY_FIRST_CHARS: [CharSet; 3] = [
     CharSet::new(
         0xffffffffffffffffffffffffffffffff,
         &[CharRange {
@@ -59,10 +59,6 @@ static MATCH_ANY_FIRST_CHARS: [CharSet; 7] = [
             end: '\u{10ffff}',
         }],
     ),
-    CharSet::new(0x10000000000, &[]),
-    CharSet::new(0x200000000000, &[]),
-    CharSet::new(0x7fffffe000000000000210000000000, &[]),
-    CharSet::new(0x7fffffe000000000000000000000000, &[]),
     CharSet::new(
         0xffffffffffffffffffffffffffffffff,
         &[CharRange {
@@ -113,7 +109,7 @@ impl<'i, 'arena> AmbRootNestedScanner<'i, 'arena> {
     // first query of a set at a position scans it; later queries return the cached bit.
     pub fn match_any(&mut self, set: &TerminalSet, input_index: u32) -> bool {
         debug_assert!(
-            set.id < 7,
+            set.id < 3,
             "terminal set {} does not have a match_any memo id",
             set.id,
         );

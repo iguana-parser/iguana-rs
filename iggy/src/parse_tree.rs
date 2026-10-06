@@ -156,6 +156,7 @@ pub type StartRegex<'a> = Start<&'a Regex<'a>, &'a Layout<'a>>;
 pub type StartCharClass<'a> = Start<&'a CharClass<'a>, &'a Layout<'a>>;
 pub type StartRangeElement<'a> = Start<&'a RangeElement<'a>, &'a Layout<'a>>;
 pub type StartRange<'a> = Start<&'a Range<'a>, &'a Layout<'a>>;
+pub type StartLayout<'a> = Start<&'a Layout<'a>, ()>;
 #[derive(Debug, Clone, Copy)]
 pub enum ParseTree<'a> {
     Grammar(&'a Grammar<'a>),
@@ -270,6 +271,8 @@ pub enum ParseTree<'a> {
     StartRangeElement(&'a Start<&'a RangeElement<'a>, &'a Layout<'a>>),
     // Range
     StartRange(&'a Start<&'a Range<'a>, &'a Layout<'a>>),
+    // Layout
+    StartLayout(&'a Start<&'a Layout<'a>, ()>),
     Token(Token),
 }
 impl<'a> ParseTree<'a> {
@@ -481,6 +484,9 @@ impl<'a> ParseTree<'a> {
             ParseTree::StartRange(start_range) => (0..start_range.child_count())
                 .filter_map(|i| start_range.child(i))
                 .collect(),
+            ParseTree::StartLayout(start_layout) => (0..start_layout.child_count())
+                .filter_map(|i| start_layout.child(i))
+                .collect(),
             ParseTree::Token(_) => vec![],
         }
     }
@@ -563,6 +569,7 @@ impl<'a> ParseTree<'a> {
             ParseTree::StartCharClass(start_char_class) => start_char_class.display_name(),
             ParseTree::StartRangeElement(start_range_element) => start_range_element.display_name(),
             ParseTree::StartRange(start_range) => start_range.display_name(),
+            ParseTree::StartLayout(start_layout) => start_layout.display_name(),
             ParseTree::Token(token) => token.kind.name(),
         }
     }
@@ -643,6 +650,7 @@ impl<'a> ParseTree<'a> {
             ParseTree::StartCharClass(start_char_class) => start_char_class.child_count(),
             ParseTree::StartRangeElement(start_range_element) => start_range_element.child_count(),
             ParseTree::StartRange(start_range) => start_range.child_count(),
+            ParseTree::StartLayout(start_layout) => start_layout.child_count(),
             ParseTree::Token(_) => 0,
         }
     }
@@ -717,6 +725,7 @@ impl<'a> ParseTree<'a> {
             ParseTree::StartCharClass(start_char_class) => start_char_class.span(),
             ParseTree::StartRangeElement(start_range_element) => start_range_element.span(),
             ParseTree::StartRange(start_range) => start_range.span(),
+            ParseTree::StartLayout(start_layout) => start_layout.span(),
             ParseTree::Token(token) => token.span(),
         }
     }
@@ -799,6 +808,7 @@ impl<'a> ParseTree<'a> {
             ParseTree::StartCharClass(_) => false,
             ParseTree::StartRangeElement(_) => false,
             ParseTree::StartRange(_) => false,
+            ParseTree::StartLayout(_) => false,
             ParseTree::Token(_) => false,
         }
     }
@@ -900,6 +910,7 @@ impl<'a> ParseTree<'a> {
                 Some(*start_range_element as *const _ as usize)
             }
             ParseTree::StartRange(start_range) => Some(*start_range as *const _ as usize),
+            ParseTree::StartLayout(start_layout) => Some(*start_layout as *const _ as usize),
             ParseTree::Token(_) => None,
         }
     }
@@ -974,6 +985,7 @@ impl<'a> ParseTree<'a> {
             ParseTree::StartCharClass(start_char_class) => start_char_class.origin(),
             ParseTree::StartRangeElement(start_range_element) => start_range_element.origin(),
             ParseTree::StartRange(start_range) => start_range.origin(),
+            ParseTree::StartLayout(start_layout) => start_layout.origin(),
             ParseTree::Token(_) => None,
         }
     }
@@ -1382,6 +1394,12 @@ impl<'a> ParseTree<'a> {
     pub(crate) fn unwrap_start_range(self) -> &'a Start<&'a Range<'a>, &'a Layout<'a>> {
         match self {
             ParseTree::StartRange(start_range) => start_range,
+            _ => panic!(),
+        }
+    }
+    pub(crate) fn unwrap_start_layout(self) -> &'a Start<&'a Layout<'a>, ()> {
+        match self {
+            ParseTree::StartLayout(start_layout) => start_layout,
             _ => panic!(),
         }
     }
@@ -5532,6 +5550,29 @@ impl<'a> Start<&'a Range<'a>, &'a Layout<'a>> {
         Some(Origin::Start)
     }
 }
+impl<'a> Start<&'a Layout<'a>, ()> {
+    pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
+        ParseTree::StartLayout(self)
+    }
+    pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
+        match index {
+            0 => Some(ParseTree::Layout(self.node)),
+            _ => None,
+        }
+    }
+    pub fn child_count(&self) -> usize {
+        1usize
+    }
+    pub fn span(&self) -> Span {
+        self.span
+    }
+    pub fn display_name(&self) -> &'static str {
+        "Start"
+    }
+    pub fn origin(&self) -> Option<Origin> {
+        Some(Origin::Start)
+    }
+}
 impl<'a> ListNode<'a> for Plus0<'a> {
     fn iter(&'a self) -> IntoIter<ParseTree<'a>> {
         let mut items = vec![];
@@ -7550,10 +7591,24 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a> {
                 }
                 _ => unreachable!(),
             },
-            // Symbol
+            // StartLayout
             NonterminalId(64) => match nonterminal_node.return_slot {
+                // StartLayout = start:Layout
+                SlotId(334) => {
+                    let [start] = children.into_array::<1usize>();
+                    ParseTree::StartLayout(self.arena.alloc(Start {
+                        before: (),
+                        node: start.unwrap_layout(),
+                        after: (),
+                        span: nonterminal_node.span,
+                    }))
+                }
+                _ => unreachable!(),
+            },
+            // Symbol
+            NonterminalId(65) => match nonterminal_node.return_slot {
                 // Symbol = Identifier #Identifier
-                SlotId(336) => {
+                SlotId(338) => {
                     let [identifier] = children.into_array::<1usize>();
                     ParseTree::Symbol(self.arena.alloc(Symbol::Identifier {
                         identifier: identifier.unwrap_token(),
@@ -7561,7 +7616,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a> {
                     }))
                 }
                 // Symbol = "(" Layout seqs:{Symbol+ "|"}+ Layout ")" #Paren
-                SlotId(344) => {
+                SlotId(346) => {
                     let [lit_0, layout_1, seqs, layout_3, lit_4] = children.into_array::<5usize>();
                     ParseTree::Symbol(self.arena.alloc(Symbol::Paren {
                         lit_0: lit_0.unwrap_token(),
@@ -7573,7 +7628,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a> {
                     }))
                 }
                 // Symbol = String #Lit
-                SlotId(348) => {
+                SlotId(350) => {
                     let [string] = children.into_array::<1usize>();
                     ParseTree::Symbol(self.arena.alloc(Symbol::Lit {
                         string: string.unwrap_token(),
@@ -7581,7 +7636,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a> {
                     }))
                 }
                 // Symbol = "{" Layout symbol:Symbol Layout sep:Symbol Layout "}" Layout "*" #StarSep
-                SlotId(360) => {
+                SlotId(362) => {
                     let [
                         lit_0,
                         layout_1,
@@ -7607,7 +7662,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a> {
                     }))
                 }
                 // Symbol = "{" Layout symbol:Symbol Layout sep:Symbol Layout "}" Layout "+" #PlusSep
-                SlotId(372) => {
+                SlotId(374) => {
                     let [
                         lit_0,
                         layout_1,
@@ -7633,7 +7688,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a> {
                     }))
                 }
                 // Symbol = Symbol Layout "*" #Star
-                SlotId(380) => {
+                SlotId(382) => {
                     let [symbol, layout, lit_2] = children.into_array::<3usize>();
                     ParseTree::Symbol(self.arena.alloc(Symbol::Star {
                         symbol: symbol.unwrap_symbol(),
@@ -7643,7 +7698,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a> {
                     }))
                 }
                 // Symbol = Symbol Layout "+" #Plus
-                SlotId(388) => {
+                SlotId(390) => {
                     let [symbol, layout, lit_2] = children.into_array::<3usize>();
                     ParseTree::Symbol(self.arena.alloc(Symbol::Plus {
                         symbol: symbol.unwrap_symbol(),
@@ -7653,7 +7708,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a> {
                     }))
                 }
                 // Symbol = Symbol Layout "?" #Opt
-                SlotId(396) => {
+                SlotId(398) => {
                     let [symbol, layout, lit_2] = children.into_array::<3usize>();
                     ParseTree::Symbol(self.arena.alloc(Symbol::Opt {
                         symbol: symbol.unwrap_symbol(),
@@ -7663,7 +7718,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a> {
                     }))
                 }
                 // Symbol = Symbol Layout conditions:PostCondition+ #PostCondition
-                SlotId(405) => {
+                SlotId(407) => {
                     let [symbol, layout, conditions] = children.into_array::<3usize>();
                     ParseTree::Symbol(self.arena.alloc(Symbol::PostCondition {
                         symbol: symbol.unwrap_symbol(),
@@ -7673,7 +7728,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a> {
                     }))
                 }
                 // Symbol = conditions:PreCondition+ Layout Symbol #PreCondition
-                SlotId(411) => {
+                SlotId(413) => {
                     let [conditions, layout, symbol] = children.into_array::<3usize>();
                     ParseTree::Symbol(self.arena.alloc(Symbol::PreCondition {
                         conditions: conditions.unwrap_plus_9(),
@@ -7683,7 +7738,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a> {
                     }))
                 }
                 // Symbol = label:Identifier Layout ":" Layout Symbol #Labeled
-                SlotId(419) => {
+                SlotId(421) => {
                     let [label, layout_1, lit_2, layout_3, symbol] =
                         children.into_array::<5usize>();
                     ParseTree::Symbol(self.arena.alloc(Symbol::Labeled {
@@ -8257,6 +8312,21 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a> {
                     span: first.span,
                 }))
             }
+            grammar::START_LAYOUT => {
+                let first = alternatives[0].unwrap_start_layout();
+                let inner = self.arena.alloc_slice(
+                    alternatives
+                        .into_iter()
+                        .map(|a| a.unwrap_start_layout().node),
+                );
+                let node = &*self.arena.alloc(Layout::Amb(inner));
+                ParseTree::StartLayout(self.arena.alloc(Start {
+                    before: first.before,
+                    node,
+                    after: first.after,
+                    span: first.span,
+                }))
+            }
             _ => unreachable!("nonterminal cannot be ambiguous"),
         }
     }
@@ -8597,6 +8667,11 @@ pub fn create_parse_tree<'a>(
             visit_sppf(root_id, parser, builder)
                 .unwrap_one()
                 .unwrap_start_range(),
+        ),
+        grammar::START_LAYOUT => ParseTree::StartLayout(
+            visit_sppf(root_id, parser, builder)
+                .unwrap_one()
+                .unwrap_start_layout(),
         ),
         _ => panic!(),
     }

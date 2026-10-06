@@ -2,8 +2,9 @@
 
 use iguana_runtime::{
     grammar::{Grammar, Nonterminal, Slot, Terminal},
-    ids::{NonterminalId, TerminalId},
+    ids::{NonterminalId, SlotId, TerminalId},
     scanner::TerminalSet,
+    utils::bit_set::BitSet,
 };
 pub const S: NonterminalId = NonterminalId(0);
 pub const A: NonterminalId = NonterminalId(1);
@@ -23,6 +24,7 @@ pub const START_E: NonterminalId = NonterminalId(14);
 pub const START_F: NonterminalId = NonterminalId(15);
 pub struct AltSeqGrammar;
 impl Grammar for AltSeqGrammar {
+    type Alternatives = BitSet<1>;
     const NAME: &'static str = "AltSeq";
     const NONTERMINALS: &'static [Nonterminal] = &[
         Nonterminal {
@@ -264,6 +266,24 @@ impl Grammar for AltSeqGrammar {
             position: 1,
         },
     ];
+    const FIRST_SLOTS: &'static [&'static [SlotId]] = &[
+        &[SlotId(0)],
+        &[SlotId(4)],
+        &[SlotId(6)],
+        &[SlotId(8)],
+        &[SlotId(10)],
+        &[SlotId(12)],
+        &[SlotId(14)],
+        &[SlotId(16), SlotId(19)],
+        &[SlotId(21), SlotId(23)],
+        &[SlotId(26)],
+        &[SlotId(28)],
+        &[SlotId(30)],
+        &[SlotId(32)],
+        &[SlotId(34)],
+        &[SlotId(36)],
+        &[SlotId(38)],
+    ];
     const LAYOUT_NAME: Option<&'static str> = None;
     const LAYOUT_TERMINALS: &'static [TerminalId] = &[];
     // A failed terminal match refers to a static terminal set like every other failure, so the
@@ -271,39 +291,39 @@ impl Grammar for AltSeqGrammar {
     // by terminal id, serves only that.
     const SINGLE_TERMINAL_SETS: &'static [TerminalSet] = &[
         TerminalSet {
-            id: 17,
+            id: 13,
             terminals: &[TerminalId(0)],
         },
         TerminalSet {
-            id: 18,
+            id: 14,
             terminals: &[TerminalId(1)],
         },
         TerminalSet {
-            id: 19,
+            id: 15,
             terminals: &[TerminalId(2)],
         },
         TerminalSet {
-            id: 20,
+            id: 16,
             terminals: &[TerminalId(3)],
         },
         TerminalSet {
-            id: 21,
+            id: 17,
             terminals: &[TerminalId(4)],
         },
         TerminalSet {
-            id: 22,
+            id: 18,
             terminals: &[TerminalId(5)],
         },
         TerminalSet {
-            id: 23,
+            id: 19,
             terminals: &[TerminalId(6)],
         },
         TerminalSet {
-            id: 24,
+            id: 20,
             terminals: &[TerminalId(7)],
         },
         TerminalSet {
-            id: 25,
+            id: 21,
             terminals: &[TerminalId(8)],
         },
     ];
@@ -369,30 +389,10 @@ pub static FOLLOW_SET_ALT_0: TerminalSet = TerminalSet {
     id: 2,
     terminals: &[TerminalId(4), TerminalId(5), TerminalId(8)],
 };
-// Alt_0 : . A B { "a" }
-pub static FIRST_SET_ALT_0_ALT0: TerminalSet = TerminalSet {
-    id: 5,
-    terminals: &[TerminalId(1)],
-};
-// Alt_0 : . C { "c" }
-pub static FIRST_SET_ALT_0_ALT1: TerminalSet = TerminalSet {
-    id: 6,
-    terminals: &[TerminalId(3)],
-};
 // Alt_1 { Hex, EOF }
 pub static FOLLOW_SET_ALT_1: TerminalSet = TerminalSet {
     id: 3,
     terminals: &[TerminalId(0), TerminalId(8)],
-};
-// Alt_1 : . D { "d" }
-pub static FIRST_SET_ALT_1_ALT0: TerminalSet = TerminalSet {
-    id: 7,
-    terminals: &[TerminalId(4)],
-};
-// Alt_1 : . E F { "e" }
-pub static FIRST_SET_ALT_1_ALT1: TerminalSet = TerminalSet {
-    id: 8,
-    terminals: &[TerminalId(5)],
 };
 // StartS { EOF }
 pub static FOLLOW_SET_START_S: TerminalSet = TerminalSet {
@@ -431,81 +431,81 @@ pub static FOLLOW_SET_START_F: TerminalSet = TerminalSet {
 };
 // S { "a", "c" }
 pub static FIRST_SET_S: TerminalSet = TerminalSet {
-    id: 9,
+    id: 5,
     terminals: &[TerminalId(1), TerminalId(3)],
 };
 // A { "a" }
 pub static FIRST_SET_A: TerminalSet = TerminalSet {
-    id: 10,
+    id: 6,
     terminals: &[TerminalId(1)],
 };
 // B { "b" }
 pub static FIRST_SET_B: TerminalSet = TerminalSet {
-    id: 11,
+    id: 7,
     terminals: &[TerminalId(2)],
 };
 // C { "c" }
 pub static FIRST_SET_C: TerminalSet = TerminalSet {
-    id: 12,
+    id: 8,
     terminals: &[TerminalId(3)],
 };
 // D { "d" }
 pub static FIRST_SET_D: TerminalSet = TerminalSet {
-    id: 13,
+    id: 9,
     terminals: &[TerminalId(4)],
 };
 // E { "e" }
 pub static FIRST_SET_E: TerminalSet = TerminalSet {
-    id: 14,
+    id: 10,
     terminals: &[TerminalId(5)],
 };
 // F { "f" }
 pub static FIRST_SET_F: TerminalSet = TerminalSet {
-    id: 15,
+    id: 11,
     terminals: &[TerminalId(6)],
 };
 // Alt_0 { "a", "c" }
 pub static FIRST_SET_ALT_0: TerminalSet = TerminalSet {
-    id: 9,
+    id: 5,
     terminals: &[TerminalId(1), TerminalId(3)],
 };
 // Alt_1 { "d", "e" }
 pub static FIRST_SET_ALT_1: TerminalSet = TerminalSet {
-    id: 16,
+    id: 12,
     terminals: &[TerminalId(4), TerminalId(5)],
 };
 // StartS { "a", "c" }
 pub static FIRST_SET_START_S: TerminalSet = TerminalSet {
-    id: 9,
+    id: 5,
     terminals: &[TerminalId(1), TerminalId(3)],
 };
 // StartA { "a" }
 pub static FIRST_SET_START_A: TerminalSet = TerminalSet {
-    id: 10,
+    id: 6,
     terminals: &[TerminalId(1)],
 };
 // StartB { "b" }
 pub static FIRST_SET_START_B: TerminalSet = TerminalSet {
-    id: 11,
+    id: 7,
     terminals: &[TerminalId(2)],
 };
 // StartC { "c" }
 pub static FIRST_SET_START_C: TerminalSet = TerminalSet {
-    id: 12,
+    id: 8,
     terminals: &[TerminalId(3)],
 };
 // StartD { "d" }
 pub static FIRST_SET_START_D: TerminalSet = TerminalSet {
-    id: 13,
+    id: 9,
     terminals: &[TerminalId(4)],
 };
 // StartE { "e" }
 pub static FIRST_SET_START_E: TerminalSet = TerminalSet {
-    id: 14,
+    id: 10,
     terminals: &[TerminalId(5)],
 };
 // StartF { "f" }
 pub static FIRST_SET_START_F: TerminalSet = TerminalSet {
-    id: 15,
+    id: 11,
     terminals: &[TerminalId(6)],
 };

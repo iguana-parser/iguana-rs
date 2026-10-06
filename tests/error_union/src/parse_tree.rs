@@ -94,6 +94,7 @@ pub type StartCallPrediction<'a> = Start<&'a CallPrediction<'a>, &'a Layout<'a>>
 pub type StartPrefixX<'a> = Start<&'a PrefixX<'a>, &'a Layout<'a>>;
 pub type StartPrefixW<'a> = Start<&'a PrefixW<'a>, &'a Layout<'a>>;
 pub type StartNullablePrefix<'a> = Start<&'a NullablePrefix<'a>, &'a Layout<'a>>;
+pub type StartLayout<'a> = Start<&'a Layout<'a>, ()>;
 #[derive(Debug, Clone, Copy)]
 pub enum ParseTree<'a> {
     T(&'a T<'a>),
@@ -159,6 +160,8 @@ pub enum ParseTree<'a> {
     StartPrefixW(&'a Start<&'a PrefixW<'a>, &'a Layout<'a>>),
     // NullablePrefix
     StartNullablePrefix(&'a Start<&'a NullablePrefix<'a>, &'a Layout<'a>>),
+    // Layout
+    StartLayout(&'a Start<&'a Layout<'a>, ()>),
     Token(Token),
 }
 impl<'a> ParseTree<'a> {
@@ -292,6 +295,9 @@ impl<'a> ParseTree<'a> {
                 .child_count())
                 .filter_map(|i| start_nullable_prefix.child(i))
                 .collect(),
+            ParseTree::StartLayout(start_layout) => (0..start_layout.child_count())
+                .filter_map(|i| start_layout.child(i))
+                .collect(),
             ParseTree::Token(_) => vec![],
         }
     }
@@ -364,6 +370,7 @@ impl<'a> ParseTree<'a> {
             ParseTree::StartNullablePrefix(start_nullable_prefix) => {
                 start_nullable_prefix.display_name()
             }
+            ParseTree::StartLayout(start_layout) => start_layout.display_name(),
             ParseTree::Token(token) => token.kind.name(),
         }
     }
@@ -436,6 +443,7 @@ impl<'a> ParseTree<'a> {
             ParseTree::StartNullablePrefix(start_nullable_prefix) => {
                 start_nullable_prefix.child_count()
             }
+            ParseTree::StartLayout(start_layout) => start_layout.child_count(),
             ParseTree::Token(_) => 0,
         }
     }
@@ -500,6 +508,7 @@ impl<'a> ParseTree<'a> {
             ParseTree::StartPrefixX(start_prefix_x) => start_prefix_x.span(),
             ParseTree::StartPrefixW(start_prefix_w) => start_prefix_w.span(),
             ParseTree::StartNullablePrefix(start_nullable_prefix) => start_nullable_prefix.span(),
+            ParseTree::StartLayout(start_layout) => start_layout.span(),
             ParseTree::Token(token) => token.span(),
         }
     }
@@ -566,6 +575,7 @@ impl<'a> ParseTree<'a> {
             ParseTree::StartPrefixX(_) => false,
             ParseTree::StartPrefixW(_) => false,
             ParseTree::StartNullablePrefix(_) => false,
+            ParseTree::StartLayout(_) => false,
             ParseTree::Token(_) => false,
         }
     }
@@ -649,6 +659,7 @@ impl<'a> ParseTree<'a> {
             ParseTree::StartNullablePrefix(start_nullable_prefix) => {
                 Some(*start_nullable_prefix as *const _ as usize)
             }
+            ParseTree::StartLayout(start_layout) => Some(*start_layout as *const _ as usize),
             ParseTree::Token(_) => None,
         }
     }
@@ -713,6 +724,7 @@ impl<'a> ParseTree<'a> {
             ParseTree::StartPrefixX(start_prefix_x) => start_prefix_x.origin(),
             ParseTree::StartPrefixW(start_prefix_w) => start_prefix_w.origin(),
             ParseTree::StartNullablePrefix(start_nullable_prefix) => start_nullable_prefix.origin(),
+            ParseTree::StartLayout(start_layout) => start_layout.origin(),
             ParseTree::Token(_) => None,
         }
     }
@@ -987,6 +999,12 @@ impl<'a> ParseTree<'a> {
     ) -> &'a Start<&'a NullablePrefix<'a>, &'a Layout<'a>> {
         match self {
             ParseTree::StartNullablePrefix(start_nullable_prefix) => start_nullable_prefix,
+            _ => panic!(),
+        }
+    }
+    pub(crate) fn unwrap_start_layout(self) -> &'a Start<&'a Layout<'a>, ()> {
+        match self {
+            ParseTree::StartLayout(start_layout) => start_layout,
             _ => panic!(),
         }
     }
@@ -2913,6 +2931,29 @@ impl<'a> Start<&'a NullablePrefix<'a>, &'a Layout<'a>> {
         Some(Origin::Start)
     }
 }
+impl<'a> Start<&'a Layout<'a>, ()> {
+    pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
+        ParseTree::StartLayout(self)
+    }
+    pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
+        match index {
+            0 => Some(ParseTree::Layout(self.node)),
+            _ => None,
+        }
+    }
+    pub fn child_count(&self) -> usize {
+        1usize
+    }
+    pub fn span(&self) -> Span {
+        self.span
+    }
+    pub fn display_name(&self) -> &'static str {
+        "Start"
+    }
+    pub fn origin(&self) -> Option<Origin> {
+        Some(Origin::Start)
+    }
+}
 impl<'a> ListNode<'a> for Plus0<'a> {
     fn iter(&'a self) -> IntoIter<ParseTree<'a>> {
         let mut items = vec![];
@@ -3773,6 +3814,20 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for ErrorUnionParseTreeBuilder<'a> {
                 }
                 _ => unreachable!(),
             },
+            // StartLayout
+            NonterminalId(41) => match nonterminal_node.return_slot {
+                // StartLayout = start:Layout
+                SlotId(192) => {
+                    let [start] = children.into_array::<1usize>();
+                    ParseTree::StartLayout(self.arena.alloc(Start {
+                        before: (),
+                        node: start.unwrap_layout(),
+                        after: (),
+                        span: nonterminal_node.span,
+                    }))
+                }
+                _ => unreachable!(),
+            },
             _ => unreachable!(),
         }
     }
@@ -4206,6 +4261,21 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for ErrorUnionParseTreeBuilder<'a> {
                     span: first.span,
                 }))
             }
+            grammar::START_LAYOUT => {
+                let first = alternatives[0].unwrap_start_layout();
+                let inner = self.arena.alloc_slice(
+                    alternatives
+                        .into_iter()
+                        .map(|a| a.unwrap_start_layout().node),
+                );
+                let node = &*self.arena.alloc(Layout::Amb(inner));
+                ParseTree::StartLayout(self.arena.alloc(Start {
+                    before: first.before,
+                    node,
+                    after: first.after,
+                    span: first.span,
+                }))
+            }
             _ => unreachable!("nonterminal cannot be ambiguous"),
         }
     }
@@ -4410,6 +4480,11 @@ pub fn create_parse_tree<'a>(
             visit_sppf(root_id, parser, builder)
                 .unwrap_one()
                 .unwrap_start_nullable_prefix(),
+        ),
+        grammar::START_LAYOUT => ParseTree::StartLayout(
+            visit_sppf(root_id, parser, builder)
+                .unwrap_one()
+                .unwrap_start_layout(),
         ),
         _ => panic!(),
     }

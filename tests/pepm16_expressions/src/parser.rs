@@ -22,6 +22,7 @@ use iguana_runtime::{
         GLLFailure, GLLFailureKind, GSS_CAPACITY_MULTIPLIER, Parser, SPPF_CAPACITY_MULTIPLIER,
         init_logger,
     },
+    prediction::Prediction,
     record,
     result::{ParseError, ParseSuccess},
     scanner::{Scanner, TerminalSet},
@@ -35,6 +36,7 @@ const BINDING_L_PR: BindingId = BindingId(1);
 const BINDING_R_PR: BindingId = BindingId(2);
 impl<'i, 'arena> Parser<'i, 'arena> for Pepm16ExpressionsParser<'i, 'arena> {
     type Grammar = Pepm16ExpressionsGrammar;
+    type Alternatives = <Pepm16ExpressionsGrammar as Grammar>::Alternatives;
     type ConcreteParser<'input, 'parser_arena> = Pepm16ExpressionsParser<'input, 'parser_arena>;
     fn new(input: &'i Input, parser_arena: &'arena Arena) -> Self {
         Pepm16ExpressionsParser::new(input, parser_arena)
@@ -1083,7 +1085,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for Pepm16ExpressionsParser<'i, 'arena> {
                     SlotId(3) => {
                         self.create(
                             NonterminalId(0),
-                            &PREDICTION_SET_S,
+                            &PREDICTION_S,
                             result,
                             gss_node_id,
                             SlotId(4),
@@ -1162,78 +1164,6 @@ impl<'i, 'arena> Parser<'i, 'arena> for Pepm16ExpressionsParser<'i, 'arena> {
                         panic!("Unknown grammar slot id: {slot_id}");
                     }
                 }
-            }
-        }
-    }
-    fn add_first_descriptors(
-        &mut self,
-        nonterminal_id: NonterminalId,
-        input_index: u32,
-        gss_node_id: GssNodeId,
-        env: Option<EnvId>,
-    ) {
-        match nonterminal_id {
-            // S : . E(0)
-            NonterminalId(0) => {
-                self.add_first_descriptor(SlotId(0), input_index, gss_node_id, env);
-            }
-            // E
-            NonterminalId(3) => {
-                // E(p: i32) : . "a" return 0
-                if self.scanner.match_any(&FIRST_SET_E_ALT9, input_index) {
-                    self.add_first_descriptor(SlotId(87), input_index, gss_node_id, env);
-                }
-                // E(p: i32) : . "(" WS E(0) WS ")" return 0
-                if self.scanner.match_any(&FIRST_SET_E_ALT8, input_index) {
-                    self.add_first_descriptor(SlotId(80), input_index, gss_node_id, env);
-                }
-                // E(p: i32) : . [1 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 2)] WS ";" WS E(1) return 1
-                if self.scanner.match_any(&FIRST_SET_E_ALT7, input_index) {
-                    self.add_first_descriptor(SlotId(71), input_index, gss_node_id, env);
-                }
-                // E(p: i32) : . "if" WS E(0) WS "then" WS E(0) WS "else" WS E(2) return 2
-                if self.scanner.match_any(&FIRST_SET_E_ALT6, input_index) {
-                    self.add_first_descriptor(SlotId(58), input_index, gss_node_id, env);
-                }
-                // E(p: i32) : . "-" WS r_pr=E(3) return (r_pr == 0) ? 3 : min(r_pr, 3)
-                if self.scanner.match_any(&FIRST_SET_E_ALT5, input_index) {
-                    self.add_first_descriptor(SlotId(53), input_index, gss_node_id, env);
-                }
-                // E(p: i32) : . [4 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 4)] WS "-" WS r_pr=E(5) return
-                // (r_pr == 0) ? 4 : min(r_pr, 4)
-                if self.scanner.match_any(&FIRST_SET_E_ALT4, input_index) {
-                    self.add_first_descriptor(SlotId(44), input_index, gss_node_id, env);
-                }
-                // E(p: i32) : . [4 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 4)] WS "+" WS r_pr=E(5) return
-                // (r_pr == 0) ? 4 : min(r_pr, 4)
-                if self.scanner.match_any(&FIRST_SET_E_ALT3, input_index) {
-                    self.add_first_descriptor(SlotId(35), input_index, gss_node_id, env);
-                }
-                // E(p: i32) : . [5 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 5)] WS "*" WS r_pr=E(6) return
-                // (r_pr == 0) ? 5 : min(r_pr, 5)
-                if self.scanner.match_any(&FIRST_SET_E_ALT2, input_index) {
-                    self.add_first_descriptor(SlotId(26), input_index, gss_node_id, env);
-                }
-                // E(p: i32) : . [6 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 6)] WS r_pr=E(6) return (r_pr ==
-                // 0) ? 6 : min(r_pr, 6)
-                if self.scanner.match_any(&FIRST_SET_E_ALT1, input_index) {
-                    self.add_first_descriptor(SlotId(19), input_index, gss_node_id, env);
-                }
-                // E(p: i32) : . [6 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 6)] WS "." WS "f" return 0
-                if self.scanner.match_any(&FIRST_SET_E_ALT0, input_index) {
-                    self.add_first_descriptor(SlotId(10), input_index, gss_node_id, env);
-                }
-            }
-            // StartS : . WS start:S WS
-            NonterminalId(1) => {
-                self.add_first_descriptor(SlotId(2), input_index, gss_node_id, env);
-            }
-            // StartE : . WS start:E(0) WS
-            NonterminalId(2) => {
-                self.add_first_descriptor(SlotId(6), input_index, gss_node_id, env);
-            }
-            _ => {
-                panic!("Unknown nonterminal id: {nonterminal_id}");
             }
         }
     }
@@ -1669,6 +1599,9 @@ impl<'i, 'arena> Parser<'i, 'arena> for Pepm16ExpressionsParser<'i, 'arena> {
     fn match_any(&mut self, set: &'static TerminalSet, input_index: u32) -> bool {
         self.scanner.match_any(set, input_index)
     }
+    fn predict(&mut self, prediction: &'static Prediction, input_index: u32) -> Self::Alternatives {
+        self.scanner.predict(prediction, input_index)
+    }
     fn vec_arena(&self) -> &'arena Arena {
         self.vec_arena
     }
@@ -1784,6 +1717,7 @@ impl<'i, 'arena> Pepm16ExpressionsParser<'i, 'arena> {
             .parse(START_E, tree_arena)?
             .map(ParseTree::unwrap_start_e))
     }
+    #[inline(never)]
     #[allow(clippy::too_many_arguments)]
     fn create_e(
         &mut self,
@@ -1808,14 +1742,23 @@ impl<'i, 'arena> Pepm16ExpressionsParser<'i, 'arena> {
                 return_slot,
                 env,
             );
-        } else if self.match_any(&PREDICTION_SET_E, i) {
+            return;
+        }
+        let alternatives = self.predict(&PREDICTION_E, i);
+        if !alternatives.is_empty() {
             record!(self, GSSNodeNotFound, NonterminalId(3), i);
             let new_gss_node_id = self.new_gss_node(NonterminalId(3), i);
             self.add_gss_edge(new_gss_node_id, gss_node_id, sppf_node_id, return_slot, env);
             let arena = self.vec_arena;
             let (env_id, env) = self.new_env();
             env.bind(BINDING_P, p, arena);
-            self.add_first_descriptors(NonterminalId(3), i, new_gss_node_id, Some(env_id));
+            self.add_first_descriptors(
+                NonterminalId(3),
+                i,
+                new_gss_node_id,
+                Some(env_id),
+                alternatives,
+            );
             self.add_gss_node_e(i, p, new_gss_node_id);
         } else {
             // The call symbol precedes the return slot in its alternative, so the return slot is never
@@ -1826,7 +1769,7 @@ impl<'i, 'arena> Pepm16ExpressionsParser<'i, 'arena> {
                 i,
                 call_slot,
                 Some(gss_node_id),
-                GLLFailureKind::UnexpectedToken(&PREDICTION_SET_E),
+                GLLFailureKind::NoViableAlternative(&PREDICTION_E),
             );
         }
     }

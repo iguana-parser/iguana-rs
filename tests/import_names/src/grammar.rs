@@ -2,8 +2,9 @@
 
 use iguana_runtime::{
     grammar::{Grammar, Nonterminal, Slot, Terminal},
-    ids::{NonterminalId, TerminalId},
+    ids::{NonterminalId, SlotId, TerminalId},
     scanner::TerminalSet,
+    utils::bit_set::BitSet,
 };
 pub const S: NonterminalId = NonterminalId(0);
 pub const PARSE: NonterminalId = NonterminalId(1);
@@ -31,6 +32,7 @@ pub const START_SLOT: NonterminalId = NonterminalId(22);
 pub const START_TERMINAL_SET: NonterminalId = NonterminalId(23);
 pub struct ImportNamesGrammar;
 impl Grammar for ImportNamesGrammar {
+    type Alternatives = BitSet<1>;
     const NAME: &'static str = "ImportNames";
     const NONTERMINALS: &'static [Nonterminal] = &[
         Nonterminal {
@@ -392,6 +394,32 @@ impl Grammar for ImportNamesGrammar {
             display_name: "TerminalSet : start:TerminalSet.",
             position: 1,
         },
+    ];
+    const FIRST_SLOTS: &'static [&'static [SlotId]] = &[
+        &[SlotId(0)],
+        &[SlotId(12)],
+        &[SlotId(14)],
+        &[SlotId(16)],
+        &[SlotId(18)],
+        &[SlotId(20)],
+        &[SlotId(22)],
+        &[SlotId(24)],
+        &[SlotId(26)],
+        &[SlotId(28)],
+        &[SlotId(30)],
+        &[SlotId(32)],
+        &[SlotId(34)],
+        &[SlotId(36)],
+        &[SlotId(38)],
+        &[SlotId(40)],
+        &[SlotId(42)],
+        &[SlotId(44)],
+        &[SlotId(46)],
+        &[SlotId(48)],
+        &[SlotId(50)],
+        &[SlotId(52)],
+        &[SlotId(54)],
+        &[SlotId(56)],
     ];
     const LAYOUT_NAME: Option<&'static str> = None;
     const LAYOUT_TERMINALS: &'static [TerminalId] = &[];

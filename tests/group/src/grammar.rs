@@ -2,8 +2,9 @@
 
 use iguana_runtime::{
     grammar::{Grammar, Nonterminal, Slot, Terminal},
-    ids::{NonterminalId, TerminalId},
+    ids::{NonterminalId, SlotId, TerminalId},
     scanner::TerminalSet,
+    utils::bit_set::BitSet,
 };
 pub const A: NonterminalId = NonterminalId(0);
 pub const B: NonterminalId = NonterminalId(1);
@@ -16,6 +17,7 @@ pub const START_C: NonterminalId = NonterminalId(7);
 pub const START_D: NonterminalId = NonterminalId(8);
 pub struct GroupGrammar;
 impl Grammar for GroupGrammar {
+    type Alternatives = BitSet<1>;
     const NAME: &'static str = "Group";
     const NONTERMINALS: &'static [Nonterminal] = &[
         Nonterminal {
@@ -144,6 +146,17 @@ impl Grammar for GroupGrammar {
             display_name: "D : start:D.",
             position: 1,
         },
+    ];
+    const FIRST_SLOTS: &'static [&'static [SlotId]] = &[
+        &[SlotId(0)],
+        &[SlotId(2)],
+        &[SlotId(4)],
+        &[SlotId(6)],
+        &[SlotId(8)],
+        &[SlotId(12)],
+        &[SlotId(14)],
+        &[SlotId(16)],
+        &[SlotId(18)],
     ];
     const LAYOUT_NAME: Option<&'static str> = None;
     const LAYOUT_TERMINALS: &'static [TerminalId] = &[];

@@ -2,13 +2,15 @@
 
 use iguana_runtime::{
     grammar::{Grammar, Nonterminal, Slot, Terminal},
-    ids::{NonterminalId, TerminalId},
+    ids::{NonterminalId, SlotId, TerminalId},
     scanner::TerminalSet,
+    utils::bit_set::BitSet,
 };
 pub const S: NonterminalId = NonterminalId(0);
 pub const START_S: NonterminalId = NonterminalId(1);
 pub struct ExceptRegexReferenceGrammar;
 impl Grammar for ExceptRegexReferenceGrammar {
+    type Alternatives = BitSet<1>;
     const NAME: &'static str = "ExceptRegexReference";
     const NONTERMINALS: &'static [Nonterminal] = &[
         Nonterminal {
@@ -49,6 +51,7 @@ impl Grammar for ExceptRegexReferenceGrammar {
             position: 1,
         },
     ];
+    const FIRST_SLOTS: &'static [&'static [SlotId]] = &[&[SlotId(0)], &[SlotId(2)]];
     const LAYOUT_NAME: Option<&'static str> = None;
     const LAYOUT_TERMINALS: &'static [TerminalId] = &[];
     // A failed terminal match refers to a static terminal set like every other failure, so the

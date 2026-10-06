@@ -5,7 +5,6 @@ use crate::{
     parse_tree::{self, AmbPlusParseTreeBuilder, ParseTree, create_parse_tree},
     scanner::AmbPlusScanner,
 };
-#[cfg(feature = "instrument")]
 use iguana_runtime::grammar::Grammar;
 #[allow(unused_imports)]
 use iguana_runtime::input::Span;
@@ -22,6 +21,7 @@ use iguana_runtime::{
         DESCRIPTORS_CAPACITY_DIVISOR, DESCRIPTORS_CAPACITY_FLOOR, GLLFailure, GLLFailureKind,
         GSS_CAPACITY_MULTIPLIER, Parser, SPPF_CAPACITY_MULTIPLIER, init_logger,
     },
+    prediction::Prediction,
     record,
     result::{ParseError, ParseSuccess},
     scanner::{Scanner, TerminalSet},
@@ -32,6 +32,7 @@ use rustc_hash::FxHashMap;
 use std::cell::OnceCell;
 impl<'i, 'arena> Parser<'i, 'arena> for AmbPlusParser<'i, 'arena> {
     type Grammar = AmbPlusGrammar;
+    type Alternatives = <AmbPlusGrammar as Grammar>::Alternatives;
     type ConcreteParser<'input, 'parser_arena> = AmbPlusParser<'input, 'parser_arena>;
     fn new(input: &'i Input, parser_arena: &'arena Arena) -> Self {
         AmbPlusParser::new(input, parser_arena)
@@ -67,7 +68,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for AmbPlusParser<'i, 'arena> {
                     SlotId(0) => {
                         self.create(
                             NonterminalId(6),
-                            &PREDICTION_SET_STAR_0,
+                            &PREDICTION_STAR_0,
                             result,
                             gss_node_id,
                             SlotId(1),
@@ -183,7 +184,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for AmbPlusParser<'i, 'arena> {
                     SlotId(11) => {
                         self.create(
                             NonterminalId(4),
-                            &PREDICTION_SET_PLUS_0,
+                            &PREDICTION_PLUS_0,
                             result,
                             gss_node_id,
                             SlotId(12),
@@ -194,7 +195,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for AmbPlusParser<'i, 'arena> {
                     SlotId(12) => {
                         self.create(
                             NonterminalId(1),
-                            &PREDICTION_SET_A,
+                            &PREDICTION_A,
                             result,
                             gss_node_id,
                             SlotId(13),
@@ -212,7 +213,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for AmbPlusParser<'i, 'arena> {
                     SlotId(14) => {
                         self.create(
                             NonterminalId(1),
-                            &PREDICTION_SET_A,
+                            &PREDICTION_A,
                             result,
                             gss_node_id,
                             SlotId(15),
@@ -230,7 +231,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for AmbPlusParser<'i, 'arena> {
                     SlotId(16) => {
                         self.create(
                             NonterminalId(4),
-                            &PREDICTION_SET_PLUS_0,
+                            &PREDICTION_PLUS_0,
                             result,
                             gss_node_id,
                             SlotId(17),
@@ -253,7 +254,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for AmbPlusParser<'i, 'arena> {
                     SlotId(19) => {
                         self.create(
                             NonterminalId(5),
-                            &PREDICTION_SET_OPT_0,
+                            &PREDICTION_OPT_0,
                             result,
                             gss_node_id,
                             SlotId(20),
@@ -271,7 +272,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for AmbPlusParser<'i, 'arena> {
                     SlotId(21) => {
                         self.create(
                             NonterminalId(0),
-                            &PREDICTION_SET_S,
+                            &PREDICTION_S,
                             result,
                             gss_node_id,
                             SlotId(22),
@@ -289,7 +290,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for AmbPlusParser<'i, 'arena> {
                     SlotId(23) => {
                         self.create(
                             NonterminalId(1),
-                            &PREDICTION_SET_A,
+                            &PREDICTION_A,
                             result,
                             gss_node_id,
                             SlotId(24),
@@ -345,86 +346,6 @@ impl<'i, 'arena> Parser<'i, 'arena> for AmbPlusParser<'i, 'arena> {
                         panic!("Unknown grammar slot id: {slot_id}");
                     }
                 }
-            }
-        }
-    }
-    fn add_first_descriptors(
-        &mut self,
-        nonterminal_id: NonterminalId,
-        input_index: u32,
-        gss_node_id: GssNodeId,
-        env: Option<EnvId>,
-    ) {
-        match nonterminal_id {
-            // S : . Star_0
-            NonterminalId(0) => {
-                self.add_first_descriptor(SlotId(0), input_index, gss_node_id, env);
-            }
-            // A
-            NonterminalId(1) => {
-                // A : . Y
-                if self.scanner.match_any(&FIRST_SET_A_ALT1, input_index) {
-                    self.add_first_descriptor(SlotId(4), input_index, gss_node_id, env);
-                }
-                // A : . X
-                if self.scanner.match_any(&FIRST_SET_A_ALT0, input_index) {
-                    self.add_first_descriptor(SlotId(2), input_index, gss_node_id, env);
-                }
-            }
-            // X : . "a"
-            NonterminalId(2) => {
-                self.add_first_descriptor(SlotId(6), input_index, gss_node_id, env);
-            }
-            // Y : . "a" "a"
-            NonterminalId(3) => {
-                self.add_first_descriptor(SlotId(8), input_index, gss_node_id, env);
-            }
-            // Plus_0
-            NonterminalId(4) => {
-                // Plus_0 : . A
-                if self.scanner.match_any(&FIRST_SET_PLUS_0_ALT1, input_index) {
-                    self.add_first_descriptor(SlotId(14), input_index, gss_node_id, env);
-                }
-                // Plus_0 : . Plus_0 A
-                if self.scanner.match_any(&FIRST_SET_PLUS_0_ALT0, input_index) {
-                    self.add_first_descriptor(SlotId(11), input_index, gss_node_id, env);
-                }
-            }
-            // Opt_0
-            NonterminalId(5) => {
-                // Opt_0 : .
-                if self.scanner.match_any(&FIRST_SET_OPT_0_ALT1, input_index)
-                    || self.scanner.match_any(&FOLLOW_SET_OPT_0, input_index)
-                {
-                    self.add_first_descriptor(SlotId(18), input_index, gss_node_id, env);
-                }
-                // Opt_0 : . Plus_0
-                if self.scanner.match_any(&FIRST_SET_OPT_0_ALT0, input_index) {
-                    self.add_first_descriptor(SlotId(16), input_index, gss_node_id, env);
-                }
-            }
-            // Star_0 : . Opt_0
-            NonterminalId(6) => {
-                self.add_first_descriptor(SlotId(19), input_index, gss_node_id, env);
-            }
-            // StartS : . start:S
-            NonterminalId(7) => {
-                self.add_first_descriptor(SlotId(21), input_index, gss_node_id, env);
-            }
-            // StartA : . start:A
-            NonterminalId(8) => {
-                self.add_first_descriptor(SlotId(23), input_index, gss_node_id, env);
-            }
-            // StartX : . start:X
-            NonterminalId(9) => {
-                self.add_first_descriptor(SlotId(25), input_index, gss_node_id, env);
-            }
-            // StartY : . start:Y
-            NonterminalId(10) => {
-                self.add_first_descriptor(SlotId(27), input_index, gss_node_id, env);
-            }
-            _ => {
-                panic!("Unknown nonterminal id: {nonterminal_id}");
             }
         }
     }
@@ -817,6 +738,9 @@ impl<'i, 'arena> Parser<'i, 'arena> for AmbPlusParser<'i, 'arena> {
     }
     fn match_any(&mut self, set: &'static TerminalSet, input_index: u32) -> bool {
         self.scanner.match_any(set, input_index)
+    }
+    fn predict(&mut self, prediction: &'static Prediction, input_index: u32) -> Self::Alternatives {
+        self.scanner.predict(prediction, input_index)
     }
     fn vec_arena(&self) -> &'arena Arena {
         self.vec_arena

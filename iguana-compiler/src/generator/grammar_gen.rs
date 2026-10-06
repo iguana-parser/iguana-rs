@@ -1,32 +1,59 @@
-use proc_macro2::{Literal, TokenStream};
+use proc_macro2::{Ident, Literal, TokenStream};
 use quote::{format_ident, quote};
 use rustc_hash::FxHashSet;
 
-use crate::generator::grammar_utils::grammar_ident;
+use crate::generator::grammar_utils::{grammar_ident, prediction_ident};
 use crate::generator::id::{NonterminalIds, SlotIds, TerminalIds};
 use crate::generator::terminal_sets::{TerminalSet, TerminalSetKind};
 use crate::grammar::def::Grammar;
+use crate::grammar::first_chars::FirstChars;
+use crate::grammar::first_follow::FirstFollowSets;
+use crate::grammar::regex::CharRange;
+use crate::grammar::slot::Slot;
 use crate::grammar::symbols::{Definition, Nonterminal};
 use crate::utils::to_snake_case;
 use iguana_runtime::ids::TerminalId;
 
 /// Generates `grammar.rs`: the nonterminal id constants, the grammar type
-/// with its `Grammar` implementation, and the terminal sets the parser passes
-/// to the scanner or refers to in failures. The sets are public because the
+/// with its `Grammar` implementation, the terminal sets the parser passes to
+/// the scanner or refers to in failures, and the predictions of the
+/// alternatives of the nonterminals. The statics are public because the
 /// parser references only some of them, and a private unused static fails the
 /// denied dead-code lint.
+#[allow(clippy::too_many_arguments)]
 pub fn generate<'a>(
     grammar: &'a Grammar,
+    ff: &FirstFollowSets,
+    first_chars: &FirstChars,
     nonterminal_ids: &NonterminalIds,
     terminal_ids: &TerminalIds,
     slot_ids: &SlotIds<'a>,
     terminal_sets: &[TerminalSet],
+    ll1_nonterminals: &FxHashSet<&Nonterminal>,
 ) -> TokenStream {
     let grammar_type = grammar_ident(&grammar.name);
     let grammar_name = &grammar.name;
 
     let terminal_set_statics = terminal_set_statics(grammar, terminal_ids, terminal_sets);
     let single_terminal_sets = single_terminal_sets(terminal_ids, terminal_sets);
+    let prediction_statics =
+        prediction_statics(grammar, ff, first_chars, terminal_ids, ll1_nonterminals);
+    // A grammar parsed entirely by LL(1) functions does not have a
+    // `Prediction` static, and the import would be unused.
+    let prediction_import = if prediction_statics.is_empty() {
+        quote! {}
+    } else {
+        quote! {
+            use iguana_runtime::prediction::Prediction;
+        }
+    };
+    // The width of `Grammar::Alternatives` in 64-bit words: enough for the
+    // nonterminal with the most alternatives.
+    let alternative_words = grammar
+        .nonterminals()
+        .map(|nonterminal| grammar.alternatives(nonterminal).len().div_ceil(64))
+        .fold(1, usize::max);
+    let alternative_words = Literal::usize_unsuffixed(alternative_words);
 
     let nonterminals = nonterminal_ids.nonterminals().map(|n| {
         let nonterminal_name = &n.name;
@@ -45,13 +72,13 @@ pub fn generate<'a>(
         .and_then(|s| s.as_identifier())
         .map(|i| i.name.as_str());
 
-    // The entry points, in `.iggy` source order: the layout nonterminal and
-    // the derived nonterminals (start wrappers, EBNF expansions, exclusion and
-    // precedence desugarings) have no start wrapper and are left out, and the
-    // rest sort by declaration position.
+    // The entry points, in `.iggy` source order: the derived nonterminals
+    // (start wrappers, EBNF expansions, exclusion and precedence desugarings)
+    // have no start wrapper and are left out, and the rest sort by declaration
+    // position.
     let mut display_order: Vec<&Nonterminal> = nonterminal_ids
         .nonterminals()
-        .filter(|n| !n.is_derived() && Some(n.name.as_str()) != layout_name)
+        .filter(|n| !n.is_derived())
         .collect();
     display_order.sort_by_key(|n| grammar.source_index(&n.name));
     let display_order_names: Vec<&str> = display_order.iter().map(|n| n.name.as_str()).collect();
@@ -91,6 +118,14 @@ pub fn generate<'a>(
         }
     });
 
+    let first_slots = nonterminal_ids.nonterminals().map(|nonterminal| {
+        let slots = grammar
+            .alternatives(nonterminal)
+            .iter()
+            .map(|alternative| slot_ids.get_id(&Slot::new(nonterminal, alternative, 0)));
+        quote! { &[#(#slots),*] }
+    });
+
     let layout_name = layout_name
         .map(|s| quote! { Some(#s) })
         .unwrap_or_else(|| quote! { None });
@@ -99,15 +134,19 @@ pub fn generate<'a>(
     quote! {
         use iguana_runtime::{
             grammar::{Grammar, Nonterminal, Slot, Terminal},
-            ids::{NonterminalId, TerminalId},
+            ids::{NonterminalId, SlotId, TerminalId},
             scanner::TerminalSet,
+            utils::bit_set::BitSet,
         };
+        #prediction_import
 
         #(#nonterminal_id_consts)*
 
         pub struct #grammar_type;
 
         impl Grammar for #grammar_type {
+            type Alternatives = BitSet<#alternative_words>;
+
             const NAME: &'static str = #grammar_name;
 
             const NONTERMINALS: &'static [Nonterminal] = &[#(#nonterminals),*];
@@ -121,6 +160,8 @@ pub fn generate<'a>(
             ];
 
             const SLOTS: &'static [Slot] = &[#(#slots),*];
+
+            const FIRST_SLOTS: &'static [&'static [SlotId]] = &[#(#first_slots),*];
 
             const LAYOUT_NAME: Option<&'static str> = #layout_name;
 
@@ -140,6 +181,8 @@ pub fn generate<'a>(
         }
 
         #(#terminal_set_statics)*
+
+        #(#prediction_statics)*
     }
 }
 
@@ -238,17 +281,200 @@ fn layout_terminal_ids(grammar: &Grammar, terminal_ids: &TerminalIds) -> Vec<Ter
     terminals
 }
 
-/// Identifier of the static for `set`, e.g. `FIRST_SET_E_ALT0`.
+/// The `Prediction` statics, one for each nonterminal the parser calls
+/// through the GLL path: every nonterminal that is not parsed by an LL(1)
+/// function, except the start wrappers, which nothing calls. For example:
+///
+/// ```text
+/// // Rule
+/// // 0: SyntaxRule
+/// // 1: RegexRule
+/// pub static PREDICTION_RULE: Prediction = {
+///     // WS
+///     const TERMINALS_1: &[(TerminalId, u16)] = &[(TerminalId(8), 0), …];
+///     …
+///     Prediction {
+///         ascii: [&[], …, TERMINALS_1, …],
+///         non_ascii: &[],
+///         end_of_input: &[],
+///     }
+/// };
+/// ```
+///
+/// The comment above a static names the nonterminal and lists its
+/// alternatives by index, which is the index in the pairs. The pairs of the
+/// nonterminal (`terminal_alternatives`) are split into lists by character:
+///
+/// - `ascii[c]` holds the pairs whose terminal can begin with `c`.
+/// - `non_ascii` holds the pairs whose terminal can begin with a character
+///   outside ASCII.
+/// - `end_of_input` holds the pairs of the end-of-input terminal.
+/// - A pair with a nullable terminal goes into every list.
+///
+/// Each distinct nonempty list is emitted once, as a constant named
+/// `TERMINALS_n` and commented with its terminals, and the fields refer to
+/// it. An empty list is written inline as `&[]`. The constants are local to
+/// the initializer of the static, so their names do not collide across
+/// statics.
+fn prediction_statics(
+    grammar: &Grammar,
+    ff: &FirstFollowSets,
+    first_chars: &FirstChars,
+    terminal_ids: &TerminalIds,
+    ll1_nonterminals: &FxHashSet<&Nonterminal>,
+) -> Vec<TokenStream> {
+    // The characters that can begin a match of each terminal, indexed by
+    // terminal id. `None` stands for a nullable terminal, whose pairs go into
+    // every list. The epsilon and end-of-input terminals come after the
+    // grammar's terminals, and the end-of-input terminal matches at no
+    // character.
+    let mut terminal_first_chars: Vec<Option<&[CharRange]>> = terminal_ids
+        .terminals()
+        .map(|terminal| {
+            (!first_chars.is_nullable(terminal)).then(|| first_chars.first_chars(terminal))
+        })
+        .collect();
+    terminal_first_chars.push(None);
+    terminal_first_chars.push(Some(&[]));
+    let mut terminal_names: Vec<&str> = terminal_ids
+        .terminals()
+        .map(|terminal| terminal.name.as_str())
+        .collect();
+    terminal_names.extend(["Epsilon", "EOF"]);
+    let eof = terminal_ids.eof_id();
+    grammar
+        .nonterminals()
+        .filter(|nonterminal| {
+            !ll1_nonterminals.contains(nonterminal) && !grammar.is_start(nonterminal)
+        })
+        .map(|nonterminal| {
+            let pairs = terminal_alternatives(grammar, ff, terminal_ids, nonterminal);
+            let ascii: Vec<_> = (0..128u8)
+                .map(|c| {
+                    let c = char::from(c);
+                    pairs_starting_with(&pairs, &terminal_first_chars, |range| {
+                        range.start <= c && c <= range.end
+                    })
+                })
+                .collect();
+            let non_ascii =
+                pairs_starting_with(&pairs, &terminal_first_chars, |range| !range.end.is_ascii());
+            let end_of_input: Vec<_> = pairs
+                .iter()
+                .copied()
+                .filter(|&(terminal_id, _)| {
+                    terminal_id == eof || terminal_first_chars[terminal_id.index()].is_none()
+                })
+                .collect();
+            let mut lists: Vec<(Vec<(TerminalId, u16)>, Ident)> = vec![];
+            let mut constants = vec![];
+            let mut list_expr = |list: &Vec<(TerminalId, u16)>| -> TokenStream {
+                if list.is_empty() {
+                    return quote! { &[] };
+                }
+                if let Some((_, ident)) = lists.iter().find(|(existing, _)| existing == list) {
+                    return quote! { #ident };
+                }
+                let ident = format_ident!("TERMINALS_{}", lists.len() + 1);
+                let mut names: Vec<_> = list
+                    .iter()
+                    .map(|(terminal_id, _)| terminal_names[terminal_id.index()])
+                    .collect();
+                names.dedup();
+                let comment = names.join(", ");
+                let entries = list.iter().map(|(terminal_id, alternative)| {
+                    let alternative = Literal::u16_unsuffixed(*alternative);
+                    quote! { (#terminal_id, #alternative) }
+                });
+                constants.push(quote! {
+                    #[comment = #comment]
+                    const #ident: &[(TerminalId, u16)] = &[#(#entries),*];
+                });
+                lists.push((list.clone(), ident.clone()));
+                quote! { #ident }
+            };
+            let ascii: Vec<_> = ascii.iter().map(&mut list_expr).collect();
+            let non_ascii = list_expr(&non_ascii);
+            let end_of_input = list_expr(&end_of_input);
+            // The nonterminal, then one line for each alternative with its
+            // index, so the comment names what each alternative index stands
+            // for.
+            let nonterminal_name = &nonterminal.name;
+            let alternative_lines =
+                grammar
+                    .alternatives(nonterminal)
+                    .iter()
+                    .enumerate()
+                    .map(|(index, alternative)| {
+                        if alternative.symbols.is_empty() {
+                            format!("{index}: ()")
+                        } else {
+                            format!("{index}: {alternative}")
+                        }
+                    });
+            let name = prediction_ident(nonterminal);
+            quote! {
+                #[comment = #nonterminal_name]
+                #(#[comment = #alternative_lines])*
+                pub static #name: Prediction = {
+                    #(#constants)*
+                    Prediction {
+                        ascii: [#(#ascii),*],
+                        non_ascii: #non_ascii,
+                        end_of_input: #end_of_input,
+                    }
+                };
+            }
+        })
+        .collect()
+}
+
+/// The pairs whose terminal can begin with a character in one of the ranges
+/// that `in_range` accepts. A pair with a nullable terminal is always kept,
+/// because the terminal matches the empty string.
+fn pairs_starting_with(
+    pairs: &[(TerminalId, u16)],
+    terminal_first_chars: &[Option<&[CharRange]>],
+    in_range: impl Fn(&CharRange) -> bool,
+) -> Vec<(TerminalId, u16)> {
+    pairs
+        .iter()
+        .copied()
+        .filter(|(terminal_id, _)| {
+            terminal_first_chars[terminal_id.index()]
+                .is_none_or(|ranges| ranges.iter().any(&in_range))
+        })
+        .collect()
+}
+
+/// The pairs of `nonterminal`: each terminal with each alternative it
+/// predicts, sorted by terminal id and then by alternative. A terminal of
+/// `FIRST(α)` predicts the alternative `α`, and a terminal of the FOLLOW set
+/// of `nonterminal` predicts every nullable alternative.
+fn terminal_alternatives(
+    grammar: &Grammar,
+    ff: &FirstFollowSets,
+    terminal_ids: &TerminalIds,
+    nonterminal: &Nonterminal,
+) -> Vec<(TerminalId, u16)> {
+    let mut pairs = vec![];
+    for (index, alternative) in grammar.alternatives(nonterminal).iter().enumerate() {
+        let index = index as u16;
+        for terminal in ff.prediction_set(nonterminal, alternative).keys() {
+            pairs.push((terminal_ids.get_id(terminal), index));
+        }
+    }
+    pairs.sort_by_key(|&(terminal_id, alternative)| (terminal_id.index(), alternative));
+    pairs.dedup();
+    pairs
+}
+
+/// Identifier of the static for `set`, e.g. `FOLLOW_RESTRICTION_E_ALT0_POS1`.
 fn terminal_set_name(set: &TerminalSet, grammar: &Grammar) -> String {
     let upper = |nonterminal: &Nonterminal| to_snake_case(&nonterminal.name).to_uppercase();
     match &set.kind {
         TerminalSetKind::Follow(nonterminal) => format!("FOLLOW_SET_{}", upper(nonterminal)),
         TerminalSetKind::First(nonterminal) => format!("FIRST_SET_{}", upper(nonterminal)),
-        TerminalSetKind::FirstAlt(slot) => format!(
-            "FIRST_SET_{}_ALT{}",
-            upper(slot.head()),
-            slot.alternative_index(grammar)
-        ),
         TerminalSetKind::FollowRestriction(slot) => format!(
             "FOLLOW_RESTRICTION_{}_ALT{}_POS{}",
             upper(slot.head()),
@@ -267,9 +493,6 @@ fn terminal_set_name(set: &TerminalSet, grammar: &Grammar) -> String {
             slot.alternative_index(grammar),
             slot.pos()
         ),
-        TerminalSetKind::Prediction(nonterminal) => {
-            format!("PREDICTION_SET_{}", upper(nonterminal))
-        }
     }
 }
 
@@ -280,11 +503,9 @@ fn terminal_set_comment(set: &TerminalSet) -> String {
         TerminalSetKind::Follow(nonterminal) | TerminalSetKind::First(nonterminal) => {
             nonterminal.name.clone()
         }
-        TerminalSetKind::FirstAlt(slot) => slot.name(),
         TerminalSetKind::FollowRestriction(slot) => format!("{} !>>", slot.name()),
         TerminalSetKind::LayoutAwareFollowRestriction(slot) => format!("{} !>>>", slot.name()),
         TerminalSetKind::Except(slot) => format!("{} \\", slot.name()),
-        TerminalSetKind::Prediction(nonterminal) => format!("{} prediction", nonterminal.name),
     };
     let names: Vec<_> = set.terminals.iter().map(|t| t.name.clone()).collect();
     format!("{position} {{ {} }}", names.join(", "))

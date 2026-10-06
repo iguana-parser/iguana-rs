@@ -22,18 +22,23 @@ pub enum TraceFailureKind {
     ForbiddenFollow { forbidden: Vec<TerminalId> },
 }
 
+/// A `NoViableAlternative` is recorded as an `UnexpectedToken` with the
+/// terminals of the called nonterminal's `Prediction`, which is what its error
+/// message reports.
 impl From<GLLFailureKind> for TraceFailureKind {
     fn from(kind: GLLFailureKind) -> Self {
-        let terminals = kind.terminals().to_vec();
         match kind {
-            GLLFailureKind::UnexpectedToken(_) => Self::UnexpectedToken {
-                expected: terminals,
+            GLLFailureKind::UnexpectedToken(set) => Self::UnexpectedToken {
+                expected: set.terminals.to_vec(),
             },
-            GLLFailureKind::ExcludedMatch(_) => Self::ExcludedMatch {
-                excluded_by: terminals,
+            GLLFailureKind::NoViableAlternative(prediction) => Self::UnexpectedToken {
+                expected: prediction.terminals(),
             },
-            GLLFailureKind::ForbiddenFollow(_) => Self::ForbiddenFollow {
-                forbidden: terminals,
+            GLLFailureKind::ExcludedMatch(set) => Self::ExcludedMatch {
+                excluded_by: set.terminals.to_vec(),
+            },
+            GLLFailureKind::ForbiddenFollow(set) => Self::ForbiddenFollow {
+                forbidden: set.terminals.to_vec(),
             },
         }
     }

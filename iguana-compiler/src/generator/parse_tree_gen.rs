@@ -627,7 +627,7 @@ impl<'a> ParseTreeGen<'a> {
         let inner_child = quote! { ParseTree::#inner_variant(self.node) };
         // Without layout the wrapper holds only the inner node; with layout it
         // has the two boundary layout children around it.
-        let (child_arms, child_count) = match self.grammar.layout.as_ref() {
+        let (child_arms, child_count) = match self.grammar.start_layout(nonterminal) {
             None => (quote! { 0 => Some(#inner_child), }, quote! { 1usize }),
             Some(layout) => {
                 let layout_ident = layout.as_identifier().unwrap();
@@ -992,7 +992,7 @@ impl<'a> ParseTreeGen<'a> {
                         let nonterminal_type = nt_ident(&nonterminal.name);
                         let parse_tree_variant = nt_ident(&nonterminal.name);
                         let construction = if self.grammar.is_start(nonterminal) {
-                            let (before, node, after) = if self.grammar.layout.is_some() {
+                            let (before, node, after) = if self.grammar.start_layout(nonterminal).is_some() {
                                 let before = &method_calls[0];
                                 let node = &method_calls[1];
                                 let after = &method_calls[2];

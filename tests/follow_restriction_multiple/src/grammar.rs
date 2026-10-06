@@ -2,8 +2,9 @@
 
 use iguana_runtime::{
     grammar::{Grammar, Nonterminal, Slot, Terminal},
-    ids::{NonterminalId, TerminalId},
+    ids::{NonterminalId, SlotId, TerminalId},
     scanner::TerminalSet,
+    utils::bit_set::BitSet,
 };
 pub const S: NonterminalId = NonterminalId(0);
 pub const ID: NonterminalId = NonterminalId(1);
@@ -14,6 +15,7 @@ pub const START_S: NonterminalId = NonterminalId(5);
 pub const START_ID: NonterminalId = NonterminalId(6);
 pub struct FollowRestrictionMultipleGrammar;
 impl Grammar for FollowRestrictionMultipleGrammar {
+    type Alternatives = BitSet<1>;
     const NAME: &'static str = "FollowRestrictionMultiple";
     const NONTERMINALS: &'static [Nonterminal] = &[
         Nonterminal {
@@ -142,6 +144,15 @@ impl Grammar for FollowRestrictionMultipleGrammar {
             position: 1,
         },
     ];
+    const FIRST_SLOTS: &'static [&'static [SlotId]] = &[
+        &[SlotId(0)],
+        &[SlotId(2)],
+        &[SlotId(4), SlotId(7)],
+        &[SlotId(9), SlotId(11)],
+        &[SlotId(13), SlotId(16)],
+        &[SlotId(18)],
+        &[SlotId(20)],
+    ];
     const LAYOUT_NAME: Option<&'static str> = None;
     const LAYOUT_TERMINALS: &'static [TerminalId] = &[];
     // A failed terminal match refers to a static terminal set like every other failure, so the
@@ -149,19 +160,19 @@ impl Grammar for FollowRestrictionMultipleGrammar {
     // by terminal id, serves only that.
     const SINGLE_TERMINAL_SETS: &'static [TerminalSet] = &[
         TerminalSet {
-            id: 6,
+            id: 4,
             terminals: &[TerminalId(0)],
         },
         TerminalSet {
-            id: 7,
+            id: 5,
             terminals: &[TerminalId(1)],
         },
         TerminalSet {
-            id: 8,
+            id: 6,
             terminals: &[TerminalId(2)],
         },
         TerminalSet {
-            id: 9,
+            id: 7,
             terminals: &[TerminalId(3)],
         },
     ];
@@ -198,45 +209,15 @@ pub static FOLLOW_SET_PLUS_0: TerminalSet = TerminalSet {
     id: 1,
     terminals: &[TerminalId(0), TerminalId(1), TerminalId(3)],
 };
-// Plus_0 : . Plus_0 Id { Alpha, Digit }
-pub static FIRST_SET_PLUS_0_ALT0: TerminalSet = TerminalSet {
-    id: 2,
-    terminals: &[TerminalId(0), TerminalId(1)],
-};
-// Plus_0 : . Id { Alpha, Digit }
-pub static FIRST_SET_PLUS_0_ALT1: TerminalSet = TerminalSet {
-    id: 2,
-    terminals: &[TerminalId(0), TerminalId(1)],
-};
 // Alt_0 { Alpha, Digit, EOF }
 pub static FOLLOW_SET_ALT_0: TerminalSet = TerminalSet {
     id: 1,
     terminals: &[TerminalId(0), TerminalId(1), TerminalId(3)],
 };
-// Alt_0 : . Alpha { Alpha }
-pub static FIRST_SET_ALT_0_ALT0: TerminalSet = TerminalSet {
-    id: 3,
-    terminals: &[TerminalId(0)],
-};
-// Alt_0 : . Digit { Digit }
-pub static FIRST_SET_ALT_0_ALT1: TerminalSet = TerminalSet {
-    id: 4,
-    terminals: &[TerminalId(1)],
-};
 // Plus_1 { Alpha, Digit, EOF }
 pub static FOLLOW_SET_PLUS_1: TerminalSet = TerminalSet {
     id: 1,
     terminals: &[TerminalId(0), TerminalId(1), TerminalId(3)],
-};
-// Plus_1 : . Plus_1 Alt_0 { Alpha, Digit }
-pub static FIRST_SET_PLUS_1_ALT0: TerminalSet = TerminalSet {
-    id: 2,
-    terminals: &[TerminalId(0), TerminalId(1)],
-};
-// Plus_1 : . Alt_0 { Alpha, Digit }
-pub static FIRST_SET_PLUS_1_ALT1: TerminalSet = TerminalSet {
-    id: 2,
-    terminals: &[TerminalId(0), TerminalId(1)],
 };
 // StartS { EOF }
 pub static FOLLOW_SET_START_S: TerminalSet = TerminalSet {
@@ -250,36 +231,36 @@ pub static FOLLOW_SET_START_ID: TerminalSet = TerminalSet {
 };
 // S { Alpha, Digit }
 pub static FIRST_SET_S: TerminalSet = TerminalSet {
-    id: 5,
+    id: 3,
     terminals: &[TerminalId(0), TerminalId(1)],
 };
 // Id { Alpha, Digit }
 pub static FIRST_SET_ID: TerminalSet = TerminalSet {
-    id: 5,
+    id: 3,
     terminals: &[TerminalId(0), TerminalId(1)],
 };
 // Plus_0 { Alpha, Digit }
 pub static FIRST_SET_PLUS_0: TerminalSet = TerminalSet {
-    id: 5,
+    id: 3,
     terminals: &[TerminalId(0), TerminalId(1)],
 };
 // Alt_0 { Alpha, Digit }
 pub static FIRST_SET_ALT_0: TerminalSet = TerminalSet {
-    id: 5,
+    id: 3,
     terminals: &[TerminalId(0), TerminalId(1)],
 };
 // Plus_1 { Alpha, Digit }
 pub static FIRST_SET_PLUS_1: TerminalSet = TerminalSet {
-    id: 5,
+    id: 3,
     terminals: &[TerminalId(0), TerminalId(1)],
 };
 // StartS { Alpha, Digit }
 pub static FIRST_SET_START_S: TerminalSet = TerminalSet {
-    id: 5,
+    id: 3,
     terminals: &[TerminalId(0), TerminalId(1)],
 };
 // StartId { Alpha, Digit }
 pub static FIRST_SET_START_ID: TerminalSet = TerminalSet {
-    id: 5,
+    id: 3,
     terminals: &[TerminalId(0), TerminalId(1)],
 };

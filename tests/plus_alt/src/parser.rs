@@ -5,7 +5,6 @@ use crate::{
     parse_tree::{self, ParseTree, PlusAltParseTreeBuilder, create_parse_tree},
     scanner::PlusAltScanner,
 };
-#[cfg(feature = "instrument")]
 use iguana_runtime::grammar::Grammar;
 #[allow(unused_imports)]
 use iguana_runtime::input::Span;
@@ -22,6 +21,7 @@ use iguana_runtime::{
         DESCRIPTORS_CAPACITY_DIVISOR, DESCRIPTORS_CAPACITY_FLOOR, GLLFailure, GLLFailureKind,
         GSS_CAPACITY_MULTIPLIER, Parser, SPPF_CAPACITY_MULTIPLIER, init_logger,
     },
+    prediction::Prediction,
     record,
     result::{ParseError, ParseSuccess},
     scanner::{Scanner, TerminalSet},
@@ -32,6 +32,7 @@ use rustc_hash::FxHashMap;
 use std::cell::OnceCell;
 impl<'i, 'arena> Parser<'i, 'arena> for PlusAltParser<'i, 'arena> {
     type Grammar = PlusAltGrammar;
+    type Alternatives = <PlusAltGrammar as Grammar>::Alternatives;
     type ConcreteParser<'input, 'parser_arena> = PlusAltParser<'input, 'parser_arena>;
     fn new(input: &'i Input, parser_arena: &'arena Arena) -> Self {
         PlusAltParser::new(input, parser_arena)
@@ -277,65 +278,6 @@ impl<'i, 'arena> Parser<'i, 'arena> for PlusAltParser<'i, 'arena> {
                         panic!("Unknown grammar slot id: {slot_id}");
                     }
                 }
-            }
-        }
-    }
-    fn add_first_descriptors(
-        &mut self,
-        nonterminal_id: NonterminalId,
-        input_index: u32,
-        gss_node_id: GssNodeId,
-        env: Option<EnvId>,
-    ) {
-        match nonterminal_id {
-            // S : . Plus_0
-            NonterminalId(0) => {
-                self.add_first_descriptor(SlotId(0), input_index, gss_node_id, env);
-            }
-            // A : . "a"
-            NonterminalId(1) => {
-                self.add_first_descriptor(SlotId(2), input_index, gss_node_id, env);
-            }
-            // Num : . "1"
-            NonterminalId(2) => {
-                self.add_first_descriptor(SlotId(4), input_index, gss_node_id, env);
-            }
-            // Alt_0
-            NonterminalId(3) => {
-                // Alt_0 : . Num
-                if self.scanner.match_any(&FIRST_SET_ALT_0_ALT1, input_index) {
-                    self.add_first_descriptor(SlotId(8), input_index, gss_node_id, env);
-                }
-                // Alt_0 : . A
-                if self.scanner.match_any(&FIRST_SET_ALT_0_ALT0, input_index) {
-                    self.add_first_descriptor(SlotId(6), input_index, gss_node_id, env);
-                }
-            }
-            // Plus_0
-            NonterminalId(4) => {
-                // Plus_0 : . Alt_0
-                if self.scanner.match_any(&FIRST_SET_PLUS_0_ALT1, input_index) {
-                    self.add_first_descriptor(SlotId(13), input_index, gss_node_id, env);
-                }
-                // Plus_0 : . Plus_0 Alt_0
-                if self.scanner.match_any(&FIRST_SET_PLUS_0_ALT0, input_index) {
-                    self.add_first_descriptor(SlotId(10), input_index, gss_node_id, env);
-                }
-            }
-            // StartS : . start:S
-            NonterminalId(5) => {
-                self.add_first_descriptor(SlotId(15), input_index, gss_node_id, env);
-            }
-            // StartA : . start:A
-            NonterminalId(6) => {
-                self.add_first_descriptor(SlotId(17), input_index, gss_node_id, env);
-            }
-            // StartNum : . start:Num
-            NonterminalId(7) => {
-                self.add_first_descriptor(SlotId(19), input_index, gss_node_id, env);
-            }
-            _ => {
-                panic!("Unknown nonterminal id: {nonterminal_id}");
             }
         }
     }
@@ -728,6 +670,9 @@ impl<'i, 'arena> Parser<'i, 'arena> for PlusAltParser<'i, 'arena> {
     }
     fn match_any(&mut self, set: &'static TerminalSet, input_index: u32) -> bool {
         self.scanner.match_any(set, input_index)
+    }
+    fn predict(&mut self, prediction: &'static Prediction, input_index: u32) -> Self::Alternatives {
+        self.scanner.predict(prediction, input_index)
     }
     fn vec_arena(&self) -> &'arena Arena {
         self.vec_arena

@@ -2,8 +2,9 @@
 
 use iguana_runtime::{
     grammar::{Grammar, Nonterminal, Slot, Terminal},
-    ids::{NonterminalId, TerminalId},
+    ids::{NonterminalId, SlotId, TerminalId},
     scanner::TerminalSet,
+    utils::bit_set::BitSet,
 };
 pub const S: NonterminalId = NonterminalId(0);
 pub const MOD: NonterminalId = NonterminalId(1);
@@ -15,6 +16,7 @@ pub const START_EMPTY: NonterminalId = NonterminalId(6);
 pub const START_TAG: NonterminalId = NonterminalId(7);
 pub struct TokenOnlyUnsafeGrammar;
 impl Grammar for TokenOnlyUnsafeGrammar {
+    type Alternatives = BitSet<1>;
     const NAME: &'static str = "TokenOnlyUnsafe";
     const NONTERMINALS: &'static [Nonterminal] = &[
         Nonterminal {
@@ -177,6 +179,16 @@ impl Grammar for TokenOnlyUnsafeGrammar {
             position: 3,
         },
     ];
+    const FIRST_SLOTS: &'static [&'static [SlotId]] = &[
+        &[SlotId(0)],
+        &[SlotId(6), SlotId(8)],
+        &[SlotId(10)],
+        &[SlotId(11)],
+        &[SlotId(13)],
+        &[SlotId(17)],
+        &[SlotId(21)],
+        &[SlotId(25)],
+    ];
     const LAYOUT_NAME: Option<&'static str> = Some("WS");
     const LAYOUT_TERMINALS: &'static [TerminalId] = &[TerminalId(1)];
     // A failed terminal match refers to a static terminal set like every other failure, so the
@@ -184,27 +196,27 @@ impl Grammar for TokenOnlyUnsafeGrammar {
     // by terminal id, serves only that.
     const SINGLE_TERMINAL_SETS: &'static [TerminalSet] = &[
         TerminalSet {
-            id: 11,
+            id: 9,
             terminals: &[TerminalId(0)],
         },
         TerminalSet {
-            id: 12,
+            id: 10,
             terminals: &[TerminalId(1)],
         },
         TerminalSet {
-            id: 13,
+            id: 11,
             terminals: &[TerminalId(2)],
         },
         TerminalSet {
-            id: 14,
+            id: 12,
             terminals: &[TerminalId(3)],
         },
         TerminalSet {
-            id: 15,
+            id: 13,
             terminals: &[TerminalId(4)],
         },
         TerminalSet {
-            id: 16,
+            id: 14,
             terminals: &[TerminalId(5)],
         },
     ];
@@ -232,16 +244,6 @@ pub static FOLLOW_SET_MOD: TerminalSet = TerminalSet {
     id: 1,
     terminals: &[TerminalId(0), TerminalId(1), TerminalId(5)],
 };
-// Mod : . "public" { "public" }
-pub static FIRST_SET_MOD_ALT0: TerminalSet = TerminalSet {
-    id: 2,
-    terminals: &[TerminalId(2)],
-};
-// Mod : . "static" { "static" }
-pub static FIRST_SET_MOD_ALT1: TerminalSet = TerminalSet {
-    id: 3,
-    terminals: &[TerminalId(3)],
-};
 // Empty { Id, WS, EOF }
 pub static FOLLOW_SET_EMPTY: TerminalSet = TerminalSet {
     id: 1,
@@ -254,61 +256,61 @@ pub static FOLLOW_SET_TAG: TerminalSet = TerminalSet {
 };
 // StartS { EOF }
 pub static FOLLOW_SET_START_S: TerminalSet = TerminalSet {
-    id: 4,
+    id: 2,
     terminals: &[TerminalId(5)],
 };
 // StartMod { EOF }
 pub static FOLLOW_SET_START_MOD: TerminalSet = TerminalSet {
-    id: 4,
+    id: 2,
     terminals: &[TerminalId(5)],
 };
 // StartEmpty { EOF }
 pub static FOLLOW_SET_START_EMPTY: TerminalSet = TerminalSet {
-    id: 4,
+    id: 2,
     terminals: &[TerminalId(5)],
 };
 // StartTag { EOF }
 pub static FOLLOW_SET_START_TAG: TerminalSet = TerminalSet {
-    id: 4,
+    id: 2,
     terminals: &[TerminalId(5)],
 };
 // S { "public", "static" }
 pub static FIRST_SET_S: TerminalSet = TerminalSet {
-    id: 5,
+    id: 3,
     terminals: &[TerminalId(2), TerminalId(3)],
 };
 // Mod { "public", "static" }
 pub static FIRST_SET_MOD: TerminalSet = TerminalSet {
-    id: 5,
+    id: 3,
     terminals: &[TerminalId(2), TerminalId(3)],
 };
 // Empty { }
 pub static FIRST_SET_EMPTY: TerminalSet = TerminalSet {
-    id: 6,
+    id: 4,
     terminals: &[],
 };
 // Tag { Id }
 pub static FIRST_SET_TAG: TerminalSet = TerminalSet {
-    id: 7,
+    id: 5,
     terminals: &[TerminalId(0)],
 };
 // StartS { WS, "public", "static" }
 pub static FIRST_SET_START_S: TerminalSet = TerminalSet {
-    id: 8,
+    id: 6,
     terminals: &[TerminalId(1), TerminalId(2), TerminalId(3)],
 };
 // StartMod { WS, "public", "static" }
 pub static FIRST_SET_START_MOD: TerminalSet = TerminalSet {
-    id: 8,
+    id: 6,
     terminals: &[TerminalId(1), TerminalId(2), TerminalId(3)],
 };
 // StartEmpty { WS }
 pub static FIRST_SET_START_EMPTY: TerminalSet = TerminalSet {
-    id: 9,
+    id: 7,
     terminals: &[TerminalId(1)],
 };
 // StartTag { Id, WS }
 pub static FIRST_SET_START_TAG: TerminalSet = TerminalSet {
-    id: 10,
+    id: 8,
     terminals: &[TerminalId(0), TerminalId(1)],
 };

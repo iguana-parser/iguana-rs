@@ -2,8 +2,9 @@
 
 use iguana_runtime::{
     grammar::{Grammar, Nonterminal, Slot, Terminal},
-    ids::{NonterminalId, TerminalId},
+    ids::{NonterminalId, SlotId, TerminalId},
     scanner::TerminalSet,
+    utils::bit_set::BitSet,
 };
 pub const S: NonterminalId = NonterminalId(0);
 pub const LAYOUT: NonterminalId = NonterminalId(1);
@@ -12,8 +13,10 @@ pub const PLUS_0: NonterminalId = NonterminalId(3);
 pub const OPT_0: NonterminalId = NonterminalId(4);
 pub const STAR_0: NonterminalId = NonterminalId(5);
 pub const START_S: NonterminalId = NonterminalId(6);
+pub const START_LAYOUT: NonterminalId = NonterminalId(7);
 pub struct LayoutNonterminalGrammar;
 impl Grammar for LayoutNonterminalGrammar {
+    type Alternatives = BitSet<1>;
     const NAME: &'static str = "LayoutNonterminal";
     const NONTERMINALS: &'static [Nonterminal] = &[
         Nonterminal {
@@ -44,8 +47,12 @@ impl Grammar for LayoutNonterminalGrammar {
             name: "StartS",
             display_name: "S",
         },
+        Nonterminal {
+            name: "StartLayout",
+            display_name: "Layout",
+        },
     ];
-    const DISPLAY_ORDER: &'static [&'static str] = &["S"];
+    const DISPLAY_ORDER: &'static [&'static str] = &["S", "Layout"];
     const TERMINALS: &'static [Terminal] = &[
         Terminal { name: "WhiteSpace" },
         Terminal { name: "Comment" },
@@ -142,6 +149,24 @@ impl Grammar for LayoutNonterminalGrammar {
             display_name: "S : Layout start:S Layout.",
             position: 3,
         },
+        Slot {
+            display_name: "Layout : . start:Layout",
+            position: 0,
+        },
+        Slot {
+            display_name: "Layout : start:Layout.",
+            position: 1,
+        },
+    ];
+    const FIRST_SLOTS: &'static [&'static [SlotId]] = &[
+        &[SlotId(0)],
+        &[SlotId(2)],
+        &[SlotId(4), SlotId(6)],
+        &[SlotId(8), SlotId(11)],
+        &[SlotId(13), SlotId(15)],
+        &[SlotId(16)],
+        &[SlotId(18)],
+        &[SlotId(22)],
     ];
     const LAYOUT_NAME: Option<&'static str> = Some("Layout");
     const LAYOUT_TERMINALS: &'static [TerminalId] = &[TerminalId(0), TerminalId(1)];
@@ -150,23 +175,23 @@ impl Grammar for LayoutNonterminalGrammar {
     // by terminal id, serves only that.
     const SINGLE_TERMINAL_SETS: &'static [TerminalSet] = &[
         TerminalSet {
-            id: 11,
+            id: 7,
             terminals: &[TerminalId(0)],
         },
         TerminalSet {
-            id: 12,
+            id: 8,
             terminals: &[TerminalId(1)],
         },
         TerminalSet {
-            id: 13,
+            id: 9,
             terminals: &[TerminalId(2)],
         },
         TerminalSet {
-            id: 14,
+            id: 10,
             terminals: &[TerminalId(3)],
         },
         TerminalSet {
-            id: 15,
+            id: 11,
             terminals: &[TerminalId(4)],
         },
     ];
@@ -179,6 +204,7 @@ impl Grammar for LayoutNonterminalGrammar {
             "Opt_0" => Some(OPT_0),
             "Star_0" => Some(STAR_0),
             "StartS" => Some(START_S),
+            "StartLayout" => Some(START_LAYOUT),
             _ => None,
         }
     }
@@ -198,45 +224,15 @@ pub static FOLLOW_SET_ALT_0: TerminalSet = TerminalSet {
     id: 2,
     terminals: &[TerminalId(0), TerminalId(1), TerminalId(2), TerminalId(4)],
 };
-// Alt_0 : . WhiteSpace { WhiteSpace }
-pub static FIRST_SET_ALT_0_ALT0: TerminalSet = TerminalSet {
-    id: 3,
-    terminals: &[TerminalId(0)],
-};
-// Alt_0 : . Comment { Comment }
-pub static FIRST_SET_ALT_0_ALT1: TerminalSet = TerminalSet {
-    id: 4,
-    terminals: &[TerminalId(1)],
-};
 // Plus_0 { WhiteSpace, Comment, "x", EOF }
 pub static FOLLOW_SET_PLUS_0: TerminalSet = TerminalSet {
     id: 2,
     terminals: &[TerminalId(0), TerminalId(1), TerminalId(2), TerminalId(4)],
 };
-// Plus_0 : . Plus_0 Alt_0 { WhiteSpace, Comment }
-pub static FIRST_SET_PLUS_0_ALT0: TerminalSet = TerminalSet {
-    id: 5,
-    terminals: &[TerminalId(0), TerminalId(1)],
-};
-// Plus_0 : . Alt_0 { WhiteSpace, Comment }
-pub static FIRST_SET_PLUS_0_ALT1: TerminalSet = TerminalSet {
-    id: 5,
-    terminals: &[TerminalId(0), TerminalId(1)],
-};
 // Opt_0 { "x", EOF }
 pub static FOLLOW_SET_OPT_0: TerminalSet = TerminalSet {
     id: 1,
     terminals: &[TerminalId(2), TerminalId(4)],
-};
-// Opt_0 : . Plus_0 { WhiteSpace, Comment }
-pub static FIRST_SET_OPT_0_ALT0: TerminalSet = TerminalSet {
-    id: 5,
-    terminals: &[TerminalId(0), TerminalId(1)],
-};
-// Opt_0 : . { }
-pub static FIRST_SET_OPT_0_ALT1: TerminalSet = TerminalSet {
-    id: 6,
-    terminals: &[],
 };
 // Star_0 { "x", EOF }
 pub static FOLLOW_SET_STAR_0: TerminalSet = TerminalSet {
@@ -245,41 +241,51 @@ pub static FOLLOW_SET_STAR_0: TerminalSet = TerminalSet {
 };
 // StartS { EOF }
 pub static FOLLOW_SET_START_S: TerminalSet = TerminalSet {
-    id: 7,
+    id: 3,
+    terminals: &[TerminalId(4)],
+};
+// StartLayout { EOF }
+pub static FOLLOW_SET_START_LAYOUT: TerminalSet = TerminalSet {
+    id: 3,
     terminals: &[TerminalId(4)],
 };
 // S { "x" }
 pub static FIRST_SET_S: TerminalSet = TerminalSet {
-    id: 8,
+    id: 4,
     terminals: &[TerminalId(2)],
 };
 // Layout { WhiteSpace, Comment }
 pub static FIRST_SET_LAYOUT: TerminalSet = TerminalSet {
-    id: 9,
+    id: 5,
     terminals: &[TerminalId(0), TerminalId(1)],
 };
 // Alt_0 { WhiteSpace, Comment }
 pub static FIRST_SET_ALT_0: TerminalSet = TerminalSet {
-    id: 9,
+    id: 5,
     terminals: &[TerminalId(0), TerminalId(1)],
 };
 // Plus_0 { WhiteSpace, Comment }
 pub static FIRST_SET_PLUS_0: TerminalSet = TerminalSet {
-    id: 9,
+    id: 5,
     terminals: &[TerminalId(0), TerminalId(1)],
 };
 // Opt_0 { WhiteSpace, Comment }
 pub static FIRST_SET_OPT_0: TerminalSet = TerminalSet {
-    id: 9,
+    id: 5,
     terminals: &[TerminalId(0), TerminalId(1)],
 };
 // Star_0 { WhiteSpace, Comment }
 pub static FIRST_SET_STAR_0: TerminalSet = TerminalSet {
-    id: 9,
+    id: 5,
     terminals: &[TerminalId(0), TerminalId(1)],
 };
 // StartS { WhiteSpace, Comment, "x" }
 pub static FIRST_SET_START_S: TerminalSet = TerminalSet {
-    id: 10,
+    id: 6,
     terminals: &[TerminalId(0), TerminalId(1), TerminalId(2)],
+};
+// StartLayout { WhiteSpace, Comment }
+pub static FIRST_SET_START_LAYOUT: TerminalSet = TerminalSet {
+    id: 5,
+    terminals: &[TerminalId(0), TerminalId(1)],
 };

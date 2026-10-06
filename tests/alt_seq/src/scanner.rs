@@ -61,16 +61,12 @@ static TERMINAL_FIRST_CHARS: [CharSet; 9] = [
     ),
     CharSet::new(0x0, &[]),
 ];
-static MATCH_ANY_FIRST_CHARS: [CharSet; 9] = [
+static MATCH_ANY_FIRST_CHARS: [CharSet; 5] = [
     CharSet::new(0x0, &[]),
     CharSet::new(0x4000000000000000000000000, &[]),
     CharSet::new(0x30000000000000000000000000, &[]),
     CharSet::new(0x3ff000000000000, &[]),
     CharSet::new(0x40000000000000000000000000, &[]),
-    CharSet::new(0x2000000000000000000000000, &[]),
-    CharSet::new(0x8000000000000000000000000, &[]),
-    CharSet::new(0x10000000000000000000000000, &[]),
-    CharSet::new(0x20000000000000000000000000, &[]),
 ];
 pub struct AltSeqScanner<'i, 'arena> {
     pub input: &'i Input,
@@ -121,7 +117,7 @@ impl<'i, 'arena> AltSeqScanner<'i, 'arena> {
     // first query of a set at a position scans it; later queries return the cached bit.
     pub fn match_any(&mut self, set: &TerminalSet, input_index: u32) -> bool {
         debug_assert!(
-            set.id < 9,
+            set.id < 5,
             "terminal set {} does not have a match_any memo id",
             set.id,
         );

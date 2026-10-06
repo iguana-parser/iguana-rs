@@ -22,6 +22,7 @@ use iguana_runtime::{
         GLLFailure, GLLFailureKind, GSS_CAPACITY_MULTIPLIER, Parser, SPPF_CAPACITY_MULTIPLIER,
         init_logger,
     },
+    prediction::Prediction,
     record,
     result::{ParseError, ParseSuccess},
     scanner::{Scanner, TerminalSet},
@@ -35,6 +36,7 @@ const BINDING_L_PR: BindingId = BindingId(1);
 const BINDING_R_PR: BindingId = BindingId(2);
 impl<'i, 'arena> Parser<'i, 'arena> for IndirectPrefixParser<'i, 'arena> {
     type Grammar = IndirectPrefixGrammar;
+    type Alternatives = <IndirectPrefixGrammar as Grammar>::Alternatives;
     type ConcreteParser<'input, 'parser_arena> = IndirectPrefixParser<'input, 'parser_arena>;
     fn new(input: &'i Input, parser_arena: &'arena Arena) -> Self {
         IndirectPrefixParser::new(input, parser_arena)
@@ -353,7 +355,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectPrefixParser<'i, 'arena> {
                     SlotId(3) => {
                         self.create(
                             NonterminalId(0),
-                            &PREDICTION_SET_S,
+                            &PREDICTION_S,
                             result,
                             gss_node_id,
                             SlotId(4),
@@ -530,63 +532,6 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectPrefixParser<'i, 'arena> {
                         panic!("Unknown grammar slot id: {slot_id}");
                     }
                 }
-            }
-        }
-    }
-    fn add_first_descriptors(
-        &mut self,
-        nonterminal_id: NonterminalId,
-        input_index: u32,
-        gss_node_id: GssNodeId,
-        env: Option<EnvId>,
-    ) {
-        match nonterminal_id {
-            // S : . E(0)
-            NonterminalId(0) => {
-                self.add_first_descriptor(SlotId(0), input_index, gss_node_id, env);
-            }
-            // E
-            NonterminalId(5) => {
-                // E(p: i32) : . Lambda(1) return 1
-                if self.scanner.match_any(&FIRST_SET_E_ALT2, input_index) {
-                    self.add_first_descriptor(SlotId(30), input_index, gss_node_id, env);
-                }
-                // E(p: i32) : . [2 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 2)] WS "+" WS r_pr=E(2) return
-                // (r_pr == 0) ? 2 : min(r_pr, 2)
-                if self.scanner.match_any(&FIRST_SET_E_ALT1, input_index) {
-                    self.add_first_descriptor(SlotId(21), input_index, gss_node_id, env);
-                }
-                // E(p: i32) : . "a" return 0
-                if self.scanner.match_any(&FIRST_SET_E_ALT0, input_index) {
-                    self.add_first_descriptor(SlotId(18), input_index, gss_node_id, env);
-                }
-            }
-            // Lambda(p: i32) : . "fn" WS r_pr=Body(p) return r_pr
-            NonterminalId(6) => {
-                self.add_first_descriptor(SlotId(33), input_index, gss_node_id, env);
-            }
-            // Body(p: i32) : . r_pr=E(p) return r_pr
-            NonterminalId(7) => {
-                self.add_first_descriptor(SlotId(38), input_index, gss_node_id, env);
-            }
-            // StartS : . WS start:S WS
-            NonterminalId(1) => {
-                self.add_first_descriptor(SlotId(2), input_index, gss_node_id, env);
-            }
-            // StartE : . WS start:E(0) WS
-            NonterminalId(2) => {
-                self.add_first_descriptor(SlotId(6), input_index, gss_node_id, env);
-            }
-            // StartLambda : . WS start:Lambda(0) WS
-            NonterminalId(3) => {
-                self.add_first_descriptor(SlotId(10), input_index, gss_node_id, env);
-            }
-            // StartBody : . WS start:Body(0) WS
-            NonterminalId(4) => {
-                self.add_first_descriptor(SlotId(14), input_index, gss_node_id, env);
-            }
-            _ => {
-                panic!("Unknown nonterminal id: {nonterminal_id}");
             }
         }
     }
@@ -1037,6 +982,9 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectPrefixParser<'i, 'arena> {
     fn match_any(&mut self, set: &'static TerminalSet, input_index: u32) -> bool {
         self.scanner.match_any(set, input_index)
     }
+    fn predict(&mut self, prediction: &'static Prediction, input_index: u32) -> Self::Alternatives {
+        self.scanner.predict(prediction, input_index)
+    }
     fn vec_arena(&self) -> &'arena Arena {
         self.vec_arena
     }
@@ -1174,6 +1122,7 @@ impl<'i, 'arena> IndirectPrefixParser<'i, 'arena> {
             .parse(START_BODY, tree_arena)?
             .map(ParseTree::unwrap_start_body))
     }
+    #[inline(never)]
     #[allow(clippy::too_many_arguments)]
     fn create_e(
         &mut self,
@@ -1198,14 +1147,23 @@ impl<'i, 'arena> IndirectPrefixParser<'i, 'arena> {
                 return_slot,
                 env,
             );
-        } else if self.match_any(&PREDICTION_SET_E, i) {
+            return;
+        }
+        let alternatives = self.predict(&PREDICTION_E, i);
+        if !alternatives.is_empty() {
             record!(self, GSSNodeNotFound, NonterminalId(5), i);
             let new_gss_node_id = self.new_gss_node(NonterminalId(5), i);
             self.add_gss_edge(new_gss_node_id, gss_node_id, sppf_node_id, return_slot, env);
             let arena = self.vec_arena;
             let (env_id, env) = self.new_env();
             env.bind(BINDING_P, p, arena);
-            self.add_first_descriptors(NonterminalId(5), i, new_gss_node_id, Some(env_id));
+            self.add_first_descriptors(
+                NonterminalId(5),
+                i,
+                new_gss_node_id,
+                Some(env_id),
+                alternatives,
+            );
             self.add_gss_node_e(i, p, new_gss_node_id);
         } else {
             // The call symbol precedes the return slot in its alternative, so the return slot is never
@@ -1216,10 +1174,11 @@ impl<'i, 'arena> IndirectPrefixParser<'i, 'arena> {
                 i,
                 call_slot,
                 Some(gss_node_id),
-                GLLFailureKind::UnexpectedToken(&PREDICTION_SET_E),
+                GLLFailureKind::NoViableAlternative(&PREDICTION_E),
             );
         }
     }
+    #[inline(never)]
     #[allow(clippy::too_many_arguments)]
     fn create_lambda(
         &mut self,
@@ -1244,14 +1203,23 @@ impl<'i, 'arena> IndirectPrefixParser<'i, 'arena> {
                 return_slot,
                 env,
             );
-        } else if self.match_any(&PREDICTION_SET_LAMBDA, i) {
+            return;
+        }
+        let alternatives = self.predict(&PREDICTION_LAMBDA, i);
+        if !alternatives.is_empty() {
             record!(self, GSSNodeNotFound, NonterminalId(6), i);
             let new_gss_node_id = self.new_gss_node(NonterminalId(6), i);
             self.add_gss_edge(new_gss_node_id, gss_node_id, sppf_node_id, return_slot, env);
             let arena = self.vec_arena;
             let (env_id, env) = self.new_env();
             env.bind(BINDING_P, p, arena);
-            self.add_first_descriptors(NonterminalId(6), i, new_gss_node_id, Some(env_id));
+            self.add_first_descriptors(
+                NonterminalId(6),
+                i,
+                new_gss_node_id,
+                Some(env_id),
+                alternatives,
+            );
             self.add_gss_node_lambda(i, p, new_gss_node_id);
         } else {
             // The call symbol precedes the return slot in its alternative, so the return slot is never
@@ -1262,10 +1230,11 @@ impl<'i, 'arena> IndirectPrefixParser<'i, 'arena> {
                 i,
                 call_slot,
                 Some(gss_node_id),
-                GLLFailureKind::UnexpectedToken(&PREDICTION_SET_LAMBDA),
+                GLLFailureKind::NoViableAlternative(&PREDICTION_LAMBDA),
             );
         }
     }
+    #[inline(never)]
     #[allow(clippy::too_many_arguments)]
     fn create_body(
         &mut self,
@@ -1290,14 +1259,23 @@ impl<'i, 'arena> IndirectPrefixParser<'i, 'arena> {
                 return_slot,
                 env,
             );
-        } else if self.match_any(&PREDICTION_SET_BODY, i) {
+            return;
+        }
+        let alternatives = self.predict(&PREDICTION_BODY, i);
+        if !alternatives.is_empty() {
             record!(self, GSSNodeNotFound, NonterminalId(7), i);
             let new_gss_node_id = self.new_gss_node(NonterminalId(7), i);
             self.add_gss_edge(new_gss_node_id, gss_node_id, sppf_node_id, return_slot, env);
             let arena = self.vec_arena;
             let (env_id, env) = self.new_env();
             env.bind(BINDING_P, p, arena);
-            self.add_first_descriptors(NonterminalId(7), i, new_gss_node_id, Some(env_id));
+            self.add_first_descriptors(
+                NonterminalId(7),
+                i,
+                new_gss_node_id,
+                Some(env_id),
+                alternatives,
+            );
             self.add_gss_node_body(i, p, new_gss_node_id);
         } else {
             // The call symbol precedes the return slot in its alternative, so the return slot is never
@@ -1308,7 +1286,7 @@ impl<'i, 'arena> IndirectPrefixParser<'i, 'arena> {
                 i,
                 call_slot,
                 Some(gss_node_id),
-                GLLFailureKind::UnexpectedToken(&PREDICTION_SET_BODY),
+                GLLFailureKind::NoViableAlternative(&PREDICTION_BODY),
             );
         }
     }

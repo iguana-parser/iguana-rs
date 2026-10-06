@@ -79,7 +79,7 @@ static TERMINAL_FIRST_CHARS: [CharSet; 9] = [
     ),
     CharSet::new(0x0, &[]),
 ];
-static MATCH_ANY_FIRST_CHARS: [CharSet; 7] = [
+static MATCH_ANY_FIRST_CHARS: [CharSet; 4] = [
     CharSet::new(
         0xffffffffffffffffffffffffffffffff,
         &[CharRange {
@@ -87,8 +87,6 @@ static MATCH_ANY_FIRST_CHARS: [CharSet; 7] = [
             end: '\u{10ffff}',
         }],
     ),
-    CharSet::new(0x7fffffe07fffffe0000000000000000, &[]),
-    CharSet::new(0x4000000000000000000000000000, &[]),
     CharSet::new(0x7fffffe87fffffe03ff000000000000, &[]),
     CharSet::new(
         0xffffffffffffffffffffffffffffffff,
@@ -98,7 +96,6 @@ static MATCH_ANY_FIRST_CHARS: [CharSet; 7] = [
         }],
     ),
     CharSet::new(0x0, &[]),
-    CharSet::new(0x7fffffe07fffffe0000000000000000, &[]),
 ];
 pub struct ExactKeywordGenericsScanner<'i, 'arena> {
     pub input: &'i Input,
@@ -149,7 +146,7 @@ impl<'i, 'arena> ExactKeywordGenericsScanner<'i, 'arena> {
     // first query of a set at a position scans it; later queries return the cached bit.
     pub fn match_any(&mut self, set: &TerminalSet, input_index: u32) -> bool {
         debug_assert!(
-            set.id < 7,
+            set.id < 4,
             "terminal set {} does not have a match_any memo id",
             set.id,
         );

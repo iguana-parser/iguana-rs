@@ -22,6 +22,7 @@ use iguana_runtime::{
         GLLFailure, GLLFailureKind, GSS_CAPACITY_MULTIPLIER, Parser, SPPF_CAPACITY_MULTIPLIER,
         init_logger,
     },
+    prediction::Prediction,
     record,
     result::{ParseError, ParseSuccess},
     scanner::{Scanner, TerminalSet},
@@ -34,6 +35,7 @@ const BINDING_P: BindingId = BindingId(0);
 const BINDING_L_PR: BindingId = BindingId(1);
 impl<'i, 'arena> Parser<'i, 'arena> for AmbRootParser<'i, 'arena> {
     type Grammar = AmbRootGrammar;
+    type Alternatives = <AmbRootGrammar as Grammar>::Alternatives;
     type ConcreteParser<'input, 'parser_arena> = AmbRootParser<'input, 'parser_arena>;
     fn new(input: &'i Input, parser_arena: &'arena Arena) -> Self {
         AmbRootParser::new(input, parser_arena)
@@ -591,54 +593,6 @@ impl<'i, 'arena> Parser<'i, 'arena> for AmbRootParser<'i, 'arena> {
             }
         }
     }
-    fn add_first_descriptors(
-        &mut self,
-        nonterminal_id: NonterminalId,
-        input_index: u32,
-        gss_node_id: GssNodeId,
-        env: Option<EnvId>,
-    ) {
-        match nonterminal_id {
-            // E
-            NonterminalId(3) => {
-                // E(p: i32) : . Id return 0
-                if self.scanner.match_any(&FIRST_SET_E_ALT4, input_index) {
-                    self.add_first_descriptor(SlotId(40), input_index, gss_node_id, env);
-                }
-                // E(p: i32) : . "(" WS E(0) WS ")" return 0
-                if self.scanner.match_any(&FIRST_SET_E_ALT3, input_index) {
-                    self.add_first_descriptor(SlotId(33), input_index, gss_node_id, env);
-                }
-                // E(p: i32) : . [1 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 1)] WS "-" WS E(2) return 1
-                if self.scanner.match_any(&FIRST_SET_E_ALT2, input_index) {
-                    self.add_first_descriptor(SlotId(24), input_index, gss_node_id, env);
-                }
-                // E(p: i32) : . "-" WS E(2) return 2
-                if self.scanner.match_any(&FIRST_SET_E_ALT1, input_index) {
-                    self.add_first_descriptor(SlotId(19), input_index, gss_node_id, env);
-                }
-                // E(p: i32) : . "(" WS Type WS ")" WS E(2) return 2
-                if self.scanner.match_any(&FIRST_SET_E_ALT0, input_index) {
-                    self.add_first_descriptor(SlotId(10), input_index, gss_node_id, env);
-                }
-            }
-            // Type : . Id
-            NonterminalId(0) => {
-                self.add_first_descriptor(SlotId(0), input_index, gss_node_id, env);
-            }
-            // StartE : . WS start:E(0) WS
-            NonterminalId(1) => {
-                self.add_first_descriptor(SlotId(2), input_index, gss_node_id, env);
-            }
-            // StartType : . WS start:Type WS
-            NonterminalId(2) => {
-                self.add_first_descriptor(SlotId(6), input_index, gss_node_id, env);
-            }
-            _ => {
-                panic!("Unknown nonterminal id: {nonterminal_id}");
-            }
-        }
-    }
     fn get_gss_node(&self, nonterminal_id: NonterminalId, input_index: u32) -> Option<GssNodeId> {
         self.gss_nodes_index[nonterminal_id.index()]
             .get(&input_index)
@@ -1061,6 +1015,9 @@ impl<'i, 'arena> Parser<'i, 'arena> for AmbRootParser<'i, 'arena> {
     fn match_any(&mut self, set: &'static TerminalSet, input_index: u32) -> bool {
         self.scanner.match_any(set, input_index)
     }
+    fn predict(&mut self, prediction: &'static Prediction, input_index: u32) -> Self::Alternatives {
+        self.scanner.predict(prediction, input_index)
+    }
     fn vec_arena(&self) -> &'arena Arena {
         self.vec_arena
     }
@@ -1176,6 +1133,7 @@ impl<'i, 'arena> AmbRootParser<'i, 'arena> {
             .parse(START_TYPE, tree_arena)?
             .map(ParseTree::unwrap_start_type))
     }
+    #[inline(never)]
     #[allow(clippy::too_many_arguments)]
     fn create_e(
         &mut self,
@@ -1200,14 +1158,23 @@ impl<'i, 'arena> AmbRootParser<'i, 'arena> {
                 return_slot,
                 env,
             );
-        } else if self.match_any(&PREDICTION_SET_E, i) {
+            return;
+        }
+        let alternatives = self.predict(&PREDICTION_E, i);
+        if !alternatives.is_empty() {
             record!(self, GSSNodeNotFound, NonterminalId(3), i);
             let new_gss_node_id = self.new_gss_node(NonterminalId(3), i);
             self.add_gss_edge(new_gss_node_id, gss_node_id, sppf_node_id, return_slot, env);
             let arena = self.vec_arena;
             let (env_id, env) = self.new_env();
             env.bind(BINDING_P, p, arena);
-            self.add_first_descriptors(NonterminalId(3), i, new_gss_node_id, Some(env_id));
+            self.add_first_descriptors(
+                NonterminalId(3),
+                i,
+                new_gss_node_id,
+                Some(env_id),
+                alternatives,
+            );
             self.add_gss_node_e(i, p, new_gss_node_id);
         } else {
             // The call symbol precedes the return slot in its alternative, so the return slot is never
@@ -1218,7 +1185,7 @@ impl<'i, 'arena> AmbRootParser<'i, 'arena> {
                 i,
                 call_slot,
                 Some(gss_node_id),
-                GLLFailureKind::UnexpectedToken(&PREDICTION_SET_E),
+                GLLFailureKind::NoViableAlternative(&PREDICTION_E),
             );
         }
     }

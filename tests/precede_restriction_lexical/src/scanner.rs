@@ -58,7 +58,7 @@ static TERMINAL_FIRST_CHARS: [CharSet; 7] = [
     ),
     CharSet::new(0x0, &[]),
 ];
-static MATCH_ANY_FIRST_CHARS: [CharSet; 5] = [
+static MATCH_ANY_FIRST_CHARS: [CharSet; 2] = [
     CharSet::new(
         0xffffffffffffffffffffffffffffffff,
         &[CharRange {
@@ -66,10 +66,7 @@ static MATCH_ANY_FIRST_CHARS: [CharSet; 5] = [
             end: '\u{10ffff}',
         }],
     ),
-    CharSet::new(0x40000000000000000000000000, &[]),
-    CharSet::new(0x40000000000000000000000000, &[]),
     CharSet::new(0x0, &[]),
-    CharSet::new(0x40000000000000000000000000, &[]),
 ];
 pub struct PrecedeRestrictionLexicalScanner<'i, 'arena> {
     pub input: &'i Input,
@@ -115,7 +112,7 @@ impl<'i, 'arena> PrecedeRestrictionLexicalScanner<'i, 'arena> {
     // first query of a set at a position scans it; later queries return the cached bit.
     pub fn match_any(&mut self, set: &TerminalSet, input_index: u32) -> bool {
         debug_assert!(
-            set.id < 5,
+            set.id < 2,
             "terminal set {} does not have a match_any memo id",
             set.id,
         );

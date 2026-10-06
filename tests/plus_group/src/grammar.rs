@@ -2,8 +2,9 @@
 
 use iguana_runtime::{
     grammar::{Grammar, Nonterminal, Slot, Terminal},
-    ids::{NonterminalId, TerminalId},
+    ids::{NonterminalId, SlotId, TerminalId},
     scanner::TerminalSet,
+    utils::bit_set::BitSet,
 };
 pub const S: NonterminalId = NonterminalId(0);
 pub const A: NonterminalId = NonterminalId(1);
@@ -17,6 +18,7 @@ pub const START_B: NonterminalId = NonterminalId(8);
 pub const START_C: NonterminalId = NonterminalId(9);
 pub struct PlusGroupGrammar;
 impl Grammar for PlusGroupGrammar {
+    type Alternatives = BitSet<1>;
     const NAME: &'static str = "PlusGroup";
     const NONTERMINALS: &'static [Nonterminal] = &[
         Nonterminal {
@@ -170,6 +172,18 @@ impl Grammar for PlusGroupGrammar {
             position: 1,
         },
     ];
+    const FIRST_SLOTS: &'static [&'static [SlotId]] = &[
+        &[SlotId(0)],
+        &[SlotId(2)],
+        &[SlotId(4)],
+        &[SlotId(6)],
+        &[SlotId(8)],
+        &[SlotId(12), SlotId(15)],
+        &[SlotId(17)],
+        &[SlotId(19)],
+        &[SlotId(21)],
+        &[SlotId(23)],
+    ];
     const LAYOUT_NAME: Option<&'static str> = None;
     const LAYOUT_TERMINALS: &'static [TerminalId] = &[];
     // A failed terminal match refers to a static terminal set like every other failure, so the
@@ -177,23 +191,23 @@ impl Grammar for PlusGroupGrammar {
     // by terminal id, serves only that.
     const SINGLE_TERMINAL_SETS: &'static [TerminalSet] = &[
         TerminalSet {
-            id: 8,
+            id: 7,
             terminals: &[TerminalId(0)],
         },
         TerminalSet {
-            id: 9,
+            id: 8,
             terminals: &[TerminalId(1)],
         },
         TerminalSet {
-            id: 10,
+            id: 9,
             terminals: &[TerminalId(2)],
         },
         TerminalSet {
-            id: 11,
+            id: 10,
             terminals: &[TerminalId(3)],
         },
         TerminalSet {
-            id: 12,
+            id: 11,
             terminals: &[TerminalId(4)],
         },
     ];
@@ -243,16 +257,6 @@ pub static FOLLOW_SET_PLUS_0: TerminalSet = TerminalSet {
     id: 3,
     terminals: &[TerminalId(0), TerminalId(4)],
 };
-// Plus_0 : . Plus_0 Group_0 { "a" }
-pub static FIRST_SET_PLUS_0_ALT0: TerminalSet = TerminalSet {
-    id: 4,
-    terminals: &[TerminalId(0)],
-};
-// Plus_0 : . Group_0 { "a" }
-pub static FIRST_SET_PLUS_0_ALT1: TerminalSet = TerminalSet {
-    id: 4,
-    terminals: &[TerminalId(0)],
-};
 // StartS { EOF }
 pub static FOLLOW_SET_START_S: TerminalSet = TerminalSet {
     id: 0,
@@ -275,51 +279,51 @@ pub static FOLLOW_SET_START_C: TerminalSet = TerminalSet {
 };
 // S { "a" }
 pub static FIRST_SET_S: TerminalSet = TerminalSet {
-    id: 5,
+    id: 4,
     terminals: &[TerminalId(0)],
 };
 // A { "a" }
 pub static FIRST_SET_A: TerminalSet = TerminalSet {
-    id: 5,
+    id: 4,
     terminals: &[TerminalId(0)],
 };
 // B { "b" }
 pub static FIRST_SET_B: TerminalSet = TerminalSet {
-    id: 6,
+    id: 5,
     terminals: &[TerminalId(1)],
 };
 // C { "c" }
 pub static FIRST_SET_C: TerminalSet = TerminalSet {
-    id: 7,
+    id: 6,
     terminals: &[TerminalId(2)],
 };
 // Group_0 { "a" }
 pub static FIRST_SET_GROUP_0: TerminalSet = TerminalSet {
-    id: 5,
+    id: 4,
     terminals: &[TerminalId(0)],
 };
 // Plus_0 { "a" }
 pub static FIRST_SET_PLUS_0: TerminalSet = TerminalSet {
-    id: 5,
+    id: 4,
     terminals: &[TerminalId(0)],
 };
 // StartS { "a" }
 pub static FIRST_SET_START_S: TerminalSet = TerminalSet {
-    id: 5,
+    id: 4,
     terminals: &[TerminalId(0)],
 };
 // StartA { "a" }
 pub static FIRST_SET_START_A: TerminalSet = TerminalSet {
-    id: 5,
+    id: 4,
     terminals: &[TerminalId(0)],
 };
 // StartB { "b" }
 pub static FIRST_SET_START_B: TerminalSet = TerminalSet {
-    id: 6,
+    id: 5,
     terminals: &[TerminalId(1)],
 };
 // StartC { "c" }
 pub static FIRST_SET_START_C: TerminalSet = TerminalSet {
-    id: 7,
+    id: 6,
     terminals: &[TerminalId(2)],
 };

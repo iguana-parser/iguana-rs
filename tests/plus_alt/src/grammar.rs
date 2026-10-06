@@ -2,8 +2,9 @@
 
 use iguana_runtime::{
     grammar::{Grammar, Nonterminal, Slot, Terminal},
-    ids::{NonterminalId, TerminalId},
+    ids::{NonterminalId, SlotId, TerminalId},
     scanner::TerminalSet,
+    utils::bit_set::BitSet,
 };
 pub const S: NonterminalId = NonterminalId(0);
 pub const A: NonterminalId = NonterminalId(1);
@@ -15,6 +16,7 @@ pub const START_A: NonterminalId = NonterminalId(6);
 pub const START_NUM: NonterminalId = NonterminalId(7);
 pub struct PlusAltGrammar;
 impl Grammar for PlusAltGrammar {
+    type Alternatives = BitSet<1>;
     const NAME: &'static str = "PlusAlt";
     const NONTERMINALS: &'static [Nonterminal] = &[
         Nonterminal {
@@ -143,6 +145,16 @@ impl Grammar for PlusAltGrammar {
             position: 1,
         },
     ];
+    const FIRST_SLOTS: &'static [&'static [SlotId]] = &[
+        &[SlotId(0)],
+        &[SlotId(2)],
+        &[SlotId(4)],
+        &[SlotId(6), SlotId(8)],
+        &[SlotId(10), SlotId(13)],
+        &[SlotId(15)],
+        &[SlotId(17)],
+        &[SlotId(19)],
+    ];
     const LAYOUT_NAME: Option<&'static str> = None;
     const LAYOUT_TERMINALS: &'static [TerminalId] = &[];
     // A failed terminal match refers to a static terminal set like every other failure, so the
@@ -150,19 +162,19 @@ impl Grammar for PlusAltGrammar {
     // by terminal id, serves only that.
     const SINGLE_TERMINAL_SETS: &'static [TerminalSet] = &[
         TerminalSet {
-            id: 8,
+            id: 5,
             terminals: &[TerminalId(0)],
         },
         TerminalSet {
-            id: 9,
+            id: 6,
             terminals: &[TerminalId(1)],
         },
         TerminalSet {
-            id: 10,
+            id: 7,
             terminals: &[TerminalId(2)],
         },
         TerminalSet {
-            id: 11,
+            id: 8,
             terminals: &[TerminalId(3)],
         },
     ];
@@ -200,30 +212,10 @@ pub static FOLLOW_SET_ALT_0: TerminalSet = TerminalSet {
     id: 1,
     terminals: &[TerminalId(0), TerminalId(1), TerminalId(3)],
 };
-// Alt_0 : . A { "a" }
-pub static FIRST_SET_ALT_0_ALT0: TerminalSet = TerminalSet {
-    id: 2,
-    terminals: &[TerminalId(0)],
-};
-// Alt_0 : . Num { "1" }
-pub static FIRST_SET_ALT_0_ALT1: TerminalSet = TerminalSet {
-    id: 3,
-    terminals: &[TerminalId(1)],
-};
 // Plus_0 { "a", "1", EOF }
 pub static FOLLOW_SET_PLUS_0: TerminalSet = TerminalSet {
     id: 1,
     terminals: &[TerminalId(0), TerminalId(1), TerminalId(3)],
-};
-// Plus_0 : . Plus_0 Alt_0 { "a", "1" }
-pub static FIRST_SET_PLUS_0_ALT0: TerminalSet = TerminalSet {
-    id: 4,
-    terminals: &[TerminalId(0), TerminalId(1)],
-};
-// Plus_0 : . Alt_0 { "a", "1" }
-pub static FIRST_SET_PLUS_0_ALT1: TerminalSet = TerminalSet {
-    id: 4,
-    terminals: &[TerminalId(0), TerminalId(1)],
 };
 // StartS { EOF }
 pub static FOLLOW_SET_START_S: TerminalSet = TerminalSet {
@@ -242,41 +234,41 @@ pub static FOLLOW_SET_START_NUM: TerminalSet = TerminalSet {
 };
 // S { "a", "1" }
 pub static FIRST_SET_S: TerminalSet = TerminalSet {
-    id: 5,
+    id: 2,
     terminals: &[TerminalId(0), TerminalId(1)],
 };
 // A { "a" }
 pub static FIRST_SET_A: TerminalSet = TerminalSet {
-    id: 6,
+    id: 3,
     terminals: &[TerminalId(0)],
 };
 // Num { "1" }
 pub static FIRST_SET_NUM: TerminalSet = TerminalSet {
-    id: 7,
+    id: 4,
     terminals: &[TerminalId(1)],
 };
 // Alt_0 { "a", "1" }
 pub static FIRST_SET_ALT_0: TerminalSet = TerminalSet {
-    id: 5,
+    id: 2,
     terminals: &[TerminalId(0), TerminalId(1)],
 };
 // Plus_0 { "a", "1" }
 pub static FIRST_SET_PLUS_0: TerminalSet = TerminalSet {
-    id: 5,
+    id: 2,
     terminals: &[TerminalId(0), TerminalId(1)],
 };
 // StartS { "a", "1" }
 pub static FIRST_SET_START_S: TerminalSet = TerminalSet {
-    id: 5,
+    id: 2,
     terminals: &[TerminalId(0), TerminalId(1)],
 };
 // StartA { "a" }
 pub static FIRST_SET_START_A: TerminalSet = TerminalSet {
-    id: 6,
+    id: 3,
     terminals: &[TerminalId(0)],
 };
 // StartNum { "1" }
 pub static FIRST_SET_START_NUM: TerminalSet = TerminalSet {
-    id: 7,
+    id: 4,
     terminals: &[TerminalId(1)],
 };

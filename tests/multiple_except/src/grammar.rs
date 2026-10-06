@@ -2,8 +2,9 @@
 
 use iguana_runtime::{
     grammar::{Grammar, Nonterminal, Slot, Terminal},
-    ids::{NonterminalId, TerminalId},
+    ids::{NonterminalId, SlotId, TerminalId},
     scanner::TerminalSet,
+    utils::bit_set::BitSet,
 };
 pub const SYNTAX_IDENTIFIER: NonterminalId = NonterminalId(0);
 pub const LEXICAL_IDENTIFIER: NonterminalId = NonterminalId(1);
@@ -11,6 +12,7 @@ pub const START_SYNTAX_IDENTIFIER: NonterminalId = NonterminalId(2);
 pub const START_LEXICAL_IDENTIFIER: NonterminalId = NonterminalId(3);
 pub struct MultipleExceptGrammar;
 impl Grammar for MultipleExceptGrammar {
+    type Alternatives = BitSet<1>;
     const NAME: &'static str = "MultipleExcept";
     const NONTERMINALS: &'static [Nonterminal] = &[
         Nonterminal {
@@ -80,6 +82,8 @@ impl Grammar for MultipleExceptGrammar {
             position: 1,
         },
     ];
+    const FIRST_SLOTS: &'static [&'static [SlotId]] =
+        &[&[SlotId(0)], &[SlotId(2)], &[SlotId(4)], &[SlotId(6)]];
     const LAYOUT_NAME: Option<&'static str> = None;
     const LAYOUT_TERMINALS: &'static [TerminalId] = &[];
     // A failed terminal match refers to a static terminal set like every other failure, so the

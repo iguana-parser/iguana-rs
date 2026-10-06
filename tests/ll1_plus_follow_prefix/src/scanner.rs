@@ -36,9 +36,8 @@ static TERMINAL_FIRST_CHARS: [CharSet; 5] = [
     ),
     CharSet::new(0x0, &[]),
 ];
-static MATCH_ANY_FIRST_CHARS: [CharSet; 3] = [
+static MATCH_ANY_FIRST_CHARS: [CharSet; 2] = [
     CharSet::new(0x0, &[]),
-    CharSet::new(0x2000000000000000000000000, &[]),
     CharSet::new(0x2000000000000000000000000, &[]),
 ];
 pub struct Ll1PlusFollowPrefixScanner<'i, 'arena> {
@@ -74,7 +73,7 @@ impl<'i, 'arena> Ll1PlusFollowPrefixScanner<'i, 'arena> {
     // first query of a set at a position scans it; later queries return the cached bit.
     pub fn match_any(&mut self, set: &TerminalSet, input_index: u32) -> bool {
         debug_assert!(
-            set.id < 3,
+            set.id < 2,
             "terminal set {} does not have a match_any memo id",
             set.id,
         );

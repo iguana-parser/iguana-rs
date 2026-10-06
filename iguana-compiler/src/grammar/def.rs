@@ -1011,19 +1011,24 @@ fn build_grammar(grammar_def: GrammarDef, dump: &[Phase]) -> Result<Grammar, Vec
 
     // Every source nonterminal is an entry point and gets a start wrapper rule
     // (`StartX = Layout start:X Layout`, or `StartX = start:X` without layout),
-    // so parsing always enters through a wrapper. Derived nonterminals (EBNF
-    // expansion, desugaring helpers) and the layout rule are not entry points.
+    // so parsing always enters through a wrapper. The wrapper of the layout
+    // nonterminal is `StartLayout = start:Layout`, without layout around it.
+    // Derived nonterminals (EBNF expansion, desugaring helpers) are not entry
+    // points.
     let layout_name = layout
         .as_ref()
         .and_then(|l| l.as_identifier())
         .map(|id| id.name.clone());
-    let is_entry = |r: &SyntaxRule| {
-        source_order.contains_key(&r.head.name) && Some(&r.head.name) != layout_name.as_ref()
-    };
+    let is_entry = |r: &SyntaxRule| source_order.contains_key(&r.head.name);
     let start_rules: Vec<_> = syntax_rules
         .iter()
         .filter(|r| is_entry(r))
-        .map(|r| add_start_rule(&r.head, layout.as_ref(), &symbol_table))
+        .map(|r| {
+            let start_layout = layout
+                .as_ref()
+                .filter(|_| Some(&r.head.name) != layout_name.as_ref());
+            add_start_rule(&r.head, start_layout, &symbol_table)
+        })
         .collect();
     let start_nonterminals: FxHashMap<String, String> = syntax_rules
         .iter()
@@ -1149,6 +1154,14 @@ impl Grammar {
     }
     pub fn is_start(&self, nonterminal: &Nonterminal) -> bool {
         self.start_wrapper_names.contains(&nonterminal.name)
+    }
+    /// The layout around the nonterminal that the start wrapper `start`
+    /// wraps. This is the layout of the grammar, or `None` when the grammar
+    /// does not have layout or `start` wraps the layout nonterminal.
+    pub fn start_layout(&self, start: &Nonterminal) -> Option<&Symbol> {
+        let wrapped = start.origin.as_ref()?.as_identifier()?;
+        let layout = self.layout.as_ref()?;
+        (layout.as_identifier()?.name != wrapped.name).then_some(layout)
     }
     /// Returns the associated start nonterminal for the given nonterminal, if it exists.
     pub fn start_nonterminal(&self, nonterminal: &Nonterminal) -> Option<&Nonterminal> {

@@ -5,7 +5,6 @@ use crate::{
     parse_tree::{self, MultipleExceptParseTreeBuilder, ParseTree, create_parse_tree},
     scanner::MultipleExceptScanner,
 };
-#[cfg(feature = "instrument")]
 use iguana_runtime::grammar::Grammar;
 #[allow(unused_imports)]
 use iguana_runtime::input::Span;
@@ -22,6 +21,7 @@ use iguana_runtime::{
         DESCRIPTORS_CAPACITY_DIVISOR, DESCRIPTORS_CAPACITY_FLOOR, GLLFailure, GLLFailureKind,
         GSS_CAPACITY_MULTIPLIER, Parser, SPPF_CAPACITY_MULTIPLIER, init_logger,
     },
+    prediction::Prediction,
     record,
     result::{ParseError, ParseSuccess},
     scanner::{Scanner, TerminalSet},
@@ -32,6 +32,7 @@ use rustc_hash::FxHashMap;
 use std::cell::OnceCell;
 impl<'i, 'arena> Parser<'i, 'arena> for MultipleExceptParser<'i, 'arena> {
     type Grammar = MultipleExceptGrammar;
+    type Alternatives = <MultipleExceptGrammar as Grammar>::Alternatives;
     type ConcreteParser<'input, 'parser_arena> = MultipleExceptParser<'input, 'parser_arena>;
     fn new(input: &'i Input, parser_arena: &'arena Arena) -> Self {
         MultipleExceptParser::new(input, parser_arena)
@@ -176,35 +177,6 @@ impl<'i, 'arena> Parser<'i, 'arena> for MultipleExceptParser<'i, 'arena> {
                         panic!("Unknown grammar slot id: {slot_id}");
                     }
                 }
-            }
-        }
-    }
-    fn add_first_descriptors(
-        &mut self,
-        nonterminal_id: NonterminalId,
-        input_index: u32,
-        gss_node_id: GssNodeId,
-        env: Option<EnvId>,
-    ) {
-        match nonterminal_id {
-            // SyntaxIdentifier : . IdentifierChars \ Keyword \ BooleanLiteral \ NullLiteral
-            NonterminalId(0) => {
-                self.add_first_descriptor(SlotId(0), input_index, gss_node_id, env);
-            }
-            // LexicalIdentifier : . Identifier
-            NonterminalId(1) => {
-                self.add_first_descriptor(SlotId(2), input_index, gss_node_id, env);
-            }
-            // StartSyntaxIdentifier : . start:SyntaxIdentifier
-            NonterminalId(2) => {
-                self.add_first_descriptor(SlotId(4), input_index, gss_node_id, env);
-            }
-            // StartLexicalIdentifier : . start:LexicalIdentifier
-            NonterminalId(3) => {
-                self.add_first_descriptor(SlotId(6), input_index, gss_node_id, env);
-            }
-            _ => {
-                panic!("Unknown nonterminal id: {nonterminal_id}");
             }
         }
     }
@@ -617,6 +589,9 @@ impl<'i, 'arena> Parser<'i, 'arena> for MultipleExceptParser<'i, 'arena> {
     }
     fn match_any(&mut self, set: &'static TerminalSet, input_index: u32) -> bool {
         self.scanner.match_any(set, input_index)
+    }
+    fn predict(&mut self, prediction: &'static Prediction, input_index: u32) -> Self::Alternatives {
+        self.scanner.predict(prediction, input_index)
     }
     fn vec_arena(&self) -> &'arena Arena {
         self.vec_arena

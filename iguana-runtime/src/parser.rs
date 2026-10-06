@@ -1,3 +1,4 @@
+use std::ptr;
 use std::sync::LazyLock;
 use std::time::Duration;
 use web_time::Instant;
@@ -13,6 +14,7 @@ use crate::{
     ids::{BindingId, GssNodeId, NonterminalId, SlotId, TerminalId},
     input::{Input, Span},
     parse_tree::ParseTreeNode,
+    prediction::{AlternativeSet, Prediction},
     record,
     result::{ParseError, ParseSuccess},
     scanner::TerminalSet,
@@ -48,8 +50,8 @@ pub struct GLLSuccess {
     pub duration: Duration,
 }
 
-/// A failure recorded by the parser. A failure corresponds to a terminal set test
-/// at a specific grammar position.
+/// A failure recorded by the parser. A failure corresponds to a failed
+/// terminal set test or a failed prediction at a specific grammar position.
 #[derive(Debug, Clone, Copy)]
 pub struct GLLFailure {
     pub input_index: u32,
@@ -60,32 +62,44 @@ pub struct GLLFailure {
     pub kind: GLLFailureKind,
 }
 
-/// The kind of a recorded failure and the terminal set it refers to. Every
+/// The kind of a recorded failure and the terminals it refers to. Every
 /// variant holds a reference to a generated static, so the value is a tag
 /// and a pointer and travels in registers.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy)]
 pub enum GLLFailureKind {
     /// Terminal match failed: expected one of these terminals at this position.
     UnexpectedToken(&'static TerminalSet),
+    /// Nonterminal call (`A = B . C D`): no alternative of the called
+    /// nonterminal can begin at this position, so the call is not made. A
+    /// terminal that can predict one of its alternatives was expected.
+    NoViableAlternative(&'static Prediction),
     /// Nonterminal except (`\`): matched a nonterminal but it was excluded.
     ExcludedMatch(&'static TerminalSet),
     /// Follow restriction (`!>>`): the symbol after the match is forbidden.
     ForbiddenFollow(&'static TerminalSet),
 }
 
-impl GLLFailureKind {
-    pub fn terminals(&self) -> &'static [TerminalId] {
-        match self {
-            Self::UnexpectedToken(set) | Self::ExcludedMatch(set) | Self::ForbiddenFollow(set) => {
-                set.terminals
-            }
+impl PartialEq for GLLFailureKind {
+    fn eq(&self, other: &Self) -> bool {
+        match (self, other) {
+            (Self::UnexpectedToken(a), Self::UnexpectedToken(b))
+            | (Self::ExcludedMatch(a), Self::ExcludedMatch(b))
+            | (Self::ForbiddenFollow(a), Self::ForbiddenFollow(b)) => a == b,
+            // Two `NoViableAlternative` kinds are equal if they refer to the
+            // same `Prediction` static, which belongs to one nonterminal. The
+            // other kinds compare their terminal sets.
+            (Self::NoViableAlternative(a), Self::NoViableAlternative(b)) => ptr::eq(*a, *b),
+            _ => false,
         }
     }
 }
 
-/// The failure a parse reports: the first retained failure, with the
-/// expected terminals of every retained `UnexpectedToken` failure merged
-/// into one list. This is the only place a failure owns its terminals.
+impl Eq for GLLFailureKind {}
+
+/// The failure a parse reports: the first failure at the farthest input
+/// index, with the expected terminals of the `UnexpectedToken` and
+/// `NoViableAlternative` failures there merged into one list. This is the
+/// only place a failure owns its terminals.
 #[derive(Debug, Clone)]
 pub struct FailureReport {
     pub input_index: u32,
@@ -111,6 +125,9 @@ pub enum FailureReportKind {
 #[doc(hidden)]
 pub trait Parser<'i, 'arena>: Sized {
     type Grammar: Grammar;
+    /// The grammar's set of predicted alternatives. The generated impl sets
+    /// this to `Grammar::Alternatives` of its grammar.
+    type Alternatives: AlternativeSet;
     type Tree<'a>: ParseTreeNode;
     /// The concrete parser type, detached from the trait's `'i` and `'arena`,
     /// so the runtime can instantiate a parser over an input and arena of its
@@ -151,13 +168,6 @@ pub trait Parser<'i, 'arena>: Sized {
     /// The GLL main loop: takes descriptors until the set is empty and runs
     /// each one through the generated slot dispatch.
     fn execute(&mut self);
-    fn add_first_descriptors(
-        &mut self,
-        nonterminal_id: NonterminalId,
-        input_index: u32,
-        gss_node_id: GssNodeId,
-        env: Option<EnvId>,
-    );
     fn start_env(&mut self, start: NonterminalId) -> Option<EnvId>;
     fn ambiguity_node_added(&self) -> bool;
     fn get_gss_node(&self, nonterminal_id: NonterminalId, input_index: u32) -> Option<GssNodeId>;
@@ -193,6 +203,31 @@ pub trait Parser<'i, 'arena>: Sized {
             gss_node_id,
             env,
         ));
+    }
+    /// Adds a descriptor for the first slot of each alternative in
+    /// `predicted_alternatives`, the alternatives of the nonterminal that are
+    /// predicted at `input_index`.
+    ///
+    /// The alternatives are scheduled from the last to the first. The
+    /// descriptor worklist is a stack, so the parser runs the first
+    /// alternative first, which gives the GLL execution a depth-first
+    /// exploration of the alternatives. The benefit is in the unsafe mode,
+    /// which stops at the first derivation that spans the whole input and
+    /// reaches it earlier this way. The default mode drains every descriptor,
+    /// so the order does not change the result there.
+    #[inline(always)]
+    fn add_first_descriptors(
+        &mut self,
+        nonterminal_id: NonterminalId,
+        input_index: u32,
+        gss_node_id: GssNodeId,
+        env: Option<EnvId>,
+        predicted_alternatives: Self::Alternatives,
+    ) {
+        let first_slots = Self::Grammar::FIRST_SLOTS[nonterminal_id.index()];
+        for alternative in predicted_alternatives.iter_descending() {
+            self.add_first_descriptor(first_slots[alternative], input_index, gss_node_id, env);
+        }
     }
     fn next_descriptor(&mut self) -> Option<Descriptor>;
     /// The arena backing the parser's internal collections: GSS edges, popped
@@ -376,22 +411,31 @@ pub trait Parser<'i, 'arena>: Sized {
     /// order.
     fn failures(&self) -> impl Iterator<Item = &GLLFailure>;
 
-    /// Calculates the failure to report from the failures recorded at the
-    /// farthest input index reached during parsing.
+    /// Calculates the failure to report from `failures()`: the failures
+    /// recorded at the farthest input index reached during parsing, in
+    /// recording order.
     ///
     /// Error reporting uses the following strategy:
     ///
-    /// - Failures at earlier input indices are discarded as parsing proceeds.
-    /// - The first retained failure supplies the diagnostic kind, slot, and GSS
-    ///   context.
-    /// - If the first failure is an `UnexpectedToken`, its expected set is the
-    ///   union of the expected sets from all retained `UnexpectedToken`
-    ///   failures. Other failure kinds do not contribute to this union. A first
-    ///   failure of another kind is returned unchanged.
+    /// - Only failures at the farthest input index are kept. A failure at an
+    ///   earlier index is dropped when it is recorded, and a failure at a
+    ///   farther index replaces all failures kept so far.
+    /// - The first failure in the list supplies the kind of the report, its
+    ///   slot, and its GSS context.
+    /// - A first failure that is an `ExcludedMatch` or a `ForbiddenFollow` is
+    ///   reported unchanged.
+    /// - A first failure that is an `UnexpectedToken` or a
+    ///   `NoViableAlternative` is reported with the expected terminals of all
+    ///   `UnexpectedToken` and `NoViableAlternative` failures in the list,
+    ///   merged into one list. `ExcludedMatch` and `ForbiddenFollow` failures
+    ///   do not add to the merged list.
+    /// - The expected terminals of an `UnexpectedToken` are its terminal set.
+    /// - The expected terminals of a `NoViableAlternative` are the terminals
+    ///   that can predict an alternative of the called nonterminal.
     /// - Layout terminals are removed when at least one other expected terminal
     ///   remains.
-    /// - The expected set is sorted deterministically, with literals before
-    ///   named lexical definitions and grammar order within each class.
+    /// - The expected terminals are sorted deterministically, with literals
+    ///   before named lexical definitions and grammar order within each class.
     ///
     /// Different failure kinds are not ranked or reconciled. When multiple
     /// kinds occur at the same input index, the result is therefore first-wins
@@ -411,8 +455,9 @@ pub trait Parser<'i, 'arena>: Sized {
             gss_node_id: first.gss_node_id,
             kind,
         };
-        let set = match first.kind {
-            GLLFailureKind::UnexpectedToken(set) => set,
+        let mut expected = match first.kind {
+            GLLFailureKind::UnexpectedToken(set) => set.terminals.to_vec(),
+            GLLFailureKind::NoViableAlternative(prediction) => prediction.terminals(),
             GLLFailureKind::ExcludedMatch(set) => {
                 return Some(report(FailureReportKind::ExcludedMatch {
                     excluded_by: set,
@@ -425,10 +470,15 @@ pub trait Parser<'i, 'arena>: Sized {
             }
         };
 
-        let mut expected = set.terminals.to_vec();
         for other in failures {
-            if let GLLFailureKind::UnexpectedToken(additional) = other.kind {
-                expected.extend_from_slice(additional.terminals);
+            match other.kind {
+                GLLFailureKind::UnexpectedToken(additional) => {
+                    expected.extend_from_slice(additional.terminals);
+                }
+                GLLFailureKind::NoViableAlternative(prediction) => {
+                    expected.extend(prediction.terminals());
+                }
+                GLLFailureKind::ExcludedMatch(_) | GLLFailureKind::ForbiddenFollow(_) => {}
             }
         }
 
@@ -446,8 +496,8 @@ pub trait Parser<'i, 'arena>: Sized {
     ///
     /// Only failures at the farthest input position are kept.
     /// For failures at the same input position, we do not keep a failure whose
-    /// kind and terminal set are the same as those of the failure kept just
-    /// before it, because it does not change the error message.
+    /// kind is equal to the kind of the failure kept just before it, because
+    /// it does not change the error message.
     /// The generated implementation has `#[inline(never)]` so that we do not inline
     /// the failure handling code in the main parser loop.
     fn add_failure(
@@ -462,6 +512,9 @@ pub trait Parser<'i, 'arena>: Sized {
     /// Delegates to the scanner's match_any, which tests whether a terminal in
     /// `set` matches at `input_index`.
     fn match_any(&mut self, set: &'static TerminalSet, input_index: u32) -> bool;
+    /// Delegates to the scanner's predict, which returns the alternatives of
+    /// `prediction` predicted at `input_index`.
+    fn predict(&mut self, prediction: &'static Prediction, input_index: u32) -> Self::Alternatives;
 
     /// Matches a terminal at the given input position.
     /// On success, creates a terminal node and returns the end position and node id.
@@ -497,15 +550,14 @@ pub trait Parser<'i, 'arena>: Sized {
 
     /// Creates a new GSS node if it does not exist.
     /// If a GSS node with the same nonterminal name and input index exists, just adds an edge.
-    /// If the prediction set does not match at the current input position, records a failure
-    /// instead of creating the node.
+    /// If no alternative of the nonterminal is predicted at the current input position, records a
+    /// failure instead of creating the node.
     /// `create` corresponds to a function call in recursive-descent parsers.
     ///
     /// # Arguments
     ///
     /// * `nonterminal_id` - The nonterminal id.
-    /// * `prediction_set` - The nonterminal's prediction set: its FIRST set, plus its FOLLOW set when
-    ///   the nonterminal is nullable.
+    /// * `prediction` - The prediction of the nonterminal's alternatives.
     /// * `sppf_node_id` - The current sppf_node, corresponding to the result of parsing before the call.
     ///   If the nonterminal is called at position 0, i.e., it's the first symbol in the production rule,
     ///   the sppf_node_id is `None`
@@ -514,10 +566,14 @@ pub trait Parser<'i, 'arena>: Sized {
     ///   The return slot is recorded on the edge, so that parsing can continue from there after
     ///   the pop.
     /// * `env` - The caller's environment, saved on the GSS edge for when the call returns.
+    // Do not inline. `execute` calls `create` from every slot that calls a
+    // nonterminal, and inlining would copy the body into each of them and
+    // grow `execute`.
+    #[inline(never)]
     fn create(
         &mut self,
         nonterminal_id: NonterminalId,
-        prediction_set: &'static TerminalSet,
+        prediction: &'static Prediction,
         sppf_node_id: Option<SPPFNodeId>,
         gss_node_id: GssNodeId,
         return_slot: SlotId,
@@ -538,11 +594,14 @@ pub trait Parser<'i, 'arena>: Sized {
                 return_slot,
                 env,
             );
-        } else if self.match_any(prediction_set, i) {
+            return;
+        }
+        let alternatives = self.predict(prediction, i);
+        if !alternatives.is_empty() {
             record!(self, GSSNodeNotFound, nonterminal_id, i);
             let new_gss_node_id = self.new_gss_node(nonterminal_id, i);
             self.add_gss_edge(new_gss_node_id, gss_node_id, sppf_node_id, return_slot, env);
-            self.add_first_descriptors(nonterminal_id, i, new_gss_node_id, None);
+            self.add_first_descriptors(nonterminal_id, i, new_gss_node_id, None, alternatives);
             self.add_gss_node(nonterminal_id, i, new_gss_node_id);
         } else {
             // The call symbol precedes the return slot in its alternative, so
@@ -553,7 +612,7 @@ pub trait Parser<'i, 'arena>: Sized {
                 i,
                 call_slot,
                 Some(gss_node_id),
-                GLLFailureKind::UnexpectedToken(prediction_set),
+                GLLFailureKind::NoViableAlternative(prediction),
             );
         }
     }
@@ -632,6 +691,9 @@ pub trait Parser<'i, 'arena>: Sized {
             return_slot
         );
     }
+    // Do not inline. `execute` calls `pop` from the end of every alternative,
+    // and inlining would copy the body into each of them and grow `execute`.
+    #[inline(never)]
     fn pop(
         &mut self,
         gss_node_id: GssNodeId,
@@ -1006,7 +1068,15 @@ pub trait Parser<'i, 'arena>: Sized {
         // it terminates an unsafe parse early.
         debug_assert_eq!(start_gss_node_id, GssNodeId(0));
         let start_env = self.start_env(start);
-        self.add_first_descriptors(start, start_input_index, start_gss_node_id, start_env);
+        // A start wrapper has a single alternative.
+        let first_slots = Self::Grammar::FIRST_SLOTS[start.index()];
+        debug_assert_eq!(first_slots.len(), 1);
+        self.add_first_descriptor(
+            first_slots[0],
+            start_input_index,
+            start_gss_node_id,
+            start_env,
+        );
         self.add_start_gss_node(start, start_input_index, start_gss_node_id);
         self.execute();
         let duration = timer.elapsed();

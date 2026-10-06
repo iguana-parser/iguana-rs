@@ -2,8 +2,9 @@
 
 use iguana_runtime::{
     grammar::{Grammar, Nonterminal, Slot, Terminal},
-    ids::{NonterminalId, TerminalId},
+    ids::{NonterminalId, SlotId, TerminalId},
     scanner::TerminalSet,
+    utils::bit_set::BitSet,
 };
 pub const S: NonterminalId = NonterminalId(0);
 pub const B: NonterminalId = NonterminalId(1);
@@ -11,6 +12,7 @@ pub const START_S: NonterminalId = NonterminalId(2);
 pub const START_B: NonterminalId = NonterminalId(3);
 pub struct LowercaseNameGrammar;
 impl Grammar for LowercaseNameGrammar {
+    type Alternatives = BitSet<1>;
     const NAME: &'static str = "lowercase_name";
     const NONTERMINALS: &'static [Nonterminal] = &[
         Nonterminal {
@@ -75,6 +77,8 @@ impl Grammar for LowercaseNameGrammar {
             position: 1,
         },
     ];
+    const FIRST_SLOTS: &'static [&'static [SlotId]] =
+        &[&[SlotId(0)], &[SlotId(3)], &[SlotId(5)], &[SlotId(7)]];
     const LAYOUT_NAME: Option<&'static str> = None;
     const LAYOUT_TERMINALS: &'static [TerminalId] = &[];
     // A failed terminal match refers to a static terminal set like every other failure, so the

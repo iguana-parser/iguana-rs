@@ -11,6 +11,7 @@ pub mod input;
 pub mod instrument;
 pub mod parse_tree;
 pub mod parser;
+pub mod prediction;
 pub mod result;
 pub mod scanner;
 pub mod sppf;

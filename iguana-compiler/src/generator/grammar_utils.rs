@@ -1,13 +1,16 @@
 use proc_macro2::TokenStream;
 use quote::{format_ident, quote};
+use rustc_hash::FxHashSet;
 use syn::Ident;
 
+use crate::generator::GenConfig;
 use crate::grammar::{
     def::Grammar,
+    first_follow::FirstFollowSets,
     symbols::{Definition, DefinitionId, Nonterminal},
 };
 
-use crate::utils::to_pascal_case;
+use crate::utils::{to_pascal_case, to_snake_case};
 
 /// True when the generated enum for a nonterminal has a lifetime.
 /// Normally, every enum takes a lifetime because of its `Amb(&'a [&'a Self])` variant.
@@ -36,7 +39,8 @@ pub fn nonterminal_has_lifetime(
 
 /// Returns the parse tree type for a nonterminal.
 /// Start nonterminals: `Start<Token, &'a Layout<'a>>` or `Start<&'a Inner<'a>, &'a Layout<'a>>`;
-/// the layout type is `()` when the grammar declares no layout.
+/// the layout type is `()` when the grammar declares no layout and for the
+/// wrapper of the layout nonterminal.
 /// Regular nonterminals: the nonterminal's own type, with `<'a>` when the
 /// enum has a lifetime (see [`nonterminal_has_lifetime`]).
 pub fn nonterminal_type(
@@ -52,7 +56,7 @@ pub fn nonterminal_type(
             .as_identifier()
             .unwrap();
         let inner = symbol_type(grammar, inner_ident.resolve(), unsafe_mode);
-        let layout = match grammar.layout.as_ref() {
+        let layout = match grammar.start_layout(nonterminal) {
             Some(l) => {
                 let layout_ident = l.as_identifier().unwrap();
                 symbol_type(grammar, layout_ident.resolve(), unsafe_mode)
@@ -116,4 +120,62 @@ pub fn scanner_ident(grammar_name: &str) -> Ident {
 /// grammar name in PascalCase.
 pub fn parse_tree_builder_ident(grammar_name: &str) -> Ident {
     format_ident!("{}ParseTreeBuilder", to_pascal_case(grammar_name))
+}
+
+/// Returns the identifier of the `Prediction` static of a nonterminal, for
+/// example `PREDICTION_RULE` for `Rule`. The grammar module defines the
+/// static, and the parser refers to it.
+pub fn prediction_ident(nonterminal: &Nonterminal) -> Ident {
+    format_ident!(
+        "PREDICTION_{}",
+        to_snake_case(&nonterminal.name).to_uppercase()
+    )
+}
+
+/// The nonterminals parsed by an LL(1) function: the LL(1) nonterminals when
+/// the `ll1` option is on, and none when it is off. The parser calls every
+/// other nonterminal through the GLL path.
+pub fn ll1_nonterminals<'a>(
+    grammar: &'a Grammar,
+    ff: &FirstFollowSets,
+    config: &GenConfig,
+) -> FxHashSet<&'a Nonterminal> {
+    if !config.ll1_optimization {
+        return FxHashSet::default();
+    }
+    grammar.nonterminals().filter(|nt| ff.is_ll1(nt)).collect()
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::iggy::parse_grammar;
+
+    /// The names of the nonterminals parsed by an LL(1) function, sorted.
+    fn ll1_names(source: &str, ll1_optimization: bool) -> Vec<String> {
+        let grammar: Grammar = parse_grammar(source).unwrap().try_into().unwrap();
+        let ff = FirstFollowSets::new(&grammar);
+        let config = GenConfig {
+            ll1_optimization,
+            ..GenConfig::default()
+        };
+        let mut names: Vec<_> = ll1_nonterminals(&grammar, &ff, &config)
+            .into_iter()
+            .map(|nt| nt.name.clone())
+            .collect();
+        names.sort();
+        names
+    }
+
+    #[test]
+    fn ll1_nonterminals_are_empty_without_the_ll1_option() {
+        // A is not LL(1), so neither is S, which reaches it. `C?` becomes the
+        // nullable nonterminal Opt_0.
+        let source = "grammar G\nS = A B C?\nA = \"a\" | \"a\" \"x\"\nB = \"b\"\nC = \"c\"\n";
+        assert!(ll1_names(source, false).is_empty());
+        assert_eq!(
+            ll1_names(source, true),
+            ["B", "C", "Opt_0", "StartB", "StartC"]
+        );
+    }
 }

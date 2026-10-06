@@ -7,18 +7,16 @@ use rustc_hash::FxHashSet;
 
 use crate::generator::GenConfig;
 use crate::generator::grammar_utils::grammar_ident;
-use crate::generator::grammar_utils::nonterminal_has_lifetime;
 use crate::generator::grammar_utils::nt_ident;
 use crate::generator::grammar_utils::parse_tree_builder_ident;
 use crate::generator::grammar_utils::parser_ident;
+use crate::generator::grammar_utils::prediction_ident;
 use crate::generator::grammar_utils::scanner_ident;
 use crate::generator::id::BindingIds;
 use crate::generator::id::NonterminalIds;
 use crate::generator::id::SlotIds;
 use crate::generator::id::TerminalIds;
 use crate::generator::return_value::pack;
-use crate::generator::terminal_sets::TerminalSet;
-use crate::generator::terminal_sets::TerminalSetKind;
 use crate::grammar::def::Alternative;
 use crate::grammar::def::Grammar;
 use crate::grammar::first_follow::FirstFollowSets;
@@ -44,9 +42,8 @@ pub struct ParserGen<'a> {
     binding_ids: &'a BindingIds,
     ff: &'a FirstFollowSets<'a>,
     config: GenConfig,
-    /// The names of the nonterminals whose prediction set has a `match_any`
-    /// memo id.
-    memo_predictions: FxHashSet<&'a str>,
+    /// The nonterminals parsed by an LL(1) function (`ll1_nonterminals`).
+    ll1_nonterminals: &'a FxHashSet<&'a Nonterminal>,
 }
 
 impl<'a> ParserGen<'a> {
@@ -58,18 +55,9 @@ impl<'a> ParserGen<'a> {
         slot_ids: &'a SlotIds<'a>,
         binding_ids: &'a BindingIds,
         ff: &'a FirstFollowSets<'a>,
-        terminal_sets: &[TerminalSet<'a>],
-        match_any_count: usize,
+        ll1_nonterminals: &'a FxHashSet<&'a Nonterminal>,
         config: GenConfig,
     ) -> Self {
-        let memo_predictions = terminal_sets
-            .iter()
-            .filter(|set| set.id < match_any_count)
-            .filter_map(|set| match set.kind {
-                TerminalSetKind::Prediction(nonterminal) => Some(nonterminal.name.as_str()),
-                _ => None,
-            })
-            .collect();
         Self {
             grammar,
             nonterminal_ids,
@@ -78,7 +66,7 @@ impl<'a> ParserGen<'a> {
             binding_ids,
             ff,
             config,
-            memo_predictions,
+            ll1_nonterminals,
         }
     }
 
@@ -126,7 +114,6 @@ impl<'a> ParserGen<'a> {
         let imports = self.gen_imports();
         let binding_consts = self.gen_binding_consts();
         let execute_method = self.gen_execute_method();
-        let first_descriptors = self.gen_add_first_descriptors_method();
         let grammar_type = grammar_ident(grammar_name);
         let get_gss_node_method = Self::gen_get_gss_node_method();
         let gen_add_gss_node_method = Self::gen_add_gss_node_method();
@@ -174,6 +161,7 @@ impl<'a> ParserGen<'a> {
             #binding_consts
             impl<'i, 'arena> Parser<'i, 'arena> for #grammar_name_ident<'i, 'arena> {
                 type Grammar = #grammar_type;
+                type Alternatives = <#grammar_type as Grammar>::Alternatives;
                 type ConcreteParser<'input, 'parser_arena> = #grammar_name_ident<'input, 'parser_arena>;
                 fn new(input: &'i Input, parser_arena: &'arena Arena) -> Self {
                     #grammar_name_ident::new(input, parser_arena)
@@ -181,7 +169,6 @@ impl<'a> ParserGen<'a> {
                 #tree_hook
                 #unsafe_const
                 #execute_method
-                #first_descriptors
                 #get_gss_node_method
                 #gen_add_gss_node_method
                 #gen_new_gss_node_method
@@ -266,6 +253,14 @@ impl<'a> ParserGen<'a> {
                     self.scanner.match_any(set, input_index)
                 }
 
+                fn predict(
+                    &mut self,
+                    prediction: &'static Prediction,
+                    input_index: u32,
+                ) -> Self::Alternatives {
+                    self.scanner.predict(prediction, input_index)
+                }
+
                 fn vec_arena(&self) -> &'arena Arena {
                     self.vec_arena
                 }
@@ -307,17 +302,6 @@ impl<'a> ParserGen<'a> {
         } else {
             quote! {}
         };
-        // The `create_*` method of a nonterminal with parameters looks up the
-        // call slot through the grammar on a failed prediction. Otherwise only
-        // the statistics, which name LL(1) calls, read the trait.
-        let grammar_trait_import = if has_parameters {
-            quote! { use iguana_runtime::grammar::Grammar; }
-        } else {
-            quote! {
-                #[cfg(feature = "instrument")]
-                use iguana_runtime::grammar::Grammar;
-            }
-        };
         quote! {
             #once_cell_import
             use crate::{
@@ -335,6 +319,7 @@ impl<'a> ParserGen<'a> {
                 parser::{Parser, GLLFailure, GLLFailureKind, init_logger, DESCRIPTORS_CAPACITY_DIVISOR, DESCRIPTORS_CAPACITY_FLOOR, #envs_capacity_import GSS_CAPACITY_MULTIPLIER, SPPF_CAPACITY_MULTIPLIER},
                 record,
                 result::{ParseError, ParseSuccess},
+                prediction::Prediction,
                 scanner::{Scanner, TerminalSet},
                 sppf::{IntermediateNode, NonterminalNode, SPPFNode, SPPFNodeId, TerminalNode},
                 utils::{inline_map::InlineMap, inline_vec::InlineVec}
@@ -345,7 +330,7 @@ impl<'a> ParserGen<'a> {
             use iguana_runtime::input::Span;
             #[cfg(feature = "debug-trace")]
             use iguana_runtime::trace::TraceEvent;
-            #grammar_trait_import
+            use iguana_runtime::grammar::Grammar;
             #fx_hashmap_import
         }
     }
@@ -503,105 +488,6 @@ impl<'a> ParserGen<'a> {
                 } else {
                     #body
                 }
-            }
-        }
-    }
-
-    fn gen_add_first_descriptors_method(&self) -> TokenStream {
-        let mut nonterminal_quotes = vec![];
-        for nonterminal in self.grammar.nonterminals() {
-            let nonterminal_id = self.nonterminal_ids.get_id(nonterminal);
-            let alternatives = self.grammar.alternatives(nonterminal);
-            if alternatives.len() == 1 {
-                let first_slot = Slot::new(nonterminal, &alternatives[0], 0);
-                let first_slot_name = first_slot.name();
-                let first_slot_id = self.slot_ids.get_id(&first_slot);
-                nonterminal_quotes.push(quote! {
-                    #[comment = #first_slot_name]
-                    #nonterminal_id => {
-                        self.add_first_descriptor(#first_slot_id, input_index, gss_node_id, env);
-                    }
-                });
-            } else {
-                nonterminal_quotes.push(self.gen_multi_alt_first_dispatch(nonterminal));
-            }
-        }
-        quote! {
-            fn add_first_descriptors(
-                &mut self,
-                nonterminal_id: NonterminalId,
-                input_index: u32,
-                gss_node_id: GssNodeId,
-                env: Option<EnvId>,
-            ) {
-                match nonterminal_id {
-                    #(#nonterminal_quotes)*
-                    _ => {
-                        panic!("Unknown nonterminal id: {nonterminal_id}");
-                    }
-                }
-            }
-        }
-    }
-
-    /// Emits the GLL dispatch for a multi-alternative nonterminal A.
-    ///
-    /// Each alternative `A → α` tests `FIRST(α)`; nullable alts also fall
-    /// through to `FOLLOW(A)`. The disjunction short-circuits, so FOLLOW is
-    /// scanned only when FIRST misses. Repeat FOLLOW scans across multiple
-    /// nullable alts hit the scanner's `(position, terminal)` memo and are
-    /// near-free.
-    ///
-    /// The alternatives are scheduled in the reverse of their order in the
-    /// grammar. The descriptor worklist is a stack, and the reverse
-    /// scheduling allows the parser to run the first alternative first.
-    /// This also gives the GLL execution a depth-first exploration of the
-    /// alternatives.
-    ///
-    /// The benefit is in the unsafe mode, which stops at the first
-    /// derivation that spans the whole input. Taking the first alternative
-    /// first reaches that derivation earlier. The default mode drains every
-    /// descriptor, so the order changes nothing there.
-    fn gen_multi_alt_first_dispatch(&self, nonterminal: &'a Nonterminal) -> TokenStream {
-        let nt_name = &nonterminal.name;
-        let nonterminal_id = self.nonterminal_ids.get_id(nonterminal);
-        let nt_const_suffix = to_snake_case(&nonterminal.name).to_uppercase();
-        let alternatives = self.grammar.alternatives(nonterminal);
-
-        let alt_arms: Vec<_> = alternatives
-            .iter()
-            .enumerate()
-            .rev()
-            .map(|(alt_index, alt)| {
-                let slot = Slot::new(nonterminal, alt, 0);
-                let slot_id = self.slot_ids.get_id(&slot);
-                let slot_name = slot.name();
-                let first_alt_check = self.gen_match_any(
-                    &format!("FIRST_SET_{nt_const_suffix}_ALT{alt_index}"),
-                    quote! { input_index },
-                );
-                let trigger = if self.ff.is_alt_nullable(alt) {
-                    let follow_check = self.gen_match_any(
-                        &format!("FOLLOW_SET_{nt_const_suffix}"),
-                        quote! { input_index },
-                    );
-                    quote! { #first_alt_check || #follow_check }
-                } else {
-                    first_alt_check
-                };
-                quote! {
-                    #[comment = #slot_name]
-                    if #trigger {
-                        self.add_first_descriptor(#slot_id, input_index, gss_node_id, env);
-                    }
-                }
-            })
-            .collect();
-
-        quote! {
-            #[comment = #nt_name]
-            #nonterminal_id => {
-                #(#alt_arms)*
             }
         }
     }
@@ -905,9 +791,7 @@ impl<'a> ParserGen<'a> {
                 let terminal_id = self.terminal_ids.get_id(terminal);
                 quote! { self.scanner.match_token(#terminal_id, #pos) }
             }
-            Definition::Nonterminal(nonterminal)
-                if self.config.ll1_optimization && self.ff.is_ll1(nonterminal) =>
-            {
+            Definition::Nonterminal(nonterminal) if self.ll1_nonterminals.contains(nonterminal) => {
                 let method_name = format_ident!("parse_{}_ll1", to_snake_case(&nonterminal.name));
                 quote! {
                     {
@@ -939,7 +823,7 @@ impl<'a> ParserGen<'a> {
         let slot_name = slot.name();
         let next_slot = slot.next();
         let next_slot_id = self.slot_ids.get_id(&next_slot);
-        let body = if self.config.ll1_optimization && self.ff.is_ll1(nonterminal) {
+        let body = if self.ll1_nonterminals.contains(nonterminal) {
             let next_slot_name = next_slot.name();
             let method_name = format_ident!("parse_{}_ll1", to_snake_case(&nonterminal.name));
             if slot.is_first() {
@@ -976,10 +860,10 @@ impl<'a> ParserGen<'a> {
             }
         } else if nonterminal.parameters.is_empty() {
             let nonterminal_id = self.nonterminal_ids.get_id(nonterminal);
-            let prediction_set = self.call_prediction_set(nonterminal);
+            let prediction = self.call_prediction(nonterminal);
             quote! {
                 self.create(
-                    #nonterminal_id, &#prediction_set, result, gss_node_id, #next_slot_id, env,
+                    #nonterminal_id, &#prediction, result, gss_node_id, #next_slot_id, env,
                 );
             }
         } else {
@@ -999,23 +883,22 @@ impl<'a> ParserGen<'a> {
         }
     }
 
-    /// The static a GLL call of `nonterminal` tests with `match_any` before it
-    /// creates a GSS node, and reports when the test fails.
+    /// The identifier of the `Prediction` static that a generated call of
+    /// `nonterminal` passes to `create`.
     ///
     /// # Panics
     ///
-    /// Panics when the set does not have a `match_any` memo id. The memo bitset
-    /// does not have a bit for such a set, so the generated scanner can panic
-    /// at runtime for some inputs. The check moves that error to
-    /// generation time.
-    fn call_prediction_set(&self, nonterminal: &Nonterminal) -> Ident {
+    /// Panics when `nonterminal` is parsed by an LL(1) function or is a start
+    /// wrapper. The grammar module does not define a `Prediction` static for
+    /// such a nonterminal, so the generated parser would not compile. The
+    /// check moves that error to generation time.
+    fn call_prediction(&self, nonterminal: &Nonterminal) -> Ident {
         assert!(
-            self.memo_predictions.contains(nonterminal.name.as_str()),
-            "the prediction set of {} does not have a match_any memo id",
+            !self.ll1_nonterminals.contains(nonterminal) && !self.grammar.is_start(nonterminal),
+            "{} does not have a Prediction static",
             nonterminal.name,
         );
-        let suffix = to_snake_case(&nonterminal.name).to_uppercase();
-        format_ident!("PREDICTION_SET_{suffix}")
+        prediction_ident(nonterminal)
     }
 
     /// The set an LL(1) prediction failure reports, or None when the
@@ -1079,11 +962,7 @@ impl<'a> ParserGen<'a> {
         let ll1_parse_methods: Vec<_> = self
             .grammar
             .nonterminals()
-            .filter(|nt| {
-                self.config.ll1_optimization
-                    && self.ff.is_ll1(nt)
-                    && reachable.contains(nt.name.as_str())
-            })
+            .filter(|nt| self.ll1_nonterminals.contains(nt) && reachable.contains(nt.name.as_str()))
             .map(|nt| self.gen_parse_method_ll1(nt, self.is_layout(nt)))
             .collect();
         let get_gss_node_methods: Vec<_> = self
@@ -1152,21 +1031,17 @@ impl<'a> ParserGen<'a> {
             .nonterminals()
             .filter(|nt| !nt.is_derived())
             .map(|nt| {
-                let target = self.grammar.start_nonterminal(nt).unwrap_or(nt);
+                let start = self
+                    .grammar
+                    .start_nonterminal(nt)
+                    .expect("a declared nonterminal has a start wrapper");
                 let fn_name = format_ident!("parse_{}", to_snake_case(&nt.name));
-                let nt_const = format_ident!("{}", to_snake_case(&target.name).to_uppercase());
-                let unwrap_method = format_ident!("unwrap_{}", to_snake_case(&target.name));
+                let nt_const = format_ident!("{}", to_snake_case(&start.name).to_uppercase());
+                let unwrap_method = format_ident!("unwrap_{}", to_snake_case(&start.name));
                 // A start wrapper has a generated alias, which always has a
-                // lifetime. The layout nonterminal has no wrapper and is returned
-                // as its own type.
-                let target_ident = nt_ident(&target.name);
-                let return_type = if self.grammar.is_start(target)
-                    || nonterminal_has_lifetime(self.grammar, target, self.config.unsafe_mode)
-                {
-                    quote! { parse_tree::#target_ident<'_> }
-                } else {
-                    quote! { parse_tree::#target_ident }
-                };
+                // lifetime.
+                let start_ident = nt_ident(&start.name);
+                let return_type = quote! { parse_tree::#start_ident<'_> };
                 quote! {
                     pub fn #fn_name(
                         self,
@@ -1241,7 +1116,7 @@ impl<'a> ParserGen<'a> {
         let layout_memo_init = if self
             .grammar
             .nonterminals()
-            .any(|nt| self.is_layout(nt) && self.ff.is_ll1(nt))
+            .any(|nt| self.is_layout(nt) && self.ll1_nonterminals.contains(nt))
         {
             quote! { layout_memo: {
                 let mut v = vec_arena.vec_with_capacity(input.len() as usize + 1);
@@ -1336,7 +1211,7 @@ impl<'a> ParserGen<'a> {
         let layout_memo_field = if self
             .grammar
             .nonterminals()
-            .any(|nt| self.is_layout(nt) && self.ff.is_ll1(nt))
+            .any(|nt| self.is_layout(nt) && self.ll1_nonterminals.contains(nt))
         {
             quote! { layout_memo: ArenaVec<'arena, Option<SPPFNodeId>>, }
         } else {
@@ -2452,7 +2327,7 @@ impl<'a> ParserGen<'a> {
     fn gen_create_method(&self, nt: &'a Nonterminal, id: usize) -> TokenStream {
         let create_method_name = format_ident!("create_{}", to_snake_case(&nt.name));
         let grammar_type = grammar_ident(&self.grammar.name);
-        let prediction_set = self.call_prediction_set(nt);
+        let prediction = self.call_prediction(nt);
         let id = Literal::usize_unsuffixed(id);
         let get_gss_node_method_name = format_ident!("get_gss_node_{}", to_snake_case(&nt.name));
         let add_gss_node_method_name = format_ident!("add_gss_node_{}", to_snake_case(&nt.name));
@@ -2481,6 +2356,9 @@ impl<'a> ParserGen<'a> {
             .map(|p| format_ident!("{}", p.name))
             .collect();
         quote! {
+            // Do not inline, as with the runtime's `create`: `execute` calls
+            // this method from every slot that calls the nonterminal.
+            #[inline(never)]
             #[allow(clippy::too_many_arguments)]
             fn #create_method_name(
                 &mut self,
@@ -2499,7 +2377,10 @@ impl<'a> ParserGen<'a> {
                 if let Some(existing_gss_node_id) = self.#get_gss_node_method_name(i, #(#param_names),*) {
                     record!(self, GSSNodeFound, NonterminalId(#id), i);
                     self.add_edge_to_existing_gss_node(existing_gss_node_id, gss_node_id, sppf_node_id, return_slot, env);
-                } else if self.match_any(&#prediction_set, i) {
+                    return;
+                }
+                let alternatives = self.predict(&#prediction, i);
+                if !alternatives.is_empty() {
                     record!(self, GSSNodeNotFound, NonterminalId(#id), i);
                     let new_gss_node_id = self.new_gss_node(NonterminalId(#id), i);
                     self.add_gss_edge(new_gss_node_id, gss_node_id, sppf_node_id, return_slot, env);
@@ -2507,7 +2388,7 @@ impl<'a> ParserGen<'a> {
                     let arena = self.vec_arena;
                     let (env_id, env) = self.new_env();
                     #(#bindings)*
-                    self.add_first_descriptors(NonterminalId(#id), i, new_gss_node_id, Some(env_id));
+                    self.add_first_descriptors(NonterminalId(#id), i, new_gss_node_id, Some(env_id), alternatives);
                     self.#add_gss_node_method_name(i, #(#param_names,)* new_gss_node_id);
                 } else {
                     #[comment = "The call symbol precedes the return slot in its alternative, so the
@@ -2515,7 +2396,7 @@ impl<'a> ParserGen<'a> {
                     let call_slot = #grammar_type::previous_slot(return_slot)
                         .expect("a return slot follows the call symbol");
                     self.add_failure(i, call_slot, Some(gss_node_id),
-                        GLLFailureKind::UnexpectedToken(&#prediction_set));
+                        GLLFailureKind::NoViableAlternative(&#prediction));
                 }
             }
         }

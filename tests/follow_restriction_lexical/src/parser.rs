@@ -5,7 +5,6 @@ use crate::{
     parse_tree::{self, FollowRestrictionLexicalParseTreeBuilder, ParseTree, create_parse_tree},
     scanner::FollowRestrictionLexicalScanner,
 };
-#[cfg(feature = "instrument")]
 use iguana_runtime::grammar::Grammar;
 #[allow(unused_imports)]
 use iguana_runtime::input::Span;
@@ -22,6 +21,7 @@ use iguana_runtime::{
         DESCRIPTORS_CAPACITY_DIVISOR, DESCRIPTORS_CAPACITY_FLOOR, GLLFailure, GLLFailureKind,
         GSS_CAPACITY_MULTIPLIER, Parser, SPPF_CAPACITY_MULTIPLIER, init_logger,
     },
+    prediction::Prediction,
     record,
     result::{ParseError, ParseSuccess},
     scanner::{Scanner, TerminalSet},
@@ -32,6 +32,7 @@ use rustc_hash::FxHashMap;
 use std::cell::OnceCell;
 impl<'i, 'arena> Parser<'i, 'arena> for FollowRestrictionLexicalParser<'i, 'arena> {
     type Grammar = FollowRestrictionLexicalGrammar;
+    type Alternatives = <FollowRestrictionLexicalGrammar as Grammar>::Alternatives;
     type ConcreteParser<'input, 'parser_arena> =
         FollowRestrictionLexicalParser<'input, 'parser_arena>;
     fn new(input: &'i Input, parser_arena: &'arena Arena) -> Self {
@@ -68,7 +69,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for FollowRestrictionLexicalParser<'i, 'aren
                     SlotId(0) => {
                         self.create(
                             NonterminalId(2),
-                            &PREDICTION_SET_PLUS_0,
+                            &PREDICTION_PLUS_0,
                             result,
                             gss_node_id,
                             SlotId(1),
@@ -128,7 +129,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for FollowRestrictionLexicalParser<'i, 'aren
                     SlotId(6) => {
                         self.create(
                             NonterminalId(2),
-                            &PREDICTION_SET_PLUS_0,
+                            &PREDICTION_PLUS_0,
                             result,
                             gss_node_id,
                             SlotId(7),
@@ -213,7 +214,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for FollowRestrictionLexicalParser<'i, 'aren
                     SlotId(13) => {
                         self.create(
                             NonterminalId(0),
-                            &PREDICTION_SET_S,
+                            &PREDICTION_S,
                             result,
                             gss_node_id,
                             SlotId(14),
@@ -310,53 +311,6 @@ impl<'i, 'arena> Parser<'i, 'arena> for FollowRestrictionLexicalParser<'i, 'aren
                         panic!("Unknown grammar slot id: {slot_id}");
                     }
                 }
-            }
-        }
-    }
-    fn add_first_descriptors(
-        &mut self,
-        nonterminal_id: NonterminalId,
-        input_index: u32,
-        gss_node_id: GssNodeId,
-        env: Option<EnvId>,
-    ) {
-        match nonterminal_id {
-            // S : . Plus_0
-            NonterminalId(0) => {
-                self.add_first_descriptor(SlotId(0), input_index, gss_node_id, env);
-            }
-            // Element
-            NonterminalId(1) => {
-                // Element : . Id
-                if self.scanner.match_any(&FIRST_SET_ELEMENT_ALT1, input_index) {
-                    self.add_first_descriptor(SlotId(4), input_index, gss_node_id, env);
-                }
-                // Element : . Num
-                if self.scanner.match_any(&FIRST_SET_ELEMENT_ALT0, input_index) {
-                    self.add_first_descriptor(SlotId(2), input_index, gss_node_id, env);
-                }
-            }
-            // Plus_0
-            NonterminalId(2) => {
-                // Plus_0 : . Element
-                if self.scanner.match_any(&FIRST_SET_PLUS_0_ALT1, input_index) {
-                    self.add_first_descriptor(SlotId(10), input_index, gss_node_id, env);
-                }
-                // Plus_0 : . Plus_0 WS Element
-                if self.scanner.match_any(&FIRST_SET_PLUS_0_ALT0, input_index) {
-                    self.add_first_descriptor(SlotId(6), input_index, gss_node_id, env);
-                }
-            }
-            // StartS : . WS start:S WS
-            NonterminalId(3) => {
-                self.add_first_descriptor(SlotId(12), input_index, gss_node_id, env);
-            }
-            // StartElement : . WS start:Element WS
-            NonterminalId(4) => {
-                self.add_first_descriptor(SlotId(16), input_index, gss_node_id, env);
-            }
-            _ => {
-                panic!("Unknown nonterminal id: {nonterminal_id}");
             }
         }
     }
@@ -749,6 +703,9 @@ impl<'i, 'arena> Parser<'i, 'arena> for FollowRestrictionLexicalParser<'i, 'aren
     }
     fn match_any(&mut self, set: &'static TerminalSet, input_index: u32) -> bool {
         self.scanner.match_any(set, input_index)
+    }
+    fn predict(&mut self, prediction: &'static Prediction, input_index: u32) -> Self::Alternatives {
+        self.scanner.predict(prediction, input_index)
     }
     fn vec_arena(&self) -> &'arena Arena {
         self.vec_arena

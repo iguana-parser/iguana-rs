@@ -444,7 +444,7 @@ fn gen_match_token(terminal_ids: &TerminalIds, config: &GenConfig) -> TokenStrea
         })
         .collect();
 
-    let eof_id = Literal::u16_unsuffixed(terminal_ids.len() as u16 + 1);
+    let eof_id = Literal::u16_unsuffixed(terminal_ids.eof_id().0);
     let dispatch = quote! {
         match terminal_id {
             #(#match_terminal_arms)*

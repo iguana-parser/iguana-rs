@@ -151,14 +151,19 @@ impl TerminalIds {
         self.terminals.insert(terminal);
     }
     pub fn get_id(&self, terminal: &Terminal) -> TerminalId {
-        // The registered terminals fill ids 0..len, then Epsilon at len and the
+        // The grammar's terminals fill ids 0..len, then Epsilon at len and the
         // synthetic EOF at len + 1.
         if terminal.name == "EOF" {
-            return TerminalId(self.len() as u16 + 1);
+            return self.eof_id();
         }
         let id = self.terminals.get_index_of(terminal);
         id.map(|id| TerminalId(id as u16))
             .unwrap_or_else(|| panic!("unknown terminal: {}", terminal))
+    }
+    /// The id of the synthetic EOF terminal, which comes after the grammar's
+    /// terminals and Epsilon.
+    pub fn eof_id(&self) -> TerminalId {
+        TerminalId(self.len() as u16 + 1)
     }
     pub fn ids(&self) -> impl Iterator<Item = TerminalId> {
         (0..self.len()).map(|id| TerminalId(id as u16))

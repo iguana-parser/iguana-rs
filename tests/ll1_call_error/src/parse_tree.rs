@@ -35,6 +35,7 @@ pub struct Start<T, L> {
     pub span: Span,
 }
 pub type StartS<'a> = Start<&'a S<'a>, &'a Layout<'a>>;
+pub type StartLayout<'a> = Start<&'a Layout<'a>, ()>;
 #[derive(Debug, Clone, Copy)]
 pub enum ParseTree<'a> {
     S(&'a S<'a>),
@@ -49,6 +50,8 @@ pub enum ParseTree<'a> {
     Star0(&'a Star0<'a>),
     // S
     StartS(&'a Start<&'a S<'a>, &'a Layout<'a>>),
+    // Layout
+    StartLayout(&'a Start<&'a Layout<'a>, ()>),
     Token(Token),
 }
 impl<'a> ParseTree<'a> {
@@ -72,6 +75,9 @@ impl<'a> ParseTree<'a> {
             ParseTree::StartS(start_s) => (0..start_s.child_count())
                 .filter_map(|i| start_s.child(i))
                 .collect(),
+            ParseTree::StartLayout(start_layout) => (0..start_layout.child_count())
+                .filter_map(|i| start_layout.child(i))
+                .collect(),
             ParseTree::Token(_) => vec![],
         }
     }
@@ -84,6 +90,7 @@ impl<'a> ParseTree<'a> {
             ParseTree::Opt0(opt_0) => opt_0.display_name(),
             ParseTree::Star0(star_0) => star_0.display_name(),
             ParseTree::StartS(start_s) => start_s.display_name(),
+            ParseTree::StartLayout(start_layout) => start_layout.display_name(),
             ParseTree::Token(token) => token.kind.name(),
         }
     }
@@ -96,6 +103,7 @@ impl<'a> ParseTree<'a> {
             ParseTree::Opt0(opt_0) => opt_0.child_count(),
             ParseTree::Star0(star_0) => star_0.child_count(),
             ParseTree::StartS(start_s) => start_s.child_count(),
+            ParseTree::StartLayout(start_layout) => start_layout.child_count(),
             ParseTree::Token(_) => 0,
         }
     }
@@ -108,6 +116,7 @@ impl<'a> ParseTree<'a> {
             ParseTree::Opt0(opt_0) => opt_0.span(),
             ParseTree::Star0(star_0) => star_0.span(),
             ParseTree::StartS(start_s) => start_s.span(),
+            ParseTree::StartLayout(start_layout) => start_layout.span(),
             ParseTree::Token(token) => token.span(),
         }
     }
@@ -122,6 +131,7 @@ impl<'a> ParseTree<'a> {
             ParseTree::Opt0(opt_0) => matches!(opt_0, Opt0::Amb(_)),
             ParseTree::Star0(star_0) => matches!(star_0, Star0::Amb(_)),
             ParseTree::StartS(_) => false,
+            ParseTree::StartLayout(_) => false,
             ParseTree::Token(_) => false,
         }
     }
@@ -137,6 +147,7 @@ impl<'a> ParseTree<'a> {
             ParseTree::Opt0(opt_0) => Some(*opt_0 as *const _ as usize),
             ParseTree::Star0(star_0) => Some(*star_0 as *const _ as usize),
             ParseTree::StartS(start_s) => Some(*start_s as *const _ as usize),
+            ParseTree::StartLayout(start_layout) => Some(*start_layout as *const _ as usize),
             ParseTree::Token(_) => None,
         }
     }
@@ -149,6 +160,7 @@ impl<'a> ParseTree<'a> {
             ParseTree::Opt0(opt_0) => opt_0.origin(),
             ParseTree::Star0(star_0) => star_0.origin(),
             ParseTree::StartS(start_s) => start_s.origin(),
+            ParseTree::StartLayout(start_layout) => start_layout.origin(),
             ParseTree::Token(_) => None,
         }
     }
@@ -191,6 +203,12 @@ impl<'a> ParseTree<'a> {
     pub(crate) fn unwrap_start_s(self) -> &'a Start<&'a S<'a>, &'a Layout<'a>> {
         match self {
             ParseTree::StartS(start_s) => start_s,
+            _ => panic!(),
+        }
+    }
+    pub(crate) fn unwrap_start_layout(self) -> &'a Start<&'a Layout<'a>, ()> {
+        match self {
+            ParseTree::StartLayout(start_layout) => start_layout,
             _ => panic!(),
         }
     }
@@ -611,6 +629,29 @@ impl<'a> Start<&'a S<'a>, &'a Layout<'a>> {
         Some(Origin::Start)
     }
 }
+impl<'a> Start<&'a Layout<'a>, ()> {
+    pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
+        ParseTree::StartLayout(self)
+    }
+    pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
+        match index {
+            0 => Some(ParseTree::Layout(self.node)),
+            _ => None,
+        }
+    }
+    pub fn child_count(&self) -> usize {
+        1usize
+    }
+    pub fn span(&self) -> Span {
+        self.span
+    }
+    pub fn display_name(&self) -> &'static str {
+        "Start"
+    }
+    pub fn origin(&self) -> Option<Origin> {
+        Some(Origin::Start)
+    }
+}
 impl<'a> ListNode<'a> for Plus0<'a> {
     fn iter(&'a self) -> IntoIter<ParseTree<'a>> {
         let mut items = vec![];
@@ -826,6 +867,20 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for Ll1CallErrorParseTreeBuilder<'a> {
                 }
                 _ => unreachable!(),
             },
+            // StartLayout
+            NonterminalId(7) => match nonterminal_node.return_slot {
+                // StartLayout = start:Layout
+                SlotId(25) => {
+                    let [start] = children.into_array::<1usize>();
+                    ParseTree::StartLayout(self.arena.alloc(Start {
+                        before: (),
+                        node: start.unwrap_layout(),
+                        after: (),
+                        span: nonterminal_node.span,
+                    }))
+                }
+                _ => unreachable!(),
+            },
             _ => unreachable!(),
         }
     }
@@ -890,6 +945,21 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for Ll1CallErrorParseTreeBuilder<'a> {
                     span: first.span,
                 }))
             }
+            grammar::START_LAYOUT => {
+                let first = alternatives[0].unwrap_start_layout();
+                let inner = self.arena.alloc_slice(
+                    alternatives
+                        .into_iter()
+                        .map(|a| a.unwrap_start_layout().node),
+                );
+                let node = &*self.arena.alloc(Layout::Amb(inner));
+                ParseTree::StartLayout(self.arena.alloc(Start {
+                    before: first.before,
+                    node,
+                    after: first.after,
+                    span: first.span,
+                }))
+            }
             _ => unreachable!("nonterminal cannot be ambiguous"),
         }
     }
@@ -936,6 +1006,11 @@ pub fn create_parse_tree<'a>(
             visit_sppf(root_id, parser, builder)
                 .unwrap_one()
                 .unwrap_start_s(),
+        ),
+        grammar::START_LAYOUT => ParseTree::StartLayout(
+            visit_sppf(root_id, parser, builder)
+                .unwrap_one()
+                .unwrap_start_layout(),
         ),
         _ => panic!(),
     }

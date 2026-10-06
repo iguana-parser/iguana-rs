@@ -5,7 +5,6 @@ use crate::{
     parse_tree::{self, CyclesParseTreeBuilder, ParseTree, create_parse_tree},
     scanner::CyclesScanner,
 };
-#[cfg(feature = "instrument")]
 use iguana_runtime::grammar::Grammar;
 #[allow(unused_imports)]
 use iguana_runtime::input::Span;
@@ -22,6 +21,7 @@ use iguana_runtime::{
         DESCRIPTORS_CAPACITY_DIVISOR, DESCRIPTORS_CAPACITY_FLOOR, GLLFailure, GLLFailureKind,
         GSS_CAPACITY_MULTIPLIER, Parser, SPPF_CAPACITY_MULTIPLIER, init_logger,
     },
+    prediction::Prediction,
     record,
     result::{ParseError, ParseSuccess},
     scanner::{Scanner, TerminalSet},
@@ -32,6 +32,7 @@ use rustc_hash::FxHashMap;
 use std::cell::OnceCell;
 impl<'i, 'arena> Parser<'i, 'arena> for CyclesParser<'i, 'arena> {
     type Grammar = CyclesGrammar;
+    type Alternatives = <CyclesGrammar as Grammar>::Alternatives;
     type ConcreteParser<'input, 'parser_arena> = CyclesParser<'input, 'parser_arena>;
     fn new(input: &'i Input, parser_arena: &'arena Arena) -> Self {
         CyclesParser::new(input, parser_arena)
@@ -67,7 +68,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for CyclesParser<'i, 'arena> {
                     SlotId(0) => {
                         self.create(
                             NonterminalId(0),
-                            &PREDICTION_SET_DIRECT,
+                            &PREDICTION_DIRECT,
                             result,
                             gss_node_id,
                             SlotId(1),
@@ -106,7 +107,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for CyclesParser<'i, 'arena> {
                     SlotId(4) => {
                         self.create(
                             NonterminalId(2),
-                            &PREDICTION_SET_MUTUAL_B,
+                            &PREDICTION_MUTUAL_B,
                             result,
                             gss_node_id,
                             SlotId(5),
@@ -145,7 +146,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for CyclesParser<'i, 'arena> {
                     SlotId(8) => {
                         self.create(
                             NonterminalId(1),
-                            &PREDICTION_SET_MUTUAL_C,
+                            &PREDICTION_MUTUAL_C,
                             result,
                             gss_node_id,
                             SlotId(9),
@@ -163,7 +164,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for CyclesParser<'i, 'arena> {
                     SlotId(10) => {
                         self.create(
                             NonterminalId(4),
-                            &PREDICTION_SET_CHAIN_A,
+                            &PREDICTION_CHAIN_A,
                             result,
                             gss_node_id,
                             SlotId(11),
@@ -202,7 +203,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for CyclesParser<'i, 'arena> {
                     SlotId(14) => {
                         self.create(
                             NonterminalId(5),
-                            &PREDICTION_SET_CHAIN_B,
+                            &PREDICTION_CHAIN_B,
                             result,
                             gss_node_id,
                             SlotId(15),
@@ -220,7 +221,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for CyclesParser<'i, 'arena> {
                     SlotId(16) => {
                         self.create(
                             NonterminalId(3),
-                            &PREDICTION_SET_CHAIN_C,
+                            &PREDICTION_CHAIN_C,
                             result,
                             gss_node_id,
                             SlotId(17),
@@ -238,7 +239,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for CyclesParser<'i, 'arena> {
                     SlotId(18) => {
                         self.create(
                             NonterminalId(7),
-                            &PREDICTION_SET_SHARED_A,
+                            &PREDICTION_SHARED_A,
                             result,
                             gss_node_id,
                             SlotId(19),
@@ -249,7 +250,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for CyclesParser<'i, 'arena> {
                     SlotId(19) => {
                         self.create(
                             NonterminalId(8),
-                            &PREDICTION_SET_SHARED_B,
+                            &PREDICTION_SHARED_B,
                             result,
                             gss_node_id,
                             SlotId(20),
@@ -267,7 +268,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for CyclesParser<'i, 'arena> {
                     SlotId(21) => {
                         self.create(
                             NonterminalId(8),
-                            &PREDICTION_SET_SHARED_B,
+                            &PREDICTION_SHARED_B,
                             result,
                             gss_node_id,
                             SlotId(22),
@@ -290,7 +291,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for CyclesParser<'i, 'arena> {
                     SlotId(24) => {
                         self.create(
                             NonterminalId(7),
-                            &PREDICTION_SET_SHARED_A,
+                            &PREDICTION_SHARED_A,
                             result,
                             gss_node_id,
                             SlotId(25),
@@ -308,7 +309,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for CyclesParser<'i, 'arena> {
                     SlotId(26) => {
                         self.create(
                             NonterminalId(10),
-                            &PREDICTION_SET_TWO_EXITS_B,
+                            &PREDICTION_TWO_EXITS_B,
                             result,
                             gss_node_id,
                             SlotId(27),
@@ -359,7 +360,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for CyclesParser<'i, 'arena> {
                     SlotId(30) => {
                         self.create(
                             NonterminalId(9),
-                            &PREDICTION_SET_TWO_EXITS_C,
+                            &PREDICTION_TWO_EXITS_C,
                             result,
                             gss_node_id,
                             SlotId(31),
@@ -410,7 +411,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for CyclesParser<'i, 'arena> {
                     SlotId(34) => {
                         self.create(
                             NonterminalId(12),
-                            &PREDICTION_SET_TWO_ROUTES_A,
+                            &PREDICTION_TWO_ROUTES_A,
                             result,
                             gss_node_id,
                             SlotId(35),
@@ -434,7 +435,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for CyclesParser<'i, 'arena> {
                     SlotId(36) => {
                         self.create(
                             NonterminalId(13),
-                            &PREDICTION_SET_TWO_ROUTES_B,
+                            &PREDICTION_TWO_ROUTES_B,
                             result,
                             gss_node_id,
                             SlotId(37),
@@ -485,7 +486,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for CyclesParser<'i, 'arena> {
                     SlotId(40) => {
                         self.create(
                             NonterminalId(11),
-                            &PREDICTION_SET_TWO_ROUTES_C,
+                            &PREDICTION_TWO_ROUTES_C,
                             result,
                             gss_node_id,
                             SlotId(41),
@@ -509,7 +510,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for CyclesParser<'i, 'arena> {
                     SlotId(42) => {
                         self.create(
                             NonterminalId(11),
-                            &PREDICTION_SET_TWO_ROUTES_C,
+                            &PREDICTION_TWO_ROUTES_C,
                             result,
                             gss_node_id,
                             SlotId(43),
@@ -533,7 +534,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for CyclesParser<'i, 'arena> {
                     SlotId(44) => {
                         self.create(
                             NonterminalId(14),
-                            &PREDICTION_SET_NULLABLE,
+                            &PREDICTION_NULLABLE,
                             result,
                             gss_node_id,
                             SlotId(45),
@@ -544,7 +545,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for CyclesParser<'i, 'arena> {
                     SlotId(45) => {
                         self.create(
                             NonterminalId(14),
-                            &PREDICTION_SET_NULLABLE,
+                            &PREDICTION_NULLABLE,
                             result,
                             gss_node_id,
                             SlotId(46),
@@ -588,7 +589,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for CyclesParser<'i, 'arena> {
                     SlotId(50) => {
                         self.create(
                             NonterminalId(15),
-                            &PREDICTION_SET_SIBLING_C,
+                            &PREDICTION_SIBLING_C,
                             result,
                             gss_node_id,
                             SlotId(51),
@@ -599,7 +600,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for CyclesParser<'i, 'arena> {
                     SlotId(51) => {
                         self.create(
                             NonterminalId(16),
-                            &PREDICTION_SET_SIBLING_D,
+                            &PREDICTION_SIBLING_D,
                             result,
                             gss_node_id,
                             SlotId(52),
@@ -686,7 +687,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for CyclesParser<'i, 'arena> {
                     SlotId(61) => {
                         self.create(
                             NonterminalId(20),
-                            &PREDICTION_SET_PARENT_D,
+                            &PREDICTION_PARENT_D,
                             result,
                             gss_node_id,
                             SlotId(62),
@@ -722,7 +723,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for CyclesParser<'i, 'arena> {
                     SlotId(64) => {
                         self.create(
                             NonterminalId(20),
-                            &PREDICTION_SET_PARENT_D,
+                            &PREDICTION_PARENT_D,
                             result,
                             gss_node_id,
                             SlotId(65),
@@ -761,7 +762,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for CyclesParser<'i, 'arena> {
                     SlotId(68) => {
                         self.create(
                             NonterminalId(22),
-                            &PREDICTION_SET_OVERLAP_B,
+                            &PREDICTION_OVERLAP_B,
                             result,
                             gss_node_id,
                             SlotId(69),
@@ -800,7 +801,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for CyclesParser<'i, 'arena> {
                     SlotId(72) => {
                         self.create(
                             NonterminalId(22),
-                            &PREDICTION_SET_OVERLAP_B,
+                            &PREDICTION_OVERLAP_B,
                             result,
                             gss_node_id,
                             SlotId(73),
@@ -818,7 +819,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for CyclesParser<'i, 'arena> {
                     SlotId(74) => {
                         self.create(
                             NonterminalId(21),
-                            &PREDICTION_SET_OVERLAP_C,
+                            &PREDICTION_OVERLAP_C,
                             result,
                             gss_node_id,
                             SlotId(75),
@@ -849,7 +850,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for CyclesParser<'i, 'arena> {
                     SlotId(77) => {
                         self.create(
                             NonterminalId(23),
-                            &PREDICTION_SET_INTERMEDIATE_Y,
+                            &PREDICTION_INTERMEDIATE_Y,
                             result,
                             gss_node_id,
                             SlotId(78),
@@ -860,7 +861,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for CyclesParser<'i, 'arena> {
                     SlotId(78) => {
                         self.create(
                             NonterminalId(25),
-                            &PREDICTION_SET_INTERMEDIATE_B,
+                            &PREDICTION_INTERMEDIATE_B,
                             result,
                             gss_node_id,
                             SlotId(79),
@@ -960,7 +961,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for CyclesParser<'i, 'arena> {
                     SlotId(86) => {
                         self.create(
                             NonterminalId(0),
-                            &PREDICTION_SET_DIRECT,
+                            &PREDICTION_DIRECT,
                             result,
                             gss_node_id,
                             SlotId(87),
@@ -996,7 +997,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for CyclesParser<'i, 'arena> {
                     SlotId(89) => {
                         self.create(
                             NonterminalId(27),
-                            &PREDICTION_SET_CONSUMING,
+                            &PREDICTION_CONSUMING,
                             result,
                             gss_node_id,
                             SlotId(90),
@@ -1074,7 +1075,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for CyclesParser<'i, 'arena> {
                     SlotId(96) => {
                         self.create(
                             NonterminalId(34),
-                            &PREDICTION_SET_PLUS_0,
+                            &PREDICTION_PLUS_0,
                             result,
                             gss_node_id,
                             SlotId(97),
@@ -1098,7 +1099,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for CyclesParser<'i, 'arena> {
                     SlotId(98) => {
                         self.create(
                             NonterminalId(36),
-                            &PREDICTION_SET_STAR_0,
+                            &PREDICTION_STAR_0,
                             result,
                             gss_node_id,
                             SlotId(99),
@@ -1122,7 +1123,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for CyclesParser<'i, 'arena> {
                     SlotId(100) => {
                         self.create(
                             NonterminalId(37),
-                            &PREDICTION_SET_PLUS_1,
+                            &PREDICTION_PLUS_1,
                             result,
                             gss_node_id,
                             SlotId(101),
@@ -1146,7 +1147,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for CyclesParser<'i, 'arena> {
                     SlotId(102) => {
                         self.create(
                             NonterminalId(38),
-                            &PREDICTION_SET_OPT_1,
+                            &PREDICTION_OPT_1,
                             result,
                             gss_node_id,
                             SlotId(103),
@@ -1185,7 +1186,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for CyclesParser<'i, 'arena> {
                     SlotId(106) => {
                         self.create(
                             NonterminalId(39),
-                            &PREDICTION_SET_GROUP_0,
+                            &PREDICTION_GROUP_0,
                             result,
                             gss_node_id,
                             SlotId(107),
@@ -1224,7 +1225,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for CyclesParser<'i, 'arena> {
                     SlotId(110) => {
                         self.create(
                             NonterminalId(34),
-                            &PREDICTION_SET_PLUS_0,
+                            &PREDICTION_PLUS_0,
                             result,
                             gss_node_id,
                             SlotId(111),
@@ -1277,7 +1278,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for CyclesParser<'i, 'arena> {
                     SlotId(115) => {
                         self.create(
                             NonterminalId(34),
-                            &PREDICTION_SET_PLUS_0,
+                            &PREDICTION_PLUS_0,
                             result,
                             gss_node_id,
                             SlotId(116),
@@ -1300,7 +1301,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for CyclesParser<'i, 'arena> {
                     SlotId(118) => {
                         self.create(
                             NonterminalId(35),
-                            &PREDICTION_SET_OPT_0,
+                            &PREDICTION_OPT_0,
                             result,
                             gss_node_id,
                             SlotId(119),
@@ -1318,7 +1319,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for CyclesParser<'i, 'arena> {
                     SlotId(120) => {
                         self.create(
                             NonterminalId(37),
-                            &PREDICTION_SET_PLUS_1,
+                            &PREDICTION_PLUS_1,
                             result,
                             gss_node_id,
                             SlotId(121),
@@ -1387,7 +1388,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for CyclesParser<'i, 'arena> {
                     SlotId(126) => {
                         self.create(
                             NonterminalId(32),
-                            &PREDICTION_SET_OPTIONAL,
+                            &PREDICTION_OPTIONAL,
                             result,
                             gss_node_id,
                             SlotId(127),
@@ -1410,7 +1411,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for CyclesParser<'i, 'arena> {
                     SlotId(129) => {
                         self.create(
                             NonterminalId(33),
-                            &PREDICTION_SET_GROUPED,
+                            &PREDICTION_GROUPED,
                             result,
                             gss_node_id,
                             SlotId(130),
@@ -1428,7 +1429,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for CyclesParser<'i, 'arena> {
                     SlotId(131) => {
                         self.create(
                             NonterminalId(0),
-                            &PREDICTION_SET_DIRECT,
+                            &PREDICTION_DIRECT,
                             result,
                             gss_node_id,
                             SlotId(132),
@@ -1452,7 +1453,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for CyclesParser<'i, 'arena> {
                     SlotId(133) => {
                         self.create(
                             NonterminalId(1),
-                            &PREDICTION_SET_MUTUAL_C,
+                            &PREDICTION_MUTUAL_C,
                             result,
                             gss_node_id,
                             SlotId(134),
@@ -1476,7 +1477,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for CyclesParser<'i, 'arena> {
                     SlotId(135) => {
                         self.create(
                             NonterminalId(2),
-                            &PREDICTION_SET_MUTUAL_B,
+                            &PREDICTION_MUTUAL_B,
                             result,
                             gss_node_id,
                             SlotId(136),
@@ -1500,7 +1501,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for CyclesParser<'i, 'arena> {
                     SlotId(137) => {
                         self.create(
                             NonterminalId(3),
-                            &PREDICTION_SET_CHAIN_C,
+                            &PREDICTION_CHAIN_C,
                             result,
                             gss_node_id,
                             SlotId(138),
@@ -1524,7 +1525,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for CyclesParser<'i, 'arena> {
                     SlotId(139) => {
                         self.create(
                             NonterminalId(4),
-                            &PREDICTION_SET_CHAIN_A,
+                            &PREDICTION_CHAIN_A,
                             result,
                             gss_node_id,
                             SlotId(140),
@@ -1548,7 +1549,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for CyclesParser<'i, 'arena> {
                     SlotId(141) => {
                         self.create(
                             NonterminalId(5),
-                            &PREDICTION_SET_CHAIN_B,
+                            &PREDICTION_CHAIN_B,
                             result,
                             gss_node_id,
                             SlotId(142),
@@ -1572,7 +1573,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for CyclesParser<'i, 'arena> {
                     SlotId(143) => {
                         self.create(
                             NonterminalId(6),
-                            &PREDICTION_SET_SHARED_S,
+                            &PREDICTION_SHARED_S,
                             result,
                             gss_node_id,
                             SlotId(144),
@@ -1596,7 +1597,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for CyclesParser<'i, 'arena> {
                     SlotId(145) => {
                         self.create(
                             NonterminalId(7),
-                            &PREDICTION_SET_SHARED_A,
+                            &PREDICTION_SHARED_A,
                             result,
                             gss_node_id,
                             SlotId(146),
@@ -1620,7 +1621,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for CyclesParser<'i, 'arena> {
                     SlotId(147) => {
                         self.create(
                             NonterminalId(8),
-                            &PREDICTION_SET_SHARED_B,
+                            &PREDICTION_SHARED_B,
                             result,
                             gss_node_id,
                             SlotId(148),
@@ -1644,7 +1645,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for CyclesParser<'i, 'arena> {
                     SlotId(149) => {
                         self.create(
                             NonterminalId(9),
-                            &PREDICTION_SET_TWO_EXITS_C,
+                            &PREDICTION_TWO_EXITS_C,
                             result,
                             gss_node_id,
                             SlotId(150),
@@ -1668,7 +1669,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for CyclesParser<'i, 'arena> {
                     SlotId(151) => {
                         self.create(
                             NonterminalId(10),
-                            &PREDICTION_SET_TWO_EXITS_B,
+                            &PREDICTION_TWO_EXITS_B,
                             result,
                             gss_node_id,
                             SlotId(152),
@@ -1692,7 +1693,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for CyclesParser<'i, 'arena> {
                     SlotId(153) => {
                         self.create(
                             NonterminalId(11),
-                            &PREDICTION_SET_TWO_ROUTES_C,
+                            &PREDICTION_TWO_ROUTES_C,
                             result,
                             gss_node_id,
                             SlotId(154),
@@ -1716,7 +1717,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for CyclesParser<'i, 'arena> {
                     SlotId(155) => {
                         self.create(
                             NonterminalId(12),
-                            &PREDICTION_SET_TWO_ROUTES_A,
+                            &PREDICTION_TWO_ROUTES_A,
                             result,
                             gss_node_id,
                             SlotId(156),
@@ -1740,7 +1741,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for CyclesParser<'i, 'arena> {
                     SlotId(157) => {
                         self.create(
                             NonterminalId(13),
-                            &PREDICTION_SET_TWO_ROUTES_B,
+                            &PREDICTION_TWO_ROUTES_B,
                             result,
                             gss_node_id,
                             SlotId(158),
@@ -1764,7 +1765,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for CyclesParser<'i, 'arena> {
                     SlotId(159) => {
                         self.create(
                             NonterminalId(14),
-                            &PREDICTION_SET_NULLABLE,
+                            &PREDICTION_NULLABLE,
                             result,
                             gss_node_id,
                             SlotId(160),
@@ -1788,7 +1789,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for CyclesParser<'i, 'arena> {
                     SlotId(161) => {
                         self.create(
                             NonterminalId(15),
-                            &PREDICTION_SET_SIBLING_C,
+                            &PREDICTION_SIBLING_C,
                             result,
                             gss_node_id,
                             SlotId(162),
@@ -1812,7 +1813,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for CyclesParser<'i, 'arena> {
                     SlotId(163) => {
                         self.create(
                             NonterminalId(16),
-                            &PREDICTION_SET_SIBLING_D,
+                            &PREDICTION_SIBLING_D,
                             result,
                             gss_node_id,
                             SlotId(164),
@@ -1886,7 +1887,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for CyclesParser<'i, 'arena> {
                     SlotId(169) => {
                         self.create(
                             NonterminalId(19),
-                            &PREDICTION_SET_PARENT_C,
+                            &PREDICTION_PARENT_C,
                             result,
                             gss_node_id,
                             SlotId(170),
@@ -1910,7 +1911,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for CyclesParser<'i, 'arena> {
                     SlotId(171) => {
                         self.create(
                             NonterminalId(20),
-                            &PREDICTION_SET_PARENT_D,
+                            &PREDICTION_PARENT_D,
                             result,
                             gss_node_id,
                             SlotId(172),
@@ -1934,7 +1935,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for CyclesParser<'i, 'arena> {
                     SlotId(173) => {
                         self.create(
                             NonterminalId(21),
-                            &PREDICTION_SET_OVERLAP_C,
+                            &PREDICTION_OVERLAP_C,
                             result,
                             gss_node_id,
                             SlotId(174),
@@ -1958,7 +1959,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for CyclesParser<'i, 'arena> {
                     SlotId(175) => {
                         self.create(
                             NonterminalId(22),
-                            &PREDICTION_SET_OVERLAP_B,
+                            &PREDICTION_OVERLAP_B,
                             result,
                             gss_node_id,
                             SlotId(176),
@@ -1982,7 +1983,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for CyclesParser<'i, 'arena> {
                     SlotId(177) => {
                         self.create(
                             NonterminalId(23),
-                            &PREDICTION_SET_INTERMEDIATE_Y,
+                            &PREDICTION_INTERMEDIATE_Y,
                             result,
                             gss_node_id,
                             SlotId(178),
@@ -2032,7 +2033,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for CyclesParser<'i, 'arena> {
                     SlotId(181) => {
                         self.create(
                             NonterminalId(25),
-                            &PREDICTION_SET_INTERMEDIATE_B,
+                            &PREDICTION_INTERMEDIATE_B,
                             result,
                             gss_node_id,
                             SlotId(182),
@@ -2056,7 +2057,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for CyclesParser<'i, 'arena> {
                     SlotId(183) => {
                         self.create(
                             NonterminalId(26),
-                            &PREDICTION_SET_MID_INPUT,
+                            &PREDICTION_MID_INPUT,
                             result,
                             gss_node_id,
                             SlotId(184),
@@ -2080,7 +2081,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for CyclesParser<'i, 'arena> {
                     SlotId(185) => {
                         self.create(
                             NonterminalId(27),
-                            &PREDICTION_SET_CONSUMING,
+                            &PREDICTION_CONSUMING,
                             result,
                             gss_node_id,
                             SlotId(186),
@@ -2129,7 +2130,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for CyclesParser<'i, 'arena> {
                     SlotId(189) => {
                         self.create(
                             NonterminalId(29),
-                            &PREDICTION_SET_NULLABLE_PLUS,
+                            &PREDICTION_NULLABLE_PLUS,
                             result,
                             gss_node_id,
                             SlotId(190),
@@ -2153,7 +2154,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for CyclesParser<'i, 'arena> {
                     SlotId(191) => {
                         self.create(
                             NonterminalId(30),
-                            &PREDICTION_SET_NULLABLE_STAR,
+                            &PREDICTION_NULLABLE_STAR,
                             result,
                             gss_node_id,
                             SlotId(192),
@@ -2177,7 +2178,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for CyclesParser<'i, 'arena> {
                     SlotId(193) => {
                         self.create(
                             NonterminalId(31),
-                            &PREDICTION_SET_NULLABLE_SEPARATED,
+                            &PREDICTION_NULLABLE_SEPARATED,
                             result,
                             gss_node_id,
                             SlotId(194),
@@ -2201,7 +2202,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for CyclesParser<'i, 'arena> {
                     SlotId(195) => {
                         self.create(
                             NonterminalId(32),
-                            &PREDICTION_SET_OPTIONAL,
+                            &PREDICTION_OPTIONAL,
                             result,
                             gss_node_id,
                             SlotId(196),
@@ -2225,7 +2226,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for CyclesParser<'i, 'arena> {
                     SlotId(197) => {
                         self.create(
                             NonterminalId(33),
-                            &PREDICTION_SET_GROUPED,
+                            &PREDICTION_GROUPED,
                             result,
                             gss_node_id,
                             SlotId(198),
@@ -2249,599 +2250,6 @@ impl<'i, 'arena> Parser<'i, 'arena> for CyclesParser<'i, 'arena> {
                         panic!("Unknown grammar slot id: {slot_id}");
                     }
                 }
-            }
-        }
-    }
-    fn add_first_descriptors(
-        &mut self,
-        nonterminal_id: NonterminalId,
-        input_index: u32,
-        gss_node_id: GssNodeId,
-        env: Option<EnvId>,
-    ) {
-        match nonterminal_id {
-            // Direct
-            NonterminalId(0) => {
-                // Direct : . "b"
-                if self.scanner.match_any(&FIRST_SET_DIRECT_ALT1, input_index) {
-                    self.add_first_descriptor(SlotId(2), input_index, gss_node_id, env);
-                }
-                // Direct : . Direct
-                if self.scanner.match_any(&FIRST_SET_DIRECT_ALT0, input_index) {
-                    self.add_first_descriptor(SlotId(0), input_index, gss_node_id, env);
-                }
-            }
-            // MutualC
-            NonterminalId(1) => {
-                // MutualC : . "b"
-                if self
-                    .scanner
-                    .match_any(&FIRST_SET_MUTUAL_C_ALT1, input_index)
-                {
-                    self.add_first_descriptor(SlotId(6), input_index, gss_node_id, env);
-                }
-                // MutualC : . MutualB
-                if self
-                    .scanner
-                    .match_any(&FIRST_SET_MUTUAL_C_ALT0, input_index)
-                {
-                    self.add_first_descriptor(SlotId(4), input_index, gss_node_id, env);
-                }
-            }
-            // MutualB : . MutualC
-            NonterminalId(2) => {
-                self.add_first_descriptor(SlotId(8), input_index, gss_node_id, env);
-            }
-            // ChainC
-            NonterminalId(3) => {
-                // ChainC : . "b"
-                if self.scanner.match_any(&FIRST_SET_CHAIN_C_ALT1, input_index) {
-                    self.add_first_descriptor(SlotId(12), input_index, gss_node_id, env);
-                }
-                // ChainC : . ChainA
-                if self.scanner.match_any(&FIRST_SET_CHAIN_C_ALT0, input_index) {
-                    self.add_first_descriptor(SlotId(10), input_index, gss_node_id, env);
-                }
-            }
-            // ChainA : . ChainB
-            NonterminalId(4) => {
-                self.add_first_descriptor(SlotId(14), input_index, gss_node_id, env);
-            }
-            // ChainB : . ChainC
-            NonterminalId(5) => {
-                self.add_first_descriptor(SlotId(16), input_index, gss_node_id, env);
-            }
-            // SharedS : . SharedA SharedB
-            NonterminalId(6) => {
-                self.add_first_descriptor(SlotId(18), input_index, gss_node_id, env);
-            }
-            // SharedA
-            NonterminalId(7) => {
-                // SharedA : .
-                if self
-                    .scanner
-                    .match_any(&FIRST_SET_SHARED_A_ALT1, input_index)
-                    || self.scanner.match_any(&FOLLOW_SET_SHARED_A, input_index)
-                {
-                    self.add_first_descriptor(SlotId(23), input_index, gss_node_id, env);
-                }
-                // SharedA : . SharedB
-                if self
-                    .scanner
-                    .match_any(&FIRST_SET_SHARED_A_ALT0, input_index)
-                    || self.scanner.match_any(&FOLLOW_SET_SHARED_A, input_index)
-                {
-                    self.add_first_descriptor(SlotId(21), input_index, gss_node_id, env);
-                }
-            }
-            // SharedB : . SharedA
-            NonterminalId(8) => {
-                self.add_first_descriptor(SlotId(24), input_index, gss_node_id, env);
-            }
-            // TwoExitsC
-            NonterminalId(9) => {
-                // TwoExitsC : . "b"
-                if self
-                    .scanner
-                    .match_any(&FIRST_SET_TWO_EXITS_C_ALT1, input_index)
-                {
-                    self.add_first_descriptor(SlotId(28), input_index, gss_node_id, env);
-                }
-                // TwoExitsC : . TwoExitsB
-                if self
-                    .scanner
-                    .match_any(&FIRST_SET_TWO_EXITS_C_ALT0, input_index)
-                {
-                    self.add_first_descriptor(SlotId(26), input_index, gss_node_id, env);
-                }
-            }
-            // TwoExitsB
-            NonterminalId(10) => {
-                // TwoExitsB : . "b"
-                if self
-                    .scanner
-                    .match_any(&FIRST_SET_TWO_EXITS_B_ALT1, input_index)
-                {
-                    self.add_first_descriptor(SlotId(32), input_index, gss_node_id, env);
-                }
-                // TwoExitsB : . TwoExitsC
-                if self
-                    .scanner
-                    .match_any(&FIRST_SET_TWO_EXITS_B_ALT0, input_index)
-                {
-                    self.add_first_descriptor(SlotId(30), input_index, gss_node_id, env);
-                }
-            }
-            // TwoRoutesC
-            NonterminalId(11) => {
-                // TwoRoutesC : . "b"
-                if self
-                    .scanner
-                    .match_any(&FIRST_SET_TWO_ROUTES_C_ALT2, input_index)
-                {
-                    self.add_first_descriptor(SlotId(38), input_index, gss_node_id, env);
-                }
-                // TwoRoutesC : . TwoRoutesB
-                if self
-                    .scanner
-                    .match_any(&FIRST_SET_TWO_ROUTES_C_ALT1, input_index)
-                {
-                    self.add_first_descriptor(SlotId(36), input_index, gss_node_id, env);
-                }
-                // TwoRoutesC : . TwoRoutesA
-                if self
-                    .scanner
-                    .match_any(&FIRST_SET_TWO_ROUTES_C_ALT0, input_index)
-                {
-                    self.add_first_descriptor(SlotId(34), input_index, gss_node_id, env);
-                }
-            }
-            // TwoRoutesA : . TwoRoutesC
-            NonterminalId(12) => {
-                self.add_first_descriptor(SlotId(40), input_index, gss_node_id, env);
-            }
-            // TwoRoutesB : . TwoRoutesC
-            NonterminalId(13) => {
-                self.add_first_descriptor(SlotId(42), input_index, gss_node_id, env);
-            }
-            // Nullable
-            NonterminalId(14) => {
-                // Nullable : .
-                if self
-                    .scanner
-                    .match_any(&FIRST_SET_NULLABLE_ALT2, input_index)
-                    || self.scanner.match_any(&FOLLOW_SET_NULLABLE, input_index)
-                {
-                    self.add_first_descriptor(SlotId(49), input_index, gss_node_id, env);
-                }
-                // Nullable : . "b"
-                if self
-                    .scanner
-                    .match_any(&FIRST_SET_NULLABLE_ALT1, input_index)
-                {
-                    self.add_first_descriptor(SlotId(47), input_index, gss_node_id, env);
-                }
-                // Nullable : . Nullable Nullable
-                if self
-                    .scanner
-                    .match_any(&FIRST_SET_NULLABLE_ALT0, input_index)
-                    || self.scanner.match_any(&FOLLOW_SET_NULLABLE, input_index)
-                {
-                    self.add_first_descriptor(SlotId(44), input_index, gss_node_id, env);
-                }
-            }
-            // SiblingC
-            NonterminalId(15) => {
-                // SiblingC : . "b"
-                if self
-                    .scanner
-                    .match_any(&FIRST_SET_SIBLING_C_ALT1, input_index)
-                {
-                    self.add_first_descriptor(SlotId(53), input_index, gss_node_id, env);
-                }
-                // SiblingC : . SiblingC SiblingD
-                if self
-                    .scanner
-                    .match_any(&FIRST_SET_SIBLING_C_ALT0, input_index)
-                {
-                    self.add_first_descriptor(SlotId(50), input_index, gss_node_id, env);
-                }
-            }
-            // SiblingD
-            NonterminalId(16) => {
-                // SiblingD : . EmptyF
-                if self
-                    .scanner
-                    .match_any(&FIRST_SET_SIBLING_D_ALT1, input_index)
-                    || self.scanner.match_any(&FOLLOW_SET_SIBLING_D, input_index)
-                {
-                    self.add_first_descriptor(SlotId(57), input_index, gss_node_id, env);
-                }
-                // SiblingD : . EmptyE
-                if self
-                    .scanner
-                    .match_any(&FIRST_SET_SIBLING_D_ALT0, input_index)
-                    || self.scanner.match_any(&FOLLOW_SET_SIBLING_D, input_index)
-                {
-                    self.add_first_descriptor(SlotId(55), input_index, gss_node_id, env);
-                }
-            }
-            // EmptyE : .
-            NonterminalId(17) => {
-                self.add_first_descriptor(SlotId(59), input_index, gss_node_id, env);
-            }
-            // EmptyF : .
-            NonterminalId(18) => {
-                self.add_first_descriptor(SlotId(60), input_index, gss_node_id, env);
-            }
-            // ParentC : . ParentD "b"
-            NonterminalId(19) => {
-                self.add_first_descriptor(SlotId(61), input_index, gss_node_id, env);
-            }
-            // ParentD
-            NonterminalId(20) => {
-                // ParentD : . "a"
-                if self
-                    .scanner
-                    .match_any(&FIRST_SET_PARENT_D_ALT1, input_index)
-                {
-                    self.add_first_descriptor(SlotId(66), input_index, gss_node_id, env);
-                }
-                // ParentD : . ParentD
-                if self
-                    .scanner
-                    .match_any(&FIRST_SET_PARENT_D_ALT0, input_index)
-                {
-                    self.add_first_descriptor(SlotId(64), input_index, gss_node_id, env);
-                }
-            }
-            // OverlapC
-            NonterminalId(21) => {
-                // OverlapC : . "b"
-                if self
-                    .scanner
-                    .match_any(&FIRST_SET_OVERLAP_C_ALT1, input_index)
-                {
-                    self.add_first_descriptor(SlotId(70), input_index, gss_node_id, env);
-                }
-                // OverlapC : . OverlapB
-                if self
-                    .scanner
-                    .match_any(&FIRST_SET_OVERLAP_C_ALT0, input_index)
-                {
-                    self.add_first_descriptor(SlotId(68), input_index, gss_node_id, env);
-                }
-            }
-            // OverlapB
-            NonterminalId(22) => {
-                // OverlapB : . OverlapC
-                if self
-                    .scanner
-                    .match_any(&FIRST_SET_OVERLAP_B_ALT1, input_index)
-                {
-                    self.add_first_descriptor(SlotId(74), input_index, gss_node_id, env);
-                }
-                // OverlapB : . OverlapB
-                if self
-                    .scanner
-                    .match_any(&FIRST_SET_OVERLAP_B_ALT0, input_index)
-                {
-                    self.add_first_descriptor(SlotId(72), input_index, gss_node_id, env);
-                }
-            }
-            // IntermediateY
-            NonterminalId(23) => {
-                // IntermediateY : . "a"
-                if self
-                    .scanner
-                    .match_any(&FIRST_SET_INTERMEDIATE_Y_ALT1, input_index)
-                {
-                    self.add_first_descriptor(SlotId(80), input_index, gss_node_id, env);
-                }
-                // IntermediateY : . IntermediateA IntermediateY IntermediateB
-                if self
-                    .scanner
-                    .match_any(&FIRST_SET_INTERMEDIATE_Y_ALT0, input_index)
-                {
-                    self.add_first_descriptor(SlotId(76), input_index, gss_node_id, env);
-                }
-            }
-            // IntermediateA : .
-            NonterminalId(24) => {
-                self.add_first_descriptor(SlotId(82), input_index, gss_node_id, env);
-            }
-            // IntermediateB
-            NonterminalId(25) => {
-                // IntermediateB : . "b"
-                if self
-                    .scanner
-                    .match_any(&FIRST_SET_INTERMEDIATE_B_ALT1, input_index)
-                {
-                    self.add_first_descriptor(SlotId(84), input_index, gss_node_id, env);
-                }
-                // IntermediateB : .
-                if self
-                    .scanner
-                    .match_any(&FIRST_SET_INTERMEDIATE_B_ALT0, input_index)
-                    || self
-                        .scanner
-                        .match_any(&FOLLOW_SET_INTERMEDIATE_B, input_index)
-                {
-                    self.add_first_descriptor(SlotId(83), input_index, gss_node_id, env);
-                }
-            }
-            // MidInput : . Direct "b"
-            NonterminalId(26) => {
-                self.add_first_descriptor(SlotId(86), input_index, gss_node_id, env);
-            }
-            // Consuming
-            NonterminalId(27) => {
-                // Consuming : . "b"
-                if self
-                    .scanner
-                    .match_any(&FIRST_SET_CONSUMING_ALT1, input_index)
-                {
-                    self.add_first_descriptor(SlotId(92), input_index, gss_node_id, env);
-                }
-                // Consuming : . Consuming "b"
-                if self
-                    .scanner
-                    .match_any(&FIRST_SET_CONSUMING_ALT0, input_index)
-                {
-                    self.add_first_descriptor(SlotId(89), input_index, gss_node_id, env);
-                }
-            }
-            // Ordinary : . "b"
-            NonterminalId(28) => {
-                self.add_first_descriptor(SlotId(94), input_index, gss_node_id, env);
-            }
-            // NullablePlus : . Plus_0
-            NonterminalId(29) => {
-                self.add_first_descriptor(SlotId(96), input_index, gss_node_id, env);
-            }
-            // NullableStar : . Star_0
-            NonterminalId(30) => {
-                self.add_first_descriptor(SlotId(98), input_index, gss_node_id, env);
-            }
-            // NullableSeparated : . Plus_1
-            NonterminalId(31) => {
-                self.add_first_descriptor(SlotId(100), input_index, gss_node_id, env);
-            }
-            // Optional
-            NonterminalId(32) => {
-                // Optional : . "b"
-                if self
-                    .scanner
-                    .match_any(&FIRST_SET_OPTIONAL_ALT1, input_index)
-                {
-                    self.add_first_descriptor(SlotId(104), input_index, gss_node_id, env);
-                }
-                // Optional : . Opt_1
-                if self
-                    .scanner
-                    .match_any(&FIRST_SET_OPTIONAL_ALT0, input_index)
-                    || self.scanner.match_any(&FOLLOW_SET_OPTIONAL, input_index)
-                {
-                    self.add_first_descriptor(SlotId(102), input_index, gss_node_id, env);
-                }
-            }
-            // Grouped
-            NonterminalId(33) => {
-                // Grouped : . "b"
-                if self.scanner.match_any(&FIRST_SET_GROUPED_ALT1, input_index) {
-                    self.add_first_descriptor(SlotId(108), input_index, gss_node_id, env);
-                }
-                // Grouped : . Group_0
-                if self.scanner.match_any(&FIRST_SET_GROUPED_ALT0, input_index) {
-                    self.add_first_descriptor(SlotId(106), input_index, gss_node_id, env);
-                }
-            }
-            // Plus_0
-            NonterminalId(34) => {
-                // Plus_0 : . EmptyE
-                if self.scanner.match_any(&FIRST_SET_PLUS_0_ALT1, input_index)
-                    || self.scanner.match_any(&FOLLOW_SET_PLUS_0, input_index)
-                {
-                    self.add_first_descriptor(SlotId(113), input_index, gss_node_id, env);
-                }
-                // Plus_0 : . Plus_0 EmptyE
-                if self.scanner.match_any(&FIRST_SET_PLUS_0_ALT0, input_index)
-                    || self.scanner.match_any(&FOLLOW_SET_PLUS_0, input_index)
-                {
-                    self.add_first_descriptor(SlotId(110), input_index, gss_node_id, env);
-                }
-            }
-            // Opt_0
-            NonterminalId(35) => {
-                // Opt_0 : .
-                if self.scanner.match_any(&FIRST_SET_OPT_0_ALT1, input_index)
-                    || self.scanner.match_any(&FOLLOW_SET_OPT_0, input_index)
-                {
-                    self.add_first_descriptor(SlotId(117), input_index, gss_node_id, env);
-                }
-                // Opt_0 : . Plus_0
-                if self.scanner.match_any(&FIRST_SET_OPT_0_ALT0, input_index)
-                    || self.scanner.match_any(&FOLLOW_SET_OPT_0, input_index)
-                {
-                    self.add_first_descriptor(SlotId(115), input_index, gss_node_id, env);
-                }
-            }
-            // Star_0 : . Opt_0
-            NonterminalId(36) => {
-                self.add_first_descriptor(SlotId(118), input_index, gss_node_id, env);
-            }
-            // Plus_1
-            NonterminalId(37) => {
-                // Plus_1 : . EmptyE
-                if self.scanner.match_any(&FIRST_SET_PLUS_1_ALT1, input_index)
-                    || self.scanner.match_any(&FOLLOW_SET_PLUS_1, input_index)
-                {
-                    self.add_first_descriptor(SlotId(124), input_index, gss_node_id, env);
-                }
-                // Plus_1 : . Plus_1 EmptyF EmptyE
-                if self.scanner.match_any(&FIRST_SET_PLUS_1_ALT0, input_index)
-                    || self.scanner.match_any(&FOLLOW_SET_PLUS_1, input_index)
-                {
-                    self.add_first_descriptor(SlotId(120), input_index, gss_node_id, env);
-                }
-            }
-            // Opt_1
-            NonterminalId(38) => {
-                // Opt_1 : .
-                if self.scanner.match_any(&FIRST_SET_OPT_1_ALT1, input_index)
-                    || self.scanner.match_any(&FOLLOW_SET_OPT_1, input_index)
-                {
-                    self.add_first_descriptor(SlotId(128), input_index, gss_node_id, env);
-                }
-                // Opt_1 : . Optional
-                if self.scanner.match_any(&FIRST_SET_OPT_1_ALT0, input_index)
-                    || self.scanner.match_any(&FOLLOW_SET_OPT_1, input_index)
-                {
-                    self.add_first_descriptor(SlotId(126), input_index, gss_node_id, env);
-                }
-            }
-            // Group_0 : . Grouped
-            NonterminalId(39) => {
-                self.add_first_descriptor(SlotId(129), input_index, gss_node_id, env);
-            }
-            // StartDirect : . start:Direct
-            NonterminalId(40) => {
-                self.add_first_descriptor(SlotId(131), input_index, gss_node_id, env);
-            }
-            // StartMutualC : . start:MutualC
-            NonterminalId(41) => {
-                self.add_first_descriptor(SlotId(133), input_index, gss_node_id, env);
-            }
-            // StartMutualB : . start:MutualB
-            NonterminalId(42) => {
-                self.add_first_descriptor(SlotId(135), input_index, gss_node_id, env);
-            }
-            // StartChainC : . start:ChainC
-            NonterminalId(43) => {
-                self.add_first_descriptor(SlotId(137), input_index, gss_node_id, env);
-            }
-            // StartChainA : . start:ChainA
-            NonterminalId(44) => {
-                self.add_first_descriptor(SlotId(139), input_index, gss_node_id, env);
-            }
-            // StartChainB : . start:ChainB
-            NonterminalId(45) => {
-                self.add_first_descriptor(SlotId(141), input_index, gss_node_id, env);
-            }
-            // StartSharedS : . start:SharedS
-            NonterminalId(46) => {
-                self.add_first_descriptor(SlotId(143), input_index, gss_node_id, env);
-            }
-            // StartSharedA : . start:SharedA
-            NonterminalId(47) => {
-                self.add_first_descriptor(SlotId(145), input_index, gss_node_id, env);
-            }
-            // StartSharedB : . start:SharedB
-            NonterminalId(48) => {
-                self.add_first_descriptor(SlotId(147), input_index, gss_node_id, env);
-            }
-            // StartTwoExitsC : . start:TwoExitsC
-            NonterminalId(49) => {
-                self.add_first_descriptor(SlotId(149), input_index, gss_node_id, env);
-            }
-            // StartTwoExitsB : . start:TwoExitsB
-            NonterminalId(50) => {
-                self.add_first_descriptor(SlotId(151), input_index, gss_node_id, env);
-            }
-            // StartTwoRoutesC : . start:TwoRoutesC
-            NonterminalId(51) => {
-                self.add_first_descriptor(SlotId(153), input_index, gss_node_id, env);
-            }
-            // StartTwoRoutesA : . start:TwoRoutesA
-            NonterminalId(52) => {
-                self.add_first_descriptor(SlotId(155), input_index, gss_node_id, env);
-            }
-            // StartTwoRoutesB : . start:TwoRoutesB
-            NonterminalId(53) => {
-                self.add_first_descriptor(SlotId(157), input_index, gss_node_id, env);
-            }
-            // StartNullable : . start:Nullable
-            NonterminalId(54) => {
-                self.add_first_descriptor(SlotId(159), input_index, gss_node_id, env);
-            }
-            // StartSiblingC : . start:SiblingC
-            NonterminalId(55) => {
-                self.add_first_descriptor(SlotId(161), input_index, gss_node_id, env);
-            }
-            // StartSiblingD : . start:SiblingD
-            NonterminalId(56) => {
-                self.add_first_descriptor(SlotId(163), input_index, gss_node_id, env);
-            }
-            // StartEmptyE : . start:EmptyE
-            NonterminalId(57) => {
-                self.add_first_descriptor(SlotId(165), input_index, gss_node_id, env);
-            }
-            // StartEmptyF : . start:EmptyF
-            NonterminalId(58) => {
-                self.add_first_descriptor(SlotId(167), input_index, gss_node_id, env);
-            }
-            // StartParentC : . start:ParentC
-            NonterminalId(59) => {
-                self.add_first_descriptor(SlotId(169), input_index, gss_node_id, env);
-            }
-            // StartParentD : . start:ParentD
-            NonterminalId(60) => {
-                self.add_first_descriptor(SlotId(171), input_index, gss_node_id, env);
-            }
-            // StartOverlapC : . start:OverlapC
-            NonterminalId(61) => {
-                self.add_first_descriptor(SlotId(173), input_index, gss_node_id, env);
-            }
-            // StartOverlapB : . start:OverlapB
-            NonterminalId(62) => {
-                self.add_first_descriptor(SlotId(175), input_index, gss_node_id, env);
-            }
-            // StartIntermediateY : . start:IntermediateY
-            NonterminalId(63) => {
-                self.add_first_descriptor(SlotId(177), input_index, gss_node_id, env);
-            }
-            // StartIntermediateA : . start:IntermediateA
-            NonterminalId(64) => {
-                self.add_first_descriptor(SlotId(179), input_index, gss_node_id, env);
-            }
-            // StartIntermediateB : . start:IntermediateB
-            NonterminalId(65) => {
-                self.add_first_descriptor(SlotId(181), input_index, gss_node_id, env);
-            }
-            // StartMidInput : . start:MidInput
-            NonterminalId(66) => {
-                self.add_first_descriptor(SlotId(183), input_index, gss_node_id, env);
-            }
-            // StartConsuming : . start:Consuming
-            NonterminalId(67) => {
-                self.add_first_descriptor(SlotId(185), input_index, gss_node_id, env);
-            }
-            // StartOrdinary : . start:Ordinary
-            NonterminalId(68) => {
-                self.add_first_descriptor(SlotId(187), input_index, gss_node_id, env);
-            }
-            // StartNullablePlus : . start:NullablePlus
-            NonterminalId(69) => {
-                self.add_first_descriptor(SlotId(189), input_index, gss_node_id, env);
-            }
-            // StartNullableStar : . start:NullableStar
-            NonterminalId(70) => {
-                self.add_first_descriptor(SlotId(191), input_index, gss_node_id, env);
-            }
-            // StartNullableSeparated : . start:NullableSeparated
-            NonterminalId(71) => {
-                self.add_first_descriptor(SlotId(193), input_index, gss_node_id, env);
-            }
-            // StartOptional : . start:Optional
-            NonterminalId(72) => {
-                self.add_first_descriptor(SlotId(195), input_index, gss_node_id, env);
-            }
-            // StartGrouped : . start:Grouped
-            NonterminalId(73) => {
-                self.add_first_descriptor(SlotId(197), input_index, gss_node_id, env);
-            }
-            _ => {
-                panic!("Unknown nonterminal id: {nonterminal_id}");
             }
         }
     }
@@ -3234,6 +2642,9 @@ impl<'i, 'arena> Parser<'i, 'arena> for CyclesParser<'i, 'arena> {
     }
     fn match_any(&mut self, set: &'static TerminalSet, input_index: u32) -> bool {
         self.scanner.match_any(set, input_index)
+    }
+    fn predict(&mut self, prediction: &'static Prediction, input_index: u32) -> Self::Alternatives {
+        self.scanner.predict(prediction, input_index)
     }
     fn vec_arena(&self) -> &'arena Arena {
         self.vec_arena

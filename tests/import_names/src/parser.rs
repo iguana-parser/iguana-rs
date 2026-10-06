@@ -5,7 +5,6 @@ use crate::{
     parse_tree::{self, ImportNamesParseTreeBuilder, ParseTree, create_parse_tree},
     scanner::ImportNamesScanner,
 };
-#[cfg(feature = "instrument")]
 use iguana_runtime::grammar::Grammar;
 #[allow(unused_imports)]
 use iguana_runtime::input::Span;
@@ -22,6 +21,7 @@ use iguana_runtime::{
         DESCRIPTORS_CAPACITY_DIVISOR, DESCRIPTORS_CAPACITY_FLOOR, GLLFailure, GLLFailureKind,
         GSS_CAPACITY_MULTIPLIER, Parser, SPPF_CAPACITY_MULTIPLIER, init_logger,
     },
+    prediction::Prediction,
     record,
     result::{ParseError, ParseSuccess},
     scanner::{Scanner, TerminalSet},
@@ -32,6 +32,7 @@ use rustc_hash::FxHashMap;
 use std::cell::OnceCell;
 impl<'i, 'arena> Parser<'i, 'arena> for ImportNamesParser<'i, 'arena> {
     type Grammar = ImportNamesGrammar;
+    type Alternatives = <ImportNamesGrammar as Grammar>::Alternatives;
     type ConcreteParser<'input, 'parser_arena> = ImportNamesParser<'input, 'parser_arena>;
     fn new(input: &'i Input, parser_arena: &'arena Arena) -> Self {
         ImportNamesParser::new(input, parser_arena)
@@ -829,116 +830,6 @@ impl<'i, 'arena> Parser<'i, 'arena> for ImportNamesParser<'i, 'arena> {
             }
         }
     }
-    fn add_first_descriptors(
-        &mut self,
-        nonterminal_id: NonterminalId,
-        input_index: u32,
-        gss_node_id: GssNodeId,
-        env: Option<EnvId>,
-    ) {
-        match nonterminal_id {
-            // S : . Parse Parser SPPFNode Input ParseError ParseSuccess Grammar Nonterminal Terminal
-            // Slot TerminalSet
-            NonterminalId(0) => {
-                self.add_first_descriptor(SlotId(0), input_index, gss_node_id, env);
-            }
-            // Parse : . "a"
-            NonterminalId(1) => {
-                self.add_first_descriptor(SlotId(12), input_index, gss_node_id, env);
-            }
-            // Parser : . "b"
-            NonterminalId(2) => {
-                self.add_first_descriptor(SlotId(14), input_index, gss_node_id, env);
-            }
-            // SPPFNode : . "c"
-            NonterminalId(3) => {
-                self.add_first_descriptor(SlotId(16), input_index, gss_node_id, env);
-            }
-            // Input : . "d"
-            NonterminalId(4) => {
-                self.add_first_descriptor(SlotId(18), input_index, gss_node_id, env);
-            }
-            // ParseError : . "e"
-            NonterminalId(5) => {
-                self.add_first_descriptor(SlotId(20), input_index, gss_node_id, env);
-            }
-            // ParseSuccess : . "f"
-            NonterminalId(6) => {
-                self.add_first_descriptor(SlotId(22), input_index, gss_node_id, env);
-            }
-            // Grammar : . "g"
-            NonterminalId(7) => {
-                self.add_first_descriptor(SlotId(24), input_index, gss_node_id, env);
-            }
-            // Nonterminal : . "h"
-            NonterminalId(8) => {
-                self.add_first_descriptor(SlotId(26), input_index, gss_node_id, env);
-            }
-            // Terminal : . "i"
-            NonterminalId(9) => {
-                self.add_first_descriptor(SlotId(28), input_index, gss_node_id, env);
-            }
-            // Slot : . "j"
-            NonterminalId(10) => {
-                self.add_first_descriptor(SlotId(30), input_index, gss_node_id, env);
-            }
-            // TerminalSet : . "k"
-            NonterminalId(11) => {
-                self.add_first_descriptor(SlotId(32), input_index, gss_node_id, env);
-            }
-            // StartS : . start:S
-            NonterminalId(12) => {
-                self.add_first_descriptor(SlotId(34), input_index, gss_node_id, env);
-            }
-            // StartParse : . start:Parse
-            NonterminalId(13) => {
-                self.add_first_descriptor(SlotId(36), input_index, gss_node_id, env);
-            }
-            // StartParser : . start:Parser
-            NonterminalId(14) => {
-                self.add_first_descriptor(SlotId(38), input_index, gss_node_id, env);
-            }
-            // StartSPPFNode : . start:SPPFNode
-            NonterminalId(15) => {
-                self.add_first_descriptor(SlotId(40), input_index, gss_node_id, env);
-            }
-            // StartInput : . start:Input
-            NonterminalId(16) => {
-                self.add_first_descriptor(SlotId(42), input_index, gss_node_id, env);
-            }
-            // StartParseError : . start:ParseError
-            NonterminalId(17) => {
-                self.add_first_descriptor(SlotId(44), input_index, gss_node_id, env);
-            }
-            // StartParseSuccess : . start:ParseSuccess
-            NonterminalId(18) => {
-                self.add_first_descriptor(SlotId(46), input_index, gss_node_id, env);
-            }
-            // StartGrammar : . start:Grammar
-            NonterminalId(19) => {
-                self.add_first_descriptor(SlotId(48), input_index, gss_node_id, env);
-            }
-            // StartNonterminal : . start:Nonterminal
-            NonterminalId(20) => {
-                self.add_first_descriptor(SlotId(50), input_index, gss_node_id, env);
-            }
-            // StartTerminal : . start:Terminal
-            NonterminalId(21) => {
-                self.add_first_descriptor(SlotId(52), input_index, gss_node_id, env);
-            }
-            // StartSlot : . start:Slot
-            NonterminalId(22) => {
-                self.add_first_descriptor(SlotId(54), input_index, gss_node_id, env);
-            }
-            // StartTerminalSet : . start:TerminalSet
-            NonterminalId(23) => {
-                self.add_first_descriptor(SlotId(56), input_index, gss_node_id, env);
-            }
-            _ => {
-                panic!("Unknown nonterminal id: {nonterminal_id}");
-            }
-        }
-    }
     fn get_gss_node(&self, nonterminal_id: NonterminalId, input_index: u32) -> Option<GssNodeId> {
         self.gss_nodes_index[nonterminal_id.index()]
             .get(&input_index)
@@ -1328,6 +1219,9 @@ impl<'i, 'arena> Parser<'i, 'arena> for ImportNamesParser<'i, 'arena> {
     }
     fn match_any(&mut self, set: &'static TerminalSet, input_index: u32) -> bool {
         self.scanner.match_any(set, input_index)
+    }
+    fn predict(&mut self, prediction: &'static Prediction, input_index: u32) -> Self::Alternatives {
+        self.scanner.predict(prediction, input_index)
     }
     fn vec_arena(&self) -> &'arena Arena {
         self.vec_arena

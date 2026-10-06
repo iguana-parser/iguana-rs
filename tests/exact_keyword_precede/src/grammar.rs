@@ -2,13 +2,15 @@
 
 use iguana_runtime::{
     grammar::{Grammar, Nonterminal, Slot, Terminal},
-    ids::{NonterminalId, TerminalId},
+    ids::{NonterminalId, SlotId, TerminalId},
     scanner::TerminalSet,
+    utils::bit_set::BitSet,
 };
 pub const S: NonterminalId = NonterminalId(0);
 pub const START_S: NonterminalId = NonterminalId(1);
 pub struct ExactKeywordPrecedeGrammar;
 impl Grammar for ExactKeywordPrecedeGrammar {
+    type Alternatives = BitSet<1>;
     const NAME: &'static str = "ExactKeywordPrecede";
     const NONTERMINALS: &'static [Nonterminal] = &[
         Nonterminal {
@@ -99,6 +101,7 @@ impl Grammar for ExactKeywordPrecedeGrammar {
             position: 3,
         },
     ];
+    const FIRST_SLOTS: &'static [&'static [SlotId]] = &[&[SlotId(0), SlotId(8)], &[SlotId(12)]];
     const LAYOUT_NAME: Option<&'static str> = Some("WS");
     const LAYOUT_TERMINALS: &'static [TerminalId] = &[TerminalId(2)];
     // A failed terminal match refers to a static terminal set like every other failure, so the
@@ -106,35 +109,35 @@ impl Grammar for ExactKeywordPrecedeGrammar {
     // by terminal id, serves only that.
     const SINGLE_TERMINAL_SETS: &'static [TerminalSet] = &[
         TerminalSet {
-            id: 7,
+            id: 5,
             terminals: &[TerminalId(0)],
         },
         TerminalSet {
-            id: 8,
+            id: 6,
             terminals: &[TerminalId(1)],
         },
         TerminalSet {
-            id: 9,
+            id: 7,
             terminals: &[TerminalId(2)],
         },
         TerminalSet {
-            id: 10,
+            id: 8,
             terminals: &[TerminalId(3)],
         },
         TerminalSet {
-            id: 11,
+            id: 9,
             terminals: &[TerminalId(4)],
         },
         TerminalSet {
-            id: 12,
+            id: 10,
             terminals: &[TerminalId(5)],
         },
         TerminalSet {
-            id: 13,
+            id: 11,
             terminals: &[TerminalId(6)],
         },
         TerminalSet {
-            id: 14,
+            id: 12,
             terminals: &[TerminalId(7)],
         },
     ];
@@ -151,34 +154,24 @@ pub static FOLLOW_SET_S: TerminalSet = TerminalSet {
     id: 0,
     terminals: &[TerminalId(2), TerminalId(7)],
 };
-// S : . Num WS [0-9 A-Z _ a-z] !<< "else" !>> [0-9 A-Z _ a-z] WS Id WS ";" { Num }
-pub static FIRST_SET_S_ALT0: TerminalSet = TerminalSet {
-    id: 1,
-    terminals: &[TerminalId(1)],
-};
 // S : Num WS . [0-9 A-Z _ a-z] !<< "else" !>> [0-9 A-Z _ a-z] WS Id WS ";" !>> { [0-9 A-Z _
 // a-z] }
 pub static FOLLOW_RESTRICTION_S_ALT0_POS2: TerminalSet = TerminalSet {
-    id: 2,
+    id: 1,
     terminals: &[TerminalId(5)],
-};
-// S : . Id WS ";" { Id }
-pub static FIRST_SET_S_ALT1: TerminalSet = TerminalSet {
-    id: 3,
-    terminals: &[TerminalId(0)],
 };
 // StartS { EOF }
 pub static FOLLOW_SET_START_S: TerminalSet = TerminalSet {
-    id: 4,
+    id: 2,
     terminals: &[TerminalId(7)],
 };
 // S { Id, Num }
 pub static FIRST_SET_S: TerminalSet = TerminalSet {
-    id: 5,
+    id: 3,
     terminals: &[TerminalId(0), TerminalId(1)],
 };
 // StartS { Id, Num, WS }
 pub static FIRST_SET_START_S: TerminalSet = TerminalSet {
-    id: 6,
+    id: 4,
     terminals: &[TerminalId(0), TerminalId(1), TerminalId(2)],
 };

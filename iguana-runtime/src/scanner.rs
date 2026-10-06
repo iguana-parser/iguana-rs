@@ -2,6 +2,7 @@ use crate::{
     arena::{Arena, ArenaVec},
     dfa::Dfa,
     ids::TerminalId,
+    prediction::{AlternativeSet, Prediction},
     utils::inline_map::InlineMap,
 };
 
@@ -183,6 +184,24 @@ pub trait Scanner {
             }
         }
         terminal_id
+    }
+    /// The alternatives that `prediction` predicts at `input_index`: those
+    /// predicted by a terminal that matches there. Empty when no terminal of
+    /// `prediction` matches at `input_index`.
+    #[inline]
+    fn predict<A: AlternativeSet>(&mut self, prediction: &Prediction, input_index: u32) -> A {
+        let mut alternatives = A::default();
+        for &(terminal, alternative) in prediction.terminals_at(self.char_at(input_index)) {
+            // An alternative already predicted does not need its terminal
+            // matched again.
+            let alternative = usize::from(alternative);
+            if !alternatives.contains(alternative)
+                && self.match_token(terminal, input_index).is_some()
+            {
+                alternatives.insert(alternative);
+            }
+        }
+        alternatives
     }
     fn char_at(&self, i: u32) -> Option<char>;
     /// Runs `dfa` from `start`, returning the end position of the longest

@@ -1,4 +1,5 @@
 use crate::ids::{NonterminalId, SlotId, TerminalId};
+use crate::prediction::AlternativeSet;
 use crate::scanner::TerminalSet;
 
 /// The runtime's view of `iguana_compiler::grammar::symbols::Nonterminal`.
@@ -27,18 +28,25 @@ pub struct Slot {
 /// once per grammar, and the runtime CLI, the wasm wrapper, and the parser
 /// reach the grammar's tables and lookups through it.
 pub trait Grammar {
+    /// The set of predicted alternatives, a concrete `BitSet<W>`. `W` is the
+    /// number of 64-bit words that fits the nonterminal with the most
+    /// alternatives.
+    type Alternatives: AlternativeSet;
     /// The name of the grammar.
     const NAME: &'static str;
     /// Every nonterminal, indexed by `NonterminalId`.
     const NONTERMINALS: &'static [Nonterminal];
     /// The names of the nonterminals the grammar text declares, in source
-    /// order, without the layout nonterminal. These are the entry points.
+    /// order. These are the entry points.
     const DISPLAY_ORDER: &'static [&'static str];
     /// Every terminal, indexed by `TerminalId`. The last two entries are the
     /// synthetic epsilon and end-of-file terminals.
     const TERMINALS: &'static [Terminal];
     /// Every grammar slot, indexed by `SlotId`.
     const SLOTS: &'static [Slot];
+    /// The first slot of each alternative of each nonterminal, indexed by
+    /// `NonterminalId` and then by alternative index.
+    const FIRST_SLOTS: &'static [&'static [SlotId]];
     /// The name of the layout nonterminal, or `None` when the grammar declares
     /// no layout.
     const LAYOUT_NAME: Option<&'static str>;
@@ -57,8 +65,8 @@ pub trait Grammar {
 
     /// The id of the start wrapper for a nonterminal, which is the entry point
     /// for parsing from the nonterminal. For example, the id of the `StartA`
-    /// wrapper for the nonterminal `A`. Derived nonterminals and the layout
-    /// nonterminal do not have start wrappers.
+    /// wrapper for the nonterminal `A`. Derived nonterminals do not have start
+    /// wrappers.
     fn start_nonterminal_id(name: &str) -> Option<NonterminalId> {
         Self::nonterminal_id(&format!("Start{name}"))
     }

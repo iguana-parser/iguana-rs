@@ -2,8 +2,9 @@
 
 use iguana_runtime::{
     grammar::{Grammar, Nonterminal, Slot, Terminal},
-    ids::{NonterminalId, TerminalId},
+    ids::{NonterminalId, SlotId, TerminalId},
     scanner::TerminalSet,
+    utils::bit_set::BitSet,
 };
 pub const S: NonterminalId = NonterminalId(0);
 pub const A: NonterminalId = NonterminalId(1);
@@ -12,6 +13,7 @@ pub const START_S: NonterminalId = NonterminalId(3);
 pub const START_A: NonterminalId = NonterminalId(4);
 pub struct PlusGrammar;
 impl Grammar for PlusGrammar {
+    type Alternatives = BitSet<1>;
     const NAME: &'static str = "Plus";
     const NONTERMINALS: &'static [Nonterminal] = &[
         Nonterminal {
@@ -95,6 +97,13 @@ impl Grammar for PlusGrammar {
             position: 1,
         },
     ];
+    const FIRST_SLOTS: &'static [&'static [SlotId]] = &[
+        &[SlotId(0)],
+        &[SlotId(2)],
+        &[SlotId(4), SlotId(7)],
+        &[SlotId(9)],
+        &[SlotId(11)],
+    ];
     const LAYOUT_NAME: Option<&'static str> = None;
     const LAYOUT_TERMINALS: &'static [TerminalId] = &[];
     // A failed terminal match refers to a static terminal set like every other failure, so the
@@ -102,15 +111,15 @@ impl Grammar for PlusGrammar {
     // by terminal id, serves only that.
     const SINGLE_TERMINAL_SETS: &'static [TerminalSet] = &[
         TerminalSet {
-            id: 4,
+            id: 3,
             terminals: &[TerminalId(0)],
         },
         TerminalSet {
-            id: 5,
+            id: 4,
             terminals: &[TerminalId(1)],
         },
         TerminalSet {
-            id: 6,
+            id: 5,
             terminals: &[TerminalId(2)],
         },
     ];
@@ -140,16 +149,6 @@ pub static FOLLOW_SET_PLUS_0: TerminalSet = TerminalSet {
     id: 1,
     terminals: &[TerminalId(0), TerminalId(2)],
 };
-// Plus_0 : . Plus_0 A { "a" }
-pub static FIRST_SET_PLUS_0_ALT0: TerminalSet = TerminalSet {
-    id: 2,
-    terminals: &[TerminalId(0)],
-};
-// Plus_0 : . A { "a" }
-pub static FIRST_SET_PLUS_0_ALT1: TerminalSet = TerminalSet {
-    id: 2,
-    terminals: &[TerminalId(0)],
-};
 // StartS { EOF }
 pub static FOLLOW_SET_START_S: TerminalSet = TerminalSet {
     id: 0,
@@ -162,26 +161,26 @@ pub static FOLLOW_SET_START_A: TerminalSet = TerminalSet {
 };
 // S { "a" }
 pub static FIRST_SET_S: TerminalSet = TerminalSet {
-    id: 3,
+    id: 2,
     terminals: &[TerminalId(0)],
 };
 // A { "a" }
 pub static FIRST_SET_A: TerminalSet = TerminalSet {
-    id: 3,
+    id: 2,
     terminals: &[TerminalId(0)],
 };
 // Plus_0 { "a" }
 pub static FIRST_SET_PLUS_0: TerminalSet = TerminalSet {
-    id: 3,
+    id: 2,
     terminals: &[TerminalId(0)],
 };
 // StartS { "a" }
 pub static FIRST_SET_START_S: TerminalSet = TerminalSet {
-    id: 3,
+    id: 2,
     terminals: &[TerminalId(0)],
 };
 // StartA { "a" }
 pub static FIRST_SET_START_A: TerminalSet = TerminalSet {
-    id: 3,
+    id: 2,
     terminals: &[TerminalId(0)],
 };

@@ -5,7 +5,6 @@ use crate::{
     parse_tree::{self, AltSeqParseTreeBuilder, ParseTree, create_parse_tree},
     scanner::AltSeqScanner,
 };
-#[cfg(feature = "instrument")]
 use iguana_runtime::grammar::Grammar;
 #[allow(unused_imports)]
 use iguana_runtime::input::Span;
@@ -22,6 +21,7 @@ use iguana_runtime::{
         DESCRIPTORS_CAPACITY_DIVISOR, DESCRIPTORS_CAPACITY_FLOOR, GLLFailure, GLLFailureKind,
         GSS_CAPACITY_MULTIPLIER, Parser, SPPF_CAPACITY_MULTIPLIER, init_logger,
     },
+    prediction::Prediction,
     record,
     result::{ParseError, ParseSuccess},
     scanner::{Scanner, TerminalSet},
@@ -32,6 +32,7 @@ use rustc_hash::FxHashMap;
 use std::cell::OnceCell;
 impl<'i, 'arena> Parser<'i, 'arena> for AltSeqParser<'i, 'arena> {
     type Grammar = AltSeqGrammar;
+    type Alternatives = <AltSeqGrammar as Grammar>::Alternatives;
     type ConcreteParser<'input, 'parser_arena> = AltSeqParser<'input, 'parser_arena>;
     fn new(input: &'i Input, parser_arena: &'arena Arena) -> Self {
         AltSeqParser::new(input, parser_arena)
@@ -490,97 +491,6 @@ impl<'i, 'arena> Parser<'i, 'arena> for AltSeqParser<'i, 'arena> {
             }
         }
     }
-    fn add_first_descriptors(
-        &mut self,
-        nonterminal_id: NonterminalId,
-        input_index: u32,
-        gss_node_id: GssNodeId,
-        env: Option<EnvId>,
-    ) {
-        match nonterminal_id {
-            // S : . Alt_0 Alt_1 Hex
-            NonterminalId(0) => {
-                self.add_first_descriptor(SlotId(0), input_index, gss_node_id, env);
-            }
-            // A : . "a"
-            NonterminalId(1) => {
-                self.add_first_descriptor(SlotId(4), input_index, gss_node_id, env);
-            }
-            // B : . "b"
-            NonterminalId(2) => {
-                self.add_first_descriptor(SlotId(6), input_index, gss_node_id, env);
-            }
-            // C : . "c"
-            NonterminalId(3) => {
-                self.add_first_descriptor(SlotId(8), input_index, gss_node_id, env);
-            }
-            // D : . "d"
-            NonterminalId(4) => {
-                self.add_first_descriptor(SlotId(10), input_index, gss_node_id, env);
-            }
-            // E : . "e"
-            NonterminalId(5) => {
-                self.add_first_descriptor(SlotId(12), input_index, gss_node_id, env);
-            }
-            // F : . "f"
-            NonterminalId(6) => {
-                self.add_first_descriptor(SlotId(14), input_index, gss_node_id, env);
-            }
-            // Alt_0
-            NonterminalId(7) => {
-                // Alt_0 : . C
-                if self.scanner.match_any(&FIRST_SET_ALT_0_ALT1, input_index) {
-                    self.add_first_descriptor(SlotId(19), input_index, gss_node_id, env);
-                }
-                // Alt_0 : . A B
-                if self.scanner.match_any(&FIRST_SET_ALT_0_ALT0, input_index) {
-                    self.add_first_descriptor(SlotId(16), input_index, gss_node_id, env);
-                }
-            }
-            // Alt_1
-            NonterminalId(8) => {
-                // Alt_1 : . E F
-                if self.scanner.match_any(&FIRST_SET_ALT_1_ALT1, input_index) {
-                    self.add_first_descriptor(SlotId(23), input_index, gss_node_id, env);
-                }
-                // Alt_1 : . D
-                if self.scanner.match_any(&FIRST_SET_ALT_1_ALT0, input_index) {
-                    self.add_first_descriptor(SlotId(21), input_index, gss_node_id, env);
-                }
-            }
-            // StartS : . start:S
-            NonterminalId(9) => {
-                self.add_first_descriptor(SlotId(26), input_index, gss_node_id, env);
-            }
-            // StartA : . start:A
-            NonterminalId(10) => {
-                self.add_first_descriptor(SlotId(28), input_index, gss_node_id, env);
-            }
-            // StartB : . start:B
-            NonterminalId(11) => {
-                self.add_first_descriptor(SlotId(30), input_index, gss_node_id, env);
-            }
-            // StartC : . start:C
-            NonterminalId(12) => {
-                self.add_first_descriptor(SlotId(32), input_index, gss_node_id, env);
-            }
-            // StartD : . start:D
-            NonterminalId(13) => {
-                self.add_first_descriptor(SlotId(34), input_index, gss_node_id, env);
-            }
-            // StartE : . start:E
-            NonterminalId(14) => {
-                self.add_first_descriptor(SlotId(36), input_index, gss_node_id, env);
-            }
-            // StartF : . start:F
-            NonterminalId(15) => {
-                self.add_first_descriptor(SlotId(38), input_index, gss_node_id, env);
-            }
-            _ => {
-                panic!("Unknown nonterminal id: {nonterminal_id}");
-            }
-        }
-    }
     fn get_gss_node(&self, nonterminal_id: NonterminalId, input_index: u32) -> Option<GssNodeId> {
         self.gss_nodes_index[nonterminal_id.index()]
             .get(&input_index)
@@ -970,6 +880,9 @@ impl<'i, 'arena> Parser<'i, 'arena> for AltSeqParser<'i, 'arena> {
     }
     fn match_any(&mut self, set: &'static TerminalSet, input_index: u32) -> bool {
         self.scanner.match_any(set, input_index)
+    }
+    fn predict(&mut self, prediction: &'static Prediction, input_index: u32) -> Self::Alternatives {
+        self.scanner.predict(prediction, input_index)
     }
     fn vec_arena(&self) -> &'arena Arena {
         self.vec_arena

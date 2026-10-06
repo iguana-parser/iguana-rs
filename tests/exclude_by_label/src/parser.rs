@@ -22,6 +22,7 @@ use iguana_runtime::{
         GLLFailure, GLLFailureKind, GSS_CAPACITY_MULTIPLIER, Parser, SPPF_CAPACITY_MULTIPLIER,
         init_logger,
     },
+    prediction::Prediction,
     record,
     result::{ParseError, ParseSuccess},
     scanner::{Scanner, TerminalSet},
@@ -33,6 +34,7 @@ use std::cell::OnceCell;
 const BINDING_E: BindingId = BindingId(0);
 impl<'i, 'arena> Parser<'i, 'arena> for ExcludeByLabelParser<'i, 'arena> {
     type Grammar = ExcludeByLabelGrammar;
+    type Alternatives = <ExcludeByLabelGrammar as Grammar>::Alternatives;
     type ConcreteParser<'input, 'parser_arena> = ExcludeByLabelParser<'input, 'parser_arena>;
     fn new(input: &'i Input, parser_arena: &'arena Arena) -> Self {
         ExcludeByLabelParser::new(input, parser_arena)
@@ -134,7 +136,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for ExcludeByLabelParser<'i, 'arena> {
                     SlotId(20) => {
                         self.create(
                             NonterminalId(2),
-                            &PREDICTION_SET_STAR_0,
+                            &PREDICTION_STAR_0,
                             result,
                             gss_node_id,
                             SlotId(21),
@@ -231,7 +233,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for ExcludeByLabelParser<'i, 'arena> {
                     SlotId(0) => {
                         self.create(
                             NonterminalId(0),
-                            &PREDICTION_SET_PLUS_0,
+                            &PREDICTION_PLUS_0,
                             result,
                             gss_node_id,
                             SlotId(1),
@@ -282,7 +284,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for ExcludeByLabelParser<'i, 'arena> {
                     SlotId(6) => {
                         self.create(
                             NonterminalId(0),
-                            &PREDICTION_SET_PLUS_0,
+                            &PREDICTION_PLUS_0,
                             result,
                             gss_node_id,
                             SlotId(7),
@@ -305,7 +307,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for ExcludeByLabelParser<'i, 'arena> {
                     SlotId(9) => {
                         self.create(
                             NonterminalId(1),
-                            &PREDICTION_SET_OPT_0,
+                            &PREDICTION_OPT_0,
                             result,
                             gss_node_id,
                             SlotId(10),
@@ -340,66 +342,6 @@ impl<'i, 'arena> Parser<'i, 'arena> for ExcludeByLabelParser<'i, 'arena> {
                         panic!("Unknown grammar slot id: {slot_id}");
                     }
                 }
-            }
-        }
-    }
-    fn add_first_descriptors(
-        &mut self,
-        nonterminal_id: NonterminalId,
-        input_index: u32,
-        gss_node_id: GssNodeId,
-        env: Option<EnvId>,
-    ) {
-        match nonterminal_id {
-            // Expr
-            NonterminalId(4) => {
-                // Expr(e: i32) : . [4 & e == 0] Expr(0) "," Expr(0) return (0, 2)
-                if self.scanner.match_any(&FIRST_SET_EXPR_ALT2, input_index) {
-                    self.add_first_descriptor(SlotId(24), input_index, gss_node_id, env);
-                }
-                // Expr(e: i32) : . [2 & e == 0] Expr(0) "(" Star_0 ")" return (0, 1)
-                if self.scanner.match_any(&FIRST_SET_EXPR_ALT1, input_index) {
-                    self.add_first_descriptor(SlotId(17), input_index, gss_node_id, env);
-                }
-                // Expr(e: i32) : . [1 & e == 0] Id return (0, 0)
-                if self.scanner.match_any(&FIRST_SET_EXPR_ALT0, input_index) {
-                    self.add_first_descriptor(SlotId(13), input_index, gss_node_id, env);
-                }
-            }
-            // Plus_0
-            NonterminalId(0) => {
-                // Plus_0 : . Expr(4)
-                if self.scanner.match_any(&FIRST_SET_PLUS_0_ALT1, input_index) {
-                    self.add_first_descriptor(SlotId(4), input_index, gss_node_id, env);
-                }
-                // Plus_0 : . Plus_0 "," Expr(4)
-                if self.scanner.match_any(&FIRST_SET_PLUS_0_ALT0, input_index) {
-                    self.add_first_descriptor(SlotId(0), input_index, gss_node_id, env);
-                }
-            }
-            // Opt_0
-            NonterminalId(1) => {
-                // Opt_0 : .
-                if self.scanner.match_any(&FIRST_SET_OPT_0_ALT1, input_index)
-                    || self.scanner.match_any(&FOLLOW_SET_OPT_0, input_index)
-                {
-                    self.add_first_descriptor(SlotId(8), input_index, gss_node_id, env);
-                }
-                // Opt_0 : . Plus_0
-                if self.scanner.match_any(&FIRST_SET_OPT_0_ALT0, input_index) {
-                    self.add_first_descriptor(SlotId(6), input_index, gss_node_id, env);
-                }
-            }
-            // Star_0 : . Opt_0
-            NonterminalId(2) => {
-                self.add_first_descriptor(SlotId(9), input_index, gss_node_id, env);
-            }
-            // StartExpr : . start:Expr(0)
-            NonterminalId(3) => {
-                self.add_first_descriptor(SlotId(11), input_index, gss_node_id, env);
-            }
-            _ => {
-                panic!("Unknown nonterminal id: {nonterminal_id}");
             }
         }
     }
@@ -808,6 +750,9 @@ impl<'i, 'arena> Parser<'i, 'arena> for ExcludeByLabelParser<'i, 'arena> {
     fn match_any(&mut self, set: &'static TerminalSet, input_index: u32) -> bool {
         self.scanner.match_any(set, input_index)
     }
+    fn predict(&mut self, prediction: &'static Prediction, input_index: u32) -> Self::Alternatives {
+        self.scanner.predict(prediction, input_index)
+    }
     fn vec_arena(&self) -> &'arena Arena {
         self.vec_arena
     }
@@ -922,6 +867,7 @@ impl<'i, 'arena> ExcludeByLabelParser<'i, 'arena> {
             .parse(START_EXPR, tree_arena)?
             .map(ParseTree::unwrap_start_expr))
     }
+    #[inline(never)]
     #[allow(clippy::too_many_arguments)]
     fn create_expr(
         &mut self,
@@ -946,14 +892,23 @@ impl<'i, 'arena> ExcludeByLabelParser<'i, 'arena> {
                 return_slot,
                 env,
             );
-        } else if self.match_any(&PREDICTION_SET_EXPR, i) {
+            return;
+        }
+        let alternatives = self.predict(&PREDICTION_EXPR, i);
+        if !alternatives.is_empty() {
             record!(self, GSSNodeNotFound, NonterminalId(4), i);
             let new_gss_node_id = self.new_gss_node(NonterminalId(4), i);
             self.add_gss_edge(new_gss_node_id, gss_node_id, sppf_node_id, return_slot, env);
             let arena = self.vec_arena;
             let (env_id, env) = self.new_env();
             env.bind(BINDING_E, e, arena);
-            self.add_first_descriptors(NonterminalId(4), i, new_gss_node_id, Some(env_id));
+            self.add_first_descriptors(
+                NonterminalId(4),
+                i,
+                new_gss_node_id,
+                Some(env_id),
+                alternatives,
+            );
             self.add_gss_node_expr(i, e, new_gss_node_id);
         } else {
             // The call symbol precedes the return slot in its alternative, so the return slot is never
@@ -964,7 +919,7 @@ impl<'i, 'arena> ExcludeByLabelParser<'i, 'arena> {
                 i,
                 call_slot,
                 Some(gss_node_id),
-                GLLFailureKind::UnexpectedToken(&PREDICTION_SET_EXPR),
+                GLLFailureKind::NoViableAlternative(&PREDICTION_EXPR),
             );
         }
     }

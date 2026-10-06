@@ -596,19 +596,13 @@ fn check_reserved_names<'a>(
     spans: &GrammarSpans<'a>,
     errors: &mut Vec<GrammarError>,
 ) {
-    let layout_name = grammar_def
-        .layout
-        .as_ref()
-        .and_then(Symbol::as_identifier)
-        .map(|identifier| identifier.name.as_str());
-    // Every syntax rule except the layout rule gets a `StartX` wrapper. Compare
-    // constant names so different spellings that generate the same constant, such
-    // as `start_s` and `StartS`, are also detected.
+    // Every syntax rule gets a `StartX` wrapper. Compare constant names so
+    // different spellings that generate the same constant, such as `start_s`
+    // and `StartS`, are also detected.
     let start_wrappers: FxHashMap<String, &str> = grammar_def
         .syntax_rules
         .iter()
         .map(|rule| rule.head.name.as_str())
-        .filter(|name| Some(*name) != layout_name)
         .map(|name| (constant_name(&format!("Start{name}")), name))
         .collect();
     let grammar_type = grammar_ident(&grammar_def.name);

@@ -5,7 +5,6 @@ use crate::{
     parse_tree::{self, AmbiguousExprUnsafeParseTreeBuilder, ParseTree, create_parse_tree},
     scanner::AmbiguousExprUnsafeScanner,
 };
-#[cfg(feature = "instrument")]
 use iguana_runtime::grammar::Grammar;
 #[allow(unused_imports)]
 use iguana_runtime::input::Span;
@@ -22,6 +21,7 @@ use iguana_runtime::{
         DESCRIPTORS_CAPACITY_DIVISOR, DESCRIPTORS_CAPACITY_FLOOR, GLLFailure, GLLFailureKind,
         GSS_CAPACITY_MULTIPLIER, Parser, SPPF_CAPACITY_MULTIPLIER, init_logger,
     },
+    prediction::Prediction,
     record,
     result::{ParseError, ParseSuccess},
     scanner::{Scanner, TerminalSet},
@@ -30,6 +30,7 @@ use iguana_runtime::{
 };
 impl<'i, 'arena> Parser<'i, 'arena> for AmbiguousExprUnsafeParser<'i, 'arena> {
     type Grammar = AmbiguousExprUnsafeGrammar;
+    type Alternatives = <AmbiguousExprUnsafeGrammar as Grammar>::Alternatives;
     type ConcreteParser<'input, 'parser_arena> = AmbiguousExprUnsafeParser<'input, 'parser_arena>;
     fn new(input: &'i Input, parser_arena: &'arena Arena) -> Self {
         AmbiguousExprUnsafeParser::new(input, parser_arena)
@@ -66,7 +67,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for AmbiguousExprUnsafeParser<'i, 'arena> {
                     SlotId(0) => {
                         self.create(
                             NonterminalId(1),
-                            &PREDICTION_SET_E,
+                            &PREDICTION_E,
                             result,
                             gss_node_id,
                             SlotId(1),
@@ -84,7 +85,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for AmbiguousExprUnsafeParser<'i, 'arena> {
                     SlotId(2) => {
                         self.create(
                             NonterminalId(1),
-                            &PREDICTION_SET_E,
+                            &PREDICTION_E,
                             result,
                             gss_node_id,
                             SlotId(3),
@@ -174,7 +175,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for AmbiguousExprUnsafeParser<'i, 'arena> {
                     SlotId(8) => {
                         self.create(
                             NonterminalId(1),
-                            &PREDICTION_SET_E,
+                            &PREDICTION_E,
                             result,
                             gss_node_id,
                             SlotId(9),
@@ -203,7 +204,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for AmbiguousExprUnsafeParser<'i, 'arena> {
                     SlotId(10) => {
                         self.create(
                             NonterminalId(1),
-                            &PREDICTION_SET_E,
+                            &PREDICTION_E,
                             result,
                             gss_node_id,
                             SlotId(11),
@@ -221,7 +222,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for AmbiguousExprUnsafeParser<'i, 'arena> {
                     SlotId(12) => {
                         self.create(
                             NonterminalId(1),
-                            &PREDICTION_SET_E,
+                            &PREDICTION_E,
                             result,
                             gss_node_id,
                             SlotId(13),
@@ -286,7 +287,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for AmbiguousExprUnsafeParser<'i, 'arena> {
                     SlotId(16) => {
                         self.create(
                             NonterminalId(1),
-                            &PREDICTION_SET_E,
+                            &PREDICTION_E,
                             result,
                             gss_node_id,
                             SlotId(17),
@@ -304,7 +305,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for AmbiguousExprUnsafeParser<'i, 'arena> {
                     SlotId(18) => {
                         self.create(
                             NonterminalId(1),
-                            &PREDICTION_SET_E,
+                            &PREDICTION_E,
                             result,
                             gss_node_id,
                             SlotId(19),
@@ -369,7 +370,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for AmbiguousExprUnsafeParser<'i, 'arena> {
                     SlotId(22) => {
                         self.create(
                             NonterminalId(1),
-                            &PREDICTION_SET_E,
+                            &PREDICTION_E,
                             result,
                             gss_node_id,
                             SlotId(23),
@@ -387,7 +388,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for AmbiguousExprUnsafeParser<'i, 'arena> {
                     SlotId(24) => {
                         self.create(
                             NonterminalId(1),
-                            &PREDICTION_SET_E,
+                            &PREDICTION_E,
                             result,
                             gss_node_id,
                             SlotId(25),
@@ -452,7 +453,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for AmbiguousExprUnsafeParser<'i, 'arena> {
                     SlotId(28) => {
                         self.create(
                             NonterminalId(1),
-                            &PREDICTION_SET_E,
+                            &PREDICTION_E,
                             result,
                             gss_node_id,
                             SlotId(29),
@@ -502,7 +503,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for AmbiguousExprUnsafeParser<'i, 'arena> {
                     SlotId(32) => {
                         self.create(
                             NonterminalId(1),
-                            &PREDICTION_SET_E,
+                            &PREDICTION_E,
                             result,
                             gss_node_id,
                             SlotId(33),
@@ -552,7 +553,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for AmbiguousExprUnsafeParser<'i, 'arena> {
                     SlotId(36) => {
                         self.create(
                             NonterminalId(1),
-                            &PREDICTION_SET_E,
+                            &PREDICTION_E,
                             result,
                             gss_node_id,
                             SlotId(37),
@@ -617,7 +618,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for AmbiguousExprUnsafeParser<'i, 'arena> {
                     SlotId(40) => {
                         self.create(
                             NonterminalId(1),
-                            &PREDICTION_SET_E,
+                            &PREDICTION_E,
                             result,
                             gss_node_id,
                             SlotId(41),
@@ -682,7 +683,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for AmbiguousExprUnsafeParser<'i, 'arena> {
                     SlotId(44) => {
                         self.create(
                             NonterminalId(1),
-                            &PREDICTION_SET_E,
+                            &PREDICTION_E,
                             result,
                             gss_node_id,
                             SlotId(45),
@@ -700,7 +701,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for AmbiguousExprUnsafeParser<'i, 'arena> {
                     SlotId(46) => {
                         self.create(
                             NonterminalId(1),
-                            &PREDICTION_SET_E,
+                            &PREDICTION_E,
                             result,
                             gss_node_id,
                             SlotId(47),
@@ -765,7 +766,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for AmbiguousExprUnsafeParser<'i, 'arena> {
                     SlotId(50) => {
                         self.create(
                             NonterminalId(1),
-                            &PREDICTION_SET_E,
+                            &PREDICTION_E,
                             result,
                             gss_node_id,
                             SlotId(51),
@@ -815,7 +816,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for AmbiguousExprUnsafeParser<'i, 'arena> {
                     SlotId(54) => {
                         self.create(
                             NonterminalId(1),
-                            &PREDICTION_SET_E,
+                            &PREDICTION_E,
                             result,
                             gss_node_id,
                             SlotId(55),
@@ -904,7 +905,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for AmbiguousExprUnsafeParser<'i, 'arena> {
                     SlotId(61) => {
                         self.create(
                             NonterminalId(0),
-                            &PREDICTION_SET_S,
+                            &PREDICTION_S,
                             result,
                             gss_node_id,
                             SlotId(62),
@@ -954,7 +955,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for AmbiguousExprUnsafeParser<'i, 'arena> {
                     SlotId(65) => {
                         self.create(
                             NonterminalId(1),
-                            &PREDICTION_SET_E,
+                            &PREDICTION_E,
                             result,
                             gss_node_id,
                             SlotId(66),
@@ -990,74 +991,6 @@ impl<'i, 'arena> Parser<'i, 'arena> for AmbiguousExprUnsafeParser<'i, 'arena> {
                         panic!("Unknown grammar slot id: {slot_id}");
                     }
                 }
-            }
-        }
-    }
-    fn add_first_descriptors(
-        &mut self,
-        nonterminal_id: NonterminalId,
-        input_index: u32,
-        gss_node_id: GssNodeId,
-        env: Option<EnvId>,
-    ) {
-        match nonterminal_id {
-            // S : . E
-            NonterminalId(0) => {
-                self.add_first_descriptor(SlotId(0), input_index, gss_node_id, env);
-            }
-            // E
-            NonterminalId(1) => {
-                // E : . "a"
-                if self.scanner.match_any(&FIRST_SET_E_ALT9, input_index) {
-                    self.add_first_descriptor(SlotId(58), input_index, gss_node_id, env);
-                }
-                // E : . "(" WS E WS ")"
-                if self.scanner.match_any(&FIRST_SET_E_ALT8, input_index) {
-                    self.add_first_descriptor(SlotId(52), input_index, gss_node_id, env);
-                }
-                // E : . E WS ";" WS E
-                if self.scanner.match_any(&FIRST_SET_E_ALT7, input_index) {
-                    self.add_first_descriptor(SlotId(46), input_index, gss_node_id, env);
-                }
-                // E : . "if" WS E WS "then" WS E WS "else" WS E
-                if self.scanner.match_any(&FIRST_SET_E_ALT6, input_index) {
-                    self.add_first_descriptor(SlotId(34), input_index, gss_node_id, env);
-                }
-                // E : . "-" WS E
-                if self.scanner.match_any(&FIRST_SET_E_ALT5, input_index) {
-                    self.add_first_descriptor(SlotId(30), input_index, gss_node_id, env);
-                }
-                // E : . E WS "-" WS E
-                if self.scanner.match_any(&FIRST_SET_E_ALT4, input_index) {
-                    self.add_first_descriptor(SlotId(24), input_index, gss_node_id, env);
-                }
-                // E : . E WS "+" WS E
-                if self.scanner.match_any(&FIRST_SET_E_ALT3, input_index) {
-                    self.add_first_descriptor(SlotId(18), input_index, gss_node_id, env);
-                }
-                // E : . E WS "*" WS E
-                if self.scanner.match_any(&FIRST_SET_E_ALT2, input_index) {
-                    self.add_first_descriptor(SlotId(12), input_index, gss_node_id, env);
-                }
-                // E : . E WS E
-                if self.scanner.match_any(&FIRST_SET_E_ALT1, input_index) {
-                    self.add_first_descriptor(SlotId(8), input_index, gss_node_id, env);
-                }
-                // E : . E WS "." WS "f"
-                if self.scanner.match_any(&FIRST_SET_E_ALT0, input_index) {
-                    self.add_first_descriptor(SlotId(2), input_index, gss_node_id, env);
-                }
-            }
-            // StartS : . WS start:S WS
-            NonterminalId(2) => {
-                self.add_first_descriptor(SlotId(60), input_index, gss_node_id, env);
-            }
-            // StartE : . WS start:E WS
-            NonterminalId(3) => {
-                self.add_first_descriptor(SlotId(64), input_index, gss_node_id, env);
-            }
-            _ => {
-                panic!("Unknown nonterminal id: {nonterminal_id}");
             }
         }
     }
@@ -1351,6 +1284,9 @@ impl<'i, 'arena> Parser<'i, 'arena> for AmbiguousExprUnsafeParser<'i, 'arena> {
     }
     fn match_any(&mut self, set: &'static TerminalSet, input_index: u32) -> bool {
         self.scanner.match_any(set, input_index)
+    }
+    fn predict(&mut self, prediction: &'static Prediction, input_index: u32) -> Self::Alternatives {
+        self.scanner.predict(prediction, input_index)
     }
     fn vec_arena(&self) -> &'arena Arena {
         self.vec_arena

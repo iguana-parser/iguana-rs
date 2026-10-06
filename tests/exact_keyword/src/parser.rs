@@ -5,7 +5,6 @@ use crate::{
     parse_tree::{self, ExactKeywordParseTreeBuilder, ParseTree, create_parse_tree},
     scanner::ExactKeywordScanner,
 };
-#[cfg(feature = "instrument")]
 use iguana_runtime::grammar::Grammar;
 #[allow(unused_imports)]
 use iguana_runtime::input::Span;
@@ -22,6 +21,7 @@ use iguana_runtime::{
         DESCRIPTORS_CAPACITY_DIVISOR, DESCRIPTORS_CAPACITY_FLOOR, GLLFailure, GLLFailureKind,
         GSS_CAPACITY_MULTIPLIER, Parser, SPPF_CAPACITY_MULTIPLIER, init_logger,
     },
+    prediction::Prediction,
     record,
     result::{ParseError, ParseSuccess},
     scanner::{Scanner, TerminalSet},
@@ -32,6 +32,7 @@ use rustc_hash::FxHashMap;
 use std::cell::OnceCell;
 impl<'i, 'arena> Parser<'i, 'arena> for ExactKeywordParser<'i, 'arena> {
     type Grammar = ExactKeywordGrammar;
+    type Alternatives = <ExactKeywordGrammar as Grammar>::Alternatives;
     type ConcreteParser<'input, 'parser_arena> = ExactKeywordParser<'input, 'parser_arena>;
     fn new(input: &'i Input, parser_arena: &'arena Arena) -> Self {
         ExactKeywordParser::new(input, parser_arena)
@@ -67,7 +68,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for ExactKeywordParser<'i, 'arena> {
                     SlotId(0) => {
                         self.create(
                             NonterminalId(3),
-                            &PREDICTION_SET_PLUS_0,
+                            &PREDICTION_PLUS_0,
                             result,
                             gss_node_id,
                             SlotId(1),
@@ -308,7 +309,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for ExactKeywordParser<'i, 'arena> {
                     SlotId(14) => {
                         self.create(
                             NonterminalId(1),
-                            &PREDICTION_SET_STMT,
+                            &PREDICTION_STMT,
                             result,
                             gss_node_id,
                             SlotId(15),
@@ -340,7 +341,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for ExactKeywordParser<'i, 'arena> {
                     SlotId(16) => {
                         self.create(
                             NonterminalId(5),
-                            &PREDICTION_SET_OPT_0,
+                            &PREDICTION_OPT_0,
                             result,
                             gss_node_id,
                             SlotId(17),
@@ -505,7 +506,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for ExactKeywordParser<'i, 'arena> {
                     SlotId(28) => {
                         self.create(
                             NonterminalId(3),
-                            &PREDICTION_SET_PLUS_0,
+                            &PREDICTION_PLUS_0,
                             result,
                             gss_node_id,
                             SlotId(29),
@@ -534,7 +535,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for ExactKeywordParser<'i, 'arena> {
                     SlotId(30) => {
                         self.create(
                             NonterminalId(1),
-                            &PREDICTION_SET_STMT,
+                            &PREDICTION_STMT,
                             result,
                             gss_node_id,
                             SlotId(31),
@@ -552,7 +553,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for ExactKeywordParser<'i, 'arena> {
                     SlotId(32) => {
                         self.create(
                             NonterminalId(1),
-                            &PREDICTION_SET_STMT,
+                            &PREDICTION_STMT,
                             result,
                             gss_node_id,
                             SlotId(33),
@@ -615,7 +616,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for ExactKeywordParser<'i, 'arena> {
                     SlotId(36) => {
                         self.create(
                             NonterminalId(1),
-                            &PREDICTION_SET_STMT,
+                            &PREDICTION_STMT,
                             result,
                             gss_node_id,
                             SlotId(37),
@@ -633,7 +634,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for ExactKeywordParser<'i, 'arena> {
                     SlotId(38) => {
                         self.create(
                             NonterminalId(4),
-                            &PREDICTION_SET_GROUP_0,
+                            &PREDICTION_GROUP_0,
                             result,
                             gss_node_id,
                             SlotId(39),
@@ -670,7 +671,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for ExactKeywordParser<'i, 'arena> {
                     SlotId(42) => {
                         self.create(
                             NonterminalId(0),
-                            &PREDICTION_SET_PROGRAM,
+                            &PREDICTION_PROGRAM,
                             result,
                             gss_node_id,
                             SlotId(43),
@@ -726,7 +727,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for ExactKeywordParser<'i, 'arena> {
                     SlotId(46) => {
                         self.create(
                             NonterminalId(1),
-                            &PREDICTION_SET_STMT,
+                            &PREDICTION_STMT,
                             result,
                             gss_node_id,
                             SlotId(47),
@@ -829,90 +830,6 @@ impl<'i, 'arena> Parser<'i, 'arena> for ExactKeywordParser<'i, 'arena> {
                         panic!("Unknown grammar slot id: {slot_id}");
                     }
                 }
-            }
-        }
-    }
-    fn add_first_descriptors(
-        &mut self,
-        nonterminal_id: NonterminalId,
-        input_index: u32,
-        gss_node_id: GssNodeId,
-        env: Option<EnvId>,
-    ) {
-        match nonterminal_id {
-            // Program : . Plus_0
-            NonterminalId(0) => {
-                self.add_first_descriptor(SlotId(0), input_index, gss_node_id, env);
-            }
-            // Stmt
-            NonterminalId(1) => {
-                // Stmt : . [0-9 A-Z _ a-z] !<< "assert" !>> [0-9 A-Z _ a-z] WS Expr WS ";"
-                if self.scanner.match_any(&FIRST_SET_STMT_ALT2, input_index) {
-                    self.add_first_descriptor(SlotId(18), input_index, gss_node_id, env);
-                }
-                // Stmt : . [0-9 A-Z _ a-z] !<< "if" !>> [0-9 A-Z _ a-z] WS "(" WS Expr WS ")" WS Stmt WS
-                // Opt_0
-                if self.scanner.match_any(&FIRST_SET_STMT_ALT1, input_index) {
-                    self.add_first_descriptor(SlotId(6), input_index, gss_node_id, env);
-                }
-                // Stmt : . Expr WS ";"
-                if self.scanner.match_any(&FIRST_SET_STMT_ALT0, input_index) {
-                    self.add_first_descriptor(SlotId(2), input_index, gss_node_id, env);
-                }
-            }
-            // Expr
-            NonterminalId(2) => {
-                // Expr : . Num
-                if self.scanner.match_any(&FIRST_SET_EXPR_ALT1, input_index) {
-                    self.add_first_descriptor(SlotId(26), input_index, gss_node_id, env);
-                }
-                // Expr : . Id
-                if self.scanner.match_any(&FIRST_SET_EXPR_ALT0, input_index) {
-                    self.add_first_descriptor(SlotId(24), input_index, gss_node_id, env);
-                }
-            }
-            // Plus_0
-            NonterminalId(3) => {
-                // Plus_0 : . Stmt
-                if self.scanner.match_any(&FIRST_SET_PLUS_0_ALT1, input_index) {
-                    self.add_first_descriptor(SlotId(32), input_index, gss_node_id, env);
-                }
-                // Plus_0 : . Plus_0 WS Stmt
-                if self.scanner.match_any(&FIRST_SET_PLUS_0_ALT0, input_index) {
-                    self.add_first_descriptor(SlotId(28), input_index, gss_node_id, env);
-                }
-            }
-            // Group_0 : . [0-9 A-Z _ a-z] !<< "else" !>> [0-9 A-Z _ a-z] WS Stmt
-            NonterminalId(4) => {
-                self.add_first_descriptor(SlotId(34), input_index, gss_node_id, env);
-            }
-            // Opt_0
-            NonterminalId(5) => {
-                // Opt_0 : .
-                if self.scanner.match_any(&FIRST_SET_OPT_0_ALT1, input_index)
-                    || self.scanner.match_any(&FOLLOW_SET_OPT_0, input_index)
-                {
-                    self.add_first_descriptor(SlotId(40), input_index, gss_node_id, env);
-                }
-                // Opt_0 : . Group_0
-                if self.scanner.match_any(&FIRST_SET_OPT_0_ALT0, input_index) {
-                    self.add_first_descriptor(SlotId(38), input_index, gss_node_id, env);
-                }
-            }
-            // StartProgram : . WS start:Program WS
-            NonterminalId(6) => {
-                self.add_first_descriptor(SlotId(41), input_index, gss_node_id, env);
-            }
-            // StartStmt : . WS start:Stmt WS
-            NonterminalId(7) => {
-                self.add_first_descriptor(SlotId(45), input_index, gss_node_id, env);
-            }
-            // StartExpr : . WS start:Expr WS
-            NonterminalId(8) => {
-                self.add_first_descriptor(SlotId(49), input_index, gss_node_id, env);
-            }
-            _ => {
-                panic!("Unknown nonterminal id: {nonterminal_id}");
             }
         }
     }
@@ -1343,6 +1260,9 @@ impl<'i, 'arena> Parser<'i, 'arena> for ExactKeywordParser<'i, 'arena> {
     }
     fn match_any(&mut self, set: &'static TerminalSet, input_index: u32) -> bool {
         self.scanner.match_any(set, input_index)
+    }
+    fn predict(&mut self, prediction: &'static Prediction, input_index: u32) -> Self::Alternatives {
+        self.scanner.predict(prediction, input_index)
     }
     fn vec_arena(&self) -> &'arena Arena {
         self.vec_arena

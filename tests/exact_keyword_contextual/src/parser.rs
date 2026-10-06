@@ -5,7 +5,6 @@ use crate::{
     parse_tree::{self, ExactKeywordContextualParseTreeBuilder, ParseTree, create_parse_tree},
     scanner::ExactKeywordContextualScanner,
 };
-#[cfg(feature = "instrument")]
 use iguana_runtime::grammar::Grammar;
 #[allow(unused_imports)]
 use iguana_runtime::input::Span;
@@ -22,6 +21,7 @@ use iguana_runtime::{
         DESCRIPTORS_CAPACITY_DIVISOR, DESCRIPTORS_CAPACITY_FLOOR, GLLFailure, GLLFailureKind,
         GSS_CAPACITY_MULTIPLIER, Parser, SPPF_CAPACITY_MULTIPLIER, init_logger,
     },
+    prediction::Prediction,
     record,
     result::{ParseError, ParseSuccess},
     scanner::{Scanner, TerminalSet},
@@ -32,6 +32,7 @@ use rustc_hash::FxHashMap;
 use std::cell::OnceCell;
 impl<'i, 'arena> Parser<'i, 'arena> for ExactKeywordContextualParser<'i, 'arena> {
     type Grammar = ExactKeywordContextualGrammar;
+    type Alternatives = <ExactKeywordContextualGrammar as Grammar>::Alternatives;
     type ConcreteParser<'input, 'parser_arena> =
         ExactKeywordContextualParser<'input, 'parser_arena>;
     fn new(input: &'i Input, parser_arena: &'arena Arena) -> Self {
@@ -317,7 +318,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for ExactKeywordContextualParser<'i, 'arena>
                     SlotId(15) => {
                         self.create(
                             NonterminalId(0),
-                            &PREDICTION_SET_DECL,
+                            &PREDICTION_DECL,
                             result,
                             gss_node_id,
                             SlotId(16),
@@ -359,34 +360,6 @@ impl<'i, 'arena> Parser<'i, 'arena> for ExactKeywordContextualParser<'i, 'arena>
                         panic!("Unknown grammar slot id: {slot_id}");
                     }
                 }
-            }
-        }
-    }
-    fn add_first_descriptors(
-        &mut self,
-        nonterminal_id: NonterminalId,
-        input_index: u32,
-        gss_node_id: GssNodeId,
-        env: Option<EnvId>,
-    ) {
-        match nonterminal_id {
-            // Decl
-            NonterminalId(0) => {
-                // Decl : . Id WS "=" WS Id WS ";"
-                if self.scanner.match_any(&FIRST_SET_DECL_ALT1, input_index) {
-                    self.add_first_descriptor(SlotId(6), input_index, gss_node_id, env);
-                }
-                // Decl : . [0-9 A-Z _ a-z] !<< "var" !>> [0-9 A-Z _ a-z] WS Id WS ";"
-                if self.scanner.match_any(&FIRST_SET_DECL_ALT0, input_index) {
-                    self.add_first_descriptor(SlotId(0), input_index, gss_node_id, env);
-                }
-            }
-            // StartDecl : . WS start:Decl WS
-            NonterminalId(1) => {
-                self.add_first_descriptor(SlotId(14), input_index, gss_node_id, env);
-            }
-            _ => {
-                panic!("Unknown nonterminal id: {nonterminal_id}");
             }
         }
     }
@@ -793,6 +766,9 @@ impl<'i, 'arena> Parser<'i, 'arena> for ExactKeywordContextualParser<'i, 'arena>
     }
     fn match_any(&mut self, set: &'static TerminalSet, input_index: u32) -> bool {
         self.scanner.match_any(set, input_index)
+    }
+    fn predict(&mut self, prediction: &'static Prediction, input_index: u32) -> Self::Alternatives {
+        self.scanner.predict(prediction, input_index)
     }
     fn vec_arena(&self) -> &'arena Arena {
         self.vec_arena

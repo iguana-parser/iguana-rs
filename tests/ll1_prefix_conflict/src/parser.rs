@@ -5,7 +5,6 @@ use crate::{
     parse_tree::{self, Ll1PrefixConflictParseTreeBuilder, ParseTree, create_parse_tree},
     scanner::Ll1PrefixConflictScanner,
 };
-#[cfg(feature = "instrument")]
 use iguana_runtime::grammar::Grammar;
 #[allow(unused_imports)]
 use iguana_runtime::input::Span;
@@ -22,6 +21,7 @@ use iguana_runtime::{
         DESCRIPTORS_CAPACITY_DIVISOR, DESCRIPTORS_CAPACITY_FLOOR, GLLFailure, GLLFailureKind,
         GSS_CAPACITY_MULTIPLIER, Parser, SPPF_CAPACITY_MULTIPLIER, init_logger,
     },
+    prediction::Prediction,
     record,
     result::{ParseError, ParseSuccess},
     scanner::{Scanner, TerminalSet},
@@ -32,6 +32,7 @@ use rustc_hash::FxHashMap;
 use std::cell::OnceCell;
 impl<'i, 'arena> Parser<'i, 'arena> for Ll1PrefixConflictParser<'i, 'arena> {
     type Grammar = Ll1PrefixConflictGrammar;
+    type Alternatives = <Ll1PrefixConflictGrammar as Grammar>::Alternatives;
     type ConcreteParser<'input, 'parser_arena> = Ll1PrefixConflictParser<'input, 'parser_arena>;
     fn new(input: &'i Input, parser_arena: &'arena Arena) -> Self {
         Ll1PrefixConflictParser::new(input, parser_arena)
@@ -67,7 +68,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for Ll1PrefixConflictParser<'i, 'arena> {
                     SlotId(0) => {
                         self.create(
                             NonterminalId(1),
-                            &PREDICTION_SET_S,
+                            &PREDICTION_S,
                             result,
                             gss_node_id,
                             SlotId(1),
@@ -163,7 +164,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for Ll1PrefixConflictParser<'i, 'arena> {
                     SlotId(8) => {
                         self.create(
                             NonterminalId(0),
-                            &PREDICTION_SET_T,
+                            &PREDICTION_T,
                             result,
                             gss_node_id,
                             SlotId(9),
@@ -181,7 +182,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for Ll1PrefixConflictParser<'i, 'arena> {
                     SlotId(10) => {
                         self.create(
                             NonterminalId(1),
-                            &PREDICTION_SET_S,
+                            &PREDICTION_S,
                             result,
                             gss_node_id,
                             SlotId(11),
@@ -199,42 +200,6 @@ impl<'i, 'arena> Parser<'i, 'arena> for Ll1PrefixConflictParser<'i, 'arena> {
                         panic!("Unknown grammar slot id: {slot_id}");
                     }
                 }
-            }
-        }
-    }
-    fn add_first_descriptors(
-        &mut self,
-        nonterminal_id: NonterminalId,
-        input_index: u32,
-        gss_node_id: GssNodeId,
-        env: Option<EnvId>,
-    ) {
-        match nonterminal_id {
-            // T : . S
-            NonterminalId(0) => {
-                self.add_first_descriptor(SlotId(0), input_index, gss_node_id, env);
-            }
-            // S
-            NonterminalId(1) => {
-                // S : . "a" "by"
-                if self.scanner.match_any(&FIRST_SET_S_ALT1, input_index) {
-                    self.add_first_descriptor(SlotId(5), input_index, gss_node_id, env);
-                }
-                // S : . "ab" "x"
-                if self.scanner.match_any(&FIRST_SET_S_ALT0, input_index) {
-                    self.add_first_descriptor(SlotId(2), input_index, gss_node_id, env);
-                }
-            }
-            // StartT : . start:T
-            NonterminalId(2) => {
-                self.add_first_descriptor(SlotId(8), input_index, gss_node_id, env);
-            }
-            // StartS : . start:S
-            NonterminalId(3) => {
-                self.add_first_descriptor(SlotId(10), input_index, gss_node_id, env);
-            }
-            _ => {
-                panic!("Unknown nonterminal id: {nonterminal_id}");
             }
         }
     }
@@ -627,6 +592,9 @@ impl<'i, 'arena> Parser<'i, 'arena> for Ll1PrefixConflictParser<'i, 'arena> {
     }
     fn match_any(&mut self, set: &'static TerminalSet, input_index: u32) -> bool {
         self.scanner.match_any(set, input_index)
+    }
+    fn predict(&mut self, prediction: &'static Prediction, input_index: u32) -> Self::Alternatives {
+        self.scanner.predict(prediction, input_index)
     }
     fn vec_arena(&self) -> &'arena Arena {
         self.vec_arena

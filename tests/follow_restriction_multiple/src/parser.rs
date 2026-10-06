@@ -5,7 +5,6 @@ use crate::{
     parse_tree::{self, FollowRestrictionMultipleParseTreeBuilder, ParseTree, create_parse_tree},
     scanner::FollowRestrictionMultipleScanner,
 };
-#[cfg(feature = "instrument")]
 use iguana_runtime::grammar::Grammar;
 #[allow(unused_imports)]
 use iguana_runtime::input::Span;
@@ -22,6 +21,7 @@ use iguana_runtime::{
         DESCRIPTORS_CAPACITY_DIVISOR, DESCRIPTORS_CAPACITY_FLOOR, GLLFailure, GLLFailureKind,
         GSS_CAPACITY_MULTIPLIER, Parser, SPPF_CAPACITY_MULTIPLIER, init_logger,
     },
+    prediction::Prediction,
     record,
     result::{ParseError, ParseSuccess},
     scanner::{Scanner, TerminalSet},
@@ -32,6 +32,7 @@ use rustc_hash::FxHashMap;
 use std::cell::OnceCell;
 impl<'i, 'arena> Parser<'i, 'arena> for FollowRestrictionMultipleParser<'i, 'arena> {
     type Grammar = FollowRestrictionMultipleGrammar;
+    type Alternatives = <FollowRestrictionMultipleGrammar as Grammar>::Alternatives;
     type ConcreteParser<'input, 'parser_arena> =
         FollowRestrictionMultipleParser<'input, 'parser_arena>;
     fn new(input: &'i Input, parser_arena: &'arena Arena) -> Self {
@@ -298,68 +299,6 @@ impl<'i, 'arena> Parser<'i, 'arena> for FollowRestrictionMultipleParser<'i, 'are
                         panic!("Unknown grammar slot id: {slot_id}");
                     }
                 }
-            }
-        }
-    }
-    fn add_first_descriptors(
-        &mut self,
-        nonterminal_id: NonterminalId,
-        input_index: u32,
-        gss_node_id: GssNodeId,
-        env: Option<EnvId>,
-    ) {
-        match nonterminal_id {
-            // S : . Plus_0
-            NonterminalId(0) => {
-                self.add_first_descriptor(SlotId(0), input_index, gss_node_id, env);
-            }
-            // Id : . Plus_1 !>> Alpha !>> Digit
-            NonterminalId(1) => {
-                self.add_first_descriptor(SlotId(2), input_index, gss_node_id, env);
-            }
-            // Plus_0
-            NonterminalId(2) => {
-                // Plus_0 : . Id
-                if self.scanner.match_any(&FIRST_SET_PLUS_0_ALT1, input_index) {
-                    self.add_first_descriptor(SlotId(7), input_index, gss_node_id, env);
-                }
-                // Plus_0 : . Plus_0 Id
-                if self.scanner.match_any(&FIRST_SET_PLUS_0_ALT0, input_index) {
-                    self.add_first_descriptor(SlotId(4), input_index, gss_node_id, env);
-                }
-            }
-            // Alt_0
-            NonterminalId(3) => {
-                // Alt_0 : . Digit
-                if self.scanner.match_any(&FIRST_SET_ALT_0_ALT1, input_index) {
-                    self.add_first_descriptor(SlotId(11), input_index, gss_node_id, env);
-                }
-                // Alt_0 : . Alpha
-                if self.scanner.match_any(&FIRST_SET_ALT_0_ALT0, input_index) {
-                    self.add_first_descriptor(SlotId(9), input_index, gss_node_id, env);
-                }
-            }
-            // Plus_1
-            NonterminalId(4) => {
-                // Plus_1 : . Alt_0
-                if self.scanner.match_any(&FIRST_SET_PLUS_1_ALT1, input_index) {
-                    self.add_first_descriptor(SlotId(16), input_index, gss_node_id, env);
-                }
-                // Plus_1 : . Plus_1 Alt_0
-                if self.scanner.match_any(&FIRST_SET_PLUS_1_ALT0, input_index) {
-                    self.add_first_descriptor(SlotId(13), input_index, gss_node_id, env);
-                }
-            }
-            // StartS : . start:S
-            NonterminalId(5) => {
-                self.add_first_descriptor(SlotId(18), input_index, gss_node_id, env);
-            }
-            // StartId : . start:Id
-            NonterminalId(6) => {
-                self.add_first_descriptor(SlotId(20), input_index, gss_node_id, env);
-            }
-            _ => {
-                panic!("Unknown nonterminal id: {nonterminal_id}");
             }
         }
     }
@@ -766,6 +705,9 @@ impl<'i, 'arena> Parser<'i, 'arena> for FollowRestrictionMultipleParser<'i, 'are
     }
     fn match_any(&mut self, set: &'static TerminalSet, input_index: u32) -> bool {
         self.scanner.match_any(set, input_index)
+    }
+    fn predict(&mut self, prediction: &'static Prediction, input_index: u32) -> Self::Alternatives {
+        self.scanner.predict(prediction, input_index)
     }
     fn vec_arena(&self) -> &'arena Arena {
         self.vec_arena

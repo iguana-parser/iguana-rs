@@ -7,6 +7,7 @@ use std::{
 
 use crate::{
     generator::{
+        grammar_utils::ll1_nonterminals,
         id::{BindingIds, EndSlot, NonterminalIds, SlotIds, TerminalIds},
         parse_tree_gen::ParseTreeGen,
         parser_gen::ParserGen,
@@ -289,7 +290,10 @@ pub fn generate_sources(
         &lib_path,
     )?;
 
-    let (terminal_sets, match_any_count) = terminal_sets(grammar, &ff, &terminal_ids, &config);
+    let ll1_nonterminals = ll1_nonterminals(grammar, &ff, &config);
+    let (terminal_sets, match_any_count) =
+        terminal_sets(grammar, &ff, &terminal_ids, &ll1_nonterminals);
+    let first_chars = FirstChars::new(grammar);
 
     let mut parser_gen = ParserGen::new(
         grammar,
@@ -298,8 +302,7 @@ pub fn generate_sources(
         &slot_ids,
         &binding_ids,
         &ff,
-        &terminal_sets,
-        match_any_count,
+        &ll1_nonterminals,
         config,
     );
     let parser_code = parser_gen.generate();
@@ -310,7 +313,7 @@ pub fn generate_sources(
             &scanner_gen::generate(
                 grammar,
                 &terminal_ids,
-                &FirstChars::new(grammar),
+                &first_chars,
                 &terminal_sets,
                 match_any_count,
                 &config,
@@ -336,10 +339,13 @@ pub fn generate_sources(
         post_process(
             &grammar_gen::generate(
                 grammar,
+                &ff,
+                &first_chars,
                 &nonterminal_ids,
                 &terminal_ids,
                 &slot_ids,
                 &terminal_sets,
+                &ll1_nonterminals,
             )
             .to_string(),
         ),
