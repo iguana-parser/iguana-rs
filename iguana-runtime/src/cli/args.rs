@@ -100,14 +100,25 @@ pub struct Args {
     pub trace: Option<Option<PathBuf>>,
     /// Run the parser many times and report timing statistics
     ///
-    /// Benchmarks a single file (the positional argument) or a --dir; otherwise the corpus listed in repos.txt. Reports min, mean, median, p90, max, stddev (in ms) for each phase: input (file read), init (allocation), parse (input characters to the SPPF), tree (SPPF to parse tree), drop (teardown); total is their sum.
+    /// Benchmarks a single file (the positional argument), a --dir or a file list (--files-from); otherwise the corpus listed in repos.txt. Reports min, mean, median, p90, max, stddev (in ms) for each phase: input (file read), init (allocation), parse (input characters to the SPPF), tree (SPPF to parse tree), drop (teardown); total is their sum.
     ///
-    /// A file that has a parse error or is ambiguous does not count toward the phases. A single file is then reported by its status and its time, which for a parse error is the time until the parser reported the error. With a --dir or the corpus, these files and the files that cannot be read are reported separately by status
+    /// A file that has a parse error or is ambiguous does not count toward the phases. A single file is then reported by its status and its time, which for a parse error is the time until the parser reported the error. With a --dir, a file list or the corpus, these files and the files that cannot be read are reported separately by status
     #[arg(long, help_heading = "Benchmarking and profiling")]
     pub benchmark: bool,
+    /// Benchmark the files listed in FILE, one path per line, in the file's order
+    ///
+    /// Blank lines are skipped. Relative paths are resolved against the current directory, not FILE's
+    #[arg(
+        long,
+        value_name = "FILE",
+        requires = "benchmark",
+        conflicts_with_all = ["file", "dir", "ext"],
+        help_heading = "Benchmarking and profiling"
+    )]
+    pub files_from: Option<PathBuf>,
     /// Number of measured iterations for --benchmark
     ///
-    /// Defaults to 100 for a single file, 3 for a directory or corpus (one iteration is a full pass over every file)
+    /// Defaults to 100 for a single file, 3 for a directory, file list or corpus (one iteration is a full pass over every file)
     #[arg(
         long,
         value_name = "N",
@@ -117,7 +128,7 @@ pub struct Args {
     pub iters: Option<u32>,
     /// Number of warmup iterations before measurement
     ///
-    /// Defaults to 10 for a single file, 0 for a directory or corpus (a whole-corpus pass self-warms, so a cold first pass is just the median's slow outlier)
+    /// Defaults to 10 for a single file, 0 for a directory, file list or corpus (a whole-corpus pass self-warms, so a cold first pass is just the median's slow outlier)
     #[arg(
         long,
         value_name = "N",

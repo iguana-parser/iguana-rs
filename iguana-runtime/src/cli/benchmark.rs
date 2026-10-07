@@ -21,8 +21,9 @@ use super::{
 /// - Single: a single file (the positional argument) is parsed `--iters`
 ///   times (100 by default), after `--warmup` runs that are discarded (10 by
 ///   default).
-/// - Batch: every file in a directory (`--dir`) is parsed, or every file in
-///   the corpus when no directory is given. The corpus is the list of
+/// - Batch: every file in a directory (`--dir`) or in a file list
+///   (`--files-from`, in order) is parsed, or every file in the corpus when
+///   neither is given. The corpus is the list of
 ///   repositories in the `repos.txt` file of the corpus directory
 ///   (`--corpus-dir`, `corpus` by default). An iteration in the batch mode
 ///   is a pass over all the files. By default, the number of iterations is
@@ -77,7 +78,17 @@ pub(super) fn run<'i, 'arena, P: Parser<'i, 'arena>>(args: &Args) -> io::Result<
         baseline: args.baseline.clone(),
     };
     let mut groups: Vec<(String, Vec<(PathBuf, NonterminalId)>)> = Vec::new();
-    if let Some(dir) = args.dir.as_ref() {
+    if let Some(list) = args.files_from.as_ref() {
+        let start_nonterminal_id =
+            start_nonterminal_id::<P::Grammar>(start_nonterminal_name(args)?)?;
+        let text = fs::read_to_string(list)
+            .map_err(|e| io::Error::new(e.kind(), format!("{}: {}", list.display(), e)))?;
+        let paired = file_list(&text)
+            .into_iter()
+            .map(|p| (p, start_nonterminal_id))
+            .collect();
+        groups.push((list.display().to_string(), paired));
+    } else if let Some(dir) = args.dir.as_ref() {
         let start_nonterminal_id =
             start_nonterminal_id::<P::Grammar>(start_nonterminal_name(args)?)?;
         let mut files = Vec::new();
@@ -124,7 +135,7 @@ pub(super) fn run<'i, 'arena, P: Parser<'i, 'arena>>(args: &Args) -> io::Result<
     } else {
         "iterations"
     };
-    if args.dir.is_none() {
+    if args.dir.is_none() && args.files_from.is_none() {
         eprintln!(
             "Running the corpus ({} files), {} {}:",
             total, config.iters, iterations_word
@@ -210,6 +221,14 @@ pub(super) fn run<'i, 'arena, P: Parser<'i, 'arena>>(args: &Args) -> io::Result<
     })
 }
 
+/// The paths in a file list (--files-from), in order, without blank lines.
+fn file_list(text: &str) -> Vec<PathBuf> {
+    text.lines()
+        .filter(|line| !line.trim().is_empty())
+        .map(PathBuf::from)
+        .collect()
+}
+
 /// Parses one file under a benchmark and records the file in `pass`, under
 /// each phase the file goes through (`Phase`). The input is reloaded so the
 /// `input` phase is measured. The caller's arenas are reused across files
@@ -276,8 +295,8 @@ fn bench_parse_file<'i, 'arena, P: Parser<'i, 'arena>>(
     record(pass, Phase::Drop, drop, bytes);
 }
 
-/// The mode of a benchmark: a single file, or every file of a directory or
-/// of the corpus.
+/// The mode of a benchmark: a single file, or every file of a directory, a
+/// file list or the corpus.
 #[derive(Clone, Copy, PartialEq, Eq)]
 enum BenchMode {
     Single,
@@ -728,6 +747,18 @@ fn summarize(samples_ms: &[f64]) -> BenchSummary {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn file_list_keeps_the_order_and_skips_blank_lines() {
+        assert_eq!(
+            file_list("b.sql\n\na.sql\n  \nsub/c.sql\n"),
+            [
+                PathBuf::from("b.sql"),
+                PathBuf::from("a.sql"),
+                PathBuf::from("sub/c.sql"),
+            ]
+        );
+    }
 
     #[test]
     fn phase_groups_cover_every_phase_once() {
