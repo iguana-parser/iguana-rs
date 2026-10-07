@@ -31,8 +31,8 @@ pub struct NonterminalIds {
 impl NonterminalIds {
     pub fn new(nonterminals: impl Iterator<Item = Nonterminal>) -> Self {
         // We sort the nonterminals so that nonterminals without parameters come first.
-        // This is because we use a single vector `gss_nodes_index` for such nonterminals.
-        // For data-dependent nonterminals which have parameters, we generate a separate
+        // Nonterminals without parameters share `gss_nodes_index`; each data-dependent
+        // nonterminal gets its own `gss_nodes_index_<name>` field.
         let nonterminals: IndexSet<_> = nonterminals
             .sorted_by_key(|nt| !nt.parameters.is_empty())
             .collect();
@@ -60,6 +60,11 @@ impl NonterminalIds {
     }
     pub fn nonterminals(&self) -> impl Iterator<Item = &Nonterminal> {
         self.nonterminals.iter()
+    }
+    /// The id of the first data-dependent nonterminal; nonterminals without
+    /// parameters have the ids below it.
+    pub fn dd_id_start(&self) -> usize {
+        self.dd_id_start
     }
     pub fn dd_nonterminals(&self) -> impl Iterator<Item = &Nonterminal> {
         self.nonterminals.iter().skip(self.dd_id_start)

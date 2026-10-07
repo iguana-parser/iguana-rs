@@ -27,7 +27,7 @@ use iguana_runtime::{
     result::{ParseError, ParseSuccess},
     scanner::{Scanner, TerminalSet},
     sppf::{IntermediateNode, NonterminalNode, SPPFNode, SPPFNodeId, TerminalNode},
-    utils::{inline_map::InlineMap, inline_vec::InlineVec},
+    utils::{inline_map::InlineMap, inline_vec::InlineVec, lazy_inline_maps::LazyInlineMaps},
 };
 use rustc_hash::FxHashMap;
 use std::cell::OnceCell;
@@ -275,9 +275,8 @@ impl<'i, 'arena> Parser<'i, 'arena> for AmbParser<'i, 'arena> {
         }
     }
     fn get_gss_node(&self, nonterminal_id: NonterminalId, input_index: u32) -> Option<GssNodeId> {
-        self.gss_nodes_index[nonterminal_id.index()]
-            .get(&input_index)
-            .copied()
+        self.gss_nodes_index
+            .get(nonterminal_id.index(), &input_index)
     }
     fn add_gss_node(
         &mut self,
@@ -286,7 +285,8 @@ impl<'i, 'arena> Parser<'i, 'arena> for AmbParser<'i, 'arena> {
         gss_node_id: GssNodeId,
     ) {
         let arena = self.vec_arena;
-        self.gss_nodes_index[nonterminal_id.index()].insert(input_index, gss_node_id, arena);
+        self.gss_nodes_index
+            .insert(nonterminal_id.index(), input_index, gss_node_id, arena);
     }
     fn new_gss_node(&mut self, nonterminal_id: NonterminalId, input_index: u32) -> GssNodeId {
         let gss_node_id = GssNodeId(self.gss_nodes.len() as u32);
@@ -337,7 +337,8 @@ impl<'i, 'arena> Parser<'i, 'arena> for AmbParser<'i, 'arena> {
     fn add_terminal_node(&mut self, terminal_node: TerminalNode) -> SPPFNodeId {
         let terminal_node_id = SPPFNodeId(self.sppf_nodes.len() as u32);
         let arena = self.vec_arena;
-        self.terminal_nodes_index[terminal_node.terminal_id.index()].insert(
+        self.terminal_nodes_index.insert(
+            terminal_node.terminal_id.index(),
             terminal_node.span,
             terminal_node_id,
             arena,
@@ -375,14 +376,16 @@ impl<'i, 'arena> Parser<'i, 'arena> for AmbParser<'i, 'arena> {
             let arena = self.vec_arena;
             let slot_idx = intermediate_node.slot_id.index();
             if slot_idx < 6 {
-                self.intermediate_nodes_index[slot_idx].insert(
+                self.intermediate_nodes_index.insert(
+                    slot_idx,
                     intermediate_node.span,
                     intermediate_node_id,
                     arena,
                 );
             } else {
                 let idx = slot_idx - 6;
-                self.dd_intermediate_nodes_index[idx].insert(
+                self.dd_intermediate_nodes_index.insert(
+                    idx,
                     (intermediate_node.span, env),
                     intermediate_node_id,
                     arena,
@@ -465,12 +468,10 @@ impl<'i, 'arena> Parser<'i, 'arena> for AmbParser<'i, 'arena> {
         let slot_idx = slot_id.index();
         let span = Span::new(left_extent, right_extent);
         if slot_idx < 6 {
-            self.intermediate_nodes_index[slot_idx].get(&span).copied()
+            self.intermediate_nodes_index.get(slot_idx, &span)
         } else {
             let idx = slot_idx - 6;
-            self.dd_intermediate_nodes_index[idx]
-                .get(&(span, env))
-                .copied()
+            self.dd_intermediate_nodes_index.get(idx, &(span, env))
         }
     }
     fn lookup_terminal_node(
@@ -479,8 +480,8 @@ impl<'i, 'arena> Parser<'i, 'arena> for AmbParser<'i, 'arena> {
         left_extent: u32,
         right_extent: u32,
     ) -> Option<SPPFNodeId> {
-        let map = &self.terminal_nodes_index[terminal_id.index()];
-        map.get(&Span::new(left_extent, right_extent)).copied()
+        self.terminal_nodes_index
+            .get(terminal_id.index(), &Span::new(left_extent, right_extent))
     }
     fn gss_nodes<'p>(&'p self) -> impl Iterator<Item = &'p GSSNode<'arena>>
     where
@@ -629,17 +630,17 @@ impl<'i, 'arena> Parser<'i, 'arena> for AmbParser<'i, 'arena> {
         for env in self.envs() {
             stats.record("Env::bindings: Bindings", env.bindings.len());
         }
-        for m in self.intermediate_nodes_index.iter() {
-            stats.record("Parser::intermediate_nodes_index: InlineMap", m.len());
+        for len in self.intermediate_nodes_index.map_lens() {
+            stats.record("Parser::intermediate_nodes_index: InlineMap", len);
         }
-        for m in self.dd_intermediate_nodes_index.iter() {
-            stats.record("Parser::dd_intermediate_nodes_index: InlineMap", m.len());
+        for len in self.dd_intermediate_nodes_index.map_lens() {
+            stats.record("Parser::dd_intermediate_nodes_index: InlineMap", len);
         }
-        for m in self.terminal_nodes_index.iter() {
-            stats.record("Parser::terminal_nodes_index: InlineMap", m.len());
+        for len in self.terminal_nodes_index.map_lens() {
+            stats.record("Parser::terminal_nodes_index: InlineMap", len);
         }
-        for m in self.gss_nodes_index.iter() {
-            stats.record("Parser::gss_nodes_index: InlineMap", m.len());
+        for len in self.gss_nodes_index.map_lens() {
+            stats.record("Parser::gss_nodes_index: InlineMap", len);
         }
         stats.record("Parser::gss_nodes_index_e", self.gss_nodes_index_e.len());
         for (nt_id, pos) in &self.ll1_call_log {
@@ -711,7 +712,7 @@ pub struct AmbParser<'i, 'arena> {
     descriptors: ArenaVec<'arena, Descriptor>,
     gss_nodes: ArenaVec<'arena, GSSNode<'arena>>,
     // Per-nonterminal GSS-node index keyed by input position.
-    gss_nodes_index: [InlineMap<'arena, u32, GssNodeId>; 4],
+    gss_nodes_index: LazyInlineMaps<'arena, u32, GssNodeId>,
     // GSS index for nonterminal E
     gss_nodes_index_e: InlineMap<'arena, (u32, i32), GssNodeId>,
     sppf_nodes: ArenaVec<'arena, SPPFNode>,
@@ -722,11 +723,11 @@ pub struct AmbParser<'i, 'arena> {
     #[cfg(feature = "instrument")]
     ll1_call_log: Vec<(NonterminalId, u32)>,
     // Per-slot Span-keyed intermediate-node index, for slots in non-parameterized nonterminals.
-    intermediate_nodes_index: [InlineMap<'arena, Span, SPPFNodeId>; 6],
+    intermediate_nodes_index: LazyInlineMaps<'arena, Span, SPPFNodeId>,
     // Per-slot (Span, env)-keyed intermediate-node index, for slots in parameterized
     // nonterminals; env separates calls made with different parameter values.
-    dd_intermediate_nodes_index: [InlineMap<'arena, (Span, Option<EnvId>), SPPFNodeId>; 17],
-    terminal_nodes_index: [InlineMap<'arena, Span, SPPFNodeId>; 5],
+    dd_intermediate_nodes_index: LazyInlineMaps<'arena, (Span, Option<EnvId>), SPPFNodeId>,
+    terminal_nodes_index: LazyInlineMaps<'arena, Span, SPPFNodeId>,
     // An intermediate node keeps its first child inline. Children of intermediate nodes are
     // pairs: (left_child, right_child). Extra children, when there is ambiguity, are stored here
     // as (parent node, (left child, right child)).
@@ -759,7 +760,7 @@ impl<'i, 'arena> AmbParser<'i, 'arena> {
         Self {
             vec_arena,
             scanner: AmbScanner::new(input, vec_arena),
-            gss_nodes_index: [const { InlineMap::Empty }; 4],
+            gss_nodes_index: LazyInlineMaps::new(3, vec_arena),
             gss_nodes_index_e: InlineMap::Empty,
             descriptors: vec_arena.vec_with_capacity(
                 input.len() as usize / DESCRIPTORS_CAPACITY_DIVISOR + DESCRIPTORS_CAPACITY_FLOOR,
@@ -767,9 +768,9 @@ impl<'i, 'arena> AmbParser<'i, 'arena> {
             gss_nodes: vec_arena.vec_with_capacity(input.len() as usize * GSS_CAPACITY_MULTIPLIER),
             sppf_nodes: vec_arena
                 .vec_with_capacity(input.len() as usize * SPPF_CAPACITY_MULTIPLIER),
-            intermediate_nodes_index: [const { InlineMap::Empty }; 6],
-            dd_intermediate_nodes_index: [const { InlineMap::Empty }; 17],
-            terminal_nodes_index: [const { InlineMap::Empty }; 5],
+            intermediate_nodes_index: LazyInlineMaps::new(6, vec_arena),
+            dd_intermediate_nodes_index: LazyInlineMaps::new(17, vec_arena),
+            terminal_nodes_index: LazyInlineMaps::new(5, vec_arena),
             #[cfg(feature = "instrument")]
             descriptors_count: 0,
             #[cfg(feature = "instrument")]

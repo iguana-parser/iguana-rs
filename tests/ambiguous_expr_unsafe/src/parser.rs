@@ -26,7 +26,7 @@ use iguana_runtime::{
     result::{ParseError, ParseSuccess},
     scanner::{Scanner, TerminalSet},
     sppf::{IntermediateNode, NonterminalNode, SPPFNode, SPPFNodeId, TerminalNode},
-    utils::{inline_map::InlineMap, inline_vec::InlineVec},
+    utils::{inline_vec::InlineVec, lazy_inline_maps::LazyInlineMaps},
 };
 impl<'i, 'arena> Parser<'i, 'arena> for AmbiguousExprUnsafeParser<'i, 'arena> {
     type Grammar = AmbiguousExprUnsafeGrammar;
@@ -995,9 +995,8 @@ impl<'i, 'arena> Parser<'i, 'arena> for AmbiguousExprUnsafeParser<'i, 'arena> {
         }
     }
     fn get_gss_node(&self, nonterminal_id: NonterminalId, input_index: u32) -> Option<GssNodeId> {
-        self.gss_nodes_index[nonterminal_id.index()]
-            .get(&input_index)
-            .copied()
+        self.gss_nodes_index
+            .get(nonterminal_id.index(), &input_index)
     }
     fn add_gss_node(
         &mut self,
@@ -1006,7 +1005,8 @@ impl<'i, 'arena> Parser<'i, 'arena> for AmbiguousExprUnsafeParser<'i, 'arena> {
         gss_node_id: GssNodeId,
     ) {
         let arena = self.vec_arena;
-        self.gss_nodes_index[nonterminal_id.index()].insert(input_index, gss_node_id, arena);
+        self.gss_nodes_index
+            .insert(nonterminal_id.index(), input_index, gss_node_id, arena);
     }
     fn new_gss_node(&mut self, nonterminal_id: NonterminalId, input_index: u32) -> GssNodeId {
         let gss_node_id = GssNodeId(self.gss_nodes.len() as u32);
@@ -1227,8 +1227,8 @@ impl<'i, 'arena> Parser<'i, 'arena> for AmbiguousExprUnsafeParser<'i, 'arena> {
         for env in self.envs() {
             stats.record("Env::bindings: Bindings", env.bindings.len());
         }
-        for m in self.gss_nodes_index.iter() {
-            stats.record("Parser::gss_nodes_index: InlineMap", m.len());
+        for len in self.gss_nodes_index.map_lens() {
+            stats.record("Parser::gss_nodes_index: InlineMap", len);
         }
         for (nt_id, pos) in &self.ll1_call_log {
             let name = Self::Grammar::nonterminal_display_name(*nt_id);
@@ -1299,7 +1299,7 @@ pub struct AmbiguousExprUnsafeParser<'i, 'arena> {
     descriptors: ArenaVec<'arena, Descriptor>,
     gss_nodes: ArenaVec<'arena, GSSNode<'arena>>,
     // Per-nonterminal GSS-node index keyed by input position.
-    gss_nodes_index: [InlineMap<'arena, u32, GssNodeId>; 4],
+    gss_nodes_index: LazyInlineMaps<'arena, u32, GssNodeId>,
     sppf_nodes: ArenaVec<'arena, SPPFNode>,
     #[cfg(feature = "instrument")]
     descriptors_count: usize,
@@ -1326,7 +1326,7 @@ impl<'i, 'arena> AmbiguousExprUnsafeParser<'i, 'arena> {
         Self {
             vec_arena,
             scanner: AmbiguousExprUnsafeScanner::new(input, vec_arena),
-            gss_nodes_index: [const { InlineMap::Empty }; 4],
+            gss_nodes_index: LazyInlineMaps::new(4, vec_arena),
             descriptors: vec_arena.vec_with_capacity(
                 input.len() as usize / DESCRIPTORS_CAPACITY_DIVISOR + DESCRIPTORS_CAPACITY_FLOOR,
             ),

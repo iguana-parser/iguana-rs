@@ -15,6 +15,11 @@ const MULTIPLE_CAPACITY: usize = 7;
 /// The arena is passed rather than stored, so the inline variants stay
 /// allocator-free and minimal-width. Spilled tables live in the arena and
 /// free all at once, not one drop each.
+///
+/// This is not a general-purpose map. The implementation is designed for the
+/// GLL parser, which inserts a key only after a lookup for that key has failed,
+/// so a key is never inserted twice. The behavior of the map when inserting a
+/// key that is already present is not specified.
 #[derive(Debug, Default)]
 pub enum InlineMap<'arena, K: Clone + Eq + Hash, V: Clone> {
     #[default]
@@ -26,9 +31,8 @@ pub enum InlineMap<'arena, K: Clone + Eq + Hash, V: Clone> {
 
 impl<'arena, K: Clone + Eq + Hash, V: Clone> InlineMap<'arena, K, V> {
     /// Inserts `(key, value)`. Allocates the spilled table from `arena` on the
-    /// `Pair`-to-`Multiple` transition; smaller variants ignore it. The caller
-    /// must ensure `key` is absent; inserting a duplicate promotes the map early
-    /// and leaves that key's lookup unspecified.
+    /// `Pair`-to-`Multiple` transition; smaller variants ignore it. `key` must
+    /// be absent (see the type documentation).
     pub fn insert(&mut self, key: K, value: V, arena: &'arena Arena) {
         match self {
             InlineMap::Empty => *self = InlineMap::Single((key, value)),
