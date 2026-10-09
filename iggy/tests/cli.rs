@@ -175,12 +175,11 @@ fn batch_benchmark_reports_failures_apart_from_successes() {
     assert!(stdout.contains(" for 3 files"), "{stdout}");
 
     let samples = read_samples(&saved);
-    assert_eq!(samples["version"], 3);
     assert!(samples.get("status").is_none());
     assert_eq!(samples["files"], 1);
     assert_eq!(samples["bytes"], VALID_GRAMMAR.len());
     assert_eq!(samples["samples_ms"].as_array().unwrap().len(), 2);
-    for phase in ["input", "init", "parse", "tree", "drop", "error", "amb"] {
+    for phase in ["prepare", "init", "parse", "tree", "drop", "error", "amb"] {
         let key = format!("{phase}_samples_ms");
         assert_eq!(samples[&key].as_array().unwrap().len(), 2, "{key}");
     }

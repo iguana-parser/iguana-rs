@@ -1,5 +1,6 @@
 use serde::{Deserialize, Serialize};
 use std::hash::{Hash, Hasher};
+use std::sync::OnceLock;
 use std::{fs, io, path::Path};
 
 /// A half-open range `[left_extent, right_extent)` of input indexes.
@@ -38,8 +39,12 @@ pub struct Input {
     source: Vec<char>,
     // The size of the source text in bytes.
     byte_len: u32,
-    // line_start_end_offsets[i] = (start_offset, end_offset) at line i
-    line_start_end_offsets: Vec<(u32, u32)>,
+    // line_starts[i] = start_offset at line i.
+    // This table is not needed during parsing and is built on first use.
+    // It is used by error reporting, the compiler's span table for attaching
+    // comments and formatting, and the LSP server for line and column
+    // information.
+    line_starts: OnceLock<Vec<u32>>,
 }
 
 impl From<String> for Input {
@@ -55,12 +60,10 @@ impl From<&str> for Input {
             "Input exceeds maximum size of {} bytes",
             u32::MAX
         );
-        let source: Vec<char> = value.chars().collect();
-        let line_columns = Self::calc_line_start_offsets(&source);
         Input {
-            source,
+            source: value.chars().collect(),
             byte_len: value.len() as u32,
-            line_start_end_offsets: line_columns,
+            line_starts: OnceLock::new(),
         }
     }
 }
@@ -107,54 +110,56 @@ impl Input {
             .iter()
             .collect()
     }
+    /// Start offset of each line.
+    /// Builds the table on the first call.
+    fn line_starts(&self) -> &[u32] {
+        self.line_starts
+            .get_or_init(|| Self::calc_line_starts(&self.source))
+    }
+
+    /// End offset (exclusive) of `line`: where the next line starts,
+    /// or the end of the input for the last line.
+    fn line_end_offset(&self, line: usize) -> u32 {
+        self.line_starts()
+            .get(line + 1)
+            .copied()
+            .unwrap_or(self.len())
+    }
+
     /// Returns the offset (index from the beginning of input) for the given
     /// line/column.
     pub fn offset(&self, line: u32, column: u32) -> u32 {
-        self.line_start_end_offsets[line as usize].0 + column
+        self.line_starts()[line as usize] + column
     }
 
     /// Returns the line and column corresponding to the given input index.
+    /// The index must be less than or equal to the number of characters in
+    /// the input. If it's equal to the number of characters, it represents EOF.
     pub fn line_column(&self, input_index: u32) -> (u32, u32) {
-        // Empty input has no line offsets, return origin.
-        if self.line_start_end_offsets.is_empty() {
+        let line_starts = self.line_starts();
+        // Empty input has no lines, return origin.
+        if line_starts.is_empty() {
             return (0, 0);
         }
-        // EOF position: column just past the last character on the last line.
-        if input_index == self.len() {
-            let last_line = self.line_start_end_offsets.len() as u32 - 1;
-            let (start, _) = self.line_start_end_offsets[last_line as usize];
-            return (last_line, input_index - start);
-        }
         assert!(
-            input_index < self.len(),
+            input_index <= self.len(),
             "input_index {} out of bounds (input length {})",
             input_index,
             self.len()
         );
-        let mut low: u32 = 0;
-        let mut high: u32 = self.line_start_end_offsets.len() as u32 - 1;
-        while low <= high {
-            let mid = low + (high - low) / 2;
-            let (start, end) = self.line_start_end_offsets[mid as usize];
-            if input_index >= start && input_index < end {
-                return (mid, input_index - start);
-            } else if input_index < start {
-                high = mid - 1;
-            } else {
-                low = mid + 1;
-            }
-        }
-        unreachable!()
+        // The line whose start and end offsets contain the index.
+        let line = line_starts.partition_point(|&start| start <= input_index) - 1;
+        (line as u32, input_index - line_starts[line])
     }
     /// End offset (exclusive) of the line containing `input_index`, excluding a
     /// trailing newline. Clamps an error highlight to a single line.
     pub fn line_end(&self, input_index: u32) -> u32 {
-        if self.line_start_end_offsets.is_empty() {
+        if self.is_empty() {
             return input_index;
         }
         let (line, _) = self.line_column(input_index);
-        let (_, end_offset) = self.line_start_end_offsets[line as usize];
-        // Lines ending with \n have end_offset pointing past the newline.
+        let end_offset = self.line_end_offset(line as usize);
+        // A line that ends with \n has its end offset past the newline.
         if self.char_at(end_offset - 1) == Some('\n') {
             end_offset - 1
         } else {
@@ -166,11 +171,11 @@ impl Input {
     /// trailing newline, to let a caller embed it in a larger message. Empty
     /// input has no line to show and returns an empty string.
     pub fn line_and_caret(&self, input_index: u32, len: u32) -> String {
-        if self.line_start_end_offsets.is_empty() {
+        if self.is_empty() {
             return String::new();
         }
         let (line, column) = self.line_column(input_index);
-        let (start_offset, _) = self.line_start_end_offsets[line as usize];
+        let start_offset = self.line_starts()[line as usize];
         let line_str = self.text(Span::new(start_offset, self.line_end(input_index)));
         format!(
             "{}\n{}{}",
@@ -191,22 +196,23 @@ impl Input {
             self.line_and_caret(input_index, 1),
         )
     }
-    /// Returns a vector v, where (s, e) = v[i] represents the start offset (inclusive)
-    /// and the end offset (exclusive) at line i.
-    fn calc_line_start_offsets(chars: &[char]) -> Vec<(u32, u32)> {
-        let mut start_end_offsets = vec![];
-        let mut start_index: u32 = 0;
+    /// Returns a vector v, where v[i] is the start offset (inclusive) of line
+    /// i. A line ends where the next one starts, and the last line ends at
+    /// the end of the input, so the end offsets are not stored. Empty input
+    /// has no lines.
+    fn calc_line_starts(chars: &[char]) -> Vec<u32> {
+        if chars.is_empty() {
+            return Vec::new();
+        }
+        let mut line_starts = vec![0];
         for (i, c) in chars.iter().enumerate() {
-            if *c == '\n' {
-                start_end_offsets.push((start_index, i as u32 + 1));
-                start_index = i as u32 + 1;
+            // A newline at the end closes the last line rather than opening
+            // an empty one after it.
+            if *c == '\n' && i + 1 < chars.len() {
+                line_starts.push(i as u32 + 1);
             }
         }
-        // Push the last line, as it may not end with a newline
-        if start_index < chars.len() as u32 {
-            start_end_offsets.push((start_index, chars.len() as u32));
-        }
-        start_end_offsets
+        line_starts
     }
 }
 

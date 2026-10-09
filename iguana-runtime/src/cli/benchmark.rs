@@ -231,7 +231,7 @@ fn file_list(text: &str) -> Vec<PathBuf> {
 
 /// Parses one file under a benchmark and records the file in `pass`, under
 /// each phase the file goes through (`Phase`). The input is reloaded so the
-/// `input` phase is measured. The caller's arenas are reused across files
+/// `prepare` phase is measured. The caller's arenas are reused across files
 /// and reset between them, so they keep their chunks and teardown is a bulk
 /// reset rather than a per-file free, the pattern the arena is built for.
 fn bench_parse_file<'i, 'arena, P: Parser<'i, 'arena>>(
@@ -241,16 +241,20 @@ fn bench_parse_file<'i, 'arena, P: Parser<'i, 'arena>>(
     parser_arena: &mut Arena,
     pass: &mut Pass,
 ) {
-    let input_start = Instant::now();
-    let input = match Input::try_from(path) {
-        Ok(input) => input,
+    // Reading the file is deliberately not included in benchmarks. It
+    // measures the file system rather than the parser, and its time varies
+    // between runs because of factors like the page cache.
+    let text = match fs::read_to_string(path) {
+        Ok(text) => text,
         Err(_) => {
             let bytes = fs::metadata(path).map(|m| m.len()).unwrap_or(0);
             record(pass, Phase::IoError, Duration::ZERO, bytes);
             return;
         }
     };
-    let input_time = input_start.elapsed();
+    let prepare_start = Instant::now();
+    let input = Input::from(text);
+    let prepare_time = prepare_start.elapsed();
     let bytes = input.byte_len() as u64;
     let init_start = Instant::now();
     let mut parser = P::ConcreteParser::<'_, '_>::new(&input, parser_arena);
@@ -288,7 +292,7 @@ fn bench_parse_file<'i, 'arena, P: Parser<'i, 'arena>>(
     tree_arena.reset();
     drop(input);
     let drop = drop_start.elapsed();
-    record(pass, Phase::Input, input_time, bytes);
+    record(pass, Phase::Prepare, prepare_time, bytes);
     record(pass, Phase::Init, init, bytes);
     record(pass, Phase::Parse, parse, bytes);
     record(pass, Phase::Tree, tree, bytes);
@@ -328,8 +332,10 @@ struct BenchSummary {
 /// Failure group.
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
 enum Phase {
-    /// File read + line/column offset table construction.
-    Input,
+    /// Input preparation: decoding the source into characters. Reading the
+    /// file is not timed, because it measures the file system rather than
+    /// the parser.
+    Prepare,
     /// Arenas + parse tree builder + Parser allocation.
     Init,
     /// The GLL parse itself.
@@ -350,12 +356,18 @@ enum Phase {
 
 impl Phase {
     const COUNT: usize = 8;
-    const SUCCESS: [Phase; 5] = [Self::Input, Self::Init, Self::Parse, Self::Tree, Self::Drop];
+    const SUCCESS: [Phase; 5] = [
+        Self::Prepare,
+        Self::Init,
+        Self::Parse,
+        Self::Tree,
+        Self::Drop,
+    ];
     const FAILURE: [Phase; 3] = [Self::Error, Self::Amb, Self::IoError];
 
     fn name(self) -> &'static str {
         match self {
-            Self::Input => "input",
+            Self::Prepare => "prepare",
             Self::Init => "init",
             Self::Parse => "parse",
             Self::Tree => "tree",
@@ -405,19 +417,22 @@ fn as_ms(time: Duration) -> f64 {
 }
 
 /// Runs `parse_once` `warmup + iters` times, collecting per-phase timings.
-/// Warmup samples are discarded. Prints summary stats for total and each
-/// phase plus throughput (MB/s) at the median total. In the batch mode, the
-/// phases cover the Success group, and the Failure group follows them: its
-/// files and time by status, then the time of all files. In the single mode,
-/// a file with a parse error or an ambiguity is printed as its status and
-/// the stats of its time, with no phases. If `config.save` is set, writes
-/// the raw samples as JSON. If `config.baseline` is set, loads a prior run
-/// and reports the mean delta on total time with a 95% CI on the difference
-/// (Welch's SE for unequal variances).
+/// Warmup samples are discarded. Prints summary stats for each phase and for
+/// the total, which covers every phase but input preparation, then the
+/// throughput (MB/s) at the median total. In the batch mode, the phases cover
+/// the Success group, and the Failure group follows: its files and time by
+/// status, then the time of all files. In the single mode, a file with a
+/// parse error or an ambiguity is printed as its status and the stats of its
+/// time, with no phases. If `config.save` is set, writes the raw samples as
+/// JSON. If `config.baseline` is set, loads a prior run and reports the mean
+/// delta on the reported total with a 95% CI on the difference (Welch's SE
+/// for unequal variances).
 fn run_benchmark(config: BenchConfig, mut parse_once: impl FnMut() -> Pass) -> io::Result<()> {
     // The time of each phase in each measured pass, indexed by `Phase`.
     let mut samples: [Vec<f64>; Phase::COUNT] = Default::default();
-    // The time of the Success group and of all phases in each measured pass.
+    // The time of the parsed files and of all files in each measured pass.
+    // Neither counts input preparation, so the two reconcile: the time of
+    // all files is the total plus the time of the files that failed.
     let mut total_samples = Vec::with_capacity(config.iters);
     let mut all_files_samples = Vec::with_capacity(config.iters);
     // The file counts and the sizes come from the last measured pass. Every
@@ -430,8 +445,11 @@ fn run_benchmark(config: BenchConfig, mut parse_once: impl FnMut() -> Pass) -> i
             for (phase_samples, stats) in samples.iter_mut().zip(&pass) {
                 phase_samples.push(as_ms(stats.time));
             }
-            total_samples.push(as_ms(success_time(&pass)));
-            all_files_samples.push(as_ms(total_time(&pass)));
+            // Input preparation is measured but reported on its own, so it
+            // is subtracted from both totals rather than from one of them.
+            let prepare = pass[Phase::Prepare as usize].time;
+            total_samples.push(as_ms(success_time(&pass) - prepare));
+            all_files_samples.push(as_ms(total_time(&pass) - prepare));
             last_pass = pass;
         }
     }
@@ -452,7 +470,7 @@ fn run_benchmark(config: BenchConfig, mut parse_once: impl FnMut() -> Pass) -> i
         BenchMode::Batch => None,
     };
     // The status of the run, the samples of the time it measures, and its
-    // size. They are those of the Success group, or those of the Failure
+    // size. They are those of the reported phases, or those of the Failure
     // phase of the file in the single mode. `--save` writes them, and
     // `--baseline` compares the status and the samples.
     let (status, measured_samples, bytes_per_iter) = match single_failure {
@@ -502,20 +520,30 @@ fn run_benchmark(config: BenchConfig, mut parse_once: impl FnMut() -> Pass) -> i
         print_phase_row(status, &measured, ms_decimals(measured.max));
     } else {
         // Header, then a phase per row, a rule, and the total last since it
-        // is the sum of the phases above it.
+        // is the sum of the phases above it. Input preparation stands apart
+        // below, since it is the one phase the total leaves out.
         print_phase_header(&color);
         let decimals = ms_decimals(measured.max);
-        for phase in Phase::SUCCESS {
+        for phase in Phase::SUCCESS.into_iter().filter(|p| *p != Phase::Prepare) {
             let summary = summarize(&samples[phase as usize]);
             print_phase_row(phase.name(), &summary, decimals);
         }
         println!("  {}", "-".repeat(8 + 6 * 14));
         print_phase_row("total", &measured, decimals);
         println!();
+        let prepare = summarize(&samples[Phase::Prepare as usize]);
+        print_phase_row(Phase::Prepare.name(), &prepare, decimals);
+        println!();
+        println!(
+            "The prepare phase (UTF-8 decoding) is not included in the total: the total\n\
+             measures parsing from the decoded text in memory."
+        );
+        println!();
         let parse = summarize(&samples[Phase::Parse as usize]);
         println!(
-            "Throughput (median): {:.2} MB/s total, {:.2} MB/s parse-only",
+            "Throughput (median): {:.2} MB/s total at {} ms, {:.2} MB/s parse-only",
             mb_per_s(bytes_per_iter, measured.median),
+            fmt_ms(measured.median, decimals),
             mb_per_s(bytes_per_iter, parse.median),
         );
     }
@@ -562,7 +590,6 @@ fn run_benchmark(config: BenchConfig, mut parse_once: impl FnMut() -> Pass) -> i
 
     if let Some(ref path) = config.save {
         let mut json = serde_json::json!({
-            "version": 3,
             "files": success.files,
             "bytes": bytes_per_iter,
             "samples_ms": measured_samples,
@@ -593,6 +620,20 @@ fn run_benchmark(config: BenchConfig, mut parse_once: impl FnMut() -> Pass) -> i
                 baseline_status,
                 status
             )));
+        }
+        // A baseline written by another build can hold the same keys with
+        // different meanings, so require the phases this build writes. The
+        // comparison reads only `samples_ms`, but a file missing a phase
+        // came from a format whose `samples_ms` is a different quantity.
+        for phase in Phase::SUCCESS.into_iter().chain(Phase::FAILURE) {
+            let key = format!("{}_samples_ms", phase.name());
+            if !parsed[&key].is_array() {
+                return Err(io::Error::other(format!(
+                    "the baseline {} has no {}, so it was written by another build and is not comparable",
+                    path.display(),
+                    key
+                )));
+            }
         }
         let baseline_samples: Vec<f64> = parsed["samples_ms"]
             .as_array()
@@ -777,7 +818,7 @@ mod tests {
         let mut pass = Pass::default();
         // Two files of the Success group, 10 bytes each.
         for _ in 0..2 {
-            record(&mut pass, Phase::Input, ms(1), 10);
+            record(&mut pass, Phase::Prepare, ms(1), 10);
             record(&mut pass, Phase::Init, ms(2), 10);
             record(&mut pass, Phase::Parse, ms(3), 10);
             record(&mut pass, Phase::Tree, ms(4), 10);
