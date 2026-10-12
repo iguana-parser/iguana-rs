@@ -876,6 +876,101 @@ fn display_root<N: ParseTreeNode>(
     node
 }
 
+/// The 64-bit FNV offset basis, the value FNV-1a starts from.
+const FNV_OFFSET_BASIS: u64 = 0xcbf2_9ce4_8422_2325;
+
+/// The 64-bit FNV prime, 2^40 + 2^8 + 0xb3.
+const FNV_PRIME: u64 = 0x100_0000_01b3;
+
+/// Returns a digest of the parse tree. The digest is used for comparison of
+/// two parse trees, without generating the s-expression.
+///
+/// The walk over the tree for digest calculation is exactly the same as for
+/// rendering s-expressions. We pass `DisplayOptions::default()` so that all
+/// the toggles are on, to traverse the tree with all the nodes.
+pub fn tree_digest<N: ParseTreeNode>(root: N) -> u64 {
+    let root = display_root(root, None, DisplayOptions::default());
+    let mut digest = TreeDigest {
+        hash: FNV_OFFSET_BASIS,
+        node_ids: FxHashMap::default(),
+        next_id: 0,
+    };
+    walk(root, &mut digest);
+    digest.hash
+}
+
+/// Folds a tree into a digest.
+struct TreeDigest {
+    /// The hash value: FNV-1a over the name and the span of every node in
+    /// the tree. Because the constants in FNV-1a are fixed and the numbers
+    /// are written as little-endian bytes, the same tree produces the same
+    /// hash in every build. This makes it possible to compare parse trees
+    /// across any machine.
+    hash: u64,
+    /// A map that associates a node's id (`node_id()`, a pointer value in a
+    /// generated parser) to an incremented id to uniquely identify the node.
+    /// This map is also used to avoid visiting a node for a second time.
+    node_ids: FxHashMap<usize, u32>,
+    /// The calculated id for the next node. This is used instead of the `node_id`
+    /// so that the digests are repeatable between runs.
+    next_id: u32,
+}
+
+impl TreeDigest {
+    fn write(&mut self, bytes: &[u8]) {
+        for byte in bytes {
+            self.hash ^= *byte as u64;
+            self.hash = self.hash.wrapping_mul(FNV_PRIME);
+        }
+    }
+}
+
+impl<N: ParseTreeNode> TreeVisitor<N> for TreeDigest {
+    fn enter(&mut self, node: N) -> Visit {
+        if let Some(key) = node.node_id() {
+            if let Some(id) = self.node_ids.get(&key).copied() {
+                // A second parent of a shared node, or a cycle back to it.
+                self.write(b"#");
+                self.write(&id.to_le_bytes());
+                return Visit::Skip;
+            }
+            self.node_ids.insert(key, self.next_id);
+        }
+        // Counted for every node, not only for the ones with an identity.
+        // This allows creating distinguishable digests when there are
+        // ambiguities or cycles, and nodes are shared in the tree.
+        // Numbering only the nodes with an identity gives the same id to the
+        // first sharable node of two trees that share different nodes, which
+        // then cannot be told apart. See the test case
+        // `digest_separates_trees_that_share_different_nodes`.
+        self.next_id += 1;
+        // The write format is as follows:
+        // ( name_length name_bytes left_extent right_extent children )
+        // The length allows the name to hold any characters, including '('
+        // and ')'. The parens maintain the shape of the tree. Without them,
+        // we cannot distinguish between a child and a sibling node, and as a
+        // result, two different trees can give the same digest.
+        self.write(b"(");
+        let name = node.display_name().as_bytes();
+        self.write(&(name.len() as u32).to_le_bytes());
+        self.write(name);
+        let span = node.span();
+        self.write(&span.left_extent.to_le_bytes());
+        self.write(&span.right_extent.to_le_bytes());
+        Visit::Children
+    }
+
+    // Without a marker for the end of a node, a child and a sibling would fold
+    // in the same bytes: (A (B (C))) would match (A (B) (C)).
+    fn exit(&mut self, _node: N) {
+        self.write(b")");
+    }
+
+    fn children(&self, node: N) -> Vec<N> {
+        display_children(node, None, DisplayOptions::default())
+    }
+}
+
 struct IndegreeCounter<'n> {
     layout_name: Option<&'n str>,
     options: DisplayOptions,
@@ -1010,7 +1105,9 @@ mod tests {
             self.kind
         }
         fn node_id(&self) -> Option<usize> {
-            Some(self.id)
+            // usize::MAX stands for a node that is never shared, as a token
+            // is in a generated parser.
+            (self.id != usize::MAX).then_some(self.id)
         }
         fn origin(&self) -> Option<Origin> {
             self.origin
@@ -1022,6 +1119,18 @@ mod tests {
         Node {
             name,
             id,
+            kind: NodeKind::Nonterminal,
+            origin: None,
+            children,
+        }
+    }
+
+    /// A node with no identity, which a renderer never labels and always
+    /// re-expands, as it does a token.
+    fn anonymous<'a>(name: &'static str, children: &'a [Node<'a>]) -> Node<'a> {
+        Node {
+            name,
+            id: usize::MAX,
             kind: NodeKind::Nonterminal,
             origin: None,
             children,
@@ -1115,6 +1224,68 @@ mod tests {
         assert_eq!(
             to_sexpr_with(s, Some("Layout"), DisplayOptions::default()),
             "(S\n  (A x)\n  (Layout ws)\n  b)\n"
+        );
+    }
+
+    /// The digest exists to stand in for the rendering, so it has to agree
+    /// with it: same s-expression, same digest, and a different one whenever
+    /// the rendering differs.
+    #[test]
+    fn digest_agrees_with_the_rendering() {
+        let leaf_b = [nonterminal("B", 2, &[])];
+        let leaf_c = [nonterminal("C", 3, &[])];
+        let nested = [nonterminal("B", 2, &leaf_c)];
+        let siblings = [nonterminal("B", 2, &[]), nonterminal("C", 3, &[])];
+
+        let one = nonterminal("A", 1, &leaf_b);
+        let same = nonterminal("A", 1, &leaf_b);
+        let deeper = nonterminal("A", 1, &nested);
+        let flat = nonterminal("A", 1, &siblings);
+
+        let options = DisplayOptions::default();
+        let digest = |node| tree_digest(node);
+        let render = |node| to_sexpr_with(node, None, options);
+
+        assert_eq!(render(one), render(same));
+        assert_eq!(digest(one), digest(same));
+
+        // A child and a sibling are different trees, and the digest has to
+        // separate them even though the same names appear in both.
+        assert_ne!(render(deeper), render(flat));
+        assert_ne!(digest(deeper), digest(flat));
+    }
+
+    /// Two trees that share different nodes must not fold into the same
+    /// bytes. Both of these expand the same two subtrees in the same order
+    /// and then write one back-reference, so the reference has to say which
+    /// node it points at.
+    #[test]
+    fn digest_separates_trees_that_share_different_nodes() {
+        let shared = nonterminal("A", 1, &[]);
+        let plain = nonterminal("B", 2, &[]);
+
+        // A is shared; B is a node that is never labelled.
+        let shares_first = [shared, anonymous("B", &[]), shared];
+        // B is shared; A is the one with no identity.
+        let shares_second = [anonymous("A", &[]), plain, plain];
+
+        assert_ne!(
+            tree_digest(nonterminal("R", 7, &shares_first)),
+            tree_digest(nonterminal("R", 8, &shares_second))
+        );
+    }
+
+    /// A node reached twice is expanded once and referenced after that, in
+    /// the digest as in the rendering, so a shared forest stays bounded.
+    #[test]
+    fn digest_handles_a_shared_node() {
+        let shared = [nonterminal("S", 9, &[])];
+        let twice = [shared[0], shared[0]];
+        let once = [shared[0]];
+
+        assert_ne!(
+            tree_digest(nonterminal("A", 1, &twice)),
+            tree_digest(nonterminal("A", 1, &once))
         );
     }
 

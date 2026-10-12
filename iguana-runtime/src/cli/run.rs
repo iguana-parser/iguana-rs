@@ -23,7 +23,8 @@ use pprof::ProfilerGuardBuilder;
 use super::{
     Symbols,
     args::{Args, Format},
-    batch, benchmark, corpus, golden_file, repl, start_nonterminal_id, start_nonterminal_name,
+    batch, benchmark, corpus, digest, golden_file, repl, start_nonterminal_id,
+    start_nonterminal_name,
 };
 
 #[cfg(feature = "dhat-heap")]
@@ -124,6 +125,9 @@ fn run<'i, 'arena, P: Parser<'i, 'arena>>() -> io::Result<()> {
     }
     if args.benchmark {
         return benchmark::run::<P>(&args);
+    }
+    if args.digest.is_some() {
+        return digest::run::<P>(&args);
     }
     if args.dir.is_some() {
         return batch::run::<P>(&args);

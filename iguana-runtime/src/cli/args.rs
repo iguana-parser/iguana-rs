@@ -50,6 +50,25 @@ pub struct Args {
     /// Reads inputs from stdin and prints each parse tree. Requires --start; no input file is used
     #[arg(long, help_heading = "Parsing")]
     pub repl: bool,
+    /// Write one digest line per file to FILE instead of the default --dir output
+    ///
+    /// Each --digest line is the status, the digest, and the path, separated by tabs.
+    #[arg(
+        long,
+        value_name = "FILE",
+        requires = "dir",
+        conflicts_with_all = [
+            "benchmark",
+            "check_sexpr",
+            "regenerate_sexpr",
+            "corpus_test",
+            "repl",
+            "list_nonterminals",
+            "write_symbols",
+        ],
+        help_heading = "Parsing"
+    )]
+    pub digest: Option<PathBuf>,
     /// List the nonterminals declared in the grammar
     ///
     /// The valid values for --start, one per line, then exits
