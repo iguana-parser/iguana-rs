@@ -195,10 +195,11 @@ pub fn visit_sppf<'i, 'arena, T: Debug + Clone, P: Parser<'i, 'arena>>(
 }
 
 /// A frame in the unambiguous walker: `Pre` visits a node, `Post` builds a
-/// nonterminal node from its children. A nonterminal node's `Pre` pushes the
-/// node's `Post` first and the child's `Pre` on top of it, so the `Post` runs
-/// once the whole subtree is done. Tokens are built at their `Pre` visit and
-/// need no `Post`.
+/// nonterminal node from its children. A nonterminal node's visit pushes the
+/// node's `Post` and continues with the child, so the `Post` runs once the
+/// whole subtree is done. An intermediate node's visit pushes the right
+/// child's `Pre` and continues with the left child. Tokens are built at their
+/// visit and need no `Post`.
 enum UnambiguousFrame<'p> {
     Pre(SPPFNodeId),
     /// `mark` is `values.len()` at the moment a `Post` frame is pushed. Everything
@@ -213,8 +214,8 @@ enum UnambiguousFrame<'p> {
 /// Builds the parse tree for an unambiguous SPPF, where every node has
 /// exactly one derivation. The walk keeps two explicit stacks, work frames
 /// and finished values. A token pushes one value, an intermediate node
-/// contributes no value of its own (it only pushes `Pre` frames for its two
-/// children), and a nonterminal node records the value-stack depth on entry
+/// contributes no value of its own (it only pushes a `Pre` frame for its right
+/// child), and a nonterminal node records the value-stack depth on entry
 /// (the `Post` frame's `mark`), so on completion the values above the mark
 /// are exactly its children, handed to the builder as a slice.
 fn visit_sppf_unambiguous<'i, 'arena, T: Debug + Clone, P: Parser<'i, 'arena>>(
@@ -222,31 +223,38 @@ fn visit_sppf_unambiguous<'i, 'arena, T: Debug + Clone, P: Parser<'i, 'arena>>(
     parser: &P,
     builder: &impl ParseTreeBuilder<T>,
 ) -> T {
-    let mut work = vec![UnambiguousFrame::Pre(root_id)];
+    let mut work: Vec<UnambiguousFrame> = Vec::new();
     let mut values: Vec<T> = Vec::new();
-    while let Some(frame) = work.pop() {
-        match frame {
-            UnambiguousFrame::Pre(node_id) => match parser.sppf_node(node_id) {
+    // The next node to visit
+    let mut next = Some(root_id);
+    loop {
+        while let Some(node_id) = next {
+            next = match parser.sppf_node(node_id) {
                 SPPFNode::Terminal(t) => {
                     if t.terminal_id != P::Grammar::epsilon() {
                         values.push(builder.new_token(t));
                     }
+                    None
                 }
                 SPPFNode::Nonterminal(n) => {
                     work.push(UnambiguousFrame::Post {
                         node: n,
                         mark: values.len(),
                     });
-                    work.push(UnambiguousFrame::Pre(n.child));
+                    Some(n.child)
                 }
                 SPPFNode::Intermediate(i) => {
-                    // The right child is pushed first so the left child pops
-                    // first and the values land in source order.
+                    // The right child waits on `work` while the left child is
+                    // visited, so the values land in source order.
                     work.push(UnambiguousFrame::Pre(i.child.1));
-                    work.push(UnambiguousFrame::Pre(i.child.0));
+                    Some(i.child.0)
                 }
-            },
-            UnambiguousFrame::Post { node, mark } => {
+            };
+        }
+        match work.pop() {
+            None => break,
+            Some(UnambiguousFrame::Pre(node_id)) => next = Some(node_id),
+            Some(UnambiguousFrame::Post { node, mark }) => {
                 let result = builder.new_unambiguous_nonterminal_node(node, &values[mark..]);
                 values.truncate(mark);
                 values.push(result);
