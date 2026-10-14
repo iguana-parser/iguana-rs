@@ -13,8 +13,8 @@ use std::{
 
 use iguana_runtime::arena::Arena;
 use iguana_runtime::cli;
-use iguana_runtime::input::Input;
 use iguana_runtime::ids::SPPFNodeId;
+use iguana_runtime::input::Input;
 use iguana_runtime::visualization::{gss::GSS, sppf::SPPF};
 use serde::{Deserialize, Serialize};
 use specta::Type;

@@ -520,8 +520,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for TokenOnlyUnsafeParser<'i, 'arena> {
             terminal_node.terminal_id,
             terminal_node.span
         );
-        let terminal_node_id = self.sppf_nodes.push(SPPFNode::Terminal(terminal_node));
-        terminal_node_id
+        self.sppf_nodes.push(SPPFNode::Terminal(terminal_node))
     }
     fn add_nonterminal_node(&mut self, nonterminal_node: NonterminalNode) -> SPPFNodeId {
         record!(
@@ -549,10 +548,8 @@ impl<'i, 'arena> Parser<'i, 'arena> for TokenOnlyUnsafeParser<'i, 'arena> {
             intermediate_node.child.0,
             intermediate_node.child.1
         );
-        let intermediate_node_id = self
-            .sppf_nodes
-            .push(SPPFNode::Intermediate(intermediate_node));
-        intermediate_node_id
+        self.sppf_nodes
+            .push(SPPFNode::Intermediate(intermediate_node))
     }
     fn input(&self) -> &'i Input {
         self.scanner.input

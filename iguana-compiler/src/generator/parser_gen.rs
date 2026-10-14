@@ -2001,30 +2001,25 @@ impl<'a> ParserGen<'a> {
     }
 
     fn gen_add_terminal_node_method(&self) -> TokenStream {
-        let index_insert = if self.config.unsafe_mode {
-            quote! {}
-        } else {
-            quote! {
-                let arena = self.vec_arena;
-                self.terminal_nodes_index
-                    .insert(terminal_id.index(), span, terminal_node_id, arena);
-            }
-        };
-        let index_key = if self.config.unsafe_mode {
-            quote! {}
+        let push = quote! { self.sppf_nodes.push(SPPFNode::Terminal(terminal_node)) };
+        // The unsafe mode keeps no terminal node index, so the new id is returned directly.
+        let push_and_index = if self.config.unsafe_mode {
+            push
         } else {
             quote! {
                 let terminal_id = terminal_node.terminal_id;
                 let span = terminal_node.span;
+                let terminal_node_id = #push;
+                let arena = self.vec_arena;
+                self.terminal_nodes_index
+                    .insert(terminal_id.index(), span, terminal_node_id, arena);
+                terminal_node_id
             }
         };
         quote! {
             fn add_terminal_node(&mut self, terminal_node: TerminalNode) -> SPPFNodeId {
                 record!(self, TerminalNodeCreated, terminal_node.terminal_id, terminal_node.span);
-                #index_key
-                let terminal_node_id = self.sppf_nodes.push(SPPFNode::Terminal(terminal_node));
-                #index_insert
-                terminal_node_id
+                #push_and_index
             }
         }
     }
@@ -2067,13 +2062,10 @@ impl<'a> ParserGen<'a> {
                 }
             }
         };
-        let (env_param, add_to_index_param, index_key, index_insert) = if self.config.unsafe_mode {
-            (
-                quote! { _env },
-                quote! { _add_to_index },
-                quote! {},
-                quote! {},
-            )
+        let push = quote! { self.sppf_nodes.push(SPPFNode::Intermediate(intermediate_node)) };
+        // The unsafe mode keeps no intermediate node index, so the new id is returned directly.
+        let (env_param, add_to_index_param, push_and_index) = if self.config.unsafe_mode {
+            (quote! { _env }, quote! { _add_to_index }, push)
         } else {
             (
                 quote! { env },
@@ -2081,12 +2073,12 @@ impl<'a> ParserGen<'a> {
                 quote! {
                     let slot_idx = intermediate_node.slot_id.index();
                     let span = intermediate_node.span;
-                },
-                quote! {
+                    let intermediate_node_id = #push;
                     if add_to_index {
                         let arena = self.vec_arena;
                         #index_dispatch
                     }
+                    intermediate_node_id
                 },
             )
         };
@@ -2109,10 +2101,7 @@ impl<'a> ParserGen<'a> {
                     intermediate_node.child.0,
                     intermediate_node.child.1
                 );
-                #index_key
-                let intermediate_node_id = self.sppf_nodes.push(SPPFNode::Intermediate(intermediate_node));
-                #index_insert
-                intermediate_node_id
+                #push_and_index
             }
         }
     }
