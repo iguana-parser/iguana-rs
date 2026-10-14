@@ -67,23 +67,26 @@ impl<'i, 'arena> Parser<'i, 'arena> for ImportNamesParser<'i, 'arena> {
                     // S : . Parse Parser SPPFNode Input ParseError ParseSuccess Grammar Nonterminal Terminal
                     // Slot TerminalSet
                     SlotId(0) => {
-                        if let Some(right_child) =
-                            self.parse_parse_ll1(input_index, Some((SlotId(0), Some(gss_node_id))))
-                        {
+                        if let Some(right_child) = self.parse_parse_ll1(input_index, None) {
                             let j = self.sppf_node(right_child).right_extent();
                             // S : Parse . Parser SPPFNode Input ParseError ParseSuccess Grammar Nonterminal Terminal
                             // Slot TerminalSet
                             input_index = j;
                             result = Some(right_child);
                             next = Some(SlotId(1));
+                        } else {
+                            self.add_failure(
+                                input_index,
+                                SlotId(0),
+                                Some(gss_node_id),
+                                GLLFailureKind::UnexpectedToken(&FIRST_SET_PARSE),
+                            );
                         }
                     }
                     // S : Parse . Parser SPPFNode Input ParseError ParseSuccess Grammar Nonterminal Terminal
                     // Slot TerminalSet
                     SlotId(1) => {
-                        if let Some(right_child) =
-                            self.parse_parser_ll1(input_index, Some((SlotId(1), Some(gss_node_id))))
-                        {
+                        if let Some(right_child) = self.parse_parser_ll1(input_index, None) {
                             let j = self.sppf_node(right_child).right_extent();
                             if let Some(new_node) =
                                 self.create_intermediate_node(result, right_child, SlotId(2), env)
@@ -94,14 +97,19 @@ impl<'i, 'arena> Parser<'i, 'arena> for ImportNamesParser<'i, 'arena> {
                                 result = Some(new_node);
                                 next = Some(SlotId(2));
                             }
+                        } else {
+                            self.add_failure(
+                                input_index,
+                                SlotId(1),
+                                Some(gss_node_id),
+                                GLLFailureKind::UnexpectedToken(&FIRST_SET_PARSER),
+                            );
                         }
                     }
                     // S : Parse Parser . SPPFNode Input ParseError ParseSuccess Grammar Nonterminal Terminal
                     // Slot TerminalSet
                     SlotId(2) => {
-                        if let Some(right_child) = self
-                            .parse_sppf_node_ll1(input_index, Some((SlotId(2), Some(gss_node_id))))
-                        {
+                        if let Some(right_child) = self.parse_sppf_node_ll1(input_index, None) {
                             let j = self.sppf_node(right_child).right_extent();
                             if let Some(new_node) =
                                 self.create_intermediate_node(result, right_child, SlotId(3), env)
@@ -112,14 +120,19 @@ impl<'i, 'arena> Parser<'i, 'arena> for ImportNamesParser<'i, 'arena> {
                                 result = Some(new_node);
                                 next = Some(SlotId(3));
                             }
+                        } else {
+                            self.add_failure(
+                                input_index,
+                                SlotId(2),
+                                Some(gss_node_id),
+                                GLLFailureKind::UnexpectedToken(&FIRST_SET_SPPF_NODE),
+                            );
                         }
                     }
                     // S : Parse Parser SPPFNode . Input ParseError ParseSuccess Grammar Nonterminal Terminal
                     // Slot TerminalSet
                     SlotId(3) => {
-                        if let Some(right_child) =
-                            self.parse_input_ll1(input_index, Some((SlotId(3), Some(gss_node_id))))
-                        {
+                        if let Some(right_child) = self.parse_input_ll1(input_index, None) {
                             let j = self.sppf_node(right_child).right_extent();
                             if let Some(new_node) =
                                 self.create_intermediate_node(result, right_child, SlotId(4), env)
@@ -130,15 +143,19 @@ impl<'i, 'arena> Parser<'i, 'arena> for ImportNamesParser<'i, 'arena> {
                                 result = Some(new_node);
                                 next = Some(SlotId(4));
                             }
+                        } else {
+                            self.add_failure(
+                                input_index,
+                                SlotId(3),
+                                Some(gss_node_id),
+                                GLLFailureKind::UnexpectedToken(&FIRST_SET_INPUT),
+                            );
                         }
                     }
                     // S : Parse Parser SPPFNode Input . ParseError ParseSuccess Grammar Nonterminal Terminal
                     // Slot TerminalSet
                     SlotId(4) => {
-                        if let Some(right_child) = self.parse_parse_error_ll1(
-                            input_index,
-                            Some((SlotId(4), Some(gss_node_id))),
-                        ) {
+                        if let Some(right_child) = self.parse_parse_error_ll1(input_index, None) {
                             let j = self.sppf_node(right_child).right_extent();
                             if let Some(new_node) =
                                 self.create_intermediate_node(result, right_child, SlotId(5), env)
@@ -149,15 +166,19 @@ impl<'i, 'arena> Parser<'i, 'arena> for ImportNamesParser<'i, 'arena> {
                                 result = Some(new_node);
                                 next = Some(SlotId(5));
                             }
+                        } else {
+                            self.add_failure(
+                                input_index,
+                                SlotId(4),
+                                Some(gss_node_id),
+                                GLLFailureKind::UnexpectedToken(&FIRST_SET_PARSE_ERROR),
+                            );
                         }
                     }
                     // S : Parse Parser SPPFNode Input ParseError . ParseSuccess Grammar Nonterminal Terminal
                     // Slot TerminalSet
                     SlotId(5) => {
-                        if let Some(right_child) = self.parse_parse_success_ll1(
-                            input_index,
-                            Some((SlotId(5), Some(gss_node_id))),
-                        ) {
+                        if let Some(right_child) = self.parse_parse_success_ll1(input_index, None) {
                             let j = self.sppf_node(right_child).right_extent();
                             if let Some(new_node) =
                                 self.create_intermediate_node(result, right_child, SlotId(6), env)
@@ -168,14 +189,19 @@ impl<'i, 'arena> Parser<'i, 'arena> for ImportNamesParser<'i, 'arena> {
                                 result = Some(new_node);
                                 next = Some(SlotId(6));
                             }
+                        } else {
+                            self.add_failure(
+                                input_index,
+                                SlotId(5),
+                                Some(gss_node_id),
+                                GLLFailureKind::UnexpectedToken(&FIRST_SET_PARSE_SUCCESS),
+                            );
                         }
                     }
                     // S : Parse Parser SPPFNode Input ParseError ParseSuccess . Grammar Nonterminal Terminal
                     // Slot TerminalSet
                     SlotId(6) => {
-                        if let Some(right_child) = self
-                            .parse_grammar_ll1(input_index, Some((SlotId(6), Some(gss_node_id))))
-                        {
+                        if let Some(right_child) = self.parse_grammar_ll1(input_index, None) {
                             let j = self.sppf_node(right_child).right_extent();
                             if let Some(new_node) =
                                 self.create_intermediate_node(result, right_child, SlotId(7), env)
@@ -186,15 +212,19 @@ impl<'i, 'arena> Parser<'i, 'arena> for ImportNamesParser<'i, 'arena> {
                                 result = Some(new_node);
                                 next = Some(SlotId(7));
                             }
+                        } else {
+                            self.add_failure(
+                                input_index,
+                                SlotId(6),
+                                Some(gss_node_id),
+                                GLLFailureKind::UnexpectedToken(&FIRST_SET_GRAMMAR),
+                            );
                         }
                     }
                     // S : Parse Parser SPPFNode Input ParseError ParseSuccess Grammar . Nonterminal Terminal
                     // Slot TerminalSet
                     SlotId(7) => {
-                        if let Some(right_child) = self.parse_nonterminal_ll1(
-                            input_index,
-                            Some((SlotId(7), Some(gss_node_id))),
-                        ) {
+                        if let Some(right_child) = self.parse_nonterminal_ll1(input_index, None) {
                             let j = self.sppf_node(right_child).right_extent();
                             if let Some(new_node) =
                                 self.create_intermediate_node(result, right_child, SlotId(8), env)
@@ -205,14 +235,19 @@ impl<'i, 'arena> Parser<'i, 'arena> for ImportNamesParser<'i, 'arena> {
                                 result = Some(new_node);
                                 next = Some(SlotId(8));
                             }
+                        } else {
+                            self.add_failure(
+                                input_index,
+                                SlotId(7),
+                                Some(gss_node_id),
+                                GLLFailureKind::UnexpectedToken(&FIRST_SET_NONTERMINAL),
+                            );
                         }
                     }
                     // S : Parse Parser SPPFNode Input ParseError ParseSuccess Grammar Nonterminal . Terminal
                     // Slot TerminalSet
                     SlotId(8) => {
-                        if let Some(right_child) = self
-                            .parse_terminal_ll1(input_index, Some((SlotId(8), Some(gss_node_id))))
-                        {
+                        if let Some(right_child) = self.parse_terminal_ll1(input_index, None) {
                             let j = self.sppf_node(right_child).right_extent();
                             if let Some(new_node) =
                                 self.create_intermediate_node(result, right_child, SlotId(9), env)
@@ -223,14 +258,19 @@ impl<'i, 'arena> Parser<'i, 'arena> for ImportNamesParser<'i, 'arena> {
                                 result = Some(new_node);
                                 next = Some(SlotId(9));
                             }
+                        } else {
+                            self.add_failure(
+                                input_index,
+                                SlotId(8),
+                                Some(gss_node_id),
+                                GLLFailureKind::UnexpectedToken(&FIRST_SET_TERMINAL),
+                            );
                         }
                     }
                     // S : Parse Parser SPPFNode Input ParseError ParseSuccess Grammar Nonterminal Terminal .
                     // Slot TerminalSet
                     SlotId(9) => {
-                        if let Some(right_child) =
-                            self.parse_slot_ll1(input_index, Some((SlotId(9), Some(gss_node_id))))
-                        {
+                        if let Some(right_child) = self.parse_slot_ll1(input_index, None) {
                             let j = self.sppf_node(right_child).right_extent();
                             if let Some(new_node) =
                                 self.create_intermediate_node(result, right_child, SlotId(10), env)
@@ -241,15 +281,19 @@ impl<'i, 'arena> Parser<'i, 'arena> for ImportNamesParser<'i, 'arena> {
                                 result = Some(new_node);
                                 next = Some(SlotId(10));
                             }
+                        } else {
+                            self.add_failure(
+                                input_index,
+                                SlotId(9),
+                                Some(gss_node_id),
+                                GLLFailureKind::UnexpectedToken(&FIRST_SET_SLOT),
+                            );
                         }
                     }
                     // S : Parse Parser SPPFNode Input ParseError ParseSuccess Grammar Nonterminal Terminal Slot
                     // . TerminalSet
                     SlotId(10) => {
-                        if let Some(right_child) = self.parse_terminal_set_ll1(
-                            input_index,
-                            Some((SlotId(10), Some(gss_node_id))),
-                        ) {
+                        if let Some(right_child) = self.parse_terminal_set_ll1(input_index, None) {
                             let j = self.sppf_node(right_child).right_extent();
                             if let Some(new_node) =
                                 self.create_intermediate_node(result, right_child, SlotId(11), env)
@@ -260,6 +304,13 @@ impl<'i, 'arena> Parser<'i, 'arena> for ImportNamesParser<'i, 'arena> {
                                 result = Some(new_node);
                                 next = Some(SlotId(11));
                             }
+                        } else {
+                            self.add_failure(
+                                input_index,
+                                SlotId(10),
+                                Some(gss_node_id),
+                                GLLFailureKind::UnexpectedToken(&FIRST_SET_TERMINAL_SET),
+                            );
                         }
                     }
                     // S : Parse Parser SPPFNode Input ParseError ParseSuccess Grammar Nonterminal Terminal Slot
@@ -527,14 +578,19 @@ impl<'i, 'arena> Parser<'i, 'arena> for ImportNamesParser<'i, 'arena> {
                     }
                     // StartS : . start:S
                     SlotId(34) => {
-                        if let Some(right_child) =
-                            self.parse_s_ll1(input_index, Some((SlotId(34), Some(gss_node_id))))
-                        {
+                        if let Some(right_child) = self.parse_s_ll1(input_index, None) {
                             let j = self.sppf_node(right_child).right_extent();
                             // StartS : start:S.
                             input_index = j;
                             result = Some(right_child);
                             next = Some(SlotId(35));
+                        } else {
+                            self.add_failure(
+                                input_index,
+                                SlotId(34),
+                                Some(gss_node_id),
+                                GLLFailureKind::UnexpectedToken(&FIRST_SET_S),
+                            );
                         }
                     }
                     // StartS : start:S.
@@ -546,14 +602,19 @@ impl<'i, 'arena> Parser<'i, 'arena> for ImportNamesParser<'i, 'arena> {
                     }
                     // StartParse : . start:Parse
                     SlotId(36) => {
-                        if let Some(right_child) =
-                            self.parse_parse_ll1(input_index, Some((SlotId(36), Some(gss_node_id))))
-                        {
+                        if let Some(right_child) = self.parse_parse_ll1(input_index, None) {
                             let j = self.sppf_node(right_child).right_extent();
                             // StartParse : start:Parse.
                             input_index = j;
                             result = Some(right_child);
                             next = Some(SlotId(37));
+                        } else {
+                            self.add_failure(
+                                input_index,
+                                SlotId(36),
+                                Some(gss_node_id),
+                                GLLFailureKind::UnexpectedToken(&FIRST_SET_PARSE),
+                            );
                         }
                     }
                     // StartParse : start:Parse.
@@ -571,14 +632,19 @@ impl<'i, 'arena> Parser<'i, 'arena> for ImportNamesParser<'i, 'arena> {
                     }
                     // StartParser : . start:Parser
                     SlotId(38) => {
-                        if let Some(right_child) = self
-                            .parse_parser_ll1(input_index, Some((SlotId(38), Some(gss_node_id))))
-                        {
+                        if let Some(right_child) = self.parse_parser_ll1(input_index, None) {
                             let j = self.sppf_node(right_child).right_extent();
                             // StartParser : start:Parser.
                             input_index = j;
                             result = Some(right_child);
                             next = Some(SlotId(39));
+                        } else {
+                            self.add_failure(
+                                input_index,
+                                SlotId(38),
+                                Some(gss_node_id),
+                                GLLFailureKind::UnexpectedToken(&FIRST_SET_PARSER),
+                            );
                         }
                     }
                     // StartParser : start:Parser.
@@ -596,14 +662,19 @@ impl<'i, 'arena> Parser<'i, 'arena> for ImportNamesParser<'i, 'arena> {
                     }
                     // StartSPPFNode : . start:SPPFNode
                     SlotId(40) => {
-                        if let Some(right_child) = self
-                            .parse_sppf_node_ll1(input_index, Some((SlotId(40), Some(gss_node_id))))
-                        {
+                        if let Some(right_child) = self.parse_sppf_node_ll1(input_index, None) {
                             let j = self.sppf_node(right_child).right_extent();
                             // StartSPPFNode : start:SPPFNode.
                             input_index = j;
                             result = Some(right_child);
                             next = Some(SlotId(41));
+                        } else {
+                            self.add_failure(
+                                input_index,
+                                SlotId(40),
+                                Some(gss_node_id),
+                                GLLFailureKind::UnexpectedToken(&FIRST_SET_SPPF_NODE),
+                            );
                         }
                     }
                     // StartSPPFNode : start:SPPFNode.
@@ -621,14 +692,19 @@ impl<'i, 'arena> Parser<'i, 'arena> for ImportNamesParser<'i, 'arena> {
                     }
                     // StartInput : . start:Input
                     SlotId(42) => {
-                        if let Some(right_child) =
-                            self.parse_input_ll1(input_index, Some((SlotId(42), Some(gss_node_id))))
-                        {
+                        if let Some(right_child) = self.parse_input_ll1(input_index, None) {
                             let j = self.sppf_node(right_child).right_extent();
                             // StartInput : start:Input.
                             input_index = j;
                             result = Some(right_child);
                             next = Some(SlotId(43));
+                        } else {
+                            self.add_failure(
+                                input_index,
+                                SlotId(42),
+                                Some(gss_node_id),
+                                GLLFailureKind::UnexpectedToken(&FIRST_SET_INPUT),
+                            );
                         }
                     }
                     // StartInput : start:Input.
@@ -646,15 +722,19 @@ impl<'i, 'arena> Parser<'i, 'arena> for ImportNamesParser<'i, 'arena> {
                     }
                     // StartParseError : . start:ParseError
                     SlotId(44) => {
-                        if let Some(right_child) = self.parse_parse_error_ll1(
-                            input_index,
-                            Some((SlotId(44), Some(gss_node_id))),
-                        ) {
+                        if let Some(right_child) = self.parse_parse_error_ll1(input_index, None) {
                             let j = self.sppf_node(right_child).right_extent();
                             // StartParseError : start:ParseError.
                             input_index = j;
                             result = Some(right_child);
                             next = Some(SlotId(45));
+                        } else {
+                            self.add_failure(
+                                input_index,
+                                SlotId(44),
+                                Some(gss_node_id),
+                                GLLFailureKind::UnexpectedToken(&FIRST_SET_PARSE_ERROR),
+                            );
                         }
                     }
                     // StartParseError : start:ParseError.
@@ -672,15 +752,19 @@ impl<'i, 'arena> Parser<'i, 'arena> for ImportNamesParser<'i, 'arena> {
                     }
                     // StartParseSuccess : . start:ParseSuccess
                     SlotId(46) => {
-                        if let Some(right_child) = self.parse_parse_success_ll1(
-                            input_index,
-                            Some((SlotId(46), Some(gss_node_id))),
-                        ) {
+                        if let Some(right_child) = self.parse_parse_success_ll1(input_index, None) {
                             let j = self.sppf_node(right_child).right_extent();
                             // StartParseSuccess : start:ParseSuccess.
                             input_index = j;
                             result = Some(right_child);
                             next = Some(SlotId(47));
+                        } else {
+                            self.add_failure(
+                                input_index,
+                                SlotId(46),
+                                Some(gss_node_id),
+                                GLLFailureKind::UnexpectedToken(&FIRST_SET_PARSE_SUCCESS),
+                            );
                         }
                     }
                     // StartParseSuccess : start:ParseSuccess.
@@ -698,14 +782,19 @@ impl<'i, 'arena> Parser<'i, 'arena> for ImportNamesParser<'i, 'arena> {
                     }
                     // StartGrammar : . start:Grammar
                     SlotId(48) => {
-                        if let Some(right_child) = self
-                            .parse_grammar_ll1(input_index, Some((SlotId(48), Some(gss_node_id))))
-                        {
+                        if let Some(right_child) = self.parse_grammar_ll1(input_index, None) {
                             let j = self.sppf_node(right_child).right_extent();
                             // StartGrammar : start:Grammar.
                             input_index = j;
                             result = Some(right_child);
                             next = Some(SlotId(49));
+                        } else {
+                            self.add_failure(
+                                input_index,
+                                SlotId(48),
+                                Some(gss_node_id),
+                                GLLFailureKind::UnexpectedToken(&FIRST_SET_GRAMMAR),
+                            );
                         }
                     }
                     // StartGrammar : start:Grammar.
@@ -723,15 +812,19 @@ impl<'i, 'arena> Parser<'i, 'arena> for ImportNamesParser<'i, 'arena> {
                     }
                     // StartNonterminal : . start:Nonterminal
                     SlotId(50) => {
-                        if let Some(right_child) = self.parse_nonterminal_ll1(
-                            input_index,
-                            Some((SlotId(50), Some(gss_node_id))),
-                        ) {
+                        if let Some(right_child) = self.parse_nonterminal_ll1(input_index, None) {
                             let j = self.sppf_node(right_child).right_extent();
                             // StartNonterminal : start:Nonterminal.
                             input_index = j;
                             result = Some(right_child);
                             next = Some(SlotId(51));
+                        } else {
+                            self.add_failure(
+                                input_index,
+                                SlotId(50),
+                                Some(gss_node_id),
+                                GLLFailureKind::UnexpectedToken(&FIRST_SET_NONTERMINAL),
+                            );
                         }
                     }
                     // StartNonterminal : start:Nonterminal.
@@ -749,14 +842,19 @@ impl<'i, 'arena> Parser<'i, 'arena> for ImportNamesParser<'i, 'arena> {
                     }
                     // StartTerminal : . start:Terminal
                     SlotId(52) => {
-                        if let Some(right_child) = self
-                            .parse_terminal_ll1(input_index, Some((SlotId(52), Some(gss_node_id))))
-                        {
+                        if let Some(right_child) = self.parse_terminal_ll1(input_index, None) {
                             let j = self.sppf_node(right_child).right_extent();
                             // StartTerminal : start:Terminal.
                             input_index = j;
                             result = Some(right_child);
                             next = Some(SlotId(53));
+                        } else {
+                            self.add_failure(
+                                input_index,
+                                SlotId(52),
+                                Some(gss_node_id),
+                                GLLFailureKind::UnexpectedToken(&FIRST_SET_TERMINAL),
+                            );
                         }
                     }
                     // StartTerminal : start:Terminal.
@@ -774,14 +872,19 @@ impl<'i, 'arena> Parser<'i, 'arena> for ImportNamesParser<'i, 'arena> {
                     }
                     // StartSlot : . start:Slot
                     SlotId(54) => {
-                        if let Some(right_child) =
-                            self.parse_slot_ll1(input_index, Some((SlotId(54), Some(gss_node_id))))
-                        {
+                        if let Some(right_child) = self.parse_slot_ll1(input_index, None) {
                             let j = self.sppf_node(right_child).right_extent();
                             // StartSlot : start:Slot.
                             input_index = j;
                             result = Some(right_child);
                             next = Some(SlotId(55));
+                        } else {
+                            self.add_failure(
+                                input_index,
+                                SlotId(54),
+                                Some(gss_node_id),
+                                GLLFailureKind::UnexpectedToken(&FIRST_SET_SLOT),
+                            );
                         }
                     }
                     // StartSlot : start:Slot.
@@ -799,15 +902,19 @@ impl<'i, 'arena> Parser<'i, 'arena> for ImportNamesParser<'i, 'arena> {
                     }
                     // StartTerminalSet : . start:TerminalSet
                     SlotId(56) => {
-                        if let Some(right_child) = self.parse_terminal_set_ll1(
-                            input_index,
-                            Some((SlotId(56), Some(gss_node_id))),
-                        ) {
+                        if let Some(right_child) = self.parse_terminal_set_ll1(input_index, None) {
                             let j = self.sppf_node(right_child).right_extent();
                             // StartTerminalSet : start:TerminalSet.
                             input_index = j;
                             result = Some(right_child);
                             next = Some(SlotId(57));
+                        } else {
+                            self.add_failure(
+                                input_index,
+                                SlotId(56),
+                                Some(gss_node_id),
+                                GLLFailureKind::UnexpectedToken(&FIRST_SET_TERMINAL_SET),
+                            );
                         }
                     }
                     // StartTerminalSet : start:TerminalSet.
@@ -1417,11 +1524,7 @@ impl<'i, 'arena> ImportNamesParser<'i, 'arena> {
             .parse(START_TERMINAL_SET, tree_arena)?
             .map(ParseTree::unwrap_start_terminal_set))
     }
-    fn parse_s_ll1(
-        &mut self,
-        i: u32,
-        failure_context: Option<(SlotId, Option<GssNodeId>)>,
-    ) -> Option<SPPFNodeId> {
+    fn parse_s_ll1(&mut self, i: u32, failure_context: Option<SlotId>) -> Option<SPPFNodeId> {
         #[cfg(feature = "instrument")]
         self.ll1_call_log.push((NonterminalId(0), i));
         let result = (|| -> Option<SPPFNodeId> {
@@ -1431,7 +1534,7 @@ impl<'i, 'arena> ImportNamesParser<'i, 'arena> {
                     let mut j = i;
                     let right_child = {
                         let start = j;
-                        let node = self.parse_parse_ll1(start, Some((SlotId(1), None)))?;
+                        let node = self.parse_parse_ll1(start, Some(SlotId(1)))?;
                         let end = self.sppf_node(node).right_extent();
                         j = end;
                         node
@@ -1440,7 +1543,7 @@ impl<'i, 'arena> ImportNamesParser<'i, 'arena> {
                     let mut current = right_child;
                     let right_child = {
                         let start = j;
-                        let node = self.parse_parser_ll1(start, Some((SlotId(2), None)))?;
+                        let node = self.parse_parser_ll1(start, Some(SlotId(2)))?;
                         let end = self.sppf_node(node).right_extent();
                         j = end;
                         node
@@ -1454,7 +1557,7 @@ impl<'i, 'arena> ImportNamesParser<'i, 'arena> {
                     );
                     let right_child = {
                         let start = j;
-                        let node = self.parse_sppf_node_ll1(start, Some((SlotId(3), None)))?;
+                        let node = self.parse_sppf_node_ll1(start, Some(SlotId(3)))?;
                         let end = self.sppf_node(node).right_extent();
                         j = end;
                         node
@@ -1468,7 +1571,7 @@ impl<'i, 'arena> ImportNamesParser<'i, 'arena> {
                     );
                     let right_child = {
                         let start = j;
-                        let node = self.parse_input_ll1(start, Some((SlotId(4), None)))?;
+                        let node = self.parse_input_ll1(start, Some(SlotId(4)))?;
                         let end = self.sppf_node(node).right_extent();
                         j = end;
                         node
@@ -1482,7 +1585,7 @@ impl<'i, 'arena> ImportNamesParser<'i, 'arena> {
                     );
                     let right_child = {
                         let start = j;
-                        let node = self.parse_parse_error_ll1(start, Some((SlotId(5), None)))?;
+                        let node = self.parse_parse_error_ll1(start, Some(SlotId(5)))?;
                         let end = self.sppf_node(node).right_extent();
                         j = end;
                         node
@@ -1496,7 +1599,7 @@ impl<'i, 'arena> ImportNamesParser<'i, 'arena> {
                     );
                     let right_child = {
                         let start = j;
-                        let node = self.parse_parse_success_ll1(start, Some((SlotId(6), None)))?;
+                        let node = self.parse_parse_success_ll1(start, Some(SlotId(6)))?;
                         let end = self.sppf_node(node).right_extent();
                         j = end;
                         node
@@ -1510,7 +1613,7 @@ impl<'i, 'arena> ImportNamesParser<'i, 'arena> {
                     );
                     let right_child = {
                         let start = j;
-                        let node = self.parse_grammar_ll1(start, Some((SlotId(7), None)))?;
+                        let node = self.parse_grammar_ll1(start, Some(SlotId(7)))?;
                         let end = self.sppf_node(node).right_extent();
                         j = end;
                         node
@@ -1524,7 +1627,7 @@ impl<'i, 'arena> ImportNamesParser<'i, 'arena> {
                     );
                     let right_child = {
                         let start = j;
-                        let node = self.parse_nonterminal_ll1(start, Some((SlotId(8), None)))?;
+                        let node = self.parse_nonterminal_ll1(start, Some(SlotId(8)))?;
                         let end = self.sppf_node(node).right_extent();
                         j = end;
                         node
@@ -1538,7 +1641,7 @@ impl<'i, 'arena> ImportNamesParser<'i, 'arena> {
                     );
                     let right_child = {
                         let start = j;
-                        let node = self.parse_terminal_ll1(start, Some((SlotId(9), None)))?;
+                        let node = self.parse_terminal_ll1(start, Some(SlotId(9)))?;
                         let end = self.sppf_node(node).right_extent();
                         j = end;
                         node
@@ -1552,7 +1655,7 @@ impl<'i, 'arena> ImportNamesParser<'i, 'arena> {
                     );
                     let right_child = {
                         let start = j;
-                        let node = self.parse_slot_ll1(start, Some((SlotId(10), None)))?;
+                        let node = self.parse_slot_ll1(start, Some(SlotId(10)))?;
                         let end = self.sppf_node(node).right_extent();
                         j = end;
                         node
@@ -1566,7 +1669,7 @@ impl<'i, 'arena> ImportNamesParser<'i, 'arena> {
                     );
                     let right_child = {
                         let start = j;
-                        let node = self.parse_terminal_set_ll1(start, Some((SlotId(11), None)))?;
+                        let node = self.parse_terminal_set_ll1(start, Some(SlotId(11)))?;
                         let end = self.sppf_node(node).right_extent();
                         j = end;
                         node
@@ -1593,22 +1696,18 @@ impl<'i, 'arena> ImportNamesParser<'i, 'arena> {
             }
         })();
         if result.is_none() {
-            if let Some((slot_id, gss_node_id)) = failure_context {
+            if let Some(slot_id) = failure_context {
                 self.add_failure(
                     i,
                     slot_id,
-                    gss_node_id,
+                    None,
                     GLLFailureKind::UnexpectedToken(&FIRST_SET_S),
                 );
             }
         }
         result
     }
-    fn parse_parse_ll1(
-        &mut self,
-        i: u32,
-        failure_context: Option<(SlotId, Option<GssNodeId>)>,
-    ) -> Option<SPPFNodeId> {
+    fn parse_parse_ll1(&mut self, i: u32, failure_context: Option<SlotId>) -> Option<SPPFNodeId> {
         #[cfg(feature = "instrument")]
         self.ll1_call_log.push((NonterminalId(1), i));
         let result = (|| -> Option<SPPFNodeId> {
@@ -1640,22 +1739,18 @@ impl<'i, 'arena> ImportNamesParser<'i, 'arena> {
             }
         })();
         if result.is_none() {
-            if let Some((slot_id, gss_node_id)) = failure_context {
+            if let Some(slot_id) = failure_context {
                 self.add_failure(
                     i,
                     slot_id,
-                    gss_node_id,
+                    None,
                     GLLFailureKind::UnexpectedToken(&FIRST_SET_PARSE),
                 );
             }
         }
         result
     }
-    fn parse_parser_ll1(
-        &mut self,
-        i: u32,
-        failure_context: Option<(SlotId, Option<GssNodeId>)>,
-    ) -> Option<SPPFNodeId> {
+    fn parse_parser_ll1(&mut self, i: u32, failure_context: Option<SlotId>) -> Option<SPPFNodeId> {
         #[cfg(feature = "instrument")]
         self.ll1_call_log.push((NonterminalId(2), i));
         let result = (|| -> Option<SPPFNodeId> {
@@ -1687,11 +1782,11 @@ impl<'i, 'arena> ImportNamesParser<'i, 'arena> {
             }
         })();
         if result.is_none() {
-            if let Some((slot_id, gss_node_id)) = failure_context {
+            if let Some(slot_id) = failure_context {
                 self.add_failure(
                     i,
                     slot_id,
-                    gss_node_id,
+                    None,
                     GLLFailureKind::UnexpectedToken(&FIRST_SET_PARSER),
                 );
             }
@@ -1701,7 +1796,7 @@ impl<'i, 'arena> ImportNamesParser<'i, 'arena> {
     fn parse_sppf_node_ll1(
         &mut self,
         i: u32,
-        failure_context: Option<(SlotId, Option<GssNodeId>)>,
+        failure_context: Option<SlotId>,
     ) -> Option<SPPFNodeId> {
         #[cfg(feature = "instrument")]
         self.ll1_call_log.push((NonterminalId(3), i));
@@ -1734,22 +1829,18 @@ impl<'i, 'arena> ImportNamesParser<'i, 'arena> {
             }
         })();
         if result.is_none() {
-            if let Some((slot_id, gss_node_id)) = failure_context {
+            if let Some(slot_id) = failure_context {
                 self.add_failure(
                     i,
                     slot_id,
-                    gss_node_id,
+                    None,
                     GLLFailureKind::UnexpectedToken(&FIRST_SET_SPPF_NODE),
                 );
             }
         }
         result
     }
-    fn parse_input_ll1(
-        &mut self,
-        i: u32,
-        failure_context: Option<(SlotId, Option<GssNodeId>)>,
-    ) -> Option<SPPFNodeId> {
+    fn parse_input_ll1(&mut self, i: u32, failure_context: Option<SlotId>) -> Option<SPPFNodeId> {
         #[cfg(feature = "instrument")]
         self.ll1_call_log.push((NonterminalId(4), i));
         let result = (|| -> Option<SPPFNodeId> {
@@ -1781,11 +1872,11 @@ impl<'i, 'arena> ImportNamesParser<'i, 'arena> {
             }
         })();
         if result.is_none() {
-            if let Some((slot_id, gss_node_id)) = failure_context {
+            if let Some(slot_id) = failure_context {
                 self.add_failure(
                     i,
                     slot_id,
-                    gss_node_id,
+                    None,
                     GLLFailureKind::UnexpectedToken(&FIRST_SET_INPUT),
                 );
             }
@@ -1795,7 +1886,7 @@ impl<'i, 'arena> ImportNamesParser<'i, 'arena> {
     fn parse_parse_error_ll1(
         &mut self,
         i: u32,
-        failure_context: Option<(SlotId, Option<GssNodeId>)>,
+        failure_context: Option<SlotId>,
     ) -> Option<SPPFNodeId> {
         #[cfg(feature = "instrument")]
         self.ll1_call_log.push((NonterminalId(5), i));
@@ -1828,11 +1919,11 @@ impl<'i, 'arena> ImportNamesParser<'i, 'arena> {
             }
         })();
         if result.is_none() {
-            if let Some((slot_id, gss_node_id)) = failure_context {
+            if let Some(slot_id) = failure_context {
                 self.add_failure(
                     i,
                     slot_id,
-                    gss_node_id,
+                    None,
                     GLLFailureKind::UnexpectedToken(&FIRST_SET_PARSE_ERROR),
                 );
             }
@@ -1842,7 +1933,7 @@ impl<'i, 'arena> ImportNamesParser<'i, 'arena> {
     fn parse_parse_success_ll1(
         &mut self,
         i: u32,
-        failure_context: Option<(SlotId, Option<GssNodeId>)>,
+        failure_context: Option<SlotId>,
     ) -> Option<SPPFNodeId> {
         #[cfg(feature = "instrument")]
         self.ll1_call_log.push((NonterminalId(6), i));
@@ -1875,22 +1966,18 @@ impl<'i, 'arena> ImportNamesParser<'i, 'arena> {
             }
         })();
         if result.is_none() {
-            if let Some((slot_id, gss_node_id)) = failure_context {
+            if let Some(slot_id) = failure_context {
                 self.add_failure(
                     i,
                     slot_id,
-                    gss_node_id,
+                    None,
                     GLLFailureKind::UnexpectedToken(&FIRST_SET_PARSE_SUCCESS),
                 );
             }
         }
         result
     }
-    fn parse_grammar_ll1(
-        &mut self,
-        i: u32,
-        failure_context: Option<(SlotId, Option<GssNodeId>)>,
-    ) -> Option<SPPFNodeId> {
+    fn parse_grammar_ll1(&mut self, i: u32, failure_context: Option<SlotId>) -> Option<SPPFNodeId> {
         #[cfg(feature = "instrument")]
         self.ll1_call_log.push((NonterminalId(7), i));
         let result = (|| -> Option<SPPFNodeId> {
@@ -1922,11 +2009,11 @@ impl<'i, 'arena> ImportNamesParser<'i, 'arena> {
             }
         })();
         if result.is_none() {
-            if let Some((slot_id, gss_node_id)) = failure_context {
+            if let Some(slot_id) = failure_context {
                 self.add_failure(
                     i,
                     slot_id,
-                    gss_node_id,
+                    None,
                     GLLFailureKind::UnexpectedToken(&FIRST_SET_GRAMMAR),
                 );
             }
@@ -1936,7 +2023,7 @@ impl<'i, 'arena> ImportNamesParser<'i, 'arena> {
     fn parse_nonterminal_ll1(
         &mut self,
         i: u32,
-        failure_context: Option<(SlotId, Option<GssNodeId>)>,
+        failure_context: Option<SlotId>,
     ) -> Option<SPPFNodeId> {
         #[cfg(feature = "instrument")]
         self.ll1_call_log.push((NonterminalId(8), i));
@@ -1969,11 +2056,11 @@ impl<'i, 'arena> ImportNamesParser<'i, 'arena> {
             }
         })();
         if result.is_none() {
-            if let Some((slot_id, gss_node_id)) = failure_context {
+            if let Some(slot_id) = failure_context {
                 self.add_failure(
                     i,
                     slot_id,
-                    gss_node_id,
+                    None,
                     GLLFailureKind::UnexpectedToken(&FIRST_SET_NONTERMINAL),
                 );
             }
@@ -1983,7 +2070,7 @@ impl<'i, 'arena> ImportNamesParser<'i, 'arena> {
     fn parse_terminal_ll1(
         &mut self,
         i: u32,
-        failure_context: Option<(SlotId, Option<GssNodeId>)>,
+        failure_context: Option<SlotId>,
     ) -> Option<SPPFNodeId> {
         #[cfg(feature = "instrument")]
         self.ll1_call_log.push((NonterminalId(9), i));
@@ -2016,22 +2103,18 @@ impl<'i, 'arena> ImportNamesParser<'i, 'arena> {
             }
         })();
         if result.is_none() {
-            if let Some((slot_id, gss_node_id)) = failure_context {
+            if let Some(slot_id) = failure_context {
                 self.add_failure(
                     i,
                     slot_id,
-                    gss_node_id,
+                    None,
                     GLLFailureKind::UnexpectedToken(&FIRST_SET_TERMINAL),
                 );
             }
         }
         result
     }
-    fn parse_slot_ll1(
-        &mut self,
-        i: u32,
-        failure_context: Option<(SlotId, Option<GssNodeId>)>,
-    ) -> Option<SPPFNodeId> {
+    fn parse_slot_ll1(&mut self, i: u32, failure_context: Option<SlotId>) -> Option<SPPFNodeId> {
         #[cfg(feature = "instrument")]
         self.ll1_call_log.push((NonterminalId(10), i));
         let result = (|| -> Option<SPPFNodeId> {
@@ -2063,11 +2146,11 @@ impl<'i, 'arena> ImportNamesParser<'i, 'arena> {
             }
         })();
         if result.is_none() {
-            if let Some((slot_id, gss_node_id)) = failure_context {
+            if let Some(slot_id) = failure_context {
                 self.add_failure(
                     i,
                     slot_id,
-                    gss_node_id,
+                    None,
                     GLLFailureKind::UnexpectedToken(&FIRST_SET_SLOT),
                 );
             }
@@ -2077,7 +2160,7 @@ impl<'i, 'arena> ImportNamesParser<'i, 'arena> {
     fn parse_terminal_set_ll1(
         &mut self,
         i: u32,
-        failure_context: Option<(SlotId, Option<GssNodeId>)>,
+        failure_context: Option<SlotId>,
     ) -> Option<SPPFNodeId> {
         #[cfg(feature = "instrument")]
         self.ll1_call_log.push((NonterminalId(11), i));
@@ -2110,11 +2193,11 @@ impl<'i, 'arena> ImportNamesParser<'i, 'arena> {
             }
         })();
         if result.is_none() {
-            if let Some((slot_id, gss_node_id)) = failure_context {
+            if let Some(slot_id) = failure_context {
                 self.add_failure(
                     i,
                     slot_id,
-                    gss_node_id,
+                    None,
                     GLLFailureKind::UnexpectedToken(&FIRST_SET_TERMINAL_SET),
                 );
             }

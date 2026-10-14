@@ -86,14 +86,19 @@ impl<'i, 'arena> Parser<'i, 'arena> for ExceptRegexReferenceParser<'i, 'arena> {
                     }
                     // StartS : . start:S
                     SlotId(2) => {
-                        if let Some(right_child) =
-                            self.parse_s_ll1(input_index, Some((SlotId(2), Some(gss_node_id))))
-                        {
+                        if let Some(right_child) = self.parse_s_ll1(input_index, None) {
                             let j = self.sppf_node(right_child).right_extent();
                             // StartS : start:S.
                             input_index = j;
                             result = Some(right_child);
                             next = Some(SlotId(3));
+                        } else {
+                            self.add_failure(
+                                input_index,
+                                SlotId(2),
+                                Some(gss_node_id),
+                                GLLFailureKind::UnexpectedToken(&FIRST_SET_S),
+                            );
                         }
                     }
                     // StartS : start:S.
@@ -609,11 +614,7 @@ impl<'i, 'arena> ExceptRegexReferenceParser<'i, 'arena> {
             .parse(START_S, tree_arena)?
             .map(ParseTree::unwrap_start_s))
     }
-    fn parse_s_ll1(
-        &mut self,
-        i: u32,
-        failure_context: Option<(SlotId, Option<GssNodeId>)>,
-    ) -> Option<SPPFNodeId> {
+    fn parse_s_ll1(&mut self, i: u32, failure_context: Option<SlotId>) -> Option<SPPFNodeId> {
         #[cfg(feature = "instrument")]
         self.ll1_call_log.push((NonterminalId(0), i));
         let result = (|| -> Option<SPPFNodeId> {
@@ -645,11 +646,11 @@ impl<'i, 'arena> ExceptRegexReferenceParser<'i, 'arena> {
             }
         })();
         if result.is_none() {
-            if let Some((slot_id, gss_node_id)) = failure_context {
+            if let Some(slot_id) = failure_context {
                 self.add_failure(
                     i,
                     slot_id,
-                    gss_node_id,
+                    None,
                     GLLFailureKind::UnexpectedToken(&FIRST_SET_S),
                 );
             }

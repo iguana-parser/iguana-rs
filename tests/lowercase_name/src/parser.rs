@@ -80,9 +80,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for LowercaseNameParser<'i, 'arena> {
                     }
                     // S : "a" . B
                     SlotId(1) => {
-                        if let Some(right_child) =
-                            self.parse_b_ll1(input_index, Some((SlotId(1), Some(gss_node_id))))
-                        {
+                        if let Some(right_child) = self.parse_b_ll1(input_index, None) {
                             let j = self.sppf_node(right_child).right_extent();
                             if let Some(new_node) =
                                 self.create_intermediate_node(result, right_child, SlotId(2), env)
@@ -92,6 +90,13 @@ impl<'i, 'arena> Parser<'i, 'arena> for LowercaseNameParser<'i, 'arena> {
                                 result = Some(new_node);
                                 next = Some(SlotId(2));
                             }
+                        } else {
+                            self.add_failure(
+                                input_index,
+                                SlotId(1),
+                                Some(gss_node_id),
+                                GLLFailureKind::UnexpectedToken(&FIRST_SET_B),
+                            );
                         }
                     }
                     // S : "a" B.
@@ -124,14 +129,19 @@ impl<'i, 'arena> Parser<'i, 'arena> for LowercaseNameParser<'i, 'arena> {
                     }
                     // StartS : . start:S
                     SlotId(5) => {
-                        if let Some(right_child) =
-                            self.parse_s_ll1(input_index, Some((SlotId(5), Some(gss_node_id))))
-                        {
+                        if let Some(right_child) = self.parse_s_ll1(input_index, None) {
                             let j = self.sppf_node(right_child).right_extent();
                             // StartS : start:S.
                             input_index = j;
                             result = Some(right_child);
                             next = Some(SlotId(6));
+                        } else {
+                            self.add_failure(
+                                input_index,
+                                SlotId(5),
+                                Some(gss_node_id),
+                                GLLFailureKind::UnexpectedToken(&FIRST_SET_S),
+                            );
                         }
                     }
                     // StartS : start:S.
@@ -143,14 +153,19 @@ impl<'i, 'arena> Parser<'i, 'arena> for LowercaseNameParser<'i, 'arena> {
                     }
                     // StartB : . start:B
                     SlotId(7) => {
-                        if let Some(right_child) =
-                            self.parse_b_ll1(input_index, Some((SlotId(7), Some(gss_node_id))))
-                        {
+                        if let Some(right_child) = self.parse_b_ll1(input_index, None) {
                             let j = self.sppf_node(right_child).right_extent();
                             // StartB : start:B.
                             input_index = j;
                             result = Some(right_child);
                             next = Some(SlotId(8));
+                        } else {
+                            self.add_failure(
+                                input_index,
+                                SlotId(7),
+                                Some(gss_node_id),
+                                GLLFailureKind::UnexpectedToken(&FIRST_SET_B),
+                            );
                         }
                     }
                     // StartB : start:B.
@@ -674,11 +689,7 @@ impl<'i, 'arena> LowercaseNameParser<'i, 'arena> {
             .parse(START_B, tree_arena)?
             .map(ParseTree::unwrap_start_b))
     }
-    fn parse_s_ll1(
-        &mut self,
-        i: u32,
-        failure_context: Option<(SlotId, Option<GssNodeId>)>,
-    ) -> Option<SPPFNodeId> {
+    fn parse_s_ll1(&mut self, i: u32, failure_context: Option<SlotId>) -> Option<SPPFNodeId> {
         #[cfg(feature = "instrument")]
         self.ll1_call_log.push((NonterminalId(0), i));
         let result = (|| -> Option<SPPFNodeId> {
@@ -697,7 +708,7 @@ impl<'i, 'arena> LowercaseNameParser<'i, 'arena> {
                     let mut current = right_child;
                     let right_child = {
                         let start = j;
-                        let node = self.parse_b_ll1(start, Some((SlotId(2), None)))?;
+                        let node = self.parse_b_ll1(start, Some(SlotId(2)))?;
                         let end = self.sppf_node(node).right_extent();
                         j = end;
                         node
@@ -724,22 +735,18 @@ impl<'i, 'arena> LowercaseNameParser<'i, 'arena> {
             }
         })();
         if result.is_none() {
-            if let Some((slot_id, gss_node_id)) = failure_context {
+            if let Some(slot_id) = failure_context {
                 self.add_failure(
                     i,
                     slot_id,
-                    gss_node_id,
+                    None,
                     GLLFailureKind::UnexpectedToken(&FIRST_SET_S),
                 );
             }
         }
         result
     }
-    fn parse_b_ll1(
-        &mut self,
-        i: u32,
-        failure_context: Option<(SlotId, Option<GssNodeId>)>,
-    ) -> Option<SPPFNodeId> {
+    fn parse_b_ll1(&mut self, i: u32, failure_context: Option<SlotId>) -> Option<SPPFNodeId> {
         #[cfg(feature = "instrument")]
         self.ll1_call_log.push((NonterminalId(1), i));
         let result = (|| -> Option<SPPFNodeId> {
@@ -771,11 +778,11 @@ impl<'i, 'arena> LowercaseNameParser<'i, 'arena> {
             }
         })();
         if result.is_none() {
-            if let Some((slot_id, gss_node_id)) = failure_context {
+            if let Some(slot_id) = failure_context {
                 self.add_failure(
                     i,
                     slot_id,
-                    gss_node_id,
+                    None,
                     GLLFailureKind::UnexpectedToken(&FIRST_SET_B),
                 );
             }

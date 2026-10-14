@@ -282,9 +282,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for ExactKeywordPrecedeParser<'i, 'arena> {
                     }
                     // StartS : WS . start:S WS
                     SlotId(13) => {
-                        if let Some(right_child) =
-                            self.parse_s_ll1(input_index, Some((SlotId(13), Some(gss_node_id))))
-                        {
+                        if let Some(right_child) = self.parse_s_ll1(input_index, None) {
                             let j = self.sppf_node(right_child).right_extent();
                             if let Some(new_node) =
                                 self.create_intermediate_node(result, right_child, SlotId(14), env)
@@ -294,6 +292,13 @@ impl<'i, 'arena> Parser<'i, 'arena> for ExactKeywordPrecedeParser<'i, 'arena> {
                                 result = Some(new_node);
                                 next = Some(SlotId(14));
                             }
+                        } else {
+                            self.add_failure(
+                                input_index,
+                                SlotId(13),
+                                Some(gss_node_id),
+                                GLLFailureKind::UnexpectedToken(&FIRST_SET_S),
+                            );
                         }
                     }
                     // StartS : WS start:S . WS
@@ -841,11 +846,7 @@ impl<'i, 'arena> ExactKeywordPrecedeParser<'i, 'arena> {
             .parse(START_S, tree_arena)?
             .map(ParseTree::unwrap_start_s))
     }
-    fn parse_s_ll1(
-        &mut self,
-        i: u32,
-        failure_context: Option<(SlotId, Option<GssNodeId>)>,
-    ) -> Option<SPPFNodeId> {
+    fn parse_s_ll1(&mut self, i: u32, failure_context: Option<SlotId>) -> Option<SPPFNodeId> {
         #[cfg(feature = "instrument")]
         self.ll1_call_log.push((NonterminalId(0), i));
         let result = (|| -> Option<SPPFNodeId> {
@@ -1018,11 +1019,11 @@ impl<'i, 'arena> ExactKeywordPrecedeParser<'i, 'arena> {
             }
         })();
         if result.is_none() {
-            if let Some((slot_id, gss_node_id)) = failure_context {
+            if let Some(slot_id) = failure_context {
                 self.add_failure(
                     i,
                     slot_id,
-                    gss_node_id,
+                    None,
                     GLLFailureKind::UnexpectedToken(&FIRST_SET_S),
                 );
             }

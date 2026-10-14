@@ -66,21 +66,24 @@ impl<'i, 'arena> Parser<'i, 'arena> for AltSeqParser<'i, 'arena> {
                 match slot_id {
                     // S : . Alt_0 Alt_1 Hex
                     SlotId(0) => {
-                        if let Some(right_child) =
-                            self.parse_alt_0_ll1(input_index, Some((SlotId(0), Some(gss_node_id))))
-                        {
+                        if let Some(right_child) = self.parse_alt_0_ll1(input_index, None) {
                             let j = self.sppf_node(right_child).right_extent();
                             // S : Alt_0 . Alt_1 Hex
                             input_index = j;
                             result = Some(right_child);
                             next = Some(SlotId(1));
+                        } else {
+                            self.add_failure(
+                                input_index,
+                                SlotId(0),
+                                Some(gss_node_id),
+                                GLLFailureKind::UnexpectedToken(&FIRST_SET_ALT_0),
+                            );
                         }
                     }
                     // S : Alt_0 . Alt_1 Hex
                     SlotId(1) => {
-                        if let Some(right_child) =
-                            self.parse_alt_1_ll1(input_index, Some((SlotId(1), Some(gss_node_id))))
-                        {
+                        if let Some(right_child) = self.parse_alt_1_ll1(input_index, None) {
                             let j = self.sppf_node(right_child).right_extent();
                             if let Some(new_node) =
                                 self.create_intermediate_node(result, right_child, SlotId(2), env)
@@ -90,6 +93,13 @@ impl<'i, 'arena> Parser<'i, 'arena> for AltSeqParser<'i, 'arena> {
                                 result = Some(new_node);
                                 next = Some(SlotId(2));
                             }
+                        } else {
+                            self.add_failure(
+                                input_index,
+                                SlotId(1),
+                                Some(gss_node_id),
+                                GLLFailureKind::UnexpectedToken(&FIRST_SET_ALT_1),
+                            );
                         }
                     }
                     // S : Alt_0 Alt_1 . Hex
@@ -245,21 +255,24 @@ impl<'i, 'arena> Parser<'i, 'arena> for AltSeqParser<'i, 'arena> {
                     }
                     // Alt_0 : . A B
                     SlotId(16) => {
-                        if let Some(right_child) =
-                            self.parse_a_ll1(input_index, Some((SlotId(16), Some(gss_node_id))))
-                        {
+                        if let Some(right_child) = self.parse_a_ll1(input_index, None) {
                             let j = self.sppf_node(right_child).right_extent();
                             // Alt_0 : A . B
                             input_index = j;
                             result = Some(right_child);
                             next = Some(SlotId(17));
+                        } else {
+                            self.add_failure(
+                                input_index,
+                                SlotId(16),
+                                Some(gss_node_id),
+                                GLLFailureKind::UnexpectedToken(&FIRST_SET_A),
+                            );
                         }
                     }
                     // Alt_0 : A . B
                     SlotId(17) => {
-                        if let Some(right_child) =
-                            self.parse_b_ll1(input_index, Some((SlotId(17), Some(gss_node_id))))
-                        {
+                        if let Some(right_child) = self.parse_b_ll1(input_index, None) {
                             let j = self.sppf_node(right_child).right_extent();
                             if let Some(new_node) =
                                 self.create_intermediate_node(result, right_child, SlotId(18), env)
@@ -269,6 +282,13 @@ impl<'i, 'arena> Parser<'i, 'arena> for AltSeqParser<'i, 'arena> {
                                 result = Some(new_node);
                                 next = Some(SlotId(18));
                             }
+                        } else {
+                            self.add_failure(
+                                input_index,
+                                SlotId(17),
+                                Some(gss_node_id),
+                                GLLFailureKind::UnexpectedToken(&FIRST_SET_B),
+                            );
                         }
                     }
                     // Alt_0 : A B.
@@ -280,14 +300,19 @@ impl<'i, 'arena> Parser<'i, 'arena> for AltSeqParser<'i, 'arena> {
                     }
                     // Alt_0 : . C
                     SlotId(19) => {
-                        if let Some(right_child) =
-                            self.parse_c_ll1(input_index, Some((SlotId(19), Some(gss_node_id))))
-                        {
+                        if let Some(right_child) = self.parse_c_ll1(input_index, None) {
                             let j = self.sppf_node(right_child).right_extent();
                             // Alt_0 : C.
                             input_index = j;
                             result = Some(right_child);
                             next = Some(SlotId(20));
+                        } else {
+                            self.add_failure(
+                                input_index,
+                                SlotId(19),
+                                Some(gss_node_id),
+                                GLLFailureKind::UnexpectedToken(&FIRST_SET_C),
+                            );
                         }
                     }
                     // Alt_0 : C.
@@ -299,14 +324,19 @@ impl<'i, 'arena> Parser<'i, 'arena> for AltSeqParser<'i, 'arena> {
                     }
                     // Alt_1 : . D
                     SlotId(21) => {
-                        if let Some(right_child) =
-                            self.parse_d_ll1(input_index, Some((SlotId(21), Some(gss_node_id))))
-                        {
+                        if let Some(right_child) = self.parse_d_ll1(input_index, None) {
                             let j = self.sppf_node(right_child).right_extent();
                             // Alt_1 : D.
                             input_index = j;
                             result = Some(right_child);
                             next = Some(SlotId(22));
+                        } else {
+                            self.add_failure(
+                                input_index,
+                                SlotId(21),
+                                Some(gss_node_id),
+                                GLLFailureKind::UnexpectedToken(&FIRST_SET_D),
+                            );
                         }
                     }
                     // Alt_1 : D.
@@ -318,21 +348,24 @@ impl<'i, 'arena> Parser<'i, 'arena> for AltSeqParser<'i, 'arena> {
                     }
                     // Alt_1 : . E F
                     SlotId(23) => {
-                        if let Some(right_child) =
-                            self.parse_e_ll1(input_index, Some((SlotId(23), Some(gss_node_id))))
-                        {
+                        if let Some(right_child) = self.parse_e_ll1(input_index, None) {
                             let j = self.sppf_node(right_child).right_extent();
                             // Alt_1 : E . F
                             input_index = j;
                             result = Some(right_child);
                             next = Some(SlotId(24));
+                        } else {
+                            self.add_failure(
+                                input_index,
+                                SlotId(23),
+                                Some(gss_node_id),
+                                GLLFailureKind::UnexpectedToken(&FIRST_SET_E),
+                            );
                         }
                     }
                     // Alt_1 : E . F
                     SlotId(24) => {
-                        if let Some(right_child) =
-                            self.parse_f_ll1(input_index, Some((SlotId(24), Some(gss_node_id))))
-                        {
+                        if let Some(right_child) = self.parse_f_ll1(input_index, None) {
                             let j = self.sppf_node(right_child).right_extent();
                             if let Some(new_node) =
                                 self.create_intermediate_node(result, right_child, SlotId(25), env)
@@ -342,6 +375,13 @@ impl<'i, 'arena> Parser<'i, 'arena> for AltSeqParser<'i, 'arena> {
                                 result = Some(new_node);
                                 next = Some(SlotId(25));
                             }
+                        } else {
+                            self.add_failure(
+                                input_index,
+                                SlotId(24),
+                                Some(gss_node_id),
+                                GLLFailureKind::UnexpectedToken(&FIRST_SET_F),
+                            );
                         }
                     }
                     // Alt_1 : E F.
@@ -353,14 +393,19 @@ impl<'i, 'arena> Parser<'i, 'arena> for AltSeqParser<'i, 'arena> {
                     }
                     // StartS : . start:S
                     SlotId(26) => {
-                        if let Some(right_child) =
-                            self.parse_s_ll1(input_index, Some((SlotId(26), Some(gss_node_id))))
-                        {
+                        if let Some(right_child) = self.parse_s_ll1(input_index, None) {
                             let j = self.sppf_node(right_child).right_extent();
                             // StartS : start:S.
                             input_index = j;
                             result = Some(right_child);
                             next = Some(SlotId(27));
+                        } else {
+                            self.add_failure(
+                                input_index,
+                                SlotId(26),
+                                Some(gss_node_id),
+                                GLLFailureKind::UnexpectedToken(&FIRST_SET_S),
+                            );
                         }
                     }
                     // StartS : start:S.
@@ -372,14 +417,19 @@ impl<'i, 'arena> Parser<'i, 'arena> for AltSeqParser<'i, 'arena> {
                     }
                     // StartA : . start:A
                     SlotId(28) => {
-                        if let Some(right_child) =
-                            self.parse_a_ll1(input_index, Some((SlotId(28), Some(gss_node_id))))
-                        {
+                        if let Some(right_child) = self.parse_a_ll1(input_index, None) {
                             let j = self.sppf_node(right_child).right_extent();
                             // StartA : start:A.
                             input_index = j;
                             result = Some(right_child);
                             next = Some(SlotId(29));
+                        } else {
+                            self.add_failure(
+                                input_index,
+                                SlotId(28),
+                                Some(gss_node_id),
+                                GLLFailureKind::UnexpectedToken(&FIRST_SET_A),
+                            );
                         }
                     }
                     // StartA : start:A.
@@ -391,14 +441,19 @@ impl<'i, 'arena> Parser<'i, 'arena> for AltSeqParser<'i, 'arena> {
                     }
                     // StartB : . start:B
                     SlotId(30) => {
-                        if let Some(right_child) =
-                            self.parse_b_ll1(input_index, Some((SlotId(30), Some(gss_node_id))))
-                        {
+                        if let Some(right_child) = self.parse_b_ll1(input_index, None) {
                             let j = self.sppf_node(right_child).right_extent();
                             // StartB : start:B.
                             input_index = j;
                             result = Some(right_child);
                             next = Some(SlotId(31));
+                        } else {
+                            self.add_failure(
+                                input_index,
+                                SlotId(30),
+                                Some(gss_node_id),
+                                GLLFailureKind::UnexpectedToken(&FIRST_SET_B),
+                            );
                         }
                     }
                     // StartB : start:B.
@@ -410,14 +465,19 @@ impl<'i, 'arena> Parser<'i, 'arena> for AltSeqParser<'i, 'arena> {
                     }
                     // StartC : . start:C
                     SlotId(32) => {
-                        if let Some(right_child) =
-                            self.parse_c_ll1(input_index, Some((SlotId(32), Some(gss_node_id))))
-                        {
+                        if let Some(right_child) = self.parse_c_ll1(input_index, None) {
                             let j = self.sppf_node(right_child).right_extent();
                             // StartC : start:C.
                             input_index = j;
                             result = Some(right_child);
                             next = Some(SlotId(33));
+                        } else {
+                            self.add_failure(
+                                input_index,
+                                SlotId(32),
+                                Some(gss_node_id),
+                                GLLFailureKind::UnexpectedToken(&FIRST_SET_C),
+                            );
                         }
                     }
                     // StartC : start:C.
@@ -429,14 +489,19 @@ impl<'i, 'arena> Parser<'i, 'arena> for AltSeqParser<'i, 'arena> {
                     }
                     // StartD : . start:D
                     SlotId(34) => {
-                        if let Some(right_child) =
-                            self.parse_d_ll1(input_index, Some((SlotId(34), Some(gss_node_id))))
-                        {
+                        if let Some(right_child) = self.parse_d_ll1(input_index, None) {
                             let j = self.sppf_node(right_child).right_extent();
                             // StartD : start:D.
                             input_index = j;
                             result = Some(right_child);
                             next = Some(SlotId(35));
+                        } else {
+                            self.add_failure(
+                                input_index,
+                                SlotId(34),
+                                Some(gss_node_id),
+                                GLLFailureKind::UnexpectedToken(&FIRST_SET_D),
+                            );
                         }
                     }
                     // StartD : start:D.
@@ -448,14 +513,19 @@ impl<'i, 'arena> Parser<'i, 'arena> for AltSeqParser<'i, 'arena> {
                     }
                     // StartE : . start:E
                     SlotId(36) => {
-                        if let Some(right_child) =
-                            self.parse_e_ll1(input_index, Some((SlotId(36), Some(gss_node_id))))
-                        {
+                        if let Some(right_child) = self.parse_e_ll1(input_index, None) {
                             let j = self.sppf_node(right_child).right_extent();
                             // StartE : start:E.
                             input_index = j;
                             result = Some(right_child);
                             next = Some(SlotId(37));
+                        } else {
+                            self.add_failure(
+                                input_index,
+                                SlotId(36),
+                                Some(gss_node_id),
+                                GLLFailureKind::UnexpectedToken(&FIRST_SET_E),
+                            );
                         }
                     }
                     // StartE : start:E.
@@ -467,14 +537,19 @@ impl<'i, 'arena> Parser<'i, 'arena> for AltSeqParser<'i, 'arena> {
                     }
                     // StartF : . start:F
                     SlotId(38) => {
-                        if let Some(right_child) =
-                            self.parse_f_ll1(input_index, Some((SlotId(38), Some(gss_node_id))))
-                        {
+                        if let Some(right_child) = self.parse_f_ll1(input_index, None) {
                             let j = self.sppf_node(right_child).right_extent();
                             // StartF : start:F.
                             input_index = j;
                             result = Some(right_child);
                             next = Some(SlotId(39));
+                        } else {
+                            self.add_failure(
+                                input_index,
+                                SlotId(38),
+                                Some(gss_node_id),
+                                GLLFailureKind::UnexpectedToken(&FIRST_SET_F),
+                            );
                         }
                     }
                     // StartF : start:F.
@@ -1038,11 +1113,7 @@ impl<'i, 'arena> AltSeqParser<'i, 'arena> {
             .parse(START_F, tree_arena)?
             .map(ParseTree::unwrap_start_f))
     }
-    fn parse_s_ll1(
-        &mut self,
-        i: u32,
-        failure_context: Option<(SlotId, Option<GssNodeId>)>,
-    ) -> Option<SPPFNodeId> {
+    fn parse_s_ll1(&mut self, i: u32, failure_context: Option<SlotId>) -> Option<SPPFNodeId> {
         #[cfg(feature = "instrument")]
         self.ll1_call_log.push((NonterminalId(0), i));
         let result = (|| -> Option<SPPFNodeId> {
@@ -1052,7 +1123,7 @@ impl<'i, 'arena> AltSeqParser<'i, 'arena> {
                     let mut j = i;
                     let right_child = {
                         let start = j;
-                        let node = self.parse_alt_0_ll1(start, Some((SlotId(1), None)))?;
+                        let node = self.parse_alt_0_ll1(start, Some(SlotId(1)))?;
                         let end = self.sppf_node(node).right_extent();
                         j = end;
                         node
@@ -1061,7 +1132,7 @@ impl<'i, 'arena> AltSeqParser<'i, 'arena> {
                     let mut current = right_child;
                     let right_child = {
                         let start = j;
-                        let node = self.parse_alt_1_ll1(start, Some((SlotId(2), None)))?;
+                        let node = self.parse_alt_1_ll1(start, Some(SlotId(2)))?;
                         let end = self.sppf_node(node).right_extent();
                         j = end;
                         node
@@ -1102,22 +1173,18 @@ impl<'i, 'arena> AltSeqParser<'i, 'arena> {
             }
         })();
         if result.is_none() {
-            if let Some((slot_id, gss_node_id)) = failure_context {
+            if let Some(slot_id) = failure_context {
                 self.add_failure(
                     i,
                     slot_id,
-                    gss_node_id,
+                    None,
                     GLLFailureKind::UnexpectedToken(&FIRST_SET_S),
                 );
             }
         }
         result
     }
-    fn parse_a_ll1(
-        &mut self,
-        i: u32,
-        failure_context: Option<(SlotId, Option<GssNodeId>)>,
-    ) -> Option<SPPFNodeId> {
+    fn parse_a_ll1(&mut self, i: u32, failure_context: Option<SlotId>) -> Option<SPPFNodeId> {
         #[cfg(feature = "instrument")]
         self.ll1_call_log.push((NonterminalId(1), i));
         let result = (|| -> Option<SPPFNodeId> {
@@ -1149,22 +1216,18 @@ impl<'i, 'arena> AltSeqParser<'i, 'arena> {
             }
         })();
         if result.is_none() {
-            if let Some((slot_id, gss_node_id)) = failure_context {
+            if let Some(slot_id) = failure_context {
                 self.add_failure(
                     i,
                     slot_id,
-                    gss_node_id,
+                    None,
                     GLLFailureKind::UnexpectedToken(&FIRST_SET_A),
                 );
             }
         }
         result
     }
-    fn parse_b_ll1(
-        &mut self,
-        i: u32,
-        failure_context: Option<(SlotId, Option<GssNodeId>)>,
-    ) -> Option<SPPFNodeId> {
+    fn parse_b_ll1(&mut self, i: u32, failure_context: Option<SlotId>) -> Option<SPPFNodeId> {
         #[cfg(feature = "instrument")]
         self.ll1_call_log.push((NonterminalId(2), i));
         let result = (|| -> Option<SPPFNodeId> {
@@ -1196,22 +1259,18 @@ impl<'i, 'arena> AltSeqParser<'i, 'arena> {
             }
         })();
         if result.is_none() {
-            if let Some((slot_id, gss_node_id)) = failure_context {
+            if let Some(slot_id) = failure_context {
                 self.add_failure(
                     i,
                     slot_id,
-                    gss_node_id,
+                    None,
                     GLLFailureKind::UnexpectedToken(&FIRST_SET_B),
                 );
             }
         }
         result
     }
-    fn parse_c_ll1(
-        &mut self,
-        i: u32,
-        failure_context: Option<(SlotId, Option<GssNodeId>)>,
-    ) -> Option<SPPFNodeId> {
+    fn parse_c_ll1(&mut self, i: u32, failure_context: Option<SlotId>) -> Option<SPPFNodeId> {
         #[cfg(feature = "instrument")]
         self.ll1_call_log.push((NonterminalId(3), i));
         let result = (|| -> Option<SPPFNodeId> {
@@ -1243,22 +1302,18 @@ impl<'i, 'arena> AltSeqParser<'i, 'arena> {
             }
         })();
         if result.is_none() {
-            if let Some((slot_id, gss_node_id)) = failure_context {
+            if let Some(slot_id) = failure_context {
                 self.add_failure(
                     i,
                     slot_id,
-                    gss_node_id,
+                    None,
                     GLLFailureKind::UnexpectedToken(&FIRST_SET_C),
                 );
             }
         }
         result
     }
-    fn parse_d_ll1(
-        &mut self,
-        i: u32,
-        failure_context: Option<(SlotId, Option<GssNodeId>)>,
-    ) -> Option<SPPFNodeId> {
+    fn parse_d_ll1(&mut self, i: u32, failure_context: Option<SlotId>) -> Option<SPPFNodeId> {
         #[cfg(feature = "instrument")]
         self.ll1_call_log.push((NonterminalId(4), i));
         let result = (|| -> Option<SPPFNodeId> {
@@ -1290,22 +1345,18 @@ impl<'i, 'arena> AltSeqParser<'i, 'arena> {
             }
         })();
         if result.is_none() {
-            if let Some((slot_id, gss_node_id)) = failure_context {
+            if let Some(slot_id) = failure_context {
                 self.add_failure(
                     i,
                     slot_id,
-                    gss_node_id,
+                    None,
                     GLLFailureKind::UnexpectedToken(&FIRST_SET_D),
                 );
             }
         }
         result
     }
-    fn parse_e_ll1(
-        &mut self,
-        i: u32,
-        failure_context: Option<(SlotId, Option<GssNodeId>)>,
-    ) -> Option<SPPFNodeId> {
+    fn parse_e_ll1(&mut self, i: u32, failure_context: Option<SlotId>) -> Option<SPPFNodeId> {
         #[cfg(feature = "instrument")]
         self.ll1_call_log.push((NonterminalId(5), i));
         let result = (|| -> Option<SPPFNodeId> {
@@ -1337,22 +1388,18 @@ impl<'i, 'arena> AltSeqParser<'i, 'arena> {
             }
         })();
         if result.is_none() {
-            if let Some((slot_id, gss_node_id)) = failure_context {
+            if let Some(slot_id) = failure_context {
                 self.add_failure(
                     i,
                     slot_id,
-                    gss_node_id,
+                    None,
                     GLLFailureKind::UnexpectedToken(&FIRST_SET_E),
                 );
             }
         }
         result
     }
-    fn parse_f_ll1(
-        &mut self,
-        i: u32,
-        failure_context: Option<(SlotId, Option<GssNodeId>)>,
-    ) -> Option<SPPFNodeId> {
+    fn parse_f_ll1(&mut self, i: u32, failure_context: Option<SlotId>) -> Option<SPPFNodeId> {
         #[cfg(feature = "instrument")]
         self.ll1_call_log.push((NonterminalId(6), i));
         let result = (|| -> Option<SPPFNodeId> {
@@ -1384,22 +1431,18 @@ impl<'i, 'arena> AltSeqParser<'i, 'arena> {
             }
         })();
         if result.is_none() {
-            if let Some((slot_id, gss_node_id)) = failure_context {
+            if let Some(slot_id) = failure_context {
                 self.add_failure(
                     i,
                     slot_id,
-                    gss_node_id,
+                    None,
                     GLLFailureKind::UnexpectedToken(&FIRST_SET_F),
                 );
             }
         }
         result
     }
-    fn parse_alt_0_ll1(
-        &mut self,
-        i: u32,
-        failure_context: Option<(SlotId, Option<GssNodeId>)>,
-    ) -> Option<SPPFNodeId> {
+    fn parse_alt_0_ll1(&mut self, i: u32, failure_context: Option<SlotId>) -> Option<SPPFNodeId> {
         #[cfg(feature = "instrument")]
         self.ll1_call_log.push((NonterminalId(7), i));
         let result = (|| -> Option<SPPFNodeId> {
@@ -1409,7 +1452,7 @@ impl<'i, 'arena> AltSeqParser<'i, 'arena> {
                     let mut j = i;
                     let right_child = {
                         let start = j;
-                        let node = self.parse_a_ll1(start, Some((SlotId(17), None)))?;
+                        let node = self.parse_a_ll1(start, Some(SlotId(17)))?;
                         let end = self.sppf_node(node).right_extent();
                         j = end;
                         node
@@ -1418,7 +1461,7 @@ impl<'i, 'arena> AltSeqParser<'i, 'arena> {
                     let mut current = right_child;
                     let right_child = {
                         let start = j;
-                        let node = self.parse_b_ll1(start, Some((SlotId(18), None)))?;
+                        let node = self.parse_b_ll1(start, Some(SlotId(18)))?;
                         let end = self.sppf_node(node).right_extent();
                         j = end;
                         node
@@ -1445,7 +1488,7 @@ impl<'i, 'arena> AltSeqParser<'i, 'arena> {
                     let mut j = i;
                     let right_child = {
                         let start = j;
-                        let node = self.parse_c_ll1(start, Some((SlotId(20), None)))?;
+                        let node = self.parse_c_ll1(start, Some(SlotId(20)))?;
                         let end = self.sppf_node(node).right_extent();
                         j = end;
                         node
@@ -1467,22 +1510,18 @@ impl<'i, 'arena> AltSeqParser<'i, 'arena> {
             }
         })();
         if result.is_none() {
-            if let Some((slot_id, gss_node_id)) = failure_context {
+            if let Some(slot_id) = failure_context {
                 self.add_failure(
                     i,
                     slot_id,
-                    gss_node_id,
+                    None,
                     GLLFailureKind::UnexpectedToken(&FIRST_SET_ALT_0),
                 );
             }
         }
         result
     }
-    fn parse_alt_1_ll1(
-        &mut self,
-        i: u32,
-        failure_context: Option<(SlotId, Option<GssNodeId>)>,
-    ) -> Option<SPPFNodeId> {
+    fn parse_alt_1_ll1(&mut self, i: u32, failure_context: Option<SlotId>) -> Option<SPPFNodeId> {
         #[cfg(feature = "instrument")]
         self.ll1_call_log.push((NonterminalId(8), i));
         let result = (|| -> Option<SPPFNodeId> {
@@ -1492,7 +1531,7 @@ impl<'i, 'arena> AltSeqParser<'i, 'arena> {
                     let mut j = i;
                     let right_child = {
                         let start = j;
-                        let node = self.parse_d_ll1(start, Some((SlotId(22), None)))?;
+                        let node = self.parse_d_ll1(start, Some(SlotId(22)))?;
                         let end = self.sppf_node(node).right_extent();
                         j = end;
                         node
@@ -1514,7 +1553,7 @@ impl<'i, 'arena> AltSeqParser<'i, 'arena> {
                     let mut j = i;
                     let right_child = {
                         let start = j;
-                        let node = self.parse_e_ll1(start, Some((SlotId(24), None)))?;
+                        let node = self.parse_e_ll1(start, Some(SlotId(24)))?;
                         let end = self.sppf_node(node).right_extent();
                         j = end;
                         node
@@ -1523,7 +1562,7 @@ impl<'i, 'arena> AltSeqParser<'i, 'arena> {
                     let mut current = right_child;
                     let right_child = {
                         let start = j;
-                        let node = self.parse_f_ll1(start, Some((SlotId(25), None)))?;
+                        let node = self.parse_f_ll1(start, Some(SlotId(25)))?;
                         let end = self.sppf_node(node).right_extent();
                         j = end;
                         node
@@ -1550,11 +1589,11 @@ impl<'i, 'arena> AltSeqParser<'i, 'arena> {
             }
         })();
         if result.is_none() {
-            if let Some((slot_id, gss_node_id)) = failure_context {
+            if let Some(slot_id) = failure_context {
                 self.add_failure(
                     i,
                     slot_id,
-                    gss_node_id,
+                    None,
                     GLLFailureKind::UnexpectedToken(&FIRST_SET_ALT_1),
                 );
             }

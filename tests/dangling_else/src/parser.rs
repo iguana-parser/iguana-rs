@@ -98,9 +98,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for DanglingElseParser<'i, 'arena> {
                     }
                     // Statement : "if" . Layout "(" Layout Cond Layout ")" Layout Statement !>>> Else
                     SlotId(3) => {
-                        if let Some(right_child) =
-                            self.parse_layout_ll1(input_index, Some((SlotId(3), Some(gss_node_id))))
-                        {
+                        if let Some(right_child) = self.parse_layout_ll1(input_index, None) {
                             let j = self.sppf_node(right_child).right_extent();
                             if let Some(new_node) =
                                 self.create_intermediate_node(result, right_child, SlotId(4), env)
@@ -132,9 +130,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for DanglingElseParser<'i, 'arena> {
                     }
                     // Statement : "if" Layout "(" . Layout Cond Layout ")" Layout Statement !>>> Else
                     SlotId(5) => {
-                        if let Some(right_child) =
-                            self.parse_layout_ll1(input_index, Some((SlotId(5), Some(gss_node_id))))
-                        {
+                        if let Some(right_child) = self.parse_layout_ll1(input_index, None) {
                             let j = self.sppf_node(right_child).right_extent();
                             if let Some(new_node) =
                                 self.create_intermediate_node(result, right_child, SlotId(6), env)
@@ -166,9 +162,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for DanglingElseParser<'i, 'arena> {
                     }
                     // Statement : "if" Layout "(" Layout Cond . Layout ")" Layout Statement !>>> Else
                     SlotId(7) => {
-                        if let Some(right_child) =
-                            self.parse_layout_ll1(input_index, Some((SlotId(7), Some(gss_node_id))))
-                        {
+                        if let Some(right_child) = self.parse_layout_ll1(input_index, None) {
                             let j = self.sppf_node(right_child).right_extent();
                             if let Some(new_node) =
                                 self.create_intermediate_node(result, right_child, SlotId(8), env)
@@ -200,9 +194,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for DanglingElseParser<'i, 'arena> {
                     }
                     // Statement : "if" Layout "(" Layout Cond Layout ")" . Layout Statement !>>> Else
                     SlotId(9) => {
-                        if let Some(right_child) =
-                            self.parse_layout_ll1(input_index, Some((SlotId(9), Some(gss_node_id))))
-                        {
+                        if let Some(right_child) = self.parse_layout_ll1(input_index, None) {
                             let j = self.sppf_node(right_child).right_extent();
                             if let Some(new_node) =
                                 self.create_intermediate_node(result, right_child, SlotId(10), env)
@@ -251,9 +243,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for DanglingElseParser<'i, 'arena> {
                     // Statement : "if" . Layout "(" Layout Cond Layout ")" Layout Statement Layout Else Layout
                     // Statement
                     SlotId(13) => {
-                        if let Some(right_child) = self
-                            .parse_layout_ll1(input_index, Some((SlotId(13), Some(gss_node_id))))
-                        {
+                        if let Some(right_child) = self.parse_layout_ll1(input_index, None) {
                             let j = self.sppf_node(right_child).right_extent();
                             if let Some(new_node) =
                                 self.create_intermediate_node(result, right_child, SlotId(14), env)
@@ -289,9 +279,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for DanglingElseParser<'i, 'arena> {
                     // Statement : "if" Layout "(" . Layout Cond Layout ")" Layout Statement Layout Else Layout
                     // Statement
                     SlotId(15) => {
-                        if let Some(right_child) = self
-                            .parse_layout_ll1(input_index, Some((SlotId(15), Some(gss_node_id))))
-                        {
+                        if let Some(right_child) = self.parse_layout_ll1(input_index, None) {
                             let j = self.sppf_node(right_child).right_extent();
                             if let Some(new_node) =
                                 self.create_intermediate_node(result, right_child, SlotId(16), env)
@@ -327,9 +315,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for DanglingElseParser<'i, 'arena> {
                     // Statement : "if" Layout "(" Layout Cond . Layout ")" Layout Statement Layout Else Layout
                     // Statement
                     SlotId(17) => {
-                        if let Some(right_child) = self
-                            .parse_layout_ll1(input_index, Some((SlotId(17), Some(gss_node_id))))
-                        {
+                        if let Some(right_child) = self.parse_layout_ll1(input_index, None) {
                             let j = self.sppf_node(right_child).right_extent();
                             if let Some(new_node) =
                                 self.create_intermediate_node(result, right_child, SlotId(18), env)
@@ -365,9 +351,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for DanglingElseParser<'i, 'arena> {
                     // Statement : "if" Layout "(" Layout Cond Layout ")" . Layout Statement Layout Else Layout
                     // Statement
                     SlotId(19) => {
-                        if let Some(right_child) = self
-                            .parse_layout_ll1(input_index, Some((SlotId(19), Some(gss_node_id))))
-                        {
+                        if let Some(right_child) = self.parse_layout_ll1(input_index, None) {
                             let j = self.sppf_node(right_child).right_extent();
                             if let Some(new_node) =
                                 self.create_intermediate_node(result, right_child, SlotId(20), env)
@@ -395,9 +379,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for DanglingElseParser<'i, 'arena> {
                     // Statement : "if" Layout "(" Layout Cond Layout ")" Layout Statement . Layout Else Layout
                     // Statement
                     SlotId(21) => {
-                        if let Some(right_child) = self
-                            .parse_layout_ll1(input_index, Some((SlotId(21), Some(gss_node_id))))
-                        {
+                        if let Some(right_child) = self.parse_layout_ll1(input_index, None) {
                             let j = self.sppf_node(right_child).right_extent();
                             if let Some(new_node) =
                                 self.create_intermediate_node(result, right_child, SlotId(22), env)
@@ -433,9 +415,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for DanglingElseParser<'i, 'arena> {
                     // Statement : "if" Layout "(" Layout Cond Layout ")" Layout Statement Layout Else . Layout
                     // Statement
                     SlotId(23) => {
-                        if let Some(right_child) = self
-                            .parse_layout_ll1(input_index, Some((SlotId(23), Some(gss_node_id))))
-                        {
+                        if let Some(right_child) = self.parse_layout_ll1(input_index, None) {
                             let j = self.sppf_node(right_child).right_extent();
                             if let Some(new_node) =
                                 self.create_intermediate_node(result, right_child, SlotId(24), env)
@@ -484,9 +464,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for DanglingElseParser<'i, 'arena> {
                     }
                     // Statement : Id . Layout ";"
                     SlotId(27) => {
-                        if let Some(right_child) = self
-                            .parse_layout_ll1(input_index, Some((SlotId(27), Some(gss_node_id))))
-                        {
+                        if let Some(right_child) = self.parse_layout_ll1(input_index, None) {
                             let j = self.sppf_node(right_child).right_extent();
                             if let Some(new_node) =
                                 self.create_intermediate_node(result, right_child, SlotId(28), env)
@@ -525,9 +503,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for DanglingElseParser<'i, 'arena> {
                     }
                     // Layout : . Star_0
                     SlotId(30) => {
-                        if let Some(right_child) = self
-                            .parse_star_0_ll1(input_index, Some((SlotId(30), Some(gss_node_id))))
-                        {
+                        if let Some(right_child) = self.parse_star_0_ll1(input_index, None) {
                             let j = self.sppf_node(right_child).right_extent();
                             // Layout : Star_0.
                             input_index = j;
@@ -555,9 +531,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for DanglingElseParser<'i, 'arena> {
                     }
                     // Plus_0 : Plus_0 . Layout Statement
                     SlotId(33) => {
-                        if let Some(right_child) = self
-                            .parse_layout_ll1(input_index, Some((SlotId(33), Some(gss_node_id))))
-                        {
+                        if let Some(right_child) = self.parse_layout_ll1(input_index, None) {
                             let j = self.sppf_node(right_child).right_extent();
                             if let Some(new_node) =
                                 self.create_intermediate_node(result, right_child, SlotId(34), env)
@@ -649,21 +623,24 @@ impl<'i, 'arena> Parser<'i, 'arena> for DanglingElseParser<'i, 'arena> {
                     }
                     // Plus_1 : . Plus_1 Alt_0
                     SlotId(42) => {
-                        if let Some(right_child) = self
-                            .parse_plus_1_ll1(input_index, Some((SlotId(42), Some(gss_node_id))))
-                        {
+                        if let Some(right_child) = self.parse_plus_1_ll1(input_index, None) {
                             let j = self.sppf_node(right_child).right_extent();
                             // Plus_1 : Plus_1 . Alt_0
                             input_index = j;
                             result = Some(right_child);
                             next = Some(SlotId(43));
+                        } else {
+                            self.add_failure(
+                                input_index,
+                                SlotId(42),
+                                Some(gss_node_id),
+                                GLLFailureKind::UnexpectedToken(&FIRST_SET_PLUS_1),
+                            );
                         }
                     }
                     // Plus_1 : Plus_1 . Alt_0
                     SlotId(43) => {
-                        if let Some(right_child) =
-                            self.parse_alt_0_ll1(input_index, Some((SlotId(43), Some(gss_node_id))))
-                        {
+                        if let Some(right_child) = self.parse_alt_0_ll1(input_index, None) {
                             let j = self.sppf_node(right_child).right_extent();
                             if let Some(new_node) =
                                 self.create_intermediate_node(result, right_child, SlotId(44), env)
@@ -673,6 +650,13 @@ impl<'i, 'arena> Parser<'i, 'arena> for DanglingElseParser<'i, 'arena> {
                                 result = Some(new_node);
                                 next = Some(SlotId(44));
                             }
+                        } else {
+                            self.add_failure(
+                                input_index,
+                                SlotId(43),
+                                Some(gss_node_id),
+                                GLLFailureKind::UnexpectedToken(&FIRST_SET_ALT_0),
+                            );
                         }
                     }
                     // Plus_1 : Plus_1 Alt_0.
@@ -684,14 +668,19 @@ impl<'i, 'arena> Parser<'i, 'arena> for DanglingElseParser<'i, 'arena> {
                     }
                     // Plus_1 : . Alt_0
                     SlotId(45) => {
-                        if let Some(right_child) =
-                            self.parse_alt_0_ll1(input_index, Some((SlotId(45), Some(gss_node_id))))
-                        {
+                        if let Some(right_child) = self.parse_alt_0_ll1(input_index, None) {
                             let j = self.sppf_node(right_child).right_extent();
                             // Plus_1 : Alt_0.
                             input_index = j;
                             result = Some(right_child);
                             next = Some(SlotId(46));
+                        } else {
+                            self.add_failure(
+                                input_index,
+                                SlotId(45),
+                                Some(gss_node_id),
+                                GLLFailureKind::UnexpectedToken(&FIRST_SET_ALT_0),
+                            );
                         }
                     }
                     // Plus_1 : Alt_0.
@@ -703,14 +692,19 @@ impl<'i, 'arena> Parser<'i, 'arena> for DanglingElseParser<'i, 'arena> {
                     }
                     // Opt_0 : . Plus_1
                     SlotId(47) => {
-                        if let Some(right_child) = self
-                            .parse_plus_1_ll1(input_index, Some((SlotId(47), Some(gss_node_id))))
-                        {
+                        if let Some(right_child) = self.parse_plus_1_ll1(input_index, None) {
                             let j = self.sppf_node(right_child).right_extent();
                             // Opt_0 : Plus_1.
                             input_index = j;
                             result = Some(right_child);
                             next = Some(SlotId(48));
+                        } else {
+                            self.add_failure(
+                                input_index,
+                                SlotId(47),
+                                Some(gss_node_id),
+                                GLLFailureKind::UnexpectedToken(&FIRST_SET_PLUS_1),
+                            );
                         }
                     }
                     // Opt_0 : Plus_1.
@@ -727,9 +721,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for DanglingElseParser<'i, 'arena> {
                     }
                     // Star_0 : . Opt_0
                     SlotId(50) => {
-                        if let Some(right_child) =
-                            self.parse_opt_0_ll1(input_index, Some((SlotId(50), Some(gss_node_id))))
-                        {
+                        if let Some(right_child) = self.parse_opt_0_ll1(input_index, None) {
                             let j = self.sppf_node(right_child).right_extent();
                             // Star_0 : Opt_0.
                             input_index = j;
@@ -746,9 +738,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for DanglingElseParser<'i, 'arena> {
                     }
                     // StartS : . Layout start:S Layout
                     SlotId(52) => {
-                        if let Some(right_child) = self
-                            .parse_layout_ll1(input_index, Some((SlotId(52), Some(gss_node_id))))
-                        {
+                        if let Some(right_child) = self.parse_layout_ll1(input_index, None) {
                             let j = self.sppf_node(right_child).right_extent();
                             // StartS : Layout . start:S Layout
                             input_index = j;
@@ -769,9 +759,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for DanglingElseParser<'i, 'arena> {
                     }
                     // StartS : Layout start:S . Layout
                     SlotId(54) => {
-                        if let Some(right_child) = self
-                            .parse_layout_ll1(input_index, Some((SlotId(54), Some(gss_node_id))))
-                        {
+                        if let Some(right_child) = self.parse_layout_ll1(input_index, None) {
                             let j = self.sppf_node(right_child).right_extent();
                             if let Some(new_node) =
                                 self.create_intermediate_node(result, right_child, SlotId(55), env)
@@ -792,9 +780,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for DanglingElseParser<'i, 'arena> {
                     }
                     // StartStatement : . Layout start:Statement Layout
                     SlotId(56) => {
-                        if let Some(right_child) = self
-                            .parse_layout_ll1(input_index, Some((SlotId(56), Some(gss_node_id))))
-                        {
+                        if let Some(right_child) = self.parse_layout_ll1(input_index, None) {
                             let j = self.sppf_node(right_child).right_extent();
                             // StartStatement : Layout . start:Statement Layout
                             input_index = j;
@@ -815,9 +801,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for DanglingElseParser<'i, 'arena> {
                     }
                     // StartStatement : Layout start:Statement . Layout
                     SlotId(58) => {
-                        if let Some(right_child) = self
-                            .parse_layout_ll1(input_index, Some((SlotId(58), Some(gss_node_id))))
-                        {
+                        if let Some(right_child) = self.parse_layout_ll1(input_index, None) {
                             let j = self.sppf_node(right_child).right_extent();
                             if let Some(new_node) =
                                 self.create_intermediate_node(result, right_child, SlotId(59), env)
@@ -844,9 +828,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for DanglingElseParser<'i, 'arena> {
                     }
                     // StartLayout : . start:Layout
                     SlotId(60) => {
-                        if let Some(right_child) = self
-                            .parse_layout_ll1(input_index, Some((SlotId(60), Some(gss_node_id))))
-                        {
+                        if let Some(right_child) = self.parse_layout_ll1(input_index, None) {
                             let j = self.sppf_node(right_child).right_extent();
                             // StartLayout : start:Layout.
                             input_index = j;
@@ -1422,11 +1404,7 @@ impl<'i, 'arena> DanglingElseParser<'i, 'arena> {
             .parse(START_LAYOUT, tree_arena)?
             .map(ParseTree::unwrap_start_layout))
     }
-    fn parse_layout_ll1(
-        &mut self,
-        i: u32,
-        _failure_context: Option<(SlotId, Option<GssNodeId>)>,
-    ) -> Option<SPPFNodeId> {
+    fn parse_layout_ll1(&mut self, i: u32, _failure_context: Option<SlotId>) -> Option<SPPFNodeId> {
         #[cfg(feature = "instrument")]
         self.ll1_call_log.push((NonterminalId(2), i));
         if let Some(memo) = self.layout_memo[i as usize] {
@@ -1436,7 +1414,7 @@ impl<'i, 'arena> DanglingElseParser<'i, 'arena> {
             let mut j = i;
             let right_child = {
                 let start = j;
-                let node = self.parse_star_0_ll1(start, Some((SlotId(31), None)))?;
+                let node = self.parse_star_0_ll1(start, Some(SlotId(31)))?;
                 let end = self.sppf_node(node).right_extent();
                 j = end;
                 node
@@ -1459,11 +1437,7 @@ impl<'i, 'arena> DanglingElseParser<'i, 'arena> {
         }
         result
     }
-    fn parse_alt_0_ll1(
-        &mut self,
-        i: u32,
-        failure_context: Option<(SlotId, Option<GssNodeId>)>,
-    ) -> Option<SPPFNodeId> {
+    fn parse_alt_0_ll1(&mut self, i: u32, failure_context: Option<SlotId>) -> Option<SPPFNodeId> {
         #[cfg(feature = "instrument")]
         self.ll1_call_log.push((NonterminalId(4), i));
         let result = (|| -> Option<SPPFNodeId> {
@@ -1517,22 +1491,18 @@ impl<'i, 'arena> DanglingElseParser<'i, 'arena> {
             }
         })();
         if result.is_none() {
-            if let Some((slot_id, gss_node_id)) = failure_context {
+            if let Some(slot_id) = failure_context {
                 self.add_failure(
                     i,
                     slot_id,
-                    gss_node_id,
+                    None,
                     GLLFailureKind::UnexpectedToken(&FIRST_SET_ALT_0),
                 );
             }
         }
         result
     }
-    fn parse_plus_1_ll1(
-        &mut self,
-        i: u32,
-        failure_context: Option<(SlotId, Option<GssNodeId>)>,
-    ) -> Option<SPPFNodeId> {
+    fn parse_plus_1_ll1(&mut self, i: u32, failure_context: Option<SlotId>) -> Option<SPPFNodeId> {
         #[cfg(feature = "instrument")]
         self.ll1_call_log.push((NonterminalId(5), i));
         let result = (|| -> Option<SPPFNodeId> {
@@ -1583,22 +1553,18 @@ impl<'i, 'arena> DanglingElseParser<'i, 'arena> {
             Some(current)
         })();
         if result.is_none() {
-            if let Some((slot_id, gss_node_id)) = failure_context {
+            if let Some(slot_id) = failure_context {
                 self.add_failure(
                     i,
                     slot_id,
-                    gss_node_id,
+                    None,
                     GLLFailureKind::UnexpectedToken(&FIRST_SET_PLUS_1),
                 );
             }
         }
         result
     }
-    fn parse_opt_0_ll1(
-        &mut self,
-        i: u32,
-        _failure_context: Option<(SlotId, Option<GssNodeId>)>,
-    ) -> Option<SPPFNodeId> {
+    fn parse_opt_0_ll1(&mut self, i: u32, _failure_context: Option<SlotId>) -> Option<SPPFNodeId> {
         #[cfg(feature = "instrument")]
         self.ll1_call_log.push((NonterminalId(6), i));
         let Some(matched) = self.scanner.longest_match(&FIRST_SET_OPT_0, i) else {
@@ -1621,7 +1587,7 @@ impl<'i, 'arena> DanglingElseParser<'i, 'arena> {
                 let mut j = i;
                 let right_child = {
                     let start = j;
-                    let node = self.parse_plus_1_ll1(start, Some((SlotId(48), None)))?;
+                    let node = self.parse_plus_1_ll1(start, Some(SlotId(48)))?;
                     let end = self.sppf_node(node).right_extent();
                     j = end;
                     node
@@ -1642,17 +1608,13 @@ impl<'i, 'arena> DanglingElseParser<'i, 'arena> {
             _ => unreachable!("LL(1) dispatch covers every terminal in FIRST_SET"),
         }
     }
-    fn parse_star_0_ll1(
-        &mut self,
-        i: u32,
-        _failure_context: Option<(SlotId, Option<GssNodeId>)>,
-    ) -> Option<SPPFNodeId> {
+    fn parse_star_0_ll1(&mut self, i: u32, _failure_context: Option<SlotId>) -> Option<SPPFNodeId> {
         #[cfg(feature = "instrument")]
         self.ll1_call_log.push((NonterminalId(7), i));
         let mut j = i;
         let right_child = {
             let start = j;
-            let node = self.parse_opt_0_ll1(start, Some((SlotId(51), None)))?;
+            let node = self.parse_opt_0_ll1(start, Some(SlotId(51)))?;
             let end = self.sppf_node(node).right_extent();
             j = end;
             node

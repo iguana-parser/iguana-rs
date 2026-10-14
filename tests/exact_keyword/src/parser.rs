@@ -84,14 +84,19 @@ impl<'i, 'arena> Parser<'i, 'arena> for ExactKeywordParser<'i, 'arena> {
                     }
                     // Stmt : . Expr WS ";"
                     SlotId(2) => {
-                        if let Some(right_child) =
-                            self.parse_expr_ll1(input_index, Some((SlotId(2), Some(gss_node_id))))
-                        {
+                        if let Some(right_child) = self.parse_expr_ll1(input_index, None) {
                             let j = self.sppf_node(right_child).right_extent();
                             // Stmt : Expr . WS ";"
                             input_index = j;
                             result = Some(right_child);
                             next = Some(SlotId(3));
+                        } else {
+                            self.add_failure(
+                                input_index,
+                                SlotId(2),
+                                Some(gss_node_id),
+                                GLLFailureKind::UnexpectedToken(&FIRST_SET_EXPR),
+                            );
                         }
                     }
                     // Stmt : Expr . WS ";"
@@ -229,9 +234,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for ExactKeywordParser<'i, 'arena> {
                     // Stmt : [0-9 A-Z _ a-z] !<< "if" !>> [0-9 A-Z _ a-z] WS "(" WS . Expr WS ")" WS Stmt WS
                     // Opt_0
                     SlotId(10) => {
-                        if let Some(right_child) =
-                            self.parse_expr_ll1(input_index, Some((SlotId(10), Some(gss_node_id))))
-                        {
+                        if let Some(right_child) = self.parse_expr_ll1(input_index, None) {
                             let j = self.sppf_node(right_child).right_extent();
                             if let Some(new_node) =
                                 self.create_intermediate_node(result, right_child, SlotId(11), env)
@@ -242,6 +245,13 @@ impl<'i, 'arena> Parser<'i, 'arena> for ExactKeywordParser<'i, 'arena> {
                                 result = Some(new_node);
                                 next = Some(SlotId(11));
                             }
+                        } else {
+                            self.add_failure(
+                                input_index,
+                                SlotId(10),
+                                Some(gss_node_id),
+                                GLLFailureKind::UnexpectedToken(&FIRST_SET_EXPR),
+                            );
                         }
                     }
                     // Stmt : [0-9 A-Z _ a-z] !<< "if" !>> [0-9 A-Z _ a-z] WS "(" WS Expr . WS ")" WS Stmt WS
@@ -403,9 +413,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for ExactKeywordParser<'i, 'arena> {
                     }
                     // Stmt : [0-9 A-Z _ a-z] !<< "assert" !>> [0-9 A-Z _ a-z] WS . Expr WS ";"
                     SlotId(20) => {
-                        if let Some(right_child) =
-                            self.parse_expr_ll1(input_index, Some((SlotId(20), Some(gss_node_id))))
-                        {
+                        if let Some(right_child) = self.parse_expr_ll1(input_index, None) {
                             let j = self.sppf_node(right_child).right_extent();
                             if let Some(new_node) =
                                 self.create_intermediate_node(result, right_child, SlotId(21), env)
@@ -415,6 +423,13 @@ impl<'i, 'arena> Parser<'i, 'arena> for ExactKeywordParser<'i, 'arena> {
                                 result = Some(new_node);
                                 next = Some(SlotId(21));
                             }
+                        } else {
+                            self.add_failure(
+                                input_index,
+                                SlotId(20),
+                                Some(gss_node_id),
+                                GLLFailureKind::UnexpectedToken(&FIRST_SET_EXPR),
+                            );
                         }
                     }
                     // Stmt : [0-9 A-Z _ a-z] !<< "assert" !>> [0-9 A-Z _ a-z] WS Expr . WS ";"
@@ -781,9 +796,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for ExactKeywordParser<'i, 'arena> {
                     }
                     // StartExpr : WS . start:Expr WS
                     SlotId(50) => {
-                        if let Some(right_child) =
-                            self.parse_expr_ll1(input_index, Some((SlotId(50), Some(gss_node_id))))
-                        {
+                        if let Some(right_child) = self.parse_expr_ll1(input_index, None) {
                             let j = self.sppf_node(right_child).right_extent();
                             if let Some(new_node) =
                                 self.create_intermediate_node(result, right_child, SlotId(51), env)
@@ -793,6 +806,13 @@ impl<'i, 'arena> Parser<'i, 'arena> for ExactKeywordParser<'i, 'arena> {
                                 result = Some(new_node);
                                 next = Some(SlotId(51));
                             }
+                        } else {
+                            self.add_failure(
+                                input_index,
+                                SlotId(50),
+                                Some(gss_node_id),
+                                GLLFailureKind::UnexpectedToken(&FIRST_SET_EXPR),
+                            );
                         }
                     }
                     // StartExpr : WS start:Expr . WS
@@ -1393,11 +1413,7 @@ impl<'i, 'arena> ExactKeywordParser<'i, 'arena> {
             .parse(START_EXPR, tree_arena)?
             .map(ParseTree::unwrap_start_expr))
     }
-    fn parse_expr_ll1(
-        &mut self,
-        i: u32,
-        failure_context: Option<(SlotId, Option<GssNodeId>)>,
-    ) -> Option<SPPFNodeId> {
+    fn parse_expr_ll1(&mut self, i: u32, failure_context: Option<SlotId>) -> Option<SPPFNodeId> {
         #[cfg(feature = "instrument")]
         self.ll1_call_log.push((NonterminalId(2), i));
         let result = (|| -> Option<SPPFNodeId> {
@@ -1451,11 +1467,11 @@ impl<'i, 'arena> ExactKeywordParser<'i, 'arena> {
             }
         })();
         if result.is_none() {
-            if let Some((slot_id, gss_node_id)) = failure_context {
+            if let Some(slot_id) = failure_context {
                 self.add_failure(
                     i,
                     slot_id,
-                    gss_node_id,
+                    None,
                     GLLFailureKind::UnexpectedToken(&FIRST_SET_EXPR),
                 );
             }

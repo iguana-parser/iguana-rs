@@ -123,15 +123,21 @@ impl<'i, 'arena> Parser<'i, 'arena> for MultipleExceptParser<'i, 'arena> {
                     }
                     // StartSyntaxIdentifier : . start:SyntaxIdentifier
                     SlotId(4) => {
-                        if let Some(right_child) = self.parse_syntax_identifier_ll1(
-                            input_index,
-                            Some((SlotId(4), Some(gss_node_id))),
-                        ) {
+                        if let Some(right_child) =
+                            self.parse_syntax_identifier_ll1(input_index, None)
+                        {
                             let j = self.sppf_node(right_child).right_extent();
                             // StartSyntaxIdentifier : start:SyntaxIdentifier.
                             input_index = j;
                             result = Some(right_child);
                             next = Some(SlotId(5));
+                        } else {
+                            self.add_failure(
+                                input_index,
+                                SlotId(4),
+                                Some(gss_node_id),
+                                GLLFailureKind::UnexpectedToken(&FIRST_SET_SYNTAX_IDENTIFIER),
+                            );
                         }
                     }
                     // StartSyntaxIdentifier : start:SyntaxIdentifier.
@@ -149,15 +155,21 @@ impl<'i, 'arena> Parser<'i, 'arena> for MultipleExceptParser<'i, 'arena> {
                     }
                     // StartLexicalIdentifier : . start:LexicalIdentifier
                     SlotId(6) => {
-                        if let Some(right_child) = self.parse_lexical_identifier_ll1(
-                            input_index,
-                            Some((SlotId(6), Some(gss_node_id))),
-                        ) {
+                        if let Some(right_child) =
+                            self.parse_lexical_identifier_ll1(input_index, None)
+                        {
                             let j = self.sppf_node(right_child).right_extent();
                             // StartLexicalIdentifier : start:LexicalIdentifier.
                             input_index = j;
                             result = Some(right_child);
                             next = Some(SlotId(7));
+                        } else {
+                            self.add_failure(
+                                input_index,
+                                SlotId(6),
+                                Some(gss_node_id),
+                                GLLFailureKind::UnexpectedToken(&FIRST_SET_LEXICAL_IDENTIFIER),
+                            );
                         }
                     }
                     // StartLexicalIdentifier : start:LexicalIdentifier.
@@ -710,7 +722,7 @@ impl<'i, 'arena> MultipleExceptParser<'i, 'arena> {
     fn parse_syntax_identifier_ll1(
         &mut self,
         i: u32,
-        failure_context: Option<(SlotId, Option<GssNodeId>)>,
+        failure_context: Option<SlotId>,
     ) -> Option<SPPFNodeId> {
         #[cfg(feature = "instrument")]
         self.ll1_call_log.push((NonterminalId(0), i));
@@ -749,11 +761,11 @@ impl<'i, 'arena> MultipleExceptParser<'i, 'arena> {
             }
         })();
         if result.is_none() {
-            if let Some((slot_id, gss_node_id)) = failure_context {
+            if let Some(slot_id) = failure_context {
                 self.add_failure(
                     i,
                     slot_id,
-                    gss_node_id,
+                    None,
                     GLLFailureKind::UnexpectedToken(&FIRST_SET_SYNTAX_IDENTIFIER),
                 );
             }
@@ -763,7 +775,7 @@ impl<'i, 'arena> MultipleExceptParser<'i, 'arena> {
     fn parse_lexical_identifier_ll1(
         &mut self,
         i: u32,
-        failure_context: Option<(SlotId, Option<GssNodeId>)>,
+        failure_context: Option<SlotId>,
     ) -> Option<SPPFNodeId> {
         #[cfg(feature = "instrument")]
         self.ll1_call_log.push((NonterminalId(1), i));
@@ -798,11 +810,11 @@ impl<'i, 'arena> MultipleExceptParser<'i, 'arena> {
             }
         })();
         if result.is_none() {
-            if let Some((slot_id, gss_node_id)) = failure_context {
+            if let Some(slot_id) = failure_context {
                 self.add_failure(
                     i,
                     slot_id,
-                    gss_node_id,
+                    None,
                     GLLFailureKind::UnexpectedToken(&FIRST_SET_LEXICAL_IDENTIFIER),
                 );
             }

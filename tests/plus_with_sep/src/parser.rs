@@ -66,14 +66,19 @@ impl<'i, 'arena> Parser<'i, 'arena> for PlusWithSepParser<'i, 'arena> {
                 match slot_id {
                     // S : . Plus_0
                     SlotId(0) => {
-                        if let Some(right_child) =
-                            self.parse_plus_0_ll1(input_index, Some((SlotId(0), Some(gss_node_id))))
-                        {
+                        if let Some(right_child) = self.parse_plus_0_ll1(input_index, None) {
                             let j = self.sppf_node(right_child).right_extent();
                             // S : Plus_0.
                             input_index = j;
                             result = Some(right_child);
                             next = Some(SlotId(1));
+                        } else {
+                            self.add_failure(
+                                input_index,
+                                SlotId(0),
+                                Some(gss_node_id),
+                                GLLFailureKind::UnexpectedToken(&FIRST_SET_PLUS_0),
+                            );
                         }
                     }
                     // S : Plus_0.
@@ -106,14 +111,19 @@ impl<'i, 'arena> Parser<'i, 'arena> for PlusWithSepParser<'i, 'arena> {
                     }
                     // Plus_0 : . Plus_0 "," A
                     SlotId(4) => {
-                        if let Some(right_child) =
-                            self.parse_plus_0_ll1(input_index, Some((SlotId(4), Some(gss_node_id))))
-                        {
+                        if let Some(right_child) = self.parse_plus_0_ll1(input_index, None) {
                             let j = self.sppf_node(right_child).right_extent();
                             // Plus_0 : Plus_0 . "," A
                             input_index = j;
                             result = Some(right_child);
                             next = Some(SlotId(5));
+                        } else {
+                            self.add_failure(
+                                input_index,
+                                SlotId(4),
+                                Some(gss_node_id),
+                                GLLFailureKind::UnexpectedToken(&FIRST_SET_PLUS_0),
+                            );
                         }
                     }
                     // Plus_0 : Plus_0 . "," A
@@ -136,9 +146,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for PlusWithSepParser<'i, 'arena> {
                     }
                     // Plus_0 : Plus_0 "," . A
                     SlotId(6) => {
-                        if let Some(right_child) =
-                            self.parse_a_ll1(input_index, Some((SlotId(6), Some(gss_node_id))))
-                        {
+                        if let Some(right_child) = self.parse_a_ll1(input_index, None) {
                             let j = self.sppf_node(right_child).right_extent();
                             if let Some(new_node) =
                                 self.create_intermediate_node(result, right_child, SlotId(7), env)
@@ -148,6 +156,13 @@ impl<'i, 'arena> Parser<'i, 'arena> for PlusWithSepParser<'i, 'arena> {
                                 result = Some(new_node);
                                 next = Some(SlotId(7));
                             }
+                        } else {
+                            self.add_failure(
+                                input_index,
+                                SlotId(6),
+                                Some(gss_node_id),
+                                GLLFailureKind::UnexpectedToken(&FIRST_SET_A),
+                            );
                         }
                     }
                     // Plus_0 : Plus_0 "," A.
@@ -159,14 +174,19 @@ impl<'i, 'arena> Parser<'i, 'arena> for PlusWithSepParser<'i, 'arena> {
                     }
                     // Plus_0 : . A
                     SlotId(8) => {
-                        if let Some(right_child) =
-                            self.parse_a_ll1(input_index, Some((SlotId(8), Some(gss_node_id))))
-                        {
+                        if let Some(right_child) = self.parse_a_ll1(input_index, None) {
                             let j = self.sppf_node(right_child).right_extent();
                             // Plus_0 : A.
                             input_index = j;
                             result = Some(right_child);
                             next = Some(SlotId(9));
+                        } else {
+                            self.add_failure(
+                                input_index,
+                                SlotId(8),
+                                Some(gss_node_id),
+                                GLLFailureKind::UnexpectedToken(&FIRST_SET_A),
+                            );
                         }
                     }
                     // Plus_0 : A.
@@ -178,14 +198,19 @@ impl<'i, 'arena> Parser<'i, 'arena> for PlusWithSepParser<'i, 'arena> {
                     }
                     // StartS : . start:S
                     SlotId(10) => {
-                        if let Some(right_child) =
-                            self.parse_s_ll1(input_index, Some((SlotId(10), Some(gss_node_id))))
-                        {
+                        if let Some(right_child) = self.parse_s_ll1(input_index, None) {
                             let j = self.sppf_node(right_child).right_extent();
                             // StartS : start:S.
                             input_index = j;
                             result = Some(right_child);
                             next = Some(SlotId(11));
+                        } else {
+                            self.add_failure(
+                                input_index,
+                                SlotId(10),
+                                Some(gss_node_id),
+                                GLLFailureKind::UnexpectedToken(&FIRST_SET_S),
+                            );
                         }
                     }
                     // StartS : start:S.
@@ -197,14 +222,19 @@ impl<'i, 'arena> Parser<'i, 'arena> for PlusWithSepParser<'i, 'arena> {
                     }
                     // StartA : . start:A
                     SlotId(12) => {
-                        if let Some(right_child) =
-                            self.parse_a_ll1(input_index, Some((SlotId(12), Some(gss_node_id))))
-                        {
+                        if let Some(right_child) = self.parse_a_ll1(input_index, None) {
                             let j = self.sppf_node(right_child).right_extent();
                             // StartA : start:A.
                             input_index = j;
                             result = Some(right_child);
                             next = Some(SlotId(13));
+                        } else {
+                            self.add_failure(
+                                input_index,
+                                SlotId(12),
+                                Some(gss_node_id),
+                                GLLFailureKind::UnexpectedToken(&FIRST_SET_A),
+                            );
                         }
                     }
                     // StartA : start:A.
@@ -728,11 +758,7 @@ impl<'i, 'arena> PlusWithSepParser<'i, 'arena> {
             .parse(START_A, tree_arena)?
             .map(ParseTree::unwrap_start_a))
     }
-    fn parse_s_ll1(
-        &mut self,
-        i: u32,
-        failure_context: Option<(SlotId, Option<GssNodeId>)>,
-    ) -> Option<SPPFNodeId> {
+    fn parse_s_ll1(&mut self, i: u32, failure_context: Option<SlotId>) -> Option<SPPFNodeId> {
         #[cfg(feature = "instrument")]
         self.ll1_call_log.push((NonterminalId(0), i));
         let result = (|| -> Option<SPPFNodeId> {
@@ -742,7 +768,7 @@ impl<'i, 'arena> PlusWithSepParser<'i, 'arena> {
                     let mut j = i;
                     let right_child = {
                         let start = j;
-                        let node = self.parse_plus_0_ll1(start, Some((SlotId(1), None)))?;
+                        let node = self.parse_plus_0_ll1(start, Some(SlotId(1)))?;
                         let end = self.sppf_node(node).right_extent();
                         j = end;
                         node
@@ -764,22 +790,18 @@ impl<'i, 'arena> PlusWithSepParser<'i, 'arena> {
             }
         })();
         if result.is_none() {
-            if let Some((slot_id, gss_node_id)) = failure_context {
+            if let Some(slot_id) = failure_context {
                 self.add_failure(
                     i,
                     slot_id,
-                    gss_node_id,
+                    None,
                     GLLFailureKind::UnexpectedToken(&FIRST_SET_S),
                 );
             }
         }
         result
     }
-    fn parse_a_ll1(
-        &mut self,
-        i: u32,
-        failure_context: Option<(SlotId, Option<GssNodeId>)>,
-    ) -> Option<SPPFNodeId> {
+    fn parse_a_ll1(&mut self, i: u32, failure_context: Option<SlotId>) -> Option<SPPFNodeId> {
         #[cfg(feature = "instrument")]
         self.ll1_call_log.push((NonterminalId(1), i));
         let result = (|| -> Option<SPPFNodeId> {
@@ -811,22 +833,18 @@ impl<'i, 'arena> PlusWithSepParser<'i, 'arena> {
             }
         })();
         if result.is_none() {
-            if let Some((slot_id, gss_node_id)) = failure_context {
+            if let Some(slot_id) = failure_context {
                 self.add_failure(
                     i,
                     slot_id,
-                    gss_node_id,
+                    None,
                     GLLFailureKind::UnexpectedToken(&FIRST_SET_A),
                 );
             }
         }
         result
     }
-    fn parse_plus_0_ll1(
-        &mut self,
-        i: u32,
-        failure_context: Option<(SlotId, Option<GssNodeId>)>,
-    ) -> Option<SPPFNodeId> {
+    fn parse_plus_0_ll1(&mut self, i: u32, failure_context: Option<SlotId>) -> Option<SPPFNodeId> {
         #[cfg(feature = "instrument")]
         self.ll1_call_log.push((NonterminalId(2), i));
         let result = (|| -> Option<SPPFNodeId> {
@@ -890,11 +908,11 @@ impl<'i, 'arena> PlusWithSepParser<'i, 'arena> {
             Some(current)
         })();
         if result.is_none() {
-            if let Some((slot_id, gss_node_id)) = failure_context {
+            if let Some(slot_id) = failure_context {
                 self.add_failure(
                     i,
                     slot_id,
-                    gss_node_id,
+                    None,
                     GLLFailureKind::UnexpectedToken(&FIRST_SET_PLUS_0),
                 );
             }

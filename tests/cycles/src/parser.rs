@@ -637,9 +637,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for CyclesParser<'i, 'arena> {
                     }
                     // SiblingD : . EmptyE
                     SlotId(55) => {
-                        if let Some(right_child) = self
-                            .parse_empty_e_ll1(input_index, Some((SlotId(55), Some(gss_node_id))))
-                        {
+                        if let Some(right_child) = self.parse_empty_e_ll1(input_index, None) {
                             let j = self.sppf_node(right_child).right_extent();
                             // SiblingD : EmptyE.
                             input_index = j;
@@ -656,9 +654,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for CyclesParser<'i, 'arena> {
                     }
                     // SiblingD : . EmptyF
                     SlotId(57) => {
-                        if let Some(right_child) = self
-                            .parse_empty_f_ll1(input_index, Some((SlotId(57), Some(gss_node_id))))
-                        {
+                        if let Some(right_child) = self.parse_empty_f_ll1(input_index, None) {
                             let j = self.sppf_node(right_child).right_extent();
                             // SiblingD : EmptyF.
                             input_index = j;
@@ -835,10 +831,8 @@ impl<'i, 'arena> Parser<'i, 'arena> for CyclesParser<'i, 'arena> {
                     }
                     // IntermediateY : . IntermediateA IntermediateY IntermediateB
                     SlotId(76) => {
-                        if let Some(right_child) = self.parse_intermediate_a_ll1(
-                            input_index,
-                            Some((SlotId(76), Some(gss_node_id))),
-                        ) {
+                        if let Some(right_child) = self.parse_intermediate_a_ll1(input_index, None)
+                        {
                             let j = self.sppf_node(right_child).right_extent();
                             // IntermediateY : IntermediateA . IntermediateY IntermediateB
                             input_index = j;
@@ -1234,9 +1228,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for CyclesParser<'i, 'arena> {
                     }
                     // Plus_0 : Plus_0 . EmptyE
                     SlotId(111) => {
-                        if let Some(right_child) = self
-                            .parse_empty_e_ll1(input_index, Some((SlotId(111), Some(gss_node_id))))
-                        {
+                        if let Some(right_child) = self.parse_empty_e_ll1(input_index, None) {
                             let j = self.sppf_node(right_child).right_extent();
                             if let Some(new_node) =
                                 self.create_intermediate_node(result, right_child, SlotId(112), env)
@@ -1257,9 +1249,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for CyclesParser<'i, 'arena> {
                     }
                     // Plus_0 : . EmptyE
                     SlotId(113) => {
-                        if let Some(right_child) = self
-                            .parse_empty_e_ll1(input_index, Some((SlotId(113), Some(gss_node_id))))
-                        {
+                        if let Some(right_child) = self.parse_empty_e_ll1(input_index, None) {
                             let j = self.sppf_node(right_child).right_extent();
                             // Plus_0 : EmptyE.
                             input_index = j;
@@ -1328,9 +1318,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for CyclesParser<'i, 'arena> {
                     }
                     // Plus_1 : Plus_1 . EmptyF EmptyE
                     SlotId(121) => {
-                        if let Some(right_child) = self
-                            .parse_empty_f_ll1(input_index, Some((SlotId(121), Some(gss_node_id))))
-                        {
+                        if let Some(right_child) = self.parse_empty_f_ll1(input_index, None) {
                             let j = self.sppf_node(right_child).right_extent();
                             if let Some(new_node) =
                                 self.create_intermediate_node(result, right_child, SlotId(122), env)
@@ -1344,9 +1332,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for CyclesParser<'i, 'arena> {
                     }
                     // Plus_1 : Plus_1 EmptyF . EmptyE
                     SlotId(122) => {
-                        if let Some(right_child) = self
-                            .parse_empty_e_ll1(input_index, Some((SlotId(122), Some(gss_node_id))))
-                        {
+                        if let Some(right_child) = self.parse_empty_e_ll1(input_index, None) {
                             let j = self.sppf_node(right_child).right_extent();
                             if let Some(new_node) =
                                 self.create_intermediate_node(result, right_child, SlotId(123), env)
@@ -1367,9 +1353,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for CyclesParser<'i, 'arena> {
                     }
                     // Plus_1 : . EmptyE
                     SlotId(124) => {
-                        if let Some(right_child) = self
-                            .parse_empty_e_ll1(input_index, Some((SlotId(124), Some(gss_node_id))))
-                        {
+                        if let Some(right_child) = self.parse_empty_e_ll1(input_index, None) {
                             let j = self.sppf_node(right_child).right_extent();
                             // Plus_1 : EmptyE.
                             input_index = j;
@@ -1835,9 +1819,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for CyclesParser<'i, 'arena> {
                     }
                     // StartEmptyE : . start:EmptyE
                     SlotId(165) => {
-                        if let Some(right_child) = self
-                            .parse_empty_e_ll1(input_index, Some((SlotId(165), Some(gss_node_id))))
-                        {
+                        if let Some(right_child) = self.parse_empty_e_ll1(input_index, None) {
                             let j = self.sppf_node(right_child).right_extent();
                             // StartEmptyE : start:EmptyE.
                             input_index = j;
@@ -1860,9 +1842,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for CyclesParser<'i, 'arena> {
                     }
                     // StartEmptyF : . start:EmptyF
                     SlotId(167) => {
-                        if let Some(right_child) = self
-                            .parse_empty_f_ll1(input_index, Some((SlotId(167), Some(gss_node_id))))
-                        {
+                        if let Some(right_child) = self.parse_empty_f_ll1(input_index, None) {
                             let j = self.sppf_node(right_child).right_extent();
                             // StartEmptyF : start:EmptyF.
                             input_index = j;
@@ -2005,10 +1985,8 @@ impl<'i, 'arena> Parser<'i, 'arena> for CyclesParser<'i, 'arena> {
                     }
                     // StartIntermediateA : . start:IntermediateA
                     SlotId(179) => {
-                        if let Some(right_child) = self.parse_intermediate_a_ll1(
-                            input_index,
-                            Some((SlotId(179), Some(gss_node_id))),
-                        ) {
+                        if let Some(right_child) = self.parse_intermediate_a_ll1(input_index, None)
+                        {
                             let j = self.sppf_node(right_child).right_extent();
                             // StartIntermediateA : start:IntermediateA.
                             input_index = j;
@@ -2103,14 +2081,19 @@ impl<'i, 'arena> Parser<'i, 'arena> for CyclesParser<'i, 'arena> {
                     }
                     // StartOrdinary : . start:Ordinary
                     SlotId(187) => {
-                        if let Some(right_child) = self
-                            .parse_ordinary_ll1(input_index, Some((SlotId(187), Some(gss_node_id))))
-                        {
+                        if let Some(right_child) = self.parse_ordinary_ll1(input_index, None) {
                             let j = self.sppf_node(right_child).right_extent();
                             // StartOrdinary : start:Ordinary.
                             input_index = j;
                             result = Some(right_child);
                             next = Some(SlotId(188));
+                        } else {
+                            self.add_failure(
+                                input_index,
+                                SlotId(187),
+                                Some(gss_node_id),
+                                GLLFailureKind::UnexpectedToken(&FIRST_SET_ORDINARY),
+                            );
                         }
                     }
                     // StartOrdinary : start:Ordinary.
@@ -3026,7 +3009,7 @@ impl<'i, 'arena> CyclesParser<'i, 'arena> {
     fn parse_empty_e_ll1(
         &mut self,
         i: u32,
-        _failure_context: Option<(SlotId, Option<GssNodeId>)>,
+        _failure_context: Option<SlotId>,
     ) -> Option<SPPFNodeId> {
         #[cfg(feature = "instrument")]
         self.ll1_call_log.push((NonterminalId(17), i));
@@ -3045,7 +3028,7 @@ impl<'i, 'arena> CyclesParser<'i, 'arena> {
     fn parse_empty_f_ll1(
         &mut self,
         i: u32,
-        _failure_context: Option<(SlotId, Option<GssNodeId>)>,
+        _failure_context: Option<SlotId>,
     ) -> Option<SPPFNodeId> {
         #[cfg(feature = "instrument")]
         self.ll1_call_log.push((NonterminalId(18), i));
@@ -3064,7 +3047,7 @@ impl<'i, 'arena> CyclesParser<'i, 'arena> {
     fn parse_intermediate_a_ll1(
         &mut self,
         i: u32,
-        _failure_context: Option<(SlotId, Option<GssNodeId>)>,
+        _failure_context: Option<SlotId>,
     ) -> Option<SPPFNodeId> {
         #[cfg(feature = "instrument")]
         self.ll1_call_log.push((NonterminalId(24), i));
@@ -3083,7 +3066,7 @@ impl<'i, 'arena> CyclesParser<'i, 'arena> {
     fn parse_ordinary_ll1(
         &mut self,
         i: u32,
-        failure_context: Option<(SlotId, Option<GssNodeId>)>,
+        failure_context: Option<SlotId>,
     ) -> Option<SPPFNodeId> {
         #[cfg(feature = "instrument")]
         self.ll1_call_log.push((NonterminalId(28), i));
@@ -3116,11 +3099,11 @@ impl<'i, 'arena> CyclesParser<'i, 'arena> {
             }
         })();
         if result.is_none() {
-            if let Some((slot_id, gss_node_id)) = failure_context {
+            if let Some(slot_id) = failure_context {
                 self.add_failure(
                     i,
                     slot_id,
-                    gss_node_id,
+                    None,
                     GLLFailureKind::UnexpectedToken(&FIRST_SET_ORDINARY),
                 );
             }

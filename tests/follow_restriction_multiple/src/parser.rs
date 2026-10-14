@@ -67,14 +67,19 @@ impl<'i, 'arena> Parser<'i, 'arena> for FollowRestrictionMultipleParser<'i, 'are
                 match slot_id {
                     // S : . Plus_0
                     SlotId(0) => {
-                        if let Some(right_child) =
-                            self.parse_plus_0_ll1(input_index, Some((SlotId(0), Some(gss_node_id))))
-                        {
+                        if let Some(right_child) = self.parse_plus_0_ll1(input_index, None) {
                             let j = self.sppf_node(right_child).right_extent();
                             // S : Plus_0.
                             input_index = j;
                             result = Some(right_child);
                             next = Some(SlotId(1));
+                        } else {
+                            self.add_failure(
+                                input_index,
+                                SlotId(0),
+                                Some(gss_node_id),
+                                GLLFailureKind::UnexpectedToken(&FIRST_SET_PLUS_0),
+                            );
                         }
                     }
                     // S : Plus_0.
@@ -86,9 +91,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for FollowRestrictionMultipleParser<'i, 'are
                     }
                     // Id : . Plus_1 !>> Alpha !>> Digit
                     SlotId(2) => {
-                        if let Some(right_child) =
-                            self.parse_plus_1_ll1(input_index, Some((SlotId(2), Some(gss_node_id))))
-                        {
+                        if let Some(right_child) = self.parse_plus_1_ll1(input_index, None) {
                             let j = self.sppf_node(right_child).right_extent();
                             if let Some(failure) = self.post_conditions(SlotId(3), input_index, j) {
                                 self.add_failure(j, SlotId(3), Some(gss_node_id), failure);
@@ -98,6 +101,13 @@ impl<'i, 'arena> Parser<'i, 'arena> for FollowRestrictionMultipleParser<'i, 'are
                                 result = Some(right_child);
                                 next = Some(SlotId(3));
                             }
+                        } else {
+                            self.add_failure(
+                                input_index,
+                                SlotId(2),
+                                Some(gss_node_id),
+                                GLLFailureKind::UnexpectedToken(&FIRST_SET_PLUS_1),
+                            );
                         }
                     }
                     // Id : Plus_1 !>> Alpha !>> Digit.
@@ -109,21 +119,24 @@ impl<'i, 'arena> Parser<'i, 'arena> for FollowRestrictionMultipleParser<'i, 'are
                     }
                     // Plus_0 : . Plus_0 Id
                     SlotId(4) => {
-                        if let Some(right_child) =
-                            self.parse_plus_0_ll1(input_index, Some((SlotId(4), Some(gss_node_id))))
-                        {
+                        if let Some(right_child) = self.parse_plus_0_ll1(input_index, None) {
                             let j = self.sppf_node(right_child).right_extent();
                             // Plus_0 : Plus_0 . Id
                             input_index = j;
                             result = Some(right_child);
                             next = Some(SlotId(5));
+                        } else {
+                            self.add_failure(
+                                input_index,
+                                SlotId(4),
+                                Some(gss_node_id),
+                                GLLFailureKind::UnexpectedToken(&FIRST_SET_PLUS_0),
+                            );
                         }
                     }
                     // Plus_0 : Plus_0 . Id
                     SlotId(5) => {
-                        if let Some(right_child) =
-                            self.parse_id_ll1(input_index, Some((SlotId(5), Some(gss_node_id))))
-                        {
+                        if let Some(right_child) = self.parse_id_ll1(input_index, None) {
                             let j = self.sppf_node(right_child).right_extent();
                             if let Some(new_node) =
                                 self.create_intermediate_node(result, right_child, SlotId(6), env)
@@ -133,6 +146,13 @@ impl<'i, 'arena> Parser<'i, 'arena> for FollowRestrictionMultipleParser<'i, 'are
                                 result = Some(new_node);
                                 next = Some(SlotId(6));
                             }
+                        } else {
+                            self.add_failure(
+                                input_index,
+                                SlotId(5),
+                                Some(gss_node_id),
+                                GLLFailureKind::UnexpectedToken(&FIRST_SET_ID),
+                            );
                         }
                     }
                     // Plus_0 : Plus_0 Id.
@@ -144,14 +164,19 @@ impl<'i, 'arena> Parser<'i, 'arena> for FollowRestrictionMultipleParser<'i, 'are
                     }
                     // Plus_0 : . Id
                     SlotId(7) => {
-                        if let Some(right_child) =
-                            self.parse_id_ll1(input_index, Some((SlotId(7), Some(gss_node_id))))
-                        {
+                        if let Some(right_child) = self.parse_id_ll1(input_index, None) {
                             let j = self.sppf_node(right_child).right_extent();
                             // Plus_0 : Id.
                             input_index = j;
                             result = Some(right_child);
                             next = Some(SlotId(8));
+                        } else {
+                            self.add_failure(
+                                input_index,
+                                SlotId(7),
+                                Some(gss_node_id),
+                                GLLFailureKind::UnexpectedToken(&FIRST_SET_ID),
+                            );
                         }
                     }
                     // Plus_0 : Id.
@@ -205,21 +230,24 @@ impl<'i, 'arena> Parser<'i, 'arena> for FollowRestrictionMultipleParser<'i, 'are
                     }
                     // Plus_1 : . Plus_1 Alt_0
                     SlotId(13) => {
-                        if let Some(right_child) = self
-                            .parse_plus_1_ll1(input_index, Some((SlotId(13), Some(gss_node_id))))
-                        {
+                        if let Some(right_child) = self.parse_plus_1_ll1(input_index, None) {
                             let j = self.sppf_node(right_child).right_extent();
                             // Plus_1 : Plus_1 . Alt_0
                             input_index = j;
                             result = Some(right_child);
                             next = Some(SlotId(14));
+                        } else {
+                            self.add_failure(
+                                input_index,
+                                SlotId(13),
+                                Some(gss_node_id),
+                                GLLFailureKind::UnexpectedToken(&FIRST_SET_PLUS_1),
+                            );
                         }
                     }
                     // Plus_1 : Plus_1 . Alt_0
                     SlotId(14) => {
-                        if let Some(right_child) =
-                            self.parse_alt_0_ll1(input_index, Some((SlotId(14), Some(gss_node_id))))
-                        {
+                        if let Some(right_child) = self.parse_alt_0_ll1(input_index, None) {
                             let j = self.sppf_node(right_child).right_extent();
                             if let Some(new_node) =
                                 self.create_intermediate_node(result, right_child, SlotId(15), env)
@@ -229,6 +257,13 @@ impl<'i, 'arena> Parser<'i, 'arena> for FollowRestrictionMultipleParser<'i, 'are
                                 result = Some(new_node);
                                 next = Some(SlotId(15));
                             }
+                        } else {
+                            self.add_failure(
+                                input_index,
+                                SlotId(14),
+                                Some(gss_node_id),
+                                GLLFailureKind::UnexpectedToken(&FIRST_SET_ALT_0),
+                            );
                         }
                     }
                     // Plus_1 : Plus_1 Alt_0.
@@ -240,14 +275,19 @@ impl<'i, 'arena> Parser<'i, 'arena> for FollowRestrictionMultipleParser<'i, 'are
                     }
                     // Plus_1 : . Alt_0
                     SlotId(16) => {
-                        if let Some(right_child) =
-                            self.parse_alt_0_ll1(input_index, Some((SlotId(16), Some(gss_node_id))))
-                        {
+                        if let Some(right_child) = self.parse_alt_0_ll1(input_index, None) {
                             let j = self.sppf_node(right_child).right_extent();
                             // Plus_1 : Alt_0.
                             input_index = j;
                             result = Some(right_child);
                             next = Some(SlotId(17));
+                        } else {
+                            self.add_failure(
+                                input_index,
+                                SlotId(16),
+                                Some(gss_node_id),
+                                GLLFailureKind::UnexpectedToken(&FIRST_SET_ALT_0),
+                            );
                         }
                     }
                     // Plus_1 : Alt_0.
@@ -259,14 +299,19 @@ impl<'i, 'arena> Parser<'i, 'arena> for FollowRestrictionMultipleParser<'i, 'are
                     }
                     // StartS : . start:S
                     SlotId(18) => {
-                        if let Some(right_child) =
-                            self.parse_s_ll1(input_index, Some((SlotId(18), Some(gss_node_id))))
-                        {
+                        if let Some(right_child) = self.parse_s_ll1(input_index, None) {
                             let j = self.sppf_node(right_child).right_extent();
                             // StartS : start:S.
                             input_index = j;
                             result = Some(right_child);
                             next = Some(SlotId(19));
+                        } else {
+                            self.add_failure(
+                                input_index,
+                                SlotId(18),
+                                Some(gss_node_id),
+                                GLLFailureKind::UnexpectedToken(&FIRST_SET_S),
+                            );
                         }
                     }
                     // StartS : start:S.
@@ -278,14 +323,19 @@ impl<'i, 'arena> Parser<'i, 'arena> for FollowRestrictionMultipleParser<'i, 'are
                     }
                     // StartId : . start:Id
                     SlotId(20) => {
-                        if let Some(right_child) =
-                            self.parse_id_ll1(input_index, Some((SlotId(20), Some(gss_node_id))))
-                        {
+                        if let Some(right_child) = self.parse_id_ll1(input_index, None) {
                             let j = self.sppf_node(right_child).right_extent();
                             // StartId : start:Id.
                             input_index = j;
                             result = Some(right_child);
                             next = Some(SlotId(21));
+                        } else {
+                            self.add_failure(
+                                input_index,
+                                SlotId(20),
+                                Some(gss_node_id),
+                                GLLFailureKind::UnexpectedToken(&FIRST_SET_ID),
+                            );
                         }
                     }
                     // StartId : start:Id.
@@ -823,11 +873,7 @@ impl<'i, 'arena> FollowRestrictionMultipleParser<'i, 'arena> {
             .parse(START_ID, tree_arena)?
             .map(ParseTree::unwrap_start_id))
     }
-    fn parse_s_ll1(
-        &mut self,
-        i: u32,
-        failure_context: Option<(SlotId, Option<GssNodeId>)>,
-    ) -> Option<SPPFNodeId> {
+    fn parse_s_ll1(&mut self, i: u32, failure_context: Option<SlotId>) -> Option<SPPFNodeId> {
         #[cfg(feature = "instrument")]
         self.ll1_call_log.push((NonterminalId(0), i));
         let result = (|| -> Option<SPPFNodeId> {
@@ -837,7 +883,7 @@ impl<'i, 'arena> FollowRestrictionMultipleParser<'i, 'arena> {
                     let mut j = i;
                     let right_child = {
                         let start = j;
-                        let node = self.parse_plus_0_ll1(start, Some((SlotId(1), None)))?;
+                        let node = self.parse_plus_0_ll1(start, Some(SlotId(1)))?;
                         let end = self.sppf_node(node).right_extent();
                         j = end;
                         node
@@ -859,22 +905,18 @@ impl<'i, 'arena> FollowRestrictionMultipleParser<'i, 'arena> {
             }
         })();
         if result.is_none() {
-            if let Some((slot_id, gss_node_id)) = failure_context {
+            if let Some(slot_id) = failure_context {
                 self.add_failure(
                     i,
                     slot_id,
-                    gss_node_id,
+                    None,
                     GLLFailureKind::UnexpectedToken(&FIRST_SET_S),
                 );
             }
         }
         result
     }
-    fn parse_id_ll1(
-        &mut self,
-        i: u32,
-        failure_context: Option<(SlotId, Option<GssNodeId>)>,
-    ) -> Option<SPPFNodeId> {
+    fn parse_id_ll1(&mut self, i: u32, failure_context: Option<SlotId>) -> Option<SPPFNodeId> {
         #[cfg(feature = "instrument")]
         self.ll1_call_log.push((NonterminalId(1), i));
         let result = (|| -> Option<SPPFNodeId> {
@@ -884,7 +926,7 @@ impl<'i, 'arena> FollowRestrictionMultipleParser<'i, 'arena> {
                     let mut j = i;
                     let right_child = {
                         let start = j;
-                        let node = self.parse_plus_1_ll1(start, Some((SlotId(3), None)))?;
+                        let node = self.parse_plus_1_ll1(start, Some(SlotId(3)))?;
                         let end = self.sppf_node(node).right_extent();
                         j = end;
                         if let Some(failure) = self.post_conditions(SlotId(3), start, end) {
@@ -910,22 +952,18 @@ impl<'i, 'arena> FollowRestrictionMultipleParser<'i, 'arena> {
             }
         })();
         if result.is_none() {
-            if let Some((slot_id, gss_node_id)) = failure_context {
+            if let Some(slot_id) = failure_context {
                 self.add_failure(
                     i,
                     slot_id,
-                    gss_node_id,
+                    None,
                     GLLFailureKind::UnexpectedToken(&FIRST_SET_ID),
                 );
             }
         }
         result
     }
-    fn parse_plus_0_ll1(
-        &mut self,
-        i: u32,
-        failure_context: Option<(SlotId, Option<GssNodeId>)>,
-    ) -> Option<SPPFNodeId> {
+    fn parse_plus_0_ll1(&mut self, i: u32, failure_context: Option<SlotId>) -> Option<SPPFNodeId> {
         #[cfg(feature = "instrument")]
         self.ll1_call_log.push((NonterminalId(2), i));
         let result = (|| -> Option<SPPFNodeId> {
@@ -976,22 +1014,18 @@ impl<'i, 'arena> FollowRestrictionMultipleParser<'i, 'arena> {
             Some(current)
         })();
         if result.is_none() {
-            if let Some((slot_id, gss_node_id)) = failure_context {
+            if let Some(slot_id) = failure_context {
                 self.add_failure(
                     i,
                     slot_id,
-                    gss_node_id,
+                    None,
                     GLLFailureKind::UnexpectedToken(&FIRST_SET_PLUS_0),
                 );
             }
         }
         result
     }
-    fn parse_alt_0_ll1(
-        &mut self,
-        i: u32,
-        failure_context: Option<(SlotId, Option<GssNodeId>)>,
-    ) -> Option<SPPFNodeId> {
+    fn parse_alt_0_ll1(&mut self, i: u32, failure_context: Option<SlotId>) -> Option<SPPFNodeId> {
         #[cfg(feature = "instrument")]
         self.ll1_call_log.push((NonterminalId(3), i));
         let result = (|| -> Option<SPPFNodeId> {
@@ -1045,22 +1079,18 @@ impl<'i, 'arena> FollowRestrictionMultipleParser<'i, 'arena> {
             }
         })();
         if result.is_none() {
-            if let Some((slot_id, gss_node_id)) = failure_context {
+            if let Some(slot_id) = failure_context {
                 self.add_failure(
                     i,
                     slot_id,
-                    gss_node_id,
+                    None,
                     GLLFailureKind::UnexpectedToken(&FIRST_SET_ALT_0),
                 );
             }
         }
         result
     }
-    fn parse_plus_1_ll1(
-        &mut self,
-        i: u32,
-        failure_context: Option<(SlotId, Option<GssNodeId>)>,
-    ) -> Option<SPPFNodeId> {
+    fn parse_plus_1_ll1(&mut self, i: u32, failure_context: Option<SlotId>) -> Option<SPPFNodeId> {
         #[cfg(feature = "instrument")]
         self.ll1_call_log.push((NonterminalId(4), i));
         let result = (|| -> Option<SPPFNodeId> {
@@ -1111,11 +1141,11 @@ impl<'i, 'arena> FollowRestrictionMultipleParser<'i, 'arena> {
             Some(current)
         })();
         if result.is_none() {
-            if let Some((slot_id, gss_node_id)) = failure_context {
+            if let Some(slot_id) = failure_context {
                 self.add_failure(
                     i,
                     slot_id,
-                    gss_node_id,
+                    None,
                     GLLFailureKind::UnexpectedToken(&FIRST_SET_PLUS_1),
                 );
             }

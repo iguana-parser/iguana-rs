@@ -65,14 +65,19 @@ impl<'i, 'arena> Parser<'i, 'arena> for TokenOnlyUnsafeParser<'i, 'arena> {
                 match slot_id {
                     // S : . Mod WS Empty WS Tag
                     SlotId(0) => {
-                        if let Some(right_child) =
-                            self.parse_mod_ll1(input_index, Some((SlotId(0), Some(gss_node_id))))
-                        {
+                        if let Some(right_child) = self.parse_mod_ll1(input_index, None) {
                             let j = self.sppf_node(right_child).right_extent();
                             // S : Mod . WS Empty WS Tag
                             input_index = j;
                             result = Some(right_child);
                             next = Some(SlotId(1));
+                        } else {
+                            self.add_failure(
+                                input_index,
+                                SlotId(0),
+                                Some(gss_node_id),
+                                GLLFailureKind::UnexpectedToken(&FIRST_SET_MOD),
+                            );
                         }
                     }
                     // S : Mod . WS Empty WS Tag
@@ -95,9 +100,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for TokenOnlyUnsafeParser<'i, 'arena> {
                     }
                     // S : Mod WS . Empty WS Tag
                     SlotId(2) => {
-                        if let Some(right_child) =
-                            self.parse_empty_ll1(input_index, Some((SlotId(2), Some(gss_node_id))))
-                        {
+                        if let Some(right_child) = self.parse_empty_ll1(input_index, None) {
                             let j = self.sppf_node(right_child).right_extent();
                             if let Some(new_node) =
                                 self.create_intermediate_node(result, right_child, SlotId(3), env)
@@ -129,9 +132,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for TokenOnlyUnsafeParser<'i, 'arena> {
                     }
                     // S : Mod WS Empty WS . Tag
                     SlotId(4) => {
-                        if let Some(right_child) =
-                            self.parse_tag_ll1(input_index, Some((SlotId(4), Some(gss_node_id))))
-                        {
+                        if let Some(right_child) = self.parse_tag_ll1(input_index, None) {
                             let j = self.sppf_node(right_child).right_extent();
                             if let Some(new_node) =
                                 self.create_intermediate_node(result, right_child, SlotId(5), env)
@@ -141,6 +142,13 @@ impl<'i, 'arena> Parser<'i, 'arena> for TokenOnlyUnsafeParser<'i, 'arena> {
                                 result = Some(new_node);
                                 next = Some(SlotId(5));
                             }
+                        } else {
+                            self.add_failure(
+                                input_index,
+                                SlotId(4),
+                                Some(gss_node_id),
+                                GLLFailureKind::UnexpectedToken(&FIRST_SET_TAG),
+                            );
                         }
                     }
                     // S : Mod WS Empty WS Tag.
@@ -234,9 +242,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for TokenOnlyUnsafeParser<'i, 'arena> {
                     }
                     // StartS : WS . start:S WS
                     SlotId(14) => {
-                        if let Some(right_child) =
-                            self.parse_s_ll1(input_index, Some((SlotId(14), Some(gss_node_id))))
-                        {
+                        if let Some(right_child) = self.parse_s_ll1(input_index, None) {
                             let j = self.sppf_node(right_child).right_extent();
                             if let Some(new_node) =
                                 self.create_intermediate_node(result, right_child, SlotId(15), env)
@@ -246,6 +252,13 @@ impl<'i, 'arena> Parser<'i, 'arena> for TokenOnlyUnsafeParser<'i, 'arena> {
                                 result = Some(new_node);
                                 next = Some(SlotId(15));
                             }
+                        } else {
+                            self.add_failure(
+                                input_index,
+                                SlotId(14),
+                                Some(gss_node_id),
+                                GLLFailureKind::UnexpectedToken(&FIRST_SET_S),
+                            );
                         }
                     }
                     // StartS : WS start:S . WS
@@ -289,9 +302,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for TokenOnlyUnsafeParser<'i, 'arena> {
                     }
                     // StartMod : WS . start:Mod WS
                     SlotId(18) => {
-                        if let Some(right_child) =
-                            self.parse_mod_ll1(input_index, Some((SlotId(18), Some(gss_node_id))))
-                        {
+                        if let Some(right_child) = self.parse_mod_ll1(input_index, None) {
                             let j = self.sppf_node(right_child).right_extent();
                             if let Some(new_node) =
                                 self.create_intermediate_node(result, right_child, SlotId(19), env)
@@ -301,6 +312,13 @@ impl<'i, 'arena> Parser<'i, 'arena> for TokenOnlyUnsafeParser<'i, 'arena> {
                                 result = Some(new_node);
                                 next = Some(SlotId(19));
                             }
+                        } else {
+                            self.add_failure(
+                                input_index,
+                                SlotId(18),
+                                Some(gss_node_id),
+                                GLLFailureKind::UnexpectedToken(&FIRST_SET_MOD),
+                            );
                         }
                     }
                     // StartMod : WS start:Mod . WS
@@ -344,9 +362,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for TokenOnlyUnsafeParser<'i, 'arena> {
                     }
                     // StartEmpty : WS . start:Empty WS
                     SlotId(22) => {
-                        if let Some(right_child) =
-                            self.parse_empty_ll1(input_index, Some((SlotId(22), Some(gss_node_id))))
-                        {
+                        if let Some(right_child) = self.parse_empty_ll1(input_index, None) {
                             let j = self.sppf_node(right_child).right_extent();
                             if let Some(new_node) =
                                 self.create_intermediate_node(result, right_child, SlotId(23), env)
@@ -405,9 +421,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for TokenOnlyUnsafeParser<'i, 'arena> {
                     }
                     // StartTag : WS . start:Tag WS
                     SlotId(26) => {
-                        if let Some(right_child) =
-                            self.parse_tag_ll1(input_index, Some((SlotId(26), Some(gss_node_id))))
-                        {
+                        if let Some(right_child) = self.parse_tag_ll1(input_index, None) {
                             let j = self.sppf_node(right_child).right_extent();
                             if let Some(new_node) =
                                 self.create_intermediate_node(result, right_child, SlotId(27), env)
@@ -417,6 +431,13 @@ impl<'i, 'arena> Parser<'i, 'arena> for TokenOnlyUnsafeParser<'i, 'arena> {
                                 result = Some(new_node);
                                 next = Some(SlotId(27));
                             }
+                        } else {
+                            self.add_failure(
+                                input_index,
+                                SlotId(26),
+                                Some(gss_node_id),
+                                GLLFailureKind::UnexpectedToken(&FIRST_SET_TAG),
+                            );
                         }
                     }
                     // StartTag : WS start:Tag . WS
@@ -857,11 +878,7 @@ impl<'i, 'arena> TokenOnlyUnsafeParser<'i, 'arena> {
             .parse(START_TAG, tree_arena)?
             .map(ParseTree::unwrap_start_tag))
     }
-    fn parse_s_ll1(
-        &mut self,
-        i: u32,
-        failure_context: Option<(SlotId, Option<GssNodeId>)>,
-    ) -> Option<SPPFNodeId> {
+    fn parse_s_ll1(&mut self, i: u32, failure_context: Option<SlotId>) -> Option<SPPFNodeId> {
         #[cfg(feature = "instrument")]
         self.ll1_call_log.push((NonterminalId(0), i));
         let result = (|| -> Option<SPPFNodeId> {
@@ -871,7 +888,7 @@ impl<'i, 'arena> TokenOnlyUnsafeParser<'i, 'arena> {
                     let mut j = i;
                     let right_child = {
                         let start = j;
-                        let node = self.parse_mod_ll1(start, Some((SlotId(1), None)))?;
+                        let node = self.parse_mod_ll1(start, Some(SlotId(1)))?;
                         let end = self.sppf_node(node).right_extent();
                         j = end;
                         node
@@ -894,7 +911,7 @@ impl<'i, 'arena> TokenOnlyUnsafeParser<'i, 'arena> {
                     );
                     let right_child = {
                         let start = j;
-                        let node = self.parse_empty_ll1(start, Some((SlotId(3), None)))?;
+                        let node = self.parse_empty_ll1(start, Some(SlotId(3)))?;
                         let end = self.sppf_node(node).right_extent();
                         j = end;
                         node
@@ -922,7 +939,7 @@ impl<'i, 'arena> TokenOnlyUnsafeParser<'i, 'arena> {
                     );
                     let right_child = {
                         let start = j;
-                        let node = self.parse_tag_ll1(start, Some((SlotId(5), None)))?;
+                        let node = self.parse_tag_ll1(start, Some(SlotId(5)))?;
                         let end = self.sppf_node(node).right_extent();
                         j = end;
                         node
@@ -949,22 +966,18 @@ impl<'i, 'arena> TokenOnlyUnsafeParser<'i, 'arena> {
             }
         })();
         if result.is_none() {
-            if let Some((slot_id, gss_node_id)) = failure_context {
+            if let Some(slot_id) = failure_context {
                 self.add_failure(
                     i,
                     slot_id,
-                    gss_node_id,
+                    None,
                     GLLFailureKind::UnexpectedToken(&FIRST_SET_S),
                 );
             }
         }
         result
     }
-    fn parse_mod_ll1(
-        &mut self,
-        i: u32,
-        failure_context: Option<(SlotId, Option<GssNodeId>)>,
-    ) -> Option<SPPFNodeId> {
+    fn parse_mod_ll1(&mut self, i: u32, failure_context: Option<SlotId>) -> Option<SPPFNodeId> {
         #[cfg(feature = "instrument")]
         self.ll1_call_log.push((NonterminalId(1), i));
         let result = (|| -> Option<SPPFNodeId> {
@@ -1018,22 +1031,18 @@ impl<'i, 'arena> TokenOnlyUnsafeParser<'i, 'arena> {
             }
         })();
         if result.is_none() {
-            if let Some((slot_id, gss_node_id)) = failure_context {
+            if let Some(slot_id) = failure_context {
                 self.add_failure(
                     i,
                     slot_id,
-                    gss_node_id,
+                    None,
                     GLLFailureKind::UnexpectedToken(&FIRST_SET_MOD),
                 );
             }
         }
         result
     }
-    fn parse_empty_ll1(
-        &mut self,
-        i: u32,
-        _failure_context: Option<(SlotId, Option<GssNodeId>)>,
-    ) -> Option<SPPFNodeId> {
+    fn parse_empty_ll1(&mut self, i: u32, _failure_context: Option<SlotId>) -> Option<SPPFNodeId> {
         #[cfg(feature = "instrument")]
         self.ll1_call_log.push((NonterminalId(2), i));
         let epsilon_node_id = self.get_or_create_epsilon_node(i);
@@ -1048,11 +1057,7 @@ impl<'i, 'arena> TokenOnlyUnsafeParser<'i, 'arena> {
             ambiguous: false,
         }))
     }
-    fn parse_tag_ll1(
-        &mut self,
-        i: u32,
-        failure_context: Option<(SlotId, Option<GssNodeId>)>,
-    ) -> Option<SPPFNodeId> {
+    fn parse_tag_ll1(&mut self, i: u32, failure_context: Option<SlotId>) -> Option<SPPFNodeId> {
         #[cfg(feature = "instrument")]
         self.ll1_call_log.push((NonterminalId(3), i));
         let result = (|| -> Option<SPPFNodeId> {
@@ -1084,11 +1089,11 @@ impl<'i, 'arena> TokenOnlyUnsafeParser<'i, 'arena> {
             }
         })();
         if result.is_none() {
-            if let Some((slot_id, gss_node_id)) = failure_context {
+            if let Some(slot_id) = failure_context {
                 self.add_failure(
                     i,
                     slot_id,
-                    gss_node_id,
+                    None,
                     GLLFailureKind::UnexpectedToken(&FIRST_SET_TAG),
                 );
             }

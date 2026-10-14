@@ -834,6 +834,19 @@ impl<'a> ParserGen<'a> {
         let body = if self.ll1_nonterminals.contains(nonterminal) {
             let next_slot_name = next_slot.name();
             let method_name = format_ident!("parse_{}_ll1", to_snake_case(&nonterminal.name));
+            // An LL(1) function has no GSS node, so the main loop records a failed
+            // call's `expected FIRST(X)` itself, after any failures recorded inside
+            // the function. A nullable X does not fail, so `ll1_failure_set` is None
+            // and nothing is recorded.
+            let call_failure = match self.ll1_failure_set(nonterminal) {
+                Some(failure_set_name) => quote! {
+                    else {
+                        self.add_failure(input_index, #slot_id, Some(gss_node_id),
+                            GLLFailureKind::UnexpectedToken(&#failure_set_name));
+                    }
+                },
+                None => quote! {},
+            };
             if slot.is_first() {
                 let advance = Self::guard_post_conditions(
                     post_conditions,
@@ -841,10 +854,10 @@ impl<'a> ParserGen<'a> {
                     Self::gen_advance(&next_slot_name, next_slot_id, quote! { right_child }),
                 );
                 quote! {
-                    if let Some(right_child) = self.#method_name(input_index, Some((#slot_id, Some(gss_node_id)))) {
+                    if let Some(right_child) = self.#method_name(input_index, None) {
                         let j = self.sppf_node(right_child).right_extent();
                         #advance
-                    }
+                    } #call_failure
                 }
             } else {
                 let advance = Self::gen_advance(&next_slot_name, next_slot_id, quote! { new_node });
@@ -860,10 +873,10 @@ impl<'a> ParserGen<'a> {
                     },
                 );
                 quote! {
-                    if let Some(right_child) = self.#method_name(input_index, Some((#slot_id, Some(gss_node_id)))) {
+                    if let Some(right_child) = self.#method_name(input_index, None) {
                         let j = self.sppf_node(right_child).right_extent();
                         #advance
-                    }
+                    } #call_failure
                 }
             }
         } else if nonterminal.parameters.is_empty() {
@@ -1363,28 +1376,32 @@ impl<'a> ParserGen<'a> {
     /// is called:
     ///
     /// - If X is a plain symbol reference in a rule, a None means none of X's
-    ///   alternatives could be predicted. This is a real error, and the caller
-    ///   supplies its slot and GSS node to record "expected FIRST(X)". Two callers
-    ///   are of this kind: the GLL main loop and a call to X inside another
-    ///   nonterminal's LL(1) function.
+    ///   alternatives could be predicted. This is a real error, recorded as
+    ///   "expected FIRST(X)" at the caller's slot. Two callers are of this kind:
+    ///   the GLL main loop, which records the failure itself with its GSS node
+    ///   when the call returns None, and a call to X inside another
+    ///   nonterminal's LL(1) function, which supplies its slot as the failure
+    ///   context.
     /// - If X is the repeated element of a * or +, a None means the repetition
     ///   could not go further, and this is actually a loop continuation
     ///   condition, not a real error, so no error is recorded.
     ///
-    /// Because only the caller knows which case it is in, it passes its failure
-    /// context for a required reference, or None for a repetition probe. This is
-    /// what lets the repetition probe stay silent: if `parse_X_ll1` recorded its
-    /// prediction failures unconditionally, the probe would record `expected
-    /// FIRST(<loop element>)` every time a repetition ends. Such a record is
-    /// usually harmless: the parser keeps only the error at the farthest input
-    /// position, so it is discarded as soon as the parse advances past it. It
-    /// matters only when the repetition ends exactly where the parse then
-    /// fails, which is the common case for layout.
+    /// Because only the caller knows which case it is in, a call inside an LL(1)
+    /// function passes its slot for a required reference and None for a
+    /// repetition probe, and the GLL main loop passes None and records the failure
+    /// itself. This is what lets the repetition probe stay silent: if
+    /// `parse_X_ll1` recorded its prediction failures unconditionally, the probe
+    /// would record `expected FIRST(<loop element>)` every time a repetition
+    /// ends. Such a record is usually harmless: the parser keeps only the error
+    /// at the farthest input position, so it is discarded as soon as the parse
+    /// advances past it. It matters only when the repetition ends exactly where
+    /// the parse then fails, which is the common case for layout.
     /// Layout is inserted immediately before the next symbol, so a layout
     /// repetition ends right where a missing symbol is reported, and its spurious
     /// error, recorded first, is reported instead of the real one.
-    /// `tests/ll1_call_error` guards against this. Passing the caller's context
-    /// also makes the LL(1) path report the same error as GLL for the same input.
+    /// `tests/ll1_call_error` guards against this. Recording `expected FIRST(X)`
+    /// at the caller's slot also makes the LL(1) path report the same error as
+    /// GLL for the same input.
     /// The call failure is recorded after any failures inside the body, preserving
     /// their order even when a predicted alternative fails later in the parse.
     ///
@@ -1417,8 +1434,8 @@ impl<'a> ParserGen<'a> {
                 format_ident!("failure_context"),
                 quote! {
                     if result.is_none() {
-                        if let Some((slot_id, gss_node_id)) = failure_context {
-                            self.add_failure(i, slot_id, gss_node_id,
+                        if let Some(slot_id) = failure_context {
+                            self.add_failure(i, slot_id, None,
                                 GLLFailureKind::UnexpectedToken(&#failure_set_name));
                         }
                     }
@@ -1458,7 +1475,7 @@ impl<'a> ParserGen<'a> {
             fn #method_name(
                 &mut self,
                 i: u32,
-                #failure_context: Option<(SlotId, Option<GssNodeId>)>,
+                #failure_context: Option<SlotId>,
             ) -> Option<SPPFNodeId> {
                 #instrument_entry
                 #memo_lookup
@@ -1784,7 +1801,7 @@ impl<'a> ParserGen<'a> {
                     // FIRST-set failure is recorded for a nullable nt. See
                     // gen_parse_method_ll1.
                     let call = quote! {
-                        let node = self.#nt_method(start, Some((#next_slot_id, None)))?;
+                        let node = self.#nt_method(start, Some(#next_slot_id))?;
                     };
                     body.push(quote! {
                         #pre_check
