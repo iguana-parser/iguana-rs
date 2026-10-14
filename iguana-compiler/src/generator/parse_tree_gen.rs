@@ -281,13 +281,13 @@ impl<'a> ParseTreeGen<'a> {
             use std::vec::IntoIter;
             use iguana_runtime::{
                 arena::Arena,
-                ids::{NonterminalId, SlotId, TerminalId},
+                ids::{NonterminalId, SPPFNodeId, SlotId, TerminalId},
                 input::Span,
                 parse_tree::{
                     #cycle_target NodeKind, #one_or_many Origin, ParseTreeBuilder,
                     ParseTreeNode, visit_sppf,
                 },
-                sppf::{NonterminalNode, SPPFNodeId, TerminalNode},
+                sppf::{NonterminalNode, TerminalNode},
             };
             use crate::{grammar, parser::#parser_name};
         }

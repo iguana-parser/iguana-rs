@@ -5,9 +5,9 @@ use std::path::Path;
 
 use iguana_runtime::descriptor::Descriptor;
 use iguana_runtime::gss::GSSEdge;
-use iguana_runtime::ids::{GssNodeId, NonterminalId, SlotId, TerminalId};
-use iguana_runtime::sppf::SPPFNodeId;
+use iguana_runtime::ids::{GssNodeId, NonterminalId, SPPFNodeId, SlotId, TerminalId};
 use iguana_runtime::trace::{TraceEvent, TraceFailureKind};
+use iguana_runtime::utils::id_vec::{IdVec, Placeholder};
 use serde::{Deserialize, Serialize};
 use specta::Type;
 
@@ -57,12 +57,12 @@ pub enum DebugAction {
 /// where edges are stored separately.
 #[derive(Debug, Clone, Serialize, Type)]
 pub struct DebugSPPFNode {
-    pub id: u32,
+    pub id: SPPFNodeId,
     pub kind: DebugSPPFNodeKind,
     pub label: String,
     pub left_extent: u32,
     pub right_extent: u32,
-    pub children: Vec<u32>,
+    pub children: Vec<SPPFNodeId>,
 }
 
 #[derive(Debug, Clone, Serialize, Type)]
@@ -75,7 +75,7 @@ pub enum DebugSPPFNodeKind {
 /// GSS node for debug visualization.
 #[derive(Debug, Clone, Serialize, Type)]
 pub struct DebugGSSNode {
-    pub id: u32,
+    pub id: GssNodeId,
     /// Format: "(Nonterminal, InputIndex)"
     pub label: String,
 }
@@ -83,8 +83,8 @@ pub struct DebugGSSNode {
 /// GSS edge for debug visualization.
 #[derive(Debug, Clone, Serialize, Type)]
 pub struct DebugGSSEdge {
-    pub src: u32,
-    pub dest: u32,
+    pub src: GssNodeId,
+    pub dest: GssNodeId,
     /// Return slot name
     pub label: String,
 }
@@ -95,7 +95,7 @@ pub struct DebugGSSInfo {
     pub nodes: Vec<DebugGSSNode>,
     pub edges: Vec<DebugGSSEdge>,
     /// The current GSS node ID from the action being processed
-    pub current_gss_node_id: Option<u32>,
+    pub current_gss_node_id: Option<GssNodeId>,
 }
 
 /// Error info for the dropdown list.
@@ -160,12 +160,44 @@ impl SymbolTable {
 
 /// A GSS node reconstructed from trace events, with edges in a plain `Vec`.
 /// The runtime's `GSSNode` stores its edges in a parse arena, which the
-/// replay does not have.
+/// replay does not have. Its id is its index in the replay's store, which
+/// matches the id the parser gave it.
 struct ReplayGSSNode {
-    id: GssNodeId,
     nonterminal_id: NonterminalId,
     index: u32,
     edges: Vec<GSSEdge>,
+}
+
+impl Placeholder for ReplayGSSNode {
+    fn placeholder() -> Self {
+        ReplayGSSNode {
+            nonterminal_id: NonterminalId(0),
+            index: 0,
+            edges: Vec::new(),
+        }
+    }
+}
+
+/// An SPPF node reconstructed from trace events. Like `ReplayGSSNode`, its id
+/// is its index in the replay's store, which matches the id the parser gave it.
+struct ReplaySPPFNode {
+    kind: DebugSPPFNodeKind,
+    label: String,
+    left_extent: u32,
+    right_extent: u32,
+    children: Vec<SPPFNodeId>,
+}
+
+impl Placeholder for ReplaySPPFNode {
+    fn placeholder() -> Self {
+        ReplaySPPFNode {
+            kind: DebugSPPFNodeKind::Terminal,
+            label: String::new(),
+            left_extent: 0,
+            right_extent: 0,
+            children: Vec::new(),
+        }
+    }
 }
 
 /// Trace replay for debugging.
@@ -179,16 +211,16 @@ pub struct TraceReplay {
     /// Current step (0-indexed into step_indices)
     current_step: usize,
     /// GSS nodes reconstructed from trace
-    gss_nodes: Vec<ReplayGSSNode>,
+    gss_nodes: IdVec<GssNodeId, ReplayGSSNode>,
     /// Pending descriptor set (uses iguana's Descriptor with IDs)
     descriptor_set: Vec<Descriptor>,
     /// Current action being displayed (ProcessingDescriptor or Pop)
     current_action: Option<DebugAction>,
     symbols: SymbolTable,
     /// SPPF nodes reconstructed from trace
-    sppf_nodes: Vec<DebugSPPFNode>,
+    sppf_nodes: IdVec<SPPFNodeId, ReplaySPPFNode>,
     /// Current SPPF node ID from the action being processed
-    current_sppf_node_id: Option<u32>,
+    current_sppf_node_id: Option<SPPFNodeId>,
 }
 
 impl TraceReplay {
@@ -236,11 +268,11 @@ impl TraceReplay {
             step_indices,
             error_step_indices,
             current_step: 0,
-            gss_nodes: Vec::new(),
+            gss_nodes: IdVec::new(),
             descriptor_set: Vec::new(),
             current_action: None,
             symbols,
-            sppf_nodes: Vec::new(),
+            sppf_nodes: IdVec::new(),
             current_sppf_node_id: None,
         };
 
@@ -368,17 +400,17 @@ impl TraceReplay {
 
     /// Format a GSS node as "(Nonterminal, InputIndex)".
     fn format_gss_node(&self, gss_node_id: GssNodeId) -> String {
-        if let Some(node) = self.gss_nodes.get(gss_node_id.index()) {
+        if let Some(node) = self.gss_nodes.get(gss_node_id) {
             let nt_name = self.symbols.nonterminal(node.nonterminal_id);
             format!("({}, {})", nt_name, node.index)
         } else {
-            format!("(?, {})", gss_node_id.0)
+            format!("(?, {})", gss_node_id)
         }
     }
 
     /// Format an SPPF node as "(label, left, right)".
-    fn format_sppf_node(&self, sppf_node_id: u32) -> String {
-        if let Some(node) = self.sppf_nodes.get(sppf_node_id as usize) {
+    fn format_sppf_node(&self, sppf_node_id: SPPFNodeId) -> String {
+        if let Some(node) = self.sppf_nodes.get(sppf_node_id) {
             format!(
                 "({}, {}, {})",
                 node.label, node.left_extent, node.right_extent
@@ -392,8 +424,8 @@ impl TraceReplay {
     fn format_descriptor_compact(&self, desc: &Descriptor) -> String {
         let slot_name = self.symbols.slot(desc.slot_id);
         let gss_node = self.format_gss_node(desc.gss_node_id);
-        let sppf_node = match desc.sppf_node_id() {
-            Some(id) => self.format_sppf_node(id.0),
+        let sppf_node = match desc.sppf_node_id {
+            Some(id) => self.format_sppf_node(id),
             None => "$".to_string(),
         };
         format!(
@@ -406,8 +438,8 @@ impl TraceReplay {
     fn format_descriptor(&self, desc: &Descriptor) -> String {
         let slot_name = self.symbols.slot(desc.slot_id);
         let gss_node = self.format_gss_node(desc.gss_node_id);
-        let sppf_node = match desc.sppf_node_id() {
-            Some(id) => self.format_sppf_node(id.0),
+        let sppf_node = match desc.sppf_node_id {
+            Some(id) => self.format_sppf_node(id),
             None => "$".to_string(),
         };
         format!(
@@ -425,7 +457,7 @@ impl TraceReplay {
     ) -> String {
         let slot_name = self.symbols.slot(slot_id);
         let gss_node = self.format_gss_node(gss_node_id);
-        let sppf_node = self.format_sppf_node(sppf_node_id.0);
+        let sppf_node = self.format_sppf_node(sppf_node_id);
         format!(
             "Popped\n  GSS node {}\n  {}\n  with SPPF node {}",
             gss_node, slot_name, sppf_node
@@ -509,7 +541,7 @@ impl TraceReplay {
             Some(DebugAction::Pop { gss_node_id, .. }) => {
                 // For Pop, get the input index from the GSS node
                 self.gss_nodes
-                    .get(gss_node_id.index())
+                    .get(*gss_node_id)
                     .map(|node| node.index as usize)
             }
             Some(DebugAction::GLLFailure { input_index, .. }) => Some(*input_index as usize),
@@ -525,12 +557,22 @@ impl TraceReplay {
     }
 
     /// Get the current SPPF nodes for visualization.
-    pub fn sppf_nodes(&self) -> &[DebugSPPFNode] {
-        &self.sppf_nodes
+    pub fn sppf_nodes(&self) -> Vec<DebugSPPFNode> {
+        self.sppf_nodes
+            .iter()
+            .map(|(id, node)| DebugSPPFNode {
+                id,
+                kind: node.kind.clone(),
+                label: node.label.clone(),
+                left_extent: node.left_extent,
+                right_extent: node.right_extent,
+                children: node.children.clone(),
+            })
+            .collect()
     }
 
     /// Get the current SPPF node ID from the descriptor being processed.
-    pub fn current_sppf_node_id(&self) -> Option<u32> {
+    pub fn current_sppf_node_id(&self) -> Option<SPPFNodeId> {
         self.current_sppf_node_id
     }
 
@@ -608,7 +650,7 @@ impl TraceReplay {
                 });
                 self.current_action = Some(DebugAction::ProcessingDescriptor(desc));
                 // Track the current SPPF node from the descriptor
-                self.current_sppf_node_id = sppf_node_id.map(|id| id.0);
+                self.current_sppf_node_id = *sppf_node_id;
             }
             TraceEvent::Pop(gss_node_id, slot_id, nonterminal_node_id, _) => {
                 self.current_action = Some(DebugAction::Pop {
@@ -617,7 +659,7 @@ impl TraceReplay {
                     sppf_node_id: *nonterminal_node_id,
                 });
                 // Track the SPPF node from the Pop
-                self.current_sppf_node_id = Some(nonterminal_node_id.0);
+                self.current_sppf_node_id = Some(*nonterminal_node_id);
             }
             TraceEvent::DescriptorAdded(slot_id, input_index, gss_node_id, sppf_node_id) => {
                 self.descriptor_set.push(Descriptor::new(
@@ -629,25 +671,21 @@ impl TraceReplay {
                 ));
             }
             TraceEvent::GSSNodeCreated(nonterminal_id, input_index) => {
-                let id = GssNodeId(self.gss_nodes.len() as u32);
                 self.gss_nodes.push(ReplayGSSNode {
-                    id,
                     nonterminal_id: *nonterminal_id,
                     index: *input_index,
                     edges: Vec::new(),
                 });
             }
             TraceEvent::GSSNodeAdded(src_id, dest_id, return_slot) => {
-                if let Some(node) = self.gss_nodes.get_mut(src_id.index()) {
+                if let Some(node) = self.gss_nodes.get_mut(*src_id) {
                     node.edges
                         .push(GSSEdge::new(None, *return_slot, *dest_id, None));
                 }
             }
             TraceEvent::TerminalNodeCreated(terminal_id, span) => {
-                let id = self.sppf_nodes.len() as u32;
                 let label = self.symbols.terminal(terminal_id);
-                self.sppf_nodes.push(DebugSPPFNode {
-                    id,
+                self.sppf_nodes.push(ReplaySPPFNode {
                     kind: DebugSPPFNodeKind::Terminal,
                     label,
                     left_extent: span.left_extent,
@@ -656,27 +694,23 @@ impl TraceReplay {
                 });
             }
             TraceEvent::IntermediateNodeCreated(slot_id, span, left_child, right_child) => {
-                let id = self.sppf_nodes.len() as u32;
                 let label = self.symbols.slot(*slot_id).to_string();
-                self.sppf_nodes.push(DebugSPPFNode {
-                    id,
+                self.sppf_nodes.push(ReplaySPPFNode {
                     kind: DebugSPPFNodeKind::Intermediate,
                     label,
                     left_extent: span.left_extent,
                     right_extent: span.right_extent,
-                    children: vec![left_child.0, right_child.0],
+                    children: vec![*left_child, *right_child],
                 });
             }
             TraceEvent::NonterminalNodeCreated(nonterminal_id, span, child) => {
-                let id = self.sppf_nodes.len() as u32;
                 let label = self.symbols.nonterminal(*nonterminal_id).to_string();
-                self.sppf_nodes.push(DebugSPPFNode {
-                    id,
+                self.sppf_nodes.push(ReplaySPPFNode {
                     kind: DebugSPPFNodeKind::Nonterminal,
                     label,
                     left_extent: span.left_extent,
                     right_extent: span.right_extent,
-                    children: vec![child.0],
+                    children: vec![*child],
                 });
             }
             TraceEvent::GLLFailure(input_index, slot_id, gss_node_id, ref kind) => {
@@ -726,18 +760,18 @@ impl TraceReplay {
         let nodes: Vec<DebugGSSNode> = self
             .gss_nodes
             .iter()
-            .map(|node| DebugGSSNode {
-                id: node.id.0,
-                label: self.format_gss_node(node.id),
+            .map(|(id, _)| DebugGSSNode {
+                id,
+                label: self.format_gss_node(id),
             })
             .collect();
 
         let mut edges = Vec::new();
-        for gss_node in &self.gss_nodes {
+        for (id, gss_node) in self.gss_nodes.iter() {
             for edge in &gss_node.edges {
                 edges.push(DebugGSSEdge {
-                    src: gss_node.id.0,
-                    dest: edge.dest_id.0,
+                    src: id,
+                    dest: edge.dest_id,
                     label: self.symbols.slot(edge.return_slot).to_string(),
                 });
             }
@@ -745,9 +779,9 @@ impl TraceReplay {
 
         // Get current GSS node from the current action
         let current_gss_node_id = match &self.current_action {
-            Some(DebugAction::ProcessingDescriptor(desc)) => Some(desc.gss_node_id.0),
-            Some(DebugAction::Pop { gss_node_id, .. }) => Some(gss_node_id.0),
-            Some(DebugAction::GLLFailure { gss_node_id, .. }) => gss_node_id.map(|id| id.0),
+            Some(DebugAction::ProcessingDescriptor(desc)) => Some(desc.gss_node_id),
+            Some(DebugAction::Pop { gss_node_id, .. }) => Some(*gss_node_id),
+            Some(DebugAction::GLLFailure { gss_node_id, .. }) => *gss_node_id,
             // Layout and terminal matching actions don't have an associated GSS node
             Some(DebugAction::MatchingLeadingLayout { .. })
             | Some(DebugAction::MatchingTrailingLayout { .. })
@@ -806,7 +840,7 @@ impl TraceReplay {
 
         // Walk back through GSS edges
         let mut current_gss = start_gss_node_id;
-        while let Some(node) = self.gss_nodes.get(current_gss.index()) {
+        while let Some(node) = self.gss_nodes.get(current_gss) {
             // Follow first edge (single execution thread model)
             let Some(edge) = node.edges.first() else {
                 // Reached root (no outgoing edges) - add the start nonterminal
@@ -854,7 +888,7 @@ impl TraceReplay {
                 let slot_name = self.symbols.slot(*slot_id);
                 let gss_node = self.format_gss_node(*gss_node_id);
                 let sppf_node = match sppf_node_id {
-                    Some(id) => self.format_sppf_node(id.0),
+                    Some(id) => self.format_sppf_node(*id),
                     None => "$".to_string(),
                 };
                 (
@@ -869,7 +903,7 @@ impl TraceReplay {
                 let slot_name = self.symbols.slot(*slot_id);
                 let gss_node = self.format_gss_node(*gss_node_id);
                 let sppf_node = match sppf_node_id {
-                    Some(id) => self.format_sppf_node(id.0),
+                    Some(id) => self.format_sppf_node(*id),
                     None => "$".to_string(),
                 };
                 (
@@ -947,7 +981,7 @@ impl TraceReplay {
             TraceEvent::GSSNodeAdded(src_id, dest_id, return_slot) => {
                 let slot_name = self.symbols.slot(*return_slot);
                 (
-                    format!("GSS edge {} → {} [{}]", src_id.0, dest_id.0, slot_name),
+                    format!("GSS edge {} → {} [{}]", src_id, dest_id, slot_name),
                     "gss".to_string(),
                 )
             }
@@ -982,15 +1016,15 @@ impl TraceReplay {
                 )
             }
             TraceEvent::TerminalNodeFound(sppf_node_id) => (
-                format!("SPPF terminal node {} found", sppf_node_id.0),
+                format!("SPPF terminal node {} found", sppf_node_id),
                 "sppf".to_string(),
             ),
             TraceEvent::NonterminalNodeFound(sppf_node_id) => (
-                format!("SPPF nonterminal node {} found", sppf_node_id.0),
+                format!("SPPF nonterminal node {} found", sppf_node_id),
                 "sppf".to_string(),
             ),
             TraceEvent::IntermediateNodeFound(sppf_node_id) => (
-                format!("SPPF intermediate node {} found", sppf_node_id.0),
+                format!("SPPF intermediate node {} found", sppf_node_id),
                 "sppf".to_string(),
             ),
             TraceEvent::Pop(gss_node_id, slot_id, nonterminal_node_id, _) => {
@@ -999,7 +1033,7 @@ impl TraceReplay {
                 (
                     format!(
                         "Pop {} [{}] with SPPF {}",
-                        gss_node, slot_name, nonterminal_node_id.0
+                        gss_node, slot_name, nonterminal_node_id
                     ),
                     "pop".to_string(),
                 )
@@ -1007,7 +1041,7 @@ impl TraceReplay {
             TraceEvent::AddToPoppedElements(gss_node_id, nonterminal_node_id, _) => (
                 format!(
                     "Add SPPF {} to popped elements of GSS {}",
-                    nonterminal_node_id.0, gss_node_id.0
+                    nonterminal_node_id, gss_node_id
                 ),
                 "pop".to_string(),
             ),
@@ -1019,7 +1053,7 @@ impl TraceReplay {
                 let gss_node = self.format_gss_node(*gss_node_id);
                 let slot_name = self.symbols.slot(*slot_id);
                 let sppf = sppf_node_id
-                    .map(|id| id.0.to_string())
+                    .map(|id| id.to_string())
                     .unwrap_or_else(|| "$".to_string());
                 (
                     format!("Call {} {} [{}]", sppf, gss_node, slot_name),

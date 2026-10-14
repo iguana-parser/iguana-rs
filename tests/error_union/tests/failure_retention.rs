@@ -1,7 +1,7 @@
 use error_union::ErrorUnionParser;
 use iguana_runtime::{
     arena::Arena,
-    ids::{GssNodeId, SlotId, TerminalId},
+    ids::{GssNodeId, Id, SlotId, TerminalId},
     input::Input,
     parser::{FailureReportKind, GLLFailureKind, Parser},
     scanner::TerminalSet,
@@ -25,7 +25,7 @@ fn adjacent_duplicates_preserve_the_first_context_and_expected_union() {
         parser.add_failure(
             1,
             SlotId(slot),
-            Some(GssNodeId(slot as u32)),
+            Some(GssNodeId::from_index(slot as usize + 1)),
             GLLFailureKind::UnexpectedToken(&FIRST),
         );
     }
@@ -39,7 +39,7 @@ fn adjacent_duplicates_preserve_the_first_context_and_expected_union() {
     assert_eq!(parser.failures().count(), 2);
     let report = parser.failure().unwrap();
     assert_eq!(report.slot_id, SlotId(0));
-    assert_eq!(report.gss_node_id, Some(GssNodeId(0)));
+    assert_eq!(report.gss_node_id, Some(GssNodeId::from_index(1)));
     let FailureReportKind::UnexpectedToken { expected } = report.kind else {
         panic!("expected a terminal union")
     };

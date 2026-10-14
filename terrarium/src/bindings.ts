@@ -109,8 +109,8 @@ export type BuildFeatures = {
 
 /**  GSS edge for debug visualization. */
 export type DebugGSSEdge = {
-	src: number,
-	dest: number,
+	src: GssNodeId,
+	dest: GssNodeId,
 	/**  Return slot name */
 	label: string,
 };
@@ -120,12 +120,12 @@ export type DebugGSSInfo = {
 	nodes: DebugGSSNode[],
 	edges: DebugGSSEdge[],
 	/**  The current GSS node ID from the action being processed */
-	current_gss_node_id: number | null,
+	current_gss_node_id: GssNodeId | null,
 };
 
 /**  GSS node for debug visualization. */
 export type DebugGSSNode = {
-	id: number,
+	id: GssNodeId,
 	/**  Format: "(Nonterminal, InputIndex)" */
 	label: string,
 };
@@ -154,7 +154,7 @@ export type DebugInfo = {
 export type DebugSPPFInfo = {
 	nodes: DebugSPPFNode[],
 	/**  The current SPPF node ID from the descriptor being processed */
-	current_node_id: number | null,
+	current_node_id: SPPFNodeId | null,
 };
 
 /**
@@ -167,12 +167,12 @@ export type DebugSPPFInfo = {
  *  where edges are stored separately.
  */
 export type DebugSPPFNode = {
-	id: number,
+	id: SPPFNodeId,
 	kind: DebugSPPFNodeKind,
 	label: string,
 	left_extent: number,
 	right_extent: number,
-	children: number[],
+	children: SPPFNodeId[],
 };
 
 export type DebugSPPFNodeKind = "Terminal" | "Nonterminal" | "Intermediate";
@@ -240,13 +240,7 @@ export type GSSDotNode = {
 	label: string,
 };
 
-/**
- *  A unique identifier for a GSS node.
- * 
- *  This is a type-safe wrapper around an index into the parser's GSS node list.
- *  Uses `u32` since GSS nodes are of the form (nonterminal_id, input_index), which
- *  is bounded by the input length (u32).
- */
+/**  A unique identifier for a GSS node. */
 export type GssNodeId = number;
 
 export type LocationData = {
@@ -327,12 +321,7 @@ export type SPPFDotNode = {
 	right_extent: number,
 };
 
-/**
- *  A unique identifier for an SPPF node.
- * 
- *  This is a type-safe wrapper around an index into the parser's SPPF nodes list.
- *  Uses `u32` since real-world grammars rarely exceed 2^32 - 1 nodes.
- */
+/**  A unique identifier for an SPPF node. */
 export type SPPFNodeId = number;
 
 /**  Specta-compatible wrapper for lsp_types::SemanticToken */

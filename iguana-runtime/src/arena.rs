@@ -3,15 +3,24 @@ use bumpalo::Bump;
 use hashbrown::{HashMap as AMap, hash_map};
 use rustc_hash::FxBuildHasher;
 
+use crate::{
+    ids::Id,
+    utils::id_vec::{IdVec, Placeholder},
+};
+
 /// The arena that holds a parse tree and the parser's internal collections.
 /// Everything allocated here is freed at once when the arena is reset or
 /// dropped.
 #[derive(Debug, Default)]
 pub struct Arena(Bump);
 
-/// A `Vec` allocated from an [`Arena`]. Backs the parser's large accumulators
-/// (descriptors, GSS and SPPF nodes) and the spilled buffers of `InlineVec`.
+/// A `Vec` allocated from an [`Arena`]. Backs the parser's descriptors and
+/// other large accumulators, and the spilled buffers of `InlineVec`.
 pub type ArenaVec<'arena, T> = AVec<T, &'arena Bump>;
+
+/// An [`IdVec`] allocated from an [`Arena`]. Backs the parser's SPPF node,
+/// GSS node, and environment stores.
+pub type ArenaIdVec<'arena, I, T> = IdVec<I, T, &'arena Bump>;
 
 /// The owning iterator of an [`ArenaVec`].
 pub type ArenaVecIntoIter<'arena, T> = AVecIntoIter<T, &'arena Bump>;
@@ -60,6 +69,22 @@ impl Arena {
     #[inline]
     pub fn vec_with_capacity<T>(&self, capacity: usize) -> ArenaVec<'_, T> {
         AVec::with_capacity_in(capacity, &self.0)
+    }
+
+    /// An empty id-addressed store allocated from this arena.
+    #[inline]
+    pub fn id_vec<I: Id, T: Placeholder>(&self) -> ArenaIdVec<'_, I, T> {
+        IdVec::with_capacity_in(0, &self.0)
+    }
+
+    /// An id-addressed store allocated from this arena with room for
+    /// `capacity` values.
+    #[inline]
+    pub fn id_vec_with_capacity<I: Id, T: Placeholder>(
+        &self,
+        capacity: usize,
+    ) -> ArenaIdVec<'_, I, T> {
+        IdVec::with_capacity_in(capacity, &self.0)
     }
 
     /// A map allocated from this arena with room for `capacity` entries.

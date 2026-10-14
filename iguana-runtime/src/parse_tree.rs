@@ -7,10 +7,10 @@ use rustc_hash::{FxHashMap, FxHashSet};
 
 use crate::{
     grammar::Grammar,
-    ids::NonterminalId,
+    ids::{NonterminalId, SPPFNodeId},
     input::Span,
     parser::Parser,
-    sppf::{NonterminalNode, SPPFNode, SPPFNodeId, TerminalNode},
+    sppf::{NonterminalNode, SPPFNode, TerminalNode},
     utils::inline_vec::InlineVec,
 };
 

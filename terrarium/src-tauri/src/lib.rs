@@ -14,6 +14,7 @@ use std::{
 use iguana_runtime::arena::Arena;
 use iguana_runtime::cli;
 use iguana_runtime::input::Input;
+use iguana_runtime::ids::SPPFNodeId;
 use iguana_runtime::visualization::{gss::GSS, sppf::SPPF};
 use serde::{Deserialize, Serialize};
 use specta::Type;
@@ -113,7 +114,7 @@ struct DiagnosticData {
 struct DebugSPPFInfo {
     nodes: Vec<DebugSPPFNode>,
     /// The current SPPF node ID from the descriptor being processed
-    current_node_id: Option<u32>,
+    current_node_id: Option<SPPFNodeId>,
 }
 
 #[derive(Clone, Serialize, Type)]
@@ -1483,7 +1484,7 @@ fn get_debug_sppf(state: tauri::State<Mutex<DebugState>>) -> Result<DebugSPPFInf
         .ok_or("No debug session. Load a trace first.")?;
 
     Ok(DebugSPPFInfo {
-        nodes: replay.sppf_nodes().to_vec(),
+        nodes: replay.sppf_nodes(),
         current_node_id: replay.current_sppf_node_id(),
     })
 }

@@ -11,11 +11,11 @@ use iguana_runtime::input::Span;
 #[cfg(feature = "debug-trace")]
 use iguana_runtime::trace::TraceEvent;
 use iguana_runtime::{
-    arena::{Arena, ArenaVec},
+    arena::{Arena, ArenaIdVec, ArenaVec},
     descriptor::Descriptor,
-    env::{Env, EnvId},
+    env::Env,
     gss::GSSNode,
-    ids::{BindingId, GssNodeId, NonterminalId, SlotId, TerminalId},
+    ids::{BindingId, EnvId, GssNodeId, NonterminalId, SPPFNodeId, SlotId, TerminalId},
     input::Input,
     parser::{
         DESCRIPTORS_CAPACITY_DIVISOR, DESCRIPTORS_CAPACITY_FLOOR, GLLFailure, GLLFailureKind,
@@ -25,7 +25,7 @@ use iguana_runtime::{
     record,
     result::{ParseError, ParseSuccess},
     scanner::{Scanner, TerminalSet},
-    sppf::{IntermediateNode, NonterminalNode, SPPFNode, SPPFNodeId, TerminalNode},
+    sppf::{IntermediateNode, NonterminalNode, SPPFNode, TerminalNode},
     utils::{inline_vec::InlineVec, lazy_inline_maps::LazyInlineMaps},
 };
 use rustc_hash::FxHashMap;
@@ -49,9 +49,9 @@ impl<'i, 'arena> Parser<'i, 'arena> for Ll1PlusFollowPrefixParser<'i, 'arena> {
     fn execute(&mut self) {
         while let Some(descriptor) = self.next_descriptor() {
             let mut input_index = descriptor.input_index;
-            let mut result = descriptor.sppf_node_id();
+            let mut result = descriptor.sppf_node_id;
             let gss_node_id = descriptor.gss_node_id;
-            let env = descriptor.env_id();
+            let env = descriptor.env_id;
             let mut next = Some(descriptor.slot_id);
             while let Some(slot_id) = next {
                 next = None;
@@ -215,25 +215,27 @@ impl<'i, 'arena> Parser<'i, 'arena> for Ll1PlusFollowPrefixParser<'i, 'arena> {
             .insert(nonterminal_id.index(), input_index, gss_node_id, arena);
     }
     fn new_gss_node(&mut self, nonterminal_id: NonterminalId, input_index: u32) -> GssNodeId {
-        let gss_node_id = GssNodeId(self.gss_nodes.len() as u32);
-        let gss_node = GSSNode::new(gss_node_id, nonterminal_id, input_index);
         record!(self, GSSNodeCreated, nonterminal_id, input_index);
-        self.gss_nodes.push(gss_node);
-        gss_node_id
+        self.gss_nodes
+            .push(GSSNode::new(nonterminal_id, input_index))
+    }
+    fn start_gss_node_id(&self) -> Option<GssNodeId> {
+        self.start_gss_node_id
+    }
+    fn set_start_gss_node_id(&mut self, id: GssNodeId) {
+        self.start_gss_node_id = Some(id);
     }
     fn gss_node(&self, id: GssNodeId) -> &GSSNode<'arena> {
-        &self.gss_nodes[id.index()]
+        &self.gss_nodes[id]
     }
     fn gss_node_mut(&mut self, id: GssNodeId) -> &mut GSSNode<'arena> {
-        self.gss_nodes
-            .get_mut(id.index())
-            .expect("GSS node id should be valid")
+        &mut self.gss_nodes[id]
     }
     fn sppf_node(&self, id: SPPFNodeId) -> &SPPFNode {
-        &self.sppf_nodes[id.index()]
+        &self.sppf_nodes[id]
     }
     fn sppf_node_mut(&mut self, id: SPPFNodeId) -> &mut SPPFNode {
-        &mut self.sppf_nodes[id.index()]
+        &mut self.sppf_nodes[id]
     }
     fn add_descriptor(&mut self, descriptor: Descriptor) {
         record!(
@@ -241,7 +243,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for Ll1PlusFollowPrefixParser<'i, 'arena> {
             DescriptorAdded,
             descriptor.input_index,
             descriptor.slot_id,
-            descriptor.sppf_node_id(),
+            descriptor.sppf_node_id,
             descriptor.gss_node_id
         );
         #[cfg(feature = "instrument")]
@@ -261,25 +263,21 @@ impl<'i, 'arena> Parser<'i, 'arena> for Ll1PlusFollowPrefixParser<'i, 'arena> {
         self.descriptors.clear();
     }
     fn add_terminal_node(&mut self, terminal_node: TerminalNode) -> SPPFNodeId {
-        let terminal_node_id = SPPFNodeId(self.sppf_nodes.len() as u32);
-        let arena = self.vec_arena;
-        self.terminal_nodes_index.insert(
-            terminal_node.terminal_id.index(),
-            terminal_node.span,
-            terminal_node_id,
-            arena,
-        );
         record!(
             self,
             TerminalNodeCreated,
             terminal_node.terminal_id,
             terminal_node.span
         );
-        self.sppf_nodes.push(SPPFNode::Terminal(terminal_node));
+        let terminal_id = terminal_node.terminal_id;
+        let span = terminal_node.span;
+        let terminal_node_id = self.sppf_nodes.push(SPPFNode::Terminal(terminal_node));
+        let arena = self.vec_arena;
+        self.terminal_nodes_index
+            .insert(terminal_id.index(), span, terminal_node_id, arena);
         terminal_node_id
     }
     fn add_nonterminal_node(&mut self, nonterminal_node: NonterminalNode) -> SPPFNodeId {
-        let nonterminal_node_id = SPPFNodeId(self.sppf_nodes.len() as u32);
         record!(
             self,
             NonterminalNodeCreated,
@@ -288,36 +286,15 @@ impl<'i, 'arena> Parser<'i, 'arena> for Ll1PlusFollowPrefixParser<'i, 'arena> {
             nonterminal_node.child
         );
         self.sppf_nodes
-            .push(SPPFNode::Nonterminal(nonterminal_node));
-        nonterminal_node_id
+            .push(SPPFNode::Nonterminal(nonterminal_node))
     }
+    #[inline(never)]
     fn add_intermediate_node(
         &mut self,
         intermediate_node: IntermediateNode,
         env: Option<EnvId>,
         add_to_index: bool,
     ) -> SPPFNodeId {
-        let intermediate_node_id = SPPFNodeId(self.sppf_nodes.len() as u32);
-        if add_to_index {
-            let arena = self.vec_arena;
-            let slot_idx = intermediate_node.slot_id.index();
-            if slot_idx < 11 {
-                self.intermediate_nodes_index.insert(
-                    slot_idx,
-                    intermediate_node.span,
-                    intermediate_node_id,
-                    arena,
-                );
-            } else {
-                let idx = slot_idx - 11;
-                self.dd_intermediate_nodes_index.insert(
-                    idx,
-                    (intermediate_node.span, env),
-                    intermediate_node_id,
-                    arena,
-                );
-            }
-        }
         record!(
             self,
             IntermediateNodeCreated,
@@ -326,15 +303,33 @@ impl<'i, 'arena> Parser<'i, 'arena> for Ll1PlusFollowPrefixParser<'i, 'arena> {
             intermediate_node.child.0,
             intermediate_node.child.1
         );
-        self.sppf_nodes
+        let slot_idx = intermediate_node.slot_id.index();
+        let span = intermediate_node.span;
+        let intermediate_node_id = self
+            .sppf_nodes
             .push(SPPFNode::Intermediate(intermediate_node));
+        if add_to_index {
+            let arena = self.vec_arena;
+            if slot_idx < 11 {
+                self.intermediate_nodes_index
+                    .insert(slot_idx, span, intermediate_node_id, arena);
+            } else {
+                let idx = slot_idx - 11;
+                self.dd_intermediate_nodes_index.insert(
+                    idx,
+                    (span, env),
+                    intermediate_node_id,
+                    arena,
+                );
+            }
+        }
         intermediate_node_id
     }
     fn input(&self) -> &'i Input {
         self.scanner.input
     }
-    fn sppf_nodes(&self) -> &[SPPFNode] {
-        &self.sppf_nodes
+    fn count_sppf_nodes(&self) -> usize {
+        self.sppf_nodes.len()
     }
     #[cfg(feature = "instrument")]
     fn increment_descriptor_count(&mut self) {
@@ -350,33 +345,33 @@ impl<'i, 'arena> Parser<'i, 'arena> for Ll1PlusFollowPrefixParser<'i, 'arena> {
     }
     #[cfg(feature = "instrument")]
     fn count_gss_edges(&self) -> usize {
-        self.gss_nodes.iter().map(|n| n.edges().len()).sum()
+        self.gss_nodes.values().map(|n| n.edges().len()).sum()
     }
     #[cfg(feature = "instrument")]
     fn count_nonterminal_nodes(&self) -> usize {
         self.sppf_nodes
-            .iter()
+            .values()
             .filter(|n| matches!(n, SPPFNode::Nonterminal(_)))
             .count()
     }
     #[cfg(feature = "instrument")]
     fn count_intermediate_nodes(&self) -> usize {
         self.sppf_nodes
-            .iter()
+            .values()
             .filter(|n| matches!(n, SPPFNode::Intermediate(_)))
             .count()
     }
     #[cfg(feature = "instrument")]
     fn count_terminal_nodes(&self) -> usize {
         self.sppf_nodes
-            .iter()
+            .values()
             .filter(|n| matches!(n, SPPFNode::Terminal(_)))
             .count()
     }
     #[cfg(feature = "instrument")]
     fn count_ambiguous_nodes(&self) -> usize {
         self.sppf_nodes
-            .iter()
+            .values()
             .filter(|n| match n {
                 SPPFNode::Nonterminal(nn) => nn.ambiguous,
                 SPPFNode::Intermediate(in_) => in_.ambiguous,
@@ -409,7 +404,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for Ll1PlusFollowPrefixParser<'i, 'arena> {
         self.terminal_nodes_index
             .get(terminal_id.index(), &Span::new(left_extent, right_extent))
     }
-    fn gss_nodes<'p>(&'p self) -> impl Iterator<Item = &'p GSSNode<'arena>>
+    fn gss_nodes<'p>(&'p self) -> impl Iterator<Item = (GssNodeId, &'p GSSNode<'arena>)>
     where
         'arena: 'p,
     {
@@ -485,22 +480,24 @@ impl<'i, 'arena> Parser<'i, 'arena> for Ll1PlusFollowPrefixParser<'i, 'arena> {
         self.add_gss_node(nonterminal_id, input_index, gss_node_id);
     }
     fn new_env(&mut self) -> (EnvId, &mut Env<'arena>) {
-        let id = EnvId(self.envs.len() as u32);
-        self.envs.push(Env::default());
-        (id, &mut self.envs[id.index()])
+        let id = self.envs.push(Env::default());
+        (id, &mut self.envs[id])
     }
     fn lookup(&self, name: BindingId, env_id: EnvId) -> i32 {
-        let env = &self.envs[env_id.index()];
+        let env = &self.envs[env_id];
         env.get(name)
     }
     fn clone_env(&mut self, source: EnvId) -> (EnvId, &mut Env<'arena>) {
-        let bindings = self.envs[source.0 as usize].bindings.clone();
+        let bindings = self.envs[source].bindings.clone();
         let (new_id, new_env) = self.new_env();
         new_env.bindings = bindings;
         (new_id, new_env)
     }
-    fn envs(&self) -> &[Env<'arena>] {
-        &self.envs
+    fn envs<'p>(&'p self) -> impl Iterator<Item = &'p Env<'arena>>
+    where
+        'arena: 'p,
+    {
+        self.envs.values()
     }
     #[cfg(feature = "instrument")]
     fn record_stats(&self) -> iguana_runtime::instrument::Stats {
@@ -514,7 +511,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for Ll1PlusFollowPrefixParser<'i, 'arena> {
         stats.intermediate_nodes_count = self.count_intermediate_nodes();
         stats.terminal_nodes_count = self.count_terminal_nodes();
         stats.ambiguous_nodes_count = self.count_ambiguous_nodes();
-        for node in self.gss_nodes() {
+        for (_, node) in self.gss_nodes() {
             stats.record("GssNode::edges: InlineVec", node.edges().len());
             stats.record(
                 "GssNode::popped_elements: InlineMap",
@@ -603,10 +600,12 @@ pub struct Ll1PlusFollowPrefixParser<'i, 'arena> {
     vec_arena: &'arena Arena,
     scanner: Ll1PlusFollowPrefixScanner<'i, 'arena>,
     descriptors: ArenaVec<'arena, Descriptor>,
-    gss_nodes: ArenaVec<'arena, GSSNode<'arena>>,
+    gss_nodes: ArenaIdVec<'arena, GssNodeId, GSSNode<'arena>>,
+    // The start nonterminal's GSS node at input position 0, set by `run`.
+    start_gss_node_id: Option<GssNodeId>,
     // Per-nonterminal GSS-node index keyed by input position.
     gss_nodes_index: LazyInlineMaps<'arena, u32, GssNodeId>,
-    sppf_nodes: ArenaVec<'arena, SPPFNode>,
+    sppf_nodes: ArenaIdVec<'arena, SPPFNodeId, SPPFNode>,
     #[cfg(feature = "instrument")]
     descriptors_count: usize,
     #[cfg(feature = "instrument")]
@@ -632,7 +631,7 @@ pub struct Ll1PlusFollowPrefixParser<'i, 'arena> {
     // nonterminal_nodes_children grouped by parent node, built lazily like
     // intermediate_nodes_children_map.
     nonterminal_nodes_children_map: OnceCell<FxHashMap<SPPFNodeId, Vec<(SPPFNodeId, SlotId)>>>,
-    envs: ArenaVec<'arena, Env<'arena>>,
+    envs: ArenaIdVec<'arena, EnvId, Env<'arena>>,
     failures: InlineVec<'arena, GLLFailure, 8>,
     // When true, `add_failure` is a no-op. The one user is the layout match of a `!>>>`
     // restriction: that parse is speculative, so its failure must not become the reported error.
@@ -655,9 +654,11 @@ impl<'i, 'arena> Ll1PlusFollowPrefixParser<'i, 'arena> {
             descriptors: vec_arena.vec_with_capacity(
                 input.len() as usize / DESCRIPTORS_CAPACITY_DIVISOR + DESCRIPTORS_CAPACITY_FLOOR,
             ),
-            gss_nodes: vec_arena.vec_with_capacity(input.len() as usize * GSS_CAPACITY_MULTIPLIER),
+            gss_nodes: vec_arena
+                .id_vec_with_capacity(input.len() as usize * GSS_CAPACITY_MULTIPLIER),
+            start_gss_node_id: None,
             sppf_nodes: vec_arena
-                .vec_with_capacity(input.len() as usize * SPPF_CAPACITY_MULTIPLIER),
+                .id_vec_with_capacity(input.len() as usize * SPPF_CAPACITY_MULTIPLIER),
             intermediate_nodes_index: LazyInlineMaps::new(11, vec_arena),
             dd_intermediate_nodes_index: LazyInlineMaps::new(0, vec_arena),
             terminal_nodes_index: LazyInlineMaps::new(5, vec_arena),
@@ -671,7 +672,7 @@ impl<'i, 'arena> Ll1PlusFollowPrefixParser<'i, 'arena> {
             intermediate_nodes_children_map: OnceCell::new(),
             nonterminal_nodes_children: vec_arena.vec(),
             nonterminal_nodes_children_map: OnceCell::new(),
-            envs: vec_arena.vec(),
+            envs: vec_arena.id_vec(),
             failures: InlineVec::Empty,
             suppress_failures: false,
             #[cfg(feature = "debug-trace")]

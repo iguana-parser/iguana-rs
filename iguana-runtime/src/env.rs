@@ -1,26 +1,18 @@
-use serde::{Deserialize, Serialize};
-use specta::Type;
-
 use crate::{
     arena::{Arena, ArenaVec},
     ids::BindingId,
+    utils::id_vec::Placeholder,
 };
-
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize, Type)]
-pub struct EnvId(pub u32);
-
-impl EnvId {
-    /// Sentinel for an absent env id. Real ids must be < u32::MAX.
-    pub const NONE: Self = Self(u32::MAX);
-
-    pub fn index(&self) -> usize {
-        self.0 as usize
-    }
-}
 
 #[derive(Clone, Debug, Default)]
 pub struct Env<'arena> {
     pub bindings: Bindings<'arena>,
+}
+
+impl Placeholder for Env<'_> {
+    fn placeholder() -> Self {
+        Env::default()
+    }
 }
 
 const INLINE_CAPACITY: usize = if cfg!(target_pointer_width = "64") {

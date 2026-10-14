@@ -70,6 +70,11 @@ pub struct MatchMemo<'arena, const W: usize> {
 }
 
 impl<'arena, const W: usize> MatchMemo<'arena, W> {
+    // Do not inline. The table is built once per parse, so the call costs
+    // nothing. Inlined into a generated scanner's `new`, the fill loop copies
+    // each whole default entry through the stack instead of writing only its
+    // initialized fields, which doubles the parser's initialization time.
+    #[inline(never)]
     pub fn new(input_len: usize, arena: &'arena Arena) -> Self {
         let mut entries = arena.vec_with_capacity(input_len + 1);
         entries.resize_with(input_len + 1, MatchMemoEntry::default);
@@ -130,6 +135,8 @@ pub struct MatchAnyMemo<'arena, const W: usize> {
 }
 
 impl<'arena, const W: usize> MatchAnyMemo<'arena, W> {
+    // Do not inline, for the same reason as `MatchMemo::new`.
+    #[inline(never)]
     pub fn new(input_len: usize, arena: &'arena Arena) -> Self {
         let mut entries = arena.vec_with_capacity(input_len + 1);
         entries.resize_with(input_len + 1, MatchAnyMemoEntry::default);

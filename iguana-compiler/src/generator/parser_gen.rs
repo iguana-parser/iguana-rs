@@ -118,6 +118,7 @@ impl<'a> ParserGen<'a> {
         let get_gss_node_method = Self::gen_get_gss_node_method();
         let gen_add_gss_node_method = Self::gen_add_gss_node_method();
         let gen_new_gss_node_method = Self::gen_new_gss_node_method();
+        let start_gss_node_id_methods = Self::gen_start_gss_node_id_methods();
         let gss_node_method = Self::gen_gss_node_method();
         let gss_node_mut_method = Self::gen_gss_node_mut_method();
         let sppf_node_method = Self::gen_sppf_node_method();
@@ -130,7 +131,7 @@ impl<'a> ParserGen<'a> {
         let new_nonterminal_node_method = Self::gen_add_nonterminal_node_method();
         let new_intermediate_node_method = self.gen_add_intermediate_node_method();
         let input_len_method = Self::gen_input_method();
-        let sppf_nodes_method = Self::gen_sppf_nodes_method();
+        let count_sppf_nodes_method = Self::gen_count_sppf_nodes_method();
         let increment_descriptor_count_method = Self::gen_increment_descriptor_count_method();
         let count_methods = Self::gen_count_methods();
         let lookup_intermediate_node_method = self.gen_lookup_intermediate_node_method();
@@ -172,6 +173,7 @@ impl<'a> ParserGen<'a> {
                 #get_gss_node_method
                 #gen_add_gss_node_method
                 #gen_new_gss_node_method
+                #start_gss_node_id_methods
                 #gss_node_method
                 #gss_node_mut_method
                 #sppf_node_method
@@ -183,7 +185,7 @@ impl<'a> ParserGen<'a> {
                 #new_nonterminal_node_method
                 #new_intermediate_node_method
                 #input_len_method
-                #sppf_nodes_method
+                #count_sppf_nodes_method
                 #increment_descriptor_count_method
                 #count_methods
                 #lookup_intermediate_node_method
@@ -317,17 +319,17 @@ impl<'a> ParserGen<'a> {
             };
             use iguana_runtime::{
                 descriptor::Descriptor,
-                env::{Env, EnvId},
+                env::Env,
                 gss::GSSNode,
-                ids::{BindingId, GssNodeId, NonterminalId, SlotId, TerminalId},
-                arena::{Arena, ArenaVec},
+                ids::{BindingId, EnvId, GssNodeId, NonterminalId, SPPFNodeId, SlotId, TerminalId},
+                arena::{Arena, ArenaIdVec, ArenaVec},
                 input::Input,
                 parser::{Parser, GLLFailure, GLLFailureKind, init_logger, DESCRIPTORS_CAPACITY_DIVISOR, DESCRIPTORS_CAPACITY_FLOOR, #envs_capacity_import GSS_CAPACITY_MULTIPLIER, SPPF_CAPACITY_MULTIPLIER},
                 record,
                 result::{ParseError, ParseSuccess},
                 prediction::Prediction,
                 scanner::{Scanner, TerminalSet},
-                sppf::{IntermediateNode, NonterminalNode, SPPFNode, SPPFNodeId, TerminalNode},
+                sppf::{IntermediateNode, NonterminalNode, SPPFNode, TerminalNode},
                 utils::{#inline_map_import inline_vec::InlineVec, lazy_inline_maps::LazyInlineMaps}
             };
             // In the unsafe mode Span is used only by LL(1) node construction; checking whether the
@@ -419,7 +421,7 @@ impl<'a> ParserGen<'a> {
             quote! {}
         };
         let env = if mentions_ident(&slots, "env") {
-            quote! { let env = descriptor.env_id(); }
+            quote! { let env = descriptor.env_id; }
         } else {
             quote! {}
         };
@@ -432,7 +434,7 @@ impl<'a> ParserGen<'a> {
             fn execute(&mut self) {
                 while let Some(descriptor) = self.next_descriptor() {
                     let #mutability input_index = descriptor.input_index;
-                    let #mutability result = descriptor.sppf_node_id();
+                    let #mutability result = descriptor.sppf_node_id;
                     let gss_node_id = descriptor.gss_node_id;
                     #env
                     let mut next = Some(descriptor.slot_id);
@@ -1087,17 +1089,15 @@ impl<'a> ParserGen<'a> {
         let epsilon_id = Literal::usize_unsuffixed(self.terminal_ids.len());
         quote! {
             fn get_or_create_epsilon_node(&mut self, i: u32) -> SPPFNodeId {
-                let existing = self.epsilon_nodes[i as usize];
-                if existing != SPPFNodeId::NONE {
+                if let Some(existing) = self.epsilon_nodes[i as usize] {
                     record!(self, TerminalNodeFound, existing);
                     return existing;
                 }
                 let span = Span::new(i, i);
                 let terminal_id = TerminalId(#epsilon_id);
-                let node_id = SPPFNodeId(self.sppf_nodes.len() as u32);
                 record!(self, TerminalNodeCreated, terminal_id, span);
-                self.sppf_nodes.push(SPPFNode::Terminal(TerminalNode { terminal_id, span }));
-                self.epsilon_nodes[i as usize] = node_id;
+                let node_id = self.sppf_nodes.push(SPPFNode::Terminal(TerminalNode { terminal_id, span }));
+                self.epsilon_nodes[i as usize] = Some(node_id);
                 node_id
             }
         }
@@ -1135,7 +1135,7 @@ impl<'a> ParserGen<'a> {
         let epsilon_nodes_init = if self.has_empty_alternative() {
             quote! { epsilon_nodes: {
                 let mut v = vec_arena.vec_with_capacity(input.len() as usize + 1);
-                v.resize(input.len() as usize + 1, SPPFNodeId::NONE);
+                v.resize(input.len() as usize + 1, None);
                 v
             }, }
         } else {
@@ -1154,9 +1154,9 @@ impl<'a> ParserGen<'a> {
         // Parameterized calls reserve environments in proportion to the input.
         // Other rules allocate environments as bindings are evaluated.
         let envs_init = if self.nonterminal_ids.dd_nonterminals().next().is_some() {
-            quote! { envs: vec_arena.vec_with_capacity(input.len() as usize * ENVS_CAPACITY_MULTIPLIER), }
+            quote! { envs: vec_arena.id_vec_with_capacity(input.len() as usize * ENVS_CAPACITY_MULTIPLIER), }
         } else {
-            quote! { envs: vec_arena.vec(), }
+            quote! { envs: vec_arena.id_vec(), }
         };
         quote! {
             #[doc = " Creates a new parser."]
@@ -1172,8 +1172,9 @@ impl<'a> ParserGen<'a> {
                     #gss_nodes_index_field,
                     #(#gss_nodes_index_fields,)*
                     descriptors: vec_arena.vec_with_capacity(input.len() as usize / DESCRIPTORS_CAPACITY_DIVISOR + DESCRIPTORS_CAPACITY_FLOOR),
-                    gss_nodes: vec_arena.vec_with_capacity(input.len() as usize * GSS_CAPACITY_MULTIPLIER),
-                    sppf_nodes: vec_arena.vec_with_capacity(input.len() as usize * SPPF_CAPACITY_MULTIPLIER),
+                    gss_nodes: vec_arena.id_vec_with_capacity(input.len() as usize * GSS_CAPACITY_MULTIPLIER),
+                    start_gss_node_id: None,
+                    sppf_nodes: vec_arena.id_vec_with_capacity(input.len() as usize * SPPF_CAPACITY_MULTIPLIER),
                     #intermediate_nodes_index_field
                     #terminal_nodes_index_field
                     #epsilon_nodes_init
@@ -1221,8 +1222,8 @@ impl<'a> ParserGen<'a> {
         };
         let epsilon_nodes_field = if self.has_empty_alternative() {
             quote! {
-                #[comment = "Epsilon nodes keyed by input position; SPPFNodeId::NONE marks an empty slot."]
-                epsilon_nodes: ArenaVec<'arena, SPPFNodeId>,
+                #[comment = "Epsilon nodes keyed by input position; `None` until the node at that position is created."]
+                epsilon_nodes: ArenaVec<'arena, Option<SPPFNodeId>>,
             }
         } else {
             quote! {}
@@ -1278,11 +1279,13 @@ impl<'a> ParserGen<'a> {
                 vec_arena: &'arena Arena,
                 scanner: #scanner_ty,
                 descriptors: ArenaVec<'arena, Descriptor>,
-                gss_nodes: ArenaVec<'arena, GSSNode<'arena>>,
+                gss_nodes: ArenaIdVec<'arena, GssNodeId, GSSNode<'arena>>,
+                #[comment = "The start nonterminal's GSS node at input position 0, set by `run`."]
+                start_gss_node_id: Option<GssNodeId>,
                 #[comment = "Per-nonterminal GSS-node index keyed by input position."]
                 gss_nodes_index: LazyInlineMaps<'arena, u32, GssNodeId>,
                 #(#gss_nodes_index_fields,)*
-                sppf_nodes: ArenaVec<'arena, SPPFNode>,
+                sppf_nodes: ArenaIdVec<'arena, SPPFNodeId, SPPFNode>,
                 #[cfg(feature = "instrument")]
                 descriptors_count: usize,
                 #[cfg(feature = "instrument")]
@@ -1292,7 +1295,7 @@ impl<'a> ParserGen<'a> {
                 #sppf_nodes_index_fields
                 #epsilon_nodes_field
                 #children_fields
-                envs: ArenaVec<'arena, Env<'arena>>,
+                envs: ArenaIdVec<'arena, EnvId, Env<'arena>>,
                 failures: InlineVec<'arena, GLLFailure, 8>,
                 #[comment = "When true, `add_failure` is a no-op. The one user is the layout match
                              of a `!>>>` restriction: that parse is speculative, so its failure must
@@ -1896,11 +1899,20 @@ impl<'a> ParserGen<'a> {
     fn gen_new_gss_node_method() -> TokenStream {
         quote! {
             fn new_gss_node(&mut self, nonterminal_id: NonterminalId, input_index: u32) -> GssNodeId {
-                let gss_node_id = GssNodeId(self.gss_nodes.len() as u32);
-                let gss_node = GSSNode::new(gss_node_id, nonterminal_id, input_index);
                 record!(self, GSSNodeCreated, nonterminal_id, input_index);
-                self.gss_nodes.push(gss_node);
-                gss_node_id
+                self.gss_nodes.push(GSSNode::new(nonterminal_id, input_index))
+            }
+        }
+    }
+
+    fn gen_start_gss_node_id_methods() -> TokenStream {
+        quote! {
+            fn start_gss_node_id(&self) -> Option<GssNodeId> {
+                self.start_gss_node_id
+            }
+
+            fn set_start_gss_node_id(&mut self, id: GssNodeId) {
+                self.start_gss_node_id = Some(id);
             }
         }
     }
@@ -1908,7 +1920,7 @@ impl<'a> ParserGen<'a> {
     fn gen_gss_node_method() -> TokenStream {
         quote! {
             fn gss_node(&self, id: GssNodeId) -> &GSSNode<'arena> {
-                &self.gss_nodes[id.index()]
+                &self.gss_nodes[id]
             }
         }
     }
@@ -1916,7 +1928,7 @@ impl<'a> ParserGen<'a> {
     fn gen_gss_node_mut_method() -> TokenStream {
         quote! {
             fn gss_node_mut(&mut self, id: GssNodeId) -> &mut GSSNode<'arena> {
-                self.gss_nodes.get_mut(id.index()).expect("GSS node id should be valid")
+                &mut self.gss_nodes[id]
             }
         }
     }
@@ -1924,7 +1936,7 @@ impl<'a> ParserGen<'a> {
     fn gen_sppf_node_method() -> TokenStream {
         quote! {
             fn sppf_node(&self, id: SPPFNodeId) -> &SPPFNode {
-                &self.sppf_nodes[id.index()]
+                &self.sppf_nodes[id]
             }
         }
     }
@@ -1932,7 +1944,7 @@ impl<'a> ParserGen<'a> {
     fn gen_sppf_node_mut_method() -> TokenStream {
         quote! {
             fn sppf_node_mut(&mut self, id: SPPFNodeId) -> &mut SPPFNode {
-                &mut self.sppf_nodes[id.index()]
+                &mut self.sppf_nodes[id]
             }
         }
     }
@@ -1945,7 +1957,7 @@ impl<'a> ParserGen<'a> {
                     DescriptorAdded,
                     descriptor.input_index,
                     descriptor.slot_id,
-                    descriptor.sppf_node_id(),
+                    descriptor.sppf_node_id,
                     descriptor.gss_node_id
                 );
                 #[cfg(feature = "instrument")]
@@ -1995,15 +2007,23 @@ impl<'a> ParserGen<'a> {
             quote! {
                 let arena = self.vec_arena;
                 self.terminal_nodes_index
-                    .insert(terminal_node.terminal_id.index(), terminal_node.span, terminal_node_id, arena);
+                    .insert(terminal_id.index(), span, terminal_node_id, arena);
+            }
+        };
+        let index_key = if self.config.unsafe_mode {
+            quote! {}
+        } else {
+            quote! {
+                let terminal_id = terminal_node.terminal_id;
+                let span = terminal_node.span;
             }
         };
         quote! {
             fn add_terminal_node(&mut self, terminal_node: TerminalNode) -> SPPFNodeId {
-                let terminal_node_id = SPPFNodeId(self.sppf_nodes.len() as u32);
-                #index_insert
                 record!(self, TerminalNodeCreated, terminal_node.terminal_id, terminal_node.span);
-                self.sppf_nodes.push(SPPFNode::Terminal(terminal_node));
+                #index_key
+                let terminal_node_id = self.sppf_nodes.push(SPPFNode::Terminal(terminal_node));
+                #index_insert
                 terminal_node_id
             }
         }
@@ -2012,7 +2032,6 @@ impl<'a> ParserGen<'a> {
     fn gen_add_nonterminal_node_method() -> TokenStream {
         quote! {
             fn add_nonterminal_node(&mut self, nonterminal_node: NonterminalNode) -> SPPFNodeId {
-                let nonterminal_node_id = SPPFNodeId(self.sppf_nodes.len() as u32);
                 record!(
                     self,
                     NonterminalNodeCreated,
@@ -2020,8 +2039,7 @@ impl<'a> ParserGen<'a> {
                     nonterminal_node.span,
                     nonterminal_node.child
                 );
-                self.sppf_nodes.push(SPPFNode::Nonterminal(nonterminal_node));
-                nonterminal_node_id
+                self.sppf_nodes.push(SPPFNode::Nonterminal(nonterminal_node))
             }
         }
     }
@@ -2035,44 +2053,54 @@ impl<'a> ParserGen<'a> {
         let index_dispatch = if dd_slot_start == 0 {
             quote! {
                 self.dd_intermediate_nodes_index
-                    .insert(slot_idx, (intermediate_node.span, env), intermediate_node_id, arena);
+                    .insert(slot_idx, (span, env), intermediate_node_id, arena);
             }
         } else {
             quote! {
                 if slot_idx < #dd_slot_start_lit {
                     self.intermediate_nodes_index
-                        .insert(slot_idx, intermediate_node.span, intermediate_node_id, arena);
+                        .insert(slot_idx, span, intermediate_node_id, arena);
                 } else {
                     let idx = slot_idx - #dd_slot_start_lit;
                     self.dd_intermediate_nodes_index
-                        .insert(idx, (intermediate_node.span, env), intermediate_node_id, arena);
+                        .insert(idx, (span, env), intermediate_node_id, arena);
                 }
             }
         };
-        let (env_param, add_to_index_param, index_insert) = if self.config.unsafe_mode {
-            (quote! { _env }, quote! { _add_to_index }, quote! {})
+        let (env_param, add_to_index_param, index_key, index_insert) = if self.config.unsafe_mode {
+            (
+                quote! { _env },
+                quote! { _add_to_index },
+                quote! {},
+                quote! {},
+            )
         } else {
             (
                 quote! { env },
                 quote! { add_to_index },
                 quote! {
+                    let slot_idx = intermediate_node.slot_id.index();
+                    let span = intermediate_node.span;
+                },
+                quote! {
                     if add_to_index {
                         let arena = self.vec_arena;
-                        let slot_idx = intermediate_node.slot_id.index();
                         #index_dispatch
                     }
                 },
             )
         };
         quote! {
+            // Do not inline. In the unsafe mode `execute` creates intermediate nodes
+            // directly at many places, and inlining this body into each of them adds
+            // to the compile time of a large generated parser.
+            #[inline(never)]
             fn add_intermediate_node(
                 &mut self,
                 intermediate_node: IntermediateNode,
                 #env_param: Option<EnvId>,
                 #add_to_index_param: bool,
             ) -> SPPFNodeId {
-                let intermediate_node_id = SPPFNodeId(self.sppf_nodes.len() as u32);
-                #index_insert
                 record!(
                     self,
                     IntermediateNodeCreated,
@@ -2081,7 +2109,9 @@ impl<'a> ParserGen<'a> {
                     intermediate_node.child.0,
                     intermediate_node.child.1
                 );
-                self.sppf_nodes.push(SPPFNode::Intermediate(intermediate_node));
+                #index_key
+                let intermediate_node_id = self.sppf_nodes.push(SPPFNode::Intermediate(intermediate_node));
+                #index_insert
                 intermediate_node_id
             }
         }
@@ -2095,10 +2125,10 @@ impl<'a> ParserGen<'a> {
         }
     }
 
-    fn gen_sppf_nodes_method() -> TokenStream {
+    fn gen_count_sppf_nodes_method() -> TokenStream {
         quote! {
-            fn sppf_nodes(&self) -> &[SPPFNode] {
-                &self.sppf_nodes
+            fn count_sppf_nodes(&self) -> usize {
+                self.sppf_nodes.len()
             }
         }
     }
@@ -2126,27 +2156,27 @@ impl<'a> ParserGen<'a> {
 
             #[cfg(feature = "instrument")]
             fn count_gss_edges(&self) -> usize {
-                self.gss_nodes.iter().map(|n| n.edges().len()).sum()
+                self.gss_nodes.values().map(|n| n.edges().len()).sum()
             }
 
             #[cfg(feature = "instrument")]
             fn count_nonterminal_nodes(&self) -> usize {
-                self.sppf_nodes.iter().filter(|n| matches!(n, SPPFNode::Nonterminal(_))).count()
+                self.sppf_nodes.values().filter(|n| matches!(n, SPPFNode::Nonterminal(_))).count()
             }
 
             #[cfg(feature = "instrument")]
             fn count_intermediate_nodes(&self) -> usize {
-                self.sppf_nodes.iter().filter(|n| matches!(n, SPPFNode::Intermediate(_))).count()
+                self.sppf_nodes.values().filter(|n| matches!(n, SPPFNode::Intermediate(_))).count()
             }
 
             #[cfg(feature = "instrument")]
             fn count_terminal_nodes(&self) -> usize {
-                self.sppf_nodes.iter().filter(|n| matches!(n, SPPFNode::Terminal(_))).count()
+                self.sppf_nodes.values().filter(|n| matches!(n, SPPFNode::Terminal(_))).count()
             }
 
             #[cfg(feature = "instrument")]
             fn count_ambiguous_nodes(&self) -> usize {
-                self.sppf_nodes.iter().filter(|n| match n {
+                self.sppf_nodes.values().filter(|n| match n {
                     SPPFNode::Nonterminal(nn) => nn.ambiguous,
                     SPPFNode::Intermediate(in_) => in_.ambiguous,
                     SPPFNode::Terminal(_) => false,
@@ -2214,7 +2244,7 @@ impl<'a> ParserGen<'a> {
 
     fn gen_gss_nodes_method() -> TokenStream {
         quote! {
-            fn gss_nodes<'p>(&'p self) -> impl Iterator<Item = &'p GSSNode<'arena>>
+            fn gss_nodes<'p>(&'p self) -> impl Iterator<Item = (GssNodeId, &'p GSSNode<'arena>)>
             where
                 'arena: 'p,
             {
@@ -2562,9 +2592,8 @@ impl<'a> ParserGen<'a> {
     fn gen_new_env_method() -> TokenStream {
         quote! {
             fn new_env(&mut self) -> (EnvId, &mut Env<'arena>) {
-                let id = EnvId(self.envs.len() as u32);
-                self.envs.push(Env::default());
-                (id, &mut self.envs[id.index()])
+                let id = self.envs.push(Env::default());
+                (id, &mut self.envs[id])
             }
         }
     }
@@ -2572,7 +2601,7 @@ impl<'a> ParserGen<'a> {
     fn gen_lookup_method() -> TokenStream {
         quote! {
             fn lookup(&self, name: BindingId, env_id: EnvId) -> i32 {
-                let env = &self.envs[env_id.index()];
+                let env = &self.envs[env_id];
                 env.get(name)
             }
         }
@@ -2581,7 +2610,7 @@ impl<'a> ParserGen<'a> {
     fn gen_clone_env() -> TokenStream {
         quote! {
             fn clone_env(&mut self, source: EnvId) -> (EnvId, &mut Env<'arena>) {
-                let bindings = self.envs[source.0 as usize].bindings.clone();
+                let bindings = self.envs[source].bindings.clone();
                 let (new_id, new_env) = self.new_env();
                 new_env.bindings = bindings;
                 (new_id, new_env)
@@ -2591,8 +2620,11 @@ impl<'a> ParserGen<'a> {
 
     fn gen_envs_method() -> TokenStream {
         quote! {
-            fn envs(&self) -> &[Env<'arena>] {
-                &self.envs
+            fn envs<'p>(&'p self) -> impl Iterator<Item = &'p Env<'arena>>
+            where
+                'arena: 'p,
+            {
+                self.envs.values()
             }
         }
     }
@@ -2648,7 +2680,7 @@ impl<'a> ParserGen<'a> {
                 stats.ambiguous_nodes_count = self.count_ambiguous_nodes();
 
                 // Histograms
-                for node in self.gss_nodes() {
+                for (_, node) in self.gss_nodes() {
                     stats.record("GssNode::edges: InlineVec", node.edges().len());
                     stats.record("GssNode::popped_elements: InlineMap", node.popped_elements().len());
                 }

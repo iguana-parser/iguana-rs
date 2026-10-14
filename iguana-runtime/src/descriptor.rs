@@ -1,19 +1,15 @@
 use serde::{Deserialize, Serialize};
 use specta::Type;
 
-use crate::{
-    env::EnvId,
-    ids::{GssNodeId, SlotId},
-    sppf::SPPFNodeId,
-};
+use crate::ids::{EnvId, GssNodeId, SPPFNodeId, SlotId};
 
 #[derive(Debug, Clone, Serialize, Deserialize, Type)]
 pub struct Descriptor {
     pub input_index: u32,
     pub slot_id: SlotId,
-    sppf_node_id: SPPFNodeId,
+    pub sppf_node_id: Option<SPPFNodeId>,
     pub gss_node_id: GssNodeId,
-    env_id: EnvId,
+    pub env_id: Option<EnvId>,
 }
 
 impl Descriptor {
@@ -28,27 +24,9 @@ impl Descriptor {
         Self {
             input_index,
             slot_id,
-            sppf_node_id: sppf_node_id.unwrap_or(SPPFNodeId::NONE),
+            sppf_node_id,
             gss_node_id,
-            env_id: env_id.unwrap_or(EnvId::NONE),
-        }
-    }
-
-    #[inline]
-    pub fn sppf_node_id(&self) -> Option<SPPFNodeId> {
-        if self.sppf_node_id == SPPFNodeId::NONE {
-            None
-        } else {
-            Some(self.sppf_node_id)
-        }
-    }
-
-    #[inline]
-    pub fn env_id(&self) -> Option<EnvId> {
-        if self.env_id == EnvId::NONE {
-            None
-        } else {
-            Some(self.env_id)
+            env_id,
         }
     }
 }

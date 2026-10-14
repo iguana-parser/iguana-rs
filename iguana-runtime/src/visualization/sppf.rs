@@ -5,8 +5,9 @@ use serde::{Deserialize, Serialize};
 use specta::Type;
 
 use crate::{
+    ids::{Id, SPPFNodeId},
     parser::Parser,
-    sppf::{SPPFNode, SPPFNodeId},
+    sppf::SPPFNode,
     visualization::dot::{ToDot, escape_label},
 };
 
@@ -90,7 +91,8 @@ impl<'p, 'i, 'arena, P: Parser<'i, 'arena>> SPPFGraphBuilder<'p, P> {
             nodes: vec![],
             edges: vec![],
             visited_nodes: FxHashSet::default(),
-            current_packed_node_id: parser.sppf_nodes().len(),
+            // Packed node ids start after the last SPPF node id.
+            current_packed_node_id: parser.count_sppf_nodes() + 1,
         }
     }
     fn build(mut self, start_id: SPPFNodeId) -> SPPF {
@@ -183,7 +185,7 @@ impl<'p, 'i, 'arena, P: Parser<'i, 'arena>> SPPFGraphBuilder<'p, P> {
         left_child: SPPFNodeId,
         right_child: SPPFNodeId,
     ) {
-        let packed_node_id = SPPFNodeId(self.current_packed_node_id as u32);
+        let packed_node_id = SPPFNodeId::from_index(self.current_packed_node_id);
         self.current_packed_node_id += 1;
         // Packed nodes are virtual nodes for visualization only, they don't have spans
         let packed_node = SPPFDotNode {

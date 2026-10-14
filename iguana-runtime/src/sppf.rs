@@ -1,7 +1,6 @@
-use crate::ids::{NonterminalId, SlotId, TerminalId};
+use crate::ids::{NonterminalId, SPPFNodeId, SlotId, TerminalId};
 use crate::input::Span;
-use serde::{Deserialize, Serialize};
-use specta::Type;
+use crate::utils::id_vec::Placeholder;
 
 #[derive(Debug)]
 pub enum SPPFNode {
@@ -36,55 +35,44 @@ impl SPPFNode {
     }
 }
 
+impl Placeholder for SPPFNode {
+    fn placeholder() -> Self {
+        SPPFNode::Terminal(TerminalNode {
+            terminal_id: TerminalId(0),
+            span: Span::default(),
+        })
+    }
+}
+
+// The node structs are `repr(C)` with `span` first, so that `span` is at the
+// same offset in every `SPPFNode` variant and `left_extent`/`right_extent`
+// compile to a single load. Without it, the compiler moves the `NonZeroU32`
+// child ids to the front for their niche, `span` lands at a different offset
+// in each variant, and every extent read computes its address from the tag.
 #[derive(Debug)]
+#[repr(C)]
 pub struct TerminalNode {
+    pub span: Span,
     pub terminal_id: TerminalId,
-    pub span: Span,
-}
-
-impl TerminalNode {
-    pub fn new(terminal_id: TerminalId, span: Span) -> Self {
-        Self { terminal_id, span }
-    }
 }
 
 #[derive(Debug)]
+#[repr(C)]
 pub struct NonterminalNode {
-    pub nonterminal_id: NonterminalId,
-    /// Corresponds to the grammar position at the end of an alternative, from which,
-    /// the `child` node is attache to this nonterminal node.
-    pub return_slot: SlotId,
     pub span: Span,
-    pub ambiguous: bool,
     pub child: SPPFNodeId,
+    pub nonterminal_id: NonterminalId,
+    /// Corresponds to the grammar position at the end of an alternative, from which
+    /// the `child` node is attached to this nonterminal node.
+    pub return_slot: SlotId,
+    pub ambiguous: bool,
 }
 
 #[derive(Debug)]
+#[repr(C)]
 pub struct IntermediateNode {
-    pub slot_id: SlotId,
     pub span: Span,
-    pub ambiguous: bool,
     pub child: (SPPFNodeId, SPPFNodeId),
-}
-
-/// A unique identifier for an SPPF node.
-///
-/// This is a type-safe wrapper around an index into the parser's SPPF nodes list.
-/// Uses `u32` since real-world grammars rarely exceed 2^32 - 1 nodes.
-#[derive(Debug, Clone, Copy, Hash, PartialEq, Eq, Serialize, Deserialize, Type)]
-pub struct SPPFNodeId(pub u32);
-
-impl SPPFNodeId {
-    /// Sentinel for an absent id in dense arrays. Real ids must be < u32::MAX.
-    pub const NONE: Self = Self(u32::MAX);
-
-    pub fn index(&self) -> usize {
-        self.0 as usize
-    }
-}
-
-impl std::fmt::Display for SPPFNodeId {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", self.0)
-    }
+    pub slot_id: SlotId,
+    pub ambiguous: bool,
 }

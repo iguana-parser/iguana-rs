@@ -52,14 +52,14 @@ impl ToDot for GSS {
 pub fn build_gss_dot_graph<'i, 'arena, P: Parser<'i, 'arena>>(parser: &P) -> GSS {
     let mut nodes = Vec::new();
     let mut edges = Vec::new();
-    for gss_node in parser.gss_nodes() {
+    for (id, gss_node) in parser.gss_nodes() {
         nodes.push(GSSDotNode {
-            id: gss_node.id,
-            label: parser.gss_to_string(gss_node.id),
+            id,
+            label: parser.gss_to_string(id),
         });
         for gss_edge in gss_node.edges() {
             edges.push(GSSDotEdge {
-                src: gss_node.id,
+                src: id,
                 dest: gss_edge.dest_id,
                 label: P::Grammar::slot_name(gss_edge.return_slot).into(),
             });

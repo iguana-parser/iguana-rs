@@ -8,17 +8,17 @@ use rustc_hash::FxHashMap;
 use crate::{
     arena::Arena,
     descriptor::Descriptor,
-    env::{Env, EnvId},
+    env::Env,
     grammar::Grammar,
     gss::{GSSEdge, GSSNode},
-    ids::{BindingId, GssNodeId, NonterminalId, SlotId, TerminalId},
+    ids::{BindingId, EnvId, GssNodeId, NonterminalId, SPPFNodeId, SlotId, TerminalId},
     input::{Input, Span},
     parse_tree::ParseTreeNode,
     prediction::{AlternativeSet, Prediction},
     record,
     result::{ParseError, ParseSuccess},
     scanner::TerminalSet,
-    sppf::{IntermediateNode, NonterminalNode, SPPFNode, SPPFNodeId, TerminalNode},
+    sppf::{IntermediateNode, NonterminalNode, SPPFNode, TerminalNode},
     utils::inline_vec::InlineVec,
 };
 
@@ -184,6 +184,10 @@ pub trait Parser<'i, 'arena>: Sized {
         gss_node_id: GssNodeId,
     );
     fn new_gss_node(&mut self, nonterminal_id: NonterminalId, input_index: u32) -> GssNodeId;
+    /// The GSS node of the start nonterminal at input position 0, or `None`
+    /// before `run` creates it. `pop` uses it to end an unsafe parse early.
+    fn start_gss_node_id(&self) -> Option<GssNodeId>;
+    fn set_start_gss_node_id(&mut self, id: GssNodeId);
     fn gss_node(&self, id: GssNodeId) -> &GSSNode<'arena>;
     fn sppf_node(&self, id: SPPFNodeId) -> &SPPFNode;
     fn sppf_node_mut(&mut self, id: SPPFNodeId) -> &mut SPPFNode;
@@ -240,7 +244,7 @@ pub trait Parser<'i, 'arena>: Sized {
     fn clear_descriptors(&mut self) {}
     fn input(&self) -> &'i Input;
 
-    fn sppf_nodes(&self) -> &[SPPFNode];
+    fn count_sppf_nodes(&self) -> usize;
 
     #[cfg(feature = "instrument")]
     fn increment_descriptor_count(&mut self);
@@ -756,10 +760,10 @@ pub trait Parser<'i, 'arena>: Sized {
                 self.add_failure(right_extent, edge.return_slot, Some(gss_node_id), failure);
                 continue;
             }
-            let left_child = edge.sppf_node_id();
+            let left_child = edge.sppf_node_id;
             let env = match return_value {
-                Some(value) => self.bind_return_value(edge.return_slot, edge.env_id(), value),
-                None => edge.env_id(),
+                Some(value) => self.bind_return_value(edge.return_slot, edge.env_id, value),
+                None => edge.env_id,
             };
             if let Some(new_node_id) = self.merge(left_child, right_child, edge.return_slot, env) {
                 self.add_descriptor(Descriptor::new(
@@ -771,8 +775,13 @@ pub trait Parser<'i, 'arena>: Sized {
                 ));
             }
         }
-        // Stop only when the start node (`GssNodeId(0)`) spans the whole input.
-        if Self::UNSAFE && gss_node_id == GssNodeId(0) && right_extent == self.input().len() {
+        // Stop only when the start node spans the whole input.
+        if Self::UNSAFE
+            && right_extent == self.input().len()
+            && self
+                .start_gss_node_id()
+                .is_some_and(|start| start == gss_node_id)
+        {
             self.clear_descriptors();
         }
     }
@@ -1063,10 +1072,7 @@ pub trait Parser<'i, 'arena>: Sized {
         let timer = Instant::now();
         let start_input_index = 0;
         let start_gss_node_id = self.new_gss_node(start, start_input_index);
-        // The start node is created before any other GSS node, so its id is
-        // `GssNodeId(0)`. `pop` relies on this id to recognize the start node when
-        // it terminates an unsafe parse early.
-        debug_assert_eq!(start_gss_node_id, GssNodeId(0));
+        self.set_start_gss_node_id(start_gss_node_id);
         let start_env = self.start_env(start);
         // A start wrapper has a single alternative.
         let first_slots = Self::Grammar::FIRST_SLOTS[start.index()];
@@ -1107,7 +1113,8 @@ pub trait Parser<'i, 'arena>: Sized {
         }
     }
 
-    fn gss_nodes<'p>(&'p self) -> impl Iterator<Item = &'p GSSNode<'arena>>
+    /// The GSS nodes the parse created, with their ids.
+    fn gss_nodes<'p>(&'p self) -> impl Iterator<Item = (GssNodeId, &'p GSSNode<'arena>)>
     where
         'arena: 'p;
 
@@ -1200,7 +1207,10 @@ pub trait Parser<'i, 'arena>: Sized {
 
     fn lookup(&self, name: BindingId, env_id: EnvId) -> i32;
 
-    fn envs(&self) -> &[Env<'arena>];
+    /// The environments the parse created.
+    fn envs<'p>(&'p self) -> impl Iterator<Item = &'p Env<'arena>>
+    where
+        'arena: 'p;
 
     /// Starts recording trace events. Before this call, `add_trace_event`
     /// discards its event.

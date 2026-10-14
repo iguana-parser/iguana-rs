@@ -1,9 +1,8 @@
 use serde::{Deserialize, Serialize};
 
-use crate::ids::{GssNodeId, NonterminalId, SlotId, TerminalId};
+use crate::ids::{GssNodeId, NonterminalId, SPPFNodeId, SlotId, TerminalId};
 use crate::input::Span;
 use crate::parser::GLLFailureKind;
-use crate::sppf::SPPFNodeId;
 
 #[cfg(feature = "debug-trace")]
 use crate::{grammar::Grammar, parser::Parser};

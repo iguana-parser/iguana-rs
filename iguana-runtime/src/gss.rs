@@ -2,10 +2,8 @@ use serde::Serialize;
 
 use crate::{
     arena::Arena,
-    env::EnvId,
-    ids::{GssNodeId, NonterminalId, SlotId},
-    sppf::SPPFNodeId,
-    utils::{inline_map::InlineMap, inline_vec::InlineVec},
+    ids::{EnvId, GssNodeId, NonterminalId, SPPFNodeId, SlotId},
+    utils::{id_vec::Placeholder, inline_map::InlineMap, inline_vec::InlineVec},
 };
 
 /// Key for the per-GSS popped-elements map. Two pops at the same
@@ -16,7 +14,6 @@ pub type PoppedElementKey = (u32, Option<i32>);
 
 #[derive(Debug, Serialize)]
 pub struct GSSNode<'arena> {
-    pub id: GssNodeId,
     pub nonterminal_id: NonterminalId,
     pub index: u32,
     #[serde(skip)]
@@ -26,9 +23,8 @@ pub struct GSSNode<'arena> {
 }
 
 impl<'arena> GSSNode<'arena> {
-    pub fn new(id: GssNodeId, nonterminal_id: NonterminalId, index: u32) -> Self {
+    pub fn new(nonterminal_id: NonterminalId, index: u32) -> Self {
         Self {
-            id,
             nonterminal_id,
             index,
             edges: InlineVec::default(),
@@ -79,15 +75,21 @@ impl<'arena> GSSNode<'arena> {
     }
 }
 
+impl Placeholder for GSSNode<'_> {
+    fn placeholder() -> Self {
+        GSSNode::new(NonterminalId(0), 0)
+    }
+}
+
 #[derive(Clone, Copy, Debug)]
 pub struct GSSEdge {
-    sppf_node_id: SPPFNodeId,
+    pub sppf_node_id: Option<SPPFNodeId>,
     pub return_slot: SlotId,
     pub dest_id: GssNodeId,
     // The caller's env at the time of the call, saved during `create`.
     // During `pop`, when iterating over edges, this env is restored and
     // extended with the callee's return value (if a binding is present).
-    env_id: EnvId,
+    pub env_id: Option<EnvId>,
 }
 
 impl GSSEdge {
@@ -99,28 +101,10 @@ impl GSSEdge {
         env_id: Option<EnvId>,
     ) -> Self {
         Self {
-            sppf_node_id: sppf_node_id.unwrap_or(SPPFNodeId::NONE),
+            sppf_node_id,
             return_slot,
             dest_id,
-            env_id: env_id.unwrap_or(EnvId::NONE),
-        }
-    }
-
-    #[inline]
-    pub fn sppf_node_id(&self) -> Option<SPPFNodeId> {
-        if self.sppf_node_id == SPPFNodeId::NONE {
-            None
-        } else {
-            Some(self.sppf_node_id)
-        }
-    }
-
-    #[inline]
-    pub fn env_id(&self) -> Option<EnvId> {
-        if self.env_id == EnvId::NONE {
-            None
-        } else {
-            Some(self.env_id)
+            env_id,
         }
     }
 }

@@ -1,3 +1,5 @@
+use std::num::NonZeroU32;
+
 use proc_macro2::Literal;
 use serde::{Deserialize, Serialize};
 use specta::Type;
@@ -86,9 +88,6 @@ impl quote::ToTokens for TerminalId {
 pub struct BindingId(pub u8);
 
 impl BindingId {
-    /// Sentinel for an absent binding id. Real ids must be < u8::MAX.
-    pub const NONE: Self = Self(u8::MAX);
-
     pub fn index(&self) -> usize {
         self.0 as usize
     }
@@ -107,22 +106,75 @@ impl quote::ToTokens for BindingId {
     }
 }
 
-/// A unique identifier for a GSS node.
-///
-/// This is a type-safe wrapper around an index into the parser's GSS node list.
-/// Uses `u32` since GSS nodes are of the form (nonterminal_id, input_index), which
-/// is bounded by the input length (u32).
-#[derive(Debug, Clone, Copy, Hash, PartialEq, Eq, Serialize, Deserialize, Type)]
-pub struct GssNodeId(pub u32);
+/// An id that addresses an element of an [`IdVec`](crate::utils::id_vec::IdVec).
+/// Ids start at 1. This is to allow niche optimization for the `Option<Id>` types.
+pub trait Id: Copy {
+    /// The id of the element at `index`, which must not be 0.
+    fn from_index(index: usize) -> Self;
 
-impl GssNodeId {
-    pub fn index(&self) -> usize {
-        self.0 as usize
+    /// The index of the element this id addresses.
+    fn index(self) -> usize;
+}
+
+/// A unique identifier for a GSS node.
+#[derive(Debug, Clone, Copy, Hash, PartialEq, Eq, Serialize, Deserialize, Type)]
+pub struct GssNodeId(NonZeroU32);
+
+impl Id for GssNodeId {
+    #[inline]
+    fn from_index(index: usize) -> Self {
+        let index = u32::try_from(index).ok().and_then(NonZeroU32::new);
+        Self(index.expect("an id's index is between 1 and u32::MAX"))
+    }
+
+    #[inline]
+    fn index(self) -> usize {
+        self.0.get() as usize
     }
 }
 
 impl std::fmt::Display for GssNodeId {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{}", self.0)
+    }
+}
+
+/// A unique identifier for an SPPF node.
+#[derive(Debug, Clone, Copy, Hash, PartialEq, Eq, Serialize, Deserialize, Type)]
+pub struct SPPFNodeId(NonZeroU32);
+
+impl Id for SPPFNodeId {
+    #[inline]
+    fn from_index(index: usize) -> Self {
+        let index = u32::try_from(index).ok().and_then(NonZeroU32::new);
+        Self(index.expect("an id's index is between 1 and u32::MAX"))
+    }
+
+    #[inline]
+    fn index(self) -> usize {
+        self.0.get() as usize
+    }
+}
+
+impl std::fmt::Display for SPPFNodeId {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.0)
+    }
+}
+
+/// A unique identifier for an environment.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize, Type)]
+pub struct EnvId(NonZeroU32);
+
+impl Id for EnvId {
+    #[inline]
+    fn from_index(index: usize) -> Self {
+        let index = u32::try_from(index).ok().and_then(NonZeroU32::new);
+        Self(index.expect("an id's index is between 1 and u32::MAX"))
+    }
+
+    #[inline]
+    fn index(self) -> usize {
+        self.0.get() as usize
     }
 }

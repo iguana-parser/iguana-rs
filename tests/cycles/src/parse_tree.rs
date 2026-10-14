@@ -3,12 +3,12 @@
 use crate::{grammar, parser::CyclesParser};
 use iguana_runtime::{
     arena::Arena,
-    ids::{NonterminalId, SlotId, TerminalId},
+    ids::{NonterminalId, SPPFNodeId, SlotId, TerminalId},
     input::Span,
     parse_tree::{
         CycleTarget, NodeKind, OneOrMany, Origin, ParseTreeBuilder, ParseTreeNode, visit_sppf,
     },
-    sppf::{NonterminalNode, SPPFNodeId, TerminalNode},
+    sppf::{NonterminalNode, TerminalNode},
 };
 use std::vec::IntoIter;
 #[derive(Debug, Clone, Copy)]

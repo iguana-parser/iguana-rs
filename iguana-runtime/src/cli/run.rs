@@ -6,12 +6,15 @@ use std::{
 };
 
 use clap::{CommandFactory, FromArgMatches};
+use serde::Serialize;
 
 #[cfg(feature = "debug-trace")]
 use crate::trace::TraceEvent;
 use crate::{
     arena::Arena,
     grammar::Grammar,
+    gss::GSSNode,
+    ids::GssNodeId,
     input::Input,
     parse_tree::{DisplayOptions, to_json, to_sexpr_with},
     parser::{GLLResult, Parser},
@@ -211,7 +214,10 @@ fn parse_file<'i, 'arena, P: Parser<'i, 'arena>>(args: Args) -> io::Result<()> {
                 write_graph(&gss, path, as_svg)?;
             }
             if let Some(ref path) = args.write_gss_nodes {
-                let gss_nodes: Vec<_> = parser.gss_nodes().collect();
+                let gss_nodes: Vec<_> = parser
+                    .gss_nodes()
+                    .map(|(id, node)| GssNodeRecord { id, node })
+                    .collect();
                 let file = File::create(path)?;
                 let mut writer = BufWriter::new(file);
                 writeln!(writer, "{}", serde_json::to_string(&gss_nodes).unwrap())?;
@@ -339,4 +345,12 @@ fn write_trace_events<'i, 'arena>(
         }
     }
     Ok(())
+}
+
+/// A GSS node with its id, one record of the `--write-gss-nodes` output.
+#[derive(Serialize)]
+struct GssNodeRecord<'p, 'arena> {
+    id: GssNodeId,
+    #[serde(flatten)]
+    node: &'p GSSNode<'arena>,
 }
