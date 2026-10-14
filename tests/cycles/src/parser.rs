@@ -637,8 +637,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for CyclesParser<'i, 'arena> {
                     }
                     // SiblingD : . EmptyE
                     SlotId(55) => {
-                        if let Some(right_child) = self.parse_empty_e_ll1(input_index, None) {
-                            let j = self.sppf_node(right_child).right_extent();
+                        if let Some((j, right_child)) = self.parse_empty_e_ll1(input_index, None) {
                             // SiblingD : EmptyE.
                             input_index = j;
                             result = Some(right_child);
@@ -654,8 +653,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for CyclesParser<'i, 'arena> {
                     }
                     // SiblingD : . EmptyF
                     SlotId(57) => {
-                        if let Some(right_child) = self.parse_empty_f_ll1(input_index, None) {
-                            let j = self.sppf_node(right_child).right_extent();
+                        if let Some((j, right_child)) = self.parse_empty_f_ll1(input_index, None) {
                             // SiblingD : EmptyF.
                             input_index = j;
                             result = Some(right_child);
@@ -831,9 +829,9 @@ impl<'i, 'arena> Parser<'i, 'arena> for CyclesParser<'i, 'arena> {
                     }
                     // IntermediateY : . IntermediateA IntermediateY IntermediateB
                     SlotId(76) => {
-                        if let Some(right_child) = self.parse_intermediate_a_ll1(input_index, None)
+                        if let Some((j, right_child)) =
+                            self.parse_intermediate_a_ll1(input_index, None)
                         {
-                            let j = self.sppf_node(right_child).right_extent();
                             // IntermediateY : IntermediateA . IntermediateY IntermediateB
                             input_index = j;
                             result = Some(right_child);
@@ -1228,8 +1226,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for CyclesParser<'i, 'arena> {
                     }
                     // Plus_0 : Plus_0 . EmptyE
                     SlotId(111) => {
-                        if let Some(right_child) = self.parse_empty_e_ll1(input_index, None) {
-                            let j = self.sppf_node(right_child).right_extent();
+                        if let Some((j, right_child)) = self.parse_empty_e_ll1(input_index, None) {
                             if let Some(new_node) =
                                 self.create_intermediate_node(result, right_child, SlotId(112), env)
                             {
@@ -1249,8 +1246,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for CyclesParser<'i, 'arena> {
                     }
                     // Plus_0 : . EmptyE
                     SlotId(113) => {
-                        if let Some(right_child) = self.parse_empty_e_ll1(input_index, None) {
-                            let j = self.sppf_node(right_child).right_extent();
+                        if let Some((j, right_child)) = self.parse_empty_e_ll1(input_index, None) {
                             // Plus_0 : EmptyE.
                             input_index = j;
                             result = Some(right_child);
@@ -1318,8 +1314,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for CyclesParser<'i, 'arena> {
                     }
                     // Plus_1 : Plus_1 . EmptyF EmptyE
                     SlotId(121) => {
-                        if let Some(right_child) = self.parse_empty_f_ll1(input_index, None) {
-                            let j = self.sppf_node(right_child).right_extent();
+                        if let Some((j, right_child)) = self.parse_empty_f_ll1(input_index, None) {
                             if let Some(new_node) =
                                 self.create_intermediate_node(result, right_child, SlotId(122), env)
                             {
@@ -1332,8 +1327,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for CyclesParser<'i, 'arena> {
                     }
                     // Plus_1 : Plus_1 EmptyF . EmptyE
                     SlotId(122) => {
-                        if let Some(right_child) = self.parse_empty_e_ll1(input_index, None) {
-                            let j = self.sppf_node(right_child).right_extent();
+                        if let Some((j, right_child)) = self.parse_empty_e_ll1(input_index, None) {
                             if let Some(new_node) =
                                 self.create_intermediate_node(result, right_child, SlotId(123), env)
                             {
@@ -1353,8 +1347,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for CyclesParser<'i, 'arena> {
                     }
                     // Plus_1 : . EmptyE
                     SlotId(124) => {
-                        if let Some(right_child) = self.parse_empty_e_ll1(input_index, None) {
-                            let j = self.sppf_node(right_child).right_extent();
+                        if let Some((j, right_child)) = self.parse_empty_e_ll1(input_index, None) {
                             // Plus_1 : EmptyE.
                             input_index = j;
                             result = Some(right_child);
@@ -1819,8 +1812,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for CyclesParser<'i, 'arena> {
                     }
                     // StartEmptyE : . start:EmptyE
                     SlotId(165) => {
-                        if let Some(right_child) = self.parse_empty_e_ll1(input_index, None) {
-                            let j = self.sppf_node(right_child).right_extent();
+                        if let Some((j, right_child)) = self.parse_empty_e_ll1(input_index, None) {
                             // StartEmptyE : start:EmptyE.
                             input_index = j;
                             result = Some(right_child);
@@ -1842,8 +1834,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for CyclesParser<'i, 'arena> {
                     }
                     // StartEmptyF : . start:EmptyF
                     SlotId(167) => {
-                        if let Some(right_child) = self.parse_empty_f_ll1(input_index, None) {
-                            let j = self.sppf_node(right_child).right_extent();
+                        if let Some((j, right_child)) = self.parse_empty_f_ll1(input_index, None) {
                             // StartEmptyF : start:EmptyF.
                             input_index = j;
                             result = Some(right_child);
@@ -1985,9 +1976,9 @@ impl<'i, 'arena> Parser<'i, 'arena> for CyclesParser<'i, 'arena> {
                     }
                     // StartIntermediateA : . start:IntermediateA
                     SlotId(179) => {
-                        if let Some(right_child) = self.parse_intermediate_a_ll1(input_index, None)
+                        if let Some((j, right_child)) =
+                            self.parse_intermediate_a_ll1(input_index, None)
                         {
-                            let j = self.sppf_node(right_child).right_extent();
                             // StartIntermediateA : start:IntermediateA.
                             input_index = j;
                             result = Some(right_child);
@@ -2081,8 +2072,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for CyclesParser<'i, 'arena> {
                     }
                     // StartOrdinary : . start:Ordinary
                     SlotId(187) => {
-                        if let Some(right_child) = self.parse_ordinary_ll1(input_index, None) {
-                            let j = self.sppf_node(right_child).right_extent();
+                        if let Some((j, right_child)) = self.parse_ordinary_ll1(input_index, None) {
                             // StartOrdinary : start:Ordinary.
                             input_index = j;
                             result = Some(right_child);
@@ -3006,71 +2996,84 @@ impl<'i, 'arena> CyclesParser<'i, 'arena> {
             .parse(START_GROUPED, tree_arena)?
             .map(ParseTree::unwrap_start_grouped))
     }
+    #[inline(never)]
     fn parse_empty_e_ll1(
         &mut self,
         i: u32,
         _failure_context: Option<SlotId>,
-    ) -> Option<SPPFNodeId> {
+    ) -> Option<(u32, SPPFNodeId)> {
         #[cfg(feature = "instrument")]
         self.ll1_call_log.push((NonterminalId(17), i));
         let epsilon_node_id = self.get_or_create_epsilon_node(i);
-        Some(self.add_nonterminal_node(NonterminalNode {
-            nonterminal_id: NonterminalId(17),
-            return_slot: SlotId(59),
-            span: Span {
-                left_extent: i,
-                right_extent: i,
-            },
-            child: epsilon_node_id,
-            ambiguous: false,
-        }))
+        Some((
+            i,
+            self.add_nonterminal_node(NonterminalNode {
+                nonterminal_id: NonterminalId(17),
+                return_slot: SlotId(59),
+                span: Span {
+                    left_extent: i,
+                    right_extent: i,
+                },
+                child: epsilon_node_id,
+                ambiguous: false,
+            }),
+        ))
     }
+    #[inline(never)]
     fn parse_empty_f_ll1(
         &mut self,
         i: u32,
         _failure_context: Option<SlotId>,
-    ) -> Option<SPPFNodeId> {
+    ) -> Option<(u32, SPPFNodeId)> {
         #[cfg(feature = "instrument")]
         self.ll1_call_log.push((NonterminalId(18), i));
         let epsilon_node_id = self.get_or_create_epsilon_node(i);
-        Some(self.add_nonterminal_node(NonterminalNode {
-            nonterminal_id: NonterminalId(18),
-            return_slot: SlotId(60),
-            span: Span {
-                left_extent: i,
-                right_extent: i,
-            },
-            child: epsilon_node_id,
-            ambiguous: false,
-        }))
+        Some((
+            i,
+            self.add_nonterminal_node(NonterminalNode {
+                nonterminal_id: NonterminalId(18),
+                return_slot: SlotId(60),
+                span: Span {
+                    left_extent: i,
+                    right_extent: i,
+                },
+                child: epsilon_node_id,
+                ambiguous: false,
+            }),
+        ))
     }
+    #[inline(never)]
     fn parse_intermediate_a_ll1(
         &mut self,
         i: u32,
         _failure_context: Option<SlotId>,
-    ) -> Option<SPPFNodeId> {
+    ) -> Option<(u32, SPPFNodeId)> {
         #[cfg(feature = "instrument")]
         self.ll1_call_log.push((NonterminalId(24), i));
         let epsilon_node_id = self.get_or_create_epsilon_node(i);
-        Some(self.add_nonterminal_node(NonterminalNode {
-            nonterminal_id: NonterminalId(24),
-            return_slot: SlotId(82),
-            span: Span {
-                left_extent: i,
-                right_extent: i,
-            },
-            child: epsilon_node_id,
-            ambiguous: false,
-        }))
+        Some((
+            i,
+            self.add_nonterminal_node(NonterminalNode {
+                nonterminal_id: NonterminalId(24),
+                return_slot: SlotId(82),
+                span: Span {
+                    left_extent: i,
+                    right_extent: i,
+                },
+                child: epsilon_node_id,
+                ambiguous: false,
+            }),
+        ))
     }
+    #[inline(never)]
     fn parse_ordinary_ll1(
         &mut self,
         i: u32,
         failure_context: Option<SlotId>,
-    ) -> Option<SPPFNodeId> {
+    ) -> Option<(u32, SPPFNodeId)> {
         #[cfg(feature = "instrument")]
         self.ll1_call_log.push((NonterminalId(28), i));
-        let result = (|| -> Option<SPPFNodeId> {
+        let result = (|| -> Option<(u32, SPPFNodeId)> {
             let matched = self.scanner.longest_match(&FIRST_SET_ORDINARY, i)?;
             match matched {
                 TerminalId(0) => {
@@ -3082,18 +3085,21 @@ impl<'i, 'arena> CyclesParser<'i, 'arena> {
                         j = end;
                         node
                     };
-                    let left_extent = self.sppf_node(right_child).left_extent();
+                    let left_extent = i;
                     let current = right_child;
-                    Some(self.add_nonterminal_node(NonterminalNode {
-                        nonterminal_id: NonterminalId(28),
-                        return_slot: SlotId(95),
-                        span: Span {
-                            left_extent,
-                            right_extent: j,
-                        },
-                        child: current,
-                        ambiguous: false,
-                    }))
+                    Some((
+                        j,
+                        self.add_nonterminal_node(NonterminalNode {
+                            nonterminal_id: NonterminalId(28),
+                            return_slot: SlotId(95),
+                            span: Span {
+                                left_extent,
+                                right_extent: j,
+                            },
+                            child: current,
+                            ambiguous: false,
+                        }),
+                    ))
                 }
                 _ => unreachable!("LL(1) dispatch covers every terminal in FIRST_SET"),
             }

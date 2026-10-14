@@ -127,8 +127,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for AmbListParser<'i, 'arena> {
                     }
                     // Plus_0 : Plus_0 . A
                     SlotId(6) => {
-                        if let Some(right_child) = self.parse_a_ll1(input_index, None) {
-                            let j = self.sppf_node(right_child).right_extent();
+                        if let Some((j, right_child)) = self.parse_a_ll1(input_index, None) {
                             if let Some(new_node) =
                                 self.create_intermediate_node(result, right_child, SlotId(7), env)
                             {
@@ -155,8 +154,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for AmbListParser<'i, 'arena> {
                     }
                     // Plus_0 : . A
                     SlotId(8) => {
-                        if let Some(right_child) = self.parse_a_ll1(input_index, None) {
-                            let j = self.sppf_node(right_child).right_extent();
+                        if let Some((j, right_child)) = self.parse_a_ll1(input_index, None) {
                             // Plus_0 : A.
                             input_index = j;
                             result = Some(right_child);
@@ -238,8 +236,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for AmbListParser<'i, 'arena> {
                     }
                     // StartA : . start:A
                     SlotId(17) => {
-                        if let Some(right_child) = self.parse_a_ll1(input_index, None) {
-                            let j = self.sppf_node(right_child).right_extent();
+                        if let Some((j, right_child)) = self.parse_a_ll1(input_index, None) {
                             // StartA : start:A.
                             input_index = j;
                             result = Some(right_child);
@@ -781,10 +778,15 @@ impl<'i, 'arena> AmbListParser<'i, 'arena> {
             .parse(START_A, tree_arena)?
             .map(ParseTree::unwrap_start_a))
     }
-    fn parse_a_ll1(&mut self, i: u32, failure_context: Option<SlotId>) -> Option<SPPFNodeId> {
+    #[inline(never)]
+    fn parse_a_ll1(
+        &mut self,
+        i: u32,
+        failure_context: Option<SlotId>,
+    ) -> Option<(u32, SPPFNodeId)> {
         #[cfg(feature = "instrument")]
         self.ll1_call_log.push((NonterminalId(1), i));
-        let result = (|| -> Option<SPPFNodeId> {
+        let result = (|| -> Option<(u32, SPPFNodeId)> {
             let matched = self.scanner.longest_match(&FIRST_SET_A, i)?;
             match matched {
                 TerminalId(0) => {
@@ -796,18 +798,21 @@ impl<'i, 'arena> AmbListParser<'i, 'arena> {
                         j = end;
                         node
                     };
-                    let left_extent = self.sppf_node(right_child).left_extent();
+                    let left_extent = i;
                     let current = right_child;
-                    Some(self.add_nonterminal_node(NonterminalNode {
-                        nonterminal_id: NonterminalId(1),
-                        return_slot: SlotId(4),
-                        span: Span {
-                            left_extent,
-                            right_extent: j,
-                        },
-                        child: current,
-                        ambiguous: false,
-                    }))
+                    Some((
+                        j,
+                        self.add_nonterminal_node(NonterminalNode {
+                            nonterminal_id: NonterminalId(1),
+                            return_slot: SlotId(4),
+                            span: Span {
+                                left_extent,
+                                right_extent: j,
+                            },
+                            child: current,
+                            ambiguous: false,
+                        }),
+                    ))
                 }
                 _ => unreachable!("LL(1) dispatch covers every terminal in FIRST_SET"),
             }

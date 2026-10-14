@@ -91,8 +91,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for ErrorUnionParser<'i, 'arena> {
                     }
                     // T : "[" BeforeP . Layout P Layout "]"
                     SlotId(2) => {
-                        if let Some(right_child) = self.parse_layout_ll1(input_index, None) {
-                            let j = self.sppf_node(right_child).right_extent();
+                        if let Some((j, right_child)) = self.parse_layout_ll1(input_index, None) {
                             if let Some(new_node) =
                                 self.create_intermediate_node(result, right_child, SlotId(3), env)
                             {
@@ -116,8 +115,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for ErrorUnionParser<'i, 'arena> {
                     }
                     // T : "[" BeforeP Layout P . Layout "]"
                     SlotId(4) => {
-                        if let Some(right_child) = self.parse_layout_ll1(input_index, None) {
-                            let j = self.sppf_node(right_child).right_extent();
+                        if let Some((j, right_child)) = self.parse_layout_ll1(input_index, None) {
                             if let Some(new_node) =
                                 self.create_intermediate_node(result, right_child, SlotId(5), env)
                             {
@@ -180,8 +178,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for ErrorUnionParser<'i, 'arena> {
                     }
                     // T : "[" BeforeQ . Layout Q Layout "]"
                     SlotId(9) => {
-                        if let Some(right_child) = self.parse_layout_ll1(input_index, None) {
-                            let j = self.sppf_node(right_child).right_extent();
+                        if let Some((j, right_child)) = self.parse_layout_ll1(input_index, None) {
                             if let Some(new_node) =
                                 self.create_intermediate_node(result, right_child, SlotId(10), env)
                             {
@@ -194,8 +191,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for ErrorUnionParser<'i, 'arena> {
                     }
                     // T : "[" BeforeQ Layout . Q Layout "]"
                     SlotId(10) => {
-                        if let Some(right_child) = self.parse_q_ll1(input_index, None) {
-                            let j = self.sppf_node(right_child).right_extent();
+                        if let Some((j, right_child)) = self.parse_q_ll1(input_index, None) {
                             if let Some(new_node) =
                                 self.create_intermediate_node(result, right_child, SlotId(11), env)
                             {
@@ -215,8 +211,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for ErrorUnionParser<'i, 'arena> {
                     }
                     // T : "[" BeforeQ Layout Q . Layout "]"
                     SlotId(11) => {
-                        if let Some(right_child) = self.parse_layout_ll1(input_index, None) {
-                            let j = self.sppf_node(right_child).right_extent();
+                        if let Some((j, right_child)) = self.parse_layout_ll1(input_index, None) {
                             if let Some(new_node) =
                                 self.create_intermediate_node(result, right_child, SlotId(12), env)
                             {
@@ -279,8 +274,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for ErrorUnionParser<'i, 'arena> {
                     }
                     // U : "[" BeforeQ . Layout Q Layout "]"
                     SlotId(16) => {
-                        if let Some(right_child) = self.parse_layout_ll1(input_index, None) {
-                            let j = self.sppf_node(right_child).right_extent();
+                        if let Some((j, right_child)) = self.parse_layout_ll1(input_index, None) {
                             if let Some(new_node) =
                                 self.create_intermediate_node(result, right_child, SlotId(17), env)
                             {
@@ -293,8 +287,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for ErrorUnionParser<'i, 'arena> {
                     }
                     // U : "[" BeforeQ Layout . Q Layout "]"
                     SlotId(17) => {
-                        if let Some(right_child) = self.parse_q_ll1(input_index, None) {
-                            let j = self.sppf_node(right_child).right_extent();
+                        if let Some((j, right_child)) = self.parse_q_ll1(input_index, None) {
                             if let Some(new_node) =
                                 self.create_intermediate_node(result, right_child, SlotId(18), env)
                             {
@@ -314,8 +307,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for ErrorUnionParser<'i, 'arena> {
                     }
                     // U : "[" BeforeQ Layout Q . Layout "]"
                     SlotId(18) => {
-                        if let Some(right_child) = self.parse_layout_ll1(input_index, None) {
-                            let j = self.sppf_node(right_child).right_extent();
+                        if let Some((j, right_child)) = self.parse_layout_ll1(input_index, None) {
                             if let Some(new_node) =
                                 self.create_intermediate_node(result, right_child, SlotId(19), env)
                             {
@@ -378,8 +370,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for ErrorUnionParser<'i, 'arena> {
                     }
                     // U : "[" BeforeP . Layout P Layout "]"
                     SlotId(23) => {
-                        if let Some(right_child) = self.parse_layout_ll1(input_index, None) {
-                            let j = self.sppf_node(right_child).right_extent();
+                        if let Some((j, right_child)) = self.parse_layout_ll1(input_index, None) {
                             if let Some(new_node) =
                                 self.create_intermediate_node(result, right_child, SlotId(24), env)
                             {
@@ -403,8 +394,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for ErrorUnionParser<'i, 'arena> {
                     }
                     // U : "[" BeforeP Layout P . Layout "]"
                     SlotId(25) => {
-                        if let Some(right_child) = self.parse_layout_ll1(input_index, None) {
-                            let j = self.sppf_node(right_child).right_extent();
+                        if let Some((j, right_child)) = self.parse_layout_ll1(input_index, None) {
                             if let Some(new_node) =
                                 self.create_intermediate_node(result, right_child, SlotId(26), env)
                             {
@@ -540,8 +530,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for ErrorUnionParser<'i, 'arena> {
                     }
                     // BeforeP : "x" . Layout "y"
                     SlotId(37) => {
-                        if let Some(right_child) = self.parse_layout_ll1(input_index, None) {
-                            let j = self.sppf_node(right_child).right_extent();
+                        if let Some((j, right_child)) = self.parse_layout_ll1(input_index, None) {
                             if let Some(new_node) =
                                 self.create_intermediate_node(result, right_child, SlotId(38), env)
                             {
@@ -614,8 +603,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for ErrorUnionParser<'i, 'arena> {
                     }
                     // BeforeQ : "x" . Layout "z"
                     SlotId(43) => {
-                        if let Some(right_child) = self.parse_layout_ll1(input_index, None) {
-                            let j = self.sppf_node(right_child).right_extent();
+                        if let Some((j, right_child)) = self.parse_layout_ll1(input_index, None) {
                             if let Some(new_node) =
                                 self.create_intermediate_node(result, right_child, SlotId(44), env)
                             {
@@ -1450,8 +1438,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for ErrorUnionParser<'i, 'arena> {
                     }
                     // Layout : . Star_0 !>> WS !>> Newline
                     SlotId(103) => {
-                        if let Some(right_child) = self.parse_star_0_ll1(input_index, None) {
-                            let j = self.sppf_node(right_child).right_extent();
+                        if let Some((j, right_child)) = self.parse_star_0_ll1(input_index, None) {
                             if let Some(failure) = self.post_conditions(SlotId(104), input_index, j)
                             {
                                 self.add_failure(j, SlotId(104), Some(gss_node_id), failure);
@@ -1514,8 +1501,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for ErrorUnionParser<'i, 'arena> {
                     }
                     // Plus_0 : . Plus_0 Alt_0
                     SlotId(109) => {
-                        if let Some(right_child) = self.parse_plus_0_ll1(input_index, None) {
-                            let j = self.sppf_node(right_child).right_extent();
+                        if let Some((j, right_child)) = self.parse_plus_0_ll1(input_index, None) {
                             // Plus_0 : Plus_0 . Alt_0
                             input_index = j;
                             result = Some(right_child);
@@ -1531,8 +1517,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for ErrorUnionParser<'i, 'arena> {
                     }
                     // Plus_0 : Plus_0 . Alt_0
                     SlotId(110) => {
-                        if let Some(right_child) = self.parse_alt_0_ll1(input_index, None) {
-                            let j = self.sppf_node(right_child).right_extent();
+                        if let Some((j, right_child)) = self.parse_alt_0_ll1(input_index, None) {
                             if let Some(new_node) =
                                 self.create_intermediate_node(result, right_child, SlotId(111), env)
                             {
@@ -1559,8 +1544,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for ErrorUnionParser<'i, 'arena> {
                     }
                     // Plus_0 : . Alt_0
                     SlotId(112) => {
-                        if let Some(right_child) = self.parse_alt_0_ll1(input_index, None) {
-                            let j = self.sppf_node(right_child).right_extent();
+                        if let Some((j, right_child)) = self.parse_alt_0_ll1(input_index, None) {
                             // Plus_0 : Alt_0.
                             input_index = j;
                             result = Some(right_child);
@@ -1583,8 +1567,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for ErrorUnionParser<'i, 'arena> {
                     }
                     // Opt_0 : . Plus_0
                     SlotId(114) => {
-                        if let Some(right_child) = self.parse_plus_0_ll1(input_index, None) {
-                            let j = self.sppf_node(right_child).right_extent();
+                        if let Some((j, right_child)) = self.parse_plus_0_ll1(input_index, None) {
                             // Opt_0 : Plus_0.
                             input_index = j;
                             result = Some(right_child);
@@ -1612,8 +1595,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for ErrorUnionParser<'i, 'arena> {
                     }
                     // Star_0 : . Opt_0
                     SlotId(117) => {
-                        if let Some(right_child) = self.parse_opt_0_ll1(input_index, None) {
-                            let j = self.sppf_node(right_child).right_extent();
+                        if let Some((j, right_child)) = self.parse_opt_0_ll1(input_index, None) {
                             // Star_0 : Opt_0.
                             input_index = j;
                             result = Some(right_child);
@@ -1629,8 +1611,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for ErrorUnionParser<'i, 'arena> {
                     }
                     // StartT : . Layout start:T Layout
                     SlotId(119) => {
-                        if let Some(right_child) = self.parse_layout_ll1(input_index, None) {
-                            let j = self.sppf_node(right_child).right_extent();
+                        if let Some((j, right_child)) = self.parse_layout_ll1(input_index, None) {
                             // StartT : Layout . start:T Layout
                             input_index = j;
                             result = Some(right_child);
@@ -1650,8 +1631,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for ErrorUnionParser<'i, 'arena> {
                     }
                     // StartT : Layout start:T . Layout
                     SlotId(121) => {
-                        if let Some(right_child) = self.parse_layout_ll1(input_index, None) {
-                            let j = self.sppf_node(right_child).right_extent();
+                        if let Some((j, right_child)) = self.parse_layout_ll1(input_index, None) {
                             if let Some(new_node) =
                                 self.create_intermediate_node(result, right_child, SlotId(122), env)
                             {
@@ -1671,8 +1651,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for ErrorUnionParser<'i, 'arena> {
                     }
                     // StartU : . Layout start:U Layout
                     SlotId(123) => {
-                        if let Some(right_child) = self.parse_layout_ll1(input_index, None) {
-                            let j = self.sppf_node(right_child).right_extent();
+                        if let Some((j, right_child)) = self.parse_layout_ll1(input_index, None) {
                             // StartU : Layout . start:U Layout
                             input_index = j;
                             result = Some(right_child);
@@ -1692,8 +1671,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for ErrorUnionParser<'i, 'arena> {
                     }
                     // StartU : Layout start:U . Layout
                     SlotId(125) => {
-                        if let Some(right_child) = self.parse_layout_ll1(input_index, None) {
-                            let j = self.sppf_node(right_child).right_extent();
+                        if let Some((j, right_child)) = self.parse_layout_ll1(input_index, None) {
                             if let Some(new_node) =
                                 self.create_intermediate_node(result, right_child, SlotId(126), env)
                             {
@@ -1713,8 +1691,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for ErrorUnionParser<'i, 'arena> {
                     }
                     // StartP : . Layout start:P Layout
                     SlotId(127) => {
-                        if let Some(right_child) = self.parse_layout_ll1(input_index, None) {
-                            let j = self.sppf_node(right_child).right_extent();
+                        if let Some((j, right_child)) = self.parse_layout_ll1(input_index, None) {
                             // StartP : Layout . start:P Layout
                             input_index = j;
                             result = Some(right_child);
@@ -1734,8 +1711,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for ErrorUnionParser<'i, 'arena> {
                     }
                     // StartP : Layout start:P . Layout
                     SlotId(129) => {
-                        if let Some(right_child) = self.parse_layout_ll1(input_index, None) {
-                            let j = self.sppf_node(right_child).right_extent();
+                        if let Some((j, right_child)) = self.parse_layout_ll1(input_index, None) {
                             if let Some(new_node) =
                                 self.create_intermediate_node(result, right_child, SlotId(130), env)
                             {
@@ -1755,8 +1731,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for ErrorUnionParser<'i, 'arena> {
                     }
                     // StartQ : . Layout start:Q Layout
                     SlotId(131) => {
-                        if let Some(right_child) = self.parse_layout_ll1(input_index, None) {
-                            let j = self.sppf_node(right_child).right_extent();
+                        if let Some((j, right_child)) = self.parse_layout_ll1(input_index, None) {
                             // StartQ : Layout . start:Q Layout
                             input_index = j;
                             result = Some(right_child);
@@ -1765,8 +1740,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for ErrorUnionParser<'i, 'arena> {
                     }
                     // StartQ : Layout . start:Q Layout
                     SlotId(132) => {
-                        if let Some(right_child) = self.parse_q_ll1(input_index, None) {
-                            let j = self.sppf_node(right_child).right_extent();
+                        if let Some((j, right_child)) = self.parse_q_ll1(input_index, None) {
                             if let Some(new_node) =
                                 self.create_intermediate_node(result, right_child, SlotId(133), env)
                             {
@@ -1786,8 +1760,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for ErrorUnionParser<'i, 'arena> {
                     }
                     // StartQ : Layout start:Q . Layout
                     SlotId(133) => {
-                        if let Some(right_child) = self.parse_layout_ll1(input_index, None) {
-                            let j = self.sppf_node(right_child).right_extent();
+                        if let Some((j, right_child)) = self.parse_layout_ll1(input_index, None) {
                             if let Some(new_node) =
                                 self.create_intermediate_node(result, right_child, SlotId(134), env)
                             {
@@ -1807,8 +1780,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for ErrorUnionParser<'i, 'arena> {
                     }
                     // StartBeforeP : . Layout start:BeforeP Layout
                     SlotId(135) => {
-                        if let Some(right_child) = self.parse_layout_ll1(input_index, None) {
-                            let j = self.sppf_node(right_child).right_extent();
+                        if let Some((j, right_child)) = self.parse_layout_ll1(input_index, None) {
                             // StartBeforeP : Layout . start:BeforeP Layout
                             input_index = j;
                             result = Some(right_child);
@@ -1828,8 +1800,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for ErrorUnionParser<'i, 'arena> {
                     }
                     // StartBeforeP : Layout start:BeforeP . Layout
                     SlotId(137) => {
-                        if let Some(right_child) = self.parse_layout_ll1(input_index, None) {
-                            let j = self.sppf_node(right_child).right_extent();
+                        if let Some((j, right_child)) = self.parse_layout_ll1(input_index, None) {
                             if let Some(new_node) =
                                 self.create_intermediate_node(result, right_child, SlotId(138), env)
                             {
@@ -1855,8 +1826,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for ErrorUnionParser<'i, 'arena> {
                     }
                     // StartBeforeQ : . Layout start:BeforeQ Layout
                     SlotId(139) => {
-                        if let Some(right_child) = self.parse_layout_ll1(input_index, None) {
-                            let j = self.sppf_node(right_child).right_extent();
+                        if let Some((j, right_child)) = self.parse_layout_ll1(input_index, None) {
                             // StartBeforeQ : Layout . start:BeforeQ Layout
                             input_index = j;
                             result = Some(right_child);
@@ -1876,8 +1846,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for ErrorUnionParser<'i, 'arena> {
                     }
                     // StartBeforeQ : Layout start:BeforeQ . Layout
                     SlotId(141) => {
-                        if let Some(right_child) = self.parse_layout_ll1(input_index, None) {
-                            let j = self.sppf_node(right_child).right_extent();
+                        if let Some((j, right_child)) = self.parse_layout_ll1(input_index, None) {
                             if let Some(new_node) =
                                 self.create_intermediate_node(result, right_child, SlotId(142), env)
                             {
@@ -1903,8 +1872,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for ErrorUnionParser<'i, 'arena> {
                     }
                     // StartUnexpectedFirst : . Layout start:UnexpectedFirst Layout
                     SlotId(143) => {
-                        if let Some(right_child) = self.parse_layout_ll1(input_index, None) {
-                            let j = self.sppf_node(right_child).right_extent();
+                        if let Some((j, right_child)) = self.parse_layout_ll1(input_index, None) {
                             // StartUnexpectedFirst : Layout . start:UnexpectedFirst Layout
                             input_index = j;
                             result = Some(right_child);
@@ -1924,8 +1892,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for ErrorUnionParser<'i, 'arena> {
                     }
                     // StartUnexpectedFirst : Layout start:UnexpectedFirst . Layout
                     SlotId(145) => {
-                        if let Some(right_child) = self.parse_layout_ll1(input_index, None) {
-                            let j = self.sppf_node(right_child).right_extent();
+                        if let Some((j, right_child)) = self.parse_layout_ll1(input_index, None) {
                             if let Some(new_node) =
                                 self.create_intermediate_node(result, right_child, SlotId(146), env)
                             {
@@ -1951,8 +1918,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for ErrorUnionParser<'i, 'arena> {
                     }
                     // StartExcludedFirst : . Layout start:ExcludedFirst Layout
                     SlotId(147) => {
-                        if let Some(right_child) = self.parse_layout_ll1(input_index, None) {
-                            let j = self.sppf_node(right_child).right_extent();
+                        if let Some((j, right_child)) = self.parse_layout_ll1(input_index, None) {
                             // StartExcludedFirst : Layout . start:ExcludedFirst Layout
                             input_index = j;
                             result = Some(right_child);
@@ -1972,8 +1938,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for ErrorUnionParser<'i, 'arena> {
                     }
                     // StartExcludedFirst : Layout start:ExcludedFirst . Layout
                     SlotId(149) => {
-                        if let Some(right_child) = self.parse_layout_ll1(input_index, None) {
-                            let j = self.sppf_node(right_child).right_extent();
+                        if let Some((j, right_child)) = self.parse_layout_ll1(input_index, None) {
                             if let Some(new_node) =
                                 self.create_intermediate_node(result, right_child, SlotId(150), env)
                             {
@@ -1999,8 +1964,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for ErrorUnionParser<'i, 'arena> {
                     }
                     // StartPredictionBeforeExcept : . Layout start:PredictionBeforeExcept Layout
                     SlotId(151) => {
-                        if let Some(right_child) = self.parse_layout_ll1(input_index, None) {
-                            let j = self.sppf_node(right_child).right_extent();
+                        if let Some((j, right_child)) = self.parse_layout_ll1(input_index, None) {
                             // StartPredictionBeforeExcept : Layout . start:PredictionBeforeExcept Layout
                             input_index = j;
                             result = Some(right_child);
@@ -2020,8 +1984,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for ErrorUnionParser<'i, 'arena> {
                     }
                     // StartPredictionBeforeExcept : Layout start:PredictionBeforeExcept . Layout
                     SlotId(153) => {
-                        if let Some(right_child) = self.parse_layout_ll1(input_index, None) {
-                            let j = self.sppf_node(right_child).right_extent();
+                        if let Some((j, right_child)) = self.parse_layout_ll1(input_index, None) {
                             if let Some(new_node) =
                                 self.create_intermediate_node(result, right_child, SlotId(154), env)
                             {
@@ -2047,8 +2010,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for ErrorUnionParser<'i, 'arena> {
                     }
                     // StartExceptBeforePrediction : . Layout start:ExceptBeforePrediction Layout
                     SlotId(155) => {
-                        if let Some(right_child) = self.parse_layout_ll1(input_index, None) {
-                            let j = self.sppf_node(right_child).right_extent();
+                        if let Some((j, right_child)) = self.parse_layout_ll1(input_index, None) {
                             // StartExceptBeforePrediction : Layout . start:ExceptBeforePrediction Layout
                             input_index = j;
                             result = Some(right_child);
@@ -2068,8 +2030,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for ErrorUnionParser<'i, 'arena> {
                     }
                     // StartExceptBeforePrediction : Layout start:ExceptBeforePrediction . Layout
                     SlotId(157) => {
-                        if let Some(right_child) = self.parse_layout_ll1(input_index, None) {
-                            let j = self.sppf_node(right_child).right_extent();
+                        if let Some((j, right_child)) = self.parse_layout_ll1(input_index, None) {
                             if let Some(new_node) =
                                 self.create_intermediate_node(result, right_child, SlotId(158), env)
                             {
@@ -2095,8 +2056,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for ErrorUnionParser<'i, 'arena> {
                     }
                     // StartPredictionBeforeFollow : . Layout start:PredictionBeforeFollow Layout
                     SlotId(159) => {
-                        if let Some(right_child) = self.parse_layout_ll1(input_index, None) {
-                            let j = self.sppf_node(right_child).right_extent();
+                        if let Some((j, right_child)) = self.parse_layout_ll1(input_index, None) {
                             // StartPredictionBeforeFollow : Layout . start:PredictionBeforeFollow Layout
                             input_index = j;
                             result = Some(right_child);
@@ -2116,8 +2076,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for ErrorUnionParser<'i, 'arena> {
                     }
                     // StartPredictionBeforeFollow : Layout start:PredictionBeforeFollow . Layout
                     SlotId(161) => {
-                        if let Some(right_child) = self.parse_layout_ll1(input_index, None) {
-                            let j = self.sppf_node(right_child).right_extent();
+                        if let Some((j, right_child)) = self.parse_layout_ll1(input_index, None) {
                             if let Some(new_node) =
                                 self.create_intermediate_node(result, right_child, SlotId(162), env)
                             {
@@ -2143,8 +2102,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for ErrorUnionParser<'i, 'arena> {
                     }
                     // StartFollowBeforePrediction : . Layout start:FollowBeforePrediction Layout
                     SlotId(163) => {
-                        if let Some(right_child) = self.parse_layout_ll1(input_index, None) {
-                            let j = self.sppf_node(right_child).right_extent();
+                        if let Some((j, right_child)) = self.parse_layout_ll1(input_index, None) {
                             // StartFollowBeforePrediction : Layout . start:FollowBeforePrediction Layout
                             input_index = j;
                             result = Some(right_child);
@@ -2164,8 +2122,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for ErrorUnionParser<'i, 'arena> {
                     }
                     // StartFollowBeforePrediction : Layout start:FollowBeforePrediction . Layout
                     SlotId(165) => {
-                        if let Some(right_child) = self.parse_layout_ll1(input_index, None) {
-                            let j = self.sppf_node(right_child).right_extent();
+                        if let Some((j, right_child)) = self.parse_layout_ll1(input_index, None) {
                             if let Some(new_node) =
                                 self.create_intermediate_node(result, right_child, SlotId(166), env)
                             {
@@ -2191,8 +2148,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for ErrorUnionParser<'i, 'arena> {
                     }
                     // StartMissingSuffix : . Layout start:MissingSuffix Layout
                     SlotId(167) => {
-                        if let Some(right_child) = self.parse_layout_ll1(input_index, None) {
-                            let j = self.sppf_node(right_child).right_extent();
+                        if let Some((j, right_child)) = self.parse_layout_ll1(input_index, None) {
                             // StartMissingSuffix : Layout . start:MissingSuffix Layout
                             input_index = j;
                             result = Some(right_child);
@@ -2212,8 +2168,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for ErrorUnionParser<'i, 'arena> {
                     }
                     // StartMissingSuffix : Layout start:MissingSuffix . Layout
                     SlotId(169) => {
-                        if let Some(right_child) = self.parse_layout_ll1(input_index, None) {
-                            let j = self.sppf_node(right_child).right_extent();
+                        if let Some((j, right_child)) = self.parse_layout_ll1(input_index, None) {
                             if let Some(new_node) =
                                 self.create_intermediate_node(result, right_child, SlotId(170), env)
                             {
@@ -2239,8 +2194,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for ErrorUnionParser<'i, 'arena> {
                     }
                     // StartSuffixChoice : . Layout start:SuffixChoice Layout
                     SlotId(171) => {
-                        if let Some(right_child) = self.parse_layout_ll1(input_index, None) {
-                            let j = self.sppf_node(right_child).right_extent();
+                        if let Some((j, right_child)) = self.parse_layout_ll1(input_index, None) {
                             // StartSuffixChoice : Layout . start:SuffixChoice Layout
                             input_index = j;
                             result = Some(right_child);
@@ -2260,8 +2214,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for ErrorUnionParser<'i, 'arena> {
                     }
                     // StartSuffixChoice : Layout start:SuffixChoice . Layout
                     SlotId(173) => {
-                        if let Some(right_child) = self.parse_layout_ll1(input_index, None) {
-                            let j = self.sppf_node(right_child).right_extent();
+                        if let Some((j, right_child)) = self.parse_layout_ll1(input_index, None) {
                             if let Some(new_node) =
                                 self.create_intermediate_node(result, right_child, SlotId(174), env)
                             {
@@ -2287,8 +2240,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for ErrorUnionParser<'i, 'arena> {
                     }
                     // StartCallPrediction : . Layout start:CallPrediction Layout
                     SlotId(175) => {
-                        if let Some(right_child) = self.parse_layout_ll1(input_index, None) {
-                            let j = self.sppf_node(right_child).right_extent();
+                        if let Some((j, right_child)) = self.parse_layout_ll1(input_index, None) {
                             // StartCallPrediction : Layout . start:CallPrediction Layout
                             input_index = j;
                             result = Some(right_child);
@@ -2308,8 +2260,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for ErrorUnionParser<'i, 'arena> {
                     }
                     // StartCallPrediction : Layout start:CallPrediction . Layout
                     SlotId(177) => {
-                        if let Some(right_child) = self.parse_layout_ll1(input_index, None) {
-                            let j = self.sppf_node(right_child).right_extent();
+                        if let Some((j, right_child)) = self.parse_layout_ll1(input_index, None) {
                             if let Some(new_node) =
                                 self.create_intermediate_node(result, right_child, SlotId(178), env)
                             {
@@ -2335,8 +2286,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for ErrorUnionParser<'i, 'arena> {
                     }
                     // StartPrefixX : . Layout start:PrefixX Layout
                     SlotId(179) => {
-                        if let Some(right_child) = self.parse_layout_ll1(input_index, None) {
-                            let j = self.sppf_node(right_child).right_extent();
+                        if let Some((j, right_child)) = self.parse_layout_ll1(input_index, None) {
                             // StartPrefixX : Layout . start:PrefixX Layout
                             input_index = j;
                             result = Some(right_child);
@@ -2356,8 +2306,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for ErrorUnionParser<'i, 'arena> {
                     }
                     // StartPrefixX : Layout start:PrefixX . Layout
                     SlotId(181) => {
-                        if let Some(right_child) = self.parse_layout_ll1(input_index, None) {
-                            let j = self.sppf_node(right_child).right_extent();
+                        if let Some((j, right_child)) = self.parse_layout_ll1(input_index, None) {
                             if let Some(new_node) =
                                 self.create_intermediate_node(result, right_child, SlotId(182), env)
                             {
@@ -2383,8 +2332,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for ErrorUnionParser<'i, 'arena> {
                     }
                     // StartPrefixW : . Layout start:PrefixW Layout
                     SlotId(183) => {
-                        if let Some(right_child) = self.parse_layout_ll1(input_index, None) {
-                            let j = self.sppf_node(right_child).right_extent();
+                        if let Some((j, right_child)) = self.parse_layout_ll1(input_index, None) {
                             // StartPrefixW : Layout . start:PrefixW Layout
                             input_index = j;
                             result = Some(right_child);
@@ -2404,8 +2352,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for ErrorUnionParser<'i, 'arena> {
                     }
                     // StartPrefixW : Layout start:PrefixW . Layout
                     SlotId(185) => {
-                        if let Some(right_child) = self.parse_layout_ll1(input_index, None) {
-                            let j = self.sppf_node(right_child).right_extent();
+                        if let Some((j, right_child)) = self.parse_layout_ll1(input_index, None) {
                             if let Some(new_node) =
                                 self.create_intermediate_node(result, right_child, SlotId(186), env)
                             {
@@ -2431,8 +2378,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for ErrorUnionParser<'i, 'arena> {
                     }
                     // StartNullablePrefix : . Layout start:NullablePrefix Layout
                     SlotId(187) => {
-                        if let Some(right_child) = self.parse_layout_ll1(input_index, None) {
-                            let j = self.sppf_node(right_child).right_extent();
+                        if let Some((j, right_child)) = self.parse_layout_ll1(input_index, None) {
                             // StartNullablePrefix : Layout . start:NullablePrefix Layout
                             input_index = j;
                             result = Some(right_child);
@@ -2452,8 +2398,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for ErrorUnionParser<'i, 'arena> {
                     }
                     // StartNullablePrefix : Layout start:NullablePrefix . Layout
                     SlotId(189) => {
-                        if let Some(right_child) = self.parse_layout_ll1(input_index, None) {
-                            let j = self.sppf_node(right_child).right_extent();
+                        if let Some((j, right_child)) = self.parse_layout_ll1(input_index, None) {
                             if let Some(new_node) =
                                 self.create_intermediate_node(result, right_child, SlotId(190), env)
                             {
@@ -2479,8 +2424,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for ErrorUnionParser<'i, 'arena> {
                     }
                     // StartLayout : . start:Layout
                     SlotId(191) => {
-                        if let Some(right_child) = self.parse_layout_ll1(input_index, None) {
-                            let j = self.sppf_node(right_child).right_extent();
+                        if let Some((j, right_child)) = self.parse_layout_ll1(input_index, None) {
                             // StartLayout : start:Layout.
                             input_index = j;
                             result = Some(right_child);
@@ -3249,10 +3193,15 @@ impl<'i, 'arena> ErrorUnionParser<'i, 'arena> {
             .parse(START_LAYOUT, tree_arena)?
             .map(ParseTree::unwrap_start_layout))
     }
-    fn parse_q_ll1(&mut self, i: u32, failure_context: Option<SlotId>) -> Option<SPPFNodeId> {
+    #[inline(never)]
+    fn parse_q_ll1(
+        &mut self,
+        i: u32,
+        failure_context: Option<SlotId>,
+    ) -> Option<(u32, SPPFNodeId)> {
         #[cfg(feature = "instrument")]
         self.ll1_call_log.push((NonterminalId(3), i));
-        let result = (|| -> Option<SPPFNodeId> {
+        let result = (|| -> Option<(u32, SPPFNodeId)> {
             let matched = self.scanner.longest_match(&FIRST_SET_Q, i)?;
             match matched {
                 TerminalId(9) => {
@@ -3264,18 +3213,21 @@ impl<'i, 'arena> ErrorUnionParser<'i, 'arena> {
                         j = end;
                         node
                     };
-                    let left_extent = self.sppf_node(right_child).left_extent();
+                    let left_extent = i;
                     let current = right_child;
-                    Some(self.add_nonterminal_node(NonterminalNode {
-                        nonterminal_id: NonterminalId(3),
-                        return_slot: SlotId(33),
-                        span: Span {
-                            left_extent,
-                            right_extent: j,
-                        },
-                        child: current,
-                        ambiguous: false,
-                    }))
+                    Some((
+                        j,
+                        self.add_nonterminal_node(NonterminalNode {
+                            nonterminal_id: NonterminalId(3),
+                            return_slot: SlotId(33),
+                            span: Span {
+                                left_extent,
+                                right_extent: j,
+                            },
+                            child: current,
+                            ambiguous: false,
+                        }),
+                    ))
                 }
                 _ => unreachable!("LL(1) dispatch covers every terminal in FIRST_SET"),
             }
@@ -3292,18 +3244,22 @@ impl<'i, 'arena> ErrorUnionParser<'i, 'arena> {
         }
         result
     }
-    fn parse_layout_ll1(&mut self, i: u32, _failure_context: Option<SlotId>) -> Option<SPPFNodeId> {
+    #[inline(never)]
+    fn parse_layout_ll1(
+        &mut self,
+        i: u32,
+        _failure_context: Option<SlotId>,
+    ) -> Option<(u32, SPPFNodeId)> {
         #[cfg(feature = "instrument")]
         self.ll1_call_log.push((NonterminalId(18), i));
         if let Some(memo) = self.layout_memo[i as usize] {
-            return Some(memo);
+            return Some((self.sppf_node(memo).right_extent(), memo));
         }
-        let result = (|| -> Option<SPPFNodeId> {
+        let result = (|| -> Option<(u32, SPPFNodeId)> {
             let mut j = i;
             let right_child = {
                 let start = j;
-                let node = self.parse_star_0_ll1(start, Some(SlotId(104)))?;
-                let end = self.sppf_node(node).right_extent();
+                let (end, node) = self.parse_star_0_ll1(start, Some(SlotId(104)))?;
                 j = end;
                 if let Some(failure) = self.post_conditions(SlotId(104), start, end) {
                     self.add_failure(end, SlotId(104), None, failure);
@@ -3311,28 +3267,36 @@ impl<'i, 'arena> ErrorUnionParser<'i, 'arena> {
                 }
                 node
             };
-            let left_extent = self.sppf_node(right_child).left_extent();
+            let left_extent = i;
             let current = right_child;
-            Some(self.add_nonterminal_node(NonterminalNode {
-                nonterminal_id: NonterminalId(18),
-                return_slot: SlotId(104),
-                span: Span {
-                    left_extent,
-                    right_extent: j,
-                },
-                child: current,
-                ambiguous: false,
-            }))
+            Some((
+                j,
+                self.add_nonterminal_node(NonterminalNode {
+                    nonterminal_id: NonterminalId(18),
+                    return_slot: SlotId(104),
+                    span: Span {
+                        left_extent,
+                        right_extent: j,
+                    },
+                    child: current,
+                    ambiguous: false,
+                }),
+            ))
         })();
-        if let Some(node) = result {
+        if let Some((_, node)) = result {
             self.layout_memo[i as usize] = Some(node);
         }
         result
     }
-    fn parse_alt_0_ll1(&mut self, i: u32, failure_context: Option<SlotId>) -> Option<SPPFNodeId> {
+    #[inline(never)]
+    fn parse_alt_0_ll1(
+        &mut self,
+        i: u32,
+        failure_context: Option<SlotId>,
+    ) -> Option<(u32, SPPFNodeId)> {
         #[cfg(feature = "instrument")]
         self.ll1_call_log.push((NonterminalId(19), i));
-        let result = (|| -> Option<SPPFNodeId> {
+        let result = (|| -> Option<(u32, SPPFNodeId)> {
             let matched = self.scanner.longest_match(&FIRST_SET_ALT_0, i)?;
             match matched {
                 TerminalId(4) => {
@@ -3344,18 +3308,21 @@ impl<'i, 'arena> ErrorUnionParser<'i, 'arena> {
                         j = end;
                         node
                     };
-                    let left_extent = self.sppf_node(right_child).left_extent();
+                    let left_extent = i;
                     let current = right_child;
-                    Some(self.add_nonterminal_node(NonterminalNode {
-                        nonterminal_id: NonterminalId(19),
-                        return_slot: SlotId(106),
-                        span: Span {
-                            left_extent,
-                            right_extent: j,
-                        },
-                        child: current,
-                        ambiguous: false,
-                    }))
+                    Some((
+                        j,
+                        self.add_nonterminal_node(NonterminalNode {
+                            nonterminal_id: NonterminalId(19),
+                            return_slot: SlotId(106),
+                            span: Span {
+                                left_extent,
+                                right_extent: j,
+                            },
+                            child: current,
+                            ambiguous: false,
+                        }),
+                    ))
                 }
                 TerminalId(5) => {
                     let mut j = i;
@@ -3366,18 +3333,21 @@ impl<'i, 'arena> ErrorUnionParser<'i, 'arena> {
                         j = end;
                         node
                     };
-                    let left_extent = self.sppf_node(right_child).left_extent();
+                    let left_extent = i;
                     let current = right_child;
-                    Some(self.add_nonterminal_node(NonterminalNode {
-                        nonterminal_id: NonterminalId(19),
-                        return_slot: SlotId(108),
-                        span: Span {
-                            left_extent,
-                            right_extent: j,
-                        },
-                        child: current,
-                        ambiguous: false,
-                    }))
+                    Some((
+                        j,
+                        self.add_nonterminal_node(NonterminalNode {
+                            nonterminal_id: NonterminalId(19),
+                            return_slot: SlotId(108),
+                            span: Span {
+                                left_extent,
+                                right_extent: j,
+                            },
+                            child: current,
+                            ambiguous: false,
+                        }),
+                    ))
                 }
                 _ => unreachable!("LL(1) dispatch covers every terminal in FIRST_SET"),
             }
@@ -3394,15 +3364,17 @@ impl<'i, 'arena> ErrorUnionParser<'i, 'arena> {
         }
         result
     }
-    fn parse_plus_0_ll1(&mut self, i: u32, failure_context: Option<SlotId>) -> Option<SPPFNodeId> {
+    #[inline(never)]
+    fn parse_plus_0_ll1(
+        &mut self,
+        i: u32,
+        failure_context: Option<SlotId>,
+    ) -> Option<(u32, SPPFNodeId)> {
         #[cfg(feature = "instrument")]
         self.ll1_call_log.push((NonterminalId(20), i));
-        let result = (|| -> Option<SPPFNodeId> {
+        let result = (|| -> Option<(u32, SPPFNodeId)> {
             let mut j = i;
-            let (body_node, body_end) = (self.parse_alt_0_ll1(j, None).map(|node| {
-                let end = self.sppf_node(node).right_extent();
-                (node, end)
-            }))?;
+            let (body_end, body_node) = (self.parse_alt_0_ll1(j, None))?;
             j = body_end;
             let left_extent = i;
             let mut current = self.add_nonterminal_node(NonterminalNode {
@@ -3417,10 +3389,7 @@ impl<'i, 'arena> ErrorUnionParser<'i, 'arena> {
             });
             #[allow(clippy::while_let_loop)]
             loop {
-                let Some((node_0, pos_0)) = self.parse_alt_0_ll1(j, None).map(|node| {
-                    let end = self.sppf_node(node).right_extent();
-                    (node, end)
-                }) else {
+                let Some((pos_0, node_0)) = self.parse_alt_0_ll1(j, None) else {
                     break;
                 };
                 j = pos_0;
@@ -3442,7 +3411,7 @@ impl<'i, 'arena> ErrorUnionParser<'i, 'arena> {
                     ambiguous: false,
                 });
             }
-            Some(current)
+            Some((j, current))
         })();
         if result.is_none() {
             if let Some(slot_id) = failure_context {
@@ -3456,22 +3425,30 @@ impl<'i, 'arena> ErrorUnionParser<'i, 'arena> {
         }
         result
     }
-    fn parse_opt_0_ll1(&mut self, i: u32, _failure_context: Option<SlotId>) -> Option<SPPFNodeId> {
+    #[inline(never)]
+    fn parse_opt_0_ll1(
+        &mut self,
+        i: u32,
+        _failure_context: Option<SlotId>,
+    ) -> Option<(u32, SPPFNodeId)> {
         #[cfg(feature = "instrument")]
         self.ll1_call_log.push((NonterminalId(21), i));
         let Some(matched) = self.scanner.longest_match(&FIRST_SET_OPT_0, i) else {
             return {
                 let epsilon_node_id = self.get_or_create_epsilon_node(i);
-                Some(self.add_nonterminal_node(NonterminalNode {
-                    nonterminal_id: NonterminalId(21),
-                    return_slot: SlotId(116),
-                    span: Span {
-                        left_extent: i,
-                        right_extent: i,
-                    },
-                    child: epsilon_node_id,
-                    ambiguous: false,
-                }))
+                Some((
+                    i,
+                    self.add_nonterminal_node(NonterminalNode {
+                        nonterminal_id: NonterminalId(21),
+                        return_slot: SlotId(116),
+                        span: Span {
+                            left_extent: i,
+                            right_extent: i,
+                        },
+                        child: epsilon_node_id,
+                        ambiguous: false,
+                    }),
+                ))
             };
         };
         match matched {
@@ -3479,50 +3456,59 @@ impl<'i, 'arena> ErrorUnionParser<'i, 'arena> {
                 let mut j = i;
                 let right_child = {
                     let start = j;
-                    let node = self.parse_plus_0_ll1(start, Some(SlotId(115)))?;
-                    let end = self.sppf_node(node).right_extent();
+                    let (end, node) = self.parse_plus_0_ll1(start, Some(SlotId(115)))?;
                     j = end;
                     node
                 };
-                let left_extent = self.sppf_node(right_child).left_extent();
+                let left_extent = i;
                 let current = right_child;
-                Some(self.add_nonterminal_node(NonterminalNode {
-                    nonterminal_id: NonterminalId(21),
-                    return_slot: SlotId(115),
-                    span: Span {
-                        left_extent,
-                        right_extent: j,
-                    },
-                    child: current,
-                    ambiguous: false,
-                }))
+                Some((
+                    j,
+                    self.add_nonterminal_node(NonterminalNode {
+                        nonterminal_id: NonterminalId(21),
+                        return_slot: SlotId(115),
+                        span: Span {
+                            left_extent,
+                            right_extent: j,
+                        },
+                        child: current,
+                        ambiguous: false,
+                    }),
+                ))
             }
             _ => unreachable!("LL(1) dispatch covers every terminal in FIRST_SET"),
         }
     }
-    fn parse_star_0_ll1(&mut self, i: u32, _failure_context: Option<SlotId>) -> Option<SPPFNodeId> {
+    #[inline(never)]
+    fn parse_star_0_ll1(
+        &mut self,
+        i: u32,
+        _failure_context: Option<SlotId>,
+    ) -> Option<(u32, SPPFNodeId)> {
         #[cfg(feature = "instrument")]
         self.ll1_call_log.push((NonterminalId(22), i));
         let mut j = i;
         let right_child = {
             let start = j;
-            let node = self.parse_opt_0_ll1(start, Some(SlotId(118)))?;
-            let end = self.sppf_node(node).right_extent();
+            let (end, node) = self.parse_opt_0_ll1(start, Some(SlotId(118)))?;
             j = end;
             node
         };
-        let left_extent = self.sppf_node(right_child).left_extent();
+        let left_extent = i;
         let current = right_child;
-        Some(self.add_nonterminal_node(NonterminalNode {
-            nonterminal_id: NonterminalId(22),
-            return_slot: SlotId(118),
-            span: Span {
-                left_extent,
-                right_extent: j,
-            },
-            child: current,
-            ambiguous: false,
-        }))
+        Some((
+            j,
+            self.add_nonterminal_node(NonterminalNode {
+                nonterminal_id: NonterminalId(22),
+                return_slot: SlotId(118),
+                span: Span {
+                    left_extent,
+                    right_extent: j,
+                },
+                child: current,
+                ambiguous: false,
+            }),
+        ))
     }
     fn get_or_create_epsilon_node(&mut self, i: u32) -> SPPFNodeId {
         if let Some(existing) = self.epsilon_nodes[i as usize] {

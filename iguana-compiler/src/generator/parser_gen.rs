@@ -804,9 +804,9 @@ impl<'a> ParserGen<'a> {
                 quote! {
                     {
                         self.suppress_failures = true;
-                        let node = self.#method_name(#pos, None);
+                        let layout = self.#method_name(#pos, None);
                         self.suppress_failures = false;
-                        node.map(|node| self.sppf_node(node).right_extent())
+                        layout.map(|(end, _)| end)
                     }
                 }
             }
@@ -854,8 +854,7 @@ impl<'a> ParserGen<'a> {
                     Self::gen_advance(&next_slot_name, next_slot_id, quote! { right_child }),
                 );
                 quote! {
-                    if let Some(right_child) = self.#method_name(input_index, None) {
-                        let j = self.sppf_node(right_child).right_extent();
+                    if let Some((j, right_child)) = self.#method_name(input_index, None) {
                         #advance
                     } #call_failure
                 }
@@ -873,8 +872,7 @@ impl<'a> ParserGen<'a> {
                     },
                 );
                 quote! {
-                    if let Some(right_child) = self.#method_name(input_index, None) {
-                        let j = self.sppf_node(right_child).right_extent();
+                    if let Some((j, right_child)) = self.#method_name(input_index, None) {
                         #advance
                     } #call_failure
                 }
@@ -1368,7 +1366,9 @@ impl<'a> ParserGen<'a> {
     /// `parse_X_ll1` predicts its alternative with one lookahead token:
     /// `longest_match(&FIRST_SET_X, i)`. When no alternative can be predicted,
     /// `parse_X_ll1` returns None, recording a failure only when the caller
-    /// supplies a failure context.
+    /// supplies a failure context. On success, `parse_X_ll1` returns the right
+    /// extent with the node, as `match_terminal` does, so the caller does not
+    /// look up the node to continue from its right extent.
     ///
     /// This is in contrast to GLL, where we record a failure when no
     /// alternative can be predicted. The LL(1) path can stay silent because whether
@@ -1447,11 +1447,11 @@ impl<'a> ParserGen<'a> {
             (
                 quote! {
                     if let Some(memo) = self.layout_memo[i as usize] {
-                        return Some(memo);
+                        return Some((self.sppf_node(memo).right_extent(), memo));
                     }
                 },
                 quote! {
-                    if let Some(node) = result {
+                    if let Some((_, node)) = result {
                         self.layout_memo[i as usize] = Some(node);
                     }
                 },
@@ -1461,7 +1461,7 @@ impl<'a> ParserGen<'a> {
         };
         let body_tokens = if failure_set.is_some() || memoize {
             quote! {
-                let result = (|| -> Option<SPPFNodeId> {
+                let result = (|| -> Option<(u32, SPPFNodeId)> {
                     #body_tokens
                 })();
                 #record_failure
@@ -1472,11 +1472,16 @@ impl<'a> ParserGen<'a> {
             body_tokens
         };
         quote! {
+            // Do not inline. `execute` calls this method from every slot that
+            // calls the nonterminal, and the other LL(1) methods call it from
+            // their alternatives. Inlining would copy the body into each call
+            // site and grow `execute` and the LL(1) methods.
+            #[inline(never)]
             fn #method_name(
                 &mut self,
                 i: u32,
                 #failure_context: Option<SlotId>,
-            ) -> Option<SPPFNodeId> {
+            ) -> Option<(u32, SPPFNodeId)> {
                 #instrument_entry
                 #memo_lookup
                 #body_tokens
@@ -1552,13 +1557,13 @@ impl<'a> ParserGen<'a> {
         if alternative.symbols.is_empty() {
             quote! {
                 let epsilon_node_id = self.get_or_create_epsilon_node(i);
-                Some(self.add_nonterminal_node(NonterminalNode {
+                Some((i, self.add_nonterminal_node(NonterminalNode {
                     nonterminal_id: #nonterminal_id,
                     return_slot: #end_slot_id,
                     span: Span { left_extent: i, right_extent: i },
                     child: epsilon_node_id,
                     ambiguous: false,
-                }))
+                })))
             }
         } else {
             self.gen_parse_alternative_ll1(nonterminal, alternative, nonterminal_id, end_slot_id)
@@ -1646,7 +1651,7 @@ impl<'a> ParserGen<'a> {
             // The repetition probe: on a prediction failure the repetition is
             // done, so break without recording. See gen_parse_method_ll1.
             parses.push(quote! {
-                let Some((#node_var, #pos_var)) = #parse else { break; };
+                let Some((#pos_var, #node_var)) = #parse else { break; };
             });
             current_pos = quote! { #pos_var };
         }
@@ -1668,7 +1673,7 @@ impl<'a> ParserGen<'a> {
 
         quote! {
             let mut j = i;
-            let (body_node, body_end) = (#base_parse)?;
+            let (body_end, body_node) = (#base_parse)?;
             j = body_end;
             let left_extent = i;
             let mut current = self.add_nonterminal_node(NonterminalNode {
@@ -1690,13 +1695,13 @@ impl<'a> ParserGen<'a> {
                     ambiguous: false,
                 });
             }
-            Some(current)
+            Some((j, current))
         }
     }
 
     /// Generates parse code for a symbol at position `pos`. Returns a
-    /// `TokenStream` that evaluates to `Option<(SPPFNodeId, u32)>` — the
-    /// node and end position. Records a failure on terminal match
+    /// `TokenStream` that evaluates to `Option<(u32, SPPFNodeId)>`, the right
+    /// extent and the node. Records a failure on terminal match
     /// failure, consistent with GLL.
     fn gen_match_symbol_ll1(
         &self,
@@ -1710,16 +1715,13 @@ impl<'a> ParserGen<'a> {
             Definition::Terminal(terminal) => {
                 let terminal_id = self.terminal_ids.get_id(terminal);
                 quote! {
-                    self.match_terminal(#terminal_id, #pos, #slot_id, None).map(|(end, node)| (node, end))
+                    self.match_terminal(#terminal_id, #pos, #slot_id, None)
                 }
             }
             Definition::Nonterminal(nt) => {
                 let nt_method = format_ident!("parse_{}_ll1", to_snake_case(&nt.name));
                 quote! {
-                    self.#nt_method(#pos, None).map(|node| {
-                        let end = self.sppf_node(node).right_extent();
-                        (node, end)
-                    })
+                    self.#nt_method(#pos, None)
                 }
             }
         }
@@ -1801,14 +1803,13 @@ impl<'a> ParserGen<'a> {
                     // FIRST-set failure is recorded for a nullable nt. See
                     // gen_parse_method_ll1.
                     let call = quote! {
-                        let node = self.#nt_method(start, Some(#next_slot_id))?;
+                        let (end, node) = self.#nt_method(start, Some(#next_slot_id))?;
                     };
                     body.push(quote! {
                         #pre_check
                         let right_child = {
                             let start = j;
                             #call
-                            let end = self.sppf_node(node).right_extent();
                             j = end;
                             #post_check
                             node
@@ -1824,7 +1825,7 @@ impl<'a> ParserGen<'a> {
                     quote! { let current = right_child; }
                 };
                 body.push(quote! {
-                    let left_extent = self.sppf_node(right_child).left_extent();
+                    let left_extent = i;
                     #current_decl
                 });
             } else {
@@ -1837,13 +1838,13 @@ impl<'a> ParserGen<'a> {
         }
 
         body.push(quote! {
-            Some(self.add_nonterminal_node(NonterminalNode {
+            Some((j, self.add_nonterminal_node(NonterminalNode {
                 nonterminal_id: #nonterminal_id,
                 return_slot: #end_slot_id,
                 span: Span { left_extent, right_extent: j },
                 child: current,
                 ambiguous: false,
-            }))
+            })))
         });
 
         quote! { #(#body)* }

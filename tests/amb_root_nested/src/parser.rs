@@ -101,8 +101,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for AmbRootNestedParser<'i, 'arena> {
                     }
                     // E(p: i32) : "(" WS . Type WS ")" WS E(2) return 2
                     SlotId(12) => {
-                        if let Some(right_child) = self.parse_type_ll1(input_index, None) {
-                            let j = self.sppf_node(right_child).right_extent();
+                        if let Some((j, right_child)) = self.parse_type_ll1(input_index, None) {
                             if let Some(new_node) =
                                 self.create_intermediate_node(result, right_child, SlotId(13), env)
                             {
@@ -652,8 +651,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for AmbRootNestedParser<'i, 'arena> {
                     }
                     // StartType : WS . start:Type WS
                     SlotId(7) => {
-                        if let Some(right_child) = self.parse_type_ll1(input_index, None) {
-                            let j = self.sppf_node(right_child).right_extent();
+                        if let Some((j, right_child)) = self.parse_type_ll1(input_index, None) {
                             if let Some(new_node) =
                                 self.create_intermediate_node(result, right_child, SlotId(8), env)
                             {
@@ -1302,10 +1300,15 @@ impl<'i, 'arena> AmbRootNestedParser<'i, 'arena> {
             );
         }
     }
-    fn parse_type_ll1(&mut self, i: u32, failure_context: Option<SlotId>) -> Option<SPPFNodeId> {
+    #[inline(never)]
+    fn parse_type_ll1(
+        &mut self,
+        i: u32,
+        failure_context: Option<SlotId>,
+    ) -> Option<(u32, SPPFNodeId)> {
         #[cfg(feature = "instrument")]
         self.ll1_call_log.push((NonterminalId(0), i));
-        let result = (|| -> Option<SPPFNodeId> {
+        let result = (|| -> Option<(u32, SPPFNodeId)> {
             let matched = self.scanner.longest_match(&FIRST_SET_TYPE, i)?;
             match matched {
                 TerminalId(0) => {
@@ -1317,18 +1320,21 @@ impl<'i, 'arena> AmbRootNestedParser<'i, 'arena> {
                         j = end;
                         node
                     };
-                    let left_extent = self.sppf_node(right_child).left_extent();
+                    let left_extent = i;
                     let current = right_child;
-                    Some(self.add_nonterminal_node(NonterminalNode {
-                        nonterminal_id: NonterminalId(0),
-                        return_slot: SlotId(1),
-                        span: Span {
-                            left_extent,
-                            right_extent: j,
-                        },
-                        child: current,
-                        ambiguous: false,
-                    }))
+                    Some((
+                        j,
+                        self.add_nonterminal_node(NonterminalNode {
+                            nonterminal_id: NonterminalId(0),
+                            return_slot: SlotId(1),
+                            span: Span {
+                                left_extent,
+                                right_extent: j,
+                            },
+                            child: current,
+                            ambiguous: false,
+                        }),
+                    ))
                 }
                 _ => unreachable!("LL(1) dispatch covers every terminal in FIRST_SET"),
             }

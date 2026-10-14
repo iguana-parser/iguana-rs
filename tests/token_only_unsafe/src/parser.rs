@@ -65,8 +65,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for TokenOnlyUnsafeParser<'i, 'arena> {
                 match slot_id {
                     // S : . Mod WS Empty WS Tag
                     SlotId(0) => {
-                        if let Some(right_child) = self.parse_mod_ll1(input_index, None) {
-                            let j = self.sppf_node(right_child).right_extent();
+                        if let Some((j, right_child)) = self.parse_mod_ll1(input_index, None) {
                             // S : Mod . WS Empty WS Tag
                             input_index = j;
                             result = Some(right_child);
@@ -100,8 +99,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for TokenOnlyUnsafeParser<'i, 'arena> {
                     }
                     // S : Mod WS . Empty WS Tag
                     SlotId(2) => {
-                        if let Some(right_child) = self.parse_empty_ll1(input_index, None) {
-                            let j = self.sppf_node(right_child).right_extent();
+                        if let Some((j, right_child)) = self.parse_empty_ll1(input_index, None) {
                             if let Some(new_node) =
                                 self.create_intermediate_node(result, right_child, SlotId(3), env)
                             {
@@ -132,8 +130,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for TokenOnlyUnsafeParser<'i, 'arena> {
                     }
                     // S : Mod WS Empty WS . Tag
                     SlotId(4) => {
-                        if let Some(right_child) = self.parse_tag_ll1(input_index, None) {
-                            let j = self.sppf_node(right_child).right_extent();
+                        if let Some((j, right_child)) = self.parse_tag_ll1(input_index, None) {
                             if let Some(new_node) =
                                 self.create_intermediate_node(result, right_child, SlotId(5), env)
                             {
@@ -242,8 +239,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for TokenOnlyUnsafeParser<'i, 'arena> {
                     }
                     // StartS : WS . start:S WS
                     SlotId(14) => {
-                        if let Some(right_child) = self.parse_s_ll1(input_index, None) {
-                            let j = self.sppf_node(right_child).right_extent();
+                        if let Some((j, right_child)) = self.parse_s_ll1(input_index, None) {
                             if let Some(new_node) =
                                 self.create_intermediate_node(result, right_child, SlotId(15), env)
                             {
@@ -302,8 +298,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for TokenOnlyUnsafeParser<'i, 'arena> {
                     }
                     // StartMod : WS . start:Mod WS
                     SlotId(18) => {
-                        if let Some(right_child) = self.parse_mod_ll1(input_index, None) {
-                            let j = self.sppf_node(right_child).right_extent();
+                        if let Some((j, right_child)) = self.parse_mod_ll1(input_index, None) {
                             if let Some(new_node) =
                                 self.create_intermediate_node(result, right_child, SlotId(19), env)
                             {
@@ -362,8 +357,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for TokenOnlyUnsafeParser<'i, 'arena> {
                     }
                     // StartEmpty : WS . start:Empty WS
                     SlotId(22) => {
-                        if let Some(right_child) = self.parse_empty_ll1(input_index, None) {
-                            let j = self.sppf_node(right_child).right_extent();
+                        if let Some((j, right_child)) = self.parse_empty_ll1(input_index, None) {
                             if let Some(new_node) =
                                 self.create_intermediate_node(result, right_child, SlotId(23), env)
                             {
@@ -421,8 +415,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for TokenOnlyUnsafeParser<'i, 'arena> {
                     }
                     // StartTag : WS . start:Tag WS
                     SlotId(26) => {
-                        if let Some(right_child) = self.parse_tag_ll1(input_index, None) {
-                            let j = self.sppf_node(right_child).right_extent();
+                        if let Some((j, right_child)) = self.parse_tag_ll1(input_index, None) {
                             if let Some(new_node) =
                                 self.create_intermediate_node(result, right_child, SlotId(27), env)
                             {
@@ -878,22 +871,26 @@ impl<'i, 'arena> TokenOnlyUnsafeParser<'i, 'arena> {
             .parse(START_TAG, tree_arena)?
             .map(ParseTree::unwrap_start_tag))
     }
-    fn parse_s_ll1(&mut self, i: u32, failure_context: Option<SlotId>) -> Option<SPPFNodeId> {
+    #[inline(never)]
+    fn parse_s_ll1(
+        &mut self,
+        i: u32,
+        failure_context: Option<SlotId>,
+    ) -> Option<(u32, SPPFNodeId)> {
         #[cfg(feature = "instrument")]
         self.ll1_call_log.push((NonterminalId(0), i));
-        let result = (|| -> Option<SPPFNodeId> {
+        let result = (|| -> Option<(u32, SPPFNodeId)> {
             let matched = self.scanner.longest_match(&FIRST_SET_S, i)?;
             match matched {
                 TerminalId(3) | TerminalId(2) => {
                     let mut j = i;
                     let right_child = {
                         let start = j;
-                        let node = self.parse_mod_ll1(start, Some(SlotId(1)))?;
-                        let end = self.sppf_node(node).right_extent();
+                        let (end, node) = self.parse_mod_ll1(start, Some(SlotId(1)))?;
                         j = end;
                         node
                     };
-                    let left_extent = self.sppf_node(right_child).left_extent();
+                    let left_extent = i;
                     let mut current = right_child;
                     let right_child = {
                         let start = j;
@@ -911,8 +908,7 @@ impl<'i, 'arena> TokenOnlyUnsafeParser<'i, 'arena> {
                     );
                     let right_child = {
                         let start = j;
-                        let node = self.parse_empty_ll1(start, Some(SlotId(3)))?;
-                        let end = self.sppf_node(node).right_extent();
+                        let (end, node) = self.parse_empty_ll1(start, Some(SlotId(3)))?;
                         j = end;
                         node
                     };
@@ -939,8 +935,7 @@ impl<'i, 'arena> TokenOnlyUnsafeParser<'i, 'arena> {
                     );
                     let right_child = {
                         let start = j;
-                        let node = self.parse_tag_ll1(start, Some(SlotId(5)))?;
-                        let end = self.sppf_node(node).right_extent();
+                        let (end, node) = self.parse_tag_ll1(start, Some(SlotId(5)))?;
                         j = end;
                         node
                     };
@@ -951,16 +946,19 @@ impl<'i, 'arena> TokenOnlyUnsafeParser<'i, 'arena> {
                         current,
                         right_child,
                     );
-                    Some(self.add_nonterminal_node(NonterminalNode {
-                        nonterminal_id: NonterminalId(0),
-                        return_slot: SlotId(5),
-                        span: Span {
-                            left_extent,
-                            right_extent: j,
-                        },
-                        child: current,
-                        ambiguous: false,
-                    }))
+                    Some((
+                        j,
+                        self.add_nonterminal_node(NonterminalNode {
+                            nonterminal_id: NonterminalId(0),
+                            return_slot: SlotId(5),
+                            span: Span {
+                                left_extent,
+                                right_extent: j,
+                            },
+                            child: current,
+                            ambiguous: false,
+                        }),
+                    ))
                 }
                 _ => unreachable!("LL(1) dispatch covers every terminal in FIRST_SET"),
             }
@@ -977,10 +975,15 @@ impl<'i, 'arena> TokenOnlyUnsafeParser<'i, 'arena> {
         }
         result
     }
-    fn parse_mod_ll1(&mut self, i: u32, failure_context: Option<SlotId>) -> Option<SPPFNodeId> {
+    #[inline(never)]
+    fn parse_mod_ll1(
+        &mut self,
+        i: u32,
+        failure_context: Option<SlotId>,
+    ) -> Option<(u32, SPPFNodeId)> {
         #[cfg(feature = "instrument")]
         self.ll1_call_log.push((NonterminalId(1), i));
-        let result = (|| -> Option<SPPFNodeId> {
+        let result = (|| -> Option<(u32, SPPFNodeId)> {
             let matched = self.scanner.longest_match(&FIRST_SET_MOD, i)?;
             match matched {
                 TerminalId(2) => {
@@ -992,18 +995,21 @@ impl<'i, 'arena> TokenOnlyUnsafeParser<'i, 'arena> {
                         j = end;
                         node
                     };
-                    let left_extent = self.sppf_node(right_child).left_extent();
+                    let left_extent = i;
                     let current = right_child;
-                    Some(self.add_nonterminal_node(NonterminalNode {
-                        nonterminal_id: NonterminalId(1),
-                        return_slot: SlotId(7),
-                        span: Span {
-                            left_extent,
-                            right_extent: j,
-                        },
-                        child: current,
-                        ambiguous: false,
-                    }))
+                    Some((
+                        j,
+                        self.add_nonterminal_node(NonterminalNode {
+                            nonterminal_id: NonterminalId(1),
+                            return_slot: SlotId(7),
+                            span: Span {
+                                left_extent,
+                                right_extent: j,
+                            },
+                            child: current,
+                            ambiguous: false,
+                        }),
+                    ))
                 }
                 TerminalId(3) => {
                     let mut j = i;
@@ -1014,18 +1020,21 @@ impl<'i, 'arena> TokenOnlyUnsafeParser<'i, 'arena> {
                         j = end;
                         node
                     };
-                    let left_extent = self.sppf_node(right_child).left_extent();
+                    let left_extent = i;
                     let current = right_child;
-                    Some(self.add_nonterminal_node(NonterminalNode {
-                        nonterminal_id: NonterminalId(1),
-                        return_slot: SlotId(9),
-                        span: Span {
-                            left_extent,
-                            right_extent: j,
-                        },
-                        child: current,
-                        ambiguous: false,
-                    }))
+                    Some((
+                        j,
+                        self.add_nonterminal_node(NonterminalNode {
+                            nonterminal_id: NonterminalId(1),
+                            return_slot: SlotId(9),
+                            span: Span {
+                                left_extent,
+                                right_extent: j,
+                            },
+                            child: current,
+                            ambiguous: false,
+                        }),
+                    ))
                 }
                 _ => unreachable!("LL(1) dispatch covers every terminal in FIRST_SET"),
             }
@@ -1042,25 +1051,38 @@ impl<'i, 'arena> TokenOnlyUnsafeParser<'i, 'arena> {
         }
         result
     }
-    fn parse_empty_ll1(&mut self, i: u32, _failure_context: Option<SlotId>) -> Option<SPPFNodeId> {
+    #[inline(never)]
+    fn parse_empty_ll1(
+        &mut self,
+        i: u32,
+        _failure_context: Option<SlotId>,
+    ) -> Option<(u32, SPPFNodeId)> {
         #[cfg(feature = "instrument")]
         self.ll1_call_log.push((NonterminalId(2), i));
         let epsilon_node_id = self.get_or_create_epsilon_node(i);
-        Some(self.add_nonterminal_node(NonterminalNode {
-            nonterminal_id: NonterminalId(2),
-            return_slot: SlotId(10),
-            span: Span {
-                left_extent: i,
-                right_extent: i,
-            },
-            child: epsilon_node_id,
-            ambiguous: false,
-        }))
+        Some((
+            i,
+            self.add_nonterminal_node(NonterminalNode {
+                nonterminal_id: NonterminalId(2),
+                return_slot: SlotId(10),
+                span: Span {
+                    left_extent: i,
+                    right_extent: i,
+                },
+                child: epsilon_node_id,
+                ambiguous: false,
+            }),
+        ))
     }
-    fn parse_tag_ll1(&mut self, i: u32, failure_context: Option<SlotId>) -> Option<SPPFNodeId> {
+    #[inline(never)]
+    fn parse_tag_ll1(
+        &mut self,
+        i: u32,
+        failure_context: Option<SlotId>,
+    ) -> Option<(u32, SPPFNodeId)> {
         #[cfg(feature = "instrument")]
         self.ll1_call_log.push((NonterminalId(3), i));
-        let result = (|| -> Option<SPPFNodeId> {
+        let result = (|| -> Option<(u32, SPPFNodeId)> {
             let matched = self.scanner.longest_match(&FIRST_SET_TAG, i)?;
             match matched {
                 TerminalId(0) => {
@@ -1072,18 +1094,21 @@ impl<'i, 'arena> TokenOnlyUnsafeParser<'i, 'arena> {
                         j = end;
                         node
                     };
-                    let left_extent = self.sppf_node(right_child).left_extent();
+                    let left_extent = i;
                     let current = right_child;
-                    Some(self.add_nonterminal_node(NonterminalNode {
-                        nonterminal_id: NonterminalId(3),
-                        return_slot: SlotId(12),
-                        span: Span {
-                            left_extent,
-                            right_extent: j,
-                        },
-                        child: current,
-                        ambiguous: false,
-                    }))
+                    Some((
+                        j,
+                        self.add_nonterminal_node(NonterminalNode {
+                            nonterminal_id: NonterminalId(3),
+                            return_slot: SlotId(12),
+                            span: Span {
+                                left_extent,
+                                right_extent: j,
+                            },
+                            child: current,
+                            ambiguous: false,
+                        }),
+                    ))
                 }
                 _ => unreachable!("LL(1) dispatch covers every terminal in FIRST_SET"),
             }

@@ -537,6 +537,9 @@ pub trait Parser<'i, 'arena>: Sized {
         slot_id: SlotId,
         gss_node_id: Option<GssNodeId>,
     ) -> Option<(u32, SPPFNodeId)> {
+        // The generated LL(1) parse methods return the same type. The niche in
+        // `SPPFNodeId` keeps it at 8 bytes, which is returned in registers.
+        const _: () = assert!(size_of::<Option<(u32, SPPFNodeId)>>() == 8);
         record!(self, MatchingTerminal, terminal_id, input_index);
         let Some(j) = self.match_token(terminal_id, input_index) else {
             self.add_failure(
