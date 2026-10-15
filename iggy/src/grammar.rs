@@ -25,54 +25,49 @@ pub const RANGE_ELEMENT: NonterminalId = NonterminalId(14);
 pub const RANGE: NonterminalId = NonterminalId(15);
 pub const LAYOUT: NonterminalId = NonterminalId(16);
 pub const PLUS_0: NonterminalId = NonterminalId(17);
-pub const OPT_0: NonterminalId = NonterminalId(18);
-pub const STAR_0: NonterminalId = NonterminalId(19);
-pub const OPT_1: NonterminalId = NonterminalId(20);
-pub const PLUS_1: NonterminalId = NonterminalId(21);
-pub const OPT_2: NonterminalId = NonterminalId(22);
-pub const STAR_1: NonterminalId = NonterminalId(23);
+pub const STAR_0: NonterminalId = NonterminalId(18);
+pub const OPT_0: NonterminalId = NonterminalId(19);
+pub const PLUS_1: NonterminalId = NonterminalId(20);
+pub const STAR_1: NonterminalId = NonterminalId(21);
+pub const OPT_1: NonterminalId = NonterminalId(22);
+pub const OPT_2: NonterminalId = NonterminalId(23);
 pub const OPT_3: NonterminalId = NonterminalId(24);
-pub const OPT_4: NonterminalId = NonterminalId(25);
-pub const OPT_5: NonterminalId = NonterminalId(26);
-pub const PLUS_3: NonterminalId = NonterminalId(27);
-pub const PLUS_2: NonterminalId = NonterminalId(28);
-pub const PLUS_4: NonterminalId = NonterminalId(29);
-pub const OPT_6: NonterminalId = NonterminalId(30);
-pub const STAR_2: NonterminalId = NonterminalId(31);
-pub const OPT_7: NonterminalId = NonterminalId(32);
-pub const PLUS_5: NonterminalId = NonterminalId(33);
-pub const OPT_8: NonterminalId = NonterminalId(34);
-pub const STAR_3: NonterminalId = NonterminalId(35);
-pub const PLUS_6: NonterminalId = NonterminalId(36);
-pub const OPT_9: NonterminalId = NonterminalId(37);
-pub const PLUS_7: NonterminalId = NonterminalId(38);
-pub const PLUS_8: NonterminalId = NonterminalId(39);
-pub const PLUS_9: NonterminalId = NonterminalId(40);
-pub const OPT_10: NonterminalId = NonterminalId(41);
-pub const PLUS_10: NonterminalId = NonterminalId(42);
-pub const ALT_0: NonterminalId = NonterminalId(43);
-pub const PLUS_11: NonterminalId = NonterminalId(44);
-pub const OPT_11: NonterminalId = NonterminalId(45);
-pub const STAR_4: NonterminalId = NonterminalId(46);
-pub const START_GRAMMAR: NonterminalId = NonterminalId(47);
-pub const START_RULE: NonterminalId = NonterminalId(48);
-pub const START_SYNTAX_RULE: NonterminalId = NonterminalId(49);
-pub const START_ANNOTATION: NonterminalId = NonterminalId(50);
-pub const START_REGEX_RULE: NonterminalId = NonterminalId(51);
-pub const START_REGEX_PRE_CONDITION: NonterminalId = NonterminalId(52);
-pub const START_REGEX_POST_CONDITION: NonterminalId = NonterminalId(53);
-pub const START_PRIORITY_LEVEL: NonterminalId = NonterminalId(54);
-pub const START_ASSOCIATIVITY: NonterminalId = NonterminalId(55);
-pub const START_ALTERNATIVE: NonterminalId = NonterminalId(56);
-pub const START_SYMBOL: NonterminalId = NonterminalId(57);
-pub const START_PRE_CONDITION: NonterminalId = NonterminalId(58);
-pub const START_POST_CONDITION: NonterminalId = NonterminalId(59);
-pub const START_REGEX: NonterminalId = NonterminalId(60);
-pub const START_CHAR_CLASS: NonterminalId = NonterminalId(61);
-pub const START_RANGE_ELEMENT: NonterminalId = NonterminalId(62);
-pub const START_RANGE: NonterminalId = NonterminalId(63);
-pub const START_LAYOUT: NonterminalId = NonterminalId(64);
-pub const SYMBOL: NonterminalId = NonterminalId(65);
+pub const PLUS_3: NonterminalId = NonterminalId(25);
+pub const PLUS_2: NonterminalId = NonterminalId(26);
+pub const PLUS_4: NonterminalId = NonterminalId(27);
+pub const STAR_2: NonterminalId = NonterminalId(28);
+pub const OPT_4: NonterminalId = NonterminalId(29);
+pub const PLUS_5: NonterminalId = NonterminalId(30);
+pub const STAR_3: NonterminalId = NonterminalId(31);
+pub const PLUS_6: NonterminalId = NonterminalId(32);
+pub const OPT_5: NonterminalId = NonterminalId(33);
+pub const PLUS_7: NonterminalId = NonterminalId(34);
+pub const PLUS_8: NonterminalId = NonterminalId(35);
+pub const PLUS_9: NonterminalId = NonterminalId(36);
+pub const OPT_6: NonterminalId = NonterminalId(37);
+pub const PLUS_10: NonterminalId = NonterminalId(38);
+pub const ALT_0: NonterminalId = NonterminalId(39);
+pub const PLUS_11: NonterminalId = NonterminalId(40);
+pub const STAR_4: NonterminalId = NonterminalId(41);
+pub const START_GRAMMAR: NonterminalId = NonterminalId(42);
+pub const START_RULE: NonterminalId = NonterminalId(43);
+pub const START_SYNTAX_RULE: NonterminalId = NonterminalId(44);
+pub const START_ANNOTATION: NonterminalId = NonterminalId(45);
+pub const START_REGEX_RULE: NonterminalId = NonterminalId(46);
+pub const START_REGEX_PRE_CONDITION: NonterminalId = NonterminalId(47);
+pub const START_REGEX_POST_CONDITION: NonterminalId = NonterminalId(48);
+pub const START_PRIORITY_LEVEL: NonterminalId = NonterminalId(49);
+pub const START_ASSOCIATIVITY: NonterminalId = NonterminalId(50);
+pub const START_ALTERNATIVE: NonterminalId = NonterminalId(51);
+pub const START_SYMBOL: NonterminalId = NonterminalId(52);
+pub const START_PRE_CONDITION: NonterminalId = NonterminalId(53);
+pub const START_POST_CONDITION: NonterminalId = NonterminalId(54);
+pub const START_REGEX: NonterminalId = NonterminalId(55);
+pub const START_CHAR_CLASS: NonterminalId = NonterminalId(56);
+pub const START_RANGE_ELEMENT: NonterminalId = NonterminalId(57);
+pub const START_RANGE: NonterminalId = NonterminalId(58);
+pub const START_LAYOUT: NonterminalId = NonterminalId(59);
+pub const SYMBOL: NonterminalId = NonterminalId(60);
 pub struct IggyGrammar;
 impl Grammar for IggyGrammar {
     type Alternatives = BitSet<1>;
@@ -151,15 +146,11 @@ impl Grammar for IggyGrammar {
             display_name: "Rule+",
         },
         Nonterminal {
-            name: "Opt_0",
-            display_name: "Rule+?",
-        },
-        Nonterminal {
             name: "Star_0",
             display_name: "Rule*",
         },
         Nonterminal {
-            name: "Opt_1",
+            name: "Opt_0",
             display_name: "Annotation?",
         },
         Nonterminal {
@@ -167,23 +158,19 @@ impl Grammar for IggyGrammar {
             display_name: "{PriorityLevel \">\"}+",
         },
         Nonterminal {
-            name: "Opt_2",
-            display_name: "{PriorityLevel \">\"}+?",
-        },
-        Nonterminal {
             name: "Star_1",
             display_name: "{PriorityLevel \">\"}*",
         },
         Nonterminal {
-            name: "Opt_3",
+            name: "Opt_1",
             display_name: "\"@Layout\"?",
         },
         Nonterminal {
-            name: "Opt_4",
+            name: "Opt_2",
             display_name: "\"@Identifier\"?",
         },
         Nonterminal {
-            name: "Opt_5",
+            name: "Opt_3",
             display_name: "RegexPreCondition?",
         },
         Nonterminal {
@@ -199,24 +186,16 @@ impl Grammar for IggyGrammar {
             display_name: "RegexPostCondition+",
         },
         Nonterminal {
-            name: "Opt_6",
-            display_name: "RegexPostCondition+?",
-        },
-        Nonterminal {
             name: "Star_2",
             display_name: "RegexPostCondition*",
         },
         Nonterminal {
-            name: "Opt_7",
+            name: "Opt_4",
             display_name: "Associativity?",
         },
         Nonterminal {
             name: "Plus_5",
             display_name: "{Alternative \"|\"}+",
-        },
-        Nonterminal {
-            name: "Opt_8",
-            display_name: "{Alternative \"|\"}+?",
         },
         Nonterminal {
             name: "Star_3",
@@ -227,7 +206,7 @@ impl Grammar for IggyGrammar {
             display_name: "Symbol+",
         },
         Nonterminal {
-            name: "Opt_9",
+            name: "Opt_5",
             display_name: "Label?",
         },
         Nonterminal {
@@ -243,7 +222,7 @@ impl Grammar for IggyGrammar {
             display_name: "PreCondition+",
         },
         Nonterminal {
-            name: "Opt_10",
+            name: "Opt_6",
             display_name: "\"!\"?",
         },
         Nonterminal {
@@ -257,10 +236,6 @@ impl Grammar for IggyGrammar {
         Nonterminal {
             name: "Plus_11",
             display_name: "(WS | LineComment)+",
-        },
-        Nonterminal {
-            name: "Opt_11",
-            display_name: "(WS | LineComment)+?",
         },
         Nonterminal {
             name: "Star_4",
@@ -985,24 +960,16 @@ impl Grammar for IggyGrammar {
             position: 1,
         },
         Slot {
-            display_name: "Rule+? : . Rule+",
+            display_name: "Rule* : . Rule+",
             position: 0,
         },
         Slot {
-            display_name: "Rule+? : Rule+.",
+            display_name: "Rule* : Rule+.",
             position: 1,
         },
         Slot {
-            display_name: "Rule+? : .",
+            display_name: "Rule* : .",
             position: 0,
-        },
-        Slot {
-            display_name: "Rule* : . Rule+?",
-            position: 0,
-        },
-        Slot {
-            display_name: "Rule* : Rule+?.",
-            position: 1,
         },
         Slot {
             display_name: "Annotation? : . Annotation",
@@ -1049,24 +1016,16 @@ impl Grammar for IggyGrammar {
             position: 1,
         },
         Slot {
-            display_name: "{PriorityLevel \">\"}+? : . {PriorityLevel \">\"}+",
+            display_name: "{PriorityLevel \">\"}* : . {PriorityLevel \">\"}+",
             position: 0,
         },
         Slot {
-            display_name: "{PriorityLevel \">\"}+? : {PriorityLevel \">\"}+.",
+            display_name: "{PriorityLevel \">\"}* : {PriorityLevel \">\"}+.",
             position: 1,
         },
         Slot {
-            display_name: "{PriorityLevel \">\"}+? : .",
+            display_name: "{PriorityLevel \">\"}* : .",
             position: 0,
-        },
-        Slot {
-            display_name: "{PriorityLevel \">\"}* : . {PriorityLevel \">\"}+?",
-            position: 0,
-        },
-        Slot {
-            display_name: "{PriorityLevel \">\"}* : {PriorityLevel \">\"}+?.",
-            position: 1,
         },
         Slot {
             display_name: "\"@Layout\"? : . \"@Layout\"",
@@ -1185,24 +1144,16 @@ impl Grammar for IggyGrammar {
             position: 1,
         },
         Slot {
-            display_name: "RegexPostCondition+? : . RegexPostCondition+",
+            display_name: "RegexPostCondition* : . RegexPostCondition+",
             position: 0,
         },
         Slot {
-            display_name: "RegexPostCondition+? : RegexPostCondition+.",
+            display_name: "RegexPostCondition* : RegexPostCondition+.",
             position: 1,
         },
         Slot {
-            display_name: "RegexPostCondition+? : .",
+            display_name: "RegexPostCondition* : .",
             position: 0,
-        },
-        Slot {
-            display_name: "RegexPostCondition* : . RegexPostCondition+?",
-            position: 0,
-        },
-        Slot {
-            display_name: "RegexPostCondition* : RegexPostCondition+?.",
-            position: 1,
         },
         Slot {
             display_name: "Associativity? : . Associativity",
@@ -1249,24 +1200,16 @@ impl Grammar for IggyGrammar {
             position: 1,
         },
         Slot {
-            display_name: "{Alternative \"|\"}+? : . {Alternative \"|\"}+",
+            display_name: "{Alternative \"|\"}* : . {Alternative \"|\"}+",
             position: 0,
         },
         Slot {
-            display_name: "{Alternative \"|\"}+? : {Alternative \"|\"}+.",
+            display_name: "{Alternative \"|\"}* : {Alternative \"|\"}+.",
             position: 1,
         },
         Slot {
-            display_name: "{Alternative \"|\"}+? : .",
+            display_name: "{Alternative \"|\"}* : .",
             position: 0,
-        },
-        Slot {
-            display_name: "{Alternative \"|\"}* : . {Alternative \"|\"}+?",
-            position: 0,
-        },
-        Slot {
-            display_name: "{Alternative \"|\"}* : {Alternative \"|\"}+?.",
-            position: 1,
         },
         Slot {
             display_name: "Symbol+ : . Symbol+ Layout Symbol(0, 0)",
@@ -1457,24 +1400,16 @@ impl Grammar for IggyGrammar {
             position: 1,
         },
         Slot {
-            display_name: "(WS | LineComment)+? : . (WS | LineComment)+",
+            display_name: "(WS | LineComment)* : . (WS | LineComment)+",
             position: 0,
         },
         Slot {
-            display_name: "(WS | LineComment)+? : (WS | LineComment)+.",
+            display_name: "(WS | LineComment)* : (WS | LineComment)+.",
             position: 1,
         },
         Slot {
-            display_name: "(WS | LineComment)+? : .",
+            display_name: "(WS | LineComment)* : .",
             position: 0,
-        },
-        Slot {
-            display_name: "(WS | LineComment)* : . (WS | LineComment)+?",
-            position: 0,
-        },
-        Slot {
-            display_name: "(WS | LineComment)* : (WS | LineComment)+?.",
-            position: 1,
         },
         Slot {
             display_name: "Grammar : . Layout start:Grammar Layout",
@@ -2134,64 +2069,59 @@ impl Grammar for IggyGrammar {
         &[SlotId(134)],
         &[SlotId(136), SlotId(140)],
         &[SlotId(142), SlotId(144)],
-        &[SlotId(145)],
-        &[SlotId(147), SlotId(149)],
-        &[SlotId(150), SlotId(156)],
-        &[SlotId(158), SlotId(160)],
-        &[SlotId(161)],
-        &[SlotId(163), SlotId(165)],
-        &[SlotId(166), SlotId(168)],
-        &[SlotId(169), SlotId(171)],
-        &[SlotId(172), SlotId(176)],
-        &[SlotId(178), SlotId(184)],
-        &[SlotId(186), SlotId(190)],
-        &[SlotId(192), SlotId(194)],
-        &[SlotId(195)],
-        &[SlotId(197), SlotId(199)],
-        &[SlotId(200), SlotId(206)],
-        &[SlotId(208), SlotId(210)],
-        &[SlotId(211)],
-        &[SlotId(213), SlotId(217)],
-        &[SlotId(219), SlotId(221)],
-        &[SlotId(222), SlotId(228)],
-        &[SlotId(230), SlotId(234)],
-        &[SlotId(236), SlotId(240)],
-        &[SlotId(242), SlotId(244)],
-        &[SlotId(245), SlotId(249)],
-        &[SlotId(251), SlotId(253)],
-        &[SlotId(255), SlotId(258)],
-        &[SlotId(260), SlotId(262)],
+        &[SlotId(145), SlotId(147)],
+        &[SlotId(148), SlotId(154)],
+        &[SlotId(156), SlotId(158)],
+        &[SlotId(159), SlotId(161)],
+        &[SlotId(162), SlotId(164)],
+        &[SlotId(165), SlotId(167)],
+        &[SlotId(168), SlotId(172)],
+        &[SlotId(174), SlotId(180)],
+        &[SlotId(182), SlotId(186)],
+        &[SlotId(188), SlotId(190)],
+        &[SlotId(191), SlotId(193)],
+        &[SlotId(194), SlotId(200)],
+        &[SlotId(202), SlotId(204)],
+        &[SlotId(205), SlotId(209)],
+        &[SlotId(211), SlotId(213)],
+        &[SlotId(214), SlotId(220)],
+        &[SlotId(222), SlotId(226)],
+        &[SlotId(228), SlotId(232)],
+        &[SlotId(234), SlotId(236)],
+        &[SlotId(237), SlotId(241)],
+        &[SlotId(243), SlotId(245)],
+        &[SlotId(247), SlotId(250)],
+        &[SlotId(252), SlotId(254)],
+        &[SlotId(255)],
+        &[SlotId(259)],
         &[SlotId(263)],
-        &[SlotId(265)],
-        &[SlotId(269)],
-        &[SlotId(273)],
-        &[SlotId(277)],
-        &[SlotId(281)],
-        &[SlotId(285)],
-        &[SlotId(289)],
-        &[SlotId(293)],
-        &[SlotId(297)],
-        &[SlotId(301)],
-        &[SlotId(305)],
-        &[SlotId(309)],
-        &[SlotId(313)],
-        &[SlotId(317)],
-        &[SlotId(321)],
-        &[SlotId(325)],
-        &[SlotId(329)],
-        &[SlotId(333)],
+        &[SlotId(267)],
+        &[SlotId(271)],
+        &[SlotId(275)],
+        &[SlotId(279)],
+        &[SlotId(283)],
+        &[SlotId(287)],
+        &[SlotId(291)],
+        &[SlotId(295)],
+        &[SlotId(299)],
+        &[SlotId(303)],
+        &[SlotId(307)],
+        &[SlotId(311)],
+        &[SlotId(315)],
+        &[SlotId(319)],
+        &[SlotId(323)],
         &[
-            SlotId(335),
-            SlotId(339),
-            SlotId(347),
-            SlotId(351),
-            SlotId(363),
-            SlotId(375),
-            SlotId(383),
-            SlotId(391),
-            SlotId(399),
-            SlotId(408),
-            SlotId(414),
+            SlotId(325),
+            SlotId(329),
+            SlotId(337),
+            SlotId(341),
+            SlotId(353),
+            SlotId(365),
+            SlotId(373),
+            SlotId(381),
+            SlotId(389),
+            SlotId(398),
+            SlotId(404),
         ],
     ];
     const LAYOUT_NAME: Option<&'static str> = Some("Layout");
@@ -2381,34 +2311,29 @@ impl Grammar for IggyGrammar {
             "Range" => Some(RANGE),
             "Layout" => Some(LAYOUT),
             "Plus_0" => Some(PLUS_0),
-            "Opt_0" => Some(OPT_0),
             "Star_0" => Some(STAR_0),
-            "Opt_1" => Some(OPT_1),
+            "Opt_0" => Some(OPT_0),
             "Plus_1" => Some(PLUS_1),
-            "Opt_2" => Some(OPT_2),
             "Star_1" => Some(STAR_1),
+            "Opt_1" => Some(OPT_1),
+            "Opt_2" => Some(OPT_2),
             "Opt_3" => Some(OPT_3),
-            "Opt_4" => Some(OPT_4),
-            "Opt_5" => Some(OPT_5),
             "Plus_3" => Some(PLUS_3),
             "Plus_2" => Some(PLUS_2),
             "Plus_4" => Some(PLUS_4),
-            "Opt_6" => Some(OPT_6),
             "Star_2" => Some(STAR_2),
-            "Opt_7" => Some(OPT_7),
+            "Opt_4" => Some(OPT_4),
             "Plus_5" => Some(PLUS_5),
-            "Opt_8" => Some(OPT_8),
             "Star_3" => Some(STAR_3),
             "Plus_6" => Some(PLUS_6),
-            "Opt_9" => Some(OPT_9),
+            "Opt_5" => Some(OPT_5),
             "Plus_7" => Some(PLUS_7),
             "Plus_8" => Some(PLUS_8),
             "Plus_9" => Some(PLUS_9),
-            "Opt_10" => Some(OPT_10),
+            "Opt_6" => Some(OPT_6),
             "Plus_10" => Some(PLUS_10),
             "Alt_0" => Some(ALT_0),
             "Plus_11" => Some(PLUS_11),
-            "Opt_11" => Some(OPT_11),
             "Star_4" => Some(STAR_4),
             "StartGrammar" => Some(START_GRAMMAR),
             "StartRule" => Some(START_RULE),
@@ -2785,18 +2710,13 @@ pub static FOLLOW_SET_PLUS_0: TerminalSet = TerminalSet {
         TerminalId(39),
     ],
 };
-// Opt_0 { WS, LineComment, EOF }
-pub static FOLLOW_SET_OPT_0: TerminalSet = TerminalSet {
-    id: 0,
-    terminals: &[TerminalId(8), TerminalId(10), TerminalId(39)],
-};
 // Star_0 { WS, LineComment, EOF }
 pub static FOLLOW_SET_STAR_0: TerminalSet = TerminalSet {
     id: 0,
     terminals: &[TerminalId(8), TerminalId(10), TerminalId(39)],
 };
-// Opt_1 { Identifier, WS, LineComment, EOF }
-pub static FOLLOW_SET_OPT_1: TerminalSet = TerminalSet {
+// Opt_0 { Identifier, WS, LineComment, EOF }
+pub static FOLLOW_SET_OPT_0: TerminalSet = TerminalSet {
     id: 2,
     terminals: &[TerminalId(2), TerminalId(8), TerminalId(10), TerminalId(39)],
 };
@@ -2809,21 +2729,6 @@ pub static FOLLOW_SET_PLUS_1: TerminalSet = TerminalSet {
         TerminalId(8),
         TerminalId(10),
         TerminalId(13),
-        TerminalId(14),
-        TerminalId(15),
-        TerminalId(16),
-        TerminalId(17),
-        TerminalId(39),
-    ],
-};
-// Opt_2 { Identifier, WS, LineComment, "@NoLayout", "@Layout", "@Identifier", "@Regex", EOF
-// }
-pub static FOLLOW_SET_OPT_2: TerminalSet = TerminalSet {
-    id: 1,
-    terminals: &[
-        TerminalId(2),
-        TerminalId(8),
-        TerminalId(10),
         TerminalId(14),
         TerminalId(15),
         TerminalId(16),
@@ -2846,8 +2751,8 @@ pub static FOLLOW_SET_STAR_1: TerminalSet = TerminalSet {
         TerminalId(39),
     ],
 };
-// Opt_3 { WS, LineComment, "@Identifier", "@Regex", EOF }
-pub static FOLLOW_SET_OPT_3: TerminalSet = TerminalSet {
+// Opt_1 { WS, LineComment, "@Identifier", "@Regex", EOF }
+pub static FOLLOW_SET_OPT_1: TerminalSet = TerminalSet {
     id: 14,
     terminals: &[
         TerminalId(8),
@@ -2857,8 +2762,8 @@ pub static FOLLOW_SET_OPT_3: TerminalSet = TerminalSet {
         TerminalId(39),
     ],
 };
-// Opt_4 { WS, LineComment, "@Regex", EOF }
-pub static FOLLOW_SET_OPT_4: TerminalSet = TerminalSet {
+// Opt_2 { WS, LineComment, "@Regex", EOF }
+pub static FOLLOW_SET_OPT_2: TerminalSet = TerminalSet {
     id: 15,
     terminals: &[
         TerminalId(8),
@@ -2867,8 +2772,8 @@ pub static FOLLOW_SET_OPT_4: TerminalSet = TerminalSet {
         TerminalId(39),
     ],
 };
-// Opt_5 { Identifier, String, Char, WS, LineComment, "(", "!", "[", EOF }
-pub static FOLLOW_SET_OPT_5: TerminalSet = TerminalSet {
+// Opt_3 { Identifier, String, Char, WS, LineComment, "(", "!", "[", EOF }
+pub static FOLLOW_SET_OPT_3: TerminalSet = TerminalSet {
     id: 3,
     terminals: &[
         TerminalId(2),
@@ -2942,21 +2847,6 @@ pub static FOLLOW_SET_PLUS_4: TerminalSet = TerminalSet {
         TerminalId(39),
     ],
 };
-// Opt_6 { Identifier, WS, LineComment, "@NoLayout", "@Layout", "@Identifier", "@Regex", EOF
-// }
-pub static FOLLOW_SET_OPT_6: TerminalSet = TerminalSet {
-    id: 1,
-    terminals: &[
-        TerminalId(2),
-        TerminalId(8),
-        TerminalId(10),
-        TerminalId(14),
-        TerminalId(15),
-        TerminalId(16),
-        TerminalId(17),
-        TerminalId(39),
-    ],
-};
 // Star_2 { Identifier, WS, LineComment, "@NoLayout", "@Layout", "@Identifier", "@Regex", EOF
 // }
 pub static FOLLOW_SET_STAR_2: TerminalSet = TerminalSet {
@@ -2972,9 +2862,9 @@ pub static FOLLOW_SET_STAR_2: TerminalSet = TerminalSet {
         TerminalId(39),
     ],
 };
-// Opt_7 { Identifier, String, WS, LineComment, ">", "@NoLayout", "@Layout", "@Identifier",
+// Opt_4 { Identifier, String, WS, LineComment, ">", "@NoLayout", "@Layout", "@Identifier",
 // "@Regex", "(", "{", EOF }
-pub static FOLLOW_SET_OPT_7: TerminalSet = TerminalSet {
+pub static FOLLOW_SET_OPT_4: TerminalSet = TerminalSet {
     id: 6,
     terminals: &[
         TerminalId(2),
@@ -3005,22 +2895,6 @@ pub static FOLLOW_SET_PLUS_5: TerminalSet = TerminalSet {
         TerminalId(16),
         TerminalId(17),
         TerminalId(18),
-        TerminalId(39),
-    ],
-};
-// Opt_8 { Identifier, WS, LineComment, ">", "@NoLayout", "@Layout", "@Identifier", "@Regex",
-// EOF }
-pub static FOLLOW_SET_OPT_8: TerminalSet = TerminalSet {
-    id: 5,
-    terminals: &[
-        TerminalId(2),
-        TerminalId(8),
-        TerminalId(10),
-        TerminalId(13),
-        TerminalId(14),
-        TerminalId(15),
-        TerminalId(16),
-        TerminalId(17),
         TerminalId(39),
     ],
 };
@@ -3062,9 +2936,9 @@ pub static FOLLOW_SET_PLUS_6: TerminalSet = TerminalSet {
         TerminalId(39),
     ],
 };
-// Opt_9 { Identifier, WS, LineComment, ">", "@NoLayout", "@Layout", "@Identifier", "@Regex",
+// Opt_5 { Identifier, WS, LineComment, ">", "@NoLayout", "@Layout", "@Identifier", "@Regex",
 // "|", EOF }
-pub static FOLLOW_SET_OPT_9: TerminalSet = TerminalSet {
+pub static FOLLOW_SET_OPT_5: TerminalSet = TerminalSet {
     id: 7,
     terminals: &[
         TerminalId(2),
@@ -3134,8 +3008,8 @@ pub static FOLLOW_SET_PLUS_9: TerminalSet = TerminalSet {
         TerminalId(39),
     ],
 };
-// Opt_10 { WS, LineComment, "[", EOF }
-pub static FOLLOW_SET_OPT_10: TerminalSet = TerminalSet {
+// Opt_6 { WS, LineComment, "[", EOF }
+pub static FOLLOW_SET_OPT_6: TerminalSet = TerminalSet {
     id: 20,
     terminals: &[
         TerminalId(8),
@@ -3211,47 +3085,6 @@ pub static FOLLOW_SET_PLUS_11: TerminalSet = TerminalSet {
         TerminalId(7),
         TerminalId(8),
         TerminalId(10),
-        TerminalId(11),
-        TerminalId(12),
-        TerminalId(13),
-        TerminalId(14),
-        TerminalId(15),
-        TerminalId(16),
-        TerminalId(17),
-        TerminalId(18),
-        TerminalId(19),
-        TerminalId(20),
-        TerminalId(21),
-        TerminalId(22),
-        TerminalId(23),
-        TerminalId(24),
-        TerminalId(25),
-        TerminalId(26),
-        TerminalId(27),
-        TerminalId(28),
-        TerminalId(29),
-        TerminalId(30),
-        TerminalId(31),
-        TerminalId(32),
-        TerminalId(33),
-        TerminalId(34),
-        TerminalId(35),
-        TerminalId(36),
-        TerminalId(37),
-        TerminalId(39),
-    ],
-};
-// Opt_11 { Identifier, String, Char, RangeChar, Label, "grammar", "=", ">", "@NoLayout",
-// "@Layout", "@Identifier", "@Regex", "|", "!<<", "\\", "!>>", "left", "right", "none", "(",
-// ")", "{", "}", "*", "+", "?", ":", "!>>>", "!", "[", "]", "-", EOF }
-pub static FOLLOW_SET_OPT_11: TerminalSet = TerminalSet {
-    id: 21,
-    terminals: &[
-        TerminalId(2),
-        TerminalId(3),
-        TerminalId(4),
-        TerminalId(6),
-        TerminalId(7),
         TerminalId(11),
         TerminalId(12),
         TerminalId(13),
@@ -3448,18 +3281,18 @@ pub static FIRST_SET_LAYOUT: TerminalSet = TerminalSet {
     id: 28,
     terminals: &[TerminalId(8), TerminalId(10)],
 };
-// Opt_1 { "@NoLayout", "@Layout" }
-pub static FIRST_SET_OPT_1: TerminalSet = TerminalSet {
+// Opt_0 { "@NoLayout", "@Layout" }
+pub static FIRST_SET_OPT_0: TerminalSet = TerminalSet {
     id: 23,
     terminals: &[TerminalId(14), TerminalId(15)],
 };
-// Opt_3 { "@Layout" }
-pub static FIRST_SET_OPT_3: TerminalSet = TerminalSet {
+// Opt_1 { "@Layout" }
+pub static FIRST_SET_OPT_1: TerminalSet = TerminalSet {
     id: 29,
     terminals: &[TerminalId(15)],
 };
-// Opt_4 { "@Identifier" }
-pub static FIRST_SET_OPT_4: TerminalSet = TerminalSet {
+// Opt_2 { "@Identifier" }
+pub static FIRST_SET_OPT_2: TerminalSet = TerminalSet {
     id: 30,
     terminals: &[TerminalId(16)],
 };
@@ -3468,23 +3301,18 @@ pub static FIRST_SET_PLUS_4: TerminalSet = TerminalSet {
     id: 25,
     terminals: &[TerminalId(20), TerminalId(21)],
 };
-// Opt_6 { "\\", "!>>" }
-pub static FIRST_SET_OPT_6: TerminalSet = TerminalSet {
-    id: 25,
-    terminals: &[TerminalId(20), TerminalId(21)],
-};
 // Star_2 { "\\", "!>>" }
 pub static FIRST_SET_STAR_2: TerminalSet = TerminalSet {
     id: 25,
     terminals: &[TerminalId(20), TerminalId(21)],
 };
-// Opt_9 { Label }
-pub static FIRST_SET_OPT_9: TerminalSet = TerminalSet {
+// Opt_5 { Label }
+pub static FIRST_SET_OPT_5: TerminalSet = TerminalSet {
     id: 31,
     terminals: &[TerminalId(7)],
 };
-// Opt_10 { "!" }
-pub static FIRST_SET_OPT_10: TerminalSet = TerminalSet {
+// Opt_6 { "!" }
+pub static FIRST_SET_OPT_6: TerminalSet = TerminalSet {
     id: 32,
     terminals: &[TerminalId(34)],
 };
@@ -3495,11 +3323,6 @@ pub static FIRST_SET_ALT_0: TerminalSet = TerminalSet {
 };
 // Plus_11 { WS, LineComment }
 pub static FIRST_SET_PLUS_11: TerminalSet = TerminalSet {
-    id: 28,
-    terminals: &[TerminalId(8), TerminalId(10)],
-};
-// Opt_11 { WS, LineComment }
-pub static FIRST_SET_OPT_11: TerminalSet = TerminalSet {
     id: 28,
     terminals: &[TerminalId(8), TerminalId(10)],
 };
@@ -3853,7 +3676,7 @@ pub static PREDICTION_RULE: Prediction = {
     }
 };
 // SyntaxRule
-// 0: Opt_1 Layout head:Identifier Layout "=" Layout Star_1
+// 0: Opt_0 Layout head:Identifier Layout "=" Layout Star_1
 pub static PREDICTION_SYNTAX_RULE: Prediction = {
     // WS
     const TERMINALS_1: &[(TerminalId, u16)] = &[(TerminalId(8), 0)];
@@ -3999,8 +3822,8 @@ pub static PREDICTION_SYNTAX_RULE: Prediction = {
     }
 };
 // RegexRule
-// 0: layout:Opt_3 Layout id_annot:Opt_4 Layout "@Regex" Layout Identifier Layout "=" Layout
-// Opt_5 Layout body:Plus_2 Layout Star_2
+// 0: layout:Opt_1 Layout id_annot:Opt_2 Layout "@Regex" Layout Identifier Layout "=" Layout
+// Opt_3 Layout body:Plus_2 Layout Star_2
 pub static PREDICTION_REGEX_RULE: Prediction = {
     // WS
     const TERMINALS_1: &[(TerminalId, u16)] = &[(TerminalId(8), 0)];
@@ -4148,7 +3971,7 @@ pub static PREDICTION_REGEX_RULE: Prediction = {
     }
 };
 // PriorityLevel
-// 0: Opt_7 Layout Star_3
+// 0: Opt_4 Layout Star_3
 pub static PREDICTION_PRIORITY_LEVEL: Prediction = {
     // WS
     const TERMINALS_1: &[(TerminalId, u16)] = &[(TerminalId(8), 0)];
@@ -4315,8 +4138,8 @@ pub static PREDICTION_PRIORITY_LEVEL: Prediction = {
     }
 };
 // Alternative
-// 0: Plus_6 Layout Opt_9 #Symbols
-// 1: "(" Layout ")" Layout Opt_9 #Empty
+// 0: Plus_6 Layout Opt_5 #Symbols
+// 1: "(" Layout ")" Layout Opt_5 #Empty
 pub static PREDICTION_ALTERNATIVE: Prediction = {
     // String
     const TERMINALS_1: &[(TerminalId, u16)] = &[(TerminalId(3), 0)];
@@ -5004,7 +4827,7 @@ pub static PREDICTION_REGEX: Prediction = {
     }
 };
 // CharClass
-// 0: neg:Opt_10 Layout "[" Layout Plus_10 Layout "]"
+// 0: neg:Opt_6 Layout "[" Layout Plus_10 Layout "]"
 pub static PREDICTION_CHAR_CLASS: Prediction = {
     // WS
     const TERMINALS_1: &[(TerminalId, u16)] = &[(TerminalId(8), 0)];
@@ -5446,10 +5269,10 @@ pub static PREDICTION_PLUS_0: Prediction = {
         end_of_input: &[],
     }
 };
-// Opt_0
+// Star_0
 // 0: Plus_0
 // 1: ()
-pub static PREDICTION_OPT_0: Prediction = {
+pub static PREDICTION_STAR_0: Prediction = {
     // WS
     const TERMINALS_1: &[(TerminalId, u16)] = &[(TerminalId(8), 0), (TerminalId(8), 1)];
     // LineComment
@@ -5465,159 +5288,6 @@ pub static PREDICTION_OPT_0: Prediction = {
     const TERMINALS_4: &[(TerminalId, u16)] = &[(TerminalId(2), 0)];
     // EOF
     const TERMINALS_5: &[(TerminalId, u16)] = &[(TerminalId(39), 1)];
-    Prediction {
-        ascii: [
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            TERMINALS_1,
-            TERMINALS_1,
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            TERMINALS_1,
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            TERMINALS_2,
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            TERMINALS_3,
-            TERMINALS_4,
-            TERMINALS_4,
-            TERMINALS_4,
-            TERMINALS_4,
-            TERMINALS_4,
-            TERMINALS_4,
-            TERMINALS_4,
-            TERMINALS_4,
-            TERMINALS_4,
-            TERMINALS_4,
-            TERMINALS_4,
-            TERMINALS_4,
-            TERMINALS_4,
-            TERMINALS_4,
-            TERMINALS_4,
-            TERMINALS_4,
-            TERMINALS_4,
-            TERMINALS_4,
-            TERMINALS_4,
-            TERMINALS_4,
-            TERMINALS_4,
-            TERMINALS_4,
-            TERMINALS_4,
-            TERMINALS_4,
-            TERMINALS_4,
-            TERMINALS_4,
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            TERMINALS_4,
-            TERMINALS_4,
-            TERMINALS_4,
-            TERMINALS_4,
-            TERMINALS_4,
-            TERMINALS_4,
-            TERMINALS_4,
-            TERMINALS_4,
-            TERMINALS_4,
-            TERMINALS_4,
-            TERMINALS_4,
-            TERMINALS_4,
-            TERMINALS_4,
-            TERMINALS_4,
-            TERMINALS_4,
-            TERMINALS_4,
-            TERMINALS_4,
-            TERMINALS_4,
-            TERMINALS_4,
-            TERMINALS_4,
-            TERMINALS_4,
-            TERMINALS_4,
-            TERMINALS_4,
-            TERMINALS_4,
-            TERMINALS_4,
-            TERMINALS_4,
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-        ],
-        non_ascii: &[],
-        end_of_input: TERMINALS_5,
-    }
-};
-// Star_0
-// 0: Opt_0
-pub static PREDICTION_STAR_0: Prediction = {
-    // WS
-    const TERMINALS_1: &[(TerminalId, u16)] = &[(TerminalId(8), 0)];
-    // LineComment
-    const TERMINALS_2: &[(TerminalId, u16)] = &[(TerminalId(10), 0)];
-    // "@NoLayout", "@Layout", "@Identifier", "@Regex"
-    const TERMINALS_3: &[(TerminalId, u16)] = &[
-        (TerminalId(14), 0),
-        (TerminalId(15), 0),
-        (TerminalId(16), 0),
-        (TerminalId(17), 0),
-    ];
-    // Identifier
-    const TERMINALS_4: &[(TerminalId, u16)] = &[(TerminalId(2), 0)];
-    // EOF
-    const TERMINALS_5: &[(TerminalId, u16)] = &[(TerminalId(39), 0)];
     Prediction {
         ascii: [
             &[],
@@ -5936,10 +5606,10 @@ pub static PREDICTION_PLUS_1: Prediction = {
         end_of_input: TERMINALS_12,
     }
 };
-// Opt_2
+// Star_1
 // 0: Plus_1
 // 1: ()
-pub static PREDICTION_OPT_2: Prediction = {
+pub static PREDICTION_STAR_1: Prediction = {
     // WS
     const TERMINALS_1: &[(TerminalId, u16)] = &[(TerminalId(8), 0), (TerminalId(8), 1)];
     // String
@@ -6111,177 +5781,10 @@ pub static PREDICTION_OPT_2: Prediction = {
         end_of_input: TERMINALS_12,
     }
 };
-// Star_1
-// 0: Opt_2
-pub static PREDICTION_STAR_1: Prediction = {
-    // WS
-    const TERMINALS_1: &[(TerminalId, u16)] = &[(TerminalId(8), 0)];
-    // String
-    const TERMINALS_2: &[(TerminalId, u16)] = &[(TerminalId(3), 0)];
-    // "("
-    const TERMINALS_3: &[(TerminalId, u16)] = &[(TerminalId(25), 0)];
-    // LineComment
-    const TERMINALS_4: &[(TerminalId, u16)] = &[(TerminalId(10), 0)];
-    // ">"
-    const TERMINALS_5: &[(TerminalId, u16)] = &[(TerminalId(13), 0)];
-    // "@NoLayout", "@Layout", "@Identifier", "@Regex"
-    const TERMINALS_6: &[(TerminalId, u16)] = &[
-        (TerminalId(14), 0),
-        (TerminalId(15), 0),
-        (TerminalId(16), 0),
-        (TerminalId(17), 0),
-    ];
-    // Identifier
-    const TERMINALS_7: &[(TerminalId, u16)] = &[(TerminalId(2), 0)];
-    // Identifier, "left"
-    const TERMINALS_8: &[(TerminalId, u16)] = &[(TerminalId(2), 0), (TerminalId(22), 0)];
-    // Identifier, "none"
-    const TERMINALS_9: &[(TerminalId, u16)] = &[(TerminalId(2), 0), (TerminalId(24), 0)];
-    // Identifier, "right"
-    const TERMINALS_10: &[(TerminalId, u16)] = &[(TerminalId(2), 0), (TerminalId(23), 0)];
-    // "{"
-    const TERMINALS_11: &[(TerminalId, u16)] = &[(TerminalId(27), 0)];
-    // EOF
-    const TERMINALS_12: &[(TerminalId, u16)] = &[(TerminalId(39), 0)];
-    Prediction {
-        ascii: [
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            TERMINALS_1,
-            TERMINALS_1,
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            TERMINALS_1,
-            &[],
-            TERMINALS_2,
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            TERMINALS_3,
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            TERMINALS_4,
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            TERMINALS_5,
-            &[],
-            TERMINALS_6,
-            TERMINALS_7,
-            TERMINALS_7,
-            TERMINALS_7,
-            TERMINALS_7,
-            TERMINALS_7,
-            TERMINALS_7,
-            TERMINALS_7,
-            TERMINALS_7,
-            TERMINALS_7,
-            TERMINALS_7,
-            TERMINALS_7,
-            TERMINALS_7,
-            TERMINALS_7,
-            TERMINALS_7,
-            TERMINALS_7,
-            TERMINALS_7,
-            TERMINALS_7,
-            TERMINALS_7,
-            TERMINALS_7,
-            TERMINALS_7,
-            TERMINALS_7,
-            TERMINALS_7,
-            TERMINALS_7,
-            TERMINALS_7,
-            TERMINALS_7,
-            TERMINALS_7,
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            TERMINALS_7,
-            TERMINALS_7,
-            TERMINALS_7,
-            TERMINALS_7,
-            TERMINALS_7,
-            TERMINALS_7,
-            TERMINALS_7,
-            TERMINALS_7,
-            TERMINALS_7,
-            TERMINALS_7,
-            TERMINALS_7,
-            TERMINALS_8,
-            TERMINALS_7,
-            TERMINALS_9,
-            TERMINALS_7,
-            TERMINALS_7,
-            TERMINALS_7,
-            TERMINALS_10,
-            TERMINALS_7,
-            TERMINALS_7,
-            TERMINALS_7,
-            TERMINALS_7,
-            TERMINALS_7,
-            TERMINALS_7,
-            TERMINALS_7,
-            TERMINALS_7,
-            TERMINALS_11,
-            &[],
-            &[],
-            &[],
-            &[],
-        ],
-        non_ascii: &[],
-        end_of_input: TERMINALS_12,
-    }
-};
-// Opt_5
+// Opt_3
 // 0: RegexPreCondition
 // 1: ()
-pub static PREDICTION_OPT_5: Prediction = {
+pub static PREDICTION_OPT_3: Prediction = {
     // WS
     const TERMINALS_1: &[(TerminalId, u16)] = &[(TerminalId(8), 1)];
     // "!"
@@ -6745,10 +6248,10 @@ pub static PREDICTION_PLUS_2: Prediction = {
         end_of_input: &[],
     }
 };
-// Opt_7
+// Opt_4
 // 0: Associativity
 // 1: ()
-pub static PREDICTION_OPT_7: Prediction = {
+pub static PREDICTION_OPT_4: Prediction = {
     // WS
     const TERMINALS_1: &[(TerminalId, u16)] = &[(TerminalId(8), 1)];
     // String
@@ -7060,10 +6563,10 @@ pub static PREDICTION_PLUS_5: Prediction = {
         end_of_input: &[],
     }
 };
-// Opt_8
+// Star_3
 // 0: Plus_5
 // 1: ()
-pub static PREDICTION_OPT_8: Prediction = {
+pub static PREDICTION_STAR_3: Prediction = {
     // WS
     const TERMINALS_1: &[(TerminalId, u16)] = &[(TerminalId(8), 1)];
     // String
@@ -7087,167 +6590,6 @@ pub static PREDICTION_OPT_8: Prediction = {
     const TERMINALS_8: &[(TerminalId, u16)] = &[(TerminalId(27), 0)];
     // EOF
     const TERMINALS_9: &[(TerminalId, u16)] = &[(TerminalId(39), 1)];
-    Prediction {
-        ascii: [
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            TERMINALS_1,
-            TERMINALS_1,
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            TERMINALS_1,
-            &[],
-            TERMINALS_2,
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            TERMINALS_3,
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            TERMINALS_4,
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            TERMINALS_5,
-            &[],
-            TERMINALS_6,
-            TERMINALS_7,
-            TERMINALS_7,
-            TERMINALS_7,
-            TERMINALS_7,
-            TERMINALS_7,
-            TERMINALS_7,
-            TERMINALS_7,
-            TERMINALS_7,
-            TERMINALS_7,
-            TERMINALS_7,
-            TERMINALS_7,
-            TERMINALS_7,
-            TERMINALS_7,
-            TERMINALS_7,
-            TERMINALS_7,
-            TERMINALS_7,
-            TERMINALS_7,
-            TERMINALS_7,
-            TERMINALS_7,
-            TERMINALS_7,
-            TERMINALS_7,
-            TERMINALS_7,
-            TERMINALS_7,
-            TERMINALS_7,
-            TERMINALS_7,
-            TERMINALS_7,
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            TERMINALS_7,
-            TERMINALS_7,
-            TERMINALS_7,
-            TERMINALS_7,
-            TERMINALS_7,
-            TERMINALS_7,
-            TERMINALS_7,
-            TERMINALS_7,
-            TERMINALS_7,
-            TERMINALS_7,
-            TERMINALS_7,
-            TERMINALS_7,
-            TERMINALS_7,
-            TERMINALS_7,
-            TERMINALS_7,
-            TERMINALS_7,
-            TERMINALS_7,
-            TERMINALS_7,
-            TERMINALS_7,
-            TERMINALS_7,
-            TERMINALS_7,
-            TERMINALS_7,
-            TERMINALS_7,
-            TERMINALS_7,
-            TERMINALS_7,
-            TERMINALS_7,
-            TERMINALS_8,
-            &[],
-            &[],
-            &[],
-            &[],
-        ],
-        non_ascii: &[],
-        end_of_input: TERMINALS_9,
-    }
-};
-// Star_3
-// 0: Opt_8
-pub static PREDICTION_STAR_3: Prediction = {
-    // WS
-    const TERMINALS_1: &[(TerminalId, u16)] = &[(TerminalId(8), 0)];
-    // String
-    const TERMINALS_2: &[(TerminalId, u16)] = &[(TerminalId(3), 0)];
-    // "("
-    const TERMINALS_3: &[(TerminalId, u16)] = &[(TerminalId(25), 0)];
-    // LineComment
-    const TERMINALS_4: &[(TerminalId, u16)] = &[(TerminalId(10), 0)];
-    // ">"
-    const TERMINALS_5: &[(TerminalId, u16)] = &[(TerminalId(13), 0)];
-    // "@NoLayout", "@Layout", "@Identifier", "@Regex"
-    const TERMINALS_6: &[(TerminalId, u16)] = &[
-        (TerminalId(14), 0),
-        (TerminalId(15), 0),
-        (TerminalId(16), 0),
-        (TerminalId(17), 0),
-    ];
-    // Identifier
-    const TERMINALS_7: &[(TerminalId, u16)] = &[(TerminalId(2), 0)];
-    // "{"
-    const TERMINALS_8: &[(TerminalId, u16)] = &[(TerminalId(27), 0)];
-    // EOF
-    const TERMINALS_9: &[(TerminalId, u16)] = &[(TerminalId(39), 0)];
     Prediction {
         ascii: [
             &[],

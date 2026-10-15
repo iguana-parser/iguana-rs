@@ -10,10 +10,9 @@ use iguana_runtime::{
 pub const S: NonterminalId = NonterminalId(0);
 pub const ID: NonterminalId = NonterminalId(1);
 pub const PLUS_0: NonterminalId = NonterminalId(2);
-pub const OPT_0: NonterminalId = NonterminalId(3);
-pub const STAR_0: NonterminalId = NonterminalId(4);
-pub const START_S: NonterminalId = NonterminalId(5);
-pub const START_ID: NonterminalId = NonterminalId(6);
+pub const STAR_0: NonterminalId = NonterminalId(3);
+pub const START_S: NonterminalId = NonterminalId(4);
+pub const START_ID: NonterminalId = NonterminalId(5);
 pub struct RegexCompositionGrammar;
 impl Grammar for RegexCompositionGrammar {
     type Alternatives = BitSet<1>;
@@ -30,10 +29,6 @@ impl Grammar for RegexCompositionGrammar {
         Nonterminal {
             name: "Plus_0",
             display_name: "LetterOrDigit+",
-        },
-        Nonterminal {
-            name: "Opt_0",
-            display_name: "LetterOrDigit+?",
         },
         Nonterminal {
             name: "Star_0",
@@ -101,24 +96,16 @@ impl Grammar for RegexCompositionGrammar {
             position: 1,
         },
         Slot {
-            display_name: "LetterOrDigit+? : . LetterOrDigit+",
+            display_name: "LetterOrDigit* : . LetterOrDigit+",
             position: 0,
         },
         Slot {
-            display_name: "LetterOrDigit+? : LetterOrDigit+.",
+            display_name: "LetterOrDigit* : LetterOrDigit+.",
             position: 1,
         },
         Slot {
-            display_name: "LetterOrDigit+? : .",
+            display_name: "LetterOrDigit* : .",
             position: 0,
-        },
-        Slot {
-            display_name: "LetterOrDigit* : . LetterOrDigit+?",
-            position: 0,
-        },
-        Slot {
-            display_name: "LetterOrDigit* : LetterOrDigit+?.",
-            position: 1,
         },
         Slot {
             display_name: "S : . WS start:S WS",
@@ -159,8 +146,7 @@ impl Grammar for RegexCompositionGrammar {
         &[SlotId(5), SlotId(8)],
         &[SlotId(10), SlotId(12)],
         &[SlotId(13)],
-        &[SlotId(15)],
-        &[SlotId(19)],
+        &[SlotId(17)],
     ];
     const LAYOUT_NAME: Option<&'static str> = Some("WS");
     const LAYOUT_TERMINALS: &'static [TerminalId] = &[TerminalId(3)];
@@ -198,7 +184,6 @@ impl Grammar for RegexCompositionGrammar {
             "S" => Some(S),
             "Id" => Some(ID),
             "Plus_0" => Some(PLUS_0),
-            "Opt_0" => Some(OPT_0),
             "Star_0" => Some(STAR_0),
             "StartS" => Some(START_S),
             "StartId" => Some(START_ID),
@@ -220,11 +205,6 @@ pub static FOLLOW_SET_ID: TerminalSet = TerminalSet {
 pub static FOLLOW_SET_PLUS_0: TerminalSet = TerminalSet {
     id: 1,
     terminals: &[TerminalId(2), TerminalId(3), TerminalId(5)],
-};
-// Opt_0 { WS, EOF }
-pub static FOLLOW_SET_OPT_0: TerminalSet = TerminalSet {
-    id: 0,
-    terminals: &[TerminalId(3), TerminalId(5)],
 };
 // Star_0 { WS, EOF }
 pub static FOLLOW_SET_STAR_0: TerminalSet = TerminalSet {
@@ -662,160 +642,16 @@ pub static PREDICTION_PLUS_0: Prediction = {
         end_of_input: &[],
     }
 };
-// Opt_0
+// Star_0
 // 0: Plus_0
 // 1: ()
-pub static PREDICTION_OPT_0: Prediction = {
+pub static PREDICTION_STAR_0: Prediction = {
     // WS
     const TERMINALS_1: &[(TerminalId, u16)] = &[(TerminalId(3), 1)];
     // LetterOrDigit, WS
     const TERMINALS_2: &[(TerminalId, u16)] = &[(TerminalId(2), 0), (TerminalId(3), 1)];
     // WS, EOF
     const TERMINALS_3: &[(TerminalId, u16)] = &[(TerminalId(3), 1), (TerminalId(5), 1)];
-    Prediction {
-        ascii: [
-            TERMINALS_1,
-            TERMINALS_1,
-            TERMINALS_1,
-            TERMINALS_1,
-            TERMINALS_1,
-            TERMINALS_1,
-            TERMINALS_1,
-            TERMINALS_1,
-            TERMINALS_1,
-            TERMINALS_1,
-            TERMINALS_1,
-            TERMINALS_1,
-            TERMINALS_1,
-            TERMINALS_1,
-            TERMINALS_1,
-            TERMINALS_1,
-            TERMINALS_1,
-            TERMINALS_1,
-            TERMINALS_1,
-            TERMINALS_1,
-            TERMINALS_1,
-            TERMINALS_1,
-            TERMINALS_1,
-            TERMINALS_1,
-            TERMINALS_1,
-            TERMINALS_1,
-            TERMINALS_1,
-            TERMINALS_1,
-            TERMINALS_1,
-            TERMINALS_1,
-            TERMINALS_1,
-            TERMINALS_1,
-            TERMINALS_1,
-            TERMINALS_1,
-            TERMINALS_1,
-            TERMINALS_1,
-            TERMINALS_1,
-            TERMINALS_1,
-            TERMINALS_1,
-            TERMINALS_1,
-            TERMINALS_1,
-            TERMINALS_1,
-            TERMINALS_1,
-            TERMINALS_1,
-            TERMINALS_1,
-            TERMINALS_1,
-            TERMINALS_1,
-            TERMINALS_1,
-            TERMINALS_2,
-            TERMINALS_2,
-            TERMINALS_2,
-            TERMINALS_2,
-            TERMINALS_2,
-            TERMINALS_2,
-            TERMINALS_2,
-            TERMINALS_2,
-            TERMINALS_2,
-            TERMINALS_2,
-            TERMINALS_1,
-            TERMINALS_1,
-            TERMINALS_1,
-            TERMINALS_1,
-            TERMINALS_1,
-            TERMINALS_1,
-            TERMINALS_1,
-            TERMINALS_2,
-            TERMINALS_2,
-            TERMINALS_2,
-            TERMINALS_2,
-            TERMINALS_2,
-            TERMINALS_2,
-            TERMINALS_2,
-            TERMINALS_2,
-            TERMINALS_2,
-            TERMINALS_2,
-            TERMINALS_2,
-            TERMINALS_2,
-            TERMINALS_2,
-            TERMINALS_2,
-            TERMINALS_2,
-            TERMINALS_2,
-            TERMINALS_2,
-            TERMINALS_2,
-            TERMINALS_2,
-            TERMINALS_2,
-            TERMINALS_2,
-            TERMINALS_2,
-            TERMINALS_2,
-            TERMINALS_2,
-            TERMINALS_2,
-            TERMINALS_2,
-            TERMINALS_1,
-            TERMINALS_1,
-            TERMINALS_1,
-            TERMINALS_1,
-            TERMINALS_2,
-            TERMINALS_1,
-            TERMINALS_2,
-            TERMINALS_2,
-            TERMINALS_2,
-            TERMINALS_2,
-            TERMINALS_2,
-            TERMINALS_2,
-            TERMINALS_2,
-            TERMINALS_2,
-            TERMINALS_2,
-            TERMINALS_2,
-            TERMINALS_2,
-            TERMINALS_2,
-            TERMINALS_2,
-            TERMINALS_2,
-            TERMINALS_2,
-            TERMINALS_2,
-            TERMINALS_2,
-            TERMINALS_2,
-            TERMINALS_2,
-            TERMINALS_2,
-            TERMINALS_2,
-            TERMINALS_2,
-            TERMINALS_2,
-            TERMINALS_2,
-            TERMINALS_2,
-            TERMINALS_2,
-            TERMINALS_1,
-            TERMINALS_1,
-            TERMINALS_1,
-            TERMINALS_1,
-            TERMINALS_1,
-        ],
-        non_ascii: TERMINALS_1,
-        end_of_input: TERMINALS_3,
-    }
-};
-// Star_0
-// 0: Opt_0
-pub static PREDICTION_STAR_0: Prediction = {
-    // WS
-    const TERMINALS_1: &[(TerminalId, u16)] = &[(TerminalId(3), 0)];
-    // LetterOrDigit, WS
-    const TERMINALS_2: &[(TerminalId, u16)] = &[(TerminalId(2), 0), (TerminalId(3), 0)];
-    // WS, EOF
-    const TERMINALS_3: &[(TerminalId, u16)] = &[(TerminalId(3), 0), (TerminalId(5), 0)];
     Prediction {
         ascii: [
             TERMINALS_1,

@@ -673,10 +673,10 @@ impl<'i, 'arena> Parser<'i, 'arena> for DanglingElseUnsafeParser<'i, 'arena> {
                         };
                         self.pop(gss_node_id, SlotId(46), result, None, &FOLLOW_SET_PLUS_1);
                     }
-                    // Opt_0 : . Plus_1
+                    // Star_0 : . Plus_1
                     SlotId(47) => {
                         if let Some((j, right_child)) = self.parse_plus_1_ll1(input_index, None) {
-                            // Opt_0 : Plus_1.
+                            // Star_0 : Plus_1.
                             input_index = j;
                             result = Some(right_child);
                             next = Some(SlotId(48));
@@ -689,108 +689,114 @@ impl<'i, 'arena> Parser<'i, 'arena> for DanglingElseUnsafeParser<'i, 'arena> {
                             );
                         }
                     }
-                    // Opt_0 : Plus_1.
+                    // Star_0 : Plus_1.
                     SlotId(48) => {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        self.pop(gss_node_id, SlotId(48), result, None, &FOLLOW_SET_OPT_0);
+                        self.pop(gss_node_id, SlotId(48), result, None, &FOLLOW_SET_STAR_0);
                     }
-                    // Opt_0 : .
+                    // Star_0 : .
                     SlotId(49) => {
                         let result = self.get_or_create_epsilon_node(input_index);
-                        self.pop(gss_node_id, SlotId(49), result, None, &FOLLOW_SET_OPT_0);
+                        self.pop(gss_node_id, SlotId(49), result, None, &FOLLOW_SET_STAR_0);
                     }
-                    // Star_0 : . Opt_0
+                    // StartS : . Layout start:S Layout
                     SlotId(50) => {
-                        if let Some((j, right_child)) = self.parse_opt_0_ll1(input_index, None) {
-                            // Star_0 : Opt_0.
+                        if let Some((j, right_child)) = self.parse_layout_ll1(input_index, None) {
+                            // StartS : Layout . start:S Layout
                             input_index = j;
                             result = Some(right_child);
                             next = Some(SlotId(51));
                         }
                     }
-                    // Star_0 : Opt_0.
-                    SlotId(51) => {
-                        let Some(result) = result else {
-                            unreachable!("result cannot be None here.")
-                        };
-                        self.pop(gss_node_id, SlotId(51), result, None, &FOLLOW_SET_STAR_0);
-                    }
-                    // StartS : . Layout start:S Layout
-                    SlotId(52) => {
-                        if let Some((j, right_child)) = self.parse_layout_ll1(input_index, None) {
-                            // StartS : Layout . start:S Layout
-                            input_index = j;
-                            result = Some(right_child);
-                            next = Some(SlotId(53));
-                        }
-                    }
                     // StartS : Layout . start:S Layout
-                    SlotId(53) => {
+                    SlotId(51) => {
                         self.create(
                             NonterminalId(0),
                             &PREDICTION_S,
                             result,
                             gss_node_id,
-                            SlotId(54),
+                            SlotId(52),
                             env,
                         );
                     }
                     // StartS : Layout start:S . Layout
-                    SlotId(54) => {
+                    SlotId(52) => {
                         if let Some((j, right_child)) = self.parse_layout_ll1(input_index, None) {
                             if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(55), env)
+                                self.create_intermediate_node(result, right_child, SlotId(53), env)
                             {
                                 // StartS : Layout start:S Layout.
                                 input_index = j;
                                 result = Some(new_node);
-                                next = Some(SlotId(55));
+                                next = Some(SlotId(53));
                             }
                         }
                     }
                     // StartS : Layout start:S Layout.
-                    SlotId(55) => {
+                    SlotId(53) => {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        self.pop(gss_node_id, SlotId(55), result, None, &FOLLOW_SET_START_S);
+                        self.pop(gss_node_id, SlotId(53), result, None, &FOLLOW_SET_START_S);
                     }
                     // StartStatement : . Layout start:Statement Layout
-                    SlotId(56) => {
+                    SlotId(54) => {
                         if let Some((j, right_child)) = self.parse_layout_ll1(input_index, None) {
                             // StartStatement : Layout . start:Statement Layout
                             input_index = j;
                             result = Some(right_child);
-                            next = Some(SlotId(57));
+                            next = Some(SlotId(55));
                         }
                     }
                     // StartStatement : Layout . start:Statement Layout
-                    SlotId(57) => {
+                    SlotId(55) => {
                         self.create(
                             NonterminalId(1),
                             &PREDICTION_STATEMENT,
                             result,
                             gss_node_id,
-                            SlotId(58),
+                            SlotId(56),
                             env,
                         );
                     }
                     // StartStatement : Layout start:Statement . Layout
-                    SlotId(58) => {
+                    SlotId(56) => {
                         if let Some((j, right_child)) = self.parse_layout_ll1(input_index, None) {
                             if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(59), env)
+                                self.create_intermediate_node(result, right_child, SlotId(57), env)
                             {
                                 // StartStatement : Layout start:Statement Layout.
                                 input_index = j;
                                 result = Some(new_node);
-                                next = Some(SlotId(59));
+                                next = Some(SlotId(57));
                             }
                         }
                     }
                     // StartStatement : Layout start:Statement Layout.
+                    SlotId(57) => {
+                        let Some(result) = result else {
+                            unreachable!("result cannot be None here.")
+                        };
+                        self.pop(
+                            gss_node_id,
+                            SlotId(57),
+                            result,
+                            None,
+                            &FOLLOW_SET_START_STATEMENT,
+                        );
+                    }
+                    // StartLayout : . start:Layout
+                    SlotId(58) => {
+                        if let Some((j, right_child)) = self.parse_layout_ll1(input_index, None) {
+                            // StartLayout : start:Layout.
+                            input_index = j;
+                            result = Some(right_child);
+                            next = Some(SlotId(59));
+                        }
+                    }
+                    // StartLayout : start:Layout.
                     SlotId(59) => {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
@@ -798,28 +804,6 @@ impl<'i, 'arena> Parser<'i, 'arena> for DanglingElseUnsafeParser<'i, 'arena> {
                         self.pop(
                             gss_node_id,
                             SlotId(59),
-                            result,
-                            None,
-                            &FOLLOW_SET_START_STATEMENT,
-                        );
-                    }
-                    // StartLayout : . start:Layout
-                    SlotId(60) => {
-                        if let Some((j, right_child)) = self.parse_layout_ll1(input_index, None) {
-                            // StartLayout : start:Layout.
-                            input_index = j;
-                            result = Some(right_child);
-                            next = Some(SlotId(61));
-                        }
-                    }
-                    // StartLayout : start:Layout.
-                    SlotId(61) => {
-                        let Some(result) = result else {
-                            unreachable!("result cannot be None here.")
-                        };
-                        self.pop(
-                            gss_node_id,
-                            SlotId(61),
                             result,
                             None,
                             &FOLLOW_SET_START_LAYOUT,
@@ -1188,7 +1172,7 @@ impl<'i, 'arena> DanglingElseUnsafeParser<'i, 'arena> {
         Self {
             vec_arena,
             scanner: DanglingElseUnsafeScanner::new(input, vec_arena),
-            gss_nodes_index: LazyInlineMaps::new(11, vec_arena),
+            gss_nodes_index: LazyInlineMaps::new(10, vec_arena),
             descriptors: vec_arena.vec_with_capacity(
                 input.len() as usize / DESCRIPTORS_CAPACITY_DIVISOR + DESCRIPTORS_CAPACITY_FLOOR,
             ),
@@ -1434,14 +1418,14 @@ impl<'i, 'arena> DanglingElseUnsafeParser<'i, 'arena> {
         result
     }
     #[inline(never)]
-    fn parse_opt_0_ll1(
+    fn parse_star_0_ll1(
         &mut self,
         i: u32,
         _failure_context: Option<SlotId>,
     ) -> Option<(u32, SPPFNodeId)> {
         #[cfg(feature = "instrument")]
         self.ll1_call_log.push((NonterminalId(6), i));
-        let Some(matched) = self.scanner.longest_match(&FIRST_SET_OPT_0, i) else {
+        let Some(matched) = self.scanner.longest_match(&FIRST_SET_STAR_0, i) else {
             return {
                 let epsilon_node_id = self.get_or_create_epsilon_node(i);
                 Some((
@@ -1486,37 +1470,6 @@ impl<'i, 'arena> DanglingElseUnsafeParser<'i, 'arena> {
             }
             _ => unreachable!("LL(1) dispatch covers every terminal in FIRST_SET"),
         }
-    }
-    #[inline(never)]
-    fn parse_star_0_ll1(
-        &mut self,
-        i: u32,
-        _failure_context: Option<SlotId>,
-    ) -> Option<(u32, SPPFNodeId)> {
-        #[cfg(feature = "instrument")]
-        self.ll1_call_log.push((NonterminalId(7), i));
-        let mut j = i;
-        let right_child = {
-            let start = j;
-            let (end, node) = self.parse_opt_0_ll1(start, Some(SlotId(51)))?;
-            j = end;
-            node
-        };
-        let left_extent = i;
-        let current = right_child;
-        Some((
-            j,
-            self.add_nonterminal_node(NonterminalNode {
-                nonterminal_id: NonterminalId(7),
-                return_slot: SlotId(51),
-                span: Span {
-                    left_extent,
-                    right_extent: j,
-                },
-                child: current,
-                ambiguous: false,
-            }),
-        ))
     }
     fn get_or_create_epsilon_node(&mut self, i: u32) -> SPPFNodeId {
         if let Some(existing) = self.epsilon_nodes[i as usize] {

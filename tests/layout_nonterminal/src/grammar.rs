@@ -10,10 +10,9 @@ pub const S: NonterminalId = NonterminalId(0);
 pub const LAYOUT: NonterminalId = NonterminalId(1);
 pub const ALT_0: NonterminalId = NonterminalId(2);
 pub const PLUS_0: NonterminalId = NonterminalId(3);
-pub const OPT_0: NonterminalId = NonterminalId(4);
-pub const STAR_0: NonterminalId = NonterminalId(5);
-pub const START_S: NonterminalId = NonterminalId(6);
-pub const START_LAYOUT: NonterminalId = NonterminalId(7);
+pub const STAR_0: NonterminalId = NonterminalId(4);
+pub const START_S: NonterminalId = NonterminalId(5);
+pub const START_LAYOUT: NonterminalId = NonterminalId(6);
 pub struct LayoutNonterminalGrammar;
 impl Grammar for LayoutNonterminalGrammar {
     type Alternatives = BitSet<1>;
@@ -34,10 +33,6 @@ impl Grammar for LayoutNonterminalGrammar {
         Nonterminal {
             name: "Plus_0",
             display_name: "(WhiteSpace | Comment)+",
-        },
-        Nonterminal {
-            name: "Opt_0",
-            display_name: "(WhiteSpace | Comment)+?",
         },
         Nonterminal {
             name: "Star_0",
@@ -114,24 +109,16 @@ impl Grammar for LayoutNonterminalGrammar {
             position: 1,
         },
         Slot {
-            display_name: "(WhiteSpace | Comment)+? : . (WhiteSpace | Comment)+",
+            display_name: "(WhiteSpace | Comment)* : . (WhiteSpace | Comment)+",
             position: 0,
         },
         Slot {
-            display_name: "(WhiteSpace | Comment)+? : (WhiteSpace | Comment)+.",
+            display_name: "(WhiteSpace | Comment)* : (WhiteSpace | Comment)+.",
             position: 1,
         },
         Slot {
-            display_name: "(WhiteSpace | Comment)+? : .",
+            display_name: "(WhiteSpace | Comment)* : .",
             position: 0,
-        },
-        Slot {
-            display_name: "(WhiteSpace | Comment)* : . (WhiteSpace | Comment)+?",
-            position: 0,
-        },
-        Slot {
-            display_name: "(WhiteSpace | Comment)* : (WhiteSpace | Comment)+?.",
-            position: 1,
         },
         Slot {
             display_name: "S : . Layout start:S Layout",
@@ -165,8 +152,7 @@ impl Grammar for LayoutNonterminalGrammar {
         &[SlotId(8), SlotId(11)],
         &[SlotId(13), SlotId(15)],
         &[SlotId(16)],
-        &[SlotId(18)],
-        &[SlotId(22)],
+        &[SlotId(20)],
     ];
     const LAYOUT_NAME: Option<&'static str> = Some("Layout");
     const LAYOUT_TERMINALS: &'static [TerminalId] = &[TerminalId(0), TerminalId(1)];
@@ -201,7 +187,6 @@ impl Grammar for LayoutNonterminalGrammar {
             "Layout" => Some(LAYOUT),
             "Alt_0" => Some(ALT_0),
             "Plus_0" => Some(PLUS_0),
-            "Opt_0" => Some(OPT_0),
             "Star_0" => Some(STAR_0),
             "StartS" => Some(START_S),
             "StartLayout" => Some(START_LAYOUT),
@@ -228,11 +213,6 @@ pub static FOLLOW_SET_ALT_0: TerminalSet = TerminalSet {
 pub static FOLLOW_SET_PLUS_0: TerminalSet = TerminalSet {
     id: 2,
     terminals: &[TerminalId(0), TerminalId(1), TerminalId(2), TerminalId(4)],
-};
-// Opt_0 { "x", EOF }
-pub static FOLLOW_SET_OPT_0: TerminalSet = TerminalSet {
-    id: 1,
-    terminals: &[TerminalId(2), TerminalId(4)],
 };
 // Star_0 { "x", EOF }
 pub static FOLLOW_SET_STAR_0: TerminalSet = TerminalSet {
@@ -266,11 +246,6 @@ pub static FIRST_SET_ALT_0: TerminalSet = TerminalSet {
 };
 // Plus_0 { WhiteSpace, Comment }
 pub static FIRST_SET_PLUS_0: TerminalSet = TerminalSet {
-    id: 5,
-    terminals: &[TerminalId(0), TerminalId(1)],
-};
-// Opt_0 { WhiteSpace, Comment }
-pub static FIRST_SET_OPT_0: TerminalSet = TerminalSet {
     id: 5,
     terminals: &[TerminalId(0), TerminalId(1)],
 };

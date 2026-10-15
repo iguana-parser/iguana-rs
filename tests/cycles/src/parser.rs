@@ -1090,7 +1090,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for CyclesParser<'i, 'arena> {
                     // NullableStar : . Star_0
                     SlotId(98) => {
                         self.create(
-                            NonterminalId(36),
+                            NonterminalId(35),
                             &PREDICTION_STAR_0,
                             result,
                             gss_node_id,
@@ -1114,7 +1114,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for CyclesParser<'i, 'arena> {
                     // NullableSeparated : . Plus_1
                     SlotId(100) => {
                         self.create(
-                            NonterminalId(37),
+                            NonterminalId(36),
                             &PREDICTION_PLUS_1,
                             result,
                             gss_node_id,
@@ -1135,18 +1135,18 @@ impl<'i, 'arena> Parser<'i, 'arena> for CyclesParser<'i, 'arena> {
                             &FOLLOW_SET_NULLABLE_SEPARATED,
                         );
                     }
-                    // Optional : . Opt_1
+                    // Optional : . Opt_0
                     SlotId(102) => {
                         self.create(
-                            NonterminalId(38),
-                            &PREDICTION_OPT_1,
+                            NonterminalId(37),
+                            &PREDICTION_OPT_0,
                             result,
                             gss_node_id,
                             SlotId(103),
                             env,
                         );
                     }
-                    // Optional : Opt_1.
+                    // Optional : Opt_0.
                     SlotId(103) => {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
@@ -1177,7 +1177,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for CyclesParser<'i, 'arena> {
                     // Grouped : . Group_0
                     SlotId(106) => {
                         self.create(
-                            NonterminalId(39),
+                            NonterminalId(38),
                             &PREDICTION_GROUP_0,
                             result,
                             gss_node_id,
@@ -1260,7 +1260,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for CyclesParser<'i, 'arena> {
                         };
                         self.pop(gss_node_id, SlotId(114), result, None, &FOLLOW_SET_PLUS_0);
                     }
-                    // Opt_0 : . Plus_0
+                    // Star_0 : . Plus_0
                     SlotId(115) => {
                         self.create(
                             NonterminalId(34),
@@ -1271,149 +1271,155 @@ impl<'i, 'arena> Parser<'i, 'arena> for CyclesParser<'i, 'arena> {
                             env,
                         );
                     }
-                    // Opt_0 : Plus_0.
+                    // Star_0 : Plus_0.
                     SlotId(116) => {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        self.pop(gss_node_id, SlotId(116), result, None, &FOLLOW_SET_OPT_0);
+                        self.pop(gss_node_id, SlotId(116), result, None, &FOLLOW_SET_STAR_0);
                     }
-                    // Opt_0 : .
+                    // Star_0 : .
                     SlotId(117) => {
                         let result = self.get_or_create_epsilon_node(input_index);
-                        self.pop(gss_node_id, SlotId(117), result, None, &FOLLOW_SET_OPT_0);
+                        self.pop(gss_node_id, SlotId(117), result, None, &FOLLOW_SET_STAR_0);
                     }
-                    // Star_0 : . Opt_0
+                    // Plus_1 : . Plus_1 EmptyF EmptyE
                     SlotId(118) => {
                         self.create(
-                            NonterminalId(35),
-                            &PREDICTION_OPT_0,
+                            NonterminalId(36),
+                            &PREDICTION_PLUS_1,
                             result,
                             gss_node_id,
                             SlotId(119),
                             env,
                         );
                     }
-                    // Star_0 : Opt_0.
-                    SlotId(119) => {
-                        let Some(result) = result else {
-                            unreachable!("result cannot be None here.")
-                        };
-                        self.pop(gss_node_id, SlotId(119), result, None, &FOLLOW_SET_STAR_0);
-                    }
-                    // Plus_1 : . Plus_1 EmptyF EmptyE
-                    SlotId(120) => {
-                        self.create(
-                            NonterminalId(37),
-                            &PREDICTION_PLUS_1,
-                            result,
-                            gss_node_id,
-                            SlotId(121),
-                            env,
-                        );
-                    }
                     // Plus_1 : Plus_1 . EmptyF EmptyE
-                    SlotId(121) => {
+                    SlotId(119) => {
                         if let Some((j, right_child)) = self.parse_empty_f_ll1(input_index, None) {
                             if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(122), env)
+                                self.create_intermediate_node(result, right_child, SlotId(120), env)
                             {
                                 // Plus_1 : Plus_1 EmptyF . EmptyE
                                 input_index = j;
                                 result = Some(new_node);
-                                next = Some(SlotId(122));
+                                next = Some(SlotId(120));
                             }
                         }
                     }
                     // Plus_1 : Plus_1 EmptyF . EmptyE
-                    SlotId(122) => {
+                    SlotId(120) => {
                         if let Some((j, right_child)) = self.parse_empty_e_ll1(input_index, None) {
                             if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(123), env)
+                                self.create_intermediate_node(result, right_child, SlotId(121), env)
                             {
                                 // Plus_1 : Plus_1 EmptyF EmptyE.
                                 input_index = j;
                                 result = Some(new_node);
-                                next = Some(SlotId(123));
+                                next = Some(SlotId(121));
                             }
                         }
                     }
                     // Plus_1 : Plus_1 EmptyF EmptyE.
+                    SlotId(121) => {
+                        let Some(result) = result else {
+                            unreachable!("result cannot be None here.")
+                        };
+                        self.pop(gss_node_id, SlotId(121), result, None, &FOLLOW_SET_PLUS_1);
+                    }
+                    // Plus_1 : . EmptyE
+                    SlotId(122) => {
+                        if let Some((j, right_child)) = self.parse_empty_e_ll1(input_index, None) {
+                            // Plus_1 : EmptyE.
+                            input_index = j;
+                            result = Some(right_child);
+                            next = Some(SlotId(123));
+                        }
+                    }
+                    // Plus_1 : EmptyE.
                     SlotId(123) => {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
                         self.pop(gss_node_id, SlotId(123), result, None, &FOLLOW_SET_PLUS_1);
                     }
-                    // Plus_1 : . EmptyE
+                    // Opt_0 : . Optional
                     SlotId(124) => {
-                        if let Some((j, right_child)) = self.parse_empty_e_ll1(input_index, None) {
-                            // Plus_1 : EmptyE.
-                            input_index = j;
-                            result = Some(right_child);
-                            next = Some(SlotId(125));
-                        }
-                    }
-                    // Plus_1 : EmptyE.
-                    SlotId(125) => {
-                        let Some(result) = result else {
-                            unreachable!("result cannot be None here.")
-                        };
-                        self.pop(gss_node_id, SlotId(125), result, None, &FOLLOW_SET_PLUS_1);
-                    }
-                    // Opt_1 : . Optional
-                    SlotId(126) => {
                         self.create(
                             NonterminalId(32),
                             &PREDICTION_OPTIONAL,
                             result,
                             gss_node_id,
-                            SlotId(127),
+                            SlotId(125),
                             env,
                         );
                     }
-                    // Opt_1 : Optional.
-                    SlotId(127) => {
+                    // Opt_0 : Optional.
+                    SlotId(125) => {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        self.pop(gss_node_id, SlotId(127), result, None, &FOLLOW_SET_OPT_1);
+                        self.pop(gss_node_id, SlotId(125), result, None, &FOLLOW_SET_OPT_0);
                     }
-                    // Opt_1 : .
-                    SlotId(128) => {
+                    // Opt_0 : .
+                    SlotId(126) => {
                         let result = self.get_or_create_epsilon_node(input_index);
-                        self.pop(gss_node_id, SlotId(128), result, None, &FOLLOW_SET_OPT_1);
+                        self.pop(gss_node_id, SlotId(126), result, None, &FOLLOW_SET_OPT_0);
                     }
                     // Group_0 : . Grouped
-                    SlotId(129) => {
+                    SlotId(127) => {
                         self.create(
                             NonterminalId(33),
                             &PREDICTION_GROUPED,
+                            result,
+                            gss_node_id,
+                            SlotId(128),
+                            env,
+                        );
+                    }
+                    // Group_0 : Grouped.
+                    SlotId(128) => {
+                        let Some(result) = result else {
+                            unreachable!("result cannot be None here.")
+                        };
+                        self.pop(gss_node_id, SlotId(128), result, None, &FOLLOW_SET_GROUP_0);
+                    }
+                    // StartDirect : . start:Direct
+                    SlotId(129) => {
+                        self.create(
+                            NonterminalId(0),
+                            &PREDICTION_DIRECT,
                             result,
                             gss_node_id,
                             SlotId(130),
                             env,
                         );
                     }
-                    // Group_0 : Grouped.
+                    // StartDirect : start:Direct.
                     SlotId(130) => {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        self.pop(gss_node_id, SlotId(130), result, None, &FOLLOW_SET_GROUP_0);
+                        self.pop(
+                            gss_node_id,
+                            SlotId(130),
+                            result,
+                            None,
+                            &FOLLOW_SET_START_DIRECT,
+                        );
                     }
-                    // StartDirect : . start:Direct
+                    // StartMutualC : . start:MutualC
                     SlotId(131) => {
                         self.create(
-                            NonterminalId(0),
-                            &PREDICTION_DIRECT,
+                            NonterminalId(1),
+                            &PREDICTION_MUTUAL_C,
                             result,
                             gss_node_id,
                             SlotId(132),
                             env,
                         );
                     }
-                    // StartDirect : start:Direct.
+                    // StartMutualC : start:MutualC.
                     SlotId(132) => {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
@@ -1423,21 +1429,21 @@ impl<'i, 'arena> Parser<'i, 'arena> for CyclesParser<'i, 'arena> {
                             SlotId(132),
                             result,
                             None,
-                            &FOLLOW_SET_START_DIRECT,
+                            &FOLLOW_SET_START_MUTUAL_C,
                         );
                     }
-                    // StartMutualC : . start:MutualC
+                    // StartMutualB : . start:MutualB
                     SlotId(133) => {
                         self.create(
-                            NonterminalId(1),
-                            &PREDICTION_MUTUAL_C,
+                            NonterminalId(2),
+                            &PREDICTION_MUTUAL_B,
                             result,
                             gss_node_id,
                             SlotId(134),
                             env,
                         );
                     }
-                    // StartMutualC : start:MutualC.
+                    // StartMutualB : start:MutualB.
                     SlotId(134) => {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
@@ -1447,21 +1453,21 @@ impl<'i, 'arena> Parser<'i, 'arena> for CyclesParser<'i, 'arena> {
                             SlotId(134),
                             result,
                             None,
-                            &FOLLOW_SET_START_MUTUAL_C,
+                            &FOLLOW_SET_START_MUTUAL_B,
                         );
                     }
-                    // StartMutualB : . start:MutualB
+                    // StartChainC : . start:ChainC
                     SlotId(135) => {
                         self.create(
-                            NonterminalId(2),
-                            &PREDICTION_MUTUAL_B,
+                            NonterminalId(3),
+                            &PREDICTION_CHAIN_C,
                             result,
                             gss_node_id,
                             SlotId(136),
                             env,
                         );
                     }
-                    // StartMutualB : start:MutualB.
+                    // StartChainC : start:ChainC.
                     SlotId(136) => {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
@@ -1471,21 +1477,21 @@ impl<'i, 'arena> Parser<'i, 'arena> for CyclesParser<'i, 'arena> {
                             SlotId(136),
                             result,
                             None,
-                            &FOLLOW_SET_START_MUTUAL_B,
+                            &FOLLOW_SET_START_CHAIN_C,
                         );
                     }
-                    // StartChainC : . start:ChainC
+                    // StartChainA : . start:ChainA
                     SlotId(137) => {
                         self.create(
-                            NonterminalId(3),
-                            &PREDICTION_CHAIN_C,
+                            NonterminalId(4),
+                            &PREDICTION_CHAIN_A,
                             result,
                             gss_node_id,
                             SlotId(138),
                             env,
                         );
                     }
-                    // StartChainC : start:ChainC.
+                    // StartChainA : start:ChainA.
                     SlotId(138) => {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
@@ -1495,21 +1501,21 @@ impl<'i, 'arena> Parser<'i, 'arena> for CyclesParser<'i, 'arena> {
                             SlotId(138),
                             result,
                             None,
-                            &FOLLOW_SET_START_CHAIN_C,
+                            &FOLLOW_SET_START_CHAIN_A,
                         );
                     }
-                    // StartChainA : . start:ChainA
+                    // StartChainB : . start:ChainB
                     SlotId(139) => {
                         self.create(
-                            NonterminalId(4),
-                            &PREDICTION_CHAIN_A,
+                            NonterminalId(5),
+                            &PREDICTION_CHAIN_B,
                             result,
                             gss_node_id,
                             SlotId(140),
                             env,
                         );
                     }
-                    // StartChainA : start:ChainA.
+                    // StartChainB : start:ChainB.
                     SlotId(140) => {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
@@ -1519,21 +1525,21 @@ impl<'i, 'arena> Parser<'i, 'arena> for CyclesParser<'i, 'arena> {
                             SlotId(140),
                             result,
                             None,
-                            &FOLLOW_SET_START_CHAIN_A,
+                            &FOLLOW_SET_START_CHAIN_B,
                         );
                     }
-                    // StartChainB : . start:ChainB
+                    // StartSharedS : . start:SharedS
                     SlotId(141) => {
                         self.create(
-                            NonterminalId(5),
-                            &PREDICTION_CHAIN_B,
+                            NonterminalId(6),
+                            &PREDICTION_SHARED_S,
                             result,
                             gss_node_id,
                             SlotId(142),
                             env,
                         );
                     }
-                    // StartChainB : start:ChainB.
+                    // StartSharedS : start:SharedS.
                     SlotId(142) => {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
@@ -1543,21 +1549,21 @@ impl<'i, 'arena> Parser<'i, 'arena> for CyclesParser<'i, 'arena> {
                             SlotId(142),
                             result,
                             None,
-                            &FOLLOW_SET_START_CHAIN_B,
+                            &FOLLOW_SET_START_SHARED_S,
                         );
                     }
-                    // StartSharedS : . start:SharedS
+                    // StartSharedA : . start:SharedA
                     SlotId(143) => {
                         self.create(
-                            NonterminalId(6),
-                            &PREDICTION_SHARED_S,
+                            NonterminalId(7),
+                            &PREDICTION_SHARED_A,
                             result,
                             gss_node_id,
                             SlotId(144),
                             env,
                         );
                     }
-                    // StartSharedS : start:SharedS.
+                    // StartSharedA : start:SharedA.
                     SlotId(144) => {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
@@ -1567,21 +1573,21 @@ impl<'i, 'arena> Parser<'i, 'arena> for CyclesParser<'i, 'arena> {
                             SlotId(144),
                             result,
                             None,
-                            &FOLLOW_SET_START_SHARED_S,
+                            &FOLLOW_SET_START_SHARED_A,
                         );
                     }
-                    // StartSharedA : . start:SharedA
+                    // StartSharedB : . start:SharedB
                     SlotId(145) => {
                         self.create(
-                            NonterminalId(7),
-                            &PREDICTION_SHARED_A,
+                            NonterminalId(8),
+                            &PREDICTION_SHARED_B,
                             result,
                             gss_node_id,
                             SlotId(146),
                             env,
                         );
                     }
-                    // StartSharedA : start:SharedA.
+                    // StartSharedB : start:SharedB.
                     SlotId(146) => {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
@@ -1591,21 +1597,21 @@ impl<'i, 'arena> Parser<'i, 'arena> for CyclesParser<'i, 'arena> {
                             SlotId(146),
                             result,
                             None,
-                            &FOLLOW_SET_START_SHARED_A,
+                            &FOLLOW_SET_START_SHARED_B,
                         );
                     }
-                    // StartSharedB : . start:SharedB
+                    // StartTwoExitsC : . start:TwoExitsC
                     SlotId(147) => {
                         self.create(
-                            NonterminalId(8),
-                            &PREDICTION_SHARED_B,
+                            NonterminalId(9),
+                            &PREDICTION_TWO_EXITS_C,
                             result,
                             gss_node_id,
                             SlotId(148),
                             env,
                         );
                     }
-                    // StartSharedB : start:SharedB.
+                    // StartTwoExitsC : start:TwoExitsC.
                     SlotId(148) => {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
@@ -1615,21 +1621,21 @@ impl<'i, 'arena> Parser<'i, 'arena> for CyclesParser<'i, 'arena> {
                             SlotId(148),
                             result,
                             None,
-                            &FOLLOW_SET_START_SHARED_B,
+                            &FOLLOW_SET_START_TWO_EXITS_C,
                         );
                     }
-                    // StartTwoExitsC : . start:TwoExitsC
+                    // StartTwoExitsB : . start:TwoExitsB
                     SlotId(149) => {
                         self.create(
-                            NonterminalId(9),
-                            &PREDICTION_TWO_EXITS_C,
+                            NonterminalId(10),
+                            &PREDICTION_TWO_EXITS_B,
                             result,
                             gss_node_id,
                             SlotId(150),
                             env,
                         );
                     }
-                    // StartTwoExitsC : start:TwoExitsC.
+                    // StartTwoExitsB : start:TwoExitsB.
                     SlotId(150) => {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
@@ -1639,21 +1645,21 @@ impl<'i, 'arena> Parser<'i, 'arena> for CyclesParser<'i, 'arena> {
                             SlotId(150),
                             result,
                             None,
-                            &FOLLOW_SET_START_TWO_EXITS_C,
+                            &FOLLOW_SET_START_TWO_EXITS_B,
                         );
                     }
-                    // StartTwoExitsB : . start:TwoExitsB
+                    // StartTwoRoutesC : . start:TwoRoutesC
                     SlotId(151) => {
                         self.create(
-                            NonterminalId(10),
-                            &PREDICTION_TWO_EXITS_B,
+                            NonterminalId(11),
+                            &PREDICTION_TWO_ROUTES_C,
                             result,
                             gss_node_id,
                             SlotId(152),
                             env,
                         );
                     }
-                    // StartTwoExitsB : start:TwoExitsB.
+                    // StartTwoRoutesC : start:TwoRoutesC.
                     SlotId(152) => {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
@@ -1663,21 +1669,21 @@ impl<'i, 'arena> Parser<'i, 'arena> for CyclesParser<'i, 'arena> {
                             SlotId(152),
                             result,
                             None,
-                            &FOLLOW_SET_START_TWO_EXITS_B,
+                            &FOLLOW_SET_START_TWO_ROUTES_C,
                         );
                     }
-                    // StartTwoRoutesC : . start:TwoRoutesC
+                    // StartTwoRoutesA : . start:TwoRoutesA
                     SlotId(153) => {
                         self.create(
-                            NonterminalId(11),
-                            &PREDICTION_TWO_ROUTES_C,
+                            NonterminalId(12),
+                            &PREDICTION_TWO_ROUTES_A,
                             result,
                             gss_node_id,
                             SlotId(154),
                             env,
                         );
                     }
-                    // StartTwoRoutesC : start:TwoRoutesC.
+                    // StartTwoRoutesA : start:TwoRoutesA.
                     SlotId(154) => {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
@@ -1687,21 +1693,21 @@ impl<'i, 'arena> Parser<'i, 'arena> for CyclesParser<'i, 'arena> {
                             SlotId(154),
                             result,
                             None,
-                            &FOLLOW_SET_START_TWO_ROUTES_C,
+                            &FOLLOW_SET_START_TWO_ROUTES_A,
                         );
                     }
-                    // StartTwoRoutesA : . start:TwoRoutesA
+                    // StartTwoRoutesB : . start:TwoRoutesB
                     SlotId(155) => {
                         self.create(
-                            NonterminalId(12),
-                            &PREDICTION_TWO_ROUTES_A,
+                            NonterminalId(13),
+                            &PREDICTION_TWO_ROUTES_B,
                             result,
                             gss_node_id,
                             SlotId(156),
                             env,
                         );
                     }
-                    // StartTwoRoutesA : start:TwoRoutesA.
+                    // StartTwoRoutesB : start:TwoRoutesB.
                     SlotId(156) => {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
@@ -1711,21 +1717,21 @@ impl<'i, 'arena> Parser<'i, 'arena> for CyclesParser<'i, 'arena> {
                             SlotId(156),
                             result,
                             None,
-                            &FOLLOW_SET_START_TWO_ROUTES_A,
+                            &FOLLOW_SET_START_TWO_ROUTES_B,
                         );
                     }
-                    // StartTwoRoutesB : . start:TwoRoutesB
+                    // StartNullable : . start:Nullable
                     SlotId(157) => {
                         self.create(
-                            NonterminalId(13),
-                            &PREDICTION_TWO_ROUTES_B,
+                            NonterminalId(14),
+                            &PREDICTION_NULLABLE,
                             result,
                             gss_node_id,
                             SlotId(158),
                             env,
                         );
                     }
-                    // StartTwoRoutesB : start:TwoRoutesB.
+                    // StartNullable : start:Nullable.
                     SlotId(158) => {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
@@ -1735,21 +1741,21 @@ impl<'i, 'arena> Parser<'i, 'arena> for CyclesParser<'i, 'arena> {
                             SlotId(158),
                             result,
                             None,
-                            &FOLLOW_SET_START_TWO_ROUTES_B,
+                            &FOLLOW_SET_START_NULLABLE,
                         );
                     }
-                    // StartNullable : . start:Nullable
+                    // StartSiblingC : . start:SiblingC
                     SlotId(159) => {
                         self.create(
-                            NonterminalId(14),
-                            &PREDICTION_NULLABLE,
+                            NonterminalId(15),
+                            &PREDICTION_SIBLING_C,
                             result,
                             gss_node_id,
                             SlotId(160),
                             env,
                         );
                     }
-                    // StartNullable : start:Nullable.
+                    // StartSiblingC : start:SiblingC.
                     SlotId(160) => {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
@@ -1759,21 +1765,21 @@ impl<'i, 'arena> Parser<'i, 'arena> for CyclesParser<'i, 'arena> {
                             SlotId(160),
                             result,
                             None,
-                            &FOLLOW_SET_START_NULLABLE,
+                            &FOLLOW_SET_START_SIBLING_C,
                         );
                     }
-                    // StartSiblingC : . start:SiblingC
+                    // StartSiblingD : . start:SiblingD
                     SlotId(161) => {
                         self.create(
-                            NonterminalId(15),
-                            &PREDICTION_SIBLING_C,
+                            NonterminalId(16),
+                            &PREDICTION_SIBLING_D,
                             result,
                             gss_node_id,
                             SlotId(162),
                             env,
                         );
                     }
-                    // StartSiblingC : start:SiblingC.
+                    // StartSiblingD : start:SiblingD.
                     SlotId(162) => {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
@@ -1783,21 +1789,19 @@ impl<'i, 'arena> Parser<'i, 'arena> for CyclesParser<'i, 'arena> {
                             SlotId(162),
                             result,
                             None,
-                            &FOLLOW_SET_START_SIBLING_C,
+                            &FOLLOW_SET_START_SIBLING_D,
                         );
                     }
-                    // StartSiblingD : . start:SiblingD
+                    // StartEmptyE : . start:EmptyE
                     SlotId(163) => {
-                        self.create(
-                            NonterminalId(16),
-                            &PREDICTION_SIBLING_D,
-                            result,
-                            gss_node_id,
-                            SlotId(164),
-                            env,
-                        );
+                        if let Some((j, right_child)) = self.parse_empty_e_ll1(input_index, None) {
+                            // StartEmptyE : start:EmptyE.
+                            input_index = j;
+                            result = Some(right_child);
+                            next = Some(SlotId(164));
+                        }
                     }
-                    // StartSiblingD : start:SiblingD.
+                    // StartEmptyE : start:EmptyE.
                     SlotId(164) => {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
@@ -1807,19 +1811,19 @@ impl<'i, 'arena> Parser<'i, 'arena> for CyclesParser<'i, 'arena> {
                             SlotId(164),
                             result,
                             None,
-                            &FOLLOW_SET_START_SIBLING_D,
+                            &FOLLOW_SET_START_EMPTY_E,
                         );
                     }
-                    // StartEmptyE : . start:EmptyE
+                    // StartEmptyF : . start:EmptyF
                     SlotId(165) => {
-                        if let Some((j, right_child)) = self.parse_empty_e_ll1(input_index, None) {
-                            // StartEmptyE : start:EmptyE.
+                        if let Some((j, right_child)) = self.parse_empty_f_ll1(input_index, None) {
+                            // StartEmptyF : start:EmptyF.
                             input_index = j;
                             result = Some(right_child);
                             next = Some(SlotId(166));
                         }
                     }
-                    // StartEmptyE : start:EmptyE.
+                    // StartEmptyF : start:EmptyF.
                     SlotId(166) => {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
@@ -1829,19 +1833,21 @@ impl<'i, 'arena> Parser<'i, 'arena> for CyclesParser<'i, 'arena> {
                             SlotId(166),
                             result,
                             None,
-                            &FOLLOW_SET_START_EMPTY_E,
+                            &FOLLOW_SET_START_EMPTY_F,
                         );
                     }
-                    // StartEmptyF : . start:EmptyF
+                    // StartParentC : . start:ParentC
                     SlotId(167) => {
-                        if let Some((j, right_child)) = self.parse_empty_f_ll1(input_index, None) {
-                            // StartEmptyF : start:EmptyF.
-                            input_index = j;
-                            result = Some(right_child);
-                            next = Some(SlotId(168));
-                        }
+                        self.create(
+                            NonterminalId(19),
+                            &PREDICTION_PARENT_C,
+                            result,
+                            gss_node_id,
+                            SlotId(168),
+                            env,
+                        );
                     }
-                    // StartEmptyF : start:EmptyF.
+                    // StartParentC : start:ParentC.
                     SlotId(168) => {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
@@ -1851,21 +1857,21 @@ impl<'i, 'arena> Parser<'i, 'arena> for CyclesParser<'i, 'arena> {
                             SlotId(168),
                             result,
                             None,
-                            &FOLLOW_SET_START_EMPTY_F,
+                            &FOLLOW_SET_START_PARENT_C,
                         );
                     }
-                    // StartParentC : . start:ParentC
+                    // StartParentD : . start:ParentD
                     SlotId(169) => {
                         self.create(
-                            NonterminalId(19),
-                            &PREDICTION_PARENT_C,
+                            NonterminalId(20),
+                            &PREDICTION_PARENT_D,
                             result,
                             gss_node_id,
                             SlotId(170),
                             env,
                         );
                     }
-                    // StartParentC : start:ParentC.
+                    // StartParentD : start:ParentD.
                     SlotId(170) => {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
@@ -1875,21 +1881,21 @@ impl<'i, 'arena> Parser<'i, 'arena> for CyclesParser<'i, 'arena> {
                             SlotId(170),
                             result,
                             None,
-                            &FOLLOW_SET_START_PARENT_C,
+                            &FOLLOW_SET_START_PARENT_D,
                         );
                     }
-                    // StartParentD : . start:ParentD
+                    // StartOverlapC : . start:OverlapC
                     SlotId(171) => {
                         self.create(
-                            NonterminalId(20),
-                            &PREDICTION_PARENT_D,
+                            NonterminalId(21),
+                            &PREDICTION_OVERLAP_C,
                             result,
                             gss_node_id,
                             SlotId(172),
                             env,
                         );
                     }
-                    // StartParentD : start:ParentD.
+                    // StartOverlapC : start:OverlapC.
                     SlotId(172) => {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
@@ -1899,21 +1905,21 @@ impl<'i, 'arena> Parser<'i, 'arena> for CyclesParser<'i, 'arena> {
                             SlotId(172),
                             result,
                             None,
-                            &FOLLOW_SET_START_PARENT_D,
+                            &FOLLOW_SET_START_OVERLAP_C,
                         );
                     }
-                    // StartOverlapC : . start:OverlapC
+                    // StartOverlapB : . start:OverlapB
                     SlotId(173) => {
                         self.create(
-                            NonterminalId(21),
-                            &PREDICTION_OVERLAP_C,
+                            NonterminalId(22),
+                            &PREDICTION_OVERLAP_B,
                             result,
                             gss_node_id,
                             SlotId(174),
                             env,
                         );
                     }
-                    // StartOverlapC : start:OverlapC.
+                    // StartOverlapB : start:OverlapB.
                     SlotId(174) => {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
@@ -1923,21 +1929,21 @@ impl<'i, 'arena> Parser<'i, 'arena> for CyclesParser<'i, 'arena> {
                             SlotId(174),
                             result,
                             None,
-                            &FOLLOW_SET_START_OVERLAP_C,
+                            &FOLLOW_SET_START_OVERLAP_B,
                         );
                     }
-                    // StartOverlapB : . start:OverlapB
+                    // StartIntermediateY : . start:IntermediateY
                     SlotId(175) => {
                         self.create(
-                            NonterminalId(22),
-                            &PREDICTION_OVERLAP_B,
+                            NonterminalId(23),
+                            &PREDICTION_INTERMEDIATE_Y,
                             result,
                             gss_node_id,
                             SlotId(176),
                             env,
                         );
                     }
-                    // StartOverlapB : start:OverlapB.
+                    // StartIntermediateY : start:IntermediateY.
                     SlotId(176) => {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
@@ -1947,21 +1953,21 @@ impl<'i, 'arena> Parser<'i, 'arena> for CyclesParser<'i, 'arena> {
                             SlotId(176),
                             result,
                             None,
-                            &FOLLOW_SET_START_OVERLAP_B,
+                            &FOLLOW_SET_START_INTERMEDIATE_Y,
                         );
                     }
-                    // StartIntermediateY : . start:IntermediateY
+                    // StartIntermediateA : . start:IntermediateA
                     SlotId(177) => {
-                        self.create(
-                            NonterminalId(23),
-                            &PREDICTION_INTERMEDIATE_Y,
-                            result,
-                            gss_node_id,
-                            SlotId(178),
-                            env,
-                        );
+                        if let Some((j, right_child)) =
+                            self.parse_intermediate_a_ll1(input_index, None)
+                        {
+                            // StartIntermediateA : start:IntermediateA.
+                            input_index = j;
+                            result = Some(right_child);
+                            next = Some(SlotId(178));
+                        }
                     }
-                    // StartIntermediateY : start:IntermediateY.
+                    // StartIntermediateA : start:IntermediateA.
                     SlotId(178) => {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
@@ -1971,21 +1977,21 @@ impl<'i, 'arena> Parser<'i, 'arena> for CyclesParser<'i, 'arena> {
                             SlotId(178),
                             result,
                             None,
-                            &FOLLOW_SET_START_INTERMEDIATE_Y,
+                            &FOLLOW_SET_START_INTERMEDIATE_A,
                         );
                     }
-                    // StartIntermediateA : . start:IntermediateA
+                    // StartIntermediateB : . start:IntermediateB
                     SlotId(179) => {
-                        if let Some((j, right_child)) =
-                            self.parse_intermediate_a_ll1(input_index, None)
-                        {
-                            // StartIntermediateA : start:IntermediateA.
-                            input_index = j;
-                            result = Some(right_child);
-                            next = Some(SlotId(180));
-                        }
+                        self.create(
+                            NonterminalId(25),
+                            &PREDICTION_INTERMEDIATE_B,
+                            result,
+                            gss_node_id,
+                            SlotId(180),
+                            env,
+                        );
                     }
-                    // StartIntermediateA : start:IntermediateA.
+                    // StartIntermediateB : start:IntermediateB.
                     SlotId(180) => {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
@@ -1995,21 +2001,21 @@ impl<'i, 'arena> Parser<'i, 'arena> for CyclesParser<'i, 'arena> {
                             SlotId(180),
                             result,
                             None,
-                            &FOLLOW_SET_START_INTERMEDIATE_A,
+                            &FOLLOW_SET_START_INTERMEDIATE_B,
                         );
                     }
-                    // StartIntermediateB : . start:IntermediateB
+                    // StartMidInput : . start:MidInput
                     SlotId(181) => {
                         self.create(
-                            NonterminalId(25),
-                            &PREDICTION_INTERMEDIATE_B,
+                            NonterminalId(26),
+                            &PREDICTION_MID_INPUT,
                             result,
                             gss_node_id,
                             SlotId(182),
                             env,
                         );
                     }
-                    // StartIntermediateB : start:IntermediateB.
+                    // StartMidInput : start:MidInput.
                     SlotId(182) => {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
@@ -2019,21 +2025,21 @@ impl<'i, 'arena> Parser<'i, 'arena> for CyclesParser<'i, 'arena> {
                             SlotId(182),
                             result,
                             None,
-                            &FOLLOW_SET_START_INTERMEDIATE_B,
+                            &FOLLOW_SET_START_MID_INPUT,
                         );
                     }
-                    // StartMidInput : . start:MidInput
+                    // StartConsuming : . start:Consuming
                     SlotId(183) => {
                         self.create(
-                            NonterminalId(26),
-                            &PREDICTION_MID_INPUT,
+                            NonterminalId(27),
+                            &PREDICTION_CONSUMING,
                             result,
                             gss_node_id,
                             SlotId(184),
                             env,
                         );
                     }
-                    // StartMidInput : start:MidInput.
+                    // StartConsuming : start:Consuming.
                     SlotId(184) => {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
@@ -2043,21 +2049,26 @@ impl<'i, 'arena> Parser<'i, 'arena> for CyclesParser<'i, 'arena> {
                             SlotId(184),
                             result,
                             None,
-                            &FOLLOW_SET_START_MID_INPUT,
+                            &FOLLOW_SET_START_CONSUMING,
                         );
                     }
-                    // StartConsuming : . start:Consuming
+                    // StartOrdinary : . start:Ordinary
                     SlotId(185) => {
-                        self.create(
-                            NonterminalId(27),
-                            &PREDICTION_CONSUMING,
-                            result,
-                            gss_node_id,
-                            SlotId(186),
-                            env,
-                        );
+                        if let Some((j, right_child)) = self.parse_ordinary_ll1(input_index, None) {
+                            // StartOrdinary : start:Ordinary.
+                            input_index = j;
+                            result = Some(right_child);
+                            next = Some(SlotId(186));
+                        } else {
+                            self.add_failure(
+                                input_index,
+                                SlotId(185),
+                                Some(gss_node_id),
+                                GLLFailureKind::UnexpectedToken(&FIRST_SET_ORDINARY),
+                            );
+                        }
                     }
-                    // StartConsuming : start:Consuming.
+                    // StartOrdinary : start:Ordinary.
                     SlotId(186) => {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
@@ -2067,26 +2078,21 @@ impl<'i, 'arena> Parser<'i, 'arena> for CyclesParser<'i, 'arena> {
                             SlotId(186),
                             result,
                             None,
-                            &FOLLOW_SET_START_CONSUMING,
+                            &FOLLOW_SET_START_ORDINARY,
                         );
                     }
-                    // StartOrdinary : . start:Ordinary
+                    // StartNullablePlus : . start:NullablePlus
                     SlotId(187) => {
-                        if let Some((j, right_child)) = self.parse_ordinary_ll1(input_index, None) {
-                            // StartOrdinary : start:Ordinary.
-                            input_index = j;
-                            result = Some(right_child);
-                            next = Some(SlotId(188));
-                        } else {
-                            self.add_failure(
-                                input_index,
-                                SlotId(187),
-                                Some(gss_node_id),
-                                GLLFailureKind::UnexpectedToken(&FIRST_SET_ORDINARY),
-                            );
-                        }
+                        self.create(
+                            NonterminalId(29),
+                            &PREDICTION_NULLABLE_PLUS,
+                            result,
+                            gss_node_id,
+                            SlotId(188),
+                            env,
+                        );
                     }
-                    // StartOrdinary : start:Ordinary.
+                    // StartNullablePlus : start:NullablePlus.
                     SlotId(188) => {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
@@ -2096,21 +2102,21 @@ impl<'i, 'arena> Parser<'i, 'arena> for CyclesParser<'i, 'arena> {
                             SlotId(188),
                             result,
                             None,
-                            &FOLLOW_SET_START_ORDINARY,
+                            &FOLLOW_SET_START_NULLABLE_PLUS,
                         );
                     }
-                    // StartNullablePlus : . start:NullablePlus
+                    // StartNullableStar : . start:NullableStar
                     SlotId(189) => {
                         self.create(
-                            NonterminalId(29),
-                            &PREDICTION_NULLABLE_PLUS,
+                            NonterminalId(30),
+                            &PREDICTION_NULLABLE_STAR,
                             result,
                             gss_node_id,
                             SlotId(190),
                             env,
                         );
                     }
-                    // StartNullablePlus : start:NullablePlus.
+                    // StartNullableStar : start:NullableStar.
                     SlotId(190) => {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
@@ -2120,21 +2126,21 @@ impl<'i, 'arena> Parser<'i, 'arena> for CyclesParser<'i, 'arena> {
                             SlotId(190),
                             result,
                             None,
-                            &FOLLOW_SET_START_NULLABLE_PLUS,
+                            &FOLLOW_SET_START_NULLABLE_STAR,
                         );
                     }
-                    // StartNullableStar : . start:NullableStar
+                    // StartNullableSeparated : . start:NullableSeparated
                     SlotId(191) => {
                         self.create(
-                            NonterminalId(30),
-                            &PREDICTION_NULLABLE_STAR,
+                            NonterminalId(31),
+                            &PREDICTION_NULLABLE_SEPARATED,
                             result,
                             gss_node_id,
                             SlotId(192),
                             env,
                         );
                     }
-                    // StartNullableStar : start:NullableStar.
+                    // StartNullableSeparated : start:NullableSeparated.
                     SlotId(192) => {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
@@ -2144,21 +2150,21 @@ impl<'i, 'arena> Parser<'i, 'arena> for CyclesParser<'i, 'arena> {
                             SlotId(192),
                             result,
                             None,
-                            &FOLLOW_SET_START_NULLABLE_STAR,
+                            &FOLLOW_SET_START_NULLABLE_SEPARATED,
                         );
                     }
-                    // StartNullableSeparated : . start:NullableSeparated
+                    // StartOptional : . start:Optional
                     SlotId(193) => {
                         self.create(
-                            NonterminalId(31),
-                            &PREDICTION_NULLABLE_SEPARATED,
+                            NonterminalId(32),
+                            &PREDICTION_OPTIONAL,
                             result,
                             gss_node_id,
                             SlotId(194),
                             env,
                         );
                     }
-                    // StartNullableSeparated : start:NullableSeparated.
+                    // StartOptional : start:Optional.
                     SlotId(194) => {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
@@ -2168,21 +2174,21 @@ impl<'i, 'arena> Parser<'i, 'arena> for CyclesParser<'i, 'arena> {
                             SlotId(194),
                             result,
                             None,
-                            &FOLLOW_SET_START_NULLABLE_SEPARATED,
+                            &FOLLOW_SET_START_OPTIONAL,
                         );
                     }
-                    // StartOptional : . start:Optional
+                    // StartGrouped : . start:Grouped
                     SlotId(195) => {
                         self.create(
-                            NonterminalId(32),
-                            &PREDICTION_OPTIONAL,
+                            NonterminalId(33),
+                            &PREDICTION_GROUPED,
                             result,
                             gss_node_id,
                             SlotId(196),
                             env,
                         );
                     }
-                    // StartOptional : start:Optional.
+                    // StartGrouped : start:Grouped.
                     SlotId(196) => {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
@@ -2190,30 +2196,6 @@ impl<'i, 'arena> Parser<'i, 'arena> for CyclesParser<'i, 'arena> {
                         self.pop(
                             gss_node_id,
                             SlotId(196),
-                            result,
-                            None,
-                            &FOLLOW_SET_START_OPTIONAL,
-                        );
-                    }
-                    // StartGrouped : . start:Grouped
-                    SlotId(197) => {
-                        self.create(
-                            NonterminalId(33),
-                            &PREDICTION_GROUPED,
-                            result,
-                            gss_node_id,
-                            SlotId(198),
-                            env,
-                        );
-                    }
-                    // StartGrouped : start:Grouped.
-                    SlotId(198) => {
-                        let Some(result) = result else {
-                            unreachable!("result cannot be None here.")
-                        };
-                        self.pop(
-                            gss_node_id,
-                            SlotId(198),
                             result,
                             None,
                             &FOLLOW_SET_START_GROUPED,
@@ -2336,11 +2318,11 @@ impl<'i, 'arena> Parser<'i, 'arena> for CyclesParser<'i, 'arena> {
             .push(SPPFNode::Intermediate(intermediate_node));
         if add_to_index {
             let arena = self.vec_arena;
-            if slot_idx < 199 {
+            if slot_idx < 197 {
                 self.intermediate_nodes_index
                     .insert(slot_idx, span, intermediate_node_id, arena);
             } else {
-                let idx = slot_idx - 199;
+                let idx = slot_idx - 197;
                 self.dd_intermediate_nodes_index.insert(
                     idx,
                     (span, env),
@@ -2414,10 +2396,10 @@ impl<'i, 'arena> Parser<'i, 'arena> for CyclesParser<'i, 'arena> {
     ) -> Option<SPPFNodeId> {
         let slot_idx = slot_id.index();
         let span = Span::new(left_extent, right_extent);
-        if slot_idx < 199 {
+        if slot_idx < 197 {
             self.intermediate_nodes_index.get(slot_idx, &span)
         } else {
-            let idx = slot_idx - 199;
+            let idx = slot_idx - 197;
             self.dd_intermediate_nodes_index.get(idx, &(span, env))
         }
     }
@@ -2678,7 +2660,7 @@ impl<'i, 'arena> CyclesParser<'i, 'arena> {
         Self {
             vec_arena,
             scanner: CyclesScanner::new(input, vec_arena),
-            gss_nodes_index: LazyInlineMaps::new(74, vec_arena),
+            gss_nodes_index: LazyInlineMaps::new(73, vec_arena),
             descriptors: vec_arena.vec_with_capacity(
                 input.len() as usize / DESCRIPTORS_CAPACITY_DIVISOR + DESCRIPTORS_CAPACITY_FLOOR,
             ),
@@ -2687,7 +2669,7 @@ impl<'i, 'arena> CyclesParser<'i, 'arena> {
             start_gss_node_id: None,
             sppf_nodes: vec_arena
                 .id_vec_with_capacity(input.len() as usize * SPPF_CAPACITY_MULTIPLIER),
-            intermediate_nodes_index: LazyInlineMaps::new(199, vec_arena),
+            intermediate_nodes_index: LazyInlineMaps::new(197, vec_arena),
             dd_intermediate_nodes_index: LazyInlineMaps::new(0, vec_arena),
             terminal_nodes_index: LazyInlineMaps::new(4, vec_arena),
             epsilon_nodes: {

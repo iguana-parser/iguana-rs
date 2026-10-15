@@ -7,7 +7,7 @@ use crate::{
         symbols::{Identifier, Nonterminal, Symbol},
         transformations::transform_syntax_rule,
     },
-    opt, plus, priority_level,
+    plus, priority_level,
 };
 
 struct Counters {
@@ -183,24 +183,22 @@ fn rewrite_ebnf_symbol(
                 definition: None,
             })
         }
-        // Transform A* into: Star_n ::= (A+)?
-        // This allows a more uniform parse-tree construction.
+        // Transform A* into: Star_n ::= A+ | ε
+        // The A+ rule is shared with the other occurrences of A+.
         Symbol::Star(symbol, sep) => {
-            let new_symbol = match sep {
-                Some(sep) => opt!(plus!(*symbol, *sep)),
-                None => opt!(plus!(*symbol)),
+            let plus_symbol = match sep {
+                Some(sep) => plus!(*symbol, *sep),
+                None => plus!(*symbol),
             };
-            let transformed_symbol = rewrite_ebnf_symbol(
-                new_symbol.clone(),
-                layout,
-                counters,
-                new_rules,
-                ebnf_symbols,
-            );
+            let transformed_symbol =
+                rewrite_ebnf_symbol(plus_symbol, layout, counters, new_rules, ebnf_symbols);
             let name = counters.next_star();
             let new_rule = SyntaxRule {
                 head: Nonterminal::with_origin(&name, origin.clone()),
-                priority_levels: vec![priority_level!(alternative!(transformed_symbol),)],
+                priority_levels: vec![priority_level!(
+                    alternative!(transformed_symbol),
+                    Alternative::empty()
+                )],
                 layout: layout.clone(),
             };
             new_rules.push(new_rule);

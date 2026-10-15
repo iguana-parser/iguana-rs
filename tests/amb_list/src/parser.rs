@@ -67,7 +67,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for AmbListParser<'i, 'arena> {
                     // S : . Star_0 Star_0
                     SlotId(0) => {
                         self.create(
-                            NonterminalId(4),
+                            NonterminalId(3),
                             &PREDICTION_STAR_0,
                             result,
                             gss_node_id,
@@ -78,7 +78,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for AmbListParser<'i, 'arena> {
                     // S : Star_0 . Star_0
                     SlotId(1) => {
                         self.create(
-                            NonterminalId(4),
+                            NonterminalId(3),
                             &PREDICTION_STAR_0,
                             result,
                             gss_node_id,
@@ -175,7 +175,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for AmbListParser<'i, 'arena> {
                         };
                         self.pop(gss_node_id, SlotId(9), result, None, &FOLLOW_SET_PLUS_0);
                     }
-                    // Opt_0 : . Plus_0
+                    // Star_0 : . Plus_0
                     SlotId(10) => {
                         self.create(
                             NonterminalId(2),
@@ -186,76 +186,58 @@ impl<'i, 'arena> Parser<'i, 'arena> for AmbListParser<'i, 'arena> {
                             env,
                         );
                     }
-                    // Opt_0 : Plus_0.
+                    // Star_0 : Plus_0.
                     SlotId(11) => {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        self.pop(gss_node_id, SlotId(11), result, None, &FOLLOW_SET_OPT_0);
+                        self.pop(gss_node_id, SlotId(11), result, None, &FOLLOW_SET_STAR_0);
                     }
-                    // Opt_0 : .
+                    // Star_0 : .
                     SlotId(12) => {
                         let result = self.get_or_create_epsilon_node(input_index);
-                        self.pop(gss_node_id, SlotId(12), result, None, &FOLLOW_SET_OPT_0);
+                        self.pop(gss_node_id, SlotId(12), result, None, &FOLLOW_SET_STAR_0);
                     }
-                    // Star_0 : . Opt_0
+                    // StartS : . start:S
                     SlotId(13) => {
                         self.create(
-                            NonterminalId(3),
-                            &PREDICTION_OPT_0,
+                            NonterminalId(0),
+                            &PREDICTION_S,
                             result,
                             gss_node_id,
                             SlotId(14),
                             env,
                         );
                     }
-                    // Star_0 : Opt_0.
+                    // StartS : start:S.
                     SlotId(14) => {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        self.pop(gss_node_id, SlotId(14), result, None, &FOLLOW_SET_STAR_0);
-                    }
-                    // StartS : . start:S
-                    SlotId(15) => {
-                        self.create(
-                            NonterminalId(0),
-                            &PREDICTION_S,
-                            result,
-                            gss_node_id,
-                            SlotId(16),
-                            env,
-                        );
-                    }
-                    // StartS : start:S.
-                    SlotId(16) => {
-                        let Some(result) = result else {
-                            unreachable!("result cannot be None here.")
-                        };
-                        self.pop(gss_node_id, SlotId(16), result, None, &FOLLOW_SET_START_S);
+                        self.pop(gss_node_id, SlotId(14), result, None, &FOLLOW_SET_START_S);
                     }
                     // StartA : . start:A
-                    SlotId(17) => {
+                    SlotId(15) => {
                         if let Some((j, right_child)) = self.parse_a_ll1(input_index, None) {
                             // StartA : start:A.
                             input_index = j;
                             result = Some(right_child);
-                            next = Some(SlotId(18));
+                            next = Some(SlotId(16));
                         } else {
                             self.add_failure(
                                 input_index,
-                                SlotId(17),
+                                SlotId(15),
                                 Some(gss_node_id),
                                 GLLFailureKind::UnexpectedToken(&FIRST_SET_A),
                             );
                         }
                     }
                     // StartA : start:A.
-                    SlotId(18) => {
+                    SlotId(16) => {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        self.pop(gss_node_id, SlotId(18), result, None, &FOLLOW_SET_START_A);
+                        self.pop(gss_node_id, SlotId(16), result, None, &FOLLOW_SET_START_A);
                     }
                     _ => {
                         panic!("Unknown grammar slot id: {slot_id}");
@@ -374,11 +356,11 @@ impl<'i, 'arena> Parser<'i, 'arena> for AmbListParser<'i, 'arena> {
             .push(SPPFNode::Intermediate(intermediate_node));
         if add_to_index {
             let arena = self.vec_arena;
-            if slot_idx < 19 {
+            if slot_idx < 17 {
                 self.intermediate_nodes_index
                     .insert(slot_idx, span, intermediate_node_id, arena);
             } else {
-                let idx = slot_idx - 19;
+                let idx = slot_idx - 17;
                 self.dd_intermediate_nodes_index.insert(
                     idx,
                     (span, env),
@@ -452,10 +434,10 @@ impl<'i, 'arena> Parser<'i, 'arena> for AmbListParser<'i, 'arena> {
     ) -> Option<SPPFNodeId> {
         let slot_idx = slot_id.index();
         let span = Span::new(left_extent, right_extent);
-        if slot_idx < 19 {
+        if slot_idx < 17 {
             self.intermediate_nodes_index.get(slot_idx, &span)
         } else {
-            let idx = slot_idx - 19;
+            let idx = slot_idx - 17;
             self.dd_intermediate_nodes_index.get(idx, &(span, env))
         }
     }
@@ -716,7 +698,7 @@ impl<'i, 'arena> AmbListParser<'i, 'arena> {
         Self {
             vec_arena,
             scanner: AmbListScanner::new(input, vec_arena),
-            gss_nodes_index: LazyInlineMaps::new(7, vec_arena),
+            gss_nodes_index: LazyInlineMaps::new(6, vec_arena),
             descriptors: vec_arena.vec_with_capacity(
                 input.len() as usize / DESCRIPTORS_CAPACITY_DIVISOR + DESCRIPTORS_CAPACITY_FLOOR,
             ),
@@ -725,7 +707,7 @@ impl<'i, 'arena> AmbListParser<'i, 'arena> {
             start_gss_node_id: None,
             sppf_nodes: vec_arena
                 .id_vec_with_capacity(input.len() as usize * SPPF_CAPACITY_MULTIPLIER),
-            intermediate_nodes_index: LazyInlineMaps::new(19, vec_arena),
+            intermediate_nodes_index: LazyInlineMaps::new(17, vec_arena),
             dd_intermediate_nodes_index: LazyInlineMaps::new(0, vec_arena),
             terminal_nodes_index: LazyInlineMaps::new(3, vec_arena),
             epsilon_nodes: {

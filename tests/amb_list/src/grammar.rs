@@ -10,10 +10,9 @@ use iguana_runtime::{
 pub const S: NonterminalId = NonterminalId(0);
 pub const A: NonterminalId = NonterminalId(1);
 pub const PLUS_0: NonterminalId = NonterminalId(2);
-pub const OPT_0: NonterminalId = NonterminalId(3);
-pub const STAR_0: NonterminalId = NonterminalId(4);
-pub const START_S: NonterminalId = NonterminalId(5);
-pub const START_A: NonterminalId = NonterminalId(6);
+pub const STAR_0: NonterminalId = NonterminalId(3);
+pub const START_S: NonterminalId = NonterminalId(4);
+pub const START_A: NonterminalId = NonterminalId(5);
 pub struct AmbListGrammar;
 impl Grammar for AmbListGrammar {
     type Alternatives = BitSet<1>;
@@ -30,10 +29,6 @@ impl Grammar for AmbListGrammar {
         Nonterminal {
             name: "Plus_0",
             display_name: "A+",
-        },
-        Nonterminal {
-            name: "Opt_0",
-            display_name: "A+?",
         },
         Nonterminal {
             name: "Star_0",
@@ -96,24 +91,16 @@ impl Grammar for AmbListGrammar {
             position: 1,
         },
         Slot {
-            display_name: "A+? : . A+",
+            display_name: "A* : . A+",
             position: 0,
         },
         Slot {
-            display_name: "A+? : A+.",
+            display_name: "A* : A+.",
             position: 1,
         },
         Slot {
-            display_name: "A+? : .",
+            display_name: "A* : .",
             position: 0,
-        },
-        Slot {
-            display_name: "A* : . A+?",
-            position: 0,
-        },
-        Slot {
-            display_name: "A* : A+?.",
-            position: 1,
         },
         Slot {
             display_name: "S : . start:S",
@@ -139,7 +126,6 @@ impl Grammar for AmbListGrammar {
         &[SlotId(10), SlotId(12)],
         &[SlotId(13)],
         &[SlotId(15)],
-        &[SlotId(17)],
     ];
     const LAYOUT_NAME: Option<&'static str> = None;
     const LAYOUT_TERMINALS: &'static [TerminalId] = &[];
@@ -165,7 +151,6 @@ impl Grammar for AmbListGrammar {
             "S" => Some(S),
             "A" => Some(A),
             "Plus_0" => Some(PLUS_0),
-            "Opt_0" => Some(OPT_0),
             "Star_0" => Some(STAR_0),
             "StartS" => Some(START_S),
             "StartA" => Some(START_A),
@@ -185,11 +170,6 @@ pub static FOLLOW_SET_A: TerminalSet = TerminalSet {
 };
 // Plus_0 { "a", EOF }
 pub static FOLLOW_SET_PLUS_0: TerminalSet = TerminalSet {
-    id: 1,
-    terminals: &[TerminalId(0), TerminalId(2)],
-};
-// Opt_0 { "a", EOF }
-pub static FOLLOW_SET_OPT_0: TerminalSet = TerminalSet {
     id: 1,
     terminals: &[TerminalId(0), TerminalId(2)],
 };
@@ -501,156 +481,14 @@ pub static PREDICTION_PLUS_0: Prediction = {
         end_of_input: &[],
     }
 };
-// Opt_0
+// Star_0
 // 0: Plus_0
 // 1: ()
-pub static PREDICTION_OPT_0: Prediction = {
+pub static PREDICTION_STAR_0: Prediction = {
     // "a"
     const TERMINALS_1: &[(TerminalId, u16)] = &[(TerminalId(0), 0), (TerminalId(0), 1)];
     // EOF
     const TERMINALS_2: &[(TerminalId, u16)] = &[(TerminalId(2), 1)];
-    Prediction {
-        ascii: [
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            TERMINALS_1,
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-        ],
-        non_ascii: &[],
-        end_of_input: TERMINALS_2,
-    }
-};
-// Star_0
-// 0: Opt_0
-pub static PREDICTION_STAR_0: Prediction = {
-    // "a"
-    const TERMINALS_1: &[(TerminalId, u16)] = &[(TerminalId(0), 0)];
-    // EOF
-    const TERMINALS_2: &[(TerminalId, u16)] = &[(TerminalId(2), 0)];
     Prediction {
         ascii: [
             &[],

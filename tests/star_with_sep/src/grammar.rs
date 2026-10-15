@@ -9,10 +9,9 @@ use iguana_runtime::{
 pub const S: NonterminalId = NonterminalId(0);
 pub const A: NonterminalId = NonterminalId(1);
 pub const PLUS_0: NonterminalId = NonterminalId(2);
-pub const OPT_0: NonterminalId = NonterminalId(3);
-pub const STAR_0: NonterminalId = NonterminalId(4);
-pub const START_S: NonterminalId = NonterminalId(5);
-pub const START_A: NonterminalId = NonterminalId(6);
+pub const STAR_0: NonterminalId = NonterminalId(3);
+pub const START_S: NonterminalId = NonterminalId(4);
+pub const START_A: NonterminalId = NonterminalId(5);
 pub struct StarWithSepGrammar;
 impl Grammar for StarWithSepGrammar {
     type Alternatives = BitSet<1>;
@@ -29,10 +28,6 @@ impl Grammar for StarWithSepGrammar {
         Nonterminal {
             name: "Plus_0",
             display_name: "{A \",\"}+",
-        },
-        Nonterminal {
-            name: "Opt_0",
-            display_name: "{A \",\"}+?",
         },
         Nonterminal {
             name: "Star_0",
@@ -96,24 +91,16 @@ impl Grammar for StarWithSepGrammar {
             position: 1,
         },
         Slot {
-            display_name: "{A \",\"}+? : . {A \",\"}+",
+            display_name: "{A \",\"}* : . {A \",\"}+",
             position: 0,
         },
         Slot {
-            display_name: "{A \",\"}+? : {A \",\"}+.",
+            display_name: "{A \",\"}* : {A \",\"}+.",
             position: 1,
         },
         Slot {
-            display_name: "{A \",\"}+? : .",
+            display_name: "{A \",\"}* : .",
             position: 0,
-        },
-        Slot {
-            display_name: "{A \",\"}* : . {A \",\"}+?",
-            position: 0,
-        },
-        Slot {
-            display_name: "{A \",\"}* : {A \",\"}+?.",
-            position: 1,
         },
         Slot {
             display_name: "S : . start:S",
@@ -139,7 +126,6 @@ impl Grammar for StarWithSepGrammar {
         &[SlotId(10), SlotId(12)],
         &[SlotId(13)],
         &[SlotId(15)],
-        &[SlotId(17)],
     ];
     const LAYOUT_NAME: Option<&'static str> = None;
     const LAYOUT_TERMINALS: &'static [TerminalId] = &[];
@@ -169,7 +155,6 @@ impl Grammar for StarWithSepGrammar {
             "S" => Some(S),
             "A" => Some(A),
             "Plus_0" => Some(PLUS_0),
-            "Opt_0" => Some(OPT_0),
             "Star_0" => Some(STAR_0),
             "StartS" => Some(START_S),
             "StartA" => Some(START_A),
@@ -191,11 +176,6 @@ pub static FOLLOW_SET_A: TerminalSet = TerminalSet {
 pub static FOLLOW_SET_PLUS_0: TerminalSet = TerminalSet {
     id: 1,
     terminals: &[TerminalId(0), TerminalId(3)],
-};
-// Opt_0 { EOF }
-pub static FOLLOW_SET_OPT_0: TerminalSet = TerminalSet {
-    id: 0,
-    terminals: &[TerminalId(3)],
 };
 // Star_0 { EOF }
 pub static FOLLOW_SET_STAR_0: TerminalSet = TerminalSet {
@@ -224,11 +204,6 @@ pub static FIRST_SET_A: TerminalSet = TerminalSet {
 };
 // Plus_0 { "a" }
 pub static FIRST_SET_PLUS_0: TerminalSet = TerminalSet {
-    id: 2,
-    terminals: &[TerminalId(1)],
-};
-// Opt_0 { "a" }
-pub static FIRST_SET_OPT_0: TerminalSet = TerminalSet {
     id: 2,
     terminals: &[TerminalId(1)],
 };

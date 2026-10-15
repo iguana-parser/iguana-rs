@@ -13,11 +13,10 @@ pub const LAYOUT: NonterminalId = NonterminalId(2);
 pub const PLUS_0: NonterminalId = NonterminalId(3);
 pub const ALT_0: NonterminalId = NonterminalId(4);
 pub const PLUS_1: NonterminalId = NonterminalId(5);
-pub const OPT_0: NonterminalId = NonterminalId(6);
-pub const STAR_0: NonterminalId = NonterminalId(7);
-pub const START_S: NonterminalId = NonterminalId(8);
-pub const START_STATEMENT: NonterminalId = NonterminalId(9);
-pub const START_LAYOUT: NonterminalId = NonterminalId(10);
+pub const STAR_0: NonterminalId = NonterminalId(6);
+pub const START_S: NonterminalId = NonterminalId(7);
+pub const START_STATEMENT: NonterminalId = NonterminalId(8);
+pub const START_LAYOUT: NonterminalId = NonterminalId(9);
 pub struct DanglingElseUnsafeGrammar;
 impl Grammar for DanglingElseUnsafeGrammar {
     type Alternatives = BitSet<1>;
@@ -46,10 +45,6 @@ impl Grammar for DanglingElseUnsafeGrammar {
         Nonterminal {
             name: "Plus_1",
             display_name: "(WhiteSpace | Comment)+",
-        },
-        Nonterminal {
-            name: "Opt_0",
-            display_name: "(WhiteSpace | Comment)+?",
         },
         Nonterminal {
             name: "Star_0",
@@ -273,24 +268,16 @@ impl Grammar for DanglingElseUnsafeGrammar {
             position: 1,
         },
         Slot {
-            display_name: "(WhiteSpace | Comment)+? : . (WhiteSpace | Comment)+",
+            display_name: "(WhiteSpace | Comment)* : . (WhiteSpace | Comment)+",
             position: 0,
         },
         Slot {
-            display_name: "(WhiteSpace | Comment)+? : (WhiteSpace | Comment)+.",
+            display_name: "(WhiteSpace | Comment)* : (WhiteSpace | Comment)+.",
             position: 1,
         },
         Slot {
-            display_name: "(WhiteSpace | Comment)+? : .",
+            display_name: "(WhiteSpace | Comment)* : .",
             position: 0,
-        },
-        Slot {
-            display_name: "(WhiteSpace | Comment)* : . (WhiteSpace | Comment)+?",
-            position: 0,
-        },
-        Slot {
-            display_name: "(WhiteSpace | Comment)* : (WhiteSpace | Comment)+?.",
-            position: 1,
         },
         Slot {
             display_name: "S : . Layout start:S Layout",
@@ -342,9 +329,8 @@ impl Grammar for DanglingElseUnsafeGrammar {
         &[SlotId(42), SlotId(45)],
         &[SlotId(47), SlotId(49)],
         &[SlotId(50)],
-        &[SlotId(52)],
-        &[SlotId(56)],
-        &[SlotId(60)],
+        &[SlotId(54)],
+        &[SlotId(58)],
     ];
     const LAYOUT_NAME: Option<&'static str> = Some("Layout");
     const LAYOUT_TERMINALS: &'static [TerminalId] = &[TerminalId(4), TerminalId(5)];
@@ -409,7 +395,6 @@ impl Grammar for DanglingElseUnsafeGrammar {
             "Plus_0" => Some(PLUS_0),
             "Alt_0" => Some(ALT_0),
             "Plus_1" => Some(PLUS_1),
-            "Opt_0" => Some(OPT_0),
             "Star_0" => Some(STAR_0),
             "StartS" => Some(START_S),
             "StartStatement" => Some(START_STATEMENT),
@@ -498,20 +483,6 @@ pub static FOLLOW_SET_PLUS_1: TerminalSet = TerminalSet {
         TerminalId(11),
     ],
 };
-// Opt_0 { Cond, Id, Else, "if", "(", ")", ";", EOF }
-pub static FOLLOW_SET_OPT_0: TerminalSet = TerminalSet {
-    id: 3,
-    terminals: &[
-        TerminalId(0),
-        TerminalId(1),
-        TerminalId(2),
-        TerminalId(6),
-        TerminalId(7),
-        TerminalId(8),
-        TerminalId(9),
-        TerminalId(11),
-    ],
-};
 // Star_0 { Cond, Id, Else, "if", "(", ")", ";", EOF }
 pub static FOLLOW_SET_STAR_0: TerminalSet = TerminalSet {
     id: 3,
@@ -553,11 +524,6 @@ pub static FIRST_SET_ALT_0: TerminalSet = TerminalSet {
 };
 // Plus_1 { WhiteSpace, Comment }
 pub static FIRST_SET_PLUS_1: TerminalSet = TerminalSet {
-    id: 7,
-    terminals: &[TerminalId(4), TerminalId(5)],
-};
-// Opt_0 { WhiteSpace, Comment }
-pub static FIRST_SET_OPT_0: TerminalSet = TerminalSet {
     id: 7,
     terminals: &[TerminalId(4), TerminalId(5)],
 };

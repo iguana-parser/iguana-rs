@@ -8,10 +8,9 @@ use iguana_runtime::{
     utils::bit_set::BitSet,
 };
 pub const PLUS_0: NonterminalId = NonterminalId(0);
-pub const OPT_0: NonterminalId = NonterminalId(1);
-pub const STAR_0: NonterminalId = NonterminalId(2);
-pub const START_EXPR: NonterminalId = NonterminalId(3);
-pub const EXPR: NonterminalId = NonterminalId(4);
+pub const STAR_0: NonterminalId = NonterminalId(1);
+pub const START_EXPR: NonterminalId = NonterminalId(2);
+pub const EXPR: NonterminalId = NonterminalId(3);
 pub struct ExcludeByLabelGrammar;
 impl Grammar for ExcludeByLabelGrammar {
     type Alternatives = BitSet<1>;
@@ -20,10 +19,6 @@ impl Grammar for ExcludeByLabelGrammar {
         Nonterminal {
             name: "Plus_0",
             display_name: "{Expr !comma \",\"}+",
-        },
-        Nonterminal {
-            name: "Opt_0",
-            display_name: "{Expr !comma \",\"}+?",
         },
         Nonterminal {
             name: "Star_0",
@@ -73,24 +68,16 @@ impl Grammar for ExcludeByLabelGrammar {
             position: 1,
         },
         Slot {
-            display_name: "{Expr !comma \",\"}+? : . {Expr !comma \",\"}+",
+            display_name: "{Expr !comma \",\"}* : . {Expr !comma \",\"}+",
             position: 0,
         },
         Slot {
-            display_name: "{Expr !comma \",\"}+? : {Expr !comma \",\"}+.",
+            display_name: "{Expr !comma \",\"}* : {Expr !comma \",\"}+.",
             position: 1,
         },
         Slot {
-            display_name: "{Expr !comma \",\"}+? : .",
+            display_name: "{Expr !comma \",\"}* : .",
             position: 0,
-        },
-        Slot {
-            display_name: "{Expr !comma \",\"}* : . {Expr !comma \",\"}+?",
-            position: 0,
-        },
-        Slot {
-            display_name: "{Expr !comma \",\"}* : {Expr !comma \",\"}+?.",
-            position: 1,
         },
         Slot {
             display_name: "Expr(0) : . start:Expr(0)",
@@ -173,8 +160,7 @@ impl Grammar for ExcludeByLabelGrammar {
         &[SlotId(0), SlotId(4)],
         &[SlotId(6), SlotId(8)],
         &[SlotId(9)],
-        &[SlotId(11)],
-        &[SlotId(13), SlotId(17), SlotId(24)],
+        &[SlotId(11), SlotId(15), SlotId(22)],
     ];
     const LAYOUT_NAME: Option<&'static str> = None;
     const LAYOUT_TERMINALS: &'static [TerminalId] = &[];
@@ -210,7 +196,6 @@ impl Grammar for ExcludeByLabelGrammar {
     fn nonterminal_id(name: &str) -> Option<NonterminalId> {
         match name {
             "Plus_0" => Some(PLUS_0),
-            "Opt_0" => Some(OPT_0),
             "Star_0" => Some(STAR_0),
             "StartExpr" => Some(START_EXPR),
             "Expr" => Some(EXPR),
@@ -227,11 +212,6 @@ pub static FOLLOW_SET_EXPR: TerminalSet = TerminalSet {
 pub static FOLLOW_SET_PLUS_0: TerminalSet = TerminalSet {
     id: 1,
     terminals: &[TerminalId(2), TerminalId(3), TerminalId(5)],
-};
-// Opt_0 { ")", EOF }
-pub static FOLLOW_SET_OPT_0: TerminalSet = TerminalSet {
-    id: 2,
-    terminals: &[TerminalId(3), TerminalId(5)],
 };
 // Star_0 { ")", EOF }
 pub static FOLLOW_SET_STAR_0: TerminalSet = TerminalSet {
@@ -527,160 +507,16 @@ pub static PREDICTION_PLUS_0: Prediction = {
         end_of_input: &[],
     }
 };
-// Opt_0
+// Star_0
 // 0: Plus_0
 // 1: ()
-pub static PREDICTION_OPT_0: Prediction = {
+pub static PREDICTION_STAR_0: Prediction = {
     // ")"
     const TERMINALS_1: &[(TerminalId, u16)] = &[(TerminalId(3), 1)];
     // Id
     const TERMINALS_2: &[(TerminalId, u16)] = &[(TerminalId(0), 0)];
     // EOF
     const TERMINALS_3: &[(TerminalId, u16)] = &[(TerminalId(5), 1)];
-    Prediction {
-        ascii: [
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            TERMINALS_1,
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            TERMINALS_2,
-            TERMINALS_2,
-            TERMINALS_2,
-            TERMINALS_2,
-            TERMINALS_2,
-            TERMINALS_2,
-            TERMINALS_2,
-            TERMINALS_2,
-            TERMINALS_2,
-            TERMINALS_2,
-            TERMINALS_2,
-            TERMINALS_2,
-            TERMINALS_2,
-            TERMINALS_2,
-            TERMINALS_2,
-            TERMINALS_2,
-            TERMINALS_2,
-            TERMINALS_2,
-            TERMINALS_2,
-            TERMINALS_2,
-            TERMINALS_2,
-            TERMINALS_2,
-            TERMINALS_2,
-            TERMINALS_2,
-            TERMINALS_2,
-            TERMINALS_2,
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-        ],
-        non_ascii: &[],
-        end_of_input: TERMINALS_3,
-    }
-};
-// Star_0
-// 0: Opt_0
-pub static PREDICTION_STAR_0: Prediction = {
-    // ")"
-    const TERMINALS_1: &[(TerminalId, u16)] = &[(TerminalId(3), 0)];
-    // Id
-    const TERMINALS_2: &[(TerminalId, u16)] = &[(TerminalId(0), 0)];
-    // EOF
-    const TERMINALS_3: &[(TerminalId, u16)] = &[(TerminalId(5), 0)];
     Prediction {
         ascii: [
             &[],

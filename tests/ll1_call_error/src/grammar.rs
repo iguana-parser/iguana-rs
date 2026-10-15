@@ -10,10 +10,9 @@ pub const S: NonterminalId = NonterminalId(0);
 pub const LAYOUT: NonterminalId = NonterminalId(1);
 pub const ALT_0: NonterminalId = NonterminalId(2);
 pub const PLUS_0: NonterminalId = NonterminalId(3);
-pub const OPT_0: NonterminalId = NonterminalId(4);
-pub const STAR_0: NonterminalId = NonterminalId(5);
-pub const START_S: NonterminalId = NonterminalId(6);
-pub const START_LAYOUT: NonterminalId = NonterminalId(7);
+pub const STAR_0: NonterminalId = NonterminalId(4);
+pub const START_S: NonterminalId = NonterminalId(5);
+pub const START_LAYOUT: NonterminalId = NonterminalId(6);
 pub struct Ll1CallErrorGrammar;
 impl Grammar for Ll1CallErrorGrammar {
     type Alternatives = BitSet<1>;
@@ -34,10 +33,6 @@ impl Grammar for Ll1CallErrorGrammar {
         Nonterminal {
             name: "Plus_0",
             display_name: "(WS | LineComment)+",
-        },
-        Nonterminal {
-            name: "Opt_0",
-            display_name: "(WS | LineComment)+?",
         },
         Nonterminal {
             name: "Star_0",
@@ -124,24 +119,16 @@ impl Grammar for Ll1CallErrorGrammar {
             position: 1,
         },
         Slot {
-            display_name: "(WS | LineComment)+? : . (WS | LineComment)+",
+            display_name: "(WS | LineComment)* : . (WS | LineComment)+",
             position: 0,
         },
         Slot {
-            display_name: "(WS | LineComment)+? : (WS | LineComment)+.",
+            display_name: "(WS | LineComment)* : (WS | LineComment)+.",
             position: 1,
         },
         Slot {
-            display_name: "(WS | LineComment)+? : .",
+            display_name: "(WS | LineComment)* : .",
             position: 0,
-        },
-        Slot {
-            display_name: "(WS | LineComment)* : . (WS | LineComment)+?",
-            position: 0,
-        },
-        Slot {
-            display_name: "(WS | LineComment)* : (WS | LineComment)+?.",
-            position: 1,
         },
         Slot {
             display_name: "S : . Layout start:S Layout",
@@ -175,8 +162,7 @@ impl Grammar for Ll1CallErrorGrammar {
         &[SlotId(10), SlotId(13)],
         &[SlotId(15), SlotId(17)],
         &[SlotId(18)],
-        &[SlotId(20)],
-        &[SlotId(24)],
+        &[SlotId(22)],
     ];
     const LAYOUT_NAME: Option<&'static str> = Some("Layout");
     const LAYOUT_TERMINALS: &'static [TerminalId] = &[TerminalId(1), TerminalId(2)];
@@ -211,7 +197,6 @@ impl Grammar for Ll1CallErrorGrammar {
             "Layout" => Some(LAYOUT),
             "Alt_0" => Some(ALT_0),
             "Plus_0" => Some(PLUS_0),
-            "Opt_0" => Some(OPT_0),
             "Star_0" => Some(STAR_0),
             "StartS" => Some(START_S),
             "StartLayout" => Some(START_LAYOUT),
@@ -243,11 +228,6 @@ pub static FOLLOW_SET_ALT_0: TerminalSet = TerminalSet {
 pub static FOLLOW_SET_PLUS_0: TerminalSet = TerminalSet {
     id: 3,
     terminals: &[TerminalId(0), TerminalId(1), TerminalId(2), TerminalId(4)],
-};
-// Opt_0 { Word, EOF }
-pub static FOLLOW_SET_OPT_0: TerminalSet = TerminalSet {
-    id: 1,
-    terminals: &[TerminalId(0), TerminalId(4)],
 };
 // Star_0 { Word, EOF }
 pub static FOLLOW_SET_STAR_0: TerminalSet = TerminalSet {
@@ -281,11 +261,6 @@ pub static FIRST_SET_ALT_0: TerminalSet = TerminalSet {
 };
 // Plus_0 { WS, LineComment }
 pub static FIRST_SET_PLUS_0: TerminalSet = TerminalSet {
-    id: 6,
-    terminals: &[TerminalId(1), TerminalId(2)],
-};
-// Opt_0 { WS, LineComment }
-pub static FIRST_SET_OPT_0: TerminalSet = TerminalSet {
     id: 6,
     terminals: &[TerminalId(1), TerminalId(2)],
 };

@@ -69,8 +69,6 @@ pub enum ParseTree<'a> {
     Alt0(&'a Alt0),
     // (WhiteSpace | Comment)+
     Plus1(&'a Plus1<'a>),
-    // (WhiteSpace | Comment)+?
-    Opt0(&'a Opt0<'a>),
     // (WhiteSpace | Comment)*
     Star0(&'a Star0<'a>),
     // S
@@ -96,9 +94,6 @@ impl<'a> ParseTree<'a> {
                 .filter_map(|i| alt_0.child(i))
                 .collect(),
             ParseTree::Plus1(plus_1) => plus_1.iter().collect(),
-            ParseTree::Opt0(opt_0) => (0..opt_0.child_count())
-                .filter_map(|i| opt_0.child(i))
-                .collect(),
             ParseTree::Star0(star_0) => star_0.iter().collect(),
             ParseTree::StartS(start_s) => (0..start_s.child_count())
                 .filter_map(|i| start_s.child(i))
@@ -120,7 +115,6 @@ impl<'a> ParseTree<'a> {
             ParseTree::Plus0(plus_0) => plus_0.display_name(),
             ParseTree::Alt0(alt_0) => alt_0.display_name(),
             ParseTree::Plus1(plus_1) => plus_1.display_name(),
-            ParseTree::Opt0(opt_0) => opt_0.display_name(),
             ParseTree::Star0(star_0) => star_0.display_name(),
             ParseTree::StartS(start_s) => start_s.display_name(),
             ParseTree::StartStatement(start_statement) => start_statement.display_name(),
@@ -136,7 +130,6 @@ impl<'a> ParseTree<'a> {
             ParseTree::Plus0(plus_0) => plus_0.child_count(),
             ParseTree::Alt0(alt_0) => alt_0.child_count(),
             ParseTree::Plus1(plus_1) => plus_1.child_count(),
-            ParseTree::Opt0(opt_0) => opt_0.child_count(),
             ParseTree::Star0(star_0) => star_0.child_count(),
             ParseTree::StartS(start_s) => start_s.child_count(),
             ParseTree::StartStatement(start_statement) => start_statement.child_count(),
@@ -152,7 +145,6 @@ impl<'a> ParseTree<'a> {
             ParseTree::Plus0(plus_0) => plus_0.span(),
             ParseTree::Alt0(alt_0) => alt_0.span(),
             ParseTree::Plus1(plus_1) => plus_1.span(),
-            ParseTree::Opt0(opt_0) => opt_0.span(),
             ParseTree::Star0(star_0) => star_0.span(),
             ParseTree::StartS(start_s) => start_s.span(),
             ParseTree::StartStatement(start_statement) => start_statement.span(),
@@ -179,7 +171,6 @@ impl<'a> ParseTree<'a> {
             ParseTree::Plus0(plus_0) => plus_0.origin(),
             ParseTree::Alt0(alt_0) => alt_0.origin(),
             ParseTree::Plus1(plus_1) => plus_1.origin(),
-            ParseTree::Opt0(opt_0) => opt_0.origin(),
             ParseTree::Star0(star_0) => star_0.origin(),
             ParseTree::StartS(start_s) => start_s.origin(),
             ParseTree::StartStatement(start_statement) => start_statement.origin(),
@@ -220,12 +211,6 @@ impl<'a> ParseTree<'a> {
     pub(crate) fn unwrap_plus_1(self) -> &'a Plus1<'a> {
         match self {
             ParseTree::Plus1(plus_1) => plus_1,
-            _ => Self::unexpected_node(),
-        }
-    }
-    pub(crate) fn unwrap_opt_0(self) -> &'a Opt0<'a> {
-        match self {
-            ParseTree::Opt0(opt_0) => opt_0,
             _ => Self::unexpected_node(),
         }
     }
@@ -367,18 +352,13 @@ pub enum Plus1<'a> {
         span: Span,
     },
 }
-// (WhiteSpace | Comment)+?
-#[derive(Debug)]
-pub enum Opt0<'a> {
-    // Opt_0 = (WhiteSpace | Comment)+
-    Alt0 { plus_1: &'a Plus1<'a>, span: Span },
-    // Opt_0 =
-    Alt1 { span: Span },
-}
 // (WhiteSpace | Comment)*
 #[derive(Debug)]
 pub enum Star0<'a> {
-    Alt0 { opt_0: &'a Opt0<'a>, span: Span },
+    // Star_0 = (WhiteSpace | Comment)+
+    Alt0 { plus_1: &'a Plus1<'a>, span: Span },
+    // Star_0 =
+    Alt1 { span: Span },
 }
 impl<'a> S<'a> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
@@ -680,66 +660,29 @@ impl<'a> Plus1<'a> {
         })
     }
 }
-impl<'a> Opt0<'a> {
-    pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
-        ParseTree::Opt0(self)
-    }
-    pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
-        match self {
-            Opt0::Alt0 { plus_1, .. } => match index {
-                0 => Some(ParseTree::Plus1(plus_1)),
-                _ => None,
-            },
-            Opt0::Alt1 { .. } => None,
-        }
-    }
-    pub fn child_count(&self) -> usize {
-        match self {
-            Opt0::Alt0 { .. } => 1usize,
-            Opt0::Alt1 { .. } => 0usize,
-        }
-    }
-    pub fn span(&self) -> Span {
-        match self {
-            Opt0::Alt0 { span, .. } => *span,
-            Opt0::Alt1 { span, .. } => *span,
-        }
-    }
-    pub fn display_name(&self) -> &'static str {
-        "(WhiteSpace | Comment)+?"
-    }
-    pub fn origin(&self) -> Option<Origin> {
-        Some(Origin::Opt)
-    }
-    pub fn white_spaces(&'a self) -> impl Iterator<Item = Token> {
-        self.value()
-            .into_iter()
-            .flat_map(|inner| inner.white_spaces())
-    }
-    pub fn comments(&'a self) -> impl Iterator<Item = Token> {
-        self.value().into_iter().flat_map(|inner| inner.comments())
-    }
-}
 impl<'a> Star0<'a> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::Star0(self)
     }
     pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
         match self {
-            Star0::Alt0 { opt_0, .. } => match index {
-                0 => Some(ParseTree::Opt0(opt_0)),
+            Star0::Alt0 { plus_1, .. } => match index {
+                0 => Some(ParseTree::Plus1(plus_1)),
                 _ => None,
             },
+            Star0::Alt1 { .. } => None,
         }
     }
     pub fn child_count(&self) -> usize {
         match self {
             Star0::Alt0 { .. } => 1usize,
+            Star0::Alt1 { .. } => 0usize,
         }
     }
     pub fn span(&self) -> Span {
         match self {
             Star0::Alt0 { span, .. } => *span,
+            Star0::Alt1 { span, .. } => *span,
         }
     }
     pub fn display_name(&self) -> &'static str {
@@ -749,19 +692,18 @@ impl<'a> Star0<'a> {
         Some(Origin::List)
     }
     pub fn white_spaces(&self) -> impl Iterator<Item = Token> {
-        match self {
-            Star0::Alt0 { opt_0, .. } => opt_0.white_spaces(),
-        }
+        let plus = match self {
+            Star0::Alt0 { plus_1, .. } => Some(*plus_1),
+            Star0::Alt1 { .. } => None,
+        };
+        plus.into_iter().flat_map(|plus| plus.white_spaces())
     }
     pub fn comments(&self) -> impl Iterator<Item = Token> {
-        match self {
-            Star0::Alt0 { opt_0, .. } => opt_0.comments(),
-        }
-    }
-    pub fn opt_0(&self) -> &'a Opt0<'a> {
-        match self {
-            Star0::Alt0 { opt_0, .. } => opt_0,
-        }
+        let plus = match self {
+            Star0::Alt0 { plus_1, .. } => Some(*plus_1),
+            Star0::Alt1 { .. } => None,
+        };
+        plus.into_iter().flat_map(|plus| plus.comments())
     }
 }
 impl<'a> Start<&'a S<'a>, &'a Layout<'a>> {
@@ -892,19 +834,8 @@ impl<'a> ListNode<'a> for Plus1<'a> {
 impl<'a> ListNode<'a> for Star0<'a> {
     fn iter(&'a self) -> IntoIter<ParseTree<'a>> {
         match self {
-            Star0::Alt0 { opt_0, .. } => match opt_0 {
-                Opt0::Alt0 { plus_1: opt_0, .. } => opt_0.iter(),
-                Opt0::Alt1 { .. } => vec![].into_iter(),
-            },
-        }
-    }
-}
-impl<'a> OptNode for Opt0<'a> {
-    type Inner = Plus1<'a>;
-    fn value(&self) -> Option<&Self::Inner> {
-        match self {
-            Opt0::Alt0 { plus_1, .. } => Some(plus_1),
-            Opt0::Alt1 { .. } => None,
+            Star0::Alt0 { plus_1, .. } => plus_1.iter(),
+            Star0::Alt1 { .. } => vec![].into_iter(),
         }
     }
 }
@@ -1137,37 +1068,27 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for DanglingElseUnsafeParseTreeBuilder<
                     span: nonterminal_node.span,
                 }))
             }
-            // Opt_0 = (WhiteSpace | Comment)+
+            // Star_0 = (WhiteSpace | Comment)+
             SlotId(48) => {
                 let &[plus_1] = children else {
                     ParseTree::unexpected_node()
                 };
-                ParseTree::Opt0(self.arena.alloc(Opt0::Alt0 {
+                ParseTree::Star0(self.arena.alloc(Star0::Alt0 {
                     plus_1: plus_1.unwrap_plus_1(),
                     span: nonterminal_node.span,
                 }))
             }
-            // Opt_0 =
+            // Star_0 =
             SlotId(49) => {
                 let &[] = children else {
                     ParseTree::unexpected_node()
                 };
-                ParseTree::Opt0(self.arena.alloc(Opt0::Alt1 {
-                    span: nonterminal_node.span,
-                }))
-            }
-            // Star_0 = (WhiteSpace | Comment)+?
-            SlotId(51) => {
-                let &[opt_0] = children else {
-                    ParseTree::unexpected_node()
-                };
-                ParseTree::Star0(self.arena.alloc(Star0::Alt0 {
-                    opt_0: opt_0.unwrap_opt_0(),
+                ParseTree::Star0(self.arena.alloc(Star0::Alt1 {
                     span: nonterminal_node.span,
                 }))
             }
             // StartS = Layout start:S Layout
-            SlotId(55) => {
+            SlotId(53) => {
                 let &[layout_0, start, layout_2] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -1179,7 +1100,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for DanglingElseUnsafeParseTreeBuilder<
                 }))
             }
             // StartStatement = Layout start:Statement Layout
-            SlotId(59) => {
+            SlotId(57) => {
                 let &[layout_0, start, layout_2] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -1191,7 +1112,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for DanglingElseUnsafeParseTreeBuilder<
                 }))
             }
             // StartLayout = start:Layout
-            SlotId(61) => {
+            SlotId(59) => {
                 let &[start] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -1232,7 +1153,6 @@ pub fn create_parse_tree<'a>(
         grammar::PLUS_0 => ParseTree::Plus0(visit_sppf(root_id, parser, builder).unwrap_plus_0()),
         grammar::ALT_0 => ParseTree::Alt0(visit_sppf(root_id, parser, builder).unwrap_alt_0()),
         grammar::PLUS_1 => ParseTree::Plus1(visit_sppf(root_id, parser, builder).unwrap_plus_1()),
-        grammar::OPT_0 => ParseTree::Opt0(visit_sppf(root_id, parser, builder).unwrap_opt_0()),
         grammar::STAR_0 => ParseTree::Star0(visit_sppf(root_id, parser, builder).unwrap_star_0()),
         grammar::START_S => {
             ParseTree::StartS(visit_sppf(root_id, parser, builder).unwrap_start_s())

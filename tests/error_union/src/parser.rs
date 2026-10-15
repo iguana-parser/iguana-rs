@@ -1565,10 +1565,10 @@ impl<'i, 'arena> Parser<'i, 'arena> for ErrorUnionParser<'i, 'arena> {
                         };
                         self.pop(gss_node_id, SlotId(113), result, None, &FOLLOW_SET_PLUS_0);
                     }
-                    // Opt_0 : . Plus_0
+                    // Star_0 : . Plus_0
                     SlotId(114) => {
                         if let Some((j, right_child)) = self.parse_plus_0_ll1(input_index, None) {
-                            // Opt_0 : Plus_0.
+                            // Star_0 : Plus_0.
                             input_index = j;
                             result = Some(right_child);
                             next = Some(SlotId(115));
@@ -1581,835 +1581,841 @@ impl<'i, 'arena> Parser<'i, 'arena> for ErrorUnionParser<'i, 'arena> {
                             );
                         }
                     }
-                    // Opt_0 : Plus_0.
+                    // Star_0 : Plus_0.
                     SlotId(115) => {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        self.pop(gss_node_id, SlotId(115), result, None, &FOLLOW_SET_OPT_0);
+                        self.pop(gss_node_id, SlotId(115), result, None, &FOLLOW_SET_STAR_0);
                     }
-                    // Opt_0 : .
+                    // Star_0 : .
                     SlotId(116) => {
                         let result = self.get_or_create_epsilon_node(input_index);
-                        self.pop(gss_node_id, SlotId(116), result, None, &FOLLOW_SET_OPT_0);
+                        self.pop(gss_node_id, SlotId(116), result, None, &FOLLOW_SET_STAR_0);
                     }
-                    // Star_0 : . Opt_0
+                    // StartT : . Layout start:T Layout
                     SlotId(117) => {
-                        if let Some((j, right_child)) = self.parse_opt_0_ll1(input_index, None) {
-                            // Star_0 : Opt_0.
+                        if let Some((j, right_child)) = self.parse_layout_ll1(input_index, None) {
+                            // StartT : Layout . start:T Layout
                             input_index = j;
                             result = Some(right_child);
                             next = Some(SlotId(118));
                         }
                     }
-                    // Star_0 : Opt_0.
-                    SlotId(118) => {
-                        let Some(result) = result else {
-                            unreachable!("result cannot be None here.")
-                        };
-                        self.pop(gss_node_id, SlotId(118), result, None, &FOLLOW_SET_STAR_0);
-                    }
-                    // StartT : . Layout start:T Layout
-                    SlotId(119) => {
-                        if let Some((j, right_child)) = self.parse_layout_ll1(input_index, None) {
-                            // StartT : Layout . start:T Layout
-                            input_index = j;
-                            result = Some(right_child);
-                            next = Some(SlotId(120));
-                        }
-                    }
                     // StartT : Layout . start:T Layout
-                    SlotId(120) => {
+                    SlotId(118) => {
                         self.create(
                             NonterminalId(0),
                             &PREDICTION_T,
                             result,
                             gss_node_id,
-                            SlotId(121),
+                            SlotId(119),
                             env,
                         );
                     }
                     // StartT : Layout start:T . Layout
-                    SlotId(121) => {
+                    SlotId(119) => {
                         if let Some((j, right_child)) = self.parse_layout_ll1(input_index, None) {
                             if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(122), env)
+                                self.create_intermediate_node(result, right_child, SlotId(120), env)
                             {
                                 // StartT : Layout start:T Layout.
                                 input_index = j;
                                 result = Some(new_node);
-                                next = Some(SlotId(122));
+                                next = Some(SlotId(120));
                             }
                         }
                     }
                     // StartT : Layout start:T Layout.
-                    SlotId(122) => {
+                    SlotId(120) => {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        self.pop(gss_node_id, SlotId(122), result, None, &FOLLOW_SET_START_T);
+                        self.pop(gss_node_id, SlotId(120), result, None, &FOLLOW_SET_START_T);
                     }
                     // StartU : . Layout start:U Layout
-                    SlotId(123) => {
+                    SlotId(121) => {
                         if let Some((j, right_child)) = self.parse_layout_ll1(input_index, None) {
                             // StartU : Layout . start:U Layout
                             input_index = j;
                             result = Some(right_child);
-                            next = Some(SlotId(124));
+                            next = Some(SlotId(122));
                         }
                     }
                     // StartU : Layout . start:U Layout
-                    SlotId(124) => {
+                    SlotId(122) => {
                         self.create(
                             NonterminalId(1),
                             &PREDICTION_U,
                             result,
                             gss_node_id,
-                            SlotId(125),
+                            SlotId(123),
                             env,
                         );
                     }
                     // StartU : Layout start:U . Layout
-                    SlotId(125) => {
+                    SlotId(123) => {
                         if let Some((j, right_child)) = self.parse_layout_ll1(input_index, None) {
                             if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(126), env)
+                                self.create_intermediate_node(result, right_child, SlotId(124), env)
                             {
                                 // StartU : Layout start:U Layout.
                                 input_index = j;
                                 result = Some(new_node);
-                                next = Some(SlotId(126));
+                                next = Some(SlotId(124));
                             }
                         }
                     }
                     // StartU : Layout start:U Layout.
-                    SlotId(126) => {
+                    SlotId(124) => {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        self.pop(gss_node_id, SlotId(126), result, None, &FOLLOW_SET_START_U);
+                        self.pop(gss_node_id, SlotId(124), result, None, &FOLLOW_SET_START_U);
                     }
                     // StartP : . Layout start:P Layout
-                    SlotId(127) => {
+                    SlotId(125) => {
                         if let Some((j, right_child)) = self.parse_layout_ll1(input_index, None) {
                             // StartP : Layout . start:P Layout
                             input_index = j;
                             result = Some(right_child);
-                            next = Some(SlotId(128));
+                            next = Some(SlotId(126));
                         }
                     }
                     // StartP : Layout . start:P Layout
-                    SlotId(128) => {
+                    SlotId(126) => {
                         self.create(
                             NonterminalId(2),
                             &PREDICTION_P,
                             result,
                             gss_node_id,
-                            SlotId(129),
+                            SlotId(127),
                             env,
                         );
                     }
                     // StartP : Layout start:P . Layout
-                    SlotId(129) => {
+                    SlotId(127) => {
                         if let Some((j, right_child)) = self.parse_layout_ll1(input_index, None) {
                             if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(130), env)
+                                self.create_intermediate_node(result, right_child, SlotId(128), env)
                             {
                                 // StartP : Layout start:P Layout.
                                 input_index = j;
                                 result = Some(new_node);
-                                next = Some(SlotId(130));
+                                next = Some(SlotId(128));
                             }
                         }
                     }
                     // StartP : Layout start:P Layout.
-                    SlotId(130) => {
+                    SlotId(128) => {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        self.pop(gss_node_id, SlotId(130), result, None, &FOLLOW_SET_START_P);
+                        self.pop(gss_node_id, SlotId(128), result, None, &FOLLOW_SET_START_P);
                     }
                     // StartQ : . Layout start:Q Layout
-                    SlotId(131) => {
+                    SlotId(129) => {
                         if let Some((j, right_child)) = self.parse_layout_ll1(input_index, None) {
                             // StartQ : Layout . start:Q Layout
                             input_index = j;
                             result = Some(right_child);
-                            next = Some(SlotId(132));
+                            next = Some(SlotId(130));
                         }
                     }
                     // StartQ : Layout . start:Q Layout
-                    SlotId(132) => {
+                    SlotId(130) => {
                         if let Some((j, right_child)) = self.parse_q_ll1(input_index, None) {
                             if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(133), env)
+                                self.create_intermediate_node(result, right_child, SlotId(131), env)
                             {
                                 // StartQ : Layout start:Q . Layout
                                 input_index = j;
                                 result = Some(new_node);
-                                next = Some(SlotId(133));
+                                next = Some(SlotId(131));
                             }
                         } else {
                             self.add_failure(
                                 input_index,
-                                SlotId(132),
+                                SlotId(130),
                                 Some(gss_node_id),
                                 GLLFailureKind::UnexpectedToken(&FIRST_SET_Q),
                             );
                         }
                     }
                     // StartQ : Layout start:Q . Layout
-                    SlotId(133) => {
+                    SlotId(131) => {
                         if let Some((j, right_child)) = self.parse_layout_ll1(input_index, None) {
                             if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(134), env)
+                                self.create_intermediate_node(result, right_child, SlotId(132), env)
                             {
                                 // StartQ : Layout start:Q Layout.
                                 input_index = j;
                                 result = Some(new_node);
-                                next = Some(SlotId(134));
+                                next = Some(SlotId(132));
                             }
                         }
                     }
                     // StartQ : Layout start:Q Layout.
-                    SlotId(134) => {
+                    SlotId(132) => {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        self.pop(gss_node_id, SlotId(134), result, None, &FOLLOW_SET_START_Q);
+                        self.pop(gss_node_id, SlotId(132), result, None, &FOLLOW_SET_START_Q);
                     }
                     // StartBeforeP : . Layout start:BeforeP Layout
-                    SlotId(135) => {
+                    SlotId(133) => {
                         if let Some((j, right_child)) = self.parse_layout_ll1(input_index, None) {
                             // StartBeforeP : Layout . start:BeforeP Layout
                             input_index = j;
                             result = Some(right_child);
-                            next = Some(SlotId(136));
+                            next = Some(SlotId(134));
                         }
                     }
                     // StartBeforeP : Layout . start:BeforeP Layout
-                    SlotId(136) => {
+                    SlotId(134) => {
                         self.create(
                             NonterminalId(4),
                             &PREDICTION_BEFORE_P,
                             result,
                             gss_node_id,
-                            SlotId(137),
+                            SlotId(135),
                             env,
                         );
                     }
                     // StartBeforeP : Layout start:BeforeP . Layout
-                    SlotId(137) => {
+                    SlotId(135) => {
                         if let Some((j, right_child)) = self.parse_layout_ll1(input_index, None) {
                             if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(138), env)
+                                self.create_intermediate_node(result, right_child, SlotId(136), env)
                             {
                                 // StartBeforeP : Layout start:BeforeP Layout.
                                 input_index = j;
                                 result = Some(new_node);
-                                next = Some(SlotId(138));
+                                next = Some(SlotId(136));
                             }
                         }
                     }
                     // StartBeforeP : Layout start:BeforeP Layout.
-                    SlotId(138) => {
+                    SlotId(136) => {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
                         self.pop(
                             gss_node_id,
-                            SlotId(138),
+                            SlotId(136),
                             result,
                             None,
                             &FOLLOW_SET_START_BEFORE_P,
                         );
                     }
                     // StartBeforeQ : . Layout start:BeforeQ Layout
-                    SlotId(139) => {
+                    SlotId(137) => {
                         if let Some((j, right_child)) = self.parse_layout_ll1(input_index, None) {
                             // StartBeforeQ : Layout . start:BeforeQ Layout
                             input_index = j;
                             result = Some(right_child);
-                            next = Some(SlotId(140));
+                            next = Some(SlotId(138));
                         }
                     }
                     // StartBeforeQ : Layout . start:BeforeQ Layout
-                    SlotId(140) => {
+                    SlotId(138) => {
                         self.create(
                             NonterminalId(5),
                             &PREDICTION_BEFORE_Q,
                             result,
                             gss_node_id,
-                            SlotId(141),
+                            SlotId(139),
                             env,
                         );
                     }
                     // StartBeforeQ : Layout start:BeforeQ . Layout
-                    SlotId(141) => {
+                    SlotId(139) => {
                         if let Some((j, right_child)) = self.parse_layout_ll1(input_index, None) {
                             if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(142), env)
+                                self.create_intermediate_node(result, right_child, SlotId(140), env)
                             {
                                 // StartBeforeQ : Layout start:BeforeQ Layout.
                                 input_index = j;
                                 result = Some(new_node);
-                                next = Some(SlotId(142));
+                                next = Some(SlotId(140));
                             }
                         }
                     }
                     // StartBeforeQ : Layout start:BeforeQ Layout.
-                    SlotId(142) => {
+                    SlotId(140) => {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
                         self.pop(
                             gss_node_id,
-                            SlotId(142),
+                            SlotId(140),
                             result,
                             None,
                             &FOLLOW_SET_START_BEFORE_Q,
                         );
                     }
                     // StartUnexpectedFirst : . Layout start:UnexpectedFirst Layout
-                    SlotId(143) => {
+                    SlotId(141) => {
                         if let Some((j, right_child)) = self.parse_layout_ll1(input_index, None) {
                             // StartUnexpectedFirst : Layout . start:UnexpectedFirst Layout
                             input_index = j;
                             result = Some(right_child);
-                            next = Some(SlotId(144));
+                            next = Some(SlotId(142));
                         }
                     }
                     // StartUnexpectedFirst : Layout . start:UnexpectedFirst Layout
-                    SlotId(144) => {
+                    SlotId(142) => {
                         self.create(
                             NonterminalId(6),
                             &PREDICTION_UNEXPECTED_FIRST,
                             result,
                             gss_node_id,
-                            SlotId(145),
+                            SlotId(143),
                             env,
                         );
                     }
                     // StartUnexpectedFirst : Layout start:UnexpectedFirst . Layout
-                    SlotId(145) => {
+                    SlotId(143) => {
                         if let Some((j, right_child)) = self.parse_layout_ll1(input_index, None) {
                             if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(146), env)
+                                self.create_intermediate_node(result, right_child, SlotId(144), env)
                             {
                                 // StartUnexpectedFirst : Layout start:UnexpectedFirst Layout.
                                 input_index = j;
                                 result = Some(new_node);
-                                next = Some(SlotId(146));
+                                next = Some(SlotId(144));
                             }
                         }
                     }
                     // StartUnexpectedFirst : Layout start:UnexpectedFirst Layout.
-                    SlotId(146) => {
+                    SlotId(144) => {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
                         self.pop(
                             gss_node_id,
-                            SlotId(146),
+                            SlotId(144),
                             result,
                             None,
                             &FOLLOW_SET_START_UNEXPECTED_FIRST,
                         );
                     }
                     // StartExcludedFirst : . Layout start:ExcludedFirst Layout
-                    SlotId(147) => {
+                    SlotId(145) => {
                         if let Some((j, right_child)) = self.parse_layout_ll1(input_index, None) {
                             // StartExcludedFirst : Layout . start:ExcludedFirst Layout
                             input_index = j;
                             result = Some(right_child);
-                            next = Some(SlotId(148));
+                            next = Some(SlotId(146));
                         }
                     }
                     // StartExcludedFirst : Layout . start:ExcludedFirst Layout
-                    SlotId(148) => {
+                    SlotId(146) => {
                         self.create(
                             NonterminalId(7),
                             &PREDICTION_EXCLUDED_FIRST,
                             result,
                             gss_node_id,
-                            SlotId(149),
+                            SlotId(147),
                             env,
                         );
                     }
                     // StartExcludedFirst : Layout start:ExcludedFirst . Layout
-                    SlotId(149) => {
+                    SlotId(147) => {
                         if let Some((j, right_child)) = self.parse_layout_ll1(input_index, None) {
                             if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(150), env)
+                                self.create_intermediate_node(result, right_child, SlotId(148), env)
                             {
                                 // StartExcludedFirst : Layout start:ExcludedFirst Layout.
                                 input_index = j;
                                 result = Some(new_node);
-                                next = Some(SlotId(150));
+                                next = Some(SlotId(148));
                             }
                         }
                     }
                     // StartExcludedFirst : Layout start:ExcludedFirst Layout.
-                    SlotId(150) => {
+                    SlotId(148) => {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
                         self.pop(
                             gss_node_id,
-                            SlotId(150),
+                            SlotId(148),
                             result,
                             None,
                             &FOLLOW_SET_START_EXCLUDED_FIRST,
                         );
                     }
                     // StartPredictionBeforeExcept : . Layout start:PredictionBeforeExcept Layout
-                    SlotId(151) => {
+                    SlotId(149) => {
                         if let Some((j, right_child)) = self.parse_layout_ll1(input_index, None) {
                             // StartPredictionBeforeExcept : Layout . start:PredictionBeforeExcept Layout
                             input_index = j;
                             result = Some(right_child);
-                            next = Some(SlotId(152));
+                            next = Some(SlotId(150));
                         }
                     }
                     // StartPredictionBeforeExcept : Layout . start:PredictionBeforeExcept Layout
-                    SlotId(152) => {
+                    SlotId(150) => {
                         self.create(
                             NonterminalId(8),
                             &PREDICTION_PREDICTION_BEFORE_EXCEPT,
                             result,
                             gss_node_id,
-                            SlotId(153),
+                            SlotId(151),
                             env,
                         );
                     }
                     // StartPredictionBeforeExcept : Layout start:PredictionBeforeExcept . Layout
-                    SlotId(153) => {
+                    SlotId(151) => {
                         if let Some((j, right_child)) = self.parse_layout_ll1(input_index, None) {
                             if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(154), env)
+                                self.create_intermediate_node(result, right_child, SlotId(152), env)
                             {
                                 // StartPredictionBeforeExcept : Layout start:PredictionBeforeExcept Layout.
                                 input_index = j;
                                 result = Some(new_node);
-                                next = Some(SlotId(154));
+                                next = Some(SlotId(152));
                             }
                         }
                     }
                     // StartPredictionBeforeExcept : Layout start:PredictionBeforeExcept Layout.
-                    SlotId(154) => {
+                    SlotId(152) => {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
                         self.pop(
                             gss_node_id,
-                            SlotId(154),
+                            SlotId(152),
                             result,
                             None,
                             &FOLLOW_SET_START_PREDICTION_BEFORE_EXCEPT,
                         );
                     }
                     // StartExceptBeforePrediction : . Layout start:ExceptBeforePrediction Layout
-                    SlotId(155) => {
+                    SlotId(153) => {
                         if let Some((j, right_child)) = self.parse_layout_ll1(input_index, None) {
                             // StartExceptBeforePrediction : Layout . start:ExceptBeforePrediction Layout
                             input_index = j;
                             result = Some(right_child);
-                            next = Some(SlotId(156));
+                            next = Some(SlotId(154));
                         }
                     }
                     // StartExceptBeforePrediction : Layout . start:ExceptBeforePrediction Layout
-                    SlotId(156) => {
+                    SlotId(154) => {
                         self.create(
                             NonterminalId(9),
                             &PREDICTION_EXCEPT_BEFORE_PREDICTION,
                             result,
                             gss_node_id,
-                            SlotId(157),
+                            SlotId(155),
                             env,
                         );
                     }
                     // StartExceptBeforePrediction : Layout start:ExceptBeforePrediction . Layout
-                    SlotId(157) => {
+                    SlotId(155) => {
                         if let Some((j, right_child)) = self.parse_layout_ll1(input_index, None) {
                             if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(158), env)
+                                self.create_intermediate_node(result, right_child, SlotId(156), env)
                             {
                                 // StartExceptBeforePrediction : Layout start:ExceptBeforePrediction Layout.
                                 input_index = j;
                                 result = Some(new_node);
-                                next = Some(SlotId(158));
+                                next = Some(SlotId(156));
                             }
                         }
                     }
                     // StartExceptBeforePrediction : Layout start:ExceptBeforePrediction Layout.
-                    SlotId(158) => {
+                    SlotId(156) => {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
                         self.pop(
                             gss_node_id,
-                            SlotId(158),
+                            SlotId(156),
                             result,
                             None,
                             &FOLLOW_SET_START_EXCEPT_BEFORE_PREDICTION,
                         );
                     }
                     // StartPredictionBeforeFollow : . Layout start:PredictionBeforeFollow Layout
-                    SlotId(159) => {
+                    SlotId(157) => {
                         if let Some((j, right_child)) = self.parse_layout_ll1(input_index, None) {
                             // StartPredictionBeforeFollow : Layout . start:PredictionBeforeFollow Layout
                             input_index = j;
                             result = Some(right_child);
-                            next = Some(SlotId(160));
+                            next = Some(SlotId(158));
                         }
                     }
                     // StartPredictionBeforeFollow : Layout . start:PredictionBeforeFollow Layout
-                    SlotId(160) => {
+                    SlotId(158) => {
                         self.create(
                             NonterminalId(10),
                             &PREDICTION_PREDICTION_BEFORE_FOLLOW,
                             result,
                             gss_node_id,
-                            SlotId(161),
+                            SlotId(159),
                             env,
                         );
                     }
                     // StartPredictionBeforeFollow : Layout start:PredictionBeforeFollow . Layout
-                    SlotId(161) => {
+                    SlotId(159) => {
                         if let Some((j, right_child)) = self.parse_layout_ll1(input_index, None) {
                             if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(162), env)
+                                self.create_intermediate_node(result, right_child, SlotId(160), env)
                             {
                                 // StartPredictionBeforeFollow : Layout start:PredictionBeforeFollow Layout.
                                 input_index = j;
                                 result = Some(new_node);
-                                next = Some(SlotId(162));
+                                next = Some(SlotId(160));
                             }
                         }
                     }
                     // StartPredictionBeforeFollow : Layout start:PredictionBeforeFollow Layout.
-                    SlotId(162) => {
+                    SlotId(160) => {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
                         self.pop(
                             gss_node_id,
-                            SlotId(162),
+                            SlotId(160),
                             result,
                             None,
                             &FOLLOW_SET_START_PREDICTION_BEFORE_FOLLOW,
                         );
                     }
                     // StartFollowBeforePrediction : . Layout start:FollowBeforePrediction Layout
-                    SlotId(163) => {
+                    SlotId(161) => {
                         if let Some((j, right_child)) = self.parse_layout_ll1(input_index, None) {
                             // StartFollowBeforePrediction : Layout . start:FollowBeforePrediction Layout
                             input_index = j;
                             result = Some(right_child);
-                            next = Some(SlotId(164));
+                            next = Some(SlotId(162));
                         }
                     }
                     // StartFollowBeforePrediction : Layout . start:FollowBeforePrediction Layout
-                    SlotId(164) => {
+                    SlotId(162) => {
                         self.create(
                             NonterminalId(11),
                             &PREDICTION_FOLLOW_BEFORE_PREDICTION,
                             result,
                             gss_node_id,
-                            SlotId(165),
+                            SlotId(163),
                             env,
                         );
                     }
                     // StartFollowBeforePrediction : Layout start:FollowBeforePrediction . Layout
-                    SlotId(165) => {
+                    SlotId(163) => {
                         if let Some((j, right_child)) = self.parse_layout_ll1(input_index, None) {
                             if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(166), env)
+                                self.create_intermediate_node(result, right_child, SlotId(164), env)
                             {
                                 // StartFollowBeforePrediction : Layout start:FollowBeforePrediction Layout.
                                 input_index = j;
                                 result = Some(new_node);
-                                next = Some(SlotId(166));
+                                next = Some(SlotId(164));
                             }
                         }
                     }
                     // StartFollowBeforePrediction : Layout start:FollowBeforePrediction Layout.
-                    SlotId(166) => {
+                    SlotId(164) => {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
                         self.pop(
                             gss_node_id,
-                            SlotId(166),
+                            SlotId(164),
                             result,
                             None,
                             &FOLLOW_SET_START_FOLLOW_BEFORE_PREDICTION,
                         );
                     }
                     // StartMissingSuffix : . Layout start:MissingSuffix Layout
-                    SlotId(167) => {
+                    SlotId(165) => {
                         if let Some((j, right_child)) = self.parse_layout_ll1(input_index, None) {
                             // StartMissingSuffix : Layout . start:MissingSuffix Layout
                             input_index = j;
                             result = Some(right_child);
-                            next = Some(SlotId(168));
+                            next = Some(SlotId(166));
                         }
                     }
                     // StartMissingSuffix : Layout . start:MissingSuffix Layout
-                    SlotId(168) => {
+                    SlotId(166) => {
                         self.create(
                             NonterminalId(12),
                             &PREDICTION_MISSING_SUFFIX,
                             result,
                             gss_node_id,
-                            SlotId(169),
+                            SlotId(167),
                             env,
                         );
                     }
                     // StartMissingSuffix : Layout start:MissingSuffix . Layout
-                    SlotId(169) => {
+                    SlotId(167) => {
                         if let Some((j, right_child)) = self.parse_layout_ll1(input_index, None) {
                             if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(170), env)
+                                self.create_intermediate_node(result, right_child, SlotId(168), env)
                             {
                                 // StartMissingSuffix : Layout start:MissingSuffix Layout.
                                 input_index = j;
                                 result = Some(new_node);
-                                next = Some(SlotId(170));
+                                next = Some(SlotId(168));
                             }
                         }
                     }
                     // StartMissingSuffix : Layout start:MissingSuffix Layout.
-                    SlotId(170) => {
+                    SlotId(168) => {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
                         self.pop(
                             gss_node_id,
-                            SlotId(170),
+                            SlotId(168),
                             result,
                             None,
                             &FOLLOW_SET_START_MISSING_SUFFIX,
                         );
                     }
                     // StartSuffixChoice : . Layout start:SuffixChoice Layout
-                    SlotId(171) => {
+                    SlotId(169) => {
                         if let Some((j, right_child)) = self.parse_layout_ll1(input_index, None) {
                             // StartSuffixChoice : Layout . start:SuffixChoice Layout
                             input_index = j;
                             result = Some(right_child);
-                            next = Some(SlotId(172));
+                            next = Some(SlotId(170));
                         }
                     }
                     // StartSuffixChoice : Layout . start:SuffixChoice Layout
-                    SlotId(172) => {
+                    SlotId(170) => {
                         self.create(
                             NonterminalId(13),
                             &PREDICTION_SUFFIX_CHOICE,
                             result,
                             gss_node_id,
-                            SlotId(173),
+                            SlotId(171),
                             env,
                         );
                     }
                     // StartSuffixChoice : Layout start:SuffixChoice . Layout
-                    SlotId(173) => {
+                    SlotId(171) => {
                         if let Some((j, right_child)) = self.parse_layout_ll1(input_index, None) {
                             if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(174), env)
+                                self.create_intermediate_node(result, right_child, SlotId(172), env)
                             {
                                 // StartSuffixChoice : Layout start:SuffixChoice Layout.
                                 input_index = j;
                                 result = Some(new_node);
-                                next = Some(SlotId(174));
+                                next = Some(SlotId(172));
                             }
                         }
                     }
                     // StartSuffixChoice : Layout start:SuffixChoice Layout.
-                    SlotId(174) => {
+                    SlotId(172) => {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
                         self.pop(
                             gss_node_id,
-                            SlotId(174),
+                            SlotId(172),
                             result,
                             None,
                             &FOLLOW_SET_START_SUFFIX_CHOICE,
                         );
                     }
                     // StartCallPrediction : . Layout start:CallPrediction Layout
-                    SlotId(175) => {
+                    SlotId(173) => {
                         if let Some((j, right_child)) = self.parse_layout_ll1(input_index, None) {
                             // StartCallPrediction : Layout . start:CallPrediction Layout
                             input_index = j;
                             result = Some(right_child);
-                            next = Some(SlotId(176));
+                            next = Some(SlotId(174));
                         }
                     }
                     // StartCallPrediction : Layout . start:CallPrediction Layout
-                    SlotId(176) => {
+                    SlotId(174) => {
                         self.create(
                             NonterminalId(14),
                             &PREDICTION_CALL_PREDICTION,
                             result,
                             gss_node_id,
-                            SlotId(177),
+                            SlotId(175),
                             env,
                         );
                     }
                     // StartCallPrediction : Layout start:CallPrediction . Layout
-                    SlotId(177) => {
+                    SlotId(175) => {
                         if let Some((j, right_child)) = self.parse_layout_ll1(input_index, None) {
                             if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(178), env)
+                                self.create_intermediate_node(result, right_child, SlotId(176), env)
                             {
                                 // StartCallPrediction : Layout start:CallPrediction Layout.
                                 input_index = j;
                                 result = Some(new_node);
-                                next = Some(SlotId(178));
+                                next = Some(SlotId(176));
                             }
                         }
                     }
                     // StartCallPrediction : Layout start:CallPrediction Layout.
-                    SlotId(178) => {
+                    SlotId(176) => {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
                         self.pop(
                             gss_node_id,
-                            SlotId(178),
+                            SlotId(176),
                             result,
                             None,
                             &FOLLOW_SET_START_CALL_PREDICTION,
                         );
                     }
                     // StartPrefixX : . Layout start:PrefixX Layout
-                    SlotId(179) => {
+                    SlotId(177) => {
                         if let Some((j, right_child)) = self.parse_layout_ll1(input_index, None) {
                             // StartPrefixX : Layout . start:PrefixX Layout
                             input_index = j;
                             result = Some(right_child);
-                            next = Some(SlotId(180));
+                            next = Some(SlotId(178));
                         }
                     }
                     // StartPrefixX : Layout . start:PrefixX Layout
-                    SlotId(180) => {
+                    SlotId(178) => {
                         self.create(
                             NonterminalId(15),
                             &PREDICTION_PREFIX_X,
                             result,
                             gss_node_id,
-                            SlotId(181),
+                            SlotId(179),
                             env,
                         );
                     }
                     // StartPrefixX : Layout start:PrefixX . Layout
-                    SlotId(181) => {
+                    SlotId(179) => {
                         if let Some((j, right_child)) = self.parse_layout_ll1(input_index, None) {
                             if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(182), env)
+                                self.create_intermediate_node(result, right_child, SlotId(180), env)
                             {
                                 // StartPrefixX : Layout start:PrefixX Layout.
                                 input_index = j;
                                 result = Some(new_node);
-                                next = Some(SlotId(182));
+                                next = Some(SlotId(180));
                             }
                         }
                     }
                     // StartPrefixX : Layout start:PrefixX Layout.
-                    SlotId(182) => {
+                    SlotId(180) => {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
                         self.pop(
                             gss_node_id,
-                            SlotId(182),
+                            SlotId(180),
                             result,
                             None,
                             &FOLLOW_SET_START_PREFIX_X,
                         );
                     }
                     // StartPrefixW : . Layout start:PrefixW Layout
-                    SlotId(183) => {
+                    SlotId(181) => {
                         if let Some((j, right_child)) = self.parse_layout_ll1(input_index, None) {
                             // StartPrefixW : Layout . start:PrefixW Layout
                             input_index = j;
                             result = Some(right_child);
-                            next = Some(SlotId(184));
+                            next = Some(SlotId(182));
                         }
                     }
                     // StartPrefixW : Layout . start:PrefixW Layout
-                    SlotId(184) => {
+                    SlotId(182) => {
                         self.create(
                             NonterminalId(16),
                             &PREDICTION_PREFIX_W,
                             result,
                             gss_node_id,
-                            SlotId(185),
+                            SlotId(183),
                             env,
                         );
                     }
                     // StartPrefixW : Layout start:PrefixW . Layout
-                    SlotId(185) => {
+                    SlotId(183) => {
                         if let Some((j, right_child)) = self.parse_layout_ll1(input_index, None) {
                             if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(186), env)
+                                self.create_intermediate_node(result, right_child, SlotId(184), env)
                             {
                                 // StartPrefixW : Layout start:PrefixW Layout.
                                 input_index = j;
                                 result = Some(new_node);
-                                next = Some(SlotId(186));
+                                next = Some(SlotId(184));
                             }
                         }
                     }
                     // StartPrefixW : Layout start:PrefixW Layout.
-                    SlotId(186) => {
+                    SlotId(184) => {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
                         self.pop(
                             gss_node_id,
-                            SlotId(186),
+                            SlotId(184),
                             result,
                             None,
                             &FOLLOW_SET_START_PREFIX_W,
                         );
                     }
                     // StartNullablePrefix : . Layout start:NullablePrefix Layout
-                    SlotId(187) => {
+                    SlotId(185) => {
                         if let Some((j, right_child)) = self.parse_layout_ll1(input_index, None) {
                             // StartNullablePrefix : Layout . start:NullablePrefix Layout
                             input_index = j;
                             result = Some(right_child);
-                            next = Some(SlotId(188));
+                            next = Some(SlotId(186));
                         }
                     }
                     // StartNullablePrefix : Layout . start:NullablePrefix Layout
-                    SlotId(188) => {
+                    SlotId(186) => {
                         self.create(
                             NonterminalId(17),
                             &PREDICTION_NULLABLE_PREFIX,
                             result,
                             gss_node_id,
-                            SlotId(189),
+                            SlotId(187),
                             env,
                         );
                     }
                     // StartNullablePrefix : Layout start:NullablePrefix . Layout
-                    SlotId(189) => {
+                    SlotId(187) => {
                         if let Some((j, right_child)) = self.parse_layout_ll1(input_index, None) {
                             if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(190), env)
+                                self.create_intermediate_node(result, right_child, SlotId(188), env)
                             {
                                 // StartNullablePrefix : Layout start:NullablePrefix Layout.
                                 input_index = j;
                                 result = Some(new_node);
-                                next = Some(SlotId(190));
+                                next = Some(SlotId(188));
                             }
                         }
                     }
                     // StartNullablePrefix : Layout start:NullablePrefix Layout.
+                    SlotId(188) => {
+                        let Some(result) = result else {
+                            unreachable!("result cannot be None here.")
+                        };
+                        self.pop(
+                            gss_node_id,
+                            SlotId(188),
+                            result,
+                            None,
+                            &FOLLOW_SET_START_NULLABLE_PREFIX,
+                        );
+                    }
+                    // StartLayout : . start:Layout
+                    SlotId(189) => {
+                        if let Some((j, right_child)) = self.parse_layout_ll1(input_index, None) {
+                            // StartLayout : start:Layout.
+                            input_index = j;
+                            result = Some(right_child);
+                            next = Some(SlotId(190));
+                        }
+                    }
+                    // StartLayout : start:Layout.
                     SlotId(190) => {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
@@ -2417,28 +2423,6 @@ impl<'i, 'arena> Parser<'i, 'arena> for ErrorUnionParser<'i, 'arena> {
                         self.pop(
                             gss_node_id,
                             SlotId(190),
-                            result,
-                            None,
-                            &FOLLOW_SET_START_NULLABLE_PREFIX,
-                        );
-                    }
-                    // StartLayout : . start:Layout
-                    SlotId(191) => {
-                        if let Some((j, right_child)) = self.parse_layout_ll1(input_index, None) {
-                            // StartLayout : start:Layout.
-                            input_index = j;
-                            result = Some(right_child);
-                            next = Some(SlotId(192));
-                        }
-                    }
-                    // StartLayout : start:Layout.
-                    SlotId(192) => {
-                        let Some(result) = result else {
-                            unreachable!("result cannot be None here.")
-                        };
-                        self.pop(
-                            gss_node_id,
-                            SlotId(192),
                             result,
                             None,
                             &FOLLOW_SET_START_LAYOUT,
@@ -2561,11 +2545,11 @@ impl<'i, 'arena> Parser<'i, 'arena> for ErrorUnionParser<'i, 'arena> {
             .push(SPPFNode::Intermediate(intermediate_node));
         if add_to_index {
             let arena = self.vec_arena;
-            if slot_idx < 193 {
+            if slot_idx < 191 {
                 self.intermediate_nodes_index
                     .insert(slot_idx, span, intermediate_node_id, arena);
             } else {
-                let idx = slot_idx - 193;
+                let idx = slot_idx - 191;
                 self.dd_intermediate_nodes_index.insert(
                     idx,
                     (span, env),
@@ -2639,10 +2623,10 @@ impl<'i, 'arena> Parser<'i, 'arena> for ErrorUnionParser<'i, 'arena> {
     ) -> Option<SPPFNodeId> {
         let slot_idx = slot_id.index();
         let span = Span::new(left_extent, right_extent);
-        if slot_idx < 193 {
+        if slot_idx < 191 {
             self.intermediate_nodes_index.get(slot_idx, &span)
         } else {
-            let idx = slot_idx - 193;
+            let idx = slot_idx - 191;
             self.dd_intermediate_nodes_index.get(idx, &(span, env))
         }
     }
@@ -2990,7 +2974,7 @@ impl<'i, 'arena> ErrorUnionParser<'i, 'arena> {
         Self {
             vec_arena,
             scanner: ErrorUnionScanner::new(input, vec_arena),
-            gss_nodes_index: LazyInlineMaps::new(42, vec_arena),
+            gss_nodes_index: LazyInlineMaps::new(41, vec_arena),
             descriptors: vec_arena.vec_with_capacity(
                 input.len() as usize / DESCRIPTORS_CAPACITY_DIVISOR + DESCRIPTORS_CAPACITY_FLOOR,
             ),
@@ -2999,7 +2983,7 @@ impl<'i, 'arena> ErrorUnionParser<'i, 'arena> {
             start_gss_node_id: None,
             sppf_nodes: vec_arena
                 .id_vec_with_capacity(input.len() as usize * SPPF_CAPACITY_MULTIPLIER),
-            intermediate_nodes_index: LazyInlineMaps::new(193, vec_arena),
+            intermediate_nodes_index: LazyInlineMaps::new(191, vec_arena),
             dd_intermediate_nodes_index: LazyInlineMaps::new(0, vec_arena),
             terminal_nodes_index: LazyInlineMaps::new(19, vec_arena),
             epsilon_nodes: {
@@ -3426,14 +3410,14 @@ impl<'i, 'arena> ErrorUnionParser<'i, 'arena> {
         result
     }
     #[inline(never)]
-    fn parse_opt_0_ll1(
+    fn parse_star_0_ll1(
         &mut self,
         i: u32,
         _failure_context: Option<SlotId>,
     ) -> Option<(u32, SPPFNodeId)> {
         #[cfg(feature = "instrument")]
         self.ll1_call_log.push((NonterminalId(21), i));
-        let Some(matched) = self.scanner.longest_match(&FIRST_SET_OPT_0, i) else {
+        let Some(matched) = self.scanner.longest_match(&FIRST_SET_STAR_0, i) else {
             return {
                 let epsilon_node_id = self.get_or_create_epsilon_node(i);
                 Some((
@@ -3478,37 +3462,6 @@ impl<'i, 'arena> ErrorUnionParser<'i, 'arena> {
             }
             _ => unreachable!("LL(1) dispatch covers every terminal in FIRST_SET"),
         }
-    }
-    #[inline(never)]
-    fn parse_star_0_ll1(
-        &mut self,
-        i: u32,
-        _failure_context: Option<SlotId>,
-    ) -> Option<(u32, SPPFNodeId)> {
-        #[cfg(feature = "instrument")]
-        self.ll1_call_log.push((NonterminalId(22), i));
-        let mut j = i;
-        let right_child = {
-            let start = j;
-            let (end, node) = self.parse_opt_0_ll1(start, Some(SlotId(118)))?;
-            j = end;
-            node
-        };
-        let left_extent = i;
-        let current = right_child;
-        Some((
-            j,
-            self.add_nonterminal_node(NonterminalNode {
-                nonterminal_id: NonterminalId(22),
-                return_slot: SlotId(118),
-                span: Span {
-                    left_extent,
-                    right_extent: j,
-                },
-                child: current,
-                ambiguous: false,
-            }),
-        ))
     }
     fn get_or_create_epsilon_node(&mut self, i: u32) -> SPPFNodeId {
         if let Some(existing) = self.epsilon_nodes[i as usize] {

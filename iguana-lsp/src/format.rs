@@ -865,13 +865,10 @@ fn last_syntax_token(tree: ParseTree<'_>) -> Option<Span> {
 fn priority_level_separators(priority_levels: &Star1<'_>) -> Vec<Span> {
     let mut separators = Vec::new();
     match priority_levels {
-        Star1::Alt0 { opt_2, .. } => match opt_2 {
-            Opt2::Alt0 {
-                priority_levels, ..
-            } => collect_priority_level_separators(priority_levels, &mut separators),
-            Opt2::Alt1 { .. } => {}
-            Opt2::Amb(_) => unreachable!("ambiguous trees are rejected before this point"),
-        },
+        Star1::Alt0 {
+            priority_levels, ..
+        } => collect_priority_level_separators(priority_levels, &mut separators),
+        Star1::Alt1 { .. } => {}
         Star1::Amb(_) => unreachable!("ambiguous trees are rejected before this point"),
     }
     separators
@@ -895,13 +892,10 @@ fn collect_priority_level_separators(priority_levels: &Plus1<'_>, separators: &m
 fn alternative_separators(alternatives: &Star3<'_>) -> Vec<Span> {
     let mut separators = Vec::new();
     match alternatives {
-        Star3::Alt0 { opt_8, .. } => match opt_8 {
-            Opt8::Alt0 { alternatives, .. } => {
-                collect_alternative_separators(alternatives, &mut separators);
-            }
-            Opt8::Alt1 { .. } => {}
-            Opt8::Amb(_) => unreachable!("ambiguous trees are rejected before this point"),
-        },
+        Star3::Alt0 { alternatives, .. } => {
+            collect_alternative_separators(alternatives, &mut separators);
+        }
+        Star3::Alt1 { .. } => {}
         Star3::Amb(_) => unreachable!("ambiguous trees are rejected before this point"),
     }
     separators

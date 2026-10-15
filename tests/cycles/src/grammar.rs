@@ -42,45 +42,44 @@ pub const NULLABLE_SEPARATED: NonterminalId = NonterminalId(31);
 pub const OPTIONAL: NonterminalId = NonterminalId(32);
 pub const GROUPED: NonterminalId = NonterminalId(33);
 pub const PLUS_0: NonterminalId = NonterminalId(34);
-pub const OPT_0: NonterminalId = NonterminalId(35);
-pub const STAR_0: NonterminalId = NonterminalId(36);
-pub const PLUS_1: NonterminalId = NonterminalId(37);
-pub const OPT_1: NonterminalId = NonterminalId(38);
-pub const GROUP_0: NonterminalId = NonterminalId(39);
-pub const START_DIRECT: NonterminalId = NonterminalId(40);
-pub const START_MUTUAL_C: NonterminalId = NonterminalId(41);
-pub const START_MUTUAL_B: NonterminalId = NonterminalId(42);
-pub const START_CHAIN_C: NonterminalId = NonterminalId(43);
-pub const START_CHAIN_A: NonterminalId = NonterminalId(44);
-pub const START_CHAIN_B: NonterminalId = NonterminalId(45);
-pub const START_SHARED_S: NonterminalId = NonterminalId(46);
-pub const START_SHARED_A: NonterminalId = NonterminalId(47);
-pub const START_SHARED_B: NonterminalId = NonterminalId(48);
-pub const START_TWO_EXITS_C: NonterminalId = NonterminalId(49);
-pub const START_TWO_EXITS_B: NonterminalId = NonterminalId(50);
-pub const START_TWO_ROUTES_C: NonterminalId = NonterminalId(51);
-pub const START_TWO_ROUTES_A: NonterminalId = NonterminalId(52);
-pub const START_TWO_ROUTES_B: NonterminalId = NonterminalId(53);
-pub const START_NULLABLE: NonterminalId = NonterminalId(54);
-pub const START_SIBLING_C: NonterminalId = NonterminalId(55);
-pub const START_SIBLING_D: NonterminalId = NonterminalId(56);
-pub const START_EMPTY_E: NonterminalId = NonterminalId(57);
-pub const START_EMPTY_F: NonterminalId = NonterminalId(58);
-pub const START_PARENT_C: NonterminalId = NonterminalId(59);
-pub const START_PARENT_D: NonterminalId = NonterminalId(60);
-pub const START_OVERLAP_C: NonterminalId = NonterminalId(61);
-pub const START_OVERLAP_B: NonterminalId = NonterminalId(62);
-pub const START_INTERMEDIATE_Y: NonterminalId = NonterminalId(63);
-pub const START_INTERMEDIATE_A: NonterminalId = NonterminalId(64);
-pub const START_INTERMEDIATE_B: NonterminalId = NonterminalId(65);
-pub const START_MID_INPUT: NonterminalId = NonterminalId(66);
-pub const START_CONSUMING: NonterminalId = NonterminalId(67);
-pub const START_ORDINARY: NonterminalId = NonterminalId(68);
-pub const START_NULLABLE_PLUS: NonterminalId = NonterminalId(69);
-pub const START_NULLABLE_STAR: NonterminalId = NonterminalId(70);
-pub const START_NULLABLE_SEPARATED: NonterminalId = NonterminalId(71);
-pub const START_OPTIONAL: NonterminalId = NonterminalId(72);
-pub const START_GROUPED: NonterminalId = NonterminalId(73);
+pub const STAR_0: NonterminalId = NonterminalId(35);
+pub const PLUS_1: NonterminalId = NonterminalId(36);
+pub const OPT_0: NonterminalId = NonterminalId(37);
+pub const GROUP_0: NonterminalId = NonterminalId(38);
+pub const START_DIRECT: NonterminalId = NonterminalId(39);
+pub const START_MUTUAL_C: NonterminalId = NonterminalId(40);
+pub const START_MUTUAL_B: NonterminalId = NonterminalId(41);
+pub const START_CHAIN_C: NonterminalId = NonterminalId(42);
+pub const START_CHAIN_A: NonterminalId = NonterminalId(43);
+pub const START_CHAIN_B: NonterminalId = NonterminalId(44);
+pub const START_SHARED_S: NonterminalId = NonterminalId(45);
+pub const START_SHARED_A: NonterminalId = NonterminalId(46);
+pub const START_SHARED_B: NonterminalId = NonterminalId(47);
+pub const START_TWO_EXITS_C: NonterminalId = NonterminalId(48);
+pub const START_TWO_EXITS_B: NonterminalId = NonterminalId(49);
+pub const START_TWO_ROUTES_C: NonterminalId = NonterminalId(50);
+pub const START_TWO_ROUTES_A: NonterminalId = NonterminalId(51);
+pub const START_TWO_ROUTES_B: NonterminalId = NonterminalId(52);
+pub const START_NULLABLE: NonterminalId = NonterminalId(53);
+pub const START_SIBLING_C: NonterminalId = NonterminalId(54);
+pub const START_SIBLING_D: NonterminalId = NonterminalId(55);
+pub const START_EMPTY_E: NonterminalId = NonterminalId(56);
+pub const START_EMPTY_F: NonterminalId = NonterminalId(57);
+pub const START_PARENT_C: NonterminalId = NonterminalId(58);
+pub const START_PARENT_D: NonterminalId = NonterminalId(59);
+pub const START_OVERLAP_C: NonterminalId = NonterminalId(60);
+pub const START_OVERLAP_B: NonterminalId = NonterminalId(61);
+pub const START_INTERMEDIATE_Y: NonterminalId = NonterminalId(62);
+pub const START_INTERMEDIATE_A: NonterminalId = NonterminalId(63);
+pub const START_INTERMEDIATE_B: NonterminalId = NonterminalId(64);
+pub const START_MID_INPUT: NonterminalId = NonterminalId(65);
+pub const START_CONSUMING: NonterminalId = NonterminalId(66);
+pub const START_ORDINARY: NonterminalId = NonterminalId(67);
+pub const START_NULLABLE_PLUS: NonterminalId = NonterminalId(68);
+pub const START_NULLABLE_STAR: NonterminalId = NonterminalId(69);
+pub const START_NULLABLE_SEPARATED: NonterminalId = NonterminalId(70);
+pub const START_OPTIONAL: NonterminalId = NonterminalId(71);
+pub const START_GROUPED: NonterminalId = NonterminalId(72);
 pub struct CyclesGrammar;
 impl Grammar for CyclesGrammar {
     type Alternatives = BitSet<1>;
@@ -227,10 +226,6 @@ impl Grammar for CyclesGrammar {
             display_name: "EmptyE+",
         },
         Nonterminal {
-            name: "Opt_0",
-            display_name: "EmptyE+?",
-        },
-        Nonterminal {
             name: "Star_0",
             display_name: "EmptyE*",
         },
@@ -239,7 +234,7 @@ impl Grammar for CyclesGrammar {
             display_name: "{EmptyE EmptyF}+",
         },
         Nonterminal {
-            name: "Opt_1",
+            name: "Opt_0",
             display_name: "Optional?",
         },
         Nonterminal {
@@ -887,24 +882,16 @@ impl Grammar for CyclesGrammar {
             position: 1,
         },
         Slot {
-            display_name: "EmptyE+? : . EmptyE+",
+            display_name: "EmptyE* : . EmptyE+",
             position: 0,
         },
         Slot {
-            display_name: "EmptyE+? : EmptyE+.",
+            display_name: "EmptyE* : EmptyE+.",
             position: 1,
         },
         Slot {
-            display_name: "EmptyE+? : .",
+            display_name: "EmptyE* : .",
             position: 0,
-        },
-        Slot {
-            display_name: "EmptyE* : . EmptyE+?",
-            position: 0,
-        },
-        Slot {
-            display_name: "EmptyE* : EmptyE+?.",
-            position: 1,
         },
         Slot {
             display_name: "{EmptyE EmptyF}+ : . {EmptyE EmptyF}+ EmptyF EmptyE",
@@ -1260,9 +1247,9 @@ impl Grammar for CyclesGrammar {
         &[SlotId(106), SlotId(108)],
         &[SlotId(110), SlotId(113)],
         &[SlotId(115), SlotId(117)],
-        &[SlotId(118)],
-        &[SlotId(120), SlotId(124)],
-        &[SlotId(126), SlotId(128)],
+        &[SlotId(118), SlotId(122)],
+        &[SlotId(124), SlotId(126)],
+        &[SlotId(127)],
         &[SlotId(129)],
         &[SlotId(131)],
         &[SlotId(133)],
@@ -1297,7 +1284,6 @@ impl Grammar for CyclesGrammar {
         &[SlotId(191)],
         &[SlotId(193)],
         &[SlotId(195)],
-        &[SlotId(197)],
     ];
     const LAYOUT_NAME: Option<&'static str> = None;
     const LAYOUT_TERMINALS: &'static [TerminalId] = &[];
@@ -1359,10 +1345,9 @@ impl Grammar for CyclesGrammar {
             "Optional" => Some(OPTIONAL),
             "Grouped" => Some(GROUPED),
             "Plus_0" => Some(PLUS_0),
-            "Opt_0" => Some(OPT_0),
             "Star_0" => Some(STAR_0),
             "Plus_1" => Some(PLUS_1),
-            "Opt_1" => Some(OPT_1),
+            "Opt_0" => Some(OPT_0),
             "Group_0" => Some(GROUP_0),
             "StartDirect" => Some(START_DIRECT),
             "StartMutualC" => Some(START_MUTUAL_C),
@@ -1577,11 +1562,6 @@ pub static FOLLOW_SET_PLUS_0: TerminalSet = TerminalSet {
     id: 1,
     terminals: &[TerminalId(3)],
 };
-// Opt_0 { EOF }
-pub static FOLLOW_SET_OPT_0: TerminalSet = TerminalSet {
-    id: 1,
-    terminals: &[TerminalId(3)],
-};
 // Star_0 { EOF }
 pub static FOLLOW_SET_STAR_0: TerminalSet = TerminalSet {
     id: 1,
@@ -1592,8 +1572,8 @@ pub static FOLLOW_SET_PLUS_1: TerminalSet = TerminalSet {
     id: 1,
     terminals: &[TerminalId(3)],
 };
-// Opt_1 { EOF }
-pub static FOLLOW_SET_OPT_1: TerminalSet = TerminalSet {
+// Opt_0 { EOF }
+pub static FOLLOW_SET_OPT_0: TerminalSet = TerminalSet {
     id: 1,
     terminals: &[TerminalId(3)],
 };
@@ -5757,7 +5737,7 @@ pub static PREDICTION_NULLABLE_SEPARATED: Prediction = {
     }
 };
 // Optional
-// 0: Opt_1 #C1
+// 0: Opt_0 #C1
 // 1: "b" #C2
 pub static PREDICTION_OPTIONAL: Prediction = {
     // "b"
@@ -6181,152 +6161,12 @@ pub static PREDICTION_PLUS_0: Prediction = {
         end_of_input: TERMINALS_1,
     }
 };
-// Opt_0
+// Star_0
 // 0: Plus_0
 // 1: ()
-pub static PREDICTION_OPT_0: Prediction = {
-    // EOF
-    const TERMINALS_1: &[(TerminalId, u16)] = &[(TerminalId(3), 0), (TerminalId(3), 1)];
-    Prediction {
-        ascii: [
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-        ],
-        non_ascii: &[],
-        end_of_input: TERMINALS_1,
-    }
-};
-// Star_0
-// 0: Opt_0
 pub static PREDICTION_STAR_0: Prediction = {
     // EOF
-    const TERMINALS_1: &[(TerminalId, u16)] = &[(TerminalId(3), 0)];
+    const TERMINALS_1: &[(TerminalId, u16)] = &[(TerminalId(3), 0), (TerminalId(3), 1)];
     Prediction {
         ascii: [
             &[],
@@ -6603,10 +6443,10 @@ pub static PREDICTION_PLUS_1: Prediction = {
         end_of_input: TERMINALS_1,
     }
 };
-// Opt_1
+// Opt_0
 // 0: Optional
 // 1: ()
-pub static PREDICTION_OPT_1: Prediction = {
+pub static PREDICTION_OPT_0: Prediction = {
     // "b"
     const TERMINALS_1: &[(TerminalId, u16)] = &[(TerminalId(0), 0)];
     // EOF

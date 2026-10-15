@@ -167,10 +167,10 @@ impl<'i, 'arena> Parser<'i, 'arena> for StarParser<'i, 'arena> {
                         };
                         self.pop(gss_node_id, SlotId(8), result, None, &FOLLOW_SET_PLUS_0);
                     }
-                    // Opt_0 : . Plus_0
+                    // Star_0 : . Plus_0
                     SlotId(9) => {
                         if let Some((j, right_child)) = self.parse_plus_0_ll1(input_index, None) {
-                            // Opt_0 : Plus_0.
+                            // Star_0 : Plus_0.
                             input_index = j;
                             result = Some(right_child);
                             next = Some(SlotId(10));
@@ -183,72 +183,56 @@ impl<'i, 'arena> Parser<'i, 'arena> for StarParser<'i, 'arena> {
                             );
                         }
                     }
-                    // Opt_0 : Plus_0.
+                    // Star_0 : Plus_0.
                     SlotId(10) => {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        self.pop(gss_node_id, SlotId(10), result, None, &FOLLOW_SET_OPT_0);
+                        self.pop(gss_node_id, SlotId(10), result, None, &FOLLOW_SET_STAR_0);
                     }
-                    // Opt_0 : .
+                    // Star_0 : .
                     SlotId(11) => {
                         let result = self.get_or_create_epsilon_node(input_index);
-                        self.pop(gss_node_id, SlotId(11), result, None, &FOLLOW_SET_OPT_0);
+                        self.pop(gss_node_id, SlotId(11), result, None, &FOLLOW_SET_STAR_0);
                     }
-                    // Star_0 : . Opt_0
+                    // StartS : . start:S
                     SlotId(12) => {
-                        if let Some((j, right_child)) = self.parse_opt_0_ll1(input_index, None) {
-                            // Star_0 : Opt_0.
+                        if let Some((j, right_child)) = self.parse_s_ll1(input_index, None) {
+                            // StartS : start:S.
                             input_index = j;
                             result = Some(right_child);
                             next = Some(SlotId(13));
                         }
                     }
-                    // Star_0 : Opt_0.
+                    // StartS : start:S.
                     SlotId(13) => {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        self.pop(gss_node_id, SlotId(13), result, None, &FOLLOW_SET_STAR_0);
-                    }
-                    // StartS : . start:S
-                    SlotId(14) => {
-                        if let Some((j, right_child)) = self.parse_s_ll1(input_index, None) {
-                            // StartS : start:S.
-                            input_index = j;
-                            result = Some(right_child);
-                            next = Some(SlotId(15));
-                        }
-                    }
-                    // StartS : start:S.
-                    SlotId(15) => {
-                        let Some(result) = result else {
-                            unreachable!("result cannot be None here.")
-                        };
-                        self.pop(gss_node_id, SlotId(15), result, None, &FOLLOW_SET_START_S);
+                        self.pop(gss_node_id, SlotId(13), result, None, &FOLLOW_SET_START_S);
                     }
                     // StartA : . start:A
-                    SlotId(16) => {
+                    SlotId(14) => {
                         if let Some((j, right_child)) = self.parse_a_ll1(input_index, None) {
                             // StartA : start:A.
                             input_index = j;
                             result = Some(right_child);
-                            next = Some(SlotId(17));
+                            next = Some(SlotId(15));
                         } else {
                             self.add_failure(
                                 input_index,
-                                SlotId(16),
+                                SlotId(14),
                                 Some(gss_node_id),
                                 GLLFailureKind::UnexpectedToken(&FIRST_SET_A),
                             );
                         }
                     }
                     // StartA : start:A.
-                    SlotId(17) => {
+                    SlotId(15) => {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        self.pop(gss_node_id, SlotId(17), result, None, &FOLLOW_SET_START_A);
+                        self.pop(gss_node_id, SlotId(15), result, None, &FOLLOW_SET_START_A);
                     }
                     _ => {
                         panic!("Unknown grammar slot id: {slot_id}");
@@ -367,11 +351,11 @@ impl<'i, 'arena> Parser<'i, 'arena> for StarParser<'i, 'arena> {
             .push(SPPFNode::Intermediate(intermediate_node));
         if add_to_index {
             let arena = self.vec_arena;
-            if slot_idx < 18 {
+            if slot_idx < 16 {
                 self.intermediate_nodes_index
                     .insert(slot_idx, span, intermediate_node_id, arena);
             } else {
-                let idx = slot_idx - 18;
+                let idx = slot_idx - 16;
                 self.dd_intermediate_nodes_index.insert(
                     idx,
                     (span, env),
@@ -445,10 +429,10 @@ impl<'i, 'arena> Parser<'i, 'arena> for StarParser<'i, 'arena> {
     ) -> Option<SPPFNodeId> {
         let slot_idx = slot_id.index();
         let span = Span::new(left_extent, right_extent);
-        if slot_idx < 18 {
+        if slot_idx < 16 {
             self.intermediate_nodes_index.get(slot_idx, &span)
         } else {
-            let idx = slot_idx - 18;
+            let idx = slot_idx - 16;
             self.dd_intermediate_nodes_index.get(idx, &(span, env))
         }
     }
@@ -709,7 +693,7 @@ impl<'i, 'arena> StarParser<'i, 'arena> {
         Self {
             vec_arena,
             scanner: StarScanner::new(input, vec_arena),
-            gss_nodes_index: LazyInlineMaps::new(7, vec_arena),
+            gss_nodes_index: LazyInlineMaps::new(6, vec_arena),
             descriptors: vec_arena.vec_with_capacity(
                 input.len() as usize / DESCRIPTORS_CAPACITY_DIVISOR + DESCRIPTORS_CAPACITY_FLOOR,
             ),
@@ -718,7 +702,7 @@ impl<'i, 'arena> StarParser<'i, 'arena> {
             start_gss_node_id: None,
             sppf_nodes: vec_arena
                 .id_vec_with_capacity(input.len() as usize * SPPF_CAPACITY_MULTIPLIER),
-            intermediate_nodes_index: LazyInlineMaps::new(18, vec_arena),
+            intermediate_nodes_index: LazyInlineMaps::new(16, vec_arena),
             dd_intermediate_nodes_index: LazyInlineMaps::new(0, vec_arena),
             terminal_nodes_index: LazyInlineMaps::new(3, vec_arena),
             epsilon_nodes: {
@@ -915,14 +899,14 @@ impl<'i, 'arena> StarParser<'i, 'arena> {
         result
     }
     #[inline(never)]
-    fn parse_opt_0_ll1(
+    fn parse_star_0_ll1(
         &mut self,
         i: u32,
         _failure_context: Option<SlotId>,
     ) -> Option<(u32, SPPFNodeId)> {
         #[cfg(feature = "instrument")]
         self.ll1_call_log.push((NonterminalId(3), i));
-        let Some(matched) = self.scanner.longest_match(&FIRST_SET_OPT_0, i) else {
+        let Some(matched) = self.scanner.longest_match(&FIRST_SET_STAR_0, i) else {
             return {
                 let epsilon_node_id = self.get_or_create_epsilon_node(i);
                 Some((
@@ -967,37 +951,6 @@ impl<'i, 'arena> StarParser<'i, 'arena> {
             }
             _ => unreachable!("LL(1) dispatch covers every terminal in FIRST_SET"),
         }
-    }
-    #[inline(never)]
-    fn parse_star_0_ll1(
-        &mut self,
-        i: u32,
-        _failure_context: Option<SlotId>,
-    ) -> Option<(u32, SPPFNodeId)> {
-        #[cfg(feature = "instrument")]
-        self.ll1_call_log.push((NonterminalId(4), i));
-        let mut j = i;
-        let right_child = {
-            let start = j;
-            let (end, node) = self.parse_opt_0_ll1(start, Some(SlotId(13)))?;
-            j = end;
-            node
-        };
-        let left_extent = i;
-        let current = right_child;
-        Some((
-            j,
-            self.add_nonterminal_node(NonterminalNode {
-                nonterminal_id: NonterminalId(4),
-                return_slot: SlotId(13),
-                span: Span {
-                    left_extent,
-                    right_extent: j,
-                },
-                child: current,
-                ambiguous: false,
-            }),
-        ))
     }
     fn get_or_create_epsilon_node(&mut self, i: u32) -> SPPFNodeId {
         if let Some(existing) = self.epsilon_nodes[i as usize] {

@@ -1173,11 +1173,11 @@ impl<'a> ParseTreeGen<'a> {
                 let variant = nt_ident(&n.name);
                 let var_ident = safe_ident(&to_snake_case(&n.name));
                 let cycle_arm = self.cycle_arm(n, quote! { #variant::Cycle { .. } => vec![], });
-                if n.is_plus() && !self.config.unsafe_mode {
-                    // Plus::Amb wraps a slice of complete Plus subtrees. Show those as
-                    // children directly; routing through iter() would push the same Amb
-                    // back as a child and recurse forever. The unsafe mode has no Amb
-                    // variant, so its Plus arm iterates like Star below.
+                if (n.is_plus() || n.is_star()) && !self.config.unsafe_mode {
+                    // Plus::Amb and Star::Amb wrap a slice of complete list subtrees.
+                    // Show those as children directly; routing through iter() would push
+                    // the same Amb back as a child and recurse forever. The unsafe mode
+                    // has no Amb variant, so its list arms iterate below.
                     quote! {
                         ParseTree::#variant(#var_ident) => match #var_ident {
                             #variant::Amb(alts) => alts.iter().copied().map(ParseTree::#variant).collect(),
@@ -1569,12 +1569,14 @@ impl<'a> ParseTreeGen<'a> {
                 if element_types.is_empty() {
                     return None;
                 }
+                // Star is `Alt0 { plus_field, span } | Alt1 { span }`: a list or empty.
                 let alternatives = self.grammar.alternatives(nonterminal);
-                let opt_symbol = alternatives[0].symbols.first()?;
-                let opt_field_name =
-                    safe_ident(&gen_field_name(self.grammar, opt_symbol, 0, false));
+                let plus_symbol = alternatives[0].symbols.first()?;
+                let plus_field_name =
+                    safe_ident(&gen_field_name(self.grammar, plus_symbol, 0, false));
                 let ident = nt_ident(&nonterminal.name);
                 let alt0_variant = nt_ident(&alternative_label(&alternatives[0], 0));
+                let alt1_variant = nt_ident(&alternative_label(&alternatives[1], 1));
                 let panic_msg = format!("{} is ambiguous", nonterminal.name);
                 let amb_arm = self.amb_arm(quote! { #ident::Amb(_) => panic!(#panic_msg), });
                 let cycle_arm = self.cycle_panic_arm(nonterminal);
@@ -1586,11 +1588,13 @@ impl<'a> ParseTreeGen<'a> {
                         let return_type = self.gen_accessor_return_type(nonterminal, elem);
                         quote! {
                             pub fn #method_name(&self) -> #return_type {
-                                match self {
-                                    #ident::#alt0_variant { #opt_field_name, .. } => #opt_field_name.#method_name(),
+                                let plus = match self {
+                                    #ident::#alt0_variant { #plus_field_name, .. } => Some(*#plus_field_name),
+                                    #ident::#alt1_variant { .. } => None,
                                     #amb_arm
                                     #cycle_arm
-                                }
+                                };
+                                plus.into_iter().flat_map(|plus| plus.#method_name())
                             }
                         }
                     })
@@ -1913,30 +1917,14 @@ impl<'a> ParseTreeGen<'a> {
         let star_ident = nt_ident(&nonterminal.name);
         let star_ty = self.nonterminal_type(nonterminal);
         let star_alternatives = self.grammar.alternatives(nonterminal);
-        // Star is a single-alternative enum: `Alt0 { opt_field, span } + Amb`.
+        // Star is `Alt0 { plus_field, span } | Alt1 { span }`: a list or empty.
         let star_alt0 = nt_ident(&alternative_label(&star_alternatives[0], 0));
-        let first_symbol = &star_alternatives[0].symbols[0];
-        let field_name = safe_ident(&gen_field_name(self.grammar, first_symbol, 0, false));
-        let def_id = first_symbol.resolved_def();
-        let opt_nonterminal = self.grammar.definition(def_id).as_nonterminal();
-        let opt_alternatives = self.grammar.alternatives(opt_nonterminal);
-
-        let opt_ident = nt_ident(&opt_nonterminal.name);
-        let var_ident = safe_ident(&to_snake_case(&opt_nonterminal.name));
-        let label = alternative_label(&opt_alternatives[0], 0);
-        let opt_alt0 = nt_ident(&label);
-        let opt_first_alt_fields = field_names(self.grammar, &opt_alternatives[0]);
-        let f0 = &opt_first_alt_fields[0];
-        let label = alternative_label(&opt_alternatives[1], 1);
-        let opt_alt1 = nt_ident(&label);
-        let opt_amb_arm = self.amb_arm(
-            quote! { #opt_ident::Amb(_) => vec![ParseTree::#opt_ident(#field_name)].into_iter(), },
-        );
+        let star_alt1 = nt_ident(&alternative_label(&star_alternatives[1], 1));
+        let plus_symbol = &star_alternatives[0].symbols[0];
+        let field_name = safe_ident(&gen_field_name(self.grammar, plus_symbol, 0, false));
         let star_amb_arm = self.amb_arm(
             quote! { #star_ident::Amb(_) => vec![ParseTree::#star_ident(self)].into_iter(), },
         );
-        let opt_cycle_arm = self.cycle_arm(opt_nonterminal,
-            quote! { #opt_ident::Cycle { .. } => vec![ParseTree::#opt_ident(#field_name)].into_iter(), });
         let star_cycle_arm = self.cycle_arm(
             nonterminal,
             quote! { #star_ident::Cycle { .. } => vec![ParseTree::#star_ident(self)].into_iter(), },
@@ -1945,12 +1933,8 @@ impl<'a> ParseTreeGen<'a> {
             impl<'a> ListNode<'a> for #star_ty {
                 fn iter(&'a self) -> IntoIter<ParseTree<'a>> {
                     match self {
-                        #star_ident::#star_alt0 { #field_name, .. } => match #field_name {
-                            #opt_ident::#opt_alt0 { #f0: #var_ident, .. } => #var_ident.iter(),
-                            #opt_ident::#opt_alt1 { .. } => vec![].into_iter(),
-                            #opt_amb_arm
-                            #opt_cycle_arm
-                        },
+                        #star_ident::#star_alt0 { #field_name, .. } => #field_name.iter(),
+                        #star_ident::#star_alt1 { .. } => vec![].into_iter(),
                         #star_amb_arm
                         #star_cycle_arm
                     }

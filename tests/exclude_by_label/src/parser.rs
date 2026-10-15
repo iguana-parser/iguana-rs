@@ -67,57 +67,86 @@ impl<'i, 'arena> Parser<'i, 'arena> for ExcludeByLabelParser<'i, 'arena> {
                 );
                 match slot_id {
                     // Expr(e: i32) : . [1 & e == 0] Id return (0, 0)
-                    SlotId(13) => {
+                    SlotId(11) => {
                         if (1) & (self.lookup(BINDING_E, env.unwrap())) == 0 {
-                            next = Some(SlotId(14));
+                            next = Some(SlotId(12));
                         }
                     }
                     // Expr(e: i32) : [1 & e == 0] . Id return (0, 0)
-                    SlotId(14) => {
+                    SlotId(12) => {
                         if let Some((j, right_child)) = self.match_terminal(
                             TerminalId(0),
                             input_index,
-                            SlotId(14),
+                            SlotId(12),
                             Some(gss_node_id),
                         ) {
                             // Expr(e: i32) : [1 & e == 0] Id . return (0, 0)
                             input_index = j;
                             result = Some(right_child);
-                            next = Some(SlotId(15));
+                            next = Some(SlotId(13));
                         }
                     }
                     // Expr(e: i32) : [1 & e == 0] Id . return (0, 0)
-                    SlotId(15) => {
-                        next = Some(SlotId(16));
+                    SlotId(13) => {
+                        next = Some(SlotId(14));
                     }
                     // Expr(e: i32) : [1 & e == 0] Id return (0, 0).
-                    SlotId(16) => {
+                    SlotId(14) => {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
                         let return_value = 0;
                         self.pop(
                             gss_node_id,
-                            SlotId(16),
+                            SlotId(14),
                             result,
                             Some(return_value),
                             &FOLLOW_SET_EXPR,
                         );
                     }
                     // Expr(e: i32) : . [2 & e == 0] Expr(0) "(" Star_0 ")" return (0, 1)
-                    SlotId(17) => {
+                    SlotId(15) => {
                         if (2) & (self.lookup(BINDING_E, env.unwrap())) == 0 {
-                            next = Some(SlotId(18));
+                            next = Some(SlotId(16));
                         }
                     }
                     // Expr(e: i32) : [2 & e == 0] . Expr(0) "(" Star_0 ")" return (0, 1)
-                    SlotId(18) => {
-                        self.create_expr(result, gss_node_id, SlotId(19), env, 0);
+                    SlotId(16) => {
+                        self.create_expr(result, gss_node_id, SlotId(17), env, 0);
                     }
                     // Expr(e: i32) : [2 & e == 0] Expr(0) . "(" Star_0 ")" return (0, 1)
-                    SlotId(19) => {
+                    SlotId(17) => {
                         if let Some((j, right_child)) = self.match_terminal(
                             TerminalId(1),
+                            input_index,
+                            SlotId(17),
+                            Some(gss_node_id),
+                        ) {
+                            if let Some(new_node) =
+                                self.create_intermediate_node(result, right_child, SlotId(18), env)
+                            {
+                                // Expr(e: i32) : [2 & e == 0] Expr(0) "(" . Star_0 ")" return (0, 1)
+                                input_index = j;
+                                result = Some(new_node);
+                                next = Some(SlotId(18));
+                            }
+                        }
+                    }
+                    // Expr(e: i32) : [2 & e == 0] Expr(0) "(" . Star_0 ")" return (0, 1)
+                    SlotId(18) => {
+                        self.create(
+                            NonterminalId(1),
+                            &PREDICTION_STAR_0,
+                            result,
+                            gss_node_id,
+                            SlotId(19),
+                            env,
+                        );
+                    }
+                    // Expr(e: i32) : [2 & e == 0] Expr(0) "(" Star_0 . ")" return (0, 1)
+                    SlotId(19) => {
+                        if let Some((j, right_child)) = self.match_terminal(
+                            TerminalId(3),
                             input_index,
                             SlotId(19),
                             Some(gss_node_id),
@@ -125,105 +154,76 @@ impl<'i, 'arena> Parser<'i, 'arena> for ExcludeByLabelParser<'i, 'arena> {
                             if let Some(new_node) =
                                 self.create_intermediate_node(result, right_child, SlotId(20), env)
                             {
-                                // Expr(e: i32) : [2 & e == 0] Expr(0) "(" . Star_0 ")" return (0, 1)
+                                // Expr(e: i32) : [2 & e == 0] Expr(0) "(" Star_0 ")" . return (0, 1)
                                 input_index = j;
                                 result = Some(new_node);
                                 next = Some(SlotId(20));
                             }
                         }
                     }
-                    // Expr(e: i32) : [2 & e == 0] Expr(0) "(" . Star_0 ")" return (0, 1)
-                    SlotId(20) => {
-                        self.create(
-                            NonterminalId(2),
-                            &PREDICTION_STAR_0,
-                            result,
-                            gss_node_id,
-                            SlotId(21),
-                            env,
-                        );
-                    }
-                    // Expr(e: i32) : [2 & e == 0] Expr(0) "(" Star_0 . ")" return (0, 1)
-                    SlotId(21) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(3),
-                            input_index,
-                            SlotId(21),
-                            Some(gss_node_id),
-                        ) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(22), env)
-                            {
-                                // Expr(e: i32) : [2 & e == 0] Expr(0) "(" Star_0 ")" . return (0, 1)
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(22));
-                            }
-                        }
-                    }
                     // Expr(e: i32) : [2 & e == 0] Expr(0) "(" Star_0 ")" . return (0, 1)
-                    SlotId(22) => {
-                        next = Some(SlotId(23));
+                    SlotId(20) => {
+                        next = Some(SlotId(21));
                     }
                     // Expr(e: i32) : [2 & e == 0] Expr(0) "(" Star_0 ")" return (0, 1).
-                    SlotId(23) => {
+                    SlotId(21) => {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
                         let return_value = 1;
                         self.pop(
                             gss_node_id,
-                            SlotId(23),
+                            SlotId(21),
                             result,
                             Some(return_value),
                             &FOLLOW_SET_EXPR,
                         );
                     }
                     // Expr(e: i32) : . [4 & e == 0] Expr(0) "," Expr(0) return (0, 2)
-                    SlotId(24) => {
+                    SlotId(22) => {
                         if (4) & (self.lookup(BINDING_E, env.unwrap())) == 0 {
-                            next = Some(SlotId(25));
+                            next = Some(SlotId(23));
                         }
                     }
                     // Expr(e: i32) : [4 & e == 0] . Expr(0) "," Expr(0) return (0, 2)
-                    SlotId(25) => {
-                        self.create_expr(result, gss_node_id, SlotId(26), env, 0);
+                    SlotId(23) => {
+                        self.create_expr(result, gss_node_id, SlotId(24), env, 0);
                     }
                     // Expr(e: i32) : [4 & e == 0] Expr(0) . "," Expr(0) return (0, 2)
-                    SlotId(26) => {
+                    SlotId(24) => {
                         if let Some((j, right_child)) = self.match_terminal(
                             TerminalId(2),
                             input_index,
-                            SlotId(26),
+                            SlotId(24),
                             Some(gss_node_id),
                         ) {
                             if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(27), env)
+                                self.create_intermediate_node(result, right_child, SlotId(25), env)
                             {
                                 // Expr(e: i32) : [4 & e == 0] Expr(0) "," . Expr(0) return (0, 2)
                                 input_index = j;
                                 result = Some(new_node);
-                                next = Some(SlotId(27));
+                                next = Some(SlotId(25));
                             }
                         }
                     }
                     // Expr(e: i32) : [4 & e == 0] Expr(0) "," . Expr(0) return (0, 2)
-                    SlotId(27) => {
-                        self.create_expr(result, gss_node_id, SlotId(28), env, 0);
+                    SlotId(25) => {
+                        self.create_expr(result, gss_node_id, SlotId(26), env, 0);
                     }
                     // Expr(e: i32) : [4 & e == 0] Expr(0) "," Expr(0) . return (0, 2)
-                    SlotId(28) => {
-                        next = Some(SlotId(29));
+                    SlotId(26) => {
+                        next = Some(SlotId(27));
                     }
                     // Expr(e: i32) : [4 & e == 0] Expr(0) "," Expr(0) return (0, 2).
-                    SlotId(29) => {
+                    SlotId(27) => {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
                         let return_value = 2;
                         self.pop(
                             gss_node_id,
-                            SlotId(29),
+                            SlotId(27),
                             result,
                             Some(return_value),
                             &FOLLOW_SET_EXPR,
@@ -280,7 +280,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for ExcludeByLabelParser<'i, 'arena> {
                         };
                         self.pop(gss_node_id, SlotId(5), result, None, &FOLLOW_SET_PLUS_0);
                     }
-                    // Opt_0 : . Plus_0
+                    // Star_0 : . Plus_0
                     SlotId(6) => {
                         self.create(
                             NonterminalId(0),
@@ -291,48 +291,30 @@ impl<'i, 'arena> Parser<'i, 'arena> for ExcludeByLabelParser<'i, 'arena> {
                             env,
                         );
                     }
-                    // Opt_0 : Plus_0.
+                    // Star_0 : Plus_0.
                     SlotId(7) => {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        self.pop(gss_node_id, SlotId(7), result, None, &FOLLOW_SET_OPT_0);
+                        self.pop(gss_node_id, SlotId(7), result, None, &FOLLOW_SET_STAR_0);
                     }
-                    // Opt_0 : .
+                    // Star_0 : .
                     SlotId(8) => {
                         let result = self.get_or_create_epsilon_node(input_index);
-                        self.pop(gss_node_id, SlotId(8), result, None, &FOLLOW_SET_OPT_0);
-                    }
-                    // Star_0 : . Opt_0
-                    SlotId(9) => {
-                        self.create(
-                            NonterminalId(1),
-                            &PREDICTION_OPT_0,
-                            result,
-                            gss_node_id,
-                            SlotId(10),
-                            env,
-                        );
-                    }
-                    // Star_0 : Opt_0.
-                    SlotId(10) => {
-                        let Some(result) = result else {
-                            unreachable!("result cannot be None here.")
-                        };
-                        self.pop(gss_node_id, SlotId(10), result, None, &FOLLOW_SET_STAR_0);
+                        self.pop(gss_node_id, SlotId(8), result, None, &FOLLOW_SET_STAR_0);
                     }
                     // StartExpr : . start:Expr(0)
-                    SlotId(11) => {
-                        self.create_expr(result, gss_node_id, SlotId(12), env, 0);
+                    SlotId(9) => {
+                        self.create_expr(result, gss_node_id, SlotId(10), env, 0);
                     }
                     // StartExpr : start:Expr(0).
-                    SlotId(12) => {
+                    SlotId(10) => {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
                         self.pop(
                             gss_node_id,
-                            SlotId(12),
+                            SlotId(10),
                             result,
                             None,
                             &FOLLOW_SET_START_EXPR,
@@ -455,11 +437,11 @@ impl<'i, 'arena> Parser<'i, 'arena> for ExcludeByLabelParser<'i, 'arena> {
             .push(SPPFNode::Intermediate(intermediate_node));
         if add_to_index {
             let arena = self.vec_arena;
-            if slot_idx < 13 {
+            if slot_idx < 11 {
                 self.intermediate_nodes_index
                     .insert(slot_idx, span, intermediate_node_id, arena);
             } else {
-                let idx = slot_idx - 13;
+                let idx = slot_idx - 11;
                 self.dd_intermediate_nodes_index.insert(
                     idx,
                     (span, env),
@@ -533,10 +515,10 @@ impl<'i, 'arena> Parser<'i, 'arena> for ExcludeByLabelParser<'i, 'arena> {
     ) -> Option<SPPFNodeId> {
         let slot_idx = slot_id.index();
         let span = Span::new(left_extent, right_extent);
-        if slot_idx < 13 {
+        if slot_idx < 11 {
             self.intermediate_nodes_index.get(slot_idx, &span)
         } else {
-            let idx = slot_idx - 13;
+            let idx = slot_idx - 11;
             self.dd_intermediate_nodes_index.get(idx, &(span, env))
         }
     }
@@ -610,7 +592,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for ExcludeByLabelParser<'i, 'arena> {
     }
     fn start_env(&mut self, start: NonterminalId) -> Option<EnvId> {
         match start {
-            NonterminalId(4) => {
+            NonterminalId(3) => {
                 let arena = self.vec_arena;
                 let (env_id, env) = self.new_env();
                 env.bind(BINDING_E, 0, arena);
@@ -631,7 +613,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for ExcludeByLabelParser<'i, 'arena> {
         gss_node_id: GssNodeId,
     ) {
         match nonterminal_id {
-            NonterminalId(4) => self.add_gss_node_expr(input_index, 0, gss_node_id),
+            NonterminalId(3) => self.add_gss_node_expr(input_index, 0, gss_node_id),
             _ => self.add_gss_node(nonterminal_id, input_index, gss_node_id),
         }
     }
@@ -814,7 +796,7 @@ impl<'i, 'arena> ExcludeByLabelParser<'i, 'arena> {
         Self {
             vec_arena,
             scanner: ExcludeByLabelScanner::new(input, vec_arena),
-            gss_nodes_index: LazyInlineMaps::new(4, vec_arena),
+            gss_nodes_index: LazyInlineMaps::new(3, vec_arena),
             gss_nodes_index_expr: InlineMap::Empty,
             descriptors: vec_arena.vec_with_capacity(
                 input.len() as usize / DESCRIPTORS_CAPACITY_DIVISOR + DESCRIPTORS_CAPACITY_FLOOR,
@@ -824,7 +806,7 @@ impl<'i, 'arena> ExcludeByLabelParser<'i, 'arena> {
             start_gss_node_id: None,
             sppf_nodes: vec_arena
                 .id_vec_with_capacity(input.len() as usize * SPPF_CAPACITY_MULTIPLIER),
-            intermediate_nodes_index: LazyInlineMaps::new(13, vec_arena),
+            intermediate_nodes_index: LazyInlineMaps::new(11, vec_arena),
             dd_intermediate_nodes_index: LazyInlineMaps::new(17, vec_arena),
             terminal_nodes_index: LazyInlineMaps::new(6, vec_arena),
             epsilon_nodes: {
@@ -886,7 +868,7 @@ impl<'i, 'arena> ExcludeByLabelParser<'i, 'arena> {
         };
         // If there is already a GSS node for this call, add an edge.
         if let Some(existing_gss_node_id) = self.get_gss_node_expr(i, e) {
-            record!(self, GSSNodeFound, NonterminalId(4), i);
+            record!(self, GSSNodeFound, NonterminalId(3), i);
             self.add_edge_to_existing_gss_node(
                 existing_gss_node_id,
                 gss_node_id,
@@ -898,14 +880,14 @@ impl<'i, 'arena> ExcludeByLabelParser<'i, 'arena> {
         }
         let alternatives = self.predict(&PREDICTION_EXPR, i);
         if !alternatives.is_empty() {
-            record!(self, GSSNodeNotFound, NonterminalId(4), i);
-            let new_gss_node_id = self.new_gss_node(NonterminalId(4), i);
+            record!(self, GSSNodeNotFound, NonterminalId(3), i);
+            let new_gss_node_id = self.new_gss_node(NonterminalId(3), i);
             self.add_gss_edge(new_gss_node_id, gss_node_id, sppf_node_id, return_slot, env);
             let arena = self.vec_arena;
             let (env_id, env) = self.new_env();
             env.bind(BINDING_E, e, arena);
             self.add_first_descriptors(
-                NonterminalId(4),
+                NonterminalId(3),
                 i,
                 new_gss_node_id,
                 Some(env_id),

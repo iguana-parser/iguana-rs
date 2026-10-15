@@ -28,27 +28,26 @@ pub const NULLABLE_PREFIX: NonterminalId = NonterminalId(17);
 pub const LAYOUT: NonterminalId = NonterminalId(18);
 pub const ALT_0: NonterminalId = NonterminalId(19);
 pub const PLUS_0: NonterminalId = NonterminalId(20);
-pub const OPT_0: NonterminalId = NonterminalId(21);
-pub const STAR_0: NonterminalId = NonterminalId(22);
-pub const START_T: NonterminalId = NonterminalId(23);
-pub const START_U: NonterminalId = NonterminalId(24);
-pub const START_P: NonterminalId = NonterminalId(25);
-pub const START_Q: NonterminalId = NonterminalId(26);
-pub const START_BEFORE_P: NonterminalId = NonterminalId(27);
-pub const START_BEFORE_Q: NonterminalId = NonterminalId(28);
-pub const START_UNEXPECTED_FIRST: NonterminalId = NonterminalId(29);
-pub const START_EXCLUDED_FIRST: NonterminalId = NonterminalId(30);
-pub const START_PREDICTION_BEFORE_EXCEPT: NonterminalId = NonterminalId(31);
-pub const START_EXCEPT_BEFORE_PREDICTION: NonterminalId = NonterminalId(32);
-pub const START_PREDICTION_BEFORE_FOLLOW: NonterminalId = NonterminalId(33);
-pub const START_FOLLOW_BEFORE_PREDICTION: NonterminalId = NonterminalId(34);
-pub const START_MISSING_SUFFIX: NonterminalId = NonterminalId(35);
-pub const START_SUFFIX_CHOICE: NonterminalId = NonterminalId(36);
-pub const START_CALL_PREDICTION: NonterminalId = NonterminalId(37);
-pub const START_PREFIX_X: NonterminalId = NonterminalId(38);
-pub const START_PREFIX_W: NonterminalId = NonterminalId(39);
-pub const START_NULLABLE_PREFIX: NonterminalId = NonterminalId(40);
-pub const START_LAYOUT: NonterminalId = NonterminalId(41);
+pub const STAR_0: NonterminalId = NonterminalId(21);
+pub const START_T: NonterminalId = NonterminalId(22);
+pub const START_U: NonterminalId = NonterminalId(23);
+pub const START_P: NonterminalId = NonterminalId(24);
+pub const START_Q: NonterminalId = NonterminalId(25);
+pub const START_BEFORE_P: NonterminalId = NonterminalId(26);
+pub const START_BEFORE_Q: NonterminalId = NonterminalId(27);
+pub const START_UNEXPECTED_FIRST: NonterminalId = NonterminalId(28);
+pub const START_EXCLUDED_FIRST: NonterminalId = NonterminalId(29);
+pub const START_PREDICTION_BEFORE_EXCEPT: NonterminalId = NonterminalId(30);
+pub const START_EXCEPT_BEFORE_PREDICTION: NonterminalId = NonterminalId(31);
+pub const START_PREDICTION_BEFORE_FOLLOW: NonterminalId = NonterminalId(32);
+pub const START_FOLLOW_BEFORE_PREDICTION: NonterminalId = NonterminalId(33);
+pub const START_MISSING_SUFFIX: NonterminalId = NonterminalId(34);
+pub const START_SUFFIX_CHOICE: NonterminalId = NonterminalId(35);
+pub const START_CALL_PREDICTION: NonterminalId = NonterminalId(36);
+pub const START_PREFIX_X: NonterminalId = NonterminalId(37);
+pub const START_PREFIX_W: NonterminalId = NonterminalId(38);
+pub const START_NULLABLE_PREFIX: NonterminalId = NonterminalId(39);
+pub const START_LAYOUT: NonterminalId = NonterminalId(40);
 pub struct ErrorUnionGrammar;
 impl Grammar for ErrorUnionGrammar {
     type Alternatives = BitSet<1>;
@@ -137,10 +136,6 @@ impl Grammar for ErrorUnionGrammar {
         Nonterminal {
             name: "Plus_0",
             display_name: "(WS | Newline)+",
-        },
-        Nonterminal {
-            name: "Opt_0",
-            display_name: "(WS | Newline)+?",
         },
         Nonterminal {
             name: "Star_0",
@@ -723,24 +718,16 @@ impl Grammar for ErrorUnionGrammar {
             position: 1,
         },
         Slot {
-            display_name: "(WS | Newline)+? : . (WS | Newline)+",
+            display_name: "(WS | Newline)* : . (WS | Newline)+",
             position: 0,
         },
         Slot {
-            display_name: "(WS | Newline)+? : (WS | Newline)+.",
+            display_name: "(WS | Newline)* : (WS | Newline)+.",
             position: 1,
         },
         Slot {
-            display_name: "(WS | Newline)+? : .",
+            display_name: "(WS | Newline)* : .",
             position: 0,
-        },
-        Slot {
-            display_name: "(WS | Newline)* : . (WS | Newline)+?",
-            position: 0,
-        },
-        Slot {
-            display_name: "(WS | Newline)* : (WS | Newline)+?.",
-            position: 1,
         },
         Slot {
             display_name: "T : . Layout start:T Layout",
@@ -1063,25 +1050,24 @@ impl Grammar for ErrorUnionGrammar {
         &[SlotId(109), SlotId(112)],
         &[SlotId(114), SlotId(116)],
         &[SlotId(117)],
-        &[SlotId(119)],
-        &[SlotId(123)],
-        &[SlotId(127)],
-        &[SlotId(131)],
-        &[SlotId(135)],
-        &[SlotId(139)],
-        &[SlotId(143)],
-        &[SlotId(147)],
-        &[SlotId(151)],
-        &[SlotId(155)],
-        &[SlotId(159)],
-        &[SlotId(163)],
-        &[SlotId(167)],
-        &[SlotId(171)],
-        &[SlotId(175)],
-        &[SlotId(179)],
-        &[SlotId(183)],
-        &[SlotId(187)],
-        &[SlotId(191)],
+        &[SlotId(121)],
+        &[SlotId(125)],
+        &[SlotId(129)],
+        &[SlotId(133)],
+        &[SlotId(137)],
+        &[SlotId(141)],
+        &[SlotId(145)],
+        &[SlotId(149)],
+        &[SlotId(153)],
+        &[SlotId(157)],
+        &[SlotId(161)],
+        &[SlotId(165)],
+        &[SlotId(169)],
+        &[SlotId(173)],
+        &[SlotId(177)],
+        &[SlotId(181)],
+        &[SlotId(185)],
+        &[SlotId(189)],
     ];
     const LAYOUT_NAME: Option<&'static str> = Some("Layout");
     const LAYOUT_TERMINALS: &'static [TerminalId] = &[TerminalId(4), TerminalId(5)];
@@ -1189,7 +1175,6 @@ impl Grammar for ErrorUnionGrammar {
             "Layout" => Some(LAYOUT),
             "Alt_0" => Some(ALT_0),
             "Plus_0" => Some(PLUS_0),
-            "Opt_0" => Some(OPT_0),
             "Star_0" => Some(STAR_0),
             "StartT" => Some(START_T),
             "StartU" => Some(START_U),
@@ -1400,26 +1385,6 @@ pub static FOLLOW_SET_PLUS_0: TerminalSet = TerminalSet {
         TerminalId(18),
     ],
 };
-// Opt_0 { Word, Identifier, "[", "]", "p", "q", "x", "y", "z", "!", "1", "2", "w", EOF }
-pub static FOLLOW_SET_OPT_0: TerminalSet = TerminalSet {
-    id: 8,
-    terminals: &[
-        TerminalId(1),
-        TerminalId(2),
-        TerminalId(6),
-        TerminalId(7),
-        TerminalId(8),
-        TerminalId(9),
-        TerminalId(10),
-        TerminalId(11),
-        TerminalId(12),
-        TerminalId(13),
-        TerminalId(14),
-        TerminalId(15),
-        TerminalId(16),
-        TerminalId(18),
-    ],
-};
 // Star_0 { Word, Identifier, "[", "]", "p", "q", "x", "y", "z", "!", "1", "2", "w", EOF }
 pub static FOLLOW_SET_STAR_0: TerminalSet = TerminalSet {
     id: 8,
@@ -1552,11 +1517,6 @@ pub static FIRST_SET_ALT_0: TerminalSet = TerminalSet {
 };
 // Plus_0 { WS, Newline }
 pub static FIRST_SET_PLUS_0: TerminalSet = TerminalSet {
-    id: 11,
-    terminals: &[TerminalId(4), TerminalId(5)],
-};
-// Opt_0 { WS, Newline }
-pub static FIRST_SET_OPT_0: TerminalSet = TerminalSet {
     id: 11,
     terminals: &[TerminalId(4), TerminalId(5)],
 };
