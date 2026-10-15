@@ -5,7 +5,7 @@ use iguana_runtime::{
     arena::Arena,
     ids::{NonterminalId, SPPFNodeId, SlotId, TerminalId},
     input::Span,
-    parse_tree::{NodeKind, OneOrMany, Origin, ParseTreeBuilder, ParseTreeNode, visit_sppf},
+    parse_tree::{NodeKind, Origin, ParseTreeBuilder, ParseTreeNode, visit_sppf},
     sppf::{NonterminalNode, TerminalNode},
 };
 use std::vec::IntoIter;
@@ -113,20 +113,27 @@ impl<'a> ParseTree<'a> {
     pub(crate) fn unwrap_decl(self) -> &'a Decl<'a> {
         match self {
             ParseTree::Decl(decl) => decl,
-            _ => panic!(),
+            _ => Self::unexpected_node(),
         }
     }
     pub(crate) fn unwrap_start_decl(self) -> &'a Start<&'a Decl<'a>, Token> {
         match self {
             ParseTree::StartDecl(start_decl) => start_decl,
-            _ => panic!(),
+            _ => Self::unexpected_node(),
         }
     }
     fn unwrap_token(self) -> Token {
         match self {
             ParseTree::Token(t) => t,
-            _ => panic!(),
+            _ => Self::unexpected_node(),
         }
+    }
+    ///The shared failure of the `unwrap_*` methods. One cold function keeps
+    ///the builder from carrying a separate panic site per child.
+    #[cold]
+    #[inline(never)]
+    fn unexpected_node() -> ! {
+        unreachable!("unexpected parse tree node")
     }
 }
 pub trait ListNode<'a> {
@@ -294,54 +301,51 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for ExactKeywordContextualParseTreeBuil
     fn new_nonterminal_node(
         &self,
         nonterminal_node: &NonterminalNode,
-        children: OneOrMany<ParseTree<'a>>,
+        children: &[ParseTree<'a>],
     ) -> ParseTree<'a> {
-        match nonterminal_node.nonterminal_id {
-            // Decl
-            NonterminalId(0) => match nonterminal_node.return_slot {
-                // Decl = "var" WS Id WS ";" #Var
-                SlotId(5) => {
-                    let [lit_0, ws_1, id, ws_3, lit_4] = children.into_array::<5usize>();
-                    ParseTree::Decl(self.arena.alloc(Decl::Var {
-                        lit_0: lit_0.unwrap_token(),
-                        ws_1: ws_1.unwrap_token(),
-                        id: id.unwrap_token(),
-                        ws_3: ws_3.unwrap_token(),
-                        lit_4: lit_4.unwrap_token(),
-                        span: nonterminal_node.span,
-                    }))
-                }
-                // Decl = Id WS "=" WS Id WS ";" #Assign
-                SlotId(13) => {
-                    let [id_0, ws_1, lit_2, ws_3, id_4, ws_5, lit_6] =
-                        children.into_array::<7usize>();
-                    ParseTree::Decl(self.arena.alloc(Decl::Assign {
-                        id_0: id_0.unwrap_token(),
-                        ws_1: ws_1.unwrap_token(),
-                        lit_2: lit_2.unwrap_token(),
-                        ws_3: ws_3.unwrap_token(),
-                        id_4: id_4.unwrap_token(),
-                        ws_5: ws_5.unwrap_token(),
-                        lit_6: lit_6.unwrap_token(),
-                        span: nonterminal_node.span,
-                    }))
-                }
-                _ => unreachable!(),
-            },
-            // StartDecl
-            NonterminalId(1) => match nonterminal_node.return_slot {
-                // StartDecl = WS start:Decl WS
-                SlotId(17) => {
-                    let [ws_0, start, ws_2] = children.into_array::<3usize>();
-                    ParseTree::StartDecl(self.arena.alloc(Start {
-                        before: ws_0.unwrap_token(),
-                        node: start.unwrap_decl(),
-                        after: ws_2.unwrap_token(),
-                        span: nonterminal_node.span,
-                    }))
-                }
-                _ => unreachable!(),
-            },
+        match nonterminal_node.return_slot {
+            // Decl = "var" WS Id WS ";" #Var
+            SlotId(5) => {
+                let &[lit_0, ws_1, id, ws_3, lit_4] = children else {
+                    ParseTree::unexpected_node()
+                };
+                ParseTree::Decl(self.arena.alloc(Decl::Var {
+                    lit_0: lit_0.unwrap_token(),
+                    ws_1: ws_1.unwrap_token(),
+                    id: id.unwrap_token(),
+                    ws_3: ws_3.unwrap_token(),
+                    lit_4: lit_4.unwrap_token(),
+                    span: nonterminal_node.span,
+                }))
+            }
+            // Decl = Id WS "=" WS Id WS ";" #Assign
+            SlotId(13) => {
+                let &[id_0, ws_1, lit_2, ws_3, id_4, ws_5, lit_6] = children else {
+                    ParseTree::unexpected_node()
+                };
+                ParseTree::Decl(self.arena.alloc(Decl::Assign {
+                    id_0: id_0.unwrap_token(),
+                    ws_1: ws_1.unwrap_token(),
+                    lit_2: lit_2.unwrap_token(),
+                    ws_3: ws_3.unwrap_token(),
+                    id_4: id_4.unwrap_token(),
+                    ws_5: ws_5.unwrap_token(),
+                    lit_6: lit_6.unwrap_token(),
+                    span: nonterminal_node.span,
+                }))
+            }
+            // StartDecl = WS start:Decl WS
+            SlotId(17) => {
+                let &[ws_0, start, ws_2] = children else {
+                    ParseTree::unexpected_node()
+                };
+                ParseTree::StartDecl(self.arena.alloc(Start {
+                    before: ws_0.unwrap_token(),
+                    node: start.unwrap_decl(),
+                    after: ws_2.unwrap_token(),
+                    span: nonterminal_node.span,
+                }))
+            }
             _ => unreachable!(),
         }
     }
@@ -392,16 +396,10 @@ pub fn create_parse_tree<'a>(
         panic!("the SPPF root is not a nonterminal node")
     };
     match root.nonterminal_id {
-        grammar::DECL => ParseTree::Decl(
-            visit_sppf(root_id, parser, builder)
-                .unwrap_one()
-                .unwrap_decl(),
-        ),
-        grammar::START_DECL => ParseTree::StartDecl(
-            visit_sppf(root_id, parser, builder)
-                .unwrap_one()
-                .unwrap_start_decl(),
-        ),
+        grammar::DECL => ParseTree::Decl(visit_sppf(root_id, parser, builder).unwrap_decl()),
+        grammar::START_DECL => {
+            ParseTree::StartDecl(visit_sppf(root_id, parser, builder).unwrap_start_decl())
+        }
         _ => panic!(),
     }
 }

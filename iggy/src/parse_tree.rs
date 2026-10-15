@@ -5,7 +5,7 @@ use iguana_runtime::{
     arena::Arena,
     ids::{NonterminalId, SPPFNodeId, SlotId, TerminalId},
     input::Span,
-    parse_tree::{NodeKind, OneOrMany, Origin, ParseTreeBuilder, ParseTreeNode, visit_sppf},
+    parse_tree::{NodeKind, Origin, ParseTreeBuilder, ParseTreeNode, visit_sppf},
     sppf::{NonterminalNode, TerminalNode},
 };
 use std::vec::IntoIter;
@@ -992,319 +992,319 @@ impl<'a> ParseTree<'a> {
     pub(crate) fn unwrap_grammar(self) -> &'a Grammar<'a> {
         match self {
             ParseTree::Grammar(grammar) => grammar,
-            _ => panic!(),
+            _ => Self::unexpected_node(),
         }
     }
     pub(crate) fn unwrap_rule(self) -> &'a Rule<'a> {
         match self {
             ParseTree::Rule(rule) => rule,
-            _ => panic!(),
+            _ => Self::unexpected_node(),
         }
     }
     pub(crate) fn unwrap_syntax_rule(self) -> &'a SyntaxRule<'a> {
         match self {
             ParseTree::SyntaxRule(syntax_rule) => syntax_rule,
-            _ => panic!(),
+            _ => Self::unexpected_node(),
         }
     }
     pub(crate) fn unwrap_annotation(self) -> &'a Annotation<'a> {
         match self {
             ParseTree::Annotation(annotation) => annotation,
-            _ => panic!(),
+            _ => Self::unexpected_node(),
         }
     }
     pub(crate) fn unwrap_regex_rule(self) -> &'a RegexRule<'a> {
         match self {
             ParseTree::RegexRule(regex_rule) => regex_rule,
-            _ => panic!(),
+            _ => Self::unexpected_node(),
         }
     }
     pub(crate) fn unwrap_regex_pre_condition(self) -> &'a RegexPreCondition<'a> {
         match self {
             ParseTree::RegexPreCondition(regex_pre_condition) => regex_pre_condition,
-            _ => panic!(),
+            _ => Self::unexpected_node(),
         }
     }
     pub(crate) fn unwrap_regex_post_condition(self) -> &'a RegexPostCondition<'a> {
         match self {
             ParseTree::RegexPostCondition(regex_post_condition) => regex_post_condition,
-            _ => panic!(),
+            _ => Self::unexpected_node(),
         }
     }
     pub(crate) fn unwrap_priority_level(self) -> &'a PriorityLevel<'a> {
         match self {
             ParseTree::PriorityLevel(priority_level) => priority_level,
-            _ => panic!(),
+            _ => Self::unexpected_node(),
         }
     }
     pub(crate) fn unwrap_associativity(self) -> &'a Associativity<'a> {
         match self {
             ParseTree::Associativity(associativity) => associativity,
-            _ => panic!(),
+            _ => Self::unexpected_node(),
         }
     }
     pub(crate) fn unwrap_alternative(self) -> &'a Alternative<'a> {
         match self {
             ParseTree::Alternative(alternative) => alternative,
-            _ => panic!(),
+            _ => Self::unexpected_node(),
         }
     }
     pub(crate) fn unwrap_symbol(self) -> &'a Symbol<'a> {
         match self {
             ParseTree::Symbol(symbol) => symbol,
-            _ => panic!(),
+            _ => Self::unexpected_node(),
         }
     }
     pub(crate) fn unwrap_pre_condition(self) -> &'a PreCondition<'a> {
         match self {
             ParseTree::PreCondition(pre_condition) => pre_condition,
-            _ => panic!(),
+            _ => Self::unexpected_node(),
         }
     }
     pub(crate) fn unwrap_post_condition(self) -> &'a PostCondition<'a> {
         match self {
             ParseTree::PostCondition(post_condition) => post_condition,
-            _ => panic!(),
+            _ => Self::unexpected_node(),
         }
     }
     pub(crate) fn unwrap_regex(self) -> &'a Regex<'a> {
         match self {
             ParseTree::Regex(regex) => regex,
-            _ => panic!(),
+            _ => Self::unexpected_node(),
         }
     }
     pub(crate) fn unwrap_char_class(self) -> &'a CharClass<'a> {
         match self {
             ParseTree::CharClass(char_class) => char_class,
-            _ => panic!(),
+            _ => Self::unexpected_node(),
         }
     }
     pub(crate) fn unwrap_range_element(self) -> &'a RangeElement<'a> {
         match self {
             ParseTree::RangeElement(range_element) => range_element,
-            _ => panic!(),
+            _ => Self::unexpected_node(),
         }
     }
     pub(crate) fn unwrap_range(self) -> &'a Range<'a> {
         match self {
             ParseTree::Range(range) => range,
-            _ => panic!(),
+            _ => Self::unexpected_node(),
         }
     }
     pub(crate) fn unwrap_layout(self) -> &'a Layout<'a> {
         match self {
             ParseTree::Layout(layout) => layout,
-            _ => panic!(),
+            _ => Self::unexpected_node(),
         }
     }
     pub(crate) fn unwrap_plus_0(self) -> &'a Plus0<'a> {
         match self {
             ParseTree::Plus0(plus_0) => plus_0,
-            _ => panic!(),
+            _ => Self::unexpected_node(),
         }
     }
     pub(crate) fn unwrap_opt_0(self) -> &'a Opt0<'a> {
         match self {
             ParseTree::Opt0(opt_0) => opt_0,
-            _ => panic!(),
+            _ => Self::unexpected_node(),
         }
     }
     pub(crate) fn unwrap_star_0(self) -> &'a Star0<'a> {
         match self {
             ParseTree::Star0(star_0) => star_0,
-            _ => panic!(),
+            _ => Self::unexpected_node(),
         }
     }
     pub(crate) fn unwrap_opt_1(self) -> &'a Opt1<'a> {
         match self {
             ParseTree::Opt1(opt_1) => opt_1,
-            _ => panic!(),
+            _ => Self::unexpected_node(),
         }
     }
     pub(crate) fn unwrap_plus_1(self) -> &'a Plus1<'a> {
         match self {
             ParseTree::Plus1(plus_1) => plus_1,
-            _ => panic!(),
+            _ => Self::unexpected_node(),
         }
     }
     pub(crate) fn unwrap_opt_2(self) -> &'a Opt2<'a> {
         match self {
             ParseTree::Opt2(opt_2) => opt_2,
-            _ => panic!(),
+            _ => Self::unexpected_node(),
         }
     }
     pub(crate) fn unwrap_star_1(self) -> &'a Star1<'a> {
         match self {
             ParseTree::Star1(star_1) => star_1,
-            _ => panic!(),
+            _ => Self::unexpected_node(),
         }
     }
     pub(crate) fn unwrap_opt_3(self) -> &'a Opt3<'a> {
         match self {
             ParseTree::Opt3(opt_3) => opt_3,
-            _ => panic!(),
+            _ => Self::unexpected_node(),
         }
     }
     pub(crate) fn unwrap_opt_4(self) -> &'a Opt4<'a> {
         match self {
             ParseTree::Opt4(opt_4) => opt_4,
-            _ => panic!(),
+            _ => Self::unexpected_node(),
         }
     }
     pub(crate) fn unwrap_opt_5(self) -> &'a Opt5<'a> {
         match self {
             ParseTree::Opt5(opt_5) => opt_5,
-            _ => panic!(),
+            _ => Self::unexpected_node(),
         }
     }
     pub(crate) fn unwrap_plus_3(self) -> &'a Plus3<'a> {
         match self {
             ParseTree::Plus3(plus_3) => plus_3,
-            _ => panic!(),
+            _ => Self::unexpected_node(),
         }
     }
     pub(crate) fn unwrap_plus_2(self) -> &'a Plus2<'a> {
         match self {
             ParseTree::Plus2(plus_2) => plus_2,
-            _ => panic!(),
+            _ => Self::unexpected_node(),
         }
     }
     pub(crate) fn unwrap_plus_4(self) -> &'a Plus4<'a> {
         match self {
             ParseTree::Plus4(plus_4) => plus_4,
-            _ => panic!(),
+            _ => Self::unexpected_node(),
         }
     }
     pub(crate) fn unwrap_opt_6(self) -> &'a Opt6<'a> {
         match self {
             ParseTree::Opt6(opt_6) => opt_6,
-            _ => panic!(),
+            _ => Self::unexpected_node(),
         }
     }
     pub(crate) fn unwrap_star_2(self) -> &'a Star2<'a> {
         match self {
             ParseTree::Star2(star_2) => star_2,
-            _ => panic!(),
+            _ => Self::unexpected_node(),
         }
     }
     pub(crate) fn unwrap_opt_7(self) -> &'a Opt7<'a> {
         match self {
             ParseTree::Opt7(opt_7) => opt_7,
-            _ => panic!(),
+            _ => Self::unexpected_node(),
         }
     }
     pub(crate) fn unwrap_plus_5(self) -> &'a Plus5<'a> {
         match self {
             ParseTree::Plus5(plus_5) => plus_5,
-            _ => panic!(),
+            _ => Self::unexpected_node(),
         }
     }
     pub(crate) fn unwrap_opt_8(self) -> &'a Opt8<'a> {
         match self {
             ParseTree::Opt8(opt_8) => opt_8,
-            _ => panic!(),
+            _ => Self::unexpected_node(),
         }
     }
     pub(crate) fn unwrap_star_3(self) -> &'a Star3<'a> {
         match self {
             ParseTree::Star3(star_3) => star_3,
-            _ => panic!(),
+            _ => Self::unexpected_node(),
         }
     }
     pub(crate) fn unwrap_plus_6(self) -> &'a Plus6<'a> {
         match self {
             ParseTree::Plus6(plus_6) => plus_6,
-            _ => panic!(),
+            _ => Self::unexpected_node(),
         }
     }
     pub(crate) fn unwrap_opt_9(self) -> &'a Opt9<'a> {
         match self {
             ParseTree::Opt9(opt_9) => opt_9,
-            _ => panic!(),
+            _ => Self::unexpected_node(),
         }
     }
     pub(crate) fn unwrap_plus_7(self) -> &'a Plus7<'a> {
         match self {
             ParseTree::Plus7(plus_7) => plus_7,
-            _ => panic!(),
+            _ => Self::unexpected_node(),
         }
     }
     pub(crate) fn unwrap_plus_8(self) -> &'a Plus8<'a> {
         match self {
             ParseTree::Plus8(plus_8) => plus_8,
-            _ => panic!(),
+            _ => Self::unexpected_node(),
         }
     }
     pub(crate) fn unwrap_plus_9(self) -> &'a Plus9<'a> {
         match self {
             ParseTree::Plus9(plus_9) => plus_9,
-            _ => panic!(),
+            _ => Self::unexpected_node(),
         }
     }
     pub(crate) fn unwrap_opt_10(self) -> &'a Opt10<'a> {
         match self {
             ParseTree::Opt10(opt_10) => opt_10,
-            _ => panic!(),
+            _ => Self::unexpected_node(),
         }
     }
     pub(crate) fn unwrap_plus_10(self) -> &'a Plus10<'a> {
         match self {
             ParseTree::Plus10(plus_10) => plus_10,
-            _ => panic!(),
+            _ => Self::unexpected_node(),
         }
     }
     pub(crate) fn unwrap_alt_0(self) -> &'a Alt0<'a> {
         match self {
             ParseTree::Alt0(alt_0) => alt_0,
-            _ => panic!(),
+            _ => Self::unexpected_node(),
         }
     }
     pub(crate) fn unwrap_plus_11(self) -> &'a Plus11<'a> {
         match self {
             ParseTree::Plus11(plus_11) => plus_11,
-            _ => panic!(),
+            _ => Self::unexpected_node(),
         }
     }
     pub(crate) fn unwrap_opt_11(self) -> &'a Opt11<'a> {
         match self {
             ParseTree::Opt11(opt_11) => opt_11,
-            _ => panic!(),
+            _ => Self::unexpected_node(),
         }
     }
     pub(crate) fn unwrap_star_4(self) -> &'a Star4<'a> {
         match self {
             ParseTree::Star4(star_4) => star_4,
-            _ => panic!(),
+            _ => Self::unexpected_node(),
         }
     }
     pub(crate) fn unwrap_start_grammar(self) -> &'a Start<&'a Grammar<'a>, &'a Layout<'a>> {
         match self {
             ParseTree::StartGrammar(start_grammar) => start_grammar,
-            _ => panic!(),
+            _ => Self::unexpected_node(),
         }
     }
     pub(crate) fn unwrap_start_rule(self) -> &'a Start<&'a Rule<'a>, &'a Layout<'a>> {
         match self {
             ParseTree::StartRule(start_rule) => start_rule,
-            _ => panic!(),
+            _ => Self::unexpected_node(),
         }
     }
     pub(crate) fn unwrap_start_syntax_rule(self) -> &'a Start<&'a SyntaxRule<'a>, &'a Layout<'a>> {
         match self {
             ParseTree::StartSyntaxRule(start_syntax_rule) => start_syntax_rule,
-            _ => panic!(),
+            _ => Self::unexpected_node(),
         }
     }
     pub(crate) fn unwrap_start_annotation(self) -> &'a Start<&'a Annotation<'a>, &'a Layout<'a>> {
         match self {
             ParseTree::StartAnnotation(start_annotation) => start_annotation,
-            _ => panic!(),
+            _ => Self::unexpected_node(),
         }
     }
     pub(crate) fn unwrap_start_regex_rule(self) -> &'a Start<&'a RegexRule<'a>, &'a Layout<'a>> {
         match self {
             ParseTree::StartRegexRule(start_regex_rule) => start_regex_rule,
-            _ => panic!(),
+            _ => Self::unexpected_node(),
         }
     }
     pub(crate) fn unwrap_start_regex_pre_condition(
@@ -1314,7 +1314,7 @@ impl<'a> ParseTree<'a> {
             ParseTree::StartRegexPreCondition(start_regex_pre_condition) => {
                 start_regex_pre_condition
             }
-            _ => panic!(),
+            _ => Self::unexpected_node(),
         }
     }
     pub(crate) fn unwrap_start_regex_post_condition(
@@ -1324,7 +1324,7 @@ impl<'a> ParseTree<'a> {
             ParseTree::StartRegexPostCondition(start_regex_post_condition) => {
                 start_regex_post_condition
             }
-            _ => panic!(),
+            _ => Self::unexpected_node(),
         }
     }
     pub(crate) fn unwrap_start_priority_level(
@@ -1332,7 +1332,7 @@ impl<'a> ParseTree<'a> {
     ) -> &'a Start<&'a PriorityLevel<'a>, &'a Layout<'a>> {
         match self {
             ParseTree::StartPriorityLevel(start_priority_level) => start_priority_level,
-            _ => panic!(),
+            _ => Self::unexpected_node(),
         }
     }
     pub(crate) fn unwrap_start_associativity(
@@ -1340,19 +1340,19 @@ impl<'a> ParseTree<'a> {
     ) -> &'a Start<&'a Associativity<'a>, &'a Layout<'a>> {
         match self {
             ParseTree::StartAssociativity(start_associativity) => start_associativity,
-            _ => panic!(),
+            _ => Self::unexpected_node(),
         }
     }
     pub(crate) fn unwrap_start_alternative(self) -> &'a Start<&'a Alternative<'a>, &'a Layout<'a>> {
         match self {
             ParseTree::StartAlternative(start_alternative) => start_alternative,
-            _ => panic!(),
+            _ => Self::unexpected_node(),
         }
     }
     pub(crate) fn unwrap_start_symbol(self) -> &'a Start<&'a Symbol<'a>, &'a Layout<'a>> {
         match self {
             ParseTree::StartSymbol(start_symbol) => start_symbol,
-            _ => panic!(),
+            _ => Self::unexpected_node(),
         }
     }
     pub(crate) fn unwrap_start_pre_condition(
@@ -1360,7 +1360,7 @@ impl<'a> ParseTree<'a> {
     ) -> &'a Start<&'a PreCondition<'a>, &'a Layout<'a>> {
         match self {
             ParseTree::StartPreCondition(start_pre_condition) => start_pre_condition,
-            _ => panic!(),
+            _ => Self::unexpected_node(),
         }
     }
     pub(crate) fn unwrap_start_post_condition(
@@ -1368,19 +1368,19 @@ impl<'a> ParseTree<'a> {
     ) -> &'a Start<&'a PostCondition<'a>, &'a Layout<'a>> {
         match self {
             ParseTree::StartPostCondition(start_post_condition) => start_post_condition,
-            _ => panic!(),
+            _ => Self::unexpected_node(),
         }
     }
     pub(crate) fn unwrap_start_regex(self) -> &'a Start<&'a Regex<'a>, &'a Layout<'a>> {
         match self {
             ParseTree::StartRegex(start_regex) => start_regex,
-            _ => panic!(),
+            _ => Self::unexpected_node(),
         }
     }
     pub(crate) fn unwrap_start_char_class(self) -> &'a Start<&'a CharClass<'a>, &'a Layout<'a>> {
         match self {
             ParseTree::StartCharClass(start_char_class) => start_char_class,
-            _ => panic!(),
+            _ => Self::unexpected_node(),
         }
     }
     pub(crate) fn unwrap_start_range_element(
@@ -1388,26 +1388,33 @@ impl<'a> ParseTree<'a> {
     ) -> &'a Start<&'a RangeElement<'a>, &'a Layout<'a>> {
         match self {
             ParseTree::StartRangeElement(start_range_element) => start_range_element,
-            _ => panic!(),
+            _ => Self::unexpected_node(),
         }
     }
     pub(crate) fn unwrap_start_range(self) -> &'a Start<&'a Range<'a>, &'a Layout<'a>> {
         match self {
             ParseTree::StartRange(start_range) => start_range,
-            _ => panic!(),
+            _ => Self::unexpected_node(),
         }
     }
     pub(crate) fn unwrap_start_layout(self) -> &'a Start<&'a Layout<'a>, ()> {
         match self {
             ParseTree::StartLayout(start_layout) => start_layout,
-            _ => panic!(),
+            _ => Self::unexpected_node(),
         }
     }
     fn unwrap_token(self) -> Token {
         match self {
             ParseTree::Token(t) => t,
-            _ => panic!(),
+            _ => Self::unexpected_node(),
         }
+    }
+    ///The shared failure of the `unwrap_*` methods. One cold function keeps
+    ///the builder from carrying a separate panic site per child.
+    #[cold]
+    #[inline(never)]
+    fn unexpected_node() -> ! {
+        unreachable!("unexpected parse tree node")
     }
 }
 pub trait ListNode<'a> {
@@ -6311,1447 +6318,1416 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a> {
     fn new_nonterminal_node(
         &self,
         nonterminal_node: &NonterminalNode,
-        children: OneOrMany<ParseTree<'a>>,
+        children: &[ParseTree<'a>],
     ) -> ParseTree<'a> {
-        match nonterminal_node.nonterminal_id {
-            // Grammar
-            NonterminalId(0) => match nonterminal_node.return_slot {
-                // Grammar = "grammar" Layout name:Identifier Layout Rule*
-                SlotId(5) => {
-                    let [lit_0, layout_1, name, layout_3, rules] = children.into_array::<5usize>();
-                    ParseTree::Grammar(self.arena.alloc(Grammar::Alt0 {
-                        lit_0: lit_0.unwrap_token(),
-                        layout_1: layout_1.unwrap_layout(),
-                        name: name.unwrap_token(),
-                        layout_3: layout_3.unwrap_layout(),
-                        rules: rules.unwrap_star_0(),
-                        span: nonterminal_node.span,
-                    }))
-                }
-                _ => unreachable!(),
-            },
-            // Rule
-            NonterminalId(1) => match nonterminal_node.return_slot {
-                // Rule = SyntaxRule #SyntaxRule
-                SlotId(7) => {
-                    let [syntax_rule] = children.into_array::<1usize>();
-                    ParseTree::Rule(self.arena.alloc(Rule::SyntaxRule {
-                        syntax_rule: syntax_rule.unwrap_syntax_rule(),
-                        span: nonterminal_node.span,
-                    }))
-                }
-                // Rule = RegexRule #RegexRule
-                SlotId(9) => {
-                    let [regex_rule] = children.into_array::<1usize>();
-                    ParseTree::Rule(self.arena.alloc(Rule::RegexRule {
-                        regex_rule: regex_rule.unwrap_regex_rule(),
-                        span: nonterminal_node.span,
-                    }))
-                }
-                _ => unreachable!(),
-            },
-            // SyntaxRule
-            NonterminalId(2) => match nonterminal_node.return_slot {
-                // SyntaxRule = Annotation? Layout head:Identifier Layout "=" Layout {PriorityLevel ">"}*
-                SlotId(17) => {
-                    let [
-                        annotation,
-                        layout_1,
-                        head,
-                        layout_3,
-                        lit_4,
-                        layout_5,
-                        priority_levels,
-                    ] = children.into_array::<7usize>();
-                    ParseTree::SyntaxRule(self.arena.alloc(SyntaxRule::Alt0 {
-                        annotation: annotation.unwrap_opt_1(),
-                        layout_1: layout_1.unwrap_layout(),
-                        head: head.unwrap_token(),
-                        layout_3: layout_3.unwrap_layout(),
-                        lit_4: lit_4.unwrap_token(),
-                        layout_5: layout_5.unwrap_layout(),
-                        priority_levels: priority_levels.unwrap_star_1(),
-                        span: nonterminal_node.span,
-                    }))
-                }
-                _ => unreachable!(),
-            },
-            // Annotation
-            NonterminalId(3) => match nonterminal_node.return_slot {
-                // Annotation = "@NoLayout" #NoLayout
-                SlotId(19) => {
-                    let [lit_0] = children.into_array::<1usize>();
-                    ParseTree::Annotation(self.arena.alloc(Annotation::NoLayout {
-                        lit_0: lit_0.unwrap_token(),
-                        span: nonterminal_node.span,
-                    }))
-                }
-                // Annotation = "@Layout" #Layout
-                SlotId(21) => {
-                    let [lit_0] = children.into_array::<1usize>();
-                    ParseTree::Annotation(self.arena.alloc(Annotation::Layout {
-                        lit_0: lit_0.unwrap_token(),
-                        span: nonterminal_node.span,
-                    }))
-                }
-                _ => unreachable!(),
-            },
-            // RegexRule
-            NonterminalId(4) => match nonterminal_node.return_slot {
-                // RegexRule = layout:"@Layout"? Layout id_annot:"@Identifier"? Layout "@Regex" Layout
-                // Identifier Layout "=" Layout RegexPreCondition? Layout body:{Regex+ "|"}+ Layout
-                // RegexPostCondition*
-                SlotId(37) => {
-                    let [
-                        layout,
-                        layout_1,
-                        id_annot,
-                        layout_3,
-                        lit_4,
-                        layout_5,
-                        identifier,
-                        layout_7,
-                        lit_8,
-                        layout_9,
-                        regex_pre_condition,
-                        layout_11,
-                        body,
-                        layout_13,
-                        regex_post_conditions,
-                    ] = children.into_array::<15usize>();
-                    ParseTree::RegexRule(self.arena.alloc(RegexRule::Alt0 {
-                        layout: layout.unwrap_opt_3(),
-                        layout_1: layout_1.unwrap_layout(),
-                        id_annot: id_annot.unwrap_opt_4(),
-                        layout_3: layout_3.unwrap_layout(),
-                        lit_4: lit_4.unwrap_token(),
-                        layout_5: layout_5.unwrap_layout(),
-                        identifier: identifier.unwrap_token(),
-                        layout_7: layout_7.unwrap_layout(),
-                        lit_8: lit_8.unwrap_token(),
-                        layout_9: layout_9.unwrap_layout(),
-                        regex_pre_condition: regex_pre_condition.unwrap_opt_5(),
-                        layout_11: layout_11.unwrap_layout(),
-                        body: body.unwrap_plus_2(),
-                        layout_13: layout_13.unwrap_layout(),
-                        regex_post_conditions: regex_post_conditions.unwrap_star_2(),
-                        span: nonterminal_node.span,
-                    }))
-                }
-                _ => unreachable!(),
-            },
-            // RegexPreCondition
-            NonterminalId(5) => match nonterminal_node.return_slot {
-                // RegexPreCondition = Identifier Layout "!<<"
-                SlotId(41) => {
-                    let [identifier, layout, lit_2] = children.into_array::<3usize>();
-                    ParseTree::RegexPreCondition(self.arena.alloc(RegexPreCondition::Alt0 {
-                        identifier: identifier.unwrap_token(),
-                        layout: layout.unwrap_layout(),
-                        lit_2: lit_2.unwrap_token(),
-                        span: nonterminal_node.span,
-                    }))
-                }
-                _ => unreachable!(),
-            },
-            // RegexPostCondition
-            NonterminalId(6) => match nonterminal_node.return_slot {
-                // RegexPostCondition = "\\" Layout Identifier #Except
-                SlotId(45) => {
-                    let [lit_0, layout, identifier] = children.into_array::<3usize>();
-                    ParseTree::RegexPostCondition(self.arena.alloc(RegexPostCondition::Except {
-                        lit_0: lit_0.unwrap_token(),
-                        layout: layout.unwrap_layout(),
-                        identifier: identifier.unwrap_token(),
-                        span: nonterminal_node.span,
-                    }))
-                }
-                // RegexPostCondition = "!>>" Layout Identifier #FollowRestriction
-                SlotId(49) => {
-                    let [lit_0, layout, identifier] = children.into_array::<3usize>();
-                    ParseTree::RegexPostCondition(self.arena.alloc(
-                        RegexPostCondition::FollowRestriction {
-                            lit_0: lit_0.unwrap_token(),
-                            layout: layout.unwrap_layout(),
-                            identifier: identifier.unwrap_token(),
-                            span: nonterminal_node.span,
-                        },
-                    ))
-                }
-                _ => unreachable!(),
-            },
-            // PriorityLevel
-            NonterminalId(7) => match nonterminal_node.return_slot {
-                // PriorityLevel = Associativity? Layout {Alternative "|"}*
-                SlotId(53) => {
-                    let [associativity, layout, alternatives] = children.into_array::<3usize>();
-                    ParseTree::PriorityLevel(self.arena.alloc(PriorityLevel::Alt0 {
-                        associativity: associativity.unwrap_opt_7(),
-                        layout: layout.unwrap_layout(),
-                        alternatives: alternatives.unwrap_star_3(),
-                        span: nonterminal_node.span,
-                    }))
-                }
-                _ => unreachable!(),
-            },
-            // Associativity
-            NonterminalId(8) => match nonterminal_node.return_slot {
-                // Associativity = "left"
-                SlotId(55) => {
-                    let [lit_0] = children.into_array::<1usize>();
-                    ParseTree::Associativity(self.arena.alloc(Associativity::Alt0 {
-                        lit_0: lit_0.unwrap_token(),
-                        span: nonterminal_node.span,
-                    }))
-                }
-                // Associativity = "right"
-                SlotId(57) => {
-                    let [lit_0] = children.into_array::<1usize>();
-                    ParseTree::Associativity(self.arena.alloc(Associativity::Alt1 {
-                        lit_0: lit_0.unwrap_token(),
-                        span: nonterminal_node.span,
-                    }))
-                }
-                // Associativity = "none"
-                SlotId(59) => {
-                    let [lit_0] = children.into_array::<1usize>();
-                    ParseTree::Associativity(self.arena.alloc(Associativity::Alt2 {
-                        lit_0: lit_0.unwrap_token(),
-                        span: nonterminal_node.span,
-                    }))
-                }
-                _ => unreachable!(),
-            },
-            // Alternative
-            NonterminalId(9) => match nonterminal_node.return_slot {
-                // Alternative = Symbol+ Layout Label? #Symbols
-                SlotId(63) => {
-                    let [symbols, layout, label] = children.into_array::<3usize>();
-                    ParseTree::Alternative(self.arena.alloc(Alternative::Symbols {
-                        symbols: symbols.unwrap_plus_6(),
-                        layout: layout.unwrap_layout(),
-                        label: label.unwrap_opt_9(),
-                        span: nonterminal_node.span,
-                    }))
-                }
-                // Alternative = "(" Layout ")" Layout Label? #Empty
-                SlotId(69) => {
-                    let [lit_0, layout_1, lit_2, layout_3, label] = children.into_array::<5usize>();
-                    ParseTree::Alternative(self.arena.alloc(Alternative::Empty {
-                        lit_0: lit_0.unwrap_token(),
-                        layout_1: layout_1.unwrap_layout(),
-                        lit_2: lit_2.unwrap_token(),
-                        layout_3: layout_3.unwrap_layout(),
-                        label: label.unwrap_opt_9(),
-                        span: nonterminal_node.span,
-                    }))
-                }
-                _ => unreachable!(),
-            },
-            // PreCondition
-            NonterminalId(10) => match nonterminal_node.return_slot {
-                // PreCondition = Identifier Layout "!<<"
-                SlotId(73) => {
-                    let [identifier, layout, lit_2] = children.into_array::<3usize>();
-                    ParseTree::PreCondition(self.arena.alloc(PreCondition::Alt0 {
-                        identifier: identifier.unwrap_token(),
-                        layout: layout.unwrap_layout(),
-                        lit_2: lit_2.unwrap_token(),
-                        span: nonterminal_node.span,
-                    }))
-                }
-                _ => unreachable!(),
-            },
-            // PostCondition
-            NonterminalId(11) => match nonterminal_node.return_slot {
-                // PostCondition = "\\" Layout Identifier #Except
-                SlotId(77) => {
-                    let [lit_0, layout, identifier] = children.into_array::<3usize>();
-                    ParseTree::PostCondition(self.arena.alloc(PostCondition::Except {
+        match nonterminal_node.return_slot {
+            // Grammar = "grammar" Layout name:Identifier Layout Rule*
+            SlotId(5) => {
+                let &[lit_0, layout_1, name, layout_3, rules] = children else {
+                    ParseTree::unexpected_node()
+                };
+                ParseTree::Grammar(self.arena.alloc(Grammar::Alt0 {
+                    lit_0: lit_0.unwrap_token(),
+                    layout_1: layout_1.unwrap_layout(),
+                    name: name.unwrap_token(),
+                    layout_3: layout_3.unwrap_layout(),
+                    rules: rules.unwrap_star_0(),
+                    span: nonterminal_node.span,
+                }))
+            }
+            // Rule = SyntaxRule #SyntaxRule
+            SlotId(7) => {
+                let &[syntax_rule] = children else {
+                    ParseTree::unexpected_node()
+                };
+                ParseTree::Rule(self.arena.alloc(Rule::SyntaxRule {
+                    syntax_rule: syntax_rule.unwrap_syntax_rule(),
+                    span: nonterminal_node.span,
+                }))
+            }
+            // Rule = RegexRule #RegexRule
+            SlotId(9) => {
+                let &[regex_rule] = children else {
+                    ParseTree::unexpected_node()
+                };
+                ParseTree::Rule(self.arena.alloc(Rule::RegexRule {
+                    regex_rule: regex_rule.unwrap_regex_rule(),
+                    span: nonterminal_node.span,
+                }))
+            }
+            // SyntaxRule = Annotation? Layout head:Identifier Layout "=" Layout {PriorityLevel ">"}*
+            SlotId(17) => {
+                let &[
+                    annotation,
+                    layout_1,
+                    head,
+                    layout_3,
+                    lit_4,
+                    layout_5,
+                    priority_levels,
+                ] = children
+                else {
+                    ParseTree::unexpected_node()
+                };
+                ParseTree::SyntaxRule(self.arena.alloc(SyntaxRule::Alt0 {
+                    annotation: annotation.unwrap_opt_1(),
+                    layout_1: layout_1.unwrap_layout(),
+                    head: head.unwrap_token(),
+                    layout_3: layout_3.unwrap_layout(),
+                    lit_4: lit_4.unwrap_token(),
+                    layout_5: layout_5.unwrap_layout(),
+                    priority_levels: priority_levels.unwrap_star_1(),
+                    span: nonterminal_node.span,
+                }))
+            }
+            // Annotation = "@NoLayout" #NoLayout
+            SlotId(19) => {
+                let &[lit_0] = children else {
+                    ParseTree::unexpected_node()
+                };
+                ParseTree::Annotation(self.arena.alloc(Annotation::NoLayout {
+                    lit_0: lit_0.unwrap_token(),
+                    span: nonterminal_node.span,
+                }))
+            }
+            // Annotation = "@Layout" #Layout
+            SlotId(21) => {
+                let &[lit_0] = children else {
+                    ParseTree::unexpected_node()
+                };
+                ParseTree::Annotation(self.arena.alloc(Annotation::Layout {
+                    lit_0: lit_0.unwrap_token(),
+                    span: nonterminal_node.span,
+                }))
+            }
+            // RegexRule = layout:"@Layout"? Layout id_annot:"@Identifier"? Layout "@Regex" Layout
+            // Identifier Layout "=" Layout RegexPreCondition? Layout body:{Regex+ "|"}+ Layout
+            // RegexPostCondition*
+            SlotId(37) => {
+                let &[
+                    layout,
+                    layout_1,
+                    id_annot,
+                    layout_3,
+                    lit_4,
+                    layout_5,
+                    identifier,
+                    layout_7,
+                    lit_8,
+                    layout_9,
+                    regex_pre_condition,
+                    layout_11,
+                    body,
+                    layout_13,
+                    regex_post_conditions,
+                ] = children
+                else {
+                    ParseTree::unexpected_node()
+                };
+                ParseTree::RegexRule(self.arena.alloc(RegexRule::Alt0 {
+                    layout: layout.unwrap_opt_3(),
+                    layout_1: layout_1.unwrap_layout(),
+                    id_annot: id_annot.unwrap_opt_4(),
+                    layout_3: layout_3.unwrap_layout(),
+                    lit_4: lit_4.unwrap_token(),
+                    layout_5: layout_5.unwrap_layout(),
+                    identifier: identifier.unwrap_token(),
+                    layout_7: layout_7.unwrap_layout(),
+                    lit_8: lit_8.unwrap_token(),
+                    layout_9: layout_9.unwrap_layout(),
+                    regex_pre_condition: regex_pre_condition.unwrap_opt_5(),
+                    layout_11: layout_11.unwrap_layout(),
+                    body: body.unwrap_plus_2(),
+                    layout_13: layout_13.unwrap_layout(),
+                    regex_post_conditions: regex_post_conditions.unwrap_star_2(),
+                    span: nonterminal_node.span,
+                }))
+            }
+            // RegexPreCondition = Identifier Layout "!<<"
+            SlotId(41) => {
+                let &[identifier, layout, lit_2] = children else {
+                    ParseTree::unexpected_node()
+                };
+                ParseTree::RegexPreCondition(self.arena.alloc(RegexPreCondition::Alt0 {
+                    identifier: identifier.unwrap_token(),
+                    layout: layout.unwrap_layout(),
+                    lit_2: lit_2.unwrap_token(),
+                    span: nonterminal_node.span,
+                }))
+            }
+            // RegexPostCondition = "\\" Layout Identifier #Except
+            SlotId(45) => {
+                let &[lit_0, layout, identifier] = children else {
+                    ParseTree::unexpected_node()
+                };
+                ParseTree::RegexPostCondition(self.arena.alloc(RegexPostCondition::Except {
+                    lit_0: lit_0.unwrap_token(),
+                    layout: layout.unwrap_layout(),
+                    identifier: identifier.unwrap_token(),
+                    span: nonterminal_node.span,
+                }))
+            }
+            // RegexPostCondition = "!>>" Layout Identifier #FollowRestriction
+            SlotId(49) => {
+                let &[lit_0, layout, identifier] = children else {
+                    ParseTree::unexpected_node()
+                };
+                ParseTree::RegexPostCondition(self.arena.alloc(
+                    RegexPostCondition::FollowRestriction {
                         lit_0: lit_0.unwrap_token(),
                         layout: layout.unwrap_layout(),
                         identifier: identifier.unwrap_token(),
                         span: nonterminal_node.span,
-                    }))
-                }
-                // PostCondition = "!>>" Layout Identifier #FollowRestriction
-                SlotId(81) => {
-                    let [lit_0, layout, identifier] = children.into_array::<3usize>();
-                    ParseTree::PostCondition(self.arena.alloc(PostCondition::FollowRestriction {
+                    },
+                ))
+            }
+            // PriorityLevel = Associativity? Layout {Alternative "|"}*
+            SlotId(53) => {
+                let &[associativity, layout, alternatives] = children else {
+                    ParseTree::unexpected_node()
+                };
+                ParseTree::PriorityLevel(self.arena.alloc(PriorityLevel::Alt0 {
+                    associativity: associativity.unwrap_opt_7(),
+                    layout: layout.unwrap_layout(),
+                    alternatives: alternatives.unwrap_star_3(),
+                    span: nonterminal_node.span,
+                }))
+            }
+            // Associativity = "left"
+            SlotId(55) => {
+                let &[lit_0] = children else {
+                    ParseTree::unexpected_node()
+                };
+                ParseTree::Associativity(self.arena.alloc(Associativity::Alt0 {
+                    lit_0: lit_0.unwrap_token(),
+                    span: nonterminal_node.span,
+                }))
+            }
+            // Associativity = "right"
+            SlotId(57) => {
+                let &[lit_0] = children else {
+                    ParseTree::unexpected_node()
+                };
+                ParseTree::Associativity(self.arena.alloc(Associativity::Alt1 {
+                    lit_0: lit_0.unwrap_token(),
+                    span: nonterminal_node.span,
+                }))
+            }
+            // Associativity = "none"
+            SlotId(59) => {
+                let &[lit_0] = children else {
+                    ParseTree::unexpected_node()
+                };
+                ParseTree::Associativity(self.arena.alloc(Associativity::Alt2 {
+                    lit_0: lit_0.unwrap_token(),
+                    span: nonterminal_node.span,
+                }))
+            }
+            // Alternative = Symbol+ Layout Label? #Symbols
+            SlotId(63) => {
+                let &[symbols, layout, label] = children else {
+                    ParseTree::unexpected_node()
+                };
+                ParseTree::Alternative(self.arena.alloc(Alternative::Symbols {
+                    symbols: symbols.unwrap_plus_6(),
+                    layout: layout.unwrap_layout(),
+                    label: label.unwrap_opt_9(),
+                    span: nonterminal_node.span,
+                }))
+            }
+            // Alternative = "(" Layout ")" Layout Label? #Empty
+            SlotId(69) => {
+                let &[lit_0, layout_1, lit_2, layout_3, label] = children else {
+                    ParseTree::unexpected_node()
+                };
+                ParseTree::Alternative(self.arena.alloc(Alternative::Empty {
+                    lit_0: lit_0.unwrap_token(),
+                    layout_1: layout_1.unwrap_layout(),
+                    lit_2: lit_2.unwrap_token(),
+                    layout_3: layout_3.unwrap_layout(),
+                    label: label.unwrap_opt_9(),
+                    span: nonterminal_node.span,
+                }))
+            }
+            // PreCondition = Identifier Layout "!<<"
+            SlotId(73) => {
+                let &[identifier, layout, lit_2] = children else {
+                    ParseTree::unexpected_node()
+                };
+                ParseTree::PreCondition(self.arena.alloc(PreCondition::Alt0 {
+                    identifier: identifier.unwrap_token(),
+                    layout: layout.unwrap_layout(),
+                    lit_2: lit_2.unwrap_token(),
+                    span: nonterminal_node.span,
+                }))
+            }
+            // PostCondition = "\\" Layout Identifier #Except
+            SlotId(77) => {
+                let &[lit_0, layout, identifier] = children else {
+                    ParseTree::unexpected_node()
+                };
+                ParseTree::PostCondition(self.arena.alloc(PostCondition::Except {
+                    lit_0: lit_0.unwrap_token(),
+                    layout: layout.unwrap_layout(),
+                    identifier: identifier.unwrap_token(),
+                    span: nonterminal_node.span,
+                }))
+            }
+            // PostCondition = "!>>" Layout Identifier #FollowRestriction
+            SlotId(81) => {
+                let &[lit_0, layout, identifier] = children else {
+                    ParseTree::unexpected_node()
+                };
+                ParseTree::PostCondition(self.arena.alloc(PostCondition::FollowRestriction {
+                    lit_0: lit_0.unwrap_token(),
+                    layout: layout.unwrap_layout(),
+                    identifier: identifier.unwrap_token(),
+                    span: nonterminal_node.span,
+                }))
+            }
+            // PostCondition = "!>>>" Layout Identifier #LayoutAwareFollowRestriction
+            SlotId(85) => {
+                let &[lit_0, layout, identifier] = children else {
+                    ParseTree::unexpected_node()
+                };
+                ParseTree::PostCondition(self.arena.alloc(
+                    PostCondition::LayoutAwareFollowRestriction {
                         lit_0: lit_0.unwrap_token(),
                         layout: layout.unwrap_layout(),
                         identifier: identifier.unwrap_token(),
                         span: nonterminal_node.span,
-                    }))
-                }
-                // PostCondition = "!>>>" Layout Identifier #LayoutAwareFollowRestriction
-                SlotId(85) => {
-                    let [lit_0, layout, identifier] = children.into_array::<3usize>();
-                    ParseTree::PostCondition(self.arena.alloc(
-                        PostCondition::LayoutAwareFollowRestriction {
-                            lit_0: lit_0.unwrap_token(),
-                            layout: layout.unwrap_layout(),
-                            identifier: identifier.unwrap_token(),
-                            span: nonterminal_node.span,
-                        },
-                    ))
-                }
-                // PostCondition = "!" Layout Identifier #Exclude
-                SlotId(89) => {
-                    let [lit_0, layout, identifier] = children.into_array::<3usize>();
-                    ParseTree::PostCondition(self.arena.alloc(PostCondition::Exclude {
-                        lit_0: lit_0.unwrap_token(),
-                        layout: layout.unwrap_layout(),
-                        identifier: identifier.unwrap_token(),
-                        span: nonterminal_node.span,
-                    }))
-                }
-                _ => unreachable!(),
-            },
-            // Regex
-            NonterminalId(12) => match nonterminal_node.return_slot {
-                // Regex = Regex Layout "+" #Plus
-                SlotId(93) => {
-                    let [regex, layout, lit_2] = children.into_array::<3usize>();
-                    ParseTree::Regex(self.arena.alloc(Regex::Plus {
-                        regex: regex.unwrap_regex(),
-                        layout: layout.unwrap_layout(),
-                        lit_2: lit_2.unwrap_token(),
-                        span: nonterminal_node.span,
-                    }))
-                }
-                // Regex = Regex Layout "*" #Star
-                SlotId(97) => {
-                    let [regex, layout, lit_2] = children.into_array::<3usize>();
-                    ParseTree::Regex(self.arena.alloc(Regex::Star {
-                        regex: regex.unwrap_regex(),
-                        layout: layout.unwrap_layout(),
-                        lit_2: lit_2.unwrap_token(),
-                        span: nonterminal_node.span,
-                    }))
-                }
-                // Regex = Regex Layout "?" #Opt
-                SlotId(101) => {
-                    let [regex, layout, lit_2] = children.into_array::<3usize>();
-                    ParseTree::Regex(self.arena.alloc(Regex::Opt {
-                        regex: regex.unwrap_regex(),
-                        layout: layout.unwrap_layout(),
-                        lit_2: lit_2.unwrap_token(),
-                        span: nonterminal_node.span,
-                    }))
-                }
-                // Regex = "(" Layout seqs:{Regex+ "|"}+ Layout ")" #Paren
-                SlotId(107) => {
-                    let [lit_0, layout_1, seqs, layout_3, lit_4] = children.into_array::<5usize>();
-                    ParseTree::Regex(self.arena.alloc(Regex::Paren {
-                        lit_0: lit_0.unwrap_token(),
-                        layout_1: layout_1.unwrap_layout(),
-                        seqs: seqs.unwrap_plus_2(),
-                        layout_3: layout_3.unwrap_layout(),
-                        lit_4: lit_4.unwrap_token(),
-                        span: nonterminal_node.span,
-                    }))
-                }
-                // Regex = CharClass #CharClass
-                SlotId(109) => {
-                    let [char_class] = children.into_array::<1usize>();
-                    ParseTree::Regex(self.arena.alloc(Regex::CharClass {
-                        char_class: char_class.unwrap_char_class(),
-                        span: nonterminal_node.span,
-                    }))
-                }
-                // Regex = Char #Char
-                SlotId(111) => {
-                    let [char] = children.into_array::<1usize>();
-                    ParseTree::Regex(self.arena.alloc(Regex::Char {
-                        char: char.unwrap_token(),
-                        span: nonterminal_node.span,
-                    }))
-                }
-                // Regex = String #String
-                SlotId(113) => {
-                    let [string] = children.into_array::<1usize>();
-                    ParseTree::Regex(self.arena.alloc(Regex::String {
-                        string: string.unwrap_token(),
-                        span: nonterminal_node.span,
-                    }))
-                }
-                // Regex = Identifier #Identifier
-                SlotId(115) => {
-                    let [identifier] = children.into_array::<1usize>();
-                    ParseTree::Regex(self.arena.alloc(Regex::Identifier {
-                        identifier: identifier.unwrap_token(),
-                        span: nonterminal_node.span,
-                    }))
-                }
-                _ => unreachable!(),
-            },
-            // CharClass
-            NonterminalId(13) => match nonterminal_node.return_slot {
-                // CharClass = neg:"!"? Layout "[" Layout RangeElement+ Layout "]"
-                SlotId(123) => {
-                    let [
-                        neg,
-                        layout_1,
-                        lit_2,
-                        layout_3,
-                        range_elements,
-                        layout_5,
-                        lit_6,
-                    ] = children.into_array::<7usize>();
-                    ParseTree::CharClass(self.arena.alloc(CharClass::Alt0 {
-                        neg: neg.unwrap_opt_10(),
-                        layout_1: layout_1.unwrap_layout(),
-                        lit_2: lit_2.unwrap_token(),
-                        layout_3: layout_3.unwrap_layout(),
-                        range_elements: range_elements.unwrap_plus_10(),
-                        layout_5: layout_5.unwrap_layout(),
-                        lit_6: lit_6.unwrap_token(),
-                        span: nonterminal_node.span,
-                    }))
-                }
-                _ => unreachable!(),
-            },
-            // RangeElement
-            NonterminalId(14) => match nonterminal_node.return_slot {
-                // RangeElement = Range
-                SlotId(125) => {
-                    let [range] = children.into_array::<1usize>();
-                    ParseTree::RangeElement(self.arena.alloc(RangeElement::Alt0 {
-                        range: range.unwrap_range(),
-                        span: nonterminal_node.span,
-                    }))
-                }
-                // RangeElement = RangeChar
-                SlotId(127) => {
-                    let [range_char] = children.into_array::<1usize>();
-                    ParseTree::RangeElement(self.arena.alloc(RangeElement::Alt1 {
-                        range_char: range_char.unwrap_token(),
-                        span: nonterminal_node.span,
-                    }))
-                }
-                _ => unreachable!(),
-            },
-            // Range
-            NonterminalId(15) => match nonterminal_node.return_slot {
-                // Range = start:RangeChar Layout "-" Layout end:RangeChar
-                SlotId(133) => {
-                    let [start, layout_1, lit_2, layout_3, end] = children.into_array::<5usize>();
-                    ParseTree::Range(self.arena.alloc(Range::Alt0 {
-                        start: start.unwrap_token(),
-                        layout_1: layout_1.unwrap_layout(),
-                        lit_2: lit_2.unwrap_token(),
-                        layout_3: layout_3.unwrap_layout(),
-                        end: end.unwrap_token(),
-                        span: nonterminal_node.span,
-                    }))
-                }
-                _ => unreachable!(),
-            },
-            // Layout
-            NonterminalId(16) => match nonterminal_node.return_slot {
-                // Layout = (WS | LineComment)*
-                SlotId(135) => {
-                    let [star_4] = children.into_array::<1usize>();
-                    ParseTree::Layout(self.arena.alloc(Layout::Alt0 {
-                        star_4: star_4.unwrap_star_4(),
-                        span: nonterminal_node.span,
-                    }))
-                }
-                _ => unreachable!(),
-            },
-            // Plus_0
-            NonterminalId(17) => match nonterminal_node.return_slot {
-                // Plus_0 = Rule+ Layout Rule
-                SlotId(139) => {
-                    let [rules_0, layout, rule_2] = children.into_array::<3usize>();
-                    ParseTree::Plus0(self.arena.alloc(Plus0::Alt0 {
-                        rules_0: rules_0.unwrap_plus_0(),
-                        layout: layout.unwrap_layout(),
-                        rule_2: rule_2.unwrap_rule(),
-                        span: nonterminal_node.span,
-                    }))
-                }
-                // Plus_0 = Rule
-                SlotId(141) => {
-                    let [rule] = children.into_array::<1usize>();
-                    ParseTree::Plus0(self.arena.alloc(Plus0::Alt1 {
-                        rule: rule.unwrap_rule(),
-                        span: nonterminal_node.span,
-                    }))
-                }
-                _ => unreachable!(),
-            },
-            // Opt_0
-            NonterminalId(18) => match nonterminal_node.return_slot {
-                // Opt_0 = Rule+
-                SlotId(143) => {
-                    let [rules] = children.into_array::<1usize>();
-                    ParseTree::Opt0(self.arena.alloc(Opt0::Alt0 {
-                        rules: rules.unwrap_plus_0(),
-                        span: nonterminal_node.span,
-                    }))
-                }
-                // Opt_0 =
-                SlotId(144) => {
-                    let [] = children.into_array::<0usize>();
-                    ParseTree::Opt0(self.arena.alloc(Opt0::Alt1 {
-                        span: nonterminal_node.span,
-                    }))
-                }
-                _ => unreachable!(),
-            },
-            // Star_0
-            NonterminalId(19) => match nonterminal_node.return_slot {
-                // Star_0 = Rule+?
-                SlotId(146) => {
-                    let [opt_0] = children.into_array::<1usize>();
-                    ParseTree::Star0(self.arena.alloc(Star0::Alt0 {
-                        opt_0: opt_0.unwrap_opt_0(),
-                        span: nonterminal_node.span,
-                    }))
-                }
-                _ => unreachable!(),
-            },
-            // Opt_1
-            NonterminalId(20) => match nonterminal_node.return_slot {
-                // Opt_1 = Annotation
-                SlotId(148) => {
-                    let [annotation] = children.into_array::<1usize>();
-                    ParseTree::Opt1(self.arena.alloc(Opt1::Alt0 {
-                        annotation: annotation.unwrap_annotation(),
-                        span: nonterminal_node.span,
-                    }))
-                }
-                // Opt_1 =
-                SlotId(149) => {
-                    let [] = children.into_array::<0usize>();
-                    ParseTree::Opt1(self.arena.alloc(Opt1::Alt1 {
-                        span: nonterminal_node.span,
-                    }))
-                }
-                _ => unreachable!(),
-            },
-            // Plus_1
-            NonterminalId(21) => match nonterminal_node.return_slot {
-                // Plus_1 = {PriorityLevel ">"}+ Layout ">" Layout PriorityLevel
-                SlotId(155) => {
-                    let [
-                        priority_levels_0,
-                        layout_1,
-                        lit_2,
-                        layout_3,
-                        priority_level_4,
-                    ] = children.into_array::<5usize>();
-                    ParseTree::Plus1(self.arena.alloc(Plus1::Alt0 {
-                        priority_levels_0: priority_levels_0.unwrap_plus_1(),
-                        layout_1: layout_1.unwrap_layout(),
-                        lit_2: lit_2.unwrap_token(),
-                        layout_3: layout_3.unwrap_layout(),
-                        priority_level_4: priority_level_4.unwrap_priority_level(),
-                        span: nonterminal_node.span,
-                    }))
-                }
-                // Plus_1 = PriorityLevel
-                SlotId(157) => {
-                    let [priority_level] = children.into_array::<1usize>();
-                    ParseTree::Plus1(self.arena.alloc(Plus1::Alt1 {
-                        priority_level: priority_level.unwrap_priority_level(),
-                        span: nonterminal_node.span,
-                    }))
-                }
-                _ => unreachable!(),
-            },
-            // Opt_2
-            NonterminalId(22) => match nonterminal_node.return_slot {
-                // Opt_2 = {PriorityLevel ">"}+
-                SlotId(159) => {
-                    let [priority_levels] = children.into_array::<1usize>();
-                    ParseTree::Opt2(self.arena.alloc(Opt2::Alt0 {
-                        priority_levels: priority_levels.unwrap_plus_1(),
-                        span: nonterminal_node.span,
-                    }))
-                }
-                // Opt_2 =
-                SlotId(160) => {
-                    let [] = children.into_array::<0usize>();
-                    ParseTree::Opt2(self.arena.alloc(Opt2::Alt1 {
-                        span: nonterminal_node.span,
-                    }))
-                }
-                _ => unreachable!(),
-            },
-            // Star_1
-            NonterminalId(23) => match nonterminal_node.return_slot {
-                // Star_1 = {PriorityLevel ">"}+?
-                SlotId(162) => {
-                    let [opt_2] = children.into_array::<1usize>();
-                    ParseTree::Star1(self.arena.alloc(Star1::Alt0 {
-                        opt_2: opt_2.unwrap_opt_2(),
-                        span: nonterminal_node.span,
-                    }))
-                }
-                _ => unreachable!(),
-            },
-            // Opt_3
-            NonterminalId(24) => match nonterminal_node.return_slot {
-                // Opt_3 = "@Layout"
-                SlotId(164) => {
-                    let [lit_0] = children.into_array::<1usize>();
-                    ParseTree::Opt3(self.arena.alloc(Opt3::Alt0 {
-                        lit_0: lit_0.unwrap_token(),
-                        span: nonterminal_node.span,
-                    }))
-                }
-                // Opt_3 =
-                SlotId(165) => {
-                    let [] = children.into_array::<0usize>();
-                    ParseTree::Opt3(self.arena.alloc(Opt3::Alt1 {
-                        span: nonterminal_node.span,
-                    }))
-                }
-                _ => unreachable!(),
-            },
-            // Opt_4
-            NonterminalId(25) => match nonterminal_node.return_slot {
-                // Opt_4 = "@Identifier"
-                SlotId(167) => {
-                    let [lit_0] = children.into_array::<1usize>();
-                    ParseTree::Opt4(self.arena.alloc(Opt4::Alt0 {
-                        lit_0: lit_0.unwrap_token(),
-                        span: nonterminal_node.span,
-                    }))
-                }
-                // Opt_4 =
-                SlotId(168) => {
-                    let [] = children.into_array::<0usize>();
-                    ParseTree::Opt4(self.arena.alloc(Opt4::Alt1 {
-                        span: nonterminal_node.span,
-                    }))
-                }
-                _ => unreachable!(),
-            },
-            // Opt_5
-            NonterminalId(26) => match nonterminal_node.return_slot {
-                // Opt_5 = RegexPreCondition
-                SlotId(170) => {
-                    let [regex_pre_condition] = children.into_array::<1usize>();
-                    ParseTree::Opt5(self.arena.alloc(Opt5::Alt0 {
-                        regex_pre_condition: regex_pre_condition.unwrap_regex_pre_condition(),
-                        span: nonterminal_node.span,
-                    }))
-                }
-                // Opt_5 =
-                SlotId(171) => {
-                    let [] = children.into_array::<0usize>();
-                    ParseTree::Opt5(self.arena.alloc(Opt5::Alt1 {
-                        span: nonterminal_node.span,
-                    }))
-                }
-                _ => unreachable!(),
-            },
-            // Plus_3
-            NonterminalId(27) => match nonterminal_node.return_slot {
-                // Plus_3 = Regex+ Layout Regex
-                SlotId(175) => {
-                    let [regexes_0, layout, regex_2] = children.into_array::<3usize>();
-                    ParseTree::Plus3(self.arena.alloc(Plus3::Alt0 {
-                        regexes_0: regexes_0.unwrap_plus_3(),
-                        layout: layout.unwrap_layout(),
-                        regex_2: regex_2.unwrap_regex(),
-                        span: nonterminal_node.span,
-                    }))
-                }
-                // Plus_3 = Regex
-                SlotId(177) => {
-                    let [regex] = children.into_array::<1usize>();
-                    ParseTree::Plus3(self.arena.alloc(Plus3::Alt1 {
-                        regex: regex.unwrap_regex(),
-                        span: nonterminal_node.span,
-                    }))
-                }
-                _ => unreachable!(),
-            },
-            // Plus_2
-            NonterminalId(28) => match nonterminal_node.return_slot {
-                // Plus_2 = {Regex+ "|"}+ Layout "|" Layout Regex+
-                SlotId(183) => {
-                    let [plus_2, layout_1, lit_2, layout_3, regexes] =
-                        children.into_array::<5usize>();
-                    ParseTree::Plus2(self.arena.alloc(Plus2::Alt0 {
-                        plus_2: plus_2.unwrap_plus_2(),
-                        layout_1: layout_1.unwrap_layout(),
-                        lit_2: lit_2.unwrap_token(),
-                        layout_3: layout_3.unwrap_layout(),
-                        regexes: regexes.unwrap_plus_3(),
-                        span: nonterminal_node.span,
-                    }))
-                }
-                // Plus_2 = Regex+
-                SlotId(185) => {
-                    let [regexes] = children.into_array::<1usize>();
-                    ParseTree::Plus2(self.arena.alloc(Plus2::Alt1 {
-                        regexes: regexes.unwrap_plus_3(),
-                        span: nonterminal_node.span,
-                    }))
-                }
-                _ => unreachable!(),
-            },
-            // Plus_4
-            NonterminalId(29) => match nonterminal_node.return_slot {
-                // Plus_4 = RegexPostCondition+ Layout RegexPostCondition
-                SlotId(189) => {
-                    let [regex_post_conditions_0, layout, regex_post_condition_2] =
-                        children.into_array::<3usize>();
-                    ParseTree::Plus4(self.arena.alloc(Plus4::Alt0 {
-                        regex_post_conditions_0: regex_post_conditions_0.unwrap_plus_4(),
-                        layout: layout.unwrap_layout(),
-                        regex_post_condition_2:
-                            regex_post_condition_2.unwrap_regex_post_condition(),
-                        span: nonterminal_node.span,
-                    }))
-                }
-                // Plus_4 = RegexPostCondition
-                SlotId(191) => {
-                    let [regex_post_condition] = children.into_array::<1usize>();
-                    ParseTree::Plus4(self.arena.alloc(Plus4::Alt1 {
-                        regex_post_condition: regex_post_condition.unwrap_regex_post_condition(),
-                        span: nonterminal_node.span,
-                    }))
-                }
-                _ => unreachable!(),
-            },
-            // Opt_6
-            NonterminalId(30) => match nonterminal_node.return_slot {
-                // Opt_6 = RegexPostCondition+
-                SlotId(193) => {
-                    let [regex_post_conditions] = children.into_array::<1usize>();
-                    ParseTree::Opt6(self.arena.alloc(Opt6::Alt0 {
-                        regex_post_conditions: regex_post_conditions.unwrap_plus_4(),
-                        span: nonterminal_node.span,
-                    }))
-                }
-                // Opt_6 =
-                SlotId(194) => {
-                    let [] = children.into_array::<0usize>();
-                    ParseTree::Opt6(self.arena.alloc(Opt6::Alt1 {
-                        span: nonterminal_node.span,
-                    }))
-                }
-                _ => unreachable!(),
-            },
-            // Star_2
-            NonterminalId(31) => match nonterminal_node.return_slot {
-                // Star_2 = RegexPostCondition+?
-                SlotId(196) => {
-                    let [opt_6] = children.into_array::<1usize>();
-                    ParseTree::Star2(self.arena.alloc(Star2::Alt0 {
-                        opt_6: opt_6.unwrap_opt_6(),
-                        span: nonterminal_node.span,
-                    }))
-                }
-                _ => unreachable!(),
-            },
-            // Opt_7
-            NonterminalId(32) => match nonterminal_node.return_slot {
-                // Opt_7 = Associativity
-                SlotId(198) => {
-                    let [associativity] = children.into_array::<1usize>();
-                    ParseTree::Opt7(self.arena.alloc(Opt7::Alt0 {
-                        associativity: associativity.unwrap_associativity(),
-                        span: nonterminal_node.span,
-                    }))
-                }
-                // Opt_7 =
-                SlotId(199) => {
-                    let [] = children.into_array::<0usize>();
-                    ParseTree::Opt7(self.arena.alloc(Opt7::Alt1 {
-                        span: nonterminal_node.span,
-                    }))
-                }
-                _ => unreachable!(),
-            },
-            // Plus_5
-            NonterminalId(33) => match nonterminal_node.return_slot {
-                // Plus_5 = {Alternative "|"}+ Layout "|" Layout Alternative
-                SlotId(205) => {
-                    let [alternatives_0, layout_1, lit_2, layout_3, alternative_4] =
-                        children.into_array::<5usize>();
-                    ParseTree::Plus5(self.arena.alloc(Plus5::Alt0 {
-                        alternatives_0: alternatives_0.unwrap_plus_5(),
-                        layout_1: layout_1.unwrap_layout(),
-                        lit_2: lit_2.unwrap_token(),
-                        layout_3: layout_3.unwrap_layout(),
-                        alternative_4: alternative_4.unwrap_alternative(),
-                        span: nonterminal_node.span,
-                    }))
-                }
-                // Plus_5 = Alternative
-                SlotId(207) => {
-                    let [alternative] = children.into_array::<1usize>();
-                    ParseTree::Plus5(self.arena.alloc(Plus5::Alt1 {
-                        alternative: alternative.unwrap_alternative(),
-                        span: nonterminal_node.span,
-                    }))
-                }
-                _ => unreachable!(),
-            },
-            // Opt_8
-            NonterminalId(34) => match nonterminal_node.return_slot {
-                // Opt_8 = {Alternative "|"}+
-                SlotId(209) => {
-                    let [alternatives] = children.into_array::<1usize>();
-                    ParseTree::Opt8(self.arena.alloc(Opt8::Alt0 {
-                        alternatives: alternatives.unwrap_plus_5(),
-                        span: nonterminal_node.span,
-                    }))
-                }
-                // Opt_8 =
-                SlotId(210) => {
-                    let [] = children.into_array::<0usize>();
-                    ParseTree::Opt8(self.arena.alloc(Opt8::Alt1 {
-                        span: nonterminal_node.span,
-                    }))
-                }
-                _ => unreachable!(),
-            },
-            // Star_3
-            NonterminalId(35) => match nonterminal_node.return_slot {
-                // Star_3 = {Alternative "|"}+?
-                SlotId(212) => {
-                    let [opt_8] = children.into_array::<1usize>();
-                    ParseTree::Star3(self.arena.alloc(Star3::Alt0 {
-                        opt_8: opt_8.unwrap_opt_8(),
-                        span: nonterminal_node.span,
-                    }))
-                }
-                _ => unreachable!(),
-            },
-            // Plus_6
-            NonterminalId(36) => match nonterminal_node.return_slot {
-                // Plus_6 = Symbol+ Layout Symbol
-                SlotId(216) => {
-                    let [symbols_0, layout, symbol_2] = children.into_array::<3usize>();
-                    ParseTree::Plus6(self.arena.alloc(Plus6::Alt0 {
-                        symbols_0: symbols_0.unwrap_plus_6(),
-                        layout: layout.unwrap_layout(),
-                        symbol_2: symbol_2.unwrap_symbol(),
-                        span: nonterminal_node.span,
-                    }))
-                }
-                // Plus_6 = Symbol
-                SlotId(218) => {
-                    let [symbol] = children.into_array::<1usize>();
-                    ParseTree::Plus6(self.arena.alloc(Plus6::Alt1 {
-                        symbol: symbol.unwrap_symbol(),
-                        span: nonterminal_node.span,
-                    }))
-                }
-                _ => unreachable!(),
-            },
-            // Opt_9
-            NonterminalId(37) => match nonterminal_node.return_slot {
-                // Opt_9 = Label
-                SlotId(220) => {
-                    let [label] = children.into_array::<1usize>();
-                    ParseTree::Opt9(self.arena.alloc(Opt9::Alt0 {
-                        label: label.unwrap_token(),
-                        span: nonterminal_node.span,
-                    }))
-                }
-                // Opt_9 =
-                SlotId(221) => {
-                    let [] = children.into_array::<0usize>();
-                    ParseTree::Opt9(self.arena.alloc(Opt9::Alt1 {
-                        span: nonterminal_node.span,
-                    }))
-                }
-                _ => unreachable!(),
-            },
-            // Plus_7
-            NonterminalId(38) => match nonterminal_node.return_slot {
-                // Plus_7 = {Symbol+ "|"}+ Layout "|" Layout Symbol+
-                SlotId(227) => {
-                    let [plus_7, layout_1, lit_2, layout_3, symbols] =
-                        children.into_array::<5usize>();
-                    ParseTree::Plus7(self.arena.alloc(Plus7::Alt0 {
-                        plus_7: plus_7.unwrap_plus_7(),
-                        layout_1: layout_1.unwrap_layout(),
-                        lit_2: lit_2.unwrap_token(),
-                        layout_3: layout_3.unwrap_layout(),
-                        symbols: symbols.unwrap_plus_6(),
-                        span: nonterminal_node.span,
-                    }))
-                }
-                // Plus_7 = Symbol+
-                SlotId(229) => {
-                    let [symbols] = children.into_array::<1usize>();
-                    ParseTree::Plus7(self.arena.alloc(Plus7::Alt1 {
-                        symbols: symbols.unwrap_plus_6(),
-                        span: nonterminal_node.span,
-                    }))
-                }
-                _ => unreachable!(),
-            },
-            // Plus_8
-            NonterminalId(39) => match nonterminal_node.return_slot {
-                // Plus_8 = PostCondition+ Layout PostCondition
-                SlotId(233) => {
-                    let [post_conditions_0, layout, post_condition_2] =
-                        children.into_array::<3usize>();
-                    ParseTree::Plus8(self.arena.alloc(Plus8::Alt0 {
-                        post_conditions_0: post_conditions_0.unwrap_plus_8(),
-                        layout: layout.unwrap_layout(),
-                        post_condition_2: post_condition_2.unwrap_post_condition(),
-                        span: nonterminal_node.span,
-                    }))
-                }
-                // Plus_8 = PostCondition
-                SlotId(235) => {
-                    let [post_condition] = children.into_array::<1usize>();
-                    ParseTree::Plus8(self.arena.alloc(Plus8::Alt1 {
-                        post_condition: post_condition.unwrap_post_condition(),
-                        span: nonterminal_node.span,
-                    }))
-                }
-                _ => unreachable!(),
-            },
-            // Plus_9
-            NonterminalId(40) => match nonterminal_node.return_slot {
-                // Plus_9 = PreCondition+ Layout PreCondition
-                SlotId(239) => {
-                    let [pre_conditions_0, layout, pre_condition_2] =
-                        children.into_array::<3usize>();
-                    ParseTree::Plus9(self.arena.alloc(Plus9::Alt0 {
-                        pre_conditions_0: pre_conditions_0.unwrap_plus_9(),
-                        layout: layout.unwrap_layout(),
-                        pre_condition_2: pre_condition_2.unwrap_pre_condition(),
-                        span: nonterminal_node.span,
-                    }))
-                }
-                // Plus_9 = PreCondition
-                SlotId(241) => {
-                    let [pre_condition] = children.into_array::<1usize>();
-                    ParseTree::Plus9(self.arena.alloc(Plus9::Alt1 {
-                        pre_condition: pre_condition.unwrap_pre_condition(),
-                        span: nonterminal_node.span,
-                    }))
-                }
-                _ => unreachable!(),
-            },
-            // Opt_10
-            NonterminalId(41) => match nonterminal_node.return_slot {
-                // Opt_10 = "!"
-                SlotId(243) => {
-                    let [lit_0] = children.into_array::<1usize>();
-                    ParseTree::Opt10(self.arena.alloc(Opt10::Alt0 {
-                        lit_0: lit_0.unwrap_token(),
-                        span: nonterminal_node.span,
-                    }))
-                }
-                // Opt_10 =
-                SlotId(244) => {
-                    let [] = children.into_array::<0usize>();
-                    ParseTree::Opt10(self.arena.alloc(Opt10::Alt1 {
-                        span: nonterminal_node.span,
-                    }))
-                }
-                _ => unreachable!(),
-            },
-            // Plus_10
-            NonterminalId(42) => match nonterminal_node.return_slot {
-                // Plus_10 = RangeElement+ Layout RangeElement
-                SlotId(248) => {
-                    let [range_elements_0, layout, range_element_2] =
-                        children.into_array::<3usize>();
-                    ParseTree::Plus10(self.arena.alloc(Plus10::Alt0 {
-                        range_elements_0: range_elements_0.unwrap_plus_10(),
-                        layout: layout.unwrap_layout(),
-                        range_element_2: range_element_2.unwrap_range_element(),
-                        span: nonterminal_node.span,
-                    }))
-                }
-                // Plus_10 = RangeElement
-                SlotId(250) => {
-                    let [range_element] = children.into_array::<1usize>();
-                    ParseTree::Plus10(self.arena.alloc(Plus10::Alt1 {
-                        range_element: range_element.unwrap_range_element(),
-                        span: nonterminal_node.span,
-                    }))
-                }
-                _ => unreachable!(),
-            },
-            // Alt_0
-            NonterminalId(43) => match nonterminal_node.return_slot {
-                // Alt_0 = WS
-                SlotId(252) => {
-                    let [ws] = children.into_array::<1usize>();
-                    ParseTree::Alt0(self.arena.alloc(Alt0::Alt0 {
-                        ws: ws.unwrap_token(),
-                        span: nonterminal_node.span,
-                    }))
-                }
-                // Alt_0 = LineComment
-                SlotId(254) => {
-                    let [line_comment] = children.into_array::<1usize>();
-                    ParseTree::Alt0(self.arena.alloc(Alt0::Alt1 {
-                        line_comment: line_comment.unwrap_token(),
-                        span: nonterminal_node.span,
-                    }))
-                }
-                _ => unreachable!(),
-            },
-            // Plus_11
-            NonterminalId(44) => match nonterminal_node.return_slot {
-                // Plus_11 = (WS | LineComment)+ (WS | LineComment)
-                SlotId(257) => {
-                    let [plus_11, alt_0] = children.into_array::<2usize>();
-                    ParseTree::Plus11(self.arena.alloc(Plus11::Alt0 {
-                        plus_11: plus_11.unwrap_plus_11(),
-                        alt_0: alt_0.unwrap_alt_0(),
-                        span: nonterminal_node.span,
-                    }))
-                }
-                // Plus_11 = (WS | LineComment)
-                SlotId(259) => {
-                    let [alt_0] = children.into_array::<1usize>();
-                    ParseTree::Plus11(self.arena.alloc(Plus11::Alt1 {
-                        alt_0: alt_0.unwrap_alt_0(),
-                        span: nonterminal_node.span,
-                    }))
-                }
-                _ => unreachable!(),
-            },
-            // Opt_11
-            NonterminalId(45) => match nonterminal_node.return_slot {
-                // Opt_11 = (WS | LineComment)+
-                SlotId(261) => {
-                    let [plus_11] = children.into_array::<1usize>();
-                    ParseTree::Opt11(self.arena.alloc(Opt11::Alt0 {
-                        plus_11: plus_11.unwrap_plus_11(),
-                        span: nonterminal_node.span,
-                    }))
-                }
-                // Opt_11 =
-                SlotId(262) => {
-                    let [] = children.into_array::<0usize>();
-                    ParseTree::Opt11(self.arena.alloc(Opt11::Alt1 {
-                        span: nonterminal_node.span,
-                    }))
-                }
-                _ => unreachable!(),
-            },
-            // Star_4
-            NonterminalId(46) => match nonterminal_node.return_slot {
-                // Star_4 = (WS | LineComment)+?
-                SlotId(264) => {
-                    let [opt_11] = children.into_array::<1usize>();
-                    ParseTree::Star4(self.arena.alloc(Star4::Alt0 {
-                        opt_11: opt_11.unwrap_opt_11(),
-                        span: nonterminal_node.span,
-                    }))
-                }
-                _ => unreachable!(),
-            },
-            // StartGrammar
-            NonterminalId(47) => match nonterminal_node.return_slot {
-                // StartGrammar = Layout start:Grammar Layout
-                SlotId(268) => {
-                    let [layout_0, start, layout_2] = children.into_array::<3usize>();
-                    ParseTree::StartGrammar(self.arena.alloc(Start {
-                        before: layout_0.unwrap_layout(),
-                        node: start.unwrap_grammar(),
-                        after: layout_2.unwrap_layout(),
-                        span: nonterminal_node.span,
-                    }))
-                }
-                _ => unreachable!(),
-            },
-            // StartRule
-            NonterminalId(48) => match nonterminal_node.return_slot {
-                // StartRule = Layout start:Rule Layout
-                SlotId(272) => {
-                    let [layout_0, start, layout_2] = children.into_array::<3usize>();
-                    ParseTree::StartRule(self.arena.alloc(Start {
-                        before: layout_0.unwrap_layout(),
-                        node: start.unwrap_rule(),
-                        after: layout_2.unwrap_layout(),
-                        span: nonterminal_node.span,
-                    }))
-                }
-                _ => unreachable!(),
-            },
-            // StartSyntaxRule
-            NonterminalId(49) => match nonterminal_node.return_slot {
-                // StartSyntaxRule = Layout start:SyntaxRule Layout
-                SlotId(276) => {
-                    let [layout_0, start, layout_2] = children.into_array::<3usize>();
-                    ParseTree::StartSyntaxRule(self.arena.alloc(Start {
-                        before: layout_0.unwrap_layout(),
-                        node: start.unwrap_syntax_rule(),
-                        after: layout_2.unwrap_layout(),
-                        span: nonterminal_node.span,
-                    }))
-                }
-                _ => unreachable!(),
-            },
-            // StartAnnotation
-            NonterminalId(50) => match nonterminal_node.return_slot {
-                // StartAnnotation = Layout start:Annotation Layout
-                SlotId(280) => {
-                    let [layout_0, start, layout_2] = children.into_array::<3usize>();
-                    ParseTree::StartAnnotation(self.arena.alloc(Start {
-                        before: layout_0.unwrap_layout(),
-                        node: start.unwrap_annotation(),
-                        after: layout_2.unwrap_layout(),
-                        span: nonterminal_node.span,
-                    }))
-                }
-                _ => unreachable!(),
-            },
-            // StartRegexRule
-            NonterminalId(51) => match nonterminal_node.return_slot {
-                // StartRegexRule = Layout start:RegexRule Layout
-                SlotId(284) => {
-                    let [layout_0, start, layout_2] = children.into_array::<3usize>();
-                    ParseTree::StartRegexRule(self.arena.alloc(Start {
-                        before: layout_0.unwrap_layout(),
-                        node: start.unwrap_regex_rule(),
-                        after: layout_2.unwrap_layout(),
-                        span: nonterminal_node.span,
-                    }))
-                }
-                _ => unreachable!(),
-            },
-            // StartRegexPreCondition
-            NonterminalId(52) => match nonterminal_node.return_slot {
-                // StartRegexPreCondition = Layout start:RegexPreCondition Layout
-                SlotId(288) => {
-                    let [layout_0, start, layout_2] = children.into_array::<3usize>();
-                    ParseTree::StartRegexPreCondition(self.arena.alloc(Start {
-                        before: layout_0.unwrap_layout(),
-                        node: start.unwrap_regex_pre_condition(),
-                        after: layout_2.unwrap_layout(),
-                        span: nonterminal_node.span,
-                    }))
-                }
-                _ => unreachable!(),
-            },
-            // StartRegexPostCondition
-            NonterminalId(53) => match nonterminal_node.return_slot {
-                // StartRegexPostCondition = Layout start:RegexPostCondition Layout
-                SlotId(292) => {
-                    let [layout_0, start, layout_2] = children.into_array::<3usize>();
-                    ParseTree::StartRegexPostCondition(self.arena.alloc(Start {
-                        before: layout_0.unwrap_layout(),
-                        node: start.unwrap_regex_post_condition(),
-                        after: layout_2.unwrap_layout(),
-                        span: nonterminal_node.span,
-                    }))
-                }
-                _ => unreachable!(),
-            },
-            // StartPriorityLevel
-            NonterminalId(54) => match nonterminal_node.return_slot {
-                // StartPriorityLevel = Layout start:PriorityLevel Layout
-                SlotId(296) => {
-                    let [layout_0, start, layout_2] = children.into_array::<3usize>();
-                    ParseTree::StartPriorityLevel(self.arena.alloc(Start {
-                        before: layout_0.unwrap_layout(),
-                        node: start.unwrap_priority_level(),
-                        after: layout_2.unwrap_layout(),
-                        span: nonterminal_node.span,
-                    }))
-                }
-                _ => unreachable!(),
-            },
-            // StartAssociativity
-            NonterminalId(55) => match nonterminal_node.return_slot {
-                // StartAssociativity = Layout start:Associativity Layout
-                SlotId(300) => {
-                    let [layout_0, start, layout_2] = children.into_array::<3usize>();
-                    ParseTree::StartAssociativity(self.arena.alloc(Start {
-                        before: layout_0.unwrap_layout(),
-                        node: start.unwrap_associativity(),
-                        after: layout_2.unwrap_layout(),
-                        span: nonterminal_node.span,
-                    }))
-                }
-                _ => unreachable!(),
-            },
-            // StartAlternative
-            NonterminalId(56) => match nonterminal_node.return_slot {
-                // StartAlternative = Layout start:Alternative Layout
-                SlotId(304) => {
-                    let [layout_0, start, layout_2] = children.into_array::<3usize>();
-                    ParseTree::StartAlternative(self.arena.alloc(Start {
-                        before: layout_0.unwrap_layout(),
-                        node: start.unwrap_alternative(),
-                        after: layout_2.unwrap_layout(),
-                        span: nonterminal_node.span,
-                    }))
-                }
-                _ => unreachable!(),
-            },
-            // StartSymbol
-            NonterminalId(57) => match nonterminal_node.return_slot {
-                // StartSymbol = Layout start:Symbol Layout
-                SlotId(308) => {
-                    let [layout_0, start, layout_2] = children.into_array::<3usize>();
-                    ParseTree::StartSymbol(self.arena.alloc(Start {
-                        before: layout_0.unwrap_layout(),
-                        node: start.unwrap_symbol(),
-                        after: layout_2.unwrap_layout(),
-                        span: nonterminal_node.span,
-                    }))
-                }
-                _ => unreachable!(),
-            },
-            // StartPreCondition
-            NonterminalId(58) => match nonterminal_node.return_slot {
-                // StartPreCondition = Layout start:PreCondition Layout
-                SlotId(312) => {
-                    let [layout_0, start, layout_2] = children.into_array::<3usize>();
-                    ParseTree::StartPreCondition(self.arena.alloc(Start {
-                        before: layout_0.unwrap_layout(),
-                        node: start.unwrap_pre_condition(),
-                        after: layout_2.unwrap_layout(),
-                        span: nonterminal_node.span,
-                    }))
-                }
-                _ => unreachable!(),
-            },
-            // StartPostCondition
-            NonterminalId(59) => match nonterminal_node.return_slot {
-                // StartPostCondition = Layout start:PostCondition Layout
-                SlotId(316) => {
-                    let [layout_0, start, layout_2] = children.into_array::<3usize>();
-                    ParseTree::StartPostCondition(self.arena.alloc(Start {
-                        before: layout_0.unwrap_layout(),
-                        node: start.unwrap_post_condition(),
-                        after: layout_2.unwrap_layout(),
-                        span: nonterminal_node.span,
-                    }))
-                }
-                _ => unreachable!(),
-            },
-            // StartRegex
-            NonterminalId(60) => match nonterminal_node.return_slot {
-                // StartRegex = Layout start:Regex Layout
-                SlotId(320) => {
-                    let [layout_0, start, layout_2] = children.into_array::<3usize>();
-                    ParseTree::StartRegex(self.arena.alloc(Start {
-                        before: layout_0.unwrap_layout(),
-                        node: start.unwrap_regex(),
-                        after: layout_2.unwrap_layout(),
-                        span: nonterminal_node.span,
-                    }))
-                }
-                _ => unreachable!(),
-            },
-            // StartCharClass
-            NonterminalId(61) => match nonterminal_node.return_slot {
-                // StartCharClass = Layout start:CharClass Layout
-                SlotId(324) => {
-                    let [layout_0, start, layout_2] = children.into_array::<3usize>();
-                    ParseTree::StartCharClass(self.arena.alloc(Start {
-                        before: layout_0.unwrap_layout(),
-                        node: start.unwrap_char_class(),
-                        after: layout_2.unwrap_layout(),
-                        span: nonterminal_node.span,
-                    }))
-                }
-                _ => unreachable!(),
-            },
-            // StartRangeElement
-            NonterminalId(62) => match nonterminal_node.return_slot {
-                // StartRangeElement = Layout start:RangeElement Layout
-                SlotId(328) => {
-                    let [layout_0, start, layout_2] = children.into_array::<3usize>();
-                    ParseTree::StartRangeElement(self.arena.alloc(Start {
-                        before: layout_0.unwrap_layout(),
-                        node: start.unwrap_range_element(),
-                        after: layout_2.unwrap_layout(),
-                        span: nonterminal_node.span,
-                    }))
-                }
-                _ => unreachable!(),
-            },
-            // StartRange
-            NonterminalId(63) => match nonterminal_node.return_slot {
-                // StartRange = Layout start:Range Layout
-                SlotId(332) => {
-                    let [layout_0, start, layout_2] = children.into_array::<3usize>();
-                    ParseTree::StartRange(self.arena.alloc(Start {
-                        before: layout_0.unwrap_layout(),
-                        node: start.unwrap_range(),
-                        after: layout_2.unwrap_layout(),
-                        span: nonterminal_node.span,
-                    }))
-                }
-                _ => unreachable!(),
-            },
-            // StartLayout
-            NonterminalId(64) => match nonterminal_node.return_slot {
-                // StartLayout = start:Layout
-                SlotId(334) => {
-                    let [start] = children.into_array::<1usize>();
-                    ParseTree::StartLayout(self.arena.alloc(Start {
-                        before: (),
-                        node: start.unwrap_layout(),
-                        after: (),
-                        span: nonterminal_node.span,
-                    }))
-                }
-                _ => unreachable!(),
-            },
-            // Symbol
-            NonterminalId(65) => match nonterminal_node.return_slot {
-                // Symbol = Identifier #Identifier
-                SlotId(338) => {
-                    let [identifier] = children.into_array::<1usize>();
-                    ParseTree::Symbol(self.arena.alloc(Symbol::Identifier {
-                        identifier: identifier.unwrap_token(),
-                        span: nonterminal_node.span,
-                    }))
-                }
-                // Symbol = "(" Layout seqs:{Symbol+ "|"}+ Layout ")" #Paren
-                SlotId(346) => {
-                    let [lit_0, layout_1, seqs, layout_3, lit_4] = children.into_array::<5usize>();
-                    ParseTree::Symbol(self.arena.alloc(Symbol::Paren {
-                        lit_0: lit_0.unwrap_token(),
-                        layout_1: layout_1.unwrap_layout(),
-                        seqs: seqs.unwrap_plus_7(),
-                        layout_3: layout_3.unwrap_layout(),
-                        lit_4: lit_4.unwrap_token(),
-                        span: nonterminal_node.span,
-                    }))
-                }
-                // Symbol = String #Lit
-                SlotId(350) => {
-                    let [string] = children.into_array::<1usize>();
-                    ParseTree::Symbol(self.arena.alloc(Symbol::Lit {
-                        string: string.unwrap_token(),
-                        span: nonterminal_node.span,
-                    }))
-                }
-                // Symbol = "{" Layout symbol:Symbol Layout sep:Symbol Layout "}" Layout "*" #StarSep
-                SlotId(362) => {
-                    let [
-                        lit_0,
-                        layout_1,
-                        symbol,
-                        layout_3,
-                        sep,
-                        layout_5,
-                        lit_6,
-                        layout_7,
-                        lit_8,
-                    ] = children.into_array::<9usize>();
-                    ParseTree::Symbol(self.arena.alloc(Symbol::StarSep {
-                        lit_0: lit_0.unwrap_token(),
-                        layout_1: layout_1.unwrap_layout(),
-                        symbol: symbol.unwrap_symbol(),
-                        layout_3: layout_3.unwrap_layout(),
-                        sep: sep.unwrap_symbol(),
-                        layout_5: layout_5.unwrap_layout(),
-                        lit_6: lit_6.unwrap_token(),
-                        layout_7: layout_7.unwrap_layout(),
-                        lit_8: lit_8.unwrap_token(),
-                        span: nonterminal_node.span,
-                    }))
-                }
-                // Symbol = "{" Layout symbol:Symbol Layout sep:Symbol Layout "}" Layout "+" #PlusSep
-                SlotId(374) => {
-                    let [
-                        lit_0,
-                        layout_1,
-                        symbol,
-                        layout_3,
-                        sep,
-                        layout_5,
-                        lit_6,
-                        layout_7,
-                        lit_8,
-                    ] = children.into_array::<9usize>();
-                    ParseTree::Symbol(self.arena.alloc(Symbol::PlusSep {
-                        lit_0: lit_0.unwrap_token(),
-                        layout_1: layout_1.unwrap_layout(),
-                        symbol: symbol.unwrap_symbol(),
-                        layout_3: layout_3.unwrap_layout(),
-                        sep: sep.unwrap_symbol(),
-                        layout_5: layout_5.unwrap_layout(),
-                        lit_6: lit_6.unwrap_token(),
-                        layout_7: layout_7.unwrap_layout(),
-                        lit_8: lit_8.unwrap_token(),
-                        span: nonterminal_node.span,
-                    }))
-                }
-                // Symbol = Symbol Layout "*" #Star
-                SlotId(382) => {
-                    let [symbol, layout, lit_2] = children.into_array::<3usize>();
-                    ParseTree::Symbol(self.arena.alloc(Symbol::Star {
-                        symbol: symbol.unwrap_symbol(),
-                        layout: layout.unwrap_layout(),
-                        lit_2: lit_2.unwrap_token(),
-                        span: nonterminal_node.span,
-                    }))
-                }
-                // Symbol = Symbol Layout "+" #Plus
-                SlotId(390) => {
-                    let [symbol, layout, lit_2] = children.into_array::<3usize>();
-                    ParseTree::Symbol(self.arena.alloc(Symbol::Plus {
-                        symbol: symbol.unwrap_symbol(),
-                        layout: layout.unwrap_layout(),
-                        lit_2: lit_2.unwrap_token(),
-                        span: nonterminal_node.span,
-                    }))
-                }
-                // Symbol = Symbol Layout "?" #Opt
-                SlotId(398) => {
-                    let [symbol, layout, lit_2] = children.into_array::<3usize>();
-                    ParseTree::Symbol(self.arena.alloc(Symbol::Opt {
-                        symbol: symbol.unwrap_symbol(),
-                        layout: layout.unwrap_layout(),
-                        lit_2: lit_2.unwrap_token(),
-                        span: nonterminal_node.span,
-                    }))
-                }
-                // Symbol = Symbol Layout conditions:PostCondition+ #PostCondition
-                SlotId(407) => {
-                    let [symbol, layout, conditions] = children.into_array::<3usize>();
-                    ParseTree::Symbol(self.arena.alloc(Symbol::PostCondition {
-                        symbol: symbol.unwrap_symbol(),
-                        layout: layout.unwrap_layout(),
-                        conditions: conditions.unwrap_plus_8(),
-                        span: nonterminal_node.span,
-                    }))
-                }
-                // Symbol = conditions:PreCondition+ Layout Symbol #PreCondition
-                SlotId(413) => {
-                    let [conditions, layout, symbol] = children.into_array::<3usize>();
-                    ParseTree::Symbol(self.arena.alloc(Symbol::PreCondition {
-                        conditions: conditions.unwrap_plus_9(),
-                        layout: layout.unwrap_layout(),
-                        symbol: symbol.unwrap_symbol(),
-                        span: nonterminal_node.span,
-                    }))
-                }
-                // Symbol = label:Identifier Layout ":" Layout Symbol #Labeled
-                SlotId(421) => {
-                    let [label, layout_1, lit_2, layout_3, symbol] =
-                        children.into_array::<5usize>();
-                    ParseTree::Symbol(self.arena.alloc(Symbol::Labeled {
-                        label: label.unwrap_token(),
-                        layout_1: layout_1.unwrap_layout(),
-                        lit_2: lit_2.unwrap_token(),
-                        layout_3: layout_3.unwrap_layout(),
-                        symbol: symbol.unwrap_symbol(),
-                        span: nonterminal_node.span,
-                    }))
-                }
-                _ => unreachable!(),
-            },
+                    },
+                ))
+            }
+            // PostCondition = "!" Layout Identifier #Exclude
+            SlotId(89) => {
+                let &[lit_0, layout, identifier] = children else {
+                    ParseTree::unexpected_node()
+                };
+                ParseTree::PostCondition(self.arena.alloc(PostCondition::Exclude {
+                    lit_0: lit_0.unwrap_token(),
+                    layout: layout.unwrap_layout(),
+                    identifier: identifier.unwrap_token(),
+                    span: nonterminal_node.span,
+                }))
+            }
+            // Regex = Regex Layout "+" #Plus
+            SlotId(93) => {
+                let &[regex, layout, lit_2] = children else {
+                    ParseTree::unexpected_node()
+                };
+                ParseTree::Regex(self.arena.alloc(Regex::Plus {
+                    regex: regex.unwrap_regex(),
+                    layout: layout.unwrap_layout(),
+                    lit_2: lit_2.unwrap_token(),
+                    span: nonterminal_node.span,
+                }))
+            }
+            // Regex = Regex Layout "*" #Star
+            SlotId(97) => {
+                let &[regex, layout, lit_2] = children else {
+                    ParseTree::unexpected_node()
+                };
+                ParseTree::Regex(self.arena.alloc(Regex::Star {
+                    regex: regex.unwrap_regex(),
+                    layout: layout.unwrap_layout(),
+                    lit_2: lit_2.unwrap_token(),
+                    span: nonterminal_node.span,
+                }))
+            }
+            // Regex = Regex Layout "?" #Opt
+            SlotId(101) => {
+                let &[regex, layout, lit_2] = children else {
+                    ParseTree::unexpected_node()
+                };
+                ParseTree::Regex(self.arena.alloc(Regex::Opt {
+                    regex: regex.unwrap_regex(),
+                    layout: layout.unwrap_layout(),
+                    lit_2: lit_2.unwrap_token(),
+                    span: nonterminal_node.span,
+                }))
+            }
+            // Regex = "(" Layout seqs:{Regex+ "|"}+ Layout ")" #Paren
+            SlotId(107) => {
+                let &[lit_0, layout_1, seqs, layout_3, lit_4] = children else {
+                    ParseTree::unexpected_node()
+                };
+                ParseTree::Regex(self.arena.alloc(Regex::Paren {
+                    lit_0: lit_0.unwrap_token(),
+                    layout_1: layout_1.unwrap_layout(),
+                    seqs: seqs.unwrap_plus_2(),
+                    layout_3: layout_3.unwrap_layout(),
+                    lit_4: lit_4.unwrap_token(),
+                    span: nonterminal_node.span,
+                }))
+            }
+            // Regex = CharClass #CharClass
+            SlotId(109) => {
+                let &[char_class] = children else {
+                    ParseTree::unexpected_node()
+                };
+                ParseTree::Regex(self.arena.alloc(Regex::CharClass {
+                    char_class: char_class.unwrap_char_class(),
+                    span: nonterminal_node.span,
+                }))
+            }
+            // Regex = Char #Char
+            SlotId(111) => {
+                let &[char] = children else {
+                    ParseTree::unexpected_node()
+                };
+                ParseTree::Regex(self.arena.alloc(Regex::Char {
+                    char: char.unwrap_token(),
+                    span: nonterminal_node.span,
+                }))
+            }
+            // Regex = String #String
+            SlotId(113) => {
+                let &[string] = children else {
+                    ParseTree::unexpected_node()
+                };
+                ParseTree::Regex(self.arena.alloc(Regex::String {
+                    string: string.unwrap_token(),
+                    span: nonterminal_node.span,
+                }))
+            }
+            // Regex = Identifier #Identifier
+            SlotId(115) => {
+                let &[identifier] = children else {
+                    ParseTree::unexpected_node()
+                };
+                ParseTree::Regex(self.arena.alloc(Regex::Identifier {
+                    identifier: identifier.unwrap_token(),
+                    span: nonterminal_node.span,
+                }))
+            }
+            // CharClass = neg:"!"? Layout "[" Layout RangeElement+ Layout "]"
+            SlotId(123) => {
+                let &[
+                    neg,
+                    layout_1,
+                    lit_2,
+                    layout_3,
+                    range_elements,
+                    layout_5,
+                    lit_6,
+                ] = children
+                else {
+                    ParseTree::unexpected_node()
+                };
+                ParseTree::CharClass(self.arena.alloc(CharClass::Alt0 {
+                    neg: neg.unwrap_opt_10(),
+                    layout_1: layout_1.unwrap_layout(),
+                    lit_2: lit_2.unwrap_token(),
+                    layout_3: layout_3.unwrap_layout(),
+                    range_elements: range_elements.unwrap_plus_10(),
+                    layout_5: layout_5.unwrap_layout(),
+                    lit_6: lit_6.unwrap_token(),
+                    span: nonterminal_node.span,
+                }))
+            }
+            // RangeElement = Range
+            SlotId(125) => {
+                let &[range] = children else {
+                    ParseTree::unexpected_node()
+                };
+                ParseTree::RangeElement(self.arena.alloc(RangeElement::Alt0 {
+                    range: range.unwrap_range(),
+                    span: nonterminal_node.span,
+                }))
+            }
+            // RangeElement = RangeChar
+            SlotId(127) => {
+                let &[range_char] = children else {
+                    ParseTree::unexpected_node()
+                };
+                ParseTree::RangeElement(self.arena.alloc(RangeElement::Alt1 {
+                    range_char: range_char.unwrap_token(),
+                    span: nonterminal_node.span,
+                }))
+            }
+            // Range = start:RangeChar Layout "-" Layout end:RangeChar
+            SlotId(133) => {
+                let &[start, layout_1, lit_2, layout_3, end] = children else {
+                    ParseTree::unexpected_node()
+                };
+                ParseTree::Range(self.arena.alloc(Range::Alt0 {
+                    start: start.unwrap_token(),
+                    layout_1: layout_1.unwrap_layout(),
+                    lit_2: lit_2.unwrap_token(),
+                    layout_3: layout_3.unwrap_layout(),
+                    end: end.unwrap_token(),
+                    span: nonterminal_node.span,
+                }))
+            }
+            // Layout = (WS | LineComment)*
+            SlotId(135) => {
+                let &[star_4] = children else {
+                    ParseTree::unexpected_node()
+                };
+                ParseTree::Layout(self.arena.alloc(Layout::Alt0 {
+                    star_4: star_4.unwrap_star_4(),
+                    span: nonterminal_node.span,
+                }))
+            }
+            // Plus_0 = Rule+ Layout Rule
+            SlotId(139) => {
+                let &[rules_0, layout, rule_2] = children else {
+                    ParseTree::unexpected_node()
+                };
+                ParseTree::Plus0(self.arena.alloc(Plus0::Alt0 {
+                    rules_0: rules_0.unwrap_plus_0(),
+                    layout: layout.unwrap_layout(),
+                    rule_2: rule_2.unwrap_rule(),
+                    span: nonterminal_node.span,
+                }))
+            }
+            // Plus_0 = Rule
+            SlotId(141) => {
+                let &[rule] = children else {
+                    ParseTree::unexpected_node()
+                };
+                ParseTree::Plus0(self.arena.alloc(Plus0::Alt1 {
+                    rule: rule.unwrap_rule(),
+                    span: nonterminal_node.span,
+                }))
+            }
+            // Opt_0 = Rule+
+            SlotId(143) => {
+                let &[rules] = children else {
+                    ParseTree::unexpected_node()
+                };
+                ParseTree::Opt0(self.arena.alloc(Opt0::Alt0 {
+                    rules: rules.unwrap_plus_0(),
+                    span: nonterminal_node.span,
+                }))
+            }
+            // Opt_0 =
+            SlotId(144) => {
+                let &[] = children else {
+                    ParseTree::unexpected_node()
+                };
+                ParseTree::Opt0(self.arena.alloc(Opt0::Alt1 {
+                    span: nonterminal_node.span,
+                }))
+            }
+            // Star_0 = Rule+?
+            SlotId(146) => {
+                let &[opt_0] = children else {
+                    ParseTree::unexpected_node()
+                };
+                ParseTree::Star0(self.arena.alloc(Star0::Alt0 {
+                    opt_0: opt_0.unwrap_opt_0(),
+                    span: nonterminal_node.span,
+                }))
+            }
+            // Opt_1 = Annotation
+            SlotId(148) => {
+                let &[annotation] = children else {
+                    ParseTree::unexpected_node()
+                };
+                ParseTree::Opt1(self.arena.alloc(Opt1::Alt0 {
+                    annotation: annotation.unwrap_annotation(),
+                    span: nonterminal_node.span,
+                }))
+            }
+            // Opt_1 =
+            SlotId(149) => {
+                let &[] = children else {
+                    ParseTree::unexpected_node()
+                };
+                ParseTree::Opt1(self.arena.alloc(Opt1::Alt1 {
+                    span: nonterminal_node.span,
+                }))
+            }
+            // Plus_1 = {PriorityLevel ">"}+ Layout ">" Layout PriorityLevel
+            SlotId(155) => {
+                let &[
+                    priority_levels_0,
+                    layout_1,
+                    lit_2,
+                    layout_3,
+                    priority_level_4,
+                ] = children
+                else {
+                    ParseTree::unexpected_node()
+                };
+                ParseTree::Plus1(self.arena.alloc(Plus1::Alt0 {
+                    priority_levels_0: priority_levels_0.unwrap_plus_1(),
+                    layout_1: layout_1.unwrap_layout(),
+                    lit_2: lit_2.unwrap_token(),
+                    layout_3: layout_3.unwrap_layout(),
+                    priority_level_4: priority_level_4.unwrap_priority_level(),
+                    span: nonterminal_node.span,
+                }))
+            }
+            // Plus_1 = PriorityLevel
+            SlotId(157) => {
+                let &[priority_level] = children else {
+                    ParseTree::unexpected_node()
+                };
+                ParseTree::Plus1(self.arena.alloc(Plus1::Alt1 {
+                    priority_level: priority_level.unwrap_priority_level(),
+                    span: nonterminal_node.span,
+                }))
+            }
+            // Opt_2 = {PriorityLevel ">"}+
+            SlotId(159) => {
+                let &[priority_levels] = children else {
+                    ParseTree::unexpected_node()
+                };
+                ParseTree::Opt2(self.arena.alloc(Opt2::Alt0 {
+                    priority_levels: priority_levels.unwrap_plus_1(),
+                    span: nonterminal_node.span,
+                }))
+            }
+            // Opt_2 =
+            SlotId(160) => {
+                let &[] = children else {
+                    ParseTree::unexpected_node()
+                };
+                ParseTree::Opt2(self.arena.alloc(Opt2::Alt1 {
+                    span: nonterminal_node.span,
+                }))
+            }
+            // Star_1 = {PriorityLevel ">"}+?
+            SlotId(162) => {
+                let &[opt_2] = children else {
+                    ParseTree::unexpected_node()
+                };
+                ParseTree::Star1(self.arena.alloc(Star1::Alt0 {
+                    opt_2: opt_2.unwrap_opt_2(),
+                    span: nonterminal_node.span,
+                }))
+            }
+            // Opt_3 = "@Layout"
+            SlotId(164) => {
+                let &[lit_0] = children else {
+                    ParseTree::unexpected_node()
+                };
+                ParseTree::Opt3(self.arena.alloc(Opt3::Alt0 {
+                    lit_0: lit_0.unwrap_token(),
+                    span: nonterminal_node.span,
+                }))
+            }
+            // Opt_3 =
+            SlotId(165) => {
+                let &[] = children else {
+                    ParseTree::unexpected_node()
+                };
+                ParseTree::Opt3(self.arena.alloc(Opt3::Alt1 {
+                    span: nonterminal_node.span,
+                }))
+            }
+            // Opt_4 = "@Identifier"
+            SlotId(167) => {
+                let &[lit_0] = children else {
+                    ParseTree::unexpected_node()
+                };
+                ParseTree::Opt4(self.arena.alloc(Opt4::Alt0 {
+                    lit_0: lit_0.unwrap_token(),
+                    span: nonterminal_node.span,
+                }))
+            }
+            // Opt_4 =
+            SlotId(168) => {
+                let &[] = children else {
+                    ParseTree::unexpected_node()
+                };
+                ParseTree::Opt4(self.arena.alloc(Opt4::Alt1 {
+                    span: nonterminal_node.span,
+                }))
+            }
+            // Opt_5 = RegexPreCondition
+            SlotId(170) => {
+                let &[regex_pre_condition] = children else {
+                    ParseTree::unexpected_node()
+                };
+                ParseTree::Opt5(self.arena.alloc(Opt5::Alt0 {
+                    regex_pre_condition: regex_pre_condition.unwrap_regex_pre_condition(),
+                    span: nonterminal_node.span,
+                }))
+            }
+            // Opt_5 =
+            SlotId(171) => {
+                let &[] = children else {
+                    ParseTree::unexpected_node()
+                };
+                ParseTree::Opt5(self.arena.alloc(Opt5::Alt1 {
+                    span: nonterminal_node.span,
+                }))
+            }
+            // Plus_3 = Regex+ Layout Regex
+            SlotId(175) => {
+                let &[regexes_0, layout, regex_2] = children else {
+                    ParseTree::unexpected_node()
+                };
+                ParseTree::Plus3(self.arena.alloc(Plus3::Alt0 {
+                    regexes_0: regexes_0.unwrap_plus_3(),
+                    layout: layout.unwrap_layout(),
+                    regex_2: regex_2.unwrap_regex(),
+                    span: nonterminal_node.span,
+                }))
+            }
+            // Plus_3 = Regex
+            SlotId(177) => {
+                let &[regex] = children else {
+                    ParseTree::unexpected_node()
+                };
+                ParseTree::Plus3(self.arena.alloc(Plus3::Alt1 {
+                    regex: regex.unwrap_regex(),
+                    span: nonterminal_node.span,
+                }))
+            }
+            // Plus_2 = {Regex+ "|"}+ Layout "|" Layout Regex+
+            SlotId(183) => {
+                let &[plus_2, layout_1, lit_2, layout_3, regexes] = children else {
+                    ParseTree::unexpected_node()
+                };
+                ParseTree::Plus2(self.arena.alloc(Plus2::Alt0 {
+                    plus_2: plus_2.unwrap_plus_2(),
+                    layout_1: layout_1.unwrap_layout(),
+                    lit_2: lit_2.unwrap_token(),
+                    layout_3: layout_3.unwrap_layout(),
+                    regexes: regexes.unwrap_plus_3(),
+                    span: nonterminal_node.span,
+                }))
+            }
+            // Plus_2 = Regex+
+            SlotId(185) => {
+                let &[regexes] = children else {
+                    ParseTree::unexpected_node()
+                };
+                ParseTree::Plus2(self.arena.alloc(Plus2::Alt1 {
+                    regexes: regexes.unwrap_plus_3(),
+                    span: nonterminal_node.span,
+                }))
+            }
+            // Plus_4 = RegexPostCondition+ Layout RegexPostCondition
+            SlotId(189) => {
+                let &[regex_post_conditions_0, layout, regex_post_condition_2] = children else {
+                    ParseTree::unexpected_node()
+                };
+                ParseTree::Plus4(self.arena.alloc(Plus4::Alt0 {
+                    regex_post_conditions_0: regex_post_conditions_0.unwrap_plus_4(),
+                    layout: layout.unwrap_layout(),
+                    regex_post_condition_2: regex_post_condition_2.unwrap_regex_post_condition(),
+                    span: nonterminal_node.span,
+                }))
+            }
+            // Plus_4 = RegexPostCondition
+            SlotId(191) => {
+                let &[regex_post_condition] = children else {
+                    ParseTree::unexpected_node()
+                };
+                ParseTree::Plus4(self.arena.alloc(Plus4::Alt1 {
+                    regex_post_condition: regex_post_condition.unwrap_regex_post_condition(),
+                    span: nonterminal_node.span,
+                }))
+            }
+            // Opt_6 = RegexPostCondition+
+            SlotId(193) => {
+                let &[regex_post_conditions] = children else {
+                    ParseTree::unexpected_node()
+                };
+                ParseTree::Opt6(self.arena.alloc(Opt6::Alt0 {
+                    regex_post_conditions: regex_post_conditions.unwrap_plus_4(),
+                    span: nonterminal_node.span,
+                }))
+            }
+            // Opt_6 =
+            SlotId(194) => {
+                let &[] = children else {
+                    ParseTree::unexpected_node()
+                };
+                ParseTree::Opt6(self.arena.alloc(Opt6::Alt1 {
+                    span: nonterminal_node.span,
+                }))
+            }
+            // Star_2 = RegexPostCondition+?
+            SlotId(196) => {
+                let &[opt_6] = children else {
+                    ParseTree::unexpected_node()
+                };
+                ParseTree::Star2(self.arena.alloc(Star2::Alt0 {
+                    opt_6: opt_6.unwrap_opt_6(),
+                    span: nonterminal_node.span,
+                }))
+            }
+            // Opt_7 = Associativity
+            SlotId(198) => {
+                let &[associativity] = children else {
+                    ParseTree::unexpected_node()
+                };
+                ParseTree::Opt7(self.arena.alloc(Opt7::Alt0 {
+                    associativity: associativity.unwrap_associativity(),
+                    span: nonterminal_node.span,
+                }))
+            }
+            // Opt_7 =
+            SlotId(199) => {
+                let &[] = children else {
+                    ParseTree::unexpected_node()
+                };
+                ParseTree::Opt7(self.arena.alloc(Opt7::Alt1 {
+                    span: nonterminal_node.span,
+                }))
+            }
+            // Plus_5 = {Alternative "|"}+ Layout "|" Layout Alternative
+            SlotId(205) => {
+                let &[alternatives_0, layout_1, lit_2, layout_3, alternative_4] = children else {
+                    ParseTree::unexpected_node()
+                };
+                ParseTree::Plus5(self.arena.alloc(Plus5::Alt0 {
+                    alternatives_0: alternatives_0.unwrap_plus_5(),
+                    layout_1: layout_1.unwrap_layout(),
+                    lit_2: lit_2.unwrap_token(),
+                    layout_3: layout_3.unwrap_layout(),
+                    alternative_4: alternative_4.unwrap_alternative(),
+                    span: nonterminal_node.span,
+                }))
+            }
+            // Plus_5 = Alternative
+            SlotId(207) => {
+                let &[alternative] = children else {
+                    ParseTree::unexpected_node()
+                };
+                ParseTree::Plus5(self.arena.alloc(Plus5::Alt1 {
+                    alternative: alternative.unwrap_alternative(),
+                    span: nonterminal_node.span,
+                }))
+            }
+            // Opt_8 = {Alternative "|"}+
+            SlotId(209) => {
+                let &[alternatives] = children else {
+                    ParseTree::unexpected_node()
+                };
+                ParseTree::Opt8(self.arena.alloc(Opt8::Alt0 {
+                    alternatives: alternatives.unwrap_plus_5(),
+                    span: nonterminal_node.span,
+                }))
+            }
+            // Opt_8 =
+            SlotId(210) => {
+                let &[] = children else {
+                    ParseTree::unexpected_node()
+                };
+                ParseTree::Opt8(self.arena.alloc(Opt8::Alt1 {
+                    span: nonterminal_node.span,
+                }))
+            }
+            // Star_3 = {Alternative "|"}+?
+            SlotId(212) => {
+                let &[opt_8] = children else {
+                    ParseTree::unexpected_node()
+                };
+                ParseTree::Star3(self.arena.alloc(Star3::Alt0 {
+                    opt_8: opt_8.unwrap_opt_8(),
+                    span: nonterminal_node.span,
+                }))
+            }
+            // Plus_6 = Symbol+ Layout Symbol
+            SlotId(216) => {
+                let &[symbols_0, layout, symbol_2] = children else {
+                    ParseTree::unexpected_node()
+                };
+                ParseTree::Plus6(self.arena.alloc(Plus6::Alt0 {
+                    symbols_0: symbols_0.unwrap_plus_6(),
+                    layout: layout.unwrap_layout(),
+                    symbol_2: symbol_2.unwrap_symbol(),
+                    span: nonterminal_node.span,
+                }))
+            }
+            // Plus_6 = Symbol
+            SlotId(218) => {
+                let &[symbol] = children else {
+                    ParseTree::unexpected_node()
+                };
+                ParseTree::Plus6(self.arena.alloc(Plus6::Alt1 {
+                    symbol: symbol.unwrap_symbol(),
+                    span: nonterminal_node.span,
+                }))
+            }
+            // Opt_9 = Label
+            SlotId(220) => {
+                let &[label] = children else {
+                    ParseTree::unexpected_node()
+                };
+                ParseTree::Opt9(self.arena.alloc(Opt9::Alt0 {
+                    label: label.unwrap_token(),
+                    span: nonterminal_node.span,
+                }))
+            }
+            // Opt_9 =
+            SlotId(221) => {
+                let &[] = children else {
+                    ParseTree::unexpected_node()
+                };
+                ParseTree::Opt9(self.arena.alloc(Opt9::Alt1 {
+                    span: nonterminal_node.span,
+                }))
+            }
+            // Plus_7 = {Symbol+ "|"}+ Layout "|" Layout Symbol+
+            SlotId(227) => {
+                let &[plus_7, layout_1, lit_2, layout_3, symbols] = children else {
+                    ParseTree::unexpected_node()
+                };
+                ParseTree::Plus7(self.arena.alloc(Plus7::Alt0 {
+                    plus_7: plus_7.unwrap_plus_7(),
+                    layout_1: layout_1.unwrap_layout(),
+                    lit_2: lit_2.unwrap_token(),
+                    layout_3: layout_3.unwrap_layout(),
+                    symbols: symbols.unwrap_plus_6(),
+                    span: nonterminal_node.span,
+                }))
+            }
+            // Plus_7 = Symbol+
+            SlotId(229) => {
+                let &[symbols] = children else {
+                    ParseTree::unexpected_node()
+                };
+                ParseTree::Plus7(self.arena.alloc(Plus7::Alt1 {
+                    symbols: symbols.unwrap_plus_6(),
+                    span: nonterminal_node.span,
+                }))
+            }
+            // Plus_8 = PostCondition+ Layout PostCondition
+            SlotId(233) => {
+                let &[post_conditions_0, layout, post_condition_2] = children else {
+                    ParseTree::unexpected_node()
+                };
+                ParseTree::Plus8(self.arena.alloc(Plus8::Alt0 {
+                    post_conditions_0: post_conditions_0.unwrap_plus_8(),
+                    layout: layout.unwrap_layout(),
+                    post_condition_2: post_condition_2.unwrap_post_condition(),
+                    span: nonterminal_node.span,
+                }))
+            }
+            // Plus_8 = PostCondition
+            SlotId(235) => {
+                let &[post_condition] = children else {
+                    ParseTree::unexpected_node()
+                };
+                ParseTree::Plus8(self.arena.alloc(Plus8::Alt1 {
+                    post_condition: post_condition.unwrap_post_condition(),
+                    span: nonterminal_node.span,
+                }))
+            }
+            // Plus_9 = PreCondition+ Layout PreCondition
+            SlotId(239) => {
+                let &[pre_conditions_0, layout, pre_condition_2] = children else {
+                    ParseTree::unexpected_node()
+                };
+                ParseTree::Plus9(self.arena.alloc(Plus9::Alt0 {
+                    pre_conditions_0: pre_conditions_0.unwrap_plus_9(),
+                    layout: layout.unwrap_layout(),
+                    pre_condition_2: pre_condition_2.unwrap_pre_condition(),
+                    span: nonterminal_node.span,
+                }))
+            }
+            // Plus_9 = PreCondition
+            SlotId(241) => {
+                let &[pre_condition] = children else {
+                    ParseTree::unexpected_node()
+                };
+                ParseTree::Plus9(self.arena.alloc(Plus9::Alt1 {
+                    pre_condition: pre_condition.unwrap_pre_condition(),
+                    span: nonterminal_node.span,
+                }))
+            }
+            // Opt_10 = "!"
+            SlotId(243) => {
+                let &[lit_0] = children else {
+                    ParseTree::unexpected_node()
+                };
+                ParseTree::Opt10(self.arena.alloc(Opt10::Alt0 {
+                    lit_0: lit_0.unwrap_token(),
+                    span: nonterminal_node.span,
+                }))
+            }
+            // Opt_10 =
+            SlotId(244) => {
+                let &[] = children else {
+                    ParseTree::unexpected_node()
+                };
+                ParseTree::Opt10(self.arena.alloc(Opt10::Alt1 {
+                    span: nonterminal_node.span,
+                }))
+            }
+            // Plus_10 = RangeElement+ Layout RangeElement
+            SlotId(248) => {
+                let &[range_elements_0, layout, range_element_2] = children else {
+                    ParseTree::unexpected_node()
+                };
+                ParseTree::Plus10(self.arena.alloc(Plus10::Alt0 {
+                    range_elements_0: range_elements_0.unwrap_plus_10(),
+                    layout: layout.unwrap_layout(),
+                    range_element_2: range_element_2.unwrap_range_element(),
+                    span: nonterminal_node.span,
+                }))
+            }
+            // Plus_10 = RangeElement
+            SlotId(250) => {
+                let &[range_element] = children else {
+                    ParseTree::unexpected_node()
+                };
+                ParseTree::Plus10(self.arena.alloc(Plus10::Alt1 {
+                    range_element: range_element.unwrap_range_element(),
+                    span: nonterminal_node.span,
+                }))
+            }
+            // Alt_0 = WS
+            SlotId(252) => {
+                let &[ws] = children else {
+                    ParseTree::unexpected_node()
+                };
+                ParseTree::Alt0(self.arena.alloc(Alt0::Alt0 {
+                    ws: ws.unwrap_token(),
+                    span: nonterminal_node.span,
+                }))
+            }
+            // Alt_0 = LineComment
+            SlotId(254) => {
+                let &[line_comment] = children else {
+                    ParseTree::unexpected_node()
+                };
+                ParseTree::Alt0(self.arena.alloc(Alt0::Alt1 {
+                    line_comment: line_comment.unwrap_token(),
+                    span: nonterminal_node.span,
+                }))
+            }
+            // Plus_11 = (WS | LineComment)+ (WS | LineComment)
+            SlotId(257) => {
+                let &[plus_11, alt_0] = children else {
+                    ParseTree::unexpected_node()
+                };
+                ParseTree::Plus11(self.arena.alloc(Plus11::Alt0 {
+                    plus_11: plus_11.unwrap_plus_11(),
+                    alt_0: alt_0.unwrap_alt_0(),
+                    span: nonterminal_node.span,
+                }))
+            }
+            // Plus_11 = (WS | LineComment)
+            SlotId(259) => {
+                let &[alt_0] = children else {
+                    ParseTree::unexpected_node()
+                };
+                ParseTree::Plus11(self.arena.alloc(Plus11::Alt1 {
+                    alt_0: alt_0.unwrap_alt_0(),
+                    span: nonterminal_node.span,
+                }))
+            }
+            // Opt_11 = (WS | LineComment)+
+            SlotId(261) => {
+                let &[plus_11] = children else {
+                    ParseTree::unexpected_node()
+                };
+                ParseTree::Opt11(self.arena.alloc(Opt11::Alt0 {
+                    plus_11: plus_11.unwrap_plus_11(),
+                    span: nonterminal_node.span,
+                }))
+            }
+            // Opt_11 =
+            SlotId(262) => {
+                let &[] = children else {
+                    ParseTree::unexpected_node()
+                };
+                ParseTree::Opt11(self.arena.alloc(Opt11::Alt1 {
+                    span: nonterminal_node.span,
+                }))
+            }
+            // Star_4 = (WS | LineComment)+?
+            SlotId(264) => {
+                let &[opt_11] = children else {
+                    ParseTree::unexpected_node()
+                };
+                ParseTree::Star4(self.arena.alloc(Star4::Alt0 {
+                    opt_11: opt_11.unwrap_opt_11(),
+                    span: nonterminal_node.span,
+                }))
+            }
+            // StartGrammar = Layout start:Grammar Layout
+            SlotId(268) => {
+                let &[layout_0, start, layout_2] = children else {
+                    ParseTree::unexpected_node()
+                };
+                ParseTree::StartGrammar(self.arena.alloc(Start {
+                    before: layout_0.unwrap_layout(),
+                    node: start.unwrap_grammar(),
+                    after: layout_2.unwrap_layout(),
+                    span: nonterminal_node.span,
+                }))
+            }
+            // StartRule = Layout start:Rule Layout
+            SlotId(272) => {
+                let &[layout_0, start, layout_2] = children else {
+                    ParseTree::unexpected_node()
+                };
+                ParseTree::StartRule(self.arena.alloc(Start {
+                    before: layout_0.unwrap_layout(),
+                    node: start.unwrap_rule(),
+                    after: layout_2.unwrap_layout(),
+                    span: nonterminal_node.span,
+                }))
+            }
+            // StartSyntaxRule = Layout start:SyntaxRule Layout
+            SlotId(276) => {
+                let &[layout_0, start, layout_2] = children else {
+                    ParseTree::unexpected_node()
+                };
+                ParseTree::StartSyntaxRule(self.arena.alloc(Start {
+                    before: layout_0.unwrap_layout(),
+                    node: start.unwrap_syntax_rule(),
+                    after: layout_2.unwrap_layout(),
+                    span: nonterminal_node.span,
+                }))
+            }
+            // StartAnnotation = Layout start:Annotation Layout
+            SlotId(280) => {
+                let &[layout_0, start, layout_2] = children else {
+                    ParseTree::unexpected_node()
+                };
+                ParseTree::StartAnnotation(self.arena.alloc(Start {
+                    before: layout_0.unwrap_layout(),
+                    node: start.unwrap_annotation(),
+                    after: layout_2.unwrap_layout(),
+                    span: nonterminal_node.span,
+                }))
+            }
+            // StartRegexRule = Layout start:RegexRule Layout
+            SlotId(284) => {
+                let &[layout_0, start, layout_2] = children else {
+                    ParseTree::unexpected_node()
+                };
+                ParseTree::StartRegexRule(self.arena.alloc(Start {
+                    before: layout_0.unwrap_layout(),
+                    node: start.unwrap_regex_rule(),
+                    after: layout_2.unwrap_layout(),
+                    span: nonterminal_node.span,
+                }))
+            }
+            // StartRegexPreCondition = Layout start:RegexPreCondition Layout
+            SlotId(288) => {
+                let &[layout_0, start, layout_2] = children else {
+                    ParseTree::unexpected_node()
+                };
+                ParseTree::StartRegexPreCondition(self.arena.alloc(Start {
+                    before: layout_0.unwrap_layout(),
+                    node: start.unwrap_regex_pre_condition(),
+                    after: layout_2.unwrap_layout(),
+                    span: nonterminal_node.span,
+                }))
+            }
+            // StartRegexPostCondition = Layout start:RegexPostCondition Layout
+            SlotId(292) => {
+                let &[layout_0, start, layout_2] = children else {
+                    ParseTree::unexpected_node()
+                };
+                ParseTree::StartRegexPostCondition(self.arena.alloc(Start {
+                    before: layout_0.unwrap_layout(),
+                    node: start.unwrap_regex_post_condition(),
+                    after: layout_2.unwrap_layout(),
+                    span: nonterminal_node.span,
+                }))
+            }
+            // StartPriorityLevel = Layout start:PriorityLevel Layout
+            SlotId(296) => {
+                let &[layout_0, start, layout_2] = children else {
+                    ParseTree::unexpected_node()
+                };
+                ParseTree::StartPriorityLevel(self.arena.alloc(Start {
+                    before: layout_0.unwrap_layout(),
+                    node: start.unwrap_priority_level(),
+                    after: layout_2.unwrap_layout(),
+                    span: nonterminal_node.span,
+                }))
+            }
+            // StartAssociativity = Layout start:Associativity Layout
+            SlotId(300) => {
+                let &[layout_0, start, layout_2] = children else {
+                    ParseTree::unexpected_node()
+                };
+                ParseTree::StartAssociativity(self.arena.alloc(Start {
+                    before: layout_0.unwrap_layout(),
+                    node: start.unwrap_associativity(),
+                    after: layout_2.unwrap_layout(),
+                    span: nonterminal_node.span,
+                }))
+            }
+            // StartAlternative = Layout start:Alternative Layout
+            SlotId(304) => {
+                let &[layout_0, start, layout_2] = children else {
+                    ParseTree::unexpected_node()
+                };
+                ParseTree::StartAlternative(self.arena.alloc(Start {
+                    before: layout_0.unwrap_layout(),
+                    node: start.unwrap_alternative(),
+                    after: layout_2.unwrap_layout(),
+                    span: nonterminal_node.span,
+                }))
+            }
+            // StartSymbol = Layout start:Symbol Layout
+            SlotId(308) => {
+                let &[layout_0, start, layout_2] = children else {
+                    ParseTree::unexpected_node()
+                };
+                ParseTree::StartSymbol(self.arena.alloc(Start {
+                    before: layout_0.unwrap_layout(),
+                    node: start.unwrap_symbol(),
+                    after: layout_2.unwrap_layout(),
+                    span: nonterminal_node.span,
+                }))
+            }
+            // StartPreCondition = Layout start:PreCondition Layout
+            SlotId(312) => {
+                let &[layout_0, start, layout_2] = children else {
+                    ParseTree::unexpected_node()
+                };
+                ParseTree::StartPreCondition(self.arena.alloc(Start {
+                    before: layout_0.unwrap_layout(),
+                    node: start.unwrap_pre_condition(),
+                    after: layout_2.unwrap_layout(),
+                    span: nonterminal_node.span,
+                }))
+            }
+            // StartPostCondition = Layout start:PostCondition Layout
+            SlotId(316) => {
+                let &[layout_0, start, layout_2] = children else {
+                    ParseTree::unexpected_node()
+                };
+                ParseTree::StartPostCondition(self.arena.alloc(Start {
+                    before: layout_0.unwrap_layout(),
+                    node: start.unwrap_post_condition(),
+                    after: layout_2.unwrap_layout(),
+                    span: nonterminal_node.span,
+                }))
+            }
+            // StartRegex = Layout start:Regex Layout
+            SlotId(320) => {
+                let &[layout_0, start, layout_2] = children else {
+                    ParseTree::unexpected_node()
+                };
+                ParseTree::StartRegex(self.arena.alloc(Start {
+                    before: layout_0.unwrap_layout(),
+                    node: start.unwrap_regex(),
+                    after: layout_2.unwrap_layout(),
+                    span: nonterminal_node.span,
+                }))
+            }
+            // StartCharClass = Layout start:CharClass Layout
+            SlotId(324) => {
+                let &[layout_0, start, layout_2] = children else {
+                    ParseTree::unexpected_node()
+                };
+                ParseTree::StartCharClass(self.arena.alloc(Start {
+                    before: layout_0.unwrap_layout(),
+                    node: start.unwrap_char_class(),
+                    after: layout_2.unwrap_layout(),
+                    span: nonterminal_node.span,
+                }))
+            }
+            // StartRangeElement = Layout start:RangeElement Layout
+            SlotId(328) => {
+                let &[layout_0, start, layout_2] = children else {
+                    ParseTree::unexpected_node()
+                };
+                ParseTree::StartRangeElement(self.arena.alloc(Start {
+                    before: layout_0.unwrap_layout(),
+                    node: start.unwrap_range_element(),
+                    after: layout_2.unwrap_layout(),
+                    span: nonterminal_node.span,
+                }))
+            }
+            // StartRange = Layout start:Range Layout
+            SlotId(332) => {
+                let &[layout_0, start, layout_2] = children else {
+                    ParseTree::unexpected_node()
+                };
+                ParseTree::StartRange(self.arena.alloc(Start {
+                    before: layout_0.unwrap_layout(),
+                    node: start.unwrap_range(),
+                    after: layout_2.unwrap_layout(),
+                    span: nonterminal_node.span,
+                }))
+            }
+            // StartLayout = start:Layout
+            SlotId(334) => {
+                let &[start] = children else {
+                    ParseTree::unexpected_node()
+                };
+                ParseTree::StartLayout(self.arena.alloc(Start {
+                    before: (),
+                    node: start.unwrap_layout(),
+                    after: (),
+                    span: nonterminal_node.span,
+                }))
+            }
+            // Symbol = Identifier #Identifier
+            SlotId(338) => {
+                let &[identifier] = children else {
+                    ParseTree::unexpected_node()
+                };
+                ParseTree::Symbol(self.arena.alloc(Symbol::Identifier {
+                    identifier: identifier.unwrap_token(),
+                    span: nonterminal_node.span,
+                }))
+            }
+            // Symbol = "(" Layout seqs:{Symbol+ "|"}+ Layout ")" #Paren
+            SlotId(346) => {
+                let &[lit_0, layout_1, seqs, layout_3, lit_4] = children else {
+                    ParseTree::unexpected_node()
+                };
+                ParseTree::Symbol(self.arena.alloc(Symbol::Paren {
+                    lit_0: lit_0.unwrap_token(),
+                    layout_1: layout_1.unwrap_layout(),
+                    seqs: seqs.unwrap_plus_7(),
+                    layout_3: layout_3.unwrap_layout(),
+                    lit_4: lit_4.unwrap_token(),
+                    span: nonterminal_node.span,
+                }))
+            }
+            // Symbol = String #Lit
+            SlotId(350) => {
+                let &[string] = children else {
+                    ParseTree::unexpected_node()
+                };
+                ParseTree::Symbol(self.arena.alloc(Symbol::Lit {
+                    string: string.unwrap_token(),
+                    span: nonterminal_node.span,
+                }))
+            }
+            // Symbol = "{" Layout symbol:Symbol Layout sep:Symbol Layout "}" Layout "*" #StarSep
+            SlotId(362) => {
+                let &[
+                    lit_0,
+                    layout_1,
+                    symbol,
+                    layout_3,
+                    sep,
+                    layout_5,
+                    lit_6,
+                    layout_7,
+                    lit_8,
+                ] = children
+                else {
+                    ParseTree::unexpected_node()
+                };
+                ParseTree::Symbol(self.arena.alloc(Symbol::StarSep {
+                    lit_0: lit_0.unwrap_token(),
+                    layout_1: layout_1.unwrap_layout(),
+                    symbol: symbol.unwrap_symbol(),
+                    layout_3: layout_3.unwrap_layout(),
+                    sep: sep.unwrap_symbol(),
+                    layout_5: layout_5.unwrap_layout(),
+                    lit_6: lit_6.unwrap_token(),
+                    layout_7: layout_7.unwrap_layout(),
+                    lit_8: lit_8.unwrap_token(),
+                    span: nonterminal_node.span,
+                }))
+            }
+            // Symbol = "{" Layout symbol:Symbol Layout sep:Symbol Layout "}" Layout "+" #PlusSep
+            SlotId(374) => {
+                let &[
+                    lit_0,
+                    layout_1,
+                    symbol,
+                    layout_3,
+                    sep,
+                    layout_5,
+                    lit_6,
+                    layout_7,
+                    lit_8,
+                ] = children
+                else {
+                    ParseTree::unexpected_node()
+                };
+                ParseTree::Symbol(self.arena.alloc(Symbol::PlusSep {
+                    lit_0: lit_0.unwrap_token(),
+                    layout_1: layout_1.unwrap_layout(),
+                    symbol: symbol.unwrap_symbol(),
+                    layout_3: layout_3.unwrap_layout(),
+                    sep: sep.unwrap_symbol(),
+                    layout_5: layout_5.unwrap_layout(),
+                    lit_6: lit_6.unwrap_token(),
+                    layout_7: layout_7.unwrap_layout(),
+                    lit_8: lit_8.unwrap_token(),
+                    span: nonterminal_node.span,
+                }))
+            }
+            // Symbol = Symbol Layout "*" #Star
+            SlotId(382) => {
+                let &[symbol, layout, lit_2] = children else {
+                    ParseTree::unexpected_node()
+                };
+                ParseTree::Symbol(self.arena.alloc(Symbol::Star {
+                    symbol: symbol.unwrap_symbol(),
+                    layout: layout.unwrap_layout(),
+                    lit_2: lit_2.unwrap_token(),
+                    span: nonterminal_node.span,
+                }))
+            }
+            // Symbol = Symbol Layout "+" #Plus
+            SlotId(390) => {
+                let &[symbol, layout, lit_2] = children else {
+                    ParseTree::unexpected_node()
+                };
+                ParseTree::Symbol(self.arena.alloc(Symbol::Plus {
+                    symbol: symbol.unwrap_symbol(),
+                    layout: layout.unwrap_layout(),
+                    lit_2: lit_2.unwrap_token(),
+                    span: nonterminal_node.span,
+                }))
+            }
+            // Symbol = Symbol Layout "?" #Opt
+            SlotId(398) => {
+                let &[symbol, layout, lit_2] = children else {
+                    ParseTree::unexpected_node()
+                };
+                ParseTree::Symbol(self.arena.alloc(Symbol::Opt {
+                    symbol: symbol.unwrap_symbol(),
+                    layout: layout.unwrap_layout(),
+                    lit_2: lit_2.unwrap_token(),
+                    span: nonterminal_node.span,
+                }))
+            }
+            // Symbol = Symbol Layout conditions:PostCondition+ #PostCondition
+            SlotId(407) => {
+                let &[symbol, layout, conditions] = children else {
+                    ParseTree::unexpected_node()
+                };
+                ParseTree::Symbol(self.arena.alloc(Symbol::PostCondition {
+                    symbol: symbol.unwrap_symbol(),
+                    layout: layout.unwrap_layout(),
+                    conditions: conditions.unwrap_plus_8(),
+                    span: nonterminal_node.span,
+                }))
+            }
+            // Symbol = conditions:PreCondition+ Layout Symbol #PreCondition
+            SlotId(413) => {
+                let &[conditions, layout, symbol] = children else {
+                    ParseTree::unexpected_node()
+                };
+                ParseTree::Symbol(self.arena.alloc(Symbol::PreCondition {
+                    conditions: conditions.unwrap_plus_9(),
+                    layout: layout.unwrap_layout(),
+                    symbol: symbol.unwrap_symbol(),
+                    span: nonterminal_node.span,
+                }))
+            }
+            // Symbol = label:Identifier Layout ":" Layout Symbol #Labeled
+            SlotId(421) => {
+                let &[label, layout_1, lit_2, layout_3, symbol] = children else {
+                    ParseTree::unexpected_node()
+                };
+                ParseTree::Symbol(self.arena.alloc(Symbol::Labeled {
+                    label: label.unwrap_token(),
+                    layout_1: layout_1.unwrap_layout(),
+                    lit_2: lit_2.unwrap_token(),
+                    layout_3: layout_3.unwrap_layout(),
+                    symbol: symbol.unwrap_symbol(),
+                    span: nonterminal_node.span,
+                }))
+            }
             _ => unreachable!(),
         }
     }
@@ -8343,336 +8319,138 @@ pub fn create_parse_tree<'a>(
         panic!("the SPPF root is not a nonterminal node")
     };
     match root.nonterminal_id {
-        grammar::GRAMMAR => ParseTree::Grammar(
-            visit_sppf(root_id, parser, builder)
-                .unwrap_one()
-                .unwrap_grammar(),
-        ),
-        grammar::RULE => ParseTree::Rule(
-            visit_sppf(root_id, parser, builder)
-                .unwrap_one()
-                .unwrap_rule(),
-        ),
-        grammar::SYNTAX_RULE => ParseTree::SyntaxRule(
-            visit_sppf(root_id, parser, builder)
-                .unwrap_one()
-                .unwrap_syntax_rule(),
-        ),
-        grammar::ANNOTATION => ParseTree::Annotation(
-            visit_sppf(root_id, parser, builder)
-                .unwrap_one()
-                .unwrap_annotation(),
-        ),
-        grammar::REGEX_RULE => ParseTree::RegexRule(
-            visit_sppf(root_id, parser, builder)
-                .unwrap_one()
-                .unwrap_regex_rule(),
-        ),
+        grammar::GRAMMAR => {
+            ParseTree::Grammar(visit_sppf(root_id, parser, builder).unwrap_grammar())
+        }
+        grammar::RULE => ParseTree::Rule(visit_sppf(root_id, parser, builder).unwrap_rule()),
+        grammar::SYNTAX_RULE => {
+            ParseTree::SyntaxRule(visit_sppf(root_id, parser, builder).unwrap_syntax_rule())
+        }
+        grammar::ANNOTATION => {
+            ParseTree::Annotation(visit_sppf(root_id, parser, builder).unwrap_annotation())
+        }
+        grammar::REGEX_RULE => {
+            ParseTree::RegexRule(visit_sppf(root_id, parser, builder).unwrap_regex_rule())
+        }
         grammar::REGEX_PRE_CONDITION => ParseTree::RegexPreCondition(
-            visit_sppf(root_id, parser, builder)
-                .unwrap_one()
-                .unwrap_regex_pre_condition(),
+            visit_sppf(root_id, parser, builder).unwrap_regex_pre_condition(),
         ),
         grammar::REGEX_POST_CONDITION => ParseTree::RegexPostCondition(
-            visit_sppf(root_id, parser, builder)
-                .unwrap_one()
-                .unwrap_regex_post_condition(),
+            visit_sppf(root_id, parser, builder).unwrap_regex_post_condition(),
         ),
-        grammar::PRIORITY_LEVEL => ParseTree::PriorityLevel(
-            visit_sppf(root_id, parser, builder)
-                .unwrap_one()
-                .unwrap_priority_level(),
-        ),
-        grammar::ASSOCIATIVITY => ParseTree::Associativity(
-            visit_sppf(root_id, parser, builder)
-                .unwrap_one()
-                .unwrap_associativity(),
-        ),
-        grammar::ALTERNATIVE => ParseTree::Alternative(
-            visit_sppf(root_id, parser, builder)
-                .unwrap_one()
-                .unwrap_alternative(),
-        ),
-        grammar::SYMBOL => ParseTree::Symbol(
-            visit_sppf(root_id, parser, builder)
-                .unwrap_one()
-                .unwrap_symbol(),
-        ),
-        grammar::PRE_CONDITION => ParseTree::PreCondition(
-            visit_sppf(root_id, parser, builder)
-                .unwrap_one()
-                .unwrap_pre_condition(),
-        ),
-        grammar::POST_CONDITION => ParseTree::PostCondition(
-            visit_sppf(root_id, parser, builder)
-                .unwrap_one()
-                .unwrap_post_condition(),
-        ),
-        grammar::REGEX => ParseTree::Regex(
-            visit_sppf(root_id, parser, builder)
-                .unwrap_one()
-                .unwrap_regex(),
-        ),
-        grammar::CHAR_CLASS => ParseTree::CharClass(
-            visit_sppf(root_id, parser, builder)
-                .unwrap_one()
-                .unwrap_char_class(),
-        ),
-        grammar::RANGE_ELEMENT => ParseTree::RangeElement(
-            visit_sppf(root_id, parser, builder)
-                .unwrap_one()
-                .unwrap_range_element(),
-        ),
-        grammar::RANGE => ParseTree::Range(
-            visit_sppf(root_id, parser, builder)
-                .unwrap_one()
-                .unwrap_range(),
-        ),
-        grammar::LAYOUT => ParseTree::Layout(
-            visit_sppf(root_id, parser, builder)
-                .unwrap_one()
-                .unwrap_layout(),
-        ),
-        grammar::PLUS_0 => ParseTree::Plus0(
-            visit_sppf(root_id, parser, builder)
-                .unwrap_one()
-                .unwrap_plus_0(),
-        ),
-        grammar::OPT_0 => ParseTree::Opt0(
-            visit_sppf(root_id, parser, builder)
-                .unwrap_one()
-                .unwrap_opt_0(),
-        ),
-        grammar::STAR_0 => ParseTree::Star0(
-            visit_sppf(root_id, parser, builder)
-                .unwrap_one()
-                .unwrap_star_0(),
-        ),
-        grammar::OPT_1 => ParseTree::Opt1(
-            visit_sppf(root_id, parser, builder)
-                .unwrap_one()
-                .unwrap_opt_1(),
-        ),
-        grammar::PLUS_1 => ParseTree::Plus1(
-            visit_sppf(root_id, parser, builder)
-                .unwrap_one()
-                .unwrap_plus_1(),
-        ),
-        grammar::OPT_2 => ParseTree::Opt2(
-            visit_sppf(root_id, parser, builder)
-                .unwrap_one()
-                .unwrap_opt_2(),
-        ),
-        grammar::STAR_1 => ParseTree::Star1(
-            visit_sppf(root_id, parser, builder)
-                .unwrap_one()
-                .unwrap_star_1(),
-        ),
-        grammar::OPT_3 => ParseTree::Opt3(
-            visit_sppf(root_id, parser, builder)
-                .unwrap_one()
-                .unwrap_opt_3(),
-        ),
-        grammar::OPT_4 => ParseTree::Opt4(
-            visit_sppf(root_id, parser, builder)
-                .unwrap_one()
-                .unwrap_opt_4(),
-        ),
-        grammar::OPT_5 => ParseTree::Opt5(
-            visit_sppf(root_id, parser, builder)
-                .unwrap_one()
-                .unwrap_opt_5(),
-        ),
-        grammar::PLUS_3 => ParseTree::Plus3(
-            visit_sppf(root_id, parser, builder)
-                .unwrap_one()
-                .unwrap_plus_3(),
-        ),
-        grammar::PLUS_2 => ParseTree::Plus2(
-            visit_sppf(root_id, parser, builder)
-                .unwrap_one()
-                .unwrap_plus_2(),
-        ),
-        grammar::PLUS_4 => ParseTree::Plus4(
-            visit_sppf(root_id, parser, builder)
-                .unwrap_one()
-                .unwrap_plus_4(),
-        ),
-        grammar::OPT_6 => ParseTree::Opt6(
-            visit_sppf(root_id, parser, builder)
-                .unwrap_one()
-                .unwrap_opt_6(),
-        ),
-        grammar::STAR_2 => ParseTree::Star2(
-            visit_sppf(root_id, parser, builder)
-                .unwrap_one()
-                .unwrap_star_2(),
-        ),
-        grammar::OPT_7 => ParseTree::Opt7(
-            visit_sppf(root_id, parser, builder)
-                .unwrap_one()
-                .unwrap_opt_7(),
-        ),
-        grammar::PLUS_5 => ParseTree::Plus5(
-            visit_sppf(root_id, parser, builder)
-                .unwrap_one()
-                .unwrap_plus_5(),
-        ),
-        grammar::OPT_8 => ParseTree::Opt8(
-            visit_sppf(root_id, parser, builder)
-                .unwrap_one()
-                .unwrap_opt_8(),
-        ),
-        grammar::STAR_3 => ParseTree::Star3(
-            visit_sppf(root_id, parser, builder)
-                .unwrap_one()
-                .unwrap_star_3(),
-        ),
-        grammar::PLUS_6 => ParseTree::Plus6(
-            visit_sppf(root_id, parser, builder)
-                .unwrap_one()
-                .unwrap_plus_6(),
-        ),
-        grammar::OPT_9 => ParseTree::Opt9(
-            visit_sppf(root_id, parser, builder)
-                .unwrap_one()
-                .unwrap_opt_9(),
-        ),
-        grammar::PLUS_7 => ParseTree::Plus7(
-            visit_sppf(root_id, parser, builder)
-                .unwrap_one()
-                .unwrap_plus_7(),
-        ),
-        grammar::PLUS_8 => ParseTree::Plus8(
-            visit_sppf(root_id, parser, builder)
-                .unwrap_one()
-                .unwrap_plus_8(),
-        ),
-        grammar::PLUS_9 => ParseTree::Plus9(
-            visit_sppf(root_id, parser, builder)
-                .unwrap_one()
-                .unwrap_plus_9(),
-        ),
-        grammar::OPT_10 => ParseTree::Opt10(
-            visit_sppf(root_id, parser, builder)
-                .unwrap_one()
-                .unwrap_opt_10(),
-        ),
-        grammar::PLUS_10 => ParseTree::Plus10(
-            visit_sppf(root_id, parser, builder)
-                .unwrap_one()
-                .unwrap_plus_10(),
-        ),
-        grammar::ALT_0 => ParseTree::Alt0(
-            visit_sppf(root_id, parser, builder)
-                .unwrap_one()
-                .unwrap_alt_0(),
-        ),
-        grammar::PLUS_11 => ParseTree::Plus11(
-            visit_sppf(root_id, parser, builder)
-                .unwrap_one()
-                .unwrap_plus_11(),
-        ),
-        grammar::OPT_11 => ParseTree::Opt11(
-            visit_sppf(root_id, parser, builder)
-                .unwrap_one()
-                .unwrap_opt_11(),
-        ),
-        grammar::STAR_4 => ParseTree::Star4(
-            visit_sppf(root_id, parser, builder)
-                .unwrap_one()
-                .unwrap_star_4(),
-        ),
-        grammar::START_GRAMMAR => ParseTree::StartGrammar(
-            visit_sppf(root_id, parser, builder)
-                .unwrap_one()
-                .unwrap_start_grammar(),
-        ),
-        grammar::START_RULE => ParseTree::StartRule(
-            visit_sppf(root_id, parser, builder)
-                .unwrap_one()
-                .unwrap_start_rule(),
-        ),
+        grammar::PRIORITY_LEVEL => {
+            ParseTree::PriorityLevel(visit_sppf(root_id, parser, builder).unwrap_priority_level())
+        }
+        grammar::ASSOCIATIVITY => {
+            ParseTree::Associativity(visit_sppf(root_id, parser, builder).unwrap_associativity())
+        }
+        grammar::ALTERNATIVE => {
+            ParseTree::Alternative(visit_sppf(root_id, parser, builder).unwrap_alternative())
+        }
+        grammar::SYMBOL => ParseTree::Symbol(visit_sppf(root_id, parser, builder).unwrap_symbol()),
+        grammar::PRE_CONDITION => {
+            ParseTree::PreCondition(visit_sppf(root_id, parser, builder).unwrap_pre_condition())
+        }
+        grammar::POST_CONDITION => {
+            ParseTree::PostCondition(visit_sppf(root_id, parser, builder).unwrap_post_condition())
+        }
+        grammar::REGEX => ParseTree::Regex(visit_sppf(root_id, parser, builder).unwrap_regex()),
+        grammar::CHAR_CLASS => {
+            ParseTree::CharClass(visit_sppf(root_id, parser, builder).unwrap_char_class())
+        }
+        grammar::RANGE_ELEMENT => {
+            ParseTree::RangeElement(visit_sppf(root_id, parser, builder).unwrap_range_element())
+        }
+        grammar::RANGE => ParseTree::Range(visit_sppf(root_id, parser, builder).unwrap_range()),
+        grammar::LAYOUT => ParseTree::Layout(visit_sppf(root_id, parser, builder).unwrap_layout()),
+        grammar::PLUS_0 => ParseTree::Plus0(visit_sppf(root_id, parser, builder).unwrap_plus_0()),
+        grammar::OPT_0 => ParseTree::Opt0(visit_sppf(root_id, parser, builder).unwrap_opt_0()),
+        grammar::STAR_0 => ParseTree::Star0(visit_sppf(root_id, parser, builder).unwrap_star_0()),
+        grammar::OPT_1 => ParseTree::Opt1(visit_sppf(root_id, parser, builder).unwrap_opt_1()),
+        grammar::PLUS_1 => ParseTree::Plus1(visit_sppf(root_id, parser, builder).unwrap_plus_1()),
+        grammar::OPT_2 => ParseTree::Opt2(visit_sppf(root_id, parser, builder).unwrap_opt_2()),
+        grammar::STAR_1 => ParseTree::Star1(visit_sppf(root_id, parser, builder).unwrap_star_1()),
+        grammar::OPT_3 => ParseTree::Opt3(visit_sppf(root_id, parser, builder).unwrap_opt_3()),
+        grammar::OPT_4 => ParseTree::Opt4(visit_sppf(root_id, parser, builder).unwrap_opt_4()),
+        grammar::OPT_5 => ParseTree::Opt5(visit_sppf(root_id, parser, builder).unwrap_opt_5()),
+        grammar::PLUS_3 => ParseTree::Plus3(visit_sppf(root_id, parser, builder).unwrap_plus_3()),
+        grammar::PLUS_2 => ParseTree::Plus2(visit_sppf(root_id, parser, builder).unwrap_plus_2()),
+        grammar::PLUS_4 => ParseTree::Plus4(visit_sppf(root_id, parser, builder).unwrap_plus_4()),
+        grammar::OPT_6 => ParseTree::Opt6(visit_sppf(root_id, parser, builder).unwrap_opt_6()),
+        grammar::STAR_2 => ParseTree::Star2(visit_sppf(root_id, parser, builder).unwrap_star_2()),
+        grammar::OPT_7 => ParseTree::Opt7(visit_sppf(root_id, parser, builder).unwrap_opt_7()),
+        grammar::PLUS_5 => ParseTree::Plus5(visit_sppf(root_id, parser, builder).unwrap_plus_5()),
+        grammar::OPT_8 => ParseTree::Opt8(visit_sppf(root_id, parser, builder).unwrap_opt_8()),
+        grammar::STAR_3 => ParseTree::Star3(visit_sppf(root_id, parser, builder).unwrap_star_3()),
+        grammar::PLUS_6 => ParseTree::Plus6(visit_sppf(root_id, parser, builder).unwrap_plus_6()),
+        grammar::OPT_9 => ParseTree::Opt9(visit_sppf(root_id, parser, builder).unwrap_opt_9()),
+        grammar::PLUS_7 => ParseTree::Plus7(visit_sppf(root_id, parser, builder).unwrap_plus_7()),
+        grammar::PLUS_8 => ParseTree::Plus8(visit_sppf(root_id, parser, builder).unwrap_plus_8()),
+        grammar::PLUS_9 => ParseTree::Plus9(visit_sppf(root_id, parser, builder).unwrap_plus_9()),
+        grammar::OPT_10 => ParseTree::Opt10(visit_sppf(root_id, parser, builder).unwrap_opt_10()),
+        grammar::PLUS_10 => {
+            ParseTree::Plus10(visit_sppf(root_id, parser, builder).unwrap_plus_10())
+        }
+        grammar::ALT_0 => ParseTree::Alt0(visit_sppf(root_id, parser, builder).unwrap_alt_0()),
+        grammar::PLUS_11 => {
+            ParseTree::Plus11(visit_sppf(root_id, parser, builder).unwrap_plus_11())
+        }
+        grammar::OPT_11 => ParseTree::Opt11(visit_sppf(root_id, parser, builder).unwrap_opt_11()),
+        grammar::STAR_4 => ParseTree::Star4(visit_sppf(root_id, parser, builder).unwrap_star_4()),
+        grammar::START_GRAMMAR => {
+            ParseTree::StartGrammar(visit_sppf(root_id, parser, builder).unwrap_start_grammar())
+        }
+        grammar::START_RULE => {
+            ParseTree::StartRule(visit_sppf(root_id, parser, builder).unwrap_start_rule())
+        }
         grammar::START_SYNTAX_RULE => ParseTree::StartSyntaxRule(
-            visit_sppf(root_id, parser, builder)
-                .unwrap_one()
-                .unwrap_start_syntax_rule(),
+            visit_sppf(root_id, parser, builder).unwrap_start_syntax_rule(),
         ),
         grammar::START_ANNOTATION => ParseTree::StartAnnotation(
-            visit_sppf(root_id, parser, builder)
-                .unwrap_one()
-                .unwrap_start_annotation(),
+            visit_sppf(root_id, parser, builder).unwrap_start_annotation(),
         ),
         grammar::START_REGEX_RULE => ParseTree::StartRegexRule(
-            visit_sppf(root_id, parser, builder)
-                .unwrap_one()
-                .unwrap_start_regex_rule(),
+            visit_sppf(root_id, parser, builder).unwrap_start_regex_rule(),
         ),
         grammar::START_REGEX_PRE_CONDITION => ParseTree::StartRegexPreCondition(
-            visit_sppf(root_id, parser, builder)
-                .unwrap_one()
-                .unwrap_start_regex_pre_condition(),
+            visit_sppf(root_id, parser, builder).unwrap_start_regex_pre_condition(),
         ),
         grammar::START_REGEX_POST_CONDITION => ParseTree::StartRegexPostCondition(
-            visit_sppf(root_id, parser, builder)
-                .unwrap_one()
-                .unwrap_start_regex_post_condition(),
+            visit_sppf(root_id, parser, builder).unwrap_start_regex_post_condition(),
         ),
         grammar::START_PRIORITY_LEVEL => ParseTree::StartPriorityLevel(
-            visit_sppf(root_id, parser, builder)
-                .unwrap_one()
-                .unwrap_start_priority_level(),
+            visit_sppf(root_id, parser, builder).unwrap_start_priority_level(),
         ),
         grammar::START_ASSOCIATIVITY => ParseTree::StartAssociativity(
-            visit_sppf(root_id, parser, builder)
-                .unwrap_one()
-                .unwrap_start_associativity(),
+            visit_sppf(root_id, parser, builder).unwrap_start_associativity(),
         ),
         grammar::START_ALTERNATIVE => ParseTree::StartAlternative(
-            visit_sppf(root_id, parser, builder)
-                .unwrap_one()
-                .unwrap_start_alternative(),
+            visit_sppf(root_id, parser, builder).unwrap_start_alternative(),
         ),
-        grammar::START_SYMBOL => ParseTree::StartSymbol(
-            visit_sppf(root_id, parser, builder)
-                .unwrap_one()
-                .unwrap_start_symbol(),
-        ),
+        grammar::START_SYMBOL => {
+            ParseTree::StartSymbol(visit_sppf(root_id, parser, builder).unwrap_start_symbol())
+        }
         grammar::START_PRE_CONDITION => ParseTree::StartPreCondition(
-            visit_sppf(root_id, parser, builder)
-                .unwrap_one()
-                .unwrap_start_pre_condition(),
+            visit_sppf(root_id, parser, builder).unwrap_start_pre_condition(),
         ),
         grammar::START_POST_CONDITION => ParseTree::StartPostCondition(
-            visit_sppf(root_id, parser, builder)
-                .unwrap_one()
-                .unwrap_start_post_condition(),
+            visit_sppf(root_id, parser, builder).unwrap_start_post_condition(),
         ),
-        grammar::START_REGEX => ParseTree::StartRegex(
-            visit_sppf(root_id, parser, builder)
-                .unwrap_one()
-                .unwrap_start_regex(),
-        ),
+        grammar::START_REGEX => {
+            ParseTree::StartRegex(visit_sppf(root_id, parser, builder).unwrap_start_regex())
+        }
         grammar::START_CHAR_CLASS => ParseTree::StartCharClass(
-            visit_sppf(root_id, parser, builder)
-                .unwrap_one()
-                .unwrap_start_char_class(),
+            visit_sppf(root_id, parser, builder).unwrap_start_char_class(),
         ),
         grammar::START_RANGE_ELEMENT => ParseTree::StartRangeElement(
-            visit_sppf(root_id, parser, builder)
-                .unwrap_one()
-                .unwrap_start_range_element(),
+            visit_sppf(root_id, parser, builder).unwrap_start_range_element(),
         ),
-        grammar::START_RANGE => ParseTree::StartRange(
-            visit_sppf(root_id, parser, builder)
-                .unwrap_one()
-                .unwrap_start_range(),
-        ),
-        grammar::START_LAYOUT => ParseTree::StartLayout(
-            visit_sppf(root_id, parser, builder)
-                .unwrap_one()
-                .unwrap_start_layout(),
-        ),
+        grammar::START_RANGE => {
+            ParseTree::StartRange(visit_sppf(root_id, parser, builder).unwrap_start_range())
+        }
+        grammar::START_LAYOUT => {
+            ParseTree::StartLayout(visit_sppf(root_id, parser, builder).unwrap_start_layout())
+        }
         _ => panic!(),
     }
 }

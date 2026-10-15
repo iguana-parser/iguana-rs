@@ -5,7 +5,7 @@ use iguana_runtime::{
     arena::Arena,
     ids::{NonterminalId, SPPFNodeId, SlotId, TerminalId},
     input::Span,
-    parse_tree::{NodeKind, OneOrMany, Origin, ParseTreeBuilder, ParseTreeNode, visit_sppf},
+    parse_tree::{NodeKind, Origin, ParseTreeBuilder, ParseTreeNode, visit_sppf},
     sppf::{NonterminalNode, TerminalNode},
 };
 use std::vec::IntoIter;
@@ -132,38 +132,45 @@ impl<'a> ParseTree<'a> {
     pub(crate) fn unwrap_d(self) -> &'a D<'a> {
         match self {
             ParseTree::D(d) => d,
-            _ => panic!(),
+            _ => Self::unexpected_node(),
         }
     }
     pub(crate) fn unwrap_num(self) -> &'a Num<'a> {
         match self {
             ParseTree::Num(num) => num,
-            _ => panic!(),
+            _ => Self::unexpected_node(),
         }
     }
     pub(crate) fn unwrap_group_0(self) -> &'a Group0<'a> {
         match self {
             ParseTree::Group0(group_0) => group_0,
-            _ => panic!(),
+            _ => Self::unexpected_node(),
         }
     }
     pub(crate) fn unwrap_start_d(self) -> &'a Start<&'a D<'a>, ()> {
         match self {
             ParseTree::StartD(start_d) => start_d,
-            _ => panic!(),
+            _ => Self::unexpected_node(),
         }
     }
     pub(crate) fn unwrap_start_num(self) -> &'a Start<&'a Num<'a>, ()> {
         match self {
             ParseTree::StartNum(start_num) => start_num,
-            _ => panic!(),
+            _ => Self::unexpected_node(),
         }
     }
     fn unwrap_token(self) -> Token {
         match self {
             ParseTree::Token(t) => t,
-            _ => panic!(),
+            _ => Self::unexpected_node(),
         }
+    }
+    ///The shared failure of the `unwrap_*` methods. One cold function keeps
+    ///the builder from carrying a separate panic site per child.
+    #[cold]
+    #[inline(never)]
+    fn unexpected_node() -> ! {
+        unreachable!("unexpected parse tree node")
     }
 }
 pub trait ListNode<'a> {
@@ -418,74 +425,64 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for GroupSingleElementParseTreeBuilder<
     fn new_nonterminal_node(
         &self,
         nonterminal_node: &NonterminalNode,
-        children: OneOrMany<ParseTree<'a>>,
+        children: &[ParseTree<'a>],
     ) -> ParseTree<'a> {
-        match nonterminal_node.nonterminal_id {
-            // D
-            NonterminalId(0) => match nonterminal_node.return_slot {
-                // D = ("!" Num)
-                SlotId(1) => {
-                    let [group_0] = children.into_array::<1usize>();
-                    ParseTree::D(self.arena.alloc(D::Alt0 {
-                        group_0: group_0.unwrap_group_0(),
-                        span: nonterminal_node.span,
-                    }))
-                }
-                _ => unreachable!(),
-            },
-            // Num
-            NonterminalId(1) => match nonterminal_node.return_slot {
-                // Num = "1"
-                SlotId(3) => {
-                    let [lit_0] = children.into_array::<1usize>();
-                    ParseTree::Num(self.arena.alloc(Num::Alt0 {
-                        lit_0: lit_0.unwrap_token(),
-                        span: nonterminal_node.span,
-                    }))
-                }
-                _ => unreachable!(),
-            },
-            // Group_0
-            NonterminalId(2) => match nonterminal_node.return_slot {
-                // Group_0 = "!" Num
-                SlotId(6) => {
-                    let [lit_0, num] = children.into_array::<2usize>();
-                    ParseTree::Group0(self.arena.alloc(Group0::Alt0 {
-                        lit_0: lit_0.unwrap_token(),
-                        num: num.unwrap_num(),
-                        span: nonterminal_node.span,
-                    }))
-                }
-                _ => unreachable!(),
-            },
-            // StartD
-            NonterminalId(3) => match nonterminal_node.return_slot {
-                // StartD = start:D
-                SlotId(8) => {
-                    let [start] = children.into_array::<1usize>();
-                    ParseTree::StartD(self.arena.alloc(Start {
-                        before: (),
-                        node: start.unwrap_d(),
-                        after: (),
-                        span: nonterminal_node.span,
-                    }))
-                }
-                _ => unreachable!(),
-            },
-            // StartNum
-            NonterminalId(4) => match nonterminal_node.return_slot {
-                // StartNum = start:Num
-                SlotId(10) => {
-                    let [start] = children.into_array::<1usize>();
-                    ParseTree::StartNum(self.arena.alloc(Start {
-                        before: (),
-                        node: start.unwrap_num(),
-                        after: (),
-                        span: nonterminal_node.span,
-                    }))
-                }
-                _ => unreachable!(),
-            },
+        match nonterminal_node.return_slot {
+            // D = ("!" Num)
+            SlotId(1) => {
+                let &[group_0] = children else {
+                    ParseTree::unexpected_node()
+                };
+                ParseTree::D(self.arena.alloc(D::Alt0 {
+                    group_0: group_0.unwrap_group_0(),
+                    span: nonterminal_node.span,
+                }))
+            }
+            // Num = "1"
+            SlotId(3) => {
+                let &[lit_0] = children else {
+                    ParseTree::unexpected_node()
+                };
+                ParseTree::Num(self.arena.alloc(Num::Alt0 {
+                    lit_0: lit_0.unwrap_token(),
+                    span: nonterminal_node.span,
+                }))
+            }
+            // Group_0 = "!" Num
+            SlotId(6) => {
+                let &[lit_0, num] = children else {
+                    ParseTree::unexpected_node()
+                };
+                ParseTree::Group0(self.arena.alloc(Group0::Alt0 {
+                    lit_0: lit_0.unwrap_token(),
+                    num: num.unwrap_num(),
+                    span: nonterminal_node.span,
+                }))
+            }
+            // StartD = start:D
+            SlotId(8) => {
+                let &[start] = children else {
+                    ParseTree::unexpected_node()
+                };
+                ParseTree::StartD(self.arena.alloc(Start {
+                    before: (),
+                    node: start.unwrap_d(),
+                    after: (),
+                    span: nonterminal_node.span,
+                }))
+            }
+            // StartNum = start:Num
+            SlotId(10) => {
+                let &[start] = children else {
+                    ParseTree::unexpected_node()
+                };
+                ParseTree::StartNum(self.arena.alloc(Start {
+                    before: (),
+                    node: start.unwrap_num(),
+                    after: (),
+                    span: nonterminal_node.span,
+                }))
+            }
             _ => unreachable!(),
         }
     }
@@ -561,27 +558,17 @@ pub fn create_parse_tree<'a>(
         panic!("the SPPF root is not a nonterminal node")
     };
     match root.nonterminal_id {
-        grammar::D => ParseTree::D(visit_sppf(root_id, parser, builder).unwrap_one().unwrap_d()),
-        grammar::NUM => ParseTree::Num(
-            visit_sppf(root_id, parser, builder)
-                .unwrap_one()
-                .unwrap_num(),
-        ),
-        grammar::GROUP_0 => ParseTree::Group0(
-            visit_sppf(root_id, parser, builder)
-                .unwrap_one()
-                .unwrap_group_0(),
-        ),
-        grammar::START_D => ParseTree::StartD(
-            visit_sppf(root_id, parser, builder)
-                .unwrap_one()
-                .unwrap_start_d(),
-        ),
-        grammar::START_NUM => ParseTree::StartNum(
-            visit_sppf(root_id, parser, builder)
-                .unwrap_one()
-                .unwrap_start_num(),
-        ),
+        grammar::D => ParseTree::D(visit_sppf(root_id, parser, builder).unwrap_d()),
+        grammar::NUM => ParseTree::Num(visit_sppf(root_id, parser, builder).unwrap_num()),
+        grammar::GROUP_0 => {
+            ParseTree::Group0(visit_sppf(root_id, parser, builder).unwrap_group_0())
+        }
+        grammar::START_D => {
+            ParseTree::StartD(visit_sppf(root_id, parser, builder).unwrap_start_d())
+        }
+        grammar::START_NUM => {
+            ParseTree::StartNum(visit_sppf(root_id, parser, builder).unwrap_start_num())
+        }
         _ => panic!(),
     }
 }

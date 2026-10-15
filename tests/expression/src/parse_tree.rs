@@ -5,7 +5,7 @@ use iguana_runtime::{
     arena::Arena,
     ids::{NonterminalId, SPPFNodeId, SlotId, TerminalId},
     input::Span,
-    parse_tree::{NodeKind, OneOrMany, Origin, ParseTreeBuilder, ParseTreeNode, visit_sppf},
+    parse_tree::{NodeKind, Origin, ParseTreeBuilder, ParseTreeNode, visit_sppf},
     sppf::{NonterminalNode, TerminalNode},
 };
 use std::vec::IntoIter;
@@ -102,20 +102,27 @@ impl<'a> ParseTree<'a> {
     pub(crate) fn unwrap_e(self) -> &'a E<'a> {
         match self {
             ParseTree::E(e) => e,
-            _ => panic!(),
+            _ => Self::unexpected_node(),
         }
     }
     pub(crate) fn unwrap_start_e(self) -> &'a Start<&'a E<'a>, ()> {
         match self {
             ParseTree::StartE(start_e) => start_e,
-            _ => panic!(),
+            _ => Self::unexpected_node(),
         }
     }
     fn unwrap_token(self) -> Token {
         match self {
             ParseTree::Token(t) => t,
-            _ => panic!(),
+            _ => Self::unexpected_node(),
         }
+    }
+    ///The shared failure of the `unwrap_*` methods. One cold function keeps
+    ///the builder from carrying a separate panic site per child.
+    #[cold]
+    #[inline(never)]
+    fn unexpected_node() -> ! {
+        unreachable!("unexpected parse tree node")
     }
 }
 pub trait ListNode<'a> {
@@ -262,55 +269,55 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for ExpressionParseTreeBuilder<'a> {
     fn new_nonterminal_node(
         &self,
         nonterminal_node: &NonterminalNode,
-        children: OneOrMany<ParseTree<'a>>,
+        children: &[ParseTree<'a>],
     ) -> ParseTree<'a> {
-        match nonterminal_node.nonterminal_id {
-            // E
-            NonterminalId(0) => match nonterminal_node.return_slot {
-                // E = E "*" E #Mul
-                SlotId(3) => {
-                    let [e_0, lit_1, e_2] = children.into_array::<3usize>();
-                    ParseTree::E(self.arena.alloc(E::Mul {
-                        e_0: e_0.unwrap_e(),
-                        lit_1: lit_1.unwrap_token(),
-                        e_2: e_2.unwrap_e(),
-                        span: nonterminal_node.span,
-                    }))
-                }
-                // E = E "+" E #Add
-                SlotId(7) => {
-                    let [e_0, lit_1, e_2] = children.into_array::<3usize>();
-                    ParseTree::E(self.arena.alloc(E::Add {
-                        e_0: e_0.unwrap_e(),
-                        lit_1: lit_1.unwrap_token(),
-                        e_2: e_2.unwrap_e(),
-                        span: nonterminal_node.span,
-                    }))
-                }
-                // E = "a" #Lit
-                SlotId(9) => {
-                    let [lit_0] = children.into_array::<1usize>();
-                    ParseTree::E(self.arena.alloc(E::Lit {
-                        lit_0: lit_0.unwrap_token(),
-                        span: nonterminal_node.span,
-                    }))
-                }
-                _ => unreachable!(),
-            },
-            // StartE
-            NonterminalId(1) => match nonterminal_node.return_slot {
-                // StartE = start:E
-                SlotId(11) => {
-                    let [start] = children.into_array::<1usize>();
-                    ParseTree::StartE(self.arena.alloc(Start {
-                        before: (),
-                        node: start.unwrap_e(),
-                        after: (),
-                        span: nonterminal_node.span,
-                    }))
-                }
-                _ => unreachable!(),
-            },
+        match nonterminal_node.return_slot {
+            // E = E "*" E #Mul
+            SlotId(3) => {
+                let &[e_0, lit_1, e_2] = children else {
+                    ParseTree::unexpected_node()
+                };
+                ParseTree::E(self.arena.alloc(E::Mul {
+                    e_0: e_0.unwrap_e(),
+                    lit_1: lit_1.unwrap_token(),
+                    e_2: e_2.unwrap_e(),
+                    span: nonterminal_node.span,
+                }))
+            }
+            // E = E "+" E #Add
+            SlotId(7) => {
+                let &[e_0, lit_1, e_2] = children else {
+                    ParseTree::unexpected_node()
+                };
+                ParseTree::E(self.arena.alloc(E::Add {
+                    e_0: e_0.unwrap_e(),
+                    lit_1: lit_1.unwrap_token(),
+                    e_2: e_2.unwrap_e(),
+                    span: nonterminal_node.span,
+                }))
+            }
+            // E = "a" #Lit
+            SlotId(9) => {
+                let &[lit_0] = children else {
+                    ParseTree::unexpected_node()
+                };
+                ParseTree::E(self.arena.alloc(E::Lit {
+                    lit_0: lit_0.unwrap_token(),
+                    span: nonterminal_node.span,
+                }))
+            }
+            // StartE = start:E
+            SlotId(11) => {
+                let &[start] = children else {
+                    ParseTree::unexpected_node()
+                };
+                ParseTree::StartE(self.arena.alloc(Start {
+                    before: (),
+                    node: start.unwrap_e(),
+                    after: (),
+                    span: nonterminal_node.span,
+                }))
+            }
             _ => unreachable!(),
         }
     }
@@ -361,12 +368,10 @@ pub fn create_parse_tree<'a>(
         panic!("the SPPF root is not a nonterminal node")
     };
     match root.nonterminal_id {
-        grammar::E => ParseTree::E(visit_sppf(root_id, parser, builder).unwrap_one().unwrap_e()),
-        grammar::START_E => ParseTree::StartE(
-            visit_sppf(root_id, parser, builder)
-                .unwrap_one()
-                .unwrap_start_e(),
-        ),
+        grammar::E => ParseTree::E(visit_sppf(root_id, parser, builder).unwrap_e()),
+        grammar::START_E => {
+            ParseTree::StartE(visit_sppf(root_id, parser, builder).unwrap_start_e())
+        }
         _ => panic!(),
     }
 }

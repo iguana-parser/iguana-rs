@@ -5,7 +5,7 @@ use iguana_runtime::{
     arena::Arena,
     ids::{NonterminalId, SPPFNodeId, SlotId, TerminalId},
     input::Span,
-    parse_tree::{NodeKind, OneOrMany, Origin, ParseTreeBuilder, ParseTreeNode, visit_sppf},
+    parse_tree::{NodeKind, Origin, ParseTreeBuilder, ParseTreeNode, visit_sppf},
     sppf::{NonterminalNode, TerminalNode},
 };
 use std::vec::IntoIter;
@@ -152,32 +152,39 @@ impl<'a> ParseTree<'a> {
     pub(crate) fn unwrap_s(self) -> &'a S<'a> {
         match self {
             ParseTree::S(s) => s,
-            _ => panic!(),
+            _ => Self::unexpected_node(),
         }
     }
     pub(crate) fn unwrap_e(self) -> &'a E<'a> {
         match self {
             ParseTree::E(e) => e,
-            _ => panic!(),
+            _ => Self::unexpected_node(),
         }
     }
     pub(crate) fn unwrap_start_s(self) -> &'a Start<&'a S<'a>, Token> {
         match self {
             ParseTree::StartS(start_s) => start_s,
-            _ => panic!(),
+            _ => Self::unexpected_node(),
         }
     }
     pub(crate) fn unwrap_start_e(self) -> &'a Start<&'a E<'a>, Token> {
         match self {
             ParseTree::StartE(start_e) => start_e,
-            _ => panic!(),
+            _ => Self::unexpected_node(),
         }
     }
     fn unwrap_token(self) -> Token {
         match self {
             ParseTree::Token(t) => t,
-            _ => panic!(),
+            _ => Self::unexpected_node(),
         }
+    }
+    ///The shared failure of the `unwrap_*` methods. One cold function keeps
+    ///the builder from carrying a separate panic site per child.
+    #[cold]
+    #[inline(never)]
+    fn unexpected_node() -> ! {
+        unreachable!("unexpected parse tree node")
     }
 }
 pub trait ListNode<'a> {
@@ -614,183 +621,194 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for AmbiguousExprParseTreeBuilder<'a> {
     fn new_nonterminal_node(
         &self,
         nonterminal_node: &NonterminalNode,
-        children: OneOrMany<ParseTree<'a>>,
+        children: &[ParseTree<'a>],
     ) -> ParseTree<'a> {
-        match nonterminal_node.nonterminal_id {
-            // S
-            NonterminalId(0) => match nonterminal_node.return_slot {
-                // S = E
-                SlotId(1) => {
-                    let [e] = children.into_array::<1usize>();
-                    ParseTree::S(self.arena.alloc(S::Alt0 {
-                        e: e.unwrap_e(),
-                        span: nonterminal_node.span,
-                    }))
-                }
-                _ => unreachable!(),
-            },
-            // E
-            NonterminalId(1) => match nonterminal_node.return_slot {
-                // E = E WS "." WS "f"
-                SlotId(7) => {
-                    let [e, ws_1, lit_2, ws_3, lit_4] = children.into_array::<5usize>();
-                    ParseTree::E(self.arena.alloc(E::Alt0 {
-                        e: e.unwrap_e(),
-                        ws_1: ws_1.unwrap_token(),
-                        lit_2: lit_2.unwrap_token(),
-                        ws_3: ws_3.unwrap_token(),
-                        lit_4: lit_4.unwrap_token(),
-                        span: nonterminal_node.span,
-                    }))
-                }
-                // E = E WS E
-                SlotId(11) => {
-                    let [e_0, ws, e_2] = children.into_array::<3usize>();
-                    ParseTree::E(self.arena.alloc(E::Alt1 {
-                        e_0: e_0.unwrap_e(),
-                        ws: ws.unwrap_token(),
-                        e_2: e_2.unwrap_e(),
-                        span: nonterminal_node.span,
-                    }))
-                }
-                // E = E WS "*" WS E
-                SlotId(17) => {
-                    let [e_0, ws_1, lit_2, ws_3, e_4] = children.into_array::<5usize>();
-                    ParseTree::E(self.arena.alloc(E::Alt2 {
-                        e_0: e_0.unwrap_e(),
-                        ws_1: ws_1.unwrap_token(),
-                        lit_2: lit_2.unwrap_token(),
-                        ws_3: ws_3.unwrap_token(),
-                        e_4: e_4.unwrap_e(),
-                        span: nonterminal_node.span,
-                    }))
-                }
-                // E = E WS "+" WS E
-                SlotId(23) => {
-                    let [e_0, ws_1, lit_2, ws_3, e_4] = children.into_array::<5usize>();
-                    ParseTree::E(self.arena.alloc(E::Alt3 {
-                        e_0: e_0.unwrap_e(),
-                        ws_1: ws_1.unwrap_token(),
-                        lit_2: lit_2.unwrap_token(),
-                        ws_3: ws_3.unwrap_token(),
-                        e_4: e_4.unwrap_e(),
-                        span: nonterminal_node.span,
-                    }))
-                }
-                // E = E WS "-" WS E
-                SlotId(29) => {
-                    let [e_0, ws_1, lit_2, ws_3, e_4] = children.into_array::<5usize>();
-                    ParseTree::E(self.arena.alloc(E::Alt4 {
-                        e_0: e_0.unwrap_e(),
-                        ws_1: ws_1.unwrap_token(),
-                        lit_2: lit_2.unwrap_token(),
-                        ws_3: ws_3.unwrap_token(),
-                        e_4: e_4.unwrap_e(),
-                        span: nonterminal_node.span,
-                    }))
-                }
-                // E = "-" WS E
-                SlotId(33) => {
-                    let [lit_0, ws, e] = children.into_array::<3usize>();
-                    ParseTree::E(self.arena.alloc(E::Alt5 {
-                        lit_0: lit_0.unwrap_token(),
-                        ws: ws.unwrap_token(),
-                        e: e.unwrap_e(),
-                        span: nonterminal_node.span,
-                    }))
-                }
-                // E = "if" WS E WS "then" WS E WS "else" WS E
-                SlotId(45) => {
-                    let [
-                        lit_0,
-                        ws_1,
-                        e_2,
-                        ws_3,
-                        lit_4,
-                        ws_5,
-                        e_6,
-                        ws_7,
-                        lit_8,
-                        ws_9,
-                        e_10,
-                    ] = children.into_array::<11usize>();
-                    ParseTree::E(self.arena.alloc(E::Alt6 {
-                        lit_0: lit_0.unwrap_token(),
-                        ws_1: ws_1.unwrap_token(),
-                        e_2: e_2.unwrap_e(),
-                        ws_3: ws_3.unwrap_token(),
-                        lit_4: lit_4.unwrap_token(),
-                        ws_5: ws_5.unwrap_token(),
-                        e_6: e_6.unwrap_e(),
-                        ws_7: ws_7.unwrap_token(),
-                        lit_8: lit_8.unwrap_token(),
-                        ws_9: ws_9.unwrap_token(),
-                        e_10: e_10.unwrap_e(),
-                        span: nonterminal_node.span,
-                    }))
-                }
-                // E = E WS ";" WS E
-                SlotId(51) => {
-                    let [e_0, ws_1, lit_2, ws_3, e_4] = children.into_array::<5usize>();
-                    ParseTree::E(self.arena.alloc(E::Alt7 {
-                        e_0: e_0.unwrap_e(),
-                        ws_1: ws_1.unwrap_token(),
-                        lit_2: lit_2.unwrap_token(),
-                        ws_3: ws_3.unwrap_token(),
-                        e_4: e_4.unwrap_e(),
-                        span: nonterminal_node.span,
-                    }))
-                }
-                // E = "(" WS E WS ")"
-                SlotId(57) => {
-                    let [lit_0, ws_1, e, ws_3, lit_4] = children.into_array::<5usize>();
-                    ParseTree::E(self.arena.alloc(E::Alt8 {
-                        lit_0: lit_0.unwrap_token(),
-                        ws_1: ws_1.unwrap_token(),
-                        e: e.unwrap_e(),
-                        ws_3: ws_3.unwrap_token(),
-                        lit_4: lit_4.unwrap_token(),
-                        span: nonterminal_node.span,
-                    }))
-                }
-                // E = "a"
-                SlotId(59) => {
-                    let [lit_0] = children.into_array::<1usize>();
-                    ParseTree::E(self.arena.alloc(E::Alt9 {
-                        lit_0: lit_0.unwrap_token(),
-                        span: nonterminal_node.span,
-                    }))
-                }
-                _ => unreachable!(),
-            },
-            // StartS
-            NonterminalId(2) => match nonterminal_node.return_slot {
-                // StartS = WS start:S WS
-                SlotId(63) => {
-                    let [ws_0, start, ws_2] = children.into_array::<3usize>();
-                    ParseTree::StartS(self.arena.alloc(Start {
-                        before: ws_0.unwrap_token(),
-                        node: start.unwrap_s(),
-                        after: ws_2.unwrap_token(),
-                        span: nonterminal_node.span,
-                    }))
-                }
-                _ => unreachable!(),
-            },
-            // StartE
-            NonterminalId(3) => match nonterminal_node.return_slot {
-                // StartE = WS start:E WS
-                SlotId(67) => {
-                    let [ws_0, start, ws_2] = children.into_array::<3usize>();
-                    ParseTree::StartE(self.arena.alloc(Start {
-                        before: ws_0.unwrap_token(),
-                        node: start.unwrap_e(),
-                        after: ws_2.unwrap_token(),
-                        span: nonterminal_node.span,
-                    }))
-                }
-                _ => unreachable!(),
-            },
+        match nonterminal_node.return_slot {
+            // S = E
+            SlotId(1) => {
+                let &[e] = children else {
+                    ParseTree::unexpected_node()
+                };
+                ParseTree::S(self.arena.alloc(S::Alt0 {
+                    e: e.unwrap_e(),
+                    span: nonterminal_node.span,
+                }))
+            }
+            // E = E WS "." WS "f"
+            SlotId(7) => {
+                let &[e, ws_1, lit_2, ws_3, lit_4] = children else {
+                    ParseTree::unexpected_node()
+                };
+                ParseTree::E(self.arena.alloc(E::Alt0 {
+                    e: e.unwrap_e(),
+                    ws_1: ws_1.unwrap_token(),
+                    lit_2: lit_2.unwrap_token(),
+                    ws_3: ws_3.unwrap_token(),
+                    lit_4: lit_4.unwrap_token(),
+                    span: nonterminal_node.span,
+                }))
+            }
+            // E = E WS E
+            SlotId(11) => {
+                let &[e_0, ws, e_2] = children else {
+                    ParseTree::unexpected_node()
+                };
+                ParseTree::E(self.arena.alloc(E::Alt1 {
+                    e_0: e_0.unwrap_e(),
+                    ws: ws.unwrap_token(),
+                    e_2: e_2.unwrap_e(),
+                    span: nonterminal_node.span,
+                }))
+            }
+            // E = E WS "*" WS E
+            SlotId(17) => {
+                let &[e_0, ws_1, lit_2, ws_3, e_4] = children else {
+                    ParseTree::unexpected_node()
+                };
+                ParseTree::E(self.arena.alloc(E::Alt2 {
+                    e_0: e_0.unwrap_e(),
+                    ws_1: ws_1.unwrap_token(),
+                    lit_2: lit_2.unwrap_token(),
+                    ws_3: ws_3.unwrap_token(),
+                    e_4: e_4.unwrap_e(),
+                    span: nonterminal_node.span,
+                }))
+            }
+            // E = E WS "+" WS E
+            SlotId(23) => {
+                let &[e_0, ws_1, lit_2, ws_3, e_4] = children else {
+                    ParseTree::unexpected_node()
+                };
+                ParseTree::E(self.arena.alloc(E::Alt3 {
+                    e_0: e_0.unwrap_e(),
+                    ws_1: ws_1.unwrap_token(),
+                    lit_2: lit_2.unwrap_token(),
+                    ws_3: ws_3.unwrap_token(),
+                    e_4: e_4.unwrap_e(),
+                    span: nonterminal_node.span,
+                }))
+            }
+            // E = E WS "-" WS E
+            SlotId(29) => {
+                let &[e_0, ws_1, lit_2, ws_3, e_4] = children else {
+                    ParseTree::unexpected_node()
+                };
+                ParseTree::E(self.arena.alloc(E::Alt4 {
+                    e_0: e_0.unwrap_e(),
+                    ws_1: ws_1.unwrap_token(),
+                    lit_2: lit_2.unwrap_token(),
+                    ws_3: ws_3.unwrap_token(),
+                    e_4: e_4.unwrap_e(),
+                    span: nonterminal_node.span,
+                }))
+            }
+            // E = "-" WS E
+            SlotId(33) => {
+                let &[lit_0, ws, e] = children else {
+                    ParseTree::unexpected_node()
+                };
+                ParseTree::E(self.arena.alloc(E::Alt5 {
+                    lit_0: lit_0.unwrap_token(),
+                    ws: ws.unwrap_token(),
+                    e: e.unwrap_e(),
+                    span: nonterminal_node.span,
+                }))
+            }
+            // E = "if" WS E WS "then" WS E WS "else" WS E
+            SlotId(45) => {
+                let &[
+                    lit_0,
+                    ws_1,
+                    e_2,
+                    ws_3,
+                    lit_4,
+                    ws_5,
+                    e_6,
+                    ws_7,
+                    lit_8,
+                    ws_9,
+                    e_10,
+                ] = children
+                else {
+                    ParseTree::unexpected_node()
+                };
+                ParseTree::E(self.arena.alloc(E::Alt6 {
+                    lit_0: lit_0.unwrap_token(),
+                    ws_1: ws_1.unwrap_token(),
+                    e_2: e_2.unwrap_e(),
+                    ws_3: ws_3.unwrap_token(),
+                    lit_4: lit_4.unwrap_token(),
+                    ws_5: ws_5.unwrap_token(),
+                    e_6: e_6.unwrap_e(),
+                    ws_7: ws_7.unwrap_token(),
+                    lit_8: lit_8.unwrap_token(),
+                    ws_9: ws_9.unwrap_token(),
+                    e_10: e_10.unwrap_e(),
+                    span: nonterminal_node.span,
+                }))
+            }
+            // E = E WS ";" WS E
+            SlotId(51) => {
+                let &[e_0, ws_1, lit_2, ws_3, e_4] = children else {
+                    ParseTree::unexpected_node()
+                };
+                ParseTree::E(self.arena.alloc(E::Alt7 {
+                    e_0: e_0.unwrap_e(),
+                    ws_1: ws_1.unwrap_token(),
+                    lit_2: lit_2.unwrap_token(),
+                    ws_3: ws_3.unwrap_token(),
+                    e_4: e_4.unwrap_e(),
+                    span: nonterminal_node.span,
+                }))
+            }
+            // E = "(" WS E WS ")"
+            SlotId(57) => {
+                let &[lit_0, ws_1, e, ws_3, lit_4] = children else {
+                    ParseTree::unexpected_node()
+                };
+                ParseTree::E(self.arena.alloc(E::Alt8 {
+                    lit_0: lit_0.unwrap_token(),
+                    ws_1: ws_1.unwrap_token(),
+                    e: e.unwrap_e(),
+                    ws_3: ws_3.unwrap_token(),
+                    lit_4: lit_4.unwrap_token(),
+                    span: nonterminal_node.span,
+                }))
+            }
+            // E = "a"
+            SlotId(59) => {
+                let &[lit_0] = children else {
+                    ParseTree::unexpected_node()
+                };
+                ParseTree::E(self.arena.alloc(E::Alt9 {
+                    lit_0: lit_0.unwrap_token(),
+                    span: nonterminal_node.span,
+                }))
+            }
+            // StartS = WS start:S WS
+            SlotId(63) => {
+                let &[ws_0, start, ws_2] = children else {
+                    ParseTree::unexpected_node()
+                };
+                ParseTree::StartS(self.arena.alloc(Start {
+                    before: ws_0.unwrap_token(),
+                    node: start.unwrap_s(),
+                    after: ws_2.unwrap_token(),
+                    span: nonterminal_node.span,
+                }))
+            }
+            // StartE = WS start:E WS
+            SlotId(67) => {
+                let &[ws_0, start, ws_2] = children else {
+                    ParseTree::unexpected_node()
+                };
+                ParseTree::StartE(self.arena.alloc(Start {
+                    before: ws_0.unwrap_token(),
+                    node: start.unwrap_e(),
+                    after: ws_2.unwrap_token(),
+                    span: nonterminal_node.span,
+                }))
+            }
             _ => unreachable!(),
         }
     }
@@ -860,18 +878,14 @@ pub fn create_parse_tree<'a>(
         panic!("the SPPF root is not a nonterminal node")
     };
     match root.nonterminal_id {
-        grammar::S => ParseTree::S(visit_sppf(root_id, parser, builder).unwrap_one().unwrap_s()),
-        grammar::E => ParseTree::E(visit_sppf(root_id, parser, builder).unwrap_one().unwrap_e()),
-        grammar::START_S => ParseTree::StartS(
-            visit_sppf(root_id, parser, builder)
-                .unwrap_one()
-                .unwrap_start_s(),
-        ),
-        grammar::START_E => ParseTree::StartE(
-            visit_sppf(root_id, parser, builder)
-                .unwrap_one()
-                .unwrap_start_e(),
-        ),
+        grammar::S => ParseTree::S(visit_sppf(root_id, parser, builder).unwrap_s()),
+        grammar::E => ParseTree::E(visit_sppf(root_id, parser, builder).unwrap_e()),
+        grammar::START_S => {
+            ParseTree::StartS(visit_sppf(root_id, parser, builder).unwrap_start_s())
+        }
+        grammar::START_E => {
+            ParseTree::StartE(visit_sppf(root_id, parser, builder).unwrap_start_e())
+        }
         _ => panic!(),
     }
 }

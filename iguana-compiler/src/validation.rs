@@ -558,7 +558,6 @@ const RESERVED_TYPE_NAMES: &[&str] = &[
     "NodeKind",
     "NonterminalId",
     "NonterminalNode",
-    "OneOrMany",
     "OptNode",
     "Option",
     "Origin",

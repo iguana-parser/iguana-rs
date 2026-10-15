@@ -3,7 +3,7 @@
 use crate::{grammar, parser::TokenOnlyUnsafeParser};
 use iguana_runtime::{
     arena::Arena,
-    ids::{NonterminalId, SPPFNodeId, SlotId, TerminalId},
+    ids::{SPPFNodeId, SlotId, TerminalId},
     input::Span,
     parse_tree::{NodeKind, Origin, ParseTreeBuilder, ParseTreeNode, visit_sppf},
     sppf::{NonterminalNode, TerminalNode},
@@ -151,56 +151,63 @@ impl<'a> ParseTree<'a> {
     pub(crate) fn unwrap_s(self) -> &'a S<'a> {
         match self {
             ParseTree::S(s) => s,
-            _ => panic!(),
+            _ => Self::unexpected_node(),
         }
     }
     pub(crate) fn unwrap_mod(self) -> &'a Mod {
         match self {
             ParseTree::Mod(r#mod) => r#mod,
-            _ => panic!(),
+            _ => Self::unexpected_node(),
         }
     }
     pub(crate) fn unwrap_empty(self) -> &'a Empty {
         match self {
             ParseTree::Empty(empty) => empty,
-            _ => panic!(),
+            _ => Self::unexpected_node(),
         }
     }
     pub(crate) fn unwrap_tag(self) -> &'a Tag {
         match self {
             ParseTree::Tag(tag) => tag,
-            _ => panic!(),
+            _ => Self::unexpected_node(),
         }
     }
     pub(crate) fn unwrap_start_s(self) -> &'a Start<&'a S<'a>, Token> {
         match self {
             ParseTree::StartS(start_s) => start_s,
-            _ => panic!(),
+            _ => Self::unexpected_node(),
         }
     }
     pub(crate) fn unwrap_start_mod(self) -> &'a Start<&'a Mod, Token> {
         match self {
             ParseTree::StartMod(start_mod) => start_mod,
-            _ => panic!(),
+            _ => Self::unexpected_node(),
         }
     }
     pub(crate) fn unwrap_start_empty(self) -> &'a Start<&'a Empty, Token> {
         match self {
             ParseTree::StartEmpty(start_empty) => start_empty,
-            _ => panic!(),
+            _ => Self::unexpected_node(),
         }
     }
     pub(crate) fn unwrap_start_tag(self) -> &'a Start<&'a Tag, Token> {
         match self {
             ParseTree::StartTag(start_tag) => start_tag,
-            _ => panic!(),
+            _ => Self::unexpected_node(),
         }
     }
     fn unwrap_token(self) -> Token {
         match self {
             ParseTree::Token(t) => t,
-            _ => panic!(),
+            _ => Self::unexpected_node(),
         }
+    }
+    ///The shared failure of the `unwrap_*` methods. One cold function keeps
+    ///the builder from carrying a separate panic site per child.
+    #[cold]
+    #[inline(never)]
+    fn unexpected_node() -> ! {
+        unreachable!("unexpected parse tree node")
     }
 }
 pub trait ListNode<'a> {
@@ -534,137 +541,113 @@ impl<'a> TokenOnlyUnsafeParseTreeBuilder<'a> {
     }
 }
 impl<'a> ParseTreeBuilder<ParseTree<'a>> for TokenOnlyUnsafeParseTreeBuilder<'a> {
-    fn new_unambiguous_nonterminal_node(
+    fn new_nonterminal_node(
         &self,
         nonterminal_node: &NonterminalNode,
         children: &[ParseTree<'a>],
     ) -> ParseTree<'a> {
-        match nonterminal_node.nonterminal_id {
-            // S
-            NonterminalId(0) => match nonterminal_node.return_slot {
-                // S = Mod WS Empty WS Tag
-                SlotId(5) => {
-                    let &[r#mod, ws_1, empty, ws_3, tag] = children else {
-                        unreachable!()
-                    };
-                    ParseTree::S(self.arena.alloc(S::Alt0 {
-                        r#mod: r#mod.unwrap_mod(),
-                        ws_1: ws_1.unwrap_token(),
-                        empty: empty.unwrap_empty(),
-                        ws_3: ws_3.unwrap_token(),
-                        tag: tag.unwrap_tag(),
-                        span: nonterminal_node.span,
-                    }))
-                }
-                _ => unreachable!(),
-            },
-            // Mod
-            NonterminalId(1) => match nonterminal_node.return_slot {
-                // Mod = "public"
-                SlotId(7) => {
-                    let &[lit_0] = children else { unreachable!() };
-                    ParseTree::Mod(self.arena.alloc(Mod::Alt0 {
-                        lit_0: lit_0.unwrap_token(),
-                        span: nonterminal_node.span,
-                    }))
-                }
-                // Mod = "static"
-                SlotId(9) => {
-                    let &[lit_0] = children else { unreachable!() };
-                    ParseTree::Mod(self.arena.alloc(Mod::Alt1 {
-                        lit_0: lit_0.unwrap_token(),
-                        span: nonterminal_node.span,
-                    }))
-                }
-                _ => unreachable!(),
-            },
-            // Empty
-            NonterminalId(2) => match nonterminal_node.return_slot {
-                // Empty =
-                SlotId(10) => {
-                    let &[] = children else { unreachable!() };
-                    ParseTree::Empty(self.arena.alloc(Empty::Alt0 {
-                        span: nonterminal_node.span,
-                    }))
-                }
-                _ => unreachable!(),
-            },
-            // Tag
-            NonterminalId(3) => match nonterminal_node.return_slot {
-                // Tag = Id
-                SlotId(12) => {
-                    let &[id] = children else { unreachable!() };
-                    ParseTree::Tag(self.arena.alloc(Tag::Alt0 {
-                        id: id.unwrap_token(),
-                        span: nonterminal_node.span,
-                    }))
-                }
-                _ => unreachable!(),
-            },
-            // StartS
-            NonterminalId(4) => match nonterminal_node.return_slot {
-                // StartS = WS start:S WS
-                SlotId(16) => {
-                    let &[ws_0, start, ws_2] = children else {
-                        unreachable!()
-                    };
-                    ParseTree::StartS(self.arena.alloc(Start {
-                        before: ws_0.unwrap_token(),
-                        node: start.unwrap_s(),
-                        after: ws_2.unwrap_token(),
-                        span: nonterminal_node.span,
-                    }))
-                }
-                _ => unreachable!(),
-            },
-            // StartMod
-            NonterminalId(5) => match nonterminal_node.return_slot {
-                // StartMod = WS start:Mod WS
-                SlotId(20) => {
-                    let &[ws_0, start, ws_2] = children else {
-                        unreachable!()
-                    };
-                    ParseTree::StartMod(self.arena.alloc(Start {
-                        before: ws_0.unwrap_token(),
-                        node: start.unwrap_mod(),
-                        after: ws_2.unwrap_token(),
-                        span: nonterminal_node.span,
-                    }))
-                }
-                _ => unreachable!(),
-            },
-            // StartEmpty
-            NonterminalId(6) => match nonterminal_node.return_slot {
-                // StartEmpty = WS start:Empty WS
-                SlotId(24) => {
-                    let &[ws_0, start, ws_2] = children else {
-                        unreachable!()
-                    };
-                    ParseTree::StartEmpty(self.arena.alloc(Start {
-                        before: ws_0.unwrap_token(),
-                        node: start.unwrap_empty(),
-                        after: ws_2.unwrap_token(),
-                        span: nonterminal_node.span,
-                    }))
-                }
-                _ => unreachable!(),
-            },
-            // StartTag
-            NonterminalId(7) => match nonterminal_node.return_slot {
-                // StartTag = WS start:Tag WS
-                SlotId(28) => {
-                    let &[ws_0, start, ws_2] = children else {
-                        unreachable!()
-                    };
-                    ParseTree::StartTag(self.arena.alloc(Start {
-                        before: ws_0.unwrap_token(),
-                        node: start.unwrap_tag(),
-                        after: ws_2.unwrap_token(),
-                        span: nonterminal_node.span,
-                    }))
-                }
-                _ => unreachable!(),
-            },
+        match nonterminal_node.return_slot {
+            // S = Mod WS Empty WS Tag
+            SlotId(5) => {
+                let &[r#mod, ws_1, empty, ws_3, tag] = children else {
+                    ParseTree::unexpected_node()
+                };
+                ParseTree::S(self.arena.alloc(S::Alt0 {
+                    r#mod: r#mod.unwrap_mod(),
+                    ws_1: ws_1.unwrap_token(),
+                    empty: empty.unwrap_empty(),
+                    ws_3: ws_3.unwrap_token(),
+                    tag: tag.unwrap_tag(),
+                    span: nonterminal_node.span,
+                }))
+            }
+            // Mod = "public"
+            SlotId(7) => {
+                let &[lit_0] = children else {
+                    ParseTree::unexpected_node()
+                };
+                ParseTree::Mod(self.arena.alloc(Mod::Alt0 {
+                    lit_0: lit_0.unwrap_token(),
+                    span: nonterminal_node.span,
+                }))
+            }
+            // Mod = "static"
+            SlotId(9) => {
+                let &[lit_0] = children else {
+                    ParseTree::unexpected_node()
+                };
+                ParseTree::Mod(self.arena.alloc(Mod::Alt1 {
+                    lit_0: lit_0.unwrap_token(),
+                    span: nonterminal_node.span,
+                }))
+            }
+            // Empty =
+            SlotId(10) => {
+                let &[] = children else {
+                    ParseTree::unexpected_node()
+                };
+                ParseTree::Empty(self.arena.alloc(Empty::Alt0 {
+                    span: nonterminal_node.span,
+                }))
+            }
+            // Tag = Id
+            SlotId(12) => {
+                let &[id] = children else {
+                    ParseTree::unexpected_node()
+                };
+                ParseTree::Tag(self.arena.alloc(Tag::Alt0 {
+                    id: id.unwrap_token(),
+                    span: nonterminal_node.span,
+                }))
+            }
+            // StartS = WS start:S WS
+            SlotId(16) => {
+                let &[ws_0, start, ws_2] = children else {
+                    ParseTree::unexpected_node()
+                };
+                ParseTree::StartS(self.arena.alloc(Start {
+                    before: ws_0.unwrap_token(),
+                    node: start.unwrap_s(),
+                    after: ws_2.unwrap_token(),
+                    span: nonterminal_node.span,
+                }))
+            }
+            // StartMod = WS start:Mod WS
+            SlotId(20) => {
+                let &[ws_0, start, ws_2] = children else {
+                    ParseTree::unexpected_node()
+                };
+                ParseTree::StartMod(self.arena.alloc(Start {
+                    before: ws_0.unwrap_token(),
+                    node: start.unwrap_mod(),
+                    after: ws_2.unwrap_token(),
+                    span: nonterminal_node.span,
+                }))
+            }
+            // StartEmpty = WS start:Empty WS
+            SlotId(24) => {
+                let &[ws_0, start, ws_2] = children else {
+                    ParseTree::unexpected_node()
+                };
+                ParseTree::StartEmpty(self.arena.alloc(Start {
+                    before: ws_0.unwrap_token(),
+                    node: start.unwrap_empty(),
+                    after: ws_2.unwrap_token(),
+                    span: nonterminal_node.span,
+                }))
+            }
+            // StartTag = WS start:Tag WS
+            SlotId(28) => {
+                let &[ws_0, start, ws_2] = children else {
+                    ParseTree::unexpected_node()
+                };
+                ParseTree::StartTag(self.arena.alloc(Start {
+                    before: ws_0.unwrap_token(),
+                    node: start.unwrap_tag(),
+                    after: ws_2.unwrap_token(),
+                    span: nonterminal_node.span,
+                }))
+            }
             _ => unreachable!(),
         }
     }
@@ -687,42 +670,22 @@ pub fn create_parse_tree<'a>(
         panic!("the SPPF root is not a nonterminal node")
     };
     match root.nonterminal_id {
-        grammar::S => ParseTree::S(visit_sppf(root_id, parser, builder).unwrap_one().unwrap_s()),
-        grammar::MOD => ParseTree::Mod(
-            visit_sppf(root_id, parser, builder)
-                .unwrap_one()
-                .unwrap_mod(),
-        ),
-        grammar::EMPTY => ParseTree::Empty(
-            visit_sppf(root_id, parser, builder)
-                .unwrap_one()
-                .unwrap_empty(),
-        ),
-        grammar::TAG => ParseTree::Tag(
-            visit_sppf(root_id, parser, builder)
-                .unwrap_one()
-                .unwrap_tag(),
-        ),
-        grammar::START_S => ParseTree::StartS(
-            visit_sppf(root_id, parser, builder)
-                .unwrap_one()
-                .unwrap_start_s(),
-        ),
-        grammar::START_MOD => ParseTree::StartMod(
-            visit_sppf(root_id, parser, builder)
-                .unwrap_one()
-                .unwrap_start_mod(),
-        ),
-        grammar::START_EMPTY => ParseTree::StartEmpty(
-            visit_sppf(root_id, parser, builder)
-                .unwrap_one()
-                .unwrap_start_empty(),
-        ),
-        grammar::START_TAG => ParseTree::StartTag(
-            visit_sppf(root_id, parser, builder)
-                .unwrap_one()
-                .unwrap_start_tag(),
-        ),
+        grammar::S => ParseTree::S(visit_sppf(root_id, parser, builder).unwrap_s()),
+        grammar::MOD => ParseTree::Mod(visit_sppf(root_id, parser, builder).unwrap_mod()),
+        grammar::EMPTY => ParseTree::Empty(visit_sppf(root_id, parser, builder).unwrap_empty()),
+        grammar::TAG => ParseTree::Tag(visit_sppf(root_id, parser, builder).unwrap_tag()),
+        grammar::START_S => {
+            ParseTree::StartS(visit_sppf(root_id, parser, builder).unwrap_start_s())
+        }
+        grammar::START_MOD => {
+            ParseTree::StartMod(visit_sppf(root_id, parser, builder).unwrap_start_mod())
+        }
+        grammar::START_EMPTY => {
+            ParseTree::StartEmpty(visit_sppf(root_id, parser, builder).unwrap_start_empty())
+        }
+        grammar::START_TAG => {
+            ParseTree::StartTag(visit_sppf(root_id, parser, builder).unwrap_start_tag())
+        }
         _ => panic!(),
     }
 }

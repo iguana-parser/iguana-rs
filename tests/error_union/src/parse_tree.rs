@@ -5,7 +5,7 @@ use iguana_runtime::{
     arena::Arena,
     ids::{NonterminalId, SPPFNodeId, SlotId, TerminalId},
     input::Span,
-    parse_tree::{NodeKind, OneOrMany, Origin, ParseTreeBuilder, ParseTreeNode, visit_sppf},
+    parse_tree::{NodeKind, Origin, ParseTreeBuilder, ParseTreeNode, visit_sppf},
     sppf::{NonterminalNode, TerminalNode},
 };
 use std::vec::IntoIter;
@@ -731,175 +731,175 @@ impl<'a> ParseTree<'a> {
     pub(crate) fn unwrap_t(self) -> &'a T<'a> {
         match self {
             ParseTree::T(t) => t,
-            _ => panic!(),
+            _ => Self::unexpected_node(),
         }
     }
     pub(crate) fn unwrap_u(self) -> &'a U<'a> {
         match self {
             ParseTree::U(u) => u,
-            _ => panic!(),
+            _ => Self::unexpected_node(),
         }
     }
     pub(crate) fn unwrap_p(self) -> &'a P<'a> {
         match self {
             ParseTree::P(p) => p,
-            _ => panic!(),
+            _ => Self::unexpected_node(),
         }
     }
     pub(crate) fn unwrap_q(self) -> &'a Q<'a> {
         match self {
             ParseTree::Q(q) => q,
-            _ => panic!(),
+            _ => Self::unexpected_node(),
         }
     }
     pub(crate) fn unwrap_before_p(self) -> &'a BeforeP<'a> {
         match self {
             ParseTree::BeforeP(before_p) => before_p,
-            _ => panic!(),
+            _ => Self::unexpected_node(),
         }
     }
     pub(crate) fn unwrap_before_q(self) -> &'a BeforeQ<'a> {
         match self {
             ParseTree::BeforeQ(before_q) => before_q,
-            _ => panic!(),
+            _ => Self::unexpected_node(),
         }
     }
     pub(crate) fn unwrap_unexpected_first(self) -> &'a UnexpectedFirst<'a> {
         match self {
             ParseTree::UnexpectedFirst(unexpected_first) => unexpected_first,
-            _ => panic!(),
+            _ => Self::unexpected_node(),
         }
     }
     pub(crate) fn unwrap_excluded_first(self) -> &'a ExcludedFirst<'a> {
         match self {
             ParseTree::ExcludedFirst(excluded_first) => excluded_first,
-            _ => panic!(),
+            _ => Self::unexpected_node(),
         }
     }
     pub(crate) fn unwrap_prediction_before_except(self) -> &'a PredictionBeforeExcept<'a> {
         match self {
             ParseTree::PredictionBeforeExcept(prediction_before_except) => prediction_before_except,
-            _ => panic!(),
+            _ => Self::unexpected_node(),
         }
     }
     pub(crate) fn unwrap_except_before_prediction(self) -> &'a ExceptBeforePrediction<'a> {
         match self {
             ParseTree::ExceptBeforePrediction(except_before_prediction) => except_before_prediction,
-            _ => panic!(),
+            _ => Self::unexpected_node(),
         }
     }
     pub(crate) fn unwrap_prediction_before_follow(self) -> &'a PredictionBeforeFollow<'a> {
         match self {
             ParseTree::PredictionBeforeFollow(prediction_before_follow) => prediction_before_follow,
-            _ => panic!(),
+            _ => Self::unexpected_node(),
         }
     }
     pub(crate) fn unwrap_follow_before_prediction(self) -> &'a FollowBeforePrediction<'a> {
         match self {
             ParseTree::FollowBeforePrediction(follow_before_prediction) => follow_before_prediction,
-            _ => panic!(),
+            _ => Self::unexpected_node(),
         }
     }
     pub(crate) fn unwrap_missing_suffix(self) -> &'a MissingSuffix<'a> {
         match self {
             ParseTree::MissingSuffix(missing_suffix) => missing_suffix,
-            _ => panic!(),
+            _ => Self::unexpected_node(),
         }
     }
     pub(crate) fn unwrap_suffix_choice(self) -> &'a SuffixChoice<'a> {
         match self {
             ParseTree::SuffixChoice(suffix_choice) => suffix_choice,
-            _ => panic!(),
+            _ => Self::unexpected_node(),
         }
     }
     pub(crate) fn unwrap_call_prediction(self) -> &'a CallPrediction<'a> {
         match self {
             ParseTree::CallPrediction(call_prediction) => call_prediction,
-            _ => panic!(),
+            _ => Self::unexpected_node(),
         }
     }
     pub(crate) fn unwrap_prefix_x(self) -> &'a PrefixX<'a> {
         match self {
             ParseTree::PrefixX(prefix_x) => prefix_x,
-            _ => panic!(),
+            _ => Self::unexpected_node(),
         }
     }
     pub(crate) fn unwrap_prefix_w(self) -> &'a PrefixW<'a> {
         match self {
             ParseTree::PrefixW(prefix_w) => prefix_w,
-            _ => panic!(),
+            _ => Self::unexpected_node(),
         }
     }
     pub(crate) fn unwrap_nullable_prefix(self) -> &'a NullablePrefix<'a> {
         match self {
             ParseTree::NullablePrefix(nullable_prefix) => nullable_prefix,
-            _ => panic!(),
+            _ => Self::unexpected_node(),
         }
     }
     pub(crate) fn unwrap_layout(self) -> &'a Layout<'a> {
         match self {
             ParseTree::Layout(layout) => layout,
-            _ => panic!(),
+            _ => Self::unexpected_node(),
         }
     }
     pub(crate) fn unwrap_alt_0(self) -> &'a Alt0<'a> {
         match self {
             ParseTree::Alt0(alt_0) => alt_0,
-            _ => panic!(),
+            _ => Self::unexpected_node(),
         }
     }
     pub(crate) fn unwrap_plus_0(self) -> &'a Plus0<'a> {
         match self {
             ParseTree::Plus0(plus_0) => plus_0,
-            _ => panic!(),
+            _ => Self::unexpected_node(),
         }
     }
     pub(crate) fn unwrap_opt_0(self) -> &'a Opt0<'a> {
         match self {
             ParseTree::Opt0(opt_0) => opt_0,
-            _ => panic!(),
+            _ => Self::unexpected_node(),
         }
     }
     pub(crate) fn unwrap_star_0(self) -> &'a Star0<'a> {
         match self {
             ParseTree::Star0(star_0) => star_0,
-            _ => panic!(),
+            _ => Self::unexpected_node(),
         }
     }
     pub(crate) fn unwrap_start_t(self) -> &'a Start<&'a T<'a>, &'a Layout<'a>> {
         match self {
             ParseTree::StartT(start_t) => start_t,
-            _ => panic!(),
+            _ => Self::unexpected_node(),
         }
     }
     pub(crate) fn unwrap_start_u(self) -> &'a Start<&'a U<'a>, &'a Layout<'a>> {
         match self {
             ParseTree::StartU(start_u) => start_u,
-            _ => panic!(),
+            _ => Self::unexpected_node(),
         }
     }
     pub(crate) fn unwrap_start_p(self) -> &'a Start<&'a P<'a>, &'a Layout<'a>> {
         match self {
             ParseTree::StartP(start_p) => start_p,
-            _ => panic!(),
+            _ => Self::unexpected_node(),
         }
     }
     pub(crate) fn unwrap_start_q(self) -> &'a Start<&'a Q<'a>, &'a Layout<'a>> {
         match self {
             ParseTree::StartQ(start_q) => start_q,
-            _ => panic!(),
+            _ => Self::unexpected_node(),
         }
     }
     pub(crate) fn unwrap_start_before_p(self) -> &'a Start<&'a BeforeP<'a>, &'a Layout<'a>> {
         match self {
             ParseTree::StartBeforeP(start_before_p) => start_before_p,
-            _ => panic!(),
+            _ => Self::unexpected_node(),
         }
     }
     pub(crate) fn unwrap_start_before_q(self) -> &'a Start<&'a BeforeQ<'a>, &'a Layout<'a>> {
         match self {
             ParseTree::StartBeforeQ(start_before_q) => start_before_q,
-            _ => panic!(),
+            _ => Self::unexpected_node(),
         }
     }
     pub(crate) fn unwrap_start_unexpected_first(
@@ -907,7 +907,7 @@ impl<'a> ParseTree<'a> {
     ) -> &'a Start<&'a UnexpectedFirst<'a>, &'a Layout<'a>> {
         match self {
             ParseTree::StartUnexpectedFirst(start_unexpected_first) => start_unexpected_first,
-            _ => panic!(),
+            _ => Self::unexpected_node(),
         }
     }
     pub(crate) fn unwrap_start_excluded_first(
@@ -915,7 +915,7 @@ impl<'a> ParseTree<'a> {
     ) -> &'a Start<&'a ExcludedFirst<'a>, &'a Layout<'a>> {
         match self {
             ParseTree::StartExcludedFirst(start_excluded_first) => start_excluded_first,
-            _ => panic!(),
+            _ => Self::unexpected_node(),
         }
     }
     pub(crate) fn unwrap_start_prediction_before_except(
@@ -925,7 +925,7 @@ impl<'a> ParseTree<'a> {
             ParseTree::StartPredictionBeforeExcept(start_prediction_before_except) => {
                 start_prediction_before_except
             }
-            _ => panic!(),
+            _ => Self::unexpected_node(),
         }
     }
     pub(crate) fn unwrap_start_except_before_prediction(
@@ -935,7 +935,7 @@ impl<'a> ParseTree<'a> {
             ParseTree::StartExceptBeforePrediction(start_except_before_prediction) => {
                 start_except_before_prediction
             }
-            _ => panic!(),
+            _ => Self::unexpected_node(),
         }
     }
     pub(crate) fn unwrap_start_prediction_before_follow(
@@ -945,7 +945,7 @@ impl<'a> ParseTree<'a> {
             ParseTree::StartPredictionBeforeFollow(start_prediction_before_follow) => {
                 start_prediction_before_follow
             }
-            _ => panic!(),
+            _ => Self::unexpected_node(),
         }
     }
     pub(crate) fn unwrap_start_follow_before_prediction(
@@ -955,7 +955,7 @@ impl<'a> ParseTree<'a> {
             ParseTree::StartFollowBeforePrediction(start_follow_before_prediction) => {
                 start_follow_before_prediction
             }
-            _ => panic!(),
+            _ => Self::unexpected_node(),
         }
     }
     pub(crate) fn unwrap_start_missing_suffix(
@@ -963,7 +963,7 @@ impl<'a> ParseTree<'a> {
     ) -> &'a Start<&'a MissingSuffix<'a>, &'a Layout<'a>> {
         match self {
             ParseTree::StartMissingSuffix(start_missing_suffix) => start_missing_suffix,
-            _ => panic!(),
+            _ => Self::unexpected_node(),
         }
     }
     pub(crate) fn unwrap_start_suffix_choice(
@@ -971,7 +971,7 @@ impl<'a> ParseTree<'a> {
     ) -> &'a Start<&'a SuffixChoice<'a>, &'a Layout<'a>> {
         match self {
             ParseTree::StartSuffixChoice(start_suffix_choice) => start_suffix_choice,
-            _ => panic!(),
+            _ => Self::unexpected_node(),
         }
     }
     pub(crate) fn unwrap_start_call_prediction(
@@ -979,19 +979,19 @@ impl<'a> ParseTree<'a> {
     ) -> &'a Start<&'a CallPrediction<'a>, &'a Layout<'a>> {
         match self {
             ParseTree::StartCallPrediction(start_call_prediction) => start_call_prediction,
-            _ => panic!(),
+            _ => Self::unexpected_node(),
         }
     }
     pub(crate) fn unwrap_start_prefix_x(self) -> &'a Start<&'a PrefixX<'a>, &'a Layout<'a>> {
         match self {
             ParseTree::StartPrefixX(start_prefix_x) => start_prefix_x,
-            _ => panic!(),
+            _ => Self::unexpected_node(),
         }
     }
     pub(crate) fn unwrap_start_prefix_w(self) -> &'a Start<&'a PrefixW<'a>, &'a Layout<'a>> {
         match self {
             ParseTree::StartPrefixW(start_prefix_w) => start_prefix_w,
-            _ => panic!(),
+            _ => Self::unexpected_node(),
         }
     }
     pub(crate) fn unwrap_start_nullable_prefix(
@@ -999,20 +999,27 @@ impl<'a> ParseTree<'a> {
     ) -> &'a Start<&'a NullablePrefix<'a>, &'a Layout<'a>> {
         match self {
             ParseTree::StartNullablePrefix(start_nullable_prefix) => start_nullable_prefix,
-            _ => panic!(),
+            _ => Self::unexpected_node(),
         }
     }
     pub(crate) fn unwrap_start_layout(self) -> &'a Start<&'a Layout<'a>, ()> {
         match self {
             ParseTree::StartLayout(start_layout) => start_layout,
-            _ => panic!(),
+            _ => Self::unexpected_node(),
         }
     }
     fn unwrap_token(self) -> Token {
         match self {
             ParseTree::Token(t) => t,
-            _ => panic!(),
+            _ => Self::unexpected_node(),
         }
+    }
+    ///The shared failure of the `unwrap_*` methods. One cold function keeps
+    ///the builder from carrying a separate panic site per child.
+    #[cold]
+    #[inline(never)]
+    fn unexpected_node() -> ! {
+        unreachable!("unexpected parse tree node")
     }
 }
 pub trait ListNode<'a> {
@@ -3082,752 +3089,684 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for ErrorUnionParseTreeBuilder<'a> {
     fn new_nonterminal_node(
         &self,
         nonterminal_node: &NonterminalNode,
-        children: OneOrMany<ParseTree<'a>>,
+        children: &[ParseTree<'a>],
     ) -> ParseTree<'a> {
-        match nonterminal_node.nonterminal_id {
-            // T
-            NonterminalId(0) => match nonterminal_node.return_slot {
-                // T = "[" BeforeP Layout P Layout "]"
-                SlotId(6) => {
-                    let [lit_0, before_p, layout_2, p, layout_4, lit_5] =
-                        children.into_array::<6usize>();
-                    ParseTree::T(self.arena.alloc(T::Alt0 {
-                        lit_0: lit_0.unwrap_token(),
-                        before_p: before_p.unwrap_before_p(),
-                        layout_2: layout_2.unwrap_layout(),
-                        p: p.unwrap_p(),
-                        layout_4: layout_4.unwrap_layout(),
-                        lit_5: lit_5.unwrap_token(),
-                        span: nonterminal_node.span,
-                    }))
-                }
-                // T = "[" BeforeQ Layout Q Layout "]"
-                SlotId(13) => {
-                    let [lit_0, before_q, layout_2, q, layout_4, lit_5] =
-                        children.into_array::<6usize>();
-                    ParseTree::T(self.arena.alloc(T::Alt1 {
-                        lit_0: lit_0.unwrap_token(),
-                        before_q: before_q.unwrap_before_q(),
-                        layout_2: layout_2.unwrap_layout(),
-                        q: q.unwrap_q(),
-                        layout_4: layout_4.unwrap_layout(),
-                        lit_5: lit_5.unwrap_token(),
-                        span: nonterminal_node.span,
-                    }))
-                }
-                _ => unreachable!(),
-            },
-            // U
-            NonterminalId(1) => match nonterminal_node.return_slot {
-                // U = "[" BeforeQ Layout Q Layout "]"
-                SlotId(20) => {
-                    let [lit_0, before_q, layout_2, q, layout_4, lit_5] =
-                        children.into_array::<6usize>();
-                    ParseTree::U(self.arena.alloc(U::Alt0 {
-                        lit_0: lit_0.unwrap_token(),
-                        before_q: before_q.unwrap_before_q(),
-                        layout_2: layout_2.unwrap_layout(),
-                        q: q.unwrap_q(),
-                        layout_4: layout_4.unwrap_layout(),
-                        lit_5: lit_5.unwrap_token(),
-                        span: nonterminal_node.span,
-                    }))
-                }
-                // U = "[" BeforeP Layout P Layout "]"
-                SlotId(27) => {
-                    let [lit_0, before_p, layout_2, p, layout_4, lit_5] =
-                        children.into_array::<6usize>();
-                    ParseTree::U(self.arena.alloc(U::Alt1 {
-                        lit_0: lit_0.unwrap_token(),
-                        before_p: before_p.unwrap_before_p(),
-                        layout_2: layout_2.unwrap_layout(),
-                        p: p.unwrap_p(),
-                        layout_4: layout_4.unwrap_layout(),
-                        lit_5: lit_5.unwrap_token(),
-                        span: nonterminal_node.span,
-                    }))
-                }
-                _ => unreachable!(),
-            },
-            // P
-            NonterminalId(2) => match nonterminal_node.return_slot {
-                // P = "p"
-                SlotId(29) => {
-                    let [lit_0] = children.into_array::<1usize>();
-                    ParseTree::P(self.arena.alloc(P::Alt0 {
-                        lit_0: lit_0.unwrap_token(),
-                        span: nonterminal_node.span,
-                    }))
-                }
-                // P = Word
-                SlotId(31) => {
-                    let [word] = children.into_array::<1usize>();
-                    ParseTree::P(self.arena.alloc(P::Alt1 {
-                        word: word.unwrap_token(),
-                        span: nonterminal_node.span,
-                    }))
-                }
-                _ => unreachable!(),
-            },
-            // Q
-            NonterminalId(3) => match nonterminal_node.return_slot {
-                // Q = "q"
-                SlotId(33) => {
-                    let [lit_0] = children.into_array::<1usize>();
-                    ParseTree::Q(self.arena.alloc(Q::Alt0 {
-                        lit_0: lit_0.unwrap_token(),
-                        span: nonterminal_node.span,
-                    }))
-                }
-                _ => unreachable!(),
-            },
-            // BeforeP
-            NonterminalId(4) => match nonterminal_node.return_slot {
-                // BeforeP = "x"
-                SlotId(35) => {
-                    let [lit_0] = children.into_array::<1usize>();
-                    ParseTree::BeforeP(self.arena.alloc(BeforeP::Alt0 {
-                        lit_0: lit_0.unwrap_token(),
-                        span: nonterminal_node.span,
-                    }))
-                }
-                // BeforeP = "x" Layout "y"
-                SlotId(39) => {
-                    let [lit_0, layout, lit_2] = children.into_array::<3usize>();
-                    ParseTree::BeforeP(self.arena.alloc(BeforeP::Alt1 {
-                        lit_0: lit_0.unwrap_token(),
-                        layout: layout.unwrap_layout(),
-                        lit_2: lit_2.unwrap_token(),
-                        span: nonterminal_node.span,
-                    }))
-                }
-                _ => unreachable!(),
-            },
-            // BeforeQ
-            NonterminalId(5) => match nonterminal_node.return_slot {
-                // BeforeQ = "x"
-                SlotId(41) => {
-                    let [lit_0] = children.into_array::<1usize>();
-                    ParseTree::BeforeQ(self.arena.alloc(BeforeQ::Alt0 {
-                        lit_0: lit_0.unwrap_token(),
-                        span: nonterminal_node.span,
-                    }))
-                }
-                // BeforeQ = "x" Layout "z"
-                SlotId(45) => {
-                    let [lit_0, layout, lit_2] = children.into_array::<3usize>();
-                    ParseTree::BeforeQ(self.arena.alloc(BeforeQ::Alt1 {
-                        lit_0: lit_0.unwrap_token(),
-                        layout: layout.unwrap_layout(),
-                        lit_2: lit_2.unwrap_token(),
-                        span: nonterminal_node.span,
-                    }))
-                }
-                _ => unreachable!(),
-            },
-            // UnexpectedFirst
-            NonterminalId(6) => match nonterminal_node.return_slot {
-                // UnexpectedFirst = Identifier "!"
-                SlotId(48) => {
-                    let [identifier, lit_1] = children.into_array::<2usize>();
-                    ParseTree::UnexpectedFirst(self.arena.alloc(UnexpectedFirst::Alt0 {
-                        identifier: identifier.unwrap_token(),
-                        lit_1: lit_1.unwrap_token(),
-                        span: nonterminal_node.span,
-                    }))
-                }
-                // UnexpectedFirst = Identifier
-                SlotId(50) => {
-                    let [identifier] = children.into_array::<1usize>();
-                    ParseTree::UnexpectedFirst(self.arena.alloc(UnexpectedFirst::Alt1 {
-                        identifier: identifier.unwrap_token(),
-                        span: nonterminal_node.span,
-                    }))
-                }
-                _ => unreachable!(),
-            },
-            // ExcludedFirst
-            NonterminalId(7) => match nonterminal_node.return_slot {
-                // ExcludedFirst = Identifier
-                SlotId(52) => {
-                    let [identifier] = children.into_array::<1usize>();
-                    ParseTree::ExcludedFirst(self.arena.alloc(ExcludedFirst::Alt0 {
-                        identifier: identifier.unwrap_token(),
-                        span: nonterminal_node.span,
-                    }))
-                }
-                // ExcludedFirst = Identifier "!"
-                SlotId(55) => {
-                    let [identifier, lit_1] = children.into_array::<2usize>();
-                    ParseTree::ExcludedFirst(self.arena.alloc(ExcludedFirst::Alt1 {
-                        identifier: identifier.unwrap_token(),
-                        lit_1: lit_1.unwrap_token(),
-                        span: nonterminal_node.span,
-                    }))
-                }
-                _ => unreachable!(),
-            },
-            // PredictionBeforeExcept
-            NonterminalId(8) => match nonterminal_node.return_slot {
-                // PredictionBeforeExcept = Identifier MissingSuffix
-                SlotId(58) => {
-                    let [identifier, missing_suffix] = children.into_array::<2usize>();
-                    ParseTree::PredictionBeforeExcept(self.arena.alloc(
-                        PredictionBeforeExcept::Alt0 {
-                            identifier: identifier.unwrap_token(),
-                            missing_suffix: missing_suffix.unwrap_missing_suffix(),
-                            span: nonterminal_node.span,
-                        },
-                    ))
-                }
-                // PredictionBeforeExcept = Identifier
-                SlotId(60) => {
-                    let [identifier] = children.into_array::<1usize>();
-                    ParseTree::PredictionBeforeExcept(self.arena.alloc(
-                        PredictionBeforeExcept::Alt1 {
-                            identifier: identifier.unwrap_token(),
-                            span: nonterminal_node.span,
-                        },
-                    ))
-                }
-                _ => unreachable!(),
-            },
-            // ExceptBeforePrediction
-            NonterminalId(9) => match nonterminal_node.return_slot {
-                // ExceptBeforePrediction = Identifier
-                SlotId(62) => {
-                    let [identifier] = children.into_array::<1usize>();
-                    ParseTree::ExceptBeforePrediction(self.arena.alloc(
-                        ExceptBeforePrediction::Alt0 {
-                            identifier: identifier.unwrap_token(),
-                            span: nonterminal_node.span,
-                        },
-                    ))
-                }
-                // ExceptBeforePrediction = Identifier MissingSuffix
-                SlotId(65) => {
-                    let [identifier, missing_suffix] = children.into_array::<2usize>();
-                    ParseTree::ExceptBeforePrediction(self.arena.alloc(
-                        ExceptBeforePrediction::Alt1 {
-                            identifier: identifier.unwrap_token(),
-                            missing_suffix: missing_suffix.unwrap_missing_suffix(),
-                            span: nonterminal_node.span,
-                        },
-                    ))
-                }
-                _ => unreachable!(),
-            },
-            // PredictionBeforeFollow
-            NonterminalId(10) => match nonterminal_node.return_slot {
-                // PredictionBeforeFollow = Identifier MissingSuffix
-                SlotId(68) => {
-                    let [identifier, missing_suffix] = children.into_array::<2usize>();
-                    ParseTree::PredictionBeforeFollow(self.arena.alloc(
-                        PredictionBeforeFollow::Alt0 {
-                            identifier: identifier.unwrap_token(),
-                            missing_suffix: missing_suffix.unwrap_missing_suffix(),
-                            span: nonterminal_node.span,
-                        },
-                    ))
-                }
-                // PredictionBeforeFollow = Identifier Question
-                SlotId(71) => {
-                    let [identifier, question] = children.into_array::<2usize>();
-                    ParseTree::PredictionBeforeFollow(self.arena.alloc(
-                        PredictionBeforeFollow::Alt1 {
-                            identifier: identifier.unwrap_token(),
-                            question: question.unwrap_token(),
-                            span: nonterminal_node.span,
-                        },
-                    ))
-                }
-                _ => unreachable!(),
-            },
-            // FollowBeforePrediction
-            NonterminalId(11) => match nonterminal_node.return_slot {
-                // FollowBeforePrediction = Identifier Question
-                SlotId(74) => {
-                    let [identifier, question] = children.into_array::<2usize>();
-                    ParseTree::FollowBeforePrediction(self.arena.alloc(
-                        FollowBeforePrediction::Alt0 {
-                            identifier: identifier.unwrap_token(),
-                            question: question.unwrap_token(),
-                            span: nonterminal_node.span,
-                        },
-                    ))
-                }
-                // FollowBeforePrediction = Identifier MissingSuffix
-                SlotId(77) => {
-                    let [identifier, missing_suffix] = children.into_array::<2usize>();
-                    ParseTree::FollowBeforePrediction(self.arena.alloc(
-                        FollowBeforePrediction::Alt1 {
-                            identifier: identifier.unwrap_token(),
-                            missing_suffix: missing_suffix.unwrap_missing_suffix(),
-                            span: nonterminal_node.span,
-                        },
-                    ))
-                }
-                _ => unreachable!(),
-            },
-            // MissingSuffix
-            NonterminalId(12) => match nonterminal_node.return_slot {
-                // MissingSuffix = SuffixChoice
-                SlotId(79) => {
-                    let [suffix_choice] = children.into_array::<1usize>();
-                    ParseTree::MissingSuffix(self.arena.alloc(MissingSuffix::Alt0 {
-                        suffix_choice: suffix_choice.unwrap_suffix_choice(),
-                        span: nonterminal_node.span,
-                    }))
-                }
-                _ => unreachable!(),
-            },
-            // SuffixChoice
-            NonterminalId(13) => match nonterminal_node.return_slot {
-                // SuffixChoice = "!"
-                SlotId(81) => {
-                    let [lit_0] = children.into_array::<1usize>();
-                    ParseTree::SuffixChoice(self.arena.alloc(SuffixChoice::Alt0 {
-                        lit_0: lit_0.unwrap_token(),
-                        span: nonterminal_node.span,
-                    }))
-                }
-                // SuffixChoice = "!" "!"
-                SlotId(84) => {
-                    let [lit_0, lit_1] = children.into_array::<2usize>();
-                    ParseTree::SuffixChoice(self.arena.alloc(SuffixChoice::Alt1 {
-                        lit_0: lit_0.unwrap_token(),
-                        lit_1: lit_1.unwrap_token(),
-                        span: nonterminal_node.span,
-                    }))
-                }
-                _ => unreachable!(),
-            },
-            // CallPrediction
-            NonterminalId(14) => match nonterminal_node.return_slot {
-                // CallPrediction = "1" PrefixX
-                SlotId(87) => {
-                    let [lit_0, prefix_x] = children.into_array::<2usize>();
-                    ParseTree::CallPrediction(self.arena.alloc(CallPrediction::Alt0 {
-                        lit_0: lit_0.unwrap_token(),
-                        prefix_x: prefix_x.unwrap_prefix_x(),
-                        span: nonterminal_node.span,
-                    }))
-                }
-                // CallPrediction = "2" PrefixW
-                SlotId(90) => {
-                    let [lit_0, prefix_w] = children.into_array::<2usize>();
-                    ParseTree::CallPrediction(self.arena.alloc(CallPrediction::Alt1 {
-                        lit_0: lit_0.unwrap_token(),
-                        prefix_w: prefix_w.unwrap_prefix_w(),
-                        span: nonterminal_node.span,
-                    }))
-                }
-                _ => unreachable!(),
-            },
-            // PrefixX
-            NonterminalId(15) => match nonterminal_node.return_slot {
-                // PrefixX = NullablePrefix "x"
-                SlotId(93) => {
-                    let [nullable_prefix, lit_1] = children.into_array::<2usize>();
-                    ParseTree::PrefixX(self.arena.alloc(PrefixX::Alt0 {
-                        nullable_prefix: nullable_prefix.unwrap_nullable_prefix(),
-                        lit_1: lit_1.unwrap_token(),
-                        span: nonterminal_node.span,
-                    }))
-                }
-                _ => unreachable!(),
-            },
-            // PrefixW
-            NonterminalId(16) => match nonterminal_node.return_slot {
-                // PrefixW = NullablePrefix "w"
-                SlotId(96) => {
-                    let [nullable_prefix, lit_1] = children.into_array::<2usize>();
-                    ParseTree::PrefixW(self.arena.alloc(PrefixW::Alt0 {
-                        nullable_prefix: nullable_prefix.unwrap_nullable_prefix(),
-                        lit_1: lit_1.unwrap_token(),
-                        span: nonterminal_node.span,
-                    }))
-                }
-                _ => unreachable!(),
-            },
-            // NullablePrefix
-            NonterminalId(17) => match nonterminal_node.return_slot {
-                // NullablePrefix = "y"
-                SlotId(98) => {
-                    let [lit_0] = children.into_array::<1usize>();
-                    ParseTree::NullablePrefix(self.arena.alloc(NullablePrefix::Alt0 {
-                        lit_0: lit_0.unwrap_token(),
-                        span: nonterminal_node.span,
-                    }))
-                }
-                // NullablePrefix = "y" "y"
-                SlotId(101) => {
-                    let [lit_0, lit_1] = children.into_array::<2usize>();
-                    ParseTree::NullablePrefix(self.arena.alloc(NullablePrefix::Alt1 {
-                        lit_0: lit_0.unwrap_token(),
-                        lit_1: lit_1.unwrap_token(),
-                        span: nonterminal_node.span,
-                    }))
-                }
-                // NullablePrefix =
-                SlotId(102) => {
-                    let [] = children.into_array::<0usize>();
-                    ParseTree::NullablePrefix(self.arena.alloc(NullablePrefix::Alt2 {
-                        span: nonterminal_node.span,
-                    }))
-                }
-                _ => unreachable!(),
-            },
-            // Layout
-            NonterminalId(18) => match nonterminal_node.return_slot {
-                // Layout = (WS | Newline)*
-                SlotId(104) => {
-                    let [star_0] = children.into_array::<1usize>();
-                    ParseTree::Layout(self.arena.alloc(Layout::Alt0 {
-                        star_0: star_0.unwrap_star_0(),
-                        span: nonterminal_node.span,
-                    }))
-                }
-                _ => unreachable!(),
-            },
-            // Alt_0
-            NonterminalId(19) => match nonterminal_node.return_slot {
-                // Alt_0 = WS
-                SlotId(106) => {
-                    let [ws] = children.into_array::<1usize>();
-                    ParseTree::Alt0(self.arena.alloc(Alt0::Alt0 {
-                        ws: ws.unwrap_token(),
-                        span: nonterminal_node.span,
-                    }))
-                }
-                // Alt_0 = Newline
-                SlotId(108) => {
-                    let [newline] = children.into_array::<1usize>();
-                    ParseTree::Alt0(self.arena.alloc(Alt0::Alt1 {
-                        newline: newline.unwrap_token(),
-                        span: nonterminal_node.span,
-                    }))
-                }
-                _ => unreachable!(),
-            },
-            // Plus_0
-            NonterminalId(20) => match nonterminal_node.return_slot {
-                // Plus_0 = (WS | Newline)+ (WS | Newline)
-                SlotId(111) => {
-                    let [plus_0, alt_0] = children.into_array::<2usize>();
-                    ParseTree::Plus0(self.arena.alloc(Plus0::Alt0 {
-                        plus_0: plus_0.unwrap_plus_0(),
-                        alt_0: alt_0.unwrap_alt_0(),
-                        span: nonterminal_node.span,
-                    }))
-                }
-                // Plus_0 = (WS | Newline)
-                SlotId(113) => {
-                    let [alt_0] = children.into_array::<1usize>();
-                    ParseTree::Plus0(self.arena.alloc(Plus0::Alt1 {
-                        alt_0: alt_0.unwrap_alt_0(),
-                        span: nonterminal_node.span,
-                    }))
-                }
-                _ => unreachable!(),
-            },
-            // Opt_0
-            NonterminalId(21) => match nonterminal_node.return_slot {
-                // Opt_0 = (WS | Newline)+
-                SlotId(115) => {
-                    let [plus_0] = children.into_array::<1usize>();
-                    ParseTree::Opt0(self.arena.alloc(Opt0::Alt0 {
-                        plus_0: plus_0.unwrap_plus_0(),
-                        span: nonterminal_node.span,
-                    }))
-                }
-                // Opt_0 =
-                SlotId(116) => {
-                    let [] = children.into_array::<0usize>();
-                    ParseTree::Opt0(self.arena.alloc(Opt0::Alt1 {
-                        span: nonterminal_node.span,
-                    }))
-                }
-                _ => unreachable!(),
-            },
-            // Star_0
-            NonterminalId(22) => match nonterminal_node.return_slot {
-                // Star_0 = (WS | Newline)+?
-                SlotId(118) => {
-                    let [opt_0] = children.into_array::<1usize>();
-                    ParseTree::Star0(self.arena.alloc(Star0::Alt0 {
-                        opt_0: opt_0.unwrap_opt_0(),
-                        span: nonterminal_node.span,
-                    }))
-                }
-                _ => unreachable!(),
-            },
-            // StartT
-            NonterminalId(23) => match nonterminal_node.return_slot {
-                // StartT = Layout start:T Layout
-                SlotId(122) => {
-                    let [layout_0, start, layout_2] = children.into_array::<3usize>();
-                    ParseTree::StartT(self.arena.alloc(Start {
-                        before: layout_0.unwrap_layout(),
-                        node: start.unwrap_t(),
-                        after: layout_2.unwrap_layout(),
-                        span: nonterminal_node.span,
-                    }))
-                }
-                _ => unreachable!(),
-            },
-            // StartU
-            NonterminalId(24) => match nonterminal_node.return_slot {
-                // StartU = Layout start:U Layout
-                SlotId(126) => {
-                    let [layout_0, start, layout_2] = children.into_array::<3usize>();
-                    ParseTree::StartU(self.arena.alloc(Start {
-                        before: layout_0.unwrap_layout(),
-                        node: start.unwrap_u(),
-                        after: layout_2.unwrap_layout(),
-                        span: nonterminal_node.span,
-                    }))
-                }
-                _ => unreachable!(),
-            },
-            // StartP
-            NonterminalId(25) => match nonterminal_node.return_slot {
-                // StartP = Layout start:P Layout
-                SlotId(130) => {
-                    let [layout_0, start, layout_2] = children.into_array::<3usize>();
-                    ParseTree::StartP(self.arena.alloc(Start {
-                        before: layout_0.unwrap_layout(),
-                        node: start.unwrap_p(),
-                        after: layout_2.unwrap_layout(),
-                        span: nonterminal_node.span,
-                    }))
-                }
-                _ => unreachable!(),
-            },
-            // StartQ
-            NonterminalId(26) => match nonterminal_node.return_slot {
-                // StartQ = Layout start:Q Layout
-                SlotId(134) => {
-                    let [layout_0, start, layout_2] = children.into_array::<3usize>();
-                    ParseTree::StartQ(self.arena.alloc(Start {
-                        before: layout_0.unwrap_layout(),
-                        node: start.unwrap_q(),
-                        after: layout_2.unwrap_layout(),
-                        span: nonterminal_node.span,
-                    }))
-                }
-                _ => unreachable!(),
-            },
-            // StartBeforeP
-            NonterminalId(27) => match nonterminal_node.return_slot {
-                // StartBeforeP = Layout start:BeforeP Layout
-                SlotId(138) => {
-                    let [layout_0, start, layout_2] = children.into_array::<3usize>();
-                    ParseTree::StartBeforeP(self.arena.alloc(Start {
-                        before: layout_0.unwrap_layout(),
-                        node: start.unwrap_before_p(),
-                        after: layout_2.unwrap_layout(),
-                        span: nonterminal_node.span,
-                    }))
-                }
-                _ => unreachable!(),
-            },
-            // StartBeforeQ
-            NonterminalId(28) => match nonterminal_node.return_slot {
-                // StartBeforeQ = Layout start:BeforeQ Layout
-                SlotId(142) => {
-                    let [layout_0, start, layout_2] = children.into_array::<3usize>();
-                    ParseTree::StartBeforeQ(self.arena.alloc(Start {
-                        before: layout_0.unwrap_layout(),
-                        node: start.unwrap_before_q(),
-                        after: layout_2.unwrap_layout(),
-                        span: nonterminal_node.span,
-                    }))
-                }
-                _ => unreachable!(),
-            },
-            // StartUnexpectedFirst
-            NonterminalId(29) => match nonterminal_node.return_slot {
-                // StartUnexpectedFirst = Layout start:UnexpectedFirst Layout
-                SlotId(146) => {
-                    let [layout_0, start, layout_2] = children.into_array::<3usize>();
-                    ParseTree::StartUnexpectedFirst(self.arena.alloc(Start {
-                        before: layout_0.unwrap_layout(),
-                        node: start.unwrap_unexpected_first(),
-                        after: layout_2.unwrap_layout(),
-                        span: nonterminal_node.span,
-                    }))
-                }
-                _ => unreachable!(),
-            },
-            // StartExcludedFirst
-            NonterminalId(30) => match nonterminal_node.return_slot {
-                // StartExcludedFirst = Layout start:ExcludedFirst Layout
-                SlotId(150) => {
-                    let [layout_0, start, layout_2] = children.into_array::<3usize>();
-                    ParseTree::StartExcludedFirst(self.arena.alloc(Start {
-                        before: layout_0.unwrap_layout(),
-                        node: start.unwrap_excluded_first(),
-                        after: layout_2.unwrap_layout(),
-                        span: nonterminal_node.span,
-                    }))
-                }
-                _ => unreachable!(),
-            },
-            // StartPredictionBeforeExcept
-            NonterminalId(31) => match nonterminal_node.return_slot {
-                // StartPredictionBeforeExcept = Layout start:PredictionBeforeExcept Layout
-                SlotId(154) => {
-                    let [layout_0, start, layout_2] = children.into_array::<3usize>();
-                    ParseTree::StartPredictionBeforeExcept(self.arena.alloc(Start {
-                        before: layout_0.unwrap_layout(),
-                        node: start.unwrap_prediction_before_except(),
-                        after: layout_2.unwrap_layout(),
-                        span: nonterminal_node.span,
-                    }))
-                }
-                _ => unreachable!(),
-            },
-            // StartExceptBeforePrediction
-            NonterminalId(32) => match nonterminal_node.return_slot {
-                // StartExceptBeforePrediction = Layout start:ExceptBeforePrediction Layout
-                SlotId(158) => {
-                    let [layout_0, start, layout_2] = children.into_array::<3usize>();
-                    ParseTree::StartExceptBeforePrediction(self.arena.alloc(Start {
-                        before: layout_0.unwrap_layout(),
-                        node: start.unwrap_except_before_prediction(),
-                        after: layout_2.unwrap_layout(),
-                        span: nonterminal_node.span,
-                    }))
-                }
-                _ => unreachable!(),
-            },
-            // StartPredictionBeforeFollow
-            NonterminalId(33) => match nonterminal_node.return_slot {
-                // StartPredictionBeforeFollow = Layout start:PredictionBeforeFollow Layout
-                SlotId(162) => {
-                    let [layout_0, start, layout_2] = children.into_array::<3usize>();
-                    ParseTree::StartPredictionBeforeFollow(self.arena.alloc(Start {
-                        before: layout_0.unwrap_layout(),
-                        node: start.unwrap_prediction_before_follow(),
-                        after: layout_2.unwrap_layout(),
-                        span: nonterminal_node.span,
-                    }))
-                }
-                _ => unreachable!(),
-            },
-            // StartFollowBeforePrediction
-            NonterminalId(34) => match nonterminal_node.return_slot {
-                // StartFollowBeforePrediction = Layout start:FollowBeforePrediction Layout
-                SlotId(166) => {
-                    let [layout_0, start, layout_2] = children.into_array::<3usize>();
-                    ParseTree::StartFollowBeforePrediction(self.arena.alloc(Start {
-                        before: layout_0.unwrap_layout(),
-                        node: start.unwrap_follow_before_prediction(),
-                        after: layout_2.unwrap_layout(),
-                        span: nonterminal_node.span,
-                    }))
-                }
-                _ => unreachable!(),
-            },
-            // StartMissingSuffix
-            NonterminalId(35) => match nonterminal_node.return_slot {
-                // StartMissingSuffix = Layout start:MissingSuffix Layout
-                SlotId(170) => {
-                    let [layout_0, start, layout_2] = children.into_array::<3usize>();
-                    ParseTree::StartMissingSuffix(self.arena.alloc(Start {
-                        before: layout_0.unwrap_layout(),
-                        node: start.unwrap_missing_suffix(),
-                        after: layout_2.unwrap_layout(),
-                        span: nonterminal_node.span,
-                    }))
-                }
-                _ => unreachable!(),
-            },
-            // StartSuffixChoice
-            NonterminalId(36) => match nonterminal_node.return_slot {
-                // StartSuffixChoice = Layout start:SuffixChoice Layout
-                SlotId(174) => {
-                    let [layout_0, start, layout_2] = children.into_array::<3usize>();
-                    ParseTree::StartSuffixChoice(self.arena.alloc(Start {
-                        before: layout_0.unwrap_layout(),
-                        node: start.unwrap_suffix_choice(),
-                        after: layout_2.unwrap_layout(),
-                        span: nonterminal_node.span,
-                    }))
-                }
-                _ => unreachable!(),
-            },
-            // StartCallPrediction
-            NonterminalId(37) => match nonterminal_node.return_slot {
-                // StartCallPrediction = Layout start:CallPrediction Layout
-                SlotId(178) => {
-                    let [layout_0, start, layout_2] = children.into_array::<3usize>();
-                    ParseTree::StartCallPrediction(self.arena.alloc(Start {
-                        before: layout_0.unwrap_layout(),
-                        node: start.unwrap_call_prediction(),
-                        after: layout_2.unwrap_layout(),
-                        span: nonterminal_node.span,
-                    }))
-                }
-                _ => unreachable!(),
-            },
-            // StartPrefixX
-            NonterminalId(38) => match nonterminal_node.return_slot {
-                // StartPrefixX = Layout start:PrefixX Layout
-                SlotId(182) => {
-                    let [layout_0, start, layout_2] = children.into_array::<3usize>();
-                    ParseTree::StartPrefixX(self.arena.alloc(Start {
-                        before: layout_0.unwrap_layout(),
-                        node: start.unwrap_prefix_x(),
-                        after: layout_2.unwrap_layout(),
-                        span: nonterminal_node.span,
-                    }))
-                }
-                _ => unreachable!(),
-            },
-            // StartPrefixW
-            NonterminalId(39) => match nonterminal_node.return_slot {
-                // StartPrefixW = Layout start:PrefixW Layout
-                SlotId(186) => {
-                    let [layout_0, start, layout_2] = children.into_array::<3usize>();
-                    ParseTree::StartPrefixW(self.arena.alloc(Start {
-                        before: layout_0.unwrap_layout(),
-                        node: start.unwrap_prefix_w(),
-                        after: layout_2.unwrap_layout(),
-                        span: nonterminal_node.span,
-                    }))
-                }
-                _ => unreachable!(),
-            },
-            // StartNullablePrefix
-            NonterminalId(40) => match nonterminal_node.return_slot {
-                // StartNullablePrefix = Layout start:NullablePrefix Layout
-                SlotId(190) => {
-                    let [layout_0, start, layout_2] = children.into_array::<3usize>();
-                    ParseTree::StartNullablePrefix(self.arena.alloc(Start {
-                        before: layout_0.unwrap_layout(),
-                        node: start.unwrap_nullable_prefix(),
-                        after: layout_2.unwrap_layout(),
-                        span: nonterminal_node.span,
-                    }))
-                }
-                _ => unreachable!(),
-            },
-            // StartLayout
-            NonterminalId(41) => match nonterminal_node.return_slot {
-                // StartLayout = start:Layout
-                SlotId(192) => {
-                    let [start] = children.into_array::<1usize>();
-                    ParseTree::StartLayout(self.arena.alloc(Start {
-                        before: (),
-                        node: start.unwrap_layout(),
-                        after: (),
-                        span: nonterminal_node.span,
-                    }))
-                }
-                _ => unreachable!(),
-            },
+        match nonterminal_node.return_slot {
+            // T = "[" BeforeP Layout P Layout "]"
+            SlotId(6) => {
+                let &[lit_0, before_p, layout_2, p, layout_4, lit_5] = children else {
+                    ParseTree::unexpected_node()
+                };
+                ParseTree::T(self.arena.alloc(T::Alt0 {
+                    lit_0: lit_0.unwrap_token(),
+                    before_p: before_p.unwrap_before_p(),
+                    layout_2: layout_2.unwrap_layout(),
+                    p: p.unwrap_p(),
+                    layout_4: layout_4.unwrap_layout(),
+                    lit_5: lit_5.unwrap_token(),
+                    span: nonterminal_node.span,
+                }))
+            }
+            // T = "[" BeforeQ Layout Q Layout "]"
+            SlotId(13) => {
+                let &[lit_0, before_q, layout_2, q, layout_4, lit_5] = children else {
+                    ParseTree::unexpected_node()
+                };
+                ParseTree::T(self.arena.alloc(T::Alt1 {
+                    lit_0: lit_0.unwrap_token(),
+                    before_q: before_q.unwrap_before_q(),
+                    layout_2: layout_2.unwrap_layout(),
+                    q: q.unwrap_q(),
+                    layout_4: layout_4.unwrap_layout(),
+                    lit_5: lit_5.unwrap_token(),
+                    span: nonterminal_node.span,
+                }))
+            }
+            // U = "[" BeforeQ Layout Q Layout "]"
+            SlotId(20) => {
+                let &[lit_0, before_q, layout_2, q, layout_4, lit_5] = children else {
+                    ParseTree::unexpected_node()
+                };
+                ParseTree::U(self.arena.alloc(U::Alt0 {
+                    lit_0: lit_0.unwrap_token(),
+                    before_q: before_q.unwrap_before_q(),
+                    layout_2: layout_2.unwrap_layout(),
+                    q: q.unwrap_q(),
+                    layout_4: layout_4.unwrap_layout(),
+                    lit_5: lit_5.unwrap_token(),
+                    span: nonterminal_node.span,
+                }))
+            }
+            // U = "[" BeforeP Layout P Layout "]"
+            SlotId(27) => {
+                let &[lit_0, before_p, layout_2, p, layout_4, lit_5] = children else {
+                    ParseTree::unexpected_node()
+                };
+                ParseTree::U(self.arena.alloc(U::Alt1 {
+                    lit_0: lit_0.unwrap_token(),
+                    before_p: before_p.unwrap_before_p(),
+                    layout_2: layout_2.unwrap_layout(),
+                    p: p.unwrap_p(),
+                    layout_4: layout_4.unwrap_layout(),
+                    lit_5: lit_5.unwrap_token(),
+                    span: nonterminal_node.span,
+                }))
+            }
+            // P = "p"
+            SlotId(29) => {
+                let &[lit_0] = children else {
+                    ParseTree::unexpected_node()
+                };
+                ParseTree::P(self.arena.alloc(P::Alt0 {
+                    lit_0: lit_0.unwrap_token(),
+                    span: nonterminal_node.span,
+                }))
+            }
+            // P = Word
+            SlotId(31) => {
+                let &[word] = children else {
+                    ParseTree::unexpected_node()
+                };
+                ParseTree::P(self.arena.alloc(P::Alt1 {
+                    word: word.unwrap_token(),
+                    span: nonterminal_node.span,
+                }))
+            }
+            // Q = "q"
+            SlotId(33) => {
+                let &[lit_0] = children else {
+                    ParseTree::unexpected_node()
+                };
+                ParseTree::Q(self.arena.alloc(Q::Alt0 {
+                    lit_0: lit_0.unwrap_token(),
+                    span: nonterminal_node.span,
+                }))
+            }
+            // BeforeP = "x"
+            SlotId(35) => {
+                let &[lit_0] = children else {
+                    ParseTree::unexpected_node()
+                };
+                ParseTree::BeforeP(self.arena.alloc(BeforeP::Alt0 {
+                    lit_0: lit_0.unwrap_token(),
+                    span: nonterminal_node.span,
+                }))
+            }
+            // BeforeP = "x" Layout "y"
+            SlotId(39) => {
+                let &[lit_0, layout, lit_2] = children else {
+                    ParseTree::unexpected_node()
+                };
+                ParseTree::BeforeP(self.arena.alloc(BeforeP::Alt1 {
+                    lit_0: lit_0.unwrap_token(),
+                    layout: layout.unwrap_layout(),
+                    lit_2: lit_2.unwrap_token(),
+                    span: nonterminal_node.span,
+                }))
+            }
+            // BeforeQ = "x"
+            SlotId(41) => {
+                let &[lit_0] = children else {
+                    ParseTree::unexpected_node()
+                };
+                ParseTree::BeforeQ(self.arena.alloc(BeforeQ::Alt0 {
+                    lit_0: lit_0.unwrap_token(),
+                    span: nonterminal_node.span,
+                }))
+            }
+            // BeforeQ = "x" Layout "z"
+            SlotId(45) => {
+                let &[lit_0, layout, lit_2] = children else {
+                    ParseTree::unexpected_node()
+                };
+                ParseTree::BeforeQ(self.arena.alloc(BeforeQ::Alt1 {
+                    lit_0: lit_0.unwrap_token(),
+                    layout: layout.unwrap_layout(),
+                    lit_2: lit_2.unwrap_token(),
+                    span: nonterminal_node.span,
+                }))
+            }
+            // UnexpectedFirst = Identifier "!"
+            SlotId(48) => {
+                let &[identifier, lit_1] = children else {
+                    ParseTree::unexpected_node()
+                };
+                ParseTree::UnexpectedFirst(self.arena.alloc(UnexpectedFirst::Alt0 {
+                    identifier: identifier.unwrap_token(),
+                    lit_1: lit_1.unwrap_token(),
+                    span: nonterminal_node.span,
+                }))
+            }
+            // UnexpectedFirst = Identifier
+            SlotId(50) => {
+                let &[identifier] = children else {
+                    ParseTree::unexpected_node()
+                };
+                ParseTree::UnexpectedFirst(self.arena.alloc(UnexpectedFirst::Alt1 {
+                    identifier: identifier.unwrap_token(),
+                    span: nonterminal_node.span,
+                }))
+            }
+            // ExcludedFirst = Identifier
+            SlotId(52) => {
+                let &[identifier] = children else {
+                    ParseTree::unexpected_node()
+                };
+                ParseTree::ExcludedFirst(self.arena.alloc(ExcludedFirst::Alt0 {
+                    identifier: identifier.unwrap_token(),
+                    span: nonterminal_node.span,
+                }))
+            }
+            // ExcludedFirst = Identifier "!"
+            SlotId(55) => {
+                let &[identifier, lit_1] = children else {
+                    ParseTree::unexpected_node()
+                };
+                ParseTree::ExcludedFirst(self.arena.alloc(ExcludedFirst::Alt1 {
+                    identifier: identifier.unwrap_token(),
+                    lit_1: lit_1.unwrap_token(),
+                    span: nonterminal_node.span,
+                }))
+            }
+            // PredictionBeforeExcept = Identifier MissingSuffix
+            SlotId(58) => {
+                let &[identifier, missing_suffix] = children else {
+                    ParseTree::unexpected_node()
+                };
+                ParseTree::PredictionBeforeExcept(self.arena.alloc(PredictionBeforeExcept::Alt0 {
+                    identifier: identifier.unwrap_token(),
+                    missing_suffix: missing_suffix.unwrap_missing_suffix(),
+                    span: nonterminal_node.span,
+                }))
+            }
+            // PredictionBeforeExcept = Identifier
+            SlotId(60) => {
+                let &[identifier] = children else {
+                    ParseTree::unexpected_node()
+                };
+                ParseTree::PredictionBeforeExcept(self.arena.alloc(PredictionBeforeExcept::Alt1 {
+                    identifier: identifier.unwrap_token(),
+                    span: nonterminal_node.span,
+                }))
+            }
+            // ExceptBeforePrediction = Identifier
+            SlotId(62) => {
+                let &[identifier] = children else {
+                    ParseTree::unexpected_node()
+                };
+                ParseTree::ExceptBeforePrediction(self.arena.alloc(ExceptBeforePrediction::Alt0 {
+                    identifier: identifier.unwrap_token(),
+                    span: nonterminal_node.span,
+                }))
+            }
+            // ExceptBeforePrediction = Identifier MissingSuffix
+            SlotId(65) => {
+                let &[identifier, missing_suffix] = children else {
+                    ParseTree::unexpected_node()
+                };
+                ParseTree::ExceptBeforePrediction(self.arena.alloc(ExceptBeforePrediction::Alt1 {
+                    identifier: identifier.unwrap_token(),
+                    missing_suffix: missing_suffix.unwrap_missing_suffix(),
+                    span: nonterminal_node.span,
+                }))
+            }
+            // PredictionBeforeFollow = Identifier MissingSuffix
+            SlotId(68) => {
+                let &[identifier, missing_suffix] = children else {
+                    ParseTree::unexpected_node()
+                };
+                ParseTree::PredictionBeforeFollow(self.arena.alloc(PredictionBeforeFollow::Alt0 {
+                    identifier: identifier.unwrap_token(),
+                    missing_suffix: missing_suffix.unwrap_missing_suffix(),
+                    span: nonterminal_node.span,
+                }))
+            }
+            // PredictionBeforeFollow = Identifier Question
+            SlotId(71) => {
+                let &[identifier, question] = children else {
+                    ParseTree::unexpected_node()
+                };
+                ParseTree::PredictionBeforeFollow(self.arena.alloc(PredictionBeforeFollow::Alt1 {
+                    identifier: identifier.unwrap_token(),
+                    question: question.unwrap_token(),
+                    span: nonterminal_node.span,
+                }))
+            }
+            // FollowBeforePrediction = Identifier Question
+            SlotId(74) => {
+                let &[identifier, question] = children else {
+                    ParseTree::unexpected_node()
+                };
+                ParseTree::FollowBeforePrediction(self.arena.alloc(FollowBeforePrediction::Alt0 {
+                    identifier: identifier.unwrap_token(),
+                    question: question.unwrap_token(),
+                    span: nonterminal_node.span,
+                }))
+            }
+            // FollowBeforePrediction = Identifier MissingSuffix
+            SlotId(77) => {
+                let &[identifier, missing_suffix] = children else {
+                    ParseTree::unexpected_node()
+                };
+                ParseTree::FollowBeforePrediction(self.arena.alloc(FollowBeforePrediction::Alt1 {
+                    identifier: identifier.unwrap_token(),
+                    missing_suffix: missing_suffix.unwrap_missing_suffix(),
+                    span: nonterminal_node.span,
+                }))
+            }
+            // MissingSuffix = SuffixChoice
+            SlotId(79) => {
+                let &[suffix_choice] = children else {
+                    ParseTree::unexpected_node()
+                };
+                ParseTree::MissingSuffix(self.arena.alloc(MissingSuffix::Alt0 {
+                    suffix_choice: suffix_choice.unwrap_suffix_choice(),
+                    span: nonterminal_node.span,
+                }))
+            }
+            // SuffixChoice = "!"
+            SlotId(81) => {
+                let &[lit_0] = children else {
+                    ParseTree::unexpected_node()
+                };
+                ParseTree::SuffixChoice(self.arena.alloc(SuffixChoice::Alt0 {
+                    lit_0: lit_0.unwrap_token(),
+                    span: nonterminal_node.span,
+                }))
+            }
+            // SuffixChoice = "!" "!"
+            SlotId(84) => {
+                let &[lit_0, lit_1] = children else {
+                    ParseTree::unexpected_node()
+                };
+                ParseTree::SuffixChoice(self.arena.alloc(SuffixChoice::Alt1 {
+                    lit_0: lit_0.unwrap_token(),
+                    lit_1: lit_1.unwrap_token(),
+                    span: nonterminal_node.span,
+                }))
+            }
+            // CallPrediction = "1" PrefixX
+            SlotId(87) => {
+                let &[lit_0, prefix_x] = children else {
+                    ParseTree::unexpected_node()
+                };
+                ParseTree::CallPrediction(self.arena.alloc(CallPrediction::Alt0 {
+                    lit_0: lit_0.unwrap_token(),
+                    prefix_x: prefix_x.unwrap_prefix_x(),
+                    span: nonterminal_node.span,
+                }))
+            }
+            // CallPrediction = "2" PrefixW
+            SlotId(90) => {
+                let &[lit_0, prefix_w] = children else {
+                    ParseTree::unexpected_node()
+                };
+                ParseTree::CallPrediction(self.arena.alloc(CallPrediction::Alt1 {
+                    lit_0: lit_0.unwrap_token(),
+                    prefix_w: prefix_w.unwrap_prefix_w(),
+                    span: nonterminal_node.span,
+                }))
+            }
+            // PrefixX = NullablePrefix "x"
+            SlotId(93) => {
+                let &[nullable_prefix, lit_1] = children else {
+                    ParseTree::unexpected_node()
+                };
+                ParseTree::PrefixX(self.arena.alloc(PrefixX::Alt0 {
+                    nullable_prefix: nullable_prefix.unwrap_nullable_prefix(),
+                    lit_1: lit_1.unwrap_token(),
+                    span: nonterminal_node.span,
+                }))
+            }
+            // PrefixW = NullablePrefix "w"
+            SlotId(96) => {
+                let &[nullable_prefix, lit_1] = children else {
+                    ParseTree::unexpected_node()
+                };
+                ParseTree::PrefixW(self.arena.alloc(PrefixW::Alt0 {
+                    nullable_prefix: nullable_prefix.unwrap_nullable_prefix(),
+                    lit_1: lit_1.unwrap_token(),
+                    span: nonterminal_node.span,
+                }))
+            }
+            // NullablePrefix = "y"
+            SlotId(98) => {
+                let &[lit_0] = children else {
+                    ParseTree::unexpected_node()
+                };
+                ParseTree::NullablePrefix(self.arena.alloc(NullablePrefix::Alt0 {
+                    lit_0: lit_0.unwrap_token(),
+                    span: nonterminal_node.span,
+                }))
+            }
+            // NullablePrefix = "y" "y"
+            SlotId(101) => {
+                let &[lit_0, lit_1] = children else {
+                    ParseTree::unexpected_node()
+                };
+                ParseTree::NullablePrefix(self.arena.alloc(NullablePrefix::Alt1 {
+                    lit_0: lit_0.unwrap_token(),
+                    lit_1: lit_1.unwrap_token(),
+                    span: nonterminal_node.span,
+                }))
+            }
+            // NullablePrefix =
+            SlotId(102) => {
+                let &[] = children else {
+                    ParseTree::unexpected_node()
+                };
+                ParseTree::NullablePrefix(self.arena.alloc(NullablePrefix::Alt2 {
+                    span: nonterminal_node.span,
+                }))
+            }
+            // Layout = (WS | Newline)*
+            SlotId(104) => {
+                let &[star_0] = children else {
+                    ParseTree::unexpected_node()
+                };
+                ParseTree::Layout(self.arena.alloc(Layout::Alt0 {
+                    star_0: star_0.unwrap_star_0(),
+                    span: nonterminal_node.span,
+                }))
+            }
+            // Alt_0 = WS
+            SlotId(106) => {
+                let &[ws] = children else {
+                    ParseTree::unexpected_node()
+                };
+                ParseTree::Alt0(self.arena.alloc(Alt0::Alt0 {
+                    ws: ws.unwrap_token(),
+                    span: nonterminal_node.span,
+                }))
+            }
+            // Alt_0 = Newline
+            SlotId(108) => {
+                let &[newline] = children else {
+                    ParseTree::unexpected_node()
+                };
+                ParseTree::Alt0(self.arena.alloc(Alt0::Alt1 {
+                    newline: newline.unwrap_token(),
+                    span: nonterminal_node.span,
+                }))
+            }
+            // Plus_0 = (WS | Newline)+ (WS | Newline)
+            SlotId(111) => {
+                let &[plus_0, alt_0] = children else {
+                    ParseTree::unexpected_node()
+                };
+                ParseTree::Plus0(self.arena.alloc(Plus0::Alt0 {
+                    plus_0: plus_0.unwrap_plus_0(),
+                    alt_0: alt_0.unwrap_alt_0(),
+                    span: nonterminal_node.span,
+                }))
+            }
+            // Plus_0 = (WS | Newline)
+            SlotId(113) => {
+                let &[alt_0] = children else {
+                    ParseTree::unexpected_node()
+                };
+                ParseTree::Plus0(self.arena.alloc(Plus0::Alt1 {
+                    alt_0: alt_0.unwrap_alt_0(),
+                    span: nonterminal_node.span,
+                }))
+            }
+            // Opt_0 = (WS | Newline)+
+            SlotId(115) => {
+                let &[plus_0] = children else {
+                    ParseTree::unexpected_node()
+                };
+                ParseTree::Opt0(self.arena.alloc(Opt0::Alt0 {
+                    plus_0: plus_0.unwrap_plus_0(),
+                    span: nonterminal_node.span,
+                }))
+            }
+            // Opt_0 =
+            SlotId(116) => {
+                let &[] = children else {
+                    ParseTree::unexpected_node()
+                };
+                ParseTree::Opt0(self.arena.alloc(Opt0::Alt1 {
+                    span: nonterminal_node.span,
+                }))
+            }
+            // Star_0 = (WS | Newline)+?
+            SlotId(118) => {
+                let &[opt_0] = children else {
+                    ParseTree::unexpected_node()
+                };
+                ParseTree::Star0(self.arena.alloc(Star0::Alt0 {
+                    opt_0: opt_0.unwrap_opt_0(),
+                    span: nonterminal_node.span,
+                }))
+            }
+            // StartT = Layout start:T Layout
+            SlotId(122) => {
+                let &[layout_0, start, layout_2] = children else {
+                    ParseTree::unexpected_node()
+                };
+                ParseTree::StartT(self.arena.alloc(Start {
+                    before: layout_0.unwrap_layout(),
+                    node: start.unwrap_t(),
+                    after: layout_2.unwrap_layout(),
+                    span: nonterminal_node.span,
+                }))
+            }
+            // StartU = Layout start:U Layout
+            SlotId(126) => {
+                let &[layout_0, start, layout_2] = children else {
+                    ParseTree::unexpected_node()
+                };
+                ParseTree::StartU(self.arena.alloc(Start {
+                    before: layout_0.unwrap_layout(),
+                    node: start.unwrap_u(),
+                    after: layout_2.unwrap_layout(),
+                    span: nonterminal_node.span,
+                }))
+            }
+            // StartP = Layout start:P Layout
+            SlotId(130) => {
+                let &[layout_0, start, layout_2] = children else {
+                    ParseTree::unexpected_node()
+                };
+                ParseTree::StartP(self.arena.alloc(Start {
+                    before: layout_0.unwrap_layout(),
+                    node: start.unwrap_p(),
+                    after: layout_2.unwrap_layout(),
+                    span: nonterminal_node.span,
+                }))
+            }
+            // StartQ = Layout start:Q Layout
+            SlotId(134) => {
+                let &[layout_0, start, layout_2] = children else {
+                    ParseTree::unexpected_node()
+                };
+                ParseTree::StartQ(self.arena.alloc(Start {
+                    before: layout_0.unwrap_layout(),
+                    node: start.unwrap_q(),
+                    after: layout_2.unwrap_layout(),
+                    span: nonterminal_node.span,
+                }))
+            }
+            // StartBeforeP = Layout start:BeforeP Layout
+            SlotId(138) => {
+                let &[layout_0, start, layout_2] = children else {
+                    ParseTree::unexpected_node()
+                };
+                ParseTree::StartBeforeP(self.arena.alloc(Start {
+                    before: layout_0.unwrap_layout(),
+                    node: start.unwrap_before_p(),
+                    after: layout_2.unwrap_layout(),
+                    span: nonterminal_node.span,
+                }))
+            }
+            // StartBeforeQ = Layout start:BeforeQ Layout
+            SlotId(142) => {
+                let &[layout_0, start, layout_2] = children else {
+                    ParseTree::unexpected_node()
+                };
+                ParseTree::StartBeforeQ(self.arena.alloc(Start {
+                    before: layout_0.unwrap_layout(),
+                    node: start.unwrap_before_q(),
+                    after: layout_2.unwrap_layout(),
+                    span: nonterminal_node.span,
+                }))
+            }
+            // StartUnexpectedFirst = Layout start:UnexpectedFirst Layout
+            SlotId(146) => {
+                let &[layout_0, start, layout_2] = children else {
+                    ParseTree::unexpected_node()
+                };
+                ParseTree::StartUnexpectedFirst(self.arena.alloc(Start {
+                    before: layout_0.unwrap_layout(),
+                    node: start.unwrap_unexpected_first(),
+                    after: layout_2.unwrap_layout(),
+                    span: nonterminal_node.span,
+                }))
+            }
+            // StartExcludedFirst = Layout start:ExcludedFirst Layout
+            SlotId(150) => {
+                let &[layout_0, start, layout_2] = children else {
+                    ParseTree::unexpected_node()
+                };
+                ParseTree::StartExcludedFirst(self.arena.alloc(Start {
+                    before: layout_0.unwrap_layout(),
+                    node: start.unwrap_excluded_first(),
+                    after: layout_2.unwrap_layout(),
+                    span: nonterminal_node.span,
+                }))
+            }
+            // StartPredictionBeforeExcept = Layout start:PredictionBeforeExcept Layout
+            SlotId(154) => {
+                let &[layout_0, start, layout_2] = children else {
+                    ParseTree::unexpected_node()
+                };
+                ParseTree::StartPredictionBeforeExcept(self.arena.alloc(Start {
+                    before: layout_0.unwrap_layout(),
+                    node: start.unwrap_prediction_before_except(),
+                    after: layout_2.unwrap_layout(),
+                    span: nonterminal_node.span,
+                }))
+            }
+            // StartExceptBeforePrediction = Layout start:ExceptBeforePrediction Layout
+            SlotId(158) => {
+                let &[layout_0, start, layout_2] = children else {
+                    ParseTree::unexpected_node()
+                };
+                ParseTree::StartExceptBeforePrediction(self.arena.alloc(Start {
+                    before: layout_0.unwrap_layout(),
+                    node: start.unwrap_except_before_prediction(),
+                    after: layout_2.unwrap_layout(),
+                    span: nonterminal_node.span,
+                }))
+            }
+            // StartPredictionBeforeFollow = Layout start:PredictionBeforeFollow Layout
+            SlotId(162) => {
+                let &[layout_0, start, layout_2] = children else {
+                    ParseTree::unexpected_node()
+                };
+                ParseTree::StartPredictionBeforeFollow(self.arena.alloc(Start {
+                    before: layout_0.unwrap_layout(),
+                    node: start.unwrap_prediction_before_follow(),
+                    after: layout_2.unwrap_layout(),
+                    span: nonterminal_node.span,
+                }))
+            }
+            // StartFollowBeforePrediction = Layout start:FollowBeforePrediction Layout
+            SlotId(166) => {
+                let &[layout_0, start, layout_2] = children else {
+                    ParseTree::unexpected_node()
+                };
+                ParseTree::StartFollowBeforePrediction(self.arena.alloc(Start {
+                    before: layout_0.unwrap_layout(),
+                    node: start.unwrap_follow_before_prediction(),
+                    after: layout_2.unwrap_layout(),
+                    span: nonterminal_node.span,
+                }))
+            }
+            // StartMissingSuffix = Layout start:MissingSuffix Layout
+            SlotId(170) => {
+                let &[layout_0, start, layout_2] = children else {
+                    ParseTree::unexpected_node()
+                };
+                ParseTree::StartMissingSuffix(self.arena.alloc(Start {
+                    before: layout_0.unwrap_layout(),
+                    node: start.unwrap_missing_suffix(),
+                    after: layout_2.unwrap_layout(),
+                    span: nonterminal_node.span,
+                }))
+            }
+            // StartSuffixChoice = Layout start:SuffixChoice Layout
+            SlotId(174) => {
+                let &[layout_0, start, layout_2] = children else {
+                    ParseTree::unexpected_node()
+                };
+                ParseTree::StartSuffixChoice(self.arena.alloc(Start {
+                    before: layout_0.unwrap_layout(),
+                    node: start.unwrap_suffix_choice(),
+                    after: layout_2.unwrap_layout(),
+                    span: nonterminal_node.span,
+                }))
+            }
+            // StartCallPrediction = Layout start:CallPrediction Layout
+            SlotId(178) => {
+                let &[layout_0, start, layout_2] = children else {
+                    ParseTree::unexpected_node()
+                };
+                ParseTree::StartCallPrediction(self.arena.alloc(Start {
+                    before: layout_0.unwrap_layout(),
+                    node: start.unwrap_call_prediction(),
+                    after: layout_2.unwrap_layout(),
+                    span: nonterminal_node.span,
+                }))
+            }
+            // StartPrefixX = Layout start:PrefixX Layout
+            SlotId(182) => {
+                let &[layout_0, start, layout_2] = children else {
+                    ParseTree::unexpected_node()
+                };
+                ParseTree::StartPrefixX(self.arena.alloc(Start {
+                    before: layout_0.unwrap_layout(),
+                    node: start.unwrap_prefix_x(),
+                    after: layout_2.unwrap_layout(),
+                    span: nonterminal_node.span,
+                }))
+            }
+            // StartPrefixW = Layout start:PrefixW Layout
+            SlotId(186) => {
+                let &[layout_0, start, layout_2] = children else {
+                    ParseTree::unexpected_node()
+                };
+                ParseTree::StartPrefixW(self.arena.alloc(Start {
+                    before: layout_0.unwrap_layout(),
+                    node: start.unwrap_prefix_w(),
+                    after: layout_2.unwrap_layout(),
+                    span: nonterminal_node.span,
+                }))
+            }
+            // StartNullablePrefix = Layout start:NullablePrefix Layout
+            SlotId(190) => {
+                let &[layout_0, start, layout_2] = children else {
+                    ParseTree::unexpected_node()
+                };
+                ParseTree::StartNullablePrefix(self.arena.alloc(Start {
+                    before: layout_0.unwrap_layout(),
+                    node: start.unwrap_nullable_prefix(),
+                    after: layout_2.unwrap_layout(),
+                    span: nonterminal_node.span,
+                }))
+            }
+            // StartLayout = start:Layout
+            SlotId(192) => {
+                let &[start] = children else {
+                    ParseTree::unexpected_node()
+                };
+                ParseTree::StartLayout(self.arena.alloc(Start {
+                    before: (),
+                    node: start.unwrap_layout(),
+                    after: (),
+                    span: nonterminal_node.span,
+                }))
+            }
             _ => unreachable!(),
         }
     }
@@ -4292,200 +4231,114 @@ pub fn create_parse_tree<'a>(
         panic!("the SPPF root is not a nonterminal node")
     };
     match root.nonterminal_id {
-        grammar::T => ParseTree::T(visit_sppf(root_id, parser, builder).unwrap_one().unwrap_t()),
-        grammar::U => ParseTree::U(visit_sppf(root_id, parser, builder).unwrap_one().unwrap_u()),
-        grammar::P => ParseTree::P(visit_sppf(root_id, parser, builder).unwrap_one().unwrap_p()),
-        grammar::Q => ParseTree::Q(visit_sppf(root_id, parser, builder).unwrap_one().unwrap_q()),
-        grammar::BEFORE_P => ParseTree::BeforeP(
-            visit_sppf(root_id, parser, builder)
-                .unwrap_one()
-                .unwrap_before_p(),
-        ),
-        grammar::BEFORE_Q => ParseTree::BeforeQ(
-            visit_sppf(root_id, parser, builder)
-                .unwrap_one()
-                .unwrap_before_q(),
-        ),
+        grammar::T => ParseTree::T(visit_sppf(root_id, parser, builder).unwrap_t()),
+        grammar::U => ParseTree::U(visit_sppf(root_id, parser, builder).unwrap_u()),
+        grammar::P => ParseTree::P(visit_sppf(root_id, parser, builder).unwrap_p()),
+        grammar::Q => ParseTree::Q(visit_sppf(root_id, parser, builder).unwrap_q()),
+        grammar::BEFORE_P => {
+            ParseTree::BeforeP(visit_sppf(root_id, parser, builder).unwrap_before_p())
+        }
+        grammar::BEFORE_Q => {
+            ParseTree::BeforeQ(visit_sppf(root_id, parser, builder).unwrap_before_q())
+        }
         grammar::UNEXPECTED_FIRST => ParseTree::UnexpectedFirst(
-            visit_sppf(root_id, parser, builder)
-                .unwrap_one()
-                .unwrap_unexpected_first(),
+            visit_sppf(root_id, parser, builder).unwrap_unexpected_first(),
         ),
-        grammar::EXCLUDED_FIRST => ParseTree::ExcludedFirst(
-            visit_sppf(root_id, parser, builder)
-                .unwrap_one()
-                .unwrap_excluded_first(),
-        ),
+        grammar::EXCLUDED_FIRST => {
+            ParseTree::ExcludedFirst(visit_sppf(root_id, parser, builder).unwrap_excluded_first())
+        }
         grammar::PREDICTION_BEFORE_EXCEPT => ParseTree::PredictionBeforeExcept(
-            visit_sppf(root_id, parser, builder)
-                .unwrap_one()
-                .unwrap_prediction_before_except(),
+            visit_sppf(root_id, parser, builder).unwrap_prediction_before_except(),
         ),
         grammar::EXCEPT_BEFORE_PREDICTION => ParseTree::ExceptBeforePrediction(
-            visit_sppf(root_id, parser, builder)
-                .unwrap_one()
-                .unwrap_except_before_prediction(),
+            visit_sppf(root_id, parser, builder).unwrap_except_before_prediction(),
         ),
         grammar::PREDICTION_BEFORE_FOLLOW => ParseTree::PredictionBeforeFollow(
-            visit_sppf(root_id, parser, builder)
-                .unwrap_one()
-                .unwrap_prediction_before_follow(),
+            visit_sppf(root_id, parser, builder).unwrap_prediction_before_follow(),
         ),
         grammar::FOLLOW_BEFORE_PREDICTION => ParseTree::FollowBeforePrediction(
-            visit_sppf(root_id, parser, builder)
-                .unwrap_one()
-                .unwrap_follow_before_prediction(),
+            visit_sppf(root_id, parser, builder).unwrap_follow_before_prediction(),
         ),
-        grammar::MISSING_SUFFIX => ParseTree::MissingSuffix(
-            visit_sppf(root_id, parser, builder)
-                .unwrap_one()
-                .unwrap_missing_suffix(),
-        ),
-        grammar::SUFFIX_CHOICE => ParseTree::SuffixChoice(
-            visit_sppf(root_id, parser, builder)
-                .unwrap_one()
-                .unwrap_suffix_choice(),
-        ),
-        grammar::CALL_PREDICTION => ParseTree::CallPrediction(
-            visit_sppf(root_id, parser, builder)
-                .unwrap_one()
-                .unwrap_call_prediction(),
-        ),
-        grammar::PREFIX_X => ParseTree::PrefixX(
-            visit_sppf(root_id, parser, builder)
-                .unwrap_one()
-                .unwrap_prefix_x(),
-        ),
-        grammar::PREFIX_W => ParseTree::PrefixW(
-            visit_sppf(root_id, parser, builder)
-                .unwrap_one()
-                .unwrap_prefix_w(),
-        ),
-        grammar::NULLABLE_PREFIX => ParseTree::NullablePrefix(
-            visit_sppf(root_id, parser, builder)
-                .unwrap_one()
-                .unwrap_nullable_prefix(),
-        ),
-        grammar::LAYOUT => ParseTree::Layout(
-            visit_sppf(root_id, parser, builder)
-                .unwrap_one()
-                .unwrap_layout(),
-        ),
-        grammar::ALT_0 => ParseTree::Alt0(
-            visit_sppf(root_id, parser, builder)
-                .unwrap_one()
-                .unwrap_alt_0(),
-        ),
-        grammar::PLUS_0 => ParseTree::Plus0(
-            visit_sppf(root_id, parser, builder)
-                .unwrap_one()
-                .unwrap_plus_0(),
-        ),
-        grammar::OPT_0 => ParseTree::Opt0(
-            visit_sppf(root_id, parser, builder)
-                .unwrap_one()
-                .unwrap_opt_0(),
-        ),
-        grammar::STAR_0 => ParseTree::Star0(
-            visit_sppf(root_id, parser, builder)
-                .unwrap_one()
-                .unwrap_star_0(),
-        ),
-        grammar::START_T => ParseTree::StartT(
-            visit_sppf(root_id, parser, builder)
-                .unwrap_one()
-                .unwrap_start_t(),
-        ),
-        grammar::START_U => ParseTree::StartU(
-            visit_sppf(root_id, parser, builder)
-                .unwrap_one()
-                .unwrap_start_u(),
-        ),
-        grammar::START_P => ParseTree::StartP(
-            visit_sppf(root_id, parser, builder)
-                .unwrap_one()
-                .unwrap_start_p(),
-        ),
-        grammar::START_Q => ParseTree::StartQ(
-            visit_sppf(root_id, parser, builder)
-                .unwrap_one()
-                .unwrap_start_q(),
-        ),
-        grammar::START_BEFORE_P => ParseTree::StartBeforeP(
-            visit_sppf(root_id, parser, builder)
-                .unwrap_one()
-                .unwrap_start_before_p(),
-        ),
-        grammar::START_BEFORE_Q => ParseTree::StartBeforeQ(
-            visit_sppf(root_id, parser, builder)
-                .unwrap_one()
-                .unwrap_start_before_q(),
-        ),
+        grammar::MISSING_SUFFIX => {
+            ParseTree::MissingSuffix(visit_sppf(root_id, parser, builder).unwrap_missing_suffix())
+        }
+        grammar::SUFFIX_CHOICE => {
+            ParseTree::SuffixChoice(visit_sppf(root_id, parser, builder).unwrap_suffix_choice())
+        }
+        grammar::CALL_PREDICTION => {
+            ParseTree::CallPrediction(visit_sppf(root_id, parser, builder).unwrap_call_prediction())
+        }
+        grammar::PREFIX_X => {
+            ParseTree::PrefixX(visit_sppf(root_id, parser, builder).unwrap_prefix_x())
+        }
+        grammar::PREFIX_W => {
+            ParseTree::PrefixW(visit_sppf(root_id, parser, builder).unwrap_prefix_w())
+        }
+        grammar::NULLABLE_PREFIX => {
+            ParseTree::NullablePrefix(visit_sppf(root_id, parser, builder).unwrap_nullable_prefix())
+        }
+        grammar::LAYOUT => ParseTree::Layout(visit_sppf(root_id, parser, builder).unwrap_layout()),
+        grammar::ALT_0 => ParseTree::Alt0(visit_sppf(root_id, parser, builder).unwrap_alt_0()),
+        grammar::PLUS_0 => ParseTree::Plus0(visit_sppf(root_id, parser, builder).unwrap_plus_0()),
+        grammar::OPT_0 => ParseTree::Opt0(visit_sppf(root_id, parser, builder).unwrap_opt_0()),
+        grammar::STAR_0 => ParseTree::Star0(visit_sppf(root_id, parser, builder).unwrap_star_0()),
+        grammar::START_T => {
+            ParseTree::StartT(visit_sppf(root_id, parser, builder).unwrap_start_t())
+        }
+        grammar::START_U => {
+            ParseTree::StartU(visit_sppf(root_id, parser, builder).unwrap_start_u())
+        }
+        grammar::START_P => {
+            ParseTree::StartP(visit_sppf(root_id, parser, builder).unwrap_start_p())
+        }
+        grammar::START_Q => {
+            ParseTree::StartQ(visit_sppf(root_id, parser, builder).unwrap_start_q())
+        }
+        grammar::START_BEFORE_P => {
+            ParseTree::StartBeforeP(visit_sppf(root_id, parser, builder).unwrap_start_before_p())
+        }
+        grammar::START_BEFORE_Q => {
+            ParseTree::StartBeforeQ(visit_sppf(root_id, parser, builder).unwrap_start_before_q())
+        }
         grammar::START_UNEXPECTED_FIRST => ParseTree::StartUnexpectedFirst(
-            visit_sppf(root_id, parser, builder)
-                .unwrap_one()
-                .unwrap_start_unexpected_first(),
+            visit_sppf(root_id, parser, builder).unwrap_start_unexpected_first(),
         ),
         grammar::START_EXCLUDED_FIRST => ParseTree::StartExcludedFirst(
-            visit_sppf(root_id, parser, builder)
-                .unwrap_one()
-                .unwrap_start_excluded_first(),
+            visit_sppf(root_id, parser, builder).unwrap_start_excluded_first(),
         ),
         grammar::START_PREDICTION_BEFORE_EXCEPT => ParseTree::StartPredictionBeforeExcept(
-            visit_sppf(root_id, parser, builder)
-                .unwrap_one()
-                .unwrap_start_prediction_before_except(),
+            visit_sppf(root_id, parser, builder).unwrap_start_prediction_before_except(),
         ),
         grammar::START_EXCEPT_BEFORE_PREDICTION => ParseTree::StartExceptBeforePrediction(
-            visit_sppf(root_id, parser, builder)
-                .unwrap_one()
-                .unwrap_start_except_before_prediction(),
+            visit_sppf(root_id, parser, builder).unwrap_start_except_before_prediction(),
         ),
         grammar::START_PREDICTION_BEFORE_FOLLOW => ParseTree::StartPredictionBeforeFollow(
-            visit_sppf(root_id, parser, builder)
-                .unwrap_one()
-                .unwrap_start_prediction_before_follow(),
+            visit_sppf(root_id, parser, builder).unwrap_start_prediction_before_follow(),
         ),
         grammar::START_FOLLOW_BEFORE_PREDICTION => ParseTree::StartFollowBeforePrediction(
-            visit_sppf(root_id, parser, builder)
-                .unwrap_one()
-                .unwrap_start_follow_before_prediction(),
+            visit_sppf(root_id, parser, builder).unwrap_start_follow_before_prediction(),
         ),
         grammar::START_MISSING_SUFFIX => ParseTree::StartMissingSuffix(
-            visit_sppf(root_id, parser, builder)
-                .unwrap_one()
-                .unwrap_start_missing_suffix(),
+            visit_sppf(root_id, parser, builder).unwrap_start_missing_suffix(),
         ),
         grammar::START_SUFFIX_CHOICE => ParseTree::StartSuffixChoice(
-            visit_sppf(root_id, parser, builder)
-                .unwrap_one()
-                .unwrap_start_suffix_choice(),
+            visit_sppf(root_id, parser, builder).unwrap_start_suffix_choice(),
         ),
         grammar::START_CALL_PREDICTION => ParseTree::StartCallPrediction(
-            visit_sppf(root_id, parser, builder)
-                .unwrap_one()
-                .unwrap_start_call_prediction(),
+            visit_sppf(root_id, parser, builder).unwrap_start_call_prediction(),
         ),
-        grammar::START_PREFIX_X => ParseTree::StartPrefixX(
-            visit_sppf(root_id, parser, builder)
-                .unwrap_one()
-                .unwrap_start_prefix_x(),
-        ),
-        grammar::START_PREFIX_W => ParseTree::StartPrefixW(
-            visit_sppf(root_id, parser, builder)
-                .unwrap_one()
-                .unwrap_start_prefix_w(),
-        ),
+        grammar::START_PREFIX_X => {
+            ParseTree::StartPrefixX(visit_sppf(root_id, parser, builder).unwrap_start_prefix_x())
+        }
+        grammar::START_PREFIX_W => {
+            ParseTree::StartPrefixW(visit_sppf(root_id, parser, builder).unwrap_start_prefix_w())
+        }
         grammar::START_NULLABLE_PREFIX => ParseTree::StartNullablePrefix(
-            visit_sppf(root_id, parser, builder)
-                .unwrap_one()
-                .unwrap_start_nullable_prefix(),
+            visit_sppf(root_id, parser, builder).unwrap_start_nullable_prefix(),
         ),
-        grammar::START_LAYOUT => ParseTree::StartLayout(
-            visit_sppf(root_id, parser, builder)
-                .unwrap_one()
-                .unwrap_start_layout(),
-        ),
+        grammar::START_LAYOUT => {
+            ParseTree::StartLayout(visit_sppf(root_id, parser, builder).unwrap_start_layout())
+        }
         _ => panic!(),
     }
 }

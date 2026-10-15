@@ -54,8 +54,9 @@ impl DisplayOptions {
     }
 }
 
+/// The children of a node under construction in the general walker.
 #[derive(Debug, Clone)]
-pub enum OneOrMany<T: Debug> {
+enum OneOrMany<T: Debug> {
     Zero,
     One(T),
     Many(Vec<T>),
@@ -65,7 +66,7 @@ pub enum OneOrMany<T: Debug> {
 }
 
 impl<T: Debug + Clone> OneOrMany<T> {
-    pub fn merge(self, other: OneOrMany<T>) -> OneOrMany<T> {
+    fn merge(self, other: OneOrMany<T>) -> OneOrMany<T> {
         match (self, other) {
             (OneOrMany::One(l), OneOrMany::One(r)) => OneOrMany::Many(vec![l, r]),
             (OneOrMany::Many(mut l), OneOrMany::One(r)) => {
@@ -86,47 +87,13 @@ impl<T: Debug + Clone> OneOrMany<T> {
         }
     }
 
-    pub fn into_vec(self) -> Vec<T> {
+    /// The children of one derivation, in order.
+    fn as_slice(&self) -> &[T] {
         match self {
-            OneOrMany::One(item) => vec![item],
+            OneOrMany::Zero => &[],
+            OneOrMany::One(item) => std::slice::from_ref(item),
             OneOrMany::Many(items) => items,
-            OneOrMany::Zero => vec![],
-            OneOrMany::Multi(_) => unreachable!(),
-        }
-    }
-
-    /// Destructure into a fixed-size array without allocating a `Vec` for the
-    /// `Zero` and `One` cases. For `Many`, the existing `Vec` is consumed in place.
-    ///
-    /// The variant must match `N` (`Zero` ↔ 0, `One` ↔ 1, `Many` ↔ >1). The codegen
-    /// guarantees this; any mismatch indicates a bug.
-    pub fn into_array<const N: usize>(self) -> [T; N] {
-        match self {
-            OneOrMany::Zero => {
-                if N != 0 {
-                    unreachable!()
-                }
-                std::array::from_fn(|_| unreachable!())
-            }
-            OneOrMany::One(item) => {
-                if N != 1 {
-                    unreachable!()
-                }
-                let mut item = Some(item);
-                std::array::from_fn(|_| item.take().unwrap())
-            }
-            OneOrMany::Many(items) => match <[T; N]>::try_from(items) {
-                Ok(arr) => arr,
-                Err(_) => unreachable!(),
-            },
-            OneOrMany::Multi(_) => unreachable!(),
-        }
-    }
-
-    pub fn unwrap_one(self) -> T {
-        match self {
-            OneOrMany::One(item) => item,
-            _ => panic!(),
+            OneOrMany::Multi(_) => unreachable!("a derivation is a flat child sequence"),
         }
     }
 }
@@ -148,13 +115,16 @@ pub fn is_ambiguous<'i, 'arena, P: Parser<'i, 'arena>>(parser: &P, root_id: SPPF
     {
         return false;
     }
-    let mut visited = FxHashSet::default();
+    // Before the walk reaches an ambiguous node, only empty nodes can be
+    // shared, so only they are recorded as visited. Every SPPF cycle contains
+    // an ambiguous node, where the walk stops.
+    let mut visited_empty = FxHashSet::default();
     let mut stack = vec![root_id];
     while let Some(id) = stack.pop() {
-        if !visited.insert(id) {
+        let node = parser.sppf_node(id);
+        if node.left_extent() == node.right_extent() && !visited_empty.insert(id) {
             continue;
         }
-        let node = parser.sppf_node(id);
         if node.is_ambiguous() {
             return true;
         }
@@ -174,24 +144,21 @@ pub fn visit_sppf<'i, 'arena, T: Debug + Clone, P: Parser<'i, 'arena>>(
     node_id: SPPFNodeId,
     parser: &P,
     builder: &impl ParseTreeBuilder<T>,
-) -> OneOrMany<T> {
-    // The unsafe mode guarantees one derivation per node, so the specialized
-    // walker skips the memo and the OneOrMany machinery entirely.
-    if P::UNSAFE {
-        return OneOrMany::One(visit_sppf_unambiguous(node_id, parser, builder));
-    }
-    // Memoize across the SPPF only when ambiguity is reachable; otherwise
-    // each node is visited at most once anyway, and the empty map plus its
-    // per-node check would be pure overhead.
+) -> T {
+    // If the SPPF is not ambiguous, that is, no ambiguous node is reachable
+    // from the root, every node has one derivation, and we use the
+    // unambiguous walker, which does not use a memo. The unsafe mode never
+    // creates an ambiguous node, so it skips the check.
     // Every SPPF cycle includes an ambiguous node: closing a cycle adds an
-    // edge to an existing node. So a cyclic SPPF always takes the memoized
-    // path, which the walker relies on to terminate.
-    let mut memo = if is_ambiguous(parser, node_id) {
-        Some(FxHashMap::default())
-    } else {
-        None
-    };
-    visit_sppf_impl(node_id, parser, builder, &mut memo)
+    // edge to an existing node. So a cyclic SPPF always takes the general
+    // walker, which relies on its memo to terminate.
+    if P::UNSAFE || !is_ambiguous(parser, node_id) {
+        return visit_sppf_unambiguous(node_id, parser, builder);
+    }
+    match visit_sppf_impl(node_id, parser, builder) {
+        OneOrMany::One(tree) => tree,
+        _ => unreachable!("the root is a single nonterminal value"),
+    }
 }
 
 /// A frame in the unambiguous walker: `Pre` visits a node, `Post` builds a
@@ -255,7 +222,7 @@ fn visit_sppf_unambiguous<'i, 'arena, T: Debug + Clone, P: Parser<'i, 'arena>>(
             None => break,
             Some(UnambiguousFrame::Pre(node_id)) => next = Some(node_id),
             Some(UnambiguousFrame::Post { node, mark }) => {
-                let result = builder.new_unambiguous_nonterminal_node(node, &values[mark..]);
+                let result = builder.new_nonterminal_node(node, &values[mark..]);
                 values.truncate(mark);
                 values.push(result);
             }
@@ -286,16 +253,14 @@ impl<'arena, T: Debug> Frame<'arena, T> {
     fn enter<'i>(
         node_id: SPPFNodeId,
         parser: &impl Parser<'i, 'arena>,
-        memo: &mut Option<FxHashMap<SPPFNodeId, MemoEntry<T>>>,
+        memo: &mut FxHashMap<SPPFNodeId, MemoEntry<T>>,
     ) -> Self {
         // Only nonterminals are marked active. An intermediate node produces
         // a child sequence rather than a typed value, so a re-entered
         // intermediate node is expanded again until the walk reaches an
         // active nonterminal.
-        if let Some(m) = memo.as_mut()
-            && matches!(parser.sppf_node(node_id), SPPFNode::Nonterminal(_))
-        {
-            m.insert(node_id, MemoEntry::Active(None));
+        if matches!(parser.sppf_node(node_id), SPPFNode::Nonterminal(_)) {
+            memo.insert(node_id, MemoEntry::Active(None));
         }
         Frame {
             node_id,
@@ -310,19 +275,19 @@ fn visit_sppf_impl<'i, 'arena, T: Debug + Clone, P: Parser<'i, 'arena>>(
     root_id: SPPFNodeId,
     parser: &P,
     builder: &impl ParseTreeBuilder<T>,
-    memo: &mut Option<FxHashMap<SPPFNodeId, MemoEntry<T>>>,
 ) -> OneOrMany<T> {
     // A child frame is fully built before its parent visits the next child,
     // so results arrive in source order. Completed nodes are reused;
     // re-entering an active nonterminal produces a Cycle reference.
     let arena = parser.vec_arena();
-    let mut stack = vec![Frame::enter(root_id, parser, memo)];
+    let mut memo = FxHashMap::default();
+    let mut stack = vec![Frame::enter(root_id, parser, &mut memo)];
     loop {
         let top = stack.len() - 1;
         match stack[top].children.get(stack[top].next).copied() {
             Some(child) => {
                 stack[top].next += 1;
-                match memo.as_mut().and_then(|m| m.get_mut(&child)) {
+                match memo.get_mut(&child) {
                     Some(MemoEntry::Done(cached)) => stack[top].results.push(cached.clone(), arena),
                     Some(MemoEntry::Active(cycle)) => {
                         let cycle = cycle.get_or_insert_with(|| {
@@ -335,15 +300,14 @@ fn visit_sppf_impl<'i, 'arena, T: Debug + Clone, P: Parser<'i, 'arena>>(
                             .results
                             .push(OneOrMany::One(cycle.clone()), arena);
                     }
-                    None => stack.push(Frame::enter(child, parser, memo)),
+                    None => stack.push(Frame::enter(child, parser, &mut memo)),
                 }
             }
             None => {
                 let frame = stack.pop().unwrap();
                 let result = build_node(parser, builder, frame.node_id, frame.results);
-                if let Some(m) = memo.as_mut()
-                    && let Some(MemoEntry::Active(Some(cycle))) =
-                        m.insert(frame.node_id, MemoEntry::Done(result.clone()))
+                if let Some(MemoEntry::Active(Some(cycle))) =
+                    memo.insert(frame.node_id, MemoEntry::Done(result.clone()))
                 {
                     let OneOrMany::One(target) = &result else {
                         unreachable!("a cycle target must be a single nonterminal value")
@@ -377,9 +341,7 @@ fn build_node<'i, 'arena, T: Debug + Clone, P: Parser<'i, 'arena>>(
         SPPFNode::Nonterminal(n) => {
             let mut results = results.into_iter();
             let children = results.next().unwrap();
-            // The unsafe mode never marks a node ambiguous and never produces
-            // a `Multi`, so the const guards compile both Amb arms out.
-            if !P::UNSAFE && n.ambiguous {
+            if n.ambiguous {
                 // Each remaining result is a separate derivation of this
                 // nonterminal; collect one alternative per derivation.
                 let mut alternatives = create_nonterminal_nodes(children, n, builder);
@@ -398,17 +360,17 @@ fn build_node<'i, 'arena, T: Debug + Clone, P: Parser<'i, 'arena>>(
                     alternatives.extend(create_nonterminal_nodes(derivation, &synthetic, builder));
                 }
                 OneOrMany::One(builder.new_ambiguity_node(n.nonterminal_id, alternatives))
-            } else if !P::UNSAFE && matches!(children, OneOrMany::Multi(_)) {
+            } else if matches!(children, OneOrMany::Multi(_)) {
                 // `Multi` means derivations from an ambiguous intermediate node
                 // below bubbled up and need the same `Amb` wrapping.
                 let alternatives = create_nonterminal_nodes(children, n, builder);
                 OneOrMany::One(builder.new_ambiguity_node(n.nonterminal_id, alternatives))
             } else {
-                OneOrMany::One(builder.new_nonterminal_node(n, children))
+                OneOrMany::One(builder.new_nonterminal_node(n, children.as_slice()))
             }
         }
         SPPFNode::Intermediate(i) => {
-            if P::UNSAFE || !i.ambiguous {
+            if !i.ambiguous {
                 let mut results = results.into_iter();
                 let left = results.next().unwrap();
                 let right = results.next().unwrap();
@@ -435,50 +397,24 @@ fn build_node<'i, 'arena, T: Debug + Clone, P: Parser<'i, 'arena>>(
 /// as a `Multi` from an ambiguous intermediate node, there are several
 /// derivations of the same alternative and the resulting nodes go into
 /// an `Amb`.
-fn create_nonterminal_nodes<T: Debug>(
+fn create_nonterminal_nodes<T: Debug + Clone>(
     children: OneOrMany<T>,
     node: &NonterminalNode,
     builder: &impl ParseTreeBuilder<T>,
 ) -> Vec<T> {
     match children {
         OneOrMany::Multi(derivations) => derivations
-            .into_iter()
-            .map(|d| builder.new_nonterminal_node(node, d))
+            .iter()
+            .map(|d| builder.new_nonterminal_node(node, d.as_slice()))
             .collect(),
-        single => vec![builder.new_nonterminal_node(node, single)],
+        single => vec![builder.new_nonterminal_node(node, single.as_slice())],
     }
 }
 
 pub trait ParseTreeBuilder<T: Debug> {
     fn new_token(&self, terminal_node: &TerminalNode) -> T;
-    /// Builds a nonterminal node from its children, wrapped in `OneOrMany`
-    /// because an ambiguous parse can deliver several derivations at once.
-    /// Only default-mode builders implement it; the unsafe mode's walker
-    /// never calls it, so there the default covers the signature.
-    fn new_nonterminal_node(
-        &self,
-        nonterminal_node: &NonterminalNode,
-        children: OneOrMany<T>,
-    ) -> T {
-        let _ = (nonterminal_node, children);
-        unimplemented!("only default-mode builders implement this")
-    }
-    /// Builds a nonterminal node from its children, which arrive as a plain
-    /// slice: with one derivation per node there are no `OneOrMany` variants
-    /// to distinguish. Only unsafe-mode builders implement it; the default
-    /// mode's walker never calls it, so there the default covers the
-    /// signature.
-    fn new_unambiguous_nonterminal_node(
-        &self,
-        nonterminal_node: &NonterminalNode,
-        children: &[T],
-    ) -> T {
-        let _ = (nonterminal_node, children);
-        unimplemented!(
-            "only unsafe-mode builders implement this; a panic here means the parser \
-             was generated before the unsafe-mode walker and must be regenerated"
-        )
-    }
+    /// Builds a nonterminal node from the children of one derivation, in order.
+    fn new_nonterminal_node(&self, nonterminal_node: &NonterminalNode, children: &[T]) -> T;
     fn new_ambiguity_node(&self, parent: NonterminalId, alternatives: Vec<T>) -> T {
         let _ = (parent, alternatives);
         unimplemented!("ambiguity handling not yet implemented for this builder")

@@ -5,7 +5,7 @@ use iguana_runtime::{
     arena::Arena,
     ids::{NonterminalId, SPPFNodeId, SlotId, TerminalId},
     input::Span,
-    parse_tree::{NodeKind, OneOrMany, Origin, ParseTreeBuilder, ParseTreeNode, visit_sppf},
+    parse_tree::{NodeKind, Origin, ParseTreeBuilder, ParseTreeNode, visit_sppf},
     sppf::{NonterminalNode, TerminalNode},
 };
 use std::vec::IntoIter;
@@ -163,19 +163,19 @@ impl<'a> ParseTree<'a> {
     pub(crate) fn unwrap_syntax_identifier(self) -> &'a SyntaxIdentifier<'a> {
         match self {
             ParseTree::SyntaxIdentifier(syntax_identifier) => syntax_identifier,
-            _ => panic!(),
+            _ => Self::unexpected_node(),
         }
     }
     pub(crate) fn unwrap_lexical_identifier(self) -> &'a LexicalIdentifier<'a> {
         match self {
             ParseTree::LexicalIdentifier(lexical_identifier) => lexical_identifier,
-            _ => panic!(),
+            _ => Self::unexpected_node(),
         }
     }
     pub(crate) fn unwrap_start_syntax_identifier(self) -> &'a Start<&'a SyntaxIdentifier<'a>, ()> {
         match self {
             ParseTree::StartSyntaxIdentifier(start_syntax_identifier) => start_syntax_identifier,
-            _ => panic!(),
+            _ => Self::unexpected_node(),
         }
     }
     pub(crate) fn unwrap_start_lexical_identifier(
@@ -183,14 +183,21 @@ impl<'a> ParseTree<'a> {
     ) -> &'a Start<&'a LexicalIdentifier<'a>, ()> {
         match self {
             ParseTree::StartLexicalIdentifier(start_lexical_identifier) => start_lexical_identifier,
-            _ => panic!(),
+            _ => Self::unexpected_node(),
         }
     }
     fn unwrap_token(self) -> Token {
         match self {
             ParseTree::Token(t) => t,
-            _ => panic!(),
+            _ => Self::unexpected_node(),
         }
+    }
+    ///The shared failure of the `unwrap_*` methods. One cold function keeps
+    ///the builder from carrying a separate panic site per child.
+    #[cold]
+    #[inline(never)]
+    fn unexpected_node() -> ! {
+        unreachable!("unexpected parse tree node")
     }
 }
 pub trait ListNode<'a> {
@@ -388,61 +395,53 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for MultipleExceptParseTreeBuilder<'a> 
     fn new_nonterminal_node(
         &self,
         nonterminal_node: &NonterminalNode,
-        children: OneOrMany<ParseTree<'a>>,
+        children: &[ParseTree<'a>],
     ) -> ParseTree<'a> {
-        match nonterminal_node.nonterminal_id {
-            // SyntaxIdentifier
-            NonterminalId(0) => match nonterminal_node.return_slot {
-                // SyntaxIdentifier = IdentifierChars
-                SlotId(1) => {
-                    let [identifier_chars] = children.into_array::<1usize>();
-                    ParseTree::SyntaxIdentifier(self.arena.alloc(SyntaxIdentifier::Alt0 {
-                        identifier_chars: identifier_chars.unwrap_token(),
-                        span: nonterminal_node.span,
-                    }))
-                }
-                _ => unreachable!(),
-            },
-            // LexicalIdentifier
-            NonterminalId(1) => match nonterminal_node.return_slot {
-                // LexicalIdentifier = Identifier
-                SlotId(3) => {
-                    let [identifier] = children.into_array::<1usize>();
-                    ParseTree::LexicalIdentifier(self.arena.alloc(LexicalIdentifier::Alt0 {
-                        identifier: identifier.unwrap_token(),
-                        span: nonterminal_node.span,
-                    }))
-                }
-                _ => unreachable!(),
-            },
-            // StartSyntaxIdentifier
-            NonterminalId(2) => match nonterminal_node.return_slot {
-                // StartSyntaxIdentifier = start:SyntaxIdentifier
-                SlotId(5) => {
-                    let [start] = children.into_array::<1usize>();
-                    ParseTree::StartSyntaxIdentifier(self.arena.alloc(Start {
-                        before: (),
-                        node: start.unwrap_syntax_identifier(),
-                        after: (),
-                        span: nonterminal_node.span,
-                    }))
-                }
-                _ => unreachable!(),
-            },
-            // StartLexicalIdentifier
-            NonterminalId(3) => match nonterminal_node.return_slot {
-                // StartLexicalIdentifier = start:LexicalIdentifier
-                SlotId(7) => {
-                    let [start] = children.into_array::<1usize>();
-                    ParseTree::StartLexicalIdentifier(self.arena.alloc(Start {
-                        before: (),
-                        node: start.unwrap_lexical_identifier(),
-                        after: (),
-                        span: nonterminal_node.span,
-                    }))
-                }
-                _ => unreachable!(),
-            },
+        match nonterminal_node.return_slot {
+            // SyntaxIdentifier = IdentifierChars
+            SlotId(1) => {
+                let &[identifier_chars] = children else {
+                    ParseTree::unexpected_node()
+                };
+                ParseTree::SyntaxIdentifier(self.arena.alloc(SyntaxIdentifier::Alt0 {
+                    identifier_chars: identifier_chars.unwrap_token(),
+                    span: nonterminal_node.span,
+                }))
+            }
+            // LexicalIdentifier = Identifier
+            SlotId(3) => {
+                let &[identifier] = children else {
+                    ParseTree::unexpected_node()
+                };
+                ParseTree::LexicalIdentifier(self.arena.alloc(LexicalIdentifier::Alt0 {
+                    identifier: identifier.unwrap_token(),
+                    span: nonterminal_node.span,
+                }))
+            }
+            // StartSyntaxIdentifier = start:SyntaxIdentifier
+            SlotId(5) => {
+                let &[start] = children else {
+                    ParseTree::unexpected_node()
+                };
+                ParseTree::StartSyntaxIdentifier(self.arena.alloc(Start {
+                    before: (),
+                    node: start.unwrap_syntax_identifier(),
+                    after: (),
+                    span: nonterminal_node.span,
+                }))
+            }
+            // StartLexicalIdentifier = start:LexicalIdentifier
+            SlotId(7) => {
+                let &[start] = children else {
+                    ParseTree::unexpected_node()
+                };
+                ParseTree::StartLexicalIdentifier(self.arena.alloc(Start {
+                    before: (),
+                    node: start.unwrap_lexical_identifier(),
+                    after: (),
+                    span: nonterminal_node.span,
+                }))
+            }
             _ => unreachable!(),
         }
     }
@@ -521,24 +520,16 @@ pub fn create_parse_tree<'a>(
     };
     match root.nonterminal_id {
         grammar::SYNTAX_IDENTIFIER => ParseTree::SyntaxIdentifier(
-            visit_sppf(root_id, parser, builder)
-                .unwrap_one()
-                .unwrap_syntax_identifier(),
+            visit_sppf(root_id, parser, builder).unwrap_syntax_identifier(),
         ),
         grammar::LEXICAL_IDENTIFIER => ParseTree::LexicalIdentifier(
-            visit_sppf(root_id, parser, builder)
-                .unwrap_one()
-                .unwrap_lexical_identifier(),
+            visit_sppf(root_id, parser, builder).unwrap_lexical_identifier(),
         ),
         grammar::START_SYNTAX_IDENTIFIER => ParseTree::StartSyntaxIdentifier(
-            visit_sppf(root_id, parser, builder)
-                .unwrap_one()
-                .unwrap_start_syntax_identifier(),
+            visit_sppf(root_id, parser, builder).unwrap_start_syntax_identifier(),
         ),
         grammar::START_LEXICAL_IDENTIFIER => ParseTree::StartLexicalIdentifier(
-            visit_sppf(root_id, parser, builder)
-                .unwrap_one()
-                .unwrap_start_lexical_identifier(),
+            visit_sppf(root_id, parser, builder).unwrap_start_lexical_identifier(),
         ),
         _ => panic!(),
     }

@@ -265,26 +265,26 @@ impl<'a> ParseTreeGen<'a> {
 
     fn gen_imports(&self) -> TokenStream {
         let parser_name = parser_ident(&self.grammar.name);
-        // The unsafe mode's builder takes children as a slice, so OneOrMany
-        // never appears in its generated code.
-        let one_or_many = if self.config.unsafe_mode {
-            quote! {}
-        } else {
-            quote! { OneOrMany, }
-        };
         let cycle_target = if self.cyclic_nonterminals.is_empty() {
             quote! {}
         } else {
             quote! { CycleTarget, }
         };
+        // Only the ambiguity node names a nonterminal id, and the unsafe mode
+        // emits no ambiguity node.
+        let nonterminal_id = if self.config.unsafe_mode {
+            quote! {}
+        } else {
+            quote! { NonterminalId, }
+        };
         quote! {
             use std::vec::IntoIter;
             use iguana_runtime::{
                 arena::Arena,
-                ids::{NonterminalId, SPPFNodeId, SlotId, TerminalId},
+                ids::{#nonterminal_id SPPFNodeId, SlotId, TerminalId},
                 input::Span,
                 parse_tree::{
-                    #cycle_target NodeKind, #one_or_many Origin, ParseTreeBuilder,
+                    #cycle_target NodeKind, Origin, ParseTreeBuilder,
                     ParseTreeNode, visit_sppf,
                 },
                 sppf::{NonterminalNode, TerminalNode},
@@ -958,7 +958,7 @@ impl<'a> ParseTreeGen<'a> {
         let nonterminal_cases: Vec<TokenStream> = self
             .nonterminal_ids
             .ids()
-            .map(|nonterminal_id| {
+            .flat_map(|nonterminal_id| {
                 let nonterminal = self.nonterminal_ids.get_nonterminal(nonterminal_id);
                 let slot_cases: Vec<TokenStream> = self
                     .nonterminal_ids
@@ -969,7 +969,6 @@ impl<'a> ParseTreeGen<'a> {
                         let alternative = &alternatives[index];
                         let end_slot_id = end_slot.slot_id;
                         let rule_comment = structural_rule(self.grammar, nonterminal, alternative);
-                        let num_symbols = alternative.symbols.iter().filter(|s| s.is_parse_tree_symbol()).count();
                         let field_names = field_names(self.grammar, alternative);
                         let method_calls: Vec<_> = alternative
                             .symbols
@@ -1021,13 +1020,8 @@ impl<'a> ParseTreeGen<'a> {
                                 }))
                             }
                         };
-                        // In the unsafe mode the children arrive as a slice of
-                        // statically known length; the default mode unpacks the
-                        // OneOrMany the general walker accumulates.
-                        let bind_children = if self.config.unsafe_mode {
-                            quote! { let &[#(#field_names),*] = children else { unreachable!() }; }
-                        } else {
-                            quote! { let [#(#field_names),*] = children.into_array::<#num_symbols>(); }
+                        let bind_children = quote! {
+                            let &[#(#field_names),*] = children else { ParseTree::unexpected_node() };
                         };
                         quote! {
                             #[comment = #rule_comment]
@@ -1038,34 +1032,18 @@ impl<'a> ParseTreeGen<'a> {
                         }
                     })
                     .collect();
-                let nonterminal_name = &nonterminal.name;
-                quote! {
-                    #[comment = #nonterminal_name]
-                    #nonterminal_id => match nonterminal_node.return_slot {
-                        #(#slot_cases,)*
-                        _ => unreachable!()
-                    }
-                }
+                slot_cases
             })
             .collect();
-        let (method_name, children_type) = if self.config.unsafe_mode {
-            (
-                format_ident!("new_unambiguous_nonterminal_node"),
-                quote! { &[ParseTree<'a>] },
-            )
-        } else {
-            (
-                format_ident!("new_nonterminal_node"),
-                quote! { OneOrMany<ParseTree<'a>> },
-            )
-        };
+        // Slot ids are unique across the grammar, so the end slot alone
+        // selects the alternative, in one jump table.
         quote! {
-            fn #method_name(
+            fn new_nonterminal_node(
                 &self,
                 nonterminal_node: &NonterminalNode,
-                children: #children_type
+                children: &[ParseTree<'a>]
             ) -> ParseTree<'a> {
-                match nonterminal_node.nonterminal_id {
+                match nonterminal_node.return_slot {
                     #(#nonterminal_cases),*
                     _ => unreachable!()
                 }
@@ -1124,8 +1102,15 @@ impl<'a> ParseTreeGen<'a> {
                 fn unwrap_token(self) -> Token {
                     match self {
                         ParseTree::Token(t) => t,
-                        _ => panic!(),
+                        _ => Self::unexpected_node(),
                     }
+                }
+                #[doc = "The shared failure of the `unwrap_*` methods. One cold function keeps"]
+                #[doc = "the builder from carrying a separate panic site per child."]
+                #[cold]
+                #[inline(never)]
+                fn unexpected_node() -> ! {
+                    unreachable!("unexpected parse tree node")
                 }
             }
         }
@@ -1172,7 +1157,7 @@ impl<'a> ParseTreeGen<'a> {
                     pub(crate) fn #method_ident(self) -> &'a #return_type {
                         match self {
                             ParseTree::#variant(#var) => #var,
-                            _ => panic!(),
+                            _ => Self::unexpected_node(),
                         }
                     }
                 }
@@ -2023,7 +2008,7 @@ impl<'a> ParseTreeGen<'a> {
                 let variant_name = nt_ident(name);
                 quote! {
                     grammar::#const_name => ParseTree::#variant_name(
-                        visit_sppf(root_id, parser, builder).unwrap_one().#unwrap_method(),
+                        visit_sppf(root_id, parser, builder).#unwrap_method(),
                     )
                 }
             })
