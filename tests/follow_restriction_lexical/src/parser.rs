@@ -83,48 +83,6 @@ impl<'i, 'arena> Parser<'i, 'arena> for FollowRestrictionLexicalParser<'i, 'aren
                         };
                         self.pop(gss_node_id, SlotId(1), result, None, &FOLLOW_SET_S);
                     }
-                    // Element : . Num
-                    SlotId(2) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(0),
-                            input_index,
-                            SlotId(2),
-                            Some(gss_node_id),
-                        ) {
-                            // Element : Num.
-                            input_index = j;
-                            result = Some(right_child);
-                            next = Some(SlotId(3));
-                        }
-                    }
-                    // Element : Num.
-                    SlotId(3) => {
-                        let Some(result) = result else {
-                            unreachable!("result cannot be None here.")
-                        };
-                        self.pop(gss_node_id, SlotId(3), result, None, &FOLLOW_SET_ELEMENT);
-                    }
-                    // Element : . Id
-                    SlotId(4) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(2),
-                            input_index,
-                            SlotId(4),
-                            Some(gss_node_id),
-                        ) {
-                            // Element : Id.
-                            input_index = j;
-                            result = Some(right_child);
-                            next = Some(SlotId(5));
-                        }
-                    }
-                    // Element : Id.
-                    SlotId(5) => {
-                        let Some(result) = result else {
-                            unreachable!("result cannot be None here.")
-                        };
-                        self.pop(gss_node_id, SlotId(5), result, None, &FOLLOW_SET_ELEMENT);
-                    }
                     // Plus_0 : . Plus_0 WS Element
                     SlotId(6) => {
                         self.create(
@@ -841,62 +799,7 @@ impl<'i, 'arena> FollowRestrictionLexicalParser<'i, 'arena> {
     ) -> Option<(u32, SPPFNodeId)> {
         #[cfg(feature = "instrument")]
         self.ll1_call_log.push((NonterminalId(1), i));
-        let result = (|| -> Option<(u32, SPPFNodeId)> {
-            let matched = self.scanner.longest_match(&FIRST_SET_ELEMENT, i)?;
-            match matched {
-                TerminalId(0) => {
-                    let mut j = i;
-                    let right_child = {
-                        let start = j;
-                        let (end, node) =
-                            self.match_terminal(TerminalId(0), start, SlotId(3), None)?;
-                        j = end;
-                        node
-                    };
-                    let left_extent = i;
-                    let current = right_child;
-                    Some((
-                        j,
-                        self.add_nonterminal_node(NonterminalNode {
-                            nonterminal_id: NonterminalId(1),
-                            return_slot: SlotId(3),
-                            span: Span {
-                                left_extent,
-                                right_extent: j,
-                            },
-                            child: current,
-                            ambiguous: false,
-                        }),
-                    ))
-                }
-                TerminalId(2) => {
-                    let mut j = i;
-                    let right_child = {
-                        let start = j;
-                        let (end, node) =
-                            self.match_terminal(TerminalId(2), start, SlotId(5), None)?;
-                        j = end;
-                        node
-                    };
-                    let left_extent = i;
-                    let current = right_child;
-                    Some((
-                        j,
-                        self.add_nonterminal_node(NonterminalNode {
-                            nonterminal_id: NonterminalId(1),
-                            return_slot: SlotId(5),
-                            span: Span {
-                                left_extent,
-                                right_extent: j,
-                            },
-                            child: current,
-                            ambiguous: false,
-                        }),
-                    ))
-                }
-                _ => unreachable!("LL(1) dispatch covers every terminal in FIRST_SET"),
-            }
-        })();
+        let result = self.parse_element_ll1_body(i);
         if result.is_none() {
             if let Some(slot_id) = failure_context {
                 self.add_failure(
@@ -908,5 +811,60 @@ impl<'i, 'arena> FollowRestrictionLexicalParser<'i, 'arena> {
             }
         }
         result
+    }
+    #[inline(always)]
+    fn parse_element_ll1_body(&mut self, i: u32) -> Option<(u32, SPPFNodeId)> {
+        let matched = self.scanner.longest_match(&FIRST_SET_ELEMENT, i)?;
+        match matched {
+            TerminalId(0) => {
+                let mut j = i;
+                let right_child = {
+                    let start = j;
+                    let (end, node) = self.match_terminal(TerminalId(0), start, SlotId(3), None)?;
+                    j = end;
+                    node
+                };
+                let left_extent = i;
+                let current = right_child;
+                Some((
+                    j,
+                    self.add_nonterminal_node(NonterminalNode {
+                        nonterminal_id: NonterminalId(1),
+                        return_slot: SlotId(3),
+                        span: Span {
+                            left_extent,
+                            right_extent: j,
+                        },
+                        child: current,
+                        ambiguous: false,
+                    }),
+                ))
+            }
+            TerminalId(2) => {
+                let mut j = i;
+                let right_child = {
+                    let start = j;
+                    let (end, node) = self.match_terminal(TerminalId(2), start, SlotId(5), None)?;
+                    j = end;
+                    node
+                };
+                let left_extent = i;
+                let current = right_child;
+                Some((
+                    j,
+                    self.add_nonterminal_node(NonterminalNode {
+                        nonterminal_id: NonterminalId(1),
+                        return_slot: SlotId(5),
+                        span: Span {
+                            left_extent,
+                            right_extent: j,
+                        },
+                        child: current,
+                        ambiguous: false,
+                    }),
+                ))
+            }
+            _ => unreachable!("LL(1) dispatch covers every terminal in FIRST_SET"),
+        }
     }
 }

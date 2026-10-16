@@ -79,25 +79,58 @@ impl<'a> ParserGen<'a> {
             .unwrap_or(false)
     }
 
-    /// Names of the nonterminals reached by some rule, i.e. referenced as a
-    /// symbol in some alternative.
-    fn reachable_nonterminals(&self) -> FxHashSet<&'a str> {
-        let mut reachable = FxHashSet::default();
-        for nonterminal in self.grammar.nonterminals() {
-            for alternative in self.grammar.alternatives(nonterminal) {
-                for symbol in &alternative.symbols {
-                    let Some(identifier) = symbol.as_identifier() else {
-                        continue;
-                    };
-                    if let Definition::Nonterminal(n) =
-                        self.grammar.definition(identifier.resolve())
-                    {
-                        reachable.insert(n.name.as_str());
+    /// Whether `execute` gets slots for `nonterminal`. We generate slots for
+    /// the non-LL(1) nonterminals and for the start wrappers, where the parse
+    /// begins.
+    fn should_generate_slots(&self, nonterminal: &Nonterminal) -> bool {
+        !self.ll1_nonterminals.contains(nonterminal) || self.grammar.is_start(nonterminal)
+    }
+
+    /// The (caller, callee) pair for every nonterminal head and each
+    /// nonterminal in its alternatives.
+    fn calls(&self) -> impl Iterator<Item = (&'a Nonterminal, &'a Nonterminal)> + '_ {
+        self.grammar.nonterminals().flat_map(move |caller| {
+            self.grammar
+                .alternatives(caller)
+                .iter()
+                .flat_map(|alternative| &alternative.symbols)
+                .filter_map(move |symbol| {
+                    match self.grammar.definition(symbol.as_identifier()?.resolve()) {
+                        Definition::Nonterminal(callee) => Some((caller, callee)),
+                        _ => None,
                     }
-                }
+                })
+        })
+    }
+
+    /// The nonterminals reached by some rule, i.e. referenced as a symbol in
+    /// some alternative.
+    fn reachable_nonterminals(&self) -> FxHashSet<&'a Nonterminal> {
+        self.calls().map(|(_, callee)| callee).collect()
+    }
+
+    /// The LL(1) nonterminals whose methods are inlined into their callers:
+    /// those that only other LL(1) methods call. A method that a slot in
+    /// `execute` calls is not inlined, since that would copy its body into
+    /// `execute`. The method for parsing layout is not inlined.
+    fn inlined_ll1_nonterminals(&self) -> FxHashSet<&'a Nonterminal> {
+        let mut called_from_execute = FxHashSet::default();
+        let mut called_from_ll1 = FxHashSet::default();
+        for (caller, callee) in self.calls() {
+            if !self.ll1_nonterminals.contains(callee) {
+                continue;
+            }
+            if self.should_generate_slots(caller) {
+                called_from_execute.insert(callee);
+            } else {
+                called_from_ll1.insert(callee);
             }
         }
-        reachable
+        called_from_ll1
+            .difference(&called_from_execute)
+            .copied()
+            .filter(|nonterminal| !self.is_layout(nonterminal))
+            .collect()
     }
 
     fn has_empty_alternative(&self) -> bool {
@@ -346,6 +379,12 @@ impl<'a> ParserGen<'a> {
     fn gen_execute_method(&self) -> TokenStream {
         let mut slot_quotes = vec![];
         for nonterminal in self.grammar.nonterminals() {
+            // An LL(1) nonterminal is parsed by its LL(1) method, so we do not
+            // create a slot entry in the execute method for it, except for a
+            // start wrapper.
+            if !self.should_generate_slots(nonterminal) {
+                continue;
+            }
             let alternatives = self.grammar.alternatives(nonterminal);
             for alternative in alternatives.iter() {
                 for pos in 0..alternative.symbols.len() {
@@ -978,11 +1017,15 @@ impl<'a> ParserGen<'a> {
             .map(|(i, n)| self.gen_create_method(n, i))
             .collect();
         let reachable = self.reachable_nonterminals();
+        let inlined = self.inlined_ll1_nonterminals();
         let ll1_parse_methods: Vec<_> = self
             .grammar
             .nonterminals()
-            .filter(|nt| self.ll1_nonterminals.contains(nt) && reachable.contains(nt.name.as_str()))
-            .map(|nt| self.gen_parse_method_ll1(nt, self.is_layout(nt)))
+            .filter(|nt| self.ll1_nonterminals.contains(nt) && reachable.contains(nt))
+            .map(|nt| {
+                let inline = inlined.contains(nt);
+                self.gen_parse_method_ll1(nt, self.is_layout(nt), inline)
+            })
             .collect();
         let get_gss_node_methods: Vec<_> = self
             .nonterminal_ids
@@ -1409,10 +1452,15 @@ impl<'a> ParserGen<'a> {
     /// predicting an alternative is not an error for it. Its `parse_X_ll1`
     /// matches its nullable alternative rather than returning None on a
     /// prediction failure, so it never records a FIRST-set error.
-    fn gen_parse_method_ll1(&self, nonterminal: &'a Nonterminal, memoize: bool) -> TokenStream {
+    fn gen_parse_method_ll1(
+        &self,
+        nonterminal: &'a Nonterminal,
+        memoize: bool,
+        inline: bool,
+    ) -> TokenStream {
         // For Plus, generate a loop rather than matching the left-recursive
         // desugared alternatives, which would cause infinite recursion.
-        // Star is desugared as `(A+)?`, so Opt and Star are handled by the
+        // Star is desugared as `A+ | ε`, so Opt and Star are handled by the
         // standard alternative-matching below.
         let is_plus = matches!(&nonterminal.origin, Some(Symbol::Plus(_, _)));
         let method_name = format_ident!("parse_{}_ll1", to_snake_case(&nonterminal.name));
@@ -1459,24 +1507,45 @@ impl<'a> ParserGen<'a> {
         } else {
             (quote! {}, quote! {})
         };
-        let body_tokens = if failure_set.is_some() || memoize {
+        // The body returns early with `?`, so it moves to a separate body
+        // method, and the outer method records the failure and the memo entry
+        // around the call. The body is a method rather than a closure because
+        // a closure cannot be marked `#[inline(always)]`, and an inlined method
+        // must inline its body too.
+        let body_method_name = format_ident!("{}_body", method_name);
+        let (body_tokens, body_method) = if failure_set.is_some() || memoize {
+            (
+                quote! {
+                    let result = self.#body_method_name(i);
+                    #record_failure
+                    #memo_store
+                    result
+                },
+                quote! {
+                    #[inline(always)]
+                    fn #body_method_name(&mut self, i: u32) -> Option<(u32, SPPFNodeId)> {
+                        #body_tokens
+                    }
+                },
+            )
+        } else {
+            (body_tokens, quote! {})
+        };
+        let inline_attribute = if inline {
             quote! {
-                let result = (|| -> Option<(u32, SPPFNodeId)> {
-                    #body_tokens
-                })();
-                #record_failure
-                #memo_store
-                result
+                // Inline. Only LL(1) methods call this method.
+                #[inline(always)]
             }
         } else {
-            body_tokens
+            quote! {
+                // Do not inline. `execute` calls this method from every slot
+                // that calls the nonterminal. Inlining would copy the body into
+                // each call site and grow `execute`.
+                #[inline(never)]
+            }
         };
         quote! {
-            // Do not inline. `execute` calls this method from every slot that
-            // calls the nonterminal, and the other LL(1) methods call it from
-            // their alternatives. Inlining would copy the body into each call
-            // site and grow `execute` and the LL(1) methods.
-            #[inline(never)]
+            #inline_attribute
             fn #method_name(
                 &mut self,
                 i: u32,
@@ -1486,6 +1555,7 @@ impl<'a> ParserGen<'a> {
                 #memo_lookup
                 #body_tokens
             }
+            #body_method
         }
     }
 

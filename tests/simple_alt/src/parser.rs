@@ -51,7 +51,6 @@ impl<'i, 'arena> Parser<'i, 'arena> for SimpleAltParser<'i, 'arena> {
             let mut input_index = descriptor.input_index;
             let mut result = descriptor.sppf_node_id;
             let gss_node_id = descriptor.gss_node_id;
-            let env = descriptor.env_id;
             let mut next = Some(descriptor.slot_id);
             while let Some(slot_id) = next {
                 next = None;
@@ -64,158 +63,6 @@ impl<'i, 'arena> Parser<'i, 'arena> for SimpleAltParser<'i, 'arena> {
                     gss_node_id
                 );
                 match slot_id {
-                    // A : . B Alt_0
-                    SlotId(0) => {
-                        if let Some((j, right_child)) = self.parse_b_ll1(input_index, None) {
-                            // A : B . Alt_0
-                            input_index = j;
-                            result = Some(right_child);
-                            next = Some(SlotId(1));
-                        } else {
-                            self.add_failure(
-                                input_index,
-                                SlotId(0),
-                                Some(gss_node_id),
-                                GLLFailureKind::UnexpectedToken(&FIRST_SET_B),
-                            );
-                        }
-                    }
-                    // A : B . Alt_0
-                    SlotId(1) => {
-                        if let Some((j, right_child)) = self.parse_alt_0_ll1(input_index, None) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(2), env)
-                            {
-                                // A : B Alt_0.
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(2));
-                            }
-                        } else {
-                            self.add_failure(
-                                input_index,
-                                SlotId(1),
-                                Some(gss_node_id),
-                                GLLFailureKind::UnexpectedToken(&FIRST_SET_ALT_0),
-                            );
-                        }
-                    }
-                    // A : B Alt_0.
-                    SlotId(2) => {
-                        let Some(result) = result else {
-                            unreachable!("result cannot be None here.")
-                        };
-                        self.pop(gss_node_id, SlotId(2), result, None, &FOLLOW_SET_A);
-                    }
-                    // B : . "b"
-                    SlotId(3) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(0),
-                            input_index,
-                            SlotId(3),
-                            Some(gss_node_id),
-                        ) {
-                            // B : "b".
-                            input_index = j;
-                            result = Some(right_child);
-                            next = Some(SlotId(4));
-                        }
-                    }
-                    // B : "b".
-                    SlotId(4) => {
-                        let Some(result) = result else {
-                            unreachable!("result cannot be None here.")
-                        };
-                        self.pop(gss_node_id, SlotId(4), result, None, &FOLLOW_SET_B);
-                    }
-                    // C : . "c"
-                    SlotId(5) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(5),
-                            Some(gss_node_id),
-                        ) {
-                            // C : "c".
-                            input_index = j;
-                            result = Some(right_child);
-                            next = Some(SlotId(6));
-                        }
-                    }
-                    // C : "c".
-                    SlotId(6) => {
-                        let Some(result) = result else {
-                            unreachable!("result cannot be None here.")
-                        };
-                        self.pop(gss_node_id, SlotId(6), result, None, &FOLLOW_SET_C);
-                    }
-                    // D : . "d"
-                    SlotId(7) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(2),
-                            input_index,
-                            SlotId(7),
-                            Some(gss_node_id),
-                        ) {
-                            // D : "d".
-                            input_index = j;
-                            result = Some(right_child);
-                            next = Some(SlotId(8));
-                        }
-                    }
-                    // D : "d".
-                    SlotId(8) => {
-                        let Some(result) = result else {
-                            unreachable!("result cannot be None here.")
-                        };
-                        self.pop(gss_node_id, SlotId(8), result, None, &FOLLOW_SET_D);
-                    }
-                    // Alt_0 : . C
-                    SlotId(9) => {
-                        if let Some((j, right_child)) = self.parse_c_ll1(input_index, None) {
-                            // Alt_0 : C.
-                            input_index = j;
-                            result = Some(right_child);
-                            next = Some(SlotId(10));
-                        } else {
-                            self.add_failure(
-                                input_index,
-                                SlotId(9),
-                                Some(gss_node_id),
-                                GLLFailureKind::UnexpectedToken(&FIRST_SET_C),
-                            );
-                        }
-                    }
-                    // Alt_0 : C.
-                    SlotId(10) => {
-                        let Some(result) = result else {
-                            unreachable!("result cannot be None here.")
-                        };
-                        self.pop(gss_node_id, SlotId(10), result, None, &FOLLOW_SET_ALT_0);
-                    }
-                    // Alt_0 : . D
-                    SlotId(11) => {
-                        if let Some((j, right_child)) = self.parse_d_ll1(input_index, None) {
-                            // Alt_0 : D.
-                            input_index = j;
-                            result = Some(right_child);
-                            next = Some(SlotId(12));
-                        } else {
-                            self.add_failure(
-                                input_index,
-                                SlotId(11),
-                                Some(gss_node_id),
-                                GLLFailureKind::UnexpectedToken(&FIRST_SET_D),
-                            );
-                        }
-                    }
-                    // Alt_0 : D.
-                    SlotId(12) => {
-                        let Some(result) = result else {
-                            unreachable!("result cannot be None here.")
-                        };
-                        self.pop(gss_node_id, SlotId(12), result, None, &FOLLOW_SET_ALT_0);
-                    }
                     // StartA : . start:A
                     SlotId(13) => {
                         if let Some((j, right_child)) = self.parse_a_ll1(input_index, None) {
@@ -846,49 +693,7 @@ impl<'i, 'arena> SimpleAltParser<'i, 'arena> {
     ) -> Option<(u32, SPPFNodeId)> {
         #[cfg(feature = "instrument")]
         self.ll1_call_log.push((NonterminalId(0), i));
-        let result = (|| -> Option<(u32, SPPFNodeId)> {
-            let matched = self.scanner.longest_match(&FIRST_SET_A, i)?;
-            match matched {
-                TerminalId(0) => {
-                    let mut j = i;
-                    let right_child = {
-                        let start = j;
-                        let (end, node) = self.parse_b_ll1(start, Some(SlotId(1)))?;
-                        j = end;
-                        node
-                    };
-                    let left_extent = i;
-                    let mut current = right_child;
-                    let right_child = {
-                        let start = j;
-                        let (end, node) = self.parse_alt_0_ll1(start, Some(SlotId(2)))?;
-                        j = end;
-                        node
-                    };
-                    current = self.create_intermediate_node_ll1(
-                        SlotId(2),
-                        left_extent,
-                        j,
-                        current,
-                        right_child,
-                    );
-                    Some((
-                        j,
-                        self.add_nonterminal_node(NonterminalNode {
-                            nonterminal_id: NonterminalId(0),
-                            return_slot: SlotId(2),
-                            span: Span {
-                                left_extent,
-                                right_extent: j,
-                            },
-                            child: current,
-                            ambiguous: false,
-                        }),
-                    ))
-                }
-                _ => unreachable!("LL(1) dispatch covers every terminal in FIRST_SET"),
-            }
-        })();
+        let result = self.parse_a_ll1_body(i);
         if result.is_none() {
             if let Some(slot_id) = failure_context {
                 self.add_failure(
@@ -901,6 +706,50 @@ impl<'i, 'arena> SimpleAltParser<'i, 'arena> {
         }
         result
     }
+    #[inline(always)]
+    fn parse_a_ll1_body(&mut self, i: u32) -> Option<(u32, SPPFNodeId)> {
+        let matched = self.scanner.longest_match(&FIRST_SET_A, i)?;
+        match matched {
+            TerminalId(0) => {
+                let mut j = i;
+                let right_child = {
+                    let start = j;
+                    let (end, node) = self.parse_b_ll1(start, Some(SlotId(1)))?;
+                    j = end;
+                    node
+                };
+                let left_extent = i;
+                let mut current = right_child;
+                let right_child = {
+                    let start = j;
+                    let (end, node) = self.parse_alt_0_ll1(start, Some(SlotId(2)))?;
+                    j = end;
+                    node
+                };
+                current = self.create_intermediate_node_ll1(
+                    SlotId(2),
+                    left_extent,
+                    j,
+                    current,
+                    right_child,
+                );
+                Some((
+                    j,
+                    self.add_nonterminal_node(NonterminalNode {
+                        nonterminal_id: NonterminalId(0),
+                        return_slot: SlotId(2),
+                        span: Span {
+                            left_extent,
+                            right_extent: j,
+                        },
+                        child: current,
+                        ambiguous: false,
+                    }),
+                ))
+            }
+            _ => unreachable!("LL(1) dispatch covers every terminal in FIRST_SET"),
+        }
+    }
     #[inline(never)]
     fn parse_b_ll1(
         &mut self,
@@ -909,37 +758,7 @@ impl<'i, 'arena> SimpleAltParser<'i, 'arena> {
     ) -> Option<(u32, SPPFNodeId)> {
         #[cfg(feature = "instrument")]
         self.ll1_call_log.push((NonterminalId(1), i));
-        let result = (|| -> Option<(u32, SPPFNodeId)> {
-            let matched = self.scanner.longest_match(&FIRST_SET_B, i)?;
-            match matched {
-                TerminalId(0) => {
-                    let mut j = i;
-                    let right_child = {
-                        let start = j;
-                        let (end, node) =
-                            self.match_terminal(TerminalId(0), start, SlotId(4), None)?;
-                        j = end;
-                        node
-                    };
-                    let left_extent = i;
-                    let current = right_child;
-                    Some((
-                        j,
-                        self.add_nonterminal_node(NonterminalNode {
-                            nonterminal_id: NonterminalId(1),
-                            return_slot: SlotId(4),
-                            span: Span {
-                                left_extent,
-                                right_extent: j,
-                            },
-                            child: current,
-                            ambiguous: false,
-                        }),
-                    ))
-                }
-                _ => unreachable!("LL(1) dispatch covers every terminal in FIRST_SET"),
-            }
-        })();
+        let result = self.parse_b_ll1_body(i);
         if result.is_none() {
             if let Some(slot_id) = failure_context {
                 self.add_failure(
@@ -952,6 +771,37 @@ impl<'i, 'arena> SimpleAltParser<'i, 'arena> {
         }
         result
     }
+    #[inline(always)]
+    fn parse_b_ll1_body(&mut self, i: u32) -> Option<(u32, SPPFNodeId)> {
+        let matched = self.scanner.longest_match(&FIRST_SET_B, i)?;
+        match matched {
+            TerminalId(0) => {
+                let mut j = i;
+                let right_child = {
+                    let start = j;
+                    let (end, node) = self.match_terminal(TerminalId(0), start, SlotId(4), None)?;
+                    j = end;
+                    node
+                };
+                let left_extent = i;
+                let current = right_child;
+                Some((
+                    j,
+                    self.add_nonterminal_node(NonterminalNode {
+                        nonterminal_id: NonterminalId(1),
+                        return_slot: SlotId(4),
+                        span: Span {
+                            left_extent,
+                            right_extent: j,
+                        },
+                        child: current,
+                        ambiguous: false,
+                    }),
+                ))
+            }
+            _ => unreachable!("LL(1) dispatch covers every terminal in FIRST_SET"),
+        }
+    }
     #[inline(never)]
     fn parse_c_ll1(
         &mut self,
@@ -960,37 +810,7 @@ impl<'i, 'arena> SimpleAltParser<'i, 'arena> {
     ) -> Option<(u32, SPPFNodeId)> {
         #[cfg(feature = "instrument")]
         self.ll1_call_log.push((NonterminalId(2), i));
-        let result = (|| -> Option<(u32, SPPFNodeId)> {
-            let matched = self.scanner.longest_match(&FIRST_SET_C, i)?;
-            match matched {
-                TerminalId(1) => {
-                    let mut j = i;
-                    let right_child = {
-                        let start = j;
-                        let (end, node) =
-                            self.match_terminal(TerminalId(1), start, SlotId(6), None)?;
-                        j = end;
-                        node
-                    };
-                    let left_extent = i;
-                    let current = right_child;
-                    Some((
-                        j,
-                        self.add_nonterminal_node(NonterminalNode {
-                            nonterminal_id: NonterminalId(2),
-                            return_slot: SlotId(6),
-                            span: Span {
-                                left_extent,
-                                right_extent: j,
-                            },
-                            child: current,
-                            ambiguous: false,
-                        }),
-                    ))
-                }
-                _ => unreachable!("LL(1) dispatch covers every terminal in FIRST_SET"),
-            }
-        })();
+        let result = self.parse_c_ll1_body(i);
         if result.is_none() {
             if let Some(slot_id) = failure_context {
                 self.add_failure(
@@ -1003,6 +823,37 @@ impl<'i, 'arena> SimpleAltParser<'i, 'arena> {
         }
         result
     }
+    #[inline(always)]
+    fn parse_c_ll1_body(&mut self, i: u32) -> Option<(u32, SPPFNodeId)> {
+        let matched = self.scanner.longest_match(&FIRST_SET_C, i)?;
+        match matched {
+            TerminalId(1) => {
+                let mut j = i;
+                let right_child = {
+                    let start = j;
+                    let (end, node) = self.match_terminal(TerminalId(1), start, SlotId(6), None)?;
+                    j = end;
+                    node
+                };
+                let left_extent = i;
+                let current = right_child;
+                Some((
+                    j,
+                    self.add_nonterminal_node(NonterminalNode {
+                        nonterminal_id: NonterminalId(2),
+                        return_slot: SlotId(6),
+                        span: Span {
+                            left_extent,
+                            right_extent: j,
+                        },
+                        child: current,
+                        ambiguous: false,
+                    }),
+                ))
+            }
+            _ => unreachable!("LL(1) dispatch covers every terminal in FIRST_SET"),
+        }
+    }
     #[inline(never)]
     fn parse_d_ll1(
         &mut self,
@@ -1011,37 +862,7 @@ impl<'i, 'arena> SimpleAltParser<'i, 'arena> {
     ) -> Option<(u32, SPPFNodeId)> {
         #[cfg(feature = "instrument")]
         self.ll1_call_log.push((NonterminalId(3), i));
-        let result = (|| -> Option<(u32, SPPFNodeId)> {
-            let matched = self.scanner.longest_match(&FIRST_SET_D, i)?;
-            match matched {
-                TerminalId(2) => {
-                    let mut j = i;
-                    let right_child = {
-                        let start = j;
-                        let (end, node) =
-                            self.match_terminal(TerminalId(2), start, SlotId(8), None)?;
-                        j = end;
-                        node
-                    };
-                    let left_extent = i;
-                    let current = right_child;
-                    Some((
-                        j,
-                        self.add_nonterminal_node(NonterminalNode {
-                            nonterminal_id: NonterminalId(3),
-                            return_slot: SlotId(8),
-                            span: Span {
-                                left_extent,
-                                right_extent: j,
-                            },
-                            child: current,
-                            ambiguous: false,
-                        }),
-                    ))
-                }
-                _ => unreachable!("LL(1) dispatch covers every terminal in FIRST_SET"),
-            }
-        })();
+        let result = self.parse_d_ll1_body(i);
         if result.is_none() {
             if let Some(slot_id) = failure_context {
                 self.add_failure(
@@ -1054,7 +875,38 @@ impl<'i, 'arena> SimpleAltParser<'i, 'arena> {
         }
         result
     }
-    #[inline(never)]
+    #[inline(always)]
+    fn parse_d_ll1_body(&mut self, i: u32) -> Option<(u32, SPPFNodeId)> {
+        let matched = self.scanner.longest_match(&FIRST_SET_D, i)?;
+        match matched {
+            TerminalId(2) => {
+                let mut j = i;
+                let right_child = {
+                    let start = j;
+                    let (end, node) = self.match_terminal(TerminalId(2), start, SlotId(8), None)?;
+                    j = end;
+                    node
+                };
+                let left_extent = i;
+                let current = right_child;
+                Some((
+                    j,
+                    self.add_nonterminal_node(NonterminalNode {
+                        nonterminal_id: NonterminalId(3),
+                        return_slot: SlotId(8),
+                        span: Span {
+                            left_extent,
+                            right_extent: j,
+                        },
+                        child: current,
+                        ambiguous: false,
+                    }),
+                ))
+            }
+            _ => unreachable!("LL(1) dispatch covers every terminal in FIRST_SET"),
+        }
+    }
+    #[inline(always)]
     fn parse_alt_0_ll1(
         &mut self,
         i: u32,
@@ -1062,60 +914,7 @@ impl<'i, 'arena> SimpleAltParser<'i, 'arena> {
     ) -> Option<(u32, SPPFNodeId)> {
         #[cfg(feature = "instrument")]
         self.ll1_call_log.push((NonterminalId(4), i));
-        let result = (|| -> Option<(u32, SPPFNodeId)> {
-            let matched = self.scanner.longest_match(&FIRST_SET_ALT_0, i)?;
-            match matched {
-                TerminalId(1) => {
-                    let mut j = i;
-                    let right_child = {
-                        let start = j;
-                        let (end, node) = self.parse_c_ll1(start, Some(SlotId(10)))?;
-                        j = end;
-                        node
-                    };
-                    let left_extent = i;
-                    let current = right_child;
-                    Some((
-                        j,
-                        self.add_nonterminal_node(NonterminalNode {
-                            nonterminal_id: NonterminalId(4),
-                            return_slot: SlotId(10),
-                            span: Span {
-                                left_extent,
-                                right_extent: j,
-                            },
-                            child: current,
-                            ambiguous: false,
-                        }),
-                    ))
-                }
-                TerminalId(2) => {
-                    let mut j = i;
-                    let right_child = {
-                        let start = j;
-                        let (end, node) = self.parse_d_ll1(start, Some(SlotId(12)))?;
-                        j = end;
-                        node
-                    };
-                    let left_extent = i;
-                    let current = right_child;
-                    Some((
-                        j,
-                        self.add_nonterminal_node(NonterminalNode {
-                            nonterminal_id: NonterminalId(4),
-                            return_slot: SlotId(12),
-                            span: Span {
-                                left_extent,
-                                right_extent: j,
-                            },
-                            child: current,
-                            ambiguous: false,
-                        }),
-                    ))
-                }
-                _ => unreachable!("LL(1) dispatch covers every terminal in FIRST_SET"),
-            }
-        })();
+        let result = self.parse_alt_0_ll1_body(i);
         if result.is_none() {
             if let Some(slot_id) = failure_context {
                 self.add_failure(
@@ -1127,5 +926,60 @@ impl<'i, 'arena> SimpleAltParser<'i, 'arena> {
             }
         }
         result
+    }
+    #[inline(always)]
+    fn parse_alt_0_ll1_body(&mut self, i: u32) -> Option<(u32, SPPFNodeId)> {
+        let matched = self.scanner.longest_match(&FIRST_SET_ALT_0, i)?;
+        match matched {
+            TerminalId(1) => {
+                let mut j = i;
+                let right_child = {
+                    let start = j;
+                    let (end, node) = self.parse_c_ll1(start, Some(SlotId(10)))?;
+                    j = end;
+                    node
+                };
+                let left_extent = i;
+                let current = right_child;
+                Some((
+                    j,
+                    self.add_nonterminal_node(NonterminalNode {
+                        nonterminal_id: NonterminalId(4),
+                        return_slot: SlotId(10),
+                        span: Span {
+                            left_extent,
+                            right_extent: j,
+                        },
+                        child: current,
+                        ambiguous: false,
+                    }),
+                ))
+            }
+            TerminalId(2) => {
+                let mut j = i;
+                let right_child = {
+                    let start = j;
+                    let (end, node) = self.parse_d_ll1(start, Some(SlotId(12)))?;
+                    j = end;
+                    node
+                };
+                let left_extent = i;
+                let current = right_child;
+                Some((
+                    j,
+                    self.add_nonterminal_node(NonterminalNode {
+                        nonterminal_id: NonterminalId(4),
+                        return_slot: SlotId(12),
+                        span: Span {
+                            left_extent,
+                            right_extent: j,
+                        },
+                        child: current,
+                        ambiguous: false,
+                    }),
+                ))
+            }
+            _ => unreachable!("LL(1) dispatch covers every terminal in FIRST_SET"),
+        }
     }
 }

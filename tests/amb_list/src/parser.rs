@@ -93,27 +93,6 @@ impl<'i, 'arena> Parser<'i, 'arena> for AmbListParser<'i, 'arena> {
                         };
                         self.pop(gss_node_id, SlotId(2), result, None, &FOLLOW_SET_S);
                     }
-                    // A : . "a"
-                    SlotId(3) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(0),
-                            input_index,
-                            SlotId(3),
-                            Some(gss_node_id),
-                        ) {
-                            // A : "a".
-                            input_index = j;
-                            result = Some(right_child);
-                            next = Some(SlotId(4));
-                        }
-                    }
-                    // A : "a".
-                    SlotId(4) => {
-                        let Some(result) = result else {
-                            unreachable!("result cannot be None here.")
-                        };
-                        self.pop(gss_node_id, SlotId(4), result, None, &FOLLOW_SET_A);
-                    }
                     // Plus_0 : . Plus_0 A
                     SlotId(5) => {
                         self.create(
@@ -768,37 +747,7 @@ impl<'i, 'arena> AmbListParser<'i, 'arena> {
     ) -> Option<(u32, SPPFNodeId)> {
         #[cfg(feature = "instrument")]
         self.ll1_call_log.push((NonterminalId(1), i));
-        let result = (|| -> Option<(u32, SPPFNodeId)> {
-            let matched = self.scanner.longest_match(&FIRST_SET_A, i)?;
-            match matched {
-                TerminalId(0) => {
-                    let mut j = i;
-                    let right_child = {
-                        let start = j;
-                        let (end, node) =
-                            self.match_terminal(TerminalId(0), start, SlotId(4), None)?;
-                        j = end;
-                        node
-                    };
-                    let left_extent = i;
-                    let current = right_child;
-                    Some((
-                        j,
-                        self.add_nonterminal_node(NonterminalNode {
-                            nonterminal_id: NonterminalId(1),
-                            return_slot: SlotId(4),
-                            span: Span {
-                                left_extent,
-                                right_extent: j,
-                            },
-                            child: current,
-                            ambiguous: false,
-                        }),
-                    ))
-                }
-                _ => unreachable!("LL(1) dispatch covers every terminal in FIRST_SET"),
-            }
-        })();
+        let result = self.parse_a_ll1_body(i);
         if result.is_none() {
             if let Some(slot_id) = failure_context {
                 self.add_failure(
@@ -810,6 +759,37 @@ impl<'i, 'arena> AmbListParser<'i, 'arena> {
             }
         }
         result
+    }
+    #[inline(always)]
+    fn parse_a_ll1_body(&mut self, i: u32) -> Option<(u32, SPPFNodeId)> {
+        let matched = self.scanner.longest_match(&FIRST_SET_A, i)?;
+        match matched {
+            TerminalId(0) => {
+                let mut j = i;
+                let right_child = {
+                    let start = j;
+                    let (end, node) = self.match_terminal(TerminalId(0), start, SlotId(4), None)?;
+                    j = end;
+                    node
+                };
+                let left_extent = i;
+                let current = right_child;
+                Some((
+                    j,
+                    self.add_nonterminal_node(NonterminalNode {
+                        nonterminal_id: NonterminalId(1),
+                        return_slot: SlotId(4),
+                        span: Span {
+                            left_extent,
+                            right_extent: j,
+                        },
+                        child: current,
+                        ambiguous: false,
+                    }),
+                ))
+            }
+            _ => unreachable!("LL(1) dispatch covers every terminal in FIRST_SET"),
+        }
     }
     fn get_or_create_epsilon_node(&mut self, i: u32) -> SPPFNodeId {
         if let Some(existing) = self.epsilon_nodes[i as usize] {

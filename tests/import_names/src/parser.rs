@@ -51,7 +51,6 @@ impl<'i, 'arena> Parser<'i, 'arena> for ImportNamesParser<'i, 'arena> {
             let mut input_index = descriptor.input_index;
             let mut result = descriptor.sppf_node_id;
             let gss_node_id = descriptor.gss_node_id;
-            let env = descriptor.env_id;
             let mut next = Some(descriptor.slot_id);
             while let Some(slot_id) = next {
                 next = None;
@@ -64,516 +63,6 @@ impl<'i, 'arena> Parser<'i, 'arena> for ImportNamesParser<'i, 'arena> {
                     gss_node_id
                 );
                 match slot_id {
-                    // S : . Parse Parser SPPFNode Input ParseError ParseSuccess Grammar Nonterminal Terminal
-                    // Slot TerminalSet
-                    SlotId(0) => {
-                        if let Some((j, right_child)) = self.parse_parse_ll1(input_index, None) {
-                            // S : Parse . Parser SPPFNode Input ParseError ParseSuccess Grammar Nonterminal Terminal
-                            // Slot TerminalSet
-                            input_index = j;
-                            result = Some(right_child);
-                            next = Some(SlotId(1));
-                        } else {
-                            self.add_failure(
-                                input_index,
-                                SlotId(0),
-                                Some(gss_node_id),
-                                GLLFailureKind::UnexpectedToken(&FIRST_SET_PARSE),
-                            );
-                        }
-                    }
-                    // S : Parse . Parser SPPFNode Input ParseError ParseSuccess Grammar Nonterminal Terminal
-                    // Slot TerminalSet
-                    SlotId(1) => {
-                        if let Some((j, right_child)) = self.parse_parser_ll1(input_index, None) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(2), env)
-                            {
-                                // S : Parse Parser . SPPFNode Input ParseError ParseSuccess Grammar Nonterminal Terminal
-                                // Slot TerminalSet
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(2));
-                            }
-                        } else {
-                            self.add_failure(
-                                input_index,
-                                SlotId(1),
-                                Some(gss_node_id),
-                                GLLFailureKind::UnexpectedToken(&FIRST_SET_PARSER),
-                            );
-                        }
-                    }
-                    // S : Parse Parser . SPPFNode Input ParseError ParseSuccess Grammar Nonterminal Terminal
-                    // Slot TerminalSet
-                    SlotId(2) => {
-                        if let Some((j, right_child)) = self.parse_sppf_node_ll1(input_index, None)
-                        {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(3), env)
-                            {
-                                // S : Parse Parser SPPFNode . Input ParseError ParseSuccess Grammar Nonterminal Terminal
-                                // Slot TerminalSet
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(3));
-                            }
-                        } else {
-                            self.add_failure(
-                                input_index,
-                                SlotId(2),
-                                Some(gss_node_id),
-                                GLLFailureKind::UnexpectedToken(&FIRST_SET_SPPF_NODE),
-                            );
-                        }
-                    }
-                    // S : Parse Parser SPPFNode . Input ParseError ParseSuccess Grammar Nonterminal Terminal
-                    // Slot TerminalSet
-                    SlotId(3) => {
-                        if let Some((j, right_child)) = self.parse_input_ll1(input_index, None) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(4), env)
-                            {
-                                // S : Parse Parser SPPFNode Input . ParseError ParseSuccess Grammar Nonterminal Terminal
-                                // Slot TerminalSet
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(4));
-                            }
-                        } else {
-                            self.add_failure(
-                                input_index,
-                                SlotId(3),
-                                Some(gss_node_id),
-                                GLLFailureKind::UnexpectedToken(&FIRST_SET_INPUT),
-                            );
-                        }
-                    }
-                    // S : Parse Parser SPPFNode Input . ParseError ParseSuccess Grammar Nonterminal Terminal
-                    // Slot TerminalSet
-                    SlotId(4) => {
-                        if let Some((j, right_child)) =
-                            self.parse_parse_error_ll1(input_index, None)
-                        {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(5), env)
-                            {
-                                // S : Parse Parser SPPFNode Input ParseError . ParseSuccess Grammar Nonterminal Terminal
-                                // Slot TerminalSet
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(5));
-                            }
-                        } else {
-                            self.add_failure(
-                                input_index,
-                                SlotId(4),
-                                Some(gss_node_id),
-                                GLLFailureKind::UnexpectedToken(&FIRST_SET_PARSE_ERROR),
-                            );
-                        }
-                    }
-                    // S : Parse Parser SPPFNode Input ParseError . ParseSuccess Grammar Nonterminal Terminal
-                    // Slot TerminalSet
-                    SlotId(5) => {
-                        if let Some((j, right_child)) =
-                            self.parse_parse_success_ll1(input_index, None)
-                        {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(6), env)
-                            {
-                                // S : Parse Parser SPPFNode Input ParseError ParseSuccess . Grammar Nonterminal Terminal
-                                // Slot TerminalSet
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(6));
-                            }
-                        } else {
-                            self.add_failure(
-                                input_index,
-                                SlotId(5),
-                                Some(gss_node_id),
-                                GLLFailureKind::UnexpectedToken(&FIRST_SET_PARSE_SUCCESS),
-                            );
-                        }
-                    }
-                    // S : Parse Parser SPPFNode Input ParseError ParseSuccess . Grammar Nonterminal Terminal
-                    // Slot TerminalSet
-                    SlotId(6) => {
-                        if let Some((j, right_child)) = self.parse_grammar_ll1(input_index, None) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(7), env)
-                            {
-                                // S : Parse Parser SPPFNode Input ParseError ParseSuccess Grammar . Nonterminal Terminal
-                                // Slot TerminalSet
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(7));
-                            }
-                        } else {
-                            self.add_failure(
-                                input_index,
-                                SlotId(6),
-                                Some(gss_node_id),
-                                GLLFailureKind::UnexpectedToken(&FIRST_SET_GRAMMAR),
-                            );
-                        }
-                    }
-                    // S : Parse Parser SPPFNode Input ParseError ParseSuccess Grammar . Nonterminal Terminal
-                    // Slot TerminalSet
-                    SlotId(7) => {
-                        if let Some((j, right_child)) =
-                            self.parse_nonterminal_ll1(input_index, None)
-                        {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(8), env)
-                            {
-                                // S : Parse Parser SPPFNode Input ParseError ParseSuccess Grammar Nonterminal . Terminal
-                                // Slot TerminalSet
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(8));
-                            }
-                        } else {
-                            self.add_failure(
-                                input_index,
-                                SlotId(7),
-                                Some(gss_node_id),
-                                GLLFailureKind::UnexpectedToken(&FIRST_SET_NONTERMINAL),
-                            );
-                        }
-                    }
-                    // S : Parse Parser SPPFNode Input ParseError ParseSuccess Grammar Nonterminal . Terminal
-                    // Slot TerminalSet
-                    SlotId(8) => {
-                        if let Some((j, right_child)) = self.parse_terminal_ll1(input_index, None) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(9), env)
-                            {
-                                // S : Parse Parser SPPFNode Input ParseError ParseSuccess Grammar Nonterminal Terminal .
-                                // Slot TerminalSet
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(9));
-                            }
-                        } else {
-                            self.add_failure(
-                                input_index,
-                                SlotId(8),
-                                Some(gss_node_id),
-                                GLLFailureKind::UnexpectedToken(&FIRST_SET_TERMINAL),
-                            );
-                        }
-                    }
-                    // S : Parse Parser SPPFNode Input ParseError ParseSuccess Grammar Nonterminal Terminal .
-                    // Slot TerminalSet
-                    SlotId(9) => {
-                        if let Some((j, right_child)) = self.parse_slot_ll1(input_index, None) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(10), env)
-                            {
-                                // S : Parse Parser SPPFNode Input ParseError ParseSuccess Grammar Nonterminal Terminal Slot
-                                // . TerminalSet
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(10));
-                            }
-                        } else {
-                            self.add_failure(
-                                input_index,
-                                SlotId(9),
-                                Some(gss_node_id),
-                                GLLFailureKind::UnexpectedToken(&FIRST_SET_SLOT),
-                            );
-                        }
-                    }
-                    // S : Parse Parser SPPFNode Input ParseError ParseSuccess Grammar Nonterminal Terminal Slot
-                    // . TerminalSet
-                    SlotId(10) => {
-                        if let Some((j, right_child)) =
-                            self.parse_terminal_set_ll1(input_index, None)
-                        {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(11), env)
-                            {
-                                // S : Parse Parser SPPFNode Input ParseError ParseSuccess Grammar Nonterminal Terminal Slot
-                                // TerminalSet.
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(11));
-                            }
-                        } else {
-                            self.add_failure(
-                                input_index,
-                                SlotId(10),
-                                Some(gss_node_id),
-                                GLLFailureKind::UnexpectedToken(&FIRST_SET_TERMINAL_SET),
-                            );
-                        }
-                    }
-                    // S : Parse Parser SPPFNode Input ParseError ParseSuccess Grammar Nonterminal Terminal Slot
-                    // TerminalSet.
-                    SlotId(11) => {
-                        let Some(result) = result else {
-                            unreachable!("result cannot be None here.")
-                        };
-                        self.pop(gss_node_id, SlotId(11), result, None, &FOLLOW_SET_S);
-                    }
-                    // Parse : . "a"
-                    SlotId(12) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(0),
-                            input_index,
-                            SlotId(12),
-                            Some(gss_node_id),
-                        ) {
-                            // Parse : "a".
-                            input_index = j;
-                            result = Some(right_child);
-                            next = Some(SlotId(13));
-                        }
-                    }
-                    // Parse : "a".
-                    SlotId(13) => {
-                        let Some(result) = result else {
-                            unreachable!("result cannot be None here.")
-                        };
-                        self.pop(gss_node_id, SlotId(13), result, None, &FOLLOW_SET_PARSE);
-                    }
-                    // Parser : . "b"
-                    SlotId(14) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(14),
-                            Some(gss_node_id),
-                        ) {
-                            // Parser : "b".
-                            input_index = j;
-                            result = Some(right_child);
-                            next = Some(SlotId(15));
-                        }
-                    }
-                    // Parser : "b".
-                    SlotId(15) => {
-                        let Some(result) = result else {
-                            unreachable!("result cannot be None here.")
-                        };
-                        self.pop(gss_node_id, SlotId(15), result, None, &FOLLOW_SET_PARSER);
-                    }
-                    // SPPFNode : . "c"
-                    SlotId(16) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(2),
-                            input_index,
-                            SlotId(16),
-                            Some(gss_node_id),
-                        ) {
-                            // SPPFNode : "c".
-                            input_index = j;
-                            result = Some(right_child);
-                            next = Some(SlotId(17));
-                        }
-                    }
-                    // SPPFNode : "c".
-                    SlotId(17) => {
-                        let Some(result) = result else {
-                            unreachable!("result cannot be None here.")
-                        };
-                        self.pop(gss_node_id, SlotId(17), result, None, &FOLLOW_SET_SPPF_NODE);
-                    }
-                    // Input : . "d"
-                    SlotId(18) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(3),
-                            input_index,
-                            SlotId(18),
-                            Some(gss_node_id),
-                        ) {
-                            // Input : "d".
-                            input_index = j;
-                            result = Some(right_child);
-                            next = Some(SlotId(19));
-                        }
-                    }
-                    // Input : "d".
-                    SlotId(19) => {
-                        let Some(result) = result else {
-                            unreachable!("result cannot be None here.")
-                        };
-                        self.pop(gss_node_id, SlotId(19), result, None, &FOLLOW_SET_INPUT);
-                    }
-                    // ParseError : . "e"
-                    SlotId(20) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(4),
-                            input_index,
-                            SlotId(20),
-                            Some(gss_node_id),
-                        ) {
-                            // ParseError : "e".
-                            input_index = j;
-                            result = Some(right_child);
-                            next = Some(SlotId(21));
-                        }
-                    }
-                    // ParseError : "e".
-                    SlotId(21) => {
-                        let Some(result) = result else {
-                            unreachable!("result cannot be None here.")
-                        };
-                        self.pop(
-                            gss_node_id,
-                            SlotId(21),
-                            result,
-                            None,
-                            &FOLLOW_SET_PARSE_ERROR,
-                        );
-                    }
-                    // ParseSuccess : . "f"
-                    SlotId(22) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(5),
-                            input_index,
-                            SlotId(22),
-                            Some(gss_node_id),
-                        ) {
-                            // ParseSuccess : "f".
-                            input_index = j;
-                            result = Some(right_child);
-                            next = Some(SlotId(23));
-                        }
-                    }
-                    // ParseSuccess : "f".
-                    SlotId(23) => {
-                        let Some(result) = result else {
-                            unreachable!("result cannot be None here.")
-                        };
-                        self.pop(
-                            gss_node_id,
-                            SlotId(23),
-                            result,
-                            None,
-                            &FOLLOW_SET_PARSE_SUCCESS,
-                        );
-                    }
-                    // Grammar : . "g"
-                    SlotId(24) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(6),
-                            input_index,
-                            SlotId(24),
-                            Some(gss_node_id),
-                        ) {
-                            // Grammar : "g".
-                            input_index = j;
-                            result = Some(right_child);
-                            next = Some(SlotId(25));
-                        }
-                    }
-                    // Grammar : "g".
-                    SlotId(25) => {
-                        let Some(result) = result else {
-                            unreachable!("result cannot be None here.")
-                        };
-                        self.pop(gss_node_id, SlotId(25), result, None, &FOLLOW_SET_GRAMMAR);
-                    }
-                    // Nonterminal : . "h"
-                    SlotId(26) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(7),
-                            input_index,
-                            SlotId(26),
-                            Some(gss_node_id),
-                        ) {
-                            // Nonterminal : "h".
-                            input_index = j;
-                            result = Some(right_child);
-                            next = Some(SlotId(27));
-                        }
-                    }
-                    // Nonterminal : "h".
-                    SlotId(27) => {
-                        let Some(result) = result else {
-                            unreachable!("result cannot be None here.")
-                        };
-                        self.pop(
-                            gss_node_id,
-                            SlotId(27),
-                            result,
-                            None,
-                            &FOLLOW_SET_NONTERMINAL,
-                        );
-                    }
-                    // Terminal : . "i"
-                    SlotId(28) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(8),
-                            input_index,
-                            SlotId(28),
-                            Some(gss_node_id),
-                        ) {
-                            // Terminal : "i".
-                            input_index = j;
-                            result = Some(right_child);
-                            next = Some(SlotId(29));
-                        }
-                    }
-                    // Terminal : "i".
-                    SlotId(29) => {
-                        let Some(result) = result else {
-                            unreachable!("result cannot be None here.")
-                        };
-                        self.pop(gss_node_id, SlotId(29), result, None, &FOLLOW_SET_TERMINAL);
-                    }
-                    // Slot : . "j"
-                    SlotId(30) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(9),
-                            input_index,
-                            SlotId(30),
-                            Some(gss_node_id),
-                        ) {
-                            // Slot : "j".
-                            input_index = j;
-                            result = Some(right_child);
-                            next = Some(SlotId(31));
-                        }
-                    }
-                    // Slot : "j".
-                    SlotId(31) => {
-                        let Some(result) = result else {
-                            unreachable!("result cannot be None here.")
-                        };
-                        self.pop(gss_node_id, SlotId(31), result, None, &FOLLOW_SET_SLOT);
-                    }
-                    // TerminalSet : . "k"
-                    SlotId(32) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(10),
-                            input_index,
-                            SlotId(32),
-                            Some(gss_node_id),
-                        ) {
-                            // TerminalSet : "k".
-                            input_index = j;
-                            result = Some(right_child);
-                            next = Some(SlotId(33));
-                        }
-                    }
-                    // TerminalSet : "k".
-                    SlotId(33) => {
-                        let Some(result) = result else {
-                            unreachable!("result cannot be None here.")
-                        };
-                        self.pop(
-                            gss_node_id,
-                            SlotId(33),
-                            result,
-                            None,
-                            &FOLLOW_SET_TERMINAL_SET,
-                        );
-                    }
                     // StartS : . start:S
                     SlotId(34) => {
                         if let Some((j, right_child)) = self.parse_s_ll1(input_index, None) {
@@ -1527,166 +1016,7 @@ impl<'i, 'arena> ImportNamesParser<'i, 'arena> {
     ) -> Option<(u32, SPPFNodeId)> {
         #[cfg(feature = "instrument")]
         self.ll1_call_log.push((NonterminalId(0), i));
-        let result = (|| -> Option<(u32, SPPFNodeId)> {
-            let matched = self.scanner.longest_match(&FIRST_SET_S, i)?;
-            match matched {
-                TerminalId(0) => {
-                    let mut j = i;
-                    let right_child = {
-                        let start = j;
-                        let (end, node) = self.parse_parse_ll1(start, Some(SlotId(1)))?;
-                        j = end;
-                        node
-                    };
-                    let left_extent = i;
-                    let mut current = right_child;
-                    let right_child = {
-                        let start = j;
-                        let (end, node) = self.parse_parser_ll1(start, Some(SlotId(2)))?;
-                        j = end;
-                        node
-                    };
-                    current = self.create_intermediate_node_ll1(
-                        SlotId(2),
-                        left_extent,
-                        j,
-                        current,
-                        right_child,
-                    );
-                    let right_child = {
-                        let start = j;
-                        let (end, node) = self.parse_sppf_node_ll1(start, Some(SlotId(3)))?;
-                        j = end;
-                        node
-                    };
-                    current = self.create_intermediate_node_ll1(
-                        SlotId(3),
-                        left_extent,
-                        j,
-                        current,
-                        right_child,
-                    );
-                    let right_child = {
-                        let start = j;
-                        let (end, node) = self.parse_input_ll1(start, Some(SlotId(4)))?;
-                        j = end;
-                        node
-                    };
-                    current = self.create_intermediate_node_ll1(
-                        SlotId(4),
-                        left_extent,
-                        j,
-                        current,
-                        right_child,
-                    );
-                    let right_child = {
-                        let start = j;
-                        let (end, node) = self.parse_parse_error_ll1(start, Some(SlotId(5)))?;
-                        j = end;
-                        node
-                    };
-                    current = self.create_intermediate_node_ll1(
-                        SlotId(5),
-                        left_extent,
-                        j,
-                        current,
-                        right_child,
-                    );
-                    let right_child = {
-                        let start = j;
-                        let (end, node) = self.parse_parse_success_ll1(start, Some(SlotId(6)))?;
-                        j = end;
-                        node
-                    };
-                    current = self.create_intermediate_node_ll1(
-                        SlotId(6),
-                        left_extent,
-                        j,
-                        current,
-                        right_child,
-                    );
-                    let right_child = {
-                        let start = j;
-                        let (end, node) = self.parse_grammar_ll1(start, Some(SlotId(7)))?;
-                        j = end;
-                        node
-                    };
-                    current = self.create_intermediate_node_ll1(
-                        SlotId(7),
-                        left_extent,
-                        j,
-                        current,
-                        right_child,
-                    );
-                    let right_child = {
-                        let start = j;
-                        let (end, node) = self.parse_nonterminal_ll1(start, Some(SlotId(8)))?;
-                        j = end;
-                        node
-                    };
-                    current = self.create_intermediate_node_ll1(
-                        SlotId(8),
-                        left_extent,
-                        j,
-                        current,
-                        right_child,
-                    );
-                    let right_child = {
-                        let start = j;
-                        let (end, node) = self.parse_terminal_ll1(start, Some(SlotId(9)))?;
-                        j = end;
-                        node
-                    };
-                    current = self.create_intermediate_node_ll1(
-                        SlotId(9),
-                        left_extent,
-                        j,
-                        current,
-                        right_child,
-                    );
-                    let right_child = {
-                        let start = j;
-                        let (end, node) = self.parse_slot_ll1(start, Some(SlotId(10)))?;
-                        j = end;
-                        node
-                    };
-                    current = self.create_intermediate_node_ll1(
-                        SlotId(10),
-                        left_extent,
-                        j,
-                        current,
-                        right_child,
-                    );
-                    let right_child = {
-                        let start = j;
-                        let (end, node) = self.parse_terminal_set_ll1(start, Some(SlotId(11)))?;
-                        j = end;
-                        node
-                    };
-                    current = self.create_intermediate_node_ll1(
-                        SlotId(11),
-                        left_extent,
-                        j,
-                        current,
-                        right_child,
-                    );
-                    Some((
-                        j,
-                        self.add_nonterminal_node(NonterminalNode {
-                            nonterminal_id: NonterminalId(0),
-                            return_slot: SlotId(11),
-                            span: Span {
-                                left_extent,
-                                right_extent: j,
-                            },
-                            child: current,
-                            ambiguous: false,
-                        }),
-                    ))
-                }
-                _ => unreachable!("LL(1) dispatch covers every terminal in FIRST_SET"),
-            }
-        })();
+        let result = self.parse_s_ll1_body(i);
         if result.is_none() {
             if let Some(slot_id) = failure_context {
                 self.add_failure(
@@ -1699,6 +1029,167 @@ impl<'i, 'arena> ImportNamesParser<'i, 'arena> {
         }
         result
     }
+    #[inline(always)]
+    fn parse_s_ll1_body(&mut self, i: u32) -> Option<(u32, SPPFNodeId)> {
+        let matched = self.scanner.longest_match(&FIRST_SET_S, i)?;
+        match matched {
+            TerminalId(0) => {
+                let mut j = i;
+                let right_child = {
+                    let start = j;
+                    let (end, node) = self.parse_parse_ll1(start, Some(SlotId(1)))?;
+                    j = end;
+                    node
+                };
+                let left_extent = i;
+                let mut current = right_child;
+                let right_child = {
+                    let start = j;
+                    let (end, node) = self.parse_parser_ll1(start, Some(SlotId(2)))?;
+                    j = end;
+                    node
+                };
+                current = self.create_intermediate_node_ll1(
+                    SlotId(2),
+                    left_extent,
+                    j,
+                    current,
+                    right_child,
+                );
+                let right_child = {
+                    let start = j;
+                    let (end, node) = self.parse_sppf_node_ll1(start, Some(SlotId(3)))?;
+                    j = end;
+                    node
+                };
+                current = self.create_intermediate_node_ll1(
+                    SlotId(3),
+                    left_extent,
+                    j,
+                    current,
+                    right_child,
+                );
+                let right_child = {
+                    let start = j;
+                    let (end, node) = self.parse_input_ll1(start, Some(SlotId(4)))?;
+                    j = end;
+                    node
+                };
+                current = self.create_intermediate_node_ll1(
+                    SlotId(4),
+                    left_extent,
+                    j,
+                    current,
+                    right_child,
+                );
+                let right_child = {
+                    let start = j;
+                    let (end, node) = self.parse_parse_error_ll1(start, Some(SlotId(5)))?;
+                    j = end;
+                    node
+                };
+                current = self.create_intermediate_node_ll1(
+                    SlotId(5),
+                    left_extent,
+                    j,
+                    current,
+                    right_child,
+                );
+                let right_child = {
+                    let start = j;
+                    let (end, node) = self.parse_parse_success_ll1(start, Some(SlotId(6)))?;
+                    j = end;
+                    node
+                };
+                current = self.create_intermediate_node_ll1(
+                    SlotId(6),
+                    left_extent,
+                    j,
+                    current,
+                    right_child,
+                );
+                let right_child = {
+                    let start = j;
+                    let (end, node) = self.parse_grammar_ll1(start, Some(SlotId(7)))?;
+                    j = end;
+                    node
+                };
+                current = self.create_intermediate_node_ll1(
+                    SlotId(7),
+                    left_extent,
+                    j,
+                    current,
+                    right_child,
+                );
+                let right_child = {
+                    let start = j;
+                    let (end, node) = self.parse_nonterminal_ll1(start, Some(SlotId(8)))?;
+                    j = end;
+                    node
+                };
+                current = self.create_intermediate_node_ll1(
+                    SlotId(8),
+                    left_extent,
+                    j,
+                    current,
+                    right_child,
+                );
+                let right_child = {
+                    let start = j;
+                    let (end, node) = self.parse_terminal_ll1(start, Some(SlotId(9)))?;
+                    j = end;
+                    node
+                };
+                current = self.create_intermediate_node_ll1(
+                    SlotId(9),
+                    left_extent,
+                    j,
+                    current,
+                    right_child,
+                );
+                let right_child = {
+                    let start = j;
+                    let (end, node) = self.parse_slot_ll1(start, Some(SlotId(10)))?;
+                    j = end;
+                    node
+                };
+                current = self.create_intermediate_node_ll1(
+                    SlotId(10),
+                    left_extent,
+                    j,
+                    current,
+                    right_child,
+                );
+                let right_child = {
+                    let start = j;
+                    let (end, node) = self.parse_terminal_set_ll1(start, Some(SlotId(11)))?;
+                    j = end;
+                    node
+                };
+                current = self.create_intermediate_node_ll1(
+                    SlotId(11),
+                    left_extent,
+                    j,
+                    current,
+                    right_child,
+                );
+                Some((
+                    j,
+                    self.add_nonterminal_node(NonterminalNode {
+                        nonterminal_id: NonterminalId(0),
+                        return_slot: SlotId(11),
+                        span: Span {
+                            left_extent,
+                            right_extent: j,
+                        },
+                        child: current,
+                        ambiguous: false,
+                    }),
+                ))
+            }
+            _ => unreachable!("LL(1) dispatch covers every terminal in FIRST_SET"),
+        }
+    }
     #[inline(never)]
     fn parse_parse_ll1(
         &mut self,
@@ -1707,37 +1198,7 @@ impl<'i, 'arena> ImportNamesParser<'i, 'arena> {
     ) -> Option<(u32, SPPFNodeId)> {
         #[cfg(feature = "instrument")]
         self.ll1_call_log.push((NonterminalId(1), i));
-        let result = (|| -> Option<(u32, SPPFNodeId)> {
-            let matched = self.scanner.longest_match(&FIRST_SET_PARSE, i)?;
-            match matched {
-                TerminalId(0) => {
-                    let mut j = i;
-                    let right_child = {
-                        let start = j;
-                        let (end, node) =
-                            self.match_terminal(TerminalId(0), start, SlotId(13), None)?;
-                        j = end;
-                        node
-                    };
-                    let left_extent = i;
-                    let current = right_child;
-                    Some((
-                        j,
-                        self.add_nonterminal_node(NonterminalNode {
-                            nonterminal_id: NonterminalId(1),
-                            return_slot: SlotId(13),
-                            span: Span {
-                                left_extent,
-                                right_extent: j,
-                            },
-                            child: current,
-                            ambiguous: false,
-                        }),
-                    ))
-                }
-                _ => unreachable!("LL(1) dispatch covers every terminal in FIRST_SET"),
-            }
-        })();
+        let result = self.parse_parse_ll1_body(i);
         if result.is_none() {
             if let Some(slot_id) = failure_context {
                 self.add_failure(
@@ -1750,6 +1211,38 @@ impl<'i, 'arena> ImportNamesParser<'i, 'arena> {
         }
         result
     }
+    #[inline(always)]
+    fn parse_parse_ll1_body(&mut self, i: u32) -> Option<(u32, SPPFNodeId)> {
+        let matched = self.scanner.longest_match(&FIRST_SET_PARSE, i)?;
+        match matched {
+            TerminalId(0) => {
+                let mut j = i;
+                let right_child = {
+                    let start = j;
+                    let (end, node) =
+                        self.match_terminal(TerminalId(0), start, SlotId(13), None)?;
+                    j = end;
+                    node
+                };
+                let left_extent = i;
+                let current = right_child;
+                Some((
+                    j,
+                    self.add_nonterminal_node(NonterminalNode {
+                        nonterminal_id: NonterminalId(1),
+                        return_slot: SlotId(13),
+                        span: Span {
+                            left_extent,
+                            right_extent: j,
+                        },
+                        child: current,
+                        ambiguous: false,
+                    }),
+                ))
+            }
+            _ => unreachable!("LL(1) dispatch covers every terminal in FIRST_SET"),
+        }
+    }
     #[inline(never)]
     fn parse_parser_ll1(
         &mut self,
@@ -1758,37 +1251,7 @@ impl<'i, 'arena> ImportNamesParser<'i, 'arena> {
     ) -> Option<(u32, SPPFNodeId)> {
         #[cfg(feature = "instrument")]
         self.ll1_call_log.push((NonterminalId(2), i));
-        let result = (|| -> Option<(u32, SPPFNodeId)> {
-            let matched = self.scanner.longest_match(&FIRST_SET_PARSER, i)?;
-            match matched {
-                TerminalId(1) => {
-                    let mut j = i;
-                    let right_child = {
-                        let start = j;
-                        let (end, node) =
-                            self.match_terminal(TerminalId(1), start, SlotId(15), None)?;
-                        j = end;
-                        node
-                    };
-                    let left_extent = i;
-                    let current = right_child;
-                    Some((
-                        j,
-                        self.add_nonterminal_node(NonterminalNode {
-                            nonterminal_id: NonterminalId(2),
-                            return_slot: SlotId(15),
-                            span: Span {
-                                left_extent,
-                                right_extent: j,
-                            },
-                            child: current,
-                            ambiguous: false,
-                        }),
-                    ))
-                }
-                _ => unreachable!("LL(1) dispatch covers every terminal in FIRST_SET"),
-            }
-        })();
+        let result = self.parse_parser_ll1_body(i);
         if result.is_none() {
             if let Some(slot_id) = failure_context {
                 self.add_failure(
@@ -1801,6 +1264,38 @@ impl<'i, 'arena> ImportNamesParser<'i, 'arena> {
         }
         result
     }
+    #[inline(always)]
+    fn parse_parser_ll1_body(&mut self, i: u32) -> Option<(u32, SPPFNodeId)> {
+        let matched = self.scanner.longest_match(&FIRST_SET_PARSER, i)?;
+        match matched {
+            TerminalId(1) => {
+                let mut j = i;
+                let right_child = {
+                    let start = j;
+                    let (end, node) =
+                        self.match_terminal(TerminalId(1), start, SlotId(15), None)?;
+                    j = end;
+                    node
+                };
+                let left_extent = i;
+                let current = right_child;
+                Some((
+                    j,
+                    self.add_nonterminal_node(NonterminalNode {
+                        nonterminal_id: NonterminalId(2),
+                        return_slot: SlotId(15),
+                        span: Span {
+                            left_extent,
+                            right_extent: j,
+                        },
+                        child: current,
+                        ambiguous: false,
+                    }),
+                ))
+            }
+            _ => unreachable!("LL(1) dispatch covers every terminal in FIRST_SET"),
+        }
+    }
     #[inline(never)]
     fn parse_sppf_node_ll1(
         &mut self,
@@ -1809,37 +1304,7 @@ impl<'i, 'arena> ImportNamesParser<'i, 'arena> {
     ) -> Option<(u32, SPPFNodeId)> {
         #[cfg(feature = "instrument")]
         self.ll1_call_log.push((NonterminalId(3), i));
-        let result = (|| -> Option<(u32, SPPFNodeId)> {
-            let matched = self.scanner.longest_match(&FIRST_SET_SPPF_NODE, i)?;
-            match matched {
-                TerminalId(2) => {
-                    let mut j = i;
-                    let right_child = {
-                        let start = j;
-                        let (end, node) =
-                            self.match_terminal(TerminalId(2), start, SlotId(17), None)?;
-                        j = end;
-                        node
-                    };
-                    let left_extent = i;
-                    let current = right_child;
-                    Some((
-                        j,
-                        self.add_nonterminal_node(NonterminalNode {
-                            nonterminal_id: NonterminalId(3),
-                            return_slot: SlotId(17),
-                            span: Span {
-                                left_extent,
-                                right_extent: j,
-                            },
-                            child: current,
-                            ambiguous: false,
-                        }),
-                    ))
-                }
-                _ => unreachable!("LL(1) dispatch covers every terminal in FIRST_SET"),
-            }
-        })();
+        let result = self.parse_sppf_node_ll1_body(i);
         if result.is_none() {
             if let Some(slot_id) = failure_context {
                 self.add_failure(
@@ -1852,6 +1317,38 @@ impl<'i, 'arena> ImportNamesParser<'i, 'arena> {
         }
         result
     }
+    #[inline(always)]
+    fn parse_sppf_node_ll1_body(&mut self, i: u32) -> Option<(u32, SPPFNodeId)> {
+        let matched = self.scanner.longest_match(&FIRST_SET_SPPF_NODE, i)?;
+        match matched {
+            TerminalId(2) => {
+                let mut j = i;
+                let right_child = {
+                    let start = j;
+                    let (end, node) =
+                        self.match_terminal(TerminalId(2), start, SlotId(17), None)?;
+                    j = end;
+                    node
+                };
+                let left_extent = i;
+                let current = right_child;
+                Some((
+                    j,
+                    self.add_nonterminal_node(NonterminalNode {
+                        nonterminal_id: NonterminalId(3),
+                        return_slot: SlotId(17),
+                        span: Span {
+                            left_extent,
+                            right_extent: j,
+                        },
+                        child: current,
+                        ambiguous: false,
+                    }),
+                ))
+            }
+            _ => unreachable!("LL(1) dispatch covers every terminal in FIRST_SET"),
+        }
+    }
     #[inline(never)]
     fn parse_input_ll1(
         &mut self,
@@ -1860,37 +1357,7 @@ impl<'i, 'arena> ImportNamesParser<'i, 'arena> {
     ) -> Option<(u32, SPPFNodeId)> {
         #[cfg(feature = "instrument")]
         self.ll1_call_log.push((NonterminalId(4), i));
-        let result = (|| -> Option<(u32, SPPFNodeId)> {
-            let matched = self.scanner.longest_match(&FIRST_SET_INPUT, i)?;
-            match matched {
-                TerminalId(3) => {
-                    let mut j = i;
-                    let right_child = {
-                        let start = j;
-                        let (end, node) =
-                            self.match_terminal(TerminalId(3), start, SlotId(19), None)?;
-                        j = end;
-                        node
-                    };
-                    let left_extent = i;
-                    let current = right_child;
-                    Some((
-                        j,
-                        self.add_nonterminal_node(NonterminalNode {
-                            nonterminal_id: NonterminalId(4),
-                            return_slot: SlotId(19),
-                            span: Span {
-                                left_extent,
-                                right_extent: j,
-                            },
-                            child: current,
-                            ambiguous: false,
-                        }),
-                    ))
-                }
-                _ => unreachable!("LL(1) dispatch covers every terminal in FIRST_SET"),
-            }
-        })();
+        let result = self.parse_input_ll1_body(i);
         if result.is_none() {
             if let Some(slot_id) = failure_context {
                 self.add_failure(
@@ -1903,6 +1370,38 @@ impl<'i, 'arena> ImportNamesParser<'i, 'arena> {
         }
         result
     }
+    #[inline(always)]
+    fn parse_input_ll1_body(&mut self, i: u32) -> Option<(u32, SPPFNodeId)> {
+        let matched = self.scanner.longest_match(&FIRST_SET_INPUT, i)?;
+        match matched {
+            TerminalId(3) => {
+                let mut j = i;
+                let right_child = {
+                    let start = j;
+                    let (end, node) =
+                        self.match_terminal(TerminalId(3), start, SlotId(19), None)?;
+                    j = end;
+                    node
+                };
+                let left_extent = i;
+                let current = right_child;
+                Some((
+                    j,
+                    self.add_nonterminal_node(NonterminalNode {
+                        nonterminal_id: NonterminalId(4),
+                        return_slot: SlotId(19),
+                        span: Span {
+                            left_extent,
+                            right_extent: j,
+                        },
+                        child: current,
+                        ambiguous: false,
+                    }),
+                ))
+            }
+            _ => unreachable!("LL(1) dispatch covers every terminal in FIRST_SET"),
+        }
+    }
     #[inline(never)]
     fn parse_parse_error_ll1(
         &mut self,
@@ -1911,37 +1410,7 @@ impl<'i, 'arena> ImportNamesParser<'i, 'arena> {
     ) -> Option<(u32, SPPFNodeId)> {
         #[cfg(feature = "instrument")]
         self.ll1_call_log.push((NonterminalId(5), i));
-        let result = (|| -> Option<(u32, SPPFNodeId)> {
-            let matched = self.scanner.longest_match(&FIRST_SET_PARSE_ERROR, i)?;
-            match matched {
-                TerminalId(4) => {
-                    let mut j = i;
-                    let right_child = {
-                        let start = j;
-                        let (end, node) =
-                            self.match_terminal(TerminalId(4), start, SlotId(21), None)?;
-                        j = end;
-                        node
-                    };
-                    let left_extent = i;
-                    let current = right_child;
-                    Some((
-                        j,
-                        self.add_nonterminal_node(NonterminalNode {
-                            nonterminal_id: NonterminalId(5),
-                            return_slot: SlotId(21),
-                            span: Span {
-                                left_extent,
-                                right_extent: j,
-                            },
-                            child: current,
-                            ambiguous: false,
-                        }),
-                    ))
-                }
-                _ => unreachable!("LL(1) dispatch covers every terminal in FIRST_SET"),
-            }
-        })();
+        let result = self.parse_parse_error_ll1_body(i);
         if result.is_none() {
             if let Some(slot_id) = failure_context {
                 self.add_failure(
@@ -1954,6 +1423,38 @@ impl<'i, 'arena> ImportNamesParser<'i, 'arena> {
         }
         result
     }
+    #[inline(always)]
+    fn parse_parse_error_ll1_body(&mut self, i: u32) -> Option<(u32, SPPFNodeId)> {
+        let matched = self.scanner.longest_match(&FIRST_SET_PARSE_ERROR, i)?;
+        match matched {
+            TerminalId(4) => {
+                let mut j = i;
+                let right_child = {
+                    let start = j;
+                    let (end, node) =
+                        self.match_terminal(TerminalId(4), start, SlotId(21), None)?;
+                    j = end;
+                    node
+                };
+                let left_extent = i;
+                let current = right_child;
+                Some((
+                    j,
+                    self.add_nonterminal_node(NonterminalNode {
+                        nonterminal_id: NonterminalId(5),
+                        return_slot: SlotId(21),
+                        span: Span {
+                            left_extent,
+                            right_extent: j,
+                        },
+                        child: current,
+                        ambiguous: false,
+                    }),
+                ))
+            }
+            _ => unreachable!("LL(1) dispatch covers every terminal in FIRST_SET"),
+        }
+    }
     #[inline(never)]
     fn parse_parse_success_ll1(
         &mut self,
@@ -1962,37 +1463,7 @@ impl<'i, 'arena> ImportNamesParser<'i, 'arena> {
     ) -> Option<(u32, SPPFNodeId)> {
         #[cfg(feature = "instrument")]
         self.ll1_call_log.push((NonterminalId(6), i));
-        let result = (|| -> Option<(u32, SPPFNodeId)> {
-            let matched = self.scanner.longest_match(&FIRST_SET_PARSE_SUCCESS, i)?;
-            match matched {
-                TerminalId(5) => {
-                    let mut j = i;
-                    let right_child = {
-                        let start = j;
-                        let (end, node) =
-                            self.match_terminal(TerminalId(5), start, SlotId(23), None)?;
-                        j = end;
-                        node
-                    };
-                    let left_extent = i;
-                    let current = right_child;
-                    Some((
-                        j,
-                        self.add_nonterminal_node(NonterminalNode {
-                            nonterminal_id: NonterminalId(6),
-                            return_slot: SlotId(23),
-                            span: Span {
-                                left_extent,
-                                right_extent: j,
-                            },
-                            child: current,
-                            ambiguous: false,
-                        }),
-                    ))
-                }
-                _ => unreachable!("LL(1) dispatch covers every terminal in FIRST_SET"),
-            }
-        })();
+        let result = self.parse_parse_success_ll1_body(i);
         if result.is_none() {
             if let Some(slot_id) = failure_context {
                 self.add_failure(
@@ -2005,6 +1476,38 @@ impl<'i, 'arena> ImportNamesParser<'i, 'arena> {
         }
         result
     }
+    #[inline(always)]
+    fn parse_parse_success_ll1_body(&mut self, i: u32) -> Option<(u32, SPPFNodeId)> {
+        let matched = self.scanner.longest_match(&FIRST_SET_PARSE_SUCCESS, i)?;
+        match matched {
+            TerminalId(5) => {
+                let mut j = i;
+                let right_child = {
+                    let start = j;
+                    let (end, node) =
+                        self.match_terminal(TerminalId(5), start, SlotId(23), None)?;
+                    j = end;
+                    node
+                };
+                let left_extent = i;
+                let current = right_child;
+                Some((
+                    j,
+                    self.add_nonterminal_node(NonterminalNode {
+                        nonterminal_id: NonterminalId(6),
+                        return_slot: SlotId(23),
+                        span: Span {
+                            left_extent,
+                            right_extent: j,
+                        },
+                        child: current,
+                        ambiguous: false,
+                    }),
+                ))
+            }
+            _ => unreachable!("LL(1) dispatch covers every terminal in FIRST_SET"),
+        }
+    }
     #[inline(never)]
     fn parse_grammar_ll1(
         &mut self,
@@ -2013,37 +1516,7 @@ impl<'i, 'arena> ImportNamesParser<'i, 'arena> {
     ) -> Option<(u32, SPPFNodeId)> {
         #[cfg(feature = "instrument")]
         self.ll1_call_log.push((NonterminalId(7), i));
-        let result = (|| -> Option<(u32, SPPFNodeId)> {
-            let matched = self.scanner.longest_match(&FIRST_SET_GRAMMAR, i)?;
-            match matched {
-                TerminalId(6) => {
-                    let mut j = i;
-                    let right_child = {
-                        let start = j;
-                        let (end, node) =
-                            self.match_terminal(TerminalId(6), start, SlotId(25), None)?;
-                        j = end;
-                        node
-                    };
-                    let left_extent = i;
-                    let current = right_child;
-                    Some((
-                        j,
-                        self.add_nonterminal_node(NonterminalNode {
-                            nonterminal_id: NonterminalId(7),
-                            return_slot: SlotId(25),
-                            span: Span {
-                                left_extent,
-                                right_extent: j,
-                            },
-                            child: current,
-                            ambiguous: false,
-                        }),
-                    ))
-                }
-                _ => unreachable!("LL(1) dispatch covers every terminal in FIRST_SET"),
-            }
-        })();
+        let result = self.parse_grammar_ll1_body(i);
         if result.is_none() {
             if let Some(slot_id) = failure_context {
                 self.add_failure(
@@ -2056,6 +1529,38 @@ impl<'i, 'arena> ImportNamesParser<'i, 'arena> {
         }
         result
     }
+    #[inline(always)]
+    fn parse_grammar_ll1_body(&mut self, i: u32) -> Option<(u32, SPPFNodeId)> {
+        let matched = self.scanner.longest_match(&FIRST_SET_GRAMMAR, i)?;
+        match matched {
+            TerminalId(6) => {
+                let mut j = i;
+                let right_child = {
+                    let start = j;
+                    let (end, node) =
+                        self.match_terminal(TerminalId(6), start, SlotId(25), None)?;
+                    j = end;
+                    node
+                };
+                let left_extent = i;
+                let current = right_child;
+                Some((
+                    j,
+                    self.add_nonterminal_node(NonterminalNode {
+                        nonterminal_id: NonterminalId(7),
+                        return_slot: SlotId(25),
+                        span: Span {
+                            left_extent,
+                            right_extent: j,
+                        },
+                        child: current,
+                        ambiguous: false,
+                    }),
+                ))
+            }
+            _ => unreachable!("LL(1) dispatch covers every terminal in FIRST_SET"),
+        }
+    }
     #[inline(never)]
     fn parse_nonterminal_ll1(
         &mut self,
@@ -2064,37 +1569,7 @@ impl<'i, 'arena> ImportNamesParser<'i, 'arena> {
     ) -> Option<(u32, SPPFNodeId)> {
         #[cfg(feature = "instrument")]
         self.ll1_call_log.push((NonterminalId(8), i));
-        let result = (|| -> Option<(u32, SPPFNodeId)> {
-            let matched = self.scanner.longest_match(&FIRST_SET_NONTERMINAL, i)?;
-            match matched {
-                TerminalId(7) => {
-                    let mut j = i;
-                    let right_child = {
-                        let start = j;
-                        let (end, node) =
-                            self.match_terminal(TerminalId(7), start, SlotId(27), None)?;
-                        j = end;
-                        node
-                    };
-                    let left_extent = i;
-                    let current = right_child;
-                    Some((
-                        j,
-                        self.add_nonterminal_node(NonterminalNode {
-                            nonterminal_id: NonterminalId(8),
-                            return_slot: SlotId(27),
-                            span: Span {
-                                left_extent,
-                                right_extent: j,
-                            },
-                            child: current,
-                            ambiguous: false,
-                        }),
-                    ))
-                }
-                _ => unreachable!("LL(1) dispatch covers every terminal in FIRST_SET"),
-            }
-        })();
+        let result = self.parse_nonterminal_ll1_body(i);
         if result.is_none() {
             if let Some(slot_id) = failure_context {
                 self.add_failure(
@@ -2107,6 +1582,38 @@ impl<'i, 'arena> ImportNamesParser<'i, 'arena> {
         }
         result
     }
+    #[inline(always)]
+    fn parse_nonterminal_ll1_body(&mut self, i: u32) -> Option<(u32, SPPFNodeId)> {
+        let matched = self.scanner.longest_match(&FIRST_SET_NONTERMINAL, i)?;
+        match matched {
+            TerminalId(7) => {
+                let mut j = i;
+                let right_child = {
+                    let start = j;
+                    let (end, node) =
+                        self.match_terminal(TerminalId(7), start, SlotId(27), None)?;
+                    j = end;
+                    node
+                };
+                let left_extent = i;
+                let current = right_child;
+                Some((
+                    j,
+                    self.add_nonterminal_node(NonterminalNode {
+                        nonterminal_id: NonterminalId(8),
+                        return_slot: SlotId(27),
+                        span: Span {
+                            left_extent,
+                            right_extent: j,
+                        },
+                        child: current,
+                        ambiguous: false,
+                    }),
+                ))
+            }
+            _ => unreachable!("LL(1) dispatch covers every terminal in FIRST_SET"),
+        }
+    }
     #[inline(never)]
     fn parse_terminal_ll1(
         &mut self,
@@ -2115,37 +1622,7 @@ impl<'i, 'arena> ImportNamesParser<'i, 'arena> {
     ) -> Option<(u32, SPPFNodeId)> {
         #[cfg(feature = "instrument")]
         self.ll1_call_log.push((NonterminalId(9), i));
-        let result = (|| -> Option<(u32, SPPFNodeId)> {
-            let matched = self.scanner.longest_match(&FIRST_SET_TERMINAL, i)?;
-            match matched {
-                TerminalId(8) => {
-                    let mut j = i;
-                    let right_child = {
-                        let start = j;
-                        let (end, node) =
-                            self.match_terminal(TerminalId(8), start, SlotId(29), None)?;
-                        j = end;
-                        node
-                    };
-                    let left_extent = i;
-                    let current = right_child;
-                    Some((
-                        j,
-                        self.add_nonterminal_node(NonterminalNode {
-                            nonterminal_id: NonterminalId(9),
-                            return_slot: SlotId(29),
-                            span: Span {
-                                left_extent,
-                                right_extent: j,
-                            },
-                            child: current,
-                            ambiguous: false,
-                        }),
-                    ))
-                }
-                _ => unreachable!("LL(1) dispatch covers every terminal in FIRST_SET"),
-            }
-        })();
+        let result = self.parse_terminal_ll1_body(i);
         if result.is_none() {
             if let Some(slot_id) = failure_context {
                 self.add_failure(
@@ -2158,6 +1635,38 @@ impl<'i, 'arena> ImportNamesParser<'i, 'arena> {
         }
         result
     }
+    #[inline(always)]
+    fn parse_terminal_ll1_body(&mut self, i: u32) -> Option<(u32, SPPFNodeId)> {
+        let matched = self.scanner.longest_match(&FIRST_SET_TERMINAL, i)?;
+        match matched {
+            TerminalId(8) => {
+                let mut j = i;
+                let right_child = {
+                    let start = j;
+                    let (end, node) =
+                        self.match_terminal(TerminalId(8), start, SlotId(29), None)?;
+                    j = end;
+                    node
+                };
+                let left_extent = i;
+                let current = right_child;
+                Some((
+                    j,
+                    self.add_nonterminal_node(NonterminalNode {
+                        nonterminal_id: NonterminalId(9),
+                        return_slot: SlotId(29),
+                        span: Span {
+                            left_extent,
+                            right_extent: j,
+                        },
+                        child: current,
+                        ambiguous: false,
+                    }),
+                ))
+            }
+            _ => unreachable!("LL(1) dispatch covers every terminal in FIRST_SET"),
+        }
+    }
     #[inline(never)]
     fn parse_slot_ll1(
         &mut self,
@@ -2166,37 +1675,7 @@ impl<'i, 'arena> ImportNamesParser<'i, 'arena> {
     ) -> Option<(u32, SPPFNodeId)> {
         #[cfg(feature = "instrument")]
         self.ll1_call_log.push((NonterminalId(10), i));
-        let result = (|| -> Option<(u32, SPPFNodeId)> {
-            let matched = self.scanner.longest_match(&FIRST_SET_SLOT, i)?;
-            match matched {
-                TerminalId(9) => {
-                    let mut j = i;
-                    let right_child = {
-                        let start = j;
-                        let (end, node) =
-                            self.match_terminal(TerminalId(9), start, SlotId(31), None)?;
-                        j = end;
-                        node
-                    };
-                    let left_extent = i;
-                    let current = right_child;
-                    Some((
-                        j,
-                        self.add_nonterminal_node(NonterminalNode {
-                            nonterminal_id: NonterminalId(10),
-                            return_slot: SlotId(31),
-                            span: Span {
-                                left_extent,
-                                right_extent: j,
-                            },
-                            child: current,
-                            ambiguous: false,
-                        }),
-                    ))
-                }
-                _ => unreachable!("LL(1) dispatch covers every terminal in FIRST_SET"),
-            }
-        })();
+        let result = self.parse_slot_ll1_body(i);
         if result.is_none() {
             if let Some(slot_id) = failure_context {
                 self.add_failure(
@@ -2209,6 +1688,38 @@ impl<'i, 'arena> ImportNamesParser<'i, 'arena> {
         }
         result
     }
+    #[inline(always)]
+    fn parse_slot_ll1_body(&mut self, i: u32) -> Option<(u32, SPPFNodeId)> {
+        let matched = self.scanner.longest_match(&FIRST_SET_SLOT, i)?;
+        match matched {
+            TerminalId(9) => {
+                let mut j = i;
+                let right_child = {
+                    let start = j;
+                    let (end, node) =
+                        self.match_terminal(TerminalId(9), start, SlotId(31), None)?;
+                    j = end;
+                    node
+                };
+                let left_extent = i;
+                let current = right_child;
+                Some((
+                    j,
+                    self.add_nonterminal_node(NonterminalNode {
+                        nonterminal_id: NonterminalId(10),
+                        return_slot: SlotId(31),
+                        span: Span {
+                            left_extent,
+                            right_extent: j,
+                        },
+                        child: current,
+                        ambiguous: false,
+                    }),
+                ))
+            }
+            _ => unreachable!("LL(1) dispatch covers every terminal in FIRST_SET"),
+        }
+    }
     #[inline(never)]
     fn parse_terminal_set_ll1(
         &mut self,
@@ -2217,37 +1728,7 @@ impl<'i, 'arena> ImportNamesParser<'i, 'arena> {
     ) -> Option<(u32, SPPFNodeId)> {
         #[cfg(feature = "instrument")]
         self.ll1_call_log.push((NonterminalId(11), i));
-        let result = (|| -> Option<(u32, SPPFNodeId)> {
-            let matched = self.scanner.longest_match(&FIRST_SET_TERMINAL_SET, i)?;
-            match matched {
-                TerminalId(10) => {
-                    let mut j = i;
-                    let right_child = {
-                        let start = j;
-                        let (end, node) =
-                            self.match_terminal(TerminalId(10), start, SlotId(33), None)?;
-                        j = end;
-                        node
-                    };
-                    let left_extent = i;
-                    let current = right_child;
-                    Some((
-                        j,
-                        self.add_nonterminal_node(NonterminalNode {
-                            nonterminal_id: NonterminalId(11),
-                            return_slot: SlotId(33),
-                            span: Span {
-                                left_extent,
-                                right_extent: j,
-                            },
-                            child: current,
-                            ambiguous: false,
-                        }),
-                    ))
-                }
-                _ => unreachable!("LL(1) dispatch covers every terminal in FIRST_SET"),
-            }
-        })();
+        let result = self.parse_terminal_set_ll1_body(i);
         if result.is_none() {
             if let Some(slot_id) = failure_context {
                 self.add_failure(
@@ -2259,5 +1740,37 @@ impl<'i, 'arena> ImportNamesParser<'i, 'arena> {
             }
         }
         result
+    }
+    #[inline(always)]
+    fn parse_terminal_set_ll1_body(&mut self, i: u32) -> Option<(u32, SPPFNodeId)> {
+        let matched = self.scanner.longest_match(&FIRST_SET_TERMINAL_SET, i)?;
+        match matched {
+            TerminalId(10) => {
+                let mut j = i;
+                let right_child = {
+                    let start = j;
+                    let (end, node) =
+                        self.match_terminal(TerminalId(10), start, SlotId(33), None)?;
+                    j = end;
+                    node
+                };
+                let left_extent = i;
+                let current = right_child;
+                Some((
+                    j,
+                    self.add_nonterminal_node(NonterminalNode {
+                        nonterminal_id: NonterminalId(11),
+                        return_slot: SlotId(33),
+                        span: Span {
+                            left_extent,
+                            right_extent: j,
+                        },
+                        child: current,
+                        ambiguous: false,
+                    }),
+                ))
+            }
+            _ => unreachable!("LL(1) dispatch covers every terminal in FIRST_SET"),
+        }
     }
 }

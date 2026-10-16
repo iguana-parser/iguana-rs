@@ -67,31 +67,6 @@ impl<'i, 'arena> Parser<'i, 'arena> for LayoutAwareFollowRequiredLayoutParser<'i
                     gss_node_id
                 );
                 match slot_id {
-                    // S : . Id !>>> Semi
-                    SlotId(0) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(0),
-                            input_index,
-                            SlotId(0),
-                            Some(gss_node_id),
-                        ) {
-                            if let Some(failure) = self.post_conditions(SlotId(1), input_index, j) {
-                                self.add_failure(j, SlotId(1), Some(gss_node_id), failure);
-                            } else {
-                                // S : Id !>>> Semi.
-                                input_index = j;
-                                result = Some(right_child);
-                                next = Some(SlotId(1));
-                            }
-                        }
-                    }
-                    // S : Id !>>> Semi.
-                    SlotId(1) => {
-                        let Some(result) = result else {
-                            unreachable!("result cannot be None here.")
-                        };
-                        self.pop(gss_node_id, SlotId(1), result, None, &FOLLOW_SET_S);
-                    }
                     // StartS : . WS start:S WS
                     SlotId(2) => {
                         if let Some((j, right_child)) = self.match_terminal(
@@ -679,41 +654,7 @@ impl<'i, 'arena> LayoutAwareFollowRequiredLayoutParser<'i, 'arena> {
     ) -> Option<(u32, SPPFNodeId)> {
         #[cfg(feature = "instrument")]
         self.ll1_call_log.push((NonterminalId(0), i));
-        let result = (|| -> Option<(u32, SPPFNodeId)> {
-            let matched = self.scanner.longest_match(&FIRST_SET_S, i)?;
-            match matched {
-                TerminalId(0) => {
-                    let mut j = i;
-                    let right_child = {
-                        let start = j;
-                        let (end, node) =
-                            self.match_terminal(TerminalId(0), start, SlotId(1), None)?;
-                        if let Some(failure) = self.post_conditions(SlotId(1), start, end) {
-                            self.add_failure(end, SlotId(1), None, failure);
-                            return None;
-                        }
-                        j = end;
-                        node
-                    };
-                    let left_extent = i;
-                    let current = right_child;
-                    Some((
-                        j,
-                        self.add_nonterminal_node(NonterminalNode {
-                            nonterminal_id: NonterminalId(0),
-                            return_slot: SlotId(1),
-                            span: Span {
-                                left_extent,
-                                right_extent: j,
-                            },
-                            child: current,
-                            ambiguous: false,
-                        }),
-                    ))
-                }
-                _ => unreachable!("LL(1) dispatch covers every terminal in FIRST_SET"),
-            }
-        })();
+        let result = self.parse_s_ll1_body(i);
         if result.is_none() {
             if let Some(slot_id) = failure_context {
                 self.add_failure(
@@ -725,5 +666,40 @@ impl<'i, 'arena> LayoutAwareFollowRequiredLayoutParser<'i, 'arena> {
             }
         }
         result
+    }
+    #[inline(always)]
+    fn parse_s_ll1_body(&mut self, i: u32) -> Option<(u32, SPPFNodeId)> {
+        let matched = self.scanner.longest_match(&FIRST_SET_S, i)?;
+        match matched {
+            TerminalId(0) => {
+                let mut j = i;
+                let right_child = {
+                    let start = j;
+                    let (end, node) = self.match_terminal(TerminalId(0), start, SlotId(1), None)?;
+                    if let Some(failure) = self.post_conditions(SlotId(1), start, end) {
+                        self.add_failure(end, SlotId(1), None, failure);
+                        return None;
+                    }
+                    j = end;
+                    node
+                };
+                let left_extent = i;
+                let current = right_child;
+                Some((
+                    j,
+                    self.add_nonterminal_node(NonterminalNode {
+                        nonterminal_id: NonterminalId(0),
+                        return_slot: SlotId(1),
+                        span: Span {
+                            left_extent,
+                            right_extent: j,
+                        },
+                        child: current,
+                        ambiguous: false,
+                    }),
+                ))
+            }
+            _ => unreachable!("LL(1) dispatch covers every terminal in FIRST_SET"),
+        }
     }
 }
