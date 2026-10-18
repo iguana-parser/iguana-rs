@@ -645,7 +645,7 @@ static TERMINAL_FIRST_CHARS: [CharSet; 40] = [
     ),
     CharSet::new(0x0, &[]),
 ];
-static MATCH_ANY_FIRST_CHARS: [CharSet; 23] = [
+static MATCH_ANY_FIRST_CHARS: [CharSet; 37] = [
     CharSet::new(0x800100000600, &[]),
     CharSet::new(0x7fffffe07ffffff0000800100000600, &[]),
     CharSet::new(0x7fffffe07fffffe0000800100000600, &[]),
@@ -705,6 +705,32 @@ static MATCH_ANY_FIRST_CHARS: [CharSet; 23] = [
         ],
     ),
     CharSet::new(0x0, &[]),
+    CharSet::new(0x7fffffe0ffffffe0000818700000600, &[]),
+    CharSet::new(0x20000000000, &[]),
+    CharSet::new(0xffffffe07fffffe0000010400000000, &[]),
+    CharSet::new(0x20000000000000000000000000000000, &[]),
+    CharSet::new(0x40000000000, &[]),
+    CharSet::new(0x80000000000, &[]),
+    CharSet::new(0x8000000000000000, &[]),
+    CharSet::new(0x100000000000000200000000, &[]),
+    CharSet::new(0x200000000000000000000000, &[]),
+    CharSet::new(0x7fffffe07ffffff0000800100000600, &[]),
+    CharSet::new(0x4000000000000000, &[]),
+    CharSet::new(0x10000000000000000000000000000000, &[]),
+    CharSet::new(0x7fffffe07fffffe0000000000000000, &[]),
+    CharSet::new(
+        0xffffffffd7ffffffffffdffeffffc9ff,
+        &[
+            CharRange {
+                start: '\u{80}',
+                end: '\u{d7ff}',
+            },
+            CharRange {
+                start: '\u{e000}',
+                end: '\u{10ffff}',
+            },
+        ],
+    ),
 ];
 pub struct IggyScanner<'i, 'arena> {
     pub input: &'i Input,
@@ -882,7 +908,7 @@ impl<'i, 'arena> IggyScanner<'i, 'arena> {
     // first query of a set at a position scans it; later queries return the cached bit.
     pub fn match_any(&mut self, set: &TerminalSet, input_index: u32) -> bool {
         debug_assert!(
-            set.id < 23,
+            set.id < 37,
             "terminal set {} does not have a match_any memo id",
             set.id,
         );

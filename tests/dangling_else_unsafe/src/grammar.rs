@@ -339,51 +339,51 @@ impl Grammar for DanglingElseUnsafeGrammar {
     // by terminal id, serves only that.
     const SINGLE_TERMINAL_SETS: &'static [TerminalSet] = &[
         TerminalSet {
-            id: 8,
+            id: 9,
             terminals: &[TerminalId(0)],
         },
         TerminalSet {
-            id: 9,
+            id: 10,
             terminals: &[TerminalId(1)],
         },
         TerminalSet {
-            id: 10,
+            id: 11,
             terminals: &[TerminalId(2)],
         },
         TerminalSet {
-            id: 11,
+            id: 12,
             terminals: &[TerminalId(3)],
         },
         TerminalSet {
-            id: 12,
+            id: 13,
             terminals: &[TerminalId(4)],
         },
         TerminalSet {
-            id: 13,
+            id: 14,
             terminals: &[TerminalId(5)],
         },
         TerminalSet {
-            id: 14,
+            id: 15,
             terminals: &[TerminalId(6)],
         },
         TerminalSet {
-            id: 15,
+            id: 16,
             terminals: &[TerminalId(7)],
         },
         TerminalSet {
-            id: 16,
+            id: 17,
             terminals: &[TerminalId(8)],
         },
         TerminalSet {
-            id: 17,
+            id: 18,
             terminals: &[TerminalId(9)],
         },
         TerminalSet {
-            id: 18,
+            id: 19,
             terminals: &[TerminalId(10)],
         },
         TerminalSet {
-            id: 19,
+            id: 20,
             terminals: &[TerminalId(11)],
         },
     ];
@@ -512,29 +512,40 @@ pub static FOLLOW_SET_START_LAYOUT: TerminalSet = TerminalSet {
     id: 6,
     terminals: &[TerminalId(11)],
 };
+// Statement : "if" Layout "(" Layout Cond Layout ")" Layout Statement . Layout Else Layout
+// Statement lookahead { Else }
+pub static RETURN_SLOT_LOOKAHEAD_STATEMENT_ALT1_POS9: TerminalSet = TerminalSet {
+    id: 2,
+    terminals: &[TerminalId(2)],
+};
+// Plus_0 : Plus_0 . Layout Statement lookahead { Id, "if" }
+pub static RETURN_SLOT_LOOKAHEAD_PLUS_0_ALT0_POS1: TerminalSet = TerminalSet {
+    id: 7,
+    terminals: &[TerminalId(1), TerminalId(6)],
+};
 // Layout { WhiteSpace, Comment }
 pub static FIRST_SET_LAYOUT: TerminalSet = TerminalSet {
-    id: 7,
+    id: 8,
     terminals: &[TerminalId(4), TerminalId(5)],
 };
 // Alt_0 { WhiteSpace, Comment }
 pub static FIRST_SET_ALT_0: TerminalSet = TerminalSet {
-    id: 7,
+    id: 8,
     terminals: &[TerminalId(4), TerminalId(5)],
 };
 // Plus_1 { WhiteSpace, Comment }
 pub static FIRST_SET_PLUS_1: TerminalSet = TerminalSet {
-    id: 7,
+    id: 8,
     terminals: &[TerminalId(4), TerminalId(5)],
 };
 // Star_0 { WhiteSpace, Comment }
 pub static FIRST_SET_STAR_0: TerminalSet = TerminalSet {
-    id: 7,
+    id: 8,
     terminals: &[TerminalId(4), TerminalId(5)],
 };
 // StartLayout { WhiteSpace, Comment }
 pub static FIRST_SET_START_LAYOUT: TerminalSet = TerminalSet {
-    id: 7,
+    id: 8,
     terminals: &[TerminalId(4), TerminalId(5)],
 };
 // S

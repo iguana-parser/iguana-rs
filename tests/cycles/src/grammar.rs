@@ -1292,19 +1292,19 @@ impl Grammar for CyclesGrammar {
     // by terminal id, serves only that.
     const SINGLE_TERMINAL_SETS: &'static [TerminalSet] = &[
         TerminalSet {
-            id: 5,
+            id: 6,
             terminals: &[TerminalId(0)],
         },
         TerminalSet {
-            id: 6,
+            id: 7,
             terminals: &[TerminalId(1)],
         },
         TerminalSet {
-            id: 7,
+            id: 8,
             terminals: &[TerminalId(2)],
         },
         TerminalSet {
-            id: 8,
+            id: 9,
             terminals: &[TerminalId(3)],
         },
     ];
@@ -1752,44 +1752,59 @@ pub static FOLLOW_SET_START_GROUPED: TerminalSet = TerminalSet {
     id: 1,
     terminals: &[TerminalId(3)],
 };
+// ParentC : ParentD . "b" lookahead { "b" }
+pub static RETURN_SLOT_LOOKAHEAD_PARENT_C_ALT0_POS1: TerminalSet = TerminalSet {
+    id: 3,
+    terminals: &[TerminalId(0)],
+};
+// MidInput : Direct . "b" lookahead { "b" }
+pub static RETURN_SLOT_LOOKAHEAD_MID_INPUT_ALT0_POS1: TerminalSet = TerminalSet {
+    id: 3,
+    terminals: &[TerminalId(0)],
+};
+// Consuming : Consuming . "b" lookahead { "b" }
+pub static RETURN_SLOT_LOOKAHEAD_CONSUMING_ALT0_POS1: TerminalSet = TerminalSet {
+    id: 3,
+    terminals: &[TerminalId(0)],
+};
 // EmptyE { }
 pub static FIRST_SET_EMPTY_E: TerminalSet = TerminalSet {
-    id: 3,
+    id: 4,
     terminals: &[],
 };
 // EmptyF { }
 pub static FIRST_SET_EMPTY_F: TerminalSet = TerminalSet {
-    id: 3,
+    id: 4,
     terminals: &[],
 };
 // IntermediateA { }
 pub static FIRST_SET_INTERMEDIATE_A: TerminalSet = TerminalSet {
-    id: 3,
+    id: 4,
     terminals: &[],
 };
 // Ordinary { "b" }
 pub static FIRST_SET_ORDINARY: TerminalSet = TerminalSet {
-    id: 4,
+    id: 5,
     terminals: &[TerminalId(0)],
 };
 // StartEmptyE { }
 pub static FIRST_SET_START_EMPTY_E: TerminalSet = TerminalSet {
-    id: 3,
+    id: 4,
     terminals: &[],
 };
 // StartEmptyF { }
 pub static FIRST_SET_START_EMPTY_F: TerminalSet = TerminalSet {
-    id: 3,
+    id: 4,
     terminals: &[],
 };
 // StartIntermediateA { }
 pub static FIRST_SET_START_INTERMEDIATE_A: TerminalSet = TerminalSet {
-    id: 3,
+    id: 4,
     terminals: &[],
 };
 // StartOrdinary { "b" }
 pub static FIRST_SET_START_ORDINARY: TerminalSet = TerminalSet {
-    id: 4,
+    id: 5,
     terminals: &[TerminalId(0)],
 };
 // Direct

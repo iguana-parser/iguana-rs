@@ -275,6 +275,11 @@ pub static FOLLOW_SET_START_ID: TerminalSet = TerminalSet {
     id: 3,
     terminals: &[TerminalId(3)],
 };
+// Plus_0 : Plus_0 . WS Id lookahead { Char }
+pub static RETURN_SLOT_LOOKAHEAD_PLUS_0_ALT0_POS1: TerminalSet = TerminalSet {
+    id: 1,
+    terminals: &[TerminalId(0)],
+};
 // T { Char }
 pub static FIRST_SET_T: TerminalSet = TerminalSet {
     id: 4,

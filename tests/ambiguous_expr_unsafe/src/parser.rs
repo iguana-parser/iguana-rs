@@ -1243,6 +1243,63 @@ impl<'i, 'arena> Parser<'i, 'arena> for AmbiguousExprUnsafeParser<'i, 'arena> {
     ) -> Option<GLLFailureKind> {
         None
     }
+    fn return_conditions(
+        &mut self,
+        return_slot: SlotId,
+        left_extent: u32,
+        right_extent: u32,
+        gss_node_id: GssNodeId,
+        _env: Option<EnvId>,
+        _return_value: Option<i32>,
+    ) -> bool {
+        let lookahead: Option<(bool, &'static TerminalSet)> = match return_slot {
+            // E : E . WS "." WS "f"
+            SlotId(3) => Some((true, &RETURN_SLOT_LOOKAHEAD_E_ALT0_POS1)),
+            // E : E . WS E
+            SlotId(9) => Some((true, &RETURN_SLOT_LOOKAHEAD_E_ALT1_POS1)),
+            // E : E . WS "*" WS E
+            SlotId(13) => Some((true, &RETURN_SLOT_LOOKAHEAD_E_ALT2_POS1)),
+            // E : E . WS "+" WS E
+            SlotId(19) => Some((true, &RETURN_SLOT_LOOKAHEAD_E_ALT3_POS1)),
+            // E : E . WS "-" WS E
+            SlotId(25) => Some((true, &RETURN_SLOT_LOOKAHEAD_E_ALT4_POS1)),
+            // E : "if" WS E . WS "then" WS E WS "else" WS E
+            SlotId(37) => Some((true, &RETURN_SLOT_LOOKAHEAD_E_ALT6_POS3)),
+            // E : "if" WS E WS "then" WS E . WS "else" WS E
+            SlotId(41) => Some((true, &RETURN_SLOT_LOOKAHEAD_E_ALT6_POS7)),
+            // E : E . WS ";" WS E
+            SlotId(47) => Some((true, &RETURN_SLOT_LOOKAHEAD_E_ALT7_POS1)),
+            // E : "(" WS E . WS ")"
+            SlotId(55) => Some((true, &RETURN_SLOT_LOOKAHEAD_E_ALT8_POS3)),
+            _ => None,
+        };
+        if let Some(failure) = self.post_conditions(return_slot, left_extent, right_extent) {
+            self.add_failure(right_extent, return_slot, Some(gss_node_id), failure);
+            return false;
+        }
+        let Some((skips_layout, set)) = lookahead else {
+            return true;
+        };
+        let start = if skips_layout {
+            let layout = self.scanner.match_token(TerminalId(0), right_extent);
+            let Some(end) = layout else {
+                return true;
+            };
+            end
+        } else {
+            right_extent
+        };
+        if self.scanner.match_any(set, start) {
+            return true;
+        }
+        self.add_failure(
+            start,
+            return_slot,
+            Some(gss_node_id),
+            GLLFailureKind::UnexpectedToken(set),
+        );
+        false
+    }
     fn failures(&self) -> impl Iterator<Item = &GLLFailure> {
         self.failures.iter()
     }

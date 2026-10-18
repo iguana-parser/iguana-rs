@@ -165,35 +165,35 @@ impl Grammar for ExactKeywordNoLayoutGrammar {
     // by terminal id, serves only that.
     const SINGLE_TERMINAL_SETS: &'static [TerminalSet] = &[
         TerminalSet {
-            id: 4,
+            id: 6,
             terminals: &[TerminalId(0)],
         },
         TerminalSet {
-            id: 5,
+            id: 7,
             terminals: &[TerminalId(1)],
         },
         TerminalSet {
-            id: 6,
+            id: 8,
             terminals: &[TerminalId(2)],
         },
         TerminalSet {
-            id: 7,
+            id: 9,
             terminals: &[TerminalId(3)],
         },
         TerminalSet {
-            id: 8,
+            id: 10,
             terminals: &[TerminalId(4)],
         },
         TerminalSet {
-            id: 9,
+            id: 11,
             terminals: &[TerminalId(5)],
         },
         TerminalSet {
-            id: 10,
+            id: 12,
             terminals: &[TerminalId(6)],
         },
         TerminalSet {
-            id: 11,
+            id: 13,
             terminals: &[TerminalId(7)],
         },
     ];
@@ -232,6 +232,16 @@ pub static FOLLOW_SET_START_S: TerminalSet = TerminalSet {
 pub static FOLLOW_SET_START_WORD: TerminalSet = TerminalSet {
     id: 3,
     terminals: &[TerminalId(7)],
+};
+// S : Word . WS ";" lookahead { ";" }
+pub static RETURN_SLOT_LOOKAHEAD_S_ALT0_POS1: TerminalSet = TerminalSet {
+    id: 4,
+    terminals: &[TerminalId(3)],
+};
+// Plus_0 : Plus_0 . Letter lookahead { Letter }
+pub static RETURN_SLOT_LOOKAHEAD_PLUS_0_ALT0_POS1: TerminalSet = TerminalSet {
+    id: 5,
+    terminals: &[TerminalId(1)],
 };
 // S
 // 0: Word WS ";" #Word

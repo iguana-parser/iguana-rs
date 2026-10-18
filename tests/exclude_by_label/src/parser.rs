@@ -689,6 +689,45 @@ impl<'i, 'arena> Parser<'i, 'arena> for ExcludeByLabelParser<'i, 'arena> {
     ) -> Option<GLLFailureKind> {
         None
     }
+    fn return_conditions(
+        &mut self,
+        return_slot: SlotId,
+        left_extent: u32,
+        right_extent: u32,
+        gss_node_id: GssNodeId,
+        _env: Option<EnvId>,
+        _return_value: Option<i32>,
+    ) -> bool {
+        let lookahead: Option<(bool, &'static TerminalSet)> = match return_slot {
+            // Expr(e: i32) : [2 & e == 0] Expr(0) . "(" Star_0 ")" return (0, 1)
+            SlotId(17) => Some((false, &RETURN_SLOT_LOOKAHEAD_EXPR_ALT1_POS2)),
+            // Expr(e: i32) : [2 & e == 0] Expr(0) "(" Star_0 . ")" return (0, 1)
+            SlotId(19) => Some((false, &RETURN_SLOT_LOOKAHEAD_EXPR_ALT1_POS4)),
+            // Expr(e: i32) : [4 & e == 0] Expr(0) . "," Expr(0) return (0, 2)
+            SlotId(24) => Some((false, &RETURN_SLOT_LOOKAHEAD_EXPR_ALT2_POS2)),
+            // Plus_0 : Plus_0 . "," Expr(4)
+            SlotId(1) => Some((false, &RETURN_SLOT_LOOKAHEAD_PLUS_0_ALT0_POS1)),
+            _ => None,
+        };
+        if let Some(failure) = self.post_conditions(return_slot, left_extent, right_extent) {
+            self.add_failure(right_extent, return_slot, Some(gss_node_id), failure);
+            return false;
+        }
+        let Some((_, set)) = lookahead else {
+            return true;
+        };
+        let start = right_extent;
+        if self.scanner.match_any(set, start) {
+            return true;
+        }
+        self.add_failure(
+            start,
+            return_slot,
+            Some(gss_node_id),
+            GLLFailureKind::UnexpectedToken(set),
+        );
+        false
+    }
     fn failures(&self) -> impl Iterator<Item = &GLLFailure> {
         self.failures.iter()
     }

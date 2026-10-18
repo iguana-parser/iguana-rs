@@ -273,31 +273,31 @@ impl Grammar for AmbRootStartGrammar {
     // by terminal id, serves only that.
     const SINGLE_TERMINAL_SETS: &'static [TerminalSet] = &[
         TerminalSet {
-            id: 5,
+            id: 7,
             terminals: &[TerminalId(0)],
         },
         TerminalSet {
-            id: 6,
+            id: 8,
             terminals: &[TerminalId(1)],
         },
         TerminalSet {
-            id: 7,
+            id: 9,
             terminals: &[TerminalId(2)],
         },
         TerminalSet {
-            id: 8,
+            id: 10,
             terminals: &[TerminalId(3)],
         },
         TerminalSet {
-            id: 9,
+            id: 11,
             terminals: &[TerminalId(4)],
         },
         TerminalSet {
-            id: 10,
+            id: 12,
             terminals: &[TerminalId(5)],
         },
         TerminalSet {
-            id: 11,
+            id: 13,
             terminals: &[TerminalId(6)],
         },
     ];
@@ -331,14 +331,31 @@ pub static FOLLOW_SET_START_TYPE: TerminalSet = TerminalSet {
     id: 2,
     terminals: &[TerminalId(6)],
 };
+// E(p: i32) : [1 >= p] l_pr=E(p) . [(l_pr == 0) || (l_pr >= 1)] WS "-" WS E(1) return 1
+// lookahead { "-" }
+pub static RETURN_SLOT_LOOKAHEAD_E_ALT2_POS2: TerminalSet = TerminalSet {
+    id: 3,
+    terminals: &[TerminalId(4)],
+};
+// E(p: i32) : [1 >= p] l_pr=E(p) . [(l_pr == 0) || (l_pr >= 1)] WS "-" WS E(1) return 1
+// lookahead { "-" }
+pub static RETURN_SLOT_LOOKAHEAD_E_ALT3_POS2: TerminalSet = TerminalSet {
+    id: 3,
+    terminals: &[TerminalId(4)],
+};
+// E(p: i32) : "(" WS E(0) . WS ")" return 0 lookahead { ")" }
+pub static RETURN_SLOT_LOOKAHEAD_E_ALT4_POS3: TerminalSet = TerminalSet {
+    id: 4,
+    terminals: &[TerminalId(3)],
+};
 // Type { Id }
 pub static FIRST_SET_TYPE: TerminalSet = TerminalSet {
-    id: 3,
+    id: 5,
     terminals: &[TerminalId(0)],
 };
 // StartType { Id, WS }
 pub static FIRST_SET_START_TYPE: TerminalSet = TerminalSet {
-    id: 4,
+    id: 6,
     terminals: &[TerminalId(0), TerminalId(1)],
 };
 // E

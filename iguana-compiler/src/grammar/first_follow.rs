@@ -603,7 +603,7 @@ impl<'a> FirstFollowSets<'a> {
         }
     }
 
-    fn is_nullable(&self, s: &Symbol) -> bool {
+    pub fn is_nullable(&self, s: &Symbol) -> bool {
         match s {
             Symbol::Labeled { symbol, .. } | Symbol::Binding { symbol, .. } => {
                 self.is_nullable(symbol)

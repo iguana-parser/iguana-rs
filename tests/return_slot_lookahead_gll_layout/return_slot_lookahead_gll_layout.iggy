@@ -1,0 +1,19 @@
+grammar ReturnSlotLookaheadGllLayout
+
+// `A` is not LL(1), so the parser returns from it through the GSS. The layout
+// is not LL(1) either: the nullable `B` places two layouts next to each other,
+// and after a `WS` the first layout cannot decide whether to match another
+// `WS` or to stop. The return slot after `A` therefore does not have a
+// lookahead, and the parser continues every return from `A`. An empty `B`
+// makes the input ambiguous between the two layouts.
+S = A B "x"
+
+A = "a" | "a" "b"
+
+B = "c" | ()
+
+@Layout
+Layout = WS*
+
+@Regex
+WS = [\ ]+

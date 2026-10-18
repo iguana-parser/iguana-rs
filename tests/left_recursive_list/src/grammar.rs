@@ -67,15 +67,15 @@ impl Grammar for LeftRecursiveListGrammar {
     // by terminal id, serves only that.
     const SINGLE_TERMINAL_SETS: &'static [TerminalSet] = &[
         TerminalSet {
-            id: 2,
+            id: 3,
             terminals: &[TerminalId(0)],
         },
         TerminalSet {
-            id: 3,
+            id: 4,
             terminals: &[TerminalId(1)],
         },
         TerminalSet {
-            id: 4,
+            id: 5,
             terminals: &[TerminalId(2)],
         },
     ];
@@ -96,6 +96,11 @@ pub static FOLLOW_SET_A: TerminalSet = TerminalSet {
 pub static FOLLOW_SET_START_A: TerminalSet = TerminalSet {
     id: 1,
     terminals: &[TerminalId(2)],
+};
+// A : A . "a" lookahead { "a" }
+pub static RETURN_SLOT_LOOKAHEAD_A_ALT0_POS1: TerminalSet = TerminalSet {
+    id: 2,
+    terminals: &[TerminalId(0)],
 };
 // A
 // 0: A "a"

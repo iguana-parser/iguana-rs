@@ -1,0 +1,9 @@
+(Start
+  (Layout WS*)
+  (S
+    (A "a")
+    (Layout WS*)
+    B
+    (Layout WS*)
+    "x")
+  (Layout WS*))

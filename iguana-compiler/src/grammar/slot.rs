@@ -1,6 +1,6 @@
 use crate::grammar::{
     def::{Alternative, Grammar},
-    symbols::{self, Nonterminal},
+    symbols::{self, Definition, Nonterminal},
 };
 
 /// Represents a grammar slot of the form `A : a B . c`
@@ -28,6 +28,10 @@ impl<'a> Slot<'a> {
         self.pos
     }
 
+    pub fn alternative(&self) -> &'a Alternative {
+        self.alternative
+    }
+
     /// The index of the slot's alternative among the head's alternatives.
     pub fn alternative_index(&self, grammar: &Grammar) -> usize {
         grammar
@@ -48,6 +52,22 @@ impl<'a> Slot<'a> {
         self.alternative.symbols[..self.pos]
             .iter()
             .all(|s| !s.is_parse_tree_symbol())
+    }
+
+    /// The nonterminal before the slot, or `None` when the slot is not a return
+    /// slot.
+    pub fn called_nonterminal(&self, grammar: &'a Grammar) -> Option<&'a Nonterminal> {
+        let pos = self.pos.checked_sub(1)?;
+        let called = self.alternative.symbols[pos].as_identifier()?;
+        match grammar.definition(called.resolve()) {
+            Definition::Nonterminal(called) => Some(called),
+            Definition::Terminal(_) => None,
+        }
+    }
+
+    /// Whether the slot is a return slot, the slot after a nonterminal.
+    pub fn is_return_slot(&self, grammar: &Grammar) -> bool {
+        self.called_nonterminal(grammar).is_some()
     }
 
     pub fn symbol(&self) -> Option<&symbols::Symbol> {

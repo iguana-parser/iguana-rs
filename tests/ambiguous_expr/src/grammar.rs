@@ -349,63 +349,63 @@ impl Grammar for AmbiguousExprGrammar {
     // by terminal id, serves only that.
     const SINGLE_TERMINAL_SETS: &'static [TerminalSet] = &[
         TerminalSet {
-            id: 3,
+            id: 12,
             terminals: &[TerminalId(0)],
         },
         TerminalSet {
-            id: 4,
+            id: 13,
             terminals: &[TerminalId(1)],
         },
         TerminalSet {
-            id: 5,
+            id: 14,
             terminals: &[TerminalId(2)],
         },
         TerminalSet {
-            id: 6,
+            id: 15,
             terminals: &[TerminalId(3)],
         },
         TerminalSet {
-            id: 7,
+            id: 16,
             terminals: &[TerminalId(4)],
         },
         TerminalSet {
-            id: 8,
+            id: 17,
             terminals: &[TerminalId(5)],
         },
         TerminalSet {
-            id: 9,
+            id: 18,
             terminals: &[TerminalId(6)],
         },
         TerminalSet {
-            id: 10,
+            id: 19,
             terminals: &[TerminalId(7)],
         },
         TerminalSet {
-            id: 11,
+            id: 20,
             terminals: &[TerminalId(8)],
         },
         TerminalSet {
-            id: 12,
+            id: 21,
             terminals: &[TerminalId(9)],
         },
         TerminalSet {
-            id: 13,
+            id: 22,
             terminals: &[TerminalId(10)],
         },
         TerminalSet {
-            id: 14,
+            id: 23,
             terminals: &[TerminalId(11)],
         },
         TerminalSet {
-            id: 15,
+            id: 24,
             terminals: &[TerminalId(12)],
         },
         TerminalSet {
-            id: 16,
+            id: 25,
             terminals: &[TerminalId(13)],
         },
         TerminalSet {
-            id: 17,
+            id: 26,
             terminals: &[TerminalId(14)],
         },
     ];
@@ -452,6 +452,51 @@ pub static FOLLOW_SET_START_S: TerminalSet = TerminalSet {
 pub static FOLLOW_SET_START_E: TerminalSet = TerminalSet {
     id: 2,
     terminals: &[TerminalId(14)],
+};
+// E : E . WS "." WS "f" lookahead { "." }
+pub static RETURN_SLOT_LOOKAHEAD_E_ALT0_POS1: TerminalSet = TerminalSet {
+    id: 3,
+    terminals: &[TerminalId(1)],
+};
+// E : E . WS E lookahead { "-", "if", "(", "a" }
+pub static RETURN_SLOT_LOOKAHEAD_E_ALT1_POS1: TerminalSet = TerminalSet {
+    id: 4,
+    terminals: &[TerminalId(5), TerminalId(6), TerminalId(10), TerminalId(12)],
+};
+// E : E . WS "*" WS E lookahead { "*" }
+pub static RETURN_SLOT_LOOKAHEAD_E_ALT2_POS1: TerminalSet = TerminalSet {
+    id: 5,
+    terminals: &[TerminalId(3)],
+};
+// E : E . WS "+" WS E lookahead { "+" }
+pub static RETURN_SLOT_LOOKAHEAD_E_ALT3_POS1: TerminalSet = TerminalSet {
+    id: 6,
+    terminals: &[TerminalId(4)],
+};
+// E : E . WS "-" WS E lookahead { "-" }
+pub static RETURN_SLOT_LOOKAHEAD_E_ALT4_POS1: TerminalSet = TerminalSet {
+    id: 7,
+    terminals: &[TerminalId(5)],
+};
+// E : "if" WS E . WS "then" WS E WS "else" WS E lookahead { "then" }
+pub static RETURN_SLOT_LOOKAHEAD_E_ALT6_POS3: TerminalSet = TerminalSet {
+    id: 8,
+    terminals: &[TerminalId(7)],
+};
+// E : "if" WS E WS "then" WS E . WS "else" WS E lookahead { "else" }
+pub static RETURN_SLOT_LOOKAHEAD_E_ALT6_POS7: TerminalSet = TerminalSet {
+    id: 9,
+    terminals: &[TerminalId(8)],
+};
+// E : E . WS ";" WS E lookahead { ";" }
+pub static RETURN_SLOT_LOOKAHEAD_E_ALT7_POS1: TerminalSet = TerminalSet {
+    id: 10,
+    terminals: &[TerminalId(9)],
+};
+// E : "(" WS E . WS ")" lookahead { ")" }
+pub static RETURN_SLOT_LOOKAHEAD_E_ALT8_POS3: TerminalSet = TerminalSet {
+    id: 11,
+    terminals: &[TerminalId(11)],
 };
 // S
 // 0: E

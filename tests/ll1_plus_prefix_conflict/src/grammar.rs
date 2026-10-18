@@ -86,19 +86,19 @@ impl Grammar for Ll1PlusPrefixConflictGrammar {
     // by terminal id, serves only that.
     const SINGLE_TERMINAL_SETS: &'static [TerminalSet] = &[
         TerminalSet {
-            id: 2,
+            id: 4,
             terminals: &[TerminalId(0)],
         },
         TerminalSet {
-            id: 3,
+            id: 5,
             terminals: &[TerminalId(1)],
         },
         TerminalSet {
-            id: 4,
+            id: 6,
             terminals: &[TerminalId(2)],
         },
         TerminalSet {
-            id: 5,
+            id: 7,
             terminals: &[TerminalId(3)],
         },
     ];
@@ -125,6 +125,16 @@ pub static FOLLOW_SET_PLUS_0: TerminalSet = TerminalSet {
 pub static FOLLOW_SET_START_S: TerminalSet = TerminalSet {
     id: 0,
     terminals: &[TerminalId(3)],
+};
+// S : Plus_0 . "ab" lookahead { "ab" }
+pub static RETURN_SLOT_LOOKAHEAD_S_ALT0_POS1: TerminalSet = TerminalSet {
+    id: 2,
+    terminals: &[TerminalId(1)],
+};
+// Plus_0 : Plus_0 . "a" lookahead { "a" }
+pub static RETURN_SLOT_LOOKAHEAD_PLUS_0_ALT0_POS1: TerminalSet = TerminalSet {
+    id: 3,
+    terminals: &[TerminalId(0)],
 };
 // S
 // 0: Plus_0 "ab"

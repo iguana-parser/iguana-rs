@@ -222,6 +222,11 @@ pub static FOLLOW_SET_START_WORD: TerminalSet = TerminalSet {
     id: 3,
     terminals: &[TerminalId(3)],
 };
+// Plus_0 : Plus_0 . WS Word lookahead { Char }
+pub static RETURN_SLOT_LOOKAHEAD_PLUS_0_ALT0_POS1: TerminalSet = TerminalSet {
+    id: 2,
+    terminals: &[TerminalId(0)],
+};
 // Word { Char }
 pub static FIRST_SET_WORD: TerminalSet = TerminalSet {
     id: 4,

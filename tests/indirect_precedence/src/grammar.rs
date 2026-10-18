@@ -209,27 +209,27 @@ impl Grammar for IndirectPrecedenceGrammar {
     // by terminal id, serves only that.
     const SINGLE_TERMINAL_SETS: &'static [TerminalSet] = &[
         TerminalSet {
-            id: 2,
+            id: 4,
             terminals: &[TerminalId(0)],
         },
         TerminalSet {
-            id: 3,
+            id: 5,
             terminals: &[TerminalId(1)],
         },
         TerminalSet {
-            id: 4,
+            id: 6,
             terminals: &[TerminalId(2)],
         },
         TerminalSet {
-            id: 5,
+            id: 7,
             terminals: &[TerminalId(3)],
         },
         TerminalSet {
-            id: 6,
+            id: 8,
             terminals: &[TerminalId(4)],
         },
         TerminalSet {
-            id: 7,
+            id: 9,
             terminals: &[TerminalId(5)],
         },
     ];
@@ -286,6 +286,17 @@ pub static FOLLOW_SET_START_F: TerminalSet = TerminalSet {
 pub static FOLLOW_SET_START_K: TerminalSet = TerminalSet {
     id: 0,
     terminals: &[TerminalId(5)],
+};
+// E(p: i32) : [1 >= p] l_pr=E(p) . [(l_pr == 0) || (l_pr >= 1)] "*" F(1) return 1 lookahead
+// { "*" }
+pub static RETURN_SLOT_LOOKAHEAD_E_ALT1_POS2: TerminalSet = TerminalSet {
+    id: 2,
+    terminals: &[TerminalId(1)],
+};
+// F(p: i32) : E(0) . "/" r_pr=K(p) return r_pr lookahead { "/" }
+pub static RETURN_SLOT_LOOKAHEAD_F_ALT0_POS1: TerminalSet = TerminalSet {
+    id: 3,
+    terminals: &[TerminalId(3)],
 };
 // S
 // 0: E(0)

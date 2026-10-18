@@ -1556,6 +1556,103 @@ impl<'i, 'arena> Parser<'i, 'arena> for Pepm16ExpressionsParser<'i, 'arena> {
     ) -> Option<GLLFailureKind> {
         None
     }
+    fn return_conditions(
+        &mut self,
+        return_slot: SlotId,
+        left_extent: u32,
+        right_extent: u32,
+        gss_node_id: GssNodeId,
+        _env: Option<EnvId>,
+        return_value: Option<i32>,
+    ) -> bool {
+        let lookahead: Option<(bool, &'static TerminalSet)> = match return_slot {
+            // E(p: i32) : [6 >= p] l_pr=E(p) . [(l_pr == 0) || (l_pr >= 6)] WS "." WS "f" return 0
+            SlotId(12) => {
+                let value = return_value.expect("a bound call returns a value");
+                if !((value == 0) || (value >= 6)) {
+                    return false;
+                }
+                Some((true, &RETURN_SLOT_LOOKAHEAD_E_ALT0_POS2))
+            }
+            // E(p: i32) : [6 >= p] l_pr=E(p) . [(l_pr == 0) || (l_pr >= 6)] WS r_pr=E(6) return (r_pr ==
+            // 0) ? 6 : min(r_pr, 6)
+            SlotId(21) => {
+                let value = return_value.expect("a bound call returns a value");
+                if !((value == 0) || (value >= 6)) {
+                    return false;
+                }
+                Some((true, &RETURN_SLOT_LOOKAHEAD_E_ALT1_POS2))
+            }
+            // E(p: i32) : [5 >= p] l_pr=E(p) . [(l_pr == 0) || (l_pr >= 5)] WS "*" WS r_pr=E(6) return
+            // (r_pr == 0) ? 5 : min(r_pr, 5)
+            SlotId(28) => {
+                let value = return_value.expect("a bound call returns a value");
+                if !((value == 0) || (value >= 5)) {
+                    return false;
+                }
+                Some((true, &RETURN_SLOT_LOOKAHEAD_E_ALT2_POS2))
+            }
+            // E(p: i32) : [4 >= p] l_pr=E(p) . [(l_pr == 0) || (l_pr >= 4)] WS "+" WS r_pr=E(5) return
+            // (r_pr == 0) ? 4 : min(r_pr, 4)
+            SlotId(37) => {
+                let value = return_value.expect("a bound call returns a value");
+                if !((value == 0) || (value >= 4)) {
+                    return false;
+                }
+                Some((true, &RETURN_SLOT_LOOKAHEAD_E_ALT3_POS2))
+            }
+            // E(p: i32) : [4 >= p] l_pr=E(p) . [(l_pr == 0) || (l_pr >= 4)] WS "-" WS r_pr=E(5) return
+            // (r_pr == 0) ? 4 : min(r_pr, 4)
+            SlotId(46) => {
+                let value = return_value.expect("a bound call returns a value");
+                if !((value == 0) || (value >= 4)) {
+                    return false;
+                }
+                Some((true, &RETURN_SLOT_LOOKAHEAD_E_ALT4_POS2))
+            }
+            // E(p: i32) : "if" WS E(0) . WS "then" WS E(0) WS "else" WS E(2) return 2
+            SlotId(61) => Some((true, &RETURN_SLOT_LOOKAHEAD_E_ALT6_POS3)),
+            // E(p: i32) : "if" WS E(0) WS "then" WS E(0) . WS "else" WS E(2) return 2
+            SlotId(65) => Some((true, &RETURN_SLOT_LOOKAHEAD_E_ALT6_POS7)),
+            // E(p: i32) : [1 >= p] l_pr=E(p) . [(l_pr == 0) || (l_pr >= 2)] WS ";" WS E(1) return 1
+            SlotId(73) => {
+                let value = return_value.expect("a bound call returns a value");
+                if !((value == 0) || (value >= 2)) {
+                    return false;
+                }
+                Some((true, &RETURN_SLOT_LOOKAHEAD_E_ALT7_POS2))
+            }
+            // E(p: i32) : "(" WS E(0) . WS ")" return 0
+            SlotId(83) => Some((true, &RETURN_SLOT_LOOKAHEAD_E_ALT8_POS3)),
+            _ => None,
+        };
+        if let Some(failure) = self.post_conditions(return_slot, left_extent, right_extent) {
+            self.add_failure(right_extent, return_slot, Some(gss_node_id), failure);
+            return false;
+        }
+        let Some((skips_layout, set)) = lookahead else {
+            return true;
+        };
+        let start = if skips_layout {
+            let layout = self.scanner.match_token(TerminalId(0), right_extent);
+            let Some(end) = layout else {
+                return true;
+            };
+            end
+        } else {
+            right_extent
+        };
+        if self.scanner.match_any(set, start) {
+            return true;
+        }
+        self.add_failure(
+            start,
+            return_slot,
+            Some(gss_node_id),
+            GLLFailureKind::UnexpectedToken(set),
+        );
+        false
+    }
     fn failures(&self) -> impl Iterator<Item = &GLLFailure> {
         self.failures.iter()
     }

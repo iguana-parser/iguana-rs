@@ -335,7 +335,8 @@ pub trait Parser<'i, 'arena>: Sized {
     }
 
     /// Checks whether the post-conditions for a given slot are satisfied.
-    /// Called during pop and edge processing to filter results (e.g., nonterminal except).
+    /// Called when a call returns (`return_conditions`), and after a terminal
+    /// match or an LL(1) call, to filter results (e.g., nonterminal except).
     /// Returns `None` if the result should be accepted, or the failure that
     /// rejects it, referring to the restriction's static terminal set.
     fn post_conditions(
@@ -344,6 +345,39 @@ pub trait Parser<'i, 'arena>: Sized {
         left_extent: u32,
         right_extent: u32,
     ) -> Option<GLLFailureKind>;
+
+    /// Whether a call that returns to `return_slot` with the span
+    /// (`left_extent`, `right_extent`) and `return_value` can continue the
+    /// caller's alternative. `env` is the caller's environment.
+    ///
+    /// The return is checked in this order:
+    ///
+    /// - The data-dependent conditions after the call.
+    /// - The post-conditions of the called symbol: its excepts (`\`), follow
+    ///   restrictions (`!>>`), and layout-aware follow restrictions (`!>>>`).
+    /// - The return slot lookahead, the terminals that can start the rest of
+    ///   the alternative.
+    ///
+    /// The first failed check rejects the return. A failed post-condition or
+    /// lookahead records its failure with `gss_node_id`, the caller's GSS node.
+    fn return_conditions(
+        &mut self,
+        return_slot: SlotId,
+        left_extent: u32,
+        right_extent: u32,
+        gss_node_id: GssNodeId,
+        env: Option<EnvId>,
+        return_value: Option<i32>,
+    ) -> bool {
+        let _ = (env, return_value);
+        match self.post_conditions(return_slot, left_extent, right_extent) {
+            Some(failure) => {
+                self.add_failure(right_extent, return_slot, Some(gss_node_id), failure);
+                false
+            }
+            None => true,
+        }
+    }
 
     /// The message a person reads for a failure. It names what was expected,
     /// not what was found, and holds no source context or position.
@@ -640,13 +674,14 @@ pub trait Parser<'i, 'arena>: Sized {
         );
 
         for (&(right_extent, return_value), &nonterminal_node_id) in popped_elements.iter() {
-            if let Some(failure) = self.post_conditions(return_slot, left_extent, right_extent) {
-                self.add_failure(
-                    right_extent,
-                    return_slot,
-                    Some(existing_gss_node_id),
-                    failure,
-                );
+            if !self.return_conditions(
+                return_slot,
+                left_extent,
+                right_extent,
+                gss_node_id,
+                env,
+                return_value,
+            ) {
                 continue;
             }
             let right_child = (nonterminal_node_id, right_extent);
@@ -758,9 +793,14 @@ pub trait Parser<'i, 'arena>: Sized {
         let edge_count = gss.edges().len();
         for i in 0..edge_count {
             let edge = *self.gss_node(gss_node_id).edges().get(i).unwrap();
-            if let Some(failure) = self.post_conditions(edge.return_slot, left_extent, right_extent)
-            {
-                self.add_failure(right_extent, edge.return_slot, Some(gss_node_id), failure);
+            if !self.return_conditions(
+                edge.return_slot,
+                left_extent,
+                right_extent,
+                edge.dest_id,
+                edge.env_id,
+                return_value,
+            ) {
                 continue;
             }
             let left_child = edge.sppf_node_id;

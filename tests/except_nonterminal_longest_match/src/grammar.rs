@@ -131,19 +131,19 @@ impl Grammar for ExceptNonterminalLongestMatchGrammar {
     // by terminal id, serves only that.
     const SINGLE_TERMINAL_SETS: &'static [TerminalSet] = &[
         TerminalSet {
-            id: 3,
+            id: 4,
             terminals: &[TerminalId(0)],
         },
         TerminalSet {
-            id: 4,
+            id: 5,
             terminals: &[TerminalId(1)],
         },
         TerminalSet {
-            id: 5,
+            id: 6,
             terminals: &[TerminalId(2)],
         },
         TerminalSet {
-            id: 6,
+            id: 7,
             terminals: &[TerminalId(3)],
         },
     ];
@@ -189,9 +189,14 @@ pub static FOLLOW_SET_START_NAME: TerminalSet = TerminalSet {
     id: 0,
     terminals: &[TerminalId(3)],
 };
+// S : Id . Id lookahead { Letter }
+pub static RETURN_SLOT_LOOKAHEAD_S_ALT0_POS1: TerminalSet = TerminalSet {
+    id: 2,
+    terminals: &[TerminalId(0)],
+};
 // Id : . Name \ Keyword \ { Keyword }
 pub static EXCEPT_ID_ALT0_POS0: TerminalSet = TerminalSet {
-    id: 2,
+    id: 3,
     terminals: &[TerminalId(1)],
 };
 // S

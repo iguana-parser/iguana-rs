@@ -7,6 +7,7 @@ use crate::generator::GenConfig;
 use crate::grammar::{
     def::Grammar,
     first_follow::FirstFollowSets,
+    slot::Slot,
     symbols::{Definition, DefinitionId, Nonterminal},
 };
 
@@ -144,6 +145,17 @@ pub fn ll1_nonterminals<'a>(
         return FxHashSet::default();
     }
     grammar.nonterminals().filter(|nt| ff.is_ll1(nt)).collect()
+}
+
+/// Whether `slot` is the return slot of a nonterminal parsed by an LL(1)
+/// function.
+pub fn is_ll1_return_slot(
+    grammar: &Grammar,
+    ll1_nonterminals: &FxHashSet<&Nonterminal>,
+    slot: &Slot,
+) -> bool {
+    slot.called_nonterminal(grammar)
+        .is_some_and(|called| ll1_nonterminals.contains(called))
 }
 
 #[cfg(test)]

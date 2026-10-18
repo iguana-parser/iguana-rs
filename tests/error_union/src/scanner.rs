@@ -115,7 +115,7 @@ static TERMINAL_FIRST_CHARS: [CharSet; 19] = [
     ),
     CharSet::new(0x0, &[]),
 ];
-static MATCH_ANY_FIRST_CHARS: [CharSet; 10] = [
+static MATCH_ANY_FIRST_CHARS: [CharSet; 15] = [
     CharSet::new(0x100000400, &[]),
     CharSet::new(0x200000000000000100000400, &[]),
     CharSet::new(0x7fffffe000000000000000100000400, &[]),
@@ -126,6 +126,11 @@ static MATCH_ANY_FIRST_CHARS: [CharSet; 10] = [
     CharSet::new(0x100000400, &[]),
     CharSet::new(0x7fffffe2ffffffe0006000200000000, &[]),
     CharSet::new(0x0, &[]),
+    CharSet::new(0x7fffffe000000000000000000000000, &[]),
+    CharSet::new(0x200000000000000000000000, &[]),
+    CharSet::new(0x20000000000000000000000000000, &[]),
+    CharSet::new(0x1000000000000000000000000000000, &[]),
+    CharSet::new(0x800000000000000000000000000000, &[]),
 ];
 pub struct ErrorUnionScanner<'i, 'arena> {
     pub input: &'i Input,
@@ -216,7 +221,7 @@ impl<'i, 'arena> ErrorUnionScanner<'i, 'arena> {
     // first query of a set at a position scans it; later queries return the cached bit.
     pub fn match_any(&mut self, set: &TerminalSet, input_index: u32) -> bool {
         debug_assert!(
-            set.id < 10,
+            set.id < 15,
             "terminal set {} does not have a match_any memo id",
             set.id,
         );

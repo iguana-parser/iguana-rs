@@ -149,27 +149,27 @@ impl Grammar for PlusExceptGrammar {
     // by terminal id, serves only that.
     const SINGLE_TERMINAL_SETS: &'static [TerminalSet] = &[
         TerminalSet {
-            id: 4,
+            id: 6,
             terminals: &[TerminalId(0)],
         },
         TerminalSet {
-            id: 5,
+            id: 7,
             terminals: &[TerminalId(1)],
         },
         TerminalSet {
-            id: 6,
+            id: 8,
             terminals: &[TerminalId(2)],
         },
         TerminalSet {
-            id: 7,
+            id: 9,
             terminals: &[TerminalId(3)],
         },
         TerminalSet {
-            id: 8,
+            id: 10,
             terminals: &[TerminalId(4)],
         },
         TerminalSet {
-            id: 9,
+            id: 11,
             terminals: &[TerminalId(5)],
         },
     ];
@@ -215,19 +215,29 @@ pub static FOLLOW_SET_START_BASE: TerminalSet = TerminalSet {
     id: 0,
     terminals: &[TerminalId(5)],
 };
+// Plus_0 : Plus_0 . Identifier \ Keyword Number lookahead { Identifier }
+pub static RETURN_SLOT_LOOKAHEAD_PLUS_0_ALT0_POS1: TerminalSet = TerminalSet {
+    id: 3,
+    terminals: &[TerminalId(1)],
+};
+// Plus_1 : Plus_1 . "," Identifier \ Keyword lookahead { "," }
+pub static RETURN_SLOT_LOOKAHEAD_PLUS_1_ALT0_POS1: TerminalSet = TerminalSet {
+    id: 4,
+    terminals: &[TerminalId(3)],
+};
 // Plus_0 : Plus_0 . Identifier \ Keyword Number \ { Keyword }
 pub static EXCEPT_PLUS_0_ALT0_POS1: TerminalSet = TerminalSet {
-    id: 3,
+    id: 5,
     terminals: &[TerminalId(2)],
 };
 // Plus_1 : Plus_1 "," . Identifier \ Keyword \ { Keyword }
 pub static EXCEPT_PLUS_1_ALT0_POS2: TerminalSet = TerminalSet {
-    id: 3,
+    id: 5,
     terminals: &[TerminalId(2)],
 };
 // Plus_1 : . Identifier \ Keyword \ { Keyword }
 pub static EXCEPT_PLUS_1_ALT1_POS0: TerminalSet = TerminalSet {
-    id: 3,
+    id: 5,
     terminals: &[TerminalId(2)],
 };
 // Sep

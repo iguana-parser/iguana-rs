@@ -1,0 +1,21 @@
+(Start
+  (Layout WS*)
+  (Amb
+    (S
+      #1=(A
+        "a"
+        (Layout
+          (WS* WS))
+        "b")
+      #2=(Layout
+        (WS* WS))
+      B
+      (Layout WS*)
+      "x")
+    (S
+      #1#
+      (Layout WS*)
+      B
+      #2#
+      "x"))
+  (Layout WS*))

@@ -2131,163 +2131,163 @@ impl Grammar for IggyGrammar {
     // by terminal id, serves only that.
     const SINGLE_TERMINAL_SETS: &'static [TerminalSet] = &[
         TerminalSet {
-            id: 38,
+            id: 52,
             terminals: &[TerminalId(0)],
         },
         TerminalSet {
-            id: 39,
+            id: 53,
             terminals: &[TerminalId(1)],
         },
         TerminalSet {
-            id: 40,
+            id: 54,
             terminals: &[TerminalId(2)],
         },
         TerminalSet {
-            id: 41,
+            id: 55,
             terminals: &[TerminalId(3)],
         },
         TerminalSet {
-            id: 42,
+            id: 56,
             terminals: &[TerminalId(4)],
         },
         TerminalSet {
-            id: 43,
+            id: 57,
             terminals: &[TerminalId(5)],
         },
         TerminalSet {
-            id: 44,
+            id: 58,
             terminals: &[TerminalId(6)],
         },
         TerminalSet {
-            id: 45,
+            id: 59,
             terminals: &[TerminalId(7)],
         },
         TerminalSet {
-            id: 46,
+            id: 60,
             terminals: &[TerminalId(8)],
         },
         TerminalSet {
-            id: 47,
+            id: 61,
             terminals: &[TerminalId(9)],
         },
         TerminalSet {
-            id: 48,
+            id: 62,
             terminals: &[TerminalId(10)],
         },
         TerminalSet {
-            id: 49,
+            id: 63,
             terminals: &[TerminalId(11)],
         },
         TerminalSet {
-            id: 50,
+            id: 64,
             terminals: &[TerminalId(12)],
         },
         TerminalSet {
-            id: 51,
+            id: 65,
             terminals: &[TerminalId(13)],
         },
         TerminalSet {
-            id: 52,
+            id: 66,
             terminals: &[TerminalId(14)],
         },
         TerminalSet {
-            id: 53,
+            id: 67,
             terminals: &[TerminalId(15)],
         },
         TerminalSet {
-            id: 54,
+            id: 68,
             terminals: &[TerminalId(16)],
         },
         TerminalSet {
-            id: 55,
+            id: 69,
             terminals: &[TerminalId(17)],
         },
         TerminalSet {
-            id: 56,
+            id: 70,
             terminals: &[TerminalId(18)],
         },
         TerminalSet {
-            id: 57,
+            id: 71,
             terminals: &[TerminalId(19)],
         },
         TerminalSet {
-            id: 58,
+            id: 72,
             terminals: &[TerminalId(20)],
         },
         TerminalSet {
-            id: 59,
+            id: 73,
             terminals: &[TerminalId(21)],
         },
         TerminalSet {
-            id: 60,
+            id: 74,
             terminals: &[TerminalId(22)],
         },
         TerminalSet {
-            id: 61,
+            id: 75,
             terminals: &[TerminalId(23)],
         },
         TerminalSet {
-            id: 62,
+            id: 76,
             terminals: &[TerminalId(24)],
         },
         TerminalSet {
-            id: 63,
+            id: 77,
             terminals: &[TerminalId(25)],
         },
         TerminalSet {
-            id: 64,
+            id: 78,
             terminals: &[TerminalId(26)],
         },
         TerminalSet {
-            id: 65,
+            id: 79,
             terminals: &[TerminalId(27)],
         },
         TerminalSet {
-            id: 66,
+            id: 80,
             terminals: &[TerminalId(28)],
         },
         TerminalSet {
-            id: 67,
+            id: 81,
             terminals: &[TerminalId(29)],
         },
         TerminalSet {
-            id: 68,
+            id: 82,
             terminals: &[TerminalId(30)],
         },
         TerminalSet {
-            id: 69,
+            id: 83,
             terminals: &[TerminalId(31)],
         },
         TerminalSet {
-            id: 70,
+            id: 84,
             terminals: &[TerminalId(32)],
         },
         TerminalSet {
-            id: 71,
+            id: 85,
             terminals: &[TerminalId(33)],
         },
         TerminalSet {
-            id: 72,
+            id: 86,
             terminals: &[TerminalId(34)],
         },
         TerminalSet {
-            id: 73,
+            id: 87,
             terminals: &[TerminalId(35)],
         },
         TerminalSet {
-            id: 74,
+            id: 88,
             terminals: &[TerminalId(36)],
         },
         TerminalSet {
-            id: 75,
+            id: 89,
             terminals: &[TerminalId(37)],
         },
         TerminalSet {
-            id: 76,
+            id: 90,
             terminals: &[TerminalId(38)],
         },
         TerminalSet {
-            id: 77,
+            id: 91,
             terminals: &[TerminalId(39)],
         },
     ];
@@ -3246,94 +3246,278 @@ pub static FOLLOW_SET_START_LAYOUT: TerminalSet = TerminalSet {
     id: 22,
     terminals: &[TerminalId(39)],
 };
+// RegexRule : layout:Opt_1 Layout id_annot:Opt_2 Layout "@Regex" Layout Identifier Layout
+// "=" Layout Opt_3 . Layout body:Plus_2 Layout Star_2 lookahead { Identifier, String, Char,
+// WS, LineComment, "(", "!", "[" }
+pub static RETURN_SLOT_LOOKAHEAD_REGEX_RULE_ALT0_POS11: TerminalSet = TerminalSet {
+    id: 23,
+    terminals: &[
+        TerminalId(2),
+        TerminalId(3),
+        TerminalId(4),
+        TerminalId(8),
+        TerminalId(10),
+        TerminalId(25),
+        TerminalId(34),
+        TerminalId(35),
+    ],
+};
+// Symbol(p: i32, e: i32) : [2 & e == 0] "(" Layout seqs:Plus_7 . Layout ")" return (0, 1)
+// lookahead { ")" }
+pub static RETURN_SLOT_LOOKAHEAD_SYMBOL_ALT1_POS4: TerminalSet = TerminalSet {
+    id: 24,
+    terminals: &[TerminalId(26)],
+};
+// Symbol(p: i32, e: i32) : [8 & e == 0] "{" Layout symbol:Symbol(0, 0) . Layout
+// sep:Symbol(0, 0) Layout "}" Layout "*" return (0, 3) lookahead { Identifier, String, "(",
+// "{" }
+pub static RETURN_SLOT_LOOKAHEAD_SYMBOL_ALT3_POS4: TerminalSet = TerminalSet {
+    id: 25,
+    terminals: &[TerminalId(2), TerminalId(3), TerminalId(25), TerminalId(27)],
+};
+// Symbol(p: i32, e: i32) : [8 & e == 0] "{" Layout symbol:Symbol(0, 0) Layout sep:Symbol(0,
+// 0) . Layout "}" Layout "*" return (0, 3) lookahead { "}" }
+pub static RETURN_SLOT_LOOKAHEAD_SYMBOL_ALT3_POS6: TerminalSet = TerminalSet {
+    id: 26,
+    terminals: &[TerminalId(28)],
+};
+// Symbol(p: i32, e: i32) : [16 & e == 0] "{" Layout symbol:Symbol(0, 0) . Layout
+// sep:Symbol(0, 0) Layout "}" Layout "+" return (0, 4) lookahead { Identifier, String, "(",
+// "{" }
+pub static RETURN_SLOT_LOOKAHEAD_SYMBOL_ALT4_POS4: TerminalSet = TerminalSet {
+    id: 25,
+    terminals: &[TerminalId(2), TerminalId(3), TerminalId(25), TerminalId(27)],
+};
+// Symbol(p: i32, e: i32) : [16 & e == 0] "{" Layout symbol:Symbol(0, 0) Layout sep:Symbol(0,
+// 0) . Layout "}" Layout "+" return (0, 4) lookahead { "}" }
+pub static RETURN_SLOT_LOOKAHEAD_SYMBOL_ALT4_POS6: TerminalSet = TerminalSet {
+    id: 26,
+    terminals: &[TerminalId(28)],
+};
+// Symbol(p: i32, e: i32) : [32 & e == 0] [3 >= p] (l_pr, l_label)=Symbol(p, 0) . [(l_pr ==
+// 0) || (l_pr >= 3)] Layout "*" return (0, 5) lookahead { "*" }
+pub static RETURN_SLOT_LOOKAHEAD_SYMBOL_ALT5_POS3: TerminalSet = TerminalSet {
+    id: 27,
+    terminals: &[TerminalId(29)],
+};
+// Symbol(p: i32, e: i32) : [64 & e == 0] [3 >= p] (l_pr, l_label)=Symbol(p, 0) . [(l_pr ==
+// 0) || (l_pr >= 3)] Layout "+" return (0, 6) lookahead { "+" }
+pub static RETURN_SLOT_LOOKAHEAD_SYMBOL_ALT6_POS3: TerminalSet = TerminalSet {
+    id: 28,
+    terminals: &[TerminalId(30)],
+};
+// Symbol(p: i32, e: i32) : [128 & e == 0] [3 >= p] (l_pr, l_label)=Symbol(p, 0) . [(l_pr ==
+// 0) || (l_pr >= 3)] Layout "?" return (0, 7) lookahead { "?" }
+pub static RETURN_SLOT_LOOKAHEAD_SYMBOL_ALT7_POS3: TerminalSet = TerminalSet {
+    id: 29,
+    terminals: &[TerminalId(31)],
+};
+// Symbol(p: i32, e: i32) : [256 & e == 0] [3 >= p] (l_pr, l_label)=Symbol(p, 0) . [(l_pr ==
+// 0) || (l_pr >= 3)] [(l_label == NO_LABEL) || ((256 >> l_label) & 1 == 0)] Layout
+// conditions:Plus_8 return (0, 8) lookahead { "\\", "!>>", "!>>>", "!" }
+pub static RETURN_SLOT_LOOKAHEAD_SYMBOL_ALT8_POS3: TerminalSet = TerminalSet {
+    id: 30,
+    terminals: &[
+        TerminalId(20),
+        TerminalId(21),
+        TerminalId(33),
+        TerminalId(34),
+    ],
+};
+// Symbol(p: i32, e: i32) : [512 & e == 0] conditions:Plus_9 . Layout (r_pr,
+// r_label)=Symbol(2, 512) return ((r_pr == 0) ? 2 : min(r_pr, 2), 9) lookahead { Identifier,
+// String, "(", "{" }
+pub static RETURN_SLOT_LOOKAHEAD_SYMBOL_ALT9_POS2: TerminalSet = TerminalSet {
+    id: 25,
+    terminals: &[TerminalId(2), TerminalId(3), TerminalId(25), TerminalId(27)],
+};
+// Regex : Regex . Layout "+" lookahead { "+" }
+pub static RETURN_SLOT_LOOKAHEAD_REGEX_ALT0_POS1: TerminalSet = TerminalSet {
+    id: 28,
+    terminals: &[TerminalId(30)],
+};
+// Regex : Regex . Layout "*" lookahead { "*" }
+pub static RETURN_SLOT_LOOKAHEAD_REGEX_ALT1_POS1: TerminalSet = TerminalSet {
+    id: 27,
+    terminals: &[TerminalId(29)],
+};
+// Regex : Regex . Layout "?" lookahead { "?" }
+pub static RETURN_SLOT_LOOKAHEAD_REGEX_ALT2_POS1: TerminalSet = TerminalSet {
+    id: 29,
+    terminals: &[TerminalId(31)],
+};
+// Regex : "(" Layout seqs:Plus_2 . Layout ")" lookahead { ")" }
+pub static RETURN_SLOT_LOOKAHEAD_REGEX_ALT3_POS3: TerminalSet = TerminalSet {
+    id: 24,
+    terminals: &[TerminalId(26)],
+};
+// CharClass : neg:Opt_6 Layout "[" Layout Plus_10 . Layout "]" lookahead { "]" }
+pub static RETURN_SLOT_LOOKAHEAD_CHAR_CLASS_ALT0_POS5: TerminalSet = TerminalSet {
+    id: 31,
+    terminals: &[TerminalId(36)],
+};
+// Plus_0 : Plus_0 . Layout Rule lookahead { Identifier, WS, LineComment, "@NoLayout",
+// "@Layout", "@Identifier", "@Regex" }
+pub static RETURN_SLOT_LOOKAHEAD_PLUS_0_ALT0_POS1: TerminalSet = TerminalSet {
+    id: 32,
+    terminals: &[
+        TerminalId(2),
+        TerminalId(8),
+        TerminalId(10),
+        TerminalId(14),
+        TerminalId(15),
+        TerminalId(16),
+        TerminalId(17),
+    ],
+};
+// Plus_1 : Plus_1 . Layout ">" Layout PriorityLevel lookahead { ">" }
+pub static RETURN_SLOT_LOOKAHEAD_PLUS_1_ALT0_POS1: TerminalSet = TerminalSet {
+    id: 33,
+    terminals: &[TerminalId(13)],
+};
+// Plus_3 : Plus_3 . Layout Regex lookahead { Identifier, String, Char, WS, LineComment, "(",
+// "!", "[" }
+pub static RETURN_SLOT_LOOKAHEAD_PLUS_3_ALT0_POS1: TerminalSet = TerminalSet {
+    id: 23,
+    terminals: &[
+        TerminalId(2),
+        TerminalId(3),
+        TerminalId(4),
+        TerminalId(8),
+        TerminalId(10),
+        TerminalId(25),
+        TerminalId(34),
+        TerminalId(35),
+    ],
+};
+// Plus_2 : Plus_2 . Layout "|" Layout Plus_3 lookahead { "|" }
+pub static RETURN_SLOT_LOOKAHEAD_PLUS_2_ALT0_POS1: TerminalSet = TerminalSet {
+    id: 34,
+    terminals: &[TerminalId(18)],
+};
+// Plus_5 : Plus_5 . Layout "|" Layout Alternative lookahead { "|" }
+pub static RETURN_SLOT_LOOKAHEAD_PLUS_5_ALT0_POS1: TerminalSet = TerminalSet {
+    id: 34,
+    terminals: &[TerminalId(18)],
+};
+// Plus_6 : Plus_6 . Layout Symbol(0, 0) lookahead { Identifier, String, "(", "{" }
+pub static RETURN_SLOT_LOOKAHEAD_PLUS_6_ALT0_POS1: TerminalSet = TerminalSet {
+    id: 25,
+    terminals: &[TerminalId(2), TerminalId(3), TerminalId(25), TerminalId(27)],
+};
+// Plus_7 : Plus_7 . Layout "|" Layout Plus_6 lookahead { "|" }
+pub static RETURN_SLOT_LOOKAHEAD_PLUS_7_ALT0_POS1: TerminalSet = TerminalSet {
+    id: 34,
+    terminals: &[TerminalId(18)],
+};
+// Plus_8 : Plus_8 . Layout PostCondition lookahead { "\\", "!>>", "!>>>", "!" }
+pub static RETURN_SLOT_LOOKAHEAD_PLUS_8_ALT0_POS1: TerminalSet = TerminalSet {
+    id: 30,
+    terminals: &[
+        TerminalId(20),
+        TerminalId(21),
+        TerminalId(33),
+        TerminalId(34),
+    ],
+};
+// Plus_9 : Plus_9 . Layout PreCondition lookahead { Identifier }
+pub static RETURN_SLOT_LOOKAHEAD_PLUS_9_ALT0_POS1: TerminalSet = TerminalSet {
+    id: 35,
+    terminals: &[TerminalId(2)],
+};
+// Plus_10 : Plus_10 . Layout RangeElement lookahead { RangeChar }
+pub static RETURN_SLOT_LOOKAHEAD_PLUS_10_ALT0_POS1: TerminalSet = TerminalSet {
+    id: 36,
+    terminals: &[TerminalId(6)],
+};
 // Annotation { "@NoLayout", "@Layout" }
 pub static FIRST_SET_ANNOTATION: TerminalSet = TerminalSet {
-    id: 23,
+    id: 37,
     terminals: &[TerminalId(14), TerminalId(15)],
 };
 // RegexPreCondition { Identifier }
 pub static FIRST_SET_REGEX_PRE_CONDITION: TerminalSet = TerminalSet {
-    id: 24,
+    id: 38,
     terminals: &[TerminalId(2)],
 };
 // RegexPostCondition { "\\", "!>>" }
 pub static FIRST_SET_REGEX_POST_CONDITION: TerminalSet = TerminalSet {
-    id: 25,
+    id: 39,
     terminals: &[TerminalId(20), TerminalId(21)],
 };
 // Associativity { "left", "right", "none" }
 pub static FIRST_SET_ASSOCIATIVITY: TerminalSet = TerminalSet {
-    id: 26,
+    id: 40,
     terminals: &[TerminalId(22), TerminalId(23), TerminalId(24)],
 };
 // PreCondition { Identifier }
 pub static FIRST_SET_PRE_CONDITION: TerminalSet = TerminalSet {
-    id: 24,
+    id: 38,
     terminals: &[TerminalId(2)],
 };
 // Range { RangeChar }
 pub static FIRST_SET_RANGE: TerminalSet = TerminalSet {
-    id: 27,
+    id: 41,
     terminals: &[TerminalId(6)],
 };
 // Layout { WS, LineComment }
 pub static FIRST_SET_LAYOUT: TerminalSet = TerminalSet {
-    id: 28,
+    id: 42,
     terminals: &[TerminalId(8), TerminalId(10)],
 };
 // Opt_0 { "@NoLayout", "@Layout" }
 pub static FIRST_SET_OPT_0: TerminalSet = TerminalSet {
-    id: 23,
+    id: 37,
     terminals: &[TerminalId(14), TerminalId(15)],
 };
 // Opt_1 { "@Layout" }
 pub static FIRST_SET_OPT_1: TerminalSet = TerminalSet {
-    id: 29,
+    id: 43,
     terminals: &[TerminalId(15)],
 };
 // Opt_2 { "@Identifier" }
 pub static FIRST_SET_OPT_2: TerminalSet = TerminalSet {
-    id: 30,
+    id: 44,
     terminals: &[TerminalId(16)],
 };
 // Plus_4 { "\\", "!>>" }
 pub static FIRST_SET_PLUS_4: TerminalSet = TerminalSet {
-    id: 25,
+    id: 39,
     terminals: &[TerminalId(20), TerminalId(21)],
 };
 // Star_2 { "\\", "!>>" }
 pub static FIRST_SET_STAR_2: TerminalSet = TerminalSet {
-    id: 25,
+    id: 39,
     terminals: &[TerminalId(20), TerminalId(21)],
 };
 // Opt_5 { Label }
 pub static FIRST_SET_OPT_5: TerminalSet = TerminalSet {
-    id: 31,
+    id: 45,
     terminals: &[TerminalId(7)],
 };
 // Opt_6 { "!" }
 pub static FIRST_SET_OPT_6: TerminalSet = TerminalSet {
-    id: 32,
+    id: 46,
     terminals: &[TerminalId(34)],
 };
 // Alt_0 { WS, LineComment }
 pub static FIRST_SET_ALT_0: TerminalSet = TerminalSet {
-    id: 28,
+    id: 42,
     terminals: &[TerminalId(8), TerminalId(10)],
 };
 // Plus_11 { WS, LineComment }
 pub static FIRST_SET_PLUS_11: TerminalSet = TerminalSet {
-    id: 28,
+    id: 42,
     terminals: &[TerminalId(8), TerminalId(10)],
 };
 // Star_4 { WS, LineComment }
 pub static FIRST_SET_STAR_4: TerminalSet = TerminalSet {
-    id: 28,
+    id: 42,
     terminals: &[TerminalId(8), TerminalId(10)],
 };
 // StartAnnotation { WS, LineComment, "@NoLayout", "@Layout" }
 pub static FIRST_SET_START_ANNOTATION: TerminalSet = TerminalSet {
-    id: 33,
+    id: 47,
     terminals: &[
         TerminalId(8),
         TerminalId(10),
@@ -3343,12 +3527,12 @@ pub static FIRST_SET_START_ANNOTATION: TerminalSet = TerminalSet {
 };
 // StartRegexPreCondition { Identifier, WS, LineComment }
 pub static FIRST_SET_START_REGEX_PRE_CONDITION: TerminalSet = TerminalSet {
-    id: 34,
+    id: 48,
     terminals: &[TerminalId(2), TerminalId(8), TerminalId(10)],
 };
 // StartRegexPostCondition { WS, LineComment, "\\", "!>>" }
 pub static FIRST_SET_START_REGEX_POST_CONDITION: TerminalSet = TerminalSet {
-    id: 35,
+    id: 49,
     terminals: &[
         TerminalId(8),
         TerminalId(10),
@@ -3358,7 +3542,7 @@ pub static FIRST_SET_START_REGEX_POST_CONDITION: TerminalSet = TerminalSet {
 };
 // StartAssociativity { WS, LineComment, "left", "right", "none" }
 pub static FIRST_SET_START_ASSOCIATIVITY: TerminalSet = TerminalSet {
-    id: 36,
+    id: 50,
     terminals: &[
         TerminalId(8),
         TerminalId(10),
@@ -3369,17 +3553,17 @@ pub static FIRST_SET_START_ASSOCIATIVITY: TerminalSet = TerminalSet {
 };
 // StartPreCondition { Identifier, WS, LineComment }
 pub static FIRST_SET_START_PRE_CONDITION: TerminalSet = TerminalSet {
-    id: 34,
+    id: 48,
     terminals: &[TerminalId(2), TerminalId(8), TerminalId(10)],
 };
 // StartRange { RangeChar, WS, LineComment }
 pub static FIRST_SET_START_RANGE: TerminalSet = TerminalSet {
-    id: 37,
+    id: 51,
     terminals: &[TerminalId(6), TerminalId(8), TerminalId(10)],
 };
 // StartLayout { WS, LineComment }
 pub static FIRST_SET_START_LAYOUT: TerminalSet = TerminalSet {
-    id: 28,
+    id: 42,
     terminals: &[TerminalId(8), TerminalId(10)],
 };
 // Grammar

@@ -211,19 +211,19 @@ impl Grammar for AssocSingleLevelGrammar {
     // by terminal id, serves only that.
     const SINGLE_TERMINAL_SETS: &'static [TerminalSet] = &[
         TerminalSet {
-            id: 2,
+            id: 3,
             terminals: &[TerminalId(0)],
         },
         TerminalSet {
-            id: 3,
+            id: 4,
             terminals: &[TerminalId(1)],
         },
         TerminalSet {
-            id: 4,
+            id: 5,
             terminals: &[TerminalId(2)],
         },
         TerminalSet {
-            id: 5,
+            id: 6,
             terminals: &[TerminalId(3)],
         },
     ];
@@ -268,6 +268,24 @@ pub static FOLLOW_SET_START_F: TerminalSet = TerminalSet {
 pub static FOLLOW_SET_START_G: TerminalSet = TerminalSet {
     id: 1,
     terminals: &[TerminalId(3)],
+};
+// E(p: i32) : [1 >= p] l_pr=E(p) . [(l_pr == 0) || (l_pr >= 1)] "<" E(2) return 1 lookahead
+// { "<" }
+pub static RETURN_SLOT_LOOKAHEAD_E_ALT0_POS2: TerminalSet = TerminalSet {
+    id: 2,
+    terminals: &[TerminalId(0)],
+};
+// F(p: i32) : [1 >= p] l_pr=F(p) . [(l_pr == 0) || (l_pr >= 2)] "<" F(1) return 1 lookahead
+// { "<" }
+pub static RETURN_SLOT_LOOKAHEAD_F_ALT0_POS2: TerminalSet = TerminalSet {
+    id: 2,
+    terminals: &[TerminalId(0)],
+};
+// G(p: i32) : [1 >= p] l_pr=G(p) . [(l_pr == 0) || (l_pr >= 2)] "<" G(2) return 1 lookahead
+// { "<" }
+pub static RETURN_SLOT_LOOKAHEAD_G_ALT0_POS2: TerminalSet = TerminalSet {
+    id: 2,
+    terminals: &[TerminalId(0)],
 };
 // E
 // 0: [1 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 1)] "<" E(2) return 1

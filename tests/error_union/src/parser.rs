@@ -2690,6 +2690,66 @@ impl<'i, 'arena> Parser<'i, 'arena> for ErrorUnionParser<'i, 'arena> {
             _ => None,
         }
     }
+    fn return_conditions(
+        &mut self,
+        return_slot: SlotId,
+        left_extent: u32,
+        right_extent: u32,
+        gss_node_id: GssNodeId,
+        _env: Option<EnvId>,
+        _return_value: Option<i32>,
+    ) -> bool {
+        let lookahead: Option<(bool, &'static TerminalSet)> = match return_slot {
+            // T : "[" BeforeP . Layout P Layout "]"
+            SlotId(2) => Some((true, &RETURN_SLOT_LOOKAHEAD_T_ALT0_POS2)),
+            // T : "[" BeforeP Layout P . Layout "]"
+            SlotId(4) => Some((true, &RETURN_SLOT_LOOKAHEAD_T_ALT0_POS4)),
+            // T : "[" BeforeQ . Layout Q Layout "]"
+            SlotId(9) => Some((true, &RETURN_SLOT_LOOKAHEAD_T_ALT1_POS2)),
+            // U : "[" BeforeQ . Layout Q Layout "]"
+            SlotId(16) => Some((true, &RETURN_SLOT_LOOKAHEAD_U_ALT0_POS2)),
+            // U : "[" BeforeP . Layout P Layout "]"
+            SlotId(23) => Some((true, &RETURN_SLOT_LOOKAHEAD_U_ALT1_POS2)),
+            // U : "[" BeforeP Layout P . Layout "]"
+            SlotId(25) => Some((true, &RETURN_SLOT_LOOKAHEAD_U_ALT1_POS4)),
+            // PrefixX : NullablePrefix . "x"
+            SlotId(92) => Some((false, &RETURN_SLOT_LOOKAHEAD_PREFIX_X_ALT0_POS1)),
+            // PrefixW : NullablePrefix . "w"
+            SlotId(95) => Some((false, &RETURN_SLOT_LOOKAHEAD_PREFIX_W_ALT0_POS1)),
+            _ => None,
+        };
+        if let Some(failure) = self.post_conditions(return_slot, left_extent, right_extent) {
+            self.add_failure(right_extent, return_slot, Some(gss_node_id), failure);
+            return false;
+        }
+        let Some((skips_layout, set)) = lookahead else {
+            return true;
+        };
+        let start = if skips_layout {
+            let layout = {
+                self.suppress_failures = true;
+                let layout = self.parse_layout_ll1(right_extent, None);
+                self.suppress_failures = false;
+                layout.map(|(end, _)| end)
+            };
+            let Some(end) = layout else {
+                return true;
+            };
+            end
+        } else {
+            right_extent
+        };
+        if self.scanner.match_any(set, start) {
+            return true;
+        }
+        self.add_failure(
+            start,
+            return_slot,
+            Some(gss_node_id),
+            GLLFailureKind::UnexpectedToken(set),
+        );
+        false
+    }
     fn failures(&self) -> impl Iterator<Item = &GLLFailure> {
         self.failures.iter()
     }

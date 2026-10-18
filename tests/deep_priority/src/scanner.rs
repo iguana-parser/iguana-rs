@@ -63,7 +63,7 @@ static TERMINAL_FIRST_CHARS: [CharSet; 8] = [
     ),
     CharSet::new(0x0, &[]),
 ];
-static MATCH_ANY_FIRST_CHARS: [CharSet; 3] = [
+static MATCH_ANY_FIRST_CHARS: [CharSet; 6] = [
     CharSet::new(
         0xffffffffffffffffffffffffffffffff,
         &[CharRange {
@@ -79,6 +79,9 @@ static MATCH_ANY_FIRST_CHARS: [CharSet; 3] = [
         }],
     ),
     CharSet::new(0x0, &[]),
+    CharSet::new(0x80000000000, &[]),
+    CharSet::new(0x100000000000000000000000000000, &[]),
+    CharSet::new(0x20000000000000000000000000, &[]),
 ];
 pub struct DeepPriorityScanner<'i, 'arena> {
     pub input: &'i Input,
@@ -125,7 +128,7 @@ impl<'i, 'arena> DeepPriorityScanner<'i, 'arena> {
     // first query of a set at a position scans it; later queries return the cached bit.
     pub fn match_any(&mut self, set: &TerminalSet, input_index: u32) -> bool {
         debug_assert!(
-            set.id < 3,
+            set.id < 6,
             "terminal set {} does not have a match_any memo id",
             set.id,
         );

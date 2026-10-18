@@ -129,19 +129,19 @@ impl Grammar for NoLayoutGrammar {
     // by terminal id, serves only that.
     const SINGLE_TERMINAL_SETS: &'static [TerminalSet] = &[
         TerminalSet {
-            id: 3,
+            id: 4,
             terminals: &[TerminalId(0)],
         },
         TerminalSet {
-            id: 4,
+            id: 5,
             terminals: &[TerminalId(1)],
         },
         TerminalSet {
-            id: 5,
+            id: 6,
             terminals: &[TerminalId(2)],
         },
         TerminalSet {
-            id: 6,
+            id: 7,
             terminals: &[TerminalId(3)],
         },
     ];
@@ -180,6 +180,11 @@ pub static FOLLOW_SET_START_S: TerminalSet = TerminalSet {
 pub static FOLLOW_SET_START_ID: TerminalSet = TerminalSet {
     id: 2,
     terminals: &[TerminalId(3)],
+};
+// Plus_0 : Plus_0 . Char lookahead { Char }
+pub static RETURN_SLOT_LOOKAHEAD_PLUS_0_ALT0_POS1: TerminalSet = TerminalSet {
+    id: 3,
+    terminals: &[TerminalId(0)],
 };
 // S
 // 0: Id

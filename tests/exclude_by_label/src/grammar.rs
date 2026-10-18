@@ -169,27 +169,27 @@ impl Grammar for ExcludeByLabelGrammar {
     // by terminal id, serves only that.
     const SINGLE_TERMINAL_SETS: &'static [TerminalSet] = &[
         TerminalSet {
-            id: 4,
+            id: 7,
             terminals: &[TerminalId(0)],
         },
         TerminalSet {
-            id: 5,
+            id: 8,
             terminals: &[TerminalId(1)],
         },
         TerminalSet {
-            id: 6,
+            id: 9,
             terminals: &[TerminalId(2)],
         },
         TerminalSet {
-            id: 7,
+            id: 10,
             terminals: &[TerminalId(3)],
         },
         TerminalSet {
-            id: 8,
+            id: 11,
             terminals: &[TerminalId(4)],
         },
         TerminalSet {
-            id: 9,
+            id: 12,
             terminals: &[TerminalId(5)],
         },
     ];
@@ -222,6 +222,26 @@ pub static FOLLOW_SET_STAR_0: TerminalSet = TerminalSet {
 pub static FOLLOW_SET_START_EXPR: TerminalSet = TerminalSet {
     id: 3,
     terminals: &[TerminalId(5)],
+};
+// Expr(e: i32) : [2 & e == 0] Expr(0) . "(" Star_0 ")" return (0, 1) lookahead { "(" }
+pub static RETURN_SLOT_LOOKAHEAD_EXPR_ALT1_POS2: TerminalSet = TerminalSet {
+    id: 4,
+    terminals: &[TerminalId(1)],
+};
+// Expr(e: i32) : [2 & e == 0] Expr(0) "(" Star_0 . ")" return (0, 1) lookahead { ")" }
+pub static RETURN_SLOT_LOOKAHEAD_EXPR_ALT1_POS4: TerminalSet = TerminalSet {
+    id: 5,
+    terminals: &[TerminalId(3)],
+};
+// Expr(e: i32) : [4 & e == 0] Expr(0) . "," Expr(0) return (0, 2) lookahead { "," }
+pub static RETURN_SLOT_LOOKAHEAD_EXPR_ALT2_POS2: TerminalSet = TerminalSet {
+    id: 6,
+    terminals: &[TerminalId(2)],
+};
+// Plus_0 : Plus_0 . "," Expr(4) lookahead { "," }
+pub static RETURN_SLOT_LOOKAHEAD_PLUS_0_ALT0_POS1: TerminalSet = TerminalSet {
+    id: 6,
+    terminals: &[TerminalId(2)],
 };
 // Expr
 // 0: [1 & e == 0] Id return (0, 0) #id

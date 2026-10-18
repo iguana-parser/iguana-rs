@@ -301,47 +301,47 @@ impl Grammar for DeepPriorityFullGrammar {
     // by terminal id, serves only that.
     const SINGLE_TERMINAL_SETS: &'static [TerminalSet] = &[
         TerminalSet {
-            id: 3,
+            id: 8,
             terminals: &[TerminalId(0)],
         },
         TerminalSet {
-            id: 4,
+            id: 9,
             terminals: &[TerminalId(1)],
         },
         TerminalSet {
-            id: 5,
+            id: 10,
             terminals: &[TerminalId(2)],
         },
         TerminalSet {
-            id: 6,
+            id: 11,
             terminals: &[TerminalId(3)],
         },
         TerminalSet {
-            id: 7,
+            id: 12,
             terminals: &[TerminalId(4)],
         },
         TerminalSet {
-            id: 8,
+            id: 13,
             terminals: &[TerminalId(5)],
         },
         TerminalSet {
-            id: 9,
+            id: 14,
             terminals: &[TerminalId(6)],
         },
         TerminalSet {
-            id: 10,
+            id: 15,
             terminals: &[TerminalId(7)],
         },
         TerminalSet {
-            id: 11,
+            id: 16,
             terminals: &[TerminalId(8)],
         },
         TerminalSet {
-            id: 12,
+            id: 17,
             terminals: &[TerminalId(9)],
         },
         TerminalSet {
-            id: 13,
+            id: 18,
             terminals: &[TerminalId(10)],
         },
     ];
@@ -382,6 +382,36 @@ pub static FOLLOW_SET_START_S: TerminalSet = TerminalSet {
 pub static FOLLOW_SET_START_E: TerminalSet = TerminalSet {
     id: 2,
     terminals: &[TerminalId(10)],
+};
+// E(p: i32) : [5 >= p] l_pr=E(p) . [(l_pr == 0) || (l_pr >= 5)] WS "*" WS r_pr=E(6) return
+// (r_pr == 0) ? 5 : min(r_pr, 5) lookahead { "*" }
+pub static RETURN_SLOT_LOOKAHEAD_E_ALT0_POS2: TerminalSet = TerminalSet {
+    id: 3,
+    terminals: &[TerminalId(1)],
+};
+// E(p: i32) : [4 >= p] l_pr=E(p) . [(l_pr == 0) || (l_pr >= 4)] WS "+" WS r_pr=E(5) return
+// (r_pr == 0) ? 4 : min(r_pr, 4) lookahead { "+" }
+pub static RETURN_SLOT_LOOKAHEAD_E_ALT1_POS2: TerminalSet = TerminalSet {
+    id: 4,
+    terminals: &[TerminalId(2)],
+};
+// E(p: i32) : "if" WS E(0) . WS "then" WS E(0) WS "else" WS E(2) return 2 lookahead { "then"
+// }
+pub static RETURN_SLOT_LOOKAHEAD_E_ALT3_POS3: TerminalSet = TerminalSet {
+    id: 5,
+    terminals: &[TerminalId(5)],
+};
+// E(p: i32) : "if" WS E(0) WS "then" WS E(0) . WS "else" WS E(2) return 2 lookahead { "else"
+// }
+pub static RETURN_SLOT_LOOKAHEAD_E_ALT3_POS7: TerminalSet = TerminalSet {
+    id: 6,
+    terminals: &[TerminalId(6)],
+};
+// E(p: i32) : [1 >= p] l_pr=E(p) . [(l_pr == 0) || (l_pr >= 2)] WS ";" WS E(1) return 1
+// lookahead { ";" }
+pub static RETURN_SLOT_LOOKAHEAD_E_ALT4_POS2: TerminalSet = TerminalSet {
+    id: 7,
+    terminals: &[TerminalId(7)],
 };
 // S
 // 0: E(0)

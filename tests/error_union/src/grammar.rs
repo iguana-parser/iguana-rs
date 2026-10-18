@@ -1076,79 +1076,79 @@ impl Grammar for ErrorUnionGrammar {
     // by terminal id, serves only that.
     const SINGLE_TERMINAL_SETS: &'static [TerminalSet] = &[
         TerminalSet {
-            id: 14,
+            id: 19,
             terminals: &[TerminalId(0)],
         },
         TerminalSet {
-            id: 15,
+            id: 20,
             terminals: &[TerminalId(1)],
         },
         TerminalSet {
-            id: 16,
+            id: 21,
             terminals: &[TerminalId(2)],
         },
         TerminalSet {
-            id: 17,
+            id: 22,
             terminals: &[TerminalId(3)],
         },
         TerminalSet {
-            id: 18,
+            id: 23,
             terminals: &[TerminalId(4)],
         },
         TerminalSet {
-            id: 19,
+            id: 24,
             terminals: &[TerminalId(5)],
         },
         TerminalSet {
-            id: 20,
+            id: 25,
             terminals: &[TerminalId(6)],
         },
         TerminalSet {
-            id: 21,
+            id: 26,
             terminals: &[TerminalId(7)],
         },
         TerminalSet {
-            id: 22,
+            id: 27,
             terminals: &[TerminalId(8)],
         },
         TerminalSet {
-            id: 23,
+            id: 28,
             terminals: &[TerminalId(9)],
         },
         TerminalSet {
-            id: 24,
+            id: 29,
             terminals: &[TerminalId(10)],
         },
         TerminalSet {
-            id: 25,
+            id: 30,
             terminals: &[TerminalId(11)],
         },
         TerminalSet {
-            id: 26,
+            id: 31,
             terminals: &[TerminalId(12)],
         },
         TerminalSet {
-            id: 27,
+            id: 32,
             terminals: &[TerminalId(13)],
         },
         TerminalSet {
-            id: 28,
+            id: 33,
             terminals: &[TerminalId(14)],
         },
         TerminalSet {
-            id: 29,
+            id: 34,
             terminals: &[TerminalId(15)],
         },
         TerminalSet {
-            id: 30,
+            id: 35,
             terminals: &[TerminalId(16)],
         },
         TerminalSet {
-            id: 31,
+            id: 36,
             terminals: &[TerminalId(17)],
         },
         TerminalSet {
-            id: 32,
+            id: 37,
             terminals: &[TerminalId(18)],
         },
     ];
@@ -1500,59 +1500,99 @@ pub static FOLLOW_SET_START_LAYOUT: TerminalSet = TerminalSet {
     id: 9,
     terminals: &[TerminalId(18)],
 };
+// T : "[" BeforeP . Layout P Layout "]" lookahead { Word, "p" }
+pub static RETURN_SLOT_LOOKAHEAD_T_ALT0_POS2: TerminalSet = TerminalSet {
+    id: 10,
+    terminals: &[TerminalId(1), TerminalId(8)],
+};
+// T : "[" BeforeP Layout P . Layout "]" lookahead { "]" }
+pub static RETURN_SLOT_LOOKAHEAD_T_ALT0_POS4: TerminalSet = TerminalSet {
+    id: 11,
+    terminals: &[TerminalId(7)],
+};
+// T : "[" BeforeQ . Layout Q Layout "]" lookahead { "q" }
+pub static RETURN_SLOT_LOOKAHEAD_T_ALT1_POS2: TerminalSet = TerminalSet {
+    id: 12,
+    terminals: &[TerminalId(9)],
+};
+// U : "[" BeforeQ . Layout Q Layout "]" lookahead { "q" }
+pub static RETURN_SLOT_LOOKAHEAD_U_ALT0_POS2: TerminalSet = TerminalSet {
+    id: 12,
+    terminals: &[TerminalId(9)],
+};
+// U : "[" BeforeP . Layout P Layout "]" lookahead { Word, "p" }
+pub static RETURN_SLOT_LOOKAHEAD_U_ALT1_POS2: TerminalSet = TerminalSet {
+    id: 10,
+    terminals: &[TerminalId(1), TerminalId(8)],
+};
+// U : "[" BeforeP Layout P . Layout "]" lookahead { "]" }
+pub static RETURN_SLOT_LOOKAHEAD_U_ALT1_POS4: TerminalSet = TerminalSet {
+    id: 11,
+    terminals: &[TerminalId(7)],
+};
+// PrefixX : NullablePrefix . "x" lookahead { "x" }
+pub static RETURN_SLOT_LOOKAHEAD_PREFIX_X_ALT0_POS1: TerminalSet = TerminalSet {
+    id: 13,
+    terminals: &[TerminalId(10)],
+};
+// PrefixW : NullablePrefix . "w" lookahead { "w" }
+pub static RETURN_SLOT_LOOKAHEAD_PREFIX_W_ALT0_POS1: TerminalSet = TerminalSet {
+    id: 14,
+    terminals: &[TerminalId(16)],
+};
 // Q { "q" }
 pub static FIRST_SET_Q: TerminalSet = TerminalSet {
-    id: 10,
+    id: 15,
     terminals: &[TerminalId(9)],
 };
 // Layout { WS, Newline }
 pub static FIRST_SET_LAYOUT: TerminalSet = TerminalSet {
-    id: 11,
+    id: 16,
     terminals: &[TerminalId(4), TerminalId(5)],
 };
 // Alt_0 { WS, Newline }
 pub static FIRST_SET_ALT_0: TerminalSet = TerminalSet {
-    id: 11,
+    id: 16,
     terminals: &[TerminalId(4), TerminalId(5)],
 };
 // Plus_0 { WS, Newline }
 pub static FIRST_SET_PLUS_0: TerminalSet = TerminalSet {
-    id: 11,
+    id: 16,
     terminals: &[TerminalId(4), TerminalId(5)],
 };
 // Star_0 { WS, Newline }
 pub static FIRST_SET_STAR_0: TerminalSet = TerminalSet {
-    id: 11,
+    id: 16,
     terminals: &[TerminalId(4), TerminalId(5)],
 };
 // StartQ { WS, Newline, "q" }
 pub static FIRST_SET_START_Q: TerminalSet = TerminalSet {
-    id: 12,
+    id: 17,
     terminals: &[TerminalId(4), TerminalId(5), TerminalId(9)],
 };
 // StartLayout { WS, Newline }
 pub static FIRST_SET_START_LAYOUT: TerminalSet = TerminalSet {
-    id: 11,
+    id: 16,
     terminals: &[TerminalId(4), TerminalId(5)],
 };
 // UnexpectedFirst : . Identifier \ Keyword \ { Keyword }
 pub static EXCEPT_UNEXPECTED_FIRST_ALT1_POS0: TerminalSet = TerminalSet {
-    id: 13,
+    id: 18,
     terminals: &[TerminalId(3)],
 };
 // ExcludedFirst : . Identifier \ Keyword \ { Keyword }
 pub static EXCEPT_EXCLUDED_FIRST_ALT0_POS0: TerminalSet = TerminalSet {
-    id: 13,
+    id: 18,
     terminals: &[TerminalId(3)],
 };
 // PredictionBeforeExcept : . Identifier \ Keyword \ { Keyword }
 pub static EXCEPT_PREDICTION_BEFORE_EXCEPT_ALT1_POS0: TerminalSet = TerminalSet {
-    id: 13,
+    id: 18,
     terminals: &[TerminalId(3)],
 };
 // ExceptBeforePrediction : . Identifier \ Keyword \ { Keyword }
 pub static EXCEPT_EXCEPT_BEFORE_PREDICTION_ALT0_POS0: TerminalSet = TerminalSet {
-    id: 13,
+    id: 18,
     terminals: &[TerminalId(3)],
 };
 // T

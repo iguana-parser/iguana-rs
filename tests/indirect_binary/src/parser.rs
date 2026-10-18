@@ -16825,6 +16825,854 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
     ) -> Option<GLLFailureKind> {
         None
     }
+    fn return_conditions(
+        &mut self,
+        return_slot: SlotId,
+        left_extent: u32,
+        right_extent: u32,
+        gss_node_id: GssNodeId,
+        env: Option<EnvId>,
+        return_value: Option<i32>,
+    ) -> bool {
+        let lookahead: Option<(bool, &'static TerminalSet)> = match return_slot {
+            // E(p: i32) : [2 >= p] l_pr=L(p, 0) . [(l_pr == 0) || (l_pr >= 2)] WS "*" WS L(3, 1) return
+            // 2
+            SlotId(389) => {
+                let value = return_value.expect("a bound call returns a value");
+                if !((value == 0) || (value >= 2)) {
+                    return false;
+                }
+                Some((true, &RETURN_SLOT_LOOKAHEAD_E_ALT1_POS2))
+            }
+            // E(p: i32) : [1 >= p] l_pr=E(p) . [(l_pr == 0) || (l_pr >= 1)] WS "+" WS L(2, 1) return 1
+            SlotId(398) => {
+                let value = return_value.expect("a bound call returns a value");
+                if !((value == 0) || (value >= 1)) {
+                    return false;
+                }
+                Some((true, &RETURN_SLOT_LOOKAHEAD_E_ALT2_POS2))
+            }
+            // E(p: i32) : [1 >= p] l_pr=L(p, 0) . [(l_pr == 0) || (l_pr >= 1)] WS "-" WS E(2) return 1
+            SlotId(407) => {
+                let value = return_value.expect("a bound call returns a value");
+                if !((value == 0) || (value >= 1)) {
+                    return false;
+                }
+                Some((true, &RETURN_SLOT_LOOKAHEAD_E_ALT3_POS2))
+            }
+            // Only(p: i32) : [1 >= p] l_pr=OnlyOperand(p, 0) . [(l_pr == 0) || (l_pr >= 1)] WS "^" WS
+            // OnlyOperand(2, 1) return 1
+            SlotId(422) => {
+                let value = return_value.expect("a bound call returns a value");
+                if !((value == 0) || (value >= 1)) {
+                    return false;
+                }
+                Some((true, &RETURN_SLOT_LOOKAHEAD_ONLY_ALT1_POS2))
+            }
+            // Cross(p: i32) : [2 >= p] l_pr=Cross(p) . [(l_pr == 0) || (l_pr >= 2)] WS "-" WS Foreign(0)
+            // return 0
+            SlotId(437) => {
+                let value = return_value.expect("a bound call returns a value");
+                if !((value == 0) || (value >= 2)) {
+                    return false;
+                }
+                Some((true, &RETURN_SLOT_LOOKAHEAD_CROSS_ALT1_POS2))
+            }
+            // Cross(p: i32) : [1 >= p] l_pr=Cross(p) . [(l_pr == 0) || (l_pr >= 1)] WS "+" WS Foreign(0)
+            // return 0
+            SlotId(446) => {
+                let value = return_value.expect("a bound call returns a value");
+                if !((value == 0) || (value >= 1)) {
+                    return false;
+                }
+                Some((true, &RETURN_SLOT_LOOKAHEAD_CROSS_ALT2_POS2))
+            }
+            // Foreign(p: i32) : [1 >= p] l_pr=Foreign(p) . [(l_pr == 0) || (l_pr >= 1)] WS "*" WS
+            // Foreign(2) return 1
+            SlotId(458) => {
+                let value = return_value.expect("a bound call returns a value");
+                if !((value == 0) || (value >= 1)) {
+                    return false;
+                }
+                Some((true, &RETURN_SLOT_LOOKAHEAD_FOREIGN_ALT1_POS2))
+            }
+            // Cascade(p: i32) : [1 >= p] l_pr=Cascade(p) . [(l_pr == 0) || (l_pr >= 1)] WS "+" WS
+            // Cascade(2) return 1
+            SlotId(473) => {
+                let value = return_value.expect("a bound call returns a value");
+                if !((value == 0) || (value >= 1)) {
+                    return false;
+                }
+                Some((true, &RETURN_SLOT_LOOKAHEAD_CASCADE_ALT1_POS2))
+            }
+            // Ternary : Cascade(0) . WS "?" WS Cascade(0) WS ":" WS Cascade(0)
+            SlotId(3) => Some((true, &RETURN_SLOT_LOOKAHEAD_TERNARY_ALT0_POS1)),
+            // Ternary : Cascade(0) WS "?" WS Cascade(0) . WS ":" WS Cascade(0)
+            SlotId(7) => Some((true, &RETURN_SLOT_LOOKAHEAD_TERNARY_ALT0_POS5)),
+            // Nullable(p: i32) : NullableLeft . WS "%" WS NullableRight(1) return 1
+            SlotId(487) => Some((true, &RETURN_SLOT_LOOKAHEAD_NULLABLE_ALT1_POS1)),
+            // NullableLeft : Opt_0 . WS Nullable(0)
+            SlotId(13) => Some((true, &RETURN_SLOT_LOOKAHEAD_NULLABLE_LEFT_ALT0_POS1)),
+            // RightExpr(p: i32) : [1 >= p] l_pr=RightOperand(p, 0) . [(l_pr == 0) || (l_pr >= 2)] WS ">"
+            // WS RightOperand(1, 1) return 1
+            SlotId(501) => {
+                let value = return_value.expect("a bound call returns a value");
+                if !((value == 0) || (value >= 2)) {
+                    return false;
+                }
+                Some((true, &RETURN_SLOT_LOOKAHEAD_RIGHT_EXPR_ALT1_POS2))
+            }
+            // NoneExpr(p: i32) : [1 >= p] l_pr=NoneOperand(p, 0) . [(l_pr == 0) || (l_pr >= 2)] WS "="
+            // WS NoneOperand(2, 1) return 1
+            SlotId(516) => {
+                let value = return_value.expect("a bound call returns a value");
+                if !((value == 0) || (value >= 2)) {
+                    return false;
+                }
+                Some((true, &RETURN_SLOT_LOOKAHEAD_NONE_EXPR_ALT1_POS2))
+            }
+            // Excluded(p: i32, a: i32) : (l_pr, l_label)=ExcludedOperand(p, 0, 0, 0) . [(l_pr ==
+            // UNDEFINED_PRECEDENCE) || ((1 >= p) && ((l_pr == 0) || (l_pr >= 1)))] WS "&" WS (r_pr,
+            // r_label)=ExcludedOperand(1, 1, (l_pr == UNDEFINED_PRECEDENCE) ? 0 : 1, 0) [((l_pr ==
+            // UNDEFINED_PRECEDENCE) || (r_pr == UNDEFINED_PRECEDENCE)) || (a != 1)] return (r_pr ==
+            // UNDEFINED_PRECEDENCE) ? 0 : 1
+            SlotId(530) => {
+                let value = return_value.expect("a bound call returns a value");
+                if !((((value) >> 16) == -1)
+                    || ((1 >= self.lookup(BINDING_P, env.unwrap()))
+                        && ((((value) >> 16) == 0) || (((value) >> 16) >= 1))))
+                {
+                    return false;
+                }
+                Some((true, &RETURN_SLOT_LOOKAHEAD_EXCLUDED_ALT1_POS1))
+            }
+            // Excluded(p: i32, a: i32) : (l_pr, l_label)=ExcludedOperand(p, 0, 0, 0) [(l_pr ==
+            // UNDEFINED_PRECEDENCE) || ((1 >= p) && ((l_pr == 0) || (l_pr >= 1)))] WS "&" WS (r_pr,
+            // r_label)=ExcludedOperand(1, 1, (l_pr == UNDEFINED_PRECEDENCE) ? 0 : 1, 0) . [((l_pr ==
+            // UNDEFINED_PRECEDENCE) || (r_pr == UNDEFINED_PRECEDENCE)) || (a != 1)] return (r_pr ==
+            // UNDEFINED_PRECEDENCE) ? 0 : 1
+            SlotId(535) => {
+                let value = return_value.expect("a bound call returns a value");
+                if !(((self.lookup(BINDING_L_PR, env.unwrap()) == -1) || (((value) >> 16) == -1))
+                    || (self.lookup(BINDING_A, env.unwrap()) != 1))
+                {
+                    return false;
+                }
+                None
+            }
+            // ExcludedOperand(p: i32, end: i32, a: i32, e: i32) : [2 & e == 0] "(" WS ExcludedOperand(0,
+            // 0, 0, 0) . WS ")" return (UNDEFINED_PRECEDENCE, 1)
+            SlotId(546) => Some((true, &RETURN_SLOT_LOOKAHEAD_EXCLUDED_OPERAND_ALT1_POS4)),
+            // LexNullable(p: i32) : LexNullableLeft . WS "/" WS LexNullableRight(1) return 1
+            SlotId(554) => Some((true, &RETURN_SLOT_LOOKAHEAD_LEX_NULLABLE_ALT1_POS1)),
+            // MixedScale(p: i32, a: i32) : l_pr=MixedOperand(p, 0) . [(l_pr == UNDEFINED_PRECEDENCE) ||
+            // ((1 >= p) && ((l_pr == 0) || (l_pr >= 1)))] WS "~" WS r_pr=MixedRight(1, (l_pr ==
+            // UNDEFINED_PRECEDENCE) ? 0 : 1) [(l_pr == UNDEFINED_PRECEDENCE) || (a != 1)] return 1
+            SlotId(567) => {
+                let value = return_value.expect("a bound call returns a value");
+                if !((value == -1)
+                    || ((1 >= self.lookup(BINDING_P, env.unwrap()))
+                        && ((value == 0) || (value >= 1))))
+                {
+                    return false;
+                }
+                Some((true, &RETURN_SLOT_LOOKAHEAD_MIXED_SCALE_ALT1_POS1))
+            }
+            // MixedScale(p: i32, a: i32) : l_pr=MixedOperand(p, 0) [(l_pr == UNDEFINED_PRECEDENCE) ||
+            // ((1 >= p) && ((l_pr == 0) || (l_pr >= 1)))] WS "~" WS r_pr=MixedRight(1, (l_pr ==
+            // UNDEFINED_PRECEDENCE) ? 0 : 1) . [(l_pr == UNDEFINED_PRECEDENCE) || (a != 1)] return 1
+            SlotId(572) => {
+                if !((self.lookup(BINDING_L_PR, env.unwrap()) == -1)
+                    || (self.lookup(BINDING_A, env.unwrap()) != 1))
+                {
+                    return false;
+                }
+                None
+            }
+            // MixedForeign(p: i32) : [1 >= p] l_pr=MixedForeign(p) . [(l_pr == 0) || (l_pr >= 1)] WS "!"
+            // WS MixedForeign(2) return 1
+            SlotId(589) => {
+                let value = return_value.expect("a bound call returns a value");
+                if !((value == 0) || (value >= 1)) {
+                    return false;
+                }
+                Some((true, &RETURN_SLOT_LOOKAHEAD_MIXED_FOREIGN_ALT1_POS2))
+            }
+            // Packed(p: i32, a: i32) : (l_pr, l_assoc)=PackedOperand(p, 0, 0) . [(l_pr ==
+            // UNDEFINED_PRECEDENCE) || ((1 >= p) && ((l_pr == 0) || (l_pr >= 1)))] WS "+" WS (r_pr,
+            // r_assoc)=PackedOperand(1, 1, 0) [((l_pr == UNDEFINED_PRECEDENCE) || (r_pr ==
+            // UNDEFINED_PRECEDENCE)) || (l_assoc != 1)] return ((r_pr == UNDEFINED_PRECEDENCE) ? 0 : 1,
+            // ((l_pr == UNDEFINED_PRECEDENCE) || (r_pr == UNDEFINED_PRECEDENCE)) ? 0 : 1)
+            SlotId(600) => {
+                let value = return_value.expect("a bound call returns a value");
+                if !((((value) >> 16) == -1)
+                    || ((1 >= self.lookup(BINDING_P, env.unwrap()))
+                        && ((((value) >> 16) == 0) || (((value) >> 16) >= 1))))
+                {
+                    return false;
+                }
+                Some((true, &RETURN_SLOT_LOOKAHEAD_PACKED_ALT1_POS1))
+            }
+            // Packed(p: i32, a: i32) : (l_pr, l_assoc)=PackedOperand(p, 0, 0) [(l_pr ==
+            // UNDEFINED_PRECEDENCE) || ((1 >= p) && ((l_pr == 0) || (l_pr >= 1)))] WS "+" WS (r_pr,
+            // r_assoc)=PackedOperand(1, 1, 0) . [((l_pr == UNDEFINED_PRECEDENCE) || (r_pr ==
+            // UNDEFINED_PRECEDENCE)) || (l_assoc != 1)] return ((r_pr == UNDEFINED_PRECEDENCE) ? 0 : 1,
+            // ((l_pr == UNDEFINED_PRECEDENCE) || (r_pr == UNDEFINED_PRECEDENCE)) ? 0 : 1)
+            SlotId(605) => {
+                let value = return_value.expect("a bound call returns a value");
+                if !(((self.lookup(BINDING_L_PR, env.unwrap()) == -1) || (((value) >> 16) == -1))
+                    || (self.lookup(BINDING_L_ASSOC, env.unwrap()) != 1))
+                {
+                    return false;
+                }
+                None
+            }
+            // PackedMiddle(p: i32, end: i32, a: i32, e: i32) : [2 & e == 0] "(" WS Packed(0, 0) . WS ")"
+            // return (UNDEFINED_PRECEDENCE, 0, 1)
+            SlotId(619) => Some((true, &RETURN_SLOT_LOOKAHEAD_PACKED_MIDDLE_ALT1_POS4)),
+            // NullableRecursive(p: i32, a: i32) : (l_pr, l_assoc)=NullableOperand(p, 0) . [(l_pr ==
+            // UNDEFINED_PRECEDENCE) || ((1 >= p) && ((l_pr == 0) || (l_pr >= 1)))] WS "+" WS (r_pr,
+            // r_assoc)=NullableRecursive(1, 0) [(l_pr == UNDEFINED_PRECEDENCE) || (l_assoc != 1)] return
+            // (1, (l_pr == UNDEFINED_PRECEDENCE) ? 0 : 1)
+            SlotId(627) => {
+                let value = return_value.expect("a bound call returns a value");
+                if !((((value) >> 16) == -1)
+                    || ((1 >= self.lookup(BINDING_P, env.unwrap()))
+                        && ((((value) >> 16) == 0) || (((value) >> 16) >= 1))))
+                {
+                    return false;
+                }
+                Some((true, &RETURN_SLOT_LOOKAHEAD_NULLABLE_RECURSIVE_ALT1_POS1))
+            }
+            // NullableRecursive(p: i32, a: i32) : (l_pr, l_assoc)=NullableOperand(p, 0) [(l_pr ==
+            // UNDEFINED_PRECEDENCE) || ((1 >= p) && ((l_pr == 0) || (l_pr >= 1)))] WS "+" WS (r_pr,
+            // r_assoc)=NullableRecursive(1, 0) . [(l_pr == UNDEFINED_PRECEDENCE) || (l_assoc != 1)]
+            // return (1, (l_pr == UNDEFINED_PRECEDENCE) ? 0 : 1)
+            SlotId(632) => {
+                if !((self.lookup(BINDING_L_PR, env.unwrap()) == -1)
+                    || (self.lookup(BINDING_L_ASSOC, env.unwrap()) != 1))
+                {
+                    return false;
+                }
+                None
+            }
+            // NullableOperand(p: i32, a: i32) : (l_pr, l_assoc)=NullableMaybe(p, a) . WS
+            // NullableRecursive(0, 0) return (l_pr, l_assoc)
+            SlotId(636) => Some((true, &RETURN_SLOT_LOOKAHEAD_NULLABLE_OPERAND_ALT0_POS1)),
+            // NullableLexRecursive(p: i32, a: i32) : (l_pr, l_assoc)=NullableLexOperand(p, 0) . [(l_pr
+            // == UNDEFINED_PRECEDENCE) || ((1 >= p) && ((l_pr == 0) || (l_pr >= 1)))] WS "+" WS (r_pr,
+            // r_assoc)=NullableLexRecursive(1, 0) [(l_pr == UNDEFINED_PRECEDENCE) || (l_assoc != 1)]
+            // return (1, (l_pr == UNDEFINED_PRECEDENCE) ? 0 : 1)
+            SlotId(647) => {
+                let value = return_value.expect("a bound call returns a value");
+                if !((((value) >> 16) == -1)
+                    || ((1 >= self.lookup(BINDING_P, env.unwrap()))
+                        && ((((value) >> 16) == 0) || (((value) >> 16) >= 1))))
+                {
+                    return false;
+                }
+                Some((
+                    true,
+                    &RETURN_SLOT_LOOKAHEAD_NULLABLE_LEX_RECURSIVE_ALT1_POS1,
+                ))
+            }
+            // NullableLexRecursive(p: i32, a: i32) : (l_pr, l_assoc)=NullableLexOperand(p, 0) [(l_pr ==
+            // UNDEFINED_PRECEDENCE) || ((1 >= p) && ((l_pr == 0) || (l_pr >= 1)))] WS "+" WS (r_pr,
+            // r_assoc)=NullableLexRecursive(1, 0) . [(l_pr == UNDEFINED_PRECEDENCE) || (l_assoc != 1)]
+            // return (1, (l_pr == UNDEFINED_PRECEDENCE) ? 0 : 1)
+            SlotId(652) => {
+                if !((self.lookup(BINDING_L_PR, env.unwrap()) == -1)
+                    || (self.lookup(BINDING_L_ASSOC, env.unwrap()) != 1))
+                {
+                    return false;
+                }
+                None
+            }
+            // NullableLexOperand(p: i32, a: i32) : (l_pr, l_assoc)=NullableLexMaybe(p, a) . WS
+            // NullableLexRecursive(0, 0) return (l_pr, l_assoc)
+            SlotId(656) => Some((true, &RETURN_SLOT_LOOKAHEAD_NULLABLE_LEX_OPERAND_ALT0_POS1)),
+            // NullableSuffix(p: i32, a: i32) : [1 >= p] l_pr=NullableSuffix(p, 0) . [(l_pr == 0) ||
+            // (l_pr >= 1)] WS "+" WS r_pr=NullableSuffixOperand(1, 1) [(r_pr == UNDEFINED_PRECEDENCE) ||
+            // (a != 1)] return (r_pr == UNDEFINED_PRECEDENCE) ? 0 : 1
+            SlotId(671) => {
+                let value = return_value.expect("a bound call returns a value");
+                if !((value == 0) || (value >= 1)) {
+                    return false;
+                }
+                Some((true, &RETURN_SLOT_LOOKAHEAD_NULLABLE_SUFFIX_ALT1_POS2))
+            }
+            // NullableSuffix(p: i32, a: i32) : [1 >= p] l_pr=NullableSuffix(p, 0) [(l_pr == 0) || (l_pr
+            // >= 1)] WS "+" WS r_pr=NullableSuffixOperand(1, 1) . [(r_pr == UNDEFINED_PRECEDENCE) || (a
+            // != 1)] return (r_pr == UNDEFINED_PRECEDENCE) ? 0 : 1
+            SlotId(676) => {
+                let value = return_value.expect("a bound call returns a value");
+                if !((value == -1) || (self.lookup(BINDING_A, env.unwrap()) != 1)) {
+                    return false;
+                }
+                None
+            }
+            // NullableShared(p: i32, a: i32) : (l_pr, l_assoc)=NullableSharedOperand(p, 0, 0) . [(l_pr
+            // == UNDEFINED_PRECEDENCE) || ((1 >= p) && ((l_pr == 0) || (l_pr >= 1)))] WS "+" WS (r_pr,
+            // r_assoc)=NullableSharedOperand(1, 1, 0) [((l_pr == UNDEFINED_PRECEDENCE) || (r_pr ==
+            // UNDEFINED_PRECEDENCE)) || (l_assoc != 1)] return ((r_pr == UNDEFINED_PRECEDENCE) ? 0 : 1,
+            // ((l_pr == UNDEFINED_PRECEDENCE) || (r_pr == UNDEFINED_PRECEDENCE)) ? 0 : 1)
+            SlotId(691) => {
+                let value = return_value.expect("a bound call returns a value");
+                if !((((value) >> 16) == -1)
+                    || ((1 >= self.lookup(BINDING_P, env.unwrap()))
+                        && ((((value) >> 16) == 0) || (((value) >> 16) >= 1))))
+                {
+                    return false;
+                }
+                Some((true, &RETURN_SLOT_LOOKAHEAD_NULLABLE_SHARED_ALT1_POS1))
+            }
+            // NullableShared(p: i32, a: i32) : (l_pr, l_assoc)=NullableSharedOperand(p, 0, 0) [(l_pr ==
+            // UNDEFINED_PRECEDENCE) || ((1 >= p) && ((l_pr == 0) || (l_pr >= 1)))] WS "+" WS (r_pr,
+            // r_assoc)=NullableSharedOperand(1, 1, 0) . [((l_pr == UNDEFINED_PRECEDENCE) || (r_pr ==
+            // UNDEFINED_PRECEDENCE)) || (l_assoc != 1)] return ((r_pr == UNDEFINED_PRECEDENCE) ? 0 : 1,
+            // ((l_pr == UNDEFINED_PRECEDENCE) || (r_pr == UNDEFINED_PRECEDENCE)) ? 0 : 1)
+            SlotId(696) => {
+                let value = return_value.expect("a bound call returns a value");
+                if !(((self.lookup(BINDING_L_PR, env.unwrap()) == -1) || (((value) >> 16) == -1))
+                    || (self.lookup(BINDING_L_ASSOC, env.unwrap()) != 1))
+                {
+                    return false;
+                }
+                None
+            }
+            // NullableSharedOperand(p: i32, end: i32, a: i32) : (l_pr, l_assoc)=NullableSharedMaybe((end
+            // == 0) ? p : 0, 0, (end == 0) ? a : 0) . WS NullableShared(0, 0) WS (r_pr,
+            // r_assoc)=NullableSharedMaybe((end == 1) ? p : 0, 1, (end == 1) ? a : 0) return ((end == 0)
+            // ? l_pr : r_pr, (end == 0) ? l_assoc : r_assoc)
+            SlotId(700) => Some((
+                true,
+                &RETURN_SLOT_LOOKAHEAD_NULLABLE_SHARED_OPERAND_ALT0_POS1,
+            )),
+            // OwnLabel(p: i32, a: i32, e: i32) : [2 & e == 0] (l_pr, l_label)=OwnOperand(p, 0, 0, 0) .
+            // [(l_pr == UNDEFINED_PRECEDENCE) || ((1 >= p) && ((l_pr == 0) || (l_pr >= 1)))] [(l_label
+            // == NO_LABEL) || ((2 >> l_label) & 1 == 0)] WS "+" WS (r_pr, r_label)=OwnOperand(1, 1,
+            // (l_pr == UNDEFINED_PRECEDENCE) ? 0 : 1, 0) [((l_pr == UNDEFINED_PRECEDENCE) || (r_pr ==
+            // UNDEFINED_PRECEDENCE)) || (a != 1)] return ((r_pr == UNDEFINED_PRECEDENCE) ? 0 : 1, 1)
+            SlotId(715) => {
+                let value = return_value.expect("a bound call returns a value");
+                if !((((value) >> 16) == -1)
+                    || ((1 >= self.lookup(BINDING_P, env.unwrap()))
+                        && ((((value) >> 16) == 0) || (((value) >> 16) >= 1))))
+                {
+                    return false;
+                }
+                if !((((value) & 65535) == 31) || (((2) >> ((value) & 65535)) & (1) == 0)) {
+                    return false;
+                }
+                Some((true, &RETURN_SLOT_LOOKAHEAD_OWN_LABEL_ALT1_POS2))
+            }
+            // OwnLabel(p: i32, a: i32, e: i32) : [2 & e == 0] (l_pr, l_label)=OwnOperand(p, 0, 0, 0)
+            // [(l_pr == UNDEFINED_PRECEDENCE) || ((1 >= p) && ((l_pr == 0) || (l_pr >= 1)))] [(l_label
+            // == NO_LABEL) || ((2 >> l_label) & 1 == 0)] WS "+" WS (r_pr, r_label)=OwnOperand(1, 1,
+            // (l_pr == UNDEFINED_PRECEDENCE) ? 0 : 1, 0) . [((l_pr == UNDEFINED_PRECEDENCE) || (r_pr ==
+            // UNDEFINED_PRECEDENCE)) || (a != 1)] return ((r_pr == UNDEFINED_PRECEDENCE) ? 0 : 1, 1)
+            SlotId(721) => {
+                let value = return_value.expect("a bound call returns a value");
+                if !(((self.lookup(BINDING_L_PR, env.unwrap()) == -1) || (((value) >> 16) == -1))
+                    || (self.lookup(BINDING_A, env.unwrap()) != 1))
+                {
+                    return false;
+                }
+                None
+            }
+            // OwnOperand(p: i32, end: i32, a: i32, e: i32) : [2 & e == 0] "(" WS OwnLabel(0, 0, 0) . WS
+            // ")" return (UNDEFINED_PRECEDENCE, 1)
+            SlotId(732) => Some((true, &RETURN_SLOT_LOOKAHEAD_OWN_OPERAND_ALT1_POS4)),
+            // Absent(p: i32) : [2 >= p] l_pr=Absent(p) . [(l_pr == 0) || (l_pr >= 2)] WS "*" WS
+            // r_pr=Absent(2) return (r_pr == 0) ? 2 : min(r_pr, 2)
+            SlotId(748) => {
+                let value = return_value.expect("a bound call returns a value");
+                if !((value == 0) || (value >= 2)) {
+                    return false;
+                }
+                Some((true, &RETURN_SLOT_LOOKAHEAD_ABSENT_ALT1_POS2))
+            }
+            // Absent(p: i32) : l_pr=AbsentOperand(p, 0) . [(l_pr == UNDEFINED_PRECEDENCE) || ((1 >= p)
+            // && ((l_pr == 0) || (l_pr >= 1)))] WS "+" WS r_pr=AbsentOperand(1, 1) return (r_pr ==
+            // UNDEFINED_PRECEDENCE) ? 0 : 1
+            SlotId(756) => {
+                let value = return_value.expect("a bound call returns a value");
+                if !((value == -1)
+                    || ((1 >= self.lookup(BINDING_P, env.unwrap()))
+                        && ((value == 0) || (value >= 1))))
+                {
+                    return false;
+                }
+                Some((true, &RETURN_SLOT_LOOKAHEAD_ABSENT_ALT2_POS1))
+            }
+            // ClosedPrefix(p: i32) : [2 >= p] l_pr=ClosedPrefix(p) . [(l_pr == 0) || (l_pr >= 2)] WS "+"
+            // WS r_pr=ClosedPrefix(2) return (r_pr == 0) ? 2 : min(r_pr, 2)
+            SlotId(774) => {
+                let value = return_value.expect("a bound call returns a value");
+                if !((value == 0) || (value >= 2)) {
+                    return false;
+                }
+                Some((true, &RETURN_SLOT_LOOKAHEAD_CLOSED_PREFIX_ALT1_POS2))
+            }
+            // ClosedPostfix(p: i32) : l_pr=ClosedPostfixBody(p) . [(l_pr == UNDEFINED_PRECEDENCE) || ((1
+            // >= p) && ((l_pr == 0) || (l_pr >= 1)))] WS "!" return 0
+            SlotId(801) => {
+                let value = return_value.expect("a bound call returns a value");
+                if !((value == -1)
+                    || ((1 >= self.lookup(BINDING_P, env.unwrap()))
+                        && ((value == 0) || (value >= 1))))
+                {
+                    return false;
+                }
+                Some((true, &RETURN_SLOT_LOOKAHEAD_CLOSED_POSTFIX_ALT2_POS1))
+            }
+            // HeadChoice(p: i32) : [1 >= p] l_pr=HeadOperand(p, 0) . [(l_pr == 0) || (l_pr >= 1)] WS "+"
+            // WS HeadOperand(2, 1) return 1
+            SlotId(817) => {
+                let value = return_value.expect("a bound call returns a value");
+                if !((value == 0) || (value >= 1)) {
+                    return false;
+                }
+                Some((true, &RETURN_SLOT_LOOKAHEAD_HEAD_CHOICE_ALT1_POS2))
+            }
+            // Inner(p: i32) : [1 >= p] l_pr=Inner(p) . [(l_pr == 0) || (l_pr >= 1)] WS "*" WS Inner(2)
+            // return 1
+            SlotId(835) => {
+                let value = return_value.expect("a bound call returns a value");
+                if !((value == 0) || (value >= 1)) {
+                    return false;
+                }
+                Some((true, &RETURN_SLOT_LOOKAHEAD_INNER_ALT1_POS2))
+            }
+            // UnaryMixedLeft(p: i32, a: i32) : [1 >= p] [a != 1] l_pr=UnaryMixedLeft(p, 0) . [(l_pr ==
+            // 0) || (l_pr >= 1)] WS "+" WS r_pr=UnaryMixedLeft(1, 1) return 1
+            SlotId(845) => {
+                let value = return_value.expect("a bound call returns a value");
+                if !((value == 0) || (value >= 1)) {
+                    return false;
+                }
+                Some((true, &RETURN_SLOT_LOOKAHEAD_UNARY_MIXED_LEFT_ALT0_POS3))
+            }
+            // UnaryMixedLeft(p: i32, a: i32) : [1 >= p] l_pr=UnaryMixedLeft(p, 0) . [(l_pr == 0) ||
+            // (l_pr >= 1)] WS "!" return 0
+            SlotId(859) => {
+                let value = return_value.expect("a bound call returns a value");
+                if !((value == 0) || (value >= 1)) {
+                    return false;
+                }
+                Some((true, &RETURN_SLOT_LOOKAHEAD_UNARY_MIXED_LEFT_ALT2_POS2))
+            }
+            // UnaryMixedRight(p: i32, a: i32) : [1 >= p] (l_pr, l_assoc)=UnaryMixedRight(p, 0) . [(l_pr
+            // == 0) || (l_pr >= 1)] [l_assoc != 1] WS "+" WS (r_pr, r_assoc)=UnaryMixedRight(1, 0)
+            // return (1, 1)
+            SlotId(869) => {
+                let value = return_value.expect("a bound call returns a value");
+                if !((((value) >> 16) == 0) || (((value) >> 16) >= 1)) {
+                    return false;
+                }
+                if !(((value) & 65535) != 1) {
+                    return false;
+                }
+                Some((true, &RETURN_SLOT_LOOKAHEAD_UNARY_MIXED_RIGHT_ALT0_POS2))
+            }
+            // UnaryMixedRight(p: i32, a: i32) : [1 >= p] (l_pr, l_assoc)=UnaryMixedRight(p, 0) . [(l_pr
+            // == 0) || (l_pr >= 1)] WS "!" return (0, 0)
+            SlotId(884) => {
+                let value = return_value.expect("a bound call returns a value");
+                if !((((value) >> 16) == 0) || (((value) >> 16) >= 1)) {
+                    return false;
+                }
+                Some((true, &RETURN_SLOT_LOOKAHEAD_UNARY_MIXED_RIGHT_ALT2_POS2))
+            }
+            // UnaryMixedNone(p: i32, a: i32) : [1 >= p] [a != 1] (l_pr, l_assoc)=UnaryMixedNone(p, 0) .
+            // [(l_pr == 0) || (l_pr >= 1)] [l_assoc != 1] WS "+" WS (r_pr, r_assoc)=UnaryMixedNone(1, 1)
+            // return (1, 1)
+            SlotId(895) => {
+                let value = return_value.expect("a bound call returns a value");
+                if !((((value) >> 16) == 0) || (((value) >> 16) >= 1)) {
+                    return false;
+                }
+                if !(((value) & 65535) != 1) {
+                    return false;
+                }
+                Some((true, &RETURN_SLOT_LOOKAHEAD_UNARY_MIXED_NONE_ALT0_POS3))
+            }
+            // UnaryMixedNone(p: i32, a: i32) : [1 >= p] (l_pr, l_assoc)=UnaryMixedNone(p, 0) . [(l_pr ==
+            // 0) || (l_pr >= 1)] WS "!" return (0, 0)
+            SlotId(910) => {
+                let value = return_value.expect("a bound call returns a value");
+                if !((((value) >> 16) == 0) || (((value) >> 16) >= 1)) {
+                    return false;
+                }
+                Some((true, &RETURN_SLOT_LOOKAHEAD_UNARY_MIXED_NONE_ALT2_POS2))
+            }
+            // Dynamic(p: i32, a: i32, e: i32) : [1 & e == 0] (l_pr, l_assoc, l_label)=DynamicOperand(p,
+            // 0, 0, 0) . [(l_pr == UNDEFINED_PRECEDENCE) || ((1 >= p) && ((l_pr == 0) || (l_pr >= 1)))]
+            // [(l_label == NO_LABEL) || ((2 >> l_label) & 1 == 0)] WS "+" WS (r_pr, r_assoc,
+            // r_label)=DynamicOperand(1, 1, 0, 0) [((l_pr == UNDEFINED_PRECEDENCE) || (r_pr ==
+            // UNDEFINED_PRECEDENCE)) || (l_assoc != 1)] return ((r_pr == UNDEFINED_PRECEDENCE) ? 0 : 1,
+            // ((l_pr == UNDEFINED_PRECEDENCE) || (r_pr == UNDEFINED_PRECEDENCE)) ? 0 : 1, 0)
+            SlotId(920) => {
+                let value = return_value.expect("a bound call returns a value");
+                if !((((value) >> 18) == -1)
+                    || ((1 >= self.lookup(BINDING_P, env.unwrap()))
+                        && ((((value) >> 18) == 0) || (((value) >> 18) >= 1))))
+                {
+                    return false;
+                }
+                if !((((value) & 31) == 31) || (((2) >> ((value) & 31)) & (1) == 0)) {
+                    return false;
+                }
+                Some((true, &RETURN_SLOT_LOOKAHEAD_DYNAMIC_ALT0_POS2))
+            }
+            // Dynamic(p: i32, a: i32, e: i32) : [1 & e == 0] (l_pr, l_assoc, l_label)=DynamicOperand(p,
+            // 0, 0, 0) [(l_pr == UNDEFINED_PRECEDENCE) || ((1 >= p) && ((l_pr == 0) || (l_pr >= 1)))]
+            // [(l_label == NO_LABEL) || ((2 >> l_label) & 1 == 0)] WS "+" WS (r_pr, r_assoc,
+            // r_label)=DynamicOperand(1, 1, 0, 0) . [((l_pr == UNDEFINED_PRECEDENCE) || (r_pr ==
+            // UNDEFINED_PRECEDENCE)) || (l_assoc != 1)] return ((r_pr == UNDEFINED_PRECEDENCE) ? 0 : 1,
+            // ((l_pr == UNDEFINED_PRECEDENCE) || (r_pr == UNDEFINED_PRECEDENCE)) ? 0 : 1, 0)
+            SlotId(926) => {
+                let value = return_value.expect("a bound call returns a value");
+                if !(((self.lookup(BINDING_L_PR, env.unwrap()) == -1) || (((value) >> 18) == -1))
+                    || (self.lookup(BINDING_L_ASSOC, env.unwrap()) != 1))
+                {
+                    return false;
+                }
+                None
+            }
+            // Dynamic(p: i32, a: i32, e: i32) : [4 & e == 0] (l_pr, l_assoc, l_label)=DynamicOperand(p,
+            // 0, 0, 0) . [(l_pr == UNDEFINED_PRECEDENCE) || ((1 >= p) && ((l_pr == 0) || (l_pr >= 1)))]
+            // WS "!" return (0, 0, 2)
+            SlotId(937) => {
+                let value = return_value.expect("a bound call returns a value");
+                if !((((value) >> 18) == -1)
+                    || ((1 >= self.lookup(BINDING_P, env.unwrap()))
+                        && ((((value) >> 18) == 0) || (((value) >> 18) >= 1))))
+                {
+                    return false;
+                }
+                Some((true, &RETURN_SLOT_LOOKAHEAD_DYNAMIC_ALT2_POS2))
+            }
+            // DynamicMulti(p: i32, a: i32) : (l_pr, l_assoc)=DynamicMultiOperand(p, 0, 0) . [(l_pr ==
+            // UNDEFINED_PRECEDENCE) || ((2 >= p) && ((l_pr == 0) || (l_pr >= 2)))] WS "+" WS (r_pr,
+            // r_assoc)=DynamicMultiOperand(2, 1, (l_pr == UNDEFINED_PRECEDENCE) ? 0 : 2) [((l_pr ==
+            // UNDEFINED_PRECEDENCE) || (r_pr == UNDEFINED_PRECEDENCE)) || (a != 2)] return ((r_pr ==
+            // UNDEFINED_PRECEDENCE) ? 0 : ((r_pr == 0) ? 2 : min(r_pr, 2)), 0)
+            SlotId(955) => {
+                let value = return_value.expect("a bound call returns a value");
+                if !((((value) >> 16) == -1)
+                    || ((2 >= self.lookup(BINDING_P, env.unwrap()))
+                        && ((((value) >> 16) == 0) || (((value) >> 16) >= 2))))
+                {
+                    return false;
+                }
+                Some((true, &RETURN_SLOT_LOOKAHEAD_DYNAMIC_MULTI_ALT0_POS1))
+            }
+            // DynamicMulti(p: i32, a: i32) : (l_pr, l_assoc)=DynamicMultiOperand(p, 0, 0) [(l_pr ==
+            // UNDEFINED_PRECEDENCE) || ((2 >= p) && ((l_pr == 0) || (l_pr >= 2)))] WS "+" WS (r_pr,
+            // r_assoc)=DynamicMultiOperand(2, 1, (l_pr == UNDEFINED_PRECEDENCE) ? 0 : 2) . [((l_pr ==
+            // UNDEFINED_PRECEDENCE) || (r_pr == UNDEFINED_PRECEDENCE)) || (a != 2)] return ((r_pr ==
+            // UNDEFINED_PRECEDENCE) ? 0 : ((r_pr == 0) ? 2 : min(r_pr, 2)), 0)
+            SlotId(960) => {
+                let value = return_value.expect("a bound call returns a value");
+                if !(((self.lookup(BINDING_L_PR, env.unwrap()) == -1) || (((value) >> 16) == -1))
+                    || (self.lookup(BINDING_A, env.unwrap()) != 2))
+                {
+                    return false;
+                }
+                None
+            }
+            // DynamicMulti(p: i32, a: i32) : (l_pr, l_assoc)=DynamicMultiOperand(p, 0, 0) . [(l_pr ==
+            // UNDEFINED_PRECEDENCE) || ((2 >= p) && ((l_pr == 0) || (l_pr >= 2)))] WS "!" return (0, 0)
+            SlotId(969) => {
+                let value = return_value.expect("a bound call returns a value");
+                if !((((value) >> 16) == -1)
+                    || ((2 >= self.lookup(BINDING_P, env.unwrap()))
+                        && ((((value) >> 16) == 0) || (((value) >> 16) >= 2))))
+                {
+                    return false;
+                }
+                Some((true, &RETURN_SLOT_LOOKAHEAD_DYNAMIC_MULTI_ALT2_POS1))
+            }
+            // DynamicMulti(p: i32, a: i32) : (l_pr, l_assoc)=DynamicMultiOperand(p, 0, 0) . [(l_pr ==
+            // UNDEFINED_PRECEDENCE) || ((1 >= p) && ((l_pr == 0) || (l_pr >= 1)))] WS ";" WS (r_pr,
+            // r_assoc)=DynamicMultiOperand(1, 1, 0) [((l_pr == UNDEFINED_PRECEDENCE) || (r_pr ==
+            // UNDEFINED_PRECEDENCE)) || (l_assoc != 1)] return ((r_pr == UNDEFINED_PRECEDENCE) ? 0 : 1,
+            // ((l_pr == UNDEFINED_PRECEDENCE) || (r_pr == UNDEFINED_PRECEDENCE)) ? 0 : 1)
+            SlotId(975) => {
+                let value = return_value.expect("a bound call returns a value");
+                if !((((value) >> 16) == -1)
+                    || ((1 >= self.lookup(BINDING_P, env.unwrap()))
+                        && ((((value) >> 16) == 0) || (((value) >> 16) >= 1))))
+                {
+                    return false;
+                }
+                Some((true, &RETURN_SLOT_LOOKAHEAD_DYNAMIC_MULTI_ALT3_POS1))
+            }
+            // DynamicMulti(p: i32, a: i32) : (l_pr, l_assoc)=DynamicMultiOperand(p, 0, 0) [(l_pr ==
+            // UNDEFINED_PRECEDENCE) || ((1 >= p) && ((l_pr == 0) || (l_pr >= 1)))] WS ";" WS (r_pr,
+            // r_assoc)=DynamicMultiOperand(1, 1, 0) . [((l_pr == UNDEFINED_PRECEDENCE) || (r_pr ==
+            // UNDEFINED_PRECEDENCE)) || (l_assoc != 1)] return ((r_pr == UNDEFINED_PRECEDENCE) ? 0 : 1,
+            // ((l_pr == UNDEFINED_PRECEDENCE) || (r_pr == UNDEFINED_PRECEDENCE)) ? 0 : 1)
+            SlotId(980) => {
+                let value = return_value.expect("a bound call returns a value");
+                if !(((self.lookup(BINDING_L_PR, env.unwrap()) == -1) || (((value) >> 16) == -1))
+                    || (self.lookup(BINDING_L_ASSOC, env.unwrap()) != 1))
+                {
+                    return false;
+                }
+                None
+            }
+            // NullableBoundaryPrefix(p: i32) : [1 >= p] l_pr=NullableBoundaryPrefix(p) . [(l_pr == 0) ||
+            // (l_pr >= 1)] WS "+" WS NullableBoundaryPrefix(2) return 1
+            SlotId(1002) => {
+                let value = return_value.expect("a bound call returns a value");
+                if !((value == 0) || (value >= 1)) {
+                    return false;
+                }
+                Some((
+                    true,
+                    &RETURN_SLOT_LOOKAHEAD_NULLABLE_BOUNDARY_PREFIX_ALT2_POS2,
+                ))
+            }
+            // NullableBoundaryPostfix(p: i32) : NullableBoundaryLeft . WS "-" return 0
+            SlotId(1013) => Some((
+                true,
+                &RETURN_SLOT_LOOKAHEAD_NULLABLE_BOUNDARY_POSTFIX_ALT1_POS1,
+            )),
+            // NullableBoundaryPostfix(p: i32) : [1 >= p] l_pr=NullableBoundaryPostfix(p) . [(l_pr == 0)
+            // || (l_pr >= 2)] WS "+" WS NullableBoundaryPostfix(1) return 1
+            SlotId(1019) => {
+                let value = return_value.expect("a bound call returns a value");
+                if !((value == 0) || (value >= 2)) {
+                    return false;
+                }
+                Some((
+                    true,
+                    &RETURN_SLOT_LOOKAHEAD_NULLABLE_BOUNDARY_POSTFIX_ALT2_POS2,
+                ))
+            }
+            // NullableBoundaryLeft : NullableBoundaryOpt . WS NullableBoundaryPostfix(0)
+            SlotId(40) => Some((
+                true,
+                &RETURN_SLOT_LOOKAHEAD_NULLABLE_BOUNDARY_LEFT_ALT0_POS1,
+            )),
+            // NullableBoundaryBinary(p: i32) : [2 >= p] l_pr=NullableBoundaryBinary(p) . [(l_pr == 0) ||
+            // (l_pr >= 2)] WS "*" WS NullableBoundaryOperand return 0
+            SlotId(1031) => {
+                let value = return_value.expect("a bound call returns a value");
+                if !((value == 0) || (value >= 2)) {
+                    return false;
+                }
+                Some((
+                    true,
+                    &RETURN_SLOT_LOOKAHEAD_NULLABLE_BOUNDARY_BINARY_ALT1_POS2,
+                ))
+            }
+            // NullableBoundaryBinary(p: i32) : [1 >= p] l_pr=NullableBoundaryBinary(p) . [(l_pr == 0) ||
+            // (l_pr >= 1)] WS "+" WS NullableBoundaryBinary(2) return 1
+            SlotId(1040) => {
+                let value = return_value.expect("a bound call returns a value");
+                if !((value == 0) || (value >= 1)) {
+                    return false;
+                }
+                Some((
+                    true,
+                    &RETURN_SLOT_LOOKAHEAD_NULLABLE_BOUNDARY_BINARY_ALT2_POS2,
+                ))
+            }
+            // ClosedLeftAssoc(p: i32, a: i32) : l_pr=ClosedLeftOperand(p, 0) . [(l_pr ==
+            // UNDEFINED_PRECEDENCE) || ((1 >= p) && ((l_pr == 0) || (l_pr >= 1)))] WS "+" WS
+            // r_pr=ClosedLeftAssoc(1, (l_pr == UNDEFINED_PRECEDENCE) ? 0 : 1) [(l_pr ==
+            // UNDEFINED_PRECEDENCE) || (a != 1)] return 1
+            SlotId(1051) => {
+                let value = return_value.expect("a bound call returns a value");
+                if !((value == -1)
+                    || ((1 >= self.lookup(BINDING_P, env.unwrap()))
+                        && ((value == 0) || (value >= 1))))
+                {
+                    return false;
+                }
+                Some((true, &RETURN_SLOT_LOOKAHEAD_CLOSED_LEFT_ASSOC_ALT1_POS1))
+            }
+            // ClosedLeftAssoc(p: i32, a: i32) : l_pr=ClosedLeftOperand(p, 0) [(l_pr ==
+            // UNDEFINED_PRECEDENCE) || ((1 >= p) && ((l_pr == 0) || (l_pr >= 1)))] WS "+" WS
+            // r_pr=ClosedLeftAssoc(1, (l_pr == UNDEFINED_PRECEDENCE) ? 0 : 1) . [(l_pr ==
+            // UNDEFINED_PRECEDENCE) || (a != 1)] return 1
+            SlotId(1056) => {
+                if !((self.lookup(BINDING_L_PR, env.unwrap()) == -1)
+                    || (self.lookup(BINDING_A, env.unwrap()) != 1))
+                {
+                    return false;
+                }
+                None
+            }
+            // ClosedRightAssoc(p: i32, a: i32) : [1 >= p] (l_pr, l_assoc)=ClosedRightAssoc(p, 0) .
+            // [(l_pr == 0) || (l_pr >= 1)] WS "+" WS (r_pr, r_assoc)=ClosedRightOperand(1, 0) [(r_pr ==
+            // UNDEFINED_PRECEDENCE) || (l_assoc != 1)] return ((r_pr == UNDEFINED_PRECEDENCE) ? 0 : 1,
+            // (r_pr == UNDEFINED_PRECEDENCE) ? 0 : 1)
+            SlotId(1070) => {
+                let value = return_value.expect("a bound call returns a value");
+                if !((((value) >> 16) == 0) || (((value) >> 16) >= 1)) {
+                    return false;
+                }
+                Some((true, &RETURN_SLOT_LOOKAHEAD_CLOSED_RIGHT_ASSOC_ALT1_POS2))
+            }
+            // ClosedRightAssoc(p: i32, a: i32) : [1 >= p] (l_pr, l_assoc)=ClosedRightAssoc(p, 0) [(l_pr
+            // == 0) || (l_pr >= 1)] WS "+" WS (r_pr, r_assoc)=ClosedRightOperand(1, 0) . [(r_pr ==
+            // UNDEFINED_PRECEDENCE) || (l_assoc != 1)] return ((r_pr == UNDEFINED_PRECEDENCE) ? 0 : 1,
+            // (r_pr == UNDEFINED_PRECEDENCE) ? 0 : 1)
+            SlotId(1075) => {
+                let value = return_value.expect("a bound call returns a value");
+                if !((((value) >> 16) == -1) || (self.lookup(BINDING_L_ASSOC, env.unwrap()) != 1)) {
+                    return false;
+                }
+                None
+            }
+            // IndirectExclude(p: i32, a: i32, e: i32) : [2 & e == 0] (l_pr,
+            // l_label)=IndirectExcludeOperand(p, 0, 0, 0) . [(l_pr == UNDEFINED_PRECEDENCE) || ((1 >= p)
+            // && ((l_pr == 0) || (l_pr >= 1)))] WS "+" WS (r_pr, r_label)=IndirectExcludeOperand(1, 1,
+            // (l_pr == UNDEFINED_PRECEDENCE) ? 0 : 1, 0) [((l_pr == UNDEFINED_PRECEDENCE) || (r_pr ==
+            // UNDEFINED_PRECEDENCE)) || (a != 1)] return ((r_pr == UNDEFINED_PRECEDENCE) ? 0 : 1, 1)
+            SlotId(1090) => {
+                let value = return_value.expect("a bound call returns a value");
+                if !((((value) >> 16) == -1)
+                    || ((1 >= self.lookup(BINDING_P, env.unwrap()))
+                        && ((((value) >> 16) == 0) || (((value) >> 16) >= 1))))
+                {
+                    return false;
+                }
+                Some((true, &RETURN_SLOT_LOOKAHEAD_INDIRECT_EXCLUDE_ALT1_POS2))
+            }
+            // IndirectExclude(p: i32, a: i32, e: i32) : [2 & e == 0] (l_pr,
+            // l_label)=IndirectExcludeOperand(p, 0, 0, 0) [(l_pr == UNDEFINED_PRECEDENCE) || ((1 >= p)
+            // && ((l_pr == 0) || (l_pr >= 1)))] WS "+" WS (r_pr, r_label)=IndirectExcludeOperand(1, 1,
+            // (l_pr == UNDEFINED_PRECEDENCE) ? 0 : 1, 0) . [((l_pr == UNDEFINED_PRECEDENCE) || (r_pr ==
+            // UNDEFINED_PRECEDENCE)) || (a != 1)] return ((r_pr == UNDEFINED_PRECEDENCE) ? 0 : 1, 1)
+            SlotId(1095) => {
+                let value = return_value.expect("a bound call returns a value");
+                if !(((self.lookup(BINDING_L_PR, env.unwrap()) == -1) || (((value) >> 16) == -1))
+                    || (self.lookup(BINDING_A, env.unwrap()) != 1))
+                {
+                    return false;
+                }
+                None
+            }
+            // IndirectExcludeOperand(p: i32, end: i32, a: i32, e: i32) : [1 & e == 0] (v_pr,
+            // v_label)=IndirectExclude(p, a, 0) . [(v_label == NO_LABEL) || ((1 >> v_label) & 1 == 0)]
+            // return (v_pr, 0)
+            SlotId(1100) => {
+                let value = return_value.expect("a bound call returns a value");
+                if !((((value) & 65535) == 31) || (((1) >> ((value) & 65535)) & (1) == 0)) {
+                    return false;
+                }
+                None
+            }
+            // OperandLiteral(p: i32, a: i32) : l_pr=OperandLiteralEnd(p, 0, 0) . [(l_pr ==
+            // UNDEFINED_PRECEDENCE) || ((2 >= p) && ((l_pr == 0) || (l_pr >= 2)))] WS "*" WS
+            // r_pr=OperandLiteralEnd(2, 1, (l_pr == UNDEFINED_PRECEDENCE) ? 0 : 2) [((l_pr ==
+            // UNDEFINED_PRECEDENCE) || (r_pr == UNDEFINED_PRECEDENCE)) || (a != 2)] return (r_pr ==
+            // UNDEFINED_PRECEDENCE) ? 0 : ((r_pr == 0) ? 2 : min(r_pr, 2))
+            SlotId(1111) => {
+                let value = return_value.expect("a bound call returns a value");
+                if !((value == -1)
+                    || ((2 >= self.lookup(BINDING_P, env.unwrap()))
+                        && ((value == 0) || (value >= 2))))
+                {
+                    return false;
+                }
+                Some((true, &RETURN_SLOT_LOOKAHEAD_OPERAND_LITERAL_ALT1_POS1))
+            }
+            // OperandLiteral(p: i32, a: i32) : l_pr=OperandLiteralEnd(p, 0, 0) [(l_pr ==
+            // UNDEFINED_PRECEDENCE) || ((2 >= p) && ((l_pr == 0) || (l_pr >= 2)))] WS "*" WS
+            // r_pr=OperandLiteralEnd(2, 1, (l_pr == UNDEFINED_PRECEDENCE) ? 0 : 2) . [((l_pr ==
+            // UNDEFINED_PRECEDENCE) || (r_pr == UNDEFINED_PRECEDENCE)) || (a != 2)] return (r_pr ==
+            // UNDEFINED_PRECEDENCE) ? 0 : ((r_pr == 0) ? 2 : min(r_pr, 2))
+            SlotId(1116) => {
+                let value = return_value.expect("a bound call returns a value");
+                if !(((self.lookup(BINDING_L_PR, env.unwrap()) == -1) || (value == -1))
+                    || (self.lookup(BINDING_A, env.unwrap()) != 2))
+                {
+                    return false;
+                }
+                None
+            }
+            // OperandLiteral(p: i32, a: i32) : l_pr=OperandLiteralEnd(p, 0, 0) . [(l_pr ==
+            // UNDEFINED_PRECEDENCE) || ((1 >= p) && ((l_pr == 0) || (l_pr >= 1)))] WS "+" WS
+            // r_pr=OperandLiteralEnd(1, 1, (l_pr == UNDEFINED_PRECEDENCE) ? 0 : 1) [((l_pr ==
+            // UNDEFINED_PRECEDENCE) || (r_pr == UNDEFINED_PRECEDENCE)) || (a != 1)] return (r_pr ==
+            // UNDEFINED_PRECEDENCE) ? 0 : 1
+            SlotId(1120) => {
+                let value = return_value.expect("a bound call returns a value");
+                if !((value == -1)
+                    || ((1 >= self.lookup(BINDING_P, env.unwrap()))
+                        && ((value == 0) || (value >= 1))))
+                {
+                    return false;
+                }
+                Some((true, &RETURN_SLOT_LOOKAHEAD_OPERAND_LITERAL_ALT2_POS1))
+            }
+            // OperandLiteral(p: i32, a: i32) : l_pr=OperandLiteralEnd(p, 0, 0) [(l_pr ==
+            // UNDEFINED_PRECEDENCE) || ((1 >= p) && ((l_pr == 0) || (l_pr >= 1)))] WS "+" WS
+            // r_pr=OperandLiteralEnd(1, 1, (l_pr == UNDEFINED_PRECEDENCE) ? 0 : 1) . [((l_pr ==
+            // UNDEFINED_PRECEDENCE) || (r_pr == UNDEFINED_PRECEDENCE)) || (a != 1)] return (r_pr ==
+            // UNDEFINED_PRECEDENCE) ? 0 : 1
+            SlotId(1125) => {
+                let value = return_value.expect("a bound call returns a value");
+                if !(((self.lookup(BINDING_L_PR, env.unwrap()) == -1) || (value == -1))
+                    || (self.lookup(BINDING_A, env.unwrap()) != 1))
+                {
+                    return false;
+                }
+                None
+            }
+            // HeadLiteral(p: i32) : [2 >= p] l_pr=HeadLiteralEnd(p, 0) . [(l_pr == 0) || (l_pr >= 2)] WS
+            // "*" WS HeadLiteralEnd(3, 1) return 2
+            SlotId(1142) => {
+                let value = return_value.expect("a bound call returns a value");
+                if !((value == 0) || (value >= 2)) {
+                    return false;
+                }
+                Some((true, &RETURN_SLOT_LOOKAHEAD_HEAD_LITERAL_ALT2_POS2))
+            }
+            // HeadLiteral(p: i32) : [1 >= p] l_pr=HeadLiteralEnd(p, 0) . [(l_pr == 0) || (l_pr >= 1)] WS
+            // "+" WS HeadLiteralEnd(2, 1) return 1
+            SlotId(1151) => {
+                let value = return_value.expect("a bound call returns a value");
+                if !((value == 0) || (value >= 1)) {
+                    return false;
+                }
+                Some((true, &RETURN_SLOT_LOOKAHEAD_HEAD_LITERAL_ALT3_POS2))
+            }
+            _ => None,
+        };
+        if let Some(failure) = self.post_conditions(return_slot, left_extent, right_extent) {
+            self.add_failure(right_extent, return_slot, Some(gss_node_id), failure);
+            return false;
+        }
+        let Some((skips_layout, set)) = lookahead else {
+            return true;
+        };
+        let start = if skips_layout {
+            let layout = self.scanner.match_token(TerminalId(1), right_extent);
+            let Some(end) = layout else {
+                return true;
+            };
+            end
+        } else {
+            right_extent
+        };
+        if self.scanner.match_any(set, start) {
+            return true;
+        }
+        self.add_failure(
+            start,
+            return_slot,
+            Some(gss_node_id),
+            GLLFailureKind::UnexpectedToken(set),
+        );
+        false
+    }
     fn failures(&self) -> impl Iterator<Item = &GLLFailure> {
         self.failures.iter()
     }

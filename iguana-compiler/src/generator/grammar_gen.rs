@@ -207,7 +207,7 @@ fn terminal_set_statics(
     terminal_sets
         .iter()
         .map(|set| {
-            let name = format_ident!("{}", terminal_set_name(set, grammar));
+            let name = format_ident!("{}", terminal_set_name(&set.kind, grammar));
             let comment = terminal_set_comment(set);
             let ids: Vec<_> = set
                 .terminals
@@ -469,11 +469,18 @@ fn terminal_alternatives(
     pairs
 }
 
-/// Identifier of the static for `set`, e.g. `FOLLOW_RESTRICTION_E_ALT0_POS1`.
-fn terminal_set_name(set: &TerminalSet, grammar: &Grammar) -> String {
+/// Identifier of the static for a set of `kind`, e.g.
+/// `FOLLOW_RESTRICTION_E_ALT0_POS1`.
+pub fn terminal_set_name(kind: &TerminalSetKind, grammar: &Grammar) -> String {
     let upper = |nonterminal: &Nonterminal| to_snake_case(&nonterminal.name).to_uppercase();
-    match &set.kind {
+    match kind {
         TerminalSetKind::Follow(nonterminal) => format!("FOLLOW_SET_{}", upper(nonterminal)),
+        TerminalSetKind::ReturnSlotLookahead(slot) => format!(
+            "RETURN_SLOT_LOOKAHEAD_{}_ALT{}_POS{}",
+            upper(slot.head()),
+            slot.alternative_index(grammar),
+            slot.pos()
+        ),
         TerminalSetKind::First(nonterminal) => format!("FIRST_SET_{}", upper(nonterminal)),
         TerminalSetKind::FollowRestriction(slot) => format!(
             "FOLLOW_RESTRICTION_{}_ALT{}_POS{}",
@@ -503,6 +510,7 @@ fn terminal_set_comment(set: &TerminalSet) -> String {
         TerminalSetKind::Follow(nonterminal) | TerminalSetKind::First(nonterminal) => {
             nonterminal.name.clone()
         }
+        TerminalSetKind::ReturnSlotLookahead(slot) => format!("{} lookahead", slot.name()),
         TerminalSetKind::FollowRestriction(slot) => format!("{} !>>", slot.name()),
         TerminalSetKind::LayoutAwareFollowRestriction(slot) => format!("{} !>>>", slot.name()),
         TerminalSetKind::Except(slot) => format!("{} \\", slot.name()),

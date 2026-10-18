@@ -174,39 +174,39 @@ impl Grammar for ExactKeywordGenericsGrammar {
     // by terminal id, serves only that.
     const SINGLE_TERMINAL_SETS: &'static [TerminalSet] = &[
         TerminalSet {
-            id: 4,
+            id: 6,
             terminals: &[TerminalId(0)],
         },
         TerminalSet {
-            id: 5,
+            id: 7,
             terminals: &[TerminalId(1)],
         },
         TerminalSet {
-            id: 6,
+            id: 8,
             terminals: &[TerminalId(2)],
         },
         TerminalSet {
-            id: 7,
+            id: 9,
             terminals: &[TerminalId(3)],
         },
         TerminalSet {
-            id: 8,
+            id: 10,
             terminals: &[TerminalId(4)],
         },
         TerminalSet {
-            id: 9,
+            id: 11,
             terminals: &[TerminalId(5)],
         },
         TerminalSet {
-            id: 10,
+            id: 12,
             terminals: &[TerminalId(6)],
         },
         TerminalSet {
-            id: 11,
+            id: 13,
             terminals: &[TerminalId(7)],
         },
         TerminalSet {
-            id: 12,
+            id: 14,
             terminals: &[TerminalId(8)],
         },
     ];
@@ -244,6 +244,21 @@ pub static FOLLOW_SET_START_S: TerminalSet = TerminalSet {
 pub static FOLLOW_SET_START_TYPE: TerminalSet = TerminalSet {
     id: 3,
     terminals: &[TerminalId(8)],
+};
+// S : Type . WS ";" lookahead { ";" }
+pub static RETURN_SLOT_LOOKAHEAD_S_ALT0_POS1: TerminalSet = TerminalSet {
+    id: 4,
+    terminals: &[TerminalId(2)],
+};
+// S : [0-9 A-Z _ a-z] !<< "new" !>> [0-9 A-Z _ a-z] WS Type . WS ";" lookahead { ";" }
+pub static RETURN_SLOT_LOOKAHEAD_S_ALT1_POS3: TerminalSet = TerminalSet {
+    id: 4,
+    terminals: &[TerminalId(2)],
+};
+// Type : Id WS "<" WS Type . WS ">" lookahead { ">" }
+pub static RETURN_SLOT_LOOKAHEAD_TYPE_ALT1_POS5: TerminalSet = TerminalSet {
+    id: 5,
+    terminals: &[TerminalId(5)],
 };
 // S
 // 0: Type WS ";" #Type

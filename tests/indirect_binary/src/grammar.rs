@@ -5883,171 +5883,171 @@ impl Grammar for IndirectBinaryGrammar {
     // by terminal id, serves only that.
     const SINGLE_TERMINAL_SETS: &'static [TerminalSet] = &[
         TerminalSet {
-            id: 29,
+            id: 49,
             terminals: &[TerminalId(0)],
         },
         TerminalSet {
-            id: 30,
+            id: 50,
             terminals: &[TerminalId(1)],
         },
         TerminalSet {
-            id: 31,
+            id: 51,
             terminals: &[TerminalId(2)],
         },
         TerminalSet {
-            id: 32,
+            id: 52,
             terminals: &[TerminalId(3)],
         },
         TerminalSet {
-            id: 33,
+            id: 53,
             terminals: &[TerminalId(4)],
         },
         TerminalSet {
-            id: 34,
+            id: 54,
             terminals: &[TerminalId(5)],
         },
         TerminalSet {
-            id: 35,
+            id: 55,
             terminals: &[TerminalId(6)],
         },
         TerminalSet {
-            id: 36,
+            id: 56,
             terminals: &[TerminalId(7)],
         },
         TerminalSet {
-            id: 37,
+            id: 57,
             terminals: &[TerminalId(8)],
         },
         TerminalSet {
-            id: 38,
+            id: 58,
             terminals: &[TerminalId(9)],
         },
         TerminalSet {
-            id: 39,
+            id: 59,
             terminals: &[TerminalId(10)],
         },
         TerminalSet {
-            id: 40,
+            id: 60,
             terminals: &[TerminalId(11)],
         },
         TerminalSet {
-            id: 41,
+            id: 61,
             terminals: &[TerminalId(12)],
         },
         TerminalSet {
-            id: 42,
+            id: 62,
             terminals: &[TerminalId(13)],
         },
         TerminalSet {
-            id: 43,
+            id: 63,
             terminals: &[TerminalId(14)],
         },
         TerminalSet {
-            id: 44,
+            id: 64,
             terminals: &[TerminalId(15)],
         },
         TerminalSet {
-            id: 45,
+            id: 65,
             terminals: &[TerminalId(16)],
         },
         TerminalSet {
-            id: 46,
+            id: 66,
             terminals: &[TerminalId(17)],
         },
         TerminalSet {
-            id: 47,
+            id: 67,
             terminals: &[TerminalId(18)],
         },
         TerminalSet {
-            id: 48,
+            id: 68,
             terminals: &[TerminalId(19)],
         },
         TerminalSet {
-            id: 49,
+            id: 69,
             terminals: &[TerminalId(20)],
         },
         TerminalSet {
-            id: 50,
+            id: 70,
             terminals: &[TerminalId(21)],
         },
         TerminalSet {
-            id: 51,
+            id: 71,
             terminals: &[TerminalId(22)],
         },
         TerminalSet {
-            id: 52,
+            id: 72,
             terminals: &[TerminalId(23)],
         },
         TerminalSet {
-            id: 53,
+            id: 73,
             terminals: &[TerminalId(24)],
         },
         TerminalSet {
-            id: 54,
+            id: 74,
             terminals: &[TerminalId(25)],
         },
         TerminalSet {
-            id: 55,
+            id: 75,
             terminals: &[TerminalId(26)],
         },
         TerminalSet {
-            id: 56,
+            id: 76,
             terminals: &[TerminalId(27)],
         },
         TerminalSet {
-            id: 57,
+            id: 77,
             terminals: &[TerminalId(28)],
         },
         TerminalSet {
-            id: 58,
+            id: 78,
             terminals: &[TerminalId(29)],
         },
         TerminalSet {
-            id: 59,
+            id: 79,
             terminals: &[TerminalId(30)],
         },
         TerminalSet {
-            id: 60,
+            id: 80,
             terminals: &[TerminalId(31)],
         },
         TerminalSet {
-            id: 61,
+            id: 81,
             terminals: &[TerminalId(32)],
         },
         TerminalSet {
-            id: 62,
+            id: 82,
             terminals: &[TerminalId(33)],
         },
         TerminalSet {
-            id: 63,
+            id: 83,
             terminals: &[TerminalId(34)],
         },
         TerminalSet {
-            id: 64,
+            id: 84,
             terminals: &[TerminalId(35)],
         },
         TerminalSet {
-            id: 65,
+            id: 85,
             terminals: &[TerminalId(36)],
         },
         TerminalSet {
-            id: 66,
+            id: 86,
             terminals: &[TerminalId(37)],
         },
         TerminalSet {
-            id: 67,
+            id: 87,
             terminals: &[TerminalId(38)],
         },
         TerminalSet {
-            id: 68,
+            id: 88,
             terminals: &[TerminalId(39)],
         },
         TerminalSet {
-            id: 69,
+            id: 89,
             terminals: &[TerminalId(40)],
         },
         TerminalSet {
-            id: 70,
+            id: 90,
             terminals: &[TerminalId(41)],
         },
     ];
@@ -7169,6 +7169,416 @@ pub static FOLLOW_SET_START_HEAD_LITERAL: TerminalSet = TerminalSet {
 pub static FOLLOW_SET_START_HEAD_LITERAL_END: TerminalSet = TerminalSet {
     id: 28,
     terminals: &[TerminalId(41)],
+};
+// E(p: i32) : [2 >= p] l_pr=L(p, 0) . [(l_pr == 0) || (l_pr >= 2)] WS "*" WS L(3, 1) return
+// 2 lookahead { "*" }
+pub static RETURN_SLOT_LOOKAHEAD_E_ALT1_POS2: TerminalSet = TerminalSet {
+    id: 29,
+    terminals: &[TerminalId(3)],
+};
+// E(p: i32) : [1 >= p] l_pr=E(p) . [(l_pr == 0) || (l_pr >= 1)] WS "+" WS L(2, 1) return 1
+// lookahead { "+" }
+pub static RETURN_SLOT_LOOKAHEAD_E_ALT2_POS2: TerminalSet = TerminalSet {
+    id: 30,
+    terminals: &[TerminalId(4)],
+};
+// E(p: i32) : [1 >= p] l_pr=L(p, 0) . [(l_pr == 0) || (l_pr >= 1)] WS "-" WS E(2) return 1
+// lookahead { "-" }
+pub static RETURN_SLOT_LOOKAHEAD_E_ALT3_POS2: TerminalSet = TerminalSet {
+    id: 31,
+    terminals: &[TerminalId(5)],
+};
+// Only(p: i32) : [1 >= p] l_pr=OnlyOperand(p, 0) . [(l_pr == 0) || (l_pr >= 1)] WS "^" WS
+// OnlyOperand(2, 1) return 1 lookahead { "^" }
+pub static RETURN_SLOT_LOOKAHEAD_ONLY_ALT1_POS2: TerminalSet = TerminalSet {
+    id: 32,
+    terminals: &[TerminalId(7)],
+};
+// Cross(p: i32) : [2 >= p] l_pr=Cross(p) . [(l_pr == 0) || (l_pr >= 2)] WS "-" WS Foreign(0)
+// return 0 lookahead { "-" }
+pub static RETURN_SLOT_LOOKAHEAD_CROSS_ALT1_POS2: TerminalSet = TerminalSet {
+    id: 31,
+    terminals: &[TerminalId(5)],
+};
+// Cross(p: i32) : [1 >= p] l_pr=Cross(p) . [(l_pr == 0) || (l_pr >= 1)] WS "+" WS Foreign(0)
+// return 0 lookahead { "+" }
+pub static RETURN_SLOT_LOOKAHEAD_CROSS_ALT2_POS2: TerminalSet = TerminalSet {
+    id: 30,
+    terminals: &[TerminalId(4)],
+};
+// Foreign(p: i32) : [1 >= p] l_pr=Foreign(p) . [(l_pr == 0) || (l_pr >= 1)] WS "*" WS
+// Foreign(2) return 1 lookahead { "*" }
+pub static RETURN_SLOT_LOOKAHEAD_FOREIGN_ALT1_POS2: TerminalSet = TerminalSet {
+    id: 29,
+    terminals: &[TerminalId(3)],
+};
+// Cascade(p: i32) : [1 >= p] l_pr=Cascade(p) . [(l_pr == 0) || (l_pr >= 1)] WS "+" WS
+// Cascade(2) return 1 lookahead { "+" }
+pub static RETURN_SLOT_LOOKAHEAD_CASCADE_ALT1_POS2: TerminalSet = TerminalSet {
+    id: 30,
+    terminals: &[TerminalId(4)],
+};
+// Ternary : Cascade(0) . WS "?" WS Cascade(0) WS ":" WS Cascade(0) lookahead { "?" }
+pub static RETURN_SLOT_LOOKAHEAD_TERNARY_ALT0_POS1: TerminalSet = TerminalSet {
+    id: 33,
+    terminals: &[TerminalId(11)],
+};
+// Ternary : Cascade(0) WS "?" WS Cascade(0) . WS ":" WS Cascade(0) lookahead { ":" }
+pub static RETURN_SLOT_LOOKAHEAD_TERNARY_ALT0_POS5: TerminalSet = TerminalSet {
+    id: 34,
+    terminals: &[TerminalId(12)],
+};
+// Nullable(p: i32) : NullableLeft . WS "%" WS NullableRight(1) return 1 lookahead { "%" }
+pub static RETURN_SLOT_LOOKAHEAD_NULLABLE_ALT1_POS1: TerminalSet = TerminalSet {
+    id: 35,
+    terminals: &[TerminalId(14)],
+};
+// NullableLeft : Opt_0 . WS Nullable(0) lookahead { WS, "n", "x" }
+pub static RETURN_SLOT_LOOKAHEAD_NULLABLE_LEFT_ALT0_POS1: TerminalSet = TerminalSet {
+    id: 36,
+    terminals: &[TerminalId(1), TerminalId(13), TerminalId(15)],
+};
+// RightExpr(p: i32) : [1 >= p] l_pr=RightOperand(p, 0) . [(l_pr == 0) || (l_pr >= 2)] WS ">"
+// WS RightOperand(1, 1) return 1 lookahead { ">" }
+pub static RETURN_SLOT_LOOKAHEAD_RIGHT_EXPR_ALT1_POS2: TerminalSet = TerminalSet {
+    id: 37,
+    terminals: &[TerminalId(17)],
+};
+// NoneExpr(p: i32) : [1 >= p] l_pr=NoneOperand(p, 0) . [(l_pr == 0) || (l_pr >= 2)] WS "="
+// WS NoneOperand(2, 1) return 1 lookahead { "=" }
+pub static RETURN_SLOT_LOOKAHEAD_NONE_EXPR_ALT1_POS2: TerminalSet = TerminalSet {
+    id: 38,
+    terminals: &[TerminalId(19)],
+};
+// Excluded(p: i32, a: i32) : (l_pr, l_label)=ExcludedOperand(p, 0, 0, 0) . [(l_pr ==
+// UNDEFINED_PRECEDENCE) || ((1 >= p) && ((l_pr == 0) || (l_pr >= 1)))] WS "&" WS (r_pr,
+// r_label)=ExcludedOperand(1, 1, (l_pr == UNDEFINED_PRECEDENCE) ? 0 : 1, 0) [((l_pr ==
+// UNDEFINED_PRECEDENCE) || (r_pr == UNDEFINED_PRECEDENCE)) || (a != 1)] return (r_pr ==
+// UNDEFINED_PRECEDENCE) ? 0 : 1 lookahead { "&" }
+pub static RETURN_SLOT_LOOKAHEAD_EXCLUDED_ALT1_POS1: TerminalSet = TerminalSet {
+    id: 39,
+    terminals: &[TerminalId(21)],
+};
+// ExcludedOperand(p: i32, end: i32, a: i32, e: i32) : [2 & e == 0] "(" WS ExcludedOperand(0,
+// 0, 0, 0) . WS ")" return (UNDEFINED_PRECEDENCE, 1) lookahead { ")" }
+pub static RETURN_SLOT_LOOKAHEAD_EXCLUDED_OPERAND_ALT1_POS4: TerminalSet = TerminalSet {
+    id: 40,
+    terminals: &[TerminalId(23)],
+};
+// LexNullable(p: i32) : LexNullableLeft . WS "/" WS LexNullableRight(1) return 1 lookahead {
+// "/" }
+pub static RETURN_SLOT_LOOKAHEAD_LEX_NULLABLE_ALT1_POS1: TerminalSet = TerminalSet {
+    id: 41,
+    terminals: &[TerminalId(25)],
+};
+// MixedScale(p: i32, a: i32) : l_pr=MixedOperand(p, 0) . [(l_pr == UNDEFINED_PRECEDENCE) ||
+// ((1 >= p) && ((l_pr == 0) || (l_pr >= 1)))] WS "~" WS r_pr=MixedRight(1, (l_pr ==
+// UNDEFINED_PRECEDENCE) ? 0 : 1) [(l_pr == UNDEFINED_PRECEDENCE) || (a != 1)] return 1
+// lookahead { "~" }
+pub static RETURN_SLOT_LOOKAHEAD_MIXED_SCALE_ALT1_POS1: TerminalSet = TerminalSet {
+    id: 42,
+    terminals: &[TerminalId(27)],
+};
+// MixedForeign(p: i32) : [1 >= p] l_pr=MixedForeign(p) . [(l_pr == 0) || (l_pr >= 1)] WS "!"
+// WS MixedForeign(2) return 1 lookahead { "!" }
+pub static RETURN_SLOT_LOOKAHEAD_MIXED_FOREIGN_ALT1_POS2: TerminalSet = TerminalSet {
+    id: 43,
+    terminals: &[TerminalId(29)],
+};
+// Packed(p: i32, a: i32) : (l_pr, l_assoc)=PackedOperand(p, 0, 0) . [(l_pr ==
+// UNDEFINED_PRECEDENCE) || ((1 >= p) && ((l_pr == 0) || (l_pr >= 1)))] WS "+" WS (r_pr,
+// r_assoc)=PackedOperand(1, 1, 0) [((l_pr == UNDEFINED_PRECEDENCE) || (r_pr ==
+// UNDEFINED_PRECEDENCE)) || (l_assoc != 1)] return ((r_pr == UNDEFINED_PRECEDENCE) ? 0 : 1,
+// ((l_pr == UNDEFINED_PRECEDENCE) || (r_pr == UNDEFINED_PRECEDENCE)) ? 0 : 1) lookahead {
+// "+" }
+pub static RETURN_SLOT_LOOKAHEAD_PACKED_ALT1_POS1: TerminalSet = TerminalSet {
+    id: 30,
+    terminals: &[TerminalId(4)],
+};
+// PackedMiddle(p: i32, end: i32, a: i32, e: i32) : [2 & e == 0] "(" WS Packed(0, 0) . WS ")"
+// return (UNDEFINED_PRECEDENCE, 0, 1) lookahead { ")" }
+pub static RETURN_SLOT_LOOKAHEAD_PACKED_MIDDLE_ALT1_POS4: TerminalSet = TerminalSet {
+    id: 40,
+    terminals: &[TerminalId(23)],
+};
+// NullableRecursive(p: i32, a: i32) : (l_pr, l_assoc)=NullableOperand(p, 0) . [(l_pr ==
+// UNDEFINED_PRECEDENCE) || ((1 >= p) && ((l_pr == 0) || (l_pr >= 1)))] WS "+" WS (r_pr,
+// r_assoc)=NullableRecursive(1, 0) [(l_pr == UNDEFINED_PRECEDENCE) || (l_assoc != 1)] return
+// (1, (l_pr == UNDEFINED_PRECEDENCE) ? 0 : 1) lookahead { "+" }
+pub static RETURN_SLOT_LOOKAHEAD_NULLABLE_RECURSIVE_ALT1_POS1: TerminalSet = TerminalSet {
+    id: 30,
+    terminals: &[TerminalId(4)],
+};
+// NullableOperand(p: i32, a: i32) : (l_pr, l_assoc)=NullableMaybe(p, a) . WS
+// NullableRecursive(0, 0) return (l_pr, l_assoc) lookahead { WS, "u" }
+pub static RETURN_SLOT_LOOKAHEAD_NULLABLE_OPERAND_ALT0_POS1: TerminalSet = TerminalSet {
+    id: 44,
+    terminals: &[TerminalId(1), TerminalId(31)],
+};
+// NullableLexRecursive(p: i32, a: i32) : (l_pr, l_assoc)=NullableLexOperand(p, 0) . [(l_pr
+// == UNDEFINED_PRECEDENCE) || ((1 >= p) && ((l_pr == 0) || (l_pr >= 1)))] WS "+" WS (r_pr,
+// r_assoc)=NullableLexRecursive(1, 0) [(l_pr == UNDEFINED_PRECEDENCE) || (l_assoc != 1)]
+// return (1, (l_pr == UNDEFINED_PRECEDENCE) ? 0 : 1) lookahead { "+" }
+pub static RETURN_SLOT_LOOKAHEAD_NULLABLE_LEX_RECURSIVE_ALT1_POS1: TerminalSet = TerminalSet {
+    id: 30,
+    terminals: &[TerminalId(4)],
+};
+// NullableLexOperand(p: i32, a: i32) : (l_pr, l_assoc)=NullableLexMaybe(p, a) . WS
+// NullableLexRecursive(0, 0) return (l_pr, l_assoc) lookahead { Digits, WS, "v" }
+pub static RETURN_SLOT_LOOKAHEAD_NULLABLE_LEX_OPERAND_ALT0_POS1: TerminalSet = TerminalSet {
+    id: 45,
+    terminals: &[TerminalId(0), TerminalId(1), TerminalId(32)],
+};
+// NullableSuffix(p: i32, a: i32) : [1 >= p] l_pr=NullableSuffix(p, 0) . [(l_pr == 0) ||
+// (l_pr >= 1)] WS "+" WS r_pr=NullableSuffixOperand(1, 1) [(r_pr == UNDEFINED_PRECEDENCE) ||
+// (a != 1)] return (r_pr == UNDEFINED_PRECEDENCE) ? 0 : 1 lookahead { "+" }
+pub static RETURN_SLOT_LOOKAHEAD_NULLABLE_SUFFIX_ALT1_POS2: TerminalSet = TerminalSet {
+    id: 30,
+    terminals: &[TerminalId(4)],
+};
+// NullableShared(p: i32, a: i32) : (l_pr, l_assoc)=NullableSharedOperand(p, 0, 0) . [(l_pr
+// == UNDEFINED_PRECEDENCE) || ((1 >= p) && ((l_pr == 0) || (l_pr >= 1)))] WS "+" WS (r_pr,
+// r_assoc)=NullableSharedOperand(1, 1, 0) [((l_pr == UNDEFINED_PRECEDENCE) || (r_pr ==
+// UNDEFINED_PRECEDENCE)) || (l_assoc != 1)] return ((r_pr == UNDEFINED_PRECEDENCE) ? 0 : 1,
+// ((l_pr == UNDEFINED_PRECEDENCE) || (r_pr == UNDEFINED_PRECEDENCE)) ? 0 : 1) lookahead {
+// "+" }
+pub static RETURN_SLOT_LOOKAHEAD_NULLABLE_SHARED_ALT1_POS1: TerminalSet = TerminalSet {
+    id: 30,
+    terminals: &[TerminalId(4)],
+};
+// NullableSharedOperand(p: i32, end: i32, a: i32) : (l_pr, l_assoc)=NullableSharedMaybe((end
+// == 0) ? p : 0, 0, (end == 0) ? a : 0) . WS NullableShared(0, 0) WS (r_pr,
+// r_assoc)=NullableSharedMaybe((end == 1) ? p : 0, 1, (end == 1) ? a : 0) return ((end == 0)
+// ? l_pr : r_pr, (end == 0) ? l_assoc : r_assoc) lookahead { WS, "j" }
+pub static RETURN_SLOT_LOOKAHEAD_NULLABLE_SHARED_OPERAND_ALT0_POS1: TerminalSet = TerminalSet {
+    id: 46,
+    terminals: &[TerminalId(1), TerminalId(34)],
+};
+// OwnLabel(p: i32, a: i32, e: i32) : [2 & e == 0] (l_pr, l_label)=OwnOperand(p, 0, 0, 0) .
+// [(l_pr == UNDEFINED_PRECEDENCE) || ((1 >= p) && ((l_pr == 0) || (l_pr >= 1)))] [(l_label
+// == NO_LABEL) || ((2 >> l_label) & 1 == 0)] WS "+" WS (r_pr, r_label)=OwnOperand(1, 1,
+// (l_pr == UNDEFINED_PRECEDENCE) ? 0 : 1, 0) [((l_pr == UNDEFINED_PRECEDENCE) || (r_pr ==
+// UNDEFINED_PRECEDENCE)) || (a != 1)] return ((r_pr == UNDEFINED_PRECEDENCE) ? 0 : 1, 1)
+// lookahead { "+" }
+pub static RETURN_SLOT_LOOKAHEAD_OWN_LABEL_ALT1_POS2: TerminalSet = TerminalSet {
+    id: 30,
+    terminals: &[TerminalId(4)],
+};
+// OwnOperand(p: i32, end: i32, a: i32, e: i32) : [2 & e == 0] "(" WS OwnLabel(0, 0, 0) . WS
+// ")" return (UNDEFINED_PRECEDENCE, 1) lookahead { ")" }
+pub static RETURN_SLOT_LOOKAHEAD_OWN_OPERAND_ALT1_POS4: TerminalSet = TerminalSet {
+    id: 40,
+    terminals: &[TerminalId(23)],
+};
+// Absent(p: i32) : [2 >= p] l_pr=Absent(p) . [(l_pr == 0) || (l_pr >= 2)] WS "*" WS
+// r_pr=Absent(2) return (r_pr == 0) ? 2 : min(r_pr, 2) lookahead { "*" }
+pub static RETURN_SLOT_LOOKAHEAD_ABSENT_ALT1_POS2: TerminalSet = TerminalSet {
+    id: 29,
+    terminals: &[TerminalId(3)],
+};
+// Absent(p: i32) : l_pr=AbsentOperand(p, 0) . [(l_pr == UNDEFINED_PRECEDENCE) || ((1 >= p)
+// && ((l_pr == 0) || (l_pr >= 1)))] WS "+" WS r_pr=AbsentOperand(1, 1) return (r_pr ==
+// UNDEFINED_PRECEDENCE) ? 0 : 1 lookahead { "+" }
+pub static RETURN_SLOT_LOOKAHEAD_ABSENT_ALT2_POS1: TerminalSet = TerminalSet {
+    id: 30,
+    terminals: &[TerminalId(4)],
+};
+// ClosedPrefix(p: i32) : [2 >= p] l_pr=ClosedPrefix(p) . [(l_pr == 0) || (l_pr >= 2)] WS "+"
+// WS r_pr=ClosedPrefix(2) return (r_pr == 0) ? 2 : min(r_pr, 2) lookahead { "+" }
+pub static RETURN_SLOT_LOOKAHEAD_CLOSED_PREFIX_ALT1_POS2: TerminalSet = TerminalSet {
+    id: 30,
+    terminals: &[TerminalId(4)],
+};
+// ClosedPostfix(p: i32) : l_pr=ClosedPostfixBody(p) . [(l_pr == UNDEFINED_PRECEDENCE) || ((1
+// >= p) && ((l_pr == 0) || (l_pr >= 1)))] WS "!" return 0 lookahead { "!" }
+pub static RETURN_SLOT_LOOKAHEAD_CLOSED_POSTFIX_ALT2_POS1: TerminalSet = TerminalSet {
+    id: 43,
+    terminals: &[TerminalId(29)],
+};
+// HeadChoice(p: i32) : [1 >= p] l_pr=HeadOperand(p, 0) . [(l_pr == 0) || (l_pr >= 1)] WS "+"
+// WS HeadOperand(2, 1) return 1 lookahead { "+" }
+pub static RETURN_SLOT_LOOKAHEAD_HEAD_CHOICE_ALT1_POS2: TerminalSet = TerminalSet {
+    id: 30,
+    terminals: &[TerminalId(4)],
+};
+// Inner(p: i32) : [1 >= p] l_pr=Inner(p) . [(l_pr == 0) || (l_pr >= 1)] WS "*" WS Inner(2)
+// return 1 lookahead { "*" }
+pub static RETURN_SLOT_LOOKAHEAD_INNER_ALT1_POS2: TerminalSet = TerminalSet {
+    id: 29,
+    terminals: &[TerminalId(3)],
+};
+// UnaryMixedLeft(p: i32, a: i32) : [1 >= p] [a != 1] l_pr=UnaryMixedLeft(p, 0) . [(l_pr ==
+// 0) || (l_pr >= 1)] WS "+" WS r_pr=UnaryMixedLeft(1, 1) return 1 lookahead { "+" }
+pub static RETURN_SLOT_LOOKAHEAD_UNARY_MIXED_LEFT_ALT0_POS3: TerminalSet = TerminalSet {
+    id: 30,
+    terminals: &[TerminalId(4)],
+};
+// UnaryMixedLeft(p: i32, a: i32) : [1 >= p] l_pr=UnaryMixedLeft(p, 0) . [(l_pr == 0) ||
+// (l_pr >= 1)] WS "!" return 0 lookahead { "!" }
+pub static RETURN_SLOT_LOOKAHEAD_UNARY_MIXED_LEFT_ALT2_POS2: TerminalSet = TerminalSet {
+    id: 43,
+    terminals: &[TerminalId(29)],
+};
+// UnaryMixedRight(p: i32, a: i32) : [1 >= p] (l_pr, l_assoc)=UnaryMixedRight(p, 0) . [(l_pr
+// == 0) || (l_pr >= 1)] [l_assoc != 1] WS "+" WS (r_pr, r_assoc)=UnaryMixedRight(1, 0)
+// return (1, 1) lookahead { "+" }
+pub static RETURN_SLOT_LOOKAHEAD_UNARY_MIXED_RIGHT_ALT0_POS2: TerminalSet = TerminalSet {
+    id: 30,
+    terminals: &[TerminalId(4)],
+};
+// UnaryMixedRight(p: i32, a: i32) : [1 >= p] (l_pr, l_assoc)=UnaryMixedRight(p, 0) . [(l_pr
+// == 0) || (l_pr >= 1)] WS "!" return (0, 0) lookahead { "!" }
+pub static RETURN_SLOT_LOOKAHEAD_UNARY_MIXED_RIGHT_ALT2_POS2: TerminalSet = TerminalSet {
+    id: 43,
+    terminals: &[TerminalId(29)],
+};
+// UnaryMixedNone(p: i32, a: i32) : [1 >= p] [a != 1] (l_pr, l_assoc)=UnaryMixedNone(p, 0) .
+// [(l_pr == 0) || (l_pr >= 1)] [l_assoc != 1] WS "+" WS (r_pr, r_assoc)=UnaryMixedNone(1, 1)
+// return (1, 1) lookahead { "+" }
+pub static RETURN_SLOT_LOOKAHEAD_UNARY_MIXED_NONE_ALT0_POS3: TerminalSet = TerminalSet {
+    id: 30,
+    terminals: &[TerminalId(4)],
+};
+// UnaryMixedNone(p: i32, a: i32) : [1 >= p] (l_pr, l_assoc)=UnaryMixedNone(p, 0) . [(l_pr ==
+// 0) || (l_pr >= 1)] WS "!" return (0, 0) lookahead { "!" }
+pub static RETURN_SLOT_LOOKAHEAD_UNARY_MIXED_NONE_ALT2_POS2: TerminalSet = TerminalSet {
+    id: 43,
+    terminals: &[TerminalId(29)],
+};
+// Dynamic(p: i32, a: i32, e: i32) : [1 & e == 0] (l_pr, l_assoc, l_label)=DynamicOperand(p,
+// 0, 0, 0) . [(l_pr == UNDEFINED_PRECEDENCE) || ((1 >= p) && ((l_pr == 0) || (l_pr >= 1)))]
+// [(l_label == NO_LABEL) || ((2 >> l_label) & 1 == 0)] WS "+" WS (r_pr, r_assoc,
+// r_label)=DynamicOperand(1, 1, 0, 0) [((l_pr == UNDEFINED_PRECEDENCE) || (r_pr ==
+// UNDEFINED_PRECEDENCE)) || (l_assoc != 1)] return ((r_pr == UNDEFINED_PRECEDENCE) ? 0 : 1,
+// ((l_pr == UNDEFINED_PRECEDENCE) || (r_pr == UNDEFINED_PRECEDENCE)) ? 0 : 1, 0) lookahead {
+// "+" }
+pub static RETURN_SLOT_LOOKAHEAD_DYNAMIC_ALT0_POS2: TerminalSet = TerminalSet {
+    id: 30,
+    terminals: &[TerminalId(4)],
+};
+// Dynamic(p: i32, a: i32, e: i32) : [4 & e == 0] (l_pr, l_assoc, l_label)=DynamicOperand(p,
+// 0, 0, 0) . [(l_pr == UNDEFINED_PRECEDENCE) || ((1 >= p) && ((l_pr == 0) || (l_pr >= 1)))]
+// WS "!" return (0, 0, 2) lookahead { "!" }
+pub static RETURN_SLOT_LOOKAHEAD_DYNAMIC_ALT2_POS2: TerminalSet = TerminalSet {
+    id: 43,
+    terminals: &[TerminalId(29)],
+};
+// DynamicMulti(p: i32, a: i32) : (l_pr, l_assoc)=DynamicMultiOperand(p, 0, 0) . [(l_pr ==
+// UNDEFINED_PRECEDENCE) || ((2 >= p) && ((l_pr == 0) || (l_pr >= 2)))] WS "+" WS (r_pr,
+// r_assoc)=DynamicMultiOperand(2, 1, (l_pr == UNDEFINED_PRECEDENCE) ? 0 : 2) [((l_pr ==
+// UNDEFINED_PRECEDENCE) || (r_pr == UNDEFINED_PRECEDENCE)) || (a != 2)] return ((r_pr ==
+// UNDEFINED_PRECEDENCE) ? 0 : ((r_pr == 0) ? 2 : min(r_pr, 2)), 0) lookahead { "+" }
+pub static RETURN_SLOT_LOOKAHEAD_DYNAMIC_MULTI_ALT0_POS1: TerminalSet = TerminalSet {
+    id: 30,
+    terminals: &[TerminalId(4)],
+};
+// DynamicMulti(p: i32, a: i32) : (l_pr, l_assoc)=DynamicMultiOperand(p, 0, 0) . [(l_pr ==
+// UNDEFINED_PRECEDENCE) || ((2 >= p) && ((l_pr == 0) || (l_pr >= 2)))] WS "!" return (0, 0)
+// lookahead { "!" }
+pub static RETURN_SLOT_LOOKAHEAD_DYNAMIC_MULTI_ALT2_POS1: TerminalSet = TerminalSet {
+    id: 43,
+    terminals: &[TerminalId(29)],
+};
+// DynamicMulti(p: i32, a: i32) : (l_pr, l_assoc)=DynamicMultiOperand(p, 0, 0) . [(l_pr ==
+// UNDEFINED_PRECEDENCE) || ((1 >= p) && ((l_pr == 0) || (l_pr >= 1)))] WS ";" WS (r_pr,
+// r_assoc)=DynamicMultiOperand(1, 1, 0) [((l_pr == UNDEFINED_PRECEDENCE) || (r_pr ==
+// UNDEFINED_PRECEDENCE)) || (l_assoc != 1)] return ((r_pr == UNDEFINED_PRECEDENCE) ? 0 : 1,
+// ((l_pr == UNDEFINED_PRECEDENCE) || (r_pr == UNDEFINED_PRECEDENCE)) ? 0 : 1) lookahead {
+// ";" }
+pub static RETURN_SLOT_LOOKAHEAD_DYNAMIC_MULTI_ALT3_POS1: TerminalSet = TerminalSet {
+    id: 47,
+    terminals: &[TerminalId(38)],
+};
+// NullableBoundaryPrefix(p: i32) : [1 >= p] l_pr=NullableBoundaryPrefix(p) . [(l_pr == 0) ||
+// (l_pr >= 1)] WS "+" WS NullableBoundaryPrefix(2) return 1 lookahead { "+" }
+pub static RETURN_SLOT_LOOKAHEAD_NULLABLE_BOUNDARY_PREFIX_ALT2_POS2: TerminalSet = TerminalSet {
+    id: 30,
+    terminals: &[TerminalId(4)],
+};
+// NullableBoundaryPostfix(p: i32) : NullableBoundaryLeft . WS "-" return 0 lookahead { "-" }
+pub static RETURN_SLOT_LOOKAHEAD_NULLABLE_BOUNDARY_POSTFIX_ALT1_POS1: TerminalSet = TerminalSet {
+    id: 31,
+    terminals: &[TerminalId(5)],
+};
+// NullableBoundaryPostfix(p: i32) : [1 >= p] l_pr=NullableBoundaryPostfix(p) . [(l_pr == 0)
+// || (l_pr >= 2)] WS "+" WS NullableBoundaryPostfix(1) return 1 lookahead { "+" }
+pub static RETURN_SLOT_LOOKAHEAD_NULLABLE_BOUNDARY_POSTFIX_ALT2_POS2: TerminalSet = TerminalSet {
+    id: 30,
+    terminals: &[TerminalId(4)],
+};
+// NullableBoundaryLeft : NullableBoundaryOpt . WS NullableBoundaryPostfix(0) lookahead { WS,
+// "a", "!" }
+pub static RETURN_SLOT_LOOKAHEAD_NULLABLE_BOUNDARY_LEFT_ALT0_POS1: TerminalSet = TerminalSet {
+    id: 48,
+    terminals: &[TerminalId(1), TerminalId(2), TerminalId(29)],
+};
+// NullableBoundaryBinary(p: i32) : [2 >= p] l_pr=NullableBoundaryBinary(p) . [(l_pr == 0) ||
+// (l_pr >= 2)] WS "*" WS NullableBoundaryOperand return 0 lookahead { "*" }
+pub static RETURN_SLOT_LOOKAHEAD_NULLABLE_BOUNDARY_BINARY_ALT1_POS2: TerminalSet = TerminalSet {
+    id: 29,
+    terminals: &[TerminalId(3)],
+};
+// NullableBoundaryBinary(p: i32) : [1 >= p] l_pr=NullableBoundaryBinary(p) . [(l_pr == 0) ||
+// (l_pr >= 1)] WS "+" WS NullableBoundaryBinary(2) return 1 lookahead { "+" }
+pub static RETURN_SLOT_LOOKAHEAD_NULLABLE_BOUNDARY_BINARY_ALT2_POS2: TerminalSet = TerminalSet {
+    id: 30,
+    terminals: &[TerminalId(4)],
+};
+// ClosedLeftAssoc(p: i32, a: i32) : l_pr=ClosedLeftOperand(p, 0) . [(l_pr ==
+// UNDEFINED_PRECEDENCE) || ((1 >= p) && ((l_pr == 0) || (l_pr >= 1)))] WS "+" WS
+// r_pr=ClosedLeftAssoc(1, (l_pr == UNDEFINED_PRECEDENCE) ? 0 : 1) [(l_pr ==
+// UNDEFINED_PRECEDENCE) || (a != 1)] return 1 lookahead { "+" }
+pub static RETURN_SLOT_LOOKAHEAD_CLOSED_LEFT_ASSOC_ALT1_POS1: TerminalSet = TerminalSet {
+    id: 30,
+    terminals: &[TerminalId(4)],
+};
+// ClosedRightAssoc(p: i32, a: i32) : [1 >= p] (l_pr, l_assoc)=ClosedRightAssoc(p, 0) .
+// [(l_pr == 0) || (l_pr >= 1)] WS "+" WS (r_pr, r_assoc)=ClosedRightOperand(1, 0) [(r_pr ==
+// UNDEFINED_PRECEDENCE) || (l_assoc != 1)] return ((r_pr == UNDEFINED_PRECEDENCE) ? 0 : 1,
+// (r_pr == UNDEFINED_PRECEDENCE) ? 0 : 1) lookahead { "+" }
+pub static RETURN_SLOT_LOOKAHEAD_CLOSED_RIGHT_ASSOC_ALT1_POS2: TerminalSet = TerminalSet {
+    id: 30,
+    terminals: &[TerminalId(4)],
+};
+// IndirectExclude(p: i32, a: i32, e: i32) : [2 & e == 0] (l_pr,
+// l_label)=IndirectExcludeOperand(p, 0, 0, 0) . [(l_pr == UNDEFINED_PRECEDENCE) || ((1 >= p)
+// && ((l_pr == 0) || (l_pr >= 1)))] WS "+" WS (r_pr, r_label)=IndirectExcludeOperand(1, 1,
+// (l_pr == UNDEFINED_PRECEDENCE) ? 0 : 1, 0) [((l_pr == UNDEFINED_PRECEDENCE) || (r_pr ==
+// UNDEFINED_PRECEDENCE)) || (a != 1)] return ((r_pr == UNDEFINED_PRECEDENCE) ? 0 : 1, 1)
+// lookahead { "+" }
+pub static RETURN_SLOT_LOOKAHEAD_INDIRECT_EXCLUDE_ALT1_POS2: TerminalSet = TerminalSet {
+    id: 30,
+    terminals: &[TerminalId(4)],
+};
+// OperandLiteral(p: i32, a: i32) : l_pr=OperandLiteralEnd(p, 0, 0) . [(l_pr ==
+// UNDEFINED_PRECEDENCE) || ((2 >= p) && ((l_pr == 0) || (l_pr >= 2)))] WS "*" WS
+// r_pr=OperandLiteralEnd(2, 1, (l_pr == UNDEFINED_PRECEDENCE) ? 0 : 2) [((l_pr ==
+// UNDEFINED_PRECEDENCE) || (r_pr == UNDEFINED_PRECEDENCE)) || (a != 2)] return (r_pr ==
+// UNDEFINED_PRECEDENCE) ? 0 : ((r_pr == 0) ? 2 : min(r_pr, 2)) lookahead { "*" }
+pub static RETURN_SLOT_LOOKAHEAD_OPERAND_LITERAL_ALT1_POS1: TerminalSet = TerminalSet {
+    id: 29,
+    terminals: &[TerminalId(3)],
+};
+// OperandLiteral(p: i32, a: i32) : l_pr=OperandLiteralEnd(p, 0, 0) . [(l_pr ==
+// UNDEFINED_PRECEDENCE) || ((1 >= p) && ((l_pr == 0) || (l_pr >= 1)))] WS "+" WS
+// r_pr=OperandLiteralEnd(1, 1, (l_pr == UNDEFINED_PRECEDENCE) ? 0 : 1) [((l_pr ==
+// UNDEFINED_PRECEDENCE) || (r_pr == UNDEFINED_PRECEDENCE)) || (a != 1)] return (r_pr ==
+// UNDEFINED_PRECEDENCE) ? 0 : 1 lookahead { "+" }
+pub static RETURN_SLOT_LOOKAHEAD_OPERAND_LITERAL_ALT2_POS1: TerminalSet = TerminalSet {
+    id: 30,
+    terminals: &[TerminalId(4)],
+};
+// HeadLiteral(p: i32) : [2 >= p] l_pr=HeadLiteralEnd(p, 0) . [(l_pr == 0) || (l_pr >= 2)] WS
+// "*" WS HeadLiteralEnd(3, 1) return 2 lookahead { "*" }
+pub static RETURN_SLOT_LOOKAHEAD_HEAD_LITERAL_ALT2_POS2: TerminalSet = TerminalSet {
+    id: 29,
+    terminals: &[TerminalId(3)],
+};
+// HeadLiteral(p: i32) : [1 >= p] l_pr=HeadLiteralEnd(p, 0) . [(l_pr == 0) || (l_pr >= 1)] WS
+// "+" WS HeadLiteralEnd(2, 1) return 1 lookahead { "+" }
+pub static RETURN_SLOT_LOOKAHEAD_HEAD_LITERAL_ALT3_POS2: TerminalSet = TerminalSet {
+    id: 30,
+    terminals: &[TerminalId(4)],
 };
 // S
 // 0: E(0)

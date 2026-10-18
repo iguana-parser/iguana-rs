@@ -234,7 +234,7 @@ static TERMINAL_FIRST_CHARS: [CharSet; 42] = [
     ),
     CharSet::new(0x0, &[]),
 ];
-static MATCH_ANY_FIRST_CHARS: [CharSet; 29] = [
+static MATCH_ANY_FIRST_CHARS: [CharSet; 49] = [
     CharSet::new(
         0xffffffffffffffffffffffffffffffff,
         &[CharRange {
@@ -432,6 +432,56 @@ static MATCH_ANY_FIRST_CHARS: [CharSet; 29] = [
         }],
     ),
     CharSet::new(0x0, &[]),
+    CharSet::new(0x40000000000, &[]),
+    CharSet::new(0x80000000000, &[]),
+    CharSet::new(0x200000000000, &[]),
+    CharSet::new(0x400000000000000000000000, &[]),
+    CharSet::new(0x8000000000000000, &[]),
+    CharSet::new(0x400000000000000, &[]),
+    CharSet::new(0x2000000000, &[]),
+    CharSet::new(
+        0xffffffffffffffffffffffffffffffff,
+        &[CharRange {
+            start: '\u{80}',
+            end: '\u{10ffff}',
+        }],
+    ),
+    CharSet::new(0x4000000000000000, &[]),
+    CharSet::new(0x2000000000000000, &[]),
+    CharSet::new(0x4000000000, &[]),
+    CharSet::new(0x20000000000, &[]),
+    CharSet::new(0x800000000000, &[]),
+    CharSet::new(0x40000000000000000000000000000000, &[]),
+    CharSet::new(0x200000000, &[]),
+    CharSet::new(
+        0xffffffffffffffffffffffffffffffff,
+        &[CharRange {
+            start: '\u{80}',
+            end: '\u{10ffff}',
+        }],
+    ),
+    CharSet::new(
+        0xffffffffffffffffffffffffffffffff,
+        &[CharRange {
+            start: '\u{80}',
+            end: '\u{10ffff}',
+        }],
+    ),
+    CharSet::new(
+        0xffffffffffffffffffffffffffffffff,
+        &[CharRange {
+            start: '\u{80}',
+            end: '\u{10ffff}',
+        }],
+    ),
+    CharSet::new(0x800000000000000, &[]),
+    CharSet::new(
+        0xffffffffffffffffffffffffffffffff,
+        &[CharRange {
+            start: '\u{80}',
+            end: '\u{10ffff}',
+        }],
+    ),
 ];
 pub struct IndirectBinaryScanner<'i, 'arena> {
     pub input: &'i Input,
@@ -614,7 +664,7 @@ impl<'i, 'arena> IndirectBinaryScanner<'i, 'arena> {
     // first query of a set at a position scans it; later queries return the cached bit.
     pub fn match_any(&mut self, set: &TerminalSet, input_index: u32) -> bool {
         debug_assert!(
-            set.id < 29,
+            set.id < 49,
             "terminal set {} does not have a match_any memo id",
             set.id,
         );

@@ -4565,6 +4565,140 @@ impl<'i, 'arena> Parser<'i, 'arena> for IggyParser<'i, 'arena> {
             _ => None,
         }
     }
+    fn return_conditions(
+        &mut self,
+        return_slot: SlotId,
+        left_extent: u32,
+        right_extent: u32,
+        gss_node_id: GssNodeId,
+        _env: Option<EnvId>,
+        return_value: Option<i32>,
+    ) -> bool {
+        let lookahead: Option<(bool, &'static TerminalSet)> = match return_slot {
+            // RegexRule : layout:Opt_1 Layout id_annot:Opt_2 Layout "@Regex" Layout Identifier Layout
+            // "=" Layout Opt_3 . Layout body:Plus_2 Layout Star_2
+            SlotId(33) => Some((true, &RETURN_SLOT_LOOKAHEAD_REGEX_RULE_ALT0_POS11)),
+            // Symbol(p: i32, e: i32) : [2 & e == 0] "(" Layout seqs:Plus_7 . Layout ")" return (0, 1)
+            SlotId(333) => Some((true, &RETURN_SLOT_LOOKAHEAD_SYMBOL_ALT1_POS4)),
+            // Symbol(p: i32, e: i32) : [8 & e == 0] "{" Layout symbol:Symbol(0, 0) . Layout
+            // sep:Symbol(0, 0) Layout "}" Layout "*" return (0, 3)
+            SlotId(345) => Some((true, &RETURN_SLOT_LOOKAHEAD_SYMBOL_ALT3_POS4)),
+            // Symbol(p: i32, e: i32) : [8 & e == 0] "{" Layout symbol:Symbol(0, 0) Layout sep:Symbol(0,
+            // 0) . Layout "}" Layout "*" return (0, 3)
+            SlotId(347) => Some((true, &RETURN_SLOT_LOOKAHEAD_SYMBOL_ALT3_POS6)),
+            // Symbol(p: i32, e: i32) : [16 & e == 0] "{" Layout symbol:Symbol(0, 0) . Layout
+            // sep:Symbol(0, 0) Layout "}" Layout "+" return (0, 4)
+            SlotId(357) => Some((true, &RETURN_SLOT_LOOKAHEAD_SYMBOL_ALT4_POS4)),
+            // Symbol(p: i32, e: i32) : [16 & e == 0] "{" Layout symbol:Symbol(0, 0) Layout sep:Symbol(0,
+            // 0) . Layout "}" Layout "+" return (0, 4)
+            SlotId(359) => Some((true, &RETURN_SLOT_LOOKAHEAD_SYMBOL_ALT4_POS6)),
+            // Symbol(p: i32, e: i32) : [32 & e == 0] [3 >= p] (l_pr, l_label)=Symbol(p, 0) . [(l_pr ==
+            // 0) || (l_pr >= 3)] Layout "*" return (0, 5)
+            SlotId(368) => {
+                let value = return_value.expect("a bound call returns a value");
+                if !((((value) >> 16) == 0) || (((value) >> 16) >= 3)) {
+                    return false;
+                }
+                Some((true, &RETURN_SLOT_LOOKAHEAD_SYMBOL_ALT5_POS3))
+            }
+            // Symbol(p: i32, e: i32) : [64 & e == 0] [3 >= p] (l_pr, l_label)=Symbol(p, 0) . [(l_pr ==
+            // 0) || (l_pr >= 3)] Layout "+" return (0, 6)
+            SlotId(376) => {
+                let value = return_value.expect("a bound call returns a value");
+                if !((((value) >> 16) == 0) || (((value) >> 16) >= 3)) {
+                    return false;
+                }
+                Some((true, &RETURN_SLOT_LOOKAHEAD_SYMBOL_ALT6_POS3))
+            }
+            // Symbol(p: i32, e: i32) : [128 & e == 0] [3 >= p] (l_pr, l_label)=Symbol(p, 0) . [(l_pr ==
+            // 0) || (l_pr >= 3)] Layout "?" return (0, 7)
+            SlotId(384) => {
+                let value = return_value.expect("a bound call returns a value");
+                if !((((value) >> 16) == 0) || (((value) >> 16) >= 3)) {
+                    return false;
+                }
+                Some((true, &RETURN_SLOT_LOOKAHEAD_SYMBOL_ALT7_POS3))
+            }
+            // Symbol(p: i32, e: i32) : [256 & e == 0] [3 >= p] (l_pr, l_label)=Symbol(p, 0) . [(l_pr ==
+            // 0) || (l_pr >= 3)] [(l_label == NO_LABEL) || ((256 >> l_label) & 1 == 0)] Layout
+            // conditions:Plus_8 return (0, 8)
+            SlotId(392) => {
+                let value = return_value.expect("a bound call returns a value");
+                if !((((value) >> 16) == 0) || (((value) >> 16) >= 3)) {
+                    return false;
+                }
+                if !((((value) & 65535) == 31) || (((256) >> ((value) & 65535)) & (1) == 0)) {
+                    return false;
+                }
+                Some((true, &RETURN_SLOT_LOOKAHEAD_SYMBOL_ALT8_POS3))
+            }
+            // Symbol(p: i32, e: i32) : [512 & e == 0] conditions:Plus_9 . Layout (r_pr,
+            // r_label)=Symbol(2, 512) return ((r_pr == 0) ? 2 : min(r_pr, 2), 9)
+            SlotId(400) => Some((true, &RETURN_SLOT_LOOKAHEAD_SYMBOL_ALT9_POS2)),
+            // Regex : Regex . Layout "+"
+            SlotId(91) => Some((true, &RETURN_SLOT_LOOKAHEAD_REGEX_ALT0_POS1)),
+            // Regex : Regex . Layout "*"
+            SlotId(95) => Some((true, &RETURN_SLOT_LOOKAHEAD_REGEX_ALT1_POS1)),
+            // Regex : Regex . Layout "?"
+            SlotId(99) => Some((true, &RETURN_SLOT_LOOKAHEAD_REGEX_ALT2_POS1)),
+            // Regex : "(" Layout seqs:Plus_2 . Layout ")"
+            SlotId(105) => Some((true, &RETURN_SLOT_LOOKAHEAD_REGEX_ALT3_POS3)),
+            // CharClass : neg:Opt_6 Layout "[" Layout Plus_10 . Layout "]"
+            SlotId(121) => Some((true, &RETURN_SLOT_LOOKAHEAD_CHAR_CLASS_ALT0_POS5)),
+            // Plus_0 : Plus_0 . Layout Rule
+            SlotId(137) => Some((true, &RETURN_SLOT_LOOKAHEAD_PLUS_0_ALT0_POS1)),
+            // Plus_1 : Plus_1 . Layout ">" Layout PriorityLevel
+            SlotId(149) => Some((true, &RETURN_SLOT_LOOKAHEAD_PLUS_1_ALT0_POS1)),
+            // Plus_3 : Plus_3 . Layout Regex
+            SlotId(169) => Some((true, &RETURN_SLOT_LOOKAHEAD_PLUS_3_ALT0_POS1)),
+            // Plus_2 : Plus_2 . Layout "|" Layout Plus_3
+            SlotId(175) => Some((true, &RETURN_SLOT_LOOKAHEAD_PLUS_2_ALT0_POS1)),
+            // Plus_5 : Plus_5 . Layout "|" Layout Alternative
+            SlotId(195) => Some((true, &RETURN_SLOT_LOOKAHEAD_PLUS_5_ALT0_POS1)),
+            // Plus_6 : Plus_6 . Layout Symbol(0, 0)
+            SlotId(206) => Some((true, &RETURN_SLOT_LOOKAHEAD_PLUS_6_ALT0_POS1)),
+            // Plus_7 : Plus_7 . Layout "|" Layout Plus_6
+            SlotId(215) => Some((true, &RETURN_SLOT_LOOKAHEAD_PLUS_7_ALT0_POS1)),
+            // Plus_8 : Plus_8 . Layout PostCondition
+            SlotId(223) => Some((true, &RETURN_SLOT_LOOKAHEAD_PLUS_8_ALT0_POS1)),
+            // Plus_9 : Plus_9 . Layout PreCondition
+            SlotId(229) => Some((true, &RETURN_SLOT_LOOKAHEAD_PLUS_9_ALT0_POS1)),
+            // Plus_10 : Plus_10 . Layout RangeElement
+            SlotId(238) => Some((true, &RETURN_SLOT_LOOKAHEAD_PLUS_10_ALT0_POS1)),
+            _ => None,
+        };
+        if let Some(failure) = self.post_conditions(return_slot, left_extent, right_extent) {
+            self.add_failure(right_extent, return_slot, Some(gss_node_id), failure);
+            return false;
+        }
+        let Some((skips_layout, set)) = lookahead else {
+            return true;
+        };
+        let start = if skips_layout {
+            let layout = {
+                self.suppress_failures = true;
+                let layout = self.parse_layout_ll1(right_extent, None);
+                self.suppress_failures = false;
+                layout.map(|(end, _)| end)
+            };
+            let Some(end) = layout else {
+                return true;
+            };
+            end
+        } else {
+            right_extent
+        };
+        if self.scanner.match_any(set, start) {
+            return true;
+        }
+        self.add_failure(
+            start,
+            return_slot,
+            Some(gss_node_id),
+            GLLFailureKind::UnexpectedToken(set),
+        );
+        false
+    }
     fn failures(&self) -> impl Iterator<Item = &GLLFailure> {
         self.failures.iter()
     }

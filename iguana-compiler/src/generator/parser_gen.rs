@@ -6,7 +6,9 @@ use quote::quote;
 use rustc_hash::FxHashSet;
 
 use crate::generator::GenConfig;
+use crate::generator::grammar_gen::terminal_set_name;
 use crate::generator::grammar_utils::grammar_ident;
+use crate::generator::grammar_utils::is_ll1_return_slot;
 use crate::generator::grammar_utils::nt_ident;
 use crate::generator::grammar_utils::parse_tree_builder_ident;
 use crate::generator::grammar_utils::parser_ident;
@@ -16,7 +18,10 @@ use crate::generator::id::BindingIds;
 use crate::generator::id::NonterminalIds;
 use crate::generator::id::SlotIds;
 use crate::generator::id::TerminalIds;
+use crate::generator::return_value::gen_component;
 use crate::generator::return_value::pack;
+use crate::generator::terminal_sets::TerminalSetKind;
+use crate::generator::terminal_sets::return_slot_lookahead;
 use crate::grammar::def::Alternative;
 use crate::grammar::def::Grammar;
 use crate::grammar::first_follow::FirstFollowSets;
@@ -185,6 +190,7 @@ impl<'a> ParserGen<'a> {
         let envs_method = Self::gen_envs_method();
         let record_stats_method = self.gen_record_stats_method();
         let post_conditions_method = self.gen_post_conditions_method();
+        let return_conditions_method = self.gen_return_conditions_method();
         let failures_method = Self::gen_failures_method();
         let parser_struct = self.gen_parser_struct();
         let parser_impl = self.gen_parser_impl();
@@ -239,6 +245,7 @@ impl<'a> ParserGen<'a> {
                 #envs_method
                 #record_stats_method
                 #post_conditions_method
+                #return_conditions_method
                 #failures_method
 
                 // Do not inline. `execute` records failures at many places, all inside
@@ -682,14 +689,13 @@ impl<'a> ParserGen<'a> {
         let mut uses_left_extent = false;
         let mut uses_right_extent = false;
         for nonterminal in self.grammar.nonterminals() {
-            for (alt_index, alternative) in
-                self.grammar.alternatives(nonterminal).iter().enumerate()
-            {
+            for alternative in self.grammar.alternatives(nonterminal) {
                 for (pos, symbol) in alternative.symbols.iter().enumerate() {
                     let restrictions = symbol.restrictions();
                     if !restrictions.has_post_conditions() || symbol.as_identifier().is_none() {
                         continue;
                     }
+                    let slot = Slot::new(nonterminal, alternative, pos);
                     // One branch per restriction kind, chained into a single
                     // arm: the excepts over the matched span first, then the
                     // follow restrictions at its right extent, then the
@@ -715,10 +721,8 @@ impl<'a> ParserGen<'a> {
                         uses_left_extent = true;
                         uses_right_extent = true;
                         let except_set = format_ident!(
-                            "EXCEPT_{}_ALT{}_POS{}",
-                            to_snake_case(&nonterminal.name).to_uppercase(),
-                            alt_index,
-                            pos
+                            "{}",
+                            terminal_set_name(&TerminalSetKind::Except(slot.clone()), self.grammar)
                         );
                         branches.push(quote! {
                             if #(#checks)||* {
@@ -727,11 +731,9 @@ impl<'a> ParserGen<'a> {
                         });
                     }
                     if !restrictions.follow.is_empty() {
-                        let static_name_str = format!(
-                            "FOLLOW_RESTRICTION_{}_ALT{}_POS{}",
-                            to_snake_case(&nonterminal.name).to_uppercase(),
-                            alt_index,
-                            pos
+                        let static_name_str = terminal_set_name(
+                            &TerminalSetKind::FollowRestriction(slot.clone()),
+                            self.grammar,
                         );
                         let static_name = format_ident!("{}", static_name_str);
                         let restriction_check =
@@ -752,11 +754,9 @@ impl<'a> ParserGen<'a> {
                     // to continue, so the derivation fails regardless. The layout
                     // failure is the error worth reporting.
                     if !restrictions.layout_aware_follow.is_empty() {
-                        let static_name_str = format!(
-                            "LAYOUT_AWARE_FOLLOW_RESTRICTION_{}_ALT{}_POS{}",
-                            to_snake_case(&nonterminal.name).to_uppercase(),
-                            alt_index,
-                            pos
+                        let static_name_str = terminal_set_name(
+                            &TerminalSetKind::LayoutAwareFollowRestriction(slot.clone()),
+                            self.grammar,
                         );
                         let static_name = format_ident!("{}", static_name_str);
                         let restriction_check =
@@ -769,7 +769,6 @@ impl<'a> ParserGen<'a> {
                             } else
                         });
                     }
-                    let slot = Slot::new(nonterminal, alternative, pos);
                     let next_slot = slot.next();
                     let slot_id = self.slot_ids.get_id(&next_slot);
                     arms.push(quote! {
@@ -815,6 +814,171 @@ impl<'a> ParserGen<'a> {
         }
     }
 
+    /// Generates `return_conditions`, with one arm per return slot that has
+    /// conditions after the call or a lookahead test (see
+    /// `terminal_sets::return_slot_lookahead`). The return slots of LL(1)
+    /// nonterminals do not get an arm, because the parser does not return to
+    /// them through the GSS. When no return slot has conditions or a lookahead
+    /// test, the generator emits nothing, and the parser keeps the runtime's
+    /// default, which checks only the post-conditions.
+    ///
+    /// A failed lookahead test records an unexpected-token failure at the
+    /// position after the layout, with the return slot and the caller's GSS
+    /// node.
+    fn gen_return_conditions_method(&self) -> TokenStream {
+        let mut arms = vec![];
+        let mut skips_layout = false;
+        for nonterminal in self.grammar.nonterminals() {
+            for alternative in self.grammar.alternatives(nonterminal) {
+                for pos in 1..alternative.symbols.len() {
+                    let slot = Slot::new(nonterminal, alternative, pos);
+                    if !slot.is_return_slot(self.grammar)
+                        || is_ll1_return_slot(self.grammar, self.ll1_nonterminals, &slot)
+                    {
+                        continue;
+                    }
+                    let conditions = Self::gen_return_slot_conditions(&slot);
+                    let lookahead =
+                        return_slot_lookahead(self.grammar, self.ff, self.ll1_nonterminals, &slot);
+                    if conditions.is_empty() && lookahead.is_none() {
+                        continue;
+                    }
+                    let lookahead = match lookahead {
+                        Some(lookahead) => {
+                            let kind = TerminalSetKind::ReturnSlotLookahead(slot.clone());
+                            let set = format_ident!("{}", terminal_set_name(&kind, self.grammar));
+                            let slot_skips_layout = lookahead.skips_layout;
+                            skips_layout |= slot_skips_layout;
+                            quote! { Some((#slot_skips_layout, &#set)) }
+                        }
+                        None => quote! { None },
+                    };
+                    let slot_id = self.slot_ids.get_id(&slot);
+                    let slot_name = slot.name();
+                    arms.push(quote! {
+                        #[comment = #slot_name]
+                        #slot_id => {
+                            #(#conditions)*
+                            #lookahead
+                        }
+                    });
+                }
+            }
+        }
+        if arms.is_empty() {
+            return quote! {};
+        }
+        // Underscore the parameters that no condition reads, so the generated
+        // signature does not have an unused parameter.
+        let parameter = |name: &str| {
+            if arms.iter().any(|arm| mentions_ident(arm, name)) {
+                format_ident!("{}", name)
+            } else {
+                format_ident!("_{}", name)
+            }
+        };
+        let env = parameter("env");
+        let return_value = parameter("return_value");
+        // A layout that does not match fails the continuation, which records
+        // that failure itself.
+        let (skips_layout, start) = if skips_layout {
+            let layout_match = self.gen_layout_match(quote! { right_extent });
+            (
+                quote! { skips_layout },
+                quote! {
+                    if skips_layout {
+                        let layout = #layout_match;
+                        let Some(end) = layout else {
+                            return true;
+                        };
+                        end
+                    } else {
+                        right_extent
+                    }
+                },
+            )
+        } else {
+            (quote! { _ }, quote! { right_extent })
+        };
+        quote! {
+            fn return_conditions(
+                &mut self,
+                return_slot: SlotId,
+                left_extent: u32,
+                right_extent: u32,
+                gss_node_id: GssNodeId,
+                #env: Option<EnvId>,
+                #return_value: Option<i32>,
+            ) -> bool {
+                let lookahead: Option<(bool, &'static TerminalSet)> = match return_slot {
+                    #(#arms)*
+                    _ => None,
+                };
+                if let Some(failure) = self.post_conditions(return_slot, left_extent, right_extent) {
+                    self.add_failure(right_extent, return_slot, Some(gss_node_id), failure);
+                    return false;
+                }
+                let Some((#skips_layout, set)) = lookahead else {
+                    return true;
+                };
+                let start = #start;
+                if self.scanner.match_any(set, start) {
+                    return true;
+                }
+                self.add_failure(start, return_slot, Some(gss_node_id), GLLFailureKind::UnexpectedToken(set));
+                false
+            }
+        }
+    }
+
+    /// The checks of the conditions directly after `return_slot`, each
+    /// returning `false` when its condition does not hold.
+    /// A check reads a name that the call binds from its component of the
+    /// returned value, and any other name from the caller's environment.
+    fn gen_return_slot_conditions(return_slot: &Slot) -> Vec<TokenStream> {
+        let symbols = &return_slot.alternative().symbols;
+        let pattern = symbols[return_slot.pos() - 1].binding_pattern();
+        let mut reads_value = false;
+        let mut checks = vec![];
+        for symbol in &symbols[return_slot.pos()..] {
+            let Symbol::Condition(expr) = symbol else {
+                break;
+            };
+            let condition = Self::gen_expr_with(expr, &mut |name| {
+                // A repeated name in a pattern refers to its last component,
+                // as in `bind_return_value`.
+                let index = pattern.and_then(|p| p.names().iter().rposition(|n| n == name));
+                match (pattern, index) {
+                    (Some(BindingPattern::Name(_)), Some(_)) => {
+                        reads_value = true;
+                        quote! { value }
+                    }
+                    (Some(BindingPattern::Tuple(names)), Some(index)) => {
+                        reads_value = true;
+                        let component = gen_component(quote! { value }, index, names.len());
+                        quote! { (#component) }
+                    }
+                    _ => {
+                        let const_name = binding_const_ident(name);
+                        quote! { self.lookup(#const_name, env.unwrap()) }
+                    }
+                }
+            });
+            checks.push(quote! {
+                if !(#condition) {
+                    return false;
+                }
+            });
+        }
+        if reads_value {
+            checks.insert(
+                0,
+                quote! { let value = return_value.expect("a bound call returns a value"); },
+            );
+        }
+        checks
+    }
+
     /// An expression that matches the layout at `pos`, evaluating to the
     /// layout's right extent, or to `None` when no layout can be matched.
     ///
@@ -825,14 +989,15 @@ impl<'a> ParserGen<'a> {
     /// the real parse never reached; LL(1) determinism makes this result
     /// unique too. Any other layout can match with multiple right extents,
     /// which would require a GLL recognizer and descriptor dispatch.
-    /// Generation rejects such a layout before reaching this method.
+    /// Generation rejects a `!>>>` restriction with such a layout, and the
+    /// return slot lookahead does not skip such a layout.
     fn gen_layout_match(&self, pos: TokenStream) -> TokenStream {
         let identifier = self
             .grammar
             .layout
             .as_ref()
             .and_then(Symbol::as_identifier)
-            .expect("a `!>>>` restriction survives only in a rule with layout");
+            .expect("only a grammar with layout matches the layout");
         match self.grammar.definition(identifier.resolve()) {
             Definition::Terminal(terminal) => {
                 let terminal_id = self.terminal_ids.get_id(terminal);
@@ -2632,11 +2797,9 @@ impl<'a> ParserGen<'a> {
                         let name = binding_const_ident(name);
                         let value = match pattern {
                             BindingPattern::Name(_) => quote! { value },
-                            BindingPattern::Tuple(names) => super::return_value::gen_component(
-                                quote! { value },
-                                index,
-                                names.len(),
-                            ),
+                            BindingPattern::Tuple(names) => {
+                                gen_component(quote! { value }, index, names.len())
+                            }
                         };
                         quote! { (#name, #value) }
                     })
@@ -2780,20 +2943,26 @@ impl<'a> ParserGen<'a> {
 
     /// Generates a Rust expression using ordinary environment lookups for names.
     fn gen_expr(expr: &Expr) -> TokenStream {
+        Self::gen_expr_with(expr, &mut |name| {
+            let const_name = binding_const_ident(name);
+            quote! { self.lookup(#const_name, env.unwrap()) }
+        })
+    }
+
+    /// Generates a Rust expression that reads each name with the code
+    /// `reference` generates for it.
+    fn gen_expr_with<F: FnMut(&str) -> TokenStream>(expr: &Expr, reference: &mut F) -> TokenStream {
         match expr {
-            Expr::Tuple(values) => Self::gen_expr(&pack(values)),
-            Expr::DisplayInt { value, .. } => Self::gen_expr(&Expr::Int(*value)),
+            Expr::Tuple(values) => Self::gen_expr_with(&pack(values), reference),
+            Expr::DisplayInt { value, .. } => Self::gen_expr_with(&Expr::Int(*value), reference),
             Expr::Int(i) => {
                 let val = Literal::i32_unsuffixed(*i as i32);
                 quote! { #val }
             }
-            Expr::Ref(name) => {
-                let const_name = binding_const_ident(name);
-                quote! { self.lookup(#const_name, env.unwrap()) }
-            }
+            Expr::Ref(name) => reference(name),
             Expr::Cond(cond) => {
-                let left = Self::gen_expr(&cond.left);
-                let right = Self::gen_expr(&cond.right);
+                let left = Self::gen_expr_with(&cond.left, reference);
+                let right = Self::gen_expr_with(&cond.right, reference);
                 match cond.op {
                     CondOp::Eq => quote! { #left == #right },
                     CondOp::Neq => quote! { #left != #right },
@@ -2802,44 +2971,44 @@ impl<'a> ParserGen<'a> {
                 }
             }
             Expr::Or(left, right) => {
-                let left = Self::gen_expr(left);
-                let right = Self::gen_expr(right);
+                let left = Self::gen_expr_with(left, reference);
+                let right = Self::gen_expr_with(right, reference);
                 quote! { (#left) || (#right) }
             }
             Expr::And(left, right) => {
-                let left = Self::gen_expr(left);
-                let right = Self::gen_expr(right);
+                let left = Self::gen_expr_with(left, reference);
+                let right = Self::gen_expr_with(right, reference);
                 quote! { (#left) && (#right) }
             }
             Expr::BitAnd(left, right) => {
-                let left = Self::gen_expr(left);
-                let right = Self::gen_expr(right);
+                let left = Self::gen_expr_with(left, reference);
+                let right = Self::gen_expr_with(right, reference);
                 quote! { (#left) & (#right) }
             }
             Expr::BitOr(left, right) => {
-                let left = Self::gen_expr(left);
-                let right = Self::gen_expr(right);
+                let left = Self::gen_expr_with(left, reference);
+                let right = Self::gen_expr_with(right, reference);
                 quote! { (#left) | (#right) }
             }
             Expr::Shl(left, right) => {
-                let left = Self::gen_expr(left);
-                let right = Self::gen_expr(right);
+                let left = Self::gen_expr_with(left, reference);
+                let right = Self::gen_expr_with(right, reference);
                 quote! { (#left) << (#right) }
             }
             Expr::Shr(left, right) => {
-                let left = Self::gen_expr(left);
-                let right = Self::gen_expr(right);
+                let left = Self::gen_expr_with(left, reference);
+                let right = Self::gen_expr_with(right, reference);
                 quote! { (#left) >> (#right) }
             }
             Expr::Min(left, right) => {
-                let left = Self::gen_expr(left);
-                let right = Self::gen_expr(right);
+                let left = Self::gen_expr_with(left, reference);
+                let right = Self::gen_expr_with(right, reference);
                 quote! { std::cmp::min(#left, #right) }
             }
             Expr::Ternary { cond, then, r#else } => {
-                let cond = Self::gen_expr(cond);
-                let then = Self::gen_expr(then);
-                let r#else = Self::gen_expr(r#else);
+                let cond = Self::gen_expr_with(cond, reference);
+                let then = Self::gen_expr_with(then, reference);
+                let r#else = Self::gen_expr_with(r#else, reference);
                 quote! {
                     if #cond {
                         #then

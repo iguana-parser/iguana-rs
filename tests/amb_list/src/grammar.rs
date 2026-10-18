@@ -134,15 +134,15 @@ impl Grammar for AmbListGrammar {
     // by terminal id, serves only that.
     const SINGLE_TERMINAL_SETS: &'static [TerminalSet] = &[
         TerminalSet {
-            id: 3,
+            id: 4,
             terminals: &[TerminalId(0)],
         },
         TerminalSet {
-            id: 4,
+            id: 5,
             terminals: &[TerminalId(1)],
         },
         TerminalSet {
-            id: 5,
+            id: 6,
             terminals: &[TerminalId(2)],
         },
     ];
@@ -188,14 +188,19 @@ pub static FOLLOW_SET_START_A: TerminalSet = TerminalSet {
     id: 0,
     terminals: &[TerminalId(2)],
 };
+// Plus_0 : Plus_0 . A lookahead { "a" }
+pub static RETURN_SLOT_LOOKAHEAD_PLUS_0_ALT0_POS1: TerminalSet = TerminalSet {
+    id: 2,
+    terminals: &[TerminalId(0)],
+};
 // A { "a" }
 pub static FIRST_SET_A: TerminalSet = TerminalSet {
-    id: 2,
+    id: 3,
     terminals: &[TerminalId(0)],
 };
 // StartA { "a" }
 pub static FIRST_SET_START_A: TerminalSet = TerminalSet {
-    id: 2,
+    id: 3,
     terminals: &[TerminalId(0)],
 };
 // S

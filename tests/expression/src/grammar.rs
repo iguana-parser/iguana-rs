@@ -90,23 +90,23 @@ impl Grammar for ExpressionGrammar {
     // by terminal id, serves only that.
     const SINGLE_TERMINAL_SETS: &'static [TerminalSet] = &[
         TerminalSet {
-            id: 2,
+            id: 4,
             terminals: &[TerminalId(0)],
         },
         TerminalSet {
-            id: 3,
+            id: 5,
             terminals: &[TerminalId(1)],
         },
         TerminalSet {
-            id: 4,
+            id: 6,
             terminals: &[TerminalId(2)],
         },
         TerminalSet {
-            id: 5,
+            id: 7,
             terminals: &[TerminalId(3)],
         },
         TerminalSet {
-            id: 6,
+            id: 8,
             terminals: &[TerminalId(4)],
         },
     ];
@@ -127,6 +127,16 @@ pub static FOLLOW_SET_E: TerminalSet = TerminalSet {
 pub static FOLLOW_SET_START_E: TerminalSet = TerminalSet {
     id: 1,
     terminals: &[TerminalId(4)],
+};
+// E : E . "*" E lookahead { "*" }
+pub static RETURN_SLOT_LOOKAHEAD_E_ALT0_POS1: TerminalSet = TerminalSet {
+    id: 2,
+    terminals: &[TerminalId(0)],
+};
+// E : E . "+" E lookahead { "+" }
+pub static RETURN_SLOT_LOOKAHEAD_E_ALT1_POS1: TerminalSet = TerminalSet {
+    id: 3,
+    terminals: &[TerminalId(1)],
 };
 // E
 // 0: E "*" E #Mul
