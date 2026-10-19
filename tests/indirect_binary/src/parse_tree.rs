@@ -12511,7 +12511,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             // Filtered = ExcludedOperand
-            SlotId(17) => {
+            SlotId(18) => {
                 let &[excluded_operand] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -12521,7 +12521,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             // LexNullableLeft = Digits WS LexNullable
-            SlotId(21) => {
+            SlotId(22) => {
                 let &[digits, ws, lex_nullable] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -12533,7 +12533,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             // PackedFiltered = PackedMiddle
-            SlotId(23) => {
+            SlotId(25) => {
                 let &[packed_middle] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -12543,7 +12543,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             // OwnHeadFiltered = OwnLabel
-            SlotId(25) => {
+            SlotId(28) => {
                 let &[own_label] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -12553,7 +12553,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             // ExcludeOnlyFiltered = ExcludeOnly
-            SlotId(27) => {
+            SlotId(31) => {
                 let &[exclude_only] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -12563,7 +12563,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             // DynamicFiltered = DynamicOperand
-            SlotId(29) => {
+            SlotId(34) => {
                 let &[dynamic_operand] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -12573,7 +12573,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             // DynamicHeadFiltered = Dynamic
-            SlotId(31) => {
+            SlotId(37) => {
                 let &[dynamic] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -12583,7 +12583,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             // NullableBoundaryRight = NullableBoundaryPrefix WS NullableBoundaryOpt
-            SlotId(35) => {
+            SlotId(41) => {
                 let &[nullable_boundary_prefix, ws, nullable_boundary_opt] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -12596,7 +12596,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             // NullableBoundaryOpt = "!"
-            SlotId(37) => {
+            SlotId(43) => {
                 let &[lit_0] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -12606,7 +12606,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             // NullableBoundaryOpt =
-            SlotId(38) => {
+            SlotId(44) => {
                 let &[] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -12615,7 +12615,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             // NullableBoundaryLeft = NullableBoundaryOpt WS NullableBoundaryPostfix
-            SlotId(42) => {
+            SlotId(48) => {
                 let &[nullable_boundary_opt, ws, nullable_boundary_postfix] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -12628,7 +12628,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             // NullableBoundaryOperand = NullableBoundaryBinary WS NullableBoundaryOpt
-            SlotId(46) => {
+            SlotId(52) => {
                 let &[nullable_boundary_binary, ws, nullable_boundary_opt] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -12643,7 +12643,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 ))
             }
             // IndirectExcludeFiltered = IndirectExcludeOperand
-            SlotId(48) => {
+            SlotId(55) => {
                 let &[indirect_exclude_operand] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -12656,7 +12656,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 ))
             }
             // Opt_0 = "x"
-            SlotId(50) => {
+            SlotId(57) => {
                 let &[lit_0] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -12666,7 +12666,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             // Opt_0 =
-            SlotId(51) => {
+            SlotId(58) => {
                 let &[] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -12675,7 +12675,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             // StartS = WS start:S WS
-            SlotId(55) => {
+            SlotId(62) => {
                 let &[ws_0, start, ws_2] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -12687,7 +12687,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             // StartE = WS start:E WS
-            SlotId(59) => {
+            SlotId(66) => {
                 let &[ws_0, start, ws_2] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -12699,7 +12699,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             // StartL = WS start:L WS
-            SlotId(63) => {
+            SlotId(70) => {
                 let &[ws_0, start, ws_2] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -12711,7 +12711,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             // StartOnly = WS start:Only WS
-            SlotId(67) => {
+            SlotId(74) => {
                 let &[ws_0, start, ws_2] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -12723,7 +12723,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             // StartOnlyOperand = WS start:OnlyOperand WS
-            SlotId(71) => {
+            SlotId(78) => {
                 let &[ws_0, start, ws_2] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -12735,7 +12735,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             // StartCross = WS start:Cross WS
-            SlotId(75) => {
+            SlotId(82) => {
                 let &[ws_0, start, ws_2] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -12747,7 +12747,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             // StartForeign = WS start:Foreign WS
-            SlotId(79) => {
+            SlotId(86) => {
                 let &[ws_0, start, ws_2] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -12759,7 +12759,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             // StartCascade = WS start:Cascade WS
-            SlotId(83) => {
+            SlotId(90) => {
                 let &[ws_0, start, ws_2] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -12771,7 +12771,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             // StartTernary = WS start:Ternary WS
-            SlotId(87) => {
+            SlotId(94) => {
                 let &[ws_0, start, ws_2] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -12783,7 +12783,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             // StartNullable = WS start:Nullable WS
-            SlotId(91) => {
+            SlotId(98) => {
                 let &[ws_0, start, ws_2] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -12795,7 +12795,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             // StartNullableLeft = WS start:NullableLeft WS
-            SlotId(95) => {
+            SlotId(102) => {
                 let &[ws_0, start, ws_2] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -12807,7 +12807,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             // StartNullableRight = WS start:NullableRight WS
-            SlotId(99) => {
+            SlotId(106) => {
                 let &[ws_0, start, ws_2] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -12819,7 +12819,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             // StartRightExpr = WS start:RightExpr WS
-            SlotId(103) => {
+            SlotId(110) => {
                 let &[ws_0, start, ws_2] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -12831,7 +12831,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             // StartRightOperand = WS start:RightOperand WS
-            SlotId(107) => {
+            SlotId(114) => {
                 let &[ws_0, start, ws_2] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -12843,7 +12843,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             // StartNoneExpr = WS start:NoneExpr WS
-            SlotId(111) => {
+            SlotId(118) => {
                 let &[ws_0, start, ws_2] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -12855,7 +12855,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             // StartNoneOperand = WS start:NoneOperand WS
-            SlotId(115) => {
+            SlotId(122) => {
                 let &[ws_0, start, ws_2] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -12867,7 +12867,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             // StartExcluded = WS start:Excluded WS
-            SlotId(119) => {
+            SlotId(126) => {
                 let &[ws_0, start, ws_2] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -12879,7 +12879,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             // StartExcludedOperand = WS start:ExcludedOperand WS
-            SlotId(123) => {
+            SlotId(130) => {
                 let &[ws_0, start, ws_2] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -12891,7 +12891,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             // StartFiltered = WS start:Filtered WS
-            SlotId(127) => {
+            SlotId(134) => {
                 let &[ws_0, start, ws_2] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -12903,7 +12903,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             // StartLexNullable = WS start:LexNullable WS
-            SlotId(131) => {
+            SlotId(138) => {
                 let &[ws_0, start, ws_2] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -12915,7 +12915,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             // StartLexNullableLeft = WS start:LexNullableLeft WS
-            SlotId(135) => {
+            SlotId(142) => {
                 let &[ws_0, start, ws_2] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -12927,7 +12927,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             // StartLexNullableRight = WS start:LexNullableRight WS
-            SlotId(139) => {
+            SlotId(146) => {
                 let &[ws_0, start, ws_2] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -12939,7 +12939,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             // StartMixedScale = WS start:MixedScale WS
-            SlotId(143) => {
+            SlotId(150) => {
                 let &[ws_0, start, ws_2] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -12951,7 +12951,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             // StartMixedOperand = WS start:MixedOperand WS
-            SlotId(147) => {
+            SlotId(154) => {
                 let &[ws_0, start, ws_2] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -12963,7 +12963,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             // StartMixedRight = WS start:MixedRight WS
-            SlotId(151) => {
+            SlotId(158) => {
                 let &[ws_0, start, ws_2] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -12975,7 +12975,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             // StartMixedForeign = WS start:MixedForeign WS
-            SlotId(155) => {
+            SlotId(162) => {
                 let &[ws_0, start, ws_2] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -12987,7 +12987,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             // StartPacked = WS start:Packed WS
-            SlotId(159) => {
+            SlotId(166) => {
                 let &[ws_0, start, ws_2] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -12999,7 +12999,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             // StartPackedOperand = WS start:PackedOperand WS
-            SlotId(163) => {
+            SlotId(170) => {
                 let &[ws_0, start, ws_2] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -13011,7 +13011,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             // StartPackedMiddle = WS start:PackedMiddle WS
-            SlotId(167) => {
+            SlotId(174) => {
                 let &[ws_0, start, ws_2] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -13023,7 +13023,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             // StartPackedFiltered = WS start:PackedFiltered WS
-            SlotId(171) => {
+            SlotId(178) => {
                 let &[ws_0, start, ws_2] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -13035,7 +13035,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             // StartNullableRecursive = WS start:NullableRecursive WS
-            SlotId(175) => {
+            SlotId(182) => {
                 let &[ws_0, start, ws_2] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -13047,7 +13047,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             // StartNullableOperand = WS start:NullableOperand WS
-            SlotId(179) => {
+            SlotId(186) => {
                 let &[ws_0, start, ws_2] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -13059,7 +13059,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             // StartNullableMaybe = WS start:NullableMaybe WS
-            SlotId(183) => {
+            SlotId(190) => {
                 let &[ws_0, start, ws_2] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -13071,7 +13071,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             // StartNullableLexRecursive = WS start:NullableLexRecursive WS
-            SlotId(187) => {
+            SlotId(194) => {
                 let &[ws_0, start, ws_2] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -13083,7 +13083,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             // StartNullableLexOperand = WS start:NullableLexOperand WS
-            SlotId(191) => {
+            SlotId(198) => {
                 let &[ws_0, start, ws_2] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -13095,7 +13095,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             // StartNullableLexMaybe = WS start:NullableLexMaybe WS
-            SlotId(195) => {
+            SlotId(202) => {
                 let &[ws_0, start, ws_2] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -13107,7 +13107,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             // StartNullableSuffix = WS start:NullableSuffix WS
-            SlotId(199) => {
+            SlotId(206) => {
                 let &[ws_0, start, ws_2] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -13119,7 +13119,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             // StartNullableSuffixOperand = WS start:NullableSuffixOperand WS
-            SlotId(203) => {
+            SlotId(210) => {
                 let &[ws_0, start, ws_2] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -13131,7 +13131,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             // StartNullableSuffixMaybe = WS start:NullableSuffixMaybe WS
-            SlotId(207) => {
+            SlotId(214) => {
                 let &[ws_0, start, ws_2] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -13143,7 +13143,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             // StartNullableShared = WS start:NullableShared WS
-            SlotId(211) => {
+            SlotId(218) => {
                 let &[ws_0, start, ws_2] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -13155,7 +13155,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             // StartNullableSharedOperand = WS start:NullableSharedOperand WS
-            SlotId(215) => {
+            SlotId(222) => {
                 let &[ws_0, start, ws_2] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -13167,7 +13167,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             // StartNullableSharedMaybe = WS start:NullableSharedMaybe WS
-            SlotId(219) => {
+            SlotId(226) => {
                 let &[ws_0, start, ws_2] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -13179,7 +13179,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             // StartOwnLabel = WS start:OwnLabel WS
-            SlotId(223) => {
+            SlotId(230) => {
                 let &[ws_0, start, ws_2] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -13191,7 +13191,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             // StartOwnOperand = WS start:OwnOperand WS
-            SlotId(227) => {
+            SlotId(234) => {
                 let &[ws_0, start, ws_2] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -13203,7 +13203,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             // StartOwnHeadFiltered = WS start:OwnHeadFiltered WS
-            SlotId(231) => {
+            SlotId(238) => {
                 let &[ws_0, start, ws_2] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -13215,7 +13215,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             // StartExcludeOnly = WS start:ExcludeOnly WS
-            SlotId(235) => {
+            SlotId(242) => {
                 let &[ws_0, start, ws_2] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -13227,7 +13227,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             // StartExcludeOnlyFiltered = WS start:ExcludeOnlyFiltered WS
-            SlotId(239) => {
+            SlotId(246) => {
                 let &[ws_0, start, ws_2] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -13239,7 +13239,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             // StartAbsent = WS start:Absent WS
-            SlotId(243) => {
+            SlotId(250) => {
                 let &[ws_0, start, ws_2] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -13251,7 +13251,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             // StartAbsentOperand = WS start:AbsentOperand WS
-            SlotId(247) => {
+            SlotId(254) => {
                 let &[ws_0, start, ws_2] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -13263,7 +13263,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             // StartClosedPrefix = WS start:ClosedPrefix WS
-            SlotId(251) => {
+            SlotId(258) => {
                 let &[ws_0, start, ws_2] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -13275,7 +13275,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             // StartClosedPrefixBody = WS start:ClosedPrefixBody WS
-            SlotId(255) => {
+            SlotId(262) => {
                 let &[ws_0, start, ws_2] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -13287,7 +13287,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             // StartClosedPostfix = WS start:ClosedPostfix WS
-            SlotId(259) => {
+            SlotId(266) => {
                 let &[ws_0, start, ws_2] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -13299,7 +13299,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             // StartClosedPostfixBody = WS start:ClosedPostfixBody WS
-            SlotId(263) => {
+            SlotId(270) => {
                 let &[ws_0, start, ws_2] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -13311,7 +13311,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             // StartHeadChoice = WS start:HeadChoice WS
-            SlotId(267) => {
+            SlotId(274) => {
                 let &[ws_0, start, ws_2] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -13323,7 +13323,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             // StartHeadOperand = WS start:HeadOperand WS
-            SlotId(271) => {
+            SlotId(278) => {
                 let &[ws_0, start, ws_2] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -13335,7 +13335,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             // StartInner = WS start:Inner WS
-            SlotId(275) => {
+            SlotId(282) => {
                 let &[ws_0, start, ws_2] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -13347,7 +13347,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             // StartUnaryMixedLeft = WS start:UnaryMixedLeft WS
-            SlotId(279) => {
+            SlotId(286) => {
                 let &[ws_0, start, ws_2] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -13359,7 +13359,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             // StartUnaryMixedRight = WS start:UnaryMixedRight WS
-            SlotId(283) => {
+            SlotId(290) => {
                 let &[ws_0, start, ws_2] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -13371,7 +13371,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             // StartUnaryMixedNone = WS start:UnaryMixedNone WS
-            SlotId(287) => {
+            SlotId(294) => {
                 let &[ws_0, start, ws_2] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -13383,7 +13383,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             // StartDynamic = WS start:Dynamic WS
-            SlotId(291) => {
+            SlotId(298) => {
                 let &[ws_0, start, ws_2] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -13395,7 +13395,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             // StartDynamicOperand = WS start:DynamicOperand WS
-            SlotId(295) => {
+            SlotId(302) => {
                 let &[ws_0, start, ws_2] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -13407,7 +13407,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             // StartDynamicFiltered = WS start:DynamicFiltered WS
-            SlotId(299) => {
+            SlotId(306) => {
                 let &[ws_0, start, ws_2] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -13419,7 +13419,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             // StartDynamicHeadFiltered = WS start:DynamicHeadFiltered WS
-            SlotId(303) => {
+            SlotId(310) => {
                 let &[ws_0, start, ws_2] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -13431,7 +13431,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             // StartDynamicMulti = WS start:DynamicMulti WS
-            SlotId(307) => {
+            SlotId(314) => {
                 let &[ws_0, start, ws_2] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -13443,7 +13443,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             // StartDynamicMultiOperand = WS start:DynamicMultiOperand WS
-            SlotId(311) => {
+            SlotId(318) => {
                 let &[ws_0, start, ws_2] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -13455,7 +13455,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             // StartNullableBoundaryPrefix = WS start:NullableBoundaryPrefix WS
-            SlotId(315) => {
+            SlotId(322) => {
                 let &[ws_0, start, ws_2] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -13467,7 +13467,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             // StartNullableBoundaryRight = WS start:NullableBoundaryRight WS
-            SlotId(319) => {
+            SlotId(326) => {
                 let &[ws_0, start, ws_2] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -13479,7 +13479,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             // StartNullableBoundaryOpt = WS start:NullableBoundaryOpt WS
-            SlotId(323) => {
+            SlotId(330) => {
                 let &[ws_0, start, ws_2] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -13491,7 +13491,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             // StartNullableBoundaryPostfix = WS start:NullableBoundaryPostfix WS
-            SlotId(327) => {
+            SlotId(334) => {
                 let &[ws_0, start, ws_2] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -13503,7 +13503,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             // StartNullableBoundaryLeft = WS start:NullableBoundaryLeft WS
-            SlotId(331) => {
+            SlotId(338) => {
                 let &[ws_0, start, ws_2] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -13515,7 +13515,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             // StartNullableBoundaryBinary = WS start:NullableBoundaryBinary WS
-            SlotId(335) => {
+            SlotId(342) => {
                 let &[ws_0, start, ws_2] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -13527,7 +13527,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             // StartNullableBoundaryOperand = WS start:NullableBoundaryOperand WS
-            SlotId(339) => {
+            SlotId(346) => {
                 let &[ws_0, start, ws_2] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -13539,7 +13539,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             // StartClosedLeftAssoc = WS start:ClosedLeftAssoc WS
-            SlotId(343) => {
+            SlotId(350) => {
                 let &[ws_0, start, ws_2] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -13551,7 +13551,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             // StartClosedLeftOperand = WS start:ClosedLeftOperand WS
-            SlotId(347) => {
+            SlotId(354) => {
                 let &[ws_0, start, ws_2] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -13563,7 +13563,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             // StartClosedRightAssoc = WS start:ClosedRightAssoc WS
-            SlotId(351) => {
+            SlotId(358) => {
                 let &[ws_0, start, ws_2] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -13575,7 +13575,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             // StartClosedRightOperand = WS start:ClosedRightOperand WS
-            SlotId(355) => {
+            SlotId(362) => {
                 let &[ws_0, start, ws_2] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -13587,7 +13587,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             // StartIndirectExclude = WS start:IndirectExclude WS
-            SlotId(359) => {
+            SlotId(366) => {
                 let &[ws_0, start, ws_2] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -13599,7 +13599,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             // StartIndirectExcludeOperand = WS start:IndirectExcludeOperand WS
-            SlotId(363) => {
+            SlotId(370) => {
                 let &[ws_0, start, ws_2] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -13611,7 +13611,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             // StartIndirectExcludeFiltered = WS start:IndirectExcludeFiltered WS
-            SlotId(367) => {
+            SlotId(374) => {
                 let &[ws_0, start, ws_2] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -13623,7 +13623,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             // StartOperandLiteral = WS start:OperandLiteral WS
-            SlotId(371) => {
+            SlotId(378) => {
                 let &[ws_0, start, ws_2] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -13635,7 +13635,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             // StartOperandLiteralEnd = WS start:OperandLiteralEnd WS
-            SlotId(375) => {
+            SlotId(382) => {
                 let &[ws_0, start, ws_2] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -13647,7 +13647,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             // StartHeadLiteral = WS start:HeadLiteral WS
-            SlotId(379) => {
+            SlotId(386) => {
                 let &[ws_0, start, ws_2] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -13659,7 +13659,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             // StartHeadLiteralEnd = WS start:HeadLiteralEnd WS
-            SlotId(383) => {
+            SlotId(390) => {
                 let &[ws_0, start, ws_2] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -13671,7 +13671,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             // E = "a"
-            SlotId(386) => {
+            SlotId(393) => {
                 let &[lit_0] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -13681,7 +13681,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             // E = L WS "*" WS L
-            SlotId(395) => {
+            SlotId(402) => {
                 let &[l_0, ws_1, lit_2, ws_3, l_4] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -13695,7 +13695,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             // E = E WS "+" WS L
-            SlotId(404) => {
+            SlotId(411) => {
                 let &[e, ws_1, lit_2, ws_3, l] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -13709,7 +13709,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             // E = L WS "-" WS E
-            SlotId(413) => {
+            SlotId(420) => {
                 let &[l, ws_1, lit_2, ws_3, e] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -13723,7 +13723,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             // L = E
-            SlotId(416) => {
+            SlotId(423) => {
                 let &[e] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -13733,7 +13733,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             // Only = "b"
-            SlotId(419) => {
+            SlotId(426) => {
                 let &[lit_0] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -13743,7 +13743,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             // Only = OnlyOperand WS "^" WS OnlyOperand
-            SlotId(428) => {
+            SlotId(435) => {
                 let &[only_operand_0, ws_1, lit_2, ws_3, only_operand_4] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -13757,7 +13757,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             // OnlyOperand = Only
-            SlotId(431) => {
+            SlotId(438) => {
                 let &[only] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -13767,7 +13767,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             // Cross = "c"
-            SlotId(434) => {
+            SlotId(441) => {
                 let &[lit_0] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -13777,7 +13777,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             // Cross = Cross WS "-" WS Foreign
-            SlotId(443) => {
+            SlotId(450) => {
                 let &[cross, ws_1, lit_2, ws_3, foreign] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -13791,7 +13791,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             // Cross = Cross WS "+" WS Foreign
-            SlotId(452) => {
+            SlotId(459) => {
                 let &[cross, ws_1, lit_2, ws_3, foreign] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -13805,7 +13805,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             // Foreign = "d"
-            SlotId(455) => {
+            SlotId(462) => {
                 let &[lit_0] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -13815,7 +13815,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             // Foreign = Foreign WS "*" WS Foreign
-            SlotId(464) => {
+            SlotId(471) => {
                 let &[foreign_0, ws_1, lit_2, ws_3, foreign_4] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -13829,7 +13829,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             // Foreign = Cross
-            SlotId(467) => {
+            SlotId(474) => {
                 let &[cross] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -13839,7 +13839,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             // Cascade = "t"
-            SlotId(470) => {
+            SlotId(477) => {
                 let &[lit_0] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -13849,7 +13849,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             // Cascade = Cascade WS "+" WS Cascade
-            SlotId(479) => {
+            SlotId(486) => {
                 let &[cascade_0, ws_1, lit_2, ws_3, cascade_4] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -13863,7 +13863,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             // Cascade = Ternary
-            SlotId(482) => {
+            SlotId(489) => {
                 let &[ternary] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -13873,7 +13873,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             // Nullable = "n"
-            SlotId(485) => {
+            SlotId(492) => {
                 let &[lit_0] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -13883,7 +13883,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             // Nullable = NullableLeft WS "%" WS NullableRight
-            SlotId(492) => {
+            SlotId(499) => {
                 let &[nullable_left, ws_1, lit_2, ws_3, nullable_right] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -13897,7 +13897,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             // NullableRight = Nullable
-            SlotId(495) => {
+            SlotId(502) => {
                 let &[nullable] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -13907,7 +13907,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             // RightExpr = "r"
-            SlotId(498) => {
+            SlotId(505) => {
                 let &[lit_0] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -13917,7 +13917,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             // RightExpr = RightOperand WS ">" WS RightOperand
-            SlotId(507) => {
+            SlotId(514) => {
                 let &[right_operand_0, ws_1, lit_2, ws_3, right_operand_4] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -13931,7 +13931,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             // RightOperand = RightExpr
-            SlotId(510) => {
+            SlotId(517) => {
                 let &[right_expr] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -13941,7 +13941,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             // NoneExpr = "z"
-            SlotId(513) => {
+            SlotId(520) => {
                 let &[lit_0] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -13951,7 +13951,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             // NoneExpr = NoneOperand WS "=" WS NoneOperand
-            SlotId(522) => {
+            SlotId(529) => {
                 let &[none_operand_0, ws_1, lit_2, ws_3, none_operand_4] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -13965,7 +13965,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             // NoneOperand = NoneExpr
-            SlotId(525) => {
+            SlotId(532) => {
                 let &[none_expr] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -13975,7 +13975,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             // Excluded = "e"
-            SlotId(528) => {
+            SlotId(535) => {
                 let &[lit_0] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -13985,7 +13985,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             // Excluded = ExcludedOperand WS "&" WS ExcludedOperand
-            SlotId(537) => {
+            SlotId(544) => {
                 let &[excluded_operand_0, ws_1, lit_2, ws_3, excluded_operand_4] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -13999,7 +13999,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             // ExcludedOperand = Excluded #plain
-            SlotId(541) => {
+            SlotId(548) => {
                 let &[excluded] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -14009,7 +14009,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             // ExcludedOperand = "(" WS ExcludedOperand WS ")" #paren
-            SlotId(549) => {
+            SlotId(556) => {
                 let &[lit_0, ws_1, excluded_operand, ws_3, lit_4] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -14023,7 +14023,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             // LexNullable = "q"
-            SlotId(552) => {
+            SlotId(559) => {
                 let &[lit_0] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -14033,7 +14033,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             // LexNullable = LexNullableLeft WS "/" WS LexNullableRight
-            SlotId(559) => {
+            SlotId(566) => {
                 let &[lex_nullable_left, ws_1, lit_2, ws_3, lex_nullable_right] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -14047,7 +14047,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             // LexNullableRight = LexNullable
-            SlotId(562) => {
+            SlotId(569) => {
                 let &[lex_nullable] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -14057,7 +14057,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             // MixedScale = "m"
-            SlotId(565) => {
+            SlotId(572) => {
                 let &[lit_0] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -14067,7 +14067,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             // MixedScale = MixedOperand WS "~" WS MixedRight
-            SlotId(574) => {
+            SlotId(581) => {
                 let &[mixed_operand, ws_1, lit_2, ws_3, mixed_right] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -14081,7 +14081,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             // MixedOperand = MixedScale
-            SlotId(577) => {
+            SlotId(584) => {
                 let &[mixed_scale] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -14091,7 +14091,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             // MixedOperand = MixedForeign
-            SlotId(580) => {
+            SlotId(587) => {
                 let &[mixed_foreign] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -14101,7 +14101,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             // MixedRight = MixedScale
-            SlotId(583) => {
+            SlotId(590) => {
                 let &[mixed_scale] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -14111,7 +14111,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             // MixedForeign = "f"
-            SlotId(586) => {
+            SlotId(593) => {
                 let &[lit_0] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -14121,7 +14121,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             // MixedForeign = MixedForeign WS "!" WS MixedForeign
-            SlotId(595) => {
+            SlotId(602) => {
                 let &[mixed_foreign_0, ws_1, lit_2, ws_3, mixed_foreign_4] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -14135,7 +14135,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             // Packed = "p"
-            SlotId(598) => {
+            SlotId(605) => {
                 let &[lit_0] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -14145,7 +14145,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             // Packed = PackedOperand WS "+" WS PackedOperand
-            SlotId(607) => {
+            SlotId(614) => {
                 let &[packed_operand_0, ws_1, lit_2, ws_3, packed_operand_4] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -14159,7 +14159,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             // PackedOperand = PackedMiddle
-            SlotId(610) => {
+            SlotId(617) => {
                 let &[packed_middle] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -14169,7 +14169,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             // PackedMiddle = Packed #plain
-            SlotId(614) => {
+            SlotId(621) => {
                 let &[packed] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -14179,7 +14179,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             // PackedMiddle = "(" WS Packed WS ")" #paren
-            SlotId(622) => {
+            SlotId(629) => {
                 let &[lit_0, ws_1, packed, ws_3, lit_4] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -14193,7 +14193,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             // NullableRecursive = "u"
-            SlotId(625) => {
+            SlotId(632) => {
                 let &[lit_0] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -14203,7 +14203,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             // NullableRecursive = NullableOperand WS "+" WS NullableRecursive
-            SlotId(634) => {
+            SlotId(641) => {
                 let &[nullable_operand, ws_1, lit_2, ws_3, nullable_recursive] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -14217,7 +14217,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             // NullableOperand = NullableMaybe WS NullableRecursive
-            SlotId(639) => {
+            SlotId(646) => {
                 let &[nullable_maybe, ws, nullable_recursive] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -14229,7 +14229,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             // NullableMaybe = NullableRecursive?
-            SlotId(642) => {
+            SlotId(649) => {
                 let &[nullable_recursive] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -14239,7 +14239,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             // NullableLexRecursive = "v"
-            SlotId(645) => {
+            SlotId(652) => {
                 let &[lit_0] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -14249,7 +14249,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             // NullableLexRecursive = NullableLexOperand WS "+" WS NullableLexRecursive
-            SlotId(654) => {
+            SlotId(661) => {
                 let &[
                     nullable_lex_operand,
                     ws_1,
@@ -14270,7 +14270,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             // NullableLexOperand = NullableLexMaybe WS NullableLexRecursive
-            SlotId(659) => {
+            SlotId(666) => {
                 let &[nullable_lex_maybe, ws, nullable_lex_recursive] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -14282,7 +14282,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             // NullableLexMaybe = NullableLexRecursive
-            SlotId(662) => {
+            SlotId(669) => {
                 let &[nullable_lex_recursive] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -14292,7 +14292,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             // NullableLexMaybe = Digits
-            SlotId(665) => {
+            SlotId(672) => {
                 let &[digits] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -14302,7 +14302,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             // NullableSuffix = "w"
-            SlotId(668) => {
+            SlotId(675) => {
                 let &[lit_0] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -14312,7 +14312,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             // NullableSuffix = NullableSuffix WS "+" WS NullableSuffixOperand
-            SlotId(678) => {
+            SlotId(685) => {
                 let &[nullable_suffix, ws_1, lit_2, ws_3, nullable_suffix_operand] = children
                 else {
                     ParseTree::unexpected_node()
@@ -14328,7 +14328,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             // NullableSuffixOperand = NullableSuffix WS NullableSuffixMaybe
-            SlotId(683) => {
+            SlotId(690) => {
                 let &[nullable_suffix, ws, nullable_suffix_maybe] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -14340,7 +14340,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             // NullableSuffixMaybe = NullableSuffix?
-            SlotId(686) => {
+            SlotId(693) => {
                 let &[nullable_suffix] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -14350,7 +14350,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             // NullableShared = "j"
-            SlotId(689) => {
+            SlotId(696) => {
                 let &[lit_0] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -14360,7 +14360,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             // NullableShared = NullableSharedOperand WS "+" WS NullableSharedOperand
-            SlotId(698) => {
+            SlotId(705) => {
                 let &[
                     nullable_shared_operand_0,
                     ws_1,
@@ -14383,7 +14383,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             // NullableSharedOperand = NullableSharedMaybe WS NullableShared WS NullableSharedMaybe
-            SlotId(705) => {
+            SlotId(712) => {
                 let &[
                     nullable_shared_maybe_0,
                     ws_1,
@@ -14404,7 +14404,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             // NullableSharedMaybe = NullableShared?
-            SlotId(708) => {
+            SlotId(715) => {
                 let &[nullable_shared] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -14414,7 +14414,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             // OwnLabel = "k" #atom
-            SlotId(712) => {
+            SlotId(719) => {
                 let &[lit_0] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -14424,7 +14424,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             // OwnLabel = OwnOperand WS "+" WS OwnOperand #binary
-            SlotId(723) => {
+            SlotId(730) => {
                 let &[own_operand_0, ws_1, lit_2, ws_3, own_operand_4] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -14438,7 +14438,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             // OwnOperand = OwnLabel #allowed
-            SlotId(727) => {
+            SlotId(734) => {
                 let &[own_label] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -14448,7 +14448,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             // OwnOperand = "(" WS OwnLabel WS ")" #blocked
-            SlotId(735) => {
+            SlotId(742) => {
                 let &[lit_0, ws_1, own_label, ws_3, lit_4] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -14462,7 +14462,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             // ExcludeOnly = "s" #blocked
-            SlotId(739) => {
+            SlotId(746) => {
                 let &[lit_0] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -14472,7 +14472,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             // ExcludeOnly = "t"
-            SlotId(742) => {
+            SlotId(749) => {
                 let &[lit_0] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -14482,7 +14482,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             // Absent = "a"
-            SlotId(745) => {
+            SlotId(752) => {
                 let &[lit_0] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -14492,7 +14492,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             // Absent = Absent WS "*" WS Absent
-            SlotId(754) => {
+            SlotId(761) => {
                 let &[absent_0, ws_1, lit_2, ws_3, absent_4] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -14506,7 +14506,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             // Absent = AbsentOperand WS "+" WS AbsentOperand
-            SlotId(762) => {
+            SlotId(769) => {
                 let &[absent_operand_0, ws_1, lit_2, ws_3, absent_operand_4] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -14520,7 +14520,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             // AbsentOperand = Absent
-            SlotId(765) => {
+            SlotId(772) => {
                 let &[absent] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -14530,7 +14530,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             // AbsentOperand = "b"
-            SlotId(768) => {
+            SlotId(775) => {
                 let &[lit_0] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -14540,7 +14540,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             // ClosedPrefix = "a"
-            SlotId(771) => {
+            SlotId(778) => {
                 let &[lit_0] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -14550,7 +14550,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             // ClosedPrefix = ClosedPrefix WS "+" WS ClosedPrefix
-            SlotId(780) => {
+            SlotId(787) => {
                 let &[closed_prefix_0, ws_1, lit_2, ws_3, closed_prefix_4] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -14564,7 +14564,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             // ClosedPrefix = "pre" WS ClosedPrefixBody
-            SlotId(785) => {
+            SlotId(792) => {
                 let &[lit_0, ws, closed_prefix_body] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -14576,7 +14576,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             // ClosedPrefixBody = ClosedPrefix
-            SlotId(788) => {
+            SlotId(795) => {
                 let &[closed_prefix] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -14586,7 +14586,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             // ClosedPrefixBody = "b"
-            SlotId(791) => {
+            SlotId(798) => {
                 let &[lit_0] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -14596,7 +14596,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             // ClosedPostfix = "a"
-            SlotId(794) => {
+            SlotId(801) => {
                 let &[lit_0] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -14606,7 +14606,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             // ClosedPostfix = "pre" WS ClosedPostfix
-            SlotId(799) => {
+            SlotId(806) => {
                 let &[lit_0, ws, closed_postfix] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -14618,7 +14618,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             // ClosedPostfix = ClosedPostfixBody WS "!"
-            SlotId(805) => {
+            SlotId(812) => {
                 let &[closed_postfix_body, ws, lit_2] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -14630,7 +14630,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             // ClosedPostfixBody = ClosedPostfix
-            SlotId(808) => {
+            SlotId(815) => {
                 let &[closed_postfix] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -14640,7 +14640,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             // ClosedPostfixBody = "b"
-            SlotId(811) => {
+            SlotId(818) => {
                 let &[lit_0] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -14650,7 +14650,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             // HeadChoice = "a"
-            SlotId(814) => {
+            SlotId(821) => {
                 let &[lit_0] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -14660,7 +14660,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             // HeadChoice = HeadOperand WS "+" WS HeadOperand
-            SlotId(823) => {
+            SlotId(830) => {
                 let &[head_operand_0, ws_1, lit_2, ws_3, head_operand_4] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -14674,7 +14674,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             // HeadChoice = Inner
-            SlotId(826) => {
+            SlotId(833) => {
                 let &[inner] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -14684,7 +14684,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             // HeadOperand = HeadChoice
-            SlotId(829) => {
+            SlotId(836) => {
                 let &[head_choice] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -14694,7 +14694,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             // Inner = "b"
-            SlotId(832) => {
+            SlotId(839) => {
                 let &[lit_0] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -14704,7 +14704,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             // Inner = Inner WS "*" WS Inner
-            SlotId(841) => {
+            SlotId(848) => {
                 let &[inner_0, ws_1, lit_2, ws_3, inner_4] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -14718,7 +14718,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             // UnaryMixedLeft = UnaryMixedLeft WS "+" WS UnaryMixedLeft
-            SlotId(851) => {
+            SlotId(858) => {
                 let &[unary_mixed_left_0, ws_1, lit_2, ws_3, unary_mixed_left_4] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -14732,7 +14732,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             // UnaryMixedLeft = "-" WS UnaryMixedLeft
-            SlotId(856) => {
+            SlotId(863) => {
                 let &[lit_0, ws, unary_mixed_left] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -14744,7 +14744,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             // UnaryMixedLeft = UnaryMixedLeft WS "!"
-            SlotId(863) => {
+            SlotId(870) => {
                 let &[unary_mixed_left, ws, lit_2] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -14756,7 +14756,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             // UnaryMixedLeft = "a"
-            SlotId(866) => {
+            SlotId(873) => {
                 let &[lit_0] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -14766,7 +14766,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             // UnaryMixedRight = UnaryMixedRight WS "+" WS UnaryMixedRight
-            SlotId(876) => {
+            SlotId(883) => {
                 let &[unary_mixed_right_0, ws_1, lit_2, ws_3, unary_mixed_right_4] = children
                 else {
                     ParseTree::unexpected_node()
@@ -14781,7 +14781,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             // UnaryMixedRight = "-" WS UnaryMixedRight
-            SlotId(881) => {
+            SlotId(888) => {
                 let &[lit_0, ws, unary_mixed_right] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -14793,7 +14793,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             // UnaryMixedRight = UnaryMixedRight WS "!"
-            SlotId(888) => {
+            SlotId(895) => {
                 let &[unary_mixed_right, ws, lit_2] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -14805,7 +14805,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             // UnaryMixedRight = "a"
-            SlotId(891) => {
+            SlotId(898) => {
                 let &[lit_0] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -14815,7 +14815,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             // UnaryMixedNone = UnaryMixedNone WS "+" WS UnaryMixedNone
-            SlotId(902) => {
+            SlotId(909) => {
                 let &[unary_mixed_none_0, ws_1, lit_2, ws_3, unary_mixed_none_4] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -14829,7 +14829,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             // UnaryMixedNone = "-" WS UnaryMixedNone
-            SlotId(907) => {
+            SlotId(914) => {
                 let &[lit_0, ws, unary_mixed_none] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -14841,7 +14841,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             // UnaryMixedNone = UnaryMixedNone WS "!"
-            SlotId(914) => {
+            SlotId(921) => {
                 let &[unary_mixed_none, ws, lit_2] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -14853,7 +14853,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             // UnaryMixedNone = "a"
-            SlotId(917) => {
+            SlotId(924) => {
                 let &[lit_0] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -14863,7 +14863,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             // Dynamic = DynamicOperand WS "+" WS DynamicOperand #binary
-            SlotId(928) => {
+            SlotId(935) => {
                 let &[dynamic_operand_0, ws_1, lit_2, ws_3, dynamic_operand_4] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -14877,7 +14877,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             // Dynamic = "-" WS DynamicOperand #prefix
-            SlotId(934) => {
+            SlotId(941) => {
                 let &[lit_0, ws, dynamic_operand] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -14889,7 +14889,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             // Dynamic = DynamicOperand WS "!" #postfix
-            SlotId(941) => {
+            SlotId(948) => {
                 let &[dynamic_operand, ws, lit_2] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -14901,7 +14901,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             // Dynamic = "a" #atom
-            SlotId(945) => {
+            SlotId(952) => {
                 let &[lit_0] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -14911,7 +14911,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             // DynamicOperand = Dynamic #pass
-            SlotId(949) => {
+            SlotId(956) => {
                 let &[dynamic] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -14921,7 +14921,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             // DynamicOperand = "b" #closed
-            SlotId(953) => {
+            SlotId(960) => {
                 let &[lit_0] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -14931,7 +14931,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             // DynamicMulti = DynamicMultiOperand WS "+" WS DynamicMultiOperand
-            SlotId(962) => {
+            SlotId(969) => {
                 let &[
                     dynamic_multi_operand_0,
                     ws_1,
@@ -14952,7 +14952,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             // DynamicMulti = "-" WS DynamicMultiOperand
-            SlotId(967) => {
+            SlotId(974) => {
                 let &[lit_0, ws, dynamic_multi_operand] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -14964,7 +14964,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             // DynamicMulti = DynamicMultiOperand WS "!"
-            SlotId(973) => {
+            SlotId(980) => {
                 let &[dynamic_multi_operand, ws, lit_2] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -14976,7 +14976,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             // DynamicMulti = DynamicMultiOperand WS ";" WS DynamicMultiOperand
-            SlotId(982) => {
+            SlotId(989) => {
                 let &[
                     dynamic_multi_operand_0,
                     ws_1,
@@ -14997,7 +14997,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             // DynamicMulti = "a"
-            SlotId(985) => {
+            SlotId(992) => {
                 let &[lit_0] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -15007,7 +15007,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             // DynamicMultiOperand = DynamicMulti
-            SlotId(988) => {
+            SlotId(995) => {
                 let &[dynamic_multi] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -15017,7 +15017,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             // DynamicMultiOperand = "b"
-            SlotId(991) => {
+            SlotId(998) => {
                 let &[lit_0] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -15027,7 +15027,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             // NullableBoundaryPrefix = "a"
-            SlotId(994) => {
+            SlotId(1001) => {
                 let &[lit_0] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -15037,7 +15037,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             // NullableBoundaryPrefix = "-" WS NullableBoundaryRight
-            SlotId(999) => {
+            SlotId(1006) => {
                 let &[lit_0, ws, nullable_boundary_right] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -15050,7 +15050,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             // NullableBoundaryPrefix = NullableBoundaryPrefix WS "+" WS NullableBoundaryPrefix
-            SlotId(1008) => {
+            SlotId(1015) => {
                 let &[
                     nullable_boundary_prefix_0,
                     ws_1,
@@ -15073,7 +15073,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             // NullableBoundaryPostfix = "a"
-            SlotId(1011) => {
+            SlotId(1018) => {
                 let &[lit_0] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -15085,7 +15085,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 ))
             }
             // NullableBoundaryPostfix = NullableBoundaryLeft WS "-"
-            SlotId(1016) => {
+            SlotId(1023) => {
                 let &[nullable_boundary_left, ws, lit_2] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -15100,7 +15100,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 ))
             }
             // NullableBoundaryPostfix = NullableBoundaryPostfix WS "+" WS NullableBoundaryPostfix
-            SlotId(1025) => {
+            SlotId(1032) => {
                 let &[
                     nullable_boundary_postfix_0,
                     ws_1,
@@ -15125,7 +15125,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 ))
             }
             // NullableBoundaryBinary = "a"
-            SlotId(1028) => {
+            SlotId(1035) => {
                 let &[lit_0] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -15135,7 +15135,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             // NullableBoundaryBinary = NullableBoundaryBinary WS "*" WS NullableBoundaryOperand
-            SlotId(1037) => {
+            SlotId(1044) => {
                 let &[
                     nullable_boundary_binary,
                     ws_1,
@@ -15158,7 +15158,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             // NullableBoundaryBinary = NullableBoundaryBinary WS "+" WS NullableBoundaryBinary
-            SlotId(1046) => {
+            SlotId(1053) => {
                 let &[
                     nullable_boundary_binary_0,
                     ws_1,
@@ -15181,7 +15181,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             // ClosedLeftAssoc = "a"
-            SlotId(1049) => {
+            SlotId(1056) => {
                 let &[lit_0] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -15191,7 +15191,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             // ClosedLeftAssoc = ClosedLeftOperand WS "+" WS ClosedLeftAssoc
-            SlotId(1058) => {
+            SlotId(1065) => {
                 let &[closed_left_operand, ws_1, lit_2, ws_3, closed_left_assoc] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -15205,7 +15205,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             // ClosedLeftOperand = ClosedLeftAssoc
-            SlotId(1061) => {
+            SlotId(1068) => {
                 let &[closed_left_assoc] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -15215,7 +15215,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             // ClosedLeftOperand = "!"
-            SlotId(1064) => {
+            SlotId(1071) => {
                 let &[lit_0] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -15225,7 +15225,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             // ClosedRightAssoc = "a"
-            SlotId(1067) => {
+            SlotId(1074) => {
                 let &[lit_0] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -15235,7 +15235,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             // ClosedRightAssoc = ClosedRightAssoc WS "+" WS ClosedRightOperand
-            SlotId(1077) => {
+            SlotId(1084) => {
                 let &[closed_right_assoc, ws_1, lit_2, ws_3, closed_right_operand] = children
                 else {
                     ParseTree::unexpected_node()
@@ -15250,7 +15250,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             // ClosedRightOperand = ClosedRightAssoc
-            SlotId(1080) => {
+            SlotId(1087) => {
                 let &[closed_right_assoc] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -15260,7 +15260,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             // ClosedRightOperand = "!"
-            SlotId(1083) => {
+            SlotId(1090) => {
                 let &[lit_0] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -15270,7 +15270,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             // IndirectExclude = "a" #atom
-            SlotId(1087) => {
+            SlotId(1094) => {
                 let &[lit_0] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -15280,7 +15280,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             // IndirectExclude = IndirectExcludeOperand WS "+" WS IndirectExcludeOperand #binary
-            SlotId(1097) => {
+            SlotId(1104) => {
                 let &[
                     indirect_exclude_operand_0,
                     ws_1,
@@ -15303,7 +15303,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             // IndirectExcludeOperand = IndirectExclude #pass
-            SlotId(1102) => {
+            SlotId(1109) => {
                 let &[indirect_exclude] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -15313,7 +15313,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             // IndirectExcludeOperand = "b" #closed
-            SlotId(1106) => {
+            SlotId(1113) => {
                 let &[lit_0] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -15325,7 +15325,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 ))
             }
             // OperandLiteral = "x"
-            SlotId(1109) => {
+            SlotId(1116) => {
                 let &[lit_0] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -15335,7 +15335,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             // OperandLiteral = OperandLiteralEnd WS "*" WS OperandLiteralEnd
-            SlotId(1118) => {
+            SlotId(1125) => {
                 let &[
                     operand_literal_end_0,
                     ws_1,
@@ -15356,7 +15356,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             // OperandLiteral = OperandLiteralEnd WS "+" WS OperandLiteralEnd
-            SlotId(1127) => {
+            SlotId(1134) => {
                 let &[
                     operand_literal_end_0,
                     ws_1,
@@ -15377,7 +15377,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             // OperandLiteralEnd = OperandLiteral
-            SlotId(1130) => {
+            SlotId(1137) => {
                 let &[operand_literal] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -15387,7 +15387,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             // OperandLiteralEnd = "1"
-            SlotId(1133) => {
+            SlotId(1140) => {
                 let &[lit_0] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -15397,7 +15397,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             // HeadLiteral = "x"
-            SlotId(1136) => {
+            SlotId(1143) => {
                 let &[lit_0] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -15407,7 +15407,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             // HeadLiteral = "1"
-            SlotId(1139) => {
+            SlotId(1146) => {
                 let &[lit_0] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -15417,7 +15417,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             // HeadLiteral = HeadLiteralEnd WS "*" WS HeadLiteralEnd
-            SlotId(1148) => {
+            SlotId(1155) => {
                 let &[head_literal_end_0, ws_1, lit_2, ws_3, head_literal_end_4] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -15431,7 +15431,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             // HeadLiteral = HeadLiteralEnd WS "+" WS HeadLiteralEnd
-            SlotId(1157) => {
+            SlotId(1164) => {
                 let &[head_literal_end_0, ws_1, lit_2, ws_3, head_literal_end_4] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -15445,7 +15445,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             // HeadLiteralEnd = HeadLiteral
-            SlotId(1160) => {
+            SlotId(1167) => {
                 let &[head_literal] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -15455,7 +15455,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             // Opt_1 = NullableRecursive
-            SlotId(1163) => {
+            SlotId(1170) => {
                 let &[nullable_recursive] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -15465,7 +15465,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             // Opt_1 =
-            SlotId(1165) => {
+            SlotId(1172) => {
                 let &[] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -15474,7 +15474,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             // Opt_2 = NullableSuffix
-            SlotId(1168) => {
+            SlotId(1175) => {
                 let &[nullable_suffix] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -15484,7 +15484,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             // Opt_2 =
-            SlotId(1170) => {
+            SlotId(1177) => {
                 let &[] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -15493,7 +15493,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             // Opt_3 = NullableShared
-            SlotId(1173) => {
+            SlotId(1180) => {
                 let &[nullable_shared] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -15503,7 +15503,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             // Opt_3 =
-            SlotId(1175) => {
+            SlotId(1182) => {
                 let &[] = children else {
                     ParseTree::unexpected_node()
                 };

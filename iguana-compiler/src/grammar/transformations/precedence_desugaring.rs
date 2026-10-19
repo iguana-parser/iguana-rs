@@ -231,8 +231,8 @@
 // In `S`, `E` cannot be derived through the alternative labeled `Add`.
 // The exclusion transformation adds a parameter `e` for the excluded labels
 // and guards the corresponding alternatives. The precedence transformation
-// adds `p`, so a call can restrict both the precedence and the alternatives
-// of `E`.
+// adds `p` for the precedence, and replaces the exclusion in each call with a
+// check of the label that the call returns.
 //
 // The desugared grammar below shows returns as `(p, label)` pairs, where `p`
 // is the returned precedence and `label` is the chosen alternative's label index.
@@ -247,12 +247,14 @@
 //     | [(4 & e) == 0] [1 >= p] (l_pr, l_label)=E(p, 0) [l_pr == 0 || l_pr >= 1] "+" E(1, 0) return (1, 2) #Add
 //
 //   S
-//     = E(0, 4)
+//     = (x_pr, x_label)=E(0, 0) [(x_label == NO_LABEL) || ((4 >> x_label) & 1 == 0)]
 //
-// The call `E(0, 4)` leaves precedence unrestricted and excludes `Add`.
-// Multiplication returns `(2, 1)`: precedence 2 and the label index for `Mul`.
-// Precedence conditions read the first component. An exclusion on a left
-// recursive reference checks the second component after the call.
+// The call in `S` leaves precedence unrestricted, and the condition after it
+// rejects a returned `Add`. Multiplication returns `(2, 1)`: precedence 2 and
+// the label index for `Mul`. Precedence conditions read the first component,
+// and exclusion checks read the second. Every call passes `e = 0` and checks
+// the excluded labels after the call, so all calls to `E` at a position share
+// one GSS node, whatever they exclude.
 //
 // An intermediate nonterminal forwards the precedence and associativity of the
 // selected recursive end, but returns its own label. For example, `L = E`
@@ -266,9 +268,10 @@ use rustc_hash::{FxHashMap, FxHashSet};
 use crate::grammar::{
     def::{Alternative, Associativity, PriorityLevel, SyntaxRule},
     symbols::{
-        Cond, CondOp, Expr, Identifier, Nonterminal, ParamType, Parameter, Restrictions, Symbol,
+        BindingPattern, Cond, CondOp, Expr, Identifier, Nonterminal, ParamType, Parameter,
+        Restrictions, Symbol,
     },
-    transformations::{transform_symbol, transform_syntax_rule},
+    transformations::{transform_rule_by_symbols, transform_symbol, transform_syntax_rule},
 };
 
 /// Classifies an alternative by its left and right recursive ends.
@@ -369,8 +372,9 @@ struct PrecedenceDesugaring {
     /// Direct left- and right-end relations between nonterminals.
     ends: Ends,
     /// Nonterminal names referenced with exclusions, such as `E` in `E !Add`.
-    /// Exclusion desugaring gives these nonterminals an `e` parameter. Calls
-    /// without an exclusion pass `0` for this argument.
+    /// Exclusion desugaring gives these nonterminals an `e` parameter. This
+    /// transformation replaces the mask in each call with `0` and a check of
+    /// the returned label.
     exclusion_targets: FxHashSet<String>,
     /// Maps each intermediate nonterminal's name to its `IndirectRecursion` record.
     indirect_recursion: FxHashMap<String, IndirectRecursion>,
@@ -457,9 +461,101 @@ impl PrecedenceDesugaring {
                 } else {
                     rule
                 };
-                self.update_unrestricted_references(rule)
+                self.check_returned_labels(self.update_unrestricted_references(rule))
             })
             .collect()
+    }
+
+    fn refers_to_exclusion_target(&self, symbol: &Symbol) -> bool {
+        symbol
+            .as_identifier()
+            .is_some_and(|id| self.exclusion_targets.contains(&id.name))
+    }
+
+    /// The exclusion mask of a reference to an exclusion target, or zero for
+    /// any other symbol. The mask is the last argument.
+    fn exclusion_mask(&self, symbol: &Symbol) -> i64 {
+        if !self.refers_to_exclusion_target(symbol) {
+            return 0;
+        }
+        match symbol.call_arguments().last() {
+            Some(Expr::Int(mask)) => *mask,
+            _ => unreachable!("expected the exclusion mask as the last argument of {symbol}"),
+        }
+    }
+
+    /// Rewrites each call that passes an exclusion mask, such as `E(0, 4)` in
+    /// `S = E(0, 4)`, into a call with `e = 0` followed by a check of the
+    /// returned label:
+    ///
+    /// ```text
+    ///   S = (x_pr, x_label)=E(0, 0) [(x_label == NO_LABEL) || ((4 >> x_label) & 1 == 0)]
+    /// ```
+    ///
+    /// All calls to `E` at a position then share one GSS node, whatever they
+    /// exclude. A call already bound to a tuple, such as the left end
+    /// `(l_pr, l_label)=E(p, 4)`, keeps its binding, and the check reads its
+    /// label. Other calls are bound with the prefix `x`. A call bound to a
+    /// single name keeps its mask, because its label has no name to check.
+    fn check_returned_labels(&self, rule: SyntaxRule) -> SyntaxRule {
+        transform_rule_by_symbols(rule, |symbols| {
+            symbols
+                .into_iter()
+                .flat_map(|symbol| self.check_returned_label(symbol))
+                .collect()
+        })
+    }
+
+    /// The symbols for `symbol`: the symbol itself if it passes no exclusion
+    /// mask, or the call with `e = 0` followed by a check of its returned
+    /// label.
+    fn check_returned_label(&self, symbol: Symbol) -> Vec<Symbol> {
+        let mask = self.exclusion_mask(&symbol);
+        if mask == 0 {
+            return vec![symbol];
+        }
+        let symbol = match symbol.binding_pattern() {
+            Some(BindingPattern::Name(_)) => return vec![symbol],
+            Some(BindingPattern::Tuple(_)) => symbol,
+            None => self.make_call(&symbol, symbol.call_arguments().to_vec(), Some("x")),
+        };
+        // The label is the last component of the returned tuple.
+        let label = symbol.binding_pattern().unwrap().names().last().unwrap();
+        let check = make_exclusion_postcondition(mask, label);
+        vec![clear_exclusion_mask(symbol), check]
+    }
+
+    /// A call for the reference `symbol` that passes `arguments`. With a
+    /// `binding_prefix`, the call binds the returned value to the components
+    /// of the callee's return shape. The call keeps the reference's label, and
+    /// the reference's restrictions wrap the result.
+    fn make_call(
+        &self,
+        symbol: &Symbol,
+        arguments: Vec<Expr>,
+        binding_prefix: Option<&str>,
+    ) -> Symbol {
+        let id = extract_identifier(symbol);
+        let wrappers = reference_wrappers(symbol);
+        let call = Symbol::Call {
+            name: id.clone(),
+            arguments,
+        };
+        let call = match wrappers.label {
+            Some(label) => Symbol::Labeled {
+                label,
+                symbol: Box::new(call),
+            },
+            None => call,
+        };
+        let call = match binding_prefix {
+            Some(prefix) => Symbol::Binding {
+                pattern: self.return_shape(&id.name).binding(prefix),
+                symbol: Box::new(call),
+            },
+            None => call,
+        };
+        Symbol::restricted(call, wrappers.restrictions)
     }
 
     /// Parameter names in call order. Exclusion desugaring supplies `e`; this
@@ -498,7 +594,7 @@ impl PrecedenceDesugaring {
             nonterminal,
             Expr::Int(0),
             Expr::Int(end_value(End::Left)),
-            0,
+            Expr::Int(0),
             Expr::Int(0),
         )
     }
@@ -637,50 +733,36 @@ impl PrecedenceDesugaring {
 
     /// Arguments for a recursive end. An intermediate nonterminal used at both
     /// ends has an `end` argument selecting the end that receives `p`. Other
-    /// targets omit this argument.
+    /// targets omit this argument. Only an exclusion target receives `e_arg`.
     fn end_call_args(
         &self,
         target: &str,
         p_arg: Expr,
         end_arg: Expr,
-        local_n: i64,
         a_arg: Expr,
+        e_arg: Expr,
     ) -> Vec<Expr> {
         self.parameter_names(target)
             .map(|name| match name {
                 "p" => p_arg.clone(),
                 "end" => end_arg.clone(),
                 "a" => a_arg.clone(),
-                "e" => Expr::Int(local_n),
+                "e" => e_arg.clone(),
                 _ => unreachable!("unknown precedence parameter"),
             })
             .collect()
     }
 
-    /// Creates the left binding symbol: `l_pr=E(p)` (or `l_pr=E(p, 0)` for an exclusion target).
-    /// For example, a left recursive reference `E !Add` calls `E` with `e = 0`,
-    /// even though the reference excludes addition. References with different
-    /// exclusions can share this call without splitting the GSS by exclusion
-    /// context. The call may return an addition; the caller rejects that result
-    /// by checking its label with `make_local_exclusion_postcondition`.
-    /// A `label` from the original symbol is preserved inside the binding.
-    fn make_left_binding(&self, id: &Identifier, label: Option<&str>) -> Symbol {
-        Symbol::Binding {
-            pattern: self.return_shape(&id.name).binding("l"),
-            symbol: Box::new(label_symbol(
-                label,
-                Symbol::Call {
-                    name: id.clone(),
-                    arguments: self.end_call_args(
-                        &id.name,
-                        Expr::Ref("p".to_string()),
-                        Expr::Int(end_value(End::Left)),
-                        0,
-                        Expr::Int(0),
-                    ),
-                },
-            )),
-        }
+    /// Creates the left binding symbol `l_pr=E(p)` for the left recursive
+    /// reference `left`.
+    fn make_left_binding(&self, left: &Symbol) -> Symbol {
+        self.make_end_call(
+            left,
+            Some("l"),
+            Expr::Ref("p".to_string()),
+            Expr::Int(end_value(End::Left)),
+            Expr::Int(0),
+        )
     }
 
     /// Rewrites a binary alternative `E op E` at precedence level `pr` into a
@@ -784,8 +866,6 @@ impl PrecedenceDesugaring {
             .indirect_recursion
             .get(&right_id.name)
             .is_some_and(|recursion| !recursion.is_always_present_at_end(End::Right));
-        let left_wrappers = end_wrappers(left);
-        let right_wrappers = end_wrappers(right);
         let restrict_left = matches!(assoc, Some(Associativity::Right | Associativity::NonAssoc));
         let restrict_right = matches!(assoc, Some(Associativity::Left | Associativity::NonAssoc));
         let left_lower_bound = pr + i64::from(!use_a && restrict_left);
@@ -813,15 +893,8 @@ impl PrecedenceDesugaring {
                 symbols.push(Symbol::Condition(incoming));
             }
         }
-        symbols.push(Symbol::restricted(
-            self.make_left_binding(left_id, left_wrappers.label.as_deref()),
-            left_wrappers.restrictions,
-        ));
+        symbols.push(self.make_left_binding(left));
         symbols.push(left_postcondition(pr, left_lower_bound, optional_left));
-        let left_mask = extract_exclusion_mask(left);
-        if self.exclusion_targets.contains(&left_id.name) && left_mask != 0 {
-            symbols.push(make_local_exclusion_postcondition(left_mask, "l"));
-        }
         if use_a && restrict_left {
             let left_associativity =
                 compare(Expr::Ref("l_assoc".to_string()), CondOp::Neq, Expr::Int(pr));
@@ -845,28 +918,16 @@ impl PrecedenceDesugaring {
         } else {
             Expr::Int(0)
         };
-        let mut right_call = label_symbol(
-            right_wrappers.label.as_deref(),
-            Symbol::Call {
-                name: right_id.clone(),
-                arguments: self.end_call_args(
-                    &right_id.name,
-                    Expr::Int(right_arg),
-                    Expr::Int(end_value(End::Right)),
-                    extract_exclusion_mask(right),
-                    right_a,
-                ),
-            },
+        let right_call = self.make_end_call(
+            right,
+            (use_a || use_min || optional_right).then_some("r"),
+            Expr::Int(right_arg),
+            Expr::Int(end_value(End::Right)),
+            right_a,
         );
-        if use_a || use_min || optional_right {
-            right_call = Symbol::Binding {
-                pattern: self.return_shape(&right_id.name).binding("r"),
-                symbol: Box::new(right_call),
-            };
-        }
         let count = alt.symbols.len();
         symbols.extend(alt.symbols.into_iter().skip(1).take(count - 2));
-        symbols.push(Symbol::restricted(right_call, right_wrappers.restrictions));
+        symbols.push(right_call);
 
         // If either recursive end can be absent, the associativity checks wait
         // for both calls to return. An absent end skips these checks and gives
@@ -915,38 +976,21 @@ impl PrecedenceDesugaring {
 
         let use_min = min_prefix_pr.is_some_and(|min_pr| pr > min_pr);
 
-        let right_id = extract_identifier(alt.symbols.last().unwrap()).clone();
+        let right = alt.symbols.last().unwrap();
         let optional_right = self
             .indirect_recursion
-            .get(&right_id.name)
+            .get(&extract_identifier(right).name)
             .is_some_and(|recursion| !recursion.is_always_present_at_end(End::Right));
-        let right_local_n = extract_exclusion_mask(alt.symbols.last().unwrap());
-        let right = end_wrappers(alt.symbols.last().unwrap());
+        let call = self.make_end_call(
+            right,
+            (use_min || optional_right).then_some("r"),
+            Expr::Int(pr),
+            Expr::Int(end_value(End::Right)),
+            Expr::Int(0),
+        );
 
         symbols.extend(alt.symbols.into_iter().take(num_symbols.saturating_sub(1)));
-
-        let call = label_symbol(
-            right.label.as_deref(),
-            Symbol::Call {
-                name: right_id.clone(),
-                arguments: self.end_call_args(
-                    &right_id.name,
-                    Expr::Int(pr),
-                    Expr::Int(end_value(End::Right)),
-                    right_local_n,
-                    Expr::Int(0),
-                ),
-            },
-        );
-        let call = if use_min || optional_right {
-            Symbol::Binding {
-                pattern: self.return_shape(&right_id.name).binding("r"),
-                symbol: Box::new(call),
-            }
-        } else {
-            call
-        };
-        symbols.push(Symbol::restricted(call, right.restrictions));
+        symbols.push(call);
         symbols.push(make_return(
             right_precedence(pr, use_min, optional_right),
             Expr::Int(0),
@@ -969,28 +1013,19 @@ impl PrecedenceDesugaring {
         pr: i64,
         make_return: impl Fn(Expr, Expr) -> Symbol,
     ) -> Alternative {
-        let left_id = extract_identifier(alt.symbols.first().unwrap()).clone();
+        let left = alt.symbols.first().unwrap();
         let optional_left = self
             .indirect_recursion
-            .get(&left_id.name)
+            .get(&extract_identifier(left).name)
             .is_some_and(|recursion| !recursion.is_always_present_at_end(End::Left));
-        let left_has_e = self.exclusion_targets.contains(&left_id.name);
-        let left_local_n = extract_exclusion_mask(alt.symbols.first().unwrap());
-        let left = end_wrappers(alt.symbols.first().unwrap());
 
         let mut symbols = Vec::new();
 
         if !optional_left {
             symbols.push(make_precondition(pr));
         }
-        symbols.push(Symbol::restricted(
-            self.make_left_binding(&left_id, left.label.as_deref()),
-            left.restrictions.clone(),
-        ));
+        symbols.push(self.make_left_binding(left));
         symbols.push(left_postcondition(pr, pr, optional_left));
-        if left_has_e && left_local_n != 0 {
-            symbols.push(make_local_exclusion_postcondition(left_local_n, "l"));
-        }
 
         symbols.extend(alt.symbols.into_iter().skip(1));
 
@@ -1045,7 +1080,6 @@ impl PrecedenceDesugaring {
                     symbols.push(symbol);
                     continue;
                 }
-                let id = extract_identifier(&symbol);
                 let end = if is_left { End::Left } else { End::Right };
                 let both = is_left && is_right;
                 let binding = if both {
@@ -1084,24 +1118,7 @@ impl PrecedenceDesugaring {
                         Expr::Int(0),
                     )
                 };
-                let local_n = if self.exclusion_targets.contains(&id.name) {
-                    extract_exclusion_mask(&symbol)
-                } else {
-                    0
-                };
-                // Left calls pass `e = 0` and check exclusions on the returned label.
-                // This also applies to a single call at both ends.
-                symbols.push(self.make_indirect_end_binding(
-                    &symbol,
-                    binding,
-                    p_arg,
-                    end_arg,
-                    a_arg,
-                    if is_left { 0 } else { local_n },
-                ));
-                if is_left && local_n != 0 {
-                    symbols.push(make_local_exclusion_postcondition(local_n, binding));
-                }
+                symbols.push(self.make_end_call(&symbol, Some(binding), p_arg, end_arg, a_arg));
                 if is_left {
                     left_value = value.clone();
                     left_associativity = associativity.clone();
@@ -1129,28 +1146,22 @@ impl PrecedenceDesugaring {
         }
     }
 
-    fn make_indirect_end_binding(
+    /// A call for the recursive reference `original` that passes the arguments
+    /// of a recursive end, bound with `binding_prefix` if given. The call keeps
+    /// the reference's exclusion mask, which `check_returned_labels` later
+    /// replaces with a check of the returned label.
+    fn make_end_call(
         &self,
         original: &Symbol,
-        binding: &str,
+        binding_prefix: Option<&str>,
         p_arg: Expr,
         end_argument: Expr,
         a_arg: Expr,
-        local_n: i64,
     ) -> Symbol {
         let id = extract_identifier(original);
-        let wrappers = end_wrappers(original);
-        let call = Symbol::Call {
-            name: id.clone(),
-            arguments: self.end_call_args(&id.name, p_arg, end_argument, local_n, a_arg),
-        };
-        Symbol::restricted(
-            Symbol::Binding {
-                pattern: self.return_shape(&id.name).binding(binding),
-                symbol: Box::new(label_symbol(wrappers.label.as_deref(), call)),
-            },
-            wrappers.restrictions,
-        )
+        let e_arg = Expr::Int(self.exclusion_mask(original));
+        let arguments = self.end_call_args(&id.name, p_arg, end_argument, a_arg, e_arg);
+        self.make_call(original, arguments, binding_prefix)
     }
 
     /// Supplies unrestricted arguments to references in every rule, including
@@ -1755,34 +1766,22 @@ fn left_postcondition(pr: i64, lower_bound: i64, optional: bool) -> Symbol {
     }
 }
 
-/// Reads the first call argument as an exclusion mask, or returns zero if it
-/// is not an integer. Exclusion desugaring puts the mask in this position for
-/// nonterminals with an `e` parameter. A user argument in the same position
-/// has no exclusion meaning unless the nonterminal has that parameter.
-fn extract_exclusion_mask(symbol: &Symbol) -> i64 {
-    if let Some(Expr::Int(bitmask)) = symbol.call_arguments().first() {
-        *bitmask
-    } else {
-        0
-    }
-}
-
-/// The identifier at a recursive end, seen through any label or restriction
-/// wrapper. Panics if the end has no identifier.
+/// The identifier of a nonterminal reference, seen through any wrapper.
+/// Panics if the symbol is not a nonterminal reference.
 fn extract_identifier(symbol: &Symbol) -> &Identifier {
     symbol
         .as_identifier()
-        .unwrap_or_else(|| panic!("expected an identifier at recursive end, got {symbol:?}"))
+        .unwrap_or_else(|| panic!("expected a nonterminal reference, got {symbol:?}"))
 }
 
-/// The field label and restrictions of a recursive-end symbol.
+/// The field label and restrictions of a nonterminal reference.
 /// `label` is the outermost field label, if any.
-struct EndWrappers {
+struct ReferenceWrappers {
     restrictions: Restrictions,
     label: Option<String>,
 }
 
-fn end_wrappers(symbol: &Symbol) -> EndWrappers {
+fn reference_wrappers(symbol: &Symbol) -> ReferenceWrappers {
     let mut restrictions = Restrictions::default();
     let mut label = None;
     let mut current = symbol;
@@ -1802,19 +1801,9 @@ fn end_wrappers(symbol: &Symbol) -> EndWrappers {
             _ => break,
         }
     }
-    EndWrappers {
+    ReferenceWrappers {
         restrictions,
         label,
-    }
-}
-
-fn label_symbol(label: Option<&str>, core: Symbol) -> Symbol {
-    match label {
-        Some(label) => Symbol::Labeled {
-            label: label.to_string(),
-            symbol: Box::new(core),
-        },
-        None => core,
     }
 }
 
@@ -1827,25 +1816,39 @@ fn make_precondition(pr: i64) -> Symbol {
     }))
 }
 
-/// Admits the returned result if its label is `NO_LABEL` or its bit is clear
-/// in the local exclusion mask. This check reads only the label field.
-fn make_local_exclusion_postcondition(local_n: i64, binding: &str) -> Symbol {
-    let l_label = || Expr::Ref(format!("{binding}_label"));
+/// Admits the returned result if the bound `label` is `NO_LABEL` or its bit
+/// is clear in `mask`.
+fn make_exclusion_postcondition(mask: i64, label: &str) -> Symbol {
+    let label = || Expr::Ref(label.to_string());
     Symbol::Condition(Expr::Or(
         Box::new(Expr::Cond(Cond {
-            left: Box::new(l_label()),
+            left: Box::new(label()),
             right: Box::new(return_value::no_label()),
             op: CondOp::Eq,
         })),
         Box::new(Expr::Cond(Cond {
             left: Box::new(Expr::BitAnd(
-                Box::new(Expr::Shr(Box::new(Expr::Int(local_n)), Box::new(l_label()))),
+                Box::new(Expr::Shr(Box::new(Expr::Int(mask)), Box::new(label()))),
                 Box::new(Expr::Int(1)),
             )),
             right: Box::new(Expr::Int(0)),
             op: CondOp::Eq,
         })),
     ))
+}
+
+/// Replaces the exclusion mask of the call in `symbol` with 0.
+fn clear_exclusion_mask(symbol: Symbol) -> Symbol {
+    transform_symbol(symbol, &mut |symbol| match symbol {
+        Symbol::Call {
+            name,
+            mut arguments,
+        } => {
+            *arguments.last_mut().unwrap() = Expr::Int(0);
+            Symbol::Call { name, arguments }
+        }
+        other => other,
+    })
 }
 
 /// Checks `l_pr == 0 || l_pr >= pr`.
@@ -1908,6 +1911,8 @@ mod tests {
         non_assoc, opt, or, priority_level, ret, right, syntax_rule, ternary, tuple,
     };
 
+    use itertools::Itertools;
+
     use super::return_value;
     use crate::grammar::symbols::{Expr, Symbol};
 
@@ -1917,6 +1922,16 @@ mod tests {
     // Generated start rules and literal regex definitions are omitted.
     fn precedence_ref(binding: &str) -> Expr {
         Expr::Ref(format!("{binding}_pr"))
+    }
+
+    // The alternatives of `name`, each printed as its symbols separated by spaces.
+    fn printed_alternatives(grammar: &Grammar, name: &str) -> Vec<String> {
+        let rule = grammar.nonterminal(name).unwrap();
+        grammar
+            .alternatives(rule)
+            .iter()
+            .map(|alt| alt.symbols.iter().join(" "))
+            .collect()
     }
 
     // A missing indirect recursive end returns undefined precedence; an atom returns zero.
@@ -2204,7 +2219,7 @@ mod tests {
     //     | [2 & e == 0] [1 >= p] l_pr=L(p) [(l_pr == 0) || (l_pr >= 1)] "+" E(1, 0) return (1, 1) #binary
     //
     //   L(p: i32)
-    //     = (l_pr, l_label)=E(p, 0) [(l_label == NO_LABEL) || ((1 >> (l_label)) & 1 == 0)] return l_pr
+    //     = (l_pr, l_label)=E(p, 0) [(l_label == NO_LABEL) || ((1 >> l_label) & 1 == 0)] return l_pr
     //
     // Second case:
     //
@@ -2224,7 +2239,7 @@ mod tests {
     //     | [2 & e == 0] [1 >= p] l_pr=L(p, 0) [(l_pr == 0) || (l_pr >= 1)] "+" L(1, 1) return (1, 1) #binary
     //
     //   L(p: i32, end: i32)
-    //     = (v_pr, v_label)=E(p, 0) [(v_label == NO_LABEL) || ((1 >> (v_label)) & 1 == 0)] return v_pr
+    //     = (v_pr, v_label)=E(p, 0) [(v_label == NO_LABEL) || ((1 >> v_label) & 1 == 0)] return v_pr
     //
     #[test]
     fn indirect_left_exclusion_uses_a_shared_call_and_returned_label() {
@@ -2263,6 +2278,129 @@ mod tests {
                 ))
             );
         }
+    }
+
+    // Every call to an exclusion target passes `e = 0` and checks the returned label.
+    //
+    // Original grammar:
+    //
+    //   E
+    //     = "a"         #Lit
+    //     > "-" E !Add  #Neg
+    //     > E "+" E !Neg #Add
+    //
+    //   S
+    //     = E !Add
+    //
+    // Desugared grammar:
+    //
+    //   E(p: i32, e: i32)
+    //     = [1 & e == 0] "a" return (0, 0) #Lit
+    //     | [2 & e == 0] "-" (x_pr, x_label)=E(2, 0) [(x_label == NO_LABEL) || ((4 >> x_label) & 1 == 0)] return (2, 1) #Neg
+    //     | [4 & e == 0] [1 >= p] (l_pr, l_label)=E(p, 0) [(l_pr == 0) || (l_pr >= 1)] "+" (x_pr, x_label)=E(1, 0) [(x_label == NO_LABEL) || ((2 >> x_label) & 1 == 0)] return (1, 2) #Add
+    //
+    //   S
+    //     = (x_pr, x_label)=E(0, 0) [(x_label == NO_LABEL) || ((4 >> x_label) & 1 == 0)]
+    #[test]
+    fn exclusions_at_right_ends_and_other_rules_check_the_returned_label() {
+        let grammar: Grammar = grammar_def!("Test", syntax: [
+            syntax_rule!("E" =>
+                priority_level!(alternative!(lit!("a"); #Lit)),
+                priority_level!(alternative!(lit!("-"), exclude!(id!("E"), "Add"); #Neg)),
+                priority_level!(alternative!(id!("E"), lit!("+"), exclude!(id!("E"), "Neg"); #Add))),
+            syntax_rule!("S" => priority_level!(alternative!(exclude!(id!("E"), "Add"))))
+        ])
+        .try_into()
+        .unwrap();
+        assert_eq!(
+            printed_alternatives(&grammar, "E"),
+            [
+                "[1 & e == 0] \"a\" return (0, 0)",
+                "[2 & e == 0] \"-\" (x_pr, x_label)=E(2, 0) [(x_label == NO_LABEL) || ((4 >> x_label) & 1 == 0)] return (2, 1)",
+                "[4 & e == 0] [1 >= p] (l_pr, l_label)=E(p, 0) [(l_pr == 0) || (l_pr >= 1)] \"+\" (x_pr, x_label)=E(1, 0) [(x_label == NO_LABEL) || ((2 >> x_label) & 1 == 0)] return (1, 2)",
+            ]
+        );
+        assert_eq!(
+            printed_alternatives(&grammar, "S"),
+            ["(x_pr, x_label)=E(0, 0) [(x_label == NO_LABEL) || ((4 >> x_label) & 1 == 0)]"]
+        );
+    }
+
+    // An exclusion at a right end that is already bound checks the label of that binding.
+    //
+    // Original grammar:
+    //
+    //   E
+    //     = "a"           #Lit
+    //     > E "+" E !Neg  #Add
+    //     > "-" E         #Neg
+    //
+    // Desugared grammar:
+    //
+    //   E(p: i32, e: i32)
+    //     = [1 & e == 0] "a" return (0, 0) #Lit
+    //     | [2 & e == 0] [2 >= p] (l_pr, l_label)=E(p, 0) [(l_pr == 0) || (l_pr >= 2)] "+" (r_pr, r_label)=E(2, 0) [(r_label == NO_LABEL) || ((4 >> r_label) & 1 == 0)] return ((r_pr == 0) ? 2 : min(r_pr, 2), 1) #Add
+    //     | [4 & e == 0] "-" E(1, 0) return (1, 2) #Neg
+    //
+    // The prefix `#Neg` has a lower precedence than `#Add`, so the right end of
+    // `#Add` is bound as `r` to compute the returned precedence with `min`.
+    #[test]
+    fn exclusion_at_a_bound_right_end_checks_its_label() {
+        let grammar: Grammar = grammar_def!("Test", syntax: [
+            syntax_rule!("E" =>
+                priority_level!(alternative!(lit!("a"); #Lit)),
+                priority_level!(alternative!(id!("E"), lit!("+"), exclude!(id!("E"), "Neg"); #Add)),
+                priority_level!(alternative!(lit!("-"), id!("E"); #Neg)))
+        ])
+        .try_into()
+        .unwrap();
+        assert_eq!(
+            printed_alternatives(&grammar, "E"),
+            [
+                "[1 & e == 0] \"a\" return (0, 0)",
+                "[2 & e == 0] [2 >= p] (l_pr, l_label)=E(p, 0) [(l_pr == 0) || (l_pr >= 2)] \"+\" (r_pr, r_label)=E(2, 0) [(r_label == NO_LABEL) || ((4 >> r_label) & 1 == 0)] return ((r_pr == 0) ? 2 : min(r_pr, 2), 1)",
+                "[4 & e == 0] \"-\" E(1, 0) return (1, 2)",
+            ]
+        );
+    }
+
+    // A call bound for its exclusion check keeps its field label and restrictions.
+    //
+    // Original grammar:
+    //
+    //   E
+    //     = "a"        #Lit
+    //     > E "+" E    #Add
+    //
+    //   S
+    //     = x:E !Add !>> Z
+    //
+    //   Z
+    //     = "z"
+    //
+    // Desugared `S`:
+    //
+    //   S
+    //     = (x_pr, x_label)=x:E(0, 0) !>> Z [(x_label == NO_LABEL) || ((2 >> x_label) & 1 == 0)]
+    #[test]
+    fn exclusion_check_keeps_the_field_label_and_restrictions() {
+        let grammar: Grammar = grammar_def!("Test", syntax: [
+            syntax_rule!("E" =>
+                priority_level!(alternative!(lit!("a"); #Lit)),
+                priority_level!(alternative!(id!("E"), lit!("+"), id!("E"); #Add))),
+            syntax_rule!("S" => priority_level!(alternative!(
+                labeled!("x", follow!(exclude!(id!("E"), "Add"), "Z"))
+            ))),
+            syntax_rule!("Z" => priority_level!(alternative!(lit!("z"))))
+        ])
+        .try_into()
+        .unwrap();
+        assert_eq!(
+            printed_alternatives(&grammar, "S"),
+            [
+                "(x_pr, x_label)=x:E(0, 0) !>> Z [(x_label == NO_LABEL) || ((2 >> x_label) & 1 == 0)]"
+            ]
+        );
     }
 
     // Alternatives in the same priority group receive the same precedence level.
@@ -3106,10 +3244,10 @@ mod tests {
     // Desugared grammar:
     //
     //   E(p: i32, e: i32)
-    //     = [1 & e == 0] "a"                                                                                                                       return (0, 0) #A
-    //     | [2 & e == 0] [3 >= p] (l_pr, l_label)=E(p, 0) [(l_pr == 0) || (l_pr >= 3)] [(l_label == NO_LABEL) || ((8 >> (l_label)) & 1 == 0)] "++" return (0, 1) #C
-    //     | [4 & e == 0] [2 >= p] (l_pr, l_label)=E(p, 0) [(l_pr == 0) || (l_pr >= 2)] "+" E(2, 0)                                                 return (2, 2) #D
-    //     | [8 & e == 0] [1 >= p] (l_pr, l_label)=E(p, 0) [(l_pr == 0) || (l_pr >= 1)] "-" E(1, 0)                                                 return (1, 3) #B
+    //     = [1 & e == 0] "a"                                                                                                                     return (0, 0) #A
+    //     | [2 & e == 0] [3 >= p] (l_pr, l_label)=E(p, 0) [(l_label == NO_LABEL) || ((8 >> l_label) & 1 == 0)] [(l_pr == 0) || (l_pr >= 3)] "++" return (0, 1) #C
+    //     | [4 & e == 0] [2 >= p] (l_pr, l_label)=E(p, 0) [(l_pr == 0) || (l_pr >= 2)] "+" E(2, 0)                                               return (2, 2) #D
+    //     | [8 & e == 0] [1 >= p] (l_pr, l_label)=E(p, 0) [(l_pr == 0) || (l_pr >= 1)] "-" E(1, 0)                                               return (1, 3) #B
     //
     #[test]
     fn test_exclusions_at_left_recursive_ends() {
@@ -3145,22 +3283,20 @@ mod tests {
             }))
         }
 
-        // `E(arg0, local_n)`. Recursive call that passes a local exclusion
-        // bitmask, not the caller's `e`. `local_n = 0` for non-excluded
-        // recursive references.
-        fn e_call(arg0: Expr, local_n: i64) -> Symbol {
+        // `E(arg0, 0)`. Every recursive call passes `e = 0`.
+        fn e_call(arg0: Expr) -> Symbol {
             Symbol::Call {
                 name: Identifier {
                     name: "E".to_string(),
                     definition: None,
                 },
-                arguments: vec![arg0, Expr::Int(local_n)],
+                arguments: vec![arg0, Expr::Int(0)],
             }
         }
 
-        // Local-exclusion postcondition for the left recursive end:
-        // `[l_label == NO_LABEL || ((local_n >> l_label) & 1) == 0]`.
-        fn local_exclusion_postcondition(local_n: i64) -> Symbol {
+        // Exclusion postcondition for the left recursive end:
+        // `[l_label == NO_LABEL || ((mask >> l_label) & 1) == 0]`.
+        fn exclusion_postcondition(mask: i64) -> Symbol {
             let l_label = || Expr::Ref("l_label".to_string());
             cond!(Expr::Or(
                 Box::new(Expr::Cond(Cond {
@@ -3170,7 +3306,7 @@ mod tests {
                 })),
                 Box::new(Expr::Cond(Cond {
                     left: Box::new(Expr::BitAnd(
-                        Box::new(Expr::Shr(Box::new(Expr::Int(local_n)), Box::new(l_label()))),
+                        Box::new(Expr::Shr(Box::new(Expr::Int(mask)), Box::new(l_label()))),
                         Box::new(Expr::Int(1)),
                     )),
                     right: Box::new(Expr::Int(0)),
@@ -3183,16 +3319,16 @@ mod tests {
             syntax: [
                 syntax_rule!("E"("p": I32, "e": I32) => priority_level!(
                     alternative!(exclusion_guard(1), lit!("a"), ret!(expr tuple!(0, 0)); #A),
-                    // #C: postfix at pr=3, left has local exclusion BIT_B=8.
+                    // #C: postfix at pr=3, left excludes B (bit 8).
                     alternative!(
                         exclusion_guard(2),
                         cond!(3 >= "p"),
-                        bind!(("l_pr", "l_label"), e_call(Expr::Ref("p".to_string()), 0)),
+                        bind!(("l_pr", "l_label"), e_call(Expr::Ref("p".to_string()))),
+                        exclusion_postcondition(8),
                         cond!(or!(
                             eq!(precedence_ref("l"), 0),
                             ge!(precedence_ref("l"), 3),
                         )),
-                        local_exclusion_postcondition(8),
                         lit!("++"),
                         ret!(expr tuple!(0, 1));
                         #C
@@ -3200,26 +3336,26 @@ mod tests {
                     alternative!(
                         exclusion_guard(4),
                         cond!(2 >= "p"),
-                        bind!(("l_pr", "l_label"), e_call(Expr::Ref("p".to_string()), 0)),
+                        bind!(("l_pr", "l_label"), e_call(Expr::Ref("p".to_string()))),
                         cond!(or!(
                             eq!(precedence_ref("l"), 0),
                             ge!(precedence_ref("l"), 2),
                         )),
                         lit!("+"),
-                        e_call(Expr::Int(2), 0),
+                        e_call(Expr::Int(2)),
                         ret!(expr tuple!(2, 2));
                         #D
                     ),
                     alternative!(
                         exclusion_guard(8),
                         cond!(1 >= "p"),
-                        bind!(("l_pr", "l_label"), e_call(Expr::Ref("p".to_string()), 0)),
+                        bind!(("l_pr", "l_label"), e_call(Expr::Ref("p".to_string()))),
                         cond!(or!(
                             eq!(precedence_ref("l"), 0),
                             ge!(precedence_ref("l"), 1),
                         )),
                         lit!("-"),
-                        e_call(Expr::Int(1), 0),
+                        e_call(Expr::Int(1)),
                         ret!(expr tuple!(1, 3));
                         #B
                     ),
@@ -4200,10 +4336,11 @@ mod tests {
     //     | [2 & e == 0] "(" L(0, 0, 0, 0) ")"  return (UNDEFINED_PRECEDENCE, 1) #paren
     //
     //   C
-    //     = L(0, 0, 0, 2)
+    //     = (x_pr, x_label)=L(0, 0, 0, 0) [(x_label == NO_LABEL) || ((2 >> x_label) & 1 == 0)]
     //   D
     //     = x=selected:L(0, 0, 0, 2)
     //
+    // `D` binds the call itself, so the call keeps its mask.
     #[test]
     fn test_dual_indirect_end_can_also_be_exclude_target() {
         use crate::grammar::symbols::{Expr, Symbol};
@@ -4226,6 +4363,10 @@ mod tests {
         );
 
         let actual: Grammar = input.try_into().unwrap();
+        assert_eq!(
+            printed_alternatives(&actual, "C"),
+            ["(x_pr, x_label)=L(0, 0, 0, 0) [(x_label == NO_LABEL) || ((2 >> x_label) & 1 == 0)]"]
+        );
         let d = actual.nonterminal("D").unwrap();
         assert_eq!(
             actual.alternatives(d)[0].symbols[0].to_string(),

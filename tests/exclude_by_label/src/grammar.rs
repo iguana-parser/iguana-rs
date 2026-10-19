@@ -44,28 +44,36 @@ impl Grammar for ExcludeByLabelGrammar {
     ];
     const SLOTS: &'static [Slot] = &[
         Slot {
-            display_name: "{Expr !comma \",\"}+ : . {Expr !comma \",\"}+ \",\" Expr(4)",
+            display_name: "{Expr !comma \",\"}+ : . {Expr !comma \",\"}+ \",\" (x_pr, x_label)=Expr(0) [(x_label == NO_LABEL) || ((4 >> x_label) & 1 == 0)]",
             position: 0,
         },
         Slot {
-            display_name: "{Expr !comma \",\"}+ : {Expr !comma \",\"}+ . \",\" Expr(4)",
+            display_name: "{Expr !comma \",\"}+ : {Expr !comma \",\"}+ . \",\" (x_pr, x_label)=Expr(0) [(x_label == NO_LABEL) || ((4 >> x_label) & 1 == 0)]",
             position: 1,
         },
         Slot {
-            display_name: "{Expr !comma \",\"}+ : {Expr !comma \",\"}+ \",\" . Expr(4)",
+            display_name: "{Expr !comma \",\"}+ : {Expr !comma \",\"}+ \",\" . (x_pr, x_label)=Expr(0) [(x_label == NO_LABEL) || ((4 >> x_label) & 1 == 0)]",
             position: 2,
         },
         Slot {
-            display_name: "{Expr !comma \",\"}+ : {Expr !comma \",\"}+ \",\" Expr(4).",
+            display_name: "{Expr !comma \",\"}+ : {Expr !comma \",\"}+ \",\" (x_pr, x_label)=Expr(0) . [(x_label == NO_LABEL) || ((4 >> x_label) & 1 == 0)]",
             position: 3,
         },
         Slot {
-            display_name: "{Expr !comma \",\"}+ : . Expr(4)",
+            display_name: "{Expr !comma \",\"}+ : {Expr !comma \",\"}+ \",\" (x_pr, x_label)=Expr(0) [(x_label == NO_LABEL) || ((4 >> x_label) & 1 == 0)].",
+            position: 4,
+        },
+        Slot {
+            display_name: "{Expr !comma \",\"}+ : . (x_pr, x_label)=Expr(0) [(x_label == NO_LABEL) || ((4 >> x_label) & 1 == 0)]",
             position: 0,
         },
         Slot {
-            display_name: "{Expr !comma \",\"}+ : Expr(4).",
+            display_name: "{Expr !comma \",\"}+ : (x_pr, x_label)=Expr(0) . [(x_label == NO_LABEL) || ((4 >> x_label) & 1 == 0)]",
             position: 1,
+        },
+        Slot {
+            display_name: "{Expr !comma \",\"}+ : (x_pr, x_label)=Expr(0) [(x_label == NO_LABEL) || ((4 >> x_label) & 1 == 0)].",
+            position: 2,
         },
         Slot {
             display_name: "{Expr !comma \",\"}* : . {Expr !comma \",\"}+",
@@ -157,10 +165,10 @@ impl Grammar for ExcludeByLabelGrammar {
         },
     ];
     const FIRST_SLOTS: &'static [&'static [SlotId]] = &[
-        &[SlotId(0), SlotId(4)],
-        &[SlotId(6), SlotId(8)],
-        &[SlotId(9)],
-        &[SlotId(11), SlotId(15), SlotId(22)],
+        &[SlotId(0), SlotId(5)],
+        &[SlotId(8), SlotId(10)],
+        &[SlotId(11)],
+        &[SlotId(13), SlotId(17), SlotId(24)],
     ];
     const LAYOUT_NAME: Option<&'static str> = None;
     const LAYOUT_TERMINALS: &'static [TerminalId] = &[];
@@ -238,7 +246,8 @@ pub static RETURN_SLOT_LOOKAHEAD_EXPR_ALT2_POS2: TerminalSet = TerminalSet {
     id: 6,
     terminals: &[TerminalId(2)],
 };
-// Plus_0 : Plus_0 . "," Expr(4) lookahead { "," }
+// Plus_0 : Plus_0 . "," (x_pr, x_label)=Expr(0) [(x_label == NO_LABEL) || ((4 >> x_label) &
+// 1 == 0)] lookahead { "," }
 pub static RETURN_SLOT_LOOKAHEAD_PLUS_0_ALT0_POS1: TerminalSet = TerminalSet {
     id: 6,
     terminals: &[TerminalId(2)],
@@ -387,8 +396,8 @@ pub static PREDICTION_EXPR: Prediction = {
     }
 };
 // Plus_0
-// 0: Plus_0 "," Expr(4)
-// 1: Expr(4)
+// 0: Plus_0 "," (x_pr, x_label)=Expr(0) [(x_label == NO_LABEL) || ((4 >> x_label) & 1 == 0)]
+// 1: (x_pr, x_label)=Expr(0) [(x_label == NO_LABEL) || ((4 >> x_label) & 1 == 0)]
 pub static PREDICTION_PLUS_0: Prediction = {
     // Id
     const TERMINALS_1: &[(TerminalId, u16)] = &[(TerminalId(0), 0), (TerminalId(0), 1)];

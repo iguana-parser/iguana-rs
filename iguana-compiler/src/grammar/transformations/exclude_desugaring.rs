@@ -48,10 +48,10 @@
 //
 //   - Return value. Every alternative of an exclusion-targeted nonterminal
 //     returns its own label, or NO_LABEL if unlabeled, alongside the other return
-//     components. The precedence desugaring transformation preserves this label
-//     for the left-operand exclusion check after the shared recursive call.
-//     Ordinary calls enforce exclusions with the early guards above. Distinct
-//     returned labels keep alternatives distinguishable in the parser's sharing key.
+//     components. The precedence desugaring transformation later rewrites a
+//     call that passes a mask into a call that passes 0, followed by a condition
+//     that rejects an excluded returned label. Distinct returned labels keep
+//     alternatives distinguishable in the parser's sharing key.
 //
 //   - Use-site rewriting. Every exclude reference becomes a call that
 //     passes the mask, and every bare reference to a target nonterminal
@@ -68,7 +68,9 @@
 //
 // Only `Expr(2)` rejects #Comma. The other recursive calls in the
 // example use `Expr(0)`, where every guard passes and every alternative
-// is admitted.
+// is admitted. The precedence desugaring transformation turns `Expr(2)` into
+// `Expr(0)` followed by a check of the returned label. Only a call bound to a
+// single name keeps its mask, because the label has no name to check.
 //
 // Pipeline position. The exclude desugaring transformation runs after
 // EBNF expansion and before precedence desugaring. EBNF wrappers are not

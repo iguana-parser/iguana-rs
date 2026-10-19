@@ -7249,7 +7249,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a> {
                 }))
             }
             // Symbol = conditions:PreCondition+ Layout Symbol #PreCondition
-            SlotId(403) => {
+            SlotId(404) => {
                 let &[conditions, layout, symbol] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -7261,7 +7261,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a> {
                 }))
             }
             // Symbol = label:Identifier Layout ":" Layout Symbol #Labeled
-            SlotId(411) => {
+            SlotId(412) => {
                 let &[label, layout_1, lit_2, layout_3, symbol] = children else {
                     ParseTree::unexpected_node()
                 };

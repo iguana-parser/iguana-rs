@@ -482,7 +482,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for ExcludeByLabelParseTreeBuilder<'a> 
     ) -> ParseTree<'a> {
         match nonterminal_node.return_slot {
             // Plus_0 = {Expr ","}+ "," Expr
-            SlotId(3) => {
+            SlotId(4) => {
                 let &[plus_0, lit_1, expr] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -494,7 +494,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for ExcludeByLabelParseTreeBuilder<'a> 
                 }))
             }
             // Plus_0 = Expr
-            SlotId(5) => {
+            SlotId(7) => {
                 let &[expr] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -504,7 +504,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for ExcludeByLabelParseTreeBuilder<'a> 
                 }))
             }
             // Star_0 = {Expr ","}+
-            SlotId(7) => {
+            SlotId(9) => {
                 let &[plus_0] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -514,7 +514,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for ExcludeByLabelParseTreeBuilder<'a> 
                 }))
             }
             // Star_0 =
-            SlotId(8) => {
+            SlotId(10) => {
                 let &[] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -523,7 +523,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for ExcludeByLabelParseTreeBuilder<'a> 
                 }))
             }
             // StartExpr = start:Expr
-            SlotId(10) => {
+            SlotId(12) => {
                 let &[start] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -535,7 +535,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for ExcludeByLabelParseTreeBuilder<'a> 
                 }))
             }
             // Expr = Id #id
-            SlotId(14) => {
+            SlotId(16) => {
                 let &[id] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -545,7 +545,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for ExcludeByLabelParseTreeBuilder<'a> 
                 }))
             }
             // Expr = Expr "(" {Expr ","}* ")" #call
-            SlotId(21) => {
+            SlotId(23) => {
                 let &[expr, lit_1, star_0, lit_3] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -558,7 +558,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for ExcludeByLabelParseTreeBuilder<'a> 
                 }))
             }
             // Expr = Expr "," Expr #comma
-            SlotId(27) => {
+            SlotId(29) => {
                 let &[expr_0, lit_1, expr_2] = children else {
                     ParseTree::unexpected_node()
                 };
