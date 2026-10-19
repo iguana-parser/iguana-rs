@@ -164,7 +164,7 @@ impl<'a> ParserGen<'a> {
         let add_descriptor_method = Self::gen_add_descriptor_method();
         let next_descriptor_method = Self::gen_next_descriptor_method();
         let clear_descriptors_method = Self::gen_clear_descriptors_method();
-        let unsafe_const = self.gen_unsafe_const();
+        let first_parse_const = self.gen_first_parse_const();
         let new_terminal_node_method = self.gen_add_terminal_node_method();
         let new_nonterminal_node_method = Self::gen_add_nonterminal_node_method();
         let new_intermediate_node_method = self.gen_add_intermediate_node_method();
@@ -207,7 +207,7 @@ impl<'a> ParserGen<'a> {
                     #grammar_name_ident::new(input, parser_arena)
                 }
                 #tree_hook
-                #unsafe_const
+                #first_parse_const
                 #execute_method
                 #get_gss_node_method
                 #gen_add_gss_node_method
@@ -329,8 +329,8 @@ impl<'a> ParserGen<'a> {
     fn gen_imports(&self) -> TokenStream {
         let scanner_name = scanner_ident(&self.grammar.name);
         let parse_tree_builder_name = parse_tree_builder_ident(&self.grammar.name);
-        // The unsafe mode omits the side maps, the only users of OnceCell and FxHashMap.
-        let (once_cell_import, fx_hashmap_import) = if self.config.unsafe_mode {
+        // The first-parse mode omits the side maps, the only users of OnceCell and FxHashMap.
+        let (once_cell_import, fx_hashmap_import) = if self.config.first_parse {
             (quote! {}, quote! {})
         } else {
             (
@@ -372,7 +372,7 @@ impl<'a> ParserGen<'a> {
                 sppf::{IntermediateNode, NonterminalNode, SPPFNode, TerminalNode},
                 utils::{#inline_map_import inline_vec::InlineVec, lazy_inline_maps::LazyInlineMaps}
             };
-            // In the unsafe mode Span is used only by LL(1) node construction; checking whether the
+            // In the first-parse mode Span is used only by LL(1) node construction; checking whether the
             // grammar has any here is expensive, so allow the unused import instead.
             #[allow(unused_imports)]
             use iguana_runtime::input::Span;
@@ -1282,8 +1282,8 @@ impl<'a> ParserGen<'a> {
     }
 
     fn gen_ambiguity_node_added_method(&self) -> TokenStream {
-        // The unsafe mode produces no ambiguity and drops the side tables this reads.
-        let body = if self.config.unsafe_mode {
+        // The first-parse mode produces no ambiguity and drops the side tables this reads.
+        let body = if self.config.first_parse {
             quote! { false }
         } else {
             quote! {
@@ -1360,7 +1360,7 @@ impl<'a> ParserGen<'a> {
         } else {
             quote! {}
         };
-        let children_init = if self.config.unsafe_mode {
+        let children_init = if self.config.first_parse {
             quote! {}
         } else {
             quote! {
@@ -1460,8 +1460,8 @@ impl<'a> ParserGen<'a> {
                 intermediate_nodes_index: LazyInlineMaps<'arena, Span, SPPFNodeId>,
             }
         };
-        // The unsafe mode never shares SPPF nodes, so it carries none of the lookup indexes.
-        let sppf_nodes_index_fields = if self.config.unsafe_mode {
+        // The first-parse mode never shares SPPF nodes, so it does not have the lookup indexes.
+        let sppf_nodes_index_fields = if self.config.first_parse {
             quote! {}
         } else {
             quote! {
@@ -1472,8 +1472,8 @@ impl<'a> ParserGen<'a> {
                 terminal_nodes_index: LazyInlineMaps<'arena, Span, SPPFNodeId>,
             }
         };
-        // The unsafe mode produces no ambiguity, so it carries none of the extra-children side tables.
-        let children_fields = if self.config.unsafe_mode {
+        // The first-parse mode produces no ambiguity, so it does not have the extra-children side tables.
+        let children_fields = if self.config.first_parse {
             quote! {}
         } else {
             quote! {
@@ -1535,7 +1535,7 @@ impl<'a> ParserGen<'a> {
     }
 
     fn gen_intermediate_nodes_index_field(&self) -> TokenStream {
-        if self.config.unsafe_mode {
+        if self.config.first_parse {
             return quote! {};
         }
         let dd_slot_start = self.slot_ids.dd_slot_start();
@@ -1554,7 +1554,7 @@ impl<'a> ParserGen<'a> {
     }
 
     fn gen_terminal_nodes_index_field(&self) -> TokenStream {
-        if self.config.unsafe_mode {
+        if self.config.first_parse {
             return quote! {};
         }
         let terminal_nodes_index = lazy_inline_maps(self.terminal_ids.len() + 2);
@@ -2242,12 +2242,12 @@ impl<'a> ParserGen<'a> {
         }
     }
 
-    /// Emits the `UNSAFE` associated const when generating with `--unsafe`,
-    /// overriding the trait's safe default. The runtime runs its early-termination
-    /// code only when `Self::UNSAFE` is true; a safe build compiles it away entirely.
-    fn gen_unsafe_const(&self) -> TokenStream {
-        if self.config.unsafe_mode {
-            quote! { const UNSAFE: bool = true; }
+    /// Emits the `FIRST_PARSE` associated const when generating with `--first-parse`,
+    /// overriding the trait's default. The runtime runs its early-termination
+    /// code only when `Self::FIRST_PARSE` is true; the default mode compiles it away entirely.
+    fn gen_first_parse_const(&self) -> TokenStream {
+        if self.config.first_parse {
+            quote! { const FIRST_PARSE: bool = true; }
         } else {
             quote! {}
         }
@@ -2255,8 +2255,8 @@ impl<'a> ParserGen<'a> {
 
     fn gen_add_terminal_node_method(&self) -> TokenStream {
         let push = quote! { self.sppf_nodes.push(SPPFNode::Terminal(terminal_node)) };
-        // The unsafe mode keeps no terminal node index, so the new id is returned directly.
-        let push_and_index = if self.config.unsafe_mode {
+        // The first-parse mode keeps no terminal node index, so the new id is returned directly.
+        let push_and_index = if self.config.first_parse {
             push
         } else {
             quote! {
@@ -2316,8 +2316,8 @@ impl<'a> ParserGen<'a> {
             }
         };
         let push = quote! { self.sppf_nodes.push(SPPFNode::Intermediate(intermediate_node)) };
-        // The unsafe mode keeps no intermediate node index, so the new id is returned directly.
-        let (env_param, add_to_index_param, push_and_index) = if self.config.unsafe_mode {
+        // The first-parse mode keeps no intermediate node index, so the new id is returned directly.
+        let (env_param, add_to_index_param, push_and_index) = if self.config.first_parse {
             (quote! { _env }, quote! { _add_to_index }, push)
         } else {
             (
@@ -2336,7 +2336,7 @@ impl<'a> ParserGen<'a> {
             )
         };
         quote! {
-            // Do not inline. In the unsafe mode `execute` creates intermediate nodes
+            // Do not inline. In the first-parse mode `execute` creates intermediate nodes
             // directly at many places, and inlining this body into each of them adds
             // to the compile time of a large generated parser.
             #[inline(never)]
@@ -2428,9 +2428,9 @@ impl<'a> ParserGen<'a> {
     }
 
     fn gen_lookup_intermediate_node_method(&self) -> TokenStream {
-        // The unsafe mode never shares SPPF nodes, so the lookup is never called.
+        // The first-parse mode never shares SPPF nodes, so the lookup is never called.
         // Inherit the trait's `None` default instead of emitting an override.
-        if self.config.unsafe_mode {
+        if self.config.first_parse {
             return quote! {};
         }
         let dd_slot_start = self.slot_ids.dd_slot_start();
@@ -2466,9 +2466,9 @@ impl<'a> ParserGen<'a> {
     }
 
     fn gen_lookup_terminal_node_method(&self) -> TokenStream {
-        // The unsafe mode never shares SPPF nodes, so the lookup is never called.
+        // The first-parse mode never shares SPPF nodes, so the lookup is never called.
         // Inherit the trait's `None` default instead of emitting an override.
-        if self.config.unsafe_mode {
+        if self.config.first_parse {
             return quote! {};
         }
         quote! {
@@ -2504,8 +2504,8 @@ impl<'a> ParserGen<'a> {
     }
 
     fn gen_add_intermediate_node_child_method(&self) -> TokenStream {
-        // The unsafe mode records no extra children and uses the trait's empty default.
-        if self.config.unsafe_mode {
+        // The first-parse mode records no extra children and uses the trait's empty default.
+        if self.config.first_parse {
             return quote! {};
         }
         quote! {
@@ -2522,8 +2522,8 @@ impl<'a> ParserGen<'a> {
     }
 
     fn gen_intermediate_nodes_children_map_method(&self) -> TokenStream {
-        // The unsafe mode holds no extra children and uses the trait's empty-map default.
-        if self.config.unsafe_mode {
+        // The first-parse mode holds no extra children and uses the trait's empty-map default.
+        if self.config.first_parse {
             return quote! {};
         }
         quote! {
@@ -2541,8 +2541,8 @@ impl<'a> ParserGen<'a> {
     }
 
     fn gen_add_nonterminal_node_child_method(&self) -> TokenStream {
-        // The unsafe mode records no extra children and uses the trait's empty default.
-        if self.config.unsafe_mode {
+        // The first-parse mode records no extra children and uses the trait's empty default.
+        if self.config.first_parse {
             return quote! {};
         }
         quote! {
@@ -2558,8 +2558,8 @@ impl<'a> ParserGen<'a> {
     }
 
     fn gen_nonterminal_nodes_children_map_method(&self) -> TokenStream {
-        // The unsafe mode holds no extra children and uses the trait's empty-map default.
-        if self.config.unsafe_mode {
+        // The first-parse mode holds no extra children and uses the trait's empty-map default.
+        if self.config.first_parse {
             return quote! {};
         }
         quote! {
@@ -2889,8 +2889,8 @@ impl<'a> ParserGen<'a> {
                 }
             }
         };
-        // The unsafe mode carries no SPPF lookup indexes, so there is nothing to record.
-        let sppf_index_records = if self.config.unsafe_mode {
+        // The first-parse mode does not have the SPPF lookup indexes, so there is nothing to record.
+        let sppf_index_records = if self.config.first_parse {
             quote! {}
         } else {
             quote! {

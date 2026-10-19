@@ -13,42 +13,13 @@ use crate::grammar::{
 
 use crate::utils::{to_pascal_case, to_snake_case};
 
-/// True when the generated enum for a nonterminal has a lifetime.
-/// Normally, every enum takes a lifetime because of its `Amb(&'a [&'a Self])` variant.
-/// The unsafe mode drops `Amb`, so only an enum with a nonterminal-typed field (`&'a T`) takes `'a`, and
-/// a token-only nonterminal, one whose alternatives hold only tokens, e.g., `Mod = "public" | "static"`,
-/// or nothing, e.g., `Empty = ()`, does not.
-pub fn nonterminal_has_lifetime(
-    grammar: &Grammar,
-    nonterminal: &Nonterminal,
-    unsafe_mode: bool,
-) -> bool {
-    !unsafe_mode
-        || grammar.alternatives(nonterminal).iter().any(|alt| {
-            alt.symbols
-                .iter()
-                // Only parse-tree symbols become enum fields.
-                .filter(|s| s.is_parse_tree_symbol())
-                .any(|s| {
-                    matches!(
-                        grammar.definition(s.resolved_def()),
-                        Definition::Nonterminal(_)
-                    )
-                })
-        })
-}
-
 /// Returns the parse tree type for a nonterminal.
 /// Start nonterminals: `Start<Token, &'a Layout<'a>>` or `Start<&'a Inner<'a>, &'a Layout<'a>>`;
 /// the layout type is `()` when the grammar declares no layout and for the
 /// wrapper of the layout nonterminal.
-/// Regular nonterminals: the nonterminal's own type, with `<'a>` when the
-/// enum has a lifetime (see [`nonterminal_has_lifetime`]).
-pub fn nonterminal_type(
-    grammar: &Grammar,
-    nonterminal: &Nonterminal,
-    unsafe_mode: bool,
-) -> TokenStream {
+/// Regular nonterminals: `Ident<'a>`. Every generated nonterminal enum
+/// has `'a` for its `Amb(&'a [&'a Ident<'a>])` variant.
+pub fn nonterminal_type(grammar: &Grammar, nonterminal: &Nonterminal) -> TokenStream {
     if grammar.is_start(nonterminal) {
         let inner_ident = nonterminal
             .origin
@@ -56,33 +27,28 @@ pub fn nonterminal_type(
             .unwrap()
             .as_identifier()
             .unwrap();
-        let inner = symbol_type(grammar, inner_ident.resolve(), unsafe_mode);
+        let inner = symbol_type(grammar, inner_ident.resolve());
         let layout = match grammar.start_layout(nonterminal) {
             Some(l) => {
                 let layout_ident = l.as_identifier().unwrap();
-                symbol_type(grammar, layout_ident.resolve(), unsafe_mode)
+                symbol_type(grammar, layout_ident.resolve())
             }
             None => quote! { () },
         };
         quote! { Start<#inner, #layout> }
     } else {
         let ident = nt_ident(&nonterminal.name);
-        if nonterminal_has_lifetime(grammar, nonterminal, unsafe_mode) {
-            quote! { #ident<'a> }
-        } else {
-            quote! { #ident }
-        }
+        quote! { #ident<'a> }
     }
 }
 
 /// Returns the type of a symbol as it appears in parse tree fields:
-/// `Token` for terminals (inline, Copy), `&'a T<'a>` or `&'a T` for
-/// nonterminals (by reference).
-pub fn symbol_type(grammar: &Grammar, def_id: DefinitionId, unsafe_mode: bool) -> TokenStream {
+/// `Token` for terminals (inline, Copy), `&'a T<'a>` for nonterminals (by reference).
+pub fn symbol_type(grammar: &Grammar, def_id: DefinitionId) -> TokenStream {
     match grammar.definition(def_id) {
         Definition::Terminal(_) => quote! { Token },
         Definition::Nonterminal(nt) => {
-            let ty = nonterminal_type(grammar, nt, unsafe_mode);
+            let ty = nonterminal_type(grammar, nt);
             quote! { &'a #ty }
         }
     }

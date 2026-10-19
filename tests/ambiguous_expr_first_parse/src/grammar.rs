@@ -11,10 +11,10 @@ pub const S: NonterminalId = NonterminalId(0);
 pub const E: NonterminalId = NonterminalId(1);
 pub const START_S: NonterminalId = NonterminalId(2);
 pub const START_E: NonterminalId = NonterminalId(3);
-pub struct AmbiguousExprUnsafeGrammar;
-impl Grammar for AmbiguousExprUnsafeGrammar {
+pub struct AmbiguousExprFirstParseGrammar;
+impl Grammar for AmbiguousExprFirstParseGrammar {
     type Alternatives = BitSet<1>;
-    const NAME: &'static str = "AmbiguousExprUnsafe";
+    const NAME: &'static str = "AmbiguousExprFirstParse";
     const NONTERMINALS: &'static [Nonterminal] = &[
         Nonterminal {
             name: "S",

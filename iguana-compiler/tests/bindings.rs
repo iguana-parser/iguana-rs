@@ -117,8 +117,9 @@ fn values_survive_rebinding_and_shared_returns() {
     .unwrap();
 
     // A separate target directory avoids taking the outer Cargo invocation's
-    // lock. The configurations share their dependency build. Safe mode uses the
-    // default LL(1) optimization; unsafe mode also checks generation without it.
+    // lock. The configurations share their dependency build. The default mode uses
+    // the default LL(1) optimization; the first-parse mode also checks generation
+    // without it.
     let target = std::env::current_exe()
         .unwrap()
         .parent()
@@ -126,12 +127,12 @@ fn values_survive_rebinding_and_shared_returns() {
         .parent()
         .unwrap()
         .join("binding-values-target");
-    for (unsafe_mode, ll1_optimization) in [(false, true), (true, false)] {
+    for (first_parse, ll1_optimization) in [(false, true), (true, false)] {
         generate_sources(
             &grammar,
             &dir,
             GenConfig {
-                unsafe_mode,
+                first_parse,
                 ll1_optimization,
                 cli: false,
                 ..GenConfig::default()
@@ -147,7 +148,7 @@ fn values_survive_rebinding_and_shared_returns() {
             .unwrap();
         assert!(
             output.status.success(),
-            "unsafe={unsafe_mode}, ll1={ll1_optimization}\n{}\n{}",
+            "first_parse={first_parse}, ll1={ll1_optimization}\n{}\n{}",
             String::from_utf8_lossy(&output.stdout),
             String::from_utf8_lossy(&output.stderr)
         );

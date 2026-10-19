@@ -37,7 +37,7 @@ enum Commands {
     },
     /// Generate a parser crate from an iggy grammar
     ///
-    /// Generation knobs (ll1, match_memo, format, unsafe, bin_name,
+    /// Generation knobs (ll1, match_memo, format, first_parse, bin_name,
     /// runtime_path) can be persisted in a gen.toml beside the grammar.
     /// Precedence is the built-in default, then gen.toml, then an explicit
     /// flag.
@@ -76,10 +76,11 @@ enum Commands {
         #[arg(long, num_args = 0..=1, default_missing_value = "true")]
         format: Option<bool>,
 
-        /// When true, the generated parser runs in the unsafe mode: it assumes the
+        /// When true, the generated parser runs in the first-parse mode: it assumes the
         /// grammar is unambiguous and stops at the first derivation that spans the input.
-        #[arg(long = "unsafe", value_name = "UNSAFE", num_args = 0..=1, default_missing_value = "true")]
-        unsafe_mode: Option<bool>,
+        /// The parse tree types are the same in both modes.
+        #[arg(long, num_args = 0..=1, default_missing_value = "true")]
+        first_parse: Option<bool>,
 
         /// Scaffold a CLI binary (Cargo.toml + src/main.rs)
         ///
@@ -157,7 +158,7 @@ fn run() -> io::Result<()> {
             ll1,
             match_memo,
             format,
-            unsafe_mode,
+            first_parse,
             cli,
             wasm,
             runtime_path,
@@ -219,8 +220,8 @@ fn run() -> io::Result<()> {
             if let Some(format) = format {
                 config.format = format;
             }
-            if let Some(unsafe_mode) = unsafe_mode {
-                config.unsafe_mode = unsafe_mode;
+            if let Some(first_parse) = first_parse {
+                config.first_parse = first_parse;
             }
             let bin_name = bin_name.or(file.bin_name);
             let runtime_path = runtime_path.or(file.runtime_path);

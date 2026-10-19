@@ -1,4 +1,4 @@
-grammar DanglingElseUnsafe
+grammar DanglingElseFirstParse
 
 S = Statement+
 

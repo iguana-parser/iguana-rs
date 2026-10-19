@@ -18,8 +18,7 @@ pub struct GenConfigFile {
     pub ll1: Option<bool>,
     pub match_memo: Option<bool>,
     pub format: Option<bool>,
-    #[serde(rename = "unsafe")]
-    pub unsafe_mode: Option<bool>,
+    pub first_parse: Option<bool>,
     pub bin_name: Option<String>,
     pub runtime_path: Option<PathBuf>,
 }
@@ -61,8 +60,8 @@ impl GenConfig {
         if let Some(match_memo) = file.match_memo {
             self.match_memo = match_memo;
         }
-        if let Some(unsafe_mode) = file.unsafe_mode {
-            self.unsafe_mode = unsafe_mode;
+        if let Some(first_parse) = file.first_parse {
+            self.first_parse = first_parse;
         }
         if let Some(format) = file.format {
             self.format = format;
@@ -80,15 +79,15 @@ mod tests {
         assert_eq!(file.ll1, None);
         assert_eq!(file.match_memo, None);
         assert_eq!(file.format, None);
-        assert_eq!(file.unsafe_mode, None);
+        assert_eq!(file.first_parse, None);
         assert_eq!(file.bin_name, None);
         assert_eq!(file.runtime_path, None);
     }
 
     #[test]
-    fn unsafe_key_maps_to_unsafe_mode() {
-        let file: GenConfigFile = toml::from_str("unsafe = true\n").unwrap();
-        assert_eq!(file.unsafe_mode, Some(true));
+    fn first_parse_key_parses() {
+        let file: GenConfigFile = toml::from_str("first_parse = true\n").unwrap();
+        assert_eq!(file.first_parse, Some(true));
     }
 
     #[test]
@@ -111,12 +110,12 @@ mod tests {
         let mut config = GenConfig::default();
         let file = GenConfigFile {
             ll1: Some(false),
-            unsafe_mode: Some(true),
+            first_parse: Some(true),
             ..GenConfigFile::default()
         };
         config.apply_file(&file);
         assert!(!config.ll1_optimization);
-        assert!(config.unsafe_mode);
+        assert!(config.first_parse);
         // match_memo and format are unspecified, so they keep the built-in
         // defaults.
         assert!(config.match_memo);

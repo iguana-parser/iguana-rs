@@ -124,13 +124,13 @@ static MATCH_ANY_FIRST_CHARS: [CharSet; 12] = [
     CharSet::new(0x800000000000000, &[]),
     CharSet::new(0x20000000000, &[]),
 ];
-pub struct AmbiguousExprUnsafeScanner<'i, 'arena> {
+pub struct AmbiguousExprFirstParseScanner<'i, 'arena> {
     pub input: &'i Input,
     vec_arena: &'arena Arena,
     memo: MatchMemo<'arena, MATCH_MEMO_WORDS>,
     match_any_memo: MatchAnyMemo<'arena, MATCH_ANY_SET_WORDS>,
 }
-impl<'i, 'arena> AmbiguousExprUnsafeScanner<'i, 'arena> {
+impl<'i, 'arena> AmbiguousExprFirstParseScanner<'i, 'arena> {
     pub fn new(input: &'i Input, vec_arena: &'arena Arena) -> Self {
         let memo = MatchMemo::new(input.len() as usize, vec_arena);
         let match_any_memo = MatchAnyMemo::new(input.len() as usize, vec_arena);
@@ -219,7 +219,7 @@ impl<'i, 'arena> AmbiguousExprUnsafeScanner<'i, 'arena> {
         matched
     }
 }
-impl Scanner for AmbiguousExprUnsafeScanner<'_, '_> {
+impl Scanner for AmbiguousExprFirstParseScanner<'_, '_> {
     fn match_token(&mut self, terminal_id: TerminalId, input_index: u32) -> Option<u32> {
         if self
             .input

@@ -163,7 +163,7 @@ pub trait Parser<'i, 'arena>: Sized {
 
     fn build_tree<'a>(&self, root: SPPFNodeId, tree_arena: &'a Arena) -> Self::Tree<'a>;
 
-    const UNSAFE: bool = false;
+    const FIRST_PARSE: bool = false;
 
     /// The GLL main loop: takes descriptors until the set is empty and runs
     /// each one through the generated slot dispatch.
@@ -185,7 +185,7 @@ pub trait Parser<'i, 'arena>: Sized {
     );
     fn new_gss_node(&mut self, nonterminal_id: NonterminalId, input_index: u32) -> GssNodeId;
     /// The GSS node of the start nonterminal at input position 0, or `None`
-    /// before `run` creates it. `pop` uses it to end an unsafe parse early.
+    /// before `run` creates it. `pop` uses it to end a parse early in the first-parse mode.
     fn start_gss_node_id(&self) -> Option<GssNodeId>;
     fn set_start_gss_node_id(&mut self, id: GssNodeId);
     fn gss_node(&self, id: GssNodeId) -> &GSSNode<'arena>;
@@ -215,7 +215,7 @@ pub trait Parser<'i, 'arena>: Sized {
     /// The alternatives are scheduled from the last to the first. The
     /// descriptor worklist is a stack, so the parser runs the first
     /// alternative first, which gives the GLL execution a depth-first
-    /// exploration of the alternatives. The benefit is in the unsafe mode,
+    /// exploration of the alternatives. The benefit is in the first-parse mode,
     /// which stops at the first derivation that spans the whole input and
     /// reaches it earlier this way. The default mode drains every descriptor,
     /// so the order does not change the result there.
@@ -240,7 +240,7 @@ pub trait Parser<'i, 'arena>: Sized {
     fn vec_arena(&self) -> &'arena Arena;
     /// Empties the descriptor queue. With no descriptors left, `run`'s loop ends and the parse
     /// terminates. `pop` calls it once the start nonterminal spans the full input, but only in
-    /// the unsafe mode.
+    /// the first-parse mode.
     fn clear_descriptors(&mut self) {}
     fn input(&self) -> &'i Input;
 
@@ -271,7 +271,7 @@ pub trait Parser<'i, 'arena>: Sized {
     /// `NonterminalNode.return_slot`. Additional children live in a side map,
     /// and a side map entry on a node marks it ambiguous.
     ///
-    /// The unsafe mode produces no ambiguity and records nothing here.
+    /// The first-parse mode produces no ambiguity and records nothing here.
     fn add_nonterminal_node_child(
         &mut self,
         node: SPPFNodeId,
@@ -279,12 +279,12 @@ pub trait Parser<'i, 'arena>: Sized {
         return_slot: SlotId,
     ) {
         let _ = (node, child, return_slot);
-        if !Self::UNSAFE {
-            unimplemented!("overridden by the generated parser outside the unsafe mode");
+        if !Self::FIRST_PARSE {
+            unimplemented!("overridden by the generated parser outside the first-parse mode");
         }
     }
 
-    /// The unsafe mode produces no ambiguity and records nothing here.
+    /// The first-parse mode produces no ambiguity and records nothing here.
     fn add_intermediate_node_child(
         &mut self,
         node: SPPFNodeId,
@@ -292,15 +292,15 @@ pub trait Parser<'i, 'arena>: Sized {
         child2: SPPFNodeId,
     ) {
         let _ = (node, child1, child2);
-        if !Self::UNSAFE {
-            unimplemented!("overridden by the generated parser outside the unsafe mode");
+        if !Self::FIRST_PARSE {
+            unimplemented!("overridden by the generated parser outside the first-parse mode");
         }
     }
 
     /// Looks up the intermediate node for `slot_id`, span (`left_extent`,
     /// `right_extent`), and `env`. Returns `None` if no such node exists.
     ///
-    /// The unsafe mode does not share nodes and finds nothing.
+    /// The first-parse mode does not share nodes and finds nothing.
     fn lookup_intermediate_node(
         &self,
         slot_id: SlotId,
@@ -309,17 +309,17 @@ pub trait Parser<'i, 'arena>: Sized {
         env: Option<EnvId>,
     ) -> Option<SPPFNodeId> {
         let _ = (slot_id, left_extent, right_extent, env);
-        if Self::UNSAFE {
+        if Self::FIRST_PARSE {
             None
         } else {
-            unimplemented!("overridden by the generated parser outside the unsafe mode");
+            unimplemented!("overridden by the generated parser outside the first-parse mode");
         }
     }
 
     /// Looks up an existing terminal node for `terminal_id` and span
     /// (`left_extent`, `right_extent`). Returns `None` if no such node exists.
     ///
-    /// The unsafe mode does not share nodes and finds nothing.
+    /// The first-parse mode does not share nodes and finds nothing.
     fn lookup_terminal_node(
         &self,
         terminal_id: TerminalId,
@@ -327,10 +327,10 @@ pub trait Parser<'i, 'arena>: Sized {
         right_extent: u32,
     ) -> Option<SPPFNodeId> {
         let _ = (terminal_id, left_extent, right_extent);
-        if Self::UNSAFE {
+        if Self::FIRST_PARSE {
             None
         } else {
-            unimplemented!("overridden by the generated parser outside the unsafe mode");
+            unimplemented!("overridden by the generated parser outside the first-parse mode");
         }
     }
 
@@ -819,7 +819,7 @@ pub trait Parser<'i, 'arena>: Sized {
             }
         }
         // Stop only when the start node spans the whole input.
-        if Self::UNSAFE
+        if Self::FIRST_PARSE
             && right_extent == self.input().len()
             && self
                 .start_gss_node_id()
@@ -897,7 +897,7 @@ pub trait Parser<'i, 'arena>: Sized {
     /// and `Some(v)` for a data-dependent one that returns `v`, so calls that
     /// return different values get separate nodes. On hit, marks the existing
     /// node ambiguous and attaches `child`. On miss, creates a fresh node. The
-    /// unsafe mode skips the lookup and always creates a fresh node.
+    /// first-parse mode skips the lookup and always creates a fresh node.
     ///
     /// Only called in the GLL path. LL(1) parses do not call this function
     /// because an LL(1) nonterminal is unambiguous by definition, so the
@@ -913,7 +913,7 @@ pub trait Parser<'i, 'arena>: Sized {
         gss_node_id: GssNodeId,
         return_value: Option<i32>,
     ) -> SPPFNodeId {
-        if !Self::UNSAFE {
+        if !Self::FIRST_PARSE {
             if let Some(existing_node_id) = self
                 .gss_node(gss_node_id)
                 .find_popped_element(right_extent, return_value)
@@ -951,8 +951,8 @@ pub trait Parser<'i, 'arena>: Sized {
     /// descriptor with the same key already drove the continuation forward.
     /// When the new `(left_child, right_child)` pair differs from the
     /// existing one, the new pair is appended and the node is marked
-    /// ambiguous, recording genuine intermediate-level ambiguity. The unsafe
-    /// mode skips the lookup and always returns `Some`.
+    /// ambiguous, recording genuine intermediate-level ambiguity. The
+    /// first-parse mode skips the lookup and always returns `Some`.
     fn get_or_create_intermediate_node(
         &mut self,
         slot_id: SlotId,
@@ -962,7 +962,7 @@ pub trait Parser<'i, 'arena>: Sized {
         right_child: SPPFNodeId,
         env: Option<EnvId>,
     ) -> Option<SPPFNodeId> {
-        if !Self::UNSAFE {
+        if !Self::FIRST_PARSE {
             if let Some(existing_node_id) =
                 self.lookup_intermediate_node(slot_id, left_extent, right_extent, env)
             {
@@ -990,7 +990,7 @@ pub trait Parser<'i, 'arena>: Sized {
             child: (left_child, right_child),
             ambiguous: false,
         };
-        Some(self.add_intermediate_node(intermediate_node, env, !Self::UNSAFE))
+        Some(self.add_intermediate_node(intermediate_node, env, !Self::FIRST_PARSE))
     }
 
     /// LL(1)-path intermediate-node creation. Skips the lookup and the index
@@ -1055,7 +1055,7 @@ pub trait Parser<'i, 'arena>: Sized {
         left_extent: u32,
         right_extent: u32,
     ) -> SPPFNodeId {
-        if !Self::UNSAFE {
+        if !Self::FIRST_PARSE {
             if let Some(existing_node_id) =
                 self.lookup_terminal_node(terminal_id, left_extent, right_extent)
             {
@@ -1163,29 +1163,29 @@ pub trait Parser<'i, 'arena>: Sized {
 
     /// Extra children of ambiguous intermediate nodes, grouped by parent node.
     ///
-    /// The unsafe mode produces no ambiguity and returns an empty map.
+    /// The first-parse mode produces no ambiguity and returns an empty map.
     fn intermediate_nodes_children_map(
         &self,
     ) -> &FxHashMap<SPPFNodeId, Vec<(SPPFNodeId, SPPFNodeId)>> {
-        if Self::UNSAFE {
+        if Self::FIRST_PARSE {
             static EMPTY: LazyLock<FxHashMap<SPPFNodeId, Vec<(SPPFNodeId, SPPFNodeId)>>> =
                 LazyLock::new(FxHashMap::default);
             &EMPTY
         } else {
-            unimplemented!("overridden by the generated parser outside the unsafe mode");
+            unimplemented!("overridden by the generated parser outside the first-parse mode");
         }
     }
 
     /// Extra children of ambiguous nonterminal nodes, grouped by parent node.
     ///
-    /// The unsafe mode produces no ambiguity and returns an empty map.
+    /// The first-parse mode produces no ambiguity and returns an empty map.
     fn nonterminal_nodes_children_map(&self) -> &FxHashMap<SPPFNodeId, Vec<(SPPFNodeId, SlotId)>> {
-        if Self::UNSAFE {
+        if Self::FIRST_PARSE {
             static EMPTY: LazyLock<FxHashMap<SPPFNodeId, Vec<(SPPFNodeId, SlotId)>>> =
                 LazyLock::new(FxHashMap::default);
             &EMPTY
         } else {
-            unimplemented!("overridden by the generated parser outside the unsafe mode");
+            unimplemented!("overridden by the generated parser outside the first-parse mode");
         }
     }
 
@@ -1195,9 +1195,9 @@ pub trait Parser<'i, 'arena>: Sized {
         match self.sppf_node(node_id) {
             SPPFNode::Terminal(_) => InlineVec::Empty,
             SPPFNode::Nonterminal(n) => {
-                // The unsafe mode never marks a node ambiguous, so the const
+                // The first-parse mode never marks a node ambiguous, so the const
                 // guard compiles the ambiguous arm out.
-                if !Self::UNSAFE && n.ambiguous {
+                if !Self::FIRST_PARSE && n.ambiguous {
                     let extras = self.nonterminal_nodes_children_map().get(&node_id).unwrap();
                     let mut children = arena.vec_with_capacity(1 + extras.len());
                     children.push(n.child);
@@ -1208,7 +1208,7 @@ pub trait Parser<'i, 'arena>: Sized {
                 }
             }
             SPPFNode::Intermediate(i) => {
-                if !Self::UNSAFE && i.ambiguous {
+                if !Self::FIRST_PARSE && i.ambiguous {
                     let extras = self
                         .intermediate_nodes_children_map()
                         .get(&node_id)

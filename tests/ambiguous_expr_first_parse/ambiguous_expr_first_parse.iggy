@@ -1,4 +1,4 @@
-grammar AmbiguousExprUnsafe
+grammar AmbiguousExprFirstParse
 
 S = E
 

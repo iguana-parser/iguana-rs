@@ -1,5 +1,5 @@
 [package]
-name = "dangling_else_unsafe"
+name = "dangling_else_first_parse"
 version = "0.1.0"
 publish = false
 edition = "2024"
@@ -10,7 +10,7 @@ test = false
 doctest = false
 
 [[bin]]
-name = "dangling_else_unsafe"
+name = "dangling_else_first_parse"
 path = "src/main.rs"
 test = false
 

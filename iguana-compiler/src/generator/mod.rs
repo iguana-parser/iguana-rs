@@ -117,22 +117,26 @@ pub struct GenConfig {
     /// `wasm-bindgen` wrapper crate under `wasm/` and a `manifest.json`. A
     /// wasm bundle has no CLI, so `wasm` and `cli` are mutually exclusive.
     pub wasm: bool,
-    /// When true, the generated parser runs in the unsafe mode, as if the
+    /// When true, the generated parser runs in the first-parse mode, as if the
     /// grammar is unambiguous.
     ///
     /// Static ambiguity detection for the full class of context-free grammars is
     /// undecidable. Iguana detects ambiguities at runtime and returns a parse forest
-    /// containing all the derivations. The unsafe mode may silently disambiguate,
+    /// containing all the derivations. The first-parse mode may silently disambiguate,
     /// returning the first parse tree while in reality there were multiple
-    /// derivations. The unsafe mode is only recommended if the user understands its
+    /// derivations. The first-parse mode is only recommended if the user understands its
     /// implications, has a well-tested grammar, and wants better performance.
     ///
-    /// The unsafe mode changes the parser behavior as follows:
+    /// The first-parse mode changes the parser behavior as follows:
     /// - The parser stops when it finds the first derivation of the start nonterminal
     ///   that spans the whole input, without exploring the pending descriptors.
     /// - The machinery for detecting and recording ambiguity nodes, e.g., SPPF node
     ///   indexes, is disabled.
-    pub unsafe_mode: bool,
+    ///
+    /// The parse tree types are the same in both modes, so switching the mode
+    /// only requires regenerating the parser. A parse tree from the first-parse
+    /// mode does not contain `Amb` nodes.
+    pub first_parse: bool,
     /// Whether rustfmt formats the generated Rust files.
     ///
     /// True by default.
@@ -146,7 +150,7 @@ impl Default for GenConfig {
             match_memo: true,
             cli: true,
             wasm: false,
-            unsafe_mode: false,
+            first_parse: false,
             format: true,
         }
     }
@@ -259,14 +263,14 @@ pub fn generate_sources(
     // half-written sources behind.
     check_layout_aware_follow(grammar, &ff, config)?;
     let cyclic_nonterminals = ff.cyclic_nonterminals();
-    if config.unsafe_mode && !cyclic_nonterminals.is_empty() {
+    if config.first_parse && !cyclic_nonterminals.is_empty() {
         let mut names: Vec<_> = cyclic_nonterminals
             .iter()
             .map(|nt| nt.name.as_str())
             .collect();
         names.sort_unstable();
         return Err(io::Error::other(format!(
-            "unsafe mode does not support nonterminals that can derive themselves without consuming input: {} (conditions and restrictions are not taken into account)",
+            "first-parse mode does not support nonterminals that can derive themselves without consuming input: {} (conditions and restrictions are not taken into account)",
             names.join(", ")
         )));
     }
@@ -327,7 +331,6 @@ pub fn generate_sources(
         grammar,
         &nonterminal_ids,
         &terminal_ids,
-        config,
         cyclic_nonterminals,
     );
     write_rust_file(
@@ -519,7 +522,7 @@ mod tests {
     }
 
     #[test]
-    fn unsafe_mode_rejects_cycles_before_writing_sources() {
+    fn first_parse_mode_rejects_cycles_before_writing_sources() {
         let grammar: Grammar = parse_grammar(
             r#"grammar G
 C = C | "b"
@@ -532,19 +535,22 @@ C = C | "b"
             .duration_since(UNIX_EPOCH)
             .unwrap()
             .as_nanos();
-        let dir = env::temp_dir().join(format!("iguana-unsafe-cycles-{}-{nonce}", process::id()));
+        let dir = env::temp_dir().join(format!(
+            "iguana-first-parse-cycles-{}-{nonce}",
+            process::id()
+        ));
         let result = generate_sources(
             &grammar,
             &dir,
             GenConfig {
-                unsafe_mode: true,
+                first_parse: true,
                 ..GenConfig::default()
             },
         );
         let error = result.err().expect("cyclic grammars must be rejected");
         assert_eq!(
             error.to_string(),
-            "unsafe mode does not support nonterminals that can derive themselves without consuming input: C (conditions and restrictions are not taken into account)"
+            "first-parse mode does not support nonterminals that can derive themselves without consuming input: C (conditions and restrictions are not taken into account)"
         );
         assert!(!dir.exists(), "rejection must precede any generated files");
     }
@@ -579,12 +585,12 @@ WS = [\ ]*
             "iguana-structural-comments-{}-{nonce}",
             process::id()
         ));
-        for unsafe_mode in [false, true] {
+        for first_parse in [false, true] {
             generate_sources(
                 &grammar,
                 &dir,
                 GenConfig {
-                    unsafe_mode,
+                    first_parse,
                     ..GenConfig::default()
                 },
             )
@@ -612,6 +618,65 @@ WS = [\ ]*
                         "desugaring detail in comment: {comment}"
                     );
                 }
+            }
+        }
+        fs::remove_dir_all(dir).unwrap();
+    }
+
+    // Switching between the default and the first-parse mode only regenerates
+    // the parser: code written against the parse tree types compiles in both.
+    // Every source file except parser.rs is the same in both modes.
+    #[test]
+    fn parse_tree_is_the_same_in_both_modes() {
+        let grammar: Grammar = parse_grammar(
+            r#"grammar Modes
+S = Mod Empty Id+ Id? Id* ("," Id)*
+Mod = "public" #Public | "static" #Static
+Empty = ()
+@Regex
+Id = [a-z]+
+@Layout @Regex
+WS = [\ ]*
+"#,
+        )
+        .unwrap()
+        .try_into()
+        .unwrap();
+        let nonce = SystemTime::now()
+            .duration_since(UNIX_EPOCH)
+            .unwrap()
+            .as_nanos();
+        let dir = env::temp_dir().join(format!("iguana-modes-{}-{nonce}", process::id()));
+        let files = [
+            "grammar.rs",
+            "lib.rs",
+            "parse_tree.rs",
+            "parser.rs",
+            "scanner.rs",
+        ];
+        let sources: Vec<Vec<String>> = [false, true]
+            .into_iter()
+            .map(|first_parse| {
+                generate_sources(
+                    &grammar,
+                    &dir,
+                    GenConfig {
+                        first_parse,
+                        ..GenConfig::default()
+                    },
+                )
+                .unwrap();
+                files
+                    .iter()
+                    .map(|file| fs::read_to_string(dir.join("src").join(file)).unwrap())
+                    .collect()
+            })
+            .collect();
+        for (i, file) in files.iter().enumerate() {
+            if *file == "parser.rs" {
+                assert_ne!(sources[0][i], sources[1][i], "{file} must differ");
+            } else {
+                assert_eq!(sources[0][i], sources[1][i], "{file} must be the same");
             }
         }
         fs::remove_dir_all(dir).unwrap();

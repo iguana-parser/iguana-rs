@@ -15,55 +15,79 @@ static DFA_0: Dfa = Dfa::new(&[
     State::new(&[('a', 'z', 1)], Some(TerminalId(0))),
 ]);
 static DFA_1: Dfa = Dfa::new(&[
-    State::new(&[(' ', ' ', 1)], Some(TerminalId(1))),
-    State::new(&[(' ', ' ', 1)], Some(TerminalId(1))),
+    State::new(&[('a', 'z', 1)], None),
+    State::new(&[('a', 'z', 1)], Some(TerminalId(1))),
 ]);
 static DFA_2: Dfa = Dfa::new(&[
-    State::new(&[('p', 'p', 1)], None),
-    State::new(&[('u', 'u', 2)], None),
-    State::new(&[('b', 'b', 3)], None),
-    State::new(&[('l', 'l', 4)], None),
-    State::new(&[('i', 'i', 5)], None),
-    State::new(&[('c', 'c', 6)], None),
+    State::new(&[('e', 'e', 1)], None),
+    State::new(&[('l', 'l', 2)], None),
+    State::new(&[('s', 's', 3)], None),
+    State::new(&[('e', 'e', 4)], None),
     State::new(&[], Some(TerminalId(2))),
 ]);
 static DFA_3: Dfa = Dfa::new(&[
-    State::new(&[('s', 's', 1)], None),
-    State::new(&[('t', 't', 2)], None),
-    State::new(&[('a', 'a', 3)], None),
-    State::new(&[('t', 't', 4)], None),
-    State::new(&[('i', 'i', 5)], None),
-    State::new(&[('c', 'c', 6)], None),
+    State::new(&[('a', 'z', 1)], None),
     State::new(&[], Some(TerminalId(3))),
 ]);
-static TERMINAL_FIRST_CHARS: [CharSet; 6] = [
+static DFA_4: Dfa = Dfa::new(&[
+    State::new(&[('\t', '\t', 1), ('\n', '\n', 1), (' ', ' ', 1)], None),
+    State::new(
+        &[('\t', '\t', 1), ('\n', '\n', 1), (' ', ' ', 1)],
+        Some(TerminalId(4)),
+    ),
+]);
+static DFA_5: Dfa = Dfa::new(&[
+    State::new(&[('/', '/', 1)], None),
+    State::new(&[('*', '*', 2)], None),
+    State::new(
+        &[
+            ('\0', ')', 3),
+            ('*', '*', 4),
+            ('+', '\u{d7ff}', 3),
+            ('\u{e000}', '\u{10ffff}', 3),
+        ],
+        None,
+    ),
+    State::new(
+        &[
+            ('\0', ')', 3),
+            ('*', '*', 4),
+            ('+', '\u{d7ff}', 3),
+            ('\u{e000}', '\u{10ffff}', 3),
+        ],
+        None,
+    ),
+    State::new(&[('/', '/', 5)], None),
+    State::new(&[], Some(TerminalId(5))),
+]);
+static DFA_6: Dfa = Dfa::new(&[
+    State::new(&[('i', 'i', 1)], None),
+    State::new(&[('f', 'f', 2)], None),
+    State::new(&[], Some(TerminalId(6))),
+]);
+static DFA_7: Dfa = Dfa::new(&[
+    State::new(&[('(', '(', 1)], None),
+    State::new(&[], Some(TerminalId(7))),
+]);
+static DFA_8: Dfa = Dfa::new(&[
+    State::new(&[(')', ')', 1)], None),
+    State::new(&[], Some(TerminalId(8))),
+]);
+static DFA_9: Dfa = Dfa::new(&[
+    State::new(&[(';', ';', 1)], None),
+    State::new(&[], Some(TerminalId(9))),
+]);
+static TERMINAL_FIRST_CHARS: [CharSet; 12] = [
     CharSet::new(0x7fffffe000000000000000000000000, &[]),
-    CharSet::new(
-        0xffffffffffffffffffffffffffffffff,
-        &[CharRange {
-            start: '\u{80}',
-            end: '\u{10ffff}',
-        }],
-    ),
-    CharSet::new(0x10000000000000000000000000000, &[]),
-    CharSet::new(0x80000000000000000000000000000, &[]),
-    CharSet::new(
-        0xffffffffffffffffffffffffffffffff,
-        &[CharRange {
-            start: '\u{80}',
-            end: '\u{10ffff}',
-        }],
-    ),
-    CharSet::new(0x0, &[]),
-];
-static MATCH_ANY_FIRST_CHARS: [CharSet; 3] = [
-    CharSet::new(
-        0xffffffffffffffffffffffffffffffff,
-        &[CharRange {
-            start: '\u{80}',
-            end: '\u{10ffff}',
-        }],
-    ),
+    CharSet::new(0x7fffffe000000000000000000000000, &[]),
+    CharSet::new(0x20000000000000000000000000, &[]),
+    CharSet::new(0x7fffffe000000000000000000000000, &[]),
+    CharSet::new(0x100000600, &[]),
+    CharSet::new(0x800000000000, &[]),
+    CharSet::new(0x200000000000000000000000000, &[]),
+    CharSet::new(0x10000000000, &[]),
+    CharSet::new(0x20000000000, &[]),
+    CharSet::new(0x800000000000000, &[]),
     CharSet::new(
         0xffffffffffffffffffffffffffffffff,
         &[CharRange {
@@ -73,13 +97,23 @@ static MATCH_ANY_FIRST_CHARS: [CharSet; 3] = [
     ),
     CharSet::new(0x0, &[]),
 ];
-pub struct TokenOnlyUnsafeScanner<'i, 'arena> {
+static MATCH_ANY_FIRST_CHARS: [CharSet; 8] = [
+    CharSet::new(0x800100000600, &[]),
+    CharSet::new(0x7fffffe000000000000800100000600, &[]),
+    CharSet::new(0x20000000000000000000000000, &[]),
+    CharSet::new(0x7fffffe000000000800030000000000, &[]),
+    CharSet::new(0x7fffffe000000000000800100000600, &[]),
+    CharSet::new(0x7fffffe000000000800830100000600, &[]),
+    CharSet::new(0x0, &[]),
+    CharSet::new(0x7fffffe000000000000000000000000, &[]),
+];
+pub struct DanglingElseFirstParseScanner<'i, 'arena> {
     pub input: &'i Input,
     vec_arena: &'arena Arena,
     memo: MatchMemo<'arena, MATCH_MEMO_WORDS>,
     match_any_memo: MatchAnyMemo<'arena, MATCH_ANY_SET_WORDS>,
 }
-impl<'i, 'arena> TokenOnlyUnsafeScanner<'i, 'arena> {
+impl<'i, 'arena> DanglingElseFirstParseScanner<'i, 'arena> {
     pub fn new(input: &'i Input, vec_arena: &'arena Arena) -> Self {
         let memo = MatchMemo::new(input.len() as usize, vec_arena);
         let match_any_memo = MatchAnyMemo::new(input.len() as usize, vec_arena);
@@ -90,27 +124,52 @@ impl<'i, 'arena> TokenOnlyUnsafeScanner<'i, 'arena> {
             match_any_memo,
         }
     }
-    // Id = [a-z]+
+    // Cond = [a-z]+
     pub fn match_terminal_0(&self, input_index: u32) -> Option<u32> {
         self.scan(&DFA_0, input_index)
     }
-    // WS = [ ]*
+    // Id = [a-z]+
     pub fn match_terminal_1(&self, input_index: u32) -> Option<u32> {
         self.scan(&DFA_1, input_index)
     }
-    // "public" = public
+    // Else = else !>> Letter
     pub fn match_terminal_2(&self, input_index: u32) -> Option<u32> {
         self.scan(&DFA_2, input_index)
+            .filter(|&end| self.match_terminal_3(end).is_none())
     }
-    // "static" = static
+    // Letter = [a-z]
     pub fn match_terminal_3(&self, input_index: u32) -> Option<u32> {
         self.scan(&DFA_3, input_index)
+    }
+    // WhiteSpace = [ \t \n]+
+    pub fn match_terminal_4(&self, input_index: u32) -> Option<u32> {
+        self.scan(&DFA_4, input_index)
+    }
+    // Comment = /*![*]**/
+    pub fn match_terminal_5(&self, input_index: u32) -> Option<u32> {
+        self.scan(&DFA_5, input_index)
+    }
+    // "if" = if
+    pub fn match_terminal_6(&self, input_index: u32) -> Option<u32> {
+        self.scan(&DFA_6, input_index)
+    }
+    // "(" = (
+    pub fn match_terminal_7(&self, input_index: u32) -> Option<u32> {
+        self.scan(&DFA_7, input_index)
+    }
+    // ")" = )
+    pub fn match_terminal_8(&self, input_index: u32) -> Option<u32> {
+        self.scan(&DFA_8, input_index)
+    }
+    // ";" = ;
+    pub fn match_terminal_9(&self, input_index: u32) -> Option<u32> {
+        self.scan(&DFA_9, input_index)
     }
     // Whether any terminal in `set` matches at `input_index`, cached by the set's memo id. The
     // first query of a set at a position scans it; later queries return the cached bit.
     pub fn match_any(&mut self, set: &TerminalSet, input_index: u32) -> bool {
         debug_assert!(
-            set.id < 3,
+            set.id < 8,
             "terminal set {} does not have a match_any memo id",
             set.id,
         );
@@ -132,7 +191,7 @@ impl<'i, 'arena> TokenOnlyUnsafeScanner<'i, 'arena> {
         matched
     }
 }
-impl Scanner for TokenOnlyUnsafeScanner<'_, '_> {
+impl Scanner for DanglingElseFirstParseScanner<'_, '_> {
     fn match_token(&mut self, terminal_id: TerminalId, input_index: u32) -> Option<u32> {
         if self
             .input
@@ -152,7 +211,13 @@ impl Scanner for TokenOnlyUnsafeScanner<'_, '_> {
             TerminalId(1) => self.match_terminal_1(input_index),
             TerminalId(2) => self.match_terminal_2(input_index),
             TerminalId(3) => self.match_terminal_3(input_index),
-            TerminalId(5) => {
+            TerminalId(4) => self.match_terminal_4(input_index),
+            TerminalId(5) => self.match_terminal_5(input_index),
+            TerminalId(6) => self.match_terminal_6(input_index),
+            TerminalId(7) => self.match_terminal_7(input_index),
+            TerminalId(8) => self.match_terminal_8(input_index),
+            TerminalId(9) => self.match_terminal_9(input_index),
+            TerminalId(11) => {
                 if input_index == self.input.len() {
                     Some(input_index)
                 } else {

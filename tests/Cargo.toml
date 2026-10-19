@@ -14,14 +14,14 @@ members = [
     "amb_root_nested",
     "amb_root_start",
     "ambiguous_expr",
-    "ambiguous_expr_unsafe",
+    "ambiguous_expr_first_parse",
     "assoc_single_level",
     "assoc_test",
     "binary_expression_priority",
     "comments",
     "cycles",
     "dangling_else",
-    "dangling_else_unsafe",
+    "dangling_else_first_parse",
     "deep_priority",
     "deep_priority_full",
     "error_union",
@@ -89,7 +89,6 @@ members = [
     "simple_alt",
     "star",
     "star_with_sep",
-    "token_only_unsafe",
 ]
 
 [workspace.dependencies]

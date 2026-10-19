@@ -105,9 +105,9 @@ impl<T: Debug + Clone> OneOrMany<T> {
 /// followed by an actual DFS from the root. The empty-maps case is a fast
 /// out covering most parses.
 pub fn is_ambiguous<'i, 'arena, P: Parser<'i, 'arena>>(parser: &P, root_id: SPPFNodeId) -> bool {
-    // The unsafe mode records no ambiguity, so the answer is known at
+    // The first-parse mode records no ambiguity, so the answer is known at
     // compile time and the walk below is dead code.
-    if P::UNSAFE {
+    if P::FIRST_PARSE {
         return false;
     }
     if parser.nonterminal_nodes_children_map().is_empty()
@@ -147,12 +147,12 @@ pub fn visit_sppf<'i, 'arena, T: Debug + Clone, P: Parser<'i, 'arena>>(
 ) -> T {
     // If the SPPF is not ambiguous, that is, no ambiguous node is reachable
     // from the root, every node has one derivation, and we use the
-    // unambiguous walker, which does not use a memo. The unsafe mode never
-    // creates an ambiguous node, so it skips the check.
+    // unambiguous walker, which does not use a memo. The first-parse mode
+    // never creates an ambiguous node, so it skips the check.
     // Every SPPF cycle includes an ambiguous node: closing a cycle adds an
     // edge to an existing node. So a cyclic SPPF always takes the general
     // walker, which relies on its memo to terminate.
-    if P::UNSAFE || !is_ambiguous(parser, node_id) {
+    if P::FIRST_PARSE || !is_ambiguous(parser, node_id) {
         return visit_sppf_unambiguous(node_id, parser, builder);
     }
     match visit_sppf_impl(node_id, parser, builder) {

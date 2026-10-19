@@ -370,7 +370,7 @@ fn regenerate(grammar_path: &Path, output: &Path) -> io::Result<GenerateResult> 
     // the scaffold emits to workspace membership.
     //
     // A gen.toml beside the grammar overrides the parser knobs, so the same
-    // grammar can be tested in both modes from two crates (one with unsafe = true).
+    // grammar can be tested in both modes from two crates (one with first_parse = true).
     let mut config = GenConfig {
         cli: true,
         ..GenConfig::default()

@@ -1,9 +1,0 @@
-(Start
-  WS
-  (S
-    (Mod "static")
-    WS
-    Empty
-    WS
-    (Tag Id))
-  WS)

@@ -17,10 +17,10 @@ pub const STAR_0: NonterminalId = NonterminalId(6);
 pub const START_S: NonterminalId = NonterminalId(7);
 pub const START_STATEMENT: NonterminalId = NonterminalId(8);
 pub const START_LAYOUT: NonterminalId = NonterminalId(9);
-pub struct DanglingElseUnsafeGrammar;
-impl Grammar for DanglingElseUnsafeGrammar {
+pub struct DanglingElseFirstParseGrammar;
+impl Grammar for DanglingElseFirstParseGrammar {
     type Alternatives = BitSet<1>;
-    const NAME: &'static str = "DanglingElseUnsafe";
+    const NAME: &'static str = "DanglingElseFirstParse";
     const NONTERMINALS: &'static [Nonterminal] = &[
         Nonterminal {
             name: "S",

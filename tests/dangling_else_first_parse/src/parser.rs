@@ -2,8 +2,8 @@
 
 use crate::{
     grammar::*,
-    parse_tree::{self, DanglingElseUnsafeParseTreeBuilder, ParseTree, create_parse_tree},
-    scanner::DanglingElseUnsafeScanner,
+    parse_tree::{self, DanglingElseFirstParseParseTreeBuilder, ParseTree, create_parse_tree},
+    scanner::DanglingElseFirstParseScanner,
 };
 use iguana_runtime::grammar::Grammar;
 #[allow(unused_imports)]
@@ -28,19 +28,20 @@ use iguana_runtime::{
     sppf::{IntermediateNode, NonterminalNode, SPPFNode, TerminalNode},
     utils::{inline_vec::InlineVec, lazy_inline_maps::LazyInlineMaps},
 };
-impl<'i, 'arena> Parser<'i, 'arena> for DanglingElseUnsafeParser<'i, 'arena> {
-    type Grammar = DanglingElseUnsafeGrammar;
-    type Alternatives = <DanglingElseUnsafeGrammar as Grammar>::Alternatives;
-    type ConcreteParser<'input, 'parser_arena> = DanglingElseUnsafeParser<'input, 'parser_arena>;
+impl<'i, 'arena> Parser<'i, 'arena> for DanglingElseFirstParseParser<'i, 'arena> {
+    type Grammar = DanglingElseFirstParseGrammar;
+    type Alternatives = <DanglingElseFirstParseGrammar as Grammar>::Alternatives;
+    type ConcreteParser<'input, 'parser_arena> =
+        DanglingElseFirstParseParser<'input, 'parser_arena>;
     fn new(input: &'i Input, parser_arena: &'arena Arena) -> Self {
-        DanglingElseUnsafeParser::new(input, parser_arena)
+        DanglingElseFirstParseParser::new(input, parser_arena)
     }
     type Tree<'a> = ParseTree<'a>;
     fn build_tree<'a>(&self, root: SPPFNodeId, tree_arena: &'a Arena) -> ParseTree<'a> {
-        let builder = DanglingElseUnsafeParseTreeBuilder::new(tree_arena);
+        let builder = DanglingElseFirstParseParseTreeBuilder::new(tree_arena);
         create_parse_tree(root, self, &builder)
     }
-    const UNSAFE: bool = true;
+    const FIRST_PARSE: bool = true;
     // The GLL main loop. Each descriptor starts at its slot. A slot that reaches the next slot
     // of its alternative sets `next`, so a descriptor runs through its alternative as far as it
     // can before the loop takes the next descriptor. The GSS node and the environment are fixed
@@ -1030,10 +1031,10 @@ impl<'i, 'arena> Parser<'i, 'arena> for DanglingElseUnsafeParser<'i, 'arena> {
         self.vec_arena
     }
 }
-pub struct DanglingElseUnsafeParser<'i, 'arena> {
+pub struct DanglingElseFirstParseParser<'i, 'arena> {
     // Arena backing the parser's internal collections; reset in bulk after the parse.
     vec_arena: &'arena Arena,
-    scanner: DanglingElseUnsafeScanner<'i, 'arena>,
+    scanner: DanglingElseFirstParseScanner<'i, 'arena>,
     descriptors: ArenaVec<'arena, Descriptor>,
     gss_nodes: ArenaIdVec<'arena, GssNodeId, GSSNode<'arena>>,
     // The start nonterminal's GSS node at input position 0, set by `run`.
@@ -1058,7 +1059,7 @@ pub struct DanglingElseUnsafeParser<'i, 'arena> {
     #[cfg(feature = "debug-trace")]
     pub trace_events: Option<Vec<TraceEvent>>,
 }
-impl<'i, 'arena> DanglingElseUnsafeParser<'i, 'arena> {
+impl<'i, 'arena> DanglingElseFirstParseParser<'i, 'arena> {
     /// Creates a new parser.
     /// A reference to `input` is stored in the parser for scanning.
     /// `parser_arena` is where the parser's internal objects (GSS, SPPF nodes,
@@ -1068,7 +1069,7 @@ impl<'i, 'arena> DanglingElseUnsafeParser<'i, 'arena> {
         let vec_arena = parser_arena;
         Self {
             vec_arena,
-            scanner: DanglingElseUnsafeScanner::new(input, vec_arena),
+            scanner: DanglingElseFirstParseScanner::new(input, vec_arena),
             gss_nodes_index: LazyInlineMaps::new(10, vec_arena),
             descriptors: vec_arena.vec_with_capacity(
                 input.len() as usize / DESCRIPTORS_CAPACITY_DIVISOR + DESCRIPTORS_CAPACITY_FLOOR,
