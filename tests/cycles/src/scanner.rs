@@ -61,47 +61,54 @@ impl<'i, 'arena> CyclesScanner<'i, 'arena> {
     pub fn match_terminal_1(&self, input_index: u32) -> Option<u32> {
         self.scan(&DFA_1, input_index)
     }
-    // Whether any terminal in `set` matches at `input_index`, cached by the set's memo id. The
-    // first query of a set at a position scans it; later queries return the cached bit.
+    // Returns true if any terminal in `set` matches at `input_index`. The result is memoized, so
+    // further calls return from the memo table instead of matching.
+    #[inline(never)]
     pub fn match_any(&mut self, set: &TerminalSet, input_index: u32) -> bool {
         debug_assert!(
             set.id < 4,
             "terminal set {} does not have a match_any memo id",
             set.id,
         );
-        if self
-            .input
-            .char_at(input_index)
-            .is_some_and(|c| !MATCH_ANY_FIRST_CHARS[set.id].contains(c))
-        {
+        let c = self.input.char_at(input_index);
+        if c.is_some_and(|c| !MATCH_ANY_FIRST_CHARS[set.id].contains(c)) {
             return false;
         }
         if let Some(matched) = self.match_any_memo.get(set.id, input_index) {
             return matched;
         }
-        let matched = set
-            .terminals
-            .iter()
-            .any(|id| self.match_token(*id, input_index).is_some());
+        self.match_any_and_memoize(set, input_index)
+    }
+    // Scans `set` at `input_index` and records in the memo whether any terminal matches.
+    // `match_any` looks up the memo and calls this method on a miss.
+    // Not inlined into `match_any`. The parser calls `match_any` very often, and many calls
+    // return after the first-character test or a memo hit. This method needs its arguments again
+    // after each call to `match_token`, for the memo insert, and the compiler handles that with
+    // extra instructions at the start and end of the function. Kept separate, those instructions
+    // run only on a memo miss instead of on every call.
+    #[inline(never)]
+    fn match_any_and_memoize(&mut self, set: &TerminalSet, input_index: u32) -> bool {
+        let c = self.input.char_at(input_index);
+        let matched = set.terminals.iter().any(|id| {
+            c.is_none_or(|c| TERMINAL_FIRST_CHARS[id.index()].contains(c))
+                && self.match_token(*id, input_index).is_some()
+        });
         self.match_any_memo.insert(set.id, input_index, matched);
         matched
     }
-}
-impl Scanner for CyclesScanner<'_, '_> {
-    fn match_token(&mut self, terminal_id: TerminalId, input_index: u32) -> Option<u32> {
-        if self
-            .input
-            .char_at(input_index)
-            .is_some_and(|c| !TERMINAL_FIRST_CHARS[terminal_id.index()].contains(c))
-        {
-            return None;
-        }
-        if let Some(lookup) = self.memo.get(terminal_id, input_index) {
-            return match lookup {
-                Lookup::Match(end) => Some(end),
-                Lookup::Fail => None,
-            };
-        }
+    // Matches `terminal_id` at `input_index` with its DFA and records the result in the memo.
+    // `match_token` looks up the memo and calls this method on a miss.
+    // Not inlined into `match_token`. The parser calls `match_token` very often, and most calls
+    // return after the first-character test or a memo hit. This method needs its arguments again
+    // after the DFA returns, for the memo insert, and the compiler handles that with extra
+    // instructions at the start and end of the function. Kept separate, those instructions run
+    // only on a memo miss instead of on every call.
+    #[inline(never)]
+    fn match_token_and_memoize(
+        &mut self,
+        terminal_id: TerminalId,
+        input_index: u32,
+    ) -> Option<u32> {
         let result = match terminal_id {
             TerminalId(0) => self.match_terminal_0(input_index),
             TerminalId(1) => self.match_terminal_1(input_index),
@@ -122,6 +129,25 @@ impl Scanner for CyclesScanner<'_, '_> {
             None => self.memo.insert_fail(terminal_id, input_index),
         }
         result
+    }
+}
+impl Scanner for CyclesScanner<'_, '_> {
+    #[inline(never)]
+    fn match_token(&mut self, terminal_id: TerminalId, input_index: u32) -> Option<u32> {
+        if self
+            .input
+            .char_at(input_index)
+            .is_some_and(|c| !TERMINAL_FIRST_CHARS[terminal_id.index()].contains(c))
+        {
+            return None;
+        }
+        if let Some(lookup) = self.memo.get(terminal_id, input_index) {
+            return match lookup {
+                Lookup::Match(end) => Some(end),
+                Lookup::Fail => None,
+            };
+        }
+        self.match_token_and_memoize(terminal_id, input_index)
     }
     fn char_at(&self, i: u32) -> Option<char> {
         self.input.char_at(i)

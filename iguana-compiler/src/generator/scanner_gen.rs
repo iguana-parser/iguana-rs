@@ -293,6 +293,7 @@ fn gen_scanner_imp(
         )
     };
     let match_any_method = gen_match_any_method(match_any_count, config);
+    let match_token_and_memoize_method = gen_match_token_and_memoize(terminal_ids, config);
     let match_exact_method = gen_match_exact_method(grammar, terminal_ids);
     quote! {
         impl #impl_generics #name_ident #ty_generics {
@@ -301,6 +302,7 @@ fn gen_scanner_imp(
             }
             #(#match_terminals)*
             #match_any_method
+            #match_token_and_memoize_method
             #match_exact_method
         }
     }
@@ -353,50 +355,62 @@ fn gen_match_exact_method(grammar: &Grammar, terminal_ids: &TerminalIds) -> Toke
 
 fn gen_match_any_method(match_any_count: usize, config: &GenConfig) -> TokenStream {
     // Both versions, with and without the memo, start with the set's
-    // first-character test. As in `match_token`, the test passes at the end of
-    // the input, where `char_at` is `None`.
+    // first-character test. Each terminal of the set then gets its own
+    // first-character test, which skips the call to `match_token` for a
+    // terminal that cannot start with `c`. As in `match_token`, both tests pass
+    // at the end of the input, where `char_at` is `None`. `match_any` is not
+    // inlined, for the same reason as `match_token`.
+    let first_char_test = quote! {
+        let c = self.input.char_at(input_index);
+        if c.is_some_and(|c| !MATCH_ANY_FIRST_CHARS[set.id].contains(c)) {
+            return false;
+        }
+    };
+    let scan = quote! {
+        set.terminals.iter().any(|id| {
+            c.is_none_or(|c| TERMINAL_FIRST_CHARS[id.index()].contains(c))
+                && self.match_token(*id, input_index).is_some()
+        })
+    };
     if config.match_memo {
         let match_any_count = Literal::usize_unsuffixed(match_any_count);
         quote! {
-            #[comment = "Whether any terminal in `set` matches at `input_index`, cached by the set's memo id. The
-                         first query of a set at a position scans it; later queries return the cached bit."]
+            #[comment = "Returns true if any terminal in `set` matches at `input_index`. The result is memoized,
+                         so further calls return from the memo table instead of matching."]
+            #[inline(never)]
             pub fn match_any(&mut self, set: &TerminalSet, input_index: u32) -> bool {
                 debug_assert!(
                     set.id < #match_any_count,
                     "terminal set {} does not have a match_any memo id",
                     set.id,
                 );
-                if self
-                    .input
-                    .char_at(input_index)
-                    .is_some_and(|c| !MATCH_ANY_FIRST_CHARS[set.id].contains(c))
-                {
-                    return false;
-                }
+                #first_char_test
                 if let Some(matched) = self.match_any_memo.get(set.id, input_index) {
                     return matched;
                 }
-                let matched = set
-                    .terminals
-                    .iter()
-                    .any(|id| self.match_token(*id, input_index).is_some());
+                self.match_any_and_memoize(set, input_index)
+            }
+            #[comment = "Scans `set` at `input_index` and records in the memo whether any terminal matches.
+                         `match_any` looks up the memo and calls this method on a miss."]
+            #[comment = "Not inlined into `match_any`. The parser calls `match_any` very often, and many calls
+                         return after the first-character test or a memo hit. This method needs its arguments
+                         again after each call to `match_token`, for the memo insert, and the compiler handles
+                         that with extra instructions at the start and end of the function. Kept separate,
+                         those instructions run only on a memo miss instead of on every call."]
+            #[inline(never)]
+            fn match_any_and_memoize(&mut self, set: &TerminalSet, input_index: u32) -> bool {
+                let c = self.input.char_at(input_index);
+                let matched = #scan;
                 self.match_any_memo.insert(set.id, input_index, matched);
                 matched
             }
         }
     } else {
         quote! {
+            #[inline(never)]
             pub fn match_any(&mut self, set: &TerminalSet, input_index: u32) -> bool {
-                if self
-                    .input
-                    .char_at(input_index)
-                    .is_some_and(|c| !MATCH_ANY_FIRST_CHARS[set.id].contains(c))
-                {
-                    return false;
-                }
-                set.terminals
-                    .iter()
-                    .any(|id| self.match_token(*id, input_index).is_some())
+                #first_char_test
+                #scan
             }
         }
     }
@@ -431,7 +445,9 @@ fn gen_char_at_method() -> TokenStream {
     }
 }
 
-fn gen_match_token(terminal_ids: &TerminalIds, config: &GenConfig) -> TokenStream {
+/// The `match` on `terminal_id` that runs the DFA of the terminal, or tests
+/// for the end of the input for EOF.
+fn gen_token_dispatch(terminal_ids: &TerminalIds) -> TokenStream {
     let match_terminal_arms: Vec<_> = terminal_ids
         .ids()
         .map(|id| {
@@ -443,9 +459,8 @@ fn gen_match_token(terminal_ids: &TerminalIds, config: &GenConfig) -> TokenStrea
             }
         })
         .collect();
-
     let eof_id = Literal::u16_unsuffixed(terminal_ids.eof_id().0);
-    let dispatch = quote! {
+    quote! {
         match terminal_id {
             #(#match_terminal_arms)*
             TerminalId(#eof_id) => {
@@ -455,8 +470,39 @@ fn gen_match_token(terminal_ids: &TerminalIds, config: &GenConfig) -> TokenStrea
                 unreachable!("Unknown token type: {terminal_id}");
             }
         }
-    };
-    let match_token = if match_terminal_arms.is_empty() {
+    }
+}
+
+/// Emits `match_token_and_memoize` when the scanner has a memo and the grammar
+/// has terminals.
+fn gen_match_token_and_memoize(terminal_ids: &TerminalIds, config: &GenConfig) -> TokenStream {
+    if terminal_ids.len() == 0 || !config.match_memo {
+        return quote! {};
+    }
+    let dispatch = gen_token_dispatch(terminal_ids);
+    quote! {
+        #[comment = "Matches `terminal_id` at `input_index` with its DFA and records the result in the memo.
+                     `match_token` looks up the memo and calls this method on a miss."]
+        #[comment = "Not inlined into `match_token`. The parser calls `match_token` very often, and most
+                     calls return after the first-character test or a memo hit. This method needs its
+                     arguments again after the DFA returns, for the memo insert, and the compiler handles
+                     that with extra instructions at the start and end of the function. Kept separate,
+                     those instructions run only on a memo miss instead of on every call."]
+        #[inline(never)]
+        fn match_token_and_memoize(&mut self, terminal_id: TerminalId, input_index: u32) -> Option<u32> {
+            let result = #dispatch;
+            let arena = self.vec_arena;
+            match result {
+                Some(end) => self.memo.insert_match(terminal_id, input_index, end, arena),
+                None => self.memo.insert_fail(terminal_id, input_index),
+            }
+            result
+        }
+    }
+}
+
+fn gen_match_token(terminal_ids: &TerminalIds, config: &GenConfig) -> TokenStream {
+    let match_token = if terminal_ids.len() == 0 {
         quote! {
             None
         }
@@ -468,18 +514,15 @@ fn gen_match_token(terminal_ids: &TerminalIds, config: &GenConfig) -> TokenStrea
                     Lookup::Fail => None,
                 };
             }
-            let result = #dispatch;
-            let arena = self.vec_arena;
-            match result {
-                Some(end) => self.memo.insert_match(terminal_id, input_index, end, arena),
-                None => self.memo.insert_fail(terminal_id, input_index),
-            }
-            result
+            self.match_token_and_memoize(terminal_id, input_index)
         }
     } else {
-        dispatch
+        gen_token_dispatch(terminal_ids)
     };
+    // `match_token` is not inlined, so its many callers share one copy of the
+    // first-character test and the memo lookup.
     quote! {
+        #[inline(never)]
         fn match_token(&mut self, terminal_id: TerminalId, input_index: u32) -> Option<u32> {
             // `char_at` is `None` at the end of the input, where the test
             // passes and the scan decides.
