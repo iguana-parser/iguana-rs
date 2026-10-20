@@ -16,20 +16,23 @@ impl Placeholder for Env<'_> {
 }
 
 const INLINE_CAPACITY: usize = if cfg!(target_pointer_width = "64") {
-    4
+    7
 } else {
-    3
+    5
 };
 
-/// A list of bindings with four inline entries on 64-bit targets and three on
-/// 32-bit targets. Further entries move into an arena vector. The shared
-/// `InlineVec` keeps three inline entries so that collections with larger
-/// elements, such as GSS edges, do not grow.
+/// A list of bindings with seven inline entries on 64-bit targets and five on
+/// 32-bit targets. Further entries move into an arena vector. The inline
+/// entries keep names and values in separate arrays, so a one-byte name is not
+/// padded to the alignment of its value. The shared `InlineVec` keeps three
+/// inline entries so that collections with larger elements, such as GSS edges,
+/// do not grow.
 #[derive(Clone, Debug)]
 pub enum Bindings<'arena> {
     Inline {
         len: u8,
-        values: [(BindingId, i32); INLINE_CAPACITY],
+        names: [BindingId; INLINE_CAPACITY],
+        values: [i32; INLINE_CAPACITY],
     },
     Multiple(ArenaVec<'arena, (BindingId, i32)>),
 }
@@ -38,7 +41,8 @@ impl Default for Bindings<'_> {
     fn default() -> Self {
         Self::Inline {
             len: 0,
-            values: [(BindingId(0), 0); INLINE_CAPACITY],
+            names: [BindingId(0); INLINE_CAPACITY],
+            values: [0; INLINE_CAPACITY],
         }
     }
 }
@@ -46,13 +50,15 @@ impl Default for Bindings<'_> {
 impl<'arena> Bindings<'arena> {
     pub fn push(&mut self, binding: (BindingId, i32), arena: &'arena Arena) {
         match self {
-            Self::Inline { len, values } if usize::from(*len) < values.len() => {
-                values[usize::from(*len)] = binding;
+            Self::Inline { len, names, values } if usize::from(*len) < INLINE_CAPACITY => {
+                let index = usize::from(*len);
+                names[index] = binding.0;
+                values[index] = binding.1;
                 *len += 1;
             }
-            Self::Inline { values, .. } => {
-                let mut bindings = arena.vec_with_capacity(8);
-                bindings.extend_from_slice(values);
+            Self::Inline { names, values, .. } => {
+                let mut bindings = arena.vec_with_capacity(2 * INLINE_CAPACITY);
+                bindings.extend(names.iter().copied().zip(values.iter().copied()));
                 bindings.push(binding);
                 *self = Self::Multiple(bindings);
             }
@@ -60,23 +66,15 @@ impl<'arena> Bindings<'arena> {
         }
     }
 
-    pub fn as_slice(&self) -> &[(BindingId, i32)] {
+    pub fn len(&self) -> usize {
         match self {
-            Self::Inline { len, values } => &values[..usize::from(*len)],
-            Self::Multiple(bindings) => bindings,
+            Self::Inline { len, .. } => usize::from(*len),
+            Self::Multiple(bindings) => bindings.len(),
         }
     }
 
-    pub fn len(&self) -> usize {
-        self.as_slice().len()
-    }
-
     pub fn is_empty(&self) -> bool {
-        self.as_slice().is_empty()
-    }
-
-    pub fn iter(&self) -> std::slice::Iter<'_, (BindingId, i32)> {
-        self.as_slice().iter()
+        self.len() == 0
     }
 }
 
@@ -88,12 +86,18 @@ impl<'arena> Env<'arena> {
 
     /// Reads the latest binding of this name.
     pub fn get(&self, name: BindingId) -> i32 {
-        for (n, v) in self.bindings.iter().rev() {
-            if *n == name {
-                return *v;
-            }
-        }
-        panic!("binding not found: {name}")
+        let value = match &self.bindings {
+            Bindings::Inline { len, names, values } => names[..usize::from(*len)]
+                .iter()
+                .rposition(|&n| n == name)
+                .map(|index| values[index]),
+            Bindings::Multiple(bindings) => bindings
+                .iter()
+                .rev()
+                .find(|(n, _)| *n == name)
+                .map(|&(_, v)| v),
+        };
+        value.unwrap_or_else(|| panic!("binding not found: {name}"))
     }
 }
 
@@ -103,23 +107,23 @@ mod tests {
 
     #[test]
     #[cfg(target_pointer_width = "64")]
-    fn four_bindings_stay_inline_and_the_fifth_spills() {
+    fn seven_bindings_stay_inline_and_the_eighth_spills() {
         let arena = Arena::new();
         let mut env = Env::default();
-        for i in 0..4 {
+        for i in 0..7 {
             env.bind(BindingId(i), i as i32, &arena);
         }
-        assert!(matches!(env.bindings, Bindings::Inline { len: 4, .. }));
+        assert!(matches!(env.bindings, Bindings::Inline { len: 7, .. }));
         let inline = env.clone();
-        env.bind(BindingId(4), 4, &arena);
+        env.bind(BindingId(7), 7, &arena);
         assert!(matches!(env.bindings, Bindings::Multiple(_)));
-        assert_eq!(inline.bindings.len(), 4);
-        assert_eq!(env.bindings.len(), 5);
-        for i in 0..4 {
+        assert_eq!(inline.bindings.len(), 7);
+        assert_eq!(env.bindings.len(), 8);
+        for i in 0..7 {
             assert_eq!(inline.get(BindingId(i)), i as i32);
             assert_eq!(env.get(BindingId(i)), i as i32);
         }
-        assert_eq!(env.get(BindingId(4)), 4);
+        assert_eq!(env.get(BindingId(7)), 7);
     }
 
     #[test]
