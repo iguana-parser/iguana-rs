@@ -52,18 +52,21 @@ guide](development.md#bootstrapping).
 
 ## Generation pipeline
 
-The compiler processes a grammar in six ordered phases:
+The compiler processes a grammar in seven ordered phases:
 
 1. **Identifier resolution.** References are connected to their definitions.
 2. **Exact keyword matching.** Exact-keyword constructs are converted to their
    grammar-level restrictions.
 3. **EBNF expansion.** Groups, optionals, repetitions, and separated lists are
    converted to derived BNF rules.
-4. **Exclusion desugaring.** Alternative exclusions are encoded into the
-   grammar.
+4. **Exclusion labels.** Every alternative of a nonterminal that an
+   exclusion refers to returns its label.
 5. **Precedence desugaring.** Priorities and associativity are encoded as
    data-dependent rules.
-6. **Layout insertion.** Layout references are inserted into syntax rules, and
+6. **Exclusion checks.** A condition after each excluding call disallows
+   the excluded labels. This phase runs after the precedence desugaring,
+   which decides the arguments and the return value of each call.
+7. **Layout insertion.** Layout references are inserted into syntax rules, and
    wrapper rules provide the parser entry points.
 
 The generator then writes the grammar-specific crate:

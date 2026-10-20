@@ -7109,7 +7109,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a> {
                 }))
             }
             // Symbol = Identifier #Identifier
-            SlotId(328) => {
+            SlotId(327) => {
                 let &[identifier] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -7119,7 +7119,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a> {
                 }))
             }
             // Symbol = "(" Layout seqs:{Symbol+ "|"}+ Layout ")" #Paren
-            SlotId(336) => {
+            SlotId(334) => {
                 let &[lit_0, layout_1, seqs, layout_3, lit_4] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -7133,7 +7133,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a> {
                 }))
             }
             // Symbol = String #Lit
-            SlotId(340) => {
+            SlotId(337) => {
                 let &[string] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -7143,7 +7143,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a> {
                 }))
             }
             // Symbol = "{" Layout symbol:Symbol Layout sep:Symbol Layout "}" Layout "*" #StarSep
-            SlotId(352) => {
+            SlotId(348) => {
                 let &[
                     lit_0,
                     layout_1,
@@ -7172,7 +7172,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a> {
                 }))
             }
             // Symbol = "{" Layout symbol:Symbol Layout sep:Symbol Layout "}" Layout "+" #PlusSep
-            SlotId(364) => {
+            SlotId(359) => {
                 let &[
                     lit_0,
                     layout_1,
@@ -7201,7 +7201,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a> {
                 }))
             }
             // Symbol = Symbol Layout "*" #Star
-            SlotId(372) => {
+            SlotId(366) => {
                 let &[symbol, layout, lit_2] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -7213,7 +7213,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a> {
                 }))
             }
             // Symbol = Symbol Layout "+" #Plus
-            SlotId(380) => {
+            SlotId(373) => {
                 let &[symbol, layout, lit_2] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -7225,7 +7225,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a> {
                 }))
             }
             // Symbol = Symbol Layout "?" #Opt
-            SlotId(388) => {
+            SlotId(380) => {
                 let &[symbol, layout, lit_2] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -7237,7 +7237,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a> {
                 }))
             }
             // Symbol = Symbol Layout conditions:PostCondition+ #PostCondition
-            SlotId(397) => {
+            SlotId(388) => {
                 let &[symbol, layout, conditions] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -7249,7 +7249,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a> {
                 }))
             }
             // Symbol = conditions:PreCondition+ Layout Symbol #PreCondition
-            SlotId(404) => {
+            SlotId(394) => {
                 let &[conditions, layout, symbol] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -7261,7 +7261,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a> {
                 }))
             }
             // Symbol = label:Identifier Layout ":" Layout Symbol #Labeled
-            SlotId(412) => {
+            SlotId(401) => {
                 let &[label, layout_1, lit_2, layout_3, symbol] = children else {
                     ParseTree::unexpected_node()
                 };

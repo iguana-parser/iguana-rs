@@ -869,16 +869,18 @@ pub enum Phase {
     Ebnf,
     Exclude,
     Precedence,
+    ExcludeCheck,
     Layout,
 }
 
 impl Phase {
-    pub const ALL: [Phase; 6] = [
+    pub const ALL: [Phase; 7] = [
         Phase::Resolve,
         Phase::Keywords,
         Phase::Ebnf,
         Phase::Exclude,
         Phase::Precedence,
+        Phase::ExcludeCheck,
         Phase::Layout,
     ];
 
@@ -890,6 +892,7 @@ impl Phase {
             Phase::Ebnf => "ebnf",
             Phase::Exclude => "exclude",
             Phase::Precedence => "precedence",
+            Phase::ExcludeCheck => "exclude-check",
             Phase::Layout => "layout",
         }
     }
@@ -900,8 +903,9 @@ impl Phase {
             Phase::Resolve => "identifier resolution",
             Phase::Keywords => "exact keyword matching",
             Phase::Ebnf => "EBNF-to-BNF expansion",
-            Phase::Exclude => "exclude desugaring",
+            Phase::Exclude => "exclusion labels",
             Phase::Precedence => "precedence desugaring",
+            Phase::ExcludeCheck => "exclusion checks",
             Phase::Layout => "layout insertion and start wrapping",
         }
     }
@@ -963,13 +967,15 @@ fn build_grammar(grammar_def: GrammarDef, dump: &[Phase]) -> Result<Grammar, Vec
     let (_, symbol_table) = create_symbol_table(&syntax_rules, &lexical_rules);
     let (syntax_rules, lexical_rules) =
         resolve_identifiers(syntax_rules, lexical_rules, &symbol_table);
-    let syntax_rules = exclude_desugaring::transform(syntax_rules);
+    let (syntax_rules, exclusion_targets) = exclude_desugaring::transform(syntax_rules);
     dump_phase(Phase::Exclude, &syntax_rules, &lexical_rules, dump);
     let (_, symbol_table) = create_symbol_table(&syntax_rules, &lexical_rules);
     let (syntax_rules, lexical_rules) =
         resolve_identifiers(syntax_rules, lexical_rules, &symbol_table);
-    let syntax_rules = precedence_desugaring::transform(syntax_rules)?;
+    let syntax_rules = precedence_desugaring::transform(syntax_rules, &exclusion_targets)?;
     dump_phase(Phase::Precedence, &syntax_rules, &lexical_rules, dump);
+    let syntax_rules = exclude_desugaring::check_returned_labels(syntax_rules, &exclusion_targets)?;
+    dump_phase(Phase::ExcludeCheck, &syntax_rules, &lexical_rules, dump);
     // Create the final symbol table after all transformations. This must happen
     // after precedence desugaring because desugaring may add parameters to
     // nonterminals (e.g., E becomes E(p)), and the definitions must reflect that.

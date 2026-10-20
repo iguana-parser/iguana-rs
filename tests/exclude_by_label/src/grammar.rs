@@ -7,15 +7,19 @@ use iguana_runtime::{
     scanner::TerminalSet,
     utils::bit_set::BitSet,
 };
-pub const PLUS_0: NonterminalId = NonterminalId(0);
-pub const STAR_0: NonterminalId = NonterminalId(1);
-pub const START_EXPR: NonterminalId = NonterminalId(2);
-pub const EXPR: NonterminalId = NonterminalId(3);
+pub const EXPR: NonterminalId = NonterminalId(0);
+pub const PLUS_0: NonterminalId = NonterminalId(1);
+pub const STAR_0: NonterminalId = NonterminalId(2);
+pub const START_EXPR: NonterminalId = NonterminalId(3);
 pub struct ExcludeByLabelGrammar;
 impl Grammar for ExcludeByLabelGrammar {
     type Alternatives = BitSet<1>;
     const NAME: &'static str = "ExcludeByLabel";
     const NONTERMINALS: &'static [Nonterminal] = &[
+        Nonterminal {
+            name: "Expr",
+            display_name: "Expr",
+        },
         Nonterminal {
             name: "Plus_0",
             display_name: "{Expr !comma \",\"}+",
@@ -26,10 +30,6 @@ impl Grammar for ExcludeByLabelGrammar {
         },
         Nonterminal {
             name: "StartExpr",
-            display_name: "Expr(0)",
-        },
-        Nonterminal {
-            name: "Expr",
             display_name: "Expr",
         },
     ];
@@ -44,35 +44,91 @@ impl Grammar for ExcludeByLabelGrammar {
     ];
     const SLOTS: &'static [Slot] = &[
         Slot {
-            display_name: "{Expr !comma \",\"}+ : . {Expr !comma \",\"}+ \",\" (x_pr, x_label)=Expr(0) [(x_label == NO_LABEL) || ((4 >> x_label) & 1 == 0)]",
+            display_name: "Expr : . Id return (0, 0)",
             position: 0,
         },
         Slot {
-            display_name: "{Expr !comma \",\"}+ : {Expr !comma \",\"}+ . \",\" (x_pr, x_label)=Expr(0) [(x_label == NO_LABEL) || ((4 >> x_label) & 1 == 0)]",
+            display_name: "Expr : Id . return (0, 0)",
             position: 1,
         },
         Slot {
-            display_name: "{Expr !comma \",\"}+ : {Expr !comma \",\"}+ \",\" . (x_pr, x_label)=Expr(0) [(x_label == NO_LABEL) || ((4 >> x_label) & 1 == 0)]",
+            display_name: "Expr : Id return (0, 0).",
             position: 2,
         },
         Slot {
-            display_name: "{Expr !comma \",\"}+ : {Expr !comma \",\"}+ \",\" (x_pr, x_label)=Expr(0) . [(x_label == NO_LABEL) || ((4 >> x_label) & 1 == 0)]",
-            position: 3,
-        },
-        Slot {
-            display_name: "{Expr !comma \",\"}+ : {Expr !comma \",\"}+ \",\" (x_pr, x_label)=Expr(0) [(x_label == NO_LABEL) || ((4 >> x_label) & 1 == 0)].",
-            position: 4,
-        },
-        Slot {
-            display_name: "{Expr !comma \",\"}+ : . (x_pr, x_label)=Expr(0) [(x_label == NO_LABEL) || ((4 >> x_label) & 1 == 0)]",
+            display_name: "Expr : . Expr \"(\" {Expr !comma \",\"}* \")\" return (0, 1)",
             position: 0,
         },
         Slot {
-            display_name: "{Expr !comma \",\"}+ : (x_pr, x_label)=Expr(0) . [(x_label == NO_LABEL) || ((4 >> x_label) & 1 == 0)]",
+            display_name: "Expr : Expr . \"(\" {Expr !comma \",\"}* \")\" return (0, 1)",
             position: 1,
         },
         Slot {
-            display_name: "{Expr !comma \",\"}+ : (x_pr, x_label)=Expr(0) [(x_label == NO_LABEL) || ((4 >> x_label) & 1 == 0)].",
+            display_name: "Expr : Expr \"(\" . {Expr !comma \",\"}* \")\" return (0, 1)",
+            position: 2,
+        },
+        Slot {
+            display_name: "Expr : Expr \"(\" {Expr !comma \",\"}* . \")\" return (0, 1)",
+            position: 3,
+        },
+        Slot {
+            display_name: "Expr : Expr \"(\" {Expr !comma \",\"}* \")\" . return (0, 1)",
+            position: 4,
+        },
+        Slot {
+            display_name: "Expr : Expr \"(\" {Expr !comma \",\"}* \")\" return (0, 1).",
+            position: 5,
+        },
+        Slot {
+            display_name: "Expr : . Expr \",\" Expr return (0, 2)",
+            position: 0,
+        },
+        Slot {
+            display_name: "Expr : Expr . \",\" Expr return (0, 2)",
+            position: 1,
+        },
+        Slot {
+            display_name: "Expr : Expr \",\" . Expr return (0, 2)",
+            position: 2,
+        },
+        Slot {
+            display_name: "Expr : Expr \",\" Expr . return (0, 2)",
+            position: 3,
+        },
+        Slot {
+            display_name: "Expr : Expr \",\" Expr return (0, 2).",
+            position: 4,
+        },
+        Slot {
+            display_name: "{Expr !comma \",\"}+ : . {Expr !comma \",\"}+ \",\" (x_pr, x_label)=Expr [(x_label == NO_LABEL) || ((4 >> x_label) & 1 == 0)]",
+            position: 0,
+        },
+        Slot {
+            display_name: "{Expr !comma \",\"}+ : {Expr !comma \",\"}+ . \",\" (x_pr, x_label)=Expr [(x_label == NO_LABEL) || ((4 >> x_label) & 1 == 0)]",
+            position: 1,
+        },
+        Slot {
+            display_name: "{Expr !comma \",\"}+ : {Expr !comma \",\"}+ \",\" . (x_pr, x_label)=Expr [(x_label == NO_LABEL) || ((4 >> x_label) & 1 == 0)]",
+            position: 2,
+        },
+        Slot {
+            display_name: "{Expr !comma \",\"}+ : {Expr !comma \",\"}+ \",\" (x_pr, x_label)=Expr . [(x_label == NO_LABEL) || ((4 >> x_label) & 1 == 0)]",
+            position: 3,
+        },
+        Slot {
+            display_name: "{Expr !comma \",\"}+ : {Expr !comma \",\"}+ \",\" (x_pr, x_label)=Expr [(x_label == NO_LABEL) || ((4 >> x_label) & 1 == 0)].",
+            position: 4,
+        },
+        Slot {
+            display_name: "{Expr !comma \",\"}+ : . (x_pr, x_label)=Expr [(x_label == NO_LABEL) || ((4 >> x_label) & 1 == 0)]",
+            position: 0,
+        },
+        Slot {
+            display_name: "{Expr !comma \",\"}+ : (x_pr, x_label)=Expr . [(x_label == NO_LABEL) || ((4 >> x_label) & 1 == 0)]",
+            position: 1,
+        },
+        Slot {
+            display_name: "{Expr !comma \",\"}+ : (x_pr, x_label)=Expr [(x_label == NO_LABEL) || ((4 >> x_label) & 1 == 0)].",
             position: 2,
         },
         Slot {
@@ -88,87 +144,19 @@ impl Grammar for ExcludeByLabelGrammar {
             position: 0,
         },
         Slot {
-            display_name: "Expr(0) : . start:Expr(0)",
+            display_name: "Expr : . start:Expr",
             position: 0,
         },
         Slot {
-            display_name: "Expr(0) : start:Expr(0).",
+            display_name: "Expr : start:Expr.",
             position: 1,
-        },
-        Slot {
-            display_name: "Expr : . [1 & e == 0] Id return (0, 0)",
-            position: 0,
-        },
-        Slot {
-            display_name: "Expr : [1 & e == 0] . Id return (0, 0)",
-            position: 1,
-        },
-        Slot {
-            display_name: "Expr : [1 & e == 0] Id . return (0, 0)",
-            position: 2,
-        },
-        Slot {
-            display_name: "Expr : [1 & e == 0] Id return (0, 0).",
-            position: 3,
-        },
-        Slot {
-            display_name: "Expr : . [2 & e == 0] Expr(0) \"(\" {Expr !comma \",\"}* \")\" return (0, 1)",
-            position: 0,
-        },
-        Slot {
-            display_name: "Expr : [2 & e == 0] . Expr(0) \"(\" {Expr !comma \",\"}* \")\" return (0, 1)",
-            position: 1,
-        },
-        Slot {
-            display_name: "Expr : [2 & e == 0] Expr(0) . \"(\" {Expr !comma \",\"}* \")\" return (0, 1)",
-            position: 2,
-        },
-        Slot {
-            display_name: "Expr : [2 & e == 0] Expr(0) \"(\" . {Expr !comma \",\"}* \")\" return (0, 1)",
-            position: 3,
-        },
-        Slot {
-            display_name: "Expr : [2 & e == 0] Expr(0) \"(\" {Expr !comma \",\"}* . \")\" return (0, 1)",
-            position: 4,
-        },
-        Slot {
-            display_name: "Expr : [2 & e == 0] Expr(0) \"(\" {Expr !comma \",\"}* \")\" . return (0, 1)",
-            position: 5,
-        },
-        Slot {
-            display_name: "Expr : [2 & e == 0] Expr(0) \"(\" {Expr !comma \",\"}* \")\" return (0, 1).",
-            position: 6,
-        },
-        Slot {
-            display_name: "Expr : . [4 & e == 0] Expr(0) \",\" Expr(0) return (0, 2)",
-            position: 0,
-        },
-        Slot {
-            display_name: "Expr : [4 & e == 0] . Expr(0) \",\" Expr(0) return (0, 2)",
-            position: 1,
-        },
-        Slot {
-            display_name: "Expr : [4 & e == 0] Expr(0) . \",\" Expr(0) return (0, 2)",
-            position: 2,
-        },
-        Slot {
-            display_name: "Expr : [4 & e == 0] Expr(0) \",\" . Expr(0) return (0, 2)",
-            position: 3,
-        },
-        Slot {
-            display_name: "Expr : [4 & e == 0] Expr(0) \",\" Expr(0) . return (0, 2)",
-            position: 4,
-        },
-        Slot {
-            display_name: "Expr : [4 & e == 0] Expr(0) \",\" Expr(0) return (0, 2).",
-            position: 5,
         },
     ];
     const FIRST_SLOTS: &'static [&'static [SlotId]] = &[
-        &[SlotId(0), SlotId(5)],
-        &[SlotId(8), SlotId(10)],
-        &[SlotId(11)],
-        &[SlotId(13), SlotId(17), SlotId(24)],
+        &[SlotId(0), SlotId(3), SlotId(9)],
+        &[SlotId(14), SlotId(19)],
+        &[SlotId(22), SlotId(24)],
+        &[SlotId(25)],
     ];
     const LAYOUT_NAME: Option<&'static str> = None;
     const LAYOUT_TERMINALS: &'static [TerminalId] = &[];
@@ -203,10 +191,10 @@ impl Grammar for ExcludeByLabelGrammar {
     ];
     fn nonterminal_id(name: &str) -> Option<NonterminalId> {
         match name {
+            "Expr" => Some(EXPR),
             "Plus_0" => Some(PLUS_0),
             "Star_0" => Some(STAR_0),
             "StartExpr" => Some(START_EXPR),
-            "Expr" => Some(EXPR),
             _ => None,
         }
     }
@@ -231,31 +219,31 @@ pub static FOLLOW_SET_START_EXPR: TerminalSet = TerminalSet {
     id: 3,
     terminals: &[TerminalId(5)],
 };
-// Expr(e: i32) : [2 & e == 0] Expr(0) . "(" Star_0 ")" return (0, 1) lookahead { "(" }
-pub static RETURN_SLOT_LOOKAHEAD_EXPR_ALT1_POS2: TerminalSet = TerminalSet {
+// Expr : Expr . "(" Star_0 ")" return (0, 1) lookahead { "(" }
+pub static RETURN_SLOT_LOOKAHEAD_EXPR_ALT1_POS1: TerminalSet = TerminalSet {
     id: 4,
     terminals: &[TerminalId(1)],
 };
-// Expr(e: i32) : [2 & e == 0] Expr(0) "(" Star_0 . ")" return (0, 1) lookahead { ")" }
-pub static RETURN_SLOT_LOOKAHEAD_EXPR_ALT1_POS4: TerminalSet = TerminalSet {
+// Expr : Expr "(" Star_0 . ")" return (0, 1) lookahead { ")" }
+pub static RETURN_SLOT_LOOKAHEAD_EXPR_ALT1_POS3: TerminalSet = TerminalSet {
     id: 5,
     terminals: &[TerminalId(3)],
 };
-// Expr(e: i32) : [4 & e == 0] Expr(0) . "," Expr(0) return (0, 2) lookahead { "," }
-pub static RETURN_SLOT_LOOKAHEAD_EXPR_ALT2_POS2: TerminalSet = TerminalSet {
+// Expr : Expr . "," Expr return (0, 2) lookahead { "," }
+pub static RETURN_SLOT_LOOKAHEAD_EXPR_ALT2_POS1: TerminalSet = TerminalSet {
     id: 6,
     terminals: &[TerminalId(2)],
 };
-// Plus_0 : Plus_0 . "," (x_pr, x_label)=Expr(0) [(x_label == NO_LABEL) || ((4 >> x_label) &
-// 1 == 0)] lookahead { "," }
+// Plus_0 : Plus_0 . "," (x_pr, x_label)=Expr [(x_label == NO_LABEL) || ((4 >> x_label) & 1
+// == 0)] lookahead { "," }
 pub static RETURN_SLOT_LOOKAHEAD_PLUS_0_ALT0_POS1: TerminalSet = TerminalSet {
     id: 6,
     terminals: &[TerminalId(2)],
 };
 // Expr
-// 0: [1 & e == 0] Id return (0, 0) #id
-// 1: [2 & e == 0] Expr(0) "(" Star_0 ")" return (0, 1) #call
-// 2: [4 & e == 0] Expr(0) "," Expr(0) return (0, 2) #comma
+// 0: Id return (0, 0) #id
+// 1: Expr "(" Star_0 ")" return (0, 1) #call
+// 2: Expr "," Expr return (0, 2) #comma
 pub static PREDICTION_EXPR: Prediction = {
     // Id
     const TERMINALS_1: &[(TerminalId, u16)] =
@@ -396,8 +384,8 @@ pub static PREDICTION_EXPR: Prediction = {
     }
 };
 // Plus_0
-// 0: Plus_0 "," (x_pr, x_label)=Expr(0) [(x_label == NO_LABEL) || ((4 >> x_label) & 1 == 0)]
-// 1: (x_pr, x_label)=Expr(0) [(x_label == NO_LABEL) || ((4 >> x_label) & 1 == 0)]
+// 0: Plus_0 "," (x_pr, x_label)=Expr [(x_label == NO_LABEL) || ((4 >> x_label) & 1 == 0)]
+// 1: (x_pr, x_label)=Expr [(x_label == NO_LABEL) || ((4 >> x_label) & 1 == 0)]
 pub static PREDICTION_PLUS_0: Prediction = {
     // Id
     const TERMINALS_1: &[(TerminalId, u16)] = &[(TerminalId(0), 0), (TerminalId(0), 1)];

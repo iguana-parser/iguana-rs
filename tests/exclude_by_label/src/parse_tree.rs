@@ -481,61 +481,8 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for ExcludeByLabelParseTreeBuilder<'a> 
         children: &[ParseTree<'a>],
     ) -> ParseTree<'a> {
         match nonterminal_node.return_slot {
-            // Plus_0 = {Expr ","}+ "," Expr
-            SlotId(4) => {
-                let &[plus_0, lit_1, expr] = children else {
-                    ParseTree::unexpected_node()
-                };
-                ParseTree::Plus0(self.arena.alloc(Plus0::Alt0 {
-                    plus_0: plus_0.unwrap_plus_0(),
-                    lit_1: lit_1.unwrap_token(),
-                    expr: expr.unwrap_expr(),
-                    span: nonterminal_node.span,
-                }))
-            }
-            // Plus_0 = Expr
-            SlotId(7) => {
-                let &[expr] = children else {
-                    ParseTree::unexpected_node()
-                };
-                ParseTree::Plus0(self.arena.alloc(Plus0::Alt1 {
-                    expr: expr.unwrap_expr(),
-                    span: nonterminal_node.span,
-                }))
-            }
-            // Star_0 = {Expr ","}+
-            SlotId(9) => {
-                let &[plus_0] = children else {
-                    ParseTree::unexpected_node()
-                };
-                ParseTree::Star0(self.arena.alloc(Star0::Alt0 {
-                    plus_0: plus_0.unwrap_plus_0(),
-                    span: nonterminal_node.span,
-                }))
-            }
-            // Star_0 =
-            SlotId(10) => {
-                let &[] = children else {
-                    ParseTree::unexpected_node()
-                };
-                ParseTree::Star0(self.arena.alloc(Star0::Alt1 {
-                    span: nonterminal_node.span,
-                }))
-            }
-            // StartExpr = start:Expr
-            SlotId(12) => {
-                let &[start] = children else {
-                    ParseTree::unexpected_node()
-                };
-                ParseTree::StartExpr(self.arena.alloc(Start {
-                    before: (),
-                    node: start.unwrap_expr(),
-                    after: (),
-                    span: nonterminal_node.span,
-                }))
-            }
             // Expr = Id #id
-            SlotId(16) => {
+            SlotId(2) => {
                 let &[id] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -545,7 +492,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for ExcludeByLabelParseTreeBuilder<'a> 
                 }))
             }
             // Expr = Expr "(" {Expr ","}* ")" #call
-            SlotId(23) => {
+            SlotId(8) => {
                 let &[expr, lit_1, star_0, lit_3] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -558,7 +505,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for ExcludeByLabelParseTreeBuilder<'a> 
                 }))
             }
             // Expr = Expr "," Expr #comma
-            SlotId(29) => {
+            SlotId(13) => {
                 let &[expr_0, lit_1, expr_2] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -566,6 +513,59 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for ExcludeByLabelParseTreeBuilder<'a> 
                     expr_0: expr_0.unwrap_expr(),
                     lit_1: lit_1.unwrap_token(),
                     expr_2: expr_2.unwrap_expr(),
+                    span: nonterminal_node.span,
+                }))
+            }
+            // Plus_0 = {Expr ","}+ "," Expr
+            SlotId(18) => {
+                let &[plus_0, lit_1, expr] = children else {
+                    ParseTree::unexpected_node()
+                };
+                ParseTree::Plus0(self.arena.alloc(Plus0::Alt0 {
+                    plus_0: plus_0.unwrap_plus_0(),
+                    lit_1: lit_1.unwrap_token(),
+                    expr: expr.unwrap_expr(),
+                    span: nonterminal_node.span,
+                }))
+            }
+            // Plus_0 = Expr
+            SlotId(21) => {
+                let &[expr] = children else {
+                    ParseTree::unexpected_node()
+                };
+                ParseTree::Plus0(self.arena.alloc(Plus0::Alt1 {
+                    expr: expr.unwrap_expr(),
+                    span: nonterminal_node.span,
+                }))
+            }
+            // Star_0 = {Expr ","}+
+            SlotId(23) => {
+                let &[plus_0] = children else {
+                    ParseTree::unexpected_node()
+                };
+                ParseTree::Star0(self.arena.alloc(Star0::Alt0 {
+                    plus_0: plus_0.unwrap_plus_0(),
+                    span: nonterminal_node.span,
+                }))
+            }
+            // Star_0 =
+            SlotId(24) => {
+                let &[] = children else {
+                    ParseTree::unexpected_node()
+                };
+                ParseTree::Star0(self.arena.alloc(Star0::Alt1 {
+                    span: nonterminal_node.span,
+                }))
+            }
+            // StartExpr = start:Expr
+            SlotId(26) => {
+                let &[start] = children else {
+                    ParseTree::unexpected_node()
+                };
+                ParseTree::StartExpr(self.arena.alloc(Start {
+                    before: (),
+                    node: start.unwrap_expr(),
+                    after: (),
                     span: nonterminal_node.span,
                 }))
             }

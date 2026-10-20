@@ -296,7 +296,9 @@ fn check_exclusions<'a>(
         let label_spans = spans.label_spans(symbol);
         let first_label_span = label_spans[0];
 
-        let Some(identifier) = inner.as_identifier() else {
+        // An exclusion wraps the reference directly. A field label or a
+        // restriction wraps the exclusion instead.
+        let Symbol::Identifier(identifier) = inner.as_ref() else {
             errors.push(GrammarError {
                 message: format!(
                     "exclusion `{}` only applies to a syntax rule reference",

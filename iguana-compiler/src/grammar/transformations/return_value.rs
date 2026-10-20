@@ -93,9 +93,9 @@ mod tests {
 
     // Exclusion desugaring gives both alternatives a return:
     //
-    //   E(e)
-    //     = [1 & e == 0] "a" return (0, 0)
-    //     | "b"             return (0, NO_LABEL)
+    //   E
+    //     = "a" return (0, 0)
+    //     | "b" return (0, NO_LABEL)
     //
     // Precedence desugaring removes either return before rewriting the alternative.
     #[test]
@@ -244,17 +244,17 @@ mod tests {
     //
     // Desugared grammar:
     //
-    //   E(p: i32, a: i32, e: i32)
-    //     = [1 & e == 0] "a"                                                                                                                                                                                                                                                                                                                                                    return (0, 0, 0) #Atom
-    //     | "b"                                                                                                                                                                                                                                                                                                                                                                 return (0, 0, NO_LABEL)
-    //     | [2 & e == 0] (l_pr, l_assoc)=L(p, 0, 0) [(l_pr == UNDEFINED_PRECEDENCE) || ((1 >= p) && ((l_pr == 0) || (l_pr >= 1)))] "+" (r_pr, r_assoc)=L(1, 1, (l_pr == UNDEFINED_PRECEDENCE) ? 0 : 1) [((l_pr == UNDEFINED_PRECEDENCE) || (r_pr == UNDEFINED_PRECEDENCE)) || (a != 1)] [((l_pr == UNDEFINED_PRECEDENCE) || (r_pr == UNDEFINED_PRECEDENCE)) || (l_assoc != 1)]  return ((r_pr == UNDEFINED_PRECEDENCE) ? 0 : 1, ((l_pr == UNDEFINED_PRECEDENCE) || (r_pr == UNDEFINED_PRECEDENCE)) ? 0 : 1, 1) #Add
+    //   E(p: i32, a: i32)
+    //     = "a"                                                                                                                                                                                                                                                                                                                                                    return (0, 0, 0) #Atom
+    //     | "b"                                                                                                                                                                                                                                                                                                                                                    return (0, 0, NO_LABEL)
+    //     | (l_pr, l_assoc)=L(p, 0, 0) [(l_pr == UNDEFINED_PRECEDENCE) || ((1 >= p) && ((l_pr == 0) || (l_pr >= 1)))] "+" (r_pr, r_assoc)=L(1, 1, (l_pr == UNDEFINED_PRECEDENCE) ? 0 : 1) [((l_pr == UNDEFINED_PRECEDENCE) || (r_pr == UNDEFINED_PRECEDENCE)) || (a != 1)] [((l_pr == UNDEFINED_PRECEDENCE) || (r_pr == UNDEFINED_PRECEDENCE)) || (l_assoc != 1)]  return ((r_pr == UNDEFINED_PRECEDENCE) ? 0 : 1, ((l_pr == UNDEFINED_PRECEDENCE) || (r_pr == UNDEFINED_PRECEDENCE)) ? 0 : 1, 1) #Add
     //
     //   L(p: i32, end: i32, a: i32)
-    //     = (v_pr, v_assoc, v_label)=E(p, a, 0)  return (v_pr, v_assoc)
-    //     | "x"                                  return (UNDEFINED_PRECEDENCE, 0)
+    //     = (v_pr, v_assoc, v_label)=E(p, a)  return (v_pr, v_assoc)
+    //     | "x"                               return (UNDEFINED_PRECEDENCE, 0)
     //
     //   S
-    //     = E(0, 0, 2)
+    //     = (x_pr, x_assoc, x_label)=E(0, 0) [(x_label == NO_LABEL) || ((2 >> x_label) & 1 == 0)]
     //
     // Every alternative of E returns precedence, associativity, and its own label.
     // The unlabeled literal uses NO_LABEL. L forwards precedence and associativity
@@ -289,7 +289,7 @@ mod tests {
         let alternatives = grammar.alternatives(l);
         assert_eq!(
             alternatives[0].symbols[0].to_string(),
-            "(v_pr, v_assoc, v_label)=E(p, a, 0)"
+            "(v_pr, v_assoc, v_label)=E(p, a)"
         );
         assert_eq!(
             alternatives[0].symbols.last().unwrap().to_string(),

@@ -283,7 +283,7 @@ impl Grammar for IggyGrammar {
         },
         Nonterminal {
             name: "StartSymbol",
-            display_name: "Symbol(0, 0)",
+            display_name: "Symbol(0)",
         },
         Nonterminal {
             name: "StartPreCondition",
@@ -1212,27 +1212,27 @@ impl Grammar for IggyGrammar {
             position: 0,
         },
         Slot {
-            display_name: "Symbol+ : . Symbol+ Layout Symbol(0, 0)",
+            display_name: "Symbol+ : . Symbol+ Layout Symbol(0)",
             position: 0,
         },
         Slot {
-            display_name: "Symbol+ : Symbol+ . Layout Symbol(0, 0)",
+            display_name: "Symbol+ : Symbol+ . Layout Symbol(0)",
             position: 1,
         },
         Slot {
-            display_name: "Symbol+ : Symbol+ Layout . Symbol(0, 0)",
+            display_name: "Symbol+ : Symbol+ Layout . Symbol(0)",
             position: 2,
         },
         Slot {
-            display_name: "Symbol+ : Symbol+ Layout Symbol(0, 0).",
+            display_name: "Symbol+ : Symbol+ Layout Symbol(0).",
             position: 3,
         },
         Slot {
-            display_name: "Symbol+ : . Symbol(0, 0)",
+            display_name: "Symbol+ : . Symbol(0)",
             position: 0,
         },
         Slot {
-            display_name: "Symbol+ : Symbol(0, 0).",
+            display_name: "Symbol+ : Symbol(0).",
             position: 1,
         },
         Slot {
@@ -1572,19 +1572,19 @@ impl Grammar for IggyGrammar {
             position: 3,
         },
         Slot {
-            display_name: "Symbol(0, 0) : . Layout start:Symbol(0, 0) Layout",
+            display_name: "Symbol(0) : . Layout start:Symbol(0) Layout",
             position: 0,
         },
         Slot {
-            display_name: "Symbol(0, 0) : Layout . start:Symbol(0, 0) Layout",
+            display_name: "Symbol(0) : Layout . start:Symbol(0) Layout",
             position: 1,
         },
         Slot {
-            display_name: "Symbol(0, 0) : Layout start:Symbol(0, 0) . Layout",
+            display_name: "Symbol(0) : Layout start:Symbol(0) . Layout",
             position: 2,
         },
         Slot {
-            display_name: "Symbol(0, 0) : Layout start:Symbol(0, 0) Layout.",
+            display_name: "Symbol(0) : Layout start:Symbol(0) Layout.",
             position: 3,
         },
         Slot {
@@ -1692,356 +1692,312 @@ impl Grammar for IggyGrammar {
             position: 1,
         },
         Slot {
-            display_name: "Symbol : . [1 & e == 0] Identifier return (0, 0)",
+            display_name: "Symbol : . Identifier return (0, 0)",
             position: 0,
         },
         Slot {
-            display_name: "Symbol : [1 & e == 0] . Identifier return (0, 0)",
+            display_name: "Symbol : Identifier . return (0, 0)",
             position: 1,
         },
         Slot {
-            display_name: "Symbol : [1 & e == 0] Identifier . return (0, 0)",
+            display_name: "Symbol : Identifier return (0, 0).",
             position: 2,
         },
         Slot {
-            display_name: "Symbol : [1 & e == 0] Identifier return (0, 0).",
-            position: 3,
-        },
-        Slot {
-            display_name: "Symbol : . [2 & e == 0] \"(\" Layout seqs:{Symbol+ \"|\"}+ Layout \")\" return (0, 1)",
+            display_name: "Symbol : . \"(\" Layout seqs:{Symbol+ \"|\"}+ Layout \")\" return (0, 1)",
             position: 0,
         },
         Slot {
-            display_name: "Symbol : [2 & e == 0] . \"(\" Layout seqs:{Symbol+ \"|\"}+ Layout \")\" return (0, 1)",
+            display_name: "Symbol : \"(\" . Layout seqs:{Symbol+ \"|\"}+ Layout \")\" return (0, 1)",
             position: 1,
         },
         Slot {
-            display_name: "Symbol : [2 & e == 0] \"(\" . Layout seqs:{Symbol+ \"|\"}+ Layout \")\" return (0, 1)",
+            display_name: "Symbol : \"(\" Layout . seqs:{Symbol+ \"|\"}+ Layout \")\" return (0, 1)",
             position: 2,
         },
         Slot {
-            display_name: "Symbol : [2 & e == 0] \"(\" Layout . seqs:{Symbol+ \"|\"}+ Layout \")\" return (0, 1)",
+            display_name: "Symbol : \"(\" Layout seqs:{Symbol+ \"|\"}+ . Layout \")\" return (0, 1)",
             position: 3,
         },
         Slot {
-            display_name: "Symbol : [2 & e == 0] \"(\" Layout seqs:{Symbol+ \"|\"}+ . Layout \")\" return (0, 1)",
+            display_name: "Symbol : \"(\" Layout seqs:{Symbol+ \"|\"}+ Layout . \")\" return (0, 1)",
             position: 4,
         },
         Slot {
-            display_name: "Symbol : [2 & e == 0] \"(\" Layout seqs:{Symbol+ \"|\"}+ Layout . \")\" return (0, 1)",
+            display_name: "Symbol : \"(\" Layout seqs:{Symbol+ \"|\"}+ Layout \")\" . return (0, 1)",
             position: 5,
         },
         Slot {
-            display_name: "Symbol : [2 & e == 0] \"(\" Layout seqs:{Symbol+ \"|\"}+ Layout \")\" . return (0, 1)",
+            display_name: "Symbol : \"(\" Layout seqs:{Symbol+ \"|\"}+ Layout \")\" return (0, 1).",
             position: 6,
         },
         Slot {
-            display_name: "Symbol : [2 & e == 0] \"(\" Layout seqs:{Symbol+ \"|\"}+ Layout \")\" return (0, 1).",
-            position: 7,
-        },
-        Slot {
-            display_name: "Symbol : . [4 & e == 0] String return (0, 2)",
+            display_name: "Symbol : . String return (0, 2)",
             position: 0,
         },
         Slot {
-            display_name: "Symbol : [4 & e == 0] . String return (0, 2)",
+            display_name: "Symbol : String . return (0, 2)",
             position: 1,
         },
         Slot {
-            display_name: "Symbol : [4 & e == 0] String . return (0, 2)",
+            display_name: "Symbol : String return (0, 2).",
             position: 2,
         },
         Slot {
-            display_name: "Symbol : [4 & e == 0] String return (0, 2).",
-            position: 3,
-        },
-        Slot {
-            display_name: "Symbol : . [8 & e == 0] \"{\" Layout symbol:Symbol(0, 0) Layout sep:Symbol(0, 0) Layout \"}\" Layout \"*\" return (0, 3)",
+            display_name: "Symbol : . \"{\" Layout symbol:Symbol(0) Layout sep:Symbol(0) Layout \"}\" Layout \"*\" return (0, 3)",
             position: 0,
         },
         Slot {
-            display_name: "Symbol : [8 & e == 0] . \"{\" Layout symbol:Symbol(0, 0) Layout sep:Symbol(0, 0) Layout \"}\" Layout \"*\" return (0, 3)",
+            display_name: "Symbol : \"{\" . Layout symbol:Symbol(0) Layout sep:Symbol(0) Layout \"}\" Layout \"*\" return (0, 3)",
             position: 1,
         },
         Slot {
-            display_name: "Symbol : [8 & e == 0] \"{\" . Layout symbol:Symbol(0, 0) Layout sep:Symbol(0, 0) Layout \"}\" Layout \"*\" return (0, 3)",
+            display_name: "Symbol : \"{\" Layout . symbol:Symbol(0) Layout sep:Symbol(0) Layout \"}\" Layout \"*\" return (0, 3)",
             position: 2,
         },
         Slot {
-            display_name: "Symbol : [8 & e == 0] \"{\" Layout . symbol:Symbol(0, 0) Layout sep:Symbol(0, 0) Layout \"}\" Layout \"*\" return (0, 3)",
+            display_name: "Symbol : \"{\" Layout symbol:Symbol(0) . Layout sep:Symbol(0) Layout \"}\" Layout \"*\" return (0, 3)",
             position: 3,
         },
         Slot {
-            display_name: "Symbol : [8 & e == 0] \"{\" Layout symbol:Symbol(0, 0) . Layout sep:Symbol(0, 0) Layout \"}\" Layout \"*\" return (0, 3)",
+            display_name: "Symbol : \"{\" Layout symbol:Symbol(0) Layout . sep:Symbol(0) Layout \"}\" Layout \"*\" return (0, 3)",
             position: 4,
         },
         Slot {
-            display_name: "Symbol : [8 & e == 0] \"{\" Layout symbol:Symbol(0, 0) Layout . sep:Symbol(0, 0) Layout \"}\" Layout \"*\" return (0, 3)",
+            display_name: "Symbol : \"{\" Layout symbol:Symbol(0) Layout sep:Symbol(0) . Layout \"}\" Layout \"*\" return (0, 3)",
             position: 5,
         },
         Slot {
-            display_name: "Symbol : [8 & e == 0] \"{\" Layout symbol:Symbol(0, 0) Layout sep:Symbol(0, 0) . Layout \"}\" Layout \"*\" return (0, 3)",
+            display_name: "Symbol : \"{\" Layout symbol:Symbol(0) Layout sep:Symbol(0) Layout . \"}\" Layout \"*\" return (0, 3)",
             position: 6,
         },
         Slot {
-            display_name: "Symbol : [8 & e == 0] \"{\" Layout symbol:Symbol(0, 0) Layout sep:Symbol(0, 0) Layout . \"}\" Layout \"*\" return (0, 3)",
+            display_name: "Symbol : \"{\" Layout symbol:Symbol(0) Layout sep:Symbol(0) Layout \"}\" . Layout \"*\" return (0, 3)",
             position: 7,
         },
         Slot {
-            display_name: "Symbol : [8 & e == 0] \"{\" Layout symbol:Symbol(0, 0) Layout sep:Symbol(0, 0) Layout \"}\" . Layout \"*\" return (0, 3)",
+            display_name: "Symbol : \"{\" Layout symbol:Symbol(0) Layout sep:Symbol(0) Layout \"}\" Layout . \"*\" return (0, 3)",
             position: 8,
         },
         Slot {
-            display_name: "Symbol : [8 & e == 0] \"{\" Layout symbol:Symbol(0, 0) Layout sep:Symbol(0, 0) Layout \"}\" Layout . \"*\" return (0, 3)",
+            display_name: "Symbol : \"{\" Layout symbol:Symbol(0) Layout sep:Symbol(0) Layout \"}\" Layout \"*\" . return (0, 3)",
             position: 9,
         },
         Slot {
-            display_name: "Symbol : [8 & e == 0] \"{\" Layout symbol:Symbol(0, 0) Layout sep:Symbol(0, 0) Layout \"}\" Layout \"*\" . return (0, 3)",
+            display_name: "Symbol : \"{\" Layout symbol:Symbol(0) Layout sep:Symbol(0) Layout \"}\" Layout \"*\" return (0, 3).",
             position: 10,
         },
         Slot {
-            display_name: "Symbol : [8 & e == 0] \"{\" Layout symbol:Symbol(0, 0) Layout sep:Symbol(0, 0) Layout \"}\" Layout \"*\" return (0, 3).",
-            position: 11,
-        },
-        Slot {
-            display_name: "Symbol : . [16 & e == 0] \"{\" Layout symbol:Symbol(0, 0) Layout sep:Symbol(0, 0) Layout \"}\" Layout \"+\" return (0, 4)",
+            display_name: "Symbol : . \"{\" Layout symbol:Symbol(0) Layout sep:Symbol(0) Layout \"}\" Layout \"+\" return (0, 4)",
             position: 0,
         },
         Slot {
-            display_name: "Symbol : [16 & e == 0] . \"{\" Layout symbol:Symbol(0, 0) Layout sep:Symbol(0, 0) Layout \"}\" Layout \"+\" return (0, 4)",
+            display_name: "Symbol : \"{\" . Layout symbol:Symbol(0) Layout sep:Symbol(0) Layout \"}\" Layout \"+\" return (0, 4)",
             position: 1,
         },
         Slot {
-            display_name: "Symbol : [16 & e == 0] \"{\" . Layout symbol:Symbol(0, 0) Layout sep:Symbol(0, 0) Layout \"}\" Layout \"+\" return (0, 4)",
+            display_name: "Symbol : \"{\" Layout . symbol:Symbol(0) Layout sep:Symbol(0) Layout \"}\" Layout \"+\" return (0, 4)",
             position: 2,
         },
         Slot {
-            display_name: "Symbol : [16 & e == 0] \"{\" Layout . symbol:Symbol(0, 0) Layout sep:Symbol(0, 0) Layout \"}\" Layout \"+\" return (0, 4)",
+            display_name: "Symbol : \"{\" Layout symbol:Symbol(0) . Layout sep:Symbol(0) Layout \"}\" Layout \"+\" return (0, 4)",
             position: 3,
         },
         Slot {
-            display_name: "Symbol : [16 & e == 0] \"{\" Layout symbol:Symbol(0, 0) . Layout sep:Symbol(0, 0) Layout \"}\" Layout \"+\" return (0, 4)",
+            display_name: "Symbol : \"{\" Layout symbol:Symbol(0) Layout . sep:Symbol(0) Layout \"}\" Layout \"+\" return (0, 4)",
             position: 4,
         },
         Slot {
-            display_name: "Symbol : [16 & e == 0] \"{\" Layout symbol:Symbol(0, 0) Layout . sep:Symbol(0, 0) Layout \"}\" Layout \"+\" return (0, 4)",
+            display_name: "Symbol : \"{\" Layout symbol:Symbol(0) Layout sep:Symbol(0) . Layout \"}\" Layout \"+\" return (0, 4)",
             position: 5,
         },
         Slot {
-            display_name: "Symbol : [16 & e == 0] \"{\" Layout symbol:Symbol(0, 0) Layout sep:Symbol(0, 0) . Layout \"}\" Layout \"+\" return (0, 4)",
+            display_name: "Symbol : \"{\" Layout symbol:Symbol(0) Layout sep:Symbol(0) Layout . \"}\" Layout \"+\" return (0, 4)",
             position: 6,
         },
         Slot {
-            display_name: "Symbol : [16 & e == 0] \"{\" Layout symbol:Symbol(0, 0) Layout sep:Symbol(0, 0) Layout . \"}\" Layout \"+\" return (0, 4)",
+            display_name: "Symbol : \"{\" Layout symbol:Symbol(0) Layout sep:Symbol(0) Layout \"}\" . Layout \"+\" return (0, 4)",
             position: 7,
         },
         Slot {
-            display_name: "Symbol : [16 & e == 0] \"{\" Layout symbol:Symbol(0, 0) Layout sep:Symbol(0, 0) Layout \"}\" . Layout \"+\" return (0, 4)",
+            display_name: "Symbol : \"{\" Layout symbol:Symbol(0) Layout sep:Symbol(0) Layout \"}\" Layout . \"+\" return (0, 4)",
             position: 8,
         },
         Slot {
-            display_name: "Symbol : [16 & e == 0] \"{\" Layout symbol:Symbol(0, 0) Layout sep:Symbol(0, 0) Layout \"}\" Layout . \"+\" return (0, 4)",
+            display_name: "Symbol : \"{\" Layout symbol:Symbol(0) Layout sep:Symbol(0) Layout \"}\" Layout \"+\" . return (0, 4)",
             position: 9,
         },
         Slot {
-            display_name: "Symbol : [16 & e == 0] \"{\" Layout symbol:Symbol(0, 0) Layout sep:Symbol(0, 0) Layout \"}\" Layout \"+\" . return (0, 4)",
+            display_name: "Symbol : \"{\" Layout symbol:Symbol(0) Layout sep:Symbol(0) Layout \"}\" Layout \"+\" return (0, 4).",
             position: 10,
         },
         Slot {
-            display_name: "Symbol : [16 & e == 0] \"{\" Layout symbol:Symbol(0, 0) Layout sep:Symbol(0, 0) Layout \"}\" Layout \"+\" return (0, 4).",
-            position: 11,
-        },
-        Slot {
-            display_name: "Symbol : . [32 & e == 0] [3 >= p] (l_pr, l_label)=Symbol(p, 0) [(l_pr == 0) || (l_pr >= 3)] Layout \"*\" return (0, 5)",
+            display_name: "Symbol : . [3 >= p] (l_pr, l_label)=Symbol(p) [(l_pr == 0) || (l_pr >= 3)] Layout \"*\" return (0, 5)",
             position: 0,
         },
         Slot {
-            display_name: "Symbol : [32 & e == 0] . [3 >= p] (l_pr, l_label)=Symbol(p, 0) [(l_pr == 0) || (l_pr >= 3)] Layout \"*\" return (0, 5)",
+            display_name: "Symbol : [3 >= p] . (l_pr, l_label)=Symbol(p) [(l_pr == 0) || (l_pr >= 3)] Layout \"*\" return (0, 5)",
             position: 1,
         },
         Slot {
-            display_name: "Symbol : [32 & e == 0] [3 >= p] . (l_pr, l_label)=Symbol(p, 0) [(l_pr == 0) || (l_pr >= 3)] Layout \"*\" return (0, 5)",
+            display_name: "Symbol : [3 >= p] (l_pr, l_label)=Symbol(p) . [(l_pr == 0) || (l_pr >= 3)] Layout \"*\" return (0, 5)",
             position: 2,
         },
         Slot {
-            display_name: "Symbol : [32 & e == 0] [3 >= p] (l_pr, l_label)=Symbol(p, 0) . [(l_pr == 0) || (l_pr >= 3)] Layout \"*\" return (0, 5)",
+            display_name: "Symbol : [3 >= p] (l_pr, l_label)=Symbol(p) [(l_pr == 0) || (l_pr >= 3)] . Layout \"*\" return (0, 5)",
             position: 3,
         },
         Slot {
-            display_name: "Symbol : [32 & e == 0] [3 >= p] (l_pr, l_label)=Symbol(p, 0) [(l_pr == 0) || (l_pr >= 3)] . Layout \"*\" return (0, 5)",
+            display_name: "Symbol : [3 >= p] (l_pr, l_label)=Symbol(p) [(l_pr == 0) || (l_pr >= 3)] Layout . \"*\" return (0, 5)",
             position: 4,
         },
         Slot {
-            display_name: "Symbol : [32 & e == 0] [3 >= p] (l_pr, l_label)=Symbol(p, 0) [(l_pr == 0) || (l_pr >= 3)] Layout . \"*\" return (0, 5)",
+            display_name: "Symbol : [3 >= p] (l_pr, l_label)=Symbol(p) [(l_pr == 0) || (l_pr >= 3)] Layout \"*\" . return (0, 5)",
             position: 5,
         },
         Slot {
-            display_name: "Symbol : [32 & e == 0] [3 >= p] (l_pr, l_label)=Symbol(p, 0) [(l_pr == 0) || (l_pr >= 3)] Layout \"*\" . return (0, 5)",
+            display_name: "Symbol : [3 >= p] (l_pr, l_label)=Symbol(p) [(l_pr == 0) || (l_pr >= 3)] Layout \"*\" return (0, 5).",
             position: 6,
         },
         Slot {
-            display_name: "Symbol : [32 & e == 0] [3 >= p] (l_pr, l_label)=Symbol(p, 0) [(l_pr == 0) || (l_pr >= 3)] Layout \"*\" return (0, 5).",
+            display_name: "Symbol : . [3 >= p] (l_pr, l_label)=Symbol(p) [(l_pr == 0) || (l_pr >= 3)] Layout \"+\" return (0, 6)",
+            position: 0,
+        },
+        Slot {
+            display_name: "Symbol : [3 >= p] . (l_pr, l_label)=Symbol(p) [(l_pr == 0) || (l_pr >= 3)] Layout \"+\" return (0, 6)",
+            position: 1,
+        },
+        Slot {
+            display_name: "Symbol : [3 >= p] (l_pr, l_label)=Symbol(p) . [(l_pr == 0) || (l_pr >= 3)] Layout \"+\" return (0, 6)",
+            position: 2,
+        },
+        Slot {
+            display_name: "Symbol : [3 >= p] (l_pr, l_label)=Symbol(p) [(l_pr == 0) || (l_pr >= 3)] . Layout \"+\" return (0, 6)",
+            position: 3,
+        },
+        Slot {
+            display_name: "Symbol : [3 >= p] (l_pr, l_label)=Symbol(p) [(l_pr == 0) || (l_pr >= 3)] Layout . \"+\" return (0, 6)",
+            position: 4,
+        },
+        Slot {
+            display_name: "Symbol : [3 >= p] (l_pr, l_label)=Symbol(p) [(l_pr == 0) || (l_pr >= 3)] Layout \"+\" . return (0, 6)",
+            position: 5,
+        },
+        Slot {
+            display_name: "Symbol : [3 >= p] (l_pr, l_label)=Symbol(p) [(l_pr == 0) || (l_pr >= 3)] Layout \"+\" return (0, 6).",
+            position: 6,
+        },
+        Slot {
+            display_name: "Symbol : . [3 >= p] (l_pr, l_label)=Symbol(p) [(l_pr == 0) || (l_pr >= 3)] Layout \"?\" return (0, 7)",
+            position: 0,
+        },
+        Slot {
+            display_name: "Symbol : [3 >= p] . (l_pr, l_label)=Symbol(p) [(l_pr == 0) || (l_pr >= 3)] Layout \"?\" return (0, 7)",
+            position: 1,
+        },
+        Slot {
+            display_name: "Symbol : [3 >= p] (l_pr, l_label)=Symbol(p) . [(l_pr == 0) || (l_pr >= 3)] Layout \"?\" return (0, 7)",
+            position: 2,
+        },
+        Slot {
+            display_name: "Symbol : [3 >= p] (l_pr, l_label)=Symbol(p) [(l_pr == 0) || (l_pr >= 3)] . Layout \"?\" return (0, 7)",
+            position: 3,
+        },
+        Slot {
+            display_name: "Symbol : [3 >= p] (l_pr, l_label)=Symbol(p) [(l_pr == 0) || (l_pr >= 3)] Layout . \"?\" return (0, 7)",
+            position: 4,
+        },
+        Slot {
+            display_name: "Symbol : [3 >= p] (l_pr, l_label)=Symbol(p) [(l_pr == 0) || (l_pr >= 3)] Layout \"?\" . return (0, 7)",
+            position: 5,
+        },
+        Slot {
+            display_name: "Symbol : [3 >= p] (l_pr, l_label)=Symbol(p) [(l_pr == 0) || (l_pr >= 3)] Layout \"?\" return (0, 7).",
+            position: 6,
+        },
+        Slot {
+            display_name: "Symbol : . [3 >= p] (l_pr, l_label)=Symbol(p) [(l_label == NO_LABEL) || ((256 >> l_label) & 1 == 0)] [(l_pr == 0) || (l_pr >= 3)] Layout conditions:PostCondition+ return (0, 8)",
+            position: 0,
+        },
+        Slot {
+            display_name: "Symbol : [3 >= p] . (l_pr, l_label)=Symbol(p) [(l_label == NO_LABEL) || ((256 >> l_label) & 1 == 0)] [(l_pr == 0) || (l_pr >= 3)] Layout conditions:PostCondition+ return (0, 8)",
+            position: 1,
+        },
+        Slot {
+            display_name: "Symbol : [3 >= p] (l_pr, l_label)=Symbol(p) . [(l_label == NO_LABEL) || ((256 >> l_label) & 1 == 0)] [(l_pr == 0) || (l_pr >= 3)] Layout conditions:PostCondition+ return (0, 8)",
+            position: 2,
+        },
+        Slot {
+            display_name: "Symbol : [3 >= p] (l_pr, l_label)=Symbol(p) [(l_label == NO_LABEL) || ((256 >> l_label) & 1 == 0)] . [(l_pr == 0) || (l_pr >= 3)] Layout conditions:PostCondition+ return (0, 8)",
+            position: 3,
+        },
+        Slot {
+            display_name: "Symbol : [3 >= p] (l_pr, l_label)=Symbol(p) [(l_label == NO_LABEL) || ((256 >> l_label) & 1 == 0)] [(l_pr == 0) || (l_pr >= 3)] . Layout conditions:PostCondition+ return (0, 8)",
+            position: 4,
+        },
+        Slot {
+            display_name: "Symbol : [3 >= p] (l_pr, l_label)=Symbol(p) [(l_label == NO_LABEL) || ((256 >> l_label) & 1 == 0)] [(l_pr == 0) || (l_pr >= 3)] Layout . conditions:PostCondition+ return (0, 8)",
+            position: 5,
+        },
+        Slot {
+            display_name: "Symbol : [3 >= p] (l_pr, l_label)=Symbol(p) [(l_label == NO_LABEL) || ((256 >> l_label) & 1 == 0)] [(l_pr == 0) || (l_pr >= 3)] Layout conditions:PostCondition+ . return (0, 8)",
+            position: 6,
+        },
+        Slot {
+            display_name: "Symbol : [3 >= p] (l_pr, l_label)=Symbol(p) [(l_label == NO_LABEL) || ((256 >> l_label) & 1 == 0)] [(l_pr == 0) || (l_pr >= 3)] Layout conditions:PostCondition+ return (0, 8).",
             position: 7,
         },
         Slot {
-            display_name: "Symbol : . [64 & e == 0] [3 >= p] (l_pr, l_label)=Symbol(p, 0) [(l_pr == 0) || (l_pr >= 3)] Layout \"+\" return (0, 6)",
+            display_name: "Symbol : . conditions:PreCondition+ Layout (r_pr, r_label)=Symbol(2) [(r_label == NO_LABEL) || ((512 >> r_label) & 1 == 0)] return ((r_pr == 0) ? 2 : min(r_pr, 2), 9)",
             position: 0,
         },
         Slot {
-            display_name: "Symbol : [64 & e == 0] . [3 >= p] (l_pr, l_label)=Symbol(p, 0) [(l_pr == 0) || (l_pr >= 3)] Layout \"+\" return (0, 6)",
+            display_name: "Symbol : conditions:PreCondition+ . Layout (r_pr, r_label)=Symbol(2) [(r_label == NO_LABEL) || ((512 >> r_label) & 1 == 0)] return ((r_pr == 0) ? 2 : min(r_pr, 2), 9)",
             position: 1,
         },
         Slot {
-            display_name: "Symbol : [64 & e == 0] [3 >= p] . (l_pr, l_label)=Symbol(p, 0) [(l_pr == 0) || (l_pr >= 3)] Layout \"+\" return (0, 6)",
+            display_name: "Symbol : conditions:PreCondition+ Layout . (r_pr, r_label)=Symbol(2) [(r_label == NO_LABEL) || ((512 >> r_label) & 1 == 0)] return ((r_pr == 0) ? 2 : min(r_pr, 2), 9)",
             position: 2,
         },
         Slot {
-            display_name: "Symbol : [64 & e == 0] [3 >= p] (l_pr, l_label)=Symbol(p, 0) . [(l_pr == 0) || (l_pr >= 3)] Layout \"+\" return (0, 6)",
+            display_name: "Symbol : conditions:PreCondition+ Layout (r_pr, r_label)=Symbol(2) . [(r_label == NO_LABEL) || ((512 >> r_label) & 1 == 0)] return ((r_pr == 0) ? 2 : min(r_pr, 2), 9)",
             position: 3,
         },
         Slot {
-            display_name: "Symbol : [64 & e == 0] [3 >= p] (l_pr, l_label)=Symbol(p, 0) [(l_pr == 0) || (l_pr >= 3)] . Layout \"+\" return (0, 6)",
+            display_name: "Symbol : conditions:PreCondition+ Layout (r_pr, r_label)=Symbol(2) [(r_label == NO_LABEL) || ((512 >> r_label) & 1 == 0)] . return ((r_pr == 0) ? 2 : min(r_pr, 2), 9)",
             position: 4,
         },
         Slot {
-            display_name: "Symbol : [64 & e == 0] [3 >= p] (l_pr, l_label)=Symbol(p, 0) [(l_pr == 0) || (l_pr >= 3)] Layout . \"+\" return (0, 6)",
+            display_name: "Symbol : conditions:PreCondition+ Layout (r_pr, r_label)=Symbol(2) [(r_label == NO_LABEL) || ((512 >> r_label) & 1 == 0)] return ((r_pr == 0) ? 2 : min(r_pr, 2), 9).",
             position: 5,
         },
         Slot {
-            display_name: "Symbol : [64 & e == 0] [3 >= p] (l_pr, l_label)=Symbol(p, 0) [(l_pr == 0) || (l_pr >= 3)] Layout \"+\" . return (0, 6)",
-            position: 6,
-        },
-        Slot {
-            display_name: "Symbol : [64 & e == 0] [3 >= p] (l_pr, l_label)=Symbol(p, 0) [(l_pr == 0) || (l_pr >= 3)] Layout \"+\" return (0, 6).",
-            position: 7,
-        },
-        Slot {
-            display_name: "Symbol : . [128 & e == 0] [3 >= p] (l_pr, l_label)=Symbol(p, 0) [(l_pr == 0) || (l_pr >= 3)] Layout \"?\" return (0, 7)",
+            display_name: "Symbol : . label:Identifier Layout \":\" Layout Symbol(1) return (1, 10)",
             position: 0,
         },
         Slot {
-            display_name: "Symbol : [128 & e == 0] . [3 >= p] (l_pr, l_label)=Symbol(p, 0) [(l_pr == 0) || (l_pr >= 3)] Layout \"?\" return (0, 7)",
+            display_name: "Symbol : label:Identifier . Layout \":\" Layout Symbol(1) return (1, 10)",
             position: 1,
         },
         Slot {
-            display_name: "Symbol : [128 & e == 0] [3 >= p] . (l_pr, l_label)=Symbol(p, 0) [(l_pr == 0) || (l_pr >= 3)] Layout \"?\" return (0, 7)",
+            display_name: "Symbol : label:Identifier Layout . \":\" Layout Symbol(1) return (1, 10)",
             position: 2,
         },
         Slot {
-            display_name: "Symbol : [128 & e == 0] [3 >= p] (l_pr, l_label)=Symbol(p, 0) . [(l_pr == 0) || (l_pr >= 3)] Layout \"?\" return (0, 7)",
+            display_name: "Symbol : label:Identifier Layout \":\" . Layout Symbol(1) return (1, 10)",
             position: 3,
         },
         Slot {
-            display_name: "Symbol : [128 & e == 0] [3 >= p] (l_pr, l_label)=Symbol(p, 0) [(l_pr == 0) || (l_pr >= 3)] . Layout \"?\" return (0, 7)",
+            display_name: "Symbol : label:Identifier Layout \":\" Layout . Symbol(1) return (1, 10)",
             position: 4,
         },
         Slot {
-            display_name: "Symbol : [128 & e == 0] [3 >= p] (l_pr, l_label)=Symbol(p, 0) [(l_pr == 0) || (l_pr >= 3)] Layout . \"?\" return (0, 7)",
+            display_name: "Symbol : label:Identifier Layout \":\" Layout Symbol(1) . return (1, 10)",
             position: 5,
         },
         Slot {
-            display_name: "Symbol : [128 & e == 0] [3 >= p] (l_pr, l_label)=Symbol(p, 0) [(l_pr == 0) || (l_pr >= 3)] Layout \"?\" . return (0, 7)",
+            display_name: "Symbol : label:Identifier Layout \":\" Layout Symbol(1) return (1, 10).",
             position: 6,
-        },
-        Slot {
-            display_name: "Symbol : [128 & e == 0] [3 >= p] (l_pr, l_label)=Symbol(p, 0) [(l_pr == 0) || (l_pr >= 3)] Layout \"?\" return (0, 7).",
-            position: 7,
-        },
-        Slot {
-            display_name: "Symbol : . [256 & e == 0] [3 >= p] (l_pr, l_label)=Symbol(p, 0) [(l_label == NO_LABEL) || ((256 >> l_label) & 1 == 0)] [(l_pr == 0) || (l_pr >= 3)] Layout conditions:PostCondition+ return (0, 8)",
-            position: 0,
-        },
-        Slot {
-            display_name: "Symbol : [256 & e == 0] . [3 >= p] (l_pr, l_label)=Symbol(p, 0) [(l_label == NO_LABEL) || ((256 >> l_label) & 1 == 0)] [(l_pr == 0) || (l_pr >= 3)] Layout conditions:PostCondition+ return (0, 8)",
-            position: 1,
-        },
-        Slot {
-            display_name: "Symbol : [256 & e == 0] [3 >= p] . (l_pr, l_label)=Symbol(p, 0) [(l_label == NO_LABEL) || ((256 >> l_label) & 1 == 0)] [(l_pr == 0) || (l_pr >= 3)] Layout conditions:PostCondition+ return (0, 8)",
-            position: 2,
-        },
-        Slot {
-            display_name: "Symbol : [256 & e == 0] [3 >= p] (l_pr, l_label)=Symbol(p, 0) . [(l_label == NO_LABEL) || ((256 >> l_label) & 1 == 0)] [(l_pr == 0) || (l_pr >= 3)] Layout conditions:PostCondition+ return (0, 8)",
-            position: 3,
-        },
-        Slot {
-            display_name: "Symbol : [256 & e == 0] [3 >= p] (l_pr, l_label)=Symbol(p, 0) [(l_label == NO_LABEL) || ((256 >> l_label) & 1 == 0)] . [(l_pr == 0) || (l_pr >= 3)] Layout conditions:PostCondition+ return (0, 8)",
-            position: 4,
-        },
-        Slot {
-            display_name: "Symbol : [256 & e == 0] [3 >= p] (l_pr, l_label)=Symbol(p, 0) [(l_label == NO_LABEL) || ((256 >> l_label) & 1 == 0)] [(l_pr == 0) || (l_pr >= 3)] . Layout conditions:PostCondition+ return (0, 8)",
-            position: 5,
-        },
-        Slot {
-            display_name: "Symbol : [256 & e == 0] [3 >= p] (l_pr, l_label)=Symbol(p, 0) [(l_label == NO_LABEL) || ((256 >> l_label) & 1 == 0)] [(l_pr == 0) || (l_pr >= 3)] Layout . conditions:PostCondition+ return (0, 8)",
-            position: 6,
-        },
-        Slot {
-            display_name: "Symbol : [256 & e == 0] [3 >= p] (l_pr, l_label)=Symbol(p, 0) [(l_label == NO_LABEL) || ((256 >> l_label) & 1 == 0)] [(l_pr == 0) || (l_pr >= 3)] Layout conditions:PostCondition+ . return (0, 8)",
-            position: 7,
-        },
-        Slot {
-            display_name: "Symbol : [256 & e == 0] [3 >= p] (l_pr, l_label)=Symbol(p, 0) [(l_label == NO_LABEL) || ((256 >> l_label) & 1 == 0)] [(l_pr == 0) || (l_pr >= 3)] Layout conditions:PostCondition+ return (0, 8).",
-            position: 8,
-        },
-        Slot {
-            display_name: "Symbol : . [512 & e == 0] conditions:PreCondition+ Layout (r_pr, r_label)=Symbol(2, 0) [(r_label == NO_LABEL) || ((512 >> r_label) & 1 == 0)] return ((r_pr == 0) ? 2 : min(r_pr, 2), 9)",
-            position: 0,
-        },
-        Slot {
-            display_name: "Symbol : [512 & e == 0] . conditions:PreCondition+ Layout (r_pr, r_label)=Symbol(2, 0) [(r_label == NO_LABEL) || ((512 >> r_label) & 1 == 0)] return ((r_pr == 0) ? 2 : min(r_pr, 2), 9)",
-            position: 1,
-        },
-        Slot {
-            display_name: "Symbol : [512 & e == 0] conditions:PreCondition+ . Layout (r_pr, r_label)=Symbol(2, 0) [(r_label == NO_LABEL) || ((512 >> r_label) & 1 == 0)] return ((r_pr == 0) ? 2 : min(r_pr, 2), 9)",
-            position: 2,
-        },
-        Slot {
-            display_name: "Symbol : [512 & e == 0] conditions:PreCondition+ Layout . (r_pr, r_label)=Symbol(2, 0) [(r_label == NO_LABEL) || ((512 >> r_label) & 1 == 0)] return ((r_pr == 0) ? 2 : min(r_pr, 2), 9)",
-            position: 3,
-        },
-        Slot {
-            display_name: "Symbol : [512 & e == 0] conditions:PreCondition+ Layout (r_pr, r_label)=Symbol(2, 0) . [(r_label == NO_LABEL) || ((512 >> r_label) & 1 == 0)] return ((r_pr == 0) ? 2 : min(r_pr, 2), 9)",
-            position: 4,
-        },
-        Slot {
-            display_name: "Symbol : [512 & e == 0] conditions:PreCondition+ Layout (r_pr, r_label)=Symbol(2, 0) [(r_label == NO_LABEL) || ((512 >> r_label) & 1 == 0)] . return ((r_pr == 0) ? 2 : min(r_pr, 2), 9)",
-            position: 5,
-        },
-        Slot {
-            display_name: "Symbol : [512 & e == 0] conditions:PreCondition+ Layout (r_pr, r_label)=Symbol(2, 0) [(r_label == NO_LABEL) || ((512 >> r_label) & 1 == 0)] return ((r_pr == 0) ? 2 : min(r_pr, 2), 9).",
-            position: 6,
-        },
-        Slot {
-            display_name: "Symbol : . [1024 & e == 0] label:Identifier Layout \":\" Layout Symbol(1, 0) return (1, 10)",
-            position: 0,
-        },
-        Slot {
-            display_name: "Symbol : [1024 & e == 0] . label:Identifier Layout \":\" Layout Symbol(1, 0) return (1, 10)",
-            position: 1,
-        },
-        Slot {
-            display_name: "Symbol : [1024 & e == 0] label:Identifier . Layout \":\" Layout Symbol(1, 0) return (1, 10)",
-            position: 2,
-        },
-        Slot {
-            display_name: "Symbol : [1024 & e == 0] label:Identifier Layout . \":\" Layout Symbol(1, 0) return (1, 10)",
-            position: 3,
-        },
-        Slot {
-            display_name: "Symbol : [1024 & e == 0] label:Identifier Layout \":\" . Layout Symbol(1, 0) return (1, 10)",
-            position: 4,
-        },
-        Slot {
-            display_name: "Symbol : [1024 & e == 0] label:Identifier Layout \":\" Layout . Symbol(1, 0) return (1, 10)",
-            position: 5,
-        },
-        Slot {
-            display_name: "Symbol : [1024 & e == 0] label:Identifier Layout \":\" Layout Symbol(1, 0) . return (1, 10)",
-            position: 6,
-        },
-        Slot {
-            display_name: "Symbol : [1024 & e == 0] label:Identifier Layout \":\" Layout Symbol(1, 0) return (1, 10).",
-            position: 7,
         },
     ];
     const FIRST_SLOTS: &'static [&'static [SlotId]] = &[
@@ -2116,16 +2072,16 @@ impl Grammar for IggyGrammar {
         &[SlotId(323)],
         &[
             SlotId(325),
-            SlotId(329),
-            SlotId(337),
-            SlotId(341),
-            SlotId(353),
-            SlotId(365),
-            SlotId(373),
+            SlotId(328),
+            SlotId(335),
+            SlotId(338),
+            SlotId(349),
+            SlotId(360),
+            SlotId(367),
+            SlotId(374),
             SlotId(381),
             SlotId(389),
-            SlotId(398),
-            SlotId(405),
+            SlotId(395),
         ],
     ];
     const LAYOUT_NAME: Option<&'static str> = Some("Layout");
@@ -3266,60 +3222,57 @@ pub static RETURN_SLOT_LOOKAHEAD_REGEX_RULE_ALT0_POS11: TerminalSet = TerminalSe
         TerminalId(35),
     ],
 };
-// Symbol(p: i32, e: i32) : [2 & e == 0] "(" Layout seqs:Plus_7 . Layout ")" return (0, 1)
-// lookahead { ")" }
-pub static RETURN_SLOT_LOOKAHEAD_SYMBOL_ALT1_POS4: TerminalSet = TerminalSet {
+// Symbol(p: i32) : "(" Layout seqs:Plus_7 . Layout ")" return (0, 1) lookahead { ")" }
+pub static RETURN_SLOT_LOOKAHEAD_SYMBOL_ALT1_POS3: TerminalSet = TerminalSet {
     id: 24,
     terminals: &[TerminalId(26)],
 };
-// Symbol(p: i32, e: i32) : [8 & e == 0] "{" Layout symbol:Symbol(0, 0) . Layout
-// sep:Symbol(0, 0) Layout "}" Layout "*" return (0, 3) lookahead { Identifier, String, "(",
-// "{" }
-pub static RETURN_SLOT_LOOKAHEAD_SYMBOL_ALT3_POS4: TerminalSet = TerminalSet {
+// Symbol(p: i32) : "{" Layout symbol:Symbol(0) . Layout sep:Symbol(0) Layout "}" Layout "*"
+// return (0, 3) lookahead { Identifier, String, "(", "{" }
+pub static RETURN_SLOT_LOOKAHEAD_SYMBOL_ALT3_POS3: TerminalSet = TerminalSet {
     id: 25,
     terminals: &[TerminalId(2), TerminalId(3), TerminalId(25), TerminalId(27)],
 };
-// Symbol(p: i32, e: i32) : [8 & e == 0] "{" Layout symbol:Symbol(0, 0) Layout sep:Symbol(0,
-// 0) . Layout "}" Layout "*" return (0, 3) lookahead { "}" }
-pub static RETURN_SLOT_LOOKAHEAD_SYMBOL_ALT3_POS6: TerminalSet = TerminalSet {
+// Symbol(p: i32) : "{" Layout symbol:Symbol(0) Layout sep:Symbol(0) . Layout "}" Layout "*"
+// return (0, 3) lookahead { "}" }
+pub static RETURN_SLOT_LOOKAHEAD_SYMBOL_ALT3_POS5: TerminalSet = TerminalSet {
     id: 26,
     terminals: &[TerminalId(28)],
 };
-// Symbol(p: i32, e: i32) : [16 & e == 0] "{" Layout symbol:Symbol(0, 0) . Layout
-// sep:Symbol(0, 0) Layout "}" Layout "+" return (0, 4) lookahead { Identifier, String, "(",
-// "{" }
-pub static RETURN_SLOT_LOOKAHEAD_SYMBOL_ALT4_POS4: TerminalSet = TerminalSet {
+// Symbol(p: i32) : "{" Layout symbol:Symbol(0) . Layout sep:Symbol(0) Layout "}" Layout "+"
+// return (0, 4) lookahead { Identifier, String, "(", "{" }
+pub static RETURN_SLOT_LOOKAHEAD_SYMBOL_ALT4_POS3: TerminalSet = TerminalSet {
     id: 25,
     terminals: &[TerminalId(2), TerminalId(3), TerminalId(25), TerminalId(27)],
 };
-// Symbol(p: i32, e: i32) : [16 & e == 0] "{" Layout symbol:Symbol(0, 0) Layout sep:Symbol(0,
-// 0) . Layout "}" Layout "+" return (0, 4) lookahead { "}" }
-pub static RETURN_SLOT_LOOKAHEAD_SYMBOL_ALT4_POS6: TerminalSet = TerminalSet {
+// Symbol(p: i32) : "{" Layout symbol:Symbol(0) Layout sep:Symbol(0) . Layout "}" Layout "+"
+// return (0, 4) lookahead { "}" }
+pub static RETURN_SLOT_LOOKAHEAD_SYMBOL_ALT4_POS5: TerminalSet = TerminalSet {
     id: 26,
     terminals: &[TerminalId(28)],
 };
-// Symbol(p: i32, e: i32) : [32 & e == 0] [3 >= p] (l_pr, l_label)=Symbol(p, 0) . [(l_pr ==
-// 0) || (l_pr >= 3)] Layout "*" return (0, 5) lookahead { "*" }
-pub static RETURN_SLOT_LOOKAHEAD_SYMBOL_ALT5_POS3: TerminalSet = TerminalSet {
+// Symbol(p: i32) : [3 >= p] (l_pr, l_label)=Symbol(p) . [(l_pr == 0) || (l_pr >= 3)] Layout
+// "*" return (0, 5) lookahead { "*" }
+pub static RETURN_SLOT_LOOKAHEAD_SYMBOL_ALT5_POS2: TerminalSet = TerminalSet {
     id: 27,
     terminals: &[TerminalId(29)],
 };
-// Symbol(p: i32, e: i32) : [64 & e == 0] [3 >= p] (l_pr, l_label)=Symbol(p, 0) . [(l_pr ==
-// 0) || (l_pr >= 3)] Layout "+" return (0, 6) lookahead { "+" }
-pub static RETURN_SLOT_LOOKAHEAD_SYMBOL_ALT6_POS3: TerminalSet = TerminalSet {
+// Symbol(p: i32) : [3 >= p] (l_pr, l_label)=Symbol(p) . [(l_pr == 0) || (l_pr >= 3)] Layout
+// "+" return (0, 6) lookahead { "+" }
+pub static RETURN_SLOT_LOOKAHEAD_SYMBOL_ALT6_POS2: TerminalSet = TerminalSet {
     id: 28,
     terminals: &[TerminalId(30)],
 };
-// Symbol(p: i32, e: i32) : [128 & e == 0] [3 >= p] (l_pr, l_label)=Symbol(p, 0) . [(l_pr ==
-// 0) || (l_pr >= 3)] Layout "?" return (0, 7) lookahead { "?" }
-pub static RETURN_SLOT_LOOKAHEAD_SYMBOL_ALT7_POS3: TerminalSet = TerminalSet {
+// Symbol(p: i32) : [3 >= p] (l_pr, l_label)=Symbol(p) . [(l_pr == 0) || (l_pr >= 3)] Layout
+// "?" return (0, 7) lookahead { "?" }
+pub static RETURN_SLOT_LOOKAHEAD_SYMBOL_ALT7_POS2: TerminalSet = TerminalSet {
     id: 29,
     terminals: &[TerminalId(31)],
 };
-// Symbol(p: i32, e: i32) : [256 & e == 0] [3 >= p] (l_pr, l_label)=Symbol(p, 0) . [(l_label
-// == NO_LABEL) || ((256 >> l_label) & 1 == 0)] [(l_pr == 0) || (l_pr >= 3)] Layout
-// conditions:Plus_8 return (0, 8) lookahead { "\\", "!>>", "!>>>", "!" }
-pub static RETURN_SLOT_LOOKAHEAD_SYMBOL_ALT8_POS3: TerminalSet = TerminalSet {
+// Symbol(p: i32) : [3 >= p] (l_pr, l_label)=Symbol(p) . [(l_label == NO_LABEL) || ((256 >>
+// l_label) & 1 == 0)] [(l_pr == 0) || (l_pr >= 3)] Layout conditions:Plus_8 return (0, 8)
+// lookahead { "\\", "!>>", "!>>>", "!" }
+pub static RETURN_SLOT_LOOKAHEAD_SYMBOL_ALT8_POS2: TerminalSet = TerminalSet {
     id: 30,
     terminals: &[
         TerminalId(20),
@@ -3328,10 +3281,10 @@ pub static RETURN_SLOT_LOOKAHEAD_SYMBOL_ALT8_POS3: TerminalSet = TerminalSet {
         TerminalId(34),
     ],
 };
-// Symbol(p: i32, e: i32) : [512 & e == 0] conditions:Plus_9 . Layout (r_pr,
-// r_label)=Symbol(2, 0) [(r_label == NO_LABEL) || ((512 >> r_label) & 1 == 0)] return ((r_pr
-// == 0) ? 2 : min(r_pr, 2), 9) lookahead { Identifier, String, "(", "{" }
-pub static RETURN_SLOT_LOOKAHEAD_SYMBOL_ALT9_POS2: TerminalSet = TerminalSet {
+// Symbol(p: i32) : conditions:Plus_9 . Layout (r_pr, r_label)=Symbol(2) [(r_label ==
+// NO_LABEL) || ((512 >> r_label) & 1 == 0)] return ((r_pr == 0) ? 2 : min(r_pr, 2), 9)
+// lookahead { Identifier, String, "(", "{" }
+pub static RETURN_SLOT_LOOKAHEAD_SYMBOL_ALT9_POS1: TerminalSet = TerminalSet {
     id: 25,
     terminals: &[TerminalId(2), TerminalId(3), TerminalId(25), TerminalId(27)],
 };
@@ -3404,7 +3357,7 @@ pub static RETURN_SLOT_LOOKAHEAD_PLUS_5_ALT0_POS1: TerminalSet = TerminalSet {
     id: 34,
     terminals: &[TerminalId(18)],
 };
-// Plus_6 : Plus_6 . Layout Symbol(0, 0) lookahead { Identifier, String, "(", "{" }
+// Plus_6 : Plus_6 . Layout Symbol(0) lookahead { Identifier, String, "(", "{" }
 pub static RETURN_SLOT_LOOKAHEAD_PLUS_6_ALT0_POS1: TerminalSet = TerminalSet {
     id: 25,
     terminals: &[TerminalId(2), TerminalId(3), TerminalId(25), TerminalId(27)],
@@ -4473,27 +4426,24 @@ pub static PREDICTION_ALTERNATIVE: Prediction = {
     }
 };
 // Symbol
-// 0: [1 & e == 0] Identifier return (0, 0) #Identifier
-// 1: [2 & e == 0] "(" Layout seqs:Plus_7 Layout ")" return (0, 1) #Paren
-// 2: [4 & e == 0] String return (0, 2) #Lit
-// 3: [8 & e == 0] "{" Layout symbol:Symbol(0, 0) Layout sep:Symbol(0, 0) Layout "}" Layout
-// "*" return (0, 3) #StarSep
-// 4: [16 & e == 0] "{" Layout symbol:Symbol(0, 0) Layout sep:Symbol(0, 0) Layout "}" Layout
-// "+" return (0, 4) #PlusSep
-// 5: [32 & e == 0] [3 >= p] (l_pr, l_label)=Symbol(p, 0) [(l_pr == 0) || (l_pr >= 3)] Layout
-// "*" return (0, 5) #Star
-// 6: [64 & e == 0] [3 >= p] (l_pr, l_label)=Symbol(p, 0) [(l_pr == 0) || (l_pr >= 3)] Layout
-// "+" return (0, 6) #Plus
-// 7: [128 & e == 0] [3 >= p] (l_pr, l_label)=Symbol(p, 0) [(l_pr == 0) || (l_pr >= 3)]
-// Layout "?" return (0, 7) #Opt
-// 8: [256 & e == 0] [3 >= p] (l_pr, l_label)=Symbol(p, 0) [(l_label == NO_LABEL) || ((256 >>
-// l_label) & 1 == 0)] [(l_pr == 0) || (l_pr >= 3)] Layout conditions:Plus_8 return (0, 8)
-// #PostCondition
-// 9: [512 & e == 0] conditions:Plus_9 Layout (r_pr, r_label)=Symbol(2, 0) [(r_label ==
-// NO_LABEL) || ((512 >> r_label) & 1 == 0)] return ((r_pr == 0) ? 2 : min(r_pr, 2), 9)
-// #PreCondition
-// 10: [1024 & e == 0] label:Identifier Layout ":" Layout Symbol(1, 0) return (1, 10)
-// #Labeled
+// 0: Identifier return (0, 0) #Identifier
+// 1: "(" Layout seqs:Plus_7 Layout ")" return (0, 1) #Paren
+// 2: String return (0, 2) #Lit
+// 3: "{" Layout symbol:Symbol(0) Layout sep:Symbol(0) Layout "}" Layout "*" return (0, 3)
+// #StarSep
+// 4: "{" Layout symbol:Symbol(0) Layout sep:Symbol(0) Layout "}" Layout "+" return (0, 4)
+// #PlusSep
+// 5: [3 >= p] (l_pr, l_label)=Symbol(p) [(l_pr == 0) || (l_pr >= 3)] Layout "*" return (0,
+// 5) #Star
+// 6: [3 >= p] (l_pr, l_label)=Symbol(p) [(l_pr == 0) || (l_pr >= 3)] Layout "+" return (0,
+// 6) #Plus
+// 7: [3 >= p] (l_pr, l_label)=Symbol(p) [(l_pr == 0) || (l_pr >= 3)] Layout "?" return (0,
+// 7) #Opt
+// 8: [3 >= p] (l_pr, l_label)=Symbol(p) [(l_label == NO_LABEL) || ((256 >> l_label) & 1 ==
+// 0)] [(l_pr == 0) || (l_pr >= 3)] Layout conditions:Plus_8 return (0, 8) #PostCondition
+// 9: conditions:Plus_9 Layout (r_pr, r_label)=Symbol(2) [(r_label == NO_LABEL) || ((512 >>
+// r_label) & 1 == 0)] return ((r_pr == 0) ? 2 : min(r_pr, 2), 9) #PreCondition
+// 10: label:Identifier Layout ":" Layout Symbol(1) return (1, 10) #Labeled
 pub static PREDICTION_SYMBOL: Prediction = {
     // String
     const TERMINALS_1: &[(TerminalId, u16)] = &[
@@ -6915,8 +6865,8 @@ pub static PREDICTION_STAR_3: Prediction = {
     }
 };
 // Plus_6
-// 0: Plus_6 Layout Symbol(0, 0)
-// 1: Symbol(0, 0)
+// 0: Plus_6 Layout Symbol(0)
+// 1: Symbol(0)
 pub static PREDICTION_PLUS_6: Prediction = {
     // String
     const TERMINALS_1: &[(TerminalId, u16)] = &[(TerminalId(3), 0), (TerminalId(3), 1)];

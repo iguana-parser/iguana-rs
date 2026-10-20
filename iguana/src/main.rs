@@ -400,9 +400,9 @@ fn available_phases() -> String {
     use std::fmt::Write;
     let mut message = String::from("Available phases:\n");
     for phase in Phase::ALL {
-        writeln!(message, "  {:<11}{}", phase.token(), phase.description()).unwrap();
+        writeln!(message, "  {:<15}{}", phase.token(), phase.description()).unwrap();
     }
-    writeln!(message, "  {:<11}every phase", "all").unwrap();
+    writeln!(message, "  {:<15}every phase", "all").unwrap();
     message
 }
 
