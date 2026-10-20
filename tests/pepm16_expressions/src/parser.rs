@@ -32,8 +32,7 @@ use iguana_runtime::{
 use rustc_hash::FxHashMap;
 use std::cell::OnceCell;
 const BINDING_P: BindingId = BindingId(0);
-const BINDING_L_PR: BindingId = BindingId(1);
-const BINDING_R_PR: BindingId = BindingId(2);
+const BINDING_R_PR: BindingId = BindingId(1);
 impl<'i, 'arena> Parser<'i, 'arena> for Pepm16ExpressionsParser<'i, 'arena> {
     type Grammar = Pepm16ExpressionsGrammar;
     type Alternatives = <Pepm16ExpressionsGrammar as Grammar>::Alternatives;
@@ -97,11 +96,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for Pepm16ExpressionsParser<'i, 'arena> {
                     }
                     // E(p: i32) : [6 >= p] l_pr=E(p) . [(l_pr == 0) || (l_pr >= 6)] WS "." WS "f" return 0
                     SlotId(12) => {
-                        if (self.lookup(BINDING_L_PR, env.unwrap()) == 0)
-                            || (self.lookup(BINDING_L_PR, env.unwrap()) >= 6)
-                        {
-                            next = Some(SlotId(13));
-                        }
+                        next = Some(SlotId(13));
                     }
                     // E(p: i32) : [6 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 6)] . WS "." WS "f" return 0
                     SlotId(13) => {
@@ -214,11 +209,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for Pepm16ExpressionsParser<'i, 'arena> {
                     // E(p: i32) : [6 >= p] l_pr=E(p) . [(l_pr == 0) || (l_pr >= 6)] WS r_pr=E(6) return (r_pr ==
                     // 0) ? 6 : min(r_pr, 6)
                     SlotId(21) => {
-                        if (self.lookup(BINDING_L_PR, env.unwrap()) == 0)
-                            || (self.lookup(BINDING_L_PR, env.unwrap()) >= 6)
-                        {
-                            next = Some(SlotId(22));
-                        }
+                        next = Some(SlotId(22));
                     }
                     // E(p: i32) : [6 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 6)] . WS r_pr=E(6) return (r_pr ==
                     // 0) ? 6 : min(r_pr, 6)
@@ -290,11 +281,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for Pepm16ExpressionsParser<'i, 'arena> {
                     // E(p: i32) : [5 >= p] l_pr=E(p) . [(l_pr == 0) || (l_pr >= 5)] WS "*" WS r_pr=E(6) return
                     // (r_pr == 0) ? 5 : min(r_pr, 5)
                     SlotId(28) => {
-                        if (self.lookup(BINDING_L_PR, env.unwrap()) == 0)
-                            || (self.lookup(BINDING_L_PR, env.unwrap()) >= 5)
-                        {
-                            next = Some(SlotId(29));
-                        }
+                        next = Some(SlotId(29));
                     }
                     // E(p: i32) : [5 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 5)] . WS "*" WS r_pr=E(6) return
                     // (r_pr == 0) ? 5 : min(r_pr, 5)
@@ -406,11 +393,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for Pepm16ExpressionsParser<'i, 'arena> {
                     // E(p: i32) : [4 >= p] l_pr=E(p) . [(l_pr == 0) || (l_pr >= 4)] WS "+" WS r_pr=E(5) return
                     // (r_pr == 0) ? 4 : min(r_pr, 4)
                     SlotId(37) => {
-                        if (self.lookup(BINDING_L_PR, env.unwrap()) == 0)
-                            || (self.lookup(BINDING_L_PR, env.unwrap()) >= 4)
-                        {
-                            next = Some(SlotId(38));
-                        }
+                        next = Some(SlotId(38));
                     }
                     // E(p: i32) : [4 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 4)] . WS "+" WS r_pr=E(5) return
                     // (r_pr == 0) ? 4 : min(r_pr, 4)
@@ -522,11 +505,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for Pepm16ExpressionsParser<'i, 'arena> {
                     // E(p: i32) : [4 >= p] l_pr=E(p) . [(l_pr == 0) || (l_pr >= 4)] WS "-" WS r_pr=E(5) return
                     // (r_pr == 0) ? 4 : min(r_pr, 4)
                     SlotId(46) => {
-                        if (self.lookup(BINDING_L_PR, env.unwrap()) == 0)
-                            || (self.lookup(BINDING_L_PR, env.unwrap()) >= 4)
-                        {
-                            next = Some(SlotId(47));
-                        }
+                        next = Some(SlotId(47));
                     }
                     // E(p: i32) : [4 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 4)] . WS "-" WS r_pr=E(5) return
                     // (r_pr == 0) ? 4 : min(r_pr, 4)
@@ -863,11 +842,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for Pepm16ExpressionsParser<'i, 'arena> {
                     }
                     // E(p: i32) : [1 >= p] l_pr=E(p) . [(l_pr == 0) || (l_pr >= 2)] WS ";" WS E(1) return 1
                     SlotId(73) => {
-                        if (self.lookup(BINDING_L_PR, env.unwrap()) == 0)
-                            || (self.lookup(BINDING_L_PR, env.unwrap()) >= 2)
-                        {
-                            next = Some(SlotId(74));
-                        }
+                        next = Some(SlotId(74));
                     }
                     // E(p: i32) : [1 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 2)] . WS ";" WS E(1) return 1
                     SlotId(74) => {
@@ -1478,17 +1453,11 @@ impl<'i, 'arena> Parser<'i, 'arena> for Pepm16ExpressionsParser<'i, 'arena> {
         value: i32,
     ) -> Option<EnvId> {
         let bindings: &[(BindingId, i32)] = match return_slot {
-            SlotId(12) => &[(BINDING_L_PR, value)],
-            SlotId(21) => &[(BINDING_L_PR, value)],
             SlotId(24) => &[(BINDING_R_PR, value)],
-            SlotId(28) => &[(BINDING_L_PR, value)],
             SlotId(33) => &[(BINDING_R_PR, value)],
-            SlotId(37) => &[(BINDING_L_PR, value)],
             SlotId(42) => &[(BINDING_R_PR, value)],
-            SlotId(46) => &[(BINDING_L_PR, value)],
             SlotId(51) => &[(BINDING_R_PR, value)],
             SlotId(56) => &[(BINDING_R_PR, value)],
-            SlotId(73) => &[(BINDING_L_PR, value)],
             _ => return env,
         };
         let arena = self.vec_arena;

@@ -32,10 +32,7 @@ use iguana_runtime::{
 use rustc_hash::FxHashMap;
 use std::cell::OnceCell;
 const BINDING_P: BindingId = BindingId(0);
-const BINDING_L_PR: BindingId = BindingId(1);
-const BINDING_L_LABEL: BindingId = BindingId(2);
-const BINDING_R_PR: BindingId = BindingId(3);
-const BINDING_R_LABEL: BindingId = BindingId(4);
+const BINDING_R_PR: BindingId = BindingId(1);
 impl<'i, 'arena> Parser<'i, 'arena> for IggyParser<'i, 'arena> {
     type Grammar = IggyGrammar;
     type Alternatives = <IggyGrammar as Grammar>::Alternatives;
@@ -1180,11 +1177,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for IggyParser<'i, 'arena> {
                     // Symbol(p: i32) : [3 >= p] (l_pr, l_label)=Symbol(p) . [(l_pr == 0) || (l_pr >= 3)] Layout
                     // "*" return (0, 5)
                     SlotId(362) => {
-                        if (self.lookup(BINDING_L_PR, env.unwrap()) == 0)
-                            || (self.lookup(BINDING_L_PR, env.unwrap()) >= 3)
-                        {
-                            next = Some(SlotId(363));
-                        }
+                        next = Some(SlotId(363));
                     }
                     // Symbol(p: i32) : [3 >= p] (l_pr, l_label)=Symbol(p) [(l_pr == 0) || (l_pr >= 3)] . Layout
                     // "*" return (0, 5)
@@ -1262,11 +1255,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for IggyParser<'i, 'arena> {
                     // Symbol(p: i32) : [3 >= p] (l_pr, l_label)=Symbol(p) . [(l_pr == 0) || (l_pr >= 3)] Layout
                     // "+" return (0, 6)
                     SlotId(369) => {
-                        if (self.lookup(BINDING_L_PR, env.unwrap()) == 0)
-                            || (self.lookup(BINDING_L_PR, env.unwrap()) >= 3)
-                        {
-                            next = Some(SlotId(370));
-                        }
+                        next = Some(SlotId(370));
                     }
                     // Symbol(p: i32) : [3 >= p] (l_pr, l_label)=Symbol(p) [(l_pr == 0) || (l_pr >= 3)] . Layout
                     // "+" return (0, 6)
@@ -1344,11 +1333,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for IggyParser<'i, 'arena> {
                     // Symbol(p: i32) : [3 >= p] (l_pr, l_label)=Symbol(p) . [(l_pr == 0) || (l_pr >= 3)] Layout
                     // "?" return (0, 7)
                     SlotId(376) => {
-                        if (self.lookup(BINDING_L_PR, env.unwrap()) == 0)
-                            || (self.lookup(BINDING_L_PR, env.unwrap()) >= 3)
-                        {
-                            next = Some(SlotId(377));
-                        }
+                        next = Some(SlotId(377));
                     }
                     // Symbol(p: i32) : [3 >= p] (l_pr, l_label)=Symbol(p) [(l_pr == 0) || (l_pr >= 3)] . Layout
                     // "?" return (0, 7)
@@ -1426,20 +1411,12 @@ impl<'i, 'arena> Parser<'i, 'arena> for IggyParser<'i, 'arena> {
                     // Symbol(p: i32) : [3 >= p] (l_pr, l_label)=Symbol(p) . [(l_label == NO_LABEL) || ((256 >>
                     // l_label) & 1 == 0)] [(l_pr == 0) || (l_pr >= 3)] Layout conditions:Plus_8 return (0, 8)
                     SlotId(383) => {
-                        if (self.lookup(BINDING_L_LABEL, env.unwrap()) == 31)
-                            || (((256) >> (self.lookup(BINDING_L_LABEL, env.unwrap()))) & (1) == 0)
-                        {
-                            next = Some(SlotId(384));
-                        }
+                        next = Some(SlotId(384));
                     }
                     // Symbol(p: i32) : [3 >= p] (l_pr, l_label)=Symbol(p) [(l_label == NO_LABEL) || ((256 >>
                     // l_label) & 1 == 0)] . [(l_pr == 0) || (l_pr >= 3)] Layout conditions:Plus_8 return (0, 8)
                     SlotId(384) => {
-                        if (self.lookup(BINDING_L_PR, env.unwrap()) == 0)
-                            || (self.lookup(BINDING_L_PR, env.unwrap()) >= 3)
-                        {
-                            next = Some(SlotId(385));
-                        }
+                        next = Some(SlotId(385));
                     }
                     // Symbol(p: i32) : [3 >= p] (l_pr, l_label)=Symbol(p) [(l_label == NO_LABEL) || ((256 >>
                     // l_label) & 1 == 0)] [(l_pr == 0) || (l_pr >= 3)] . Layout conditions:Plus_8 return (0, 8)
@@ -1523,11 +1500,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for IggyParser<'i, 'arena> {
                     // Symbol(p: i32) : conditions:Plus_9 Layout (r_pr, r_label)=Symbol(2) . [(r_label ==
                     // NO_LABEL) || ((512 >> r_label) & 1 == 0)] return ((r_pr == 0) ? 2 : min(r_pr, 2), 9)
                     SlotId(392) => {
-                        if (self.lookup(BINDING_R_LABEL, env.unwrap()) == 31)
-                            || (((512) >> (self.lookup(BINDING_R_LABEL, env.unwrap()))) & (1) == 0)
-                        {
-                            next = Some(SlotId(393));
-                        }
+                        next = Some(SlotId(393));
                     }
                     // Symbol(p: i32) : conditions:Plus_9 Layout (r_pr, r_label)=Symbol(2) [(r_label == NO_LABEL)
                     // || ((512 >> r_label) & 1 == 0)] . return ((r_pr == 0) ? 2 : min(r_pr, 2), 9)
@@ -4369,26 +4342,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for IggyParser<'i, 'arena> {
         value: i32,
     ) -> Option<EnvId> {
         let bindings: &[(BindingId, i32)] = match return_slot {
-            SlotId(362) => &[
-                (BINDING_L_PR, (value) >> 16),
-                (BINDING_L_LABEL, (value) & 65535),
-            ],
-            SlotId(369) => &[
-                (BINDING_L_PR, (value) >> 16),
-                (BINDING_L_LABEL, (value) & 65535),
-            ],
-            SlotId(376) => &[
-                (BINDING_L_PR, (value) >> 16),
-                (BINDING_L_LABEL, (value) & 65535),
-            ],
-            SlotId(383) => &[
-                (BINDING_L_PR, (value) >> 16),
-                (BINDING_L_LABEL, (value) & 65535),
-            ],
-            SlotId(392) => &[
-                (BINDING_R_PR, (value) >> 16),
-                (BINDING_R_LABEL, (value) & 65535),
-            ],
+            SlotId(392) => &[(BINDING_R_PR, (value) >> 16)],
             _ => return env,
         };
         let arena = self.vec_arena;

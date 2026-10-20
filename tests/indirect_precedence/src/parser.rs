@@ -32,8 +32,7 @@ use iguana_runtime::{
 use rustc_hash::FxHashMap;
 use std::cell::OnceCell;
 const BINDING_P: BindingId = BindingId(0);
-const BINDING_L_PR: BindingId = BindingId(1);
-const BINDING_R_PR: BindingId = BindingId(2);
+const BINDING_R_PR: BindingId = BindingId(1);
 impl<'i, 'arena> Parser<'i, 'arena> for IndirectPrecedenceParser<'i, 'arena> {
     type Grammar = IndirectPrecedenceGrammar;
     type Alternatives = <IndirectPrecedenceGrammar as Grammar>::Alternatives;
@@ -133,11 +132,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectPrecedenceParser<'i, 'arena> {
                     }
                     // E(p: i32) : [1 >= p] l_pr=E(p) . [(l_pr == 0) || (l_pr >= 1)] "*" F(1) return 1
                     SlotId(16) => {
-                        if (self.lookup(BINDING_L_PR, env.unwrap()) == 0)
-                            || (self.lookup(BINDING_L_PR, env.unwrap()) >= 1)
-                        {
-                            next = Some(SlotId(17));
-                        }
+                        next = Some(SlotId(17));
                     }
                     // E(p: i32) : [1 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 1)] . "*" F(1) return 1
                     SlotId(17) => {
@@ -672,7 +667,6 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectPrecedenceParser<'i, 'arena> {
         value: i32,
     ) -> Option<EnvId> {
         let bindings: &[(BindingId, i32)] = match return_slot {
-            SlotId(16) => &[(BINDING_L_PR, value)],
             SlotId(27) => &[(BINDING_R_PR, value)],
             SlotId(30) => &[(BINDING_R_PR, value)],
             _ => return env,

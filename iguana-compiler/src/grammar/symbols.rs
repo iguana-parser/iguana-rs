@@ -161,6 +161,26 @@ impl Expr {
         };
         f(expr)
     }
+
+    /// Whether the expression reads `name`.
+    pub fn reads(&self, name: &str) -> bool {
+        match self {
+            Self::Ref(reference) => reference == name,
+            Self::Int(_) | Self::DisplayInt { .. } => false,
+            Self::Tuple(values) => values.iter().any(|value| value.reads(name)),
+            Self::Cond(cond) => cond.left.reads(name) || cond.right.reads(name),
+            Self::Or(l, r)
+            | Self::And(l, r)
+            | Self::BitAnd(l, r)
+            | Self::BitOr(l, r)
+            | Self::Shl(l, r)
+            | Self::Shr(l, r)
+            | Self::Min(l, r) => l.reads(name) || r.reads(name),
+            Self::Ternary { cond, then, r#else } => {
+                cond.reads(name) || then.reads(name) || r#else.reads(name)
+            }
+        }
+    }
 }
 
 /// Names bound by a nonterminal call.

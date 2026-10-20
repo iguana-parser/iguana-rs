@@ -7,14 +7,14 @@ use std::{
 
 use crate::{
     generator::{
-        grammar_utils::ll1_nonterminals,
+        grammar_utils::{ll1_nonterminals, needs_env_binding},
         id::{BindingIds, EndSlot, NonterminalIds, SlotIds, TerminalIds},
         parse_tree_gen::ParseTreeGen,
         parser_gen::ParserGen,
         terminal_sets::terminal_sets,
     },
     grammar::{
-        def::Grammar,
+        def::{Alternative, Grammar},
         first_chars::FirstChars,
         first_follow::FirstFollowSets,
         slot::Slot,
@@ -75,34 +75,16 @@ fn check_layout_aware_follow(
     Err(io::Error::other(message))
 }
 
-fn collect_binding_names(symbol: &Symbol, binding_ids: &mut BindingIds) {
-    if let Symbol::Binding { pattern, .. } = symbol {
+fn collect_binding_names(alternative: &Alternative, binding_ids: &mut BindingIds) {
+    for (pos, symbol) in alternative.symbols.iter().enumerate() {
+        let Some(pattern) = symbol.binding_pattern() else {
+            continue;
+        };
         for name in pattern.names() {
-            binding_ids.insert(name.clone());
-        }
-    }
-    match symbol {
-        Symbol::Labeled { symbol, .. }
-        | Symbol::Binding { symbol, .. }
-        | Symbol::Restricted { symbol, .. }
-        | Symbol::Exclude { symbol, .. }
-        | Symbol::Opt(symbol) => collect_binding_names(symbol, binding_ids),
-        Symbol::Group(symbols) | Symbol::Alt(symbols) => {
-            for s in symbols {
-                collect_binding_names(s, binding_ids);
+            if needs_env_binding(alternative, pos, name) {
+                binding_ids.insert(name.clone());
             }
         }
-        Symbol::Star(symbol, sep) | Symbol::Plus(symbol, sep) => {
-            collect_binding_names(symbol, binding_ids);
-            if let Some(sep) = sep {
-                collect_binding_names(sep, binding_ids);
-            }
-        }
-        Symbol::Identifier(_)
-        | Symbol::Literal(_)
-        | Symbol::Call { .. }
-        | Symbol::Condition(_)
-        | Symbol::Return(_) => {}
     }
 }
 
@@ -251,9 +233,7 @@ pub fn generate_sources(
             binding_ids.insert(param.name.clone());
         }
         for alternative in grammar.alternatives(nt) {
-            for symbol in &alternative.symbols {
-                collect_binding_names(symbol, &mut binding_ids);
-            }
+            collect_binding_names(alternative, &mut binding_ids);
         }
     }
     let slot_ids = assign_slot_ids(grammar, &mut nonterminal_ids);

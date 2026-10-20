@@ -32,8 +32,7 @@ use iguana_runtime::{
 use rustc_hash::FxHashMap;
 use std::cell::OnceCell;
 const BINDING_P: BindingId = BindingId(0);
-const BINDING_L_PR: BindingId = BindingId(1);
-const BINDING_R_PR: BindingId = BindingId(2);
+const BINDING_R_PR: BindingId = BindingId(1);
 impl<'i, 'arena> Parser<'i, 'arena> for DeepPriorityFullParser<'i, 'arena> {
     type Grammar = DeepPriorityFullGrammar;
     type Alternatives = <DeepPriorityFullGrammar as Grammar>::Alternatives;
@@ -100,11 +99,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for DeepPriorityFullParser<'i, 'arena> {
                     // E(p: i32) : [5 >= p] l_pr=E(p) . [(l_pr == 0) || (l_pr >= 5)] WS "*" WS r_pr=E(6) return
                     // (r_pr == 0) ? 5 : min(r_pr, 5)
                     SlotId(12) => {
-                        if (self.lookup(BINDING_L_PR, env.unwrap()) == 0)
-                            || (self.lookup(BINDING_L_PR, env.unwrap()) >= 5)
-                        {
-                            next = Some(SlotId(13));
-                        }
+                        next = Some(SlotId(13));
                     }
                     // E(p: i32) : [5 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 5)] . WS "*" WS r_pr=E(6) return
                     // (r_pr == 0) ? 5 : min(r_pr, 5)
@@ -216,11 +211,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for DeepPriorityFullParser<'i, 'arena> {
                     // E(p: i32) : [4 >= p] l_pr=E(p) . [(l_pr == 0) || (l_pr >= 4)] WS "+" WS r_pr=E(5) return
                     // (r_pr == 0) ? 4 : min(r_pr, 4)
                     SlotId(21) => {
-                        if (self.lookup(BINDING_L_PR, env.unwrap()) == 0)
-                            || (self.lookup(BINDING_L_PR, env.unwrap()) >= 4)
-                        {
-                            next = Some(SlotId(22));
-                        }
+                        next = Some(SlotId(22));
                     }
                     // E(p: i32) : [4 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 4)] . WS "+" WS r_pr=E(5) return
                     // (r_pr == 0) ? 4 : min(r_pr, 4)
@@ -557,11 +548,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for DeepPriorityFullParser<'i, 'arena> {
                     }
                     // E(p: i32) : [1 >= p] l_pr=E(p) . [(l_pr == 0) || (l_pr >= 2)] WS ";" WS E(1) return 1
                     SlotId(48) => {
-                        if (self.lookup(BINDING_L_PR, env.unwrap()) == 0)
-                            || (self.lookup(BINDING_L_PR, env.unwrap()) >= 2)
-                        {
-                            next = Some(SlotId(49));
-                        }
+                        next = Some(SlotId(49));
                     }
                     // E(p: i32) : [1 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 2)] . WS ";" WS E(1) return 1
                     SlotId(49) => {
@@ -1082,12 +1069,9 @@ impl<'i, 'arena> Parser<'i, 'arena> for DeepPriorityFullParser<'i, 'arena> {
         value: i32,
     ) -> Option<EnvId> {
         let bindings: &[(BindingId, i32)] = match return_slot {
-            SlotId(12) => &[(BINDING_L_PR, value)],
             SlotId(17) => &[(BINDING_R_PR, value)],
-            SlotId(21) => &[(BINDING_L_PR, value)],
             SlotId(26) => &[(BINDING_R_PR, value)],
             SlotId(31) => &[(BINDING_R_PR, value)],
-            SlotId(48) => &[(BINDING_L_PR, value)],
             _ => return env,
         };
         let arena = self.vec_arena;

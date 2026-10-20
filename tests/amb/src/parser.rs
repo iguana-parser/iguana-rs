@@ -32,7 +32,6 @@ use iguana_runtime::{
 use rustc_hash::FxHashMap;
 use std::cell::OnceCell;
 const BINDING_P: BindingId = BindingId(0);
-const BINDING_L_PR: BindingId = BindingId(1);
 impl<'i, 'arena> Parser<'i, 'arena> for AmbParser<'i, 'arena> {
     type Grammar = AmbGrammar;
     type Alternatives = <AmbGrammar as Grammar>::Alternatives;
@@ -128,11 +127,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for AmbParser<'i, 'arena> {
                     }
                     // E(p: i32) : [2 >= p] l_pr=lhs:E(p) . [(l_pr == 0) || (l_pr >= 2)] "*" rhs:E(3) return 2
                     SlotId(11) => {
-                        if (self.lookup(BINDING_L_PR, env.unwrap()) == 0)
-                            || (self.lookup(BINDING_L_PR, env.unwrap()) >= 2)
-                        {
-                            next = Some(SlotId(12));
-                        }
+                        next = Some(SlotId(12));
                     }
                     // E(p: i32) : [2 >= p] l_pr=lhs:E(p) [(l_pr == 0) || (l_pr >= 2)] . "*" rhs:E(3) return 2
                     SlotId(12) => {
@@ -192,11 +187,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for AmbParser<'i, 'arena> {
                     }
                     // E(p: i32) : [1 >= p] l_pr=lhs:E(p) . [(l_pr == 0) || (l_pr >= 1)] "+" rhs:E(2) return 1
                     SlotId(18) => {
-                        if (self.lookup(BINDING_L_PR, env.unwrap()) == 0)
-                            || (self.lookup(BINDING_L_PR, env.unwrap()) >= 1)
-                        {
-                            next = Some(SlotId(19));
-                        }
+                        next = Some(SlotId(19));
                     }
                     // E(p: i32) : [1 >= p] l_pr=lhs:E(p) [(l_pr == 0) || (l_pr >= 1)] . "+" rhs:E(2) return 1
                     SlotId(19) => {
@@ -577,27 +568,6 @@ impl<'i, 'arena> Parser<'i, 'arena> for AmbParser<'i, 'arena> {
         let (new_id, new_env) = self.new_env();
         new_env.bindings = bindings;
         (new_id, new_env)
-    }
-    fn bind_return_value(
-        &mut self,
-        return_slot: SlotId,
-        env: Option<EnvId>,
-        value: i32,
-    ) -> Option<EnvId> {
-        let bindings: &[(BindingId, i32)] = match return_slot {
-            SlotId(11) => &[(BINDING_L_PR, value)],
-            SlotId(18) => &[(BINDING_L_PR, value)],
-            _ => return env,
-        };
-        let arena = self.vec_arena;
-        let (id, target) = match env {
-            Some(id) => self.clone_env(id),
-            None => self.new_env(),
-        };
-        for &(name, value) in bindings {
-            target.bind(name, value, arena);
-        }
-        Some(id)
     }
     fn envs<'p>(&'p self) -> impl Iterator<Item = &'p Env<'arena>>
     where

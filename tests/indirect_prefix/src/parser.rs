@@ -32,8 +32,7 @@ use iguana_runtime::{
 use rustc_hash::FxHashMap;
 use std::cell::OnceCell;
 const BINDING_P: BindingId = BindingId(0);
-const BINDING_L_PR: BindingId = BindingId(1);
-const BINDING_R_PR: BindingId = BindingId(2);
+const BINDING_R_PR: BindingId = BindingId(1);
 impl<'i, 'arena> Parser<'i, 'arena> for IndirectPrefixParser<'i, 'arena> {
     type Grammar = IndirectPrefixGrammar;
     type Alternatives = <IndirectPrefixGrammar as Grammar>::Alternatives;
@@ -132,11 +131,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectPrefixParser<'i, 'arena> {
                     // E(p: i32) : [2 >= p] l_pr=E(p) . [(l_pr == 0) || (l_pr >= 2)] WS "+" WS r_pr=E(2) return
                     // (r_pr == 0) ? 2 : min(r_pr, 2)
                     SlotId(23) => {
-                        if (self.lookup(BINDING_L_PR, env.unwrap()) == 0)
-                            || (self.lookup(BINDING_L_PR, env.unwrap()) >= 2)
-                        {
-                            next = Some(SlotId(24));
-                        }
+                        next = Some(SlotId(24));
                     }
                     // E(p: i32) : [2 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 2)] . WS "+" WS r_pr=E(2) return
                     // (r_pr == 0) ? 2 : min(r_pr, 2)
@@ -860,7 +855,6 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectPrefixParser<'i, 'arena> {
         value: i32,
     ) -> Option<EnvId> {
         let bindings: &[(BindingId, i32)] = match return_slot {
-            SlotId(23) => &[(BINDING_L_PR, value)],
             SlotId(28) => &[(BINDING_R_PR, value)],
             SlotId(36) => &[(BINDING_R_PR, value)],
             SlotId(39) => &[(BINDING_R_PR, value)],

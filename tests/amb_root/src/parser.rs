@@ -32,7 +32,6 @@ use iguana_runtime::{
 use rustc_hash::FxHashMap;
 use std::cell::OnceCell;
 const BINDING_P: BindingId = BindingId(0);
-const BINDING_L_PR: BindingId = BindingId(1);
 impl<'i, 'arena> Parser<'i, 'arena> for AmbRootParser<'i, 'arena> {
     type Grammar = AmbRootGrammar;
     type Alternatives = <AmbRootGrammar as Grammar>::Alternatives;
@@ -267,11 +266,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for AmbRootParser<'i, 'arena> {
                     }
                     // E(p: i32) : [1 >= p] l_pr=E(p) . [(l_pr == 0) || (l_pr >= 1)] WS "-" WS E(2) return 1
                     SlotId(26) => {
-                        if (self.lookup(BINDING_L_PR, env.unwrap()) == 0)
-                            || (self.lookup(BINDING_L_PR, env.unwrap()) >= 1)
-                        {
-                            next = Some(SlotId(27));
-                        }
+                        next = Some(SlotId(27));
                     }
                     // E(p: i32) : [1 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 1)] . WS "-" WS E(2) return 1
                     SlotId(27) => {
@@ -883,26 +878,6 @@ impl<'i, 'arena> Parser<'i, 'arena> for AmbRootParser<'i, 'arena> {
         let (new_id, new_env) = self.new_env();
         new_env.bindings = bindings;
         (new_id, new_env)
-    }
-    fn bind_return_value(
-        &mut self,
-        return_slot: SlotId,
-        env: Option<EnvId>,
-        value: i32,
-    ) -> Option<EnvId> {
-        let bindings: &[(BindingId, i32)] = match return_slot {
-            SlotId(26) => &[(BINDING_L_PR, value)],
-            _ => return env,
-        };
-        let arena = self.vec_arena;
-        let (id, target) = match env {
-            Some(id) => self.clone_env(id),
-            None => self.new_env(),
-        };
-        for &(name, value) in bindings {
-            target.bind(name, value, arena);
-        }
-        Some(id)
     }
     fn envs<'p>(&'p self) -> impl Iterator<Item = &'p Env<'arena>>
     where

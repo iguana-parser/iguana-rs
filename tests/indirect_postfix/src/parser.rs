@@ -128,11 +128,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectPostfixParser<'i, 'arena> {
                     }
                     // E(p: i32) : [2 >= p] l_pr=E(p) . [(l_pr == 0) || (l_pr >= 2)] WS "+" WS E(2) return 2
                     SlotId(23) => {
-                        if (self.lookup(BINDING_L_PR, env.unwrap()) == 0)
-                            || (self.lookup(BINDING_L_PR, env.unwrap()) >= 2)
-                        {
-                            next = Some(SlotId(24));
-                        }
+                        next = Some(SlotId(24));
                     }
                     // E(p: i32) : [2 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 2)] . WS "+" WS E(2) return 2
                     SlotId(24) => {
@@ -228,11 +224,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectPostfixParser<'i, 'arena> {
                     }
                     // E(p: i32) : [1 >= p] l_pr=Postfix(p) . [(l_pr == 0) || (l_pr >= 1)] return 0
                     SlotId(32) => {
-                        if (self.lookup(BINDING_L_PR, env.unwrap()) == 0)
-                            || (self.lookup(BINDING_L_PR, env.unwrap()) >= 1)
-                        {
-                            next = Some(SlotId(33));
-                        }
+                        next = Some(SlotId(33));
                     }
                     // E(p: i32) : [1 >= p] l_pr=Postfix(p) [(l_pr == 0) || (l_pr >= 1)] . return 0
                     SlotId(33) => {
@@ -867,8 +859,6 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectPostfixParser<'i, 'arena> {
         value: i32,
     ) -> Option<EnvId> {
         let bindings: &[(BindingId, i32)] = match return_slot {
-            SlotId(23) => &[(BINDING_L_PR, value)],
-            SlotId(32) => &[(BINDING_L_PR, value)],
             SlotId(36) => &[(BINDING_L_PR, value)],
             SlotId(41) => &[(BINDING_L_PR, value)],
             _ => return env,

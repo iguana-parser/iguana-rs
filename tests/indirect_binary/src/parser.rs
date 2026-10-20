@@ -32,20 +32,14 @@ use iguana_runtime::{
 use rustc_hash::FxHashMap;
 use std::cell::OnceCell;
 const BINDING_P: BindingId = BindingId(0);
-const BINDING_L_PR: BindingId = BindingId(1);
-const BINDING_END: BindingId = BindingId(2);
-const BINDING_V_PR: BindingId = BindingId(3);
-const BINDING_R_PR: BindingId = BindingId(4);
-const BINDING_A: BindingId = BindingId(5);
-const BINDING_L_LABEL: BindingId = BindingId(6);
-const BINDING_R_LABEL: BindingId = BindingId(7);
-const BINDING_X_PR: BindingId = BindingId(8);
-const BINDING_X_LABEL: BindingId = BindingId(9);
-const BINDING_L_ASSOC: BindingId = BindingId(10);
-const BINDING_R_ASSOC: BindingId = BindingId(11);
-const BINDING_V_ASSOC: BindingId = BindingId(12);
-const BINDING_V_LABEL: BindingId = BindingId(13);
-const BINDING_X_ASSOC: BindingId = BindingId(14);
+const BINDING_END: BindingId = BindingId(1);
+const BINDING_V_PR: BindingId = BindingId(2);
+const BINDING_R_PR: BindingId = BindingId(3);
+const BINDING_A: BindingId = BindingId(4);
+const BINDING_L_PR: BindingId = BindingId(5);
+const BINDING_L_ASSOC: BindingId = BindingId(6);
+const BINDING_V_ASSOC: BindingId = BindingId(7);
+const BINDING_R_ASSOC: BindingId = BindingId(8);
 impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
     type Grammar = IndirectBinaryGrammar;
     type Alternatives = <IndirectBinaryGrammar as Grammar>::Alternatives;
@@ -145,11 +139,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     // E(p: i32) : [2 >= p] l_pr=L(p, 0) . [(l_pr == 0) || (l_pr >= 2)] WS "*" WS L(3, 1) return
                     // 2
                     SlotId(402) => {
-                        if (self.lookup(BINDING_L_PR, env.unwrap()) == 0)
-                            || (self.lookup(BINDING_L_PR, env.unwrap()) >= 2)
-                        {
-                            next = Some(SlotId(403));
-                        }
+                        next = Some(SlotId(403));
                     }
                     // E(p: i32) : [2 >= p] l_pr=L(p, 0) [(l_pr == 0) || (l_pr >= 2)] . WS "*" WS L(3, 1) return
                     // 2
@@ -253,11 +243,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     }
                     // E(p: i32) : [1 >= p] l_pr=E(p) . [(l_pr == 0) || (l_pr >= 1)] WS "+" WS L(2, 1) return 1
                     SlotId(411) => {
-                        if (self.lookup(BINDING_L_PR, env.unwrap()) == 0)
-                            || (self.lookup(BINDING_L_PR, env.unwrap()) >= 1)
-                        {
-                            next = Some(SlotId(412));
-                        }
+                        next = Some(SlotId(412));
                     }
                     // E(p: i32) : [1 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 1)] . WS "+" WS L(2, 1) return 1
                     SlotId(412) => {
@@ -354,11 +340,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     }
                     // E(p: i32) : [1 >= p] l_pr=L(p, 0) . [(l_pr == 0) || (l_pr >= 1)] WS "-" WS E(2) return 1
                     SlotId(420) => {
-                        if (self.lookup(BINDING_L_PR, env.unwrap()) == 0)
-                            || (self.lookup(BINDING_L_PR, env.unwrap()) >= 1)
-                        {
-                            next = Some(SlotId(421));
-                        }
+                        next = Some(SlotId(421));
                     }
                     // E(p: i32) : [1 >= p] l_pr=L(p, 0) [(l_pr == 0) || (l_pr >= 1)] . WS "-" WS E(2) return 1
                     SlotId(421) => {
@@ -518,11 +500,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     // Only(p: i32) : [1 >= p] l_pr=OnlyOperand(p, 0) . [(l_pr == 0) || (l_pr >= 1)] WS "^" WS
                     // OnlyOperand(2, 1) return 1
                     SlotId(435) => {
-                        if (self.lookup(BINDING_L_PR, env.unwrap()) == 0)
-                            || (self.lookup(BINDING_L_PR, env.unwrap()) >= 1)
-                        {
-                            next = Some(SlotId(436));
-                        }
+                        next = Some(SlotId(436));
                     }
                     // Only(p: i32) : [1 >= p] l_pr=OnlyOperand(p, 0) [(l_pr == 0) || (l_pr >= 1)] . WS "^" WS
                     // OnlyOperand(2, 1) return 1
@@ -690,11 +668,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     // Cross(p: i32) : [2 >= p] l_pr=Cross(p) . [(l_pr == 0) || (l_pr >= 2)] WS "-" WS Foreign(0)
                     // return 0
                     SlotId(450) => {
-                        if (self.lookup(BINDING_L_PR, env.unwrap()) == 0)
-                            || (self.lookup(BINDING_L_PR, env.unwrap()) >= 2)
-                        {
-                            next = Some(SlotId(451));
-                        }
+                        next = Some(SlotId(451));
                     }
                     // Cross(p: i32) : [2 >= p] l_pr=Cross(p) [(l_pr == 0) || (l_pr >= 2)] . WS "-" WS Foreign(0)
                     // return 0
@@ -802,11 +776,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     // Cross(p: i32) : [1 >= p] l_pr=Cross(p) . [(l_pr == 0) || (l_pr >= 1)] WS "+" WS Foreign(0)
                     // return 0
                     SlotId(459) => {
-                        if (self.lookup(BINDING_L_PR, env.unwrap()) == 0)
-                            || (self.lookup(BINDING_L_PR, env.unwrap()) >= 1)
-                        {
-                            next = Some(SlotId(460));
-                        }
+                        next = Some(SlotId(460));
                     }
                     // Cross(p: i32) : [1 >= p] l_pr=Cross(p) [(l_pr == 0) || (l_pr >= 1)] . WS "+" WS Foreign(0)
                     // return 0
@@ -946,11 +916,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     // Foreign(p: i32) : [1 >= p] l_pr=Foreign(p) . [(l_pr == 0) || (l_pr >= 1)] WS "*" WS
                     // Foreign(2) return 1
                     SlotId(471) => {
-                        if (self.lookup(BINDING_L_PR, env.unwrap()) == 0)
-                            || (self.lookup(BINDING_L_PR, env.unwrap()) >= 1)
-                        {
-                            next = Some(SlotId(472));
-                        }
+                        next = Some(SlotId(472));
                     }
                     // Foreign(p: i32) : [1 >= p] l_pr=Foreign(p) [(l_pr == 0) || (l_pr >= 1)] . WS "*" WS
                     // Foreign(2) return 1
@@ -1112,11 +1078,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     // Cascade(p: i32) : [1 >= p] l_pr=Cascade(p) . [(l_pr == 0) || (l_pr >= 1)] WS "+" WS
                     // Cascade(2) return 1
                     SlotId(486) => {
-                        if (self.lookup(BINDING_L_PR, env.unwrap()) == 0)
-                            || (self.lookup(BINDING_L_PR, env.unwrap()) >= 1)
-                        {
-                            next = Some(SlotId(487));
-                        }
+                        next = Some(SlotId(487));
                     }
                     // Cascade(p: i32) : [1 >= p] l_pr=Cascade(p) [(l_pr == 0) || (l_pr >= 1)] . WS "+" WS
                     // Cascade(2) return 1
@@ -1606,11 +1568,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     // RightExpr(p: i32) : [1 >= p] l_pr=RightOperand(p, 0) . [(l_pr == 0) || (l_pr >= 2)] WS ">"
                     // WS RightOperand(1, 1) return 1
                     SlotId(514) => {
-                        if (self.lookup(BINDING_L_PR, env.unwrap()) == 0)
-                            || (self.lookup(BINDING_L_PR, env.unwrap()) >= 2)
-                        {
-                            next = Some(SlotId(515));
-                        }
+                        next = Some(SlotId(515));
                     }
                     // RightExpr(p: i32) : [1 >= p] l_pr=RightOperand(p, 0) [(l_pr == 0) || (l_pr >= 2)] . WS ">"
                     // WS RightOperand(1, 1) return 1
@@ -1779,11 +1737,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     // NoneExpr(p: i32) : [1 >= p] l_pr=NoneOperand(p, 0) . [(l_pr == 0) || (l_pr >= 2)] WS "="
                     // WS NoneOperand(2, 1) return 1
                     SlotId(529) => {
-                        if (self.lookup(BINDING_L_PR, env.unwrap()) == 0)
-                            || (self.lookup(BINDING_L_PR, env.unwrap()) >= 2)
-                        {
-                            next = Some(SlotId(530));
-                        }
+                        next = Some(SlotId(530));
                     }
                     // NoneExpr(p: i32) : [1 >= p] l_pr=NoneOperand(p, 0) [(l_pr == 0) || (l_pr >= 2)] . WS "="
                     // WS NoneOperand(2, 1) return 1
@@ -1952,13 +1906,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     // UNDEFINED_PRECEDENCE) || (r_pr == UNDEFINED_PRECEDENCE)) || (a != 1)] return (r_pr ==
                     // UNDEFINED_PRECEDENCE) ? 0 : 1
                     SlotId(543) => {
-                        if (self.lookup(BINDING_L_PR, env.unwrap()) == -1)
-                            || ((1 >= self.lookup(BINDING_P, env.unwrap()))
-                                && ((self.lookup(BINDING_L_PR, env.unwrap()) == 0)
-                                    || (self.lookup(BINDING_L_PR, env.unwrap()) >= 1)))
-                        {
-                            next = Some(SlotId(544));
-                        }
+                        next = Some(SlotId(544));
                     }
                     // Excluded(p: i32, a: i32) : (l_pr, l_label)=ExcludedOperand(p, 0, 0) [(l_pr ==
                     // UNDEFINED_PRECEDENCE) || ((1 >= p) && ((l_pr == 0) || (l_pr >= 1)))] . WS "&" WS (r_pr,
@@ -2064,12 +2012,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     // UNDEFINED_PRECEDENCE) || (r_pr == UNDEFINED_PRECEDENCE)) || (a != 1)] return (r_pr ==
                     // UNDEFINED_PRECEDENCE) ? 0 : 1
                     SlotId(548) => {
-                        if ((self.lookup(BINDING_L_PR, env.unwrap()) == -1)
-                            || (self.lookup(BINDING_R_PR, env.unwrap()) == -1))
-                            || (self.lookup(BINDING_A, env.unwrap()) != 1)
-                        {
-                            next = Some(SlotId(549));
-                        }
+                        next = Some(SlotId(549));
                     }
                     // Excluded(p: i32, a: i32) : (l_pr, l_label)=ExcludedOperand(p, 0, 0) [(l_pr ==
                     // UNDEFINED_PRECEDENCE) || ((1 >= p) && ((l_pr == 0) || (l_pr >= 1)))] WS "&" WS (r_pr,
@@ -2247,11 +2190,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     // Filtered : (x_pr, x_label)=ExcludedOperand(0, 0, 0) . [(x_label == NO_LABEL) || ((2 >>
                     // x_label) & 1 == 0)]
                     SlotId(17) => {
-                        if (self.lookup(BINDING_X_LABEL, env.unwrap()) == 31)
-                            || (((2) >> (self.lookup(BINDING_X_LABEL, env.unwrap()))) & (1) == 0)
-                        {
-                            next = Some(SlotId(18));
-                        }
+                        next = Some(SlotId(18));
                     }
                     // Filtered : (x_pr, x_label)=ExcludedOperand(0, 0, 0) [(x_label == NO_LABEL) || ((2 >>
                     // x_label) & 1 == 0)].
@@ -2506,13 +2445,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     // ((1 >= p) && ((l_pr == 0) || (l_pr >= 1)))] WS "~" WS r_pr=MixedRight(1, (l_pr ==
                     // UNDEFINED_PRECEDENCE) ? 0 : 1) [(l_pr == UNDEFINED_PRECEDENCE) || (a != 1)] return 1
                     SlotId(578) => {
-                        if (self.lookup(BINDING_L_PR, env.unwrap()) == -1)
-                            || ((1 >= self.lookup(BINDING_P, env.unwrap()))
-                                && ((self.lookup(BINDING_L_PR, env.unwrap()) == 0)
-                                    || (self.lookup(BINDING_L_PR, env.unwrap()) >= 1)))
-                        {
-                            next = Some(SlotId(579));
-                        }
+                        next = Some(SlotId(579));
                     }
                     // MixedScale(p: i32, a: i32) : l_pr=MixedOperand(p, 0) [(l_pr == UNDEFINED_PRECEDENCE) ||
                     // ((1 >= p) && ((l_pr == 0) || (l_pr >= 1)))] . WS "~" WS r_pr=MixedRight(1, (l_pr ==
@@ -2601,11 +2534,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     // ((1 >= p) && ((l_pr == 0) || (l_pr >= 1)))] WS "~" WS r_pr=MixedRight(1, (l_pr ==
                     // UNDEFINED_PRECEDENCE) ? 0 : 1) . [(l_pr == UNDEFINED_PRECEDENCE) || (a != 1)] return 1
                     SlotId(583) => {
-                        if (self.lookup(BINDING_L_PR, env.unwrap()) == -1)
-                            || (self.lookup(BINDING_A, env.unwrap()) != 1)
-                        {
-                            next = Some(SlotId(584));
-                        }
+                        next = Some(SlotId(584));
                     }
                     // MixedScale(p: i32, a: i32) : l_pr=MixedOperand(p, 0) [(l_pr == UNDEFINED_PRECEDENCE) ||
                     // ((1 >= p) && ((l_pr == 0) || (l_pr >= 1)))] WS "~" WS r_pr=MixedRight(1, (l_pr ==
@@ -2762,11 +2691,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     // MixedForeign(p: i32) : [1 >= p] l_pr=MixedForeign(p) . [(l_pr == 0) || (l_pr >= 1)] WS "!"
                     // WS MixedForeign(2) return 1
                     SlotId(600) => {
-                        if (self.lookup(BINDING_L_PR, env.unwrap()) == 0)
-                            || (self.lookup(BINDING_L_PR, env.unwrap()) >= 1)
-                        {
-                            next = Some(SlotId(601));
-                        }
+                        next = Some(SlotId(601));
                     }
                     // MixedForeign(p: i32) : [1 >= p] l_pr=MixedForeign(p) [(l_pr == 0) || (l_pr >= 1)] . WS "!"
                     // WS MixedForeign(2) return 1
@@ -2907,13 +2832,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     // UNDEFINED_PRECEDENCE)) || (l_assoc != 1)] return ((r_pr == UNDEFINED_PRECEDENCE) ? 0 : 1,
                     // ((l_pr == UNDEFINED_PRECEDENCE) || (r_pr == UNDEFINED_PRECEDENCE)) ? 0 : 1)
                     SlotId(611) => {
-                        if (self.lookup(BINDING_L_PR, env.unwrap()) == -1)
-                            || ((1 >= self.lookup(BINDING_P, env.unwrap()))
-                                && ((self.lookup(BINDING_L_PR, env.unwrap()) == 0)
-                                    || (self.lookup(BINDING_L_PR, env.unwrap()) >= 1)))
-                        {
-                            next = Some(SlotId(612));
-                        }
+                        next = Some(SlotId(612));
                     }
                     // Packed(p: i32, a: i32) : (l_pr, l_assoc)=PackedOperand(p, 0, 0) [(l_pr ==
                     // UNDEFINED_PRECEDENCE) || ((1 >= p) && ((l_pr == 0) || (l_pr >= 1)))] . WS "+" WS (r_pr,
@@ -3007,12 +2926,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     // UNDEFINED_PRECEDENCE)) || (l_assoc != 1)] return ((r_pr == UNDEFINED_PRECEDENCE) ? 0 : 1,
                     // ((l_pr == UNDEFINED_PRECEDENCE) || (r_pr == UNDEFINED_PRECEDENCE)) ? 0 : 1)
                     SlotId(616) => {
-                        if ((self.lookup(BINDING_L_PR, env.unwrap()) == -1)
-                            || (self.lookup(BINDING_R_PR, env.unwrap()) == -1))
-                            || (self.lookup(BINDING_L_ASSOC, env.unwrap()) != 1)
-                        {
-                            next = Some(SlotId(617));
-                        }
+                        next = Some(SlotId(617));
                     }
                     // Packed(p: i32, a: i32) : (l_pr, l_assoc)=PackedOperand(p, 0, 0) [(l_pr ==
                     // UNDEFINED_PRECEDENCE) || ((1 >= p) && ((l_pr == 0) || (l_pr >= 1)))] WS "+" WS (r_pr,
@@ -3227,11 +3141,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     // PackedFiltered : (x_pr, x_assoc, x_label)=PackedMiddle(0, 0, 0) . [(x_label == NO_LABEL)
                     // || ((2 >> x_label) & 1 == 0)]
                     SlotId(24) => {
-                        if (self.lookup(BINDING_X_LABEL, env.unwrap()) == 31)
-                            || (((2) >> (self.lookup(BINDING_X_LABEL, env.unwrap()))) & (1) == 0)
-                        {
-                            next = Some(SlotId(25));
-                        }
+                        next = Some(SlotId(25));
                     }
                     // PackedFiltered : (x_pr, x_assoc, x_label)=PackedMiddle(0, 0, 0) [(x_label == NO_LABEL) ||
                     // ((2 >> x_label) & 1 == 0)].
@@ -3298,13 +3208,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     // r_assoc)=NullableRecursive(1, 0) [(l_pr == UNDEFINED_PRECEDENCE) || (l_assoc != 1)] return
                     // (1, (l_pr == UNDEFINED_PRECEDENCE) ? 0 : 1)
                     SlotId(636) => {
-                        if (self.lookup(BINDING_L_PR, env.unwrap()) == -1)
-                            || ((1 >= self.lookup(BINDING_P, env.unwrap()))
-                                && ((self.lookup(BINDING_L_PR, env.unwrap()) == 0)
-                                    || (self.lookup(BINDING_L_PR, env.unwrap()) >= 1)))
-                        {
-                            next = Some(SlotId(637));
-                        }
+                        next = Some(SlotId(637));
                     }
                     // NullableRecursive(p: i32, a: i32) : (l_pr, l_assoc)=NullableOperand(p, 0) [(l_pr ==
                     // UNDEFINED_PRECEDENCE) || ((1 >= p) && ((l_pr == 0) || (l_pr >= 1)))] . WS "+" WS (r_pr,
@@ -3390,11 +3294,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     // r_assoc)=NullableRecursive(1, 0) . [(l_pr == UNDEFINED_PRECEDENCE) || (l_assoc != 1)]
                     // return (1, (l_pr == UNDEFINED_PRECEDENCE) ? 0 : 1)
                     SlotId(641) => {
-                        if (self.lookup(BINDING_L_PR, env.unwrap()) == -1)
-                            || (self.lookup(BINDING_L_ASSOC, env.unwrap()) != 1)
-                        {
-                            next = Some(SlotId(642));
-                        }
+                        next = Some(SlotId(642));
                     }
                     // NullableRecursive(p: i32, a: i32) : (l_pr, l_assoc)=NullableOperand(p, 0) [(l_pr ==
                     // UNDEFINED_PRECEDENCE) || ((1 >= p) && ((l_pr == 0) || (l_pr >= 1)))] WS "+" WS (r_pr,
@@ -3564,13 +3464,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     // r_assoc)=NullableLexRecursive(1, 0) [(l_pr == UNDEFINED_PRECEDENCE) || (l_assoc != 1)]
                     // return (1, (l_pr == UNDEFINED_PRECEDENCE) ? 0 : 1)
                     SlotId(656) => {
-                        if (self.lookup(BINDING_L_PR, env.unwrap()) == -1)
-                            || ((1 >= self.lookup(BINDING_P, env.unwrap()))
-                                && ((self.lookup(BINDING_L_PR, env.unwrap()) == 0)
-                                    || (self.lookup(BINDING_L_PR, env.unwrap()) >= 1)))
-                        {
-                            next = Some(SlotId(657));
-                        }
+                        next = Some(SlotId(657));
                     }
                     // NullableLexRecursive(p: i32, a: i32) : (l_pr, l_assoc)=NullableLexOperand(p, 0) [(l_pr ==
                     // UNDEFINED_PRECEDENCE) || ((1 >= p) && ((l_pr == 0) || (l_pr >= 1)))] . WS "+" WS (r_pr,
@@ -3663,11 +3557,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     // r_assoc)=NullableLexRecursive(1, 0) . [(l_pr == UNDEFINED_PRECEDENCE) || (l_assoc != 1)]
                     // return (1, (l_pr == UNDEFINED_PRECEDENCE) ? 0 : 1)
                     SlotId(661) => {
-                        if (self.lookup(BINDING_L_PR, env.unwrap()) == -1)
-                            || (self.lookup(BINDING_L_ASSOC, env.unwrap()) != 1)
-                        {
-                            next = Some(SlotId(662));
-                        }
+                        next = Some(SlotId(662));
                     }
                     // NullableLexRecursive(p: i32, a: i32) : (l_pr, l_assoc)=NullableLexOperand(p, 0) [(l_pr ==
                     // UNDEFINED_PRECEDENCE) || ((1 >= p) && ((l_pr == 0) || (l_pr >= 1)))] WS "+" WS (r_pr,
@@ -3885,11 +3775,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     // (l_pr >= 1)] WS "+" WS r_pr=NullableSuffixOperand(1, 1) [(r_pr == UNDEFINED_PRECEDENCE) ||
                     // (a != 1)] return (r_pr == UNDEFINED_PRECEDENCE) ? 0 : 1
                     SlotId(680) => {
-                        if (self.lookup(BINDING_L_PR, env.unwrap()) == 0)
-                            || (self.lookup(BINDING_L_PR, env.unwrap()) >= 1)
-                        {
-                            next = Some(SlotId(681));
-                        }
+                        next = Some(SlotId(681));
                     }
                     // NullableSuffix(p: i32, a: i32) : [1 >= p] l_pr=NullableSuffix(p, 0) [(l_pr == 0) || (l_pr
                     // >= 1)] . WS "+" WS r_pr=NullableSuffixOperand(1, 1) [(r_pr == UNDEFINED_PRECEDENCE) || (a
@@ -3974,11 +3860,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     // >= 1)] WS "+" WS r_pr=NullableSuffixOperand(1, 1) . [(r_pr == UNDEFINED_PRECEDENCE) || (a
                     // != 1)] return (r_pr == UNDEFINED_PRECEDENCE) ? 0 : 1
                     SlotId(685) => {
-                        if (self.lookup(BINDING_R_PR, env.unwrap()) == -1)
-                            || (self.lookup(BINDING_A, env.unwrap()) != 1)
-                        {
-                            next = Some(SlotId(686));
-                        }
+                        next = Some(SlotId(686));
                     }
                     // NullableSuffix(p: i32, a: i32) : [1 >= p] l_pr=NullableSuffix(p, 0) [(l_pr == 0) || (l_pr
                     // >= 1)] WS "+" WS r_pr=NullableSuffixOperand(1, 1) [(r_pr == UNDEFINED_PRECEDENCE) || (a !=
@@ -4146,13 +4028,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     // UNDEFINED_PRECEDENCE)) || (l_assoc != 1)] return ((r_pr == UNDEFINED_PRECEDENCE) ? 0 : 1,
                     // ((l_pr == UNDEFINED_PRECEDENCE) || (r_pr == UNDEFINED_PRECEDENCE)) ? 0 : 1)
                     SlotId(700) => {
-                        if (self.lookup(BINDING_L_PR, env.unwrap()) == -1)
-                            || ((1 >= self.lookup(BINDING_P, env.unwrap()))
-                                && ((self.lookup(BINDING_L_PR, env.unwrap()) == 0)
-                                    || (self.lookup(BINDING_L_PR, env.unwrap()) >= 1)))
-                        {
-                            next = Some(SlotId(701));
-                        }
+                        next = Some(SlotId(701));
                     }
                     // NullableShared(p: i32, a: i32) : (l_pr, l_assoc)=NullableSharedOperand(p, 0, 0) [(l_pr ==
                     // UNDEFINED_PRECEDENCE) || ((1 >= p) && ((l_pr == 0) || (l_pr >= 1)))] . WS "+" WS (r_pr,
@@ -4254,12 +4130,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     // UNDEFINED_PRECEDENCE)) || (l_assoc != 1)] return ((r_pr == UNDEFINED_PRECEDENCE) ? 0 : 1,
                     // ((l_pr == UNDEFINED_PRECEDENCE) || (r_pr == UNDEFINED_PRECEDENCE)) ? 0 : 1)
                     SlotId(705) => {
-                        if ((self.lookup(BINDING_L_PR, env.unwrap()) == -1)
-                            || (self.lookup(BINDING_R_PR, env.unwrap()) == -1))
-                            || (self.lookup(BINDING_L_ASSOC, env.unwrap()) != 1)
-                        {
-                            next = Some(SlotId(706));
-                        }
+                        next = Some(SlotId(706));
                     }
                     // NullableShared(p: i32, a: i32) : (l_pr, l_assoc)=NullableSharedOperand(p, 0, 0) [(l_pr ==
                     // UNDEFINED_PRECEDENCE) || ((1 >= p) && ((l_pr == 0) || (l_pr >= 1)))] WS "+" WS (r_pr,
@@ -4520,11 +4391,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     // 0 : 1) [((l_pr == UNDEFINED_PRECEDENCE) || (r_pr == UNDEFINED_PRECEDENCE)) || (a != 1)]
                     // return ((r_pr == UNDEFINED_PRECEDENCE) ? 0 : 1, 1)
                     SlotId(722) => {
-                        if (self.lookup(BINDING_L_LABEL, env.unwrap()) == 31)
-                            || (((2) >> (self.lookup(BINDING_L_LABEL, env.unwrap()))) & (1) == 0)
-                        {
-                            next = Some(SlotId(723));
-                        }
+                        next = Some(SlotId(723));
                     }
                     // OwnLabel(p: i32, a: i32) : (l_pr, l_label)=OwnOperand(p, 0, 0) [(l_label == NO_LABEL) ||
                     // ((2 >> l_label) & 1 == 0)] . [(l_pr == UNDEFINED_PRECEDENCE) || ((1 >= p) && ((l_pr == 0)
@@ -4532,13 +4399,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     // UNDEFINED_PRECEDENCE) ? 0 : 1) [((l_pr == UNDEFINED_PRECEDENCE) || (r_pr ==
                     // UNDEFINED_PRECEDENCE)) || (a != 1)] return ((r_pr == UNDEFINED_PRECEDENCE) ? 0 : 1, 1)
                     SlotId(723) => {
-                        if (self.lookup(BINDING_L_PR, env.unwrap()) == -1)
-                            || ((1 >= self.lookup(BINDING_P, env.unwrap()))
-                                && ((self.lookup(BINDING_L_PR, env.unwrap()) == 0)
-                                    || (self.lookup(BINDING_L_PR, env.unwrap()) >= 1)))
-                        {
-                            next = Some(SlotId(724));
-                        }
+                        next = Some(SlotId(724));
                     }
                     // OwnLabel(p: i32, a: i32) : (l_pr, l_label)=OwnOperand(p, 0, 0) [(l_label == NO_LABEL) ||
                     // ((2 >> l_label) & 1 == 0)] [(l_pr == UNDEFINED_PRECEDENCE) || ((1 >= p) && ((l_pr == 0) ||
@@ -4644,12 +4505,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     // 0 : 1) . [((l_pr == UNDEFINED_PRECEDENCE) || (r_pr == UNDEFINED_PRECEDENCE)) || (a != 1)]
                     // return ((r_pr == UNDEFINED_PRECEDENCE) ? 0 : 1, 1)
                     SlotId(728) => {
-                        if ((self.lookup(BINDING_L_PR, env.unwrap()) == -1)
-                            || (self.lookup(BINDING_R_PR, env.unwrap()) == -1))
-                            || (self.lookup(BINDING_A, env.unwrap()) != 1)
-                        {
-                            next = Some(SlotId(729));
-                        }
+                        next = Some(SlotId(729));
                     }
                     // OwnLabel(p: i32, a: i32) : (l_pr, l_label)=OwnOperand(p, 0, 0) [(l_label == NO_LABEL) ||
                     // ((2 >> l_label) & 1 == 0)] [(l_pr == UNDEFINED_PRECEDENCE) || ((1 >= p) && ((l_pr == 0) ||
@@ -4820,11 +4676,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     // OwnHeadFiltered : (x_pr, x_label)=OwnLabel(0, 0) . [(x_label == NO_LABEL) || ((1 >>
                     // x_label) & 1 == 0)]
                     SlotId(27) => {
-                        if (self.lookup(BINDING_X_LABEL, env.unwrap()) == 31)
-                            || (((1) >> (self.lookup(BINDING_X_LABEL, env.unwrap()))) & (1) == 0)
-                        {
-                            next = Some(SlotId(28));
-                        }
+                        next = Some(SlotId(28));
                     }
                     // OwnHeadFiltered : (x_pr, x_label)=OwnLabel(0, 0) [(x_label == NO_LABEL) || ((1 >> x_label)
                     // & 1 == 0)].
@@ -4919,11 +4771,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     // ExcludeOnlyFiltered : (x_pr, x_label)=ExcludeOnly . [(x_label == NO_LABEL) || ((1 >>
                     // x_label) & 1 == 0)]
                     SlotId(36) => {
-                        if (self.lookup(BINDING_X_LABEL, env.unwrap()) == 31)
-                            || (((1) >> (self.lookup(BINDING_X_LABEL, env.unwrap()))) & (1) == 0)
-                        {
-                            next = Some(SlotId(37));
-                        }
+                        next = Some(SlotId(37));
                     }
                     // ExcludeOnlyFiltered : (x_pr, x_label)=ExcludeOnly [(x_label == NO_LABEL) || ((1 >>
                     // x_label) & 1 == 0)].
@@ -4992,11 +4840,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     // Absent(p: i32) : [2 >= p] l_pr=Absent(p) . [(l_pr == 0) || (l_pr >= 2)] WS "*" WS
                     // r_pr=Absent(2) return (r_pr == 0) ? 2 : min(r_pr, 2)
                     SlotId(746) => {
-                        if (self.lookup(BINDING_L_PR, env.unwrap()) == 0)
-                            || (self.lookup(BINDING_L_PR, env.unwrap()) >= 2)
-                        {
-                            next = Some(SlotId(747));
-                        }
+                        next = Some(SlotId(747));
                     }
                     // Absent(p: i32) : [2 >= p] l_pr=Absent(p) [(l_pr == 0) || (l_pr >= 2)] . WS "*" WS
                     // r_pr=Absent(2) return (r_pr == 0) ? 2 : min(r_pr, 2)
@@ -5104,13 +4948,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     // && ((l_pr == 0) || (l_pr >= 1)))] WS "+" WS r_pr=AbsentOperand(1, 1) return (r_pr ==
                     // UNDEFINED_PRECEDENCE) ? 0 : 1
                     SlotId(754) => {
-                        if (self.lookup(BINDING_L_PR, env.unwrap()) == -1)
-                            || ((1 >= self.lookup(BINDING_P, env.unwrap()))
-                                && ((self.lookup(BINDING_L_PR, env.unwrap()) == 0)
-                                    || (self.lookup(BINDING_L_PR, env.unwrap()) >= 1)))
-                        {
-                            next = Some(SlotId(755));
-                        }
+                        next = Some(SlotId(755));
                     }
                     // Absent(p: i32) : l_pr=AbsentOperand(p, 0) [(l_pr == UNDEFINED_PRECEDENCE) || ((1 >= p) &&
                     // ((l_pr == 0) || (l_pr >= 1)))] . WS "+" WS r_pr=AbsentOperand(1, 1) return (r_pr ==
@@ -5323,11 +5161,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     // ClosedPrefix(p: i32) : [2 >= p] l_pr=ClosedPrefix(p) . [(l_pr == 0) || (l_pr >= 2)] WS "+"
                     // WS r_pr=ClosedPrefix(2) return (r_pr == 0) ? 2 : min(r_pr, 2)
                     SlotId(772) => {
-                        if (self.lookup(BINDING_L_PR, env.unwrap()) == 0)
-                            || (self.lookup(BINDING_L_PR, env.unwrap()) >= 2)
-                        {
-                            next = Some(SlotId(773));
-                        }
+                        next = Some(SlotId(773));
                     }
                     // ClosedPrefix(p: i32) : [2 >= p] l_pr=ClosedPrefix(p) [(l_pr == 0) || (l_pr >= 2)] . WS "+"
                     // WS r_pr=ClosedPrefix(2) return (r_pr == 0) ? 2 : min(r_pr, 2)
@@ -5643,13 +5477,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     // ClosedPostfix(p: i32) : l_pr=ClosedPostfixBody(p) . [(l_pr == UNDEFINED_PRECEDENCE) || ((1
                     // >= p) && ((l_pr == 0) || (l_pr >= 1)))] WS "!" return 0
                     SlotId(799) => {
-                        if (self.lookup(BINDING_L_PR, env.unwrap()) == -1)
-                            || ((1 >= self.lookup(BINDING_P, env.unwrap()))
-                                && ((self.lookup(BINDING_L_PR, env.unwrap()) == 0)
-                                    || (self.lookup(BINDING_L_PR, env.unwrap()) >= 1)))
-                        {
-                            next = Some(SlotId(800));
-                        }
+                        next = Some(SlotId(800));
                     }
                     // ClosedPostfix(p: i32) : l_pr=ClosedPostfixBody(p) [(l_pr == UNDEFINED_PRECEDENCE) || ((1
                     // >= p) && ((l_pr == 0) || (l_pr >= 1)))] . WS "!" return 0
@@ -5825,11 +5653,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     // HeadChoice(p: i32) : [1 >= p] l_pr=HeadOperand(p, 0) . [(l_pr == 0) || (l_pr >= 1)] WS "+"
                     // WS HeadOperand(2, 1) return 1
                     SlotId(815) => {
-                        if (self.lookup(BINDING_L_PR, env.unwrap()) == 0)
-                            || (self.lookup(BINDING_L_PR, env.unwrap()) >= 1)
-                        {
-                            next = Some(SlotId(816));
-                        }
+                        next = Some(SlotId(816));
                     }
                     // HeadChoice(p: i32) : [1 >= p] l_pr=HeadOperand(p, 0) [(l_pr == 0) || (l_pr >= 1)] . WS "+"
                     // WS HeadOperand(2, 1) return 1
@@ -6019,11 +5843,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     // Inner(p: i32) : [1 >= p] l_pr=Inner(p) . [(l_pr == 0) || (l_pr >= 1)] WS "*" WS Inner(2)
                     // return 1
                     SlotId(833) => {
-                        if (self.lookup(BINDING_L_PR, env.unwrap()) == 0)
-                            || (self.lookup(BINDING_L_PR, env.unwrap()) >= 1)
-                        {
-                            next = Some(SlotId(834));
-                        }
+                        next = Some(SlotId(834));
                     }
                     // Inner(p: i32) : [1 >= p] l_pr=Inner(p) [(l_pr == 0) || (l_pr >= 1)] . WS "*" WS Inner(2)
                     // return 1
@@ -6139,11 +5959,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     // UnaryMixedLeft(p: i32, a: i32) : [1 >= p] [a != 1] l_pr=UnaryMixedLeft(p, 0) . [(l_pr ==
                     // 0) || (l_pr >= 1)] WS "+" WS r_pr=UnaryMixedLeft(1, 1) return 1
                     SlotId(843) => {
-                        if (self.lookup(BINDING_L_PR, env.unwrap()) == 0)
-                            || (self.lookup(BINDING_L_PR, env.unwrap()) >= 1)
-                        {
-                            next = Some(SlotId(844));
-                        }
+                        next = Some(SlotId(844));
                     }
                     // UnaryMixedLeft(p: i32, a: i32) : [1 >= p] [a != 1] l_pr=UnaryMixedLeft(p, 0) [(l_pr == 0)
                     // || (l_pr >= 1)] . WS "+" WS r_pr=UnaryMixedLeft(1, 1) return 1
@@ -6306,11 +6122,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     // UnaryMixedLeft(p: i32, a: i32) : [1 >= p] l_pr=UnaryMixedLeft(p, 0) . [(l_pr == 0) ||
                     // (l_pr >= 1)] WS "!" return 0
                     SlotId(857) => {
-                        if (self.lookup(BINDING_L_PR, env.unwrap()) == 0)
-                            || (self.lookup(BINDING_L_PR, env.unwrap()) >= 1)
-                        {
-                            next = Some(SlotId(858));
-                        }
+                        next = Some(SlotId(858));
                     }
                     // UnaryMixedLeft(p: i32, a: i32) : [1 >= p] l_pr=UnaryMixedLeft(p, 0) [(l_pr == 0) || (l_pr
                     // >= 1)] . WS "!" return 0
@@ -6429,19 +6241,13 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     // == 0) || (l_pr >= 1)] [l_assoc != 1] WS "+" WS (r_pr, r_assoc)=UnaryMixedRight(1, 0)
                     // return (1, 1)
                     SlotId(867) => {
-                        if (self.lookup(BINDING_L_PR, env.unwrap()) == 0)
-                            || (self.lookup(BINDING_L_PR, env.unwrap()) >= 1)
-                        {
-                            next = Some(SlotId(868));
-                        }
+                        next = Some(SlotId(868));
                     }
                     // UnaryMixedRight(p: i32, a: i32) : [1 >= p] (l_pr, l_assoc)=UnaryMixedRight(p, 0) [(l_pr ==
                     // 0) || (l_pr >= 1)] . [l_assoc != 1] WS "+" WS (r_pr, r_assoc)=UnaryMixedRight(1, 0) return
                     // (1, 1)
                     SlotId(868) => {
-                        if self.lookup(BINDING_L_ASSOC, env.unwrap()) != 1 {
-                            next = Some(SlotId(869));
-                        }
+                        next = Some(SlotId(869));
                     }
                     // UnaryMixedRight(p: i32, a: i32) : [1 >= p] (l_pr, l_assoc)=UnaryMixedRight(p, 0) [(l_pr ==
                     // 0) || (l_pr >= 1)] [l_assoc != 1] . WS "+" WS (r_pr, r_assoc)=UnaryMixedRight(1, 0) return
@@ -6613,11 +6419,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     // UnaryMixedRight(p: i32, a: i32) : [1 >= p] (l_pr, l_assoc)=UnaryMixedRight(p, 0) . [(l_pr
                     // == 0) || (l_pr >= 1)] WS "!" return (0, 0)
                     SlotId(882) => {
-                        if (self.lookup(BINDING_L_PR, env.unwrap()) == 0)
-                            || (self.lookup(BINDING_L_PR, env.unwrap()) >= 1)
-                        {
-                            next = Some(SlotId(883));
-                        }
+                        next = Some(SlotId(883));
                     }
                     // UnaryMixedRight(p: i32, a: i32) : [1 >= p] (l_pr, l_assoc)=UnaryMixedRight(p, 0) [(l_pr ==
                     // 0) || (l_pr >= 1)] . WS "!" return (0, 0)
@@ -6744,19 +6546,13 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     // [(l_pr == 0) || (l_pr >= 1)] [l_assoc != 1] WS "+" WS (r_pr, r_assoc)=UnaryMixedNone(1, 1)
                     // return (1, 1)
                     SlotId(893) => {
-                        if (self.lookup(BINDING_L_PR, env.unwrap()) == 0)
-                            || (self.lookup(BINDING_L_PR, env.unwrap()) >= 1)
-                        {
-                            next = Some(SlotId(894));
-                        }
+                        next = Some(SlotId(894));
                     }
                     // UnaryMixedNone(p: i32, a: i32) : [1 >= p] [a != 1] (l_pr, l_assoc)=UnaryMixedNone(p, 0)
                     // [(l_pr == 0) || (l_pr >= 1)] . [l_assoc != 1] WS "+" WS (r_pr, r_assoc)=UnaryMixedNone(1,
                     // 1) return (1, 1)
                     SlotId(894) => {
-                        if self.lookup(BINDING_L_ASSOC, env.unwrap()) != 1 {
-                            next = Some(SlotId(895));
-                        }
+                        next = Some(SlotId(895));
                     }
                     // UnaryMixedNone(p: i32, a: i32) : [1 >= p] [a != 1] (l_pr, l_assoc)=UnaryMixedNone(p, 0)
                     // [(l_pr == 0) || (l_pr >= 1)] [l_assoc != 1] . WS "+" WS (r_pr, r_assoc)=UnaryMixedNone(1,
@@ -6928,11 +6724,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     // UnaryMixedNone(p: i32, a: i32) : [1 >= p] (l_pr, l_assoc)=UnaryMixedNone(p, 0) . [(l_pr ==
                     // 0) || (l_pr >= 1)] WS "!" return (0, 0)
                     SlotId(908) => {
-                        if (self.lookup(BINDING_L_PR, env.unwrap()) == 0)
-                            || (self.lookup(BINDING_L_PR, env.unwrap()) >= 1)
-                        {
-                            next = Some(SlotId(909));
-                        }
+                        next = Some(SlotId(909));
                     }
                     // UnaryMixedNone(p: i32, a: i32) : [1 >= p] (l_pr, l_assoc)=UnaryMixedNone(p, 0) [(l_pr ==
                     // 0) || (l_pr >= 1)] . WS "!" return (0, 0)
@@ -7050,11 +6842,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     // return ((r_pr == UNDEFINED_PRECEDENCE) ? 0 : 1, ((l_pr == UNDEFINED_PRECEDENCE) || (r_pr
                     // == UNDEFINED_PRECEDENCE)) ? 0 : 1, 0)
                     SlotId(917) => {
-                        if (self.lookup(BINDING_L_LABEL, env.unwrap()) == 31)
-                            || (((2) >> (self.lookup(BINDING_L_LABEL, env.unwrap()))) & (1) == 0)
-                        {
-                            next = Some(SlotId(918));
-                        }
+                        next = Some(SlotId(918));
                     }
                     // Dynamic(p: i32, a: i32) : (l_pr, l_assoc, l_label)=DynamicOperand(p, 0, 0) [(l_label ==
                     // NO_LABEL) || ((2 >> l_label) & 1 == 0)] . [(l_pr == UNDEFINED_PRECEDENCE) || ((1 >= p) &&
@@ -7063,13 +6851,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     // return ((r_pr == UNDEFINED_PRECEDENCE) ? 0 : 1, ((l_pr == UNDEFINED_PRECEDENCE) || (r_pr
                     // == UNDEFINED_PRECEDENCE)) ? 0 : 1, 0)
                     SlotId(918) => {
-                        if (self.lookup(BINDING_L_PR, env.unwrap()) == -1)
-                            || ((1 >= self.lookup(BINDING_P, env.unwrap()))
-                                && ((self.lookup(BINDING_L_PR, env.unwrap()) == 0)
-                                    || (self.lookup(BINDING_L_PR, env.unwrap()) >= 1)))
-                        {
-                            next = Some(SlotId(919));
-                        }
+                        next = Some(SlotId(919));
                     }
                     // Dynamic(p: i32, a: i32) : (l_pr, l_assoc, l_label)=DynamicOperand(p, 0, 0) [(l_label ==
                     // NO_LABEL) || ((2 >> l_label) & 1 == 0)] [(l_pr == UNDEFINED_PRECEDENCE) || ((1 >= p) &&
@@ -7171,12 +6953,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     // return ((r_pr == UNDEFINED_PRECEDENCE) ? 0 : 1, ((l_pr == UNDEFINED_PRECEDENCE) || (r_pr
                     // == UNDEFINED_PRECEDENCE)) ? 0 : 1, 0)
                     SlotId(923) => {
-                        if ((self.lookup(BINDING_L_PR, env.unwrap()) == -1)
-                            || (self.lookup(BINDING_R_PR, env.unwrap()) == -1))
-                            || (self.lookup(BINDING_L_ASSOC, env.unwrap()) != 1)
-                        {
-                            next = Some(SlotId(924));
-                        }
+                        next = Some(SlotId(924));
                     }
                     // Dynamic(p: i32, a: i32) : (l_pr, l_assoc, l_label)=DynamicOperand(p, 0, 0) [(l_label ==
                     // NO_LABEL) || ((2 >> l_label) & 1 == 0)] [(l_pr == UNDEFINED_PRECEDENCE) || ((1 >= p) &&
@@ -7301,13 +7078,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     // UNDEFINED_PRECEDENCE) || ((1 >= p) && ((l_pr == 0) || (l_pr >= 1)))] WS "!" return (0, 0,
                     // 2)
                     SlotId(932) => {
-                        if (self.lookup(BINDING_L_PR, env.unwrap()) == -1)
-                            || ((1 >= self.lookup(BINDING_P, env.unwrap()))
-                                && ((self.lookup(BINDING_L_PR, env.unwrap()) == 0)
-                                    || (self.lookup(BINDING_L_PR, env.unwrap()) >= 1)))
-                        {
-                            next = Some(SlotId(933));
-                        }
+                        next = Some(SlotId(933));
                     }
                     // Dynamic(p: i32, a: i32) : (l_pr, l_assoc, l_label)=DynamicOperand(p, 0, 0) [(l_pr ==
                     // UNDEFINED_PRECEDENCE) || ((1 >= p) && ((l_pr == 0) || (l_pr >= 1)))] . WS "!" return (0,
@@ -7480,11 +7251,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     // DynamicFiltered : (x_pr, x_assoc, x_label)=DynamicOperand(0, 0, 0) . [(x_label ==
                     // NO_LABEL) || ((2 >> x_label) & 1 == 0)]
                     SlotId(39) => {
-                        if (self.lookup(BINDING_X_LABEL, env.unwrap()) == 31)
-                            || (((2) >> (self.lookup(BINDING_X_LABEL, env.unwrap()))) & (1) == 0)
-                        {
-                            next = Some(SlotId(40));
-                        }
+                        next = Some(SlotId(40));
                     }
                     // DynamicFiltered : (x_pr, x_assoc, x_label)=DynamicOperand(0, 0, 0) [(x_label == NO_LABEL)
                     // || ((2 >> x_label) & 1 == 0)].
@@ -7508,11 +7275,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     // DynamicHeadFiltered : (x_pr, x_assoc, x_label)=Dynamic(0, 0) . [(x_label == NO_LABEL) ||
                     // ((8 >> x_label) & 1 == 0)]
                     SlotId(42) => {
-                        if (self.lookup(BINDING_X_LABEL, env.unwrap()) == 31)
-                            || (((8) >> (self.lookup(BINDING_X_LABEL, env.unwrap()))) & (1) == 0)
-                        {
-                            next = Some(SlotId(43));
-                        }
+                        next = Some(SlotId(43));
                     }
                     // DynamicHeadFiltered : (x_pr, x_assoc, x_label)=Dynamic(0, 0) [(x_label == NO_LABEL) || ((8
                     // >> x_label) & 1 == 0)].
@@ -7550,13 +7313,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     // UNDEFINED_PRECEDENCE) || (r_pr == UNDEFINED_PRECEDENCE)) || (a != 2)] return ((r_pr ==
                     // UNDEFINED_PRECEDENCE) ? 0 : ((r_pr == 0) ? 2 : min(r_pr, 2)), 0)
                     SlotId(947) => {
-                        if (self.lookup(BINDING_L_PR, env.unwrap()) == -1)
-                            || ((2 >= self.lookup(BINDING_P, env.unwrap()))
-                                && ((self.lookup(BINDING_L_PR, env.unwrap()) == 0)
-                                    || (self.lookup(BINDING_L_PR, env.unwrap()) >= 2)))
-                        {
-                            next = Some(SlotId(948));
-                        }
+                        next = Some(SlotId(948));
                     }
                     // DynamicMulti(p: i32, a: i32) : (l_pr, l_assoc)=DynamicMultiOperand(p, 0, 0) [(l_pr ==
                     // UNDEFINED_PRECEDENCE) || ((2 >= p) && ((l_pr == 0) || (l_pr >= 2)))] . WS "+" WS (r_pr,
@@ -7662,12 +7419,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     // UNDEFINED_PRECEDENCE) || (r_pr == UNDEFINED_PRECEDENCE)) || (a != 2)] return ((r_pr ==
                     // UNDEFINED_PRECEDENCE) ? 0 : ((r_pr == 0) ? 2 : min(r_pr, 2)), 0)
                     SlotId(952) => {
-                        if ((self.lookup(BINDING_L_PR, env.unwrap()) == -1)
-                            || (self.lookup(BINDING_R_PR, env.unwrap()) == -1))
-                            || (self.lookup(BINDING_A, env.unwrap()) != 2)
-                        {
-                            next = Some(SlotId(953));
-                        }
+                        next = Some(SlotId(953));
                     }
                     // DynamicMulti(p: i32, a: i32) : (l_pr, l_assoc)=DynamicMultiOperand(p, 0, 0) [(l_pr ==
                     // UNDEFINED_PRECEDENCE) || ((2 >= p) && ((l_pr == 0) || (l_pr >= 2)))] WS "+" WS (r_pr,
@@ -7796,13 +7548,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     // DynamicMulti(p: i32, a: i32) : (l_pr, l_assoc)=DynamicMultiOperand(p, 0, 0) . [(l_pr ==
                     // UNDEFINED_PRECEDENCE) || ((2 >= p) && ((l_pr == 0) || (l_pr >= 2)))] WS "!" return (0, 0)
                     SlotId(961) => {
-                        if (self.lookup(BINDING_L_PR, env.unwrap()) == -1)
-                            || ((2 >= self.lookup(BINDING_P, env.unwrap()))
-                                && ((self.lookup(BINDING_L_PR, env.unwrap()) == 0)
-                                    || (self.lookup(BINDING_L_PR, env.unwrap()) >= 2)))
-                        {
-                            next = Some(SlotId(962));
-                        }
+                        next = Some(SlotId(962));
                     }
                     // DynamicMulti(p: i32, a: i32) : (l_pr, l_assoc)=DynamicMultiOperand(p, 0, 0) [(l_pr ==
                     // UNDEFINED_PRECEDENCE) || ((2 >= p) && ((l_pr == 0) || (l_pr >= 2)))] . WS "!" return (0,
@@ -7891,13 +7637,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     // UNDEFINED_PRECEDENCE)) || (l_assoc != 1)] return ((r_pr == UNDEFINED_PRECEDENCE) ? 0 : 1,
                     // ((l_pr == UNDEFINED_PRECEDENCE) || (r_pr == UNDEFINED_PRECEDENCE)) ? 0 : 1)
                     SlotId(967) => {
-                        if (self.lookup(BINDING_L_PR, env.unwrap()) == -1)
-                            || ((1 >= self.lookup(BINDING_P, env.unwrap()))
-                                && ((self.lookup(BINDING_L_PR, env.unwrap()) == 0)
-                                    || (self.lookup(BINDING_L_PR, env.unwrap()) >= 1)))
-                        {
-                            next = Some(SlotId(968));
-                        }
+                        next = Some(SlotId(968));
                     }
                     // DynamicMulti(p: i32, a: i32) : (l_pr, l_assoc)=DynamicMultiOperand(p, 0, 0) [(l_pr ==
                     // UNDEFINED_PRECEDENCE) || ((1 >= p) && ((l_pr == 0) || (l_pr >= 1)))] . WS ";" WS (r_pr,
@@ -7999,12 +7739,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     // UNDEFINED_PRECEDENCE)) || (l_assoc != 1)] return ((r_pr == UNDEFINED_PRECEDENCE) ? 0 : 1,
                     // ((l_pr == UNDEFINED_PRECEDENCE) || (r_pr == UNDEFINED_PRECEDENCE)) ? 0 : 1)
                     SlotId(972) => {
-                        if ((self.lookup(BINDING_L_PR, env.unwrap()) == -1)
-                            || (self.lookup(BINDING_R_PR, env.unwrap()) == -1))
-                            || (self.lookup(BINDING_L_ASSOC, env.unwrap()) != 1)
-                        {
-                            next = Some(SlotId(973));
-                        }
+                        next = Some(SlotId(973));
                     }
                     // DynamicMulti(p: i32, a: i32) : (l_pr, l_assoc)=DynamicMultiOperand(p, 0, 0) [(l_pr ==
                     // UNDEFINED_PRECEDENCE) || ((1 >= p) && ((l_pr == 0) || (l_pr >= 1)))] WS ";" WS (r_pr,
@@ -8254,11 +7989,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     // NullableBoundaryPrefix(p: i32) : [1 >= p] l_pr=NullableBoundaryPrefix(p) . [(l_pr == 0) ||
                     // (l_pr >= 1)] WS "+" WS NullableBoundaryPrefix(2) return 1
                     SlotId(994) => {
-                        if (self.lookup(BINDING_L_PR, env.unwrap()) == 0)
-                            || (self.lookup(BINDING_L_PR, env.unwrap()) >= 1)
-                        {
-                            next = Some(SlotId(995));
-                        }
+                        next = Some(SlotId(995));
                     }
                     // NullableBoundaryPrefix(p: i32) : [1 >= p] l_pr=NullableBoundaryPrefix(p) [(l_pr == 0) ||
                     // (l_pr >= 1)] . WS "+" WS NullableBoundaryPrefix(2) return 1
@@ -8565,11 +8296,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     // NullableBoundaryPostfix(p: i32) : [1 >= p] l_pr=NullableBoundaryPostfix(p) . [(l_pr == 0)
                     // || (l_pr >= 2)] WS "+" WS NullableBoundaryPostfix(1) return 1
                     SlotId(1011) => {
-                        if (self.lookup(BINDING_L_PR, env.unwrap()) == 0)
-                            || (self.lookup(BINDING_L_PR, env.unwrap()) >= 2)
-                        {
-                            next = Some(SlotId(1012));
-                        }
+                        next = Some(SlotId(1012));
                     }
                     // NullableBoundaryPostfix(p: i32) : [1 >= p] l_pr=NullableBoundaryPostfix(p) [(l_pr == 0) ||
                     // (l_pr >= 2)] . WS "+" WS NullableBoundaryPostfix(1) return 1
@@ -8776,11 +8503,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     // NullableBoundaryBinary(p: i32) : [2 >= p] l_pr=NullableBoundaryBinary(p) . [(l_pr == 0) ||
                     // (l_pr >= 2)] WS "*" WS NullableBoundaryOperand return 0
                     SlotId(1023) => {
-                        if (self.lookup(BINDING_L_PR, env.unwrap()) == 0)
-                            || (self.lookup(BINDING_L_PR, env.unwrap()) >= 2)
-                        {
-                            next = Some(SlotId(1024));
-                        }
+                        next = Some(SlotId(1024));
                     }
                     // NullableBoundaryBinary(p: i32) : [2 >= p] l_pr=NullableBoundaryBinary(p) [(l_pr == 0) ||
                     // (l_pr >= 2)] . WS "*" WS NullableBoundaryOperand return 0
@@ -8904,11 +8627,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     // NullableBoundaryBinary(p: i32) : [1 >= p] l_pr=NullableBoundaryBinary(p) . [(l_pr == 0) ||
                     // (l_pr >= 1)] WS "+" WS NullableBoundaryBinary(2) return 1
                     SlotId(1032) => {
-                        if (self.lookup(BINDING_L_PR, env.unwrap()) == 0)
-                            || (self.lookup(BINDING_L_PR, env.unwrap()) >= 1)
-                        {
-                            next = Some(SlotId(1033));
-                        }
+                        next = Some(SlotId(1033));
                     }
                     // NullableBoundaryBinary(p: i32) : [1 >= p] l_pr=NullableBoundaryBinary(p) [(l_pr == 0) ||
                     // (l_pr >= 1)] . WS "+" WS NullableBoundaryBinary(2) return 1
@@ -9113,13 +8832,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     // r_pr=ClosedLeftAssoc(1, (l_pr == UNDEFINED_PRECEDENCE) ? 0 : 1) [(l_pr ==
                     // UNDEFINED_PRECEDENCE) || (a != 1)] return 1
                     SlotId(1043) => {
-                        if (self.lookup(BINDING_L_PR, env.unwrap()) == -1)
-                            || ((1 >= self.lookup(BINDING_P, env.unwrap()))
-                                && ((self.lookup(BINDING_L_PR, env.unwrap()) == 0)
-                                    || (self.lookup(BINDING_L_PR, env.unwrap()) >= 1)))
-                        {
-                            next = Some(SlotId(1044));
-                        }
+                        next = Some(SlotId(1044));
                     }
                     // ClosedLeftAssoc(p: i32, a: i32) : l_pr=ClosedLeftOperand(p, 0) [(l_pr ==
                     // UNDEFINED_PRECEDENCE) || ((1 >= p) && ((l_pr == 0) || (l_pr >= 1)))] . WS "+" WS
@@ -9225,11 +8938,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     // r_pr=ClosedLeftAssoc(1, (l_pr == UNDEFINED_PRECEDENCE) ? 0 : 1) . [(l_pr ==
                     // UNDEFINED_PRECEDENCE) || (a != 1)] return 1
                     SlotId(1048) => {
-                        if (self.lookup(BINDING_L_PR, env.unwrap()) == -1)
-                            || (self.lookup(BINDING_A, env.unwrap()) != 1)
-                        {
-                            next = Some(SlotId(1049));
-                        }
+                        next = Some(SlotId(1049));
                     }
                     // ClosedLeftAssoc(p: i32, a: i32) : l_pr=ClosedLeftOperand(p, 0) [(l_pr ==
                     // UNDEFINED_PRECEDENCE) || ((1 >= p) && ((l_pr == 0) || (l_pr >= 1)))] WS "+" WS
@@ -9376,11 +9085,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     // UNDEFINED_PRECEDENCE) || (l_assoc != 1)] return ((r_pr == UNDEFINED_PRECEDENCE) ? 0 : 1,
                     // (r_pr == UNDEFINED_PRECEDENCE) ? 0 : 1)
                     SlotId(1062) => {
-                        if (self.lookup(BINDING_L_PR, env.unwrap()) == 0)
-                            || (self.lookup(BINDING_L_PR, env.unwrap()) >= 1)
-                        {
-                            next = Some(SlotId(1063));
-                        }
+                        next = Some(SlotId(1063));
                     }
                     // ClosedRightAssoc(p: i32, a: i32) : [1 >= p] (l_pr, l_assoc)=ClosedRightAssoc(p, 0) [(l_pr
                     // == 0) || (l_pr >= 1)] . WS "+" WS (r_pr, r_assoc)=ClosedRightOperand(1, 0) [(r_pr ==
@@ -9482,11 +9187,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     // UNDEFINED_PRECEDENCE) || (l_assoc != 1)] return ((r_pr == UNDEFINED_PRECEDENCE) ? 0 : 1,
                     // (r_pr == UNDEFINED_PRECEDENCE) ? 0 : 1)
                     SlotId(1067) => {
-                        if (self.lookup(BINDING_R_PR, env.unwrap()) == -1)
-                            || (self.lookup(BINDING_L_ASSOC, env.unwrap()) != 1)
-                        {
-                            next = Some(SlotId(1068));
-                        }
+                        next = Some(SlotId(1068));
                     }
                     // ClosedRightAssoc(p: i32, a: i32) : [1 >= p] (l_pr, l_assoc)=ClosedRightAssoc(p, 0) [(l_pr
                     // == 0) || (l_pr >= 1)] WS "+" WS (r_pr, r_assoc)=ClosedRightOperand(1, 0) [(r_pr ==
@@ -9640,13 +9341,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     // UNDEFINED_PRECEDENCE) || (r_pr == UNDEFINED_PRECEDENCE)) || (a != 1)] return ((r_pr ==
                     // UNDEFINED_PRECEDENCE) ? 0 : 1, 1)
                     SlotId(1080) => {
-                        if (self.lookup(BINDING_L_PR, env.unwrap()) == -1)
-                            || ((1 >= self.lookup(BINDING_P, env.unwrap()))
-                                && ((self.lookup(BINDING_L_PR, env.unwrap()) == 0)
-                                    || (self.lookup(BINDING_L_PR, env.unwrap()) >= 1)))
-                        {
-                            next = Some(SlotId(1081));
-                        }
+                        next = Some(SlotId(1081));
                     }
                     // IndirectExclude(p: i32, a: i32) : (l_pr, l_label)=IndirectExcludeOperand(p, 0, 0) [(l_pr
                     // == UNDEFINED_PRECEDENCE) || ((1 >= p) && ((l_pr == 0) || (l_pr >= 1)))] . WS "+" WS (r_pr,
@@ -9761,12 +9456,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     // UNDEFINED_PRECEDENCE) || (r_pr == UNDEFINED_PRECEDENCE)) || (a != 1)] return ((r_pr ==
                     // UNDEFINED_PRECEDENCE) ? 0 : 1, 1)
                     SlotId(1085) => {
-                        if ((self.lookup(BINDING_L_PR, env.unwrap()) == -1)
-                            || (self.lookup(BINDING_R_PR, env.unwrap()) == -1))
-                            || (self.lookup(BINDING_A, env.unwrap()) != 1)
-                        {
-                            next = Some(SlotId(1086));
-                        }
+                        next = Some(SlotId(1086));
                     }
                     // IndirectExclude(p: i32, a: i32) : (l_pr, l_label)=IndirectExcludeOperand(p, 0, 0) [(l_pr
                     // == UNDEFINED_PRECEDENCE) || ((1 >= p) && ((l_pr == 0) || (l_pr >= 1)))] WS "+" WS (r_pr,
@@ -9814,11 +9504,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     // IndirectExcludeOperand(p: i32, end: i32, a: i32) : (v_pr, v_label)=IndirectExclude(p, a) .
                     // [(v_label == NO_LABEL) || ((1 >> v_label) & 1 == 0)] return (v_pr, 0)
                     SlotId(1089) => {
-                        if (self.lookup(BINDING_V_LABEL, env.unwrap()) == 31)
-                            || (((1) >> (self.lookup(BINDING_V_LABEL, env.unwrap()))) & (1) == 0)
-                        {
-                            next = Some(SlotId(1090));
-                        }
+                        next = Some(SlotId(1090));
                     }
                     // IndirectExcludeOperand(p: i32, end: i32, a: i32) : (v_pr, v_label)=IndirectExclude(p, a)
                     // [(v_label == NO_LABEL) || ((1 >> v_label) & 1 == 0)] . return (v_pr, 0)
@@ -9888,11 +9574,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     // IndirectExcludeFiltered : (x_pr, x_label)=IndirectExcludeOperand(0, 0, 0) . [(x_label ==
                     // NO_LABEL) || ((2 >> x_label) & 1 == 0)]
                     SlotId(60) => {
-                        if (self.lookup(BINDING_X_LABEL, env.unwrap()) == 31)
-                            || (((2) >> (self.lookup(BINDING_X_LABEL, env.unwrap()))) & (1) == 0)
-                        {
-                            next = Some(SlotId(61));
-                        }
+                        next = Some(SlotId(61));
                     }
                     // IndirectExcludeFiltered : (x_pr, x_label)=IndirectExcludeOperand(0, 0, 0) [(x_label ==
                     // NO_LABEL) || ((2 >> x_label) & 1 == 0)].
@@ -9962,13 +9644,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     // UNDEFINED_PRECEDENCE) || (r_pr == UNDEFINED_PRECEDENCE)) || (a != 2)] return (r_pr ==
                     // UNDEFINED_PRECEDENCE) ? 0 : ((r_pr == 0) ? 2 : min(r_pr, 2))
                     SlotId(1099) => {
-                        if (self.lookup(BINDING_L_PR, env.unwrap()) == -1)
-                            || ((2 >= self.lookup(BINDING_P, env.unwrap()))
-                                && ((self.lookup(BINDING_L_PR, env.unwrap()) == 0)
-                                    || (self.lookup(BINDING_L_PR, env.unwrap()) >= 2)))
-                        {
-                            next = Some(SlotId(1100));
-                        }
+                        next = Some(SlotId(1100));
                     }
                     // OperandLiteral(p: i32, a: i32) : l_pr=OperandLiteralEnd(p, 0, 0) [(l_pr ==
                     // UNDEFINED_PRECEDENCE) || ((2 >= p) && ((l_pr == 0) || (l_pr >= 2)))] . WS "*" WS
@@ -10083,12 +9759,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     // UNDEFINED_PRECEDENCE) || (r_pr == UNDEFINED_PRECEDENCE)) || (a != 2)] return (r_pr ==
                     // UNDEFINED_PRECEDENCE) ? 0 : ((r_pr == 0) ? 2 : min(r_pr, 2))
                     SlotId(1104) => {
-                        if ((self.lookup(BINDING_L_PR, env.unwrap()) == -1)
-                            || (self.lookup(BINDING_R_PR, env.unwrap()) == -1))
-                            || (self.lookup(BINDING_A, env.unwrap()) != 2)
-                        {
-                            next = Some(SlotId(1105));
-                        }
+                        next = Some(SlotId(1105));
                     }
                     // OperandLiteral(p: i32, a: i32) : l_pr=OperandLiteralEnd(p, 0, 0) [(l_pr ==
                     // UNDEFINED_PRECEDENCE) || ((2 >= p) && ((l_pr == 0) || (l_pr >= 2)))] WS "*" WS
@@ -10146,13 +9817,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     // UNDEFINED_PRECEDENCE) || (r_pr == UNDEFINED_PRECEDENCE)) || (a != 1)] return (r_pr ==
                     // UNDEFINED_PRECEDENCE) ? 0 : 1
                     SlotId(1108) => {
-                        if (self.lookup(BINDING_L_PR, env.unwrap()) == -1)
-                            || ((1 >= self.lookup(BINDING_P, env.unwrap()))
-                                && ((self.lookup(BINDING_L_PR, env.unwrap()) == 0)
-                                    || (self.lookup(BINDING_L_PR, env.unwrap()) >= 1)))
-                        {
-                            next = Some(SlotId(1109));
-                        }
+                        next = Some(SlotId(1109));
                     }
                     // OperandLiteral(p: i32, a: i32) : l_pr=OperandLiteralEnd(p, 0, 0) [(l_pr ==
                     // UNDEFINED_PRECEDENCE) || ((1 >= p) && ((l_pr == 0) || (l_pr >= 1)))] . WS "+" WS
@@ -10267,12 +9932,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     // UNDEFINED_PRECEDENCE) || (r_pr == UNDEFINED_PRECEDENCE)) || (a != 1)] return (r_pr ==
                     // UNDEFINED_PRECEDENCE) ? 0 : 1
                     SlotId(1113) => {
-                        if ((self.lookup(BINDING_L_PR, env.unwrap()) == -1)
-                            || (self.lookup(BINDING_R_PR, env.unwrap()) == -1))
-                            || (self.lookup(BINDING_A, env.unwrap()) != 1)
-                        {
-                            next = Some(SlotId(1114));
-                        }
+                        next = Some(SlotId(1114));
                     }
                     // OperandLiteral(p: i32, a: i32) : l_pr=OperandLiteralEnd(p, 0, 0) [(l_pr ==
                     // UNDEFINED_PRECEDENCE) || ((1 >= p) && ((l_pr == 0) || (l_pr >= 1)))] WS "+" WS
@@ -10451,11 +10111,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     // HeadLiteral(p: i32) : [2 >= p] l_pr=HeadLiteralEnd(p, 0) . [(l_pr == 0) || (l_pr >= 2)] WS
                     // "*" WS HeadLiteralEnd(3, 1) return 2
                     SlotId(1130) => {
-                        if (self.lookup(BINDING_L_PR, env.unwrap()) == 0)
-                            || (self.lookup(BINDING_L_PR, env.unwrap()) >= 2)
-                        {
-                            next = Some(SlotId(1131));
-                        }
+                        next = Some(SlotId(1131));
                     }
                     // HeadLiteral(p: i32) : [2 >= p] l_pr=HeadLiteralEnd(p, 0) [(l_pr == 0) || (l_pr >= 2)] . WS
                     // "*" WS HeadLiteralEnd(3, 1) return 2
@@ -10573,11 +10229,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     // HeadLiteral(p: i32) : [1 >= p] l_pr=HeadLiteralEnd(p, 0) . [(l_pr == 0) || (l_pr >= 1)] WS
                     // "+" WS HeadLiteralEnd(2, 1) return 1
                     SlotId(1139) => {
-                        if (self.lookup(BINDING_L_PR, env.unwrap()) == 0)
-                            || (self.lookup(BINDING_L_PR, env.unwrap()) >= 1)
-                        {
-                            next = Some(SlotId(1140));
-                        }
+                        next = Some(SlotId(1140));
                     }
                     // HeadLiteral(p: i32) : [1 >= p] l_pr=HeadLiteralEnd(p, 0) [(l_pr == 0) || (l_pr >= 1)] . WS
                     // "+" WS HeadLiteralEnd(2, 1) return 1
@@ -16053,79 +15705,26 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
         value: i32,
     ) -> Option<EnvId> {
         let bindings: &[(BindingId, i32)] = match return_slot {
-            SlotId(17) => &[
-                (BINDING_X_PR, (value) >> 16),
-                (BINDING_X_LABEL, (value) & 65535),
-            ],
-            SlotId(24) => &[
-                (BINDING_X_PR, (value) >> 18),
-                (BINDING_X_ASSOC, ((value) >> 5) & 8191),
-                (BINDING_X_LABEL, (value) & 31),
-            ],
-            SlotId(27) => &[
-                (BINDING_X_PR, (value) >> 16),
-                (BINDING_X_LABEL, (value) & 65535),
-            ],
-            SlotId(36) => &[
-                (BINDING_X_PR, (value) >> 16),
-                (BINDING_X_LABEL, (value) & 65535),
-            ],
-            SlotId(39) => &[
-                (BINDING_X_PR, (value) >> 18),
-                (BINDING_X_ASSOC, ((value) >> 5) & 8191),
-                (BINDING_X_LABEL, (value) & 31),
-            ],
-            SlotId(42) => &[
-                (BINDING_X_PR, (value) >> 18),
-                (BINDING_X_ASSOC, ((value) >> 5) & 8191),
-                (BINDING_X_LABEL, (value) & 31),
-            ],
-            SlotId(60) => &[
-                (BINDING_X_PR, (value) >> 16),
-                (BINDING_X_LABEL, (value) & 65535),
-            ],
-            SlotId(402) => &[(BINDING_L_PR, value)],
-            SlotId(411) => &[(BINDING_L_PR, value)],
-            SlotId(420) => &[(BINDING_L_PR, value)],
             SlotId(428) => &[(BINDING_V_PR, value)],
-            SlotId(435) => &[(BINDING_L_PR, value)],
             SlotId(443) => &[(BINDING_V_PR, value)],
-            SlotId(450) => &[(BINDING_L_PR, value)],
-            SlotId(459) => &[(BINDING_L_PR, value)],
-            SlotId(471) => &[(BINDING_L_PR, value)],
-            SlotId(486) => &[(BINDING_L_PR, value)],
             SlotId(507) => &[(BINDING_R_PR, value)],
-            SlotId(514) => &[(BINDING_L_PR, value)],
             SlotId(522) => &[(BINDING_V_PR, value)],
-            SlotId(529) => &[(BINDING_L_PR, value)],
             SlotId(537) => &[(BINDING_V_PR, value)],
-            SlotId(543) => &[
-                (BINDING_L_PR, (value) >> 16),
-                (BINDING_L_LABEL, (value) & 65535),
-            ],
-            SlotId(548) => &[
-                (BINDING_R_PR, (value) >> 16),
-                (BINDING_R_LABEL, (value) & 65535),
-            ],
+            SlotId(543) => &[(BINDING_L_PR, (value) >> 16)],
+            SlotId(548) => &[(BINDING_R_PR, (value) >> 16)],
             SlotId(552) => &[(BINDING_V_PR, value)],
             SlotId(572) => &[(BINDING_R_PR, value)],
             SlotId(578) => &[(BINDING_L_PR, value)],
-            SlotId(583) => &[(BINDING_R_PR, value)],
             SlotId(587) => &[(BINDING_L_PR, value)],
             SlotId(593) => &[(BINDING_R_PR, value)],
-            SlotId(600) => &[(BINDING_L_PR, value)],
             SlotId(611) => &[
                 (BINDING_L_PR, (value) >> 16),
                 (BINDING_L_ASSOC, (value) & 65535),
             ],
-            SlotId(616) => &[
-                (BINDING_R_PR, (value) >> 16),
-                (BINDING_R_ASSOC, (value) & 65535),
-            ],
+            SlotId(616) => &[(BINDING_R_PR, (value) >> 16)],
             SlotId(620) => &[
                 (BINDING_V_PR, (value) >> 18),
                 (BINDING_V_ASSOC, ((value) >> 5) & 8191),
-                (BINDING_V_LABEL, (value) & 31),
             ],
             SlotId(623) => &[
                 (BINDING_V_PR, (value) >> 16),
@@ -16134,10 +15733,6 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
             SlotId(636) => &[
                 (BINDING_L_PR, (value) >> 16),
                 (BINDING_L_ASSOC, (value) & 65535),
-            ],
-            SlotId(641) => &[
-                (BINDING_R_PR, (value) >> 16),
-                (BINDING_R_ASSOC, (value) & 65535),
             ],
             SlotId(645) => &[
                 (BINDING_L_PR, (value) >> 16),
@@ -16151,10 +15746,6 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                 (BINDING_L_PR, (value) >> 16),
                 (BINDING_L_ASSOC, (value) & 65535),
             ],
-            SlotId(661) => &[
-                (BINDING_R_PR, (value) >> 16),
-                (BINDING_R_ASSOC, (value) & 65535),
-            ],
             SlotId(665) => &[
                 (BINDING_L_PR, (value) >> 16),
                 (BINDING_L_ASSOC, (value) & 65535),
@@ -16163,7 +15754,6 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                 (BINDING_L_PR, (value) >> 16),
                 (BINDING_L_ASSOC, (value) & 65535),
             ],
-            SlotId(680) => &[(BINDING_L_PR, value)],
             SlotId(685) => &[(BINDING_R_PR, value)],
             SlotId(691) => &[(BINDING_R_PR, value)],
             SlotId(694) => &[(BINDING_R_PR, value)],
@@ -16171,10 +15761,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                 (BINDING_L_PR, (value) >> 16),
                 (BINDING_L_ASSOC, (value) & 65535),
             ],
-            SlotId(705) => &[
-                (BINDING_R_PR, (value) >> 16),
-                (BINDING_R_ASSOC, (value) & 65535),
-            ],
+            SlotId(705) => &[(BINDING_R_PR, (value) >> 16)],
             SlotId(709) => &[
                 (BINDING_L_PR, (value) >> 16),
                 (BINDING_L_ASSOC, (value) & 65535),
@@ -16187,150 +15774,55 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                 (BINDING_V_PR, (value) >> 16),
                 (BINDING_V_ASSOC, (value) & 65535),
             ],
-            SlotId(722) => &[
-                (BINDING_L_PR, (value) >> 16),
-                (BINDING_L_LABEL, (value) & 65535),
-            ],
-            SlotId(728) => &[
-                (BINDING_R_PR, (value) >> 16),
-                (BINDING_R_LABEL, (value) & 65535),
-            ],
-            SlotId(732) => &[
-                (BINDING_V_PR, (value) >> 16),
-                (BINDING_V_LABEL, (value) & 65535),
-            ],
-            SlotId(746) => &[(BINDING_L_PR, value)],
+            SlotId(722) => &[(BINDING_L_PR, (value) >> 16)],
+            SlotId(728) => &[(BINDING_R_PR, (value) >> 16)],
+            SlotId(732) => &[(BINDING_V_PR, (value) >> 16)],
             SlotId(751) => &[(BINDING_R_PR, value)],
-            SlotId(754) => &[(BINDING_L_PR, value)],
             SlotId(759) => &[(BINDING_R_PR, value)],
             SlotId(762) => &[(BINDING_V_PR, value)],
-            SlotId(772) => &[(BINDING_L_PR, value)],
             SlotId(777) => &[(BINDING_R_PR, value)],
             SlotId(782) => &[(BINDING_R_PR, value)],
             SlotId(785) => &[(BINDING_R_PR, value)],
-            SlotId(799) => &[(BINDING_L_PR, value)],
             SlotId(805) => &[(BINDING_L_PR, value)],
-            SlotId(815) => &[(BINDING_L_PR, value)],
             SlotId(826) => &[(BINDING_V_PR, value)],
-            SlotId(833) => &[(BINDING_L_PR, value)],
-            SlotId(843) => &[(BINDING_L_PR, value)],
-            SlotId(848) => &[(BINDING_R_PR, value)],
-            SlotId(857) => &[(BINDING_L_PR, value)],
-            SlotId(867) => &[
-                (BINDING_L_PR, (value) >> 16),
-                (BINDING_L_ASSOC, (value) & 65535),
-            ],
-            SlotId(873) => &[
-                (BINDING_R_PR, (value) >> 16),
-                (BINDING_R_ASSOC, (value) & 65535),
-            ],
-            SlotId(882) => &[
-                (BINDING_L_PR, (value) >> 16),
-                (BINDING_L_ASSOC, (value) & 65535),
-            ],
-            SlotId(893) => &[
-                (BINDING_L_PR, (value) >> 16),
-                (BINDING_L_ASSOC, (value) & 65535),
-            ],
-            SlotId(899) => &[
-                (BINDING_R_PR, (value) >> 16),
-                (BINDING_R_ASSOC, (value) & 65535),
-            ],
-            SlotId(908) => &[
-                (BINDING_L_PR, (value) >> 16),
-                (BINDING_L_ASSOC, (value) & 65535),
-            ],
             SlotId(917) => &[
                 (BINDING_L_PR, (value) >> 18),
                 (BINDING_L_ASSOC, ((value) >> 5) & 8191),
-                (BINDING_L_LABEL, (value) & 31),
             ],
-            SlotId(923) => &[
-                (BINDING_R_PR, (value) >> 18),
-                (BINDING_R_ASSOC, ((value) >> 5) & 8191),
-                (BINDING_R_LABEL, (value) & 31),
-            ],
-            SlotId(929) => &[
-                (BINDING_R_PR, (value) >> 18),
-                (BINDING_R_ASSOC, ((value) >> 5) & 8191),
-                (BINDING_R_LABEL, (value) & 31),
-            ],
-            SlotId(932) => &[
-                (BINDING_L_PR, (value) >> 18),
-                (BINDING_L_ASSOC, ((value) >> 5) & 8191),
-                (BINDING_L_LABEL, (value) & 31),
-            ],
+            SlotId(923) => &[(BINDING_R_PR, (value) >> 18)],
+            SlotId(929) => &[(BINDING_R_PR, (value) >> 18)],
             SlotId(941) => &[
                 (BINDING_V_PR, (value) >> 18),
                 (BINDING_V_ASSOC, ((value) >> 5) & 8191),
-                (BINDING_V_LABEL, (value) & 31),
             ],
-            SlotId(947) => &[
-                (BINDING_L_PR, (value) >> 16),
-                (BINDING_L_ASSOC, (value) & 65535),
-            ],
-            SlotId(952) => &[
-                (BINDING_R_PR, (value) >> 16),
-                (BINDING_R_ASSOC, (value) & 65535),
-            ],
-            SlotId(958) => &[
-                (BINDING_R_PR, (value) >> 16),
-                (BINDING_R_ASSOC, (value) & 65535),
-            ],
-            SlotId(961) => &[
-                (BINDING_L_PR, (value) >> 16),
-                (BINDING_L_ASSOC, (value) & 65535),
-            ],
+            SlotId(947) => &[(BINDING_L_PR, (value) >> 16)],
+            SlotId(952) => &[(BINDING_R_PR, (value) >> 16)],
+            SlotId(958) => &[(BINDING_R_PR, (value) >> 16)],
             SlotId(967) => &[
                 (BINDING_L_PR, (value) >> 16),
                 (BINDING_L_ASSOC, (value) & 65535),
             ],
-            SlotId(972) => &[
-                (BINDING_R_PR, (value) >> 16),
-                (BINDING_R_ASSOC, (value) & 65535),
-            ],
+            SlotId(972) => &[(BINDING_R_PR, (value) >> 16)],
             SlotId(979) => &[
                 (BINDING_V_PR, (value) >> 16),
                 (BINDING_V_ASSOC, (value) & 65535),
             ],
-            SlotId(994) => &[(BINDING_L_PR, value)],
-            SlotId(1011) => &[(BINDING_L_PR, value)],
-            SlotId(1023) => &[(BINDING_L_PR, value)],
-            SlotId(1032) => &[(BINDING_L_PR, value)],
             SlotId(1043) => &[(BINDING_L_PR, value)],
-            SlotId(1048) => &[(BINDING_R_PR, value)],
             SlotId(1052) => &[(BINDING_L_PR, value)],
-            SlotId(1062) => &[
-                (BINDING_L_PR, (value) >> 16),
-                (BINDING_L_ASSOC, (value) & 65535),
-            ],
-            SlotId(1067) => &[
-                (BINDING_R_PR, (value) >> 16),
-                (BINDING_R_ASSOC, (value) & 65535),
-            ],
+            SlotId(1062) => &[(BINDING_L_ASSOC, (value) & 65535)],
+            SlotId(1067) => &[(BINDING_R_PR, (value) >> 16)],
             SlotId(1071) => &[
                 (BINDING_R_PR, (value) >> 16),
                 (BINDING_R_ASSOC, (value) & 65535),
             ],
-            SlotId(1080) => &[
-                (BINDING_L_PR, (value) >> 16),
-                (BINDING_L_LABEL, (value) & 65535),
-            ],
-            SlotId(1085) => &[
-                (BINDING_R_PR, (value) >> 16),
-                (BINDING_R_LABEL, (value) & 65535),
-            ],
-            SlotId(1089) => &[
-                (BINDING_V_PR, (value) >> 16),
-                (BINDING_V_LABEL, (value) & 65535),
-            ],
+            SlotId(1080) => &[(BINDING_L_PR, (value) >> 16)],
+            SlotId(1085) => &[(BINDING_R_PR, (value) >> 16)],
+            SlotId(1089) => &[(BINDING_V_PR, (value) >> 16)],
             SlotId(1099) => &[(BINDING_L_PR, value)],
             SlotId(1104) => &[(BINDING_R_PR, value)],
             SlotId(1108) => &[(BINDING_L_PR, value)],
             SlotId(1113) => &[(BINDING_R_PR, value)],
             SlotId(1117) => &[(BINDING_V_PR, value)],
-            SlotId(1130) => &[(BINDING_L_PR, value)],
-            SlotId(1139) => &[(BINDING_L_PR, value)],
             SlotId(1147) => &[(BINDING_V_PR, value)],
             SlotId(1150) => &[
                 (BINDING_L_PR, (value) >> 16),

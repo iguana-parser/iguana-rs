@@ -9,6 +9,7 @@ use crate::generator::GenConfig;
 use crate::generator::grammar_gen::terminal_set_name;
 use crate::generator::grammar_utils::grammar_ident;
 use crate::generator::grammar_utils::is_ll1_return_slot;
+use crate::generator::grammar_utils::needs_env_binding;
 use crate::generator::grammar_utils::nt_ident;
 use crate::generator::grammar_utils::parse_tree_builder_ident;
 use crate::generator::grammar_utils::parser_ident;
@@ -946,7 +947,7 @@ impl<'a> ParserGen<'a> {
             };
             let condition = Self::gen_expr_with(expr, &mut |name| {
                 // A repeated name in a pattern refers to its last component,
-                // as in `bind_return_value`.
+                // the binding that `Env::get` reads.
                 let index = pattern.and_then(|p| p.names().iter().rposition(|n| n == name));
                 match (pattern, index) {
                     (Some(BindingPattern::Name(_)), Some(_)) => {
@@ -1144,13 +1145,28 @@ impl<'a> ParserGen<'a> {
         let slot_name = slot.name();
         let next_slot = slot.next();
         let next_slot_id = self.slot_ids.get_id(&next_slot);
-        let condition_expr = Self::gen_expr(expr);
-        quote! {
-            #[comment = #slot_name]
-            #slot_id => {
+        let symbols = &slot.alternative().symbols;
+        let first_condition = symbols[..slot.pos()]
+            .iter()
+            .rposition(|symbol| !matches!(symbol, Symbol::Condition(_)))
+            .map_or(0, |pos| pos + 1);
+        let return_slot = Slot::new(slot.head(), slot.alternative(), first_condition);
+        let body = if return_slot.is_return_slot(self.grammar)
+            && !is_ll1_return_slot(self.grammar, self.ll1_nonterminals, &return_slot)
+        {
+            quote! { next = Some(#next_slot_id); }
+        } else {
+            let condition_expr = Self::gen_expr(expr);
+            quote! {
                 if #condition_expr {
                     next = Some(#next_slot_id);
                 }
+            }
+        };
+        quote! {
+            #[comment = #slot_name]
+            #slot_id => {
+                #body
             }
         }
     }
@@ -2782,6 +2798,9 @@ impl<'a> ParserGen<'a> {
 
     /// Binds a returned value at the caller's continuation. Destructuring emits
     /// one ordinary binding per component, all read from the same returned value.
+    /// A name is bound only when a symbol past the return conditions of the
+    /// call reads it. A return slot without such a name keeps the caller's
+    /// environment and does not create a new one.
     fn gen_bind_return_value_method(&self) -> TokenStream {
         let arms: Vec<_> = self
             .slot_ids
@@ -2793,6 +2812,7 @@ impl<'a> ParserGen<'a> {
                     .names()
                     .iter()
                     .enumerate()
+                    .filter(|(_, name)| needs_env_binding(slot.alternative(), slot.pos(), name))
                     .map(|(index, name)| {
                         let name = binding_const_ident(name);
                         let value = match pattern {
@@ -2804,6 +2824,9 @@ impl<'a> ParserGen<'a> {
                         quote! { (#name, #value) }
                     })
                     .collect();
+                if assignments.is_empty() {
+                    return None;
+                }
                 Some(quote! { #return_slot => &[#(#assignments),*], })
             })
             .collect();

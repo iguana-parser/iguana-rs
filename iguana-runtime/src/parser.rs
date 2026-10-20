@@ -1233,8 +1233,9 @@ pub trait Parser<'i, 'arena>: Sized {
     }
 
     /// Applies the bindings at a call's return slot to the saved caller environment.
-    /// Generated parsers override this for calls with bindings. An unbound call
-    /// leaves the environment unchanged.
+    /// Generated parsers override this when a return slot binds a name in the
+    /// environment. A return slot that does not bind a name keeps the caller's
+    /// environment.
     fn bind_return_value(
         &mut self,
         _return_slot: SlotId,

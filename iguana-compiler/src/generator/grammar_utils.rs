@@ -5,10 +5,10 @@ use syn::Ident;
 
 use crate::generator::GenConfig;
 use crate::grammar::{
-    def::Grammar,
+    def::{Alternative, Grammar},
     first_follow::FirstFollowSets,
     slot::Slot,
-    symbols::{Definition, DefinitionId, Nonterminal},
+    symbols::{Definition, DefinitionId, Nonterminal, Symbol},
 };
 
 use crate::utils::{to_pascal_case, to_snake_case};
@@ -124,6 +124,43 @@ pub fn is_ll1_return_slot(
         .is_some_and(|called| ll1_nonterminals.contains(called))
 }
 
+/// Whether the call at `pos` of `alternative` adds its binding of `name` to the
+/// environment. The binding is added when a later symbol reads `name`, in a
+/// condition, a call argument, or a return. The binding is not added when:
+///
+/// - No later symbol reads `name`.
+/// - Only the conditions directly after the call read `name`. They read it from
+///   the returned value.
+/// - A later call shadows the binding: it binds `name` again before any
+///   symbol reads it, as in `x=A x=B [x == 1]`, where the condition reads the
+///   second `x`.
+pub fn needs_env_binding(alternative: &Alternative, pos: usize, name: &str) -> bool {
+    let symbols = &alternative.symbols;
+    let return_conditions = symbols[pos + 1..]
+        .iter()
+        .take_while(|symbol| matches!(symbol, Symbol::Condition(_)))
+        .count();
+    for symbol in &symbols[pos + 1 + return_conditions..] {
+        let reads = match symbol {
+            Symbol::Condition(expr) | Symbol::Return(expr) => expr.reads(name),
+            _ => symbol
+                .call_arguments()
+                .iter()
+                .any(|argument| argument.reads(name)),
+        };
+        if reads {
+            return true;
+        }
+        if symbol
+            .binding_pattern()
+            .is_some_and(|pattern| pattern.names().iter().any(|n| n == name))
+        {
+            return false;
+        }
+    }
+    false
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -155,5 +192,66 @@ mod tests {
             ll1_names(source, true),
             ["B", "C", "Opt_0", "StartB", "StartC"]
         );
+    }
+
+    //   E = "-" E #Neg
+    //     > left E "+" E #Add
+    //     > "~" E #Low
+    //     | "a" #Lit
+    //   S = "(" E !Add ")"
+    //
+    // After the desugarings, the call in S binds `x_pr` and `x_label` for the
+    // label check after it. The left operand of #Add binds `l_pr` and `l_label`
+    // for the precedence check after it. The right operands of #Neg and #Add
+    // bind `r_pr` and `r_label`, and only `r_pr` is read past the conditions
+    // after the call, by the return of the alternative.
+    #[test]
+    fn only_names_read_past_the_conditions_after_a_call_need_a_binding() {
+        let source = "grammar G\nE = \"-\" E #Neg\n  > left E \"+\" E #Add\n  > \"~\" E #Low\n  | \"a\" #Lit\nS = \"(\" E !Add \")\"\n";
+        let grammar: Grammar = parse_grammar(source).unwrap().try_into().unwrap();
+        let mut bound = vec![];
+        for nonterminal in grammar.nonterminals() {
+            for alternative in grammar.alternatives(nonterminal) {
+                for (pos, symbol) in alternative.symbols.iter().enumerate() {
+                    let Some(pattern) = symbol.binding_pattern() else {
+                        continue;
+                    };
+                    for name in pattern.names() {
+                        bound.push((name.clone(), needs_env_binding(alternative, pos, name)));
+                    }
+                }
+            }
+        }
+        bound.sort();
+        let expected = [
+            ("l_label", false),
+            ("l_pr", false),
+            ("r_label", false),
+            ("r_label", false),
+            ("r_pr", true),
+            ("r_pr", true),
+            ("x_label", false),
+            ("x_pr", false),
+        ];
+        assert_eq!(bound, expected.map(|(name, read)| (name.to_string(), read)));
+    }
+
+    //   S = x=A x=B [x == 1]
+    //   T = x=A x=B(x)
+    //
+    // The condition in S reads the second `x`, which shadows the first. The
+    // argument of `B` in T reads the first `x`, because the arguments are
+    // evaluated before `B` binds the name again.
+    #[test]
+    fn a_later_binding_of_the_same_name_shadows_the_first() {
+        use crate::{alternative, bind, call, cond, eq, id};
+        let shadowed = alternative!(
+            bind!("x", id!("A")),
+            bind!("x", id!("B")),
+            cond!(eq!("x", 1))
+        );
+        assert!(!needs_env_binding(&shadowed, 0, "x"));
+        let argument = alternative!(bind!("x", id!("A")), bind!("x", call!("B", "x")));
+        assert!(needs_env_binding(&argument, 0, "x"));
     }
 }
