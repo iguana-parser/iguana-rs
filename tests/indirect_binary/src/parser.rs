@@ -11,23 +11,23 @@ use iguana_runtime::input::Span;
 #[cfg(feature = "debug-trace")]
 use iguana_runtime::trace::TraceEvent;
 use iguana_runtime::{
-    arena::{Arena, ArenaIdVec, ArenaVec},
+    arena::{Arena, ArenaIdVec, ArenaMap, ArenaVec},
     descriptor::Descriptor,
     env::Env,
-    gss::GSSNode,
+    gss::{GSSIndex, GSSNode},
     ids::{BindingId, EnvId, GssNodeId, NonterminalId, SPPFNodeId, SlotId, TerminalId},
     input::Input,
     parser::{
-        DESCRIPTORS_CAPACITY_DIVISOR, DESCRIPTORS_CAPACITY_FLOOR, ENVS_CAPACITY_MULTIPLIER,
-        GLLFailure, GLLFailureKind, GSS_CAPACITY_MULTIPLIER, Parser, SPPF_CAPACITY_MULTIPLIER,
-        init_logger,
+        DD_GSS_INDEX_CAPACITY_DIVISOR, DESCRIPTORS_CAPACITY_DIVISOR, DESCRIPTORS_CAPACITY_FLOOR,
+        ENVS_CAPACITY_MULTIPLIER, GLLFailure, GLLFailureKind, GSS_CAPACITY_MULTIPLIER, Parser,
+        SPPF_CAPACITY_MULTIPLIER, init_logger,
     },
     prediction::Prediction,
     record,
     result::{ParseError, ParseSuccess},
     scanner::{Scanner, TerminalSet},
     sppf::{IntermediateNode, NonterminalNode, SPPFNode, TerminalNode},
-    utils::{inline_map::InlineMap, inline_vec::InlineVec, lazy_inline_maps::LazyInlineMaps},
+    utils::{inline_vec::InlineVec, lazy_inline_maps::LazyInlineMaps},
 };
 use rustc_hash::FxHashMap;
 use std::cell::OnceCell;
@@ -14797,7 +14797,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
     }
     fn get_gss_node(&self, nonterminal_id: NonterminalId, input_index: u32) -> Option<GssNodeId> {
         self.gss_nodes_index
-            .get(nonterminal_id.index(), &input_index)
+            .get(&self.gss_nodes, nonterminal_id, input_index)
     }
     fn add_gss_node(
         &mut self,
@@ -14805,9 +14805,8 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
         input_index: u32,
         gss_node_id: GssNodeId,
     ) {
-        let arena = self.vec_arena;
         self.gss_nodes_index
-            .insert(nonterminal_id.index(), input_index, gss_node_id, arena);
+            .insert(&self.gss_nodes, nonterminal_id, input_index, gss_node_id);
     }
     fn new_gss_node(&mut self, nonterminal_id: NonterminalId, input_index: u32) -> GssNodeId {
         record!(self, GSSNodeCreated, nonterminal_id, input_index);
@@ -15882,9 +15881,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
         for len in self.terminal_nodes_index.map_lens() {
             stats.record("Parser::terminal_nodes_index: InlineMap", len);
         }
-        for len in self.gss_nodes_index.map_lens() {
-            stats.record("Parser::gss_nodes_index: InlineMap", len);
-        }
+        stats.record("Parser::gss_nodes_index", self.gss_nodes_index.len());
         stats.record("Parser::gss_nodes_index_e", self.gss_nodes_index_e.len());
         stats.record("Parser::gss_nodes_index_l", self.gss_nodes_index_l.len());
         stats.record(
@@ -17139,148 +17136,148 @@ pub struct IndirectBinaryParser<'i, 'arena> {
     gss_nodes: ArenaIdVec<'arena, GssNodeId, GSSNode<'arena>>,
     // The start nonterminal's GSS node at input position 0, set by `run`.
     start_gss_node_id: Option<GssNodeId>,
-    // Per-nonterminal GSS-node index keyed by input position.
-    gss_nodes_index: LazyInlineMaps<'arena, u32, GssNodeId>,
+    // GSS-node index for the nonterminals without parameters.
+    gss_nodes_index: GSSIndex<'arena>,
     // GSS index for nonterminal E
-    gss_nodes_index_e: InlineMap<'arena, (u32, i32), GssNodeId>,
+    gss_nodes_index_e: ArenaMap<'arena, (u32, i32), GssNodeId>,
     // GSS index for nonterminal L
-    gss_nodes_index_l: InlineMap<'arena, (u32, i32, i32), GssNodeId>,
+    gss_nodes_index_l: ArenaMap<'arena, (u32, i32, i32), GssNodeId>,
     // GSS index for nonterminal Only
-    gss_nodes_index_only: InlineMap<'arena, (u32, i32), GssNodeId>,
+    gss_nodes_index_only: ArenaMap<'arena, (u32, i32), GssNodeId>,
     // GSS index for nonterminal OnlyOperand
-    gss_nodes_index_only_operand: InlineMap<'arena, (u32, i32, i32), GssNodeId>,
+    gss_nodes_index_only_operand: ArenaMap<'arena, (u32, i32, i32), GssNodeId>,
     // GSS index for nonterminal Cross
-    gss_nodes_index_cross: InlineMap<'arena, (u32, i32), GssNodeId>,
+    gss_nodes_index_cross: ArenaMap<'arena, (u32, i32), GssNodeId>,
     // GSS index for nonterminal Foreign
-    gss_nodes_index_foreign: InlineMap<'arena, (u32, i32), GssNodeId>,
+    gss_nodes_index_foreign: ArenaMap<'arena, (u32, i32), GssNodeId>,
     // GSS index for nonterminal Cascade
-    gss_nodes_index_cascade: InlineMap<'arena, (u32, i32), GssNodeId>,
+    gss_nodes_index_cascade: ArenaMap<'arena, (u32, i32), GssNodeId>,
     // GSS index for nonterminal Nullable
-    gss_nodes_index_nullable: InlineMap<'arena, (u32, i32), GssNodeId>,
+    gss_nodes_index_nullable: ArenaMap<'arena, (u32, i32), GssNodeId>,
     // GSS index for nonterminal NullableRight
-    gss_nodes_index_nullable_right: InlineMap<'arena, (u32, i32), GssNodeId>,
+    gss_nodes_index_nullable_right: ArenaMap<'arena, (u32, i32), GssNodeId>,
     // GSS index for nonterminal RightExpr
-    gss_nodes_index_right_expr: InlineMap<'arena, (u32, i32), GssNodeId>,
+    gss_nodes_index_right_expr: ArenaMap<'arena, (u32, i32), GssNodeId>,
     // GSS index for nonterminal RightOperand
-    gss_nodes_index_right_operand: InlineMap<'arena, (u32, i32, i32), GssNodeId>,
+    gss_nodes_index_right_operand: ArenaMap<'arena, (u32, i32, i32), GssNodeId>,
     // GSS index for nonterminal NoneExpr
-    gss_nodes_index_none_expr: InlineMap<'arena, (u32, i32), GssNodeId>,
+    gss_nodes_index_none_expr: ArenaMap<'arena, (u32, i32), GssNodeId>,
     // GSS index for nonterminal NoneOperand
-    gss_nodes_index_none_operand: InlineMap<'arena, (u32, i32, i32), GssNodeId>,
+    gss_nodes_index_none_operand: ArenaMap<'arena, (u32, i32, i32), GssNodeId>,
     // GSS index for nonterminal Excluded
-    gss_nodes_index_excluded: InlineMap<'arena, (u32, i32, i32), GssNodeId>,
+    gss_nodes_index_excluded: ArenaMap<'arena, (u32, i32, i32), GssNodeId>,
     // GSS index for nonterminal ExcludedOperand
-    gss_nodes_index_excluded_operand: InlineMap<'arena, (u32, i32, i32, i32), GssNodeId>,
+    gss_nodes_index_excluded_operand: ArenaMap<'arena, (u32, i32, i32, i32), GssNodeId>,
     // GSS index for nonterminal LexNullable
-    gss_nodes_index_lex_nullable: InlineMap<'arena, (u32, i32), GssNodeId>,
+    gss_nodes_index_lex_nullable: ArenaMap<'arena, (u32, i32), GssNodeId>,
     // GSS index for nonterminal LexNullableRight
-    gss_nodes_index_lex_nullable_right: InlineMap<'arena, (u32, i32), GssNodeId>,
+    gss_nodes_index_lex_nullable_right: ArenaMap<'arena, (u32, i32), GssNodeId>,
     // GSS index for nonterminal MixedScale
-    gss_nodes_index_mixed_scale: InlineMap<'arena, (u32, i32, i32), GssNodeId>,
+    gss_nodes_index_mixed_scale: ArenaMap<'arena, (u32, i32, i32), GssNodeId>,
     // GSS index for nonterminal MixedOperand
-    gss_nodes_index_mixed_operand: InlineMap<'arena, (u32, i32, i32), GssNodeId>,
+    gss_nodes_index_mixed_operand: ArenaMap<'arena, (u32, i32, i32), GssNodeId>,
     // GSS index for nonterminal MixedRight
-    gss_nodes_index_mixed_right: InlineMap<'arena, (u32, i32, i32), GssNodeId>,
+    gss_nodes_index_mixed_right: ArenaMap<'arena, (u32, i32, i32), GssNodeId>,
     // GSS index for nonterminal MixedForeign
-    gss_nodes_index_mixed_foreign: InlineMap<'arena, (u32, i32), GssNodeId>,
+    gss_nodes_index_mixed_foreign: ArenaMap<'arena, (u32, i32), GssNodeId>,
     // GSS index for nonterminal Packed
-    gss_nodes_index_packed: InlineMap<'arena, (u32, i32, i32), GssNodeId>,
+    gss_nodes_index_packed: ArenaMap<'arena, (u32, i32, i32), GssNodeId>,
     // GSS index for nonterminal PackedOperand
-    gss_nodes_index_packed_operand: InlineMap<'arena, (u32, i32, i32, i32), GssNodeId>,
+    gss_nodes_index_packed_operand: ArenaMap<'arena, (u32, i32, i32, i32), GssNodeId>,
     // GSS index for nonterminal PackedMiddle
-    gss_nodes_index_packed_middle: InlineMap<'arena, (u32, i32, i32, i32), GssNodeId>,
+    gss_nodes_index_packed_middle: ArenaMap<'arena, (u32, i32, i32, i32), GssNodeId>,
     // GSS index for nonterminal NullableRecursive
-    gss_nodes_index_nullable_recursive: InlineMap<'arena, (u32, i32, i32), GssNodeId>,
+    gss_nodes_index_nullable_recursive: ArenaMap<'arena, (u32, i32, i32), GssNodeId>,
     // GSS index for nonterminal NullableOperand
-    gss_nodes_index_nullable_operand: InlineMap<'arena, (u32, i32, i32), GssNodeId>,
+    gss_nodes_index_nullable_operand: ArenaMap<'arena, (u32, i32, i32), GssNodeId>,
     // GSS index for nonterminal NullableMaybe
-    gss_nodes_index_nullable_maybe: InlineMap<'arena, (u32, i32, i32), GssNodeId>,
+    gss_nodes_index_nullable_maybe: ArenaMap<'arena, (u32, i32, i32), GssNodeId>,
     // GSS index for nonterminal NullableLexRecursive
-    gss_nodes_index_nullable_lex_recursive: InlineMap<'arena, (u32, i32, i32), GssNodeId>,
+    gss_nodes_index_nullable_lex_recursive: ArenaMap<'arena, (u32, i32, i32), GssNodeId>,
     // GSS index for nonterminal NullableLexOperand
-    gss_nodes_index_nullable_lex_operand: InlineMap<'arena, (u32, i32, i32), GssNodeId>,
+    gss_nodes_index_nullable_lex_operand: ArenaMap<'arena, (u32, i32, i32), GssNodeId>,
     // GSS index for nonterminal NullableLexMaybe
-    gss_nodes_index_nullable_lex_maybe: InlineMap<'arena, (u32, i32, i32), GssNodeId>,
+    gss_nodes_index_nullable_lex_maybe: ArenaMap<'arena, (u32, i32, i32), GssNodeId>,
     // GSS index for nonterminal NullableSuffix
-    gss_nodes_index_nullable_suffix: InlineMap<'arena, (u32, i32, i32), GssNodeId>,
+    gss_nodes_index_nullable_suffix: ArenaMap<'arena, (u32, i32, i32), GssNodeId>,
     // GSS index for nonterminal NullableSuffixOperand
-    gss_nodes_index_nullable_suffix_operand: InlineMap<'arena, (u32, i32, i32), GssNodeId>,
+    gss_nodes_index_nullable_suffix_operand: ArenaMap<'arena, (u32, i32, i32), GssNodeId>,
     // GSS index for nonterminal NullableSuffixMaybe
-    gss_nodes_index_nullable_suffix_maybe: InlineMap<'arena, (u32, i32, i32), GssNodeId>,
+    gss_nodes_index_nullable_suffix_maybe: ArenaMap<'arena, (u32, i32, i32), GssNodeId>,
     // GSS index for nonterminal NullableShared
-    gss_nodes_index_nullable_shared: InlineMap<'arena, (u32, i32, i32), GssNodeId>,
+    gss_nodes_index_nullable_shared: ArenaMap<'arena, (u32, i32, i32), GssNodeId>,
     // GSS index for nonterminal NullableSharedOperand
-    gss_nodes_index_nullable_shared_operand: InlineMap<'arena, (u32, i32, i32, i32), GssNodeId>,
+    gss_nodes_index_nullable_shared_operand: ArenaMap<'arena, (u32, i32, i32, i32), GssNodeId>,
     // GSS index for nonterminal NullableSharedMaybe
-    gss_nodes_index_nullable_shared_maybe: InlineMap<'arena, (u32, i32, i32, i32), GssNodeId>,
+    gss_nodes_index_nullable_shared_maybe: ArenaMap<'arena, (u32, i32, i32, i32), GssNodeId>,
     // GSS index for nonterminal OwnLabel
-    gss_nodes_index_own_label: InlineMap<'arena, (u32, i32, i32), GssNodeId>,
+    gss_nodes_index_own_label: ArenaMap<'arena, (u32, i32, i32), GssNodeId>,
     // GSS index for nonterminal OwnOperand
-    gss_nodes_index_own_operand: InlineMap<'arena, (u32, i32, i32, i32), GssNodeId>,
+    gss_nodes_index_own_operand: ArenaMap<'arena, (u32, i32, i32, i32), GssNodeId>,
     // GSS index for nonterminal Absent
-    gss_nodes_index_absent: InlineMap<'arena, (u32, i32), GssNodeId>,
+    gss_nodes_index_absent: ArenaMap<'arena, (u32, i32), GssNodeId>,
     // GSS index for nonterminal AbsentOperand
-    gss_nodes_index_absent_operand: InlineMap<'arena, (u32, i32, i32), GssNodeId>,
+    gss_nodes_index_absent_operand: ArenaMap<'arena, (u32, i32, i32), GssNodeId>,
     // GSS index for nonterminal ClosedPrefix
-    gss_nodes_index_closed_prefix: InlineMap<'arena, (u32, i32), GssNodeId>,
+    gss_nodes_index_closed_prefix: ArenaMap<'arena, (u32, i32), GssNodeId>,
     // GSS index for nonterminal ClosedPrefixBody
-    gss_nodes_index_closed_prefix_body: InlineMap<'arena, (u32, i32), GssNodeId>,
+    gss_nodes_index_closed_prefix_body: ArenaMap<'arena, (u32, i32), GssNodeId>,
     // GSS index for nonterminal ClosedPostfix
-    gss_nodes_index_closed_postfix: InlineMap<'arena, (u32, i32), GssNodeId>,
+    gss_nodes_index_closed_postfix: ArenaMap<'arena, (u32, i32), GssNodeId>,
     // GSS index for nonterminal ClosedPostfixBody
-    gss_nodes_index_closed_postfix_body: InlineMap<'arena, (u32, i32), GssNodeId>,
+    gss_nodes_index_closed_postfix_body: ArenaMap<'arena, (u32, i32), GssNodeId>,
     // GSS index for nonterminal HeadChoice
-    gss_nodes_index_head_choice: InlineMap<'arena, (u32, i32), GssNodeId>,
+    gss_nodes_index_head_choice: ArenaMap<'arena, (u32, i32), GssNodeId>,
     // GSS index for nonterminal HeadOperand
-    gss_nodes_index_head_operand: InlineMap<'arena, (u32, i32, i32), GssNodeId>,
+    gss_nodes_index_head_operand: ArenaMap<'arena, (u32, i32, i32), GssNodeId>,
     // GSS index for nonterminal Inner
-    gss_nodes_index_inner: InlineMap<'arena, (u32, i32), GssNodeId>,
+    gss_nodes_index_inner: ArenaMap<'arena, (u32, i32), GssNodeId>,
     // GSS index for nonterminal UnaryMixedLeft
-    gss_nodes_index_unary_mixed_left: InlineMap<'arena, (u32, i32, i32), GssNodeId>,
+    gss_nodes_index_unary_mixed_left: ArenaMap<'arena, (u32, i32, i32), GssNodeId>,
     // GSS index for nonterminal UnaryMixedRight
-    gss_nodes_index_unary_mixed_right: InlineMap<'arena, (u32, i32, i32), GssNodeId>,
+    gss_nodes_index_unary_mixed_right: ArenaMap<'arena, (u32, i32, i32), GssNodeId>,
     // GSS index for nonterminal UnaryMixedNone
-    gss_nodes_index_unary_mixed_none: InlineMap<'arena, (u32, i32, i32), GssNodeId>,
+    gss_nodes_index_unary_mixed_none: ArenaMap<'arena, (u32, i32, i32), GssNodeId>,
     // GSS index for nonterminal Dynamic
-    gss_nodes_index_dynamic: InlineMap<'arena, (u32, i32, i32), GssNodeId>,
+    gss_nodes_index_dynamic: ArenaMap<'arena, (u32, i32, i32), GssNodeId>,
     // GSS index for nonterminal DynamicOperand
-    gss_nodes_index_dynamic_operand: InlineMap<'arena, (u32, i32, i32, i32), GssNodeId>,
+    gss_nodes_index_dynamic_operand: ArenaMap<'arena, (u32, i32, i32, i32), GssNodeId>,
     // GSS index for nonterminal DynamicMulti
-    gss_nodes_index_dynamic_multi: InlineMap<'arena, (u32, i32, i32), GssNodeId>,
+    gss_nodes_index_dynamic_multi: ArenaMap<'arena, (u32, i32, i32), GssNodeId>,
     // GSS index for nonterminal DynamicMultiOperand
-    gss_nodes_index_dynamic_multi_operand: InlineMap<'arena, (u32, i32, i32, i32), GssNodeId>,
+    gss_nodes_index_dynamic_multi_operand: ArenaMap<'arena, (u32, i32, i32, i32), GssNodeId>,
     // GSS index for nonterminal NullableBoundaryPrefix
-    gss_nodes_index_nullable_boundary_prefix: InlineMap<'arena, (u32, i32), GssNodeId>,
+    gss_nodes_index_nullable_boundary_prefix: ArenaMap<'arena, (u32, i32), GssNodeId>,
     // GSS index for nonterminal NullableBoundaryPostfix
-    gss_nodes_index_nullable_boundary_postfix: InlineMap<'arena, (u32, i32), GssNodeId>,
+    gss_nodes_index_nullable_boundary_postfix: ArenaMap<'arena, (u32, i32), GssNodeId>,
     // GSS index for nonterminal NullableBoundaryBinary
-    gss_nodes_index_nullable_boundary_binary: InlineMap<'arena, (u32, i32), GssNodeId>,
+    gss_nodes_index_nullable_boundary_binary: ArenaMap<'arena, (u32, i32), GssNodeId>,
     // GSS index for nonterminal ClosedLeftAssoc
-    gss_nodes_index_closed_left_assoc: InlineMap<'arena, (u32, i32, i32), GssNodeId>,
+    gss_nodes_index_closed_left_assoc: ArenaMap<'arena, (u32, i32, i32), GssNodeId>,
     // GSS index for nonterminal ClosedLeftOperand
-    gss_nodes_index_closed_left_operand: InlineMap<'arena, (u32, i32, i32), GssNodeId>,
+    gss_nodes_index_closed_left_operand: ArenaMap<'arena, (u32, i32, i32), GssNodeId>,
     // GSS index for nonterminal ClosedRightAssoc
-    gss_nodes_index_closed_right_assoc: InlineMap<'arena, (u32, i32, i32), GssNodeId>,
+    gss_nodes_index_closed_right_assoc: ArenaMap<'arena, (u32, i32, i32), GssNodeId>,
     // GSS index for nonterminal ClosedRightOperand
-    gss_nodes_index_closed_right_operand: InlineMap<'arena, (u32, i32, i32), GssNodeId>,
+    gss_nodes_index_closed_right_operand: ArenaMap<'arena, (u32, i32, i32), GssNodeId>,
     // GSS index for nonterminal IndirectExclude
-    gss_nodes_index_indirect_exclude: InlineMap<'arena, (u32, i32, i32), GssNodeId>,
+    gss_nodes_index_indirect_exclude: ArenaMap<'arena, (u32, i32, i32), GssNodeId>,
     // GSS index for nonterminal IndirectExcludeOperand
-    gss_nodes_index_indirect_exclude_operand: InlineMap<'arena, (u32, i32, i32, i32), GssNodeId>,
+    gss_nodes_index_indirect_exclude_operand: ArenaMap<'arena, (u32, i32, i32, i32), GssNodeId>,
     // GSS index for nonterminal OperandLiteral
-    gss_nodes_index_operand_literal: InlineMap<'arena, (u32, i32, i32), GssNodeId>,
+    gss_nodes_index_operand_literal: ArenaMap<'arena, (u32, i32, i32), GssNodeId>,
     // GSS index for nonterminal OperandLiteralEnd
-    gss_nodes_index_operand_literal_end: InlineMap<'arena, (u32, i32, i32, i32), GssNodeId>,
+    gss_nodes_index_operand_literal_end: ArenaMap<'arena, (u32, i32, i32, i32), GssNodeId>,
     // GSS index for nonterminal HeadLiteral
-    gss_nodes_index_head_literal: InlineMap<'arena, (u32, i32), GssNodeId>,
+    gss_nodes_index_head_literal: ArenaMap<'arena, (u32, i32), GssNodeId>,
     // GSS index for nonterminal HeadLiteralEnd
-    gss_nodes_index_head_literal_end: InlineMap<'arena, (u32, i32, i32), GssNodeId>,
+    gss_nodes_index_head_literal_end: ArenaMap<'arena, (u32, i32, i32), GssNodeId>,
     // GSS index for nonterminal Opt_1
-    gss_nodes_index_opt_1: InlineMap<'arena, (u32, i32, i32), GssNodeId>,
+    gss_nodes_index_opt_1: ArenaMap<'arena, (u32, i32, i32), GssNodeId>,
     // GSS index for nonterminal Opt_2
-    gss_nodes_index_opt_2: InlineMap<'arena, (u32, i32, i32), GssNodeId>,
+    gss_nodes_index_opt_2: ArenaMap<'arena, (u32, i32, i32), GssNodeId>,
     // GSS index for nonterminal Opt_3
-    gss_nodes_index_opt_3: InlineMap<'arena, (u32, i32, i32, i32), GssNodeId>,
+    gss_nodes_index_opt_3: ArenaMap<'arena, (u32, i32, i32, i32), GssNodeId>,
     sppf_nodes: ArenaIdVec<'arena, SPPFNodeId, SPPFNode>,
     #[cfg(feature = "instrument")]
     descriptors_count: usize,
@@ -17328,77 +17325,147 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
         Self {
             vec_arena,
             scanner: IndirectBinaryScanner::new(input, vec_arena),
-            gss_nodes_index: LazyInlineMaps::new(100, vec_arena),
-            gss_nodes_index_e: InlineMap::Empty,
-            gss_nodes_index_l: InlineMap::Empty,
-            gss_nodes_index_only: InlineMap::Empty,
-            gss_nodes_index_only_operand: InlineMap::Empty,
-            gss_nodes_index_cross: InlineMap::Empty,
-            gss_nodes_index_foreign: InlineMap::Empty,
-            gss_nodes_index_cascade: InlineMap::Empty,
-            gss_nodes_index_nullable: InlineMap::Empty,
-            gss_nodes_index_nullable_right: InlineMap::Empty,
-            gss_nodes_index_right_expr: InlineMap::Empty,
-            gss_nodes_index_right_operand: InlineMap::Empty,
-            gss_nodes_index_none_expr: InlineMap::Empty,
-            gss_nodes_index_none_operand: InlineMap::Empty,
-            gss_nodes_index_excluded: InlineMap::Empty,
-            gss_nodes_index_excluded_operand: InlineMap::Empty,
-            gss_nodes_index_lex_nullable: InlineMap::Empty,
-            gss_nodes_index_lex_nullable_right: InlineMap::Empty,
-            gss_nodes_index_mixed_scale: InlineMap::Empty,
-            gss_nodes_index_mixed_operand: InlineMap::Empty,
-            gss_nodes_index_mixed_right: InlineMap::Empty,
-            gss_nodes_index_mixed_foreign: InlineMap::Empty,
-            gss_nodes_index_packed: InlineMap::Empty,
-            gss_nodes_index_packed_operand: InlineMap::Empty,
-            gss_nodes_index_packed_middle: InlineMap::Empty,
-            gss_nodes_index_nullable_recursive: InlineMap::Empty,
-            gss_nodes_index_nullable_operand: InlineMap::Empty,
-            gss_nodes_index_nullable_maybe: InlineMap::Empty,
-            gss_nodes_index_nullable_lex_recursive: InlineMap::Empty,
-            gss_nodes_index_nullable_lex_operand: InlineMap::Empty,
-            gss_nodes_index_nullable_lex_maybe: InlineMap::Empty,
-            gss_nodes_index_nullable_suffix: InlineMap::Empty,
-            gss_nodes_index_nullable_suffix_operand: InlineMap::Empty,
-            gss_nodes_index_nullable_suffix_maybe: InlineMap::Empty,
-            gss_nodes_index_nullable_shared: InlineMap::Empty,
-            gss_nodes_index_nullable_shared_operand: InlineMap::Empty,
-            gss_nodes_index_nullable_shared_maybe: InlineMap::Empty,
-            gss_nodes_index_own_label: InlineMap::Empty,
-            gss_nodes_index_own_operand: InlineMap::Empty,
-            gss_nodes_index_absent: InlineMap::Empty,
-            gss_nodes_index_absent_operand: InlineMap::Empty,
-            gss_nodes_index_closed_prefix: InlineMap::Empty,
-            gss_nodes_index_closed_prefix_body: InlineMap::Empty,
-            gss_nodes_index_closed_postfix: InlineMap::Empty,
-            gss_nodes_index_closed_postfix_body: InlineMap::Empty,
-            gss_nodes_index_head_choice: InlineMap::Empty,
-            gss_nodes_index_head_operand: InlineMap::Empty,
-            gss_nodes_index_inner: InlineMap::Empty,
-            gss_nodes_index_unary_mixed_left: InlineMap::Empty,
-            gss_nodes_index_unary_mixed_right: InlineMap::Empty,
-            gss_nodes_index_unary_mixed_none: InlineMap::Empty,
-            gss_nodes_index_dynamic: InlineMap::Empty,
-            gss_nodes_index_dynamic_operand: InlineMap::Empty,
-            gss_nodes_index_dynamic_multi: InlineMap::Empty,
-            gss_nodes_index_dynamic_multi_operand: InlineMap::Empty,
-            gss_nodes_index_nullable_boundary_prefix: InlineMap::Empty,
-            gss_nodes_index_nullable_boundary_postfix: InlineMap::Empty,
-            gss_nodes_index_nullable_boundary_binary: InlineMap::Empty,
-            gss_nodes_index_closed_left_assoc: InlineMap::Empty,
-            gss_nodes_index_closed_left_operand: InlineMap::Empty,
-            gss_nodes_index_closed_right_assoc: InlineMap::Empty,
-            gss_nodes_index_closed_right_operand: InlineMap::Empty,
-            gss_nodes_index_indirect_exclude: InlineMap::Empty,
-            gss_nodes_index_indirect_exclude_operand: InlineMap::Empty,
-            gss_nodes_index_operand_literal: InlineMap::Empty,
-            gss_nodes_index_operand_literal_end: InlineMap::Empty,
-            gss_nodes_index_head_literal: InlineMap::Empty,
-            gss_nodes_index_head_literal_end: InlineMap::Empty,
-            gss_nodes_index_opt_1: InlineMap::Empty,
-            gss_nodes_index_opt_2: InlineMap::Empty,
-            gss_nodes_index_opt_3: InlineMap::Empty,
+            gss_nodes_index: GSSIndex::new(input.len() as usize, vec_arena),
+            gss_nodes_index_e: vec_arena
+                .map_with_capacity(input.len() as usize / DD_GSS_INDEX_CAPACITY_DIVISOR),
+            gss_nodes_index_l: vec_arena
+                .map_with_capacity(input.len() as usize / DD_GSS_INDEX_CAPACITY_DIVISOR),
+            gss_nodes_index_only: vec_arena
+                .map_with_capacity(input.len() as usize / DD_GSS_INDEX_CAPACITY_DIVISOR),
+            gss_nodes_index_only_operand: vec_arena
+                .map_with_capacity(input.len() as usize / DD_GSS_INDEX_CAPACITY_DIVISOR),
+            gss_nodes_index_cross: vec_arena
+                .map_with_capacity(input.len() as usize / DD_GSS_INDEX_CAPACITY_DIVISOR),
+            gss_nodes_index_foreign: vec_arena
+                .map_with_capacity(input.len() as usize / DD_GSS_INDEX_CAPACITY_DIVISOR),
+            gss_nodes_index_cascade: vec_arena
+                .map_with_capacity(input.len() as usize / DD_GSS_INDEX_CAPACITY_DIVISOR),
+            gss_nodes_index_nullable: vec_arena
+                .map_with_capacity(input.len() as usize / DD_GSS_INDEX_CAPACITY_DIVISOR),
+            gss_nodes_index_nullable_right: vec_arena
+                .map_with_capacity(input.len() as usize / DD_GSS_INDEX_CAPACITY_DIVISOR),
+            gss_nodes_index_right_expr: vec_arena
+                .map_with_capacity(input.len() as usize / DD_GSS_INDEX_CAPACITY_DIVISOR),
+            gss_nodes_index_right_operand: vec_arena
+                .map_with_capacity(input.len() as usize / DD_GSS_INDEX_CAPACITY_DIVISOR),
+            gss_nodes_index_none_expr: vec_arena
+                .map_with_capacity(input.len() as usize / DD_GSS_INDEX_CAPACITY_DIVISOR),
+            gss_nodes_index_none_operand: vec_arena
+                .map_with_capacity(input.len() as usize / DD_GSS_INDEX_CAPACITY_DIVISOR),
+            gss_nodes_index_excluded: vec_arena
+                .map_with_capacity(input.len() as usize / DD_GSS_INDEX_CAPACITY_DIVISOR),
+            gss_nodes_index_excluded_operand: vec_arena
+                .map_with_capacity(input.len() as usize / DD_GSS_INDEX_CAPACITY_DIVISOR),
+            gss_nodes_index_lex_nullable: vec_arena
+                .map_with_capacity(input.len() as usize / DD_GSS_INDEX_CAPACITY_DIVISOR),
+            gss_nodes_index_lex_nullable_right: vec_arena
+                .map_with_capacity(input.len() as usize / DD_GSS_INDEX_CAPACITY_DIVISOR),
+            gss_nodes_index_mixed_scale: vec_arena
+                .map_with_capacity(input.len() as usize / DD_GSS_INDEX_CAPACITY_DIVISOR),
+            gss_nodes_index_mixed_operand: vec_arena
+                .map_with_capacity(input.len() as usize / DD_GSS_INDEX_CAPACITY_DIVISOR),
+            gss_nodes_index_mixed_right: vec_arena
+                .map_with_capacity(input.len() as usize / DD_GSS_INDEX_CAPACITY_DIVISOR),
+            gss_nodes_index_mixed_foreign: vec_arena
+                .map_with_capacity(input.len() as usize / DD_GSS_INDEX_CAPACITY_DIVISOR),
+            gss_nodes_index_packed: vec_arena
+                .map_with_capacity(input.len() as usize / DD_GSS_INDEX_CAPACITY_DIVISOR),
+            gss_nodes_index_packed_operand: vec_arena
+                .map_with_capacity(input.len() as usize / DD_GSS_INDEX_CAPACITY_DIVISOR),
+            gss_nodes_index_packed_middle: vec_arena
+                .map_with_capacity(input.len() as usize / DD_GSS_INDEX_CAPACITY_DIVISOR),
+            gss_nodes_index_nullable_recursive: vec_arena
+                .map_with_capacity(input.len() as usize / DD_GSS_INDEX_CAPACITY_DIVISOR),
+            gss_nodes_index_nullable_operand: vec_arena
+                .map_with_capacity(input.len() as usize / DD_GSS_INDEX_CAPACITY_DIVISOR),
+            gss_nodes_index_nullable_maybe: vec_arena
+                .map_with_capacity(input.len() as usize / DD_GSS_INDEX_CAPACITY_DIVISOR),
+            gss_nodes_index_nullable_lex_recursive: vec_arena
+                .map_with_capacity(input.len() as usize / DD_GSS_INDEX_CAPACITY_DIVISOR),
+            gss_nodes_index_nullable_lex_operand: vec_arena
+                .map_with_capacity(input.len() as usize / DD_GSS_INDEX_CAPACITY_DIVISOR),
+            gss_nodes_index_nullable_lex_maybe: vec_arena
+                .map_with_capacity(input.len() as usize / DD_GSS_INDEX_CAPACITY_DIVISOR),
+            gss_nodes_index_nullable_suffix: vec_arena
+                .map_with_capacity(input.len() as usize / DD_GSS_INDEX_CAPACITY_DIVISOR),
+            gss_nodes_index_nullable_suffix_operand: vec_arena
+                .map_with_capacity(input.len() as usize / DD_GSS_INDEX_CAPACITY_DIVISOR),
+            gss_nodes_index_nullable_suffix_maybe: vec_arena
+                .map_with_capacity(input.len() as usize / DD_GSS_INDEX_CAPACITY_DIVISOR),
+            gss_nodes_index_nullable_shared: vec_arena
+                .map_with_capacity(input.len() as usize / DD_GSS_INDEX_CAPACITY_DIVISOR),
+            gss_nodes_index_nullable_shared_operand: vec_arena
+                .map_with_capacity(input.len() as usize / DD_GSS_INDEX_CAPACITY_DIVISOR),
+            gss_nodes_index_nullable_shared_maybe: vec_arena
+                .map_with_capacity(input.len() as usize / DD_GSS_INDEX_CAPACITY_DIVISOR),
+            gss_nodes_index_own_label: vec_arena
+                .map_with_capacity(input.len() as usize / DD_GSS_INDEX_CAPACITY_DIVISOR),
+            gss_nodes_index_own_operand: vec_arena
+                .map_with_capacity(input.len() as usize / DD_GSS_INDEX_CAPACITY_DIVISOR),
+            gss_nodes_index_absent: vec_arena
+                .map_with_capacity(input.len() as usize / DD_GSS_INDEX_CAPACITY_DIVISOR),
+            gss_nodes_index_absent_operand: vec_arena
+                .map_with_capacity(input.len() as usize / DD_GSS_INDEX_CAPACITY_DIVISOR),
+            gss_nodes_index_closed_prefix: vec_arena
+                .map_with_capacity(input.len() as usize / DD_GSS_INDEX_CAPACITY_DIVISOR),
+            gss_nodes_index_closed_prefix_body: vec_arena
+                .map_with_capacity(input.len() as usize / DD_GSS_INDEX_CAPACITY_DIVISOR),
+            gss_nodes_index_closed_postfix: vec_arena
+                .map_with_capacity(input.len() as usize / DD_GSS_INDEX_CAPACITY_DIVISOR),
+            gss_nodes_index_closed_postfix_body: vec_arena
+                .map_with_capacity(input.len() as usize / DD_GSS_INDEX_CAPACITY_DIVISOR),
+            gss_nodes_index_head_choice: vec_arena
+                .map_with_capacity(input.len() as usize / DD_GSS_INDEX_CAPACITY_DIVISOR),
+            gss_nodes_index_head_operand: vec_arena
+                .map_with_capacity(input.len() as usize / DD_GSS_INDEX_CAPACITY_DIVISOR),
+            gss_nodes_index_inner: vec_arena
+                .map_with_capacity(input.len() as usize / DD_GSS_INDEX_CAPACITY_DIVISOR),
+            gss_nodes_index_unary_mixed_left: vec_arena
+                .map_with_capacity(input.len() as usize / DD_GSS_INDEX_CAPACITY_DIVISOR),
+            gss_nodes_index_unary_mixed_right: vec_arena
+                .map_with_capacity(input.len() as usize / DD_GSS_INDEX_CAPACITY_DIVISOR),
+            gss_nodes_index_unary_mixed_none: vec_arena
+                .map_with_capacity(input.len() as usize / DD_GSS_INDEX_CAPACITY_DIVISOR),
+            gss_nodes_index_dynamic: vec_arena
+                .map_with_capacity(input.len() as usize / DD_GSS_INDEX_CAPACITY_DIVISOR),
+            gss_nodes_index_dynamic_operand: vec_arena
+                .map_with_capacity(input.len() as usize / DD_GSS_INDEX_CAPACITY_DIVISOR),
+            gss_nodes_index_dynamic_multi: vec_arena
+                .map_with_capacity(input.len() as usize / DD_GSS_INDEX_CAPACITY_DIVISOR),
+            gss_nodes_index_dynamic_multi_operand: vec_arena
+                .map_with_capacity(input.len() as usize / DD_GSS_INDEX_CAPACITY_DIVISOR),
+            gss_nodes_index_nullable_boundary_prefix: vec_arena
+                .map_with_capacity(input.len() as usize / DD_GSS_INDEX_CAPACITY_DIVISOR),
+            gss_nodes_index_nullable_boundary_postfix: vec_arena
+                .map_with_capacity(input.len() as usize / DD_GSS_INDEX_CAPACITY_DIVISOR),
+            gss_nodes_index_nullable_boundary_binary: vec_arena
+                .map_with_capacity(input.len() as usize / DD_GSS_INDEX_CAPACITY_DIVISOR),
+            gss_nodes_index_closed_left_assoc: vec_arena
+                .map_with_capacity(input.len() as usize / DD_GSS_INDEX_CAPACITY_DIVISOR),
+            gss_nodes_index_closed_left_operand: vec_arena
+                .map_with_capacity(input.len() as usize / DD_GSS_INDEX_CAPACITY_DIVISOR),
+            gss_nodes_index_closed_right_assoc: vec_arena
+                .map_with_capacity(input.len() as usize / DD_GSS_INDEX_CAPACITY_DIVISOR),
+            gss_nodes_index_closed_right_operand: vec_arena
+                .map_with_capacity(input.len() as usize / DD_GSS_INDEX_CAPACITY_DIVISOR),
+            gss_nodes_index_indirect_exclude: vec_arena
+                .map_with_capacity(input.len() as usize / DD_GSS_INDEX_CAPACITY_DIVISOR),
+            gss_nodes_index_indirect_exclude_operand: vec_arena
+                .map_with_capacity(input.len() as usize / DD_GSS_INDEX_CAPACITY_DIVISOR),
+            gss_nodes_index_operand_literal: vec_arena
+                .map_with_capacity(input.len() as usize / DD_GSS_INDEX_CAPACITY_DIVISOR),
+            gss_nodes_index_operand_literal_end: vec_arena
+                .map_with_capacity(input.len() as usize / DD_GSS_INDEX_CAPACITY_DIVISOR),
+            gss_nodes_index_head_literal: vec_arena
+                .map_with_capacity(input.len() as usize / DD_GSS_INDEX_CAPACITY_DIVISOR),
+            gss_nodes_index_head_literal_end: vec_arena
+                .map_with_capacity(input.len() as usize / DD_GSS_INDEX_CAPACITY_DIVISOR),
+            gss_nodes_index_opt_1: vec_arena
+                .map_with_capacity(input.len() as usize / DD_GSS_INDEX_CAPACITY_DIVISOR),
+            gss_nodes_index_opt_2: vec_arena
+                .map_with_capacity(input.len() as usize / DD_GSS_INDEX_CAPACITY_DIVISOR),
+            gss_nodes_index_opt_3: vec_arena
+                .map_with_capacity(input.len() as usize / DD_GSS_INDEX_CAPACITY_DIVISOR),
             descriptors: vec_arena.vec_with_capacity(
                 input.len() as usize / DESCRIPTORS_CAPACITY_DIVISOR + DESCRIPTORS_CAPACITY_FLOOR,
             ),
@@ -22605,19 +22672,15 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
             .copied()
     }
     fn add_gss_node_e(&mut self, input_index: u32, p: i32, gss_node_id: GssNodeId) {
-        let arena = self.vec_arena;
-        self.gss_nodes_index_e
-            .insert((input_index, p), gss_node_id, arena);
+        self.gss_nodes_index_e.insert((input_index, p), gss_node_id);
     }
     fn add_gss_node_l(&mut self, input_index: u32, p: i32, end: i32, gss_node_id: GssNodeId) {
-        let arena = self.vec_arena;
         self.gss_nodes_index_l
-            .insert((input_index, p, end), gss_node_id, arena);
+            .insert((input_index, p, end), gss_node_id);
     }
     fn add_gss_node_only(&mut self, input_index: u32, p: i32, gss_node_id: GssNodeId) {
-        let arena = self.vec_arena;
         self.gss_nodes_index_only
-            .insert((input_index, p), gss_node_id, arena);
+            .insert((input_index, p), gss_node_id);
     }
     fn add_gss_node_only_operand(
         &mut self,
@@ -22626,39 +22689,32 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
         end: i32,
         gss_node_id: GssNodeId,
     ) {
-        let arena = self.vec_arena;
         self.gss_nodes_index_only_operand
-            .insert((input_index, p, end), gss_node_id, arena);
+            .insert((input_index, p, end), gss_node_id);
     }
     fn add_gss_node_cross(&mut self, input_index: u32, p: i32, gss_node_id: GssNodeId) {
-        let arena = self.vec_arena;
         self.gss_nodes_index_cross
-            .insert((input_index, p), gss_node_id, arena);
+            .insert((input_index, p), gss_node_id);
     }
     fn add_gss_node_foreign(&mut self, input_index: u32, p: i32, gss_node_id: GssNodeId) {
-        let arena = self.vec_arena;
         self.gss_nodes_index_foreign
-            .insert((input_index, p), gss_node_id, arena);
+            .insert((input_index, p), gss_node_id);
     }
     fn add_gss_node_cascade(&mut self, input_index: u32, p: i32, gss_node_id: GssNodeId) {
-        let arena = self.vec_arena;
         self.gss_nodes_index_cascade
-            .insert((input_index, p), gss_node_id, arena);
+            .insert((input_index, p), gss_node_id);
     }
     fn add_gss_node_nullable(&mut self, input_index: u32, p: i32, gss_node_id: GssNodeId) {
-        let arena = self.vec_arena;
         self.gss_nodes_index_nullable
-            .insert((input_index, p), gss_node_id, arena);
+            .insert((input_index, p), gss_node_id);
     }
     fn add_gss_node_nullable_right(&mut self, input_index: u32, p: i32, gss_node_id: GssNodeId) {
-        let arena = self.vec_arena;
         self.gss_nodes_index_nullable_right
-            .insert((input_index, p), gss_node_id, arena);
+            .insert((input_index, p), gss_node_id);
     }
     fn add_gss_node_right_expr(&mut self, input_index: u32, p: i32, gss_node_id: GssNodeId) {
-        let arena = self.vec_arena;
         self.gss_nodes_index_right_expr
-            .insert((input_index, p), gss_node_id, arena);
+            .insert((input_index, p), gss_node_id);
     }
     fn add_gss_node_right_operand(
         &mut self,
@@ -22667,14 +22723,12 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
         end: i32,
         gss_node_id: GssNodeId,
     ) {
-        let arena = self.vec_arena;
         self.gss_nodes_index_right_operand
-            .insert((input_index, p, end), gss_node_id, arena);
+            .insert((input_index, p, end), gss_node_id);
     }
     fn add_gss_node_none_expr(&mut self, input_index: u32, p: i32, gss_node_id: GssNodeId) {
-        let arena = self.vec_arena;
         self.gss_nodes_index_none_expr
-            .insert((input_index, p), gss_node_id, arena);
+            .insert((input_index, p), gss_node_id);
     }
     fn add_gss_node_none_operand(
         &mut self,
@@ -22683,14 +22737,12 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
         end: i32,
         gss_node_id: GssNodeId,
     ) {
-        let arena = self.vec_arena;
         self.gss_nodes_index_none_operand
-            .insert((input_index, p, end), gss_node_id, arena);
+            .insert((input_index, p, end), gss_node_id);
     }
     fn add_gss_node_excluded(&mut self, input_index: u32, p: i32, a: i32, gss_node_id: GssNodeId) {
-        let arena = self.vec_arena;
         self.gss_nodes_index_excluded
-            .insert((input_index, p, a), gss_node_id, arena);
+            .insert((input_index, p, a), gss_node_id);
     }
     fn add_gss_node_excluded_operand(
         &mut self,
@@ -22700,14 +22752,12 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
         a: i32,
         gss_node_id: GssNodeId,
     ) {
-        let arena = self.vec_arena;
         self.gss_nodes_index_excluded_operand
-            .insert((input_index, p, end, a), gss_node_id, arena);
+            .insert((input_index, p, end, a), gss_node_id);
     }
     fn add_gss_node_lex_nullable(&mut self, input_index: u32, p: i32, gss_node_id: GssNodeId) {
-        let arena = self.vec_arena;
         self.gss_nodes_index_lex_nullable
-            .insert((input_index, p), gss_node_id, arena);
+            .insert((input_index, p), gss_node_id);
     }
     fn add_gss_node_lex_nullable_right(
         &mut self,
@@ -22715,9 +22765,8 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
         p: i32,
         gss_node_id: GssNodeId,
     ) {
-        let arena = self.vec_arena;
         self.gss_nodes_index_lex_nullable_right
-            .insert((input_index, p), gss_node_id, arena);
+            .insert((input_index, p), gss_node_id);
     }
     fn add_gss_node_mixed_scale(
         &mut self,
@@ -22726,9 +22775,8 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
         a: i32,
         gss_node_id: GssNodeId,
     ) {
-        let arena = self.vec_arena;
         self.gss_nodes_index_mixed_scale
-            .insert((input_index, p, a), gss_node_id, arena);
+            .insert((input_index, p, a), gss_node_id);
     }
     fn add_gss_node_mixed_operand(
         &mut self,
@@ -22737,9 +22785,8 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
         a: i32,
         gss_node_id: GssNodeId,
     ) {
-        let arena = self.vec_arena;
         self.gss_nodes_index_mixed_operand
-            .insert((input_index, p, a), gss_node_id, arena);
+            .insert((input_index, p, a), gss_node_id);
     }
     fn add_gss_node_mixed_right(
         &mut self,
@@ -22748,19 +22795,16 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
         a: i32,
         gss_node_id: GssNodeId,
     ) {
-        let arena = self.vec_arena;
         self.gss_nodes_index_mixed_right
-            .insert((input_index, p, a), gss_node_id, arena);
+            .insert((input_index, p, a), gss_node_id);
     }
     fn add_gss_node_mixed_foreign(&mut self, input_index: u32, p: i32, gss_node_id: GssNodeId) {
-        let arena = self.vec_arena;
         self.gss_nodes_index_mixed_foreign
-            .insert((input_index, p), gss_node_id, arena);
+            .insert((input_index, p), gss_node_id);
     }
     fn add_gss_node_packed(&mut self, input_index: u32, p: i32, a: i32, gss_node_id: GssNodeId) {
-        let arena = self.vec_arena;
         self.gss_nodes_index_packed
-            .insert((input_index, p, a), gss_node_id, arena);
+            .insert((input_index, p, a), gss_node_id);
     }
     fn add_gss_node_packed_operand(
         &mut self,
@@ -22770,9 +22814,8 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
         a: i32,
         gss_node_id: GssNodeId,
     ) {
-        let arena = self.vec_arena;
         self.gss_nodes_index_packed_operand
-            .insert((input_index, p, end, a), gss_node_id, arena);
+            .insert((input_index, p, end, a), gss_node_id);
     }
     fn add_gss_node_packed_middle(
         &mut self,
@@ -22782,9 +22825,8 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
         a: i32,
         gss_node_id: GssNodeId,
     ) {
-        let arena = self.vec_arena;
         self.gss_nodes_index_packed_middle
-            .insert((input_index, p, end, a), gss_node_id, arena);
+            .insert((input_index, p, end, a), gss_node_id);
     }
     fn add_gss_node_nullable_recursive(
         &mut self,
@@ -22793,9 +22835,8 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
         a: i32,
         gss_node_id: GssNodeId,
     ) {
-        let arena = self.vec_arena;
         self.gss_nodes_index_nullable_recursive
-            .insert((input_index, p, a), gss_node_id, arena);
+            .insert((input_index, p, a), gss_node_id);
     }
     fn add_gss_node_nullable_operand(
         &mut self,
@@ -22804,9 +22845,8 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
         a: i32,
         gss_node_id: GssNodeId,
     ) {
-        let arena = self.vec_arena;
         self.gss_nodes_index_nullable_operand
-            .insert((input_index, p, a), gss_node_id, arena);
+            .insert((input_index, p, a), gss_node_id);
     }
     fn add_gss_node_nullable_maybe(
         &mut self,
@@ -22815,9 +22855,8 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
         a: i32,
         gss_node_id: GssNodeId,
     ) {
-        let arena = self.vec_arena;
         self.gss_nodes_index_nullable_maybe
-            .insert((input_index, p, a), gss_node_id, arena);
+            .insert((input_index, p, a), gss_node_id);
     }
     fn add_gss_node_nullable_lex_recursive(
         &mut self,
@@ -22826,9 +22865,8 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
         a: i32,
         gss_node_id: GssNodeId,
     ) {
-        let arena = self.vec_arena;
         self.gss_nodes_index_nullable_lex_recursive
-            .insert((input_index, p, a), gss_node_id, arena);
+            .insert((input_index, p, a), gss_node_id);
     }
     fn add_gss_node_nullable_lex_operand(
         &mut self,
@@ -22837,9 +22875,8 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
         a: i32,
         gss_node_id: GssNodeId,
     ) {
-        let arena = self.vec_arena;
         self.gss_nodes_index_nullable_lex_operand
-            .insert((input_index, p, a), gss_node_id, arena);
+            .insert((input_index, p, a), gss_node_id);
     }
     fn add_gss_node_nullable_lex_maybe(
         &mut self,
@@ -22848,9 +22885,8 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
         a: i32,
         gss_node_id: GssNodeId,
     ) {
-        let arena = self.vec_arena;
         self.gss_nodes_index_nullable_lex_maybe
-            .insert((input_index, p, a), gss_node_id, arena);
+            .insert((input_index, p, a), gss_node_id);
     }
     fn add_gss_node_nullable_suffix(
         &mut self,
@@ -22859,9 +22895,8 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
         a: i32,
         gss_node_id: GssNodeId,
     ) {
-        let arena = self.vec_arena;
         self.gss_nodes_index_nullable_suffix
-            .insert((input_index, p, a), gss_node_id, arena);
+            .insert((input_index, p, a), gss_node_id);
     }
     fn add_gss_node_nullable_suffix_operand(
         &mut self,
@@ -22870,12 +22905,8 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
         a: i32,
         gss_node_id: GssNodeId,
     ) {
-        let arena = self.vec_arena;
-        self.gss_nodes_index_nullable_suffix_operand.insert(
-            (input_index, p, a),
-            gss_node_id,
-            arena,
-        );
+        self.gss_nodes_index_nullable_suffix_operand
+            .insert((input_index, p, a), gss_node_id);
     }
     fn add_gss_node_nullable_suffix_maybe(
         &mut self,
@@ -22884,9 +22915,8 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
         a: i32,
         gss_node_id: GssNodeId,
     ) {
-        let arena = self.vec_arena;
         self.gss_nodes_index_nullable_suffix_maybe
-            .insert((input_index, p, a), gss_node_id, arena);
+            .insert((input_index, p, a), gss_node_id);
     }
     fn add_gss_node_nullable_shared(
         &mut self,
@@ -22895,9 +22925,8 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
         a: i32,
         gss_node_id: GssNodeId,
     ) {
-        let arena = self.vec_arena;
         self.gss_nodes_index_nullable_shared
-            .insert((input_index, p, a), gss_node_id, arena);
+            .insert((input_index, p, a), gss_node_id);
     }
     fn add_gss_node_nullable_shared_operand(
         &mut self,
@@ -22907,12 +22936,8 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
         a: i32,
         gss_node_id: GssNodeId,
     ) {
-        let arena = self.vec_arena;
-        self.gss_nodes_index_nullable_shared_operand.insert(
-            (input_index, p, end, a),
-            gss_node_id,
-            arena,
-        );
+        self.gss_nodes_index_nullable_shared_operand
+            .insert((input_index, p, end, a), gss_node_id);
     }
     fn add_gss_node_nullable_shared_maybe(
         &mut self,
@@ -22922,17 +22947,12 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
         a: i32,
         gss_node_id: GssNodeId,
     ) {
-        let arena = self.vec_arena;
-        self.gss_nodes_index_nullable_shared_maybe.insert(
-            (input_index, p, end, a),
-            gss_node_id,
-            arena,
-        );
+        self.gss_nodes_index_nullable_shared_maybe
+            .insert((input_index, p, end, a), gss_node_id);
     }
     fn add_gss_node_own_label(&mut self, input_index: u32, p: i32, a: i32, gss_node_id: GssNodeId) {
-        let arena = self.vec_arena;
         self.gss_nodes_index_own_label
-            .insert((input_index, p, a), gss_node_id, arena);
+            .insert((input_index, p, a), gss_node_id);
     }
     fn add_gss_node_own_operand(
         &mut self,
@@ -22942,14 +22962,12 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
         a: i32,
         gss_node_id: GssNodeId,
     ) {
-        let arena = self.vec_arena;
         self.gss_nodes_index_own_operand
-            .insert((input_index, p, end, a), gss_node_id, arena);
+            .insert((input_index, p, end, a), gss_node_id);
     }
     fn add_gss_node_absent(&mut self, input_index: u32, p: i32, gss_node_id: GssNodeId) {
-        let arena = self.vec_arena;
         self.gss_nodes_index_absent
-            .insert((input_index, p), gss_node_id, arena);
+            .insert((input_index, p), gss_node_id);
     }
     fn add_gss_node_absent_operand(
         &mut self,
@@ -22958,14 +22976,12 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
         end: i32,
         gss_node_id: GssNodeId,
     ) {
-        let arena = self.vec_arena;
         self.gss_nodes_index_absent_operand
-            .insert((input_index, p, end), gss_node_id, arena);
+            .insert((input_index, p, end), gss_node_id);
     }
     fn add_gss_node_closed_prefix(&mut self, input_index: u32, p: i32, gss_node_id: GssNodeId) {
-        let arena = self.vec_arena;
         self.gss_nodes_index_closed_prefix
-            .insert((input_index, p), gss_node_id, arena);
+            .insert((input_index, p), gss_node_id);
     }
     fn add_gss_node_closed_prefix_body(
         &mut self,
@@ -22973,14 +22989,12 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
         p: i32,
         gss_node_id: GssNodeId,
     ) {
-        let arena = self.vec_arena;
         self.gss_nodes_index_closed_prefix_body
-            .insert((input_index, p), gss_node_id, arena);
+            .insert((input_index, p), gss_node_id);
     }
     fn add_gss_node_closed_postfix(&mut self, input_index: u32, p: i32, gss_node_id: GssNodeId) {
-        let arena = self.vec_arena;
         self.gss_nodes_index_closed_postfix
-            .insert((input_index, p), gss_node_id, arena);
+            .insert((input_index, p), gss_node_id);
     }
     fn add_gss_node_closed_postfix_body(
         &mut self,
@@ -22988,14 +23002,12 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
         p: i32,
         gss_node_id: GssNodeId,
     ) {
-        let arena = self.vec_arena;
         self.gss_nodes_index_closed_postfix_body
-            .insert((input_index, p), gss_node_id, arena);
+            .insert((input_index, p), gss_node_id);
     }
     fn add_gss_node_head_choice(&mut self, input_index: u32, p: i32, gss_node_id: GssNodeId) {
-        let arena = self.vec_arena;
         self.gss_nodes_index_head_choice
-            .insert((input_index, p), gss_node_id, arena);
+            .insert((input_index, p), gss_node_id);
     }
     fn add_gss_node_head_operand(
         &mut self,
@@ -23004,14 +23016,12 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
         end: i32,
         gss_node_id: GssNodeId,
     ) {
-        let arena = self.vec_arena;
         self.gss_nodes_index_head_operand
-            .insert((input_index, p, end), gss_node_id, arena);
+            .insert((input_index, p, end), gss_node_id);
     }
     fn add_gss_node_inner(&mut self, input_index: u32, p: i32, gss_node_id: GssNodeId) {
-        let arena = self.vec_arena;
         self.gss_nodes_index_inner
-            .insert((input_index, p), gss_node_id, arena);
+            .insert((input_index, p), gss_node_id);
     }
     fn add_gss_node_unary_mixed_left(
         &mut self,
@@ -23020,9 +23030,8 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
         a: i32,
         gss_node_id: GssNodeId,
     ) {
-        let arena = self.vec_arena;
         self.gss_nodes_index_unary_mixed_left
-            .insert((input_index, p, a), gss_node_id, arena);
+            .insert((input_index, p, a), gss_node_id);
     }
     fn add_gss_node_unary_mixed_right(
         &mut self,
@@ -23031,9 +23040,8 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
         a: i32,
         gss_node_id: GssNodeId,
     ) {
-        let arena = self.vec_arena;
         self.gss_nodes_index_unary_mixed_right
-            .insert((input_index, p, a), gss_node_id, arena);
+            .insert((input_index, p, a), gss_node_id);
     }
     fn add_gss_node_unary_mixed_none(
         &mut self,
@@ -23042,14 +23050,12 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
         a: i32,
         gss_node_id: GssNodeId,
     ) {
-        let arena = self.vec_arena;
         self.gss_nodes_index_unary_mixed_none
-            .insert((input_index, p, a), gss_node_id, arena);
+            .insert((input_index, p, a), gss_node_id);
     }
     fn add_gss_node_dynamic(&mut self, input_index: u32, p: i32, a: i32, gss_node_id: GssNodeId) {
-        let arena = self.vec_arena;
         self.gss_nodes_index_dynamic
-            .insert((input_index, p, a), gss_node_id, arena);
+            .insert((input_index, p, a), gss_node_id);
     }
     fn add_gss_node_dynamic_operand(
         &mut self,
@@ -23059,9 +23065,8 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
         a: i32,
         gss_node_id: GssNodeId,
     ) {
-        let arena = self.vec_arena;
         self.gss_nodes_index_dynamic_operand
-            .insert((input_index, p, end, a), gss_node_id, arena);
+            .insert((input_index, p, end, a), gss_node_id);
     }
     fn add_gss_node_dynamic_multi(
         &mut self,
@@ -23070,9 +23075,8 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
         a: i32,
         gss_node_id: GssNodeId,
     ) {
-        let arena = self.vec_arena;
         self.gss_nodes_index_dynamic_multi
-            .insert((input_index, p, a), gss_node_id, arena);
+            .insert((input_index, p, a), gss_node_id);
     }
     fn add_gss_node_dynamic_multi_operand(
         &mut self,
@@ -23082,12 +23086,8 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
         a: i32,
         gss_node_id: GssNodeId,
     ) {
-        let arena = self.vec_arena;
-        self.gss_nodes_index_dynamic_multi_operand.insert(
-            (input_index, p, end, a),
-            gss_node_id,
-            arena,
-        );
+        self.gss_nodes_index_dynamic_multi_operand
+            .insert((input_index, p, end, a), gss_node_id);
     }
     fn add_gss_node_nullable_boundary_prefix(
         &mut self,
@@ -23095,9 +23095,8 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
         p: i32,
         gss_node_id: GssNodeId,
     ) {
-        let arena = self.vec_arena;
         self.gss_nodes_index_nullable_boundary_prefix
-            .insert((input_index, p), gss_node_id, arena);
+            .insert((input_index, p), gss_node_id);
     }
     fn add_gss_node_nullable_boundary_postfix(
         &mut self,
@@ -23105,9 +23104,8 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
         p: i32,
         gss_node_id: GssNodeId,
     ) {
-        let arena = self.vec_arena;
         self.gss_nodes_index_nullable_boundary_postfix
-            .insert((input_index, p), gss_node_id, arena);
+            .insert((input_index, p), gss_node_id);
     }
     fn add_gss_node_nullable_boundary_binary(
         &mut self,
@@ -23115,9 +23113,8 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
         p: i32,
         gss_node_id: GssNodeId,
     ) {
-        let arena = self.vec_arena;
         self.gss_nodes_index_nullable_boundary_binary
-            .insert((input_index, p), gss_node_id, arena);
+            .insert((input_index, p), gss_node_id);
     }
     fn add_gss_node_closed_left_assoc(
         &mut self,
@@ -23126,9 +23123,8 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
         a: i32,
         gss_node_id: GssNodeId,
     ) {
-        let arena = self.vec_arena;
         self.gss_nodes_index_closed_left_assoc
-            .insert((input_index, p, a), gss_node_id, arena);
+            .insert((input_index, p, a), gss_node_id);
     }
     fn add_gss_node_closed_left_operand(
         &mut self,
@@ -23137,9 +23133,8 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
         a: i32,
         gss_node_id: GssNodeId,
     ) {
-        let arena = self.vec_arena;
         self.gss_nodes_index_closed_left_operand
-            .insert((input_index, p, a), gss_node_id, arena);
+            .insert((input_index, p, a), gss_node_id);
     }
     fn add_gss_node_closed_right_assoc(
         &mut self,
@@ -23148,9 +23143,8 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
         a: i32,
         gss_node_id: GssNodeId,
     ) {
-        let arena = self.vec_arena;
         self.gss_nodes_index_closed_right_assoc
-            .insert((input_index, p, a), gss_node_id, arena);
+            .insert((input_index, p, a), gss_node_id);
     }
     fn add_gss_node_closed_right_operand(
         &mut self,
@@ -23159,9 +23153,8 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
         a: i32,
         gss_node_id: GssNodeId,
     ) {
-        let arena = self.vec_arena;
         self.gss_nodes_index_closed_right_operand
-            .insert((input_index, p, a), gss_node_id, arena);
+            .insert((input_index, p, a), gss_node_id);
     }
     fn add_gss_node_indirect_exclude(
         &mut self,
@@ -23170,9 +23163,8 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
         a: i32,
         gss_node_id: GssNodeId,
     ) {
-        let arena = self.vec_arena;
         self.gss_nodes_index_indirect_exclude
-            .insert((input_index, p, a), gss_node_id, arena);
+            .insert((input_index, p, a), gss_node_id);
     }
     fn add_gss_node_indirect_exclude_operand(
         &mut self,
@@ -23182,12 +23174,8 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
         a: i32,
         gss_node_id: GssNodeId,
     ) {
-        let arena = self.vec_arena;
-        self.gss_nodes_index_indirect_exclude_operand.insert(
-            (input_index, p, end, a),
-            gss_node_id,
-            arena,
-        );
+        self.gss_nodes_index_indirect_exclude_operand
+            .insert((input_index, p, end, a), gss_node_id);
     }
     fn add_gss_node_operand_literal(
         &mut self,
@@ -23196,9 +23184,8 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
         a: i32,
         gss_node_id: GssNodeId,
     ) {
-        let arena = self.vec_arena;
         self.gss_nodes_index_operand_literal
-            .insert((input_index, p, a), gss_node_id, arena);
+            .insert((input_index, p, a), gss_node_id);
     }
     fn add_gss_node_operand_literal_end(
         &mut self,
@@ -23208,17 +23195,12 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
         a: i32,
         gss_node_id: GssNodeId,
     ) {
-        let arena = self.vec_arena;
-        self.gss_nodes_index_operand_literal_end.insert(
-            (input_index, p, end, a),
-            gss_node_id,
-            arena,
-        );
+        self.gss_nodes_index_operand_literal_end
+            .insert((input_index, p, end, a), gss_node_id);
     }
     fn add_gss_node_head_literal(&mut self, input_index: u32, p: i32, gss_node_id: GssNodeId) {
-        let arena = self.vec_arena;
         self.gss_nodes_index_head_literal
-            .insert((input_index, p), gss_node_id, arena);
+            .insert((input_index, p), gss_node_id);
     }
     fn add_gss_node_head_literal_end(
         &mut self,
@@ -23227,19 +23209,16 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
         end: i32,
         gss_node_id: GssNodeId,
     ) {
-        let arena = self.vec_arena;
         self.gss_nodes_index_head_literal_end
-            .insert((input_index, p, end), gss_node_id, arena);
+            .insert((input_index, p, end), gss_node_id);
     }
     fn add_gss_node_opt_1(&mut self, input_index: u32, p: i32, a: i32, gss_node_id: GssNodeId) {
-        let arena = self.vec_arena;
         self.gss_nodes_index_opt_1
-            .insert((input_index, p, a), gss_node_id, arena);
+            .insert((input_index, p, a), gss_node_id);
     }
     fn add_gss_node_opt_2(&mut self, input_index: u32, p: i32, a: i32, gss_node_id: GssNodeId) {
-        let arena = self.vec_arena;
         self.gss_nodes_index_opt_2
-            .insert((input_index, p, a), gss_node_id, arena);
+            .insert((input_index, p, a), gss_node_id);
     }
     fn add_gss_node_opt_3(
         &mut self,
@@ -23249,9 +23228,8 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
         a: i32,
         gss_node_id: GssNodeId,
     ) {
-        let arena = self.vec_arena;
         self.gss_nodes_index_opt_3
-            .insert((input_index, p, end, a), gss_node_id, arena);
+            .insert((input_index, p, end, a), gss_node_id);
     }
     fn get_or_create_epsilon_node(&mut self, i: u32) -> SPPFNodeId {
         if let Some(existing) = self.epsilon_nodes[i as usize] {

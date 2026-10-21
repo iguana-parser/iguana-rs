@@ -61,11 +61,6 @@ impl NonterminalIds {
     pub fn nonterminals(&self) -> impl Iterator<Item = &Nonterminal> {
         self.nonterminals.iter()
     }
-    /// The id of the first data-dependent nonterminal; nonterminals without
-    /// parameters have the ids below it.
-    pub fn dd_id_start(&self) -> usize {
-        self.dd_id_start
-    }
     pub fn dd_nonterminals(&self) -> impl Iterator<Item = &Nonterminal> {
         self.nonterminals.iter().skip(self.dd_id_start)
     }

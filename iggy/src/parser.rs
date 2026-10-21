@@ -11,23 +11,23 @@ use iguana_runtime::input::Span;
 #[cfg(feature = "debug-trace")]
 use iguana_runtime::trace::TraceEvent;
 use iguana_runtime::{
-    arena::{Arena, ArenaIdVec, ArenaVec},
+    arena::{Arena, ArenaIdVec, ArenaMap, ArenaVec},
     descriptor::Descriptor,
     env::Env,
-    gss::GSSNode,
+    gss::{GSSIndex, GSSNode},
     ids::{BindingId, EnvId, GssNodeId, NonterminalId, SPPFNodeId, SlotId, TerminalId},
     input::Input,
     parser::{
-        DESCRIPTORS_CAPACITY_DIVISOR, DESCRIPTORS_CAPACITY_FLOOR, ENVS_CAPACITY_MULTIPLIER,
-        GLLFailure, GLLFailureKind, GSS_CAPACITY_MULTIPLIER, Parser, SPPF_CAPACITY_MULTIPLIER,
-        init_logger,
+        DD_GSS_INDEX_CAPACITY_DIVISOR, DESCRIPTORS_CAPACITY_DIVISOR, DESCRIPTORS_CAPACITY_FLOOR,
+        ENVS_CAPACITY_MULTIPLIER, GLLFailure, GLLFailureKind, GSS_CAPACITY_MULTIPLIER, Parser,
+        SPPF_CAPACITY_MULTIPLIER, init_logger,
     },
     prediction::Prediction,
     record,
     result::{ParseError, ParseSuccess},
     scanner::{Scanner, TerminalSet},
     sppf::{IntermediateNode, NonterminalNode, SPPFNode, TerminalNode},
-    utils::{inline_map::InlineMap, inline_vec::InlineVec, lazy_inline_maps::LazyInlineMaps},
+    utils::{inline_vec::InlineVec, lazy_inline_maps::LazyInlineMaps},
 };
 use rustc_hash::FxHashMap;
 use std::cell::OnceCell;
@@ -4033,7 +4033,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for IggyParser<'i, 'arena> {
     }
     fn get_gss_node(&self, nonterminal_id: NonterminalId, input_index: u32) -> Option<GssNodeId> {
         self.gss_nodes_index
-            .get(nonterminal_id.index(), &input_index)
+            .get(&self.gss_nodes, nonterminal_id, input_index)
     }
     fn add_gss_node(
         &mut self,
@@ -4041,9 +4041,8 @@ impl<'i, 'arena> Parser<'i, 'arena> for IggyParser<'i, 'arena> {
         input_index: u32,
         gss_node_id: GssNodeId,
     ) {
-        let arena = self.vec_arena;
         self.gss_nodes_index
-            .insert(nonterminal_id.index(), input_index, gss_node_id, arena);
+            .insert(&self.gss_nodes, nonterminal_id, input_index, gss_node_id);
     }
     fn new_gss_node(&mut self, nonterminal_id: NonterminalId, input_index: u32) -> GssNodeId {
         record!(self, GSSNodeCreated, nonterminal_id, input_index);
@@ -4392,9 +4391,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for IggyParser<'i, 'arena> {
         for len in self.terminal_nodes_index.map_lens() {
             stats.record("Parser::terminal_nodes_index: InlineMap", len);
         }
-        for len in self.gss_nodes_index.map_lens() {
-            stats.record("Parser::gss_nodes_index: InlineMap", len);
-        }
+        stats.record("Parser::gss_nodes_index", self.gss_nodes_index.len());
         stats.record(
             "Parser::gss_nodes_index_symbol",
             self.gss_nodes_index_symbol.len(),
@@ -4625,10 +4622,10 @@ pub struct IggyParser<'i, 'arena> {
     gss_nodes: ArenaIdVec<'arena, GssNodeId, GSSNode<'arena>>,
     // The start nonterminal's GSS node at input position 0, set by `run`.
     start_gss_node_id: Option<GssNodeId>,
-    // Per-nonterminal GSS-node index keyed by input position.
-    gss_nodes_index: LazyInlineMaps<'arena, u32, GssNodeId>,
+    // GSS-node index for the nonterminals without parameters.
+    gss_nodes_index: GSSIndex<'arena>,
     // GSS index for nonterminal Symbol
-    gss_nodes_index_symbol: InlineMap<'arena, (u32, i32), GssNodeId>,
+    gss_nodes_index_symbol: ArenaMap<'arena, (u32, i32), GssNodeId>,
     sppf_nodes: ArenaIdVec<'arena, SPPFNodeId, SPPFNode>,
     #[cfg(feature = "instrument")]
     descriptors_count: usize,
@@ -4677,8 +4674,9 @@ impl<'i, 'arena> IggyParser<'i, 'arena> {
         Self {
             vec_arena,
             scanner: IggyScanner::new(input, vec_arena),
-            gss_nodes_index: LazyInlineMaps::new(60, vec_arena),
-            gss_nodes_index_symbol: InlineMap::Empty,
+            gss_nodes_index: GSSIndex::new(input.len() as usize, vec_arena),
+            gss_nodes_index_symbol: vec_arena
+                .map_with_capacity(input.len() as usize / DD_GSS_INDEX_CAPACITY_DIVISOR),
             descriptors: vec_arena.vec_with_capacity(
                 input.len() as usize / DESCRIPTORS_CAPACITY_DIVISOR + DESCRIPTORS_CAPACITY_FLOOR,
             ),
@@ -6144,9 +6142,8 @@ impl<'i, 'arena> IggyParser<'i, 'arena> {
         self.gss_nodes_index_symbol.get(&(input_index, p)).copied()
     }
     fn add_gss_node_symbol(&mut self, input_index: u32, p: i32, gss_node_id: GssNodeId) {
-        let arena = self.vec_arena;
         self.gss_nodes_index_symbol
-            .insert((input_index, p), gss_node_id, arena);
+            .insert((input_index, p), gss_node_id);
     }
     fn get_or_create_epsilon_node(&mut self, i: u32) -> SPPFNodeId {
         if let Some(existing) = self.epsilon_nodes[i as usize] {

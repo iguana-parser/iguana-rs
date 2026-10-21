@@ -330,24 +330,27 @@ impl<'a> ParserGen<'a> {
     fn gen_imports(&self) -> TokenStream {
         let scanner_name = scanner_ident(&self.grammar.name);
         let parse_tree_builder_name = parse_tree_builder_ident(&self.grammar.name);
-        // The first-parse mode omits the side maps, the only users of OnceCell and FxHashMap.
-        let (once_cell_import, fx_hashmap_import) = if self.config.first_parse {
-            (quote! {}, quote! {})
-        } else {
-            (
-                quote! { use std::cell::OnceCell; },
-                quote! { use rustc_hash::FxHashMap; },
-            )
-        };
+        // The first-parse mode omits the side maps, the only users of OnceCell and
+        // FxHashMap, and the SPPF indexes, the only users of LazyInlineMaps.
+        let (once_cell_import, fx_hashmap_import, lazy_inline_maps_import) =
+            if self.config.first_parse {
+                (quote! {}, quote! {}, quote! {})
+            } else {
+                (
+                    quote! { use std::cell::OnceCell; },
+                    quote! { use rustc_hash::FxHashMap; },
+                    quote! { lazy_inline_maps::LazyInlineMaps },
+                )
+            };
         let has_parameters = self.nonterminal_ids.dd_nonterminals().next().is_some();
-        let envs_capacity_import = if has_parameters {
-            quote! { ENVS_CAPACITY_MULTIPLIER, }
+        let parameters_capacity_imports = if has_parameters {
+            quote! { DD_GSS_INDEX_CAPACITY_DIVISOR, ENVS_CAPACITY_MULTIPLIER, }
         } else {
             quote! {}
         };
-        // The GSS indexes of data-dependent nonterminals are the only users of InlineMap.
-        let inline_map_import = if has_parameters {
-            quote! { inline_map::InlineMap, }
+        // The GSS indexes of data-dependent nonterminals are the only users of ArenaMap.
+        let arena_map_import = if has_parameters {
+            quote! { ArenaMap, }
         } else {
             quote! {}
         };
@@ -361,17 +364,17 @@ impl<'a> ParserGen<'a> {
             use iguana_runtime::{
                 descriptor::Descriptor,
                 env::Env,
-                gss::GSSNode,
+                gss::{GSSIndex, GSSNode},
                 ids::{BindingId, EnvId, GssNodeId, NonterminalId, SPPFNodeId, SlotId, TerminalId},
-                arena::{Arena, ArenaIdVec, ArenaVec},
+                arena::{Arena, ArenaIdVec, #arena_map_import ArenaVec},
                 input::Input,
-                parser::{Parser, GLLFailure, GLLFailureKind, init_logger, DESCRIPTORS_CAPACITY_DIVISOR, DESCRIPTORS_CAPACITY_FLOOR, #envs_capacity_import GSS_CAPACITY_MULTIPLIER, SPPF_CAPACITY_MULTIPLIER},
+                parser::{Parser, GLLFailure, GLLFailureKind, init_logger, DESCRIPTORS_CAPACITY_DIVISOR, DESCRIPTORS_CAPACITY_FLOOR, #parameters_capacity_imports GSS_CAPACITY_MULTIPLIER, SPPF_CAPACITY_MULTIPLIER},
                 record,
                 result::{ParseError, ParseSuccess},
                 prediction::Prediction,
                 scanner::{Scanner, TerminalSet},
                 sppf::{IntermediateNode, NonterminalNode, SPPFNode, TerminalNode},
-                utils::{#inline_map_import inline_vec::InlineVec, lazy_inline_maps::LazyInlineMaps}
+                utils::{inline_vec::InlineVec, #lazy_inline_maps_import}
             };
             // In the first-parse mode Span is used only by LL(1) node construction; checking whether the
             // grammar has any here is expensive, so allow the unused import instead.
@@ -1517,8 +1520,8 @@ impl<'a> ParserGen<'a> {
                 gss_nodes: ArenaIdVec<'arena, GssNodeId, GSSNode<'arena>>,
                 #[comment = "The start nonterminal's GSS node at input position 0, set by `run`."]
                 start_gss_node_id: Option<GssNodeId>,
-                #[comment = "Per-nonterminal GSS-node index keyed by input position."]
-                gss_nodes_index: LazyInlineMaps<'arena, u32, GssNodeId>,
+                #[comment = "GSS-node index for the nonterminals without parameters."]
+                gss_nodes_index: GSSIndex<'arena>,
                 #(#gss_nodes_index_fields,)*
                 sppf_nodes: ArenaIdVec<'arena, SPPFNodeId, SPPFNode>,
                 #[cfg(feature = "instrument")]
@@ -1544,9 +1547,8 @@ impl<'a> ParserGen<'a> {
     }
 
     fn gen_gss_nodes_index_field(&self) -> TokenStream {
-        let gss_nodes_index = lazy_inline_maps(self.nonterminal_ids.dd_id_start());
         quote! {
-            gss_nodes_index: #gss_nodes_index
+            gss_nodes_index: GSSIndex::new(input.len() as usize, vec_arena)
         }
     }
 
@@ -2104,7 +2106,7 @@ impl<'a> ParserGen<'a> {
     fn gen_get_gss_node_method() -> TokenStream {
         quote! {
             fn get_gss_node(&self, nonterminal_id: NonterminalId, input_index: u32) -> Option<GssNodeId> {
-                self.gss_nodes_index.get(nonterminal_id.index(), &input_index)
+                self.gss_nodes_index.get(&self.gss_nodes, nonterminal_id, input_index)
             }
         }
     }
@@ -2135,8 +2137,7 @@ impl<'a> ParserGen<'a> {
     fn gen_add_gss_node_method() -> TokenStream {
         quote! {
             fn add_gss_node(&mut self, nonterminal_id: NonterminalId, input_index: u32, gss_node_id: GssNodeId) {
-                let arena = self.vec_arena;
-                self.gss_nodes_index.insert(nonterminal_id.index(), input_index, gss_node_id, arena);
+                self.gss_nodes_index.insert(&self.gss_nodes, nonterminal_id, input_index, gss_node_id);
             }
         }
     }
@@ -2159,8 +2160,7 @@ impl<'a> ParserGen<'a> {
             .collect();
         quote! {
             fn #method_name(&mut self, input_index: u32, #(#parameters,)* gss_node_id: GssNodeId) {
-                let arena = self.vec_arena;
-                self.#field_name.insert((input_index, #(#parameter_names),*), gss_node_id, arena);
+                self.#field_name.insert((input_index, #(#parameter_names),*), gss_node_id);
             }
         }
     }
@@ -2697,14 +2697,14 @@ impl<'a> ParserGen<'a> {
         let comment = format!("GSS index for nonterminal {}", nt.name);
         quote! {
             #[comment = #comment]
-            #field_name: InlineMap<'arena, (u32, #(#types),*), GssNodeId>
+            #field_name: ArenaMap<'arena, (u32, #(#types),*), GssNodeId>
         }
     }
 
     fn gen_gss_nodes_index_field_init(nt: &Nonterminal) -> TokenStream {
         let field_name = format_ident!("gss_nodes_index_{}", to_snake_case(&nt.name));
         quote! {
-            #field_name: InlineMap::Empty
+            #field_name: vec_arena.map_with_capacity(input.len() as usize / DD_GSS_INDEX_CAPACITY_DIVISOR)
         }
     }
 
@@ -2951,9 +2951,7 @@ impl<'a> ParserGen<'a> {
                     stats.record("Env::bindings: Bindings", env.bindings.len());
                 }
                 #sppf_index_records
-                for len in self.gss_nodes_index.map_lens() {
-                    stats.record("Parser::gss_nodes_index: InlineMap", len);
-                }
+                stats.record("Parser::gss_nodes_index", self.gss_nodes_index.len());
                 #(#gss_index_records)*
                 for (nt_id, pos) in &self.ll1_call_log {
                     let name = Self::Grammar::nonterminal_display_name(*nt_id);

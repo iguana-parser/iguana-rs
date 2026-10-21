@@ -1,6 +1,6 @@
 use allocator_api2::vec::{IntoIter as AVecIntoIter, Vec as AVec};
 use bumpalo::Bump;
-use hashbrown::{HashMap as AMap, hash_map};
+use hashbrown::{HashMap as AMap, HashTable, hash_map};
 use rustc_hash::FxBuildHasher;
 
 use crate::{
@@ -26,7 +26,8 @@ pub type ArenaIdVec<'arena, I, T> = IdVec<I, T, &'arena Bump>;
 pub type ArenaVecIntoIter<'arena, T> = AVecIntoIter<T, &'arena Bump>;
 
 /// An Fx-hashed `HashMap` allocated from an [`Arena`]. Backs the spilled
-/// tables of `InlineMap`.
+/// tables of `InlineMap` and the GSS-node indexes of parameterized
+/// nonterminals.
 ///
 /// `ArenaMap` is hashbrown's map rather than `FxHashMap`, because `std`'s
 /// `HashMap` has no allocator parameter and so cannot live in an arena. The
@@ -35,6 +36,11 @@ pub type ArenaMap<'arena, K, V> = AMap<K, V, FxBuildHasher, &'arena Bump>;
 
 /// The borrowing iterator of an [`ArenaMap`].
 pub type ArenaMapIter<'a, K, V> = hash_map::Iter<'a, K, V>;
+
+/// A hashbrown `HashTable` allocated from an [`Arena`]. The table stores only
+/// values. Its caller supplies the hash of each operation, and a closure that
+/// compares or rehashes the stored values.
+pub type ArenaTable<'arena, T> = HashTable<T, &'arena Bump>;
 
 impl Arena {
     pub fn new() -> Self {
@@ -91,6 +97,12 @@ impl Arena {
     #[inline]
     pub fn map_with_capacity<K, V>(&self, capacity: usize) -> ArenaMap<'_, K, V> {
         AMap::with_capacity_and_hasher_in(capacity, FxBuildHasher, &self.0)
+    }
+
+    /// A table allocated from this arena with room for `capacity` entries.
+    #[inline]
+    pub fn table_with_capacity<T>(&self, capacity: usize) -> ArenaTable<'_, T> {
+        HashTable::with_capacity_in(capacity, &self.0)
     }
 
     /// Frees every allocation at once and keeps the memory for reuse. Takes

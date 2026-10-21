@@ -14,7 +14,7 @@ use iguana_runtime::{
     arena::{Arena, ArenaIdVec, ArenaVec},
     descriptor::Descriptor,
     env::Env,
-    gss::GSSNode,
+    gss::{GSSIndex, GSSNode},
     ids::{BindingId, EnvId, GssNodeId, NonterminalId, SPPFNodeId, SlotId, TerminalId},
     input::Input,
     parser::{
@@ -119,7 +119,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for FollowRestrictionMultipleParser<'i, 'are
     }
     fn get_gss_node(&self, nonterminal_id: NonterminalId, input_index: u32) -> Option<GssNodeId> {
         self.gss_nodes_index
-            .get(nonterminal_id.index(), &input_index)
+            .get(&self.gss_nodes, nonterminal_id, input_index)
     }
     fn add_gss_node(
         &mut self,
@@ -127,9 +127,8 @@ impl<'i, 'arena> Parser<'i, 'arena> for FollowRestrictionMultipleParser<'i, 'are
         input_index: u32,
         gss_node_id: GssNodeId,
     ) {
-        let arena = self.vec_arena;
         self.gss_nodes_index
-            .insert(nonterminal_id.index(), input_index, gss_node_id, arena);
+            .insert(&self.gss_nodes, nonterminal_id, input_index, gss_node_id);
     }
     fn new_gss_node(&mut self, nonterminal_id: NonterminalId, input_index: u32) -> GssNodeId {
         record!(self, GSSNodeCreated, nonterminal_id, input_index);
@@ -447,9 +446,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for FollowRestrictionMultipleParser<'i, 'are
         for len in self.terminal_nodes_index.map_lens() {
             stats.record("Parser::terminal_nodes_index: InlineMap", len);
         }
-        for len in self.gss_nodes_index.map_lens() {
-            stats.record("Parser::gss_nodes_index: InlineMap", len);
-        }
+        stats.record("Parser::gss_nodes_index", self.gss_nodes_index.len());
         for (nt_id, pos) in &self.ll1_call_log {
             let name = Self::Grammar::nonterminal_display_name(*nt_id);
             stats.record_ll1_call(name, *pos);
@@ -534,8 +531,8 @@ pub struct FollowRestrictionMultipleParser<'i, 'arena> {
     gss_nodes: ArenaIdVec<'arena, GssNodeId, GSSNode<'arena>>,
     // The start nonterminal's GSS node at input position 0, set by `run`.
     start_gss_node_id: Option<GssNodeId>,
-    // Per-nonterminal GSS-node index keyed by input position.
-    gss_nodes_index: LazyInlineMaps<'arena, u32, GssNodeId>,
+    // GSS-node index for the nonterminals without parameters.
+    gss_nodes_index: GSSIndex<'arena>,
     sppf_nodes: ArenaIdVec<'arena, SPPFNodeId, SPPFNode>,
     #[cfg(feature = "instrument")]
     descriptors_count: usize,
@@ -581,7 +578,7 @@ impl<'i, 'arena> FollowRestrictionMultipleParser<'i, 'arena> {
         Self {
             vec_arena,
             scanner: FollowRestrictionMultipleScanner::new(input, vec_arena),
-            gss_nodes_index: LazyInlineMaps::new(7, vec_arena),
+            gss_nodes_index: GSSIndex::new(input.len() as usize, vec_arena),
             descriptors: vec_arena.vec_with_capacity(
                 input.len() as usize / DESCRIPTORS_CAPACITY_DIVISOR + DESCRIPTORS_CAPACITY_FLOOR,
             ),

@@ -6,9 +6,9 @@ use crate::utils::inline_map::InlineMap;
 /// A `LazyInlineMaps` is an arena-allocated array where each element is an
 /// optional reference to an arena-allocated `InlineMap`.
 ///
-/// The parser uses it for its lookup indexes: there is one map per nonterminal,
-/// slot or terminal, and each map is keyed by an input position or span. There
-/// are two reasons for this design:
+/// The parser uses it for its lookup indexes: there is one map per slot or
+/// terminal, and each map is keyed by a span. There are two reasons for this
+/// design:
 /// 1. The parser holds only a reference to the array, so moving the parser does
 ///    not copy it, and allocating it is a bump in the arena.
 /// 2. Most of the maps stay empty. A `None` takes one pointer and needs no drop,

@@ -40,6 +40,11 @@ pub const ENVS_CAPACITY_MULTIPLIER: usize = 1;
 pub const DESCRIPTORS_CAPACITY_DIVISOR: usize = 4;
 pub const DESCRIPTORS_CAPACITY_FLOOR: usize = 1024;
 
+/// The initial capacity of the GSS-node index of each parameterized
+/// nonterminal, as a divisor of the input length. A map that outgrows its
+/// capacity rehashes, and a map that is too large takes extra memory.
+pub const DD_GSS_INDEX_CAPACITY_DIVISOR: usize = 32;
+
 pub enum GLLResult {
     Success(GLLSuccess),
     Failure(FailureReport),
@@ -235,8 +240,9 @@ pub trait Parser<'i, 'arena>: Sized {
     }
     fn next_descriptor(&mut self) -> Option<Descriptor>;
     /// The arena backing the parser's internal collections: GSS edges, popped
-    /// elements, env bindings, and spilled index maps. Handed to `push`/`insert`
-    /// at the spill boundary; reset in bulk after the parse.
+    /// elements, env bindings, the GSS-node indexes, and spilled index maps.
+    /// Handed to `push`/`insert` at the spill boundary; reset in bulk after the
+    /// parse.
     fn vec_arena(&self) -> &'arena Arena;
     /// Empties the descriptor queue. With no descriptors left, `run`'s loop ends and the parse
     /// terminates. `pop` calls it once the start nonterminal spans the full input, but only in
