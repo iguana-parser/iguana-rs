@@ -31,6 +31,7 @@ pub fn generate(
         gen_first_chars_statics(terminal_ids, first_chars, terminal_sets, match_any_count);
     let match_any_masks_static =
         gen_match_any_masks_static(terminal_ids, terminal_sets, match_any_count, config);
+    let first_char_masks_static = gen_first_char_masks_static(terminal_ids, first_chars, config);
     let scanner_struct = gen_scanner_struct(grammar_name, config);
     let scanner_impl = gen_scanner_imp(grammar, terminal_ids, match_any_count, config);
     let scanner_trait_impl = gen_scanner_trait_impl(grammar, terminal_ids, config);
@@ -40,6 +41,7 @@ pub fn generate(
         #dfa_statics
         #first_chars_statics
         #match_any_masks_static
+        #first_char_masks_static
         #scanner_struct
         #scanner_impl
         #scanner_trait_impl
@@ -48,12 +50,15 @@ pub fn generate(
 
 fn gen_imports(config: &GenConfig) -> TokenStream {
     let mut scanner_imports = vec![quote! { Scanner }, quote! { TerminalSet }];
-    let arena_import = if config.match_memo {
+    let (arena_import, prediction_import) = if config.match_memo {
         scanner_imports.push(quote! { Lookup });
         scanner_imports.push(quote! { MatchMemo });
-        quote! { arena::Arena, }
+        (
+            quote! { arena::Arena, },
+            quote! { prediction::{AlternativeSet, Prediction}, },
+        )
     } else {
-        quote! {}
+        (quote! {}, quote! {})
     };
     quote! {
         use iguana_runtime::{
@@ -62,6 +67,7 @@ fn gen_imports(config: &GenConfig) -> TokenStream {
             dfa::{Dfa, State},
             ids::TerminalId,
             input::Input,
+            #prediction_import
             scanner::{#(#scanner_imports),*},
         };
     }
@@ -174,6 +180,37 @@ fn gen_first_chars_statics(
     terminal_sets: &[TerminalSet],
     match_any_count: usize,
 ) -> TokenStream {
+    let terminals = terminal_first_chars(terminal_ids, first_chars);
+    let mut sets = vec![vec![]; match_any_count];
+    for set in terminal_sets.iter().filter(|set| set.id < match_any_count) {
+        let ranges = set
+            .terminals
+            .iter()
+            .flat_map(|terminal| &terminals[terminal_ids.get_id(terminal).index()])
+            .copied()
+            .collect();
+        sets[set.id] = merge_ranges(ranges);
+    }
+    let terminal_count = Literal::usize_unsuffixed(terminals.len());
+    let set_count = Literal::usize_unsuffixed(match_any_count);
+    let terminals = terminals.iter().map(|ranges| gen_char_set(ranges));
+    let sets = sets.iter().map(|ranges| gen_char_set(ranges));
+    quote! {
+        #[comment = "Indexed by terminal id. `TERMINAL_FIRST_CHARS[t]` holds the characters that can begin a
+                     match of the terminal `t`. A nullable terminal can match at every position, so its entry
+                     holds every character. `match_token` tests the character at a position against it before it
+                     matches the terminal."]
+        static TERMINAL_FIRST_CHARS: [CharSet; #terminal_count] = [#(#terminals),*];
+        static MATCH_ANY_FIRST_CHARS: [CharSet; #set_count] = [#(#sets),*];
+    }
+}
+
+/// The characters that can begin a match of each terminal, indexed by terminal
+/// id, as sorted and disjoint ranges.
+fn terminal_first_chars(
+    terminal_ids: &TerminalIds,
+    first_chars: &FirstChars,
+) -> Vec<Vec<CharRange>> {
     let all = vec![CharRange {
         start: '\0',
         end: char::MAX,
@@ -194,23 +231,45 @@ fn gen_first_chars_statics(
     // terminal matches no character, and its entry is the empty set.
     terminals.push(all);
     terminals.push(vec![]);
-    let mut sets = vec![vec![]; match_any_count];
-    for set in terminal_sets.iter().filter(|set| set.id < match_any_count) {
-        let ranges = set
-            .terminals
-            .iter()
-            .flat_map(|terminal| &terminals[terminal_ids.get_id(terminal).index()])
-            .copied()
-            .collect();
-        sets[set.id] = merge_ranges(ranges);
+    terminals
+}
+
+/// Emits `FIRST_CHAR_MASKS`, indexed by ASCII character. `FIRST_CHAR_MASKS[c]`
+/// is a bitset indexed by terminal id, and the bit of a terminal is set if the
+/// terminal can begin with the character `c`. `match_any` clears the bits of the
+/// other terminals before it matches the untried terminals of a set. The
+/// synthetic epsilon terminal does not have a bit, because no set contains it.
+fn gen_first_char_masks_static(
+    terminal_ids: &TerminalIds,
+    first_chars: &FirstChars,
+    config: &GenConfig,
+) -> TokenStream {
+    if !config.match_memo {
+        return quote! {};
     }
-    let terminal_count = Literal::usize_unsuffixed(terminals.len());
-    let set_count = Literal::usize_unsuffixed(match_any_count);
-    let terminals = terminals.iter().map(|ranges| gen_char_set(ranges));
-    let sets = sets.iter().map(|ranges| gen_char_set(ranges));
+    let terminals = terminal_first_chars(terminal_ids, first_chars);
+    let epsilon = terminal_ids.len();
+    let masks = (0..128u32).map(|c| {
+        let mut mask = vec![0u64; memo_words(terminal_ids)];
+        for (i, ranges) in terminals.iter().enumerate() {
+            if i != epsilon
+                && ranges
+                    .iter()
+                    .any(|range| range.start as u32 <= c && c <= range.end as u32)
+            {
+                mask[i / 64] |= 1u64 << (i % 64);
+            }
+        }
+        let words = mask.into_iter().map(Literal::u64_unsuffixed);
+        quote! { [#(#words),*] }
+    });
     quote! {
-        static TERMINAL_FIRST_CHARS: [CharSet; #terminal_count] = [#(#terminals),*];
-        static MATCH_ANY_FIRST_CHARS: [CharSet; #set_count] = [#(#sets),*];
+        #[comment = "Indexed by ASCII character. `FIRST_CHAR_MASKS[c]` is a bitset indexed by terminal id, and the
+                     bit of a terminal is set if the terminal can begin with the character `c`. It holds the same
+                     information as `TERMINAL_FIRST_CHARS`, inverted. `match_any` clears the bits of the terminals
+                     of a set that cannot begin with the character at a position, so `match_any_untried` visits
+                     only the terminals that can match there."]
+        static FIRST_CHAR_MASKS: [[u64; MATCH_MEMO_WORDS]; 128] = [#(#masks),*];
     }
 }
 
@@ -379,21 +438,24 @@ fn gen_match_exact_method(grammar: &Grammar, terminal_ids: &TerminalIds) -> Toke
 ///   the position. If it is not empty, the answer is true, whichever terminal
 ///   matched.
 /// - `mask & !tried` holds the terminals of the set that were not tried at the
-///   position yet. If it is empty, every terminal of the set was tried and none
-///   matched, and the answer is false. Otherwise `match_any_untried` matches
-///   only these terminals through `match_token`, which records each result in
-///   the memo.
+///   position yet. At an ASCII character, `FIRST_CHAR_MASKS` also clears the
+///   terminals that cannot begin with it. If the result is empty, no terminal of
+///   the set can match, and the answer is false. Otherwise `match_any_untried`
+///   matches only these terminals through `match_token`, which records each
+///   result in the memo.
 ///
 /// A terminal that was tried and did not match is in neither result, so the two
 /// steps skip it. Without the memo, `match_any` matches the terminals of the set
 /// one by one.
 fn gen_match_any_method(match_any_count: usize, config: &GenConfig) -> TokenStream {
     // Both versions, with and without the memo, start with the set's
-    // first-character test. Each terminal of the set then gets its own
-    // first-character test, which skips the call to `match_token` for a
-    // terminal that cannot start with `c`. As in `match_token`, both tests pass
-    // at the end of the input, where `char_at` is `None`. `match_any` is not
-    // inlined, for the same reason as `match_token`.
+    // first-character test. Without the memo, each terminal of the set then gets
+    // its own first-character test, which skips the call to `match_token` for a
+    // terminal that cannot start with `c`. With the memo, `FIRST_CHAR_MASKS`
+    // clears such a terminal at an ASCII character, and `match_token` rejects it
+    // at any other character. As in `match_token`, the tests pass at the end of
+    // the input, where `char_at` is `None`. `match_any` is not inlined, for the
+    // same reason as `match_token`.
     let first_char_test = quote! {
         let c = self.input.char_at(input_index);
         if c.is_some_and(|c| !MATCH_ANY_FIRST_CHARS[set.id].contains(c)) {
@@ -429,6 +491,13 @@ fn gen_match_any_method(match_any_count: usize, config: &GenConfig) -> TokenStre
                 for (word, tried) in untried.iter_mut().zip(tried) {
                     *word &= !tried;
                 }
+                #[comment = "A terminal that cannot begin with an ASCII character `c` does not match, and its
+                             bit is cleared without matching it."]
+                if let Some(c) = c.filter(char::is_ascii) {
+                    for (word, first) in untried.iter_mut().zip(&FIRST_CHAR_MASKS[c as usize]) {
+                        *word &= first;
+                    }
+                }
                 if untried.iter().all(|&word| word == 0) {
                     return false;
                 }
@@ -444,15 +513,12 @@ fn gen_match_any_method(match_any_count: usize, config: &GenConfig) -> TokenStre
                          instructions run only when a terminal of the set was not tried yet."]
             #[inline(never)]
             fn match_any_untried(&mut self, untried: [u64; MATCH_MEMO_WORDS], input_index: u32) -> bool {
-                let c = self.input.char_at(input_index);
                 for (word, &bits) in untried.iter().enumerate() {
                     let mut bits = bits;
                     while bits != 0 {
                         let id = TerminalId((word * 64) as u16 + bits.trailing_zeros() as u16);
                         bits &= bits - 1;
-                        if c.is_none_or(|c| TERMINAL_FIRST_CHARS[id.index()].contains(c))
-                            && self.match_token(id, input_index).is_some()
-                        {
+                        if self.match_token(id, input_index).is_some() {
                             return true;
                         }
                     }
@@ -477,6 +543,7 @@ fn gen_scanner_trait_impl(
     config: &GenConfig,
 ) -> TokenStream {
     let match_token_method = gen_match_token(terminal_ids, config);
+    let predict_method = gen_predict_method(config);
     let char_at_method = gen_char_at_method();
     let scanner_name = scanner_ident(&grammar.name);
     let scanner_ty = if config.match_memo {
@@ -487,7 +554,51 @@ fn gen_scanner_trait_impl(
     quote! {
         impl Scanner for #scanner_ty {
             #match_token_method
+            #predict_method
             #char_at_method
+        }
+    }
+}
+
+/// Emits `predict` when the scanner has a memo, in place of the default method
+/// of `Scanner`. Like `match_any`, it answers from the `tried` and `matched`
+/// bitsets of the position where it can, and only an untried terminal is
+/// matched. Without the memo, the scanner uses the default method.
+fn gen_predict_method(config: &GenConfig) -> TokenStream {
+    if !config.match_memo {
+        return quote! {};
+    }
+    quote! {
+        #[comment = "The alternatives that `prediction` predicts at `input_index`: those predicted by a
+                     terminal that matches there. The memo of `match_token` answers for the terminals already
+                     tried at `input_index`, and only the other terminals are matched. A call to `match_token`
+                     changes only the bits of its own terminal, so the copies of the bitsets stay valid."]
+        #[inline]
+        fn predict<A: AlternativeSet>(&mut self, prediction: &Prediction, input_index: u32) -> A {
+            let (tried, matched) = {
+                let (tried, matched) = self.memo.bits(input_index);
+                (*tried, *matched)
+            };
+            let mut alternatives = A::default();
+            for &(terminal, alternative) in prediction.terminals_at(self.input.char_at(input_index)) {
+                let alternative = usize::from(alternative);
+                #[comment = "An alternative already predicted does not need its terminal matched again."]
+                if alternatives.contains(alternative) {
+                    continue;
+                }
+                let (word, bit) = (terminal.index() / 64, 1u64 << (terminal.index() % 64));
+                let matches = if matched[word] & bit != 0 {
+                    true
+                } else if tried[word] & bit != 0 {
+                    false
+                } else {
+                    self.match_token(terminal, input_index).is_some()
+                };
+                if matches {
+                    alternatives.insert(alternative);
+                }
+            }
+            alternatives
         }
     }
 }

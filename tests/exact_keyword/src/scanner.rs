@@ -6,6 +6,7 @@ use iguana_runtime::{
     dfa::{Dfa, State},
     ids::TerminalId,
     input::Input,
+    prediction::{AlternativeSet, Prediction},
     scanner::{Lookup, MatchMemo, Scanner, TerminalSet},
 };
 const MATCH_MEMO_WORDS: usize = 1;
@@ -74,6 +75,10 @@ static DFA_9: Dfa = Dfa::new(&[
     ),
     State::new(&[], Some(TerminalId(9))),
 ]);
+// Indexed by terminal id. `TERMINAL_FIRST_CHARS[t]` holds the characters that can begin a
+// match of the terminal `t`. A nullable terminal can match at every position, so its entry
+// holds every character. `match_token` tests the character at a position against it before
+// it matches the terminal.
 static TERMINAL_FIRST_CHARS: [CharSet; 12] = [
     CharSet::new(0x7fffffe07fffffe0000000000000000, &[]),
     CharSet::new(0x3ff000000000000, &[]),
@@ -135,6 +140,141 @@ static MATCH_ANY_FIRST_CHARS: [CharSet; 7] = [
 ];
 static MATCH_ANY_MASKS: [[u64; MATCH_MEMO_WORDS]; 7] =
     [[2052], [2455], [512], [2124], [2327], [2048], [275]];
+// Indexed by ASCII character. `FIRST_CHAR_MASKS[c]` is a bitset indexed by terminal id, and
+// the bit of a terminal is set if the terminal can begin with the character `c`. It holds
+// the same information as `TERMINAL_FIRST_CHARS`, inverted. `match_any` clears the bits of
+// the terminals of a set that cannot begin with the character at a position, so
+// `match_any_untried` visits only the terminals that can match there.
+static FIRST_CHAR_MASKS: [[u64; MATCH_MEMO_WORDS]; 128] = [
+    [4],
+    [4],
+    [4],
+    [4],
+    [4],
+    [4],
+    [4],
+    [4],
+    [4],
+    [4],
+    [4],
+    [4],
+    [4],
+    [4],
+    [4],
+    [4],
+    [4],
+    [4],
+    [4],
+    [4],
+    [4],
+    [4],
+    [4],
+    [4],
+    [4],
+    [4],
+    [4],
+    [4],
+    [4],
+    [4],
+    [4],
+    [4],
+    [4],
+    [4],
+    [4],
+    [4],
+    [4],
+    [4],
+    [4],
+    [4],
+    [36],
+    [68],
+    [4],
+    [4],
+    [4],
+    [4],
+    [4],
+    [4],
+    [518],
+    [518],
+    [518],
+    [518],
+    [518],
+    [518],
+    [518],
+    [518],
+    [518],
+    [518],
+    [4],
+    [12],
+    [4],
+    [4],
+    [4],
+    [4],
+    [4],
+    [517],
+    [517],
+    [517],
+    [517],
+    [517],
+    [517],
+    [517],
+    [517],
+    [517],
+    [517],
+    [517],
+    [517],
+    [517],
+    [517],
+    [517],
+    [517],
+    [517],
+    [517],
+    [517],
+    [517],
+    [517],
+    [517],
+    [517],
+    [517],
+    [517],
+    [517],
+    [4],
+    [4],
+    [4],
+    [4],
+    [516],
+    [4],
+    [773],
+    [517],
+    [517],
+    [517],
+    [645],
+    [517],
+    [517],
+    [517],
+    [533],
+    [517],
+    [517],
+    [517],
+    [517],
+    [517],
+    [517],
+    [517],
+    [517],
+    [517],
+    [517],
+    [517],
+    [517],
+    [517],
+    [517],
+    [517],
+    [517],
+    [517],
+    [4],
+    [4],
+    [4],
+    [4],
+    [4],
+];
 pub struct ExactKeywordScanner<'i, 'arena> {
     pub input: &'i Input,
     vec_arena: &'arena Arena,
@@ -216,6 +356,13 @@ impl<'i, 'arena> ExactKeywordScanner<'i, 'arena> {
         for (word, tried) in untried.iter_mut().zip(tried) {
             *word &= !tried;
         }
+        // A terminal that cannot begin with an ASCII character `c` does not match, and its bit is
+        // cleared without matching it.
+        if let Some(c) = c.filter(char::is_ascii) {
+            for (word, first) in untried.iter_mut().zip(&FIRST_CHAR_MASKS[c as usize]) {
+                *word &= first;
+            }
+        }
         if untried.iter().all(|&word| word == 0) {
             return false;
         }
@@ -231,15 +378,12 @@ impl<'i, 'arena> ExactKeywordScanner<'i, 'arena> {
     // only when a terminal of the set was not tried yet.
     #[inline(never)]
     fn match_any_untried(&mut self, untried: [u64; MATCH_MEMO_WORDS], input_index: u32) -> bool {
-        let c = self.input.char_at(input_index);
         for (word, &bits) in untried.iter().enumerate() {
             let mut bits = bits;
             while bits != 0 {
                 let id = TerminalId((word * 64) as u16 + bits.trailing_zeros() as u16);
                 bits &= bits - 1;
-                if c.is_none_or(|c| TERMINAL_FIRST_CHARS[id.index()].contains(c))
-                    && self.match_token(id, input_index).is_some()
-                {
+                if self.match_token(id, input_index).is_some() {
                     return true;
                 }
             }
@@ -306,6 +450,37 @@ impl Scanner for ExactKeywordScanner<'_, '_> {
             };
         }
         self.match_token_and_memoize(terminal_id, input_index)
+    }
+    // The alternatives that `prediction` predicts at `input_index`: those predicted by a
+    // terminal that matches there. The memo of `match_token` answers for the terminals already
+    // tried at `input_index`, and only the other terminals are matched. A call to `match_token`
+    // changes only the bits of its own terminal, so the copies of the bitsets stay valid.
+    #[inline]
+    fn predict<A: AlternativeSet>(&mut self, prediction: &Prediction, input_index: u32) -> A {
+        let (tried, matched) = {
+            let (tried, matched) = self.memo.bits(input_index);
+            (*tried, *matched)
+        };
+        let mut alternatives = A::default();
+        for &(terminal, alternative) in prediction.terminals_at(self.input.char_at(input_index)) {
+            let alternative = usize::from(alternative);
+            // An alternative already predicted does not need its terminal matched again.
+            if alternatives.contains(alternative) {
+                continue;
+            }
+            let (word, bit) = (terminal.index() / 64, 1u64 << (terminal.index() % 64));
+            let matches = if matched[word] & bit != 0 {
+                true
+            } else if tried[word] & bit != 0 {
+                false
+            } else {
+                self.match_token(terminal, input_index).is_some()
+            };
+            if matches {
+                alternatives.insert(alternative);
+            }
+        }
+        alternatives
     }
     fn char_at(&self, i: u32) -> Option<char> {
         self.input.char_at(i)

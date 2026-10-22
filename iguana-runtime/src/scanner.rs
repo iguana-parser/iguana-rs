@@ -174,7 +174,8 @@ pub trait Scanner {
     }
     /// The alternatives that `prediction` predicts at `input_index`: those
     /// predicted by a terminal that matches there. Empty when no terminal of
-    /// `prediction` matches at `input_index`.
+    /// `prediction` matches at `input_index`. A generated scanner with a memo
+    /// overrides this method to answer from the memo.
     #[inline]
     fn predict<A: AlternativeSet>(&mut self, prediction: &Prediction, input_index: u32) -> A {
         let mut alternatives = A::default();
