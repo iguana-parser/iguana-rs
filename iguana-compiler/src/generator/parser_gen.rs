@@ -249,11 +249,9 @@ impl<'a> ParserGen<'a> {
                 #return_conditions_method
                 #failures_method
 
-                // Do not inline. `execute` records failures at many places, all inside
-                // the GLL dispatch loop. The compiler would copy this body into every one
-                // of them. A failure is the cold path, so the call is free, while inlining
-                // adds to the compile time and to the size of `execute`.
-                #[inline(never)]
+                // Inlined at every call site. Most failures are at an input position before the
+                // farthest one, and the comparison drops them without a call.
+                #[inline(always)]
                 fn add_failure(
                     &mut self,
                     input_index: u32,
@@ -264,28 +262,11 @@ impl<'a> ParserGen<'a> {
                     if self.suppress_failures {
                         return;
                     }
-                    let level = self.failures.first().map_or(0, |e| e.input_index);
                     record!(self, GLLFailure, input_index, slot_id, gss_node_id, kind);
-                    if input_index < level {
+                    if input_index < self.failures_index {
                         return;
                     }
-                    if input_index > level {
-                        self.failures.clear();
-                    }
-                    // Every kept failure is at `input_index` here, so comparing
-                    // kinds is enough.
-                    if self.failures.last().is_some_and(|last| last.kind == kind) {
-                        return;
-                    }
-                    self.failures.push(
-                        GLLFailure {
-                            input_index,
-                            slot_id,
-                            gss_node_id,
-                            kind,
-                        },
-                        self.vec_arena,
-                    );
+                    self.add_failure_at_farthest_index(input_index, slot_id, gss_node_id, kind);
                 }
 
                 fn match_token(&mut self, terminal_id: TerminalId, input_index: u32) -> Option<u32> {
@@ -339,7 +320,7 @@ impl<'a> ParserGen<'a> {
                 (
                     quote! { use std::cell::OnceCell; },
                     quote! { use rustc_hash::FxHashMap; },
-                    quote! { lazy_inline_maps::LazyInlineMaps },
+                    quote! { utils::lazy_inline_maps::LazyInlineMaps, },
                 )
             };
         let has_parameters = self.nonterminal_ids.dd_nonterminals().next().is_some();
@@ -374,7 +355,7 @@ impl<'a> ParserGen<'a> {
                 prediction::Prediction,
                 scanner::{Scanner, TerminalSet},
                 sppf::{IntermediateNode, NonterminalNode, SPPFNode, TerminalNode},
-                utils::{inline_vec::InlineVec, #lazy_inline_maps_import}
+                #lazy_inline_maps_import
             };
             // In the first-parse mode Span is used only by LL(1) node construction; checking whether the
             // grammar has any here is expensive, so allow the unused import instead.
@@ -1222,6 +1203,7 @@ impl<'a> ParserGen<'a> {
             .map(Self::gen_add_gss_node_method_with_parameters)
             .collect();
         let get_or_create_epsilon_node_method = self.gen_get_or_create_epsilon_node_method();
+        let add_failure_at_farthest_index_method = Self::gen_add_failure_at_farthest_index_method();
         quote! {
             impl<'i, 'arena> #name_ident<'i, 'arena> {
                 #new_method
@@ -1232,6 +1214,7 @@ impl<'a> ParserGen<'a> {
                 #(#get_gss_node_methods)*
                 #(#add_gss_node_methods)*
                 #get_or_create_epsilon_node_method
+                #add_failure_at_farthest_index_method
             }
         }
     }
@@ -1424,7 +1407,8 @@ impl<'a> ParserGen<'a> {
                     ll1_call_log: vec![],
                     #children_init
                     #envs_init
-                    failures: InlineVec::Empty,
+                    failures: vec_arena.vec(),
+                    failures_index: 0,
                     suppress_failures: false,
                     #layout_memo_init
                     #[cfg(feature = "debug-trace")]
@@ -1534,7 +1518,10 @@ impl<'a> ParserGen<'a> {
                 #epsilon_nodes_field
                 #children_fields
                 envs: ArenaIdVec<'arena, EnvId, Env<'arena>>,
-                failures: InlineVec<'arena, GLLFailure, 8>,
+                failures: ArenaVec<'arena, GLLFailure>,
+                #[comment = "The input index of the failures in `failures`, the farthest input index
+                             at which a failure is recorded, or 0 before the first failure."]
+                failures_index: u32,
                 #[comment = "When true, `add_failure` is a no-op. The one user is the layout match
                              of a `!>>>` restriction: that parse is speculative, so its failure must
                              not become the reported error."]
@@ -2515,6 +2502,34 @@ impl<'a> ParserGen<'a> {
         quote! {
             fn failures(&self) -> impl Iterator<Item = &GLLFailure> {
                 self.failures.iter()
+            }
+        }
+    }
+
+    /// Keeps a failure at `input_index`, which is not before the input index of
+    /// the kept failures. A failure at a farther input index replaces them.
+    fn gen_add_failure_at_farthest_index_method() -> TokenStream {
+        quote! {
+            // Do not inline. `add_failure` is inlined at every call site, and this
+            // body would add to the size of each one.
+            #[inline(never)]
+            fn add_failure_at_farthest_index(
+                &mut self,
+                input_index: u32,
+                slot_id: SlotId,
+                gss_node_id: Option<GssNodeId>,
+                kind: GLLFailureKind,
+            ) {
+                if input_index > self.failures_index {
+                    self.failures.clear();
+                    self.failures_index = input_index;
+                }
+                self.failures.push(GLLFailure {
+                    input_index,
+                    slot_id,
+                    gss_node_id,
+                    kind,
+                });
             }
         }
     }

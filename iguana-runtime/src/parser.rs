@@ -539,11 +539,6 @@ pub trait Parser<'i, 'arena>: Sized {
     /// Records a failure at the given input position.
     ///
     /// Only failures at the farthest input position are kept.
-    /// For failures at the same input position, we do not keep a failure whose
-    /// kind is equal to the kind of the failure kept just before it, because
-    /// it does not change the error message.
-    /// The generated implementation has `#[inline(never)]` so that we do not inline
-    /// the failure handling code in the main parser loop.
     fn add_failure(
         &mut self,
         input_index: u32,

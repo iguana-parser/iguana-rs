@@ -27,7 +27,7 @@ use iguana_runtime::{
     result::{ParseError, ParseSuccess},
     scanner::{Scanner, TerminalSet},
     sppf::{IntermediateNode, NonterminalNode, SPPFNode, TerminalNode},
-    utils::{inline_vec::InlineVec, lazy_inline_maps::LazyInlineMaps},
+    utils::lazy_inline_maps::LazyInlineMaps,
 };
 use rustc_hash::FxHashMap;
 use std::cell::OnceCell;
@@ -1622,7 +1622,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for Pepm16ExpressionsParser<'i, 'arena> {
     fn failures(&self) -> impl Iterator<Item = &GLLFailure> {
         self.failures.iter()
     }
-    #[inline(never)]
+    #[inline(always)]
     fn add_failure(
         &mut self,
         input_index: u32,
@@ -1633,26 +1633,11 @@ impl<'i, 'arena> Parser<'i, 'arena> for Pepm16ExpressionsParser<'i, 'arena> {
         if self.suppress_failures {
             return;
         }
-        let level = self.failures.first().map_or(0, |e| e.input_index);
         record!(self, GLLFailure, input_index, slot_id, gss_node_id, kind);
-        if input_index < level {
+        if input_index < self.failures_index {
             return;
         }
-        if input_index > level {
-            self.failures.clear();
-        }
-        if self.failures.last().is_some_and(|last| last.kind == kind) {
-            return;
-        }
-        self.failures.push(
-            GLLFailure {
-                input_index,
-                slot_id,
-                gss_node_id,
-                kind,
-            },
-            self.vec_arena,
-        );
+        self.add_failure_at_farthest_index(input_index, slot_id, gss_node_id, kind);
     }
     fn match_token(&mut self, terminal_id: TerminalId, input_index: u32) -> Option<u32> {
         self.scanner.match_token(terminal_id, input_index)
@@ -1706,7 +1691,10 @@ pub struct Pepm16ExpressionsParser<'i, 'arena> {
     // intermediate_nodes_children_map.
     nonterminal_nodes_children_map: OnceCell<FxHashMap<SPPFNodeId, Vec<(SPPFNodeId, SlotId)>>>,
     envs: ArenaIdVec<'arena, EnvId, Env<'arena>>,
-    failures: InlineVec<'arena, GLLFailure, 8>,
+    failures: ArenaVec<'arena, GLLFailure>,
+    // The input index of the failures in `failures`, the farthest input index at which a failure
+    // is recorded, or 0 before the first failure.
+    failures_index: u32,
     // When true, `add_failure` is a no-op. The one user is the layout match of a `!>>>`
     // restriction: that parse is speculative, so its failure must not become the reported error.
     suppress_failures: bool,
@@ -1749,7 +1737,8 @@ impl<'i, 'arena> Pepm16ExpressionsParser<'i, 'arena> {
             nonterminal_nodes_children: vec_arena.vec(),
             nonterminal_nodes_children_map: OnceCell::new(),
             envs: vec_arena.id_vec_with_capacity(input.len() as usize * ENVS_CAPACITY_MULTIPLIER),
-            failures: InlineVec::Empty,
+            failures: vec_arena.vec(),
+            failures_index: 0,
             suppress_failures: false,
             #[cfg(feature = "debug-trace")]
             trace_events: None,
@@ -1844,5 +1833,24 @@ impl<'i, 'arena> Pepm16ExpressionsParser<'i, 'arena> {
     }
     fn add_gss_node_e(&mut self, input_index: u32, p: i32, gss_node_id: GssNodeId) {
         self.gss_nodes_index_e.insert((input_index, p), gss_node_id);
+    }
+    #[inline(never)]
+    fn add_failure_at_farthest_index(
+        &mut self,
+        input_index: u32,
+        slot_id: SlotId,
+        gss_node_id: Option<GssNodeId>,
+        kind: GLLFailureKind,
+    ) {
+        if input_index > self.failures_index {
+            self.failures.clear();
+            self.failures_index = input_index;
+        }
+        self.failures.push(GLLFailure {
+            input_index,
+            slot_id,
+            gss_node_id,
+            kind,
+        });
     }
 }
