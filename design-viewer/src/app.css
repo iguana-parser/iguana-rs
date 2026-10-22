@@ -9,6 +9,11 @@ body {
   background: #1e1e1e;
   color: #d4d4d4;
   font-family: system-ui, -apple-system, sans-serif;
+  /* macOS browsers thicken glyph stems by default, which makes light text on a
+     dark ground look heavy. Grayscale antialiasing keeps the designed weight
+     and matches the website the view is embedded in. */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 #app {

@@ -1,14 +1,83 @@
-:root {
+/* The viewer's palettes: the website's warm charcoal (dark) and sand (light),
+   with the code-panel shade as the base, rather than the VS Code greys the
+   shared components fall back to. See web-ui/src/theme.ts for what each
+   property colors. The dark palette keeps the components' Dark+ syntax colors,
+   which the website's highlighter also uses; the light one takes Light+,
+   except the nonterminals: Light+'s teal #267f99 is 4.0:1 on the light
+   background, below WCAG AA, so they take Light+'s variable navy, as on the
+   website.
+   The theme is dark unless <html> carries data-theme="light", which App.svelte
+   sets (see its theme comment). :where() keeps the specificity at zero, so a host's
+   theme.css overrides any of these whatever the stylesheet order. */
+:where(:root) {
   color-scheme: dark;
+  --iguana-bg: #272421;
+  --iguana-bg-raised: #2e2a26;
+  --iguana-bg-hover: #322d28;
+  --iguana-border: #38332d;
+  --iguana-border-strong: #554c40;
+  --iguana-text: #d4d4d4;
+  --iguana-text-muted: #8f8a83;
+  --iguana-text-strong: #f2eee8;
+  --iguana-accent: #c1bfbb;
+  --iguana-selection: #463d33;
+  --iguana-flash: #6b5d4c;
+}
+
+:where(:root[data-theme="light"]) {
+  color-scheme: light;
+  --iguana-bg: #f4efe6;
+  --iguana-bg-raised: #ebe5da;
+  --iguana-bg-hover: #e6dfd2;
+  --iguana-border: #ddd5c6;
+  --iguana-border-strong: #c9bea9;
+  --iguana-text: #1f1d1a;
+  --iguana-text-muted: #7a746b;
+  --iguana-text-strong: #1a1816;
+  --iguana-accent: #1f1d1a;
+  --iguana-selection: #e0d4bf;
+  --iguana-flash: #cdbb99;
+  --iguana-error: #e51400;
+  --iguana-syntax-nonterminal: #001080;
+  --iguana-syntax-token: #a31515;
+  --iguana-syntax-keyword: #0000ff;
+  --iguana-syntax-string: #a31515;
+  --iguana-syntax-number: #098658;
+  --iguana-syntax-operator: #1f1d1a;
+  --iguana-syntax-reference: #af00db;
+  --iguana-syntax-reference-hover: #8a00ad;
+  --iguana-syntax-paren: #795e26;
+  --iguana-syntax-comment: #008000;
+  --iguana-syntax-ambiguity: #cd3131;
+}
+
+/* Set by App.svelte while it switches the palette. */
+:root[data-theme-switching] *,
+:root[data-theme-switching] *::before,
+:root[data-theme-switching] *::after {
+  transition: none !important;
 }
 
 html,
 body {
   margin: 0;
   height: 100%;
-  background: #1e1e1e;
-  color: #d4d4d4;
-  font-family: system-ui, -apple-system, sans-serif;
+  background: var(--iguana-bg);
+  color: var(--iguana-text);
+  /* Terrarium's interface font: the platform's own, as a developer tool. The
+     website sets its own font in theme.css. */
+  font-family: var(--iguana-font-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif);
+  /* macOS browsers thicken glyph stems by default, which makes light text on a
+     dark ground look heavy. Grayscale antialiasing keeps the designed weight
+     and matches the website the viewer is embedded in. */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Controls take the interface font rather than the browser's default. */
+button,
+input {
+  font-family: inherit;
 }
 
 #app {

@@ -9,12 +9,16 @@ import {
   edgeStyles,
   setupGraphTooltip,
   adjustZoomGraph,
-  resetViewGraph,
+  openViewGraph,
+  fitViewGraph,
+  fitHeightGraph,
   GraphCollapseManager,
   highlightOutgoingEdges,
   clearEdgeHighlights,
   highlightClickedEdge,
   downloadPng,
+  onThemeChange,
+  themeGraphStyles,
 } from "@iguana-parser/web-ui/graph";
 
 // The embeddable parse-tree graph: the graph tab of the parse view, distilled
@@ -30,7 +34,6 @@ export interface ParseTreeGraphOptions {
   // Optional controls; zoom and fit always render. The shared strip
   // (createGraphControls) keeps the buttons consistent with the parse view.
   controls?: {
-    expandAll?: boolean;
     exportPng?: boolean;
   };
 }
@@ -38,12 +41,18 @@ export interface ParseTreeGraphOptions {
 export interface ParseTreeGraphHandle {
   zoomIn(): void;
   zoomOut(): void;
+  // Back to the opening view: the whole tree when it fits at a readable zoom,
+  // otherwise the top of the tree at that zoom.
   resetView(): void;
   expandAll(): void;
   exportPng(name?: string): void;
   // Re-reads the container size; call after the container becomes visible or
   // is resized (Cytoscape does not observe it).
   resize(): void;
+  // The container height that shows the whole tree at the zoom resetView
+  // picks for the container's current width. A host can shrink a fixed-height
+  // container to a small tree, then call resize and resetView.
+  fitHeight(): number;
   destroy(): void;
 }
 
@@ -58,13 +67,19 @@ export function mountParseTreeGraph(
   options: ParseTreeGraphOptions = {},
 ): ParseTreeGraphHandle {
   const tree = parseSexprTree(sexprText);
+  // The host page's --iguana-* colors, when it sets them (see web-ui's
+  // theme.ts). The graph is drawn on a canvas, so it is restyled when the
+  // page's theme changes.
+  const styles = () => themeGraphStyles([...sppfNodeStyles, ...edgeStyles]);
   const cy = createGraph({
     container,
     // No spans: the printed s-expression carries none (see parseSexprTree).
     elements: buildParseTreeElements(tree, false),
-    styles: [...sppfNodeStyles, ...edgeStyles],
+    styles: styles(),
     layout: "tree",
   });
+  openViewGraph(cy);
+  const disposeTheme = onThemeChange(() => cy.style(styles()));
 
   const collapse = new GraphCollapseManager();
   collapse.setCy(cy);
@@ -102,24 +117,28 @@ export function mountParseTreeGraph(
   const disposeControls = createGraphControls(container, {
     zoomIn: () => adjustZoomGraph(cy, 1.2),
     zoomOut: () => adjustZoomGraph(cy, 1 / 1.2),
-    fit: () => resetViewGraph(cy),
-    expandAll: options.controls?.expandAll ? () => collapse.expandAll() : undefined,
+    fit: () => {
+      collapse.expandAll();
+      fitViewGraph(cy);
+    },
     exportPng: options.controls?.exportPng ? () => downloadPng(cy, "parse-tree") : undefined,
   });
 
   return {
     zoomIn: () => adjustZoomGraph(cy, 1.2),
     zoomOut: () => adjustZoomGraph(cy, 1 / 1.2),
-    resetView: () => resetViewGraph(cy),
+    resetView: () => openViewGraph(cy),
     expandAll: () => collapse.expandAll(),
     exportPng: (name = "parse-tree") => downloadPng(cy, name),
     resize: () => cy.resize(),
+    fitHeight: () => fitHeightGraph(cy),
     destroy: () => {
       // The wheel listener lives on the container, not the instance, so
       // cy.destroy() does not remove it; createGraph stashes a disposer.
       cy.scratch("_disposeWheel")?.();
       disposeControls();
       disposeTooltip();
+      disposeTheme();
       cy.destroy();
     },
   };

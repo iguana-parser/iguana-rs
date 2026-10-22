@@ -11,8 +11,13 @@
   //
   // It honours the same selection-sync contract as InputEditor (highlightSpan,
   // onclick, onescape), so ParseView drives text<->node selection identically in
-  // both editors. The Monaco-only extras (parse-error / ambiguity markers and
-  // scroll-the-span-into-view) are still dropped in this mode.
+  // both editors. Like InputEditor, it numbers the lines and marks a parse error
+  // with a squiggle; the error's line number turns red. The Monaco-only extras
+  // (ambiguity markers, the message on hover, and scroll-the-span-into-view) are
+  // still dropped in this mode.
+  import type { ParseError } from "./backend";
+  import { utf16Offset } from "./char-offsets";
+
   interface HighlightSpan {
     start: number;
     end: number;
@@ -22,6 +27,7 @@
     value: string;
     placeholder?: string;
     readOnly?: boolean;
+    error?: ParseError | null;
     highlightSpan?: HighlightSpan | null;
     onchange?: (value: string) => void;
     onclick?: (offset: number) => void;
@@ -32,6 +38,7 @@
     value = $bindable(""),
     placeholder = "",
     readOnly = false,
+    error = null,
     highlightSpan = null,
     onchange,
     onclick,
@@ -41,6 +48,9 @@
   let ta: HTMLTextAreaElement | undefined;
   let pre: HTMLPreElement | undefined;
   let sel: HTMLPreElement | undefined;
+  let diag: HTMLPreElement | undefined;
+  // The textarea's vertical scroll, which the line numbers follow.
+  let scrollTop = $state(0);
 
   // Safari autocorrects a textarea unless the attribute says otherwise, and a
   // code input should not have it. Svelte's typings list autocorrect on input
@@ -49,9 +59,9 @@
 
   const COMMON_KEYWORDS = new Set([
     "if", "then", "else", "let", "in", "fun", "case", "of", "match", "with",
-    "where", "for", "while", "do", "return", "true", "false", "null", "and",
-    "or", "not", "class", "def", "fn", "func", "function", "var", "val",
-    "const", "type", "data", "import", "module",
+    "where", "for", "while", "do", "return", "true", "false", "null", "nil",
+    "and", "or", "not", "class", "def", "fn", "func", "function", "var", "val",
+    "const", "type", "data", "import", "module", "print", "this", "super",
   ]);
 
   const escapeHtml = (s: string) =>
@@ -97,6 +107,39 @@
     return before + mid + after + "\n";
   });
 
+  // The parse error as UTF-16 offsets into the text (the runtime counts
+  // characters). An empty span marks the character after it, and a failure at a
+  // line break or at the end of the input, which has no character to underline,
+  // marks one column past the end of the line.
+  let errorRange = $derived.by(() => {
+    if (!error) return null;
+    const start = utf16Offset(value, error.span.left_extent);
+    let end = Math.max(start, utf16Offset(value, error.span.right_extent));
+    if (end === start && start < value.length && value[start] !== "\n") {
+      end = utf16Offset(value, error.span.left_extent + 1);
+    }
+    return { start, end, line: value.slice(0, start).split("\n").length };
+  });
+
+  // The error layer, like the selection layer, renders the text transparently
+  // and paints only the squiggle under the error range. A range with nothing
+  // visible to underline (empty, or only line breaks) gets a squiggled space at
+  // its start, and its line breaks stay in place after it.
+  let errorMarkup = $derived.by(() => {
+    if (!errorRange) return "";
+    const { start, end } = errorRange;
+    const text = value.slice(start, end);
+    const invisible = /^\n*$/.test(text);
+    return (
+      escapeHtml(value.slice(0, start)) +
+      `<span class="ple-err">${invisible ? "&nbsp;" : escapeHtml(text)}</span>` +
+      escapeHtml(value.slice(invisible ? start : end)) +
+      "\n"
+    );
+  });
+
+  let lineCount = $derived(value.split("\n").length);
+
   // Exported so ParseView can focus the input the way it does the Monaco editor.
   export function focus() {
     ta?.focus();
@@ -117,63 +160,105 @@
     if (e.key === "Escape") onescape?.();
   }
 
-  // Keep the highlighted and selection layers aligned with the textarea as it
-  // scrolls.
+  // Keep the highlighted, selection, and error layers and the line numbers
+  // aligned with the textarea as it scrolls, and after a layer's markup changes:
+  // a layer emptied while a parse runs loses its scroll position, and the
+  // markup that returns would otherwise sit at the top until the next scroll.
+  $effect(() => {
+    void highlighted;
+    void selectionMarkup;
+    void errorMarkup;
+    onscroll();
+  });
+
   function onscroll() {
     if (!ta) return;
-    if (pre) {
-      pre.scrollTop = ta.scrollTop;
-      pre.scrollLeft = ta.scrollLeft;
+    for (const layer of [pre, sel, diag]) {
+      if (!layer) continue;
+      layer.scrollTop = ta.scrollTop;
+      layer.scrollLeft = ta.scrollLeft;
     }
-    if (sel) {
-      sel.scrollTop = ta.scrollTop;
-      sel.scrollLeft = ta.scrollLeft;
-    }
+    scrollTop = ta.scrollTop;
   }
 </script>
 
 <div class="ple">
-  <pre class="ple-sel" aria-hidden="true" bind:this={sel}>{@html selectionMarkup}</pre>
-  <pre class="ple-pre" aria-hidden="true" bind:this={pre}><code>{@html highlighted}</code></pre>
-  <textarea
-    class="ple-ta"
-    bind:this={ta}
-    bind:value
-    {placeholder}
-    readonly={readOnly}
-    wrap="off"
-    spellcheck="false"
-    autocapitalize="off"
-    autocomplete="off"
-    {...AUTOCORRECT_OFF}
-    oninput={oninput}
-    onclick={onclickInput}
-    onkeydown={onkeydown}
-    onscroll={onscroll}
-  ></textarea>
+  <!-- The line numbers move by transform rather than by scrolling, because a
+       box without the textarea's horizontal scrollbar cannot scroll as far. -->
+  <div class="ple-gutter" aria-hidden="true">
+    <div style="transform: translateY({-scrollTop}px)">
+      {#each { length: lineCount } as _, i}
+        <div class:ple-gutter-err={errorRange?.line === i + 1}>{i + 1}</div>
+      {/each}
+    </div>
+  </div>
+  <div class="ple-body">
+    <pre class="ple-sel" aria-hidden="true" bind:this={sel}>{@html selectionMarkup}</pre>
+    <pre class="ple-pre" aria-hidden="true" bind:this={pre}><code>{@html highlighted}</code></pre>
+    <pre class="ple-diag" aria-hidden="true" bind:this={diag}>{@html errorMarkup}</pre>
+    <textarea
+      class="ple-ta"
+      bind:this={ta}
+      bind:value
+      {placeholder}
+      readonly={readOnly}
+      wrap="off"
+      spellcheck="false"
+      autocapitalize="off"
+      autocomplete="off"
+      {...AUTOCORRECT_OFF}
+      oninput={oninput}
+      onclick={onclickInput}
+      onkeydown={onkeydown}
+      onscroll={onscroll}
+    ></textarea>
+  </div>
 </div>
 
 <style>
   .ple {
-    position: relative;
+    display: flex;
     height: 100%;
     overflow: hidden;
-    background: #1e1e1e;
-    /* Match Terrarium's Monaco editor: Fira Code where installed, ligatures off. */
-    font-family: "Fira Code", Consolas, "Liberation Mono", Menlo, monospace;
+    background: var(--iguana-bg, #1e1e1e);
+    /* The host's code font, else the components' shared list (CODE_FONT in
+       theme.ts). Ligatures off either way. */
+    font-family: var(--iguana-font-mono, "Fira Code", ui-monospace, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace);
     font-variant-ligatures: none;
     font-size: 13px;
     line-height: 1.5;
   }
 
-  /* The highlighted, selection, and textarea layers must share identical text
-     metrics and padding, or the caret and the highlight will drift from the
+  /* The line numbers sit in their own column, so text scrolled sideways is
+     clipped at the column's edge instead of passing under the numbers. */
+  .ple-gutter {
+    flex-shrink: 0;
+    overflow: hidden;
+    padding: 12px 0 8px 10px;
+    min-width: 2ch;
+    text-align: right;
+    color: var(--iguana-text-muted, #6e7681);
+    user-select: none;
+  }
+  .ple-gutter-err {
+    color: var(--iguana-error, #f14c4c);
+  }
+
+  .ple-body {
+    position: relative;
+    flex: 1;
+    min-width: 0;
+  }
+
+  /* The highlighted, selection, error, and textarea layers must share identical
+     text metrics and padding, or the caret and the highlight will drift from the
      rendered glyphs. */
   .ple-pre,
   .ple-sel,
+  .ple-diag,
   .ple-ta {
     margin: 0;
-    padding: 12px 10px 8px;
+    padding: 12px 10px 8px 14px;
     border: 0;
     font: inherit;
     line-height: inherit;
@@ -194,17 +279,32 @@
     color: transparent;
   }
   .ple-sel :global(.ple-sel-range) {
-    background: #264f78;
+    background: var(--iguana-selection, #264f78);
   }
   .ple-sel :global(.ple-caret) {
-    border-left: 2px solid #569cd6;
+    border-left: 2px solid var(--iguana-accent, #569cd6);
   }
 
   .ple-pre {
     position: absolute;
     inset: 0;
     pointer-events: none;
-    color: #d4d4d4;
+    color: var(--iguana-text, #d4d4d4);
+  }
+
+  /* Error layer: above the coloured text, transparent glyphs, and a wavy
+     underline in the error color under the error range. */
+  .ple-diag {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    color: transparent;
+  }
+  .ple-diag :global(.ple-err) {
+    text-decoration: underline wavy var(--iguana-error, #f14c4c);
+    text-decoration-skip-ink: none;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 3px;
   }
   .ple-pre code {
     font: inherit;
@@ -214,26 +314,26 @@
     position: relative;
     background: transparent;
     color: transparent;
-    caret-color: #d4d4d4;
+    caret-color: var(--iguana-text, #d4d4d4);
     resize: none;
     outline: none;
   }
   .ple-ta::placeholder {
-    color: #6a6a6a;
+    color: var(--iguana-text-muted, #6a6a6a);
   }
 
   /* The highlighted tokens are injected via {@html}, so they don't get Svelte's
      scoping class — target them with :global, kept under the scoped .ple-pre. */
   .ple-pre :global(.ple-kw) {
-    color: #569cd6;
+    color: var(--iguana-syntax-keyword, #569cd6);
   }
   .ple-pre :global(.ple-str) {
-    color: #ce9178;
+    color: var(--iguana-syntax-string, #ce9178);
   }
   .ple-pre :global(.ple-num) {
-    color: #b5cea8;
+    color: var(--iguana-syntax-number, #b5cea8);
   }
   .ple-pre :global(.ple-op) {
-    color: #c8c8c8;
+    color: var(--iguana-syntax-operator, #c8c8c8);
   }
 </style>

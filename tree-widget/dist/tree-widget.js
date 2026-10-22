@@ -4,8 +4,7 @@ import t from "cytoscape-tidytree";
 var n = "width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"", r = {
 	zoomIn: `<svg ${n}><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35M11 8v6M8 11h6"/></svg>`,
 	zoomOut: `<svg ${n}><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35M8 11h6"/></svg>`,
-	fit: `<svg ${n}><path d="M3 7V5a2 2 0 0 1 2-2h2M17 3h2a2 2 0 0 1 2 2v2M21 17v2a2 2 0 0 1-2 2h-2M7 21H5a2 2 0 0 1-2-2v-2"/></svg>`,
-	expandAll: `<svg ${n}><path d="m15 15 6 6m0 0v-4.8m0 4.8h-4.8M9 9 3 3m0 0v4.8M3 3h4.8M15 9l6-6m0 0v4.8M21 3h-4.8M9 15l-6 6m0 0v-4.8M3 21h4.8"/></svg>`,
+	fit: `<svg ${n}><path d="M3 7V5a2 2 0 0 1 2-2h2M17 3h2a2 2 0 0 1 2 2v2M21 17v2a2 2 0 0 1-2 2h-2M7 21H5a2 2 0 0 1-2-2v-2"/><rect x="7" y="8" width="10" height="8" rx="1"/></svg>`,
 	exportPng: `<svg ${n}><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>`,
 	popOut: `<svg ${n}><path d="M15 3h6v6M10 14 21 3M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/></svg>`
 };
@@ -16,14 +15,153 @@ function i(e, t) {
 		let i = document.createElement("button");
 		i.type = "button", i.title = e, i.setAttribute("aria-label", e), i.innerHTML = t, i.addEventListener("click", r), n.appendChild(i);
 	}
-	return i("Zoom in", r.zoomIn, t.zoomIn), i("Zoom out", r.zoomOut, t.zoomOut), i("Fit to view", r.fit, t.fit), t.expandAll && i("Expand all (double-click a node to collapse)", r.expandAll, t.expandAll), t.exportPng && i("Export as PNG", r.exportPng, t.exportPng), t.popOut && i("Pop out", r.popOut, t.popOut), e.appendChild(n), () => n.remove();
+	return i("Zoom in", r.zoomIn, t.zoomIn), i("Zoom out", r.zoomOut, t.zoomOut), i("Fit view", r.fit, t.fit), t.exportPng && i("Export as PNG", r.exportPng, t.exportPng), t.popOut && i("Pop out", r.popOut, t.popOut), e.appendChild(n), () => n.remove();
 }
-function a(e, t = 20) {
+//#endregion
+//#region ../web-ui/src/theme.ts
+function a(e, t) {
+	return getComputedStyle(document.documentElement).getPropertyValue(e).trim() || t;
+}
+var o = "\"Fira Code\", ui-monospace, \"SF Mono\", Menlo, Consolas, \"Liberation Mono\", monospace";
+function s(e) {
+	let t = new MutationObserver(e);
+	t.observe(document.documentElement, {
+		attributes: !0,
+		attributeFilter: [
+			"data-theme",
+			"class",
+			"style"
+		]
+	});
+	let n = window.matchMedia("(prefers-color-scheme: dark)");
+	return n.addEventListener("change", e), () => {
+		t.disconnect(), n.removeEventListener("change", e);
+	};
+}
+var c;
+function l(e) {
+	if (c ??= document.createElement("canvas").getContext("2d"), !c || !e) return null;
+	let t = (t) => (c.fillStyle = t, c.fillStyle = e, String(c.fillStyle)), n = t("#000000");
+	if (n !== t("#ffffff")) return null;
+	if (n.startsWith("#")) return n;
+	let r = n.match(/^rgba\((\d+), (\d+), (\d+), ([\d.]+)\)$/);
+	if (!r) return null;
+	let i = (e) => Math.round(e).toString(16).padStart(2, "0");
+	return "#" + [
+		1,
+		2,
+		3
+	].map((e) => i(Number(r[e]))).join("") + i(Number(r[4]) * 255);
+}
+function u(e) {
+	return l(a(e, "")) ?? void 0;
+}
+function d(e, t, n) {
+	let r = l(e)?.slice(0, 7);
+	if (!r) return e;
+	e = r;
+	let i = (e, t) => parseInt(e.slice(1 + 2 * t, 3 + 2 * t), 16), a = "#";
+	for (let r = 0; r < 3; r++) {
+		let o = Math.round(i(t, r) + (i(e, r) - i(t, r)) * n);
+		a += o.toString(16).padStart(2, "0");
+	}
+	return a;
+}
+function f(e) {
+	let t = (e) => {
+		let t = l(a(e, ""));
+		if (!t) return;
+		if (t.length === 7) return t;
+		let [n, r, i, o] = [
+			1,
+			3,
+			5,
+			7
+		].map((e) => parseInt(t.slice(e, e + 2), 16));
+		return `rgba(${n}, ${r}, ${i}, ${Math.round(o / 255 * 1e3) / 1e3})`;
+	}, n = u("--iguana-bg"), r = n?.length === 7 ? n : "#1e1e1e", i = {}, o = (e, t) => {
+		i[e] = {
+			...i[e],
+			...t
+		};
+	}, s = (e) => ({
+		"line-color": e,
+		"target-arrow-color": e
+	}), c = t("--iguana-text");
+	c && o("node", { color: c });
+	let f = t("--iguana-bg-raised");
+	f && o("node", { "background-color": f });
+	for (let e of [
+		{
+			name: "--iguana-syntax-nonterminal",
+			fallback: "#4ec9b0",
+			rule: "node.nonterminal, node[kind='Nonterminal']",
+			selected: "node.nonterminal.selected, node[kind='Nonterminal'].selected",
+			edge: "edge.edge-selected-nonterminal"
+		},
+		{
+			name: "--iguana-syntax-token",
+			fallback: "#ce9178",
+			rule: "node.token, node[kind='Token']",
+			selected: "node.token.selected, node[kind='Token'].selected",
+			edge: "edge.edge-selected-terminal"
+		},
+		{
+			name: "--iguana-syntax-ambiguity",
+			fallback: "#e05050",
+			rule: "node.ambiguous, node.amb",
+			selected: "node.ambiguous.selected, node.amb.selected",
+			edge: "edge.edge-selected-ambiguous"
+		}
+	]) {
+		let i = t(e.name);
+		if (!i && !n) continue;
+		let a = i ?? e.fallback;
+		o(e.rule, {
+			"background-color": d(a, r, .18),
+			"border-color": a
+		}), o(e.selected, {
+			"background-color": d(a, r, .35),
+			"border-color": a
+		}), i && o(e.edge, s(i));
+	}
+	let p = t("--iguana-syntax-ambiguity");
+	p && o("edge.edge-ambiguous", s(p));
+	let m = t("--iguana-border-strong");
+	m && o("edge", s(m));
+	let h = t("--iguana-syntax-reference");
+	h && o("edge.shared", s(h));
+	let g = t("--iguana-text-muted");
+	return g && o("edge.edge-clicked", s(g)), e.map((e) => i[e.selector] ? {
+		...e,
+		style: {
+			...e.style,
+			...i[e.selector]
+		}
+	} : e);
+}
+function p(e, t = 20) {
 	return e.length <= t ? e : e.substring(0, t - 3) + "...";
 }
-function o(e, t) {
+function m(e, t) {
 	let n = document.createElement("div");
-	n.className = "graph-tooltip", n.style.cssText = "\n    position: fixed;\n    background: #252526;\n    border: 1px solid #454545;\n    border-radius: 4px;\n    padding: 6px 10px;\n    font-size: 11px;\n    font-family: ui-monospace, SFMono-Regular, \"SF Mono\", Menlo, monospace;\n    color: #d4d4d4;\n    pointer-events: none;\n    z-index: 10000;\n    display: none;\n    max-width: 400px;\n    word-wrap: break-word;\n    white-space: pre-wrap;\n    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);\n  ", document.body.appendChild(n);
+	n.className = "graph-tooltip", n.style.cssText = `
+    position: fixed;
+    background: var(--iguana-bg-raised, #252526);
+    border: 1px solid var(--iguana-border, #454545);
+    border-radius: 4px;
+    padding: 6px 10px;
+    font-size: 11px;
+    font-family: var(--iguana-font-mono, ${o});
+    color: var(--iguana-text, #d4d4d4);
+    pointer-events: none;
+    z-index: 10000;
+    display: none;
+    max-width: 400px;
+    word-wrap: break-word;
+    white-space: pre-wrap;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  `, document.body.appendChild(n);
 	let r = (e) => {
 		let r = e.target, i = r.data("fullLabel"), a = r.data("label");
 		if (!i || i === a) return;
@@ -41,7 +179,7 @@ function o(e, t) {
 		e.off("mouseover", "node", r), e.off("mouseout", "node", i), e.off("mousemove", "node", a), n.remove();
 	};
 }
-var s = {
+var h = {
 	label: "data(label)",
 	"text-valign": "center",
 	"text-halign": "center",
@@ -50,14 +188,14 @@ var s = {
 	"border-width": 1,
 	width: "label",
 	shape: "round-rectangle"
-}, c = {
+}, g = {
 	width: 1,
 	"line-color": "#555",
 	"target-arrow-color": "#555",
 	"target-arrow-shape": "triangle",
 	"curve-style": "bezier",
 	"arrow-scale": .8
-}, l = {
+}, _ = {
 	nonterminal: {
 		bg: "#2d4a3d",
 		border: "#4ec9b0",
@@ -87,7 +225,7 @@ var s = {
 		selectedBg: "#5f3a3a",
 		selectedBorder: "#ff7a7a"
 	}
-}, u = [
+}, v = [
 	{
 		selector: "node:active",
 		style: { "overlay-opacity": 0 }
@@ -100,12 +238,12 @@ var s = {
 		selector: "core",
 		style: { "active-bg-opacity": 0 }
 	}
-], d = [
-	...u,
+], y = [
+	...v,
 	{
 		selector: "node",
 		style: {
-			...s,
+			...h,
 			"text-wrap": "wrap",
 			"background-color": "#3c3c3c",
 			"border-color": "#555",
@@ -119,30 +257,30 @@ var s = {
 	{
 		selector: "node.nonterminal, node[kind='Nonterminal']",
 		style: {
-			"background-color": l.nonterminal.bg,
-			"border-color": l.nonterminal.border
+			"background-color": _.nonterminal.bg,
+			"border-color": _.nonterminal.border
 		}
 	},
 	{
 		selector: "node.intermediate, node[kind='Intermediate']",
 		style: {
-			"background-color": l.intermediate.bg,
-			"border-color": l.intermediate.border,
+			"background-color": _.intermediate.bg,
+			"border-color": _.intermediate.border,
 			shape: "rectangle"
 		}
 	},
 	{
 		selector: "node.terminal, node[kind='Terminal']",
 		style: {
-			"background-color": l.terminal.bg,
-			"border-color": l.terminal.border
+			"background-color": _.terminal.bg,
+			"border-color": _.terminal.border
 		}
 	},
 	{
 		selector: "node.token, node[kind='Token']",
 		style: {
-			"background-color": l.terminal.bg,
-			"border-color": l.terminal.border
+			"background-color": _.terminal.bg,
+			"border-color": _.terminal.border
 		}
 	},
 	{
@@ -169,51 +307,51 @@ var s = {
 	{
 		selector: "node.nonterminal.selected, node[kind='Nonterminal'].selected",
 		style: {
-			"background-color": l.nonterminal.selectedBg,
-			"border-color": l.nonterminal.selectedBorder
+			"background-color": _.nonterminal.selectedBg,
+			"border-color": _.nonterminal.selectedBorder
 		}
 	},
 	{
 		selector: "node.intermediate.selected, node[kind='Intermediate'].selected",
 		style: {
-			"background-color": l.intermediate.selectedBg,
-			"border-color": l.intermediate.selectedBorder
+			"background-color": _.intermediate.selectedBg,
+			"border-color": _.intermediate.selectedBorder
 		}
 	},
 	{
 		selector: "node.terminal.selected, node[kind='Terminal'].selected",
 		style: {
-			"background-color": l.terminal.selectedBg,
-			"border-color": l.terminal.selectedBorder
+			"background-color": _.terminal.selectedBg,
+			"border-color": _.terminal.selectedBorder
 		}
 	},
 	{
 		selector: "node.token.selected, node[kind='Token'].selected",
 		style: {
-			"background-color": l.terminal.selectedBg,
-			"border-color": l.terminal.selectedBorder
+			"background-color": _.terminal.selectedBg,
+			"border-color": _.terminal.selectedBorder
 		}
 	},
 	{
 		selector: "node.packed.selected, node[kind='Packed'].selected",
 		style: {
-			"background-color": l.packed.selectedBg,
+			"background-color": _.packed.selectedBg,
 			"border-width": 2,
-			"border-color": l.packed.selectedBorder
+			"border-color": _.packed.selectedBorder
 		}
 	},
 	{
 		selector: "node.ambiguous, node.amb",
 		style: {
-			"background-color": l.ambiguous.bg,
-			"border-color": l.ambiguous.border
+			"background-color": _.ambiguous.bg,
+			"border-color": _.ambiguous.border
 		}
 	},
 	{
 		selector: "node.ambiguous.selected, node.amb.selected",
 		style: {
-			"background-color": l.ambiguous.selectedBg,
-			"border-color": l.ambiguous.selectedBorder
+			"background-color": _.ambiguous.selectedBg,
+			"border-color": _.ambiguous.selectedBorder
 		}
 	},
 	{
@@ -229,14 +367,14 @@ var s = {
 	}
 ];
 [
-	...u,
-	({ ...s }, l.nonterminal.bg, l.nonterminal.border),
-	l.nonterminal.border
+	...v,
+	({ ...h }, _.nonterminal.bg, _.nonterminal.border),
+	_.nonterminal.border
 ];
-var f = [
+var b = [
 	{
 		selector: "edge",
-		style: { ...c }
+		style: { ...g }
 	},
 	{
 		selector: "edge.shared",
@@ -248,29 +386,29 @@ var f = [
 	{
 		selector: "edge.edge-selected-nonterminal",
 		style: {
-			"line-color": l.nonterminal.selectedBorder,
-			"target-arrow-color": l.nonterminal.selectedBorder
+			"line-color": _.nonterminal.selectedBorder,
+			"target-arrow-color": _.nonterminal.selectedBorder
 		}
 	},
 	{
 		selector: "edge.edge-selected-intermediate",
 		style: {
-			"line-color": l.intermediate.selectedBorder,
-			"target-arrow-color": l.intermediate.selectedBorder
+			"line-color": _.intermediate.selectedBorder,
+			"target-arrow-color": _.intermediate.selectedBorder
 		}
 	},
 	{
 		selector: "edge.edge-selected-terminal",
 		style: {
-			"line-color": l.terminal.selectedBorder,
-			"target-arrow-color": l.terminal.selectedBorder
+			"line-color": _.terminal.selectedBorder,
+			"target-arrow-color": _.terminal.selectedBorder
 		}
 	},
 	{
 		selector: "edge.edge-selected-packed",
 		style: {
-			"line-color": l.packed.selectedBorder,
-			"target-arrow-color": l.packed.selectedBorder
+			"line-color": _.packed.selectedBorder,
+			"target-arrow-color": _.packed.selectedBorder
 		}
 	},
 	{
@@ -283,20 +421,20 @@ var f = [
 	{
 		selector: "edge.edge-selected-ambiguous",
 		style: {
-			"line-color": l.ambiguous.selectedBorder,
-			"target-arrow-color": l.ambiguous.selectedBorder
+			"line-color": _.ambiguous.selectedBorder,
+			"target-arrow-color": _.ambiguous.selectedBorder
 		}
 	},
 	{
 		selector: "edge.edge-ambiguous",
 		style: {
-			"line-color": l.ambiguous.border,
-			"target-arrow-color": l.ambiguous.border
+			"line-color": _.ambiguous.border,
+			"target-arrow-color": _.ambiguous.border
 		}
 	}
 ];
-({ ...c });
-var p = {
+({ ...g });
+var x = {
 	name: "tidytree",
 	direction: "TB",
 	horizontalSpacing: 16,
@@ -304,27 +442,46 @@ var p = {
 	nodeDimensionsIncludeLabels: !0,
 	fit: !0,
 	padding: 30
-}, m = 2.5, h = .5, g = 12;
-function _(e) {
+}, S = 1.6, C = .5, w = 12;
+function T(e) {
 	let t = e.zoom();
-	if (t > 2.5) e.zoom(m), e.center();
+	if (t > 1.6) e.zoom(S), e.center();
 	else if (t < .5) {
-		e.zoom(h);
+		e.zoom(C);
 		let t = e.elements().boundingBox();
 		e.pan({
-			x: (e.width() - t.w * h) / 2 - t.x1 * h,
-			y: g - t.y1 * h
+			x: (e.width() - t.w * C) / 2 - t.x1 * C,
+			y: w - t.y1 * C
 		});
 	}
 }
-function v(e, t) {
+function E(e, t) {
 	e && e.zoom(e.zoom() * t);
 }
-function y(e) {
-	e && (e.fit(e.elements(), g), _(e));
+var D = 1 / 1.2;
+function O(e) {
+	if (!e) return;
+	e.fit(e.elements(), w);
+	let t = e.zoom();
+	if (t > 1.6) e.zoom(S), e.center();
+	else if (t < .8333333333333334) {
+		e.zoom(D);
+		let t = e.elements().boundingBox(), n = e.nodes().roots().first(), r = t.w * .8333333333333334 > e.width() && n.nonempty() ? n.position("x") : (t.x1 + t.x2) / 2;
+		e.pan({
+			x: e.width() / 2 - r * D,
+			y: w - t.y1 * D
+		});
+	}
 }
-function b(t) {
-	let { container: n, elements: r, styles: i, layout: a = "sppf", viewport: o } = t, s = r.filter((e) => e.data.source === void 0).length, c = a === "tree" ? p : {
+function k(e) {
+	e && (e.fit(e.elements(), w), e.zoom() > 1.6 && (e.zoom(S), e.center()));
+}
+function A(e) {
+	let t = e.elements().boundingBox(), n = (e.width() - 24) / t.w, r = Math.max(D, Math.min(S, n));
+	return Math.ceil(t.h * r + 24);
+}
+function j(t) {
+	let { container: n, elements: r, styles: i, layout: a = "sppf", viewport: o } = t, s = r.filter((e) => e.data.source === void 0).length, c = a === "tree" ? x : {
 		name: "dagre",
 		rankDir: a === "gss" ? "BT" : "TB",
 		nodeSep: a === "gss" ? 50 : 30,
@@ -363,9 +520,9 @@ function b(t) {
 		};
 		n.addEventListener("wheel", e, { passive: !1 }), u.scratch("_disposeWheel", () => n.removeEventListener("wheel", e));
 	}
-	return o ? (u.zoom(o.zoom), u.pan(o.pan)) : _(u), u;
+	return o ? (u.zoom(o.zoom), u.pan(o.pan)) : T(u), u;
 }
-var x = [
+var M = [
 	"edge-selected-nonterminal",
 	"edge-selected-intermediate",
 	"edge-selected-terminal",
@@ -373,26 +530,26 @@ var x = [
 	"edge-selected-ambiguous",
 	"edge-clicked"
 ];
-function S(e) {
+function N(e) {
 	if (e.data("ambiguous") || e.hasClass("ambiguous")) return "edge-selected-ambiguous";
 	let t = e.data("kind");
 	return t === "Packed" || e.hasClass("packed") ? "edge-selected-packed" : t === "Nonterminal" || e.hasClass("nonterminal") ? "edge-selected-nonterminal" : t === "Intermediate" || e.hasClass("intermediate") ? "edge-selected-intermediate" : t === "Terminal" || t === "Token" || e.hasClass("terminal") || e.hasClass("token") ? "edge-selected-terminal" : "edge-selected-nonterminal";
 }
-function C(e, t) {
+function P(e, t) {
 	let n = e.getElementById(t);
 	if (n.empty()) return;
-	let r = S(n);
+	let r = N(n);
 	n.outgoers("edge").addClass(r);
 }
-function w(e) {
-	e.edges().removeClass(x);
+function F(e) {
+	e.edges().removeClass(M);
 }
-function T(e, t) {
-	w(e), e.getElementById(t).addClass("edge-clicked");
+function I(e, t) {
+	F(e), e.getElementById(t).addClass("edge-clicked");
 }
 //#endregion
 //#region ../web-ui/src/parse-tree-graph.ts
-var E = class {
+var L = class {
 	cy = null;
 	collapsedNodes = /* @__PURE__ */ new Set();
 	focusedNodeId = null;
@@ -480,9 +637,9 @@ var E = class {
 		e.length > 0 && this.cy.fit(e, 50);
 	}
 };
-function D(e, t) {
+function R(e, t) {
 	let n = e.nodes.map((e) => {
-		let n = `(${e.start}, ${e.end})`, r = t ? `${a(e.label, 20)}\n${n}` : a(e.label, 20), i = t ? `${e.label}\n${n}` : e.label;
+		let n = `(${e.start}, ${e.end})`, r = t ? `${p(e.label, 20)}\n${n}` : p(e.label, 20), i = t ? `${e.label}\n${n}` : e.label;
 		return {
 			data: {
 				id: `n${e.id}`,
@@ -507,7 +664,7 @@ function D(e, t) {
 }
 //#endregion
 //#region ../web-ui/src/sexpr-parse.ts
-function O(e) {
+function z(e) {
 	let t = [], n = [], r = /* @__PURE__ */ new Map(), i = 0, a = 0;
 	function o(e) {
 		throw Error(`s-expression parse error at offset ${i}: ${e}`);
@@ -609,7 +766,7 @@ function O(e) {
 }
 //#endregion
 //#region ../web-ui/src/png.ts
-async function k(e, t) {
+async function B(e, t) {
 	if (!e) return;
 	let n = await e.png({
 		output: "blob",
@@ -621,45 +778,49 @@ async function k(e, t) {
 //#endregion
 //#region src/main.ts
 e.use(t);
-function A(e, t, n = {}) {
-	let r = b({
+function V(e, t, n = {}) {
+	let r = z(t), a = () => f([...y, ...b]), o = j({
 		container: e,
-		elements: D(O(t), !1),
-		styles: [...d, ...f],
+		elements: R(r, !1),
+		styles: a(),
 		layout: "tree"
-	}), a = new E();
-	a.setCy(r);
-	let s = o(r, e), c = null;
-	function l() {
-		c &&= (r.getElementById(c).removeClass("selected"), null), w(r);
-	}
-	r.on("dbltap", "node", (e) => {
-		a.toggleCollapse(e.target.id());
-	}), r.on("tap", "node", (e) => {
-		l(), c = e.target.id(), e.target.addClass("selected"), C(r, c);
-	}), r.on("tap", "edge", (e) => {
-		l(), T(r, e.target.id());
-	}), r.on("tap", (e) => {
-		e.target === r && l();
 	});
-	let u = i(e, {
-		zoomIn: () => v(r, 1.2),
-		zoomOut: () => v(r, 1 / 1.2),
-		fit: () => y(r),
-		expandAll: n.controls?.expandAll ? () => a.expandAll() : void 0,
-		exportPng: n.controls?.exportPng ? () => k(r, "parse-tree") : void 0
+	O(o);
+	let c = s(() => o.style(a())), l = new L();
+	l.setCy(o);
+	let u = m(o, e), d = null;
+	function p() {
+		d &&= (o.getElementById(d).removeClass("selected"), null), F(o);
+	}
+	o.on("dbltap", "node", (e) => {
+		l.toggleCollapse(e.target.id());
+	}), o.on("tap", "node", (e) => {
+		p(), d = e.target.id(), e.target.addClass("selected"), P(o, d);
+	}), o.on("tap", "edge", (e) => {
+		p(), I(o, e.target.id());
+	}), o.on("tap", (e) => {
+		e.target === o && p();
+	});
+	let h = i(e, {
+		zoomIn: () => E(o, 1.2),
+		zoomOut: () => E(o, 1 / 1.2),
+		fit: () => {
+			l.expandAll(), k(o);
+		},
+		exportPng: n.controls?.exportPng ? () => B(o, "parse-tree") : void 0
 	});
 	return {
-		zoomIn: () => v(r, 1.2),
-		zoomOut: () => v(r, 1 / 1.2),
-		resetView: () => y(r),
-		expandAll: () => a.expandAll(),
-		exportPng: (e = "parse-tree") => k(r, e),
-		resize: () => r.resize(),
+		zoomIn: () => E(o, 1.2),
+		zoomOut: () => E(o, 1 / 1.2),
+		resetView: () => O(o),
+		expandAll: () => l.expandAll(),
+		exportPng: (e = "parse-tree") => B(o, e),
+		resize: () => o.resize(),
+		fitHeight: () => A(o),
 		destroy: () => {
-			r.scratch("_disposeWheel")?.(), u(), s(), r.destroy();
+			o.scratch("_disposeWheel")?.(), h(), u(), c(), o.destroy();
 		}
 	};
 }
 //#endregion
-export { A as mountParseTreeGraph };
+export { V as mountParseTreeGraph };

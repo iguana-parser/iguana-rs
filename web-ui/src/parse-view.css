@@ -9,22 +9,22 @@
   margin-left: auto;
   padding: 6px 16px;
   background: transparent;
-  color: #d4d4d4;
-  border: 1px solid #555;
+  color: var(--iguana-text, #d4d4d4);
+  border: 1px solid var(--iguana-border-strong, #555);
   border-radius: 4px;
   cursor: pointer;
   transition: border-color 0.15s, color 0.15s, background 0.15s;
 }
 
 .parse-btn:hover:not(:disabled) {
-  border-color: #888;
-  color: #fff;
-  background: rgba(255, 255, 255, 0.05);
+  border-color: var(--iguana-text-muted, #888);
+  color: var(--iguana-text-strong, #fff);
+  background: var(--iguana-bg-hover, rgba(255, 255, 255, 0.05));
 }
 
 .parse-btn:disabled {
   background: transparent;
-  color: #555;
-  border-color: #3c3c3c;
+  color: var(--iguana-border-strong, #555);
+  border-color: var(--iguana-border, #3c3c3c);
   cursor: not-allowed;
 }

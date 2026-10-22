@@ -1,0 +1,8 @@
+/*
+  Host overrides for the design view, empty by default. A host that serves the
+  app can replace this file to restyle it without rebuilding. The code font,
+  used by the grammar editor, is the --iguana-font-mono property:
+
+  @import url("https://fonts.googleapis.com/css2?family=Source+Code+Pro&display=swap");
+  :root { --iguana-font-mono: "Source Code Pro", monospace; }
+*/

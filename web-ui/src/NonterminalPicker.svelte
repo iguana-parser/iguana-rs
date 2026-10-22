@@ -155,22 +155,22 @@
     justify-content: space-between;
     width: 100%;
     padding: 5px 8px;
-    background: #3c3c3c;
-    color: #d4d4d4;
-    border: 1px solid #555;
+    background: var(--iguana-border, #3c3c3c);
+    color: var(--iguana-text, #d4d4d4);
+    border: 1px solid var(--iguana-border-strong, #555);
     border-radius: 4px;
     cursor: pointer;
     font-size: 13px;
   }
 
   .picker-trigger:hover:not(:disabled) {
-    background: #454545;
-    border-color: #666;
+    background: var(--iguana-border-strong, #454545);
+    border-color: var(--iguana-text-muted, #666);
   }
 
   .picker-trigger:focus {
     outline: none;
-    border-color: #0e639c;
+    border-color: var(--iguana-accent, #0e639c);
   }
 
   .picker-trigger:disabled {
@@ -187,7 +187,7 @@
 
   :global(.picker-chevron) {
     flex-shrink: 0;
-    color: #888;
+    color: var(--iguana-text-muted, #888);
   }
 
   .picker-menu {
@@ -196,8 +196,8 @@
     left: 0;
     right: 0;
     margin-top: 2px;
-    background: #2d2d2d;
-    border: 1px solid #454545;
+    background: var(--iguana-bg-raised, #2d2d2d);
+    border: 1px solid var(--iguana-border, #454545);
     border-radius: 4px;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
     max-height: 240px;
@@ -210,9 +210,9 @@
   .picker-input {
     margin: 4px;
     padding: 5px 8px;
-    background: #3c3c3c;
-    color: #d4d4d4;
-    border: 1px solid #555;
+    background: var(--iguana-border, #3c3c3c);
+    color: var(--iguana-text, #d4d4d4);
+    border: 1px solid var(--iguana-border-strong, #555);
     border-radius: 3px;
     font-size: 13px;
     font-family: inherit;
@@ -220,12 +220,12 @@
   }
 
   .picker-input:focus {
-    border-color: #0e639c;
+    border-color: var(--iguana-accent, #0e639c);
   }
 
   .picker-empty {
     padding: 6px 10px;
-    color: #888;
+    color: var(--iguana-text-muted, #888);
     font-size: 13px;
     font-style: italic;
   }
@@ -235,7 +235,7 @@
     width: 100%;
     padding: 6px 10px;
     background: transparent;
-    color: #d4d4d4;
+    color: var(--iguana-text, #d4d4d4);
     border: none;
     cursor: pointer;
     font-size: 13px;
@@ -243,10 +243,10 @@
   }
 
   .picker-item.highlighted {
-    background: #094771;
+    background: var(--iguana-bg-hover, #094771);
   }
 
   .picker-item.selected {
-    background: #0e639c;
+    background: var(--iguana-selection, #0e639c);
   }
 </style>

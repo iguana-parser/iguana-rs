@@ -4,6 +4,7 @@
 
   import type { ParseError } from "./backend";
   import { charIndex, utf16OffsetTable } from "./char-offsets";
+  import { codeFont, defineInputTheme, onThemeChange, remeasureOnFontLoad } from "./theme";
 
   interface HighlightSpan {
     start: number;
@@ -52,6 +53,8 @@
   let editor: monaco.editor.IStandaloneCodeEditor;
   let ignoreChange = false;
   let decorationIds: string[] = [];
+  let stopRemeasure: (() => void) | undefined;
+  let stopThemeSync: (() => void) | undefined;
 
   onMount(() => {
     // The ESM Monaco build ships no styles; load its stylesheet on first use so
@@ -68,12 +71,12 @@
     editor = monaco.editor.create(container, {
       value,
       language: "plaintext",
-      theme: "vs-dark",
+      theme: defineInputTheme(monaco.editor),
       readOnly,
       automaticLayout: true,
       minimap: { enabled: false },
       fontSize: 13,
-      fontFamily: "'Fira Code', 'Consolas', monospace",
+      fontFamily: codeFont(),
       scrollBeyondLastLine: false,
       renderLineHighlight: "none",
       lineNumbers: "on",
@@ -94,6 +97,9 @@
       value = newValue;
       onchange?.(newValue);
     });
+
+    stopRemeasure = remeasureOnFontLoad(monaco.editor);
+    stopThemeSync = onThemeChange(() => monaco.editor.setTheme(defineInputTheme(monaco.editor)));
 
     editor.onMouseDown((e) => {
       if (!onclick) return;
@@ -123,6 +129,8 @@
 
   onDestroy(() => {
     onSaveViewState?.(editor?.saveViewState() ?? null);
+    stopRemeasure?.();
+    stopThemeSync?.();
     editor?.dispose();
   });
 
@@ -292,10 +300,10 @@
   }
 
   :global(.input-highlight-span) {
-    background-color: #264f78;
+    background-color: var(--iguana-selection, #264f78);
   }
 
   :global(.input-highlight-caret) {
-    border-left: 2px solid #569cd6;
+    border-left: 2px solid var(--iguana-accent, #569cd6);
   }
 </style>

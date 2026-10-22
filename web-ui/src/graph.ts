@@ -7,3 +7,4 @@ export * from "./graph-styles";
 export * from "./parse-tree-graph";
 export * from "./sexpr-parse";
 export { downloadPng } from "./png";
+export { onThemeChange, themeGraphStyles } from "./theme";

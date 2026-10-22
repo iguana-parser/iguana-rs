@@ -1,0 +1,8 @@
+/*
+  Host overrides for the viewer, empty by default. A host that serves the viewer
+  can replace this file to restyle it without rebuilding, by setting the
+  properties listed in web-ui/src/theme.ts on :root. For example, the code font:
+
+  @import url("https://fonts.googleapis.com/css2?family=Source+Code+Pro&display=swap");
+  :root { --iguana-font-mono: "Source Code Pro", monospace; }
+*/

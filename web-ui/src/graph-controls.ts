@@ -9,11 +9,9 @@
 export interface GraphControlsActions {
   zoomIn: () => void;
   zoomOut: () => void;
-  // Fits the whole graph back into the viewport.
+  // Returns the graph to its view after parsing: reopens the nodes a
+  // double-click collapsed and fits the whole graph into the viewport.
   fit: () => void;
-  // Undoes double-click collapses. The parse view passes this. The docs
-  // omit it, since collapsing is undiscoverable there.
-  expandAll?: () => void;
   exportPng?: () => void;
   popOut?: () => void;
 }
@@ -25,8 +23,10 @@ const ICON_ATTRS =
 const ICONS = {
   zoomIn: `<svg ${ICON_ATTRS}><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35M11 8v6M8 11h6"/></svg>`,
   zoomOut: `<svg ${ICON_ATTRS}><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35M8 11h6"/></svg>`,
-  fit: `<svg ${ICON_ATTRS}><path d="M3 7V5a2 2 0 0 1 2-2h2M17 3h2a2 2 0 0 1 2 2v2M21 17v2a2 2 0 0 1-2 2h-2M7 21H5a2 2 0 0 1-2-2v-2"/></svg>`,
-  expandAll: `<svg ${ICON_ATTRS}><path d="m15 15 6 6m0 0v-4.8m0 4.8h-4.8M9 9 3 3m0 0v4.8M3 3h4.8M15 9l6-6m0 0v4.8M21 3h-4.8M9 15l-6 6m0 0v-4.8M3 21h4.8"/></svg>`,
+  // Corner brackets, the fit-view icon of node-graph tools (React Flow), with
+  // a rectangle inside as in Material's fit_screen, so it does not read as
+  // fullscreen.
+  fit: `<svg ${ICON_ATTRS}><path d="M3 7V5a2 2 0 0 1 2-2h2M17 3h2a2 2 0 0 1 2 2v2M21 17v2a2 2 0 0 1-2 2h-2M7 21H5a2 2 0 0 1-2-2v-2"/><rect x="7" y="8" width="10" height="8" rx="1"/></svg>`,
   exportPng: `<svg ${ICON_ATTRS}><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>`,
   popOut: `<svg ${ICON_ATTRS}><path d="M15 3h6v6M10 14 21 3M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/></svg>`,
 };
@@ -51,10 +51,7 @@ export function createGraphControls(
 
   button("Zoom in", ICONS.zoomIn, actions.zoomIn);
   button("Zoom out", ICONS.zoomOut, actions.zoomOut);
-  button("Fit to view", ICONS.fit, actions.fit);
-  if (actions.expandAll) {
-    button("Expand all (double-click a node to collapse)", ICONS.expandAll, actions.expandAll);
-  }
+  button("Fit view", ICONS.fit, actions.fit);
   if (actions.exportPng) button("Export as PNG", ICONS.exportPng, actions.exportPng);
   if (actions.popOut) button("Pop out", ICONS.popOut, actions.popOut);
 

@@ -1,14 +1,15 @@
 <script lang="ts">
   import type { ParseError, ParserBackend } from "./backend";
   import type * as monaco from "monaco-editor";
-  import { tick, untrack } from "svelte";
-  import { ChevronDown, ChevronRight, CornerRightUp, Minimize2, Expand, SlidersHorizontal, Copy, ClipboardCheck, Play } from "lucide-svelte";
+  import { tick, untrack, type Snippet } from "svelte";
+  import { ChevronDown, ChevronRight, CornerRightUp, FoldVertical, UnfoldVertical, SlidersHorizontal, Copy, ClipboardCheck, Play } from "lucide-svelte";
   import cytoscape from "cytoscape";
   import {
     sppfNodeStyles,
     edgeStyles,
     adjustZoomGraph,
-    resetViewGraph,
+    openViewGraph,
+    fitViewGraph,
     createGraph,
     setupGraphTooltip,
     highlightOutgoingEdges,
@@ -27,6 +28,8 @@
     type ParseTreeNodeData as ParseTreeNode,
   } from "./parse-tree-graph";
   import { downloadPng } from "./png";
+  import { utf16Offset } from "./char-offsets";
+  import { onThemeChange, themeGraphStyles } from "./theme";
   import PlainEditor from "./PlainEditor.svelte";
   import NonterminalPicker from "./NonterminalPicker.svelte";
   import "./graph.css";
@@ -85,9 +88,22 @@
     // "monaco" (default) uses the full editor; "plain" swaps in a lightweight
     // syntax-highlighted textarea for a smaller footprint (embedded widgets).
     editor?: "monaco" | "plain";
+    // How a parse starts. "button" (default) parses when the user presses ▶.
+    // "auto" parses once the parser is ready and again after each pause in
+    // editing, and hides ▶. The parse runs on the main thread, so a parse slower
+    // than AUTO_PARSE_MAX_MS pauses "auto" and brings ▶ back until a manual parse
+    // is fast again, and a large input does not stall typing.
+    parseTrigger?: "button" | "auto";
+    // Flash the tree row that a click or selection in the input reveals. True by
+    // default; the web viewer sets it false and keeps only the jump.
+    flashOnReveal?: boolean;
     // Show the "Export as PNG" control in the graph toolbar. True by default;
     // the web viewer sets it false.
     exportable?: boolean;
+    // Host controls at the right end of the result tabs (the standalone web
+    // viewer's theme toggle). Shown only while the tabs are, so with more than
+    // one view.
+    tabActions?: Snippet;
     isProfiling?: boolean;
     // Host-specific hooks. Terrarium passes these; the web viewer omits them, so the
     // corresponding chrome (status bar, output log, profiling, graph pop-out) is dropped.
@@ -128,7 +144,10 @@
     orientation = "horizontal",
     views = ["tree", "graph", "sexpr"],
     editor = "monaco",
+    parseTrigger = "button",
+    flashOnReveal = true,
     exportable = true,
+    tabActions,
     isProfiling = false,
     onStatus,
     onParseStart,
@@ -240,11 +259,11 @@
   let activeTab = $state<"tree" | "graph" | "sexpr">(untrack(() => views[0] ?? "tree"));
 
   // Show spans on tree rows and in graph labels. False by default, driven by the
-  // "Show spans" checkbox in the View popover. Label-only, so unlike the structural
+  // "Spans" checkbox in the Show menu. Label-only, so unlike the structural
   // toggles below it does not pass through buildDisplayGraph.
   let showSpans = $state(false);
 
-  // Whether the View-options popover (the presentation toggles) is open.
+  // Whether the Show menu (the parse tree display toggles) is open.
   let viewMenuOpen = $state(false);
 
   // Presentation toggles, named and defaulted like the runtime's `DisplayOptions`
@@ -273,7 +292,7 @@
   let graphDirty = true;
 
   // Signature of what the graph last rendered (node/edge set + labels + showSpans).
-  // A View toggle only rebuilds when this changes, so a no-op toggle — e.g. hiding
+  // A Show toggle only rebuilds when this changes, so a no-op toggle — e.g. hiding
   // empty nodes when there are none — doesn't redraw and flicker. Set on every build.
   let lastGraphSig: string | null = null;
 
@@ -295,6 +314,8 @@
   let treeBuild = $derived(displayTree ? buildTree(displayTree) : null);
   let treeRoot = $derived(treeBuild?.root ?? null);
   let expandedNodes = $state(new Set<number>());
+  // The largest tree, in display nodes, that a new parse opens fully.
+  const TREE_EXPAND_ALL_MAX_NODES = 200;
   // svelte-ignore non_reactive_update
   let treeContainerEl: HTMLDivElement;
   // svelte-ignore non_reactive_update
@@ -325,6 +346,10 @@
 
   // Parse error for input editor markers
   let parseError = $state<ParseError | null>(null);
+  // An unexpected error (the parser crashed or could not run), shown under the
+  // input for hosts without a status bar (onStatus). A parse failure needs no
+  // such line: the editor shows its message at the failing line.
+  let failureText = $state<string | null>(null);
 
   let parseTreeTooltipCleanup: (() => void) | null = null;
 
@@ -344,7 +369,7 @@
     return `${showSpans ? 1 : 0}|${nodes}|${edges}`;
   }
 
-  // Shared by every View toggle: rebuild and re-fit the graph only when the toggle
+  // Shared by every Show toggle: rebuild and re-fit the graph only when the toggle
   // actually changes what it draws. A no-op toggle (e.g. hiding empty nodes when
   // there are none) leaves the signature unchanged, so nothing redraws or flickers.
   function refreshGraphAfterToggle() {
@@ -353,6 +378,14 @@
     else graphDirty = true; // rebuild lazily when the graph tab is next shown
   }
 
+
+  function graphStyles() {
+    return themeGraphStyles([...sppfNodeStyles, ...edgeStyles]);
+  }
+
+  // The graph is drawn on a canvas, so it does not follow the host's CSS on its
+  // own; restyle it when the theme changes.
+  $effect(() => onThemeChange(() => parseTreeCy?.style(graphStyles())));
 
   // Create the Cytoscape instance once and wire its event handlers. The handlers
   // are delegated on the instance (by 'node'/'edge' selector), so they keep
@@ -364,7 +397,7 @@
     parseTreeCy = createGraph({
       container: parseTreeContainer,
       elements: buildGraphElements(),
-      styles: [...sppfNodeStyles, ...edgeStyles],  // Reuse SPPF styles (nonterminal/token)
+      styles: graphStyles(),  // SPPF styles (nonterminal/token), in the host's colors
       layout: 'tree',  // cytoscape-tidytree (see PARSE_TREE_LAYOUT)
     });
     graphRenderer = parseTreeCy.scratch("_renderer");
@@ -472,7 +505,7 @@
 
   // Rebuild the graph's elements for the current view and fit the whole tree to
   // the panel. This is the fresh-parse framing, shared by the graph $effect and
-  // every View toggle so a toggle reframes exactly like a new parse. The rAF
+  // every Show toggle so a toggle reframes exactly like a new parse. The rAF
   // re-fit is needed because a just-unhidden flex pane hasn't reached its final
   // size on the first tick, so the initial fit would land on a too-small box.
   function rebuildAndFitGraph() {
@@ -481,7 +514,7 @@
     requestAnimationFrame(() => {
       if (parseTreeCy && activeTab === "graph") {
         parseTreeCy.resize();
-        resetView();
+        openViewGraph(parseTreeCy);
       }
     });
   }
@@ -511,8 +544,7 @@
     return createGraphControls(parseTreeContainer, {
       zoomIn,
       zoomOut,
-      fit: resetView,
-      expandAll,
+      fit: fitGraph,
       exportPng: exportable ? exportGraph : undefined,
       popOut: onPopOut,
     });
@@ -523,29 +555,88 @@
   // showing a tree for input the user has already edited.
   let parseSeq = 0;
 
+  // Auto-parse waits this long after the last edit, so a burst of typing runs one
+  // parse rather than one per keystroke.
+  const AUTO_PARSE_DELAY_MS = 250;
+  // A parse slower than this pauses auto-parse. The parse runs on the main thread,
+  // so each keystroke would otherwise stall the editor for as long.
+  const AUTO_PARSE_MAX_MS = 100;
+  let autoParse = $derived(parseTrigger === "auto");
+  let autoParsePaused = $state(false);
+  // The input and start symbol of the newest parse, so the paused hint shows only
+  // when there is something new to parse.
+  let parsedInput = $state<string | null>(null);
+  let parsedStart = $state<string | null>(null);
+  let inputChanged = $derived(inputText !== parsedInput || startNonterminal !== parsedStart);
+  let showParseButton = $derived(!autoParse || (autoParsePaused && inputChanged));
+
+  // A parse failure, laid out for the result pane the way the runtime's
+  // ParseError::render prints it: the position, the failing line with a caret
+  // under the span, and the message. Positions come from the input the parse
+  // ran on, not the current one, which may have changed since. The text is
+  // sliced at UTF-16 offsets, and the column and the caret count characters, as
+  // the runtime does.
+  let errorReport = $derived.by(() => {
+    if (!parseError || parsedInput == null) return null;
+    const text = parsedInput;
+    const start = utf16Offset(text, parseError.span.left_extent);
+    const end = utf16Offset(text, parseError.span.right_extent);
+    const lineStart = text.lastIndexOf("\n", start - 1) + 1;
+    const newline = text.indexOf("\n", start);
+    const lineEnd = newline === -1 ? text.length : newline;
+    const source = text.slice(lineStart, lineEnd);
+    const line = text.slice(0, start).split("\n").length;
+    const before = Array.from(text.slice(lineStart, start));
+    const spanned = Array.from(text.slice(start, Math.min(end, lineEnd))).length;
+    return {
+      line,
+      column: before.length + 1,
+      source,
+      // Tabs stay tabs so the caret lines up under them.
+      pad: before.map((c) => (c === "\t" ? "\t" : " ")).join(""),
+      // An empty span still draws one caret; a span past the line end stops there.
+      caret: "^".repeat(Math.max(1, spanned)),
+      gutter: " ".repeat(String(line).length),
+      message: parseError.message,
+    };
+  });
+
   // Exported so the page-level Cmd+P keybinding can fire the same parse via bind:this.
-  export async function parse() {
+  export function parse() {
+    return runParse(false);
+  }
+
+  // An auto-parse keeps the current tree until the result arrives, so a
+  // successful parse replaces it without a blank frame. A manual parse clears it
+  // first.
+  async function runParse(auto: boolean) {
     if (!backend || buildStatus !== "success" || !startNonterminal) return;
     const seq = ++parseSeq;
     onStatus?.("Parsing...", "info");
     onParseStart?.();
 
     // Reset previous results
-    parseTree = null;
+    if (!auto) parseTree = null;
     parseTreeSelectedSpan = null;
     parseError = null;
+    failureText = null;
 
     onLogCommand?.(`${parserName} <input> --start ${startNonterminal}`);
 
-    const result = await backend.parse(inputText, startNonterminal);
+    const text = inputText;
+    parsedInput = text;
+    parsedStart = startNonterminal;
+    const started = performance.now();
+    const result = await backend.parse(text, startNonterminal);
     // A newer parse started while this one ran, and the newer one owns the views.
     if (seq !== parseSeq) return;
+    if (autoParse) autoParsePaused = performance.now() - started > AUTO_PARSE_MAX_MS;
 
     if ("error" in result) {
       // The parser could not be run at all (missing binary, spawn failure): an
       // unexpected error, surfaced like a crash rather than a parse failure.
       reportUnexpectedError(result.error);
-      teardownParseTreeGraph();
+      clearParseTree();
       return;
     }
 
@@ -578,9 +669,44 @@
     } else {
       // No tree to show (parse failure or crash): clear any tree left from a prior
       // parse so every tab matches the error state instead of showing stale data.
-      teardownParseTreeGraph();
+      clearParseTree();
     }
   }
+
+  function clearParseTree() {
+    parseTree = null;
+    teardownParseTreeGraph();
+  }
+
+  // Clears the result for an emptied input. A parse still running is discarded,
+  // and parsing as you type resumes, since an empty input is never slow.
+  function clearAutoParse() {
+    parseSeq++;
+    clearParseTree();
+    parseError = null;
+    failureText = null;
+    autoParsePaused = false;
+    parsedInput = inputText;
+    parsedStart = startNonterminal;
+  }
+
+  // Auto-parse: once when the parser is ready, then after each pause in editing.
+  // Reading inputText and startNonterminal makes an edit to either rerun this.
+  // An empty input is not parsed: a grammar that accepts it would show a tree of
+  // empty nodes before the user has typed anything. The result pane then shows
+  // a hint, and a later edit parses again.
+  let autoParsedOnce = false;
+  $effect(() => {
+    if (!autoParse || !backend || buildStatus !== "success" || !startNonterminal) return;
+    if (inputText === "") {
+      untrack(clearAutoParse);
+      return;
+    }
+    if (untrack(() => autoParsePaused)) return;
+    const timer = setTimeout(() => runParse(true), autoParsedOnce ? AUTO_PARSE_DELAY_MS : 0);
+    autoParsedOnce = true;
+    return () => clearTimeout(timer);
+  });
 
   // An error that is not the input failing to match the grammar: the parser
   // crashed, could not be run, or produced output the view cannot read. The host
@@ -588,6 +714,7 @@
   // is no position in the input to point at.
   function reportUnexpectedError(detail: string) {
     onLogError?.(detail);
+    if (!onStatus) failureText = detail;
     onStatus?.("An unexpected error occurred", "error");
     onUnexpectedError?.(detail);
   }
@@ -608,8 +735,11 @@
         teardownParseTreeGraph();
       }
       graphDirty = true;
-      // Expand root by default
-      if (treeRoot) {
+      // A small tree opens fully; a larger one opens at the root only, so its
+      // rows do not run to thousands.
+      if ((displayTree?.nodes.length ?? 0) <= TREE_EXPAND_ALL_MAX_NODES) {
+        expandAllTreeNodes();
+      } else if (treeRoot) {
         expandedNodes = new Set([treeRoot.id]);
       }
       onParseTreeChange?.();
@@ -631,12 +761,11 @@
     adjustZoomGraph(parseTreeCy, 1 / 1.2);
   }
 
-  function resetView() {
-    resetViewGraph(parseTreeCy);
-  }
-
-  function expandAll() {
+  // The graph's fit button: reopen double-click collapses, then show the whole
+  // graph.
+  function fitGraph() {
     parseTreeCollapseManager.expandAll();
+    fitViewGraph(parseTreeCy);
   }
 
   function exportGraph() {
@@ -691,17 +820,27 @@
     expandedNodes = new Set(expandedNodes); // Trigger reactivity
   }
 
-  function expandAllTreeNodes() {
-    if (!treeRoot) return;
-    const allWithChildren = new Set<number>();
+  // The ids of the tree rows that have children, which "Expand All" opens.
+  let expandableTreeNodes = $derived.by(() => {
+    const ids = new Set<number>();
     function collect(node: TreeNode) {
       if (node.children.length > 0) {
-        allWithChildren.add(node.id);
+        ids.add(node.id);
         node.children.forEach(collect);
       }
     }
-    collect(treeRoot);
-    expandedNodes = allWithChildren;
+    if (treeRoot) collect(treeRoot);
+    return ids;
+  });
+
+  // One button toggles the whole tree: it collapses once every row is open and
+  // expands otherwise. The S-expression view does the same with sexprCollapsed.
+  let treeAllExpanded = $derived(
+    [...expandableTreeNodes].every((id) => expandedNodes.has(id)),
+  );
+
+  function expandAllTreeNodes() {
+    expandedNodes = new Set(expandableTreeNodes);
   }
 
   function collapseAllTreeNodes() {
@@ -822,21 +961,22 @@
     selectedTreeRowKey = cyNodeId;
 
     // Scroll the tree row into view once the expanded-state update has rendered,
-    // then flash it. The flash is the only cue when the target was already
-    // selected, since the selection highlight does not change in that case.
+    // then flash it if the host asks for it. The flash is the only cue when the
+    // target was already selected, since the selection highlight does not change
+    // in that case.
     tick().then(() => {
       if (treeContainerEl) {
         const selectedEl = treeContainerEl.querySelector('.tree-item.selected');
         if (selectedEl) {
           selectedEl.scrollIntoView({ block: 'nearest' });
-          flashTreeRow(selectedEl);
+          if (flashOnReveal) flashTreeRow(selectedEl);
         }
       }
       if (sexprContainerEl) {
         const el = sexprContainerEl.querySelector('.sexpr-node.selected');
         if (el) {
           el.scrollIntoView({ block: 'nearest' });
-          flashTreeRow(el);
+          if (flashOnReveal) flashTreeRow(el);
         }
       }
     });
@@ -1134,8 +1274,10 @@
       {/if}
       <!-- Parse trigger lives on the header bar when there is one, using its empty
            right side, rather than floating over the editor. -->
+      {#if showParseButton}
       <button
         class="parse-play parse-play--bar"
+        class:attention={autoParsePaused && inputChanged}
         onclick={parse}
         disabled={!backend || buildStatus !== "success" || !startNonterminal}
         title="Parse"
@@ -1143,6 +1285,7 @@
       >
         <Play size={16} fill="currentColor" strokeWidth={0} />
       </button>
+      {/if}
     </div>
     {/if}
 
@@ -1152,6 +1295,7 @@
         <PlainEditor
           bind:this={inputEditorRef}
           bind:value={inputText}
+          error={parseError}
           highlightSpan={parseTreeSelectedSpan}
           onclick={onParseInputClick}
           onchange={clearParseModeInputSelection}
@@ -1175,9 +1319,10 @@
       {/if}
       <!-- Parse trigger: floats in the input pane's corner only when there is no
            header bar to host it (a single-start grammar with no Profile action). -->
-      {#if !(nonterminals.length > 1 || onProfile)}
+      {#if showParseButton && !(nonterminals.length > 1 || onProfile)}
       <button
         class="parse-play"
+        class:attention={autoParsePaused && inputChanged}
         onclick={parse}
         disabled={!backend || buildStatus !== "success" || !startNonterminal}
         title="Parse"
@@ -1187,6 +1332,11 @@
       </button>
       {/if}
     </div>
+    {#if failureText}
+      <div class="parse-message parse-message--error" title={failureText}>{failureText}</div>
+    {:else if autoParsePaused && inputChanged}
+      <div class="parse-message">Parsing as you type is off for inputs this slow to parse. Press ▶ to parse.</div>
+    {/if}
   </div>
 
   <!-- Vertical Resize Handle -->
@@ -1201,61 +1351,78 @@
         {#if views.includes("tree")}<button class:active={activeTab === "tree"} onclick={() => (activeTab = "tree")}>Tree</button>{/if}
         {#if views.includes("graph")}<button class:active={activeTab === "graph"} onclick={() => (activeTab = "graph")}>Graph</button>{/if}
         {#if views.includes("sexpr")}<button class:active={activeTab === "sexpr"} onclick={() => (activeTab = "sexpr")}>S-expr</button>{/if}
-        {#if parseTree}
-          <div class="view-options">
-            <button
-              class="view-options-btn"
-              class:active={viewMenuOpen}
-              onclick={(e) => { e.stopPropagation(); viewMenuOpen = !viewMenuOpen; }}
-              title="View options"
-            >
-              <SlidersHorizontal size={14} />
-              <span>View</span>
-              <ChevronDown size={12} />
-            </button>
-            {#if viewMenuOpen}
-              <!-- svelte-ignore a11y_click_events_have_key_events -->
-              <!-- svelte-ignore a11y_no_static_element_interactions -->
-              <div class="view-options-menu" onclick={(e) => e.stopPropagation()}>
-                {#if parseTree.layout_name}
+        <div class="tab-controls">
+          {#if parseTree}
+            <div class="view-options">
+              <button
+                class="view-options-btn"
+                class:active={viewMenuOpen}
+                onclick={(e) => { e.stopPropagation(); viewMenuOpen = !viewMenuOpen; }}
+                title="Parse tree display options"
+              >
+                <SlidersHorizontal size={14} />
+                <span>Show</span>
+                <ChevronDown size={12} />
+              </button>
+              {#if viewMenuOpen}
+                <!-- svelte-ignore a11y_click_events_have_key_events -->
+                <!-- svelte-ignore a11y_no_static_element_interactions -->
+                <div class="view-options-menu" onclick={(e) => e.stopPropagation()}>
+                  {#if parseTree.layout_name}
+                    <label>
+                      <input type="checkbox" checked={displayOptions.showLayout}
+                        onchange={(e) => setDisplayOption("showLayout", e.currentTarget.checked)} />
+                      Layout
+                    </label>
+                  {/if}
                   <label>
-                    <input type="checkbox" checked={displayOptions.showLayout}
-                      onchange={(e) => setDisplayOption("showLayout", e.currentTarget.checked)} />
-                    Show layout
+                    <input type="checkbox" checked={displayOptions.showEmpty}
+                      onchange={(e) => setDisplayOption("showEmpty", e.currentTarget.checked)} />
+                    Empty nodes
                   </label>
-                {/if}
-                <label>
-                  <input type="checkbox" checked={displayOptions.showEmpty}
-                    onchange={(e) => setDisplayOption("showEmpty", e.currentTarget.checked)} />
-                  Show empty nodes
-                </label>
-                <label>
-                  <input type="checkbox" checked={displayOptions.showWrappers}
-                    onchange={(e) => setDisplayOption("showWrappers", e.currentTarget.checked)} />
-                  Show wrappers
-                </label>
-                <label>
-                  <input type="checkbox" checked={showSpans}
-                    onchange={(e) => setShowSpans(e.currentTarget.checked)} />
-                  Show spans
-                </label>
-              </div>
-            {/if}
-          </div>
-        {/if}
+                  <label>
+                    <input type="checkbox" checked={displayOptions.showWrappers}
+                      onchange={(e) => setDisplayOption("showWrappers", e.currentTarget.checked)} />
+                    Wrappers
+                  </label>
+                  <label>
+                    <input type="checkbox" checked={showSpans}
+                      onchange={(e) => setShowSpans(e.currentTarget.checked)} />
+                    Spans
+                  </label>
+                </div>
+              {/if}
+            </div>
+          {/if}
+          {#if tabActions}
+            <div class="tab-actions">{@render tabActions()}</div>
+          {/if}
+        </div>
       </div>
       {/if}
       <div class="graph-container">
-        {#if activeTab === "tree"}
+        {#if errorReport && !parseTree}
+          <div class="error-report">
+            <div class="error-report-title">Parse error at line {errorReport.line}, column {errorReport.column}</div>
+            <pre class="error-report-source"><span class="error-report-gutter">{errorReport.line} | </span>{errorReport.source}
+<span class="error-report-gutter">{errorReport.gutter} | </span>{errorReport.pad}<span class="error-report-caret">{errorReport.caret}</span></pre>
+            <div class="error-report-message">{errorReport.message}</div>
+          </div>
+        {:else if autoParse && inputText === ""}
+          <div class="empty-input-hint">Type an input to see its parse tree.</div>
+        {:else if activeTab === "tree"}
           {#if treeRoot}
             <div class="tree-view">
               <div class="tree-controls">
-                <button onclick={expandAllTreeNodes} title="Expand All">
-                  <Expand size={16} />
-                </button>
-                <button onclick={collapseAllTreeNodes} title="Collapse All">
-                  <Minimize2 size={16} />
-                </button>
+                {#if treeAllExpanded}
+                  <button onclick={collapseAllTreeNodes} title="Collapse All" aria-label="Collapse All">
+                    <FoldVertical size={16} />
+                  </button>
+                {:else}
+                  <button onclick={expandAllTreeNodes} title="Expand All" aria-label="Expand All">
+                    <UnfoldVertical size={16} />
+                  </button>
+                {/if}
               </div>
               <!-- The container takes arrow-key navigation over its rows, but the
                    rows are not ARIA treeitems, so role="tree" here would announce
@@ -1315,12 +1482,15 @@
           {#if sexprRoot}
             <div class="sexpr-view">
               <div class="tree-controls">
-                <button onclick={expandAllSexprNodes} title="Expand All">
-                  <Expand size={16} />
-                </button>
-                <button onclick={collapseAllSexprNodes} title="Collapse All">
-                  <Minimize2 size={16} />
-                </button>
+                {#if sexprCollapsed.size === 0}
+                  <button onclick={collapseAllSexprNodes} title="Collapse All" aria-label="Collapse All">
+                    <FoldVertical size={16} />
+                  </button>
+                {:else}
+                  <button onclick={expandAllSexprNodes} title="Expand All" aria-label="Expand All">
+                    <UnfoldVertical size={16} />
+                  </button>
+                {/if}
               </div>
               <!-- svelte-ignore a11y_mouse_events_have_key_events -->
               <!-- svelte-ignore a11y_no_static_element_interactions -->
@@ -1385,7 +1555,7 @@
              not rebuilt on every visit or re-parse. The container is always
              present so its bind:this stays stable while parseTree resets to null
              mid-parse; only the controls are gated on having a parse tree. -->
-        <div class="graph-view" class:hidden={activeTab !== "graph"}>
+        <div class="graph-view" class:hidden={activeTab !== "graph" || (errorReport && !parseTree)}>
           <div class="cytoscape-container" bind:this={parseTreeContainer}></div>
           {#if graphRenderer?.webgl}
             <div class="renderer-badge" title="Rendered on the GPU (WebGL) because this tree exceeds the node threshold">WebGL</div>
@@ -1404,12 +1574,13 @@
   }
 
   /* Left Panel */
+  /* The host bounds the width (leftPanelWidth); Terrarium's divider stops at
+     600px, and the web viewer's leaves the result pane its minimum. */
   .left-panel {
     min-width: 250px;
-    max-width: 600px;
     display: flex;
     flex-direction: column;
-    background: #252526;
+    background: var(--iguana-bg, #252526);
     /* Clip the editor to the pane. Monaco's automatic layout can momentarily lag
        a shrink, and a short stacked pane must never let the editor spill over the
        result tabs below it. */
@@ -1422,8 +1593,8 @@
     flex-wrap: wrap;
     gap: 8px 12px;
     padding: 12px;
-    border-bottom: 1px solid #3c3c3c;
-    background: #2d2d2d;
+    border-bottom: 1px solid var(--iguana-border, #3c3c3c);
+    background: var(--iguana-bg-raised, #2d2d2d);
   }
 
   .parse-actions {
@@ -1439,7 +1610,7 @@
   }
 
   .dropdown-label {
-    color: #d4d4d4;
+    color: var(--iguana-text, #d4d4d4);
     font-size: 13px;
   }
 
@@ -1464,17 +1635,43 @@
     padding: 4px;
     border: none;
     background: transparent;
-    color: #8a8a8a;
+    color: var(--iguana-text-muted, #8a8a8a);
     cursor: pointer;
     transition: color 0.15s;
   }
   .parse-play:hover:not(:disabled) {
-    color: #d4d4d4;
+    color: var(--iguana-text, #d4d4d4);
   }
   .parse-play:disabled {
     opacity: 0.4;
     cursor: default;
   }
+  /* Auto-parse is paused and the input has changed since the last parse, so the
+     button is the way to see the new tree. */
+  .parse-play.attention:not(:disabled) {
+    color: var(--iguana-text, #d4d4d4);
+  }
+
+  /* A line under the input: why the parser could not run, or why auto-parse is
+     paused. A long message is cut at two lines; the title holds the whole of it. */
+  .parse-message {
+    flex-shrink: 0;
+    padding: 6px 12px;
+    border-top: 1px solid var(--iguana-border, #3c3c3c);
+    font-size: 12px;
+    line-height: 1.4;
+    color: var(--iguana-text-muted, #9a9a9a);
+    overflow-wrap: anywhere;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    overflow: hidden;
+  }
+  .parse-message--error {
+    color: var(--iguana-error, #e05050);
+  }
+
   /* On the header bar the button is a normal flex item at the right end, not the
      absolutely-positioned overlay it is in the bare input pane. */
   .parse-play--bar {
@@ -1487,7 +1684,7 @@
   .resize-handle-vertical {
     width: 4px;
     cursor: col-resize;
-    background: #3c3c3c;
+    background: var(--iguana-border, #3c3c3c);
     transition: background 0.2s;
     flex-shrink: 0;
     position: relative;
@@ -1495,7 +1692,7 @@
   }
 
   .resize-handle-vertical:hover {
-    background: #0e639c;
+    background: var(--iguana-accent, #0e639c);
   }
 
   /* Vertical orientation: stack input over result and turn the divider into a
@@ -1534,10 +1731,13 @@
     overflow: hidden;
   }
 
+  /* The row wraps when the pane is narrower than its tabs and controls, so the
+     controls move to a second line instead of out of view. */
   .tabs {
     display: flex;
-    background: #2d2d2d;
-    border-bottom: 1px solid #3c3c3c;
+    flex-wrap: wrap;
+    background: var(--iguana-bg-raised, #2d2d2d);
+    border-bottom: 1px solid var(--iguana-border, #3c3c3c);
   }
 
   /* Direct-child combinator so the tab padding stays on the Tree/Graph tabs and
@@ -1545,27 +1745,39 @@
   .tabs > button {
     padding: 8px 20px;
     background: transparent;
-    color: #888;
+    color: var(--iguana-text-muted, #888);
     border: none;
     cursor: pointer;
     border-bottom: 2px solid transparent;
   }
 
   .tabs > button.active {
-    color: #d4d4d4;
-    border-bottom-color: #0e639c;
+    color: var(--iguana-text, #d4d4d4);
+    border-bottom-color: var(--iguana-accent, #0e639c);
   }
 
   .tabs > button:hover:not(.active) {
-    color: #d4d4d4;
+    color: var(--iguana-text, #d4d4d4);
   }
 
-  /* View-options popover, right-aligned in the tab row */
+  /* The Show menu, right-aligned in the tab row */
+  /* The Show menu and the host's controls, right-aligned as one group, so a
+     narrow pane wraps them to the next line together. */
+  .tab-controls {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    margin-left: auto;
+    padding-right: 6px;
+  }
+
   .view-options {
     position: relative;
-    margin-left: auto;
-    margin-right: 2px;
-    align-self: center;
+  }
+
+  .tab-actions {
+    display: flex;
+    align-items: center;
   }
 
   .view-options-btn {
@@ -1573,8 +1785,8 @@
     align-items: center;
     gap: 4px;
     padding: 3px 6px;
-    background: #2d2d2d;
-    color: #888;
+    background: var(--iguana-bg-raised, #2d2d2d);
+    color: var(--iguana-text-muted, #888);
     border: none;
     border-radius: 3px;
     cursor: pointer;
@@ -1582,13 +1794,13 @@
   }
 
   .view-options-btn.active {
-    background: #3c3c3c;
-    color: #fff;
+    background: var(--iguana-border, #3c3c3c);
+    color: var(--iguana-text-strong, #fff);
   }
 
   .view-options-btn:hover:not(.active) {
-    background: #3c3c3c;
-    color: #d4d4d4;
+    background: var(--iguana-border, #3c3c3c);
+    color: var(--iguana-text, #d4d4d4);
   }
 
   .view-options-menu {
@@ -1600,8 +1812,8 @@
     flex-direction: column;
     gap: 6px;
     padding: 8px 10px;
-    background: #252526;
-    border: 1px solid #3c3c3c;
+    background: var(--iguana-bg-raised, #252526);
+    border: 1px solid var(--iguana-border, #3c3c3c);
     border-radius: 4px;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
     white-space: nowrap;
@@ -1611,7 +1823,7 @@
     display: flex;
     align-items: center;
     gap: 6px;
-    color: #d4d4d4;
+    color: var(--iguana-text, #d4d4d4);
     font-size: 11px;
     cursor: pointer;
   }
@@ -1633,17 +1845,56 @@
     display: none;
   }
 
+  /* A parse failure in place of the tree, laid out like the runtime's
+     terminal report. */
+  .empty-input-hint {
+    padding: 14px 16px;
+    font-size: 13px;
+    color: var(--iguana-text-muted, #888);
+  }
+
+  .error-report {
+    position: absolute;
+    inset: 0;
+    overflow: auto;
+    padding: 14px 16px;
+    font-size: 13px;
+    color: var(--iguana-text, #d4d4d4);
+  }
+  .error-report-title {
+    color: var(--iguana-error, #f14c4c);
+  }
+  .error-report-source {
+    margin: 12px 0;
+    font-family: var(--iguana-font-mono, "Fira Code", ui-monospace, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace);
+    font-size: 13px;
+    line-height: 1.5;
+    tab-size: 2;
+    overflow-x: auto;
+  }
+  .error-report-gutter {
+    color: var(--iguana-text-muted, #6e7681);
+  }
+  .error-report-caret {
+    color: var(--iguana-error, #f14c4c);
+  }
+  .error-report-message {
+    font-family: var(--iguana-font-mono, "Fira Code", ui-monospace, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace);
+    line-height: 1.5;
+    overflow-wrap: anywhere;
+  }
+
   /* Marks the parse-tree graph as GPU-rendered; shown only on the WebGL path. */
   .renderer-badge {
     position: absolute;
     bottom: 8px;
     left: 8px;
     padding: 2px 7px;
-    font-family: 'SF Mono', 'Fira Code', Consolas, monospace;
+    font-family: var(--iguana-font-mono, "Fira Code", ui-monospace, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace);
     font-size: 11px;
-    color: #888;
-    background: rgba(37, 37, 38, 0.8);
-    border: 1px solid #3c3c3c;
+    color: var(--iguana-text-muted, #888);
+    background: var(--iguana-bg-raised, rgba(37, 37, 38, 0.8));
+    border: 1px solid var(--iguana-border, #3c3c3c);
     border-radius: 4px;
     pointer-events: none;
     user-select: none;
@@ -1674,35 +1925,57 @@
     gap: 4px;
   }
 
+  /* The controls appear while the pointer is over the view or keyboard focus is
+     inside it (focus-visible, so a click in the tree does not pin them), so they
+     do not sit over the rows the rest of the time. A device
+     without hover (touch) always shows them. */
+  @media (hover: hover) {
+    .tree-controls {
+      opacity: 0;
+      transition: opacity 0.15s;
+    }
+    .tree-view:hover .tree-controls,
+    .tree-view:has(:focus-visible) .tree-controls,
+    .sexpr-view:hover .tree-controls,
+    .sexpr-view:has(:focus-visible) .tree-controls {
+      opacity: 1;
+    }
+  }
+
   .tree-controls button {
     display: flex;
     align-items: center;
     justify-content: center;
     width: 28px;
     height: 28px;
-    background: #2d2d2d;
-    border: 1px solid #3c3c3c;
+    background: var(--iguana-bg-raised, #2d2d2d);
+    border: 1px solid var(--iguana-border, #3c3c3c);
     border-radius: 4px;
-    color: #888;
+    color: var(--iguana-text-muted, #888);
     cursor: pointer;
   }
 
   .tree-controls button:hover {
-    background: #3c3c3c;
-    color: #d4d4d4;
+    background: var(--iguana-border, #3c3c3c);
+    color: var(--iguana-text, #d4d4d4);
   }
 
   .tree-container {
     flex: 1;
     overflow: auto;
     padding: 8px 0;
-    font-family: 'SF Mono', 'Fira Code', Consolas, monospace;
+    font-family: var(--iguana-font-mono, "Fira Code", ui-monospace, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace);
     font-size: 13px;
     outline: none;
   }
 
+  /* Only for keyboard focus: a click into the tree would otherwise frame the
+     whole pane. */
   .tree-container:focus {
-    outline: 1px solid #0e639c;
+    outline: none;
+  }
+  .tree-container:focus-visible {
+    outline: 1px solid var(--iguana-accent, #0e639c);
     outline-offset: -1px;
   }
 
@@ -1715,11 +1988,11 @@
   }
 
   .tree-item:hover {
-    background: #2a2d2e;
+    background: var(--iguana-bg-hover, #2a2d2e);
   }
 
   .tree-item.selected {
-    background: #094771;
+    background: var(--iguana-selection, #094771);
   }
 
   /* `flash` is toggled imperatively by flashTreeRow, so scope only `.tree-item`. */
@@ -1728,7 +2001,7 @@
   }
 
   @keyframes tree-row-flash {
-    0% { background: #2b7fc4; }
+    0% { background: var(--iguana-flash, #2b7fc4); }
     100% { background: transparent; }
   }
 
@@ -1737,13 +2010,13 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    color: #888;
+    color: var(--iguana-text-muted, #888);
     cursor: pointer;
     flex-shrink: 0;
   }
 
   .expand-icon:hover {
-    color: #d4d4d4;
+    color: var(--iguana-text, #d4d4d4);
   }
 
   .expand-icon-placeholder {
@@ -1756,15 +2029,15 @@
   }
 
   .tree-label.nonterminal {
-    color: #4ec9b0;
+    color: var(--iguana-syntax-nonterminal, #4ec9b0);
   }
 
   .tree-label.token {
-    color: #ce9178;
+    color: var(--iguana-syntax-token, #ce9178);
   }
 
   .tree-label.amb {
-    color: #e05050;
+    color: var(--iguana-syntax-ambiguity, #e05050);
   }
 
   /* A reference is its own category (a link to a shared node), not the kind it
@@ -1772,14 +2045,14 @@
      The label is the jump link: pointer cursor and an underline on hover make it
      read as clickable, and clicking it navigates to the definition. */
   .tree-label.reference {
-    color: #c586c0;
+    color: var(--iguana-syntax-reference, #c586c0);
     font-style: italic;
     cursor: pointer;
   }
 
   .tree-label.reference:hover {
     text-decoration: underline;
-    color: #e0a0db;
+    color: var(--iguana-syntax-reference-hover, #e0a0db);
   }
 
   .tree-ref-icon {
@@ -1789,7 +2062,7 @@
   }
 
   .tree-span {
-    color: #6a9955;
+    color: var(--iguana-syntax-comment, #6a9955);
     font-size: 12px;
     margin-left: 8px;
   }
@@ -1809,7 +2082,7 @@
     flex: 1;
     overflow: auto;
     padding: 8px 0;
-    font-family: 'SF Mono', 'Fira Code', Consolas, monospace;
+    font-family: var(--iguana-font-mono, "Fira Code", ui-monospace, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace);
     font-size: 13px;
     line-height: 1.5;
   }
@@ -1826,13 +2099,13 @@
     align-items: center;
     justify-content: center;
     width: 13px;
-    color: #888;
+    color: var(--iguana-text-muted, #888);
     cursor: pointer;
     flex-shrink: 0;
   }
 
   .sexpr-toggle:hover {
-    color: #d4d4d4;
+    color: var(--iguana-text, #d4d4d4);
   }
 
   /* CSS caret in place of a lucide chevron, so internal nodes mount no SVG. */
@@ -1856,7 +2129,7 @@
   }
 
   .sexpr-ellipsis {
-    color: #888;
+    color: var(--iguana-text-muted, #888);
   }
 
   .sexpr-node {
@@ -1865,11 +2138,11 @@
   }
 
   .sexpr-node:hover {
-    background: #2a2d2e;
+    background: var(--iguana-bg-hover, #2a2d2e);
   }
 
   .sexpr-node.selected {
-    background: #094771;
+    background: var(--iguana-selection, #094771);
   }
 
   /* `flash` is toggled imperatively by flashTreeRow on input-click reveal. */
@@ -1879,23 +2152,23 @@
   }
 
   .sexpr-paren {
-    color: #b59a6e;
+    color: var(--iguana-syntax-paren, #b59a6e);
   }
 
   .sexpr-label {
-    color: #c586c0;
+    color: var(--iguana-syntax-reference, #c586c0);
   }
 
   .sexpr-token {
-    color: #4ec9b0;
+    color: var(--iguana-syntax-nonterminal, #4ec9b0);
   }
 
   .sexpr-token.amb {
-    color: #e05050;
+    color: var(--iguana-syntax-ambiguity, #e05050);
   }
 
   .sexpr-token.reference {
-    color: #c586c0;
+    color: var(--iguana-syntax-reference, #c586c0);
     font-style: italic;
   }
 
@@ -1908,12 +2181,12 @@
     height: 18px;
     background: none;
     border: none;
-    color: #888;
+    color: var(--iguana-text-muted, #888);
     cursor: pointer;
     flex-shrink: 0;
   }
 
   .sexpr-copy:hover {
-    color: #fff;
+    color: var(--iguana-text-strong, #fff);
   }
 </style>

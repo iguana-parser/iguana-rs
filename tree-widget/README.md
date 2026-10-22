@@ -6,8 +6,9 @@ runtime's `to_sexpr` renders, including subtree-sharing markers, and renders
 the same Cytoscape graph used by `ParseView`.
 
 The host owns the surrounding controls, sizing, and styles. The widget owns the
-Cytoscape instance and its interactions. Zoom and fit controls are always
-shown; expand-all and PNG export controls are optional. The mount function
+Cytoscape instance and its interactions. Zoom and fit-view controls are
+always shown; the fit control also reopens nodes collapsed by double-click.
+A PNG export control is optional. The mount function
 returns a handle for controlling, resizing, and destroying the graph.
 
 Cytoscape and `cytoscape-tidytree` are external dependencies resolved by the

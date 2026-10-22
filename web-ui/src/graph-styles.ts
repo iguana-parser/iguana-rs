@@ -1,4 +1,5 @@
 import cytoscape from "cytoscape";
+import { CODE_FONT } from "./theme";
 
 // Use any for stylesheet types since cytoscape doesn't export them correctly
 type Stylesheet = any;
@@ -24,13 +25,13 @@ export function setupGraphTooltip(
   tooltip.className = "graph-tooltip";
   tooltip.style.cssText = `
     position: fixed;
-    background: #252526;
-    border: 1px solid #454545;
+    background: var(--iguana-bg-raised, #252526);
+    border: 1px solid var(--iguana-border, #454545);
     border-radius: 4px;
     padding: 6px 10px;
     font-size: 11px;
-    font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, monospace;
-    color: #d4d4d4;
+    font-family: var(--iguana-font-mono, ${CODE_FONT});
+    color: var(--iguana-text, #d4d4d4);
     pointer-events: none;
     z-index: 10000;
     display: none;
@@ -416,8 +417,10 @@ export const PARSE_TREE_WEBGL_NODE_THRESHOLD = 1000;
 // Clamp the post-fit zoom to a readable band. Above the max, a tiny graph would
 // blow up into huge nodes; below the min, a large graph would shrink into an
 // unreadable speck. So a small graph fills the pane (up to the max), and a large
-// one holds at the readable min and pans/scrolls instead.
-export const MAX_FIT_ZOOM = 2.5;
+// one holds at the readable min and pans/scrolls instead. The max puts the 9px
+// node labels at about 14px, the size of code text around the graph, so a small
+// tree reads at the same size as a large one that just fits.
+export const MAX_FIT_ZOOM = 1.6;
 export const MIN_FIT_ZOOM = 0.5;
 // Gap kept between the graph and the pane edges on fit, so nodes never touch the
 // border. Small, since a short pane amplifies padding into a much smaller graph.
@@ -453,6 +456,57 @@ export function resetViewGraph(graph: Core | null) {
     graph.fit(graph.elements(), FIT_PADDING);
     capZoom(graph);
   }
+}
+
+// The lowest zoom a parse tree opens at: one zoom-out step (1.2) below 1, which
+// puts the 9px node labels at about 7.5px. Below it a tree is too small to
+// read, so a tree that only fits the pane at a lower zoom opens at this one and
+// pans instead.
+export const READABLE_ZOOM = 1 / 1.2;
+
+// The opening view of a parse tree: the whole tree when it fits at a readable
+// zoom (capped above as in capZoom), otherwise READABLE_ZOOM with the top of the
+// tree in view. A tree wider than the pane centers on its root.
+export function openViewGraph(graph: Core | null) {
+  if (!graph) return;
+  graph.fit(graph.elements(), FIT_PADDING);
+  const zoom = graph.zoom();
+  if (zoom > MAX_FIT_ZOOM) {
+    graph.zoom(MAX_FIT_ZOOM);
+    graph.center();
+  } else if (zoom < READABLE_ZOOM) {
+    graph.zoom(READABLE_ZOOM);
+    const bb = graph.elements().boundingBox();
+    const root = graph.nodes().roots().first();
+    const x = bb.w * READABLE_ZOOM > graph.width() && root.nonempty()
+      ? root.position("x")
+      : (bb.x1 + bb.x2) / 2;
+    graph.pan({
+      x: graph.width() / 2 - x * READABLE_ZOOM,
+      y: FIT_PADDING - bb.y1 * READABLE_ZOOM,
+    });
+  }
+}
+
+// The Fit view control: the whole graph however small, since the reader asked
+// for the overview. Only a tiny graph is held at MAX_FIT_ZOOM.
+export function fitViewGraph(graph: Core | null) {
+  if (!graph) return;
+  graph.fit(graph.elements(), FIT_PADDING);
+  if (graph.zoom() > MAX_FIT_ZOOM) {
+    graph.zoom(MAX_FIT_ZOOM);
+    graph.center();
+  }
+}
+
+// The height a pane needs to show the whole graph at the zoom openViewGraph
+// picks for the pane's current width. A host with a fixed-height pane can
+// shrink it to a small graph instead of framing the graph with empty space.
+export function fitHeightGraph(graph: Core): number {
+  const bb = graph.elements().boundingBox();
+  const widthZoom = (graph.width() - 2 * FIT_PADDING) / bb.w;
+  const zoom = Math.max(READABLE_ZOOM, Math.min(MAX_FIT_ZOOM, widthZoom));
+  return Math.ceil(bb.h * zoom + 2 * FIT_PADDING);
 }
 
 // Get current viewport from a graph instance

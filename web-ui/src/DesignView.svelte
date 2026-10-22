@@ -2,6 +2,7 @@
   import { onMount, onDestroy } from "svelte";
   import * as monaco from "monaco-editor";
   import type { LspBackend, LspDocumentSymbol, LspRange } from "./lsp-backend";
+  import { codeFont, defineGrammarTheme, onThemeChange, remeasureOnFontLoad } from "./theme";
 
   // The Monaco language providers are registered once per page, not per editor,
   // so they read the active instance's backend and disabled flag from module
@@ -10,7 +11,7 @@
   let activeDisabled = false;
   let iggyRegistered = false;
 
-  // Registers the iggy language, its baseline tokenizer and theme, and the LSP
+  // Registers the iggy language, its baseline tokenizer, and the LSP
   // providers (all backed by `activeBackend`). Runs once; later mounts reuse it.
   function registerIggyLanguage() {
     if (iggyRegistered) return;
@@ -39,29 +40,6 @@
           [/[=|>*+?!:\\(){}\[\]\-]/, "operator"],
           [/[A-Za-z]\w*/, { cases: { "@keywords": "keyword", "@default": "type" } }],
         ],
-      },
-    });
-
-    // Theme rules for the semantic token types.
-    monaco.editor.defineTheme("iggy-dark", {
-      base: "vs-dark",
-      inherit: true,
-      rules: [
-        { token: "keyword", foreground: "569cd6", fontStyle: "bold" },
-        { token: "type", foreground: "4ec9b0" },
-        { token: "string", foreground: "ce9178" },
-        { token: "regexp", foreground: "d16969" },
-        { token: "operator", foreground: "d4d4d4" },
-        { token: "decorator", foreground: "dcdcaa" },
-        { token: "comment", foreground: "808080" }, // labels
-      ],
-      colors: {
-        "editor.inactiveSelectionBackground": "#264f78",
-        "editor.selectionHighlightBackground": "#264f784d",
-        "editor.wordHighlightBackground": "#264f784d",
-        "editor.wordHighlightStrongBackground": "#264f784d",
-        "editor.rangeHighlightBackground": "#264f78",
-        "editor.rangeHighlightBorder": "#00000000",
       },
     });
 
@@ -324,12 +302,12 @@
       value,
       language: "iggy",
       lineNumbers: disabled ? "off" : "on",
-      theme: "iggy-dark",
+      theme: defineGrammarTheme(monaco.editor),
       readOnly,
       automaticLayout: true,
       minimap: { enabled: false },
       fontSize: 14,
-      fontFamily: "'Fira Code', 'Consolas', monospace",
+      fontFamily: codeFont(),
       scrollBeyondLastLine: false,
       renderLineHighlight: "line",
       padding: { top: 8 },
@@ -349,12 +327,19 @@
     // switch returns the editor to where the user left it.
     if (initialViewState) editor.restoreViewState(initialViewState);
 
+    stopRemeasure = remeasureOnFontLoad(monaco.editor);
+    stopThemeSync = onThemeChange(() => monaco.editor.setTheme(defineGrammarTheme(monaco.editor)));
     onready?.(editor);
   });
+
+  let stopRemeasure: (() => void) | undefined;
+  let stopThemeSync: (() => void) | undefined;
 
   onDestroy(() => {
     clearTimeout(outlineRefreshTimer);
     onSaveViewState?.(editor?.saveViewState() ?? null);
+    stopRemeasure?.();
+    stopThemeSync?.();
     editor?.dispose();
   });
 
@@ -471,8 +456,9 @@
   }
 
   /* A top toolbar (command palette, find, outline toggle) over the editor; the
-     outline pane opens on the right of the editor below it. Colours match the
-     iggy-dark (vs-dark) editor theme. */
+     outline pane opens on the right of the editor below it. Colours follow the
+     host's theme (theme.ts); the fallbacks match the grammar editor's default
+     (vs-dark) theme. Labels take the comment color, as in the editor. */
   .dv-root {
     display: flex;
     flex-direction: column;
@@ -489,8 +475,8 @@
     height: 40px;
     flex-shrink: 0;
     padding: 0 8px;
-    background: #252526;
-    border-bottom: 1px solid #3c3c3c;
+    background: var(--iguana-bg-raised, #252526);
+    border-bottom: 1px solid var(--iguana-border, #3c3c3c);
   }
 
   .dv-toolbar-right {
@@ -512,22 +498,22 @@
     width: 380px;
     max-width: calc(100% - 160px); /* stay clear of the right-hand buttons */
     padding: 0 10px;
-    border: 1px solid #3c3c3c;
+    border: 1px solid var(--iguana-border, #3c3c3c);
     border-radius: 5px;
-    background: #1e1e1e;
+    background: var(--iguana-bg, #1e1e1e);
     cursor: pointer;
   }
 
   .dv-cmd:hover {
-    background: #2a2d2e;
-    border-color: #4d4d4d;
+    background: var(--iguana-bg-hover, #2a2d2e);
+    border-color: var(--iguana-border-strong, #4d4d4d);
   }
 
   .dv-cmd-caret {
     font-family: monospace;
     font-size: 13px;
     font-weight: 700;
-    color: #4ec9b0;
+    color: var(--iguana-syntax-nonterminal, #4ec9b0);
   }
 
   .dv-tool-btn {
@@ -539,18 +525,18 @@
     border: none;
     border-radius: 5px;
     background: none;
-    color: #888;
+    color: var(--iguana-text-muted, #888);
     cursor: pointer;
   }
 
   .dv-tool-btn:hover {
-    background: #2a2d2e;
-    color: #d4d4d4;
+    background: var(--iguana-bg-hover, #2a2d2e);
+    color: var(--iguana-text, #d4d4d4);
   }
 
   .dv-tool-btn.active {
-    background: #37373d;
-    color: #d4d4d4;
+    background: var(--iguana-border, #37373d);
+    color: var(--iguana-text, #d4d4d4);
   }
 
   .dv-body {
@@ -571,8 +557,8 @@
     flex-direction: column;
     width: 220px;
     flex-shrink: 0;
-    background: #1e1e1e;
-    border-left: 1px solid #3c3c3c;
+    background: var(--iguana-bg, #1e1e1e);
+    border-left: 1px solid var(--iguana-border, #3c3c3c);
     overflow: hidden;
   }
 
@@ -581,7 +567,7 @@
     align-items: center;
     height: 32px;
     padding: 0 12px;
-    border-bottom: 1px solid #3c3c3c;
+    border-bottom: 1px solid var(--iguana-border, #3c3c3c);
     flex-shrink: 0;
   }
 
@@ -590,7 +576,7 @@
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.5px;
-    color: #bbbbbb;
+    color: var(--iguana-text-muted, #bbbbbb);
   }
 
   .dv-outline-list {
@@ -607,7 +593,7 @@
     padding: 2px 4px;
     border: none;
     background: none;
-    color: #d4d4d4;
+    color: var(--iguana-text, #d4d4d4);
     font-size: 13px;
     font-family: inherit;
     text-align: left;
@@ -615,12 +601,12 @@
   }
 
   .dv-outline-item:hover {
-    background: #2a2d2e;
+    background: var(--iguana-bg-hover, #2a2d2e);
   }
 
   .dv-outline-item.selected,
   .dv-outline-item.selected:hover {
-    background: #04395e;
+    background: var(--iguana-selection, #04395e);
   }
 
   .dv-outline-item.child {
@@ -634,11 +620,11 @@
     width: 16px;
     height: 16px;
     flex-shrink: 0;
-    color: #888;
+    color: var(--iguana-text-muted, #888);
   }
 
   .dv-outline-chevron:hover {
-    color: #d4d4d4;
+    color: var(--iguana-text, #d4d4d4);
   }
 
   .dv-outline-chevron-blank {
@@ -652,11 +638,11 @@
     text-align: center;
     font-size: 11px;
     font-weight: 700;
-    color: #4ec9b0;
+    color: var(--iguana-syntax-nonterminal, #4ec9b0);
   }
 
   .dv-outline-glyph.label {
-    color: #dcdcaa;
+    color: var(--iguana-syntax-comment, #dcdcaa);
   }
 
   .dv-outline-name {
@@ -668,7 +654,7 @@
   .dv-outline-empty {
     padding: 8px 12px;
     font-size: 12px;
-    color: #888;
+    color: var(--iguana-text-muted, #888);
   }
 
 </style>
