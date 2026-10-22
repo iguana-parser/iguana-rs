@@ -19,6 +19,7 @@ type Stylesheet = any;
 //   --iguana-accent                         active tab, focus, the input caret mark
 //   --iguana-selection, --iguana-flash      a selected node or span, a revealed row
 //   --iguana-error                          a parse error
+//   --iguana-warning                        an ambiguity in the input editors
 //   --iguana-syntax-nonterminal, -token, -keyword, -string, -number, -operator,
 //   -reference, -reference-hover, -paren, -comment, -ambiguity
 //                                           syntax colors in the editor and views
@@ -117,6 +118,7 @@ function surfaceColors(): Record<string, string | undefined> {
     "editorLineNumber.activeForeground": text,
     "editor.selectionBackground": themeHex("--iguana-selection"),
     "editorError.foreground": themeHex("--iguana-error"),
+    "editorWarning.foreground": themeHex("--iguana-warning"),
   };
 }
 

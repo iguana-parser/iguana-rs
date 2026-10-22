@@ -22,7 +22,7 @@
   let orientation = $state<"horizontal" | "vertical">("horizontal");
   let leftPanelWidth = $state(420);
   let views = $state<Array<"tree" | "graph" | "sexpr">>(["tree", "graph", "sexpr"]);
-  let editorMode = $state<"monaco" | "plain">("monaco");
+  let editorMode = $state<"monaco" | "codemirror">("monaco");
   let parseTrigger = $state<"button" | "auto">("auto");
   let flashOnReveal = $state(false);
 
@@ -194,7 +194,8 @@
       window.addEventListener("resize", fitSplit);
 
       // Result views to expose (comma-separated subset of tree,graph,sexpr) and
-      // whether to use the lightweight editor — both trim the embed's footprint.
+      // the input editor (?editor=codemirror, much lighter than the default
+      // Monaco). Both trim the embed's footprint.
       const viewsParam = params.get("views");
       if (viewsParam) {
         const allowed = ["tree", "graph", "sexpr"] as const;
@@ -206,7 +207,10 @@
           );
         if (chosen.length) views = chosen;
       }
-      if (params.get("editor") === "plain") editorMode = "plain";
+      // ?editor=plain named a textarea editor that CodeMirror replaced; older
+      // embeds that ask for it get CodeMirror.
+      const editorParam = params.get("editor");
+      if (editorParam === "codemirror" || editorParam === "plain") editorMode = "codemirror";
       // Parsing follows the input as it is edited; ?parse=button parses only when
       // the user presses ▶.
       if (params.get("parse") === "button") parseTrigger = "button";

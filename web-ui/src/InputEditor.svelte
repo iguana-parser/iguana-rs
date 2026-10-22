@@ -58,7 +58,7 @@
 
   onMount(() => {
     // The ESM Monaco build ships no styles; load its stylesheet on first use so
-    // hosts that use the plain editor never fetch it (see web-viewer/index.html).
+    // hosts that use the CodeMirror editor never fetch it (see web-viewer/index.html).
     if (!document.querySelector("link[data-monaco-css]")) {
       const link = document.createElement("link");
       link.rel = "stylesheet";

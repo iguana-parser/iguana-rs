@@ -30,7 +30,6 @@
   import { downloadPng } from "./png";
   import { utf16Offset } from "./char-offsets";
   import { onThemeChange, themeGraphStyles } from "./theme";
-  import PlainEditor from "./PlainEditor.svelte";
   import NonterminalPicker from "./NonterminalPicker.svelte";
   import "./graph.css";
   import "./parse-view.css";
@@ -85,9 +84,9 @@
     // Which result views to expose as tabs, in order; a single view hides the tab
     // bar. Defaults to all three.
     views?: Array<"tree" | "graph" | "sexpr">;
-    // "monaco" (default) uses the full editor; "plain" swaps in a lightweight
-    // syntax-highlighted textarea for a smaller footprint (embedded widgets).
-    editor?: "monaco" | "plain";
+    // "monaco" (default) uses the full editor; "codemirror" a much smaller one,
+    // for a smaller footprint (embedded widgets).
+    editor?: "monaco" | "codemirror";
     // How a parse starts. "button" (default) parses when the user presses ▶.
     // "auto" parses once the parser is ready and again after each pause in
     // editing, and hides ▶. The parse runs on the main thread, so a parse slower
@@ -321,13 +320,15 @@
   // svelte-ignore non_reactive_update
   let inputEditorRef: { focus: () => void } | undefined;
 
-  // Load the Monaco-based editor on demand: hosts that use editor="plain" (the
-  // embedded widgets) then never fetch Monaco at all. PlainEditor stays bundled
-  // statically since it is tiny.
+  // Load the Monaco and CodeMirror editors on demand: a host then fetches only
+  // the editor it uses.
   let InputEditorComp = $state<typeof import("./InputEditor.svelte").default | null>(null);
+  let CodeMirrorEditorComp = $state<typeof import("./CodeMirrorEditor.svelte").default | null>(null);
   $effect(() => {
     if (editor === "monaco" && !InputEditorComp) {
       import("./InputEditor.svelte").then((m) => (InputEditorComp = m.default));
+    } else if (editor === "codemirror" && !CodeMirrorEditorComp) {
+      import("./CodeMirrorEditor.svelte").then((m) => (CodeMirrorEditorComp = m.default));
     }
   });
 
@@ -1291,17 +1292,20 @@
 
     <!-- Input Area -->
     <div class="input-section">
-      {#if editor === "plain"}
-        <PlainEditor
-          bind:this={inputEditorRef}
-          bind:value={inputText}
-          error={parseError}
-          highlightSpan={parseTreeSelectedSpan}
-          onclick={onParseInputClick}
-          onchange={clearParseModeInputSelection}
-          onescape={clearParseModeInputSelection}
-          placeholder="Enter code to parse..."
-        />
+      {#if editor === "codemirror"}
+        {#if CodeMirrorEditorComp}
+          <CodeMirrorEditorComp
+            bind:this={inputEditorRef}
+            bind:value={inputText}
+            error={parseError}
+            ambiguities={ambiguityWarnings}
+            highlightSpan={parseTreeSelectedSpan}
+            onclick={onParseInputClick}
+            onchange={clearParseModeInputSelection}
+            onescape={clearParseModeInputSelection}
+            placeholder="Enter code to parse..."
+          />
+        {/if}
       {:else if InputEditorComp}
         <InputEditorComp
           bind:this={inputEditorRef}

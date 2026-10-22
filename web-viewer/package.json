@@ -13,7 +13,12 @@
     "check": "svelte-check --tsconfig ./tsconfig.json --fail-on-warnings && node scripts/check-clean-dist.mjs"
   },
   "dependencies": {
+    "@codemirror/commands": "^6.11.1",
+    "@codemirror/language": "^6.13.1",
+    "@codemirror/state": "^6.7.6",
+    "@codemirror/view": "^6.43.15",
     "@iguana-parser/web-ui": "*",
+    "@lezer/highlight": "^1.2.5",
     "cytoscape": "^3.33.2",
     "cytoscape-tidytree": "^0.2.1",
     "lucide-svelte": "^1.0.1",
