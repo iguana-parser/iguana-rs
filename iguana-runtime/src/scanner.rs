@@ -24,17 +24,31 @@ pub enum Lookup {
     Match(u32),
 }
 
-/// Per-position memo cell.
+/// Per-position memo cell. For each terminal it records whether `match_token`
+/// has already run here, and if so whether the terminal matched.
+///
+/// Those are three states: not run, ran and matched, ran and did not match.
+/// The fields hold them:
+///
+/// - `tried` is a bitset indexed by terminal id that marks the terminal as run
+///   at this position.
+/// - `matched` is a bitset indexed by terminal id that marks the terminal as
+///   matched. A bit is set only together with the terminal's bit in `tried`.
+/// - `ends` holds the end of each match.
+///
+/// A terminal's bit sits at word `id / 64`, bit `id % 64`.
 pub struct MatchMemoEntry<'arena, const W: usize> {
     tried: [u64; W],
-    matched: InlineMap<'arena, TerminalId, u32>,
+    matched: [u64; W],
+    ends: InlineMap<'arena, TerminalId, u32>,
 }
 
 impl<'arena, const W: usize> Default for MatchMemoEntry<'arena, W> {
     fn default() -> Self {
         Self {
             tried: [0; W],
-            matched: InlineMap::Empty,
+            matched: [0; W],
+            ends: InlineMap::Empty,
         }
     }
 }
@@ -50,14 +64,29 @@ impl<'arena, const W: usize> MatchMemoEntry<'arena, W> {
         self.tried[i / 64] |= 1u64 << (i % 64);
     }
 
+    fn is_matched(&self, terminal: TerminalId) -> bool {
+        let i = terminal.index();
+        self.matched[i / 64] & (1u64 << (i % 64)) != 0
+    }
+
+    fn set_matched(&mut self, terminal: TerminalId) {
+        let i = terminal.index();
+        self.matched[i / 64] |= 1u64 << (i % 64);
+    }
+
+    #[inline]
     fn lookup(&self, terminal: TerminalId) -> Option<Lookup> {
         if !self.is_tried(terminal) {
             return None;
         }
-        match self.matched.get(&terminal) {
-            Some(&end) => Some(Lookup::Match(end)),
-            None => Some(Lookup::Fail),
+        if !self.is_matched(terminal) {
+            return Some(Lookup::Fail);
         }
+        let end = self
+            .ends
+            .get(&terminal)
+            .expect("a matched terminal has an end");
+        Some(Lookup::Match(*end))
     }
 }
 
@@ -81,6 +110,10 @@ impl<'arena, const W: usize> MatchMemo<'arena, W> {
         Self { entries }
     }
 
+    // Inlined into the generated scanner's `match_token`, which calls it on
+    // every memo lookup. Without the hint the compiler keeps it as a separate
+    // function, and every lookup pays for the call.
+    #[inline]
     pub fn get(&self, terminal: TerminalId, position: u32) -> Option<Lookup> {
         self.entries[position as usize].lookup(terminal)
     }
@@ -94,81 +127,28 @@ impl<'arena, const W: usize> MatchMemo<'arena, W> {
     ) {
         let entry = &mut self.entries[position as usize];
         entry.set_tried(terminal);
-        entry.matched.insert(terminal, end, arena);
+        entry.set_matched(terminal);
+        entry.ends.insert(terminal, end, arena);
     }
 
     pub fn insert_fail(&mut self, terminal: TerminalId, position: u32) {
         self.entries[position as usize].set_tried(terminal);
     }
-}
 
-/// Memo cell for one input position. For each set id it records whether
-/// `match_any` of that set has already run here, and if so whether it matched.
-///
-/// Those are three states: not run, ran and matched, ran and did not match.
-/// Three states need two bits, so the cell holds two bitsets indexed by set id.
-/// `computed` marks the set as queried at this position; `result` holds the
-/// answer, read only once `computed` is set. A set's bit sits at word `id / 64`,
-/// bit `id % 64`.
-pub struct MatchAnyMemoEntry<const W: usize> {
-    computed: [u64; W],
-    result: [u64; W],
-}
-
-impl<const W: usize> Default for MatchAnyMemoEntry<W> {
-    fn default() -> Self {
-        Self {
-            computed: [0; W],
-            result: [0; W],
-        }
-    }
-}
-
-/// Memoization table for `match_any`, indexed by input position.
-///
-/// `match_any` over a terminal set is a pure function of `(set, position)`, so
-/// each set is computed at most once per position and reused across the parse.
-/// Set ids are assigned by content at code generation, so two sets with the
-/// same terminals share a memo bit.
-pub struct MatchAnyMemo<'arena, const W: usize> {
-    entries: ArenaVec<'arena, MatchAnyMemoEntry<W>>,
-}
-
-impl<'arena, const W: usize> MatchAnyMemo<'arena, W> {
-    // Do not inline, for the same reason as `MatchMemo::new`.
-    #[inline(never)]
-    pub fn new(input_len: usize, arena: &'arena Arena) -> Self {
-        let mut entries = arena.vec_with_capacity(input_len + 1);
-        entries.resize_with(input_len + 1, MatchAnyMemoEntry::default);
-        Self { entries }
-    }
-
-    pub fn get(&self, set_id: usize, position: u32) -> Option<bool> {
+    /// The `tried` and the `matched` bitsets at `position`, indexed by terminal
+    /// id.
+    #[inline]
+    pub fn bits(&self, position: u32) -> (&[u64; W], &[u64; W]) {
         let entry = &self.entries[position as usize];
-        let word = set_id / 64;
-        let bit = 1u64 << (set_id % 64);
-        if entry.computed[word] & bit == 0 {
-            return None;
-        }
-        Some(entry.result[word] & bit != 0)
-    }
-
-    pub fn insert(&mut self, set_id: usize, position: u32, matched: bool) {
-        let entry = &mut self.entries[position as usize];
-        let word = set_id / 64;
-        let bit = 1u64 << (set_id % 64);
-        entry.computed[word] |= bit;
-        if matched {
-            entry.result[word] |= bit;
-        }
+        (&entry.tried, &entry.matched)
     }
 }
 
 /// A terminal set the parser tests with `match_any` or `longest_match`.
 ///
-/// `id` is a content-deduplicated id within the set's family. `match_any` keys
-/// its memo by it; `longest_match` is not memoized and ignores it, but the field
-/// is kept so every set has the same shape.
+/// `id` is a content-deduplicated id within the set's family. `match_any`
+/// indexes its first-character sets and terminal masks by it; `longest_match`
+/// ignores it, but the field is kept so every set has the same shape.
 #[derive(Debug, PartialEq, Eq)]
 pub struct TerminalSet {
     pub id: usize,
@@ -262,5 +242,41 @@ pub trait Scanner {
         }
         let last = &dfa.states[state];
         last.accept.is_some() && !last.excluded
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn records_matches_and_failures() {
+        let arena = Arena::new();
+        let mut memo: MatchMemo<'_, 2> = MatchMemo::new(4, &arena);
+        let (a, b, c) = (TerminalId(1), TerminalId(70), TerminalId(3));
+        assert!(memo.get(a, 2).is_none());
+        memo.insert_match(a, 2, 5, &arena);
+        memo.insert_fail(b, 2);
+        assert!(matches!(memo.get(a, 2), Some(Lookup::Match(5))));
+        assert!(matches!(memo.get(b, 2), Some(Lookup::Fail)));
+        assert!(memo.get(c, 2).is_none());
+        assert!(memo.get(a, 1).is_none());
+        let (tried, matched) = memo.bits(2);
+        assert_eq!(*tried, [1 << 1, 1 << 6]);
+        assert_eq!(*matched, [1 << 1, 0]);
+    }
+
+    #[test]
+    fn finds_the_end_of_each_of_several_matches() {
+        let arena = Arena::new();
+        let mut memo: MatchMemo<'_, 1> = MatchMemo::new(1, &arena);
+        for id in 0..5 {
+            memo.insert_match(TerminalId(id), 0, u32::from(id) + 10, &arena);
+        }
+        for id in 0..5 {
+            assert!(
+                matches!(memo.get(TerminalId(id), 0), Some(Lookup::Match(end)) if end == u32::from(id) + 10)
+            );
+        }
     }
 }

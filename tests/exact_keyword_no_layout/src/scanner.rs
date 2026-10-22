@@ -6,10 +6,9 @@ use iguana_runtime::{
     dfa::{Dfa, State},
     ids::TerminalId,
     input::Input,
-    scanner::{Lookup, MatchAnyMemo, MatchMemo, Scanner, TerminalSet},
+    scanner::{Lookup, MatchMemo, Scanner, TerminalSet},
 };
 const MATCH_MEMO_WORDS: usize = 1;
-const MATCH_ANY_SET_WORDS: usize = 1;
 static DFA_0: Dfa = Dfa::new(&[
     State::new(&[('a', 'z', 1)], None),
     State::new(&[('a', 'z', 1)], Some(TerminalId(0))),
@@ -89,21 +88,19 @@ static MATCH_ANY_FIRST_CHARS: [CharSet; 6] = [
     CharSet::new(0x800000000000000, &[]),
     CharSet::new(0x7fffffe000000000000000000000000, &[]),
 ];
+static MATCH_ANY_MASKS: [[u64; MATCH_MEMO_WORDS]; 6] = [[132], [140], [142], [128], [8], [2]];
 pub struct ExactKeywordNoLayoutScanner<'i, 'arena> {
     pub input: &'i Input,
     vec_arena: &'arena Arena,
     memo: MatchMemo<'arena, MATCH_MEMO_WORDS>,
-    match_any_memo: MatchAnyMemo<'arena, MATCH_ANY_SET_WORDS>,
 }
 impl<'i, 'arena> ExactKeywordNoLayoutScanner<'i, 'arena> {
     pub fn new(input: &'i Input, vec_arena: &'arena Arena) -> Self {
         let memo = MatchMemo::new(input.len() as usize, vec_arena);
-        let match_any_memo = MatchAnyMemo::new(input.len() as usize, vec_arena);
         Self {
             input,
             vec_arena,
             memo,
-            match_any_memo,
         }
     }
     // Id = [a-z]+
@@ -130,40 +127,62 @@ impl<'i, 'arena> ExactKeywordNoLayoutScanner<'i, 'arena> {
     pub fn match_terminal_5(&self, input_index: u32) -> Option<u32> {
         self.scan(&DFA_5, input_index)
     }
-    // Returns true if any terminal in `set` matches at `input_index`. The result is memoized, so
-    // further calls return from the memo table instead of matching.
+    // Returns true if any terminal in `set` matches at `input_index`. The memo of `match_token`
+    // answers for the terminals of `set` already tried at `input_index`, and only the other
+    // terminals are matched.
     #[inline(never)]
     pub fn match_any(&mut self, set: &TerminalSet, input_index: u32) -> bool {
         debug_assert!(
             set.id < 6,
-            "terminal set {} does not have a match_any memo id",
+            "terminal set {} does not have a match_any id",
             set.id,
         );
         let c = self.input.char_at(input_index);
         if c.is_some_and(|c| !MATCH_ANY_FIRST_CHARS[set.id].contains(c)) {
             return false;
         }
-        if let Some(matched) = self.match_any_memo.get(set.id, input_index) {
-            return matched;
+        let mask = &MATCH_ANY_MASKS[set.id];
+        let (tried, matched) = self.memo.bits(input_index);
+        if mask
+            .iter()
+            .zip(matched)
+            .any(|(mask, matched)| mask & matched != 0)
+        {
+            return true;
         }
-        self.match_any_and_memoize(set, input_index)
+        let mut untried = *mask;
+        for (word, tried) in untried.iter_mut().zip(tried) {
+            *word &= !tried;
+        }
+        if untried.iter().all(|&word| word == 0) {
+            return false;
+        }
+        self.match_any_untried(untried, input_index)
     }
-    // Scans `set` at `input_index` and records in the memo whether any terminal matches.
-    // `match_any` looks up the memo and calls this method on a miss.
+    // Matches the terminals in `untried`, a bitset indexed by terminal id, at `input_index`
+    // until one matches. `match_any` calls this method for the terminals of a set that were not
+    // tried at `input_index` yet.
     // Not inlined into `match_any`. The parser calls `match_any` very often, and many calls
-    // return after the first-character test or a memo hit. This method needs its arguments again
-    // after each call to `match_token`, for the memo insert, and the compiler handles that with
-    // extra instructions at the start and end of the function. Kept separate, those instructions
-    // run only on a memo miss instead of on every call.
+    // return after the first-character test or the bitset tests. This method needs its arguments
+    // again after each call to `match_token`, and the compiler handles that with extra
+    // instructions at the start and end of the function. Kept separate, those instructions run
+    // only when a terminal of the set was not tried yet.
     #[inline(never)]
-    fn match_any_and_memoize(&mut self, set: &TerminalSet, input_index: u32) -> bool {
+    fn match_any_untried(&mut self, untried: [u64; MATCH_MEMO_WORDS], input_index: u32) -> bool {
         let c = self.input.char_at(input_index);
-        let matched = set.terminals.iter().any(|id| {
-            c.is_none_or(|c| TERMINAL_FIRST_CHARS[id.index()].contains(c))
-                && self.match_token(*id, input_index).is_some()
-        });
-        self.match_any_memo.insert(set.id, input_index, matched);
-        matched
+        for (word, &bits) in untried.iter().enumerate() {
+            let mut bits = bits;
+            while bits != 0 {
+                let id = TerminalId((word * 64) as u16 + bits.trailing_zeros() as u16);
+                bits &= bits - 1;
+                if c.is_none_or(|c| TERMINAL_FIRST_CHARS[id.index()].contains(c))
+                    && self.match_token(id, input_index).is_some()
+                {
+                    return true;
+                }
+            }
+        }
+        false
     }
     // Matches `terminal_id` at `input_index` with its DFA and records the result in the memo.
     // `match_token` looks up the memo and calls this method on a miss.

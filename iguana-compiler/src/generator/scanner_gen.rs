@@ -26,19 +26,20 @@ pub fn generate(
 
     let imports = gen_imports(config);
     let memo_words = gen_memo_words_const(terminal_ids, config);
-    let match_any_words = gen_match_any_words_const(match_any_count, config);
     let dfa_statics = gen_dfa_statics(grammar, terminal_ids);
     let first_chars_statics =
         gen_first_chars_statics(terminal_ids, first_chars, terminal_sets, match_any_count);
+    let match_any_masks_static =
+        gen_match_any_masks_static(terminal_ids, terminal_sets, match_any_count, config);
     let scanner_struct = gen_scanner_struct(grammar_name, config);
     let scanner_impl = gen_scanner_imp(grammar, terminal_ids, match_any_count, config);
     let scanner_trait_impl = gen_scanner_trait_impl(grammar, terminal_ids, config);
     quote! {
         #imports
         #memo_words
-        #match_any_words
         #dfa_statics
         #first_chars_statics
+        #match_any_masks_static
         #scanner_struct
         #scanner_impl
         #scanner_trait_impl
@@ -50,7 +51,6 @@ fn gen_imports(config: &GenConfig) -> TokenStream {
     let arena_import = if config.match_memo {
         scanner_imports.push(quote! { Lookup });
         scanner_imports.push(quote! { MatchMemo });
-        scanner_imports.push(quote! { MatchAnyMemo });
         quote! { arena::Arena, }
     } else {
         quote! {}
@@ -71,28 +71,44 @@ fn gen_memo_words_const(terminal_ids: &TerminalIds, config: &GenConfig) -> Token
     if !config.match_memo {
         return quote! {};
     }
-    let words = (terminal_ids.len() + 2).div_ceil(64);
-    let words_lit = Literal::usize_unsuffixed(words);
+    let words_lit = Literal::usize_unsuffixed(memo_words(terminal_ids));
     quote! {
         const MATCH_MEMO_WORDS: usize = #words_lit;
     }
 }
 
-/// Emits `MATCH_ANY_SET_WORDS`, the number of `u64` words in each of the
-/// `match_any` memo's bitsets.
-///
-/// The memo packs one bit per set id at each input position, so
-/// `match_any_count` distinct sets need `ceil(match_any_count / 64)` words,
-/// at least one so the array is never zero-length. The scanner sizes its
-/// table as `MatchAnyMemo<MATCH_ANY_SET_WORDS>`.
-fn gen_match_any_words_const(match_any_count: usize, config: &GenConfig) -> TokenStream {
+/// The number of `u64` words in a bitset indexed by terminal id. The synthetic
+/// epsilon and end-of-input terminals come after the grammar's terminals.
+fn memo_words(terminal_ids: &TerminalIds) -> usize {
+    (terminal_ids.len() + 2).div_ceil(64)
+}
+
+/// Emits `MATCH_ANY_MASKS`, which holds for each `match_any` set the set's
+/// terminals as a bitset indexed by terminal id. `match_any` tests a set's mask
+/// against the memo's bitsets at a position.
+fn gen_match_any_masks_static(
+    terminal_ids: &TerminalIds,
+    terminal_sets: &[TerminalSet],
+    match_any_count: usize,
+    config: &GenConfig,
+) -> TokenStream {
     if !config.match_memo {
         return quote! {};
     }
-    let words = match_any_count.div_ceil(64).max(1);
-    let words_lit = Literal::usize_unsuffixed(words);
+    let mut masks = vec![vec![0u64; memo_words(terminal_ids)]; match_any_count];
+    for set in terminal_sets.iter().filter(|set| set.id < match_any_count) {
+        for terminal in &set.terminals {
+            let i = terminal_ids.get_id(terminal).index();
+            masks[set.id][i / 64] |= 1u64 << (i % 64);
+        }
+    }
+    let set_count = Literal::usize_unsuffixed(match_any_count);
+    let masks = masks.iter().map(|mask| {
+        let words = mask.iter().map(|&word| Literal::u64_unsuffixed(word));
+        quote! { [#(#words),*] }
+    });
     quote! {
-        const MATCH_ANY_SET_WORDS: usize = #words_lit;
+        static MATCH_ANY_MASKS: [[u64; MATCH_MEMO_WORDS]; #set_count] = [#(#masks),*];
     }
 }
 
@@ -104,7 +120,6 @@ fn gen_scanner_struct(grammar_name: &str, config: &GenConfig) -> TokenStream {
                 pub input: &'i Input,
                 vec_arena: &'arena Arena,
                 memo: MatchMemo<'arena, MATCH_MEMO_WORDS>,
-                match_any_memo: MatchAnyMemo<'arena, MATCH_ANY_SET_WORDS>,
             }
         }
     } else {
@@ -280,8 +295,7 @@ fn gen_scanner_imp(
             quote! { input: &'i Input, vec_arena: &'arena Arena },
             quote! {
                 let memo = MatchMemo::new(input.len() as usize, vec_arena);
-                let match_any_memo = MatchAnyMemo::new(input.len() as usize, vec_arena);
-                Self { input, vec_arena, memo, match_any_memo }
+                Self { input, vec_arena, memo }
             },
         )
     } else {
@@ -353,6 +367,26 @@ fn gen_match_exact_method(grammar: &Grammar, terminal_ids: &TerminalIds) -> Toke
     }
 }
 
+/// Emits `match_any`, which returns true if any terminal of a set matches at a
+/// position.
+///
+/// With the memo, `match_any` answers from the memo of `match_token` where it
+/// can. The mask of the set in `MATCH_ANY_MASKS` has a bit for each terminal of
+/// the set, and `match_any` combines it with the `tried` and `matched` bitsets
+/// of the position in two steps:
+///
+/// - `mask & matched` holds the terminals of the set that already matched at
+///   the position. If it is not empty, the answer is true, whichever terminal
+///   matched.
+/// - `mask & !tried` holds the terminals of the set that were not tried at the
+///   position yet. If it is empty, every terminal of the set was tried and none
+///   matched, and the answer is false. Otherwise `match_any_untried` matches
+///   only these terminals through `match_token`, which records each result in
+///   the memo.
+///
+/// A terminal that was tried and did not match is in neither result, so the two
+/// steps skip it. Without the memo, `match_any` matches the terminals of the set
+/// one by one.
 fn gen_match_any_method(match_any_count: usize, config: &GenConfig) -> TokenStream {
     // Both versions, with and without the memo, start with the set's
     // first-character test. Each terminal of the set then gets its own
@@ -375,34 +409,55 @@ fn gen_match_any_method(match_any_count: usize, config: &GenConfig) -> TokenStre
     if config.match_memo {
         let match_any_count = Literal::usize_unsuffixed(match_any_count);
         quote! {
-            #[comment = "Returns true if any terminal in `set` matches at `input_index`. The result is memoized,
-                         so further calls return from the memo table instead of matching."]
+            #[comment = "Returns true if any terminal in `set` matches at `input_index`. The memo of
+                         `match_token` answers for the terminals of `set` already tried at `input_index`, and
+                         only the other terminals are matched."]
             #[inline(never)]
             pub fn match_any(&mut self, set: &TerminalSet, input_index: u32) -> bool {
                 debug_assert!(
                     set.id < #match_any_count,
-                    "terminal set {} does not have a match_any memo id",
+                    "terminal set {} does not have a match_any id",
                     set.id,
                 );
                 #first_char_test
-                if let Some(matched) = self.match_any_memo.get(set.id, input_index) {
-                    return matched;
+                let mask = &MATCH_ANY_MASKS[set.id];
+                let (tried, matched) = self.memo.bits(input_index);
+                if mask.iter().zip(matched).any(|(mask, matched)| mask & matched != 0) {
+                    return true;
                 }
-                self.match_any_and_memoize(set, input_index)
+                let mut untried = *mask;
+                for (word, tried) in untried.iter_mut().zip(tried) {
+                    *word &= !tried;
+                }
+                if untried.iter().all(|&word| word == 0) {
+                    return false;
+                }
+                self.match_any_untried(untried, input_index)
             }
-            #[comment = "Scans `set` at `input_index` and records in the memo whether any terminal matches.
-                         `match_any` looks up the memo and calls this method on a miss."]
+            #[comment = "Matches the terminals in `untried`, a bitset indexed by terminal id, at `input_index`
+                         until one matches. `match_any` calls this method for the terminals of a set that were
+                         not tried at `input_index` yet."]
             #[comment = "Not inlined into `match_any`. The parser calls `match_any` very often, and many calls
-                         return after the first-character test or a memo hit. This method needs its arguments
-                         again after each call to `match_token`, for the memo insert, and the compiler handles
-                         that with extra instructions at the start and end of the function. Kept separate,
-                         those instructions run only on a memo miss instead of on every call."]
+                         return after the first-character test or the bitset tests. This method needs its
+                         arguments again after each call to `match_token`, and the compiler handles that with
+                         extra instructions at the start and end of the function. Kept separate, those
+                         instructions run only when a terminal of the set was not tried yet."]
             #[inline(never)]
-            fn match_any_and_memoize(&mut self, set: &TerminalSet, input_index: u32) -> bool {
+            fn match_any_untried(&mut self, untried: [u64; MATCH_MEMO_WORDS], input_index: u32) -> bool {
                 let c = self.input.char_at(input_index);
-                let matched = #scan;
-                self.match_any_memo.insert(set.id, input_index, matched);
-                matched
+                for (word, &bits) in untried.iter().enumerate() {
+                    let mut bits = bits;
+                    while bits != 0 {
+                        let id = TerminalId((word * 64) as u16 + bits.trailing_zeros() as u16);
+                        bits &= bits - 1;
+                        if c.is_none_or(|c| TERMINAL_FIRST_CHARS[id.index()].contains(c))
+                            && self.match_token(id, input_index).is_some()
+                        {
+                            return true;
+                        }
+                    }
+                }
+                false
             }
         }
     } else {
