@@ -44,6 +44,18 @@ jobs:
           fi
           echo "rust_toolchain=$TOOLCHAIN" >> "$GITHUB_OUTPUT"
 
+  actionlint:
+    name: actionlint
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.commit || github.sha }}
+          persist-credentials: false
+      # The image bundles shellcheck, which checks the run scripts.
+      - run: docker run --rm -v "$PWD:/repo" -w /repo rhysd/actionlint:1.7.12 -color
+
   fmt:
     name: rustfmt
     needs: configure

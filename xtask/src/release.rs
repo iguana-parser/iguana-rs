@@ -288,7 +288,8 @@ fn pr_body(version: &str, candidate: &str, java: &str, run_url: &str) -> io::Res
          [Actions run]({run_url}). Leave this PR as a draft. The workflow marks it ready \
          and fast-forwards `main` to the single `Release {version}` commit.\n\n\
          After merging, the workflow provides a separate draft release editor for the release notes. \
-         Saving that draft and approving `release-publish` in Actions authorizes publication.\n\n\
+         Save that draft, then approve `release-notes` in Actions. \
+         A separate approval of `release-publish` authorizes publication.\n\n\
          Candidate: `{candidate}`.\n\n\
          Java grammar: `iguana-parser/iguana-java-grammar@{java}`.\n"
     ))
@@ -797,6 +798,7 @@ mod tests {
         assert!(body.contains("Leave this PR as a draft"));
         assert!(body.contains("single `Release 0.1.0-alpha.2` commit"));
         assert!(body.contains("separate draft release editor"));
+        assert!(body.contains("approve `release-notes`"));
         assert!(!body.contains("release-notes:"));
         assert!(!body.contains("cargo install"));
     }

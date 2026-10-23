@@ -59,13 +59,13 @@ jobs:
         with:
           toolchain: ${{ env.RUST_TOOLCHAIN }}
       - uses: Swatinem/rust-cache@v2
-      - name: Require merge and publication approval gates
+      - name: Require merge, notes and publication approval gates
         env:
           GH_TOKEN: ${{ github.token }}
         # Separate environments make each approval independent. Check them
         # first so a missing environment cannot silently skip review.
         run: |
-          for stage in merge publish; do
+          for stage in merge notes publish; do
             gh api "repos/$GITHUB_REPOSITORY/environments/release-$stage" > "$RUNNER_TEMP/environment.json"
             jq -e --arg actor "$GITHUB_ACTOR" '
               any(.protection_rules[];
@@ -113,13 +113,15 @@ jobs:
           BASE_COMMIT=$(jq -r .base_commit "$RUNNER_TEMP/plan.json")
           JAVA_COMMIT=$(git ls-remote https://github.com/iguana-parser/iguana-java-grammar.git refs/heads/main | cut -f1)
           [[ "$JAVA_COMMIT" =~ ^[0-9a-f]{40}$ ]]
-          echo "tag=$RELEASE_TAG" >> "$GITHUB_OUTPUT"
-          echo "previous_tag=$PREVIOUS_TAG" >> "$GITHUB_OUTPUT"
-          echo "java_commit=$JAVA_COMMIT" >> "$GITHUB_OUTPUT"
-          echo "base_commit=$BASE_COMMIT" >> "$GITHUB_OUTPUT"
-          echo "branch=$RELEASE_BRANCH" >> "$GITHUB_OUTPUT"
-          echo "resume_commit=$CANDIDATE" >> "$GITHUB_OUTPUT"
-          echo "helper_artifact=release-helper-$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT" >> "$GITHUB_OUTPUT"
+          {
+            echo "tag=$RELEASE_TAG"
+            echo "previous_tag=$PREVIOUS_TAG"
+            echo "java_commit=$JAVA_COMMIT"
+            echo "base_commit=$BASE_COMMIT"
+            echo "branch=$RELEASE_BRANCH"
+            echo "resume_commit=$CANDIDATE"
+            echo "helper_artifact=release-helper-$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT"
+          } >> "$GITHUB_OUTPUT"
           {
             echo "Release **$RELEASE_VERSION**, tag **$RELEASE_TAG**, previous tag **$PREVIOUS_TAG**."
             echo "Candidate base: $BASE_COMMIT. Branch: $RELEASE_BRANCH."
@@ -276,9 +278,11 @@ jobs:
           jq -e --arg commit "$COMMIT" '.headRefOid == $commit and ((.state == "OPEN" and .isDraft == true) or .state == "MERGED")' \
             "$RUNNER_TEMP/final-pr.json" > /dev/null
           URL=$(jq -r .url "$RUNNER_TEMP/final-pr.json")
-          echo "commit=$COMMIT" >> "$GITHUB_OUTPUT"
-          echo "pr=$PR" >> "$GITHUB_OUTPUT"
-          echo "url=$URL" >> "$GITHUB_OUTPUT"
+          {
+            echo "commit=$COMMIT"
+            echo "pr=$PR"
+            echo "url=$URL"
+          } >> "$GITHUB_OUTPUT"
           {
             echo "Review [release PR #$PR]($URL) and its version, lockfile and installation-command changes."
             echo "Candidate: $COMMIT."
@@ -412,13 +416,13 @@ jobs:
             echo '::error::Java validation requires at least 30 .java golden inputs.'
             exit 1
           }
-          test -s corpus/repos.txt && awk '
+          if ! test -s corpus/repos.txt || ! awk '
             NF && $1 !~ /^#/ { count++; if (NF != 5 || $2 != "java") invalid = 1 }
             END { exit (invalid || count < 3) }
-          ' corpus/repos.txt || {
+          ' corpus/repos.txt; then
             echo '::error::Java validation requires at least three valid Java corpus entries in corpus/repos.txt.'
             exit 1
-          }
+          fi
       - name: Generate Java with the candidate compiler and runtime
         run: |
           cargo run --locked -p iguana -- generate \
@@ -541,17 +545,19 @@ jobs:
           fi
           {
             echo "Validated candidate $RELEASE_COMMIT is on main."
-            echo 'Next, the workflow prepares a separate draft and links to the Releases page. It then waits for publication approval after you edit and save the notes.'
+            echo 'Next, the workflow prepares a separate draft and links to the Releases page. It then waits for you to edit and save the notes, and after that for publication approval.'
           } >> "$GITHUB_STEP_SUMMARY"
 
   draft:
-    name: Prepare the draft and instructions for publication approval
+    name: Prepare the draft and instructions for the notes approval
     needs: [plan, prepare, merge]
     runs-on: ubuntu-latest
     timeout-minutes: 10
     outputs:
       release_id: ${{ steps.draft.outputs.release_id }}
       releases_url: ${{ steps.draft.outputs.releases_url }}
+      draft: ${{ steps.draft.outputs.draft }}
+      generated_notes: ${{ steps.draft.outputs.generated_notes }}
       approval_name: ${{ steps.draft.outputs.approval_name }}
     steps:
       - uses: actions/checkout@v4
@@ -608,27 +614,35 @@ jobs:
           # page always provides the current edit link for the same draft.
           RELEASES_URL="https://github.com/$GITHUB_REPOSITORY/releases"
           DRAFT=$(jq -r '.draft == true' "$RUNNER_TEMP/release.json")
-          echo "release_id=$RELEASE_ID" >> "$GITHUB_OUTPUT"
-          echo "releases_url=$RELEASES_URL" >> "$GITHUB_OUTPUT"
+          # The notes job warns when the saved notes still match these.
+          # Whitespace is ignored because the editor may change line endings.
+          GENERATED_NOTES=$(tr -d '[:space:]' < "$RUNNER_TEMP/initial-notes.md" | sha256sum | cut -d' ' -f1)
+          {
+            echo "release_id=$RELEASE_ID"
+            echo "releases_url=$RELEASES_URL"
+            echo "draft=$DRAFT"
+            echo "generated_notes=$GENERATED_NOTES"
+          } >> "$GITHUB_OUTPUT"
           if [ "$DRAFT" = true ]; then
-            echo "approval_name=Save notes in Releases, then approve publishing $RELEASE_VERSION" >> "$GITHUB_OUTPUT"
-            echo "::notice title=Edit release notes before approving publication::Open $RELEASES_URL and click the pencil button for draft $RELEASE_VERSION. Edit the notes and Save draft, then approve release-publish in this run."
+            echo "approval_name=Approve publishing $RELEASE_VERSION" >> "$GITHUB_OUTPUT"
+            echo "::notice title=Edit release notes::Open $RELEASES_URL and click the pencil button for draft $RELEASE_VERSION. Edit the notes and Save draft, then approve release-notes in this run."
           else
             echo "approval_name=Approve completing publication of $RELEASE_VERSION" >> "$GITHUB_OUTPUT"
           fi
           {
             if [ "$DRAFT" = true ]; then
-              echo "## Before approving release-publish: edit the notes for $RELEASE_VERSION"
+              echo "## Edit the notes for $RELEASE_VERSION, then approve release-notes"
               echo
               echo "**[Open Releases to edit draft $RELEASE_VERSION]($RELEASES_URL)**"
               echo
               echo "1. Click the pencil button next to draft **$RELEASE_VERSION**. The generated notes are already loaded."
               echo '2. Edit or preview the notes, then **Save draft**. Keep the version, target and prerelease settings unchanged.'
-              echo "3. Return to [this Actions run](https://github.com/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID), select **Review deployments**, and approve **release-publish** to confirm publication."
+              echo "3. Return to [this Actions run](https://github.com/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID), select **Review deployments**, and approve **release-notes**. The workflow checks the saved draft."
+              echo '4. Approve **release-publish** to confirm publication.'
               echo
-              echo "To edit the notes again, reopen [Releases]($RELEASES_URL) and click the pencil button for the same draft."
+              echo "To edit the notes again before approving release-publish, reopen [Releases]($RELEASES_URL) and click the pencil button for the same draft."
               echo
-              echo 'Saving the draft does not publish it. Use the Actions approval for publication. Do not click Publish release in the editor.'
+              echo 'Saving the draft does not publish it. Use the Actions approvals for publication. Do not click Publish release in the editor.'
             else
               test "$(git rev-parse "$RELEASE_TAG^{commit}")" = "$RELEASE_COMMIT"
               echo "## Complete publication of $RELEASE_VERSION"
@@ -648,13 +662,56 @@ jobs:
             echo "Retry this run or start a new run with version $RELEASE_VERSION and resume_pr=$RELEASE_PR to recover using the same candidate and saved notes."
           } >> "$GITHUB_STEP_SUMMARY"
 
+  notes:
+    name: Edit and save the notes for ${{ inputs.version }} in Releases, then approve
+    needs: [plan, prepare, draft]
+    # A resumed run skips this job when the release is already public.
+    if: needs.draft.outputs.draft == 'true'
+    environment:
+      name: release-notes
+      # GitHub controls the approval popup. This job's name and the draft
+      # job's notice and summary explain the editing steps.
+      url: ${{ needs.draft.outputs.releases_url }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: ${{ needs.plan.outputs.helper_artifact }}
+          path: ${{ runner.temp }}/release-helper
+      - name: Enable the release helper
+        run: |
+          chmod +x "$RUNNER_TEMP/release-helper/xtask"
+          echo "RELEASE_HELPER=$RUNNER_TEMP/release-helper/xtask" >> "$GITHUB_ENV"
+      - name: Check the saved draft after approval
+        env:
+          GH_TOKEN: ${{ secrets.RELEASE_GITHUB_TOKEN }}
+          RELEASE_COMMIT: ${{ needs.prepare.outputs.commit }}
+          RELEASE_ID: ${{ needs.draft.outputs.release_id }}
+          GENERATED_NOTES: ${{ needs.draft.outputs.generated_notes }}
+        run: |
+          test -n "$GH_TOKEN"
+          [[ "$RELEASE_ID" =~ ^[1-9][0-9]*$ ]]
+          gh api "repos/$GITHUB_REPOSITORY/releases/$RELEASE_ID" > "$RUNNER_TEMP/release.json"
+          "$RELEASE_HELPER" release --root "$GITHUB_WORKSPACE" review-release \
+            "$RELEASE_VERSION" "$RELEASE_COMMIT" "$RUNNER_TEMP/release.json" > /dev/null
+          SAVED_NOTES=$(jq -j .body "$RUNNER_TEMP/release.json" | tr -d '[:space:]' | sha256sum | cut -d' ' -f1)
+          if [ "$SAVED_NOTES" = "$GENERATED_NOTES" ]; then
+            echo "::warning title=Release notes unchanged::The saved notes for $RELEASE_VERSION match the generated notes. Edit and save them before approving release-publish, or approve to publish them as they are."
+          fi
+          echo "The saved draft for $RELEASE_VERSION passed the checks. Approving release-publish publishes it with the notes saved at that time." >> "$GITHUB_STEP_SUMMARY"
+
   publish:
     name: ${{ needs.draft.outputs.approval_name }}
-    needs: [plan, prepare, draft]
+    needs: [plan, prepare, draft, notes]
+    # Run after the notes approval, or without it when the release is
+    # already public.
+    if: >-
+      !cancelled() && needs.draft.result == 'success' &&
+      (needs.notes.result == 'success' || needs.notes.result == 'skipped')
     environment:
       name: release-publish
-      # GitHub controls the approval popup. The publish job's name and the
-      # draft job's notice and summary explain the review steps.
+      # The draft job's summary lists what this approval authorizes.
       url: ${{ needs.draft.outputs.releases_url }}
     runs-on: ubuntu-latest
     timeout-minutes: 60

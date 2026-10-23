@@ -87,6 +87,16 @@ Run the root check after any frontend change. Suppress a Svelte warning with
 wrong or the fix requires a separate feature. Explain each kind of suppression
 once, at its first use.
 
+CI checks the GitHub Actions workflows with `actionlint`, which also runs
+`shellcheck` on their `run` scripts. Run the same check after editing a file in
+`.github/workflows/`:
+
+```sh
+actionlint
+```
+
+On macOS, install both tools with `brew install actionlint shellcheck`.
+
 ## Application and web workflows
 
 Install the root npm dependencies before working on a web package. These are
