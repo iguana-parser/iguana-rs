@@ -9,131 +9,137 @@ use iguana_runtime::{
 pub const S: NonterminalId = NonterminalId(0);
 pub const START_S: NonterminalId = NonterminalId(1);
 pub struct EscapedLitGrammar;
+static NONTERMINALS: [Nonterminal; 2] = [
+    Nonterminal {
+        name: "S",
+        display_name: "S",
+    },
+    Nonterminal {
+        name: "StartS",
+        display_name: "S",
+    },
+];
+static DISPLAY_ORDER: [&str; 1] = ["S"];
+static TERMINALS: [Terminal; 7] = [
+    Terminal { name: "Id" },
+    Terminal { name: "WS" },
+    Terminal { name: "\"\\\"\"" },
+    Terminal { name: "\"\\\\\"" },
+    Terminal { name: "\"\\f'\"" },
+    Terminal { name: "Epsilon" },
+    Terminal { name: "EOF" },
+];
+static SLOTS: [Slot; 16] = [
+    Slot {
+        display_name: "S : . \"\\\"\" WS Id WS \"\\\"\" WS \"\\\\\" WS Id WS \"\\f'\"",
+        position: 0,
+    },
+    Slot {
+        display_name: "S : \"\\\"\" . WS Id WS \"\\\"\" WS \"\\\\\" WS Id WS \"\\f'\"",
+        position: 1,
+    },
+    Slot {
+        display_name: "S : \"\\\"\" WS . Id WS \"\\\"\" WS \"\\\\\" WS Id WS \"\\f'\"",
+        position: 2,
+    },
+    Slot {
+        display_name: "S : \"\\\"\" WS Id . WS \"\\\"\" WS \"\\\\\" WS Id WS \"\\f'\"",
+        position: 3,
+    },
+    Slot {
+        display_name: "S : \"\\\"\" WS Id WS . \"\\\"\" WS \"\\\\\" WS Id WS \"\\f'\"",
+        position: 4,
+    },
+    Slot {
+        display_name: "S : \"\\\"\" WS Id WS \"\\\"\" . WS \"\\\\\" WS Id WS \"\\f'\"",
+        position: 5,
+    },
+    Slot {
+        display_name: "S : \"\\\"\" WS Id WS \"\\\"\" WS . \"\\\\\" WS Id WS \"\\f'\"",
+        position: 6,
+    },
+    Slot {
+        display_name: "S : \"\\\"\" WS Id WS \"\\\"\" WS \"\\\\\" . WS Id WS \"\\f'\"",
+        position: 7,
+    },
+    Slot {
+        display_name: "S : \"\\\"\" WS Id WS \"\\\"\" WS \"\\\\\" WS . Id WS \"\\f'\"",
+        position: 8,
+    },
+    Slot {
+        display_name: "S : \"\\\"\" WS Id WS \"\\\"\" WS \"\\\\\" WS Id . WS \"\\f'\"",
+        position: 9,
+    },
+    Slot {
+        display_name: "S : \"\\\"\" WS Id WS \"\\\"\" WS \"\\\\\" WS Id WS . \"\\f'\"",
+        position: 10,
+    },
+    Slot {
+        display_name: "S : \"\\\"\" WS Id WS \"\\\"\" WS \"\\\\\" WS Id WS \"\\f'\".",
+        position: 11,
+    },
+    Slot {
+        display_name: "S : . WS start:S WS",
+        position: 0,
+    },
+    Slot {
+        display_name: "S : WS . start:S WS",
+        position: 1,
+    },
+    Slot {
+        display_name: "S : WS start:S . WS",
+        position: 2,
+    },
+    Slot {
+        display_name: "S : WS start:S WS.",
+        position: 3,
+    },
+];
+static FIRST_SLOTS: [&[SlotId]; 2] = [&[SlotId(0)], &[SlotId(12)]];
+// A failed terminal match refers to a static terminal set like every other failure, so the
+// error reporting path needs to reach a terminal set from a terminal id. This table, indexed
+// by terminal id, serves only that.
+static SINGLE_TERMINAL_SETS: [TerminalSet; 7] = [
+    TerminalSet {
+        id: 4,
+        terminals: &[TerminalId(0)],
+    },
+    TerminalSet {
+        id: 5,
+        terminals: &[TerminalId(1)],
+    },
+    TerminalSet {
+        id: 6,
+        terminals: &[TerminalId(2)],
+    },
+    TerminalSet {
+        id: 7,
+        terminals: &[TerminalId(3)],
+    },
+    TerminalSet {
+        id: 8,
+        terminals: &[TerminalId(4)],
+    },
+    TerminalSet {
+        id: 9,
+        terminals: &[TerminalId(5)],
+    },
+    TerminalSet {
+        id: 10,
+        terminals: &[TerminalId(6)],
+    },
+];
 impl Grammar for EscapedLitGrammar {
     type Alternatives = BitSet<1>;
     const NAME: &'static str = "EscapedLit";
-    const NONTERMINALS: &'static [Nonterminal] = &[
-        Nonterminal {
-            name: "S",
-            display_name: "S",
-        },
-        Nonterminal {
-            name: "StartS",
-            display_name: "S",
-        },
-    ];
-    const DISPLAY_ORDER: &'static [&'static str] = &["S"];
-    const TERMINALS: &'static [Terminal] = &[
-        Terminal { name: "Id" },
-        Terminal { name: "WS" },
-        Terminal { name: "\"\\\"\"" },
-        Terminal { name: "\"\\\\\"" },
-        Terminal { name: "\"\\f'\"" },
-        Terminal { name: "Epsilon" },
-        Terminal { name: "EOF" },
-    ];
-    const SLOTS: &'static [Slot] = &[
-        Slot {
-            display_name: "S : . \"\\\"\" WS Id WS \"\\\"\" WS \"\\\\\" WS Id WS \"\\f'\"",
-            position: 0,
-        },
-        Slot {
-            display_name: "S : \"\\\"\" . WS Id WS \"\\\"\" WS \"\\\\\" WS Id WS \"\\f'\"",
-            position: 1,
-        },
-        Slot {
-            display_name: "S : \"\\\"\" WS . Id WS \"\\\"\" WS \"\\\\\" WS Id WS \"\\f'\"",
-            position: 2,
-        },
-        Slot {
-            display_name: "S : \"\\\"\" WS Id . WS \"\\\"\" WS \"\\\\\" WS Id WS \"\\f'\"",
-            position: 3,
-        },
-        Slot {
-            display_name: "S : \"\\\"\" WS Id WS . \"\\\"\" WS \"\\\\\" WS Id WS \"\\f'\"",
-            position: 4,
-        },
-        Slot {
-            display_name: "S : \"\\\"\" WS Id WS \"\\\"\" . WS \"\\\\\" WS Id WS \"\\f'\"",
-            position: 5,
-        },
-        Slot {
-            display_name: "S : \"\\\"\" WS Id WS \"\\\"\" WS . \"\\\\\" WS Id WS \"\\f'\"",
-            position: 6,
-        },
-        Slot {
-            display_name: "S : \"\\\"\" WS Id WS \"\\\"\" WS \"\\\\\" . WS Id WS \"\\f'\"",
-            position: 7,
-        },
-        Slot {
-            display_name: "S : \"\\\"\" WS Id WS \"\\\"\" WS \"\\\\\" WS . Id WS \"\\f'\"",
-            position: 8,
-        },
-        Slot {
-            display_name: "S : \"\\\"\" WS Id WS \"\\\"\" WS \"\\\\\" WS Id . WS \"\\f'\"",
-            position: 9,
-        },
-        Slot {
-            display_name: "S : \"\\\"\" WS Id WS \"\\\"\" WS \"\\\\\" WS Id WS . \"\\f'\"",
-            position: 10,
-        },
-        Slot {
-            display_name: "S : \"\\\"\" WS Id WS \"\\\"\" WS \"\\\\\" WS Id WS \"\\f'\".",
-            position: 11,
-        },
-        Slot {
-            display_name: "S : . WS start:S WS",
-            position: 0,
-        },
-        Slot {
-            display_name: "S : WS . start:S WS",
-            position: 1,
-        },
-        Slot {
-            display_name: "S : WS start:S . WS",
-            position: 2,
-        },
-        Slot {
-            display_name: "S : WS start:S WS.",
-            position: 3,
-        },
-    ];
-    const FIRST_SLOTS: &'static [&'static [SlotId]] = &[&[SlotId(0)], &[SlotId(12)]];
+    const NONTERMINALS: &'static [Nonterminal] = &NONTERMINALS;
+    const DISPLAY_ORDER: &'static [&'static str] = &DISPLAY_ORDER;
+    const TERMINALS: &'static [Terminal] = &TERMINALS;
+    const SLOTS: &'static [Slot] = &SLOTS;
+    const FIRST_SLOTS: &'static [&'static [SlotId]] = &FIRST_SLOTS;
     const LAYOUT_NAME: Option<&'static str> = Some("WS");
     const LAYOUT_TERMINALS: &'static [TerminalId] = &[TerminalId(1)];
-    // A failed terminal match refers to a static terminal set like every other failure, so the
-    // error reporting path needs to reach a terminal set from a terminal id. This slice, indexed
-    // by terminal id, serves only that.
-    const SINGLE_TERMINAL_SETS: &'static [TerminalSet] = &[
-        TerminalSet {
-            id: 4,
-            terminals: &[TerminalId(0)],
-        },
-        TerminalSet {
-            id: 5,
-            terminals: &[TerminalId(1)],
-        },
-        TerminalSet {
-            id: 6,
-            terminals: &[TerminalId(2)],
-        },
-        TerminalSet {
-            id: 7,
-            terminals: &[TerminalId(3)],
-        },
-        TerminalSet {
-            id: 8,
-            terminals: &[TerminalId(4)],
-        },
-        TerminalSet {
-            id: 9,
-            terminals: &[TerminalId(5)],
-        },
-        TerminalSet {
-            id: 10,
-            terminals: &[TerminalId(6)],
-        },
-    ];
+    const SINGLE_TERMINAL_SETS: &'static [TerminalSet] = &SINGLE_TERMINAL_SETS;
     fn nonterminal_id(name: &str) -> Option<NonterminalId> {
         match name {
             "S" => Some(S),

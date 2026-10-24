@@ -11,132 +11,138 @@ pub const ID: NonterminalId = NonterminalId(1);
 pub const START_S: NonterminalId = NonterminalId(2);
 pub const START_ID: NonterminalId = NonterminalId(3);
 pub struct PrecedeFollowRestrictionGrammar;
+static NONTERMINALS: [Nonterminal; 4] = [
+    Nonterminal {
+        name: "S",
+        display_name: "S",
+    },
+    Nonterminal {
+        name: "Id",
+        display_name: "Id",
+    },
+    Nonterminal {
+        name: "StartS",
+        display_name: "S",
+    },
+    Nonterminal {
+        name: "StartId",
+        display_name: "Id",
+    },
+];
+static DISPLAY_ORDER: [&str; 2] = ["S", "Id"];
+static TERMINALS: [Terminal; 7] = [
+    Terminal { name: "Name" },
+    Terminal { name: "Digit" },
+    Terminal { name: "Num" },
+    Terminal { name: "Eq" },
+    Terminal { name: "Tail" },
+    Terminal { name: "Epsilon" },
+    Terminal { name: "EOF" },
+];
+static SLOTS: [Slot; 13] = [
+    Slot {
+        display_name: "S : . Num Id Tail",
+        position: 0,
+    },
+    Slot {
+        display_name: "S : Num . Id Tail",
+        position: 1,
+    },
+    Slot {
+        display_name: "S : Num Id . Tail",
+        position: 2,
+    },
+    Slot {
+        display_name: "S : Num Id Tail.",
+        position: 3,
+    },
+    Slot {
+        display_name: "S : . Id Tail",
+        position: 0,
+    },
+    Slot {
+        display_name: "S : Id . Tail",
+        position: 1,
+    },
+    Slot {
+        display_name: "S : Id Tail.",
+        position: 2,
+    },
+    Slot {
+        display_name: "Id : . Digit !<< Name !>> Eq",
+        position: 0,
+    },
+    Slot {
+        display_name: "Id : Digit !<< Name !>> Eq.",
+        position: 1,
+    },
+    Slot {
+        display_name: "S : . start:S",
+        position: 0,
+    },
+    Slot {
+        display_name: "S : start:S.",
+        position: 1,
+    },
+    Slot {
+        display_name: "Id : . start:Id",
+        position: 0,
+    },
+    Slot {
+        display_name: "Id : start:Id.",
+        position: 1,
+    },
+];
+static FIRST_SLOTS: [&[SlotId]; 4] = [
+    &[SlotId(0), SlotId(4)],
+    &[SlotId(7)],
+    &[SlotId(9)],
+    &[SlotId(11)],
+];
+// A failed terminal match refers to a static terminal set like every other failure, so the
+// error reporting path needs to reach a terminal set from a terminal id. This table, indexed
+// by terminal id, serves only that.
+static SINGLE_TERMINAL_SETS: [TerminalSet; 7] = [
+    TerminalSet {
+        id: 5,
+        terminals: &[TerminalId(0)],
+    },
+    TerminalSet {
+        id: 6,
+        terminals: &[TerminalId(1)],
+    },
+    TerminalSet {
+        id: 7,
+        terminals: &[TerminalId(2)],
+    },
+    TerminalSet {
+        id: 8,
+        terminals: &[TerminalId(3)],
+    },
+    TerminalSet {
+        id: 9,
+        terminals: &[TerminalId(4)],
+    },
+    TerminalSet {
+        id: 10,
+        terminals: &[TerminalId(5)],
+    },
+    TerminalSet {
+        id: 11,
+        terminals: &[TerminalId(6)],
+    },
+];
 impl Grammar for PrecedeFollowRestrictionGrammar {
     type Alternatives = BitSet<1>;
     const NAME: &'static str = "PrecedeFollowRestriction";
-    const NONTERMINALS: &'static [Nonterminal] = &[
-        Nonterminal {
-            name: "S",
-            display_name: "S",
-        },
-        Nonterminal {
-            name: "Id",
-            display_name: "Id",
-        },
-        Nonterminal {
-            name: "StartS",
-            display_name: "S",
-        },
-        Nonterminal {
-            name: "StartId",
-            display_name: "Id",
-        },
-    ];
-    const DISPLAY_ORDER: &'static [&'static str] = &["S", "Id"];
-    const TERMINALS: &'static [Terminal] = &[
-        Terminal { name: "Name" },
-        Terminal { name: "Digit" },
-        Terminal { name: "Num" },
-        Terminal { name: "Eq" },
-        Terminal { name: "Tail" },
-        Terminal { name: "Epsilon" },
-        Terminal { name: "EOF" },
-    ];
-    const SLOTS: &'static [Slot] = &[
-        Slot {
-            display_name: "S : . Num Id Tail",
-            position: 0,
-        },
-        Slot {
-            display_name: "S : Num . Id Tail",
-            position: 1,
-        },
-        Slot {
-            display_name: "S : Num Id . Tail",
-            position: 2,
-        },
-        Slot {
-            display_name: "S : Num Id Tail.",
-            position: 3,
-        },
-        Slot {
-            display_name: "S : . Id Tail",
-            position: 0,
-        },
-        Slot {
-            display_name: "S : Id . Tail",
-            position: 1,
-        },
-        Slot {
-            display_name: "S : Id Tail.",
-            position: 2,
-        },
-        Slot {
-            display_name: "Id : . Digit !<< Name !>> Eq",
-            position: 0,
-        },
-        Slot {
-            display_name: "Id : Digit !<< Name !>> Eq.",
-            position: 1,
-        },
-        Slot {
-            display_name: "S : . start:S",
-            position: 0,
-        },
-        Slot {
-            display_name: "S : start:S.",
-            position: 1,
-        },
-        Slot {
-            display_name: "Id : . start:Id",
-            position: 0,
-        },
-        Slot {
-            display_name: "Id : start:Id.",
-            position: 1,
-        },
-    ];
-    const FIRST_SLOTS: &'static [&'static [SlotId]] = &[
-        &[SlotId(0), SlotId(4)],
-        &[SlotId(7)],
-        &[SlotId(9)],
-        &[SlotId(11)],
-    ];
+    const NONTERMINALS: &'static [Nonterminal] = &NONTERMINALS;
+    const DISPLAY_ORDER: &'static [&'static str] = &DISPLAY_ORDER;
+    const TERMINALS: &'static [Terminal] = &TERMINALS;
+    const SLOTS: &'static [Slot] = &SLOTS;
+    const FIRST_SLOTS: &'static [&'static [SlotId]] = &FIRST_SLOTS;
     const LAYOUT_NAME: Option<&'static str> = None;
     const LAYOUT_TERMINALS: &'static [TerminalId] = &[];
-    // A failed terminal match refers to a static terminal set like every other failure, so the
-    // error reporting path needs to reach a terminal set from a terminal id. This slice, indexed
-    // by terminal id, serves only that.
-    const SINGLE_TERMINAL_SETS: &'static [TerminalSet] = &[
-        TerminalSet {
-            id: 5,
-            terminals: &[TerminalId(0)],
-        },
-        TerminalSet {
-            id: 6,
-            terminals: &[TerminalId(1)],
-        },
-        TerminalSet {
-            id: 7,
-            terminals: &[TerminalId(2)],
-        },
-        TerminalSet {
-            id: 8,
-            terminals: &[TerminalId(3)],
-        },
-        TerminalSet {
-            id: 9,
-            terminals: &[TerminalId(4)],
-        },
-        TerminalSet {
-            id: 10,
-            terminals: &[TerminalId(5)],
-        },
-        TerminalSet {
-            id: 11,
-            terminals: &[TerminalId(6)],
-        },
-    ];
+    const SINGLE_TERMINAL_SETS: &'static [TerminalSet] = &SINGLE_TERMINAL_SETS;
     fn nonterminal_id(name: &str) -> Option<NonterminalId> {
         match name {
             "S" => Some(S),

@@ -18,375 +18,381 @@ pub const START_S: NonterminalId = NonterminalId(7);
 pub const START_STATEMENT: NonterminalId = NonterminalId(8);
 pub const START_LAYOUT: NonterminalId = NonterminalId(9);
 pub struct DanglingElseFirstParseGrammar;
+static NONTERMINALS: [Nonterminal; 10] = [
+    Nonterminal {
+        name: "S",
+        display_name: "S",
+    },
+    Nonterminal {
+        name: "Statement",
+        display_name: "Statement",
+    },
+    Nonterminal {
+        name: "Layout",
+        display_name: "Layout",
+    },
+    Nonterminal {
+        name: "Plus_0",
+        display_name: "Statement+",
+    },
+    Nonterminal {
+        name: "Alt_0",
+        display_name: "(WhiteSpace | Comment)",
+    },
+    Nonterminal {
+        name: "Plus_1",
+        display_name: "(WhiteSpace | Comment)+",
+    },
+    Nonterminal {
+        name: "Star_0",
+        display_name: "(WhiteSpace | Comment)*",
+    },
+    Nonterminal {
+        name: "StartS",
+        display_name: "S",
+    },
+    Nonterminal {
+        name: "StartStatement",
+        display_name: "Statement",
+    },
+    Nonterminal {
+        name: "StartLayout",
+        display_name: "Layout",
+    },
+];
+static DISPLAY_ORDER: [&str; 3] = ["S", "Statement", "Layout"];
+static TERMINALS: [Terminal; 12] = [
+    Terminal { name: "Cond" },
+    Terminal { name: "Id" },
+    Terminal { name: "Else" },
+    Terminal { name: "Letter" },
+    Terminal { name: "WhiteSpace" },
+    Terminal { name: "Comment" },
+    Terminal { name: "\"if\"" },
+    Terminal { name: "\"(\"" },
+    Terminal { name: "\")\"" },
+    Terminal { name: "\";\"" },
+    Terminal { name: "Epsilon" },
+    Terminal { name: "EOF" },
+];
+static SLOTS: [Slot; 60] = [
+    Slot {
+        display_name: "S : . Statement+",
+        position: 0,
+    },
+    Slot {
+        display_name: "S : Statement+.",
+        position: 1,
+    },
+    Slot {
+        display_name: "Statement : . \"if\" Layout \"(\" Layout Cond Layout \")\" Layout Statement !>>> Else",
+        position: 0,
+    },
+    Slot {
+        display_name: "Statement : \"if\" . Layout \"(\" Layout Cond Layout \")\" Layout Statement !>>> Else",
+        position: 1,
+    },
+    Slot {
+        display_name: "Statement : \"if\" Layout . \"(\" Layout Cond Layout \")\" Layout Statement !>>> Else",
+        position: 2,
+    },
+    Slot {
+        display_name: "Statement : \"if\" Layout \"(\" . Layout Cond Layout \")\" Layout Statement !>>> Else",
+        position: 3,
+    },
+    Slot {
+        display_name: "Statement : \"if\" Layout \"(\" Layout . Cond Layout \")\" Layout Statement !>>> Else",
+        position: 4,
+    },
+    Slot {
+        display_name: "Statement : \"if\" Layout \"(\" Layout Cond . Layout \")\" Layout Statement !>>> Else",
+        position: 5,
+    },
+    Slot {
+        display_name: "Statement : \"if\" Layout \"(\" Layout Cond Layout . \")\" Layout Statement !>>> Else",
+        position: 6,
+    },
+    Slot {
+        display_name: "Statement : \"if\" Layout \"(\" Layout Cond Layout \")\" . Layout Statement !>>> Else",
+        position: 7,
+    },
+    Slot {
+        display_name: "Statement : \"if\" Layout \"(\" Layout Cond Layout \")\" Layout . Statement !>>> Else",
+        position: 8,
+    },
+    Slot {
+        display_name: "Statement : \"if\" Layout \"(\" Layout Cond Layout \")\" Layout Statement !>>> Else.",
+        position: 9,
+    },
+    Slot {
+        display_name: "Statement : . \"if\" Layout \"(\" Layout Cond Layout \")\" Layout Statement Layout Else Layout Statement",
+        position: 0,
+    },
+    Slot {
+        display_name: "Statement : \"if\" . Layout \"(\" Layout Cond Layout \")\" Layout Statement Layout Else Layout Statement",
+        position: 1,
+    },
+    Slot {
+        display_name: "Statement : \"if\" Layout . \"(\" Layout Cond Layout \")\" Layout Statement Layout Else Layout Statement",
+        position: 2,
+    },
+    Slot {
+        display_name: "Statement : \"if\" Layout \"(\" . Layout Cond Layout \")\" Layout Statement Layout Else Layout Statement",
+        position: 3,
+    },
+    Slot {
+        display_name: "Statement : \"if\" Layout \"(\" Layout . Cond Layout \")\" Layout Statement Layout Else Layout Statement",
+        position: 4,
+    },
+    Slot {
+        display_name: "Statement : \"if\" Layout \"(\" Layout Cond . Layout \")\" Layout Statement Layout Else Layout Statement",
+        position: 5,
+    },
+    Slot {
+        display_name: "Statement : \"if\" Layout \"(\" Layout Cond Layout . \")\" Layout Statement Layout Else Layout Statement",
+        position: 6,
+    },
+    Slot {
+        display_name: "Statement : \"if\" Layout \"(\" Layout Cond Layout \")\" . Layout Statement Layout Else Layout Statement",
+        position: 7,
+    },
+    Slot {
+        display_name: "Statement : \"if\" Layout \"(\" Layout Cond Layout \")\" Layout . Statement Layout Else Layout Statement",
+        position: 8,
+    },
+    Slot {
+        display_name: "Statement : \"if\" Layout \"(\" Layout Cond Layout \")\" Layout Statement . Layout Else Layout Statement",
+        position: 9,
+    },
+    Slot {
+        display_name: "Statement : \"if\" Layout \"(\" Layout Cond Layout \")\" Layout Statement Layout . Else Layout Statement",
+        position: 10,
+    },
+    Slot {
+        display_name: "Statement : \"if\" Layout \"(\" Layout Cond Layout \")\" Layout Statement Layout Else . Layout Statement",
+        position: 11,
+    },
+    Slot {
+        display_name: "Statement : \"if\" Layout \"(\" Layout Cond Layout \")\" Layout Statement Layout Else Layout . Statement",
+        position: 12,
+    },
+    Slot {
+        display_name: "Statement : \"if\" Layout \"(\" Layout Cond Layout \")\" Layout Statement Layout Else Layout Statement.",
+        position: 13,
+    },
+    Slot {
+        display_name: "Statement : . Id Layout \";\"",
+        position: 0,
+    },
+    Slot {
+        display_name: "Statement : Id . Layout \";\"",
+        position: 1,
+    },
+    Slot {
+        display_name: "Statement : Id Layout . \";\"",
+        position: 2,
+    },
+    Slot {
+        display_name: "Statement : Id Layout \";\".",
+        position: 3,
+    },
+    Slot {
+        display_name: "Layout : . (WhiteSpace | Comment)*",
+        position: 0,
+    },
+    Slot {
+        display_name: "Layout : (WhiteSpace | Comment)*.",
+        position: 1,
+    },
+    Slot {
+        display_name: "Statement+ : . Statement+ Layout Statement",
+        position: 0,
+    },
+    Slot {
+        display_name: "Statement+ : Statement+ . Layout Statement",
+        position: 1,
+    },
+    Slot {
+        display_name: "Statement+ : Statement+ Layout . Statement",
+        position: 2,
+    },
+    Slot {
+        display_name: "Statement+ : Statement+ Layout Statement.",
+        position: 3,
+    },
+    Slot {
+        display_name: "Statement+ : . Statement",
+        position: 0,
+    },
+    Slot {
+        display_name: "Statement+ : Statement.",
+        position: 1,
+    },
+    Slot {
+        display_name: "(WhiteSpace | Comment) : . WhiteSpace",
+        position: 0,
+    },
+    Slot {
+        display_name: "(WhiteSpace | Comment) : WhiteSpace.",
+        position: 1,
+    },
+    Slot {
+        display_name: "(WhiteSpace | Comment) : . Comment",
+        position: 0,
+    },
+    Slot {
+        display_name: "(WhiteSpace | Comment) : Comment.",
+        position: 1,
+    },
+    Slot {
+        display_name: "(WhiteSpace | Comment)+ : . (WhiteSpace | Comment)+ (WhiteSpace | Comment)",
+        position: 0,
+    },
+    Slot {
+        display_name: "(WhiteSpace | Comment)+ : (WhiteSpace | Comment)+ . (WhiteSpace | Comment)",
+        position: 1,
+    },
+    Slot {
+        display_name: "(WhiteSpace | Comment)+ : (WhiteSpace | Comment)+ (WhiteSpace | Comment).",
+        position: 2,
+    },
+    Slot {
+        display_name: "(WhiteSpace | Comment)+ : . (WhiteSpace | Comment)",
+        position: 0,
+    },
+    Slot {
+        display_name: "(WhiteSpace | Comment)+ : (WhiteSpace | Comment).",
+        position: 1,
+    },
+    Slot {
+        display_name: "(WhiteSpace | Comment)* : . (WhiteSpace | Comment)+",
+        position: 0,
+    },
+    Slot {
+        display_name: "(WhiteSpace | Comment)* : (WhiteSpace | Comment)+.",
+        position: 1,
+    },
+    Slot {
+        display_name: "(WhiteSpace | Comment)* : .",
+        position: 0,
+    },
+    Slot {
+        display_name: "S : . Layout start:S Layout",
+        position: 0,
+    },
+    Slot {
+        display_name: "S : Layout . start:S Layout",
+        position: 1,
+    },
+    Slot {
+        display_name: "S : Layout start:S . Layout",
+        position: 2,
+    },
+    Slot {
+        display_name: "S : Layout start:S Layout.",
+        position: 3,
+    },
+    Slot {
+        display_name: "Statement : . Layout start:Statement Layout",
+        position: 0,
+    },
+    Slot {
+        display_name: "Statement : Layout . start:Statement Layout",
+        position: 1,
+    },
+    Slot {
+        display_name: "Statement : Layout start:Statement . Layout",
+        position: 2,
+    },
+    Slot {
+        display_name: "Statement : Layout start:Statement Layout.",
+        position: 3,
+    },
+    Slot {
+        display_name: "Layout : . start:Layout",
+        position: 0,
+    },
+    Slot {
+        display_name: "Layout : start:Layout.",
+        position: 1,
+    },
+];
+static FIRST_SLOTS: [&[SlotId]; 10] = [
+    &[SlotId(0)],
+    &[SlotId(2), SlotId(12), SlotId(26)],
+    &[SlotId(30)],
+    &[SlotId(32), SlotId(36)],
+    &[SlotId(38), SlotId(40)],
+    &[SlotId(42), SlotId(45)],
+    &[SlotId(47), SlotId(49)],
+    &[SlotId(50)],
+    &[SlotId(54)],
+    &[SlotId(58)],
+];
+// A failed terminal match refers to a static terminal set like every other failure, so the
+// error reporting path needs to reach a terminal set from a terminal id. This table, indexed
+// by terminal id, serves only that.
+static SINGLE_TERMINAL_SETS: [TerminalSet; 12] = [
+    TerminalSet {
+        id: 9,
+        terminals: &[TerminalId(0)],
+    },
+    TerminalSet {
+        id: 10,
+        terminals: &[TerminalId(1)],
+    },
+    TerminalSet {
+        id: 11,
+        terminals: &[TerminalId(2)],
+    },
+    TerminalSet {
+        id: 12,
+        terminals: &[TerminalId(3)],
+    },
+    TerminalSet {
+        id: 13,
+        terminals: &[TerminalId(4)],
+    },
+    TerminalSet {
+        id: 14,
+        terminals: &[TerminalId(5)],
+    },
+    TerminalSet {
+        id: 15,
+        terminals: &[TerminalId(6)],
+    },
+    TerminalSet {
+        id: 16,
+        terminals: &[TerminalId(7)],
+    },
+    TerminalSet {
+        id: 17,
+        terminals: &[TerminalId(8)],
+    },
+    TerminalSet {
+        id: 18,
+        terminals: &[TerminalId(9)],
+    },
+    TerminalSet {
+        id: 19,
+        terminals: &[TerminalId(10)],
+    },
+    TerminalSet {
+        id: 20,
+        terminals: &[TerminalId(11)],
+    },
+];
 impl Grammar for DanglingElseFirstParseGrammar {
     type Alternatives = BitSet<1>;
     const NAME: &'static str = "DanglingElseFirstParse";
-    const NONTERMINALS: &'static [Nonterminal] = &[
-        Nonterminal {
-            name: "S",
-            display_name: "S",
-        },
-        Nonterminal {
-            name: "Statement",
-            display_name: "Statement",
-        },
-        Nonterminal {
-            name: "Layout",
-            display_name: "Layout",
-        },
-        Nonterminal {
-            name: "Plus_0",
-            display_name: "Statement+",
-        },
-        Nonterminal {
-            name: "Alt_0",
-            display_name: "(WhiteSpace | Comment)",
-        },
-        Nonterminal {
-            name: "Plus_1",
-            display_name: "(WhiteSpace | Comment)+",
-        },
-        Nonterminal {
-            name: "Star_0",
-            display_name: "(WhiteSpace | Comment)*",
-        },
-        Nonterminal {
-            name: "StartS",
-            display_name: "S",
-        },
-        Nonterminal {
-            name: "StartStatement",
-            display_name: "Statement",
-        },
-        Nonterminal {
-            name: "StartLayout",
-            display_name: "Layout",
-        },
-    ];
-    const DISPLAY_ORDER: &'static [&'static str] = &["S", "Statement", "Layout"];
-    const TERMINALS: &'static [Terminal] = &[
-        Terminal { name: "Cond" },
-        Terminal { name: "Id" },
-        Terminal { name: "Else" },
-        Terminal { name: "Letter" },
-        Terminal { name: "WhiteSpace" },
-        Terminal { name: "Comment" },
-        Terminal { name: "\"if\"" },
-        Terminal { name: "\"(\"" },
-        Terminal { name: "\")\"" },
-        Terminal { name: "\";\"" },
-        Terminal { name: "Epsilon" },
-        Terminal { name: "EOF" },
-    ];
-    const SLOTS: &'static [Slot] = &[
-        Slot {
-            display_name: "S : . Statement+",
-            position: 0,
-        },
-        Slot {
-            display_name: "S : Statement+.",
-            position: 1,
-        },
-        Slot {
-            display_name: "Statement : . \"if\" Layout \"(\" Layout Cond Layout \")\" Layout Statement !>>> Else",
-            position: 0,
-        },
-        Slot {
-            display_name: "Statement : \"if\" . Layout \"(\" Layout Cond Layout \")\" Layout Statement !>>> Else",
-            position: 1,
-        },
-        Slot {
-            display_name: "Statement : \"if\" Layout . \"(\" Layout Cond Layout \")\" Layout Statement !>>> Else",
-            position: 2,
-        },
-        Slot {
-            display_name: "Statement : \"if\" Layout \"(\" . Layout Cond Layout \")\" Layout Statement !>>> Else",
-            position: 3,
-        },
-        Slot {
-            display_name: "Statement : \"if\" Layout \"(\" Layout . Cond Layout \")\" Layout Statement !>>> Else",
-            position: 4,
-        },
-        Slot {
-            display_name: "Statement : \"if\" Layout \"(\" Layout Cond . Layout \")\" Layout Statement !>>> Else",
-            position: 5,
-        },
-        Slot {
-            display_name: "Statement : \"if\" Layout \"(\" Layout Cond Layout . \")\" Layout Statement !>>> Else",
-            position: 6,
-        },
-        Slot {
-            display_name: "Statement : \"if\" Layout \"(\" Layout Cond Layout \")\" . Layout Statement !>>> Else",
-            position: 7,
-        },
-        Slot {
-            display_name: "Statement : \"if\" Layout \"(\" Layout Cond Layout \")\" Layout . Statement !>>> Else",
-            position: 8,
-        },
-        Slot {
-            display_name: "Statement : \"if\" Layout \"(\" Layout Cond Layout \")\" Layout Statement !>>> Else.",
-            position: 9,
-        },
-        Slot {
-            display_name: "Statement : . \"if\" Layout \"(\" Layout Cond Layout \")\" Layout Statement Layout Else Layout Statement",
-            position: 0,
-        },
-        Slot {
-            display_name: "Statement : \"if\" . Layout \"(\" Layout Cond Layout \")\" Layout Statement Layout Else Layout Statement",
-            position: 1,
-        },
-        Slot {
-            display_name: "Statement : \"if\" Layout . \"(\" Layout Cond Layout \")\" Layout Statement Layout Else Layout Statement",
-            position: 2,
-        },
-        Slot {
-            display_name: "Statement : \"if\" Layout \"(\" . Layout Cond Layout \")\" Layout Statement Layout Else Layout Statement",
-            position: 3,
-        },
-        Slot {
-            display_name: "Statement : \"if\" Layout \"(\" Layout . Cond Layout \")\" Layout Statement Layout Else Layout Statement",
-            position: 4,
-        },
-        Slot {
-            display_name: "Statement : \"if\" Layout \"(\" Layout Cond . Layout \")\" Layout Statement Layout Else Layout Statement",
-            position: 5,
-        },
-        Slot {
-            display_name: "Statement : \"if\" Layout \"(\" Layout Cond Layout . \")\" Layout Statement Layout Else Layout Statement",
-            position: 6,
-        },
-        Slot {
-            display_name: "Statement : \"if\" Layout \"(\" Layout Cond Layout \")\" . Layout Statement Layout Else Layout Statement",
-            position: 7,
-        },
-        Slot {
-            display_name: "Statement : \"if\" Layout \"(\" Layout Cond Layout \")\" Layout . Statement Layout Else Layout Statement",
-            position: 8,
-        },
-        Slot {
-            display_name: "Statement : \"if\" Layout \"(\" Layout Cond Layout \")\" Layout Statement . Layout Else Layout Statement",
-            position: 9,
-        },
-        Slot {
-            display_name: "Statement : \"if\" Layout \"(\" Layout Cond Layout \")\" Layout Statement Layout . Else Layout Statement",
-            position: 10,
-        },
-        Slot {
-            display_name: "Statement : \"if\" Layout \"(\" Layout Cond Layout \")\" Layout Statement Layout Else . Layout Statement",
-            position: 11,
-        },
-        Slot {
-            display_name: "Statement : \"if\" Layout \"(\" Layout Cond Layout \")\" Layout Statement Layout Else Layout . Statement",
-            position: 12,
-        },
-        Slot {
-            display_name: "Statement : \"if\" Layout \"(\" Layout Cond Layout \")\" Layout Statement Layout Else Layout Statement.",
-            position: 13,
-        },
-        Slot {
-            display_name: "Statement : . Id Layout \";\"",
-            position: 0,
-        },
-        Slot {
-            display_name: "Statement : Id . Layout \";\"",
-            position: 1,
-        },
-        Slot {
-            display_name: "Statement : Id Layout . \";\"",
-            position: 2,
-        },
-        Slot {
-            display_name: "Statement : Id Layout \";\".",
-            position: 3,
-        },
-        Slot {
-            display_name: "Layout : . (WhiteSpace | Comment)*",
-            position: 0,
-        },
-        Slot {
-            display_name: "Layout : (WhiteSpace | Comment)*.",
-            position: 1,
-        },
-        Slot {
-            display_name: "Statement+ : . Statement+ Layout Statement",
-            position: 0,
-        },
-        Slot {
-            display_name: "Statement+ : Statement+ . Layout Statement",
-            position: 1,
-        },
-        Slot {
-            display_name: "Statement+ : Statement+ Layout . Statement",
-            position: 2,
-        },
-        Slot {
-            display_name: "Statement+ : Statement+ Layout Statement.",
-            position: 3,
-        },
-        Slot {
-            display_name: "Statement+ : . Statement",
-            position: 0,
-        },
-        Slot {
-            display_name: "Statement+ : Statement.",
-            position: 1,
-        },
-        Slot {
-            display_name: "(WhiteSpace | Comment) : . WhiteSpace",
-            position: 0,
-        },
-        Slot {
-            display_name: "(WhiteSpace | Comment) : WhiteSpace.",
-            position: 1,
-        },
-        Slot {
-            display_name: "(WhiteSpace | Comment) : . Comment",
-            position: 0,
-        },
-        Slot {
-            display_name: "(WhiteSpace | Comment) : Comment.",
-            position: 1,
-        },
-        Slot {
-            display_name: "(WhiteSpace | Comment)+ : . (WhiteSpace | Comment)+ (WhiteSpace | Comment)",
-            position: 0,
-        },
-        Slot {
-            display_name: "(WhiteSpace | Comment)+ : (WhiteSpace | Comment)+ . (WhiteSpace | Comment)",
-            position: 1,
-        },
-        Slot {
-            display_name: "(WhiteSpace | Comment)+ : (WhiteSpace | Comment)+ (WhiteSpace | Comment).",
-            position: 2,
-        },
-        Slot {
-            display_name: "(WhiteSpace | Comment)+ : . (WhiteSpace | Comment)",
-            position: 0,
-        },
-        Slot {
-            display_name: "(WhiteSpace | Comment)+ : (WhiteSpace | Comment).",
-            position: 1,
-        },
-        Slot {
-            display_name: "(WhiteSpace | Comment)* : . (WhiteSpace | Comment)+",
-            position: 0,
-        },
-        Slot {
-            display_name: "(WhiteSpace | Comment)* : (WhiteSpace | Comment)+.",
-            position: 1,
-        },
-        Slot {
-            display_name: "(WhiteSpace | Comment)* : .",
-            position: 0,
-        },
-        Slot {
-            display_name: "S : . Layout start:S Layout",
-            position: 0,
-        },
-        Slot {
-            display_name: "S : Layout . start:S Layout",
-            position: 1,
-        },
-        Slot {
-            display_name: "S : Layout start:S . Layout",
-            position: 2,
-        },
-        Slot {
-            display_name: "S : Layout start:S Layout.",
-            position: 3,
-        },
-        Slot {
-            display_name: "Statement : . Layout start:Statement Layout",
-            position: 0,
-        },
-        Slot {
-            display_name: "Statement : Layout . start:Statement Layout",
-            position: 1,
-        },
-        Slot {
-            display_name: "Statement : Layout start:Statement . Layout",
-            position: 2,
-        },
-        Slot {
-            display_name: "Statement : Layout start:Statement Layout.",
-            position: 3,
-        },
-        Slot {
-            display_name: "Layout : . start:Layout",
-            position: 0,
-        },
-        Slot {
-            display_name: "Layout : start:Layout.",
-            position: 1,
-        },
-    ];
-    const FIRST_SLOTS: &'static [&'static [SlotId]] = &[
-        &[SlotId(0)],
-        &[SlotId(2), SlotId(12), SlotId(26)],
-        &[SlotId(30)],
-        &[SlotId(32), SlotId(36)],
-        &[SlotId(38), SlotId(40)],
-        &[SlotId(42), SlotId(45)],
-        &[SlotId(47), SlotId(49)],
-        &[SlotId(50)],
-        &[SlotId(54)],
-        &[SlotId(58)],
-    ];
+    const NONTERMINALS: &'static [Nonterminal] = &NONTERMINALS;
+    const DISPLAY_ORDER: &'static [&'static str] = &DISPLAY_ORDER;
+    const TERMINALS: &'static [Terminal] = &TERMINALS;
+    const SLOTS: &'static [Slot] = &SLOTS;
+    const FIRST_SLOTS: &'static [&'static [SlotId]] = &FIRST_SLOTS;
     const LAYOUT_NAME: Option<&'static str> = Some("Layout");
     const LAYOUT_TERMINALS: &'static [TerminalId] = &[TerminalId(4), TerminalId(5)];
-    // A failed terminal match refers to a static terminal set like every other failure, so the
-    // error reporting path needs to reach a terminal set from a terminal id. This slice, indexed
-    // by terminal id, serves only that.
-    const SINGLE_TERMINAL_SETS: &'static [TerminalSet] = &[
-        TerminalSet {
-            id: 9,
-            terminals: &[TerminalId(0)],
-        },
-        TerminalSet {
-            id: 10,
-            terminals: &[TerminalId(1)],
-        },
-        TerminalSet {
-            id: 11,
-            terminals: &[TerminalId(2)],
-        },
-        TerminalSet {
-            id: 12,
-            terminals: &[TerminalId(3)],
-        },
-        TerminalSet {
-            id: 13,
-            terminals: &[TerminalId(4)],
-        },
-        TerminalSet {
-            id: 14,
-            terminals: &[TerminalId(5)],
-        },
-        TerminalSet {
-            id: 15,
-            terminals: &[TerminalId(6)],
-        },
-        TerminalSet {
-            id: 16,
-            terminals: &[TerminalId(7)],
-        },
-        TerminalSet {
-            id: 17,
-            terminals: &[TerminalId(8)],
-        },
-        TerminalSet {
-            id: 18,
-            terminals: &[TerminalId(9)],
-        },
-        TerminalSet {
-            id: 19,
-            terminals: &[TerminalId(10)],
-        },
-        TerminalSet {
-            id: 20,
-            terminals: &[TerminalId(11)],
-        },
-    ];
+    const SINGLE_TERMINAL_SETS: &'static [TerminalSet] = &SINGLE_TERMINAL_SETS;
     fn nonterminal_id(name: &str) -> Option<NonterminalId> {
         match name {
             "S" => Some(S),

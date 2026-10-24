@@ -17,200 +17,206 @@ pub const START_A: NonterminalId = NonterminalId(7);
 pub const START_B: NonterminalId = NonterminalId(8);
 pub const START_C: NonterminalId = NonterminalId(9);
 pub struct PlusGroupGrammar;
+static NONTERMINALS: [Nonterminal; 10] = [
+    Nonterminal {
+        name: "S",
+        display_name: "S",
+    },
+    Nonterminal {
+        name: "A",
+        display_name: "A",
+    },
+    Nonterminal {
+        name: "B",
+        display_name: "B",
+    },
+    Nonterminal {
+        name: "C",
+        display_name: "C",
+    },
+    Nonterminal {
+        name: "Group_0",
+        display_name: "(A B C)",
+    },
+    Nonterminal {
+        name: "Plus_0",
+        display_name: "(A B C)+",
+    },
+    Nonterminal {
+        name: "StartS",
+        display_name: "S",
+    },
+    Nonterminal {
+        name: "StartA",
+        display_name: "A",
+    },
+    Nonterminal {
+        name: "StartB",
+        display_name: "B",
+    },
+    Nonterminal {
+        name: "StartC",
+        display_name: "C",
+    },
+];
+static DISPLAY_ORDER: [&str; 4] = ["S", "A", "B", "C"];
+static TERMINALS: [Terminal; 5] = [
+    Terminal { name: "\"a\"" },
+    Terminal { name: "\"b\"" },
+    Terminal { name: "\"c\"" },
+    Terminal { name: "Epsilon" },
+    Terminal { name: "EOF" },
+];
+static SLOTS: [Slot; 25] = [
+    Slot {
+        display_name: "S : . (A B C)+",
+        position: 0,
+    },
+    Slot {
+        display_name: "S : (A B C)+.",
+        position: 1,
+    },
+    Slot {
+        display_name: "A : . \"a\"",
+        position: 0,
+    },
+    Slot {
+        display_name: "A : \"a\".",
+        position: 1,
+    },
+    Slot {
+        display_name: "B : . \"b\"",
+        position: 0,
+    },
+    Slot {
+        display_name: "B : \"b\".",
+        position: 1,
+    },
+    Slot {
+        display_name: "C : . \"c\"",
+        position: 0,
+    },
+    Slot {
+        display_name: "C : \"c\".",
+        position: 1,
+    },
+    Slot {
+        display_name: "(A B C) : . A B C",
+        position: 0,
+    },
+    Slot {
+        display_name: "(A B C) : A . B C",
+        position: 1,
+    },
+    Slot {
+        display_name: "(A B C) : A B . C",
+        position: 2,
+    },
+    Slot {
+        display_name: "(A B C) : A B C.",
+        position: 3,
+    },
+    Slot {
+        display_name: "(A B C)+ : . (A B C)+ (A B C)",
+        position: 0,
+    },
+    Slot {
+        display_name: "(A B C)+ : (A B C)+ . (A B C)",
+        position: 1,
+    },
+    Slot {
+        display_name: "(A B C)+ : (A B C)+ (A B C).",
+        position: 2,
+    },
+    Slot {
+        display_name: "(A B C)+ : . (A B C)",
+        position: 0,
+    },
+    Slot {
+        display_name: "(A B C)+ : (A B C).",
+        position: 1,
+    },
+    Slot {
+        display_name: "S : . start:S",
+        position: 0,
+    },
+    Slot {
+        display_name: "S : start:S.",
+        position: 1,
+    },
+    Slot {
+        display_name: "A : . start:A",
+        position: 0,
+    },
+    Slot {
+        display_name: "A : start:A.",
+        position: 1,
+    },
+    Slot {
+        display_name: "B : . start:B",
+        position: 0,
+    },
+    Slot {
+        display_name: "B : start:B.",
+        position: 1,
+    },
+    Slot {
+        display_name: "C : . start:C",
+        position: 0,
+    },
+    Slot {
+        display_name: "C : start:C.",
+        position: 1,
+    },
+];
+static FIRST_SLOTS: [&[SlotId]; 10] = [
+    &[SlotId(0)],
+    &[SlotId(2)],
+    &[SlotId(4)],
+    &[SlotId(6)],
+    &[SlotId(8)],
+    &[SlotId(12), SlotId(15)],
+    &[SlotId(17)],
+    &[SlotId(19)],
+    &[SlotId(21)],
+    &[SlotId(23)],
+];
+// A failed terminal match refers to a static terminal set like every other failure, so the
+// error reporting path needs to reach a terminal set from a terminal id. This table, indexed
+// by terminal id, serves only that.
+static SINGLE_TERMINAL_SETS: [TerminalSet; 5] = [
+    TerminalSet {
+        id: 7,
+        terminals: &[TerminalId(0)],
+    },
+    TerminalSet {
+        id: 8,
+        terminals: &[TerminalId(1)],
+    },
+    TerminalSet {
+        id: 9,
+        terminals: &[TerminalId(2)],
+    },
+    TerminalSet {
+        id: 10,
+        terminals: &[TerminalId(3)],
+    },
+    TerminalSet {
+        id: 11,
+        terminals: &[TerminalId(4)],
+    },
+];
 impl Grammar for PlusGroupGrammar {
     type Alternatives = BitSet<1>;
     const NAME: &'static str = "PlusGroup";
-    const NONTERMINALS: &'static [Nonterminal] = &[
-        Nonterminal {
-            name: "S",
-            display_name: "S",
-        },
-        Nonterminal {
-            name: "A",
-            display_name: "A",
-        },
-        Nonterminal {
-            name: "B",
-            display_name: "B",
-        },
-        Nonterminal {
-            name: "C",
-            display_name: "C",
-        },
-        Nonterminal {
-            name: "Group_0",
-            display_name: "(A B C)",
-        },
-        Nonterminal {
-            name: "Plus_0",
-            display_name: "(A B C)+",
-        },
-        Nonterminal {
-            name: "StartS",
-            display_name: "S",
-        },
-        Nonterminal {
-            name: "StartA",
-            display_name: "A",
-        },
-        Nonterminal {
-            name: "StartB",
-            display_name: "B",
-        },
-        Nonterminal {
-            name: "StartC",
-            display_name: "C",
-        },
-    ];
-    const DISPLAY_ORDER: &'static [&'static str] = &["S", "A", "B", "C"];
-    const TERMINALS: &'static [Terminal] = &[
-        Terminal { name: "\"a\"" },
-        Terminal { name: "\"b\"" },
-        Terminal { name: "\"c\"" },
-        Terminal { name: "Epsilon" },
-        Terminal { name: "EOF" },
-    ];
-    const SLOTS: &'static [Slot] = &[
-        Slot {
-            display_name: "S : . (A B C)+",
-            position: 0,
-        },
-        Slot {
-            display_name: "S : (A B C)+.",
-            position: 1,
-        },
-        Slot {
-            display_name: "A : . \"a\"",
-            position: 0,
-        },
-        Slot {
-            display_name: "A : \"a\".",
-            position: 1,
-        },
-        Slot {
-            display_name: "B : . \"b\"",
-            position: 0,
-        },
-        Slot {
-            display_name: "B : \"b\".",
-            position: 1,
-        },
-        Slot {
-            display_name: "C : . \"c\"",
-            position: 0,
-        },
-        Slot {
-            display_name: "C : \"c\".",
-            position: 1,
-        },
-        Slot {
-            display_name: "(A B C) : . A B C",
-            position: 0,
-        },
-        Slot {
-            display_name: "(A B C) : A . B C",
-            position: 1,
-        },
-        Slot {
-            display_name: "(A B C) : A B . C",
-            position: 2,
-        },
-        Slot {
-            display_name: "(A B C) : A B C.",
-            position: 3,
-        },
-        Slot {
-            display_name: "(A B C)+ : . (A B C)+ (A B C)",
-            position: 0,
-        },
-        Slot {
-            display_name: "(A B C)+ : (A B C)+ . (A B C)",
-            position: 1,
-        },
-        Slot {
-            display_name: "(A B C)+ : (A B C)+ (A B C).",
-            position: 2,
-        },
-        Slot {
-            display_name: "(A B C)+ : . (A B C)",
-            position: 0,
-        },
-        Slot {
-            display_name: "(A B C)+ : (A B C).",
-            position: 1,
-        },
-        Slot {
-            display_name: "S : . start:S",
-            position: 0,
-        },
-        Slot {
-            display_name: "S : start:S.",
-            position: 1,
-        },
-        Slot {
-            display_name: "A : . start:A",
-            position: 0,
-        },
-        Slot {
-            display_name: "A : start:A.",
-            position: 1,
-        },
-        Slot {
-            display_name: "B : . start:B",
-            position: 0,
-        },
-        Slot {
-            display_name: "B : start:B.",
-            position: 1,
-        },
-        Slot {
-            display_name: "C : . start:C",
-            position: 0,
-        },
-        Slot {
-            display_name: "C : start:C.",
-            position: 1,
-        },
-    ];
-    const FIRST_SLOTS: &'static [&'static [SlotId]] = &[
-        &[SlotId(0)],
-        &[SlotId(2)],
-        &[SlotId(4)],
-        &[SlotId(6)],
-        &[SlotId(8)],
-        &[SlotId(12), SlotId(15)],
-        &[SlotId(17)],
-        &[SlotId(19)],
-        &[SlotId(21)],
-        &[SlotId(23)],
-    ];
+    const NONTERMINALS: &'static [Nonterminal] = &NONTERMINALS;
+    const DISPLAY_ORDER: &'static [&'static str] = &DISPLAY_ORDER;
+    const TERMINALS: &'static [Terminal] = &TERMINALS;
+    const SLOTS: &'static [Slot] = &SLOTS;
+    const FIRST_SLOTS: &'static [&'static [SlotId]] = &FIRST_SLOTS;
     const LAYOUT_NAME: Option<&'static str> = None;
     const LAYOUT_TERMINALS: &'static [TerminalId] = &[];
-    // A failed terminal match refers to a static terminal set like every other failure, so the
-    // error reporting path needs to reach a terminal set from a terminal id. This slice, indexed
-    // by terminal id, serves only that.
-    const SINGLE_TERMINAL_SETS: &'static [TerminalSet] = &[
-        TerminalSet {
-            id: 7,
-            terminals: &[TerminalId(0)],
-        },
-        TerminalSet {
-            id: 8,
-            terminals: &[TerminalId(1)],
-        },
-        TerminalSet {
-            id: 9,
-            terminals: &[TerminalId(2)],
-        },
-        TerminalSet {
-            id: 10,
-            terminals: &[TerminalId(3)],
-        },
-        TerminalSet {
-            id: 11,
-            terminals: &[TerminalId(4)],
-        },
-    ];
+    const SINGLE_TERMINAL_SETS: &'static [TerminalSet] = &SINGLE_TERMINAL_SETS;
     fn nonterminal_id(name: &str) -> Option<NonterminalId> {
         match name {
             "S" => Some(S),

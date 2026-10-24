@@ -16,267 +16,273 @@ pub const E: NonterminalId = NonterminalId(5);
 pub const POSTFIX: NonterminalId = NonterminalId(6);
 pub const BODY: NonterminalId = NonterminalId(7);
 pub struct IndirectPostfixGrammar;
+static NONTERMINALS: [Nonterminal; 8] = [
+    Nonterminal {
+        name: "S",
+        display_name: "S",
+    },
+    Nonterminal {
+        name: "StartS",
+        display_name: "S",
+    },
+    Nonterminal {
+        name: "StartE",
+        display_name: "E(0)",
+    },
+    Nonterminal {
+        name: "StartPostfix",
+        display_name: "Postfix(0)",
+    },
+    Nonterminal {
+        name: "StartBody",
+        display_name: "Body(0)",
+    },
+    Nonterminal {
+        name: "E",
+        display_name: "E",
+    },
+    Nonterminal {
+        name: "Postfix",
+        display_name: "Postfix",
+    },
+    Nonterminal {
+        name: "Body",
+        display_name: "Body",
+    },
+];
+static DISPLAY_ORDER: [&str; 4] = ["S", "E", "Postfix", "Body"];
+static TERMINALS: [Terminal; 6] = [
+    Terminal { name: "WS" },
+    Terminal { name: "\"a\"" },
+    Terminal { name: "\"+\"" },
+    Terminal { name: "\"!\"" },
+    Terminal { name: "Epsilon" },
+    Terminal { name: "EOF" },
+];
+static SLOTS: [Slot; 43] = [
+    Slot {
+        display_name: "S : . E(0)",
+        position: 0,
+    },
+    Slot {
+        display_name: "S : E(0).",
+        position: 1,
+    },
+    Slot {
+        display_name: "S : . WS start:S WS",
+        position: 0,
+    },
+    Slot {
+        display_name: "S : WS . start:S WS",
+        position: 1,
+    },
+    Slot {
+        display_name: "S : WS start:S . WS",
+        position: 2,
+    },
+    Slot {
+        display_name: "S : WS start:S WS.",
+        position: 3,
+    },
+    Slot {
+        display_name: "E(0) : . WS start:E(0) WS",
+        position: 0,
+    },
+    Slot {
+        display_name: "E(0) : WS . start:E(0) WS",
+        position: 1,
+    },
+    Slot {
+        display_name: "E(0) : WS start:E(0) . WS",
+        position: 2,
+    },
+    Slot {
+        display_name: "E(0) : WS start:E(0) WS.",
+        position: 3,
+    },
+    Slot {
+        display_name: "Postfix(0) : . WS start:Postfix(0) WS",
+        position: 0,
+    },
+    Slot {
+        display_name: "Postfix(0) : WS . start:Postfix(0) WS",
+        position: 1,
+    },
+    Slot {
+        display_name: "Postfix(0) : WS start:Postfix(0) . WS",
+        position: 2,
+    },
+    Slot {
+        display_name: "Postfix(0) : WS start:Postfix(0) WS.",
+        position: 3,
+    },
+    Slot {
+        display_name: "Body(0) : . WS start:Body(0) WS",
+        position: 0,
+    },
+    Slot {
+        display_name: "Body(0) : WS . start:Body(0) WS",
+        position: 1,
+    },
+    Slot {
+        display_name: "Body(0) : WS start:Body(0) . WS",
+        position: 2,
+    },
+    Slot {
+        display_name: "Body(0) : WS start:Body(0) WS.",
+        position: 3,
+    },
+    Slot {
+        display_name: "E : . \"a\" return 0",
+        position: 0,
+    },
+    Slot {
+        display_name: "E : \"a\" . return 0",
+        position: 1,
+    },
+    Slot {
+        display_name: "E : \"a\" return 0.",
+        position: 2,
+    },
+    Slot {
+        display_name: "E : . [2 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 2)] WS \"+\" WS E(2) return 2",
+        position: 0,
+    },
+    Slot {
+        display_name: "E : [2 >= p] . l_pr=E(p) [(l_pr == 0) || (l_pr >= 2)] WS \"+\" WS E(2) return 2",
+        position: 1,
+    },
+    Slot {
+        display_name: "E : [2 >= p] l_pr=E(p) . [(l_pr == 0) || (l_pr >= 2)] WS \"+\" WS E(2) return 2",
+        position: 2,
+    },
+    Slot {
+        display_name: "E : [2 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 2)] . WS \"+\" WS E(2) return 2",
+        position: 3,
+    },
+    Slot {
+        display_name: "E : [2 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 2)] WS . \"+\" WS E(2) return 2",
+        position: 4,
+    },
+    Slot {
+        display_name: "E : [2 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 2)] WS \"+\" . WS E(2) return 2",
+        position: 5,
+    },
+    Slot {
+        display_name: "E : [2 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 2)] WS \"+\" WS . E(2) return 2",
+        position: 6,
+    },
+    Slot {
+        display_name: "E : [2 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 2)] WS \"+\" WS E(2) . return 2",
+        position: 7,
+    },
+    Slot {
+        display_name: "E : [2 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 2)] WS \"+\" WS E(2) return 2.",
+        position: 8,
+    },
+    Slot {
+        display_name: "E : . [1 >= p] l_pr=Postfix(p) [(l_pr == 0) || (l_pr >= 1)] return 0",
+        position: 0,
+    },
+    Slot {
+        display_name: "E : [1 >= p] . l_pr=Postfix(p) [(l_pr == 0) || (l_pr >= 1)] return 0",
+        position: 1,
+    },
+    Slot {
+        display_name: "E : [1 >= p] l_pr=Postfix(p) . [(l_pr == 0) || (l_pr >= 1)] return 0",
+        position: 2,
+    },
+    Slot {
+        display_name: "E : [1 >= p] l_pr=Postfix(p) [(l_pr == 0) || (l_pr >= 1)] . return 0",
+        position: 3,
+    },
+    Slot {
+        display_name: "E : [1 >= p] l_pr=Postfix(p) [(l_pr == 0) || (l_pr >= 1)] return 0.",
+        position: 4,
+    },
+    Slot {
+        display_name: "Postfix : . l_pr=Body(p) WS \"!\" return l_pr",
+        position: 0,
+    },
+    Slot {
+        display_name: "Postfix : l_pr=Body(p) . WS \"!\" return l_pr",
+        position: 1,
+    },
+    Slot {
+        display_name: "Postfix : l_pr=Body(p) WS . \"!\" return l_pr",
+        position: 2,
+    },
+    Slot {
+        display_name: "Postfix : l_pr=Body(p) WS \"!\" . return l_pr",
+        position: 3,
+    },
+    Slot {
+        display_name: "Postfix : l_pr=Body(p) WS \"!\" return l_pr.",
+        position: 4,
+    },
+    Slot {
+        display_name: "Body : . l_pr=E(p) return l_pr",
+        position: 0,
+    },
+    Slot {
+        display_name: "Body : l_pr=E(p) . return l_pr",
+        position: 1,
+    },
+    Slot {
+        display_name: "Body : l_pr=E(p) return l_pr.",
+        position: 2,
+    },
+];
+static FIRST_SLOTS: [&[SlotId]; 8] = [
+    &[SlotId(0)],
+    &[SlotId(2)],
+    &[SlotId(6)],
+    &[SlotId(10)],
+    &[SlotId(14)],
+    &[SlotId(18), SlotId(21), SlotId(30)],
+    &[SlotId(35)],
+    &[SlotId(40)],
+];
+// A failed terminal match refers to a static terminal set like every other failure, so the
+// error reporting path needs to reach a terminal set from a terminal id. This table, indexed
+// by terminal id, serves only that.
+static SINGLE_TERMINAL_SETS: [TerminalSet; 6] = [
+    TerminalSet {
+        id: 6,
+        terminals: &[TerminalId(0)],
+    },
+    TerminalSet {
+        id: 7,
+        terminals: &[TerminalId(1)],
+    },
+    TerminalSet {
+        id: 8,
+        terminals: &[TerminalId(2)],
+    },
+    TerminalSet {
+        id: 9,
+        terminals: &[TerminalId(3)],
+    },
+    TerminalSet {
+        id: 10,
+        terminals: &[TerminalId(4)],
+    },
+    TerminalSet {
+        id: 11,
+        terminals: &[TerminalId(5)],
+    },
+];
 impl Grammar for IndirectPostfixGrammar {
     type Alternatives = BitSet<1>;
     const NAME: &'static str = "IndirectPostfix";
-    const NONTERMINALS: &'static [Nonterminal] = &[
-        Nonterminal {
-            name: "S",
-            display_name: "S",
-        },
-        Nonterminal {
-            name: "StartS",
-            display_name: "S",
-        },
-        Nonterminal {
-            name: "StartE",
-            display_name: "E(0)",
-        },
-        Nonterminal {
-            name: "StartPostfix",
-            display_name: "Postfix(0)",
-        },
-        Nonterminal {
-            name: "StartBody",
-            display_name: "Body(0)",
-        },
-        Nonterminal {
-            name: "E",
-            display_name: "E",
-        },
-        Nonterminal {
-            name: "Postfix",
-            display_name: "Postfix",
-        },
-        Nonterminal {
-            name: "Body",
-            display_name: "Body",
-        },
-    ];
-    const DISPLAY_ORDER: &'static [&'static str] = &["S", "E", "Postfix", "Body"];
-    const TERMINALS: &'static [Terminal] = &[
-        Terminal { name: "WS" },
-        Terminal { name: "\"a\"" },
-        Terminal { name: "\"+\"" },
-        Terminal { name: "\"!\"" },
-        Terminal { name: "Epsilon" },
-        Terminal { name: "EOF" },
-    ];
-    const SLOTS: &'static [Slot] = &[
-        Slot {
-            display_name: "S : . E(0)",
-            position: 0,
-        },
-        Slot {
-            display_name: "S : E(0).",
-            position: 1,
-        },
-        Slot {
-            display_name: "S : . WS start:S WS",
-            position: 0,
-        },
-        Slot {
-            display_name: "S : WS . start:S WS",
-            position: 1,
-        },
-        Slot {
-            display_name: "S : WS start:S . WS",
-            position: 2,
-        },
-        Slot {
-            display_name: "S : WS start:S WS.",
-            position: 3,
-        },
-        Slot {
-            display_name: "E(0) : . WS start:E(0) WS",
-            position: 0,
-        },
-        Slot {
-            display_name: "E(0) : WS . start:E(0) WS",
-            position: 1,
-        },
-        Slot {
-            display_name: "E(0) : WS start:E(0) . WS",
-            position: 2,
-        },
-        Slot {
-            display_name: "E(0) : WS start:E(0) WS.",
-            position: 3,
-        },
-        Slot {
-            display_name: "Postfix(0) : . WS start:Postfix(0) WS",
-            position: 0,
-        },
-        Slot {
-            display_name: "Postfix(0) : WS . start:Postfix(0) WS",
-            position: 1,
-        },
-        Slot {
-            display_name: "Postfix(0) : WS start:Postfix(0) . WS",
-            position: 2,
-        },
-        Slot {
-            display_name: "Postfix(0) : WS start:Postfix(0) WS.",
-            position: 3,
-        },
-        Slot {
-            display_name: "Body(0) : . WS start:Body(0) WS",
-            position: 0,
-        },
-        Slot {
-            display_name: "Body(0) : WS . start:Body(0) WS",
-            position: 1,
-        },
-        Slot {
-            display_name: "Body(0) : WS start:Body(0) . WS",
-            position: 2,
-        },
-        Slot {
-            display_name: "Body(0) : WS start:Body(0) WS.",
-            position: 3,
-        },
-        Slot {
-            display_name: "E : . \"a\" return 0",
-            position: 0,
-        },
-        Slot {
-            display_name: "E : \"a\" . return 0",
-            position: 1,
-        },
-        Slot {
-            display_name: "E : \"a\" return 0.",
-            position: 2,
-        },
-        Slot {
-            display_name: "E : . [2 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 2)] WS \"+\" WS E(2) return 2",
-            position: 0,
-        },
-        Slot {
-            display_name: "E : [2 >= p] . l_pr=E(p) [(l_pr == 0) || (l_pr >= 2)] WS \"+\" WS E(2) return 2",
-            position: 1,
-        },
-        Slot {
-            display_name: "E : [2 >= p] l_pr=E(p) . [(l_pr == 0) || (l_pr >= 2)] WS \"+\" WS E(2) return 2",
-            position: 2,
-        },
-        Slot {
-            display_name: "E : [2 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 2)] . WS \"+\" WS E(2) return 2",
-            position: 3,
-        },
-        Slot {
-            display_name: "E : [2 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 2)] WS . \"+\" WS E(2) return 2",
-            position: 4,
-        },
-        Slot {
-            display_name: "E : [2 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 2)] WS \"+\" . WS E(2) return 2",
-            position: 5,
-        },
-        Slot {
-            display_name: "E : [2 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 2)] WS \"+\" WS . E(2) return 2",
-            position: 6,
-        },
-        Slot {
-            display_name: "E : [2 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 2)] WS \"+\" WS E(2) . return 2",
-            position: 7,
-        },
-        Slot {
-            display_name: "E : [2 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 2)] WS \"+\" WS E(2) return 2.",
-            position: 8,
-        },
-        Slot {
-            display_name: "E : . [1 >= p] l_pr=Postfix(p) [(l_pr == 0) || (l_pr >= 1)] return 0",
-            position: 0,
-        },
-        Slot {
-            display_name: "E : [1 >= p] . l_pr=Postfix(p) [(l_pr == 0) || (l_pr >= 1)] return 0",
-            position: 1,
-        },
-        Slot {
-            display_name: "E : [1 >= p] l_pr=Postfix(p) . [(l_pr == 0) || (l_pr >= 1)] return 0",
-            position: 2,
-        },
-        Slot {
-            display_name: "E : [1 >= p] l_pr=Postfix(p) [(l_pr == 0) || (l_pr >= 1)] . return 0",
-            position: 3,
-        },
-        Slot {
-            display_name: "E : [1 >= p] l_pr=Postfix(p) [(l_pr == 0) || (l_pr >= 1)] return 0.",
-            position: 4,
-        },
-        Slot {
-            display_name: "Postfix : . l_pr=Body(p) WS \"!\" return l_pr",
-            position: 0,
-        },
-        Slot {
-            display_name: "Postfix : l_pr=Body(p) . WS \"!\" return l_pr",
-            position: 1,
-        },
-        Slot {
-            display_name: "Postfix : l_pr=Body(p) WS . \"!\" return l_pr",
-            position: 2,
-        },
-        Slot {
-            display_name: "Postfix : l_pr=Body(p) WS \"!\" . return l_pr",
-            position: 3,
-        },
-        Slot {
-            display_name: "Postfix : l_pr=Body(p) WS \"!\" return l_pr.",
-            position: 4,
-        },
-        Slot {
-            display_name: "Body : . l_pr=E(p) return l_pr",
-            position: 0,
-        },
-        Slot {
-            display_name: "Body : l_pr=E(p) . return l_pr",
-            position: 1,
-        },
-        Slot {
-            display_name: "Body : l_pr=E(p) return l_pr.",
-            position: 2,
-        },
-    ];
-    const FIRST_SLOTS: &'static [&'static [SlotId]] = &[
-        &[SlotId(0)],
-        &[SlotId(2)],
-        &[SlotId(6)],
-        &[SlotId(10)],
-        &[SlotId(14)],
-        &[SlotId(18), SlotId(21), SlotId(30)],
-        &[SlotId(35)],
-        &[SlotId(40)],
-    ];
+    const NONTERMINALS: &'static [Nonterminal] = &NONTERMINALS;
+    const DISPLAY_ORDER: &'static [&'static str] = &DISPLAY_ORDER;
+    const TERMINALS: &'static [Terminal] = &TERMINALS;
+    const SLOTS: &'static [Slot] = &SLOTS;
+    const FIRST_SLOTS: &'static [&'static [SlotId]] = &FIRST_SLOTS;
     const LAYOUT_NAME: Option<&'static str> = Some("WS");
     const LAYOUT_TERMINALS: &'static [TerminalId] = &[TerminalId(0)];
-    // A failed terminal match refers to a static terminal set like every other failure, so the
-    // error reporting path needs to reach a terminal set from a terminal id. This slice, indexed
-    // by terminal id, serves only that.
-    const SINGLE_TERMINAL_SETS: &'static [TerminalSet] = &[
-        TerminalSet {
-            id: 6,
-            terminals: &[TerminalId(0)],
-        },
-        TerminalSet {
-            id: 7,
-            terminals: &[TerminalId(1)],
-        },
-        TerminalSet {
-            id: 8,
-            terminals: &[TerminalId(2)],
-        },
-        TerminalSet {
-            id: 9,
-            terminals: &[TerminalId(3)],
-        },
-        TerminalSet {
-            id: 10,
-            terminals: &[TerminalId(4)],
-        },
-        TerminalSet {
-            id: 11,
-            terminals: &[TerminalId(5)],
-        },
-    ];
+    const SINGLE_TERMINAL_SETS: &'static [TerminalSet] = &SINGLE_TERMINAL_SETS;
     fn nonterminal_id(name: &str) -> Option<NonterminalId> {
         match name {
             "S" => Some(S),

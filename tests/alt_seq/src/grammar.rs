@@ -23,310 +23,316 @@ pub const START_D: NonterminalId = NonterminalId(13);
 pub const START_E: NonterminalId = NonterminalId(14);
 pub const START_F: NonterminalId = NonterminalId(15);
 pub struct AltSeqGrammar;
+static NONTERMINALS: [Nonterminal; 16] = [
+    Nonterminal {
+        name: "S",
+        display_name: "S",
+    },
+    Nonterminal {
+        name: "A",
+        display_name: "A",
+    },
+    Nonterminal {
+        name: "B",
+        display_name: "B",
+    },
+    Nonterminal {
+        name: "C",
+        display_name: "C",
+    },
+    Nonterminal {
+        name: "D",
+        display_name: "D",
+    },
+    Nonterminal {
+        name: "E",
+        display_name: "E",
+    },
+    Nonterminal {
+        name: "F",
+        display_name: "F",
+    },
+    Nonterminal {
+        name: "Alt_0",
+        display_name: "(A B | C)",
+    },
+    Nonterminal {
+        name: "Alt_1",
+        display_name: "(D | E F)",
+    },
+    Nonterminal {
+        name: "StartS",
+        display_name: "S",
+    },
+    Nonterminal {
+        name: "StartA",
+        display_name: "A",
+    },
+    Nonterminal {
+        name: "StartB",
+        display_name: "B",
+    },
+    Nonterminal {
+        name: "StartC",
+        display_name: "C",
+    },
+    Nonterminal {
+        name: "StartD",
+        display_name: "D",
+    },
+    Nonterminal {
+        name: "StartE",
+        display_name: "E",
+    },
+    Nonterminal {
+        name: "StartF",
+        display_name: "F",
+    },
+];
+static DISPLAY_ORDER: [&str; 7] = ["S", "A", "B", "C", "D", "E", "F"];
+static TERMINALS: [Terminal; 9] = [
+    Terminal { name: "Hex" },
+    Terminal { name: "\"a\"" },
+    Terminal { name: "\"b\"" },
+    Terminal { name: "\"c\"" },
+    Terminal { name: "\"d\"" },
+    Terminal { name: "\"e\"" },
+    Terminal { name: "\"f\"" },
+    Terminal { name: "Epsilon" },
+    Terminal { name: "EOF" },
+];
+static SLOTS: [Slot; 40] = [
+    Slot {
+        display_name: "S : . (A B | C) (D | E F) Hex",
+        position: 0,
+    },
+    Slot {
+        display_name: "S : (A B | C) . (D | E F) Hex",
+        position: 1,
+    },
+    Slot {
+        display_name: "S : (A B | C) (D | E F) . Hex",
+        position: 2,
+    },
+    Slot {
+        display_name: "S : (A B | C) (D | E F) Hex.",
+        position: 3,
+    },
+    Slot {
+        display_name: "A : . \"a\"",
+        position: 0,
+    },
+    Slot {
+        display_name: "A : \"a\".",
+        position: 1,
+    },
+    Slot {
+        display_name: "B : . \"b\"",
+        position: 0,
+    },
+    Slot {
+        display_name: "B : \"b\".",
+        position: 1,
+    },
+    Slot {
+        display_name: "C : . \"c\"",
+        position: 0,
+    },
+    Slot {
+        display_name: "C : \"c\".",
+        position: 1,
+    },
+    Slot {
+        display_name: "D : . \"d\"",
+        position: 0,
+    },
+    Slot {
+        display_name: "D : \"d\".",
+        position: 1,
+    },
+    Slot {
+        display_name: "E : . \"e\"",
+        position: 0,
+    },
+    Slot {
+        display_name: "E : \"e\".",
+        position: 1,
+    },
+    Slot {
+        display_name: "F : . \"f\"",
+        position: 0,
+    },
+    Slot {
+        display_name: "F : \"f\".",
+        position: 1,
+    },
+    Slot {
+        display_name: "(A B | C) : . A B",
+        position: 0,
+    },
+    Slot {
+        display_name: "(A B | C) : A . B",
+        position: 1,
+    },
+    Slot {
+        display_name: "(A B | C) : A B.",
+        position: 2,
+    },
+    Slot {
+        display_name: "(A B | C) : . C",
+        position: 0,
+    },
+    Slot {
+        display_name: "(A B | C) : C.",
+        position: 1,
+    },
+    Slot {
+        display_name: "(D | E F) : . D",
+        position: 0,
+    },
+    Slot {
+        display_name: "(D | E F) : D.",
+        position: 1,
+    },
+    Slot {
+        display_name: "(D | E F) : . E F",
+        position: 0,
+    },
+    Slot {
+        display_name: "(D | E F) : E . F",
+        position: 1,
+    },
+    Slot {
+        display_name: "(D | E F) : E F.",
+        position: 2,
+    },
+    Slot {
+        display_name: "S : . start:S",
+        position: 0,
+    },
+    Slot {
+        display_name: "S : start:S.",
+        position: 1,
+    },
+    Slot {
+        display_name: "A : . start:A",
+        position: 0,
+    },
+    Slot {
+        display_name: "A : start:A.",
+        position: 1,
+    },
+    Slot {
+        display_name: "B : . start:B",
+        position: 0,
+    },
+    Slot {
+        display_name: "B : start:B.",
+        position: 1,
+    },
+    Slot {
+        display_name: "C : . start:C",
+        position: 0,
+    },
+    Slot {
+        display_name: "C : start:C.",
+        position: 1,
+    },
+    Slot {
+        display_name: "D : . start:D",
+        position: 0,
+    },
+    Slot {
+        display_name: "D : start:D.",
+        position: 1,
+    },
+    Slot {
+        display_name: "E : . start:E",
+        position: 0,
+    },
+    Slot {
+        display_name: "E : start:E.",
+        position: 1,
+    },
+    Slot {
+        display_name: "F : . start:F",
+        position: 0,
+    },
+    Slot {
+        display_name: "F : start:F.",
+        position: 1,
+    },
+];
+static FIRST_SLOTS: [&[SlotId]; 16] = [
+    &[SlotId(0)],
+    &[SlotId(4)],
+    &[SlotId(6)],
+    &[SlotId(8)],
+    &[SlotId(10)],
+    &[SlotId(12)],
+    &[SlotId(14)],
+    &[SlotId(16), SlotId(19)],
+    &[SlotId(21), SlotId(23)],
+    &[SlotId(26)],
+    &[SlotId(28)],
+    &[SlotId(30)],
+    &[SlotId(32)],
+    &[SlotId(34)],
+    &[SlotId(36)],
+    &[SlotId(38)],
+];
+// A failed terminal match refers to a static terminal set like every other failure, so the
+// error reporting path needs to reach a terminal set from a terminal id. This table, indexed
+// by terminal id, serves only that.
+static SINGLE_TERMINAL_SETS: [TerminalSet; 9] = [
+    TerminalSet {
+        id: 13,
+        terminals: &[TerminalId(0)],
+    },
+    TerminalSet {
+        id: 14,
+        terminals: &[TerminalId(1)],
+    },
+    TerminalSet {
+        id: 15,
+        terminals: &[TerminalId(2)],
+    },
+    TerminalSet {
+        id: 16,
+        terminals: &[TerminalId(3)],
+    },
+    TerminalSet {
+        id: 17,
+        terminals: &[TerminalId(4)],
+    },
+    TerminalSet {
+        id: 18,
+        terminals: &[TerminalId(5)],
+    },
+    TerminalSet {
+        id: 19,
+        terminals: &[TerminalId(6)],
+    },
+    TerminalSet {
+        id: 20,
+        terminals: &[TerminalId(7)],
+    },
+    TerminalSet {
+        id: 21,
+        terminals: &[TerminalId(8)],
+    },
+];
 impl Grammar for AltSeqGrammar {
     type Alternatives = BitSet<1>;
     const NAME: &'static str = "AltSeq";
-    const NONTERMINALS: &'static [Nonterminal] = &[
-        Nonterminal {
-            name: "S",
-            display_name: "S",
-        },
-        Nonterminal {
-            name: "A",
-            display_name: "A",
-        },
-        Nonterminal {
-            name: "B",
-            display_name: "B",
-        },
-        Nonterminal {
-            name: "C",
-            display_name: "C",
-        },
-        Nonterminal {
-            name: "D",
-            display_name: "D",
-        },
-        Nonterminal {
-            name: "E",
-            display_name: "E",
-        },
-        Nonterminal {
-            name: "F",
-            display_name: "F",
-        },
-        Nonterminal {
-            name: "Alt_0",
-            display_name: "(A B | C)",
-        },
-        Nonterminal {
-            name: "Alt_1",
-            display_name: "(D | E F)",
-        },
-        Nonterminal {
-            name: "StartS",
-            display_name: "S",
-        },
-        Nonterminal {
-            name: "StartA",
-            display_name: "A",
-        },
-        Nonterminal {
-            name: "StartB",
-            display_name: "B",
-        },
-        Nonterminal {
-            name: "StartC",
-            display_name: "C",
-        },
-        Nonterminal {
-            name: "StartD",
-            display_name: "D",
-        },
-        Nonterminal {
-            name: "StartE",
-            display_name: "E",
-        },
-        Nonterminal {
-            name: "StartF",
-            display_name: "F",
-        },
-    ];
-    const DISPLAY_ORDER: &'static [&'static str] = &["S", "A", "B", "C", "D", "E", "F"];
-    const TERMINALS: &'static [Terminal] = &[
-        Terminal { name: "Hex" },
-        Terminal { name: "\"a\"" },
-        Terminal { name: "\"b\"" },
-        Terminal { name: "\"c\"" },
-        Terminal { name: "\"d\"" },
-        Terminal { name: "\"e\"" },
-        Terminal { name: "\"f\"" },
-        Terminal { name: "Epsilon" },
-        Terminal { name: "EOF" },
-    ];
-    const SLOTS: &'static [Slot] = &[
-        Slot {
-            display_name: "S : . (A B | C) (D | E F) Hex",
-            position: 0,
-        },
-        Slot {
-            display_name: "S : (A B | C) . (D | E F) Hex",
-            position: 1,
-        },
-        Slot {
-            display_name: "S : (A B | C) (D | E F) . Hex",
-            position: 2,
-        },
-        Slot {
-            display_name: "S : (A B | C) (D | E F) Hex.",
-            position: 3,
-        },
-        Slot {
-            display_name: "A : . \"a\"",
-            position: 0,
-        },
-        Slot {
-            display_name: "A : \"a\".",
-            position: 1,
-        },
-        Slot {
-            display_name: "B : . \"b\"",
-            position: 0,
-        },
-        Slot {
-            display_name: "B : \"b\".",
-            position: 1,
-        },
-        Slot {
-            display_name: "C : . \"c\"",
-            position: 0,
-        },
-        Slot {
-            display_name: "C : \"c\".",
-            position: 1,
-        },
-        Slot {
-            display_name: "D : . \"d\"",
-            position: 0,
-        },
-        Slot {
-            display_name: "D : \"d\".",
-            position: 1,
-        },
-        Slot {
-            display_name: "E : . \"e\"",
-            position: 0,
-        },
-        Slot {
-            display_name: "E : \"e\".",
-            position: 1,
-        },
-        Slot {
-            display_name: "F : . \"f\"",
-            position: 0,
-        },
-        Slot {
-            display_name: "F : \"f\".",
-            position: 1,
-        },
-        Slot {
-            display_name: "(A B | C) : . A B",
-            position: 0,
-        },
-        Slot {
-            display_name: "(A B | C) : A . B",
-            position: 1,
-        },
-        Slot {
-            display_name: "(A B | C) : A B.",
-            position: 2,
-        },
-        Slot {
-            display_name: "(A B | C) : . C",
-            position: 0,
-        },
-        Slot {
-            display_name: "(A B | C) : C.",
-            position: 1,
-        },
-        Slot {
-            display_name: "(D | E F) : . D",
-            position: 0,
-        },
-        Slot {
-            display_name: "(D | E F) : D.",
-            position: 1,
-        },
-        Slot {
-            display_name: "(D | E F) : . E F",
-            position: 0,
-        },
-        Slot {
-            display_name: "(D | E F) : E . F",
-            position: 1,
-        },
-        Slot {
-            display_name: "(D | E F) : E F.",
-            position: 2,
-        },
-        Slot {
-            display_name: "S : . start:S",
-            position: 0,
-        },
-        Slot {
-            display_name: "S : start:S.",
-            position: 1,
-        },
-        Slot {
-            display_name: "A : . start:A",
-            position: 0,
-        },
-        Slot {
-            display_name: "A : start:A.",
-            position: 1,
-        },
-        Slot {
-            display_name: "B : . start:B",
-            position: 0,
-        },
-        Slot {
-            display_name: "B : start:B.",
-            position: 1,
-        },
-        Slot {
-            display_name: "C : . start:C",
-            position: 0,
-        },
-        Slot {
-            display_name: "C : start:C.",
-            position: 1,
-        },
-        Slot {
-            display_name: "D : . start:D",
-            position: 0,
-        },
-        Slot {
-            display_name: "D : start:D.",
-            position: 1,
-        },
-        Slot {
-            display_name: "E : . start:E",
-            position: 0,
-        },
-        Slot {
-            display_name: "E : start:E.",
-            position: 1,
-        },
-        Slot {
-            display_name: "F : . start:F",
-            position: 0,
-        },
-        Slot {
-            display_name: "F : start:F.",
-            position: 1,
-        },
-    ];
-    const FIRST_SLOTS: &'static [&'static [SlotId]] = &[
-        &[SlotId(0)],
-        &[SlotId(4)],
-        &[SlotId(6)],
-        &[SlotId(8)],
-        &[SlotId(10)],
-        &[SlotId(12)],
-        &[SlotId(14)],
-        &[SlotId(16), SlotId(19)],
-        &[SlotId(21), SlotId(23)],
-        &[SlotId(26)],
-        &[SlotId(28)],
-        &[SlotId(30)],
-        &[SlotId(32)],
-        &[SlotId(34)],
-        &[SlotId(36)],
-        &[SlotId(38)],
-    ];
+    const NONTERMINALS: &'static [Nonterminal] = &NONTERMINALS;
+    const DISPLAY_ORDER: &'static [&'static str] = &DISPLAY_ORDER;
+    const TERMINALS: &'static [Terminal] = &TERMINALS;
+    const SLOTS: &'static [Slot] = &SLOTS;
+    const FIRST_SLOTS: &'static [&'static [SlotId]] = &FIRST_SLOTS;
     const LAYOUT_NAME: Option<&'static str> = None;
     const LAYOUT_TERMINALS: &'static [TerminalId] = &[];
-    // A failed terminal match refers to a static terminal set like every other failure, so the
-    // error reporting path needs to reach a terminal set from a terminal id. This slice, indexed
-    // by terminal id, serves only that.
-    const SINGLE_TERMINAL_SETS: &'static [TerminalSet] = &[
-        TerminalSet {
-            id: 13,
-            terminals: &[TerminalId(0)],
-        },
-        TerminalSet {
-            id: 14,
-            terminals: &[TerminalId(1)],
-        },
-        TerminalSet {
-            id: 15,
-            terminals: &[TerminalId(2)],
-        },
-        TerminalSet {
-            id: 16,
-            terminals: &[TerminalId(3)],
-        },
-        TerminalSet {
-            id: 17,
-            terminals: &[TerminalId(4)],
-        },
-        TerminalSet {
-            id: 18,
-            terminals: &[TerminalId(5)],
-        },
-        TerminalSet {
-            id: 19,
-            terminals: &[TerminalId(6)],
-        },
-        TerminalSet {
-            id: 20,
-            terminals: &[TerminalId(7)],
-        },
-        TerminalSet {
-            id: 21,
-            terminals: &[TerminalId(8)],
-        },
-    ];
+    const SINGLE_TERMINAL_SETS: &'static [TerminalSet] = &SINGLE_TERMINAL_SETS;
     fn nonterminal_id(name: &str) -> Option<NonterminalId> {
         match name {
             "S" => Some(S),

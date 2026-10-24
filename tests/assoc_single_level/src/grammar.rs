@@ -14,219 +14,225 @@ pub const E: NonterminalId = NonterminalId(3);
 pub const F: NonterminalId = NonterminalId(4);
 pub const G: NonterminalId = NonterminalId(5);
 pub struct AssocSingleLevelGrammar;
+static NONTERMINALS: [Nonterminal; 6] = [
+    Nonterminal {
+        name: "StartE",
+        display_name: "E(0)",
+    },
+    Nonterminal {
+        name: "StartF",
+        display_name: "F(0)",
+    },
+    Nonterminal {
+        name: "StartG",
+        display_name: "G(0)",
+    },
+    Nonterminal {
+        name: "E",
+        display_name: "E",
+    },
+    Nonterminal {
+        name: "F",
+        display_name: "F",
+    },
+    Nonterminal {
+        name: "G",
+        display_name: "G",
+    },
+];
+static DISPLAY_ORDER: [&str; 3] = ["E", "F", "G"];
+static TERMINALS: [Terminal; 4] = [
+    Terminal { name: "\"<\"" },
+    Terminal { name: "\"a\"" },
+    Terminal { name: "Epsilon" },
+    Terminal { name: "EOF" },
+];
+static SLOTS: [Slot; 36] = [
+    Slot {
+        display_name: "E(0) : . start:E(0)",
+        position: 0,
+    },
+    Slot {
+        display_name: "E(0) : start:E(0).",
+        position: 1,
+    },
+    Slot {
+        display_name: "F(0) : . start:F(0)",
+        position: 0,
+    },
+    Slot {
+        display_name: "F(0) : start:F(0).",
+        position: 1,
+    },
+    Slot {
+        display_name: "G(0) : . start:G(0)",
+        position: 0,
+    },
+    Slot {
+        display_name: "G(0) : start:G(0).",
+        position: 1,
+    },
+    Slot {
+        display_name: "E : . [1 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 1)] \"<\" E(2) return 1",
+        position: 0,
+    },
+    Slot {
+        display_name: "E : [1 >= p] . l_pr=E(p) [(l_pr == 0) || (l_pr >= 1)] \"<\" E(2) return 1",
+        position: 1,
+    },
+    Slot {
+        display_name: "E : [1 >= p] l_pr=E(p) . [(l_pr == 0) || (l_pr >= 1)] \"<\" E(2) return 1",
+        position: 2,
+    },
+    Slot {
+        display_name: "E : [1 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 1)] . \"<\" E(2) return 1",
+        position: 3,
+    },
+    Slot {
+        display_name: "E : [1 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 1)] \"<\" . E(2) return 1",
+        position: 4,
+    },
+    Slot {
+        display_name: "E : [1 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 1)] \"<\" E(2) . return 1",
+        position: 5,
+    },
+    Slot {
+        display_name: "E : [1 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 1)] \"<\" E(2) return 1.",
+        position: 6,
+    },
+    Slot {
+        display_name: "E : . \"a\" return 0",
+        position: 0,
+    },
+    Slot {
+        display_name: "E : \"a\" . return 0",
+        position: 1,
+    },
+    Slot {
+        display_name: "E : \"a\" return 0.",
+        position: 2,
+    },
+    Slot {
+        display_name: "F : . [1 >= p] l_pr=F(p) [(l_pr == 0) || (l_pr >= 2)] \"<\" F(1) return 1",
+        position: 0,
+    },
+    Slot {
+        display_name: "F : [1 >= p] . l_pr=F(p) [(l_pr == 0) || (l_pr >= 2)] \"<\" F(1) return 1",
+        position: 1,
+    },
+    Slot {
+        display_name: "F : [1 >= p] l_pr=F(p) . [(l_pr == 0) || (l_pr >= 2)] \"<\" F(1) return 1",
+        position: 2,
+    },
+    Slot {
+        display_name: "F : [1 >= p] l_pr=F(p) [(l_pr == 0) || (l_pr >= 2)] . \"<\" F(1) return 1",
+        position: 3,
+    },
+    Slot {
+        display_name: "F : [1 >= p] l_pr=F(p) [(l_pr == 0) || (l_pr >= 2)] \"<\" . F(1) return 1",
+        position: 4,
+    },
+    Slot {
+        display_name: "F : [1 >= p] l_pr=F(p) [(l_pr == 0) || (l_pr >= 2)] \"<\" F(1) . return 1",
+        position: 5,
+    },
+    Slot {
+        display_name: "F : [1 >= p] l_pr=F(p) [(l_pr == 0) || (l_pr >= 2)] \"<\" F(1) return 1.",
+        position: 6,
+    },
+    Slot {
+        display_name: "F : . \"a\" return 0",
+        position: 0,
+    },
+    Slot {
+        display_name: "F : \"a\" . return 0",
+        position: 1,
+    },
+    Slot {
+        display_name: "F : \"a\" return 0.",
+        position: 2,
+    },
+    Slot {
+        display_name: "G : . [1 >= p] l_pr=G(p) [(l_pr == 0) || (l_pr >= 2)] \"<\" G(2) return 1",
+        position: 0,
+    },
+    Slot {
+        display_name: "G : [1 >= p] . l_pr=G(p) [(l_pr == 0) || (l_pr >= 2)] \"<\" G(2) return 1",
+        position: 1,
+    },
+    Slot {
+        display_name: "G : [1 >= p] l_pr=G(p) . [(l_pr == 0) || (l_pr >= 2)] \"<\" G(2) return 1",
+        position: 2,
+    },
+    Slot {
+        display_name: "G : [1 >= p] l_pr=G(p) [(l_pr == 0) || (l_pr >= 2)] . \"<\" G(2) return 1",
+        position: 3,
+    },
+    Slot {
+        display_name: "G : [1 >= p] l_pr=G(p) [(l_pr == 0) || (l_pr >= 2)] \"<\" . G(2) return 1",
+        position: 4,
+    },
+    Slot {
+        display_name: "G : [1 >= p] l_pr=G(p) [(l_pr == 0) || (l_pr >= 2)] \"<\" G(2) . return 1",
+        position: 5,
+    },
+    Slot {
+        display_name: "G : [1 >= p] l_pr=G(p) [(l_pr == 0) || (l_pr >= 2)] \"<\" G(2) return 1.",
+        position: 6,
+    },
+    Slot {
+        display_name: "G : . \"a\" return 0",
+        position: 0,
+    },
+    Slot {
+        display_name: "G : \"a\" . return 0",
+        position: 1,
+    },
+    Slot {
+        display_name: "G : \"a\" return 0.",
+        position: 2,
+    },
+];
+static FIRST_SLOTS: [&[SlotId]; 6] = [
+    &[SlotId(0)],
+    &[SlotId(2)],
+    &[SlotId(4)],
+    &[SlotId(6), SlotId(13)],
+    &[SlotId(16), SlotId(23)],
+    &[SlotId(26), SlotId(33)],
+];
+// A failed terminal match refers to a static terminal set like every other failure, so the
+// error reporting path needs to reach a terminal set from a terminal id. This table, indexed
+// by terminal id, serves only that.
+static SINGLE_TERMINAL_SETS: [TerminalSet; 4] = [
+    TerminalSet {
+        id: 3,
+        terminals: &[TerminalId(0)],
+    },
+    TerminalSet {
+        id: 4,
+        terminals: &[TerminalId(1)],
+    },
+    TerminalSet {
+        id: 5,
+        terminals: &[TerminalId(2)],
+    },
+    TerminalSet {
+        id: 6,
+        terminals: &[TerminalId(3)],
+    },
+];
 impl Grammar for AssocSingleLevelGrammar {
     type Alternatives = BitSet<1>;
     const NAME: &'static str = "AssocSingleLevel";
-    const NONTERMINALS: &'static [Nonterminal] = &[
-        Nonterminal {
-            name: "StartE",
-            display_name: "E(0)",
-        },
-        Nonterminal {
-            name: "StartF",
-            display_name: "F(0)",
-        },
-        Nonterminal {
-            name: "StartG",
-            display_name: "G(0)",
-        },
-        Nonterminal {
-            name: "E",
-            display_name: "E",
-        },
-        Nonterminal {
-            name: "F",
-            display_name: "F",
-        },
-        Nonterminal {
-            name: "G",
-            display_name: "G",
-        },
-    ];
-    const DISPLAY_ORDER: &'static [&'static str] = &["E", "F", "G"];
-    const TERMINALS: &'static [Terminal] = &[
-        Terminal { name: "\"<\"" },
-        Terminal { name: "\"a\"" },
-        Terminal { name: "Epsilon" },
-        Terminal { name: "EOF" },
-    ];
-    const SLOTS: &'static [Slot] = &[
-        Slot {
-            display_name: "E(0) : . start:E(0)",
-            position: 0,
-        },
-        Slot {
-            display_name: "E(0) : start:E(0).",
-            position: 1,
-        },
-        Slot {
-            display_name: "F(0) : . start:F(0)",
-            position: 0,
-        },
-        Slot {
-            display_name: "F(0) : start:F(0).",
-            position: 1,
-        },
-        Slot {
-            display_name: "G(0) : . start:G(0)",
-            position: 0,
-        },
-        Slot {
-            display_name: "G(0) : start:G(0).",
-            position: 1,
-        },
-        Slot {
-            display_name: "E : . [1 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 1)] \"<\" E(2) return 1",
-            position: 0,
-        },
-        Slot {
-            display_name: "E : [1 >= p] . l_pr=E(p) [(l_pr == 0) || (l_pr >= 1)] \"<\" E(2) return 1",
-            position: 1,
-        },
-        Slot {
-            display_name: "E : [1 >= p] l_pr=E(p) . [(l_pr == 0) || (l_pr >= 1)] \"<\" E(2) return 1",
-            position: 2,
-        },
-        Slot {
-            display_name: "E : [1 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 1)] . \"<\" E(2) return 1",
-            position: 3,
-        },
-        Slot {
-            display_name: "E : [1 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 1)] \"<\" . E(2) return 1",
-            position: 4,
-        },
-        Slot {
-            display_name: "E : [1 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 1)] \"<\" E(2) . return 1",
-            position: 5,
-        },
-        Slot {
-            display_name: "E : [1 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 1)] \"<\" E(2) return 1.",
-            position: 6,
-        },
-        Slot {
-            display_name: "E : . \"a\" return 0",
-            position: 0,
-        },
-        Slot {
-            display_name: "E : \"a\" . return 0",
-            position: 1,
-        },
-        Slot {
-            display_name: "E : \"a\" return 0.",
-            position: 2,
-        },
-        Slot {
-            display_name: "F : . [1 >= p] l_pr=F(p) [(l_pr == 0) || (l_pr >= 2)] \"<\" F(1) return 1",
-            position: 0,
-        },
-        Slot {
-            display_name: "F : [1 >= p] . l_pr=F(p) [(l_pr == 0) || (l_pr >= 2)] \"<\" F(1) return 1",
-            position: 1,
-        },
-        Slot {
-            display_name: "F : [1 >= p] l_pr=F(p) . [(l_pr == 0) || (l_pr >= 2)] \"<\" F(1) return 1",
-            position: 2,
-        },
-        Slot {
-            display_name: "F : [1 >= p] l_pr=F(p) [(l_pr == 0) || (l_pr >= 2)] . \"<\" F(1) return 1",
-            position: 3,
-        },
-        Slot {
-            display_name: "F : [1 >= p] l_pr=F(p) [(l_pr == 0) || (l_pr >= 2)] \"<\" . F(1) return 1",
-            position: 4,
-        },
-        Slot {
-            display_name: "F : [1 >= p] l_pr=F(p) [(l_pr == 0) || (l_pr >= 2)] \"<\" F(1) . return 1",
-            position: 5,
-        },
-        Slot {
-            display_name: "F : [1 >= p] l_pr=F(p) [(l_pr == 0) || (l_pr >= 2)] \"<\" F(1) return 1.",
-            position: 6,
-        },
-        Slot {
-            display_name: "F : . \"a\" return 0",
-            position: 0,
-        },
-        Slot {
-            display_name: "F : \"a\" . return 0",
-            position: 1,
-        },
-        Slot {
-            display_name: "F : \"a\" return 0.",
-            position: 2,
-        },
-        Slot {
-            display_name: "G : . [1 >= p] l_pr=G(p) [(l_pr == 0) || (l_pr >= 2)] \"<\" G(2) return 1",
-            position: 0,
-        },
-        Slot {
-            display_name: "G : [1 >= p] . l_pr=G(p) [(l_pr == 0) || (l_pr >= 2)] \"<\" G(2) return 1",
-            position: 1,
-        },
-        Slot {
-            display_name: "G : [1 >= p] l_pr=G(p) . [(l_pr == 0) || (l_pr >= 2)] \"<\" G(2) return 1",
-            position: 2,
-        },
-        Slot {
-            display_name: "G : [1 >= p] l_pr=G(p) [(l_pr == 0) || (l_pr >= 2)] . \"<\" G(2) return 1",
-            position: 3,
-        },
-        Slot {
-            display_name: "G : [1 >= p] l_pr=G(p) [(l_pr == 0) || (l_pr >= 2)] \"<\" . G(2) return 1",
-            position: 4,
-        },
-        Slot {
-            display_name: "G : [1 >= p] l_pr=G(p) [(l_pr == 0) || (l_pr >= 2)] \"<\" G(2) . return 1",
-            position: 5,
-        },
-        Slot {
-            display_name: "G : [1 >= p] l_pr=G(p) [(l_pr == 0) || (l_pr >= 2)] \"<\" G(2) return 1.",
-            position: 6,
-        },
-        Slot {
-            display_name: "G : . \"a\" return 0",
-            position: 0,
-        },
-        Slot {
-            display_name: "G : \"a\" . return 0",
-            position: 1,
-        },
-        Slot {
-            display_name: "G : \"a\" return 0.",
-            position: 2,
-        },
-    ];
-    const FIRST_SLOTS: &'static [&'static [SlotId]] = &[
-        &[SlotId(0)],
-        &[SlotId(2)],
-        &[SlotId(4)],
-        &[SlotId(6), SlotId(13)],
-        &[SlotId(16), SlotId(23)],
-        &[SlotId(26), SlotId(33)],
-    ];
+    const NONTERMINALS: &'static [Nonterminal] = &NONTERMINALS;
+    const DISPLAY_ORDER: &'static [&'static str] = &DISPLAY_ORDER;
+    const TERMINALS: &'static [Terminal] = &TERMINALS;
+    const SLOTS: &'static [Slot] = &SLOTS;
+    const FIRST_SLOTS: &'static [&'static [SlotId]] = &FIRST_SLOTS;
     const LAYOUT_NAME: Option<&'static str> = None;
     const LAYOUT_TERMINALS: &'static [TerminalId] = &[];
-    // A failed terminal match refers to a static terminal set like every other failure, so the
-    // error reporting path needs to reach a terminal set from a terminal id. This slice, indexed
-    // by terminal id, serves only that.
-    const SINGLE_TERMINAL_SETS: &'static [TerminalSet] = &[
-        TerminalSet {
-            id: 3,
-            terminals: &[TerminalId(0)],
-        },
-        TerminalSet {
-            id: 4,
-            terminals: &[TerminalId(1)],
-        },
-        TerminalSet {
-            id: 5,
-            terminals: &[TerminalId(2)],
-        },
-        TerminalSet {
-            id: 6,
-            terminals: &[TerminalId(3)],
-        },
-    ];
+    const SINGLE_TERMINAL_SETS: &'static [TerminalSet] = &SINGLE_TERMINAL_SETS;
     fn nonterminal_id(name: &str) -> Option<NonterminalId> {
         match name {
             "StartE" => Some(START_E),

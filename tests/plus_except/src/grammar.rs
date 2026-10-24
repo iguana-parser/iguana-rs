@@ -14,165 +14,171 @@ pub const PLUS_1: NonterminalId = NonterminalId(3);
 pub const START_SEP: NonterminalId = NonterminalId(4);
 pub const START_BASE: NonterminalId = NonterminalId(5);
 pub struct PlusExceptGrammar;
+static NONTERMINALS: [Nonterminal; 6] = [
+    Nonterminal {
+        name: "Sep",
+        display_name: "Sep",
+    },
+    Nonterminal {
+        name: "Base",
+        display_name: "Base",
+    },
+    Nonterminal {
+        name: "Plus_0",
+        display_name: "{Number Identifier \\ Keyword}+",
+    },
+    Nonterminal {
+        name: "Plus_1",
+        display_name: "{Identifier \\ Keyword \",\"}+",
+    },
+    Nonterminal {
+        name: "StartSep",
+        display_name: "Sep",
+    },
+    Nonterminal {
+        name: "StartBase",
+        display_name: "Base",
+    },
+];
+static DISPLAY_ORDER: [&str; 2] = ["Sep", "Base"];
+static TERMINALS: [Terminal; 6] = [
+    Terminal { name: "Number" },
+    Terminal { name: "Identifier" },
+    Terminal { name: "Keyword" },
+    Terminal { name: "\",\"" },
+    Terminal { name: "Epsilon" },
+    Terminal { name: "EOF" },
+];
+static SLOTS: [Slot; 20] = [
+    Slot {
+        display_name: "Sep : . {Number Identifier \\ Keyword}+",
+        position: 0,
+    },
+    Slot {
+        display_name: "Sep : {Number Identifier \\ Keyword}+.",
+        position: 1,
+    },
+    Slot {
+        display_name: "Base : . {Identifier \\ Keyword \",\"}+",
+        position: 0,
+    },
+    Slot {
+        display_name: "Base : {Identifier \\ Keyword \",\"}+.",
+        position: 1,
+    },
+    Slot {
+        display_name: "{Number Identifier \\ Keyword}+ : . {Number Identifier \\ Keyword}+ Identifier \\ Keyword Number",
+        position: 0,
+    },
+    Slot {
+        display_name: "{Number Identifier \\ Keyword}+ : {Number Identifier \\ Keyword}+ . Identifier \\ Keyword Number",
+        position: 1,
+    },
+    Slot {
+        display_name: "{Number Identifier \\ Keyword}+ : {Number Identifier \\ Keyword}+ Identifier \\ Keyword . Number",
+        position: 2,
+    },
+    Slot {
+        display_name: "{Number Identifier \\ Keyword}+ : {Number Identifier \\ Keyword}+ Identifier \\ Keyword Number.",
+        position: 3,
+    },
+    Slot {
+        display_name: "{Number Identifier \\ Keyword}+ : . Number",
+        position: 0,
+    },
+    Slot {
+        display_name: "{Number Identifier \\ Keyword}+ : Number.",
+        position: 1,
+    },
+    Slot {
+        display_name: "{Identifier \\ Keyword \",\"}+ : . {Identifier \\ Keyword \",\"}+ \",\" Identifier \\ Keyword",
+        position: 0,
+    },
+    Slot {
+        display_name: "{Identifier \\ Keyword \",\"}+ : {Identifier \\ Keyword \",\"}+ . \",\" Identifier \\ Keyword",
+        position: 1,
+    },
+    Slot {
+        display_name: "{Identifier \\ Keyword \",\"}+ : {Identifier \\ Keyword \",\"}+ \",\" . Identifier \\ Keyword",
+        position: 2,
+    },
+    Slot {
+        display_name: "{Identifier \\ Keyword \",\"}+ : {Identifier \\ Keyword \",\"}+ \",\" Identifier \\ Keyword.",
+        position: 3,
+    },
+    Slot {
+        display_name: "{Identifier \\ Keyword \",\"}+ : . Identifier \\ Keyword",
+        position: 0,
+    },
+    Slot {
+        display_name: "{Identifier \\ Keyword \",\"}+ : Identifier \\ Keyword.",
+        position: 1,
+    },
+    Slot {
+        display_name: "Sep : . start:Sep",
+        position: 0,
+    },
+    Slot {
+        display_name: "Sep : start:Sep.",
+        position: 1,
+    },
+    Slot {
+        display_name: "Base : . start:Base",
+        position: 0,
+    },
+    Slot {
+        display_name: "Base : start:Base.",
+        position: 1,
+    },
+];
+static FIRST_SLOTS: [&[SlotId]; 6] = [
+    &[SlotId(0)],
+    &[SlotId(2)],
+    &[SlotId(4), SlotId(8)],
+    &[SlotId(10), SlotId(14)],
+    &[SlotId(16)],
+    &[SlotId(18)],
+];
+// A failed terminal match refers to a static terminal set like every other failure, so the
+// error reporting path needs to reach a terminal set from a terminal id. This table, indexed
+// by terminal id, serves only that.
+static SINGLE_TERMINAL_SETS: [TerminalSet; 6] = [
+    TerminalSet {
+        id: 6,
+        terminals: &[TerminalId(0)],
+    },
+    TerminalSet {
+        id: 7,
+        terminals: &[TerminalId(1)],
+    },
+    TerminalSet {
+        id: 8,
+        terminals: &[TerminalId(2)],
+    },
+    TerminalSet {
+        id: 9,
+        terminals: &[TerminalId(3)],
+    },
+    TerminalSet {
+        id: 10,
+        terminals: &[TerminalId(4)],
+    },
+    TerminalSet {
+        id: 11,
+        terminals: &[TerminalId(5)],
+    },
+];
 impl Grammar for PlusExceptGrammar {
     type Alternatives = BitSet<1>;
     const NAME: &'static str = "PlusExcept";
-    const NONTERMINALS: &'static [Nonterminal] = &[
-        Nonterminal {
-            name: "Sep",
-            display_name: "Sep",
-        },
-        Nonterminal {
-            name: "Base",
-            display_name: "Base",
-        },
-        Nonterminal {
-            name: "Plus_0",
-            display_name: "{Number Identifier \\ Keyword}+",
-        },
-        Nonterminal {
-            name: "Plus_1",
-            display_name: "{Identifier \\ Keyword \",\"}+",
-        },
-        Nonterminal {
-            name: "StartSep",
-            display_name: "Sep",
-        },
-        Nonterminal {
-            name: "StartBase",
-            display_name: "Base",
-        },
-    ];
-    const DISPLAY_ORDER: &'static [&'static str] = &["Sep", "Base"];
-    const TERMINALS: &'static [Terminal] = &[
-        Terminal { name: "Number" },
-        Terminal { name: "Identifier" },
-        Terminal { name: "Keyword" },
-        Terminal { name: "\",\"" },
-        Terminal { name: "Epsilon" },
-        Terminal { name: "EOF" },
-    ];
-    const SLOTS: &'static [Slot] = &[
-        Slot {
-            display_name: "Sep : . {Number Identifier \\ Keyword}+",
-            position: 0,
-        },
-        Slot {
-            display_name: "Sep : {Number Identifier \\ Keyword}+.",
-            position: 1,
-        },
-        Slot {
-            display_name: "Base : . {Identifier \\ Keyword \",\"}+",
-            position: 0,
-        },
-        Slot {
-            display_name: "Base : {Identifier \\ Keyword \",\"}+.",
-            position: 1,
-        },
-        Slot {
-            display_name: "{Number Identifier \\ Keyword}+ : . {Number Identifier \\ Keyword}+ Identifier \\ Keyword Number",
-            position: 0,
-        },
-        Slot {
-            display_name: "{Number Identifier \\ Keyword}+ : {Number Identifier \\ Keyword}+ . Identifier \\ Keyword Number",
-            position: 1,
-        },
-        Slot {
-            display_name: "{Number Identifier \\ Keyword}+ : {Number Identifier \\ Keyword}+ Identifier \\ Keyword . Number",
-            position: 2,
-        },
-        Slot {
-            display_name: "{Number Identifier \\ Keyword}+ : {Number Identifier \\ Keyword}+ Identifier \\ Keyword Number.",
-            position: 3,
-        },
-        Slot {
-            display_name: "{Number Identifier \\ Keyword}+ : . Number",
-            position: 0,
-        },
-        Slot {
-            display_name: "{Number Identifier \\ Keyword}+ : Number.",
-            position: 1,
-        },
-        Slot {
-            display_name: "{Identifier \\ Keyword \",\"}+ : . {Identifier \\ Keyword \",\"}+ \",\" Identifier \\ Keyword",
-            position: 0,
-        },
-        Slot {
-            display_name: "{Identifier \\ Keyword \",\"}+ : {Identifier \\ Keyword \",\"}+ . \",\" Identifier \\ Keyword",
-            position: 1,
-        },
-        Slot {
-            display_name: "{Identifier \\ Keyword \",\"}+ : {Identifier \\ Keyword \",\"}+ \",\" . Identifier \\ Keyword",
-            position: 2,
-        },
-        Slot {
-            display_name: "{Identifier \\ Keyword \",\"}+ : {Identifier \\ Keyword \",\"}+ \",\" Identifier \\ Keyword.",
-            position: 3,
-        },
-        Slot {
-            display_name: "{Identifier \\ Keyword \",\"}+ : . Identifier \\ Keyword",
-            position: 0,
-        },
-        Slot {
-            display_name: "{Identifier \\ Keyword \",\"}+ : Identifier \\ Keyword.",
-            position: 1,
-        },
-        Slot {
-            display_name: "Sep : . start:Sep",
-            position: 0,
-        },
-        Slot {
-            display_name: "Sep : start:Sep.",
-            position: 1,
-        },
-        Slot {
-            display_name: "Base : . start:Base",
-            position: 0,
-        },
-        Slot {
-            display_name: "Base : start:Base.",
-            position: 1,
-        },
-    ];
-    const FIRST_SLOTS: &'static [&'static [SlotId]] = &[
-        &[SlotId(0)],
-        &[SlotId(2)],
-        &[SlotId(4), SlotId(8)],
-        &[SlotId(10), SlotId(14)],
-        &[SlotId(16)],
-        &[SlotId(18)],
-    ];
+    const NONTERMINALS: &'static [Nonterminal] = &NONTERMINALS;
+    const DISPLAY_ORDER: &'static [&'static str] = &DISPLAY_ORDER;
+    const TERMINALS: &'static [Terminal] = &TERMINALS;
+    const SLOTS: &'static [Slot] = &SLOTS;
+    const FIRST_SLOTS: &'static [&'static [SlotId]] = &FIRST_SLOTS;
     const LAYOUT_NAME: Option<&'static str> = None;
     const LAYOUT_TERMINALS: &'static [TerminalId] = &[];
-    // A failed terminal match refers to a static terminal set like every other failure, so the
-    // error reporting path needs to reach a terminal set from a terminal id. This slice, indexed
-    // by terminal id, serves only that.
-    const SINGLE_TERMINAL_SETS: &'static [TerminalSet] = &[
-        TerminalSet {
-            id: 6,
-            terminals: &[TerminalId(0)],
-        },
-        TerminalSet {
-            id: 7,
-            terminals: &[TerminalId(1)],
-        },
-        TerminalSet {
-            id: 8,
-            terminals: &[TerminalId(2)],
-        },
-        TerminalSet {
-            id: 9,
-            terminals: &[TerminalId(3)],
-        },
-        TerminalSet {
-            id: 10,
-            terminals: &[TerminalId(4)],
-        },
-        TerminalSet {
-            id: 11,
-            terminals: &[TerminalId(5)],
-        },
-    ];
+    const SINGLE_TERMINAL_SETS: &'static [TerminalSet] = &SINGLE_TERMINAL_SETS;
     fn nonterminal_id(name: &str) -> Option<NonterminalId> {
         match name {
             "Sep" => Some(SEP),

@@ -10,75 +10,81 @@ use iguana_runtime::{
 pub const A: NonterminalId = NonterminalId(0);
 pub const START_A: NonterminalId = NonterminalId(1);
 pub struct LeftRecursiveListGrammar;
+static NONTERMINALS: [Nonterminal; 2] = [
+    Nonterminal {
+        name: "A",
+        display_name: "A",
+    },
+    Nonterminal {
+        name: "StartA",
+        display_name: "A",
+    },
+];
+static DISPLAY_ORDER: [&str; 1] = ["A"];
+static TERMINALS: [Terminal; 3] = [
+    Terminal { name: "\"a\"" },
+    Terminal { name: "Epsilon" },
+    Terminal { name: "EOF" },
+];
+static SLOTS: [Slot; 7] = [
+    Slot {
+        display_name: "A : . A \"a\"",
+        position: 0,
+    },
+    Slot {
+        display_name: "A : A . \"a\"",
+        position: 1,
+    },
+    Slot {
+        display_name: "A : A \"a\".",
+        position: 2,
+    },
+    Slot {
+        display_name: "A : . \"a\"",
+        position: 0,
+    },
+    Slot {
+        display_name: "A : \"a\".",
+        position: 1,
+    },
+    Slot {
+        display_name: "A : . start:A",
+        position: 0,
+    },
+    Slot {
+        display_name: "A : start:A.",
+        position: 1,
+    },
+];
+static FIRST_SLOTS: [&[SlotId]; 2] = [&[SlotId(0), SlotId(3)], &[SlotId(5)]];
+// A failed terminal match refers to a static terminal set like every other failure, so the
+// error reporting path needs to reach a terminal set from a terminal id. This table, indexed
+// by terminal id, serves only that.
+static SINGLE_TERMINAL_SETS: [TerminalSet; 3] = [
+    TerminalSet {
+        id: 3,
+        terminals: &[TerminalId(0)],
+    },
+    TerminalSet {
+        id: 4,
+        terminals: &[TerminalId(1)],
+    },
+    TerminalSet {
+        id: 5,
+        terminals: &[TerminalId(2)],
+    },
+];
 impl Grammar for LeftRecursiveListGrammar {
     type Alternatives = BitSet<1>;
     const NAME: &'static str = "LeftRecursiveList";
-    const NONTERMINALS: &'static [Nonterminal] = &[
-        Nonterminal {
-            name: "A",
-            display_name: "A",
-        },
-        Nonterminal {
-            name: "StartA",
-            display_name: "A",
-        },
-    ];
-    const DISPLAY_ORDER: &'static [&'static str] = &["A"];
-    const TERMINALS: &'static [Terminal] = &[
-        Terminal { name: "\"a\"" },
-        Terminal { name: "Epsilon" },
-        Terminal { name: "EOF" },
-    ];
-    const SLOTS: &'static [Slot] = &[
-        Slot {
-            display_name: "A : . A \"a\"",
-            position: 0,
-        },
-        Slot {
-            display_name: "A : A . \"a\"",
-            position: 1,
-        },
-        Slot {
-            display_name: "A : A \"a\".",
-            position: 2,
-        },
-        Slot {
-            display_name: "A : . \"a\"",
-            position: 0,
-        },
-        Slot {
-            display_name: "A : \"a\".",
-            position: 1,
-        },
-        Slot {
-            display_name: "A : . start:A",
-            position: 0,
-        },
-        Slot {
-            display_name: "A : start:A.",
-            position: 1,
-        },
-    ];
-    const FIRST_SLOTS: &'static [&'static [SlotId]] = &[&[SlotId(0), SlotId(3)], &[SlotId(5)]];
+    const NONTERMINALS: &'static [Nonterminal] = &NONTERMINALS;
+    const DISPLAY_ORDER: &'static [&'static str] = &DISPLAY_ORDER;
+    const TERMINALS: &'static [Terminal] = &TERMINALS;
+    const SLOTS: &'static [Slot] = &SLOTS;
+    const FIRST_SLOTS: &'static [&'static [SlotId]] = &FIRST_SLOTS;
     const LAYOUT_NAME: Option<&'static str> = None;
     const LAYOUT_TERMINALS: &'static [TerminalId] = &[];
-    // A failed terminal match refers to a static terminal set like every other failure, so the
-    // error reporting path needs to reach a terminal set from a terminal id. This slice, indexed
-    // by terminal id, serves only that.
-    const SINGLE_TERMINAL_SETS: &'static [TerminalSet] = &[
-        TerminalSet {
-            id: 3,
-            terminals: &[TerminalId(0)],
-        },
-        TerminalSet {
-            id: 4,
-            terminals: &[TerminalId(1)],
-        },
-        TerminalSet {
-            id: 5,
-            terminals: &[TerminalId(2)],
-        },
-    ];
+    const SINGLE_TERMINAL_SETS: &'static [TerminalSet] = &SINGLE_TERMINAL_SETS;
     fn nonterminal_id(name: &str) -> Option<NonterminalId> {
         match name {
             "A" => Some(A),

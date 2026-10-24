@@ -17,344 +17,350 @@ pub const START_PROGRAM: NonterminalId = NonterminalId(6);
 pub const START_STMT: NonterminalId = NonterminalId(7);
 pub const START_EXPR: NonterminalId = NonterminalId(8);
 pub struct ExactKeywordGrammar;
+static NONTERMINALS: [Nonterminal; 9] = [
+    Nonterminal {
+        name: "Program",
+        display_name: "Program",
+    },
+    Nonterminal {
+        name: "Stmt",
+        display_name: "Stmt",
+    },
+    Nonterminal {
+        name: "Expr",
+        display_name: "Expr",
+    },
+    Nonterminal {
+        name: "Plus_0",
+        display_name: "Stmt+",
+    },
+    Nonterminal {
+        name: "Group_0",
+        display_name: "([0-9 A-Z _ a-z] !<< \"else\" !>> [0-9 A-Z _ a-z] Stmt)",
+    },
+    Nonterminal {
+        name: "Opt_0",
+        display_name: "([0-9 A-Z _ a-z] !<< \"else\" !>> [0-9 A-Z _ a-z] Stmt)?",
+    },
+    Nonterminal {
+        name: "StartProgram",
+        display_name: "Program",
+    },
+    Nonterminal {
+        name: "StartStmt",
+        display_name: "Stmt",
+    },
+    Nonterminal {
+        name: "StartExpr",
+        display_name: "Expr",
+    },
+];
+static DISPLAY_ORDER: [&str; 3] = ["Program", "Stmt", "Expr"];
+static TERMINALS: [Terminal; 12] = [
+    Terminal { name: "Id" },
+    Terminal { name: "Num" },
+    Terminal { name: "WS" },
+    Terminal { name: "\";\"" },
+    Terminal { name: "\"if\"" },
+    Terminal { name: "\"(\"" },
+    Terminal { name: "\")\"" },
+    Terminal { name: "\"else\"" },
+    Terminal { name: "\"assert\"" },
+    Terminal {
+        name: "[0-9 A-Z _ a-z]",
+    },
+    Terminal { name: "Epsilon" },
+    Terminal { name: "EOF" },
+];
+static SLOTS: [Slot; 53] = [
+    Slot {
+        display_name: "Program : . Stmt+",
+        position: 0,
+    },
+    Slot {
+        display_name: "Program : Stmt+.",
+        position: 1,
+    },
+    Slot {
+        display_name: "Stmt : . Expr WS \";\"",
+        position: 0,
+    },
+    Slot {
+        display_name: "Stmt : Expr . WS \";\"",
+        position: 1,
+    },
+    Slot {
+        display_name: "Stmt : Expr WS . \";\"",
+        position: 2,
+    },
+    Slot {
+        display_name: "Stmt : Expr WS \";\".",
+        position: 3,
+    },
+    Slot {
+        display_name: "Stmt : . [0-9 A-Z _ a-z] !<< \"if\" !>> [0-9 A-Z _ a-z] WS \"(\" WS Expr WS \")\" WS Stmt WS ([0-9 A-Z _ a-z] !<< \"else\" !>> [0-9 A-Z _ a-z] Stmt)?",
+        position: 0,
+    },
+    Slot {
+        display_name: "Stmt : [0-9 A-Z _ a-z] !<< \"if\" !>> [0-9 A-Z _ a-z] . WS \"(\" WS Expr WS \")\" WS Stmt WS ([0-9 A-Z _ a-z] !<< \"else\" !>> [0-9 A-Z _ a-z] Stmt)?",
+        position: 1,
+    },
+    Slot {
+        display_name: "Stmt : [0-9 A-Z _ a-z] !<< \"if\" !>> [0-9 A-Z _ a-z] WS . \"(\" WS Expr WS \")\" WS Stmt WS ([0-9 A-Z _ a-z] !<< \"else\" !>> [0-9 A-Z _ a-z] Stmt)?",
+        position: 2,
+    },
+    Slot {
+        display_name: "Stmt : [0-9 A-Z _ a-z] !<< \"if\" !>> [0-9 A-Z _ a-z] WS \"(\" . WS Expr WS \")\" WS Stmt WS ([0-9 A-Z _ a-z] !<< \"else\" !>> [0-9 A-Z _ a-z] Stmt)?",
+        position: 3,
+    },
+    Slot {
+        display_name: "Stmt : [0-9 A-Z _ a-z] !<< \"if\" !>> [0-9 A-Z _ a-z] WS \"(\" WS . Expr WS \")\" WS Stmt WS ([0-9 A-Z _ a-z] !<< \"else\" !>> [0-9 A-Z _ a-z] Stmt)?",
+        position: 4,
+    },
+    Slot {
+        display_name: "Stmt : [0-9 A-Z _ a-z] !<< \"if\" !>> [0-9 A-Z _ a-z] WS \"(\" WS Expr . WS \")\" WS Stmt WS ([0-9 A-Z _ a-z] !<< \"else\" !>> [0-9 A-Z _ a-z] Stmt)?",
+        position: 5,
+    },
+    Slot {
+        display_name: "Stmt : [0-9 A-Z _ a-z] !<< \"if\" !>> [0-9 A-Z _ a-z] WS \"(\" WS Expr WS . \")\" WS Stmt WS ([0-9 A-Z _ a-z] !<< \"else\" !>> [0-9 A-Z _ a-z] Stmt)?",
+        position: 6,
+    },
+    Slot {
+        display_name: "Stmt : [0-9 A-Z _ a-z] !<< \"if\" !>> [0-9 A-Z _ a-z] WS \"(\" WS Expr WS \")\" . WS Stmt WS ([0-9 A-Z _ a-z] !<< \"else\" !>> [0-9 A-Z _ a-z] Stmt)?",
+        position: 7,
+    },
+    Slot {
+        display_name: "Stmt : [0-9 A-Z _ a-z] !<< \"if\" !>> [0-9 A-Z _ a-z] WS \"(\" WS Expr WS \")\" WS . Stmt WS ([0-9 A-Z _ a-z] !<< \"else\" !>> [0-9 A-Z _ a-z] Stmt)?",
+        position: 8,
+    },
+    Slot {
+        display_name: "Stmt : [0-9 A-Z _ a-z] !<< \"if\" !>> [0-9 A-Z _ a-z] WS \"(\" WS Expr WS \")\" WS Stmt . WS ([0-9 A-Z _ a-z] !<< \"else\" !>> [0-9 A-Z _ a-z] Stmt)?",
+        position: 9,
+    },
+    Slot {
+        display_name: "Stmt : [0-9 A-Z _ a-z] !<< \"if\" !>> [0-9 A-Z _ a-z] WS \"(\" WS Expr WS \")\" WS Stmt WS . ([0-9 A-Z _ a-z] !<< \"else\" !>> [0-9 A-Z _ a-z] Stmt)?",
+        position: 10,
+    },
+    Slot {
+        display_name: "Stmt : [0-9 A-Z _ a-z] !<< \"if\" !>> [0-9 A-Z _ a-z] WS \"(\" WS Expr WS \")\" WS Stmt WS ([0-9 A-Z _ a-z] !<< \"else\" !>> [0-9 A-Z _ a-z] Stmt)?.",
+        position: 11,
+    },
+    Slot {
+        display_name: "Stmt : . [0-9 A-Z _ a-z] !<< \"assert\" !>> [0-9 A-Z _ a-z] WS Expr WS \";\"",
+        position: 0,
+    },
+    Slot {
+        display_name: "Stmt : [0-9 A-Z _ a-z] !<< \"assert\" !>> [0-9 A-Z _ a-z] . WS Expr WS \";\"",
+        position: 1,
+    },
+    Slot {
+        display_name: "Stmt : [0-9 A-Z _ a-z] !<< \"assert\" !>> [0-9 A-Z _ a-z] WS . Expr WS \";\"",
+        position: 2,
+    },
+    Slot {
+        display_name: "Stmt : [0-9 A-Z _ a-z] !<< \"assert\" !>> [0-9 A-Z _ a-z] WS Expr . WS \";\"",
+        position: 3,
+    },
+    Slot {
+        display_name: "Stmt : [0-9 A-Z _ a-z] !<< \"assert\" !>> [0-9 A-Z _ a-z] WS Expr WS . \";\"",
+        position: 4,
+    },
+    Slot {
+        display_name: "Stmt : [0-9 A-Z _ a-z] !<< \"assert\" !>> [0-9 A-Z _ a-z] WS Expr WS \";\".",
+        position: 5,
+    },
+    Slot {
+        display_name: "Expr : . Id",
+        position: 0,
+    },
+    Slot {
+        display_name: "Expr : Id.",
+        position: 1,
+    },
+    Slot {
+        display_name: "Expr : . Num",
+        position: 0,
+    },
+    Slot {
+        display_name: "Expr : Num.",
+        position: 1,
+    },
+    Slot {
+        display_name: "Stmt+ : . Stmt+ WS Stmt",
+        position: 0,
+    },
+    Slot {
+        display_name: "Stmt+ : Stmt+ . WS Stmt",
+        position: 1,
+    },
+    Slot {
+        display_name: "Stmt+ : Stmt+ WS . Stmt",
+        position: 2,
+    },
+    Slot {
+        display_name: "Stmt+ : Stmt+ WS Stmt.",
+        position: 3,
+    },
+    Slot {
+        display_name: "Stmt+ : . Stmt",
+        position: 0,
+    },
+    Slot {
+        display_name: "Stmt+ : Stmt.",
+        position: 1,
+    },
+    Slot {
+        display_name: "([0-9 A-Z _ a-z] !<< \"else\" !>> [0-9 A-Z _ a-z] Stmt) : . [0-9 A-Z _ a-z] !<< \"else\" !>> [0-9 A-Z _ a-z] WS Stmt",
+        position: 0,
+    },
+    Slot {
+        display_name: "([0-9 A-Z _ a-z] !<< \"else\" !>> [0-9 A-Z _ a-z] Stmt) : [0-9 A-Z _ a-z] !<< \"else\" !>> [0-9 A-Z _ a-z] . WS Stmt",
+        position: 1,
+    },
+    Slot {
+        display_name: "([0-9 A-Z _ a-z] !<< \"else\" !>> [0-9 A-Z _ a-z] Stmt) : [0-9 A-Z _ a-z] !<< \"else\" !>> [0-9 A-Z _ a-z] WS . Stmt",
+        position: 2,
+    },
+    Slot {
+        display_name: "([0-9 A-Z _ a-z] !<< \"else\" !>> [0-9 A-Z _ a-z] Stmt) : [0-9 A-Z _ a-z] !<< \"else\" !>> [0-9 A-Z _ a-z] WS Stmt.",
+        position: 3,
+    },
+    Slot {
+        display_name: "([0-9 A-Z _ a-z] !<< \"else\" !>> [0-9 A-Z _ a-z] Stmt)? : . ([0-9 A-Z _ a-z] !<< \"else\" !>> [0-9 A-Z _ a-z] Stmt)",
+        position: 0,
+    },
+    Slot {
+        display_name: "([0-9 A-Z _ a-z] !<< \"else\" !>> [0-9 A-Z _ a-z] Stmt)? : ([0-9 A-Z _ a-z] !<< \"else\" !>> [0-9 A-Z _ a-z] Stmt).",
+        position: 1,
+    },
+    Slot {
+        display_name: "([0-9 A-Z _ a-z] !<< \"else\" !>> [0-9 A-Z _ a-z] Stmt)? : .",
+        position: 0,
+    },
+    Slot {
+        display_name: "Program : . WS start:Program WS",
+        position: 0,
+    },
+    Slot {
+        display_name: "Program : WS . start:Program WS",
+        position: 1,
+    },
+    Slot {
+        display_name: "Program : WS start:Program . WS",
+        position: 2,
+    },
+    Slot {
+        display_name: "Program : WS start:Program WS.",
+        position: 3,
+    },
+    Slot {
+        display_name: "Stmt : . WS start:Stmt WS",
+        position: 0,
+    },
+    Slot {
+        display_name: "Stmt : WS . start:Stmt WS",
+        position: 1,
+    },
+    Slot {
+        display_name: "Stmt : WS start:Stmt . WS",
+        position: 2,
+    },
+    Slot {
+        display_name: "Stmt : WS start:Stmt WS.",
+        position: 3,
+    },
+    Slot {
+        display_name: "Expr : . WS start:Expr WS",
+        position: 0,
+    },
+    Slot {
+        display_name: "Expr : WS . start:Expr WS",
+        position: 1,
+    },
+    Slot {
+        display_name: "Expr : WS start:Expr . WS",
+        position: 2,
+    },
+    Slot {
+        display_name: "Expr : WS start:Expr WS.",
+        position: 3,
+    },
+];
+static FIRST_SLOTS: [&[SlotId]; 9] = [
+    &[SlotId(0)],
+    &[SlotId(2), SlotId(6), SlotId(18)],
+    &[SlotId(24), SlotId(26)],
+    &[SlotId(28), SlotId(32)],
+    &[SlotId(34)],
+    &[SlotId(38), SlotId(40)],
+    &[SlotId(41)],
+    &[SlotId(45)],
+    &[SlotId(49)],
+];
+// A failed terminal match refers to a static terminal set like every other failure, so the
+// error reporting path needs to reach a terminal set from a terminal id. This table, indexed
+// by terminal id, serves only that.
+static SINGLE_TERMINAL_SETS: [TerminalSet; 12] = [
+    TerminalSet {
+        id: 9,
+        terminals: &[TerminalId(0)],
+    },
+    TerminalSet {
+        id: 10,
+        terminals: &[TerminalId(1)],
+    },
+    TerminalSet {
+        id: 11,
+        terminals: &[TerminalId(2)],
+    },
+    TerminalSet {
+        id: 12,
+        terminals: &[TerminalId(3)],
+    },
+    TerminalSet {
+        id: 13,
+        terminals: &[TerminalId(4)],
+    },
+    TerminalSet {
+        id: 14,
+        terminals: &[TerminalId(5)],
+    },
+    TerminalSet {
+        id: 15,
+        terminals: &[TerminalId(6)],
+    },
+    TerminalSet {
+        id: 16,
+        terminals: &[TerminalId(7)],
+    },
+    TerminalSet {
+        id: 17,
+        terminals: &[TerminalId(8)],
+    },
+    TerminalSet {
+        id: 18,
+        terminals: &[TerminalId(9)],
+    },
+    TerminalSet {
+        id: 19,
+        terminals: &[TerminalId(10)],
+    },
+    TerminalSet {
+        id: 20,
+        terminals: &[TerminalId(11)],
+    },
+];
 impl Grammar for ExactKeywordGrammar {
     type Alternatives = BitSet<1>;
     const NAME: &'static str = "ExactKeyword";
-    const NONTERMINALS: &'static [Nonterminal] = &[
-        Nonterminal {
-            name: "Program",
-            display_name: "Program",
-        },
-        Nonterminal {
-            name: "Stmt",
-            display_name: "Stmt",
-        },
-        Nonterminal {
-            name: "Expr",
-            display_name: "Expr",
-        },
-        Nonterminal {
-            name: "Plus_0",
-            display_name: "Stmt+",
-        },
-        Nonterminal {
-            name: "Group_0",
-            display_name: "([0-9 A-Z _ a-z] !<< \"else\" !>> [0-9 A-Z _ a-z] Stmt)",
-        },
-        Nonterminal {
-            name: "Opt_0",
-            display_name: "([0-9 A-Z _ a-z] !<< \"else\" !>> [0-9 A-Z _ a-z] Stmt)?",
-        },
-        Nonterminal {
-            name: "StartProgram",
-            display_name: "Program",
-        },
-        Nonterminal {
-            name: "StartStmt",
-            display_name: "Stmt",
-        },
-        Nonterminal {
-            name: "StartExpr",
-            display_name: "Expr",
-        },
-    ];
-    const DISPLAY_ORDER: &'static [&'static str] = &["Program", "Stmt", "Expr"];
-    const TERMINALS: &'static [Terminal] = &[
-        Terminal { name: "Id" },
-        Terminal { name: "Num" },
-        Terminal { name: "WS" },
-        Terminal { name: "\";\"" },
-        Terminal { name: "\"if\"" },
-        Terminal { name: "\"(\"" },
-        Terminal { name: "\")\"" },
-        Terminal { name: "\"else\"" },
-        Terminal { name: "\"assert\"" },
-        Terminal {
-            name: "[0-9 A-Z _ a-z]",
-        },
-        Terminal { name: "Epsilon" },
-        Terminal { name: "EOF" },
-    ];
-    const SLOTS: &'static [Slot] = &[
-        Slot {
-            display_name: "Program : . Stmt+",
-            position: 0,
-        },
-        Slot {
-            display_name: "Program : Stmt+.",
-            position: 1,
-        },
-        Slot {
-            display_name: "Stmt : . Expr WS \";\"",
-            position: 0,
-        },
-        Slot {
-            display_name: "Stmt : Expr . WS \";\"",
-            position: 1,
-        },
-        Slot {
-            display_name: "Stmt : Expr WS . \";\"",
-            position: 2,
-        },
-        Slot {
-            display_name: "Stmt : Expr WS \";\".",
-            position: 3,
-        },
-        Slot {
-            display_name: "Stmt : . [0-9 A-Z _ a-z] !<< \"if\" !>> [0-9 A-Z _ a-z] WS \"(\" WS Expr WS \")\" WS Stmt WS ([0-9 A-Z _ a-z] !<< \"else\" !>> [0-9 A-Z _ a-z] Stmt)?",
-            position: 0,
-        },
-        Slot {
-            display_name: "Stmt : [0-9 A-Z _ a-z] !<< \"if\" !>> [0-9 A-Z _ a-z] . WS \"(\" WS Expr WS \")\" WS Stmt WS ([0-9 A-Z _ a-z] !<< \"else\" !>> [0-9 A-Z _ a-z] Stmt)?",
-            position: 1,
-        },
-        Slot {
-            display_name: "Stmt : [0-9 A-Z _ a-z] !<< \"if\" !>> [0-9 A-Z _ a-z] WS . \"(\" WS Expr WS \")\" WS Stmt WS ([0-9 A-Z _ a-z] !<< \"else\" !>> [0-9 A-Z _ a-z] Stmt)?",
-            position: 2,
-        },
-        Slot {
-            display_name: "Stmt : [0-9 A-Z _ a-z] !<< \"if\" !>> [0-9 A-Z _ a-z] WS \"(\" . WS Expr WS \")\" WS Stmt WS ([0-9 A-Z _ a-z] !<< \"else\" !>> [0-9 A-Z _ a-z] Stmt)?",
-            position: 3,
-        },
-        Slot {
-            display_name: "Stmt : [0-9 A-Z _ a-z] !<< \"if\" !>> [0-9 A-Z _ a-z] WS \"(\" WS . Expr WS \")\" WS Stmt WS ([0-9 A-Z _ a-z] !<< \"else\" !>> [0-9 A-Z _ a-z] Stmt)?",
-            position: 4,
-        },
-        Slot {
-            display_name: "Stmt : [0-9 A-Z _ a-z] !<< \"if\" !>> [0-9 A-Z _ a-z] WS \"(\" WS Expr . WS \")\" WS Stmt WS ([0-9 A-Z _ a-z] !<< \"else\" !>> [0-9 A-Z _ a-z] Stmt)?",
-            position: 5,
-        },
-        Slot {
-            display_name: "Stmt : [0-9 A-Z _ a-z] !<< \"if\" !>> [0-9 A-Z _ a-z] WS \"(\" WS Expr WS . \")\" WS Stmt WS ([0-9 A-Z _ a-z] !<< \"else\" !>> [0-9 A-Z _ a-z] Stmt)?",
-            position: 6,
-        },
-        Slot {
-            display_name: "Stmt : [0-9 A-Z _ a-z] !<< \"if\" !>> [0-9 A-Z _ a-z] WS \"(\" WS Expr WS \")\" . WS Stmt WS ([0-9 A-Z _ a-z] !<< \"else\" !>> [0-9 A-Z _ a-z] Stmt)?",
-            position: 7,
-        },
-        Slot {
-            display_name: "Stmt : [0-9 A-Z _ a-z] !<< \"if\" !>> [0-9 A-Z _ a-z] WS \"(\" WS Expr WS \")\" WS . Stmt WS ([0-9 A-Z _ a-z] !<< \"else\" !>> [0-9 A-Z _ a-z] Stmt)?",
-            position: 8,
-        },
-        Slot {
-            display_name: "Stmt : [0-9 A-Z _ a-z] !<< \"if\" !>> [0-9 A-Z _ a-z] WS \"(\" WS Expr WS \")\" WS Stmt . WS ([0-9 A-Z _ a-z] !<< \"else\" !>> [0-9 A-Z _ a-z] Stmt)?",
-            position: 9,
-        },
-        Slot {
-            display_name: "Stmt : [0-9 A-Z _ a-z] !<< \"if\" !>> [0-9 A-Z _ a-z] WS \"(\" WS Expr WS \")\" WS Stmt WS . ([0-9 A-Z _ a-z] !<< \"else\" !>> [0-9 A-Z _ a-z] Stmt)?",
-            position: 10,
-        },
-        Slot {
-            display_name: "Stmt : [0-9 A-Z _ a-z] !<< \"if\" !>> [0-9 A-Z _ a-z] WS \"(\" WS Expr WS \")\" WS Stmt WS ([0-9 A-Z _ a-z] !<< \"else\" !>> [0-9 A-Z _ a-z] Stmt)?.",
-            position: 11,
-        },
-        Slot {
-            display_name: "Stmt : . [0-9 A-Z _ a-z] !<< \"assert\" !>> [0-9 A-Z _ a-z] WS Expr WS \";\"",
-            position: 0,
-        },
-        Slot {
-            display_name: "Stmt : [0-9 A-Z _ a-z] !<< \"assert\" !>> [0-9 A-Z _ a-z] . WS Expr WS \";\"",
-            position: 1,
-        },
-        Slot {
-            display_name: "Stmt : [0-9 A-Z _ a-z] !<< \"assert\" !>> [0-9 A-Z _ a-z] WS . Expr WS \";\"",
-            position: 2,
-        },
-        Slot {
-            display_name: "Stmt : [0-9 A-Z _ a-z] !<< \"assert\" !>> [0-9 A-Z _ a-z] WS Expr . WS \";\"",
-            position: 3,
-        },
-        Slot {
-            display_name: "Stmt : [0-9 A-Z _ a-z] !<< \"assert\" !>> [0-9 A-Z _ a-z] WS Expr WS . \";\"",
-            position: 4,
-        },
-        Slot {
-            display_name: "Stmt : [0-9 A-Z _ a-z] !<< \"assert\" !>> [0-9 A-Z _ a-z] WS Expr WS \";\".",
-            position: 5,
-        },
-        Slot {
-            display_name: "Expr : . Id",
-            position: 0,
-        },
-        Slot {
-            display_name: "Expr : Id.",
-            position: 1,
-        },
-        Slot {
-            display_name: "Expr : . Num",
-            position: 0,
-        },
-        Slot {
-            display_name: "Expr : Num.",
-            position: 1,
-        },
-        Slot {
-            display_name: "Stmt+ : . Stmt+ WS Stmt",
-            position: 0,
-        },
-        Slot {
-            display_name: "Stmt+ : Stmt+ . WS Stmt",
-            position: 1,
-        },
-        Slot {
-            display_name: "Stmt+ : Stmt+ WS . Stmt",
-            position: 2,
-        },
-        Slot {
-            display_name: "Stmt+ : Stmt+ WS Stmt.",
-            position: 3,
-        },
-        Slot {
-            display_name: "Stmt+ : . Stmt",
-            position: 0,
-        },
-        Slot {
-            display_name: "Stmt+ : Stmt.",
-            position: 1,
-        },
-        Slot {
-            display_name: "([0-9 A-Z _ a-z] !<< \"else\" !>> [0-9 A-Z _ a-z] Stmt) : . [0-9 A-Z _ a-z] !<< \"else\" !>> [0-9 A-Z _ a-z] WS Stmt",
-            position: 0,
-        },
-        Slot {
-            display_name: "([0-9 A-Z _ a-z] !<< \"else\" !>> [0-9 A-Z _ a-z] Stmt) : [0-9 A-Z _ a-z] !<< \"else\" !>> [0-9 A-Z _ a-z] . WS Stmt",
-            position: 1,
-        },
-        Slot {
-            display_name: "([0-9 A-Z _ a-z] !<< \"else\" !>> [0-9 A-Z _ a-z] Stmt) : [0-9 A-Z _ a-z] !<< \"else\" !>> [0-9 A-Z _ a-z] WS . Stmt",
-            position: 2,
-        },
-        Slot {
-            display_name: "([0-9 A-Z _ a-z] !<< \"else\" !>> [0-9 A-Z _ a-z] Stmt) : [0-9 A-Z _ a-z] !<< \"else\" !>> [0-9 A-Z _ a-z] WS Stmt.",
-            position: 3,
-        },
-        Slot {
-            display_name: "([0-9 A-Z _ a-z] !<< \"else\" !>> [0-9 A-Z _ a-z] Stmt)? : . ([0-9 A-Z _ a-z] !<< \"else\" !>> [0-9 A-Z _ a-z] Stmt)",
-            position: 0,
-        },
-        Slot {
-            display_name: "([0-9 A-Z _ a-z] !<< \"else\" !>> [0-9 A-Z _ a-z] Stmt)? : ([0-9 A-Z _ a-z] !<< \"else\" !>> [0-9 A-Z _ a-z] Stmt).",
-            position: 1,
-        },
-        Slot {
-            display_name: "([0-9 A-Z _ a-z] !<< \"else\" !>> [0-9 A-Z _ a-z] Stmt)? : .",
-            position: 0,
-        },
-        Slot {
-            display_name: "Program : . WS start:Program WS",
-            position: 0,
-        },
-        Slot {
-            display_name: "Program : WS . start:Program WS",
-            position: 1,
-        },
-        Slot {
-            display_name: "Program : WS start:Program . WS",
-            position: 2,
-        },
-        Slot {
-            display_name: "Program : WS start:Program WS.",
-            position: 3,
-        },
-        Slot {
-            display_name: "Stmt : . WS start:Stmt WS",
-            position: 0,
-        },
-        Slot {
-            display_name: "Stmt : WS . start:Stmt WS",
-            position: 1,
-        },
-        Slot {
-            display_name: "Stmt : WS start:Stmt . WS",
-            position: 2,
-        },
-        Slot {
-            display_name: "Stmt : WS start:Stmt WS.",
-            position: 3,
-        },
-        Slot {
-            display_name: "Expr : . WS start:Expr WS",
-            position: 0,
-        },
-        Slot {
-            display_name: "Expr : WS . start:Expr WS",
-            position: 1,
-        },
-        Slot {
-            display_name: "Expr : WS start:Expr . WS",
-            position: 2,
-        },
-        Slot {
-            display_name: "Expr : WS start:Expr WS.",
-            position: 3,
-        },
-    ];
-    const FIRST_SLOTS: &'static [&'static [SlotId]] = &[
-        &[SlotId(0)],
-        &[SlotId(2), SlotId(6), SlotId(18)],
-        &[SlotId(24), SlotId(26)],
-        &[SlotId(28), SlotId(32)],
-        &[SlotId(34)],
-        &[SlotId(38), SlotId(40)],
-        &[SlotId(41)],
-        &[SlotId(45)],
-        &[SlotId(49)],
-    ];
+    const NONTERMINALS: &'static [Nonterminal] = &NONTERMINALS;
+    const DISPLAY_ORDER: &'static [&'static str] = &DISPLAY_ORDER;
+    const TERMINALS: &'static [Terminal] = &TERMINALS;
+    const SLOTS: &'static [Slot] = &SLOTS;
+    const FIRST_SLOTS: &'static [&'static [SlotId]] = &FIRST_SLOTS;
     const LAYOUT_NAME: Option<&'static str> = Some("WS");
     const LAYOUT_TERMINALS: &'static [TerminalId] = &[TerminalId(2)];
-    // A failed terminal match refers to a static terminal set like every other failure, so the
-    // error reporting path needs to reach a terminal set from a terminal id. This slice, indexed
-    // by terminal id, serves only that.
-    const SINGLE_TERMINAL_SETS: &'static [TerminalSet] = &[
-        TerminalSet {
-            id: 9,
-            terminals: &[TerminalId(0)],
-        },
-        TerminalSet {
-            id: 10,
-            terminals: &[TerminalId(1)],
-        },
-        TerminalSet {
-            id: 11,
-            terminals: &[TerminalId(2)],
-        },
-        TerminalSet {
-            id: 12,
-            terminals: &[TerminalId(3)],
-        },
-        TerminalSet {
-            id: 13,
-            terminals: &[TerminalId(4)],
-        },
-        TerminalSet {
-            id: 14,
-            terminals: &[TerminalId(5)],
-        },
-        TerminalSet {
-            id: 15,
-            terminals: &[TerminalId(6)],
-        },
-        TerminalSet {
-            id: 16,
-            terminals: &[TerminalId(7)],
-        },
-        TerminalSet {
-            id: 17,
-            terminals: &[TerminalId(8)],
-        },
-        TerminalSet {
-            id: 18,
-            terminals: &[TerminalId(9)],
-        },
-        TerminalSet {
-            id: 19,
-            terminals: &[TerminalId(10)],
-        },
-        TerminalSet {
-            id: 20,
-            terminals: &[TerminalId(11)],
-        },
-    ];
+    const SINGLE_TERMINAL_SETS: &'static [TerminalSet] = &SINGLE_TERMINAL_SETS;
     fn nonterminal_id(name: &str) -> Option<NonterminalId> {
         match name {
             "Program" => Some(PROGRAM),

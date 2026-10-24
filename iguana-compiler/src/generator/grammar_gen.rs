@@ -131,6 +131,12 @@ pub fn generate<'a>(
         .unwrap_or_else(|| quote! { None });
     let layout_terminals = layout_terminal_ids(grammar, terminal_ids);
 
+    let nonterminal_count = Literal::usize_unsuffixed(nonterminal_ids.nonterminals().count());
+    let display_order_count = Literal::usize_unsuffixed(display_order_names.len());
+    let terminal_count = Literal::usize_unsuffixed(terminals.len() + 2);
+    let slot_count = Literal::usize_unsuffixed(slot_ids.slots().count());
+    let single_terminal_set_count = Literal::usize_unsuffixed(single_terminal_sets.len());
+
     quote! {
         use iguana_runtime::{
             grammar::{Grammar, Nonterminal, Slot, Terminal},
@@ -144,33 +150,46 @@ pub fn generate<'a>(
 
         pub struct #grammar_type;
 
+        static NONTERMINALS: [Nonterminal; #nonterminal_count] = [#(#nonterminals),*];
+
+        static DISPLAY_ORDER: [&str; #display_order_count] = [#(#display_order_names),*];
+
+        static TERMINALS: [Terminal; #terminal_count] = [
+            #(#terminals,)*
+            Terminal { name: "Epsilon" },
+            Terminal { name: "EOF" },
+        ];
+
+        static SLOTS: [Slot; #slot_count] = [#(#slots),*];
+
+        static FIRST_SLOTS: [&[SlotId]; #nonterminal_count] = [#(#first_slots),*];
+
+        #[comment = "A failed terminal match refers to a static terminal set like every other
+                     failure, so the error reporting path needs to reach a terminal set
+                     from a terminal id. This table, indexed by terminal id, serves only that."]
+        static SINGLE_TERMINAL_SETS: [TerminalSet; #single_terminal_set_count] =
+            [#(#single_terminal_sets),*];
+
         impl Grammar for #grammar_type {
             type Alternatives = BitSet<#alternative_words>;
 
             const NAME: &'static str = #grammar_name;
 
-            const NONTERMINALS: &'static [Nonterminal] = &[#(#nonterminals),*];
+            const NONTERMINALS: &'static [Nonterminal] = &NONTERMINALS;
 
-            const DISPLAY_ORDER: &'static [&'static str] = &[#(#display_order_names),*];
+            const DISPLAY_ORDER: &'static [&'static str] = &DISPLAY_ORDER;
 
-            const TERMINALS: &'static [Terminal] = &[
-                #(#terminals,)*
-                Terminal { name: "Epsilon" },
-                Terminal { name: "EOF" },
-            ];
+            const TERMINALS: &'static [Terminal] = &TERMINALS;
 
-            const SLOTS: &'static [Slot] = &[#(#slots),*];
+            const SLOTS: &'static [Slot] = &SLOTS;
 
-            const FIRST_SLOTS: &'static [&'static [SlotId]] = &[#(#first_slots),*];
+            const FIRST_SLOTS: &'static [&'static [SlotId]] = &FIRST_SLOTS;
 
             const LAYOUT_NAME: Option<&'static str> = #layout_name;
 
             const LAYOUT_TERMINALS: &'static [TerminalId] = &[#(#layout_terminals),*];
 
-            #[comment = "A failed terminal match refers to a static terminal set like every other
-                         failure, so the error reporting path needs to reach a terminal set
-                         from a terminal id. This slice, indexed by terminal id, serves only that."]
-            const SINGLE_TERMINAL_SETS: &'static [TerminalSet] = &[#(#single_terminal_sets),*];
+            const SINGLE_TERMINAL_SETS: &'static [TerminalSet] = &SINGLE_TERMINAL_SETS;
 
             fn nonterminal_id(name: &str) -> Option<NonterminalId> {
                 match name {

@@ -69,2188 +69,2194 @@ pub const START_RANGE: NonterminalId = NonterminalId(58);
 pub const START_LAYOUT: NonterminalId = NonterminalId(59);
 pub const SYMBOL: NonterminalId = NonterminalId(60);
 pub struct IggyGrammar;
+static NONTERMINALS: [Nonterminal; 61] = [
+    Nonterminal {
+        name: "Grammar",
+        display_name: "Grammar",
+    },
+    Nonterminal {
+        name: "Rule",
+        display_name: "Rule",
+    },
+    Nonterminal {
+        name: "SyntaxRule",
+        display_name: "SyntaxRule",
+    },
+    Nonterminal {
+        name: "Annotation",
+        display_name: "Annotation",
+    },
+    Nonterminal {
+        name: "RegexRule",
+        display_name: "RegexRule",
+    },
+    Nonterminal {
+        name: "RegexPreCondition",
+        display_name: "RegexPreCondition",
+    },
+    Nonterminal {
+        name: "RegexPostCondition",
+        display_name: "RegexPostCondition",
+    },
+    Nonterminal {
+        name: "PriorityLevel",
+        display_name: "PriorityLevel",
+    },
+    Nonterminal {
+        name: "Associativity",
+        display_name: "Associativity",
+    },
+    Nonterminal {
+        name: "Alternative",
+        display_name: "Alternative",
+    },
+    Nonterminal {
+        name: "PreCondition",
+        display_name: "PreCondition",
+    },
+    Nonterminal {
+        name: "PostCondition",
+        display_name: "PostCondition",
+    },
+    Nonterminal {
+        name: "Regex",
+        display_name: "Regex",
+    },
+    Nonterminal {
+        name: "CharClass",
+        display_name: "CharClass",
+    },
+    Nonterminal {
+        name: "RangeElement",
+        display_name: "RangeElement",
+    },
+    Nonterminal {
+        name: "Range",
+        display_name: "Range",
+    },
+    Nonterminal {
+        name: "Layout",
+        display_name: "Layout",
+    },
+    Nonterminal {
+        name: "Plus_0",
+        display_name: "Rule+",
+    },
+    Nonterminal {
+        name: "Star_0",
+        display_name: "Rule*",
+    },
+    Nonterminal {
+        name: "Opt_0",
+        display_name: "Annotation?",
+    },
+    Nonterminal {
+        name: "Plus_1",
+        display_name: "{PriorityLevel \">\"}+",
+    },
+    Nonterminal {
+        name: "Star_1",
+        display_name: "{PriorityLevel \">\"}*",
+    },
+    Nonterminal {
+        name: "Opt_1",
+        display_name: "\"@Layout\"?",
+    },
+    Nonterminal {
+        name: "Opt_2",
+        display_name: "\"@Identifier\"?",
+    },
+    Nonterminal {
+        name: "Opt_3",
+        display_name: "RegexPreCondition?",
+    },
+    Nonterminal {
+        name: "Plus_3",
+        display_name: "Regex+",
+    },
+    Nonterminal {
+        name: "Plus_2",
+        display_name: "{Regex+ \"|\"}+",
+    },
+    Nonterminal {
+        name: "Plus_4",
+        display_name: "RegexPostCondition+",
+    },
+    Nonterminal {
+        name: "Star_2",
+        display_name: "RegexPostCondition*",
+    },
+    Nonterminal {
+        name: "Opt_4",
+        display_name: "Associativity?",
+    },
+    Nonterminal {
+        name: "Plus_5",
+        display_name: "{Alternative \"|\"}+",
+    },
+    Nonterminal {
+        name: "Star_3",
+        display_name: "{Alternative \"|\"}*",
+    },
+    Nonterminal {
+        name: "Plus_6",
+        display_name: "Symbol+",
+    },
+    Nonterminal {
+        name: "Opt_5",
+        display_name: "Label?",
+    },
+    Nonterminal {
+        name: "Plus_7",
+        display_name: "{Symbol+ \"|\"}+",
+    },
+    Nonterminal {
+        name: "Plus_8",
+        display_name: "PostCondition+",
+    },
+    Nonterminal {
+        name: "Plus_9",
+        display_name: "PreCondition+",
+    },
+    Nonterminal {
+        name: "Opt_6",
+        display_name: "\"!\"?",
+    },
+    Nonterminal {
+        name: "Plus_10",
+        display_name: "RangeElement+",
+    },
+    Nonterminal {
+        name: "Alt_0",
+        display_name: "(WS | LineComment)",
+    },
+    Nonterminal {
+        name: "Plus_11",
+        display_name: "(WS | LineComment)+",
+    },
+    Nonterminal {
+        name: "Star_4",
+        display_name: "(WS | LineComment)*",
+    },
+    Nonterminal {
+        name: "StartGrammar",
+        display_name: "Grammar",
+    },
+    Nonterminal {
+        name: "StartRule",
+        display_name: "Rule",
+    },
+    Nonterminal {
+        name: "StartSyntaxRule",
+        display_name: "SyntaxRule",
+    },
+    Nonterminal {
+        name: "StartAnnotation",
+        display_name: "Annotation",
+    },
+    Nonterminal {
+        name: "StartRegexRule",
+        display_name: "RegexRule",
+    },
+    Nonterminal {
+        name: "StartRegexPreCondition",
+        display_name: "RegexPreCondition",
+    },
+    Nonterminal {
+        name: "StartRegexPostCondition",
+        display_name: "RegexPostCondition",
+    },
+    Nonterminal {
+        name: "StartPriorityLevel",
+        display_name: "PriorityLevel",
+    },
+    Nonterminal {
+        name: "StartAssociativity",
+        display_name: "Associativity",
+    },
+    Nonterminal {
+        name: "StartAlternative",
+        display_name: "Alternative",
+    },
+    Nonterminal {
+        name: "StartSymbol",
+        display_name: "Symbol(0)",
+    },
+    Nonterminal {
+        name: "StartPreCondition",
+        display_name: "PreCondition",
+    },
+    Nonterminal {
+        name: "StartPostCondition",
+        display_name: "PostCondition",
+    },
+    Nonterminal {
+        name: "StartRegex",
+        display_name: "Regex",
+    },
+    Nonterminal {
+        name: "StartCharClass",
+        display_name: "CharClass",
+    },
+    Nonterminal {
+        name: "StartRangeElement",
+        display_name: "RangeElement",
+    },
+    Nonterminal {
+        name: "StartRange",
+        display_name: "Range",
+    },
+    Nonterminal {
+        name: "StartLayout",
+        display_name: "Layout",
+    },
+    Nonterminal {
+        name: "Symbol",
+        display_name: "Symbol",
+    },
+];
+static DISPLAY_ORDER: [&str; 18] = [
+    "Grammar",
+    "Rule",
+    "SyntaxRule",
+    "Annotation",
+    "RegexRule",
+    "RegexPreCondition",
+    "RegexPostCondition",
+    "PriorityLevel",
+    "Associativity",
+    "Alternative",
+    "Symbol",
+    "PreCondition",
+    "PostCondition",
+    "Regex",
+    "CharClass",
+    "RangeElement",
+    "Range",
+    "Layout",
+];
+static TERMINALS: [Terminal; 40] = [
+    Terminal { name: "Keyword" },
+    Terminal { name: "NameChar" },
+    Terminal { name: "Identifier" },
+    Terminal { name: "String" },
+    Terminal { name: "Char" },
+    Terminal { name: "EscapeChar" },
+    Terminal { name: "RangeChar" },
+    Terminal { name: "Label" },
+    Terminal { name: "WS" },
+    Terminal { name: "WSChar" },
+    Terminal {
+        name: "LineComment",
+    },
+    Terminal {
+        name: "\"grammar\"",
+    },
+    Terminal { name: "\"=\"" },
+    Terminal { name: "\">\"" },
+    Terminal {
+        name: "\"@NoLayout\"",
+    },
+    Terminal {
+        name: "\"@Layout\"",
+    },
+    Terminal {
+        name: "\"@Identifier\"",
+    },
+    Terminal { name: "\"@Regex\"" },
+    Terminal { name: "\"|\"" },
+    Terminal { name: "\"!<<\"" },
+    Terminal { name: "\"\\\\\"" },
+    Terminal { name: "\"!>>\"" },
+    Terminal { name: "\"left\"" },
+    Terminal { name: "\"right\"" },
+    Terminal { name: "\"none\"" },
+    Terminal { name: "\"(\"" },
+    Terminal { name: "\")\"" },
+    Terminal { name: "\"{\"" },
+    Terminal { name: "\"}\"" },
+    Terminal { name: "\"*\"" },
+    Terminal { name: "\"+\"" },
+    Terminal { name: "\"?\"" },
+    Terminal { name: "\":\"" },
+    Terminal { name: "\"!>>>\"" },
+    Terminal { name: "\"!\"" },
+    Terminal { name: "\"[\"" },
+    Terminal { name: "\"]\"" },
+    Terminal { name: "\"-\"" },
+    Terminal { name: "Epsilon" },
+    Terminal { name: "EOF" },
+];
+static SLOTS: [Slot; 402] = [
+    Slot {
+        display_name: "Grammar : . \"grammar\" Layout name:Identifier Layout Rule*",
+        position: 0,
+    },
+    Slot {
+        display_name: "Grammar : \"grammar\" . Layout name:Identifier Layout Rule*",
+        position: 1,
+    },
+    Slot {
+        display_name: "Grammar : \"grammar\" Layout . name:Identifier Layout Rule*",
+        position: 2,
+    },
+    Slot {
+        display_name: "Grammar : \"grammar\" Layout name:Identifier . Layout Rule*",
+        position: 3,
+    },
+    Slot {
+        display_name: "Grammar : \"grammar\" Layout name:Identifier Layout . Rule*",
+        position: 4,
+    },
+    Slot {
+        display_name: "Grammar : \"grammar\" Layout name:Identifier Layout Rule*.",
+        position: 5,
+    },
+    Slot {
+        display_name: "Rule : . SyntaxRule",
+        position: 0,
+    },
+    Slot {
+        display_name: "Rule : SyntaxRule.",
+        position: 1,
+    },
+    Slot {
+        display_name: "Rule : . RegexRule",
+        position: 0,
+    },
+    Slot {
+        display_name: "Rule : RegexRule.",
+        position: 1,
+    },
+    Slot {
+        display_name: "SyntaxRule : . Annotation? Layout head:Identifier Layout \"=\" Layout {PriorityLevel \">\"}*",
+        position: 0,
+    },
+    Slot {
+        display_name: "SyntaxRule : Annotation? . Layout head:Identifier Layout \"=\" Layout {PriorityLevel \">\"}*",
+        position: 1,
+    },
+    Slot {
+        display_name: "SyntaxRule : Annotation? Layout . head:Identifier Layout \"=\" Layout {PriorityLevel \">\"}*",
+        position: 2,
+    },
+    Slot {
+        display_name: "SyntaxRule : Annotation? Layout head:Identifier . Layout \"=\" Layout {PriorityLevel \">\"}*",
+        position: 3,
+    },
+    Slot {
+        display_name: "SyntaxRule : Annotation? Layout head:Identifier Layout . \"=\" Layout {PriorityLevel \">\"}*",
+        position: 4,
+    },
+    Slot {
+        display_name: "SyntaxRule : Annotation? Layout head:Identifier Layout \"=\" . Layout {PriorityLevel \">\"}*",
+        position: 5,
+    },
+    Slot {
+        display_name: "SyntaxRule : Annotation? Layout head:Identifier Layout \"=\" Layout . {PriorityLevel \">\"}*",
+        position: 6,
+    },
+    Slot {
+        display_name: "SyntaxRule : Annotation? Layout head:Identifier Layout \"=\" Layout {PriorityLevel \">\"}*.",
+        position: 7,
+    },
+    Slot {
+        display_name: "Annotation : . \"@NoLayout\"",
+        position: 0,
+    },
+    Slot {
+        display_name: "Annotation : \"@NoLayout\".",
+        position: 1,
+    },
+    Slot {
+        display_name: "Annotation : . \"@Layout\"",
+        position: 0,
+    },
+    Slot {
+        display_name: "Annotation : \"@Layout\".",
+        position: 1,
+    },
+    Slot {
+        display_name: "RegexRule : . layout:\"@Layout\"? Layout id_annot:\"@Identifier\"? Layout \"@Regex\" Layout Identifier Layout \"=\" Layout RegexPreCondition? Layout body:{Regex+ \"|\"}+ Layout RegexPostCondition*",
+        position: 0,
+    },
+    Slot {
+        display_name: "RegexRule : layout:\"@Layout\"? . Layout id_annot:\"@Identifier\"? Layout \"@Regex\" Layout Identifier Layout \"=\" Layout RegexPreCondition? Layout body:{Regex+ \"|\"}+ Layout RegexPostCondition*",
+        position: 1,
+    },
+    Slot {
+        display_name: "RegexRule : layout:\"@Layout\"? Layout . id_annot:\"@Identifier\"? Layout \"@Regex\" Layout Identifier Layout \"=\" Layout RegexPreCondition? Layout body:{Regex+ \"|\"}+ Layout RegexPostCondition*",
+        position: 2,
+    },
+    Slot {
+        display_name: "RegexRule : layout:\"@Layout\"? Layout id_annot:\"@Identifier\"? . Layout \"@Regex\" Layout Identifier Layout \"=\" Layout RegexPreCondition? Layout body:{Regex+ \"|\"}+ Layout RegexPostCondition*",
+        position: 3,
+    },
+    Slot {
+        display_name: "RegexRule : layout:\"@Layout\"? Layout id_annot:\"@Identifier\"? Layout . \"@Regex\" Layout Identifier Layout \"=\" Layout RegexPreCondition? Layout body:{Regex+ \"|\"}+ Layout RegexPostCondition*",
+        position: 4,
+    },
+    Slot {
+        display_name: "RegexRule : layout:\"@Layout\"? Layout id_annot:\"@Identifier\"? Layout \"@Regex\" . Layout Identifier Layout \"=\" Layout RegexPreCondition? Layout body:{Regex+ \"|\"}+ Layout RegexPostCondition*",
+        position: 5,
+    },
+    Slot {
+        display_name: "RegexRule : layout:\"@Layout\"? Layout id_annot:\"@Identifier\"? Layout \"@Regex\" Layout . Identifier Layout \"=\" Layout RegexPreCondition? Layout body:{Regex+ \"|\"}+ Layout RegexPostCondition*",
+        position: 6,
+    },
+    Slot {
+        display_name: "RegexRule : layout:\"@Layout\"? Layout id_annot:\"@Identifier\"? Layout \"@Regex\" Layout Identifier . Layout \"=\" Layout RegexPreCondition? Layout body:{Regex+ \"|\"}+ Layout RegexPostCondition*",
+        position: 7,
+    },
+    Slot {
+        display_name: "RegexRule : layout:\"@Layout\"? Layout id_annot:\"@Identifier\"? Layout \"@Regex\" Layout Identifier Layout . \"=\" Layout RegexPreCondition? Layout body:{Regex+ \"|\"}+ Layout RegexPostCondition*",
+        position: 8,
+    },
+    Slot {
+        display_name: "RegexRule : layout:\"@Layout\"? Layout id_annot:\"@Identifier\"? Layout \"@Regex\" Layout Identifier Layout \"=\" . Layout RegexPreCondition? Layout body:{Regex+ \"|\"}+ Layout RegexPostCondition*",
+        position: 9,
+    },
+    Slot {
+        display_name: "RegexRule : layout:\"@Layout\"? Layout id_annot:\"@Identifier\"? Layout \"@Regex\" Layout Identifier Layout \"=\" Layout . RegexPreCondition? Layout body:{Regex+ \"|\"}+ Layout RegexPostCondition*",
+        position: 10,
+    },
+    Slot {
+        display_name: "RegexRule : layout:\"@Layout\"? Layout id_annot:\"@Identifier\"? Layout \"@Regex\" Layout Identifier Layout \"=\" Layout RegexPreCondition? . Layout body:{Regex+ \"|\"}+ Layout RegexPostCondition*",
+        position: 11,
+    },
+    Slot {
+        display_name: "RegexRule : layout:\"@Layout\"? Layout id_annot:\"@Identifier\"? Layout \"@Regex\" Layout Identifier Layout \"=\" Layout RegexPreCondition? Layout . body:{Regex+ \"|\"}+ Layout RegexPostCondition*",
+        position: 12,
+    },
+    Slot {
+        display_name: "RegexRule : layout:\"@Layout\"? Layout id_annot:\"@Identifier\"? Layout \"@Regex\" Layout Identifier Layout \"=\" Layout RegexPreCondition? Layout body:{Regex+ \"|\"}+ . Layout RegexPostCondition*",
+        position: 13,
+    },
+    Slot {
+        display_name: "RegexRule : layout:\"@Layout\"? Layout id_annot:\"@Identifier\"? Layout \"@Regex\" Layout Identifier Layout \"=\" Layout RegexPreCondition? Layout body:{Regex+ \"|\"}+ Layout . RegexPostCondition*",
+        position: 14,
+    },
+    Slot {
+        display_name: "RegexRule : layout:\"@Layout\"? Layout id_annot:\"@Identifier\"? Layout \"@Regex\" Layout Identifier Layout \"=\" Layout RegexPreCondition? Layout body:{Regex+ \"|\"}+ Layout RegexPostCondition*.",
+        position: 15,
+    },
+    Slot {
+        display_name: "RegexPreCondition : . Identifier Layout \"!<<\"",
+        position: 0,
+    },
+    Slot {
+        display_name: "RegexPreCondition : Identifier . Layout \"!<<\"",
+        position: 1,
+    },
+    Slot {
+        display_name: "RegexPreCondition : Identifier Layout . \"!<<\"",
+        position: 2,
+    },
+    Slot {
+        display_name: "RegexPreCondition : Identifier Layout \"!<<\".",
+        position: 3,
+    },
+    Slot {
+        display_name: "RegexPostCondition : . \"\\\\\" Layout Identifier",
+        position: 0,
+    },
+    Slot {
+        display_name: "RegexPostCondition : \"\\\\\" . Layout Identifier",
+        position: 1,
+    },
+    Slot {
+        display_name: "RegexPostCondition : \"\\\\\" Layout . Identifier",
+        position: 2,
+    },
+    Slot {
+        display_name: "RegexPostCondition : \"\\\\\" Layout Identifier.",
+        position: 3,
+    },
+    Slot {
+        display_name: "RegexPostCondition : . \"!>>\" Layout Identifier",
+        position: 0,
+    },
+    Slot {
+        display_name: "RegexPostCondition : \"!>>\" . Layout Identifier",
+        position: 1,
+    },
+    Slot {
+        display_name: "RegexPostCondition : \"!>>\" Layout . Identifier",
+        position: 2,
+    },
+    Slot {
+        display_name: "RegexPostCondition : \"!>>\" Layout Identifier.",
+        position: 3,
+    },
+    Slot {
+        display_name: "PriorityLevel : . Associativity? Layout {Alternative \"|\"}*",
+        position: 0,
+    },
+    Slot {
+        display_name: "PriorityLevel : Associativity? . Layout {Alternative \"|\"}*",
+        position: 1,
+    },
+    Slot {
+        display_name: "PriorityLevel : Associativity? Layout . {Alternative \"|\"}*",
+        position: 2,
+    },
+    Slot {
+        display_name: "PriorityLevel : Associativity? Layout {Alternative \"|\"}*.",
+        position: 3,
+    },
+    Slot {
+        display_name: "Associativity : . \"left\"",
+        position: 0,
+    },
+    Slot {
+        display_name: "Associativity : \"left\".",
+        position: 1,
+    },
+    Slot {
+        display_name: "Associativity : . \"right\"",
+        position: 0,
+    },
+    Slot {
+        display_name: "Associativity : \"right\".",
+        position: 1,
+    },
+    Slot {
+        display_name: "Associativity : . \"none\"",
+        position: 0,
+    },
+    Slot {
+        display_name: "Associativity : \"none\".",
+        position: 1,
+    },
+    Slot {
+        display_name: "Alternative : . Symbol+ Layout Label?",
+        position: 0,
+    },
+    Slot {
+        display_name: "Alternative : Symbol+ . Layout Label?",
+        position: 1,
+    },
+    Slot {
+        display_name: "Alternative : Symbol+ Layout . Label?",
+        position: 2,
+    },
+    Slot {
+        display_name: "Alternative : Symbol+ Layout Label?.",
+        position: 3,
+    },
+    Slot {
+        display_name: "Alternative : . \"(\" Layout \")\" Layout Label?",
+        position: 0,
+    },
+    Slot {
+        display_name: "Alternative : \"(\" . Layout \")\" Layout Label?",
+        position: 1,
+    },
+    Slot {
+        display_name: "Alternative : \"(\" Layout . \")\" Layout Label?",
+        position: 2,
+    },
+    Slot {
+        display_name: "Alternative : \"(\" Layout \")\" . Layout Label?",
+        position: 3,
+    },
+    Slot {
+        display_name: "Alternative : \"(\" Layout \")\" Layout . Label?",
+        position: 4,
+    },
+    Slot {
+        display_name: "Alternative : \"(\" Layout \")\" Layout Label?.",
+        position: 5,
+    },
+    Slot {
+        display_name: "PreCondition : . Identifier Layout \"!<<\"",
+        position: 0,
+    },
+    Slot {
+        display_name: "PreCondition : Identifier . Layout \"!<<\"",
+        position: 1,
+    },
+    Slot {
+        display_name: "PreCondition : Identifier Layout . \"!<<\"",
+        position: 2,
+    },
+    Slot {
+        display_name: "PreCondition : Identifier Layout \"!<<\".",
+        position: 3,
+    },
+    Slot {
+        display_name: "PostCondition : . \"\\\\\" Layout Identifier",
+        position: 0,
+    },
+    Slot {
+        display_name: "PostCondition : \"\\\\\" . Layout Identifier",
+        position: 1,
+    },
+    Slot {
+        display_name: "PostCondition : \"\\\\\" Layout . Identifier",
+        position: 2,
+    },
+    Slot {
+        display_name: "PostCondition : \"\\\\\" Layout Identifier.",
+        position: 3,
+    },
+    Slot {
+        display_name: "PostCondition : . \"!>>\" Layout Identifier",
+        position: 0,
+    },
+    Slot {
+        display_name: "PostCondition : \"!>>\" . Layout Identifier",
+        position: 1,
+    },
+    Slot {
+        display_name: "PostCondition : \"!>>\" Layout . Identifier",
+        position: 2,
+    },
+    Slot {
+        display_name: "PostCondition : \"!>>\" Layout Identifier.",
+        position: 3,
+    },
+    Slot {
+        display_name: "PostCondition : . \"!>>>\" Layout Identifier",
+        position: 0,
+    },
+    Slot {
+        display_name: "PostCondition : \"!>>>\" . Layout Identifier",
+        position: 1,
+    },
+    Slot {
+        display_name: "PostCondition : \"!>>>\" Layout . Identifier",
+        position: 2,
+    },
+    Slot {
+        display_name: "PostCondition : \"!>>>\" Layout Identifier.",
+        position: 3,
+    },
+    Slot {
+        display_name: "PostCondition : . \"!\" Layout Identifier",
+        position: 0,
+    },
+    Slot {
+        display_name: "PostCondition : \"!\" . Layout Identifier",
+        position: 1,
+    },
+    Slot {
+        display_name: "PostCondition : \"!\" Layout . Identifier",
+        position: 2,
+    },
+    Slot {
+        display_name: "PostCondition : \"!\" Layout Identifier.",
+        position: 3,
+    },
+    Slot {
+        display_name: "Regex : . Regex Layout \"+\"",
+        position: 0,
+    },
+    Slot {
+        display_name: "Regex : Regex . Layout \"+\"",
+        position: 1,
+    },
+    Slot {
+        display_name: "Regex : Regex Layout . \"+\"",
+        position: 2,
+    },
+    Slot {
+        display_name: "Regex : Regex Layout \"+\".",
+        position: 3,
+    },
+    Slot {
+        display_name: "Regex : . Regex Layout \"*\"",
+        position: 0,
+    },
+    Slot {
+        display_name: "Regex : Regex . Layout \"*\"",
+        position: 1,
+    },
+    Slot {
+        display_name: "Regex : Regex Layout . \"*\"",
+        position: 2,
+    },
+    Slot {
+        display_name: "Regex : Regex Layout \"*\".",
+        position: 3,
+    },
+    Slot {
+        display_name: "Regex : . Regex Layout \"?\"",
+        position: 0,
+    },
+    Slot {
+        display_name: "Regex : Regex . Layout \"?\"",
+        position: 1,
+    },
+    Slot {
+        display_name: "Regex : Regex Layout . \"?\"",
+        position: 2,
+    },
+    Slot {
+        display_name: "Regex : Regex Layout \"?\".",
+        position: 3,
+    },
+    Slot {
+        display_name: "Regex : . \"(\" Layout seqs:{Regex+ \"|\"}+ Layout \")\"",
+        position: 0,
+    },
+    Slot {
+        display_name: "Regex : \"(\" . Layout seqs:{Regex+ \"|\"}+ Layout \")\"",
+        position: 1,
+    },
+    Slot {
+        display_name: "Regex : \"(\" Layout . seqs:{Regex+ \"|\"}+ Layout \")\"",
+        position: 2,
+    },
+    Slot {
+        display_name: "Regex : \"(\" Layout seqs:{Regex+ \"|\"}+ . Layout \")\"",
+        position: 3,
+    },
+    Slot {
+        display_name: "Regex : \"(\" Layout seqs:{Regex+ \"|\"}+ Layout . \")\"",
+        position: 4,
+    },
+    Slot {
+        display_name: "Regex : \"(\" Layout seqs:{Regex+ \"|\"}+ Layout \")\".",
+        position: 5,
+    },
+    Slot {
+        display_name: "Regex : . CharClass",
+        position: 0,
+    },
+    Slot {
+        display_name: "Regex : CharClass.",
+        position: 1,
+    },
+    Slot {
+        display_name: "Regex : . Char",
+        position: 0,
+    },
+    Slot {
+        display_name: "Regex : Char.",
+        position: 1,
+    },
+    Slot {
+        display_name: "Regex : . String",
+        position: 0,
+    },
+    Slot {
+        display_name: "Regex : String.",
+        position: 1,
+    },
+    Slot {
+        display_name: "Regex : . Identifier",
+        position: 0,
+    },
+    Slot {
+        display_name: "Regex : Identifier.",
+        position: 1,
+    },
+    Slot {
+        display_name: "CharClass : . neg:\"!\"? Layout \"[\" Layout RangeElement+ Layout \"]\"",
+        position: 0,
+    },
+    Slot {
+        display_name: "CharClass : neg:\"!\"? . Layout \"[\" Layout RangeElement+ Layout \"]\"",
+        position: 1,
+    },
+    Slot {
+        display_name: "CharClass : neg:\"!\"? Layout . \"[\" Layout RangeElement+ Layout \"]\"",
+        position: 2,
+    },
+    Slot {
+        display_name: "CharClass : neg:\"!\"? Layout \"[\" . Layout RangeElement+ Layout \"]\"",
+        position: 3,
+    },
+    Slot {
+        display_name: "CharClass : neg:\"!\"? Layout \"[\" Layout . RangeElement+ Layout \"]\"",
+        position: 4,
+    },
+    Slot {
+        display_name: "CharClass : neg:\"!\"? Layout \"[\" Layout RangeElement+ . Layout \"]\"",
+        position: 5,
+    },
+    Slot {
+        display_name: "CharClass : neg:\"!\"? Layout \"[\" Layout RangeElement+ Layout . \"]\"",
+        position: 6,
+    },
+    Slot {
+        display_name: "CharClass : neg:\"!\"? Layout \"[\" Layout RangeElement+ Layout \"]\".",
+        position: 7,
+    },
+    Slot {
+        display_name: "RangeElement : . Range",
+        position: 0,
+    },
+    Slot {
+        display_name: "RangeElement : Range.",
+        position: 1,
+    },
+    Slot {
+        display_name: "RangeElement : . RangeChar",
+        position: 0,
+    },
+    Slot {
+        display_name: "RangeElement : RangeChar.",
+        position: 1,
+    },
+    Slot {
+        display_name: "Range : . start:RangeChar Layout \"-\" Layout end:RangeChar",
+        position: 0,
+    },
+    Slot {
+        display_name: "Range : start:RangeChar . Layout \"-\" Layout end:RangeChar",
+        position: 1,
+    },
+    Slot {
+        display_name: "Range : start:RangeChar Layout . \"-\" Layout end:RangeChar",
+        position: 2,
+    },
+    Slot {
+        display_name: "Range : start:RangeChar Layout \"-\" . Layout end:RangeChar",
+        position: 3,
+    },
+    Slot {
+        display_name: "Range : start:RangeChar Layout \"-\" Layout . end:RangeChar",
+        position: 4,
+    },
+    Slot {
+        display_name: "Range : start:RangeChar Layout \"-\" Layout end:RangeChar.",
+        position: 5,
+    },
+    Slot {
+        display_name: "Layout : . (WS | LineComment)* !>> WS !>> LineComment",
+        position: 0,
+    },
+    Slot {
+        display_name: "Layout : (WS | LineComment)* !>> WS !>> LineComment.",
+        position: 1,
+    },
+    Slot {
+        display_name: "Rule+ : . Rule+ Layout Rule",
+        position: 0,
+    },
+    Slot {
+        display_name: "Rule+ : Rule+ . Layout Rule",
+        position: 1,
+    },
+    Slot {
+        display_name: "Rule+ : Rule+ Layout . Rule",
+        position: 2,
+    },
+    Slot {
+        display_name: "Rule+ : Rule+ Layout Rule.",
+        position: 3,
+    },
+    Slot {
+        display_name: "Rule+ : . Rule",
+        position: 0,
+    },
+    Slot {
+        display_name: "Rule+ : Rule.",
+        position: 1,
+    },
+    Slot {
+        display_name: "Rule* : . Rule+",
+        position: 0,
+    },
+    Slot {
+        display_name: "Rule* : Rule+.",
+        position: 1,
+    },
+    Slot {
+        display_name: "Rule* : .",
+        position: 0,
+    },
+    Slot {
+        display_name: "Annotation? : . Annotation",
+        position: 0,
+    },
+    Slot {
+        display_name: "Annotation? : Annotation.",
+        position: 1,
+    },
+    Slot {
+        display_name: "Annotation? : .",
+        position: 0,
+    },
+    Slot {
+        display_name: "{PriorityLevel \">\"}+ : . {PriorityLevel \">\"}+ Layout \">\" Layout PriorityLevel",
+        position: 0,
+    },
+    Slot {
+        display_name: "{PriorityLevel \">\"}+ : {PriorityLevel \">\"}+ . Layout \">\" Layout PriorityLevel",
+        position: 1,
+    },
+    Slot {
+        display_name: "{PriorityLevel \">\"}+ : {PriorityLevel \">\"}+ Layout . \">\" Layout PriorityLevel",
+        position: 2,
+    },
+    Slot {
+        display_name: "{PriorityLevel \">\"}+ : {PriorityLevel \">\"}+ Layout \">\" . Layout PriorityLevel",
+        position: 3,
+    },
+    Slot {
+        display_name: "{PriorityLevel \">\"}+ : {PriorityLevel \">\"}+ Layout \">\" Layout . PriorityLevel",
+        position: 4,
+    },
+    Slot {
+        display_name: "{PriorityLevel \">\"}+ : {PriorityLevel \">\"}+ Layout \">\" Layout PriorityLevel.",
+        position: 5,
+    },
+    Slot {
+        display_name: "{PriorityLevel \">\"}+ : . PriorityLevel",
+        position: 0,
+    },
+    Slot {
+        display_name: "{PriorityLevel \">\"}+ : PriorityLevel.",
+        position: 1,
+    },
+    Slot {
+        display_name: "{PriorityLevel \">\"}* : . {PriorityLevel \">\"}+",
+        position: 0,
+    },
+    Slot {
+        display_name: "{PriorityLevel \">\"}* : {PriorityLevel \">\"}+.",
+        position: 1,
+    },
+    Slot {
+        display_name: "{PriorityLevel \">\"}* : .",
+        position: 0,
+    },
+    Slot {
+        display_name: "\"@Layout\"? : . \"@Layout\"",
+        position: 0,
+    },
+    Slot {
+        display_name: "\"@Layout\"? : \"@Layout\".",
+        position: 1,
+    },
+    Slot {
+        display_name: "\"@Layout\"? : .",
+        position: 0,
+    },
+    Slot {
+        display_name: "\"@Identifier\"? : . \"@Identifier\"",
+        position: 0,
+    },
+    Slot {
+        display_name: "\"@Identifier\"? : \"@Identifier\".",
+        position: 1,
+    },
+    Slot {
+        display_name: "\"@Identifier\"? : .",
+        position: 0,
+    },
+    Slot {
+        display_name: "RegexPreCondition? : . RegexPreCondition",
+        position: 0,
+    },
+    Slot {
+        display_name: "RegexPreCondition? : RegexPreCondition.",
+        position: 1,
+    },
+    Slot {
+        display_name: "RegexPreCondition? : .",
+        position: 0,
+    },
+    Slot {
+        display_name: "Regex+ : . Regex+ Layout Regex",
+        position: 0,
+    },
+    Slot {
+        display_name: "Regex+ : Regex+ . Layout Regex",
+        position: 1,
+    },
+    Slot {
+        display_name: "Regex+ : Regex+ Layout . Regex",
+        position: 2,
+    },
+    Slot {
+        display_name: "Regex+ : Regex+ Layout Regex.",
+        position: 3,
+    },
+    Slot {
+        display_name: "Regex+ : . Regex",
+        position: 0,
+    },
+    Slot {
+        display_name: "Regex+ : Regex.",
+        position: 1,
+    },
+    Slot {
+        display_name: "{Regex+ \"|\"}+ : . {Regex+ \"|\"}+ Layout \"|\" Layout Regex+",
+        position: 0,
+    },
+    Slot {
+        display_name: "{Regex+ \"|\"}+ : {Regex+ \"|\"}+ . Layout \"|\" Layout Regex+",
+        position: 1,
+    },
+    Slot {
+        display_name: "{Regex+ \"|\"}+ : {Regex+ \"|\"}+ Layout . \"|\" Layout Regex+",
+        position: 2,
+    },
+    Slot {
+        display_name: "{Regex+ \"|\"}+ : {Regex+ \"|\"}+ Layout \"|\" . Layout Regex+",
+        position: 3,
+    },
+    Slot {
+        display_name: "{Regex+ \"|\"}+ : {Regex+ \"|\"}+ Layout \"|\" Layout . Regex+",
+        position: 4,
+    },
+    Slot {
+        display_name: "{Regex+ \"|\"}+ : {Regex+ \"|\"}+ Layout \"|\" Layout Regex+.",
+        position: 5,
+    },
+    Slot {
+        display_name: "{Regex+ \"|\"}+ : . Regex+",
+        position: 0,
+    },
+    Slot {
+        display_name: "{Regex+ \"|\"}+ : Regex+.",
+        position: 1,
+    },
+    Slot {
+        display_name: "RegexPostCondition+ : . RegexPostCondition+ Layout RegexPostCondition",
+        position: 0,
+    },
+    Slot {
+        display_name: "RegexPostCondition+ : RegexPostCondition+ . Layout RegexPostCondition",
+        position: 1,
+    },
+    Slot {
+        display_name: "RegexPostCondition+ : RegexPostCondition+ Layout . RegexPostCondition",
+        position: 2,
+    },
+    Slot {
+        display_name: "RegexPostCondition+ : RegexPostCondition+ Layout RegexPostCondition.",
+        position: 3,
+    },
+    Slot {
+        display_name: "RegexPostCondition+ : . RegexPostCondition",
+        position: 0,
+    },
+    Slot {
+        display_name: "RegexPostCondition+ : RegexPostCondition.",
+        position: 1,
+    },
+    Slot {
+        display_name: "RegexPostCondition* : . RegexPostCondition+",
+        position: 0,
+    },
+    Slot {
+        display_name: "RegexPostCondition* : RegexPostCondition+.",
+        position: 1,
+    },
+    Slot {
+        display_name: "RegexPostCondition* : .",
+        position: 0,
+    },
+    Slot {
+        display_name: "Associativity? : . Associativity",
+        position: 0,
+    },
+    Slot {
+        display_name: "Associativity? : Associativity.",
+        position: 1,
+    },
+    Slot {
+        display_name: "Associativity? : .",
+        position: 0,
+    },
+    Slot {
+        display_name: "{Alternative \"|\"}+ : . {Alternative \"|\"}+ Layout \"|\" Layout Alternative",
+        position: 0,
+    },
+    Slot {
+        display_name: "{Alternative \"|\"}+ : {Alternative \"|\"}+ . Layout \"|\" Layout Alternative",
+        position: 1,
+    },
+    Slot {
+        display_name: "{Alternative \"|\"}+ : {Alternative \"|\"}+ Layout . \"|\" Layout Alternative",
+        position: 2,
+    },
+    Slot {
+        display_name: "{Alternative \"|\"}+ : {Alternative \"|\"}+ Layout \"|\" . Layout Alternative",
+        position: 3,
+    },
+    Slot {
+        display_name: "{Alternative \"|\"}+ : {Alternative \"|\"}+ Layout \"|\" Layout . Alternative",
+        position: 4,
+    },
+    Slot {
+        display_name: "{Alternative \"|\"}+ : {Alternative \"|\"}+ Layout \"|\" Layout Alternative.",
+        position: 5,
+    },
+    Slot {
+        display_name: "{Alternative \"|\"}+ : . Alternative",
+        position: 0,
+    },
+    Slot {
+        display_name: "{Alternative \"|\"}+ : Alternative.",
+        position: 1,
+    },
+    Slot {
+        display_name: "{Alternative \"|\"}* : . {Alternative \"|\"}+",
+        position: 0,
+    },
+    Slot {
+        display_name: "{Alternative \"|\"}* : {Alternative \"|\"}+.",
+        position: 1,
+    },
+    Slot {
+        display_name: "{Alternative \"|\"}* : .",
+        position: 0,
+    },
+    Slot {
+        display_name: "Symbol+ : . Symbol+ Layout Symbol(0)",
+        position: 0,
+    },
+    Slot {
+        display_name: "Symbol+ : Symbol+ . Layout Symbol(0)",
+        position: 1,
+    },
+    Slot {
+        display_name: "Symbol+ : Symbol+ Layout . Symbol(0)",
+        position: 2,
+    },
+    Slot {
+        display_name: "Symbol+ : Symbol+ Layout Symbol(0).",
+        position: 3,
+    },
+    Slot {
+        display_name: "Symbol+ : . Symbol(0)",
+        position: 0,
+    },
+    Slot {
+        display_name: "Symbol+ : Symbol(0).",
+        position: 1,
+    },
+    Slot {
+        display_name: "Label? : . Label",
+        position: 0,
+    },
+    Slot {
+        display_name: "Label? : Label.",
+        position: 1,
+    },
+    Slot {
+        display_name: "Label? : .",
+        position: 0,
+    },
+    Slot {
+        display_name: "{Symbol+ \"|\"}+ : . {Symbol+ \"|\"}+ Layout \"|\" Layout Symbol+",
+        position: 0,
+    },
+    Slot {
+        display_name: "{Symbol+ \"|\"}+ : {Symbol+ \"|\"}+ . Layout \"|\" Layout Symbol+",
+        position: 1,
+    },
+    Slot {
+        display_name: "{Symbol+ \"|\"}+ : {Symbol+ \"|\"}+ Layout . \"|\" Layout Symbol+",
+        position: 2,
+    },
+    Slot {
+        display_name: "{Symbol+ \"|\"}+ : {Symbol+ \"|\"}+ Layout \"|\" . Layout Symbol+",
+        position: 3,
+    },
+    Slot {
+        display_name: "{Symbol+ \"|\"}+ : {Symbol+ \"|\"}+ Layout \"|\" Layout . Symbol+",
+        position: 4,
+    },
+    Slot {
+        display_name: "{Symbol+ \"|\"}+ : {Symbol+ \"|\"}+ Layout \"|\" Layout Symbol+.",
+        position: 5,
+    },
+    Slot {
+        display_name: "{Symbol+ \"|\"}+ : . Symbol+",
+        position: 0,
+    },
+    Slot {
+        display_name: "{Symbol+ \"|\"}+ : Symbol+.",
+        position: 1,
+    },
+    Slot {
+        display_name: "PostCondition+ : . PostCondition+ Layout PostCondition",
+        position: 0,
+    },
+    Slot {
+        display_name: "PostCondition+ : PostCondition+ . Layout PostCondition",
+        position: 1,
+    },
+    Slot {
+        display_name: "PostCondition+ : PostCondition+ Layout . PostCondition",
+        position: 2,
+    },
+    Slot {
+        display_name: "PostCondition+ : PostCondition+ Layout PostCondition.",
+        position: 3,
+    },
+    Slot {
+        display_name: "PostCondition+ : . PostCondition",
+        position: 0,
+    },
+    Slot {
+        display_name: "PostCondition+ : PostCondition.",
+        position: 1,
+    },
+    Slot {
+        display_name: "PreCondition+ : . PreCondition+ Layout PreCondition",
+        position: 0,
+    },
+    Slot {
+        display_name: "PreCondition+ : PreCondition+ . Layout PreCondition",
+        position: 1,
+    },
+    Slot {
+        display_name: "PreCondition+ : PreCondition+ Layout . PreCondition",
+        position: 2,
+    },
+    Slot {
+        display_name: "PreCondition+ : PreCondition+ Layout PreCondition.",
+        position: 3,
+    },
+    Slot {
+        display_name: "PreCondition+ : . PreCondition",
+        position: 0,
+    },
+    Slot {
+        display_name: "PreCondition+ : PreCondition.",
+        position: 1,
+    },
+    Slot {
+        display_name: "\"!\"? : . \"!\"",
+        position: 0,
+    },
+    Slot {
+        display_name: "\"!\"? : \"!\".",
+        position: 1,
+    },
+    Slot {
+        display_name: "\"!\"? : .",
+        position: 0,
+    },
+    Slot {
+        display_name: "RangeElement+ : . RangeElement+ Layout RangeElement",
+        position: 0,
+    },
+    Slot {
+        display_name: "RangeElement+ : RangeElement+ . Layout RangeElement",
+        position: 1,
+    },
+    Slot {
+        display_name: "RangeElement+ : RangeElement+ Layout . RangeElement",
+        position: 2,
+    },
+    Slot {
+        display_name: "RangeElement+ : RangeElement+ Layout RangeElement.",
+        position: 3,
+    },
+    Slot {
+        display_name: "RangeElement+ : . RangeElement",
+        position: 0,
+    },
+    Slot {
+        display_name: "RangeElement+ : RangeElement.",
+        position: 1,
+    },
+    Slot {
+        display_name: "(WS | LineComment) : . WS",
+        position: 0,
+    },
+    Slot {
+        display_name: "(WS | LineComment) : WS.",
+        position: 1,
+    },
+    Slot {
+        display_name: "(WS | LineComment) : . LineComment",
+        position: 0,
+    },
+    Slot {
+        display_name: "(WS | LineComment) : LineComment.",
+        position: 1,
+    },
+    Slot {
+        display_name: "(WS | LineComment)+ : . (WS | LineComment)+ (WS | LineComment)",
+        position: 0,
+    },
+    Slot {
+        display_name: "(WS | LineComment)+ : (WS | LineComment)+ . (WS | LineComment)",
+        position: 1,
+    },
+    Slot {
+        display_name: "(WS | LineComment)+ : (WS | LineComment)+ (WS | LineComment).",
+        position: 2,
+    },
+    Slot {
+        display_name: "(WS | LineComment)+ : . (WS | LineComment)",
+        position: 0,
+    },
+    Slot {
+        display_name: "(WS | LineComment)+ : (WS | LineComment).",
+        position: 1,
+    },
+    Slot {
+        display_name: "(WS | LineComment)* : . (WS | LineComment)+",
+        position: 0,
+    },
+    Slot {
+        display_name: "(WS | LineComment)* : (WS | LineComment)+.",
+        position: 1,
+    },
+    Slot {
+        display_name: "(WS | LineComment)* : .",
+        position: 0,
+    },
+    Slot {
+        display_name: "Grammar : . Layout start:Grammar Layout",
+        position: 0,
+    },
+    Slot {
+        display_name: "Grammar : Layout . start:Grammar Layout",
+        position: 1,
+    },
+    Slot {
+        display_name: "Grammar : Layout start:Grammar . Layout",
+        position: 2,
+    },
+    Slot {
+        display_name: "Grammar : Layout start:Grammar Layout.",
+        position: 3,
+    },
+    Slot {
+        display_name: "Rule : . Layout start:Rule Layout",
+        position: 0,
+    },
+    Slot {
+        display_name: "Rule : Layout . start:Rule Layout",
+        position: 1,
+    },
+    Slot {
+        display_name: "Rule : Layout start:Rule . Layout",
+        position: 2,
+    },
+    Slot {
+        display_name: "Rule : Layout start:Rule Layout.",
+        position: 3,
+    },
+    Slot {
+        display_name: "SyntaxRule : . Layout start:SyntaxRule Layout",
+        position: 0,
+    },
+    Slot {
+        display_name: "SyntaxRule : Layout . start:SyntaxRule Layout",
+        position: 1,
+    },
+    Slot {
+        display_name: "SyntaxRule : Layout start:SyntaxRule . Layout",
+        position: 2,
+    },
+    Slot {
+        display_name: "SyntaxRule : Layout start:SyntaxRule Layout.",
+        position: 3,
+    },
+    Slot {
+        display_name: "Annotation : . Layout start:Annotation Layout",
+        position: 0,
+    },
+    Slot {
+        display_name: "Annotation : Layout . start:Annotation Layout",
+        position: 1,
+    },
+    Slot {
+        display_name: "Annotation : Layout start:Annotation . Layout",
+        position: 2,
+    },
+    Slot {
+        display_name: "Annotation : Layout start:Annotation Layout.",
+        position: 3,
+    },
+    Slot {
+        display_name: "RegexRule : . Layout start:RegexRule Layout",
+        position: 0,
+    },
+    Slot {
+        display_name: "RegexRule : Layout . start:RegexRule Layout",
+        position: 1,
+    },
+    Slot {
+        display_name: "RegexRule : Layout start:RegexRule . Layout",
+        position: 2,
+    },
+    Slot {
+        display_name: "RegexRule : Layout start:RegexRule Layout.",
+        position: 3,
+    },
+    Slot {
+        display_name: "RegexPreCondition : . Layout start:RegexPreCondition Layout",
+        position: 0,
+    },
+    Slot {
+        display_name: "RegexPreCondition : Layout . start:RegexPreCondition Layout",
+        position: 1,
+    },
+    Slot {
+        display_name: "RegexPreCondition : Layout start:RegexPreCondition . Layout",
+        position: 2,
+    },
+    Slot {
+        display_name: "RegexPreCondition : Layout start:RegexPreCondition Layout.",
+        position: 3,
+    },
+    Slot {
+        display_name: "RegexPostCondition : . Layout start:RegexPostCondition Layout",
+        position: 0,
+    },
+    Slot {
+        display_name: "RegexPostCondition : Layout . start:RegexPostCondition Layout",
+        position: 1,
+    },
+    Slot {
+        display_name: "RegexPostCondition : Layout start:RegexPostCondition . Layout",
+        position: 2,
+    },
+    Slot {
+        display_name: "RegexPostCondition : Layout start:RegexPostCondition Layout.",
+        position: 3,
+    },
+    Slot {
+        display_name: "PriorityLevel : . Layout start:PriorityLevel Layout",
+        position: 0,
+    },
+    Slot {
+        display_name: "PriorityLevel : Layout . start:PriorityLevel Layout",
+        position: 1,
+    },
+    Slot {
+        display_name: "PriorityLevel : Layout start:PriorityLevel . Layout",
+        position: 2,
+    },
+    Slot {
+        display_name: "PriorityLevel : Layout start:PriorityLevel Layout.",
+        position: 3,
+    },
+    Slot {
+        display_name: "Associativity : . Layout start:Associativity Layout",
+        position: 0,
+    },
+    Slot {
+        display_name: "Associativity : Layout . start:Associativity Layout",
+        position: 1,
+    },
+    Slot {
+        display_name: "Associativity : Layout start:Associativity . Layout",
+        position: 2,
+    },
+    Slot {
+        display_name: "Associativity : Layout start:Associativity Layout.",
+        position: 3,
+    },
+    Slot {
+        display_name: "Alternative : . Layout start:Alternative Layout",
+        position: 0,
+    },
+    Slot {
+        display_name: "Alternative : Layout . start:Alternative Layout",
+        position: 1,
+    },
+    Slot {
+        display_name: "Alternative : Layout start:Alternative . Layout",
+        position: 2,
+    },
+    Slot {
+        display_name: "Alternative : Layout start:Alternative Layout.",
+        position: 3,
+    },
+    Slot {
+        display_name: "Symbol(0) : . Layout start:Symbol(0) Layout",
+        position: 0,
+    },
+    Slot {
+        display_name: "Symbol(0) : Layout . start:Symbol(0) Layout",
+        position: 1,
+    },
+    Slot {
+        display_name: "Symbol(0) : Layout start:Symbol(0) . Layout",
+        position: 2,
+    },
+    Slot {
+        display_name: "Symbol(0) : Layout start:Symbol(0) Layout.",
+        position: 3,
+    },
+    Slot {
+        display_name: "PreCondition : . Layout start:PreCondition Layout",
+        position: 0,
+    },
+    Slot {
+        display_name: "PreCondition : Layout . start:PreCondition Layout",
+        position: 1,
+    },
+    Slot {
+        display_name: "PreCondition : Layout start:PreCondition . Layout",
+        position: 2,
+    },
+    Slot {
+        display_name: "PreCondition : Layout start:PreCondition Layout.",
+        position: 3,
+    },
+    Slot {
+        display_name: "PostCondition : . Layout start:PostCondition Layout",
+        position: 0,
+    },
+    Slot {
+        display_name: "PostCondition : Layout . start:PostCondition Layout",
+        position: 1,
+    },
+    Slot {
+        display_name: "PostCondition : Layout start:PostCondition . Layout",
+        position: 2,
+    },
+    Slot {
+        display_name: "PostCondition : Layout start:PostCondition Layout.",
+        position: 3,
+    },
+    Slot {
+        display_name: "Regex : . Layout start:Regex Layout",
+        position: 0,
+    },
+    Slot {
+        display_name: "Regex : Layout . start:Regex Layout",
+        position: 1,
+    },
+    Slot {
+        display_name: "Regex : Layout start:Regex . Layout",
+        position: 2,
+    },
+    Slot {
+        display_name: "Regex : Layout start:Regex Layout.",
+        position: 3,
+    },
+    Slot {
+        display_name: "CharClass : . Layout start:CharClass Layout",
+        position: 0,
+    },
+    Slot {
+        display_name: "CharClass : Layout . start:CharClass Layout",
+        position: 1,
+    },
+    Slot {
+        display_name: "CharClass : Layout start:CharClass . Layout",
+        position: 2,
+    },
+    Slot {
+        display_name: "CharClass : Layout start:CharClass Layout.",
+        position: 3,
+    },
+    Slot {
+        display_name: "RangeElement : . Layout start:RangeElement Layout",
+        position: 0,
+    },
+    Slot {
+        display_name: "RangeElement : Layout . start:RangeElement Layout",
+        position: 1,
+    },
+    Slot {
+        display_name: "RangeElement : Layout start:RangeElement . Layout",
+        position: 2,
+    },
+    Slot {
+        display_name: "RangeElement : Layout start:RangeElement Layout.",
+        position: 3,
+    },
+    Slot {
+        display_name: "Range : . Layout start:Range Layout",
+        position: 0,
+    },
+    Slot {
+        display_name: "Range : Layout . start:Range Layout",
+        position: 1,
+    },
+    Slot {
+        display_name: "Range : Layout start:Range . Layout",
+        position: 2,
+    },
+    Slot {
+        display_name: "Range : Layout start:Range Layout.",
+        position: 3,
+    },
+    Slot {
+        display_name: "Layout : . start:Layout",
+        position: 0,
+    },
+    Slot {
+        display_name: "Layout : start:Layout.",
+        position: 1,
+    },
+    Slot {
+        display_name: "Symbol : . Identifier return (0, 0)",
+        position: 0,
+    },
+    Slot {
+        display_name: "Symbol : Identifier . return (0, 0)",
+        position: 1,
+    },
+    Slot {
+        display_name: "Symbol : Identifier return (0, 0).",
+        position: 2,
+    },
+    Slot {
+        display_name: "Symbol : . \"(\" Layout seqs:{Symbol+ \"|\"}+ Layout \")\" return (0, 1)",
+        position: 0,
+    },
+    Slot {
+        display_name: "Symbol : \"(\" . Layout seqs:{Symbol+ \"|\"}+ Layout \")\" return (0, 1)",
+        position: 1,
+    },
+    Slot {
+        display_name: "Symbol : \"(\" Layout . seqs:{Symbol+ \"|\"}+ Layout \")\" return (0, 1)",
+        position: 2,
+    },
+    Slot {
+        display_name: "Symbol : \"(\" Layout seqs:{Symbol+ \"|\"}+ . Layout \")\" return (0, 1)",
+        position: 3,
+    },
+    Slot {
+        display_name: "Symbol : \"(\" Layout seqs:{Symbol+ \"|\"}+ Layout . \")\" return (0, 1)",
+        position: 4,
+    },
+    Slot {
+        display_name: "Symbol : \"(\" Layout seqs:{Symbol+ \"|\"}+ Layout \")\" . return (0, 1)",
+        position: 5,
+    },
+    Slot {
+        display_name: "Symbol : \"(\" Layout seqs:{Symbol+ \"|\"}+ Layout \")\" return (0, 1).",
+        position: 6,
+    },
+    Slot {
+        display_name: "Symbol : . String return (0, 2)",
+        position: 0,
+    },
+    Slot {
+        display_name: "Symbol : String . return (0, 2)",
+        position: 1,
+    },
+    Slot {
+        display_name: "Symbol : String return (0, 2).",
+        position: 2,
+    },
+    Slot {
+        display_name: "Symbol : . \"{\" Layout symbol:Symbol(0) Layout sep:Symbol(0) Layout \"}\" Layout \"*\" return (0, 3)",
+        position: 0,
+    },
+    Slot {
+        display_name: "Symbol : \"{\" . Layout symbol:Symbol(0) Layout sep:Symbol(0) Layout \"}\" Layout \"*\" return (0, 3)",
+        position: 1,
+    },
+    Slot {
+        display_name: "Symbol : \"{\" Layout . symbol:Symbol(0) Layout sep:Symbol(0) Layout \"}\" Layout \"*\" return (0, 3)",
+        position: 2,
+    },
+    Slot {
+        display_name: "Symbol : \"{\" Layout symbol:Symbol(0) . Layout sep:Symbol(0) Layout \"}\" Layout \"*\" return (0, 3)",
+        position: 3,
+    },
+    Slot {
+        display_name: "Symbol : \"{\" Layout symbol:Symbol(0) Layout . sep:Symbol(0) Layout \"}\" Layout \"*\" return (0, 3)",
+        position: 4,
+    },
+    Slot {
+        display_name: "Symbol : \"{\" Layout symbol:Symbol(0) Layout sep:Symbol(0) . Layout \"}\" Layout \"*\" return (0, 3)",
+        position: 5,
+    },
+    Slot {
+        display_name: "Symbol : \"{\" Layout symbol:Symbol(0) Layout sep:Symbol(0) Layout . \"}\" Layout \"*\" return (0, 3)",
+        position: 6,
+    },
+    Slot {
+        display_name: "Symbol : \"{\" Layout symbol:Symbol(0) Layout sep:Symbol(0) Layout \"}\" . Layout \"*\" return (0, 3)",
+        position: 7,
+    },
+    Slot {
+        display_name: "Symbol : \"{\" Layout symbol:Symbol(0) Layout sep:Symbol(0) Layout \"}\" Layout . \"*\" return (0, 3)",
+        position: 8,
+    },
+    Slot {
+        display_name: "Symbol : \"{\" Layout symbol:Symbol(0) Layout sep:Symbol(0) Layout \"}\" Layout \"*\" . return (0, 3)",
+        position: 9,
+    },
+    Slot {
+        display_name: "Symbol : \"{\" Layout symbol:Symbol(0) Layout sep:Symbol(0) Layout \"}\" Layout \"*\" return (0, 3).",
+        position: 10,
+    },
+    Slot {
+        display_name: "Symbol : . \"{\" Layout symbol:Symbol(0) Layout sep:Symbol(0) Layout \"}\" Layout \"+\" return (0, 4)",
+        position: 0,
+    },
+    Slot {
+        display_name: "Symbol : \"{\" . Layout symbol:Symbol(0) Layout sep:Symbol(0) Layout \"}\" Layout \"+\" return (0, 4)",
+        position: 1,
+    },
+    Slot {
+        display_name: "Symbol : \"{\" Layout . symbol:Symbol(0) Layout sep:Symbol(0) Layout \"}\" Layout \"+\" return (0, 4)",
+        position: 2,
+    },
+    Slot {
+        display_name: "Symbol : \"{\" Layout symbol:Symbol(0) . Layout sep:Symbol(0) Layout \"}\" Layout \"+\" return (0, 4)",
+        position: 3,
+    },
+    Slot {
+        display_name: "Symbol : \"{\" Layout symbol:Symbol(0) Layout . sep:Symbol(0) Layout \"}\" Layout \"+\" return (0, 4)",
+        position: 4,
+    },
+    Slot {
+        display_name: "Symbol : \"{\" Layout symbol:Symbol(0) Layout sep:Symbol(0) . Layout \"}\" Layout \"+\" return (0, 4)",
+        position: 5,
+    },
+    Slot {
+        display_name: "Symbol : \"{\" Layout symbol:Symbol(0) Layout sep:Symbol(0) Layout . \"}\" Layout \"+\" return (0, 4)",
+        position: 6,
+    },
+    Slot {
+        display_name: "Symbol : \"{\" Layout symbol:Symbol(0) Layout sep:Symbol(0) Layout \"}\" . Layout \"+\" return (0, 4)",
+        position: 7,
+    },
+    Slot {
+        display_name: "Symbol : \"{\" Layout symbol:Symbol(0) Layout sep:Symbol(0) Layout \"}\" Layout . \"+\" return (0, 4)",
+        position: 8,
+    },
+    Slot {
+        display_name: "Symbol : \"{\" Layout symbol:Symbol(0) Layout sep:Symbol(0) Layout \"}\" Layout \"+\" . return (0, 4)",
+        position: 9,
+    },
+    Slot {
+        display_name: "Symbol : \"{\" Layout symbol:Symbol(0) Layout sep:Symbol(0) Layout \"}\" Layout \"+\" return (0, 4).",
+        position: 10,
+    },
+    Slot {
+        display_name: "Symbol : . [3 >= p] (l_pr, l_label)=Symbol(p) [(l_pr == 0) || (l_pr >= 3)] Layout \"*\" return (0, 5)",
+        position: 0,
+    },
+    Slot {
+        display_name: "Symbol : [3 >= p] . (l_pr, l_label)=Symbol(p) [(l_pr == 0) || (l_pr >= 3)] Layout \"*\" return (0, 5)",
+        position: 1,
+    },
+    Slot {
+        display_name: "Symbol : [3 >= p] (l_pr, l_label)=Symbol(p) . [(l_pr == 0) || (l_pr >= 3)] Layout \"*\" return (0, 5)",
+        position: 2,
+    },
+    Slot {
+        display_name: "Symbol : [3 >= p] (l_pr, l_label)=Symbol(p) [(l_pr == 0) || (l_pr >= 3)] . Layout \"*\" return (0, 5)",
+        position: 3,
+    },
+    Slot {
+        display_name: "Symbol : [3 >= p] (l_pr, l_label)=Symbol(p) [(l_pr == 0) || (l_pr >= 3)] Layout . \"*\" return (0, 5)",
+        position: 4,
+    },
+    Slot {
+        display_name: "Symbol : [3 >= p] (l_pr, l_label)=Symbol(p) [(l_pr == 0) || (l_pr >= 3)] Layout \"*\" . return (0, 5)",
+        position: 5,
+    },
+    Slot {
+        display_name: "Symbol : [3 >= p] (l_pr, l_label)=Symbol(p) [(l_pr == 0) || (l_pr >= 3)] Layout \"*\" return (0, 5).",
+        position: 6,
+    },
+    Slot {
+        display_name: "Symbol : . [3 >= p] (l_pr, l_label)=Symbol(p) [(l_pr == 0) || (l_pr >= 3)] Layout \"+\" return (0, 6)",
+        position: 0,
+    },
+    Slot {
+        display_name: "Symbol : [3 >= p] . (l_pr, l_label)=Symbol(p) [(l_pr == 0) || (l_pr >= 3)] Layout \"+\" return (0, 6)",
+        position: 1,
+    },
+    Slot {
+        display_name: "Symbol : [3 >= p] (l_pr, l_label)=Symbol(p) . [(l_pr == 0) || (l_pr >= 3)] Layout \"+\" return (0, 6)",
+        position: 2,
+    },
+    Slot {
+        display_name: "Symbol : [3 >= p] (l_pr, l_label)=Symbol(p) [(l_pr == 0) || (l_pr >= 3)] . Layout \"+\" return (0, 6)",
+        position: 3,
+    },
+    Slot {
+        display_name: "Symbol : [3 >= p] (l_pr, l_label)=Symbol(p) [(l_pr == 0) || (l_pr >= 3)] Layout . \"+\" return (0, 6)",
+        position: 4,
+    },
+    Slot {
+        display_name: "Symbol : [3 >= p] (l_pr, l_label)=Symbol(p) [(l_pr == 0) || (l_pr >= 3)] Layout \"+\" . return (0, 6)",
+        position: 5,
+    },
+    Slot {
+        display_name: "Symbol : [3 >= p] (l_pr, l_label)=Symbol(p) [(l_pr == 0) || (l_pr >= 3)] Layout \"+\" return (0, 6).",
+        position: 6,
+    },
+    Slot {
+        display_name: "Symbol : . [3 >= p] (l_pr, l_label)=Symbol(p) [(l_pr == 0) || (l_pr >= 3)] Layout \"?\" return (0, 7)",
+        position: 0,
+    },
+    Slot {
+        display_name: "Symbol : [3 >= p] . (l_pr, l_label)=Symbol(p) [(l_pr == 0) || (l_pr >= 3)] Layout \"?\" return (0, 7)",
+        position: 1,
+    },
+    Slot {
+        display_name: "Symbol : [3 >= p] (l_pr, l_label)=Symbol(p) . [(l_pr == 0) || (l_pr >= 3)] Layout \"?\" return (0, 7)",
+        position: 2,
+    },
+    Slot {
+        display_name: "Symbol : [3 >= p] (l_pr, l_label)=Symbol(p) [(l_pr == 0) || (l_pr >= 3)] . Layout \"?\" return (0, 7)",
+        position: 3,
+    },
+    Slot {
+        display_name: "Symbol : [3 >= p] (l_pr, l_label)=Symbol(p) [(l_pr == 0) || (l_pr >= 3)] Layout . \"?\" return (0, 7)",
+        position: 4,
+    },
+    Slot {
+        display_name: "Symbol : [3 >= p] (l_pr, l_label)=Symbol(p) [(l_pr == 0) || (l_pr >= 3)] Layout \"?\" . return (0, 7)",
+        position: 5,
+    },
+    Slot {
+        display_name: "Symbol : [3 >= p] (l_pr, l_label)=Symbol(p) [(l_pr == 0) || (l_pr >= 3)] Layout \"?\" return (0, 7).",
+        position: 6,
+    },
+    Slot {
+        display_name: "Symbol : . [3 >= p] (l_pr, l_label)=Symbol(p) [(l_label == NO_LABEL) || ((256 >> l_label) & 1 == 0)] [(l_pr == 0) || (l_pr >= 3)] Layout conditions:PostCondition+ return (0, 8)",
+        position: 0,
+    },
+    Slot {
+        display_name: "Symbol : [3 >= p] . (l_pr, l_label)=Symbol(p) [(l_label == NO_LABEL) || ((256 >> l_label) & 1 == 0)] [(l_pr == 0) || (l_pr >= 3)] Layout conditions:PostCondition+ return (0, 8)",
+        position: 1,
+    },
+    Slot {
+        display_name: "Symbol : [3 >= p] (l_pr, l_label)=Symbol(p) . [(l_label == NO_LABEL) || ((256 >> l_label) & 1 == 0)] [(l_pr == 0) || (l_pr >= 3)] Layout conditions:PostCondition+ return (0, 8)",
+        position: 2,
+    },
+    Slot {
+        display_name: "Symbol : [3 >= p] (l_pr, l_label)=Symbol(p) [(l_label == NO_LABEL) || ((256 >> l_label) & 1 == 0)] . [(l_pr == 0) || (l_pr >= 3)] Layout conditions:PostCondition+ return (0, 8)",
+        position: 3,
+    },
+    Slot {
+        display_name: "Symbol : [3 >= p] (l_pr, l_label)=Symbol(p) [(l_label == NO_LABEL) || ((256 >> l_label) & 1 == 0)] [(l_pr == 0) || (l_pr >= 3)] . Layout conditions:PostCondition+ return (0, 8)",
+        position: 4,
+    },
+    Slot {
+        display_name: "Symbol : [3 >= p] (l_pr, l_label)=Symbol(p) [(l_label == NO_LABEL) || ((256 >> l_label) & 1 == 0)] [(l_pr == 0) || (l_pr >= 3)] Layout . conditions:PostCondition+ return (0, 8)",
+        position: 5,
+    },
+    Slot {
+        display_name: "Symbol : [3 >= p] (l_pr, l_label)=Symbol(p) [(l_label == NO_LABEL) || ((256 >> l_label) & 1 == 0)] [(l_pr == 0) || (l_pr >= 3)] Layout conditions:PostCondition+ . return (0, 8)",
+        position: 6,
+    },
+    Slot {
+        display_name: "Symbol : [3 >= p] (l_pr, l_label)=Symbol(p) [(l_label == NO_LABEL) || ((256 >> l_label) & 1 == 0)] [(l_pr == 0) || (l_pr >= 3)] Layout conditions:PostCondition+ return (0, 8).",
+        position: 7,
+    },
+    Slot {
+        display_name: "Symbol : . conditions:PreCondition+ Layout (r_pr, r_label)=Symbol(2) [(r_label == NO_LABEL) || ((512 >> r_label) & 1 == 0)] return ((r_pr == 0) ? 2 : min(r_pr, 2), 9)",
+        position: 0,
+    },
+    Slot {
+        display_name: "Symbol : conditions:PreCondition+ . Layout (r_pr, r_label)=Symbol(2) [(r_label == NO_LABEL) || ((512 >> r_label) & 1 == 0)] return ((r_pr == 0) ? 2 : min(r_pr, 2), 9)",
+        position: 1,
+    },
+    Slot {
+        display_name: "Symbol : conditions:PreCondition+ Layout . (r_pr, r_label)=Symbol(2) [(r_label == NO_LABEL) || ((512 >> r_label) & 1 == 0)] return ((r_pr == 0) ? 2 : min(r_pr, 2), 9)",
+        position: 2,
+    },
+    Slot {
+        display_name: "Symbol : conditions:PreCondition+ Layout (r_pr, r_label)=Symbol(2) . [(r_label == NO_LABEL) || ((512 >> r_label) & 1 == 0)] return ((r_pr == 0) ? 2 : min(r_pr, 2), 9)",
+        position: 3,
+    },
+    Slot {
+        display_name: "Symbol : conditions:PreCondition+ Layout (r_pr, r_label)=Symbol(2) [(r_label == NO_LABEL) || ((512 >> r_label) & 1 == 0)] . return ((r_pr == 0) ? 2 : min(r_pr, 2), 9)",
+        position: 4,
+    },
+    Slot {
+        display_name: "Symbol : conditions:PreCondition+ Layout (r_pr, r_label)=Symbol(2) [(r_label == NO_LABEL) || ((512 >> r_label) & 1 == 0)] return ((r_pr == 0) ? 2 : min(r_pr, 2), 9).",
+        position: 5,
+    },
+    Slot {
+        display_name: "Symbol : . label:Identifier Layout \":\" Layout Symbol(1) return (1, 10)",
+        position: 0,
+    },
+    Slot {
+        display_name: "Symbol : label:Identifier . Layout \":\" Layout Symbol(1) return (1, 10)",
+        position: 1,
+    },
+    Slot {
+        display_name: "Symbol : label:Identifier Layout . \":\" Layout Symbol(1) return (1, 10)",
+        position: 2,
+    },
+    Slot {
+        display_name: "Symbol : label:Identifier Layout \":\" . Layout Symbol(1) return (1, 10)",
+        position: 3,
+    },
+    Slot {
+        display_name: "Symbol : label:Identifier Layout \":\" Layout . Symbol(1) return (1, 10)",
+        position: 4,
+    },
+    Slot {
+        display_name: "Symbol : label:Identifier Layout \":\" Layout Symbol(1) . return (1, 10)",
+        position: 5,
+    },
+    Slot {
+        display_name: "Symbol : label:Identifier Layout \":\" Layout Symbol(1) return (1, 10).",
+        position: 6,
+    },
+];
+static FIRST_SLOTS: [&[SlotId]; 61] = [
+    &[SlotId(0)],
+    &[SlotId(6), SlotId(8)],
+    &[SlotId(10)],
+    &[SlotId(18), SlotId(20)],
+    &[SlotId(22)],
+    &[SlotId(38)],
+    &[SlotId(42), SlotId(46)],
+    &[SlotId(50)],
+    &[SlotId(54), SlotId(56), SlotId(58)],
+    &[SlotId(60), SlotId(64)],
+    &[SlotId(70)],
+    &[SlotId(74), SlotId(78), SlotId(82), SlotId(86)],
+    &[
+        SlotId(90),
+        SlotId(94),
+        SlotId(98),
+        SlotId(102),
+        SlotId(108),
+        SlotId(110),
+        SlotId(112),
+        SlotId(114),
+    ],
+    &[SlotId(116)],
+    &[SlotId(124), SlotId(126)],
+    &[SlotId(128)],
+    &[SlotId(134)],
+    &[SlotId(136), SlotId(140)],
+    &[SlotId(142), SlotId(144)],
+    &[SlotId(145), SlotId(147)],
+    &[SlotId(148), SlotId(154)],
+    &[SlotId(156), SlotId(158)],
+    &[SlotId(159), SlotId(161)],
+    &[SlotId(162), SlotId(164)],
+    &[SlotId(165), SlotId(167)],
+    &[SlotId(168), SlotId(172)],
+    &[SlotId(174), SlotId(180)],
+    &[SlotId(182), SlotId(186)],
+    &[SlotId(188), SlotId(190)],
+    &[SlotId(191), SlotId(193)],
+    &[SlotId(194), SlotId(200)],
+    &[SlotId(202), SlotId(204)],
+    &[SlotId(205), SlotId(209)],
+    &[SlotId(211), SlotId(213)],
+    &[SlotId(214), SlotId(220)],
+    &[SlotId(222), SlotId(226)],
+    &[SlotId(228), SlotId(232)],
+    &[SlotId(234), SlotId(236)],
+    &[SlotId(237), SlotId(241)],
+    &[SlotId(243), SlotId(245)],
+    &[SlotId(247), SlotId(250)],
+    &[SlotId(252), SlotId(254)],
+    &[SlotId(255)],
+    &[SlotId(259)],
+    &[SlotId(263)],
+    &[SlotId(267)],
+    &[SlotId(271)],
+    &[SlotId(275)],
+    &[SlotId(279)],
+    &[SlotId(283)],
+    &[SlotId(287)],
+    &[SlotId(291)],
+    &[SlotId(295)],
+    &[SlotId(299)],
+    &[SlotId(303)],
+    &[SlotId(307)],
+    &[SlotId(311)],
+    &[SlotId(315)],
+    &[SlotId(319)],
+    &[SlotId(323)],
+    &[
+        SlotId(325),
+        SlotId(328),
+        SlotId(335),
+        SlotId(338),
+        SlotId(349),
+        SlotId(360),
+        SlotId(367),
+        SlotId(374),
+        SlotId(381),
+        SlotId(389),
+        SlotId(395),
+    ],
+];
+// A failed terminal match refers to a static terminal set like every other failure, so the
+// error reporting path needs to reach a terminal set from a terminal id. This table, indexed
+// by terminal id, serves only that.
+static SINGLE_TERMINAL_SETS: [TerminalSet; 40] = [
+    TerminalSet {
+        id: 52,
+        terminals: &[TerminalId(0)],
+    },
+    TerminalSet {
+        id: 53,
+        terminals: &[TerminalId(1)],
+    },
+    TerminalSet {
+        id: 54,
+        terminals: &[TerminalId(2)],
+    },
+    TerminalSet {
+        id: 55,
+        terminals: &[TerminalId(3)],
+    },
+    TerminalSet {
+        id: 56,
+        terminals: &[TerminalId(4)],
+    },
+    TerminalSet {
+        id: 57,
+        terminals: &[TerminalId(5)],
+    },
+    TerminalSet {
+        id: 58,
+        terminals: &[TerminalId(6)],
+    },
+    TerminalSet {
+        id: 59,
+        terminals: &[TerminalId(7)],
+    },
+    TerminalSet {
+        id: 60,
+        terminals: &[TerminalId(8)],
+    },
+    TerminalSet {
+        id: 61,
+        terminals: &[TerminalId(9)],
+    },
+    TerminalSet {
+        id: 62,
+        terminals: &[TerminalId(10)],
+    },
+    TerminalSet {
+        id: 63,
+        terminals: &[TerminalId(11)],
+    },
+    TerminalSet {
+        id: 64,
+        terminals: &[TerminalId(12)],
+    },
+    TerminalSet {
+        id: 65,
+        terminals: &[TerminalId(13)],
+    },
+    TerminalSet {
+        id: 66,
+        terminals: &[TerminalId(14)],
+    },
+    TerminalSet {
+        id: 67,
+        terminals: &[TerminalId(15)],
+    },
+    TerminalSet {
+        id: 68,
+        terminals: &[TerminalId(16)],
+    },
+    TerminalSet {
+        id: 69,
+        terminals: &[TerminalId(17)],
+    },
+    TerminalSet {
+        id: 70,
+        terminals: &[TerminalId(18)],
+    },
+    TerminalSet {
+        id: 71,
+        terminals: &[TerminalId(19)],
+    },
+    TerminalSet {
+        id: 72,
+        terminals: &[TerminalId(20)],
+    },
+    TerminalSet {
+        id: 73,
+        terminals: &[TerminalId(21)],
+    },
+    TerminalSet {
+        id: 74,
+        terminals: &[TerminalId(22)],
+    },
+    TerminalSet {
+        id: 75,
+        terminals: &[TerminalId(23)],
+    },
+    TerminalSet {
+        id: 76,
+        terminals: &[TerminalId(24)],
+    },
+    TerminalSet {
+        id: 77,
+        terminals: &[TerminalId(25)],
+    },
+    TerminalSet {
+        id: 78,
+        terminals: &[TerminalId(26)],
+    },
+    TerminalSet {
+        id: 79,
+        terminals: &[TerminalId(27)],
+    },
+    TerminalSet {
+        id: 80,
+        terminals: &[TerminalId(28)],
+    },
+    TerminalSet {
+        id: 81,
+        terminals: &[TerminalId(29)],
+    },
+    TerminalSet {
+        id: 82,
+        terminals: &[TerminalId(30)],
+    },
+    TerminalSet {
+        id: 83,
+        terminals: &[TerminalId(31)],
+    },
+    TerminalSet {
+        id: 84,
+        terminals: &[TerminalId(32)],
+    },
+    TerminalSet {
+        id: 85,
+        terminals: &[TerminalId(33)],
+    },
+    TerminalSet {
+        id: 86,
+        terminals: &[TerminalId(34)],
+    },
+    TerminalSet {
+        id: 87,
+        terminals: &[TerminalId(35)],
+    },
+    TerminalSet {
+        id: 88,
+        terminals: &[TerminalId(36)],
+    },
+    TerminalSet {
+        id: 89,
+        terminals: &[TerminalId(37)],
+    },
+    TerminalSet {
+        id: 90,
+        terminals: &[TerminalId(38)],
+    },
+    TerminalSet {
+        id: 91,
+        terminals: &[TerminalId(39)],
+    },
+];
 impl Grammar for IggyGrammar {
     type Alternatives = BitSet<1>;
     const NAME: &'static str = "Iggy";
-    const NONTERMINALS: &'static [Nonterminal] = &[
-        Nonterminal {
-            name: "Grammar",
-            display_name: "Grammar",
-        },
-        Nonterminal {
-            name: "Rule",
-            display_name: "Rule",
-        },
-        Nonterminal {
-            name: "SyntaxRule",
-            display_name: "SyntaxRule",
-        },
-        Nonterminal {
-            name: "Annotation",
-            display_name: "Annotation",
-        },
-        Nonterminal {
-            name: "RegexRule",
-            display_name: "RegexRule",
-        },
-        Nonterminal {
-            name: "RegexPreCondition",
-            display_name: "RegexPreCondition",
-        },
-        Nonterminal {
-            name: "RegexPostCondition",
-            display_name: "RegexPostCondition",
-        },
-        Nonterminal {
-            name: "PriorityLevel",
-            display_name: "PriorityLevel",
-        },
-        Nonterminal {
-            name: "Associativity",
-            display_name: "Associativity",
-        },
-        Nonterminal {
-            name: "Alternative",
-            display_name: "Alternative",
-        },
-        Nonterminal {
-            name: "PreCondition",
-            display_name: "PreCondition",
-        },
-        Nonterminal {
-            name: "PostCondition",
-            display_name: "PostCondition",
-        },
-        Nonterminal {
-            name: "Regex",
-            display_name: "Regex",
-        },
-        Nonterminal {
-            name: "CharClass",
-            display_name: "CharClass",
-        },
-        Nonterminal {
-            name: "RangeElement",
-            display_name: "RangeElement",
-        },
-        Nonterminal {
-            name: "Range",
-            display_name: "Range",
-        },
-        Nonterminal {
-            name: "Layout",
-            display_name: "Layout",
-        },
-        Nonterminal {
-            name: "Plus_0",
-            display_name: "Rule+",
-        },
-        Nonterminal {
-            name: "Star_0",
-            display_name: "Rule*",
-        },
-        Nonterminal {
-            name: "Opt_0",
-            display_name: "Annotation?",
-        },
-        Nonterminal {
-            name: "Plus_1",
-            display_name: "{PriorityLevel \">\"}+",
-        },
-        Nonterminal {
-            name: "Star_1",
-            display_name: "{PriorityLevel \">\"}*",
-        },
-        Nonterminal {
-            name: "Opt_1",
-            display_name: "\"@Layout\"?",
-        },
-        Nonterminal {
-            name: "Opt_2",
-            display_name: "\"@Identifier\"?",
-        },
-        Nonterminal {
-            name: "Opt_3",
-            display_name: "RegexPreCondition?",
-        },
-        Nonterminal {
-            name: "Plus_3",
-            display_name: "Regex+",
-        },
-        Nonterminal {
-            name: "Plus_2",
-            display_name: "{Regex+ \"|\"}+",
-        },
-        Nonterminal {
-            name: "Plus_4",
-            display_name: "RegexPostCondition+",
-        },
-        Nonterminal {
-            name: "Star_2",
-            display_name: "RegexPostCondition*",
-        },
-        Nonterminal {
-            name: "Opt_4",
-            display_name: "Associativity?",
-        },
-        Nonterminal {
-            name: "Plus_5",
-            display_name: "{Alternative \"|\"}+",
-        },
-        Nonterminal {
-            name: "Star_3",
-            display_name: "{Alternative \"|\"}*",
-        },
-        Nonterminal {
-            name: "Plus_6",
-            display_name: "Symbol+",
-        },
-        Nonterminal {
-            name: "Opt_5",
-            display_name: "Label?",
-        },
-        Nonterminal {
-            name: "Plus_7",
-            display_name: "{Symbol+ \"|\"}+",
-        },
-        Nonterminal {
-            name: "Plus_8",
-            display_name: "PostCondition+",
-        },
-        Nonterminal {
-            name: "Plus_9",
-            display_name: "PreCondition+",
-        },
-        Nonterminal {
-            name: "Opt_6",
-            display_name: "\"!\"?",
-        },
-        Nonterminal {
-            name: "Plus_10",
-            display_name: "RangeElement+",
-        },
-        Nonterminal {
-            name: "Alt_0",
-            display_name: "(WS | LineComment)",
-        },
-        Nonterminal {
-            name: "Plus_11",
-            display_name: "(WS | LineComment)+",
-        },
-        Nonterminal {
-            name: "Star_4",
-            display_name: "(WS | LineComment)*",
-        },
-        Nonterminal {
-            name: "StartGrammar",
-            display_name: "Grammar",
-        },
-        Nonterminal {
-            name: "StartRule",
-            display_name: "Rule",
-        },
-        Nonterminal {
-            name: "StartSyntaxRule",
-            display_name: "SyntaxRule",
-        },
-        Nonterminal {
-            name: "StartAnnotation",
-            display_name: "Annotation",
-        },
-        Nonterminal {
-            name: "StartRegexRule",
-            display_name: "RegexRule",
-        },
-        Nonterminal {
-            name: "StartRegexPreCondition",
-            display_name: "RegexPreCondition",
-        },
-        Nonterminal {
-            name: "StartRegexPostCondition",
-            display_name: "RegexPostCondition",
-        },
-        Nonterminal {
-            name: "StartPriorityLevel",
-            display_name: "PriorityLevel",
-        },
-        Nonterminal {
-            name: "StartAssociativity",
-            display_name: "Associativity",
-        },
-        Nonterminal {
-            name: "StartAlternative",
-            display_name: "Alternative",
-        },
-        Nonterminal {
-            name: "StartSymbol",
-            display_name: "Symbol(0)",
-        },
-        Nonterminal {
-            name: "StartPreCondition",
-            display_name: "PreCondition",
-        },
-        Nonterminal {
-            name: "StartPostCondition",
-            display_name: "PostCondition",
-        },
-        Nonterminal {
-            name: "StartRegex",
-            display_name: "Regex",
-        },
-        Nonterminal {
-            name: "StartCharClass",
-            display_name: "CharClass",
-        },
-        Nonterminal {
-            name: "StartRangeElement",
-            display_name: "RangeElement",
-        },
-        Nonterminal {
-            name: "StartRange",
-            display_name: "Range",
-        },
-        Nonterminal {
-            name: "StartLayout",
-            display_name: "Layout",
-        },
-        Nonterminal {
-            name: "Symbol",
-            display_name: "Symbol",
-        },
-    ];
-    const DISPLAY_ORDER: &'static [&'static str] = &[
-        "Grammar",
-        "Rule",
-        "SyntaxRule",
-        "Annotation",
-        "RegexRule",
-        "RegexPreCondition",
-        "RegexPostCondition",
-        "PriorityLevel",
-        "Associativity",
-        "Alternative",
-        "Symbol",
-        "PreCondition",
-        "PostCondition",
-        "Regex",
-        "CharClass",
-        "RangeElement",
-        "Range",
-        "Layout",
-    ];
-    const TERMINALS: &'static [Terminal] = &[
-        Terminal { name: "Keyword" },
-        Terminal { name: "NameChar" },
-        Terminal { name: "Identifier" },
-        Terminal { name: "String" },
-        Terminal { name: "Char" },
-        Terminal { name: "EscapeChar" },
-        Terminal { name: "RangeChar" },
-        Terminal { name: "Label" },
-        Terminal { name: "WS" },
-        Terminal { name: "WSChar" },
-        Terminal {
-            name: "LineComment",
-        },
-        Terminal {
-            name: "\"grammar\"",
-        },
-        Terminal { name: "\"=\"" },
-        Terminal { name: "\">\"" },
-        Terminal {
-            name: "\"@NoLayout\"",
-        },
-        Terminal {
-            name: "\"@Layout\"",
-        },
-        Terminal {
-            name: "\"@Identifier\"",
-        },
-        Terminal { name: "\"@Regex\"" },
-        Terminal { name: "\"|\"" },
-        Terminal { name: "\"!<<\"" },
-        Terminal { name: "\"\\\\\"" },
-        Terminal { name: "\"!>>\"" },
-        Terminal { name: "\"left\"" },
-        Terminal { name: "\"right\"" },
-        Terminal { name: "\"none\"" },
-        Terminal { name: "\"(\"" },
-        Terminal { name: "\")\"" },
-        Terminal { name: "\"{\"" },
-        Terminal { name: "\"}\"" },
-        Terminal { name: "\"*\"" },
-        Terminal { name: "\"+\"" },
-        Terminal { name: "\"?\"" },
-        Terminal { name: "\":\"" },
-        Terminal { name: "\"!>>>\"" },
-        Terminal { name: "\"!\"" },
-        Terminal { name: "\"[\"" },
-        Terminal { name: "\"]\"" },
-        Terminal { name: "\"-\"" },
-        Terminal { name: "Epsilon" },
-        Terminal { name: "EOF" },
-    ];
-    const SLOTS: &'static [Slot] = &[
-        Slot {
-            display_name: "Grammar : . \"grammar\" Layout name:Identifier Layout Rule*",
-            position: 0,
-        },
-        Slot {
-            display_name: "Grammar : \"grammar\" . Layout name:Identifier Layout Rule*",
-            position: 1,
-        },
-        Slot {
-            display_name: "Grammar : \"grammar\" Layout . name:Identifier Layout Rule*",
-            position: 2,
-        },
-        Slot {
-            display_name: "Grammar : \"grammar\" Layout name:Identifier . Layout Rule*",
-            position: 3,
-        },
-        Slot {
-            display_name: "Grammar : \"grammar\" Layout name:Identifier Layout . Rule*",
-            position: 4,
-        },
-        Slot {
-            display_name: "Grammar : \"grammar\" Layout name:Identifier Layout Rule*.",
-            position: 5,
-        },
-        Slot {
-            display_name: "Rule : . SyntaxRule",
-            position: 0,
-        },
-        Slot {
-            display_name: "Rule : SyntaxRule.",
-            position: 1,
-        },
-        Slot {
-            display_name: "Rule : . RegexRule",
-            position: 0,
-        },
-        Slot {
-            display_name: "Rule : RegexRule.",
-            position: 1,
-        },
-        Slot {
-            display_name: "SyntaxRule : . Annotation? Layout head:Identifier Layout \"=\" Layout {PriorityLevel \">\"}*",
-            position: 0,
-        },
-        Slot {
-            display_name: "SyntaxRule : Annotation? . Layout head:Identifier Layout \"=\" Layout {PriorityLevel \">\"}*",
-            position: 1,
-        },
-        Slot {
-            display_name: "SyntaxRule : Annotation? Layout . head:Identifier Layout \"=\" Layout {PriorityLevel \">\"}*",
-            position: 2,
-        },
-        Slot {
-            display_name: "SyntaxRule : Annotation? Layout head:Identifier . Layout \"=\" Layout {PriorityLevel \">\"}*",
-            position: 3,
-        },
-        Slot {
-            display_name: "SyntaxRule : Annotation? Layout head:Identifier Layout . \"=\" Layout {PriorityLevel \">\"}*",
-            position: 4,
-        },
-        Slot {
-            display_name: "SyntaxRule : Annotation? Layout head:Identifier Layout \"=\" . Layout {PriorityLevel \">\"}*",
-            position: 5,
-        },
-        Slot {
-            display_name: "SyntaxRule : Annotation? Layout head:Identifier Layout \"=\" Layout . {PriorityLevel \">\"}*",
-            position: 6,
-        },
-        Slot {
-            display_name: "SyntaxRule : Annotation? Layout head:Identifier Layout \"=\" Layout {PriorityLevel \">\"}*.",
-            position: 7,
-        },
-        Slot {
-            display_name: "Annotation : . \"@NoLayout\"",
-            position: 0,
-        },
-        Slot {
-            display_name: "Annotation : \"@NoLayout\".",
-            position: 1,
-        },
-        Slot {
-            display_name: "Annotation : . \"@Layout\"",
-            position: 0,
-        },
-        Slot {
-            display_name: "Annotation : \"@Layout\".",
-            position: 1,
-        },
-        Slot {
-            display_name: "RegexRule : . layout:\"@Layout\"? Layout id_annot:\"@Identifier\"? Layout \"@Regex\" Layout Identifier Layout \"=\" Layout RegexPreCondition? Layout body:{Regex+ \"|\"}+ Layout RegexPostCondition*",
-            position: 0,
-        },
-        Slot {
-            display_name: "RegexRule : layout:\"@Layout\"? . Layout id_annot:\"@Identifier\"? Layout \"@Regex\" Layout Identifier Layout \"=\" Layout RegexPreCondition? Layout body:{Regex+ \"|\"}+ Layout RegexPostCondition*",
-            position: 1,
-        },
-        Slot {
-            display_name: "RegexRule : layout:\"@Layout\"? Layout . id_annot:\"@Identifier\"? Layout \"@Regex\" Layout Identifier Layout \"=\" Layout RegexPreCondition? Layout body:{Regex+ \"|\"}+ Layout RegexPostCondition*",
-            position: 2,
-        },
-        Slot {
-            display_name: "RegexRule : layout:\"@Layout\"? Layout id_annot:\"@Identifier\"? . Layout \"@Regex\" Layout Identifier Layout \"=\" Layout RegexPreCondition? Layout body:{Regex+ \"|\"}+ Layout RegexPostCondition*",
-            position: 3,
-        },
-        Slot {
-            display_name: "RegexRule : layout:\"@Layout\"? Layout id_annot:\"@Identifier\"? Layout . \"@Regex\" Layout Identifier Layout \"=\" Layout RegexPreCondition? Layout body:{Regex+ \"|\"}+ Layout RegexPostCondition*",
-            position: 4,
-        },
-        Slot {
-            display_name: "RegexRule : layout:\"@Layout\"? Layout id_annot:\"@Identifier\"? Layout \"@Regex\" . Layout Identifier Layout \"=\" Layout RegexPreCondition? Layout body:{Regex+ \"|\"}+ Layout RegexPostCondition*",
-            position: 5,
-        },
-        Slot {
-            display_name: "RegexRule : layout:\"@Layout\"? Layout id_annot:\"@Identifier\"? Layout \"@Regex\" Layout . Identifier Layout \"=\" Layout RegexPreCondition? Layout body:{Regex+ \"|\"}+ Layout RegexPostCondition*",
-            position: 6,
-        },
-        Slot {
-            display_name: "RegexRule : layout:\"@Layout\"? Layout id_annot:\"@Identifier\"? Layout \"@Regex\" Layout Identifier . Layout \"=\" Layout RegexPreCondition? Layout body:{Regex+ \"|\"}+ Layout RegexPostCondition*",
-            position: 7,
-        },
-        Slot {
-            display_name: "RegexRule : layout:\"@Layout\"? Layout id_annot:\"@Identifier\"? Layout \"@Regex\" Layout Identifier Layout . \"=\" Layout RegexPreCondition? Layout body:{Regex+ \"|\"}+ Layout RegexPostCondition*",
-            position: 8,
-        },
-        Slot {
-            display_name: "RegexRule : layout:\"@Layout\"? Layout id_annot:\"@Identifier\"? Layout \"@Regex\" Layout Identifier Layout \"=\" . Layout RegexPreCondition? Layout body:{Regex+ \"|\"}+ Layout RegexPostCondition*",
-            position: 9,
-        },
-        Slot {
-            display_name: "RegexRule : layout:\"@Layout\"? Layout id_annot:\"@Identifier\"? Layout \"@Regex\" Layout Identifier Layout \"=\" Layout . RegexPreCondition? Layout body:{Regex+ \"|\"}+ Layout RegexPostCondition*",
-            position: 10,
-        },
-        Slot {
-            display_name: "RegexRule : layout:\"@Layout\"? Layout id_annot:\"@Identifier\"? Layout \"@Regex\" Layout Identifier Layout \"=\" Layout RegexPreCondition? . Layout body:{Regex+ \"|\"}+ Layout RegexPostCondition*",
-            position: 11,
-        },
-        Slot {
-            display_name: "RegexRule : layout:\"@Layout\"? Layout id_annot:\"@Identifier\"? Layout \"@Regex\" Layout Identifier Layout \"=\" Layout RegexPreCondition? Layout . body:{Regex+ \"|\"}+ Layout RegexPostCondition*",
-            position: 12,
-        },
-        Slot {
-            display_name: "RegexRule : layout:\"@Layout\"? Layout id_annot:\"@Identifier\"? Layout \"@Regex\" Layout Identifier Layout \"=\" Layout RegexPreCondition? Layout body:{Regex+ \"|\"}+ . Layout RegexPostCondition*",
-            position: 13,
-        },
-        Slot {
-            display_name: "RegexRule : layout:\"@Layout\"? Layout id_annot:\"@Identifier\"? Layout \"@Regex\" Layout Identifier Layout \"=\" Layout RegexPreCondition? Layout body:{Regex+ \"|\"}+ Layout . RegexPostCondition*",
-            position: 14,
-        },
-        Slot {
-            display_name: "RegexRule : layout:\"@Layout\"? Layout id_annot:\"@Identifier\"? Layout \"@Regex\" Layout Identifier Layout \"=\" Layout RegexPreCondition? Layout body:{Regex+ \"|\"}+ Layout RegexPostCondition*.",
-            position: 15,
-        },
-        Slot {
-            display_name: "RegexPreCondition : . Identifier Layout \"!<<\"",
-            position: 0,
-        },
-        Slot {
-            display_name: "RegexPreCondition : Identifier . Layout \"!<<\"",
-            position: 1,
-        },
-        Slot {
-            display_name: "RegexPreCondition : Identifier Layout . \"!<<\"",
-            position: 2,
-        },
-        Slot {
-            display_name: "RegexPreCondition : Identifier Layout \"!<<\".",
-            position: 3,
-        },
-        Slot {
-            display_name: "RegexPostCondition : . \"\\\\\" Layout Identifier",
-            position: 0,
-        },
-        Slot {
-            display_name: "RegexPostCondition : \"\\\\\" . Layout Identifier",
-            position: 1,
-        },
-        Slot {
-            display_name: "RegexPostCondition : \"\\\\\" Layout . Identifier",
-            position: 2,
-        },
-        Slot {
-            display_name: "RegexPostCondition : \"\\\\\" Layout Identifier.",
-            position: 3,
-        },
-        Slot {
-            display_name: "RegexPostCondition : . \"!>>\" Layout Identifier",
-            position: 0,
-        },
-        Slot {
-            display_name: "RegexPostCondition : \"!>>\" . Layout Identifier",
-            position: 1,
-        },
-        Slot {
-            display_name: "RegexPostCondition : \"!>>\" Layout . Identifier",
-            position: 2,
-        },
-        Slot {
-            display_name: "RegexPostCondition : \"!>>\" Layout Identifier.",
-            position: 3,
-        },
-        Slot {
-            display_name: "PriorityLevel : . Associativity? Layout {Alternative \"|\"}*",
-            position: 0,
-        },
-        Slot {
-            display_name: "PriorityLevel : Associativity? . Layout {Alternative \"|\"}*",
-            position: 1,
-        },
-        Slot {
-            display_name: "PriorityLevel : Associativity? Layout . {Alternative \"|\"}*",
-            position: 2,
-        },
-        Slot {
-            display_name: "PriorityLevel : Associativity? Layout {Alternative \"|\"}*.",
-            position: 3,
-        },
-        Slot {
-            display_name: "Associativity : . \"left\"",
-            position: 0,
-        },
-        Slot {
-            display_name: "Associativity : \"left\".",
-            position: 1,
-        },
-        Slot {
-            display_name: "Associativity : . \"right\"",
-            position: 0,
-        },
-        Slot {
-            display_name: "Associativity : \"right\".",
-            position: 1,
-        },
-        Slot {
-            display_name: "Associativity : . \"none\"",
-            position: 0,
-        },
-        Slot {
-            display_name: "Associativity : \"none\".",
-            position: 1,
-        },
-        Slot {
-            display_name: "Alternative : . Symbol+ Layout Label?",
-            position: 0,
-        },
-        Slot {
-            display_name: "Alternative : Symbol+ . Layout Label?",
-            position: 1,
-        },
-        Slot {
-            display_name: "Alternative : Symbol+ Layout . Label?",
-            position: 2,
-        },
-        Slot {
-            display_name: "Alternative : Symbol+ Layout Label?.",
-            position: 3,
-        },
-        Slot {
-            display_name: "Alternative : . \"(\" Layout \")\" Layout Label?",
-            position: 0,
-        },
-        Slot {
-            display_name: "Alternative : \"(\" . Layout \")\" Layout Label?",
-            position: 1,
-        },
-        Slot {
-            display_name: "Alternative : \"(\" Layout . \")\" Layout Label?",
-            position: 2,
-        },
-        Slot {
-            display_name: "Alternative : \"(\" Layout \")\" . Layout Label?",
-            position: 3,
-        },
-        Slot {
-            display_name: "Alternative : \"(\" Layout \")\" Layout . Label?",
-            position: 4,
-        },
-        Slot {
-            display_name: "Alternative : \"(\" Layout \")\" Layout Label?.",
-            position: 5,
-        },
-        Slot {
-            display_name: "PreCondition : . Identifier Layout \"!<<\"",
-            position: 0,
-        },
-        Slot {
-            display_name: "PreCondition : Identifier . Layout \"!<<\"",
-            position: 1,
-        },
-        Slot {
-            display_name: "PreCondition : Identifier Layout . \"!<<\"",
-            position: 2,
-        },
-        Slot {
-            display_name: "PreCondition : Identifier Layout \"!<<\".",
-            position: 3,
-        },
-        Slot {
-            display_name: "PostCondition : . \"\\\\\" Layout Identifier",
-            position: 0,
-        },
-        Slot {
-            display_name: "PostCondition : \"\\\\\" . Layout Identifier",
-            position: 1,
-        },
-        Slot {
-            display_name: "PostCondition : \"\\\\\" Layout . Identifier",
-            position: 2,
-        },
-        Slot {
-            display_name: "PostCondition : \"\\\\\" Layout Identifier.",
-            position: 3,
-        },
-        Slot {
-            display_name: "PostCondition : . \"!>>\" Layout Identifier",
-            position: 0,
-        },
-        Slot {
-            display_name: "PostCondition : \"!>>\" . Layout Identifier",
-            position: 1,
-        },
-        Slot {
-            display_name: "PostCondition : \"!>>\" Layout . Identifier",
-            position: 2,
-        },
-        Slot {
-            display_name: "PostCondition : \"!>>\" Layout Identifier.",
-            position: 3,
-        },
-        Slot {
-            display_name: "PostCondition : . \"!>>>\" Layout Identifier",
-            position: 0,
-        },
-        Slot {
-            display_name: "PostCondition : \"!>>>\" . Layout Identifier",
-            position: 1,
-        },
-        Slot {
-            display_name: "PostCondition : \"!>>>\" Layout . Identifier",
-            position: 2,
-        },
-        Slot {
-            display_name: "PostCondition : \"!>>>\" Layout Identifier.",
-            position: 3,
-        },
-        Slot {
-            display_name: "PostCondition : . \"!\" Layout Identifier",
-            position: 0,
-        },
-        Slot {
-            display_name: "PostCondition : \"!\" . Layout Identifier",
-            position: 1,
-        },
-        Slot {
-            display_name: "PostCondition : \"!\" Layout . Identifier",
-            position: 2,
-        },
-        Slot {
-            display_name: "PostCondition : \"!\" Layout Identifier.",
-            position: 3,
-        },
-        Slot {
-            display_name: "Regex : . Regex Layout \"+\"",
-            position: 0,
-        },
-        Slot {
-            display_name: "Regex : Regex . Layout \"+\"",
-            position: 1,
-        },
-        Slot {
-            display_name: "Regex : Regex Layout . \"+\"",
-            position: 2,
-        },
-        Slot {
-            display_name: "Regex : Regex Layout \"+\".",
-            position: 3,
-        },
-        Slot {
-            display_name: "Regex : . Regex Layout \"*\"",
-            position: 0,
-        },
-        Slot {
-            display_name: "Regex : Regex . Layout \"*\"",
-            position: 1,
-        },
-        Slot {
-            display_name: "Regex : Regex Layout . \"*\"",
-            position: 2,
-        },
-        Slot {
-            display_name: "Regex : Regex Layout \"*\".",
-            position: 3,
-        },
-        Slot {
-            display_name: "Regex : . Regex Layout \"?\"",
-            position: 0,
-        },
-        Slot {
-            display_name: "Regex : Regex . Layout \"?\"",
-            position: 1,
-        },
-        Slot {
-            display_name: "Regex : Regex Layout . \"?\"",
-            position: 2,
-        },
-        Slot {
-            display_name: "Regex : Regex Layout \"?\".",
-            position: 3,
-        },
-        Slot {
-            display_name: "Regex : . \"(\" Layout seqs:{Regex+ \"|\"}+ Layout \")\"",
-            position: 0,
-        },
-        Slot {
-            display_name: "Regex : \"(\" . Layout seqs:{Regex+ \"|\"}+ Layout \")\"",
-            position: 1,
-        },
-        Slot {
-            display_name: "Regex : \"(\" Layout . seqs:{Regex+ \"|\"}+ Layout \")\"",
-            position: 2,
-        },
-        Slot {
-            display_name: "Regex : \"(\" Layout seqs:{Regex+ \"|\"}+ . Layout \")\"",
-            position: 3,
-        },
-        Slot {
-            display_name: "Regex : \"(\" Layout seqs:{Regex+ \"|\"}+ Layout . \")\"",
-            position: 4,
-        },
-        Slot {
-            display_name: "Regex : \"(\" Layout seqs:{Regex+ \"|\"}+ Layout \")\".",
-            position: 5,
-        },
-        Slot {
-            display_name: "Regex : . CharClass",
-            position: 0,
-        },
-        Slot {
-            display_name: "Regex : CharClass.",
-            position: 1,
-        },
-        Slot {
-            display_name: "Regex : . Char",
-            position: 0,
-        },
-        Slot {
-            display_name: "Regex : Char.",
-            position: 1,
-        },
-        Slot {
-            display_name: "Regex : . String",
-            position: 0,
-        },
-        Slot {
-            display_name: "Regex : String.",
-            position: 1,
-        },
-        Slot {
-            display_name: "Regex : . Identifier",
-            position: 0,
-        },
-        Slot {
-            display_name: "Regex : Identifier.",
-            position: 1,
-        },
-        Slot {
-            display_name: "CharClass : . neg:\"!\"? Layout \"[\" Layout RangeElement+ Layout \"]\"",
-            position: 0,
-        },
-        Slot {
-            display_name: "CharClass : neg:\"!\"? . Layout \"[\" Layout RangeElement+ Layout \"]\"",
-            position: 1,
-        },
-        Slot {
-            display_name: "CharClass : neg:\"!\"? Layout . \"[\" Layout RangeElement+ Layout \"]\"",
-            position: 2,
-        },
-        Slot {
-            display_name: "CharClass : neg:\"!\"? Layout \"[\" . Layout RangeElement+ Layout \"]\"",
-            position: 3,
-        },
-        Slot {
-            display_name: "CharClass : neg:\"!\"? Layout \"[\" Layout . RangeElement+ Layout \"]\"",
-            position: 4,
-        },
-        Slot {
-            display_name: "CharClass : neg:\"!\"? Layout \"[\" Layout RangeElement+ . Layout \"]\"",
-            position: 5,
-        },
-        Slot {
-            display_name: "CharClass : neg:\"!\"? Layout \"[\" Layout RangeElement+ Layout . \"]\"",
-            position: 6,
-        },
-        Slot {
-            display_name: "CharClass : neg:\"!\"? Layout \"[\" Layout RangeElement+ Layout \"]\".",
-            position: 7,
-        },
-        Slot {
-            display_name: "RangeElement : . Range",
-            position: 0,
-        },
-        Slot {
-            display_name: "RangeElement : Range.",
-            position: 1,
-        },
-        Slot {
-            display_name: "RangeElement : . RangeChar",
-            position: 0,
-        },
-        Slot {
-            display_name: "RangeElement : RangeChar.",
-            position: 1,
-        },
-        Slot {
-            display_name: "Range : . start:RangeChar Layout \"-\" Layout end:RangeChar",
-            position: 0,
-        },
-        Slot {
-            display_name: "Range : start:RangeChar . Layout \"-\" Layout end:RangeChar",
-            position: 1,
-        },
-        Slot {
-            display_name: "Range : start:RangeChar Layout . \"-\" Layout end:RangeChar",
-            position: 2,
-        },
-        Slot {
-            display_name: "Range : start:RangeChar Layout \"-\" . Layout end:RangeChar",
-            position: 3,
-        },
-        Slot {
-            display_name: "Range : start:RangeChar Layout \"-\" Layout . end:RangeChar",
-            position: 4,
-        },
-        Slot {
-            display_name: "Range : start:RangeChar Layout \"-\" Layout end:RangeChar.",
-            position: 5,
-        },
-        Slot {
-            display_name: "Layout : . (WS | LineComment)* !>> WS !>> LineComment",
-            position: 0,
-        },
-        Slot {
-            display_name: "Layout : (WS | LineComment)* !>> WS !>> LineComment.",
-            position: 1,
-        },
-        Slot {
-            display_name: "Rule+ : . Rule+ Layout Rule",
-            position: 0,
-        },
-        Slot {
-            display_name: "Rule+ : Rule+ . Layout Rule",
-            position: 1,
-        },
-        Slot {
-            display_name: "Rule+ : Rule+ Layout . Rule",
-            position: 2,
-        },
-        Slot {
-            display_name: "Rule+ : Rule+ Layout Rule.",
-            position: 3,
-        },
-        Slot {
-            display_name: "Rule+ : . Rule",
-            position: 0,
-        },
-        Slot {
-            display_name: "Rule+ : Rule.",
-            position: 1,
-        },
-        Slot {
-            display_name: "Rule* : . Rule+",
-            position: 0,
-        },
-        Slot {
-            display_name: "Rule* : Rule+.",
-            position: 1,
-        },
-        Slot {
-            display_name: "Rule* : .",
-            position: 0,
-        },
-        Slot {
-            display_name: "Annotation? : . Annotation",
-            position: 0,
-        },
-        Slot {
-            display_name: "Annotation? : Annotation.",
-            position: 1,
-        },
-        Slot {
-            display_name: "Annotation? : .",
-            position: 0,
-        },
-        Slot {
-            display_name: "{PriorityLevel \">\"}+ : . {PriorityLevel \">\"}+ Layout \">\" Layout PriorityLevel",
-            position: 0,
-        },
-        Slot {
-            display_name: "{PriorityLevel \">\"}+ : {PriorityLevel \">\"}+ . Layout \">\" Layout PriorityLevel",
-            position: 1,
-        },
-        Slot {
-            display_name: "{PriorityLevel \">\"}+ : {PriorityLevel \">\"}+ Layout . \">\" Layout PriorityLevel",
-            position: 2,
-        },
-        Slot {
-            display_name: "{PriorityLevel \">\"}+ : {PriorityLevel \">\"}+ Layout \">\" . Layout PriorityLevel",
-            position: 3,
-        },
-        Slot {
-            display_name: "{PriorityLevel \">\"}+ : {PriorityLevel \">\"}+ Layout \">\" Layout . PriorityLevel",
-            position: 4,
-        },
-        Slot {
-            display_name: "{PriorityLevel \">\"}+ : {PriorityLevel \">\"}+ Layout \">\" Layout PriorityLevel.",
-            position: 5,
-        },
-        Slot {
-            display_name: "{PriorityLevel \">\"}+ : . PriorityLevel",
-            position: 0,
-        },
-        Slot {
-            display_name: "{PriorityLevel \">\"}+ : PriorityLevel.",
-            position: 1,
-        },
-        Slot {
-            display_name: "{PriorityLevel \">\"}* : . {PriorityLevel \">\"}+",
-            position: 0,
-        },
-        Slot {
-            display_name: "{PriorityLevel \">\"}* : {PriorityLevel \">\"}+.",
-            position: 1,
-        },
-        Slot {
-            display_name: "{PriorityLevel \">\"}* : .",
-            position: 0,
-        },
-        Slot {
-            display_name: "\"@Layout\"? : . \"@Layout\"",
-            position: 0,
-        },
-        Slot {
-            display_name: "\"@Layout\"? : \"@Layout\".",
-            position: 1,
-        },
-        Slot {
-            display_name: "\"@Layout\"? : .",
-            position: 0,
-        },
-        Slot {
-            display_name: "\"@Identifier\"? : . \"@Identifier\"",
-            position: 0,
-        },
-        Slot {
-            display_name: "\"@Identifier\"? : \"@Identifier\".",
-            position: 1,
-        },
-        Slot {
-            display_name: "\"@Identifier\"? : .",
-            position: 0,
-        },
-        Slot {
-            display_name: "RegexPreCondition? : . RegexPreCondition",
-            position: 0,
-        },
-        Slot {
-            display_name: "RegexPreCondition? : RegexPreCondition.",
-            position: 1,
-        },
-        Slot {
-            display_name: "RegexPreCondition? : .",
-            position: 0,
-        },
-        Slot {
-            display_name: "Regex+ : . Regex+ Layout Regex",
-            position: 0,
-        },
-        Slot {
-            display_name: "Regex+ : Regex+ . Layout Regex",
-            position: 1,
-        },
-        Slot {
-            display_name: "Regex+ : Regex+ Layout . Regex",
-            position: 2,
-        },
-        Slot {
-            display_name: "Regex+ : Regex+ Layout Regex.",
-            position: 3,
-        },
-        Slot {
-            display_name: "Regex+ : . Regex",
-            position: 0,
-        },
-        Slot {
-            display_name: "Regex+ : Regex.",
-            position: 1,
-        },
-        Slot {
-            display_name: "{Regex+ \"|\"}+ : . {Regex+ \"|\"}+ Layout \"|\" Layout Regex+",
-            position: 0,
-        },
-        Slot {
-            display_name: "{Regex+ \"|\"}+ : {Regex+ \"|\"}+ . Layout \"|\" Layout Regex+",
-            position: 1,
-        },
-        Slot {
-            display_name: "{Regex+ \"|\"}+ : {Regex+ \"|\"}+ Layout . \"|\" Layout Regex+",
-            position: 2,
-        },
-        Slot {
-            display_name: "{Regex+ \"|\"}+ : {Regex+ \"|\"}+ Layout \"|\" . Layout Regex+",
-            position: 3,
-        },
-        Slot {
-            display_name: "{Regex+ \"|\"}+ : {Regex+ \"|\"}+ Layout \"|\" Layout . Regex+",
-            position: 4,
-        },
-        Slot {
-            display_name: "{Regex+ \"|\"}+ : {Regex+ \"|\"}+ Layout \"|\" Layout Regex+.",
-            position: 5,
-        },
-        Slot {
-            display_name: "{Regex+ \"|\"}+ : . Regex+",
-            position: 0,
-        },
-        Slot {
-            display_name: "{Regex+ \"|\"}+ : Regex+.",
-            position: 1,
-        },
-        Slot {
-            display_name: "RegexPostCondition+ : . RegexPostCondition+ Layout RegexPostCondition",
-            position: 0,
-        },
-        Slot {
-            display_name: "RegexPostCondition+ : RegexPostCondition+ . Layout RegexPostCondition",
-            position: 1,
-        },
-        Slot {
-            display_name: "RegexPostCondition+ : RegexPostCondition+ Layout . RegexPostCondition",
-            position: 2,
-        },
-        Slot {
-            display_name: "RegexPostCondition+ : RegexPostCondition+ Layout RegexPostCondition.",
-            position: 3,
-        },
-        Slot {
-            display_name: "RegexPostCondition+ : . RegexPostCondition",
-            position: 0,
-        },
-        Slot {
-            display_name: "RegexPostCondition+ : RegexPostCondition.",
-            position: 1,
-        },
-        Slot {
-            display_name: "RegexPostCondition* : . RegexPostCondition+",
-            position: 0,
-        },
-        Slot {
-            display_name: "RegexPostCondition* : RegexPostCondition+.",
-            position: 1,
-        },
-        Slot {
-            display_name: "RegexPostCondition* : .",
-            position: 0,
-        },
-        Slot {
-            display_name: "Associativity? : . Associativity",
-            position: 0,
-        },
-        Slot {
-            display_name: "Associativity? : Associativity.",
-            position: 1,
-        },
-        Slot {
-            display_name: "Associativity? : .",
-            position: 0,
-        },
-        Slot {
-            display_name: "{Alternative \"|\"}+ : . {Alternative \"|\"}+ Layout \"|\" Layout Alternative",
-            position: 0,
-        },
-        Slot {
-            display_name: "{Alternative \"|\"}+ : {Alternative \"|\"}+ . Layout \"|\" Layout Alternative",
-            position: 1,
-        },
-        Slot {
-            display_name: "{Alternative \"|\"}+ : {Alternative \"|\"}+ Layout . \"|\" Layout Alternative",
-            position: 2,
-        },
-        Slot {
-            display_name: "{Alternative \"|\"}+ : {Alternative \"|\"}+ Layout \"|\" . Layout Alternative",
-            position: 3,
-        },
-        Slot {
-            display_name: "{Alternative \"|\"}+ : {Alternative \"|\"}+ Layout \"|\" Layout . Alternative",
-            position: 4,
-        },
-        Slot {
-            display_name: "{Alternative \"|\"}+ : {Alternative \"|\"}+ Layout \"|\" Layout Alternative.",
-            position: 5,
-        },
-        Slot {
-            display_name: "{Alternative \"|\"}+ : . Alternative",
-            position: 0,
-        },
-        Slot {
-            display_name: "{Alternative \"|\"}+ : Alternative.",
-            position: 1,
-        },
-        Slot {
-            display_name: "{Alternative \"|\"}* : . {Alternative \"|\"}+",
-            position: 0,
-        },
-        Slot {
-            display_name: "{Alternative \"|\"}* : {Alternative \"|\"}+.",
-            position: 1,
-        },
-        Slot {
-            display_name: "{Alternative \"|\"}* : .",
-            position: 0,
-        },
-        Slot {
-            display_name: "Symbol+ : . Symbol+ Layout Symbol(0)",
-            position: 0,
-        },
-        Slot {
-            display_name: "Symbol+ : Symbol+ . Layout Symbol(0)",
-            position: 1,
-        },
-        Slot {
-            display_name: "Symbol+ : Symbol+ Layout . Symbol(0)",
-            position: 2,
-        },
-        Slot {
-            display_name: "Symbol+ : Symbol+ Layout Symbol(0).",
-            position: 3,
-        },
-        Slot {
-            display_name: "Symbol+ : . Symbol(0)",
-            position: 0,
-        },
-        Slot {
-            display_name: "Symbol+ : Symbol(0).",
-            position: 1,
-        },
-        Slot {
-            display_name: "Label? : . Label",
-            position: 0,
-        },
-        Slot {
-            display_name: "Label? : Label.",
-            position: 1,
-        },
-        Slot {
-            display_name: "Label? : .",
-            position: 0,
-        },
-        Slot {
-            display_name: "{Symbol+ \"|\"}+ : . {Symbol+ \"|\"}+ Layout \"|\" Layout Symbol+",
-            position: 0,
-        },
-        Slot {
-            display_name: "{Symbol+ \"|\"}+ : {Symbol+ \"|\"}+ . Layout \"|\" Layout Symbol+",
-            position: 1,
-        },
-        Slot {
-            display_name: "{Symbol+ \"|\"}+ : {Symbol+ \"|\"}+ Layout . \"|\" Layout Symbol+",
-            position: 2,
-        },
-        Slot {
-            display_name: "{Symbol+ \"|\"}+ : {Symbol+ \"|\"}+ Layout \"|\" . Layout Symbol+",
-            position: 3,
-        },
-        Slot {
-            display_name: "{Symbol+ \"|\"}+ : {Symbol+ \"|\"}+ Layout \"|\" Layout . Symbol+",
-            position: 4,
-        },
-        Slot {
-            display_name: "{Symbol+ \"|\"}+ : {Symbol+ \"|\"}+ Layout \"|\" Layout Symbol+.",
-            position: 5,
-        },
-        Slot {
-            display_name: "{Symbol+ \"|\"}+ : . Symbol+",
-            position: 0,
-        },
-        Slot {
-            display_name: "{Symbol+ \"|\"}+ : Symbol+.",
-            position: 1,
-        },
-        Slot {
-            display_name: "PostCondition+ : . PostCondition+ Layout PostCondition",
-            position: 0,
-        },
-        Slot {
-            display_name: "PostCondition+ : PostCondition+ . Layout PostCondition",
-            position: 1,
-        },
-        Slot {
-            display_name: "PostCondition+ : PostCondition+ Layout . PostCondition",
-            position: 2,
-        },
-        Slot {
-            display_name: "PostCondition+ : PostCondition+ Layout PostCondition.",
-            position: 3,
-        },
-        Slot {
-            display_name: "PostCondition+ : . PostCondition",
-            position: 0,
-        },
-        Slot {
-            display_name: "PostCondition+ : PostCondition.",
-            position: 1,
-        },
-        Slot {
-            display_name: "PreCondition+ : . PreCondition+ Layout PreCondition",
-            position: 0,
-        },
-        Slot {
-            display_name: "PreCondition+ : PreCondition+ . Layout PreCondition",
-            position: 1,
-        },
-        Slot {
-            display_name: "PreCondition+ : PreCondition+ Layout . PreCondition",
-            position: 2,
-        },
-        Slot {
-            display_name: "PreCondition+ : PreCondition+ Layout PreCondition.",
-            position: 3,
-        },
-        Slot {
-            display_name: "PreCondition+ : . PreCondition",
-            position: 0,
-        },
-        Slot {
-            display_name: "PreCondition+ : PreCondition.",
-            position: 1,
-        },
-        Slot {
-            display_name: "\"!\"? : . \"!\"",
-            position: 0,
-        },
-        Slot {
-            display_name: "\"!\"? : \"!\".",
-            position: 1,
-        },
-        Slot {
-            display_name: "\"!\"? : .",
-            position: 0,
-        },
-        Slot {
-            display_name: "RangeElement+ : . RangeElement+ Layout RangeElement",
-            position: 0,
-        },
-        Slot {
-            display_name: "RangeElement+ : RangeElement+ . Layout RangeElement",
-            position: 1,
-        },
-        Slot {
-            display_name: "RangeElement+ : RangeElement+ Layout . RangeElement",
-            position: 2,
-        },
-        Slot {
-            display_name: "RangeElement+ : RangeElement+ Layout RangeElement.",
-            position: 3,
-        },
-        Slot {
-            display_name: "RangeElement+ : . RangeElement",
-            position: 0,
-        },
-        Slot {
-            display_name: "RangeElement+ : RangeElement.",
-            position: 1,
-        },
-        Slot {
-            display_name: "(WS | LineComment) : . WS",
-            position: 0,
-        },
-        Slot {
-            display_name: "(WS | LineComment) : WS.",
-            position: 1,
-        },
-        Slot {
-            display_name: "(WS | LineComment) : . LineComment",
-            position: 0,
-        },
-        Slot {
-            display_name: "(WS | LineComment) : LineComment.",
-            position: 1,
-        },
-        Slot {
-            display_name: "(WS | LineComment)+ : . (WS | LineComment)+ (WS | LineComment)",
-            position: 0,
-        },
-        Slot {
-            display_name: "(WS | LineComment)+ : (WS | LineComment)+ . (WS | LineComment)",
-            position: 1,
-        },
-        Slot {
-            display_name: "(WS | LineComment)+ : (WS | LineComment)+ (WS | LineComment).",
-            position: 2,
-        },
-        Slot {
-            display_name: "(WS | LineComment)+ : . (WS | LineComment)",
-            position: 0,
-        },
-        Slot {
-            display_name: "(WS | LineComment)+ : (WS | LineComment).",
-            position: 1,
-        },
-        Slot {
-            display_name: "(WS | LineComment)* : . (WS | LineComment)+",
-            position: 0,
-        },
-        Slot {
-            display_name: "(WS | LineComment)* : (WS | LineComment)+.",
-            position: 1,
-        },
-        Slot {
-            display_name: "(WS | LineComment)* : .",
-            position: 0,
-        },
-        Slot {
-            display_name: "Grammar : . Layout start:Grammar Layout",
-            position: 0,
-        },
-        Slot {
-            display_name: "Grammar : Layout . start:Grammar Layout",
-            position: 1,
-        },
-        Slot {
-            display_name: "Grammar : Layout start:Grammar . Layout",
-            position: 2,
-        },
-        Slot {
-            display_name: "Grammar : Layout start:Grammar Layout.",
-            position: 3,
-        },
-        Slot {
-            display_name: "Rule : . Layout start:Rule Layout",
-            position: 0,
-        },
-        Slot {
-            display_name: "Rule : Layout . start:Rule Layout",
-            position: 1,
-        },
-        Slot {
-            display_name: "Rule : Layout start:Rule . Layout",
-            position: 2,
-        },
-        Slot {
-            display_name: "Rule : Layout start:Rule Layout.",
-            position: 3,
-        },
-        Slot {
-            display_name: "SyntaxRule : . Layout start:SyntaxRule Layout",
-            position: 0,
-        },
-        Slot {
-            display_name: "SyntaxRule : Layout . start:SyntaxRule Layout",
-            position: 1,
-        },
-        Slot {
-            display_name: "SyntaxRule : Layout start:SyntaxRule . Layout",
-            position: 2,
-        },
-        Slot {
-            display_name: "SyntaxRule : Layout start:SyntaxRule Layout.",
-            position: 3,
-        },
-        Slot {
-            display_name: "Annotation : . Layout start:Annotation Layout",
-            position: 0,
-        },
-        Slot {
-            display_name: "Annotation : Layout . start:Annotation Layout",
-            position: 1,
-        },
-        Slot {
-            display_name: "Annotation : Layout start:Annotation . Layout",
-            position: 2,
-        },
-        Slot {
-            display_name: "Annotation : Layout start:Annotation Layout.",
-            position: 3,
-        },
-        Slot {
-            display_name: "RegexRule : . Layout start:RegexRule Layout",
-            position: 0,
-        },
-        Slot {
-            display_name: "RegexRule : Layout . start:RegexRule Layout",
-            position: 1,
-        },
-        Slot {
-            display_name: "RegexRule : Layout start:RegexRule . Layout",
-            position: 2,
-        },
-        Slot {
-            display_name: "RegexRule : Layout start:RegexRule Layout.",
-            position: 3,
-        },
-        Slot {
-            display_name: "RegexPreCondition : . Layout start:RegexPreCondition Layout",
-            position: 0,
-        },
-        Slot {
-            display_name: "RegexPreCondition : Layout . start:RegexPreCondition Layout",
-            position: 1,
-        },
-        Slot {
-            display_name: "RegexPreCondition : Layout start:RegexPreCondition . Layout",
-            position: 2,
-        },
-        Slot {
-            display_name: "RegexPreCondition : Layout start:RegexPreCondition Layout.",
-            position: 3,
-        },
-        Slot {
-            display_name: "RegexPostCondition : . Layout start:RegexPostCondition Layout",
-            position: 0,
-        },
-        Slot {
-            display_name: "RegexPostCondition : Layout . start:RegexPostCondition Layout",
-            position: 1,
-        },
-        Slot {
-            display_name: "RegexPostCondition : Layout start:RegexPostCondition . Layout",
-            position: 2,
-        },
-        Slot {
-            display_name: "RegexPostCondition : Layout start:RegexPostCondition Layout.",
-            position: 3,
-        },
-        Slot {
-            display_name: "PriorityLevel : . Layout start:PriorityLevel Layout",
-            position: 0,
-        },
-        Slot {
-            display_name: "PriorityLevel : Layout . start:PriorityLevel Layout",
-            position: 1,
-        },
-        Slot {
-            display_name: "PriorityLevel : Layout start:PriorityLevel . Layout",
-            position: 2,
-        },
-        Slot {
-            display_name: "PriorityLevel : Layout start:PriorityLevel Layout.",
-            position: 3,
-        },
-        Slot {
-            display_name: "Associativity : . Layout start:Associativity Layout",
-            position: 0,
-        },
-        Slot {
-            display_name: "Associativity : Layout . start:Associativity Layout",
-            position: 1,
-        },
-        Slot {
-            display_name: "Associativity : Layout start:Associativity . Layout",
-            position: 2,
-        },
-        Slot {
-            display_name: "Associativity : Layout start:Associativity Layout.",
-            position: 3,
-        },
-        Slot {
-            display_name: "Alternative : . Layout start:Alternative Layout",
-            position: 0,
-        },
-        Slot {
-            display_name: "Alternative : Layout . start:Alternative Layout",
-            position: 1,
-        },
-        Slot {
-            display_name: "Alternative : Layout start:Alternative . Layout",
-            position: 2,
-        },
-        Slot {
-            display_name: "Alternative : Layout start:Alternative Layout.",
-            position: 3,
-        },
-        Slot {
-            display_name: "Symbol(0) : . Layout start:Symbol(0) Layout",
-            position: 0,
-        },
-        Slot {
-            display_name: "Symbol(0) : Layout . start:Symbol(0) Layout",
-            position: 1,
-        },
-        Slot {
-            display_name: "Symbol(0) : Layout start:Symbol(0) . Layout",
-            position: 2,
-        },
-        Slot {
-            display_name: "Symbol(0) : Layout start:Symbol(0) Layout.",
-            position: 3,
-        },
-        Slot {
-            display_name: "PreCondition : . Layout start:PreCondition Layout",
-            position: 0,
-        },
-        Slot {
-            display_name: "PreCondition : Layout . start:PreCondition Layout",
-            position: 1,
-        },
-        Slot {
-            display_name: "PreCondition : Layout start:PreCondition . Layout",
-            position: 2,
-        },
-        Slot {
-            display_name: "PreCondition : Layout start:PreCondition Layout.",
-            position: 3,
-        },
-        Slot {
-            display_name: "PostCondition : . Layout start:PostCondition Layout",
-            position: 0,
-        },
-        Slot {
-            display_name: "PostCondition : Layout . start:PostCondition Layout",
-            position: 1,
-        },
-        Slot {
-            display_name: "PostCondition : Layout start:PostCondition . Layout",
-            position: 2,
-        },
-        Slot {
-            display_name: "PostCondition : Layout start:PostCondition Layout.",
-            position: 3,
-        },
-        Slot {
-            display_name: "Regex : . Layout start:Regex Layout",
-            position: 0,
-        },
-        Slot {
-            display_name: "Regex : Layout . start:Regex Layout",
-            position: 1,
-        },
-        Slot {
-            display_name: "Regex : Layout start:Regex . Layout",
-            position: 2,
-        },
-        Slot {
-            display_name: "Regex : Layout start:Regex Layout.",
-            position: 3,
-        },
-        Slot {
-            display_name: "CharClass : . Layout start:CharClass Layout",
-            position: 0,
-        },
-        Slot {
-            display_name: "CharClass : Layout . start:CharClass Layout",
-            position: 1,
-        },
-        Slot {
-            display_name: "CharClass : Layout start:CharClass . Layout",
-            position: 2,
-        },
-        Slot {
-            display_name: "CharClass : Layout start:CharClass Layout.",
-            position: 3,
-        },
-        Slot {
-            display_name: "RangeElement : . Layout start:RangeElement Layout",
-            position: 0,
-        },
-        Slot {
-            display_name: "RangeElement : Layout . start:RangeElement Layout",
-            position: 1,
-        },
-        Slot {
-            display_name: "RangeElement : Layout start:RangeElement . Layout",
-            position: 2,
-        },
-        Slot {
-            display_name: "RangeElement : Layout start:RangeElement Layout.",
-            position: 3,
-        },
-        Slot {
-            display_name: "Range : . Layout start:Range Layout",
-            position: 0,
-        },
-        Slot {
-            display_name: "Range : Layout . start:Range Layout",
-            position: 1,
-        },
-        Slot {
-            display_name: "Range : Layout start:Range . Layout",
-            position: 2,
-        },
-        Slot {
-            display_name: "Range : Layout start:Range Layout.",
-            position: 3,
-        },
-        Slot {
-            display_name: "Layout : . start:Layout",
-            position: 0,
-        },
-        Slot {
-            display_name: "Layout : start:Layout.",
-            position: 1,
-        },
-        Slot {
-            display_name: "Symbol : . Identifier return (0, 0)",
-            position: 0,
-        },
-        Slot {
-            display_name: "Symbol : Identifier . return (0, 0)",
-            position: 1,
-        },
-        Slot {
-            display_name: "Symbol : Identifier return (0, 0).",
-            position: 2,
-        },
-        Slot {
-            display_name: "Symbol : . \"(\" Layout seqs:{Symbol+ \"|\"}+ Layout \")\" return (0, 1)",
-            position: 0,
-        },
-        Slot {
-            display_name: "Symbol : \"(\" . Layout seqs:{Symbol+ \"|\"}+ Layout \")\" return (0, 1)",
-            position: 1,
-        },
-        Slot {
-            display_name: "Symbol : \"(\" Layout . seqs:{Symbol+ \"|\"}+ Layout \")\" return (0, 1)",
-            position: 2,
-        },
-        Slot {
-            display_name: "Symbol : \"(\" Layout seqs:{Symbol+ \"|\"}+ . Layout \")\" return (0, 1)",
-            position: 3,
-        },
-        Slot {
-            display_name: "Symbol : \"(\" Layout seqs:{Symbol+ \"|\"}+ Layout . \")\" return (0, 1)",
-            position: 4,
-        },
-        Slot {
-            display_name: "Symbol : \"(\" Layout seqs:{Symbol+ \"|\"}+ Layout \")\" . return (0, 1)",
-            position: 5,
-        },
-        Slot {
-            display_name: "Symbol : \"(\" Layout seqs:{Symbol+ \"|\"}+ Layout \")\" return (0, 1).",
-            position: 6,
-        },
-        Slot {
-            display_name: "Symbol : . String return (0, 2)",
-            position: 0,
-        },
-        Slot {
-            display_name: "Symbol : String . return (0, 2)",
-            position: 1,
-        },
-        Slot {
-            display_name: "Symbol : String return (0, 2).",
-            position: 2,
-        },
-        Slot {
-            display_name: "Symbol : . \"{\" Layout symbol:Symbol(0) Layout sep:Symbol(0) Layout \"}\" Layout \"*\" return (0, 3)",
-            position: 0,
-        },
-        Slot {
-            display_name: "Symbol : \"{\" . Layout symbol:Symbol(0) Layout sep:Symbol(0) Layout \"}\" Layout \"*\" return (0, 3)",
-            position: 1,
-        },
-        Slot {
-            display_name: "Symbol : \"{\" Layout . symbol:Symbol(0) Layout sep:Symbol(0) Layout \"}\" Layout \"*\" return (0, 3)",
-            position: 2,
-        },
-        Slot {
-            display_name: "Symbol : \"{\" Layout symbol:Symbol(0) . Layout sep:Symbol(0) Layout \"}\" Layout \"*\" return (0, 3)",
-            position: 3,
-        },
-        Slot {
-            display_name: "Symbol : \"{\" Layout symbol:Symbol(0) Layout . sep:Symbol(0) Layout \"}\" Layout \"*\" return (0, 3)",
-            position: 4,
-        },
-        Slot {
-            display_name: "Symbol : \"{\" Layout symbol:Symbol(0) Layout sep:Symbol(0) . Layout \"}\" Layout \"*\" return (0, 3)",
-            position: 5,
-        },
-        Slot {
-            display_name: "Symbol : \"{\" Layout symbol:Symbol(0) Layout sep:Symbol(0) Layout . \"}\" Layout \"*\" return (0, 3)",
-            position: 6,
-        },
-        Slot {
-            display_name: "Symbol : \"{\" Layout symbol:Symbol(0) Layout sep:Symbol(0) Layout \"}\" . Layout \"*\" return (0, 3)",
-            position: 7,
-        },
-        Slot {
-            display_name: "Symbol : \"{\" Layout symbol:Symbol(0) Layout sep:Symbol(0) Layout \"}\" Layout . \"*\" return (0, 3)",
-            position: 8,
-        },
-        Slot {
-            display_name: "Symbol : \"{\" Layout symbol:Symbol(0) Layout sep:Symbol(0) Layout \"}\" Layout \"*\" . return (0, 3)",
-            position: 9,
-        },
-        Slot {
-            display_name: "Symbol : \"{\" Layout symbol:Symbol(0) Layout sep:Symbol(0) Layout \"}\" Layout \"*\" return (0, 3).",
-            position: 10,
-        },
-        Slot {
-            display_name: "Symbol : . \"{\" Layout symbol:Symbol(0) Layout sep:Symbol(0) Layout \"}\" Layout \"+\" return (0, 4)",
-            position: 0,
-        },
-        Slot {
-            display_name: "Symbol : \"{\" . Layout symbol:Symbol(0) Layout sep:Symbol(0) Layout \"}\" Layout \"+\" return (0, 4)",
-            position: 1,
-        },
-        Slot {
-            display_name: "Symbol : \"{\" Layout . symbol:Symbol(0) Layout sep:Symbol(0) Layout \"}\" Layout \"+\" return (0, 4)",
-            position: 2,
-        },
-        Slot {
-            display_name: "Symbol : \"{\" Layout symbol:Symbol(0) . Layout sep:Symbol(0) Layout \"}\" Layout \"+\" return (0, 4)",
-            position: 3,
-        },
-        Slot {
-            display_name: "Symbol : \"{\" Layout symbol:Symbol(0) Layout . sep:Symbol(0) Layout \"}\" Layout \"+\" return (0, 4)",
-            position: 4,
-        },
-        Slot {
-            display_name: "Symbol : \"{\" Layout symbol:Symbol(0) Layout sep:Symbol(0) . Layout \"}\" Layout \"+\" return (0, 4)",
-            position: 5,
-        },
-        Slot {
-            display_name: "Symbol : \"{\" Layout symbol:Symbol(0) Layout sep:Symbol(0) Layout . \"}\" Layout \"+\" return (0, 4)",
-            position: 6,
-        },
-        Slot {
-            display_name: "Symbol : \"{\" Layout symbol:Symbol(0) Layout sep:Symbol(0) Layout \"}\" . Layout \"+\" return (0, 4)",
-            position: 7,
-        },
-        Slot {
-            display_name: "Symbol : \"{\" Layout symbol:Symbol(0) Layout sep:Symbol(0) Layout \"}\" Layout . \"+\" return (0, 4)",
-            position: 8,
-        },
-        Slot {
-            display_name: "Symbol : \"{\" Layout symbol:Symbol(0) Layout sep:Symbol(0) Layout \"}\" Layout \"+\" . return (0, 4)",
-            position: 9,
-        },
-        Slot {
-            display_name: "Symbol : \"{\" Layout symbol:Symbol(0) Layout sep:Symbol(0) Layout \"}\" Layout \"+\" return (0, 4).",
-            position: 10,
-        },
-        Slot {
-            display_name: "Symbol : . [3 >= p] (l_pr, l_label)=Symbol(p) [(l_pr == 0) || (l_pr >= 3)] Layout \"*\" return (0, 5)",
-            position: 0,
-        },
-        Slot {
-            display_name: "Symbol : [3 >= p] . (l_pr, l_label)=Symbol(p) [(l_pr == 0) || (l_pr >= 3)] Layout \"*\" return (0, 5)",
-            position: 1,
-        },
-        Slot {
-            display_name: "Symbol : [3 >= p] (l_pr, l_label)=Symbol(p) . [(l_pr == 0) || (l_pr >= 3)] Layout \"*\" return (0, 5)",
-            position: 2,
-        },
-        Slot {
-            display_name: "Symbol : [3 >= p] (l_pr, l_label)=Symbol(p) [(l_pr == 0) || (l_pr >= 3)] . Layout \"*\" return (0, 5)",
-            position: 3,
-        },
-        Slot {
-            display_name: "Symbol : [3 >= p] (l_pr, l_label)=Symbol(p) [(l_pr == 0) || (l_pr >= 3)] Layout . \"*\" return (0, 5)",
-            position: 4,
-        },
-        Slot {
-            display_name: "Symbol : [3 >= p] (l_pr, l_label)=Symbol(p) [(l_pr == 0) || (l_pr >= 3)] Layout \"*\" . return (0, 5)",
-            position: 5,
-        },
-        Slot {
-            display_name: "Symbol : [3 >= p] (l_pr, l_label)=Symbol(p) [(l_pr == 0) || (l_pr >= 3)] Layout \"*\" return (0, 5).",
-            position: 6,
-        },
-        Slot {
-            display_name: "Symbol : . [3 >= p] (l_pr, l_label)=Symbol(p) [(l_pr == 0) || (l_pr >= 3)] Layout \"+\" return (0, 6)",
-            position: 0,
-        },
-        Slot {
-            display_name: "Symbol : [3 >= p] . (l_pr, l_label)=Symbol(p) [(l_pr == 0) || (l_pr >= 3)] Layout \"+\" return (0, 6)",
-            position: 1,
-        },
-        Slot {
-            display_name: "Symbol : [3 >= p] (l_pr, l_label)=Symbol(p) . [(l_pr == 0) || (l_pr >= 3)] Layout \"+\" return (0, 6)",
-            position: 2,
-        },
-        Slot {
-            display_name: "Symbol : [3 >= p] (l_pr, l_label)=Symbol(p) [(l_pr == 0) || (l_pr >= 3)] . Layout \"+\" return (0, 6)",
-            position: 3,
-        },
-        Slot {
-            display_name: "Symbol : [3 >= p] (l_pr, l_label)=Symbol(p) [(l_pr == 0) || (l_pr >= 3)] Layout . \"+\" return (0, 6)",
-            position: 4,
-        },
-        Slot {
-            display_name: "Symbol : [3 >= p] (l_pr, l_label)=Symbol(p) [(l_pr == 0) || (l_pr >= 3)] Layout \"+\" . return (0, 6)",
-            position: 5,
-        },
-        Slot {
-            display_name: "Symbol : [3 >= p] (l_pr, l_label)=Symbol(p) [(l_pr == 0) || (l_pr >= 3)] Layout \"+\" return (0, 6).",
-            position: 6,
-        },
-        Slot {
-            display_name: "Symbol : . [3 >= p] (l_pr, l_label)=Symbol(p) [(l_pr == 0) || (l_pr >= 3)] Layout \"?\" return (0, 7)",
-            position: 0,
-        },
-        Slot {
-            display_name: "Symbol : [3 >= p] . (l_pr, l_label)=Symbol(p) [(l_pr == 0) || (l_pr >= 3)] Layout \"?\" return (0, 7)",
-            position: 1,
-        },
-        Slot {
-            display_name: "Symbol : [3 >= p] (l_pr, l_label)=Symbol(p) . [(l_pr == 0) || (l_pr >= 3)] Layout \"?\" return (0, 7)",
-            position: 2,
-        },
-        Slot {
-            display_name: "Symbol : [3 >= p] (l_pr, l_label)=Symbol(p) [(l_pr == 0) || (l_pr >= 3)] . Layout \"?\" return (0, 7)",
-            position: 3,
-        },
-        Slot {
-            display_name: "Symbol : [3 >= p] (l_pr, l_label)=Symbol(p) [(l_pr == 0) || (l_pr >= 3)] Layout . \"?\" return (0, 7)",
-            position: 4,
-        },
-        Slot {
-            display_name: "Symbol : [3 >= p] (l_pr, l_label)=Symbol(p) [(l_pr == 0) || (l_pr >= 3)] Layout \"?\" . return (0, 7)",
-            position: 5,
-        },
-        Slot {
-            display_name: "Symbol : [3 >= p] (l_pr, l_label)=Symbol(p) [(l_pr == 0) || (l_pr >= 3)] Layout \"?\" return (0, 7).",
-            position: 6,
-        },
-        Slot {
-            display_name: "Symbol : . [3 >= p] (l_pr, l_label)=Symbol(p) [(l_label == NO_LABEL) || ((256 >> l_label) & 1 == 0)] [(l_pr == 0) || (l_pr >= 3)] Layout conditions:PostCondition+ return (0, 8)",
-            position: 0,
-        },
-        Slot {
-            display_name: "Symbol : [3 >= p] . (l_pr, l_label)=Symbol(p) [(l_label == NO_LABEL) || ((256 >> l_label) & 1 == 0)] [(l_pr == 0) || (l_pr >= 3)] Layout conditions:PostCondition+ return (0, 8)",
-            position: 1,
-        },
-        Slot {
-            display_name: "Symbol : [3 >= p] (l_pr, l_label)=Symbol(p) . [(l_label == NO_LABEL) || ((256 >> l_label) & 1 == 0)] [(l_pr == 0) || (l_pr >= 3)] Layout conditions:PostCondition+ return (0, 8)",
-            position: 2,
-        },
-        Slot {
-            display_name: "Symbol : [3 >= p] (l_pr, l_label)=Symbol(p) [(l_label == NO_LABEL) || ((256 >> l_label) & 1 == 0)] . [(l_pr == 0) || (l_pr >= 3)] Layout conditions:PostCondition+ return (0, 8)",
-            position: 3,
-        },
-        Slot {
-            display_name: "Symbol : [3 >= p] (l_pr, l_label)=Symbol(p) [(l_label == NO_LABEL) || ((256 >> l_label) & 1 == 0)] [(l_pr == 0) || (l_pr >= 3)] . Layout conditions:PostCondition+ return (0, 8)",
-            position: 4,
-        },
-        Slot {
-            display_name: "Symbol : [3 >= p] (l_pr, l_label)=Symbol(p) [(l_label == NO_LABEL) || ((256 >> l_label) & 1 == 0)] [(l_pr == 0) || (l_pr >= 3)] Layout . conditions:PostCondition+ return (0, 8)",
-            position: 5,
-        },
-        Slot {
-            display_name: "Symbol : [3 >= p] (l_pr, l_label)=Symbol(p) [(l_label == NO_LABEL) || ((256 >> l_label) & 1 == 0)] [(l_pr == 0) || (l_pr >= 3)] Layout conditions:PostCondition+ . return (0, 8)",
-            position: 6,
-        },
-        Slot {
-            display_name: "Symbol : [3 >= p] (l_pr, l_label)=Symbol(p) [(l_label == NO_LABEL) || ((256 >> l_label) & 1 == 0)] [(l_pr == 0) || (l_pr >= 3)] Layout conditions:PostCondition+ return (0, 8).",
-            position: 7,
-        },
-        Slot {
-            display_name: "Symbol : . conditions:PreCondition+ Layout (r_pr, r_label)=Symbol(2) [(r_label == NO_LABEL) || ((512 >> r_label) & 1 == 0)] return ((r_pr == 0) ? 2 : min(r_pr, 2), 9)",
-            position: 0,
-        },
-        Slot {
-            display_name: "Symbol : conditions:PreCondition+ . Layout (r_pr, r_label)=Symbol(2) [(r_label == NO_LABEL) || ((512 >> r_label) & 1 == 0)] return ((r_pr == 0) ? 2 : min(r_pr, 2), 9)",
-            position: 1,
-        },
-        Slot {
-            display_name: "Symbol : conditions:PreCondition+ Layout . (r_pr, r_label)=Symbol(2) [(r_label == NO_LABEL) || ((512 >> r_label) & 1 == 0)] return ((r_pr == 0) ? 2 : min(r_pr, 2), 9)",
-            position: 2,
-        },
-        Slot {
-            display_name: "Symbol : conditions:PreCondition+ Layout (r_pr, r_label)=Symbol(2) . [(r_label == NO_LABEL) || ((512 >> r_label) & 1 == 0)] return ((r_pr == 0) ? 2 : min(r_pr, 2), 9)",
-            position: 3,
-        },
-        Slot {
-            display_name: "Symbol : conditions:PreCondition+ Layout (r_pr, r_label)=Symbol(2) [(r_label == NO_LABEL) || ((512 >> r_label) & 1 == 0)] . return ((r_pr == 0) ? 2 : min(r_pr, 2), 9)",
-            position: 4,
-        },
-        Slot {
-            display_name: "Symbol : conditions:PreCondition+ Layout (r_pr, r_label)=Symbol(2) [(r_label == NO_LABEL) || ((512 >> r_label) & 1 == 0)] return ((r_pr == 0) ? 2 : min(r_pr, 2), 9).",
-            position: 5,
-        },
-        Slot {
-            display_name: "Symbol : . label:Identifier Layout \":\" Layout Symbol(1) return (1, 10)",
-            position: 0,
-        },
-        Slot {
-            display_name: "Symbol : label:Identifier . Layout \":\" Layout Symbol(1) return (1, 10)",
-            position: 1,
-        },
-        Slot {
-            display_name: "Symbol : label:Identifier Layout . \":\" Layout Symbol(1) return (1, 10)",
-            position: 2,
-        },
-        Slot {
-            display_name: "Symbol : label:Identifier Layout \":\" . Layout Symbol(1) return (1, 10)",
-            position: 3,
-        },
-        Slot {
-            display_name: "Symbol : label:Identifier Layout \":\" Layout . Symbol(1) return (1, 10)",
-            position: 4,
-        },
-        Slot {
-            display_name: "Symbol : label:Identifier Layout \":\" Layout Symbol(1) . return (1, 10)",
-            position: 5,
-        },
-        Slot {
-            display_name: "Symbol : label:Identifier Layout \":\" Layout Symbol(1) return (1, 10).",
-            position: 6,
-        },
-    ];
-    const FIRST_SLOTS: &'static [&'static [SlotId]] = &[
-        &[SlotId(0)],
-        &[SlotId(6), SlotId(8)],
-        &[SlotId(10)],
-        &[SlotId(18), SlotId(20)],
-        &[SlotId(22)],
-        &[SlotId(38)],
-        &[SlotId(42), SlotId(46)],
-        &[SlotId(50)],
-        &[SlotId(54), SlotId(56), SlotId(58)],
-        &[SlotId(60), SlotId(64)],
-        &[SlotId(70)],
-        &[SlotId(74), SlotId(78), SlotId(82), SlotId(86)],
-        &[
-            SlotId(90),
-            SlotId(94),
-            SlotId(98),
-            SlotId(102),
-            SlotId(108),
-            SlotId(110),
-            SlotId(112),
-            SlotId(114),
-        ],
-        &[SlotId(116)],
-        &[SlotId(124), SlotId(126)],
-        &[SlotId(128)],
-        &[SlotId(134)],
-        &[SlotId(136), SlotId(140)],
-        &[SlotId(142), SlotId(144)],
-        &[SlotId(145), SlotId(147)],
-        &[SlotId(148), SlotId(154)],
-        &[SlotId(156), SlotId(158)],
-        &[SlotId(159), SlotId(161)],
-        &[SlotId(162), SlotId(164)],
-        &[SlotId(165), SlotId(167)],
-        &[SlotId(168), SlotId(172)],
-        &[SlotId(174), SlotId(180)],
-        &[SlotId(182), SlotId(186)],
-        &[SlotId(188), SlotId(190)],
-        &[SlotId(191), SlotId(193)],
-        &[SlotId(194), SlotId(200)],
-        &[SlotId(202), SlotId(204)],
-        &[SlotId(205), SlotId(209)],
-        &[SlotId(211), SlotId(213)],
-        &[SlotId(214), SlotId(220)],
-        &[SlotId(222), SlotId(226)],
-        &[SlotId(228), SlotId(232)],
-        &[SlotId(234), SlotId(236)],
-        &[SlotId(237), SlotId(241)],
-        &[SlotId(243), SlotId(245)],
-        &[SlotId(247), SlotId(250)],
-        &[SlotId(252), SlotId(254)],
-        &[SlotId(255)],
-        &[SlotId(259)],
-        &[SlotId(263)],
-        &[SlotId(267)],
-        &[SlotId(271)],
-        &[SlotId(275)],
-        &[SlotId(279)],
-        &[SlotId(283)],
-        &[SlotId(287)],
-        &[SlotId(291)],
-        &[SlotId(295)],
-        &[SlotId(299)],
-        &[SlotId(303)],
-        &[SlotId(307)],
-        &[SlotId(311)],
-        &[SlotId(315)],
-        &[SlotId(319)],
-        &[SlotId(323)],
-        &[
-            SlotId(325),
-            SlotId(328),
-            SlotId(335),
-            SlotId(338),
-            SlotId(349),
-            SlotId(360),
-            SlotId(367),
-            SlotId(374),
-            SlotId(381),
-            SlotId(389),
-            SlotId(395),
-        ],
-    ];
+    const NONTERMINALS: &'static [Nonterminal] = &NONTERMINALS;
+    const DISPLAY_ORDER: &'static [&'static str] = &DISPLAY_ORDER;
+    const TERMINALS: &'static [Terminal] = &TERMINALS;
+    const SLOTS: &'static [Slot] = &SLOTS;
+    const FIRST_SLOTS: &'static [&'static [SlotId]] = &FIRST_SLOTS;
     const LAYOUT_NAME: Option<&'static str> = Some("Layout");
     const LAYOUT_TERMINALS: &'static [TerminalId] = &[TerminalId(8), TerminalId(10)];
-    // A failed terminal match refers to a static terminal set like every other failure, so the
-    // error reporting path needs to reach a terminal set from a terminal id. This slice, indexed
-    // by terminal id, serves only that.
-    const SINGLE_TERMINAL_SETS: &'static [TerminalSet] = &[
-        TerminalSet {
-            id: 52,
-            terminals: &[TerminalId(0)],
-        },
-        TerminalSet {
-            id: 53,
-            terminals: &[TerminalId(1)],
-        },
-        TerminalSet {
-            id: 54,
-            terminals: &[TerminalId(2)],
-        },
-        TerminalSet {
-            id: 55,
-            terminals: &[TerminalId(3)],
-        },
-        TerminalSet {
-            id: 56,
-            terminals: &[TerminalId(4)],
-        },
-        TerminalSet {
-            id: 57,
-            terminals: &[TerminalId(5)],
-        },
-        TerminalSet {
-            id: 58,
-            terminals: &[TerminalId(6)],
-        },
-        TerminalSet {
-            id: 59,
-            terminals: &[TerminalId(7)],
-        },
-        TerminalSet {
-            id: 60,
-            terminals: &[TerminalId(8)],
-        },
-        TerminalSet {
-            id: 61,
-            terminals: &[TerminalId(9)],
-        },
-        TerminalSet {
-            id: 62,
-            terminals: &[TerminalId(10)],
-        },
-        TerminalSet {
-            id: 63,
-            terminals: &[TerminalId(11)],
-        },
-        TerminalSet {
-            id: 64,
-            terminals: &[TerminalId(12)],
-        },
-        TerminalSet {
-            id: 65,
-            terminals: &[TerminalId(13)],
-        },
-        TerminalSet {
-            id: 66,
-            terminals: &[TerminalId(14)],
-        },
-        TerminalSet {
-            id: 67,
-            terminals: &[TerminalId(15)],
-        },
-        TerminalSet {
-            id: 68,
-            terminals: &[TerminalId(16)],
-        },
-        TerminalSet {
-            id: 69,
-            terminals: &[TerminalId(17)],
-        },
-        TerminalSet {
-            id: 70,
-            terminals: &[TerminalId(18)],
-        },
-        TerminalSet {
-            id: 71,
-            terminals: &[TerminalId(19)],
-        },
-        TerminalSet {
-            id: 72,
-            terminals: &[TerminalId(20)],
-        },
-        TerminalSet {
-            id: 73,
-            terminals: &[TerminalId(21)],
-        },
-        TerminalSet {
-            id: 74,
-            terminals: &[TerminalId(22)],
-        },
-        TerminalSet {
-            id: 75,
-            terminals: &[TerminalId(23)],
-        },
-        TerminalSet {
-            id: 76,
-            terminals: &[TerminalId(24)],
-        },
-        TerminalSet {
-            id: 77,
-            terminals: &[TerminalId(25)],
-        },
-        TerminalSet {
-            id: 78,
-            terminals: &[TerminalId(26)],
-        },
-        TerminalSet {
-            id: 79,
-            terminals: &[TerminalId(27)],
-        },
-        TerminalSet {
-            id: 80,
-            terminals: &[TerminalId(28)],
-        },
-        TerminalSet {
-            id: 81,
-            terminals: &[TerminalId(29)],
-        },
-        TerminalSet {
-            id: 82,
-            terminals: &[TerminalId(30)],
-        },
-        TerminalSet {
-            id: 83,
-            terminals: &[TerminalId(31)],
-        },
-        TerminalSet {
-            id: 84,
-            terminals: &[TerminalId(32)],
-        },
-        TerminalSet {
-            id: 85,
-            terminals: &[TerminalId(33)],
-        },
-        TerminalSet {
-            id: 86,
-            terminals: &[TerminalId(34)],
-        },
-        TerminalSet {
-            id: 87,
-            terminals: &[TerminalId(35)],
-        },
-        TerminalSet {
-            id: 88,
-            terminals: &[TerminalId(36)],
-        },
-        TerminalSet {
-            id: 89,
-            terminals: &[TerminalId(37)],
-        },
-        TerminalSet {
-            id: 90,
-            terminals: &[TerminalId(38)],
-        },
-        TerminalSet {
-            id: 91,
-            terminals: &[TerminalId(39)],
-        },
-    ];
+    const SINGLE_TERMINAL_SETS: &'static [TerminalSet] = &SINGLE_TERMINAL_SETS;
     fn nonterminal_id(name: &str) -> Option<NonterminalId> {
         match name {
             "Grammar" => Some(GRAMMAR),

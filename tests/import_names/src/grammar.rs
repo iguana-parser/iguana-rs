@@ -31,455 +31,461 @@ pub const START_TERMINAL: NonterminalId = NonterminalId(21);
 pub const START_SLOT: NonterminalId = NonterminalId(22);
 pub const START_TERMINAL_SET: NonterminalId = NonterminalId(23);
 pub struct ImportNamesGrammar;
+static NONTERMINALS: [Nonterminal; 24] = [
+    Nonterminal {
+        name: "S",
+        display_name: "S",
+    },
+    Nonterminal {
+        name: "Parse",
+        display_name: "Parse",
+    },
+    Nonterminal {
+        name: "Parser",
+        display_name: "Parser",
+    },
+    Nonterminal {
+        name: "SPPFNode",
+        display_name: "SPPFNode",
+    },
+    Nonterminal {
+        name: "Input",
+        display_name: "Input",
+    },
+    Nonterminal {
+        name: "ParseError",
+        display_name: "ParseError",
+    },
+    Nonterminal {
+        name: "ParseSuccess",
+        display_name: "ParseSuccess",
+    },
+    Nonterminal {
+        name: "Grammar",
+        display_name: "Grammar",
+    },
+    Nonterminal {
+        name: "Nonterminal",
+        display_name: "Nonterminal",
+    },
+    Nonterminal {
+        name: "Terminal",
+        display_name: "Terminal",
+    },
+    Nonterminal {
+        name: "Slot",
+        display_name: "Slot",
+    },
+    Nonterminal {
+        name: "TerminalSet",
+        display_name: "TerminalSet",
+    },
+    Nonterminal {
+        name: "StartS",
+        display_name: "S",
+    },
+    Nonterminal {
+        name: "StartParse",
+        display_name: "Parse",
+    },
+    Nonterminal {
+        name: "StartParser",
+        display_name: "Parser",
+    },
+    Nonterminal {
+        name: "StartSPPFNode",
+        display_name: "SPPFNode",
+    },
+    Nonterminal {
+        name: "StartInput",
+        display_name: "Input",
+    },
+    Nonterminal {
+        name: "StartParseError",
+        display_name: "ParseError",
+    },
+    Nonterminal {
+        name: "StartParseSuccess",
+        display_name: "ParseSuccess",
+    },
+    Nonterminal {
+        name: "StartGrammar",
+        display_name: "Grammar",
+    },
+    Nonterminal {
+        name: "StartNonterminal",
+        display_name: "Nonterminal",
+    },
+    Nonterminal {
+        name: "StartTerminal",
+        display_name: "Terminal",
+    },
+    Nonterminal {
+        name: "StartSlot",
+        display_name: "Slot",
+    },
+    Nonterminal {
+        name: "StartTerminalSet",
+        display_name: "TerminalSet",
+    },
+];
+static DISPLAY_ORDER: [&str; 12] = [
+    "S",
+    "Parse",
+    "Parser",
+    "SPPFNode",
+    "Input",
+    "ParseError",
+    "ParseSuccess",
+    "Grammar",
+    "Nonterminal",
+    "Terminal",
+    "Slot",
+    "TerminalSet",
+];
+static TERMINALS: [Terminal; 13] = [
+    Terminal { name: "\"a\"" },
+    Terminal { name: "\"b\"" },
+    Terminal { name: "\"c\"" },
+    Terminal { name: "\"d\"" },
+    Terminal { name: "\"e\"" },
+    Terminal { name: "\"f\"" },
+    Terminal { name: "\"g\"" },
+    Terminal { name: "\"h\"" },
+    Terminal { name: "\"i\"" },
+    Terminal { name: "\"j\"" },
+    Terminal { name: "\"k\"" },
+    Terminal { name: "Epsilon" },
+    Terminal { name: "EOF" },
+];
+static SLOTS: [Slot; 58] = [
+    Slot {
+        display_name: "S : . Parse Parser SPPFNode Input ParseError ParseSuccess Grammar Nonterminal Terminal Slot TerminalSet",
+        position: 0,
+    },
+    Slot {
+        display_name: "S : Parse . Parser SPPFNode Input ParseError ParseSuccess Grammar Nonterminal Terminal Slot TerminalSet",
+        position: 1,
+    },
+    Slot {
+        display_name: "S : Parse Parser . SPPFNode Input ParseError ParseSuccess Grammar Nonterminal Terminal Slot TerminalSet",
+        position: 2,
+    },
+    Slot {
+        display_name: "S : Parse Parser SPPFNode . Input ParseError ParseSuccess Grammar Nonterminal Terminal Slot TerminalSet",
+        position: 3,
+    },
+    Slot {
+        display_name: "S : Parse Parser SPPFNode Input . ParseError ParseSuccess Grammar Nonterminal Terminal Slot TerminalSet",
+        position: 4,
+    },
+    Slot {
+        display_name: "S : Parse Parser SPPFNode Input ParseError . ParseSuccess Grammar Nonterminal Terminal Slot TerminalSet",
+        position: 5,
+    },
+    Slot {
+        display_name: "S : Parse Parser SPPFNode Input ParseError ParseSuccess . Grammar Nonterminal Terminal Slot TerminalSet",
+        position: 6,
+    },
+    Slot {
+        display_name: "S : Parse Parser SPPFNode Input ParseError ParseSuccess Grammar . Nonterminal Terminal Slot TerminalSet",
+        position: 7,
+    },
+    Slot {
+        display_name: "S : Parse Parser SPPFNode Input ParseError ParseSuccess Grammar Nonterminal . Terminal Slot TerminalSet",
+        position: 8,
+    },
+    Slot {
+        display_name: "S : Parse Parser SPPFNode Input ParseError ParseSuccess Grammar Nonterminal Terminal . Slot TerminalSet",
+        position: 9,
+    },
+    Slot {
+        display_name: "S : Parse Parser SPPFNode Input ParseError ParseSuccess Grammar Nonterminal Terminal Slot . TerminalSet",
+        position: 10,
+    },
+    Slot {
+        display_name: "S : Parse Parser SPPFNode Input ParseError ParseSuccess Grammar Nonterminal Terminal Slot TerminalSet.",
+        position: 11,
+    },
+    Slot {
+        display_name: "Parse : . \"a\"",
+        position: 0,
+    },
+    Slot {
+        display_name: "Parse : \"a\".",
+        position: 1,
+    },
+    Slot {
+        display_name: "Parser : . \"b\"",
+        position: 0,
+    },
+    Slot {
+        display_name: "Parser : \"b\".",
+        position: 1,
+    },
+    Slot {
+        display_name: "SPPFNode : . \"c\"",
+        position: 0,
+    },
+    Slot {
+        display_name: "SPPFNode : \"c\".",
+        position: 1,
+    },
+    Slot {
+        display_name: "Input : . \"d\"",
+        position: 0,
+    },
+    Slot {
+        display_name: "Input : \"d\".",
+        position: 1,
+    },
+    Slot {
+        display_name: "ParseError : . \"e\"",
+        position: 0,
+    },
+    Slot {
+        display_name: "ParseError : \"e\".",
+        position: 1,
+    },
+    Slot {
+        display_name: "ParseSuccess : . \"f\"",
+        position: 0,
+    },
+    Slot {
+        display_name: "ParseSuccess : \"f\".",
+        position: 1,
+    },
+    Slot {
+        display_name: "Grammar : . \"g\"",
+        position: 0,
+    },
+    Slot {
+        display_name: "Grammar : \"g\".",
+        position: 1,
+    },
+    Slot {
+        display_name: "Nonterminal : . \"h\"",
+        position: 0,
+    },
+    Slot {
+        display_name: "Nonterminal : \"h\".",
+        position: 1,
+    },
+    Slot {
+        display_name: "Terminal : . \"i\"",
+        position: 0,
+    },
+    Slot {
+        display_name: "Terminal : \"i\".",
+        position: 1,
+    },
+    Slot {
+        display_name: "Slot : . \"j\"",
+        position: 0,
+    },
+    Slot {
+        display_name: "Slot : \"j\".",
+        position: 1,
+    },
+    Slot {
+        display_name: "TerminalSet : . \"k\"",
+        position: 0,
+    },
+    Slot {
+        display_name: "TerminalSet : \"k\".",
+        position: 1,
+    },
+    Slot {
+        display_name: "S : . start:S",
+        position: 0,
+    },
+    Slot {
+        display_name: "S : start:S.",
+        position: 1,
+    },
+    Slot {
+        display_name: "Parse : . start:Parse",
+        position: 0,
+    },
+    Slot {
+        display_name: "Parse : start:Parse.",
+        position: 1,
+    },
+    Slot {
+        display_name: "Parser : . start:Parser",
+        position: 0,
+    },
+    Slot {
+        display_name: "Parser : start:Parser.",
+        position: 1,
+    },
+    Slot {
+        display_name: "SPPFNode : . start:SPPFNode",
+        position: 0,
+    },
+    Slot {
+        display_name: "SPPFNode : start:SPPFNode.",
+        position: 1,
+    },
+    Slot {
+        display_name: "Input : . start:Input",
+        position: 0,
+    },
+    Slot {
+        display_name: "Input : start:Input.",
+        position: 1,
+    },
+    Slot {
+        display_name: "ParseError : . start:ParseError",
+        position: 0,
+    },
+    Slot {
+        display_name: "ParseError : start:ParseError.",
+        position: 1,
+    },
+    Slot {
+        display_name: "ParseSuccess : . start:ParseSuccess",
+        position: 0,
+    },
+    Slot {
+        display_name: "ParseSuccess : start:ParseSuccess.",
+        position: 1,
+    },
+    Slot {
+        display_name: "Grammar : . start:Grammar",
+        position: 0,
+    },
+    Slot {
+        display_name: "Grammar : start:Grammar.",
+        position: 1,
+    },
+    Slot {
+        display_name: "Nonterminal : . start:Nonterminal",
+        position: 0,
+    },
+    Slot {
+        display_name: "Nonterminal : start:Nonterminal.",
+        position: 1,
+    },
+    Slot {
+        display_name: "Terminal : . start:Terminal",
+        position: 0,
+    },
+    Slot {
+        display_name: "Terminal : start:Terminal.",
+        position: 1,
+    },
+    Slot {
+        display_name: "Slot : . start:Slot",
+        position: 0,
+    },
+    Slot {
+        display_name: "Slot : start:Slot.",
+        position: 1,
+    },
+    Slot {
+        display_name: "TerminalSet : . start:TerminalSet",
+        position: 0,
+    },
+    Slot {
+        display_name: "TerminalSet : start:TerminalSet.",
+        position: 1,
+    },
+];
+static FIRST_SLOTS: [&[SlotId]; 24] = [
+    &[SlotId(0)],
+    &[SlotId(12)],
+    &[SlotId(14)],
+    &[SlotId(16)],
+    &[SlotId(18)],
+    &[SlotId(20)],
+    &[SlotId(22)],
+    &[SlotId(24)],
+    &[SlotId(26)],
+    &[SlotId(28)],
+    &[SlotId(30)],
+    &[SlotId(32)],
+    &[SlotId(34)],
+    &[SlotId(36)],
+    &[SlotId(38)],
+    &[SlotId(40)],
+    &[SlotId(42)],
+    &[SlotId(44)],
+    &[SlotId(46)],
+    &[SlotId(48)],
+    &[SlotId(50)],
+    &[SlotId(52)],
+    &[SlotId(54)],
+    &[SlotId(56)],
+];
+// A failed terminal match refers to a static terminal set like every other failure, so the
+// error reporting path needs to reach a terminal set from a terminal id. This table, indexed
+// by terminal id, serves only that.
+static SINGLE_TERMINAL_SETS: [TerminalSet; 13] = [
+    TerminalSet {
+        id: 22,
+        terminals: &[TerminalId(0)],
+    },
+    TerminalSet {
+        id: 23,
+        terminals: &[TerminalId(1)],
+    },
+    TerminalSet {
+        id: 24,
+        terminals: &[TerminalId(2)],
+    },
+    TerminalSet {
+        id: 25,
+        terminals: &[TerminalId(3)],
+    },
+    TerminalSet {
+        id: 26,
+        terminals: &[TerminalId(4)],
+    },
+    TerminalSet {
+        id: 27,
+        terminals: &[TerminalId(5)],
+    },
+    TerminalSet {
+        id: 28,
+        terminals: &[TerminalId(6)],
+    },
+    TerminalSet {
+        id: 29,
+        terminals: &[TerminalId(7)],
+    },
+    TerminalSet {
+        id: 30,
+        terminals: &[TerminalId(8)],
+    },
+    TerminalSet {
+        id: 31,
+        terminals: &[TerminalId(9)],
+    },
+    TerminalSet {
+        id: 32,
+        terminals: &[TerminalId(10)],
+    },
+    TerminalSet {
+        id: 33,
+        terminals: &[TerminalId(11)],
+    },
+    TerminalSet {
+        id: 34,
+        terminals: &[TerminalId(12)],
+    },
+];
 impl Grammar for ImportNamesGrammar {
     type Alternatives = BitSet<1>;
     const NAME: &'static str = "ImportNames";
-    const NONTERMINALS: &'static [Nonterminal] = &[
-        Nonterminal {
-            name: "S",
-            display_name: "S",
-        },
-        Nonterminal {
-            name: "Parse",
-            display_name: "Parse",
-        },
-        Nonterminal {
-            name: "Parser",
-            display_name: "Parser",
-        },
-        Nonterminal {
-            name: "SPPFNode",
-            display_name: "SPPFNode",
-        },
-        Nonterminal {
-            name: "Input",
-            display_name: "Input",
-        },
-        Nonterminal {
-            name: "ParseError",
-            display_name: "ParseError",
-        },
-        Nonterminal {
-            name: "ParseSuccess",
-            display_name: "ParseSuccess",
-        },
-        Nonterminal {
-            name: "Grammar",
-            display_name: "Grammar",
-        },
-        Nonterminal {
-            name: "Nonterminal",
-            display_name: "Nonterminal",
-        },
-        Nonterminal {
-            name: "Terminal",
-            display_name: "Terminal",
-        },
-        Nonterminal {
-            name: "Slot",
-            display_name: "Slot",
-        },
-        Nonterminal {
-            name: "TerminalSet",
-            display_name: "TerminalSet",
-        },
-        Nonterminal {
-            name: "StartS",
-            display_name: "S",
-        },
-        Nonterminal {
-            name: "StartParse",
-            display_name: "Parse",
-        },
-        Nonterminal {
-            name: "StartParser",
-            display_name: "Parser",
-        },
-        Nonterminal {
-            name: "StartSPPFNode",
-            display_name: "SPPFNode",
-        },
-        Nonterminal {
-            name: "StartInput",
-            display_name: "Input",
-        },
-        Nonterminal {
-            name: "StartParseError",
-            display_name: "ParseError",
-        },
-        Nonterminal {
-            name: "StartParseSuccess",
-            display_name: "ParseSuccess",
-        },
-        Nonterminal {
-            name: "StartGrammar",
-            display_name: "Grammar",
-        },
-        Nonterminal {
-            name: "StartNonterminal",
-            display_name: "Nonterminal",
-        },
-        Nonterminal {
-            name: "StartTerminal",
-            display_name: "Terminal",
-        },
-        Nonterminal {
-            name: "StartSlot",
-            display_name: "Slot",
-        },
-        Nonterminal {
-            name: "StartTerminalSet",
-            display_name: "TerminalSet",
-        },
-    ];
-    const DISPLAY_ORDER: &'static [&'static str] = &[
-        "S",
-        "Parse",
-        "Parser",
-        "SPPFNode",
-        "Input",
-        "ParseError",
-        "ParseSuccess",
-        "Grammar",
-        "Nonterminal",
-        "Terminal",
-        "Slot",
-        "TerminalSet",
-    ];
-    const TERMINALS: &'static [Terminal] = &[
-        Terminal { name: "\"a\"" },
-        Terminal { name: "\"b\"" },
-        Terminal { name: "\"c\"" },
-        Terminal { name: "\"d\"" },
-        Terminal { name: "\"e\"" },
-        Terminal { name: "\"f\"" },
-        Terminal { name: "\"g\"" },
-        Terminal { name: "\"h\"" },
-        Terminal { name: "\"i\"" },
-        Terminal { name: "\"j\"" },
-        Terminal { name: "\"k\"" },
-        Terminal { name: "Epsilon" },
-        Terminal { name: "EOF" },
-    ];
-    const SLOTS: &'static [Slot] = &[
-        Slot {
-            display_name: "S : . Parse Parser SPPFNode Input ParseError ParseSuccess Grammar Nonterminal Terminal Slot TerminalSet",
-            position: 0,
-        },
-        Slot {
-            display_name: "S : Parse . Parser SPPFNode Input ParseError ParseSuccess Grammar Nonterminal Terminal Slot TerminalSet",
-            position: 1,
-        },
-        Slot {
-            display_name: "S : Parse Parser . SPPFNode Input ParseError ParseSuccess Grammar Nonterminal Terminal Slot TerminalSet",
-            position: 2,
-        },
-        Slot {
-            display_name: "S : Parse Parser SPPFNode . Input ParseError ParseSuccess Grammar Nonterminal Terminal Slot TerminalSet",
-            position: 3,
-        },
-        Slot {
-            display_name: "S : Parse Parser SPPFNode Input . ParseError ParseSuccess Grammar Nonterminal Terminal Slot TerminalSet",
-            position: 4,
-        },
-        Slot {
-            display_name: "S : Parse Parser SPPFNode Input ParseError . ParseSuccess Grammar Nonterminal Terminal Slot TerminalSet",
-            position: 5,
-        },
-        Slot {
-            display_name: "S : Parse Parser SPPFNode Input ParseError ParseSuccess . Grammar Nonterminal Terminal Slot TerminalSet",
-            position: 6,
-        },
-        Slot {
-            display_name: "S : Parse Parser SPPFNode Input ParseError ParseSuccess Grammar . Nonterminal Terminal Slot TerminalSet",
-            position: 7,
-        },
-        Slot {
-            display_name: "S : Parse Parser SPPFNode Input ParseError ParseSuccess Grammar Nonterminal . Terminal Slot TerminalSet",
-            position: 8,
-        },
-        Slot {
-            display_name: "S : Parse Parser SPPFNode Input ParseError ParseSuccess Grammar Nonterminal Terminal . Slot TerminalSet",
-            position: 9,
-        },
-        Slot {
-            display_name: "S : Parse Parser SPPFNode Input ParseError ParseSuccess Grammar Nonterminal Terminal Slot . TerminalSet",
-            position: 10,
-        },
-        Slot {
-            display_name: "S : Parse Parser SPPFNode Input ParseError ParseSuccess Grammar Nonterminal Terminal Slot TerminalSet.",
-            position: 11,
-        },
-        Slot {
-            display_name: "Parse : . \"a\"",
-            position: 0,
-        },
-        Slot {
-            display_name: "Parse : \"a\".",
-            position: 1,
-        },
-        Slot {
-            display_name: "Parser : . \"b\"",
-            position: 0,
-        },
-        Slot {
-            display_name: "Parser : \"b\".",
-            position: 1,
-        },
-        Slot {
-            display_name: "SPPFNode : . \"c\"",
-            position: 0,
-        },
-        Slot {
-            display_name: "SPPFNode : \"c\".",
-            position: 1,
-        },
-        Slot {
-            display_name: "Input : . \"d\"",
-            position: 0,
-        },
-        Slot {
-            display_name: "Input : \"d\".",
-            position: 1,
-        },
-        Slot {
-            display_name: "ParseError : . \"e\"",
-            position: 0,
-        },
-        Slot {
-            display_name: "ParseError : \"e\".",
-            position: 1,
-        },
-        Slot {
-            display_name: "ParseSuccess : . \"f\"",
-            position: 0,
-        },
-        Slot {
-            display_name: "ParseSuccess : \"f\".",
-            position: 1,
-        },
-        Slot {
-            display_name: "Grammar : . \"g\"",
-            position: 0,
-        },
-        Slot {
-            display_name: "Grammar : \"g\".",
-            position: 1,
-        },
-        Slot {
-            display_name: "Nonterminal : . \"h\"",
-            position: 0,
-        },
-        Slot {
-            display_name: "Nonterminal : \"h\".",
-            position: 1,
-        },
-        Slot {
-            display_name: "Terminal : . \"i\"",
-            position: 0,
-        },
-        Slot {
-            display_name: "Terminal : \"i\".",
-            position: 1,
-        },
-        Slot {
-            display_name: "Slot : . \"j\"",
-            position: 0,
-        },
-        Slot {
-            display_name: "Slot : \"j\".",
-            position: 1,
-        },
-        Slot {
-            display_name: "TerminalSet : . \"k\"",
-            position: 0,
-        },
-        Slot {
-            display_name: "TerminalSet : \"k\".",
-            position: 1,
-        },
-        Slot {
-            display_name: "S : . start:S",
-            position: 0,
-        },
-        Slot {
-            display_name: "S : start:S.",
-            position: 1,
-        },
-        Slot {
-            display_name: "Parse : . start:Parse",
-            position: 0,
-        },
-        Slot {
-            display_name: "Parse : start:Parse.",
-            position: 1,
-        },
-        Slot {
-            display_name: "Parser : . start:Parser",
-            position: 0,
-        },
-        Slot {
-            display_name: "Parser : start:Parser.",
-            position: 1,
-        },
-        Slot {
-            display_name: "SPPFNode : . start:SPPFNode",
-            position: 0,
-        },
-        Slot {
-            display_name: "SPPFNode : start:SPPFNode.",
-            position: 1,
-        },
-        Slot {
-            display_name: "Input : . start:Input",
-            position: 0,
-        },
-        Slot {
-            display_name: "Input : start:Input.",
-            position: 1,
-        },
-        Slot {
-            display_name: "ParseError : . start:ParseError",
-            position: 0,
-        },
-        Slot {
-            display_name: "ParseError : start:ParseError.",
-            position: 1,
-        },
-        Slot {
-            display_name: "ParseSuccess : . start:ParseSuccess",
-            position: 0,
-        },
-        Slot {
-            display_name: "ParseSuccess : start:ParseSuccess.",
-            position: 1,
-        },
-        Slot {
-            display_name: "Grammar : . start:Grammar",
-            position: 0,
-        },
-        Slot {
-            display_name: "Grammar : start:Grammar.",
-            position: 1,
-        },
-        Slot {
-            display_name: "Nonterminal : . start:Nonterminal",
-            position: 0,
-        },
-        Slot {
-            display_name: "Nonterminal : start:Nonterminal.",
-            position: 1,
-        },
-        Slot {
-            display_name: "Terminal : . start:Terminal",
-            position: 0,
-        },
-        Slot {
-            display_name: "Terminal : start:Terminal.",
-            position: 1,
-        },
-        Slot {
-            display_name: "Slot : . start:Slot",
-            position: 0,
-        },
-        Slot {
-            display_name: "Slot : start:Slot.",
-            position: 1,
-        },
-        Slot {
-            display_name: "TerminalSet : . start:TerminalSet",
-            position: 0,
-        },
-        Slot {
-            display_name: "TerminalSet : start:TerminalSet.",
-            position: 1,
-        },
-    ];
-    const FIRST_SLOTS: &'static [&'static [SlotId]] = &[
-        &[SlotId(0)],
-        &[SlotId(12)],
-        &[SlotId(14)],
-        &[SlotId(16)],
-        &[SlotId(18)],
-        &[SlotId(20)],
-        &[SlotId(22)],
-        &[SlotId(24)],
-        &[SlotId(26)],
-        &[SlotId(28)],
-        &[SlotId(30)],
-        &[SlotId(32)],
-        &[SlotId(34)],
-        &[SlotId(36)],
-        &[SlotId(38)],
-        &[SlotId(40)],
-        &[SlotId(42)],
-        &[SlotId(44)],
-        &[SlotId(46)],
-        &[SlotId(48)],
-        &[SlotId(50)],
-        &[SlotId(52)],
-        &[SlotId(54)],
-        &[SlotId(56)],
-    ];
+    const NONTERMINALS: &'static [Nonterminal] = &NONTERMINALS;
+    const DISPLAY_ORDER: &'static [&'static str] = &DISPLAY_ORDER;
+    const TERMINALS: &'static [Terminal] = &TERMINALS;
+    const SLOTS: &'static [Slot] = &SLOTS;
+    const FIRST_SLOTS: &'static [&'static [SlotId]] = &FIRST_SLOTS;
     const LAYOUT_NAME: Option<&'static str> = None;
     const LAYOUT_TERMINALS: &'static [TerminalId] = &[];
-    // A failed terminal match refers to a static terminal set like every other failure, so the
-    // error reporting path needs to reach a terminal set from a terminal id. This slice, indexed
-    // by terminal id, serves only that.
-    const SINGLE_TERMINAL_SETS: &'static [TerminalSet] = &[
-        TerminalSet {
-            id: 22,
-            terminals: &[TerminalId(0)],
-        },
-        TerminalSet {
-            id: 23,
-            terminals: &[TerminalId(1)],
-        },
-        TerminalSet {
-            id: 24,
-            terminals: &[TerminalId(2)],
-        },
-        TerminalSet {
-            id: 25,
-            terminals: &[TerminalId(3)],
-        },
-        TerminalSet {
-            id: 26,
-            terminals: &[TerminalId(4)],
-        },
-        TerminalSet {
-            id: 27,
-            terminals: &[TerminalId(5)],
-        },
-        TerminalSet {
-            id: 28,
-            terminals: &[TerminalId(6)],
-        },
-        TerminalSet {
-            id: 29,
-            terminals: &[TerminalId(7)],
-        },
-        TerminalSet {
-            id: 30,
-            terminals: &[TerminalId(8)],
-        },
-        TerminalSet {
-            id: 31,
-            terminals: &[TerminalId(9)],
-        },
-        TerminalSet {
-            id: 32,
-            terminals: &[TerminalId(10)],
-        },
-        TerminalSet {
-            id: 33,
-            terminals: &[TerminalId(11)],
-        },
-        TerminalSet {
-            id: 34,
-            terminals: &[TerminalId(12)],
-        },
-    ];
+    const SINGLE_TERMINAL_SETS: &'static [TerminalSet] = &SINGLE_TERMINAL_SETS;
     fn nonterminal_id(name: &str) -> Option<NonterminalId> {
         match name {
             "S" => Some(S),

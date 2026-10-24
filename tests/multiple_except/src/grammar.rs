@@ -11,114 +11,119 @@ pub const LEXICAL_IDENTIFIER: NonterminalId = NonterminalId(1);
 pub const START_SYNTAX_IDENTIFIER: NonterminalId = NonterminalId(2);
 pub const START_LEXICAL_IDENTIFIER: NonterminalId = NonterminalId(3);
 pub struct MultipleExceptGrammar;
+static NONTERMINALS: [Nonterminal; 4] = [
+    Nonterminal {
+        name: "SyntaxIdentifier",
+        display_name: "SyntaxIdentifier",
+    },
+    Nonterminal {
+        name: "LexicalIdentifier",
+        display_name: "LexicalIdentifier",
+    },
+    Nonterminal {
+        name: "StartSyntaxIdentifier",
+        display_name: "SyntaxIdentifier",
+    },
+    Nonterminal {
+        name: "StartLexicalIdentifier",
+        display_name: "LexicalIdentifier",
+    },
+];
+static DISPLAY_ORDER: [&str; 2] = ["SyntaxIdentifier", "LexicalIdentifier"];
+static TERMINALS: [Terminal; 7] = [
+    Terminal { name: "Identifier" },
+    Terminal {
+        name: "IdentifierChars",
+    },
+    Terminal { name: "Keyword" },
+    Terminal {
+        name: "BooleanLiteral",
+    },
+    Terminal {
+        name: "NullLiteral",
+    },
+    Terminal { name: "Epsilon" },
+    Terminal { name: "EOF" },
+];
+static SLOTS: [Slot; 8] = [
+    Slot {
+        display_name: "SyntaxIdentifier : . IdentifierChars \\ Keyword \\ BooleanLiteral \\ NullLiteral",
+        position: 0,
+    },
+    Slot {
+        display_name: "SyntaxIdentifier : IdentifierChars \\ Keyword \\ BooleanLiteral \\ NullLiteral.",
+        position: 1,
+    },
+    Slot {
+        display_name: "LexicalIdentifier : . Identifier",
+        position: 0,
+    },
+    Slot {
+        display_name: "LexicalIdentifier : Identifier.",
+        position: 1,
+    },
+    Slot {
+        display_name: "SyntaxIdentifier : . start:SyntaxIdentifier",
+        position: 0,
+    },
+    Slot {
+        display_name: "SyntaxIdentifier : start:SyntaxIdentifier.",
+        position: 1,
+    },
+    Slot {
+        display_name: "LexicalIdentifier : . start:LexicalIdentifier",
+        position: 0,
+    },
+    Slot {
+        display_name: "LexicalIdentifier : start:LexicalIdentifier.",
+        position: 1,
+    },
+];
+static FIRST_SLOTS: [&[SlotId]; 4] = [&[SlotId(0)], &[SlotId(2)], &[SlotId(4)], &[SlotId(6)]];
+// A failed terminal match refers to a static terminal set like every other failure, so the
+// error reporting path needs to reach a terminal set from a terminal id. This table, indexed
+// by terminal id, serves only that.
+static SINGLE_TERMINAL_SETS: [TerminalSet; 7] = [
+    TerminalSet {
+        id: 4,
+        terminals: &[TerminalId(0)],
+    },
+    TerminalSet {
+        id: 5,
+        terminals: &[TerminalId(1)],
+    },
+    TerminalSet {
+        id: 6,
+        terminals: &[TerminalId(2)],
+    },
+    TerminalSet {
+        id: 7,
+        terminals: &[TerminalId(3)],
+    },
+    TerminalSet {
+        id: 8,
+        terminals: &[TerminalId(4)],
+    },
+    TerminalSet {
+        id: 9,
+        terminals: &[TerminalId(5)],
+    },
+    TerminalSet {
+        id: 10,
+        terminals: &[TerminalId(6)],
+    },
+];
 impl Grammar for MultipleExceptGrammar {
     type Alternatives = BitSet<1>;
     const NAME: &'static str = "MultipleExcept";
-    const NONTERMINALS: &'static [Nonterminal] = &[
-        Nonterminal {
-            name: "SyntaxIdentifier",
-            display_name: "SyntaxIdentifier",
-        },
-        Nonterminal {
-            name: "LexicalIdentifier",
-            display_name: "LexicalIdentifier",
-        },
-        Nonterminal {
-            name: "StartSyntaxIdentifier",
-            display_name: "SyntaxIdentifier",
-        },
-        Nonterminal {
-            name: "StartLexicalIdentifier",
-            display_name: "LexicalIdentifier",
-        },
-    ];
-    const DISPLAY_ORDER: &'static [&'static str] = &["SyntaxIdentifier", "LexicalIdentifier"];
-    const TERMINALS: &'static [Terminal] = &[
-        Terminal { name: "Identifier" },
-        Terminal {
-            name: "IdentifierChars",
-        },
-        Terminal { name: "Keyword" },
-        Terminal {
-            name: "BooleanLiteral",
-        },
-        Terminal {
-            name: "NullLiteral",
-        },
-        Terminal { name: "Epsilon" },
-        Terminal { name: "EOF" },
-    ];
-    const SLOTS: &'static [Slot] = &[
-        Slot {
-            display_name: "SyntaxIdentifier : . IdentifierChars \\ Keyword \\ BooleanLiteral \\ NullLiteral",
-            position: 0,
-        },
-        Slot {
-            display_name: "SyntaxIdentifier : IdentifierChars \\ Keyword \\ BooleanLiteral \\ NullLiteral.",
-            position: 1,
-        },
-        Slot {
-            display_name: "LexicalIdentifier : . Identifier",
-            position: 0,
-        },
-        Slot {
-            display_name: "LexicalIdentifier : Identifier.",
-            position: 1,
-        },
-        Slot {
-            display_name: "SyntaxIdentifier : . start:SyntaxIdentifier",
-            position: 0,
-        },
-        Slot {
-            display_name: "SyntaxIdentifier : start:SyntaxIdentifier.",
-            position: 1,
-        },
-        Slot {
-            display_name: "LexicalIdentifier : . start:LexicalIdentifier",
-            position: 0,
-        },
-        Slot {
-            display_name: "LexicalIdentifier : start:LexicalIdentifier.",
-            position: 1,
-        },
-    ];
-    const FIRST_SLOTS: &'static [&'static [SlotId]] =
-        &[&[SlotId(0)], &[SlotId(2)], &[SlotId(4)], &[SlotId(6)]];
+    const NONTERMINALS: &'static [Nonterminal] = &NONTERMINALS;
+    const DISPLAY_ORDER: &'static [&'static str] = &DISPLAY_ORDER;
+    const TERMINALS: &'static [Terminal] = &TERMINALS;
+    const SLOTS: &'static [Slot] = &SLOTS;
+    const FIRST_SLOTS: &'static [&'static [SlotId]] = &FIRST_SLOTS;
     const LAYOUT_NAME: Option<&'static str> = None;
     const LAYOUT_TERMINALS: &'static [TerminalId] = &[];
-    // A failed terminal match refers to a static terminal set like every other failure, so the
-    // error reporting path needs to reach a terminal set from a terminal id. This slice, indexed
-    // by terminal id, serves only that.
-    const SINGLE_TERMINAL_SETS: &'static [TerminalSet] = &[
-        TerminalSet {
-            id: 4,
-            terminals: &[TerminalId(0)],
-        },
-        TerminalSet {
-            id: 5,
-            terminals: &[TerminalId(1)],
-        },
-        TerminalSet {
-            id: 6,
-            terminals: &[TerminalId(2)],
-        },
-        TerminalSet {
-            id: 7,
-            terminals: &[TerminalId(3)],
-        },
-        TerminalSet {
-            id: 8,
-            terminals: &[TerminalId(4)],
-        },
-        TerminalSet {
-            id: 9,
-            terminals: &[TerminalId(5)],
-        },
-        TerminalSet {
-            id: 10,
-            terminals: &[TerminalId(6)],
-        },
-    ];
+    const SINGLE_TERMINAL_SETS: &'static [TerminalSet] = &SINGLE_TERMINAL_SETS;
     fn nonterminal_id(name: &str) -> Option<NonterminalId> {
         match name {
             "SyntaxIdentifier" => Some(SYNTAX_IDENTIFIER),

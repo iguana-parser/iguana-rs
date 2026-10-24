@@ -18,266 +18,272 @@ pub const START_A: NonterminalId = NonterminalId(7);
 pub const START_B: NonterminalId = NonterminalId(8);
 pub const START_LAYOUT: NonterminalId = NonterminalId(9);
 pub struct ReturnSlotLookaheadGllLayoutGrammar;
+static NONTERMINALS: [Nonterminal; 10] = [
+    Nonterminal {
+        name: "S",
+        display_name: "S",
+    },
+    Nonterminal {
+        name: "A",
+        display_name: "A",
+    },
+    Nonterminal {
+        name: "B",
+        display_name: "B",
+    },
+    Nonterminal {
+        name: "Layout",
+        display_name: "Layout",
+    },
+    Nonterminal {
+        name: "Plus_0",
+        display_name: "WS+",
+    },
+    Nonterminal {
+        name: "Star_0",
+        display_name: "WS*",
+    },
+    Nonterminal {
+        name: "StartS",
+        display_name: "S",
+    },
+    Nonterminal {
+        name: "StartA",
+        display_name: "A",
+    },
+    Nonterminal {
+        name: "StartB",
+        display_name: "B",
+    },
+    Nonterminal {
+        name: "StartLayout",
+        display_name: "Layout",
+    },
+];
+static DISPLAY_ORDER: [&str; 4] = ["S", "A", "B", "Layout"];
+static TERMINALS: [Terminal; 7] = [
+    Terminal { name: "WS" },
+    Terminal { name: "\"x\"" },
+    Terminal { name: "\"a\"" },
+    Terminal { name: "\"b\"" },
+    Terminal { name: "\"c\"" },
+    Terminal { name: "Epsilon" },
+    Terminal { name: "EOF" },
+];
+static SLOTS: [Slot; 39] = [
+    Slot {
+        display_name: "S : . A Layout B Layout \"x\"",
+        position: 0,
+    },
+    Slot {
+        display_name: "S : A . Layout B Layout \"x\"",
+        position: 1,
+    },
+    Slot {
+        display_name: "S : A Layout . B Layout \"x\"",
+        position: 2,
+    },
+    Slot {
+        display_name: "S : A Layout B . Layout \"x\"",
+        position: 3,
+    },
+    Slot {
+        display_name: "S : A Layout B Layout . \"x\"",
+        position: 4,
+    },
+    Slot {
+        display_name: "S : A Layout B Layout \"x\".",
+        position: 5,
+    },
+    Slot {
+        display_name: "A : . \"a\"",
+        position: 0,
+    },
+    Slot {
+        display_name: "A : \"a\".",
+        position: 1,
+    },
+    Slot {
+        display_name: "A : . \"a\" Layout \"b\"",
+        position: 0,
+    },
+    Slot {
+        display_name: "A : \"a\" . Layout \"b\"",
+        position: 1,
+    },
+    Slot {
+        display_name: "A : \"a\" Layout . \"b\"",
+        position: 2,
+    },
+    Slot {
+        display_name: "A : \"a\" Layout \"b\".",
+        position: 3,
+    },
+    Slot {
+        display_name: "B : . \"c\"",
+        position: 0,
+    },
+    Slot {
+        display_name: "B : \"c\".",
+        position: 1,
+    },
+    Slot {
+        display_name: "B : .",
+        position: 0,
+    },
+    Slot {
+        display_name: "Layout : . WS*",
+        position: 0,
+    },
+    Slot {
+        display_name: "Layout : WS*.",
+        position: 1,
+    },
+    Slot {
+        display_name: "WS+ : . WS+ WS",
+        position: 0,
+    },
+    Slot {
+        display_name: "WS+ : WS+ . WS",
+        position: 1,
+    },
+    Slot {
+        display_name: "WS+ : WS+ WS.",
+        position: 2,
+    },
+    Slot {
+        display_name: "WS+ : . WS",
+        position: 0,
+    },
+    Slot {
+        display_name: "WS+ : WS.",
+        position: 1,
+    },
+    Slot {
+        display_name: "WS* : . WS+",
+        position: 0,
+    },
+    Slot {
+        display_name: "WS* : WS+.",
+        position: 1,
+    },
+    Slot {
+        display_name: "WS* : .",
+        position: 0,
+    },
+    Slot {
+        display_name: "S : . Layout start:S Layout",
+        position: 0,
+    },
+    Slot {
+        display_name: "S : Layout . start:S Layout",
+        position: 1,
+    },
+    Slot {
+        display_name: "S : Layout start:S . Layout",
+        position: 2,
+    },
+    Slot {
+        display_name: "S : Layout start:S Layout.",
+        position: 3,
+    },
+    Slot {
+        display_name: "A : . Layout start:A Layout",
+        position: 0,
+    },
+    Slot {
+        display_name: "A : Layout . start:A Layout",
+        position: 1,
+    },
+    Slot {
+        display_name: "A : Layout start:A . Layout",
+        position: 2,
+    },
+    Slot {
+        display_name: "A : Layout start:A Layout.",
+        position: 3,
+    },
+    Slot {
+        display_name: "B : . Layout start:B Layout",
+        position: 0,
+    },
+    Slot {
+        display_name: "B : Layout . start:B Layout",
+        position: 1,
+    },
+    Slot {
+        display_name: "B : Layout start:B . Layout",
+        position: 2,
+    },
+    Slot {
+        display_name: "B : Layout start:B Layout.",
+        position: 3,
+    },
+    Slot {
+        display_name: "Layout : . start:Layout",
+        position: 0,
+    },
+    Slot {
+        display_name: "Layout : start:Layout.",
+        position: 1,
+    },
+];
+static FIRST_SLOTS: [&[SlotId]; 10] = [
+    &[SlotId(0)],
+    &[SlotId(6), SlotId(8)],
+    &[SlotId(12), SlotId(14)],
+    &[SlotId(15)],
+    &[SlotId(17), SlotId(20)],
+    &[SlotId(22), SlotId(24)],
+    &[SlotId(25)],
+    &[SlotId(29)],
+    &[SlotId(33)],
+    &[SlotId(37)],
+];
+// A failed terminal match refers to a static terminal set like every other failure, so the
+// error reporting path needs to reach a terminal set from a terminal id. This table, indexed
+// by terminal id, serves only that.
+static SINGLE_TERMINAL_SETS: [TerminalSet; 7] = [
+    TerminalSet {
+        id: 11,
+        terminals: &[TerminalId(0)],
+    },
+    TerminalSet {
+        id: 12,
+        terminals: &[TerminalId(1)],
+    },
+    TerminalSet {
+        id: 13,
+        terminals: &[TerminalId(2)],
+    },
+    TerminalSet {
+        id: 14,
+        terminals: &[TerminalId(3)],
+    },
+    TerminalSet {
+        id: 15,
+        terminals: &[TerminalId(4)],
+    },
+    TerminalSet {
+        id: 16,
+        terminals: &[TerminalId(5)],
+    },
+    TerminalSet {
+        id: 17,
+        terminals: &[TerminalId(6)],
+    },
+];
 impl Grammar for ReturnSlotLookaheadGllLayoutGrammar {
     type Alternatives = BitSet<1>;
     const NAME: &'static str = "ReturnSlotLookaheadGllLayout";
-    const NONTERMINALS: &'static [Nonterminal] = &[
-        Nonterminal {
-            name: "S",
-            display_name: "S",
-        },
-        Nonterminal {
-            name: "A",
-            display_name: "A",
-        },
-        Nonterminal {
-            name: "B",
-            display_name: "B",
-        },
-        Nonterminal {
-            name: "Layout",
-            display_name: "Layout",
-        },
-        Nonterminal {
-            name: "Plus_0",
-            display_name: "WS+",
-        },
-        Nonterminal {
-            name: "Star_0",
-            display_name: "WS*",
-        },
-        Nonterminal {
-            name: "StartS",
-            display_name: "S",
-        },
-        Nonterminal {
-            name: "StartA",
-            display_name: "A",
-        },
-        Nonterminal {
-            name: "StartB",
-            display_name: "B",
-        },
-        Nonterminal {
-            name: "StartLayout",
-            display_name: "Layout",
-        },
-    ];
-    const DISPLAY_ORDER: &'static [&'static str] = &["S", "A", "B", "Layout"];
-    const TERMINALS: &'static [Terminal] = &[
-        Terminal { name: "WS" },
-        Terminal { name: "\"x\"" },
-        Terminal { name: "\"a\"" },
-        Terminal { name: "\"b\"" },
-        Terminal { name: "\"c\"" },
-        Terminal { name: "Epsilon" },
-        Terminal { name: "EOF" },
-    ];
-    const SLOTS: &'static [Slot] = &[
-        Slot {
-            display_name: "S : . A Layout B Layout \"x\"",
-            position: 0,
-        },
-        Slot {
-            display_name: "S : A . Layout B Layout \"x\"",
-            position: 1,
-        },
-        Slot {
-            display_name: "S : A Layout . B Layout \"x\"",
-            position: 2,
-        },
-        Slot {
-            display_name: "S : A Layout B . Layout \"x\"",
-            position: 3,
-        },
-        Slot {
-            display_name: "S : A Layout B Layout . \"x\"",
-            position: 4,
-        },
-        Slot {
-            display_name: "S : A Layout B Layout \"x\".",
-            position: 5,
-        },
-        Slot {
-            display_name: "A : . \"a\"",
-            position: 0,
-        },
-        Slot {
-            display_name: "A : \"a\".",
-            position: 1,
-        },
-        Slot {
-            display_name: "A : . \"a\" Layout \"b\"",
-            position: 0,
-        },
-        Slot {
-            display_name: "A : \"a\" . Layout \"b\"",
-            position: 1,
-        },
-        Slot {
-            display_name: "A : \"a\" Layout . \"b\"",
-            position: 2,
-        },
-        Slot {
-            display_name: "A : \"a\" Layout \"b\".",
-            position: 3,
-        },
-        Slot {
-            display_name: "B : . \"c\"",
-            position: 0,
-        },
-        Slot {
-            display_name: "B : \"c\".",
-            position: 1,
-        },
-        Slot {
-            display_name: "B : .",
-            position: 0,
-        },
-        Slot {
-            display_name: "Layout : . WS*",
-            position: 0,
-        },
-        Slot {
-            display_name: "Layout : WS*.",
-            position: 1,
-        },
-        Slot {
-            display_name: "WS+ : . WS+ WS",
-            position: 0,
-        },
-        Slot {
-            display_name: "WS+ : WS+ . WS",
-            position: 1,
-        },
-        Slot {
-            display_name: "WS+ : WS+ WS.",
-            position: 2,
-        },
-        Slot {
-            display_name: "WS+ : . WS",
-            position: 0,
-        },
-        Slot {
-            display_name: "WS+ : WS.",
-            position: 1,
-        },
-        Slot {
-            display_name: "WS* : . WS+",
-            position: 0,
-        },
-        Slot {
-            display_name: "WS* : WS+.",
-            position: 1,
-        },
-        Slot {
-            display_name: "WS* : .",
-            position: 0,
-        },
-        Slot {
-            display_name: "S : . Layout start:S Layout",
-            position: 0,
-        },
-        Slot {
-            display_name: "S : Layout . start:S Layout",
-            position: 1,
-        },
-        Slot {
-            display_name: "S : Layout start:S . Layout",
-            position: 2,
-        },
-        Slot {
-            display_name: "S : Layout start:S Layout.",
-            position: 3,
-        },
-        Slot {
-            display_name: "A : . Layout start:A Layout",
-            position: 0,
-        },
-        Slot {
-            display_name: "A : Layout . start:A Layout",
-            position: 1,
-        },
-        Slot {
-            display_name: "A : Layout start:A . Layout",
-            position: 2,
-        },
-        Slot {
-            display_name: "A : Layout start:A Layout.",
-            position: 3,
-        },
-        Slot {
-            display_name: "B : . Layout start:B Layout",
-            position: 0,
-        },
-        Slot {
-            display_name: "B : Layout . start:B Layout",
-            position: 1,
-        },
-        Slot {
-            display_name: "B : Layout start:B . Layout",
-            position: 2,
-        },
-        Slot {
-            display_name: "B : Layout start:B Layout.",
-            position: 3,
-        },
-        Slot {
-            display_name: "Layout : . start:Layout",
-            position: 0,
-        },
-        Slot {
-            display_name: "Layout : start:Layout.",
-            position: 1,
-        },
-    ];
-    const FIRST_SLOTS: &'static [&'static [SlotId]] = &[
-        &[SlotId(0)],
-        &[SlotId(6), SlotId(8)],
-        &[SlotId(12), SlotId(14)],
-        &[SlotId(15)],
-        &[SlotId(17), SlotId(20)],
-        &[SlotId(22), SlotId(24)],
-        &[SlotId(25)],
-        &[SlotId(29)],
-        &[SlotId(33)],
-        &[SlotId(37)],
-    ];
+    const NONTERMINALS: &'static [Nonterminal] = &NONTERMINALS;
+    const DISPLAY_ORDER: &'static [&'static str] = &DISPLAY_ORDER;
+    const TERMINALS: &'static [Terminal] = &TERMINALS;
+    const SLOTS: &'static [Slot] = &SLOTS;
+    const FIRST_SLOTS: &'static [&'static [SlotId]] = &FIRST_SLOTS;
     const LAYOUT_NAME: Option<&'static str> = Some("Layout");
     const LAYOUT_TERMINALS: &'static [TerminalId] = &[TerminalId(0)];
-    // A failed terminal match refers to a static terminal set like every other failure, so the
-    // error reporting path needs to reach a terminal set from a terminal id. This slice, indexed
-    // by terminal id, serves only that.
-    const SINGLE_TERMINAL_SETS: &'static [TerminalSet] = &[
-        TerminalSet {
-            id: 11,
-            terminals: &[TerminalId(0)],
-        },
-        TerminalSet {
-            id: 12,
-            terminals: &[TerminalId(1)],
-        },
-        TerminalSet {
-            id: 13,
-            terminals: &[TerminalId(2)],
-        },
-        TerminalSet {
-            id: 14,
-            terminals: &[TerminalId(3)],
-        },
-        TerminalSet {
-            id: 15,
-            terminals: &[TerminalId(4)],
-        },
-        TerminalSet {
-            id: 16,
-            terminals: &[TerminalId(5)],
-        },
-        TerminalSet {
-            id: 17,
-            terminals: &[TerminalId(6)],
-        },
-    ];
+    const SINGLE_TERMINAL_SETS: &'static [TerminalSet] = &SINGLE_TERMINAL_SETS;
     fn nonterminal_id(name: &str) -> Option<NonterminalId> {
         match name {
             "S" => Some(S),

@@ -13,190 +13,196 @@ pub const PLUS_0: NonterminalId = NonterminalId(2);
 pub const START_S: NonterminalId = NonterminalId(3);
 pub const START_WORD: NonterminalId = NonterminalId(4);
 pub struct ExactKeywordNoLayoutGrammar;
+static NONTERMINALS: [Nonterminal; 5] = [
+    Nonterminal {
+        name: "S",
+        display_name: "S",
+    },
+    Nonterminal {
+        name: "Word",
+        display_name: "Word",
+    },
+    Nonterminal {
+        name: "Plus_0",
+        display_name: "Letter+",
+    },
+    Nonterminal {
+        name: "StartS",
+        display_name: "S",
+    },
+    Nonterminal {
+        name: "StartWord",
+        display_name: "Word",
+    },
+];
+static DISPLAY_ORDER: [&str; 2] = ["S", "Word"];
+static TERMINALS: [Terminal; 8] = [
+    Terminal { name: "Id" },
+    Terminal { name: "Letter" },
+    Terminal { name: "WS" },
+    Terminal { name: "\";\"" },
+    Terminal { name: "\"@\"" },
+    Terminal { name: "\"go\"" },
+    Terminal { name: "Epsilon" },
+    Terminal { name: "EOF" },
+];
+static SLOTS: [Slot; 25] = [
+    Slot {
+        display_name: "S : . Word WS \";\"",
+        position: 0,
+    },
+    Slot {
+        display_name: "S : Word . WS \";\"",
+        position: 1,
+    },
+    Slot {
+        display_name: "S : Word WS . \";\"",
+        position: 2,
+    },
+    Slot {
+        display_name: "S : Word WS \";\".",
+        position: 3,
+    },
+    Slot {
+        display_name: "S : . Id WS \";\"",
+        position: 0,
+    },
+    Slot {
+        display_name: "S : Id . WS \";\"",
+        position: 1,
+    },
+    Slot {
+        display_name: "S : Id WS . \";\"",
+        position: 2,
+    },
+    Slot {
+        display_name: "S : Id WS \";\".",
+        position: 3,
+    },
+    Slot {
+        display_name: "Word : . \"@\" \"go\" Letter+",
+        position: 0,
+    },
+    Slot {
+        display_name: "Word : \"@\" . \"go\" Letter+",
+        position: 1,
+    },
+    Slot {
+        display_name: "Word : \"@\" \"go\" . Letter+",
+        position: 2,
+    },
+    Slot {
+        display_name: "Word : \"@\" \"go\" Letter+.",
+        position: 3,
+    },
+    Slot {
+        display_name: "Letter+ : . Letter+ Letter",
+        position: 0,
+    },
+    Slot {
+        display_name: "Letter+ : Letter+ . Letter",
+        position: 1,
+    },
+    Slot {
+        display_name: "Letter+ : Letter+ Letter.",
+        position: 2,
+    },
+    Slot {
+        display_name: "Letter+ : . Letter",
+        position: 0,
+    },
+    Slot {
+        display_name: "Letter+ : Letter.",
+        position: 1,
+    },
+    Slot {
+        display_name: "S : . WS start:S WS",
+        position: 0,
+    },
+    Slot {
+        display_name: "S : WS . start:S WS",
+        position: 1,
+    },
+    Slot {
+        display_name: "S : WS start:S . WS",
+        position: 2,
+    },
+    Slot {
+        display_name: "S : WS start:S WS.",
+        position: 3,
+    },
+    Slot {
+        display_name: "Word : . WS start:Word WS",
+        position: 0,
+    },
+    Slot {
+        display_name: "Word : WS . start:Word WS",
+        position: 1,
+    },
+    Slot {
+        display_name: "Word : WS start:Word . WS",
+        position: 2,
+    },
+    Slot {
+        display_name: "Word : WS start:Word WS.",
+        position: 3,
+    },
+];
+static FIRST_SLOTS: [&[SlotId]; 5] = [
+    &[SlotId(0), SlotId(4)],
+    &[SlotId(8)],
+    &[SlotId(12), SlotId(15)],
+    &[SlotId(17)],
+    &[SlotId(21)],
+];
+// A failed terminal match refers to a static terminal set like every other failure, so the
+// error reporting path needs to reach a terminal set from a terminal id. This table, indexed
+// by terminal id, serves only that.
+static SINGLE_TERMINAL_SETS: [TerminalSet; 8] = [
+    TerminalSet {
+        id: 6,
+        terminals: &[TerminalId(0)],
+    },
+    TerminalSet {
+        id: 7,
+        terminals: &[TerminalId(1)],
+    },
+    TerminalSet {
+        id: 8,
+        terminals: &[TerminalId(2)],
+    },
+    TerminalSet {
+        id: 9,
+        terminals: &[TerminalId(3)],
+    },
+    TerminalSet {
+        id: 10,
+        terminals: &[TerminalId(4)],
+    },
+    TerminalSet {
+        id: 11,
+        terminals: &[TerminalId(5)],
+    },
+    TerminalSet {
+        id: 12,
+        terminals: &[TerminalId(6)],
+    },
+    TerminalSet {
+        id: 13,
+        terminals: &[TerminalId(7)],
+    },
+];
 impl Grammar for ExactKeywordNoLayoutGrammar {
     type Alternatives = BitSet<1>;
     const NAME: &'static str = "ExactKeywordNoLayout";
-    const NONTERMINALS: &'static [Nonterminal] = &[
-        Nonterminal {
-            name: "S",
-            display_name: "S",
-        },
-        Nonterminal {
-            name: "Word",
-            display_name: "Word",
-        },
-        Nonterminal {
-            name: "Plus_0",
-            display_name: "Letter+",
-        },
-        Nonterminal {
-            name: "StartS",
-            display_name: "S",
-        },
-        Nonterminal {
-            name: "StartWord",
-            display_name: "Word",
-        },
-    ];
-    const DISPLAY_ORDER: &'static [&'static str] = &["S", "Word"];
-    const TERMINALS: &'static [Terminal] = &[
-        Terminal { name: "Id" },
-        Terminal { name: "Letter" },
-        Terminal { name: "WS" },
-        Terminal { name: "\";\"" },
-        Terminal { name: "\"@\"" },
-        Terminal { name: "\"go\"" },
-        Terminal { name: "Epsilon" },
-        Terminal { name: "EOF" },
-    ];
-    const SLOTS: &'static [Slot] = &[
-        Slot {
-            display_name: "S : . Word WS \";\"",
-            position: 0,
-        },
-        Slot {
-            display_name: "S : Word . WS \";\"",
-            position: 1,
-        },
-        Slot {
-            display_name: "S : Word WS . \";\"",
-            position: 2,
-        },
-        Slot {
-            display_name: "S : Word WS \";\".",
-            position: 3,
-        },
-        Slot {
-            display_name: "S : . Id WS \";\"",
-            position: 0,
-        },
-        Slot {
-            display_name: "S : Id . WS \";\"",
-            position: 1,
-        },
-        Slot {
-            display_name: "S : Id WS . \";\"",
-            position: 2,
-        },
-        Slot {
-            display_name: "S : Id WS \";\".",
-            position: 3,
-        },
-        Slot {
-            display_name: "Word : . \"@\" \"go\" Letter+",
-            position: 0,
-        },
-        Slot {
-            display_name: "Word : \"@\" . \"go\" Letter+",
-            position: 1,
-        },
-        Slot {
-            display_name: "Word : \"@\" \"go\" . Letter+",
-            position: 2,
-        },
-        Slot {
-            display_name: "Word : \"@\" \"go\" Letter+.",
-            position: 3,
-        },
-        Slot {
-            display_name: "Letter+ : . Letter+ Letter",
-            position: 0,
-        },
-        Slot {
-            display_name: "Letter+ : Letter+ . Letter",
-            position: 1,
-        },
-        Slot {
-            display_name: "Letter+ : Letter+ Letter.",
-            position: 2,
-        },
-        Slot {
-            display_name: "Letter+ : . Letter",
-            position: 0,
-        },
-        Slot {
-            display_name: "Letter+ : Letter.",
-            position: 1,
-        },
-        Slot {
-            display_name: "S : . WS start:S WS",
-            position: 0,
-        },
-        Slot {
-            display_name: "S : WS . start:S WS",
-            position: 1,
-        },
-        Slot {
-            display_name: "S : WS start:S . WS",
-            position: 2,
-        },
-        Slot {
-            display_name: "S : WS start:S WS.",
-            position: 3,
-        },
-        Slot {
-            display_name: "Word : . WS start:Word WS",
-            position: 0,
-        },
-        Slot {
-            display_name: "Word : WS . start:Word WS",
-            position: 1,
-        },
-        Slot {
-            display_name: "Word : WS start:Word . WS",
-            position: 2,
-        },
-        Slot {
-            display_name: "Word : WS start:Word WS.",
-            position: 3,
-        },
-    ];
-    const FIRST_SLOTS: &'static [&'static [SlotId]] = &[
-        &[SlotId(0), SlotId(4)],
-        &[SlotId(8)],
-        &[SlotId(12), SlotId(15)],
-        &[SlotId(17)],
-        &[SlotId(21)],
-    ];
+    const NONTERMINALS: &'static [Nonterminal] = &NONTERMINALS;
+    const DISPLAY_ORDER: &'static [&'static str] = &DISPLAY_ORDER;
+    const TERMINALS: &'static [Terminal] = &TERMINALS;
+    const SLOTS: &'static [Slot] = &SLOTS;
+    const FIRST_SLOTS: &'static [&'static [SlotId]] = &FIRST_SLOTS;
     const LAYOUT_NAME: Option<&'static str> = Some("WS");
     const LAYOUT_TERMINALS: &'static [TerminalId] = &[TerminalId(2)];
-    // A failed terminal match refers to a static terminal set like every other failure, so the
-    // error reporting path needs to reach a terminal set from a terminal id. This slice, indexed
-    // by terminal id, serves only that.
-    const SINGLE_TERMINAL_SETS: &'static [TerminalSet] = &[
-        TerminalSet {
-            id: 6,
-            terminals: &[TerminalId(0)],
-        },
-        TerminalSet {
-            id: 7,
-            terminals: &[TerminalId(1)],
-        },
-        TerminalSet {
-            id: 8,
-            terminals: &[TerminalId(2)],
-        },
-        TerminalSet {
-            id: 9,
-            terminals: &[TerminalId(3)],
-        },
-        TerminalSet {
-            id: 10,
-            terminals: &[TerminalId(4)],
-        },
-        TerminalSet {
-            id: 11,
-            terminals: &[TerminalId(5)],
-        },
-        TerminalSet {
-            id: 12,
-            terminals: &[TerminalId(6)],
-        },
-        TerminalSet {
-            id: 13,
-            terminals: &[TerminalId(7)],
-        },
-    ];
+    const SINGLE_TERMINAL_SETS: &'static [TerminalSet] = &SINGLE_TERMINAL_SETS;
     fn nonterminal_id(name: &str) -> Option<NonterminalId> {
         match name {
             "S" => Some(S),

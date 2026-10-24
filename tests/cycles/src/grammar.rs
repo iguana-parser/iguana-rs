@@ -81,1233 +81,1239 @@ pub const START_NULLABLE_SEPARATED: NonterminalId = NonterminalId(70);
 pub const START_OPTIONAL: NonterminalId = NonterminalId(71);
 pub const START_GROUPED: NonterminalId = NonterminalId(72);
 pub struct CyclesGrammar;
+static NONTERMINALS: [Nonterminal; 73] = [
+    Nonterminal {
+        name: "Direct",
+        display_name: "Direct",
+    },
+    Nonterminal {
+        name: "MutualC",
+        display_name: "MutualC",
+    },
+    Nonterminal {
+        name: "MutualB",
+        display_name: "MutualB",
+    },
+    Nonterminal {
+        name: "ChainC",
+        display_name: "ChainC",
+    },
+    Nonterminal {
+        name: "ChainA",
+        display_name: "ChainA",
+    },
+    Nonterminal {
+        name: "ChainB",
+        display_name: "ChainB",
+    },
+    Nonterminal {
+        name: "SharedS",
+        display_name: "SharedS",
+    },
+    Nonterminal {
+        name: "SharedA",
+        display_name: "SharedA",
+    },
+    Nonterminal {
+        name: "SharedB",
+        display_name: "SharedB",
+    },
+    Nonterminal {
+        name: "TwoExitsC",
+        display_name: "TwoExitsC",
+    },
+    Nonterminal {
+        name: "TwoExitsB",
+        display_name: "TwoExitsB",
+    },
+    Nonterminal {
+        name: "TwoRoutesC",
+        display_name: "TwoRoutesC",
+    },
+    Nonterminal {
+        name: "TwoRoutesA",
+        display_name: "TwoRoutesA",
+    },
+    Nonterminal {
+        name: "TwoRoutesB",
+        display_name: "TwoRoutesB",
+    },
+    Nonterminal {
+        name: "Nullable",
+        display_name: "Nullable",
+    },
+    Nonterminal {
+        name: "SiblingC",
+        display_name: "SiblingC",
+    },
+    Nonterminal {
+        name: "SiblingD",
+        display_name: "SiblingD",
+    },
+    Nonterminal {
+        name: "EmptyE",
+        display_name: "EmptyE",
+    },
+    Nonterminal {
+        name: "EmptyF",
+        display_name: "EmptyF",
+    },
+    Nonterminal {
+        name: "ParentC",
+        display_name: "ParentC",
+    },
+    Nonterminal {
+        name: "ParentD",
+        display_name: "ParentD",
+    },
+    Nonterminal {
+        name: "OverlapC",
+        display_name: "OverlapC",
+    },
+    Nonterminal {
+        name: "OverlapB",
+        display_name: "OverlapB",
+    },
+    Nonterminal {
+        name: "IntermediateY",
+        display_name: "IntermediateY",
+    },
+    Nonterminal {
+        name: "IntermediateA",
+        display_name: "IntermediateA",
+    },
+    Nonterminal {
+        name: "IntermediateB",
+        display_name: "IntermediateB",
+    },
+    Nonterminal {
+        name: "MidInput",
+        display_name: "MidInput",
+    },
+    Nonterminal {
+        name: "Consuming",
+        display_name: "Consuming",
+    },
+    Nonterminal {
+        name: "Ordinary",
+        display_name: "Ordinary",
+    },
+    Nonterminal {
+        name: "NullablePlus",
+        display_name: "NullablePlus",
+    },
+    Nonterminal {
+        name: "NullableStar",
+        display_name: "NullableStar",
+    },
+    Nonterminal {
+        name: "NullableSeparated",
+        display_name: "NullableSeparated",
+    },
+    Nonterminal {
+        name: "Optional",
+        display_name: "Optional",
+    },
+    Nonterminal {
+        name: "Grouped",
+        display_name: "Grouped",
+    },
+    Nonterminal {
+        name: "Plus_0",
+        display_name: "EmptyE+",
+    },
+    Nonterminal {
+        name: "Star_0",
+        display_name: "EmptyE*",
+    },
+    Nonterminal {
+        name: "Plus_1",
+        display_name: "{EmptyE EmptyF}+",
+    },
+    Nonterminal {
+        name: "Opt_0",
+        display_name: "Optional?",
+    },
+    Nonterminal {
+        name: "Group_0",
+        display_name: "(Grouped)",
+    },
+    Nonterminal {
+        name: "StartDirect",
+        display_name: "Direct",
+    },
+    Nonterminal {
+        name: "StartMutualC",
+        display_name: "MutualC",
+    },
+    Nonterminal {
+        name: "StartMutualB",
+        display_name: "MutualB",
+    },
+    Nonterminal {
+        name: "StartChainC",
+        display_name: "ChainC",
+    },
+    Nonterminal {
+        name: "StartChainA",
+        display_name: "ChainA",
+    },
+    Nonterminal {
+        name: "StartChainB",
+        display_name: "ChainB",
+    },
+    Nonterminal {
+        name: "StartSharedS",
+        display_name: "SharedS",
+    },
+    Nonterminal {
+        name: "StartSharedA",
+        display_name: "SharedA",
+    },
+    Nonterminal {
+        name: "StartSharedB",
+        display_name: "SharedB",
+    },
+    Nonterminal {
+        name: "StartTwoExitsC",
+        display_name: "TwoExitsC",
+    },
+    Nonterminal {
+        name: "StartTwoExitsB",
+        display_name: "TwoExitsB",
+    },
+    Nonterminal {
+        name: "StartTwoRoutesC",
+        display_name: "TwoRoutesC",
+    },
+    Nonterminal {
+        name: "StartTwoRoutesA",
+        display_name: "TwoRoutesA",
+    },
+    Nonterminal {
+        name: "StartTwoRoutesB",
+        display_name: "TwoRoutesB",
+    },
+    Nonterminal {
+        name: "StartNullable",
+        display_name: "Nullable",
+    },
+    Nonterminal {
+        name: "StartSiblingC",
+        display_name: "SiblingC",
+    },
+    Nonterminal {
+        name: "StartSiblingD",
+        display_name: "SiblingD",
+    },
+    Nonterminal {
+        name: "StartEmptyE",
+        display_name: "EmptyE",
+    },
+    Nonterminal {
+        name: "StartEmptyF",
+        display_name: "EmptyF",
+    },
+    Nonterminal {
+        name: "StartParentC",
+        display_name: "ParentC",
+    },
+    Nonterminal {
+        name: "StartParentD",
+        display_name: "ParentD",
+    },
+    Nonterminal {
+        name: "StartOverlapC",
+        display_name: "OverlapC",
+    },
+    Nonterminal {
+        name: "StartOverlapB",
+        display_name: "OverlapB",
+    },
+    Nonterminal {
+        name: "StartIntermediateY",
+        display_name: "IntermediateY",
+    },
+    Nonterminal {
+        name: "StartIntermediateA",
+        display_name: "IntermediateA",
+    },
+    Nonterminal {
+        name: "StartIntermediateB",
+        display_name: "IntermediateB",
+    },
+    Nonterminal {
+        name: "StartMidInput",
+        display_name: "MidInput",
+    },
+    Nonterminal {
+        name: "StartConsuming",
+        display_name: "Consuming",
+    },
+    Nonterminal {
+        name: "StartOrdinary",
+        display_name: "Ordinary",
+    },
+    Nonterminal {
+        name: "StartNullablePlus",
+        display_name: "NullablePlus",
+    },
+    Nonterminal {
+        name: "StartNullableStar",
+        display_name: "NullableStar",
+    },
+    Nonterminal {
+        name: "StartNullableSeparated",
+        display_name: "NullableSeparated",
+    },
+    Nonterminal {
+        name: "StartOptional",
+        display_name: "Optional",
+    },
+    Nonterminal {
+        name: "StartGrouped",
+        display_name: "Grouped",
+    },
+];
+static DISPLAY_ORDER: [&str; 34] = [
+    "Direct",
+    "MutualC",
+    "MutualB",
+    "ChainC",
+    "ChainA",
+    "ChainB",
+    "SharedS",
+    "SharedA",
+    "SharedB",
+    "TwoExitsC",
+    "TwoExitsB",
+    "TwoRoutesC",
+    "TwoRoutesA",
+    "TwoRoutesB",
+    "Nullable",
+    "SiblingC",
+    "SiblingD",
+    "EmptyE",
+    "EmptyF",
+    "ParentC",
+    "ParentD",
+    "OverlapC",
+    "OverlapB",
+    "IntermediateY",
+    "IntermediateA",
+    "IntermediateB",
+    "MidInput",
+    "Consuming",
+    "Ordinary",
+    "NullablePlus",
+    "NullableStar",
+    "NullableSeparated",
+    "Optional",
+    "Grouped",
+];
+static TERMINALS: [Terminal; 4] = [
+    Terminal { name: "\"b\"" },
+    Terminal { name: "\"a\"" },
+    Terminal { name: "Epsilon" },
+    Terminal { name: "EOF" },
+];
+static SLOTS: [Slot; 197] = [
+    Slot {
+        display_name: "Direct : . Direct",
+        position: 0,
+    },
+    Slot {
+        display_name: "Direct : Direct.",
+        position: 1,
+    },
+    Slot {
+        display_name: "Direct : . \"b\"",
+        position: 0,
+    },
+    Slot {
+        display_name: "Direct : \"b\".",
+        position: 1,
+    },
+    Slot {
+        display_name: "MutualC : . MutualB",
+        position: 0,
+    },
+    Slot {
+        display_name: "MutualC : MutualB.",
+        position: 1,
+    },
+    Slot {
+        display_name: "MutualC : . \"b\"",
+        position: 0,
+    },
+    Slot {
+        display_name: "MutualC : \"b\".",
+        position: 1,
+    },
+    Slot {
+        display_name: "MutualB : . MutualC",
+        position: 0,
+    },
+    Slot {
+        display_name: "MutualB : MutualC.",
+        position: 1,
+    },
+    Slot {
+        display_name: "ChainC : . ChainA",
+        position: 0,
+    },
+    Slot {
+        display_name: "ChainC : ChainA.",
+        position: 1,
+    },
+    Slot {
+        display_name: "ChainC : . \"b\"",
+        position: 0,
+    },
+    Slot {
+        display_name: "ChainC : \"b\".",
+        position: 1,
+    },
+    Slot {
+        display_name: "ChainA : . ChainB",
+        position: 0,
+    },
+    Slot {
+        display_name: "ChainA : ChainB.",
+        position: 1,
+    },
+    Slot {
+        display_name: "ChainB : . ChainC",
+        position: 0,
+    },
+    Slot {
+        display_name: "ChainB : ChainC.",
+        position: 1,
+    },
+    Slot {
+        display_name: "SharedS : . SharedA SharedB",
+        position: 0,
+    },
+    Slot {
+        display_name: "SharedS : SharedA . SharedB",
+        position: 1,
+    },
+    Slot {
+        display_name: "SharedS : SharedA SharedB.",
+        position: 2,
+    },
+    Slot {
+        display_name: "SharedA : . SharedB",
+        position: 0,
+    },
+    Slot {
+        display_name: "SharedA : SharedB.",
+        position: 1,
+    },
+    Slot {
+        display_name: "SharedA : .",
+        position: 0,
+    },
+    Slot {
+        display_name: "SharedB : . SharedA",
+        position: 0,
+    },
+    Slot {
+        display_name: "SharedB : SharedA.",
+        position: 1,
+    },
+    Slot {
+        display_name: "TwoExitsC : . TwoExitsB",
+        position: 0,
+    },
+    Slot {
+        display_name: "TwoExitsC : TwoExitsB.",
+        position: 1,
+    },
+    Slot {
+        display_name: "TwoExitsC : . \"b\"",
+        position: 0,
+    },
+    Slot {
+        display_name: "TwoExitsC : \"b\".",
+        position: 1,
+    },
+    Slot {
+        display_name: "TwoExitsB : . TwoExitsC",
+        position: 0,
+    },
+    Slot {
+        display_name: "TwoExitsB : TwoExitsC.",
+        position: 1,
+    },
+    Slot {
+        display_name: "TwoExitsB : . \"b\"",
+        position: 0,
+    },
+    Slot {
+        display_name: "TwoExitsB : \"b\".",
+        position: 1,
+    },
+    Slot {
+        display_name: "TwoRoutesC : . TwoRoutesA",
+        position: 0,
+    },
+    Slot {
+        display_name: "TwoRoutesC : TwoRoutesA.",
+        position: 1,
+    },
+    Slot {
+        display_name: "TwoRoutesC : . TwoRoutesB",
+        position: 0,
+    },
+    Slot {
+        display_name: "TwoRoutesC : TwoRoutesB.",
+        position: 1,
+    },
+    Slot {
+        display_name: "TwoRoutesC : . \"b\"",
+        position: 0,
+    },
+    Slot {
+        display_name: "TwoRoutesC : \"b\".",
+        position: 1,
+    },
+    Slot {
+        display_name: "TwoRoutesA : . TwoRoutesC",
+        position: 0,
+    },
+    Slot {
+        display_name: "TwoRoutesA : TwoRoutesC.",
+        position: 1,
+    },
+    Slot {
+        display_name: "TwoRoutesB : . TwoRoutesC",
+        position: 0,
+    },
+    Slot {
+        display_name: "TwoRoutesB : TwoRoutesC.",
+        position: 1,
+    },
+    Slot {
+        display_name: "Nullable : . Nullable Nullable",
+        position: 0,
+    },
+    Slot {
+        display_name: "Nullable : Nullable . Nullable",
+        position: 1,
+    },
+    Slot {
+        display_name: "Nullable : Nullable Nullable.",
+        position: 2,
+    },
+    Slot {
+        display_name: "Nullable : . \"b\"",
+        position: 0,
+    },
+    Slot {
+        display_name: "Nullable : \"b\".",
+        position: 1,
+    },
+    Slot {
+        display_name: "Nullable : .",
+        position: 0,
+    },
+    Slot {
+        display_name: "SiblingC : . SiblingC SiblingD",
+        position: 0,
+    },
+    Slot {
+        display_name: "SiblingC : SiblingC . SiblingD",
+        position: 1,
+    },
+    Slot {
+        display_name: "SiblingC : SiblingC SiblingD.",
+        position: 2,
+    },
+    Slot {
+        display_name: "SiblingC : . \"b\"",
+        position: 0,
+    },
+    Slot {
+        display_name: "SiblingC : \"b\".",
+        position: 1,
+    },
+    Slot {
+        display_name: "SiblingD : . EmptyE",
+        position: 0,
+    },
+    Slot {
+        display_name: "SiblingD : EmptyE.",
+        position: 1,
+    },
+    Slot {
+        display_name: "SiblingD : . EmptyF",
+        position: 0,
+    },
+    Slot {
+        display_name: "SiblingD : EmptyF.",
+        position: 1,
+    },
+    Slot {
+        display_name: "EmptyE : .",
+        position: 0,
+    },
+    Slot {
+        display_name: "EmptyF : .",
+        position: 0,
+    },
+    Slot {
+        display_name: "ParentC : . ParentD \"b\"",
+        position: 0,
+    },
+    Slot {
+        display_name: "ParentC : ParentD . \"b\"",
+        position: 1,
+    },
+    Slot {
+        display_name: "ParentC : ParentD \"b\".",
+        position: 2,
+    },
+    Slot {
+        display_name: "ParentD : . ParentD",
+        position: 0,
+    },
+    Slot {
+        display_name: "ParentD : ParentD.",
+        position: 1,
+    },
+    Slot {
+        display_name: "ParentD : . \"a\"",
+        position: 0,
+    },
+    Slot {
+        display_name: "ParentD : \"a\".",
+        position: 1,
+    },
+    Slot {
+        display_name: "OverlapC : . OverlapB",
+        position: 0,
+    },
+    Slot {
+        display_name: "OverlapC : OverlapB.",
+        position: 1,
+    },
+    Slot {
+        display_name: "OverlapC : . \"b\"",
+        position: 0,
+    },
+    Slot {
+        display_name: "OverlapC : \"b\".",
+        position: 1,
+    },
+    Slot {
+        display_name: "OverlapB : . OverlapB",
+        position: 0,
+    },
+    Slot {
+        display_name: "OverlapB : OverlapB.",
+        position: 1,
+    },
+    Slot {
+        display_name: "OverlapB : . OverlapC",
+        position: 0,
+    },
+    Slot {
+        display_name: "OverlapB : OverlapC.",
+        position: 1,
+    },
+    Slot {
+        display_name: "IntermediateY : . IntermediateA IntermediateY IntermediateB",
+        position: 0,
+    },
+    Slot {
+        display_name: "IntermediateY : IntermediateA . IntermediateY IntermediateB",
+        position: 1,
+    },
+    Slot {
+        display_name: "IntermediateY : IntermediateA IntermediateY . IntermediateB",
+        position: 2,
+    },
+    Slot {
+        display_name: "IntermediateY : IntermediateA IntermediateY IntermediateB.",
+        position: 3,
+    },
+    Slot {
+        display_name: "IntermediateY : . \"a\"",
+        position: 0,
+    },
+    Slot {
+        display_name: "IntermediateY : \"a\".",
+        position: 1,
+    },
+    Slot {
+        display_name: "IntermediateA : .",
+        position: 0,
+    },
+    Slot {
+        display_name: "IntermediateB : .",
+        position: 0,
+    },
+    Slot {
+        display_name: "IntermediateB : . \"b\"",
+        position: 0,
+    },
+    Slot {
+        display_name: "IntermediateB : \"b\".",
+        position: 1,
+    },
+    Slot {
+        display_name: "MidInput : . Direct \"b\"",
+        position: 0,
+    },
+    Slot {
+        display_name: "MidInput : Direct . \"b\"",
+        position: 1,
+    },
+    Slot {
+        display_name: "MidInput : Direct \"b\".",
+        position: 2,
+    },
+    Slot {
+        display_name: "Consuming : . Consuming \"b\"",
+        position: 0,
+    },
+    Slot {
+        display_name: "Consuming : Consuming . \"b\"",
+        position: 1,
+    },
+    Slot {
+        display_name: "Consuming : Consuming \"b\".",
+        position: 2,
+    },
+    Slot {
+        display_name: "Consuming : . \"b\"",
+        position: 0,
+    },
+    Slot {
+        display_name: "Consuming : \"b\".",
+        position: 1,
+    },
+    Slot {
+        display_name: "Ordinary : . \"b\"",
+        position: 0,
+    },
+    Slot {
+        display_name: "Ordinary : \"b\".",
+        position: 1,
+    },
+    Slot {
+        display_name: "NullablePlus : . EmptyE+",
+        position: 0,
+    },
+    Slot {
+        display_name: "NullablePlus : EmptyE+.",
+        position: 1,
+    },
+    Slot {
+        display_name: "NullableStar : . EmptyE*",
+        position: 0,
+    },
+    Slot {
+        display_name: "NullableStar : EmptyE*.",
+        position: 1,
+    },
+    Slot {
+        display_name: "NullableSeparated : . {EmptyE EmptyF}+",
+        position: 0,
+    },
+    Slot {
+        display_name: "NullableSeparated : {EmptyE EmptyF}+.",
+        position: 1,
+    },
+    Slot {
+        display_name: "Optional : . Optional?",
+        position: 0,
+    },
+    Slot {
+        display_name: "Optional : Optional?.",
+        position: 1,
+    },
+    Slot {
+        display_name: "Optional : . \"b\"",
+        position: 0,
+    },
+    Slot {
+        display_name: "Optional : \"b\".",
+        position: 1,
+    },
+    Slot {
+        display_name: "Grouped : . (Grouped)",
+        position: 0,
+    },
+    Slot {
+        display_name: "Grouped : (Grouped).",
+        position: 1,
+    },
+    Slot {
+        display_name: "Grouped : . \"b\"",
+        position: 0,
+    },
+    Slot {
+        display_name: "Grouped : \"b\".",
+        position: 1,
+    },
+    Slot {
+        display_name: "EmptyE+ : . EmptyE+ EmptyE",
+        position: 0,
+    },
+    Slot {
+        display_name: "EmptyE+ : EmptyE+ . EmptyE",
+        position: 1,
+    },
+    Slot {
+        display_name: "EmptyE+ : EmptyE+ EmptyE.",
+        position: 2,
+    },
+    Slot {
+        display_name: "EmptyE+ : . EmptyE",
+        position: 0,
+    },
+    Slot {
+        display_name: "EmptyE+ : EmptyE.",
+        position: 1,
+    },
+    Slot {
+        display_name: "EmptyE* : . EmptyE+",
+        position: 0,
+    },
+    Slot {
+        display_name: "EmptyE* : EmptyE+.",
+        position: 1,
+    },
+    Slot {
+        display_name: "EmptyE* : .",
+        position: 0,
+    },
+    Slot {
+        display_name: "{EmptyE EmptyF}+ : . {EmptyE EmptyF}+ EmptyF EmptyE",
+        position: 0,
+    },
+    Slot {
+        display_name: "{EmptyE EmptyF}+ : {EmptyE EmptyF}+ . EmptyF EmptyE",
+        position: 1,
+    },
+    Slot {
+        display_name: "{EmptyE EmptyF}+ : {EmptyE EmptyF}+ EmptyF . EmptyE",
+        position: 2,
+    },
+    Slot {
+        display_name: "{EmptyE EmptyF}+ : {EmptyE EmptyF}+ EmptyF EmptyE.",
+        position: 3,
+    },
+    Slot {
+        display_name: "{EmptyE EmptyF}+ : . EmptyE",
+        position: 0,
+    },
+    Slot {
+        display_name: "{EmptyE EmptyF}+ : EmptyE.",
+        position: 1,
+    },
+    Slot {
+        display_name: "Optional? : . Optional",
+        position: 0,
+    },
+    Slot {
+        display_name: "Optional? : Optional.",
+        position: 1,
+    },
+    Slot {
+        display_name: "Optional? : .",
+        position: 0,
+    },
+    Slot {
+        display_name: "(Grouped) : . Grouped",
+        position: 0,
+    },
+    Slot {
+        display_name: "(Grouped) : Grouped.",
+        position: 1,
+    },
+    Slot {
+        display_name: "Direct : . start:Direct",
+        position: 0,
+    },
+    Slot {
+        display_name: "Direct : start:Direct.",
+        position: 1,
+    },
+    Slot {
+        display_name: "MutualC : . start:MutualC",
+        position: 0,
+    },
+    Slot {
+        display_name: "MutualC : start:MutualC.",
+        position: 1,
+    },
+    Slot {
+        display_name: "MutualB : . start:MutualB",
+        position: 0,
+    },
+    Slot {
+        display_name: "MutualB : start:MutualB.",
+        position: 1,
+    },
+    Slot {
+        display_name: "ChainC : . start:ChainC",
+        position: 0,
+    },
+    Slot {
+        display_name: "ChainC : start:ChainC.",
+        position: 1,
+    },
+    Slot {
+        display_name: "ChainA : . start:ChainA",
+        position: 0,
+    },
+    Slot {
+        display_name: "ChainA : start:ChainA.",
+        position: 1,
+    },
+    Slot {
+        display_name: "ChainB : . start:ChainB",
+        position: 0,
+    },
+    Slot {
+        display_name: "ChainB : start:ChainB.",
+        position: 1,
+    },
+    Slot {
+        display_name: "SharedS : . start:SharedS",
+        position: 0,
+    },
+    Slot {
+        display_name: "SharedS : start:SharedS.",
+        position: 1,
+    },
+    Slot {
+        display_name: "SharedA : . start:SharedA",
+        position: 0,
+    },
+    Slot {
+        display_name: "SharedA : start:SharedA.",
+        position: 1,
+    },
+    Slot {
+        display_name: "SharedB : . start:SharedB",
+        position: 0,
+    },
+    Slot {
+        display_name: "SharedB : start:SharedB.",
+        position: 1,
+    },
+    Slot {
+        display_name: "TwoExitsC : . start:TwoExitsC",
+        position: 0,
+    },
+    Slot {
+        display_name: "TwoExitsC : start:TwoExitsC.",
+        position: 1,
+    },
+    Slot {
+        display_name: "TwoExitsB : . start:TwoExitsB",
+        position: 0,
+    },
+    Slot {
+        display_name: "TwoExitsB : start:TwoExitsB.",
+        position: 1,
+    },
+    Slot {
+        display_name: "TwoRoutesC : . start:TwoRoutesC",
+        position: 0,
+    },
+    Slot {
+        display_name: "TwoRoutesC : start:TwoRoutesC.",
+        position: 1,
+    },
+    Slot {
+        display_name: "TwoRoutesA : . start:TwoRoutesA",
+        position: 0,
+    },
+    Slot {
+        display_name: "TwoRoutesA : start:TwoRoutesA.",
+        position: 1,
+    },
+    Slot {
+        display_name: "TwoRoutesB : . start:TwoRoutesB",
+        position: 0,
+    },
+    Slot {
+        display_name: "TwoRoutesB : start:TwoRoutesB.",
+        position: 1,
+    },
+    Slot {
+        display_name: "Nullable : . start:Nullable",
+        position: 0,
+    },
+    Slot {
+        display_name: "Nullable : start:Nullable.",
+        position: 1,
+    },
+    Slot {
+        display_name: "SiblingC : . start:SiblingC",
+        position: 0,
+    },
+    Slot {
+        display_name: "SiblingC : start:SiblingC.",
+        position: 1,
+    },
+    Slot {
+        display_name: "SiblingD : . start:SiblingD",
+        position: 0,
+    },
+    Slot {
+        display_name: "SiblingD : start:SiblingD.",
+        position: 1,
+    },
+    Slot {
+        display_name: "EmptyE : . start:EmptyE",
+        position: 0,
+    },
+    Slot {
+        display_name: "EmptyE : start:EmptyE.",
+        position: 1,
+    },
+    Slot {
+        display_name: "EmptyF : . start:EmptyF",
+        position: 0,
+    },
+    Slot {
+        display_name: "EmptyF : start:EmptyF.",
+        position: 1,
+    },
+    Slot {
+        display_name: "ParentC : . start:ParentC",
+        position: 0,
+    },
+    Slot {
+        display_name: "ParentC : start:ParentC.",
+        position: 1,
+    },
+    Slot {
+        display_name: "ParentD : . start:ParentD",
+        position: 0,
+    },
+    Slot {
+        display_name: "ParentD : start:ParentD.",
+        position: 1,
+    },
+    Slot {
+        display_name: "OverlapC : . start:OverlapC",
+        position: 0,
+    },
+    Slot {
+        display_name: "OverlapC : start:OverlapC.",
+        position: 1,
+    },
+    Slot {
+        display_name: "OverlapB : . start:OverlapB",
+        position: 0,
+    },
+    Slot {
+        display_name: "OverlapB : start:OverlapB.",
+        position: 1,
+    },
+    Slot {
+        display_name: "IntermediateY : . start:IntermediateY",
+        position: 0,
+    },
+    Slot {
+        display_name: "IntermediateY : start:IntermediateY.",
+        position: 1,
+    },
+    Slot {
+        display_name: "IntermediateA : . start:IntermediateA",
+        position: 0,
+    },
+    Slot {
+        display_name: "IntermediateA : start:IntermediateA.",
+        position: 1,
+    },
+    Slot {
+        display_name: "IntermediateB : . start:IntermediateB",
+        position: 0,
+    },
+    Slot {
+        display_name: "IntermediateB : start:IntermediateB.",
+        position: 1,
+    },
+    Slot {
+        display_name: "MidInput : . start:MidInput",
+        position: 0,
+    },
+    Slot {
+        display_name: "MidInput : start:MidInput.",
+        position: 1,
+    },
+    Slot {
+        display_name: "Consuming : . start:Consuming",
+        position: 0,
+    },
+    Slot {
+        display_name: "Consuming : start:Consuming.",
+        position: 1,
+    },
+    Slot {
+        display_name: "Ordinary : . start:Ordinary",
+        position: 0,
+    },
+    Slot {
+        display_name: "Ordinary : start:Ordinary.",
+        position: 1,
+    },
+    Slot {
+        display_name: "NullablePlus : . start:NullablePlus",
+        position: 0,
+    },
+    Slot {
+        display_name: "NullablePlus : start:NullablePlus.",
+        position: 1,
+    },
+    Slot {
+        display_name: "NullableStar : . start:NullableStar",
+        position: 0,
+    },
+    Slot {
+        display_name: "NullableStar : start:NullableStar.",
+        position: 1,
+    },
+    Slot {
+        display_name: "NullableSeparated : . start:NullableSeparated",
+        position: 0,
+    },
+    Slot {
+        display_name: "NullableSeparated : start:NullableSeparated.",
+        position: 1,
+    },
+    Slot {
+        display_name: "Optional : . start:Optional",
+        position: 0,
+    },
+    Slot {
+        display_name: "Optional : start:Optional.",
+        position: 1,
+    },
+    Slot {
+        display_name: "Grouped : . start:Grouped",
+        position: 0,
+    },
+    Slot {
+        display_name: "Grouped : start:Grouped.",
+        position: 1,
+    },
+];
+static FIRST_SLOTS: [&[SlotId]; 73] = [
+    &[SlotId(0), SlotId(2)],
+    &[SlotId(4), SlotId(6)],
+    &[SlotId(8)],
+    &[SlotId(10), SlotId(12)],
+    &[SlotId(14)],
+    &[SlotId(16)],
+    &[SlotId(18)],
+    &[SlotId(21), SlotId(23)],
+    &[SlotId(24)],
+    &[SlotId(26), SlotId(28)],
+    &[SlotId(30), SlotId(32)],
+    &[SlotId(34), SlotId(36), SlotId(38)],
+    &[SlotId(40)],
+    &[SlotId(42)],
+    &[SlotId(44), SlotId(47), SlotId(49)],
+    &[SlotId(50), SlotId(53)],
+    &[SlotId(55), SlotId(57)],
+    &[SlotId(59)],
+    &[SlotId(60)],
+    &[SlotId(61)],
+    &[SlotId(64), SlotId(66)],
+    &[SlotId(68), SlotId(70)],
+    &[SlotId(72), SlotId(74)],
+    &[SlotId(76), SlotId(80)],
+    &[SlotId(82)],
+    &[SlotId(83), SlotId(84)],
+    &[SlotId(86)],
+    &[SlotId(89), SlotId(92)],
+    &[SlotId(94)],
+    &[SlotId(96)],
+    &[SlotId(98)],
+    &[SlotId(100)],
+    &[SlotId(102), SlotId(104)],
+    &[SlotId(106), SlotId(108)],
+    &[SlotId(110), SlotId(113)],
+    &[SlotId(115), SlotId(117)],
+    &[SlotId(118), SlotId(122)],
+    &[SlotId(124), SlotId(126)],
+    &[SlotId(127)],
+    &[SlotId(129)],
+    &[SlotId(131)],
+    &[SlotId(133)],
+    &[SlotId(135)],
+    &[SlotId(137)],
+    &[SlotId(139)],
+    &[SlotId(141)],
+    &[SlotId(143)],
+    &[SlotId(145)],
+    &[SlotId(147)],
+    &[SlotId(149)],
+    &[SlotId(151)],
+    &[SlotId(153)],
+    &[SlotId(155)],
+    &[SlotId(157)],
+    &[SlotId(159)],
+    &[SlotId(161)],
+    &[SlotId(163)],
+    &[SlotId(165)],
+    &[SlotId(167)],
+    &[SlotId(169)],
+    &[SlotId(171)],
+    &[SlotId(173)],
+    &[SlotId(175)],
+    &[SlotId(177)],
+    &[SlotId(179)],
+    &[SlotId(181)],
+    &[SlotId(183)],
+    &[SlotId(185)],
+    &[SlotId(187)],
+    &[SlotId(189)],
+    &[SlotId(191)],
+    &[SlotId(193)],
+    &[SlotId(195)],
+];
+// A failed terminal match refers to a static terminal set like every other failure, so the
+// error reporting path needs to reach a terminal set from a terminal id. This table, indexed
+// by terminal id, serves only that.
+static SINGLE_TERMINAL_SETS: [TerminalSet; 4] = [
+    TerminalSet {
+        id: 6,
+        terminals: &[TerminalId(0)],
+    },
+    TerminalSet {
+        id: 7,
+        terminals: &[TerminalId(1)],
+    },
+    TerminalSet {
+        id: 8,
+        terminals: &[TerminalId(2)],
+    },
+    TerminalSet {
+        id: 9,
+        terminals: &[TerminalId(3)],
+    },
+];
 impl Grammar for CyclesGrammar {
     type Alternatives = BitSet<1>;
     const NAME: &'static str = "Cycles";
-    const NONTERMINALS: &'static [Nonterminal] = &[
-        Nonterminal {
-            name: "Direct",
-            display_name: "Direct",
-        },
-        Nonterminal {
-            name: "MutualC",
-            display_name: "MutualC",
-        },
-        Nonterminal {
-            name: "MutualB",
-            display_name: "MutualB",
-        },
-        Nonterminal {
-            name: "ChainC",
-            display_name: "ChainC",
-        },
-        Nonterminal {
-            name: "ChainA",
-            display_name: "ChainA",
-        },
-        Nonterminal {
-            name: "ChainB",
-            display_name: "ChainB",
-        },
-        Nonterminal {
-            name: "SharedS",
-            display_name: "SharedS",
-        },
-        Nonterminal {
-            name: "SharedA",
-            display_name: "SharedA",
-        },
-        Nonterminal {
-            name: "SharedB",
-            display_name: "SharedB",
-        },
-        Nonterminal {
-            name: "TwoExitsC",
-            display_name: "TwoExitsC",
-        },
-        Nonterminal {
-            name: "TwoExitsB",
-            display_name: "TwoExitsB",
-        },
-        Nonterminal {
-            name: "TwoRoutesC",
-            display_name: "TwoRoutesC",
-        },
-        Nonterminal {
-            name: "TwoRoutesA",
-            display_name: "TwoRoutesA",
-        },
-        Nonterminal {
-            name: "TwoRoutesB",
-            display_name: "TwoRoutesB",
-        },
-        Nonterminal {
-            name: "Nullable",
-            display_name: "Nullable",
-        },
-        Nonterminal {
-            name: "SiblingC",
-            display_name: "SiblingC",
-        },
-        Nonterminal {
-            name: "SiblingD",
-            display_name: "SiblingD",
-        },
-        Nonterminal {
-            name: "EmptyE",
-            display_name: "EmptyE",
-        },
-        Nonterminal {
-            name: "EmptyF",
-            display_name: "EmptyF",
-        },
-        Nonterminal {
-            name: "ParentC",
-            display_name: "ParentC",
-        },
-        Nonterminal {
-            name: "ParentD",
-            display_name: "ParentD",
-        },
-        Nonterminal {
-            name: "OverlapC",
-            display_name: "OverlapC",
-        },
-        Nonterminal {
-            name: "OverlapB",
-            display_name: "OverlapB",
-        },
-        Nonterminal {
-            name: "IntermediateY",
-            display_name: "IntermediateY",
-        },
-        Nonterminal {
-            name: "IntermediateA",
-            display_name: "IntermediateA",
-        },
-        Nonterminal {
-            name: "IntermediateB",
-            display_name: "IntermediateB",
-        },
-        Nonterminal {
-            name: "MidInput",
-            display_name: "MidInput",
-        },
-        Nonterminal {
-            name: "Consuming",
-            display_name: "Consuming",
-        },
-        Nonterminal {
-            name: "Ordinary",
-            display_name: "Ordinary",
-        },
-        Nonterminal {
-            name: "NullablePlus",
-            display_name: "NullablePlus",
-        },
-        Nonterminal {
-            name: "NullableStar",
-            display_name: "NullableStar",
-        },
-        Nonterminal {
-            name: "NullableSeparated",
-            display_name: "NullableSeparated",
-        },
-        Nonterminal {
-            name: "Optional",
-            display_name: "Optional",
-        },
-        Nonterminal {
-            name: "Grouped",
-            display_name: "Grouped",
-        },
-        Nonterminal {
-            name: "Plus_0",
-            display_name: "EmptyE+",
-        },
-        Nonterminal {
-            name: "Star_0",
-            display_name: "EmptyE*",
-        },
-        Nonterminal {
-            name: "Plus_1",
-            display_name: "{EmptyE EmptyF}+",
-        },
-        Nonterminal {
-            name: "Opt_0",
-            display_name: "Optional?",
-        },
-        Nonterminal {
-            name: "Group_0",
-            display_name: "(Grouped)",
-        },
-        Nonterminal {
-            name: "StartDirect",
-            display_name: "Direct",
-        },
-        Nonterminal {
-            name: "StartMutualC",
-            display_name: "MutualC",
-        },
-        Nonterminal {
-            name: "StartMutualB",
-            display_name: "MutualB",
-        },
-        Nonterminal {
-            name: "StartChainC",
-            display_name: "ChainC",
-        },
-        Nonterminal {
-            name: "StartChainA",
-            display_name: "ChainA",
-        },
-        Nonterminal {
-            name: "StartChainB",
-            display_name: "ChainB",
-        },
-        Nonterminal {
-            name: "StartSharedS",
-            display_name: "SharedS",
-        },
-        Nonterminal {
-            name: "StartSharedA",
-            display_name: "SharedA",
-        },
-        Nonterminal {
-            name: "StartSharedB",
-            display_name: "SharedB",
-        },
-        Nonterminal {
-            name: "StartTwoExitsC",
-            display_name: "TwoExitsC",
-        },
-        Nonterminal {
-            name: "StartTwoExitsB",
-            display_name: "TwoExitsB",
-        },
-        Nonterminal {
-            name: "StartTwoRoutesC",
-            display_name: "TwoRoutesC",
-        },
-        Nonterminal {
-            name: "StartTwoRoutesA",
-            display_name: "TwoRoutesA",
-        },
-        Nonterminal {
-            name: "StartTwoRoutesB",
-            display_name: "TwoRoutesB",
-        },
-        Nonterminal {
-            name: "StartNullable",
-            display_name: "Nullable",
-        },
-        Nonterminal {
-            name: "StartSiblingC",
-            display_name: "SiblingC",
-        },
-        Nonterminal {
-            name: "StartSiblingD",
-            display_name: "SiblingD",
-        },
-        Nonterminal {
-            name: "StartEmptyE",
-            display_name: "EmptyE",
-        },
-        Nonterminal {
-            name: "StartEmptyF",
-            display_name: "EmptyF",
-        },
-        Nonterminal {
-            name: "StartParentC",
-            display_name: "ParentC",
-        },
-        Nonterminal {
-            name: "StartParentD",
-            display_name: "ParentD",
-        },
-        Nonterminal {
-            name: "StartOverlapC",
-            display_name: "OverlapC",
-        },
-        Nonterminal {
-            name: "StartOverlapB",
-            display_name: "OverlapB",
-        },
-        Nonterminal {
-            name: "StartIntermediateY",
-            display_name: "IntermediateY",
-        },
-        Nonterminal {
-            name: "StartIntermediateA",
-            display_name: "IntermediateA",
-        },
-        Nonterminal {
-            name: "StartIntermediateB",
-            display_name: "IntermediateB",
-        },
-        Nonterminal {
-            name: "StartMidInput",
-            display_name: "MidInput",
-        },
-        Nonterminal {
-            name: "StartConsuming",
-            display_name: "Consuming",
-        },
-        Nonterminal {
-            name: "StartOrdinary",
-            display_name: "Ordinary",
-        },
-        Nonterminal {
-            name: "StartNullablePlus",
-            display_name: "NullablePlus",
-        },
-        Nonterminal {
-            name: "StartNullableStar",
-            display_name: "NullableStar",
-        },
-        Nonterminal {
-            name: "StartNullableSeparated",
-            display_name: "NullableSeparated",
-        },
-        Nonterminal {
-            name: "StartOptional",
-            display_name: "Optional",
-        },
-        Nonterminal {
-            name: "StartGrouped",
-            display_name: "Grouped",
-        },
-    ];
-    const DISPLAY_ORDER: &'static [&'static str] = &[
-        "Direct",
-        "MutualC",
-        "MutualB",
-        "ChainC",
-        "ChainA",
-        "ChainB",
-        "SharedS",
-        "SharedA",
-        "SharedB",
-        "TwoExitsC",
-        "TwoExitsB",
-        "TwoRoutesC",
-        "TwoRoutesA",
-        "TwoRoutesB",
-        "Nullable",
-        "SiblingC",
-        "SiblingD",
-        "EmptyE",
-        "EmptyF",
-        "ParentC",
-        "ParentD",
-        "OverlapC",
-        "OverlapB",
-        "IntermediateY",
-        "IntermediateA",
-        "IntermediateB",
-        "MidInput",
-        "Consuming",
-        "Ordinary",
-        "NullablePlus",
-        "NullableStar",
-        "NullableSeparated",
-        "Optional",
-        "Grouped",
-    ];
-    const TERMINALS: &'static [Terminal] = &[
-        Terminal { name: "\"b\"" },
-        Terminal { name: "\"a\"" },
-        Terminal { name: "Epsilon" },
-        Terminal { name: "EOF" },
-    ];
-    const SLOTS: &'static [Slot] = &[
-        Slot {
-            display_name: "Direct : . Direct",
-            position: 0,
-        },
-        Slot {
-            display_name: "Direct : Direct.",
-            position: 1,
-        },
-        Slot {
-            display_name: "Direct : . \"b\"",
-            position: 0,
-        },
-        Slot {
-            display_name: "Direct : \"b\".",
-            position: 1,
-        },
-        Slot {
-            display_name: "MutualC : . MutualB",
-            position: 0,
-        },
-        Slot {
-            display_name: "MutualC : MutualB.",
-            position: 1,
-        },
-        Slot {
-            display_name: "MutualC : . \"b\"",
-            position: 0,
-        },
-        Slot {
-            display_name: "MutualC : \"b\".",
-            position: 1,
-        },
-        Slot {
-            display_name: "MutualB : . MutualC",
-            position: 0,
-        },
-        Slot {
-            display_name: "MutualB : MutualC.",
-            position: 1,
-        },
-        Slot {
-            display_name: "ChainC : . ChainA",
-            position: 0,
-        },
-        Slot {
-            display_name: "ChainC : ChainA.",
-            position: 1,
-        },
-        Slot {
-            display_name: "ChainC : . \"b\"",
-            position: 0,
-        },
-        Slot {
-            display_name: "ChainC : \"b\".",
-            position: 1,
-        },
-        Slot {
-            display_name: "ChainA : . ChainB",
-            position: 0,
-        },
-        Slot {
-            display_name: "ChainA : ChainB.",
-            position: 1,
-        },
-        Slot {
-            display_name: "ChainB : . ChainC",
-            position: 0,
-        },
-        Slot {
-            display_name: "ChainB : ChainC.",
-            position: 1,
-        },
-        Slot {
-            display_name: "SharedS : . SharedA SharedB",
-            position: 0,
-        },
-        Slot {
-            display_name: "SharedS : SharedA . SharedB",
-            position: 1,
-        },
-        Slot {
-            display_name: "SharedS : SharedA SharedB.",
-            position: 2,
-        },
-        Slot {
-            display_name: "SharedA : . SharedB",
-            position: 0,
-        },
-        Slot {
-            display_name: "SharedA : SharedB.",
-            position: 1,
-        },
-        Slot {
-            display_name: "SharedA : .",
-            position: 0,
-        },
-        Slot {
-            display_name: "SharedB : . SharedA",
-            position: 0,
-        },
-        Slot {
-            display_name: "SharedB : SharedA.",
-            position: 1,
-        },
-        Slot {
-            display_name: "TwoExitsC : . TwoExitsB",
-            position: 0,
-        },
-        Slot {
-            display_name: "TwoExitsC : TwoExitsB.",
-            position: 1,
-        },
-        Slot {
-            display_name: "TwoExitsC : . \"b\"",
-            position: 0,
-        },
-        Slot {
-            display_name: "TwoExitsC : \"b\".",
-            position: 1,
-        },
-        Slot {
-            display_name: "TwoExitsB : . TwoExitsC",
-            position: 0,
-        },
-        Slot {
-            display_name: "TwoExitsB : TwoExitsC.",
-            position: 1,
-        },
-        Slot {
-            display_name: "TwoExitsB : . \"b\"",
-            position: 0,
-        },
-        Slot {
-            display_name: "TwoExitsB : \"b\".",
-            position: 1,
-        },
-        Slot {
-            display_name: "TwoRoutesC : . TwoRoutesA",
-            position: 0,
-        },
-        Slot {
-            display_name: "TwoRoutesC : TwoRoutesA.",
-            position: 1,
-        },
-        Slot {
-            display_name: "TwoRoutesC : . TwoRoutesB",
-            position: 0,
-        },
-        Slot {
-            display_name: "TwoRoutesC : TwoRoutesB.",
-            position: 1,
-        },
-        Slot {
-            display_name: "TwoRoutesC : . \"b\"",
-            position: 0,
-        },
-        Slot {
-            display_name: "TwoRoutesC : \"b\".",
-            position: 1,
-        },
-        Slot {
-            display_name: "TwoRoutesA : . TwoRoutesC",
-            position: 0,
-        },
-        Slot {
-            display_name: "TwoRoutesA : TwoRoutesC.",
-            position: 1,
-        },
-        Slot {
-            display_name: "TwoRoutesB : . TwoRoutesC",
-            position: 0,
-        },
-        Slot {
-            display_name: "TwoRoutesB : TwoRoutesC.",
-            position: 1,
-        },
-        Slot {
-            display_name: "Nullable : . Nullable Nullable",
-            position: 0,
-        },
-        Slot {
-            display_name: "Nullable : Nullable . Nullable",
-            position: 1,
-        },
-        Slot {
-            display_name: "Nullable : Nullable Nullable.",
-            position: 2,
-        },
-        Slot {
-            display_name: "Nullable : . \"b\"",
-            position: 0,
-        },
-        Slot {
-            display_name: "Nullable : \"b\".",
-            position: 1,
-        },
-        Slot {
-            display_name: "Nullable : .",
-            position: 0,
-        },
-        Slot {
-            display_name: "SiblingC : . SiblingC SiblingD",
-            position: 0,
-        },
-        Slot {
-            display_name: "SiblingC : SiblingC . SiblingD",
-            position: 1,
-        },
-        Slot {
-            display_name: "SiblingC : SiblingC SiblingD.",
-            position: 2,
-        },
-        Slot {
-            display_name: "SiblingC : . \"b\"",
-            position: 0,
-        },
-        Slot {
-            display_name: "SiblingC : \"b\".",
-            position: 1,
-        },
-        Slot {
-            display_name: "SiblingD : . EmptyE",
-            position: 0,
-        },
-        Slot {
-            display_name: "SiblingD : EmptyE.",
-            position: 1,
-        },
-        Slot {
-            display_name: "SiblingD : . EmptyF",
-            position: 0,
-        },
-        Slot {
-            display_name: "SiblingD : EmptyF.",
-            position: 1,
-        },
-        Slot {
-            display_name: "EmptyE : .",
-            position: 0,
-        },
-        Slot {
-            display_name: "EmptyF : .",
-            position: 0,
-        },
-        Slot {
-            display_name: "ParentC : . ParentD \"b\"",
-            position: 0,
-        },
-        Slot {
-            display_name: "ParentC : ParentD . \"b\"",
-            position: 1,
-        },
-        Slot {
-            display_name: "ParentC : ParentD \"b\".",
-            position: 2,
-        },
-        Slot {
-            display_name: "ParentD : . ParentD",
-            position: 0,
-        },
-        Slot {
-            display_name: "ParentD : ParentD.",
-            position: 1,
-        },
-        Slot {
-            display_name: "ParentD : . \"a\"",
-            position: 0,
-        },
-        Slot {
-            display_name: "ParentD : \"a\".",
-            position: 1,
-        },
-        Slot {
-            display_name: "OverlapC : . OverlapB",
-            position: 0,
-        },
-        Slot {
-            display_name: "OverlapC : OverlapB.",
-            position: 1,
-        },
-        Slot {
-            display_name: "OverlapC : . \"b\"",
-            position: 0,
-        },
-        Slot {
-            display_name: "OverlapC : \"b\".",
-            position: 1,
-        },
-        Slot {
-            display_name: "OverlapB : . OverlapB",
-            position: 0,
-        },
-        Slot {
-            display_name: "OverlapB : OverlapB.",
-            position: 1,
-        },
-        Slot {
-            display_name: "OverlapB : . OverlapC",
-            position: 0,
-        },
-        Slot {
-            display_name: "OverlapB : OverlapC.",
-            position: 1,
-        },
-        Slot {
-            display_name: "IntermediateY : . IntermediateA IntermediateY IntermediateB",
-            position: 0,
-        },
-        Slot {
-            display_name: "IntermediateY : IntermediateA . IntermediateY IntermediateB",
-            position: 1,
-        },
-        Slot {
-            display_name: "IntermediateY : IntermediateA IntermediateY . IntermediateB",
-            position: 2,
-        },
-        Slot {
-            display_name: "IntermediateY : IntermediateA IntermediateY IntermediateB.",
-            position: 3,
-        },
-        Slot {
-            display_name: "IntermediateY : . \"a\"",
-            position: 0,
-        },
-        Slot {
-            display_name: "IntermediateY : \"a\".",
-            position: 1,
-        },
-        Slot {
-            display_name: "IntermediateA : .",
-            position: 0,
-        },
-        Slot {
-            display_name: "IntermediateB : .",
-            position: 0,
-        },
-        Slot {
-            display_name: "IntermediateB : . \"b\"",
-            position: 0,
-        },
-        Slot {
-            display_name: "IntermediateB : \"b\".",
-            position: 1,
-        },
-        Slot {
-            display_name: "MidInput : . Direct \"b\"",
-            position: 0,
-        },
-        Slot {
-            display_name: "MidInput : Direct . \"b\"",
-            position: 1,
-        },
-        Slot {
-            display_name: "MidInput : Direct \"b\".",
-            position: 2,
-        },
-        Slot {
-            display_name: "Consuming : . Consuming \"b\"",
-            position: 0,
-        },
-        Slot {
-            display_name: "Consuming : Consuming . \"b\"",
-            position: 1,
-        },
-        Slot {
-            display_name: "Consuming : Consuming \"b\".",
-            position: 2,
-        },
-        Slot {
-            display_name: "Consuming : . \"b\"",
-            position: 0,
-        },
-        Slot {
-            display_name: "Consuming : \"b\".",
-            position: 1,
-        },
-        Slot {
-            display_name: "Ordinary : . \"b\"",
-            position: 0,
-        },
-        Slot {
-            display_name: "Ordinary : \"b\".",
-            position: 1,
-        },
-        Slot {
-            display_name: "NullablePlus : . EmptyE+",
-            position: 0,
-        },
-        Slot {
-            display_name: "NullablePlus : EmptyE+.",
-            position: 1,
-        },
-        Slot {
-            display_name: "NullableStar : . EmptyE*",
-            position: 0,
-        },
-        Slot {
-            display_name: "NullableStar : EmptyE*.",
-            position: 1,
-        },
-        Slot {
-            display_name: "NullableSeparated : . {EmptyE EmptyF}+",
-            position: 0,
-        },
-        Slot {
-            display_name: "NullableSeparated : {EmptyE EmptyF}+.",
-            position: 1,
-        },
-        Slot {
-            display_name: "Optional : . Optional?",
-            position: 0,
-        },
-        Slot {
-            display_name: "Optional : Optional?.",
-            position: 1,
-        },
-        Slot {
-            display_name: "Optional : . \"b\"",
-            position: 0,
-        },
-        Slot {
-            display_name: "Optional : \"b\".",
-            position: 1,
-        },
-        Slot {
-            display_name: "Grouped : . (Grouped)",
-            position: 0,
-        },
-        Slot {
-            display_name: "Grouped : (Grouped).",
-            position: 1,
-        },
-        Slot {
-            display_name: "Grouped : . \"b\"",
-            position: 0,
-        },
-        Slot {
-            display_name: "Grouped : \"b\".",
-            position: 1,
-        },
-        Slot {
-            display_name: "EmptyE+ : . EmptyE+ EmptyE",
-            position: 0,
-        },
-        Slot {
-            display_name: "EmptyE+ : EmptyE+ . EmptyE",
-            position: 1,
-        },
-        Slot {
-            display_name: "EmptyE+ : EmptyE+ EmptyE.",
-            position: 2,
-        },
-        Slot {
-            display_name: "EmptyE+ : . EmptyE",
-            position: 0,
-        },
-        Slot {
-            display_name: "EmptyE+ : EmptyE.",
-            position: 1,
-        },
-        Slot {
-            display_name: "EmptyE* : . EmptyE+",
-            position: 0,
-        },
-        Slot {
-            display_name: "EmptyE* : EmptyE+.",
-            position: 1,
-        },
-        Slot {
-            display_name: "EmptyE* : .",
-            position: 0,
-        },
-        Slot {
-            display_name: "{EmptyE EmptyF}+ : . {EmptyE EmptyF}+ EmptyF EmptyE",
-            position: 0,
-        },
-        Slot {
-            display_name: "{EmptyE EmptyF}+ : {EmptyE EmptyF}+ . EmptyF EmptyE",
-            position: 1,
-        },
-        Slot {
-            display_name: "{EmptyE EmptyF}+ : {EmptyE EmptyF}+ EmptyF . EmptyE",
-            position: 2,
-        },
-        Slot {
-            display_name: "{EmptyE EmptyF}+ : {EmptyE EmptyF}+ EmptyF EmptyE.",
-            position: 3,
-        },
-        Slot {
-            display_name: "{EmptyE EmptyF}+ : . EmptyE",
-            position: 0,
-        },
-        Slot {
-            display_name: "{EmptyE EmptyF}+ : EmptyE.",
-            position: 1,
-        },
-        Slot {
-            display_name: "Optional? : . Optional",
-            position: 0,
-        },
-        Slot {
-            display_name: "Optional? : Optional.",
-            position: 1,
-        },
-        Slot {
-            display_name: "Optional? : .",
-            position: 0,
-        },
-        Slot {
-            display_name: "(Grouped) : . Grouped",
-            position: 0,
-        },
-        Slot {
-            display_name: "(Grouped) : Grouped.",
-            position: 1,
-        },
-        Slot {
-            display_name: "Direct : . start:Direct",
-            position: 0,
-        },
-        Slot {
-            display_name: "Direct : start:Direct.",
-            position: 1,
-        },
-        Slot {
-            display_name: "MutualC : . start:MutualC",
-            position: 0,
-        },
-        Slot {
-            display_name: "MutualC : start:MutualC.",
-            position: 1,
-        },
-        Slot {
-            display_name: "MutualB : . start:MutualB",
-            position: 0,
-        },
-        Slot {
-            display_name: "MutualB : start:MutualB.",
-            position: 1,
-        },
-        Slot {
-            display_name: "ChainC : . start:ChainC",
-            position: 0,
-        },
-        Slot {
-            display_name: "ChainC : start:ChainC.",
-            position: 1,
-        },
-        Slot {
-            display_name: "ChainA : . start:ChainA",
-            position: 0,
-        },
-        Slot {
-            display_name: "ChainA : start:ChainA.",
-            position: 1,
-        },
-        Slot {
-            display_name: "ChainB : . start:ChainB",
-            position: 0,
-        },
-        Slot {
-            display_name: "ChainB : start:ChainB.",
-            position: 1,
-        },
-        Slot {
-            display_name: "SharedS : . start:SharedS",
-            position: 0,
-        },
-        Slot {
-            display_name: "SharedS : start:SharedS.",
-            position: 1,
-        },
-        Slot {
-            display_name: "SharedA : . start:SharedA",
-            position: 0,
-        },
-        Slot {
-            display_name: "SharedA : start:SharedA.",
-            position: 1,
-        },
-        Slot {
-            display_name: "SharedB : . start:SharedB",
-            position: 0,
-        },
-        Slot {
-            display_name: "SharedB : start:SharedB.",
-            position: 1,
-        },
-        Slot {
-            display_name: "TwoExitsC : . start:TwoExitsC",
-            position: 0,
-        },
-        Slot {
-            display_name: "TwoExitsC : start:TwoExitsC.",
-            position: 1,
-        },
-        Slot {
-            display_name: "TwoExitsB : . start:TwoExitsB",
-            position: 0,
-        },
-        Slot {
-            display_name: "TwoExitsB : start:TwoExitsB.",
-            position: 1,
-        },
-        Slot {
-            display_name: "TwoRoutesC : . start:TwoRoutesC",
-            position: 0,
-        },
-        Slot {
-            display_name: "TwoRoutesC : start:TwoRoutesC.",
-            position: 1,
-        },
-        Slot {
-            display_name: "TwoRoutesA : . start:TwoRoutesA",
-            position: 0,
-        },
-        Slot {
-            display_name: "TwoRoutesA : start:TwoRoutesA.",
-            position: 1,
-        },
-        Slot {
-            display_name: "TwoRoutesB : . start:TwoRoutesB",
-            position: 0,
-        },
-        Slot {
-            display_name: "TwoRoutesB : start:TwoRoutesB.",
-            position: 1,
-        },
-        Slot {
-            display_name: "Nullable : . start:Nullable",
-            position: 0,
-        },
-        Slot {
-            display_name: "Nullable : start:Nullable.",
-            position: 1,
-        },
-        Slot {
-            display_name: "SiblingC : . start:SiblingC",
-            position: 0,
-        },
-        Slot {
-            display_name: "SiblingC : start:SiblingC.",
-            position: 1,
-        },
-        Slot {
-            display_name: "SiblingD : . start:SiblingD",
-            position: 0,
-        },
-        Slot {
-            display_name: "SiblingD : start:SiblingD.",
-            position: 1,
-        },
-        Slot {
-            display_name: "EmptyE : . start:EmptyE",
-            position: 0,
-        },
-        Slot {
-            display_name: "EmptyE : start:EmptyE.",
-            position: 1,
-        },
-        Slot {
-            display_name: "EmptyF : . start:EmptyF",
-            position: 0,
-        },
-        Slot {
-            display_name: "EmptyF : start:EmptyF.",
-            position: 1,
-        },
-        Slot {
-            display_name: "ParentC : . start:ParentC",
-            position: 0,
-        },
-        Slot {
-            display_name: "ParentC : start:ParentC.",
-            position: 1,
-        },
-        Slot {
-            display_name: "ParentD : . start:ParentD",
-            position: 0,
-        },
-        Slot {
-            display_name: "ParentD : start:ParentD.",
-            position: 1,
-        },
-        Slot {
-            display_name: "OverlapC : . start:OverlapC",
-            position: 0,
-        },
-        Slot {
-            display_name: "OverlapC : start:OverlapC.",
-            position: 1,
-        },
-        Slot {
-            display_name: "OverlapB : . start:OverlapB",
-            position: 0,
-        },
-        Slot {
-            display_name: "OverlapB : start:OverlapB.",
-            position: 1,
-        },
-        Slot {
-            display_name: "IntermediateY : . start:IntermediateY",
-            position: 0,
-        },
-        Slot {
-            display_name: "IntermediateY : start:IntermediateY.",
-            position: 1,
-        },
-        Slot {
-            display_name: "IntermediateA : . start:IntermediateA",
-            position: 0,
-        },
-        Slot {
-            display_name: "IntermediateA : start:IntermediateA.",
-            position: 1,
-        },
-        Slot {
-            display_name: "IntermediateB : . start:IntermediateB",
-            position: 0,
-        },
-        Slot {
-            display_name: "IntermediateB : start:IntermediateB.",
-            position: 1,
-        },
-        Slot {
-            display_name: "MidInput : . start:MidInput",
-            position: 0,
-        },
-        Slot {
-            display_name: "MidInput : start:MidInput.",
-            position: 1,
-        },
-        Slot {
-            display_name: "Consuming : . start:Consuming",
-            position: 0,
-        },
-        Slot {
-            display_name: "Consuming : start:Consuming.",
-            position: 1,
-        },
-        Slot {
-            display_name: "Ordinary : . start:Ordinary",
-            position: 0,
-        },
-        Slot {
-            display_name: "Ordinary : start:Ordinary.",
-            position: 1,
-        },
-        Slot {
-            display_name: "NullablePlus : . start:NullablePlus",
-            position: 0,
-        },
-        Slot {
-            display_name: "NullablePlus : start:NullablePlus.",
-            position: 1,
-        },
-        Slot {
-            display_name: "NullableStar : . start:NullableStar",
-            position: 0,
-        },
-        Slot {
-            display_name: "NullableStar : start:NullableStar.",
-            position: 1,
-        },
-        Slot {
-            display_name: "NullableSeparated : . start:NullableSeparated",
-            position: 0,
-        },
-        Slot {
-            display_name: "NullableSeparated : start:NullableSeparated.",
-            position: 1,
-        },
-        Slot {
-            display_name: "Optional : . start:Optional",
-            position: 0,
-        },
-        Slot {
-            display_name: "Optional : start:Optional.",
-            position: 1,
-        },
-        Slot {
-            display_name: "Grouped : . start:Grouped",
-            position: 0,
-        },
-        Slot {
-            display_name: "Grouped : start:Grouped.",
-            position: 1,
-        },
-    ];
-    const FIRST_SLOTS: &'static [&'static [SlotId]] = &[
-        &[SlotId(0), SlotId(2)],
-        &[SlotId(4), SlotId(6)],
-        &[SlotId(8)],
-        &[SlotId(10), SlotId(12)],
-        &[SlotId(14)],
-        &[SlotId(16)],
-        &[SlotId(18)],
-        &[SlotId(21), SlotId(23)],
-        &[SlotId(24)],
-        &[SlotId(26), SlotId(28)],
-        &[SlotId(30), SlotId(32)],
-        &[SlotId(34), SlotId(36), SlotId(38)],
-        &[SlotId(40)],
-        &[SlotId(42)],
-        &[SlotId(44), SlotId(47), SlotId(49)],
-        &[SlotId(50), SlotId(53)],
-        &[SlotId(55), SlotId(57)],
-        &[SlotId(59)],
-        &[SlotId(60)],
-        &[SlotId(61)],
-        &[SlotId(64), SlotId(66)],
-        &[SlotId(68), SlotId(70)],
-        &[SlotId(72), SlotId(74)],
-        &[SlotId(76), SlotId(80)],
-        &[SlotId(82)],
-        &[SlotId(83), SlotId(84)],
-        &[SlotId(86)],
-        &[SlotId(89), SlotId(92)],
-        &[SlotId(94)],
-        &[SlotId(96)],
-        &[SlotId(98)],
-        &[SlotId(100)],
-        &[SlotId(102), SlotId(104)],
-        &[SlotId(106), SlotId(108)],
-        &[SlotId(110), SlotId(113)],
-        &[SlotId(115), SlotId(117)],
-        &[SlotId(118), SlotId(122)],
-        &[SlotId(124), SlotId(126)],
-        &[SlotId(127)],
-        &[SlotId(129)],
-        &[SlotId(131)],
-        &[SlotId(133)],
-        &[SlotId(135)],
-        &[SlotId(137)],
-        &[SlotId(139)],
-        &[SlotId(141)],
-        &[SlotId(143)],
-        &[SlotId(145)],
-        &[SlotId(147)],
-        &[SlotId(149)],
-        &[SlotId(151)],
-        &[SlotId(153)],
-        &[SlotId(155)],
-        &[SlotId(157)],
-        &[SlotId(159)],
-        &[SlotId(161)],
-        &[SlotId(163)],
-        &[SlotId(165)],
-        &[SlotId(167)],
-        &[SlotId(169)],
-        &[SlotId(171)],
-        &[SlotId(173)],
-        &[SlotId(175)],
-        &[SlotId(177)],
-        &[SlotId(179)],
-        &[SlotId(181)],
-        &[SlotId(183)],
-        &[SlotId(185)],
-        &[SlotId(187)],
-        &[SlotId(189)],
-        &[SlotId(191)],
-        &[SlotId(193)],
-        &[SlotId(195)],
-    ];
+    const NONTERMINALS: &'static [Nonterminal] = &NONTERMINALS;
+    const DISPLAY_ORDER: &'static [&'static str] = &DISPLAY_ORDER;
+    const TERMINALS: &'static [Terminal] = &TERMINALS;
+    const SLOTS: &'static [Slot] = &SLOTS;
+    const FIRST_SLOTS: &'static [&'static [SlotId]] = &FIRST_SLOTS;
     const LAYOUT_NAME: Option<&'static str> = None;
     const LAYOUT_TERMINALS: &'static [TerminalId] = &[];
-    // A failed terminal match refers to a static terminal set like every other failure, so the
-    // error reporting path needs to reach a terminal set from a terminal id. This slice, indexed
-    // by terminal id, serves only that.
-    const SINGLE_TERMINAL_SETS: &'static [TerminalSet] = &[
-        TerminalSet {
-            id: 6,
-            terminals: &[TerminalId(0)],
-        },
-        TerminalSet {
-            id: 7,
-            terminals: &[TerminalId(1)],
-        },
-        TerminalSet {
-            id: 8,
-            terminals: &[TerminalId(2)],
-        },
-        TerminalSet {
-            id: 9,
-            terminals: &[TerminalId(3)],
-        },
-    ];
+    const SINGLE_TERMINAL_SETS: &'static [TerminalSet] = &SINGLE_TERMINAL_SETS;
     fn nonterminal_id(name: &str) -> Option<NonterminalId> {
         match name {
             "Direct" => Some(DIRECT),
