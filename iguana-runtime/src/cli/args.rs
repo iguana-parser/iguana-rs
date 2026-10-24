@@ -1,6 +1,6 @@
 use std::path::PathBuf;
 
-use clap::{Parser, ValueEnum};
+use clap::{ArgGroup, Parser, ValueEnum};
 
 /// The output format `--format` selects for `--trace`, `--write-sppf`, and
 /// `--write-gss`.
@@ -15,6 +15,7 @@ pub enum Format {
 /// grammar, so `main` sets it when it builds the command.
 #[derive(Parser)]
 #[command(arg_required_else_help = true)]
+#[command(group(ArgGroup::new("repeated_parse").args(["benchmark", "cpu_profile"])))]
 pub struct Args {
     /// Input file to parse
     ///
@@ -122,27 +123,27 @@ pub struct Args {
     /// Benchmarks a single file (the positional argument), a --dir or a file list (--files-from); otherwise the corpus listed in repos.txt. Reports min, mean, median, p90, max, stddev (in ms) for each phase: input (file read), init (allocation), parse (input characters to the SPPF), tree (SPPF to parse tree), drop (teardown); total is their sum.
     ///
     /// A file that has a parse error or is ambiguous does not count toward the phases. A single file is then reported by its status and its time, which for a parse error is the time until the parser reported the error. With a --dir, a file list or the corpus, these files and the files that cannot be read are reported separately by status
-    #[arg(long, help_heading = "Benchmarking and profiling")]
+    #[arg(long, help_heading = "Benchmarking")]
     pub benchmark: bool,
-    /// Benchmark the files listed in FILE, one path per line, in the file's order
+    /// Benchmark or profile the files listed in FILE, one path per line, in the file's order
     ///
     /// Blank lines are skipped. Relative paths are resolved against the current directory, not FILE's
     #[arg(
         long,
         value_name = "FILE",
-        requires = "benchmark",
+        requires = "repeated_parse",
         conflicts_with_all = ["file", "dir", "ext"],
-        help_heading = "Benchmarking and profiling"
+        help_heading = "Benchmarking"
     )]
     pub files_from: Option<PathBuf>,
-    /// Number of measured iterations for --benchmark
+    /// Number of measured iterations for --benchmark, or of parses of a single file for --cpu-profile
     ///
-    /// Defaults to 100 for a single file, 3 for a directory, file list or corpus (one iteration is a full pass over every file)
+    /// For --benchmark, defaults to 100 for a single file, 3 for a directory, file list or corpus (one iteration is a full pass over every file). For --cpu-profile, applies to a single file only and defaults to 1
     #[arg(
         long,
         value_name = "N",
-        requires = "benchmark",
-        help_heading = "Benchmarking and profiling"
+        requires = "repeated_parse",
+        help_heading = "Benchmarking"
     )]
     pub iters: Option<u32>,
     /// Number of warmup iterations before measurement
@@ -152,7 +153,7 @@ pub struct Args {
         long,
         value_name = "N",
         requires = "benchmark",
-        help_heading = "Benchmarking and profiling"
+        help_heading = "Benchmarking"
     )]
     pub warmup: Option<u32>,
     /// Save benchmark samples to a JSON file
@@ -162,7 +163,7 @@ pub struct Args {
         long,
         value_name = "FILE",
         requires = "benchmark",
-        help_heading = "Benchmarking and profiling"
+        help_heading = "Benchmarking"
     )]
     pub save: Option<PathBuf>,
     /// Compare benchmark results against a saved baseline JSON
@@ -172,29 +173,36 @@ pub struct Args {
         long,
         value_name = "FILE",
         requires = "benchmark",
-        help_heading = "Benchmarking and profiling"
+        help_heading = "Benchmarking"
     )]
     pub baseline: Option<PathBuf>,
-    /// Profile the parser and write a flamegraph SVG
+    /// Write a CPU profile of the parser to FILE, recorded by samply
     ///
-    /// Runs the parser N times in a loop under a sampling profiler. Requires the "profile" feature: cargo build --features profile
-    #[arg(long, value_name = "N", help_heading = "Benchmarking and profiling")]
-    pub profile: Option<u32>,
-    /// Output path for the flamegraph SVG (used with --profile)
+    /// Profiles a single file (the positional argument), parsed --iters times, or every file of a --dir or a file list (--files-from), parsed once. Each successful parse builds its parse tree. Open the profile with `samply load FILE`. Requires samply: cargo install --locked samply
     #[arg(
         long,
         value_name = "FILE",
-        default_value = "flamegraph.svg",
-        help_heading = "Benchmarking and profiling"
+        conflicts_with_all = [
+            "warmup",
+            "save",
+            "baseline",
+            "check_sexpr",
+            "regenerate_sexpr",
+            "corpus_test",
+            "digest",
+            "repl",
+            "list_nonterminals",
+            "write_symbols",
+        ],
+        help_heading = "Profiling"
     )]
-    pub profile_output: PathBuf,
+    pub cpu_profile: Option<PathBuf>,
     /// Compare each input's output against its sibling X.sexpr
     ///
     /// Works with a single file or --dir (which then requires --ext). Golden files hold the parse-tree s-expression on success or the rendered parse error on failure
     #[arg(
         long,
         conflicts_with = "benchmark",
-        conflicts_with = "profile",
         help_heading = "Golden-file testing"
     )]
     pub check_sexpr: bool,
@@ -204,7 +212,6 @@ pub struct Args {
     #[arg(
         long,
         conflicts_with = "benchmark",
-        conflicts_with = "profile",
         conflicts_with = "check_sexpr",
         help_heading = "Golden-file testing"
     )]
@@ -218,7 +225,7 @@ pub struct Args {
     #[arg(
         long,
         value_name = "NAME",
-        conflicts_with_all = ["benchmark", "profile", "check_sexpr", "regenerate_sexpr", "repl", "dir"],
+        conflicts_with_all = ["benchmark", "check_sexpr", "regenerate_sexpr", "repl", "dir"],
         help_heading = "Corpus testing"
     )]
     pub corpus_test: Option<Option<String>>,

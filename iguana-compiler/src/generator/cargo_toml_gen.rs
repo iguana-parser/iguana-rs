@@ -139,9 +139,9 @@ serde_json = "1.0"
     (body.trim().to_owned(), &[])
 }
 
-/// The standalone CLI shape. The command-line interface, its profilers
-/// included, lives in the runtime, so the shape only forwards the two
-/// profiling features to it.
+/// The standalone CLI shape. The command-line interface, its heap profiler
+/// included, lives in the runtime, so the shape only forwards the
+/// heap-profiling feature to it.
 fn generate_full(
     name: &str,
     runtime_path: Option<&Path>,
@@ -173,10 +173,7 @@ serde_json = "1.0"
     );
     (
         body.trim().to_owned(),
-        &[
-            "dhat-heap = [\"iguana-runtime/dhat-heap\"]",
-            "profile = [\"iguana-runtime/profile\"]",
-        ],
+        &["dhat-heap = [\"iguana-runtime/dhat-heap\"]"],
     )
 }
 
@@ -265,17 +262,14 @@ mod tests {
         }
     }
 
-    /// The CLI shape is the only one with profiling features, and it forwards
-    /// them to the runtime rather than depending on the profilers itself.
+    /// The CLI shape is the only one with the heap-profiling feature, and it
+    /// forwards the feature to the runtime rather than depending on the
+    /// profiler itself.
     #[test]
-    fn the_cli_shape_adds_only_its_profiling_features() {
+    fn the_cli_shape_adds_only_its_heap_profiling_feature() {
         let full = manifest(GenConfig::default());
-        let expected = generated_source_features(&[
-            "dhat-heap = [\"iguana-runtime/dhat-heap\"]",
-            "profile = [\"iguana-runtime/profile\"]",
-        ]);
+        let expected = generated_source_features(&["dhat-heap = [\"iguana-runtime/dhat-heap\"]"]);
         assert!(full.contains(&expected), "{full}");
         assert!(!full.contains("dhat = "), "{full}");
-        assert!(!full.contains("pprof = "), "{full}");
     }
 }

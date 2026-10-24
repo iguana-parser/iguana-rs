@@ -24,9 +24,9 @@ export const commands = {
 	debug_trace: boolean,
 } | null>("get_build_features"),
 	/**
-	 *  Profile the parser by building with --features profile (release mode),
-	 *  running the parser in a loop under a sampling profiler, and opening the
-	 *  resulting flamegraph SVG in the default browser.
+	 *  Profile the parser with its `--cpu-profile` flag, which records the parser
+	 *  with samply, and save the profile in the grammar directory. `samply load`
+	 *  opens the profile.
 	 */
 	profile: (directory: string, input: string, startNonterminal: string, iterations: number) => __TAURI_INVOKE<void>("profile", { directory, input, startNonterminal, iterations }),
 	getSppf: () => typedError<SPPF, string>(__TAURI_INVOKE("get_sppf")),

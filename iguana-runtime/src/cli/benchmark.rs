@@ -222,7 +222,7 @@ pub(super) fn run<'i, 'arena, P: Parser<'i, 'arena>>(args: &Args) -> io::Result<
 }
 
 /// The paths in a file list (--files-from), in order, without blank lines.
-fn file_list(text: &str) -> Vec<PathBuf> {
+pub(super) fn file_list(text: &str) -> Vec<PathBuf> {
     text.lines()
         .filter(|line| !line.trim().is_empty())
         .map(PathBuf::from)

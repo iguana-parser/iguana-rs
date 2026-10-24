@@ -106,9 +106,9 @@ methods, and the generated parser implements its required methods.
 The runtime also holds the command-line interface of a generated parser,
 behind its `cli` feature. The generated `main.rs` is a stub that calls the
 interface with the crate's parser type, and the generated `Cargo.toml` enables
-the feature. The `dhat-heap` and `profile` features add the heap and sampling
-profilers to the interface. A crate generated without a CLI, such as a
-WebAssembly bundle, depends on the runtime without these features.
+the feature. The `dhat-heap` feature adds the heap profiler to the interface.
+A crate generated without a CLI, such as a WebAssembly bundle, depends on the
+runtime without these features.
 
 Most runtime operations are on parser hot paths. New allocations, hashing, or
 trait dispatch in the runtime therefore require measurement and justification.

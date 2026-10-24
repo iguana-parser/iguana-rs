@@ -20,13 +20,11 @@ use crate::{
     parser::{GLLResult, Parser},
     visualization::{dot::write_graph, gss::build_gss_dot_graph, sppf::build_sppf_graph},
 };
-#[cfg(feature = "profile")]
-use pprof::ProfilerGuardBuilder;
 
 use super::{
     Symbols,
     args::{Args, Format},
-    batch, benchmark, corpus, digest, golden_file, repl, start_nonterminal_id,
+    batch, benchmark, corpus, cpu_profile, digest, golden_file, repl, start_nonterminal_id,
     start_nonterminal_name,
 };
 
@@ -129,6 +127,9 @@ fn run<'i, 'arena, P: Parser<'i, 'arena>>() -> io::Result<()> {
     if args.benchmark {
         return benchmark::run::<P>(&args);
     }
+    if let Some(output) = args.cpu_profile.as_ref() {
+        return cpu_profile::run::<P>(&args, output);
+    }
     if args.digest.is_some() {
         return digest::run::<P>(&args);
     }
@@ -158,36 +159,6 @@ fn parse_file<'i, 'arena, P: Parser<'i, 'arena>>(args: Args) -> io::Result<()> {
         );
     }
     let input = Input::try_from(file.as_path())?;
-    #[cfg(feature = "profile")]
-    if let Some(iterations) = args.profile {
-        let guard = ProfilerGuardBuilder::default()
-            .frequency(999)
-            .build()
-            .unwrap();
-        let mut tree_arena = Arena::new();
-        let mut parser_arena = Arena::new();
-        for _ in 0..iterations {
-            let mut parser = P::ConcreteParser::<'_, '_>::new(&input, &parser_arena);
-            let result = parser.run(start_nonterminal_id);
-            if let GLLResult::Success(success) = result {
-                let _ = parser.build_tree(success.sppf_node_id, &tree_arena);
-            }
-            drop(parser);
-            parser_arena.reset();
-            tree_arena.reset();
-        }
-        let report = guard.report().build().unwrap();
-        let file = File::create(&args.profile_output)?;
-        report.flamegraph(&file).unwrap();
-        eprintln!("Flamegraph written to {}", args.profile_output.display());
-        return Ok(());
-    }
-    #[cfg(not(feature = "profile"))]
-    if args.profile.is_some() {
-        eprintln!(
-            "Warning: --profile flag ignored. Recompile with `--features profile` to enable profiling."
-        );
-    }
     let tree_arena = Arena::new();
     let parser_arena = Arena::new();
     let mut parser = P::ConcreteParser::<'_, '_>::new(&input, &parser_arena);

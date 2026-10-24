@@ -14,6 +14,8 @@ relationships.
   writes SPPF or GSS graphs as SVG.
 - **WebAssembly tools.** `wasm-pack` and the `wasm32-unknown-unknown` target are
   required only for WebAssembly builds.
+- **samply.** `cargo install --locked samply` is required only for profiling a
+  generated parser.
 
 ## Setup
 
@@ -212,6 +214,24 @@ Iguana has unit and integration tests inside the crates and grammar tests under
 `tests/<name>/`. Grammar tests compare generated-parser output with golden
 s-expression files. `cargo xtask test` runs both kinds. See the
 [testing guide](testing.md) for the grammar-test layout and workflow.
+
+## Profiling
+
+A generated parser writes a CPU profile of itself with `--cpu-profile`. The
+parser runs itself again under `samply record`, so `samply` must be installed.
+A single file is read once and parsed `--iters` times, 1 by default. A `--dir`
+or `--files-from` input parses each file once. Every successful parse also
+builds its parse tree, and the profile includes reading the files.
+
+```sh
+target/release/<parser> <file> --start <Nonterminal> --cpu-profile profile.json --iters 100
+samply load profile.json
+```
+
+`samply load` opens the profile in the Firefox Profiler. The release profile of the root workspace sets `debug = "line-tables-only"`, so
+the profile shows line numbers and inlined functions. A generated crate outside
+the workspace needs the same setting in its own `Cargo.toml`. On macOS, `sample`
+reports the same self time per function, but it does not show inlined functions.
 
 ## LSP server
 

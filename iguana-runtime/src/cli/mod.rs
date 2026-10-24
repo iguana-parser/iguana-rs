@@ -19,6 +19,8 @@ mod benchmark;
 #[cfg(feature = "cli")]
 mod corpus;
 #[cfg(feature = "cli")]
+mod cpu_profile;
+#[cfg(feature = "cli")]
 mod digest;
 #[cfg(feature = "cli")]
 mod golden_file;

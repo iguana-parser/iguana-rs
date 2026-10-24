@@ -118,7 +118,7 @@
     const unlistenProfileResult = listen<{ success: boolean; message: string }>("profile-result", (event) => {
       isProfiling = false;
       if (event.payload.success) {
-        setStatus("Flamegraph opened in browser", "success");
+        setStatus("Profile saved", "success", event.payload.message);
       } else {
         setStatus("Profiling failed", "error");
       }
@@ -936,9 +936,6 @@
     buildStartTime = performance.now();
     buildError = null;
     statusMessage = null;  // Let isBuilding control the status display
-    const featList = ["profile"];
-    if (buildConfig.instrument) featList.push("instrument");
-    if (buildConfig.debugTrace) featList.push("debug-trace");
     // Command returns immediately, results come via events
     await commands.buildParser(parserDirectory, buildConfig.instrument, buildConfig.debugTrace);
   }

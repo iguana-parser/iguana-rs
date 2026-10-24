@@ -23,6 +23,5 @@ serde_json = "1.0"
 debug-trace = ["iguana-runtime/debug-trace"]
 instrument = ["iguana-runtime/instrument"]
 dhat-heap = ["iguana-runtime/dhat-heap"]
-profile = ["iguana-runtime/profile"]
 [lints]
 workspace = true

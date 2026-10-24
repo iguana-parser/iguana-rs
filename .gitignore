@@ -3,7 +3,7 @@
 /.idea
 .vscode/launch.json
 **/.DS_Store
-iggy/flamegraph.svg
+iggy/profile.json
 node_modules/
 terrarium/.svelte-kit
 terrarium/src-tauri/target

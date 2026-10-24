@@ -19,7 +19,6 @@ use iguana_runtime::visualization::{gss::GSS, sppf::SPPF};
 use serde::{Deserialize, Serialize};
 use specta::Type;
 use tauri::{Emitter, Manager};
-use tauri_plugin_opener::OpenerExt;
 use tauri_specta::{collect_commands, Builder};
 use tempfile::{NamedTempFile, TempDir};
 use toml::Value;
@@ -392,15 +391,18 @@ fn build_parser(
     app: tauri::AppHandle,
     state: tauri::State<'_, Mutex<BuildState>>,
 ) {
-    // Build feature list. `profile` is always on (no runtime cost when --profile not passed).
-    let mut features = vec!["profile".to_string()];
+    let mut features = vec![];
     if instrument {
-        features.push("instrument".into());
+        features.push("instrument");
     }
     if debug_trace {
-        features.push("debug-trace".into());
+        features.push("debug-trace");
     }
-    let features_arg = features.join(",");
+    let mut cargo_args = vec!["build".to_string(), "--release".to_string()];
+    if !features.is_empty() {
+        cargo_args.push("--features".into());
+        cargo_args.push(features.join(","));
+    }
     let built_features = BuildFeatures {
         instrument,
         debug_trace,
@@ -410,14 +412,10 @@ fn build_parser(
     lock_state(&state).features = None;
 
     thread::spawn(move || {
-        log_event(
-            &app,
-            "command",
-            &format!("cargo build --release --features {features_arg}"),
-        );
+        log_event(&app, "command", &format!("cargo {}", cargo_args.join(" ")));
 
         let build_output = Command::new("cargo")
-            .args(["build", "--release", "--features", &features_arg])
+            .args(&cargo_args)
             .current_dir(&directory)
             .output();
 
@@ -666,9 +664,9 @@ fn get_stats(
     serde_json::from_str(&content).map_err(|e| format!("Failed to parse stats JSON: {}", e))
 }
 
-/// Profile the parser by building with --features profile (release mode),
-/// running the parser in a loop under a sampling profiler, and opening the
-/// resulting flamegraph SVG in the default browser.
+/// Profile the parser with its `--cpu-profile` flag, which records the parser
+/// with samply, and save the profile in the grammar directory. `samply load`
+/// opens the profile.
 #[tauri::command]
 #[specta::specta]
 fn profile(
@@ -682,7 +680,9 @@ fn profile(
         log_event(
             &app,
             "command",
-            &format!("<parser> <input> --start {start_nonterminal} --profile {iterations}"),
+            &format!(
+                "<parser> <input> --start {start_nonterminal} --cpu-profile profile.json --iters {iterations}"
+            ),
         );
 
         let parser_path = match find_parser_binary(&directory, "release") {
@@ -735,23 +735,28 @@ fn profile(
             return;
         }
 
-        let flamegraph_path = Path::new(&directory).join("flamegraph.svg");
+        let profile_path = Path::new(&directory).join("profile.json");
 
         let output = Command::new(&parser_path)
             .arg(input_file.path())
             .arg("--start")
             .arg(&start_nonterminal)
-            .arg("--profile")
+            .arg("--cpu-profile")
+            .arg(&profile_path)
+            .arg("--iters")
             .arg(iterations.to_string())
-            .arg("--profile-output")
-            .arg(&flamegraph_path)
             .output();
 
         match output {
             Ok(output) if output.status.success() => {
-                let url = format!("file://{}", flamegraph_path.display());
-                let _ = app.opener().open_url(&url, None::<&str>);
-                let msg = format!("Flamegraph written to {}", flamegraph_path.display());
+                // The parser's last line names the profile and the command
+                // that opens it.
+                let stderr = String::from_utf8_lossy(&output.stderr);
+                let msg = stderr
+                    .lines()
+                    .rfind(|line| !line.trim().is_empty())
+                    .unwrap_or_default()
+                    .to_string();
                 log_event(&app, "output", &msg);
                 let _ = app.emit(
                     "profile-result",

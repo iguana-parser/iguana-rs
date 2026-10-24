@@ -47,8 +47,10 @@ iguana-runtime = { path = "iguana-runtime", version = "=0.1.0-alpha.4" }
 iggy = { path = "iggy", version = "=0.1.0-alpha.4", package = "iguana-iggy" }
 iguana-compiler = { path = "iguana-compiler", version = "=0.1.0-alpha.4" }
 
+# Line tables let profilers show line numbers and inlined functions. They add
+# much less build time than full debug information.
 [profile.release]
-debug = true
+debug = "line-tables-only"
 
 [workspace.lints.rust]
 warnings = "deny"
